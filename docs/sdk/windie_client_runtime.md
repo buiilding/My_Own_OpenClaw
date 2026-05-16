@@ -213,6 +213,9 @@ Electron uses a sidecar-backed store adapter during the desktop migration:
 - desktop `TranscriptWriter` visible transcript appends also route through the
   Electron conversation store adapter, so queued user/assistant/tool writes no
   longer own direct row IPC or replay append mutation.
+- desktop chat feature code uses the desktop conversation runtime facade for
+  transcript session identity helpers, keeping direct `TranscriptWriter` imports
+  at the migration boundary instead of in chat hooks and utilities.
 - desktop manual compaction controls share one rehydrate-first runtime helper
   that uses the SDK store-backed conversation rehydrate path before sending
   `compact-history`.

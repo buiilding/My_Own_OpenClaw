@@ -1,4 +1,4 @@
-import { getActiveConversationRef, updateTranscriptSession } from '../../../../infrastructure/transcript/TranscriptWriter';
+import { DesktopConversationRuntimeClient } from '../../session/desktopConversationRuntimeClient';
 import { syncTranscriptSessionFromBackendEvent } from '../../session/conversationSessionRuntime';
 import type { BackendEvent } from '../../../../types/backendEvents';
 
@@ -49,8 +49,8 @@ export const ingestBackendEvent = (
         eventType: event.type,
         eventUserId: event.user_id,
         resolvedConversationRef: normalizedConversationRef,
-        activeConversationRef: getActiveConversationRef(),
-        updateTranscriptSession,
+        activeConversationRef: DesktopConversationRuntimeClient.getActiveConversationRef(),
+        updateTranscriptSession: DesktopConversationRuntimeClient.updateTranscriptSession,
       });
     } catch {
       // Transcript session sync is best-effort. Stream event dispatch must continue.

@@ -8,11 +8,6 @@ import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { buildDeferredQueryModelSelection } from '../../../app/providers/appConfigBackendSync';
 import { DEFAULT_USER_ID } from '../../dashboard/utils/episodicMemoryUtils';
 import {
-  getActiveConversationRef,
-  getTranscriptSessionInfo,
-  updateTranscriptSession,
-} from '../../../infrastructure/transcript/TranscriptWriter';
-import {
   getConversationWorkspaceBinding,
   setConversationWorkspaceBinding,
 } from '../../../infrastructure/workspace/conversationWorkspaceBinding';
@@ -91,7 +86,7 @@ async function runReplayQueryFlow({
 
 function ensureConversationRef(sessionConversationRef, storeConversationRef) {
   let conversationRef = resolveRendererConversationSessionSnapshot({
-    transcriptConversationRef: getActiveConversationRef() || sessionConversationRef,
+    transcriptConversationRef: DesktopConversationRuntimeClient.getActiveConversationRef() || sessionConversationRef,
     storeConversationRef,
   }).conversationRef;
   if (!conversationRef) {
@@ -100,7 +95,7 @@ function ensureConversationRef(sessionConversationRef, storeConversationRef) {
       selectConversationRef: (nextConversationRef) => {
         applyRendererConversationSelection({
           conversationRef: nextConversationRef,
-          updateTranscriptSession,
+          updateTranscriptSession: DesktopConversationRuntimeClient.updateTranscriptSession,
         });
       },
       onConversationCreated: (nextConversationRef) => {
@@ -136,7 +131,7 @@ async function executeReplayAction({
   applyRendererConversationSelection({
     conversationRef,
     userId: sessionInfo.userId || undefined,
-    updateTranscriptSession,
+    updateTranscriptSession: DesktopConversationRuntimeClient.updateTranscriptSession,
   });
 
   setMessages(replayMessages, conversationRef);
@@ -200,7 +195,7 @@ export function useConversationReplayActions({
     const preservedMessages = messages.slice(0, userIndex);
     const replayContextMessages = buildReplayContextMessages(preservedMessages);
     const replayConversation = [...replayContextMessages, editUserMessage];
-    const sessionInfo = getTranscriptSessionInfo();
+    const sessionInfo = DesktopConversationRuntimeClient.getTranscriptSessionInfo();
     const replayScreenshot = resolveReplayScreenshotState({
       screenshot: editUserMessage.screenshot || null,
       screenshotRef: editUserMessage.screenshotRef || null,
@@ -255,7 +250,7 @@ export function useConversationReplayActions({
     const retryUserMessage = messages[userIndex];
     const preservedMessages = messages.slice(0, userIndex + 1);
     const replayContextMessages = buildReplayContextMessages(preservedMessages);
-    const sessionInfo = getTranscriptSessionInfo();
+    const sessionInfo = DesktopConversationRuntimeClient.getTranscriptSessionInfo();
     const replayScreenshot = resolveReplayScreenshotState({
       screenshot: retryUserMessage.screenshot || null,
       screenshotRef: retryUserMessage.screenshotRef || null,

@@ -5,9 +5,6 @@ import {
 } from '../stores/chatStore';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import {
-  getActiveConversationRef,
-} from '../../../infrastructure/transcript/TranscriptWriter';
-import {
   type BackendEvent,
   type BackendEventType,
   type LlmThoughtEvent,
@@ -42,6 +39,7 @@ import { useTurnScopedBackendEventHandler } from './chatStream/useTurnScopedBack
 import { useChatStreamCompletionHandler } from './chatStream/useChatStreamCompletionHandler';
 import { useChatStreamTextHandlers } from './chatStream/useChatStreamTextHandlers';
 import { ingestBackendEvent } from '../utils/chatStream/chatStreamBackendIngress';
+import { DesktopConversationRuntimeClient } from '../session/desktopConversationRuntimeClient';
 import {
   recordTrackingEvent as recordTrackingEventRuntime,
   resolveTargetConversationRef as resolveTargetConversationRefRuntime,
@@ -78,7 +76,7 @@ export function useChatStream(enableTranscript: boolean = true) {
   const resolveTargetConversationRef = useCallback(
     (event: BackendEvent): string | null => resolveTargetConversationRefRuntime(
       event,
-      getActiveConversationRef(),
+      DesktopConversationRuntimeClient.getActiveConversationRef(),
     ),
     [],
   );

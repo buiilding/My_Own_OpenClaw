@@ -3,9 +3,13 @@ import type { RehydrateConversationEntry } from '../../../infrastructure/api/cli
 import type { CaptureMeta } from '../../../infrastructure/services/ScreenshotAttachmentPipeline';
 import type { WindieModelSelection } from '../../../infrastructure/api/windieSdkClient';
 import {
+  getActiveConversationRef,
+  getTranscriptSessionInfo,
   recordAssistantMessage,
   recordToolMessage,
   recordUserMessage,
+  setActiveConversationRef,
+  updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
 import {
   ElectronSidecarConversationStore,
@@ -62,6 +66,25 @@ type LoadRehydrateSnapshotInput = {
  * IPC bridge while the desktop migration continues.
  */
 export const DesktopConversationRuntimeClient = {
+  getActiveConversationRef(): string | null {
+    return getActiveConversationRef();
+  },
+
+  getTranscriptSessionInfo(): ReturnType<typeof getTranscriptSessionInfo> {
+    return getTranscriptSessionInfo();
+  },
+
+  setActiveConversationRef(conversationRef: string | null): void {
+    setActiveConversationRef(conversationRef);
+  },
+
+  updateTranscriptSession(
+    conversationRef?: string | null,
+    userId?: string | null,
+  ): void {
+    updateTranscriptSession(conversationRef, userId);
+  },
+
   setModel(selection: WindieModelSelection): void {
     ApiClient.setModel(selection);
   },

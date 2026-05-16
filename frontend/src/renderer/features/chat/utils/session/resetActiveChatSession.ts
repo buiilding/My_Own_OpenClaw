@@ -1,8 +1,6 @@
 import type { TokenCounts } from '../../stores/chatStore';
-import {
-  updateTranscriptSession,
-} from '../../../../infrastructure/transcript/TranscriptWriter';
 import { clearConversationInferenceSessionState } from '../../session/conversationInferenceSessionRuntime';
+import { DesktopConversationRuntimeClient } from '../../session/desktopConversationRuntimeClient';
 import { applyRendererConversationSelection } from '../../session/conversationSessionRuntime';
 
 type ResetActiveChatSessionOptions = {
@@ -29,7 +27,7 @@ export const resetActiveChatSession = ({
   applyRendererConversationSelection({
     conversationRef: null,
     userId: userId || undefined,
-    updateTranscriptSession,
+    updateTranscriptSession: DesktopConversationRuntimeClient.updateTranscriptSession,
     setChatConversationRef: setChatActiveConversationRef,
   });
   clearConversationInferenceSessionState(targetConversationRef);

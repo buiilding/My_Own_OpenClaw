@@ -70,6 +70,24 @@ describe('renderer chat runtime boundary', () => {
     expect(offenders).toEqual([]);
   });
 
+  test('chat feature session helpers stay inside the runtime facade', async () => {
+    const files = await listSourceFiles(chatRoot);
+    const offenders: string[] = [];
+
+    for (const file of files) {
+      const relativePath = path.relative(chatRoot, file);
+      if (allowedRelativePaths.has(relativePath)) {
+        continue;
+      }
+      const source = await fs.readFile(file, 'utf8');
+      if (source.includes('infrastructure/transcript/TranscriptWriter')) {
+        offenders.push(relativePath);
+      }
+    }
+
+    expect(offenders).toEqual([]);
+  });
+
   test('chat stream compaction persistence uses the desktop runtime facade', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'hooks/chatStream/useChatStreamCompactionHandlers.ts'),
