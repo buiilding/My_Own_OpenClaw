@@ -334,6 +334,9 @@ headers, handshake data, local tool execution, and renderer fan-out.
 `agent.stream(...)` and `agent.conversation(...).stream(...)` both run through
 `SdkConversationRuntime`, which owns local tool execution when a sidecar/local
 runtime adapter is available.
+SDK backend event normalization requires explicit `conversation_ref`; turn-only
+or session-only events remain raw debug events and are not appended to the
+conversation store.
 
 ## Public Methods
 

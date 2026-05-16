@@ -408,6 +408,16 @@ describe('Windie SDK conversation runtime core', () => {
     });
   });
 
+  test('backend events without conversation_ref are not normalized into conversation events', () => {
+    const normalized = normalizeBackendEventToConversationEvent({
+      type: 'streaming-response',
+      turn_ref: 'turn-only',
+      payload: { text: 'orphan chunk' },
+    });
+
+    expect(normalized).toBeNull();
+  });
+
   test('backend compaction-completed only normalizes to applied when replacement history exists', () => {
     const applied = normalizeBackendEventToConversationEvent({
       type: 'context-compaction-completed',

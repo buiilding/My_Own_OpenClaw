@@ -157,12 +157,11 @@ export class SdkConversationRuntime {
         return;
       }
       const hasRoutingIdentity = typeof rawEvent.conversation_ref === 'string'
-        || typeof rawEvent.turn_ref === 'string';
+        && rawEvent.conversation_ref.trim().length > 0;
       if (!hasRoutingIdentity) {
         return;
       }
       const event = normalizeBackendEventToConversationEvent(rawEvent, {
-        fallbackConversationRef: this.options.conversationRef,
         fallbackRevisionId: this.state.revisionId,
       });
       if (event && this.shouldAcceptBackendEvent(event)) {

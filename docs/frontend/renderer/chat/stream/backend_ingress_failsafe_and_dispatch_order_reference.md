@@ -13,7 +13,7 @@ title: "Backend Ingress Fail-Safe and Dispatch Order Reference"
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamBackendIngress.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStream.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventRuntime.ts`
-- `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`
 - `tests/frontend/ChatStreamBackendIngress.test.ts`
 
 ## Ingress Ownership Boundary
@@ -62,13 +62,12 @@ Each pre-dispatch step is wrapped in local `try/catch` with intentional swallow 
 
 Result: side-channel failures (projection/registration/transcript bookkeeping) cannot suppress the primary stream event.
 
-## Transcript Session Fallback Contract
+## Transcript Session Contract
 
 When transcript sync is enabled:
 
-- prefers current transcript active conversation from `TranscriptWriter`
-- falls back to ingress `conversationRef` when active transcript conversation is not set
-- allows `undefined` conversation ref when neither is available (still passes user id)
+- ingress requires a resolved `conversationRef`
+- transcript sync receives the resolved `conversationRef` and event `user_id`
 
 When transcript sync is disabled:
 
@@ -80,7 +79,7 @@ Listener flow:
 
 1. validate envelope with `isBackendEvent(...)`
 2. compute `conversationRef` via runtime conversation gate
-3. call `ingestBackendEvent(...)`
+3. call `ingestBackendEvent(...)`; unresolved events return `false` and are not dispatched
 4. ingress callback dispatch selects handler from `buildChatStreamHandlerMap(...)`
 
 This keeps listener-level pre-dispatch behavior deterministic and shared across all backend event types.

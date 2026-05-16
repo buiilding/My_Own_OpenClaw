@@ -8,11 +8,11 @@ function payloadOf(event: BackendEvent): JsonRecord {
     : {};
 }
 
-function conversationRefOf(event: BackendEvent, fallbackConversationRef?: string): string | null {
+function conversationRefOf(event: BackendEvent): string | null {
   if (typeof event.conversation_ref === 'string' && event.conversation_ref.trim()) {
     return event.conversation_ref.trim();
   }
-  return fallbackConversationRef?.trim() || null;
+  return null;
 }
 
 function revisionIdFor(event: BackendEvent, fallbackRevisionId?: string): string {
@@ -28,10 +28,9 @@ function revisionIdFor(event: BackendEvent, fallbackRevisionId?: string): string
 
 function eventBase(
   event: BackendEvent,
-  fallbackConversationRef?: string,
   fallbackRevisionId?: string,
 ): { conversationRef: string; revisionId: string; turnRef: string | null; eventId: string; timestamp: string } | null {
-  const conversationRef = conversationRefOf(event, fallbackConversationRef);
+  const conversationRef = conversationRefOf(event);
   if (!conversationRef) {
     return null;
   }
@@ -45,7 +44,6 @@ function eventBase(
 }
 
 export type NormalizeBackendEventOptions = {
-  fallbackConversationRef?: string;
   fallbackRevisionId?: string;
 };
 
@@ -53,7 +51,7 @@ export function normalizeBackendEventToConversationEvent(
   event: BackendEvent,
   options: NormalizeBackendEventOptions = {},
 ): ConversationEvent | null {
-  const base = eventBase(event, options.fallbackConversationRef, options.fallbackRevisionId);
+  const base = eventBase(event, options.fallbackRevisionId);
   if (!base) {
     return null;
   }
