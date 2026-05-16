@@ -104,6 +104,12 @@ the SDK rehydrate projection from the configured store and send the backend
 rehydrate command. They should not fetch projection rows and shape provider
 history themselves.
 
+Desktop compaction replay persistence follows the same rule. Chat stream
+handlers may render visible lifecycle/debug state, but
+`DesktopConversationRuntimeClient.replaceCompactedReplayFromBackendEvent(...)`
+owns conversion from backend compaction events to complete active replay
+snapshots before delegating to the store adapter.
+
 ## Compaction Rule
 
 Backend `context-compaction-completed` with `skipped_reason` normalizes to

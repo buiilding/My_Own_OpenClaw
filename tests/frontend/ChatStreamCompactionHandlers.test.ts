@@ -3,6 +3,7 @@ import { act, renderHook } from '@testing-library/react';
 jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient', () => ({
   DesktopConversationRuntimeClient: {
     replaceCompactedReplay: jest.fn(() => Promise.resolve()),
+    replaceCompactedReplayFromBackendEvent: jest.fn(() => Promise.resolve()),
   },
 }));
 
@@ -17,6 +18,7 @@ import {
 describe('useChatStreamCompactionHandlers', () => {
   beforeEach(() => {
     jest.mocked(DesktopConversationRuntimeClient.replaceCompactedReplay).mockClear();
+    jest.mocked(DesktopConversationRuntimeClient.replaceCompactedReplayFromBackendEvent).mockClear();
   });
 
   test('updates thinking state for compaction lifecycle events', async () => {
@@ -117,17 +119,10 @@ describe('useChatStreamCompactionHandlers', () => {
     expect(persistCompactedReplay).toHaveBeenCalledTimes(1);
     expect(persistCompactedReplay).toHaveBeenCalledWith(
       expect.objectContaining({
-        generationId: 'compaction-conversation-1-compaction-event-1',
-        conversationRef: 'conversation-1',
-        sourceRevisionId: 'rev-compaction-conversation-1-compaction-event-1',
-        sourceTurnRef: 'turn-1',
-        entries: [
-          expect.objectContaining({ message_type: 'context_compaction' }),
-          expect.objectContaining({ message_type: 'user_query' }),
-        ],
-        entryCount: 2,
-        complete: true,
+        type: 'context-compaction-completed',
+        id: 'compaction-event-1',
       }),
+      'conversation-1',
       'user-1',
     );
   });
@@ -203,13 +198,15 @@ describe('useChatStreamCompactionHandlers', () => {
       } as any);
     });
 
-    expect(DesktopConversationRuntimeClient.replaceCompactedReplay).toHaveBeenCalledWith(
+    expect(DesktopConversationRuntimeClient.replaceCompactedReplayFromBackendEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        generationId: 'compaction-conversation-1-compaction-event-2',
         conversationRef: 'conversation-1',
-        entryCount: 1,
+        userId: 'user-2',
+        event: expect.objectContaining({
+          id: 'compaction-event-2',
+          type: 'context-compaction-completed',
+        }),
       }),
-      'user-2',
     );
   });
 

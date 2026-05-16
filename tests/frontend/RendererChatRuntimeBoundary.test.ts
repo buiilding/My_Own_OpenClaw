@@ -95,7 +95,9 @@ describe('renderer chat runtime boundary', () => {
     );
 
     expect(source).not.toContain('ElectronSidecarConversationStore');
-    expect(source).toContain('DesktopConversationRuntimeClient.replaceCompactedReplay');
+    expect(source).not.toContain('CompactedReplaySnapshot');
+    expect(source).not.toContain('DesktopConversationRuntimeClient.replaceCompactedReplay(');
+    expect(source).toContain('DesktopConversationRuntimeClient.replaceCompactedReplayFromBackendEvent');
   });
 
   test('conversation replay rewrites use the desktop runtime facade', async () => {

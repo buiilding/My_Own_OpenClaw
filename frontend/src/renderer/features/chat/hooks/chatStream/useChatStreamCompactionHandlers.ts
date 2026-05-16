@@ -11,7 +11,6 @@ import {
   COMPACTION_FAILED_THINKING_STATUS,
 } from '../../utils/chatStream/chatStreamThinkingStatus';
 import type { StreamTrackingOptions } from '../../utils/chatStream/chatStreamTracking';
-import type { CompactedReplaySnapshot } from '../../../../infrastructure/api/windieSdkClient';
 import { DesktopConversationRuntimeClient } from '../../session/desktopConversationRuntimeClient';
 import { useTurnScopedBackendEventHandler } from './useTurnScopedBackendEventHandler';
 
@@ -64,50 +63,31 @@ type RecordTrackingEvent = (
   conversationRef?: string | null,
 ) => void;
 
-type PersistCompactedReplaySnapshot = (
-  snapshot: CompactedReplaySnapshot,
+type PersistCompactedReplayFromBackendEvent = (
+  event: ContextCompactionCompletedEvent,
+  conversationRef: string,
   userId: string,
 ) => Promise<void>;
 
-function resolveReplacementHistoryEntries(
+function hasReplacementHistoryEntries(
   event: ContextCompactionCompletedEvent,
-): Record<string, unknown>[] {
+): boolean {
   return Array.isArray(event.payload?.replacement_history_entries)
-    ? event.payload.replacement_history_entries
-        .filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === 'object' && !Array.isArray(entry))
-    : [];
+    && event.payload.replacement_history_entries.some(
+      (entry) => Boolean(entry) && typeof entry === 'object' && !Array.isArray(entry),
+    );
 }
 
-function buildCompactedReplaySnapshot(
+async function persistCompactedReplayFromBackendEvent(
   event: ContextCompactionCompletedEvent,
   conversationRef: string,
-  entries: Record<string, unknown>[],
-): CompactedReplaySnapshot {
-  const eventId = typeof event.id === 'string' && event.id.trim()
-    ? event.id.trim()
-    : null;
-  const turnRef = typeof event.turn_ref === 'string' && event.turn_ref.trim()
-    ? event.turn_ref.trim()
-    : null;
-  const stableSuffix = eventId ?? turnRef ?? `${Date.now()}`;
-  return {
-    generationId: `compaction-${conversationRef}-${stableSuffix}`,
-    conversationRef,
-    sourceRevisionId: `rev-compaction-${conversationRef}-${stableSuffix}`,
-    sourceTurnRef: turnRef,
-    createdAt: new Date().toISOString(),
-    entries,
-    entryCount: entries.length,
-    complete: true,
-    active: true,
-  };
-}
-
-async function persistCompactedReplaySnapshot(
-  snapshot: CompactedReplaySnapshot,
   userId: string,
 ): Promise<void> {
-  await DesktopConversationRuntimeClient.replaceCompactedReplay(snapshot, userId);
+  await DesktopConversationRuntimeClient.replaceCompactedReplayFromBackendEvent({
+    event,
+    conversationRef,
+    userId,
+  });
 }
 
 export function useChatStreamCompactionHandlers({
@@ -118,7 +98,7 @@ export function useChatStreamCompactionHandlers({
   getThinkingSourceEventType,
   setCompactionDebugInfo,
   recordTrackingEvent,
-  persistCompactedReplay = persistCompactedReplaySnapshot,
+  persistCompactedReplay = persistCompactedReplayFromBackendEvent,
 }: {
   resolveTargetConversationRef: ResolveTargetConversationRef;
   shouldIgnoreForStaleTurn: ShouldIgnoreForStaleTurn;
@@ -127,7 +107,7 @@ export function useChatStreamCompactionHandlers({
   getThinkingSourceEventType?: GetThinkingSourceEventType;
   setCompactionDebugInfo: SetCompactionDebugInfo;
   recordTrackingEvent: RecordTrackingEvent;
-  persistCompactedReplay?: PersistCompactedReplaySnapshot;
+  persistCompactedReplay?: PersistCompactedReplayFromBackendEvent;
 }) {
   const handleContextCompactionStarted = useTurnScopedBackendEventHandler<ContextCompactionStartedEvent>({
     resolveTargetConversationRef,
@@ -187,14 +167,12 @@ export function useChatStreamCompactionHandlers({
           : [],
         skippedReason: skippedReason || null,
       }, conversationRef);
-      const replacementHistoryEntries = resolveReplacementHistoryEntries(event);
-      if (!skippedReason && conversationRef && replacementHistoryEntries.length > 0) {
-        const snapshot = buildCompactedReplaySnapshot(
+      if (!skippedReason && conversationRef && hasReplacementHistoryEntries(event)) {
+        void persistCompactedReplay(
           event,
           conversationRef,
-          replacementHistoryEntries,
-        );
-        void persistCompactedReplay(snapshot, event.user_id || 'default_user').catch((error) => {
+          event.user_id || 'default_user',
+        ).catch((error) => {
           console.warn('[useChatStreamCompactionHandlers] Failed to persist compacted replay state:', error);
         });
       }

@@ -1,5 +1,6 @@
 const mockLoadRehydrateSnapshot = jest.fn();
 const mockRehydrateConversation = jest.fn();
+const mockReplaceCompactedReplay = jest.fn();
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient', () => ({
   DesktopTranscriptProjectionRuntimeClient: {
@@ -8,7 +9,7 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptProjectionRu
     recordUserMessage: jest.fn(),
     recordAssistantMessage: jest.fn(),
     recordToolMessage: jest.fn(),
-    replaceCompactedReplay: jest.fn(),
+    replaceCompactedReplay: (...args: unknown[]) => mockReplaceCompactedReplay(...args),
   },
 }));
 
@@ -44,6 +45,7 @@ describe('DesktopConversationRuntimeClient', () => {
     jest.resetModules();
     mockLoadRehydrateSnapshot.mockReset();
     mockRehydrateConversation.mockReset();
+    mockReplaceCompactedReplay.mockReset();
   });
 
   test('rehydrateFromStore loads the SDK projection and sends backend rehydrate behind the facade', async () => {
@@ -99,5 +101,62 @@ describe('DesktopConversationRuntimeClient', () => {
     });
 
     expect(mockRehydrateConversation).not.toHaveBeenCalled();
+  });
+
+  test('replaceCompactedReplayFromBackendEvent builds replay snapshots behind the desktop facade', async () => {
+    mockReplaceCompactedReplay.mockResolvedValueOnce(undefined);
+    const { DesktopConversationRuntimeClient } = require(
+      '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeClient',
+    );
+
+    await DesktopConversationRuntimeClient.replaceCompactedReplayFromBackendEvent({
+      conversationRef: 'conv-compact',
+      userId: 'user-compact',
+      event: {
+        id: 'compaction-event',
+        turn_ref: 'turn-compact',
+        payload: {
+          replacement_history_entries: [
+            { role: 'assistant', content: 'summary', message_type: 'context_compaction' },
+            null,
+          ],
+        },
+      },
+    });
+
+    expect(mockReplaceCompactedReplay).toHaveBeenCalledWith(
+      expect.objectContaining({
+        generationId: 'compaction-conv-compact-compaction-event',
+        conversationRef: 'conv-compact',
+        sourceRevisionId: 'rev-compaction-conv-compact-compaction-event',
+        sourceTurnRef: 'turn-compact',
+        entries: [
+          { role: 'assistant', content: 'summary', message_type: 'context_compaction' },
+        ],
+        entryCount: 1,
+        complete: true,
+        active: true,
+      }),
+      'user-compact',
+    );
+  });
+
+  test('replaceCompactedReplayFromBackendEvent ignores events without replacement history', async () => {
+    const { DesktopConversationRuntimeClient } = require(
+      '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeClient',
+    );
+
+    await DesktopConversationRuntimeClient.replaceCompactedReplayFromBackendEvent({
+      conversationRef: 'conv-empty',
+      userId: 'user-compact',
+      event: {
+        id: 'compaction-event',
+        payload: {
+          replacement_history_entries: [],
+        },
+      },
+    });
+
+    expect(mockReplaceCompactedReplay).not.toHaveBeenCalled();
   });
 });

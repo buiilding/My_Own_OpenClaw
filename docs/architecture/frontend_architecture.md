@@ -149,6 +149,7 @@ callbacks through `main/windie_sdk_runtime.cjs`.
 5. `ElectronSidecarConversationStore` is the only renderer adapter that calls transcript storage IPC; it writes visible transcript rows, replay rows, and SDK `conversation_event` rows behind one store boundary.
 6. Opening a past chat replaces in-memory renderer chat state immediately, but backend conversation history is rehydrated lazily only before the first backend-dependent action for that chat. Chat session helpers call `DesktopConversationRuntimeClient.rehydrateFromStore(...)`; the facade loads the SDK rehydrate projection and sends the backend rehydrate command so feature code does not shape provider history.
 7. Send, edit/resend, retry, and manual compaction all pass through desktop SDK runtime facades. Edit/resend and retry call the SDK conversation runtime boundary, which builds the rehydrate projection from SDK store events before sending the next turn. Electron-only store and transport adapters stay isolated behind the SDK interfaces instead of becoming normal feature-code dependencies.
+8. Compaction replay persistence also goes through the desktop SDK runtime facade. Chat stream handlers may update visible thinking/debug state, but the facade owns conversion from backend compaction events to active compacted replay snapshots.
 
 Current ownership boundary:
 
