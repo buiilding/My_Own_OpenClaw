@@ -37,6 +37,7 @@ All notable changes to WindieOS will be documented in this file.
 - sdk: preserve append order in in-memory and file conversation stores instead of sorting event logs by timestamp or event id.
 - sdk: pair tool-call and tool-output rehydrate history by any shared provider or wait identity instead of requiring one preferred id shape.
 - sdk: align public agent stream tool-output dedupe and synthetic tool-call events with provider-safe tool identity.
+- frontend/sdk: accept canonical camelCase SDK tool identity fields in the Electron main-process tool router.
 - backend/container: remove container-level `embedder`, `ocr_service`, and `vision_service` aliases in favor of router fields.
 - backend/sdk: remove the transitional `Context` alias so tools import `ToolContext` directly.
 - backend/simulation: remove the coordinate resolver compatibility re-export and docs from the first-class simulation surface.

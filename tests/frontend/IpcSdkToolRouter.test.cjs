@@ -68,6 +68,43 @@ describe('ipc sdk tool router', () => {
     });
   });
 
+  test('routes first-class camelCase tool identity fields through local execution', async () => {
+    const executeLocalTool = jest.fn(async () => ({
+      success: true,
+      data: { output: 'ok', llm_content: 'ok' },
+    }));
+    const sendToolResult = jest.fn();
+
+    routeSdkToolEventToLocalRuntime({
+      id: 'event-camel',
+      type: 'tool-call',
+      payload: {
+        toolName: 'read_file',
+        requestId: 'req-read',
+        toolCallId: 'call-read',
+        correlationId: 'corr-read',
+        args: { path: '/tmp/a' },
+      },
+    }, {
+      executeLocalTool,
+      sendToolResult,
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(executeLocalTool).toHaveBeenCalledWith({
+      toolName: 'read_file',
+      args: { path: '/tmp/a' },
+      requestId: 'req-read',
+      toolCallId: 'call-read',
+      correlationId: 'corr-read',
+    });
+    expect(sendToolResult).toHaveBeenCalledWith(expect.objectContaining({
+      request_id: 'req-read',
+      success: true,
+    }));
+  });
+
   test('adds llm_content fallback without adding schema-invalid metadata', async () => {
     const executeLocalTool = jest.fn(async () => ({
       success: true,

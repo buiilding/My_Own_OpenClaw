@@ -257,6 +257,9 @@ Electron uses a sidecar-backed store adapter:
 - public agent stream projection uses the same identity set for tool-output
   dedupe and includes provider-safe `tool_call_id` on synthetic tool-call
   events.
+- the Electron main-process SDK tool router accepts canonical SDK identity fields
+  (`requestId`, `toolCallId`, `correlationId`, `bundleId`) before emitting
+  backend wire payloads.
 
 Skipped compaction is represented as `compaction_skipped`. It is runtime/debug
 state and should not render as assistant output or a full compacted-history panel

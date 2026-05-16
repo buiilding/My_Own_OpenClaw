@@ -13,7 +13,7 @@ function resolveToolCallRequestId(payload, fallbackId = null) {
   if (!isPlainObject(payload)) {
     return typeof fallbackId === 'string' && fallbackId.trim() ? fallbackId.trim() : '';
   }
-  for (const key of ['request_id', 'correlation_id']) {
+  for (const key of ['requestId', 'request_id', 'correlationId', 'correlation_id']) {
     const value = payload[key];
     if (typeof value === 'string' && value.trim()) {
       return value.trim();
@@ -131,9 +131,7 @@ async function routeToolCallToLocalRuntime(event, deps) {
   if (!isPlainObject(event?.payload) || shouldSkipLocalToolRouting(event)) {
     return false;
   }
-  const toolName = typeof event.payload.tool_name === 'string'
-    ? event.payload.tool_name.trim()
-    : '';
+  const toolName = resolveStringField(event.payload, ['toolName', 'tool_name']) ?? '';
   const requestId = resolveToolCallRequestId(event.payload, event.id);
   if (!toolName || !requestId) {
     return false;
@@ -141,10 +139,12 @@ async function routeToolCallToLocalRuntime(event, deps) {
   try {
     const result = await deps.executeLocalTool({
       toolName,
-      args: isPlainObject(event.payload.parameters) ? event.payload.parameters : {},
+      args: isPlainObject(event.payload.args)
+        ? event.payload.args
+        : (isPlainObject(event.payload.parameters) ? event.payload.parameters : {}),
       requestId,
-      toolCallId: resolveStringField(event.payload, ['tool_call_id']) ?? resolveModelFacingToolCallId(event.payload),
-      correlationId: resolveStringField(event.payload, ['correlation_id']),
+      toolCallId: resolveStringField(event.payload, ['toolCallId', 'tool_call_id']) ?? resolveModelFacingToolCallId(event.payload),
+      correlationId: resolveStringField(event.payload, ['correlationId', 'correlation_id']),
     });
     deps.sendToolResult(buildToolResultPayload({
       requestId,
@@ -165,9 +165,7 @@ async function routeToolBundleToLocalRuntime(event, deps) {
   if (!isPlainObject(event?.payload) || shouldSkipLocalToolRouting(event)) {
     return false;
   }
-  const bundleId = typeof event.payload.bundle_id === 'string'
-    ? event.payload.bundle_id.trim()
-    : '';
+  const bundleId = resolveStringField(event.payload, ['bundleId', 'bundle_id']) ?? '';
   const tools = Array.isArray(event.payload.tools) ? event.payload.tools : [];
   if (!bundleId || tools.length === 0) {
     return false;
