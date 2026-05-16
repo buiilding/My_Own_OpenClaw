@@ -18,8 +18,6 @@ class ToolCallValidator:
         self.metrics = metrics
         self.limits = limits
         self._tool_policy = ToolPolicy.from_config(config)
-        # Backward-compatible test seam; some tests override this directly.
-        self._dev_tool_selection = self._tool_policy.selection
         self._valid_tool_name_cache_selection = None
         self._valid_tool_name_cache: Optional[
             tuple[List[str], set[str]]
@@ -124,7 +122,6 @@ class ToolCallValidator:
         return self._tool_policy.get_method_validation_errors(
             tool_name=tool_name,
             args=args,
-            selection=self._dev_tool_selection,
         )
 
     @staticmethod
@@ -156,7 +153,6 @@ class ToolCallValidator:
         deduped_tool_names = sorted(set(valid_tool_names))
         filtered_tool_names = self._tool_policy.filter_tool_names(
             deduped_tool_names,
-            selection=self._dev_tool_selection,
         )
         return filtered_tool_names
 
@@ -167,10 +163,9 @@ class ToolCallValidator:
         """
         Return cached valid tool names + set for repeated per-call lookups.
 
-        Cache is scoped to the current dev selection object. Some tests mutate
-        `_dev_tool_selection` directly; this guard preserves deterministic behavior.
+        Cache is scoped to the current policy selection object.
         """
-        selection = self._dev_tool_selection
+        selection = self._tool_policy.selection
         if (
             self._valid_tool_name_cache is not None
             and self._valid_tool_name_cache_selection is selection

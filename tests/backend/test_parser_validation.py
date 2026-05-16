@@ -205,7 +205,7 @@ def test_serialized_param_size_returns_none_for_unserializable_payload():
 def test_validate_tool_call_whitelist_error_truncates_sorted_tool_display():
     tool_names = [f"tool_{index:02d}" for index in range(20, 0, -1)]
     validator, _metrics = _make_validator(tool_names)
-    validator._dev_tool_selection = None
+    validator._tool_policy.selection = None
 
     with pytest.raises(ParseValidationError) as exc:
         validator.validate_tool_call("missing_tool", {})
@@ -227,12 +227,12 @@ def test_validate_tool_call_reuses_valid_tool_cache_across_calls():
 def test_validate_tool_call_invalidates_cache_when_dev_selection_changes():
     registry = CountingRegistry(["read_file"])
     validator, _metrics = _make_validator_for_registry(registry)
-    validator._dev_tool_selection = None
+    validator._tool_policy.selection = None
 
     validator.validate_tool_call("read_file", {"file_path": "/tmp/a"})
     assert registry.calls == 1
 
-    validator._dev_tool_selection = ToolSelection(
+    validator._tool_policy.selection = ToolSelection(
         enabled=True,
         mode="allowlist",
         tools=frozenset({"read_file"}),

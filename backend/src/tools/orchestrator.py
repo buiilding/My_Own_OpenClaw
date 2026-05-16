@@ -52,8 +52,6 @@ class ToolResultOrchestrator:
         else:
             self.context_factory = context_factory
         self._tool_policy = ToolPolicy.from_config(config)
-        # Backward-compatible test seam; some tests override this directly.
-        self._dev_tool_selection = self._tool_policy.selection
 
     async def execute_tools_from_response(
         self,
@@ -113,7 +111,6 @@ class ToolResultOrchestrator:
         tool_names = self.tool_registry.get_tool_names()
         tool_names = self._tool_policy.filter_tool_names(
             tool_names,
-            selection=self._dev_tool_selection,
         )
 
         for tool_name in tool_names:

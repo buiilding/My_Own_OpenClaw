@@ -97,7 +97,7 @@ It supports dict and object-like step payloads via `_step_field(...)`.
 `get_available_tools()`:
 
 - reads names from registry
-- filters through `ToolPolicy.filter_tool_names(...)` using `_dev_tool_selection`
+- filters through `ToolPolicy.filter_tool_names(...)` using the policy's active selection
 - returns capability dicts only for surviving names
 
 This is the policy gate for tool lists shown to LLM/planners.
