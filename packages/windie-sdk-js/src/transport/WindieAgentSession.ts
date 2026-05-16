@@ -232,115 +232,75 @@ export class WindieAgentSession {
   }
 
   async query(payload: WindieAgentQueryInput): Promise<string> {
-    await this.waitForOpen();
-    const id = createMessageId();
-    this.socket.send(JSON.stringify({
-      id,
-      type: 'query',
-      payload: {
-        text: payload.text,
-        conversation_ref: payload.conversationRef,
-        turn_ref: payload.turnRef ?? undefined,
-        content: payload.content ?? undefined,
-        screenshot: payload.screenshot ?? undefined,
-        screenshot_ref: payload.screenshotRef ?? undefined,
-        screenshot_refs: payload.screenshotRefs ?? undefined,
-        attachment_context: payload.attachmentContext ?? undefined,
-        attachment_filenames: payload.attachmentFilenames ?? undefined,
-        system_state_internal: payload.systemStateInternal ?? undefined,
-        workspace_path: payload.workspacePath ?? undefined,
-      },
-      user_id: this.handshake.user_id,
-      timestamp: new Date().toISOString(),
-    }));
-    return id;
+    return this.sendBackendMessage('query', {
+      text: payload.text,
+      conversation_ref: payload.conversationRef,
+      turn_ref: payload.turnRef ?? undefined,
+      content: payload.content ?? undefined,
+      screenshot: payload.screenshot ?? undefined,
+      screenshot_ref: payload.screenshotRef ?? undefined,
+      screenshot_refs: payload.screenshotRefs ?? undefined,
+      attachment_context: payload.attachmentContext ?? undefined,
+      attachment_filenames: payload.attachmentFilenames ?? undefined,
+      system_state_internal: payload.systemStateInternal ?? undefined,
+      workspace_path: payload.workspacePath ?? undefined,
+    });
   }
 
   async stopQuery(conversationRef?: string | null): Promise<string> {
-    await this.waitForOpen();
-    const id = createMessageId();
-    this.socket.send(JSON.stringify({
-      id,
-      type: 'stop-query',
-      payload: {
-        conversation_ref: conversationRef ?? null,
-      },
-      user_id: this.handshake.user_id,
-      timestamp: new Date().toISOString(),
-    }));
-    return id;
+    return this.sendBackendMessage('stop-query', {
+      conversation_ref: conversationRef ?? null,
+    });
   }
 
   async updateSettings(config: JsonRecord): Promise<string> {
-    await this.waitForOpen();
-    const id = createMessageId();
-    this.socket.send(JSON.stringify({
-      id,
-      type: 'update-settings',
-      payload: config,
-      user_id: this.handshake.user_id,
-      timestamp: new Date().toISOString(),
-    }));
-    return id;
+    return this.sendBackendMessage('update-settings', config);
   }
 
   async listModels(): Promise<string> {
-    await this.waitForOpen();
-    const id = createMessageId();
-    this.socket.send(JSON.stringify({
-      id,
-      type: 'list-models',
-      payload: {},
-      user_id: this.handshake.user_id,
-      timestamp: new Date().toISOString(),
-    }));
-    return id;
+    return this.sendBackendMessage('list-models', {});
   }
 
   async rehydrateConversation(payload: JsonRecord): Promise<string> {
-    await this.waitForOpen();
-    const id = createMessageId();
-    this.socket.send(JSON.stringify({
-      id,
-      type: 'rehydrate-conversation',
-      payload: {
-        ...payload,
-        rehydrate_mode: payload.rehydrate_mode ?? 'replace',
-      },
-      user_id: this.handshake.user_id,
-      timestamp: new Date().toISOString(),
-    }));
-    return id;
+    return this.sendBackendMessage('rehydrate-conversation', {
+      ...payload,
+      rehydrate_mode: payload.rehydrate_mode ?? 'replace',
+    });
+  }
+
+  async compactHistory(payload: JsonRecord): Promise<string> {
+    return this.sendBackendMessage('compact-history', payload);
+  }
+
+  async wakewordDetected(payload: JsonRecord = {}): Promise<string> {
+    return this.sendBackendMessage('wakeword-detected', payload);
   }
 
   async sendToolResultPayload(payload: JsonRecord): Promise<string> {
-    await this.waitForOpen();
-    const id = createMessageId();
-    this.socket.send(JSON.stringify({
-      id,
-      type: 'tool-result',
-      payload,
-      user_id: this.handshake.user_id,
-      timestamp: new Date().toISOString(),
-    }));
-    return id;
+    return this.sendBackendMessage('tool-result', payload);
   }
 
   async sendToolBundleResultPayload(payload: JsonRecord): Promise<string> {
-    await this.waitForOpen();
-    const id = createMessageId();
-    this.socket.send(JSON.stringify({
-      id,
-      type: 'tool-bundle-result',
-      payload,
-      user_id: this.handshake.user_id,
-      timestamp: new Date().toISOString(),
-    }));
-    return id;
+    return this.sendBackendMessage('tool-bundle-result', payload);
   }
 
   close(code?: number, reason?: string): void {
     this.socket.close(code, reason);
+  }
+
+  private async sendBackendMessage(type: string, payload: JsonRecord): Promise<string> {
+    await this.waitForOpen();
+    const id = createMessageId();
+    this.socket.send(JSON.stringify({
+      id,
+      type,
+      payload: {
+        ...payload,
+      },
+      user_id: this.handshake.user_id,
+      timestamp: new Date().toISOString(),
+    }));
+    return id;
   }
 
   private emit<TEvent extends WindieAgentEventName>(
@@ -400,6 +360,8 @@ export function createWindieAgentBackendTransport(
         rehydrate_mode: 'replace',
       });
     },
+    compactHistory: async payload => session.compactHistory(payload),
+    wakewordDetected: async payload => session.wakewordDetected(payload),
     stop: async payload => {
       await session.stopQuery(
         typeof payload.conversation_ref === 'string' ? payload.conversation_ref : conversationRef,

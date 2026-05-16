@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: add typed backend transport commands for compaction and wakeword runtime messages.
 - sdk: move backend websocket event types into the package events boundary.
 - frontend: improve light-appearance contrast for dashboard header browser, workspace, search, and speech controls.
 - frontend: make the dashboard main surface follow light appearance tokens instead of keeping a dark hardcoded gradient.
