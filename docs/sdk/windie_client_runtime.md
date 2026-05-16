@@ -334,8 +334,15 @@ Current canonical surface:
 - `listAgents`
 - `listTools`
 - `status`
+- `subscribeRawBackendEvents`
 
 `listModels` is backend-owned. `listAgents` is SDK-runtime state for active local agent sessions.
+
+`agent.subscribeRawBackendEvents(listener)` is a debug surface. It receives
+typed backend websocket events before conversation projection and returns an
+unsubscribe function. Normal app authors should use `agent.stream(...)`,
+`conversation.stream(...)`, or `conversation.subscribe(...)`; raw backend events
+are for trace tools, tests, and protocol debugging only.
 
 `agent.setModel({ modelProvider, modelId, modelMode?, interactionMode? })` is
 the first-class SDK model-changing API for agent-level selection. Conversation

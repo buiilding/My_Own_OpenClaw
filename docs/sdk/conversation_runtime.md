@@ -121,6 +121,11 @@ Prefer this over wiring `send()` and `subscribe()` separately in CLI or custom
 UI clients. UI components can still use `subscribe()` when they only need
 projected snapshots.
 
+Raw backend websocket packets are not the normal authoring surface. Use
+`agent.subscribeRawBackendEvents(...)` only for debug traces or protocol tests;
+display, rehydrate, tool execution, and compaction behavior should consume
+normalized conversation events.
+
 Startup surfaces should load metadata before full logs. Use
 `agent.listConversations({ limit?, cursor? })` for a conversation list, then
 `agent.loadConversation(conversationRef)` when a row is opened. The `cursor`

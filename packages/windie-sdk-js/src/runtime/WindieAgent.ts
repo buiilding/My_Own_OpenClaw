@@ -1,4 +1,5 @@
 import { InMemoryConversationStore } from '../stores/InMemoryConversationStore.js';
+import type { BackendEvent } from '../backendEvents.js';
 import type {
   ConversationMetadata,
   ConversationStore,
@@ -43,6 +44,8 @@ export type LoadConversationOptions = {
   revisionId?: string;
   store?: ConversationStore;
 };
+
+export type RawBackendEventListener = (event: BackendEvent) => void;
 
 export class WindieAgent {
   private readonly defaultConversationStore = new InMemoryConversationStore();
@@ -156,6 +159,10 @@ export class WindieAgent {
 
   async listModels(): Promise<SdkModelsResponse> {
     return this.sdkClient.models();
+  }
+
+  subscribeRawBackendEvents(listener: RawBackendEventListener): () => void {
+    return this.session.on('event', listener);
   }
 
   async listConversations(options: ListConversationOptions & {

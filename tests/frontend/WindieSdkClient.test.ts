@@ -950,6 +950,60 @@ describe('WindieSdkClient', () => {
     });
   });
 
+  test('agent exposes raw backend events only through an explicit debug listener', async () => {
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+    });
+
+    const wakePromise = client.wakeUp({
+      agentId: 'raw-debug-agent',
+      systemPrompt: 'Debug raw events.',
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const socket = FakeWebSocket.instances[0];
+    socket.emit('open', {});
+    const agent = await wakePromise;
+    const rawEvents: unknown[] = [];
+    const unsubscribe = agent.subscribeRawBackendEvents((event) => {
+      rawEvents.push(event);
+    });
+
+    socket.emit('message', {
+      data: JSON.stringify({
+        type: 'streaming-response',
+        conversation_ref: 'conv-debug',
+        turn_ref: 'turn-debug',
+        payload: { text: 'debug chunk' },
+      }),
+    });
+    socket.emit('message', {
+      data: JSON.stringify({
+        type: 'not-a-backend-event',
+        payload: { ignored: true },
+      }),
+    });
+    unsubscribe();
+    socket.emit('message', {
+      data: JSON.stringify({
+        type: 'streaming-complete',
+        conversation_ref: 'conv-debug',
+        turn_ref: 'turn-debug',
+        payload: { final_response: 'done' },
+      }),
+    });
+
+    expect(rawEvents).toEqual([
+      expect.objectContaining({
+        type: 'streaming-response',
+        conversation_ref: 'conv-debug',
+        payload: { text: 'debug chunk' },
+      }),
+    ]);
+  });
+
   test('agent.conversation exposes the SDK conversation runtime over the agent session', async () => {
     const client = new WindieClient({
       backendUrl: 'https://api.windieos.com',

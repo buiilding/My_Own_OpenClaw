@@ -22,4 +22,8 @@ export type {
   WindieAgentQueryInput,
 } from './transport/WindieAgentSession.js';
 
-export type { ToolSchema };
+export type {
+  BackendEvent,
+  BackendEventType,
+  ToolSchema,
+} from './backendEvents.js';

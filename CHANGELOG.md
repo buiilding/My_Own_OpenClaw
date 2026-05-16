@@ -43,6 +43,7 @@ All notable changes to WindieOS will be documented in this file.
 - sdk: add first-class `ConversationStore.loadForDisplay` and `loadForRehydrate` methods backed by shared SDK projections and complete replay snapshots.
 - sdk: add a Node `FileConversationStore` adapter for durable JSON conversation event logs in CLI and custom UI hosts.
 - sdk: honor `listMetadata({ cursor, limit })` in reusable and Electron conversation stores for explicit startup pagination.
+- sdk: add `agent.subscribeRawBackendEvents(...)` as an explicit debug-only listener for backend websocket events.
 - sdk: add `WindieAgent.setModel(...)` and `updateSettings(...)` so SDK hosts can change model/provider selection without hand-shaping backend `update-settings` payloads.
 - sdk: add `agent.loadConversation(conversationRef)` shorthand for startup/open-chat loading while preserving the object form for custom store adapters.
 - sdk: add conversation-level model selection through `conversation.setModel(...)` and per-turn `model` options on send/stream/edit/retry.
