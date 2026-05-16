@@ -81,6 +81,13 @@ await conversation.editAndResend({
 });
 await conversation.rehydrate();
 
+await agent.setModel({
+  modelProvider: "openai",
+  modelId: "gpt-5.4@@gpt-5-4-high-thinking",
+  modelMode: "online",
+  interactionMode: "agent"
+});
+
 for await (const event of agent.stream("Run the test command and report progress.")) {
   if (event.type === "text") {
     process.stdout.write(event.text);
@@ -162,6 +169,9 @@ Electron uses a sidecar-backed store adapter during the desktop migration:
 - desktop manual compaction controls share one rehydrate-first runtime helper
   that uses the SDK store-backed conversation rehydrate path before sending
   `compact-history`.
+- desktop and custom SDK hosts use the same backend settings route for
+  model/provider updates. Public SDK callers should use `agent.setModel(...)`
+  rather than shaping `update-settings` payloads by hand.
 
 Skipped compaction is represented as `compaction_skipped`. It is runtime/debug
 state and should not render as assistant output or a full compacted-history panel
@@ -262,6 +272,8 @@ Current canonical surface:
 - `query`
 - `stop`
 - `sleep`
+- `updateSettings`
+- `setModel`
 - `run`
 - `stream`
 - `conversation`
@@ -272,6 +284,14 @@ Current canonical surface:
 - `status`
 
 `listModels` is backend-owned. `listAgents` is SDK-runtime state for active local agent sessions.
+
+`setModel({ modelProvider, modelId, modelMode?, interactionMode? })` is the
+first-class SDK model-changing API. It validates the public camelCase selection
+and sends the backend-owned `update-settings` message with
+`model_provider`/`selected_model_id`. Desktop model dropdowns still persist
+through renderer config, but the backend update route is owned by the SDK main
+runtime. `updateSettings(config)` remains available for host applications that
+own a broader settings surface.
 
 `stream(input, options)` returns an `AsyncIterableIterator<WindieAgentStreamEvent>`.
 It is a compatibility-shaped wrapper over `SdkConversationRuntime.stream()`: it

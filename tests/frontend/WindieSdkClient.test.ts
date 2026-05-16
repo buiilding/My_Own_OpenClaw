@@ -283,6 +283,68 @@ describe('WindieSdkClient', () => {
     }
   });
 
+  test('agent.setModel sends a backend settings update with provider-safe model fields', async () => {
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+    });
+
+    const wakePromise = client.wakeUp({
+      agentId: 'model-agent',
+      systemPrompt: 'Use selected models.',
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const socket = FakeWebSocket.instances[0];
+    socket.emit('open', {});
+    const agent = await wakePromise;
+    socket.clearSent();
+
+    await agent.setModel({
+      modelProvider: 'openai',
+      modelId: 'gpt-5.4@@gpt-5-4-high-thinking',
+      modelMode: 'online',
+      interactionMode: 'agent',
+    });
+
+    expect(JSON.parse(socket.sent[0])).toMatchObject({
+      type: 'update-settings',
+      payload: {
+        model_provider: 'openai',
+        selected_model_id: 'gpt-5.4@@gpt-5-4-high-thinking',
+        model_mode: 'online',
+        interaction_mode: 'agent',
+      },
+      user_id: 'dev-user',
+    });
+  });
+
+  test('agent.setModel validates SDK model selections before sending settings', async () => {
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+    });
+
+    const wakePromise = client.wakeUp({
+      agentId: 'invalid-model-agent',
+      systemPrompt: 'Use selected models.',
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const socket = FakeWebSocket.instances[0];
+    socket.emit('open', {});
+    const agent = await wakePromise;
+    socket.clearSent();
+
+    await expect(agent.setModel({
+      modelProvider: 'openai',
+      modelId: '',
+    })).rejects.toThrow('WindieAgent.setModel requires a non-empty modelId');
+    expect(socket.sent).toHaveLength(0);
+  });
+
   test('wakeUp can attach to a configured sidecar daemon HTTP runtime', async () => {
     mockFetch.mockImplementation(async (url, init) => {
       const parsedUrl = String(url);
