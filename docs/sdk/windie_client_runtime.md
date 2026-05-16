@@ -115,6 +115,14 @@ for await (const event of agent.stream("Run the test command and report progress
     console.log(event.finalResponse);
   }
 }
+
+await agent.ask("Use the fast model for this one-shot query.", {
+  model: {
+    modelProvider: "openai",
+    modelId: "gpt-5.4@@gpt-5-4-none-thinking",
+    interactionMode: "chat"
+  }
+});
 ```
 
 `wakeUp` performs this sequence:
@@ -191,6 +199,10 @@ Electron uses a sidecar-backed store adapter during the desktop migration:
 - desktop and custom SDK hosts use the same backend settings route for
   model/provider updates. Public SDK callers should use `agent.setModel(...)`
   rather than shaping `update-settings` payloads by hand.
+- high-level `agent.ask(...)`, `agent.run(...)`, and `agent.stream(...)` string
+  helpers accept a `model` option and apply it before sending the turn; advanced
+  callers can still use `conversation.setModel(...)` or per-turn conversation
+  `model` options when they need revision-aware conversation control.
 
 Skipped compaction is represented as `compaction_skipped`. It is runtime/debug
 state and should not render as assistant output or a full compacted-history panel

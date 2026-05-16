@@ -345,6 +345,50 @@ describe('WindieSdkClient', () => {
     expect(socket.sent).toHaveLength(0);
   });
 
+  test('agent.ask applies per-call model selections before sending the query', async () => {
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+    });
+
+    const wakePromise = client.wakeUp({
+      agentId: 'ask-model-agent',
+      systemPrompt: 'Use selected models.',
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const socket = FakeWebSocket.instances[0];
+    socket.emit('open', {});
+    const agent = await wakePromise;
+    socket.clearSent();
+
+    await agent.ask('Use the chosen model.', {
+      conversationRef: 'conv-model-ask',
+      model: {
+        modelProvider: 'openai',
+        modelId: 'gpt-5.4@@gpt-5-4-high-thinking',
+        interactionMode: 'agent',
+      },
+    });
+
+    expect(JSON.parse(socket.sent[0])).toMatchObject({
+      type: 'update-settings',
+      payload: {
+        model_provider: 'openai',
+        selected_model_id: 'gpt-5.4@@gpt-5-4-high-thinking',
+        interaction_mode: 'agent',
+      },
+    });
+    expect(JSON.parse(socket.sent[1])).toMatchObject({
+      type: 'query',
+      payload: {
+        text: 'Use the chosen model.',
+        conversation_ref: 'conv-model-ask',
+      },
+    });
+  });
+
   test('wakeUp can attach to a configured sidecar daemon HTTP runtime', async () => {
     mockFetch.mockImplementation(async (url, init) => {
       const parsedUrl = String(url);

@@ -349,6 +349,7 @@ export type WindieSdkClientOptions = {
 
 export type WindieAgentQueryOptions = Partial<Omit<WindieAgentQueryInput, 'text' | 'conversationRef'>> & {
   conversationRef?: string;
+  model?: WindieModelSelection;
 };
 
 export type WindieAgentStreamEvent =
@@ -749,6 +750,9 @@ export class WindieAgent {
   ) {}
 
   async ask(text: string, options: WindieAgentQueryOptions = {}): Promise<string> {
+    if (options.model) {
+      await this.setModel(options.model);
+    }
     return this.session.query(this.buildQueryInput(text, options));
   }
 
@@ -760,6 +764,9 @@ export class WindieAgent {
     if (typeof input === 'string') {
       return this.ask(input, options);
     }
+    if (options.model) {
+      await this.setModel(options.model);
+    }
     return this.query(input);
   }
 
@@ -768,6 +775,7 @@ export class WindieAgent {
     options: WindieAgentQueryOptions = {},
   ): AsyncIterableIterator<WindieAgentStreamEvent> {
     const queryInput = typeof input === 'string' ? this.buildQueryInput(input, options) : input;
+    const model = typeof input === 'string' ? options.model : undefined;
     const seenToolOutputs = new Set<string>();
     const conversation = this.conversation({
       conversationRef: queryInput.conversationRef,
@@ -787,6 +795,7 @@ export class WindieAgent {
       text: queryInput.text,
       turnRef: queryInput.turnRef ?? undefined,
       payload,
+      model,
     })) {
       const streamEvent = toAgentStreamEvent(runtimeEvent);
       if (streamEvent) {
@@ -862,10 +871,11 @@ export class WindieAgent {
   }
 
   private buildQueryInput(text: string, options: WindieAgentQueryOptions): WindieAgentQueryInput {
+    const { model: _model, ...queryOptions } = options;
     return {
-      ...options,
+      ...queryOptions,
       text,
-      conversationRef: options.conversationRef ?? `conv-${this.id}`,
+      conversationRef: queryOptions.conversationRef ?? `conv-${this.id}`,
     };
   }
 }
