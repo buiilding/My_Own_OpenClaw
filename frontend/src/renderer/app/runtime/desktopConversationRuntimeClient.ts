@@ -18,7 +18,6 @@ import {
 } from './desktopBackendCommandRuntimeClient';
 import {
   DesktopTranscriptProjectionRuntimeClient,
-  type RewriteTranscriptProjectionInput,
   type LoadRehydrateSnapshotInput,
 } from './desktopTranscriptProjectionRuntimeClient';
 import type { CompactedReplaySnapshot } from '../../infrastructure/api/windieSdkClient';
@@ -198,10 +197,6 @@ export const DesktopConversationRuntimeClient = {
     userId: string,
   ): Promise<void> {
     await DesktopTranscriptProjectionRuntimeClient.replaceCompactedReplay(snapshot, userId);
-  },
-
-  async rewriteTranscriptProjection(input: RewriteTranscriptProjectionInput) {
-    return DesktopTranscriptProjectionRuntimeClient.rewriteTranscriptProjection(input);
   },
 
   async loadRehydrateSnapshot(input: LoadRehydrateSnapshotInput) {
