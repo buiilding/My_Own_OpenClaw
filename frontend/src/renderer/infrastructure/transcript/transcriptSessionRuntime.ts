@@ -48,7 +48,7 @@ export function createTranscriptSessionRuntime({
         userId: info.userId,
       });
     } catch (error) {
-      console.warn('[TranscriptWriter] Failed to sync transcript session to main process:', error);
+      console.warn('[DesktopTranscriptSessionRuntimeClient] Failed to sync transcript session to main process:', error);
     }
   };
 
@@ -90,7 +90,7 @@ export function createTranscriptSessionRuntime({
       });
     } catch (error) {
       transcriptSessionSyncSubscribed = false;
-      console.warn('[TranscriptWriter] Failed to subscribe to transcript session sync channel:', error);
+      console.warn('[DesktopTranscriptSessionRuntimeClient] Failed to subscribe to transcript session sync channel:', error);
     }
   };
 
@@ -126,4 +126,3 @@ export function createTranscriptSessionRuntime({
     resolveSessionInfoOrQueue,
   };
 }
-

@@ -52,7 +52,7 @@ Run tests on both sides of the boundary when a payload crosses processes.
 | Backend model-facing tool schema and frontend executable tools | `./scripts/test-backend tests/backend/test_remote_tool_contract.py -q` plus `./scripts/test-sidecar tests/sidecar/test_shared_tool_schema_parity.py -q` |
 | Tool result envelope | `./scripts/test-backend tests/backend/test_incoming_tool_result_schemas.py -q` plus `cd frontend && npm run test:ci -- ToolResultEnvelope.test.ts ToolResultContractParity.test.ts` |
 | Response overlay phase names | `cd frontend && npm run test:ci -- OverlayPhaseContractParity.test.js ResponseOverlayPhaseContract.test.js IpcOverlayPhaseContract.test.cjs` |
-| Transcript/replay payloads | `cd frontend && npm run test:ci -- TranscriptWriter.userAssistant.test.ts TranscriptWriter.tool.test.ts ConversationReplayState.test.ts RehydratePayload.test.js` |
+| Transcript/replay payloads | `cd frontend && npm run test:ci -- DesktopTranscriptProjectionRuntimeClient.test.ts ConversationLocalSnapshotLoader.test.ts RehydratePayload.test.js` |
 | Artifact refs and URLs | `./scripts/test-backend tests/backend/test_artifact_routes.py tests/backend/test_artifacts_store.py -q` plus `cd frontend && npm run test:ci -- ArtifactUploader.test.ts IpcArtifactFetch.test.cjs` |
 | SDK HTTP/trace helpers | `./scripts/test-backend tests/backend/test_sdk_routes.py -q` plus `cd frontend && npm run test:ci -- WindieSdkClient.test.ts WindieSdkClientExports.test.ts` |
 
@@ -78,4 +78,3 @@ git diff --check
 ```
 
 Also run a local markdown link check for edited files when adding or moving docs sections. If docs describe code ownership, verify the referenced files exist with `rg --files` or `find` before committing.
-

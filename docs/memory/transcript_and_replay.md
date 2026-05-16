@@ -1,5 +1,5 @@
 ---
-summary: "Renderer transcript and replay guide covering TranscriptWriter, pending queues, session identity, local snapshots, replay state, and rehydrate payloads."
+summary: "Renderer transcript and replay guide covering desktop SDK projection runtime writes, pending queues, session identity, local snapshots, replay state, and rehydrate payloads."
 read_when:
   - When changing renderer transcript writes, pending flush behavior, conversation replay, local snapshots, or rehydrate payload construction.
   - When debugging visible chat rows that do not persist or replay correctly.
@@ -16,19 +16,20 @@ For code changes or debugging, start with [Transcript Replay Change Workflow](tr
 
 | Concern | Files |
 | --- | --- |
-| Transcript write API | `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts` |
+| Transcript projection write API | `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts` |
+| Transcript session facade | `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`, `desktopTranscriptSessionRuntime.ts` |
 | Session identity | `frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime.ts`, `sessionInfoState.ts`, `sessionInfoStorage.ts` |
 | Pending queues | `frontend/src/renderer/infrastructure/transcript/pending/*` |
 | Entry persistence | `frontend/src/renderer/infrastructure/transcript/transcriptEntryPersistence.ts`, `transcriptRecordWrite.ts` |
 | SDK conversation store adapter | `frontend/src/renderer/infrastructure/transcript/ElectronSidecarConversationStore.ts` |
 | SDK display to chat-message projection | `frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts` |
-| Local snapshots/replay | `conversationLocalSnapshotLoader.ts`, `conversationReplayState.ts`, `rehydratePayload.js`, `rehydrateMessageState.js` |
+| Local snapshots/replay | `conversationLocalSnapshotLoader.ts`, `rehydratePayload.js`, `rehydrateMessageState.js` |
 | Chat replay actions | `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js` |
 | Dashboard conversation list | `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`, `useTranscriptSessionInfo.js` |
 
 ## Write Flow
 
-`TranscriptWriter.ts` records:
+`DesktopTranscriptProjectionRuntimeClient` records:
 
 - user messages,
 - assistant messages,
@@ -39,7 +40,7 @@ For code changes or debugging, start with [Transcript Replay Change Workflow](tr
 - screenshot refs,
 - model id/provider metadata.
 
-If session identity is not ready, entries are queued through pending transcript queues and flushed when `sessionRuntime` resolves conversation/user identity.
+If session identity is not ready, entries are queued through pending transcript queues and flushed when `DesktopTranscriptSessionRuntimeClient` resolves conversation/user identity.
 
 ## Session Identity
 
@@ -77,8 +78,8 @@ Key files:
 
 ```bash
 cd frontend
-npm run test:ci -- TranscriptWriter.userAssistant.test.ts TranscriptWriter.tool.test.ts TranscriptPendingQueue.test.ts TranscriptPendingFlush.test.ts
-npm run test:ci -- ConversationReplayState.test.ts ConversationReplayActions.test.jsx RehydratePayload.test.js
+npm run test:ci -- DesktopTranscriptProjectionRuntimeClient.test.ts TranscriptPendingQueue.test.ts TranscriptPendingFlush.test.ts
+npm run test:ci -- ConversationLocalSnapshotLoader.test.ts ConversationReplayActions.test.jsx RehydratePayload.test.js
 ```
 
 ## Change Workflow

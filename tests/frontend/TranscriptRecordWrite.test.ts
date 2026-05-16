@@ -54,10 +54,10 @@ describe('transcriptRecordWrite', () => {
       queueForRetry,
       buildEntry,
       storeWithRetry,
-      warningMessage: '[TranscriptWriter] warn',
+      warningMessage: '[DesktopTranscriptProjectionRuntimeClient] warn',
     });
 
     expect(buildEntry).toHaveBeenCalledWith({ conversationRef: 'conv-1', userId: 'user-1' });
-    expect(storeWithRetry).toHaveBeenCalledWith(entry, queueForRetry, '[TranscriptWriter] warn');
+    expect(storeWithRetry).toHaveBeenCalledWith(entry, queueForRetry, '[DesktopTranscriptProjectionRuntimeClient] warn');
   });
 });

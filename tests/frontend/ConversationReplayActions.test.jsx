@@ -2,13 +2,8 @@ import { act, renderHook } from '@testing-library/react';
 
 import { useConversationReplayActions } from '../../frontend/src/renderer/features/chat/hooks/useConversationReplayActions';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
-import { ApiClient } from '../../frontend/src/renderer/infrastructure/api/client';
 import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
-import {
-  getActiveConversationRef,
-  getTranscriptSessionInfo,
-  updateTranscriptSession,
-} from '../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter';
+import { DesktopConversationRuntimeClient } from '../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient';
 import {
   markConversationInferenceSessionLocalOnly,
   rehydrateConversationInferenceSession,
@@ -25,34 +20,33 @@ jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
   })),
 }));
 
-jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
-  ApiClient: {
-    setModel: jest.fn(),
-    updateSettings: jest.fn(),
-    sendQuery: jest.fn(),
-  },
-}));
-
 jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime', () => ({
   markConversationInferenceSessionLocalOnly: jest.fn(),
   rehydrateConversationInferenceSession: jest.fn(),
 }));
 
 let mockConversationRef = 'conv-existing';
-jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
-  getActiveConversationRef: jest.fn(() => mockConversationRef),
-  getTranscriptSessionInfo: jest.fn(() => ({
-    conversationRef: mockConversationRef,
-    userId: 'user-1',
-  })),
-  updateTranscriptSession: jest.fn(),
+const mockRewriteTranscriptProjection = jest.fn(async () => ({ entries: [], messages: [] }));
+jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient', () => ({
+  DesktopConversationRuntimeClient: {
+    getActiveConversationRef: jest.fn(() => mockConversationRef),
+    getTranscriptSessionInfo: jest.fn(() => ({
+      conversationRef: mockConversationRef,
+      userId: 'user-1',
+    })),
+    updateTranscriptSession: jest.fn(),
+    rewriteTranscriptProjection: (...args) => mockRewriteTranscriptProjection(...args),
+    loadRehydrateSnapshot: jest.fn(async () => ({ entries: [] })),
+    setModel: jest.fn(),
+    sendQuery: jest.fn(),
+  },
 }));
 
-const mockSetModel = ApiClient.setModel;
-const mockSendQuery = ApiClient.sendQuery;
-const mockGetActiveConversationRef = getActiveConversationRef;
-const mockGetTranscriptSessionInfo = getTranscriptSessionInfo;
-const mockUpdateTranscriptSession = updateTranscriptSession;
+const mockSetModel = DesktopConversationRuntimeClient.setModel;
+const mockSendQuery = DesktopConversationRuntimeClient.sendQuery;
+const mockGetActiveConversationRef = DesktopConversationRuntimeClient.getActiveConversationRef;
+const mockGetTranscriptSessionInfo = DesktopConversationRuntimeClient.getTranscriptSessionInfo;
+const mockUpdateTranscriptSession = DesktopConversationRuntimeClient.updateTranscriptSession;
 const mockMarkConversationInferenceSessionLocalOnly = markConversationInferenceSessionLocalOnly;
 const mockRehydrateConversationInferenceSession = rehydrateConversationInferenceSession;
 
@@ -76,6 +70,8 @@ describe('useConversationReplayActions', () => {
     mockMarkConversationInferenceSessionLocalOnly.mockReset();
     mockRehydrateConversationInferenceSession.mockReset();
     mockRehydrateConversationInferenceSession.mockResolvedValue(undefined);
+    mockRewriteTranscriptProjection.mockClear();
+    mockRewriteTranscriptProjection.mockResolvedValue({ entries: [], messages: [] });
     mockSendQuery.mockResolvedValue(undefined);
     useChatStore.setState({ activeConversationRef: null });
   });
@@ -119,14 +115,10 @@ describe('useConversationReplayActions', () => {
     expect(mockGetActiveConversationRef).toHaveBeenCalled();
     expect(mockGetTranscriptSessionInfo).toHaveBeenCalled();
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-existing', 'user-1');
-    expect((IpcBridge.invoke).mock.calls).toContainEqual([
-      INVOKE_CHANNELS.DELETE_CONVERSATION,
-      {
-        userId: 'user-1',
-        conversationId: 'conv-existing',
-        recordKind: 'conversation_event',
-      },
-    ]);
+    expect(mockRewriteTranscriptProjection).toHaveBeenCalledWith(expect.objectContaining({
+      conversationRef: 'conv-existing',
+      userId: 'user-1',
+    }));
     expect(mockRehydrateConversationInferenceSession).toHaveBeenCalledTimes(1);
     expect(mockSetModel).toHaveBeenCalledWith({
       modelProvider: 'anthropic',
@@ -135,26 +127,13 @@ describe('useConversationReplayActions', () => {
     expect(mockSetModel.mock.invocationCallOrder[0]).toBeLessThan(
       mockSendQuery.mock.invocationCallOrder[0],
     );
-    expect(mockSendQuery.mock.calls.some(([
-      queryText,
-      conversationRef,
-      screenshotRef,
-      screenshotUrl,
-      screenshotRefs,
-      videoRef,
-      filePaths,
-      fileRefs,
-      inlineScreenshot,
-    ]) => (
-      queryText === 'first question'
-      && conversationRef === 'conv-existing'
-      && (screenshotRef ?? null) === null
-      && (screenshotUrl ?? null) === null
-      && (screenshotRefs ?? null) === null
-      && (videoRef ?? null) === null
-      && (filePaths ?? null) === null
-      && (fileRefs ?? null) === null
-      && (inlineScreenshot ?? null) === null
+    expect(mockSendQuery.mock.calls.some(([payload]) => (
+      payload.text === 'first question'
+      && payload.conversationRef === 'conv-existing'
+      && (payload.screenshotRef ?? null) === null
+      && (payload.screenshotUrl ?? null) === null
+      && (payload.screenshotRefs ?? null) === null
+      && (payload.screenshot ?? null) === null
     ))).toBe(true);
   });
 
@@ -188,33 +167,21 @@ describe('useConversationReplayActions', () => {
       await result.current.handleTryAgainFromAssistant('assistant-inline');
     });
 
-    expect((IpcBridge.invoke)).toHaveBeenCalledWith(
-      INVOKE_CHANNELS.STORE_TRANSCRIPT,
-      expect.objectContaining({
-        content: 'question with inline screenshot',
-        screenshot: inlineScreenshot,
-      }),
-    );
-    expect(mockSendQuery.mock.calls.some(([
-      queryText,
-      conversationRef,
-      screenshotRef,
-      screenshotUrl,
-      screenshotRefs,
-      videoRef,
-      filePaths,
-      fileRefs,
-      inlineShot,
-    ]) => (
-      queryText === 'question with inline screenshot'
-      && conversationRef === 'conv-existing'
-      && (screenshotRef ?? null) === null
-      && (screenshotUrl ?? null) === null
-      && (screenshotRefs ?? null) === null
-      && (videoRef ?? null) === null
-      && (filePaths ?? null) === null
-      && (fileRefs ?? null) === null
-      && inlineShot === inlineScreenshot
+    expect(mockRewriteTranscriptProjection).toHaveBeenCalledWith(expect.objectContaining({
+      transcriptEntries: expect.arrayContaining([
+        expect.objectContaining({
+          content: 'question with inline screenshot',
+          screenshot: inlineScreenshot,
+        }),
+      ]),
+    }));
+    expect(mockSendQuery.mock.calls.some(([payload]) => (
+      payload.text === 'question with inline screenshot'
+      && payload.conversationRef === 'conv-existing'
+      && (payload.screenshotRef ?? null) === null
+      && (payload.screenshotUrl ?? null) === null
+      && (payload.screenshotRefs ?? null) === null
+      && payload.screenshot === inlineScreenshot
     ))).toBe(true);
   });
 
@@ -246,33 +213,21 @@ describe('useConversationReplayActions', () => {
       await result.current.handleTryAgainFromAssistant('assistant-url');
     });
 
-    expect((IpcBridge.invoke)).toHaveBeenCalledWith(
-      INVOKE_CHANNELS.STORE_TRANSCRIPT,
-      expect.objectContaining({
-        content: 'question with url screenshot',
-        screenshot: 'artifact-99',
-      }),
-    );
-    expect(mockSendQuery.mock.calls.some(([
-      queryText,
-      conversationRef,
-      screenshotRef,
-      screenshotUrl,
-      screenshotRefs,
-      videoRef,
-      filePaths,
-      fileRefs,
-      inlineShot,
-    ]) => (
-      queryText === 'question with url screenshot'
-      && conversationRef === 'conv-existing'
-      && screenshotRef === 'artifact-99'
-      && screenshotUrl === 'http://127.0.0.1:8765/api/artifacts/artifact-99'
-      && (screenshotRefs ?? null) === null
-      && (videoRef ?? null) === null
-      && (filePaths ?? null) === null
-      && (fileRefs ?? null) === null
-      && (inlineShot ?? null) === null
+    expect(mockRewriteTranscriptProjection).toHaveBeenCalledWith(expect.objectContaining({
+      transcriptEntries: expect.arrayContaining([
+        expect.objectContaining({
+          content: 'question with url screenshot',
+          screenshot: 'artifact-99',
+        }),
+      ]),
+    }));
+    expect(mockSendQuery.mock.calls.some(([payload]) => (
+      payload.text === 'question with url screenshot'
+      && payload.conversationRef === 'conv-existing'
+      && payload.screenshotRef === 'artifact-99'
+      && payload.screenshotUrl === 'http://127.0.0.1:8765/api/artifacts/artifact-99'
+      && (payload.screenshotRefs ?? null) === null
+      && (payload.screenshot ?? null) === null
     ))).toBe(true);
   });
 
@@ -310,7 +265,7 @@ describe('useConversationReplayActions', () => {
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv_replay-ref', undefined);
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv_replay-ref', 'user-1');
     expect(mockMarkConversationInferenceSessionLocalOnly).toHaveBeenCalledWith('conv_replay-ref');
-    expect(mockSendQuery.mock.calls[0][1]).toBe('conv_replay-ref');
+    expect(mockSendQuery.mock.calls[0][0].conversationRef).toBe('conv_replay-ref');
   });
 
   test('retry replay reuses projected chat-store conversation ref when transcript session is empty', async () => {
@@ -346,6 +301,6 @@ describe('useConversationReplayActions', () => {
 
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-store-active', 'user-1');
     expect(mockMarkConversationInferenceSessionLocalOnly).not.toHaveBeenCalled();
-    expect(mockSendQuery.mock.calls[0][1]).toBe('conv-store-active');
+    expect(mockSendQuery.mock.calls[0][0].conversationRef).toBe('conv-store-active');
   });
 });

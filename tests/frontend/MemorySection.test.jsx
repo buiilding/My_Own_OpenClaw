@@ -17,8 +17,10 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
 }));
 
-jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
-  getTranscriptSessionInfo: () => mockSessionInfo,
+jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => ({
+  DesktopTranscriptSessionRuntimeClient: {
+    getTranscriptSessionInfo: () => mockSessionInfo,
+  },
 }));
 
 describe('MemorySection', () => {

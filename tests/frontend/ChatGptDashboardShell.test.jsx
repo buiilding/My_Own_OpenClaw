@@ -9,7 +9,7 @@ import {
   clearConversationWorkspaceBinding,
 } from '../../frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding';
 
-const mockListeners = new Map();
+var mockListeners = new Map();
 const LOCAL_SNAPSHOT_USER_ID = 'local-user';
 let mockClientSnapshot = { isConnected: true, userId: LOCAL_SNAPSHOT_USER_ID };
 const mockInvoke = jest.fn(async (channel) => {
@@ -67,15 +67,20 @@ jest.mock('../../frontend/src/renderer/features/dashboard/components/sections/Us
   <div data-testid="usage-section-stub">UsageSectionStub</div>
 ));
 
-jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
-  getTranscriptSessionInfo: () => mockSessionInfo,
-  updateTranscriptSession: (...args) => mockUpdateTranscriptSession(...args),
+jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => ({
+  DesktopTranscriptSessionRuntimeClient: {
+    getTranscriptSessionInfo: () => mockSessionInfo,
+    updateTranscriptSession: (...args) => mockUpdateTranscriptSession(...args),
+  },
 }));
 
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   IpcBridge: {
     invoke: (...args) => mockInvoke(...args),
     on: (channel, listener) => {
+      if (!mockListeners) {
+        return () => {};
+      }
       mockListeners.set(channel, listener);
       return () => {
         mockListeners.delete(channel);
@@ -97,11 +102,10 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
 }));
 
 jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime', () => {
-  const actual = jest.requireActual('../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime');
   return {
-    ...actual,
     clearConversationInferenceSessionState: jest.fn(),
     invalidateConversationInferenceSessionState: jest.fn(),
+    markConversationInferenceSessionUnknown: jest.fn(),
   };
 });
 

@@ -2,23 +2,22 @@ import { act, renderHook } from '@testing-library/react';
 import { useChatSessionBootstrap } from '../../frontend/src/renderer/features/chat/hooks/useChatSessionBootstrap';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
-import {
-  setActiveConversationRef,
-  updateTranscriptSession,
-} from '../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter';
+import { DesktopConversationRuntimeClient } from '../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient';
 import { markConversationInferenceSessionUnknown } from '../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime';
 
-jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
-  setActiveConversationRef: jest.fn(),
-  updateTranscriptSession: jest.fn(),
+jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient', () => ({
+  DesktopConversationRuntimeClient: {
+    setActiveConversationRef: jest.fn(),
+    updateTranscriptSession: jest.fn(),
+  },
 }));
 
 jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime', () => ({
   markConversationInferenceSessionUnknown: jest.fn(),
 }));
 
-const mockSetActiveConversationRef = setActiveConversationRef as jest.MockedFunction<typeof setActiveConversationRef>;
-const mockUpdateTranscriptSession = updateTranscriptSession as jest.MockedFunction<typeof updateTranscriptSession>;
+const mockSetActiveConversationRef = DesktopConversationRuntimeClient.setActiveConversationRef as jest.Mock;
+const mockUpdateTranscriptSession = DesktopConversationRuntimeClient.updateTranscriptSession as jest.Mock;
 const mockMarkConversationInferenceSessionUnknown = markConversationInferenceSessionUnknown as jest.MockedFunction<typeof markConversationInferenceSessionUnknown>;
 
 describe('useChatSessionBootstrap', () => {

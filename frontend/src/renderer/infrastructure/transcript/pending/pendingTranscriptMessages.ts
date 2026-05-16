@@ -33,6 +33,7 @@ type AssistantRetryOptions = {
   modelProvider?: string | null;
   screenshotRef?: string | null;
   transparency?: TranscriptTransparencyData | null;
+  structuredPayload?: TranscriptStructuredToolPayload | null;
 };
 
 type ToolRetryOptions = {
@@ -117,6 +118,7 @@ export function createPendingTranscriptMessages({
         modelProvider: message.modelProvider,
         screenshotRef: message.screenshotRef,
         transparency: message.transparency,
+        structuredPayload: message.structuredPayload,
       }),
       requeue: (messages) => requeuePending(messages, pendingAssistantQueue.enqueue),
       category: 'assistant',

@@ -259,7 +259,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Frontend Renderer Overlay Hub**](frontend/renderer/overlays/README.md) - Chatbox input-pill and response overlay renderer internals
 - [**Frontend Renderer Provider Hub**](frontend/renderer/providers/README.md) - Root app composition, view routing, and provider coordination internals
 - [**Frontend Renderer Error Boundary Contract**](frontend/renderer/providers/components/error_boundary_fallback_and_component_tree_crash_isolation_contract_reference.md) - Root-surface crash containment fallback UI and console logging semantics
-- [**Frontend Renderer Transcript Hub**](frontend/renderer/transcript/README.md) - TranscriptWriter queue/flush internals, session identity persistence rules, and session-event contracts
+- [**Frontend Renderer Transcript Hub**](frontend/renderer/transcript/README.md) - desktop transcript projection runtime queues, session identity persistence rules, and session-event contracts
 - [**Transcript Replay Change Workflow**](memory/transcript_replay_change_workflow.md) - Cross-runtime owner map for visible transcript persistence, sidecar storage, dashboard replay, backend rehydrate, and validation
 - [**Frontend Transcript Type Contracts**](frontend/renderer/transcript/contracts/transcript_entry_and_pending_message_type_contract_reference.md) - Shared pending queue and persisted transcript entry field contracts
 - [**Frontend Entrypoint View Routing + Provider Stack**](frontend/renderer/providers/entrypoint_view_routing_and_provider_stack_reference.md) - `view`-based root selection and per-surface `ChatProvider` capability flags

@@ -2,9 +2,12 @@ import {
   ElectronSidecarConversationStore,
   type TranscriptProjectionRewriteEntry,
 } from '../../infrastructure/transcript/ElectronSidecarConversationStore';
+import { createPendingTranscriptMessages } from '../../infrastructure/transcript/pending/pendingTranscriptMessages';
+import { normalizeTransparencyData } from '../../infrastructure/transcript/transparencyNormalization';
 import {
   storeTranscriptEntry,
 } from '../../infrastructure/transcript/transcriptEntryPersistence';
+import { recordImmediateTranscriptEntry } from '../../infrastructure/transcript/transcriptRecordWrite';
 import type {
   SessionInfo,
   TranscriptEntry,
@@ -15,6 +18,11 @@ import type {
   CompactedReplaySnapshot,
   RehydrateSnapshot,
 } from '../../infrastructure/api/windieSdkClient';
+import {
+  desktopTranscriptSessionRuntime,
+  subscribeDesktopTranscriptSessionRuntimeUpdates,
+  type TranscriptSessionResolveOptions,
+} from './desktopTranscriptSessionRuntime';
 
 type RewriteTranscriptProjectionInput = {
   conversationRef: string;
@@ -44,10 +52,10 @@ type TranscriptProjectionRecordOptions = {
 };
 
 function resolveSessionInfoForEntry(entry: TranscriptEntry): SessionInfo {
-  return {
+  return desktopTranscriptSessionRuntime.resolveSessionInfoFromOptions({
     conversationRef: entry.conversationRef ?? null,
     userId: entry.userId ?? null,
-  };
+  });
 }
 
 function emitTranscriptEntryStoredEvent(
@@ -79,28 +87,78 @@ async function persistProjectionEntry(entry: TranscriptEntry): Promise<void> {
   });
 }
 
-function recordProjectionEntry(entry: TranscriptEntry): void {
+function storeImmediateProjectionEntryWithRetry(
+  entry: TranscriptEntry,
+  queueForRetry: () => void,
+  warningMessage: string,
+): void {
   void persistProjectionEntry(entry).catch((error) => {
-    console.warn('[DesktopTranscriptProjectionRuntimeClient] Failed to store transcript projection entry:', error);
+    queueForRetry();
+    console.warn(warningMessage, error);
   });
 }
+
+function resolveSessionInfoOrQueue(
+  options: TranscriptSessionResolveOptions,
+  queueForRetry: () => void,
+): SessionInfo | null {
+  return desktopTranscriptSessionRuntime.resolveSessionInfoOrQueue(options, queueForRetry);
+}
+
+async function flushPendingProjectionMessages(): Promise<void> {
+  if (!pendingProjectionMessages.hasPendingEntries()) {
+    return;
+  }
+  await pendingProjectionMessages.flushPendingMessages(
+    desktopTranscriptSessionRuntime.getTranscriptSessionInfo(),
+  );
+}
+
+const pendingProjectionMessages = createPendingTranscriptMessages({
+  storeTranscriptEntry: persistProjectionEntry,
+  warn: console.warn,
+});
+
+subscribeDesktopTranscriptSessionRuntimeUpdates(() => {
+  void flushPendingProjectionMessages();
+});
 
 export const DesktopTranscriptProjectionRuntimeClient = {
   recordUserMessage(
     text: string,
     options: TranscriptProjectionRecordOptions = {},
   ): void {
-    recordProjectionEntry({
-      content: text,
-      role: 'user',
-      messageType: 'user',
+    const normalizedTransparency = normalizeTransparencyData(options.transparency);
+    const retryOptions = {
       timestamp: options.timestamp,
       modelId: options.modelId,
       modelProvider: options.modelProvider,
       screenshotRef: options.screenshotRef,
-      transparency: options.transparency,
-      conversationRef: options.conversationRef ?? options.sessionId ?? null,
-      userId: options.userId ?? null,
+      transparency: normalizedTransparency,
+      structuredPayload: options.structuredPayload,
+    };
+    const queueForRetry = () => pendingProjectionMessages.queueUserMessageForRetry(text, retryOptions);
+    recordImmediateTranscriptEntry({
+      text,
+      resolveSessionInfo: () => resolveSessionInfoOrQueue({
+        conversationRef: options.conversationRef ?? options.sessionId ?? null,
+        userId: options.userId ?? null,
+      }, queueForRetry),
+      queueForRetry,
+      buildEntry: (info) => ({
+        content: text,
+        role: 'user',
+        messageType: 'user',
+        timestamp: options.timestamp,
+        modelId: options.modelId,
+        modelProvider: options.modelProvider,
+        screenshotRef: options.screenshotRef,
+        transparency: normalizedTransparency,
+        conversationRef: info.conversationRef,
+        userId: info.userId,
+      }),
+      storeWithRetry: storeImmediateProjectionEntryWithRetry,
+      warningMessage: '[DesktopTranscriptProjectionRuntimeClient] Failed to store immediate user projection entry; queued for retry',
     });
   },
 
@@ -108,18 +166,35 @@ export const DesktopTranscriptProjectionRuntimeClient = {
     text: string,
     options: TranscriptProjectionRecordOptions = {},
   ): void {
-    recordProjectionEntry({
-      content: text,
-      role: 'assistant',
-      messageType: options.messageType || 'llm-text',
-      timestamp: options.timestamp,
+    const messageType = options.messageType || 'llm-text';
+    const normalizedTransparency = normalizeTransparencyData(options.transparency);
+    const retryOptions = {
+      messageType,
       modelId: options.modelId,
       modelProvider: options.modelProvider,
       screenshotRef: options.screenshotRef,
-      transparency: options.transparency,
-      structuredPayload: options.structuredPayload,
-      conversationRef: options.conversationRef ?? options.sessionId ?? null,
-      userId: options.userId ?? null,
+      transparency: normalizedTransparency,
+    };
+    const queueForRetry = () => pendingProjectionMessages.queueAssistantMessageForRetry(text, retryOptions);
+    recordImmediateTranscriptEntry({
+      text,
+      resolveSessionInfo: () => resolveSessionInfoOrQueue(options, queueForRetry),
+      queueForRetry,
+      buildEntry: (info) => ({
+        content: text,
+        role: 'assistant',
+        messageType,
+        timestamp: options.timestamp,
+        modelId: options.modelId,
+        modelProvider: options.modelProvider,
+        screenshotRef: options.screenshotRef,
+        transparency: normalizedTransparency,
+        structuredPayload: options.structuredPayload,
+        conversationRef: info.conversationRef,
+        userId: info.userId,
+      }),
+      storeWithRetry: storeImmediateProjectionEntryWithRetry,
+      warningMessage: '[DesktopTranscriptProjectionRuntimeClient] Failed to store immediate assistant projection entry; queued for retry',
     });
   },
 
@@ -129,20 +204,39 @@ export const DesktopTranscriptProjectionRuntimeClient = {
       messageType: string;
     },
   ): void {
-    recordProjectionEntry({
-      content: text,
-      role: options.messageType === 'tool-call' ? 'assistant' : 'tool',
+    const normalizedTransparency = normalizeTransparencyData(options.transparency);
+    const retryOptions = {
       messageType: options.messageType,
       toolName: options.toolName,
       correlationId: options.correlationId,
-      timestamp: options.timestamp,
       modelId: options.modelId,
       modelProvider: options.modelProvider,
       screenshotRef: options.screenshotRef,
-      transparency: options.transparency,
+      transparency: normalizedTransparency,
       structuredPayload: options.structuredPayload,
-      conversationRef: options.conversationRef ?? options.sessionId ?? null,
-      userId: options.userId ?? null,
+    };
+    const queueForRetry = () => pendingProjectionMessages.queueToolMessageForRetry(text, retryOptions);
+    recordImmediateTranscriptEntry({
+      text,
+      resolveSessionInfo: () => resolveSessionInfoOrQueue(options, queueForRetry),
+      queueForRetry,
+      buildEntry: (info) => ({
+        content: text,
+        role: options.messageType === 'tool-call' ? 'assistant' : 'tool',
+        messageType: options.messageType,
+        toolName: options.toolName,
+        correlationId: options.correlationId,
+        timestamp: options.timestamp,
+        modelId: options.modelId,
+        modelProvider: options.modelProvider,
+        screenshotRef: options.screenshotRef,
+        transparency: normalizedTransparency,
+        structuredPayload: options.structuredPayload,
+        conversationRef: info.conversationRef,
+        userId: info.userId,
+      }),
+      storeWithRetry: storeImmediateProjectionEntryWithRetry,
+      warningMessage: '[DesktopTranscriptProjectionRuntimeClient] Failed to store immediate tool projection entry; queued for retry',
     });
   },
 

@@ -17,8 +17,9 @@ The core rule is: visible transcript rows are renderer-owned records persisted t
 
 ```mermaid
 flowchart LR
-    A["Chat stream or local user/tool event"] --> B["TranscriptWriter"]
-    B --> C{"session identity ready?"}
+    A["Chat stream or local user/tool event"] --> B["DesktopConversationRuntimeClient"]
+    B --> C0["DesktopTranscriptProjectionRuntimeClient"]
+    C0 --> C{"session identity ready?"}
     C -- "yes" --> D["transcriptRecordWrite"]
     C -- "no" --> E["pending transcript queues"]
     E --> D
@@ -27,7 +28,7 @@ flowchart LR
     G --> H["sidecar store_transcript handler"]
     H --> I["LocalMemoryStore transcript rows"]
     I --> J["dashboard conversation list/search"]
-    I --> K["conversation replay state"]
+    I --> K["SDK display/rehydrate projections"]
     K --> L["rehydratePayload.js"]
     L --> M["backend RehydrateExecutionService"]
     M --> N["backend conversation-scoped history"]
@@ -48,12 +49,12 @@ flowchart LR
 
 | Symptom | First owner | Inspect first | Then inspect |
 | --- | --- | --- | --- |
-| User or assistant row appears in UI but is missing after restart | Renderer transcript writer/pending queues | `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`, `transcriptRecordWrite.ts`, `pending/*` | `tests/frontend/TranscriptWriter.userAssistant.test.ts`, `TranscriptPending*.test.ts`, sidecar `store_transcript` tests |
-| Tool call or tool output is missing, duplicated, or reordered after replay | Renderer transcript tool message state | `toolCallMessageState.js`, `toolOutputChatMessageState.ts`, `structuredToolPayload.js`, replay tool helpers | `tests/frontend/TranscriptWriter.tool.test.ts`, `ConversationReplayToolMessages.test.js`, backend linkage repair tests |
+| User or assistant row appears in UI but is missing after restart | Renderer projection runtime/pending queues | `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`, `transcriptRecordWrite.ts`, `pending/*` | `tests/frontend/DesktopTranscriptProjectionRuntimeClient.test.ts`, `TranscriptPending*.test.ts`, sidecar `store_transcript` tests |
+| Tool call or tool output is missing, duplicated, or reordered after replay | Renderer transcript tool message state | `toolCallMessageState.js`, `toolOutputChatMessageState.ts`, `structuredToolPayload.js`, replay tool helpers | `tests/frontend/DesktopTranscriptProjectionRuntimeClient.test.ts`, `ConversationReplayToolMessages.test.js`, backend linkage repair tests |
 | Transcript writes happen under the wrong conversation | Transcript session runtime and Electron sync | `transcriptSessionRuntime.ts`, `sessionInfoState.ts`, `sessionSyncPayload.ts`, `frontend/src/main/ipc/ipc_transcript_session_sync.cjs` | [Session and Conversation Identity Change Workflow](session_conversation_identity_change_workflow.md) |
-| Pending transcript rows never flush | Renderer pending queues | `pending/pendingTranscriptMessages.ts`, `pending/transcriptPendingFlush.ts`, `TranscriptWriter.ts` | `tests/frontend/TranscriptPendingQueue.test.ts`, `TranscriptPendingFlush.test.ts`, `TranscriptPendingMessages.test.ts` |
+| Pending transcript rows never flush | Renderer pending queues | `pending/pendingTranscriptMessages.ts`, `pending/transcriptPendingFlush.ts`, `desktopTranscriptProjectionRuntimeClient.ts` | `tests/frontend/TranscriptPendingQueue.test.ts`, `TranscriptPendingFlush.test.ts`, `TranscriptPendingMessages.test.ts` |
 | Dashboard conversation list is missing, stale, or ordered wrong | Sidecar conversation storage plus dashboard loader | `frontend/src/main/python/memory/conversation_list_runtime.py`, `local_store.py`, dashboard conversation hooks | `tests/sidecar/test_conversation_list_runtime.py`, `tests/frontend/DashboardConversationLoad.test.js` |
-| Dashboard resume displays wrong rows | Renderer replay state and sidecar transcript-window query | `conversationLocalSnapshotLoader.ts`, `conversationReplayState.ts`, `storedTranscriptChatMessageState.js`, sidecar transcript-window runtime | `ConversationLocalSnapshotLoader.test.ts`, `ConversationReplayState.test.ts`, sidecar conversation-window tests |
+| Dashboard resume displays wrong rows | SDK display projection and sidecar transcript-window query | `conversationLocalSnapshotLoader.ts`, `storedTranscriptChatMessageState.js`, sidecar transcript-window runtime | `ConversationLocalSnapshotLoader.test.ts`, sidecar conversation-window tests |
 | Resume displays rows but backend answers without old context | Rehydrate payload and backend rehydrate service | `rehydratePayload.js`, `backend/src/api/handlers/rehydrate.py`, `backend/src/api/services/rehydrate_*` | `RehydratePayload.test.js`, backend rehydrate service/linkage tests |
 | Transparency/system-prompt rows replay incorrectly | Renderer transparency normalization and backend rehydrate transparency resolution | `transparencyNormalization.ts`, `backend/src/api/services/rehydrate_transparency_resolution.py` | `TranscriptTransparencyNormalization.test.ts`, `tests/backend/test_rehydrate_transparency_resolution.py` |
 | Conversation delete leaves rows, titles, or search results behind | Sidecar memory delete/cleanup plus renderer active-chat reset | `local_store.py`, conversation delete helpers, dashboard delete actions | `tests/sidecar/test_local_store_delete_cleanup.py`, conversation title/list tests, dashboard delete tests |
@@ -73,8 +74,8 @@ flowchart LR
    - If the identity is right but the row is missing or malformed, continue here.
 
 3. Trace the write path.
-   - Chat stream handlers and local send code call `TranscriptWriter`.
-   - `TranscriptWriter` resolves session identity, writes immediately when possible, or queues into pending transcript queues.
+   - Chat stream handlers and local send code call `DesktopConversationRuntimeClient`.
+   - `DesktopTranscriptProjectionRuntimeClient` resolves session identity, writes immediately when possible, or queues into pending transcript queues.
    - `transcriptRecordWrite.ts` and `transcriptEntryPersistence.ts` shape the persisted entry.
    - Renderer IPC invokes the main memory bridge.
    - Main process maps payload keys before calling sidecar JSON-RPC.
@@ -108,8 +109,8 @@ flowchart LR
 
 | Change type | Focused validation |
 | --- | --- |
-| Transcript writer user/assistant/tool recording | `cd frontend && npm run test -- TranscriptWriter.userAssistant TranscriptWriter.tool TranscriptRecordWrite` |
-| Transcript session identity or sync payloads | `cd frontend && npm run test -- TranscriptWriter.session TranscriptSessionState TranscriptSessionSyncPayload IpcTranscriptSessionSync` |
+| Transcript projection user/assistant/tool recording | `cd frontend && npm run test -- DesktopTranscriptProjectionRuntimeClient TranscriptRecordWrite` |
+| Transcript session identity or sync payloads | `cd frontend && npm run test -- TranscriptSessionState TranscriptSessionSyncPayload IpcTranscriptSessionSync` |
 | Pending queue/retry behavior | `cd frontend && npm run test -- TranscriptPendingQueue TranscriptPendingFlush TranscriptPendingMessages` |
 | Stored-row conversion to visible chat messages | `cd frontend && npm run test -- StoredTranscriptChatMessageState StoredTranscriptMemoryState ConversationReplayState ConversationLocalSnapshotLoader` |
 | Dashboard resume actions | `cd frontend && npm run test -- ConversationReplayActions DashboardConversationLoad LocalConversationStore` |
@@ -123,7 +124,7 @@ flowchart LR
 
 ### Visible Row Missing After Restart
 
-1. Confirm the row was passed to `TranscriptWriter`.
+1. Confirm the row was passed to `DesktopConversationRuntimeClient` / `DesktopTranscriptProjectionRuntimeClient`.
 2. Confirm session identity was ready or the row entered a pending queue.
 3. Confirm immediate store failure requeued the row.
 4. Confirm renderer IPC called the main memory bridge with the expected payload.
@@ -140,7 +141,7 @@ flowchart LR
 
 ### Dashboard Resume Shows the Right Rows but Backend Forgets Context
 
-1. Confirm `conversationReplayState` renders the intended rows.
+1. Confirm SDK display projections render the intended rows.
 2. Confirm `rehydratePayload.js` includes those rows in backend-compatible order.
 3. Confirm the rehydrate request uses the selected `conversation_ref`.
 4. Confirm backend `RehydrateExecutionService` installs history into the conversation-scoped session.

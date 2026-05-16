@@ -38,6 +38,7 @@ const mockSendQuery = jest.fn();
 const mockSendRehydrateConversation = jest.fn();
 const mockSetModel = jest.fn();
 const mockUpdateSettings = jest.fn();
+const mockRewriteTranscriptProjection = jest.fn(async () => ({ entries: [], messages: [] }));
 const mockEnsureConversationInferenceSessionHydrated = jest.fn();
 const mockRehydrateConversationInferenceSession = jest.fn();
 const mockIsDevUiEnabled = jest.fn(() => false);
@@ -125,11 +126,20 @@ jest.mock('../../frontend/src/renderer/features/chat/utils/devUiFlag', () => ({
   isDevUiEnabled: () => mockIsDevUiEnabled(),
 }));
 
-jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
-  setActiveConversationRef: (...args) => mockSetActiveConversationRef(...args),
-  updateTranscriptSession: (...args) => mockUpdateTranscriptSession(...args),
-  getActiveConversationRef: (...args) => mockGetActiveConversationRef(...args),
-  getTranscriptSessionInfo: (...args) => mockGetTranscriptSessionInfo(...args),
+jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient', () => ({
+  DesktopConversationRuntimeClient: {
+    setActiveConversationRef: (...args) => mockSetActiveConversationRef(...args),
+    updateTranscriptSession: (...args) => mockUpdateTranscriptSession(...args),
+    getActiveConversationRef: (...args) => mockGetActiveConversationRef(...args),
+    getTranscriptSessionInfo: (...args) => mockGetTranscriptSessionInfo(...args),
+    stop: (...args) => mockStopQuery(...args),
+    compactHistory: (...args) => mockCompactHistory(...args),
+    sendQuery: (...args) => mockSendQuery(...args),
+    sendRehydrateConversation: (...args) => mockSendRehydrateConversation(...args),
+    setModel: (...args) => mockSetModel(...args),
+    updateSettings: (...args) => mockUpdateSettings(...args),
+    rewriteTranscriptProjection: (...args) => mockRewriteTranscriptProjection(...args),
+  },
 }));
 
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
@@ -205,6 +215,8 @@ describe('ChatInterface wiring', () => {
     mockSendRehydrateConversation.mockClear();
     mockSetModel.mockClear();
     mockUpdateSettings.mockClear();
+    mockRewriteTranscriptProjection.mockClear();
+    mockRewriteTranscriptProjection.mockResolvedValue({ entries: [], messages: [] });
     mockEnsureConversationInferenceSessionHydrated.mockReset();
     mockEnsureConversationInferenceSessionHydrated.mockResolvedValue(undefined);
     mockRehydrateConversationInferenceSession.mockReset();
@@ -1353,17 +1365,16 @@ describe('ChatInterface wiring', () => {
     expect(mockSetThinkingStatus).toHaveBeenCalledWith(null, 'conv_existing');
     expect(mockSetIsSending).toHaveBeenCalledWith(true, 'conv_existing');
 
-    expect(mockIpcInvoke).toHaveBeenCalledWith('delete-conversation', {
-      userId: 'default_user',
-      conversationId: 'conv_existing',
-      recordKind: 'conversation_event',
-    });
-    expect(mockIpcInvoke).toHaveBeenCalledWith('store-transcript', expect.objectContaining({
-      content: 'create a dashboard for this',
-      role: 'user',
-      messageType: 'user_message',
+    expect(mockRewriteTranscriptProjection).toHaveBeenCalledWith(expect.objectContaining({
       conversationRef: 'conv_existing',
       userId: 'default_user',
+      transcriptEntries: expect.arrayContaining([
+        expect.objectContaining({
+          content: 'create a dashboard for this',
+          role: 'user',
+          messageType: 'user',
+        }),
+      ]),
     }));
     const sawExpectedRehydrateCall = mockRehydrateConversationInferenceSession.mock.calls.some(
       ([payload]) => payload?.conversationRef === 'conv_existing'
@@ -1372,12 +1383,12 @@ describe('ChatInterface wiring', () => {
     );
     expect(sawExpectedRehydrateCall).toBe(true);
     const sawExpectedSendQueryCall = mockSendQuery.mock.calls.some(
-      ([queryText, conversationRef, screenshotRef, screenshotUrl, screenshotRefs]) => (
-        queryText === 'create a dashboard for this'
-        && conversationRef === 'conv_existing'
-        && (screenshotRef ?? null) === null
-        && (screenshotUrl ?? null) === null
-        && (screenshotRefs ?? null) === null
+      ([payload]) => (
+        payload.text === 'create a dashboard for this'
+        && payload.conversationRef === 'conv_existing'
+        && (payload.screenshotRef ?? null) === null
+        && (payload.screenshotUrl ?? null) === null
+        && (payload.screenshotRefs ?? null) === null
       ),
     );
     expect(sawExpectedSendQueryCall).toBe(true);
@@ -1402,29 +1413,28 @@ describe('ChatInterface wiring', () => {
     expect(mockSetThinkingStatus).toHaveBeenCalledWith(null, 'conv_existing');
     expect(mockSetIsSending).toHaveBeenCalledWith(true, 'conv_existing');
 
-    expect(mockIpcInvoke).toHaveBeenCalledWith('delete-conversation', {
-      userId: 'default_user',
-      conversationId: 'conv_existing',
-      recordKind: 'conversation_event',
-    });
-    expect(mockIpcInvoke).toHaveBeenCalledWith('store-transcript', expect.objectContaining({
-      content: 'new prompt',
-      role: 'user',
-      messageType: 'user_message',
+    expect(mockRewriteTranscriptProjection).toHaveBeenCalledWith(expect.objectContaining({
       conversationRef: 'conv_existing',
       userId: 'default_user',
+      transcriptEntries: expect.arrayContaining([
+        expect.objectContaining({
+          content: 'new prompt',
+          role: 'user',
+          messageType: 'user',
+        }),
+      ]),
     }));
     expect(mockRehydrateConversationInferenceSession).toHaveBeenCalledWith({
       conversationRef: 'conv_existing',
       messages: [],
     });
     const sawEditedSendQueryCall = mockSendQuery.mock.calls.some(
-      ([queryText, conversationRef, screenshotRef, screenshotUrl, screenshotRefs]) => (
-        queryText === 'new prompt'
-        && conversationRef === 'conv_existing'
-        && (screenshotRef ?? null) === null
-        && (screenshotUrl ?? null) === null
-        && (screenshotRefs ?? null) === null
+      ([payload]) => (
+        payload.text === 'new prompt'
+        && payload.conversationRef === 'conv_existing'
+        && (payload.screenshotRef ?? null) === null
+        && (payload.screenshotUrl ?? null) === null
+        && (payload.screenshotRefs ?? null) === null
       ),
     );
     expect(sawEditedSendQueryCall).toBe(true);

@@ -200,7 +200,7 @@ frontend/src/renderer/
 │       │   └── transcriptPendingFlush.ts # transcriptPendingFlush - FIFO flush/requeue helper
 │       ├── sessionInfoState.ts          # sessionInfoState - Lazy-loaded session resolver/update state machine
 │       ├── sessionInfoStorage.ts        # sessionInfoStorage - sessionStorage read/write + update event emitter
-│       ├── TranscriptWriter.ts          # TranscriptWriter - Session-aware transcript write queue + IPC storage calls
+│       ├── transcriptSessionRuntime.ts  # Session-aware transcript identity runtime used by desktop runtime clients
 │       └── types.ts                     # types - Shared transcript session/entry/pending message types
 │
 ├── styles/                                # CSS stylesheets

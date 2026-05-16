@@ -1,27 +1,26 @@
-import {
-  getActiveConversationRef,
-  getTranscriptSessionInfo,
-  setActiveConversationRef,
-  updateTranscriptSession,
-} from '../../infrastructure/transcript/TranscriptWriter';
+import { desktopTranscriptSessionRuntime } from './desktopTranscriptSessionRuntime';
 
 export const DesktopTranscriptSessionRuntimeClient = {
   getActiveConversationRef(): string | null {
-    return getActiveConversationRef();
+    return desktopTranscriptSessionRuntime.getActiveConversationRef();
   },
 
-  getTranscriptSessionInfo(): ReturnType<typeof getTranscriptSessionInfo> {
-    return getTranscriptSessionInfo();
+  getTranscriptSessionInfo(): ReturnType<typeof desktopTranscriptSessionRuntime.getTranscriptSessionInfo> {
+    return desktopTranscriptSessionRuntime.getTranscriptSessionInfo();
   },
 
   setActiveConversationRef(conversationRef: string | null): void {
-    setActiveConversationRef(conversationRef);
+    desktopTranscriptSessionRuntime.applyTranscriptSessionUpdate(conversationRef, undefined, {
+      syncToMainProcess: true,
+    });
   },
 
   updateTranscriptSession(
     conversationRef?: string | null,
     userId?: string | null,
   ): void {
-    updateTranscriptSession(conversationRef, userId);
+    desktopTranscriptSessionRuntime.applyTranscriptSessionUpdate(conversationRef, userId, {
+      syncToMainProcess: true,
+    });
   },
 };

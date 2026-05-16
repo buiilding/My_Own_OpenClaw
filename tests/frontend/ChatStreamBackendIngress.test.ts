@@ -3,9 +3,11 @@ import { ingestBackendEvent } from '../../frontend/src/renderer/features/chat/ut
 const mockGetActiveConversationRef = jest.fn();
 const mockUpdateTranscriptSession = jest.fn();
 
-jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
-  getActiveConversationRef: (...args: unknown[]) => mockGetActiveConversationRef(...args),
-  updateTranscriptSession: (...args: unknown[]) => mockUpdateTranscriptSession(...args),
+jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient', () => ({
+  DesktopConversationRuntimeClient: {
+    getActiveConversationRef: (...args: unknown[]) => mockGetActiveConversationRef(...args),
+    updateTranscriptSession: (...args: unknown[]) => mockUpdateTranscriptSession(...args),
+  },
 }));
 
 describe('chatStreamBackendIngress', () => {

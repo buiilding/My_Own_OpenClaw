@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sdk: remove the renderer `TranscriptWriter` compatibility API; desktop transcript session and projection writes now live behind SDK-facing runtime clients.
 - frontend/sdk: remove hidden `transcript_replay` compatibility storage so desktop display, rehydrate, compaction, edit/resend, retry, and conversation deletion use canonical `conversation_event` rows only.
 - backend: align rehydrate screenshot artifact compatibility coverage with owner-scoped artifact loading.
 - frontend/sdk: make the desktop transcript projection runtime write through the Electron conversation store without importing `TranscriptWriter`.

@@ -209,12 +209,13 @@ Electron uses a sidecar-backed store adapter during the desktop migration:
   through the Electron conversation store adapter. The adapter owns local
   transcript row deletion, replay-state clearing, workspace metadata, rewritten
   row persistence, and the rehydrate projection used before the resend turn.
-- desktop `TranscriptWriter` visible transcript appends also route through the
-  Electron conversation store adapter, so queued user/assistant/tool writes no
-  longer own direct row IPC or replay append mutation.
+- desktop visible transcript appends route through
+  `DesktopTranscriptProjectionRuntimeClient` and the Electron conversation
+  store adapter, so queued user/assistant/tool writes no longer own direct row
+  IPC or replay append mutation.
 - desktop chat feature code uses the desktop conversation runtime facade for
-  transcript session identity helpers, keeping direct `TranscriptWriter` imports
-  at the migration boundary instead of in chat hooks and utilities.
+  transcript session identity helpers. There is no renderer `TranscriptWriter`
+  compatibility boundary.
 - desktop dashboard and app config session synchronization use an app-level
   transcript-session runtime facade, so feature/provider code does not import
   transcript infrastructure directly for conversation/user identity updates.

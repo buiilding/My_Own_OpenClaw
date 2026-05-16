@@ -12,7 +12,7 @@ import { useAppConfigContext } from '../../frontend/src/renderer/app/providers/A
 import { useSettingsManagement } from '../../frontend/src/renderer/features/settings/hooks/useSettingsManagement';
 import { loadConfigFromStorage, saveConfigToStorage } from '../../frontend/src/renderer/utils/configStorage';
 import { ApiClient } from '../../frontend/src/renderer/infrastructure/api/client';
-import { updateTranscriptSession } from '../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter';
+import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 import { setBackendHttpUrl } from '../../frontend/src/renderer/infrastructure/services/BackendEndpointStore';
 
 jest.mock('../../frontend/src/renderer/features/settings/hooks/useSettingsManagement');
@@ -23,8 +23,10 @@ jest.mock('../../frontend/src/renderer/utils/configStorage', () => ({
   loadConfigFromStorage: jest.fn(),
   saveConfigToStorage: jest.fn(),
 }));
-jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
-  updateTranscriptSession: jest.fn(),
+jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => ({
+  DesktopTranscriptSessionRuntimeClient: {
+    updateTranscriptSession: jest.fn(),
+  },
 }));
 jest.mock('../../frontend/src/renderer/infrastructure/services/BackendEndpointStore', () => ({
   setBackendHttpUrl: jest.fn(),
@@ -45,7 +47,7 @@ let clientUserIdResponse: any = null;
 export const mockUseSettingsManagement = useSettingsManagement as jest.Mock;
 export const mockLoadConfigFromStorage = loadConfigFromStorage as jest.Mock;
 export const mockSaveConfigToStorage = saveConfigToStorage as jest.Mock;
-export const mockUpdateTranscriptSession = updateTranscriptSession as jest.Mock;
+export const mockUpdateTranscriptSession = DesktopTranscriptSessionRuntimeClient.updateTranscriptSession as jest.Mock;
 export const mockSetBackendHttpUrl = setBackendHttpUrl as jest.Mock;
 export const mockApiClientListModels = ApiClient.listModels as jest.Mock;
 export const mockApiClientUpdateSettings = ApiClient.updateSettings as jest.Mock;

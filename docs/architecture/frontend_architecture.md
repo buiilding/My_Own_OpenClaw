@@ -143,7 +143,7 @@ callbacks through `main/windie_sdk_runtime.cjs`.
 
 1. Renderer chat hooks call `DesktopConversationRuntimeClient` for visible transcript projection writes.
 2. The conversation runtime facade delegates projection persistence to `DesktopTranscriptProjectionRuntimeClient`, which writes through `ElectronSidecarConversationStore` rather than reaching into transcript IPC directly.
-3. `TranscriptWriter` remains the legacy queued writer for migration-boundary calls, but app runtime projection writes no longer import it.
+3. `DesktopTranscriptSessionRuntimeClient` owns active conversation/user identity for app and dashboard surfaces.
 4. Renderer-local conversation store helpers fetch transcript windows via sidecar RPC (`list-conversations`, `search-conversations`, `get-conversation`).
    `get-conversation` resume/hydrate paths use `message_index` cursor pagination (`after_message_index`) so large local DB transcripts are fully reloaded instead of capped at one page.
 5. `ElectronSidecarConversationStore` is the only renderer adapter that calls transcript storage IPC; it writes visible transcript rows, replay rows, and SDK `conversation_event` rows behind one store boundary.
@@ -346,7 +346,8 @@ Primary modules:
 
 - `infrastructure/ipc/bridge.ts`: typed channel wrappers over preload API.
 - `infrastructure/api/client.ts`: typed backend command emitter.
-- `infrastructure/transcript/TranscriptWriter.ts`: transcript session state + queued persistence.
+- `app/runtime/desktopTranscriptProjectionRuntimeClient.ts`: queued transcript projection persistence through the SDK conversation store adapter.
+- `app/runtime/desktopTranscriptSessionRuntimeClient.ts`: active transcript conversation/user identity facade.
 - `features/chat/session/useRendererConversationSessionInfo.js`: merged renderer current-session reader for user-facing surfaces.
 - `infrastructure/services/toolExecution/*`: retained display and capture timing helpers; backend tool execution is owned by the SDK runtime in Electron main and the sidecar daemon.
 - `infrastructure/services/surfaceOrchestrator/platform/surfaceVisibility/*`: explicit per-OS screenshot chat-pill policy (Linux hides; Windows/macOS no-op because overlay exclusion comes from phase-driven content protection, not capture-time hide/show).

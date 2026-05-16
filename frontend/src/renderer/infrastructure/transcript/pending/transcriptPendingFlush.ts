@@ -32,7 +32,7 @@ export const flushPendingEntries = async <T>({
     } catch (error) {
       requeue(messages.slice(index));
       warn(
-        `[TranscriptWriter] Failed to flush pending ${category} transcript entries; requeued ${messages.length - index}`,
+        `[DesktopTranscriptProjectionRuntimeClient] Failed to flush pending ${category} transcript entries; requeued ${messages.length - index}`,
         error,
       );
       return false;

@@ -5,15 +5,8 @@ import {
 } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import { captureScreenshotAttachment } from '../../frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline';
-import { ApiClient } from '../../frontend/src/renderer/infrastructure/api/client';
 import { uploadArtifactBase64 } from '../../frontend/src/renderer/infrastructure/services/ArtifactUploader';
-import {
-  getActiveConversationRef,
-  getTranscriptSessionInfo,
-  recordUserMessage,
-  setActiveConversationRef,
-  updateTranscriptSession,
-} from '../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter';
+import { DesktopConversationRuntimeClient } from '../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient';
 import {
   ensureConversationInferenceSessionHydrated,
   markConversationInferenceSessionLocalOnly,
@@ -37,35 +30,30 @@ jest.mock('../../frontend/src/renderer/infrastructure/services/ScreenshotAttachm
   captureScreenshotAttachment: jest.fn(),
 }));
 
-jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
-  ApiClient: {
-    sendQuery: jest.fn(),
-    setModel: jest.fn(),
-    updateSettings: jest.fn(),
-    sendRehydrateConversation: jest.fn(),
-  },
-}));
-
 jest.mock('../../frontend/src/renderer/infrastructure/services/ArtifactUploader', () => ({
   uploadArtifactBase64: jest.fn(),
   buildArtifactUrl: (artifactId: string) => `http://127.0.0.1:8765/api/artifacts/${artifactId}`,
 }));
 
 let mockActiveConversationRef: string | null = null;
-jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
-  getActiveConversationRef: jest.fn(() => mockActiveConversationRef),
-  setActiveConversationRef: jest.fn((ref: string | null) => {
-    mockActiveConversationRef = ref;
-  }),
-  updateTranscriptSession: jest.fn((conversationRef?: string | null, userId?: string | null) => ({
-    conversationRef: conversationRef ?? null,
-    userId: userId ?? null,
-  })),
-  getTranscriptSessionInfo: jest.fn(() => ({
-    conversationRef: mockActiveConversationRef,
-    userId: null,
-  })),
-  recordUserMessage: jest.fn(),
+jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient', () => ({
+  DesktopConversationRuntimeClient: {
+    getActiveConversationRef: jest.fn(() => mockActiveConversationRef),
+    setActiveConversationRef: jest.fn((ref: string | null) => {
+      mockActiveConversationRef = ref;
+    }),
+    updateTranscriptSession: jest.fn((conversationRef?: string | null, userId?: string | null) => ({
+      conversationRef: conversationRef ?? null,
+      userId: userId ?? null,
+    })),
+    getTranscriptSessionInfo: jest.fn(() => ({
+      conversationRef: mockActiveConversationRef,
+      userId: null,
+    })),
+    recordUserMessage: jest.fn(),
+    sendQuery: jest.fn(),
+    setModel: jest.fn(),
+  },
 }));
 
 jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime', () => ({
@@ -75,15 +63,13 @@ jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferen
 }));
 
 const mockCaptureScreenshotAttachment = captureScreenshotAttachment as jest.MockedFunction<typeof captureScreenshotAttachment>;
-const mockSendQuery = ApiClient.sendQuery as jest.MockedFunction<typeof ApiClient.sendQuery>;
-const mockSetModel = ApiClient.setModel as jest.MockedFunction<typeof ApiClient.setModel>;
-const mockUpdateSettings = ApiClient.updateSettings as jest.MockedFunction<typeof ApiClient.updateSettings>;
+const mockSendQuery = DesktopConversationRuntimeClient.sendQuery as jest.Mock;
+const mockSetModel = DesktopConversationRuntimeClient.setModel as jest.Mock;
 const mockUploadArtifactBase64 = uploadArtifactBase64 as jest.MockedFunction<typeof uploadArtifactBase64>;
-const mockRecordUserMessage = recordUserMessage as jest.MockedFunction<typeof recordUserMessage>;
-const mockGetActiveConversationRef = getActiveConversationRef as jest.MockedFunction<typeof getActiveConversationRef>;
-const mockSetActiveConversationRef = setActiveConversationRef as jest.MockedFunction<typeof setActiveConversationRef>;
-const mockUpdateTranscriptSession = updateTranscriptSession as jest.MockedFunction<typeof updateTranscriptSession>;
-const mockGetTranscriptSessionInfo = getTranscriptSessionInfo as jest.MockedFunction<typeof getTranscriptSessionInfo>;
+const mockGetActiveConversationRef = DesktopConversationRuntimeClient.getActiveConversationRef as jest.Mock;
+const mockSetActiveConversationRef = DesktopConversationRuntimeClient.setActiveConversationRef as jest.Mock;
+const mockUpdateTranscriptSession = DesktopConversationRuntimeClient.updateTranscriptSession as jest.Mock;
+const mockGetTranscriptSessionInfo = DesktopConversationRuntimeClient.getTranscriptSessionInfo as jest.Mock;
 const mockEnsureConversationInferenceSessionHydrated = ensureConversationInferenceSessionHydrated as jest.MockedFunction<typeof ensureConversationInferenceSessionHydrated>;
 const mockMarkConversationInferenceSessionLocalOnly = markConversationInferenceSessionLocalOnly as jest.MockedFunction<typeof markConversationInferenceSessionLocalOnly>;
 const mockMarkConversationInferenceSessionUnknown = markConversationInferenceSessionUnknown as jest.MockedFunction<typeof markConversationInferenceSessionUnknown>;
@@ -144,15 +130,15 @@ describe('useChatMessageSender', () => {
     attachmentFilenames: string[] | null = null,
   ) {
     expect(mockSendQuery).toHaveBeenCalledTimes(1);
-    const call = mockSendQuery.mock.calls[0];
-    expect(call[0]).toBe(text);
-    expect(call[1]).toBe(conversationRef);
-    expect(call[2]).toBe(screenshotRef);
-    expect(call[3]).toBe(screenshotUrl);
-    expect(call[4]).toEqual(screenshotRefs);
-    expect((call[5] ?? null) as Record<string, unknown> | null).toEqual(captureMeta);
-    expect((call[6] ?? null) as string | null).toBe(attachmentContext);
-    const actualAttachmentFilenames = (call[7] ?? null) as string[] | null;
+    const call = mockSendQuery.mock.calls[0][0];
+    expect(call.text).toBe(text);
+    expect(call.conversationRef).toBe(conversationRef);
+    expect(call.screenshotRef).toBe(screenshotRef);
+    expect(call.screenshotUrl).toBe(screenshotUrl);
+    expect(call.screenshotRefs).toEqual(screenshotRefs);
+    expect((call.captureMeta ?? null) as Record<string, unknown> | null).toEqual(captureMeta);
+    expect((call.attachmentContext ?? null) as string | null).toBe(attachmentContext);
+    const actualAttachmentFilenames = (call.attachmentFilenames ?? null) as string[] | null;
     if (attachmentFilenames === null) {
       expect(actualAttachmentFilenames === null || typeof actualAttachmentFilenames === 'undefined').toBe(true);
       return;
@@ -177,7 +163,6 @@ describe('useChatMessageSender', () => {
     mockCaptureScreenshotAttachment.mockReset();
     mockSendQuery.mockReset();
     mockSetModel.mockReset();
-    mockUpdateSettings.mockReset();
     mockUploadArtifactBase64.mockReset();
     mockActiveConversationRef = null;
     mockFrontendConfig = {
@@ -189,7 +174,6 @@ describe('useChatMessageSender', () => {
     mockSetActiveConversationRef.mockClear();
     mockUpdateTranscriptSession.mockClear();
     mockGetTranscriptSessionInfo.mockClear();
-    mockRecordUserMessage.mockClear();
     mockEnsureConversationInferenceSessionHydrated.mockReset();
     mockMarkConversationInferenceSessionLocalOnly.mockReset();
     mockMarkConversationInferenceSessionUnknown.mockReset();
@@ -508,14 +492,9 @@ describe('useChatMessageSender', () => {
         screenshotUrl: '/api/artifacts/artifact-1',
       }),
     );
-    expect(mockRecordUserMessage.mock.calls.length).toBe(1);
-    expect(mockRecordUserMessage.mock.calls[0][0]).toBe('hello');
-    expect(mockRecordUserMessage.mock.calls[0][1]).toEqual(
-      expect.objectContaining({
-        conversationRef: 'conv_msg-1',
-        screenshotRef: 'artifact-1',
-      }),
-    );
+    expect(mockSendQuery.mock.calls[0][0].transcript).toEqual(expect.objectContaining({
+      screenshotRef: 'artifact-1',
+    }));
   });
 
   test('reuses auto-capture screenshot_ref and screenshot_url when screenshot bytes are absent', async () => {
@@ -749,12 +728,7 @@ describe('useChatMessageSender', () => {
 
     expect(mockSetActiveConversationRef).not.toHaveBeenCalled();
     expect(mockSendQuery).toHaveBeenCalledTimes(1);
-    expect(mockSendQuery.mock.calls[0][1]).toBe('conv_existing');
-    expect(mockRecordUserMessage.mock.calls[0][1]).toEqual(
-      expect.objectContaining({
-        conversationRef: 'conv_existing',
-      }),
-    );
+    expect(mockSendQuery.mock.calls[0][0].conversationRef).toBe('conv_existing');
     expect(mockEnsureConversationInferenceSessionHydrated).toHaveBeenCalledWith({
       conversationRef: 'conv_existing',
       userId: null,
@@ -782,7 +756,7 @@ describe('useChatMessageSender', () => {
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-main-snapshot', 'user-main-snapshot');
     expect(mockMarkConversationInferenceSessionUnknown).toHaveBeenCalledWith('conv-main-snapshot');
     expect(mockSendQuery).toHaveBeenCalledTimes(1);
-    expect(mockSendQuery.mock.calls[0][1]).toBe('conv-main-snapshot');
+    expect(mockSendQuery.mock.calls[0][0].conversationRef).toBe('conv-main-snapshot');
   });
 
   test('reuses chat store active conversation ref when transcript session ref is temporarily missing', async () => {
@@ -796,12 +770,7 @@ describe('useChatMessageSender', () => {
 
     expect(mockSetActiveConversationRef).toHaveBeenCalledWith('conv_store_active');
     expect(mockSendQuery).toHaveBeenCalledTimes(1);
-    expect(mockSendQuery.mock.calls[0][1]).toBe('conv_store_active');
-    expect(mockRecordUserMessage.mock.calls[0][1]).toEqual(
-      expect.objectContaining({
-        conversationRef: 'conv_store_active',
-      }),
-    );
+    expect(mockSendQuery.mock.calls[0][0].conversationRef).toBe('conv_store_active');
   });
 
   test('marks generated first-send conversations as fresh local before backend sync', async () => {
