@@ -13,7 +13,6 @@ import {
 } from '../../../infrastructure/workspace/conversationWorkspaceBinding';
 import {
   markConversationInferenceSessionLocalOnly,
-  rehydrateConversationInferenceSession,
 } from '../session/conversationInferenceSessionRuntime';
 import { DesktopConversationRuntimeClient } from '../session/desktopConversationRuntimeClient';
 import {
@@ -30,6 +29,7 @@ import { buildReplayContextMessages } from '../utils/conversationReplayToolMessa
 
 function buildTranscriptProjectionEntries(messages) {
   return messages.map((message) => ({
+    messageId: message.id,
     content: message.text,
     role: resolveTranscriptRole(message),
     messageType: resolveTranscriptMessageType(message),
@@ -43,45 +43,6 @@ function buildTranscriptProjectionEntries(messages) {
     }),
     timestamp: message.timestamp || null,
   }));
-}
-
-async function runReplayQueryFlow({
-  conversationRef,
-  userId,
-  transcriptEntries,
-  rehydrateEntries,
-  queryText,
-  screenshotRef,
-  screenshotUrl,
-  screenshot,
-  deferredQueryModelSelection,
-  workspacePath,
-}) {
-  const rehydrateSnapshot = await DesktopConversationRuntimeClient.rewriteTranscriptProjection({
-    conversationRef,
-    userId: userId || DEFAULT_USER_ID,
-    transcriptEntries,
-    rehydrateEntries,
-  });
-  await rehydrateConversationInferenceSession({
-    conversationRef,
-    messages: rehydrateSnapshot.messages,
-  });
-  if (deferredQueryModelSelection) {
-    DesktopConversationRuntimeClient.setModel(deferredQueryModelSelection);
-  }
-  await DesktopConversationRuntimeClient.sendQuery({
-    text: queryText,
-    conversationRef,
-    screenshotRef: screenshotRef || null,
-    screenshotUrl: screenshotUrl || null,
-    screenshotRefs: null,
-    captureMeta: null,
-    attachmentContext: null,
-    attachmentFilenames: null,
-    screenshot: screenshot || null,
-    workspacePath: workspacePath || null,
-  });
 }
 
 function ensureConversationRef(sessionConversationRef, storeConversationRef) {
@@ -110,8 +71,8 @@ function ensureConversationRef(sessionConversationRef, storeConversationRef) {
 async function executeReplayAction({
   sessionInfo,
   activeConversationRef,
+  sourceMessages,
   replayMessages,
-  preservedMessages,
   queryText,
   screenshotRef,
   screenshotUrl,
@@ -122,6 +83,8 @@ async function executeReplayAction({
   setIsSending,
   errorPrefix,
   deferredQueryModelSelection,
+  action,
+  messageId,
 }) {
   const conversationRef = ensureConversationRef(
     sessionInfo.conversationRef,
@@ -142,20 +105,26 @@ async function executeReplayAction({
   setIsSending(true, conversationRef);
 
   try {
-    // Replay always rewrites transcript first, then rehydrates, then sends query.
-    // This preserves the same history reconstruction contract for edit + try-again.
-    await runReplayQueryFlow({
+    const rewritePayload = {
       conversationRef,
       userId: sessionInfo.userId,
-      transcriptEntries: buildTranscriptProjectionEntries(replayMessages),
-      rehydrateEntries: buildTranscriptProjectionEntries(preservedMessages),
-      queryText,
-      screenshotRef: screenshotRef || null,
-      screenshotUrl: screenshotUrl || null,
-      screenshot: screenshot || null,
-      deferredQueryModelSelection,
+      messageId,
+      text: queryText,
+      projectionEntries: buildTranscriptProjectionEntries(sourceMessages),
+      payload: {
+        screenshot_ref: screenshotRef || null,
+        screenshot_url: screenshotUrl || null,
+        screenshot_refs: null,
+        screenshot: screenshot || null,
+      },
+      model: deferredQueryModelSelection || null,
       workspacePath: workspaceBinding.workspacePath || null,
-    });
+    };
+    if (action === 'edit_resend') {
+      await DesktopConversationRuntimeClient.editAndResend(rewritePayload);
+    } else {
+      await DesktopConversationRuntimeClient.retryTurn(rewritePayload);
+    }
   } catch (error) {
     console.error(`[ChatInterface] ${errorPrefix}:`, error);
     setIsSending(false, conversationRef);
@@ -205,8 +174,8 @@ export function useConversationReplayActions({
     await executeReplayAction({
       sessionInfo,
       activeConversationRef,
+      sourceMessages: messages,
       replayMessages: replayConversation,
-      preservedMessages: replayContextMessages,
       queryText: normalizedEditedText,
       screenshotRef: replayScreenshot.screenshotRef,
       screenshotUrl: replayScreenshot.screenshotUrl,
@@ -217,6 +186,8 @@ export function useConversationReplayActions({
       setIsSending,
       errorPrefix: 'Failed to edit user message',
       deferredQueryModelSelection,
+      action: 'edit_resend',
+      messageId: userMessageId,
     });
   }, [
     activeConversationRef,
@@ -260,8 +231,8 @@ export function useConversationReplayActions({
     await executeReplayAction({
       sessionInfo,
       activeConversationRef,
+      sourceMessages: messages,
       replayMessages: replayContextMessages,
-      preservedMessages: replayContextMessages.slice(0, -1),
       queryText: retryUserMessage.text,
       screenshotRef: replayScreenshot.screenshotRef,
       screenshotUrl: replayScreenshot.screenshotUrl,
@@ -272,6 +243,8 @@ export function useConversationReplayActions({
       setIsSending,
       errorPrefix: 'Failed to retry assistant message',
       deferredQueryModelSelection,
+      action: 'retry',
+      messageId: assistantMessageId,
     });
   }, [
     activeConversationRef,

@@ -113,6 +113,7 @@ load events
   -> choose target user turn
   -> preserve events before that user turn
   -> commit conversation_rewritten with new revisionId
+  -> build and send the SDK rehydrate projection for the new revision
   -> send replacement user message as a new turn
 ```
 
@@ -120,11 +121,12 @@ The old revision remains valid until the rewrite commits. The SDK does not
 delete display rows and then reconstruct backend history through a separate
 lossy path.
 
-During the desktop migration, edit/resend and try-again rewrites go through the
-Electron conversation store adapter. The renderer may choose the visible
-replacement rows, but the adapter owns transcript deletion, replay-state
-clearing, rewritten persistence, and the rehydrate projection sent before the
-new turn.
+Desktop edit/resend and try-again seed the current visible projection into the
+Electron conversation store, then call `SdkConversationRuntime.editAndResend`
+or `SdkConversationRuntime.retryTurn`. The renderer hook may identify which
+button was clicked, but revision cutting, rewritten persistence, rehydrate
+projection generation, model sync, and query send live behind the SDK runtime
+facade.
 
 ## Stream Rule
 

@@ -232,13 +232,13 @@ Dashboard startup and open-chat loading also use the SDK store adapter:
   `sdkDisplayChatMessageProjection.ts`
 - the local snapshot loader remains only for workspace binding and projection
   metadata
-- edit/resend and try-again visible transcript rewrites go through the Electron
-  sidecar conversation store adapter, which owns local projection replacement
-  and `compaction_applied` generation writes. The replay hook chooses the
-  replacement message list, but it does not invoke `store-transcript`,
-  `delete-conversation`, or direct backend rehydrate shaping.
-  It converts replay rows into store projection entries and lets the SDK
-  projection build the backend rehydrate snapshot.
+- edit/resend and try-again actions go through
+  `DesktopConversationRuntimeClient.editAndResend(...)` and
+  `DesktopConversationRuntimeClient.retryTurn(...)`. The hook identifies the
+  clicked message and sets the optimistic display projection, while the desktop
+  runtime facade seeds current display rows into `ElectronSidecarConversationStore`
+  and delegates revision cutting, rehydrate generation, model sync, and query
+  send to `SdkConversationRuntime`.
 - compacted replay replacement appends a new generation with
   `replay_generation_entry_count` and `replay_generation_complete` metadata.
   Loaders select the newest complete generation and ignore partial writes, so a
@@ -259,10 +259,10 @@ Replay rehydrate must keep prior context stable.
   - converting old `role=tool + message_type=tool-call` rows into assistant tool-call turns
   - reusing explicit `tool_call_id` values when tool outputs arrive out of order
   - synthesizing fallback `tool-output` rows for unanswered pending tool calls so strict providers can resume old chats safely
-- Local transcript rewriting must be owned by the store/repository adapter, not
-  by chat UI hooks. Hooks may build the replay message projection while the
-  runtime migration is in progress, but persistence and replay-state clearing
-  stay behind the store boundary.
+- Local transcript rewriting must be owned by the SDK runtime/store boundary,
+  not by chat UI hooks. Hooks may build the optimistic display projection, but
+  persistence, revision cutting, rehydrate shaping, and resend delivery stay
+  behind `DesktopConversationRuntimeClient`.
 
 This contract prevents provider tool-call sequencing errors without losing valid tool context.
 

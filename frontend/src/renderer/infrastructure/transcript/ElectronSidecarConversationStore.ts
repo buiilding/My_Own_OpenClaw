@@ -43,6 +43,7 @@ type ElectronSidecarConversationStoreDeps = {
 };
 
 export type TranscriptProjectionRewriteEntry = {
+  messageId?: string | null;
   content: string;
   role: string;
   messageType: string;
@@ -270,6 +271,8 @@ function projectionEntryToConversationEvent(
     timestamp: entry.timestamp || undefined,
     source: 'sdk',
     payload: {
+      id: entry.messageId || undefined,
+      messageId: entry.messageId || undefined,
       text: entry.content,
       content: entry.content,
       role: entry.role,

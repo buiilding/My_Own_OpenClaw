@@ -58,10 +58,10 @@ For the decision history, see `docs/adr/005-frontend-tool-schema-source-of-truth
 │  └───────────────────────────────────────────┘  │
 │              ↕ IPC (IpcBridge)                     │
 │  ┌───────────────────────────────────────────┐  │
-│  │  Renderer Process (React)                  │  │
-│  │  - useToolRunner Hook                      │  │
-│  │  - ToolExecutionService                    │  │
-│  │  - MessageFormatter                        │  │
+│  │  SDK Runtime / Electron Main               │  │
+│  │  - ToolExecutionCoordinator                │  │
+│  │  - Local runtime adapter                   │  │
+│  │  - MessageFormatter / projections          │  │
 │  └───────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────┘
 ```
@@ -207,16 +207,11 @@ Tool calls are sent by the agent tool sender. Execution now has two lanes:
 
 **ToolResultOrchestrator** (`tools/orchestrator.py`) waits for frontend results and assembles `ToolResult` objects:
 
-1. Frontend receives tool-call event
-2. **useToolRunner** hook receives tool-call event
-3. **ToolExecutionService** (`infrastructure/services/ToolExecutionService.ts`) handles execution:
-   - Routes tool to Python sidecar via IPC invoke
-   - Python sidecar executes tool
-   - Automatically captures screenshot (if computer-use tool)
-   - Captures system state
-   - Formats result with MessageFormatter
-4. Result displayed in UI via callback
-5. Result sent back to backend via WebSocket
+1. SDK runtime receives and normalizes the backend `tool-call` or `tool-bundle`.
+2. `ToolExecutionCoordinator` claims executable local events and calls the Electron local-runtime adapter.
+3. Electron main routes the local call to the Python sidecar daemon/tool bridge.
+4. Python sidecar executes the tool, including screenshot/system-state capture when required by the executable tool.
+5. SDK runtime sends exactly one `tool-result` or `tool-bundle-result` back to backend and appends the normalized tool output event for display/projection.
 
 Backend lane additions:
 
@@ -395,7 +390,7 @@ For tools using vision models:
 ### Screenshot Lifecycle
 
 1. **User Message**: Screenshot captured before sending (via useChatMessageSender) and uploaded via HTTP `/api/artifacts`
-2. **Tool Execution**: Screenshot automatically captured after computer-use tool execution (via ToolExecutionService) and uploaded via HTTP `/api/artifacts`
+2. **Tool Execution**: Screenshot automatically captured after computer-use tool execution in the sidecar/local-runtime path and uploaded via HTTP `/api/artifacts`
    - **Individual Tools**: Screenshot captured **once** after tool execution completes
    - **Bundled Tools**: Screenshot captured **once** after all bundled tools execute (not after each tool)
    - Individual tools use `ensureAutoCapture(...)` for shared capture policy and fallback behavior.

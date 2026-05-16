@@ -294,6 +294,7 @@ export class SdkConversationRuntime {
       reason: 'edit_resend',
       replacementText: normalizedText,
     });
+    await this.rehydrate();
     return this.send({
       text: normalizedText,
       turnRef: input.turnRef,
@@ -332,6 +333,7 @@ export class SdkConversationRuntime {
       reason: 'retry',
       replacementText: retryText,
     });
+    await this.rehydrate();
     return this.send({
       text: retryText,
       turnRef: input.turnRef,

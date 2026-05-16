@@ -105,7 +105,8 @@ describe('renderer chat runtime boundary', () => {
     );
 
     expect(source).not.toContain('ElectronSidecarConversationStore');
-    expect(source).toContain('DesktopConversationRuntimeClient.rewriteTranscriptProjection');
+    expect(source).toContain('DesktopConversationRuntimeClient.editAndResend');
+    expect(source).toContain('DesktopConversationRuntimeClient.retryTurn');
   });
 
   test('conversation inference rehydrate snapshots use the desktop runtime facade', async () => {
@@ -125,7 +126,7 @@ describe('renderer chat runtime boundary', () => {
     );
 
     expect(source).not.toContain('infrastructure/transcript/TranscriptWriter');
-    expect(source).not.toContain('ElectronSidecarConversationStore');
+    expect(source).toContain('SdkConversationRuntime');
     expect(source).toContain('DesktopTranscriptProjectionRuntimeClient');
   });
 });

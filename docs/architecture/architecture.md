@@ -125,8 +125,8 @@ This is not the primary open-source SDK contract. The default client contract is
 - **Components**: React components organized by feature (chat, settings, voice)
 - **Context**: Split contexts for performance (AppConfigContext, AppStatusContext, ChatProvider)
 - **State Management**: Zustand store for chat state, Context API for app config
-- **Hooks**: Feature-specific hooks (useChatStream, useToolRunner, useChatMessageSender)
-- **Infrastructure**: Service layer (ToolExecutionService, MessageFormatter, IpcBridge)
+- **Hooks**: Feature-specific hooks (useChatStream, useChatMessageSender)
+- **Infrastructure**: SDK runtime facades, projection builders, MessageFormatter, IpcBridge
 - **API Client**: Typed API client for backend communication
 
 #### Main Process (Node.js)
@@ -189,13 +189,13 @@ This is not the primary open-source SDK contract. The default client contract is
     ↓
 13. Tools sent to frontend for execution
     ↓
-14. useToolRunner hook receives tool-call
+14. SDK runtime receives and normalizes tool-call/tool-bundle events
     ↓
-15. ToolExecutionService executes tool (Python sidecar)
+15. ToolExecutionCoordinator routes execution through the Electron local-runtime adapter
     ↓
-16. ToolExecutionService captures screenshot and system state
+16. Python sidecar executes local tools and captures local state when required
     ↓
-17. Results sent back to backend
+17. SDK runtime sends tool-result/tool-bundle-result back to backend
     ↓
 18. ToolResultHandler processes results (centralized storage)
     ↓
@@ -235,7 +235,7 @@ Screenshots are captured strategically at key points to provide visual context f
   - **Individual Tools**: Screenshot captured **once** after tool execution completes
   - **Atomic Bundles**: Screenshot captured **once** after all bundled tools execute (single tool-bundle message, single tool-bundle-result response)
 - **Purpose**: Shows the result state after tool execution for verification and continued context
-- **Location**: `frontend/src/renderer/infrastructure/services/ToolExecutionService.ts`
+- **Location**: Python sidecar tool runtime, routed through the SDK `ToolExecutionCoordinator`
 - **Implementation**:
   - Individual tool path uses `ensureAutoCapture(...)` (shared capture policy helper) and captures once when no screenshot is already in tool output.
   - Bundle path captures once after the full bundle run when computer-use actions are present.
@@ -267,17 +267,17 @@ Screenshots are captured strategically at key points to provide visual context f
    ↓
 7. Tool sent to frontend via WebSocket
    ↓
-8. useToolRunner hook receives tool-call event
+8. SDK runtime receives and normalizes the tool-call event
    ↓
-9. ToolExecutionService.executeTool() called
+9. ToolExecutionCoordinator routes execution to the Electron local-runtime adapter
    ↓
-10. Tool dispatched to Python sidecar via IPC
+10. Tool dispatched to Python sidecar through the sidecar daemon bridge
     ↓
 11. Python sidecar executes tool
     ↓
-12. ToolExecutionService captures screenshot (if computer-use tool)
+12. Sidecar captures screenshot (if computer-use tool)
     ↓
-13. ToolExecutionService captures system state
+13. Sidecar captures system state
     ↓
 14. MessageFormatter formats result
     ↓

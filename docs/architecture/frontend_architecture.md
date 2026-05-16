@@ -148,7 +148,7 @@ callbacks through `main/windie_sdk_runtime.cjs`.
    `get-conversation` resume/hydrate paths use `message_index` cursor pagination (`after_message_index`) so large local DB transcripts are fully reloaded instead of capped at one page.
 5. `ElectronSidecarConversationStore` is the only renderer adapter that calls transcript storage IPC; it writes visible transcript rows, replay rows, and SDK `conversation_event` rows behind one store boundary.
 6. Opening a past chat replaces in-memory renderer chat state immediately, but backend conversation history is rehydrated lazily only before the first backend-dependent action for that chat.
-7. Send, replay/edit, and manual compaction all pass through a renderer-side inference-session hydration runtime, which restores backend history on demand from SDK store projections and invalidates hydrated state after backend disconnects.
+7. Send, edit/resend, retry, and manual compaction all pass through desktop SDK runtime facades. Edit/resend and retry call `SdkConversationRuntime` revision operations, which build the rehydrate projection from SDK store events before sending the next turn.
 
 Current ownership boundary:
 
@@ -300,7 +300,7 @@ Primary modules:
   - Stores desktop display projections, edit/resend rewrites, and compaction snapshots as canonical SDK conversation events.
   - Does not maintain hidden replay rows or legacy transcript fallback.
 - `features/dashboard/components/DashboardShell.jsx`:
-  - Global `Nuke chats` success handling now resets the active chat plus invalidates renderer-side inference-session hydration and conversation-workspace-binding caches so no local resume state survives a full transcript wipe.
+  - Global `Nuke chats` success handling now resets the active chat plus invalidates SDK-runtime hydration and conversation-workspace-binding caches so no local resume state survives a full transcript wipe.
 - `features/dashboard/hooks/useDashboardConversations.js`:
   - Single-conversation delete now clears that chat's persisted workspace binding together with transcript/replay state so session-storage workspace metadata does not survive a conversation delete.
 - `features/chat/components/ChatInterface.jsx`:

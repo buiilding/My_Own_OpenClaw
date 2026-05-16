@@ -467,33 +467,21 @@ The Python sidecar uses REST endpoints on the same FastAPI server for memory ope
    ↓
 3. Main process receives via WebSocket
    ↓
-4. Main process forwards to renderer via IPC
+4. SDK runtime normalizes the tool event and routes executable work to the local runtime adapter
    ↓
-5. useToolRunner hook receives tool-call event
+5. Electron main local-runtime adapter calls the sidecar daemon/tool bridge
    ↓
-6. ToolExecutionService.executeTool() called
+6. Python sidecar executes the tool
    ↓
-7. Tool sent to Python sidecar via IpcBridge.invoke()
+7. SDK `ToolExecutionCoordinator` builds the result envelope
    ↓
-8. Python sidecar executes tool
+8. SDK runtime sends `tool-result` / `tool-bundle-result` back to backend
    ↓
-9. `ensureAutoCapture()` runs ONCE for computer-use tools when screenshot is not already present in tool output
-   - Default wait is 2 seconds for most computer-use tools, 0 for `screenshot`, and may be overridden by `wait`/`seconds` args
-   - Captures screenshot/system-state via shared OS-capture path
+9. Local display receives projected tool call/output events; computer-use capture policy stays in the sidecar execution path
    ↓
-10. MessageFormatter formats result
-   ↓
-11. If captured, screenshot uploaded via HTTP `/api/artifacts` → returns `screenshot_ref`
+10. Backend processes result (centralized storage)
     ↓
-12. Result displayed in UI via callback
-   ↓
-13. Result sent to backend via IpcBridge.send() (includes `screenshot_ref` only for computer-use tools)
-    ↓
-14. Main process sends tool-result to backend via WebSocket
-    ↓
-15. Backend processes result (centralized storage)
-    ↓
-16. Agent continues with next step
+11. Agent continues with next step
 ```
 
 ### Settings Flow
