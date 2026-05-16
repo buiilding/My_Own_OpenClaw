@@ -15,6 +15,16 @@ function conversationRefOf(event: BackendEvent): string | null {
   return null;
 }
 
+function stringFromEventPayloadOrTopLevel(event: BackendEvent, key: string): string | null {
+  const payload = payloadOf(event);
+  const payloadValue = payload[key];
+  if (typeof payloadValue === 'string') {
+    return payloadValue;
+  }
+  const topLevelValue = (event as unknown as JsonRecord)[key];
+  return typeof topLevelValue === 'string' ? topLevelValue : null;
+}
+
 function revisionIdFor(event: BackendEvent, fallbackRevisionId?: string): string {
   const payload = payloadOf(event);
   if (typeof payload.revision_id === 'string' && payload.revision_id.trim()) {
@@ -74,6 +84,20 @@ export function normalizeBackendEventToConversationEvent(
       source: 'backend',
       payload: {
         finalResponse: typeof payload.final_response === 'string' ? payload.final_response : null,
+        rawEvent: event,
+      },
+    });
+  }
+  if (event.type === 'assistant-message-full') {
+    const content = stringFromEventPayloadOrTopLevel(event, 'content');
+    return createConversationEvent({
+      ...base,
+      type: 'assistant_message',
+      source: 'backend',
+      payload: {
+        text: content ?? '',
+        content: content ?? '',
+        structuredPayload: payload,
         rawEvent: event,
       },
     });

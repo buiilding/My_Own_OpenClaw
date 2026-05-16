@@ -236,6 +236,10 @@ Electron uses a sidecar-backed store adapter:
   the latest merged settings for debugging and custom UI state, while display
   and rehydrate projections keep model changes out of visible chat rows and
   provider history.
+- backend `assistant-message-full` events normalize to canonical
+  `assistant_message` conversation events. `streaming-complete` normalizes to
+  `turn_completed` lifecycle state only; it must not create visible transcript
+  rows or provider rehydrate history.
 
 Skipped compaction is represented as `compaction_skipped`. It is runtime/debug
 state and should not render as assistant output or a full compacted-history panel

@@ -31,6 +31,7 @@ All notable changes to WindieOS will be documented in this file.
 - backend/tools: remove duplicated `_dev_tool_selection` state so validators and tool result availability read from `ToolPolicy` directly.
 - sidecar/browser: remove BrowserController observation-store alias dictionaries so tests seed `BrowserObservationStore` directly.
 - backend/llm: rename the provider payload compatibility mixin into a first-class provider payload helper mixin.
+- sdk: normalize backend `assistant-message-full` events into canonical `assistant_message` history and keep `streaming-complete` as lifecycle state only.
 - backend/container: remove container-level `embedder`, `ocr_service`, and `vision_service` aliases in favor of router fields.
 - backend/sdk: remove the transitional `Context` alias so tools import `ToolContext` directly.
 - backend/simulation: remove the coordinate resolver compatibility re-export and docs from the first-class simulation surface.

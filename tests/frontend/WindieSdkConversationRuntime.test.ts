@@ -418,6 +418,47 @@ describe('Windie SDK conversation runtime core', () => {
     expect(normalized).toBeNull();
   });
 
+  test('backend assistant-message-full normalizes to assistant storage truth', () => {
+    const assistant = normalizeBackendEventToConversationEvent({
+      type: 'assistant-message-full',
+      conversation_ref: 'conv-sdk-runtime',
+      turn_ref: 'turn-1',
+      payload: { content: 'final assistant answer' },
+    });
+    const complete = normalizeBackendEventToConversationEvent({
+      type: 'streaming-complete',
+      conversation_ref: 'conv-sdk-runtime',
+      turn_ref: 'turn-1',
+      payload: { final_response: 'final assistant answer' },
+    });
+
+    expect(assistant).toMatchObject({
+      type: 'assistant_message',
+      payload: expect.objectContaining({
+        text: 'final assistant answer',
+      }),
+    });
+    expect(buildDisplayConversation([
+      assistant as ConversationEvent,
+      complete as ConversationEvent,
+    ]).messages).toEqual([
+      expect.objectContaining({
+        sender: 'assistant',
+        messageType: 'assistant_message',
+        text: 'final assistant answer',
+      }),
+    ]);
+    expect(buildRehydrateSnapshot([
+      assistant as ConversationEvent,
+      complete as ConversationEvent,
+    ]).messages).toEqual([
+      expect.objectContaining({
+        role: 'assistant',
+        content: 'final assistant answer',
+      }),
+    ]);
+  });
+
   test('backend compaction-completed only normalizes to applied when replacement history exists', () => {
     const applied = normalizeBackendEventToConversationEvent({
       type: 'context-compaction-completed',
@@ -741,6 +782,12 @@ describe('Windie SDK conversation runtime core', () => {
       payload: { text: 'partial' },
     } satisfies BackendEvent);
     backendListener?.({
+      type: 'assistant-message-full',
+      conversation_ref: 'conv-sdk-runtime',
+      turn_ref: 'turn-stream',
+      payload: { content: 'done' },
+    } satisfies BackendEvent);
+    backendListener?.({
       type: 'streaming-complete',
       conversation_ref: 'conv-sdk-runtime',
       turn_ref: 'turn-stream',
@@ -752,8 +799,14 @@ describe('Windie SDK conversation runtime core', () => {
     expect(collected).toContain('turn_started');
     expect(collected).toContain('user_message');
     expect(collected).toContain('assistant_delta');
+    expect(collected).toContain('assistant_message');
     expect(collected).toContain('turn_completed');
-    expect((await runtime.load()).state.phase).toBe('completed');
+    const snapshot = await runtime.load();
+    expect(snapshot.state.phase).toBe('completed');
+    expect(snapshot.display.messages.map(message => message.messageType)).toEqual([
+      'user_message',
+      'assistant_message',
+    ]);
   });
 
   test('conversation runtimes only accept backend events for their conversation and active turn', async () => {

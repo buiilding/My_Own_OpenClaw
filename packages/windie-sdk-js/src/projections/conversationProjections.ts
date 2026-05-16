@@ -183,6 +183,9 @@ function toDisplayMessage(event: ConversationEvent): DisplayMessage | null {
   if (event.type === 'assistant_delta') {
     return null;
   }
+  if (event.type === 'turn_completed') {
+    return null;
+  }
   if (event.type === 'compaction_skipped') {
     return null;
   }
