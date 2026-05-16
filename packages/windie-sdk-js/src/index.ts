@@ -13,6 +13,7 @@ export * from './runtime/WindieClient.js';
 export * from './runtime/LocalSidecarRuntime.js';
 export * from './transport/backendEventNormalizer.js';
 export * from './transport/HostedBackendHttpClient.js';
+export * from './transport/ManagedBackendSession.js';
 export * from './tools/ToolExecutionCoordinator.js';
 export * from './settings/modelSelection.js';
 export {

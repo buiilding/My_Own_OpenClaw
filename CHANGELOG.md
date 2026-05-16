@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: add a managed backend websocket session for handshake, reconnect, idle disconnect, fallback, typed sends, and event parsing.
 - frontend/sdk: add a modular refactor completion guardrail for runtime boundaries and public examples.
 - docs: update frontend architecture ownership for renderer app runtime facades and typed SDK command sends.
 - docs: document SDK model-change routing and public example runtime controls.
