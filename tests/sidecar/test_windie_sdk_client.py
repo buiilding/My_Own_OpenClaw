@@ -465,9 +465,65 @@ async def test_python_agent_session_routes_tool_bundle_to_sidecar():
     assert websocket.sent[-1]["payload"]["step_results"][0]["toolCallId"] == (
         "call-save-note"
     )
+    assert websocket.sent[-1]["payload"]["step_results"][0]["status"] == "ok"
     assert websocket.sent[-1]["payload"]["step_results"][0]["output"] == {
         "llm_content": "save_note:first"
     }
+
+
+@pytest.mark.asyncio
+async def test_python_agent_session_uses_sdk_bundle_step_status_contract():
+    class FailingSidecarRuntime(FakeSidecarRuntime):
+        async def execute_tool(self, *, tool_name, args, **metadata):
+            self.executions.append((tool_name, args, metadata))
+            return {"success": False, "error": "failed"}
+
+    sidecar = FailingSidecarRuntime()
+    websocket = FakeWebSocket(
+        messages=[
+            {
+                "type": "tool-bundle",
+                "payload": {
+                    "bundle_id": "bundle-fail",
+                    "tools": [
+                        {
+                            "name": "save_note",
+                            "tool_call_id": "call-fail",
+                            "args": {"text": "bad"},
+                        }
+                    ],
+                },
+            }
+        ]
+    )
+    client = WindieSdkClient(
+        backend_url="https://api.windieos.com",
+        default_user_id="dev-user",
+        sidecar=sidecar,
+    )
+    client._session = DummyWsSession(websocket)
+    agent = await client.wake_up(
+        tools=[
+            {
+                "name": "save_note",
+                "module": "my_project.tools:save_note",
+                "schema": {"type": "object", "properties": {}},
+            }
+        ]
+    )
+
+    await agent.receive_json()
+
+    assert websocket.sent[-1]["type"] == "tool-bundle-result"
+    assert websocket.sent[-1]["payload"]["status"] == "failure"
+    assert websocket.sent[-1]["payload"]["step_results"] == [
+        {
+            "tool": "save_note",
+            "status": "error",
+            "output": {"error": "failed"},
+            "toolCallId": "call-fail",
+        }
+    ]
 
 
 @pytest.mark.asyncio

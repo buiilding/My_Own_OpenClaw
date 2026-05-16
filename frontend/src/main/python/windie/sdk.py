@@ -571,7 +571,7 @@ class WindieSdkAgentSession:
                 success = result.get("success") is not False
                 step_result = {
                     "tool": tool_name,
-                    "status": "success" if success else "failure",
+                    "status": "ok" if success else "error",
                     "output": (
                         _normalize_tool_result_data(result.get("data"))
                         if success
@@ -587,13 +587,13 @@ class WindieSdkAgentSession:
                 step_results.append(
                     {
                         "tool": tool_name,
-                        "status": "failure",
+                        "status": "error",
                         "output": {"error": str(exc)},
                     }
                 )
         if not step_results:
             return
-        failures = [step for step in step_results if step["status"] != "success"]
+        failures = [step for step in step_results if step["status"] != "ok"]
         status = (
             "success"
             if not failures
