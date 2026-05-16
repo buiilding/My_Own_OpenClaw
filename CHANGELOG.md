@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sdk: make the desktop transcript projection runtime write through the Electron conversation store without importing `TranscriptWriter`.
 - frontend/sdk: delegate Electron main local tool routing to the SDK package tool coordinator.
 - docs: document the SDK managed backend session now owning Electron main websocket lifecycle policy.
 - frontend/sdk: move dashboard replay-cache clearing behind the desktop conversation library runtime facade.

@@ -142,8 +142,8 @@ callbacks through `main/windie_sdk_runtime.cjs`.
 ### Conversation/Transcript Flow
 
 1. Renderer chat hooks call `DesktopConversationRuntimeClient` for visible transcript projection writes.
-2. The conversation runtime facade delegates projection persistence to `DesktopTranscriptProjectionRuntimeClient`, which calls `TranscriptWriter` and `ElectronSidecarConversationStore`.
-3. `TranscriptWriter` queues failed writes and retries when session info becomes available, but persistence goes through `ElectronSidecarConversationStore` instead of direct transcript IPC.
+2. The conversation runtime facade delegates projection persistence to `DesktopTranscriptProjectionRuntimeClient`, which writes through `ElectronSidecarConversationStore` rather than reaching into transcript IPC directly.
+3. `TranscriptWriter` remains the legacy queued writer for migration-boundary calls, but app runtime projection writes no longer import it.
 4. Renderer-local conversation store helpers fetch transcript windows via sidecar RPC (`list-conversations`, `search-conversations`, `get-conversation`).
    `get-conversation` resume/hydrate paths use `message_index` cursor pagination (`after_message_index`) so large local DB transcripts are fully reloaded instead of capped at one page.
 5. `ElectronSidecarConversationStore` is the only renderer adapter that calls transcript storage IPC; it writes visible transcript rows, replay rows, and SDK `conversation_event` rows behind one store boundary.

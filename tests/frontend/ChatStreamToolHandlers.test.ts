@@ -5,9 +5,11 @@ import { useChatStreamToolHandlers } from '../../frontend/src/renderer/features/
 const mockRecordToolMessage = jest.fn();
 const mockRecordAssistantMessage = jest.fn();
 
-jest.mock('../../frontend/src/renderer/infrastructure/transcript/TranscriptWriter', () => ({
-  recordToolMessage: (...args: unknown[]) => mockRecordToolMessage(...args),
-  recordAssistantMessage: (...args: unknown[]) => mockRecordAssistantMessage(...args),
+jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient', () => ({
+  DesktopConversationRuntimeClient: {
+    recordToolMessage: (...args: unknown[]) => mockRecordToolMessage(...args),
+    recordAssistantMessage: (...args: unknown[]) => mockRecordAssistantMessage(...args),
+  },
 }));
 
 describe('useChatStreamToolHandlers', () => {
