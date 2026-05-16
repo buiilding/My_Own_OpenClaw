@@ -134,13 +134,14 @@ Failure semantics:
 1. ignore empty text payloads
 2. resolve effective session info from explicit options + current state
 3. if identity incomplete: enqueue and return
-4. else invoke immediate `store-transcript` IPC write
+4. else delegate the append to `ElectronSidecarConversationStore`
 5. if immediate write fails: enqueue for retry and warn
 
 Shared immediate-write helper:
 
 - `recordImmediateTranscriptEntry(...)` in `transcriptRecordWrite.ts` centralizes the empty-text guard, session-resolution gate, and `storeImmediateTranscriptEntryWithRetry(...)` invocation so user/assistant/tool recorders keep one retry boundary contract.
-- `storeTranscriptEntry(...)` in `transcriptEntryPersistence.ts` centralizes IPC payload shaping, conversation workspace binding lookup, replay bootstrap initialization, and replay append writes so `TranscriptWriter.ts` no longer mixes session/runtime logic with storage/replay mechanics.
+- `storeTranscriptEntry(...)` in `transcriptEntryPersistence.ts` resolves the final session and builds the replay-safe payload, then delegates storage to `ElectronSidecarConversationStore`.
+- `ElectronSidecarConversationStore` centralizes IPC payload shaping, conversation workspace binding lookup, replay bootstrap initialization, and replay append writes so `TranscriptWriter.ts` no longer mixes session/runtime logic with storage/replay mechanics.
 
 Payload defaults:
 

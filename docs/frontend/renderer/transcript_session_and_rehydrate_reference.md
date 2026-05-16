@@ -98,7 +98,8 @@ Shared writer layering:
 
 - `TranscriptWriter.ts` owns public recorder entrypoints, queue coordination, and `transcript-entry-stored` emission
 - `transcriptRecordWrite.ts` owns the empty-text / resolve-session / immediate-write-or-queue decision boundary
-- `transcriptEntryPersistence.ts` owns IPC payload shaping, workspace-binding attachment, replay bootstrap checks, and replay append writes
+- `transcriptEntryPersistence.ts` resolves the final session and delegates persistence to the conversation store adapter
+- `ElectronSidecarConversationStore` owns IPC payload shaping, workspace-binding attachment, replay bootstrap checks, and replay append writes for visible transcript rows
 
 Each path:
 
@@ -212,6 +213,11 @@ only has legacy `transcript` rows, it projects those rows into normalized SDK
 events so display and backend rehydrate snapshots still come from the SDK
 projection path. This keeps new clients on the SDK model without breaking
 existing local conversations.
+
+`TranscriptWriter` also routes new visible transcript appends through this
+adapter. The writer remains the renderer-facing queue/session facade, but direct
+`store-transcript` calls and replay append mutation are now behind
+`ElectronSidecarConversationStore`.
 
 `ensureConversationInferenceSessionHydrated(...)` now uses this adapter for the
 backend rehydrate payload. The local snapshot loader still supplies workspace

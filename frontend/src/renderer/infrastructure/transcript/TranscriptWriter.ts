@@ -1,10 +1,9 @@
-import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
 import { createPendingTranscriptMessages } from './pending/pendingTranscriptMessages';
 import { normalizeTransparencyData } from './transparencyNormalization';
 import { recordImmediateTranscriptEntry } from './transcriptRecordWrite';
-import { getConversationWorkspaceBinding } from '../workspace/conversationWorkspaceBinding';
 import { createTranscriptSessionRuntime, type TranscriptSessionResolveOptions } from './transcriptSessionRuntime';
 import { storeTranscriptEntry as persistTranscriptEntry } from './transcriptEntryPersistence';
+import { ElectronSidecarConversationStore } from './ElectronSidecarConversationStore';
 import type {
   SessionInfo,
   TranscriptStructuredToolPayload,
@@ -224,8 +223,7 @@ const storeTranscriptEntry = async (entry: TranscriptEntry) => {
       conversationRef: targetEntry.conversationRef ?? null,
       userId: targetEntry.userId ?? null,
     }),
-    invokeStoreTranscript: (payload) => IpcBridge.invoke(INVOKE_CHANNELS.STORE_TRANSCRIPT, payload),
-    resolveWorkspaceBinding: (conversationRef) => getConversationWorkspaceBinding(conversationRef),
+    createConversationStore: (userId) => new ElectronSidecarConversationStore({ userId }),
     emitStoredEvent: emitTranscriptEntryStoredEvent,
   });
 };

@@ -199,6 +199,62 @@ describe('ElectronSidecarConversationStore', () => {
     }));
   });
 
+  test('appends visible transcript rows and replay entries through the store boundary', async () => {
+    mockLoadStoredConversationEntries.mockResolvedValue([]);
+    mockInvoke.mockResolvedValue({ success: true, data: { message_index: 7 } });
+    const store = new ElectronSidecarConversationStore(
+      { userId: 'user-1' },
+      {
+        getConversationWorkspaceBinding: jest.fn(() => ({
+          workspacePath: '/workspace',
+          workspaceName: 'WindieOS',
+        })),
+      },
+    );
+
+    await store.appendTranscriptProjectionEntry({
+      conversationRef: 'conv-append',
+      content: 'assistant answer',
+      role: 'assistant',
+      messageType: 'llm-text',
+      modelId: 'model-1',
+      modelProvider: 'provider-1',
+      screenshot: 'artifact-1',
+      timestamp: '2026-05-15T12:00:00.000Z',
+      rehydrateEntry: {
+        role: 'assistant',
+        content: 'assistant answer',
+        message_type: 'llm-text',
+      },
+    });
+
+    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'store-transcript', expect.objectContaining({
+      content: 'assistant answer',
+      userId: 'user-1',
+      conversationRef: 'conv-append',
+      role: 'assistant',
+      messageType: 'llm-text',
+      modelId: 'model-1',
+      modelProvider: 'provider-1',
+      screenshot: 'artifact-1',
+      workspacePath: '/workspace',
+      workspaceName: 'WindieOS',
+    }));
+    expect(mockInvoke).toHaveBeenNthCalledWith(2, 'store-transcript', expect.objectContaining({
+      content: 'assistant answer',
+      userId: 'user-1',
+      conversationRef: 'conv-append',
+      recordKind: 'transcript_replay',
+      messageIndex: 7,
+      rehydrateEntry: expect.objectContaining({
+        role: 'assistant',
+        content: 'assistant answer',
+      }),
+      workspacePath: '/workspace',
+      workspaceName: 'WindieOS',
+    }));
+  });
+
   test('rewrite deletes only canonical event rows before storing the new revision projection', async () => {
     const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
     const preserved = createConversationEvent({

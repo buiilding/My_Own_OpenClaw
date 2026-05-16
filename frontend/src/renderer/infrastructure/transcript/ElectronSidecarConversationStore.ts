@@ -2,7 +2,9 @@ import {
   buildConversationEventsFromStoredTranscript,
 } from './storedTranscriptSdkProjection';
 import {
+  appendConversationReplayEntry,
   deleteConversationStoredState,
+  ensureConversationReplayStateInitialized,
   readStoredReplayRehydrateEntry,
   replaceConversationReplayState,
   TRANSCRIPT_REPLAY_RECORD_KIND,
@@ -55,6 +57,15 @@ export type TranscriptProjectionRewriteEntry = {
   correlationId?: string | null;
   screenshot?: unknown;
   timestamp?: string | null;
+};
+
+export type TranscriptProjectionAppendEntry = TranscriptProjectionRewriteEntry & {
+  conversationRef: string;
+  modelId?: string | null;
+  modelProvider?: string | null;
+  transparency?: Record<string, unknown> | null;
+  structuredPayload?: Record<string, unknown> | null;
+  rehydrateEntry: Record<string, unknown>;
 };
 
 function normalizeNonEmptyString(value: unknown): string | null {
@@ -229,6 +240,50 @@ export class ElectronSidecarConversationStore implements ConversationStore {
   async rewriteConversation(plan: ConversationRewritePlan): Promise<void> {
     await this.deleteRecordKind(plan.conversationRef, SDK_CONVERSATION_EVENT_RECORD_KIND);
     await this.appendEvents(plan.preservedEvents);
+  }
+
+  async appendTranscriptProjectionEntry(entry: TranscriptProjectionAppendEntry): Promise<void> {
+    const workspaceBinding = this.deps.getConversationWorkspaceBinding(entry.conversationRef);
+    const result = await this.deps.invoke(INVOKE_CHANNELS.STORE_TRANSCRIPT, {
+      content: entry.content,
+      userId: this.userId,
+      conversationRef: entry.conversationRef,
+      role: entry.role,
+      messageType: entry.messageType,
+      toolName: entry.toolName,
+      correlationId: entry.correlationId,
+      modelId: entry.modelId,
+      modelProvider: entry.modelProvider,
+      screenshot: entry.screenshot,
+      timestamp: entry.timestamp,
+      workspacePath: workspaceBinding.workspacePath || null,
+      workspaceName: workspaceBinding.workspaceName || null,
+      ...(entry.transparency ? { transparency: entry.transparency } : {}),
+      ...(entry.structuredPayload ? { structuredPayload: entry.structuredPayload } : {}),
+    });
+    if (result?.success === false) {
+      throw new Error(result.error || 'Failed to store transcript entry');
+    }
+
+    const messageIndex = typeof result?.data?.message_index === 'number'
+      ? result.data.message_index
+      : null;
+    const replayContext = {
+      conversationRef: entry.conversationRef,
+      userId: this.userId,
+      workspacePath: workspaceBinding.workspacePath || null,
+      workspaceName: workspaceBinding.workspaceName || null,
+    };
+    const replayInitState = await ensureConversationReplayStateInitialized(replayContext);
+    if (replayInitState !== 'bootstrapped') {
+      await appendConversationReplayEntry(
+        replayContext,
+        {
+          messageIndex,
+          rehydrateEntry: entry.rehydrateEntry,
+        },
+      );
+    }
   }
 
   async rewriteTranscriptProjection({

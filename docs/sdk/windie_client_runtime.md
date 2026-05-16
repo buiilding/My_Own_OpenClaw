@@ -150,6 +150,9 @@ Electron uses a sidecar-backed store adapter during the desktop migration:
   renderer still computes the replacement projection, but the adapter owns
   local transcript row deletion, replay-state clearing, workspace metadata, and
   rewritten row persistence.
+- desktop `TranscriptWriter` visible transcript appends also route through the
+  Electron conversation store adapter, so queued user/assistant/tool writes no
+  longer own direct row IPC or replay append mutation.
 
 Skipped compaction is represented as `compaction_skipped`. It is runtime/debug
 state and should not render as assistant output or a full compacted-history panel
