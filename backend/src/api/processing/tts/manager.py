@@ -6,7 +6,7 @@ Manages TTS (Text-to-Speech) lifecycle during query processing.
 
 import asyncio
 import logging
-from typing import Any, Dict, Optional, Union
+from typing import Optional
 
 from backend.src.api.contracts.message_types import OutgoingMessageType
 from backend.src.api.transport.protocol import WebSocketSender
@@ -14,8 +14,6 @@ from backend.src.core.config import AppConfig
 from backend.src.core.events.streaming_events import ChunkEvent, StreamingEvent
 from backend.src.core.services.speech_service import SpeechService
 from backend.src.core.services.speech_service_factory import create_speech_service
-from backend.src.core.types import StreamingEventType
-from backend.src.core.types.enums import normalize_streaming_event_type
 from backend.src.core.services.tts_service import TTSService
 
 logger = logging.getLogger(__name__)
@@ -84,28 +82,20 @@ class TTSManager:
     async def process_event(
         self,
         tts_service: Optional[SpeechService],
-        event: Union[StreamingEvent, Dict[str, Any]],
+        event: StreamingEvent,
     ) -> None:
         """
         Process an event for TTS (extract text chunks).
 
         Args:
             tts_service: TTS service instance (may be None)
-            event: Event object (typed StreamingEvent or dict for backward compatibility)
+            event: Typed streaming event emitted by the agent loop
         """
         if not tts_service:
             return
 
-        # Use isinstance check for type safety
         if isinstance(event, ChunkEvent):
             await tts_service.process_text(event.content)
-        elif (
-            isinstance(event, dict)
-            and normalize_streaming_event_type(event.get("type"))
-            == StreamingEventType.STREAMING_RESPONSE.value
-        ):
-            # Backward compatibility with dict events
-            await tts_service.process_text(event.get("content", ""))
 
     async def cleanup(
         self, tts_service: Optional[SpeechService], audio_task: Optional[asyncio.Task]

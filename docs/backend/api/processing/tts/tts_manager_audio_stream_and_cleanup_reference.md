@@ -29,6 +29,13 @@ title: "TTS Manager Audio Stream and Cleanup Reference"
 
 This is the API-layer gate used by both query and wakeword flows.
 
+## Typed Event Input
+
+`TTSManager.process_event(service, event)` accepts typed streaming events from the
+agent stream pipeline. Only `ChunkEvent` content is forwarded to
+`SpeechService.process_text(...)`; thinking, tool, completion, and error events
+are ignored by the manager.
+
 ## TTSSession Contract
 
 `TTSSession` is the per-request async context manager.

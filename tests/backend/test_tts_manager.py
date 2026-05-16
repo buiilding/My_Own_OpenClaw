@@ -2,15 +2,20 @@ import pytest
 
 from backend.src.api.processing.tts.manager import TTSManager
 from backend.src.core.config.models import AppConfig
+from backend.src.core.events.streaming_events import ChunkEvent, ThinkingEvent
 
 
 class _FakeSpeechService:
     def __init__(self, *, running=True):
         self.running = running
         self.initialize_calls = 0
+        self.processed_text = []
 
     async def initialize(self):
         self.initialize_calls += 1
+
+    async def process_text(self, text):
+        self.processed_text.append(text)
 
 
 @pytest.mark.asyncio
@@ -59,3 +64,14 @@ async def test_initialize_if_enabled_falls_back_to_local_when_elevenlabs_unavail
     assert elevenlabs_service.initialize_calls == 1
     assert local_service.initialize_calls == 1
     assert service is local_service
+
+
+@pytest.mark.asyncio
+async def test_process_event_speaks_only_typed_chunk_events():
+    service = _FakeSpeechService()
+    manager = TTSManager()
+
+    await manager.process_event(service, ChunkEvent("hello"))
+    await manager.process_event(service, ThinkingEvent("hidden reasoning"))
+
+    assert service.processed_text == ["hello"]
