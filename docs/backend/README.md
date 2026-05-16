@@ -233,8 +233,6 @@ Covers:
 - [Simulation Backend and Mock LLM Runtime Reference](simulation/simulation_backend_and_mock_llm_runtime_reference.md)
 - [Simulation Entrypoints Docs Hub](simulation/entrypoints/README.md)
 - [Package Runner and Module Alias Uvicorn Bootstrap Contract Reference](simulation/entrypoints/package_runner_and_module_alias_uvicorn_bootstrap_contract_reference.md)
-- [Simulation Contracts Docs Hub](simulation/contracts/README.md)
-- [Coordinate Resolver Re-Export and Production Parity Contract Reference](simulation/contracts/coordinate_resolver_reexport_and_production_parity_contract_reference.md)
 
 ## Backend Layout (Code)
 

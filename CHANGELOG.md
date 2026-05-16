@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/simulation: remove the coordinate resolver compatibility re-export and docs from the first-class simulation surface.
 - docs: remove backend/frontend protocol compatibility hubs from the active first-class docs surface.
 - frontend/sdk: remove the renderer rehydrate send helper and retired renderer tool-runner doc from the active first-class path.
 - sdk/frontend: move Electron backend socket construction into the SDK package transport boundary.
