@@ -59,6 +59,8 @@ function makeExtensionDir() {
 describe('agent capability handshake manifest', () => {
   test('includes client tool manifest and preserves remote web_search availability', () => {
     const payload = buildAgentCapabilityHandshakePayload();
+    const browserTool = payload.client_tool_manifest.tools.find((tool) => tool.name === 'browser');
+    const shellTool = payload.client_tool_manifest.tools.find((tool) => tool.name === 'run_shell_command');
 
     expect(payload.available_tools).toContain('read_file');
     expect(payload.available_tools).toContain('web_search');
@@ -76,6 +78,18 @@ describe('agent capability handshake manifest', () => {
         }),
       ]),
     );
+    expect(browserTool).toEqual(expect.objectContaining({
+      description: expect.stringContaining('navigation, extraction'),
+      execution_target: 'sidecar',
+      argument_resolution: 'passthrough',
+    }));
+    expect(browserTool.schema.required).toEqual(['action', 'explanation']);
+    expect(browserTool.schema.properties.action.enum).toEqual(
+      expect.arrayContaining(['navigate', 'snapshot', 'extract', 'click', 'read_long_content']),
+    );
+    expect(browserTool.schema.properties.url.description).toBe('URL to navigate to.');
+    expect(shellTool.description).toContain('Execution Modes');
+    expect(shellTool.schema.properties.command.description).toContain('prefer fast targeted commands');
     expect(payload.agent_definition).toEqual(
       expect.objectContaining({
         version: 1,

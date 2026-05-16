@@ -2,8 +2,14 @@ import asyncio
 import json
 from pathlib import Path
 
+from tools.exposed_tool_names import EXPOSED_TO_BACKEND_TOOL_NAMES
 from tools.manifest import build_sidecar_tool_manifest, build_tool_schema
 from tools.registry import ToolRegistry
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+GENERATED_MANIFEST_PATH = (
+    REPO_ROOT / "frontend" / "src" / "main" / "generated" / "builtin_tool_manifest.json"
+)
 
 
 def test_build_tool_schema_exports_registered_tool_schema():
@@ -14,6 +20,33 @@ def test_build_tool_schema_exports_registered_tool_schema():
     assert "explanation" in schema["required"]
 
 
+def test_build_tool_schema_exports_rich_browser_contract():
+    schema = build_tool_schema("browser")
+
+    assert schema["required"] == ["action", "explanation"]
+    assert schema["additionalProperties"] is False
+    assert "navigate" in schema["properties"]["action"]["enum"]
+    assert "read_long_content" in schema["properties"]["action"]["enum"]
+    assert "url" in schema["properties"]
+    assert "query" in schema["properties"]
+    assert "text" in schema["properties"]
+
+
+def test_build_tool_schema_exports_grounding_fields_for_desktop_tools():
+    mouse_schema = build_tool_schema("mouse_control")
+    scroll_schema = build_tool_schema("scroll_control")
+
+    assert mouse_schema["required"] == ["action", "explanation"]
+    assert mouse_schema["properties"]["find_coordinates_by"]["enum"] == [
+        "manual",
+        "ocr",
+        "prediction",
+    ]
+    assert "drag_to_find_coordinates_by" in mouse_schema["properties"]
+    assert scroll_schema["required"] == ["action", "explanation"]
+    assert scroll_schema["properties"]["source_description"]["type"] == "string"
+
+
 def test_registry_tool_manifest_contains_builtin_schemas():
     registry = ToolRegistry()
 
@@ -22,6 +55,8 @@ def test_registry_tool_manifest_contains_builtin_schemas():
 
     assert "read_file" in tool_names
     assert "mouse_control" in tool_names
+    assert all("description" in tool for tool in manifest["tools"])
+    assert all(tool.get("execution_target") == "sidecar" for tool in manifest["tools"])
     assert all("schema" in tool for tool in manifest["tools"])
 
 
@@ -29,6 +64,14 @@ def test_build_sidecar_tool_manifest_omits_unknown_schema_names():
     manifest = build_sidecar_tool_manifest({"read_file", "missing_tool"})
 
     assert [tool["name"] for tool in manifest["tools"]] == ["read_file"]
+    assert manifest["tools"][0]["argument_resolution"] == "passthrough"
+
+
+def test_generated_builtin_manifest_matches_sidecar_source():
+    generated = json.loads(GENERATED_MANIFEST_PATH.read_text(encoding="utf-8"))
+    expected = build_sidecar_tool_manifest(EXPOSED_TO_BACKEND_TOOL_NAMES)
+
+    assert generated == expected
 
 
 def test_registry_loads_plugin_entrypoint_and_manifest(

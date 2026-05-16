@@ -31,11 +31,18 @@ title: "Frontend Sidecar Tools Docs Hub"
 
 The `browser` sidecar tool now runs through a Windie-owned runtime layered directly on `BrowserController`, plus first-party content-extraction and browser-local file helpers. The sidecar no longer ships or routes browser actions through a vendored `browser_use` subtree, and browser action payload validation now happens against the canonical Windie schema at execution time.
 
+## Manifest Note
+
+Built-in local tool schemas are owned by the frontend sidecar. `frontend/src/main/python/tools/manifest.py` generates the Electron-consumed `frontend/src/main/generated/builtin_tool_manifest.json`, including rich browser actions, desktop grounding fields, descriptions, `execution_target`, and `argument_resolution`. Keep `frontend/src/main/tool_manifest.cjs` as a loader/merger for generated built-ins plus plugin and MCP tools rather than hand-authoring built-in schemas in JavaScript.
+
 ## Code Scope
 
 - `frontend/src/main/python/tools/registry.py`
+- `frontend/src/main/python/tools/manifest.py`
 - `frontend/src/main/python/tools/result.py`
 - `frontend/src/main/python/tools/schemas.py`
+- `frontend/src/main/generated/builtin_tool_manifest.json`
+- `frontend/src/main/tool_manifest.cjs`
 - `frontend/src/main/python/tools/base.py`
 - `frontend/src/main/python/tools/computer/*`
 - `frontend/src/main/python/tools/system/wait_tool.py`

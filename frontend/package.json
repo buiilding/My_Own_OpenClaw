@@ -13,6 +13,7 @@
   "main": "src/main/index.cjs",
   "scripts": {
     "dev": "vite",
+    "prebuild": "../scripts/python-in-env frontend python ../scripts/generate-builtin-tool-manifest",
     "build": "vite build",
     "package": "npm run build:sidecar-runtime && npm run build && electron-builder --config electron-builder.bundled-python.yml",
     "package:win": "npm run build:sidecar-runtime && npm run build && electron-builder --config electron-builder.bundled-python.yml --win nsis",

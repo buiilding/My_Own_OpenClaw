@@ -15,7 +15,10 @@ WindieOS uses two tool-schema contracts:
 
 The public client sends a `client_tool_manifest`; the hosted backend validates
 that manifest, applies policy/provider projection, and can resolve high-level or
-grounded intent into a simpler executable sidecar action.
+grounded intent into a simpler executable sidecar action. Built-in local tool
+schemas are generated from the frontend/sidecar Python contract into
+`frontend/src/main/generated/builtin_tool_manifest.json`, which Electron loads
+for the websocket handshake.
 
 Extension manifests use one developer-facing JSON Schema field: `schema`.
 Extension authors pair that with `entrypoint`; the sidecar calls the entrypoint
@@ -26,7 +29,7 @@ with the arguments emitted for that tool.
 | Contract family | Model can see it? | Executed by | Producer | Backend responsibility | Drift check |
 | --- | --- | --- | --- | --- | --- |
 | backend remote tool | yes | backend service or remote route | backend tool catalog | schema, policy, parser, result/history conversion | No sidecar parity is needed, but provider projection and policy still apply. |
-| client-local manifest tool | yes, after validation | sidecar or declared backend target for reserved tools | client `client_tool_manifest` | validation, accept/reject transparency, policy, provider projection | Accepted schema must match executable sidecar behavior or an explicit grounding mode. |
+| client-local manifest tool | yes, after validation | sidecar or declared backend target for reserved tools | frontend/sidecar `client_tool_manifest` | validation, accept/reject transparency, policy, provider projection | Built-ins are generated from sidecar-owned contracts; dynamic tools must match executable sidecar behavior or an explicit grounding mode. |
 | provider-native declaration | yes, provider-specific | provider/runtime adapter | backend provider projection | provider dialect, parser compatibility, policy pruning | Projection may change dialect, not semantics. |
 | sidecar-only helper | no until exposed | sidecar | Python sidecar registry | none unless promoted | Do not add prompt/schema visibility just because helper code exists. |
 | renderer display projection | no | renderer UI | stream/transcript consumers | none unless backend emits event contract | Display rows must not become the source of model-facing truth. |
@@ -51,19 +54,21 @@ Client-local schemas are merged with backend registry schemas before policy filt
 
 ## Contract Flow
 
-1. Client sends `client_tool_manifest` during websocket handshake.
-2. Backend validates accepted/rejected manifest entries.
-3. Backend builds backend remote tool schemas from `backend/src/tools/tool_catalog.py` and remote tool classes.
-4. Prompt construction merges accepted client-local schemas with backend remote schemas.
-5. Tool policy and provider/capability health narrow the exposed schema for the current session.
-6. Backend emits transparency for accepted/rejected manifest entries, final tool schemas, and active `client_prompt_layers`.
-7. The model emits a tool call.
-8. Backend parser and preparation code validates, normalizes, and enriches the call.
-9. Backend sends the executable payload over websocket as `tool-call` or `tool-bundle`.
-10. SDK runtime dispatches through Electron main to the sidecar daemon/local executor.
-11. Main/sidecar execute local work through the daemon or JSON-RPC bridge.
-12. SDK runtime returns `tool-result` or `tool-bundle-result`.
-13. Backend transforms the result into model-facing history and continues the loop.
+1. Frontend generates the built-in local manifest from `frontend/src/main/python/tools/manifest.py` into `frontend/src/main/generated/builtin_tool_manifest.json`.
+2. Electron loads the generated built-in manifest and merges plugin/MCP tools.
+3. Client sends `client_tool_manifest` during websocket handshake.
+4. Backend validates accepted/rejected manifest entries.
+5. Backend builds backend remote tool schemas from `backend/src/tools/tool_catalog.py` and remote tool classes.
+6. Prompt construction merges accepted client-local schemas with backend remote schemas.
+7. Tool policy and provider/capability health narrow the exposed schema for the current session.
+8. Backend emits transparency for accepted/rejected manifest entries, final tool schemas, and active `client_prompt_layers`.
+9. The model emits a tool call.
+10. Backend parser and preparation code validates, normalizes, and enriches the call.
+11. Backend sends the executable payload over websocket as `tool-call` or `tool-bundle`.
+12. SDK runtime dispatches through Electron main to the sidecar daemon/local executor.
+13. Main/sidecar execute local work through the daemon or JSON-RPC bridge.
+14. SDK runtime returns `tool-result` or `tool-bundle-result`.
+15. Backend transforms the result into model-facing history and continues the loop.
 
 ## Shape Separation Rules
 
@@ -78,8 +83,10 @@ Client-local schemas are merged with backend registry schemas before policy filt
 
 | Concern | Files |
 | --- | --- |
+| Built-in local manifest source | `frontend/src/main/python/tools/manifest.py`, `frontend/src/main/python/tools/schemas.py`, `frontend/src/main/python/windie_shared/browser_contract*` |
+| Generated Electron manifest artifact | `frontend/src/main/generated/builtin_tool_manifest.json`, `scripts/generate-builtin-tool-manifest` |
 | Client manifest validation | `backend/src/tools/client_manifest.py` |
-| Client manifest handshake | `backend/src/api/routes/websocket/router.py`, `frontend/src/main/agent_capability_handshake.cjs` |
+| Client manifest handshake | `backend/src/api/routes/websocket/router.py`, `frontend/src/main/agent_capability_handshake.cjs`, `frontend/src/main/tool_manifest.cjs` |
 | Backend tool catalog | `backend/src/tools/tool_catalog.py` |
 | Backend schemas and remote tools | `backend/src/tools/remote_tools/*`, `backend/src/tools/*schema*` |
 | Tool policy and capability filters | `backend/src/tools/tool_policy.py`, `backend/src/tools/provider_health.py` |
