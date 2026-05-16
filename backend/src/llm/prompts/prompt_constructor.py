@@ -126,7 +126,6 @@ class PromptConstructor:
         ]
         filtered_client_schemas = self.tool_policy.filter_tool_schemas(
             client_tool_schemas,
-            selection=None,
         )
         tool_schemas.extend(filtered_client_schemas)
         projected_schemas = project_tool_schemas_for_provider(
@@ -137,7 +136,6 @@ class PromptConstructor:
         )
         return self.tool_policy.filter_projected_tool_schemas(
             projected_schemas,
-            selection=None,
         )
 
     def _get_policy_filtered_registry_tool_schemas(self) -> List[Dict[str, Any]]:

@@ -47,7 +47,7 @@ Session-scoped system prompt context:
 When `include_tools=True`:
 
 - constructor pulls canonical declarations from `ToolRegistry.get_function_declarations()` or `get_function_declarations_filtered(...)`
-- applies `ToolPolicy.from_config(config).filter_tool_schemas(...)`
+- applies `ToolPolicy.from_config(config).filter_tool_schemas(...)` to both registry and client-provided tool schemas
 - re-applies structural policy pruning after provider projection so projected grounded helper schemas do not leak disabled OCR/prediction fields
 - computes `prompt_messages` first, then applies provider projection against the prompt that will actually be sent for this query
 - returns filtered schemas for:
@@ -60,7 +60,7 @@ Important boundary:
 
 - `ToolSelection` only performs structural filtering; it does not rewrite descriptions or author alternate schema prose.
 - Canonical wording must come from the original tool schema sources (`schemas.py`, remote tool descriptions, and shared schema helpers).
-- Provider transports may still reshape schemas for compatibility, so transport-specific drift risk remains separate from prompt-time policy pruning.
+- Provider transports may still reshape schemas, so transport-specific drift risk remains separate from prompt-time policy pruning.
 
 OpenAI desktop tool note:
 

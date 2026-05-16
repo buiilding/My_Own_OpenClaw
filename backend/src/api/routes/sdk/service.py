@@ -215,7 +215,6 @@ def build_debug_tool_schemas(
                     if isinstance(name, str)
                 ],
                 normalize_wrappers=False,
-                selection=None,
             )
         )
         canonical_tool_schemas = (
@@ -254,7 +253,6 @@ def build_debug_tool_schemas(
             for schema in canonical_tool_schemas
             if get_tool_spec_name(schema) in client_tool_names
         ],
-        selection=None,
     )
     canonical_tool_schemas = [
         *tool_policy.filter_tool_schemas(registry_tool_schemas),
@@ -268,7 +266,6 @@ def build_debug_tool_schemas(
     )
     provider_tool_schemas = tool_policy.filter_projected_tool_schemas(
         provider_tool_schemas,
-        selection=None,
     )
     return canonical_tool_schemas, provider_tool_schemas
 
