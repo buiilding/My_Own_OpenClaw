@@ -104,7 +104,13 @@
       const agent = await client.wakeUp({
         agentId: 'custom-ui-example',
         name: 'Custom UI Example',
-        systemPrompt: 'You are a concise SDK custom UI demo agent.'
+        systemPrompt: 'You are a concise SDK custom UI demo agent.',
+        model: {
+          modelProvider: 'openai',
+          modelId: 'gpt-5.4',
+          modelMode: 'online',
+          interactionMode: 'agent'
+        }
       });
       const conversation = agent.conversation({
         conversationRef: 'custom-ui-example',
@@ -137,7 +143,15 @@
         }
         send.disabled = true;
         try {
-          for await (const runtimeEvent of conversation.stream({ text })) {
+          for await (const runtimeEvent of conversation.stream({
+            text,
+            model: {
+              modelProvider: 'openai',
+              modelId: 'gpt-5.4',
+              modelMode: 'online',
+              interactionMode: 'agent'
+            }
+          })) {
             if (runtimeEvent.type === 'error') {
               throw runtimeEvent.error;
             }

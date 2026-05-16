@@ -19,15 +19,32 @@ runtime primitives used by desktop, CLI, and custom UI adapters.
 import { WindieClient } from '@windie/sdk';
 
 const windie = new WindieClient({ backendUrl: 'https://api.windieos.com' });
+const catalog = await windie.listModels();
 const agent = await windie.wakeUp({
   workspacePath: '/Users/me/project',
   plugins: [{ path: './plugins/repo-agent' }],
+  model: {
+    modelProvider: 'openai',
+    modelId: 'gpt-5.4',
+    modelMode: 'online',
+    interactionMode: 'agent',
+  },
 });
 
+await agent.setModel({
+  modelProvider: 'mistral',
+  modelId: 'mistral-large-latest',
+});
 await agent.run('Inspect the repo and summarize what changed.');
 
 const conversation = agent.conversation({ conversationRef: 'repo-checks' });
-for await (const event of conversation.stream({ text: 'Run the tests and summarize failures.' })) {
+for await (const event of conversation.stream({
+  text: 'Run the tests and summarize failures.',
+  model: {
+    modelProvider: 'openai',
+    modelId: catalog.config.selected_model_id,
+  },
+})) {
   if (event.type === 'conversation_event' && event.event.type === 'assistant_delta') {
     process.stdout.write(String(event.event.payload.text ?? ''));
   }

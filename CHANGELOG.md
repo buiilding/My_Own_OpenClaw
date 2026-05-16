@@ -19,6 +19,7 @@ All notable changes to WindieOS will be documented in this file.
 - examples: add a minimal `examples/cli-agent` script that uses `conversation.stream()` and `InMemoryConversationStore` without Electron.
 - examples: add a minimal `examples/custom-ui` browser client that renders SDK display projections against a mock backend.
 - examples: add a minimal `examples/local-tool-extension` script that registers a Python module tool through `moduleTool(...)` and executes it via the sidecar daemon.
+- examples: show SDK model listing, wake-up model selection, `agent.setModel(...)`, and per-turn model overrides in public SDK examples.
 - extensions: add a `scripts/create-windie-extension` scaffold command for starter extension packages with a sidecar tool, schema, skill, and docs.
 - sdk: add repo-local `@windie/sdk` and `windie-sdk` package boundaries while keeping existing frontend and sidecar compatibility imports.
 - sdk: add `SdkConversationRuntime.stream()` so custom clients can run turns through normalized conversation events, projections, and terminal runtime phases.

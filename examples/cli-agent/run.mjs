@@ -30,7 +30,38 @@ function send(socket, type, payload = {}, extra = {}) {
 }
 
 function createMockBackend() {
-  const server = http.createServer((_req, res) => {
+  const modelConfig = {
+    model_mode: 'online',
+    model_provider: 'openai',
+    selected_model_id: 'gpt-5.4',
+    interaction_mode: 'agent',
+  };
+  const modelUpdates = [];
+  const server = http.createServer((req, res) => {
+    const url = new URL(req.url || '/', 'http://127.0.0.1');
+    if (url.pathname === '/api/sdk/models') {
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({
+        config: modelConfig,
+        models: [
+          {
+            id: 'gpt-5.4',
+            provider: 'openai',
+            label: 'GPT-5.4',
+            model_mode: 'online',
+            supports_tools: true,
+          },
+          {
+            id: 'mistral-large-latest',
+            provider: 'mistral',
+            label: 'Mistral Large',
+            model_mode: 'online',
+            supports_tools: true,
+          },
+        ],
+      }));
+      return;
+    }
     res.writeHead(200, { 'content-type': 'application/json' });
     res.end(JSON.stringify({ ok: true, service: 'windie-cli-agent-example' }));
   });
@@ -44,6 +75,10 @@ function createMockBackend() {
     });
     socket.on('message', raw => {
       const message = JSON.parse(raw.toString());
+      if (message.type === 'update-settings') {
+        modelUpdates.push(message.payload);
+        return;
+      }
       if (message.type === 'query') {
         const conversationRef = message.payload?.conversation_ref || 'cli-agent-example';
         const turnRef = message.payload?.turn_ref || null;
@@ -74,6 +109,7 @@ function createMockBackend() {
       const address = server.address();
       resolve({
         backendUrl: `http://127.0.0.1:${address.port}`,
+        modelUpdates,
         close: () => new Promise(done => {
           for (const socket of sockets) {
             socket.terminate();
@@ -98,14 +134,32 @@ const client = new WindieClient({
   backendUrl: backend.backendUrl,
   WebSocketImpl,
 });
+const initialModel = {
+  modelProvider: 'openai',
+  modelId: 'gpt-5.4',
+  modelMode: 'online',
+  interactionMode: 'agent',
+};
+const nextModel = {
+  modelProvider: 'mistral',
+  modelId: 'mistral-large-latest',
+  modelMode: 'online',
+  interactionMode: 'agent',
+};
 
 let agent = null;
 try {
+  const catalog = await client.listModels({ userId: 'cli-example-user' });
+  console.log(`Loaded ${catalog.models.length} backend-owned models.`);
+
   agent = await client.wakeUp({
     agentId: 'cli-agent-example',
     name: 'CLI Agent Example',
     systemPrompt: 'You are a concise CLI demo agent.',
+    model: initialModel,
   });
+  await agent.setModel(nextModel);
+
   const conversation = agent.conversation({
     conversationRef: 'cli-agent-example',
     store,
@@ -114,6 +168,7 @@ try {
   for await (const event of conversation.stream({
     text: 'Explain what runtime surface this example is using.',
     turnRef: 'cli-example-turn',
+    model: initialModel,
   })) {
     if (event.type === 'conversation_event' && event.event.type === 'assistant_delta') {
       process.stdout.write(String(event.event.payload.text ?? ''));
@@ -123,6 +178,7 @@ try {
   const [metadata] = await store.listMetadata();
   console.log('\nConversation metadata:');
   console.log(JSON.stringify(metadata, null, 2));
+  console.log(`Model updates sent through SDK settings: ${backend.modelUpdates.length}`);
 } finally {
   agent?.sleep();
   await backend.close();
