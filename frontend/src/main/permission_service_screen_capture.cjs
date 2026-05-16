@@ -2,10 +2,7 @@ const {
   PERMISSION_STATUS,
   buildProbeResult,
   getMediaAccessStatus,
-  openExternal,
 } = require('./permission_service_runtime.cjs');
-
-const MACOS_SCREEN_CAPTURE_SETTINGS_URL = 'x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture';
 
 async function requestDesktopCapturePrompt(deps = {}) {
   const desktopCapturer = deps.desktopCapturer;

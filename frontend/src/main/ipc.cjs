@@ -589,7 +589,7 @@ function getWindieSdkRuntime() {
     connectTimeoutMs: BACKEND_CONNECT_TIMEOUT_MS,
     reconnectIntervalMs: BACKEND_RECONNECT_INTERVAL_MS,
     idleDisconnectTimeoutMs: BACKEND_IDLE_DISCONNECT_TIMEOUT_MS,
-    onOpen: ({ handshake }) => {
+    onOpen: () => {
       isConnected = true;
       isFirstQuery = true;
       resetSettingsSyncState();
