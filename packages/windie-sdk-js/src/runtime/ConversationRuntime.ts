@@ -372,9 +372,22 @@ export class SdkConversationRuntime {
     if (!this.options.transport?.updateSettings) {
       throw new Error('ConversationRuntime.setModel requires a backend transport that supports updateSettings');
     }
-    return this.options.transport.updateSettings(
-      buildModelSettingsPatch(selection, 'ConversationRuntime.setModel'),
-    );
+    const settings = buildModelSettingsPatch(selection, 'ConversationRuntime.setModel');
+    const backendMessageId = await this.options.transport.updateSettings(settings);
+    const revisionId = this.state.revisionId === 'rev-empty'
+      ? createRuntimeId('rev')
+      : this.state.revisionId;
+    await this.applyEvent(createConversationEvent({
+      type: 'settings_updated',
+      conversationRef: this.options.conversationRef,
+      revisionId,
+      source: 'sdk',
+      payload: {
+        ...settings,
+        backendMessageId: backendMessageId ?? null,
+      },
+    }));
+    return backendMessageId;
   }
 
   close(): void {

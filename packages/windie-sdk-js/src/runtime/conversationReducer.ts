@@ -14,6 +14,7 @@ export function createInitialConversationRuntimeState(
     revisionId,
     activeTurnRef: null,
     phase: 'idle',
+    settings: {},
     pendingTools: {},
     activeBundle: null,
     compaction: { status: 'idle' },
@@ -74,6 +75,16 @@ export function reduceConversationRuntimeState(
       phase: 'sending',
       lastError: null,
       stopState: { requested: false, turnRef: null },
+    };
+  }
+  if (event.type === 'settings_updated') {
+    return {
+      ...base,
+      phase: state.phase,
+      settings: {
+        ...state.settings,
+        ...event.payload,
+      },
     };
   }
   if (event.type === 'assistant_delta') {

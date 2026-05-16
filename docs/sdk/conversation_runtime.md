@@ -52,6 +52,13 @@ The runtime records normalized events:
 Every event carries `eventId`, `conversationRef`, `revisionId`, `timestamp`,
 `source`, and optional `turnRef`.
 
+`settings_updated` is the conversation-runtime record for SDK-owned settings
+changes such as model/provider selection. `conversation.setModel(...)` and
+per-turn `model` options write this event only after the backend settings update
+succeeds. Runtime snapshots expose the latest merged settings on
+`snapshot.state.settings`, but display and rehydrate projections do not render
+or replay those settings as chat/provider history.
+
 ## Store Rule
 
 Stores expose first-class projection loaders, but they should stay dumb:

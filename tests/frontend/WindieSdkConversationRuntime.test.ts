@@ -527,9 +527,10 @@ describe('Windie SDK conversation runtime core', () => {
       subscribe: jest.fn(() => () => undefined),
       close: jest.fn(async () => undefined),
     };
+    const store = new InMemoryConversationStore();
     const runtime = new SdkConversationRuntime({
       conversationRef: 'conv-sdk-runtime',
-      store: new InMemoryConversationStore(),
+      store,
       transport,
     });
 
@@ -557,6 +558,31 @@ describe('Windie SDK conversation runtime core', () => {
       conversation_ref: 'conv-sdk-runtime',
       turn_ref: 'turn-model',
     });
+    const events = await store.loadEvents('conv-sdk-runtime');
+    expect(events.map(event => event.type)).toEqual([
+      'settings_updated',
+      'turn_started',
+      'user_message',
+    ]);
+    expect(events[0].payload).toMatchObject({
+      selected_model_id: 'gpt-5.4@@gpt-5-4-high-thinking',
+      model_provider: 'openai',
+      model_mode: 'high',
+      interaction_mode: 'agent',
+      backendMessageId: 'settings-model',
+    });
+    const snapshot = await runtime.load();
+    expect(snapshot.state.settings).toMatchObject({
+      selected_model_id: 'gpt-5.4@@gpt-5-4-high-thinking',
+      model_provider: 'openai',
+    });
+    expect(snapshot.display.messages.map(message => message.messageType)).toEqual(['user_message']);
+    expect(snapshot.rehydrate.messages).toEqual([
+      expect.objectContaining({
+        role: 'user',
+        content: 'use the selected model',
+      }),
+    ]);
   });
 
   test('conversation runtime validates model selections before sending a turn', async () => {

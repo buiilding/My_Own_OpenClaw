@@ -156,6 +156,7 @@ export type ConversationRuntimeState = {
   revisionId: string;
   activeTurnRef?: string | null;
   phase: ConversationRuntimePhase;
+  settings: JsonRecord;
   pendingTools: Record<string, ToolEventPayload>;
   activeBundle?: ToolEventPayload | null;
   compaction: CompactionState;

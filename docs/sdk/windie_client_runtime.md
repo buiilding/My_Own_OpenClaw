@@ -224,6 +224,11 @@ Electron uses a sidecar-backed store adapter during the desktop migration:
   helpers accept a `model` option and apply it before sending the turn; advanced
   callers can still use `conversation.setModel(...)` or per-turn conversation
   `model` options when they need revision-aware conversation control.
+- conversation-scoped model changes append a normalized `settings_updated`
+  event after the backend accepts the settings update. Runtime snapshots expose
+  the latest merged settings for debugging and custom UI state, while display
+  and rehydrate projections keep model changes out of visible chat rows and
+  provider history.
 
 Skipped compaction is represented as `compaction_skipped`. It is runtime/debug
 state and should not render as assistant output or a full compacted-history panel
