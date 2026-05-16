@@ -1,9 +1,4 @@
 import type { WindieModelSelection } from '../../infrastructure/api/windieSdkClient';
-import {
-  recordAssistantMessage,
-  recordToolMessage,
-  recordUserMessage,
-} from '../../infrastructure/transcript/TranscriptWriter';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { DesktopSettingsRuntimeClient } from './desktopSettingsRuntimeClient';
 import {
@@ -13,13 +8,11 @@ import {
   type SendConversationRehydrateInput,
 } from './desktopBackendCommandRuntimeClient';
 import {
-  ElectronSidecarConversationStore,
-  type TranscriptProjectionRewriteEntry,
-} from '../../infrastructure/transcript/ElectronSidecarConversationStore';
-import type {
-  CompactedReplaySnapshot,
-  RehydrateSnapshot,
-} from '../../infrastructure/api/windieSdkClient';
+  DesktopTranscriptProjectionRuntimeClient,
+  type RewriteTranscriptProjectionInput,
+  type LoadRehydrateSnapshotInput,
+} from './desktopTranscriptProjectionRuntimeClient';
+import type { CompactedReplaySnapshot } from '../../infrastructure/api/windieSdkClient';
 
 export type { RehydrateConversationEntry };
 
@@ -39,18 +32,6 @@ type SendConversationQueryInput = {
     timestamp?: string | null;
     screenshotRef?: string | null;
   } | null;
-};
-
-type RewriteTranscriptProjectionInput = {
-  conversationRef: string;
-  userId: string;
-  transcriptEntries: TranscriptProjectionRewriteEntry[];
-  rehydrateEntries: TranscriptProjectionRewriteEntry[];
-};
-
-type LoadRehydrateSnapshotInput = {
-  conversationRef: string;
-  userId: string;
 };
 
 /**
@@ -85,51 +66,36 @@ export const DesktopConversationRuntimeClient = {
 
   recordAssistantMessage(
     text: string,
-    options: Parameters<typeof recordAssistantMessage>[1] = {},
+    options: Parameters<typeof DesktopTranscriptProjectionRuntimeClient.recordAssistantMessage>[1] = {},
   ): void {
-    recordAssistantMessage(text, options);
+    DesktopTranscriptProjectionRuntimeClient.recordAssistantMessage(text, options);
   },
 
   recordToolMessage(
     text: string,
-    options: Parameters<typeof recordToolMessage>[1],
+    options: Parameters<typeof DesktopTranscriptProjectionRuntimeClient.recordToolMessage>[1],
   ): void {
-    recordToolMessage(text, options);
+    DesktopTranscriptProjectionRuntimeClient.recordToolMessage(text, options);
   },
 
   async replaceCompactedReplay(
     snapshot: CompactedReplaySnapshot,
     userId: string,
   ): Promise<void> {
-    const store = new ElectronSidecarConversationStore({ userId });
-    await store.replaceCompactedReplay(snapshot);
+    await DesktopTranscriptProjectionRuntimeClient.replaceCompactedReplay(snapshot, userId);
   },
 
-  async rewriteTranscriptProjection({
-    conversationRef,
-    userId,
-    transcriptEntries,
-    rehydrateEntries,
-  }: RewriteTranscriptProjectionInput): Promise<RehydrateSnapshot> {
-    const store = new ElectronSidecarConversationStore({ userId });
-    return store.rewriteTranscriptProjection({
-      conversationRef,
-      entries: transcriptEntries,
-      rehydrateEntries,
-    });
+  async rewriteTranscriptProjection(input: RewriteTranscriptProjectionInput) {
+    return DesktopTranscriptProjectionRuntimeClient.rewriteTranscriptProjection(input);
   },
 
-  async loadRehydrateSnapshot({
-    conversationRef,
-    userId,
-  }: LoadRehydrateSnapshotInput): Promise<RehydrateSnapshot> {
-    const store = new ElectronSidecarConversationStore({ userId });
-    return store.loadForRehydrate(conversationRef);
+  async loadRehydrateSnapshot(input: LoadRehydrateSnapshotInput) {
+    return DesktopTranscriptProjectionRuntimeClient.loadRehydrateSnapshot(input);
   },
 
   sendQuery(input: SendConversationQueryInput): Promise<void> {
     if (input.transcript) {
-      recordUserMessage(input.text, {
+      DesktopTranscriptProjectionRuntimeClient.recordUserMessage(input.text, {
         conversationRef: input.conversationRef,
         userId: input.transcript.userId ?? null,
         timestamp: input.transcript.timestamp ?? undefined,
