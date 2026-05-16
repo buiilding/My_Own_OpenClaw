@@ -2,7 +2,7 @@
 summary: "Deep reference for Electron-main turn-scoped backend-event replay and cross-window transcript-session sync normalization between main and renderer."
 read_when:
   - When changing turn replay buffering in `ipc_event_replay_state.cjs`, renderer window registration fan-out, or query optimistic event seeding.
-  - When changing `transcript-session-sync` payload normalization/forwarding between `ipc_transcript_session_sync.cjs` and renderer `TranscriptWriter`.
+  - When changing `transcript-session-sync` payload normalization/forwarding between `ipc_transcript_session_sync.cjs` and the desktop transcript session runtime.
 title: "IPC Event Replay and Transcript Session Sync Reference"
 ---
 
@@ -14,7 +14,7 @@ title: "IPC Event Replay and Transcript Session Sync Reference"
 - `frontend/src/main/ipc/ipc_event_replay_state.cjs`
 - `frontend/src/main/ipc/ipc_transcript_session_sync.cjs`
 - `frontend/src/main/ipc/ipc_renderer_windows.cjs`
-- `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntime.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionSyncPayload.ts`
 - `tests/frontend/IpcMainBridge.query.test.cjs`
 

@@ -115,12 +115,12 @@ Core modules:
 - `infrastructure/api/client.ts`: typed backend command surface
 - `infrastructure/ipc/bridge.ts`: typed IPC wrapper over preload API
 - `infrastructure/services/*`: tool execution/capture/payload services
-- `infrastructure/transcript/*`: transcript queues/session storage/writer
+- `app/runtime/desktopTranscriptProjectionRuntimeClient.ts` + `infrastructure/transcript/*`: transcript projection queues and session storage
 - `infrastructure/audio/PlayerService.ts`: streaming audio playback queue
 
 ## Transcript and Session Metadata
 
-`TranscriptWriter` runtime guarantees:
+Desktop transcript projection runtime guarantees:
 
 - stores user/assistant/tool rows with message type + correlation metadata
 - queues writes if session info unavailable and retries when session resolves

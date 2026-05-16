@@ -192,7 +192,7 @@ wrong:
 - `frontend/src/renderer/features/chat/utils/chatStream/*`
 - `frontend/src/renderer/features/chat/utils/state/streamPhaseState.js`
 - `frontend/src/renderer/features/chat/hooks/useChatLoopUiState.js`
-- `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`
 
 Renderer stream invariants:
 

@@ -10,7 +10,7 @@ title: "Transcript Storage, Semantic Candidate, and Watermark Reference"
 
 ## Canonical Modules
 
-- `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`
 - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/python/local_backend.py`
 - `frontend/src/main/python/memory/local_store.py`
@@ -23,7 +23,7 @@ title: "Transcript Storage, Semantic Candidate, and Watermark Reference"
 
 Transcript persistence path:
 
-1. renderer calls `INVOKE_CHANNELS.STORE_TRANSCRIPT` from `TranscriptWriter`
+1. renderer calls `INVOKE_CHANNELS.STORE_TRANSCRIPT` from the desktop transcript projection runtime
 2. main maps camelCase payload to sidecar snake_case params (`store-transcript` -> `store_transcript`)
 3. sidecar `LocalBackend._handle_store_transcript(...)` validates and normalizes
 4. sidecar writes episodic row via `LocalMemoryStore.add(..., record_kind="transcript")`

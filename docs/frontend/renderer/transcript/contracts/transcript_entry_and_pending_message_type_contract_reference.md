@@ -11,7 +11,7 @@ title: "Transcript Entry and Pending Message Type Contract Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/infrastructure/transcript/types.ts`
-- `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`
 
 ## `SessionInfo` Contract
 

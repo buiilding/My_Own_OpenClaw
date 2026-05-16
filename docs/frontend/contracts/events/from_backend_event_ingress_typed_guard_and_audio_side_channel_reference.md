@@ -15,7 +15,7 @@ title: "From-Backend Event Ingress, Typed Guard, and Audio Side-Channel Referenc
 - `frontend/src/renderer/infrastructure/ipc/bridge.ts`
 - `frontend/src/renderer/types/backendEvents.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
-- `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
+- `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
 - `frontend/src/renderer/features/chat/utils/backendAudioEvents.js`
 
 ## Ingress Path
@@ -77,9 +77,9 @@ These are handled by provider-level non-typed listeners.
   - requires `isBackendEvent(...)`
   - applies conversation filtering (`shouldIgnoreEventForActiveConversation`)
   - updates stream tracking, chat messages, transcript writes
-- `useToolRunner`:
-  - requires `isBackendEvent(...)`
-  - handles only `tool-call` and `tool-bundle`
+- SDK tool coordinator:
+  - receives normalized backend tool events from the SDK transport
+  - handles only executable `tool-call` and `tool-bundle` waits
   - enforces stale-turn cancellation guards
 - `ChatInterface` audio path:
   - does not use `isBackendEvent(...)`
@@ -126,7 +126,7 @@ Typed event base supports optional context keys:
 Runtime consumers rely on these fields:
 
 - conversation guard in `useChatStream`
-- turn-scoped stale-tool cancellation in `useToolRunner`
+- turn-scoped stale-tool cancellation in SDK runtime state
 - transcript-session updates in `useChatStream`
 
 Missing `conversation_ref` or `turn_ref` can degrade filtering precision.
@@ -144,7 +144,7 @@ If event appears in main logs but UI ignores it:
 
 1. check `isBackendEvent(...)` membership
 2. check conversation filter in `useChatStream`
-3. check tool stale-turn guard in `useToolRunner`
+3. check tool stale-turn guard in SDK runtime state
 4. check whether event is audio side-channel and needs parser path
 
 If audio drops but text stream works:

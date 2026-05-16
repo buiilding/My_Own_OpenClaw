@@ -15,17 +15,16 @@ title: "Pending Transcript Messages Orchestrator Flush Order and Retry Contract 
 - `frontend/src/renderer/infrastructure/transcript/pending/pendingAssistantQueue.ts`
 - `frontend/src/renderer/infrastructure/transcript/pending/pendingToolQueue.ts`
 - `frontend/src/renderer/infrastructure/transcript/pending/transcriptPendingFlush.ts`
-- `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`
 - `tests/frontend/TranscriptPendingMessages.test.ts`
 - `tests/frontend/TranscriptPendingFlush.test.ts`
-- `tests/frontend/TranscriptWriter.userAssistant.test.ts`
-- `tests/frontend/TranscriptWriter.tool.test.ts`
+- `tests/frontend/TranscriptPendingMessages.test.ts`
 
 ## Ownership Boundary
 
 `createPendingTranscriptMessages(...)` is the queue-orchestration owner for transcript retry behavior.
 
-It composes three per-role queue modules and exposes one coordinator API used by `TranscriptWriter`:
+It composes three per-role queue modules and exposes one coordinator API used by the desktop transcript projection runtime:
 
 - `hasPendingEntries()`
 - `queueUserMessageForRetry(...)`
@@ -33,7 +32,7 @@ It composes three per-role queue modules and exposes one coordinator API used by
 - `queueToolMessageForRetry(...)`
 - `flushPendingMessages(sessionInfo)`
 
-`TranscriptWriter` owns session identity and store IPC; orchestrator owns queue state and drain sequencing.
+The desktop transcript projection runtime owns session identity and store IPC; orchestrator owns queue state and drain sequencing.
 
 ## Flush Gate Contract
 
@@ -95,7 +94,7 @@ Tool mapping:
 - optional `toolName`, `correlationId`, `modelId`, `modelProvider`, `screenshotRef`, `transparency`
 - empty-string `toolName` and `correlationId` normalize to `undefined`
 
-Identity (`conversationRef`, `userId`) is not stored in queue entries; it is applied by store path in `TranscriptWriter` when calling `storeTranscriptEntry(...)`.
+Identity (`conversationRef`, `userId`) is not stored in queue entries; it is applied by the projection runtime store path when calling `storeTranscriptEntry(...)`.
 
 ## Queue Visibility Contract
 
@@ -113,7 +112,7 @@ After successful flush of all categories, all queues are empty and `hasPendingEn
 
 `tests/frontend/TranscriptPendingFlush.test.ts` locks helper-level suffix requeue behavior.
 
-Writer integration tests (`TranscriptWriter.userAssistant.test.ts`, `TranscriptWriter.tool.test.ts`) lock orchestrator behavior through public writer flows.
+`TranscriptPendingMessages.test.ts` locks orchestrator behavior through the shared queue coordinator.
 
 ## Drift Hotspots
 
@@ -126,5 +125,5 @@ Writer integration tests (`TranscriptWriter.userAssistant.test.ts`, `TranscriptW
 
 - [Transcript Queue Docs Hub](README.md)
 - [Pending Transcript Queue FIFO and Requeue Contract Reference](pending_transcript_queue_fifo_and_requeue_contract_reference.md)
-- [Transcript Writer Queue Flush and Session Event Reference](../transcript_writer_queue_flush_and_session_event_reference.md)
+- [Transcript Projection Queue Flush and Session Event Reference](../transcript_writer_queue_flush_and_session_event_reference.md)
 - [Transcript Session and Rehydrate Reference](../../transcript_session_and_rehydrate_reference.md)

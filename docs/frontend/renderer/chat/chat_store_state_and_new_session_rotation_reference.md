@@ -17,7 +17,7 @@ title: "Chat Store State and New Session Rotation Reference"
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
 - `frontend/src/renderer/features/dashboard/components/DashboardSidebar.jsx`
-- `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntime.ts`
 - `tests/frontend/ChatStore.test.ts`
 
 ## Chat Store Contract
@@ -129,12 +129,12 @@ During active loops, dashboard history switching is allowed. In-flight events co
 
 ## Transcript Session Synchronization
 
-`TranscriptWriter` session state is the source for active transcript identity:
+The desktop transcript session runtime is the source for active transcript identity:
 
 - `setActiveConversationRef(...)` updates cached session info and emits session update event when changed
 - pending transcript queues flush only when both `conversationRef` and `userId` are available
 
-Chat store reset and transcript-session ref updates are separate concerns; new-chat path updates both through `startNewChatSession` + transcript writer.
+Chat store reset and transcript-session ref updates are separate concerns; new-chat path updates both through `startNewChatSession` + the desktop transcript session runtime.
 
 ## Test-Backed Invariants
 

@@ -1,5 +1,5 @@
 ---
-summary: "Frontend renderer transcript docs sub-hub for TranscriptWriter queue/flush behavior, session identity state updates, and session-event persistence contracts."
+summary: "Frontend renderer transcript docs sub-hub for desktop transcript projection queue/flush behavior, session identity state updates, and session-event persistence contracts."
 read_when:
   - When changing `frontend/src/renderer/infrastructure/transcript/*` modules or transcript write/retry behavior.
   - When debugging queued transcript rows, session identity drift, or `transcript-session-update` event delivery.
@@ -11,7 +11,7 @@ title: "Frontend Renderer Transcript Docs Hub"
 ## Deep Pages
 
 - [Transcript Replay Change Workflow](../../../memory/transcript_replay_change_workflow.md)
-- [Transcript Writer Queue Flush and Session Event Reference](transcript_writer_queue_flush_and_session_event_reference.md)
+- [Transcript Projection Queue Flush and Session Event Reference](transcript_writer_queue_flush_and_session_event_reference.md)
 - [Transcript Queue Docs Hub](queue/README.md)
 - [Pending Transcript Queue FIFO and Requeue Contract Reference](queue/pending_transcript_queue_fifo_and_requeue_contract_reference.md)
 - [Transcript Contracts Docs Hub](contracts/README.md)
@@ -19,7 +19,7 @@ title: "Frontend Renderer Transcript Docs Hub"
 
 ## Code Scope
 
-- `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`
 - `frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime.ts`
 - `frontend/src/renderer/infrastructure/transcript/transcriptEntryPersistence.ts`
 - `frontend/src/renderer/infrastructure/transcript/transcriptRecordWrite.ts`
@@ -34,8 +34,7 @@ title: "Frontend Renderer Transcript Docs Hub"
 - `tests/frontend/TranscriptPendingQueue.test.ts`
 - `tests/frontend/TranscriptPendingFlush.test.ts`
 - `tests/frontend/TranscriptPendingMessages.test.ts`
-- `tests/frontend/TranscriptWriter.session.test.ts`
-- `tests/frontend/TranscriptWriter.userAssistant.test.ts`
-- `tests/frontend/TranscriptWriter.tool.test.ts`
+- `tests/frontend/RendererAppRuntimeBoundary.test.ts`
+- `tests/frontend/TranscriptPendingMessages.test.ts`
 - `tests/frontend/TranscriptSessionState.test.ts`
 - `tests/frontend/TranscriptStorage.test.ts`

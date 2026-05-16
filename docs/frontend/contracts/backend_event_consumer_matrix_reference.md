@@ -146,7 +146,7 @@ If tool events execute on wrong turn:
 
 1. verify event includes `turn_ref`
 2. verify stream tracking active turn/phase state transitions
-3. inspect stale-turn cancellation payloads sent by `useToolRunner`
+3. inspect stale-turn cancellation payloads sent by the SDK tool coordinator
 
 ## Related Pages
 

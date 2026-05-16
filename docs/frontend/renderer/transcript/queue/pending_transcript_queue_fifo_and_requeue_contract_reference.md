@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for transcript pending queue implementations: enqueue/drain mechanics, FIFO ordering guarantees, and category-level requeue behavior in flush pipelines."
 read_when:
-  - When modifying pending transcript queue implementations or queue-drain usage in `TranscriptWriter`.
+  - When modifying pending transcript queue implementations or queue-drain usage in the desktop transcript projection runtime.
   - When diagnosing dropped transcript rows after store failures or out-of-order flush behavior across user/assistant/tool categories.
 title: "Pending Transcript Queue FIFO and Requeue Contract Reference"
 ---
@@ -15,11 +15,10 @@ title: "Pending Transcript Queue FIFO and Requeue Contract Reference"
 - `frontend/src/renderer/infrastructure/transcript/pending/pendingAssistantQueue.ts`
 - `frontend/src/renderer/infrastructure/transcript/pending/pendingToolQueue.ts`
 - `frontend/src/renderer/infrastructure/transcript/pending/transcriptPendingFlush.ts`
-- `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`
 - `tests/frontend/TranscriptPendingQueue.test.ts`
 - `tests/frontend/TranscriptPendingFlush.test.ts`
-- `tests/frontend/TranscriptWriter.userAssistant.test.ts`
-- `tests/frontend/TranscriptWriter.tool.test.ts`
+- `tests/frontend/TranscriptPendingMessages.test.ts`
 
 ## Queue Structure Pattern
 
@@ -59,9 +58,9 @@ Test anchor:
 
 - `drained array mutation does not re-populate queue` case in `TranscriptPendingQueue.test.ts`.
 
-## TranscriptWriter Flush Interaction
+## Projection Runtime Flush Interaction
 
-`pendingTranscriptMessages.flushPendingMessages(sessionInfo)` drains category arrays in fixed order:
+`pendingTranscriptMessages.flushPendingMessages(sessionInfo)` drains category arrays in fixed order for the desktop transcript projection runtime:
 
 1. user
 2. assistant
@@ -93,7 +92,7 @@ Direct queue unit coverage exists for:
 
 - user queue implementation behavior (`TranscriptPendingQueue.test.ts`)
 
-Assistant/tool queue behavior is covered indirectly through writer integration tests that exercise queue/retry flow.
+Assistant/tool queue behavior is covered through `TranscriptPendingMessages.test.ts`, which exercises queue/retry flow through the shared orchestrator.
 
 `TranscriptPendingFlush.test.ts` adds direct helper coverage for `requeuePending(...)` ordering and `flushPendingEntries(...)` success/failure-tail behavior.
 

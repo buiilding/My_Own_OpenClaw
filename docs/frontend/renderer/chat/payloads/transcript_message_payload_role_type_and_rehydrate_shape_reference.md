@@ -15,7 +15,7 @@ title: "Transcript Message Payload Role, Type, and Rehydrate Shape Reference"
 - `frontend/src/renderer/infrastructure/transcript/rehydratePayload.js`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js`
-- `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+- `frontend/src/renderer/app/runtime/desktopConversationRuntimeClient.ts`
 - `frontend/src/renderer/infrastructure/api/client.ts`
 - `tests/frontend/TranscriptMessagePayload.test.js`
 

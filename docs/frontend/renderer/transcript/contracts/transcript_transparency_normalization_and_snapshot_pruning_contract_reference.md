@@ -11,14 +11,14 @@ title: "Transcript Transparency Normalization and Snapshot Pruning Contract Refe
 ## Canonical Modules
 
 - `frontend/src/renderer/infrastructure/transcript/transparencyNormalization.ts`
-- `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`
 - `frontend/src/renderer/infrastructure/transcript/types.ts`
 - `frontend/src/renderer/infrastructure/text/incomingTextNormalization.ts`
 - `tests/frontend/TranscriptTransparencyNormalization.test.ts`
 
 ## Ownership Boundary
 
-`normalizeTransparencyData(...)` is the canonical boundary for cleaning optional transcript transparency snapshots before they are queued/persisted by `TranscriptWriter`.
+`normalizeTransparencyData(...)` is the canonical boundary for cleaning optional transcript transparency snapshots before they are queued or persisted by the desktop transcript projection runtime.
 
 It is shape-preserving for valid fields and fail-closed for empty/invalid payloads.
 
@@ -64,7 +64,7 @@ Early-return rules:
 
 ## Writer Integration Contract
 
-`TranscriptWriter` uses `normalizeTransparencyData(...)` before:
+The desktop transcript projection runtime uses `normalizeTransparencyData(...)` before:
 
 - queueing user/assistant/tool retry payloads
 - immediate persistence payload construction

@@ -16,7 +16,7 @@ title: "Frontend Renderer Transcript Queue Docs Hub"
 ## Related Pages
 
 - [Frontend Renderer Transcript Docs Hub](../README.md)
-- [Transcript Writer Queue Flush and Session Event Reference](../transcript_writer_queue_flush_and_session_event_reference.md)
+- [Transcript Projection Queue Flush and Session Event Reference](../transcript_writer_queue_flush_and_session_event_reference.md)
 - [Transcript Session and Rehydrate Reference](../../transcript_session_and_rehydrate_reference.md)
 
 ## Code Scope
@@ -26,9 +26,8 @@ title: "Frontend Renderer Transcript Queue Docs Hub"
 - `frontend/src/renderer/infrastructure/transcript/pending/pendingAssistantQueue.ts`
 - `frontend/src/renderer/infrastructure/transcript/pending/pendingToolQueue.ts`
 - `frontend/src/renderer/infrastructure/transcript/pending/transcriptPendingFlush.ts`
-- `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`
 - `tests/frontend/TranscriptPendingQueue.test.ts`
 - `tests/frontend/TranscriptPendingFlush.test.ts`
 - `tests/frontend/TranscriptPendingMessages.test.ts`
-- `tests/frontend/TranscriptWriter.userAssistant.test.ts`
-- `tests/frontend/TranscriptWriter.tool.test.ts`
+- `tests/frontend/TranscriptPendingMessages.test.ts`

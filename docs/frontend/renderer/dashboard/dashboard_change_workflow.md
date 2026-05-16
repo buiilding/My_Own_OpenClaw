@@ -46,7 +46,7 @@ the owner map before changing code.
 | Recent chats do not load, retry, group, or show titles | `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`, `utils/dashboardConversationLoad.js`, `utils/conversationGroups.js`, transcript local store | `tests/frontend/DashboardConversationLoad.test.js`, `tests/frontend/ConversationGroups.test.js`, `tests/frontend/DashboardSidebar.test.jsx` |
 | Search modal behavior changes | `frontend/src/renderer/features/dashboard/components/SearchChatsModal.jsx`, `useDashboardConversations.js`, `localConversationStore.ts` | `tests/frontend/DashboardSidebar.test.jsx`, conversation search tests, focused modal tests when added |
 | Opening a conversation lands in wrong chat/session/workspace | `useDashboardConversations.js`, `conversationLocalSnapshotLoader.ts`, `conversationSessionRuntime.ts`, `conversationInferenceSessionRuntime.ts`, `conversationWorkspaceBinding.js` | `tests/frontend/DashboardConversationLoad.test.js`, `tests/frontend/ConversationSessionRuntime.test.ts`, `tests/frontend/ConversationInferenceSessionRuntime.test.ts` |
-| Delete/clear chats leaves stale transcript, workspace, or active state | `useDashboardConversations.js`, `DashboardShell.jsx`, `conversationReplayState.ts`, `resetActiveChatSession`, workspace binding helpers | `tests/frontend/DashboardConversationLoad.test.js`, `tests/frontend/ConversationReplayState.test.ts`, `tests/frontend/LocalConversationStore.test.js` |
+| Delete/clear chats leaves stale transcript, workspace, or active state | `useDashboardConversations.js`, `DashboardShell.jsx`, `ElectronSidecarConversationStore`, `resetActiveChatSession`, workspace binding helpers | `tests/frontend/DashboardConversationLoad.test.js`, `tests/frontend/ElectronSidecarConversationStore.test.ts`, `tests/frontend/LocalConversationStore.test.js` |
 | Memory panel list/delete/search/toggle changes | `components/sections/MemorySection.jsx`, `MemoryItem.jsx`, `memorySectionData.js`, `memorySectionState.js`, memory IPC contracts | `tests/frontend/MemorySection.test.jsx`, `tests/frontend/MemorySectionState.test.js`, memory IPC/sidecar tests |
 | Models panel selection, provider grouping, API keys, or fallback changes | `components/sections/ModelsSection.jsx`, `modelSelectionUtils.js`, `modelCardData.js`, `modelCards.jsx`, `providerApiKeys.js` | `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/ModelSelectionUtils.test.js`, `tests/frontend/ModelCardData.test.js` |
 | Settings panel tabs or config controls change | `components/sections/SettingsSection.jsx`, `components/sections/settings/*`, AppConfig provider utilities | `tests/frontend/SettingsSection.test.jsx`, `tests/frontend/GeneralSettingsTab.test.jsx`, `tests/frontend/SettingsManagementHook.test.ts` |
@@ -120,7 +120,7 @@ Read these files for recent chats, search, open, rename, pin, or delete work:
 - `frontend/src/renderer/features/dashboard/utils/conversationGroups.js`
 - `frontend/src/renderer/infrastructure/transcript/localConversationStore.ts`
 - `frontend/src/renderer/infrastructure/transcript/conversationLocalSnapshotLoader.ts`
-- `frontend/src/renderer/infrastructure/transcript/conversationReplayState.ts`
+- `frontend/src/renderer/infrastructure/transcript/ElectronSidecarConversationStore.ts`
 - `frontend/src/renderer/features/chat/session/conversationSessionRuntime.ts`
 - `frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime.ts`
 - `frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding.js`
@@ -136,7 +136,7 @@ Conversation invariants:
 - Opening a conversation loads the local snapshot, synchronizes workspace
   selection, applies renderer conversation selection, resets sending/thinking
   state, and updates chat messages for that conversation.
-- Delete clears transcript/replay state, workspace binding, inference session
+- Delete clears conversation events, transcript state, workspace binding, inference session
   state, pinned/search/recent rows, and active chat state when deleting the
   current conversation.
 - Rename and pin are currently local dashboard state operations; do not document

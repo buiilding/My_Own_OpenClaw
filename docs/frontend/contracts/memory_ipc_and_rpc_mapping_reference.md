@@ -12,7 +12,7 @@ title: "Memory IPC and RPC Mapping Reference"
 
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/renderer/infrastructure/ipc/bridge.ts`
-- `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`
 - `frontend/src/renderer/features/dashboard/components/sections/MemorySection.jsx`
 - `frontend/src/main/ipc/ipc_memory_store_persistence.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
@@ -39,7 +39,7 @@ Memory-related `invoke` channels exposed to renderer:
 
 Current primary renderer call sites:
 
-- `TranscriptWriter` -> `store-transcript`
+- desktop transcript projection runtime -> `store-transcript`
 - `ChatGptDashboardShell` + `DashboardSidebar` + `SearchChatsModal` -> search/list/get transcript conversations
 - `MemorySection` -> list episodic + semantic memory entries + delete episodic/semantic memory
 
@@ -236,7 +236,7 @@ If transcript rows fail to persist:
 
 1. verify `store-transcript` invoke includes both `content` and `userId`
 2. verify sidecar memory store initialized
-3. verify conversation/user identity resolution in `TranscriptWriter`
+3. verify conversation/user identity resolution in the desktop transcript projection runtime
 
 If search results include active conversation unexpectedly:
 

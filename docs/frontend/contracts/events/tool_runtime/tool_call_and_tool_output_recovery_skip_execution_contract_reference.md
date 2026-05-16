@@ -97,12 +97,12 @@ Frontend outcome:
 - chat shows tool-call/tool-output narrative
 - `useChatStream` stores a dedicated tool-call display string on the chat message, so tool-call cards no longer depend on generic `message.text` for invalid-call transparency rendering
 - tool-call cards prefer `llm_tool_call_raw_tool_call_preview` when present; otherwise they render preserved `metadata.model_facing_tool_call` for pre-dispatch validation failures instead of a synthesized normalized fallback
-- tool runner skips local execution for synthetic call
+- SDK tool coordinator skips local execution for synthetic call
 - stream can continue to next model turn
 
 ## Stale-Turn Cancellation Path
 
-`shouldIgnoreToolEventForTurn(turnRef)` in `useToolRunner` rejects events when:
+SDK turn-scoped tool execution rejects events when:
 
 - no active turn exists for provided turn ref
 - turn ref mismatches active turn
@@ -117,9 +117,9 @@ This behavior differs from skip-execution metadata: stale events actively notify
 
 ## Correlation ID Semantics
 
-### Tool-call execution correlation (`useToolRunner`)
+### Tool-call execution correlation
 
-`resolveToolCallCorrelationId(payload, event.id)` order:
+SDK tool coordination resolves correlation ids in this order:
 
 1. `payload.correlation_id`
 2. `payload.request_id`
@@ -138,7 +138,7 @@ This allows correlation even when formatter omits explicit `request_id` in outpu
 
 ## Tracking and Late-Result Suppression
 
-`useToolRunner` tracks correlation id -> turn ref map.
+SDK runtime state tracks correlation id -> turn ref mappings.
 
 Suppression rules:
 
@@ -169,7 +169,7 @@ So synthetic recovery events still produce consistent UI/transcript breadcrumbs.
 If synthetic tool events execute unexpectedly:
 
 1. verify `metadata.skip_frontend_execution` survives formatter/output contract
-2. verify `useToolRunner` receives metadata object (not array/non-object)
+2. verify SDK backend event normalization receives metadata object (not array/non-object)
 3. verify no local mutation strips metadata before handler
 
 If tool-output correlation is missing:

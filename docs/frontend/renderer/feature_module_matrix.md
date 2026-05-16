@@ -22,7 +22,7 @@ Primary responsibilities:
 
 - user input/send lifecycle
 - stream event ingestion and partial assistant updates
-- tool execution dispatch/result rendering
+- SDK-routed tool display/result rendering
 - thinking/transparency rendering
 - stream telemetry and token-count state tracking
 
@@ -31,7 +31,6 @@ Core hooks:
 - `useChatMessageSender`
 - `useChatStream`
 - `useStreamMessageUpdaters`
-- `useToolRunner`
 - `useTranscription`
 
 Core store:

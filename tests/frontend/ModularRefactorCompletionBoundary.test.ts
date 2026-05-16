@@ -71,6 +71,30 @@ describe('modular sdk refactor completion boundary', () => {
       'docs/frontend/contracts/events/tool_runtime/README.md',
       'docs/frontend/inventory/domains/frontend_change_path_playbook_reference.md',
       'docs/frontend/inventory/domains/frontend_domain_ownership_matrix_reference.md',
+      'docs/frontend/main/ipc_event_replay_and_transcript_session_sync_reference.md',
+      'docs/frontend/main/query_send_and_stream_relay_change_workflow.md',
+      'docs/frontend/contracts/memory_ipc_and_rpc_mapping_reference.md',
+      'docs/frontend/contracts/events/schema/README.md',
+      'docs/frontend/contracts/events/tool_runtime/tool_call_and_tool_output_recovery_skip_execution_contract_reference.md',
+      'docs/frontend/contracts/events/from_backend_event_ingress_typed_guard_and_audio_side_channel_reference.md',
+      'docs/frontend/contracts/backend_event_consumer_matrix_reference.md',
+      'docs/frontend/renderer/chat/chat_store_state_and_new_session_rotation_reference.md',
+      'docs/frontend/renderer/chat/payloads/transcript_message_payload_role_type_and_rehydrate_shape_reference.md',
+      'docs/frontend/renderer/dashboard/dashboard_change_workflow.md',
+      'docs/frontend/renderer/dashboard/shell/dashboard_section_router_and_placeholder_panel_contract_reference.md',
+      'docs/frontend/renderer/dashboard/shell/dashboard_conversation_hook_search_polling_and_group_bucket_contract_reference.md',
+      'docs/frontend/renderer/dashboard/shell/dashboard_recent_conversation_loader_retry_and_title_visibility_poll_runtime_reference.md',
+      'docs/frontend/renderer/dashboard_memory_management_and_resume_reference.md',
+      'docs/frontend/renderer/feature_module_matrix.md',
+      'docs/frontend/renderer/renderer_runtime.md',
+      'docs/frontend/renderer/transcript/README.md',
+      'docs/frontend/renderer/transcript/queue/README.md',
+      'docs/frontend/renderer/transcript/queue/pending_transcript_queue_fifo_and_requeue_contract_reference.md',
+      'docs/frontend/renderer/transcript/queue/pending_transcript_messages_orchestrator_flush_order_and_retry_contract_reference.md',
+      'docs/frontend/renderer/transcript/contracts/README.md',
+      'docs/frontend/renderer/transcript/contracts/transcript_entry_and_pending_message_type_contract_reference.md',
+      'docs/frontend/renderer/transcript/contracts/transcript_transparency_normalization_and_snapshot_pruning_contract_reference.md',
+      'docs/frontend/sidecar/memory/transcript_storage_semantic_candidate_and_watermark_reference.md',
     ];
 
     const offenders: Record<string, string[]> = {};
@@ -80,7 +104,9 @@ describe('modular sdk refactor completion boundary', () => {
         'frontend/src/renderer/features/chat/hooks/useToolRunner.ts',
         'frontend/src/renderer/infrastructure/services/ToolExecutionService.ts',
         'frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts',
+        'frontend/src/renderer/infrastructure/transcript/conversationReplayState.ts',
         'renderer/useToolRunner.ts',
+        'conversationReplayState.ts',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;
