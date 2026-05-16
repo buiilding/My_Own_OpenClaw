@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for sidecar ToolRegistry internals: exposed-tool parity contract, import-time registration behavior, execute_tool dispatch path, and legacy dict error normalization semantics."
+summary: "Deep reference for sidecar ToolRegistry internals: exposed-tool parity contract, import-time registration behavior, execute_tool dispatch path, and mapping-shaped result normalization semantics."
 read_when:
   - When adding/removing sidecar tools or changing backend remote schema exposure lists.
   - When debugging mixed tool return formats, nested error payload extraction, or unexpected `Tool not found` failures.
@@ -114,8 +114,8 @@ Returned failure payload:
 - missing tool lookup returns canonical error
 - non-dict args are rejected before tool callable executes
 - tool args are passed through without schema-driven registry validation beyond the object check
-- dict legacy success/failure normalization behaves as expected
-- nested legacy errors (for example usage text in `data.error`) are surfaced to top-level `ToolResult.error`
+- mapping-shaped success/failure normalization behaves as expected
+- nested mapping errors (for example usage text in `data.error`) are surfaced to top-level `ToolResult.error`
 - exceptions are captured and wrapped
 
 ## Schema File Boundary

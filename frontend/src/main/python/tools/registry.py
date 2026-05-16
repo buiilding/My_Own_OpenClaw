@@ -317,7 +317,7 @@ class ToolRegistry:
     def _extract_failure_payload(
         result: Dict[str, Any]
     ) -> tuple[str, Dict[str, Any] | None]:
-        """Extract the most useful failure message from legacy dict tool results."""
+        """Extract the most useful failure message from mapping-shaped tool results."""
         data = result.get("data")
         payload_data = data if isinstance(data, dict) else None
 
@@ -370,7 +370,7 @@ class ToolRegistry:
             if isinstance(result, ToolResult):
                 return result
             elif isinstance(result, dict):
-                # Handle legacy dict format
+                # Normalize mapping-shaped tool results into the runtime contract.
                 if result.get("success") is False:
                     error_message, failure_data = self._extract_failure_payload(result)
                     return ToolResult(

@@ -51,7 +51,7 @@ Tool families:
 
 Registry behavior:
 
-- normalizes legacy dict results into canonical `ToolResult`
+- normalizes mapping-shaped results into canonical `ToolResult`
 - warns when backend-exposed tool names are missing in sidecar runtime
 - handles sync and async tool implementations
 

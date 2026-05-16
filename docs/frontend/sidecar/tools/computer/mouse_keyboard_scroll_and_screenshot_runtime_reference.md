@@ -82,7 +82,7 @@ Execution semantics:
 
 Output semantics:
 
-- returns legacy dict shape (`{"success": bool, "data": ...}`)
+- returns mapping-shaped tool payloads (`{"success": bool, "data": ...}`)
 - registry converts this to standardized `ToolResult`
 - `input` field truncates visible preview to 50 chars, while `message` contains full text
 
@@ -210,4 +210,4 @@ Common failure classes:
 
 Result normalization note:
 
-- mixed return styles (`ToolResult` and legacy dicts) are intentionally tolerated by registry normalization
+- mixed return styles (`ToolResult` and mapping-shaped payloads) are intentionally normalized by the registry

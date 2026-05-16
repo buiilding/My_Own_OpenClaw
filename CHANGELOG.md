@@ -14,6 +14,7 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/theme: remove unused legacy dashboard CSS tokens from the active renderer theme.
 - frontend/main: remove packaged-only backend endpoint override env names in favor of the canonical hosted-default pair.
 - sidecar/browser: rename AI snapshot fallback path as a DOM fallback instead of a legacy compatibility path.
+- sidecar/tools: describe mapping-shaped tool results as a normalized first-class input to the sidecar ToolResult contract.
 - sidecar/browser: remove ignored Chrome launcher restart compatibility parameter and the unused BrowserSession element-index alias.
 - frontend/sdk: make conversation inference-session hydration read canonical `conversation_event` rows by default.
 - frontend/sdk: make dashboard conversation search and local conversation loaders use canonical SDK `conversation_event` rows by default instead of transcript fallback rows.

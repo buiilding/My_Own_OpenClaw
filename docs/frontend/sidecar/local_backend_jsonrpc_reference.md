@@ -214,7 +214,7 @@ Behavior:
 Sidecar path:
 
 1. `LocalBackend._handle_execute_tool` delegates to `ToolRegistry.execute_tool(tool_name, args)`.
-2. registry dispatches sync/async tool functions and normalizes legacy dict outputs to `ToolResult`.
+2. registry dispatches sync/async tool functions and normalizes mapping-shaped outputs to `ToolResult`.
 3. response payload is serialized as standardized `{ success, data?, error? }`.
 
 Failure handling:

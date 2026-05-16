@@ -117,7 +117,7 @@ If missing, sidecar logs warnings and tools may fail at runtime when backend emi
 Registry output normalization handles:
 
 - native `ToolResult`
-- legacy dict payloads (`success`, `data`, `error`)
+- mapping-shaped payloads (`success`, `data`, `error`)
 - fallback error extraction from nested payload fields
 
 This keeps backend ingestion stable despite mixed tool implementation styles.
