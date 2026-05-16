@@ -6,13 +6,15 @@ import type {
   LocalRuntime,
   LocalToolCall,
   LocalToolResult,
+  ToolBundleResultPayload,
+  ToolResultPayload,
 } from '../conversation/types.js';
 
 export type ToolExecutionCoordinatorOptions = {
   localRuntime?: Partial<Pick<LocalRuntime, 'executeTool'>> | null;
   store?: Pick<ConversationStore, 'appendEvent'> | null;
-  sendToolResult: (payload: JsonRecord) => Promise<void>;
-  sendToolBundleResult: (payload: JsonRecord) => Promise<void>;
+  sendToolResult: (payload: ToolResultPayload) => Promise<void>;
+  sendToolBundleResult: (payload: ToolBundleResultPayload) => Promise<void>;
 };
 
 export type ToolClaimResult = {
@@ -140,7 +142,7 @@ export class ToolExecutionCoordinator {
       result = failureResult(error);
     }
     const success = result.success !== false;
-    const payload = {
+    const payload: ToolResultPayload = {
       request_id: call.requestId,
       success,
       data: normalizeToolResultData(result.data),
@@ -237,7 +239,7 @@ export class ToolExecutionCoordinator {
     const status = failures.length === 0
       ? 'success'
       : (failures.length === stepResults.length ? 'failure' : 'partial_failure');
-    const resultPayload = {
+    const resultPayload: ToolBundleResultPayload = {
       bundle_id: bundleId,
       status,
       step_results: stepResults,

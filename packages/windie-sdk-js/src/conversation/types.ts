@@ -123,6 +123,78 @@ export type RehydrateSnapshot = {
   replayGenerationId?: string | null;
 };
 
+export type AgentDefinition = JsonRecord;
+
+export type QueryPayload = JsonRecord & {
+  text: string;
+  conversation_ref: string;
+  turn_ref?: string | null;
+};
+
+export type ToolResultPayload = {
+  request_id: string;
+  success: boolean;
+  data?: JsonRecord | null;
+  error?: string | null;
+};
+
+export type ToolBundleStepResult = JsonRecord & {
+  tool: string;
+  status: 'ok' | 'error' | string;
+  output?: unknown;
+};
+
+export type ToolBundleResultPayload = {
+  bundle_id: string;
+  status: 'success' | 'partial_failure' | 'failure';
+  step_results: ToolBundleStepResult[];
+  screenshot?: string | null;
+  screenshot_ref?: string | null;
+  capture_meta?: JsonRecord | null;
+  system_state?: JsonRecord | null;
+  error?: string | null;
+};
+
+export type RehydratePayload = {
+  conversation_ref: string;
+  messages: JsonRecord[];
+  rehydrate_mode: 'replace';
+  workspace_path?: string | null;
+  repo_instruction_messages?: JsonRecord[] | null;
+};
+
+export type StopPayload = {
+  conversation_ref?: string | null;
+  turn_ref?: string | null;
+};
+
+export type SettingsPayload = JsonRecord;
+
+export type CompactHistoryPayload = JsonRecord & {
+  force?: boolean;
+  conversation_ref?: string | null;
+};
+
+export type WakewordPayload = JsonRecord;
+
+export type LocalRuntimeStatus = JsonRecord;
+
+export type ToolRegistration = JsonRecord & {
+  name: string;
+};
+
+export type LocalToolMetadata = JsonRecord & {
+  name: string;
+  description?: string | null;
+  execution_target?: string | null;
+  schema?: JsonRecord;
+};
+
+export type LocalToolManifest = JsonRecord & {
+  version?: number;
+  tools: LocalToolMetadata[];
+};
+
 export type ToolTrace = {
   conversationRef: string;
   revisionId: string;
@@ -186,16 +258,16 @@ export interface ConversationStore {
 
 export type BackendTransport = {
   connect(): Promise<void>;
-  handshake(agentDefinition: JsonRecord): Promise<void>;
-  sendQuery(payload: JsonRecord): Promise<string>;
-  sendToolResult(payload: JsonRecord): Promise<void>;
-  sendToolBundleResult(payload: JsonRecord): Promise<void>;
-  rehydrateConversation(payload: JsonRecord): Promise<void>;
-  compactHistory(payload: JsonRecord): Promise<string | void>;
-  wakewordDetected(payload: JsonRecord): Promise<string | void>;
-  updateSettings(payload: JsonRecord): Promise<string | void>;
+  handshake(agentDefinition: AgentDefinition): Promise<void>;
+  sendQuery(payload: QueryPayload): Promise<string>;
+  sendToolResult(payload: ToolResultPayload): Promise<void>;
+  sendToolBundleResult(payload: ToolBundleResultPayload): Promise<void>;
+  rehydrateConversation(payload: RehydratePayload): Promise<void>;
+  compactHistory(payload: CompactHistoryPayload): Promise<string | void>;
+  wakewordDetected(payload: WakewordPayload): Promise<string | void>;
+  updateSettings(payload: SettingsPayload): Promise<string | void>;
   listModels(): Promise<string | void>;
-  stop(payload: JsonRecord): Promise<void>;
+  stop(payload: StopPayload): Promise<void>;
   subscribe(listener: (event: unknown) => void): () => void;
   close(): Promise<void>;
 };
@@ -218,9 +290,9 @@ export type LocalToolResult = {
 };
 
 export type LocalRuntime = {
-  status(): Promise<JsonRecord>;
-  listTools(): Promise<JsonRecord>;
+  status(): Promise<LocalRuntimeStatus>;
+  listTools(): Promise<LocalToolManifest>;
   executeTool(call: LocalToolCall): Promise<LocalToolResult>;
-  registerTools?(tools: JsonRecord[]): Promise<void>;
+  registerTools?(tools: ToolRegistration[]): Promise<void>;
   shutdown?(): Promise<void>;
 };

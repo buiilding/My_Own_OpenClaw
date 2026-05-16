@@ -194,6 +194,13 @@ to shared SDK projections or to a complete active compacted replay snapshot.
 Conversation event order is append order. Store adapters must not re-sort event
 logs by timestamp or event id; timestamps are metadata, not ordering authority.
 
+SDK adapter contracts export named payload types for the core runtime boundary:
+`AgentDefinition`, `QueryPayload`, `ToolResultPayload`,
+`ToolBundleResultPayload`, `RehydratePayload`, `StopPayload`,
+`LocalRuntimeStatus`, `LocalToolManifest`, and `ToolRegistration`. Adapter
+implementations should use those types rather than accepting unstructured
+records for query, rehydrate, stop, tool-result, and local-runtime operations.
+
 Electron uses a sidecar-backed store adapter:
 
 - canonical SDK events are stored under the sidecar `conversation_event` record
