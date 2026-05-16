@@ -1,4 +1,4 @@
-import type { ToolSchema } from './backendEvents.js';
+import type { ToolSchema } from './events/backendEvents.js';
 
 export * from './conversation/types.js';
 export * from './conversation/events.js';
@@ -31,4 +31,4 @@ export type {
   BackendEvent,
   BackendEventType,
   ToolSchema,
-} from './backendEvents.js';
+} from './events/backendEvents.js';

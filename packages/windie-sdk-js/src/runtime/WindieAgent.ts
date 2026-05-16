@@ -1,5 +1,5 @@
 import { InMemoryConversationStore } from '../stores/InMemoryConversationStore.js';
-import type { BackendEvent } from '../backendEvents.js';
+import type { BackendEvent } from '../events/backendEvents.js';
 import type {
   ConversationMetadata,
   ConversationStore,

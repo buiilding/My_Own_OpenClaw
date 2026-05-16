@@ -1,7 +1,7 @@
 import {
   isBackendEvent,
   type BackendEvent,
-} from '../backendEvents.js';
+} from '../events/backendEvents.js';
 import type {
   ConversationEvent,
   JsonRecord,

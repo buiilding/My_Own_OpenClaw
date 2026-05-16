@@ -1,5 +1,5 @@
 import { createConversationEvent, createRuntimeId } from '../conversation/events.js';
-import { isBackendEvent } from '../backendEvents.js';
+import { isBackendEvent } from '../events/backendEvents.js';
 import type {
   BackendTransport,
   ConversationEvent,

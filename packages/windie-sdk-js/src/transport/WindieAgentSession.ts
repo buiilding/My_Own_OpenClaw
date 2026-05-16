@@ -2,7 +2,7 @@ import {
   isBackendEvent,
   type BackendEvent,
   type BackendEventType,
-} from '../backendEvents.js';
+} from '../events/backendEvents.js';
 import type {
   BackendTransport,
   JsonRecord,
