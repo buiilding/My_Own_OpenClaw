@@ -11,15 +11,15 @@ function cloneJson(value) {
 
 function resolveToolCallRequestId(payload, fallbackId = null) {
   if (!isPlainObject(payload)) {
-    return typeof fallbackId === 'string' && fallbackId.trim() ? fallbackId.trim() : '';
+    return '';
   }
-  for (const key of ['requestId', 'request_id', 'correlationId', 'correlation_id']) {
+  for (const key of ['requestId', 'request_id']) {
     const value = payload[key];
     if (typeof value === 'string' && value.trim()) {
       return value.trim();
     }
   }
-  return typeof fallbackId === 'string' && fallbackId.trim() ? fallbackId.trim() : '';
+  return '';
 }
 
 function resolveStringField(payload, keys) {
@@ -302,6 +302,14 @@ function routeSdkToolEventToLocalRuntime(event, deps = {}) {
     return false;
   }
   if (event.type === 'tool-call') {
+    if (
+      shouldSkipLocalToolRouting(event)
+      || !isPlainObject(event.payload)
+      || !resolveStringField(event.payload, ['toolName', 'tool_name'])
+      || !resolveToolCallRequestId(event.payload)
+    ) {
+      return false;
+    }
     void routeToolCallToLocalRuntime(event, deps).catch((error) => {
       deps.log?.(`SDK tool-call routing failed: ${error?.message || error}`);
     });

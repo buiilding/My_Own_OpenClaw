@@ -127,6 +127,31 @@ describe('ipc sdk tool router', () => {
     }));
   });
 
+  test('does not claim tool calls without a request id wait', async () => {
+    const executeLocalTool = jest.fn();
+    const sendToolResult = jest.fn();
+
+    const claimed = routeSdkToolEventToLocalRuntime({
+      id: 'event-only-id',
+      type: 'tool-call',
+      payload: {
+        tool_name: 'read_file',
+        correlation_id: 'corr-only',
+        tool_call_id: 'call-only',
+        parameters: { path: '/tmp/a' },
+      },
+    }, {
+      executeLocalTool,
+      sendToolResult,
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(claimed).toBe(false);
+    expect(executeLocalTool).not.toHaveBeenCalled();
+    expect(sendToolResult).not.toHaveBeenCalled();
+  });
+
   test('adds llm_content fallback without adding schema-invalid metadata', async () => {
     const executeLocalTool = jest.fn(async () => ({
       success: true,

@@ -48,6 +48,10 @@ Single-tool path:
 
 - backend assigns or preserves a `request_id`
 - SDK runtime returns `tool-result` with the same `request_id`
+- Electron main's SDK tool router must not synthesize a backend wait id from
+  `correlation_id`, `tool_call_id`, or the websocket event id. If `request_id`
+  is missing, the event is malformed for result delivery and local execution is
+  not claimed.
 - failed SDK tool results keep `success: false`, include `error`, and still carry a model-facing `data.llm_content` string when available
 - backend waiting storage resolves the pending future for that request
 - processing cleanup removes resolved-call state for the request
