@@ -684,6 +684,39 @@ async def test_openai_responses_runtime_recovers_missing_final_payload_when_only
     }
 
 
+@pytest.mark.asyncio
+async def test_openai_responses_runtime_recovers_empty_stream_without_internal_error(
+    monkeypatch,
+):
+    provider = OpenAIProvider(api_key="test-key")
+
+    async def fake_stream():
+        if False:
+            yield {}
+
+    async def fake_aresponses(**_kwargs):
+        return fake_stream()
+
+    monkeypatch.setattr(
+        "backend.src.llm.providers.openai_responses_runtime.litellm.aresponses",
+        fake_aresponses,
+    )
+
+    events = await _collect_events(
+        stream_openai_responses_events(
+            provider,
+            model="gpt-5.4@@gpt-5-4-none-thinking",
+            messages=[{"role": "user", "content": "hi"}],
+        )
+    )
+
+    assert events == []
+    assert provider.get_last_stream_response_payload() == {
+        "content": "",
+        "finish_reason": "incomplete",
+    }
+
+
 def test_openai_provider_build_request_params_preserves_browser_root_object_tool_schema():
     provider = OpenAIProvider(api_key="test-key")
     browser_parameters = build_browser_tool_parameters_schema()

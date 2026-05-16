@@ -50,6 +50,8 @@ OpenAI chat requests pass tools through `make_openai_chat_tools_compatible` befo
 
 For streamed Responses requests, do not treat `response.completed` or `response.incomplete` as the only authoritative source of assistant output. The stream adapter must also accumulate `response.output_item.added`, `response.function_call_arguments.delta`, `response.function_call_arguments.done`, and `response.output_item.done` so message output and function calls survive when OpenAI ends the stream without a final response envelope. The final envelope is still preferred when present because it carries usage and terminal status.
 
+If a Responses stream closes without a final envelope or any parsed output events, treat it as an incomplete empty assistant response instead of raising a provider exception. This lets the interaction loop use the deterministic empty-final-response fallback rather than surfacing a generic internal server error.
+
 When changing OpenAI tool behavior, verify:
 
 - Tool schema stays provider-compatible.

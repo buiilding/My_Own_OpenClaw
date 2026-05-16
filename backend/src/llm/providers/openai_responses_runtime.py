@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any, AsyncGenerator, Dict, List, Optional
 from urllib.parse import urlsplit
 
@@ -13,7 +14,6 @@ from backend.src.core.events.streaming_events import (
     ThinkingEvent,
     WebSearchProgressEvent,
 )
-from backend.src.core.infrastructure.error_types import LLMAPIError
 from backend.src.core.types.schemas import LLMMessage, NormalizedLLMResponse
 from backend.src.llm.providers.openai_responses_input import (
     build_openai_responses_input,
@@ -45,6 +45,7 @@ _WEB_SEARCH_PROGRESS_EVENT_TYPES = {
 }
 _COMPLETED_EVENT_TYPE = "response.completed"
 _INCOMPLETE_EVENT_TYPE = "response.incomplete"
+logger = logging.getLogger(__name__)
 
 
 def _build_reasoning_responses_params(
@@ -703,10 +704,17 @@ async def stream_openai_responses_events(
             provider._set_last_stream_response_payload(fallback_payload)
             return
 
-        raise LLMAPIError(
-            f"{_INVALID_OPENAI_RESPONSE}: stream completed without a final response payload",
-            model=model,
+        logger.warning(
+            "OpenAI Responses stream completed without a final payload or parsed output; "
+            "using incomplete empty response fallback (model=%s, response_id=%s)",
+            model,
+            last_response_id,
         )
+        fallback_payload = _build_fallback_stream_response_payload(
+            content="",
+            response_id=last_response_id,
+        )
+        provider._set_last_stream_response_payload(fallback_payload)
 
 
 __all__ = [
