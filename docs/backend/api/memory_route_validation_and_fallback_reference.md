@@ -38,15 +38,13 @@ Public prefixes:
 `backend/src/api/routes/memory/embeddings/` is now a package. Route registration still
 uses `embeddings.router` via package exports.
 
-Compatibility contract from `embeddings/__init__.py`:
+Package contract from `embeddings/__init__.py`:
 
-- re-exports route handlers (`generate_embedding`, `health_check`)
-- re-exports models (`EmbeddingRequest`, `EmbeddingResponse`)
-- re-exports `router` and `logger`
+- re-exports `router`
+- route handlers live in `embeddings/router.py`
+- Pydantic models live in `embeddings/models.py`
 
-This keeps package-level imports used by route tests stable
-(`from ...memory import embeddings as embeddings_routes`) while allowing helper extraction
-into `embeddings/service.py`.
+Route tests import handlers and models from their owner modules while route registration still appends `embeddings.router`.
 
 ## Semantic Package-Split Import Surface
 

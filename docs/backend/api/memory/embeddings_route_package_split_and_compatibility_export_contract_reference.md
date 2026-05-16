@@ -1,12 +1,12 @@
 ---
-summary: "Deep reference for backend memory embeddings package split: router/models/service ownership boundaries, package export compatibility surface, and helper-level error/health contracts."
+summary: "Deep reference for backend memory embeddings package split: router/models/service ownership boundaries, package route export surface, and helper-level error/health contracts."
 read_when:
   - When changing files under `backend/src/api/routes/memory/embeddings/*`.
   - When debugging import drift between package-level `embeddings` exports and module-level `embeddings.router` or `embeddings.service` helpers.
-title: "Embeddings Route Package Split and Compatibility Export Contract Reference"
+title: "Embeddings Route Package Split and Export Contract Reference"
 ---
 
-# Embeddings Route Package Split and Compatibility Export Contract Reference
+# Embeddings Route Package Split and Export Contract Reference
 
 ## Canonical Modules
 
@@ -28,7 +28,7 @@ Embeddings route internals are split by responsibility:
 - `models.py`: request/response Pydantic contracts (`EmbeddingRequest`, `EmbeddingResponse`).
 - `service.py`: pure helper behavior for vector serialization, route response shaping, health probe payload construction, and sanitized error raise helper.
 
-`embeddings/__init__.py` is the package export seam used by callers/tests importing `memory.embeddings`.
+`embeddings/__init__.py` is the package route seam used by API router registration.
 
 ## Router Registration Contract
 
@@ -40,25 +40,14 @@ Memory package registration remains stable:
 
 Public API path is unchanged: `/api/embeddings/*`.
 
-## Compatibility Export Surface
+## Package Export Surface
 
 `embeddings/__init__.py` re-exports:
 
-- route object and handlers:
+- route object:
   - `router`
-  - `generate_embedding`
-  - `health_check`
-- models:
-  - `EmbeddingRequest`
-  - `EmbeddingResponse`
-- logger symbol:
-  - `logger`
 
-This keeps package-level imports stable for tests/callers using:
-
-- `from backend.src.api.routes.memory import embeddings as embeddings_routes`
-
-while preserving modular split for service-unit tests importing `embeddings.service`.
+Route handlers, models, and service helpers are imported from their owner modules: `router.py`, `models.py`, and `service.py`.
 
 ## Route-to-Service Helper Contract
 
@@ -86,7 +75,7 @@ Helper boundaries in `service.py`:
 
 `tests/backend/test_memory_routes.py` locks:
 
-- package-level import compatibility (`embeddings_routes.*`)
+- direct route/model imports from `embeddings.router` and `embeddings.models`
 - successful route response shape and provider model-name preference
 - 503 behavior when embedder missing
 - health unhealthy fallback on probe failure
@@ -100,10 +89,10 @@ Helper boundaries in `service.py`:
 
 ## Drift Hotspots
 
-1. Removing re-exports from `embeddings/__init__.py` can break route tests that import package-level handlers/models.
+1. Reintroducing handler/model re-exports in `embeddings/__init__.py` can blur router/model ownership.
 2. Inlining service helper logic back into router functions weakens helper-level unit-test coverage and increases route coupling.
 3. Changing helper error message text without route-doc/test updates can desynchronize client-visible error expectations.
-4. Registering routes from non-canonical symbols can bypass package-level import compatibility assumptions.
+4. Registering routes from non-canonical symbols can bypass the package route seam.
 
 ## Related Pages
 

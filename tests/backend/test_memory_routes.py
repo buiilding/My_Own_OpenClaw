@@ -13,8 +13,13 @@ from tests.backend.websocket_route_test_utils import (
 
 _original_deps = install_route_deps_shim()
 
-from backend.src.api.routes.memory import embeddings as embeddings_routes
 from backend.src.api.routes.memory import health as health_routes
+from backend.src.api.routes.memory.embeddings.models import EmbeddingRequest
+from backend.src.api.routes.memory.embeddings.router import (
+    generate_embedding,
+    health_check as embeddings_health_check,
+    logger as embeddings_logger,
+)
 from backend.src.api.routes.memory.semantic.parser import (
     extract_fallback_facts,
     parse_summarization_response,
@@ -91,9 +96,9 @@ def _patch_semantic_client(monkeypatch, fake_client: FakeLLMClient) -> None:
 @pytest.mark.asyncio
 async def test_generate_embedding_success() -> None:
     container = _container_with_embedding_provider(FakeEmbedder())
-    request = embeddings_routes.EmbeddingRequest(text="hello")
+    request = EmbeddingRequest(text="hello")
 
-    result = await embeddings_routes.generate_embedding(request, container)
+    result = await generate_embedding(request, container)
 
     assert result.model_name == "fake-embedder"
     assert result.provider_id == "fake-provider"
@@ -107,9 +112,9 @@ async def test_generate_embedding_success() -> None:
 async def test_generate_embedding_uses_embedding_router_when_present() -> None:
     embedder = FakeEmbedder()
     container = _container_with_embedding_provider(embedder)
-    request = embeddings_routes.EmbeddingRequest(text="hello")
+    request = EmbeddingRequest(text="hello")
 
-    result = await embeddings_routes.generate_embedding(request, container)
+    result = await generate_embedding(request, container)
 
     assert result.model_name == "fake-embedder"
     assert result.provider_id == "fake-provider"
@@ -119,10 +124,10 @@ async def test_generate_embedding_uses_embedding_router_when_present() -> None:
 @pytest.mark.asyncio
 async def test_generate_embedding_logs_route_start_and_success(caplog) -> None:
     container = _container_with_embedding_provider(FakeEmbedder())
-    request = embeddings_routes.EmbeddingRequest(text="hello")
+    request = EmbeddingRequest(text="hello")
 
-    with caplog.at_level(logging.INFO, logger=embeddings_routes.logger.name):
-        result = await embeddings_routes.generate_embedding(request, container)
+    with caplog.at_level(logging.INFO, logger=embeddings_logger.name):
+        result = await generate_embedding(request, container)
 
     assert result.dimension == 3
     assert "[MemoryRoute] /api/embeddings start chars=5 model=default" in caplog.text
@@ -135,11 +140,11 @@ async def test_generate_embedding_logs_route_start_and_success(caplog) -> None:
 @pytest.mark.asyncio
 async def test_generate_embedding_returns_503_when_embedder_missing(caplog) -> None:
     container = _container_with_embedding_provider()
-    request = embeddings_routes.EmbeddingRequest(text="hello")
+    request = EmbeddingRequest(text="hello")
 
-    with caplog.at_level(logging.INFO, logger=embeddings_routes.logger.name):
+    with caplog.at_level(logging.INFO, logger=embeddings_logger.name):
         with pytest.raises(HTTPException) as exc_info:
-            await embeddings_routes.generate_embedding(request, container)
+            await generate_embedding(request, container)
 
     assert exc_info.value.status_code == 503
     assert (
@@ -152,7 +157,7 @@ async def test_generate_embedding_returns_503_when_embedder_missing(caplog) -> N
 async def test_embeddings_health_check_unhealthy_on_failure() -> None:
     container = _container_with_embedding_provider(FakeEmbedder(should_raise=True))
 
-    result = await embeddings_routes.health_check(container)
+    result = await embeddings_health_check(container)
 
     assert result["status"] == "unhealthy"
 
@@ -161,7 +166,7 @@ async def test_embeddings_health_check_unhealthy_on_failure() -> None:
 async def test_embeddings_health_check_reports_embedder_model_name() -> None:
     container = _container_with_embedding_provider(FakeEmbedder())
 
-    result = await embeddings_routes.health_check(container)
+    result = await embeddings_health_check(container)
 
     assert result["status"] == "healthy"
     assert result["provider_id"] == "fake-provider"
