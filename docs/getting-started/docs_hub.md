@@ -67,7 +67,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 - [Endpoint and Network Debugging](../debug/endpoint_and_network_debugging.md) for hosted/local backend URL resolution, Cloudflare, auth, websocket, and sidecar endpoint drift.
 - [Process Health Checklist](../debug/process_health_checklist.md) for proving which process is dead, stuck, disconnected, or healthy before editing code.
 - [Tools Hub](../tools/README.md) for model-facing and sidecar-executable tools.
-- [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md) for changing model-visible tool schemas, policy gates, provider projection, sidecar parity, renderer dispatch, and tool-result contracts.
+- [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md) for changing model-visible tool schemas, policy gates, provider projection, sidecar parity, SDK/main dispatch, and tool-result contracts.
 - [Filesystem and Shell Change Workflow](../tools/filesystem_shell_change_workflow.md) for changing or debugging `read_file`, `replace`, `run_shell_command`, `process`, sudo mode, working directories, process sessions, output formatting, and local tool results.
 - [Browser Change Workflow](../browser/browser_change_workflow.md) for browser action schemas, shared contracts, sidecar runtime, CDP launch, snapshots, refs, files, Electron bridge, and renderer browser controls.
 - [Providers Hub](../providers/README.md) for LLM, inference, credential, STT, TTS, and web-search providers.
@@ -126,7 +126,7 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 | Runtime nodes | Process/service ownership, lifecycle, protocols, and validation routes for backend, Electron main, renderer, preload, sidecar, wakeword, VM worker, and Cloudflare/origin nodes | `backend/src`, `frontend/src/main`, `frontend/src/renderer`, `frontend/src/preload.js`, `frontend/src/main/python`, `scripts/cloudflared` | [Runtime Nodes Hub](../nodes/README.md), [Runtime Node Matrix](../nodes/runtime_node_matrix.md), [Current vs Future Nodes](../nodes/current_vs_future_nodes.md) |
 | Gateway ingress | FastAPI app assembly, CORS, router registration, install auth middleware, hosted REST/websocket ingress, health checks, Cloudflare/self-host troubleshooting | `backend/src/main.py`, `backend/src/api/app_assembly.py`, `backend/src/api/routes`, `backend/src/api/auth`, `scripts/cloudflared` | [Gateway Hub](../gateway/README.md), [Gateway Protocol Map](../gateway/gateway_protocol_map.md), [WebSocket Connection Change Workflow](../gateway/websocket_connection_change_workflow.md), [Gateway Troubleshooting](../gateway/gateway_troubleshooting.md) |
 | Channels and transports | Desktop chat entrypoints, backend websocket, transcription websocket, sidecar JSON-RPC, SDK routes, VM run control | `frontend/src/main`, `frontend/src/renderer`, `frontend/src/main/python`, `backend/src/api/routes`, `frontend/src/renderer/infrastructure/api` | [Channels Hub](../channels/README.md), [WebSocket Event Contract Change Workflow](../channels/websocket_event_contract_change_workflow.md), [Channel Routing Matrix](../channels/channel_routing_matrix.md), [Communication Flow](../architecture/communication_flow.md) |
-| Agent-visible data pipeline | Model-visible prompt/tool payloads, provider tool calls, websocket events, IPC envelopes, JSON-RPC args, sidecar results, transcript rows, and backend history | `backend/src/llm/prompts`, `backend/src/tools`, `backend/src/api/processing/formatters`, `frontend/src/renderer/infrastructure/services/toolExecution`, `frontend/src/main/local_backend_bridge*.cjs`, `frontend/src/main/python/tools` | [Agent-Visible Data Pipeline](../architecture/agent_visible_data_pipeline.md), [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md), [Prompt and Tool Context](../concepts/prompt_and_tool_context.md), [Transcript Replay Change Workflow](../memory/transcript_replay_change_workflow.md) |
+| Agent-visible data pipeline | Model-visible prompt/tool payloads, provider tool calls, websocket events, IPC envelopes, JSON-RPC args, sidecar results, transcript rows, and backend history | `backend/src/llm/prompts`, `backend/src/tools`, `backend/src/api/processing/formatters`, `packages/windie-sdk-js/src/tools`, `frontend/src/main/local_backend_bridge*.cjs`, `frontend/src/main/python/tools` | [Agent-Visible Data Pipeline](../architecture/agent_visible_data_pipeline.md), [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md), [Prompt and Tool Context](../concepts/prompt_and_tool_context.md), [Transcript Replay Change Workflow](../memory/transcript_replay_change_workflow.md) |
 | Security boundaries | Hosted auth, websocket validation, IPC isolation, credentials, permissions, tool policy, sidecar execution, multi-user risks | `backend/src/api/auth`, `backend/src/api/schemas`, `backend/src/core/security`, `frontend/src/preload.js`, `frontend/src/shared/ipcChannels.json`, `frontend/src/main/python/tools` | [Security Hub](../security/README.md), [Security Boundary Matrix](../security/security_boundary_matrix.md), [Security Change Playbook](../security/security_change_playbook.md) |
 | Plugins and extensions | Current source-owned extension surfaces for tools, providers, inference adapters, SDK routes, browser actions, renderer features, and future plugin boundaries | `backend/src/tools`, `backend/src/sdk`, `backend/src/llm/providers`, `backend/src/api/routes/sdk`, `frontend/src/main/python/tools`, `frontend/src/renderer/features` | [Plugins and Extensions Hub](../plugins/README.md), [Extension Surface Matrix](../plugins/extension_surface_matrix.md), [Architecture Extension Points](../architecture/extension_points.md) |
 | Backend agent runtime | Session lifecycle, query execution, interaction loop, tool turns, history, compaction, prompt context | `backend/src/agent`, `backend/src/api/services/query_execution.py` | [Backend Agent Docs Hub](../backend/agent/README.md), [Backend Runtime Docs Hub](../backend/runtime/README.md), [Query Lifecycle Change Workflow](../backend/runtime/query_lifecycle_change_workflow.md), [Tool Turn Change Workflow](../backend/agent/tool_turn_change_workflow.md) |
@@ -307,7 +307,7 @@ Read:
 - [Filesystem and Shell Change Workflow](../tools/filesystem_shell_change_workflow.md)
 - [Backend Tool Preparation + Coordinate Resolution Reference](../backend/tools/tool_preparation_and_coordinate_resolution_reference.md)
 - [Backend Tool Result Ingress Reference](../backend/tools/tool_result_ingress_and_storage_reference.md)
-- [Frontend Tool Execution Service + Hook Runtime Reference](../frontend/renderer/infrastructure/tool_execution_service_and_hook_runtime_reference.md)
+- [Windie Client Runtime](../sdk/windie_client_runtime.md)
 - [Sidecar Tool Registry Exposed Schema and Result Normalization Reference](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_normalization_reference.md)
 - [Sidecar Tool Change Workflow](../frontend/sidecar_tool_change_workflow.md)
 
@@ -316,11 +316,11 @@ Likely code:
 - `backend/src/tools/**`
 - `backend/src/agent/tools/**`
 - `backend/src/api/processing/formatters/actions/*`
-- `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
-- `frontend/src/renderer/infrastructure/services/ToolExecution*.ts`
+- `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
+- `frontend/src/main/ipc/ipc_sdk_tool_router.cjs`
 - `frontend/src/main/python/tools/**`
 
-Validate backend schema/parser/formatter tests, renderer tool-runner tests, and sidecar registry/tool tests. Keep backend model-facing schemas and sidecar runtime argument handling aligned deliberately.
+Validate backend schema/parser/formatter tests, SDK/main tool-router tests, and sidecar registry/tool tests. Keep backend model-facing schemas and sidecar runtime argument handling aligned deliberately.
 
 ### Change Desktop Computer Use, Screenshots, OCR, or Vision
 

@@ -27,13 +27,13 @@ The WindieOS agent loop is backend-owned, but it depends on frontend and sidecar
 - Prompt and LLM stream processing: `backend/src/llm/*`, `backend/src/agent/llm/*`
 - Tool orchestration: `backend/src/agent/tools/*`, `backend/src/tools/*`
 - Renderer stream consumption: `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
-- Renderer tool execution: `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
-- Main relay and websocket lifecycle: `frontend/src/main/ipc.cjs`
+- SDK/main tool dispatch: `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `frontend/src/main/windie_sdk_runtime.cjs`
+- Main relay and websocket lifecycle: `frontend/src/main/windie_sdk_runtime.cjs`
 
 ## Failure Modes to Route Correctly
 
 - A malformed model tool call belongs in parser/provider/agent recovery docs, not renderer display code.
-- A missing or stale request id belongs in backend tool waiting/result storage or frontend tool-runner correlation code.
+- A missing or stale request id belongs in backend tool waiting/result storage or SDK/main tool-dispatch correlation code.
 - A renderer event that fails type guards belongs in backend outgoing schema/formatter alignment first.
 - A local tool execution error belongs in the sidecar tool implementation or main bridge mapping.
 

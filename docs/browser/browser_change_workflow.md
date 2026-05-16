@@ -34,7 +34,7 @@ WindieOS currently controls a Windie-owned dedicated browser profile through the
 | Browser session header/status UI | Renderer browser session store and chat control | `frontend/src/renderer/infrastructure/runtime/browserSessionStore.js`, `useBrowserSessionControl.js`, `frontend/src/renderer/features/chat/components/ChatBrowserSessionControl.jsx` | `tests/frontend/ChatBrowserSessionControl.test.jsx` | [Renderer State Change Workflow](../frontend/renderer/renderer_state_change_workflow.md) |
 | Browser permission/readiness/onboarding | Electron permission service and settings UI | `frontend/src/main/permission_service_browser.cjs`, `frontend/src/main/permission_ipc_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/sections/settings/BrowserSettingsTab.jsx` | frontend permission/settings tests | [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md) |
 | Browser file or download behavior | Sidecar browser file store/runtime | `frontend/src/main/python/tools/browser/file_store.py`, `windie_runtime.py`, browser-use download helpers if still involved | sidecar browser tool/action tests | [Browser Troubleshooting](browser_troubleshooting.md) |
-| Browser execution bridge timeout/result shape | Electron local backend bridge and renderer tool execution | `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`, `frontend/src/main/local_backend_bridge_timeout_policy.cjs`, `frontend/src/renderer/infrastructure/services/toolExecution/**` | `tests/frontend/ToolExecutionService.test.ts`, browser/session tests | [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) |
+| Browser execution bridge timeout/result shape | SDK/main local backend bridge and sidecar browser execution | `frontend/src/main/ipc/ipc_sdk_tool_router.cjs`, `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`, `frontend/src/main/local_backend_bridge_timeout_policy.cjs` | `tests/frontend/IpcSdkToolRouter.test.cjs`, `tests/frontend/WindieSdkMainRuntime.test.cjs`, browser/session tests | [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) |
 
 ## End-to-End Action Flow
 
@@ -42,13 +42,13 @@ WindieOS currently controls a Windie-owned dedicated browser profile through the
 2. Backend browser schema wrappers import the shared browser contract and emit grouped action parameters.
 3. The model emits a `browser` tool call with an action-specific payload.
 4. Backend validation accepts or rejects the action before dispatch.
-5. Renderer tool execution receives the remote tool call and invokes Electron `EXECUTE_TOOL`.
+5. SDK/main tool routing receives the remote tool call and invokes Electron `EXECUTE_TOOL`.
 6. Electron main normalizes/relays `execute_tool` to the Python sidecar local backend.
 7. Sidecar `ToolRegistry` resolves `"browser"` to `execute_browser`.
 8. `execute_browser` validates the payload with `BrowserControlArgs`.
 9. `WindieBrowserRuntime.execute()` dispatches to the action handler.
 10. `BrowserController` and helpers perform CDP/Playwright work and return a normalized `ToolResult`.
-11. Electron and renderer relay the result back to the backend tool-result path.
+11. SDK/main relays the result back to the backend tool-result path and renderer receives display projections.
 
 If a payload parses in the backend but fails in the sidecar, compare the shared contract import path, backend schema wrapper, sidecar schema re-export, and sidecar runtime supported-action registry before changing renderer code.
 

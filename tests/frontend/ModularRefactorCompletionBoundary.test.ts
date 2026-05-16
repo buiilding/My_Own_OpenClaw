@@ -115,6 +115,14 @@ describe('modular sdk refactor completion boundary', () => {
       'docs/frontend/renderer/overlays/chatbox_overlay_input_drag_and_clickthrough_reference.md',
       'docs/frontend/renderer/providers/entrypoint_view_routing_and_provider_stack_reference.md',
       'docs/frontend/sidecar/local_backend_jsonrpc_change_workflow.md',
+      'docs/concepts/agent_loop.md',
+      'docs/concepts/runtime_model.md',
+      'docs/concepts/prompt_and_tool_context.md',
+      'docs/getting-started/docs_hub.md',
+      'docs/desktop/artifact_change_workflow.md',
+      'docs/browser/browser_troubleshooting.md',
+      'docs/browser/browser_change_workflow.md',
+      'docs/README.md',
       'docs/tools/tool_execution_lifecycle.md',
       'docs/tools/README.md',
       'docs/tools/tool_troubleshooting.md',
@@ -155,6 +163,10 @@ describe('modular sdk refactor completion boundary', () => {
         'tool_execution_backend_envelope',
         'Tool Execution Backend Envelope Builder',
         'Retired Renderer Tool Result Envelope',
+        'Renderer tool execution:',
+        'useToolRunner',
+        'ToolExecutionService',
+        'renderer tool execution',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;

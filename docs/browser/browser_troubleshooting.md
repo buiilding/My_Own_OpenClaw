@@ -128,7 +128,7 @@ Inspect in order:
 
 1. `backend/src/tools/remote_tools/browser.py`
 2. `backend/src/tools/tool_policy.py`
-3. `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
+3. `frontend/src/main/ipc/ipc_sdk_tool_router.cjs`
 4. `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`
 5. `frontend/src/main/python/tools/browser/browser_tool.py`
 6. `frontend/src/main/python/tools/browser/windie_runtime.py`
@@ -137,6 +137,6 @@ Focused tests:
 
 ```bash
 ./scripts/test-backend tests/backend/test_browser_remote_tool.py -q
-cd frontend && npm run test:ci -- ToolRunnerHook.events.test.ts ToolExecutionService.test.ts
+cd frontend && npm run test:ci -- IpcSdkToolRouter.test.cjs WindieSdkMainRuntime.test.cjs
 ./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_tool.py -q
 ```

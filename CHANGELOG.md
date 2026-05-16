@@ -14,6 +14,7 @@ All notable changes to WindieOS will be documented in this file.
 - docs/frontend: reroute renderer tool-execution references to the SDK main runtime and sidecar boundary.
 - docs/tools: make current tool-routing docs first-class around SDK/main dispatch and guard them against retired renderer-runner language.
 - docs/frontend: remove active links to retired renderer tool execution/envelope docs and guard current docs against those owners returning.
+- docs: refresh top-level concepts, browser, artifact, and docs-hub routing so tool execution is SDK/main-owned instead of renderer-owned.
 - sidecar: remove the `core.thread_pool` compatibility facade and route memory background I/O through `core.executors` directly.
 - frontend/sdk: make desktop rehydrate use first-class app runtime command names and keep backend wire naming inside the SDK transport adapter.
 - sidecar/wakeword: reject unsupported wakeword model constructor shapes instead of silently instantiating an unknown compatibility path.

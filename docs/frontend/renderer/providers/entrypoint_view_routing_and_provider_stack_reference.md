@@ -111,9 +111,8 @@ If overlay surface unexpectedly writes transcripts:
 2. verify no secondary chat hook mount outside provider wrapper
 3. inspect `main.jsx` route selection for wrong root component
 
-If tool calls execute twice:
+If tool-call display updates appear twice:
 
-1. verify renderer tool execution is intentionally opt-in only; normal desktop
-   local execution belongs to the SDK main runtime
+1. verify no renderer route is mounting duplicate stream/display projection hooks; normal desktop local execution belongs to the SDK main runtime
 2. verify extra renderer window is not loading default `App` route
 3. inspect window URL `view` query parameter set by main process

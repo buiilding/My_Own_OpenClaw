@@ -32,7 +32,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Credential and Token Change Workflow**](security/credential_token_change_workflow.md) - Owner routing for install auth, bearer tokens, runs keys, provider credentials, OAuth state, sidecar auth headers, and secret logging
 - [**Plugins and Extensions Hub**](plugins/README.md) - Current extension points for tools, providers, SDK routes, sidecar actions, and future plugin boundaries
 - [**Tools Hub**](tools/README.md) - Tool contracts, computer tools, browser automation, filesystem, and shell execution
-- [**Tool Schema and Policy Change Workflow**](tools/tool_schema_policy_change_workflow.md) - Owner routing for model-visible tool schemas, policy gates, provider projection, sidecar parity, renderer dispatch, and tool-result contracts
+- [**Tool Schema and Policy Change Workflow**](tools/tool_schema_policy_change_workflow.md) - Owner routing for model-visible tool schemas, policy gates, provider projection, sidecar parity, SDK/main dispatch, and tool-result contracts
 - [**Providers Hub**](providers/README.md) - LLM providers, model catalog, credentials, inference providers, STT, and TTS
 - [**Inference Capability Change Workflow**](providers/inference_capability_change_workflow.md) - Owner routing for OCR, vision, embeddings, STT, TTS, provider factories, routers, health gates, SDK routes, and sidecar clients
 - [**SDK Hub**](sdk/README.md) - Hosted backend clients, query planning, OCR/vision SDK routes, and tool authoring
@@ -153,9 +153,9 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Symptom Playbooks**](debug/symptom_playbooks.md) - Failure-to-owner maps for backend, tools, screenshots, overlays, permissions, voice, and browser
 - [**Test Selection**](debug/test_selection.md) - Focused pytest/Jest commands by runtime and contract boundary
 - [**Tool Contracts**](tools/tool_contracts.md) - Backend model-facing schema vs sidecar executable tool contract
-- [**Tool Schema and Policy Change Workflow**](tools/tool_schema_policy_change_workflow.md) - Change workflow for model-facing schemas, policy gates, provider projection, sidecar parity, renderer dispatch, and result-contract validation
+- [**Tool Schema and Policy Change Workflow**](tools/tool_schema_policy_change_workflow.md) - Change workflow for model-facing schemas, policy gates, provider projection, sidecar parity, SDK/main dispatch, and result-contract validation
 - [**Tool Catalog Matrix**](tools/tool_catalog_matrix.md) - Model-visible tools mapped to backend schema owners, sidecar executors, policy gates, and tests
-- [**Tool Execution Lifecycle**](tools/tool_execution_lifecycle.md) - End-to-end tool-call path through backend, renderer, sidecar, result ingress, and history
+- [**Tool Execution Lifecycle**](tools/tool_execution_lifecycle.md) - End-to-end tool-call path through backend, SDK/main runtime, sidecar, result ingress, and history
 - [**Tool Policy Profiles and Capabilities**](tools/tool_policy_profiles_and_capabilities.md) - Tool profiles, available/disabled tools, coordinate methods, browser gates, and web-search exposure
 - [**Tool Troubleshooting**](tools/tool_troubleshooting.md) - Symptom-to-owner routing for visibility, schema, dispatch, sidecar, result, artifact, and replay failures
 - [**Computer Tools**](tools/computer.md) - Mouse, keyboard, screenshot, scroll, window, OCR, and vision grounding paths
@@ -163,7 +163,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Browser Hub**](browser/README.md) - Dedicated browser launch, action surface, session UI, files, and troubleshooting
 - [**Browser Change Workflow**](browser/browser_change_workflow.md) - Owner routing for browser schemas, shared contract, sidecar runtime, CDP launch, Electron bridge, renderer controls, files, and tests
 - [**Filesystem and Shell Tools**](tools/filesystem_shell.md) - Read/replace, shell, process sessions, app launch, and output formatting
-- [**Filesystem and Shell Change Workflow**](tools/filesystem_shell_change_workflow.md) - Owner routing for file/shell tools across backend schema, renderer dispatch, Electron bridge argument shaping, sidecar execution, sudo policy, sessions, results, and tests
+- [**Filesystem and Shell Change Workflow**](tools/filesystem_shell_change_workflow.md) - Owner routing for file/shell tools across backend schema, SDK/main dispatch, Electron bridge argument shaping, sidecar execution, sudo policy, sessions, results, and tests
 - [**Models and LLM Providers**](providers/models.md) - Provider factory, model catalog, reasoning variants, and capability flags
 - [**Provider Change Workflow**](providers/provider_change_workflow.md) - Add/change provider runtime, factory, config, credentials, frontend settings, and tests
 - [**Model Catalog Change Workflow**](providers/model_catalog_change_workflow.md) - Add/change model entries, capability flags, routing metadata, picker behavior, and validation
@@ -245,7 +245,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Backend API/Core Topology Source Map Runtime**](backend/source_maps/api_core_folder_topology_and_data_flow_source_map_reference.md) - Source-owned API/core folder maps and layer/data-flow parity expectations
 - [**Backend Package `__init__` Export Surface Runtime**](backend/source_maps/backend_package_init_exports_and_public_import_surface_reference.md) - Compatibility contract for backend package-level re-export and `__all__` import surfaces
 - [**Frontend Stream State Machine**](frontend/runtime/stream_event_state_machine.md) - Event-to-phase transitions and per-turn stream tracking behavior
-- [**Frontend Chat Stream + Tool Runtime**](frontend/renderer/chat_stream_and_tool_execution_reference.md) - Provider ownership, query-send flow, backend event routing, stale-turn cancellation, and tool-result relay semantics
+- [**Frontend Chat Stream + Tool Display Runtime**](frontend/renderer/chat_stream_and_tool_execution_reference.md) - Provider ownership, query-send flow, backend event routing, stale-turn cancellation, and SDK-projected tool display semantics
 - [**Frontend Renderer Chat Hub**](frontend/renderer/chat/README.md) - Sub-hub for chat send-path policy, screenshot attachment flow, and store/session rotation contracts
 - [**Chat Attachment Change Workflow**](frontend/renderer/chat/chat_attachment_change_workflow.md) - Change workflow for pasted images, selected files, readable-file context, artifact upload, optimistic rows, query payloads, backend query resolution, and replay
 - [**Frontend Dashboard Change Workflow**](frontend/renderer/dashboard/dashboard_change_workflow.md) - Change workflow for dashboard shell routing, sidebar conversations, search, memory, models, settings, usage, chat resume, and transcript handoff
@@ -266,10 +266,9 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Frontend App Provider Coordinator + Save-Status Runtime**](frontend/renderer/providers/app_provider_coordinator_and_save_status_runtime_reference.md) - `AppConfig/AppStatus` bridge callback, shift-tab interaction-mode toggle, and config persistence guardrails
 - [**Frontend Chatbox Overlay Input + Drag Runtime**](frontend/renderer/overlays/chatbox_overlay_input_drag_and_clickthrough_reference.md) - Overlay click-through toggles, drag IPC flow, focus contract, and size-report behavior
 - [**Frontend Response Overlay + Tool Ghost Runtime**](frontend/renderer/overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md) - Response visibility state machine, thinking stream rendering, closeability rules, and coordinate-based tool-ghost preview
-- [**Frontend Renderer Infrastructure Hub**](frontend/renderer/infrastructure/README.md) - Focused runtime docs for tool execution service orchestration and backend-bound payload normalization
+- [**Frontend Renderer Infrastructure Hub**](frontend/renderer/infrastructure/README.md) - Focused runtime docs for renderer infrastructure, capture normalization, and display-only tool projections
 - [**Frontend Renderer Infrastructure Audio Hub**](frontend/renderer/infrastructure/audio/README.md) - PlayerService queue lifecycle, stale-callback generation guards, and stop/cleanup boundaries
 - [**Frontend Renderer Styles Hub**](frontend/renderer/styles/README.md) - Sub-hub for global theme tokens, accessibility utility classes, layout shell styles, and chat/voice visual contracts
-- [**Frontend Tool Execution Service + Hook Runtime**](frontend/renderer/infrastructure/tool_execution_service_and_hook_runtime_reference.md) - `useToolRunner` turn/correlation guards, service callback ordering, bundle status semantics, and backend envelope shapes
 - [**Frontend Capture + Artifact Payload Normalization**](frontend/renderer/infrastructure/capture_artifact_upload_and_payload_normalization_reference.md) - Screenshot/system-state capture paths, artifact upload URL policy, and `tool-result` payload field filtering/internals
 - [**Frontend PlayerService Queue + Error-Recovery Runtime**](frontend/renderer/infrastructure/audio/player_service_queue_generation_and_error_recovery_reference.md) - PCM decode pipeline, sequential playback contract, playback-generation stale-callback isolation, and error-tolerant stop/cleanup behavior
 - [**Frontend Global Theme + Main Layout Style Runtime**](frontend/renderer/styles/global_theme_accessibility_utility_and_main_layout_visual_contract_reference.md) - Root CSS token model, reduced-motion/global scrollbar/reset behavior, accessibility utility semantics, and shell/sidebar responsive layout contracts
@@ -598,8 +597,8 @@ See [Contributing Guide](development/contributing.md) for guidelines on improvin
 - **Feature-Based Architecture**: Reorganized into feature modules (chat, settings, voice)
 - **Split Contexts**: AppConfigContext and AppStatusContext for better performance
 - **Zustand Store**: Chat state managed via Zustand for efficient updates
-- **Infrastructure Layer**: New service layer (ToolExecutionService, MessageFormatter, IpcBridge)
-- **New Hooks**: useChatStream, useToolRunner, useChatMessageSender
+- **Infrastructure Layer**: service layer for message formatting, IPC, artifact upload, and renderer display projections
+- **New Hooks**: useChatStream and useChatMessageSender
 
 ### Backend Optimizations (January 2026)
 - **Centralized Tool Result Storage**: ToolResultStorage class with TTL-based cleanup

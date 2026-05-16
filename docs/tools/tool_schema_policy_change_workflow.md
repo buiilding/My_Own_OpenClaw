@@ -156,7 +156,7 @@ Provider projection should happen after canonical schema filtering. Do not make 
 - Confirm `tests/backend/test_remote_tool_contract.py` covers the tool name parity with sidecar exposure.
 - Confirm `frontend/src/main/python/tools/exposed_tool_names.py` includes the tool if it is sidecar-executed.
 - Confirm `frontend/src/main/python/tools/registry.py` actually registers an implementation.
-- Confirm renderer tool execution dispatch recognizes the tool and preserves request ids.
+- Confirm SDK/main tool dispatch recognizes the tool and preserves request ids.
 - Confirm Electron main can reach the sidecar process.
 
 ### Tool Args Are Rejected Before Dispatch

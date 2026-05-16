@@ -16,7 +16,7 @@ WindieOS is a desktop AI operator with a hosted backend, an Electron desktop app
 | --- | --- | --- |
 | Hosted FastAPI backend | Agent loop, prompt construction, LLM providers, model-facing tool schema, websocket/REST contracts, OCR/vision/embedding/TTS services, SDK and run-control APIs | `backend/src` |
 | Electron main process | Window lifecycle, overlay surfaces, SDK-runtime adaptation, local config, permission probes, sidecar process supervision, local JSON-RPC bridge | `frontend/src/main` |
-| React renderer | Dashboard, chat UI, minimal pill, response overlay, settings, permissions, voice controls, tool execution orchestration | `frontend/src/renderer` |
+| React renderer | Dashboard, chat UI, minimal pill, response overlay, settings, permissions, voice controls, and tool-result projections | `frontend/src/renderer` |
 | Preload | Strict renderer IPC exposure and channel allowlist | `frontend/src/preload.js` |
 | Python sidecar | Local executable tools, browser automation, shell/filesystem/computer actions, local memory, system state, wakeword service | `frontend/src/main/python` |
 
@@ -24,7 +24,7 @@ WindieOS is a desktop AI operator with a hosted backend, an Electron desktop app
 
 - Backend owns the model-facing contract.
 - Sidecar owns local execution.
-- Renderer/main own UI state and desktop process control.
+- Renderer owns UI state and display projections; Electron main hosts SDK runtime adapters and desktop process control.
 - Frontend and sidecar must not import backend code to keep schema parity. Use generated/shared contracts and tests instead.
 - Provider and capability health should narrow what the model sees before prompting, not after a failing tool call.
 
@@ -35,8 +35,8 @@ At a high level:
 1. The renderer sends a user goal through Electron main.
 2. Main enriches the query with config, workspace/repo instructions, screenshots, artifact refs, and system state.
 3. The hosted backend builds the prompt and streams events over websocket.
-4. Tool calls return to the frontend as executable requests.
-5. The renderer/main/sidecar execute local work and send `tool-result` or `tool-bundle-result` messages back.
+4. Tool calls return to the SDK runtime as executable requests.
+5. SDK/main routes local work through the sidecar and sends `tool-result` or `tool-bundle-result` messages back.
 6. The backend commits history and continues or completes the turn.
 
 Read [Agent Loop](agent_loop.md) for the full turn lifecycle.
