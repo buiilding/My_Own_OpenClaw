@@ -32,6 +32,8 @@ Ownership rules:
 - SDK runtime owns hosted backend HTTP/WebSocket connection, handshake, query,
   stop, settings, event fan-out, normalized conversation events, display and
   rehydrate projections, edit/retry revision semantics, and tool-result return.
+- the SDK transport module owns websocket session framing, backend event fan-out,
+  and the conversation transport adapter used by `ConversationRuntime`.
 - sidecar daemon owns local execution only.
 - backend owns model/provider selection, paid capability gates, OCR/vision/prediction/web-search availability, prompt construction, session policy, and remote/backend tools.
 - Electron owns windows, renderer IPC, overlays, permission prompts, display/screenshot integration, and settings UI.

@@ -1,7 +1,6 @@
 import {
   isBackendEvent,
   type BackendEvent,
-  type BackendEventType,
   type ToolSchema,
 } from './backendEvents.js';
 import { InMemoryConversationStore } from './stores/InMemoryConversationStore.js';
@@ -15,12 +14,22 @@ import {
   type WindieModelSelection,
 } from './settings/modelSelection.js';
 import type {
-  BackendTransport,
   ConversationEvent,
   ConversationMetadata,
   ConversationStore,
+  JsonRecord,
   ListConversationOptions,
 } from './conversation/types.js';
+import {
+  createMessageId,
+  createWindieAgentBackendTransport,
+  deriveWsUrl,
+  normalizeWsUrl,
+  resolveWebSocketImplementation,
+  WindieAgentSession,
+  type WebSocketConstructor,
+  type WindieAgentQueryInput,
+} from './transport/WindieAgentSession.js';
 
 export * from './conversation/types.js';
 export * from './conversation/events.js';
@@ -31,21 +40,14 @@ export * from './runtime/ConversationRuntime.js';
 export * from './transport/backendEventNormalizer.js';
 export * from './tools/ToolExecutionCoordinator.js';
 export * from './settings/modelSelection.js';
+export { WindieAgentSession } from './transport/WindieAgentSession.js';
+export type {
+  WebSocketConstructor,
+  WebSocketLike,
+  WindieAgentQueryInput,
+} from './transport/WindieAgentSession.js';
 
 type FetchLike = typeof fetch;
-
-type WebSocketLike = {
-  send(data: string): void;
-  close(code?: number, reason?: string): void;
-  addEventListener?: (event: string, listener: (payload: unknown) => void) => void;
-  removeEventListener?: (event: string, listener: (payload: unknown) => void) => void;
-  on?: (event: string, listener: (payload: unknown) => void) => void;
-  off?: (event: string, listener: (payload: unknown) => void) => void;
-};
-
-type WebSocketConstructor = new (url: string) => WebSocketLike;
-
-type JsonRecord = Record<string, unknown>;
 
 export type SdkInteractionMode = 'chat' | 'agent';
 
@@ -332,20 +334,6 @@ export type WindieSdkClientOptions = {
   fetchImpl?: FetchLike;
 };
 
-export type WindieAgentQueryInput = {
-  text: string;
-  conversationRef: string;
-  content?: string | null;
-  screenshot?: string | null;
-  screenshotRef?: string | null;
-  screenshotRefs?: string[] | null;
-  attachmentContext?: string | null;
-  attachmentFilenames?: string[] | null;
-  systemStateInternal?: JsonRecord | null;
-  workspacePath?: string | null;
-  turnRef?: string | null;
-};
-
 export type WindieAgentQueryOptions = Partial<Omit<WindieAgentQueryInput, 'text' | 'conversationRef'>> & {
   conversationRef?: string;
 };
@@ -448,19 +436,6 @@ export type WindieLocalRuntimeProvider = (
   context: WindieLocalRuntimeProviderContext,
 ) => Promise<WindieLocalRuntimeClient | undefined> | WindieLocalRuntimeClient | undefined;
 
-type WindieAgentEventMap = {
-  open: void;
-  close: { code?: number; reason?: string; wasClean?: boolean };
-  'socket-error': unknown;
-  message: unknown;
-  event: BackendEvent;
-} & {
-  [K in BackendEventType]: Extract<BackendEvent, { type: K }>;
-};
-
-type WindieAgentEventName = keyof WindieAgentEventMap;
-type WindieAgentListener<T> = (payload: T) => void;
-
 function resolveFetchImplementation(fetchImpl?: FetchLike): FetchLike {
   if (fetchImpl) {
     return fetchImpl;
@@ -471,34 +446,8 @@ function resolveFetchImplementation(fetchImpl?: FetchLike): FetchLike {
   throw new Error('WindieSdkClient requires a fetch implementation');
 }
 
-function resolveWebSocketImplementation(WebSocketImpl?: WebSocketConstructor): WebSocketConstructor {
-  if (WebSocketImpl) {
-    return WebSocketImpl;
-  }
-  if (typeof globalThis.WebSocket === 'function') {
-    return globalThis.WebSocket as unknown as WebSocketConstructor;
-  }
-  throw new Error('WindieSdkClient requires a WebSocket implementation');
-}
-
 function normalizeHttpBaseUrl(httpBaseUrl: string): string {
   return httpBaseUrl.replace(/\/+$/, '');
-}
-
-function normalizeWsUrl(wsUrl: string): string {
-  return wsUrl.replace(/\/+$/, '');
-}
-
-function deriveWsUrl(httpBaseUrl: string): string {
-  const normalized = normalizeHttpBaseUrl(httpBaseUrl);
-  const url = new URL(normalized);
-  if (url.protocol === 'https:') {
-    url.protocol = 'wss:';
-  } else if (url.protocol === 'http:') {
-    url.protocol = 'ws:';
-  }
-  url.pathname = url.pathname.replace(/\/+$/, '') + '/ws';
-  return url.toString().replace(/\/+$/, '');
 }
 
 function buildQueryString(options: WindieSdkQueryOptions = {}): string {
@@ -525,48 +474,6 @@ function buildErrorMessage(status: number, statusText: string, bodyText: string)
     return `Windie SDK request failed (${status} ${statusText})`;
   }
   return `Windie SDK request failed (${status} ${statusText}): ${trimmedBody}`;
-}
-
-function createMessageId(): string {
-  if (typeof globalThis.crypto?.randomUUID === 'function') {
-    return globalThis.crypto.randomUUID();
-  }
-  return `msg_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
-}
-
-function attachSocketListener(
-  socket: WebSocketLike,
-  event: string,
-  listener: (payload: unknown) => void,
-): () => void {
-  if (typeof socket.addEventListener === 'function') {
-    socket.addEventListener(event, listener);
-    return () => socket.removeEventListener?.(event, listener);
-  }
-  if (typeof socket.on === 'function') {
-    socket.on(event, listener);
-    return () => socket.off?.(event, listener);
-  }
-  throw new Error('Windie SDK WebSocket implementation does not support event listeners');
-}
-
-function normalizeIncomingSocketMessage(payload: unknown): unknown {
-  if (payload && typeof payload === 'object' && 'data' in (payload as Record<string, unknown>)) {
-    return (payload as { data?: unknown }).data;
-  }
-  return payload;
-}
-
-function normalizeClosePayload(payload: unknown): { code?: number; reason?: string; wasClean?: boolean } {
-  if (!payload || typeof payload !== 'object') {
-    return {};
-  }
-  const candidate = payload as Record<string, unknown>;
-  return {
-    code: typeof candidate.code === 'number' ? candidate.code : undefined,
-    reason: typeof candidate.reason === 'string' ? candidate.reason : undefined,
-    wasClean: typeof candidate.wasClean === 'boolean' ? candidate.wasClean : undefined,
-  };
 }
 
 function rawBackendEventFromConversationEvent(event: ConversationEvent): BackendEvent | null {
@@ -743,224 +650,6 @@ function toAgentStreamEvent(runtimeEvent: WindieRuntimeEvent): WindieAgentStream
     };
   }
   return null;
-}
-
-export class WindieAgentSession {
-  private readonly listeners = new Map<WindieAgentEventName, Set<WindieAgentListener<unknown>>>();
-  private readonly detachSocketListeners: Array<() => void> = [];
-  private readonly readyPromise: Promise<void>;
-  private resolveReady: (() => void) | null = null;
-  private rejectReady: ((error: unknown) => void) | null = null;
-  private isReady = false;
-
-  constructor(
-    private readonly socket: WebSocketLike,
-    private readonly handshake: { user_id: string; operating_system?: string; agent_definition?: JsonRecord },
-  ) {
-    this.readyPromise = new Promise<void>((resolve, reject) => {
-      this.resolveReady = resolve;
-      this.rejectReady = reject;
-    });
-
-    this.detachSocketListeners.push(
-      attachSocketListener(this.socket, 'open', () => {
-        this.socket.send(JSON.stringify({
-          type: 'handshake',
-          user_id: handshake.user_id,
-          operating_system: handshake.operating_system,
-          agent_definition: handshake.agent_definition,
-        }));
-        this.isReady = true;
-        this.resolveReady?.();
-        this.emit('open', undefined);
-      }),
-    );
-
-    this.detachSocketListeners.push(
-      attachSocketListener(this.socket, 'message', payload => {
-        const raw = normalizeIncomingSocketMessage(payload);
-        let parsed: unknown = raw;
-        if (typeof raw === 'string') {
-          try {
-            parsed = JSON.parse(raw);
-          } catch {
-            parsed = raw;
-          }
-        }
-        if (isBackendEvent(parsed)) {
-          this.emit('message', parsed);
-          this.emit('event', parsed);
-          this.emit(parsed.type, parsed as WindieAgentEventMap[BackendEventType]);
-        } else {
-          this.emit('message', parsed);
-        }
-      }),
-    );
-
-    this.detachSocketListeners.push(
-      attachSocketListener(this.socket, 'close', payload => {
-        const closePayload = normalizeClosePayload(payload);
-        if (!this.isReady) {
-          this.rejectReady?.(new Error(`Windie agent session closed before handshake completed`));
-        }
-        this.emit('close', closePayload);
-        this.detachSocketListeners.splice(0).forEach(detach => detach());
-      }),
-    );
-
-    this.detachSocketListeners.push(
-      attachSocketListener(this.socket, 'error', payload => {
-        if (!this.isReady) {
-          this.rejectReady?.(payload);
-        }
-        this.emit('socket-error', payload);
-      }),
-    );
-  }
-
-  async waitForOpen(): Promise<void> {
-    await this.readyPromise;
-  }
-
-  on<TEvent extends WindieAgentEventName>(
-    event: TEvent,
-    listener: WindieAgentListener<WindieAgentEventMap[TEvent]>,
-  ): () => void {
-    const bucket = this.listeners.get(event) ?? new Set<WindieAgentListener<unknown>>();
-    bucket.add(listener as WindieAgentListener<unknown>);
-    this.listeners.set(event, bucket);
-    return () => {
-      bucket.delete(listener as WindieAgentListener<unknown>);
-      if (bucket.size === 0) {
-        this.listeners.delete(event);
-      }
-    };
-  }
-
-  async query(payload: WindieAgentQueryInput): Promise<string> {
-    await this.waitForOpen();
-    const id = createMessageId();
-    this.socket.send(JSON.stringify({
-      id,
-      type: 'query',
-      payload: {
-        text: payload.text,
-        conversation_ref: payload.conversationRef,
-        turn_ref: payload.turnRef ?? undefined,
-        content: payload.content ?? undefined,
-        screenshot: payload.screenshot ?? undefined,
-        screenshot_ref: payload.screenshotRef ?? undefined,
-        screenshot_refs: payload.screenshotRefs ?? undefined,
-        attachment_context: payload.attachmentContext ?? undefined,
-        attachment_filenames: payload.attachmentFilenames ?? undefined,
-        system_state_internal: payload.systemStateInternal ?? undefined,
-        workspace_path: payload.workspacePath ?? undefined,
-      },
-      user_id: this.handshake.user_id,
-      timestamp: new Date().toISOString(),
-    }));
-    return id;
-  }
-
-  async stopQuery(conversationRef?: string | null): Promise<string> {
-    await this.waitForOpen();
-    const id = createMessageId();
-    this.socket.send(JSON.stringify({
-      id,
-      type: 'stop-query',
-      payload: {
-        conversation_ref: conversationRef ?? null,
-      },
-      user_id: this.handshake.user_id,
-      timestamp: new Date().toISOString(),
-    }));
-    return id;
-  }
-
-  async updateSettings(config: JsonRecord): Promise<string> {
-    await this.waitForOpen();
-    const id = createMessageId();
-    this.socket.send(JSON.stringify({
-      id,
-      type: 'update-settings',
-      payload: config,
-      user_id: this.handshake.user_id,
-      timestamp: new Date().toISOString(),
-    }));
-    return id;
-  }
-
-  async listModels(): Promise<string> {
-    await this.waitForOpen();
-    const id = createMessageId();
-    this.socket.send(JSON.stringify({
-      id,
-      type: 'list-models',
-      payload: {},
-      user_id: this.handshake.user_id,
-      timestamp: new Date().toISOString(),
-    }));
-    return id;
-  }
-
-  async rehydrateConversation(payload: JsonRecord): Promise<string> {
-    await this.waitForOpen();
-    const id = createMessageId();
-    this.socket.send(JSON.stringify({
-      id,
-      type: 'rehydrate-conversation',
-      payload: {
-        ...payload,
-        rehydrate_mode: payload.rehydrate_mode ?? 'replace',
-      },
-      user_id: this.handshake.user_id,
-      timestamp: new Date().toISOString(),
-    }));
-    return id;
-  }
-
-  async sendToolResultPayload(payload: JsonRecord): Promise<string> {
-    await this.waitForOpen();
-    const id = createMessageId();
-    this.socket.send(JSON.stringify({
-      id,
-      type: 'tool-result',
-      payload,
-      user_id: this.handshake.user_id,
-      timestamp: new Date().toISOString(),
-    }));
-    return id;
-  }
-
-  async sendToolBundleResultPayload(payload: JsonRecord): Promise<string> {
-    await this.waitForOpen();
-    const id = createMessageId();
-    this.socket.send(JSON.stringify({
-      id,
-      type: 'tool-bundle-result',
-      payload,
-      user_id: this.handshake.user_id,
-      timestamp: new Date().toISOString(),
-    }));
-    return id;
-  }
-
-  close(code?: number, reason?: string): void {
-    this.socket.close(code, reason);
-  }
-
-  private emit<TEvent extends WindieAgentEventName>(
-    event: TEvent,
-    payload: WindieAgentEventMap[TEvent],
-  ): void {
-    const bucket = this.listeners.get(event);
-    if (!bucket) {
-      return;
-    }
-    bucket.forEach(listener => {
-      listener(payload);
-    });
-  }
 }
 
 export class WindieSdkClient {
@@ -1463,7 +1152,7 @@ export class WindieAgent {
       conversationRef,
       revisionId: options.revisionId,
       store: options.store ?? this.defaultConversationStore,
-      transport: this.buildConversationTransport(conversationRef),
+      transport: createWindieAgentBackendTransport(this.session, conversationRef),
       localRuntime: options.localRuntime === undefined ? this.localRuntime : options.localRuntime,
     });
     runtime.attachTransport();
@@ -1510,59 +1199,6 @@ export class WindieAgent {
       ...options,
       text,
       conversationRef: options.conversationRef ?? `conv-${this.id}`,
-    };
-  }
-
-  private buildConversationTransport(conversationRef: string): BackendTransport {
-    return {
-      connect: async () => this.session.waitForOpen(),
-      handshake: async () => undefined,
-      sendQuery: async payload => this.session.query({
-        text: typeof payload.text === 'string' ? payload.text : '',
-        conversationRef: typeof payload.conversation_ref === 'string'
-          ? payload.conversation_ref
-          : conversationRef,
-        turnRef: typeof payload.turn_ref === 'string' ? payload.turn_ref : null,
-        content: typeof payload.content === 'string' ? payload.content : null,
-        screenshot: typeof payload.screenshot === 'string' ? payload.screenshot : null,
-        screenshotRef: typeof payload.screenshot_ref === 'string' ? payload.screenshot_ref : null,
-        screenshotRefs: Array.isArray(payload.screenshot_refs)
-          ? payload.screenshot_refs.filter((value): value is string => typeof value === 'string')
-          : null,
-        attachmentContext: typeof payload.attachment_context === 'string' ? payload.attachment_context : null,
-        attachmentFilenames: Array.isArray(payload.attachment_filenames)
-          ? payload.attachment_filenames.filter((value): value is string => typeof value === 'string')
-          : null,
-        systemStateInternal: payload.system_state_internal && typeof payload.system_state_internal === 'object'
-          ? payload.system_state_internal as JsonRecord
-          : null,
-        workspacePath: typeof payload.workspace_path === 'string' ? payload.workspace_path : null,
-      }),
-      sendToolResult: async payload => {
-        await this.session.sendToolResultPayload(payload);
-      },
-      sendToolBundleResult: async payload => {
-        await this.session.sendToolBundleResultPayload(payload);
-      },
-      sendRehydrate: async payload => {
-        await this.session.rehydrateConversation({
-          conversation_ref: typeof payload.conversation_ref === 'string'
-            ? payload.conversation_ref
-            : conversationRef,
-          messages: Array.isArray(payload.messages) ? payload.messages : [],
-          rehydrate_mode: 'replace',
-        });
-      },
-      stop: async payload => {
-        await this.session.stopQuery(
-          typeof payload.conversation_ref === 'string' ? payload.conversation_ref : conversationRef,
-        );
-      },
-      updateSettings: async payload => {
-        await this.session.updateSettings(payload);
-      },
-      subscribe: listener => this.session.on('event', listener),
-      close: async () => this.session.close(1000, 'conversation-runtime-close'),
     };
   }
 }
