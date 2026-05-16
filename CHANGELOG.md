@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sdk: hide the low-level desktop `sendRehydrate` command behind the semantic conversation-runtime `rehydrate` facade.
 - frontend/sdk: remove the singular `clipboardImage` sender compatibility payload so chat attachments use only the canonical `clipboardImages[]` array.
 - frontend/sdk: remove `sessionId`/`session_id` as transcript-session chat identity aliases so renderer/main transcript sync only accepts `conversationRef`/`conversation_ref`.
 - frontend/sdk: quarantine renderer backend events that lack resolvable conversation identity instead of falling back to the active chat.

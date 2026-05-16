@@ -118,7 +118,7 @@ Conversation-open lifecycle (`useDashboardConversations`):
 1. resolve `conversation_ref` from selected row.
 2. call `GET_CONVERSATION` (`limit: 1000`, `recordKind` from row fallback to `transcript`).
 3. map memories into renderer rows via `parseMemoriesToMessages`.
-4. send backend rehydrate request: `ApiClient.sendRehydrateConversation(conversationRef, memories.map(toRehydrateMessagePayload))`.
+4. ask the desktop conversation runtime to rehydrate backend inference state for the opened conversation.
 5. sync transcript runtime: `setActiveConversationRef(conversationRef)` and `updateTranscriptSession(conversationRef, resolvedUserId)`.
 6. replace chat store message list and clear sending/thinking flags.
 

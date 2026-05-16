@@ -16,6 +16,7 @@ import type {
 } from '../../infrastructure/transcript/types';
 import type {
   CompactedReplaySnapshot,
+  ConversationStore,
   RehydrateSnapshot,
 } from '../../infrastructure/api/windieSdkClient';
 import {
@@ -34,6 +35,12 @@ type RewriteTranscriptProjectionInput = {
 type LoadRehydrateSnapshotInput = {
   conversationRef: string;
   userId: string;
+};
+
+type SeededConversationStoreInput = {
+  conversationRef: string;
+  userId: string;
+  projectionEntries: TranscriptProjectionRewriteEntry[];
 };
 
 type TranscriptProjectionRecordOptions = {
@@ -267,6 +274,20 @@ export const DesktopTranscriptProjectionRuntimeClient = {
   }: LoadRehydrateSnapshotInput): Promise<RehydrateSnapshot> {
     const store = new ElectronSidecarConversationStore({ userId });
     return store.loadForRehydrate(conversationRef);
+  },
+
+  async createSeededConversationStore({
+    conversationRef,
+    userId,
+    projectionEntries,
+  }: SeededConversationStoreInput): Promise<ConversationStore> {
+    const store = new ElectronSidecarConversationStore({ userId });
+    await store.rewriteTranscriptProjection({
+      conversationRef,
+      entries: projectionEntries,
+      rehydrateEntries: projectionEntries,
+    });
+    return store;
   },
 };
 

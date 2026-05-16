@@ -40,7 +40,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('DesktopTranscriptProjectionRuntimeClient');
     expect(source).not.toContain('infrastructure/api/client');
     expect(source).not.toContain('infrastructure/transcript/TranscriptWriter');
-    expect(source).not.toContain('ElectronSidecarConversationStore');
+    expect(source.includes('ElectronSidecarConversationStore')).toBe(false);
   });
 
   test('public examples exercise sdk stream, retry, stop, local tool, and model controls', async () => {

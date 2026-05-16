@@ -128,6 +128,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('infrastructure/transcript/TranscriptWriter');
     expect(source).toContain('SdkConversationRuntime');
     expect(source).not.toContain('rewriteTranscriptProjection(input');
+    expect(/\n\s{2}sendRehydrate\(input/.test(source)).toBe(false);
     expect(source).toContain('DesktopTranscriptProjectionRuntimeClient');
   });
 });

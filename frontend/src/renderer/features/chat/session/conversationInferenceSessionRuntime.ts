@@ -186,7 +186,7 @@ export async function ensureConversationInferenceSessionHydrated({
     });
     const rehydrateMessages = toRehydrateConversationEntries(rehydrateSnapshot.messages);
     if (rehydrateMessages.length > 0) {
-      await DesktopConversationRuntimeClient.sendRehydrate({
+      await DesktopConversationRuntimeClient.rehydrate({
         conversationRef: normalizedConversationRef,
         messages: rehydrateMessages,
         workspacePath: getConversationWorkspaceBinding(normalizedConversationRef).workspacePath || null,
@@ -217,7 +217,7 @@ export async function rehydrateConversationInferenceSession({
   }
 
   const startingEpoch = connectionEpoch;
-  await DesktopConversationRuntimeClient.sendRehydrate({
+  await DesktopConversationRuntimeClient.rehydrate({
     conversationRef: normalizedConversationRef,
     messages,
     workspacePath: getConversationWorkspaceBinding(normalizedConversationRef).workspacePath || null,

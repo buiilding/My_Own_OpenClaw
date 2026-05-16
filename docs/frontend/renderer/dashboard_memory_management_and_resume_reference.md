@@ -71,7 +71,7 @@ Resume call chain:
 
 - sidebar rows and search rows call `onOpenConversation(...)`
 - shell fetches full conversation via `GET_CONVERSATION`
-- shell sends backend rehydrate (`ApiClient.sendRehydrateConversation`)
+- shell asks the desktop conversation runtime to rehydrate backend inference state
 - shell synchronizes transcript state and chat store
 
 IPC methods used by this surface:
@@ -140,7 +140,7 @@ Normalization:
 1. guard missing `conversation_id`.
 2. call `GET_CONVERSATION` with `recordKind` fallback to `transcript`.
 3. convert memory rows for UI display (`parseMemoriesToMessages`).
-4. emit backend rehydrate with payload conversion (`toRehydrateMessagePayload`).
+4. ask the desktop conversation runtime to rehydrate with SDK projection payloads.
 5. update active conversation + transcript session identity.
 6. replace chat messages and clear sending/thinking flags.
 

@@ -4,10 +4,6 @@ import {
   type BackendTransport,
   type JsonRecord,
 } from '../../infrastructure/api/windieSdkClient';
-import {
-  ElectronSidecarConversationStore,
-  type TranscriptProjectionRewriteEntry,
-} from '../../infrastructure/transcript/ElectronSidecarConversationStore';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { DesktopSettingsRuntimeClient } from './desktopSettingsRuntimeClient';
 import {
@@ -19,6 +15,7 @@ import {
 import {
   DesktopTranscriptProjectionRuntimeClient,
   type LoadRehydrateSnapshotInput,
+  type TranscriptProjectionRewriteEntry,
 } from './desktopTranscriptProjectionRuntimeClient';
 import type { CompactedReplaySnapshot } from '../../infrastructure/api/windieSdkClient';
 
@@ -133,11 +130,10 @@ async function createSeededConversationRuntime({
   projectionEntries,
   workspacePath,
 }: Pick<RewriteAndResendInput, 'conversationRef' | 'userId' | 'projectionEntries' | 'workspacePath'>) {
-  const store = new ElectronSidecarConversationStore({ userId });
-  await store.rewriteTranscriptProjection({
+  const store = await DesktopTranscriptProjectionRuntimeClient.createSeededConversationStore({
     conversationRef,
-    entries: projectionEntries,
-    rehydrateEntries: projectionEntries,
+    userId,
+    projectionEntries,
   });
   const runtime = new SdkConversationRuntime({
     conversationRef,
@@ -146,6 +142,10 @@ async function createSeededConversationRuntime({
   });
   await runtime.load();
   return runtime;
+}
+
+async function sendConversationRehydrate(input: SendConversationRehydrateInput): Promise<void> {
+  await DesktopBackendCommandRuntimeClient.sendRehydrate(input);
 }
 
 /**
@@ -234,8 +234,8 @@ export const DesktopConversationRuntimeClient = {
     return DesktopBackendCommandRuntimeClient.sendQuery(input);
   },
 
-  sendRehydrate(input: SendConversationRehydrateInput): Promise<void> {
-    return DesktopBackendCommandRuntimeClient.sendRehydrate(input);
+  rehydrate(input: SendConversationRehydrateInput): Promise<void> {
+    return sendConversationRehydrate(input);
   },
 
   stop(conversationRef: string | null = null): void {

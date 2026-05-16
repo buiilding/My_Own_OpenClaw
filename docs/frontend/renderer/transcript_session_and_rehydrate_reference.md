@@ -187,7 +187,7 @@ not execute tools.
    - tool-call rows use `buildToolCallMessageState(...)` so replayed chats reconstruct the same display payload used by live tool-call rows
    - stored transcript field extraction is centralized in `storedTranscriptMemoryState.js` so dashboard replay and backend rehydrate read the same role/message-type/tool/screenshot/transparency inputs from transcript memories
    - final past-chat message shaping is centralized in `storedTranscriptChatMessageState.js` so screenshot fields, transparency sections, and tool display metadata no longer live in a dashboard-local formatter
-4. send backend rehydrate payload (`ApiClient.sendRehydrateConversation`)
+4. ask the desktop conversation runtime to rehydrate the backend inference session (`DesktopConversationRuntimeClient.rehydrate(...)`)
    - `toRehydrateMessagePayload(...)` appends persisted `transparency` snapshots to rehydrate `content` so resumed/manual compaction runs see saved prompt/tool-schema/full-message context.
    - tool-call rows reuse the same normalized message-state helper before `buildRehydrateToolCall(...)` so transcript/session serialization and dashboard replay cannot drift on tool-call ids or display text
    - final rehydrate payload shaping is centralized in SDK projection helpers so dashboard-open rehydrate and edit/retry replay agree on `tool_name`, `tool_call_id`, screenshots, and structured tool payload fallback
