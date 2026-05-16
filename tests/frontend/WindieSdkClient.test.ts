@@ -369,6 +369,46 @@ describe('WindieSdkClient', () => {
     });
   });
 
+  test('SDK backend transport exposes typed compaction and wakeword messages', async () => {
+    const session = createWindieAgentSession({
+      backendUrl: 'https://api.windieos.com',
+      WebSocketImpl: FakeWebSocket as any,
+      userId: 'transport-user',
+      operatingSystem: 'macOS',
+      agentDefinition: { id: 'transport-agent' },
+    });
+
+    const openPromise = session.waitForOpen();
+    FakeWebSocket.instances[0].emit('open', {});
+    await openPromise;
+    FakeWebSocket.instances[0].clearSent();
+
+    const transport = createWindieAgentBackendTransport(session, 'conv-commands');
+    await transport.compactHistory({
+      conversation_ref: 'conv-commands',
+      force: true,
+    });
+    await transport.wakewordDetected({
+      source: 'voice',
+    });
+
+    expect(JSON.parse(FakeWebSocket.instances[0].sent[0])).toMatchObject({
+      type: 'compact-history',
+      payload: {
+        conversation_ref: 'conv-commands',
+        force: true,
+      },
+      user_id: 'transport-user',
+    });
+    expect(JSON.parse(FakeWebSocket.instances[0].sent[1])).toMatchObject({
+      type: 'wakeword-detected',
+      payload: {
+        source: 'voice',
+      },
+      user_id: 'transport-user',
+    });
+  });
+
   test('wakeUp applies an initial model selection after handshake', async () => {
     const client = new WindieClient({
       backendUrl: 'https://api.windieos.com',
