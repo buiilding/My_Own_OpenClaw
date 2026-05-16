@@ -375,6 +375,8 @@ class LocalMemoryStore:
         elif current_embedding_space is not None and persisted_embedding_space is None:
             self._save_embedding_space_metadata(current_embedding_space)
 
+        await self._repair_index_mapping_mismatch("episodic")
+        await self._repair_index_mapping_mismatch("semantic")
         await self._sync_vector_mappings()
 
     async def close(self) -> None:
@@ -660,6 +662,31 @@ class LocalMemoryStore:
             role=role,
             message_type=message_type,
         )
+
+    async def _repair_index_mapping_mismatch(self, memory_type: str) -> None:
+        """Rebuild when SQLite embedding IDs and FAISS vector count drift apart."""
+        attrs = self._get_memory_attrs(memory_type)
+        index = getattr(self, attrs.index)
+        vector_id_to_memory_id = getattr(self, attrs.vector_id_to_memory_id)
+        mapped_count = len(vector_id_to_memory_id)
+        index_count = getattr(index, "ntotal", 0) if index is not None else 0
+        if mapped_count == 0 or index_count == mapped_count:
+            return
+
+        logger.warning(
+            "%s FAISS index/vector mapping mismatch detected "
+            "(index vectors: %s, mapped rows: %s). Rebuilding index...",
+            memory_type.capitalize(),
+            index_count,
+            mapped_count,
+        )
+        if self._embedding_service_unavailable():
+            logger.info(
+                "Skipping %s index mismatch repair because embedding service is unavailable",
+                memory_type,
+            )
+            return
+        await self._rebuild_index(memory_type)
 
     async def _rebuild_index(self, memory_type: str) -> bool:
         """Rebuild FAISS index from database for a given memory type."""

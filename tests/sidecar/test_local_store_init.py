@@ -571,6 +571,82 @@ async def test_initialize_rebuilds_indices_when_embedding_space_changes(
 
 
 @pytest.mark.asyncio
+async def test_initialize_rebuilds_partial_faiss_index_mapping_mismatch(
+    monkeypatch, tmp_path
+):
+    async def _noop_async(*_args, **_kwargs):
+        return None
+
+    async def _read_index(index_path, *_args, **_kwargs):
+        if "episodic" in str(index_path):
+            return types.SimpleNamespace(ntotal=2, d=8)
+        return types.SimpleNamespace(ntotal=1, d=8)
+
+    async def _load_mismatched_vector_mappings(self):
+        self.episodic_vector_id_to_memory_id = {
+            0: "episodic-1",
+            1: "episodic-2",
+            2: "episodic-3",
+        }
+        self.episodic_memory_id_to_vector_id = {
+            "episodic-1": 0,
+            "episodic-2": 1,
+            "episodic-3": 2,
+        }
+        self.episodic_next_vector_id = 3
+        self.semantic_vector_id_to_memory_id = {0: "semantic-1"}
+        self.semantic_memory_id_to_vector_id = {"semantic-1": 0}
+        self.semantic_next_vector_id = 1
+
+    rebuild_calls = []
+
+    async def _record_rebuild(self, memory_type):
+        rebuild_calls.append(memory_type)
+        return True
+
+    monkeypatch.setattr(local_store_module, "read_index_safe_async", _read_index)
+    monkeypatch.setattr(LocalMemoryStore, "_init_databases", _noop_async)
+    monkeypatch.setattr(
+        LocalMemoryStore,
+        "_load_vector_mappings",
+        _load_mismatched_vector_mappings,
+    )
+    monkeypatch.setattr(LocalMemoryStore, "_sync_vector_mappings", _noop_async)
+    monkeypatch.setattr(LocalMemoryStore, "_rebuild_index", _record_rebuild)
+
+    store = LocalMemoryStore.__new__(LocalMemoryStore)
+    store.episodic_index_path = tmp_path / "episodic.faiss.index"
+    store.semantic_index_path = tmp_path / "semantic.faiss.index"
+    store.embedding_space_metadata_path = tmp_path / "embedding_space.json"
+    store.episodic_index = None
+    store.semantic_index = None
+    store.episodic_vector_id_to_memory_id = {}
+    store.semantic_vector_id_to_memory_id = {}
+    store.episodic_memory_id_to_vector_id = {}
+    store.semantic_memory_id_to_vector_id = {}
+    store.episodic_next_vector_id = 0
+    store.semantic_next_vector_id = 0
+    store.embedder = types.SimpleNamespace(
+        dimension=8,
+        service_unavailable=False,
+        initialize=_noop_async,
+        refresh_embedding_space=_noop_async,
+        get_embedding_space_metadata=lambda: {
+            "embedding_provider_id": "provider",
+            "embedding_model_id": "model",
+            "embedding_dimension": 8,
+            "embedding_space_version": "provider:model:8",
+        },
+    )
+    store.title_client = types.SimpleNamespace(initialize=_noop_async)
+    store._embedding_space_metadata = None
+
+    await LocalMemoryStore.initialize(store)
+
+    assert rebuild_calls == ["episodic"]
+
+
+@pytest.mark.asyncio
 async def test_rebuild_index_does_not_reenter_embedding_space_alignment(
     monkeypatch,
     tmp_path,
