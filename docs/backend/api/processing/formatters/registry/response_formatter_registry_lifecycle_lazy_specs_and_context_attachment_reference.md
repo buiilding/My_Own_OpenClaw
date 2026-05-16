@@ -68,18 +68,14 @@ These are construction-time failures, not deferred runtime errors.
 `ResponseFormatter.format(event, msg_id, context)` order:
 
 1. exact typed lookup: `_typed_formatters.get(type(event))`
-2. dict compatibility lookup: `_formatters.get(event.get("type"))` when `event` is `dict`
-3. no route => `None`
+2. no route => `None`
 
 Important precision detail:
 
 - typed dispatch uses exact class identity (`type(event)`), not `isinstance` polymorphism
 - subclassed events require explicit spec entries if class differs
 
-Dict route role:
-
-- backward compatibility for legacy dict events
-- shares same formatter instances as typed map, so behavior stays coherent across both ingress shapes
+`_formatters` remains a registry mirror for formatter-spec drift checks and event-type uniqueness; runtime dispatch uses typed event classes only.
 
 ## Context Attachment Boundary
 

@@ -55,12 +55,11 @@ Field-name divergence (`text` vs `status`) is intentional and aligned to outgoin
 
 Both formatters call `_get_event_dict(event)` first.
 
-Supported input forms:
+Production input form:
 
 - typed dataclass events (`StreamingEvent` subclasses via `to_dict()`)
-- legacy dict events
 
-This preserves compatibility while retaining required-field guard behavior in both paths.
+This keeps required-field guard behavior aligned with the typed streaming-event runtime.
 
 ## Test-Backed Matrix
 

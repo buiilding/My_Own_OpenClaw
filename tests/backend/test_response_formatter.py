@@ -17,10 +17,7 @@ class DummyFormatter(EventFormatter):
     message_type = "dummy-out"
 
     def format(self, event, msg_id):
-        if isinstance(event, dict):
-            payload = {"content": event.get("content")}
-        else:
-            payload = {"content": getattr(event, "content", None)}
+        payload = {"content": getattr(event, "content", None)}
         return {"type": "dummy-out", "id": msg_id, "payload": payload}
 
 
@@ -39,10 +36,7 @@ class SharedResponseFormatter(EventFormatter):
 
     def format(self, event, msg_id):
         self.shared["id"] = msg_id
-        if isinstance(event, dict):
-            self.shared["payload"]["content"] = event.get("content")
-        else:
-            self.shared["payload"]["content"] = getattr(event, "content", None)
+        self.shared["payload"]["content"] = getattr(event, "content", None)
         return self.shared
 
 
@@ -81,7 +75,7 @@ def test_response_formatter_formats_typed_event_and_attaches_context(monkeypatch
     }
 
 
-def test_response_formatter_formats_dict_event_via_backward_compat_path(monkeypatch):
+def test_response_formatter_ignores_dict_event_payloads(monkeypatch):
     _set_specs(
         monkeypatch,
         (
@@ -90,13 +84,7 @@ def test_response_formatter_formats_dict_event_via_backward_compat_path(monkeypa
     )
     formatter = ResponseFormatter()
 
-    result = formatter.format({"type": "dummy", "content": "legacy"}, "msg-2")
-
-    assert result == {
-        "type": "dummy-out",
-        "id": "msg-2",
-        "payload": {"content": "legacy"},
-    }
+    assert formatter.format({"type": "dummy", "content": "legacy"}, "msg-2") is None
 
 
 def test_response_formatter_returns_none_for_unknown_event(monkeypatch):

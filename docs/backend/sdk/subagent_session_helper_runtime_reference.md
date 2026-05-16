@@ -86,9 +86,9 @@ Typed event handling:
 - `StreamingCompleteEvent`: terminal stop
 - `ErrorEvent`: return error string (or tuple with captured calls)
 
-Compatibility path:
+Runtime path:
 
-- dict event payloads are still handled by `type` key (`chunk`, `full_response`, `tool_call`, `tool_output`, `streaming-complete`, `error`)
+- response extraction accepts typed streaming events from `AgentSession.process_query(...)`
 
 Fallback behavior when no response text arrived from events:
 

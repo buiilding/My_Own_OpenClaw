@@ -25,7 +25,7 @@ title: "Formatter Validation and Contract-Test Matrix Reference"
 `test_response_formatter.py` validates:
 
 - typed events are formatted and context fields are attached
-- dict events still work via backward-compat dispatch path
+- dict payloads are ignored by the top-level runtime dispatcher
 - unknown events return `None`
 - formatter `None` results remain `None` (no context attachment)
 - duplicate event-type registrations raise `ValueError`

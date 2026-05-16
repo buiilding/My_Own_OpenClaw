@@ -73,14 +73,14 @@ Payload mapping always includes:
 - `screenshot`
 - `metadata`
 
-## Typed vs Dict Input Semantics
+## Formatter Input Semantics
 
-Both formatters accept typed and dict events through `_get_event_dict(...)`.
+Production response formatting reaches these formatters through typed event dispatch.
 
 Contract outcome:
 
-- typed streaming dataclasses and legacy dict events share one validation path
-- skip semantics apply consistently regardless of event input type
+- typed streaming dataclasses use the shared validation path
+- skip semantics apply consistently for required-field failures
 
 ## Schema Alignment Notes
 

@@ -65,19 +65,17 @@ Reason:
 
 - tool schema payload is a core canonical contract and should fail loudly if malformed
 
-## Typed vs Dict Input Behavior
+## Typed Input Behavior
 
-Formatter classes generally support both:
+The top-level response formatter dispatches typed `StreamingEvent` subclasses from the agent runtime.
 
-- typed `StreamingEvent` subclasses (normal runtime path)
-- dict events (legacy/backward-compat path)
+Some low-level formatter unit tests still call formatter classes directly with mapping-shaped fixtures, but production dispatch should not rely on dict event payloads.
 
 `ResponseFormatter` dispatch order:
 
 1. typed dispatch by exact event class
-2. dict dispatch by string event type
 
-Unknown typed/dict events return `None`.
+Unknown events return `None`.
 
 ## Required-Field Nuances
 

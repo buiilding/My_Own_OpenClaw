@@ -40,7 +40,12 @@ from backend.src.api.schema import (
 )
 from backend.src.api.processing.formatter import ResponseFormatter
 from backend.src.core.config.models import AppConfig
-from backend.src.core.events.streaming_events import ChunkEvent, StreamingCompleteEvent
+from backend.src.core.events.streaming_events import (
+    AssistantMessageFullEvent,
+    ChunkEvent,
+    ErrorEvent,
+    StreamingCompleteEvent,
+)
 
 
 class FakeWebSocket:
@@ -81,7 +86,7 @@ class DummyAgent:
         runtime_system_state=None,
     ):
         _ = (client_prompt_layers, agent_definition)
-        yield {"type": "chunk", "content": "ok"}
+        yield ChunkEvent(content="ok")
 
     async def update_config(self, new_cfg):
         self.cfg = new_cfg
@@ -135,7 +140,7 @@ class DummyCaptureAgent:
             setter = getattr(self, "set_current_system_state", None)
             if callable(setter):
                 setter(runtime_system_state)
-        yield {"type": "chunk", "content": "ok"}
+        yield ChunkEvent(content="ok")
 
 
 class DummyRuntimeStateAgent(DummyCaptureAgent):
@@ -206,8 +211,8 @@ class DummyAssistantFullThenCompleteAgent:
         runtime_system_state=None,
     ):
         _ = (client_prompt_layers, agent_definition, runtime_system_state)
-        yield {"type": "assistant_message_full", "content": "Final answer from assistant full"}
-        yield {"type": "streaming-complete", "payload": {}}
+        yield AssistantMessageFullEvent(content="Final answer from assistant full")
+        yield StreamingCompleteEvent()
 
 
 class DummyPostTerminalNoiseAgent:
@@ -232,9 +237,9 @@ class DummyPostTerminalNoiseAgent:
         runtime_system_state=None,
     ):
         _ = (client_prompt_layers, agent_definition, runtime_system_state)
-        yield {"type": "chunk", "content": "first chunk"}
-        yield {"type": "streaming-complete", "payload": {"final_response": "done"}}
-        yield {"type": "chunk", "content": "late chunk"}
+        yield ChunkEvent(content="first chunk")
+        yield StreamingCompleteEvent(final_response="done")
+        yield ChunkEvent(content="late chunk")
 
 
 class DummyErrorThenChunkAgent:
@@ -259,8 +264,8 @@ class DummyErrorThenChunkAgent:
         runtime_system_state=None,
     ):
         _ = (client_prompt_layers, agent_definition, runtime_system_state)
-        yield {"type": "error", "payload": {"message": "failed"}}
-        yield {"type": "chunk", "content": "late chunk"}
+        yield ErrorEvent(content="failed")
+        yield ChunkEvent(content="late chunk")
 
 
 class DummyBlockingAgent:
@@ -524,7 +529,8 @@ async def test_query_handler_success(monkeypatch):
     assert len(created_pipelines[0].processed) == 2
     first_event, first_msg_id, first_context = created_pipelines[0].processed[0]
     second_event, second_msg_id, second_context = created_pipelines[0].processed[1]
-    assert first_event == {"type": "chunk", "content": "ok"}
+    assert isinstance(first_event, ChunkEvent)
+    assert first_event.content == "ok"
     assert isinstance(second_event, StreamingCompleteEvent)
     assert first_msg_id == second_msg_id == "msg_1"
     assert first_context is second_context
@@ -676,7 +682,8 @@ async def test_query_handler_backfills_chunk_from_assistant_full_before_completi
     second_event, *_ = created_pipelines[0].processed[1]
     third_event, *_ = created_pipelines[0].processed[2]
 
-    assert first_event == {"type": "assistant_message_full", "content": "Final answer from assistant full"}
+    assert isinstance(first_event, AssistantMessageFullEvent)
+    assert first_event.content == "Final answer from assistant full"
     assert isinstance(second_event, ChunkEvent)
     assert second_event.content == "Final answer from assistant full"
     assert isinstance(third_event, StreamingCompleteEvent)
@@ -726,7 +733,8 @@ async def test_query_handler_ignores_post_terminal_events_from_agent_stream(monk
     assert len(created_pipelines[0].processed) == 2
     first_event, *_ = created_pipelines[0].processed[0]
     second_event, *_ = created_pipelines[0].processed[1]
-    assert first_event == {"type": "chunk", "content": "first chunk"}
+    assert isinstance(first_event, ChunkEvent)
+    assert first_event.content == "first chunk"
     assert isinstance(second_event, StreamingCompleteEvent)
     assert second_event.final_response == "done"
 
@@ -773,7 +781,8 @@ async def test_query_handler_ignores_events_after_terminal_error(monkeypatch):
     assert len(created_pipelines) == 1
     assert len(created_pipelines[0].processed) == 1
     only_event, *_ = created_pipelines[0].processed[0]
-    assert only_event == {"type": "error", "payload": {"message": "failed"}}
+    assert isinstance(only_event, ErrorEvent)
+    assert only_event.content == "failed"
 
 
 @pytest.mark.asyncio

@@ -5,14 +5,12 @@ Formats agent events into WebSocket response messages.
 """
 from copy import deepcopy
 
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional
 
 from backend.src.api.contracts.formatter_specs import get_formatter_specs
 from backend.src.core.events import (
     AgentStreamingEvent,
 )
-from backend.src.core.types.enums import normalize_streaming_event_type
-
 from backend.src.api.processing.formatters.base import EventFormatter
 from backend.src.api.transport.envelope import attach_context_fields
 
@@ -44,7 +42,7 @@ class ResponseFormatter:
 
     def format(
         self,
-        event: Union[AgentStreamingEvent, Dict[str, Any]],
+        event: AgentStreamingEvent,
         msg_id: str,
         context: Optional[Dict[str, Any]] = None,
     ) -> Optional[Dict[str, Any]]:
@@ -52,7 +50,7 @@ class ResponseFormatter:
         Format agent event into WebSocket response.
 
         Args:
-            event: Event object (typed or dict) from agent
+            event: Typed event object from agent
             msg_id: Message ID for response
 
         Returns:
@@ -62,14 +60,6 @@ class ResponseFormatter:
         if formatter:
             response = formatter.format(event, msg_id)
             return self._attach_context(response, context)
-
-        # Backward compatibility with dict events
-        if isinstance(event, dict):
-            event_type = normalize_streaming_event_type(event.get("type"))
-            formatter = self._formatters.get(event_type)
-            if formatter:
-                response = formatter.format(event, msg_id)
-                return self._attach_context(response, context)
 
         return None
 
