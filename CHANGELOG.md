@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sidecar: remove the `core.thread_pool` compatibility facade and route memory background I/O through `core.executors` directly.
 - sidecar/browser: remove ignored Chrome launcher restart compatibility parameter and the unused BrowserSession element-index alias.
 - frontend/sdk: make conversation inference-session hydration read canonical `conversation_event` rows by default.
 - frontend/sdk: make dashboard conversation search and local conversation loaders use canonical SDK `conversation_event` rows by default instead of transcript fallback rows.

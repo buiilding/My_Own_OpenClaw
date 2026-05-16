@@ -38,10 +38,10 @@ async def read_index_safe_async(
     if not index_path.exists():
         return None
 
-    from core.thread_pool import get_executor
+    from core.executors import get_background_executor
 
     loop = asyncio.get_running_loop()
-    executor = get_executor()
+    executor = get_background_executor()
 
     def load_index() -> Optional[Any]:
         return read_index_safe(index_path, faiss_module)
@@ -56,10 +56,10 @@ async def save_indices_async(
     semantic_path: Path,
     faiss_module: Any,
 ) -> None:
-    from core.thread_pool import get_executor
+    from core.executors import get_background_executor
 
     loop = asyncio.get_running_loop()
-    executor = get_executor()
+    executor = get_background_executor()
 
     def save_indices() -> None:
         if episodic_index is not None:

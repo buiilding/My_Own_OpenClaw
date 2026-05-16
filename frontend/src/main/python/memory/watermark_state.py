@@ -28,10 +28,10 @@ class WatermarkStateStore:
         if not self._state_path.exists():
             return default_state
 
-        from core.thread_pool import get_executor
+        from core.executors import get_background_executor
 
         loop = asyncio.get_running_loop()
-        executor = get_executor()
+        executor = get_background_executor()
 
         def load_state() -> Optional[Dict[str, Any]]:
             try:
@@ -52,10 +52,10 @@ class WatermarkStateStore:
         return state
 
     async def save(self, state: Dict[str, Any]) -> None:
-        from core.thread_pool import get_executor
+        from core.executors import get_background_executor
 
         loop = asyncio.get_running_loop()
-        executor = get_executor()
+        executor = get_background_executor()
 
         def save_state() -> None:
             try:

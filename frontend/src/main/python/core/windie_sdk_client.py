@@ -1,4 +1,4 @@
-"""Compatibility import for the public ``windie`` Python SDK package."""
+"""Core entrypoint for the public ``windie`` Python SDK package."""
 
 from windie import sdk as _sdk
 from windie.sdk import (
