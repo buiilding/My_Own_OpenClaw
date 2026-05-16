@@ -21,7 +21,7 @@ Use this page for symptom-to-owner routing. After identifying the owner, switch 
 | SDK/main says unknown tool | sidecar registry parity or SDK dispatch map | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/ipc/ipc_sdk_tool_router.cjs` |
 | Sidecar returns `Tool not found` | sidecar registration/import failure | sidecar registry logs and `tests/sidecar/test_tool_registry.py` |
 | Tool succeeds but no model continuation | backend waiting storage/result receiver | `backend/src/agent/tools/waiting/**` |
-| Tool result visible but future replay breaks | transcript/history/model-facing row shape | renderer transcript docs and backend history docs |
+| Tool result visible but future replay breaks | SDK projection, transcript adapter, or backend history shape | SDK conversation runtime docs, transcript adapter docs, and backend history docs |
 | Screenshot or artifact missing | renderer upload path, backend artifact route, endpoint resolution | [Artifacts and Attachments](../desktop/artifacts_and_attachments.md) |
 | Browser action rejected | shared browser contract validation | [Browser Action Surface](../browser/browser_action_surface.md) |
 
@@ -72,7 +72,6 @@ Questions to answer:
 Read:
 
 - [Tool Execution Lifecycle](tool_execution_lifecycle.md)
-- [Retired Renderer Tool Execution Runtime](../frontend/renderer/infrastructure/tool_execution_service_and_hook_runtime_reference.md)
 - [Sidecar Registry and Result Normalization](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_normalization_reference.md)
 
 ## Result and History Failures
@@ -80,7 +79,7 @@ Read:
 Questions to answer:
 
 1. Does the returned result include the same `request_id` or `bundle_id`?
-2. Did renderer send `tool-result` or `tool-bundle-result` back to backend?
+2. Did SDK/main send `tool-result` or `tool-bundle-result` back to backend?
 3. Did waiting storage resolve the pending future?
 4. Did result processing format both display output and model-facing `llm_content`?
 5. Did history commit preserve tool-call/tool-output linkage?
@@ -110,6 +109,6 @@ For a tool regression fix, add the narrowest tests that cross the failing bounda
 - policy visibility bug: backend `ToolPolicy` test
 - schema drift: backend schema/registry test and sidecar parity test if local execution is involved
 - sidecar runtime bug: sidecar unit test for the executable tool
-- renderer dispatch bug: frontend tool-runner test
+- SDK/main dispatch bug: SDK runtime or IPC tool-router test
 - waiting/result bug: backend result receiver/storage/processor test
 - replay bug: renderer transcript or backend rehydrate/history test

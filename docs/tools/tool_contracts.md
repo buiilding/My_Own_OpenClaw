@@ -1,5 +1,5 @@
 ---
-summary: "Tool contract map covering backend model-facing schemas, frontend tool execution, sidecar local tools, bundles, request ids, and validation."
+summary: "Tool contract map covering backend model-facing schemas, SDK/main local dispatch, sidecar local tools, bundles, request ids, and validation."
 read_when:
   - When changing tool schemas or tool result payloads.
   - When debugging backend/frontend/sidecar tool drift.

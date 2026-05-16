@@ -103,6 +103,12 @@ describe('modular sdk refactor completion boundary', () => {
       'docs/frontend/renderer/infrastructure/conversation_transcript_loader_and_display_bounds_storage_reference.md',
       'docs/frontend/renderer/infrastructure/capture_artifact_upload_and_payload_normalization_reference.md',
       'docs/tools/tool_execution_lifecycle.md',
+      'docs/tools/README.md',
+      'docs/tools/tool_troubleshooting.md',
+      'docs/tools/filesystem_shell.md',
+      'docs/tools/tool_schema_policy_change_workflow.md',
+      'docs/tools/tool_catalog_matrix.md',
+      'docs/tools/tool_contracts.md',
       'frontend/src/renderer/folder_structure.md',
     ];
 
@@ -123,6 +129,13 @@ describe('modular sdk refactor completion boundary', () => {
         'compatibility path',
         'Frontend Tool Execution Service',
         'Renderer invokes tool',
+        'renderer dispatch',
+        'renderer tool-runner',
+        'Did renderer send `tool-result`',
+        'Retired Renderer Tool Execution Runtime',
+        'renderer orchestration',
+        'frontend tool execution',
+        'renderer result relay',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;
