@@ -13,7 +13,7 @@ from backend.src.core.events.streaming_events import (
     TokenCountEvent,
     WebSearchProgressEvent,
 )
-from backend.src.core.infrastructure.exceptions import LLMAPIError
+from backend.src.core.infrastructure.error_types import LLMAPIError
 
 
 class _FakeTokenService:

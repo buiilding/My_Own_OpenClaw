@@ -1,7 +1,7 @@
 """Tests for custom exception hierarchy."""
 import pytest
 
-from backend.src.core.infrastructure.exceptions import (
+from backend.src.core.infrastructure.error_types import (
     BaseAppError,
     ConfigurationError,
     LLMError,

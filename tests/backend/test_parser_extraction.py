@@ -3,7 +3,7 @@ import time
 import pytest
 
 from backend.src.core.config.models import SecurityLimits
-from backend.src.core.infrastructure.exceptions import ParseTimeoutError
+from backend.src.core.infrastructure.error_types import ParseTimeoutError
 from backend.src.llm.parser_extraction import JsonToolCallExtractor
 from backend.src.llm.parser_types import ParsedToolCall
 

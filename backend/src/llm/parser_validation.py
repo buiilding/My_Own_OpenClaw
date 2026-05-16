@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional
 import json
 import logging
 
-from backend.src.core.infrastructure.exceptions import ParseValidationError
+from backend.src.core.infrastructure.error_types import ParseValidationError
 from backend.src.tools.tool_policy import ToolPolicy
 
 logger = logging.getLogger(__name__)

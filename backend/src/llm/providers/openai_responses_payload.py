@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, Iterable, List
 
-from backend.src.core.infrastructure.exceptions import LLMAPIError
+from backend.src.core.infrastructure.error_types import LLMAPIError
 from backend.src.core.messages.content_blocks import iter_text_content_fragments
 from backend.src.core.types.schemas import NormalizedLLMResponse
 from backend.src.core.utils.raw_tool_call_preview import build_raw_tool_call_preview

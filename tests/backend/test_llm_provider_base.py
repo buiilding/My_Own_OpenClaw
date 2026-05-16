@@ -6,7 +6,7 @@ import litellm
 
 from backend.src.llm.providers.base import LLMProvider
 from backend.src.llm.providers.online import OnlineLLMProvider
-from backend.src.core.infrastructure.exceptions import LLMAPIError, LLMError, LLMRateLimitError
+from backend.src.core.infrastructure.error_types import LLMAPIError, LLMError, LLMRateLimitError
 from backend.src.core.events.streaming_events import (
     ChunkEvent,
     ErrorEvent,

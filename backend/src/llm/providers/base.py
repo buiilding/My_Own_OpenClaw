@@ -10,7 +10,7 @@ from backend.src.core.events.streaming_events import (
     ErrorEvent,
     StreamingEvent,
 )
-from backend.src.core.infrastructure.exceptions import (
+from backend.src.core.infrastructure.error_types import (
     LLMAPIError,
     LLMError,
     LLMRateLimitError,

@@ -15,7 +15,7 @@ from backend.src.core.infrastructure.cache import (
     CacheManager,
     cache_manager,
 )
-from backend.src.core.infrastructure.exceptions import (
+from backend.src.core.infrastructure.error_types import (
     BaseAppError,
     ConfigurationError,
     EmbeddingError,

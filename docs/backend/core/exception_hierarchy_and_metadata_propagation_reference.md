@@ -1,5 +1,5 @@
 ---
-summary: "Backend core exception reference for `error_types/*` hierarchy, compatibility export facade semantics, metadata merge helpers, and trust-boundary scoped error payload conventions."
+summary: "Backend core exception reference for the `error_types/*` hierarchy, metadata merge helpers, and trust-boundary scoped error payload conventions."
 read_when:
   - When adding/changing exception classes under `backend/src/core/infrastructure/error_types/*`.
   - When debugging missing `error_code`/metadata fields in logs, parser errors, or tool/LLM/session failure propagation.
@@ -18,23 +18,19 @@ title: "Exception Hierarchy and Metadata Propagation Reference"
 - `backend/src/core/infrastructure/error_types/memory.py`
 - `backend/src/core/infrastructure/error_types/session.py`
 - `backend/src/core/infrastructure/error_types/trust_boundary.py`
-- `backend/src/core/infrastructure/exceptions.py`
 - `tests/backend/test_exceptions.py`
 
-## Export Surface and Compatibility Contract
+## Export Surface
 
-Canonical exception definitions now live under `core.infrastructure.error_types`.
+Canonical exception definitions live under `core.infrastructure.error_types`.
 
-`core.infrastructure.exceptions` remains a compatibility facade:
+Use these first-class import paths:
 
-- re-exports the public list from `error_types.__all__`
-- preserves historical import paths used across parser/LLM/agent code
-- still exports internal helper symbols used by legacy tests and compatibility checks (`_TrustBoundaryError`, `_LLMOptionalFieldError`, metadata helper functions)
+- public exception classes: `backend.src.core.infrastructure.error_types`
+- domain-specific implementations: `backend.src.core.infrastructure.error_types.*`
+- package-level convenience exports: `backend.src.core.infrastructure`
 
-Operational contract:
-
-- new callers should prefer `core.infrastructure.exceptions` for stable imports
-- internal class implementations stay split by concern in `error_types/*`
+The old `core.infrastructure.exceptions` compatibility facade has been removed. Runtime code and tests should not import it.
 
 ## Hierarchy Map
 
@@ -152,7 +148,7 @@ Common call paths using this surface:
 
 1. Changing helper merge truthiness rules can silently alter emitted metadata payloads across all exception families.
 2. Renaming error codes breaks parser/provider/tool tests and any error-code-based handling in upstream callers.
-3. Removing compatibility exports from `core.infrastructure.exceptions` can break existing import paths in runtime and tests.
+3. Reintroducing a facade for `core.infrastructure.exceptions` can hide direct ownership of the exception hierarchy and should be avoided.
 
 ## Related Pages
 

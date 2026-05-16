@@ -1,7 +1,7 @@
 import copy
 from typing import Any, Dict, List, Optional
 
-from backend.src.core.infrastructure.exceptions import LLMAPIError
+from backend.src.core.infrastructure.error_types import LLMAPIError
 from backend.src.core.types.schemas import NormalizedLLMResponse
 
 

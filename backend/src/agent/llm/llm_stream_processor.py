@@ -26,7 +26,7 @@ from backend.src.core.events.streaming_events import (
     FullResponseEvent,
     TokenCountEvent,
 )
-from backend.src.core.infrastructure.exceptions import LLMAPIError, LLMRateLimitError
+from backend.src.core.infrastructure.error_types import LLMAPIError, LLMRateLimitError
 from backend.src.core.types.schemas import LLMMessage, NormalizedLLMResponse
 from backend.src.llm.request_kwargs import build_tool_transport_kwargs
 from backend.src.services.token_service import get_token_service

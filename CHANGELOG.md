@@ -24,6 +24,7 @@ All notable changes to WindieOS will be documented in this file.
 - backend/sdk: require typed streaming events in the SDK response extractor instead of accepting dict event payloads.
 - backend/api: require typed streaming events in the top-level response formatter and query handler tests.
 - backend/api: remove the API schema compatibility re-export module so backend code imports `backend.src.api.schemas` directly.
+- backend/core: remove the exception compatibility facade so runtime code imports `core.infrastructure.error_types` directly.
 - backend/container: remove container-level `embedder`, `ocr_service`, and `vision_service` aliases in favor of router fields.
 - backend/sdk: remove the transitional `Context` alias so tools import `ToolContext` directly.
 - backend/simulation: remove the coordinate resolver compatibility re-export and docs from the first-class simulation surface.

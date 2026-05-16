@@ -11,7 +11,7 @@ title: "Trust-Boundary Metrics and Enforcement Reference"
 ## Canonical Modules
 
 - `backend/src/core/observability/trust_boundary_metrics.py`
-- `backend/src/core/infrastructure/exceptions.py`
+- `backend/src/core/infrastructure/error_types/trust_boundary.py`
 - `backend/src/core/infrastructure/error_types/base.py`
 - `backend/src/core/infrastructure/error_types/trust_boundary.py`
 - `backend/src/core/container/core_container.py`

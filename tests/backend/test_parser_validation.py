@@ -1,7 +1,7 @@
 import pytest
 
 from backend.src.core.config.models import SecurityLimits
-from backend.src.core.infrastructure.exceptions import ParseValidationError
+from backend.src.core.infrastructure.error_types import ParseValidationError
 from backend.src.llm.parser_validation import ToolCallValidator
 from backend.src.tools.tool_selection import ToolSelection
 from tests.backend.tool_validator_test_utils import DummyRegistry, make_tool_call_validator

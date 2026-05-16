@@ -17,7 +17,7 @@ from backend.src.core.events.streaming_events import (
     ThinkingEvent,
     WebSearchProgressEvent,
 )
-from backend.src.core.infrastructure.exceptions import LLMAPIError
+from backend.src.core.infrastructure.error_types import LLMAPIError
 
 
 def test_apply_stream_event_updates_text_and_emission_contract():
