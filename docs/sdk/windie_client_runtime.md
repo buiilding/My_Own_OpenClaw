@@ -126,7 +126,10 @@ backend websocket event
 
 Stores are persistence adapters. They append/load events and commit complete
 compacted replay snapshots, but they do not own display or backend rehydrate
-interpretation. Projection builders in the SDK own those views.
+interpretation. Projection builders in the SDK own those views. The store
+interface exposes `loadForDisplay(...)` and `loadForRehydrate(...)` as
+first-class convenience methods, and adapters must implement them by delegating
+to shared SDK projections or to a complete active compacted replay snapshot.
 
 Electron uses a sidecar-backed store adapter during the desktop migration:
 

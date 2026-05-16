@@ -2,7 +2,6 @@ import { createConversationEvent, createRuntimeId } from '../conversation/events
 import { isBackendEvent } from '../backendEvents.js';
 import type {
   BackendTransport,
-  CompactedReplaySnapshot,
   ConversationEvent,
   ConversationRuntimeState,
   ConversationStore,
@@ -84,15 +83,6 @@ function eventMatchesId(event: ConversationEvent, messageId: string): boolean {
     || event.payload.id === messageId
     || event.payload.messageId === messageId
     || event.payload.message_id === messageId;
-}
-
-function isCompleteReplaySnapshot(snapshot: CompactedReplaySnapshot | null): snapshot is CompactedReplaySnapshot {
-  return Boolean(
-    snapshot
-    && snapshot.complete
-    && snapshot.active !== false
-    && snapshot.entryCount === snapshot.entries.length,
-  );
 }
 
 function isTerminalConversationEvent(event: ConversationEvent): boolean {
@@ -358,16 +348,7 @@ export class SdkConversationRuntime {
   }
 
   async rehydrate(): Promise<RehydrateSnapshot> {
-    const events = await this.options.store.loadEvents(this.options.conversationRef);
-    const compactedReplay = await this.options.store.loadCompactedReplay?.(this.options.conversationRef) ?? null;
-    const snapshot = isCompleteReplaySnapshot(compactedReplay)
-      ? {
-          conversationRef: this.options.conversationRef,
-          revisionId: compactedReplay.sourceRevisionId,
-          messages: compactedReplay.entries,
-          replayGenerationId: compactedReplay.generationId,
-        }
-      : buildRehydrateSnapshot(events);
+    const snapshot = await this.options.store.loadForRehydrate(this.options.conversationRef);
     await this.options.transport?.sendRehydrate({
       conversation_ref: this.options.conversationRef,
       messages: snapshot.messages,

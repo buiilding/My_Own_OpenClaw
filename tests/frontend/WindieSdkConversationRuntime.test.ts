@@ -175,6 +175,20 @@ describe('Windie SDK conversation runtime core', () => {
       generationId: 'gen-complete',
       active: true,
     });
+    await expect(store.loadForDisplay('conv-sdk-runtime')).resolves.toMatchObject({
+      conversationRef: 'conv-sdk-runtime',
+      messages: [
+        expect.objectContaining({
+          text: 'hello',
+          sender: 'user',
+        }),
+      ],
+    });
+    await expect(store.loadForRehydrate('conv-sdk-runtime')).resolves.toMatchObject({
+      conversationRef: 'conv-sdk-runtime',
+      replayGenerationId: 'gen-complete',
+      messages: [{ role: 'user', content: 'hello' }],
+    });
   });
 
   test('in-memory store preserves append order for events with the same timestamp', async () => {

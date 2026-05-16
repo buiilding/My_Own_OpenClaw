@@ -54,16 +54,23 @@ Every event carries `eventId`, `conversationRef`, `revisionId`, `timestamp`,
 
 ## Store Rule
 
-Stores should stay dumb:
+Stores expose first-class projection loaders, but they should stay dumb:
 
 ```text
-store.loadEvents(conversationRef)
-  -> SDK projection -> display transcript
-  -> SDK projection -> backend rehydrate snapshot
+store.loadForDisplay(conversationRef)
+  -> store.loadEvents(conversationRef)
+  -> SDK display projection
+
+store.loadForRehydrate(conversationRef)
+  -> complete active replay snapshot, when present
+  -> otherwise store.loadEvents(conversationRef)
+  -> SDK rehydrate projection
 ```
 
-Do not implement separate `loadForDisplay` or `loadForRehydrate` logic inside
-each adapter. That recreates drift across desktop, CLI, web, and tests.
+Do not implement separate role/message/tool interpretation inside each adapter.
+The adapter methods are API conveniences; they must delegate to shared SDK
+projection builders or to a complete active compacted replay snapshot. This
+keeps desktop, CLI, web, and tests on one interpretation path.
 
 ## Compaction Rule
 

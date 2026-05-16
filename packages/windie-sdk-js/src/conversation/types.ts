@@ -176,6 +176,8 @@ export interface ConversationStore {
   rewriteConversation(plan: ConversationRewritePlan): Promise<void>;
   replaceCompactedReplay(snapshot: CompactedReplaySnapshot): Promise<void>;
   loadEvents(conversationRef: string): Promise<ConversationEvent[]>;
+  loadForDisplay(conversationRef: string): Promise<DisplayConversation>;
+  loadForRehydrate(conversationRef: string): Promise<RehydrateSnapshot>;
   listMetadata(options?: ListConversationOptions): Promise<ConversationMetadata[]>;
   getRevision(conversationRef: string): Promise<ConversationRevision>;
   loadCompactedReplay?(conversationRef: string): Promise<CompactedReplaySnapshot | null>;

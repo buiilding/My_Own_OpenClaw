@@ -5,8 +5,14 @@ import type {
   ConversationRevision,
   ConversationRewritePlan,
   ConversationStore,
+  DisplayConversation,
   ListConversationOptions,
+  RehydrateSnapshot,
 } from '../conversation/types.js';
+import {
+  buildDisplayConversation,
+  buildRehydrateSnapshot,
+} from '../projections/conversationProjections.js';
 
 function sortEvents(events: ConversationEvent[]): ConversationEvent[] {
   return [...events].sort((a, b) => {
@@ -95,6 +101,27 @@ export class InMemoryConversationStore implements ConversationStore {
 
   async loadEvents(conversationRef: string): Promise<ConversationEvent[]> {
     return sortEvents(this.eventsByConversation.get(conversationRef) ?? []);
+  }
+
+  async loadForDisplay(conversationRef: string): Promise<DisplayConversation> {
+    return buildDisplayConversation(await this.loadEvents(conversationRef));
+  }
+
+  async loadForRehydrate(conversationRef: string): Promise<RehydrateSnapshot> {
+    const compactedReplay = await this.loadCompactedReplay(conversationRef);
+    if (
+      compactedReplay?.complete
+      && compactedReplay.active !== false
+      && compactedReplay.entryCount === compactedReplay.entries.length
+    ) {
+      return {
+        conversationRef,
+        revisionId: compactedReplay.sourceRevisionId,
+        messages: compactedReplay.entries,
+        replayGenerationId: compactedReplay.generationId,
+      };
+    }
+    return buildRehydrateSnapshot(await this.loadEvents(conversationRef));
   }
 
   async listMetadata(options: ListConversationOptions = {}): Promise<ConversationMetadata[]> {
