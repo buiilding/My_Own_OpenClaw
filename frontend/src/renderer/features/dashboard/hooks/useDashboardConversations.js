@@ -2,6 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { buildChatMessagesFromDisplayConversation } from '../../../infrastructure/transcript/sdkDisplayChatMessageProjection';
 import { DesktopConversationLibraryClient } from '../../../app/runtime/desktopConversationLibraryClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
+import {
+  getLocalBackendStatusSnapshot,
+  subscribeLocalBackendStatusStore,
+} from '../../../infrastructure/runtime/localBackendStatusStore';
 import { setActiveWorkspaceSelection } from '../../../infrastructure/workspace/workspaceAccess';
 import {
   clearConversationWorkspaceBinding,
@@ -316,6 +320,18 @@ function useDashboardConversations({
 
   useEffect(() => {
     loadRecentConversations();
+  }, [loadRecentConversations]);
+
+  useEffect(() => {
+    const reloadWhenLocalBackendReady = () => {
+      if (getLocalBackendStatusSnapshot().ready === true) {
+        void loadRecentConversations();
+      }
+    };
+
+    const unsubscribe = subscribeLocalBackendStatusStore(reloadWhenLocalBackendReady);
+    reloadWhenLocalBackendReady();
+    return unsubscribe;
   }, [loadRecentConversations]);
 
   useEffect(() => {

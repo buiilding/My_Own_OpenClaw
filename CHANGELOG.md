@@ -11,6 +11,7 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sidecar: treat hosted embedding gateway failures as unavailable so local memory initialization keeps chat history readable, and show chat-list load failures instead of an empty state.
 - frontend/sidecar: revalidate cached sidecar daemon clients before RPC calls so Electron can recover from stale daemon ports or tokens after restarts.
 - frontend/sidecar: delete stale sidecar daemon discovery files before respawning and retry chat-list loads during daemon startup recovery.
+- frontend/dashboard: reload the startup chat list when the local backend reports ready so stored chats appear without sending a new message first.
 - backend/openai: recover empty Responses streams as incomplete empty responses so provider stream gaps use the normal empty-final-response fallback instead of internal server errors.
 - backend/embeddings: map OpenAI embedding quota exhaustion to provider-unavailable responses so sidecar memory skips embedding backfill instead of failing initialization.
 - sdk/frontend: expose a conversation-runtime factory for first-party desktop facades while documenting that Electron may use lower-level SDK modules behind SDK interfaces.

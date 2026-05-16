@@ -1,0 +1,110 @@
+import { act, renderHook, waitFor } from '@testing-library/react';
+import { useDashboardConversations } from '../../frontend/src/renderer/features/dashboard/hooks/useDashboardConversations';
+import { DesktopConversationLibraryClient } from '../../frontend/src/renderer/app/runtime/desktopConversationLibraryClient';
+import {
+  getLocalBackendStatusSnapshot,
+  subscribeLocalBackendStatusStore,
+} from '../../frontend/src/renderer/infrastructure/runtime/localBackendStatusStore';
+
+jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationLibraryClient', () => ({
+  DesktopConversationLibraryClient: {
+    listMetadata: jest.fn(),
+  },
+}));
+
+jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => ({
+  DesktopTranscriptSessionRuntimeClient: {
+    startNewSession: jest.fn(),
+  },
+}));
+
+jest.mock('../../frontend/src/renderer/infrastructure/runtime/localBackendStatusStore', () => ({
+  getLocalBackendStatusSnapshot: jest.fn(),
+  subscribeLocalBackendStatusStore: jest.fn(),
+}));
+
+jest.mock('../../frontend/src/renderer/infrastructure/workspace/workspaceAccess', () => ({
+  setActiveWorkspaceSelection: jest.fn(),
+}));
+
+jest.mock('../../frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding', () => ({
+  clearConversationWorkspaceBinding: jest.fn(),
+  setConversationWorkspaceBinding: jest.fn(),
+}));
+
+jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime', () => ({
+  clearConversationInferenceSessionState: jest.fn(),
+  markConversationInferenceSessionUnknown: jest.fn(),
+}));
+
+jest.mock('../../frontend/src/renderer/features/chat/session/conversationSessionRuntime', () => ({
+  applyRendererConversationSelection: jest.fn(),
+}));
+
+jest.mock('../../frontend/src/renderer/features/chat/utils/session/resetActiveChatSession', () => ({
+  resetActiveChatSession: jest.fn(),
+}));
+
+function renderDashboardConversations(options = {}) {
+  return renderHook(() => useDashboardConversations({
+    resolvedUserId: 'user-test',
+    sessionConversationRef: '',
+    clearChatMessages: jest.fn(),
+    setChatMessages: jest.fn(),
+    setChatIsSending: jest.fn(),
+    setChatThinkingStatus: jest.fn(),
+    setChatTokenCounts: jest.fn(),
+    setChatActiveConversationRef: jest.fn(),
+    searchOpen: false,
+    ...options,
+  }));
+}
+
+describe('useDashboardConversations', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    getLocalBackendStatusSnapshot.mockReturnValue({ ready: false });
+    subscribeLocalBackendStatusStore.mockImplementation(() => jest.fn());
+  });
+
+  test('reloads recent conversations when the local backend becomes ready', async () => {
+    let statusSubscriber = null;
+    subscribeLocalBackendStatusStore.mockImplementation((subscriber) => {
+      statusSubscriber = subscriber;
+      return jest.fn();
+    });
+    DesktopConversationLibraryClient.listMetadata
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        {
+          conversationRef: 'conv-ready',
+          title: 'Loaded after ready',
+          lastMessage: 'hello',
+          updatedAt: '2026-05-16T20:00:00.000Z',
+          eventCount: 2,
+        },
+      ]);
+
+    const { result } = renderDashboardConversations();
+
+    await waitFor(() => {
+      expect(DesktopConversationLibraryClient.listMetadata).toHaveBeenCalledTimes(1);
+    });
+    expect(result.current.recentConversations).toEqual([]);
+
+    getLocalBackendStatusSnapshot.mockReturnValue({ ready: true });
+    await act(async () => {
+      statusSubscriber();
+    });
+
+    await waitFor(() => {
+      expect(result.current.recentConversations).toEqual([
+        expect.objectContaining({
+          conversation_id: 'conv-ready',
+          title: 'Loaded after ready',
+        }),
+      ]);
+    });
+    expect(DesktopConversationLibraryClient.listMetadata).toHaveBeenCalledTimes(2);
+  });
+});
