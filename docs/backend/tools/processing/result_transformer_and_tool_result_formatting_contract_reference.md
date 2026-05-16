@@ -109,11 +109,11 @@ Text precedence:
 Design intent:
 
 - backend does not validate or rewrite preformatted frontend `llm_content`
-- synthetic and legacy payloads still produce deterministic history text
+- synthetic and payload-only tool results still produce deterministic history text
 
-## `ToolResult.from_dict` Normalization Rules
+## `ToolResult.from_payload` Normalization Rules
 
-For dict-based legacy results:
+For mapping-shaped tool-result payloads:
 
 - `success` defaults to `True` unless `error` exists
 - standard keys are extracted directly
@@ -127,7 +127,7 @@ For dict-based legacy results:
 
 - `llm_content` pass-through in `format_for_history`
 - error/data/default fallback ordering
-- `from_dict` success/error defaulting
+- `from_payload` success/error defaulting
 - screenshot-only generic message behavior
 - nested output/message/llm-content extraction
 - dict and non-dict stringification behavior
@@ -138,7 +138,7 @@ For dict-based legacy results:
 1. adding session/history/event access in transformer breaks strict pure-function boundary.
 2. changing screenshot precedence can silently detach image payloads expected by history writes.
 3. rewriting `format_for_history` precedence can alter LLM context text for every tool turn.
-4. removing screenshot-only text guard in `from_dict` can leak base64 payload into prompt history.
+4. removing screenshot-only text guard in `from_payload` can leak base64 payload into prompt history.
 5. widening `compaction_facts` bounds without test/doc updates can quietly explode compaction prompt size.
 
 ## Related Pages

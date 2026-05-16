@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 ### Changed
 
 - backend/prompts: remove the `get_system_prompt` compatibility accessor and render system prompts through `PromptManager`.
+- backend/tools: rename tool-result mapping normalization from `ToolResult.from_dict` to first-class `ToolResult.from_payload`.
 - backend/container: remove container-level `embedder`, `ocr_service`, and `vision_service` aliases in favor of router fields.
 - backend/sdk: remove the transitional `Context` alias so tools import `ToolContext` directly.
 - backend/simulation: remove the coordinate resolver compatibility re-export and docs from the first-class simulation surface.

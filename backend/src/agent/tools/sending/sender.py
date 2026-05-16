@@ -289,7 +289,7 @@ class ToolSender:
         if isinstance(raw_result, ToolResult):
             return raw_result
         if isinstance(raw_result, dict):
-            return ToolResult.from_dict(raw_result)
+            return ToolResult.from_payload(raw_result)
         if raw_result is None:
             return ToolResult(
                 success=True,

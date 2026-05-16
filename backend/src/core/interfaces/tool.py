@@ -2,7 +2,7 @@
 Tool Interface Definitions.
 
 This module defines interfaces and data structures for tool execution results
-and tool categorization. Used for backward compatibility with legacy tool system.
+and tool categorization.
 """
 from typing import Any, Dict, List, Protocol, runtime_checkable, Optional
 from dataclasses import dataclass
@@ -39,36 +39,49 @@ class ToolResult:
     compaction_facts: Optional[Dict[str, Any]] = None
     
     @classmethod
-    def from_dict(cls, result_dict: Dict[str, Any]) -> "ToolResult":
+    def from_payload(cls, result_payload: Dict[str, Any]) -> "ToolResult":
         """
-        Convert dictionary to ToolResult (for backward compatibility with legacy tools).
+        Normalize a tool result payload into a ToolResult.
         
-        This is a single conversion point for tools that still return dicts.
-        New tools should return ToolResult directly.
+        This is the canonical conversion point for SDK/local-runtime ingress
+        payloads and backend tool implementations that return mapping-shaped
+        data.
         
         Args:
-            result_dict: Dictionary with tool result fields
+            result_payload: Dictionary with tool result fields
             
         Returns:
             ToolResult instance
         """
         # Standard field names that map directly to ToolResult attributes
         standard_fields = {
-            "success", "error", "data", "metadata", "llm_content", "return_display",
-            "episodic_memories", "semantic_facts", "artifacts", "compaction_facts"
+            "success",
+            "error",
+            "data",
+            "metadata",
+            "llm_content",
+            "return_display",
+            "episodic_memories",
+            "semantic_facts",
+            "artifacts",
+            "compaction_facts",
         }
         
         # Extract standard fields
-        kwargs = {k: result_dict.get(k) for k in standard_fields if k in result_dict}
+        kwargs = {
+            k: result_payload.get(k)
+            for k in standard_fields
+            if k in result_payload
+        }
         
         # Determine success if not explicitly set
         if "success" not in kwargs:
-            kwargs["success"] = "error" not in result_dict
+            kwargs["success"] = "error" not in result_payload
         
         # Extract data field - if not present, use remaining non-standard fields
         if "data" not in kwargs or kwargs["data"] is None:
             data = {
-                k: v for k, v in result_dict.items()
+                k: v for k, v in result_payload.items()
                 if k not in standard_fields
             }
             kwargs["data"] = data if data else None
@@ -82,7 +95,11 @@ class ToolResult:
                 if isinstance(data, dict):
                     # Try common output fields, but exclude screenshot (handled separately in multimodal format)
                     # Screenshots should never be in text content - they're sent as image_url in multimodal messages
-                    output_content = data.get("output") or data.get("message") or data.get("llm_content")
+                    output_content = (
+                        data.get("output")
+                        or data.get("message")
+                        or data.get("llm_content")
+                    )
                     if output_content:
                         kwargs["llm_content"] = str(output_content)
                     elif "screenshot" not in data:
@@ -123,7 +140,7 @@ class ToolResult:
         if self.error:
             return f"Error: {self.error}"
 
-        # Fallback to meaningful text from data for synthetic or legacy results.
+        # Fallback to meaningful text from data for synthetic or payload-only results.
         if self.data:
             if isinstance(self.data, dict):
                 output = (

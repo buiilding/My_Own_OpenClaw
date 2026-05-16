@@ -63,7 +63,7 @@ class ToolResultReceiver:
         Returns:
             ToolResult object
         """
-        tool_result = ToolResult.from_dict(
+        tool_result = ToolResult.from_payload(
             {
                 "success": success,
                 "data": result_data,
@@ -117,7 +117,7 @@ class ToolResultReceiver:
         )
 
         # Create ToolResult for the entire bundle
-        bundle_result = ToolResult.from_dict(
+        bundle_result = ToolResult.from_payload(
             {
                 "success": all_success,
                 "data": bundle_data,
