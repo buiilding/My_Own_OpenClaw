@@ -64,13 +64,18 @@ Security gate:
 Connect flow:
 
 1. checks prior CDP availability
-2. calls `ensure_chrome_with_cdp(...)` (dedicated Windie instance policy)
+2. calls `ensure_chrome_with_cdp(...)` (dedicated Windie instance policy and CDP attach probe)
 3. starts Playwright and connects via `chromium.connect_over_cdp(...)`
 4. reuses first context/page when present, otherwise creates new
 5. installs tab observers
 6. sets mode `user_chrome`
 7. resets ref registry for active page
 8. returns payload with `auto_launched` flag
+
+`ensure_chrome_with_cdp(...)` verifies that an existing Windie-owned endpoint
+accepts the `Browser.setDownloadBehavior` command Playwright sends during attach.
+If the endpoint rejects it, the launcher restarts only the matching WindieOS
+browser process and then attaches to the new endpoint.
 
 Failure behavior:
 

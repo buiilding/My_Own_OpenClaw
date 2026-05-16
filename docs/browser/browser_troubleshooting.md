@@ -26,7 +26,15 @@ Checks:
 - Is `WINDIE_BROWSER_CDP_PORT` valid?
 - Is anything else already bound to port `9333`?
 - Does `/json/version` respond on the expected CDP URL?
+- Is the sidecar using Playwright `>=1.59.0`?
 - Did browser feature-pack installation succeed?
+
+If the log contains `Protocol error (Browser.setDownloadBehavior): Browser context
+management is not supported`, the CDP endpoint accepted the websocket
+connection but rejected the command Playwright sends during attach setup. The
+launcher should restart only a matching WindieOS-owned Chrome process on that
+port; if another process owns the port, stop it manually or choose a different
+`WINDIE_BROWSER_CDP_PORT`.
 
 Focused tests:
 

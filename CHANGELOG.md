@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sidecar/browser: restart Windie-owned Chrome CDP sessions that reject Playwright attach setup and require Playwright 1.59+ for the browser runtime.
 - frontend/sidecar: route local JSON-RPC through the sidecar daemon so only one Python memory owner initializes SQLite/FAISS state during embedding backfill.
 - frontend/sidecar: treat hosted embedding gateway failures as unavailable so local memory initialization keeps chat history readable, and show chat-list load failures instead of an empty state.
 - frontend/sidecar: revalidate cached sidecar daemon clients before RPC calls so Electron can recover from stale daemon ports or tokens after restarts.

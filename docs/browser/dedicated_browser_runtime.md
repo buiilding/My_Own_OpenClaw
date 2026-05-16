@@ -39,6 +39,12 @@ This keeps Windie session state separate from the user's normal Chrome profile.
 2. calls `BrowserController.auto_connect_to_chrome(cdp_url="http://127.0.0.1:9333", auto_launch=True, headless=False)`,
 3. returns `scope = "windie_dedicated_browser"`.
 
+Before returning an existing CDP endpoint, `chrome_launcher.py` probes
+`Browser.setDownloadBehavior` with `behavior = "default"`. Playwright sends that
+command during CDP attach setup, so a Windie-owned endpoint that rejects it with
+`Browser context management is not supported` is terminated and relaunched.
+Non-Windie processes bound to the port are not killed.
+
 If you change CDP port behavior, align:
 
 - `chrome_launcher.py` default/override resolution,
@@ -90,4 +96,3 @@ Browser actions `write_file`, `replace_file`, `read_file`, `upload_file`, and sc
 ./scripts/python-in-env sidecar python -m pytest tests/sidecar/test_browser_registry.py tests/sidecar/test_browser_runtime_architecture.py -q
 cd frontend && npm run test:ci -- PermissionService.test.cjs ChatBrowserSessionControl.test.jsx
 ```
-

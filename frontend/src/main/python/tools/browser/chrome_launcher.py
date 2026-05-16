@@ -18,6 +18,7 @@ from typing import List, Optional, Tuple
 from urllib.parse import urlparse
 
 import aiohttp
+import psutil
 
 from tools.browser.chrome_detection import find_chrome_executable
 
@@ -53,57 +54,150 @@ DEFAULT_CDP_URL = DEFAULT_WINDIE_CDP_URL
 
 class ChromeLauncherError(Exception):
     """Base exception for Chrome launcher errors."""
+
     pass
 
 
 class ChromeNotFoundError(ChromeLauncherError):
     """Raised when Chrome executable is not found."""
+
     pass
 
 
 class ChromeLaunchTimeoutError(ChromeLauncherError):
     """Raised when Chrome fails to start within timeout."""
+
     pass
 
 
-async def is_cdp_available(cdp_url: str = DEFAULT_WINDIE_CDP_URL, timeout: float = 2.0) -> bool:
+async def is_cdp_available(
+    cdp_url: str = DEFAULT_WINDIE_CDP_URL, timeout: float = 2.0
+) -> bool:
     """
     Check if Chrome is running with CDP available.
-    
+
     Args:
         cdp_url: CDP endpoint URL
         timeout: Connection timeout in seconds
-    
+
     Returns:
         True if CDP is available, False otherwise
     """
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(
-                f"{cdp_url}/json/version",
-                timeout=aiohttp.ClientTimeout(total=timeout)
+                f"{cdp_url}/json/version", timeout=aiohttp.ClientTimeout(total=timeout)
             ) as response:
                 return response.status == 200
     except Exception:
         return False
 
 
+async def is_cdp_download_behavior_supported(
+    cdp_url: str = DEFAULT_WINDIE_CDP_URL,
+    timeout: float = 2.0,
+) -> bool:
+    """
+    Check whether the CDP browser endpoint supports Playwright's attach setup.
+
+    Playwright's CDP attach path sends Browser.setDownloadBehavior while
+    initializing the default context. Some stale or embedded CDP endpoints accept
+    the websocket but reject that command with "Browser context management is not
+    supported", which makes connect_over_cdp fail immediately.
+    """
+    try:
+        request_timeout = aiohttp.ClientTimeout(total=timeout)
+        async with aiohttp.ClientSession(timeout=request_timeout) as session:
+            async with session.get(f"{cdp_url}/json/version") as response:
+                if response.status != 200:
+                    return False
+                version_payload = await response.json()
+
+            websocket_url = version_payload.get("webSocketDebuggerUrl")
+            if not websocket_url:
+                return False
+
+            async with session.ws_connect(websocket_url, timeout=timeout) as ws:
+                await ws.send_json(
+                    {
+                        "id": 1,
+                        "method": "Browser.setDownloadBehavior",
+                        "params": {"behavior": "default"},
+                    }
+                )
+                message = await ws.receive(timeout=timeout)
+                if message.type != aiohttp.WSMsgType.TEXT:
+                    return False
+                payload = message.json()
+                error = payload.get("error")
+                if not error:
+                    return True
+                logger.warning(
+                    "WindieOS browser CDP endpoint rejected download behavior probe: %s",
+                    error.get("message", error),
+                )
+                return False
+    except Exception as e:
+        logger.debug("Error probing CDP download behavior support: %s", e)
+        return False
+
+
+def _iter_windie_chrome_processes(cdp_port: int) -> List[psutil.Process]:
+    """Return Chrome processes that match WindieOS' dedicated profile and CDP port."""
+    user_data_arg = f"--user-data-dir={get_chrome_user_data_dir()}"
+    port_arg = f"--remote-debugging-port={cdp_port}"
+    matches: List[psutil.Process] = []
+
+    for process in psutil.process_iter(["cmdline"]):
+        try:
+            cmdline = process.info.get("cmdline") or []
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+        if port_arg in cmdline and user_data_arg in cmdline:
+            matches.append(process)
+
+    return matches
+
+
+async def terminate_windie_chrome_with_cdp(cdp_port: int) -> int:
+    """Terminate only WindieOS-owned Chrome processes for the requested CDP port."""
+    processes = _iter_windie_chrome_processes(cdp_port)
+    if not processes:
+        return 0
+
+    for process in processes:
+        try:
+            process.terminate()
+        except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
+            logger.debug("Could not terminate WindieOS browser process: %s", e)
+
+    _, alive = psutil.wait_procs(processes, timeout=3)
+    for process in alive:
+        try:
+            process.kill()
+        except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
+            logger.debug("Could not kill WindieOS browser process: %s", e)
+
+    await asyncio.sleep(CHROME_CHECK_INTERVAL)
+    return len(processes)
+
+
 def find_chrome_process() -> Optional[int]:
     """
     Find Chrome process ID if running.
-    
+
     Returns:
         Process ID if found, None otherwise
     """
     system = platform.system()
-    
+
     try:
         if system == "Windows":
             result = subprocess.run(
                 ["tasklist", "/FI", "IMAGENAME eq chrome.exe", "/FO", "CSV"],
                 capture_output=True,
                 text=True,
-                timeout=5
+                timeout=5,
             )
             if "chrome.exe" in result.stdout:
                 # Parse PID from CSV output
@@ -111,40 +205,38 @@ def find_chrome_process() -> Optional[int]:
                 if len(lines) > 1:
                     parts = lines[1].split('","')
                     if len(parts) > 1:
-                        return int(parts[1].replace('"', ''))
+                        return int(parts[1].replace('"', ""))
         else:
             # Linux/macOS
             result = subprocess.run(
-                ["pgrep", "-f", "chrome"],
-                capture_output=True,
-                text=True,
-                timeout=5
+                ["pgrep", "-f", "chrome"], capture_output=True, text=True, timeout=5
             )
             if result.returncode == 0 and result.stdout.strip():
                 pids = [int(p) for p in result.stdout.strip().split("\n") if p.strip()]
                 return pids[0] if pids else None
     except Exception as e:
         logger.debug(f"Error finding Chrome process: {e}")
-    
+
     return None
 
 
 def is_chrome_running_with_cdp(port: int = DEFAULT_CDP_PORT) -> bool:
     """
     Check if Chrome is running with CDP on specific port.
-    
+
     Args:
         port: CDP port to check
-    
+
     Returns:
         True if Chrome is running with CDP on that port
     """
     # Quick check: is anything listening on the port?
     try:
         import socket
+
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(1)
-        result = sock.connect_ex(('127.0.0.1', port))
+        result = sock.connect_ex(("127.0.0.1", port))
         sock.close()
         return result == 0
     except Exception:
@@ -177,16 +269,16 @@ async def launch_chrome_with_cdp(
 ) -> Tuple[subprocess.Popen, str]:
     """
     Launch Chrome with CDP enabled.
-    
+
     Args:
         cdp_port: Port for Chrome DevTools Protocol
         headless: Run without UI
         executable_path: Optional path to Chrome executable
         extra_args: Additional Chrome arguments
-    
+
     Returns:
         Tuple of (process, cdp_url)
-    
+
     Raises:
         ChromeNotFoundError: If Chrome executable not found
         ChromeLaunchTimeoutError: If Chrome fails to start
@@ -195,16 +287,14 @@ async def launch_chrome_with_cdp(
     if not executable_path:
         exe = find_chrome_executable()
         if not exe:
-            raise ChromeNotFoundError(
-                "Chrome not found. Please install Google Chrome."
-            )
+            raise ChromeNotFoundError("Chrome not found. Please install Google Chrome.")
         executable_path = exe.path
-    
+
     logger.info("Launching WindieOS browser instance with CDP on port %s", cdp_port)
 
     user_data_dir = get_chrome_user_data_dir()
     user_data_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # Build command arguments
     args = [
         executable_path,
@@ -212,14 +302,14 @@ async def launch_chrome_with_cdp(
         f"--user-data-dir={user_data_dir}",
         "--profile-directory=Default",
     ]
-    
+
     if headless:
         args.append("--headless=new")
         args.append("--disable-gpu")
 
     if extra_args:
         args.extend(extra_args)
-    
+
     # Launch Chrome
     try:
         if platform.system() == "Windows":
@@ -239,9 +329,9 @@ async def launch_chrome_with_cdp(
             )
     except Exception as e:
         raise ChromeLauncherError(f"Failed to launch Chrome: {e}") from e
-    
+
     cdp_url = f"http://127.0.0.1:{cdp_port}"
-    
+
     # Wait for CDP to be available
     start_time = time.time()
     while time.time() - start_time < CHROME_STARTUP_TIMEOUT:
@@ -249,7 +339,7 @@ async def launch_chrome_with_cdp(
             logger.info(f"Chrome launched successfully with CDP at {cdp_url}")
             return process, cdp_url
         await asyncio.sleep(CHROME_CHECK_INTERVAL)
-    
+
     # Timeout - kill process and raise error
     try:
         process.terminate()
@@ -258,7 +348,7 @@ async def launch_chrome_with_cdp(
             process.kill()
     except Exception:
         pass
-    
+
     raise ChromeLaunchTimeoutError(
         f"Chrome failed to start CDP within {CHROME_STARTUP_TIMEOUT} seconds"
     )
@@ -267,15 +357,15 @@ async def launch_chrome_with_cdp(
 async def kill_existing_chrome(graceful: bool = True) -> bool:
     """
     Kill existing Chrome process.
-    
+
     Args:
         graceful: Try graceful termination first
-    
+
     Returns:
         True if Chrome was killed, False if not running
     """
     system = platform.system()
-    
+
     try:
         if find_chrome_process() is None:
             return False
@@ -283,13 +373,15 @@ async def kill_existing_chrome(graceful: bool = True) -> bool:
             if graceful:
                 subprocess.run(["taskkill", "/IM", "chrome.exe"], capture_output=True)
             else:
-                subprocess.run(["taskkill", "/F", "/IM", "chrome.exe"], capture_output=True)
+                subprocess.run(
+                    ["taskkill", "/F", "/IM", "chrome.exe"], capture_output=True
+                )
         else:
             if graceful:
                 subprocess.run(["pkill", "-f", "chrome"], capture_output=True)
             else:
                 subprocess.run(["pkill", "-9", "-f", "chrome"], capture_output=True)
-        
+
         # Wait for process to die
         await asyncio.sleep(2)
         return find_chrome_process() is None
@@ -309,24 +401,39 @@ async def ensure_chrome_with_cdp(
     This path intentionally does not inspect/kill the user's default Chrome
     process. If the WindieOS CDP endpoint is unavailable, it launches a
     separate Chrome instance with WindieOS profile data.
-    
+
     Args:
         cdp_port: Port for CDP
         auto_launch: Launch Chrome if not running
         headless: Launch headless if auto-launching
-    
+
     Returns:
         CDP URL for connection
-    
+
     Raises:
         ChromeLauncherError: If Chrome cannot be made available
     """
     cdp_url = f"http://127.0.0.1:{cdp_port}"
-    
-    # Case 1: WindieOS CDP endpoint already available.
+
+    # Case 1: WindieOS CDP endpoint already available and compatible.
     if await is_cdp_available(cdp_url):
-        logger.info("WindieOS browser with CDP already available at %s", cdp_url)
-        return cdp_url
+        if await is_cdp_download_behavior_supported(cdp_url):
+            logger.info("WindieOS browser with CDP already available at %s", cdp_url)
+            return cdp_url
+
+        terminated = await terminate_windie_chrome_with_cdp(cdp_port)
+        if terminated:
+            logger.warning(
+                "Restarting WindieOS browser because existing CDP endpoint at %s "
+                "does not support Playwright attach setup",
+                cdp_url,
+            )
+        else:
+            raise ChromeLauncherError(
+                "WindieOS browser CDP endpoint is available but does not support "
+                "Playwright attach setup, and the process is not a WindieOS-owned "
+                "browser that can be restarted safely."
+            )
 
     # Case 2: WindieOS CDP endpoint unavailable -> launch dedicated instance.
     if auto_launch:
@@ -349,14 +456,14 @@ async def ensure_chrome_with_cdp(
 class ChromeLauncher:
     """
     High-level Chrome launcher with lifecycle management.
-    
+
     Example:
         launcher = ChromeLauncher()
         cdp_url = await launcher.launch()
         # ... use browser ...
         await launcher.shutdown()
     """
-    
+
     def __init__(
         self,
         cdp_port: int = DEFAULT_WINDIE_CDP_PORT,
@@ -369,11 +476,11 @@ class ChromeLauncher:
         self.headless = headless
         self.process: Optional[subprocess.Popen] = None
         self._launched_by_us = False
-    
+
     async def launch(self) -> str:
         """
         Launch or connect to Chrome.
-        
+
         Returns:
             CDP URL
         """
@@ -381,7 +488,7 @@ class ChromeLauncher:
         if await is_cdp_available(self.cdp_url):
             logger.info(f"Using existing Chrome with CDP at {self.cdp_url}")
             return self.cdp_url
-        
+
         # Launch new Chrome
         if self.auto_launch:
             self.process, self.cdp_url = await launch_chrome_with_cdp(
@@ -390,13 +497,13 @@ class ChromeLauncher:
             )
             self._launched_by_us = True
             return self.cdp_url
-        
+
         raise ChromeLauncherError("CDP not available and auto_launch disabled")
-    
+
     async def shutdown(self, kill: bool = False):
         """
         Shutdown Chrome if we launched it.
-        
+
         Args:
             kill: Force kill even if we didn't launch it
         """
