@@ -136,13 +136,17 @@ export function normalizeBackendEventToConversationEvent(
     const skippedReason = typeof payload.skipped_reason === 'string'
       ? payload.skipped_reason
       : '';
+    const replacementHistoryEntries = Array.isArray(payload.replacement_history_entries)
+      ? payload.replacement_history_entries
+      : [];
+    const hasReplacementHistory = replacementHistoryEntries.length > 0;
     return createConversationEvent({
       ...base,
-      type: skippedReason ? 'compaction_skipped' : 'compaction_applied',
+      type: skippedReason || !hasReplacementHistory ? 'compaction_skipped' : 'compaction_applied',
       source: 'backend',
       payload: {
         ...payload,
-        skippedReason: skippedReason || null,
+        skippedReason: skippedReason || (hasReplacementHistory ? null : 'missing-replacement-history'),
         generationId: typeof payload.generation_id === 'string' ? payload.generation_id : null,
         summaryPreview: typeof payload.summary_preview === 'string' ? payload.summary_preview : null,
         rawEvent: event,

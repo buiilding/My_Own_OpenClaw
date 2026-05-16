@@ -89,6 +89,10 @@ The SDK ships two reusable store adapters:
 
 Backend `context-compaction-completed` with `skipped_reason` normalizes to
 `compaction_skipped`. It is runtime/debug state, not assistant output.
+Completed compaction without replacement history also normalizes to
+`compaction_skipped` with `skippedReason: "missing-replacement-history"`; the
+SDK only uses `compaction_applied` when replay-safe replacement entries are
+present.
 
 Only `compaction_applied` with actual replacement history should affect compacted
 replay snapshots. A store adapter must activate a compacted replay generation

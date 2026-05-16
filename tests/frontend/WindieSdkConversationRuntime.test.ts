@@ -389,6 +389,48 @@ describe('Windie SDK conversation runtime core', () => {
     });
   });
 
+  test('backend compaction-completed only normalizes to applied when replacement history exists', () => {
+    const applied = normalizeBackendEventToConversationEvent({
+      type: 'context-compaction-completed',
+      conversation_ref: 'conv-sdk-runtime',
+      turn_ref: 'turn-1',
+      payload: {
+        generation_id: 'gen-applied',
+        summary_preview: 'summary',
+        replacement_history_entries: [
+          { role: 'assistant', content: 'summary', message_type: 'context_compaction' },
+        ],
+        skipped_reason: null,
+      },
+    });
+    const missingReplacement = normalizeBackendEventToConversationEvent({
+      type: 'context-compaction-completed',
+      conversation_ref: 'conv-sdk-runtime',
+      turn_ref: 'turn-1',
+      payload: {
+        summary_preview: 'summary but no replacement history',
+        replacement_history_entries: [],
+        skipped_reason: null,
+      },
+    });
+
+    expect(applied).toMatchObject({
+      type: 'compaction_applied',
+      payload: expect.objectContaining({
+        generationId: 'gen-applied',
+        summaryPreview: 'summary',
+        skippedReason: null,
+      }),
+    });
+    expect(missingReplacement).toMatchObject({
+      type: 'compaction_skipped',
+      payload: expect.objectContaining({
+        skippedReason: 'missing-replacement-history',
+      }),
+    });
+    expect(buildDisplayConversation([missingReplacement as ConversationEvent]).messages).toEqual([]);
+  });
+
   test('tool coordinator returns explicit failed result for claimed tool execution failure', async () => {
     const store = new InMemoryConversationStore();
     const sendToolResult = jest.fn(async () => undefined);
