@@ -11,8 +11,13 @@ describe('modular sdk refactor completion boundary', () => {
   test('main runtime does not expose raw backend envelope sends', async () => {
     const source = await read('frontend/src/main/windie_sdk_runtime.cjs');
 
+    expect(source).toContain("packages/windie-sdk-js/src/transport/ManagedBackendSession.cjs");
     expect(source).not.toContain('sendBackendMessage,');
     expect(source).not.toContain('sendEnvelope,');
+    expect(source).not.toContain('connectWaiters');
+    expect(source).not.toContain('idleDisconnectTimer');
+    expect(source).not.toContain('reconnectTimer');
+    expect(source).not.toContain('shouldMaintainConnection');
     expect(source).toContain('sendCompactHistory');
     expect(source).toContain('sendRehydrateConversation');
     expect(source).toContain('sendToolBundleResult');

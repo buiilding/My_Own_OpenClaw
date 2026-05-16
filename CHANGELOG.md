@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sdk: delegate Electron main websocket lifecycle to the SDK managed backend session instead of owning reconnect and idle timers locally.
 - sdk: add a managed backend websocket session for handshake, reconnect, idle disconnect, fallback, typed sends, and event parsing.
 - frontend/sdk: add a modular refactor completion guardrail for runtime boundaries and public examples.
 - docs: update frontend architecture ownership for renderer app runtime facades and typed SDK command sends.
