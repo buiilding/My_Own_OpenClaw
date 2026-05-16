@@ -80,6 +80,8 @@ function useDashboardConversations({
             last_message: metadata.lastMessage || '',
             last_timestamp: metadata.updatedAt,
             entry_count: metadata.eventCount,
+            workspace_path: metadata.workspacePath || '',
+            workspace_name: metadata.workspaceName || '',
           })),
         );
 

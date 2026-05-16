@@ -29,6 +29,11 @@ export const SDK_CONVERSATION_EVENT_RECORD_KIND = 'conversation_event';
 
 type StoredConversationRow = Record<string, unknown>;
 
+type DesktopConversationMetadata = ConversationMetadata & {
+  workspacePath?: string | null;
+  workspaceName?: string | null;
+};
+
 type ElectronSidecarConversationStoreOptions = {
   userId: string;
   pageSize?: number;
@@ -527,18 +532,24 @@ export class ElectronSidecarConversationStore implements ConversationStore {
   private async listMetadataForRecordKind(
     recordKind: string,
     limit: number | null,
-  ): Promise<ConversationMetadata[]> {
+  ): Promise<DesktopConversationMetadata[]> {
     const rows = await this.deps.listStoredConversations({
       userId: this.userId,
       limit,
       recordKind,
     });
     return rows
-      .map((row): ConversationMetadata | null => {
+      .map((row): DesktopConversationMetadata | null => {
         const conversationRef = conversationRefFromMetadata(row);
         if (!conversationRef) {
           return null;
         }
+        const workspacePath = normalizeNonEmptyString(row.workspace_path)
+          ?? normalizeNonEmptyString(row.workspacePath)
+          ?? null;
+        const workspaceName = normalizeNonEmptyString(row.workspace_name)
+          ?? normalizeNonEmptyString(row.workspaceName)
+          ?? null;
         return {
           conversationRef,
           revisionId: `rev-stored-${conversationRef}`,
@@ -550,9 +561,11 @@ export class ElectronSidecarConversationStore implements ConversationStore {
           eventCount: typeof row.entry_count === 'number'
             ? row.entry_count
             : Number(row.entryCount ?? 0) || 0,
-        } satisfies ConversationMetadata;
+          workspacePath,
+          workspaceName,
+        } satisfies DesktopConversationMetadata;
       })
-      .filter((metadata): metadata is ConversationMetadata => Boolean(metadata));
+      .filter((metadata): metadata is DesktopConversationMetadata => Boolean(metadata));
   }
 }
 

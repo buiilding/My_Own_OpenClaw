@@ -374,6 +374,8 @@ describe('ElectronSidecarConversationStore', () => {
         last_message: 'latest',
         last_timestamp: '2026-05-15T12:00:00.000Z',
         entry_count: 3,
+        workspace_path: '/work/WindieOS',
+        workspace_name: 'WindieOS',
       } as any,
     ]);
 
@@ -387,6 +389,8 @@ describe('ElectronSidecarConversationStore', () => {
         lastMessage: 'latest',
         updatedAt: '2026-05-15T12:00:00.000Z',
         eventCount: 3,
+        workspacePath: '/work/WindieOS',
+        workspaceName: 'WindieOS',
       },
     ]);
     expect(mockListStoredConversations).toHaveBeenCalledTimes(1);
