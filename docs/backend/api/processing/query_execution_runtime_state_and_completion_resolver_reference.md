@@ -70,6 +70,22 @@ behavior:
 
 Failure is non-fatal; query continues without screenshot payload.
 
+## Agent Runtime Inputs
+
+`QueryExecutionService.execute(...)` forwards the normalized query inputs into
+`AgentSession.process_query(...)`:
+
+- `conversation_ref`
+- `workspace_path`
+- `repo_instruction_messages`
+- `client_prompt_layers`
+- `agent_definition`
+- `runtime_system_state`
+
+These inputs are session/runtime context, not display rows. Query handler tests use
+dummy sessions with the full signature so drift in the backend-to-session contract
+fails at the handler boundary.
+
 ## Stream Context Attachment Contract
 
 `query_execution_runtime.build_stream_context(...)` creates immutable per-query dict:

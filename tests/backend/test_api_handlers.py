@@ -76,8 +76,11 @@ class DummyAgent:
         operating_system=None,
         workspace_path=None,
         repo_instruction_messages=None,
+        client_prompt_layers=None,
+        agent_definition=None,
         runtime_system_state=None,
     ):
+        _ = (client_prompt_layers, agent_definition)
         yield {"type": "chunk", "content": "ok"}
 
     async def update_config(self, new_cfg):
@@ -108,6 +111,8 @@ class DummyCaptureAgent:
         operating_system=None,
         workspace_path=None,
         repo_instruction_messages=None,
+        client_prompt_layers=None,
+        agent_definition=None,
         runtime_system_state=None,
     ):
         self.calls.append(
@@ -121,6 +126,8 @@ class DummyCaptureAgent:
                 "operating_system": operating_system,
                 "workspace_path": workspace_path,
                 "repo_instruction_messages": repo_instruction_messages,
+                "client_prompt_layers": client_prompt_layers,
+                "agent_definition": agent_definition,
                 "runtime_system_state": runtime_system_state,
             }
         )
@@ -162,9 +169,12 @@ class DummySilentAgent:
         operating_system=None,
         workspace_path=None,
         repo_instruction_messages=None,
+        client_prompt_layers=None,
+        agent_definition=None,
         runtime_system_state=None,
     ):
         if False:
+            _ = (client_prompt_layers, agent_definition, runtime_system_state)
             yield {
                 "type": "chunk",
                 "content": text,
@@ -191,8 +201,11 @@ class DummyAssistantFullThenCompleteAgent:
         operating_system=None,
         workspace_path=None,
         repo_instruction_messages=None,
+        client_prompt_layers=None,
+        agent_definition=None,
         runtime_system_state=None,
     ):
+        _ = (client_prompt_layers, agent_definition, runtime_system_state)
         yield {"type": "assistant_message_full", "content": "Final answer from assistant full"}
         yield {"type": "streaming-complete", "payload": {}}
 
@@ -214,8 +227,11 @@ class DummyPostTerminalNoiseAgent:
         operating_system=None,
         workspace_path=None,
         repo_instruction_messages=None,
+        client_prompt_layers=None,
+        agent_definition=None,
         runtime_system_state=None,
     ):
+        _ = (client_prompt_layers, agent_definition, runtime_system_state)
         yield {"type": "chunk", "content": "first chunk"}
         yield {"type": "streaming-complete", "payload": {"final_response": "done"}}
         yield {"type": "chunk", "content": "late chunk"}
@@ -238,8 +254,11 @@ class DummyErrorThenChunkAgent:
         operating_system=None,
         workspace_path=None,
         repo_instruction_messages=None,
+        client_prompt_layers=None,
+        agent_definition=None,
         runtime_system_state=None,
     ):
+        _ = (client_prompt_layers, agent_definition, runtime_system_state)
         yield {"type": "error", "payload": {"message": "failed"}}
         yield {"type": "chunk", "content": "late chunk"}
 
@@ -263,8 +282,11 @@ class DummyBlockingAgent:
         operating_system=None,
         workspace_path=None,
         repo_instruction_messages=None,
+        client_prompt_layers=None,
+        agent_definition=None,
         runtime_system_state=None,
     ):
+        _ = (client_prompt_layers, agent_definition, runtime_system_state)
         self._started_event.set()
         await asyncio.sleep(3600)
         if False:

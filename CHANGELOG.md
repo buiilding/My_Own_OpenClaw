@@ -14,6 +14,7 @@ All notable changes to WindieOS will be documented in this file.
 - backend/llm: require `LLMClient` implementations to provide normalized response and streaming-tool capability contracts explicitly.
 - backend/prompts: require injected `MetricsService` for prompt construction and session config rebuilds.
 - backend/vision: clarify Venus tokenizer reuse as provider capability behavior.
+- backend/tests: align query handler doubles with the first-class `AgentSession.process_query` runtime context contract.
 - backend/container: remove container-level `embedder`, `ocr_service`, and `vision_service` aliases in favor of router fields.
 - backend/sdk: remove the transitional `Context` alias so tools import `ToolContext` directly.
 - backend/simulation: remove the coordinate resolver compatibility re-export and docs from the first-class simulation surface.
