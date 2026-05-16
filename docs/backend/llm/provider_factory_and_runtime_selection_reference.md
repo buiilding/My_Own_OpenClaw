@@ -73,7 +73,7 @@ If requested provider name is absent in factory map:
 
 Implementation note:
 
-- response schema/type validation helpers are centralized in `client_response_normalization.py`; `LiteLLMClient` keeps compatibility wrapper methods that delegate to this module.
+- response schema/type validation helpers are centralized in `client_response_normalization.py`; `LiteLLMClient` delegates through small named normalization helpers.
 
 Error semantics:
 

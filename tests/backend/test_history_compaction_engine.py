@@ -40,10 +40,18 @@ class _FakeLLMClient(LLMClient):
         )
         return "Compacted summary"
 
+    async def get_completion_response(self, model, messages, **request_kwargs):
+        content = await self.get_completion(model, messages, **request_kwargs)
+        return {"content": content}
+
     async def get_completion_stream(self, model, messages, **request_kwargs):
         _ = (model, messages, request_kwargs)
         if False:
             yield ErrorEvent(content="unused")
+
+    def supports_streaming_tool_turns(self, model):
+        _ = model
+        return False
 
 
 class _FakeSession:

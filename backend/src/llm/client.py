@@ -49,6 +49,7 @@ class LLMClient(ABC):
         Gets a completion from the LLM based on a list of messages.
         """
 
+    @abstractmethod
     async def get_completion_response(
         self,
         model: str,
@@ -57,15 +58,7 @@ class LLMClient(ABC):
     ) -> NormalizedLLMResponse:
         """
         Gets a normalized completion payload.
-
-        Default compatibility path for clients that only expose text completion.
         """
-        content = await self.get_completion(
-            model=model,
-            messages=messages,
-            **request_kwargs,
-        )
-        return {"content": content}
 
     @abstractmethod
     async def get_completion_stream(
@@ -90,14 +83,11 @@ class LLMClient(ABC):
         """
         return None
 
+    @abstractmethod
     def supports_streaming_tool_turns(self, model: str) -> bool:
         """
         Return whether tool-enabled turns can safely use stream transport.
-
-        Default stays conservative for compatibility with existing clients.
         """
-        _ = model
-        return False
 
 
 class LiteLLMClient(LLMClient):
@@ -194,12 +184,6 @@ class LiteLLMClient(LLMClient):
     ) -> NormalizedLLMResponse:
         """Validate provider response against the canonical normalized contract."""
         return normalize_response_payload(response, model=model)
-
-    @staticmethod
-    def _extract_content(response: Any, model: str) -> str:
-        """Backward-compatible helper retained for existing tests/callers."""
-        normalized = LiteLLMClient._normalize_response_payload(response, model)
-        return normalized["content"]
 
     def _reset_stream_tracking_state(self, provider: "LLMProvider") -> None:
         """Reset cached stream diagnostics/payload before a new provider call."""

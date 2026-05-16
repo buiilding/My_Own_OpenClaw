@@ -124,6 +124,10 @@ class BaseSimulationLLMClient(LLMClient):
         for char in response:
             yield ChunkEvent(content=char)
 
+    def supports_streaming_tool_turns(self, model: str) -> bool:
+        _ = model
+        return False
+
     def reset(self) -> None:
         self._iteration = 0
         self._pending_final_response = None

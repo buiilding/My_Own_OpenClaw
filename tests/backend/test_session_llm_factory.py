@@ -23,6 +23,16 @@ class DummyLLMClient(LLMClient):
     ):
         return "ok"
 
+    async def get_completion_response(
+        self,
+        model,
+        messages,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+    ):
+        return {"content": "ok"}
+
     async def get_completion_stream(
         self,
         model,
@@ -33,6 +43,10 @@ class DummyLLMClient(LLMClient):
     ):
         if False:
             yield
+
+    def supports_streaming_tool_turns(self, model):
+        _ = model
+        return False
 
 
 @pytest.fixture(autouse=True)
