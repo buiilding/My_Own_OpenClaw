@@ -12,7 +12,10 @@ import {
   getTranscriptSessionInfo,
   updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
-import { ElectronSidecarConversationStore } from '../../../infrastructure/transcript/ElectronSidecarConversationStore';
+import {
+  buildRehydrateSnapshotFromTranscriptProjectionEntries,
+  ElectronSidecarConversationStore,
+} from '../../../infrastructure/transcript/ElectronSidecarConversationStore';
 import {
   getConversationWorkspaceBinding,
   setConversationWorkspaceBinding,
@@ -30,39 +33,39 @@ import { createConversationRef } from '../utils/session/conversationRef';
 import {
   resolveTranscriptMessageType,
   resolveTranscriptRole,
-  toRehydratePayload,
 } from '../utils/session/transcriptMessagePayload';
 import { buildReplayContextMessages } from '../utils/conversationReplayToolMessages';
 
-async function replayTranscriptMessages(messages, userId, conversationRef) {
+function buildTranscriptProjectionEntries(messages) {
+  return messages.map((message) => ({
+    content: message.text,
+    role: resolveTranscriptRole(message),
+    messageType: resolveTranscriptMessageType(message),
+    toolName: message.toolName || null,
+    correlationId: message.correlationId || null,
+    screenshot: resolveStoredTranscriptScreenshotValue({
+      screenshot: message.screenshot || null,
+      screenshotRef: message.screenshotRef || null,
+      screenshotUrl: message.screenshotUrl || null,
+      screenshotContentType: message.screenshotContentType || null,
+    }),
+    timestamp: message.timestamp || null,
+  }));
+}
+
+async function replayTranscriptProjection(entries, userId, conversationRef) {
   if (!userId) {
     return;
   }
   const store = new ElectronSidecarConversationStore({ userId });
-  await store.rewriteTranscriptProjection({
-    conversationRef,
-    entries: messages.map((message) => ({
-      content: message.text,
-      role: resolveTranscriptRole(message),
-      messageType: resolveTranscriptMessageType(message),
-      toolName: message.toolName || null,
-      correlationId: message.correlationId || null,
-      screenshot: resolveStoredTranscriptScreenshotValue({
-        screenshot: message.screenshot || null,
-        screenshotRef: message.screenshotRef || null,
-        screenshotUrl: message.screenshotUrl || null,
-        screenshotContentType: message.screenshotContentType || null,
-      }),
-      timestamp: message.timestamp || null,
-    })),
-  });
+  await store.rewriteTranscriptProjection({ conversationRef, entries });
 }
 
 async function runReplayQueryFlow({
   conversationRef,
   userId,
-  transcriptMessages,
-  rehydratePayloads,
+  transcriptEntries,
+  rehydrateEntries,
   queryText,
   screenshotRef,
   screenshotUrl,
@@ -70,10 +73,14 @@ async function runReplayQueryFlow({
   deferredQueryModelConfig,
   workspacePath,
 }) {
-  await replayTranscriptMessages(transcriptMessages, userId, conversationRef);
+  await replayTranscriptProjection(transcriptEntries, userId, conversationRef);
+  const rehydrateSnapshot = buildRehydrateSnapshotFromTranscriptProjectionEntries({
+    conversationRef,
+    entries: rehydrateEntries,
+  });
   await rehydrateConversationInferenceSession({
     conversationRef,
-    messages: rehydratePayloads,
+    messages: rehydrateSnapshot.messages,
   });
   if (deferredQueryModelConfig) {
     ApiClient.updateSettings(deferredQueryModelConfig);
@@ -119,7 +126,7 @@ async function executeReplayAction({
   sessionInfo,
   activeConversationRef,
   replayMessages,
-  preservedPayloads,
+  preservedMessages,
   queryText,
   screenshotRef,
   screenshotUrl,
@@ -155,8 +162,8 @@ async function executeReplayAction({
     await runReplayQueryFlow({
       conversationRef,
       userId: sessionInfo.userId,
-      transcriptMessages: replayMessages,
-      rehydratePayloads: preservedPayloads,
+      transcriptEntries: buildTranscriptProjectionEntries(replayMessages),
+      rehydrateEntries: buildTranscriptProjectionEntries(preservedMessages),
       queryText,
       screenshotRef: screenshotRef || null,
       screenshotUrl: screenshotUrl || null,
@@ -203,7 +210,6 @@ export function useConversationReplayActions({
     const preservedMessages = messages.slice(0, userIndex);
     const replayContextMessages = buildReplayContextMessages(preservedMessages);
     const replayConversation = [...replayContextMessages, editUserMessage];
-    const preservedPayloads = replayContextMessages.map(toRehydratePayload).filter(Boolean);
     const sessionInfo = getTranscriptSessionInfo();
     const replayScreenshot = resolveReplayScreenshotState({
       screenshot: editUserMessage.screenshot || null,
@@ -215,7 +221,7 @@ export function useConversationReplayActions({
       sessionInfo,
       activeConversationRef,
       replayMessages: replayConversation,
-      preservedPayloads,
+      preservedMessages: replayContextMessages,
       queryText: normalizedEditedText,
       screenshotRef: replayScreenshot.screenshotRef,
       screenshotUrl: replayScreenshot.screenshotUrl,
@@ -259,10 +265,6 @@ export function useConversationReplayActions({
     const retryUserMessage = messages[userIndex];
     const preservedMessages = messages.slice(0, userIndex + 1);
     const replayContextMessages = buildReplayContextMessages(preservedMessages);
-    const preservedPayloads = replayContextMessages
-      .slice(0, -1)
-      .map(toRehydratePayload)
-      .filter(Boolean);
     const sessionInfo = getTranscriptSessionInfo();
     const replayScreenshot = resolveReplayScreenshotState({
       screenshot: retryUserMessage.screenshot || null,
@@ -274,7 +276,7 @@ export function useConversationReplayActions({
       sessionInfo,
       activeConversationRef,
       replayMessages: replayContextMessages,
-      preservedPayloads,
+      preservedMessages: replayContextMessages.slice(0, -1),
       queryText: retryUserMessage.text,
       screenshotRef: replayScreenshot.screenshotRef,
       screenshotUrl: replayScreenshot.screenshotUrl,

@@ -189,7 +189,7 @@ not execute tools.
 4. send backend rehydrate payload (`ApiClient.sendRehydrateConversation`)
    - `toRehydrateMessagePayload(...)` appends persisted `transparency` snapshots to rehydrate `content` so resumed/manual compaction runs see saved prompt/tool-schema/full-message context.
    - tool-call rows reuse the same normalized message-state helper before `buildRehydrateToolCall(...)` so transcript/session serialization and dashboard replay cannot drift on tool-call ids or display text
-   - final rehydrate payload shaping is centralized in `rehydrateMessageState.js` so dashboard-open rehydrate and edit/retry replay agree on `tool_name`, `tool_call_id`, screenshots, and structured tool payload fallback
+   - final rehydrate payload shaping is centralized in SDK projection helpers so dashboard-open rehydrate and edit/retry replay agree on `tool_name`, `tool_call_id`, screenshots, and structured tool payload fallback
 5. set active transcript conversation/session info
 6. replace renderer chat store with parsed rows
 
@@ -240,7 +240,9 @@ Dashboard startup and open-chat loading also use the SDK store adapter:
   sidecar conversation store adapter, which owns the local transcript and
   `transcript_replay` generation writes. The replay hook still chooses the
   replacement message list during migration, but it no longer invokes
-  `store-transcript` or `delete-conversation` directly.
+  `store-transcript`, `delete-conversation`, or direct backend rehydrate shaping.
+  It converts replay rows into store projection entries and lets the SDK
+  projection build the backend rehydrate snapshot.
 - compacted replay replacement appends a new generation with
   `replay_generation_entry_count` and `replay_generation_complete` metadata.
   Loaders select the newest complete generation and ignore partial writes, so a

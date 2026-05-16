@@ -1,4 +1,5 @@
 import {
+  buildRehydrateSnapshotFromTranscriptProjectionEntries,
   ElectronSidecarConversationStore,
   SDK_CONVERSATION_EVENT_RECORD_KIND,
 } from '../../frontend/src/renderer/infrastructure/transcript/ElectronSidecarConversationStore';
@@ -486,6 +487,39 @@ describe('ElectronSidecarConversationStore', () => {
       recordKind: SDK_CONVERSATION_EVENT_RECORD_KIND,
       limit: null,
     }));
+  });
+
+  test('builds replay rehydrate snapshots from transcript projection entries through SDK projections', () => {
+    const snapshot = buildRehydrateSnapshotFromTranscriptProjectionEntries({
+      conversationRef: 'conv-replay',
+      entries: [
+        {
+          content: 'previous prompt',
+          role: 'user',
+          messageType: 'user',
+          timestamp: '2026-05-15T12:00:00.000Z',
+        },
+        {
+          content: '{"name":"read_file"}',
+          role: 'assistant',
+          messageType: 'tool-call',
+          toolName: 'read_file',
+          correlationId: 'call-read',
+          timestamp: '2026-05-15T12:00:01.000Z',
+        },
+      ],
+    });
+
+    expect(snapshot).toMatchObject({
+      conversationRef: 'conv-replay',
+      messages: [
+        expect.objectContaining({
+          role: 'user',
+          content: 'previous prompt',
+        }),
+      ],
+    });
+    expect(snapshot.messages).toHaveLength(1);
   });
 
   test('applies explicit metadata limits after merging record kinds', async () => {

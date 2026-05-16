@@ -68,6 +68,30 @@ export type TranscriptProjectionAppendEntry = TranscriptProjectionRewriteEntry &
   rehydrateEntry: Record<string, unknown>;
 };
 
+export function buildRehydrateSnapshotFromTranscriptProjectionEntries({
+  conversationRef,
+  entries,
+}: {
+  conversationRef: string;
+  entries: TranscriptProjectionRewriteEntry[];
+}): RehydrateSnapshot {
+  const transcriptRows = entries.map((entry, index) => ({
+    id: `projection-${conversationRef}-${index}`,
+    content: entry.content,
+    role: entry.role,
+    message_type: entry.messageType,
+    tool_name: entry.toolName || null,
+    correlation_id: entry.correlationId || null,
+    screenshot: entry.screenshot ?? null,
+    timestamp: entry.timestamp || null,
+    record_kind: 'transcript',
+    message_index: index + 1,
+  }));
+  return buildRehydrateSnapshot(
+    buildConversationEventsFromStoredTranscript(transcriptRows, { conversationRef }),
+  );
+}
+
 function normalizeNonEmptyString(value: unknown): string | null {
   if (typeof value !== 'string') {
     return null;
