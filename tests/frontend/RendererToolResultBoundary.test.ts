@@ -2,10 +2,6 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 const rendererRoot = path.resolve(__dirname, '../../frontend/src/renderer');
-const allowedRelativePaths = new Set([
-  'features/chat/utils/conversationReplayToolMessages.js',
-  'infrastructure/transcript/structuredToolPayload.js',
-]);
 
 async function listSourceFiles(dir: string): Promise<string[]> {
   const entries = await fs.readdir(dir, { withFileTypes: true });
@@ -30,9 +26,6 @@ describe('renderer tool-result boundary', () => {
 
     for (const file of files) {
       const relativePath = path.relative(rendererRoot, file);
-      if (allowedRelativePaths.has(relativePath)) {
-        continue;
-      }
       const source = await fs.readFile(file, 'utf8');
       if (
         source.includes("'tool-result'")

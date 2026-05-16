@@ -178,7 +178,7 @@ export function buildStoredTranscriptToolMessageState({
     };
   }
 
-  if (normalizedMessageType === 'tool-output' || normalizedMessageType === 'tool-result') {
+  if (normalizedMessageType === 'tool-output') {
     const toolOutputDetails = resolveStructuredToolOutputDetails(structuredPayload);
     return {
       text,

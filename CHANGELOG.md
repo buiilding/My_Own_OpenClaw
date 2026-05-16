@@ -9,6 +9,8 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/tests: align surface window tests with the first-class main-window open target and install-auth bridge contracts.
 - frontend/sdk: remove renderer store compatibility for legacy hyphenated tool projection result names.
 - frontend/main: reset the SDK-managed backend runtime reference during IPC test shutdown so closed sessions are never reused.
+- frontend/renderer: remove the remaining `tool-result` replay/display aliases from renderer utilities.
+- frontend/tests: make IPC bridge harness restore the original fetch implementation between SDK runtime suites.
 - sidecar: remove the `core.thread_pool` compatibility facade and route memory background I/O through `core.executors` directly.
 - frontend/sdk: make desktop rehydrate use first-class app runtime command names and keep backend wire naming inside the SDK transport adapter.
 - sidecar/wakeword: reject unsupported wakeword model constructor shapes instead of silently instantiating an unknown compatibility path.

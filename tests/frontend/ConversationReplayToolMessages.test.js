@@ -35,11 +35,11 @@ describe('conversationReplayToolMessages', () => {
     ]);
   });
 
-  test('falls back to earliest pending call when output id is missing and no idless call exists', () => {
+  test('uses the earliest pending call when output id is missing and no idless call exists', () => {
     const messages = [
       { id: 'm-1', type: 'tool-call', correlationId: 'corr-a' },
       { id: 'm-2', type: 'tool-call', correlationId: 'corr-b' },
-      { id: 'm-3', type: 'tool-result', correlationId: '   ' },
+      { id: 'm-3', type: 'tool-output', correlationId: '   ' },
       { id: 'm-4', type: 'llm-text', text: 'tail' },
     ];
 

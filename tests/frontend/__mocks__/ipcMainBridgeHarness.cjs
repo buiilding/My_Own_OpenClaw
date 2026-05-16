@@ -97,6 +97,7 @@ jest.mock('../../../frontend/src/main/local_backend_bridge.cjs', () => ({
 const { createBridgeSuiteLifecycle } = require('./bridgeSuiteLifecycle.cjs');
 
 const ORIGINAL_ENV = process.env;
+const ORIGINAL_FETCH = global.fetch;
 
 const {
   resetBackendEnv,
@@ -117,7 +118,6 @@ const DEFAULT_MEMORY_RESULT = {
 };
 
 let lastIpc = null;
-let originalFetch = null;
 
 function primeQueryContext(backendBridge, options = {}) {
   backendBridge.executeToolForBackend.mockResolvedValue({
@@ -157,9 +157,6 @@ function initIpc(options = {}) {
     },
   });
 
-  if (originalFetch === null) {
-    originalFetch = global.fetch;
-  }
   global.fetch = jest.fn(async (url) => {
     if (typeof url === 'string' && url.includes('/api/install/register')) {
       return {
@@ -227,7 +224,7 @@ function registerIpcBridgeSuiteLifecycleHooks() {
     lastIpc = null;
     const WebSocketMock = require('ws');
     WebSocketMock.instances.length = 0;
-    global.fetch = originalFetch;
+    global.fetch = ORIGINAL_FETCH;
     jest.restoreAllMocks();
   });
 

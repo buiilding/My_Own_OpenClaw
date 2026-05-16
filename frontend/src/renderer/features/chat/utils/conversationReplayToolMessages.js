@@ -1,7 +1,7 @@
 import { resolveCorrelationId } from '../../../infrastructure/services/CorrelationId';
 
 const TOOL_CALL_MESSAGE_TYPES = new Set(['tool-call', 'tool-bundle']);
-const TOOL_OUTPUT_MESSAGE_TYPES = new Set(['tool-output', 'tool-result']);
+const TOOL_OUTPUT_MESSAGE_TYPES = new Set(['tool-output']);
 
 function normalizeReplayMessageType(message) {
   if (!message || typeof message !== 'object') {
