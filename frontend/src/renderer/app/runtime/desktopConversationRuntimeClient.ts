@@ -50,6 +50,10 @@ type RewriteAndResendInput = {
   workspacePath?: string | null;
 };
 
+type RehydrateFromStoreInput = LoadRehydrateSnapshotInput & {
+  workspacePath?: string | null;
+};
+
 function optionalString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value : null;
 }
@@ -62,6 +66,27 @@ function optionalStringArray(value: unknown): string[] | null {
     .filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0)
     .map((entry) => entry.trim());
   return normalized.length > 0 ? normalized : null;
+}
+
+function toRehydrateConversationEntry(message: JsonRecord): RehydrateConversationEntry | null {
+  const role = message.role;
+  if (role !== 'user' && role !== 'assistant' && role !== 'tool') {
+    return null;
+  }
+  const content = typeof message.content === 'string'
+    ? message.content
+    : JSON.stringify(message.content ?? '');
+  return {
+    ...message,
+    role,
+    content,
+  } as RehydrateConversationEntry;
+}
+
+function toRehydrateConversationEntries(messages: JsonRecord[]): RehydrateConversationEntry[] {
+  return messages
+    .map(toRehydrateConversationEntry)
+    .filter((message): message is RehydrateConversationEntry => Boolean(message));
 }
 
 function createDesktopBackendTransport(workspacePath: string | null = null): BackendTransport {
@@ -197,6 +222,19 @@ export const DesktopConversationRuntimeClient = {
 
   async loadRehydrateSnapshot(input: LoadRehydrateSnapshotInput) {
     return DesktopTranscriptProjectionRuntimeClient.loadRehydrateSnapshot(input);
+  },
+
+  async rehydrateFromStore(input: RehydrateFromStoreInput): Promise<void> {
+    const snapshot = await DesktopTranscriptProjectionRuntimeClient.loadRehydrateSnapshot(input);
+    const messages = toRehydrateConversationEntries(snapshot.messages);
+    if (messages.length === 0) {
+      return;
+    }
+    await DesktopBackendCommandRuntimeClient.rehydrateConversation({
+      conversationRef: input.conversationRef,
+      messages,
+      workspacePath: input.workspacePath ?? null,
+    });
   },
 
   async editAndResend(input: RewriteAndResendInput): Promise<void> {

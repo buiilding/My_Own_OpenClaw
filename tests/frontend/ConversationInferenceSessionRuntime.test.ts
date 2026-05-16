@@ -12,7 +12,7 @@ import {
 
 jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient', () => ({
   DesktopConversationRuntimeClient: {
-    loadRehydrateSnapshot: jest.fn(),
+    rehydrateFromStore: jest.fn(),
     rehydrate: jest.fn(),
   },
 }));
@@ -41,28 +41,14 @@ describe('conversationInferenceSessionRuntime', () => {
   beforeEach(() => {
     invalidateConversationInferenceSessionState();
     mockDesktopRuntime.rehydrate.mockReset();
-    mockDesktopRuntime.loadRehydrateSnapshot.mockReset();
+    mockDesktopRuntime.rehydrateFromStore.mockReset();
     mockLoadLocalConversationSnapshot.mockReset();
     mockLocalSnapshot();
   });
 
   test('lazy rehydrates an unknown existing conversation once and then treats it as synced', async () => {
     markConversationInferenceSessionUnknown('conv-existing');
-    mockDesktopRuntime.loadRehydrateSnapshot.mockResolvedValueOnce({
-      conversationRef: 'conv-existing',
-      revisionId: 'rev-1',
-      messages: [
-        {
-          role: 'user',
-          content: 'hello',
-          message_type: 'user',
-          metadata: {},
-        } as any,
-      ],
-      compactedReplay: null,
-      toolTrace: { calls: [] },
-      compaction: { status: 'none' },
-    } as any);
+    mockDesktopRuntime.rehydrateFromStore.mockResolvedValueOnce(undefined);
 
     await ensureConversationInferenceSessionHydrated({
       conversationRef: 'conv-existing',
@@ -77,87 +63,45 @@ describe('conversationInferenceSessionRuntime', () => {
     expect(mockLoadLocalConversationSnapshot).toHaveBeenCalledWith(expect.objectContaining({
       recordKind: 'conversation_event',
     }));
-    expect(mockDesktopRuntime.loadRehydrateSnapshot).toHaveBeenCalledTimes(1);
-    expect(mockDesktopRuntime.rehydrate).toHaveBeenCalledTimes(1);
-    expect(mockDesktopRuntime.rehydrate).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mockDesktopRuntime.rehydrateFromStore).toHaveBeenCalledTimes(1);
+    expect(mockDesktopRuntime.rehydrateFromStore).toHaveBeenCalledWith(expect.objectContaining({
       conversationRef: 'conv-existing',
-      messages: [
-        expect.objectContaining({
-          role: 'user',
-          content: 'hello',
-          message_type: 'user',
-        }),
-      ],
+      userId: 'user-1',
       workspacePath: null,
     }));
+    expect(mockDesktopRuntime.rehydrate).not.toHaveBeenCalled();
     expect(getConversationInferenceSessionState('conv-existing')).toBe('hydrated');
   });
 
   test('uses runtime rehydrate snapshots when available', async () => {
     markConversationInferenceSessionUnknown('conv-replay-preferred');
-    mockDesktopRuntime.loadRehydrateSnapshot.mockResolvedValueOnce({
-      conversationRef: 'conv-replay-preferred',
-      revisionId: 'rev-1',
-      messages: [
-        {
-          role: 'assistant',
-          content: 'compacted replay',
-          message_type: 'context_compaction',
-        } as any,
-      ],
-      compactedReplay: null,
-      toolTrace: { calls: [] },
-      compaction: { status: 'none' },
-    } as any);
+    mockDesktopRuntime.rehydrateFromStore.mockResolvedValueOnce(undefined);
 
     await ensureConversationInferenceSessionHydrated({
       conversationRef: 'conv-replay-preferred',
       userId: 'user-1',
     });
 
-    expect(mockDesktopRuntime.rehydrate).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mockDesktopRuntime.rehydrateFromStore).toHaveBeenCalledWith(expect.objectContaining({
       conversationRef: 'conv-replay-preferred',
-      messages: [
-        expect.objectContaining({
-          role: 'assistant',
-          content: 'compacted replay',
-          message_type: 'context_compaction',
-        }),
-      ],
+      userId: 'user-1',
       workspacePath: null,
     }));
   });
 
   test('uses canonical SDK conversation events for backend rehydrate when available', async () => {
     markConversationInferenceSessionUnknown('conv-sdk-events');
-    mockDesktopRuntime.loadRehydrateSnapshot.mockResolvedValueOnce({
-      conversationRef: 'conv-sdk-events',
-      revisionId: 'rev-1',
-      messages: [
-        {
-          role: 'assistant',
-          content: 'canonical answer',
-        } as any,
-      ],
-      compactedReplay: null,
-      toolTrace: { calls: [] },
-      compaction: { status: 'none' },
-    } as any);
+    mockDesktopRuntime.rehydrateFromStore.mockResolvedValueOnce(undefined);
 
     await ensureConversationInferenceSessionHydrated({
       conversationRef: 'conv-sdk-events',
       userId: 'user-1',
     });
 
-    expect(mockDesktopRuntime.loadRehydrateSnapshot).toHaveBeenCalledTimes(1);
-    expect(mockDesktopRuntime.rehydrate).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mockDesktopRuntime.rehydrateFromStore).toHaveBeenCalledTimes(1);
+    expect(mockDesktopRuntime.rehydrateFromStore).toHaveBeenCalledWith(expect.objectContaining({
       conversationRef: 'conv-sdk-events',
-      messages: [
-        expect.objectContaining({
-          role: 'assistant',
-          content: 'canonical answer',
-        }),
-      ],
+      userId: 'user-1',
       workspacePath: null,
     }));
   });
@@ -171,6 +115,7 @@ describe('conversationInferenceSessionRuntime', () => {
     });
 
     expect(mockLoadLocalConversationSnapshot).not.toHaveBeenCalled();
+    expect(mockDesktopRuntime.rehydrateFromStore).not.toHaveBeenCalled();
     expect(mockDesktopRuntime.rehydrate).not.toHaveBeenCalled();
     expect(getConversationInferenceSessionState('conv-fresh')).toBe('hydrated');
   });
@@ -191,21 +136,7 @@ describe('conversationInferenceSessionRuntime', () => {
 
   test('invalidating sync state forces a later ensure to rehydrate again', async () => {
     markConversationInferenceSessionUnknown('conv-reconnect');
-    mockDesktopRuntime.loadRehydrateSnapshot.mockResolvedValue({
-      conversationRef: 'conv-reconnect',
-      revisionId: 'rev-1',
-      messages: [
-        {
-          role: 'assistant',
-          content: 'previous answer',
-          message_type: 'llm-text',
-          metadata: {},
-        } as any,
-      ],
-      compactedReplay: null,
-      toolTrace: { calls: [] },
-      compaction: { status: 'none' },
-    } as any);
+    mockDesktopRuntime.rehydrateFromStore.mockResolvedValue(undefined);
 
     await ensureConversationInferenceSessionHydrated({
       conversationRef: 'conv-reconnect',
@@ -220,7 +151,7 @@ describe('conversationInferenceSessionRuntime', () => {
       userId: 'user-1',
     });
 
-    expect(mockDesktopRuntime.rehydrate).toHaveBeenCalledTimes(2);
+    expect(mockDesktopRuntime.rehydrateFromStore).toHaveBeenCalledTimes(2);
   });
 
   test('clearing a conversation removes its sync state record', () => {

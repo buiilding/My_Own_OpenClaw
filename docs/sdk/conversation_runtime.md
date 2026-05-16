@@ -98,6 +98,12 @@ Desktop chat code should call public conversation commands through the desktop
 runtime facade and render SDK projections, not depend on the adapter as its
 normal feature-code surface.
 
+Desktop stored-conversation rehydrate is also facade-owned. Feature/session
+helpers ask `DesktopConversationRuntimeClient.rehydrateFromStore(...)` to load
+the SDK rehydrate projection from the configured store and send the backend
+rehydrate command. They should not fetch projection rows and shape provider
+history themselves.
+
 ## Compaction Rule
 
 Backend `context-compaction-completed` with `skipped_reason` normalizes to

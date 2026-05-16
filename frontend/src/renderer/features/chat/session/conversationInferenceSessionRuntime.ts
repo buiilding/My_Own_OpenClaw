@@ -48,29 +48,6 @@ function resolveUserId(userId: string | null | undefined): string {
   return DEFAULT_USER_ID;
 }
 
-function toRehydrateConversationEntry(message: Record<string, unknown>): RehydrateConversationEntry | null {
-  const role = message.role;
-  if (role !== 'user' && role !== 'assistant' && role !== 'tool') {
-    return null;
-  }
-  const content = typeof message.content === 'string'
-    ? message.content
-    : JSON.stringify(message.content ?? '');
-  return {
-    ...message,
-    role,
-    content,
-  } as RehydrateConversationEntry;
-}
-
-function toRehydrateConversationEntries(
-  messages: Array<Record<string, unknown>>,
-): RehydrateConversationEntry[] {
-  return messages
-    .map(toRehydrateConversationEntry)
-    .filter((message): message is RehydrateConversationEntry => Boolean(message));
-}
-
 function setConversationInferenceSessionState(
   conversationRef: string,
   state: ConversationInferenceSessionState,
@@ -180,18 +157,11 @@ export async function ensureConversationInferenceSessionHydrated({
       recordKind,
     });
     setConversationWorkspaceBinding(normalizedConversationRef, snapshot.workspaceBinding);
-    const rehydrateSnapshot = await DesktopConversationRuntimeClient.loadRehydrateSnapshot({
+    await DesktopConversationRuntimeClient.rehydrateFromStore({
       conversationRef: normalizedConversationRef,
       userId: normalizedUserId,
+      workspacePath: getConversationWorkspaceBinding(normalizedConversationRef).workspacePath || null,
     });
-    const rehydrateMessages = toRehydrateConversationEntries(rehydrateSnapshot.messages);
-    if (rehydrateMessages.length > 0) {
-      await DesktopConversationRuntimeClient.rehydrate({
-        conversationRef: normalizedConversationRef,
-        messages: rehydrateMessages,
-        workspacePath: getConversationWorkspaceBinding(normalizedConversationRef).workspacePath || null,
-      });
-    }
     if (startingEpoch === connectionEpoch) {
       markConversationInferenceSessionHydrated(normalizedConversationRef);
     }

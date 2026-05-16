@@ -116,7 +116,8 @@ describe('renderer chat runtime boundary', () => {
     );
 
     expect(source).not.toContain('ElectronSidecarConversationStore');
-    expect(source).toContain('DesktopConversationRuntimeClient.loadRehydrateSnapshot');
+    expect(source).not.toContain('DesktopConversationRuntimeClient.loadRehydrateSnapshot');
+    expect(source).toContain('DesktopConversationRuntimeClient.rehydrateFromStore');
   });
 
   test('app conversation runtime facade delegates transcript storage to projection runtime', async () => {
