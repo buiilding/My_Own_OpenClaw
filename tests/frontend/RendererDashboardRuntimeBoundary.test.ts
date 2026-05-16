@@ -34,4 +34,19 @@ describe('renderer dashboard runtime boundary', () => {
 
     expect(offenders).toEqual([]);
   });
+
+  test('dashboard feature code uses runtime facades for transcript session helpers', async () => {
+    const files = await listSourceFiles(dashboardRoot);
+    const offenders: string[] = [];
+
+    for (const file of files) {
+      const relativePath = path.relative(dashboardRoot, file);
+      const source = await fs.readFile(file, 'utf8');
+      if (source.includes('infrastructure/transcript/TranscriptWriter')) {
+        offenders.push(relativePath);
+      }
+    }
+
+    expect(offenders).toEqual([]);
+  });
 });

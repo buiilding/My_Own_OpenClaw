@@ -3,14 +3,11 @@ import type { RehydrateConversationEntry } from '../../../infrastructure/api/cli
 import type { CaptureMeta } from '../../../infrastructure/services/ScreenshotAttachmentPipeline';
 import type { WindieModelSelection } from '../../../infrastructure/api/windieSdkClient';
 import {
-  getActiveConversationRef,
-  getTranscriptSessionInfo,
   recordAssistantMessage,
   recordToolMessage,
   recordUserMessage,
-  setActiveConversationRef,
-  updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
+import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 import {
   ElectronSidecarConversationStore,
   type TranscriptProjectionRewriteEntry,
@@ -67,22 +64,22 @@ type LoadRehydrateSnapshotInput = {
  */
 export const DesktopConversationRuntimeClient = {
   getActiveConversationRef(): string | null {
-    return getActiveConversationRef();
+    return DesktopTranscriptSessionRuntimeClient.getActiveConversationRef();
   },
 
-  getTranscriptSessionInfo(): ReturnType<typeof getTranscriptSessionInfo> {
-    return getTranscriptSessionInfo();
+  getTranscriptSessionInfo(): ReturnType<typeof DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo> {
+    return DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
   },
 
   setActiveConversationRef(conversationRef: string | null): void {
-    setActiveConversationRef(conversationRef);
+    DesktopTranscriptSessionRuntimeClient.setActiveConversationRef(conversationRef);
   },
 
   updateTranscriptSession(
     conversationRef?: string | null,
     userId?: string | null,
   ): void {
-    updateTranscriptSession(conversationRef, userId);
+    DesktopTranscriptSessionRuntimeClient.updateTranscriptSession(conversationRef, userId);
   },
 
   setModel(selection: WindieModelSelection): void {

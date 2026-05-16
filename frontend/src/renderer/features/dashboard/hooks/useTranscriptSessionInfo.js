@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { getTranscriptSessionInfo } from '../../../infrastructure/transcript/TranscriptWriter';
+import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 
 const EMPTY_SESSION_INFO = Object.freeze({
   conversationRef: null,
@@ -9,7 +9,7 @@ const EMPTY_SESSION_INFO = Object.freeze({
 let lastSnapshot = EMPTY_SESSION_INFO;
 
 function readSessionSnapshot() {
-  const next = getTranscriptSessionInfo();
+  const next = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
   const normalized = {
     conversationRef: next?.conversationRef || null,
     userId: next?.userId || null,

@@ -4,7 +4,6 @@ import { filterFrontendConfig } from '../../utils/configFilter';
 import { IpcBridge, ON_CHANNELS, INVOKE_CHANNELS } from '../../infrastructure/ipc/bridge';
 import { loadConfigFromStorage, saveConfigToStorage } from '../../utils/configStorage';
 import { AppConfigContext } from './AppConfigContext';
-import { updateTranscriptSession } from '../../infrastructure/transcript/TranscriptWriter';
 import { applyTranscriptSessionUserBinding } from '../../features/chat/session/conversationSessionRuntime';
 import { extractTranscriptUserId, routeConfigBackendEvent } from './appConfigEvents';
 import { setBackendHttpUrl } from '../../infrastructure/services/BackendEndpointStore';
@@ -19,6 +18,7 @@ import {
   hasImmediateBackendConfigChanges,
 } from './appConfigBackendSync';
 import { DesktopSettingsRuntimeClient } from '../runtime/desktopSettingsRuntimeClient';
+import { DesktopTranscriptSessionRuntimeClient } from '../runtime/desktopTranscriptSessionRuntimeClient';
 
 const LIST_MODELS_REQUEST_GUARD_KEY = '__windie_models_list_requested__';
 
@@ -187,7 +187,7 @@ export function AppConfigProvider({ children }) {
 
     applyTranscriptSessionUserBinding({
       userId: extractTranscriptUserId(data),
-      updateTranscriptSession,
+      updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
     });
     setBackendHttpUrl(data?.backendHttpUrl);
     if (data?.isConnected === true) {

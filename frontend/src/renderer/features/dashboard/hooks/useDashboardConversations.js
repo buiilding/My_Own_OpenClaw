@@ -5,9 +5,7 @@ import {
 import { loadLocalConversationSnapshot } from '../../../infrastructure/transcript/conversationLocalSnapshotLoader';
 import { buildChatMessagesFromDisplayConversation } from '../../../infrastructure/transcript/sdkDisplayChatMessageProjection';
 import { DesktopConversationLibraryClient } from '../../../app/runtime/desktopConversationLibraryClient';
-import {
-  updateTranscriptSession,
-} from '../../../infrastructure/transcript/TranscriptWriter';
+import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 import { setActiveWorkspaceSelection } from '../../../infrastructure/workspace/workspaceAccess';
 import {
   clearConversationWorkspaceBinding,
@@ -187,7 +185,7 @@ function useDashboardConversations({
       applyRendererConversationSelection({
         conversationRef,
         userId: resolvedUserId,
-        updateTranscriptSession,
+        updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
         setChatConversationRef: setChatActiveConversationRef,
       });
       if (sessionConversationRef !== conversationRef) {

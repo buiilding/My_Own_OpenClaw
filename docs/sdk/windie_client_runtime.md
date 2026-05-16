@@ -216,6 +216,9 @@ Electron uses a sidecar-backed store adapter during the desktop migration:
 - desktop chat feature code uses the desktop conversation runtime facade for
   transcript session identity helpers, keeping direct `TranscriptWriter` imports
   at the migration boundary instead of in chat hooks and utilities.
+- desktop dashboard and app config session synchronization use an app-level
+  transcript-session runtime facade, so feature/provider code does not import
+  transcript infrastructure directly for conversation/user identity updates.
 - desktop manual compaction controls share one rehydrate-first runtime helper
   that uses the SDK store-backed conversation rehydrate path before sending
   `compact-history`.

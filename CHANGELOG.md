@@ -33,6 +33,7 @@ All notable changes to WindieOS will be documented in this file.
 - sdk: move websocket-backed agent session creation into the SDK transport module instead of constructing sockets in `WindieClient`.
 - sdk: make backend transport settings and list-models commands part of the typed SDK transport contract.
 - frontend/sdk: route chat transcript session helpers through the desktop conversation runtime facade.
+- frontend/sdk: add an app-level transcript session runtime facade for dashboard and config session sync.
 - docs: refocus the README around WindieOS as an open-source OS-layer Codex alternative, voice-first desktop companion, shared-screen collaborator, and hackable agent runtime.
 - backend/openai: synthesize Responses stream payloads from output item events and function-call argument deltas when OpenAI omits the terminal response envelope.
 - frontend: hide chat composer scrollbars across dashboard and minimal pill multiline drafts.
