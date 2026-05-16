@@ -8,6 +8,7 @@ import {
   recordUserMessage,
 } from '../../infrastructure/transcript/TranscriptWriter';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
+import { DesktopSettingsRuntimeClient } from './desktopSettingsRuntimeClient';
 import {
   ElectronSidecarConversationStore,
   type TranscriptProjectionRewriteEntry,
@@ -82,7 +83,7 @@ export const DesktopConversationRuntimeClient = {
   },
 
   setModel(selection: WindieModelSelection): void {
-    ApiClient.setModel(selection);
+    DesktopSettingsRuntimeClient.setModel(selection);
   },
 
   recordAssistantMessage(

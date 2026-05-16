@@ -1,4 +1,5 @@
 import { ApiClient } from '../../infrastructure/api/client';
+import type { WindieModelSelection } from '../../infrastructure/api/windieSdkClient';
 
 type RuntimeSettingsPatch = Record<string, unknown>;
 
@@ -15,5 +16,9 @@ export const DesktopSettingsRuntimeClient = {
 
   updateSettings(config: RuntimeSettingsPatch): void {
     ApiClient.updateSettings(config);
+  },
+
+  setModel(selection: WindieModelSelection): void {
+    ApiClient.setModel(selection);
   },
 };
