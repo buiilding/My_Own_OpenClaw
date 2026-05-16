@@ -10,6 +10,10 @@ import {
   type SendInput,
   type WindieRuntimeEvent,
 } from './runtime/ConversationRuntime.js';
+import {
+  buildModelSettingsPatch,
+  type WindieModelSelection,
+} from './settings/modelSelection.js';
 import type {
   BackendTransport,
   ConversationEvent,
@@ -26,6 +30,7 @@ export * from './runtime/conversationReducer.js';
 export * from './runtime/ConversationRuntime.js';
 export * from './transport/backendEventNormalizer.js';
 export * from './tools/ToolExecutionCoordinator.js';
+export * from './settings/modelSelection.js';
 
 type FetchLike = typeof fetch;
 
@@ -322,14 +327,6 @@ export type WindieSdkQueryOptions = {
   interactionMode?: SdkInteractionMode;
 };
 
-export type WindieModelSelection = {
-  modelId: string;
-  modelProvider?: string;
-  provider?: string;
-  modelMode?: string;
-  interactionMode?: SdkInteractionMode;
-};
-
 export type WindieSdkClientOptions = {
   httpBaseUrl: string;
   fetchImpl?: FetchLike;
@@ -535,39 +532,6 @@ function createMessageId(): string {
     return globalThis.crypto.randomUUID();
   }
   return `msg_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
-}
-
-function coerceNonEmptyString(value: unknown): string | null {
-  if (typeof value !== 'string') {
-    return null;
-  }
-  const normalized = value.trim();
-  return normalized.length > 0 ? normalized : null;
-}
-
-function buildModelSettingsPatch(selection: WindieModelSelection): JsonRecord {
-  const modelId = coerceNonEmptyString(selection.modelId);
-  const modelProvider = coerceNonEmptyString(selection.modelProvider ?? selection.provider);
-  if (!modelId) {
-    throw new Error('WindieAgent.setModel requires a non-empty modelId');
-  }
-  if (!modelProvider) {
-    throw new Error('WindieAgent.setModel requires a non-empty modelProvider');
-  }
-
-  const patch: JsonRecord = {
-    selected_model_id: modelId,
-    model_provider: modelProvider,
-  };
-  const modelMode = coerceNonEmptyString(selection.modelMode);
-  if (modelMode) {
-    patch.model_mode = modelMode;
-  }
-  const interactionMode = coerceNonEmptyString(selection.interactionMode);
-  if (interactionMode) {
-    patch.interaction_mode = interactionMode;
-  }
-  return patch;
 }
 
 function attachSocketListener(
@@ -1593,6 +1557,9 @@ export class WindieAgent {
         await this.session.stopQuery(
           typeof payload.conversation_ref === 'string' ? payload.conversation_ref : conversationRef,
         );
+      },
+      updateSettings: async payload => {
+        await this.session.updateSettings(payload);
       },
       subscribe: listener => this.session.on('event', listener),
       close: async () => this.session.close(1000, 'conversation-runtime-close'),

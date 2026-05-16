@@ -16,6 +16,10 @@ import {
 } from '../projections/conversationProjections.js';
 import { normalizeBackendEventToConversationEvent } from '../transport/backendEventNormalizer.js';
 import { ToolExecutionCoordinator } from '../tools/ToolExecutionCoordinator.js';
+import {
+  buildModelSettingsPatch,
+  type WindieModelSelection,
+} from '../settings/modelSelection.js';
 import { reduceConversationRuntimeState, createInitialConversationRuntimeState } from './conversationReducer.js';
 
 export type ConversationListener = (snapshot: ConversationSnapshot) => void;
@@ -31,6 +35,7 @@ export type SendInput = {
   text: string;
   turnRef?: string;
   payload?: JsonRecord;
+  model?: WindieModelSelection;
 };
 
 export type TurnResult = {
@@ -43,12 +48,14 @@ export type EditAndResendInput = {
   text: string;
   turnRef?: string;
   payload?: JsonRecord;
+  model?: WindieModelSelection;
 };
 
 export type RetryTurnInput = {
   messageId?: string;
   turnRef?: string;
   payload?: JsonRecord;
+  model?: WindieModelSelection;
 };
 
 export type WindieRuntimeEvent =
@@ -165,6 +172,9 @@ export class SdkConversationRuntime {
   }
 
   async send(input: SendInput): Promise<TurnResult> {
+    if (input.model) {
+      await this.setModel(input.model);
+    }
     const turnRef = input.turnRef ?? createRuntimeId('turn');
     const revisionId = this.state.revisionId === 'rev-empty'
       ? createRuntimeId('rev')
@@ -288,6 +298,7 @@ export class SdkConversationRuntime {
     return this.send({
       text: normalizedText,
       turnRef: input.turnRef,
+      model: input.model,
       payload: {
         ...events[userIndex].payload,
         ...(input.payload ?? {}),
@@ -325,6 +336,7 @@ export class SdkConversationRuntime {
     return this.send({
       text: retryText,
       turnRef: input.turnRef,
+      model: input.model,
       payload: {
         ...events[userIndex].payload,
         ...(input.payload ?? {}),
@@ -354,6 +366,15 @@ export class SdkConversationRuntime {
       messages: snapshot.messages,
     });
     return snapshot;
+  }
+
+  async setModel(selection: WindieModelSelection): Promise<string | void> {
+    if (!this.options.transport?.updateSettings) {
+      throw new Error('ConversationRuntime.setModel requires a backend transport that supports updateSettings');
+    }
+    return this.options.transport.updateSettings(
+      buildModelSettingsPatch(selection, 'ConversationRuntime.setModel'),
+    );
   }
 
   close(): void {

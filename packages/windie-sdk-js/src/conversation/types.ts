@@ -190,6 +190,7 @@ export type BackendTransport = {
   sendToolResult(payload: JsonRecord): Promise<void>;
   sendToolBundleResult(payload: JsonRecord): Promise<void>;
   sendRehydrate(payload: JsonRecord): Promise<void>;
+  updateSettings?(payload: JsonRecord): Promise<string | void>;
   stop(payload: JsonRecord): Promise<void>;
   subscribe(listener: (event: unknown) => void): () => void;
   close(): Promise<void>;

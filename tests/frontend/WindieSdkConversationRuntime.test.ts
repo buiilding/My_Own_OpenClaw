@@ -357,6 +357,88 @@ describe('Windie SDK conversation runtime core', () => {
     });
   });
 
+  test('conversation runtime updates model selection before sending a turn', async () => {
+    const sentQueries: Record<string, unknown>[] = [];
+    const settingsUpdates: Record<string, unknown>[] = [];
+    const transport: BackendTransport = {
+      connect: jest.fn(async () => undefined),
+      handshake: jest.fn(async () => undefined),
+      sendQuery: jest.fn(async payload => {
+        sentQueries.push(payload);
+        return 'query-model';
+      }),
+      sendToolResult: jest.fn(async () => undefined),
+      sendToolBundleResult: jest.fn(async () => undefined),
+      sendRehydrate: jest.fn(async () => undefined),
+      updateSettings: jest.fn(async payload => {
+        settingsUpdates.push(payload);
+        return 'settings-model';
+      }),
+      stop: jest.fn(async () => undefined),
+      subscribe: jest.fn(() => () => undefined),
+      close: jest.fn(async () => undefined),
+    };
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store: new InMemoryConversationStore(),
+      transport,
+    });
+
+    await runtime.send({
+      text: 'use the selected model',
+      turnRef: 'turn-model',
+      model: {
+        modelProvider: 'openai',
+        modelId: 'gpt-5.4@@gpt-5-4-high-thinking',
+        modelMode: 'high',
+        interactionMode: 'agent',
+      },
+    });
+
+    expect(settingsUpdates).toEqual([
+      {
+        selected_model_id: 'gpt-5.4@@gpt-5-4-high-thinking',
+        model_provider: 'openai',
+        model_mode: 'high',
+        interaction_mode: 'agent',
+      },
+    ]);
+    expect(sentQueries[0]).toMatchObject({
+      text: 'use the selected model',
+      conversation_ref: 'conv-sdk-runtime',
+      turn_ref: 'turn-model',
+    });
+  });
+
+  test('conversation runtime validates model selections before sending a turn', async () => {
+    const sendQuery = jest.fn(async () => 'query-unused');
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store: new InMemoryConversationStore(),
+      transport: {
+        connect: jest.fn(async () => undefined),
+        handshake: jest.fn(async () => undefined),
+        sendQuery,
+        sendToolResult: jest.fn(async () => undefined),
+        sendToolBundleResult: jest.fn(async () => undefined),
+        sendRehydrate: jest.fn(async () => undefined),
+        updateSettings: jest.fn(async () => 'settings-unused'),
+        stop: jest.fn(async () => undefined),
+        subscribe: jest.fn(() => () => undefined),
+        close: jest.fn(async () => undefined),
+      },
+    });
+
+    await expect(runtime.send({
+      text: 'bad model',
+      model: {
+        modelProvider: 'openai',
+        modelId: '',
+      },
+    })).rejects.toThrow('ConversationRuntime.setModel requires a non-empty modelId');
+    expect(sendQuery).not.toHaveBeenCalled();
+  });
+
   test('conversation runtime stream yields normalized events until backend completion', async () => {
     const sentQueries: Record<string, unknown>[] = [];
     let backendListener: ((event: unknown) => void) | null = null;

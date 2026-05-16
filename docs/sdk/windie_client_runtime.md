@@ -88,6 +88,18 @@ await agent.setModel({
   interactionMode: "agent"
 });
 
+for await (const event of conversation.stream({
+  text: "Run the test command with this model and report progress.",
+  model: {
+    modelProvider: "openai",
+    modelId: "gpt-5.4@@gpt-5-4-high-thinking"
+  }
+})) {
+  if (event.type === "conversation_event" && event.event.type === "assistant_delta") {
+    process.stdout.write(String(event.event.payload.text ?? ""));
+  }
+}
+
 for await (const event of agent.stream("Run the test command and report progress.")) {
   if (event.type === "text") {
     process.stdout.write(event.text);
@@ -285,13 +297,16 @@ Current canonical surface:
 
 `listModels` is backend-owned. `listAgents` is SDK-runtime state for active local agent sessions.
 
-`setModel({ modelProvider, modelId, modelMode?, interactionMode? })` is the
-first-class SDK model-changing API. It validates the public camelCase selection
-and sends the backend-owned `update-settings` message with
-`model_provider`/`selected_model_id`. Desktop model dropdowns still persist
-through renderer config, but the backend update route is owned by the SDK main
-runtime. `updateSettings(config)` remains available for host applications that
-own a broader settings surface.
+`agent.setModel({ modelProvider, modelId, modelMode?, interactionMode? })` is
+the first-class SDK model-changing API for agent-level selection. Conversation
+runtimes also expose `conversation.setModel(...)`, and `conversation.send`,
+`conversation.stream`, `conversation.editAndResend`, and `conversation.retryTurn`
+accept `model` to switch immediately before the next turn. These APIs validate
+the public camelCase selection and send the backend-owned `update-settings`
+message with `model_provider`/`selected_model_id`. Desktop model dropdowns still
+persist through renderer config, but the backend update route is owned by the
+SDK main runtime. `updateSettings(config)` remains available for host
+applications that own a broader settings surface.
 
 `stream(input, options)` returns an `AsyncIterableIterator<WindieAgentStreamEvent>`.
 It is a compatibility-shaped wrapper over `SdkConversationRuntime.stream()`: it
@@ -308,7 +323,8 @@ and edit/retry revision operations.
 `conversation.stream(input)` is the preferred custom-client loop API. It emits
 normalized SDK runtime events, updates the configured conversation store, and
 terminates when the projected runtime phase reaches `completed`, `stopped`, or
-`error`.
+`error`. Pass `model` on the input when a custom UI wants a per-turn model
+change without manually calling `agent.setModel(...)` first.
 
 `agent.listConversations()` lists metadata from the agent's default conversation
 store. `agent.loadConversation({ conversationRef })` opens a runtime over the
