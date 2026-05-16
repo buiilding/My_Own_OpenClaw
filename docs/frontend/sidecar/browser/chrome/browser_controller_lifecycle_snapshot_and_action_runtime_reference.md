@@ -142,7 +142,7 @@ Primary path:
 
 Fallback path:
 
-- any enhanced pipeline exception falls back to `_get_ai_snapshot_legacy(...)`
+- any enhanced pipeline exception falls back to `_get_ai_snapshot_dom_fallback(...)`
 
 Legacy path behavior:
 
@@ -250,7 +250,7 @@ Cleanup exceptions are logged and do not raise to caller.
 - managed launch uses `launch_persistent_context` with `user_data_dir` argument and no `--user-data-dir` CLI flag
 - click fallback ordering (`select_option` -> force -> no DOM for non-left button)
 - role-ref disambiguation behavior (viewport-preferred single candidate vs ambiguity error)
-- AI snapshot enhanced-path success and enhanced->legacy fallback
+- AI snapshot enhanced-path success and enhanced->DOM fallback
 - aria snapshot truncation behavior
 - singleton getter/reset behavior
 

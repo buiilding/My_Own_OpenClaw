@@ -1093,13 +1093,13 @@ class BrowserController:
             )
         except Exception as e:
             logger.warning(
-                "Enhanced CDP snapshot failed, falling back to legacy snapshot path: %s",
+                "Enhanced CDP snapshot failed, falling back to DOM snapshot path: %s",
                 e,
             )
-            return await self._get_ai_snapshot_legacy(max_chars=max_chars)
+            return await self._get_ai_snapshot_dom_fallback(max_chars=max_chars)
 
-    async def _get_ai_snapshot_legacy(self, max_chars: int = 12000) -> PageSnapshot:
-        """Legacy query-selector snapshot path used when CDP pipeline is unavailable."""
+    async def _get_ai_snapshot_dom_fallback(self, max_chars: int = 12000) -> PageSnapshot:
+        """Query-selector snapshot path used when CDP pipeline is unavailable."""
         title = await self._page.title()
         url = self._page.url
         reg = self._get_ref_registry(self._page)

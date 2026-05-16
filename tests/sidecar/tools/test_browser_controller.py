@@ -698,8 +698,8 @@ class TestBrowserControllerSnapshot:
         assert snapshot.ref_count == 1
 
     @pytest.mark.asyncio
-    async def test_get_ai_snapshot_falls_back_to_legacy_when_enhanced_path_fails(self):
-        """Enhanced pipeline failures should fall back to legacy query-selector path."""
+    async def test_get_ai_snapshot_falls_back_to_dom_query_when_enhanced_path_fails(self):
+        """Enhanced pipeline failures should fall back to query-selector DOM extraction."""
         self.controller._enhanced_cdp_pipeline.build_ai_snapshot = mock.AsyncMock(
             side_effect=RuntimeError("cdp failed")
         )
