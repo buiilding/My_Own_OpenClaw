@@ -19,6 +19,7 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sdk: route renderer model-list and non-model settings sync through an app-level desktop settings runtime facade.
 - frontend/sdk: route renderer wakeword backend notifications through an app-level desktop voice runtime facade.
 - frontend/sdk: add a renderer-wide guardrail that keeps direct `ApiClient` usage inside explicit runtime facades.
+- frontend/sdk: move chat user-message transcript persistence behind `DesktopConversationRuntimeClient.sendQuery(...)`.
 - docs: refocus the README around WindieOS as an open-source OS-layer Codex alternative, voice-first desktop companion, shared-screen collaborator, and hackable agent runtime.
 - backend/openai: synthesize Responses stream payloads from output item events and function-call argument deltas when OpenAI omits the terminal response envelope.
 - frontend: hide chat composer scrollbars across dashboard and minimal pill multiline drafts.

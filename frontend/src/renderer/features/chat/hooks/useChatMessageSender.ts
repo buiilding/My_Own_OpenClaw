@@ -9,7 +9,6 @@ import { IpcBridge, INVOKE_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import {
   getActiveConversationRef,
   getTranscriptSessionInfo,
-  recordUserMessage,
   setActiveConversationRef,
   updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
@@ -242,13 +241,6 @@ export function useChatMessageSender(
 
     const attachmentContext = await buildReadableFileAttachmentContext(readableFiles);
 
-    recordUserMessage(text, {
-      conversationRef,
-      userId: sessionInfo.userId,
-      timestamp: messageTimestamp,
-      screenshotRef,
-    });
-    
     // Send query with screenshot to backend
     try {
       const deferredQueryModelSelection = buildDeferredQueryModelSelection(config);
@@ -265,6 +257,11 @@ export function useChatMessageSender(
         attachmentContext,
         attachmentFilenames: attachmentFilenames.length > 0 ? attachmentFilenames : null,
         workspacePath: workspaceBinding.workspacePath || null,
+        transcript: {
+          userId: sessionInfo.userId,
+          timestamp: messageTimestamp,
+          screenshotRef,
+        },
       });
       logRendererChatPillTrace({
         source: 'renderer-send',

@@ -2,6 +2,7 @@ import { ApiClient } from '../../../infrastructure/api/client';
 import type { RehydrateConversationEntry } from '../../../infrastructure/api/client';
 import type { CaptureMeta } from '../../../infrastructure/services/ScreenshotAttachmentPipeline';
 import type { WindieModelSelection } from '../../../infrastructure/api/windieSdkClient';
+import { recordUserMessage } from '../../../infrastructure/transcript/TranscriptWriter';
 
 export type { RehydrateConversationEntry };
 
@@ -16,6 +17,11 @@ type SendConversationQueryInput = {
   attachmentFilenames?: string[] | null;
   screenshot?: string | null;
   workspacePath?: string | null;
+  transcript?: {
+    userId?: string | null;
+    timestamp?: string | null;
+    screenshotRef?: string | null;
+  } | null;
 };
 
 type SendConversationRehydrateInput = {
@@ -37,6 +43,14 @@ export const DesktopConversationRuntimeClient = {
   },
 
   sendQuery(input: SendConversationQueryInput): Promise<void> {
+    if (input.transcript) {
+      recordUserMessage(input.text, {
+        conversationRef: input.conversationRef,
+        userId: input.transcript.userId ?? null,
+        timestamp: input.transcript.timestamp ?? undefined,
+        screenshotRef: input.transcript.screenshotRef ?? input.screenshotRef ?? null,
+      });
+    }
     return ApiClient.sendQuery(
       input.text,
       input.conversationRef,

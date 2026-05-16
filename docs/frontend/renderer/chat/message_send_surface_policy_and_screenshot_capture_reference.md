@@ -107,8 +107,7 @@ When attachment(s) exist:
   - fallback to artifact URL-derived ref when only `screenshotUrl` exists
   - dedupe final `screenshot_refs[]` for backend send
 10. update optimistic message with `screenshotRef/screenshotUrl` plus `screenshots[]`.
-11. write transcript user row (`recordUserMessage`) with conversation ref + primary screenshot ref.
-12. send backend query (`DesktopConversationRuntimeClient.sendQuery`) with:
+11. call `DesktopConversationRuntimeClient.sendQuery`, which owns user transcript projection persistence and backend query dispatch, with:
   - `screenshot_ref` (first ref, compatibility path)
   - `screenshot_refs` (all uploaded refs for multi-image queries)
   - optional `attachment_context` (hidden read_file output for selected non-image files)

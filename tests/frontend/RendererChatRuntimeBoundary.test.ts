@@ -40,4 +40,13 @@ describe('renderer chat runtime boundary', () => {
 
     expect(offenders).toEqual([]);
   });
+
+  test('message sender leaves user transcript persistence to the runtime facade', async () => {
+    const source = await fs.readFile(
+      path.join(chatRoot, 'hooks/useChatMessageSender.ts'),
+      'utf8',
+    );
+
+    expect(source).not.toContain('recordUserMessage');
+  });
 });
