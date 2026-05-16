@@ -84,7 +84,7 @@ Current runtime behavior also relies on these explicit seams:
 - **Main-process composition is split by role**: `frontend/src/main/index.cjs` composes `main_process_bootstrap_runtime.cjs` (window creation/bootstrap), `main_process_lifecycle_runtime.cjs` (ready/activate/quit), and `surface_runtime.cjs` (window ownership + overlay phase state).
 - **Local sidecar bridge is now split by ownership**: `local_backend_bridge.cjs` keeps process lifecycle + IPC registration, `local_backend_bridge_request_transport.cjs` owns JSON-RPC request correlation/timeouts, and `local_backend_bridge_execute_tool_runtime.cjs` owns execute-tool routing plus screenshot-specific attachment handling.
 - **Renderer browser-session control is now runtime-backed**: renderer-side browser session UX should read local-backend readiness from the shared IPC status surface and consume shared browser-session/local-backend runtime stores rather than issuing ad hoc per-component browser polling directly from UI components. `localBackendStatusStore` owns the initial `get-local-backend-status` bootstrap plus `local-backend-status` event subscription, while `browserSessionStore` owns browser status sync, tab normalization, and shared polling cadence for all subscribers.
-- **Renderer now has two distinct API clients by boundary**: `renderer/infrastructure/api/client.ts` remains the app-internal Electron IPC bridge for the desktop product, while `renderer/infrastructure/api/windieSdkClient.ts` is a direct HTTP/WebSocket wrapper over the public backend SDK surface for developer-facing transport and observability use. `renderer/infrastructure/api/index.ts` is the stable barrel export for those clients.
+- **Renderer now has two distinct API clients by boundary**: `renderer/infrastructure/api/client.ts` remains the app-internal Electron IPC bridge for the desktop product, while `renderer/infrastructure/api/windieSdkClient.ts` is a direct HTTP/WebSocket wrapper over the public backend SDK surface for developer-facing transport and observability use. Feature code should reach the Electron bridge through app runtime facades such as `app/runtime/desktopConversationRuntimeClient.ts`, `app/runtime/desktopBackendCommandRuntimeClient.ts`, `app/runtime/desktopSettingsRuntimeClient.ts`, and `app/runtime/desktopTranscriptProjectionRuntimeClient.ts`; `renderer/infrastructure/api/index.ts` is the stable barrel export for low-level client modules.
 - **Sidecar now has a matching hosted SDK transport client**: `frontend/src/main/python/core/windie_sdk_client.py` mirrors the same public backend boundary for Python-side developer tools and local runtime integrations that need `/api/sdk/*`, `/api/artifacts/*`, or `/ws` access without importing backend code.
 - **Permission runtime is split by capability domain**: `permission_service.cjs` remains the public API surface, while focused domain modules own screen capture, accessibility/input control, microphone, automation/app-management, workspace/shell, and browser setup flows.
 - **Global stop shortcut is a dedicated runtime**: `frontend/src/main/agent_stop_shortcut_runtime.cjs` owns per-platform accelerator normalization, fallback registration, and phase gating; `ipc.cjs` projects runtime status back to renderer config/status flows.
@@ -99,7 +99,7 @@ Current runtime behavior also relies on these explicit seams:
 
 1. User enters message in `renderer/features/chat/components/MessageInput.jsx`.
 2. `useChatMessageSender` builds payload and optional screenshot metadata.
-3. `ApiClient.sendQuery()` emits `to-backend` IPC message.
+3. `DesktopConversationRuntimeClient.sendQuery()` records the user projection when needed and delegates the backend command to the app backend-command runtime.
 4. Main `ipc.cjs`:
    - Ensures one-time initial settings sync ACK gate.
    - Runs blur-only overlay pre-capture prep for chatbox-surface sends.
@@ -136,13 +136,14 @@ New-chat behavior:
 
 ### Conversation/Transcript Flow
 
-1. Renderer chat hooks call `TranscriptWriter` for visible transcript projection writes.
-2. `TranscriptWriter` queues failed writes and retries when session info becomes available, but persistence goes through `ElectronSidecarConversationStore` instead of direct transcript IPC.
-3. Renderer-local conversation store helpers fetch transcript windows via sidecar RPC (`list-conversations`, `search-conversations`, `get-conversation`).
+1. Renderer chat hooks call `DesktopConversationRuntimeClient` for visible transcript projection writes.
+2. The conversation runtime facade delegates projection persistence to `DesktopTranscriptProjectionRuntimeClient`, which calls `TranscriptWriter` and `ElectronSidecarConversationStore`.
+3. `TranscriptWriter` queues failed writes and retries when session info becomes available, but persistence goes through `ElectronSidecarConversationStore` instead of direct transcript IPC.
+4. Renderer-local conversation store helpers fetch transcript windows via sidecar RPC (`list-conversations`, `search-conversations`, `get-conversation`).
    `get-conversation` resume/hydrate paths use `message_index` cursor pagination (`after_message_index`) so large local DB transcripts are fully reloaded instead of capped at one page.
-4. `ElectronSidecarConversationStore` is the only renderer adapter that calls transcript storage IPC; it writes visible transcript rows, replay rows, and SDK `conversation_event` rows behind one store boundary.
-5. Opening a past chat replaces in-memory renderer chat state immediately, but backend conversation history is rehydrated lazily only before the first backend-dependent action for that chat.
-6. Send, replay/edit, and manual compaction all pass through a renderer-side inference-session hydration runtime, which restores backend history on demand from SDK store projections and invalidates hydrated state after backend disconnects.
+5. `ElectronSidecarConversationStore` is the only renderer adapter that calls transcript storage IPC; it writes visible transcript rows, replay rows, and SDK `conversation_event` rows behind one store boundary.
+6. Opening a past chat replaces in-memory renderer chat state immediately, but backend conversation history is rehydrated lazily only before the first backend-dependent action for that chat.
+7. Send, replay/edit, and manual compaction all pass through a renderer-side inference-session hydration runtime, which restores backend history on demand from SDK store projections and invalidates hydrated state after backend disconnects.
 
 Current ownership boundary:
 
@@ -214,7 +215,7 @@ Primary modules:
   - Keeps macOS/Windows/Linux window rules in one place so composition/runtime modules do not duplicate Electron platform conditionals.
 - `main/ipc.cjs`:
   - Renderer-facing SDK runtime adapter for backend-bound work.
-  - Delegates backend websocket construction to `main/windie_sdk_backend_socket.cjs` through `main/windie_sdk_runtime.cjs`, and keeps handshake send, envelope send, close, idle disconnect, and reconnect policy inside the SDK runtime adapter.
+  - Delegates backend websocket construction to `main/windie_sdk_backend_socket.cjs` through `main/windie_sdk_runtime.cjs`, and keeps handshake send, typed command send, close, idle disconnect, and reconnect policy inside the SDK runtime adapter.
   - Delegates backend-bound renderer command normalization, connection policy, settings-sync gating, and typed SDK send dispatch to `main/ipc/ipc_sdk_command_router.cjs`.
   - Opens the SDK runtime connection on demand for backend-bound work instead of at app startup.
   - Keeps the SDK runtime connection alive through active agent-loop phases, then starts a 30 minute idle grace timer before intentionally closing the connection.
