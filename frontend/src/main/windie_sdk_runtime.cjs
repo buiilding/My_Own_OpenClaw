@@ -164,10 +164,27 @@ function createWindieSdkMainRuntime(options = {}) {
     return sendBackendMessage('list-models', payload, messageId);
   }
 
+  function sendRehydrateConversation(payload = {}, messageId = null) {
+    return sendBackendMessage('rehydrate-conversation', payload, messageId);
+  }
+
+  function sendCompactHistory(payload = {}, messageId = null) {
+    return sendBackendMessage('compact-history', payload, messageId);
+  }
+
+  function sendToolResult(payload = {}, messageId = null) {
+    return sendBackendMessage('tool-result', payload, messageId);
+  }
+
+  function sendToolBundleResult(payload = {}, messageId = null) {
+    return sendBackendMessage('tool-bundle-result', payload, messageId);
+  }
+
   function handleBackendEvent(data) {
     routeSdkToolEventToLocalRuntime(data, {
       executeLocalTool: options.executeLocalTool,
-      sendMessageToBackend: sendBackendMessage,
+      sendToolResult,
+      sendToolBundleResult,
       log: options.log,
     });
     const rendererData = markRendererToolEventDisplayOnly(data);
@@ -370,11 +387,13 @@ function createWindieSdkMainRuntime(options = {}) {
     isOpen,
     noteTraffic,
     reconnectIntervalMs,
-    sendBackendMessage,
-    sendEnvelope,
+    sendCompactHistory,
     sendListModels,
     sendQuery,
+    sendRehydrateConversation,
     sendStopQuery,
+    sendToolBundleResult,
+    sendToolResult,
     sendUpdateSettings,
     sendWakewordDetected,
     syncIdleTimer,

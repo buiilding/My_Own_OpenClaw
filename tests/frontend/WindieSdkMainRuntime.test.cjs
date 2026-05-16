@@ -56,7 +56,7 @@ describe('Windie SDK main runtime', () => {
     });
   });
 
-  test('owns backend websocket handshake and envelope sends for Electron main', async () => {
+  test('owns backend websocket handshake and typed sends for Electron main', async () => {
     const opened = jest.fn();
     const runtime = createWindieSdkMainRuntime({
       WebSocketImpl: FakeWebSocket,
@@ -78,11 +78,7 @@ describe('Windie SDK main runtime', () => {
     expect(socket.options.headers.authorization).toBe('Bearer install-token');
     expect(JSON.parse(socket.sent[0])).toEqual({ type: 'handshake', user_id: 'dev-user' });
     expect(opened).toHaveBeenCalled();
-    expect(runtime.sendEnvelope({
-      type: 'query',
-      payload: { text: 'hello' },
-      userId: 'dev-user',
-    })).toBe('msg-1');
+    expect(runtime.sendQuery({ text: 'hello' })).toBe('msg-1');
     expect(JSON.parse(socket.sent[1])).toMatchObject({
       id: 'msg-1',
       type: 'query',
@@ -98,6 +94,8 @@ describe('Windie SDK main runtime', () => {
     });
     expect(runtime.sendUpdateSettings({ model_provider: 'openai' })).toBe('msg-1');
     expect(runtime.sendListModels()).toBe('msg-1');
+    expect(runtime.sendRehydrateConversation({ conversation_ref: 'conv-1', messages: [] })).toBe('msg-1');
+    expect(runtime.sendCompactHistory({ conversation_ref: 'conv-1' })).toBe('msg-1');
     expect(JSON.parse(socket.sent[3])).toMatchObject({
       type: 'update-settings',
       payload: { model_provider: 'openai' },
@@ -106,6 +104,16 @@ describe('Windie SDK main runtime', () => {
     expect(JSON.parse(socket.sent[4])).toMatchObject({
       type: 'list-models',
       payload: {},
+      user_id: 'dev-user',
+    });
+    expect(JSON.parse(socket.sent[5])).toMatchObject({
+      type: 'rehydrate-conversation',
+      payload: { conversation_ref: 'conv-1', messages: [] },
+      user_id: 'dev-user',
+    });
+    expect(JSON.parse(socket.sent[6])).toMatchObject({
+      type: 'compact-history',
+      payload: { conversation_ref: 'conv-1' },
       user_id: 'dev-user',
     });
   });

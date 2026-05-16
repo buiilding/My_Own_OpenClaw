@@ -31,12 +31,12 @@ describe('ipc sdk tool router', () => {
     expect(event.payload.metadata).toEqual({ attempt: 1 });
   });
 
-  test('routes tool-call results to the backend envelope sender', async () => {
+  test('routes tool-call results to the typed backend tool-result sender', async () => {
     const executeLocalTool = jest.fn(async () => ({
       success: true,
       data: { output: 'ok', llm_content: 'ok' },
     }));
-    const sendMessageToBackend = jest.fn();
+    const sendToolResult = jest.fn();
 
     routeSdkToolEventToLocalRuntime({
       id: 'event-1',
@@ -48,7 +48,7 @@ describe('ipc sdk tool router', () => {
       },
     }, {
       executeLocalTool,
-      sendMessageToBackend,
+      sendToolResult,
     });
     await Promise.resolve();
     await Promise.resolve();
@@ -57,15 +57,12 @@ describe('ipc sdk tool router', () => {
       toolName: 'read_file',
       args: { path: '/tmp/a' },
     });
-    expect(sendMessageToBackend).toHaveBeenCalledWith(
-      'tool-result',
-      {
-        request_id: 'req-read',
-        success: true,
-        data: { output: 'ok', llm_content: 'ok' },
-        error: undefined,
-      },
-    );
+    expect(sendToolResult).toHaveBeenCalledWith({
+      request_id: 'req-read',
+      success: true,
+      data: { output: 'ok', llm_content: 'ok' },
+      error: undefined,
+    });
   });
 
   test('adds llm_content fallback without adding schema-invalid metadata', async () => {
@@ -73,7 +70,7 @@ describe('ipc sdk tool router', () => {
       success: true,
       data: { output: 'raw output' },
     }));
-    const sendMessageToBackend = jest.fn();
+    const sendToolResult = jest.fn();
 
     routeSdkToolEventToLocalRuntime({
       type: 'tool-call',
@@ -84,12 +81,12 @@ describe('ipc sdk tool router', () => {
       },
     }, {
       executeLocalTool,
-      sendMessageToBackend,
+      sendToolResult,
     });
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(sendMessageToBackend).toHaveBeenCalledWith('tool-result', {
+    expect(sendToolResult).toHaveBeenCalledWith({
       request_id: 'req-shell',
       success: true,
       data: {
@@ -105,7 +102,7 @@ describe('ipc sdk tool router', () => {
       .fn()
       .mockResolvedValueOnce({ success: true, data: { output: 'one' } })
       .mockResolvedValueOnce({ success: false, error: 'failed-two' });
-    const sendMessageToBackend = jest.fn();
+    const sendToolBundleResult = jest.fn();
 
     routeSdkToolEventToLocalRuntime({
       type: 'tool-bundle',
@@ -118,14 +115,13 @@ describe('ipc sdk tool router', () => {
       },
     }, {
       executeLocalTool,
-      sendMessageToBackend,
+      sendToolBundleResult,
     });
     await Promise.resolve();
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(sendMessageToBackend).toHaveBeenCalledWith(
-      'tool-bundle-result',
+    expect(sendToolBundleResult).toHaveBeenCalledWith(
       expect.objectContaining({
         bundle_id: 'bundle-1',
         status: 'partial_failure',

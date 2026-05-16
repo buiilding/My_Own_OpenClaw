@@ -66,7 +66,13 @@ function sendSdkRuntimeCommand(runtime, {
   if (type === 'list-models' && typeof runtime.sendListModels === 'function') {
     return runtime.sendListModels(payload, messageId);
   }
-  return runtime.sendBackendMessage(type, payload, messageId);
+  if (type === 'rehydrate-conversation' && typeof runtime.sendRehydrateConversation === 'function') {
+    return runtime.sendRehydrateConversation(payload, messageId);
+  }
+  if (type === 'compact-history' && typeof runtime.sendCompactHistory === 'function') {
+    return runtime.sendCompactHistory(payload, messageId);
+  }
+  return null;
 }
 
 module.exports = {

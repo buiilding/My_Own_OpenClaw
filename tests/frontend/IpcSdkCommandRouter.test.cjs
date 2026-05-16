@@ -56,9 +56,10 @@ describe('ipc sdk command router', () => {
 
   test('dispatches query and wakeword through typed sdk runtime methods', () => {
     const runtime = {
-      sendBackendMessage: jest.fn(() => 'backend-id'),
+      sendCompactHistory: jest.fn(() => 'compact-id'),
       sendListModels: jest.fn(() => 'models-id'),
       sendQuery: jest.fn(() => 'query-id'),
+      sendRehydrateConversation: jest.fn(() => 'rehydrate-id'),
       sendStopQuery: jest.fn(() => 'stop-id'),
       sendUpdateSettings: jest.fn(() => 'settings-id'),
       sendWakewordDetected: jest.fn(() => 'wakeword-id'),
@@ -93,7 +94,12 @@ describe('ipc sdk command router', () => {
       type: 'compact-history',
       payload: { conversation_ref: 'conv-1' },
       messageId: 'msg-compact',
-    })).toBe('backend-id');
+    })).toBe('compact-id');
+    expect(sendSdkRuntimeCommand(runtime, {
+      type: 'rehydrate-conversation',
+      payload: { conversation_ref: 'conv-1', messages: [] },
+      messageId: 'msg-rehydrate',
+    })).toBe('rehydrate-id');
 
     expect(runtime.sendQuery).toHaveBeenCalledWith({ text: 'run' }, 'msg-query');
     expect(runtime.sendWakewordDetected).toHaveBeenCalledWith({ source: 'mic' }, 'msg-wake');
@@ -103,10 +109,10 @@ describe('ipc sdk command router', () => {
     );
     expect(runtime.sendUpdateSettings).toHaveBeenCalledWith({ provider: 'openai' }, 'msg-settings');
     expect(runtime.sendListModels).toHaveBeenCalledWith({}, 'msg-models');
-    expect(runtime.sendBackendMessage).toHaveBeenCalledWith(
-      'compact-history',
-      { conversation_ref: 'conv-1' },
-      'msg-compact',
+    expect(runtime.sendCompactHistory).toHaveBeenCalledWith({ conversation_ref: 'conv-1' }, 'msg-compact');
+    expect(runtime.sendRehydrateConversation).toHaveBeenCalledWith(
+      { conversation_ref: 'conv-1', messages: [] },
+      'msg-rehydrate',
     );
   });
 });

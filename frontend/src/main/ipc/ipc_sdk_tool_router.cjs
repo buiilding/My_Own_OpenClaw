@@ -123,12 +123,12 @@ async function routeToolCallToLocalRuntime(event, deps) {
       toolName,
       args: isPlainObject(event.payload.parameters) ? event.payload.parameters : {},
     });
-    deps.sendMessageToBackend('tool-result', buildToolResultPayload({
+    deps.sendToolResult(buildToolResultPayload({
       requestId,
       result,
     }));
   } catch (error) {
-    deps.sendMessageToBackend('tool-result', {
+    deps.sendToolResult({
       request_id: requestId,
       success: false,
       error: error?.message || String(error),
@@ -190,7 +190,7 @@ async function routeToolBundleToLocalRuntime(event, deps) {
   const status = failedSteps.length === 0
     ? 'success'
     : (failedSteps.length === stepResults.length ? 'failure' : 'partial_failure');
-  deps.sendMessageToBackend('tool-bundle-result', {
+  deps.sendToolBundleResult({
     bundle_id: bundleId,
     status,
     step_results: stepResults,
@@ -203,8 +203,13 @@ function routeSdkToolEventToLocalRuntime(event, deps = {}) {
   if (
     !isPlainObject(event)
     || typeof deps.executeLocalTool !== 'function'
-    || typeof deps.sendMessageToBackend !== 'function'
   ) {
+    return false;
+  }
+  if (event.type === 'tool-call' && typeof deps.sendToolResult !== 'function') {
+    return false;
+  }
+  if (event.type === 'tool-bundle' && typeof deps.sendToolBundleResult !== 'function') {
     return false;
   }
   if (event.type === 'tool-call') {

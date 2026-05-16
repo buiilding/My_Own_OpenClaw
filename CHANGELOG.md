@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sdk: replace main runtime raw backend command sends with typed SDK command methods.
 - sdk: add typed backend transport commands for compaction and wakeword runtime messages.
 - sdk: move backend websocket event types into the package events boundary.
 - frontend: improve light-appearance contrast for dashboard header browser, workspace, search, and speech controls.
