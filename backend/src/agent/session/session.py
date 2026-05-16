@@ -80,11 +80,11 @@ class AgentSession:
         cfg: AppConfig,
         tool_registry: ToolRegistry,
         ocr_service: Optional["OcrService"],
+        metrics_service: Any,
         llm_client: Optional[LLMClient] = None,
         llm_client_factory: Optional[Callable[[AppConfig], LLMClient]] = None,
         tool_orchestrator: Optional[ToolResultOrchestrator] = None,
         event_bus: Optional[EventBus] = None,
-        metrics_service: Optional[Any] = None,
         user_id: str = "default_user",
         session_id: Optional[str] = None,
     ) -> None:
@@ -103,6 +103,7 @@ class AgentSession:
             session_id: Session identifier (auto-generated if None)
         """
         self.cfg = cfg
+        self.metrics_service = metrics_service
         self.llm_client_factory = llm_client_factory or get_llm_client
         self.llm_client: LLMClient = llm_client or self.llm_client_factory(self.cfg)
         self._lock = asyncio.Lock()

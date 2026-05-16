@@ -34,7 +34,7 @@ class AgentSessionFactory:
         llm_client_factory: Any,  # Callable that returns LLMClient
         tool_orchestrator_factory: Any,  # Callable that returns ToolOrchestrator
         event_bus: Any,  # EventBus instance
-        metrics_service: Optional[Any] = None,  # MetricsService instance (optional for backward compatibility)
+        metrics_service: Any,  # MetricsService instance
     ):
         """
         Initialize the session factory.
@@ -46,7 +46,7 @@ class AgentSessionFactory:
             llm_client_factory: Factory function that creates LLMClient instances
             tool_orchestrator_factory: Factory function that creates ToolOrchestrator instances
             event_bus: EventBus instance for event communication
-            metrics_service: Optional MetricsService instance for observability
+            metrics_service: MetricsService instance for observability
         """
         self.config = config
         self.tool_registry = tool_registry

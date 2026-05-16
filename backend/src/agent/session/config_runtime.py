@@ -48,6 +48,7 @@ class SessionConfigRuntime:
             session.tool_registry,
             session.cfg,
             system_prompt=previous_prompt.system_prompt,
+            metrics_service=session.metrics_service,
         )
         session.prompt_builder.workspace_path = getattr(previous_prompt, "workspace_path", None)
         session.prompt_builder.repo_instruction_messages = list(

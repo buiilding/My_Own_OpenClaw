@@ -2,6 +2,7 @@ import pytest
 
 from backend.src.core.infrastructure.cache_manager import CacheManager
 from backend.src.core.config.models import AppConfig
+from backend.src.core.observability.trust_boundary_metrics import MetricsService
 from backend.src.core.types.enums import MessageRole, MessageType
 from backend.src.llm.prompts.prompt_constructor import PromptConstructor
 from backend.src.tools.remote import RemoteMouseTool
@@ -43,6 +44,7 @@ def _make_constructor(tool_schemas=None):
     return PromptConstructor(
         tool_registry=DummyRegistry(tool_schemas),
         config=AppConfig(),
+        metrics_service=MetricsService(),
         system_prompt="system",
     )
 
@@ -117,6 +119,7 @@ def test_format_user_message_content_respects_allowlist_for_tool_schemas():
             ]
         ),
         config=AppConfig(interaction_mode="chat"),
+        metrics_service=MetricsService(),
         system_prompt="system",
     )
 
@@ -145,6 +148,7 @@ def test_format_user_message_content_filters_mouse_coordinate_methods(
     constructor = PromptConstructor(
         tool_registry=DummyRegistry([RemoteMouseTool().get_json_schema()]),
         config=AppConfig(interaction_mode="agent"),
+        metrics_service=MetricsService(),
         system_prompt="system",
     )
 
@@ -347,6 +351,7 @@ def test_build_prompt_allowlisting_mouse_control_yields_single_direct_schema():
     constructor = PromptConstructor(
         tool_registry=registry,
         config=AppConfig(tool_allowlist=["mouse_control"]),
+        metrics_service=MetricsService(),
         system_prompt="system",
     )
 
@@ -385,6 +390,7 @@ def test_build_prompt_real_registry_prunes_live_model_facing_grounding_schema(
     constructor = PromptConstructor(
         tool_registry=registry,
         config=config,
+        metrics_service=MetricsService(),
         system_prompt="system",
     )
 
@@ -442,6 +448,7 @@ def test_build_prompt_openai_projection_filters_grounded_tools_after_projection(
     constructor = PromptConstructor(
         tool_registry=registry,
         config=config,
+        metrics_service=MetricsService(),
         system_prompt="system",
     )
 
@@ -462,6 +469,7 @@ def test_build_prompt_allowlisting_read_file_yields_single_direct_schema():
     constructor = PromptConstructor(
         tool_registry=registry,
         config=AppConfig(tool_allowlist=["read_file"]),
+        metrics_service=MetricsService(),
         system_prompt="system",
     )
 
@@ -488,6 +496,7 @@ def test_build_prompt_keeps_direct_computer_tools_for_openai_even_with_image_his
     constructor = PromptConstructor(
         tool_registry=registry,
         config=config,
+        metrics_service=MetricsService(),
         system_prompt="system",
     )
     history = DummyHistory(

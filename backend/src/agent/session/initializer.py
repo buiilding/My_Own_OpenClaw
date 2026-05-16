@@ -1,5 +1,5 @@
 """AgentSession initialization helpers."""
-from typing import Any, Optional
+from typing import Optional
 
 from backend.src.agent.execution.executor import AgentExecutor
 from backend.src.agent.compaction import CompactionEngine
@@ -28,7 +28,7 @@ def init_tooling(
         session.tool_orchestrator = tool_orchestrator
 
 
-def init_prompt_and_history(session, metrics_service: Optional[Any]) -> None:
+def init_prompt_and_history(session, metrics_service) -> None:
     session.prompt_builder = PromptConstructor(
         session.tool_registry, session.cfg, metrics_service=metrics_service
     )

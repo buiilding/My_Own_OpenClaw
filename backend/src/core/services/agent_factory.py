@@ -91,6 +91,7 @@ class AgentFactory:
             llm_client_factory=parent_session.llm_client_factory,
             tool_orchestrator=parent_session.tool_orchestrator,
             event_bus=parent_session.event_bus,
+            metrics_service=parent_session.metrics_service,
             user_id=parent_session.user_id,
             session_id=sub_session_id
         )

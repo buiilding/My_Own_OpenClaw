@@ -278,6 +278,7 @@ def build_prompt_constructor(*, config: Any, container) -> PromptConstructor:
     return PromptConstructor(
         tool_registry=_get_tool_registry(container),
         config=config,
+        metrics_service=container.core.metrics_service(),
     )
 
 

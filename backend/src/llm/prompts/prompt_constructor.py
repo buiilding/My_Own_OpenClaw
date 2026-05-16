@@ -70,8 +70,8 @@ class PromptConstructor:
         self,
         tool_registry: ToolRegistry,
         config: AppConfig,
+        metrics_service: MetricsService,
         system_prompt: Optional[str] = None,
-        metrics_service: Optional[MetricsService] = None,
     ):
         """
         Initialize the prompt constructor.
@@ -79,9 +79,9 @@ class PromptConstructor:
         Args:
             tool_registry: Registry of available tools
             config: Application configuration (REQUIRED for security limits)
+            metrics_service: MetricsService for observability (injected via DI)
             system_prompt: Optional custom system prompt. If None, loads from PromptManager
                           (assumes PromptManager.initialize() was called at startup)
-            metrics_service: Optional MetricsService for observability (injected via DI)
 
         Raises:
             ValueError: If config is None (security requirement)
@@ -99,13 +99,6 @@ class PromptConstructor:
         self.system_prompt = system_prompt or PromptManager().render_system_prompt(
             allowed_coordinate_methods=self.tool_policy.get_allowed_mouse_coordinate_methods()
         )
-        # Use injected MetricsService or create a new instance (for backward compatibility)
-        if metrics_service is None:
-            from backend.src.core.observability.trust_boundary_metrics import (
-                MetricsService,
-            )
-
-            metrics_service = MetricsService()
         self.metrics = metrics_service.get_metrics("prompt_constructor")
         self.limits = config.security_limits
         self.workspace_path: Optional[str] = None

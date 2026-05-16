@@ -1,5 +1,6 @@
 from backend.src.core.config import AppConfig
 from backend.src.core.infrastructure.cache_manager import CacheManager
+from backend.src.core.observability.trust_boundary_metrics import MetricsService
 from backend.src.llm.prompts.prompt_constructor import PromptConstructor
 from backend.src.tools.client_manifest import (
     MAX_CLIENT_TOOLS,
@@ -18,6 +19,10 @@ def _schema(required=None):
         },
         "required": required or ["value"],
     }
+
+
+def _metrics_service():
+    return MetricsService()
 
 
 def test_client_tool_manifest_accepts_passthrough_sidecar_tool():
@@ -199,7 +204,9 @@ def test_prompt_constructor_merges_client_tool_schemas_after_policy(monkeypatch)
     )
     config = AppConfig(agent_available_tools=["my_tool"])
     registry = ToolRegistry(config=config, cache_manager=CacheManager())
-    constructor = PromptConstructor(registry, config, system_prompt="base")
+    constructor = PromptConstructor(
+        registry, config, metrics_service=_metrics_service(), system_prompt="base"
+    )
     constructor.client_tool_schemas = [
         {
             "type": "function",
@@ -230,7 +237,9 @@ def test_prompt_constructor_policy_does_not_resurrect_disabled_client_tools(
     )
     config = AppConfig(agent_available_tools=["allowed_tool"])
     registry = ToolRegistry(config=config, cache_manager=CacheManager())
-    constructor = PromptConstructor(registry, config, system_prompt="base")
+    constructor = PromptConstructor(
+        registry, config, metrics_service=_metrics_service(), system_prompt="base"
+    )
     constructor.client_tool_schemas = [
         {
             "type": "function",
@@ -259,7 +268,9 @@ def test_prompt_constructor_client_schema_replaces_registry_schema(monkeypatch):
     )
     config = AppConfig(agent_available_tools=["read_file"])
     registry = ToolRegistry(config=config, cache_manager=CacheManager())
-    constructor = PromptConstructor(registry, config, system_prompt="base")
+    constructor = PromptConstructor(
+        registry, config, metrics_service=_metrics_service(), system_prompt="base"
+    )
     constructor.client_tool_schemas = [
         {
             "type": "function",
@@ -280,7 +291,9 @@ def test_prompt_constructor_client_schema_replaces_registry_schema(monkeypatch):
 
 def test_prompt_constructor_adds_client_prompt_layers_in_priority_order():
     registry = ToolRegistry(config=AppConfig(), cache_manager=CacheManager())
-    constructor = PromptConstructor(registry, AppConfig(), system_prompt="base")
+    constructor = PromptConstructor(
+        registry, AppConfig(), metrics_service=_metrics_service(), system_prompt="base"
+    )
     constructor.client_prompt_layers = [
         {"id": "later", "type": "custom", "priority": 80, "content": "later text"},
         {"id": "first", "type": "agents_md", "priority": 40, "content": "first text"},

@@ -117,6 +117,7 @@ Session wiring path:
 1. `SessionRuntimeCoordinator` passes `core.metrics_service()` into `AgentSessionFactory`
 2. `AgentSessionFactory.create_session(...)` passes it to `AgentSession`
 3. `init_prompt_and_history(...)` builds `PromptConstructor(..., metrics_service=...)`
+4. `SessionConfigRuntime` reuses `session.metrics_service` when rebuilding the prompt constructor after config updates
 
 Parser wiring:
 
@@ -127,6 +128,7 @@ Operational implication:
 
 - DI path gives shared, process-level metrics registry.
 - non-DI instantiation isolates metrics per object instance.
+- prompt construction uses the DI-provided session metrics service; it does not create a local fallback metrics registry.
 
 ## Exception and Metadata Conventions
 
