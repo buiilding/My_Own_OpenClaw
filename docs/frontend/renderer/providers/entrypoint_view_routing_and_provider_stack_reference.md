@@ -2,7 +2,7 @@
 summary: "Deep reference for renderer root entrypoint routing by `view` param, per-view app wrappers, and provider/hook enablement differences across main chat vs overlay windows."
 read_when:
   - When changing renderer app selection logic in `main.jsx`.
-  - When debugging why a window surface has/does not have transcript/tool-runner behavior or why main app is stuck in permission onboarding gate.
+  - When debugging why a window surface has/does not have transcript or SDK/local-runtime tool behavior, or why main app is stuck in permission onboarding gate.
 title: "Entrypoint View Routing and Provider Stack Reference"
 ---
 

@@ -1,7 +1,7 @@
 ---
 summary: "Canonical frontend runtime invariants and PR checklist for chat-pill/response-overlay loop behavior, platform screenshot policy, and interactivity ownership."
 read_when:
-  - When changing chat-pill, response-overlay, stream phase, or tool-runner runtime behavior.
+  - When changing chat-pill, response-overlay, stream phase, or SDK/local-runtime tool behavior.
   - When reviewing pull requests that touch frontend runtime state, overlay IPC, or platform capture flow.
 title: "Frontend Runtime Invariants and PR Checklist"
 ---
@@ -46,7 +46,7 @@ When behavior changes in these areas, add or update tests in the same PR:
 
 - chat-loop state ordering/reconnect watchdog:
   - `tests/frontend/ChatLoopUiStateHook.test.jsx`
-- tool-runner stale-turn/correlation/late-result guards:
+- SDK/local-runtime stale-turn/correlation/late-result guards:
   - `tests/frontend/ToolRunnerHook.callbacks.test.ts`
   - `tests/frontend/ToolRunnerHook.turnGuards.test.ts`
 - capture hide/restore overlap and platform policy:

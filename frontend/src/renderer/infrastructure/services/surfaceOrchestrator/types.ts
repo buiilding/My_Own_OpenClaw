@@ -12,7 +12,7 @@ export const SURFACE_PHASE = Object.freeze({
 
 export type SurfacePhase = (typeof SURFACE_PHASE)[keyof typeof SURFACE_PHASE];
 
-export type SurfaceTransitionSource = 'tool-runner' | 'system-capture';
+export type SurfaceTransitionSource = 'sdk-tool-runtime' | 'system-capture';
 export type HiddenSurface =
   | 'none'
   | 'chatbox'

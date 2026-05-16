@@ -144,4 +144,4 @@ Sidecar:
 Frontend:
 
 - websocket handshake/client-capability tests
-- tool-runner tests when renderer-visible behavior changes
+- SDK/local-runtime tool projection tests when renderer-visible behavior changes

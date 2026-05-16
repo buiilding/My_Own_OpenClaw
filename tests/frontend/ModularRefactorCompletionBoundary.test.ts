@@ -170,6 +170,8 @@ describe('modular sdk refactor completion boundary', () => {
         'Renderer invokes tool',
         'renderer dispatch',
         'renderer tool-runner',
+        'renderer-tool-runner',
+        'tool-runner-result',
         'Did renderer send `tool-result`',
         'Retired Renderer Tool Execution Runtime',
         'renderer orchestration',

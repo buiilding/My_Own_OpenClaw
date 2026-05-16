@@ -194,7 +194,7 @@ Consumers:
 
 - `turn_ref` is persisted on chat rows and stream tracking
 - `turn_ref -> conversation_ref` map allows late events without conversation refs to route correctly
-- stale-turn guards in stream handlers and tool-runner callbacks prevent old-turn payloads from mutating active-turn UI
+- stale-turn guards in stream handlers and SDK/local-runtime callbacks prevent old-turn payloads from mutating active-turn UI
 
 ## Related Pages
 

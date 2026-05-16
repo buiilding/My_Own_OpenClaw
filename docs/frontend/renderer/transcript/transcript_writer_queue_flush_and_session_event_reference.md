@@ -153,7 +153,7 @@ Payload defaults:
 
 Tool-output transcript persistence is intentionally shared outside the projection runtime:
 
-- chat-stream `tool-output` handlers and frontend tool-runner result persistence now both route transcript output rows through `features/chat/utils/toolOutputTranscriptPersistence.ts`
+- chat-stream `tool-output` handlers and SDK/local-runtime result persistence now both route transcript output rows through `features/chat/utils/toolOutputTranscriptPersistence.ts`
 - that shared helper feeds `recordToolMessage(...)` with one canonical `structuredPayload` contract for output details, screenshot refs, and model metadata
 
 ## Session Update Entry Points
@@ -227,7 +227,7 @@ Tool-output transcript persistence is intentionally shared outside the projectio
 2. Reordering queue flush categories changes transcript row ordering guarantees.
 3. Emitting session events without identity-change guard can cause dashboard rerender churn.
 4. Reintroducing `sessionId` fallback can bind durable chat state to backend runtime session ids.
-5. Reintroducing separate tool-output transcript builders in chat-stream and tool-runner paths will drift `structuredPayload` contents and replay behavior.
+5. Reintroducing separate tool-output transcript builders in chat-stream and SDK/local-runtime paths will drift `structuredPayload` contents and replay behavior.
 
 ## Related Pages
 

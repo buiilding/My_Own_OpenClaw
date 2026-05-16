@@ -126,7 +126,7 @@ For a desktop-sidecar bug, identify the last successful boundary:
 
 | Change | Validate |
 | --- | --- |
-| renderer stream/tool state | renderer chat hook/store/tool-runner tests |
+| renderer stream/tool state | renderer chat hook/store and SDK/local-runtime projection tests |
 | IPC or preload channel | preload allowlist parity and main IPC tests |
 | main-process window/overlay behavior | main overlay/window tests |
 | sidecar JSON-RPC mapping | sidecar JSON-RPC protocol tests and main bridge mapper tests |

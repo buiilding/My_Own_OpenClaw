@@ -16,7 +16,7 @@ const SOURCE_EVENT_LABELS = {
   'tool-schemas': 'tool-schemas API',
   error: 'error API',
   'renderer-compose': 'renderer-compose',
-  'tool-runner-result': 'tool-runner-result',
+  'sdk-tool-result': 'sdk-tool-result',
   transcript: 'transcript',
   unknown: 'unknown-source',
 };
@@ -24,7 +24,7 @@ const SOURCE_EVENT_LABELS = {
 const SOURCE_CHANNEL_LABELS = {
   'from-backend': 'from-backend',
   'renderer-local': 'renderer-local',
-  'renderer-tool-runner': 'renderer-tool-runner',
+  'sdk-local-runtime': 'sdk-local-runtime',
   transcript: 'transcript',
   unknown: 'unknown',
 };

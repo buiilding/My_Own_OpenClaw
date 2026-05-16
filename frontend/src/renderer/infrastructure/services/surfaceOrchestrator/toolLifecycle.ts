@@ -44,7 +44,7 @@ export async function prepareToolExecutionSurface(
   const context = resolveSurfaceTransitionContext(
     options.source,
     options.correlationId,
-    'tool-runner',
+    'sdk-tool-runtime',
     'surface',
   );
   const { source, correlationId } = context;
@@ -158,7 +158,7 @@ export async function restoreToolExecutionSurface(
   const context = resolveSurfaceTransitionContext(
     options.source,
     preparation.correlationId,
-    'tool-runner',
+    'sdk-tool-runtime',
     'surface-restore',
   );
   const { source, correlationId } = context;

@@ -40,13 +40,13 @@ describe('MessageSourceBadge', () => {
           sender: 'assistant',
           type: 'tool-output',
           sourceEventType: 'tool-output',
-          sourceChannel: 'renderer-tool-runner',
+          sourceChannel: 'sdk-local-runtime',
           text: 'abcd',
         }}
       />,
     );
 
-    expect(screen.getByText('tool-output API · renderer-tool-runner · tokens~ 1')).toBeInTheDocument();
+    expect(screen.getByText('tool-output API · sdk-local-runtime · tokens~ 1')).toBeInTheDocument();
   });
 
   test('renders provider-reported token usage when attached to an assistant message', () => {

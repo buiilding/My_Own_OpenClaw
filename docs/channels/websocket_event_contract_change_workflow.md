@@ -2,7 +2,7 @@
 summary: "Workflow for changing WindieOS websocket event contracts across backend streaming events, formatter specs, outgoing schemas, Electron rebroadcast, renderer guards, stream handlers, and tests."
 read_when:
   - When adding, renaming, formatting, removing, or consuming a backend websocket event.
-  - When changing event payload fields, formatter behavior, outgoing schemas, renderer `from-backend` guards, chat stream handlers, tool-runner events, token usage events, prompt transparency events, or audio side-channel payloads.
+  - When changing event payload fields, formatter behavior, outgoing schemas, renderer `from-backend` guards, chat stream handlers, SDK/local-runtime tool events, token usage events, prompt transparency events, or audio side-channel payloads.
   - When debugging an event that is produced by the backend but missing on the wire, visible in DevTools but ignored by the UI, stale-filtered, malformed, or rendered in the wrong conversation.
 title: "WebSocket Event Contract Change Workflow"
 ---

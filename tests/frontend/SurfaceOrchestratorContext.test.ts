@@ -7,12 +7,12 @@ describe('surfaceOrchestrator context helpers', () => {
     const context = resolveSurfaceTransitionContext(
       undefined,
       '  corr-1  ',
-      'tool-runner',
+      'sdk-tool-runtime',
       'surface',
     );
 
     expect(context).toEqual({
-      source: 'tool-runner',
+      source: 'sdk-tool-runtime',
       correlationId: 'corr-1',
     });
   });
@@ -21,18 +21,18 @@ describe('surfaceOrchestrator context helpers', () => {
     const first = resolveSurfaceTransitionContext(
       'system-capture',
       '   ',
-      'tool-runner',
+      'sdk-tool-runtime',
       'capture',
     );
     const second = resolveSurfaceTransitionContext(
       undefined,
       null,
-      'tool-runner',
+      'sdk-tool-runtime',
       'capture',
     );
 
     expect(first.source).toBe('system-capture');
-    expect(second.source).toBe('tool-runner');
+    expect(second.source).toBe('sdk-tool-runtime');
     expect(first.correlationId).toMatch(/^capture-\d+$/);
     expect(second.correlationId).toMatch(/^capture-\d+$/);
     expect(second.correlationId).not.toBe(first.correlationId);

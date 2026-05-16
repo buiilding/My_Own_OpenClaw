@@ -204,7 +204,7 @@ Model metadata contract:
 
 - `transcriptModelContext.ts` owns the shared `{ modelId, modelProvider }` base used by transcript tool-output helpers
 - `chatStreamTypes.ts` extends that base with chat-stream-only thinking capability flags
-- tool-runner/tool-output helpers consume the shared base directly so transcript model metadata shape no longer drifts between the two codepaths
+- SDK/local-runtime tool-output helpers consume the shared base directly so transcript model metadata shape no longer drifts between the two codepaths
 
 Streaming-complete transcript write nuance:
 

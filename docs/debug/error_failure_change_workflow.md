@@ -182,7 +182,7 @@ Read:
 Edit:
 
 - renderer stream/tool consumers for canonical failure payload handling.
-- `ErrorMessage.jsx` or tool-runner failure helpers for display logic.
+- `ErrorMessage.jsx` or SDK/local-runtime tool failure helpers for display logic.
 - `ErrorBoundary.jsx` only for component tree crash isolation, not transport failures.
 
 Validate:
