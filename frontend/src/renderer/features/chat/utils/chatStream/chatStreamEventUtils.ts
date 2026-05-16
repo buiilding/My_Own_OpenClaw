@@ -20,12 +20,17 @@ type ErrorPayload = {
 
 type ToolOutputPayload = {
   request_id?: string | null;
-  metadata?: unknown;
+  tool_call_id?: string | null;
+  metadata?: {
+    request_id?: string | null;
+    tool_call_id?: string | null;
+  } | null;
 };
 
 type ToolCallPayload = {
   correlation_id?: string | null;
   request_id?: string | null;
+  tool_call_id?: string | null;
 };
 
 export function shouldIgnoreStreamError(payload: ErrorPayload | null | undefined): boolean {

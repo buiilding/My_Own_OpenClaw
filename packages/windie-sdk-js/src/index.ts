@@ -16,6 +16,7 @@ export * from './transport/BackendSocketFactory.js';
 export * from './transport/HostedBackendHttpClient.js';
 export * from './transport/ManagedBackendSession.js';
 export * from './tools/ToolExecutionCoordinator.js';
+export * from './tools/toolCorrelationIds.js';
 export * from './settings/modelSelection.js';
 export {
   createWindieAgentBackendTransport,

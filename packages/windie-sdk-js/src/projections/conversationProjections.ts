@@ -8,6 +8,10 @@ import type {
   RehydrateSnapshot,
   ToolTrace,
 } from '../conversation/types.js';
+import {
+  resolveToolOutputDedupeKey,
+  resolveToolPairKeys,
+} from '../tools/toolCorrelationIds.js';
 
 function textFromPayload(payload: JsonRecord): string {
   if (typeof payload.text === 'string') {
@@ -64,16 +68,7 @@ function toolOutputDedupeKey(event: ConversationEvent): string | null {
   if (event.type !== 'tool_output' && event.type !== 'tool_bundle_output') {
     return null;
   }
-  const requestId = stringField(event.payload, 'requestId', 'request_id', 'correlationId', 'correlation_id');
-  if (requestId) {
-    return `request:${requestId}`;
-  }
-  const bundleId = stringField(event.payload, 'bundleId', 'bundle_id');
-  if (bundleId) {
-    return `bundle:${bundleId}`;
-  }
-  const toolCallId = stringField(event.payload, 'toolCallId', 'tool_call_id');
-  return toolCallId ? `tool-call:${toolCallId}` : null;
+  return resolveToolOutputDedupeKey(event.payload);
 }
 
 function toolPairKey(event: ConversationEvent): string | null {
@@ -82,20 +77,10 @@ function toolPairKey(event: ConversationEvent): string | null {
 
 function toolPairKeys(event: ConversationEvent): string[] {
   if (event.type === 'tool_bundle_call' || event.type === 'tool_bundle_output') {
-    const bundleId = stringField(event.payload, 'bundleId', 'bundle_id');
-    return bundleId ? [`bundle:${bundleId}`] : [];
+    return resolveToolPairKeys(event.payload, { bundle: true });
   }
   if (event.type === 'tool_call' || event.type === 'tool_output') {
-    const keys: string[] = [];
-    const toolCallId = stringField(event.payload, 'toolCallId', 'tool_call_id');
-    if (toolCallId) {
-      keys.push(`tool-call:${toolCallId}`);
-    }
-    const requestId = stringField(event.payload, 'requestId', 'request_id', 'correlationId', 'correlation_id');
-    if (requestId) {
-      keys.push(`request:${requestId}`);
-    }
-    return keys;
+    return resolveToolPairKeys(event.payload);
   }
   return [];
 }

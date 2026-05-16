@@ -6,6 +6,7 @@ import type {
   ConversationEvent,
   JsonRecord,
 } from '../conversation/types.js';
+import { resolveToolOutputCorrelationKeys } from '../tools/toolCorrelationIds.js';
 import type { WindieRuntimeEvent } from './ConversationRuntime.js';
 
 export type WindieAgentStreamEvent =
@@ -49,16 +50,6 @@ function rawBackendEventFromConversationEvent(event: ConversationEvent): Backend
   return isBackendEvent(rawEvent) ? rawEvent : null;
 }
 
-function eventStringField(payload: JsonRecord, ...keys: string[]): string | null {
-  for (const key of keys) {
-    const value = payload[key];
-    if (typeof value === 'string' && value.trim()) {
-      return value.trim();
-    }
-  }
-  return null;
-}
-
 export function toolOutputStreamKey(event: ConversationEvent): string | null {
   return toolOutputStreamKeys(event)[0] ?? null;
 }
@@ -67,20 +58,7 @@ export function toolOutputStreamKeys(event: ConversationEvent): string[] {
   if (event.type !== 'tool_output' && event.type !== 'tool_bundle_output') {
     return [];
   }
-  const keys: string[] = [];
-  const toolCallId = eventStringField(event.payload, 'toolCallId', 'tool_call_id');
-  if (toolCallId) {
-    keys.push(`tool-call:${toolCallId}`);
-  }
-  const requestId = eventStringField(event.payload, 'requestId', 'request_id', 'correlationId', 'correlation_id');
-  if (requestId) {
-    keys.push(`request:${requestId}`);
-  }
-  const bundleId = eventStringField(event.payload, 'bundleId', 'bundle_id');
-  if (bundleId) {
-    keys.push(`bundle:${bundleId}`);
-  }
-  return keys;
+  return resolveToolOutputCorrelationKeys(event.payload);
 }
 
 function syntheticToolOutputEvent(event: ConversationEvent): Extract<BackendEvent, { type: 'tool-output' }> {

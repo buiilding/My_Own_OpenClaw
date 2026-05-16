@@ -1,38 +1,33 @@
-import { resolveCorrelationId } from '../../../infrastructure/services/CorrelationId';
+import {
+  resolveToolCallCorrelationId as resolveSdkToolCallCorrelationId,
+  resolveToolOutputCorrelationId as resolveSdkToolOutputCorrelationId,
+} from '../../../infrastructure/api/windieSdkClient';
 
 type ToolCallCorrelationPayload = {
   correlation_id?: string | null;
   request_id?: string | null;
+  tool_call_id?: string | null;
 };
 
 type ToolOutputCorrelationPayload = {
   request_id?: string | null;
-  metadata?: unknown;
+  tool_call_id?: string | null;
+  metadata?: {
+    request_id?: string | null;
+    tool_call_id?: string | null;
+  } | null;
 };
 
 export function resolveToolCallCorrelationId(
   payload: ToolCallCorrelationPayload | null | undefined,
   eventId?: string | null,
 ): string | undefined {
-  return resolveCorrelationId(
-    payload?.correlation_id,
-    payload?.request_id,
-    eventId,
-  ) || undefined;
+  return resolveSdkToolCallCorrelationId(payload, eventId);
 }
 
 export function resolveToolOutputCorrelationId(
   payload: ToolOutputCorrelationPayload | null | undefined,
   eventId?: string | null,
 ): string | undefined {
-  const metadataRequestId = (
-    typeof payload?.metadata === 'object'
-      ? (payload?.metadata as any)?.request_id
-      : undefined
-  );
-  return resolveCorrelationId(
-    payload?.request_id,
-    metadataRequestId,
-    eventId,
-  ) || undefined;
+  return resolveSdkToolOutputCorrelationId(payload, eventId);
 }

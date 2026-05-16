@@ -18,6 +18,13 @@ describe('toolCorrelationIds', () => {
     expect(resolveToolCallCorrelationId({
       correlation_id: '   ',
       request_id: '   ',
+      tool_call_id: ' tool-call-3 ',
+    }, 'event-3')).toBe('tool-call-3');
+
+    expect(resolveToolCallCorrelationId({
+      correlation_id: '   ',
+      request_id: '   ',
+      tool_call_id: '   ',
     }, ' event-3 ')).toBe('event-3');
   });
 
@@ -35,6 +42,17 @@ describe('toolCorrelationIds', () => {
     expect(resolveToolOutputCorrelationId({
       request_id: '   ',
       metadata: { request_id: '   ' },
+      tool_call_id: ' tool-output-3 ',
+    }, 'event-out-3')).toBe('tool-output-3');
+
+    expect(resolveToolOutputCorrelationId({
+      request_id: '   ',
+      metadata: { request_id: '   ', tool_call_id: ' meta-tool-output-4 ' },
+    }, 'event-out-4')).toBe('meta-tool-output-4');
+
+    expect(resolveToolOutputCorrelationId({
+      request_id: '   ',
+      metadata: { request_id: '   ', tool_call_id: '   ' },
     }, ' event-out-3 ')).toBe('event-out-3');
   });
 

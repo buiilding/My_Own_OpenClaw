@@ -64,6 +64,10 @@ Bundle path:
   as top-level message keys. It keeps bundle metadata in `structured_payload`
   and emits one provider-safe tool replay row per completed step when
   `tool_call_id` values are available.
+- SDK tool correlation helpers are the canonical client-side alias resolver for
+  `request_id`, `tool_call_id`, `correlation_id`, `bundle_id`, and their
+  camelCase SDK event equivalents. Renderer display helpers can consume those
+  helpers, but should not keep their own backend event ID precedence tables.
 
 If a tool hangs, inspect request-id state in this order:
 

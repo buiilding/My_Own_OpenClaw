@@ -7,6 +7,8 @@ import {
   buildDisplayConversation,
   createConversationRuntime,
   moduleTool,
+  resolveToolCallCorrelationId,
+  resolveToolOutputCorrelationId,
 } from '../../packages/windie-sdk-js/src';
 
 describe('@windie/sdk package boundary', () => {
@@ -18,6 +20,8 @@ describe('@windie/sdk package boundary', () => {
     expect(createConversationRuntime).toBeDefined();
     expect(ToolExecutionCoordinator).toBeDefined();
     expect(buildDisplayConversation).toBeDefined();
+    expect(resolveToolCallCorrelationId).toBeDefined();
+    expect(resolveToolOutputCorrelationId).toBeDefined();
     expect(moduleTool({
       name: 'save_note',
       module: 'example.tools:save_note',
@@ -27,5 +31,19 @@ describe('@windie/sdk package boundary', () => {
       execution_target: 'sidecar',
       argument_resolution: 'passthrough',
     });
+  });
+
+  test('exports canonical tool correlation alias resolution', () => {
+    expect(resolveToolCallCorrelationId({
+      correlation_id: '   ',
+      request_id: '   ',
+      tool_call_id: ' call-1 ',
+    })).toBe('call-1');
+
+    expect(resolveToolOutputCorrelationId({
+      request_id: '   ',
+      metadata: { request_id: '   ' },
+      tool_call_id: ' call-output-1 ',
+    }, 'event-1')).toBe('call-output-1');
   });
 });

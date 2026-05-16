@@ -80,7 +80,8 @@ describe('chatStreamEventUtils', () => {
     expect(resolveToolOutputCorrelationId({}, 'event-1')).toBe('event-1');
     expect(resolveToolOutputCorrelationId({}, null)).toBeUndefined();
     expect(resolveToolOutputCorrelationId({ request_id: '   ', metadata: { request_id: ' meta-2 ' } }, 'event-1')).toBe('meta-2');
-    expect(resolveToolOutputCorrelationId({ request_id: '   ', metadata: { request_id: '   ' } }, ' event-2 ')).toBe('event-2');
+    expect(resolveToolOutputCorrelationId({ request_id: '   ', metadata: { request_id: '   ' }, tool_call_id: ' call-2 ' }, ' event-2 ')).toBe('call-2');
+    expect(resolveToolOutputCorrelationId({ request_id: '   ', metadata: { request_id: '   ', tool_call_id: '   ' } }, ' event-3 ')).toBe('event-3');
   });
 
   test('resolveToolCallCorrelationId normalizes correlation/request ids', () => {
@@ -97,6 +98,13 @@ describe('chatStreamEventUtils', () => {
     expect(resolveToolCallCorrelationId({
       correlation_id: '   ',
       request_id: '   ',
+      tool_call_id: ' call-3 ',
+    })).toBe('call-3');
+
+    expect(resolveToolCallCorrelationId({
+      correlation_id: '   ',
+      request_id: '   ',
+      tool_call_id: '   ',
     })).toBeUndefined();
   });
 
