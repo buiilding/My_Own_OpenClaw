@@ -8,6 +8,7 @@ All notable changes to WindieOS will be documented in this file.
 
 - frontend/sidecar: route local JSON-RPC through the sidecar daemon so only one Python memory owner initializes SQLite/FAISS state during embedding backfill.
 - backend/openai: recover empty Responses streams as incomplete empty responses so provider stream gaps use the normal empty-final-response fallback instead of internal server errors.
+- backend/embeddings: map OpenAI embedding quota exhaustion to provider-unavailable responses so sidecar memory skips embedding backfill instead of failing initialization.
 - sdk/frontend: expose a conversation-runtime factory for first-party desktop facades while documenting that Electron may use lower-level SDK modules behind SDK interfaces.
 - sdk/frontend: move tool-call/tool-output correlation alias and pending-wait id resolution into the SDK package so runtime state and renderer chat utilities consume canonical SDK identity rules.
 - frontend/sdk: make edit/resend replay tool-pair pruning use SDK tool correlation helpers instead of a renderer-local backend alias parser.

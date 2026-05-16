@@ -10,6 +10,30 @@ from backend.src.core.interfaces.embedding import EmbeddingProvider
 from backend.src.embeddings.errors import EmbeddingProviderRequestError
 
 
+def _openai_error_code(error: Exception) -> str:
+    code = getattr(error, "code", None)
+    if isinstance(code, str):
+        return code
+    body = getattr(error, "body", None)
+    if isinstance(body, dict):
+        nested_error = body.get("error")
+        if isinstance(nested_error, dict):
+            nested_code = nested_error.get("code")
+            if isinstance(nested_code, str):
+                return nested_code
+        body_code = body.get("code")
+        if isinstance(body_code, str):
+            return body_code
+    return ""
+
+
+def _is_openai_quota_error(error: Exception) -> bool:
+    return (
+        getattr(error, "status_code", None) == 429
+        and _openai_error_code(error) == "insufficient_quota"
+    )
+
+
 class OpenAIEmbeddingProvider(EmbeddingProvider):
     """Embedding provider backed by OpenAI's embeddings API."""
 
@@ -75,6 +99,11 @@ class OpenAIEmbeddingProvider(EmbeddingProvider):
                 input=texts,
             )
         except Exception as error:
+            if _is_openai_quota_error(error):
+                raise EmbeddingProviderRequestError(
+                    status_code=503,
+                    detail="provider_unavailable: OpenAI embedding quota exceeded",
+                ) from error
             raise EmbeddingProviderRequestError(
                 status_code=502,
                 detail=f"OpenAI embedding request failed: {error}",

@@ -24,6 +24,11 @@ class _FakeOpenAIClient:
         self.embeddings = _FakeEmbeddingsApi(response=response, error=error)
 
 
+class _FakeOpenAIQuotaError(Exception):
+    status_code = 429
+    body = {"error": {"code": "insufficient_quota"}}
+
+
 @pytest.mark.asyncio
 async def test_openai_embedding_provider_returns_vectors_and_metadata() -> None:
     client = _FakeOpenAIClient(
@@ -64,3 +69,19 @@ async def test_openai_embedding_provider_maps_request_errors() -> None:
 
     with pytest.raises(EmbeddingProviderRequestError, match="api down"):
         await provider.embed_text("hello")
+
+
+@pytest.mark.asyncio
+async def test_openai_embedding_provider_maps_quota_errors_to_unavailable() -> None:
+    provider = OpenAIEmbeddingProvider(
+        api_key="test-key",
+        client=_FakeOpenAIClient(error=_FakeOpenAIQuotaError("quota exceeded")),
+    )
+
+    with pytest.raises(EmbeddingProviderRequestError) as exc_info:
+        await provider.embed_text("hello")
+
+    assert exc_info.value.status_code == 503
+    assert exc_info.value.detail == (
+        "provider_unavailable: OpenAI embedding quota exceeded"
+    )
