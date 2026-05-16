@@ -89,4 +89,14 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('ElectronSidecarConversationStore');
     expect(source).toContain('DesktopConversationRuntimeClient.rewriteTranscriptProjection');
   });
+
+  test('conversation inference rehydrate snapshots use the desktop runtime facade', async () => {
+    const source = await fs.readFile(
+      path.join(chatRoot, 'session/conversationInferenceSessionRuntime.ts'),
+      'utf8',
+    );
+
+    expect(source).not.toContain('ElectronSidecarConversationStore');
+    expect(source).toContain('DesktopConversationRuntimeClient.loadRehydrateSnapshot');
+  });
 });

@@ -1,4 +1,3 @@
-import { ElectronSidecarConversationStore } from '../../../infrastructure/transcript/ElectronSidecarConversationStore';
 import { loadLocalConversationSnapshot } from '../../../infrastructure/transcript/conversationLocalSnapshotLoader';
 import {
   getConversationWorkspaceBinding,
@@ -181,8 +180,10 @@ export async function ensureConversationInferenceSessionHydrated({
       recordKind,
     });
     setConversationWorkspaceBinding(normalizedConversationRef, snapshot.workspaceBinding);
-    const store = new ElectronSidecarConversationStore({ userId: normalizedUserId });
-    const rehydrateSnapshot = await store.loadForRehydrate(normalizedConversationRef);
+    const rehydrateSnapshot = await DesktopConversationRuntimeClient.loadRehydrateSnapshot({
+      conversationRef: normalizedConversationRef,
+      userId: normalizedUserId,
+    });
     const rehydrateMessages = toRehydrateConversationEntries(rehydrateSnapshot.messages);
     if (rehydrateMessages.length > 0) {
       await DesktopConversationRuntimeClient.sendRehydrate({

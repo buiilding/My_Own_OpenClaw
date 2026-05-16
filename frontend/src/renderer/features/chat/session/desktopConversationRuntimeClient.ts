@@ -49,6 +49,11 @@ type RewriteTranscriptProjectionInput = {
   rehydrateEntries: TranscriptProjectionRewriteEntry[];
 };
 
+type LoadRehydrateSnapshotInput = {
+  conversationRef: string;
+  userId: string;
+};
+
 /**
  * Renderer command facade for the SDK runtime hosted by Electron main.
  *
@@ -95,6 +100,14 @@ export const DesktopConversationRuntimeClient = {
       entries: transcriptEntries,
       rehydrateEntries,
     });
+  },
+
+  async loadRehydrateSnapshot({
+    conversationRef,
+    userId,
+  }: LoadRehydrateSnapshotInput): Promise<RehydrateSnapshot> {
+    const store = new ElectronSidecarConversationStore({ userId });
+    return store.loadForRehydrate(conversationRef);
   },
 
   sendQuery(input: SendConversationQueryInput): Promise<void> {
