@@ -40,6 +40,7 @@ All notable changes to WindieOS will be documented in this file.
 - sdk: add `WindieAgent.setModel(...)` and `updateSettings(...)` so SDK hosts can change model/provider selection without hand-shaping backend `update-settings` payloads.
 - sdk: add conversation-level model selection through `conversation.setModel(...)` and per-turn `model` options on send/stream/edit/retry.
 - sdk: move backend websocket session framing and conversation transport adaptation into the SDK transport module.
+- sdk: move sidecar daemon HTTP, discovery, auto-start, and `moduleTool(...)` helpers into the SDK local-runtime module.
 - frontend/sdk: route renderer model-list refreshes through `ApiClient.listModels()` instead of direct backend IPC sends.
 - frontend/sdk: remove `ChatProvider`'s renderer tool-runner mount path so desktop chat surfaces only subscribe to stream state while SDK main owns local tool execution.
 - frontend/sdk: stop mounting renderer-side local tool execution by default now that SDK main runtime owns local tool routing.
