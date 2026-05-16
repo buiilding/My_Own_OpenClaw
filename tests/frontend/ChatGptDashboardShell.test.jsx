@@ -337,6 +337,46 @@ describe('ChatGptDashboardShell', () => {
     expect(screen.queryByTestId('models-section-stub')).not.toBeInTheDocument();
   });
 
+  test('reloads recent chats when the main window is opened from the pill', async () => {
+    const nowIso = new Date().toISOString();
+    let listCallCount = 0;
+    mockInvoke.mockImplementation(withClientSnapshot(async (channel) => {
+      if (channel === 'list-conversations') {
+        listCallCount += 1;
+        return {
+          success: true,
+          data: {
+            conversations: listCallCount === 1
+              ? []
+              : [
+                  {
+                    conversation_id: 'conv-dashboard-open',
+                    record_kind: 'conversation_event',
+                    last_timestamp: nowIso,
+                    title: 'Loaded on dashboard open',
+                  },
+                ],
+          },
+        };
+      }
+      return { success: true, data: {} };
+    }));
+    await renderDashboardShell();
+    expect(screen.queryByRole('button', { name: 'Loaded on dashboard open' })).not.toBeInTheDocument();
+
+    await act(async () => {
+      const listener = mockListeners.get('main-window-open-target');
+      listener?.({ target: 'chat' });
+      await Promise.resolve();
+    });
+
+    expect(mockInvoke).toHaveBeenCalledWith(
+      'list-conversations',
+      expect.objectContaining({ userId: LOCAL_SNAPSHOT_USER_ID }),
+    );
+    expect(screen.getByRole('button', { name: 'Loaded on dashboard open' })).toBeInTheDocument();
+  });
+
   test('vm mode hides sidebar and disables dashboard panel targets', async () => {
     const view = render(
       <DashboardShell

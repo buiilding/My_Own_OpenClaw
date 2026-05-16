@@ -249,6 +249,7 @@ function DashboardShell({
     }
     const removeListener = IpcBridge.on(ON_CHANNELS.MAIN_WINDOW_OPEN_TARGET, (payload) => {
       wakeDashboardShell();
+      void loadRecentConversations();
       const target = typeof payload?.target === 'string' ? payload.target : '';
       if (target === 'chat') {
         handleChatSurface({ focusComposer: true });
@@ -270,7 +271,15 @@ function DashboardShell({
     return () => {
       removeListener?.();
     };
-  }, [handleChatSurface, openMemory, openModels, openSettings, vmModeEnabled, wakeDashboardShell]);
+  }, [
+    handleChatSurface,
+    loadRecentConversations,
+    openMemory,
+    openModels,
+    openSettings,
+    vmModeEnabled,
+    wakeDashboardShell,
+  ]);
 
   useEffect(() => {
     IpcBridge.invoke(INVOKE_CHANNELS.GET_CLIENT_USER_ID)
