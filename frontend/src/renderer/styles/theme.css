@@ -46,18 +46,6 @@
   --radius-md: 12px;
   --radius-sm: 8px;
 
-  /* Legacy dashboard palette (pre overlay-alignment). */
-  --legacy-dashboard-shell-bg: #212121;
-  --legacy-dashboard-sidebar-bg: #171717;
-  --legacy-dashboard-panel-bg: #2f2f2f;
-  --legacy-dashboard-hover-bg: #2f2f2f;
-  --legacy-dashboard-hover-strong-bg: #424242;
-  --legacy-dashboard-text-primary: #ececec;
-  --legacy-dashboard-text-secondary: #b4b4b4;
-  --legacy-dashboard-text-muted: #8e8e8e;
-  --legacy-dashboard-text-dim: #676767;
-  --legacy-dashboard-scrim: rgba(0, 0, 0, 0.62);
-
   /* Always-on-top pill palette source. */
   --pill-surface-bg: rgba(17, 17, 17, 0.92);
   --pill-surface-raised-bg: rgba(26, 26, 26, 0.94);
@@ -87,7 +75,7 @@
   --pill-panel-elevated-bg:
     linear-gradient(180deg, rgba(26, 26, 26, 0.95) 0%, rgba(13, 13, 13, 0.94) 100%);
 
-  /* Active theme mapping. To revert quickly, point these back to --legacy-* tokens below. */
+  /* Active theme mapping. */
   --ui-shell-bg: var(--pill-shell-bg);
   --ui-shell-ambient: var(--pill-shell-ambient);
   --ui-shell-overlay:
