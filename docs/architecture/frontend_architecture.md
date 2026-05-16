@@ -89,8 +89,9 @@ Current runtime behavior also relies on these explicit seams:
   map SDK projections into `ChatMessage` state, but request/provider/bundle
   identity precedence for tool-call and tool-output rows comes from the SDK
   correlation helpers exported through `renderer/infrastructure/api/windieSdkClient.ts`.
-  Feature code should not keep separate backend-event alias tables for
-  `request_id`, `tool_call_id`, `correlation_id`, or `bundle_id`.
+  Electron store adapters and feature code should not keep separate
+  backend-event alias tables for `request_id`, `tool_call_id`,
+  `correlation_id`, or `bundle_id`.
 - **Settings/model sync is facade-owned**: provider/config helpers build plain frontend config and model-selection data. Backend settings payload shaping and model command dispatch stay behind `app/runtime/desktopSettingsRuntimeClient.ts` and conversation runtime facades.
 - **Sidecar now has a matching hosted SDK transport client**: `frontend/src/main/python/core/windie_sdk_client.py` mirrors the same public backend boundary for Python-side developer tools and local runtime integrations that need `/api/sdk/*`, `/api/artifacts/*`, or `/ws` access without importing backend code.
 - **Permission runtime is split by capability domain**: `permission_service.cjs` remains the public API surface, while focused domain modules own screen capture, accessibility/input control, microphone, automation/app-management, workspace/shell, and browser setup flows.

@@ -8,6 +8,7 @@ import {
   createConversationRuntime,
   moduleTool,
   resolveToolCallCorrelationId,
+  resolveToolEventCorrelationId,
   resolveToolOutputCorrelationId,
   resolveToolWaitId,
 } from '../../packages/windie-sdk-js/src';
@@ -22,6 +23,7 @@ describe('@windie/sdk package boundary', () => {
     expect(ToolExecutionCoordinator).toBeDefined();
     expect(buildDisplayConversation).toBeDefined();
     expect(resolveToolCallCorrelationId).toBeDefined();
+    expect(resolveToolEventCorrelationId).toBeDefined();
     expect(resolveToolOutputCorrelationId).toBeDefined();
     expect(resolveToolWaitId).toBeDefined();
     expect(moduleTool({
@@ -52,5 +54,11 @@ describe('@windie/sdk package boundary', () => {
       correlation_id: '   ',
       tool_call_id: ' call-wait-1 ',
     })).toBe('call-wait-1');
+    expect(resolveToolEventCorrelationId({
+      request_id: '   ',
+      bundle_id: '   ',
+      tool_call_id: ' call-event-1 ',
+      correlation_id: ' corr-event-1 ',
+    })).toBe('call-event-1');
   });
 });

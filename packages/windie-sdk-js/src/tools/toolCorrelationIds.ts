@@ -76,6 +76,15 @@ export function resolveToolWaitId(payload: ToolCorrelationPayload): string | nul
   );
 }
 
+export function resolveToolEventCorrelationId(payload: ToolCorrelationPayload): string | null {
+  return resolveCorrelationId(
+    stringField(payload, 'requestId', 'request_id'),
+    stringField(payload, 'bundleId', 'bundle_id'),
+    stringField(payload, 'toolCallId', 'tool_call_id'),
+    stringField(payload, 'correlationId', 'correlation_id'),
+  );
+}
+
 export function resolveToolOutputCorrelationKeys(payload: ToolCorrelationPayload): string[] {
   const keys: string[] = [];
   const toolCallId = stringField(payload, 'toolCallId', 'tool_call_id');

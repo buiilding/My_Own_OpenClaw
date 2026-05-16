@@ -23,6 +23,7 @@ import {
   type DisplayConversation,
   type ListConversationOptions,
   type RehydrateSnapshot,
+  resolveToolEventCorrelationId,
 } from '../api/windieSdkClient';
 
 export const SDK_CONVERSATION_EVENT_RECORD_KIND = 'conversation_event';
@@ -184,15 +185,7 @@ function toolNameFromEvent(event: ConversationEvent): string | null {
 }
 
 function correlationIdFromEvent(event: ConversationEvent): string | null {
-  const payload = normalizeRecord(event.payload) ?? {};
-  return normalizeNonEmptyString(payload.requestId)
-    ?? normalizeNonEmptyString(payload.request_id)
-    ?? normalizeNonEmptyString(payload.bundleId)
-    ?? normalizeNonEmptyString(payload.bundle_id)
-    ?? normalizeNonEmptyString(payload.toolCallId)
-    ?? normalizeNonEmptyString(payload.tool_call_id)
-    ?? normalizeNonEmptyString(payload.correlationId)
-    ?? normalizeNonEmptyString(payload.correlation_id);
+  return resolveToolEventCorrelationId(event.payload);
 }
 
 function roleFromEvent(event: ConversationEvent): string {

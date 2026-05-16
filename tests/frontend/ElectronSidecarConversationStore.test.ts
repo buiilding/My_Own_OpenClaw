@@ -76,6 +76,32 @@ describe('ElectronSidecarConversationStore', () => {
     }));
   });
 
+  test('uses SDK tool identity helpers when storing SDK tool events', async () => {
+    const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
+    const event = createConversationEvent({
+      eventId: 'evt-tool',
+      type: 'tool_output',
+      conversationRef: 'conv-1',
+      revisionId: 'rev-1',
+      timestamp: '2026-05-15T12:00:00.000Z',
+      payload: {
+        text: 'tool result',
+        toolCallId: 'call-read',
+        correlationId: 'corr-read',
+      },
+    });
+
+    await store.appendEvent(event);
+
+    expect(mockInvoke).toHaveBeenCalledWith('store-transcript', expect.objectContaining({
+      correlationId: 'call-read',
+      messageType: 'tool_output',
+      structuredPayload: {
+        windieSdkConversationEvent: event,
+      },
+    }));
+  });
+
   test('loads only canonical SDK event rows', async () => {
     const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
     const event = createConversationEvent({
