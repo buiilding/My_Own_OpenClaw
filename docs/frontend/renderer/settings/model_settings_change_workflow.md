@@ -126,8 +126,8 @@ Dashboard rules:
 - `buildModelConfigUpdate(...)` must preserve `model_mode`,
   `speech_mode_enabled`, and `interaction_mode` while changing the selected
   model/provider.
-- Legacy catalog entries can trigger a one-time `list-models` refresh from the
-  renderer.
+- Legacy catalog entries can trigger a one-time refresh through
+  `ApiClient.listModels()` from the renderer.
 - Provider API key entries must be normalized through `normalizeProviderApiKeys`
   before storing in config.
 

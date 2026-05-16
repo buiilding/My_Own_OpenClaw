@@ -31,6 +31,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/services/BackendEndpointSt
 }));
 jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
   ApiClient: {
+    listModels: jest.fn(),
     updateSettings: jest.fn(),
   },
 }));
@@ -46,6 +47,7 @@ export const mockLoadConfigFromStorage = loadConfigFromStorage as jest.Mock;
 export const mockSaveConfigToStorage = saveConfigToStorage as jest.Mock;
 export const mockUpdateTranscriptSession = updateTranscriptSession as jest.Mock;
 export const mockSetBackendHttpUrl = setBackendHttpUrl as jest.Mock;
+export const mockApiClientListModels = ApiClient.listModels as jest.Mock;
 export const mockApiClientUpdateSettings = ApiClient.updateSettings as jest.Mock;
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (

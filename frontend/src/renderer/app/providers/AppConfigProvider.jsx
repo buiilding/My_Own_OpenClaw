@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useSettingsManagement } from '../../features/settings/hooks/useSettingsManagement';
 import { filterFrontendConfig } from '../../utils/configFilter';
-import { IpcBridge, ON_CHANNELS, SEND_CHANNELS, INVOKE_CHANNELS } from '../../infrastructure/ipc/bridge';
+import { IpcBridge, ON_CHANNELS, INVOKE_CHANNELS } from '../../infrastructure/ipc/bridge';
 import { ApiClient } from '../../infrastructure/api/client';
 import { loadConfigFromStorage, saveConfigToStorage } from '../../utils/configStorage';
 import { AppConfigContext } from './AppConfigContext';
@@ -152,7 +152,7 @@ export function AppConfigProvider({ children }) {
 
     logConfigInfo('[Config] Requesting available models...');
     window[LIST_MODELS_REQUEST_GUARD_KEY] = true;
-    IpcBridge.send(SEND_CHANNELS.TO_BACKEND, { type: 'list-models' });
+    ApiClient.listModels();
   }, []);
 
   const applyBackendConnectionSnapshot = useCallback((data) => {

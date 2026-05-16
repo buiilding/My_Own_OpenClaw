@@ -37,6 +37,7 @@ All notable changes to WindieOS will be documented in this file.
 - frontend: route dashboard and overlay manual compaction controls through one rehydrate-first runtime helper.
 - sdk: add first-class `ConversationStore.loadForDisplay` and `loadForRehydrate` methods backed by shared SDK projections and complete replay snapshots.
 - sdk: add `WindieAgent.setModel(...)` and `updateSettings(...)` so SDK hosts can change model/provider selection without hand-shaping backend `update-settings` payloads.
+- frontend/sdk: route renderer model-list refreshes through `ApiClient.listModels()` instead of direct backend IPC sends.
 - frontend/sdk: stop mounting renderer-side local tool execution by default now that SDK main runtime owns local tool routing.
 - frontend: keep skipped compaction completions from clearing unrelated active stream status while continuing to hide skipped compaction debug panels.
 - frontend: restore chat stream TypeScript checking by tightening IPC channel typing, message-builder casts, and tool transcript payload types.

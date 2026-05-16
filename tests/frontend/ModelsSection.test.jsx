@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 
 import ModelsSection from '../../frontend/src/renderer/features/dashboard/components/sections/ModelsSection';
-import { IpcBridge, SEND_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
+import { ApiClient } from '../../frontend/src/renderer/infrastructure/api/client';
 
 describe('ModelsSection', () => {
   const config = {
@@ -182,7 +182,7 @@ describe('ModelsSection', () => {
       on: jest.fn(() => jest.fn()),
       once: jest.fn(),
     };
-    jest.spyOn(IpcBridge, 'send').mockImplementation(() => undefined);
+    jest.spyOn(ApiClient, 'listModels').mockImplementation(() => undefined);
 
     render(
       <ModelsSection
@@ -193,8 +193,6 @@ describe('ModelsSection', () => {
       />,
     );
 
-    expect(IpcBridge.send.mock.calls).toEqual([
-      [SEND_CHANNELS.TO_BACKEND, { type: 'list-models' }],
-    ]);
+    expect(ApiClient.listModels).toHaveBeenCalledTimes(1);
   });
 });

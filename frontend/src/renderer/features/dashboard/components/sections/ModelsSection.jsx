@@ -22,7 +22,7 @@ import {
 } from './modelCards';
 import { normalizeProviderApiKeys } from './providerApiKeys';
 import { providerApiKeysPropType } from './providerApiKeysPropTypes';
-import { IpcBridge, SEND_CHANNELS } from '../../../../infrastructure/ipc/bridge';
+import { ApiClient } from '../../../../infrastructure/api/client';
 
 function ModelsSection({ config, availableModels, onConfigChange, onClose = () => {} }) {
   const [modelResetWarning, setModelResetWarning] = useState('');
@@ -93,7 +93,7 @@ function ModelsSection({ config, availableModels, onConfigChange, onClose = () =
         return;
       }
       try {
-        IpcBridge.send(SEND_CHANNELS.TO_BACKEND, { type: 'list-models' });
+        ApiClient.listModels();
       } catch (error) {
         console.warn('[ModelsSection] Failed to refresh legacy model catalog:', error?.message || error);
       }
