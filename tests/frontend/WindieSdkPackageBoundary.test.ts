@@ -5,6 +5,7 @@ import {
   SdkConversationRuntime,
   ToolExecutionCoordinator,
   buildDisplayConversation,
+  createConversationRuntime,
   moduleTool,
 } from '../../packages/windie-sdk-js/src';
 
@@ -14,6 +15,7 @@ describe('@windie/sdk package boundary', () => {
     expect(WindieSdkClient).toBeDefined();
     expect(InMemoryConversationStore).toBeDefined();
     expect(SdkConversationRuntime).toBeDefined();
+    expect(createConversationRuntime).toBeDefined();
     expect(ToolExecutionCoordinator).toBeDefined();
     expect(buildDisplayConversation).toBeDefined();
     expect(moduleTool({

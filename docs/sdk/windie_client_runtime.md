@@ -56,6 +56,16 @@ Ownership rules:
 
 Local runtime facts must not unlock backend capabilities. In particular, coordinate methods are backend policy/provider outputs. The client can report or narrow local executable tools; it cannot grant OCR, vision, prediction, or paid backend capabilities.
 
+There are two SDK consumption levels. External clients use the high-level
+`WindieClient.wakeUp(...)` surface because it hides agent definition,
+websocket/session, local-runtime, and store details. The built-in Electron
+desktop is a first-party SDK host: it may use lower-level SDK runtime modules
+such as `ManagedBackendSession`, typed backend sends, `ToolExecutionCoordinator`,
+and conversation-runtime factories through desktop runtime facades. Electron
+must not reimplement SDK behavior separately, and Electron-only adapters such
+as the sidecar-backed conversation store and desktop backend transport stay
+behind SDK interfaces like `ConversationStore` and `BackendTransport`.
+
 ## Public API
 
 ```ts
@@ -424,6 +434,14 @@ items for callers that use the older agent-stream shape.
 session transport. It is the migration path for clients that need local event
 storage, display projections, rehydrate snapshots, stop handling, streaming,
 and edit/retry revision operations.
+
+`createConversationRuntime(options)` is the host-adapter factory for clients
+that already have a `ConversationStore` and `BackendTransport`. Electron uses
+this lower-level SDK boundary for desktop-specific storage and IPC transport
+injection. Renderer feature modules should still call the desktop conversation
+runtime facade; the facade is allowed to use SDK runtime internals so Electron
+does not duplicate conversation, projection, edit/resend, retry, or rehydrate
+semantics.
 
 `conversation.stream(input)` is the preferred custom-client loop API. It emits
 normalized SDK runtime events, updates the configured conversation store, and

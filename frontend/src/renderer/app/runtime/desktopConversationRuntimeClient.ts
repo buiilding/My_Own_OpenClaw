@@ -1,8 +1,8 @@
 import type { WindieModelSelection } from '../../infrastructure/api/windieSdkClient';
 import {
-  SdkConversationRuntime,
   type BackendTransport,
   type JsonRecord,
+  createConversationRuntime,
 } from '../../infrastructure/api/windieSdkClient';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { DesktopSettingsRuntimeClient } from './desktopSettingsRuntimeClient';
@@ -135,7 +135,7 @@ async function createSeededConversationRuntime({
     userId,
     projectionEntries,
   });
-  const runtime = new SdkConversationRuntime({
+  const runtime = createConversationRuntime({
     conversationRef,
     store,
     transport: createDesktopBackendTransport(workspacePath ?? null),

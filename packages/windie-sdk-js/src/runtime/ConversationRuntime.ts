@@ -75,6 +75,14 @@ export type WindieRuntimeEvent =
       snapshot?: ConversationSnapshot;
     };
 
+export type ConversationRuntimeOptions = {
+  conversationRef: string;
+  revisionId?: string;
+  store: ConversationStore;
+  transport?: BackendTransport;
+  localRuntime?: Partial<Pick<LocalRuntime, 'executeTool'>> | null;
+};
+
 function eventText(event: ConversationEvent): string {
   if (typeof event.payload.text === 'string') {
     return event.payload.text;
@@ -107,13 +115,7 @@ export class SdkConversationRuntime {
   private detachTransport?: () => void;
 
   constructor(
-    private readonly options: {
-      conversationRef: string;
-      revisionId?: string;
-      store: ConversationStore;
-      transport?: BackendTransport;
-      localRuntime?: Partial<Pick<LocalRuntime, 'executeTool'>> | null;
-    },
+    private readonly options: ConversationRuntimeOptions,
   ) {
     this.state = createInitialConversationRuntimeState(
       options.conversationRef,
@@ -535,4 +537,8 @@ export class SdkConversationRuntime {
       rehydrate: buildRehydrateSnapshot(events),
     };
   }
+}
+
+export function createConversationRuntime(options: ConversationRuntimeOptions): SdkConversationRuntime {
+  return new SdkConversationRuntime(options);
 }

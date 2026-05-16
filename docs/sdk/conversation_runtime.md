@@ -11,6 +11,13 @@ title: "SDK Conversation Runtime"
 The TypeScript SDK owns the reusable client-side conversation runtime. The
 Electron desktop is the flagship client, but it should consume SDK projections
 instead of privately shaping transcript, replay, tool, and compaction state.
+External app authors normally use `WindieClient.wakeUp(...)` and
+`agent.conversation(...)`. The built-in Electron desktop is a first-party SDK
+host, so its app runtime facades may use lower-level SDK runtime pieces such as
+conversation-runtime factories, managed backend sessions, and tool coordination
+modules. The boundary rule is that Electron must not reimplement those SDK
+semantics separately, and Electron-only adapters must remain isolated behind
+SDK interfaces such as `ConversationStore` and `BackendTransport`.
 
 ## Ownership
 
@@ -84,6 +91,12 @@ The SDK ships two reusable store adapters:
 - `InMemoryConversationStore` for tests, demos, and short-lived processes.
 - `FileConversationStore` for Node CLI/custom UI hosts that want durable JSON
   event logs without Electron sidecar storage.
+
+Electron's sidecar-backed store is a first-party adapter. It is allowed to know
+about transcript storage IPC, but it must stay behind the SDK store interface.
+Desktop chat code should call public conversation commands through the desktop
+runtime facade and render SDK projections, not depend on the adapter as its
+normal feature-code surface.
 
 ## Compaction Rule
 
