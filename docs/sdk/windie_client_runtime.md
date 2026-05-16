@@ -278,3 +278,7 @@ For a minimal non-Electron consumer, see `examples/cli-agent`. It uses
 
 For a browser-based custom UI that renders SDK display projections directly,
 see `examples/custom-ui`.
+
+For the smallest local tool authoring path, see `examples/local-tool-extension`.
+It uses `moduleTool(...)` to register a Python `module:function` entrypoint with
+the sidecar daemon and lets the SDK return the tool result to the backend.

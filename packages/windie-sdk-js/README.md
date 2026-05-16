@@ -55,3 +55,11 @@ pieces exported from this package:
 - projection builders for display, rehydrate, tool trace, and compaction state
 - `SdkConversationRuntime`
 - `ToolExecutionCoordinator`
+
+Runnable repo examples:
+
+- `examples/cli-agent`: minimal Node conversation runtime.
+- `examples/custom-ui`: browser UI projection demo.
+- `examples/local-tool-extension`: sidecar module-tool registration with
+  `moduleTool(...)`.
+- `examples/repo-agent-extension`: sidecar plugin package registration.

@@ -50,6 +50,9 @@ npm run build
 - `examples/custom-ui`: minimal browser UI that renders SDK display projections
   against a mock backend:
   `node examples/custom-ui/run.mjs`
+- `examples/local-tool-extension`: minimal sidecar module-tool SDK example using
+  `moduleTool(...)` and a Python `module:function` entrypoint:
+  `node examples/local-tool-extension/run.mjs`
 - `examples/repo-agent-extension`: runnable sidecar plugin SDK example with
   one Python plugin tool and one command:
   `node examples/repo-agent-extension/run.mjs`
