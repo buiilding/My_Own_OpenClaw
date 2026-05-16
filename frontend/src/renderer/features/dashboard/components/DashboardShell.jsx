@@ -14,7 +14,6 @@ import { resetActiveChatSession } from '../../chat/utils/session/resetActiveChat
 import { invalidateConversationInferenceSessionState } from '../../chat/session/conversationInferenceSessionRuntime';
 import { useRendererConversationSessionInfo } from '../../chat/session/useRendererConversationSessionInfo';
 import { clearAllConversationWorkspaceBindings } from '../../../infrastructure/workspace/conversationWorkspaceBinding';
-import { DesktopConversationLibraryClient } from '../../../app/runtime/desktopConversationLibraryClient';
 
 function DashboardModal({ isOpen, onClose, children, className = '' }) {
   if (!isOpen) {
@@ -86,7 +85,6 @@ function DashboardShell({
   const [memoryOpen, setMemoryOpen] = useState(false);
   const [usageOpen, setUsageOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [isTransportConnected, setIsTransportConnected] = useState(true);
   const [snapshotUserId, setSnapshotUserId] = useState(null);
   const [composerFocusToken, setComposerFocusToken] = useState(0);
   const sessionInfo = useRendererConversationSessionInfo();
@@ -275,18 +273,8 @@ function DashboardShell({
   }, [handleChatSurface, openMemory, openModels, openSettings, vmModeEnabled, wakeDashboardShell]);
 
   useEffect(() => {
-    const removeListener = IpcBridge.on(ON_CHANNELS.IPC_STATUS, (payload) => {
-      setIsTransportConnected(payload?.isConnected === true);
-    });
-    return () => {
-      removeListener?.();
-    };
-  }, []);
-
-  useEffect(() => {
     IpcBridge.invoke(INVOKE_CHANNELS.GET_CLIENT_USER_ID)
       .then((payload) => {
-        setIsTransportConnected(payload?.isConnected === true);
         if (typeof payload?.userId === 'string' && payload.userId.trim().length > 0) {
           setSnapshotUserId(payload.userId.trim());
         }
@@ -311,15 +299,14 @@ function DashboardShell({
           memoryOpen={memoryOpen}
           usageOpen={usageOpen}
           modelsOpen={modelsOpen}
-        isLoadingRecentConversations={isLoadingRecentConversations}
-        recentConversationsError={recentConversationsError}
-        recentWorkspaceGroups={recentWorkspaceGroups}
-        onOpenConversation={openConversationFromDashboard}
-        onRenameConversation={handleRenameConversation}
-        onTogglePinConversation={handleTogglePinConversation}
+          isLoadingRecentConversations={isLoadingRecentConversations}
+          recentConversationsError={recentConversationsError}
+          recentWorkspaceGroups={recentWorkspaceGroups}
+          onOpenConversation={openConversationFromDashboard}
+          onRenameConversation={handleRenameConversation}
+          onTogglePinConversation={handleTogglePinConversation}
           onDeleteConversation={handleDeleteConversation}
           activeConversationRef={sessionInfo.conversationRef || null}
-          isTransportConnected={isTransportConnected}
         />
       ) : null}
 

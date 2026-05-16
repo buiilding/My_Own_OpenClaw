@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 ### Changed
 
 - frontend/sidecar: route local JSON-RPC through the sidecar daemon so only one Python memory owner initializes SQLite/FAISS state during embedding backfill.
+- frontend/sidecar: treat hosted embedding gateway failures as unavailable so local memory initialization keeps chat history readable, and show chat-list load failures instead of an empty state.
 - backend/openai: recover empty Responses streams as incomplete empty responses so provider stream gaps use the normal empty-final-response fallback instead of internal server errors.
 - backend/embeddings: map OpenAI embedding quota exhaustion to provider-unavailable responses so sidecar memory skips embedding backfill instead of failing initialization.
 - sdk/frontend: expose a conversation-runtime factory for first-party desktop facades while documenting that Electron may use lower-level SDK modules behind SDK interfaces.

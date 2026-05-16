@@ -226,7 +226,7 @@ class RemoteEmbeddingClient(RemoteApiClientBase):
                             self.backend_url = backend_url
                             self._service_unavailable = False
                             return True
-                    if response.status == 503:
+                    if self._is_embedding_unavailable_status(response.status):
                         self._service_unavailable = True
                     if index + 1 < len(self.backend_urls):
                         continue
@@ -247,7 +247,13 @@ class RemoteEmbeddingClient(RemoteApiClientBase):
         return False
 
     @staticmethod
+    def _is_embedding_unavailable_status(status: int) -> bool:
+        return int(status) in {502, 503, 520, 521, 522, 523, 524, 525, 526, 527, 530}
+
+    @staticmethod
     def _is_embedding_unavailable_response(status: int, body: str) -> bool:
+        if RemoteEmbeddingClient._is_embedding_unavailable_status(status):
+            return True
         if int(status) != 503:
             return False
         lowered = body.lower()

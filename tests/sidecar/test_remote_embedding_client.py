@@ -114,7 +114,7 @@ async def test_embed_text_raises_after_hosted_network_error_without_local_fallba
 
 
 @pytest.mark.asyncio
-async def test_embed_text_raises_after_retryable_http_status_without_local_fallback(
+async def test_embed_text_marks_hosted_gateway_error_unavailable_without_local_fallback(
     monkeypatch,
 ):
     monkeypatch.setenv("WINDIE_BACKEND_HTTP_URL", "https://api.windieos.com")
@@ -124,15 +124,14 @@ async def test_embed_text_raises_after_retryable_http_status_without_local_fallb
         post_results=[DummyResponse(530, text_data="cloudflare tunnel error")],
     )
 
-    with pytest.raises(
-        Exception, match="Embedding API returned 530: cloudflare tunnel error"
-    ):
+    with pytest.raises(EmbeddingServiceUnavailableError):
         await client.embed_text("hello")
 
     assert [call[0] for call in client._session.post_calls] == [
         "https://api.windieos.com/api/embeddings/",
     ]
     assert client.backend_url == "https://api.windieos.com"
+    assert client.service_unavailable is True
 
 
 @pytest.mark.asyncio
@@ -177,6 +176,17 @@ async def test_health_check_returns_false_for_non_200():
     client._session = DummySession(response)
 
     assert await client.health_check() is False
+    assert client.service_unavailable is True
+
+
+@pytest.mark.asyncio
+async def test_health_check_marks_cloudflare_gateway_errors_unavailable():
+    response = DummyResponse(502, text_data="bad gateway")
+    client = RemoteEmbeddingClient()
+    client._session = DummySession(response)
+
+    assert await client.health_check() is False
+    assert client.service_unavailable is True
 
 
 @pytest.mark.asyncio

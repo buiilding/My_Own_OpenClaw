@@ -36,7 +36,6 @@ function DashboardSidebar({
   onTogglePinConversation,
   onDeleteConversation,
   activeConversationRef,
-  isTransportConnected,
 }) {
   const [openConversationMenuKey, setOpenConversationMenuKey] = useState(null);
   const conversationMenuRef = useRef(null);
@@ -254,7 +253,7 @@ function DashboardSidebar({
                 </>
               ) : isLoadingRecentConversations ? (
                 <div className="cg-chat-list-state">Loading chats...</div>
-              ) : recentConversationsError && !isTransportConnected ? (
+              ) : recentConversationsError ? (
                 <div className="cg-chat-list-state">Unable to load chats.</div>
               ) : (
                 <div className="cg-chat-list-state">No chats yet.</div>
@@ -293,7 +292,6 @@ DashboardSidebar.propTypes = {
   onTogglePinConversation: PropTypes.func.isRequired,
   onDeleteConversation: PropTypes.func.isRequired,
   activeConversationRef: PropTypes.string,
-  isTransportConnected: PropTypes.bool.isRequired,
 };
 
 export default DashboardSidebar;

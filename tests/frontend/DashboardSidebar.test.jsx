@@ -26,7 +26,6 @@ function buildProps(overrides = {}) {
     onTogglePinConversation: jest.fn(),
     onDeleteConversation: jest.fn(),
     activeConversationRef: null,
-    isTransportConnected: true,
     ...overrides,
   };
 }
@@ -109,20 +108,19 @@ describe('DashboardSidebar collapsed header controls', () => {
     expect(onOpenSettings).toHaveBeenCalledWith('general');
   });
 
-  test('shows empty-state copy when chat list is empty and transport is connected', () => {
-    render(<DashboardSidebar {...buildProps({ sidebarOpen: true, recentConversationsError: 'Local backend not ready' })} />);
+  test('shows empty-state copy when chat list is empty without a load error', () => {
+    render(<DashboardSidebar {...buildProps({ sidebarOpen: true })} />);
 
     expect(screen.getByText('No chats yet.')).toBeInTheDocument();
     expect(screen.queryByText('Unable to load chats.')).not.toBeInTheDocument();
   });
 
-  test('shows load error copy when chat list is empty and transport is disconnected', () => {
+  test('shows load error copy when chat list loading fails', () => {
     render(
       <DashboardSidebar
         {...buildProps({
           sidebarOpen: true,
           recentConversationsError: 'Local backend not ready',
-          isTransportConnected: false,
         })}
       />,
     );
