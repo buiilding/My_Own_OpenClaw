@@ -370,10 +370,11 @@ change without manually calling `agent.setModel(...)` first.
 store. `agent.loadConversation(conversationRef)` is the startup shorthand for
 loading a projected snapshot; pass `agent.loadConversation({ conversationRef,
 store, revisionId })` when a host needs a specific store adapter or revision
-seed.
+seed. Use `FileConversationStore` when a Node CLI or custom UI needs durable
+local JSON state without Electron.
 
 For a minimal non-Electron consumer, see `examples/cli-agent`. It uses
-`WindieClient.wakeUp`, `agent.conversation`, `InMemoryConversationStore`, and
+`WindieClient.wakeUp`, `agent.conversation`, `FileConversationStore`, and
 `conversation.stream()` against a mock websocket backend.
 
 For a browser-based custom UI that renders SDK display projections directly,

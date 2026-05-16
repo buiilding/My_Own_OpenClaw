@@ -72,6 +72,12 @@ The adapter methods are API conveniences; they must delegate to shared SDK
 projection builders or to a complete active compacted replay snapshot. This
 keeps desktop, CLI, web, and tests on one interpretation path.
 
+The SDK ships two reusable store adapters:
+
+- `InMemoryConversationStore` for tests, demos, and short-lived processes.
+- `FileConversationStore` for Node CLI/custom UI hosts that want durable JSON
+  event logs without Electron sidecar storage.
+
 ## Compaction Rule
 
 Backend `context-compaction-completed` with `skipped_reason` normalizes to

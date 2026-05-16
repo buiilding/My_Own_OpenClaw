@@ -69,6 +69,8 @@ pieces exported from this package:
 
 - normalized conversation events
 - `InMemoryConversationStore`
+- `FileConversationStore` for Node CLI/custom UI hosts that want durable local
+  JSON event logs without Electron
 - projection builders for display, rehydrate, tool trace, and compaction state
 - `SdkConversationRuntime`
 - `ToolExecutionCoordinator`

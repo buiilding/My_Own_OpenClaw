@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import http from 'node:http';
+import os from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -124,12 +125,14 @@ function createMockBackend() {
 buildLocalSdk();
 const sdkPath = path.join(repoRoot, 'packages/windie-sdk-js/dist/index.js');
 const {
-  InMemoryConversationStore,
+  FileConversationStore,
   WindieClient,
 } = await import(pathToFileURL(sdkPath).href);
 
 const backend = await createMockBackend();
-const store = new InMemoryConversationStore();
+const store = new FileConversationStore({
+  directory: path.join(os.tmpdir(), 'windie-cli-agent-example-store'),
+});
 const client = new WindieClient({
   backendUrl: backend.backendUrl,
   WebSocketImpl,

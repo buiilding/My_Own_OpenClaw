@@ -3,6 +3,7 @@ import type { ToolSchema } from './backendEvents.js';
 export * from './conversation/types.js';
 export * from './conversation/events.js';
 export * from './stores/InMemoryConversationStore.js';
+export * from './stores/FileConversationStore.js';
 export * from './projections/conversationProjections.js';
 export * from './runtime/conversationReducer.js';
 export * from './runtime/ConversationRuntime.js';
