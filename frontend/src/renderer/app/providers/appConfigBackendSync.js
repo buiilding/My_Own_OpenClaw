@@ -1,5 +1,3 @@
-import { buildModelSettingsPatch } from '../../infrastructure/api/windieSdkClient';
-
 const DEFERRED_QUERY_MODEL_CONFIG_KEYS = new Set([
   'model_provider',
   'selected_model_id',
@@ -30,14 +28,6 @@ function pickConfigKeys(config, predicate) {
     return null;
   }
   return Object.fromEntries(entries);
-}
-
-export function buildDeferredQueryModelConfig(config) {
-  const selection = buildDeferredQueryModelSelection(config);
-  if (!selection) {
-    return null;
-  }
-  return buildModelSettingsPatch(selection, 'buildDeferredQueryModelConfig');
 }
 
 export function buildDeferredQueryModelSelection(config) {

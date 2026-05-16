@@ -9,6 +9,7 @@ All notable changes to WindieOS will be documented in this file.
 - sdk/frontend: expose a conversation-runtime factory for first-party desktop facades while documenting that Electron may use lower-level SDK modules behind SDK interfaces.
 - frontend/sdk: move stored-conversation rehydrate projection loading and backend rehydrate send sequencing behind the desktop conversation runtime facade.
 - frontend/sdk: move backend compaction-event to compacted-replay snapshot shaping behind the desktop conversation runtime facade.
+- frontend/settings: keep app config model sync as plain selection data so SDK settings payload shaping stays behind runtime facades.
 - frontend/sdk: project SDK-owned local tool results back into the renderer as display-only tool-output events.
 - backend/prompts: remove the `get_system_prompt` compatibility accessor and render system prompts through `PromptManager`.
 - backend/tools: rename tool-result mapping normalization from `ToolResult.from_dict` to first-class `ToolResult.from_payload`.

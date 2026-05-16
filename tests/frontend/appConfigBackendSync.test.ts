@@ -1,31 +1,10 @@
 import {
-  buildDeferredQueryModelConfig,
   buildDeferredQueryModelSelection,
   buildImmediateBackendConfig,
   hasImmediateBackendConfigChanges,
 } from '../../frontend/src/renderer/app/providers/appConfigBackendSync';
 
 describe('appConfigBackendSync', () => {
-  test('builds deferred model updates through the SDK model settings contract', () => {
-    expect(buildDeferredQueryModelConfig({
-      selected_model_id: ' gpt-5.4@@gpt-5-4-none-thinking ',
-      model_provider: ' openai ',
-      speech_mode_enabled: true,
-    })).toEqual({
-      selected_model_id: 'gpt-5.4@@gpt-5-4-none-thinking',
-      model_provider: 'openai',
-    });
-  });
-
-  test('does not send partial model selection patches', () => {
-    expect(buildDeferredQueryModelConfig({
-      selected_model_id: 'gpt-5.4@@gpt-5-4-none-thinking',
-    })).toBeNull();
-    expect(buildDeferredQueryModelConfig({
-      model_provider: 'openai',
-    })).toBeNull();
-  });
-
   test('builds deferred model selection for SDK setModel callers', () => {
     expect(buildDeferredQueryModelSelection({
       selected_model_id: ' claude-sonnet-4-5 ',
@@ -34,6 +13,15 @@ describe('appConfigBackendSync', () => {
       modelId: 'claude-sonnet-4-5',
       modelProvider: 'anthropic',
     });
+  });
+
+  test('does not build partial model selections', () => {
+    expect(buildDeferredQueryModelSelection({
+      selected_model_id: 'gpt-5.4@@gpt-5-4-none-thinking',
+    })).toBeNull();
+    expect(buildDeferredQueryModelSelection({
+      model_provider: 'openai',
+    })).toBeNull();
   });
 
   test('keeps model selection out of immediate settings sync', () => {
