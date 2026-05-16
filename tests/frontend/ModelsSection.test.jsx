@@ -175,7 +175,7 @@ describe('ModelsSection', () => {
     expect(screen.queryByRole('button', { name: 'Login with Codex' })).not.toBeInTheDocument();
   });
 
-  test('requests a fresh model catalog when mounted with legacy model payloads', () => {
+  test('requests a fresh model catalog when mounted with incomplete model metadata', () => {
     window.ipc = {
       send: jest.fn(),
       invoke: jest.fn(),

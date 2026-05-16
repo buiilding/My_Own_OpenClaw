@@ -29,7 +29,7 @@ function ModelsSection({ config, availableModels, onConfigChange, onClose = () =
   const [hoveredModel, setHoveredModel] = useState(null);
   const [activeProviderView, setActiveProviderView] = useState(null);
   const warningTimeoutRef = useRef(null);
-  const requestedLegacyCatalogRefreshRef = useRef(false);
+  const requestedCatalogMetadataRefreshRef = useRef(false);
 
   const modelMode = config?.model_mode || 'online';
   const selectedModelId = config?.selected_model_id || '';
@@ -74,11 +74,11 @@ function ModelsSection({ config, availableModels, onConfigChange, onClose = () =
 
   useEffect(() => {
     const onlineModels = Array.isArray(availableModels?.online) ? availableModels.online : [];
-    if (modelMode !== 'online' || requestedLegacyCatalogRefreshRef.current || onlineModels.length === 0) {
+    if (modelMode !== 'online' || requestedCatalogMetadataRefreshRef.current || onlineModels.length === 0) {
       return;
     }
 
-    const hasLegacyCatalogEntry = onlineModels.some((model) => {
+    const hasIncompleteCatalogMetadata = onlineModels.some((model) => {
       if (!model || typeof model !== 'object') {
         return false;
       }
@@ -87,15 +87,15 @@ function ModelsSection({ config, availableModels, onConfigChange, onClose = () =
       return !hasContext || !hasDescription;
     });
 
-    if (hasLegacyCatalogEntry) {
-      requestedLegacyCatalogRefreshRef.current = true;
+    if (hasIncompleteCatalogMetadata) {
+      requestedCatalogMetadataRefreshRef.current = true;
       if (typeof window === 'undefined' || !window.ipc) {
         return;
       }
       try {
         DesktopSettingsRuntimeClient.listModels();
       } catch (error) {
-        console.warn('[ModelsSection] Failed to refresh legacy model catalog:', error?.message || error);
+        console.warn('[ModelsSection] Failed to refresh model catalog metadata:', error?.message || error);
       }
     }
   }, [availableModels, modelMode]);
