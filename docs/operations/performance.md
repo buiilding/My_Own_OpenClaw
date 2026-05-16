@@ -31,13 +31,13 @@ read_when:
 - **Chat store no-op updates**: `updateMessage`, `setMessages`, `setIsSending`, `setThinkingStatus`, and `setTokenCounts` now preserve state identity when values are unchanged, preventing unnecessary state churn.
 - **Config startup dedupe**: `AppConfigProvider` skips disk-sync writes and backend settings updates when loaded config matches the in-memory config.
 - **Stable config update handlers**: `AppConfigProvider` now uses a live config ref for comparisons and memoizes provider value/callbacks to avoid stale closures and needless re-renders.
-- **Bundle formatting dedupe**: `ToolExecutionService` now reuses normalized bundle result structures for both formatting and UI payload construction to avoid duplicate per-step mapping work.
+- **Bundle formatting dedupe**: SDK/main tool routing reuses normalized bundle result structures for both formatting and UI payload construction to avoid duplicate per-step mapping work.
 - **Shared bundle tool invocation path**: bundled tool execution now uses the same invoker as single-tool execution, removing duplicated IPC arg shaping and keeping screenshot display-bounds injection behavior consistent.
 - **Shared tool-output content extraction**: `MessageFormatter` now reuses a single content/screenshot extraction path for single and bundled tool messages, removing duplicated branching and keeping output precedence consistent.
-- **Shared tool-result payload builders**: `ToolExecutionService` now uses pure payload/status helpers to normalize backend dispatch payloads and bundle status calculations, reducing duplicate object-shaping logic.
+- **Shared tool-result payload builders**: SDK/main tool routing uses pure payload/status helpers to normalize backend dispatch payloads and bundle status calculations, reducing duplicate object-shaping logic.
 - **Bundle runner helper reuse**: `runToolBundle` now uses shared timing/step helpers for success and failure paths, keeping per-step bookkeeping consistent and reducing duplicated loop logic.
 - **Shared artifact image metadata normalization**: chat send, tool execution upload, and chat message rendering paths now use one image content-type/extension helper, reducing duplicate string parsing and keeping screenshot handling consistent.
-- **Stable tool runner service lifecycle**: `useToolRunner` keeps one `ToolExecutionService` instance across model-config updates and reads model metadata via refs, reducing service churn while preserving transcript attribution.
+- **Stable tool routing lifecycle**: SDK/main keeps one managed runtime across model-config updates and reads model metadata through runtime state, reducing service churn while preserving transcript attribution.
 - **PlayerService cleanup hardening**: audio playback stop/cleanup now cancels active sources and invalidates stale playback callbacks to avoid race-driven queue continuation after stop.
 - **GPU acceleration default-on for Electron UI**: frontend no longer forces software rendering by default; set `WINDIE_FORCE_SOFTWARE_RENDERING=1` only as a fallback for GPU-driver-specific crashes.
 

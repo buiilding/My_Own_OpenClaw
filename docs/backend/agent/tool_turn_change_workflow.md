@@ -1,9 +1,9 @@
 ---
-summary: "Workflow for backend tool-turn changes across model-visible tool calls, preparation, dispatch, frontend execution, result waiting, history commit, cleanup, and recovery."
+summary: "Workflow for backend tool-turn changes across model-visible tool calls, preparation, SDK/main dispatch, result waiting, history commit, cleanup, and recovery."
 read_when:
-  - When changing tool-call parsing, preparation, backend-vs-frontend execution routing, tool bundles, request IDs, result waiting, or tool-output history.
+  - When changing tool-call parsing, preparation, backend-vs-SDK/main execution routing, tool bundles, request IDs, result waiting, or tool-output history.
   - When a model-visible tool is called but never executes, executes twice, returns to the wrong turn, or corrupts history.
-  - When deciding whether a tool bug belongs in backend schema, agent orchestration, renderer dispatch, sidecar execution, or frontend result relay.
+  - When deciding whether a tool bug belongs in backend schema, agent orchestration, SDK/main dispatch, sidecar execution, or SDK result relay.
 title: "Tool Turn Change Workflow"
 ---
 
@@ -23,9 +23,9 @@ Frontend and sidecar code must not import backend tool schema code for parity. K
 3. `InteractionLoop` parses response into `ParsedToolCall` entries.
 4. history stages assistant tool-call IDs before execution.
 5. `ToolPreparer` resolves call parameters, request IDs, screenshots, OCR, and coordinate state.
-6. `ToolSender` emits `tool-call` or `tool-bundle` events for frontend execution, or runs backend tools immediately.
-7. renderer dispatches executable tool calls to Electron main and sidecar.
-8. frontend sends `tool-result` messages back over websocket.
+6. `ToolSender` emits `tool-call` or `tool-bundle` events for SDK/main execution, or runs backend tools immediately.
+7. SDK/main dispatches executable tool calls through Electron main to the sidecar.
+8. SDK/main sends `tool-result` messages back over websocket.
 9. backend routes, stores, and resolves results.
 10. result processor commits tool-output history rows and cleans pending state.
 11. loop samples the next model turn or finalizes.
@@ -38,7 +38,7 @@ Frontend and sidecar code must not import backend tool schema code for parity. K
 | provider returns tool calls but parser drops them | LLM stream processor and tool-call bridge | `backend/src/agent/llm/llm_stream_processor.py`, `backend/src/agent/execution/tool_call_bridge.py` | [LLM Stream Processor Token Count and Cache Diagnostics Reference](llm/llm_stream_processor_token_count_and_cache_diagnostics_reference.md), [Native Tool-Call Bridge and History Mapping Reference](native_tool_call_bridge_and_history_mapping_reference.md) | `tests/backend/test_llm_stream_processor.py`, `tests/backend/test_interaction_tool_call_bridge.py` |
 | tool-call ID or request ID is missing | tool-call bridge, history staging, preparer | `backend/src/agent/execution/tool_call_bridge.py`, `backend/src/agent/history`, `backend/src/agent/tools/preparation` | [Tool-Call-ID Staging and Tool-Output History Row Contract Reference](history/tool_call_id_staging_and_tool_output_history_row_contract_reference.md) | `tests/backend/test_resolved_tool_call_storage.py`, `tests/backend/test_tool_preparer.py` |
 | screenshot, OCR, or coordinate arguments are wrong | tool preparation and screen-grounding services | `backend/src/agent/tools/preparation`, `backend/src/services/screen_grounding`, `backend/src/services/ocr`, `backend/src/services/vision` | [Backend Tool Preparation and Coordinate Resolution Reference](../tools/tool_preparation_and_coordinate_resolution_reference.md), [Computer Tools](../../tools/computer.md) | `tests/backend/test_tool_preparer.py`, OCR/vision coordinate tests |
-| frontend never executes a visible tool-call event | backend sender, formatter, renderer tool runner | `backend/src/agent/tools/sending`, `backend/src/api/processing/formatters/actions`, `frontend/src/renderer/infrastructure/services/toolExecution` | [Tool Execution Lifecycle](../../tools/tool_execution_lifecycle.md), [Frontend Tool Execution Service and Hook Runtime Reference](../../frontend/renderer/infrastructure/tool_execution_service_and_hook_runtime_reference.md) | `tests/backend/test_tool_sender.py`, formatter tests, frontend tool-runner tests |
+| SDK/main never executes a visible tool-call event | backend sender, formatter, SDK tool coordinator | `backend/src/agent/tools/sending`, `backend/src/api/processing/formatters/actions`, `packages/windie-sdk-js/src/tools`, `frontend/src/main/ipc/ipc_sdk_tool_router.cjs` | [Tool Execution Lifecycle](../../tools/tool_execution_lifecycle.md), [Windie Client Runtime](../../sdk/windie_client_runtime.md) | `tests/backend/test_tool_sender.py`, formatter tests, SDK/main tool-router tests |
 | bundle waits forever or starts next loop too early | backend sender and result orchestrator | `backend/src/agent/tools/sending`, `backend/src/tools/bundle_execution.py`, `backend/src/tools/orchestrator.py` | [Interaction Loop and Tool-Turn Orchestration Reference](interaction_loop_and_tool_turn_orchestration_reference.md) | `tests/backend/test_bundle_execution.py`, `tests/backend/test_tool_result_orchestrator.py` |
 | tool result arrives but does not resume model loop | tool-result handler, router, storage, and waiting futures | `backend/src/api/handlers/tool_result.py`, `backend/src/agent/tools/waiting`, `backend/src/tools/orchestrator.py` | [Tool Result Ingress and Storage Reference](../tools/tool_result_ingress_and_storage_reference.md) | `tests/backend/test_tool_result_handler.py`, `tests/backend/test_tool_result_router.py`, `tests/backend/test_tool_result_receiver.py` |
 | tool output corrupts replay or provider history | result processor and history committer | `backend/src/agent/tools/processing`, `backend/src/agent/history` | [History Committer and Result-Processor Boundary Reference](history/history_committer_and_result_processor_boundary_reference.md) | `tests/backend/test_tool_result_storage.py`, `tests/backend/test_tool_result_formatting.py`, `tests/backend/test_conversation_history.py` |
@@ -197,15 +197,15 @@ Rules:
 - Result processing cleanup must run even after exceptions.
 - Compaction should not erase required tool-call/tool-output linkage.
 
-## Frontend and Sidecar Boundary
+## SDK/Main and Sidecar Boundary
 
-If executable payloads change, update frontend and sidecar docs/tests with the backend change.
+If executable payloads change, update SDK/main and sidecar docs/tests with the backend change.
 
-Frontend owners:
+SDK/main owners:
 
-- `frontend/src/renderer/infrastructure/services/toolExecution/**`
-- `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
-- `frontend/src/main/ipc/**`
+- `packages/windie-sdk-js/src/tools/**`
+- `frontend/src/main/ipc/ipc_sdk_tool_router.cjs`
+- `frontend/src/main/windie_sdk_runtime.cjs`
 
 Sidecar owners:
 

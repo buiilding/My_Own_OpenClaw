@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for frontend tool-result receive and route internals: single-vs-bundle shared route mode, system-state refresh, screenshot/screenshot_ref handling, and storage/future resolution handoff."
+summary: "Deep reference for SDK-submitted tool-result receive and route internals: single-vs-bundle shared route mode, system-state refresh, screenshot/screenshot_ref handling, and storage/future resolution handoff."
 read_when:
   - When changing `ToolResultHandler`, `ToolResultReceiver`, or `ToolResultRouter` behavior.
   - When debugging route-mode mismatches, bundle success evaluation, or screenshot artifact decode failures on tool-result ingress.

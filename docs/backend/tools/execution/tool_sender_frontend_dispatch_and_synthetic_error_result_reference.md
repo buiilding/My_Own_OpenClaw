@@ -2,11 +2,11 @@
 summary: "Deep reference for ToolSender dispatch semantics: preparation-result branching, synthetic error result emission order, model-facing metadata contract, and bundle-preparation failure short-circuit behavior."
 read_when:
   - When changing `ToolSender.send_tools` branching or event payload metadata.
-  - When debugging missing frontend tool execution, protocol ordering regressions, or bundle-preparation failure handling.
-title: "Tool Sender Frontend Dispatch and Synthetic Error Result Reference"
+  - When debugging missing SDK/main tool execution, protocol ordering regressions, or bundle-preparation failure handling.
+title: "Tool Sender SDK Dispatch and Synthetic Error Result Reference"
 ---
 
-# Tool Sender Frontend Dispatch and Synthetic Error Result Reference
+# Tool Sender SDK Dispatch and Synthetic Error Result Reference
 
 ## Canonical Modules
 
@@ -18,13 +18,13 @@ title: "Tool Sender Frontend Dispatch and Synthetic Error Result Reference"
 
 ## Sender Ownership Boundary
 
-`ToolSender` owns outbound frontend tool execution events only.
+`ToolSender` owns outbound SDK/main tool execution events only.
 
 It does not:
 
 - wait on tool completion futures
 - commit tool results to conversation history
-- parse frontend return payloads
+- parse SDK return payloads
 
 Those responsibilities stay in wait/processing layers.
 

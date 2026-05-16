@@ -15,11 +15,11 @@ WindieOS has multiple memory systems. Treating them as one store causes wrong-la
 
 | Symptom or request | Primary owner | First code roots | Tests |
 | --- | --- | --- | --- |
-| Visible chat row is missing or duplicated | Renderer transcript | `frontend/src/renderer/infrastructure/transcript`, chat stream handlers | `tests/frontend/TranscriptWriter*.test.ts`, `TranscriptPending*.test.ts`, `ChatStream*.test.ts` |
+| Visible chat row is missing or duplicated | SDK projection store plus renderer display handlers | `packages/windie-sdk-js/src/projections`, `frontend/src/main/windie_sdk_runtime.cjs`, chat stream handlers | SDK/main projection tests, `ChatStream*.test.ts` |
 | Conversation list/search is wrong | Sidecar local memory plus dashboard renderer | `frontend/src/main/python/memory/conversation_*`, dashboard hooks | `tests/sidecar/test_conversation_*.py`, `tests/frontend/DashboardConversationLoad.test.js` |
-| Replay displays wrong messages | Renderer replay state | `conversationReplayState.ts`, `conversationLocalSnapshotLoader.ts`, replay hooks | `tests/frontend/ConversationReplay*.test.*`, `RehydratePayload.test.js` |
-| Backend forgets prior transcript after reopen | Rehydrate path | `frontend/src/renderer/infrastructure/transcript/rehydratePayload.js`, `backend/src/api/handlers/rehydrate.py`, `backend/src/api/services/rehydrate_*` | `tests/backend/test_rehydrate_*.py`, `tests/frontend/RehydratePayload.test.js` |
-| Tool-call/tool-output linkage breaks after replay | Renderer transcript plus backend rehydrate repair | transcript tool message files, `rehydrate_tool_call_normalization.py`, `rehydrate_tool_linkage_repair.py` | `ConversationReplayToolMessages.test.js`, backend rehydrate linkage tests |
+| Replay displays wrong messages | SDK replay/display projection | `packages/windie-sdk-js/src/projections`, Electron conversation store adapter, replay hooks | SDK projection tests, rehydrate projection tests |
+| Backend forgets prior transcript after reopen | SDK rehydrate projection plus backend rehydrate path | `packages/windie-sdk-js/src/projections`, `backend/src/api/handlers/rehydrate.py`, `backend/src/api/services/rehydrate_*` | `tests/backend/test_rehydrate_*.py`, SDK rehydrate tests |
+| Tool-call/tool-output linkage breaks after replay | SDK tool projection plus backend rehydrate repair | SDK tool projection files, `rehydrate_tool_call_normalization.py`, `rehydrate_tool_linkage_repair.py` | SDK tool projection tests, backend rehydrate linkage tests |
 | Semantic memory is stale or noisy | Sidecar semanticization and backend semantic routes | `frontend/src/main/python/memory/conversation_semanticization_runtime.py`, `summarizer.py`, `backend/src/api/routes/memory/semantic` | `tests/sidecar/test_memory_summarizer.py`, `test_conversation_semanticization_runtime.py`, `tests/backend/test_memory_routes.py` |
 | Embedding/search fails but transcript should still save | Sidecar local store and remote embedding client | `local_store.py`, `faiss_index.py`, `remote_embedding_client.py` | `tests/sidecar/test_local_store_*.py`, `test_remote_embedding_client.py` |
 | Backend model context is too long or compaction output is wrong | Backend active history/compaction | `backend/src/agent/compaction`, `backend/src/agent/history`, executor/interaction loop | `tests/backend/test_history_compaction_engine.py`, `test_compaction_prompt.py`, `test_interaction_loop_compaction.py` |
@@ -54,15 +54,14 @@ Read:
 - [Transcript Replay Change Workflow](transcript_replay_change_workflow.md)
 - [Transcript and Replay](transcript_and_replay.md)
 - [Renderer Transcript Docs Hub](../frontend/renderer/transcript/README.md)
-- [Transcript Writer Queue Flush and Session Event Reference](../frontend/renderer/transcript/transcript_writer_queue_flush_and_session_event_reference.md)
+- [SDK Conversation Runtime](../sdk/conversation_runtime.md)
 
 Likely code:
 
-- `TranscriptWriter.ts`
-- `transcriptRecordWrite.ts`
-- `transcriptEntryPersistence.ts`
-- `pending/*`
-- chat stream handler code that calls transcript writer APIs
+- `packages/windie-sdk-js/src/projections`
+- `frontend/src/main/windie_sdk_runtime.cjs`
+- Electron conversation store adapter
+- chat stream handler code that renders SDK projections
 
 Validation:
 
@@ -81,8 +80,8 @@ Read:
 
 Likely code:
 
-- `conversationReplayState.ts`
-- `conversationLocalSnapshotLoader.ts`
+- `packages/windie-sdk-js/src/projections`
+- Electron conversation store adapter
 - `rehydratePayload.js`
 - `backend/src/api/handlers/rehydrate.py`
 - `backend/src/api/services/rehydrate_*`

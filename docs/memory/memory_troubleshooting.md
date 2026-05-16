@@ -14,25 +14,25 @@ Start by locating the layer. Most memory bugs are caused by assuming transcript,
 
 Inspect:
 
-- `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
-- `frontend/src/renderer/infrastructure/transcript/pending/*`
+- `packages/windie-sdk-js/src/projections`
+- `frontend/src/main/windie_sdk_runtime.cjs`
 - `frontend/src/main/python/local_backend_memory_handlers.py`
 
 Validate:
 
 ```bash
 cd frontend
-npm run test:ci -- TranscriptWriter.userAssistant.test.ts TranscriptPendingFlush.test.ts TranscriptStorage.test.ts
+npm run test:ci -- WindieSdkConversationRuntime.test.ts ModularRefactorCompletionBoundary.test.ts
 ```
 
 ## Conversation Appears In Dashboard But Replay Is Wrong
 
 Inspect:
 
-- `frontend/src/renderer/infrastructure/transcript/conversationReplayState.ts`
+- `packages/windie-sdk-js/src/projections`
+- Electron conversation store adapter
 - `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js`
 - `frontend/src/renderer/features/chat/utils/conversationReplayToolMessages.js`
-- `frontend/src/renderer/infrastructure/transcript/rehydratePayload.js`
 
 Validate:
 
@@ -54,7 +54,7 @@ Validate:
 
 ```bash
 ./scripts/test-backend tests/backend/test_rehydrate_tool_call_normalization.py tests/backend/test_rehydrate_tool_linkage_repair.py -q
-cd frontend && npm run test:ci -- TranscriptWriter.tool.test.ts ConversationReplayToolMessages.test.js
+cd frontend && npm run test:ci -- WindieSdkConversationRuntime.test.ts ConversationReplayToolMessages.test.js
 ```
 
 ## Search Finds Old Or Wrong Memory
@@ -103,4 +103,3 @@ Validate:
 ./scripts/test-sidecar tests/sidecar/test_conversation_title_runtime.py tests/sidecar/test_conversation_title_helpers.py tests/sidecar/test_remote_title_client.py -q
 ./scripts/test-backend tests/backend/test_memory_routes.py -q
 ```
-

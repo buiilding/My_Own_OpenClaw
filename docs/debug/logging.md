@@ -65,7 +65,7 @@ Renderer logs are visible in Electron DevTools and are usually gated by query pa
 | --- | --- | --- |
 | Stream trace | `frontend/src/renderer/features/chat/utils/chatStream/chatStreamDebugTrace.ts` | URL has `debug_stream=1` or `debug_chat_pill=1` |
 | Chat pill trace | Same renderer trace module | URL has `debug_stream=1` or `debug_chat_pill=1` |
-| Tool screenshot trace | `frontend/src/renderer/infrastructure/services/toolExecution/ToolScreenshotDebugTrace.ts` | URL has `debug_tool_screenshot=1` |
+| Tool screenshot trace | `frontend/src/main/local_backend_bridge_screenshot_attachment.cjs` | `WINDIE_DEBUG_TOOL_SCREENSHOT=1` |
 
 Main injects these params through `frontend/src/main/main_window_overlay_runtime.cjs` when the matching environment flags are set.
 

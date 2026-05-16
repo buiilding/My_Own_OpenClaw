@@ -1,5 +1,5 @@
 ---
-summary: "Backend tools waiting docs sub-hub for frontend tool-result receive/route internals, screenshot artifact resolution, and pending/future storage cleanup semantics."
+summary: "Backend tools waiting docs sub-hub for SDK-submitted tool-result receive/route internals, screenshot artifact resolution, and pending/future storage cleanup semantics."
 read_when:
   - When changing `backend/src/agent/tools/waiting/*` modules.
   - When debugging unresolved tool-result futures, bundle wait mismatches, or screenshot-ref decode behavior in tool-result routing.

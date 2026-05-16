@@ -31,7 +31,7 @@ What stays real:
 - FastAPI app + routes (`create_api_app`)
 - websocket/HTTP contracts
 - session creation and interaction loop
-- tool dispatch path and frontend tool-result loop
+- tool dispatch path and SDK-submitted tool-result loop
 
 What is replaced:
 
@@ -178,7 +178,7 @@ Validated behaviors include:
 
 ## Operational Notes
 
-- simulation mode still depends on frontend tool execution returning results for tool turns.
+- simulation mode still depends on SDK/main tool execution returning results for tool turns.
 - app startup logs explicitly indicate simulation mode and selected mock client.
 - both simulation and production entrypoints use shared CORS route assembly (`create_api_app`), so API surface remains aligned.
 

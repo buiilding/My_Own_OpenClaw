@@ -76,7 +76,7 @@ Use this when screenshots are missing, stale, include overlays, or do not attach
 | Layer | Code root | What to inspect |
 | --- | --- | --- |
 | Renderer query capture | `frontend/src/renderer/features/chat/utils/messageSender/queryScreenshotPipeline.ts` | Whether the outgoing query requested a screenshot and got an artifact ref. |
-| Renderer tool screenshot | `frontend/src/renderer/infrastructure/services/toolExecution/ToolScreenshotDebugTrace.ts` | Tool screenshot stage and payload. |
+| SDK/main tool screenshot | `frontend/src/main/local_backend_bridge_screenshot_attachment.cjs` | Tool screenshot stage and payload. |
 | Main screenshot bridge | `frontend/src/main/local_backend_bridge_screenshot_attachment.cjs` | Upload/fetch path for screenshot artifacts. |
 | Sidecar screenshot tool | `frontend/src/main/python/tools/computer/screenshot_tool.py` | Platform capture path and cursor/overlay behavior. |
 | Backend artifact load | `backend/src/services/artifacts/store.py`, `backend/src/api/routes/artifacts` | Artifact lookup and binary response. |

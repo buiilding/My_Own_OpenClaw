@@ -2,7 +2,7 @@
 summary: "Deep reference for tool execution wait orchestration: atomic bundle detection, session-required routing, single-vs-bundle future wait semantics, stale-screen safety checks, and capability exposure filtering."
 read_when:
   - When changing `ToolResultOrchestrator` routing or single/bundle wait helpers.
-  - When debugging skipped tool calls, bundle-id/request-id metadata drift, or frontend tool-result timeout behavior.
+  - When debugging skipped tool calls, bundle-id/request-id metadata drift, or SDK-submitted tool-result timeout behavior.
 title: "Tool Result Orchestrator Bundle Detection and Wait Path Reference"
 ---
 

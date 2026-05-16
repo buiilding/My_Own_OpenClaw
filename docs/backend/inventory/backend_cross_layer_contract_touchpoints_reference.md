@@ -24,7 +24,7 @@ This reference lists backend-owned contracts that have direct frontend or sideca
 | Backend event source | Formatter owner | Frontend consumer | Contract note |
 | --- | --- | --- | --- |
 | `ChunkEvent` / `ThinkingEvent` | `api/processing/formatters/{chunk,thinking}.py` | `useChatStream.ts` | `payload.text` vs `payload.status` must stay stable |
-| `ToolCallEvent` / `ToolBundleEvent` | `api/processing/formatters/{tool_call,tool_bundle}.py` | `useToolRunner.ts`, tool-ghost UI | Correlation IDs + payload action fields required |
+| `ToolCallEvent` / `ToolBundleEvent` | `api/processing/formatters/{tool_call,tool_bundle}.py` | SDK/main tool router, tool-ghost UI | Correlation IDs + payload action fields required |
 | `ToolOutputEvent` | `api/processing/formatters/tool_output.py` | `useChatStream.ts` + transcript/tool runtime | `success`, `output`, `metadata`, `request_id` semantics |
 | `TokenCountEvent` | `api/processing/formatters/token_count.py` | Token count display + store | Numeric field naming/type stability |
 | Prompt transparency events | `api/processing/formatters/{system_prompt,user_message,assistant_message,tool_schemas}.py` | Message transparency sections | Payload shape controls collapsible rendering |

@@ -140,7 +140,8 @@ Likely code:
 - `backend/src/tools/tool_policy.py`
 - `backend/src/tools/**`
 - `backend/src/agent/tools/**`
-- `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
+- `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
+- `frontend/src/main/ipc/ipc_sdk_tool_router.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/python/tools/**`
 
