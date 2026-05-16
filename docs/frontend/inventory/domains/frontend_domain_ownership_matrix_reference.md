@@ -22,7 +22,7 @@ title: "Frontend Domain Ownership Matrix Reference"
 | Renderer dashboard/settings/voice | `renderer/features/{dashboard,settings,voice}/**` | provider contexts + transcript infra | sidecar execution logic |
 | Renderer infra services | `renderer/infrastructure/{api,ipc,audio,services,transcript}/**` | main IPC handlers + sidecar method contracts | landing page modules |
 | Sidecar runtime core | `main/python/{local_backend,memory_service,wakeword_service}.py`, `main/python/core/**` | `main/local_backend_bridge.cjs`, wakeword bridge | renderer UI components |
-| Sidecar tool runtime | `main/python/tools/**` | backend tool schemas + renderer tool runner | main window/tray modules |
+| Sidecar tool runtime | `main/python/tools/**` | backend tool schemas + SDK/main tool router | main window/tray modules |
 | Sidecar memory runtime | `main/python/memory/**` | remote embedding/semantic clients + renderer dashboard memory views | renderer chat presentation |
 | Main permission/privilege runtime | `main/permission_service.cjs`, `main/agent_sudo_access_handler.cjs` | renderer permission store + settings data controls | sidecar tool modules |
 | Landing page runtime | `frontend/src/landing/**` | none (isolated app surface) | main/renderer runtime modules |

@@ -62,8 +62,8 @@ npm run audit:knip
 - Wakeword bridge stale-buffer/stale-process restart behavior is covered by `tests/frontend/WakewordBridge.test.cjs`.
 - For CI parity: `cd frontend && npm run test:ci`.
 - Frontend tests use Jest + React Testing Library.
-- `tests/frontend/ToolRunnerHook.events.test.ts` and `tests/frontend/ToolRunnerHook.callbacks.test.ts` cover backend listener cleanup, malformed tool event guards, callback wiring, and stale-turn result drops.
-- Transcript/session persistence behavior is covered directly by `tests/frontend/TranscriptWriter.test.ts` and `tests/frontend/TranscriptSessionState.test.ts`.
+- SDK/main tool routing behavior is covered by `tests/frontend/IpcSdkToolRouter.test.cjs`, `tests/frontend/WindieSdkMainRuntime.test.cjs`, and SDK conversation runtime tests.
+- Transcript/session persistence behavior is covered through SDK projection and transcript-session tests such as `tests/frontend/WindieSdkConversationRuntime.test.ts` and `tests/frontend/TranscriptSessionState.test.ts`.
 - Transcript storage/event and queue primitives are covered directly by `tests/frontend/TranscriptStorage.test.ts` and `tests/frontend/TranscriptPendingQueue.test.ts`.
 - Audio playback lifecycle behavior is covered directly by `tests/frontend/PlayerService.test.ts`.
 - Message input submission/lockout behavior is covered directly by `tests/frontend/MessageInput.test.jsx`.
@@ -73,7 +73,7 @@ npm run audit:knip
 - Chat message sender helper behavior is covered directly by `tests/frontend/ChatMessageSenderUtils.test.ts`.
 - Chat stream event helper behavior (error filtering/text, correlation id, screenshot attachment) is covered directly by `tests/frontend/ChatStreamEventUtils.test.ts`.
 - Chat stream message-update helper behavior is covered directly by `tests/frontend/ChatStreamMessageUpdates.test.ts`.
-- Tool-runner message/mapping helper behavior is covered directly by `tests/frontend/ToolRunnerMessages.test.ts`.
+- Tool message/mapping helper behavior is covered directly by chat stream and SDK projection tests.
 - Episodic memory parsing/formatting helpers are covered directly by `tests/frontend/EpisodicMemoryUtils.test.js`.
 - Dashboard model selection/filter/reconciliation helpers are covered directly by `tests/frontend/ModelSelectionUtils.test.js`.
 - Dashboard display selection/speech-toggle helper behavior is covered directly by `tests/frontend/SettingsDisplayUtils.test.js`.

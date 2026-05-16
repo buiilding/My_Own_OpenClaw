@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs: remove remaining current-doc references to retired transcript-writer and renderer tool-runner ownership.
 - frontend/tests: align surface window tests with the first-class main-window open target and install-auth bridge contracts.
 - frontend/sdk: remove renderer store compatibility for legacy hyphenated tool projection result names.
 - frontend/main: reset the SDK-managed backend runtime reference during IPC test shutdown so closed sessions are never reused.

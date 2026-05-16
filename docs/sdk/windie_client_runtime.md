@@ -214,8 +214,8 @@ Electron uses a sidecar-backed store adapter:
   store adapter, so queued user/assistant/tool writes no longer own direct row
   IPC or replay append mutation.
 - desktop chat feature code uses the desktop conversation runtime facade for
-  transcript session identity helpers. There is no renderer `TranscriptWriter`
-  boundary.
+  transcript session identity helpers, with transcript writes owned by SDK
+  projection/runtime adapters rather than renderer-local writer APIs.
 - desktop dashboard and app config session synchronization use an app-level
   transcript-session runtime facade, so feature/provider code does not import
   transcript infrastructure directly for conversation/user identity updates.

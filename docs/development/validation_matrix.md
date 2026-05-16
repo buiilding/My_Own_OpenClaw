@@ -68,9 +68,9 @@ Sidecar:
 
 Frontend:
 
-- `tests/frontend/ToolRunnerHook.events.test.ts`
-- `tests/frontend/ToolRunnerHook.callbacks.test.ts`
-- `tests/frontend/TranscriptWriter.test.ts`
+- `tests/frontend/IpcSdkToolRouter.test.cjs`
+- `tests/frontend/WindieSdkMainRuntime.test.cjs`
+- `tests/frontend/WindieSdkConversationRuntime.test.ts`
 - `tests/frontend/TranscriptSessionState.test.ts`
 - `tests/frontend/LocalBackendBridge.test.cjs`
 - `tests/frontend/WakewordBridge.test.cjs`
