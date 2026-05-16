@@ -238,9 +238,13 @@ Dashboard startup and open-chat loading also use the SDK store adapter:
   transcript metadata during migration
 - edit/resend and try-again visible transcript rewrites go through the Electron
   sidecar conversation store adapter, which owns the local transcript and
-  `transcript_replay` delete/write sequence. The replay hook still chooses the
+  `transcript_replay` generation writes. The replay hook still chooses the
   replacement message list during migration, but it no longer invokes
   `store-transcript` or `delete-conversation` directly.
+- compacted replay replacement appends a new generation with
+  `replay_generation_entry_count` and `replay_generation_complete` metadata.
+  Loaders select the newest complete generation and ignore partial writes, so a
+  failed replacement cannot erase the previous replay snapshot.
 
 ## Try-Again and Edit+Resend Replay Contract
 

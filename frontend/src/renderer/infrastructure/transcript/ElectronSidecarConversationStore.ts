@@ -343,13 +343,15 @@ export class ElectronSidecarConversationStore implements ConversationStore {
       },
       snapshot.entries.map((entry, index) => ({
         messageIndex: index + 1,
-        rehydrateEntry: {
-          ...entry,
-          replay_generation_id: snapshot.generationId,
-          replay_source_revision_id: snapshot.sourceRevisionId,
-          replay_source_turn_ref: snapshot.sourceTurnRef ?? null,
-        },
+        rehydrateEntry: entry,
       })),
+      {
+        generationId: snapshot.generationId,
+        sourceRevisionId: snapshot.sourceRevisionId,
+        sourceTurnRef: snapshot.sourceTurnRef,
+        entryCount: snapshot.entryCount,
+        complete: snapshot.complete,
+      },
     );
   }
 
@@ -402,7 +404,11 @@ export class ElectronSidecarConversationStore implements ConversationStore {
     if (entries.length === 0) {
       return null;
     }
-    const first = entries[0] ?? {};
+    const generation = selectActiveReplayGeneration(entries);
+    if (!generation) {
+      return null;
+    }
+    const first = generation.entries[0] ?? {};
     return {
       generationId: normalizeNonEmptyString(first.replay_generation_id)
         ?? `stored-replay-${conversationRef}`,
@@ -411,8 +417,8 @@ export class ElectronSidecarConversationStore implements ConversationStore {
         ?? `rev-stored-${conversationRef}`,
       sourceTurnRef: normalizeNonEmptyString(first.replay_source_turn_ref),
       createdAt: normalizeNonEmptyString(replayRows[0]?.timestamp) ?? new Date(0).toISOString(),
-      entries,
-      entryCount: entries.length,
+      entries: generation.entries,
+      entryCount: generation.entries.length,
       complete: true,
       active: true,
     };
@@ -512,6 +518,73 @@ function normalizePositiveInteger(value: unknown): number | null {
   return typeof value === 'number' && Number.isFinite(value) && value > 0
     ? Math.floor(value)
     : null;
+}
+
+function replayGenerationId(entry: Record<string, unknown>, fallback: string): string {
+  return normalizeNonEmptyString(entry.replay_generation_id) ?? fallback;
+}
+
+function replayEntryIndex(entry: Record<string, unknown>, fallback: number): number {
+  const value = entry.replay_generation_entry_index;
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === 'string') {
+    const parsed = Number.parseInt(value, 10);
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+  return fallback;
+}
+
+function replayEntryCount(entry: Record<string, unknown>): number | null {
+  const value = entry.replay_generation_entry_count;
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return Math.floor(value);
+  }
+  if (typeof value === 'string') {
+    const parsed = Number.parseInt(value, 10);
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+  return null;
+}
+
+function replayGenerationComplete(entry: Record<string, unknown>): boolean {
+  return entry.replay_generation_complete !== false;
+}
+
+function selectActiveReplayGeneration(
+  entries: Record<string, unknown>[],
+): { generationId: string; entries: Record<string, unknown>[] } | null {
+  const generations = new Map<string, Record<string, unknown>[]>();
+  entries.forEach((entry) => {
+    const generationId = replayGenerationId(entry, 'legacy');
+    const generationEntries = generations.get(generationId) ?? [];
+    generationEntries.push(entry);
+    generations.set(generationId, generationEntries);
+  });
+
+  const candidates: Array<{ generationId: string; entries: Record<string, unknown>[]; maxIndex: number }> = [];
+  for (const [generationId, generationEntries] of generations) {
+    const sortedEntries = [...generationEntries]
+      .sort((a, b) => replayEntryIndex(a, 0) - replayEntryIndex(b, 0));
+    const first = sortedEntries[0] ?? {};
+    const expectedCount = replayEntryCount(first) ?? sortedEntries.length;
+    if (!replayGenerationComplete(first) || expectedCount !== sortedEntries.length) {
+      continue;
+    }
+    candidates.push({
+      generationId,
+      entries: sortedEntries,
+      maxIndex: entries.lastIndexOf(generationEntries[generationEntries.length - 1]),
+    });
+  }
+
+  candidates.sort((a, b) => b.maxIndex - a.maxIndex);
+  return candidates[0] ?? null;
 }
 
 export function buildElectronSidecarConversationMetadata(

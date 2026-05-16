@@ -59,7 +59,8 @@ SDK-owned conversation state uses a separate sidecar record kind:
 
 - `conversation_event`: normalized SDK event log for runtime/load/rehydrate
 - `transcript`: visible transcript rows
-- `transcript_replay`: compacted replay rows
+- `transcript_replay`: compacted replay rows, written as generations so loaders
+  can ignore partial replacements and keep the previous complete snapshot active
 
 New SDK callers should read display and rehydrate state through SDK projections
 over `conversation_event` rows. Existing conversations without event rows still

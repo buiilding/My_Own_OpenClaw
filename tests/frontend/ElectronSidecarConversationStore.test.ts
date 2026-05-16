@@ -179,12 +179,8 @@ describe('ElectronSidecarConversationStore', () => {
       active: true,
     });
 
-    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'delete-conversation', {
-      userId: 'user-1',
-      conversationId: 'conv-compact',
-      recordKind: 'transcript_replay',
-    });
-    expect(mockInvoke).toHaveBeenNthCalledWith(2, 'store-transcript', expect.objectContaining({
+    expect(mockInvoke).toHaveBeenCalledTimes(1);
+    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'store-transcript', expect.objectContaining({
       userId: 'user-1',
       conversationRef: 'conv-compact',
       recordKind: 'transcript_replay',
@@ -195,8 +191,69 @@ describe('ElectronSidecarConversationStore', () => {
         replay_generation_id: 'gen-1',
         replay_source_revision_id: 'rev-source',
         replay_source_turn_ref: 'turn-compact',
+        replay_generation_entry_index: 1,
+        replay_generation_entry_count: 1,
+        replay_generation_complete: true,
       }),
     }));
+  });
+
+  test('loads the newest complete replay generation and ignores partial generations', async () => {
+    const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
+    mockLoadStoredConversationEntries.mockResolvedValueOnce([
+      {
+        timestamp: '2026-05-15T12:00:00.000Z',
+        metadata: {
+          rehydrate_entry: {
+            role: 'assistant',
+            content: 'old complete',
+            replay_generation_id: 'gen-old',
+            replay_source_revision_id: 'rev-old',
+            replay_generation_entry_index: 1,
+            replay_generation_entry_count: 1,
+            replay_generation_complete: true,
+          },
+        },
+      } as any,
+      {
+        timestamp: '2026-05-15T12:01:00.000Z',
+        metadata: {
+          rehydrate_entry: {
+            role: 'assistant',
+            content: 'partial should not load',
+            replay_generation_id: 'gen-partial',
+            replay_source_revision_id: 'rev-partial',
+            replay_generation_entry_index: 1,
+            replay_generation_entry_count: 2,
+            replay_generation_complete: true,
+          },
+        },
+      } as any,
+      {
+        timestamp: '2026-05-15T12:02:00.000Z',
+        metadata: {
+          rehydrate_entry: {
+            role: 'assistant',
+            content: 'new complete',
+            replay_generation_id: 'gen-new',
+            replay_source_revision_id: 'rev-new',
+            replay_generation_entry_index: 1,
+            replay_generation_entry_count: 1,
+            replay_generation_complete: true,
+          },
+        },
+      } as any,
+    ]);
+
+    const snapshot = await store.loadForRehydrate('conv-compact');
+
+    expect(snapshot).toMatchObject({
+      replayGenerationId: 'gen-new',
+      revisionId: 'rev-new',
+      messages: [
+        expect.objectContaining({ content: 'new complete' }),
+      ],
+    });
   });
 
   test('appends visible transcript rows and replay entries through the store boundary', async () => {

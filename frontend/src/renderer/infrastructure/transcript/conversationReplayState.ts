@@ -11,6 +11,14 @@ type ReplaySnapshotEntry = {
   rehydrateEntry: Record<string, unknown>;
 };
 
+type ReplayGenerationMetadata = {
+  generationId?: string | null;
+  sourceRevisionId?: string | null;
+  sourceTurnRef?: string | null;
+  entryCount?: number | null;
+  complete?: boolean;
+};
+
 type ReplayStoreContext = {
   conversationRef: string;
   userId: string;
@@ -192,22 +200,42 @@ async function storeReplayRow(
 export async function replaceConversationReplayState(
   context: ReplayStoreContext,
   entries: ReplaySnapshotEntry[],
+  generation: ReplayGenerationMetadata = {},
 ): Promise<void> {
-  await deleteConversationStoredState(context, {
-    includeTranscript: false,
-    includeReplayState: true,
-  });
+  const normalizedConversationRef = normalizeConversationRef(context.conversationRef);
+  if (!normalizedConversationRef) {
+    return;
+  }
+  const normalizedUserId = normalizeUserId(context.userId);
+  const replayKey = getReplayConversationKey(normalizedConversationRef, normalizedUserId);
+  replayMutationEpochs.set(replayKey, (replayMutationEpochs.get(replayKey) || 0) + 1);
+
+  const generationId = typeof generation.generationId === 'string' && generation.generationId.trim()
+    ? generation.generationId.trim()
+    : `replay-${Date.now()}`;
+  const entryCount = typeof generation.entryCount === 'number' && Number.isFinite(generation.entryCount)
+    ? Math.max(0, Math.floor(generation.entryCount))
+    : entries.length;
+  const generationComplete = generation.complete !== false;
 
   for (let index = 0; index < entries.length; index += 1) {
     const entry = entries[index];
     await storeReplayRow(context, {
       messageIndex: entry.messageIndex ?? (index + 1),
-      rehydrateEntry: entry.rehydrateEntry,
+      rehydrateEntry: {
+        ...entry.rehydrateEntry,
+        replay_generation_id: generationId,
+        replay_source_revision_id: generation.sourceRevisionId ?? entry.rehydrateEntry.replay_source_revision_id ?? null,
+        replay_source_turn_ref: generation.sourceTurnRef ?? entry.rehydrateEntry.replay_source_turn_ref ?? null,
+        replay_generation_entry_index: index + 1,
+        replay_generation_entry_count: entryCount,
+        replay_generation_complete: generationComplete,
+      },
     });
   }
 
   initializedReplayConversations.add(
-    getReplayConversationKey(context.conversationRef, context.userId),
+    replayKey,
   );
 }
 

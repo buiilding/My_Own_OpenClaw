@@ -54,12 +54,8 @@ describe('conversationReplayState', () => {
     });
 
     expect(state).toBe('bootstrapped');
-    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'delete-conversation', {
-      userId: 'user-1',
-      conversationId: 'conv-1',
-      recordKind: TRANSCRIPT_REPLAY_RECORD_KIND,
-    });
-    expect(mockInvoke).toHaveBeenNthCalledWith(2, 'store-transcript', expect.objectContaining({
+    expect(mockInvoke).toHaveBeenCalledTimes(1);
+    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'store-transcript', expect.objectContaining({
       userId: 'user-1',
       conversationRef: 'conv-1',
       recordKind: TRANSCRIPT_REPLAY_RECORD_KIND,
@@ -68,6 +64,9 @@ describe('conversationReplayState', () => {
         role: 'user',
         content: 'hello',
         message_type: 'user',
+        replay_generation_entry_index: 1,
+        replay_generation_entry_count: 1,
+        replay_generation_complete: true,
       }),
     }));
   });

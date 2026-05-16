@@ -161,6 +161,9 @@ Electron uses a sidecar-backed store adapter during the desktop migration:
 - desktop compaction replacement-history writes go through the conversation store
   adapter's `replaceCompactedReplay(...)` path instead of stream handlers
   directly mutating replay storage
+- compacted replay replacement appends a new generation with entry count and
+  completion metadata; loaders keep using the previous complete generation if a
+  newer write is partial
 - desktop backend-session rehydrate uses the store adapter's SDK projection
   instead of shaping messages directly from visible transcript rows
 - desktop recent-chat and open-chat loading use store metadata/display

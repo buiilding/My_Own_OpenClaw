@@ -31,6 +31,7 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sdk: route desktop backend-session rehydrate through the Electron sidecar conversation store so active conversation continuation uses the SDK projection path.
 - frontend/sdk: load dashboard recent chats and opened chat messages through the Electron sidecar conversation store projections while preserving legacy transcript fallback.
 - frontend/sdk: route compaction replacement-history persistence through the Electron sidecar conversation store instead of direct stream-handler replay mutation.
+- frontend/sdk: make compacted replay replacement generation-based so partial writes do not delete the previous complete rehydrate snapshot.
 - frontend/sdk: route edit/resend and try-again transcript rewrites through the Electron sidecar conversation store instead of direct replay-hook IPC writes.
 - frontend/sdk: route `TranscriptWriter` visible transcript appends and replay append updates through the Electron sidecar conversation store adapter.
 - frontend/sdk: route dashboard chat deletion through the Electron sidecar conversation store so canonical `conversation_event` rows are removed with transcript and replay rows.
