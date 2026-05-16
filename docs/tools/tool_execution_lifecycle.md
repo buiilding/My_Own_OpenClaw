@@ -22,7 +22,7 @@ WindieOS tools run through a distributed pipeline. The backend owns model-facing
 8. SDK runtime normalizes the tool event and routes the call through the local runtime adapter to the sidecar daemon/local executor.
 9. Electron main invokes the Python sidecar daemon or JSON-RPC tool registry as the local executor.
 10. Sidecar executes the local action and returns a normalized `ToolResult`.
-11. SDK runtime sends `tool-result` or `tool-bundle-result` back to backend and appends a normalized `tool_output` or `tool_bundle_output` event.
+11. SDK runtime sends `tool-result` or `tool-bundle-result` back to backend and appends a normalized `tool_output` or `tool_bundle_output` event. If backend delivery fails after local execution, the SDK stores that output as `success: false` with `deliveryFailed: true` and marks the turn failed.
 12. Backend result receiver resolves the pending future.
 13. Backend result transformer formats model-facing tool output and display metadata.
 14. Backend history committer writes tool rows and the interaction loop continues.
@@ -89,6 +89,7 @@ Do not put large inline base64 payloads on hot JSON-RPC paths when a file ref or
 | Backend emits `tool-call`, local execution does nothing | SDK runtime event normalization, tool coordinator, or Electron main runtime host | [Frontend Tool Execution Service](../frontend/renderer/infrastructure/tool_execution_service_and_hook_runtime_reference.md) |
 | Renderer invokes tool but sidecar says missing tool | sidecar registry/exposed-name parity | [Tool Catalog Matrix](tool_catalog_matrix.md), [Sidecar Registry](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_normalization_reference.md) |
 | Sidecar succeeds but model never sees result | result envelope/request id/waiting storage | [Backend Tool Result Ingress](../backend/tools/tool_result_ingress_and_storage_reference.md) |
+| Local tool output is stored as `deliveryFailed` | SDK transport/result delivery | SDK runtime should also append a turn error so UI/debug state does not treat the tool wait as completed successfully |
 | Tool output appears in UI but rehydrate breaks later | transcript/history shaping | [Memory Hub](../memory/README.md), [Backend History](../backend/agent/history/README.md) |
 
 ## Validation Checklist

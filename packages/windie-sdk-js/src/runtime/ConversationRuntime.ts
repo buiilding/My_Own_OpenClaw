@@ -496,7 +496,21 @@ export class SdkConversationRuntime {
       sendToolResult: async payload => this.options.transport!.sendToolResult(payload),
       sendToolBundleResult: async payload => this.options.transport!.sendToolBundleResult(payload),
     });
-    await coordinator.execute(event);
+    try {
+      await coordinator.execute(event);
+    } catch (error) {
+      await this.applyEvent(createConversationEvent({
+        type: 'turn_error',
+        conversationRef: event.conversationRef,
+        revisionId: event.revisionId,
+        turnRef: event.turnRef,
+        source: 'sdk',
+        payload: {
+          error: error instanceof Error ? error.message : String(error),
+          reason: 'tool_result_delivery_failed',
+        },
+      }));
+    }
   }
 
   private snapshot(events: ConversationEvent[]): ConversationSnapshot {

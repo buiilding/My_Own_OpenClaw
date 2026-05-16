@@ -166,6 +166,13 @@ handed to `ToolExecutionCoordinator`, which executes the local runtime, sends
 the result back through the transport, and appends the corresponding normalized
 output event through the same store/projection path.
 
+If local execution succeeds but backend delivery of `tool-result` or
+`tool-bundle-result` fails, the coordinator stores the output as an explicit
+failure with `deliveryFailed: true` and the conversation runtime appends a
+`turn_error` with `reason: "tool_result_delivery_failed"`. The UI can then show
+the turn as failed instead of treating an undelivered local result as a
+completed tool wait.
+
 Projection builders collapse duplicate tool outputs that share the same
 `requestId`, `bundleId`, `correlationId`, or `toolCallId`. This handles the
 common local-runtime flow where the SDK appends the local sidecar result and the

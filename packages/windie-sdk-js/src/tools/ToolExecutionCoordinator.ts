@@ -37,13 +37,18 @@ function normalizeToolResultData(data: JsonRecord | undefined): JsonRecord {
 }
 
 function failureResult(error: unknown): LocalToolResult {
+  const message = errorMessage(error);
   return {
     success: false,
-    error: error instanceof Error ? error.message : String(error),
+    error: message,
     data: {
-      llm_content: error instanceof Error ? error.message : String(error),
+      llm_content: message,
     },
   };
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }
 
 function localToolCallFromEvent(event: ConversationEvent): LocalToolCall | null {
@@ -129,9 +134,15 @@ export class ToolExecutionCoordinator {
       data: normalizeToolResultData(result.data),
       error: success ? undefined : result.error || 'Tool execution failed',
     };
+    let deliveryError: unknown = null;
     try {
       await this.options.sendToolResult(payload);
+    } catch (error) {
+      deliveryError = error;
     } finally {
+      const deliveryErrorMessage = deliveryError
+        ? `Tool result delivery failed: ${errorMessage(deliveryError)}`
+        : null;
       await this.options.store?.appendEvent(createConversationEvent({
         type: 'tool_output',
         conversationRef: event.conversationRef,
@@ -141,12 +152,16 @@ export class ToolExecutionCoordinator {
         payload: {
           requestId: call.requestId,
           toolName: call.toolName,
-          success,
+          success: deliveryError ? false : success,
           result: payload.data,
-          error: payload.error ?? null,
+          error: deliveryErrorMessage ?? payload.error ?? null,
+          deliveryFailed: Boolean(deliveryError),
           elapsedMs: Date.now() - startedAt,
         },
       }));
+    }
+    if (deliveryError) {
+      throw deliveryError;
     }
   }
 
@@ -202,9 +217,15 @@ export class ToolExecutionCoordinator {
       step_results: stepResults,
       error: failures.length > 0 ? `${failures.length} bundled tool step(s) failed` : undefined,
     };
+    let deliveryError: unknown = null;
     try {
       await this.options.sendToolBundleResult(resultPayload);
+    } catch (error) {
+      deliveryError = error;
     } finally {
+      const deliveryErrorMessage = deliveryError
+        ? `Tool bundle result delivery failed: ${errorMessage(deliveryError)}`
+        : null;
       await this.options.store?.appendEvent(createConversationEvent({
         eventId: createRuntimeId('bundle_output'),
         type: 'tool_bundle_output',
@@ -214,11 +235,15 @@ export class ToolExecutionCoordinator {
         source: 'sidecar',
         payload: {
           bundleId,
-          status,
+          status: deliveryError ? 'failure' : status,
           stepResults,
-          error: resultPayload.error ?? null,
+          error: deliveryErrorMessage ?? resultPayload.error ?? null,
+          deliveryFailed: Boolean(deliveryError),
         },
       }));
+    }
+    if (deliveryError) {
+      throw deliveryError;
     }
   }
 }

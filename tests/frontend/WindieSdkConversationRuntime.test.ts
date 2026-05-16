@@ -427,6 +427,41 @@ describe('Windie SDK conversation runtime core', () => {
     ]);
   });
 
+  test('tool coordinator marks claimed tool results failed when backend delivery fails', async () => {
+    const store = new InMemoryConversationStore();
+    const coordinator = new ToolExecutionCoordinator({
+      store,
+      localRuntime: {
+        executeTool: jest.fn(async () => ({
+          success: true,
+          data: { return_display: 'local output' },
+        })),
+      },
+      sendToolResult: jest.fn(async () => {
+        throw new Error('websocket closed');
+      }),
+      sendToolBundleResult: jest.fn(async () => undefined),
+    });
+
+    await expect(coordinator.execute(event('tool_call', {
+      toolName: 'read_file',
+      requestId: 'req-delivery',
+      args: { path: 'README.md' },
+    }))).rejects.toThrow('websocket closed');
+
+    expect(await store.loadEvents('conv-sdk-runtime')).toEqual([
+      expect.objectContaining({
+        type: 'tool_output',
+        payload: expect.objectContaining({
+          requestId: 'req-delivery',
+          success: false,
+          deliveryFailed: true,
+          error: 'Tool result delivery failed: websocket closed',
+        }),
+      }),
+    ]);
+  });
+
   test('tool coordinator sends backend-compatible bundle step statuses', async () => {
     const sendToolBundleResult = jest.fn(async () => undefined);
     const coordinator = new ToolExecutionCoordinator({
@@ -797,6 +832,73 @@ describe('Windie SDK conversation runtime core', () => {
       'tool_output',
     ]);
     expect((await runtime.load()).state.phase).toBe('tool_result_sent');
+  });
+
+  test('conversation runtime marks the turn failed when local tool result delivery fails', async () => {
+    let backendListener: ((event: unknown) => void) | null = null;
+    const store = new InMemoryConversationStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      localRuntime: {
+        executeTool: jest.fn(async () => ({
+          success: true,
+          data: {
+            return_display: 'read README.md',
+          },
+        })),
+      },
+      transport: {
+        connect: jest.fn(async () => undefined),
+        handshake: jest.fn(async () => undefined),
+        sendQuery: jest.fn(async () => 'query-unused'),
+        sendToolResult: jest.fn(async () => {
+          throw new Error('websocket closed');
+        }),
+        sendToolBundleResult: jest.fn(async () => undefined),
+        sendRehydrate: jest.fn(async () => undefined),
+        stop: jest.fn(async () => undefined),
+        subscribe: jest.fn(listener => {
+          backendListener = listener;
+          return () => {
+            backendListener = null;
+          };
+        }),
+        close: jest.fn(async () => undefined),
+      },
+    });
+    runtime.attachTransport();
+
+    backendListener?.({
+      type: 'tool-call',
+      conversation_ref: 'conv-sdk-runtime',
+      turn_ref: 'turn-tool',
+      payload: {
+        tool_name: 'read_file',
+        request_id: 'req-read',
+        parameters: { path: 'README.md' },
+      },
+    } satisfies BackendEvent);
+    await tick();
+    await tick();
+
+    const events = await store.loadEvents('conv-sdk-runtime');
+    expect(events.map(storedEvent => storedEvent.type)).toEqual([
+      'tool_call',
+      'tool_output',
+      'turn_error',
+    ]);
+    expect(events[1].payload).toMatchObject({
+      requestId: 'req-read',
+      success: false,
+      deliveryFailed: true,
+      error: 'Tool result delivery failed: websocket closed',
+    });
+    expect(events[2].payload).toMatchObject({
+      reason: 'tool_result_delivery_failed',
+      error: 'websocket closed',
+    });
+    expect((await runtime.load()).state.phase).toBe('error');
   });
 
   test('editAndResend rewrites from the edited user message and sends a new revision turn', async () => {
