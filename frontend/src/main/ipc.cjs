@@ -895,42 +895,49 @@ function initializeIpc(win, options = {}) {
           log(`Failed to resolve authenticated user before query: ${error?.message || error}`);
         }
       }
-      const preparedQuery = await prepareRendererQuerySend({
-        event,
-        payload,
-        currentConversationRef,
-        currentSessionId,
-        currentServerUserId,
-        currentUserId,
-        backendHttpUrl: resolvePreferredArtifactHttpUrl(
-          BACKEND_HTTP_URL,
-          BACKEND_ENDPOINT_CANDIDATES,
-        ),
-        isFirstQuery,
-        deps: {
-          BrowserWindow,
-          screen,
-          runBeforeOverlayQueryCapture,
-          onBeforeOverlayQueryCapture,
-          log,
-          prepareRendererQueryPayload,
-          resolveConversationRefFromPayload,
-          uuidGenerator: uuidv4,
-          logChatPillMainTrace,
-          setResponseOverlayPhase,
-          getWindows,
-          setActiveDisplayAffinity,
-          resolveActiveSurfaceDisplayAffinity,
-          broadcastLocalUserMessageRuntime,
-          buildLocalUserMessage,
-          broadcastToRenderers,
-          ipcEventReplayState,
-          buildQueryPayload,
-          buildQueryPayloadContent,
-          getSystemState,
-          searchMemory,
-        },
-      });
+      let preparedQuery = null;
+      try {
+        preparedQuery = await prepareRendererQuerySend({
+          event,
+          payload,
+          currentConversationRef,
+          currentSessionId,
+          currentServerUserId,
+          currentUserId,
+          backendHttpUrl: resolvePreferredArtifactHttpUrl(
+            BACKEND_HTTP_URL,
+            BACKEND_ENDPOINT_CANDIDATES,
+          ),
+          isFirstQuery,
+          deps: {
+            BrowserWindow,
+            screen,
+            runBeforeOverlayQueryCapture,
+            onBeforeOverlayQueryCapture,
+            log,
+            prepareRendererQueryPayload,
+            resolveConversationRefFromPayload,
+            uuidGenerator: uuidv4,
+            logChatPillMainTrace,
+            setResponseOverlayPhase,
+            getWindows,
+            setActiveDisplayAffinity,
+            resolveActiveSurfaceDisplayAffinity,
+            broadcastLocalUserMessageRuntime,
+            buildLocalUserMessage,
+            broadcastToRenderers,
+            ipcEventReplayState,
+            buildQueryPayload,
+            buildQueryPayloadContent,
+            getSystemState,
+            searchMemory,
+          },
+        });
+      } catch (error) {
+        log(`Rejected renderer query: ${error?.message || error}`);
+        setResponseOverlayPhase('error', 'query-missing-conversation-ref');
+        return;
+      }
       payload = preparedQuery.payload;
       if (type === 'query' || type === 'rehydrate-conversation') {
         payload = attachAgentDefinitionContext(payload);

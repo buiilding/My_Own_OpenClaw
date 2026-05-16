@@ -195,7 +195,8 @@ Transcript session sync bridge:
 - renderer transcript subsystem emits `transcript-session-sync` on conversation/user updates
 - main delegates normalization/state-advance to `applyTranscriptSessionSync(...)` (`ipc_transcript_session_sync.cjs`) using first-class identity keys (`conversationRef|conversation_ref`, `userId|user_id`)
 - normalized sync envelope is rebroadcast to other windows
-- this keeps query fallback conversation context and transcript writer session state aligned across multi-window sessions
+- this keeps active-window session state aligned across multi-window sessions, but
+  renderer query sends must still include an explicit `conversation_ref`
 
 Overlay phase updates during relay/stream lifecycle:
 

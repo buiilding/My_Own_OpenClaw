@@ -1,8 +1,10 @@
-function resolveConversationRef(payload, currentConversationRef) {
+function resolveConversationRef(payload) {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
-    return currentConversationRef || null;
+    return null;
   }
-  return payload.conversation_ref || currentConversationRef || null;
+  return typeof payload.conversation_ref === 'string' && payload.conversation_ref.trim()
+    ? payload.conversation_ref.trim()
+    : null;
 }
 
 function buildQueryContextFields({

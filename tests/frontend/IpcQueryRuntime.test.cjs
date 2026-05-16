@@ -7,7 +7,7 @@ const {
 } = require('../../frontend/src/main/ipc/ipc_query_runtime.cjs');
 
 describe('ipc_query_runtime', () => {
-  test('prepareRendererQueryPayload normalizes attachment fields and resolves conversation fallback', () => {
+  test('prepareRendererQueryPayload normalizes attachment fields and requires resolved conversation ref', () => {
     const result = prepareRendererQueryPayload(
       {
         text: 'hello',
@@ -31,15 +31,24 @@ describe('ipc_query_runtime', () => {
     });
   });
 
-  test('prepareAutomatedQueryPayload trims text and filenames and falls back to current conversation ref', () => {
+  test('prepareRendererQueryPayload rejects missing conversation ref', () => {
+    expect(() => prepareRendererQueryPayload(
+      { text: 'hello' },
+      'conv-current',
+      jest.fn(() => null),
+    )).toThrow('Renderer query requires explicit conversation_ref');
+  });
+
+  test('prepareAutomatedQueryPayload trims text and filenames without current conversation fallback', () => {
     expect(prepareAutomatedQueryPayload({
       text: '  hello  ',
+      conversationRef: 'conv-explicit',
       attachmentContext: '  attached  ',
       attachmentFilenames: [' one.txt ', '', 'two.txt'],
       memoryRetrievalEnabled: false,
     }, 'conv-current')).toEqual({
       text: 'hello',
-      conversationRef: 'conv-current',
+      conversationRef: 'conv-explicit',
       attachmentContext: 'attached',
       attachmentFilenames: ['one.txt', 'two.txt'],
       memoryRetrievalEnabled: false,

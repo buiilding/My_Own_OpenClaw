@@ -204,10 +204,14 @@ describe('ipc.cjs bridge lifecycle/config', () => {
       }],
     ]);
 
-    // Dashboard closes; chat pill sends query without explicit conversation_ref.
+    // Dashboard closes; chat pill sends query with explicit conversation_ref from
+    // its synchronized SDK conversation session.
     await handlers['to-backend']({ sender: chatPillWindow.webContents }, {
       type: 'query',
-      payload: { text: 'follow-up without explicit conversation ref' },
+      payload: {
+        text: 'follow-up with explicit conversation ref',
+        conversation_ref: 'conv-dashboard-selected',
+      },
     });
 
     const sentQuery = JSON.parse(ws.sent[ws.sent.length - 1]);
@@ -395,16 +399,13 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(ws).toBeNull();
   });
 
-  test('handles query events with missing payload object without throwing', async () => {
+  test('rejects query events with missing payload object without throwing', async () => {
     const { handlers, ws, backendBridge } = await setupOpenedIpc();
     primeQueryContext(backendBridge);
 
     await handlers['to-backend']({ sender: null }, { type: 'query' });
 
-    const queryMessage = JSON.parse(ws.sent[ws.sent.length - 1]);
-    expect(queryMessage.type).toBe('query');
-    expect(queryMessage.payload.content).toContain('<user_query>');
-    expect(queryMessage.payload.content).toContain('</user_query>');
+    expect(ws.sent.map((entry) => JSON.parse(entry).type)).not.toContain('query');
   });
 
   test('enables and disables the global stop shortcut based on active loop phases', async () => {
@@ -416,7 +417,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
 
     await handlers['to-backend']({ sender: mainWindow.webContents }, {
       type: 'query',
-      payload: { text: 'stop shortcut lifecycle' },
+      payload: { text: 'stop shortcut lifecycle', conversation_ref: 'conv-stop-shortcut' },
     });
 
     expect(setAgentLoopStopShortcutEnabled).toHaveBeenLastCalledWith(true);

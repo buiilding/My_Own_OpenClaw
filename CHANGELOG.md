@@ -10,6 +10,7 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sdk: quarantine renderer backend events that lack resolvable conversation identity instead of falling back to the active chat.
 - sdk: require explicit `conversation_ref` before normalizing backend events into SDK conversation events.
 - frontend/sdk: route desktop edit/resend and try-again through `SdkConversationRuntime` revision operations instead of hook-owned rewrite/rehydrate/query sequencing.
+- frontend/sdk: reject renderer query sends that omit explicit `conversation_ref` instead of falling back to the main-process active conversation.
 - frontend/sdk: remove the renderer `TranscriptWriter` compatibility API; desktop transcript session and projection writes now live behind SDK-facing runtime clients.
 - frontend/sdk: remove hidden `transcript_replay` compatibility storage so desktop display, rehydrate, compaction, edit/resend, retry, and conversation deletion use canonical `conversation_event` rows only.
 - backend: align rehydrate screenshot artifact compatibility coverage with owner-scoped artifact loading.

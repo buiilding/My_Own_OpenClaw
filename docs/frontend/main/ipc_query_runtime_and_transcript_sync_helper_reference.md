@@ -3,7 +3,7 @@ summary: "Deep reference for Electron-main IPC helper modules that shape query p
 read_when:
   - When changing query payload shaping in `frontend/src/main/ipc/ipc_query_runtime.cjs`.
   - When changing transcript-session sync normalization in `frontend/src/main/ipc/ipc_transcript_session_sync.cjs`.
-  - When debugging missing `conversation_ref` fallback, dropped attachment metadata, or cross-window conversation/user drift.
+  - When debugging missing `conversation_ref` rejection, dropped attachment metadata, or cross-window conversation/user drift.
 title: "IPC Query Runtime and Transcript Sync Helper Reference"
 ---
 
@@ -33,7 +33,7 @@ Responsibilities:
 - extract and remove `attachment_context` from outbound payload
 - extract and remove `memory_retrieval_enabled` (defaults to enabled when omitted)
 - resolve `conversationRef` using existing `resolveConversationRefFromPayload(...)`
-- write `conversation_ref` into payload when missing and a fallback ref exists
+- reject renderer queries that do not carry an explicit `conversation_ref`
 
 Returns:
 
@@ -63,7 +63,8 @@ Returns:
 Responsibilities:
 
 - validate/trim required `text`; returns `null` when missing
-- resolve `conversationRef` from options fallback to current active ref
+- resolve `conversationRef` from explicit options only; `sendAutomatedQuery(...)`
+  creates a new `vm-run-*` conversation ref when no option is provided
 - normalize optional attachment context/filenames
 - normalize `memoryRetrievalEnabled` flag (default true)
 
@@ -133,7 +134,7 @@ Returns:
 
 `tests/frontend/IpcMainBridge.lifecycle.test.cjs`:
 
-- transcript-session sync from one renderer updates fallback conversation context for another renderer
+- transcript-session sync from one renderer updates active conversation context for another renderer, while query sends still require explicit `conversation_ref`
 - sender window is excluded from transcript-session sync rebroadcast
 
 `tests/frontend/IpcTranscriptSessionSync.test.cjs` and `TranscriptSessionSyncPayload.test.ts`:

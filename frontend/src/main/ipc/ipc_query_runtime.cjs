@@ -35,6 +35,9 @@ function prepareRendererQueryPayload(payload, currentConversationRef, resolveCon
   delete nextPayload.memory_retrieval_enabled;
 
   const conversationRef = resolveConversationRef(nextPayload, currentConversationRef);
+  if (!conversationRef) {
+    throw new Error('Renderer query requires explicit conversation_ref');
+  }
   if (!nextPayload.conversation_ref && conversationRef) {
     nextPayload.conversation_ref = conversationRef;
   }
@@ -102,7 +105,6 @@ function prepareAutomatedQueryPayload(options, currentConversationRef) {
   }
 
   const conversationRef = normalizeOptionalString(options.conversationRef)
-    || currentConversationRef
     || null;
 
   return {

@@ -79,7 +79,7 @@ describe('ipc.cjs bridge query handling', () => {
   function getLatestLocalUserMessage(mainWindow) {
     const localUserMessages = mainWindow.webContents.send.mock.calls
       .filter(([channel, payload]) => channel === 'from-backend' && payload?.type === 'local-user-message');
-    return localUserMessages[localUserMessages.length - 1][1];
+    return localUserMessages[localUserMessages.length - 1]?.[1];
   }
 
   function getLatestErrorEvent(mainWindow) {
@@ -259,7 +259,7 @@ describe('ipc.cjs bridge query handling', () => {
     expect(localUserMessage.payload.attachment_filenames).toEqual(['notes.txt']);
   });
 
-  test('reuses backend conversation_ref fallback for local echo and outbound query payload', async () => {
+  test('rejects renderer queries without explicit conversation_ref', async () => {
     const { handlers, ws, mainWindow } = await setupQueryBridge({}, {
       systemState: {
         active_window: 'App',
@@ -276,14 +276,8 @@ describe('ipc.cjs bridge query handling', () => {
 
     await sendQuery(handlers, { text: 'follow up without explicit conversation ref' });
 
-    const outgoingQuery = getLastSentMessage(ws);
-    expect(outgoingQuery.type).toBe('query');
-    expect(outgoingQuery.payload.conversation_ref).toBe('conv-backfill');
-
-    const latestLocalUserMessage = getLatestLocalUserMessage(mainWindow);
-
-    expect(latestLocalUserMessage.conversation_ref).toBe('conv-backfill');
-    expect(latestLocalUserMessage.payload.conversation_ref).toBe('conv-backfill');
+    expect(ws.sent.map((entry) => JSON.parse(entry).type)).not.toContain('query');
+    expect(getLatestLocalUserMessage(mainWindow)).toBeUndefined();
   });
 
   test('seeds active display affinity from visible chat surface instead of hidden sender window', async () => {
@@ -341,7 +335,7 @@ describe('ipc.cjs bridge query handling', () => {
 
     await sendQuery(
       handlers,
-      { text: 'chat surface query' },
+      { text: 'chat surface query', conversation_ref: 'conv-chat-surface' },
       { getURL: () => 'http://localhost:5173/?view=chatbox' },
     );
 
@@ -505,7 +499,7 @@ describe('ipc.cjs bridge query handling', () => {
     expect(localUserMessage.payload.screenshot_url).toBe('https://api.windieos.com/api/artifacts/art_999');
   });
 
-  test('strips tool-bundle-result screenshot_url fields before sending to backend', async () => {
+  test('ignores renderer tool-bundle-result sends because SDK runtime owns tool result delivery', async () => {
     const { handlers, ws } = await setupQueryBridge();
 
     await handlers['to-backend']({ sender: null }, {
@@ -520,16 +514,7 @@ describe('ipc.cjs bridge query handling', () => {
       },
     });
 
-    const lastMessage = getLastSentMessage(ws);
-    expect(lastMessage.type).toBe('tool-bundle-result');
-    expect(lastMessage.payload).toEqual(expect.objectContaining({
-      bundle_id: 'bundle-1',
-      status: 'success',
-      step_results: [],
-      screenshot_ref: 'artifact_ref_1',
-    }));
-    expect(lastMessage.payload).not.toHaveProperty('screenshot_url');
-    expect(lastMessage.payload).not.toHaveProperty('screenshot_urls');
+    expect(await waitForSentMessageType(ws, 'tool-bundle-result')).toBeNull();
   });
 
   test('builds query with fallback system context on system state error', async () => {
@@ -782,7 +767,7 @@ describe('ipc.cjs bridge query handling', () => {
     ]);
   });
 
-  test('reconnect clears stale conversation ref fallback before next query', async () => {
+  test('reconnect does not provide stale conversation ref fallback for next query', async () => {
     jest.useFakeTimers();
     try {
       const { handlers, ws, mainWindow } = await setupQueryBridge();
@@ -802,10 +787,8 @@ describe('ipc.cjs bridge query handling', () => {
 
       await sendQuery(handlers, { text: 'fresh query after reconnect' });
 
-      const latestLocalUserMessage = getLatestLocalUserMessage(mainWindow);
-
-      expect(latestLocalUserMessage.conversation_ref).toBeNull();
-      expect(latestLocalUserMessage.payload.conversation_ref).toBeNull();
+      expect(reconnectedSocket.sent.map((entry) => JSON.parse(entry).type)).not.toContain('query');
+      expect(getLatestLocalUserMessage(mainWindow)).toBeUndefined();
     } finally {
       jest.useRealTimers();
     }

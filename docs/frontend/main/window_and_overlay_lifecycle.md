@@ -186,7 +186,7 @@ Tool-execution chat-pill lifecycle (interactive computer-use path):
 Dashboard-to-chat-pill conversation continuity:
 
 - renderer session updates now publish `transcript-session-sync` to main process whenever `conversationRef`/`userId` changes
-- main process fans that payload out to other renderer windows (excluding sender) and updates its own `currentConversationRef` fallback
+- main process fans that payload out to other renderer windows (excluding sender) and updates its own active `currentConversationRef` state
 - result: if user selects `New chat` or a past chat in dashboard, then closes dashboard back to minimal chat pill, the pill continues in that selected conversation instead of drifting to a stale one
 
 ## Main IPC Handlers for Window Control
@@ -214,7 +214,7 @@ Legacy overlay interactivity/focus-prep invoke handlers were removed; the shared
 
 Main bridge fanout channel (`ipc.cjs`):
 
-- `transcript-session-sync`: accepts `{ conversationRef, userId }` from any renderer, updates IPC bridge conversation fallback, and broadcasts to sibling renderers so dashboard/chat-pill windows share the same active conversation identity
+- `transcript-session-sync`: accepts `{ conversationRef, userId }` from any renderer, updates IPC bridge active conversation state, and broadcasts to sibling renderers so dashboard/chat-pill windows share the same active conversation identity. Query sends still require their own explicit `conversation_ref`.
 
 `show-main-window` behavior details:
 
