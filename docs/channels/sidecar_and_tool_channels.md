@@ -81,6 +81,10 @@ Read next:
 
 After sidecar execution, the SDK main runtime returns results to the backend using the normal `/ws` tool-result path. The renderer receives display-only tool-call events for chat/transcript/overlay state and should not execute events marked `metadata.skip_frontend_execution`.
 
+The desktop `ChatProvider` does not mount renderer-side local execution by
+default. `useToolRunner` remains as an explicit legacy/test harness for
+non-SDK-owned events, not the normal desktop execution path.
+
 Result path rules:
 
 - use `tool-result` for single calls.

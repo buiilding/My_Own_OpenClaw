@@ -35,7 +35,7 @@ Effect:
 
 ## ChatProvider Bootstrap Contract
 
-`ChatProvider({ enableToolRunner = true, enableTranscript = true })`:
+`ChatProvider({ enableToolRunner = false, enableTranscript = true })`:
 
 1. calls `useChatStream(enableTranscript)`
 2. calls `useToolRunner(enableToolRunner)`
@@ -52,13 +52,15 @@ Ownership model:
 
 Entrypoint wrappers use different flags:
 
-- main app: `enableToolRunner=true`, `enableTranscript=true`
+- main app: `enableToolRunner=false`, `enableTranscript=true`
 - overlay surfaces: `enableToolRunner=false`, `enableTranscript=false`
 
 Contract outcome:
 
 - overlays still participate in shared chat state display
-- overlays avoid tool execution and transcript write side effects
+- renderer surfaces avoid local tool execution by default; SDK main runtime owns
+  local tool execution and sends display-only tool events to renderer
+- overlays avoid transcript write side effects
 
 ## Ordering Assumption
 

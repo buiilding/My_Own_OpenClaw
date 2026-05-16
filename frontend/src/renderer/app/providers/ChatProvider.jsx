@@ -13,7 +13,7 @@ import { ChatContext, EMPTY_CHAT_CONTEXT } from './ChatContext';
  * ChatProvider - Thin wrapper that sets up chat hooks and provides store access.
  * No business logic - just composition.
  */
-export function ChatProvider({ children, enableToolRunner = true, enableTranscript = true }) {
+export function ChatProvider({ children, enableToolRunner = false, enableTranscript = true }) {
   const activeConversationRef = useChatStore((state) => state.activeConversationRef);
   const setActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
   const transcriptSessionInfo = useTranscriptSessionInfo();

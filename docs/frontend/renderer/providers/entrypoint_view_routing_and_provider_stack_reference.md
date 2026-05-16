@@ -45,7 +45,7 @@ All surfaces mount `AppProvider`, which means:
 `ChatProvider` is mounted on all surfaces, but flags differ:
 
 - main app (`App.jsx`):
-  - `enableToolRunner=true`
+  - `enableToolRunner=false`
   - `enableTranscript=true`
 - overlay apps (`ChatBoxApp`, `ChatBoxResponseApp`, `ChatBoxContextLabelApp`):
   - `enableToolRunner=false`
@@ -115,6 +115,7 @@ If overlay surface unexpectedly writes transcripts:
 
 If tool calls execute twice:
 
-1. verify only main `App` surface has `enableToolRunner=true`
+1. verify renderer tool execution is intentionally opt-in only; normal desktop
+   local execution belongs to the SDK main runtime
 2. verify extra renderer window is not loading default `App` route
 3. inspect window URL `view` query parameter set by main process

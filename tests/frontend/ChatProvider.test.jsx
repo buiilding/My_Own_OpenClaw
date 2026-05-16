@@ -117,6 +117,22 @@ describe('ChatProvider', () => {
     });
   });
 
+  test('does not mount renderer tool execution by default', () => {
+    mockUseTranscriptSessionInfo.mockReturnValue({
+      conversationRef: null,
+      userId: 'peter',
+    });
+
+    render(
+      <ChatProvider>
+        <div>main app</div>
+      </ChatProvider>,
+    );
+
+    expect(mockUseChatStream).toHaveBeenCalledWith(true);
+    expect(mockUseToolRunner).toHaveBeenCalledWith(false);
+  });
+
   test('does not clear active conversation when transcript session conversation ref is null', async () => {
     useChatStore.getState().setActiveConversationRef('conv-previous');
     mockUseTranscriptSessionInfo.mockReturnValue({
