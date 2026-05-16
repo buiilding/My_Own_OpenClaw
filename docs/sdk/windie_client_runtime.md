@@ -343,9 +343,10 @@ runtimes also expose `conversation.setModel(...)`, and `conversation.send`,
 accept `model` to switch immediately before the next turn. These APIs validate
 the public camelCase selection and send the backend-owned `update-settings`
 message with `model_provider`/`selected_model_id`. Desktop model dropdowns still
-persist through renderer config, but the backend update route is owned by the
-SDK main runtime. `updateSettings(config)` remains available for host
-applications that own a broader settings surface.
+persist through renderer config during migration, but their deferred query-time
+backend patch is built through the same SDK model-selection contract instead of
+hand-shaped renderer payloads. `updateSettings(config)` remains available for
+host applications that own a broader settings surface.
 
 `stream(input, options)` returns an `AsyncIterableIterator<WindieAgentStreamEvent>`.
 It is a compatibility-shaped wrapper over `SdkConversationRuntime.stream()`: it

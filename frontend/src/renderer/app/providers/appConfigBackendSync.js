@@ -1,3 +1,5 @@
+import { buildModelSettingsPatch } from '../../infrastructure/api/windieSdkClient';
+
 const DEFERRED_QUERY_MODEL_CONFIG_KEYS = new Set([
   'model_provider',
   'selected_model_id',
@@ -31,7 +33,25 @@ function pickConfigKeys(config, predicate) {
 }
 
 export function buildDeferredQueryModelConfig(config) {
-  return pickConfigKeys(config, (key) => DEFERRED_QUERY_MODEL_CONFIG_KEYS.has(key));
+  if (!isPlainObject(config)) {
+    return null;
+  }
+  const modelId = typeof config.selected_model_id === 'string'
+    ? config.selected_model_id.trim()
+    : '';
+  const modelProvider = typeof config.model_provider === 'string'
+    ? config.model_provider.trim()
+    : '';
+  if (!modelId || !modelProvider) {
+    return null;
+  }
+  return buildModelSettingsPatch(
+    {
+      modelId,
+      modelProvider,
+    },
+    'buildDeferredQueryModelConfig',
+  );
 }
 
 export function buildImmediateBackendConfig(config) {

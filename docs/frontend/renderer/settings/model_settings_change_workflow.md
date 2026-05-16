@@ -24,6 +24,9 @@ header controls, and persisted selected model config.
 - `selected_model_id`, `model_provider`, `model_mode`, and `provider_api_keys`
   are frontend-managed config fields that are persisted locally and sent through
   `update-settings`.
+- Deferred query-time model updates must use the SDK model-selection contract
+  for the canonical `model_provider`/`selected_model_id` patch instead of
+  hand-shaping renderer payloads.
 - Chat header selectors and dashboard Models section both update the same
   AppConfig state. Keep their fallback and provider-mismatch behavior aligned.
 - Provider API-key controls are renderer settings state, but key resolution and
@@ -62,7 +65,7 @@ sequenceDiagram
     Provider->>Chat: availableModels + config
     Dashboard->>Provider: updateConfig(selected_model_id/model_provider/provider_api_keys)
     Chat->>Provider: updateConfig(selected_model_id/model_provider)
-    Provider->>Main: update-settings
+    Provider->>Main: update-settings using SDK model-selection patch
     Main->>Backend: settings patch with ACK id
 ```
 

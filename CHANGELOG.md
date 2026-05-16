@@ -38,6 +38,7 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sdk: route `TranscriptWriter` visible transcript appends and replay append updates through the Electron sidecar conversation store adapter.
 - frontend/sdk: route dashboard chat deletion through the Electron sidecar conversation store so canonical `conversation_event` rows are removed with transcript and replay rows.
 - frontend/sdk: route edit/resend and try-again backend rehydrate generation through the Electron sidecar conversation store projection helper instead of direct renderer payload shaping.
+- frontend/sdk: build deferred query-time model/provider settings through the SDK model-selection helper instead of hand-shaped renderer payloads.
 - frontend: route dashboard and overlay manual compaction controls through one rehydrate-first runtime helper.
 - sdk: add first-class `ConversationStore.loadForDisplay` and `loadForRehydrate` methods backed by shared SDK projections and complete replay snapshots.
 - sdk: add `WindieAgent.setModel(...)` and `updateSettings(...)` so SDK hosts can change model/provider selection without hand-shaping backend `update-settings` payloads.

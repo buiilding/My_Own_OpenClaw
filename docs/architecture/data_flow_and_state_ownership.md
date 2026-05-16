@@ -20,7 +20,7 @@ For durable or semi-durable storage changes, migrations, reset behavior, and dat
 | --- | --- | --- | --- |
 | backend endpoint URLs | Electron main | renderer, sidecar env, SDK helpers | resolved in `frontend/src/main/backend_endpoints.cjs`; sidecar receives `WINDIE_BACKEND_HTTP_URL` |
 | session/conversation identity | backend plus SDK conversation runtime | backend history, SDK projections, sidecar transcript/memory, renderer display | keep `user_id`, `session_id`, `conversation_ref`, and turn ids aligned |
-| model/provider settings | backend config/session policy; renderer stores user-facing subset | provider factory, model list UI, prompt construction | renderer should not persist backend-owned provider internals or keys |
+| model/provider settings | backend config/session policy; SDK model-selection contract; renderer stores user-facing subset | provider factory, model list UI, prompt construction | renderer should not persist backend-owned provider internals or keys; desktop query-time model patches are built through the SDK model-selection helper |
 | model-facing tool schema | backend | LLM provider adapters, parser validation, transparency events | frontend/sidecar must not import backend schema code |
 | executable local tool implementation | sidecar | Electron main bridge, renderer tool runner, backend result ingestion | backend sees results, sidecar does local work |
 | stream event phase | backend event producer plus SDK runtime reducer | chat UI, response overlay, tool coordinator, transcript projections | stale-turn filtering belongs at consumer boundaries |
