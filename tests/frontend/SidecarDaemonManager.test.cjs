@@ -176,4 +176,64 @@ describe('sidecar daemon manager', () => {
       }),
     );
   });
+
+  test('rediscovers daemon when cached client becomes stale', async () => {
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-daemon-'));
+    const discoveryPath = path.join(tempDir, 'sidecar-daemon.json');
+    await fsPromises.writeFile(
+      discoveryPath,
+      JSON.stringify({
+        pid: 123,
+        base_url: 'http://127.0.0.1:4567',
+        token: 'token-old',
+      }),
+      'utf8',
+    );
+    let oldHealthCalls = 0;
+    const fetchImpl = jest.fn(async (url, init = {}) => {
+      const token = init.headers?.['x-windie-sidecar-token'];
+      if (url.endsWith('/health') && token === 'token-old') {
+        oldHealthCalls += 1;
+        return oldHealthCalls === 1
+          ? jsonResponse({ status: 'ok' })
+          : jsonResponse({ error: 'stale' }, 401);
+      }
+      if (url.endsWith('/health') && token === 'token-new') {
+        return jsonResponse({ status: 'ok' });
+      }
+      return jsonResponse({ error: 'unauthorized' }, 401);
+    });
+    const {
+      createSidecarDaemonManager,
+    } = loadManager();
+
+    const manager = createSidecarDaemonManager({
+      discoveryPath,
+      fetchImpl,
+      spawnImpl: jest.fn(),
+      startTimeoutMs: 50,
+    });
+    await manager.ensureDaemon();
+    await fsPromises.writeFile(
+      discoveryPath,
+      JSON.stringify({
+        pid: 456,
+        base_url: 'http://127.0.0.1:7654',
+        token: 'token-new',
+      }),
+      'utf8',
+    );
+
+    await expect(manager.ensureDaemon()).resolves.toBeDefined();
+
+    const healthCalls = fetchImpl.mock.calls
+      .filter(([url]) => String(url).endsWith('/health'))
+      .map(([url, init]) => [url, init?.headers?.['x-windie-sidecar-token']]);
+    expect(healthCalls.some(([url, token]) => (
+      url === 'http://127.0.0.1:4567/health' && token === 'token-old'
+    ))).toBe(true);
+    expect(healthCalls.some(([url, token]) => (
+      url === 'http://127.0.0.1:7654/health' && token === 'token-new'
+    ))).toBe(true);
+  });
 });

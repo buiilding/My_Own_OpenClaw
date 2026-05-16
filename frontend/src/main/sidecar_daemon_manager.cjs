@@ -268,7 +268,12 @@ function createSidecarDaemonManager(options = {}) {
 
   async function ensureDaemon(launchOptions = {}) {
     if (client) {
-      return client;
+      try {
+        await client.health();
+        return client;
+      } catch (_error) {
+        client = null;
+      }
     }
     if (ensurePromise) {
       return ensurePromise;
