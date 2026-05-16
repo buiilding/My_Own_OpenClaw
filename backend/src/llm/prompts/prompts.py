@@ -169,28 +169,6 @@ class PromptManager:
         )
 
 
-# Global accessor function (for backward compatibility)
-def get_system_prompt(
-    operating_system: Optional[str] = None,
-    workspace_path: Optional[str] = None,
-    allowed_coordinate_methods: Optional[Iterable[str]] = None,
-) -> str:
-    """
-    Get system prompt. Assumes PromptManager was initialized at startup.
-
-    Returns:
-        The system prompt string
-
-    Raises:
-        RuntimeError: If PromptManager has not been initialized
-    """
-    return PromptManager().render_system_prompt(
-        operating_system,
-        workspace_path,
-        allowed_coordinate_methods=allowed_coordinate_methods,
-    )
-
-
 # NOTE: Do NOT create a module-level SYSTEM_PROMPT constant.
 # This would cause import-time crashes if PromptManager is not initialized.
-# Consumers must call get_system_prompt() at runtime.
+# Consumers must initialize PromptManager at startup and render through it at runtime.

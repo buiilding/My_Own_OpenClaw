@@ -36,7 +36,7 @@ from backend.src.agent.session.lifecycle import SessionLifecycle
 from backend.src.core.config import AppConfig
 from backend.src.core.events.bus_events import InteractionCompleted
 from backend.src.llm.client import LLMClient, get_llm_client
-from backend.src.llm.prompts.prompts import get_system_prompt
+from backend.src.llm.prompts.prompts import PromptManager
 from backend.src.tools.registry import ToolRegistry
 from backend.src.tools.client_manifest import validate_client_tool_manifest
 from backend.src.tools.tool_policy import ToolPolicy
@@ -429,7 +429,7 @@ class AgentSession:
             system_prompt_override.strip()
             if isinstance(system_prompt_override, str)
             and system_prompt_override.strip()
-            else get_system_prompt(
+            else PromptManager().render_system_prompt(
                 operating_system,
                 normalized_workspace_path,
                 allowed_coordinate_methods=ToolPolicy.from_config(

@@ -26,7 +26,7 @@ Key rules:
 
 - prompt file template load is deferred to `initialize(...)` (no import-time read)
 - `system_prompt` property raises until initialized
-- `get_system_prompt()` renders from the cached template and accepts an optional frontend-provided operating-system override
+- callers render through `PromptManager.render_system_prompt(...)`, which uses the cached template and accepts optional frontend-provided operating-system/workspace overrides
 - module intentionally avoids a global `SYSTEM_PROMPT` constant
 
 Thread safety:
@@ -62,7 +62,7 @@ Initialization is effectively idempotent after first successful load.
 `PromptConstructor.__init__` behavior:
 
 - optional injected `system_prompt` overrides manager value
-- default path loads via `get_system_prompt()`
+- default path renders through the initialized `PromptManager`
 - constructor requires non-null config for security limits/tool policy setup
 
 Current session behavior:

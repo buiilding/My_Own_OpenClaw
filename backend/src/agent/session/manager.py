@@ -19,7 +19,7 @@ from backend.src.core.config.loader import (
 )
 from backend.src.core.config.runtime import assemble_runtime_config
 from backend.src.core.config.subscriptions import ConfigSubscriber
-from backend.src.llm.prompts.prompts import get_system_prompt
+from backend.src.llm.prompts.prompts import PromptManager
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +53,7 @@ class SessionManager(ConfigSubscriber):
             assemble_runtime_session_config=lambda cfg: self._assemble_runtime_session_config(
                 cfg
             ),
-            render_system_prompt=get_system_prompt,
+            render_system_prompt=PromptManager().render_system_prompt,
             provider_health_resolver=provider_health_resolver,
         )
         self._active_queries = ActiveQueryTracker()

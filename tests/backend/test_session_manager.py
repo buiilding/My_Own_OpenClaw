@@ -140,8 +140,8 @@ async def test_get_or_create_session_applies_handshake_operating_system(
     monkeypatch,
 ) -> None:
     monkeypatch.setattr(
-        "backend.src.agent.session.manager.get_system_prompt",
-        lambda operating_system=None, workspace_path=None: (
+        "backend.src.llm.prompts.prompts.PromptManager.render_system_prompt",
+        lambda self, operating_system=None, workspace_path=None: (
             f"prompt:{operating_system}:{workspace_path or 'None'}"
         ),
     )
@@ -160,8 +160,8 @@ async def test_set_frontend_operating_system_updates_active_session(
     monkeypatch,
 ) -> None:
     monkeypatch.setattr(
-        "backend.src.agent.session.manager.get_system_prompt",
-        lambda operating_system=None, workspace_path=None: (
+        "backend.src.llm.prompts.prompts.PromptManager.render_system_prompt",
+        lambda self, operating_system=None, workspace_path=None: (
             f"prompt:{operating_system}:{workspace_path or 'None'}"
         ),
     )
@@ -179,8 +179,8 @@ async def test_set_frontend_operating_system_updates_active_session(
 @pytest.mark.asyncio
 async def test_set_session_workspace_path_updates_active_prompt(monkeypatch) -> None:
     monkeypatch.setattr(
-        "backend.src.agent.session.manager.get_system_prompt",
-        lambda operating_system=None, workspace_path=None: (
+        "backend.src.llm.prompts.prompts.PromptManager.render_system_prompt",
+        lambda self, operating_system=None, workspace_path=None: (
             f"prompt:{operating_system or 'BackendOS'}:{workspace_path or 'None'}"
         ),
     )

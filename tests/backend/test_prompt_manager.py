@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from backend.src.llm.prompts.prompts import PromptManager, get_system_prompt
+from backend.src.llm.prompts.prompts import PromptManager
 
 
 @pytest.fixture(autouse=True)
@@ -151,7 +151,7 @@ def test_initialize_is_noop_after_first_success(tmp_path, monkeypatch):
     assert manager.system_prompt == "first TestOS"
 
 
-def test_get_system_prompt_global_accessor(tmp_path, monkeypatch):
+def test_render_system_prompt_uses_default_runtime_context(tmp_path, monkeypatch):
     prompt_file = tmp_path / "system_prompt.txt"
     prompt_file.write_text("global {os} {workspace_path}", encoding="utf-8")
     monkeypatch.setattr(
@@ -161,10 +161,12 @@ def test_get_system_prompt_global_accessor(tmp_path, monkeypatch):
     manager = PromptManager()
     manager.initialize(prompt_file)
 
-    assert get_system_prompt() == "global TestOS None"
+    assert manager.render_system_prompt() == "global TestOS None"
 
 
-def test_get_system_prompt_renders_explicit_operating_system(tmp_path, monkeypatch):
+def test_render_system_prompt_accepts_explicit_operating_system(
+    tmp_path, monkeypatch
+):
     prompt_file = tmp_path / "system_prompt.txt"
     prompt_file.write_text("global {os} {workspace_path}", encoding="utf-8")
     monkeypatch.setattr(
@@ -174,12 +176,15 @@ def test_get_system_prompt_renders_explicit_operating_system(tmp_path, monkeypat
     manager = PromptManager()
     manager.initialize(prompt_file)
 
-    assert get_system_prompt("macOS") == "global macOS None"
-    assert get_system_prompt("macOS", "/work/WindieOS") == "global macOS /work/WindieOS"
+    assert manager.render_system_prompt("macOS") == "global macOS None"
+    assert (
+        manager.render_system_prompt("macOS", "/work/WindieOS")
+        == "global macOS /work/WindieOS"
+    )
     assert manager.system_prompt == "global BackendOS None"
 
 
-def test_get_system_prompt_filters_method_gated_sections_from_dev_tool_selection(
+def test_render_system_prompt_filters_method_gated_sections_from_dev_tool_selection(
     tmp_path,
     monkeypatch,
 ):
@@ -219,7 +224,7 @@ def test_get_system_prompt_filters_method_gated_sections_from_dev_tool_selection
     assert "tool_selection:" not in rendered
 
 
-def test_get_system_prompt_uses_effective_coordinate_methods_when_provided(
+def test_render_system_prompt_uses_effective_coordinate_methods_when_provided(
     tmp_path,
     monkeypatch,
 ):
@@ -243,7 +248,9 @@ def test_get_system_prompt_uses_effective_coordinate_methods_when_provided(
     manager = PromptManager()
     manager.initialize(prompt_file)
 
-    rendered = get_system_prompt(allowed_coordinate_methods=["manual", "ocr"])
+    rendered = manager.render_system_prompt(
+        allowed_coordinate_methods=["manual", "ocr"]
+    )
     assert "base" in rendered
     assert "ocr guidance" in rendered
     assert "prediction guidance" not in rendered

@@ -32,7 +32,7 @@ from backend.src.core.observability.trust_boundary_metrics import MetricsService
 from backend.src.core.types.enums import MessageRole, MessageType
 from backend.src.core.types.schemas import LLMMessage
 from backend.src.llm.prompts.prompt_metadata import PromptMetadata, UserMessageMetadata
-from backend.src.llm.prompts.prompts import get_system_prompt
+from backend.src.llm.prompts.prompts import PromptManager
 from backend.src.llm.prompts.repo_instructions import (
     resolve_workspace_repo_instruction_messages,
 )
@@ -95,8 +95,8 @@ class PromptConstructor:
         self.tool_registry = tool_registry
         self.config = config
         self.tool_policy = ToolPolicy.from_config(config)
-        # Load system prompt at runtime (not import time) to avoid crashes
-        self.system_prompt = system_prompt or get_system_prompt(
+        # Load system prompt at runtime (not import time) to avoid crashes.
+        self.system_prompt = system_prompt or PromptManager().render_system_prompt(
             allowed_coordinate_methods=self.tool_policy.get_allowed_mouse_coordinate_methods()
         )
         # Use injected MetricsService or create a new instance (for backward compatibility)
