@@ -159,6 +159,10 @@ When the SDK claims a local tool call or bundle:
 
 Malformed or unclaimable tool events should remain unclaimed or become explicit
 failures; they should not be marked display-only without a backend result path.
+When a local runtime is available but a backend tool event is missing the fields
+needed to claim execution, the SDK stores a `runtime_error` with
+`reason: "malformed_tool_event"` instead of invoking the sidecar or inventing a
+backend result id.
 
 `SdkConversationRuntime` can be constructed with a `localRuntime` adapter. In
 that mode, normalized backend `tool_call` and `tool_bundle_call` events are

@@ -901,6 +901,67 @@ describe('Windie SDK conversation runtime core', () => {
     expect((await runtime.load()).state.phase).toBe('error');
   });
 
+  test('conversation runtime records malformed tool events as explicit runtime errors', async () => {
+    let backendListener: ((event: unknown) => void) | null = null;
+    const store = new InMemoryConversationStore();
+    const executeTool = jest.fn(async () => ({
+      success: true,
+      data: {
+        return_display: 'should not run',
+      },
+    }));
+    const sendToolResult = jest.fn(async () => undefined);
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      localRuntime: {
+        executeTool,
+      },
+      transport: {
+        connect: jest.fn(async () => undefined),
+        handshake: jest.fn(async () => undefined),
+        sendQuery: jest.fn(async () => 'query-unused'),
+        sendToolResult,
+        sendToolBundleResult: jest.fn(async () => undefined),
+        sendRehydrate: jest.fn(async () => undefined),
+        stop: jest.fn(async () => undefined),
+        subscribe: jest.fn(listener => {
+          backendListener = listener;
+          return () => {
+            backendListener = null;
+          };
+        }),
+        close: jest.fn(async () => undefined),
+      },
+    });
+    runtime.attachTransport();
+
+    backendListener?.({
+      type: 'tool-call',
+      conversation_ref: 'conv-sdk-runtime',
+      turn_ref: 'turn-tool',
+      payload: {
+        tool_name: 'read_file',
+        parameters: { path: 'README.md' },
+      },
+    } satisfies BackendEvent);
+    await tick();
+    await tick();
+
+    expect(executeTool).not.toHaveBeenCalled();
+    expect(sendToolResult).not.toHaveBeenCalled();
+    const events = await store.loadEvents('conv-sdk-runtime');
+    expect(events.map(storedEvent => storedEvent.type)).toEqual([
+      'tool_call',
+      'runtime_error',
+    ]);
+    expect(events[1].payload).toMatchObject({
+      reason: 'malformed_tool_event',
+      claimReason: 'missing-tool-name-or-request-id',
+    });
+    expect((await runtime.load()).state.phase).toBe('error');
+  });
+
   test('editAndResend rewrites from the edited user message and sends a new revision turn', async () => {
     const sentQueries: Record<string, unknown>[] = [];
     const transport: BackendTransport = {

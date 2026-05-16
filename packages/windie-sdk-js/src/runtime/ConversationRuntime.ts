@@ -497,7 +497,21 @@ export class SdkConversationRuntime {
       sendToolBundleResult: async payload => this.options.transport!.sendToolBundleResult(payload),
     });
     try {
-      await coordinator.execute(event);
+      const claim = await coordinator.execute(event);
+      if (!claim.claimed) {
+        await this.applyEvent(createConversationEvent({
+          type: 'runtime_error',
+          conversationRef: event.conversationRef,
+          revisionId: event.revisionId,
+          turnRef: event.turnRef,
+          source: 'sdk',
+          payload: {
+            error: `Malformed tool event: ${claim.reason ?? 'unclaimable-tool-event'}`,
+            reason: 'malformed_tool_event',
+            claimReason: claim.reason ?? null,
+          },
+        }));
+      }
     } catch (error) {
       await this.applyEvent(createConversationEvent({
         type: 'turn_error',
