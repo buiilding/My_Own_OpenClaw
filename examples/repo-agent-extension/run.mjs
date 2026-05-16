@@ -246,6 +246,7 @@ try {
       throw new Error(event.message);
     }
   }
+  await agent.stop('repo-agent-example');
 } finally {
   agent?.sleep();
   await client.shutdownLocalRuntime().catch(() => {});

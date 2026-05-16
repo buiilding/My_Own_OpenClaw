@@ -12,7 +12,8 @@ node examples/repo-agent-extension/run.mjs
 The script starts a mock backend, starts the real Windie sidecar daemon through
 `scripts/python-in-env`, builds the local TypeScript SDK package if needed,
 registers this plugin through the SDK, streams one agent request, calls
-`read_repo_snapshot`, prints the final response, and shuts everything down.
+`read_repo_snapshot`, prints the final response, calls `agent.stop(...)`, and
+shuts everything down.
 
 Files:
 

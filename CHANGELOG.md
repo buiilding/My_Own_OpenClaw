@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- examples: show SDK stop control after repo-agent extension execution.
 - examples: show SDK stop control after local sidecar tool execution.
 - examples: add custom UI retry and stop controls backed by SDK conversation commands.
 - examples: extend the CLI SDK example with retry and typed stop runtime calls.
