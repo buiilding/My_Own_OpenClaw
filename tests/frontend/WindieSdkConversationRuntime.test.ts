@@ -89,6 +89,22 @@ describe('Windie SDK conversation runtime core', () => {
     expect(afterSkippedCompaction.compaction.status).toBe('skipped');
   });
 
+  test('runtime reducer can resolve pending tool waits by provider-safe tool call id', () => {
+    const initial = createInitialConversationRuntimeState('conv-sdk-runtime', 'rev-1');
+    const afterTool = reduceConversationRuntimeState(
+      initial,
+      event('tool_call', { toolName: 'read_file', toolCallId: 'call-read' }),
+    );
+    const afterOutput = reduceConversationRuntimeState(
+      afterTool,
+      event('tool_output', { toolName: 'read_file', toolCallId: 'call-read', success: true }),
+    );
+
+    expect(Object.keys(afterTool.pendingTools)).toEqual(['call-read']);
+    expect(afterOutput.pendingTools).toEqual({});
+    expect(afterOutput.phase).toBe('tool_result_sent');
+  });
+
   test('rehydrate projection preserves provider-safe tool linkage', () => {
     const events = [
       event('user_message', { text: 'inspect file' }),

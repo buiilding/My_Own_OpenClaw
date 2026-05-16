@@ -288,9 +288,11 @@ Electron uses a sidecar-backed store adapter:
   events.
 - SDK tool correlation helpers own display/projection alias resolution for
   `requestId`, `toolCallId`, `correlationId`, and `bundleId` across camelCase
-  SDK events and snake_case backend payloads. Renderer chat utilities may call
-  these helpers through the SDK barrel, but they should not maintain a separate
-  backend-alias parser.
+  SDK events and snake_case backend payloads. The runtime reducer also uses
+  these helpers for pending tool waits, so provider-safe `toolCallId` can close
+  a pending tool when request ids are unavailable. Renderer chat utilities may
+  call these helpers through the SDK barrel, but they should not maintain a
+  separate backend-alias parser.
 - the Electron main-process SDK tool router accepts canonical SDK identity fields
   (`requestId`, `toolCallId`, `correlationId`, `bundleId`) before emitting
   backend wire payloads.

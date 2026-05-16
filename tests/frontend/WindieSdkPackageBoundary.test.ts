@@ -9,6 +9,7 @@ import {
   moduleTool,
   resolveToolCallCorrelationId,
   resolveToolOutputCorrelationId,
+  resolveToolWaitId,
 } from '../../packages/windie-sdk-js/src';
 
 describe('@windie/sdk package boundary', () => {
@@ -22,6 +23,7 @@ describe('@windie/sdk package boundary', () => {
     expect(buildDisplayConversation).toBeDefined();
     expect(resolveToolCallCorrelationId).toBeDefined();
     expect(resolveToolOutputCorrelationId).toBeDefined();
+    expect(resolveToolWaitId).toBeDefined();
     expect(moduleTool({
       name: 'save_note',
       module: 'example.tools:save_note',
@@ -45,5 +47,10 @@ describe('@windie/sdk package boundary', () => {
       metadata: { request_id: '   ' },
       tool_call_id: ' call-output-1 ',
     }, 'event-1')).toBe('call-output-1');
+    expect(resolveToolWaitId({
+      request_id: '   ',
+      correlation_id: '   ',
+      tool_call_id: ' call-wait-1 ',
+    })).toBe('call-wait-1');
   });
 });

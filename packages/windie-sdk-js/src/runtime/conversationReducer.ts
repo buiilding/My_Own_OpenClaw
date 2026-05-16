@@ -1,9 +1,9 @@
 import type {
   ConversationEvent,
   ConversationRuntimeState,
-  JsonRecord,
   ToolEventPayload,
 } from '../conversation/types.js';
+import { resolveToolWaitId } from '../tools/toolCorrelationIds.js';
 
 export function createInitialConversationRuntimeState(
   conversationRef: string,
@@ -30,21 +30,11 @@ export function createInitialConversationRuntimeState(
   };
 }
 
-function toolKey(payload: JsonRecord): string | null {
-  for (const key of ['requestId', 'request_id', 'bundleId', 'bundle_id', 'correlationId', 'correlation_id']) {
-    const value = payload[key];
-    if (typeof value === 'string' && value.trim()) {
-      return value.trim();
-    }
-  }
-  return null;
-}
-
 function removeTool(
   pendingTools: Record<string, ToolEventPayload>,
-  payload: JsonRecord,
+  payload: unknown,
 ): Record<string, ToolEventPayload> {
-  const key = toolKey(payload);
+  const key = resolveToolWaitId(payload);
   if (!key || !pendingTools[key]) {
     return pendingTools;
   }
@@ -106,7 +96,7 @@ export function reduceConversationRuntimeState(
     };
   }
   if (event.type === 'tool_call') {
-    const key = toolKey(event.payload);
+    const key = resolveToolWaitId(event.payload);
     return {
       ...base,
       phase: 'tool_call_pending',
