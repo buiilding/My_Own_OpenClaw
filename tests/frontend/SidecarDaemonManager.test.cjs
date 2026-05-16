@@ -121,6 +121,71 @@ describe('sidecar daemon manager', () => {
     });
   });
 
+  test('deletes stale discovery metadata before spawning a replacement daemon', async () => {
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-daemon-'));
+    const discoveryPath = path.join(tempDir, 'sidecar-daemon.json');
+    await fsPromises.writeFile(
+      discoveryPath,
+      JSON.stringify({
+        pid: 123,
+        base_url: 'http://127.0.0.1:4567',
+        token: 'token-old',
+      }),
+      'utf8',
+    );
+    const fetchImpl = jest.fn(async (url) => {
+      if (url === 'http://127.0.0.1:4567/health') {
+        throw new Error('connect ECONNREFUSED 127.0.0.1:4567');
+      }
+      return jsonResponse({ status: 'ok' });
+    });
+    const proc = new EventEmitter();
+    proc.stderr = new EventEmitter();
+    proc.kill = jest.fn();
+    proc.pid = 456;
+    const spawnImpl = jest.fn(() => {
+      expect(fs.existsSync(discoveryPath)).toBe(false);
+      setTimeout(() => {
+        fs.writeFileSync(
+          discoveryPath,
+          JSON.stringify({
+            pid: 456,
+            base_url: 'http://127.0.0.1:7654',
+            token: 'token-new',
+          }),
+          'utf8',
+        );
+      }, 0);
+      return proc;
+    });
+    const {
+      createSidecarDaemonManager,
+    } = loadManager();
+
+    const manager = createSidecarDaemonManager({
+      discoveryPath,
+      fetchImpl,
+      spawnImpl,
+      startTimeoutMs: 1000,
+      pollIntervalMs: 5,
+    });
+
+    await expect(manager.ensureDaemon()).resolves.toBeDefined();
+    expect(spawnImpl).toHaveBeenCalledTimes(1);
+    expect(fetchImpl).toHaveBeenCalledWith(
+      'http://127.0.0.1:4567/health',
+      expect.any(Object),
+    );
+    expect(fetchImpl).toHaveBeenCalledWith(
+      'http://127.0.0.1:7654/health',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          'x-windie-sidecar-token': 'token-new',
+        }),
+      }),
+    );
+  });
+
   test('rpc posts json-rpc requests through healthy daemon client', async () => {
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-daemon-'));
     const discoveryPath = path.join(tempDir, 'sidecar-daemon.json');

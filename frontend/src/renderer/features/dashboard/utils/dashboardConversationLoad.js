@@ -11,7 +11,13 @@ function isTransientRecentConversationsError(message) {
     return false;
   }
   return normalized.includes('local backend not ready')
-    || normalized.includes('request timed out');
+    || normalized.includes('request timed out')
+    || normalized.includes('failed to list stored conversations')
+    || normalized.includes('sidecar daemon request failed')
+    || normalized.includes('timed out waiting for sidecar daemon')
+    || normalized.includes('failed to fetch')
+    || normalized.includes('fetch failed')
+    || normalized.includes('econnrefused');
 }
 
 export function normalizeRecentConversations(conversations) {

@@ -67,6 +67,20 @@ describe('dashboardConversationLoad', () => {
     expect(shouldRetryRecentConversationsLoad({
       isLoadingRecentConversations: false,
       recentConversationsCount: 0,
+      recentConversationsError: 'Failed to list stored conversations: timed out waiting for sidecar daemon discovery',
+      retryAttempt: 0,
+    })).toBe(true);
+
+    expect(shouldRetryRecentConversationsLoad({
+      isLoadingRecentConversations: false,
+      recentConversationsCount: 0,
+      recentConversationsError: 'Failed to list stored conversations: fetch failed',
+      retryAttempt: 0,
+    })).toBe(true);
+
+    expect(shouldRetryRecentConversationsLoad({
+      isLoadingRecentConversations: false,
+      recentConversationsCount: 0,
       recentConversationsError: 'hard failure',
       retryAttempt: 0,
     })).toBe(false);

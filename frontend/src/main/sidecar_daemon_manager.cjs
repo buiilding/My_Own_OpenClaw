@@ -52,6 +52,16 @@ function readDiscoveryFile(discoveryPath = DEFAULT_DAEMON_DISCOVERY_PATH) {
   }
 }
 
+function deleteDiscoveryFile(discoveryPath = DEFAULT_DAEMON_DISCOVERY_PATH) {
+  try {
+    fs.unlinkSync(discoveryPath);
+  } catch (error) {
+    if (error?.code !== 'ENOENT') {
+      console.warn(`[SidecarDaemon] Failed to delete stale discovery file: ${error?.message || error}`);
+    }
+  }
+}
+
 async function sleep(ms) {
   await new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -208,10 +218,14 @@ function createSidecarDaemonManager(options = {}) {
   }
 
   async function reuseExistingDaemon() {
-    const existing = await probe(readDiscoveryFile(discoveryPath));
+    const discovery = readDiscoveryFile(discoveryPath);
+    const existing = await probe(discovery);
     if (existing) {
       client = existing;
       return client;
+    }
+    if (discovery) {
+      deleteDiscoveryFile(discoveryPath);
     }
     return null;
   }
@@ -337,5 +351,6 @@ module.exports = {
   DEFAULT_DAEMON_DISCOVERY_PATH,
   SidecarDaemonNodeClient,
   createSidecarDaemonManager,
+  deleteDiscoveryFile,
   readDiscoveryFile,
 };
