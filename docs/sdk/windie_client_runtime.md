@@ -181,6 +181,8 @@ interpretation. Projection builders in the SDK own those views. The store
 interface exposes `loadForDisplay(...)` and `loadForRehydrate(...)` as
 first-class convenience methods, and adapters must implement them by delegating
 to shared SDK projections or to a complete active compacted replay snapshot.
+Conversation event order is append order. Store adapters must not re-sort event
+logs by timestamp or event id; timestamps are metadata, not ordering authority.
 
 Electron uses a sidecar-backed store adapter:
 

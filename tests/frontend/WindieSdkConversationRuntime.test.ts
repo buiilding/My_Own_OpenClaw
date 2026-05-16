@@ -353,6 +353,33 @@ describe('Windie SDK conversation runtime core', () => {
     ]);
   });
 
+  test('in-memory store preserves append order for out-of-order event timestamps', async () => {
+    const store = new InMemoryConversationStore();
+    const first = createConversationEvent({
+      type: 'tool_call',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-1',
+      eventId: 'evt-appended-first',
+      timestamp: '2026-05-15T12:00:10.000Z',
+      payload: { toolName: 'read_file', requestId: 'req-1' },
+    });
+    const second = createConversationEvent({
+      type: 'tool_output',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-1',
+      eventId: 'evt-appended-second',
+      timestamp: '2026-05-15T12:00:00.000Z',
+      payload: { toolName: 'read_file', requestId: 'req-1', text: 'result' },
+    });
+
+    await store.appendEvents([first, second]);
+
+    expect((await store.loadEvents('conv-sdk-runtime')).map(storedEvent => storedEvent.eventId)).toEqual([
+      'evt-appended-first',
+      'evt-appended-second',
+    ]);
+  });
+
   test('in-memory store paginates metadata after the cursor conversation', async () => {
     const store = new InMemoryConversationStore();
     await store.appendEvents([

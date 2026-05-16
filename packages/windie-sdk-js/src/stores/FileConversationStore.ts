@@ -55,16 +55,6 @@ async function loadNodeFileModules(): Promise<FileConversationStoreModules> {
   return { fs, path };
 }
 
-function sortEvents(events: ConversationEvent[]): ConversationEvent[] {
-  return [...events].sort((a, b) => {
-    const timeDiff = Date.parse(a.timestamp) - Date.parse(b.timestamp);
-    if (timeDiff !== 0) {
-      return timeDiff;
-    }
-    return a.eventId.localeCompare(b.eventId);
-  });
-}
-
 function conversationFilename(conversationRef: string): string {
   return `${encodeURIComponent(conversationRef)}.json`;
 }
@@ -137,7 +127,7 @@ function normalizeStoredFile(conversationRef: string, raw: unknown): StoredConve
   }
   const payload = raw as Partial<StoredConversationFile>;
   const events = Array.isArray(payload.events)
-    ? sortEvents(payload.events.filter(isConversationEvent))
+    ? payload.events.filter(isConversationEvent)
     : [];
   return {
     version: 1,
@@ -176,10 +166,10 @@ export class FileConversationStore implements ConversationStore {
         knownIds.add(event.eventId);
         return true;
       });
-      const merged = sortEvents([
+      const merged = [
         ...stored.events,
         ...uniqueNextEvents,
-      ]);
+      ];
       await this.writeConversation({
         ...stored,
         conversationRef,
@@ -190,7 +180,7 @@ export class FileConversationStore implements ConversationStore {
   }
 
   async rewriteConversation(plan: ConversationRewritePlan): Promise<void> {
-    const events = sortEvents(plan.preservedEvents);
+    const events = [...plan.preservedEvents];
     const stored = await this.readConversation(plan.conversationRef);
     await this.writeConversation({
       ...stored,

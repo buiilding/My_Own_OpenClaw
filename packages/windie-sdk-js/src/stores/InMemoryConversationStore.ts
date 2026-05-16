@@ -14,16 +14,6 @@ import {
   buildRehydrateSnapshot,
 } from '../projections/conversationProjections.js';
 
-function sortEvents(events: ConversationEvent[]): ConversationEvent[] {
-  return [...events].sort((a, b) => {
-    const timeDiff = Date.parse(a.timestamp) - Date.parse(b.timestamp);
-    if (timeDiff !== 0) {
-      return timeDiff;
-    }
-    return 0;
-  });
-}
-
 function lastTextEvent(events: ConversationEvent[]): ConversationEvent | undefined {
   return [...events].reverse().find(event => {
     if (event.type === 'user_message' || event.type === 'assistant_message') {
@@ -77,7 +67,7 @@ export class InMemoryConversationStore implements ConversationStore {
       this.eventIdsByConversation.set(event.conversationRef, knownIds);
       const existing = this.eventsByConversation.get(event.conversationRef) ?? [];
       existing.push(event);
-      this.eventsByConversation.set(event.conversationRef, sortEvents(existing));
+      this.eventsByConversation.set(event.conversationRef, existing);
       this.revisionsByConversation.set(event.conversationRef, {
         conversationRef: event.conversationRef,
         revisionId: event.revisionId,
@@ -87,8 +77,8 @@ export class InMemoryConversationStore implements ConversationStore {
   }
 
   async rewriteConversation(plan: ConversationRewritePlan): Promise<void> {
-    const rewritten = sortEvents(plan.preservedEvents);
-    this.eventsByConversation.set(plan.conversationRef, sortEvents(rewritten));
+    const rewritten = [...plan.preservedEvents];
+    this.eventsByConversation.set(plan.conversationRef, rewritten);
     this.eventIdsByConversation.set(
       plan.conversationRef,
       new Set(rewritten.map(event => event.eventId)),
@@ -111,7 +101,7 @@ export class InMemoryConversationStore implements ConversationStore {
   }
 
   async loadEvents(conversationRef: string): Promise<ConversationEvent[]> {
-    return sortEvents(this.eventsByConversation.get(conversationRef) ?? []);
+    return [...(this.eventsByConversation.get(conversationRef) ?? [])];
   }
 
   async loadForDisplay(conversationRef: string): Promise<DisplayConversation> {

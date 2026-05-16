@@ -160,6 +160,26 @@ describe('FileConversationStore', () => {
     ]);
   });
 
+  test('preserves append order instead of sorting by timestamp or event id', async () => {
+    const store = new FileConversationStore({ directory: tempDir });
+    const first = event('tool_call', { toolName: 'read_file', requestId: 'req-1' }, {
+      eventId: 'z-appended-first',
+      timestamp: '2026-05-15T12:00:10.000Z',
+    });
+    const second = event('tool_output', { toolName: 'read_file', requestId: 'req-1', text: 'result' }, {
+      eventId: 'a-appended-second',
+      timestamp: '2026-05-15T12:00:00.000Z',
+    });
+
+    await store.appendEvents([first, second]);
+
+    const reopened = new FileConversationStore({ directory: tempDir });
+    expect((await reopened.loadEvents('conv-file-store')).map(item => item.eventId)).toEqual([
+      'z-appended-first',
+      'a-appended-second',
+    ]);
+  });
+
   test('rewrites conversations without leaving removed events in the active revision', async () => {
     const store = new FileConversationStore({ directory: tempDir });
     const first = event('user_message', { text: 'original' }, {
