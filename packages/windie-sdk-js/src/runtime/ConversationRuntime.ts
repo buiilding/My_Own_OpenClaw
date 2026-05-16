@@ -362,7 +362,7 @@ export class SdkConversationRuntime {
 
   async rehydrate(): Promise<RehydrateSnapshot> {
     const snapshot = await this.options.store.loadForRehydrate(this.options.conversationRef);
-    await this.options.transport?.sendRehydrate({
+    await this.options.transport?.rehydrateConversation({
       conversation_ref: this.options.conversationRef,
       messages: snapshot.messages,
     });

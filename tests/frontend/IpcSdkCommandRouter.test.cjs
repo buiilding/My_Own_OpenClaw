@@ -59,7 +59,7 @@ describe('ipc sdk command router', () => {
       sendCompactHistory: jest.fn(() => 'compact-id'),
       sendListModels: jest.fn(() => 'models-id'),
       sendQuery: jest.fn(() => 'query-id'),
-      sendRehydrate: jest.fn(() => 'rehydrate-id'),
+      rehydrateConversation: jest.fn(() => 'rehydrate-id'),
       sendStopQuery: jest.fn(() => 'stop-id'),
       sendUpdateSettings: jest.fn(() => 'settings-id'),
       sendWakewordDetected: jest.fn(() => 'wakeword-id'),
@@ -110,7 +110,7 @@ describe('ipc sdk command router', () => {
     expect(runtime.sendUpdateSettings).toHaveBeenCalledWith({ provider: 'openai' }, 'msg-settings');
     expect(runtime.sendListModels).toHaveBeenCalledWith({}, 'msg-models');
     expect(runtime.sendCompactHistory).toHaveBeenCalledWith({ conversation_ref: 'conv-1' }, 'msg-compact');
-    expect(runtime.sendRehydrate).toHaveBeenCalledWith(
+    expect(runtime.rehydrateConversation).toHaveBeenCalledWith(
       { conversation_ref: 'conv-1', messages: [] },
       'msg-rehydrate',
     );

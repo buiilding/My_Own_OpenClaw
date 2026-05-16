@@ -94,7 +94,7 @@ function createDesktopBackendTransport(workspacePath: string | null = null): Bac
     },
     sendToolResult: async () => undefined,
     sendToolBundleResult: async () => undefined,
-    sendRehydrate: async (payload) => {
+    rehydrateConversation: async (payload) => {
       await DesktopBackendCommandRuntimeClient.rehydrateConversation({
         conversationRef: optionalString(payload.conversation_ref)
           ?? optionalString(payload.conversationRef)

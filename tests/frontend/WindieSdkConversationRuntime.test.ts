@@ -40,7 +40,7 @@ function createMockBackendTransport(
     sendQuery: jest.fn(async () => 'query-unused'),
     sendToolResult: jest.fn(async () => undefined),
     sendToolBundleResult: jest.fn(async () => undefined),
-    sendRehydrate: jest.fn(async () => undefined),
+    rehydrateConversation: jest.fn(async () => undefined),
     updateSettings: jest.fn(async () => 'settings-unused'),
     listModels: jest.fn(async () => 'models-unused'),
     stop: jest.fn(async () => undefined),
@@ -575,7 +575,7 @@ describe('Windie SDK conversation runtime core', () => {
         sentQueries.push(payload);
         return 'query-1';
       }),
-      sendRehydrate: jest.fn(async payload => {
+      rehydrateConversation: jest.fn(async payload => {
         sentRehydrates.push(payload);
       }),
     });
@@ -1107,7 +1107,7 @@ describe('Windie SDK conversation runtime core', () => {
       conversationRef: 'conv-sdk-runtime',
       store,
       transport: createMockBackendTransport({
-        sendRehydrate: jest.fn(async payload => {
+        rehydrateConversation: jest.fn(async payload => {
           sentRehydrates.push(payload);
         }),
       }),

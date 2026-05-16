@@ -351,7 +351,7 @@ export function createWindieAgentBackendTransport(
     sendToolBundleResult: async payload => {
       await session.sendToolBundleResultPayload(payload);
     },
-    sendRehydrate: async payload => {
+    rehydrateConversation: async payload => {
       await session.rehydrateConversation({
         conversation_ref: typeof payload.conversation_ref === 'string'
           ? payload.conversation_ref

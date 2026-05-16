@@ -66,8 +66,8 @@ function sendSdkRuntimeCommand(runtime, {
   if (type === 'list-models' && typeof runtime.sendListModels === 'function') {
     return runtime.sendListModels(payload, messageId);
   }
-  if (type === 'rehydrate' && typeof runtime.sendRehydrate === 'function') {
-    return runtime.sendRehydrate(payload, messageId);
+  if (type === 'rehydrate' && typeof runtime.rehydrateConversation === 'function') {
+    return runtime.rehydrateConversation(payload, messageId);
   }
   if (type === 'compact-history' && typeof runtime.sendCompactHistory === 'function') {
     return runtime.sendCompactHistory(payload, messageId);
