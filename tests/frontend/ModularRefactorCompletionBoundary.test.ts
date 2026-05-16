@@ -24,6 +24,14 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('sendToolResult');
   });
 
+  test('main tool router delegates local tool routing to the sdk package', async () => {
+    const source = await read('frontend/src/main/ipc/ipc_sdk_tool_router.cjs');
+
+    expect(source).toContain('packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.cjs');
+    expect(source).not.toContain('async function routeToolCallToLocalRuntime');
+    expect(source).not.toContain('async function routeToolBundleToLocalRuntime');
+  });
+
   test('renderer conversation runtime delegates backend and projection work to app runtimes', async () => {
     const source = await read('frontend/src/renderer/app/runtime/desktopConversationRuntimeClient.ts');
 

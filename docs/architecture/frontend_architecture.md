@@ -134,6 +134,11 @@ New-chat behavior:
 3. SDK runtime sends `tool-result`/`tool-bundle-result` back to backend.
 4. Renderer receives display-only tool events, renders assistant tool rows, and persists transcript queue state.
 
+Electron main does not own the local tool-routing algorithm. Its
+`ipc/ipc_sdk_tool_router.cjs` module re-exports the SDK package coordinator host
+artifact and only supplies Electron-specific local execution and backend send
+callbacks through `main/windie_sdk_runtime.cjs`.
+
 ### Conversation/Transcript Flow
 
 1. Renderer chat hooks call `DesktopConversationRuntimeClient` for visible transcript projection writes.
