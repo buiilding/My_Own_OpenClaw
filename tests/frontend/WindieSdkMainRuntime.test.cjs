@@ -274,6 +274,71 @@ describe('Windie SDK main runtime', () => {
     }));
   });
 
+  test('projects SDK-owned bundled tool results back to the renderer', async () => {
+    const onEvent = jest.fn();
+    const executeLocalTool = jest
+      .fn()
+      .mockResolvedValueOnce({ success: true, data: { output: 'docs listed', llm_content: 'docs listed' } })
+      .mockResolvedValueOnce({ success: true, data: { output: 'readme read', llm_content: 'readme read' } });
+    const runtime = createWindieSdkMainRuntime({
+      WebSocketImpl: FakeWebSocket,
+      createMessageId: () => 'bundle-result-msg',
+      getEndpoint: () => ({ wsUrl: 'wss://api.windieos.com/ws' }),
+      getUserId: () => 'dev-user',
+      buildHandshake: async () => ({ type: 'handshake', user_id: 'dev-user' }),
+      executeLocalTool,
+      onEvent,
+    });
+
+    runtime.connect();
+    const socket = FakeWebSocket.instances[0];
+    socket.open();
+    await Promise.resolve();
+
+    socket.emit('message', JSON.stringify({
+      id: 'event-bundle-1',
+      type: 'tool-bundle',
+      conversation_ref: 'conv-1',
+      turn_ref: 'turn-1',
+      payload: {
+        bundle_id: 'bundle-docs',
+        tools: [
+          { name: 'run_shell_command', args: { command: './bin/docs-list' } },
+          { name: 'read_file', args: { path: 'README.md' } },
+        ],
+      },
+    }));
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(JSON.parse(socket.sent[1])).toMatchObject({
+      id: 'bundle-result-msg',
+      type: 'tool-bundle-result',
+      payload: {
+        bundle_id: 'bundle-docs',
+        status: 'success',
+      },
+      user_id: 'dev-user',
+    });
+    expect(onEvent).toHaveBeenCalledWith(expect.objectContaining({
+      id: 'bundle-docs:tool-output',
+      type: 'tool-output',
+      conversation_ref: 'conv-1',
+      turn_ref: 'turn-1',
+      payload: expect.objectContaining({
+        tool_name: 'tool-bundle',
+        bundle_id: 'bundle-docs',
+        success: true,
+        output: expect.stringContaining('docs listed'),
+        metadata: expect.objectContaining({
+          execution_owner: 'sdk-runtime',
+          display_projection: 'local-tool-bundle-result',
+        }),
+      }),
+    }));
+  });
+
   test('owns idle disconnect policy', async () => {
     jest.useFakeTimers();
     try {

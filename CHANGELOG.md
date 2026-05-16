@@ -19,6 +19,7 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sdk: route dashboard conversation library operations through the transcript projection runtime facade before touching the Electron conversation store.
 - frontend/sdk: move chat and dashboard local conversation snapshot loading behind desktop runtime facades.
 - frontend/sdk: move dashboard conversation search behind the desktop conversation library facade.
+- frontend/sdk: project SDK-owned bundled tool results back into the renderer as display-only `tool-output` rows.
 - sdk: add named adapter payload and local-runtime contract types for backend transport and sidecar runtime boundaries.
 - sdk: make `ConversationRuntime.rehydrate()` emit complete replace-mode backend payloads instead of relying on transport adapters to add `rehydrate_mode`.
 - sdk/backend: keep SDK rehydrate projections backend-schema compatible by using `tool_name`, structured bundle metadata, and per-step bundled tool replay rows.

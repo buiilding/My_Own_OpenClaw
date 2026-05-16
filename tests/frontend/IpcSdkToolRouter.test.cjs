@@ -187,12 +187,16 @@ describe('ipc sdk tool router', () => {
   test('routes tool-bundle results through local execution steps', async () => {
     const executeLocalTool = jest
       .fn()
-      .mockResolvedValueOnce({ success: true, data: { output: 'one' } })
+      .mockResolvedValueOnce({ success: true, data: { output: 'one', llm_content: 'one display' } })
       .mockResolvedValueOnce({ success: false, error: 'failed-two' });
     const sendToolBundleResult = jest.fn();
+    const onToolOutput = jest.fn();
 
     routeSdkToolEventToLocalRuntime({
+      id: 'event-bundle',
       type: 'tool-bundle',
+      conversation_ref: 'conv-1',
+      turn_ref: 'turn-1',
       payload: {
         bundle_id: 'bundle-1',
         tools: [
@@ -203,6 +207,7 @@ describe('ipc sdk tool router', () => {
     }, {
       executeLocalTool,
       sendToolBundleResult,
+      onToolOutput,
     });
     await Promise.resolve();
     await Promise.resolve();
@@ -213,10 +218,30 @@ describe('ipc sdk tool router', () => {
         bundle_id: 'bundle-1',
         status: 'partial_failure',
         step_results: [
-          { tool: 'read_file', status: 'ok', output: { output: 'one' } },
+          { tool: 'read_file', status: 'ok', output: { output: 'one', llm_content: 'one display' } },
           { tool: 'save_note', status: 'error', output: { error: 'failed-two' } },
         ],
       }),
     );
+    expect(onToolOutput).toHaveBeenCalledWith(expect.objectContaining({
+      id: 'bundle-1:tool-output',
+      type: 'tool-output',
+      conversation_ref: 'conv-1',
+      turn_ref: 'turn-1',
+      payload: expect.objectContaining({
+        tool_name: 'tool-bundle',
+        bundle_id: 'bundle-1',
+        success: false,
+        output: expect.stringContaining('one display'),
+        step_results: [
+          { tool: 'read_file', status: 'ok', output: { output: 'one', llm_content: 'one display' } },
+          { tool: 'save_note', status: 'error', output: { error: 'failed-two' } },
+        ],
+        metadata: expect.objectContaining({
+          execution_owner: 'sdk-runtime',
+          display_projection: 'local-tool-bundle-result',
+        }),
+      }),
+    }));
   });
 });

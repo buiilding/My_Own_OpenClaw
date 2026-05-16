@@ -22,7 +22,7 @@ WindieOS tools run through a distributed pipeline. The backend owns model-facing
 8. SDK runtime normalizes the tool event and routes the call through the local runtime adapter to the sidecar daemon/local executor.
 9. Electron main invokes the Python sidecar daemon or JSON-RPC tool registry as the local executor.
 10. Sidecar executes the local action and returns a normalized `ToolResult`.
-11. SDK runtime sends `tool-result` or `tool-bundle-result` back to backend and appends a normalized `tool_output` or `tool_bundle_output` event. If backend delivery fails after local execution, the SDK stores that output as `success: false` with `deliveryFailed: true` and marks the turn failed.
+11. SDK runtime sends `tool-result` or `tool-bundle-result` back to backend, appends a normalized `tool_output` or `tool_bundle_output` event, and projects a display-only renderer `tool-output` event for both single calls and bundles. If backend delivery fails after local execution, the SDK stores that output as `success: false` with `deliveryFailed: true` and marks the turn failed.
 12. Backend result receiver resolves the pending future.
 13. Backend result transformer formats model-facing tool output and display metadata.
 14. Backend history committer writes tool rows and the interaction loop continues.
@@ -61,6 +61,9 @@ Bundle path:
 - backend sends one `tool-bundle` event with a `bundle_id`
 - SDK runtime executes bundle steps through the local runtime adapter and returns
   `tool-bundle-result`
+- Electron main also emits one display-only renderer `tool-output` projection
+  for the bundle result so users can inspect local output while the backend loop
+  continues
 - SDK bundle step statuses use `ok` and `error`; the top-level status is `success`, `partial_failure`, or `failure`
 - backend treats atomic bundle success differently from individual fallback output
 - partial failure must preserve enough per-step output for debugging and model recovery

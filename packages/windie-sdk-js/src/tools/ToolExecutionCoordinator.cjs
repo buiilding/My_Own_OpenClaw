@@ -172,6 +172,75 @@ function buildRendererToolOutputEvent(event, payload, startedAt) {
   };
 }
 
+function resolveStepOutputText(step) {
+  const output = step?.output;
+  if (step?.status !== 'ok') {
+    const error = isPlainObject(output) && typeof output.error === 'string' && output.error.trim()
+      ? output.error.trim()
+      : 'Tool execution failed';
+    return `Error: ${error}`;
+  }
+  if (isPlainObject(output)) {
+    for (const key of ['llm_content', 'return_display', 'output', 'message']) {
+      const value = output[key];
+      if (typeof value === 'string' && value.trim()) {
+        return value;
+      }
+    }
+    return JSON.stringify(output);
+  }
+  if (typeof output === 'string' && output.trim()) {
+    return output;
+  }
+  if (output !== null && typeof output !== 'undefined') {
+    return JSON.stringify(output);
+  }
+  return 'No output';
+}
+
+function resolveBundleOutputDisplayText(stepResults) {
+  if (!Array.isArray(stepResults) || stepResults.length === 0) {
+    return 'No bundled tool output';
+  }
+  return stepResults.map((step, index) => {
+    const toolName = typeof step?.tool === 'string' && step.tool.trim()
+      ? step.tool.trim()
+      : `step ${index + 1}`;
+    return [`${index + 1}. ${toolName}`, resolveStepOutputText(step)].join('\n');
+  }).join('\n\n');
+}
+
+function buildRendererToolBundleOutputEvent(event, payload, startedAt) {
+  const sourcePayload = isPlainObject(event?.payload) ? event.payload : {};
+  const metadata = isPlainObject(sourcePayload.metadata) ? sourcePayload.metadata : {};
+  const stepResults = Array.isArray(payload?.step_results) ? payload.step_results : [];
+  const bundleId = resolveStringField(sourcePayload, ['bundleId', 'bundle_id'])
+    ?? resolveStringField(payload, ['bundleId', 'bundle_id']);
+  return {
+    id: bundleId ? `${bundleId}:tool-output` : undefined,
+    type: 'tool-output',
+    session_id: event?.session_id,
+    user_id: event?.user_id,
+    conversation_ref: event?.conversation_ref,
+    turn_ref: event?.turn_ref,
+    payload: {
+      tool_name: 'tool-bundle',
+      success: payload?.status === 'success',
+      execution_time: (Date.now() - startedAt) / 1000,
+      output: resolveBundleOutputDisplayText(stepResults),
+      error: payload?.status === 'success' ? null : (payload?.error || 'Bundled tool execution failed'),
+      bundle_id: bundleId || undefined,
+      step_results: stepResults,
+      metadata: {
+        ...metadata,
+        skip_frontend_execution: true,
+        execution_owner: 'sdk-runtime',
+        display_projection: 'local-tool-bundle-result',
+      },
+    },
+  };
+}
+
 function buildToolResultPayload({ requestId, result }) {
   const success = result?.success !== false;
   const error = result?.error || 'Tool execution failed';
@@ -234,6 +303,7 @@ async function routeToolBundleToLocalRuntime(event, deps) {
     return false;
   }
 
+  const startedAt = Date.now();
   const stepResults = [];
   for (const tool of tools) {
     if (!isPlainObject(tool)) {
@@ -279,12 +349,14 @@ async function routeToolBundleToLocalRuntime(event, deps) {
   const status = failedSteps.length === 0
     ? 'success'
     : (failedSteps.length === stepResults.length ? 'failure' : 'partial_failure');
-  deps.sendToolBundleResult({
+  const resultPayload = {
     bundle_id: bundleId,
     status,
     step_results: stepResults,
     error: failedSteps.length > 0 ? `${failedSteps.length} bundled tool step(s) failed` : null,
-  });
+  };
+  deps.sendToolBundleResult(resultPayload);
+  deps.onToolOutput?.(buildRendererToolBundleOutputEvent(event, resultPayload, startedAt));
   return true;
 }
 
@@ -326,6 +398,7 @@ function routeSdkToolEventToLocalRuntime(event, deps = {}) {
 
 module.exports = {
   buildRendererToolOutputEvent,
+  buildRendererToolBundleOutputEvent,
   markRendererToolEventDisplayOnly,
   routeSdkToolEventToLocalRuntime,
   resolveToolCallRequestId,
