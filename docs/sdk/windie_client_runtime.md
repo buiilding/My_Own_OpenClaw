@@ -39,6 +39,9 @@ Ownership rules:
   public SDK callers.
 - the SDK local-runtime module owns sidecar daemon HTTP calls, daemon discovery,
   auto-start/reuse, and `moduleTool(...)` registration helpers.
+- the SDK `WindieClient` runtime module owns wake-up orchestration, websocket
+  session creation, initial model selection, local-runtime startup/reuse, and
+  conversion of local tool/plugin/MCP definitions into the client manifest.
 - the SDK agent stream-event module owns the compatibility projection from
   normalized conversation events to high-level `agent.stream(...)` events,
   including duplicate tool-output suppression for local/backend acknowledgements.
