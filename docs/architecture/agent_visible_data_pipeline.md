@@ -9,7 +9,7 @@ title: "Agent-Visible Data Pipeline"
 
 # Agent-Visible Data Pipeline
 
-Use this page to trace the exact data the agent sees and the exact data each runtime carries. The goal is not only to find the owning file. The goal is to ask, at every boundary: is this shape the canonical contract, a necessary adapter, a compatibility alias, or an unnecessary layer that can be removed?
+Use this page to trace the exact data the agent sees and the exact data each runtime carries. The goal is not only to find the owning file. The goal is to ask, at every boundary: is this shape the canonical contract, a necessary adapter, or an unnecessary layer that can be removed?
 
 ## Pipeline Map
 
@@ -47,7 +47,7 @@ The model-visible surface is owned by the backend and should be treated as the h
 - provider-specific tool projection
 - tool-output rows returned into model history
 
-Renderer, Electron main, and sidecar payloads are allowed to differ from this shape only when they cross a real runtime boundary. If a second shape exists only because an older helper expected different names, document it as compatibility debt or remove it.
+Renderer, Electron main, and sidecar payloads are allowed to differ from this shape only when they cross a real runtime boundary. If a second shape exists only because an older helper expected different names, remove it and move tests to the canonical field.
 
 ## Shape Trace
 
@@ -63,7 +63,7 @@ Renderer, Electron main, and sidecar payloads are allowed to differ from this sh
 | Backend-to-frontend event | Tool call visible in stream/transparency UI | `tool-call`, `tool-bundle`, `tool-output`, `streaming-response`, `complete` websocket event payloads | `backend/src/api/processing/formatters`, `backend/src/api/schemas/outgoing.py` | Formatter payload shape is a contract. Do not add renderer-only field guessing when the producer can emit the field correctly. |
 | SDK local execution | None directly; SDK executes on behalf of backend tool event | Normalized `tool_call` / `tool_bundle_call` events, request IDs, bundle IDs, tool-call IDs, local-runtime result envelopes | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `frontend/src/main/windie_sdk_runtime.cjs`, `frontend/src/main/ipc/ipc_sdk_tool_router.cjs` | Correlation IDs must survive event, execution, result relay, and transcript persistence. Late/stale turns should fail explicitly. |
 | Electron IPC | None directly; IPC is local transport | `execute-tool`, memory, artifact, permission, and local-backend invoke payloads | `frontend/src/shared/ipcChannels.json`, `frontend/src/preload.js`, `frontend/src/main/local_backend_bridge*.cjs` | If IPC shape only renames fields before JSON-RPC, check whether the mapper is the single necessary adapter. |
-| Sidecar JSON-RPC | None directly; sidecar is executor | JSON-RPC method params, snake_case Python fields, timeout/error envelopes | `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`, `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/core/ipc_protocol.py` | Mappers should centralize camelCase/snake_case and legacy aliases. Avoid spreading fallback key logic into renderer callers. |
+| Sidecar JSON-RPC | None directly; sidecar is executor | JSON-RPC method params, snake_case Python fields, timeout/error envelopes | `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`, `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/core/ipc_protocol.py` | Mappers should centralize camelCase/snake_case and canonicalization. Avoid spreading fallback key logic into renderer callers. |
 | Local tool result | Eventually: model-facing tool output after backend transforms it | Sidecar `ToolResult` dict with `success`, `data`, `error`, screenshot/file/artifact fields | `frontend/src/main/python/tools/result.py`, sidecar tool modules, Electron bridge helpers | Large or binary data should become artifact/file refs where possible, not repeated inline payloads through every transport. |
 | Tool result return | Tool output row that the next model turn can consume | SDK runtime sends `tool-result` or `tool-bundle-result` over websocket with request/bundle IDs | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/transport/WindieAgentSession.ts`, `backend/src/api/handlers/tool_result.py` | Request IDs and tool-call IDs are not decoration. Missing IDs create history and wait-state corruption. |
 | Backend history commit | Provider-replay-safe assistant/tool rows in conversation history | Result transformer output, history committer rows, token cache updates | `backend/src/agent/tools/processing`, `backend/src/agent/history` | The visible transcript can differ from backend history, but both must preserve enough structure for replay and rehydrate. |
@@ -77,7 +77,6 @@ Use this classification before adding another helper, mapper, envelope, or fallb
 | --- | --- | --- |
 | Runtime boundary adapter | It crosses backend/frontend/sidecar, trusted/untrusted, or JS/Python boundaries. | It only moves fields between two helpers in the same runtime without validation or ownership change. |
 | Provider projection | A model provider requires a different schema/message dialect. | It rewrites canonical tool semantics to work around a local bug. |
-| Compatibility alias | Existing persisted transcripts, packaged clients, or external callers still depend on it. | No verified caller needs it and tests can move to one canonical field. |
 | Diagnostic transparency copy | It proves what the backend actually sent to the model. | It reconstructs prompt/tool data from renderer state and can disagree with backend truth. |
 | Display projection | It intentionally turns structured data into UI rows. | It becomes the only source for later model/context reconstruction. |
 | Retry/fallback wrapper | It turns a transient failure into explicit, bounded recovery. | It hides producer errors or makes wrong payloads appear valid. |
@@ -92,7 +91,7 @@ Question the design when you see any of these:
 - formatter output is fixed by renderer fallback parsing instead of backend schema tests
 - a wrapper envelope exists only to unwrap into a nearly identical object one function later
 - a transcript row stores display text but loses request IDs, tool-call IDs, artifact refs, or structured payload
-- a compatibility alias is accepted in three places but documented in none
+- a non-canonical alias is accepted in three places instead of being removed
 - a local execution failure is silently dropped instead of returning a model-visible tool output
 - an event payload can be inferred only by reading UI components instead of a contract doc
 

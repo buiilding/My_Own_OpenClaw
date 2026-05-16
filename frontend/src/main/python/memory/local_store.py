@@ -833,7 +833,7 @@ class LocalMemoryStore:
         memory_id = str(uuid.uuid4())
         timestamp_value = self._normalize_timestamp(timestamp)
 
-        # Extract memory type from metadata (default to episodic for backward compatibility)
+        # Extract memory type from metadata; transcript records are episodic by default.
         memory_type_str = metadata.get("type", "episodic") if metadata else "episodic"
 
         # Extract conversation_id from metadata if not provided directly

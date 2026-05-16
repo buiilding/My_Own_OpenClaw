@@ -1,8 +1,8 @@
 ---
-summary: "Deep frontend protocol state reference for websocket bridge identity/session/conversation tracking, query fallback correlation fields, renderer event gating, and transcript-session persistence/update semantics."
+summary: "Deep frontend protocol state reference for websocket bridge identity/session/conversation tracking, query fallback correlation fields, renderer event gating, and SDK transcript-session persistence/update semantics."
 read_when:
   - When changing frontend connection/session identity state in `ipc.cjs` or synthetic query event payload context.
-  - When changing renderer transcript-session updates, stale-conversation event filtering, or session-info persistence behavior.
+  - When changing SDK transcript-session updates, stale-conversation event filtering, or session-info persistence behavior.
 title: "Frontend Protocol Session and Conversation-State Propagation Reference"
 ---
 
@@ -25,7 +25,8 @@ Primary runtime sources:
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamConversationGate.ts`
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
-- `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts`
 
 Primary test sources:
@@ -35,7 +36,8 @@ Primary test sources:
 - `tests/frontend/AppConfigProvider.storageAndIpc.test.tsx`
 - `tests/frontend/ChatStreamConversationGate.test.ts`
 - `tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx`
-- `tests/frontend/TranscriptWriter.session.test.ts`
+- `tests/frontend/TranscriptSessionState.test.ts`
+- `tests/frontend/DesktopTranscriptSessionRuntime.test.ts`
 - `tests/frontend/ChatGptDashboardShell.test.jsx`
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`
 
@@ -48,7 +50,7 @@ Primary test sources:
 | `currentServerUserId` | `ipc.cjs` | inbound backend events with `user_id` | synthetic local query context fields |
 | `currentConversationRef` | `ipc.cjs` | inbound backend events with `conversation_ref`; reset on reconnect close | query payload fallback when renderer omits conversation ref |
 | backend endpoint snapshot (`BACKEND_URL`, `BACKEND_HTTP_URL`) | `ipc.cjs` | backend endpoint resolution during init | `get-client-user-id` payload, `ipc-status`, artifact uploader base URL sync |
-| transcript session `{conversationRef,userId}` | `TranscriptWriter` state (`sessionInfoState.ts`) | `updateTranscriptSession(...)`, `setActiveConversationRef(...)` | transcript write routing, pending flush eligibility, dashboard memory views |
+| transcript session `{conversationRef,userId}` | SDK transcript session runtime (`desktopTranscriptSessionRuntime.ts`, `sessionInfoState.ts`) | `updateTranscriptSession(...)`, `setActiveConversationRef(...)` | SDK projection/store routing, pending flush eligibility, dashboard memory views |
 
 ## Main-Process Bridge State Flow (`ipc.cjs`)
 
@@ -159,7 +161,7 @@ Locked by:
 `chatStreamConversationGate.ts` rules:
 
 - if no active conversation ref, do not ignore
-- if event has no conversation ref, do not ignore (compatibility path)
+- if event has no conversation ref, do not ignore identity-less lifecycle events
 - if event conversation ref matches active one, do not ignore
 - `local-user-message` mismatch events are never ignored
 - mismatch events are ignored only when:
@@ -190,7 +192,7 @@ Locked by:
 
 - `tests/frontend/AppConfigProvider.storageAndIpc.test.tsx`
 
-## Transcript Session State Persistence and Queue Release
+## SDK Transcript Session State Persistence and Queue Release
 
 `sessionInfoState.ts` behavior:
 
@@ -198,7 +200,7 @@ Locked by:
 - preserves conversation ref when user-only updates occur
 - updates only provided identities (no forced clear unless explicit `null`)
 
-`TranscriptWriter` behavior:
+SDK transcript session runtime behavior:
 
 - persists and emits `transcript-session-update` only when session info actually changes
 - queued transcript entries flush only when both conversationRef and userId are available
@@ -206,7 +208,8 @@ Locked by:
 
 Locked by:
 
-- `tests/frontend/TranscriptWriter.session.test.ts`
+- `tests/frontend/TranscriptSessionState.test.ts`
+- `tests/frontend/DesktopTranscriptSessionRuntime.test.ts`
 
 ## Frontend Config -> Sidecar Tool Arg State Propagation
 
@@ -245,8 +248,8 @@ When changing this surface, keep aligned:
 | handshake identity caching and snapshot fan-out | `frontend/src/main/ipc.cjs` | stable client identity/session endpoint snapshot exposed via `get-client-user-id` and `ipc-status` |
 | backend context-field cache updates | `frontend/src/main/ipc.cjs` | inbound `session_id`/`user_id`/`conversation_ref` cache fields track latest backend correlation context |
 | conversation_ref fallback for query/local echo | `frontend/src/main/ipc/ipc_query_events.cjs`, `frontend/src/main/ipc.cjs` | query payload and synthetic local-user-message share same resolved conversation reference |
-| dashboard conversation open/delete session transitions | `useDashboardConversations`, transcript writer | active conversation + transcript session identity stay in sync during rehydrate/delete flows |
-| renderer stale-event gating | `chatStreamConversationGate.ts` + `useChatStream.ts` | active conversation mismatch rules prevent cross-conversation stream pollution while preserving compatibility events |
+| dashboard conversation open/delete session transitions | `useDashboardConversations`, SDK transcript session runtime | active conversation + transcript session identity stay in sync during rehydrate/delete flows |
+| renderer stale-event gating | `chatStreamConversationGate.ts` + `useChatStream.ts` | active conversation mismatch rules prevent cross-conversation stream pollution while preserving identity-less lifecycle events |
 | websocket-close display affinity continuity | `frontend/src/main/ipc.cjs`, `frontend/src/main/display_affinity_runtime.cjs` | backend session identity resets do not clear active monitor affinity, preserving reconnect-time screenshot/main-window fallback targeting |
 | frontend config to sidecar sudo-mode propagation | `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/local_backend_bridge_tool_args.cjs` | `agent_full_sudo_enabled` deterministically maps to `sudo_auth_mode` in direct run-shell args and nested `system_use -> run_shell_command` args |
 

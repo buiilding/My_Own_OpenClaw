@@ -48,7 +48,7 @@ async def get_system_state(
     Returns:
         Dictionary with requested system state information.
     """
-    # If no fields specified, retrieve all fields (backward compatibility)
+    # If no fields are specified, retrieve the canonical full state snapshot.
     if fields is None:
         fields = ['active_window', 'mouse_position', 'clipboard', 'screen_resolution', 'windows', 'stats', 'time']
     

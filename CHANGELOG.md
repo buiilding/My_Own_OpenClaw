@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend-sdk: refresh protocol-state, storage, and IPC ownership docs so active change guides route transcript/tool work through the SDK runtime instead of retired renderer-owned writers or tool services.
 - sidecar: remove browser-session cloud parameter aliases so sidecar browser runtime accepts only first-class `cloud_*`, `use_cloud`, and `cloud_browser_params` fields.
 - docs: replace stale transcript writer, replay-state, and renderer tool-runner references in current frontend architecture docs with SDK runtime and transcript projection owners.
 - docs: refresh frontend inventory and tool-event docs so deleted renderer tool-runner and transcript-writer paths no longer appear as current owners.

@@ -1001,7 +1001,7 @@ Worker relays backend stream events into run timeline.
 
 ### POST `/api/runs/{run_id}/worker-heartbeat`
 
-Legacy run-scoped heartbeat endpoint (backward compatibility).
+Run-scoped worker heartbeat endpoint.
 
 **Request**:
 ```json
@@ -1040,7 +1040,7 @@ All messages follow this structure:
 - `user_id` is injected server-side from the handshake connection context (client-provided, validated at handshake).
 - `timestamp` is optional and ignored by the backend if present.
 - Unknown top-level envelope fields are rejected.
-- Incoming schema source lives in `backend/src/api/schemas/` (`common.py`, `incoming.py`, `outgoing.py`), with compatibility exports from `backend/src/api/schema.py`.
+- Incoming schema source lives in `backend/src/api/schemas/` (`common.py`, `incoming.py`, `outgoing.py`), with package re-exports from `backend/src/api/schema.py`.
 
 ## Client Messages (Frontend → Backend)
 

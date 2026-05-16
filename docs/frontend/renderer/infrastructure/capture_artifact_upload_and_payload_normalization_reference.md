@@ -151,7 +151,7 @@ Bundle helpers standardize UI/backend interchange:
 
 ## Backend Envelope Builder Layer
 
-`ToolExecutionBackendPayload.ts` is the final send-side wrapper used by `ToolExecutionService`:
+`ToolExecutionBackendPayload.ts` is the final send-side wrapper used by the SDK tool router/result relay:
 
 - single-tool:
   - delegates `data` normalization to `buildToolResultPayloadData(...)`

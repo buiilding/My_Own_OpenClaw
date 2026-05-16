@@ -95,6 +95,13 @@ describe('modular sdk refactor completion boundary', () => {
       'docs/frontend/renderer/transcript/contracts/transcript_entry_and_pending_message_type_contract_reference.md',
       'docs/frontend/renderer/transcript/contracts/transcript_transparency_normalization_and_snapshot_pruning_contract_reference.md',
       'docs/frontend/sidecar/memory/transcript_storage_semantic_candidate_and_watermark_reference.md',
+      'docs/frontend/inventory/protocols/state/frontend_protocol_session_and_conversation_state_propagation_reference.md',
+      'docs/frontend/inventory/protocols/state/README.md',
+      'docs/frontend/inventory/frontend_ipc_and_sidecar_contract_touchpoints_reference.md',
+      'docs/architecture/storage_persistence_change_workflow.md',
+      'docs/reference/code_change_surface_index.md',
+      'docs/frontend/renderer/infrastructure/conversation_transcript_loader_and_display_bounds_storage_reference.md',
+      'docs/frontend/renderer/infrastructure/capture_artifact_upload_and_payload_normalization_reference.md',
     ];
 
     const offenders: Record<string, string[]> = {};
@@ -106,7 +113,12 @@ describe('modular sdk refactor completion boundary', () => {
         'frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts',
         'frontend/src/renderer/infrastructure/transcript/conversationReplayState.ts',
         'renderer/useToolRunner.ts',
+        'Tool runner service',
+        'Transcript writer queues',
+        'TranscriptWriter',
         'conversationReplayState.ts',
+        'backward compatibility',
+        'compatibility path',
       ].filter((needle) => source.includes(needle));
       if (staleMentions.length > 0) {
         offenders[relativePath] = staleMentions;

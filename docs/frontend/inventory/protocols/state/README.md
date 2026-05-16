@@ -1,8 +1,8 @@
 ---
-summary: "Frontend protocol state sub-hub for main-process websocket bridge state, conversation-ref fallback handling, renderer transcript-session synchronization, and frontend-config to sidecar RPC argument propagation."
+summary: "Frontend protocol state sub-hub for main-process websocket bridge state, conversation-ref fallback handling, SDK transcript-session synchronization, and frontend-config to sidecar RPC argument propagation."
 read_when:
   - When changing `frontend/src/main/ipc.cjs` state fields that track connection/session/user/conversation identity.
-  - When changing renderer-side event gating or transcript session update behavior driven by backend context fields.
+  - When changing renderer-side event gating or SDK transcript session update behavior driven by backend context fields.
 title: "Frontend Protocol State Hub"
 ---
 
@@ -31,13 +31,15 @@ title: "Frontend Protocol State Hub"
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamConversationGate.ts`
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
-- `frontend/src/renderer/infrastructure/transcript/TranscriptWriter.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts`
 - `tests/frontend/IpcMainBridge.query.test.cjs`
 - `tests/frontend/IpcMainBridge.lifecycle.test.cjs`
 - `tests/frontend/AppConfigProvider.storageAndIpc.test.tsx`
 - `tests/frontend/ChatStreamConversationGate.test.ts`
 - `tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx`
-- `tests/frontend/TranscriptWriter.session.test.ts`
+- `tests/frontend/TranscriptSessionState.test.ts`
+- `tests/frontend/DesktopTranscriptSessionRuntime.test.ts`
 - `tests/frontend/ChatGptDashboardShell.test.jsx`
 - `tests/frontend/LocalBackendBridge.rpc.test.cjs`

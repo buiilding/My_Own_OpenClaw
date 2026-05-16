@@ -47,7 +47,7 @@ Valid fields:
 - `stats`
 - `time`
 
-If `fields is None`, sidecar requests all fields for backward compatibility.
+If `fields is None`, sidecar requests the canonical full system-state snapshot.
 
 ## Collection Model
 

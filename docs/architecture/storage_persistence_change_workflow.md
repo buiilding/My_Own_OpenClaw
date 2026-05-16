@@ -29,7 +29,7 @@ Do not promote ephemeral state to durable storage unless the product needs it ac
 
 | Storage surface | Primary owner | Code roots | Tests to inspect or add | Start docs |
 | --- | --- | --- | --- | --- |
-| Visible transcript rows and retry queues | Renderer transcript runtime | `frontend/src/renderer/infrastructure/transcript/**` | `tests/frontend/TranscriptWriter*.test.ts`, `TranscriptPending*.test.ts`, `TranscriptStorage*.test.ts` | [Transcript and Replay](../memory/transcript_and_replay.md) |
+| Visible transcript rows and retry queues | SDK transcript projection runtime | `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`, `frontend/src/renderer/infrastructure/transcript/**` | `tests/frontend/DesktopTranscriptProjectionRuntimeClient.test.ts`, `TranscriptPending*.test.ts`, `TranscriptStorage*.test.ts` | [Transcript and Replay](../memory/transcript_and_replay.md) |
 | Transcript session identity cache | Renderer transcript session runtime plus Electron sync | `sessionInfoStorage.ts`, `transcriptSessionRuntime.ts`, `frontend/src/main/ipc/ipc_transcript_session_sync.cjs` | `tests/frontend/TranscriptSessionState.test.ts`, `IpcTranscriptSessionSync.test.cjs` | [Session and Transcript Reference](../reference/session_and_transcript_reference.md) |
 | Frontend user settings | Renderer config storage and Electron config file | `frontend/src/renderer/utils/configStorage.js`, `frontend/src/renderer/app/providers/appConfigPersistence.js`, `frontend/src/main/ipc.cjs` | `tests/frontend/configStorage.test.js`, `AppConfigPersistence.test.js`, `AppConfigProvider.storageAndIpc.test.tsx` | [Settings Sync Change Workflow](../frontend/runtime/settings_sync_change_workflow.md) |
 | Install auth state file | Electron main | `frontend/src/main/ipc/ipc_install_auth_state.cjs`, `frontend/src/main/ipc.cjs` | install-auth/frontend IPC tests | [Credential and Token Change Workflow](../security/credential_token_change_workflow.md) |
@@ -57,29 +57,30 @@ Do not promote ephemeral state to durable storage unless the product needs it ac
 
 ## Change Paths
 
-### Change renderer transcript storage
+### Change SDK transcript projection storage
 
 Read:
 
 - [Memory Change Workflow](../memory/memory_change_workflow.md)
 - [Transcript and Replay](../memory/transcript_and_replay.md)
-- [Transcript Writer Queue Flush and Session Event Reference](../frontend/renderer/transcript/transcript_writer_queue_flush_and_session_event_reference.md)
+- [Transcript Session and Rehydrate Reference](../frontend/renderer/transcript_session_and_rehydrate_reference.md)
 
 Edit:
 
-- `TranscriptWriter.ts` for write API behavior.
+- `desktopTranscriptProjectionRuntimeClient.ts` for SDK projection write API behavior.
+- `ElectronSidecarConversationStore.ts` for sidecar-backed conversation event storage.
 - `transcriptEntryPersistence.ts` and `transcriptRecordWrite.ts` for persisted row shape and IPC payloads.
 - `pending/*` for retry/FIFO behavior.
 - `sessionInfoStorage.ts` only for transcript session identity storage.
-- replay/rehydrate helpers if stored rows are replayed into backend history.
+- SDK projection/rehydrate helpers if stored events are replayed into backend history.
 
 Validate:
 
 - immediate write success/failure paths.
 - queued write retry and FIFO order.
-- malformed/legacy storage payload fallback.
+- malformed storage payload failure behavior.
 - `transcript-entry-stored` and `transcript-session-update` event behavior.
-- rehydrate compatibility if row shape changes.
+- SDK rehydrate snapshot behavior if event shape changes.
 
 ### Change frontend config persistence
 
@@ -264,7 +265,7 @@ Validate:
 
 | Symptom | First checks | Likely owner |
 | --- | --- | --- |
-| Visible chat exists but is missing after reload | renderer transcript writes, sidecar store payload, conversation id | renderer transcript or sidecar memory |
+| Visible chat exists but is missing after reload | SDK projection writes, sidecar store payload, conversation id | SDK projection runtime or sidecar memory |
 | Dashboard conversation exists but backend context is empty | rehydrate payload and backend rehydrate service | renderer replay/rehydrate or backend API service |
 | Semantic memory search is stale | embeddings availability, FAISS mapping, semanticization watermark | sidecar memory/index/summarizer |
 | App forgets model/settings after restart | renderer local storage, Electron config file, config filter | renderer/Electron config persistence |
@@ -279,7 +280,7 @@ Validate:
 
 | Changed storage boundary | Minimum focused validation |
 | --- | --- |
-| Renderer transcript writes/session storage | `cd frontend && npm run test:ci -- TranscriptWriter TranscriptStorage TranscriptPending TranscriptSession` |
+| SDK transcript writes/session storage | `cd frontend && npm run test:ci -- DesktopTranscriptProjectionRuntimeClient TranscriptStorage TranscriptPending TranscriptSession` |
 | Frontend config persistence | `cd frontend && npm run test:ci -- configStorage AppConfigPersistence AppConfigProvider` |
 | Electron install auth state | focused frontend install-auth/IPC tests plus backend auth tests if contract changes |
 | Sidecar SQLite/memory schema | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/test_local_store_init.py tests/sidecar/test_memory_operations.py tests/sidecar/test_memory_service.py` |

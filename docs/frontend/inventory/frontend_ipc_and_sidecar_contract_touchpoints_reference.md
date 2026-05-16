@@ -34,7 +34,7 @@ This reference maps frontend-owned contract boundaries and their paired modules.
 | --- | --- | --- | --- |
 | Local backend bridge | JSON-RPC protocol | `main/local_backend_bridge.cjs`, `main/python/core/ipc_protocol.py` | Timed-out or unresolved RPC calls |
 | RPC mapped handlers | Method signatures | `main/local_backend_bridge_rpc_mappers.cjs`, `main/python/local_backend.py` methods | Param name mismatch and tool failure |
-| Tool-arg normalizer | Tool argument compatibility path | `main/local_backend_bridge_tool_args.cjs`, `main/python/tools/registry.py` | Missing wrapper-field rewrites (`system_use -> run_shell_command` sudo mode) |
+| Tool-arg normalizer | Tool argument canonicalization path | `main/local_backend_bridge_tool_args.cjs`, `main/python/tools/registry.py` | Missing wrapper-field rewrites (`system_use -> run_shell_command` sudo mode) |
 | Readiness lifecycle | Service startup | `main/local_backend_bridge.cjs`, `main/python/local_backend.py` initialize/run | Process starts but marked unavailable |
 | Memory service protocol | Memory loop | Main memory invocations + `main/python/memory_service.py` | Search/store no-op or parse errors |
 
@@ -42,16 +42,16 @@ This reference maps frontend-owned contract boundaries and their paired modules.
 
 | Frontend owner | Sidecar owner | Contract files | Contract note |
 | --- | --- | --- | --- |
-| Tool runner service | Tool registry | `renderer/infrastructure/services/ToolExecutionService.ts`, `main/python/tools/registry.py` | Tool names must match exactly |
+| SDK tool router | Tool registry | `main/ipc/ipc_sdk_tool_router.cjs`, `main/python/tools/registry.py`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` | Tool names and correlation ids must match exactly |
 | Tool payload shaping | Tool result envelope | `ToolExecutionPayloads.ts`, `main/python/tools/result.py` | `success/error/output` key stability |
-| Tool arg models | Tool schema models | Renderer/main payload builders, `main/python/tools/schemas.py` | Arg validation fails on sidecar |
-| Browser tool payloads | Browser adapter/runtime | Renderer tool runner + `tools/browser/{browser_tool,browser_adapter,browser_runtime}.py` | Browser action unavailable or malformed |
+| Tool arg models | Tool schema models | SDK/main payload builders, `main/python/tools/schemas.py` | Arg validation fails on sidecar |
+| Browser tool payloads | Browser adapter/runtime | SDK tool router + `tools/browser/{browser_tool,browser_adapter,browser_runtime}.py` | Browser action unavailable or malformed |
 
 ## Memory + Transcript Touchpoints
 
 | Frontend owner | Sidecar/backend owner | Contract files | Contract note |
 | --- | --- | --- | --- |
-| Transcript writer queues | Sidecar transcript store methods | `renderer/infrastructure/transcript/TranscriptWriter.ts`, `main/python/local_backend.py` transcript handlers | Missing or duplicate transcript rows |
+| SDK transcript projection store | Sidecar transcript store methods | `renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`, `renderer/infrastructure/transcript/ElectronSidecarConversationStore.ts`, `main/python/local_backend.py` transcript handlers | Missing or duplicate projected transcript rows |
 | Memory search/store invokes | Local store + remote clients | Renderer dashboard/memory hooks, `memory/local_store.py`, remote clients | Search quality/latency regressions |
 | Semantic summarizer cadence | Semantic endpoint | `memory/summarizer.py` + backend `/api/semantic/summarize` | Semantic memory not compacted |
 

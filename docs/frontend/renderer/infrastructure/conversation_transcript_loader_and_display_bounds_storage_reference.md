@@ -18,11 +18,11 @@ title: "Conversation Transcript Loader and Display-Bounds Storage Reference"
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
 - `tests/frontend/ToolExecutionInvoker.test.ts`
 - `tests/frontend/ScreenshotAttachmentPipeline.test.ts`
-- `tests/frontend/ToolExecutionService.test.ts`
+- `tests/frontend/IpcSdkToolRouter.test.cjs`
 
 ## Transcript Conversation Loader Contract
 
-`loadConversationTranscriptMemories(...)` is the renderer-side pagination helper for loading full conversation transcript rows from local DB IPC.
+`loadConversationTranscriptMemories(...)` is the SDK projection pagination helper for loading full conversation transcript rows from local DB IPC.
 
 Input normalization:
 
