@@ -10,7 +10,7 @@ const {
 } = require('./ipc/ipc_sdk_tool_router.cjs');
 const {
   createWindieSdkBackendSocket,
-} = require('./windie_sdk_backend_socket.cjs');
+} = require('../../../packages/windie-sdk-js/src/transport/BackendSocketFactory.cjs');
 const {
   createManagedBackendSession,
 } = require('../../../packages/windie-sdk-js/src/transport/ManagedBackendSession.cjs');

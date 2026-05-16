@@ -17,7 +17,7 @@ export type WebSocketLike = {
   off?: (event: string, listener: (payload: unknown) => void) => void;
 };
 
-export type WebSocketConstructor = new (url: string) => WebSocketLike;
+export type WebSocketConstructor = new (url: string, options?: unknown) => WebSocketLike;
 
 export type WindieAgentSessionOptions = {
   backendUrl: string;

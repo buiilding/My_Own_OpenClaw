@@ -5,7 +5,7 @@ const {
 } = require('../../frontend/src/main/windie_sdk_runtime.cjs');
 const {
   createWindieSdkBackendSocket,
-} = require('../../frontend/src/main/windie_sdk_backend_socket.cjs');
+} = require('../../packages/windie-sdk-js/src/transport/BackendSocketFactory.cjs');
 
 class FakeWebSocket extends EventEmitter {
   static OPEN = 1;
