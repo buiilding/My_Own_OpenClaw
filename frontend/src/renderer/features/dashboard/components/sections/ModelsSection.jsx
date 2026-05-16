@@ -22,7 +22,7 @@ import {
 } from './modelCards';
 import { normalizeProviderApiKeys } from './providerApiKeys';
 import { providerApiKeysPropType } from './providerApiKeysPropTypes';
-import { ApiClient } from '../../../../infrastructure/api/client';
+import { DesktopSettingsRuntimeClient } from '../../../../app/runtime/desktopSettingsRuntimeClient';
 
 function ModelsSection({ config, availableModels, onConfigChange, onClose = () => {} }) {
   const [modelResetWarning, setModelResetWarning] = useState('');
@@ -93,7 +93,7 @@ function ModelsSection({ config, availableModels, onConfigChange, onClose = () =
         return;
       }
       try {
-        ApiClient.listModels();
+        DesktopSettingsRuntimeClient.listModels();
       } catch (error) {
         console.warn('[ModelsSection] Failed to refresh legacy model catalog:', error?.message || error);
       }

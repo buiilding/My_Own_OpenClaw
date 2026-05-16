@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useSettingsManagement } from '../../features/settings/hooks/useSettingsManagement';
 import { filterFrontendConfig } from '../../utils/configFilter';
 import { IpcBridge, ON_CHANNELS, INVOKE_CHANNELS } from '../../infrastructure/ipc/bridge';
-import { ApiClient } from '../../infrastructure/api/client';
 import { loadConfigFromStorage, saveConfigToStorage } from '../../utils/configStorage';
 import { AppConfigContext } from './AppConfigContext';
 import { updateTranscriptSession } from '../../infrastructure/transcript/TranscriptWriter';
@@ -19,6 +18,7 @@ import {
   buildImmediateBackendConfig,
   hasImmediateBackendConfigChanges,
 } from './appConfigBackendSync';
+import { DesktopSettingsRuntimeClient } from '../runtime/desktopSettingsRuntimeClient';
 
 const LIST_MODELS_REQUEST_GUARD_KEY = '__windie_models_list_requested__';
 
@@ -77,7 +77,7 @@ export function AppConfigProvider({ children }) {
     if (currentConfig && typeof currentConfig === 'object') {
       const immediateBackendConfig = buildImmediateBackendConfig(currentConfig);
       if (immediateBackendConfig) {
-        ApiClient.updateSettings(immediateBackendConfig);
+        DesktopSettingsRuntimeClient.updateSettings(immediateBackendConfig);
       }
     }
   }, [configRef]);
@@ -112,7 +112,7 @@ export function AppConfigProvider({ children }) {
 
     const immediateBackendConfig = buildImmediateBackendConfig(nextConfig);
     if (immediateBackendConfig && hasImmediateBackendConfigChanges(previousConfig, nextConfig)) {
-      ApiClient.updateSettings(immediateBackendConfig);
+      DesktopSettingsRuntimeClient.updateSettings(immediateBackendConfig);
     }
   }, [saveStatusCallbackRef]);
 
@@ -152,7 +152,7 @@ export function AppConfigProvider({ children }) {
 
     logConfigInfo('[Config] Requesting available models...');
     window[LIST_MODELS_REQUEST_GUARD_KEY] = true;
-    ApiClient.listModels();
+    DesktopSettingsRuntimeClient.listModels();
   }, []);
 
   const applyBackendConnectionSnapshot = useCallback((data) => {

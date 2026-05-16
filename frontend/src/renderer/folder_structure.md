@@ -16,6 +16,9 @@ frontend/src/renderer/
 │   ├── WakewordController.jsx           # WakewordController - Always-on wakeword detection + chatbox trigger
 │   ├── main.jsx                         # React entry point - renders App with StrictMode in dev
 │   │
+│   ├── runtime/                         # App-level SDK/runtime command facades
+│   │   └── desktopSettingsRuntimeClient.ts # Renderer settings/model facade over Electron main IPC
+│   │
 │   └── providers/                       # Context providers for global state
 │       ├── AppConfigContext.jsx         # AppConfigContext + useAppConfigContext hook
 │       ├── AppConfigProvider.jsx        # AppConfigProvider - Manages config/models/wakeword and syncs frontend config to backend on connect/startup

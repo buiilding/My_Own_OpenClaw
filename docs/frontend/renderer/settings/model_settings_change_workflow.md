@@ -130,7 +130,7 @@ Dashboard rules:
   `speech_mode_enabled`, and `interaction_mode` while changing the selected
   model/provider.
 - Legacy catalog entries can trigger a one-time refresh through
-  `ApiClient.listModels()` from the renderer.
+  `DesktopSettingsRuntimeClient.listModels()` from the renderer.
 - Provider API key entries must be normalized through `normalizeProviderApiKeys`
   before storing in config.
 
@@ -173,7 +173,7 @@ Persistence rules:
   `{ enabled, api_key }`.
 - If a default selected model changes, update frontend local defaults and
   backend `AppConfig` defaults together.
-- First-query `ApiClient.setModel(...)` sync must still send the latest model selection before a
+- First-query `DesktopConversationRuntimeClient.setModel(...)` sync must still send the latest model selection before a
   query reaches the backend.
 
 ## Debug Routes

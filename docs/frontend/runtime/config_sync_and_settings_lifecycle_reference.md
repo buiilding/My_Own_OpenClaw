@@ -11,6 +11,7 @@ title: "Config Sync and Settings Lifecycle Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
+- `frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient.ts`
 - `frontend/src/renderer/app/providers/AppStatusProvider.jsx`
 - `frontend/src/renderer/app/providers/appConfigEvents.js`
 - `frontend/src/renderer/app/providers/appConfigPersistence.js`
@@ -57,12 +58,12 @@ All outbound config updates use this boundary before backend sync.
 Responsibilities:
 
 - source config state from localStorage on startup
-- request model list once for main view through `ApiClient.listModels()`
+- request model list once for main view through `DesktopSettingsRuntimeClient.listModels()`
 - sync non-model config to backend on connection availability
 - merge disk/local updates with current in-memory config
 - persist updates to localStorage and disk
-- publish `update-settings` through `ApiClient`
-- leave deferred model/provider selection to `ApiClient.setModel(...)` on send/replay/compaction paths
+- publish `update-settings` through `DesktopSettingsRuntimeClient.updateSettings(...)`
+- leave deferred model/provider selection to `DesktopConversationRuntimeClient.setModel(...)` on send/replay/compaction paths
 - derive the wakeword preference from persisted `config.wakeword_enabled`
 
 Important guardrails:
