@@ -168,8 +168,8 @@ AppConfig controls HTTP artifact storage used for screenshots:
 - `artifact_store_path` (default: persistent user config dir `.../DesktopAssistant/artifacts`)
 - `artifact_max_bytes` (default: 25MB)
 
-Runtime compatibility note:
-- if an artifact is missing under the configured path, backend also checks legacy temp storage (`<temp>/windieos-artifacts`) and migrates found files forward.
+Runtime note:
+- artifact lookup uses the configured `artifact_store_path` only.
 
 Important execution knobs in `AppConfig` (`backend/src/core/config/models.py`) include:
 - `interaction_mode` (`chat` or `agent`) controls tool allowlist behavior.

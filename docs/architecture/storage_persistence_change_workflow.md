@@ -217,7 +217,6 @@ Validate:
 - partial uploads are cleaned up.
 - artifact id validation blocks traversal.
 - owner metadata enforcement behaves as intended.
-- legacy temp-dir fallback/migration remains tested if changed.
 
 ### Change backend install-auth SQLite
 
@@ -270,7 +269,7 @@ Validate:
 | Semantic memory search is stale | embeddings availability, FAISS mapping, semanticization watermark | sidecar memory/index/summarizer |
 | App forgets model/settings after restart | renderer local storage, Electron config file, config filter | renderer/Electron config persistence |
 | Install auth works once then disappears | `install-auth.json` read/write, user-data reset, registration response normalization | Electron install auth persistence |
-| Artifact 404 after upload | artifact id, base dir, owner metadata, legacy fallback | backend artifact store or Electron upload bridge |
+| Artifact 404 after upload | artifact id, base dir, owner metadata | backend artifact store or Electron upload bridge |
 | VM run vanishes after backend restart | expected: VM run service is in-memory | backend run-control design, not renderer bug |
 | Tool wait hangs or leaks futures | result storage cleanup, request-id mismatch, bundle result handling | backend tool waiting storage |
 | Cache serves stale value | cache key namespace/TTL/negative cache behavior | backend cache store/manager |

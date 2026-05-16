@@ -129,7 +129,7 @@ Execution/event semantics for these fields (decision skip reasons, trigger fallb
 | `artifact_max_bytes` | `int` | `25MB` | Max upload payload accepted by artifact route. |
 
 Artifact compatibility behavior:
-- lookup falls back to legacy `<temp>/windieos-artifacts` and migrates matches into current `artifact_store_path`.
+- lookup uses only the configured `artifact_store_path`.
 
 Runtime-only field:
 

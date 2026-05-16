@@ -28,7 +28,6 @@ Responsibilities:
 - disk-backed upload storage with strict content-type allowlist (`image/png`, `image/jpeg`)
 - artifact id validation (`<uuid>.<png|jpg|jpeg>`)
 - max-bytes enforcement from `AppConfig.artifact_max_bytes`
-- legacy temp-dir fallback lookup and best-effort migration
 
 Storage characteristics:
 
