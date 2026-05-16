@@ -264,12 +264,28 @@ class SidecarDaemonHttpClient:
         )
 
     async def execute_tool(
-        self, *, tool_name: str, args: dict[str, Any]
+        self,
+        *,
+        tool_name: str,
+        args: dict[str, Any],
+        request_id: Optional[str] = None,
+        tool_call_id: Optional[str] = None,
+        correlation_id: Optional[str] = None,
+        bundle_id: Optional[str] = None,
     ) -> dict[str, Any]:
+        payload: dict[str, Any] = {"tool_name": tool_name, "args": args}
+        if request_id:
+            payload["request_id"] = request_id
+        if tool_call_id:
+            payload["tool_call_id"] = tool_call_id
+        if correlation_id:
+            payload["correlation_id"] = correlation_id
+        if bundle_id:
+            payload["bundle_id"] = bundle_id
         return await self._request_json(
             method="post",
             path="/execute-tool",
-            payload={"tool_name": tool_name, "args": args},
+            payload=payload,
         )
 
     async def shutdown(self) -> None:
@@ -469,18 +485,36 @@ class WindieSdkAgentSession:
         )
         if metadata.get("skip_frontend_execution") is True:
             return
-        tool_name = _clean_string(payload.get("tool_name"))
-        request_id = _clean_string(payload.get("request_id")) or _clean_string(
-            payload.get("correlation_id")
+        tool_name = _clean_string(payload.get("tool_name")) or _clean_string(
+            payload.get("toolName")
+        )
+        request_id = (
+            _clean_string(payload.get("request_id"))
+            or _clean_string(payload.get("requestId"))
+            or _clean_string(payload.get("correlation_id"))
+            or _clean_string(payload.get("correlationId"))
+        )
+        tool_call_id = _clean_string(payload.get("tool_call_id")) or _clean_string(
+            payload.get("toolCallId")
+        )
+        correlation_id = _clean_string(payload.get("correlation_id")) or _clean_string(
+            payload.get("correlationId")
         )
         if not tool_name or not request_id:
             return
-        parameters = payload.get("parameters")
+        parameters = (
+            payload.get("args")
+            if isinstance(payload.get("args"), dict)
+            else payload.get("parameters")
+        )
         args = parameters if isinstance(parameters, dict) else {}
         try:
             result = await self.local_runtime.execute_tool(
                 tool_name=tool_name,
                 args=args,
+                request_id=request_id,
+                tool_call_id=tool_call_id,
+                correlation_id=correlation_id,
             )
             result_payload = _build_tool_result_payload(request_id, result)
         except Exception as exc:
@@ -508,7 +542,9 @@ class WindieSdkAgentSession:
         )
         if metadata.get("skip_frontend_execution") is True:
             return
-        bundle_id = _clean_string(payload.get("bundle_id"))
+        bundle_id = _clean_string(payload.get("bundle_id")) or _clean_string(
+            payload.get("bundleId")
+        )
         steps = payload.get("tools") if isinstance(payload.get("tools"), list) else []
         if not bundle_id or not steps:
             return
@@ -516,29 +552,37 @@ class WindieSdkAgentSession:
         for step in steps:
             if not isinstance(step, dict):
                 continue
-            tool_name = _clean_string(step.get("name"))
+            tool_name = _clean_string(step.get("name")) or _clean_string(
+                step.get("toolName")
+            )
             if not tool_name:
                 continue
             args = step.get("args") if isinstance(step.get("args"), dict) else {}
+            tool_call_id = _clean_string(step.get("tool_call_id")) or _clean_string(
+                step.get("toolCallId")
+            )
             try:
                 result = await self.local_runtime.execute_tool(
                     tool_name=tool_name,
                     args=args,
+                    bundle_id=bundle_id,
+                    tool_call_id=tool_call_id,
                 )
                 success = result.get("success") is not False
-                step_results.append(
-                    {
-                        "tool": tool_name,
-                        "status": "success" if success else "failure",
-                        "output": (
-                            _normalize_tool_result_data(result.get("data"))
-                            if success
-                            else {
-                                "error": result.get("error") or "Tool execution failed"
-                            }
-                        ),
-                    }
-                )
+                step_result = {
+                    "tool": tool_name,
+                    "status": "success" if success else "failure",
+                    "output": (
+                        _normalize_tool_result_data(result.get("data"))
+                        if success
+                        else {
+                            "error": result.get("error") or "Tool execution failed"
+                        }
+                    ),
+                }
+                if tool_call_id:
+                    step_result["toolCallId"] = tool_call_id
+                step_results.append(step_result)
             except Exception as exc:
                 step_results.append(
                     {

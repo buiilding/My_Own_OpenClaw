@@ -260,6 +260,9 @@ Electron uses a sidecar-backed store adapter:
 - the Electron main-process SDK tool router accepts canonical SDK identity fields
   (`requestId`, `toolCallId`, `correlationId`, `bundleId`) before emitting
   backend wire payloads.
+- the Python SDK websocket session also forwards request, provider, correlation,
+  and bundle identities into local runtime `execute_tool(...)` calls so sidecar
+  execution can preserve SDK-owned tool routing state.
 
 Skipped compaction is represented as `compaction_skipped`. It is runtime/debug
 state and should not render as assistant output or a full compacted-history panel

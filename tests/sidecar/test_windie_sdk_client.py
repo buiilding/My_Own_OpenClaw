@@ -125,8 +125,8 @@ class FakeSidecarRuntime:
             ],
         }
 
-    async def execute_tool(self, *, tool_name, args):
-        self.executions.append((tool_name, args))
+    async def execute_tool(self, *, tool_name, args, **metadata):
+        self.executions.append((tool_name, args, metadata))
         return {
             "success": True,
             "data": {"llm_content": f"{tool_name}:{args.get('text', '')}"},
@@ -366,6 +366,8 @@ async def test_python_agent_session_routes_tool_call_to_sidecar():
                 "type": "tool-call",
                 "payload": {
                     "request_id": "req-1",
+                    "tool_call_id": "call-1",
+                    "correlation_id": "corr-1",
                     "tool_name": "save_note",
                     "parameters": {"text": "hello"},
                 },
@@ -391,7 +393,17 @@ async def test_python_agent_session_routes_tool_call_to_sidecar():
     event = await agent.receive_json()
 
     assert event["type"] == "tool-call"
-    assert sidecar.executions == [("save_note", {"text": "hello"})]
+    assert sidecar.executions == [
+        (
+            "save_note",
+            {"text": "hello"},
+            {
+                "request_id": "req-1",
+                "tool_call_id": "call-1",
+                "correlation_id": "corr-1",
+            },
+        )
+    ]
     assert websocket.sent[-1]["type"] == "tool-result"
     assert websocket.sent[-1]["payload"] == {
         "request_id": "req-1",
@@ -413,6 +425,7 @@ async def test_python_agent_session_routes_tool_bundle_to_sidecar():
                     "tools": [
                         {
                             "name": "save_note",
+                            "toolCallId": "call-save-note",
                             "args": {"text": "first"},
                         }
                     ],
@@ -439,10 +452,19 @@ async def test_python_agent_session_routes_tool_bundle_to_sidecar():
     event = await agent.receive_json()
 
     assert event["type"] == "tool-bundle"
-    assert sidecar.executions == [("save_note", {"text": "first"})]
+    assert sidecar.executions == [
+        (
+            "save_note",
+            {"text": "first"},
+            {"bundle_id": "bundle-1", "tool_call_id": "call-save-note"},
+        )
+    ]
     assert websocket.sent[-1]["type"] == "tool-bundle-result"
     assert websocket.sent[-1]["payload"]["bundle_id"] == "bundle-1"
     assert websocket.sent[-1]["payload"]["status"] == "success"
+    assert websocket.sent[-1]["payload"]["step_results"][0]["toolCallId"] == (
+        "call-save-note"
+    )
     assert websocket.sent[-1]["payload"]["step_results"][0]["output"] == {
         "llm_content": "save_note:first"
     }
