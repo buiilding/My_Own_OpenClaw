@@ -242,6 +242,10 @@ Electron uses a sidecar-backed store adapter:
 - desktop dashboard and app config session synchronization use an app-level
   transcript-session runtime facade, so feature/provider code does not import
   transcript infrastructure directly for conversation/user identity updates.
+- desktop dashboard conversation list/load/delete commands use
+  `DesktopConversationLibraryClient`, which delegates to
+  `DesktopTranscriptProjectionRuntimeClient` before reaching the Electron store
+  adapter.
 - desktop manual compaction controls share one rehydrate-first runtime helper
   that uses the SDK store-backed conversation rehydrate path before sending
   `compact-history`.

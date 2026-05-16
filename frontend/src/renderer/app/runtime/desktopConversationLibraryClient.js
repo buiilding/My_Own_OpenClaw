@@ -1,24 +1,17 @@
 import {
-  ElectronSidecarConversationStore,
-} from '../../infrastructure/transcript/ElectronSidecarConversationStore';
-
-function createConversationStore(userId) {
-  return new ElectronSidecarConversationStore({ userId });
-}
+  DesktopTranscriptProjectionRuntimeClient,
+} from './desktopTranscriptProjectionRuntimeClient';
 
 export const DesktopConversationLibraryClient = {
   async listMetadata(userId, options) {
-    const store = createConversationStore(userId);
-    return store.listMetadata(options);
+    return DesktopTranscriptProjectionRuntimeClient.listMetadata(userId, options);
   },
 
   async loadForDisplay(userId, conversationRef) {
-    const store = createConversationStore(userId);
-    return store.loadForDisplay(conversationRef);
+    return DesktopTranscriptProjectionRuntimeClient.loadForDisplay(userId, conversationRef);
   },
 
   async deleteConversation(userId, conversationRef) {
-    const store = createConversationStore(userId);
-    await store.deleteConversation(conversationRef);
+    await DesktopTranscriptProjectionRuntimeClient.deleteConversation(userId, conversationRef);
   },
 };

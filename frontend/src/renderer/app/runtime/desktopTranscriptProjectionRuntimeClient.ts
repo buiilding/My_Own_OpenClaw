@@ -16,7 +16,10 @@ import type {
 } from '../../infrastructure/transcript/types';
 import type {
   CompactedReplaySnapshot,
+  DisplayConversation,
+  ConversationMetadata,
   ConversationStore,
+  ListConversationOptions,
   RehydrateSnapshot,
 } from '../../infrastructure/api/windieSdkClient';
 import {
@@ -274,6 +277,21 @@ export const DesktopTranscriptProjectionRuntimeClient = {
   }: LoadRehydrateSnapshotInput): Promise<RehydrateSnapshot> {
     const store = new ElectronSidecarConversationStore({ userId });
     return store.loadForRehydrate(conversationRef);
+  },
+
+  async listMetadata(userId: string, options?: ListConversationOptions): Promise<ConversationMetadata[]> {
+    const store = new ElectronSidecarConversationStore({ userId });
+    return store.listMetadata(options);
+  },
+
+  async loadForDisplay(userId: string, conversationRef: string): Promise<DisplayConversation> {
+    const store = new ElectronSidecarConversationStore({ userId });
+    return store.loadForDisplay(conversationRef);
+  },
+
+  async deleteConversation(userId: string, conversationRef: string): Promise<void> {
+    const store = new ElectronSidecarConversationStore({ userId });
+    await store.deleteConversation(conversationRef);
   },
 
   async createSeededConversationStore({

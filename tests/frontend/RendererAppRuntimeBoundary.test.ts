@@ -23,6 +23,16 @@ async function listSourceFiles(dir: string): Promise<string[]> {
 }
 
 describe('renderer app runtime boundary', () => {
+  test('conversation library facade delegates store access to transcript projection runtime', async () => {
+    const source = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopConversationLibraryClient.js'),
+      'utf8',
+    );
+
+    expect(source).toContain('DesktopTranscriptProjectionRuntimeClient');
+    expect(source).not.toContain('ElectronSidecarConversationStore');
+  });
+
   test('app provider code uses runtime facades for transcript session helpers', async () => {
     const files = await listSourceFiles(appRoot);
     const offenders: string[] = [];
