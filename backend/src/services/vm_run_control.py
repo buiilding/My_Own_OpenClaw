@@ -33,13 +33,10 @@ from backend.src.services.vm_run_control_support.vm_run_control_pending_controls
 )
 from backend.src.services.vm_run_control_support.vm_run_control_worker_state import (
     build_registry_worker_state,
-    build_run_worker_state,
-    build_worker_heartbeat_event_payload,
 )
 from backend.src.services.vm_run_control_support.vm_run_control_transitions import (
     apply_control_transition,
     apply_stream_event_transition,
-    apply_worker_heartbeat_transition,
     normalize_control_action,
 )
 
@@ -436,69 +433,6 @@ class VmRunControlService:
                     user_id=user_id,
                     turn_ref=turn_ref,
                     conversation_ref=run["conversation_ref"],
-                ),
-            )
-            return self._clone_run(run)
-
-    async def record_worker_heartbeat(
-        self,
-        run_id: str,
-        *,
-        worker_id: str,
-        vm_id: str,
-        session_id: str,
-        agent_id: Optional[str] = None,
-        status: str = "ready",
-        metadata: Optional[Dict[str, Any]] = None,
-    ) -> Optional[Dict[str, Any]]:
-        """Backward-compatible run-scoped heartbeat used by earlier tests/routes."""
-        async with self._lock:
-            run = self._runs.get(run_id)
-            if not run:
-                return None
-            now = now_iso()
-            existing_worker = self._workers.get(worker_id, {})
-            worker_user_id = normalize_optional_string(existing_worker.get("user_id"))
-            worker_workspace_id = normalize_optional_string(existing_worker.get("workspace_id"))
-            run["worker"] = build_run_worker_state(
-                worker_id=worker_id,
-                vm_id=vm_id,
-                session_id=session_id,
-                agent_id=agent_id,
-                user_id=worker_user_id,
-                status=status,
-                metadata=metadata,
-                last_heartbeat_at=now,
-            )
-            run["last_heartbeat_at"] = now
-            apply_worker_heartbeat_transition(
-                run,
-                status=status,
-                ready_worker_statuses=self._READY_WORKER_STATUSES,
-            )
-
-            self._workers[worker_id] = build_registry_worker_state(
-                worker_id=worker_id,
-                workspace_id=worker_workspace_id or run.get("workspace_id"),
-                vm_id=vm_id,
-                user_id=worker_user_id,
-                session_id=session_id,
-                agent_id=agent_id,
-                status=status,
-                metadata=metadata,
-                last_heartbeat_at=now,
-            )
-
-            self._append_event_locked(
-                run,
-                event_type="worker-heartbeat",
-                source="worker",
-                payload=build_worker_heartbeat_event_payload(
-                    worker_id=worker_id,
-                    vm_id=vm_id,
-                    session_id=session_id,
-                    agent_id=agent_id,
-                    status=status,
                 ),
             )
             return self._clone_run(run)

@@ -76,20 +76,6 @@ class StopAllRunsResponse(BaseModel):
     count: int
 
 
-class WorkerHeartbeatRequest(BaseModel):
-    worker_id: str = Field(min_length=1)
-    vm_id: str = Field(min_length=1)
-    session_id: str = Field(min_length=1)
-    agent_id: Optional[str] = None
-    status: str = "ready"
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-
-
-class WorkerHeartbeatResponse(BaseModel):
-    run: RunView
-    latest_event: RunEvent
-
-
 class WorkerPollHeartbeatRequest(BaseModel):
     workspace_id: str = Field(min_length=1)
     worker_id: str = Field(min_length=1)
@@ -174,8 +160,6 @@ __all__ = [
     "WorkerControlCommand",
     "WorkerDispatchedRequest",
     "WorkerDispatchedResponse",
-    "WorkerHeartbeatRequest",
-    "WorkerHeartbeatResponse",
     "WorkerPollHeartbeatRequest",
     "WorkerPollHeartbeatResponse",
 ]

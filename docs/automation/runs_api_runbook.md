@@ -45,7 +45,6 @@ If the backend has no runs key configured, the routes are open. Production-like 
 | `POST /api/runs/stop-all` | Stop all active runs, optionally workspace-scoped | `router.py:stop_all_runs`, `vm_run_control_bulk_stop.py` |
 | `POST /api/runs/workers/heartbeat` | Register worker, assign next run, return commands | `router.py:worker_poll_heartbeat`, `register_worker_heartbeat` |
 | `POST /api/runs/{run_id}/worker-dispatched` | Worker ack after websocket query dispatch | `router.py:worker_dispatched`, `acknowledge_run_dispatch` |
-| `POST /api/runs/{run_id}/worker-heartbeat` | Legacy run-scoped heartbeat | `router.py:worker_heartbeat`, `record_worker_heartbeat` |
 
 ## Create a Run
 

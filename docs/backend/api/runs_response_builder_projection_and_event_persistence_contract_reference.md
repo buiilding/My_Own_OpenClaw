@@ -29,7 +29,6 @@ It centralizes conversion from service dictionaries into strongly typed response
 - `RunEventIngestResponse`
 - `WorkerPollHeartbeatResponse`
 - `WorkerDispatchedResponse`
-- `WorkerHeartbeatResponse`
 
 Route handlers in `router.py` call these helpers instead of instantiating nested response models inline.
 
@@ -43,7 +42,7 @@ Contract:
 - Drops event history fields from route payload projection.
 - Instantiates `RunView(**projected_dict)`.
 
-This keeps all run-view shaping consistent across `get_run`, `create_run`, and control/heartbeat responses.
+This keeps all run-view shaping consistent across `get_run`, `create_run`, and control responses.
 
 ### `build_create_run_response(run)`
 
@@ -66,7 +65,7 @@ Contract:
 - Derives `latest_event` via `latest_run_event_dict(run, missing_detail=...)`.
 - Always returns `RunControlResponse` with concrete `RunEvent` model.
 
-This keeps `control_run(...)` output aligned with `worker_dispatched(...)` and `worker_heartbeat(...)` latest-event behavior.
+This keeps `control_run(...)` output aligned with `worker_dispatched(...)` latest-event behavior.
 
 ### `build_worker_dispatched_response(run)`
 
@@ -78,17 +77,6 @@ Contract:
 - Returns fully typed `WorkerDispatchedResponse`.
 
 This keeps dispatch-ack endpoint response shaping identical to other run-event response builders.
-
-### `build_worker_heartbeat_response(run)`
-
-Contract:
-
-- Builds `run` projection via `build_run_view(run)`.
-- Builds `latest_event` from:
-  - `latest_run_event_dict(run, missing_detail="Worker heartbeat event not recorded")`
-- Returns fully typed `WorkerHeartbeatResponse`.
-
-This removes duplicated latest-event construction logic from route handler paths.
 
 ### `build_ingested_run_event_response(result)`
 
@@ -123,7 +111,6 @@ Current `router.py` call sites:
 - `ingest_run_event(...)` -> `build_ingested_run_event_response(...)`
 - `control_run(...)` -> `build_run_control_response(...)`
 - `worker_dispatched(...)` -> `build_worker_dispatched_response(...)`
-- `worker_heartbeat(...)` -> `build_worker_heartbeat_response(...)`
 
 ## Test-Locked Invariants
 
@@ -133,7 +120,6 @@ Current `router.py` call sites:
 - `build_ingested_run_event_response(...)` raises sanitized `500` when run/event payload is missing or malformed.
 - `build_worker_poll_heartbeat_response(...)` preserves worker snapshot and handles `assigned_run=None` without failure.
 - `build_worker_dispatched_response(...)` uses `run-dispatched` as latest event projection.
-- `build_worker_heartbeat_response(...)` uses `worker-heartbeat` as latest event projection.
 
 Route-level expectations in `tests/backend/test_run_control_routes.py` validate that helpers produce response shapes accepted by endpoint models.
 

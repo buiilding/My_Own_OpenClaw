@@ -76,17 +76,6 @@ Import compatibility contract:
   - `status` default `"ready"`
   - `metadata` default `{}`
 
-### `WorkerHeartbeatRequest` (legacy run-scoped path)
-
-- required non-empty:
-  - `worker_id`
-  - `vm_id`
-  - `session_id`
-- optional:
-  - `agent_id`
-  - `status` default `"ready"`
-  - `metadata` default `{}`
-
 ### `WorkerDispatchedRequest`
 
 - required non-empty:
@@ -129,7 +118,6 @@ Import compatibility contract:
 - `POST /api/runs/{run_id}/control` -> `RunControlResponse`
 - `POST /api/runs/stop-all` -> `StopAllRunsResponse`
 - `POST /api/runs/{run_id}/worker-dispatched` -> `WorkerDispatchedResponse`
-- `POST /api/runs/{run_id}/worker-heartbeat` -> `WorkerHeartbeatResponse`
 - `POST /api/runs/workers/heartbeat` -> `WorkerPollHeartbeatResponse`
 
 ### Poll-Heartbeat Composite Response

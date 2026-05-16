@@ -194,19 +194,6 @@ Failure behavior:
 
 - unknown run id or worker mismatch -> HTTP 404
 
-### `POST /api/runs/{run_id}/worker-heartbeat`
-
-Owner: `backend/src/api/routes/runs/router.py:worker_heartbeat`
-
-Behavior:
-
-- backward-compatible run-scoped worker heartbeat
-- records worker metadata and emits `worker-heartbeat` event
-
-Failure behavior:
-
-- unknown run id -> HTTP 404
-
 ### `POST /api/embeddings/`
 
 Owner: `backend/src/api/routes/memory/embeddings/router.py:generate_embedding`

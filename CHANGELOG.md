@@ -19,6 +19,7 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: rename tool source and surface labels from renderer tool-runner ownership to SDK/local-runtime ownership.
 - frontend/sdk: rename the main/transport rehydrate method to `rehydrateConversation` so low-level send naming stays inside the managed backend transport.
 - backend/vision: remove the unused `IVisionService` alias so vision contracts expose only provider naming.
+- backend/runs: remove the legacy run-scoped worker heartbeat route and service method; workers now use the first-class poll heartbeat endpoint only.
 - backend/container: remove container-level `embedder`, `ocr_service`, and `vision_service` aliases in favor of router fields.
 - backend/sdk: remove the transitional `Context` alias so tools import `ToolContext` directly.
 - backend/simulation: remove the coordinate resolver compatibility re-export and docs from the first-class simulation surface.

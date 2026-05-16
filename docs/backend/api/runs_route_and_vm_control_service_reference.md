@@ -177,14 +177,6 @@ Worker ack after query send to backend websocket path.
 - Optional `conversation_ref` override if non-empty.
 - Emits `run-dispatched` (`source="worker"`).
 
-### `POST /api/runs/{run_id}/worker-heartbeat`
-
-Legacy run-scoped heartbeat path retained for compatibility/tests.
-
-- Updates run-bound worker metadata and heartbeat timestamps.
-- Promotes `awaiting_worker|queued` -> `running` when status is `ready|running`.
-- Emits `worker-heartbeat` (`source="worker"`).
-
 ## Event/Sequence Guarantees
 
 - Events are append-only and ordered by per-run `seq`.

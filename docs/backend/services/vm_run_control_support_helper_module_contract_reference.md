@@ -140,10 +140,6 @@ Test-backed invariants:
 - metadata is deep-copied so caller-side mutation does not alias service state
 - heartbeat event payload helper emits compact worker identity/status block
 
-Integration note:
-
-- Worker-state helpers are used in both queue assignment and run-scoped legacy heartbeat paths.
-
 ## Shared Utility Helper Contract
 
 `vm_run_control_helpers.py`:

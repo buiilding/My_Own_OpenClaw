@@ -1000,22 +1000,6 @@ Worker relays backend stream events into run timeline.
 }
 ```
 
-### POST `/api/runs/{run_id}/worker-heartbeat`
-
-Run-scoped worker heartbeat endpoint.
-
-**Request**:
-```json
-{
-  "worker_id": "worker-1",
-  "vm_id": "vm-1",
-  "session_id": "session-1",
-  "agent_id": "agent-alpha",
-  "status": "ready",
-  "metadata": {}
-}
-```
-
 ## Message Format
 
 ### Base Message Structure

@@ -87,36 +87,6 @@ async def test_control_run_requires_control_mode_for_set_control_mode_action() -
 
 
 @pytest.mark.asyncio
-async def test_worker_heartbeat_binds_worker_and_transitions_run_to_running() -> None:
-    service = VmRunControlService()
-    created = await runs_routes.create_run(
-        runs_routes.CreateRunRequest(
-            workspace_id="workspace-demo",
-            query="submit internship application",
-            agent_id="agent-alpha",
-        ),
-        service=service,
-    )
-
-    heartbeat = await runs_routes.worker_heartbeat(
-        created.run.run_id,
-        runs_routes.WorkerHeartbeatRequest(
-            worker_id="worker-1",
-            vm_id="vm-1",
-            session_id="session-1",
-            agent_id="agent-alpha",
-            status="ready",
-        ),
-        service=service,
-    )
-
-    assert heartbeat.run.status == "running"
-    assert heartbeat.run.worker is not None
-    assert heartbeat.run.worker["vm_id"] == "vm-1"
-    assert heartbeat.latest_event.event_type == "worker-heartbeat"
-
-
-@pytest.mark.asyncio
 async def test_worker_poll_heartbeat_assigns_pending_run() -> None:
     service = VmRunControlService()
     created = await runs_routes.create_run(

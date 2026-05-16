@@ -15,7 +15,6 @@ from .models import (
     WorkerAssignedRun,
     WorkerControlCommand,
     WorkerDispatchedResponse,
-    WorkerHeartbeatResponse,
     WorkerPollHeartbeatResponse,
 )
 from .support import latest_run_event_dict, to_run_view_dict
@@ -48,16 +47,6 @@ def build_worker_dispatched_response(run: dict[str, Any]) -> WorkerDispatchedRes
         **latest_run_event_dict(run, missing_detail="Dispatch event not recorded")
     )
     return WorkerDispatchedResponse(
-        run=build_run_view(run),
-        latest_event=latest_event,
-    )
-
-
-def build_worker_heartbeat_response(run: dict[str, Any]) -> WorkerHeartbeatResponse:
-    latest_event = RunEvent(
-        **latest_run_event_dict(run, missing_detail="Worker heartbeat event not recorded")
-    )
-    return WorkerHeartbeatResponse(
         run=build_run_view(run),
         latest_event=latest_event,
     )

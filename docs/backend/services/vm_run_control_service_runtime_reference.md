@@ -140,15 +140,6 @@ Worker drain behavior:
 - `_collect_pending_control_commands_locked(worker_id)` returns queued commands for worker-owned runs
 - after return, each run `pending_controls` is cleared (one-shot delivery)
 
-## Legacy Run-Scoped Heartbeat Compatibility
-
-`record_worker_heartbeat(...)` remains for compatibility paths/tests:
-
-- updates run-local worker payload
-- syncs `_workers[worker_id]`
-- promotes run to `running` when status is `awaiting_worker|queued` and heartbeat status is `ready|running`
-- appends `worker-heartbeat` event
-
 ## Event Sequencing Contract
 
 `_append_event_locked(...)` guarantees:

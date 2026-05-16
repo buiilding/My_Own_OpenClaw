@@ -17,8 +17,6 @@ from .models import (
     WorkerControlCommand,
     WorkerDispatchedRequest,
     WorkerDispatchedResponse,
-    WorkerHeartbeatRequest,
-    WorkerHeartbeatResponse,
     WorkerPollHeartbeatRequest,
     WorkerPollHeartbeatResponse,
 )
@@ -31,7 +29,6 @@ from .router import (
     router,
     stop_all_runs,
     worker_dispatched,
-    worker_heartbeat,
     worker_poll_heartbeat,
 )
 from .support import get_vm_run_control_service, verify_runs_api_key
@@ -53,8 +50,6 @@ __all__ = [
     "WorkerControlCommand",
     "WorkerDispatchedRequest",
     "WorkerDispatchedResponse",
-    "WorkerHeartbeatRequest",
-    "WorkerHeartbeatResponse",
     "WorkerPollHeartbeatRequest",
     "WorkerPollHeartbeatResponse",
     "create_run",
@@ -67,6 +62,5 @@ __all__ = [
     "stop_all_runs",
     "verify_runs_api_key",
     "worker_dispatched",
-    "worker_heartbeat",
     "worker_poll_heartbeat",
 ]

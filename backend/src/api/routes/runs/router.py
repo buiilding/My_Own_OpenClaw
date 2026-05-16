@@ -19,8 +19,6 @@ from .models import (
     StopAllRunsResponse,
     WorkerDispatchedRequest,
     WorkerDispatchedResponse,
-    WorkerHeartbeatRequest,
-    WorkerHeartbeatResponse,
     WorkerPollHeartbeatRequest,
     WorkerPollHeartbeatResponse,
 )
@@ -31,7 +29,6 @@ from .response_builders import (
     build_run_control_response,
     build_run_view,
     build_worker_dispatched_response,
-    build_worker_heartbeat_response,
     build_worker_poll_heartbeat_response,
 )
 from .support import get_vm_run_control_service, require_run, verify_runs_api_key
@@ -176,22 +173,3 @@ async def worker_dispatched(
         conversation_ref=payload.conversation_ref,
     ), detail="Run not found or worker mismatch")
     return build_worker_dispatched_response(run)
-
-
-@router.post("/{run_id}/worker-heartbeat", response_model=WorkerHeartbeatResponse)
-async def worker_heartbeat(
-    run_id: str,
-    payload: WorkerHeartbeatRequest,
-    service: VmRunControlServiceDep,
-    _api_key: RunsApiKeyDep = None,
-) -> WorkerHeartbeatResponse:
-    run = require_run(await service.record_worker_heartbeat(
-        run_id,
-        worker_id=payload.worker_id,
-        vm_id=payload.vm_id,
-        session_id=payload.session_id,
-        agent_id=payload.agent_id,
-        status=payload.status,
-        metadata=payload.metadata,
-    ))
-    return build_worker_heartbeat_response(run)
