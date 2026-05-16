@@ -4,11 +4,8 @@ import {
 } from '../settings/modelSelection.js';
 import type { JsonRecord } from '../conversation/types.js';
 import {
+  createWindieAgentSession,
   createMessageId,
-  deriveWsUrl,
-  normalizeWsUrl,
-  resolveWebSocketImplementation,
-  WindieAgentSession,
   type WebSocketConstructor,
 } from '../transport/WindieAgentSession.js';
 import {
@@ -81,15 +78,13 @@ export class WindieClient {
 
     const localTools = await this.prepareLocalRuntime(options, localRuntime);
     const agentDefinition = buildWakeUpAgentDefinition(options, localTools);
-    const wsUrl = this.defaultOptions.wsUrl
-      ? normalizeWsUrl(this.defaultOptions.wsUrl)
-      : deriveWsUrl(backendUrl);
-    const WebSocketImpl = resolveWebSocketImplementation(this.defaultOptions.WebSocketImpl);
-    const socket = new WebSocketImpl(wsUrl);
-    const session = new WindieAgentSession(socket, {
-      user_id: options.userId ?? this.defaultOptions.defaultUserId ?? 'local-sdk-user',
-      operating_system: detectOperatingSystem(),
-      agent_definition: agentDefinition,
+    const session = createWindieAgentSession({
+      backendUrl,
+      wsUrl: this.defaultOptions.wsUrl,
+      WebSocketImpl: this.defaultOptions.WebSocketImpl,
+      userId: options.userId ?? this.defaultOptions.defaultUserId ?? 'local-sdk-user',
+      operatingSystem: detectOperatingSystem(),
+      agentDefinition: agentDefinition,
     });
     await session.waitForOpen();
     if (initialModelSettings) {

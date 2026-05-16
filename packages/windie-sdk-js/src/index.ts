@@ -15,8 +15,12 @@ export * from './transport/backendEventNormalizer.js';
 export * from './transport/HostedBackendHttpClient.js';
 export * from './tools/ToolExecutionCoordinator.js';
 export * from './settings/modelSelection.js';
-export { WindieAgentSession } from './transport/WindieAgentSession.js';
+export {
+  createWindieAgentSession,
+  WindieAgentSession,
+} from './transport/WindieAgentSession.js';
 export type {
+  WindieAgentSessionOptions,
   WebSocketConstructor,
   WebSocketLike,
   WindieAgentQueryInput,

@@ -3,6 +3,7 @@ import * as os from 'os';
 import * as path from 'path';
 
 import {
+  createWindieAgentSession,
   createWindieLocalRuntimeProvider,
   moduleTool,
   WindieClient,
@@ -317,6 +318,28 @@ describe('WindieSdkClient', () => {
         interaction_mode: 'agent',
       },
       user_id: 'dev-user',
+    });
+  });
+
+  test('SDK transport creates websocket-backed agent sessions from backend URLs', async () => {
+    const session = createWindieAgentSession({
+      backendUrl: 'https://api.windieos.com',
+      WebSocketImpl: FakeWebSocket as any,
+      userId: 'transport-user',
+      operatingSystem: 'macOS',
+      agentDefinition: { id: 'transport-agent' },
+    });
+
+    expect(FakeWebSocket.instances[0].url).toBe('wss://api.windieos.com/ws');
+    const openPromise = session.waitForOpen();
+    FakeWebSocket.instances[0].emit('open', {});
+    await openPromise;
+
+    expect(JSON.parse(FakeWebSocket.instances[0].sent[0])).toMatchObject({
+      type: 'handshake',
+      user_id: 'transport-user',
+      operating_system: 'macOS',
+      agent_definition: { id: 'transport-agent' },
     });
   });
 

@@ -19,6 +19,15 @@ export type WebSocketLike = {
 
 export type WebSocketConstructor = new (url: string) => WebSocketLike;
 
+export type WindieAgentSessionOptions = {
+  backendUrl: string;
+  wsUrl?: string;
+  WebSocketImpl?: WebSocketConstructor;
+  userId: string;
+  operatingSystem?: string;
+  agentDefinition?: JsonRecord;
+};
+
 export type WindieAgentQueryInput = {
   text: string;
   conversationRef: string;
@@ -77,6 +86,19 @@ export function createMessageId(): string {
     return globalThis.crypto.randomUUID();
   }
   return `msg_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+export function createWindieAgentSession(options: WindieAgentSessionOptions): WindieAgentSession {
+  const wsUrl = options.wsUrl
+    ? normalizeWsUrl(options.wsUrl)
+    : deriveWsUrl(options.backendUrl);
+  const WebSocketImpl = resolveWebSocketImplementation(options.WebSocketImpl);
+  const socket = new WebSocketImpl(wsUrl);
+  return new WindieAgentSession(socket, {
+    user_id: options.userId,
+    operating_system: options.operatingSystem,
+    agent_definition: options.agentDefinition,
+  });
 }
 
 function attachSocketListener(
