@@ -48,9 +48,9 @@ Resolution order:
 1. explicit URL envs:
    - `BACKEND_HTTP_URL`
    - `BACKEND_WS_URL`
-2. packaged fallback envs (packaged runtime only):
-   - `WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL`
-   - `WINDIE_DEFAULT_PACKAGED_BACKEND_WS_URL`
+2. hosted default envs:
+   - `WINDIE_DEFAULT_BACKEND_HTTP_URL`
+   - `WINDIE_DEFAULT_BACKEND_WS_URL`
 3. host/port fallback:
    - `BACKEND_HOST` + `BACKEND_PORT`
    - defaults `127.0.0.1:8765`
@@ -72,7 +72,7 @@ Covered by `tests/frontend/IpcMainBridge.lifecycle.test.cjs`.
 Packaged runtime coverage includes:
 
 - hosted default fallback (`wss://api.windieos.com/ws`, `https://api.windieos.com`)
-- packaged HTTP override derivation to ws endpoint path (`WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL` -> derived `wss://.../ws`)
+- hosted default HTTP override derivation to ws endpoint path (`WINDIE_DEFAULT_BACKEND_HTTP_URL` -> derived `wss://.../ws`)
 
 ## RPC Payload Key Compatibility (`local_backend_bridge_rpc_mappers.cjs`)
 

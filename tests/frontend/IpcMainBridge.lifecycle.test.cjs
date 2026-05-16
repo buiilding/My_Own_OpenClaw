@@ -518,8 +518,8 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     await expectClientEndpoints(bridge.handlers, 'wss://api.windieos.com/ws', 'https://api.windieos.com');
   });
 
-  test('uses packaged default backend env override when app is packaged', async () => {
-    process.env.WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL = 'https://hosted.windie.example/v1/';
+  test('uses canonical hosted default backend env override when app is packaged', async () => {
+    process.env.WINDIE_DEFAULT_BACKEND_HTTP_URL = 'https://hosted.windie.example/v1/';
     const bridge = initIpc({ isPackaged: true });
     const { ws } = await beginBackendConnection(bridge);
     expect(ws.url).toBe('wss://hosted.windie.example/ws');

@@ -39,9 +39,6 @@ title: "WebSocket Handshake and Settings Sync Reference"
   - hosted default env overrides:
     - `WINDIE_DEFAULT_BACKEND_HTTP_URL`
     - `WINDIE_DEFAULT_BACKEND_WS_URL`
-  - packaged compatibility overrides:
-    - `WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL`
-    - `WINDIE_DEFAULT_PACKAGED_BACKEND_WS_URL`
 
 Relay state keeps:
 

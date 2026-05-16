@@ -7,8 +7,6 @@
  * - BACKEND_HOST + BACKEND_PORT (explicit endpoint override)
  * - WINDIE_DEFAULT_BACKEND_HTTP_URL / WINDIE_DEFAULT_BACKEND_WS_URL
  *   (optional hosted-default overrides for all app modes)
- * - WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL / WINDIE_DEFAULT_PACKAGED_BACKEND_WS_URL
- *   (legacy hosted-default overrides for packaged mode; still honored)
  */
 
 const DEFAULT_LOCAL_BACKEND_HOST = '127.0.0.1';
@@ -117,15 +115,6 @@ function resolveHostedDefaultEndpoints(env) {
     env.WINDIE_DEFAULT_BACKEND_WS_URL,
     ['ws:', 'wss:'],
   );
-  const explicitPackagedHttpUrl = normalizeUrl(
-    env.WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL,
-    ['http:', 'https:'],
-  );
-  const explicitPackagedWsUrl = normalizeUrl(
-    env.WINDIE_DEFAULT_PACKAGED_BACKEND_WS_URL,
-    ['ws:', 'wss:'],
-  );
-
   if (explicitDefaultHttpUrl && explicitDefaultWsUrl) {
     return { httpUrl: explicitDefaultHttpUrl, wsUrl: explicitDefaultWsUrl };
   }
@@ -139,21 +128,6 @@ function resolveHostedDefaultEndpoints(env) {
     return {
       httpUrl: toHttpUrl(explicitDefaultWsUrl),
       wsUrl: explicitDefaultWsUrl,
-    };
-  }
-  if (explicitPackagedHttpUrl && explicitPackagedWsUrl) {
-    return { httpUrl: explicitPackagedHttpUrl, wsUrl: explicitPackagedWsUrl };
-  }
-  if (explicitPackagedHttpUrl) {
-    return {
-      httpUrl: explicitPackagedHttpUrl,
-      wsUrl: toWsUrl(explicitPackagedHttpUrl),
-    };
-  }
-  if (explicitPackagedWsUrl) {
-    return {
-      httpUrl: toHttpUrl(explicitPackagedWsUrl),
-      wsUrl: explicitPackagedWsUrl,
     };
   }
   return {

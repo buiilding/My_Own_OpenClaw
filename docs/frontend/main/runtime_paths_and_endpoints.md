@@ -32,9 +32,6 @@ Supported env vars (priority order):
 - hosted-default override pair:
   - `WINDIE_DEFAULT_BACKEND_HTTP_URL`
   - `WINDIE_DEFAULT_BACKEND_WS_URL`
-- packaged fallback override pair:
-  - `WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL`
-  - `WINDIE_DEFAULT_PACKAGED_BACKEND_WS_URL`
 
 Defaults when explicit `BACKEND_*` is unset:
 
@@ -46,7 +43,7 @@ Defaults when explicit `BACKEND_*` is unset:
   - primary hosted candidate:
     - http: `https://api.windieos.com`
     - ws: `wss://api.windieos.com/ws`
-    - or `WINDIE_DEFAULT_BACKEND_*` / `WINDIE_DEFAULT_PACKAGED_BACKEND_*` when set
+    - or `WINDIE_DEFAULT_BACKEND_*` when set
 
 Normalization rules:
 

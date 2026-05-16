@@ -1,4 +1,6 @@
 const {
+  resolveBackendEndpointCandidates,
+  resolveBackendEndpoints,
   resolvePreferredArtifactHttpUrl,
 } = require('../../frontend/src/main/backend_endpoints.cjs');
 
@@ -18,5 +20,35 @@ describe('backend_endpoints artifact url selection', () => {
 
   test('uses canonical hosted artifact base when no endpoint data exists', () => {
     expect(resolvePreferredArtifactHttpUrl(null, [])).toBe('https://api.windieos.com');
+  });
+});
+
+describe('backend_endpoints hosted defaults', () => {
+  test('uses canonical hosted-default override pair', () => {
+    const env = {
+      WINDIE_DEFAULT_BACKEND_HTTP_URL: 'https://staging.windieos.com/',
+      WINDIE_DEFAULT_BACKEND_WS_URL: 'wss://staging.windieos.com/ws',
+    };
+
+    expect(resolveBackendEndpoints(env)).toEqual({
+      httpUrl: 'https://staging.windieos.com',
+      wsUrl: 'wss://staging.windieos.com/ws',
+      wsOrigin: 'https://staging.windieos.com',
+    });
+  });
+
+  test('ignores removed packaged hosted-default override names', () => {
+    const candidates = resolveBackendEndpointCandidates({
+      WINDIE_DEFAULT_PACKAGED_BACKEND_HTTP_URL: 'https://packaged.example.com',
+      WINDIE_DEFAULT_PACKAGED_BACKEND_WS_URL: 'wss://packaged.example.com/ws',
+    });
+
+    expect(candidates).toEqual([
+      {
+        httpUrl: 'https://api.windieos.com',
+        wsUrl: 'wss://api.windieos.com/ws',
+        wsOrigin: 'https://api.windieos.com',
+      },
+    ]);
   });
 });

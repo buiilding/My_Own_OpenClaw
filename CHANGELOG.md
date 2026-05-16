@@ -12,6 +12,7 @@ All notable changes to WindieOS will be documented in this file.
 - docs/sidecar: update executor docs to remove the deleted `core.thread_pool` facade.
 - frontend/models: describe model catalog metadata refresh as first-class SDK metadata repair instead of a legacy payload path.
 - frontend/theme: remove unused legacy dashboard CSS tokens from the active renderer theme.
+- frontend/main: remove packaged-only backend endpoint override env names in favor of the canonical hosted-default pair.
 - sidecar/browser: remove ignored Chrome launcher restart compatibility parameter and the unused BrowserSession element-index alias.
 - frontend/sdk: make conversation inference-session hydration read canonical `conversation_event` rows by default.
 - frontend/sdk: make dashboard conversation search and local conversation loaders use canonical SDK `conversation_event` rows by default instead of transcript fallback rows.
