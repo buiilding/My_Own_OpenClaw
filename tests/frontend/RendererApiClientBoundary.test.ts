@@ -8,6 +8,10 @@ const allowedRelativePaths = new Set([
   'features/chat/session/desktopConversationRuntimeClient.ts',
   'infrastructure/api/client.ts',
 ]);
+const allowedBackendIpcRelativePaths = new Set([
+  'infrastructure/api/client.ts',
+  'infrastructure/ipc/channels.ts',
+]);
 
 async function listSourceFiles(dir: string): Promise<string[]> {
   const entries = await fs.readdir(dir, { withFileTypes: true });
@@ -37,6 +41,24 @@ describe('renderer api client boundary', () => {
       }
       const source = await fs.readFile(file, 'utf8');
       if (source.includes('infrastructure/api/client') || source.includes('ApiClient.')) {
+        offenders.push(relativePath);
+      }
+    }
+
+    expect(offenders).toEqual([]);
+  });
+
+  test('renderer backend IPC sends stay inside the desktop api adapter', async () => {
+    const files = await listSourceFiles(rendererRoot);
+    const offenders: string[] = [];
+
+    for (const file of files) {
+      const relativePath = path.relative(rendererRoot, file);
+      if (allowedBackendIpcRelativePaths.has(relativePath)) {
+        continue;
+      }
+      const source = await fs.readFile(file, 'utf8');
+      if (source.includes('SEND_CHANNELS.TO_BACKEND') || source.includes("'to-backend'") || source.includes('"to-backend"')) {
         offenders.push(relativePath);
       }
     }
