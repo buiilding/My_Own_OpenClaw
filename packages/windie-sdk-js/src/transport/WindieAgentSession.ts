@@ -121,6 +121,9 @@ function normalizeIncomingSocketMessage(payload: unknown): unknown {
   if (payload && typeof payload === 'object' && 'data' in (payload as Record<string, unknown>)) {
     return (payload as { data?: unknown }).data;
   }
+  if (payload instanceof Uint8Array) {
+    return new TextDecoder().decode(payload);
+  }
   return payload;
 }
 

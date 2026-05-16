@@ -5,8 +5,8 @@ const wsModule = require(path.resolve(__dirname, '../frontend/node_modules/ws'))
 
 const WebSocketServer = wsModule.WebSocketServer || wsModule.Server;
 
-function send(ws, type, payload = {}) {
-  ws.send(JSON.stringify({ type, payload }));
+function send(ws, type, payload = {}, envelope = {}) {
+  ws.send(JSON.stringify({ ...envelope, type, payload }));
 }
 
 function createMockBackendServer() {
@@ -25,6 +25,7 @@ function createMockBackendServer() {
   wss.on('connection', (ws) => {
     let handshake = null;
     let pendingToolCall = null;
+    let pendingRoutingEnvelope = {};
 
     ws.on('message', (raw) => {
       let message;
@@ -44,7 +45,9 @@ function createMockBackendServer() {
         handshake = message;
         const manifestTools = Array.isArray(message.client_tool_manifest?.tools)
           ? message.client_tool_manifest.tools
-          : [];
+          : Array.isArray(message.agent_definition?.tools?.client_manifest?.tools)
+            ? message.agent_definition.tools.client_manifest.tools
+            : [];
         send(ws, 'client-tool-manifest', {
           accepted: manifestTools,
           rejected: [],
@@ -62,11 +65,23 @@ function createMockBackendServer() {
       }
 
       if (message.type === 'query') {
+        const queryPayload = message.payload && typeof message.payload === 'object'
+          ? message.payload
+          : {};
+        const routingEnvelope = {
+          conversation_ref: queryPayload.conversation_ref || message.conversation_ref,
+          turn_ref: queryPayload.turn_ref || message.turn_ref,
+        };
         const promptLayers = Array.isArray(message.client_prompt_layers)
           ? message.client_prompt_layers
           : [];
-        const toolSchemas = Array.isArray(handshake.client_tool_manifest?.tools)
-          ? handshake.client_tool_manifest.tools.map((tool) => ({
+        const handshakeTools = Array.isArray(handshake.client_tool_manifest?.tools)
+          ? handshake.client_tool_manifest.tools
+          : Array.isArray(handshake.agent_definition?.tools?.client_manifest?.tools)
+            ? handshake.agent_definition.tools.client_manifest.tools
+            : [];
+        const toolSchemas = Array.isArray(handshakeTools)
+          ? handshakeTools.map((tool) => ({
             type: 'function',
             name: tool.name,
             description: tool.description,
@@ -77,24 +92,29 @@ function createMockBackendServer() {
           content: 'Mock WindieOS system prompt.',
           tool_schemas: null,
           client_prompt_layers: promptLayers,
-        });
-        send(ws, 'tool-schemas', { tool_schemas: toolSchemas });
-        send(ws, 'streaming-response', { chunk: 'Mock response from Windie-agent backend. ' });
+        }, routingEnvelope);
+        send(ws, 'tool-schemas', { tool_schemas: toolSchemas }, routingEnvelope);
+        send(ws, 'streaming-response', {
+          chunk: 'Mock response from Windie-agent backend. ',
+          text: 'Mock response from Windie-agent backend. ',
+        }, routingEnvelope);
 
-        const firstTool = handshake.client_tool_manifest?.tools?.[0];
+        const firstTool = handshakeTools[0];
         if (firstTool) {
           pendingToolCall = firstTool.name;
+          pendingRoutingEnvelope = routingEnvelope;
           send(ws, 'tool-call', {
             tool_name: firstTool.name,
             parameters: {},
             request_id: 'mock-tool-call-1',
-          });
+          }, routingEnvelope);
           return;
         }
 
         send(ws, 'streaming-complete', {
           content: 'Mock response from Windie-agent backend.',
-        });
+          final_response: 'Mock response from Windie-agent backend.',
+        }, routingEnvelope);
         return;
       }
 
@@ -104,11 +124,13 @@ function createMockBackendServer() {
           success: true,
           output: 'mock tool result accepted',
           metadata: { source: 'mock-backend' },
-        });
+        }, pendingRoutingEnvelope);
         pendingToolCall = null;
         send(ws, 'streaming-complete', {
           content: 'Mock response from Windie-agent backend.',
-        });
+          final_response: 'Mock response from Windie-agent backend.',
+        }, pendingRoutingEnvelope);
+        pendingRoutingEnvelope = {};
       }
     });
   });

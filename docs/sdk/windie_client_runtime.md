@@ -400,6 +400,11 @@ For a minimal non-Electron consumer, see `examples/cli-agent`. It uses
 `WindieClient.wakeUp`, `agent.conversation`, `FileConversationStore`, and
 `conversation.stream()` against a mock websocket backend.
 
+The frontend SDK test suite includes a mock-backend end-to-end contract that
+starts `scripts/mock-backend.cjs`, wakes `WindieClient`, registers a module tool
+through a fake local runtime, streams a turn, returns the local tool result over
+the websocket transport, and verifies the completed conversation projection.
+
 For a browser-based custom UI that renders SDK display projections directly,
 see `examples/custom-ui`.
 
