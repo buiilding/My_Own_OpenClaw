@@ -77,19 +77,27 @@ function toolOutputDedupeKey(event: ConversationEvent): string | null {
 }
 
 function toolPairKey(event: ConversationEvent): string | null {
+  return toolPairKeys(event)[0] ?? null;
+}
+
+function toolPairKeys(event: ConversationEvent): string[] {
   if (event.type === 'tool_bundle_call' || event.type === 'tool_bundle_output') {
     const bundleId = stringField(event.payload, 'bundleId', 'bundle_id');
-    return bundleId ? `bundle:${bundleId}` : null;
+    return bundleId ? [`bundle:${bundleId}`] : [];
   }
   if (event.type === 'tool_call' || event.type === 'tool_output') {
+    const keys: string[] = [];
+    const toolCallId = stringField(event.payload, 'toolCallId', 'tool_call_id');
+    if (toolCallId) {
+      keys.push(`tool-call:${toolCallId}`);
+    }
     const requestId = stringField(event.payload, 'requestId', 'request_id', 'correlationId', 'correlation_id');
     if (requestId) {
-      return `request:${requestId}`;
+      keys.push(`request:${requestId}`);
     }
-    const toolCallId = stringField(event.payload, 'toolCallId', 'tool_call_id');
-    return toolCallId ? `tool-call:${toolCallId}` : null;
+    return keys;
   }
-  return null;
+  return [];
 }
 
 function isToolCallEvent(event: ConversationEvent): boolean {
@@ -156,24 +164,22 @@ function withoutDanglingToolPairs(events: ConversationEvent[]): ConversationEven
   const callKeys = new Set<string>();
   const outputKeys = new Set<string>();
   for (const event of events) {
-    const key = toolPairKey(event);
-    if (!key) {
+    const keys = toolPairKeys(event);
+    if (keys.length === 0) {
       continue;
     }
     if (isToolCallEvent(event)) {
-      callKeys.add(key);
+      keys.forEach(key => callKeys.add(key));
     } else if (isToolOutputEvent(event)) {
-      outputKeys.add(key);
+      keys.forEach(key => outputKeys.add(key));
     }
   }
   return events.filter(event => {
     if (isToolCallEvent(event)) {
-      const key = toolPairKey(event);
-      return Boolean(key && outputKeys.has(key));
+      return toolPairKeys(event).some(key => outputKeys.has(key));
     }
     if (isToolOutputEvent(event)) {
-      const key = toolPairKey(event);
-      return Boolean(key && callKeys.has(key));
+      return toolPairKeys(event).some(key => callKeys.has(key));
     }
     return true;
   });

@@ -251,6 +251,9 @@ Electron uses a sidecar-backed store adapter:
   model-facing tool call metadata, and the local tool coordinator carries
   `requestId`, `toolCallId`, and `correlationId` into stored `tool_output`
   events.
+- rehydrate projection keeps tool history only when calls and outputs are paired,
+  but pairing can use any shared wait/provider identity: `toolCallId`,
+  `requestId`, `correlationId`, or `bundleId`.
 
 Skipped compaction is represented as `compaction_skipped`. It is runtime/debug
 state and should not render as assistant output or a full compacted-history panel
