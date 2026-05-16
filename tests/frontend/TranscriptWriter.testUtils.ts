@@ -39,6 +39,11 @@ export function loadTranscriptWriter() {
     ON_CHANNELS: { TRANSCRIPT_SESSION_SYNC: 'transcript-session-sync' },
   }));
   jest.doMock('../../frontend/src/renderer/infrastructure/transcript/conversationReplayState', () => ({
+    buildReplayRowStoragePayload: jest.fn((context, entry) => ({
+      ...context,
+      ...entry,
+      recordKind: 'transcript_replay',
+    })),
     ensureConversationReplayStateInitialized: jest.fn().mockResolvedValue('bootstrapped'),
     appendConversationReplayEntry: jest.fn(),
   }));

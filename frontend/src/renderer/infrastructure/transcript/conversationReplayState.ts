@@ -1,5 +1,4 @@
 import { toRehydrateMessagePayload, DEFAULT_USER_ID } from '../../features/dashboard/utils/episodicMemoryUtils';
-import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
 import { loadStoredConversationEntries } from './localConversationStore';
 
 export const TRANSCRIPT_REPLAY_RECORD_KIND = 'transcript_replay';
@@ -29,6 +28,17 @@ type ReplayStoreContext = {
 type ConversationStateDeleteOptions = {
   includeTranscript?: boolean;
   includeReplayState?: boolean;
+};
+
+export type ConversationReplayStoreDeps = {
+  deleteConversationRecordKind: (
+    context: ReplayStoreContext,
+    recordKind: string,
+  ) => Promise<void>;
+  storeReplayRow: (
+    context: ReplayStoreContext,
+    entry: ReplaySnapshotEntry,
+  ) => Promise<void>;
 };
 
 const initializedReplayConversations = new Set<string>();
@@ -101,20 +111,6 @@ function getReplayMutationEpoch(replayKey: string): number {
   return replayMutationEpochs.get(replayKey) || 0;
 }
 
-async function deleteConversationRecordKind(
-  context: ReplayStoreContext,
-  recordKind: string,
-): Promise<void> {
-  const result = await IpcBridge.invoke(INVOKE_CHANNELS.DELETE_CONVERSATION, {
-    userId: context.userId,
-    conversationId: context.conversationRef,
-    recordKind,
-  });
-  if (!result || result.success === false) {
-    throw new Error(result?.error || `Failed to delete ${recordKind} conversation rows`);
-  }
-}
-
 export function readStoredReplayRehydrateEntry(memory: unknown): Record<string, unknown> | null {
   const metadata = resolveStoredReplayMetadata(memory);
   const candidate = metadata.rehydrate_entry ?? metadata.rehydrateEntry;
@@ -132,6 +128,7 @@ export function clearConversationReplayStateCache(): void {
 
 export async function deleteConversationStoredState(
   context: ReplayStoreContext,
+  deps: Pick<ConversationReplayStoreDeps, 'deleteConversationRecordKind'>,
   {
     includeTranscript = true,
     includeReplayState = true,
@@ -147,14 +144,14 @@ export async function deleteConversationStoredState(
 
   const deleteOperations: Promise<void>[] = [];
   if (includeTranscript) {
-    deleteOperations.push(deleteConversationRecordKind({
+    deleteOperations.push(deps.deleteConversationRecordKind({
       ...context,
       conversationRef: normalizedConversationRef,
       userId: normalizedUserId,
     }, 'transcript'));
   }
   if (includeReplayState) {
-    deleteOperations.push(deleteConversationRecordKind({
+    deleteOperations.push(deps.deleteConversationRecordKind({
       ...context,
       conversationRef: normalizedConversationRef,
       userId: normalizedUserId,
@@ -174,14 +171,14 @@ export async function deleteConversationStoredState(
   }
 }
 
-async function storeReplayRow(
+export function buildReplayRowStoragePayload(
   context: ReplayStoreContext,
   {
     messageIndex,
     rehydrateEntry,
   }: ReplaySnapshotEntry,
-): Promise<void> {
-  await IpcBridge.invoke(INVOKE_CHANNELS.STORE_TRANSCRIPT, {
+): Record<string, unknown> {
+  return {
     content: resolveReplayStorageContent(rehydrateEntry),
     userId: context.userId,
     conversationRef: context.conversationRef,
@@ -194,12 +191,13 @@ async function storeReplayRow(
     workspaceName: context.workspaceName ?? null,
     recordKind: TRANSCRIPT_REPLAY_RECORD_KIND,
     rehydrateEntry,
-  });
+  };
 }
 
 export async function replaceConversationReplayState(
   context: ReplayStoreContext,
   entries: ReplaySnapshotEntry[],
+  deps: Pick<ConversationReplayStoreDeps, 'storeReplayRow'>,
   generation: ReplayGenerationMetadata = {},
 ): Promise<void> {
   const normalizedConversationRef = normalizeConversationRef(context.conversationRef);
@@ -220,7 +218,7 @@ export async function replaceConversationReplayState(
 
   for (let index = 0; index < entries.length; index += 1) {
     const entry = entries[index];
-    await storeReplayRow(context, {
+    await deps.storeReplayRow(context, {
       messageIndex: entry.messageIndex ?? (index + 1),
       rehydrateEntry: {
         ...entry.rehydrateEntry,
@@ -242,8 +240,9 @@ export async function replaceConversationReplayState(
 export async function appendConversationReplayEntry(
   context: ReplayStoreContext,
   entry: ReplaySnapshotEntry,
+  deps: Pick<ConversationReplayStoreDeps, 'storeReplayRow'>,
 ): Promise<void> {
-  await storeReplayRow(context, entry);
+  await deps.storeReplayRow(context, entry);
   initializedReplayConversations.add(
     getReplayConversationKey(context.conversationRef, context.userId),
   );
@@ -251,6 +250,7 @@ export async function appendConversationReplayEntry(
 
 export async function ensureConversationReplayStateInitialized(
   context: ReplayStoreContext,
+  deps: Pick<ConversationReplayStoreDeps, 'storeReplayRow'>,
 ): Promise<ReplayInitState> {
   const normalizedConversationRef = normalizeConversationRef(context.conversationRef);
   if (!normalizedConversationRef) {
@@ -307,6 +307,7 @@ export async function ensureConversationReplayStateInitialized(
         messageIndex: resolveMemoryMessageIndex(memory, index + 1),
         rehydrateEntry: toRehydrateMessagePayload(memory),
       })),
+      deps,
     );
     if (getReplayMutationEpoch(replayKey) !== (rewriteStartingEpoch + 1)) {
       return 'empty';

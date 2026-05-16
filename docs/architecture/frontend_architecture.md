@@ -136,12 +136,13 @@ New-chat behavior:
 
 ### Conversation/Transcript Flow
 
-1. Renderer writes transcript rows through `INVOKE_CHANNELS.STORE_TRANSCRIPT`.
-2. `TranscriptWriter` queues failed writes and retries when session info becomes available.
+1. Renderer chat hooks call `TranscriptWriter` for visible transcript projection writes.
+2. `TranscriptWriter` queues failed writes and retries when session info becomes available, but persistence goes through `ElectronSidecarConversationStore` instead of direct transcript IPC.
 3. Renderer-local conversation store helpers fetch transcript windows via sidecar RPC (`list-conversations`, `search-conversations`, `get-conversation`).
    `get-conversation` resume/hydrate paths use `message_index` cursor pagination (`after_message_index`) so large local DB transcripts are fully reloaded instead of capped at one page.
-4. Opening a past chat replaces in-memory renderer chat state immediately, but backend conversation history is rehydrated lazily only before the first backend-dependent action for that chat.
-5. Send, replay/edit, and manual compaction all pass through a renderer-side inference-session hydration runtime, which restores backend history on demand from the local transcript and invalidates hydrated state after backend disconnects.
+4. `ElectronSidecarConversationStore` is the only renderer adapter that calls transcript storage IPC; it writes visible transcript rows, replay rows, and SDK `conversation_event` rows behind one store boundary.
+5. Opening a past chat replaces in-memory renderer chat state immediately, but backend conversation history is rehydrated lazily only before the first backend-dependent action for that chat.
+6. Send, replay/edit, and manual compaction all pass through a renderer-side inference-session hydration runtime, which restores backend history on demand from SDK store projections and invalidates hydrated state after backend disconnects.
 
 Current ownership boundary:
 

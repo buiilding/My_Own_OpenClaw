@@ -3,6 +3,7 @@ import {
 } from './storedTranscriptSdkProjection';
 import {
   appendConversationReplayEntry,
+  buildReplayRowStoragePayload,
   deleteConversationStoredState,
   ensureConversationReplayStateInitialized,
   readStoredReplayRehydrateEntry,
@@ -281,7 +282,7 @@ export class ElectronSidecarConversationStore implements ConversationStore {
     await deleteConversationStoredState({
       userId: this.userId,
       conversationRef,
-    });
+    }, this.getReplayStoreDeps());
     await this.deleteRecordKind(conversationRef, SDK_CONVERSATION_EVENT_RECORD_KIND);
   }
 
@@ -317,7 +318,11 @@ export class ElectronSidecarConversationStore implements ConversationStore {
       workspacePath: workspaceBinding.workspacePath || null,
       workspaceName: workspaceBinding.workspaceName || null,
     };
-    const replayInitState = await ensureConversationReplayStateInitialized(replayContext);
+    const replayStoreDeps = this.getReplayStoreDeps();
+    const replayInitState = await ensureConversationReplayStateInitialized(
+      replayContext,
+      replayStoreDeps,
+    );
     if (replayInitState !== 'bootstrapped') {
       await appendConversationReplayEntry(
         replayContext,
@@ -325,6 +330,7 @@ export class ElectronSidecarConversationStore implements ConversationStore {
           messageIndex,
           rehydrateEntry: entry.rehydrateEntry,
         },
+        replayStoreDeps,
       );
     }
   }
@@ -342,7 +348,7 @@ export class ElectronSidecarConversationStore implements ConversationStore {
       conversationRef,
       workspacePath: workspaceBinding.workspacePath || null,
       workspaceName: workspaceBinding.workspaceName || null,
-    });
+    }, this.getReplayStoreDeps());
 
     for (const entry of entries) {
       const result = await this.deps.invoke(INVOKE_CHANNELS.STORE_TRANSCRIPT, {
@@ -380,6 +386,7 @@ export class ElectronSidecarConversationStore implements ConversationStore {
         messageIndex: index + 1,
         rehydrateEntry: entry,
       })),
+      this.getReplayStoreDeps(),
       {
         generationId: snapshot.generationId,
         sourceRevisionId: snapshot.sourceRevisionId,
@@ -509,6 +516,48 @@ export class ElectronSidecarConversationStore implements ConversationStore {
     if (!result || result.success === false) {
       throw new Error(result?.error || `Failed to delete ${recordKind} conversation rows`);
     }
+  }
+
+  private async storeReplayRow(
+    context: {
+      conversationRef: string;
+      userId: string;
+      workspacePath?: string | null;
+      workspaceName?: string | null;
+    },
+    entry: {
+      messageIndex?: number | null;
+      rehydrateEntry: Record<string, unknown>;
+    },
+  ): Promise<void> {
+    const result = await this.deps.invoke(
+      INVOKE_CHANNELS.STORE_TRANSCRIPT,
+      buildReplayRowStoragePayload(context, entry),
+    );
+    if (!result || result.success === false) {
+      throw new Error(result?.error || 'Failed to store replay transcript row');
+    }
+  }
+
+  private getReplayStoreDeps() {
+    return {
+      deleteConversationRecordKind: async (
+        context: { conversationRef: string },
+        recordKind: string,
+      ) => this.deleteRecordKind(context.conversationRef, recordKind),
+      storeReplayRow: async (
+        context: {
+          conversationRef: string;
+          userId: string;
+          workspacePath?: string | null;
+          workspaceName?: string | null;
+        },
+        entry: {
+          messageIndex?: number | null;
+          rehydrateEntry: Record<string, unknown>;
+        },
+      ) => this.storeReplayRow(context, entry),
+    };
   }
 
   private async loadRows(conversationRef: string, recordKind: string): Promise<StoredConversationRow[]> {

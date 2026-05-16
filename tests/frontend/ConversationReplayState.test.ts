@@ -1,36 +1,34 @@
 import {
   appendConversationReplayEntry,
+  buildReplayRowStoragePayload,
   clearConversationReplayStateCache,
   deleteConversationStoredState,
   ensureConversationReplayStateInitialized,
   TRANSCRIPT_REPLAY_RECORD_KIND,
 } from '../../frontend/src/renderer/infrastructure/transcript/conversationReplayState';
 import { loadStoredConversationEntries } from '../../frontend/src/renderer/infrastructure/transcript/localConversationStore';
-import { IpcBridge } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 
 jest.mock('../../frontend/src/renderer/infrastructure/transcript/localConversationStore', () => ({
   loadStoredConversationEntries: jest.fn(),
 }));
 
-jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
-  IpcBridge: {
-    invoke: jest.fn(),
-  },
-  INVOKE_CHANNELS: {
-    STORE_TRANSCRIPT: 'store-transcript',
-    DELETE_CONVERSATION: 'delete-conversation',
-  },
-}));
-
 const mockLoadStoredConversationEntries = loadStoredConversationEntries as jest.MockedFunction<typeof loadStoredConversationEntries>;
-const mockInvoke = IpcBridge.invoke as jest.MockedFunction<typeof IpcBridge.invoke>;
+const storeReplayRow = jest.fn();
+const deleteConversationRecordKind = jest.fn();
+
+const replayStoreDeps = {
+  storeReplayRow,
+  deleteConversationRecordKind,
+};
 
 describe('conversationReplayState', () => {
   beforeEach(() => {
     clearConversationReplayStateCache();
     mockLoadStoredConversationEntries.mockReset();
-    mockInvoke.mockReset();
-    mockInvoke.mockResolvedValue({ success: true, data: {} } as any);
+    storeReplayRow.mockReset();
+    storeReplayRow.mockResolvedValue(undefined);
+    deleteConversationRecordKind.mockReset();
+    deleteConversationRecordKind.mockResolvedValue(undefined);
   });
 
   test('bootstraps replay rows from transcript history when replay is missing', async () => {
@@ -51,14 +49,18 @@ describe('conversationReplayState', () => {
       userId: 'user-1',
       workspacePath: '/workspace',
       workspaceName: 'WindieOS',
-    });
+    }, replayStoreDeps);
 
     expect(state).toBe('bootstrapped');
-    expect(mockInvoke).toHaveBeenCalledTimes(1);
-    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'store-transcript', expect.objectContaining({
+    expect(storeReplayRow).toHaveBeenCalledTimes(1);
+    const [context, entry] = storeReplayRow.mock.calls[0];
+    expect(context).toEqual({
       userId: 'user-1',
       conversationRef: 'conv-1',
-      recordKind: TRANSCRIPT_REPLAY_RECORD_KIND,
+      workspacePath: '/workspace',
+      workspaceName: 'WindieOS',
+    });
+    expect(entry).toEqual(expect.objectContaining({
       messageIndex: 3,
       rehydrateEntry: expect.objectContaining({
         role: 'user',
@@ -85,9 +87,24 @@ describe('conversationReplayState', () => {
           message_type: 'llm-text',
         },
       },
+      replayStoreDeps,
     );
 
-    expect(mockInvoke).toHaveBeenCalledWith('store-transcript', expect.objectContaining({
+    expect(storeReplayRow).toHaveBeenCalledWith(
+      {
+        conversationRef: 'conv-1',
+        userId: 'user-1',
+      },
+      {
+        messageIndex: 7,
+        rehydrateEntry: {
+          role: 'assistant',
+          content: 'done',
+          message_type: 'llm-text',
+        },
+      },
+    );
+    expect(buildReplayRowStoragePayload(storeReplayRow.mock.calls[0][0], storeReplayRow.mock.calls[0][1])).toEqual(expect.objectContaining({
       conversationRef: 'conv-1',
       userId: 'user-1',
       recordKind: TRANSCRIPT_REPLAY_RECORD_KIND,
@@ -103,18 +120,16 @@ describe('conversationReplayState', () => {
     await deleteConversationStoredState({
       conversationRef: 'conv-1',
       userId: 'user-1',
-    });
+    }, replayStoreDeps);
 
-    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'delete-conversation', {
+    expect(deleteConversationRecordKind).toHaveBeenNthCalledWith(1, {
       userId: 'user-1',
-      conversationId: 'conv-1',
-      recordKind: 'transcript',
-    });
-    expect(mockInvoke).toHaveBeenNthCalledWith(2, 'delete-conversation', {
+      conversationRef: 'conv-1',
+    }, 'transcript');
+    expect(deleteConversationRecordKind).toHaveBeenNthCalledWith(2, {
       userId: 'user-1',
-      conversationId: 'conv-1',
-      recordKind: TRANSCRIPT_REPLAY_RECORD_KIND,
-    });
+      conversationRef: 'conv-1',
+    }, TRANSCRIPT_REPLAY_RECORD_KIND);
   });
 
   test('stale replay bootstrap does not rewrite replay rows after conversation state is cleared', async () => {
@@ -136,29 +151,28 @@ describe('conversationReplayState', () => {
     const initializationPromise = ensureConversationReplayStateInitialized({
       conversationRef: 'conv-1',
       userId: 'user-1',
-    });
+    }, replayStoreDeps);
 
     await Promise.resolve();
 
     await deleteConversationStoredState({
       conversationRef: 'conv-1',
       userId: 'user-1',
-    });
+    }, replayStoreDeps);
 
     resolveReplayLookup?.([]);
 
     await expect(initializationPromise).resolves.toBe('empty');
 
-    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'delete-conversation', {
+    expect(deleteConversationRecordKind).toHaveBeenNthCalledWith(1, {
       userId: 'user-1',
-      conversationId: 'conv-1',
-      recordKind: 'transcript',
-    });
-    expect(mockInvoke).toHaveBeenNthCalledWith(2, 'delete-conversation', {
+      conversationRef: 'conv-1',
+    }, 'transcript');
+    expect(deleteConversationRecordKind).toHaveBeenNthCalledWith(2, {
       userId: 'user-1',
-      conversationId: 'conv-1',
-      recordKind: TRANSCRIPT_REPLAY_RECORD_KIND,
-    });
-    expect(mockInvoke).toHaveBeenCalledTimes(2);
+      conversationRef: 'conv-1',
+    }, TRANSCRIPT_REPLAY_RECORD_KIND);
+    expect(deleteConversationRecordKind).toHaveBeenCalledTimes(2);
+    expect(storeReplayRow).not.toHaveBeenCalled();
   });
 });
