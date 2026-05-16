@@ -481,7 +481,6 @@ class BrowserController:
             actual_cdp_url = await ensure_chrome_with_cdp(
                 cdp_port=port,
                 auto_launch=auto_launch,
-                restart_if_needed=False,  # Don't kill user's Chrome without asking
                 headless=headless,
             )
 

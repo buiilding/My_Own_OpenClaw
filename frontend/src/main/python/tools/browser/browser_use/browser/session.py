@@ -1,4 +1,4 @@
-"""Event-driven browser session with backwards compatibility."""
+"""Event-driven browser session for the WindieOS sidecar browser runtime."""
 
 import asyncio
 import logging
@@ -115,7 +115,7 @@ class CDPSession(BaseModel):
 
 
 class BrowserSession(BaseModel):
-	"""Event-driven browser session with backwards compatibility.
+	"""Event-driven browser session for the WindieOS sidecar browser runtime.
 
 	This class provides a 2-layer architecture:
 	- High-level event handling for agents/tools
@@ -1520,11 +1520,6 @@ class BrowserSession(BaseModel):
 			selector_map: The new selector map from DOM serialization
 		"""
 		self._cached_selector_map = selector_map
-
-	# Alias for backwards compatibility
-	async def get_element_by_index(self, index: int) -> EnhancedDOMTreeNode | None:
-		"""Alias for get_dom_element_by_index for backwards compatibility."""
-		return await self.get_dom_element_by_index(index)
 
 	async def get_dom_element_at_coordinates(self, x: int, y: int) -> EnhancedDOMTreeNode | None:
 		"""Get DOM element at coordinates as EnhancedDOMTreeNode.

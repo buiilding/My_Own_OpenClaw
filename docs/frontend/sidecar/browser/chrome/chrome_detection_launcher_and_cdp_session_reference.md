@@ -116,7 +116,8 @@ Important behavior:
 2. CDP unavailable + `auto_launch=True` -> launch dedicated instance and return URL
 3. CDP unavailable + `auto_launch=False` -> raise `ChromeLauncherError`
 
-`restart_if_needed` is accepted only as compatibility parameter and explicitly ignored.
+The launcher does not accept restart/kill flags; WindieOS connects to or starts
+its own dedicated browser instance and never kills the user's default Chrome.
 
 ## Process Kill Helper
 

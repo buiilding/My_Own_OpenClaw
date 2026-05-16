@@ -301,7 +301,6 @@ async def kill_existing_chrome(graceful: bool = True) -> bool:
 async def ensure_chrome_with_cdp(
     cdp_port: int = DEFAULT_WINDIE_CDP_PORT,
     auto_launch: bool = True,
-    restart_if_needed: bool = False,
     headless: bool = False,
 ) -> str:
     """
@@ -314,7 +313,6 @@ async def ensure_chrome_with_cdp(
     Args:
         cdp_port: Port for CDP
         auto_launch: Launch Chrome if not running
-        restart_if_needed: Deprecated compatibility parameter (ignored)
         headless: Launch headless if auto-launching
     
     Returns:
@@ -329,11 +327,6 @@ async def ensure_chrome_with_cdp(
     if await is_cdp_available(cdp_url):
         logger.info("WindieOS browser with CDP already available at %s", cdp_url)
         return cdp_url
-
-    if restart_if_needed:
-        logger.warning(
-            "restart_if_needed is ignored for WindieOS dedicated browser connect."
-        )
 
     # Case 2: WindieOS CDP endpoint unavailable -> launch dedicated instance.
     if auto_launch:
