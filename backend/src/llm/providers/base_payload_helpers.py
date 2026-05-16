@@ -1,4 +1,4 @@
-"""Compatibility wrapper mixin for historical LLMProvider helper methods."""
+"""Provider payload helper mixin for LLMProvider request and response shaping."""
 
 from __future__ import annotations
 
@@ -30,13 +30,8 @@ from backend.src.llm.providers.response_parsing import (
 )
 
 
-class ProviderPayloadCompatMixin:
-    """
-    Backward-compatible wrappers around extracted payload helper modules.
-
-    Existing providers/tests call these methods on `LLMProvider`; moving them to a mixin
-    keeps the class API stable while allowing `base.py` to stay focused on runtime flow.
-    """
+class ProviderPayloadHelpersMixin:
+    """Internal helper methods used by provider request and response runtime code."""
 
     @staticmethod
     def _normalize_messages_for_provider(

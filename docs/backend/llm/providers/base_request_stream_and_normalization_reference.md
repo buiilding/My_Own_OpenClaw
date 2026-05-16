@@ -12,7 +12,7 @@ title: "Base Request, Stream, and Normalization Reference"
 
 - `backend/src/llm/client.py`
 - `backend/src/llm/providers/base.py`
-- `backend/src/llm/providers/base_payload_compat_mixin.py`
+- `backend/src/llm/providers/base_payload_helpers.py`
 - `backend/src/llm/providers/stream_event_pipeline.py`
 - `backend/src/llm/providers/online.py`
 - `backend/src/llm/providers/error_mapping.py`
@@ -41,7 +41,7 @@ Provider utility helpers now centralize shared logic:
 - `response_parsing.py`: stream delta extraction, completion payload parsing, and tool-call argument normalization.
 - `thinking_extraction.py`: reasoning/thinking delta parsing, including structured content blocks and `<thinking>` tags.
 - `usage_diagnostics.py`: usage payload normalization/collection and stream cache diagnostics derivation.
-- `base_payload_compat_mixin.py`: compatibility wrapper surface preserving historical `LLMProvider` helper methods while delegating to extracted modules.
+- `base_payload_helpers.py`: provider helper method surface for request normalization and response parsing, delegating to extracted modules.
 - `stream_event_pipeline.py`: stream-mode request flagging and shared text/thinking event emission loops.
 
 ## Request Param Validation and Construction (`LLMProvider._build_request_params`)
@@ -83,7 +83,7 @@ Primary reason: Anthropic-compatible endpoints can reject orphan/invalid tool me
 
 Implementation note:
 
-- `LLMProvider` now delegates message and tool-schema normalization wrappers to `message_normalization.py` via `ProviderPayloadCompatMixin`.
+- `LLMProvider` delegates message and tool-schema normalization helpers to `message_normalization.py` via `ProviderPayloadHelpersMixin`.
 
 ## Tool Schema Normalization Boundary
 
@@ -173,7 +173,7 @@ Tool-call argument normalization supports:
 
 Implementation note:
 
-- completion/stream parsing wrappers delegate to `response_parsing.py` through `ProviderPayloadCompatMixin`; this keeps parser behavior reusable and testable outside the provider base runtime class.
+- completion/stream parsing helpers delegate to `response_parsing.py` through `ProviderPayloadHelpersMixin`; this keeps parser behavior reusable and testable outside the provider base runtime class.
 
 ## Usage Capture and Cache Diagnostics
 

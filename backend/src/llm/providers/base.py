@@ -16,8 +16,8 @@ from backend.src.core.infrastructure.error_types import (
     LLMRateLimitError,
 )
 from backend.src.core.types.schemas import LLMMessage, NormalizedLLMResponse
-from backend.src.llm.providers.base_payload_compat_mixin import (
-    ProviderPayloadCompatMixin,
+from backend.src.llm.providers.base_payload_helpers import (
+    ProviderPayloadHelpersMixin,
 )
 from backend.src.llm.providers.error_mapping import (
     build_api_error_message,
@@ -41,7 +41,7 @@ from backend.src.llm.request_kwargs import apply_prompt_cache_key
 logger = logging.getLogger(__name__)
 
 
-class LLMProvider(ProviderPayloadCompatMixin, ABC):
+class LLMProvider(ProviderPayloadHelpersMixin, ABC):
     """
     Abstract base class for LLM providers.
 
