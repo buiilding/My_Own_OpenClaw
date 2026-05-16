@@ -75,7 +75,7 @@ Request model `EmbeddingRequest`:
 
 Execution flow:
 
-1. resolve `container.embedder`
+1. resolve `container.embedding_router`
 2. return `503` when embedder is unavailable
 3. call `await embedder.embed_text(request.text)`
 4. normalize vector to JSON-safe list (`tolist()` fallback to `list(...)`)
@@ -220,7 +220,7 @@ If semantic summarize returns `500`:
 
 If health route reports unhealthy unexpectedly:
 
-1. confirm dependency presence (`container.embedder` or `container.llm_client`)
+1. confirm dependency presence (`container.embedding_router` or `container.llm_client`)
 2. check server logs for `dependency_health_check` / `safe_health_check` wrapped exceptions
 3. verify route registration is active in `API_ROUTERS`
 

@@ -15,6 +15,7 @@ _original_deps = install_route_deps_shim()
 
 from backend.src.api.routes.memory import embeddings as embeddings_routes
 from backend.src.api.routes.memory import health as health_routes
+from backend.src.core.inference import EmbeddingRouter
 
 semantic_routes = importlib.import_module(
     "backend.src.api.routes.memory.semantic.router"
@@ -74,6 +75,10 @@ def _local_ollama_config(model_id: str) -> AppConfig:
     )
 
 
+def _container_with_embedding_provider(provider=None) -> SimpleNamespace:
+    return SimpleNamespace(embedding_router=EmbeddingRouter(provider))
+
+
 def _patch_semantic_client(monkeypatch, fake_client: FakeLLMClient) -> None:
     monkeypatch.setattr(semantic_routes, "get_llm_client", lambda cfg: fake_client)
     monkeypatch.setattr(semantic_routes, "load_api_key_for_provider", lambda cfg: cfg)
@@ -81,7 +86,7 @@ def _patch_semantic_client(monkeypatch, fake_client: FakeLLMClient) -> None:
 
 @pytest.mark.asyncio
 async def test_generate_embedding_success() -> None:
-    container = SimpleNamespace(embedder=FakeEmbedder())
+    container = _container_with_embedding_provider(FakeEmbedder())
     request = embeddings_routes.EmbeddingRequest(text="hello")
 
     result = await embeddings_routes.generate_embedding(request, container)
@@ -96,10 +101,8 @@ async def test_generate_embedding_success() -> None:
 
 @pytest.mark.asyncio
 async def test_generate_embedding_uses_embedding_router_when_present() -> None:
-    from backend.src.core.inference import EmbeddingRouter
-
     embedder = FakeEmbedder()
-    container = SimpleNamespace(embedding_router=EmbeddingRouter(embedder))
+    container = _container_with_embedding_provider(embedder)
     request = embeddings_routes.EmbeddingRequest(text="hello")
 
     result = await embeddings_routes.generate_embedding(request, container)
@@ -111,7 +114,7 @@ async def test_generate_embedding_uses_embedding_router_when_present() -> None:
 
 @pytest.mark.asyncio
 async def test_generate_embedding_logs_route_start_and_success(caplog) -> None:
-    container = SimpleNamespace(embedder=FakeEmbedder())
+    container = _container_with_embedding_provider(FakeEmbedder())
     request = embeddings_routes.EmbeddingRequest(text="hello")
 
     with caplog.at_level(logging.INFO, logger=embeddings_routes.logger.name):
@@ -127,7 +130,7 @@ async def test_generate_embedding_logs_route_start_and_success(caplog) -> None:
 
 @pytest.mark.asyncio
 async def test_generate_embedding_returns_503_when_embedder_missing(caplog) -> None:
-    container = SimpleNamespace(embedder=None)
+    container = _container_with_embedding_provider()
     request = embeddings_routes.EmbeddingRequest(text="hello")
 
     with caplog.at_level(logging.INFO, logger=embeddings_routes.logger.name):
@@ -143,7 +146,7 @@ async def test_generate_embedding_returns_503_when_embedder_missing(caplog) -> N
 
 @pytest.mark.asyncio
 async def test_embeddings_health_check_unhealthy_on_failure() -> None:
-    container = SimpleNamespace(embedder=FakeEmbedder(should_raise=True))
+    container = _container_with_embedding_provider(FakeEmbedder(should_raise=True))
 
     result = await embeddings_routes.health_check(container)
 
@@ -152,7 +155,7 @@ async def test_embeddings_health_check_unhealthy_on_failure() -> None:
 
 @pytest.mark.asyncio
 async def test_embeddings_health_check_reports_embedder_model_name() -> None:
-    container = SimpleNamespace(embedder=FakeEmbedder())
+    container = _container_with_embedding_provider(FakeEmbedder())
 
     result = await embeddings_routes.health_check(container)
 

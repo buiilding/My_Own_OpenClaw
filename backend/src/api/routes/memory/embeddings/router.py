@@ -30,13 +30,9 @@ logger = logging.getLogger(__name__)
 
 def _resolve_embedding_provider(container: Any) -> Any:
     embedding_router = getattr(container, "embedding_router", None)
-    if embedding_router is not None:
-        return (
-            embedding_router
-            if getattr(embedding_router, "provider", None) is not None
-            else None
-        )
-    return getattr(container, "embedder", None)
+    if embedding_router is None or getattr(embedding_router, "provider", None) is None:
+        return None
+    return embedding_router
 
 
 def _log_embedding_route_start(*, text: str, model_name: str) -> float:

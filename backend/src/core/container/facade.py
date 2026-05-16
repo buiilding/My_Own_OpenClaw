@@ -1,8 +1,4 @@
-"""
-Container Facade for backward compatibility.
-
-This module provides a thin facade around ApplicationContainer for backward compatibility.
-"""
+"""Runtime container facade around ApplicationContainer."""
 
 import logging
 from typing import Any, Optional
@@ -21,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class Container:
     """
-    Thin facade around ApplicationContainer for backward compatibility.
+    Runtime facade around ApplicationContainer.
 
     Delegates initialization and config updates to specialized classes,
     keeping this class focused on providing a clean interface.
@@ -32,13 +28,11 @@ class Container:
         Initialize the container wrapper.
 
         Args:
-            config_manager: Optional ConfigManager instance. If None, uses the one from DI container.
-                This allows proper DI while maintaining backward compatibility.
+            config_manager: Optional ConfigManager instance. If None, uses the configured manager.
         """
         self._di_container = ApplicationContainer()
 
-        # Inject config_manager via DI override if provided (proper DI pattern)
-        # If None, use the global singleton for backward compatibility
+        # Inject config_manager via DI override if provided.
         if config_manager is None:
             config_manager = get_config_manager()
 
@@ -61,11 +55,6 @@ class Container:
         self.embedding_provider = self.embedding_router.provider
         self.vision_provider = self.vision_router.provider
         self.ocr_provider = self.ocr_router.provider
-
-        # Backward-compatible aliases while call sites migrate off service naming.
-        self.embedder = self.embedding_router
-        self.vision_service = self.vision_router
-        self.ocr_service = self.ocr_router
 
         # Core services (from core container)
         self.config_service = self._di_container.core.config_service()
@@ -115,7 +104,6 @@ class Container:
         Create a new AgentSession with all dependencies injected.
 
         Delegates to AgentSessionFactory for actual session creation.
-        Maintains backward compatibility while separating concerns.
 
         Args:
             user_id: User identifier

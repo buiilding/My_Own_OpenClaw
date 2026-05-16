@@ -76,7 +76,6 @@ class ContainerConfigUpdater:
             if hasattr(self.container, "embedding_router"):
                 self.container.embedding_router.set_provider(None)
                 self.container.embedding_provider = None
-            self.container.embedder = None
 
         self._reinitialize_ocr_provider(updated_config)
         self._reinitialize_vision_provider(updated_config)
@@ -106,12 +105,8 @@ class ContainerConfigUpdater:
             )
         )
         embedding_provider = memory_embedder_provider()
-        if hasattr(self.container, "embedding_router"):
-            self.container.embedding_router.set_provider(embedding_provider)
-            self.container.embedding_provider = embedding_provider
-            self.container.embedder = self.container.embedding_router
-            return
-        self.container.embedder = embedding_provider
+        self.container.embedding_router.set_provider(embedding_provider)
+        self.container.embedding_provider = embedding_provider
 
     def _reinitialize_ocr_provider(self, config: AppConfig) -> None:
         core_ocr_service_provider = self.container._di_container.core.ocr_service
@@ -131,13 +126,8 @@ class ContainerConfigUpdater:
             )
             self.container.ocr_router.set_provider(ocr_provider)
             self.container.ocr_provider = ocr_provider
-            self.container.ocr_service = self.container.ocr_router
-        else:
-            self.container.ocr_service = ocr_provider
         if getattr(self.container, "context_factory", None) is not None:
-            self.container.context_factory.set_ocr_service(
-                getattr(self.container, "ocr_service", None)
-            )
+            self.container.context_factory.set_ocr_service(self.container.ocr_router)
 
     def _reinitialize_vision_provider(self, config: AppConfig) -> None:
         core_vision_service_provider = self.container._di_container.core.vision_service
@@ -157,10 +147,7 @@ class ContainerConfigUpdater:
             )
             self.container.vision_router.set_provider(vision_provider)
             self.container.vision_provider = vision_provider
-            self.container.vision_service = self.container.vision_router
-        else:
-            self.container.vision_service = vision_provider
         if getattr(self.container, "context_factory", None) is not None:
             self.container.context_factory.set_vision_service(
-                getattr(self.container, "vision_service", None)
+                self.container.vision_router
             )

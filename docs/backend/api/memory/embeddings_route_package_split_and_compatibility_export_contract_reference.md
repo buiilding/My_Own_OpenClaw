@@ -64,7 +64,7 @@ while preserving modular split for service-unit tests importing `embeddings.serv
 
 `generate_embedding(...)` route in `router.py`:
 
-1. resolve `container.embedder`
+1. resolve `container.embedding_router`
 2. fail fast with `HTTPException(503)` when provider missing
 3. delegate payload construction to `generate_embedding_response(...)`
 4. preserve explicit `HTTPException`

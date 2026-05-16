@@ -80,7 +80,7 @@ class SessionRuntimeCoordinator:
             self._session_factory = AgentSessionFactory(
                 config=self._container.config,
                 tool_registry=self._container.tool_registry,
-                ocr_service=self._container.ocr_service,
+                ocr_service=self._container.ocr_router,
                 llm_client_factory=llm_client_factory,
                 tool_orchestrator_factory=lambda: self._container._di_container.tool_orchestrator(),
                 event_bus=self._container._di_container.core.event_bus(),

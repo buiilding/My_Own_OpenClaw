@@ -218,7 +218,7 @@ Request model (`EmbeddingRequest`):
 
 Behavior:
 
-- uses `container.embedder.embed_text(...)`
+- uses `container.embedding_router.embed_text(...)`
 - converts vector to JSON list
 - response model includes vector, model name, and dimension
 - emits route-level start/success/failure logs with request char count, model, duration, and result dimension so origin-vs-tunnel debugging can confirm whether the request reached FastAPI

@@ -61,19 +61,19 @@ class ContainerInitializer:
                 initialize=ContainerInitializer._run_config_service_step,
             ),
             StartupStep(
-                name="vision_service",
+                name="vision_router",
                 initialize=ContainerInitializer._run_vision_service_step,
                 enabled=lambda initializer: initializer._should_initialize_vision_service(),
                 publish_to_context_factory=ContainerInitializer._publish_vision_service,
             ),
             StartupStep(
-                name="ocr_service",
+                name="ocr_router",
                 initialize=ContainerInitializer._run_ocr_service_step,
                 enabled=lambda initializer: initializer._should_initialize_ocr_service(),
-                on_disabled=lambda initializer: initializer._disable_ocr_service(),
+                on_disabled=lambda initializer: initializer._disable_ocr_router(),
                 publish_to_context_factory=ContainerInitializer._publish_ocr_service,
             ),
-            StartupStep(name="embedder", initialize=ContainerInitializer._run_embedder_step),
+            StartupStep(name="embedding_router", initialize=ContainerInitializer._run_embedder_step),
         ]
 
     def _get_startup_step(self, name: str) -> StartupStep:
@@ -123,7 +123,7 @@ class ContainerInitializer:
             logger.error(f"Failed to initialize configuration service: {e}", exc_info=True)
 
     async def _initialize_vision_service(self) -> None:
-        await self._run_startup_step("vision_service")
+        await self._run_startup_step("vision_router")
 
     async def _run_vision_service_step(self) -> None:
         """
@@ -135,8 +135,7 @@ class ContainerInitializer:
         The vision service is obtained from the DI container and initialized.
         """
         try:
-            # Get vision service from DI container
-            vision_service = self.container.vision_service
+            vision_service = self.container.vision_router
             
             if vision_service is None:
                 logger.warning("Vision service not available in DI container")
@@ -157,7 +156,7 @@ class ContainerInitializer:
             logger.error(f"Failed to initialize vision service: {e}", exc_info=True)
 
     async def _initialize_embedder(self) -> None:
-        await self._run_startup_step("embedder")
+        await self._run_startup_step("embedding_router")
 
     async def _run_embedder_step(self) -> None:
         """
@@ -168,8 +167,7 @@ class ContainerInitializer:
         offloaded to a thread pool to prevent blocking application startup.
         """
         try:
-            # Get embedder from DI container
-            embedder = self.container.embedder
+            embedder = self.container.embedding_router
             
             if embedder is None:
                 logger.debug("Embedder not available (memory may be disabled)")
@@ -191,14 +189,14 @@ class ContainerInitializer:
             logger.error(f"Failed to initialize embedder: {e}", exc_info=True)
 
     async def _initialize_ocr_service(self) -> None:
-        await self._run_startup_step("ocr_service")
+        await self._run_startup_step("ocr_router")
 
     async def _run_ocr_service_step(self) -> None:
         """
         Initialize the OCR service to pre-load the RapidOCR engine.
         """
         try:
-            ocr_service = self.container.ocr_service
+            ocr_service = self.container.ocr_router
 
             if ocr_service is None:
                 logger.warning("OCR service not available in DI container")
@@ -217,20 +215,20 @@ class ContainerInitializer:
         except Exception as e:
             logger.error(f"Failed to initialize OCR service: {e}", exc_info=True)
 
-    def _disable_ocr_service(self) -> None:
-        ocr_service = getattr(self.container, "ocr_service", None)
+    def _disable_ocr_router(self) -> None:
+        ocr_service = getattr(self.container, "ocr_router", None)
         if ocr_service is not None and hasattr(ocr_service, "enabled"):
             ocr_service.enabled = False
 
 
     def _publish_vision_service(self) -> None:
         context_factory = getattr(self.container, "context_factory", None)
-        vision_service = getattr(self.container, "vision_service", None)
+        vision_service = getattr(self.container, "vision_router", None)
         if context_factory is not None and vision_service is not None:
             context_factory.set_vision_service(vision_service)
 
     def _publish_ocr_service(self) -> None:
         context_factory = getattr(self.container, "context_factory", None)
-        ocr_service = getattr(self.container, "ocr_service", None)
+        ocr_service = getattr(self.container, "ocr_router", None)
         if context_factory is not None and ocr_service is not None:
             context_factory.set_ocr_service(ocr_service)

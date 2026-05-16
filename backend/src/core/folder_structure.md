@@ -62,7 +62,7 @@ backend/src/core/
 ├── container/                         # Dependency injection container system
 │   ├── __init__.py                    # Re-exports ApplicationContainer and Container
 │   ├── application.py                 # ApplicationContainer - main DI container composing CoreContainer, ToolContainer, MemoryContainer
-│   ├── facade.py                      # Container - backward-compatible facade around ApplicationContainer
+│   ├── facade.py                      # Container - runtime facade around ApplicationContainer
 │   ├── core_container.py              # CoreContainer - provides config, LLM client, TTS, vision/OCR services, event bus
 │   ├── tool_container.py              # ToolContainer - provides tool registry, orchestrator, agent factory, context factory
 │   ├── memory_container.py            # MemoryContainer - provides embedder (embedding provider)
@@ -195,7 +195,7 @@ container/application.py
             └── embedder → EmbeddingClient
         ↓
 container/facade.py
-    └── Container (backward-compatible facade)
+    └── Container (runtime facade)
         ↓
 Application Components
 ```

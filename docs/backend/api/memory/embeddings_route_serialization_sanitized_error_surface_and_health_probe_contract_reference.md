@@ -57,7 +57,7 @@ Purpose:
 
 `generate_embedding(...)` flow:
 
-1. resolve `container.embedder`
+1. resolve `container.embedding_router`
 2. missing embedder -> `HTTPException(503, "Embedding service not available")`
 3. call `await embedding_provider.embed_text(request.text)`
 4. serialize vector with `embedding_to_list`

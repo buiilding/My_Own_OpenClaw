@@ -42,14 +42,14 @@ class DummyOcrService:
 
 def _build_ocr_initializer(*, ready=True, enabled=True):
     ocr_service = DummyOcrService(ready=ready, enabled=enabled)
-    container = SimpleNamespace(ocr_service=ocr_service, config=SimpleNamespace())
+    container = SimpleNamespace(ocr_router=ocr_service, config=SimpleNamespace())
     return ContainerInitializer(container), ocr_service
 
 
 @pytest.mark.asyncio
 async def test_initialize_vision_service_skipped_when_disabled(monkeypatch: pytest.MonkeyPatch):
     vision_service = DummyVisionService()
-    container = SimpleNamespace(vision_service=vision_service)
+    container = SimpleNamespace(vision_router=vision_service)
     initializer = ContainerInitializer(container)
     monkeypatch.setattr(initializer, "_should_initialize_vision_service", lambda: False)
 

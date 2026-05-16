@@ -85,7 +85,7 @@ Request constraints:
 
 Execution path:
 
-1. resolve `container.embedding_router` (falling back to legacy `container.embedder` alias)
+1. resolve `container.embedding_router`
 2. return `503` if unavailable
 3. `await embedder.embed_text(text)`
 4. normalize embedding to JSON-safe list
