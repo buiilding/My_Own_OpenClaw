@@ -68,6 +68,7 @@ All notable changes to WindieOS will be documented in this file.
 - docs: point public TypeScript SDK examples at the standalone `@windie/sdk` package instead of the renderer compatibility barrel.
 - frontend/sdk: route renderer model-list refreshes through `ApiClient.listModels()` instead of direct backend IPC sends.
 - frontend/sdk: move replay-row transcript IPC writes behind the Electron sidecar conversation store boundary.
+- frontend/sdk: add a renderer guardrail test so transcript storage IPC stays owned by the Electron conversation store adapter.
 - frontend/sdk: remove `ChatProvider`'s renderer tool-runner mount path so desktop chat surfaces only subscribe to stream state while SDK main owns local tool execution.
 - frontend/sdk: stop mounting renderer-side local tool execution by default now that SDK main runtime owns local tool routing.
 - frontend/sdk: delete the unmounted renderer tool-runner execution stack and runner-specific tests; SDK main runtime and the sidecar now own local tool execution.
