@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend: improve light-appearance contrast for dashboard header browser, workspace, search, and speech controls.
 - frontend: make the dashboard main surface follow light appearance tokens instead of keeping a dark hardcoded gradient.
 - docs: add the modular SDK/backend/sidecar/desktop architecture boundary to the README and link the SDK runtime docs from the docs table.
 - docs: refresh core runtime-boundary docs so local tool execution routes through the SDK runtime instead of the renderer.

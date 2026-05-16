@@ -1,0 +1,32 @@
+const fs = require('fs');
+const path = require('path');
+
+const repoRoot = path.resolve(__dirname, '../..');
+
+function readRepoFile(relativePath) {
+  return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
+}
+
+describe('chat header appearance CSS', () => {
+  test('defines visible light-mode utility controls for the top-right header', () => {
+    const chatCss = readRepoFile('frontend/src/renderer/styles/ChatInterface.css');
+    const lightUtilityBlockStart = chatCss.indexOf(":root[data-windie-theme='light'] .chat-container");
+    const lightUtilityBlockEnd = chatCss.indexOf('.chat-header', lightUtilityBlockStart);
+    const lightUtilityBlock = chatCss.slice(lightUtilityBlockStart, lightUtilityBlockEnd);
+
+    expect(lightUtilityBlockStart).toBeGreaterThanOrEqual(0);
+    expect(lightUtilityBlock).toContain('--chat-utility-surface-bg: rgba(15, 23, 42, 0.07);');
+    expect(lightUtilityBlock).toContain('--chat-utility-surface-border: rgba(15, 23, 42, 0.16);');
+    expect(lightUtilityBlock).toContain('--chat-utility-text-primary: rgba(15, 23, 42, 0.92);');
+    expect(lightUtilityBlock).toContain('--chat-utility-label-color:');
+  });
+
+  test('routes browser, workspace, and icon controls through utility tokens', () => {
+    const chatCss = readRepoFile('frontend/src/renderer/styles/ChatInterface.css');
+
+    expect(chatCss).toContain('color: var(--chat-utility-label-color);');
+    expect(chatCss).toContain('background: var(--chat-utility-surface-bg);');
+    expect(chatCss).toContain('background: var(--chat-utility-surface-bg-muted);');
+    expect(chatCss).toContain('color: var(--chat-utility-text-secondary);');
+  });
+});

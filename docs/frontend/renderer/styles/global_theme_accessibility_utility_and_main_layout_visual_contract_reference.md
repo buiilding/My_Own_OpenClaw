@@ -45,6 +45,9 @@ Global interaction affordances:
 
 - custom text selection tint (`::selection`)
 - themed WebKit scrollbar track/thumb styling
+- dashboard chat header utility controls use chat-local utility tokens for
+  browser, workspace, search, and speech buttons, with a light-mode override
+  that keeps those controls visibly framed against white dashboard surfaces
 
 Motion baseline:
 
