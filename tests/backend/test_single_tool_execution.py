@@ -59,8 +59,8 @@ async def test_execute_single_tool_missing_request_id_returns_placeholder():
     result_obj = await execute_single_tool(tool_call, session)
 
     assert result_obj.success is True
-    assert result_obj.result.data["status"] == "pending_frontend_execution"
-    assert "executing on frontend" in (result_obj.result.llm_content or "")
+    assert result_obj.result.data["status"] == "pending_local_runtime_execution"
+    assert "executing in the local runtime" in (result_obj.result.llm_content or "")
 
 
 @pytest.mark.asyncio

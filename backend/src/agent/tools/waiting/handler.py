@@ -1,7 +1,7 @@
 """
 Tool Result Handler.
 
-Facade for tool result processing from the frontend.
+Facade for tool result processing from the SDK/local runtime.
 Uses receiver and router for separation of concerns.
 """
 import logging
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 class ToolResultHandler:
     """
-    Handles tool result processing from the frontend.
+    Handles tool result processing from the SDK/local runtime.
     
     Responsibility: Facade for receiving and routing results.
     Delegates to ToolResultReceiver and ToolResultRouter.
@@ -34,7 +34,7 @@ class ToolResultHandler:
         Initialize the tool result handler.
         
         Args:
-            receiver: Receiver for converting frontend results
+            receiver: Receiver for converting local-runtime results
             router: Router for routing results to handlers
         """
         self.receiver = receiver
@@ -67,7 +67,7 @@ class ToolResultHandler:
         error: Optional[str],
     ) -> None:
         """
-        Process a tool result from the frontend.
+        Process a tool result from the SDK/local runtime.
         
         Public entry point that delegates to receiver and router.
         
@@ -99,7 +99,7 @@ class ToolResultHandler:
         error: Optional[str]
     ) -> None:
         """
-        Process an atomic tool-bundle-result from the frontend.
+        Process an atomic tool-bundle-result from the SDK/local runtime.
         
         Args:
             bundle_id: Bundle ID for the bundle result

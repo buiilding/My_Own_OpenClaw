@@ -35,8 +35,8 @@ class ToolOrchestrator:
         Initialize the tool orchestrator.
         
         Args:
-            tool_sender: Sender for sending resolved tools to frontend
-            tool_result_orchestrator: Orchestrator for waiting on frontend results
+            tool_sender: Sender for sending resolved tools to the SDK/local runtime
+            tool_result_orchestrator: Orchestrator for waiting on local-runtime results
             tool_processing_coordinator: Coordinator for result processing
         """
         self.tool_sender = tool_sender
@@ -74,7 +74,7 @@ class ToolOrchestrator:
             parsed_response: Parsed LLM response with tool calls
             session: Agent session for context
         """
-        # Wait for frontend results
+        # Wait for local-runtime results
         orchestration_result = await self.tool_result_orchestrator.execute_tools_from_response(
             parsed_response,
             user_id=session.user_id,

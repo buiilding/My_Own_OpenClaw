@@ -80,7 +80,7 @@ class InteractionLoop:
             prompt_coordinator: Manages conversation context
             llm_handler: Processes LLM streaming and token counting
             tool_executor: Orchestrates tool execution
-            event_presenter: Presents frontend events
+            event_presenter: Presents client streaming events
         """
         self.session = session
         self.prompt_coordinator = prompt_coordinator
@@ -256,7 +256,7 @@ class InteractionLoop:
 
             # Execute tools (yields execution-time events)
             # BUNDLE EXECUTION FIX: Wait for bundle results before processing next response.
-            # This ensures that if a bundle is sent to frontend, we wait for its completion
+            # This ensures that if a bundle is sent to the SDK/local runtime, we wait for its completion
             # before the interaction loop continues to the next iteration, preventing race
             # conditions where subsequent tool calls execute before the bundle finishes.
             # SESSION STATE LEAK FIX: Use finally block to ensure cleanup runs even if

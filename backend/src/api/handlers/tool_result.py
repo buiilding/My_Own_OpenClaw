@@ -1,7 +1,7 @@
 """
-Tool Result Handler for Frontend Tool Execution Results.
+Tool Result Handler for SDK/local-runtime Tool Execution Results.
 
-Handles tool-result messages from the frontend by delegating to AgentSession.
+Handles tool-result messages from the SDK/local runtime by delegating to AgentSession.
 The handler is a pure coordinator - all tool result processing logic lives in the session.
 """
 
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 class ToolResultHandler(MessageHandler):
     """
-    Handler for tool-result messages from frontend.
+    Handler for tool-result messages from the SDK/local runtime.
 
     Pure coordinator that delegates all tool result processing to AgentSession.
     The handler no longer knows about session internals - it just routes messages.

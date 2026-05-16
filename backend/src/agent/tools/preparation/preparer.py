@@ -55,7 +55,7 @@ class ToolPreparer:
     """
     Orchestrates tool call preparation (resolution) before execution.
 
-    Responsibility: preparation/resolution only. Does not emit frontend tool events.
+    Responsibility: preparation/resolution only. Does not emit execution events.
     """
 
     def __init__(

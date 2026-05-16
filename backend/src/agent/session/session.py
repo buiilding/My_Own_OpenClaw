@@ -172,7 +172,7 @@ class AgentSession:
 
     def set_current_system_state(self, system_state: Optional[Dict[str, Any]]) -> None:
         """
-        Store the most recent system_state payload from the frontend.
+        Store the most recent system_state payload from the SDK/local runtime.
 
         Used for runtime observability and tool-context diagnostics.
         """

@@ -398,7 +398,7 @@ class SessionManager(ConfigSubscriber):
         user_id: str,
         request_id: str,
     ) -> Optional[AgentSession]:
-        """Resolve the session that owns a frontend tool-result request id."""
+        """Resolve the session that owns a local-runtime tool-result request id."""
         for _, session in self._iter_user_sessions(user_id):
             if session.get_resolved_tool_call(request_id) is not None:
                 return session
@@ -413,7 +413,7 @@ class SessionManager(ConfigSubscriber):
         user_id: str,
         bundle_id: str,
     ) -> Optional[AgentSession]:
-        """Resolve the session that owns a frontend tool-bundle-result id."""
+        """Resolve the session that owns a local-runtime tool-bundle-result id."""
         for _, session in self._iter_user_sessions(user_id):
             result_storage = session.get_result_storage()
             if result_storage.get_bundled_result(bundle_id) is not None:

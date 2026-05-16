@@ -134,7 +134,7 @@ class ResultTransformer:
             logger.debug("Found screenshot in tool result artifacts")
             return artifacts["screenshot"]
         
-        # Check tool result data dict (SDK tools often return it here, including frontend tools)
+        # Check tool result data dict (SDK/local-runtime tools often return it here)
         if isinstance(tool_result.data, dict):
             if "screenshot" in tool_result.data:
                 screenshot_data = tool_result.data["screenshot"]

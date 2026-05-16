@@ -76,8 +76,8 @@ async def execute_single_tool(
         # Fallback to placeholder if no request_id (shouldn't happen with ToolResolver)
         placeholder_result = ToolResult(
             success=True,
-            llm_content=f"Tool {tool_call.tool_name} executing on frontend...",
-            data={"status": "pending_frontend_execution"}
+            llm_content=f"Tool {tool_call.tool_name} executing in the local runtime...",
+            data={"status": "pending_local_runtime_execution"}
         )
         return create_tool_result_object(tool_call, placeholder_result, execution_time=0)
     
@@ -141,7 +141,7 @@ async def execute_single_tool(
         result_storage.remove_result_future(request_id)
     
     # Check if result already exists (may have arrived before we created the future)
-    # This handles the race condition where frontend executes tool very quickly
+    # This handles the race condition where the SDK/local runtime executes very quickly.
     tool_result = result_storage.get_pending_result(request_id)
     if tool_result:
         # Remove from storage and resolve the future immediately
@@ -157,7 +157,7 @@ async def execute_single_tool(
             wait_timeout_seconds = resolve_single_tool_wait_timeout_seconds(
                 effective_tool_call
             )
-            logger.info(f"Waiting for frontend tool result (request_id={request_id_short})...")
+            logger.info(f"Waiting for local-runtime tool result (request_id={request_id_short})...")
             # Wait for the result with a timeout
             tool_result = await asyncio.wait_for(
                 future,
@@ -177,8 +177,8 @@ async def execute_single_tool(
             )
             tool_result = ToolResult(
                 success=False,
-                error=f"Timed out waiting for tool {tool_call.tool_name} execution on frontend.",
-                llm_content=f"Error: Tool {tool_call.tool_name} timed out on frontend."
+                error=f"Timed out waiting for tool {tool_call.tool_name} execution in the local runtime.",
+                llm_content=f"Error: Tool {tool_call.tool_name} timed out in the local runtime."
             )
         finally:
             _cleanup_future()

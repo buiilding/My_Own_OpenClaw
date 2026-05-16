@@ -53,14 +53,14 @@ backend/src/agent/
 │   │       ├── __init__.py            # Package exports: ResolvedToolCallStorage
 │   │       └── resolved_call_storage.py  # ResolvedToolCallStorage - manages storage and retrieval of resolved tool calls (used by ToolOrchestrator during execution)
 │   │
-│   ├── sending/                       # Phase 2: Send resolved tools to frontend
+│   ├── sending/                       # Phase 2: Send resolved tools to the SDK/local runtime
 │   │   ├── __init__.py                # Package exports: ToolSender
-│   │   └── sender.py                  # ToolSender - sends resolved tools to frontend (uses ToolPreparer for preparation, yields ToolCallEvent, ToolBundleEvent, ToolOutputEvent)
+│   │   └── sender.py                  # ToolSender - sends resolved tools to the SDK/local runtime (uses ToolPreparer for preparation, yields ToolCallEvent, ToolBundleEvent, ToolOutputEvent)
 │   │
-│   ├── waiting/                       # Phase 3: Wait for frontend results, receive and route
+│   ├── waiting/                       # Phase 3: Wait for local-runtime results, receive and route
 │   │   ├── __init__.py                # Package exports: ToolResultHandler, ToolResultReceiver, ToolResultRouter
-│   │   ├── handler.py                 # ToolResultHandler - facade for tool result processing from frontend (bundled payload detection + metadata normalization + receiver/router delegation)
-│   │   ├── receiver.py                # ToolResultReceiver - receives results from frontend and converts to ToolResult format (individual, bundle, bundled results)
+│   │   ├── handler.py                 # ToolResultHandler - facade for tool result processing from the SDK/local runtime (bundled payload detection + metadata normalization + receiver/router delegation)
+│   │   ├── receiver.py                # ToolResultReceiver - receives results from the SDK/local runtime and converts to ToolResult format (individual, bundle, bundled results)
 │   │   ├── router.py                  # ToolResultRouter - routes tool results via shared screenshot extraction helpers and shared store+resolve helpers
 │   │   └── storage/
 │   │       ├── __init__.py            # Package exports: ToolResultStorage

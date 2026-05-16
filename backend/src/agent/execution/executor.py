@@ -121,7 +121,7 @@ class AgentExecutor:
             tool_registry=tool_orchestrator.tool_registry,
         )
 
-        # Tool sending: sends resolved tools to frontend
+        # Tool sending: sends resolved tools to the SDK/local runtime
         tool_sender = ToolSender(
             preparer=tool_preparer,
             synthetic_result_factory=synthetic_result_factory,

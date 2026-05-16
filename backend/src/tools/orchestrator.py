@@ -1,7 +1,7 @@
 """
 Tool Result Orchestrator for the Desktop Assistant.
 
-This module coordinates tool execution requests by waiting for frontend
+This module coordinates tool execution requests by waiting for local-runtime
 tool results and assembling tool result objects for the agent loop.
 """
 
@@ -23,9 +23,9 @@ logger = logging.getLogger(__name__)
 
 class ToolResultOrchestrator:
     """
-    Orchestrates tool execution requests by waiting for frontend results.
+    Orchestrates tool execution requests by waiting for local-runtime results.
     
-    In the current architecture, tool execution happens on the frontend.
+    In the current architecture, tool execution happens in the SDK/local runtime.
     This class waits for results and assembles ToolResult objects for processing.
     """
 
@@ -63,9 +63,9 @@ class ToolResultOrchestrator:
         session_ref: Optional["AgentSession"] = None,
     ) -> ToolExecutionBatch:
         """
-        Execute all tool calls from a parsed LLM response by waiting for frontend results.
+        Execute all tool calls from a parsed LLM response by waiting for local-runtime results.
         
-        NOTE: In the new architecture, actual execution happens on the frontend.
+        NOTE: In the modular architecture, actual execution happens in the SDK/local runtime.
         This method waits for the results to be returned via the ToolResultHandler.
         """
         # Lazy import avoids package-init circular import during selective test collection.

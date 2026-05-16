@@ -40,7 +40,7 @@ class ToolResultRouter:
         Initialize the tool result router.
         
         Args:
-            receiver: Receiver for converting frontend results
+            receiver: Receiver for converting local-runtime results
             screenshot_processor: Processor for screenshot processing
             result_storage: Storage for results and futures
             session: Agent session for context

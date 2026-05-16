@@ -74,7 +74,7 @@ async def execute_bundle(
                     parsed_response.tool_calls
                 )
                 logger.info(
-                    f"Waiting for frontend bundle result (bundle_id={bundle_id_short}, "
+                    f"Waiting for local-runtime bundle result (bundle_id={bundle_id_short}, "
                     f"timeout={wait_timeout_seconds:.1f}s)..."
                 )
                 bundle_result = await asyncio.wait_for(
@@ -93,8 +93,8 @@ async def execute_bundle(
                 )
                 bundle_result = ToolResult(
                     success=False,
-                    error="Timed out waiting for bundle execution on frontend.",
-                    llm_content="Error: Bundle execution timed out on frontend.",
+                    error="Timed out waiting for bundle execution in the local runtime.",
+                    llm_content="Error: Bundle execution timed out in the local runtime.",
                 )
     finally:
         result_storage.remove_bundle_future(bundle_id)

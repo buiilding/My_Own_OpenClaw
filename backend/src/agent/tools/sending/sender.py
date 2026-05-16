@@ -42,10 +42,10 @@ _BACKEND_TOOL_PROGRESS_POLL_SECONDS = 0.05
 
 class ToolSender:
     """
-    Sends resolved tools to frontend.
+    Sends resolved tools to the SDK/local runtime.
     
-    Responsibility: Sending frontend events only.
-    Delegates preparation to ToolPreparer and yields frontend events.
+    Responsibility: Sending execution events only.
+    Delegates preparation to ToolPreparer and yields tool execution events.
     """
 
     def __init__(
@@ -69,17 +69,17 @@ class ToolSender:
         session: "AgentSession",
     ) -> AsyncGenerator[AgentStreamingEvent, None]:
         """
-        Send resolved tools to frontend by yielding events.
+        Send resolved tools to the SDK/local runtime by yielding events.
         
         First prepares tools,
-        then sends frontend events (ToolCallEvent, ToolBundleEvent, ToolOutputEvent).
+        then sends execution events (ToolCallEvent, ToolBundleEvent, ToolOutputEvent).
         
         Args:
             tool_calls: List of parsed tool calls from LLM
             session: The current agent session
             
         Yields:
-            AgentStreamingEvent: ToolCallEvent, ToolBundleEvent, ToolOutputEvent (frontend)
+            AgentStreamingEvent: ToolCallEvent, ToolBundleEvent, ToolOutputEvent
         """
         preparation_result = await self.preparer.prepare(tool_calls, session)
 
