@@ -367,6 +367,7 @@ export class SdkConversationRuntime {
     await this.options.transport?.rehydrateConversation({
       conversation_ref: this.options.conversationRef,
       messages: snapshot.messages,
+      rehydrate_mode: 'replace',
     });
     return snapshot;
   }

@@ -822,6 +822,7 @@ describe('Windie SDK conversation runtime core', () => {
     ]);
     expect(sentRehydrates[0]).toMatchObject({
       conversation_ref: 'conv-sdk-runtime',
+      rehydrate_mode: 'replace',
       messages: [
         expect.objectContaining({ role: 'user', content: 'hello' }),
       ],
@@ -1355,6 +1356,8 @@ describe('Windie SDK conversation runtime core', () => {
       messages: [{ role: 'assistant', content: 'summary' }],
     });
     expect(sentRehydrates[0]).toMatchObject({
+      conversation_ref: 'conv-sdk-runtime',
+      rehydrate_mode: 'replace',
       messages: [{ role: 'assistant', content: 'summary' }],
     });
   });

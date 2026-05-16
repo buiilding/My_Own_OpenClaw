@@ -269,6 +269,10 @@ Electron uses a sidecar-backed store adapter:
   bundle metadata stays in `structured_payload`; display-only keys such as
   `name`, top-level `bundle_id`, `tools`, or `results` are not emitted as
   backend replay fields.
+- `ConversationRuntime.rehydrate()` sends a complete replace-mode backend
+  payload, including `conversation_ref`, `messages`, and
+  `rehydrate_mode: "replace"`, so transport adapters do not need to repair SDK
+  command shape.
 - bundled tool rehydrate expands complete step results into provider-safe
   `role: "tool"` entries keyed by each step's `tool_call_id` instead of
   replaying an internal bundle trace row.
