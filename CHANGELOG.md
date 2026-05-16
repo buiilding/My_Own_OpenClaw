@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs: document SDK model-change routing and public example runtime controls.
 - examples: show SDK stop control after repo-agent extension execution.
 - examples: show SDK stop control after local sidecar tool execution.
 - examples: add custom UI retry and stop controls backed by SDK conversation commands.

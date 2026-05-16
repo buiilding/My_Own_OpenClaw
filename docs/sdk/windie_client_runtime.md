@@ -371,6 +371,13 @@ backend patch is built through the same SDK model-selection contract instead of
 hand-shaped renderer payloads. `updateSettings(config)` remains available for
 host applications that own a broader settings surface.
 
+Desktop model changes now route through renderer app runtime facades before
+they reach the low-level IPC adapter. Chat features should call
+`DesktopConversationRuntimeClient.setModel(...)`; that facade delegates to the
+settings runtime, which builds the same SDK model-selection patch used by
+public `WindieClient` callers. Feature code should not shape
+`update-settings` payloads or call the backend API adapter directly.
+
 `stream(input, options)` returns an `AsyncIterableIterator<WindieAgentStreamEvent>`.
 It is a compatibility-shaped wrapper over `SdkConversationRuntime.stream()`: it
 stores normalized events, preserves `conversationRef`/`turnRef`, routes local
@@ -407,6 +414,20 @@ the websocket transport, and verifies the completed conversation projection.
 
 For a browser-based custom UI that renders SDK display projections directly,
 see `examples/custom-ui`.
+
+The public examples intentionally exercise the modular runtime controls:
+
+- `examples/cli-agent` uses `FileConversationStore`, streams a turn, retries
+  through `conversation.retryTurn(...)`, and stops through
+  `conversation.stop(...)`.
+- `examples/custom-ui` uses `InMemoryConversationStore`, renders SDK display
+  projections, changes models through `conversation.setModel(...)`, and exposes
+  Retry and Stop controls.
+- `examples/local-tool-extension` registers a module tool through the sidecar,
+  streams local tool execution, returns the tool result to the backend, and
+  stops through `agent.stop(...)`.
+- `examples/repo-agent-extension` loads a plugin package, registers the local
+  repo-inspection tool, streams the result, and stops through `agent.stop(...)`.
 
 For the smallest local tool authoring path, see `examples/local-tool-extension`.
 It uses `moduleTool(...)` to register a Python `module:function` entrypoint with
