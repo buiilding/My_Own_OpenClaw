@@ -11,7 +11,6 @@ from typing import Optional
 
 from backend.src.core.config.loader import (
     build_runtime_config,
-    load_api_key_for_provider,  # compatibility re-export used by API modules
     load_settings_from_file,
 )
 from backend.src.core.config.models import AppConfig

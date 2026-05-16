@@ -22,7 +22,7 @@ from .models import (
 )
 from .parser import extract_fallback_facts, parse_summarization_response
 from .service import SemanticSummarizationService
-from backend.src.core.config.manager import load_api_key_for_provider
+from backend.src.core.config.loader import load_api_key_for_provider
 from backend.src.llm.client import get_llm_client
 
 router = APIRouter(prefix="/api/semantic", tags=["semantic"])
