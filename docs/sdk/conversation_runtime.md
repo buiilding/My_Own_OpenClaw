@@ -142,6 +142,14 @@ Projection builders collapse duplicate tool outputs that share the same
 common local-runtime flow where the SDK appends the local sidecar result and the
 backend later emits an acknowledgement `tool-output` for the same tool wait.
 
+Rehydrate projections preserve provider-safe tool history for both single calls
+and bundles. A `tool_call` projection must carry the original `tool_calls` and
+`toolCallId` when available. A `tool_bundle_call` projection must preserve the
+`bundleId`, executable step list, and any provider-facing calls nested in step
+metadata; the matching `tool_bundle_output` becomes one model-visible tool
+result with the same bundle id. This keeps restart/edit/resend history valid
+without replaying a lossy display transcript.
+
 The desktop local snapshot loader uses this SDK projection path when generating
 rehydrate payloads from stored transcript rows. That is the first migration step
 away from separate renderer-only replay shaping.

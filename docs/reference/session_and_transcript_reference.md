@@ -130,7 +130,7 @@ Minimum fields for tool-related transcript rows:
 | --- | --- | --- |
 | tool-call display row | tool name, args or summarized args, `correlation_id`, backend request/bundle key when available | lets the UI pair live output and replayed output with the original call |
 | tool-output display row | tool name, success/error, formatted text, artifact refs, `correlation_id` | keeps replay useful without re-executing local tools |
-| backend rehydrate entry | role, content, `tool_call_id`, `tool_calls`, structured payload, screenshot/image refs when relevant | rebuilds provider-safe history instead of a lossy chat transcript |
+| backend rehydrate entry | role, content, `tool_call_id`, `tool_calls`, `bundle_id` for bundled calls/results, structured payload, screenshot/image refs when relevant | rebuilds provider-safe history instead of a lossy chat transcript |
 | sidecar transcript row | `user_id`, conversation id, role, message type, message index, structured payload | supports dashboard replay, search, semantic windows, and delete cleanup |
 
 ## Active Conversation Flow

@@ -118,6 +118,79 @@ describe('Windie SDK conversation runtime core', () => {
     ]);
   });
 
+  test('rehydrate projection preserves bundled tool calls and bundle output', () => {
+    const events = [
+      event('user_message', { text: 'inspect files' }),
+      event('tool_bundle_call', {
+        bundleId: 'bundle-read',
+        tools: [
+          {
+            name: 'read_file',
+            args: { path: 'README.md' },
+            metadata: {
+              model_facing_tool_call: {
+                id: 'call-readme',
+                type: 'function',
+                function: {
+                  name: 'read_file',
+                  arguments: '{"path":"README.md"}',
+                },
+              },
+            },
+          },
+          {
+            name: 'read_file',
+            args: { path: 'package.json' },
+            metadata: {
+              model_facing_tool_call: {
+                id: 'call-package',
+                type: 'function',
+                function: {
+                  name: 'read_file',
+                  arguments: '{"path":"package.json"}',
+                },
+              },
+            },
+          },
+        ],
+      }),
+      event('tool_bundle_output', {
+        bundleId: 'bundle-read',
+        structuredPayload: {
+          results: [
+            { toolCallId: 'call-readme', success: true, output: 'README contents' },
+            { toolCallId: 'call-package', success: true, output: 'package contents' },
+          ],
+        },
+      }),
+    ];
+
+    const snapshot = buildRehydrateSnapshot(events);
+
+    expect(snapshot.messages).toEqual([
+      expect.objectContaining({ role: 'user', content: 'inspect files' }),
+      expect.objectContaining({
+        role: 'assistant',
+        message_type: 'tool-bundle',
+        bundle_id: 'bundle-read',
+        tool_calls: [
+          expect.objectContaining({ id: 'call-readme' }),
+          expect.objectContaining({ id: 'call-package' }),
+        ],
+      }),
+      expect.objectContaining({
+        role: 'tool',
+        message_type: 'tool-bundle-result',
+        bundle_id: 'bundle-read',
+        name: 'tool_bundle',
+        results: [
+          expect.objectContaining({ toolCallId: 'call-readme', success: true }),
+          expect.objectContaining({ toolCallId: 'call-package', success: true }),
+        ],
+      }),
+    ]);
+  });
+
   test('display and rehydrate projections collapse duplicate local and backend tool outputs', () => {
     const events = [
       event('tool_call', {

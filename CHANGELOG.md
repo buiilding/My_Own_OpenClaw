@@ -25,6 +25,7 @@ All notable changes to WindieOS will be documented in this file.
 - sdk: let `SdkConversationRuntime` route normalized backend tool calls through `ToolExecutionCoordinator` when a local runtime adapter is provided.
 - sdk: route `agent.stream(...)` through the conversation runtime and remove session-level automatic local tool execution from raw websocket events.
 - sdk: collapse duplicate local/backend tool-output events by tool wait id in SDK display, rehydrate, and agent stream projections.
+- sdk: preserve provider-facing tool calls and bundle result structure in rehydrate projections so restart/edit/resend history remains provider-safe.
 - sdk: gate conversation runtime backend events by `conversation_ref`/`turn_ref` so simultaneous conversations ignore ambiguous or stale packets on shared transports.
 - frontend: build local conversation rehydrate payloads through SDK-normalized transcript events instead of directly mapping stored transcript rows.
 - frontend/sdk: add an Electron sidecar conversation-store adapter backed by a dedicated `conversation_event` record kind, with legacy transcript fallback and compacted replay loading through SDK projections.

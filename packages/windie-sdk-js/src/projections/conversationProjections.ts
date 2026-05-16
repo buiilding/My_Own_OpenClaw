@@ -28,6 +28,18 @@ function textFromPayload(payload: JsonRecord): string {
   return '';
 }
 
+function contentFromPayload(payload: JsonRecord): string {
+  const text = textFromPayload(payload);
+  if (text) {
+    return text;
+  }
+  const structured = payload.structuredPayload;
+  if (structured && typeof structured === 'object') {
+    return JSON.stringify(structured);
+  }
+  return JSON.stringify(payload);
+}
+
 function toolNameFromPayload(payload: JsonRecord): string | null {
   if (typeof payload.toolName === 'string') {
     return payload.toolName;
@@ -62,6 +74,43 @@ function toolOutputDedupeKey(event: ConversationEvent): string | null {
   }
   const toolCallId = stringField(event.payload, 'toolCallId', 'tool_call_id');
   return toolCallId ? `tool-call:${toolCallId}` : null;
+}
+
+function recordFromUnknown(value: unknown): JsonRecord | null {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as JsonRecord
+    : null;
+}
+
+function toolCallsFromPayload(payload: JsonRecord): unknown[] | null {
+  if (Array.isArray(payload.toolCalls)) {
+    return payload.toolCalls;
+  }
+  if (Array.isArray(payload.tool_calls)) {
+    return payload.tool_calls;
+  }
+  const structuredPayload = recordFromUnknown(payload.structuredPayload);
+  if (Array.isArray(structuredPayload?.toolCalls)) {
+    return structuredPayload.toolCalls;
+  }
+  if (Array.isArray(structuredPayload?.tool_calls)) {
+    return structuredPayload.tool_calls;
+  }
+  const tools = Array.isArray(payload.tools)
+    ? payload.tools
+    : (Array.isArray(structuredPayload?.tools) ? structuredPayload.tools : null);
+  if (!tools) {
+    return null;
+  }
+  const toolCalls = tools
+    .map(tool => {
+      const record = recordFromUnknown(tool);
+      const metadata = recordFromUnknown(record?.metadata);
+      return recordFromUnknown(metadata?.model_facing_tool_call)
+        ?? recordFromUnknown(record?.model_facing_tool_call);
+    })
+    .filter((toolCall): toolCall is JsonRecord => Boolean(toolCall));
+  return toolCalls.length > 0 ? toolCalls : null;
 }
 
 function withoutDuplicateToolOutputs(events: ConversationEvent[]): ConversationEvent[] {
@@ -212,8 +261,19 @@ function toRehydrateMessage(event: ConversationEvent): JsonRecord | null {
     return {
       role: 'assistant',
       content: textFromPayload(event.payload),
-      tool_calls: event.payload.toolCalls ?? event.payload.tool_calls,
+      tool_calls: toolCallsFromPayload(event.payload),
       tool_call_id: stringField(event.payload, 'toolCallId', 'tool_call_id'),
+      ...((event.payload.structuredPayload as JsonRecord | undefined) ?? {}),
+    };
+  }
+  if (event.type === 'tool_bundle_call') {
+    return {
+      role: 'assistant',
+      content: contentFromPayload(event.payload),
+      message_type: 'tool-bundle',
+      bundle_id: stringField(event.payload, 'bundleId', 'bundle_id'),
+      tools: event.payload.tools,
+      tool_calls: toolCallsFromPayload(event.payload),
       ...((event.payload.structuredPayload as JsonRecord | undefined) ?? {}),
     };
   }
@@ -223,6 +283,16 @@ function toRehydrateMessage(event: ConversationEvent): JsonRecord | null {
       content: textFromPayload(event.payload),
       tool_call_id: stringField(event.payload, 'toolCallId', 'tool_call_id'),
       name: toolNameFromPayload(event.payload),
+      ...((event.payload.structuredPayload as JsonRecord | undefined) ?? {}),
+    };
+  }
+  if (event.type === 'tool_bundle_output') {
+    return {
+      role: 'tool',
+      content: contentFromPayload(event.payload),
+      message_type: 'tool-bundle-result',
+      bundle_id: stringField(event.payload, 'bundleId', 'bundle_id'),
+      name: 'tool_bundle',
       ...((event.payload.structuredPayload as JsonRecord | undefined) ?? {}),
     };
   }
