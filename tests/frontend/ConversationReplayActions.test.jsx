@@ -124,15 +124,7 @@ describe('useConversationReplayActions', () => {
       {
         userId: 'user-1',
         conversationId: 'conv-existing',
-        recordKind: 'transcript',
-      },
-    ]);
-    expect((IpcBridge.invoke).mock.calls).toContainEqual([
-      INVOKE_CHANNELS.DELETE_CONVERSATION,
-      {
-        userId: 'user-1',
-        conversationId: 'conv-existing',
-        recordKind: 'transcript_replay',
+        recordKind: 'conversation_event',
       },
     ]);
     expect(mockRehydrateConversationInferenceSession).toHaveBeenCalledTimes(1);

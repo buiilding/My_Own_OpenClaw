@@ -205,7 +205,6 @@ function DashboardShell({
       setChatActiveConversationRef,
     });
     invalidateConversationInferenceSessionState();
-    DesktopConversationLibraryClient.clearReplayStateCache();
     clearAllConversationWorkspaceBindings();
     await loadRecentConversations();
   }, [

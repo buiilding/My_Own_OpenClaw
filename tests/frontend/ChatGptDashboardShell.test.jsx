@@ -4,7 +4,6 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import DashboardShell from '../../frontend/src/renderer/features/dashboard/components/DashboardShell';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { invalidateConversationInferenceSessionState } from '../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime';
-import { clearConversationReplayStateCache } from '../../frontend/src/renderer/infrastructure/transcript/conversationReplayState';
 import {
   clearAllConversationWorkspaceBindings,
   clearConversationWorkspaceBinding,
@@ -106,14 +105,6 @@ jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferen
   };
 });
 
-jest.mock('../../frontend/src/renderer/infrastructure/transcript/conversationReplayState', () => {
-  const actual = jest.requireActual('../../frontend/src/renderer/infrastructure/transcript/conversationReplayState');
-  return {
-    ...actual,
-    clearConversationReplayStateCache: jest.fn(),
-  };
-});
-
 jest.mock('../../frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding', () => {
   const actual = jest.requireActual('../../frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding');
   return {
@@ -124,7 +115,6 @@ jest.mock('../../frontend/src/renderer/infrastructure/workspace/conversationWork
 });
 
 const mockInvalidateConversationInferenceSessionState = invalidateConversationInferenceSessionState;
-const mockClearConversationReplayStateCache = clearConversationReplayStateCache;
 const mockClearAllConversationWorkspaceBindings = clearAllConversationWorkspaceBindings;
 const mockClearConversationWorkspaceBinding = clearConversationWorkspaceBinding;
 
@@ -169,7 +159,6 @@ describe('ChatGptDashboardShell', () => {
     mockInvoke.mockClear();
     mockUpdateTranscriptSession.mockClear();
     mockInvalidateConversationInferenceSessionState.mockClear();
-    mockClearConversationReplayStateCache.mockClear();
     mockClearAllConversationWorkspaceBindings.mockClear();
     mockClearConversationWorkspaceBinding.mockClear();
     mockClientSnapshot = { isConnected: true, userId: LOCAL_SNAPSHOT_USER_ID };
@@ -213,7 +202,7 @@ describe('ChatGptDashboardShell', () => {
               title: 'Store active chat',
               updated_at: '2026-04-10T00:00:00.000Z',
               created_at: '2026-04-10T00:00:00.000Z',
-              record_kind: 'transcript',
+              record_kind: 'conversation_event',
             }],
           },
         };
@@ -376,7 +365,7 @@ describe('ChatGptDashboardShell', () => {
             conversations: [
               {
                 conversation_id: 'conv-history-1',
-                record_kind: 'transcript',
+                record_kind: 'conversation_event',
                 last_timestamp: nowIso,
                 title: 'Fix Ubuntu mic settings',
               },
@@ -426,7 +415,7 @@ describe('ChatGptDashboardShell', () => {
             conversations: [
               {
                 conversation_id: 'conv-offline-1',
-                record_kind: 'transcript',
+                record_kind: 'conversation_event',
                 last_timestamp: nowIso,
                 title: 'Offline local chat',
               },
@@ -465,7 +454,7 @@ describe('ChatGptDashboardShell', () => {
             conversations: [
               {
                 conversation_id: 'conv-history-1',
-                record_kind: 'transcript',
+                record_kind: 'conversation_event',
                 last_timestamp: nowIso,
                 title: 'Do not switch while looping',
               },
@@ -512,7 +501,7 @@ describe('ChatGptDashboardShell', () => {
             conversations: [
               {
                 conversation_id: 'conv-history-1',
-                record_kind: 'transcript',
+                record_kind: 'conversation_event',
                 last_timestamp: nowIso,
                 title: 'Build memory migration plan',
               },
@@ -542,7 +531,7 @@ describe('ChatGptDashboardShell', () => {
             conversations: [
               {
                 conversation_id: 'conv-history-1',
-                record_kind: 'transcript',
+                record_kind: 'conversation_event',
                 last_timestamp: nowIso,
                 title: 'OpenRouter free models list',
               },
@@ -575,7 +564,7 @@ describe('ChatGptDashboardShell', () => {
             conversations: [
               {
                 conversation_id: 'conv-delete-1',
-                record_kind: 'transcript',
+                record_kind: 'conversation_event',
                 last_timestamp: nowIso,
                 title: 'Mission Today',
               },
@@ -596,20 +585,6 @@ describe('ChatGptDashboardShell', () => {
       fireEvent.click(await screen.findByRole('button', { name: /Conversation actions for Mission Today/i }));
       fireEvent.click(screen.getByRole('menuitem', { name: 'Delete' }));
       await flushMicrotasks();
-      if (!mockInvoke.mock.calls.some(([channel, payload]) => (
-        channel === 'delete-conversation'
-        && payload?.conversationId === 'conv-delete-1'
-        && payload?.recordKind === 'transcript'
-      ))) {
-        throw new Error('expected transcript rows to be deleted for conv-delete-1');
-      }
-      if (!mockInvoke.mock.calls.some(([channel, payload]) => (
-        channel === 'delete-conversation'
-        && payload?.conversationId === 'conv-delete-1'
-        && payload?.recordKind === 'transcript_replay'
-      ))) {
-        throw new Error('expected replay rows to be deleted for conv-delete-1');
-      }
       if (!mockInvoke.mock.calls.some(([channel, payload]) => (
         channel === 'delete-conversation'
         && payload?.conversationId === 'conv-delete-1'
@@ -673,7 +648,7 @@ describe('ChatGptDashboardShell', () => {
             conversations: [
               {
                 conversation_id: 'conv-user-peter',
-                record_kind: 'transcript',
+                record_kind: 'conversation_event',
                 last_timestamp: nowIso,
                 title: 'Peter active chat',
               },
@@ -709,7 +684,7 @@ describe('ChatGptDashboardShell', () => {
           conversations: [
             {
               conversation_id: 'conv-user-default',
-              record_kind: 'transcript',
+              record_kind: 'conversation_event',
               last_timestamp: nowIso,
               title: 'Default stale chat',
             },
@@ -727,14 +702,8 @@ describe('ChatGptDashboardShell', () => {
   test('reloads recent chats after assistant llm transcript entry is stored', async () => {
     const nowIso = new Date().toISOString();
     let listCallCount = 0;
-    mockInvoke.mockImplementation(withClientSnapshot(async (channel, payload) => {
+    mockInvoke.mockImplementation(withClientSnapshot(async (channel) => {
       if (channel === 'list-conversations') {
-        if (payload?.recordKind === 'conversation_event') {
-          return {
-            success: true,
-            data: { conversations: [] },
-          };
-        }
         listCallCount += 1;
         if (listCallCount === 1) {
           return {
@@ -748,7 +717,7 @@ describe('ChatGptDashboardShell', () => {
             conversations: [
               {
                 conversation_id: 'conv-title-1',
-                record_kind: 'transcript',
+                record_kind: 'conversation_event',
                 last_timestamp: nowIso,
                 title: 'How are you',
               },
@@ -781,14 +750,8 @@ describe('ChatGptDashboardShell', () => {
   test('shows a new chat after user transcript storage and replaces the temporary title after assistant completion', async () => {
     const nowIso = new Date().toISOString();
     let listCallCount = 0;
-    mockInvoke.mockImplementation(withClientSnapshot(async (channel, payload) => {
+    mockInvoke.mockImplementation(withClientSnapshot(async (channel) => {
       if (channel === 'list-conversations') {
-        if (payload?.recordKind === 'conversation_event') {
-          return {
-            success: true,
-            data: { conversations: [] },
-          };
-        }
         listCallCount += 1;
         if (listCallCount === 1) {
           return {
@@ -803,7 +766,7 @@ describe('ChatGptDashboardShell', () => {
               conversations: [
                 {
                   conversation_id: 'conv-title-2',
-                  record_kind: 'transcript',
+                  record_kind: 'conversation_event',
                   last_timestamp: nowIso,
                   title: 'How to fix ubuntu mic settings',
                   title_source: 'heuristic',
@@ -818,7 +781,7 @@ describe('ChatGptDashboardShell', () => {
             conversations: [
               {
                 conversation_id: 'conv-title-2',
-                record_kind: 'transcript',
+                record_kind: 'conversation_event',
                 last_timestamp: nowIso,
                 title: 'Ubuntu mic timeout troubleshooting',
                 title_source: 'model',
@@ -873,7 +836,6 @@ describe('ChatGptDashboardShell', () => {
       conversationRef === null && userId === 'user-live'
     ))).toBe(true);
     expect(mockInvalidateConversationInferenceSessionState.mock.calls.length).toBe(1);
-    expect(mockClearConversationReplayStateCache.mock.calls.length).toBe(1);
     expect(mockClearAllConversationWorkspaceBindings.mock.calls.length).toBe(1);
     expect(mockInvoke).toHaveBeenCalledWith(
       'list-conversations',
@@ -900,7 +862,7 @@ describe('ChatGptDashboardShell', () => {
             conversations: [
               {
                 conversation_id: 'conv-startup-1',
-                record_kind: 'transcript',
+                record_kind: 'conversation_event',
                 last_timestamp: nowIso,
                 title: 'Startup restored chat',
               },
@@ -1000,13 +962,13 @@ describe('ChatGptDashboardShell', () => {
               conversations: [
                 {
                   conversation_id: 'conv-history-1',
-                  record_kind: 'transcript',
+                  record_kind: 'conversation_event',
                   last_timestamp: nowIso,
                   title: 'Moon Landing Technology Explained',
                 },
                 {
                   conversation_id: 'conv-history-2',
-                  record_kind: 'transcript',
+                  record_kind: 'conversation_event',
                   last_timestamp: nowIso,
                   title: 'Vietnamese-speaking lawyer leads',
                 },
@@ -1021,7 +983,7 @@ describe('ChatGptDashboardShell', () => {
               conversations: [
                 {
                   conversation_id: 'conv-history-2',
-                  record_kind: 'transcript',
+                  record_kind: 'conversation_event',
                   last_timestamp: nowIso,
                   title: 'Vietnamese-speaking lawyer leads',
                   snippet: 'You: Looking for Vietnamese-speaking lawyer lead in California.',

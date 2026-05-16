@@ -24,7 +24,7 @@ type StoreTranscriptPayload = {
 
 export function loadTranscriptWriter() {
   jest.resetModules();
-  const invokeMock = jest.fn().mockResolvedValue(undefined);
+  const invokeMock = jest.fn().mockResolvedValue({ success: true });
   const sendMock = jest.fn();
   const onHandlers = new Map<string, (...args: any[]) => void>();
   const onMock = jest.fn((channel: string, handler: (...args: any[]) => void) => {
@@ -34,18 +34,54 @@ export function loadTranscriptWriter() {
 
   jest.doMock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     IpcBridge: { invoke: invokeMock, send: sendMock, on: onMock },
-    INVOKE_CHANNELS: { STORE_TRANSCRIPT: 'store-transcript' },
+    INVOKE_CHANNELS: {
+      STORE_TRANSCRIPT: 'store-transcript',
+      GET_CONVERSATION: 'get-conversation',
+      LIST_CONVERSATIONS: 'list-conversations',
+      DELETE_CONVERSATION: 'delete-conversation',
+    },
     SEND_CHANNELS: { TRANSCRIPT_SESSION_SYNC: 'transcript-session-sync' },
     ON_CHANNELS: { TRANSCRIPT_SESSION_SYNC: 'transcript-session-sync' },
   }));
-  jest.doMock('../../frontend/src/renderer/infrastructure/transcript/conversationReplayState', () => ({
-    buildReplayRowStoragePayload: jest.fn((context, entry) => ({
-      ...context,
-      ...entry,
-      recordKind: 'transcript_replay',
-    })),
-    ensureConversationReplayStateInitialized: jest.fn().mockResolvedValue('bootstrapped'),
-    appendConversationReplayEntry: jest.fn(),
+  jest.doMock('../../frontend/src/renderer/infrastructure/transcript/localConversationStore', () => ({
+    loadStoredConversationEntries: jest.fn().mockResolvedValue([]),
+    listStoredConversations: jest.fn().mockResolvedValue([]),
+  }));
+  jest.doMock('../../frontend/src/renderer/infrastructure/transcript/ElectronSidecarConversationStore', () => ({
+    SDK_CONVERSATION_EVENT_RECORD_KIND: 'conversation_event',
+    ElectronSidecarConversationStore: class {
+      userId: string;
+
+      constructor(options: { userId: string }) {
+        this.userId = options.userId;
+      }
+
+      async appendTranscriptProjectionEntry(entry: any) {
+        await invokeMock('store-transcript', {
+          content: entry.content,
+          userId: this.userId,
+          conversationRef: entry.conversationRef,
+          role: entry.role,
+          messageType: eventMessageType(entry.messageType, entry.role),
+          toolName: entry.toolName ?? null,
+          correlationId: entry.correlationId ?? null,
+          screenshot: entry.screenshot ?? null,
+          recordKind: 'conversation_event',
+          workspacePath: null,
+          workspaceName: null,
+          structuredPayload: {
+            windieSdkConversationEvent: {
+              type: eventMessageType(entry.messageType, entry.role),
+              payload: {
+                text: entry.content,
+                role: entry.role,
+                messageType: entry.messageType,
+              },
+            },
+          },
+        });
+      }
+    },
   }));
   jest.doMock('../../frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding', () => ({
     getConversationWorkspaceBinding: jest.fn(() => ({
@@ -107,7 +143,7 @@ export function expectStoreTranscriptCall(
 ) {
   const call = invokeMock.mock.calls.find((args) => args[0] === 'store-transcript');
   expect(call).toBeDefined();
-  expect(call?.[1]).toEqual(payload);
+  expectCanonicalStorePayload(call?.[1], payload);
 }
 
 export function expectNthStoreTranscriptCall(
@@ -118,11 +154,60 @@ export function expectNthStoreTranscriptCall(
   const call = invokeMock.mock.calls[callIndex - 1];
   expect(call).toBeDefined();
   expect(call?.[0]).toBe('store-transcript');
-  expect(call?.[1]).toEqual(payload);
+  expectCanonicalStorePayload(call?.[1], payload);
 }
 
 export function setupStoreFailureRetry(invokeMock: jest.Mock, errorMessage = 'store failed') {
-  invokeMock.mockRejectedValueOnce(new Error(errorMessage)).mockResolvedValue(undefined);
+  invokeMock.mockRejectedValueOnce(new Error(errorMessage)).mockResolvedValue({ success: true });
+}
+
+function eventMessageType(messageType: string, role: string): string {
+  if (role === 'user' || messageType === 'user') {
+    return 'user_message';
+  }
+  if (messageType === 'tool-call') {
+    return 'tool_call';
+  }
+  if (role === 'tool' || messageType === 'tool-output') {
+    return 'tool_output';
+  }
+  return 'assistant_message';
+}
+
+function expectCanonicalStorePayload(
+  actual: unknown,
+  expected: ReturnType<typeof createStoreTranscriptPayload>,
+) {
+  const expectedPayload: Record<string, unknown> = {
+    content: expected.content,
+    userId: expected.userId,
+    conversationRef: expected.conversationRef,
+    role: expected.role,
+    messageType: eventMessageType(expected.messageType, expected.role),
+    recordKind: 'conversation_event',
+    workspacePath: expected.workspacePath,
+    workspaceName: expected.workspaceName,
+    structuredPayload: {
+      windieSdkConversationEvent: expect.objectContaining({
+        type: eventMessageType(expected.messageType, expected.role),
+        payload: expect.objectContaining({
+          text: expected.content,
+          role: expected.role,
+          messageType: expected.messageType,
+        }),
+      }),
+    },
+  };
+  if (expected.toolName !== undefined) {
+    expectedPayload.toolName = expected.toolName;
+  }
+  if (expected.correlationId !== undefined) {
+    expectedPayload.correlationId = expected.correlationId;
+  }
+  if (expected.screenshot !== undefined) {
+    expectedPayload.screenshot = expected.screenshot;
+  }
+  expect(actual).toEqual(expect.objectContaining(expectedPayload));
 }
 
 export async function withSuppressedConsoleWarn(run: () => Promise<void> | void) {

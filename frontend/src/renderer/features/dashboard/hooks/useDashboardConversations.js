@@ -167,7 +167,6 @@ function useDashboardConversations({
       const snapshot = await loadLocalConversationSnapshot({
         userId: resolvedUserId,
         conversationRef,
-        recordKind: 'transcript',
         conversation,
       });
       const displayConversation = await DesktopConversationLibraryClient.loadForDisplay(

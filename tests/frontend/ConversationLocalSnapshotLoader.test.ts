@@ -1,5 +1,11 @@
 import { loadStoredConversationEntries } from '../../frontend/src/renderer/infrastructure/transcript/localConversationStore';
+import {
+  SDK_CONVERSATION_EVENT_RECORD_KIND,
+} from '../../frontend/src/renderer/infrastructure/transcript/ElectronSidecarConversationStore';
 import { loadLocalConversationSnapshot } from '../../frontend/src/renderer/infrastructure/transcript/conversationLocalSnapshotLoader';
+import {
+  createConversationEvent,
+} from '../../frontend/src/renderer/infrastructure/api/windieSdkClient';
 
 jest.mock('../../frontend/src/renderer/infrastructure/transcript/localConversationStore', () => ({
   loadStoredConversationEntries: jest.fn(),
@@ -7,23 +13,44 @@ jest.mock('../../frontend/src/renderer/infrastructure/transcript/localConversati
 
 const mockLoadStoredConversationEntries = loadStoredConversationEntries as jest.MockedFunction<typeof loadStoredConversationEntries>;
 
+function sdkEventRow(event: ReturnType<typeof createConversationEvent>, metadata: Record<string, unknown> = {}) {
+  return {
+    ...metadata,
+    metadata: {
+      ...(metadata.metadata as Record<string, unknown> | undefined),
+      structured_payload: {
+        windieSdkConversationEvent: event,
+      },
+    },
+  } as any;
+}
+
 describe('conversationLocalSnapshotLoader', () => {
   beforeEach(() => {
     mockLoadStoredConversationEntries.mockReset();
   });
 
-  test('loads transcript rows for dashboard-style snapshots and derives workspace binding from transcript metadata', async () => {
-    mockLoadStoredConversationEntries.mockResolvedValueOnce([
-      {
-        role: 'user',
-        content: 'hello',
-        message_type: 'user',
+  test('loads canonical event rows and derives workspace binding from event metadata', async () => {
+    const event = createConversationEvent({
+      eventId: 'evt-user',
+      type: 'user_message',
+      conversationRef: 'conv-1',
+      revisionId: 'rev-1',
+      timestamp: '2026-05-15T12:00:00.000Z',
+      payload: { text: 'hello' },
+    });
+    const rows = [
+      sdkEventRow(event, {
         metadata: {
           workspace_path: '/tmp/project-a',
           workspace_name: 'project-a',
         },
-      } as any,
-    ]);
+      }),
+    ];
+    mockLoadStoredConversationEntries
+      .mockResolvedValueOnce(rows)
+      .mockResolvedValueOnce(rows)
+      .mockResolvedValueOnce(rows);
 
     const snapshot = await loadLocalConversationSnapshot({
       userId: 'user-1',
@@ -31,7 +58,9 @@ describe('conversationLocalSnapshotLoader', () => {
       includeParsedMessages: true,
     });
 
-    expect(mockLoadStoredConversationEntries).toHaveBeenCalledTimes(1);
+    expect(mockLoadStoredConversationEntries).toHaveBeenCalledWith(expect.objectContaining({
+      recordKind: SDK_CONVERSATION_EVENT_RECORD_KIND,
+    }));
     expect(snapshot.transcriptEntries).toHaveLength(1);
     expect(snapshot.replayEntries).toHaveLength(0);
     expect(snapshot.workspaceBinding).toEqual({
@@ -48,34 +77,42 @@ describe('conversationLocalSnapshotLoader', () => {
       expect.objectContaining({
         role: 'user',
         content: 'hello',
-        message_type: 'user',
       }),
     ]);
   });
 
-  test('prefers replay-state rows for rehydrate payloads while keeping workspace binding from transcript rows', async () => {
-    mockLoadStoredConversationEntries
-      .mockResolvedValueOnce([
-        {
-          metadata: {
-            rehydrate_entry: {
+  test('uses compaction events for rehydrate payloads', async () => {
+    const eventRows = [
+      sdkEventRow(createConversationEvent({
+        eventId: 'evt-user',
+        type: 'user_message',
+        conversationRef: 'conv-2',
+        revisionId: 'rev-1',
+        payload: { text: 'visible transcript' },
+      })),
+      sdkEventRow(createConversationEvent({
+        eventId: 'compaction-gen-1',
+        type: 'compaction_applied',
+        conversationRef: 'conv-2',
+        revisionId: 'rev-compact',
+        payload: {
+          generationId: 'gen-1',
+          sourceRevisionId: 'rev-compact',
+          entries: [
+            {
               role: 'assistant',
               content: 'compacted replay',
               message_type: 'context_compaction',
             },
-          },
-        } as any,
-      ])
-      .mockResolvedValueOnce([
-        {
-          role: 'user',
-          content: 'visible transcript',
-          message_type: 'user',
-          metadata: {
-            workspace_path: '/tmp/project-b',
-          },
-        } as any,
-      ]);
+          ],
+          entryCount: 1,
+          complete: true,
+        },
+      })),
+    ];
+    mockLoadStoredConversationEntries
+      .mockResolvedValueOnce(eventRows)
+      .mockResolvedValueOnce(eventRows);
 
     const snapshot = await loadLocalConversationSnapshot({
       userId: 'user-1',
@@ -84,10 +121,7 @@ describe('conversationLocalSnapshotLoader', () => {
     });
 
     expect(mockLoadStoredConversationEntries).toHaveBeenCalledTimes(2);
-    expect(snapshot.workspaceBinding).toEqual({
-      workspacePath: '/tmp/project-b',
-      workspaceName: 'project-b',
-    });
+    expect(snapshot.replayEntries).toHaveLength(0);
     expect(snapshot.rehydrateMessages).toEqual([
       expect.objectContaining({
         role: 'assistant',
@@ -98,35 +132,56 @@ describe('conversationLocalSnapshotLoader', () => {
   });
 
   test('builds rehydrate payloads through SDK projection and collapses duplicate tool outputs', async () => {
-    mockLoadStoredConversationEntries.mockResolvedValueOnce([
-      {
-        id: 'tool-call-row',
-        role: 'assistant',
-        content: '{"name":"read_file"}',
-        message_type: 'tool-call',
-        correlation_id: 'req-read',
-        tool_name: 'read_file',
-        tool_call_id: 'call-read',
-      } as any,
-      {
-        id: 'tool-output-local',
-        role: 'tool',
-        content: 'local result',
-        message_type: 'tool-output',
-        correlation_id: 'req-read',
-        tool_name: 'read_file',
-        tool_call_id: 'call-read',
-      } as any,
-      {
-        id: 'tool-output-backend',
-        role: 'tool',
-        content: 'backend ack',
-        message_type: 'tool-output',
-        correlation_id: 'req-read',
-        tool_name: 'read_file',
-        tool_call_id: 'call-read',
-      } as any,
-    ]);
+    const events = [
+      createConversationEvent({
+        eventId: 'tool-call-row',
+        type: 'tool_call',
+        conversationRef: 'conv-tools',
+        revisionId: 'rev-tools',
+        payload: {
+          text: '{"name":"read_file"}',
+          correlationId: 'req-read',
+          requestId: 'req-read',
+          toolName: 'read_file',
+          toolCallId: 'call-read',
+          structuredPayload: {
+            role: 'assistant',
+            content: '{"name":"read_file"}',
+            tool_call_id: 'call-read',
+          },
+        },
+      }),
+      createConversationEvent({
+        eventId: 'tool-output-local',
+        type: 'tool_output',
+        conversationRef: 'conv-tools',
+        revisionId: 'rev-tools',
+        payload: {
+          text: 'local result',
+          correlationId: 'req-read',
+          requestId: 'req-read',
+          toolName: 'read_file',
+          toolCallId: 'call-read',
+        },
+      }),
+      createConversationEvent({
+        eventId: 'tool-output-backend',
+        type: 'tool_output',
+        conversationRef: 'conv-tools',
+        revisionId: 'rev-tools',
+        payload: {
+          text: 'backend ack',
+          correlationId: 'req-read',
+          requestId: 'req-read',
+          toolName: 'read_file',
+          toolCallId: 'call-read',
+        },
+      }),
+    ];
+    const rows = events.map((event) => sdkEventRow(event));
+    mockLoadStoredConversationEntries
+      .mockResolvedValueOnce(rows)
+      .mockResolvedValueOnce(rows);
 
     const snapshot = await loadLocalConversationSnapshot({
       userId: 'user-1',
@@ -140,14 +195,18 @@ describe('conversationLocalSnapshotLoader', () => {
     }));
   });
 
-  test('falls back to conversation-level workspace binding when transcript rows do not carry one', async () => {
-    mockLoadStoredConversationEntries.mockResolvedValueOnce([
-      {
-        role: 'assistant',
-        content: 'hello',
-        message_type: 'llm-text',
-      } as any,
-    ]);
+  test('falls back to conversation-level workspace binding when event rows do not carry one', async () => {
+    const event = createConversationEvent({
+      eventId: 'evt-assistant',
+      type: 'assistant_message',
+      conversationRef: 'conv-3',
+      revisionId: 'rev-3',
+      payload: { text: 'hello' },
+    });
+    const rows = [sdkEventRow(event)];
+    mockLoadStoredConversationEntries
+      .mockResolvedValueOnce(rows)
+      .mockResolvedValueOnce(rows);
 
     const snapshot = await loadLocalConversationSnapshot({
       userId: 'user-1',

@@ -216,27 +216,26 @@ Current title behavior for transcript chats:
 - After the first assistant `llm-text` transcript row is stored, async model title generation can replace that temporary title.
 - Hosted debugging note: backend `/api/embeddings`, `/api/semantic/summarize`, and `/api/semantic/title` now emit route-level start/success/failure logs so a hosted `502` can be separated into “request never hit FastAPI” versus “origin app received and failed the request.”
 
-## Chat Transcript vs Replay State
+## Chat Transcript vs SDK Event State
 
-WindieOS now persists two separate conversation representations for chat history:
+WindieOS now persists one first-class SDK conversation representation for chat history:
 
-- `record_kind='transcript'`: append-only raw transcript rows used for user-visible chat scrollback, search, titles, and conversation lists.
-- `record_kind='transcript_replay'`: internal replay-state rows used only to rebuild backend conversation history on reconnect or resume.
+- `record_kind='conversation_event'`: normalized SDK event log used for desktop display, conversation lists, backend rehydrate, edit/resend, retry, and compaction lifecycle.
 
-Replay-state behavior:
+SDK event behavior:
 
-- New transcript writes mirror into replay-state so the backend can resume from a local replay snapshot instead of regenerating from UI-only message rows.
-- History compaction rewrites replay-state only; it does not rewrite or delete the raw transcript.
-- Chat delete and replay/edit rewind flows clear both raw transcript rows and replay-state rows before any transcript rebuild.
-- Reopening a chat prefers replay-state when present. Legacy chats without replay-state still fall back to raw transcript replay.
-- Clearing chat history deletes both raw transcript rows and replay-state rows.
-- After a global chat-history wipe, the renderer also drops its replay bootstrap cache, backend sync cache, and per-conversation workspace bindings so resume state cannot survive the underlying storage reset.
+- New desktop transcript projections are stored as canonical SDK events.
+- History compaction stores a complete `compaction_applied` event with replacement history entries.
+- Chat delete and replay/edit rewind flows clear canonical event rows before any event rebuild.
+- Reopening a chat loads display and rehydrate snapshots from SDK projections over event rows.
+- Clearing chat history deletes canonical event rows with saved conversation titles.
+- After a global chat-history wipe, the renderer drops backend sync cache and per-conversation workspace bindings so resume state cannot survive the underlying storage reset.
 
 Practical effect:
 
-- users can still scroll through the full original transcript
+- users see display projections built from normalized SDK events
 - the backend can resume from compacted internal history after a previous compaction
-- transcript UI and backend rehydrate source are intentionally no longer the same storage stream
+- UI rows are projections; backend rehydrate source is the normalized event log
 
 ## User-Facing Reset Controls
 

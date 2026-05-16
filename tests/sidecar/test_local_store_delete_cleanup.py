@@ -13,7 +13,6 @@ from memory.record_kinds import (  # noqa: E402
     CONVERSATION_EVENT_RECORD_KIND,
     INTERACTION_RECORD_KIND,
     TRANSCRIPT_RECORD_KIND,
-    TRANSCRIPT_REPLAY_RECORD_KIND,
 )
 
 try:
@@ -287,15 +286,15 @@ async def test_list_episodic_memories_returns_interaction_rows_only(tmp_path: Pa
                     0,
                 ),
                 (
-                    "replay-1",
+                    "event-1",
                     "user-1",
-                    "[internal replay entry]",
+                    "[sdk event]",
                     "2026-04-15T21:45:00Z",
-                    json.dumps({"record_kind": TRANSCRIPT_REPLAY_RECORD_KIND}),
+                    json.dumps({"record_kind": CONVERSATION_EVENT_RECORD_KIND}),
                     "conv-1",
-                    TRANSCRIPT_REPLAY_RECORD_KIND,
+                    CONVERSATION_EVENT_RECORD_KIND,
                     "assistant",
-                    "llm-text",
+                    "compaction_applied",
                     None,
                     0,
                 ),
@@ -355,7 +354,7 @@ async def test_delete_episodic_memory_clears_faiss_artifacts_when_empty(tmp_path
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(faiss is None, reason="faiss is required")
-async def test_delete_episodic_memory_ignores_transcript_replay_rows(tmp_path: Path):
+async def test_delete_episodic_memory_ignores_conversation_event_rows(tmp_path: Path):
     store = _build_store(tmp_path)
     _create_episodic_memories_table(store.episodic_db_path)
 
@@ -365,31 +364,31 @@ async def test_delete_episodic_memory_ignores_transcript_replay_rows(tmp_path: P
             INSERT INTO memories (id, user_id, embedding_id, conversation_id, record_kind)
             VALUES (?, ?, ?, ?, ?)
             """,
-            ("replay-1", "user-1", 0, "conv-1", TRANSCRIPT_REPLAY_RECORD_KIND),
+            ("event-1", "user-1", 0, "conv-1", CONVERSATION_EVENT_RECORD_KIND),
         )
         conn.commit()
 
-    store.episodic_memory_id_to_vector_id = {"replay-1": 0}
-    store.episodic_vector_id_to_memory_id = {0: "replay-1"}
+    store.episodic_memory_id_to_vector_id = {"event-1": 0}
+    store.episodic_vector_id_to_memory_id = {0: "event-1"}
     store.episodic_next_vector_id = 1
     store.episodic_index = faiss.IndexFlatIP(store.embedder.dimension)
 
-    deleted = await store.delete_episodic_memory("user-1", "replay-1")
+    deleted = await store.delete_episodic_memory("user-1", "event-1")
 
     assert deleted is False
-    assert store.episodic_memory_id_to_vector_id == {"replay-1": 0}
-    assert store.episodic_vector_id_to_memory_id == {0: "replay-1"}
+    assert store.episodic_memory_id_to_vector_id == {"event-1": 0}
+    assert store.episodic_vector_id_to_memory_id == {0: "event-1"}
 
     with sqlite3.connect(store.episodic_db_path) as conn:
         remaining_rows = conn.execute(
             "SELECT id, record_kind FROM memories ORDER BY id"
         ).fetchall()
-    assert remaining_rows == [("replay-1", TRANSCRIPT_REPLAY_RECORD_KIND)]
+    assert remaining_rows == [("event-1", CONVERSATION_EVENT_RECORD_KIND)]
 
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(faiss is None, reason="faiss is required")
-async def test_clear_local_memory_preserves_transcripts_and_replay_rows_and_rebuilds_indices(tmp_path: Path):
+async def test_clear_local_memory_preserves_transcripts_and_conversation_event_rows_and_rebuilds_indices(tmp_path: Path):
     store = _build_store(tmp_path)
     _create_bulk_clear_episodic_memories_table(store.episodic_db_path)
     _create_bulk_clear_semantic_memories_table(store.semantic_db_path)
@@ -423,14 +422,14 @@ async def test_clear_local_memory_preserves_transcripts_and_replay_rows_and_rebu
                     "user",
                 ),
                 (
-                    "replay-1",
+                    "event-1",
                     "user-1",
-                    "[internal replay entry]",
+                    "[sdk event]",
                     2,
                     "conv-1",
-                    TRANSCRIPT_REPLAY_RECORD_KIND,
+                    CONVERSATION_EVENT_RECORD_KIND,
                     "assistant",
-                    "llm-text",
+                    "compaction_applied",
                 ),
             ],
         )
@@ -481,7 +480,7 @@ async def test_clear_local_memory_preserves_transcripts_and_replay_rows_and_rebu
             "SELECT id, record_kind, embedding_id FROM memories ORDER BY id"
         ).fetchall()
     assert remaining_rows == [
-        ("replay-1", TRANSCRIPT_REPLAY_RECORD_KIND, 1),
+        ("event-1", CONVERSATION_EVENT_RECORD_KIND, 1),
         ("transcript-1", TRANSCRIPT_RECORD_KIND, 0),
     ]
 

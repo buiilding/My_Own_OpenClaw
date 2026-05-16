@@ -84,7 +84,6 @@ from memory.record_kinds import (
     CONVERSATION_EVENT_RECORD_KIND,
     INTERACTION_RECORD_KIND,
     TRANSCRIPT_RECORD_KIND,
-    TRANSCRIPT_REPLAY_RECORD_KIND,
 )
 from memory.sqlite_store import (
     init_episodic_schema,
@@ -844,10 +843,7 @@ class LocalMemoryStore:
         # Convert string to enum for type safety
         memory_type = self._normalize_memory_type(memory_type_str)
 
-        if (
-            record_kind in {TRANSCRIPT_RECORD_KIND, TRANSCRIPT_REPLAY_RECORD_KIND}
-            and memory_type != "episodic"
-        ):
+        if record_kind == TRANSCRIPT_RECORD_KIND and memory_type != "episodic":
             memory_type = "episodic"
 
         (
@@ -2038,8 +2034,7 @@ class LocalMemoryStore:
         requested_record_kind = str(record_kind or "").strip().lower()
         normalized_record_kind = (
             requested_record_kind
-            if requested_record_kind
-            in {CONVERSATION_EVENT_RECORD_KIND, TRANSCRIPT_REPLAY_RECORD_KIND}
+            if requested_record_kind == CONVERSATION_EVENT_RECORD_KIND
             else TRANSCRIPT_RECORD_KIND
         )
         record_kind_clause = "AND record_kind = ?"

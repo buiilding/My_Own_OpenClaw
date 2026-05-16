@@ -1123,18 +1123,18 @@ describe('local_backend_bridge RPC handlers', () => {
     await expectResolvedSuccess(stdoutHandler, promise, { ok: true });
   });
 
-  test('store-transcript handler maps replay-state payload fields', async () => {
+  test('store-transcript handler maps conversation-event payload fields', async () => {
     const { handlers, stdoutHandler } = initBridge();
     markReady();
 
     const promise = handlers['store-transcript'](null, {
-      content: '[internal replay entry]',
+      content: '[sdk event]',
       userId: 'u-1',
       conversationRef: 'conv-1',
       role: 'assistant',
-      messageType: 'context-compaction',
+      messageType: 'compaction_applied',
       messageIndex: 12,
-      recordKind: 'transcript_replay',
+      recordKind: 'conversation_event',
       rehydrateEntry: {
         role: 'assistant',
         content: '[[CONTEXT COMPACTION SUMMARY]]\nsummary',
@@ -1143,13 +1143,13 @@ describe('local_backend_bridge RPC handlers', () => {
     });
 
     expectLastRequestWith('store_transcript', expect.objectContaining({
-      content: '[internal replay entry]',
+      content: '[sdk event]',
       user_id: 'u-1',
       conversation_ref: 'conv-1',
       role: 'assistant',
-      message_type: 'context-compaction',
+      message_type: 'compaction_applied',
       message_index: 12,
-      record_kind: 'transcript_replay',
+      record_kind: 'conversation_event',
       rehydrate_entry: {
         role: 'assistant',
         content: '[[CONTEXT COMPACTION SUMMARY]]\nsummary',

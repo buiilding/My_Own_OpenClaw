@@ -200,7 +200,7 @@ describe('TranscriptWriter tool writes', () => {
       if (storeTranscriptCalls.length !== 3) {
         throw new Error(`Expected 3 store-transcript calls, received ${storeTranscriptCalls.length}`);
       }
-      expect(storeTranscriptCalls[1]?.[1]).toEqual(createStoreTranscriptPayload({
+      expectNthStoreTranscriptCall(invokeMock, 2, createStoreTranscriptPayload({
         content: 'queued tool message 1',
         userId: 'user-retry-tool',
         conversationRef: 'conv-retry-tool',
@@ -209,7 +209,7 @@ describe('TranscriptWriter tool writes', () => {
         toolName: 'read_file',
         correlationId: 'corr-1',
       }));
-      expect(storeTranscriptCalls[2]?.[1]).toEqual(createStoreTranscriptPayload({
+      expectNthStoreTranscriptCall(invokeMock, 3, createStoreTranscriptPayload({
         content: 'queued tool message 2',
         userId: 'user-retry-tool',
         conversationRef: 'conv-retry-tool',

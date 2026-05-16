@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from memory.record_kinds import TRANSCRIPT_RECORD_KIND, TRANSCRIPT_REPLAY_RECORD_KIND
+from memory.record_kinds import TRANSCRIPT_RECORD_KIND
 
 EMBEDDABLE_ASSISTANT_TRANSCRIPT_MESSAGE_TYPES = ("", "llm-text", "error")
 
@@ -34,8 +34,6 @@ def should_embed_episodic_entry(
 ) -> bool:
     """Return True when an episodic row should receive embeddings."""
     normalized_kind = (record_kind or "memory").strip().lower()
-    if normalized_kind == TRANSCRIPT_REPLAY_RECORD_KIND:
-        return False
     if normalized_kind != TRANSCRIPT_RECORD_KIND:
         return True
     return is_semantic_transcript_candidate(role, message_type)
@@ -46,7 +44,7 @@ def build_missing_embedding_rows_query(memory_type: str) -> str:
     SQL query used for startup backfill scans.
 
     Episodic policy intentionally excludes low-signal transcript tool chatter and
-    transcript replay rows so startup does not rescan rows that are never embeddable.
+    non-semantic transcript rows so startup does not rescan rows that are never embeddable.
     """
     if memory_type == "episodic":
         allowed_types_sql = ", ".join(
@@ -57,7 +55,7 @@ def build_missing_embedding_rows_query(memory_type: str) -> str:
             FROM memories
             WHERE embedding_id IS NULL
               AND (
-                COALESCE(LOWER(TRIM(record_kind)), '') NOT IN ('{TRANSCRIPT_RECORD_KIND}', '{TRANSCRIPT_REPLAY_RECORD_KIND}')
+                COALESCE(LOWER(TRIM(record_kind)), '') != '{TRANSCRIPT_RECORD_KIND}'
                 OR COALESCE(LOWER(TRIM(role)), '') = 'user'
                 OR (
                   COALESCE(LOWER(TRIM(role)), '') = 'assistant'

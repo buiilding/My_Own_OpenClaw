@@ -376,7 +376,7 @@ async def test_add_stores_without_vector_mapping_when_embedding_unavailable(
 
 
 @pytest.mark.asyncio
-async def test_sync_vector_mappings_backfill_query_skips_transcript_replay_rows(
+async def test_sync_vector_mappings_backfill_query_skips_nonsemantic_transcript_rows(
     monkeypatch,
     tmp_path,
 ):
@@ -404,10 +404,10 @@ async def test_sync_vector_mappings_backfill_query_skips_transcript_replay_rows(
             """,
             [
                 (
-                    "replay-tool-output",
-                    "very long replay payload",
+                    "tool-output",
+                    "very long tool payload",
                     None,
-                    "transcript_replay",
+                    "transcript",
                     "tool",
                     "tool-output",
                 ),
@@ -499,11 +499,11 @@ def test_should_embed_episodic_entry_matches_transcript_policy():
     )
     assert (
         should_embed_episodic_entry(
-            record_kind="transcript_replay",
+            record_kind="conversation_event",
             role="assistant",
             message_type="llm-text",
         )
-        is False
+        is True
     )
 
 

@@ -185,11 +185,11 @@ to shared SDK projections or to a complete active compacted replay snapshot.
 Electron uses a sidecar-backed store adapter during the desktop migration:
 
 - canonical SDK events are stored under the sidecar `conversation_event` record
-  kind so they do not pollute visible `transcript` rows
-- legacy transcript rows are projected into SDK events when a conversation has
-  not yet been written through the canonical adapter
-- compacted replay rows still use `transcript_replay`, but SDK loaders read them
-  as replay snapshots before falling back to full event projection
+  kind as the storage truth for desktop display and backend rehydrate
+- legacy transcript/replay fallback is removed; conversations that participate
+  in the SDK runtime must load from canonical `conversation_event` rows
+- compacted replay snapshots are persisted as `compaction_applied` conversation
+  events with complete generation payloads, not as hidden replay rows
 - desktop compaction replacement-history writes go through the conversation store
   adapter's `replaceCompactedReplay(...)` path instead of stream handlers
   directly mutating replay storage
@@ -199,10 +199,9 @@ Electron uses a sidecar-backed store adapter during the desktop migration:
 - desktop backend-session rehydrate uses the store adapter's SDK projection
   instead of shaping messages directly from visible transcript rows
 - desktop recent-chat and open-chat loading use store metadata/display
-  projections, with legacy transcript fallback for existing local chats
+  projections over canonical event rows only
 - desktop chat deletion goes through the Electron conversation store adapter and
-  removes legacy transcript rows, compacted replay rows, and canonical
-  `conversation_event` rows together
+  removes canonical `conversation_event` rows
 - startup metadata loading does not apply a hidden local chat limit; SDK callers
   pass explicit `listMetadata({ limit, cursor })` options when they want bounded
   pages. `cursor` is the last `conversationRef` from the previous page.

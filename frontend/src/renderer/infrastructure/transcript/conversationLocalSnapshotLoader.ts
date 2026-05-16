@@ -1,13 +1,7 @@
 import {
-  parseMemoriesToMessages,
-} from '../../features/dashboard/utils/episodicMemoryUtils';
-import {
-  readStoredReplayRehydrateEntry,
-  TRANSCRIPT_REPLAY_RECORD_KIND,
-} from './conversationReplayState';
-import {
-  buildStoredTranscriptRehydrateMessages,
-} from './storedTranscriptSdkProjection';
+  ElectronSidecarConversationStore,
+  SDK_CONVERSATION_EVENT_RECORD_KIND,
+} from './ElectronSidecarConversationStore';
 import { loadStoredConversationEntries } from './localConversationStore';
 import { resolveConversationWorkspaceBinding } from '../workspace/conversationWorkspaceBinding';
 
@@ -33,60 +27,43 @@ export type LocalConversationSnapshot = {
   rehydrateMessages: Array<Record<string, unknown>>;
 };
 
-function buildRehydrateMessages({
-  conversationRef,
-  transcriptEntries,
-  replayEntries,
-}: {
-  conversationRef: string;
-  transcriptEntries: StoredConversationEntry[];
-  replayEntries: StoredConversationEntry[];
-}): Array<Record<string, unknown>> {
-  if (replayEntries.length > 0) {
-    return replayEntries.map((entry) => readStoredReplayRehydrateEntry(entry) || buildStoredTranscriptRehydrateMessages([entry], {
-      conversationRef,
-    })[0]).filter((entry): entry is Record<string, unknown> => Boolean(entry));
-  }
-  return buildStoredTranscriptRehydrateMessages(transcriptEntries, {
-    conversationRef,
-  });
-}
-
 export async function loadLocalConversationSnapshot({
   userId,
   conversationRef,
-  recordKind = 'transcript',
+  recordKind = SDK_CONVERSATION_EVENT_RECORD_KIND,
   conversation = null,
   includeParsedMessages = false,
   includeReplayState = false,
 }: ConversationSnapshotOptions): Promise<LocalConversationSnapshot> {
-  const [replayEntries, transcriptEntries] = await Promise.all([
-    includeReplayState
-      ? loadStoredConversationEntries({
-        userId,
-        conversationRef,
-        recordKind: TRANSCRIPT_REPLAY_RECORD_KIND,
-      })
-      : Promise.resolve([]),
-    loadStoredConversationEntries({
-      userId,
-      conversationRef,
-      recordKind,
-    }),
+  void includeReplayState;
+  const transcriptEntries = await loadStoredConversationEntries({
+    userId,
+    conversationRef,
+    recordKind,
+  });
+  const store = new ElectronSidecarConversationStore({ userId });
+  const [displayConversation, rehydrateSnapshot] = await Promise.all([
+    includeParsedMessages ? store.loadForDisplay(conversationRef) : Promise.resolve(null),
+    store.loadForRehydrate(conversationRef),
   ]);
 
   return {
     transcriptEntries,
-    replayEntries,
+    replayEntries: [],
     workspaceBinding: resolveConversationWorkspaceBinding({
       conversation,
       memories: transcriptEntries,
     }),
-    parsedMessages: includeParsedMessages ? parseMemoriesToMessages(transcriptEntries) : [],
-    rehydrateMessages: buildRehydrateMessages({
-      conversationRef,
-      transcriptEntries,
-      replayEntries,
-    }),
+    parsedMessages: displayConversation
+      ? displayConversation.messages.map((message) => ({
+        id: message.id,
+        text: message.text,
+        sender: message.sender,
+        role: message.sender,
+        message_type: message.messageType,
+        timestamp: message.timestamp,
+      }))
+      : [],
+    rehydrateMessages: rehydrateSnapshot.messages,
   };
 }

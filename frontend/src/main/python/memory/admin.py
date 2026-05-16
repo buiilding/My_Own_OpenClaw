@@ -22,7 +22,6 @@ from memory.record_kinds import (
     CONVERSATION_EVENT_RECORD_KIND,
     INTERACTION_RECORD_KIND,
     TRANSCRIPT_RECORD_KIND,
-    TRANSCRIPT_REPLAY_RECORD_KIND,
 )
 
 logger = logging.getLogger(__name__)
@@ -112,12 +111,11 @@ async def clear_chat_history(store: "LocalMemoryStore", user_id: str) -> Dict[st
         await cursor.execute(
             """
             DELETE FROM memories
-            WHERE user_id = ? AND record_kind IN (?, ?, ?)
+            WHERE user_id = ? AND record_kind IN (?, ?)
             """,
             (
                 user_id,
                 TRANSCRIPT_RECORD_KIND,
-                TRANSCRIPT_REPLAY_RECORD_KIND,
                 CONVERSATION_EVENT_RECORD_KIND,
             ),
         )

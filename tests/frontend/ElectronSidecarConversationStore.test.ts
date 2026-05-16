@@ -31,11 +31,23 @@ const mockListStoredConversations = listStoredConversations as jest.MockedFuncti
 const mockLoadStoredConversationEntries = loadStoredConversationEntries as jest.MockedFunction<typeof loadStoredConversationEntries>;
 const mockInvoke = IpcBridge.invoke as jest.MockedFunction<typeof IpcBridge.invoke>;
 
+function sdkEventRow(event: ReturnType<typeof createConversationEvent>) {
+  return {
+    metadata: {
+      structured_payload: {
+        windieSdkConversationEvent: event,
+      },
+    },
+  } as any;
+}
+
 describe('ElectronSidecarConversationStore', () => {
   beforeEach(() => {
     mockListStoredConversations.mockReset();
     mockLoadStoredConversationEntries.mockReset();
     mockInvoke.mockReset();
+    mockListStoredConversations.mockResolvedValue([]);
+    mockLoadStoredConversationEntries.mockResolvedValue([]);
     mockInvoke.mockResolvedValue({ success: true, data: { message_index: 1 } });
   });
 
@@ -64,7 +76,7 @@ describe('ElectronSidecarConversationStore', () => {
     }));
   });
 
-  test('loads canonical SDK events before falling back to legacy transcript rows', async () => {
+  test('loads only canonical SDK event rows', async () => {
     const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
     const event = createConversationEvent({
       eventId: 'evt-assistant',
@@ -74,15 +86,7 @@ describe('ElectronSidecarConversationStore', () => {
       timestamp: '2026-05-15T12:00:00.000Z',
       payload: { text: 'from sdk event' },
     });
-    mockLoadStoredConversationEntries.mockResolvedValueOnce([
-      {
-        metadata: {
-          structured_payload: {
-            windieSdkConversationEvent: event,
-          },
-        },
-      } as any,
-    ]);
+    mockLoadStoredConversationEntries.mockResolvedValueOnce([sdkEventRow(event)]);
 
     const events = await store.loadEvents('conv-1');
 
@@ -93,74 +97,8 @@ describe('ElectronSidecarConversationStore', () => {
     }));
   });
 
-  test('projects legacy transcript rows into SDK events when no canonical event rows exist', async () => {
+  test('stores compacted replay snapshots as compaction events', async () => {
     const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
-    mockLoadStoredConversationEntries
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([
-        {
-          id: 'row-user',
-          role: 'user',
-          content: 'legacy hello',
-          message_type: 'user',
-          timestamp: '2026-05-15T12:00:00.000Z',
-        } as any,
-      ]);
-
-    const events = await store.loadEvents('conv-legacy');
-
-    expect(events).toHaveLength(1);
-    expect(events[0]).toEqual(expect.objectContaining({
-      eventId: 'row-user',
-      type: 'user_message',
-      conversationRef: 'conv-legacy',
-      payload: expect.objectContaining({
-        text: 'legacy hello',
-      }),
-    }));
-  });
-
-  test('uses complete replay rows for backend rehydrate snapshots', async () => {
-    const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
-    mockLoadStoredConversationEntries.mockResolvedValueOnce([
-      {
-        timestamp: '2026-05-15T12:00:00.000Z',
-        metadata: {
-          rehydrate_entry: {
-            role: 'assistant',
-            content: 'compacted',
-            replay_generation_id: 'gen-1',
-            replay_source_revision_id: 'rev-source',
-          },
-        },
-      } as any,
-    ]);
-
-    const snapshot = await store.loadForRehydrate('conv-compact');
-
-    expect(snapshot).toEqual({
-      conversationRef: 'conv-compact',
-      revisionId: 'rev-source',
-      messages: [
-        expect.objectContaining({
-          role: 'assistant',
-          content: 'compacted',
-        }),
-      ],
-      replayGenerationId: 'gen-1',
-    });
-  });
-
-  test('persists compacted replay snapshots with workspace binding through replay storage', async () => {
-    const store = new ElectronSidecarConversationStore(
-      { userId: 'user-1' },
-      {
-        getConversationWorkspaceBinding: jest.fn(() => ({
-          workspacePath: '/workspace',
-          workspaceName: 'WindieOS',
-        })),
-      },
-    );
 
     await store.replaceCompactedReplay({
       generationId: 'gen-1',
@@ -181,69 +119,63 @@ describe('ElectronSidecarConversationStore', () => {
     });
 
     expect(mockInvoke).toHaveBeenCalledTimes(1);
-    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'store-transcript', expect.objectContaining({
+    expect(mockInvoke).toHaveBeenCalledWith('store-transcript', expect.objectContaining({
       userId: 'user-1',
       conversationRef: 'conv-compact',
-      recordKind: 'transcript_replay',
-      workspacePath: '/workspace',
-      workspaceName: 'WindieOS',
-      rehydrateEntry: expect.objectContaining({
-        content: 'compacted summary',
-        replay_generation_id: 'gen-1',
-        replay_source_revision_id: 'rev-source',
-        replay_source_turn_ref: 'turn-compact',
-        replay_generation_entry_index: 1,
-        replay_generation_entry_count: 1,
-        replay_generation_complete: true,
-      }),
+      recordKind: SDK_CONVERSATION_EVENT_RECORD_KIND,
+      messageType: 'compaction_applied',
+      structuredPayload: {
+        windieSdkConversationEvent: expect.objectContaining({
+          eventId: 'compaction-gen-1',
+          type: 'compaction_applied',
+          revisionId: 'rev-source',
+          turnRef: 'turn-compact',
+          payload: expect.objectContaining({
+            generationId: 'gen-1',
+            entries: [
+              expect.objectContaining({ content: 'compacted summary' }),
+            ],
+            entryCount: 1,
+            complete: true,
+          }),
+        }),
+      },
     }));
   });
 
-  test('loads the newest complete replay generation and ignores partial generations', async () => {
+  test('uses the newest complete compaction event for backend rehydrate snapshots', async () => {
     const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
+    const partial = createConversationEvent({
+      eventId: 'compaction-partial',
+      type: 'compaction_applied',
+      conversationRef: 'conv-compact',
+      revisionId: 'rev-partial',
+      timestamp: '2026-05-15T12:00:00.000Z',
+      payload: {
+        generationId: 'gen-partial',
+        sourceRevisionId: 'rev-partial',
+        entries: [{ role: 'assistant', content: 'partial' }],
+        entryCount: 2,
+        complete: true,
+      },
+    });
+    const complete = createConversationEvent({
+      eventId: 'compaction-complete',
+      type: 'compaction_applied',
+      conversationRef: 'conv-compact',
+      revisionId: 'rev-new',
+      timestamp: '2026-05-15T12:01:00.000Z',
+      payload: {
+        generationId: 'gen-new',
+        sourceRevisionId: 'rev-new',
+        entries: [{ role: 'assistant', content: 'new complete' }],
+        entryCount: 1,
+        complete: true,
+      },
+    });
     mockLoadStoredConversationEntries.mockResolvedValueOnce([
-      {
-        timestamp: '2026-05-15T12:00:00.000Z',
-        metadata: {
-          rehydrate_entry: {
-            role: 'assistant',
-            content: 'old complete',
-            replay_generation_id: 'gen-old',
-            replay_source_revision_id: 'rev-old',
-            replay_generation_entry_index: 1,
-            replay_generation_entry_count: 1,
-            replay_generation_complete: true,
-          },
-        },
-      } as any,
-      {
-        timestamp: '2026-05-15T12:01:00.000Z',
-        metadata: {
-          rehydrate_entry: {
-            role: 'assistant',
-            content: 'partial should not load',
-            replay_generation_id: 'gen-partial',
-            replay_source_revision_id: 'rev-partial',
-            replay_generation_entry_index: 1,
-            replay_generation_entry_count: 2,
-            replay_generation_complete: true,
-          },
-        },
-      } as any,
-      {
-        timestamp: '2026-05-15T12:02:00.000Z',
-        metadata: {
-          rehydrate_entry: {
-            role: 'assistant',
-            content: 'new complete',
-            replay_generation_id: 'gen-new',
-            replay_source_revision_id: 'rev-new',
-            replay_generation_entry_index: 1,
-            replay_generation_entry_count: 1,
-            replay_generation_complete: true,
-          },
-        },
-      } as any,
+      sdkEventRow(partial),
+      sdkEventRow(complete),
     ]);
 
     const snapshot = await store.loadForRehydrate('conv-compact');
@@ -257,18 +189,8 @@ describe('ElectronSidecarConversationStore', () => {
     });
   });
 
-  test('appends visible transcript rows and replay entries through the store boundary', async () => {
-    mockLoadStoredConversationEntries.mockResolvedValue([]);
-    mockInvoke.mockResolvedValue({ success: true, data: { message_index: 7 } });
-    const store = new ElectronSidecarConversationStore(
-      { userId: 'user-1' },
-      {
-        getConversationWorkspaceBinding: jest.fn(() => ({
-          workspacePath: '/workspace',
-          workspaceName: 'WindieOS',
-        })),
-      },
-    );
+  test('appends transcript projections as canonical conversation events', async () => {
+    const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
 
     await store.appendTranscriptProjectionEntry({
       conversationRef: 'conv-append',
@@ -286,34 +208,29 @@ describe('ElectronSidecarConversationStore', () => {
       },
     });
 
-    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'store-transcript', expect.objectContaining({
+    expect(mockInvoke).toHaveBeenCalledTimes(1);
+    expect(mockInvoke).toHaveBeenCalledWith('store-transcript', expect.objectContaining({
       content: 'assistant answer',
       userId: 'user-1',
       conversationRef: 'conv-append',
+      recordKind: SDK_CONVERSATION_EVENT_RECORD_KIND,
       role: 'assistant',
-      messageType: 'llm-text',
-      modelId: 'model-1',
-      modelProvider: 'provider-1',
-      screenshot: 'artifact-1',
-      workspacePath: '/workspace',
-      workspaceName: 'WindieOS',
-    }));
-    expect(mockInvoke).toHaveBeenNthCalledWith(2, 'store-transcript', expect.objectContaining({
-      content: 'assistant answer',
-      userId: 'user-1',
-      conversationRef: 'conv-append',
-      recordKind: 'transcript_replay',
-      messageIndex: 7,
-      rehydrateEntry: expect.objectContaining({
-        role: 'assistant',
-        content: 'assistant answer',
-      }),
-      workspacePath: '/workspace',
-      workspaceName: 'WindieOS',
+      messageType: 'assistant_message',
+      structuredPayload: {
+        windieSdkConversationEvent: expect.objectContaining({
+          type: 'assistant_message',
+          payload: expect.objectContaining({
+            text: 'assistant answer',
+            structuredPayload: expect.objectContaining({
+              content: 'assistant answer',
+            }),
+          }),
+        }),
+      },
     }));
   });
 
-  test('rewrite deletes only canonical event rows before storing the new revision projection', async () => {
+  test('rewrite deletes canonical event rows before storing the new revision projection', async () => {
     const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
     const preserved = createConversationEvent({
       eventId: 'evt-preserved',
@@ -347,38 +264,21 @@ describe('ElectronSidecarConversationStore', () => {
     }));
   });
 
-  test('deletes visible transcript replay and canonical event rows for a conversation', async () => {
+  test('deletes only canonical event rows for a conversation', async () => {
     const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
 
     await store.deleteConversation('conv-delete');
 
-    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'delete-conversation', {
-      userId: 'user-1',
-      conversationId: 'conv-delete',
-      recordKind: 'transcript',
-    });
-    expect(mockInvoke).toHaveBeenNthCalledWith(2, 'delete-conversation', {
-      userId: 'user-1',
-      conversationId: 'conv-delete',
-      recordKind: 'transcript_replay',
-    });
-    expect(mockInvoke).toHaveBeenNthCalledWith(3, 'delete-conversation', {
+    expect(mockInvoke).toHaveBeenCalledTimes(1);
+    expect(mockInvoke).toHaveBeenCalledWith('delete-conversation', {
       userId: 'user-1',
       conversationId: 'conv-delete',
       recordKind: SDK_CONVERSATION_EVENT_RECORD_KIND,
     });
   });
 
-  test('rewrites visible transcript projection through the store boundary', async () => {
-    const store = new ElectronSidecarConversationStore(
-      { userId: 'user-1' },
-      {
-        getConversationWorkspaceBinding: jest.fn(() => ({
-          workspacePath: '/workspace',
-          workspaceName: 'WindieOS',
-        })),
-      },
-    );
+  test('rewrites transcript projection as canonical events', async () => {
+    const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
 
     const rehydrateSnapshot = await store.rewriteTranscriptProjection({
       conversationRef: 'conv-edit',
@@ -410,27 +310,20 @@ describe('ElectronSidecarConversationStore', () => {
     expect(mockInvoke).toHaveBeenNthCalledWith(1, 'delete-conversation', {
       userId: 'user-1',
       conversationId: 'conv-edit',
-      recordKind: 'transcript',
+      recordKind: SDK_CONVERSATION_EVENT_RECORD_KIND,
     });
-    expect(mockInvoke).toHaveBeenNthCalledWith(2, 'delete-conversation', {
-      userId: 'user-1',
-      conversationId: 'conv-edit',
-      recordKind: 'transcript_replay',
-    });
-    expect(mockInvoke).toHaveBeenNthCalledWith(3, 'store-transcript', expect.objectContaining({
+    expect(mockInvoke).toHaveBeenNthCalledWith(2, 'store-transcript', expect.objectContaining({
       content: 'edited prompt',
       userId: 'user-1',
       conversationRef: 'conv-edit',
+      recordKind: SDK_CONVERSATION_EVENT_RECORD_KIND,
       role: 'user',
-      messageType: 'user',
-      screenshot: 'artifact-1',
-      workspacePath: '/workspace',
-      workspaceName: 'WindieOS',
+      messageType: 'user_message',
     }));
-    expect(mockInvoke).toHaveBeenNthCalledWith(4, 'store-transcript', expect.objectContaining({
+    expect(mockInvoke).toHaveBeenNthCalledWith(3, 'store-transcript', expect.objectContaining({
       content: 'tool output',
       role: 'tool',
-      messageType: 'tool-output',
+      messageType: 'tool_output',
       toolName: 'shell',
       correlationId: 'tool-call-1',
     }));
@@ -442,34 +335,17 @@ describe('ElectronSidecarConversationStore', () => {
     ]);
   });
 
-  test('lists merged metadata while preferring conversation-event rows over transcript rows', async () => {
+  test('lists metadata from canonical event rows only', async () => {
     const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
-    mockListStoredConversations
-      .mockResolvedValueOnce([
-        {
-          conversation_id: 'conv-legacy',
-          title: 'Legacy title',
-          last_message: 'legacy latest',
-          last_timestamp: '2026-05-15T11:00:00.000Z',
-          entry_count: 2,
-        } as any,
-        {
-          conversation_id: 'conv-sdk',
-          title: 'Old transcript title',
-          last_message: 'old latest',
-          last_timestamp: '2026-05-15T10:00:00.000Z',
-          entry_count: 1,
-        } as any,
-      ])
-      .mockResolvedValueOnce([
-        {
-          conversation_id: 'conv-sdk',
-          title: 'SDK title',
-          last_message: 'latest',
-          last_timestamp: '2026-05-15T12:00:00.000Z',
-          entry_count: 3,
-        } as any,
-      ]);
+    mockListStoredConversations.mockResolvedValueOnce([
+      {
+        conversation_id: 'conv-sdk',
+        title: 'SDK title',
+        last_message: 'latest',
+        last_timestamp: '2026-05-15T12:00:00.000Z',
+        entry_count: 3,
+      } as any,
+    ]);
 
     const metadata = await store.listMetadata();
 
@@ -482,21 +358,9 @@ describe('ElectronSidecarConversationStore', () => {
         updatedAt: '2026-05-15T12:00:00.000Z',
         eventCount: 3,
       },
-      {
-        conversationRef: 'conv-legacy',
-        revisionId: 'rev-stored-conv-legacy',
-        title: 'Legacy title',
-        lastMessage: 'legacy latest',
-        updatedAt: '2026-05-15T11:00:00.000Z',
-        eventCount: 2,
-      },
     ]);
-    expect(mockListStoredConversations).toHaveBeenCalledTimes(2);
-    expect(mockListStoredConversations).toHaveBeenNthCalledWith(1, expect.objectContaining({
-      recordKind: 'transcript',
-      limit: null,
-    }));
-    expect(mockListStoredConversations).toHaveBeenNthCalledWith(2, expect.objectContaining({
+    expect(mockListStoredConversations).toHaveBeenCalledTimes(1);
+    expect(mockListStoredConversations).toHaveBeenCalledWith(expect.objectContaining({
       recordKind: SDK_CONVERSATION_EVENT_RECORD_KIND,
       limit: null,
     }));
@@ -535,73 +399,53 @@ describe('ElectronSidecarConversationStore', () => {
     expect(snapshot.messages).toHaveLength(1);
   });
 
-  test('applies explicit metadata limits after merging record kinds', async () => {
+  test('applies explicit metadata limits to canonical event rows', async () => {
     const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
-    mockListStoredConversations
-      .mockResolvedValueOnce([
-        {
-          conversation_id: 'conv-1',
-          title: 'First',
-          last_timestamp: '2026-05-15T11:00:00.000Z',
-          entry_count: 1,
-        } as any,
-      ])
-      .mockResolvedValueOnce([
-        {
-          conversation_id: 'conv-2',
-          title: 'Second',
-          last_timestamp: '2026-05-15T12:00:00.000Z',
-          entry_count: 1,
-        } as any,
-      ]);
+    mockListStoredConversations.mockResolvedValueOnce([
+      {
+        conversation_id: 'conv-1',
+        title: 'First',
+        last_timestamp: '2026-05-15T11:00:00.000Z',
+        entry_count: 1,
+      } as any,
+    ]);
 
     const metadata = await store.listMetadata({ limit: 1 });
 
-    expect(metadata.map((entry) => entry.conversationRef)).toEqual(['conv-2']);
-    expect(mockListStoredConversations).toHaveBeenNthCalledWith(1, expect.objectContaining({
-      recordKind: 'transcript',
-      limit: 1,
-    }));
-    expect(mockListStoredConversations).toHaveBeenNthCalledWith(2, expect.objectContaining({
+    expect(metadata.map((entry) => entry.conversationRef)).toEqual(['conv-1']);
+    expect(mockListStoredConversations).toHaveBeenCalledWith(expect.objectContaining({
       recordKind: SDK_CONVERSATION_EVENT_RECORD_KIND,
       limit: 1,
     }));
   });
 
-  test('applies metadata cursor pagination after merging record kinds', async () => {
+  test('applies metadata cursor pagination to canonical event rows', async () => {
     const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
-    mockListStoredConversations
-      .mockResolvedValueOnce([
-        {
-          conversation_id: 'conv-1',
-          title: 'First',
-          last_timestamp: '2026-05-15T10:00:00.000Z',
-          entry_count: 1,
-        } as any,
-        {
-          conversation_id: 'conv-2',
-          title: 'Second',
-          last_timestamp: '2026-05-15T11:00:00.000Z',
-          entry_count: 1,
-        } as any,
-      ])
-      .mockResolvedValueOnce([
-        {
-          conversation_id: 'conv-3',
-          title: 'Third',
-          last_timestamp: '2026-05-15T12:00:00.000Z',
-          entry_count: 1,
-        } as any,
-      ]);
+    mockListStoredConversations.mockResolvedValueOnce([
+      {
+        conversation_id: 'conv-1',
+        title: 'First',
+        last_timestamp: '2026-05-15T10:00:00.000Z',
+        entry_count: 1,
+      } as any,
+      {
+        conversation_id: 'conv-2',
+        title: 'Second',
+        last_timestamp: '2026-05-15T11:00:00.000Z',
+        entry_count: 1,
+      } as any,
+      {
+        conversation_id: 'conv-3',
+        title: 'Third',
+        last_timestamp: '2026-05-15T12:00:00.000Z',
+        entry_count: 1,
+      } as any,
+    ]);
 
     const metadata = await store.listMetadata({ cursor: 'conv-3', limit: 1 });
 
     expect(metadata.map((entry) => entry.conversationRef)).toEqual(['conv-2']);
-    expect(mockListStoredConversations).toHaveBeenNthCalledWith(1, expect.objectContaining({
-      recordKind: 'transcript',
-      limit: null,
-    }));
-    expect(mockListStoredConversations).toHaveBeenNthCalledWith(2, expect.objectContaining({
+    expect(mockListStoredConversations).toHaveBeenCalledWith(expect.objectContaining({
       recordKind: SDK_CONVERSATION_EVENT_RECORD_KIND,
       limit: null,
     }));

@@ -294,15 +294,13 @@ Primary modules:
   - Small renderer contract for `showResponse` vs `showAwaitingReply` vs hidden layout state.
   - Keeps awaiting typing and response overlay mode selection out of `ChatBoxResponse.jsx`.
 - `features/chat/session/conversationInferenceSessionRuntime.ts`:
-  - Rehydrates disposable backend inference state on reconnect/resume from local transcript history.
-  - Now prefers persisted internal replay-state rows over raw transcript rows when a replay snapshot exists, so compacted chats reopen with compacted model history while preserving full UI scrollback.
-- `renderer/infrastructure/transcript/conversationReplayState.ts`:
-  - Maintains the hidden replay-state stream (`transcript_replay`) used only for backend resume.
-  - Builds replay-state payloads, but persistence and deletion go through `ElectronSidecarConversationStore`.
-  - Shared store-adapter semantics let dashboard chat deletion and retry/edit rewind clear replay-state together with raw transcript before rebuilding conversation state.
-  - Guards replay bootstrap with per-conversation mutation epochs so async bootstrap work cannot re-seed stale replay rows after delete, rewind, or compaction resets.
+  - Rehydrates disposable backend inference state on reconnect/resume from SDK conversation-store snapshots.
+  - Uses canonical `conversation_event` rows for rehydrate; compaction snapshots are loaded from complete `compaction_applied` SDK events.
+- `renderer/infrastructure/transcript/ElectronSidecarConversationStore.ts`:
+  - Stores desktop display projections, edit/resend rewrites, and compaction snapshots as canonical SDK conversation events.
+  - Does not maintain hidden replay rows or legacy transcript fallback.
 - `features/dashboard/components/DashboardShell.jsx`:
-  - Global `Nuke chats` success handling now resets the active chat plus invalidates renderer-side inference-session hydration, replay-bootstrap, and conversation-workspace-binding caches so no local resume state survives a full transcript wipe.
+  - Global `Nuke chats` success handling now resets the active chat plus invalidates renderer-side inference-session hydration and conversation-workspace-binding caches so no local resume state survives a full transcript wipe.
 - `features/dashboard/hooks/useDashboardConversations.js`:
   - Single-conversation delete now clears that chat's persisted workspace binding together with transcript/replay state so session-storage workspace metadata does not survive a conversation delete.
 - `features/chat/components/ChatInterface.jsx`:

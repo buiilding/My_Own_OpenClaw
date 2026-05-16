@@ -2,15 +2,6 @@ import {
   buildConversationEventsFromStoredTranscript,
 } from './storedTranscriptSdkProjection';
 import {
-  appendConversationReplayEntry,
-  buildReplayRowStoragePayload,
-  deleteConversationStoredState,
-  ensureConversationReplayStateInitialized,
-  readStoredReplayRehydrateEntry,
-  replaceConversationReplayState,
-  TRANSCRIPT_REPLAY_RECORD_KIND,
-} from './conversationReplayState';
-import {
   getConversationWorkspaceBinding,
 } from '../workspace/conversationWorkspaceBinding';
 import {
@@ -22,6 +13,7 @@ import {
   buildConversationMetadata,
   buildDisplayConversation,
   buildRehydrateSnapshot,
+  createConversationEvent,
   type CompactedReplaySnapshot,
   type ConversationEvent,
   type ConversationMetadata,
@@ -242,6 +234,95 @@ function applyMetadataPagination<T extends { conversationRef: string }>(
   return typeof options.limit === 'number' ? afterCursor.slice(0, options.limit) : afterCursor;
 }
 
+function eventTypeFromProjectionEntry(entry: TranscriptProjectionRewriteEntry): ConversationEvent['type'] {
+  if (entry.role === 'user' || entry.messageType === 'user') {
+    return 'user_message';
+  }
+  if (entry.messageType === 'tool-bundle' || entry.messageType === 'tool_bundle_call') {
+    return 'tool_bundle_call';
+  }
+  if (entry.messageType === 'tool-bundle-result' || entry.messageType === 'tool_bundle_output') {
+    return 'tool_bundle_output';
+  }
+  if (entry.messageType === 'tool-call' || entry.messageType === 'tool_call') {
+    return 'tool_call';
+  }
+  if (entry.role === 'tool' || entry.messageType === 'tool-output' || entry.messageType === 'tool_output') {
+    return 'tool_output';
+  }
+  return 'assistant_message';
+}
+
+function projectionEntryToConversationEvent(
+  conversationRef: string,
+  revisionId: string,
+  entry: TranscriptProjectionRewriteEntry | TranscriptProjectionAppendEntry,
+  index: number,
+): ConversationEvent {
+  const structuredPayload = 'rehydrateEntry' in entry && entry.rehydrateEntry
+    ? entry.rehydrateEntry
+    : {};
+  return createConversationEvent({
+    eventId: `projection-${conversationRef}-${revisionId}-${index}`,
+    type: eventTypeFromProjectionEntry(entry),
+    conversationRef,
+    revisionId,
+    timestamp: entry.timestamp || undefined,
+    source: 'sdk',
+    payload: {
+      text: entry.content,
+      content: entry.content,
+      role: entry.role,
+      messageType: entry.messageType,
+      correlationId: entry.correlationId || null,
+      requestId: entry.correlationId || null,
+      toolName: entry.toolName || null,
+      toolCallId: entry.correlationId || null,
+      screenshotRef: entry.screenshot ?? null,
+      screenshot: entry.screenshot ?? null,
+      structuredPayload,
+    },
+  });
+}
+
+function compactedReplayFromEvent(event: ConversationEvent): CompactedReplaySnapshot | null {
+  if (event.type !== 'compaction_applied') {
+    return null;
+  }
+  const entries = Array.isArray(event.payload.entries)
+    ? event.payload.entries.filter((entry): entry is Record<string, unknown> => (
+      Boolean(entry) && typeof entry === 'object' && !Array.isArray(entry)
+    ))
+    : [];
+  const entryCount = typeof event.payload.entryCount === 'number'
+    ? event.payload.entryCount
+    : (typeof event.payload.entry_count === 'number' ? event.payload.entry_count : entries.length);
+  const complete = event.payload.complete !== false;
+  if (!complete || entryCount !== entries.length || entries.length === 0) {
+    return null;
+  }
+  return {
+    generationId: normalizeNonEmptyString(event.payload.generationId)
+      ?? normalizeNonEmptyString(event.payload.generation_id)
+      ?? `compaction-${event.eventId}`,
+    conversationRef: event.conversationRef,
+    sourceRevisionId: normalizeNonEmptyString(event.payload.sourceRevisionId)
+      ?? normalizeNonEmptyString(event.payload.source_revision_id)
+      ?? event.revisionId,
+    sourceTurnRef: normalizeNonEmptyString(event.payload.sourceTurnRef)
+      ?? normalizeNonEmptyString(event.payload.source_turn_ref)
+      ?? event.turnRef
+      ?? null,
+    createdAt: normalizeNonEmptyString(event.payload.createdAt)
+      ?? normalizeNonEmptyString(event.payload.created_at)
+      ?? event.timestamp,
+    entries,
+    entryCount,
+    complete,
+    active: event.payload.active !== false,
+  };
+}
+
 export class ElectronSidecarConversationStore implements ConversationStore {
   private readonly userId: string;
   private readonly pageSize: number;
@@ -279,60 +360,17 @@ export class ElectronSidecarConversationStore implements ConversationStore {
   }
 
   async deleteConversation(conversationRef: string): Promise<void> {
-    await deleteConversationStoredState({
-      userId: this.userId,
-      conversationRef,
-    }, this.getReplayStoreDeps());
     await this.deleteRecordKind(conversationRef, SDK_CONVERSATION_EVENT_RECORD_KIND);
   }
 
   async appendTranscriptProjectionEntry(entry: TranscriptProjectionAppendEntry): Promise<void> {
-    const workspaceBinding = this.deps.getConversationWorkspaceBinding(entry.conversationRef);
-    const result = await this.deps.invoke(INVOKE_CHANNELS.STORE_TRANSCRIPT, {
-      content: entry.content,
-      userId: this.userId,
-      conversationRef: entry.conversationRef,
-      role: entry.role,
-      messageType: entry.messageType,
-      toolName: entry.toolName,
-      correlationId: entry.correlationId,
-      modelId: entry.modelId,
-      modelProvider: entry.modelProvider,
-      screenshot: entry.screenshot,
-      timestamp: entry.timestamp,
-      workspacePath: workspaceBinding.workspacePath || null,
-      workspaceName: workspaceBinding.workspaceName || null,
-      ...(entry.transparency ? { transparency: entry.transparency } : {}),
-      ...(entry.structuredPayload ? { structuredPayload: entry.structuredPayload } : {}),
-    });
-    if (result?.success === false) {
-      throw new Error(result.error || 'Failed to store transcript entry');
-    }
-
-    const messageIndex = typeof result?.data?.message_index === 'number'
-      ? result.data.message_index
-      : null;
-    const replayContext = {
-      conversationRef: entry.conversationRef,
-      userId: this.userId,
-      workspacePath: workspaceBinding.workspacePath || null,
-      workspaceName: workspaceBinding.workspaceName || null,
-    };
-    const replayStoreDeps = this.getReplayStoreDeps();
-    const replayInitState = await ensureConversationReplayStateInitialized(
-      replayContext,
-      replayStoreDeps,
-    );
-    if (replayInitState !== 'bootstrapped') {
-      await appendConversationReplayEntry(
-        replayContext,
-        {
-          messageIndex,
-          rehydrateEntry: entry.rehydrateEntry,
-        },
-        replayStoreDeps,
-      );
-    }
+    const revision = await this.getRevision(entry.conversationRef);
+    await this.appendEvent(projectionEntryToConversationEvent(
+      entry.conversationRef,
+      revision.revisionId,
+      entry,
+      Date.now(),
+    ));
   }
 
   async rewriteTranscriptProjection({
@@ -344,32 +382,11 @@ export class ElectronSidecarConversationStore implements ConversationStore {
     entries: TranscriptProjectionRewriteEntry[];
     rehydrateEntries?: TranscriptProjectionRewriteEntry[];
   }): Promise<RehydrateSnapshot> {
-    const workspaceBinding = this.deps.getConversationWorkspaceBinding(conversationRef);
-    await deleteConversationStoredState({
-      userId: this.userId,
-      conversationRef,
-      workspacePath: workspaceBinding.workspacePath || null,
-      workspaceName: workspaceBinding.workspaceName || null,
-    }, this.getReplayStoreDeps());
-
-    for (const entry of entries) {
-      const result = await this.deps.invoke(INVOKE_CHANNELS.STORE_TRANSCRIPT, {
-        content: entry.content,
-        userId: this.userId,
-        conversationRef,
-        role: entry.role,
-        messageType: entry.messageType,
-        toolName: entry.toolName || null,
-        correlationId: entry.correlationId || null,
-        screenshot: entry.screenshot ?? null,
-        timestamp: entry.timestamp || null,
-        workspacePath: workspaceBinding.workspacePath || null,
-        workspaceName: workspaceBinding.workspaceName || null,
-      });
-      if (!result || result.success === false) {
-        throw new Error(result?.error || 'Failed to store rewritten transcript entry');
-      }
-    }
+    await this.deleteRecordKind(conversationRef, SDK_CONVERSATION_EVENT_RECORD_KIND);
+    const revisionId = `rev-rewrite-${conversationRef}-${Date.now()}`;
+    await this.appendEvents(entries.map((entry, index) => (
+      projectionEntryToConversationEvent(conversationRef, revisionId, entry, index)
+    )));
 
     return buildRehydrateSnapshotFromTranscriptProjectionEntries({
       conversationRef,
@@ -381,27 +398,28 @@ export class ElectronSidecarConversationStore implements ConversationStore {
     if (!snapshot.complete || snapshot.entryCount !== snapshot.entries.length) {
       return;
     }
-    const workspaceBinding = this.deps.getConversationWorkspaceBinding(snapshot.conversationRef);
-    await replaceConversationReplayState(
-      {
-        userId: this.userId,
-        conversationRef: snapshot.conversationRef,
-        workspacePath: workspaceBinding.workspacePath || null,
-        workspaceName: workspaceBinding.workspaceName || null,
-      },
-      snapshot.entries.map((entry, index) => ({
-        messageIndex: index + 1,
-        rehydrateEntry: entry,
-      })),
-      this.getReplayStoreDeps(),
-      {
+    await this.appendEvent(createConversationEvent({
+      eventId: `compaction-${snapshot.generationId}`,
+      type: 'compaction_applied',
+      conversationRef: snapshot.conversationRef,
+      revisionId: snapshot.sourceRevisionId,
+      turnRef: snapshot.sourceTurnRef ?? null,
+      timestamp: snapshot.createdAt,
+      source: 'sdk',
+      payload: {
         generationId: snapshot.generationId,
         sourceRevisionId: snapshot.sourceRevisionId,
-        sourceTurnRef: snapshot.sourceTurnRef,
+        sourceTurnRef: snapshot.sourceTurnRef ?? null,
+        createdAt: snapshot.createdAt,
+        entries: snapshot.entries,
         entryCount: snapshot.entryCount,
         complete: snapshot.complete,
+        active: true,
+        summaryPreview: typeof snapshot.entries[0]?.content === 'string'
+          ? snapshot.entries[0].content
+          : null,
       },
-    );
+    }));
   }
 
   async loadEvents(conversationRef: string): Promise<ConversationEvent[]> {
@@ -409,29 +427,14 @@ export class ElectronSidecarConversationStore implements ConversationStore {
     const storedEvents = storedEventRows
       .map(resolveStoredSdkEvent)
       .filter((event): event is ConversationEvent => Boolean(event));
-    if (storedEvents.length > 0) {
-      return sortEvents(storedEvents);
-    }
-
-    const transcriptRows = await this.loadRows(conversationRef, 'transcript');
-    return buildConversationEventsFromStoredTranscript(transcriptRows, { conversationRef });
+    return sortEvents(storedEvents);
   }
 
   async listMetadata(options: ListConversationOptions = {}): Promise<ConversationMetadata[]> {
     const limit = normalizePositiveInteger(options.limit);
     const fetchLimit = options.cursor ? null : limit;
-    const [transcriptMetadata, eventMetadata] = await Promise.all([
-      this.listMetadataForRecordKind('transcript', fetchLimit),
-      this.listMetadataForRecordKind(SDK_CONVERSATION_EVENT_RECORD_KIND, fetchLimit),
-    ]);
-    const merged = new Map<string, ConversationMetadata>();
-    for (const metadata of transcriptMetadata) {
-      merged.set(metadata.conversationRef, metadata);
-    }
-    for (const metadata of eventMetadata) {
-      merged.set(metadata.conversationRef, metadata);
-    }
-    const sorted = Array.from(merged.values())
+    const eventMetadata = await this.listMetadataForRecordKind(SDK_CONVERSATION_EVENT_RECORD_KIND, fetchLimit);
+    const sorted = eventMetadata
       .sort((a, b) => (Date.parse(b.updatedAt) || 0) - (Date.parse(a.updatedAt) || 0));
     return applyMetadataPagination(sorted, {
       ...options,
@@ -450,31 +453,14 @@ export class ElectronSidecarConversationStore implements ConversationStore {
   }
 
   async loadCompactedReplay(conversationRef: string): Promise<CompactedReplaySnapshot | null> {
-    const replayRows = await this.loadRows(conversationRef, TRANSCRIPT_REPLAY_RECORD_KIND);
-    const entries = replayRows
-      .map(readStoredReplayRehydrateEntry)
-      .filter((entry): entry is Record<string, unknown> => Boolean(entry));
-    if (entries.length === 0) {
-      return null;
+    const events = await this.loadEvents(conversationRef);
+    for (const event of [...events].reverse()) {
+      const replay = compactedReplayFromEvent(event);
+      if (replay) {
+        return replay;
+      }
     }
-    const generation = selectActiveReplayGeneration(entries);
-    if (!generation) {
-      return null;
-    }
-    const first = generation.entries[0] ?? {};
-    return {
-      generationId: normalizeNonEmptyString(first.replay_generation_id)
-        ?? `stored-replay-${conversationRef}`,
-      conversationRef,
-      sourceRevisionId: normalizeNonEmptyString(first.replay_source_revision_id)
-        ?? `rev-stored-${conversationRef}`,
-      sourceTurnRef: normalizeNonEmptyString(first.replay_source_turn_ref),
-      createdAt: normalizeNonEmptyString(replayRows[0]?.timestamp) ?? new Date(0).toISOString(),
-      entries: generation.entries,
-      entryCount: generation.entries.length,
-      complete: true,
-      active: true,
-    };
+    return null;
   }
 
   async loadForDisplay(conversationRef: string): Promise<DisplayConversation> {
@@ -482,7 +468,14 @@ export class ElectronSidecarConversationStore implements ConversationStore {
   }
 
   async loadForRehydrate(conversationRef: string): Promise<RehydrateSnapshot> {
-    const replay = await this.loadCompactedReplay(conversationRef);
+    const events = await this.loadEvents(conversationRef);
+    let replay: CompactedReplaySnapshot | null = null;
+    for (const event of [...events].reverse()) {
+      replay = compactedReplayFromEvent(event);
+      if (replay) {
+        break;
+      }
+    }
     if (replay?.complete && replay.entryCount === replay.entries.length) {
       return {
         conversationRef,
@@ -491,10 +484,11 @@ export class ElectronSidecarConversationStore implements ConversationStore {
         replayGenerationId: replay.generationId,
       };
     }
-    return buildRehydrateSnapshot(await this.loadEvents(conversationRef));
+    return buildRehydrateSnapshot(events);
   }
 
   private async storeEvent(event: ConversationEvent): Promise<void> {
+    const workspaceBinding = this.deps.getConversationWorkspaceBinding(event.conversationRef);
     const result = await this.deps.invoke(INVOKE_CHANNELS.STORE_TRANSCRIPT, {
       content: textFromEvent(event),
       userId: this.userId,
@@ -503,8 +497,11 @@ export class ElectronSidecarConversationStore implements ConversationStore {
       messageType: event.type,
       toolName: toolNameFromEvent(event),
       correlationId: correlationIdFromEvent(event),
+      screenshot: event.payload.screenshotRef ?? event.payload.screenshot ?? null,
       timestamp: event.timestamp,
       recordKind: SDK_CONVERSATION_EVENT_RECORD_KIND,
+      workspacePath: workspaceBinding.workspacePath || null,
+      workspaceName: workspaceBinding.workspaceName || null,
       structuredPayload: {
         windieSdkConversationEvent: event,
       },
@@ -523,48 +520,6 @@ export class ElectronSidecarConversationStore implements ConversationStore {
     if (!result || result.success === false) {
       throw new Error(result?.error || `Failed to delete ${recordKind} conversation rows`);
     }
-  }
-
-  private async storeReplayRow(
-    context: {
-      conversationRef: string;
-      userId: string;
-      workspacePath?: string | null;
-      workspaceName?: string | null;
-    },
-    entry: {
-      messageIndex?: number | null;
-      rehydrateEntry: Record<string, unknown>;
-    },
-  ): Promise<void> {
-    const result = await this.deps.invoke(
-      INVOKE_CHANNELS.STORE_TRANSCRIPT,
-      buildReplayRowStoragePayload(context, entry),
-    );
-    if (!result || result.success === false) {
-      throw new Error(result?.error || 'Failed to store replay transcript row');
-    }
-  }
-
-  private getReplayStoreDeps() {
-    return {
-      deleteConversationRecordKind: async (
-        context: { conversationRef: string },
-        recordKind: string,
-      ) => this.deleteRecordKind(context.conversationRef, recordKind),
-      storeReplayRow: async (
-        context: {
-          conversationRef: string;
-          userId: string;
-          workspacePath?: string | null;
-          workspaceName?: string | null;
-        },
-        entry: {
-          messageIndex?: number | null;
-          rehydrateEntry: Record<string, unknown>;
-        },
-      ) => this.storeReplayRow(context, entry),
-    };
   }
 
   private async loadRows(conversationRef: string, recordKind: string): Promise<StoredConversationRow[]> {
@@ -613,73 +568,6 @@ function normalizePositiveInteger(value: unknown): number | null {
   return typeof value === 'number' && Number.isFinite(value) && value > 0
     ? Math.floor(value)
     : null;
-}
-
-function replayGenerationId(entry: Record<string, unknown>, fallback: string): string {
-  return normalizeNonEmptyString(entry.replay_generation_id) ?? fallback;
-}
-
-function replayEntryIndex(entry: Record<string, unknown>, fallback: number): number {
-  const value = entry.replay_generation_entry_index;
-  if (typeof value === 'number' && Number.isFinite(value)) {
-    return value;
-  }
-  if (typeof value === 'string') {
-    const parsed = Number.parseInt(value, 10);
-    if (Number.isFinite(parsed)) {
-      return parsed;
-    }
-  }
-  return fallback;
-}
-
-function replayEntryCount(entry: Record<string, unknown>): number | null {
-  const value = entry.replay_generation_entry_count;
-  if (typeof value === 'number' && Number.isFinite(value)) {
-    return Math.floor(value);
-  }
-  if (typeof value === 'string') {
-    const parsed = Number.parseInt(value, 10);
-    if (Number.isFinite(parsed)) {
-      return parsed;
-    }
-  }
-  return null;
-}
-
-function replayGenerationComplete(entry: Record<string, unknown>): boolean {
-  return entry.replay_generation_complete !== false;
-}
-
-function selectActiveReplayGeneration(
-  entries: Record<string, unknown>[],
-): { generationId: string; entries: Record<string, unknown>[] } | null {
-  const generations = new Map<string, Record<string, unknown>[]>();
-  entries.forEach((entry) => {
-    const generationId = replayGenerationId(entry, 'legacy');
-    const generationEntries = generations.get(generationId) ?? [];
-    generationEntries.push(entry);
-    generations.set(generationId, generationEntries);
-  });
-
-  const candidates: Array<{ generationId: string; entries: Record<string, unknown>[]; maxIndex: number }> = [];
-  for (const [generationId, generationEntries] of generations) {
-    const sortedEntries = [...generationEntries]
-      .sort((a, b) => replayEntryIndex(a, 0) - replayEntryIndex(b, 0));
-    const first = sortedEntries[0] ?? {};
-    const expectedCount = replayEntryCount(first) ?? sortedEntries.length;
-    if (!replayGenerationComplete(first) || expectedCount !== sortedEntries.length) {
-      continue;
-    }
-    candidates.push({
-      generationId,
-      entries: sortedEntries,
-      maxIndex: entries.lastIndexOf(generationEntries[generationEntries.length - 1]),
-    });
-  }
-
-  candidates.sort((a, b) => b.maxIndex - a.maxIndex);
-  return candidates[0] ?? null;
 }
 
 export function buildElectronSidecarConversationMetadata(

@@ -53,26 +53,22 @@ Do not invent a second conversation id in a component. Use the transcript sessio
 
 ## Replay And Rehydrate
 
-Replay converts stored transcript entries back into chat messages for renderer display. Rehydrate converts stored transcript entries into backend-compatible state so an active backend session can continue.
+SDK projections convert stored conversation events back into chat messages for renderer display. Rehydrate converts those events into backend-compatible state so an active backend session can continue.
 
 SDK-owned conversation state uses a separate sidecar record kind:
 
-- `conversation_event`: normalized SDK event log for runtime/load/rehydrate
-- `transcript`: visible transcript rows
-- `transcript_replay`: compacted replay rows, written as generations so loaders
-  can ignore partial replacements and keep the previous complete snapshot active
+- `conversation_event`: normalized SDK event log for runtime/load/rehydrate/display
+- compaction replay generations: complete `compaction_applied` events with replacement-history entries
 
 New SDK callers should read display and rehydrate state through SDK projections
-over `conversation_event` rows. Existing conversations without event rows still
-fall back through the transcript projection adapter.
+over `conversation_event` rows. The desktop runtime no longer writes hidden
+replay rows or falls back to legacy transcript rows.
 
-Dashboard recent-chat loading merges `conversation_event` and `transcript`
-metadata so newly SDK-owned chats and old local chats appear together at
-startup.
+Dashboard recent-chat loading reads canonical `conversation_event` metadata.
 
 Key files:
 
-- renderer replay state: `conversationReplayState.ts`,
+- Electron sidecar store adapter: `ElectronSidecarConversationStore.ts`,
 - backend rehydrate payload builder: `rehydratePayload.js`,
 - tool-message reconstruction: `conversationReplayToolMessages.js`,
 - backend rehydrate services: `backend/src/api/services/rehydrate_*`.
