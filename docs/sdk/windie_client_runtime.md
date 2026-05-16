@@ -264,6 +264,14 @@ Electron uses a sidecar-backed store adapter:
 - rehydrate projection keeps tool history only when calls and outputs are paired,
   but pairing can use any shared wait/provider identity: `toolCallId`,
   `requestId`, `correlationId`, or `bundleId`.
+- rehydrate messages must match the backend `rehydrate-conversation` ingress
+  schema. Tool names use `tool_name`, provider calls use `tool_calls`, and
+  bundle metadata stays in `structured_payload`; display-only keys such as
+  `name`, top-level `bundle_id`, `tools`, or `results` are not emitted as
+  backend replay fields.
+- bundled tool rehydrate expands complete step results into provider-safe
+  `role: "tool"` entries keyed by each step's `tool_call_id` instead of
+  replaying an internal bundle trace row.
 - public agent stream projection uses the same identity set for tool-output
   dedupe and includes provider-safe `tool_call_id` on synthetic tool-call
   events.

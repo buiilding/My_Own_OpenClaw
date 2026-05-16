@@ -145,6 +145,97 @@ function toolCallsFromPayload(payload: JsonRecord): unknown[] | null {
   return toolCalls.length > 0 ? toolCalls : null;
 }
 
+function structuredPayloadFrom(payload: JsonRecord): JsonRecord | null {
+  const structuredPayload = recordFromUnknown(payload.structuredPayload);
+  return structuredPayload ? { ...structuredPayload } : null;
+}
+
+function withStructuredPayload(message: JsonRecord, payload: JsonRecord): JsonRecord {
+  const structuredPayload = structuredPayloadFrom(payload);
+  if (!structuredPayload) {
+    return message;
+  }
+  return {
+    ...message,
+    structured_payload: structuredPayload,
+  };
+}
+
+function stepOutputContent(step: JsonRecord): string {
+  const output = step.output ?? step.result;
+  if (typeof output === 'string') {
+    return output;
+  }
+  const outputRecord = recordFromUnknown(output);
+  if (outputRecord) {
+    if (typeof outputRecord.llm_content === 'string') {
+      return outputRecord.llm_content;
+    }
+    if (typeof outputRecord.return_display === 'string') {
+      return outputRecord.return_display;
+    }
+    if (typeof outputRecord.output === 'string') {
+      return outputRecord.output;
+    }
+    return JSON.stringify(outputRecord);
+  }
+  return JSON.stringify(step);
+}
+
+function bundleStepResultsFromPayload(payload: JsonRecord): JsonRecord[] {
+  const structuredPayload = structuredPayloadFrom(payload);
+  const candidates = [
+    payload.stepResults,
+    payload.step_results,
+    structuredPayload?.stepResults,
+    structuredPayload?.step_results,
+    structuredPayload?.results,
+  ];
+  for (const candidate of candidates) {
+    if (!Array.isArray(candidate)) {
+      continue;
+    }
+    return candidate
+      .map(step => recordFromUnknown(step))
+      .filter((step): step is JsonRecord => Boolean(step));
+  }
+  return [];
+}
+
+function bundleOutputMessages(event: ConversationEvent): JsonRecord[] {
+  const bundleId = stringField(event.payload, 'bundleId', 'bundle_id');
+  const structuredPayload = structuredPayloadFrom(event.payload);
+  const steps = bundleStepResultsFromPayload(event.payload);
+  if (steps.length === 0) {
+    return [withStructuredPayload({
+      role: 'tool',
+      content: contentFromPayload(event.payload),
+      tool_name: 'tool_bundle',
+    }, {
+      structuredPayload: {
+        ...(structuredPayload ?? {}),
+        ...(bundleId ? { bundle_id: bundleId } : {}),
+      },
+    })];
+  }
+  return steps.map(step => {
+    const toolCallId = stringField(step, 'toolCallId', 'tool_call_id', 'id');
+    const toolName = stringField(step, 'toolName', 'tool_name', 'tool') ?? 'tool_bundle';
+    return withStructuredPayload({
+      role: 'tool',
+      content: stepOutputContent(step),
+      tool_call_id: toolCallId,
+      tool_name: toolName,
+    }, {
+      structuredPayload: {
+        ...(structuredPayload ?? {}),
+        ...(bundleId ? { bundle_id: bundleId } : {}),
+        step_result: step,
+      },
+    });
+  });
+}
+
 function withoutDuplicateToolOutputs(events: ConversationEvent[]): ConversationEvent[] {
   const seenOutputs = new Set<string>();
   return events.filter(event => {
@@ -302,61 +393,52 @@ export function buildConversationMetadata(events: ConversationEvent[]): Conversa
   };
 }
 
-function toRehydrateMessage(event: ConversationEvent): JsonRecord | null {
+function toRehydrateMessages(event: ConversationEvent): JsonRecord[] {
   if (event.type === 'user_message') {
-    return {
+    return [withStructuredPayload({
       role: 'user',
       content: textFromPayload(event.payload),
-      ...((event.payload.structuredPayload as JsonRecord | undefined) ?? {}),
-    };
+    }, event.payload)];
   }
   if (event.type === 'assistant_message') {
-    return {
+    return [withStructuredPayload({
       role: 'assistant',
       content: textFromPayload(event.payload),
-      ...((event.payload.structuredPayload as JsonRecord | undefined) ?? {}),
-    };
+    }, event.payload)];
   }
   if (event.type === 'tool_call') {
-    return {
+    return [withStructuredPayload({
       role: 'assistant',
       content: textFromPayload(event.payload),
       tool_calls: toolCallsFromPayload(event.payload),
       tool_call_id: stringField(event.payload, 'toolCallId', 'tool_call_id'),
-      ...((event.payload.structuredPayload as JsonRecord | undefined) ?? {}),
-    };
+    }, event.payload)];
   }
   if (event.type === 'tool_bundle_call') {
-    return {
+    return [withStructuredPayload({
       role: 'assistant',
       content: contentFromPayload(event.payload),
-      message_type: 'tool-bundle',
-      bundle_id: stringField(event.payload, 'bundleId', 'bundle_id'),
-      tools: event.payload.tools,
       tool_calls: toolCallsFromPayload(event.payload),
-      ...((event.payload.structuredPayload as JsonRecord | undefined) ?? {}),
-    };
+    }, {
+      structuredPayload: {
+        ...(structuredPayloadFrom(event.payload) ?? {}),
+        bundle_id: stringField(event.payload, 'bundleId', 'bundle_id'),
+        tools: event.payload.tools,
+      },
+    })];
   }
   if (event.type === 'tool_output') {
-    return {
+    return [withStructuredPayload({
       role: 'tool',
       content: textFromPayload(event.payload),
       tool_call_id: stringField(event.payload, 'toolCallId', 'tool_call_id'),
-      name: toolNameFromPayload(event.payload),
-      ...((event.payload.structuredPayload as JsonRecord | undefined) ?? {}),
-    };
+      tool_name: toolNameFromPayload(event.payload),
+    }, event.payload)];
   }
   if (event.type === 'tool_bundle_output') {
-    return {
-      role: 'tool',
-      content: contentFromPayload(event.payload),
-      message_type: 'tool-bundle-result',
-      bundle_id: stringField(event.payload, 'bundleId', 'bundle_id'),
-      name: 'tool_bundle',
-      ...((event.payload.structuredPayload as JsonRecord | undefined) ?? {}),
-    };
+    return bundleOutputMessages(event);
   }
-  return null;
+  return [];
 }
 
 export function buildRehydrateSnapshot(events: ConversationEvent[]): RehydrateSnapshot {
@@ -365,7 +447,7 @@ export function buildRehydrateSnapshot(events: ConversationEvent[]): RehydrateSn
   return {
     conversationRef: display.conversationRef,
     revisionId: display.revisionId,
-    messages: rehydrateEvents.map(toRehydrateMessage).filter((message): message is JsonRecord => Boolean(message)),
+    messages: rehydrateEvents.flatMap(toRehydrateMessages),
     replayGenerationId: null,
   };
 }

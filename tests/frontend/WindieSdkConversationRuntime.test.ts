@@ -135,7 +135,7 @@ describe('Windie SDK conversation runtime core', () => {
         role: 'tool',
         content: 'README contents',
         tool_call_id: 'call-read',
-        name: 'read_file',
+        tool_name: 'read_file',
       }),
     ]);
   });
@@ -193,22 +193,34 @@ describe('Windie SDK conversation runtime core', () => {
       expect.objectContaining({ role: 'user', content: 'inspect files' }),
       expect.objectContaining({
         role: 'assistant',
-        message_type: 'tool-bundle',
-        bundle_id: 'bundle-read',
         tool_calls: [
           expect.objectContaining({ id: 'call-readme' }),
           expect.objectContaining({ id: 'call-package' }),
         ],
+        structured_payload: expect.objectContaining({
+          bundle_id: 'bundle-read',
+          tools: expect.any(Array),
+        }),
       }),
       expect.objectContaining({
         role: 'tool',
-        message_type: 'tool-bundle-result',
-        bundle_id: 'bundle-read',
-        name: 'tool_bundle',
-        results: [
-          expect.objectContaining({ toolCallId: 'call-readme', success: true }),
-          expect.objectContaining({ toolCallId: 'call-package', success: true }),
-        ],
+        tool_call_id: 'call-readme',
+        tool_name: 'tool_bundle',
+        content: 'README contents',
+        structured_payload: expect.objectContaining({
+          bundle_id: 'bundle-read',
+          step_result: expect.objectContaining({ toolCallId: 'call-readme', success: true }),
+        }),
+      }),
+      expect.objectContaining({
+        role: 'tool',
+        tool_call_id: 'call-package',
+        tool_name: 'tool_bundle',
+        content: 'package contents',
+        structured_payload: expect.objectContaining({
+          bundle_id: 'bundle-read',
+          step_result: expect.objectContaining({ toolCallId: 'call-package', success: true }),
+        }),
       }),
     ]);
   });

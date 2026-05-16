@@ -60,6 +60,10 @@ Bundle path:
 - SDK bundle step statuses use `ok` and `error`; the top-level status is `success`, `partial_failure`, or `failure`
 - backend treats atomic bundle success differently from individual fallback output
 - partial failure must preserve enough per-step output for debugging and model recovery
+- SDK rehydrate projection does not replay backend-internal bundle trace fields
+  as top-level message keys. It keeps bundle metadata in `structured_payload`
+  and emits one provider-safe tool replay row per completed step when
+  `tool_call_id` values are available.
 
 If a tool hangs, inspect request-id state in this order:
 
