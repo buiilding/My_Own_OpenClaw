@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react';
 import { IpcBridge, ON_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import { useChatStream } from '../../frontend/src/renderer/features/chat/hooks/useChatStream';
 import { DesktopConversationRuntimeClient } from '../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient';
+import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
   createAssistantSeedMessage,
   resetChatStoreForTests,
@@ -14,7 +15,8 @@ import {
 } from './appConfigTestUtils';
 
 let mockConfig: TestAppConfig = createDefaultTestAppConfig();
-let mockActiveConversationRef: string | null = null;
+const DEFAULT_TEST_CONVERSATION_REF = 'conv-test';
+let mockActiveConversationRef: string | null = DEFAULT_TEST_CONVERSATION_REF;
 const mockUseAppConfigContext = jest.fn(() => ({ config: mockConfig }));
 
 jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
@@ -39,10 +41,13 @@ export const transcriptSpies = {
 export function resetChatStreamTestState() {
   jest.clearAllMocks();
   mockConfig = createDefaultTestAppConfig();
-  mockActiveConversationRef = null;
+  mockActiveConversationRef = DEFAULT_TEST_CONVERSATION_REF;
   setMockAppConfigContextValue(mockUseAppConfigContext, mockConfig);
 
   resetChatStoreForTests(createAssistantSeedMessage());
+  useChatStore.setState({
+    activeConversationRef: DEFAULT_TEST_CONVERSATION_REF,
+  });
 }
 
 export function setMockConfig(
@@ -58,9 +63,17 @@ export function setMockActiveConversationRef(conversationRef: string | null) {
 }
 
 function createEmitBackendEvent(handlers: Record<string, (data: unknown) => void>) {
-  return (event: unknown) => {
+  return (event: unknown, options: { injectConversationRef?: boolean } = {}) => {
     const backendHandler = handlers[ON_CHANNELS.FROM_BACKEND];
     expect(backendHandler).toEqual(expect.any(Function));
+    if (options.injectConversationRef !== false && event && typeof event === 'object' && !Array.isArray(event)) {
+      const eventRecord = event as Record<string, unknown>;
+      backendHandler({
+        conversation_ref: eventRecord.conversation_ref ?? mockActiveConversationRef,
+        ...eventRecord,
+      });
+      return;
+    }
     backendHandler(event);
   };
 }
@@ -77,6 +90,10 @@ export function registerBackendListener(enableTranscript = true) {
   return {
     handlers,
     emitBackendEvent: createEmitBackendEvent(handlers),
+    emitRawBackendEvent: (event: unknown) => createEmitBackendEvent(handlers)(
+      event,
+      { injectConversationRef: false },
+    ),
   };
 }
 
@@ -99,5 +116,9 @@ export function renderBackendListenerWithSpy(enableTranscript = true) {
     onSpy,
     removeListener,
     emitBackendEvent: createEmitBackendEvent(handlers),
+    emitRawBackendEvent: (event: unknown) => createEmitBackendEvent(handlers)(
+      event,
+      { injectConversationRef: false },
+    ),
   };
 }

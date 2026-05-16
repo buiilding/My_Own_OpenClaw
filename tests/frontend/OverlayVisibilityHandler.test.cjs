@@ -20,9 +20,10 @@ describe('overlay_visibility_handler', () => {
     });
 
     expect(result).toEqual({ success: true });
-    expect(showMainWindow).toHaveBeenCalledWith({
+    expect(showMainWindow.mock.calls[0][0]).toEqual({
       focus: true,
       maximize: false,
+      open: '',
       targetDisplayAffinity: null,
     });
   });
@@ -41,9 +42,10 @@ describe('overlay_visibility_handler', () => {
     });
 
     expect(result).toEqual({ success: true });
-    expect(showMainWindow).toHaveBeenCalledWith({
+    expect(showMainWindow.mock.calls[0][0]).toEqual({
       focus: true,
       maximize: true,
+      open: '',
       targetDisplayAffinity: {
         monitor_id: '2',
         bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
@@ -211,9 +213,10 @@ describe('overlay_visibility_handler', () => {
     );
 
     expect(result).toEqual({ success: true });
-    expect(showMainWindow).toHaveBeenCalledWith({
+    expect(showMainWindow.mock.calls[0][0]).toEqual({
       focus: false,
       maximize: false,
+      open: '',
       targetDisplayAffinity: null,
     });
   });

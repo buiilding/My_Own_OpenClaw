@@ -37,6 +37,7 @@ describe('surface_window_options_runtime', () => {
     expect(normalizeMainSurfaceWindowOptions({
       focus: false,
       maximize: true,
+      open: ' Settings ',
       targetDisplayAffinity: {
         monitor_id: '1',
         bounds: { x: 0, y: 0, width: 1920, height: 1080 },
@@ -45,6 +46,7 @@ describe('surface_window_options_runtime', () => {
     })).toEqual({
       focus: false,
       maximize: true,
+      open: 'settings',
       targetDisplayAffinity: {
         monitor_id: '1',
         bounds: { x: 0, y: 0, width: 1920, height: 1080 },
@@ -56,6 +58,7 @@ describe('surface_window_options_runtime', () => {
     expect(normalizeMainSurfaceWindowOptions()).toEqual({
       focus: true,
       maximize: false,
+      open: '',
       targetDisplayAffinity: null,
     });
   });

@@ -239,16 +239,16 @@ function eventTypeFromProjectionEntry(entry: TranscriptProjectionRewriteEntry): 
   if (entry.role === 'user' || entry.messageType === 'user') {
     return 'user_message';
   }
-  if (entry.messageType === 'tool-bundle' || entry.messageType === 'tool_bundle_call') {
+  if (entry.messageType === 'tool_bundle_call') {
     return 'tool_bundle_call';
   }
-  if (entry.messageType === 'tool-bundle-result' || entry.messageType === 'tool_bundle_output') {
+  if (entry.messageType === 'tool_bundle_output') {
     return 'tool_bundle_output';
   }
-  if (entry.messageType === 'tool-call' || entry.messageType === 'tool_call') {
+  if (entry.messageType === 'tool_call') {
     return 'tool_call';
   }
-  if (entry.role === 'tool' || entry.messageType === 'tool-output' || entry.messageType === 'tool_output') {
+  if (entry.role === 'tool' || entry.messageType === 'tool_output') {
     return 'tool_output';
   }
   return 'assistant_message';

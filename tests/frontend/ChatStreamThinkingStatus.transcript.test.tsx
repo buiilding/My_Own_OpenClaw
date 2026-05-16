@@ -67,7 +67,7 @@ describe('useChatStream transcript + event filtering', () => {
       });
     });
 
-    const last = useChatStore.getState().messages.at(-1);
+    const last = useChatStore.getState().getWorkspaceState('conv-1').messages.at(-1);
     expect(last).toEqual(
       expect.objectContaining({
         type: 'tool-output',
@@ -327,7 +327,7 @@ describe('useChatStream transcript + event filtering', () => {
       });
     });
 
-    const last = useChatStore.getState().messages.at(-1);
+    const last = useChatStore.getState().getWorkspaceState('conv-1').messages.at(-1);
     expect(last).toEqual(
       expect.objectContaining({
         sender: 'assistant',
@@ -356,6 +356,7 @@ describe('useChatStream transcript + event filtering', () => {
   });
 
   test('updates transcript session on each valid backend event when enabled', () => {
+    setMockActiveConversationRef('conv-2');
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
@@ -375,7 +376,9 @@ describe('useChatStream transcript + event filtering', () => {
       });
     });
 
-    expect(transcriptSpies.updateTranscriptSession).toHaveBeenCalledWith('conv-2', 'user-2');
+    expect(transcriptSpies.updateTranscriptSession.mock.calls.some(([conversationRef, userId]) => (
+      conversationRef === 'conv-2' && userId === 'user-2'
+    ))).toBe(true);
   });
 
   test('tracks memory-store events without renderer-side persistence side effects', async () => {
@@ -437,10 +440,10 @@ describe('useChatStream transcript + event filtering', () => {
 
   test('quarantines memory-store events without conversation_ref', async () => {
     setMockActiveConversationRef('conv-active');
-    const { emitBackendEvent } = registerBackendListener();
+    const { emitRawBackendEvent } = registerBackendListener();
 
     await act(async () => {
-      emitBackendEvent({
+      emitRawBackendEvent({
         type: 'memory-store',
         payload: {
           user_query: 'hi',
@@ -460,10 +463,10 @@ describe('useChatStream transcript + event filtering', () => {
 
   test('quarantines events that omit conversation_ref', () => {
     setMockActiveConversationRef('conv-active');
-    const { emitBackendEvent } = registerBackendListener();
+    const { emitRawBackendEvent } = registerBackendListener();
 
     act(() => {
-      emitBackendEvent({
+      emitRawBackendEvent({
         type: 'token-count',
         payload: {
           prompt_tokens: 1,
@@ -486,10 +489,10 @@ describe('useChatStream transcript + event filtering', () => {
   });
 
   test('does not sync transcript session when backend event omits conversation and user ids', () => {
-    const { emitBackendEvent } = registerBackendListener();
+    const { emitRawBackendEvent } = registerBackendListener();
 
     act(() => {
-      emitBackendEvent({
+      emitRawBackendEvent({
         type: 'tool-schemas',
         payload: {
           tool_schemas: [{ type: 'function', function: { name: 'tool-x', parameters: { type: 'object' } } }],

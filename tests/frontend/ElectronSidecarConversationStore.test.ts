@@ -293,7 +293,7 @@ describe('ElectronSidecarConversationStore', () => {
         {
           content: 'tool output',
           role: 'tool',
-          messageType: 'tool-output',
+          messageType: 'tool_output',
           toolName: 'shell',
           correlationId: 'tool-call-1',
         },
@@ -379,7 +379,7 @@ describe('ElectronSidecarConversationStore', () => {
         {
           content: '{"name":"read_file"}',
           role: 'assistant',
-          messageType: 'tool-call',
+          messageType: 'tool_call',
           toolName: 'read_file',
           correlationId: 'call-read',
           timestamp: '2026-05-15T12:00:01.000Z',

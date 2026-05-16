@@ -88,6 +88,7 @@ describe('window_controls_ipc_runtime', () => {
     expect(showMainWindow.mock.calls[0][0]).toEqual({
       focus: true,
       maximize: false,
+      open: 'settings',
       targetDisplayAffinity: {
         monitor_id: '2',
         bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
@@ -151,9 +152,10 @@ describe('window_controls_ipc_runtime', () => {
     );
 
     expect(result).toEqual({ success: true });
-    expect(showMainWindow).toHaveBeenCalledWith({
+    expect(showMainWindow.mock.calls[0][0]).toEqual({
       focus: true,
       maximize: true,
+      open: 'chat',
       targetDisplayAffinity: {
         monitor_id: '2',
         bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
@@ -228,6 +230,7 @@ describe('window_controls_ipc_runtime', () => {
     expect(showMainWindow.mock.calls[0][0]).toEqual({
       focus: true,
       maximize: false,
+      open: 'settings',
       targetDisplayAffinity: {
         monitor_id: '2',
         bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
@@ -302,6 +305,7 @@ describe('window_controls_ipc_runtime', () => {
     expect(showMainWindow.mock.calls[0][0]).toEqual({
       focus: true,
       maximize: false,
+      open: 'settings',
       targetDisplayAffinity: {
         monitor_id: '2',
         bounds: { x: 1920, y: 0, width: 2560, height: 1440 },

@@ -605,10 +605,14 @@ describe('main_window_runtime createMainWindow', () => {
 
     createMainWindow(deps);
 
-    expect(deps.initializeLocalBackendBridge).toHaveBeenCalledWith(expect.any(Function), {
+    expect(deps.initializeLocalBackendBridge).toHaveBeenCalledTimes(1);
+    const [getWindows, bridgeOptions] = deps.initializeLocalBackendBridge.mock.calls[0];
+    expect(typeof getWindows).toBe('function');
+    expect(bridgeOptions).toEqual({
       getFrontendConfig: deps.getLatestFrontendConfig,
       isPackaged: false,
       permissionStatePath: '/tmp/windieos-permission-state.json',
+      authStatePath: expect.stringContaining('/windieos/install-auth.json'),
     });
   });
 

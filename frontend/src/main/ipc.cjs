@@ -669,6 +669,7 @@ function shutdownIpcForTests() {
   pendingInstallAuthStatePromise = null;
   const runtime = windieSdkRuntime;
   isConnected = false;
+  windieSdkRuntime = null;
   runtime?.close?.('test-shutdown');
 }
 
