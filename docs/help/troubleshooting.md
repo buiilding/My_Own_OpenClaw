@@ -29,7 +29,7 @@ If the owner is still unclear, use [Triage Routes](triage_routes.md). If the iss
 ## Local Tool Fails
 
 - Confirm backend tool schema parses.
-- Confirm renderer `useToolRunner` receives the event.
+- Confirm the SDK runtime tool router receives and claims the event.
 - Confirm main bridge maps the request to sidecar JSON-RPC.
 - Confirm the tool is registered in `frontend/src/main/python/tools/registry.py`.
 - Read [Tool Contracts](../tools/tool_contracts.md).

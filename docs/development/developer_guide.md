@@ -280,7 +280,7 @@ npm run test:ci
 ```
 tests/frontend/
 ├── ChatStore.test.ts
-├── ToolExecutionService.test.ts
+├── WindieSdkConversationRuntime.test.ts
 ├── MessageInput.test.jsx
 └── landing/LandingPage.test.jsx
 ```

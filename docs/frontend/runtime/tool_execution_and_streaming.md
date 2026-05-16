@@ -80,7 +80,6 @@ Retained renderer infrastructure:
 - `SystemStateCapture.ts`
 - `ArtifactUploader.ts`
 - `ToolExecutionLogger.ts`
-- `toolExecution/BundleExecutionModel.ts`
 
 ## Contract with Backend
 

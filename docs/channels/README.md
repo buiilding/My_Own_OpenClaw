@@ -20,7 +20,7 @@ WindieOS has several user and developer entry channels that eventually meet the 
 | Voice dictation | Voice-mode microphone capture | renderer audio -> backend `/ws/transcription` | [Voice Audio Change Workflow](voice_audio_change_workflow.md), [Voice and Wakeword](../desktop/voice_and_wakeword.md), [Voice and Audio Channels](voice_and_audio_channels.md) |
 | Wakeword | Background hotword listener | renderer audio -> Electron wakeword bridge -> sidecar subprocess | [Voice Audio Change Workflow](voice_audio_change_workflow.md), [Voice and Wakeword](../desktop/voice_and_wakeword.md), [Voice and Audio Channels](voice_and_audio_channels.md) |
 | TTS playback | Backend audio response | backend `/ws` `audio-chunk` events -> renderer playback queue | [Voice Audio Change Workflow](voice_audio_change_workflow.md), [Voice and Audio Channels](voice_and_audio_channels.md), [Backend TTS Manager](../backend/api/processing/tts/tts_manager_audio_stream_and_cleanup_reference.md) |
-| Local tools | Computer, browser, filesystem, shell, memory | renderer/main IPC -> Python sidecar JSON-RPC | [Sidecar and Tool Channels](sidecar_and_tool_channels.md), [Tools Hub](../tools/README.md) |
+| Local tools | Computer, browser, filesystem, shell, memory | SDK runtime in Electron main -> Python sidecar JSON-RPC | [Sidecar and Tool Channels](sidecar_and_tool_channels.md), [Tools Hub](../tools/README.md) |
 | SDK clients | External programmatic clients | direct hosted HTTP + WebSocket | [Channel Routing Matrix](channel_routing_matrix.md), [SDK Hub](../sdk/README.md) |
 | VM runs | Hosted dashboard or worker execution | `/api/runs/*` HTTP control plane + backend `/ws` dispatch | [Automation Hub](../automation/README.md), [VM Runs and Workers](../automation/vm_runs_and_workers.md) |
 
@@ -43,7 +43,7 @@ Read:
 - [Streaming and Events](../concepts/streaming_and_events.md)
 - [WebSocket Event Reference](../reference/websocket_event_reference.md)
 
-Use this route for backend streamed event names, formatter payloads, outgoing schemas, renderer `from-backend` guards, chat stream handlers, tool-runner event consumption, terminal events, and audio side-channel payloads.
+Use this route for backend streamed event names, formatter payloads, outgoing schemas, SDK runtime normalization, renderer `from-backend` guards, chat stream handlers, terminal events, and audio side-channel payloads.
 
 ### Add a Query Input Surface
 
@@ -116,7 +116,7 @@ Likely code:
 - sidecar executable tool under `frontend/src/main/python/tools`
 - IPC bridge only when a new local bridge channel is required
 
-Validate backend schema tests, sidecar tool tests, renderer tool-runner tests, and schema parity tests.
+Validate backend schema tests, SDK runtime/router tests, sidecar tool tests, renderer projection tests, and schema parity tests.
 
 ## Deep Docs
 

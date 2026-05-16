@@ -63,14 +63,15 @@ cd frontend && npm run test:ci -- ModelSelectionUtils.test.js ModelsSection.test
 
 ## Tool Call Appears But Does Not Execute
 
-Likely boundary: backend tool event, renderer tool runner, Electron main bridge, or sidecar registry.
+Likely boundary: backend tool event, SDK runtime tool router, Electron main bridge, or sidecar registry.
 
 Inspect:
 
 - `backend/src/tools/tool_catalog.py`
 - `backend/src/agent/tools`
-- `frontend/src/renderer/features/chat/hooks/useToolRunner.ts`
-- `frontend/src/renderer/infrastructure/services/toolExecution`
+- `packages/windie-sdk-js/src/runtime`
+- `frontend/src/main/windie_sdk_runtime.cjs`
+- `frontend/src/main/ipc/ipc_sdk_tool_router.cjs`
 - `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`
 - `frontend/src/main/python/tools/registry.py`
 
@@ -84,7 +85,7 @@ Validate:
 
 ```bash
 ./scripts/test-backend tests/backend/test_remote_tool_contract.py tests/backend/test_tool_result_handler.py -q
-cd frontend && npm run test:ci -- ToolRunnerHook.events.test.ts ToolExecutionService.test.ts ToolExecutionResultDispatch.test.ts
+cd frontend && npm run test:ci -- WindieSdkConversationRuntime.test.ts IpcSdkToolRouter.test.cjs RendererToolResultBoundary.test.ts
 ./scripts/test-sidecar tests/sidecar/test_tool_registry.py tests/sidecar/test_tool_result.py -q
 ```
 

@@ -37,7 +37,7 @@ WindieOS does not currently have a single repo-root `scripts/check` gate in this
 | frontend renderer state/UI | `cd frontend && npm run test:ci -- <test_file>` | run `cd frontend && npm run lint && npm run test:ci` for broader UI changes |
 | Electron main/IPC | focused `tests/frontend/*.test.cjs` or related Jest test | run `cd frontend && npm run test:ci` for shared bridge changes |
 | transcript/replay | focused transcript tests | include backend rehydrate/history tests when backend replay shape changes |
-| tool schema/result contract | backend schema/policy tests plus sidecar parity tests | add renderer tool-runner tests when UI/result relay changes |
+| tool schema/result contract | backend schema/policy tests plus SDK runtime/router and sidecar parity tests | add renderer projection tests when visible UI rows change |
 | browser runtime | backend browser schema tests plus sidecar browser tests | include browser UI/session tests when renderer controls change |
 | docs-only | `./bin/docs-list`, focused link check, `git diff --check` | no code tests needed unless docs generator changed |
 | packaging/reinstall | docs-list plus target OS package/reinstall command | run matching `scripts/ci/smoke-*` helper before release |

@@ -97,17 +97,15 @@ Sidecar (`frontend/src/main/python`):
 
 Renderer touchpoints:
 
-- `features/chat/hooks/useToolRunner.ts` (tool-call/bundle intake + surface prep wiring)
 - `features/chat/utils/toolRunner/toolRunnerSurface.ts` (surface mode resolution + tokenized prep/restore)
 - `infrastructure/services/{ScreenshotAttachmentPipeline,SystemStateCapture}.ts` (current split capture services that replaced mixed capture orchestration)
-- `infrastructure/services/ToolExecutionCapture.ts` (autocapture entry)
-- `infrastructure/services/ToolExecutionService.ts` (tool/bundle execution + backend send)
 - `features/chat/hooks/useChatStream.ts` and `useChatStreamToolHandlers.ts` (phase updates and tool message rows)
 - `types/backendEvents.ts` (event contract types)
 
 Main touchpoints:
 
 - `ipc.cjs` + `ipc_runtime_helpers.cjs` (backend message -> overlay phase mapping)
+- `windie_sdk_runtime.cjs` and `ipc/ipc_sdk_tool_router.cjs` (current SDK-owned local tool routing)
 - split IPC registrars (`overlay_phase_ipc_runtime.cjs`, `window_controls_ipc_runtime.cjs`, `permission_ipc_runtime.cjs`) now own show/hide and related main-process control channels; legacy focus-prep/click-through RPCs are gone
 - `main_window_runtime.cjs` (focus demotion + external focus verify)
 - `window_visibility_runtime.cjs` (chat/main visibility policy)
@@ -186,7 +184,6 @@ Phase 1 (orchestrator extraction, no behavior change):
 
 Phase 2 (consumer migration):
 
-- migrate `useToolRunner` to orchestrator APIs.
 - migrate screenshot and system-state capture services onto orchestrator capture APIs.
 - remove duplicated token/toggle/retry logic from legacy helpers.
 

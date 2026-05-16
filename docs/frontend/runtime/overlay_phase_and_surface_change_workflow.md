@@ -96,7 +96,7 @@ Common phase producers:
 - backend stream fan-out in `frontend/src/main/ipc.cjs`
 - overlay phase helpers in `frontend/src/main/ipc/ipc_overlay_phase_events.cjs`
 - renderer stream state projection in `frontend/src/renderer/features/chat/utils/state/streamPhaseState.js`
-- tool runner/capture lifecycle transitions in `frontend/src/renderer/infrastructure/services/SurfaceOrchestrator.ts`
+- tool/capture lifecycle transitions in `frontend/src/renderer/infrastructure/services/SurfaceOrchestrator.ts`
 
 Producer rules:
 
@@ -157,8 +157,8 @@ Renderer rules:
 - Keep `awaiting-typing` and `response` frame sizes stable. Avoid per-token
   resize churn.
 - Keep awaiting-to-response transitions non-animated in the minimal pill loop.
-- Tool ghost preview is display-only. Local tool execution remains in sidecar
-  tools and renderer tool-runner services.
+- Tool ghost preview is display-only. Local tool execution remains in the SDK
+  runtime, Electron main bridge, and sidecar tools.
 
 ### 5. Inspect platform capture behavior
 

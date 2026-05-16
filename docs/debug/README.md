@@ -16,7 +16,7 @@ Use this hub when a WindieOS behavior fails and the next code edit is not obviou
 | --- | --- | --- |
 | Hosted backend | Agent loop, providers, tool schemas, websocket events, SDK routes, OCR/vision/TTS/STT | `backend/src/api`, `backend/src/agent`, `backend/src/llm`, `backend/src/tools`, `backend/src/services` |
 | Electron main | Windows, overlay orchestration, IPC relay, local config, permission probes, sidecar process lifecycle | `frontend/src/main` |
-| React renderer | Dashboard, chat UI, response overlay UI, permissions UI, voice controls, local tool runner | `frontend/src/renderer` |
+| React renderer | Dashboard, chat UI, response overlay UI, permissions UI, voice controls, projected tool state | `frontend/src/renderer` |
 | Python sidecar | Local executable tools, memory store, browser runtime, screenshots, shell/process execution | `frontend/src/main/python` |
 | Tests | Contract drift and runtime regressions | `tests/backend`, `tests/frontend`, `tests/sidecar` |
 
@@ -46,5 +46,5 @@ Use this hub when a WindieOS behavior fails and the next code edit is not obviou
 - Do not patch the visible UI symptom until the producing event or state contract is verified.
 - For backend/frontend/sidecar drift, prefer adding or extending parity tests over importing implementation code across boundaries.
 - For overlay timing bugs, write down the phase sequence first. Mixing focus, capture, content protection, and visibility changes in one patch makes regressions hard to isolate.
-- For local tool bugs, verify all three surfaces: backend schema, renderer tool-runner payload, and sidecar executable result.
+- For local tool bugs, verify the producer and execution boundary: backend schema/event, SDK main runtime router, Electron sidecar bridge, and sidecar executable result.
 - For hosted backend bugs, do not assume local Electron state is wrong until the websocket or HTTP payload is inspected.

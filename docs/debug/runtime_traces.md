@@ -113,7 +113,7 @@ WINDIE_SIDECAR_LOG_LEVEL=DEBUG npm run electron:dev
 If a sidecar result is missing, check for all of these before editing:
 
 - Backend emitted a tool-call event with a request id.
-- Renderer `useToolRunner` accepted the event for the active turn.
+- SDK runtime accepted the event for the active turn and claimed local execution.
 - Main bridge sent a JSON-RPC request to the sidecar.
 - Sidecar executed a registered tool and returned a JSON-serializable result.
-- Renderer sent the result back to the backend with the original request id.
+- SDK runtime sent the result back to the backend with the original request id.

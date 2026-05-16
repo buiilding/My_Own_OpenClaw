@@ -216,7 +216,7 @@ Validate:
 | Query send fails while disconnected | synthetic query failure event and websocket bridge state | Electron main IPC bridge |
 | Settings save spins then fails | ACK map, timeout, backend `settings-updated`/`error` id | Electron settings sync or backend handler |
 | Tool call hangs after sidecar failure | sidecar ToolResult, Electron relay, backend result storage | sidecar tool or backend tool-result ingress |
-| Tool failure visible but not saved in transcript | tool-runner persistence and structured failure contract | renderer tool-runner persistence |
+| Tool failure visible but not saved in transcript | SDK runtime/store projection and structured failure contract | SDK runtime/store or renderer projection |
 | Sidecar startup times out | process spawn/path/readiness status | Electron local backend bridge or packaged runtime |
 | Provider exception leaks details | provider error mapping and sanitizer path | backend provider/inference layer |
 | Error includes a token/key | producing log/response call site and redaction coverage | owner runtime plus security docs |
