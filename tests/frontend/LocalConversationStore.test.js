@@ -1,4 +1,7 @@
-import { loadStoredConversationEntries } from '../../frontend/src/renderer/infrastructure/transcript/localConversationStore';
+import {
+  listStoredConversations,
+  loadStoredConversationEntries,
+} from '../../frontend/src/renderer/infrastructure/transcript/localConversationStore';
 
 const mockInvoke = jest.fn();
 
@@ -64,6 +67,53 @@ describe('localConversationStore', () => {
         limit: 2,
         afterMessageIndex: 2,
       }),
+    );
+  });
+
+  test('does not send a hidden conversation list limit when omitted', async () => {
+    mockInvoke.mockResolvedValue({
+      success: true,
+      data: {
+        conversations: [
+          { conversation_id: 'conv-1' },
+        ],
+      },
+    });
+
+    const result = await listStoredConversations({
+      userId: 'default_user',
+      recordKind: 'conversation_event',
+    });
+
+    expect(result).toEqual([{ conversation_id: 'conv-1' }]);
+    expect(mockInvoke).toHaveBeenCalledWith(
+      'list-conversations',
+      {
+        userId: 'default_user',
+        recordKind: 'conversation_event',
+      },
+    );
+  });
+
+  test('sends an explicit conversation list limit when requested', async () => {
+    mockInvoke.mockResolvedValue({
+      success: true,
+      data: { conversations: [] },
+    });
+
+    await listStoredConversations({
+      userId: 'default_user',
+      recordKind: 'transcript',
+      limit: 25,
+    });
+
+    expect(mockInvoke).toHaveBeenCalledWith(
+      'list-conversations',
+      {
+        userId: 'default_user',
+        recordKind: 'transcript',
+        limit: 25,
+      },
     );
   });
 

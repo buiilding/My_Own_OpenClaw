@@ -1720,7 +1720,7 @@ class LocalMemoryStore:
         )
 
     async def list_conversations(
-        self, user_id: str, limit: int = 200, record_kind: Optional[str] = "transcript"
+        self, user_id: str, limit: Optional[int] = None, record_kind: Optional[str] = "transcript"
     ) -> List[Dict[str, Any]]:
         """
         List conversation windows for a user.

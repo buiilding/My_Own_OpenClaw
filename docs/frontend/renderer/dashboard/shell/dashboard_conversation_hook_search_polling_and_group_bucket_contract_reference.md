@@ -44,7 +44,9 @@ Hook-owned concerns:
 
 `loadRecentConversations()`:
 
-- invokes `LIST_CONVERSATIONS` with `{ userId, limit: 200, recordKind: 'transcript' }`
+- loads conversation metadata through the SDK conversation store adapter with no
+  hidden limit so startup can see every local chat; explicit limits are applied
+  only when a caller requests pagination
 - drops rows without `conversation_id`
 - sorts by `last_timestamp` descending
 - prunes pinned ids no longer present in loaded list

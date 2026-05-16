@@ -140,6 +140,8 @@ Electron uses a sidecar-backed store adapter during the desktop migration:
   instead of shaping messages directly from visible transcript rows
 - desktop recent-chat and open-chat loading use store metadata/display
   projections, with legacy transcript fallback for existing local chats
+- startup metadata loading does not apply a hidden local chat limit; SDK callers
+  pass an explicit `listMetadata({ limit })` option when they want a bounded page
 
 Skipped compaction is represented as `compaction_skipped`. It is runtime/debug
 state and should not render as assistant output or a full compacted-history panel

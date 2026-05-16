@@ -7,7 +7,7 @@ type LocalConversationRecordKind = string;
 
 type ListStoredConversationsOptions = {
   userId: string;
-  limit?: number;
+  limit?: number | null;
   recordKind?: LocalConversationRecordKind;
 };
 
@@ -48,7 +48,7 @@ function resolveEntryMessageIndex(entry: Record<string, unknown>) {
 
 export async function listStoredConversations({
   userId,
-  limit = 200,
+  limit = null,
   recordKind = 'transcript',
 }: ListStoredConversationsOptions): Promise<Array<Record<string, unknown>>> {
   const normalizedUserId = normalizeNonEmptyString(userId);
@@ -56,11 +56,15 @@ export async function listStoredConversations({
     return [];
   }
 
-  const result = await IpcBridge.invoke(INVOKE_CHANNELS.LIST_CONVERSATIONS, {
+  const payload: Record<string, unknown> = {
     userId: normalizedUserId,
-    limit,
     recordKind,
-  });
+  };
+  if (typeof limit === 'number' && Number.isFinite(limit) && limit > 0) {
+    payload.limit = Math.floor(limit);
+  }
+
+  const result = await IpcBridge.invoke(INVOKE_CHANNELS.LIST_CONVERSATIONS, payload);
   if (!result || result.success === false) {
     throw new Error(result?.error || 'Failed to list stored conversations');
   }

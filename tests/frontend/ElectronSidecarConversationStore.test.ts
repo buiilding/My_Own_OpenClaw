@@ -236,9 +236,44 @@ describe('ElectronSidecarConversationStore', () => {
     expect(mockListStoredConversations).toHaveBeenCalledTimes(2);
     expect(mockListStoredConversations).toHaveBeenNthCalledWith(1, expect.objectContaining({
       recordKind: 'transcript',
+      limit: null,
     }));
     expect(mockListStoredConversations).toHaveBeenNthCalledWith(2, expect.objectContaining({
       recordKind: SDK_CONVERSATION_EVENT_RECORD_KIND,
+      limit: null,
+    }));
+  });
+
+  test('applies explicit metadata limits after merging record kinds', async () => {
+    const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
+    mockListStoredConversations
+      .mockResolvedValueOnce([
+        {
+          conversation_id: 'conv-1',
+          title: 'First',
+          last_timestamp: '2026-05-15T11:00:00.000Z',
+          entry_count: 1,
+        } as any,
+      ])
+      .mockResolvedValueOnce([
+        {
+          conversation_id: 'conv-2',
+          title: 'Second',
+          last_timestamp: '2026-05-15T12:00:00.000Z',
+          entry_count: 1,
+        } as any,
+      ]);
+
+    const metadata = await store.listMetadata({ limit: 1 });
+
+    expect(metadata.map((entry) => entry.conversationRef)).toEqual(['conv-2']);
+    expect(mockListStoredConversations).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      recordKind: 'transcript',
+      limit: 1,
+    }));
+    expect(mockListStoredConversations).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      recordKind: SDK_CONVERSATION_EVENT_RECORD_KIND,
+      limit: 1,
     }));
   });
 });

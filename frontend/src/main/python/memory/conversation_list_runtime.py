@@ -5,7 +5,7 @@ Shared conversation-list runtime helpers for LocalMemoryStore transcript windows
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from memory.conversation_title_helpers import ensure_conversation_title_from_row
 
@@ -19,8 +19,9 @@ async def fetch_transcript_conversation_rows(
     *,
     cursor,
     user_id: str,
-    limit: int,
+    limit: Optional[int],
 ) -> List[Dict[str, Any]]:
+    sql_limit = _normalize_sql_limit(limit)
     await cursor.execute(
         """
         SELECT conversation_id,
@@ -82,9 +83,17 @@ async def fetch_transcript_conversation_rows(
         ORDER BY last_timestamp DESC
         LIMIT ?
     """,
-        (user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, limit),
+        (user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id, sql_limit),
     )
     return await cursor.fetchall()
+
+
+def _normalize_sql_limit(limit: Optional[int]) -> int:
+    try:
+        parsed = int(limit) if limit is not None else -1
+    except (TypeError, ValueError):
+        return -1
+    return parsed if parsed > 0 else -1
 
 
 async def build_conversation_list_results(
@@ -131,7 +140,7 @@ async def list_transcript_conversations(
     *,
     episodic_db_path: str,
     user_id: str,
-    limit: int,
+    limit: Optional[int],
 ) -> List[Dict[str, Any]]:
     if aiosqlite is None:
         raise ImportError("aiosqlite is not installed. Install with: pip install aiosqlite")
@@ -158,7 +167,7 @@ async def list_record_kind_conversations(
     episodic_db_path: str,
     user_id: str,
     record_kind: str,
-    limit: int,
+    limit: Optional[int],
 ) -> List[Dict[str, Any]]:
     if aiosqlite is None:
         raise ImportError("aiosqlite is not installed. Install with: pip install aiosqlite")
@@ -218,7 +227,7 @@ async def list_record_kind_conversations(
                 record_kind,
                 user_id,
                 record_kind,
-                limit,
+                _normalize_sql_limit(limit),
             ),
         )
         rows = await cursor.fetchall()

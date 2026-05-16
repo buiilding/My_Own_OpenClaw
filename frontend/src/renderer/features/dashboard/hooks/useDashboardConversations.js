@@ -81,7 +81,7 @@ function useDashboardConversations({
       try {
         const store = createConversationStore(resolvedUserId);
         const list = normalizeRecentConversations(
-          (await store.listMetadata({ limit: 200 })).map((metadata) => ({
+          (await store.listMetadata()).map((metadata) => ({
             conversation_id: metadata.conversationRef,
             record_kind: 'conversation_event',
             title: metadata.title || metadata.conversationRef,

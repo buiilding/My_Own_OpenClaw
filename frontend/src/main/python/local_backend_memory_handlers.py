@@ -282,7 +282,7 @@ class LocalBackendMemoryHandlersMixin:
     async def _handle_list_conversations(
         self,
         user_id: str = "default_user",
-        limit: int = 200,
+        limit: Optional[int] = None,
         record_kind: Optional[str] = "transcript",
         **kwargs,
     ) -> Dict[str, Any]:

@@ -30,6 +30,7 @@ class DummyMemoryStore:
         self.pending_count = 0
         self.next_index = 1
         self.conversation_calls = []
+        self.list_conversation_calls = []
         self.deleted_semantic_calls = []
         self.deleted_episodic_calls = []
         self.cleared_local_memory_calls = []
@@ -91,6 +92,16 @@ class DummyMemoryStore:
             }
         )
         return [{"id": "mem-1"}]
+
+    async def list_conversations(self, user_id, limit=None, record_kind="transcript"):
+        self.list_conversation_calls.append(
+            {
+                "user_id": user_id,
+                "limit": limit,
+                "record_kind": record_kind,
+            }
+        )
+        return [{"conversation_id": "conv-1"}]
 
     async def close(self):
         return None
@@ -1162,6 +1173,27 @@ async def test_handle_list_conversations_fails_without_store():
     result = await backend._handle_list_conversations(user_id="user-1")
     assert result["success"] is False
     assert result["error"] == "Memory store not initialized"
+
+
+@pytest.mark.asyncio
+async def test_handle_list_conversations_allows_unbounded_limit():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+
+    result = await backend._handle_list_conversations(
+        user_id="user-1",
+        record_kind="conversation_event",
+    )
+
+    assert result["success"] is True
+    assert result["data"]["conversations"] == [{"conversation_id": "conv-1"}]
+    assert backend.memory_store.list_conversation_calls == [
+        {
+            "user_id": "user-1",
+            "limit": None,
+            "record_kind": "conversation_event",
+        }
+    ]
 
 
 @pytest.mark.asyncio

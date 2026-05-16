@@ -250,7 +250,7 @@ export class ElectronSidecarConversationStore implements ConversationStore {
   }
 
   async listMetadata(options: ListConversationOptions = {}): Promise<ConversationMetadata[]> {
-    const limit = options.limit ?? 200;
+    const limit = normalizePositiveInteger(options.limit);
     const [transcriptMetadata, eventMetadata] = await Promise.all([
       this.listMetadataForRecordKind('transcript', limit),
       this.listMetadataForRecordKind(SDK_CONVERSATION_EVENT_RECORD_KIND, limit),
@@ -262,9 +262,9 @@ export class ElectronSidecarConversationStore implements ConversationStore {
     for (const metadata of eventMetadata) {
       merged.set(metadata.conversationRef, metadata);
     }
-    return Array.from(merged.values())
-      .sort((a, b) => (Date.parse(b.updatedAt) || 0) - (Date.parse(a.updatedAt) || 0))
-      .slice(0, limit);
+    const sorted = Array.from(merged.values())
+      .sort((a, b) => (Date.parse(b.updatedAt) || 0) - (Date.parse(a.updatedAt) || 0));
+    return typeof limit === 'number' ? sorted.slice(0, limit) : sorted;
   }
 
   async getRevision(conversationRef: string): Promise<ConversationRevision> {
@@ -361,7 +361,7 @@ export class ElectronSidecarConversationStore implements ConversationStore {
 
   private async listMetadataForRecordKind(
     recordKind: string,
-    limit: number,
+    limit: number | null,
   ): Promise<ConversationMetadata[]> {
     const rows = await this.deps.listStoredConversations({
       userId: this.userId,
@@ -389,6 +389,12 @@ export class ElectronSidecarConversationStore implements ConversationStore {
       })
       .filter((metadata): metadata is ConversationMetadata => Boolean(metadata));
   }
+}
+
+function normalizePositiveInteger(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0
+    ? Math.floor(value)
+    : null;
 }
 
 export function buildElectronSidecarConversationMetadata(
