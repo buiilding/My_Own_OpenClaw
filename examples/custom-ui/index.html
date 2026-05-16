@@ -104,6 +104,8 @@
       <form id="composer">
         <input id="prompt" autocomplete="off" value="Explain what this custom UI is using.">
         <button id="send" type="submit">Send</button>
+        <button id="retry" type="button">Retry</button>
+        <button id="stop" type="button">Stop</button>
       </form>
     </main>
 
@@ -117,6 +119,8 @@
       const prompt = document.querySelector('#prompt');
       const model = document.querySelector('#model');
       const send = document.querySelector('#send');
+      const retry = document.querySelector('#retry');
+      const stop = document.querySelector('#stop');
       const composer = document.querySelector('#composer');
       const store = new InMemoryConversationStore();
       const client = new WindieClient({
@@ -199,6 +203,21 @@
         } finally {
           send.disabled = false;
         }
+      });
+
+      retry.addEventListener('click', async () => {
+        retry.disabled = true;
+        try {
+          await conversation.retryTurn({
+            model: selectedModel()
+          });
+        } finally {
+          retry.disabled = false;
+        }
+      });
+
+      stop.addEventListener('click', async () => {
+        await conversation.stop();
       });
     </script>
   </body>
