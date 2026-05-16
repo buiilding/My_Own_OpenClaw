@@ -7,13 +7,13 @@ import {
 } from '../../../infrastructure/services/screenshotMessageState';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { buildDeferredQueryModelConfig } from '../../../app/providers/appConfigBackendSync';
+import { DEFAULT_USER_ID } from '../../dashboard/utils/episodicMemoryUtils';
 import {
   getActiveConversationRef,
   getTranscriptSessionInfo,
   updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
 import {
-  buildRehydrateSnapshotFromTranscriptProjectionEntries,
   ElectronSidecarConversationStore,
 } from '../../../infrastructure/transcript/ElectronSidecarConversationStore';
 import {
@@ -53,14 +53,6 @@ function buildTranscriptProjectionEntries(messages) {
   }));
 }
 
-async function replayTranscriptProjection(entries, userId, conversationRef) {
-  if (!userId) {
-    return;
-  }
-  const store = new ElectronSidecarConversationStore({ userId });
-  await store.rewriteTranscriptProjection({ conversationRef, entries });
-}
-
 async function runReplayQueryFlow({
   conversationRef,
   userId,
@@ -73,10 +65,11 @@ async function runReplayQueryFlow({
   deferredQueryModelConfig,
   workspacePath,
 }) {
-  await replayTranscriptProjection(transcriptEntries, userId, conversationRef);
-  const rehydrateSnapshot = buildRehydrateSnapshotFromTranscriptProjectionEntries({
+  const store = new ElectronSidecarConversationStore({ userId: userId || DEFAULT_USER_ID });
+  const rehydrateSnapshot = await store.rewriteTranscriptProjection({
     conversationRef,
-    entries: rehydrateEntries,
+    entries: transcriptEntries,
+    rehydrateEntries,
   });
   await rehydrateConversationInferenceSession({
     conversationRef,

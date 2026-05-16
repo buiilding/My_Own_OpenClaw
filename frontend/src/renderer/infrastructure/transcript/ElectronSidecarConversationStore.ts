@@ -338,10 +338,12 @@ export class ElectronSidecarConversationStore implements ConversationStore {
   async rewriteTranscriptProjection({
     conversationRef,
     entries,
+    rehydrateEntries,
   }: {
     conversationRef: string;
     entries: TranscriptProjectionRewriteEntry[];
-  }): Promise<void> {
+    rehydrateEntries?: TranscriptProjectionRewriteEntry[];
+  }): Promise<RehydrateSnapshot> {
     const workspaceBinding = this.deps.getConversationWorkspaceBinding(conversationRef);
     await deleteConversationStoredState({
       userId: this.userId,
@@ -368,6 +370,11 @@ export class ElectronSidecarConversationStore implements ConversationStore {
         throw new Error(result?.error || 'Failed to store rewritten transcript entry');
       }
     }
+
+    return buildRehydrateSnapshotFromTranscriptProjectionEntries({
+      conversationRef,
+      entries: rehydrateEntries ?? entries,
+    });
   }
 
   async replaceCompactedReplay(snapshot: CompactedReplaySnapshot): Promise<void> {

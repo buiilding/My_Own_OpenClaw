@@ -380,7 +380,7 @@ describe('ElectronSidecarConversationStore', () => {
       },
     );
 
-    await store.rewriteTranscriptProjection({
+    const rehydrateSnapshot = await store.rewriteTranscriptProjection({
       conversationRef: 'conv-edit',
       entries: [
         {
@@ -396,6 +396,13 @@ describe('ElectronSidecarConversationStore', () => {
           messageType: 'tool-output',
           toolName: 'shell',
           correlationId: 'tool-call-1',
+        },
+      ],
+      rehydrateEntries: [
+        {
+          content: 'previous context',
+          role: 'user',
+          messageType: 'user',
         },
       ],
     });
@@ -427,6 +434,12 @@ describe('ElectronSidecarConversationStore', () => {
       toolName: 'shell',
       correlationId: 'tool-call-1',
     }));
+    expect(rehydrateSnapshot.messages).toEqual([
+      expect.objectContaining({
+        role: 'user',
+        content: 'previous context',
+      }),
+    ]);
   });
 
   test('lists merged metadata while preferring conversation-event rows over transcript rows', async () => {

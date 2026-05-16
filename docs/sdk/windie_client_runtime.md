@@ -205,10 +205,9 @@ Electron uses a sidecar-backed store adapter during the desktop migration:
   pass explicit `listMetadata({ limit, cursor })` options when they want bounded
   pages. `cursor` is the last `conversationRef` from the previous page.
 - desktop edit/resend and try-again visible transcript rewrites are routed
-  through the Electron conversation store adapter. During migration, the
-  renderer still computes the replacement projection, but the adapter owns
-  local transcript row deletion, replay-state clearing, workspace metadata, and
-  rewritten row persistence.
+  through the Electron conversation store adapter. The adapter owns local
+  transcript row deletion, replay-state clearing, workspace metadata, rewritten
+  row persistence, and the rehydrate projection used before the resend turn.
 - desktop `TranscriptWriter` visible transcript appends also route through the
   Electron conversation store adapter, so queued user/assistant/tool writes no
   longer own direct row IPC or replay append mutation.
