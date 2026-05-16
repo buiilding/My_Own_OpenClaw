@@ -334,6 +334,41 @@ describe('Windie SDK conversation runtime core', () => {
     ]);
   });
 
+  test('in-memory store paginates metadata after the cursor conversation', async () => {
+    const store = new InMemoryConversationStore();
+    await store.appendEvents([
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-oldest',
+        revisionId: 'rev-1',
+        timestamp: '2026-05-15T10:00:00.000Z',
+        payload: { text: 'oldest' },
+      }),
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-middle',
+        revisionId: 'rev-1',
+        timestamp: '2026-05-15T11:00:00.000Z',
+        payload: { text: 'middle' },
+      }),
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-newest',
+        revisionId: 'rev-1',
+        timestamp: '2026-05-15T12:00:00.000Z',
+        payload: { text: 'newest' },
+      }),
+    ]);
+
+    expect((await store.listMetadata({ limit: 1 })).map(item => item.conversationRef)).toEqual([
+      'conv-newest',
+    ]);
+    expect((await store.listMetadata({ cursor: 'conv-newest', limit: 2 })).map(item => item.conversationRef)).toEqual([
+      'conv-middle',
+      'conv-oldest',
+    ]);
+  });
+
   test('backend compaction-completed with skipped_reason normalizes to compaction_skipped', () => {
     const normalized = normalizeBackendEventToConversationEvent({
       type: 'context-compaction-completed',

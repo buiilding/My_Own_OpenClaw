@@ -134,6 +134,32 @@ describe('FileConversationStore', () => {
     });
   });
 
+  test('paginates metadata after the cursor conversation', async () => {
+    const store = new FileConversationStore({ directory: tempDir });
+    await store.appendEvents([
+      event('user_message', { text: 'oldest' }, {
+        conversationRef: 'conv-oldest',
+        timestamp: '2026-05-15T10:00:00.000Z',
+      }),
+      event('user_message', { text: 'middle' }, {
+        conversationRef: 'conv-middle',
+        timestamp: '2026-05-15T11:00:00.000Z',
+      }),
+      event('user_message', { text: 'newest' }, {
+        conversationRef: 'conv-newest',
+        timestamp: '2026-05-15T12:00:00.000Z',
+      }),
+    ]);
+
+    expect((await store.listMetadata({ limit: 1 })).map(item => item.conversationRef)).toEqual([
+      'conv-newest',
+    ]);
+    expect((await store.listMetadata({ cursor: 'conv-newest', limit: 2 })).map(item => item.conversationRef)).toEqual([
+      'conv-middle',
+      'conv-oldest',
+    ]);
+  });
+
   test('rewrites conversations without leaving removed events in the active revision', async () => {
     const store = new FileConversationStore({ directory: tempDir });
     const first = event('user_message', { text: 'original' }, {

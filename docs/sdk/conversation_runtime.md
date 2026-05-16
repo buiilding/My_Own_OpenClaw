@@ -123,8 +123,10 @@ projected snapshots.
 
 Startup surfaces should load metadata before full logs. Use
 `agent.listConversations({ limit?, cursor? })` for a conversation list, then
-`agent.loadConversation(conversationRef)` when a row is opened. The string
-shorthand returns the same projected snapshot as the object form; use
+`agent.loadConversation(conversationRef)` when a row is opened. The `cursor`
+value is the last `conversationRef` from the previous page; stores return
+metadata after that row in the same newest-first order. The string shorthand
+returns the same projected snapshot as the object form; use
 `agent.loadConversation({ conversationRef, store, revisionId })` only when a
 host needs a non-default store adapter or revision seed.
 

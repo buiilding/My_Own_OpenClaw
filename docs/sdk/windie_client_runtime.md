@@ -202,7 +202,8 @@ Electron uses a sidecar-backed store adapter during the desktop migration:
   removes legacy transcript rows, compacted replay rows, and canonical
   `conversation_event` rows together
 - startup metadata loading does not apply a hidden local chat limit; SDK callers
-  pass an explicit `listMetadata({ limit })` option when they want a bounded page
+  pass explicit `listMetadata({ limit, cursor })` options when they want bounded
+  pages. `cursor` is the last `conversationRef` from the previous page.
 - desktop edit/resend and try-again visible transcript rewrites are routed
   through the Electron conversation store adapter. During migration, the
   renderer still computes the replacement projection, but the adapter owns

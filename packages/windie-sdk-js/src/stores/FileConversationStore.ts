@@ -114,6 +114,17 @@ function buildRevision(conversationRef: string, events: ConversationEvent[]): Co
   };
 }
 
+function applyMetadataPagination<T extends { conversationRef: string }>(
+  metadata: T[],
+  options: ListConversationOptions,
+): T[] {
+  const cursorIndex = typeof options.cursor === 'string'
+    ? metadata.findIndex(entry => entry.conversationRef === options.cursor)
+    : -1;
+  const afterCursor = cursorIndex >= 0 ? metadata.slice(cursorIndex + 1) : metadata;
+  return typeof options.limit === 'number' ? afterCursor.slice(0, options.limit) : afterCursor;
+}
+
 function normalizeStoredFile(conversationRef: string, raw: unknown): StoredConversationFile {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
     return {
@@ -255,7 +266,7 @@ export class FileConversationStore implements ConversationStore {
       });
     }
     const sorted = metadata.sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
-    return typeof options.limit === 'number' ? sorted.slice(0, options.limit) : sorted;
+    return applyMetadataPagination(sorted, options);
   }
 
   async getRevision(conversationRef: string): Promise<ConversationRevision> {

@@ -46,6 +46,17 @@ function eventText(event: ConversationEvent | undefined): string | null {
   return null;
 }
 
+function applyMetadataPagination<T extends { conversationRef: string }>(
+  metadata: T[],
+  options: ListConversationOptions,
+): T[] {
+  const cursorIndex = typeof options.cursor === 'string'
+    ? metadata.findIndex(entry => entry.conversationRef === options.cursor)
+    : -1;
+  const afterCursor = cursorIndex >= 0 ? metadata.slice(cursorIndex + 1) : metadata;
+  return typeof options.limit === 'number' ? afterCursor.slice(0, options.limit) : afterCursor;
+}
+
 export class InMemoryConversationStore implements ConversationStore {
   private readonly eventsByConversation = new Map<string, ConversationEvent[]>();
   private readonly eventIdsByConversation = new Map<string, Set<string>>();
@@ -137,7 +148,7 @@ export class InMemoryConversationStore implements ConversationStore {
         eventCount: events.length,
       };
     }).sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
-    return typeof options.limit === 'number' ? metadata.slice(0, options.limit) : metadata;
+    return applyMetadataPagination(metadata, options);
   }
 
   async getRevision(conversationRef: string): Promise<ConversationRevision> {

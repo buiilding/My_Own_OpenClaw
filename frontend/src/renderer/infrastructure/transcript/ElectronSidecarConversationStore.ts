@@ -230,6 +230,17 @@ function updatedAtFromMetadata(row: StoredConversationRow): string {
     ?? new Date(0).toISOString();
 }
 
+function applyMetadataPagination<T extends { conversationRef: string }>(
+  metadata: T[],
+  options: ListConversationOptions,
+): T[] {
+  const cursorIndex = typeof options.cursor === 'string'
+    ? metadata.findIndex((entry) => entry.conversationRef === options.cursor)
+    : -1;
+  const afterCursor = cursorIndex >= 0 ? metadata.slice(cursorIndex + 1) : metadata;
+  return typeof options.limit === 'number' ? afterCursor.slice(0, options.limit) : afterCursor;
+}
+
 export class ElectronSidecarConversationStore implements ConversationStore {
   private readonly userId: string;
   private readonly pageSize: number;
@@ -394,9 +405,10 @@ export class ElectronSidecarConversationStore implements ConversationStore {
 
   async listMetadata(options: ListConversationOptions = {}): Promise<ConversationMetadata[]> {
     const limit = normalizePositiveInteger(options.limit);
+    const fetchLimit = options.cursor ? null : limit;
     const [transcriptMetadata, eventMetadata] = await Promise.all([
-      this.listMetadataForRecordKind('transcript', limit),
-      this.listMetadataForRecordKind(SDK_CONVERSATION_EVENT_RECORD_KIND, limit),
+      this.listMetadataForRecordKind('transcript', fetchLimit),
+      this.listMetadataForRecordKind(SDK_CONVERSATION_EVENT_RECORD_KIND, fetchLimit),
     ]);
     const merged = new Map<string, ConversationMetadata>();
     for (const metadata of transcriptMetadata) {
@@ -407,7 +419,10 @@ export class ElectronSidecarConversationStore implements ConversationStore {
     }
     const sorted = Array.from(merged.values())
       .sort((a, b) => (Date.parse(b.updatedAt) || 0) - (Date.parse(a.updatedAt) || 0));
-    return typeof limit === 'number' ? sorted.slice(0, limit) : sorted;
+    return applyMetadataPagination(sorted, {
+      ...options,
+      limit: limit ?? undefined,
+    });
   }
 
   async getRevision(conversationRef: string): Promise<ConversationRevision> {
