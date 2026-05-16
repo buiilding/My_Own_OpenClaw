@@ -39,6 +39,9 @@ Ownership rules:
   public SDK callers.
 - the SDK local-runtime module owns sidecar daemon HTTP calls, daemon discovery,
   auto-start/reuse, and `moduleTool(...)` registration helpers.
+- the SDK agent stream-event module owns the compatibility projection from
+  normalized conversation events to high-level `agent.stream(...)` events,
+  including duplicate tool-output suppression for local/backend acknowledgements.
 - sidecar daemon owns local execution only.
 - backend owns model/provider selection, paid capability gates, OCR/vision/prediction/web-search availability, prompt construction, session policy, and remote/backend tools.
 - Electron owns windows, renderer IPC, overlays, permission prompts, display/screenshot integration, and settings UI.
