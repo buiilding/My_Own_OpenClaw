@@ -42,6 +42,9 @@ Ownership rules:
 - the SDK agent stream-event module owns the compatibility projection from
   normalized conversation events to high-level `agent.stream(...)` events,
   including duplicate tool-output suppression for local/backend acknowledgements.
+- the SDK `WindieAgent` runtime module owns high-level agent helpers such as
+  `ask`, `run`, `stream`, model updates, conversation creation, and conversation
+  listing/loading over a store adapter.
 - sidecar daemon owns local execution only.
 - backend owns model/provider selection, paid capability gates, OCR/vision/prediction/web-search availability, prompt construction, session policy, and remote/backend tools.
 - Electron owns windows, renderer IPC, overlays, permission prompts, display/screenshot integration, and settings UI.
