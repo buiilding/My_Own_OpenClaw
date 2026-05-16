@@ -13,9 +13,6 @@ import {
   updateTranscriptSession,
 } from '../../../infrastructure/transcript/TranscriptWriter';
 import {
-  ElectronSidecarConversationStore,
-} from '../../../infrastructure/transcript/ElectronSidecarConversationStore';
-import {
   getConversationWorkspaceBinding,
   setConversationWorkspaceBinding,
 } from '../../../infrastructure/workspace/conversationWorkspaceBinding';
@@ -65,10 +62,10 @@ async function runReplayQueryFlow({
   deferredQueryModelSelection,
   workspacePath,
 }) {
-  const store = new ElectronSidecarConversationStore({ userId: userId || DEFAULT_USER_ID });
-  const rehydrateSnapshot = await store.rewriteTranscriptProjection({
+  const rehydrateSnapshot = await DesktopConversationRuntimeClient.rewriteTranscriptProjection({
     conversationRef,
-    entries: transcriptEntries,
+    userId: userId || DEFAULT_USER_ID,
+    transcriptEntries,
     rehydrateEntries,
   });
   await rehydrateConversationInferenceSession({

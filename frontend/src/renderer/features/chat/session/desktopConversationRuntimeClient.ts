@@ -7,8 +7,14 @@ import {
   recordToolMessage,
   recordUserMessage,
 } from '../../../infrastructure/transcript/TranscriptWriter';
-import { ElectronSidecarConversationStore } from '../../../infrastructure/transcript/ElectronSidecarConversationStore';
-import type { CompactedReplaySnapshot } from '../../../infrastructure/api/windieSdkClient';
+import {
+  ElectronSidecarConversationStore,
+  type TranscriptProjectionRewriteEntry,
+} from '../../../infrastructure/transcript/ElectronSidecarConversationStore';
+import type {
+  CompactedReplaySnapshot,
+  RehydrateSnapshot,
+} from '../../../infrastructure/api/windieSdkClient';
 
 export type { RehydrateConversationEntry };
 
@@ -34,6 +40,13 @@ type SendConversationRehydrateInput = {
   conversationRef: string;
   messages: RehydrateConversationEntry[];
   workspacePath?: string | null;
+};
+
+type RewriteTranscriptProjectionInput = {
+  conversationRef: string;
+  userId: string;
+  transcriptEntries: TranscriptProjectionRewriteEntry[];
+  rehydrateEntries: TranscriptProjectionRewriteEntry[];
 };
 
 /**
@@ -68,6 +81,20 @@ export const DesktopConversationRuntimeClient = {
   ): Promise<void> {
     const store = new ElectronSidecarConversationStore({ userId });
     await store.replaceCompactedReplay(snapshot);
+  },
+
+  async rewriteTranscriptProjection({
+    conversationRef,
+    userId,
+    transcriptEntries,
+    rehydrateEntries,
+  }: RewriteTranscriptProjectionInput): Promise<RehydrateSnapshot> {
+    const store = new ElectronSidecarConversationStore({ userId });
+    return store.rewriteTranscriptProjection({
+      conversationRef,
+      entries: transcriptEntries,
+      rehydrateEntries,
+    });
   },
 
   sendQuery(input: SendConversationQueryInput): Promise<void> {

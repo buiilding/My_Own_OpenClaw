@@ -27,6 +27,7 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sdk: add a main-process guardrail so IPC backend sends stay behind the SDK command router.
 - frontend/sdk: add a renderer guardrail so direct `to-backend` IPC sends stay inside the desktop API adapter.
 - frontend/sdk: move chat stream compaction replay persistence behind the desktop conversation runtime facade.
+- frontend/sdk: move edit/resend and retry transcript projection rewrites behind the desktop conversation runtime facade.
 - docs: refocus the README around WindieOS as an open-source OS-layer Codex alternative, voice-first desktop companion, shared-screen collaborator, and hackable agent runtime.
 - backend/openai: synthesize Responses stream payloads from output item events and function-call argument deltas when OpenAI omits the terminal response envelope.
 - frontend: hide chat composer scrollbars across dashboard and minimal pill multiline drafts.

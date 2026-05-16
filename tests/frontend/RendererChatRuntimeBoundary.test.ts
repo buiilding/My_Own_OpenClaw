@@ -79,4 +79,14 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('ElectronSidecarConversationStore');
     expect(source).toContain('DesktopConversationRuntimeClient.replaceCompactedReplay');
   });
+
+  test('conversation replay rewrites use the desktop runtime facade', async () => {
+    const source = await fs.readFile(
+      path.join(chatRoot, 'hooks/useConversationReplayActions.js'),
+      'utf8',
+    );
+
+    expect(source).not.toContain('ElectronSidecarConversationStore');
+    expect(source).toContain('DesktopConversationRuntimeClient.rewriteTranscriptProjection');
+  });
 });
