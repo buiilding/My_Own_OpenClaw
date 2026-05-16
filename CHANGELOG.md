@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sdk: cover typed main-runtime tool-result and tool-bundle-result backend sends.
 - sdk: add contract coverage for typed compaction and wakeword backend transport messages.
 - frontend/sdk: split desktop transcript projection persistence into its own app runtime facade.
 - frontend/sdk: move desktop query, stop, rehydrate, and compaction IPC calls behind an app backend-command runtime facade.
