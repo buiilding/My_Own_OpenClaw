@@ -285,6 +285,18 @@ def test_context_compaction_completed_formatter_output_matches_schema() -> None:
                     "content": "latest user turn",
                 },
             ],
+            "replacement_history_entries": [
+                {
+                    "role": "assistant",
+                    "message_type": "context_compaction",
+                    "content": "[[CONTEXT COMPACTION SUMMARY]]\nfull summary text",
+                },
+                {
+                    "role": "user",
+                    "message_type": "user_query",
+                    "content": "latest user turn",
+                },
+            ],
             "skipped_reason": None,
         },
         "msg_5",
@@ -301,6 +313,44 @@ def test_context_compaction_completed_formatter_output_matches_schema() -> None:
     assert parsed.payload.removed_messages == 10
     assert parsed.payload.summary_text == "full summary text"
     assert parsed.payload.replacement_history_preview[1]["message_type"] == "user_query"
+    assert parsed.payload.replacement_history_entries is not None
+    assert (
+        parsed.payload.replacement_history_entries[0]["message_type"]
+        == "context_compaction"
+    )
+    assert parsed.payload.skipped_reason is None
+
+
+def test_context_compaction_completed_skipped_shape_matches_schema() -> None:
+    formatter = ContextCompactionCompletedEventFormatter()
+    payload = formatter.format(
+        {
+            "reason": "auto-mid",
+            "strategy": "inline",
+            "before_tokens": 1800,
+            "after_tokens": 1800,
+            "removed_messages": 0,
+            "summary_preview": None,
+            "summary_text": None,
+            "replacement_history_preview": None,
+            "replacement_history_entries": None,
+            "skipped_reason": "below-threshold",
+        },
+        "msg_5_skipped",
+    )
+
+    assert payload is not None
+    parsed = ContextCompactionCompletedMessage.model_validate(
+        {
+            **payload,
+            "user_id": "user_1",
+        }
+    )
+    assert parsed.payload.before_tokens == 1800
+    assert parsed.payload.after_tokens == 1800
+    assert parsed.payload.removed_messages == 0
+    assert parsed.payload.replacement_history_entries is None
+    assert parsed.payload.skipped_reason == "below-threshold"
 
 
 def test_context_compaction_failed_formatter_output_matches_schema() -> None:

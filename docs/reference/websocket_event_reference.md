@@ -49,6 +49,15 @@ Events that affect chat state should preserve:
 
 Renderer active-conversation filtering and stale-turn rejection depend on these fields.
 
+## Compaction Completed Shape
+
+`context-compaction-completed` covers both applied and skipped outcomes:
+
+- Applied compaction has `skipped_reason: null` and may carry replay-safe `replacement_history_entries` plus a dev/debug `replacement_history_preview`.
+- Skipped compaction has a non-empty `skipped_reason`, `removed_messages: 0`, unchanged token counts, and no replacement history entries.
+
+SDK runtime adapters treat non-empty `replacement_history_entries` as the signal for an applied normalized compaction event. Skipped outcomes remain lifecycle/debug state and should not render as assistant transcript content.
+
 ## Debug Map
 
 | Symptom | Check |
