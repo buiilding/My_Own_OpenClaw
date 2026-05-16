@@ -57,6 +57,15 @@ function sendSdkRuntimeCommand(runtime, {
   if (type === 'wakeword-detected') {
     return runtime.sendWakewordDetected(payload, messageId);
   }
+  if (type === 'stop-query' && typeof runtime.sendStopQuery === 'function') {
+    return runtime.sendStopQuery(payload, messageId);
+  }
+  if (type === 'update-settings' && typeof runtime.sendUpdateSettings === 'function') {
+    return runtime.sendUpdateSettings(payload, messageId);
+  }
+  if (type === 'list-models' && typeof runtime.sendListModels === 'function') {
+    return runtime.sendListModels(payload, messageId);
+  }
   return runtime.sendBackendMessage(type, payload, messageId);
 }
 

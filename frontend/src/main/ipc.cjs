@@ -432,7 +432,10 @@ function flushPendingListModelsRequest() {
   if (!hasPendingListModelsRequest) {
     return;
   }
-  const msgId = getWindieSdkRuntime().sendListModels({});
+  const msgId = sendSdkRuntimeCommand(getWindieSdkRuntime(), {
+    type: 'list-models',
+    payload: {},
+  });
   if (!msgId) {
     return;
   }
@@ -453,7 +456,10 @@ async function sendSettingsUpdate(config, source = 'renderer') {
       return false;
     }
   }
-  const msgId = getWindieSdkRuntime().sendUpdateSettings(backendConfig);
+  const msgId = sendSdkRuntimeCommand(getWindieSdkRuntime(), {
+    type: 'update-settings',
+    payload: backendConfig,
+  });
   if (!msgId) {
     return Promise.resolve(false);
   }
@@ -984,9 +990,12 @@ function initializeIpc(win, options = {}) {
 }
 
 function triggerStopQueryFromMain() {
-  const messageId = getWindieSdkRuntime().sendStopQuery(currentConversationRef
-    ? { conversation_ref: currentConversationRef }
-    : {});
+  const messageId = sendSdkRuntimeCommand(getWindieSdkRuntime(), {
+    type: 'stop-query',
+    payload: currentConversationRef
+      ? { conversation_ref: currentConversationRef }
+      : {},
+  });
   if (!messageId) {
     return false;
   }
