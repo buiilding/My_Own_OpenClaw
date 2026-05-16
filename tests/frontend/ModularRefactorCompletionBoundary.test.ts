@@ -49,17 +49,25 @@ describe('modular sdk refactor completion boundary', () => {
     const customUi = await read('examples/custom-ui/index.html');
     const localTool = await read('examples/local-tool-extension/run.mjs');
     const repoAgent = await read('examples/repo-agent-extension/run.mjs');
+    const localSdkLoader = await read('examples/_shared/local_sdk_loader.mjs');
 
     expect(cli).toContain('conversation.stream');
     expect(cli).toContain('conversation.retryTurn');
     expect(cli).toContain('conversation.stop');
+    expect(cli).not.toContain('frontend/node_modules');
     expect(customUi).toContain('conversation.setModel');
     expect(customUi).toContain('conversation.retryTurn');
     expect(customUi).toContain('conversation.stop');
+    expect(customUi).not.toContain('frontend/node_modules');
     expect(localTool).toContain('moduleTool');
     expect(localTool).toContain('agent.stop');
+    expect(localTool).not.toContain('frontend/node_modules');
     expect(repoAgent).toContain('plugins: [{ path: exampleDir }]');
     expect(repoAgent).toContain('agent.stop');
+    expect(repoAgent).not.toContain('frontend/node_modules');
+    expect(localSdkLoader).toContain('packages/windie-sdk-js');
+    expect(localSdkLoader).toContain('node_modules/.bin/tsc');
+    expect(localSdkLoader).not.toContain('frontend/node_modules');
   });
 
   test('current frontend inventory docs do not route work to deleted renderer runtimes', async () => {

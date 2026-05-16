@@ -42,6 +42,11 @@ npm install
 npm run build
 ```
 
+Repo examples import the local SDK build through
+`examples/_shared/local_sdk_loader.mjs`. That loader resolves `ws` and `tsc`
+from `packages/windie-sdk-js/node_modules`, so runnable examples validate the
+standalone SDK package instead of depending on Electron's `frontend/node_modules`.
+
 ## Examples
 
 - `examples/cli-agent`: minimal Node CLI using `WindieClient`,
@@ -72,3 +77,8 @@ local tool result return. It delegates local execution to the sidecar daemon. Th
 backend remains the owner of model lists, provider policy, OCR/vision
 availability, prompt construction, compaction decisions, and paid capability
 gates.
+
+Python callers should use `WindieSdkClient.wake_up(...)` followed by
+`agent.run(...)` or `agent.stream(...)` for the same high-level query shape. The
+Python package is still transport-oriented, but it should not force common
+callers down to raw websocket `query(...)` plus manual receive loops.

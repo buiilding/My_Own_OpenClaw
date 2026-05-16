@@ -17,5 +17,13 @@ agent = await client.wake_up(
     plugins=[{"path": "./plugins/repo-agent"}],
 )
 
-await agent.query(text="Inspect the repo and summarize what changed.")
+final_response = await agent.run("Inspect the repo and summarize what changed.")
+
+async for event in agent.stream("Run the checks and report progress."):
+    if event["type"] == "text":
+        print(event["text"], end="")
+    elif event["type"] == "tool_call":
+        print(f"using {event['tool_name']}")
+    elif event["type"] == "complete":
+        print(event["final_response"])
 ```

@@ -118,6 +118,7 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sdk: move edit/resend and try-again rehydrate projection generation behind the Electron conversation store adapter.
 - frontend/sdk: remove the unused renderer bundle execution model and old tool-runner timing logs after SDK-owned tool routing.
 - docs: update active debugging and channel routing docs so tool execution routes through SDK main/runtime and sidecar instead of renderer tool-runner paths.
+- sdk: make runnable examples validate the standalone package dependency tree and add high-level Python `agent.run`/`agent.stream` helpers.
 - frontend/sdk: route deferred chat-send, replay, and manual-compaction model changes through an explicit SDK-style `ApiClient.setModel(...)` call.
 - docs: document `ApiClient.setModel(...)` as the desktop path for deferred model/provider sync.
 - frontend/sdk: add a renderer chat runtime command facade so chat features stop importing low-level backend IPC directly.

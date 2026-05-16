@@ -414,6 +414,86 @@ async def test_python_agent_session_routes_tool_call_to_sidecar():
 
 
 @pytest.mark.asyncio
+async def test_python_agent_stream_and_run_match_high_level_sdk_shape():
+    websocket = FakeWebSocket(
+        messages=[
+            {
+                "type": "streaming-response",
+                "payload": {"text": "partial"},
+            },
+            {
+                "type": "tool-call",
+                "payload": {
+                    "request_id": "req-stream",
+                    "tool_name": "save_note",
+                    "parameters": {"text": "streamed"},
+                },
+            },
+            {
+                "type": "tool-output",
+                "payload": {
+                    "request_id": "req-stream",
+                    "tool_name": "save_note",
+                    "output": "saved",
+                },
+            },
+            {
+                "type": "streaming-complete",
+                "payload": {"final_response": "done"},
+            },
+            {
+                "type": "streaming-complete",
+                "payload": {"final_response": "run done"},
+            },
+        ]
+    )
+    sidecar = FakeSidecarRuntime()
+    client = WindieSdkClient(
+        backend_url="https://api.windieos.com",
+        default_user_id="dev-user",
+        sidecar=sidecar,
+    )
+    client._session = DummyWsSession(websocket)
+    agent = await client.wake_up(
+        agent_id="python-agent",
+        tools=[
+            {
+                "name": "save_note",
+                "module": "my_project.tools:save_note",
+                "schema": {"type": "object", "properties": {}},
+            }
+        ],
+    )
+
+    events = [
+        event
+        async for event in agent.stream(
+            "save this",
+            conversation_ref="conv-python-stream",
+        )
+    ]
+    final_response = await agent.run("finish this")
+
+    assert [event["type"] for event in events] == [
+        "start",
+        "text",
+        "tool_call",
+        "tool_output",
+        "complete",
+    ]
+    assert events[0]["conversation_ref"] == "conv-python-stream"
+    assert events[1]["text"] == "partial"
+    assert events[2]["tool_name"] == "save_note"
+    assert events[-1]["final_response"] == "done"
+    assert final_response == "run done"
+    assert websocket.sent[1]["type"] == "query"
+    assert websocket.sent[1]["payload"]["conversation_ref"] == "conv-python-stream"
+    assert websocket.sent[-1]["type"] == "query"
+    assert websocket.sent[-1]["payload"]["conversation_ref"] == "conv-python-agent"
+    assert sidecar.executions[0][0] == "save_note"
+
+
+@pytest.mark.asyncio
 async def test_python_agent_session_routes_tool_bundle_to_sidecar():
     sidecar = FakeSidecarRuntime()
     websocket = FakeWebSocket(

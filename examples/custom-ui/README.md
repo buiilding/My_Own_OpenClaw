@@ -23,6 +23,13 @@ Smoke check without opening a browser:
 node examples/custom-ui/run.mjs --smoke
 ```
 
+Install example dependencies through the SDK package itself:
+
+```bash
+cd packages/windie-sdk-js
+npm install
+```
+
 This example proves the intended public shape:
 
 - wake a `WindieClient`

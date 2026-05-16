@@ -11,7 +11,7 @@ import platform
 import tempfile
 import time
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, AsyncIterator, Optional
 from urllib.parse import quote, urlencode, urlparse, urlunparse
 from uuid import uuid4
 
@@ -337,6 +337,16 @@ class WindieSdkAgentSession:
         self.operating_system = operating_system
         self.agent_definition = agent_definition
         self.local_runtime = local_runtime
+        agent_id = (
+            agent_definition.get("id")
+            if isinstance(agent_definition, dict)
+            else None
+        )
+        self.default_conversation_ref = (
+            f"conv-{agent_id}"
+            if isinstance(agent_id, str) and agent_id
+            else "conv-windie-python-agent"
+        )
 
     async def initialize(self) -> None:
         payload = {
@@ -403,6 +413,127 @@ class WindieSdkAgentSession:
             }
         )
         return message_id
+
+    async def run(
+        self,
+        text: str,
+        *,
+        conversation_ref: Optional[str] = None,
+        content: Optional[str] = None,
+        screenshot: Optional[str] = None,
+        screenshot_ref: Optional[str] = None,
+        screenshot_refs: Optional[list[str]] = None,
+        attachment_context: Optional[str] = None,
+        attachment_filenames: Optional[list[str]] = None,
+        system_state_internal: Optional[dict[str, Any]] = None,
+        workspace_path: Optional[str] = None,
+        agent_definition: Optional[dict[str, Any]] = None,
+    ) -> str:
+        final_response = ""
+        async for event in self.stream(
+            text,
+            conversation_ref=conversation_ref,
+            content=content,
+            screenshot=screenshot,
+            screenshot_ref=screenshot_ref,
+            screenshot_refs=screenshot_refs,
+            attachment_context=attachment_context,
+            attachment_filenames=attachment_filenames,
+            system_state_internal=system_state_internal,
+            workspace_path=workspace_path,
+            agent_definition=agent_definition,
+        ):
+            if event["type"] == "complete":
+                final_response = str(event.get("final_response") or "")
+            elif event["type"] == "error":
+                raise Exception(str(event.get("message") or "Windie SDK stream failed"))
+        return final_response
+
+    async def stream(
+        self,
+        text: str,
+        *,
+        conversation_ref: Optional[str] = None,
+        content: Optional[str] = None,
+        screenshot: Optional[str] = None,
+        screenshot_ref: Optional[str] = None,
+        screenshot_refs: Optional[list[str]] = None,
+        attachment_context: Optional[str] = None,
+        attachment_filenames: Optional[list[str]] = None,
+        system_state_internal: Optional[dict[str, Any]] = None,
+        workspace_path: Optional[str] = None,
+        agent_definition: Optional[dict[str, Any]] = None,
+    ) -> AsyncIterator[dict[str, Any]]:
+        effective_conversation_ref = (
+            conversation_ref
+            if isinstance(conversation_ref, str) and conversation_ref.strip()
+            else self.default_conversation_ref
+        )
+        query_message_id = await self.query(
+            text=text,
+            conversation_ref=effective_conversation_ref,
+            content=content,
+            screenshot=screenshot,
+            screenshot_ref=screenshot_ref,
+            screenshot_refs=screenshot_refs,
+            attachment_context=attachment_context,
+            attachment_filenames=attachment_filenames,
+            system_state_internal=system_state_internal,
+            workspace_path=workspace_path,
+            agent_definition=agent_definition,
+        )
+        yield {
+            "type": "start",
+            "query_message_id": query_message_id,
+            "conversation_ref": effective_conversation_ref,
+        }
+        while True:
+            raw_event = await self.receive_json()
+            event_type = raw_event.get("type")
+            payload = (
+                raw_event.get("payload")
+                if isinstance(raw_event.get("payload"), dict)
+                else {}
+            )
+            if event_type == "streaming-response":
+                yield {
+                    "type": "text",
+                    "text": str(payload.get("text") or ""),
+                    "event": raw_event,
+                }
+                continue
+            if event_type == "tool-call":
+                yield {
+                    "type": "tool_call",
+                    "tool_name": payload.get("tool_name") or payload.get("toolName"),
+                    "event": raw_event,
+                }
+                continue
+            if event_type == "tool-output":
+                yield {
+                    "type": "tool_output",
+                    "tool_name": payload.get("tool_name") or payload.get("toolName"),
+                    "event": raw_event,
+                }
+                continue
+            if event_type == "streaming-complete":
+                yield {
+                    "type": "complete",
+                    "final_response": payload.get("final_response"),
+                    "event": raw_event,
+                }
+                return
+            if event_type == "error":
+                yield {
+                    "type": "error",
+                    "message": payload.get("message") or payload.get("content"),
+                    "event": raw_event,
+                }
+                return
+            yield {
+                "type": "event",
+                "event": raw_event,
+            }
 
     async def stop_query(self, conversation_ref: Optional[str] = None) -> str:
         message_id = f"msg_{uuid4().hex}"

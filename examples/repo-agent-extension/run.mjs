@@ -2,44 +2,18 @@
 import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
-import { createRequire } from 'node:module';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import { promises as fs } from 'node:fs';
-import { spawn, spawnSync } from 'node:child_process';
-
-const require = createRequire(import.meta.url);
-const wsModule = require('../../frontend/node_modules/ws');
-const WebSocketServer = wsModule.WebSocketServer || wsModule.Server;
-const WebSocketImpl = wsModule.WebSocket || wsModule;
+import { spawn } from 'node:child_process';
+import {
+  loadLocalWindieSdk,
+  loadSdkWebSocket,
+} from '../_shared/local_sdk_loader.mjs';
 
 const exampleDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(exampleDir, '../..');
-
-function ensureSdkBuild() {
-  const sdkDir = path.join(repoRoot, 'packages/windie-sdk-js');
-  const tsc = path.join(repoRoot, 'frontend/node_modules/.bin/tsc');
-  try {
-    const result = spawnSync(tsc, ['-p', 'tsconfig.build.json'], {
-      cwd: sdkDir,
-      stdio: 'inherit',
-    });
-    if (result.status !== 0) {
-      throw new Error(`TypeScript SDK build exited with ${result.status}`);
-    }
-  } catch (error) {
-    throw new Error(
-      [
-        'Could not build the local TypeScript SDK package.',
-        'Run `cd frontend && npm install`, then retry this example.',
-        error instanceof Error ? error.message : String(error),
-      ].join('\n'),
-    );
-  }
-}
-
-ensureSdkBuild();
-const sdkPath = path.join(repoRoot, 'packages/windie-sdk-js/dist/index.js');
-const { WindieClient } = await import(pathToFileURL(sdkPath).href);
+const { WebSocketServer, WebSocketImpl } = loadSdkWebSocket(repoRoot);
+const { WindieClient } = await loadLocalWindieSdk(repoRoot);
 
 function send(socket, type, payload = {}, extra = {}) {
   socket.send(JSON.stringify({ type, payload, ...extra }));

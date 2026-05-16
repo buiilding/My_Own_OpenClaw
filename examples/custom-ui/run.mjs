@@ -1,32 +1,17 @@
 #!/usr/bin/env node
 import http from 'node:http';
 import path from 'node:path';
-import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { promises as fs } from 'node:fs';
-import { spawnSync } from 'node:child_process';
-
-const require = createRequire(import.meta.url);
-const wsModule = require('../../frontend/node_modules/ws');
-const WebSocketServer = wsModule.WebSocketServer || wsModule.Server;
+import {
+  buildLocalWindieSdk,
+  loadSdkWebSocket,
+} from '../_shared/local_sdk_loader.mjs';
 
 const exampleDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(exampleDir, '../..');
 const sdkDist = path.join(repoRoot, 'packages/windie-sdk-js/dist');
-
-function buildLocalSdk() {
-  const result = spawnSync(
-    path.join(repoRoot, 'frontend/node_modules/.bin/tsc'),
-    ['-p', 'tsconfig.build.json'],
-    {
-      cwd: path.join(repoRoot, 'packages/windie-sdk-js'),
-      stdio: 'inherit',
-    },
-  );
-  if (result.status !== 0) {
-    throw new Error('Could not build the local Windie SDK. Run `cd frontend && npm install`, then retry.');
-  }
-}
+const { WebSocketServer } = loadSdkWebSocket(repoRoot);
 
 async function sendFile(res, filePath, contentType) {
   try {
@@ -113,7 +98,7 @@ function createServer() {
   return { server, wss };
 }
 
-buildLocalSdk();
+buildLocalWindieSdk(repoRoot);
 const { server, wss } = createServer();
 const address = await new Promise(resolve => {
   server.listen(0, '127.0.0.1', () => resolve(server.address()));
