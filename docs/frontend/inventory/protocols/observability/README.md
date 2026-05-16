@@ -16,7 +16,6 @@ title: "Frontend Protocol Observability Hub"
 
 - [Frontend Inventory Protocols Hub](../README.md)
 - [Frontend Protocol State Hub](../state/README.md)
-- [Frontend Protocol Compatibility Hub](../compatibility/README.md)
 - [Frontend Protocol Testing Hub](../testing/README.md)
 
 ## Code Scope

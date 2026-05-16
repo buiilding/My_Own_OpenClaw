@@ -16,7 +16,6 @@ title: "Backend Protocol Observability Hub"
 
 - [Backend Inventory Protocols Hub](../README.md)
 - [Backend Protocol State Hub](../state/README.md)
-- [Backend Protocol Compatibility Hub](../compatibility/README.md)
 - [Backend Protocol Testing Hub](../testing/README.md)
 
 ## Code Scope

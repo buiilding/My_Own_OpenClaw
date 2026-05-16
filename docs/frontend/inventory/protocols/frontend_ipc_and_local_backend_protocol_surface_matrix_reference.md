@@ -218,7 +218,6 @@ Use these commands to refresh protocol counts:
 - [Frontend Capability to File Matrix Reference](../frontend_capability_to_file_matrix_reference.md)
 - [Frontend Protocol Lifecycle Hub](lifecycle/README.md)
 - [Frontend Protocol State Hub](state/README.md)
-- [Frontend Protocol Compatibility Hub](compatibility/README.md)
 - [Display Query Handler Display Inventory Payload Contract Reference](../../main/display_query_handler_display_inventory_payload_contract_reference.md)
 - [Agent Sudo Access Handler PKExec and Non-Interactive Disable Contract Reference](../../main/agent_sudo_access_handler_pkexec_and_noninteractive_disable_contract_reference.md)
 - [Frontend Protocol Observability Hub](observability/README.md)
