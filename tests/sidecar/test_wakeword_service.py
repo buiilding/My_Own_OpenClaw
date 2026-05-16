@@ -33,6 +33,11 @@ class _CompatVariadicModel:
         self.kwargs = kwargs
 
 
+class _UnsupportedModel:
+    def __init__(self, sample_rate):
+        self.sample_rate = sample_rate
+
+
 def test_resolve_wakeword_model_prefers_hey_jarvis():
     module = SimpleNamespace(
         models={
@@ -116,6 +121,19 @@ def test_create_model_variadic_signature_uses_cached_auxiliary_models_for_onnx_f
     assert "wakeword_models" not in model.kwargs
     assert model.kwargs["melspec_model_path"] == str(melspec_onnx)
     assert model.kwargs["embedding_model_path"] == str(embedding_onnx)
+
+
+def test_create_model_rejects_unknown_constructor_signature():
+    try:
+        wakeword_service.create_model(
+            _UnsupportedModel,
+            "hey_jarvis",
+            None,
+        )
+    except TypeError as exc:
+        assert "wakeword model class must accept" in str(exc)
+    else:
+        raise AssertionError("expected unsupported wakeword model constructor to fail")
 
 
 def test_ensure_models_available_returns_true_when_path_exists(tmp_path):

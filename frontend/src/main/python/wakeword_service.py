@@ -307,8 +307,10 @@ def create_model(model_cls: Any, model_name: str, model_path: Optional[str]) -> 
     if supports_model_names:
         return _build_model_with_framework_fallback()
 
-    # Last-resort compatibility for unrecognized constructor signatures.
-    return model_cls(), "unknown"
+    raise TypeError(
+        "wakeword model class must accept wakeword_model_paths, wakeword_models, "
+        "or variadic keyword arguments"
+    )
 
 
 def extract_detection(predictions: Any, preferred_model: str) -> Tuple[str, float]:
