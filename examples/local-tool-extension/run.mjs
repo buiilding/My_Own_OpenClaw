@@ -249,6 +249,7 @@ try {
       throw new Error(event.message);
     }
   }
+  await agent.stop('local-tool-extension-example');
 } finally {
   agent?.sleep();
   await client.shutdownLocalRuntime().catch(() => {});
