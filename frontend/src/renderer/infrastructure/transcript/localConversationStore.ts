@@ -4,13 +4,6 @@ const DEFAULT_PAGE_SIZE = 1000;
 const DEFAULT_MAX_PAGES = 250;
 const SDK_CONVERSATION_EVENT_RECORD_KIND = 'conversation_event';
 
-function logLocalConversationStore(stage: string, payload: Record<string, unknown> = {}) {
-  if (typeof console === 'undefined') {
-    return;
-  }
-  console.log('[LocalConversationStore]', stage, payload);
-}
-
 type LocalConversationRecordKind = string;
 
 type ListStoredConversationsOptions = {
@@ -73,32 +66,14 @@ export async function listStoredConversations({
     payload.limit = Math.floor(limit);
   }
 
-  logLocalConversationStore('list-conversations-request', payload);
   const result = await IpcBridge.invoke(INVOKE_CHANNELS.LIST_CONVERSATIONS, payload);
   if (!result || result.success === false) {
-    logLocalConversationStore('list-conversations-error', {
-      userId: normalizedUserId,
-      recordKind,
-      error: result?.error || 'Failed to list stored conversations',
-    });
     throw new Error(result?.error || 'Failed to list stored conversations');
   }
 
-  const conversations = Array.isArray(result?.data?.conversations)
+  return Array.isArray(result?.data?.conversations)
     ? result.data.conversations
     : [];
-  logLocalConversationStore('list-conversations-response', {
-    userId: normalizedUserId,
-    recordKind,
-    count: conversations.length,
-    firstConversationIds: conversations.slice(0, 5).map((conversation) => (
-      typeof conversation?.conversation_id === 'string'
-        ? conversation.conversation_id
-        : conversation?.conversationId
-    )),
-    firstTitles: conversations.slice(0, 5).map((conversation) => conversation?.title),
-  });
-  return conversations;
 }
 
 export async function searchStoredConversations({

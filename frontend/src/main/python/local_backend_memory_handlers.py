@@ -54,6 +54,12 @@ def requires_memory_store(
     @wraps(handler)
     async def wrapper(self: "LocalBackendMemoryHandlersMixin", *args, **kwargs) -> Dict[str, Any]:
         if self.memory_store is None:
+            wait_for_initialization = getattr(
+                self, "_wait_for_memory_runtime_initialization", None
+            )
+            if callable(wait_for_initialization):
+                await wait_for_initialization()
+        if self.memory_store is None:
             return self._memory_store_not_initialized_response()
         return await handler(self, *args, **kwargs)
 

@@ -14,7 +14,7 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sidecar: delete stale sidecar daemon discovery files before respawning and retry chat-list loads during daemon startup recovery.
 - frontend/dashboard: reload the startup chat list when the local backend reports ready so stored chats appear without sending a new message first.
 - frontend/dashboard: refresh recent chats when opening the dashboard from the minimal chat pill.
-- frontend/dashboard: add startup chat-list diagnostics across dashboard identity, local backend readiness, renderer IPC, and Electron-side local RPC responses.
+- frontend/sidecar: wait for memory store initialization before serving memory-backed local RPCs such as startup chat listing.
 - backend/openai: recover empty Responses streams as incomplete empty responses so provider stream gaps use the normal empty-final-response fallback instead of internal server errors.
 - backend/embeddings: map OpenAI embedding quota exhaustion to provider-unavailable responses so sidecar memory skips embedding backfill instead of failing initialization.
 - sdk/frontend: expose a conversation-runtime factory for first-party desktop facades while documenting that Electron may use lower-level SDK modules behind SDK interfaces.

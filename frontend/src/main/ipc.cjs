@@ -732,7 +732,7 @@ function initializeIpc(win, options = {}) {
   ipcMain.handle('list-agent-extensions', async () => loadPublicExtensionRegistry());
 
   ipcMain.handle('get-client-user-id', async () => {
-    const snapshot = {
+    return {
       userId: currentUserId,
       conversationRef: currentConversationRef,
       serverUserId: currentServerUserId,
@@ -742,8 +742,6 @@ function initializeIpc(win, options = {}) {
       backendHttpUrl: BACKEND_HTTP_URL,
       globalAgentStopShortcutStatus: currentGlobalAgentStopShortcutStatus,
     };
-    log(`get-client-user-id snapshot user=${snapshot.userId || 'null'} serverUser=${snapshot.serverUserId || 'null'} session=${snapshot.sessionId || 'null'} conversation=${snapshot.conversationRef || 'null'} connected=${snapshot.isConnected}`);
-    return snapshot;
   });
 
   ipcMain.handle('prime-response-overlay-awaiting', async () => {

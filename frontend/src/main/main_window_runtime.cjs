@@ -198,21 +198,6 @@ function createMainWindow({
   });
 
   setMainWindow(mainWindow);
-  if (process.env.NODE_ENV !== 'production') {
-    mainWindow.webContents.on('console-message', (_event, _level, message) => {
-      if (
-        typeof message === 'string'
-        && (
-          message.startsWith('[DashboardShell]')
-          || message.startsWith('[DashboardConversations]')
-          || message.startsWith('[LocalConversationStore]')
-          || message.startsWith('[LocalBackendStatusStore]')
-        )
-      ) {
-        console.log(`[RendererDebug] ${message}`);
-      }
-    });
-  }
   loadRendererView({
     targetWindow: mainWindow,
     app,

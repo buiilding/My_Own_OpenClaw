@@ -1176,6 +1176,34 @@ async def test_handle_list_conversations_fails_without_store():
 
 
 @pytest.mark.asyncio
+async def test_handle_list_conversations_waits_for_memory_store_initialization():
+    backend = LocalBackend()
+    backend.memory_store = None
+    release_initialization = asyncio.Event()
+
+    async def initialize_memory_store():
+        await release_initialization.wait()
+        backend.memory_store = DummyMemoryStore()
+
+    backend._memory_store_init_task = asyncio.create_task(initialize_memory_store())
+    list_task = asyncio.create_task(
+        backend._handle_list_conversations(
+            user_id="user-1",
+            record_kind="conversation_event",
+        )
+    )
+
+    await asyncio.sleep(0)
+    assert not list_task.done()
+
+    release_initialization.set()
+    result = await list_task
+
+    assert result["success"] is True
+    assert result["data"]["conversations"] == [{"conversation_id": "conv-1"}]
+
+
+@pytest.mark.asyncio
 async def test_handle_list_conversations_allows_unbounded_limit():
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStore()

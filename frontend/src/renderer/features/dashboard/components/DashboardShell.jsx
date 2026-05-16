@@ -71,13 +71,6 @@ function requestDashboardLayoutPass() {
   window.setTimeout(dispatchResize, 0);
 }
 
-function logDashboardShell(stage, payload = {}) {
-  if (typeof console === 'undefined') {
-    return;
-  }
-  console.log('[DashboardShell]', stage, payload);
-}
-
 function DashboardShell({
   config,
   availableModels,
@@ -96,15 +89,6 @@ function DashboardShell({
   const [composerFocusToken, setComposerFocusToken] = useState(0);
   const sessionInfo = useRendererConversationSessionInfo();
   const resolvedUserId = sessionInfo.userId || snapshotUserId || null;
-
-  useEffect(() => {
-    logDashboardShell('identity', {
-      sessionUserId: sessionInfo.userId || null,
-      snapshotUserId,
-      resolvedUserId,
-      conversationRef: sessionInfo.conversationRef || null,
-    });
-  }, [resolvedUserId, sessionInfo.conversationRef, sessionInfo.userId, snapshotUserId]);
 
   const setChatMessages = useChatStore((state) => state.setMessages);
   const clearChatMessages = useChatStore((state) => state.clearMessages);
@@ -264,12 +248,6 @@ function DashboardShell({
       return undefined;
     }
     const removeListener = IpcBridge.on(ON_CHANNELS.MAIN_WINDOW_OPEN_TARGET, (payload) => {
-      logDashboardShell('main-window-open-target', {
-        target: typeof payload?.target === 'string' ? payload.target : '',
-        resolvedUserId,
-        sessionUserId: sessionInfo.userId || null,
-        snapshotUserId,
-      });
       wakeDashboardShell();
       void loadRecentConversations('main-window-open-target');
       const target = typeof payload?.target === 'string' ? payload.target : '';
@@ -299,9 +277,6 @@ function DashboardShell({
     openMemory,
     openModels,
     openSettings,
-    resolvedUserId,
-    sessionInfo.userId,
-    snapshotUserId,
     vmModeEnabled,
     wakeDashboardShell,
   ]);
@@ -309,22 +284,11 @@ function DashboardShell({
   useEffect(() => {
     IpcBridge.invoke(INVOKE_CHANNELS.GET_CLIENT_USER_ID)
       .then((payload) => {
-        logDashboardShell('client-user-id-snapshot', {
-          userId: payload?.userId || null,
-          conversationRef: payload?.conversationRef || null,
-          serverUserId: payload?.serverUserId || null,
-          sessionId: payload?.sessionId || null,
-          isConnected: payload?.isConnected === true,
-        });
         if (typeof payload?.userId === 'string' && payload.userId.trim().length > 0) {
           setSnapshotUserId(payload.userId.trim());
         }
       })
-      .catch((error) => {
-        logDashboardShell('client-user-id-snapshot-error', {
-          error: error?.message || String(error),
-        });
-      });
+      .catch(() => {});
   }, []);
 
   return (

@@ -11,13 +11,6 @@ let removeIpcListener = null;
 let bootstrapPromise = null;
 const storeSubscribers = new Set();
 
-function logLocalBackendStatusStore(stage, payload = {}) {
-  if (typeof console === 'undefined') {
-    return;
-  }
-  console.log('[LocalBackendStatusStore]', stage, payload);
-}
-
 function normalizeLocalBackendStatus(payload = {}) {
   return Object.freeze({
     ready: payload?.ready === true,
@@ -46,7 +39,6 @@ function applySnapshot(nextSnapshot) {
   if (snapshotsMatch(currentSnapshot, nextSnapshot)) {
     return;
   }
-  logLocalBackendStatusStore('snapshot', nextSnapshot);
   currentSnapshot = nextSnapshot;
   notifyStoreSubscribers();
 }
@@ -68,13 +60,9 @@ function ensureBootstrapStatusRead() {
 
   bootstrapPromise = IpcBridge.invoke(INVOKE_CHANNELS.GET_LOCAL_BACKEND_STATUS)
     .then((payload = {}) => {
-      logLocalBackendStatusStore('bootstrap-response', payload);
       applySnapshot(normalizeLocalBackendStatus(payload));
     })
-    .catch((error) => {
-      logLocalBackendStatusStore('bootstrap-error', {
-        error: error?.message || String(error),
-      });
+    .catch(() => {
       applySnapshot(EMPTY_LOCAL_BACKEND_STATUS);
     })
     .finally(() => {

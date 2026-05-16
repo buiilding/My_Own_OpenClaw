@@ -28,13 +28,6 @@ import {
   shouldRetryRecentConversationsLoad,
 } from '../utils/dashboardConversationLoad';
 
-function logDashboardConversations(stage, payload = {}) {
-  if (typeof console === 'undefined') {
-    return;
-  }
-  console.log('[DashboardConversations]', stage, payload);
-}
-
 function useDashboardConversations({
   resolvedUserId,
   sessionConversationRef,
@@ -59,12 +52,8 @@ function useDashboardConversations({
   const recentConversationLoadRequestIdRef = useRef(0);
   const recentConversationLoadInFlightRef = useRef(null);
 
-  const loadRecentConversations = useCallback(async (trigger = 'manual') => {
+  const loadRecentConversations = useCallback(async () => {
     if (typeof resolvedUserId !== 'string' || resolvedUserId.trim().length === 0) {
-      logDashboardConversations('load-skip-no-user', {
-        trigger,
-        resolvedUserId,
-      });
       setIsLoadingRecentConversations(false);
       setRecentConversationsError('');
       return [];
@@ -72,20 +61,11 @@ function useDashboardConversations({
 
     const activeLoad = recentConversationLoadInFlightRef.current;
     if (activeLoad && activeLoad.userId === resolvedUserId) {
-      logDashboardConversations('load-dedupe-in-flight', {
-        trigger,
-        userId: resolvedUserId,
-      });
       return activeLoad.promise;
     }
 
     const requestId = recentConversationLoadRequestIdRef.current + 1;
     recentConversationLoadRequestIdRef.current = requestId;
-    logDashboardConversations('load-start', {
-      trigger,
-      requestId,
-      userId: resolvedUserId,
-    });
     setIsLoadingRecentConversations(true);
     setRecentConversationsError('');
 
@@ -108,29 +88,12 @@ function useDashboardConversations({
 
         // Ignore stale loads so older responses cannot overwrite newer user/session state.
         if (recentConversationLoadRequestIdRef.current !== requestId) {
-          logDashboardConversations('load-stale-response-ignored', {
-            trigger,
-            requestId,
-            activeRequestId: recentConversationLoadRequestIdRef.current,
-            userId: resolvedUserId,
-            metadataCount: metadataList.length,
-            normalizedCount: list.length,
-          });
           return list;
         }
 
         recentConversationsRetryAttemptRef.current = 0;
         setRecentConversations(list);
         setPinnedConversationRefs((current) => prunePinnedConversationRefs(current, list));
-        logDashboardConversations('load-success', {
-          trigger,
-          requestId,
-          userId: resolvedUserId,
-          metadataCount: metadataList.length,
-          normalizedCount: list.length,
-          firstConversationIds: list.slice(0, 5).map((conversation) => conversation.conversation_id),
-          firstTitles: list.slice(0, 5).map((conversation) => conversation.title),
-        });
 
         return list;
       } catch (error) {
@@ -139,12 +102,6 @@ function useDashboardConversations({
         }
         const errorMessage = error?.message || 'Failed to load recent chats';
         setRecentConversationsError(errorMessage);
-        logDashboardConversations('load-error', {
-          trigger,
-          requestId,
-          userId: resolvedUserId,
-          error: errorMessage,
-        });
         return [];
       } finally {
         if (recentConversationLoadRequestIdRef.current === requestId) {
@@ -369,7 +326,6 @@ function useDashboardConversations({
   useEffect(() => {
     const reloadWhenLocalBackendReady = () => {
       const snapshot = getLocalBackendStatusSnapshot();
-      logDashboardConversations('local-backend-status', snapshot);
       if (snapshot.ready === true) {
         void loadRecentConversations('local-backend-ready');
       }
