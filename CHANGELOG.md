@@ -21,6 +21,7 @@ All notable changes to WindieOS will be documented in this file.
 - backend/vision: remove the unused `IVisionService` alias so vision contracts expose only provider naming.
 - backend/runs: remove the legacy run-scoped worker heartbeat route and service method; workers now use the first-class poll heartbeat endpoint only.
 - backend/artifacts: remove legacy temp-directory artifact lookup and resolve artifacts only from the configured store path.
+- backend/sdk: require typed streaming events in the SDK response extractor instead of accepting dict event payloads.
 - backend/container: remove container-level `embedder`, `ocr_service`, and `vision_service` aliases in favor of router fields.
 - backend/sdk: remove the transitional `Context` alias so tools import `ToolContext` directly.
 - backend/simulation: remove the coordinate resolver compatibility re-export and docs from the first-class simulation surface.

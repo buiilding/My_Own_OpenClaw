@@ -1,6 +1,12 @@
 import pytest
 
 from backend.src.core.config.models import AppConfig
+from backend.src.core.events.streaming_events import (
+    ChunkEvent,
+    ErrorEvent,
+    StreamingCompleteEvent,
+    ToolCallEvent,
+)
 from backend.src.sdk.agents.config_helper import override_model_id
 from backend.src.sdk.agents.response_extractor import extract_response
 
@@ -27,10 +33,10 @@ class _FakeSession:
 async def test_extract_response_uses_stream_chunks_and_collects_tool_calls():
     session = _FakeSession(
         events=[
-            {"type": "tool_call", "tool_name": "read_file", "parameters": {"file_path": "/tmp/a"}},
-            {"type": "chunk", "content": "Hello"},
-            {"type": "chunk", "content": " world"},
-            {"type": "streaming-complete"},
+            ToolCallEvent(tool_name="read_file", parameters={"file_path": "/tmp/a"}),
+            ChunkEvent(content="Hello"),
+            ChunkEvent(content=" world"),
+            StreamingCompleteEvent(),
         ],
         history_rows=[],
     )
@@ -44,7 +50,7 @@ async def test_extract_response_uses_stream_chunks_and_collects_tool_calls():
 @pytest.mark.asyncio
 async def test_extract_response_returns_error_message_when_error_event_received():
     session = _FakeSession(
-        events=[{"type": "error", "content": "boom"}],
+        events=[ErrorEvent(content="boom")],
         history_rows=[],
     )
 
