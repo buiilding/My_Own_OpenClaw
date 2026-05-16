@@ -37,10 +37,13 @@ describe('ipc sdk tool router', () => {
       data: { output: 'ok', llm_content: 'ok' },
     }));
     const sendToolResult = jest.fn();
+    const onToolOutput = jest.fn();
 
     routeSdkToolEventToLocalRuntime({
       id: 'event-1',
       type: 'tool-call',
+      conversation_ref: 'conv-1',
+      turn_ref: 'turn-1',
       payload: {
         tool_name: 'read_file',
         request_id: 'req-read',
@@ -49,6 +52,7 @@ describe('ipc sdk tool router', () => {
     }, {
       executeLocalTool,
       sendToolResult,
+      onToolOutput,
     });
     await Promise.resolve();
     await Promise.resolve();
@@ -66,6 +70,24 @@ describe('ipc sdk tool router', () => {
       data: { output: 'ok', llm_content: 'ok' },
       error: undefined,
     });
+    expect(onToolOutput).toHaveBeenCalledWith(expect.objectContaining({
+      id: 'req-read:tool-output',
+      type: 'tool-output',
+      conversation_ref: 'conv-1',
+      turn_ref: 'turn-1',
+      payload: expect.objectContaining({
+        tool_name: 'read_file',
+        request_id: 'req-read',
+        success: true,
+        output: 'ok',
+        error: null,
+        metadata: expect.objectContaining({
+          skip_frontend_execution: true,
+          execution_owner: 'sdk-runtime',
+          display_projection: 'local-tool-result',
+        }),
+      }),
+    }));
   });
 
   test('routes first-class camelCase tool identity fields through local execution', async () => {

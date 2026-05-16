@@ -53,20 +53,24 @@ function createWindieSdkMainRuntime(options = {}) {
     throw new Error('createWindieSdkMainRuntime requires WebSocketImpl');
   }
   const createBackendSocket = options.createBackendSocket || createWindieSdkBackendSocket;
+  function emitRendererEvent(data) {
+    if (typeof options.onEvent === 'function') {
+      options.onEvent(data);
+    } else {
+      options.onMessage?.(data);
+    }
+  }
 
   function handleBackendEvent(data) {
     routeSdkToolEventToLocalRuntime(data, {
       executeLocalTool: options.executeLocalTool,
       sendToolResult: (payload, messageId) => session.sendToolResult(payload, messageId),
       sendToolBundleResult: (payload, messageId) => session.sendToolBundleResult(payload, messageId),
+      onToolOutput: emitRendererEvent,
       log: options.log,
     });
     const rendererData = markRendererToolEventDisplayOnly(data);
-    if (typeof options.onEvent === 'function') {
-      options.onEvent(rendererData);
-    } else {
-      options.onMessage?.(rendererData);
-    }
+    emitRendererEvent(rendererData);
     return rendererData;
   }
 

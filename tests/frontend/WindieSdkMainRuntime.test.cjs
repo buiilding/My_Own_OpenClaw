@@ -257,6 +257,21 @@ describe('Windie SDK main runtime', () => {
         },
       },
     });
+    expect(onEvent).toHaveBeenCalledWith(expect.objectContaining({
+      id: 'req-save:tool-output',
+      type: 'tool-output',
+      payload: expect.objectContaining({
+        tool_name: 'save_note',
+        request_id: 'req-save',
+        success: true,
+        output: 'saved',
+        error: null,
+        metadata: expect.objectContaining({
+          execution_owner: 'sdk-runtime',
+          display_projection: 'local-tool-result',
+        }),
+      }),
+    }));
   });
 
   test('owns idle disconnect policy', async () => {

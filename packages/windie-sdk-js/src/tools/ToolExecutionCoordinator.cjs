@@ -114,6 +114,64 @@ function normalizeToolResultData(data) {
   };
 }
 
+function resolveToolOutputDisplayText(payload) {
+  const data = payload?.data;
+  if (payload?.success === false && typeof payload?.error === 'string' && payload.error.trim()) {
+    return `Error: ${payload.error}`;
+  }
+  if (isPlainObject(data)) {
+    for (const key of ['llm_content', 'return_display', 'output', 'message']) {
+      const value = data[key];
+      if (typeof value === 'string' && value.trim()) {
+        return value;
+      }
+    }
+    return JSON.stringify(data);
+  }
+  if (typeof data === 'string' && data.trim()) {
+    return data;
+  }
+  if (data !== null && typeof data !== 'undefined') {
+    return JSON.stringify(data);
+  }
+  return payload?.success === false ? 'Tool execution failed' : 'No output';
+}
+
+function buildRendererToolOutputEvent(event, payload, startedAt) {
+  const sourcePayload = isPlainObject(event?.payload) ? event.payload : {};
+  const data = isPlainObject(payload?.data) ? payload.data : {};
+  const metadata = isPlainObject(sourcePayload.metadata) ? sourcePayload.metadata : {};
+  const requestId = resolveToolCallRequestId(sourcePayload, event?.id);
+  return {
+    id: requestId ? `${requestId}:tool-output` : undefined,
+    type: 'tool-output',
+    session_id: event?.session_id,
+    user_id: event?.user_id,
+    conversation_ref: event?.conversation_ref,
+    turn_ref: event?.turn_ref,
+    payload: {
+      tool_name: resolveStringField(sourcePayload, ['toolName', 'tool_name']) || '',
+      success: payload?.success !== false,
+      execution_time: (Date.now() - startedAt) / 1000,
+      output: resolveToolOutputDisplayText(payload),
+      error: payload?.success === false ? (payload?.error || 'Tool execution failed') : null,
+      screenshot: typeof data.screenshot === 'string' ? data.screenshot : null,
+      screenshot_ref: (
+        typeof data.screenshot_ref === 'string'
+          ? data.screenshot_ref
+          : (typeof data.screenshotRef === 'string' ? data.screenshotRef : null)
+      ),
+      request_id: requestId || undefined,
+      metadata: {
+        ...metadata,
+        skip_frontend_execution: true,
+        execution_owner: 'sdk-runtime',
+        display_projection: 'local-tool-result',
+      },
+    },
+  };
+}
+
 function buildToolResultPayload({ requestId, result }) {
   const success = result?.success !== false;
   const error = result?.error || 'Tool execution failed';
@@ -136,6 +194,7 @@ async function routeToolCallToLocalRuntime(event, deps) {
   if (!toolName || !requestId) {
     return false;
   }
+  const startedAt = Date.now();
   try {
     const result = await deps.executeLocalTool({
       toolName,
@@ -146,17 +205,21 @@ async function routeToolCallToLocalRuntime(event, deps) {
       toolCallId: resolveStringField(event.payload, ['toolCallId', 'tool_call_id']) ?? resolveModelFacingToolCallId(event.payload),
       correlationId: resolveStringField(event.payload, ['correlationId', 'correlation_id']),
     });
-    deps.sendToolResult(buildToolResultPayload({
+    const payload = buildToolResultPayload({
       requestId,
       result,
-    }));
+    });
+    deps.sendToolResult(payload);
+    deps.onToolOutput?.(buildRendererToolOutputEvent(event, payload, startedAt));
   } catch (error) {
-    deps.sendToolResult({
+    const payload = {
       request_id: requestId,
       success: false,
       error: error?.message || String(error),
       data: normalizeToolResultData({ output: error?.message || String(error) }),
-    });
+    };
+    deps.sendToolResult(payload);
+    deps.onToolOutput?.(buildRendererToolOutputEvent(event, payload, startedAt));
   }
   return true;
 }
@@ -254,6 +317,7 @@ function routeSdkToolEventToLocalRuntime(event, deps = {}) {
 }
 
 module.exports = {
+  buildRendererToolOutputEvent,
   markRendererToolEventDisplayOnly,
   routeSdkToolEventToLocalRuntime,
   resolveToolCallRequestId,

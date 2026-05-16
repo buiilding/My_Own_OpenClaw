@@ -26,6 +26,8 @@ sequenceDiagram
     SDK->>Backend: /ws tool-result
     SDK->>Main: display-only backend event
     Main->>Renderer: from-backend tool-call (display-only)
+    SDK->>Main: local tool-output display projection
+    Main->>Renderer: from-backend tool-output (display-only)
 ```
 
 ## Ownership Split
@@ -79,7 +81,7 @@ Read next:
 
 ## Tool Result Return Path
 
-After sidecar execution, the SDK main runtime returns results to the backend using the normal `/ws` tool-result path. The renderer receives display-only tool-call events for chat/transcript/overlay state and does not execute backend tool events.
+After sidecar execution, the SDK main runtime returns results to the backend using the normal `/ws` tool-result path. The renderer receives display-only tool-call events for chat/transcript/overlay state and display-only tool-output projections for local results. It does not execute backend tool events.
 
 The desktop `ChatProvider` is a display consumer. Backend tool-call execution
 belongs to the SDK main runtime and sidecar daemon.
