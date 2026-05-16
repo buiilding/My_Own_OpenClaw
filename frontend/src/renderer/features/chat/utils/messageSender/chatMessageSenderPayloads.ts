@@ -11,7 +11,6 @@ export type ReadableFilePayload = {
 
 export type OutgoingUserMessagePayload = string | {
   text: string;
-  clipboardImage?: ClipboardImagePayload | null;
   clipboardImages?: ClipboardImagePayload[] | null;
   readableFiles?: ReadableFilePayload[] | null;
 };
@@ -45,11 +44,6 @@ export function normalizeOutgoingPayload(payload: OutgoingUserMessagePayload): {
       .map((clipboardImage) => normalizeClipboardImage(clipboardImage))
       .filter((clipboardImage): clipboardImage is ClipboardImagePayload => Boolean(clipboardImage))
     : [];
-
-  const legacyClipboardImage = normalizeClipboardImage(payload.clipboardImage);
-  if (legacyClipboardImage) {
-    normalizedClipboardImages.push(legacyClipboardImage);
-  }
 
   const normalizedReadableFiles = Array.isArray(payload.readableFiles)
     ? payload.readableFiles

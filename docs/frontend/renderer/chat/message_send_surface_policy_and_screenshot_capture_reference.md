@@ -47,14 +47,14 @@ Surface consequences:
 `sendMessage(payload)` accepts:
 
 - plain string
-- object `{ text, clipboardImages?, clipboardImage?, readableFiles? }`
+- object `{ text, clipboardImages?, readableFiles? }`
 
 Normalized shape:
 
 - `text`: required
 - `clipboardImages[]`: accepted only when each image has non-empty `base64`
 - `readableFiles[]`: accepted only when each file has non-empty absolute-ish `filePath` + `filename`
-- legacy `clipboardImage` is still accepted and normalized into `clipboardImages[]`
+- singular `clipboardImage` is not accepted; all image attachments must use the canonical `clipboardImages[]` array.
 
 Invalid object payloads are ignored (no send side effect).
 
@@ -108,7 +108,7 @@ When attachment(s) exist:
   - dedupe final `screenshot_refs[]` for backend send
 10. update optimistic message with `screenshotRef/screenshotUrl` plus `screenshots[]`.
 11. call `DesktopConversationRuntimeClient.sendQuery`, which owns user transcript projection persistence and backend query dispatch, with:
-  - `screenshot_ref` (first ref, compatibility path)
+  - `screenshot_ref` (first ref for backend protocol ingress)
   - `screenshot_refs` (all uploaded refs for multi-image queries)
   - optional `attachment_context` (hidden read_file output for selected non-image files)
   - optional `attachment_filenames` (visible filename chips for optimistic/local echo user rows)

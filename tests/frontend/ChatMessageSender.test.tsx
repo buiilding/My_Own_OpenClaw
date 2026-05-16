@@ -535,11 +535,13 @@ describe('useChatMessageSender', () => {
 
     await sendPayload(result, {
       text: 'Please inspect this image',
-      clipboardImage: {
-        base64: 'clipboard-image-base64',
-        contentType: 'image/png',
-        filename: 'clipboard-image.png',
-      },
+      clipboardImages: [
+        {
+          base64: 'clipboard-image-base64',
+          contentType: 'image/png',
+          filename: 'clipboard-image.png',
+        },
+      ],
     });
 
     expect(mockCaptureScreenshotAttachment).not.toHaveBeenCalled();

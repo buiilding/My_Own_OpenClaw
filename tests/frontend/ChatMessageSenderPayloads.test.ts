@@ -19,7 +19,6 @@ describe('chatMessageSenderPayloads', () => {
 
     const payload = normalizeOutgoingPayload({
       text: 'hello',
-      clipboardImage: { base64: 'abc', filename: 'shot.png' },
       clipboardImages: [{ base64: 'def', filename: 'shot-2.png' }],
       readableFiles: [{ filePath: '/tmp/a', filename: 'a.txt' }],
     });
@@ -27,9 +26,20 @@ describe('chatMessageSenderPayloads', () => {
       text: 'hello',
       clipboardImages: [
         { base64: 'def', filename: 'shot-2.png' },
-        { base64: 'abc', filename: 'shot.png' },
       ],
       readableFiles: [{ filePath: '/tmp/a', filename: 'a.txt' }],
+    });
+  });
+
+  test('ignores removed singular clipboard image compatibility payloads', () => {
+    expect(normalizeOutgoingPayload({
+      text: 'hello',
+      // @ts-expect-error singular clipboardImage is no longer part of the send contract
+      clipboardImage: { base64: 'abc', filename: 'shot.png' },
+    })).toEqual({
+      text: 'hello',
+      clipboardImages: [],
+      readableFiles: [],
     });
   });
 

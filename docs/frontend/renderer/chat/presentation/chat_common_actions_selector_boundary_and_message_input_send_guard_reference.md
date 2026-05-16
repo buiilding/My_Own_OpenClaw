@@ -42,19 +42,22 @@ Expected outcome:
 
 ## Input Normalization Contract (`messageInput.js`)
 
-`buildOutgoingMessage(inputValue, isSending, clipboardImage?)` behavior:
+`buildOutgoingMessage(inputValue, isSending, clipboardImages?, readableFiles?)` behavior:
 
 1. if `isSending === true`, returns `null` (hard submit block)
 2. otherwise trims text
 3. returns `null` for blank/whitespace-only text
-4. when no valid clipboard image is present, returns trimmed string
-5. when valid clipboard image is present, returns object:
- - `{ text: "<trimmed>", clipboardImage: { base64, ... } }`
+4. normalizes image attachments from the canonical `clipboardImages[]` array
+5. normalizes selected files from the canonical `readableFiles[]` array
+6. when no valid attachments are present, returns trimmed string
+7. when any valid attachment is present, returns object:
+ - `{ text: "<trimmed>", clipboardImages: [{ base64, ... }], readableFiles: [...] }`
 
 Clipboard image validity gate:
 
 - payload must be object
 - `base64` must be non-empty string
+- singular `clipboardImage` is not part of the send contract.
 
 `MessageInput.submitMessageValue(...)` only calls `onSendMessage` when `buildOutgoingMessage(...)` returns non-null.
 
