@@ -211,6 +211,14 @@ class _ProviderUsageLLMClient:
         }
 
 
+class _RecordingCompactionEngine:
+    def __init__(self):
+        self.recorded_prompt_tokens = []
+
+    def record_provider_prompt_tokens(self, prompt_tokens):
+        self.recorded_prompt_tokens.append(prompt_tokens)
+
+
 class _MissingUsageLLMClient:
     async def get_completion_stream(
         self,
@@ -368,7 +376,9 @@ class _GeminiStreamingToolTurnLLMClient:
         prompt_cache_key=None,
     ):
         _ = (model, messages, tools, tool_choice, parallel_tool_calls, prompt_cache_key)
-        raise AssertionError("Gemini tool turns should stay on stream path when supported")
+        raise AssertionError(
+            "Gemini tool turns should stay on stream path when supported"
+        )
 
     async def get_completion_stream(
         self,
@@ -405,7 +415,12 @@ def _hello_prompt():
 
 
 def _single_function_tool(name: str):
-    return [{"type": "function", "function": {"name": name, "parameters": {"type": "object"}}}]
+    return [
+        {
+            "type": "function",
+            "function": {"name": name, "parameters": {"type": "object"}},
+        }
+    ]
 
 
 async def _collect_response_events(processor, *, tools=None):
@@ -472,7 +487,9 @@ async def test_rejects_unsupported_stream_event_types(monkeypatch):
 async def test_maps_http_520_api_error_to_retry_friendly_error_event(monkeypatch):
     _patch_fake_token_service(monkeypatch)
 
-    processor = LLMStreamProcessor(llm_client=_Api520LLMClient(), session=_FakeSession())
+    processor = LLMStreamProcessor(
+        llm_client=_Api520LLMClient(), session=_FakeSession()
+    )
     events = []
 
     with pytest.raises(LLMAPIError, match="HTTP 520"):
@@ -484,17 +501,24 @@ async def test_maps_http_520_api_error_to_retry_friendly_error_event(monkeypatch
 
     assert len(events) == 1
     assert isinstance(events[0], ErrorEvent)
-    assert events[0].content == "Kimi Coding is temporarily unavailable (HTTP 520). Please retry shortly."
+    assert (
+        events[0].content
+        == "Kimi Coding is temporarily unavailable (HTTP 520). Please retry shortly."
+    )
 
 
 @pytest.mark.asyncio
 async def test_preserves_llm_api_error_metadata_on_error_event(monkeypatch):
     _patch_fake_token_service(monkeypatch)
 
-    processor = LLMStreamProcessor(llm_client=_ApiParseFailureLLMClient(), session=_FakeSession())
+    processor = LLMStreamProcessor(
+        llm_client=_ApiParseFailureLLMClient(), session=_FakeSession()
+    )
     events = []
 
-    with pytest.raises(LLMAPIError, match="failed to parse streamed tool-call arguments"):
+    with pytest.raises(
+        LLMAPIError, match="failed to parse streamed tool-call arguments"
+    ):
         async for event in processor.get_response(
             _hello_prompt(),
             tools=_single_function_tool("replace"),
@@ -538,7 +562,24 @@ async def test_token_count_prefers_provider_usage_and_reasoning_tokens(monkeypat
 
 
 @pytest.mark.asyncio
-async def test_token_count_falls_back_to_estimate_when_provider_usage_missing(monkeypatch):
+async def test_provider_prompt_usage_is_recorded_for_compaction(monkeypatch):
+    _patch_fake_token_service(monkeypatch)
+    session = _FakeSession()
+    session.compaction_engine = _RecordingCompactionEngine()
+    processor = LLMStreamProcessor(
+        llm_client=_ProviderUsageLLMClient(),
+        session=session,
+    )
+
+    await _collect_response_events(processor)
+
+    assert session.compaction_engine.recorded_prompt_tokens == [50]
+
+
+@pytest.mark.asyncio
+async def test_token_count_falls_back_to_estimate_when_provider_usage_missing(
+    monkeypatch,
+):
     _patch_fake_token_service(monkeypatch)
     processor = LLMStreamProcessor(
         llm_client=_MissingUsageLLMClient(),
@@ -572,11 +613,15 @@ async def test_openai_main_turn_enables_native_web_search_when_supported(monkeyp
 
     assert llm_client.native_web_search_enabled is True
     assert any(isinstance(event, WebSearchProgressEvent) for event in events)
-    assert any(isinstance(event, ChunkEvent) and event.content == "final" for event in events)
+    assert any(
+        isinstance(event, ChunkEvent) and event.content == "final" for event in events
+    )
 
 
 @pytest.mark.asyncio
-async def test_kimi_uses_non_stream_completion_when_tools_present_if_streaming_unsupported(monkeypatch):
+async def test_kimi_uses_non_stream_completion_when_tools_present_if_streaming_unsupported(
+    monkeypatch,
+):
     _patch_fake_token_service(monkeypatch)
     llm_client = _KimiToolCompletionLLMClient()
     processor = LLMStreamProcessor(
@@ -598,7 +643,9 @@ async def test_kimi_uses_non_stream_completion_when_tools_present_if_streaming_u
 
 
 @pytest.mark.asyncio
-async def test_kimi_streams_thinking_when_tools_present_if_streaming_supported(monkeypatch):
+async def test_kimi_streams_thinking_when_tools_present_if_streaming_supported(
+    monkeypatch,
+):
     _patch_fake_token_service(monkeypatch)
     processor = LLMStreamProcessor(
         llm_client=_KimiStreamingToolTurnLLMClient(),
@@ -636,7 +683,9 @@ async def test_kimi_prefers_conversation_ref_for_prompt_cache_key(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_gemini_streams_thinking_when_tools_present_if_streaming_supported(monkeypatch):
+async def test_gemini_streams_thinking_when_tools_present_if_streaming_supported(
+    monkeypatch,
+):
     _patch_fake_token_service(monkeypatch)
     processor = LLMStreamProcessor(
         llm_client=_GeminiStreamingToolTurnLLMClient(),

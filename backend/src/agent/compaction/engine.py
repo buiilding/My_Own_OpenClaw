@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 DEFAULT_TRIGGER_FALLBACK_TOKENS = 120000
-AUTO_TRIGGER_RATIO = 0.90
+AUTO_TRIGGER_RATIO = 0.70
 
 
 class CompactionEngine:
@@ -34,6 +34,17 @@ class CompactionEngine:
         self._session = session
         self._inline_strategy = InlineSummaryCompactionStrategy()
         self._last_compaction_user_turn_index = -10_000
+        self._last_provider_prompt_tokens: Optional[int] = None
+
+    def record_provider_prompt_tokens(self, prompt_tokens: Optional[int]) -> None:
+        """Remember provider-reported prompt usage for the next auto decision."""
+        if not isinstance(prompt_tokens, int) or prompt_tokens <= 0:
+            return
+        if (
+            self._last_provider_prompt_tokens is None
+            or prompt_tokens > self._last_provider_prompt_tokens
+        ):
+            self._last_provider_prompt_tokens = prompt_tokens
 
     def evaluate(
         self,
@@ -45,7 +56,8 @@ class CompactionEngine:
         """Evaluate whether compaction should run now."""
         cfg = self._session.cfg
         model = cfg.llm_model
-        before_tokens = self._get_prompt_token_count(model=model)
+        local_before_tokens = self._get_prompt_token_count(model=model)
+        before_tokens = self._resolve_decision_token_count(local_before_tokens)
         projected_tokens = before_tokens + self._estimate_pending_user_tokens(
             model=model,
             pending_user_content=pending_user_content,
@@ -53,9 +65,12 @@ class CompactionEngine:
         trigger_tokens = self._resolve_trigger_tokens(model=model)
         strategy_name = self._resolve_strategy_name()
         user_turn_index = self._current_user_turn_index()
+        decision_source = self._decision_token_source(
+            local_before_tokens, before_tokens
+        )
 
         if not self._is_enabled(manual=(reason == "manual")):
-            return CompactionDecision(
+            decision = CompactionDecision(
                 should_compact=False,
                 reason=reason,
                 strategy_name=strategy_name,
@@ -64,9 +79,17 @@ class CompactionEngine:
                 user_turn_index=user_turn_index,
                 skip_reason="disabled",
             )
+            self._log_decision(
+                decision,
+                trigger_tokens=trigger_tokens,
+                local_before_tokens=local_before_tokens,
+                decision_source=decision_source,
+                force=force,
+            )
+            return decision
 
         if not force and projected_tokens < trigger_tokens:
-            return CompactionDecision(
+            decision = CompactionDecision(
                 should_compact=False,
                 reason=reason,
                 strategy_name=strategy_name,
@@ -75,9 +98,17 @@ class CompactionEngine:
                 user_turn_index=user_turn_index,
                 skip_reason="below-threshold",
             )
+            self._log_decision(
+                decision,
+                trigger_tokens=trigger_tokens,
+                local_before_tokens=local_before_tokens,
+                decision_source=decision_source,
+                force=force,
+            )
+            return decision
 
         if not force and self._is_on_cooldown(user_turn_index):
-            return CompactionDecision(
+            decision = CompactionDecision(
                 should_compact=False,
                 reason=reason,
                 strategy_name=strategy_name,
@@ -86,8 +117,16 @@ class CompactionEngine:
                 user_turn_index=user_turn_index,
                 skip_reason="cooldown",
             )
+            self._log_decision(
+                decision,
+                trigger_tokens=trigger_tokens,
+                local_before_tokens=local_before_tokens,
+                decision_source=decision_source,
+                force=force,
+            )
+            return decision
 
-        return CompactionDecision(
+        decision = CompactionDecision(
             should_compact=True,
             reason=reason,
             strategy_name=strategy_name,
@@ -96,6 +135,14 @@ class CompactionEngine:
             user_turn_index=user_turn_index,
             skip_reason=None,
         )
+        self._log_decision(
+            decision,
+            trigger_tokens=trigger_tokens,
+            local_before_tokens=local_before_tokens,
+            decision_source=decision_source,
+            force=force,
+        )
+        return decision
 
     async def compact(
         self,
@@ -160,6 +207,7 @@ class CompactionEngine:
         after_tokens = self._get_prompt_token_count(model=self._session.cfg.llm_model)
         removed_messages = max(0, len(current_messages) - len(replacement_messages))
         self._last_compaction_user_turn_index = active_decision.user_turn_index
+        self._last_provider_prompt_tokens = None
 
         logger.info(
             "[Compaction] Applied history compaction (reason=%s, strategy=%s, before=%s, after=%s, removed_messages=%s)",
@@ -184,7 +232,9 @@ class CompactionEngine:
 
     def _get_prompt_token_count(self, *, model: str) -> int:
         prompt_builder = getattr(self._session, "prompt_builder", None)
-        if prompt_builder is None or not hasattr(prompt_builder, "get_prompt_token_count"):
+        if prompt_builder is None or not hasattr(
+            prompt_builder, "get_prompt_token_count"
+        ):
             return self._session.history.get_token_count(model)
         return prompt_builder.get_prompt_token_count(
             self._session.history,
@@ -300,8 +350,59 @@ class CompactionEngine:
                 )
 
         if isinstance(max_input_tokens, int) and max_input_tokens > 0:
-            return max(2048, int(max_input_tokens * AUTO_TRIGGER_RATIO))
+            context_window_trigger = max(
+                2048, int(max_input_tokens * AUTO_TRIGGER_RATIO)
+            )
+            configured_target = self._session.cfg.history_compaction_target_tokens
+            if isinstance(configured_target, int) and configured_target > 0:
+                return max(2048, min(context_window_trigger, configured_target))
+            return context_window_trigger
         return DEFAULT_TRIGGER_FALLBACK_TOKENS
+
+    def _resolve_decision_token_count(self, local_before_tokens: int) -> int:
+        provider_prompt_tokens = self._last_provider_prompt_tokens
+        if isinstance(provider_prompt_tokens, int) and provider_prompt_tokens > 0:
+            return max(local_before_tokens, provider_prompt_tokens)
+        return local_before_tokens
+
+    def _decision_token_source(
+        self,
+        local_before_tokens: int,
+        before_tokens: int,
+    ) -> str:
+        if (
+            isinstance(self._last_provider_prompt_tokens, int)
+            and self._last_provider_prompt_tokens > local_before_tokens
+            and before_tokens == self._last_provider_prompt_tokens
+        ):
+            return "provider-high-water"
+        return "local-estimate"
+
+    @staticmethod
+    def _log_decision(
+        decision: CompactionDecision,
+        *,
+        trigger_tokens: int,
+        local_before_tokens: int,
+        decision_source: str,
+        force: bool,
+    ) -> None:
+        logger.info(
+            "[Compaction] Decision reason=%s should_compact=%s skip_reason=%s "
+            "strategy=%s before=%s projected=%s trigger=%s local_before=%s "
+            "source=%s user_turn_index=%s force=%s",
+            decision.reason,
+            decision.should_compact,
+            decision.skip_reason,
+            decision.strategy_name,
+            decision.before_tokens,
+            decision.projected_tokens,
+            trigger_tokens,
+            local_before_tokens,
+            decision_source,
+            decision.user_turn_index,
+            force,
+        )
 
     def _is_on_cooldown(self, user_turn_index: int) -> bool:
         cooldown_turns = max(0, self._session.cfg.history_compaction_cooldown_turns)

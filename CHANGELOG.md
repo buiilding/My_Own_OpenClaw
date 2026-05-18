@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/compaction: use WindieOS model catalog context windows and provider-reported prompt-token high-water marks so auto-compaction triggers before oversized tool-continuation turns.
 - frontend/sidecar: generate the built-in client tool manifest from sidecar-owned schemas so Electron sends the rich local tool contracts, including the grouped browser tool, during handshake.
 - frontend/sidecar: rebuild local memory FAISS indexes when persisted vector files drift from SQLite embedding mappings so prompt memory retrieval recovers after partial index saves.
 - sdk/frontend: move desktop chat continuity orchestration into an SDK conversation continuity service while keeping Electron as the sidecar-backed local persistence host.

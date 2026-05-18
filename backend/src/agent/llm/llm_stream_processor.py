@@ -3,6 +3,7 @@ LLM Stream Processor.
 
 Handles LLM streaming, text aggregation, and token counting.
 """
+
 import logging
 import time
 from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, List, Optional
@@ -45,7 +46,7 @@ logger = logging.getLogger(__name__)
 class LLMStreamProcessor:
     """
     Processes LLM streaming and token counting.
-    
+
     Responsibility: LLM streaming, text aggregation, and token counting.
     Yields streaming events directly for real-time updates.
     """
@@ -57,7 +58,7 @@ class LLMStreamProcessor:
     ):
         """
         Initialize the LLM interaction handler.
-        
+
         Args:
             llm_client: Client for LLM API calls
             session: Agent session for configuration and history access
@@ -77,13 +78,13 @@ class LLMStreamProcessor:
     ) -> AsyncGenerator[AgentStreamingEvent, None]:
         """
         Streams LLM response, aggregates text, and counts tokens.
-        
+
         Yields streaming events (ChunkEvent, ThinkingEvent, ErrorEvent) as they arrive.
         After streaming completes, yields FullResponseEvent and TokenCountEvent.
-        
+
         Args:
             prompt: List of LLM messages to send to the LLM
-            
+
         Yields:
             Streaming events: ChunkEvent, ThinkingEvent, ErrorEvent, FullResponseEvent, TokenCountEvent
         """
@@ -120,7 +121,9 @@ class LLMStreamProcessor:
 
         try:
             if self._should_use_native_completion_path(tools, model_id):
-                response = await self.llm_client.get_completion_response(**request_kwargs)
+                response = await self.llm_client.get_completion_response(
+                    **request_kwargs
+                )
                 full_text = response.get("content", "")
                 self._last_response_payload = response
 
@@ -153,9 +156,7 @@ class LLMStreamProcessor:
                     None,
                 )
                 stream_payload = (
-                    stream_payload_getter()
-                    if callable(stream_payload_getter)
-                    else None
+                    stream_payload_getter() if callable(stream_payload_getter) else None
                 )
                 self._last_response_payload = normalize_stream_response_payload(
                     stream_payload,
@@ -166,6 +167,7 @@ class LLMStreamProcessor:
             yield FullResponseEvent(content=full_text)
 
             token_counts = await self._count_tokens(prompt, full_text)
+            self._record_provider_prompt_tokens_for_compaction(token_counts)
             yield TokenCountEvent(
                 prompt_tokens=token_counts.prompt_tokens,
                 visible_output_tokens=token_counts.visible_output_tokens,
@@ -394,22 +396,22 @@ class LLMStreamProcessor:
     ) -> TokenCounts:
         """
         Counts tokens for input, output, and total conversation.
-        
+
         ACCURACY FIX: Uses token_service.count_tokens() for output instead of
         hardcoded heuristic. The previous `len(full_text) // 4` heuristic was
         inaccurate for:
         - Code (different token density due to whitespace/symbols)
         - Non-English languages (CJK characters map 1 char to 1-2 tokens, causing
           400-800% underestimation)
-        
+
         Runtime stability note:
         - Token counting runs inline in the current task to avoid executor hangs
           observed in this runtime when dispatching repeated `run_in_executor` calls.
-        
+
         Args:
             prompt: Input messages sent to LLM
             full_text: Full response text from LLM
-            
+
         Returns:
             TokenCounts named tuple with all token counts
         """
@@ -434,3 +436,14 @@ class LLMStreamProcessor:
             active_conversation_ref=getattr(runtime, "active_conversation_ref", None),
             session_id=getattr(self.session, "session_id", None),
         )
+
+    def _record_provider_prompt_tokens_for_compaction(
+        self,
+        token_counts: TokenCounts,
+    ) -> None:
+        if token_counts.usage_source != "provider":
+            return
+        compaction_engine = getattr(self.session, "compaction_engine", None)
+        recorder = getattr(compaction_engine, "record_provider_prompt_tokens", None)
+        if callable(recorder):
+            recorder(token_counts.prompt_tokens)

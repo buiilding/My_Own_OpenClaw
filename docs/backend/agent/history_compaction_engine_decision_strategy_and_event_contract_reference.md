@@ -45,7 +45,7 @@ Inputs:
 
 Computed values:
 
-- `before_tokens`: `history.get_token_count(model)`
+- `before_tokens`: prompt-builder token count, raised to the last provider-reported prompt-token high-water mark when provider usage is available
 - `projected_tokens`: `before_tokens + estimate(pending_user_content)`
 - `trigger_tokens`: resolved from config/model window
 - `strategy_name`: currently always inline fallback
@@ -65,8 +65,11 @@ Enabled gating:
 Threshold resolution order:
 
 1. `history_compaction_trigger_tokens` when positive integer
-2. `token_service.get_model_max_input_tokens(model) * 0.90` (minimum `2048`)
-3. hard fallback `120000`
+2. WindieOS model catalog context window for the resolved runtime model id, otherwise LiteLLM model metadata
+3. model window trigger at `context_window * 0.70`, capped by `history_compaction_target_tokens` when configured (minimum `2048`)
+4. hard fallback `120000`
+
+Every decision logs reason, should/skip state, before/projected/trigger tokens, local estimate, source (`local-estimate` or `provider-high-water`), user turn index, and force flag. This is intentionally info-level so live backend logs show why auto-pre or auto-mid did or did not run.
 
 Cooldown rule:
 
@@ -161,6 +164,7 @@ Auto-mid flow (`InteractionLoop.run_loop`):
 
 - evaluated on iterations `> 1` before subsequent LLM sampling
 - emits same started/completed/failed lifecycle events with `reason="auto-mid"`
+- uses provider-reported prompt usage from the prior LLM request when available, which covers tokens charged for provider-native request shape such as tool schemas that local prompt-message estimates can undercount
 
 Manual flow (`CompactHistoryHandler`):
 

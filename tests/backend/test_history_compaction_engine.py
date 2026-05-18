@@ -134,6 +134,17 @@ def test_executor_summary_preview_keeps_full_text():
     assert AgentExecutor._build_summary_preview(long_summary) == long_summary
 
 
+def test_token_service_uses_catalog_context_window_for_windieos_preset_id():
+    token_service = token_service_module.get_token_service()
+
+    assert (
+        token_service.get_model_max_input_tokens(
+            "openai/gpt-5.4@@gpt-5-4-medium-thinking"
+        )
+        == 400000
+    )
+
+
 @pytest.mark.asyncio
 async def test_compaction_engine_manual_force_compacts_short_history(monkeypatch):
     monkeypatch.setattr(
@@ -204,7 +215,9 @@ async def test_compaction_engine_respects_cooldown(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_compaction_engine_uses_model_context_window_for_auto_trigger(monkeypatch):
+async def test_compaction_engine_uses_model_context_window_for_auto_trigger(
+    monkeypatch,
+):
     class _DynamicThresholdTokenService:
         def count_tokens(self, messages, model):
             _ = model
@@ -239,7 +252,7 @@ async def test_compaction_engine_uses_model_context_window_for_auto_trigger(monk
     engine = CompactionEngine(session)
 
     decision = engine.evaluate(reason="auto-pre")
-    # 12 seed loops = 48 messages => ~4800 tokens, over 90% of 5000 (4500).
+    # 12 seed loops = 48 messages => ~4800 tokens, over 70% of 5000 (3500).
     assert decision.should_compact is True
 
 
@@ -281,6 +294,98 @@ async def test_compaction_engine_skips_when_dynamic_threshold_not_reached(monkey
     decision = engine.evaluate(reason="auto-pre")
     assert decision.should_compact is False
     assert decision.skip_reason == "below-threshold"
+
+
+@pytest.mark.asyncio
+async def test_compaction_engine_uses_configured_target_as_auto_trigger_cap(
+    monkeypatch,
+):
+    class _LargeWindowTokenService:
+        def count_tokens(self, messages, model):
+            _ = (messages, model)
+            return 0
+
+        def count_message_tokens(self, message, model):
+            _ = (message, model)
+            return 0
+
+        def get_model_max_input_tokens(self, model):
+            _ = model
+            return 400000
+
+    monkeypatch.setattr(
+        token_service_module,
+        "get_token_service",
+        lambda: _LargeWindowTokenService(),
+    )
+    monkeypatch.setattr(
+        compaction_engine_module,
+        "get_token_service",
+        lambda: _LargeWindowTokenService(),
+    )
+    history = ConversationHistory()
+    _seed_history(history)
+    cfg = AppConfig(
+        history_compaction_enabled=True,
+        history_compaction_trigger_tokens=None,
+        history_compaction_target_tokens=60000,
+    )
+    session = _FakeSession(cfg=cfg, history=history)
+    session.prompt_builder = SimpleNamespace(
+        get_prompt_token_count=lambda stored_messages, model_id: 61000
+    )
+    engine = CompactionEngine(session)
+
+    decision = engine.evaluate(reason="auto-mid")
+
+    assert decision.should_compact is True
+    assert decision.before_tokens == 61000
+
+
+def test_compaction_engine_uses_provider_prompt_high_water_for_next_decision(
+    monkeypatch,
+):
+    class _SmallLocalTokenService:
+        def count_tokens(self, messages, model):
+            _ = (messages, model)
+            return 0
+
+        def count_message_tokens(self, message, model):
+            _ = (message, model)
+            return 0
+
+        def get_model_max_input_tokens(self, model):
+            _ = model
+            return 400000
+
+    monkeypatch.setattr(
+        token_service_module,
+        "get_token_service",
+        lambda: _SmallLocalTokenService(),
+    )
+    monkeypatch.setattr(
+        compaction_engine_module,
+        "get_token_service",
+        lambda: _SmallLocalTokenService(),
+    )
+    history = ConversationHistory()
+    _seed_history(history)
+    cfg = AppConfig(
+        history_compaction_enabled=True,
+        history_compaction_trigger_tokens=None,
+        history_compaction_target_tokens=60000,
+    )
+    session = _FakeSession(cfg=cfg, history=history)
+    session.prompt_builder = SimpleNamespace(
+        get_prompt_token_count=lambda stored_messages, model_id: 1000
+    )
+    engine = CompactionEngine(session)
+
+    engine.record_provider_prompt_tokens(288178)
+    decision = engine.evaluate(reason="auto-mid")
+
+    assert decision.should_compact is True
+    assert decision.before_tokens == 288178
 
 
 def test_compaction_engine_counts_contextual_prompt_messages(monkeypatch):

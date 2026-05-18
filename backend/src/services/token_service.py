@@ -16,6 +16,10 @@ from backend.src.core.messages.tool_call_thought_signature import (
     apply_tool_call_thought_signature,
     extract_tool_call_thought_signature,
 )
+from backend.src.llm.models.models_config import (
+    get_model_catalog_metadata,
+    resolve_runtime_model_id,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -266,7 +270,8 @@ class TokenService:
     @staticmethod
     def get_model_max_input_tokens(model: str) -> Optional[int]:
         """
-        Resolve model max input context tokens from LiteLLM model metadata.
+        Resolve model max input context tokens from WindieOS catalog metadata,
+        then fallback to LiteLLM model metadata.
 
         Args:
             model: Canonical model identifier (for example `openai/gpt-5.4`)
@@ -281,7 +286,17 @@ class TokenService:
         override = _MODEL_MAX_INPUT_TOKEN_OVERRIDES.get(normalized_model)
         if isinstance(override, int) and override > 0:
             return override
-        normalized_litellm_model = _normalize_model_for_litellm(model_name)
+
+        provider_name = ""
+        if "/" in model_name:
+            provider_name, _ = model_name.split("/", 1)
+        runtime_model_id = resolve_runtime_model_id(model_name)
+        catalog_metadata = get_model_catalog_metadata(provider_name, runtime_model_id)
+        catalog_context_window = catalog_metadata.get("context_window")
+        if isinstance(catalog_context_window, int) and catalog_context_window > 0:
+            return catalog_context_window
+
+        normalized_litellm_model = _normalize_model_for_litellm(runtime_model_id)
         try:
             info = litellm.get_model_info(model=normalized_litellm_model)
         except Exception:
