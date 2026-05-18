@@ -29,8 +29,6 @@ class DummyMemoryStore:
         self.added = []
         self.pending_count = 0
         self.next_index = 1
-        self.conversation_calls = []
-        self.list_conversation_calls = []
         self.deleted_semantic_calls = []
         self.deleted_episodic_calls = []
         self.cleared_local_memory_calls = []
@@ -59,53 +57,6 @@ class DummyMemoryStore:
     async def add(self, content, user_id, metadata, conversation_id=None, **kwargs):
         self.added.append((content, user_id, metadata, conversation_id, kwargs))
         return "memory-1"
-
-    async def search_conversations(self, user_id, query, limit=40, record_kind="transcript"):
-        return [
-            {
-                "conversation_id": "conv-1",
-                "title": "Ubuntu mic settings fix",
-                "snippet": "Assistant: Open sound settings and select the right input device.",
-                "matched_role": "assistant",
-                "last_timestamp": "2026-02-25T00:00:00+00:00",
-            }
-        ]
-
-    async def get_next_message_index(
-        self, user_id, conversation_id, record_kind="transcript"
-    ):
-        value = self.next_index
-        self.next_index += 1
-        return value
-
-    async def get_episodic_memories_by_conversation(
-        self,
-        user_id,
-        conversation_id,
-        limit,
-        record_kind="transcript",
-        after_message_index=None,
-    ):
-        self.conversation_calls.append(
-            {
-                "user_id": user_id,
-                "conversation_id": conversation_id,
-                "limit": limit,
-                "record_kind": record_kind,
-                "after_message_index": after_message_index,
-            }
-        )
-        return [{"id": "mem-1"}]
-
-    async def list_conversations(self, user_id, limit=None, record_kind="transcript"):
-        self.list_conversation_calls.append(
-            {
-                "user_id": user_id,
-                "limit": limit,
-                "record_kind": record_kind,
-            }
-        )
-        return [{"conversation_id": "conv-1"}]
 
     async def close(self):
         return None
@@ -140,7 +91,9 @@ class DummyMemoryStore:
     async def get_chat_events(
         self, user_id, conversation_id, limit=1000, after_message_index=None
     ):
-        return self.chat_event_rows or [{"id": "evt-1", "conversation_id": conversation_id}]
+        return self.chat_event_rows or [
+            {"id": "evt-1", "conversation_id": conversation_id}
+        ]
 
     async def delete_chat_conversation(self, user_id, conversation_id):
         self.deleted_chat_conversation_calls.append((user_id, conversation_id))
@@ -180,7 +133,6 @@ class DummyMemoryStoreCapturing(DummyMemoryStore):
         super().__init__()
         self.results = results
         self.search_calls = []
-        self.search_conversation_calls = []
 
     async def search(self, query, user_id, filters, limit):
         self.search_calls.append((query, user_id, filters, limit))
@@ -189,10 +141,6 @@ class DummyMemoryStoreCapturing(DummyMemoryStore):
             if isinstance(filters, dict):
                 normalized_type = filters.get("type")
             return self.results.get(normalized_type, [])
-        return self.results
-
-    async def search_conversations(self, user_id, query, limit=40, record_kind="transcript"):
-        self.search_conversation_calls.append((user_id, query, limit, record_kind))
         return self.results
 
 
@@ -816,13 +764,9 @@ def test_initialize_methods_keeps_memory_handlers_registered():
     expected_methods = {
         "search_memory",
         "store_memory",
-        "search_conversations",
-        "list_conversations",
         "list_episodic_memories",
-        "get_conversation",
         "list_semantic_memories",
         "delete_episodic_memory",
-        "delete_conversation",
         "delete_semantic_memory",
         "clear_local_memory",
         "clear_chat_history",
@@ -831,7 +775,6 @@ def test_initialize_methods_keeps_memory_handlers_registered():
         "search_chat_conversations",
         "get_chat_events",
         "delete_chat_conversation",
-        "store_transcript",
     }
     assert expected_methods.issubset(set(backend.protocol.methods.keys()))
 
@@ -845,34 +788,6 @@ async def test_handle_search_memory_groups_results():
     assert result["success"] is True
     assert result["data"]["memories"]["semantic"] == ["fact"]
     assert result["data"]["memories"]["episodic"] == ["event"]
-
-
-@pytest.mark.asyncio
-async def test_handle_search_conversations_returns_matches():
-    backend = LocalBackend()
-    backend.memory_store = DummyMemoryStoreCapturing(
-        [
-            {
-                "conversation_id": "conv-2",
-                "title": "Legal research thread",
-                "snippet": "You: Need a Vietnamese-speaking lawyer lead in CA.",
-                "matched_role": "user",
-                "last_timestamp": "2026-02-25T00:00:00+00:00",
-            }
-        ]
-    )
-
-    result = await backend._handle_search_conversations(
-        query="vietnamese lawyer",
-        user_id="user-1",
-        limit=25,
-    )
-    assert result["success"] is True
-    assert result["data"]["count"] == 1
-    assert result["data"]["conversations"][0]["conversation_id"] == "conv-2"
-    assert backend.memory_store.search_conversation_calls == [
-        ("user-1", "vietnamese lawyer", 25, "transcript")
-    ]
 
 
 @pytest.mark.asyncio
@@ -1195,92 +1110,6 @@ async def test_handle_store_memory_rejects_non_string_memory_type():
 
 
 @pytest.mark.asyncio
-async def test_handle_list_conversations_fails_without_store():
-    backend = LocalBackend()
-    backend.memory_store = None
-
-    result = await backend._handle_list_conversations(user_id="user-1")
-    assert result["success"] is False
-    assert result["error"] == "Memory store not initialized"
-
-
-@pytest.mark.asyncio
-async def test_handle_list_conversations_waits_for_memory_store_initialization():
-    backend = LocalBackend()
-    backend.memory_store = None
-    release_initialization = asyncio.Event()
-
-    async def initialize_memory_store():
-        await release_initialization.wait()
-        backend.memory_store = DummyMemoryStore()
-
-    backend._memory_store_init_task = asyncio.create_task(initialize_memory_store())
-    list_task = asyncio.create_task(
-        backend._handle_list_conversations(
-            user_id="user-1",
-            record_kind="transcript",
-        )
-    )
-
-    await asyncio.sleep(0)
-    assert not list_task.done()
-
-    release_initialization.set()
-    result = await list_task
-
-    assert result["success"] is True
-    assert result["data"]["conversations"] == [{"conversation_id": "conv-1"}]
-
-
-@pytest.mark.asyncio
-async def test_handle_list_conversations_allows_unbounded_limit():
-    backend = LocalBackend()
-    backend.memory_store = DummyMemoryStore()
-
-    result = await backend._handle_list_conversations(
-        user_id="user-1",
-        record_kind="transcript",
-    )
-
-    assert result["success"] is True
-    assert result["data"]["conversations"] == [{"conversation_id": "conv-1"}]
-    assert backend.memory_store.list_conversation_calls == [
-        {
-            "user_id": "user-1",
-            "limit": None,
-            "record_kind": "transcript",
-        }
-    ]
-
-
-@pytest.mark.asyncio
-async def test_handle_get_conversation_forwards_after_message_index_cursor():
-    backend = LocalBackend()
-    backend.memory_store = DummyMemoryStore()
-
-    result = await backend._handle_get_conversation(
-        user_id="user-1",
-        conversation_id="conv-1",
-        limit=250,
-        record_kind="transcript",
-        after_message_index=1200,
-    )
-
-    assert result["success"] is True
-    assert result["data"]["conversation_id"] == "conv-1"
-    assert result["data"]["count"] == 1
-    assert backend.memory_store.conversation_calls == [
-        {
-            "user_id": "user-1",
-            "conversation_id": "conv-1",
-            "limit": 250,
-            "record_kind": "transcript",
-            "after_message_index": 1200,
-        }
-    ]
-
-
-@pytest.mark.asyncio
 async def test_handle_delete_episodic_memory_routes_to_store():
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStore()
@@ -1357,48 +1186,6 @@ async def test_handle_clear_chat_history_routes_to_store():
 
 
 @pytest.mark.asyncio
-async def test_handle_store_transcript_success():
-    backend = LocalBackend()
-    backend.memory_store = DummyMemoryStore()
-    backend._summarizer = DummySummarizer()
-
-    result = await backend._handle_store_transcript(
-        content="hello",
-        user_id="user-1",
-        conversation_ref="conv-1",
-        role="assistant",
-        message_type="llm-text",
-        tool_name=None,
-        correlation_id=None,
-        message_index=None,
-        model_id="gpt-test",
-        model_provider="openai",
-        screenshot="base64-shot",
-        timestamp="2024-01-01T00:00:00",
-        transparency={
-            "systemPrompt": "prompt text",
-            "fullAssistantMessage": {"content": "raw assistant"},
-        },
-    )
-
-    assert result["success"] is True
-    assert result["data"]["record_kind"] == "transcript"
-    assert backend.memory_store.added
-    _, _, metadata, conversation_id, kwargs = backend.memory_store.added[-1]
-    assert conversation_id == "conv-1"
-    assert metadata["transparency"] == {
-        "systemPrompt": "prompt text",
-        "fullAssistantMessage": {"content": "raw assistant"},
-    }
-    assert kwargs["model_id"] == "gpt-test"
-    assert kwargs["model_provider"] == "openai"
-    assert kwargs["screenshot"] == "base64-shot"
-    assert kwargs["skip_embedding"] is False
-    assert backend.memory_store.pending_count == 0
-    assert backend._summarizer.notified == []
-
-
-@pytest.mark.asyncio
 async def test_handle_store_chat_event_writes_dedicated_chat_storage():
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStore()
@@ -1462,121 +1249,6 @@ async def test_handle_get_chat_events_reads_dedicated_chat_storage():
 
     assert result["success"] is True
     assert result["data"]["events"] == [{"id": "evt-1", "conversation_id": "conv-chat"}]
-
-
-@pytest.mark.asyncio
-async def test_handle_store_transcript_omits_whitespace_correlation_id():
-    backend = LocalBackend()
-    backend.memory_store = DummyMemoryStore()
-    backend._summarizer = DummySummarizer()
-
-    result = await backend._handle_store_transcript(
-        content="hello",
-        user_id="user-1",
-        conversation_ref="conv-1",
-        role="assistant",
-        message_type="llm-text",
-        correlation_id=" \t ",
-    )
-
-    assert result["success"] is True
-    _, _, metadata, _, kwargs = backend.memory_store.added[-1]
-    assert "correlation_id" not in metadata
-    assert kwargs["correlation_id"] is None
-
-
-@pytest.mark.asyncio
-async def test_handle_store_transcript_skips_non_semantic_candidate():
-    backend = LocalBackend()
-    backend.memory_store = DummyMemoryStore()
-    backend._summarizer = DummySummarizer()
-
-    result = await backend._handle_store_transcript(
-        content='{"name":"run_shell_command"}',
-        user_id="user-1",
-        conversation_ref="conv-1",
-        role="tool",
-        message_type="tool-call",
-    )
-
-    assert result["success"] is True
-    _, _, _, _, kwargs = backend.memory_store.added[-1]
-    assert kwargs["skip_embedding"] is True
-    assert backend.memory_store.pending_count == 0
-    assert backend._summarizer.notified == []
-
-
-@pytest.mark.asyncio
-async def test_handle_store_transcript_user_message_does_not_increment_pending():
-    backend = LocalBackend()
-    backend.memory_store = DummyMemoryStore()
-    backend._summarizer = DummySummarizer()
-
-    result = await backend._handle_store_transcript(
-        content="hello",
-        user_id="user-1",
-        conversation_ref="conv-1",
-        role="user",
-        message_type="user",
-    )
-
-    assert result["success"] is True
-    _, _, _, _, kwargs = backend.memory_store.added[-1]
-    assert kwargs["skip_embedding"] is False
-    assert backend.memory_store.pending_count == 0
-    assert backend._summarizer.notified == []
-
-
-@pytest.mark.asyncio
-async def test_handle_store_transcript_requires_content():
-    backend = LocalBackend()
-    backend.memory_store = DummyMemoryStore()
-
-    result = await backend._handle_store_transcript(content="")
-    assert result["success"] is False
-    assert "Content is required" in result["error"]
-
-
-@pytest.mark.asyncio
-async def test_handle_store_transcript_sanitizes_lone_surrogates_in_content(caplog):
-    backend = LocalBackend()
-    backend.memory_store = DummyMemoryStore()
-    caplog.set_level(logging.WARNING, logger="local_backend_memory_handlers")
-
-    result = await backend._handle_store_transcript(
-        content="bad\udc9dtitle",
-        user_id="user-1",
-        conversation_ref="conv-1",
-        role="assistant",
-        message_type="llm-text",
-    )
-
-    assert result["success"] is True
-    content, _, _, _, _ = backend.memory_store.added[-1]
-    assert content == "bad�title"
-    assert "store_transcript.content" in caplog.text
-
-
-@pytest.mark.asyncio
-async def test_handle_store_transcript_sanitizes_surrogate_in_transparency():
-    backend = LocalBackend()
-    backend.memory_store = DummyMemoryStore()
-
-    result = await backend._handle_store_transcript(
-        content="assistant",
-        user_id="user-1",
-        conversation_ref="conv-1",
-        role="assistant",
-        message_type="llm-text",
-        transparency={
-            "systemPrompt": "bad\udc9dprompt",
-            "fullAssistantMessage": {"content": "ok"},
-        },
-    )
-
-    assert result["success"] is True
-    _, _, metadata, _, _ = backend.memory_store.added[-1]
-    assert metadata["transparency"]["systemPrompt"] == "bad�prompt"
 
 
 @pytest.mark.asyncio

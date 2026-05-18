@@ -158,9 +158,9 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
   INVOKE_CHANNELS: {
     EXECUTE_TOOL: 'execute-tool',
-    GET_CONVERSATION: 'get-conversation',
-    DELETE_CONVERSATION: 'delete-conversation',
-    STORE_TRANSCRIPT: 'store-transcript',
+    GET_CHAT_EVENTS: 'get-chat-events',
+    DELETE_CHAT_CONVERSATION: 'delete-chat-conversation',
+    STORE_CHAT_EVENT: 'store-chat-event',
     CHECK_PERMISSION: 'check-permission',
     REQUEST_PERMISSION: 'request-permission',
     WINDOW_MINIMIZE: 'window-minimize',

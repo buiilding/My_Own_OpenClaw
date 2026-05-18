@@ -53,12 +53,10 @@ async def _insert_memory(db_path: Path, **payload: Any) -> None:
 
 def test_conversation_where_clause_handles_null_and_value():
     assert runtime.conversation_where_clause(None) == ("conversation_id IS NULL", ())
-    assert runtime.conversation_where_clause("conv_1") == ("conversation_id = ?", ("conv_1",))
-
-
-def test_normalize_transcript_window_record_kind_rejects_non_transcript_rows():
-    assert runtime.normalize_transcript_window_record_kind("chat_event") == "transcript"
-    assert runtime.normalize_transcript_window_record_kind("unexpected") == "transcript"
+    assert runtime.conversation_where_clause("conv_1") == (
+        "conversation_id = ?",
+        ("conv_1",),
+    )
 
 
 def test_format_transcript_rows_maps_metadata_and_optional_conversation_id():
@@ -94,96 +92,9 @@ def test_format_transcript_rows_maps_metadata_and_optional_conversation_id():
 
 
 @pytest.mark.asyncio
-async def test_get_next_message_index_for_conversation_returns_incremented_value(tmp_path: Path):
-    db_path = tmp_path / "episodic.db"
-    await init_episodic_schema(db_path)
-
-    await _insert_memory(
-        db_path,
-        id="m1",
-        user_id="user-1",
-        content="hello",
-        timestamp="2026-02-01T00:00:00+00:00",
-        metadata="{}",
-        conversation_id="conv_1",
-        record_kind="transcript",
-        role="user",
-        message_index=2,
-        message_type="llm-text",
-    )
-    await _insert_memory(
-        db_path,
-        id="m2",
-        user_id="user-1",
-        content="world",
-        timestamp="2026-02-01T00:00:01+00:00",
-        metadata="{}",
-        conversation_id="conv_1",
-        record_kind="transcript",
-        role="assistant",
-        message_index=5,
-        message_type="llm-text",
-    )
-
-    next_index = await runtime.get_next_message_index_for_conversation(
-        episodic_db_path=str(db_path),
-        user_id="user-1",
-        conversation_id="conv_1",
-    )
-
-    assert next_index == 6
-
-
-@pytest.mark.asyncio
-async def test_get_episodic_memories_for_conversation_applies_cursor_and_metadata_parse(tmp_path: Path):
-    db_path = tmp_path / "episodic.db"
-    await init_episodic_schema(db_path)
-
-    await _insert_memory(
-        db_path,
-        id="m1",
-        user_id="user-1",
-        content="first",
-        timestamp="2026-02-01T00:00:00+00:00",
-        metadata=json.dumps({"record_kind": "transcript", "role": "user"}),
-        conversation_id="conv_1",
-        record_kind="transcript",
-        role="user",
-        message_index=1,
-        message_type="llm-text",
-    )
-    await _insert_memory(
-        db_path,
-        id="m2",
-        user_id="user-1",
-        content="second",
-        timestamp="2026-02-01T00:00:01+00:00",
-        metadata=json.dumps({"record_kind": "transcript", "role": "assistant"}),
-        conversation_id="conv_1",
-        record_kind="transcript",
-        role="assistant",
-        message_index=2,
-        message_type="llm-text",
-    )
-
-    rows = await runtime.get_episodic_memories_for_conversation(
-        episodic_db_path=str(db_path),
-        user_id="user-1",
-        conversation_id="conv_1",
-        limit=100,
-        record_kind="transcript",
-        after_message_index=1,
-        parse_raw_metadata=lambda raw: json.loads(raw),
-    )
-
-    assert len(rows) == 1
-    assert rows[0]["id"] == "m2"
-    assert rows[0]["message_index"] == 2
-    assert rows[0]["metadata"]["role"] == "assistant"
-
-
-@pytest.mark.asyncio
-async def test_unsemanticized_window_helpers_return_sorted_windows_and_formatted_rows(tmp_path: Path):
+async def test_unsemanticized_window_helpers_return_sorted_windows_and_formatted_rows(
+    tmp_path: Path,
+):
     db_path = tmp_path / "episodic.db"
     await init_episodic_schema(db_path)
 
@@ -226,7 +137,9 @@ async def test_unsemanticized_window_helpers_return_sorted_windows_and_formatted
 
     def _format_rows(rows: List[Any], include_conversation_id: bool):
         assert include_conversation_id is True
-        return [{"id": row["id"], "conversation_id": row["conversation_id"]} for row in rows]
+        return [
+            {"id": row["id"], "conversation_id": row["conversation_id"]} for row in rows
+        ]
 
     rows = await runtime.get_unsemanticized_episodic_memories_by_conversation(
         episodic_db_path=str(db_path),
@@ -338,7 +251,9 @@ async def test_unsemanticized_helpers_mark_and_watermark_cursor_paths(tmp_path: 
 
 
 @pytest.mark.asyncio
-async def test_mark_episodic_memories_semanticized_merges_metadata_patch(tmp_path: Path):
+async def test_mark_episodic_memories_semanticized_merges_metadata_patch(
+    tmp_path: Path,
+):
     db_path = tmp_path / "episodic.db"
     await init_episodic_schema(db_path)
 

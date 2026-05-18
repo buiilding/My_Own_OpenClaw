@@ -158,7 +158,7 @@ async def test_sync_vector_mappings_saves_once_when_backfill_added(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_sync_vector_mappings_backfill_query_skips_non_embeddable_transcript_tool_rows(
+async def test_sync_vector_mappings_backfill_query_embeds_all_missing_memory_rows(
     monkeypatch,
     tmp_path,
 ):
@@ -167,8 +167,7 @@ async def test_sync_vector_mappings_backfill_query_skips_non_embeddable_transcri
 
     db_path = tmp_path / "episodic.db"
     async with local_store_module.aiosqlite.connect(db_path) as conn:
-        await conn.execute(
-            """
+        await conn.execute("""
             CREATE TABLE memories (
                 id TEXT PRIMARY KEY,
                 content TEXT,
@@ -177,8 +176,7 @@ async def test_sync_vector_mappings_backfill_query_skips_non_embeddable_transcri
                 role TEXT,
                 message_type TEXT
             )
-            """
-        )
+            """)
         await conn.executemany(
             """
             INSERT INTO memories (id, content, embedding_id, record_kind, role, message_type)
@@ -189,11 +187,11 @@ async def test_sync_vector_mappings_backfill_query_skips_non_embeddable_transcri
                     "tool-call-1",
                     "tool payload",
                     None,
-                    "transcript",
+                    "memory",
                     "tool",
                     "tool-call",
                 ),
-                ("user-turn-1", "user text", None, "transcript", "user", "llm-text"),
+                ("user-turn-1", "user text", None, "interaction", "user", "llm-text"),
             ],
         )
         await conn.commit()
@@ -244,11 +242,11 @@ async def test_sync_vector_mappings_backfill_query_skips_non_embeddable_transcri
         )
     )
 
-    assert embedded_count == 1
-    assert next_vector_id == 42
-    assert vector_id_to_memory_id == {41: "user-turn-1"}
-    assert memory_id_to_vector_id == {"user-turn-1": 41}
-    assert len(index.vectors) == 1
+    assert embedded_count == 2
+    assert next_vector_id == 43
+    assert vector_id_to_memory_id == {41: "tool-call-1", 42: "user-turn-1"}
+    assert memory_id_to_vector_id == {"tool-call-1": 41, "user-turn-1": 42}
+    assert len(index.vectors) == 2
 
     async with local_store_module.aiosqlite.connect(db_path) as conn:
         cursor = await conn.cursor()
@@ -256,8 +254,8 @@ async def test_sync_vector_mappings_backfill_query_skips_non_embeddable_transcri
         rows = await cursor.fetchall()
 
     assert rows == [
-        ("tool-call-1", None),
-        ("user-turn-1", 41),
+        ("tool-call-1", 41),
+        ("user-turn-1", 42),
     ]
 
 
@@ -270,8 +268,7 @@ async def test_sync_vector_mappings_stops_when_embedding_service_unavailable(
 
     db_path = tmp_path / "episodic.db"
     async with local_store_module.aiosqlite.connect(db_path) as conn:
-        await conn.execute(
-            """
+        await conn.execute("""
             CREATE TABLE memories (
                 id TEXT PRIMARY KEY,
                 content TEXT,
@@ -280,14 +277,13 @@ async def test_sync_vector_mappings_stops_when_embedding_service_unavailable(
                 role TEXT,
                 message_type TEXT
             )
-            """
-        )
+            """)
         await conn.execute(
             """
             INSERT INTO memories (id, content, embedding_id, record_kind, role, message_type)
             VALUES (?, ?, ?, ?, ?, ?)
             """,
-            ("user-turn-1", "user text", None, "transcript", "user", "llm-text"),
+            ("user-turn-1", "user text", None, "interaction", "user", "llm-text"),
         )
         await conn.commit()
 
@@ -376,7 +372,7 @@ async def test_add_stores_without_vector_mapping_when_embedding_unavailable(
 
 
 @pytest.mark.asyncio
-async def test_sync_vector_mappings_backfill_query_skips_nonsemantic_transcript_rows(
+async def test_sync_vector_mappings_backfill_query_embeds_tool_and_assistant_rows(
     monkeypatch,
     tmp_path,
 ):
@@ -385,8 +381,7 @@ async def test_sync_vector_mappings_backfill_query_skips_nonsemantic_transcript_
 
     db_path = tmp_path / "episodic.db"
     async with local_store_module.aiosqlite.connect(db_path) as conn:
-        await conn.execute(
-            """
+        await conn.execute("""
             CREATE TABLE memories (
                 id TEXT PRIMARY KEY,
                 content TEXT,
@@ -395,8 +390,7 @@ async def test_sync_vector_mappings_backfill_query_skips_nonsemantic_transcript_
                 role TEXT,
                 message_type TEXT
             )
-            """
-        )
+            """)
         await conn.executemany(
             """
             INSERT INTO memories (id, content, embedding_id, record_kind, role, message_type)
@@ -407,7 +401,7 @@ async def test_sync_vector_mappings_backfill_query_skips_nonsemantic_transcript_
                     "tool-output",
                     "very long tool payload",
                     None,
-                    "transcript",
+                    "memory",
                     "tool",
                     "tool-output",
                 ),
@@ -415,7 +409,7 @@ async def test_sync_vector_mappings_backfill_query_skips_nonsemantic_transcript_
                     "assistant-turn",
                     "assistant text",
                     None,
-                    "transcript",
+                    "interaction",
                     "assistant",
                     "llm-text",
                 ),
@@ -457,14 +451,14 @@ async def test_sync_vector_mappings_backfill_query_skips_nonsemantic_transcript_
         )
     )
 
-    assert embedded_count == 1
-    assert next_vector_id == 11
-    assert embedded_texts == ["assistant text"]
-    assert vector_id_to_memory_id == {10: "assistant-turn"}
-    assert memory_id_to_vector_id == {"assistant-turn": 10}
+    assert embedded_count == 2
+    assert next_vector_id == 12
+    assert embedded_texts == ["very long tool payload", "assistant text"]
+    assert vector_id_to_memory_id == {10: "tool-output", 11: "assistant-turn"}
+    assert memory_id_to_vector_id == {"tool-output": 10, "assistant-turn": 11}
 
 
-def test_should_embed_episodic_entry_matches_transcript_policy():
+def test_should_embed_episodic_entry_embeds_all_memory_rows():
     assert (
         should_embed_episodic_entry(
             record_kind="memory",
@@ -475,7 +469,7 @@ def test_should_embed_episodic_entry_matches_transcript_policy():
     )
     assert (
         should_embed_episodic_entry(
-            record_kind="transcript",
+            record_kind="memory",
             role="user",
             message_type="user",
         )
@@ -483,7 +477,7 @@ def test_should_embed_episodic_entry_matches_transcript_policy():
     )
     assert (
         should_embed_episodic_entry(
-            record_kind="transcript",
+            record_kind="interaction",
             role="assistant",
             message_type="llm-text",
         )
@@ -491,12 +485,13 @@ def test_should_embed_episodic_entry_matches_transcript_policy():
     )
     assert (
         should_embed_episodic_entry(
-            record_kind="transcript",
+            record_kind="tool_result",
             role="tool",
             message_type="tool-output",
         )
-        is False
+        is True
     )
+
 
 @pytest.mark.asyncio
 async def test_initialize_rebuilds_indices_when_embedding_space_changes(
@@ -647,15 +642,13 @@ async def test_rebuild_index_does_not_reenter_embedding_space_alignment(
 
     db_path = tmp_path / "episodic.db"
     async with local_store_module.aiosqlite.connect(db_path) as conn:
-        await conn.execute(
-            """
+        await conn.execute("""
             CREATE TABLE memories (
                 id TEXT PRIMARY KEY,
                 content TEXT,
                 embedding_id INTEGER
             )
-            """
-        )
+            """)
         await conn.executemany(
             """
             INSERT INTO memories (id, content, embedding_id)

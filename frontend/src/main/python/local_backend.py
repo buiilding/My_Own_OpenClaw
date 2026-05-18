@@ -157,23 +157,13 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
         self.protocol.register_method("search_memory", self._handle_search_memory)
         self.protocol.register_method("store_memory", self._handle_store_memory)
         self.protocol.register_method(
-            "search_conversations", self._handle_search_conversations
-        )
-        self.protocol.register_method(
-            "list_conversations", self._handle_list_conversations
-        )
-        self.protocol.register_method(
             "list_episodic_memories", self._handle_list_episodic_memories
         )
-        self.protocol.register_method("get_conversation", self._handle_get_conversation)
         self.protocol.register_method(
             "list_semantic_memories", self._handle_list_semantic_memories
         )
         self.protocol.register_method(
             "delete_episodic_memory", self._handle_delete_episodic_memory
-        )
-        self.protocol.register_method(
-            "delete_conversation", self._handle_delete_conversation
         )
         self.protocol.register_method(
             "delete_semantic_memory", self._handle_delete_semantic_memory
@@ -195,7 +185,6 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
         self.protocol.register_method(
             "delete_chat_conversation", self._handle_delete_chat_conversation
         )
-        self.protocol.register_method("store_transcript", self._handle_store_transcript)
 
         # Health check and diagnostics
         self.protocol.register_method("ping", self._handle_ping)
@@ -474,7 +463,9 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
             if self.tool_registry:
                 status["registered_tools"] = list(self.tool_registry.tools.keys())
                 status["tool_count"] = len(self.tool_registry.tools)
-                get_tool_manifest = getattr(self.tool_registry, "get_tool_manifest", None)
+                get_tool_manifest = getattr(
+                    self.tool_registry, "get_tool_manifest", None
+                )
                 if callable(get_tool_manifest):
                     status["tool_manifest"] = get_tool_manifest()
 

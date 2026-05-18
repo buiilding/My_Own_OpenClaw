@@ -85,7 +85,7 @@ export function buildRehydrateSnapshotFromTranscriptProjectionEntries({
     correlation_id: entry.correlationId || null,
     screenshot: entry.screenshot ?? null,
     timestamp: entry.timestamp || null,
-    record_kind: 'transcript',
+    record_kind: CHAT_EVENT_RECORD_KIND,
     message_index: index + 1,
   }));
   return buildRehydrateSnapshot(

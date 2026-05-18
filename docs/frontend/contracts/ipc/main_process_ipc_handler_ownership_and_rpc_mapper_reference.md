@@ -147,16 +147,16 @@ Direct `ipcMain.handle`:
 
 Mapped `ipcMain.handle` registrations via `registerMappedRpcHandlers(...)`:
 
-- `search-conversations`
-- `list-conversations`
+- `search-chat-conversations`
+- `list-chat-conversations`
 - `list-episodic-memories`
-- `get-conversation`
+- `get-chat-events`
 - `list-semantic-memories`
 - `delete-episodic-memory`
-- `delete-conversation`
+- `delete-chat-conversation`
 - `delete-semantic-memory`
 - `store-memory`
-- `store-transcript`
+- `store-chat-event`
 
 Notable behavior:
 
@@ -201,9 +201,9 @@ Examples of non-trivial mappings:
 
 - `search-memory`:
   - `exclude_conversation_id` accepts fallback keys `excludeConversationId` or `exclude_conversation_id`
-- `get-conversation` and `delete-conversation`:
+- `get-chat-events` and `delete-chat-conversation`:
   - `conversation_id` derived from `conversationId` with explicit `null` fallback
-- `store-transcript`:
+- `store-chat-event`:
   - maps renderer camelCase keys into backend snake_case fields (`conversation_ref`, `message_type`, `tool_name`, etc.)
 
 Mapper behavior:

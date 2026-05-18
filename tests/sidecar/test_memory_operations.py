@@ -149,7 +149,9 @@ def test_normalize_search_memory_selection_returns_balanced_settings():
         ),
     ],
 )
-def test_normalize_search_memory_selection_rejects_invalid_values(kwargs, expected_error):
+def test_normalize_search_memory_selection_rejects_invalid_values(
+    kwargs, expected_error
+):
     normalized, error = normalize_search_memory_selection(**kwargs)
 
     assert normalized is None
@@ -361,143 +363,76 @@ async def test_normalize_and_store_completed_turn_memory_sanitizes_lone_surrogat
 
 
 def test_group_memory_texts_prefers_user_assistant_interactions_for_episodic():
-    grouped = group_memory_texts([
-        {
-            "type": "episodic",
-            "text": "single transcript row",
-            "metadata": {"record_kind": "transcript"},
-        },
-        {
-            "type": "episodic",
-            "text": "User: plan trip\nAssistant: Start with flights",
-            "metadata": {"source": "interaction_completed"},
-        },
-        {
-            "type": "semantic",
-            "text": "User prefers aisle seats",
-        },
-    ])
+    grouped = group_memory_texts(
+        [
+            {
+                "type": "episodic",
+                "text": "single memory row",
+                "metadata": {"record_kind": "memory"},
+            },
+            {
+                "type": "episodic",
+                "text": "User: plan trip\nAssistant: Start with flights",
+                "metadata": {"source": "interaction_completed"},
+            },
+            {
+                "type": "semantic",
+                "text": "User prefers aisle seats",
+            },
+        ]
+    )
 
     assert grouped["episodic"] == ["User: plan trip\nAssistant: Start with flights"]
     assert grouped["semantic"] == ["User prefers aisle seats"]
 
 
 def test_is_durable_semantic_text_rejects_low_signal_semantic_summary():
-    assert is_durable_semantic_text(
-        """Summary: This is a brief, casual greeting exchange.
+    assert (
+        is_durable_semantic_text("""Summary: This is a brief, casual greeting exchange.
 Facts:
 - No user preferences stated
 - No key facts about the user revealed
 - User has Finder open showing the Applications folder (ephemeral context)
-"""
-    ) is False
+""") is False
+    )
 
 
 def test_group_memory_texts_drops_low_signal_semantic_rows():
-    grouped = group_memory_texts([
-        {
-            "type": "semantic",
-            "text": """Summary: This is a brief, casual greeting exchange.
+    grouped = group_memory_texts(
+        [
+            {
+                "type": "semantic",
+                "text": """Summary: This is a brief, casual greeting exchange.
 Facts:
 - No user preferences stated
 - User initiated contact with a casual greeting
 """,
-        },
-        {
-            "type": "semantic",
-            "text": """Summary: The user asked for their account details.
+            },
+            {
+                "type": "semantic",
+                "text": """Summary: The user asked for their account details.
 Facts:
 - User's name is Peter Tuan Anh Bui
 - User's email is peterbuics@gmail.com
 """,
-        },
-    ])
+            },
+        ]
+    )
 
-    assert grouped["semantic"] == [
-        """Summary: The user asked for their account details.
+    assert grouped["semantic"] == ["""Summary: The user asked for their account details.
 Facts:
 - User's name is Peter Tuan Anh Bui
 - User's email is peterbuics@gmail.com
-"""
-    ]
+"""]
 
 
 def test_group_memory_texts_falls_back_when_no_interaction_style_episodic_rows():
-    grouped = group_memory_texts([
-        {"type": "episodic", "text": "recent note"},
-        {"type": "semantic", "text": "works in short bursts"},
-    ])
+    grouped = group_memory_texts(
+        [
+            {"type": "episodic", "text": "recent note"},
+            {"type": "semantic", "text": "works in short bursts"},
+        ]
+    )
 
     assert grouped["episodic"] == ["recent note"]
     assert grouped["semantic"] == ["works in short bursts"]
-
-
-def test_group_memory_texts_synthesizes_transcript_user_assistant_pairs():
-    grouped = group_memory_texts([
-        {
-            "type": "episodic",
-            "text": "Assistant confirms booking details",
-            "record_kind": "transcript",
-            "conversation_id": "conv-1",
-            "role": "assistant",
-            "message_index": 2,
-        },
-        {
-            "type": "episodic",
-            "text": "Book me a table for 2",
-            "record_kind": "transcript",
-            "conversation_id": "conv-1",
-            "role": "user",
-            "message_index": 1,
-        },
-        {
-            "type": "episodic",
-            "text": "Need vegetarian options",
-            "record_kind": "transcript",
-            "conversation_id": "conv-2",
-            "role": "user",
-            "message_index": 1,
-        },
-        {
-            "type": "episodic",
-            "text": "Assistant shares vegetarian restaurants",
-            "record_kind": "transcript",
-            "conversation_id": "conv-2",
-            "role": "assistant",
-            "message_index": 2,
-        },
-    ])
-
-    assert grouped["episodic"] == [
-        "User: Book me a table for 2\nAssistant: Assistant confirms booking details",
-        "User: Need vegetarian options\nAssistant: Assistant shares vegetarian restaurants",
-    ]
-
-
-def test_group_memory_texts_transcript_fallback_uses_metadata_fields():
-    grouped = group_memory_texts([
-        {
-            "type": "episodic",
-            "text": "Can you summarize yesterday?",
-            "metadata": {
-                "record_kind": "transcript",
-                "conversation_id": "conv-3",
-                "role": "user",
-                "message_index": 1,
-            },
-        },
-        {
-            "type": "episodic",
-            "text": "Sure, here is a summary.",
-            "metadata": {
-                "record_kind": "transcript",
-                "conversation_id": "conv-3",
-                "role": "assistant",
-                "message_index": 2,
-            },
-        },
-    ])
-
-    assert grouped["episodic"] == [
-        "User: Can you summarize yesterday?\nAssistant: Sure, here is a summary."
-    ]

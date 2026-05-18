@@ -9,10 +9,12 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 ensure_frontend_python_path()
 
 from memory.local_store import LocalMemoryStore  # noqa: E402
-from memory.chat_event_store import append_chat_event, init_chat_event_schema  # noqa: E402
+from memory.chat_event_store import (
+    append_chat_event,
+    init_chat_event_schema,
+)  # noqa: E402
 from memory.record_kinds import (  # noqa: E402
     INTERACTION_RECORD_KIND,
-    TRANSCRIPT_RECORD_KIND,
 )
 
 try:
@@ -37,7 +39,9 @@ class _FailOnEmbedder:
         return 8
 
     async def embed_text(self, text: str):
-        raise AssertionError("search should not call embedder when no indices are searchable")
+        raise AssertionError(
+            "search should not call embedder when no indices are searchable"
+        )
 
 
 class _WatermarkStoreStub:
@@ -72,22 +76,19 @@ def _build_store(tmp_path: Path) -> LocalMemoryStore:
 
 def _create_semantic_memories_table(db_path: Path) -> None:
     with sqlite3.connect(db_path) as conn:
-        conn.execute(
-            """
+        conn.execute("""
             CREATE TABLE memories (
                 id TEXT PRIMARY KEY,
                 user_id TEXT,
                 embedding_id INTEGER
             )
-            """
-        )
+            """)
         conn.commit()
 
 
 def _create_episodic_memories_table(db_path: Path) -> None:
     with sqlite3.connect(db_path) as conn:
-        conn.execute(
-            """
+        conn.execute("""
             CREATE TABLE memories (
                 id TEXT PRIMARY KEY,
                 user_id TEXT,
@@ -95,10 +96,8 @@ def _create_episodic_memories_table(db_path: Path) -> None:
                 conversation_id TEXT,
                 record_kind TEXT
             )
-            """
-        )
-        conn.execute(
-            """
+            """)
+        conn.execute("""
             CREATE TABLE conversation_titles (
                 user_id TEXT NOT NULL,
                 conversation_id TEXT NOT NULL,
@@ -109,15 +108,13 @@ def _create_episodic_memories_table(db_path: Path) -> None:
                 updated_at TEXT NOT NULL,
                 PRIMARY KEY (user_id, conversation_id)
             )
-            """
-        )
+            """)
         conn.commit()
 
 
 def _create_bulk_clear_episodic_memories_table(db_path: Path) -> None:
     with sqlite3.connect(db_path) as conn:
-        conn.execute(
-            """
+        conn.execute("""
             CREATE TABLE memories (
                 id TEXT PRIMARY KEY,
                 user_id TEXT,
@@ -128,10 +125,8 @@ def _create_bulk_clear_episodic_memories_table(db_path: Path) -> None:
                 role TEXT,
                 message_type TEXT
             )
-            """
-        )
-        conn.execute(
-            """
+            """)
+        conn.execute("""
             CREATE TABLE conversation_titles (
                 user_id TEXT NOT NULL,
                 conversation_id TEXT NOT NULL,
@@ -142,45 +137,39 @@ def _create_bulk_clear_episodic_memories_table(db_path: Path) -> None:
                 updated_at TEXT NOT NULL,
                 PRIMARY KEY (user_id, conversation_id)
             )
-            """
-        )
+            """)
         conn.commit()
 
 
 def _create_rebuild_memories_table(db_path: Path) -> None:
     with sqlite3.connect(db_path) as conn:
-        conn.execute(
-            """
+        conn.execute("""
             CREATE TABLE memories (
                 id TEXT PRIMARY KEY,
                 user_id TEXT,
                 content TEXT,
                 embedding_id INTEGER
             )
-            """
-        )
+            """)
         conn.commit()
 
 
 def _create_bulk_clear_semantic_memories_table(db_path: Path) -> None:
     with sqlite3.connect(db_path) as conn:
-        conn.execute(
-            """
+        conn.execute("""
             CREATE TABLE memories (
                 id TEXT PRIMARY KEY,
                 user_id TEXT,
                 content TEXT,
                 embedding_id INTEGER
             )
-            """
-        )
+            """)
         conn.commit()
 
 
 def _create_unprocessed_memories_table(db_path: Path) -> None:
     with sqlite3.connect(db_path) as conn:
-        conn.execute(
-            """
+        conn.execute("""
             CREATE TABLE memories (
                 id TEXT PRIMARY KEY,
                 user_id TEXT,
@@ -194,8 +183,7 @@ def _create_unprocessed_memories_table(db_path: Path) -> None:
                 tool_name TEXT,
                 is_semanticized INTEGER
             )
-            """
-        )
+            """)
         conn.commit()
 
 
@@ -261,10 +249,12 @@ async def test_list_episodic_memories_returns_interaction_rows_only(tmp_path: Pa
                     "user-1",
                     "User: keep this\nAssistant: yes",
                     "2026-04-15T21:44:00Z",
-                    json.dumps({
-                        "record_kind": INTERACTION_RECORD_KIND,
-                        "source": "interaction_completed",
-                    }),
+                    json.dumps(
+                        {
+                            "record_kind": INTERACTION_RECORD_KIND,
+                            "source": "interaction_completed",
+                        }
+                    ),
                     "conv-1",
                     INTERACTION_RECORD_KIND,
                     "assistant",
@@ -273,13 +263,13 @@ async def test_list_episodic_memories_returns_interaction_rows_only(tmp_path: Pa
                     0,
                 ),
                 (
-                    "transcript-1",
+                    "raw-memory-1",
                     "user-1",
-                    "raw transcript",
+                    "raw memory row",
                     "2026-04-15T21:43:00Z",
-                    json.dumps({"record_kind": TRANSCRIPT_RECORD_KIND, "role": "user"}),
+                    json.dumps({"record_kind": "memory", "role": "user"}),
                     "conv-1",
-                    TRANSCRIPT_RECORD_KIND,
+                    "memory",
                     "user",
                     "user",
                     None,
@@ -341,41 +331,9 @@ async def test_delete_episodic_memory_clears_faiss_artifacts_when_empty(tmp_path
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(faiss is None, reason="faiss is required")
-async def test_delete_episodic_memory_ignores_transcript_rows(tmp_path: Path):
-    store = _build_store(tmp_path)
-    _create_episodic_memories_table(store.episodic_db_path)
-
-    with sqlite3.connect(store.episodic_db_path) as conn:
-        conn.execute(
-            """
-            INSERT INTO memories (id, user_id, embedding_id, conversation_id, record_kind)
-            VALUES (?, ?, ?, ?, ?)
-            """,
-            ("transcript-1", "user-1", 0, "conv-1", TRANSCRIPT_RECORD_KIND),
-        )
-        conn.commit()
-
-    store.episodic_memory_id_to_vector_id = {"transcript-1": 0}
-    store.episodic_vector_id_to_memory_id = {0: "transcript-1"}
-    store.episodic_next_vector_id = 1
-    store.episodic_index = faiss.IndexFlatIP(store.embedder.dimension)
-
-    deleted = await store.delete_episodic_memory("user-1", "transcript-1")
-
-    assert deleted is False
-    assert store.episodic_memory_id_to_vector_id == {"transcript-1": 0}
-    assert store.episodic_vector_id_to_memory_id == {0: "transcript-1"}
-
-    with sqlite3.connect(store.episodic_db_path) as conn:
-        remaining_rows = conn.execute(
-            "SELECT id, record_kind FROM memories ORDER BY id"
-        ).fetchall()
-    assert remaining_rows == [("transcript-1", TRANSCRIPT_RECORD_KIND)]
-
-
-@pytest.mark.asyncio
-@pytest.mark.skipif(faiss is None, reason="faiss is required")
-async def test_clear_local_memory_preserves_transcript_rows_and_rebuilds_indices(tmp_path: Path):
+async def test_clear_local_memory_preserves_non_interaction_rows_and_rebuilds_indices(
+    tmp_path: Path,
+):
     store = _build_store(tmp_path)
     _create_bulk_clear_episodic_memories_table(store.episodic_db_path)
     _create_bulk_clear_semantic_memories_table(store.semantic_db_path)
@@ -399,12 +357,12 @@ async def test_clear_local_memory_preserves_transcript_rows_and_rebuilds_indices
                     "llm-text",
                 ),
                 (
-                    "transcript-1",
+                    "raw-memory-1",
                     "user-1",
-                    "chat transcript",
+                    "raw memory row",
                     1,
                     "conv-1",
-                    TRANSCRIPT_RECORD_KIND,
+                    "memory",
                     "user",
                     "user",
                 ),
@@ -430,7 +388,9 @@ async def test_clear_local_memory_preserves_transcript_rows_and_rebuilds_indices
         )
     )
     store.semantic_index = faiss.IndexFlatIP(store.embedder.dimension)
-    store.semantic_index.add(np.full((1, store.embedder.dimension), 3.0, dtype=np.float32))
+    store.semantic_index.add(
+        np.full((1, store.embedder.dimension), 3.0, dtype=np.float32)
+    )
     store._watermark_store = _WatermarkStoreStub()
 
     result = await store.clear_local_memory("user-1")
@@ -456,17 +416,21 @@ async def test_clear_local_memory_preserves_transcript_rows_and_rebuilds_indices
             "SELECT id, record_kind, embedding_id FROM memories ORDER BY id"
         ).fetchall()
     assert remaining_rows == [
-        ("transcript-1", TRANSCRIPT_RECORD_KIND, 0),
+        ("raw-memory-1", "memory", 0),
     ]
 
     with sqlite3.connect(store.semantic_db_path) as conn:
-        remaining_semantic_rows = conn.execute("SELECT COUNT(*) FROM memories").fetchone()[0]
+        remaining_semantic_rows = conn.execute(
+            "SELECT COUNT(*) FROM memories"
+        ).fetchone()[0]
     assert remaining_semantic_rows == 0
 
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(faiss is None, reason="faiss is required")
-async def test_clear_chat_history_preserves_memory_rows_and_titles_are_removed(tmp_path: Path):
+async def test_clear_chat_history_preserves_memory_rows_and_titles_are_removed(
+    tmp_path: Path,
+):
     store = _build_store(tmp_path)
     _create_bulk_clear_episodic_memories_table(store.episodic_db_path)
     await init_chat_event_schema(str(store.episodic_db_path))
@@ -479,8 +443,16 @@ async def test_clear_chat_history_preserves_memory_rows_and_titles_are_removed(t
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
             [
-                ("interaction-1", "user-1", "episodic memory", 0, "conv-1", "interaction", "assistant", "llm-text"),
-                ("transcript-1", "user-1", "chat transcript", 1, "conv-1", "transcript", "user", "user"),
+                (
+                    "interaction-1",
+                    "user-1",
+                    "episodic memory",
+                    0,
+                    "conv-1",
+                    "interaction",
+                    "assistant",
+                    "llm-text",
+                ),
             ],
         )
         conn.execute(
@@ -489,7 +461,15 @@ async def test_clear_chat_history_preserves_memory_rows_and_titles_are_removed(t
                 user_id, conversation_id, title, source, is_locked, created_at, updated_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-            ("user-1", "conv-1", "Saved title", "heuristic", 0, "2026-03-11T00:00:00+00:00", "2026-03-11T00:00:00+00:00"),
+            (
+                "user-1",
+                "conv-1",
+                "Saved title",
+                "heuristic",
+                0,
+                "2026-03-11T00:00:00+00:00",
+                "2026-03-11T00:00:00+00:00",
+            ),
         )
         conn.commit()
     await append_chat_event(
@@ -540,12 +520,12 @@ async def test_clear_chat_history_preserves_memory_rows_and_titles_are_removed(t
     result = await store.clear_chat_history("user-1")
 
     assert result == {
-        "deleted_count": 2,
+        "deleted_count": 1,
         "deleted_title_count": 1,
     }
-    assert cancel_calls == ["called"]
+    assert cancel_calls == []
     assert store.episodic_index is not None
-    assert store.episodic_index.ntotal == 1
+    assert store.episodic_index.ntotal == 2
 
     with sqlite3.connect(store.episodic_db_path) as conn:
         remaining_rows = conn.execute(
@@ -556,56 +536,6 @@ async def test_clear_chat_history_preserves_memory_rows_and_titles_are_removed(t
         ).fetchone()[0]
     assert remaining_rows == [("interaction-1", "interaction", 0)]
     assert remaining_titles == 0
-
-
-@pytest.mark.asyncio
-@pytest.mark.skipif(faiss is None, reason="faiss is required")
-@pytest.mark.parametrize(
-    ("memory_id", "embedding_id", "conversation_id"),
-    [
-        ("episodic-1", 3, "conv-1"),
-        ("episodic-null", 5, None),
-    ],
-    ids=["conversation-id", "null-conversation-id"],
-)
-async def test_delete_conversation_clears_faiss_artifacts_when_empty(
-    tmp_path: Path,
-    memory_id: str,
-    embedding_id: int,
-    conversation_id: str | None,
-):
-    store = _build_store(tmp_path)
-    _create_episodic_memories_table(store.episodic_db_path)
-
-    with sqlite3.connect(store.episodic_db_path) as conn:
-        conn.execute(
-            """
-            INSERT INTO memories (id, user_id, embedding_id, conversation_id, record_kind)
-            VALUES (?, ?, ?, ?, ?)
-            """,
-            (memory_id, "user-1", embedding_id, conversation_id, "transcript"),
-        )
-        conn.commit()
-
-    store.episodic_memory_id_to_vector_id = {memory_id: embedding_id}
-    store.episodic_vector_id_to_memory_id = {embedding_id: memory_id}
-    store.episodic_next_vector_id = 10
-    store.episodic_index = faiss.IndexFlatIP(store.embedder.dimension)
-    store.episodic_index_path.write_bytes(b"stale-index")
-
-    deleted_count = await store.delete_conversation(
-        user_id="user-1",
-        conversation_id=conversation_id,
-        record_kind="transcript",
-    )
-
-    assert deleted_count == 1
-    assert store.episodic_memory_id_to_vector_id == {}
-    assert store.episodic_vector_id_to_memory_id == {}
-    assert store.episodic_next_vector_id == 0
-    assert store.episodic_index is not None
-    assert store.episodic_index.ntotal == 0
-    assert store.episodic_index_path.exists() is False
 
 
 @pytest.mark.asyncio

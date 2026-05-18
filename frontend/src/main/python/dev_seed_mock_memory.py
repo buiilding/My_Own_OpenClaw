@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Seed deterministic mock episodic + semantic memory for dashboard demos."""
+"""Seed deterministic mock chat events plus episodic and semantic memory for demos."""
 
 from __future__ import annotations
 
@@ -225,11 +225,14 @@ def _target_user_ids() -> List[str]:
 
 
 def _iso_timestamp(offset_days: int = 0, offset_minutes: int = 0) -> str:
-    now = datetime.now(timezone.utc)
-    return (now - timedelta(days=offset_days, minutes=offset_minutes)).isoformat()
+    return (
+        datetime.now(timezone.utc) - timedelta(days=offset_days, minutes=offset_minutes)
+    ).isoformat()
 
 
-def _ensure_column(cursor: sqlite3.Cursor, table: str, column: str, definition: str) -> None:
+def _ensure_column(
+    cursor: sqlite3.Cursor, table: str, column: str, definition: str
+) -> None:
     rows = cursor.execute(f"PRAGMA table_info({table})").fetchall()
     existing = {row[1] for row in rows}
     if column not in existing:
@@ -238,8 +241,7 @@ def _ensure_column(cursor: sqlite3.Cursor, table: str, column: str, definition: 
 
 def _ensure_episodic_schema(conn: sqlite3.Connection) -> None:
     cursor = conn.cursor()
-    cursor.execute(
-        """
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS memories (
             id TEXT PRIMARY KEY,
             user_id TEXT NOT NULL,
@@ -260,10 +262,8 @@ def _ensure_episodic_schema(conn: sqlite3.Connection) -> None:
             model_provider TEXT,
             screenshot TEXT
         )
-        """
-    )
-    cursor.execute(
-        """
+        """)
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS conversation_titles (
             user_id TEXT NOT NULL,
             conversation_id TEXT NOT NULL,
@@ -274,100 +274,80 @@ def _ensure_episodic_schema(conn: sqlite3.Connection) -> None:
             updated_at TEXT NOT NULL,
             PRIMARY KEY (user_id, conversation_id)
         )
-        """
-    )
+        """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS chat_events (
+            id TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL,
+            conversation_id TEXT,
+            event_type TEXT NOT NULL,
+            role TEXT,
+            content TEXT,
+            timestamp TEXT NOT NULL,
+            message_index INTEGER NOT NULL,
+            revision_id TEXT,
+            turn_ref TEXT,
+            tool_name TEXT,
+            correlation_id TEXT,
+            workspace_path TEXT,
+            workspace_name TEXT,
+            metadata TEXT,
+            attachments TEXT,
+            event_payload TEXT NOT NULL,
+            compaction_checkpoint TEXT
+        )
+        """)
 
-    _ensure_column(cursor, "memories", "is_semanticized", "INTEGER DEFAULT 0")
-    _ensure_column(cursor, "memories", "conversation_id", "TEXT")
-    _ensure_column(cursor, "memories", "record_kind", "TEXT DEFAULT 'memory'")
-    _ensure_column(cursor, "memories", "role", "TEXT")
-    _ensure_column(cursor, "memories", "message_index", "INTEGER")
-    _ensure_column(cursor, "memories", "message_type", "TEXT")
-    _ensure_column(cursor, "memories", "tool_name", "TEXT")
-    _ensure_column(cursor, "memories", "correlation_id", "TEXT")
-    _ensure_column(cursor, "memories", "model_id", "TEXT")
-    _ensure_column(cursor, "memories", "model_provider", "TEXT")
-    _ensure_column(cursor, "memories", "screenshot", "TEXT")
+    for column, definition in (
+        ("is_semanticized", "INTEGER DEFAULT 0"),
+        ("conversation_id", "TEXT"),
+        ("record_kind", "TEXT DEFAULT 'memory'"),
+        ("role", "TEXT"),
+        ("message_index", "INTEGER"),
+        ("message_type", "TEXT"),
+        ("tool_name", "TEXT"),
+        ("correlation_id", "TEXT"),
+        ("model_id", "TEXT"),
+        ("model_provider", "TEXT"),
+        ("screenshot", "TEXT"),
+    ):
+        _ensure_column(cursor, "memories", column, definition)
 
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_id ON memories(user_id)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_timestamp ON memories(timestamp)")
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_embedding_id ON memories(embedding_id)")
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_is_semanticized ON memories(is_semanticized)")
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_conversation_id ON memories(conversation_id)")
     cursor.execute(
-        "CREATE INDEX IF NOT EXISTS idx_conversation_semanticized ON memories(conversation_id, is_semanticized)"
+        "CREATE INDEX IF NOT EXISTS idx_embedding_id ON memories(embedding_id)"
     )
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_record_kind ON memories(record_kind)")
+    cursor.execute(
+        "CREATE INDEX IF NOT EXISTS idx_is_semanticized ON memories(is_semanticized)"
+    )
+    cursor.execute(
+        "CREATE INDEX IF NOT EXISTS idx_conversation_id ON memories(conversation_id)"
+    )
+    cursor.execute(
+        "CREATE INDEX IF NOT EXISTS idx_record_kind ON memories(record_kind)"
+    )
     cursor.execute(
         "CREATE INDEX IF NOT EXISTS idx_conversation_message_index ON memories(conversation_id, message_index)"
     )
-    cursor.execute(
-        "CREATE INDEX IF NOT EXISTS idx_conversation_titles_updated_at ON conversation_titles(updated_at)"
-    )
-
-    # Best effort FTS mirror for search chats lexical mode.
-    try:
-        cursor.execute(
-            """
-            CREATE VIRTUAL TABLE IF NOT EXISTS transcript_fts
-            USING fts5(content, content='memories', content_rowid='rowid')
-            """
-        )
-        cursor.execute(
-            """
-            CREATE TRIGGER IF NOT EXISTS transcript_fts_insert
-            AFTER INSERT ON memories
-            WHEN NEW.record_kind = 'transcript'
-              AND NEW.content IS NOT NULL
-              AND NEW.content != ''
-            BEGIN
-                INSERT INTO transcript_fts(rowid, content)
-                VALUES (NEW.rowid, NEW.content);
-            END
-            """
-        )
-        cursor.execute(
-            """
-            CREATE TRIGGER IF NOT EXISTS transcript_fts_delete
-            AFTER DELETE ON memories
-            WHEN OLD.record_kind = 'transcript'
-              AND OLD.content IS NOT NULL
-              AND OLD.content != ''
-            BEGIN
-                INSERT INTO transcript_fts(transcript_fts, rowid, content)
-                VALUES ('delete', OLD.rowid, OLD.content);
-            END
-            """
-        )
-        cursor.execute(
-            """
-            CREATE TRIGGER IF NOT EXISTS transcript_fts_update
-            AFTER UPDATE ON memories
-            WHEN (
-                OLD.record_kind = 'transcript'
-                OR NEW.record_kind = 'transcript'
-            )
-            BEGIN
-                INSERT INTO transcript_fts(transcript_fts, rowid, content)
-                VALUES ('delete', OLD.rowid, OLD.content);
-                INSERT INTO transcript_fts(rowid, content)
-                SELECT NEW.rowid, NEW.content
-                WHERE NEW.record_kind = 'transcript'
-                  AND NEW.content IS NOT NULL
-                  AND NEW.content != '';
-            END
-            """
-        )
-    except sqlite3.OperationalError:
-        pass
-
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_chat_events_conversation_order
+        ON chat_events(user_id, conversation_id, message_index, timestamp)
+        """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_chat_events_timestamp
+        ON chat_events(user_id, timestamp)
+        """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_chat_events_type
+        ON chat_events(user_id, conversation_id, event_type)
+        """)
     conn.commit()
 
 
 def _ensure_semantic_schema(conn: sqlite3.Connection) -> None:
     cursor = conn.cursor()
-    cursor.execute(
-        """
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS memories (
             id TEXT PRIMARY KEY,
             user_id TEXT NOT NULL,
@@ -377,22 +357,13 @@ def _ensure_semantic_schema(conn: sqlite3.Connection) -> None:
             embedding_id INTEGER,
             created_at REAL DEFAULT (strftime('%s', 'now'))
         )
-        """
-    )
+        """)
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_id ON memories(user_id)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_timestamp ON memories(timestamp)")
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_embedding_id ON memories(embedding_id)")
+    cursor.execute(
+        "CREATE INDEX IF NOT EXISTS idx_embedding_id ON memories(embedding_id)"
+    )
     conn.commit()
-
-
-def _derive_title(first_user_message: str) -> str:
-    text = " ".join((first_user_message or "").strip().split())
-    if not text:
-        return "New conversation"
-    text = text.rstrip(".!?")
-    if len(text) <= 56:
-        return text
-    return f"{text[:53].rstrip()}..."
 
 
 def _clear_existing_mock_data(
@@ -403,11 +374,10 @@ def _clear_existing_mock_data(
     episodic_cursor = episodic_conn.cursor()
     semantic_cursor = semantic_conn.cursor()
 
-    transcript_deleted = episodic_cursor.execute(
+    chat_deleted = episodic_cursor.execute(
         """
-        DELETE FROM memories
+        DELETE FROM chat_events
         WHERE user_id = ?
-          AND record_kind = 'transcript'
           AND conversation_id LIKE 'conv_mock_%'
         """,
         (user_id,),
@@ -424,7 +394,6 @@ def _clear_existing_mock_data(
         """
         DELETE FROM memories
         WHERE user_id = ?
-          AND COALESCE(record_kind, '') != 'transcript'
           AND metadata LIKE ?
         """,
         (user_id, f'%"source": "{MOCK_SOURCE}"%'),
@@ -441,106 +410,104 @@ def _clear_existing_mock_data(
     episodic_conn.commit()
     semantic_conn.commit()
     return {
-        "transcript_rows": int(transcript_deleted or 0),
+        "chat_event_rows": int(chat_deleted or 0),
         "episodic_rows": int(episodic_deleted or 0),
         "semantic_rows": int(semantic_deleted or 0),
     }
 
 
-def _insert_transcript_rows(conn: sqlite3.Connection, user_id: str) -> int:
+def _message_event_type(message: Dict[str, Any]) -> str:
+    if message["role"] == "user":
+        return "user_message"
+    if message["role"] == "tool" or message["message_type"] == "tool-output":
+        return "tool_output"
+    if message["message_type"] == "tool-call":
+        return "tool_call"
+    return "assistant_message"
+
+
+def _insert_chat_event_rows(conn: sqlite3.Connection, user_id: str) -> int:
     cursor = conn.cursor()
     inserted = 0
-    now_iso = datetime.now(timezone.utc).isoformat()
 
     for conversation in MOCK_CONVERSATIONS:
         conversation_id = conversation["conversation_id"]
-        first_user_text = ""
+        revision_id = f"rev-mock-{conversation_id}"
         for index, message in enumerate(conversation["messages"]):
-            if message["role"] == "user" and not first_user_text:
-                first_user_text = message["text"]
+            timestamp = _iso_timestamp(
+                offset_days=message.get("offset_days", 0),
+                offset_minutes=message.get("offset_minutes", 0),
+            )
+            event_id = str(uuid.uuid4())
+            event_type = _message_event_type(message)
             metadata = {
-                "type": "episodic",
                 "source": MOCK_SOURCE,
-                "record_kind": "transcript",
+                "record_kind": "chat_event",
                 "conversation_id": conversation_id,
                 "role": message["role"],
                 "message_type": message["message_type"],
+                "model_id": conversation["model_id"],
+                "model_provider": conversation["model_provider"],
+            }
+            event_payload = {
+                "eventId": event_id,
+                "type": event_type,
+                "conversationRef": conversation_id,
+                "revisionId": revision_id,
+                "timestamp": timestamp,
+                "source": "sdk",
+                "payload": {
+                    "text": message["text"],
+                    "content": message["text"],
+                    "role": message["role"],
+                    "messageType": message["message_type"],
+                },
             }
             cursor.execute(
                 """
-                INSERT INTO memories (
+                INSERT INTO chat_events (
                     id,
                     user_id,
+                    conversation_id,
+                    event_type,
+                    role,
                     content,
                     timestamp,
-                    metadata,
-                    embedding_id,
-                    is_semanticized,
-                    conversation_id,
-                    record_kind,
-                    role,
                     message_index,
-                    message_type,
+                    revision_id,
+                    turn_ref,
                     tool_name,
                     correlation_id,
-                    model_id,
-                    model_provider,
-                    screenshot
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    workspace_path,
+                    workspace_name,
+                    metadata,
+                    attachments,
+                    event_payload,
+                    compaction_checkpoint
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
-                    str(uuid.uuid4()),
+                    event_id,
                     user_id,
-                    message["text"],
-                    _iso_timestamp(
-                        offset_days=message.get("offset_days", 0),
-                        offset_minutes=message.get("offset_minutes", 0),
-                    ),
-                    json.dumps(metadata),
-                    None,
-                    0,
                     conversation_id,
-                    "transcript",
+                    event_type,
                     message["role"],
-                    index,
-                    message["message_type"],
+                    message["text"],
+                    timestamp,
+                    index + 1,
+                    revision_id,
                     None,
                     None,
-                    conversation["model_id"],
-                    conversation["model_provider"],
+                    None,
+                    None,
+                    None,
+                    json.dumps(metadata),
+                    json.dumps([]),
+                    json.dumps(event_payload),
                     None,
                 ),
             )
             inserted += 1
-
-        title = _derive_title(first_user_text)
-        cursor.execute(
-            """
-            INSERT INTO conversation_titles (
-                user_id,
-                conversation_id,
-                title,
-                source,
-                is_locked,
-                created_at,
-                updated_at
-            ) VALUES (?, ?, ?, ?, 0, ?, ?)
-            ON CONFLICT(user_id, conversation_id)
-            DO UPDATE SET
-                title = excluded.title,
-                source = excluded.source,
-                updated_at = excluded.updated_at
-            WHERE conversation_titles.is_locked = 0
-            """,
-            (
-                user_id,
-                conversation_id,
-                title,
-                "heuristic",
-                now_iso,
-                now_iso,
-            ),
-        )
 
     conn.commit()
     return inserted
@@ -661,9 +628,8 @@ def _count_summary(
     chat_total = episodic_cursor.execute(
         """
         SELECT COUNT(DISTINCT conversation_id)
-        FROM memories
+        FROM chat_events
         WHERE user_id = ?
-          AND record_kind = 'transcript'
           AND conversation_id IS NOT NULL
         """,
         (user_id,),
@@ -672,9 +638,8 @@ def _count_summary(
     chat_mock = episodic_cursor.execute(
         """
         SELECT COUNT(DISTINCT conversation_id)
-        FROM memories
+        FROM chat_events
         WHERE user_id = ?
-          AND record_kind = 'transcript'
           AND conversation_id LIKE 'conv_mock_%'
         """,
         (user_id,),
@@ -685,7 +650,6 @@ def _count_summary(
         SELECT COUNT(*)
         FROM memories
         WHERE user_id = ?
-          AND COALESCE(record_kind, '') != 'transcript'
         """,
         (user_id,),
     ).fetchone()[0]
@@ -695,7 +659,6 @@ def _count_summary(
         SELECT COUNT(*)
         FROM memories
         WHERE user_id = ?
-          AND COALESCE(record_kind, '') != 'transcript'
           AND metadata LIKE ?
         """,
         (user_id, f'%"source": "{MOCK_SOURCE}"%'),
@@ -736,22 +699,28 @@ def main() -> int:
         _ensure_semantic_schema(semantic_conn)
 
         target_user_ids = _target_user_ids()
-        aggregate_deleted = {"transcript_rows": 0, "episodic_rows": 0, "semantic_rows": 0}
-        aggregate_inserted = {"transcript": 0, "episodic": 0, "semantic": 0}
+        aggregate_deleted = {
+            "chat_event_rows": 0,
+            "episodic_rows": 0,
+            "semantic_rows": 0,
+        }
+        aggregate_inserted = {"chat_events": 0, "episodic": 0, "semantic": 0}
         per_user_summary: Dict[str, Dict[str, int]] = {}
 
         for user_id in target_user_ids:
-            deleted_counts = _clear_existing_mock_data(episodic_conn, semantic_conn, user_id)
-            transcript_inserted = _insert_transcript_rows(episodic_conn, user_id)
+            deleted_counts = _clear_existing_mock_data(
+                episodic_conn, semantic_conn, user_id
+            )
+            chat_events_inserted = _insert_chat_event_rows(episodic_conn, user_id)
             episodic_inserted = _insert_episodic_rows(episodic_conn, user_id)
             semantic_inserted = _insert_semantic_rows(semantic_conn, user_id)
             summary = _count_summary(episodic_conn, semantic_conn, user_id)
             per_user_summary[user_id] = summary
 
-            aggregate_deleted["transcript_rows"] += deleted_counts["transcript_rows"]
+            aggregate_deleted["chat_event_rows"] += deleted_counts["chat_event_rows"]
             aggregate_deleted["episodic_rows"] += deleted_counts["episodic_rows"]
             aggregate_deleted["semantic_rows"] += deleted_counts["semantic_rows"]
-            aggregate_inserted["transcript"] += transcript_inserted
+            aggregate_inserted["chat_events"] += chat_events_inserted
             aggregate_inserted["episodic"] += episodic_inserted
             aggregate_inserted["semantic"] += semantic_inserted
 
@@ -761,7 +730,7 @@ def main() -> int:
         print(f"Removed rows: {aggregate_deleted}")
         print(
             "Inserted rows: "
-            f"transcript={aggregate_inserted['transcript']}, "
+            f"chat_events={aggregate_inserted['chat_events']}, "
             f"episodic={aggregate_inserted['episodic']}, "
             f"semantic={aggregate_inserted['semantic']}"
         )

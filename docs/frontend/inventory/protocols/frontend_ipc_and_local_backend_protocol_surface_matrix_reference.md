@@ -47,16 +47,16 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `execute-tool` | `main/local_backend_bridge.cjs` | Proxies to JSON-RPC `execute_tool` |
 | `get-system-state` | `main/local_backend_bridge.cjs` | Proxies to `get_system_state` |
 | `search-memory` | `main/local_backend_bridge.cjs` | Proxies to `search_memory` |
-| `search-conversations` | `main/local_backend_bridge.cjs` | Proxies to `search_conversations` |
-| `list-conversations` | `main/local_backend_bridge.cjs` | Proxies to `list_conversations` |
+| `search-chat-conversations` | `main/local_backend_bridge.cjs` | Proxies to `search_chat_conversations` |
+| `list-chat-conversations` | `main/local_backend_bridge.cjs` | Proxies to `list_chat_conversations` |
 | `list-episodic-memories` | `main/local_backend_bridge.cjs` | Proxies to `list_episodic_memories` |
-| `get-conversation` | `main/local_backend_bridge.cjs` | Proxies to `get_conversation` |
+| `get-chat-events` | `main/local_backend_bridge.cjs` | Proxies to `get_chat_events` |
 | `list-semantic-memories` | `main/local_backend_bridge.cjs` | Proxies to `list_semantic_memories` |
 | `delete-episodic-memory` | `main/local_backend_bridge.cjs` | Proxies to `delete_episodic_memory` |
-| `delete-conversation` | `main/local_backend_bridge.cjs` | Proxies to `delete_conversation` |
+| `delete-chat-conversation` | `main/local_backend_bridge.cjs` | Proxies to `delete_chat_conversation` |
 | `delete-semantic-memory` | `main/local_backend_bridge.cjs` | Proxies to `delete_semantic_memory` |
 | `store-memory` | `main/local_backend_bridge.cjs` | Proxies to `store_memory` |
-| `store-transcript` | `main/local_backend_bridge.cjs` | Proxies to `store_transcript` |
+| `store-chat-event` | `main/local_backend_bridge.cjs` | Proxies to `store_chat_event` |
 | `upload-artifact` | `main/ipc.cjs` | Uploads base64 artifact to backend HTTP `/api/artifacts/` |
 | `load-frontend-config` | `main/ipc.cjs` | Reads frontend config from disk |
 | `save-frontend-config` | `main/ipc.cjs` | Persists frontend config to disk |
@@ -146,16 +146,16 @@ Transport:
 | `execute-tool` | `execute_tool` | `{ toolName, args } -> { tool_name, args }`; screenshot tool uses Linux hide/show guard; direct `run_shell_command` and nested `system_use -> run_shell_command` arguments receive derived `sudo_auth_mode` from frontend config state |
 | `get-system-state` | `get_system_state` | Optional `{ fields }` passthrough |
 | `search-memory` | `search_memory` | Maps `excludeConversationId` fallback to `exclude_conversation_id` |
-| `search-conversations` | `search_conversations` | `userId -> user_id` with query/limit passthrough |
-| `list-conversations` | `list_conversations` | `userId -> user_id`, `recordKind -> record_kind` |
+| `search-chat-conversations` | `search_chat_conversations` | `userId -> user_id` with query/limit passthrough |
+| `list-chat-conversations` | `list_chat_conversations` | `userId -> user_id`, `recordKind -> record_kind` |
 | `list-episodic-memories` | `list_episodic_memories` | `userId -> user_id` |
-| `get-conversation` | `get_conversation` | `conversationId -> conversation_id` (`null` when missing), `recordKind -> record_kind` |
+| `get-chat-events` | `get_chat_events` | `conversationId -> conversation_id` (`null` when missing), `recordKind -> record_kind` |
 | `list-semantic-memories` | `list_semantic_memories` | `userId -> user_id` |
 | `delete-episodic-memory` | `delete_episodic_memory` | `memoryId -> memory_id` |
-| `delete-conversation` | `delete_conversation` | `conversationId -> conversation_id`, `recordKind -> record_kind` |
+| `delete-chat-conversation` | `delete_chat_conversation` | `conversationId -> conversation_id`, `recordKind -> record_kind` |
 | `delete-semantic-memory` | `delete_semantic_memory` | `memoryId -> memory_id` |
 | `store-memory` | `store_memory` | camelCase to snake_case for query/response/type/user/session keys |
-| `store-transcript` | `store_transcript` | transcript metadata pass-through map (`messageType -> message_type`, etc.) |
+| `store-chat-event` | `store_chat_event` | transcript metadata pass-through map (`messageType -> message_type`, etc.) |
 | readiness probe (internal) | `ping` | Startup readiness checks |
 | diagnostics (registered in sidecar) | `get_status` | Not currently wired to renderer IPC |
 
@@ -164,7 +164,7 @@ Transport:
 Registered callable surface:
 
 - Tool/system: `execute_tool`, `get_system_state`
-- Memory/transcript: `search_memory`, `search_conversations`, `store_memory`, `store_transcript`, `list_conversations`, `list_episodic_memories`, `get_conversation`, `list_semantic_memories`, `delete_conversation`, `delete_semantic_memory`
+- Memory/transcript: `search_memory`, `search_chat_conversations`, `store_memory`, `store_chat_event`, `list_chat_conversations`, `list_episodic_memories`, `get_chat_events`, `list_semantic_memories`, `delete_chat_conversation`, `delete_semantic_memory`
 - Health/diagnostics: `ping`, `get_status`
 
 ### JSON-RPC Validation Semantics (`core/ipc_protocol.py`)

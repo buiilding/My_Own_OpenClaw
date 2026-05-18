@@ -49,8 +49,8 @@ Common local channels:
 - `execute-tool`: run a sidecar executable tool
 - `get-system-state`: collect local OS/window/runtime state
 - `search-memory`: query local memory
-- `search-conversations`: query transcript conversation index
-- `store-memory`, `store-transcript`, and list/delete memory channels
+- `search-chat-conversations`: query local chat-event history
+- `store-chat-event`, `store-memory`, and list/delete memory channels
 
 Renderer code should call the typed IPC bridge instead of raw Electron APIs.
 

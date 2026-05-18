@@ -151,5 +151,3 @@ Chunking:
 
 - [Frontend Sidecar Memory Docs Hub](README.md)
 - [Frontend Sidecar Memory Storage Docs Hub](storage/README.md)
-- [Transcript Storage, Semantic Candidate, and Watermark Reference](transcript_storage_semantic_candidate_and_watermark_reference.md)
-- [Conversation Transcript Window Queries and FAISS Artifact Cleanup Reference](storage/conversation_transcript_window_queries_and_faiss_artifact_cleanup_reference.md)

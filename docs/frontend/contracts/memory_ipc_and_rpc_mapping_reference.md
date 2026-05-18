@@ -1,8 +1,8 @@
 ---
-summary: "Renderer/main/sidecar memory contract reference: invoke-channel payload shapes, main-process JSON-RPC method mappings, response envelopes, and transcript/semantic memory operation semantics."
+summary: "Renderer/main/sidecar memory and chat-event IPC contract reference: invoke-channel payload shapes, JSON-RPC method mappings, response envelopes, and storage ownership."
 read_when:
   - When changing memory-related IPC invoke payloads or sidecar JSON-RPC method contracts.
-  - When debugging dashboard memory list/delete failures, transcript persistence issues, or search-memory filter mismatches.
+  - When debugging dashboard memory list/delete failures, chat history persistence issues, or search-memory filter mismatches.
 title: "Memory IPC and RPC Mapping Reference"
 ---
 
@@ -12,242 +12,144 @@ title: "Memory IPC and RPC Mapping Reference"
 
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/renderer/infrastructure/ipc/bridge.ts`
-- `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`
-- `frontend/src/renderer/features/dashboard/components/sections/MemorySection.jsx`
-- `frontend/src/main/ipc/ipc_memory_store_persistence.cjs`
+- `frontend/src/renderer/infrastructure/transcript/localConversationStore.ts`
+- `frontend/src/renderer/infrastructure/transcript/ElectronSidecarConversationStore.ts`
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/python/local_backend.py`
-- `frontend/src/main/python/memory/operations.py`
+- `frontend/src/main/python/local_backend_memory_handlers.py`
+- `frontend/src/main/python/memory/chat_event_store.py`
 - `frontend/src/main/python/memory/local_store.py`
 
-## Invoke Channels Covered
+## Active Invoke Channels
 
-Memory-related `invoke` channels exposed to renderer:
+Chat-event storage and continuity:
 
-- `store-transcript`
-- `search-conversations`
-- `list-conversations`
+- `store-chat-event`
+- `list-chat-conversations`
+- `search-chat-conversations`
+- `get-chat-events`
+- `delete-chat-conversation`
+
+Memory storage and retrieval:
+
+- `store-memory`
+- `search-memory`
 - `list-episodic-memories`
-- `get-conversation`
-- `delete-conversation`
 - `list-semantic-memories`
 - `delete-episodic-memory`
 - `delete-semantic-memory`
-- `store-memory`
-- `search-memory`
+- `clear-local-memory`
+- `clear-chat-history`
 
-Current primary renderer call sites:
+Chat history is stored in `chat_events`, not as memory rows. Memory rows are for episodic interaction memory and semantic memory.
 
-- desktop transcript projection runtime -> `store-transcript`
-- `ChatGptDashboardShell` + `DashboardSidebar` + `SearchChatsModal` -> search/list/get transcript conversations
-- `MemorySection` -> list episodic + semantic memory entries + delete episodic/semantic memory
+## Channel to JSON-RPC Method Map
 
-## Main-Process Mapping Layer
+Chat-event channels:
 
-`local_backend_bridge.cjs` registers mapped RPC handlers from `COMPILED_RPC_HANDLER_DEFINITIONS`.
+- `store-chat-event` -> `store_chat_event`
+- `list-chat-conversations` -> `list_chat_conversations`
+- `search-chat-conversations` -> `search_chat_conversations`
+- `get-chat-events` -> `get_chat_events`
+- `delete-chat-conversation` -> `delete_chat_conversation`
 
-Mapping helper behavior:
+Memory channels:
 
-- only object payloads are accepted (`getPayloadObject`)
-- supports direct key mapping, function mapping, and fallback-key mapping
-
-## Backend `memory-store` Event Persistence Boundary
-
-Backend stream events with `type="memory-store"` persist interaction memory in Electron main process via `ipc_memory_store_persistence.cjs`:
-
-- map payload-first fields into `storeMemory(...)` request shape
-- default `memory_type` to `episodic`
-- derive `session_id` from payload, then envelope `session_id`, then `conversation_ref`
-- execute one fire-and-forget side effect per backend event (failure logs only, no throw)
-
-This prevents renderer-window fan-out from producing duplicate `store_memory` writes.
-
-## Channel -> JSON-RPC Method Map
-
-### Conversation and memory list/delete
-
-- `search-conversations` -> `search_conversations`
-- `list-conversations` -> `list_conversations`
+- `store-memory` -> `store_memory`
+- `search-memory` -> `search_memory`
 - `list-episodic-memories` -> `list_episodic_memories`
-- `get-conversation` -> `get_conversation`
-- `delete-conversation` -> `delete_conversation`
 - `list-semantic-memories` -> `list_semantic_memories`
 - `delete-episodic-memory` -> `delete_episodic_memory`
 - `delete-semantic-memory` -> `delete_semantic_memory`
+- `clear-local-memory` -> `clear_local_memory`
+- `clear-chat-history` -> `clear_chat_history`
 
-Renderer camelCase to sidecar snake_case conversions:
+Renderer camelCase to sidecar snake_case conversions include:
 
 - `userId` -> `user_id`
-- `conversationId` -> `conversation_id`
-- `recordKind` -> `record_kind`
+- `conversationId` / `conversationRef` -> `conversation_id`
 - `memoryId` -> `memory_id`
-
-`search-conversations` field mapping:
-
-- `query`
-- `userId` -> `user_id`
-- `limit`
-
-### Transcript and memory write methods
-
-- `store-transcript` -> `store_transcript`
-- `store-memory` -> `store_memory`
-
-`store-transcript` field mapping:
-
-- `content`
-- `userId` -> `user_id`
-- `conversationRef` -> `conversation_ref`
-- `role`
-- `messageType` -> `message_type`
+- `eventType` -> `event_type`
+- `messageIndex` -> `message_index`
+- `revisionId` -> `revision_id`
+- `turnRef` -> `turn_ref`
 - `toolName` -> `tool_name`
 - `correlationId` -> `correlation_id`
-- `messageIndex` -> `message_index`
-- `modelId` -> `model_id`
-- `modelProvider` -> `model_provider`
-- `screenshot`
-- `timestamp`
-- `transparency`
-  - optional JSON object persisted in transcript metadata
-  - currently carries renderer prompt/transparency snapshots (`systemPrompt`, `toolSchemas`, `fullUserMessage`, `fullAssistantMessage`) for richer resume/rehydrate context
+- `workspacePath` -> `workspace_path`
+- `workspaceName` -> `workspace_name`
+- `eventPayload` -> `event_payload`
+- `compactionCheckpoint` -> `compaction_checkpoint`
 
-### Search-memory mapping detail
+## Storage Ownership
 
-`mapSearchMemoryPayload` supports both keys for exclusion:
+- `chat_events`: visible chat replay, conversation list/search, rehydrate snapshots, edit/resend continuity, attachments, and compaction checkpoints.
+- `episodic.db` memory rows with `record_kind='interaction'`: completed user+assistant memory pairs used by the Episodic Memory view and semantic summarizer.
+- `semantic.db` memory rows: extracted durable facts and summaries.
 
-- camel: `excludeConversationId`
-- snake: `exclude_conversation_id`
+Renderer transcript projection clients now route through the SDK conversation continuity service and the sidecar-backed chat-event store. The legacy transcript-row IPC/RPC path has been removed.
 
-Output always sends `exclude_conversation_id` to sidecar method `search_memory`.
+## Sidecar Response Envelope
 
-Search payload validation at sidecar boundary:
+Sidecar memory handlers return:
 
-- `query` must be a non-empty string (trimmed)
-- `memory_type` must be a string when provided and must normalize to `episodic` or `semantic`
+- success: `{ "success": true, "data": { ... } }`
+- failure: `{ "success": false, "error": "<message>" }`
 
-Search result shaping detail:
+The main-process bridge forwards mapped responses to the renderer unchanged.
 
-- sidecar `LocalMemoryStore.search(...)` can rewrite episodic transcript user hits into canonical interaction text (`User: ...` + `Assistant: ...`) by resolving the next assistant reply in the same conversation before handler grouping.
-- sidecar handler pipeline then applies `exclude_conversation_results(...)` and `group_memory_texts(...)`.
-- `group_memory_texts(...)` prioritizes explicit interaction-style episodic rows, falls back to transcript pair synthesis, and only then falls back to raw episodic text.
-- grouped response contract remains unchanged: `{ memories: { episodic: [...], semantic: [...] } }`.
+## Key Handler Semantics
 
-## Sidecar JSON-RPC Response Envelope
+### `store_chat_event`
 
-Sidecar memory handlers return shape:
+- appends or replaces an event in `chat_events`
+- stores metadata, attachments, full event payload, and optional compaction checkpoint
+- assigns `message_index` when omitted
 
-- success path:
-  - `{ "success": true, "data": { ... } }`
-- failure path:
-  - `{ "success": false, "error": "<message>" }`
+### `list_chat_conversations`
 
-`local_backend_bridge.cjs` forwards this object to renderer unchanged for mapped channels.
+- groups `chat_events` by `conversation_id`
+- returns newest-first conversation summaries with title derived from the first user message or latest content
+- returns `record_kind='chat_event'`
 
-## Sidecar Handler Semantics (Memory)
+### `get_chat_events`
 
-### Memory-store availability guard
+- returns ordered events for one conversation
+- supports `after_message_index` cursor pagination
 
-Decorator `@requires_memory_store` gates most memory handlers:
+### `delete_chat_conversation`
 
-- if store unavailable: immediate `{success:false,error:"Memory store not initialized"}`
-
-### `list_conversations`
-
-- transcript-only behavior (non-transcript `record_kind` ignored/normalized)
-- newest-first by last timestamp
-- includes `is_resumable` when `conversation_id` starts with `conv_`
-- includes `title` and `title_source` (`model` for model-generated titles)
-- title generation is best-effort, asynchronous, and only starts after both first user and first assistant `llm-text` transcript rows exist for a conversation
-- untitled conversations are not returned until generation completes
-
-### `search_conversations`
-
-- transcript-only query surface (searches user/assistant transcript message content, not just titles)
-- ranking blends lexical hits (FTS with LIKE fallback), semantic vector hits, and recency
-- returns conversation summaries plus match metadata (`snippet`, `matched_role`, lexical/semantic hit counts, score)
-
-### `list_episodic_memories`
-
-- returns completed-turn `interaction` memory entries only
-- keeps transcript and replay chat-history rows owned by sidebar `Your chats`
-- returns newest-first by timestamp
-
-### `get_conversation`
-
-- fetches episodic transcript rows by conversation window
-- returns `{conversation_id, memories[], count}`
-
-### `delete_conversation`
-
-- deletes transcript rows for conversation (or null-conversation bucket)
-- returns `deleted_count`
-- cleans in-memory FAISS ID mappings for removed rows
-
-### `delete_episodic_memory`
-
-- requires `memory_id`
-- deletes completed-turn `interaction` memory entry by id
-- returns `{ memory_id, deleted }`
-
-### `list_semantic_memories`
-
-- returns semantic records newest-first with parsed metadata
-
-### `delete_semantic_memory`
-
-- requires `memory_id`
-- returns boolean `deleted`
-- removes DB row + vector-id mappings (no FAISS vector compaction)
-
-### `store_transcript`
-
-- stores transcript row with metadata fields and optional screenshot
-- computes/assigns `message_index` when omitted
-- marks semantic candidate only for selected roles/message types
-- sets `skip_embedding` for non-candidate rows
-- does not drive semantic-summarization run gating
+- deletes `chat_events` for one conversation
+- does not delete episodic or semantic memory rows
 
 ### `store_memory`
 
-- stores combined interaction text (`User: ... / Assistant: ...`)
-- attaches interaction metadata and optional session/conversation id
-- writes episodic rows with `record_kind='interaction'` for semantic-summarization source input
-- rejects non-string `user_query` / `assistant_response` payloads before normalization
-- requires `memory_type` to be a string when provided
-- trims accepted string values and rejects blank user/assistant message content
-- validates `memory_type` strictly (`episodic` or `semantic`); invalid values return an error
+- persists completed user+assistant interaction memory
+- writes episodic rows with `record_kind='interaction'`
+- rejects non-string or blank user/assistant payloads
 
-## Contract Edge Cases
+### `search_memory`
 
-- sidecar defaults many handlers to `user_id="default_user"` when omitted
-- renderer dashboard and transcript flows typically provide explicit `userId`
-- `conversationRef` and `sessionId` may both feed transcript conversation identity; sidecar resolves `conversation_ref or session_id`
+- retrieves relevant episodic and semantic memory for prompt injection
+- excludes active conversation ids when requested
+- groups memory text without depending on chat-event replay rows
 
 ## Debug Checklist
 
-If dashboard memory actions fail with generic errors:
+If chats do not reload:
 
-1. inspect renderer payload key names (camelCase expected at renderer boundary)
+1. verify renderer calls `list-chat-conversations` and `get-chat-events`
 2. inspect mapper output in `local_backend_bridge_rpc_mappers.cjs`
-3. verify sidecar returned `success=true` and non-empty `data`
+3. verify sidecar memory store is initialized and `chat_events` rows exist
 
-If transcript rows fail to persist:
+If memory injection is empty:
 
-1. verify `store-transcript` invoke includes both `content` and `userId`
-2. verify sidecar memory store initialized
-3. verify conversation/user identity resolution in the desktop transcript projection runtime
-
-If search results include active conversation unexpectedly:
-
-1. verify exclusion key name (`excludeConversationId` or `exclude_conversation_id`)
-2. verify mapped output contains `exclude_conversation_id`
-3. verify sidecar `exclude_conversation_results` received matching conversation id
+1. verify backend emitted a `memory-store` event after assistant completion
+2. verify `store-memory` wrote an `interaction` row
+3. verify embedding service health and FAISS/SQLite vector mappings
 
 ## Related Pages
 
 - [Local Backend JSON-RPC Reference](../sidecar/local_backend_jsonrpc_reference.md)
-- [Memory Search Grouping and Transcript Pair Synthesis Contract Reference](../sidecar/memory/memory_search_grouping_and_transcript_pair_synthesis_contract_reference.md)
 - [IPC Memory-Store Event Persistence Payload Fallback and Fail-Open Logging Contract Reference](../main/ipc_memory_store_event_persistence_payload_fallback_and_fail_open_logging_contract_reference.md)
-- [Transcript Storage, Semantic Candidate, and Watermark Reference](../sidecar/memory/transcript_storage_semantic_candidate_and_watermark_reference.md)
 - [Transcript Session and Rehydrate Reference](../renderer/transcript_session_and_rehydrate_reference.md)

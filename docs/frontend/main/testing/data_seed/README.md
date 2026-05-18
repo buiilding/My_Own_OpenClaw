@@ -16,4 +16,3 @@ title: "Frontend Main Testing Data-Seed Docs Hub"
 
 - [Frontend Main Testing Docs Hub](../README.md)
 - [Dashboard Memory Management and Resume Reference](../../../renderer/dashboard_memory_management_and_resume_reference.md)
-- [Sidecar Transcript Storage, Semantic Candidate, and Watermark Reference](../../../sidecar/memory/transcript_storage_semantic_candidate_and_watermark_reference.md)

@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sidecar: remove the legacy transcript-row chat storage path, leaving `chat_events` as the active chat continuity store and interaction rows as memory-only data.
 - frontend/sidecar: move SDK chat continuity into dedicated `chat_events` storage with explicit chat-event RPCs and compaction-checkpoint replay support.
 - frontend/sidecar: persist normalized image attachments on chat events so user-message images and tool-output screenshots survive reload and rehydrate paths.
 - backend/compaction: use WindieOS model catalog context windows and provider-reported prompt-token high-water marks so auto-compaction triggers before oversized tool-continuation turns.

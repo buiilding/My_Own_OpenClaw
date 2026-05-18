@@ -96,6 +96,4 @@ These constants define user-visible title shape for any runtime that adopts this
 ## Related Pages
 
 - [Frontend Sidecar Memory Storage Docs Hub](README.md)
-- [Conversation Title Generation Runtime and Helper Contract Reference](conversation_title_generation_runtime_and_helper_contract_reference.md)
-- [Conversation Transcript Window Queries and FAISS Artifact Cleanup Reference](conversation_transcript_window_queries_and_faiss_artifact_cleanup_reference.md)
 - [Frontend Sidecar Memory Docs Hub](../README.md)

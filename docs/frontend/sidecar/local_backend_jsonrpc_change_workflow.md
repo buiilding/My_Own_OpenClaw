@@ -59,18 +59,18 @@ These renderer-visible channels are registered by `registerMappedRpcHandlers(reg
 
 | IPC channel | JSON-RPC method | Primary sidecar owner |
 | --- | --- | --- |
-| `search-conversations` | `search_conversations` | `LocalBackendMemoryHandlersMixin` |
-| `list-conversations` | `list_conversations` | `LocalBackendMemoryHandlersMixin` |
+| `search-chat-conversations` | `search_chat_conversations` | `LocalBackendMemoryHandlersMixin` |
+| `list-chat-conversations` | `list_chat_conversations` | `LocalBackendMemoryHandlersMixin` |
 | `list-episodic-memories` | `list_episodic_memories` | `LocalBackendMemoryHandlersMixin` |
-| `get-conversation` | `get_conversation` | `LocalBackendMemoryHandlersMixin` |
+| `get-chat-events` | `get_chat_events` | `LocalBackendMemoryHandlersMixin` |
 | `list-semantic-memories` | `list_semantic_memories` | `LocalBackendMemoryHandlersMixin` |
 | `delete-episodic-memory` | `delete_episodic_memory` | `LocalBackendMemoryHandlersMixin` |
-| `delete-conversation` | `delete_conversation` | `LocalBackendMemoryHandlersMixin` |
+| `delete-chat-conversation` | `delete_chat_conversation` | `LocalBackendMemoryHandlersMixin` |
 | `delete-semantic-memory` | `delete_semantic_memory` | `LocalBackendMemoryHandlersMixin` |
 | `clear-local-memory` | `clear_local_memory` | `LocalBackendMemoryHandlersMixin` |
 | `clear-chat-history` | `clear_chat_history` | `LocalBackendMemoryHandlersMixin` |
 | `store-memory` | `store_memory` | `LocalBackendMemoryHandlersMixin` |
-| `store-transcript` | `store_transcript` | `LocalBackendMemoryHandlersMixin` |
+| `store-chat-event` | `store_chat_event` | `LocalBackendMemoryHandlersMixin` |
 
 ## Add a Renderer-Visible JSON-RPC Method
 

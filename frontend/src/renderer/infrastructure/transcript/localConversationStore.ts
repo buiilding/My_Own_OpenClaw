@@ -4,25 +4,23 @@ const DEFAULT_PAGE_SIZE = 1000;
 const DEFAULT_MAX_PAGES = 250;
 export const CHAT_EVENT_RECORD_KIND = 'chat_event';
 
-type LocalConversationRecordKind = string;
-
 type ListStoredConversationsOptions = {
   userId: string;
   limit?: number | null;
-  recordKind?: LocalConversationRecordKind;
+  recordKind?: string;
 };
 
 type SearchStoredConversationsOptions = {
   userId: string;
   query: string;
   limit?: number;
-  recordKind?: LocalConversationRecordKind;
+  recordKind?: string;
 };
 
 type LoadStoredConversationEntriesOptions = {
   userId: string;
   conversationRef: string;
-  recordKind?: LocalConversationRecordKind;
+  recordKind?: string;
   pageSize?: number;
   maxPages?: number;
 };
@@ -51,7 +49,6 @@ function resolveEntryMessageIndex(entry: Record<string, unknown>) {
 export async function listStoredConversations({
   userId,
   limit = null,
-  recordKind = CHAT_EVENT_RECORD_KIND,
 }: ListStoredConversationsOptions): Promise<Array<Record<string, unknown>>> {
   const normalizedUserId = normalizeNonEmptyString(userId);
   if (!normalizedUserId) {
@@ -60,16 +57,13 @@ export async function listStoredConversations({
 
   const payload: Record<string, unknown> = {
     userId: normalizedUserId,
-    recordKind,
+    recordKind: CHAT_EVENT_RECORD_KIND,
   };
   if (typeof limit === 'number' && Number.isFinite(limit) && limit > 0) {
     payload.limit = Math.floor(limit);
   }
 
-  const channel = recordKind === CHAT_EVENT_RECORD_KIND
-    ? INVOKE_CHANNELS.LIST_CHAT_CONVERSATIONS
-    : INVOKE_CHANNELS.LIST_CONVERSATIONS;
-  const result = await IpcBridge.invoke(channel, payload);
+  const result = await IpcBridge.invoke(INVOKE_CHANNELS.LIST_CHAT_CONVERSATIONS, payload);
   if (!result || result.success === false) {
     throw new Error(result?.error || 'Failed to list stored conversations');
   }
@@ -83,7 +77,6 @@ export async function searchStoredConversations({
   userId,
   query,
   limit = 60,
-  recordKind = CHAT_EVENT_RECORD_KIND,
 }: SearchStoredConversationsOptions): Promise<Array<Record<string, unknown>>> {
   const normalizedUserId = normalizeNonEmptyString(userId);
   const normalizedQuery = normalizeNonEmptyString(query);
@@ -91,14 +84,11 @@ export async function searchStoredConversations({
     return [];
   }
 
-  const channel = recordKind === CHAT_EVENT_RECORD_KIND
-    ? INVOKE_CHANNELS.SEARCH_CHAT_CONVERSATIONS
-    : INVOKE_CHANNELS.SEARCH_CONVERSATIONS;
-  const result = await IpcBridge.invoke(channel, {
-    userId: normalizedUserId,
-    query: normalizedQuery,
-    limit,
-    recordKind,
+  const result = await IpcBridge.invoke(INVOKE_CHANNELS.SEARCH_CHAT_CONVERSATIONS, {
+      userId: normalizedUserId,
+      query: normalizedQuery,
+      limit,
+      recordKind: CHAT_EVENT_RECORD_KIND,
   });
   if (!result || result.success === false) {
     throw new Error(result?.error || 'Failed to search stored conversations');
@@ -110,13 +100,12 @@ export async function searchStoredConversations({
 }
 
 /**
- * Load one full SDK conversation-event log from the local store via paginated get-conversation IPC.
+ * Load one full SDK conversation-event log from the local store via paginated get-chat-events IPC.
  * Uses message_index cursor pagination to avoid the fixed 1000-row cap.
  */
 export async function loadStoredConversationEntries({
   userId,
   conversationRef,
-  recordKind = CHAT_EVENT_RECORD_KIND,
   pageSize = DEFAULT_PAGE_SIZE,
   maxPages = DEFAULT_MAX_PAGES,
 }: LoadStoredConversationEntriesOptions): Promise<Array<Record<string, unknown>>> {
@@ -130,23 +119,18 @@ export async function loadStoredConversationEntries({
   let afterMessageIndex: number | null = null;
 
   for (let page = 0; page < maxPages; page += 1) {
-    const channel = recordKind === CHAT_EVENT_RECORD_KIND
-      ? INVOKE_CHANNELS.GET_CHAT_EVENTS
-      : INVOKE_CHANNELS.GET_CONVERSATION;
-    const result = await IpcBridge.invoke(channel, {
+    const result = await IpcBridge.invoke(INVOKE_CHANNELS.GET_CHAT_EVENTS, {
       userId: normalizedUserId,
       conversationId: normalizedConversationRef,
       limit: pageSize,
-      recordKind,
+      recordKind: CHAT_EVENT_RECORD_KIND,
       afterMessageIndex,
     });
     if (!result || result.success === false) {
       throw new Error(result?.error || 'Failed to load stored conversation');
     }
 
-    const entries = Array.isArray(result?.data?.events)
-      ? result.data.events
-      : (Array.isArray(result?.data?.memories) ? result.data.memories : []);
+    const entries = Array.isArray(result?.data?.events) ? result.data.events : [];
     if (entries.length === 0) {
       break;
     }

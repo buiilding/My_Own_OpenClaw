@@ -25,19 +25,8 @@ from core.unicode_sanitizer import (
     sanitize_surrogates,
     sanitize_surrogates_in_text,
 )
-from memory.record_kinds import TRANSCRIPT_RECORD_KIND
-from memory.transcript_embedding_policy import is_semantic_transcript_candidate
 
 logger = logging.getLogger(__name__)
-
-_STORE_TRANSCRIPT_RECORD_KINDS = {TRANSCRIPT_RECORD_KIND}
-
-
-def _normalize_store_transcript_record_kind(record_kind: Optional[str]) -> str:
-    normalized = str(record_kind or "").strip().lower()
-    if normalized in _STORE_TRANSCRIPT_RECORD_KINDS:
-        return normalized
-    return TRANSCRIPT_RECORD_KIND
 
 
 def requires_memory_store(
@@ -46,7 +35,9 @@ def requires_memory_store(
     """Ensure memory handlers consistently fail when the store is unavailable."""
 
     @wraps(handler)
-    async def wrapper(self: "LocalBackendMemoryHandlersMixin", *args, **kwargs) -> Dict[str, Any]:
+    async def wrapper(
+        self: "LocalBackendMemoryHandlersMixin", *args, **kwargs
+    ) -> Dict[str, Any]:
         if self.memory_store is None:
             wait_for_initialization = getattr(
                 self, "_wait_for_memory_runtime_initialization", None
@@ -62,21 +53,6 @@ def requires_memory_store(
 
 class LocalBackendMemoryHandlersMixin:
     """Memory RPC handlers shared by the local backend service."""
-
-    @staticmethod
-    def _normalize_transcript_transparency(
-        transparency: Optional[Dict[str, Any]],
-    ) -> Optional[Dict[str, Any]]:
-        """Validate transcript transparency payload is JSON-serializable object data."""
-        if not isinstance(transparency, dict):
-            return None
-        sanitized_transparency = sanitize_surrogates(transparency)
-        try:
-            json.dumps(sanitized_transparency)
-        except (TypeError, ValueError):
-            logger.warning("Dropping non-serializable transcript transparency payload")
-            return None
-        return dict(sanitized_transparency)
 
     @staticmethod
     def _normalize_transcript_structured_payload(
@@ -105,14 +81,6 @@ class LocalBackendMemoryHandlersMixin:
             logger.warning("Dropping non-serializable chat event attachments payload")
             return []
         return list(sanitized_payload)
-
-    @staticmethod
-    def _is_semantic_transcript_candidate(
-        role: Optional[str],
-        message_type: Optional[str],
-    ) -> bool:
-        """Return True when a transcript entry should be embedded/summarized."""
-        return is_semantic_transcript_candidate(role, message_type)
 
     @staticmethod
     def _memory_store_not_initialized_response() -> Dict[str, Any]:
@@ -189,18 +157,10 @@ class LocalBackendMemoryHandlersMixin:
                 selection=selection,
             )
 
-            return {
-                "success": True,
-                "data": {
-                    "memories": memories
-                }
-            }
+            return {"success": True, "data": {"memories": memories}}
         except Exception as e:
             logger.error(f"Memory search failed: {e}", exc_info=True)
-            return {
-                "success": False,
-                "error": str(e)
-            }
+            return {"success": False, "error": str(e)}
 
     async def _retrieve_grouped_memories(
         self,
@@ -260,63 +220,6 @@ class LocalBackendMemoryHandlersMixin:
         )
 
     @requires_memory_store
-    async def _handle_search_conversations(
-        self,
-        query: str,
-        user_id: str = "default_user",
-        limit: int = 40,
-        record_kind: Optional[str] = TRANSCRIPT_RECORD_KIND,
-        **kwargs,
-    ) -> Dict[str, Any]:
-        """Search conversation windows by message content."""
-        try:
-            conversations = await self.memory_store.search_conversations(
-                user_id=user_id,
-                query=query,
-                limit=limit,
-                record_kind=record_kind,
-            )
-            return {
-                "success": True,
-                "data": {
-                    "query": query,
-                    "conversations": conversations,
-                    "count": len(conversations),
-                }
-            }
-        except Exception as e:
-            logger.error(f"Conversation search failed: {e}", exc_info=True)
-            return {
-                "success": False,
-                "error": str(e)
-            }
-
-    @requires_memory_store
-    async def _handle_list_conversations(
-        self,
-        user_id: str = "default_user",
-        limit: Optional[int] = None,
-        record_kind: Optional[str] = "transcript",
-        **kwargs,
-    ) -> Dict[str, Any]:
-        """List transcript conversation windows by default."""
-        try:
-            conversations = await self.memory_store.list_conversations(user_id, limit, record_kind)
-            return {
-                "success": True,
-                "data": {
-                    "conversations": conversations,
-                    "count": len(conversations),
-                }
-            }
-        except Exception as e:
-            logger.error(f"Conversation listing failed: {e}", exc_info=True)
-            return {
-                "success": False,
-                "error": str(e)
-            }
-
-    @requires_memory_store
     async def _handle_list_episodic_memories(
         self,
         user_id: str = "default_user",
@@ -331,48 +234,11 @@ class LocalBackendMemoryHandlersMixin:
                 "data": {
                     "memories": memories,
                     "count": len(memories),
-                }
+                },
             }
         except Exception as e:
             logger.error(f"Episodic memory listing failed: {e}", exc_info=True)
-            return {
-                "success": False,
-                "error": str(e)
-            }
-
-    @requires_memory_store
-    async def _handle_get_conversation(
-        self,
-        conversation_id: Optional[str] = None,
-        user_id: str = "default_user",
-        limit: int = 1000,
-        record_kind: Optional[str] = "transcript",
-        after_message_index: Optional[int] = None,
-        **kwargs,
-    ) -> Dict[str, Any]:
-        """Get transcript rows or interaction memories for a conversation window."""
-        try:
-            memories = await self.memory_store.get_episodic_memories_by_conversation(
-                user_id,
-                conversation_id,
-                limit,
-                record_kind=record_kind,
-                after_message_index=after_message_index,
-            )
-            return {
-                "success": True,
-                "data": {
-                    "conversation_id": conversation_id,
-                    "memories": memories,
-                    "count": len(memories),
-                }
-            }
-        except Exception as e:
-            logger.error(f"Conversation fetch failed: {e}", exc_info=True)
-            return {
-                "success": False,
-                "error": str(e)
-            }
+            return {"success": False, "error": str(e)}
 
     @requires_memory_store
     async def _handle_list_semantic_memories(
@@ -389,14 +255,11 @@ class LocalBackendMemoryHandlersMixin:
                 "data": {
                     "memories": memories,
                     "count": len(memories),
-                }
+                },
             }
         except Exception as e:
             logger.error(f"Semantic memory listing failed: {e}", exc_info=True)
-            return {
-                "success": False,
-                "error": str(e)
-            }
+            return {"success": False, "error": str(e)}
 
     @requires_memory_store
     async def _handle_delete_episodic_memory(
@@ -407,10 +270,7 @@ class LocalBackendMemoryHandlersMixin:
     ) -> Dict[str, Any]:
         """Delete a completed-turn interaction memory entry."""
         if not memory_id:
-            return {
-                "success": False,
-                "error": "memory_id is required"
-            }
+            return {"success": False, "error": "memory_id is required"}
 
         try:
             deleted = await self.memory_store.delete_episodic_memory(
@@ -422,44 +282,11 @@ class LocalBackendMemoryHandlersMixin:
                 "data": {
                     "memory_id": memory_id,
                     "deleted": bool(deleted),
-                }
+                },
             }
         except Exception as e:
             logger.error(f"Episodic memory deletion failed: {e}", exc_info=True)
-            return {
-                "success": False,
-                "error": str(e)
-            }
-
-    @requires_memory_store
-    async def _handle_delete_conversation(
-        self,
-        user_id: str = "default_user",
-        conversation_id: Optional[str] = None,
-        record_kind: Optional[str] = "transcript",
-        **kwargs,
-    ) -> Dict[str, Any]:
-        """Delete episodic memories for a conversation window."""
-        try:
-            deleted_count = await self.memory_store.delete_conversation(
-                user_id=user_id,
-                conversation_id=conversation_id,
-                record_kind=record_kind,
-            )
-            return {
-                "success": True,
-                "data": {
-                    "conversation_id": conversation_id,
-                    "record_kind": record_kind,
-                    "deleted_count": deleted_count,
-                }
-            }
-        except Exception as e:
-            logger.error(f"Conversation deletion failed: {e}", exc_info=True)
-            return {
-                "success": False,
-                "error": str(e)
-            }
+            return {"success": False, "error": str(e)}
 
     @requires_memory_store
     async def _handle_delete_semantic_memory(
@@ -470,10 +297,7 @@ class LocalBackendMemoryHandlersMixin:
     ) -> Dict[str, Any]:
         """Delete a semantic memory entry."""
         if not memory_id:
-            return {
-                "success": False,
-                "error": "memory_id is required"
-            }
+            return {"success": False, "error": "memory_id is required"}
 
         try:
             deleted = await self.memory_store.delete_semantic_memory(
@@ -485,14 +309,11 @@ class LocalBackendMemoryHandlersMixin:
                 "data": {
                     "memory_id": memory_id,
                     "deleted": bool(deleted),
-                }
+                },
             }
         except Exception as e:
             logger.error(f"Semantic memory deletion failed: {e}", exc_info=True)
-            return {
-                "success": False,
-                "error": str(e)
-            }
+            return {"success": False, "error": str(e)}
 
     @requires_memory_store
     async def _handle_clear_local_memory(
@@ -509,10 +330,7 @@ class LocalBackendMemoryHandlersMixin:
             }
         except Exception as e:
             logger.error(f"Local memory clear failed: {e}", exc_info=True)
-            return {
-                "success": False,
-                "error": str(e)
-            }
+            return {"success": False, "error": str(e)}
 
     @requires_memory_store
     async def _handle_clear_chat_history(
@@ -529,10 +347,7 @@ class LocalBackendMemoryHandlersMixin:
             }
         except Exception as e:
             logger.error(f"Chat history clear failed: {e}", exc_info=True)
-            return {
-                "success": False,
-                "error": str(e)
-            }
+            return {"success": False, "error": str(e)}
 
     @requires_memory_store
     async def _handle_store_chat_event(
@@ -566,7 +381,9 @@ class LocalBackendMemoryHandlersMixin:
         )
         if normalized_event_payload is None:
             return {"success": False, "error": "event_payload is required"}
-        normalized_metadata = self._normalize_transcript_structured_payload(metadata) or {}
+        normalized_metadata = (
+            self._normalize_transcript_structured_payload(metadata) or {}
+        )
         normalized_attachments = self._normalize_attachment_payload(attachments)
         normalized_checkpoint = self._normalize_transcript_structured_payload(
             compaction_checkpoint
@@ -581,20 +398,26 @@ class LocalBackendMemoryHandlersMixin:
                 content=sanitize_surrogates_in_text(content or ""),
                 timestamp=timestamp,
                 message_index=message_index,
-                revision_id=sanitize_surrogates_in_text(revision_id)
-                if revision_id
-                else None,
+                revision_id=(
+                    sanitize_surrogates_in_text(revision_id) if revision_id else None
+                ),
                 turn_ref=sanitize_surrogates_in_text(turn_ref) if turn_ref else None,
                 tool_name=sanitize_surrogates_in_text(tool_name) if tool_name else None,
-                correlation_id=sanitize_surrogates_in_text(correlation_id)
-                if correlation_id
-                else None,
-                workspace_path=sanitize_surrogates_in_text(workspace_path)
-                if workspace_path
-                else None,
-                workspace_name=sanitize_surrogates_in_text(workspace_name)
-                if workspace_name
-                else None,
+                correlation_id=(
+                    sanitize_surrogates_in_text(correlation_id)
+                    if correlation_id
+                    else None
+                ),
+                workspace_path=(
+                    sanitize_surrogates_in_text(workspace_path)
+                    if workspace_path
+                    else None
+                ),
+                workspace_name=(
+                    sanitize_surrogates_in_text(workspace_name)
+                    if workspace_name
+                    else None
+                ),
                 metadata=normalized_metadata,
                 attachments=normalized_attachments,
                 event_payload=normalized_event_payload,
@@ -713,147 +536,6 @@ class LocalBackendMemoryHandlersMixin:
             return {"success": False, "error": str(e)}
 
     @requires_memory_store
-    async def _handle_store_transcript(
-        self,
-        content: str,
-        user_id: str = "default_user",
-        conversation_ref: Optional[str] = None,
-        session_id: Optional[str] = None,
-        role: Optional[str] = None,
-        message_type: Optional[str] = None,
-        tool_name: Optional[str] = None,
-        correlation_id: Optional[str] = None,
-        message_index: Optional[int] = None,
-        model_id: Optional[str] = None,
-        model_provider: Optional[str] = None,
-        screenshot: Optional[str] = None,
-        timestamp: Optional[str] = None,
-        workspace_path: Optional[str] = None,
-        workspace_name: Optional[str] = None,
-        transparency: Optional[Dict[str, Any]] = None,
-        structured_payload: Optional[Dict[str, Any]] = None,
-        record_kind: Optional[str] = TRANSCRIPT_RECORD_KIND,
-        rehydrate_entry: Optional[Dict[str, Any]] = None,
-        **kwargs,
-    ) -> Dict[str, Any]:
-        """Store a transcript entry with selective embeddings for recall/summarization."""
-        normalized_record_kind = _normalize_store_transcript_record_kind(record_kind)
-        normalized_rehydrate_entry = self._normalize_transcript_structured_payload(
-            rehydrate_entry
-        )
-        if not content:
-            return {
-                "success": False,
-                "error": "Content is required"
-            }
-
-        try:
-            surrogate_paths = find_surrogate_paths(
-                {
-                    "content": content,
-                    "user_id": user_id,
-                    "conversation_ref": conversation_ref,
-                    "session_id": session_id,
-                    "role": role,
-                    "message_type": message_type,
-                    "tool_name": tool_name,
-                    "correlation_id": correlation_id,
-                    "model_id": model_id,
-                    "model_provider": model_provider,
-                    "workspace_path": workspace_path,
-                    "workspace_name": workspace_name,
-                    "record_kind": normalized_record_kind,
-                    "structured_payload": structured_payload,
-                    "rehydrate_entry": rehydrate_entry,
-                },
-                root="store_transcript",
-            )
-            if surrogate_paths:
-                logger.warning(
-                    "Lone surrogate detected in transcript payload fields: %s",
-                    ", ".join(surrogate_paths),
-                )
-            stored_content = sanitize_surrogates_in_text(content)
-            conversation_id = conversation_ref or session_id
-            normalized_correlation_id = None
-            if isinstance(correlation_id, str):
-                trimmed_correlation_id = correlation_id.strip()
-                if trimmed_correlation_id:
-                    normalized_correlation_id = trimmed_correlation_id
-            metadata = {
-                "type": "episodic",
-                "record_kind": normalized_record_kind,
-            }
-            if role:
-                metadata["role"] = role
-            if message_type:
-                metadata["message_type"] = message_type
-            if tool_name:
-                metadata["tool_name"] = tool_name
-            if normalized_correlation_id:
-                metadata["correlation_id"] = normalized_correlation_id
-            if isinstance(workspace_path, str) and workspace_path.strip():
-                metadata["workspace_path"] = workspace_path.strip()
-            if isinstance(workspace_name, str) and workspace_name.strip():
-                metadata["workspace_name"] = workspace_name.strip()
-            normalized_transparency = self._normalize_transcript_transparency(transparency)
-            if normalized_transparency is not None:
-                metadata["transparency"] = normalized_transparency
-            normalized_structured_payload = self._normalize_transcript_structured_payload(
-                structured_payload
-            )
-            if normalized_structured_payload is not None:
-                metadata["structured_payload"] = normalized_structured_payload
-            if normalized_rehydrate_entry is not None:
-                metadata["rehydrate_entry"] = normalized_rehydrate_entry
-
-            if message_index is None:
-                message_index = await self.memory_store.get_next_message_index(
-                    user_id,
-                    conversation_id,
-                    record_kind=normalized_record_kind,
-                )
-
-            semantic_candidate = (
-                normalized_record_kind == TRANSCRIPT_RECORD_KIND
-                and self._is_semantic_transcript_candidate(role, message_type)
-            )
-
-            memory_id = await self.memory_store.add(
-                stored_content,
-                user_id,
-                metadata,
-                conversation_id=conversation_id,
-                record_kind=normalized_record_kind,
-                role=role,
-                message_index=message_index,
-                message_type=message_type,
-                tool_name=tool_name,
-                correlation_id=normalized_correlation_id,
-                model_id=model_id,
-                model_provider=model_provider,
-                screenshot=screenshot,
-                skip_embedding=not semantic_candidate,
-                timestamp=timestamp,
-            )
-
-            return {
-                "success": True,
-                "data": {
-                    "memory_id": memory_id,
-                    "message_index": message_index,
-                    "record_kind": normalized_record_kind,
-                    "semantic_candidate": semantic_candidate,
-                }
-            }
-        except Exception as e:
-            logger.error(f"Transcript store failed: {e}", exc_info=True)
-            return {
-                "success": False,
-                "error": str(e)
-            }
-
-    @requires_memory_store
     async def _handle_store_memory(
         self,
         user_query: str,
@@ -909,7 +591,4 @@ class LocalBackendMemoryHandlersMixin:
             }
         except Exception as e:
             logger.error(f"Memory store failed: {e}", exc_info=True)
-            return {
-                "success": False,
-                "error": str(e)
-            }
+            return {"success": False, "error": str(e)}

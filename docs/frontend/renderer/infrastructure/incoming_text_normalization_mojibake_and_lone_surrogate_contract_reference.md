@@ -94,7 +94,7 @@ Whitespace-only values collapse to `null`; omitted keys remain `undefined` for p
 - `fullUserMessage.content`
 - `fullAssistantMessage.content`
 
-This keeps prompt/transparency snapshots trimmed and safe before `store-transcript` persistence.
+This keeps prompt/transparency snapshots trimmed and safe before `store-chat-event` persistence.
 
 ## Test-Backed Invariants
 

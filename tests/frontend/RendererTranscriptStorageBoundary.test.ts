@@ -2,11 +2,6 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 const rendererRoot = path.resolve(__dirname, '../../frontend/src/renderer');
-const allowedRelativePaths = new Set([
-  'infrastructure/ipc/channels.ts',
-  'infrastructure/transcript/ElectronSidecarConversationStore.ts',
-]);
-
 async function listSourceFiles(dir: string): Promise<string[]> {
   const entries = await fs.readdir(dir, { withFileTypes: true });
   const files: string[] = [];
@@ -24,15 +19,12 @@ async function listSourceFiles(dir: string): Promise<string[]> {
 }
 
 describe('renderer transcript storage boundary', () => {
-  test('only the Electron conversation store owns transcript storage IPC', async () => {
+  test('renderer does not call legacy transcript storage IPC', async () => {
     const files = await listSourceFiles(rendererRoot);
     const offenders: string[] = [];
 
     for (const file of files) {
       const relativePath = path.relative(rendererRoot, file);
-      if (allowedRelativePaths.has(relativePath)) {
-        continue;
-      }
       const source = await fs.readFile(file, 'utf8');
       if (
         source.includes('STORE_TRANSCRIPT')

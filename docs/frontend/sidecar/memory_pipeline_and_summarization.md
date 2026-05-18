@@ -13,10 +13,7 @@ Deep split references:
 - [Sidecar Memory Docs Hub](memory/README.md)
 - [Memory Storage Docs Hub](memory/storage/README.md)
 - [Summarizer Watermark and Conversation Batch Reference](memory/summarizer_watermark_and_conversation_batch_reference.md)
-- [Transcript Storage, Semantic Candidate, and Watermark Reference](memory/transcript_storage_semantic_candidate_and_watermark_reference.md)
 - [Local Memory Store Embedding, Search, and Memory-Type Routing Reference](memory/storage/local_memory_store_embedding_search_and_memory_type_routing_reference.md)
-- [Conversation Title Generation Runtime and Helper Contract Reference](memory/storage/conversation_title_generation_runtime_and_helper_contract_reference.md)
-- [Conversation Transcript Window Queries and FAISS Artifact Cleanup Reference](memory/storage/conversation_transcript_window_queries_and_faiss_artifact_cleanup_reference.md)
 - [SQLite Schema Migration, FAISS Index I/O, and Watermark State Reference](memory/storage/sqlite_schema_migration_faiss_index_and_watermark_state_reference.md)
 
 ## Memory Storage Core

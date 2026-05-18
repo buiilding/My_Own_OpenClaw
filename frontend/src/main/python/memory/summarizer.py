@@ -132,7 +132,9 @@ class MemorySummarizer:
                         break
 
                     try:
-                        conversation_ids = await self.memory_store.get_unsemanticized_conversation_windows(user_id)
+                        conversation_ids = await self.memory_store.get_unsemanticized_conversation_windows(
+                            user_id
+                        )
                     except Exception as e:
                         logger.warning(
                             "Failed to load unsemanticized conversation windows "
@@ -144,7 +146,9 @@ class MemorySummarizer:
                     if not conversation_ids:
                         continue
 
-                    for conversation_id in conversation_ids[: self.settings.max_conversations_per_cycle]:
+                    for conversation_id in conversation_ids[
+                        : self.settings.max_conversations_per_cycle
+                    ]:
                         if summaries_done >= self.settings.max_summaries_per_cycle:
                             break
 
@@ -164,7 +168,9 @@ class MemorySummarizer:
                             continue
 
                 if summaries_done:
-                    await self.memory_store.update_watermark(last_semanticized_id=None, pending_message_count=0)
+                    await self.memory_store.update_watermark(
+                        last_semanticized_id=None, pending_message_count=0
+                    )
 
                 # Reset backoff after a successful cycle
                 self._backoff_seconds = 0
@@ -179,7 +185,9 @@ class MemorySummarizer:
             return False
 
         try:
-            pending = await self.memory_store.count_unsemanticized_interaction_memories()
+            pending = (
+                await self.memory_store.count_unsemanticized_interaction_memories()
+            )
         except Exception as e:
             logger.warning(
                 "Failed to count unsemanticized interaction memories for summarizer gate: %s",
@@ -211,8 +219,10 @@ class MemorySummarizer:
 
         try:
             discovery_limit = max(self.settings.max_conversations_per_cycle, 1)
-            discovered = await self.memory_store.get_user_ids_with_unsemanticized_memories(
-                limit=discovery_limit
+            discovered = (
+                await self.memory_store.get_user_ids_with_unsemanticized_memories(
+                    limit=discovery_limit
+                )
             )
             for user_id in discovered:
                 if user_id and user_id not in seen:
@@ -251,7 +261,9 @@ class MemorySummarizer:
         if not conversation_chunks:
             return 0
 
-        summary, facts = await self.semantic_client.summarize(conversation_chunks, user_id)
+        summary, facts = await self.semantic_client.summarize(
+            conversation_chunks, user_id
+        )
         result = classify_semantic_summarization_result(summary, facts)
         summary = result["summary"]
         facts = result["facts"]
@@ -377,52 +389,35 @@ class MemorySummarizer:
         if not content:
             return None
 
-        role = (memory.get("role") or memory.get("metadata", {}).get("role") or "").strip().lower()
+        role = (
+            (memory.get("role") or memory.get("metadata", {}).get("role") or "")
+            .strip()
+            .lower()
+        )
         message_type = (
-            memory.get("message_type")
-            or memory.get("metadata", {}).get("message_type")
-            or ""
-        ).strip().lower()
-        record_kind = (
-            memory.get("record_kind")
-            or memory.get("metadata", {}).get("record_kind")
-            or "memory"
-        ).strip().lower()
-        tool_name = (memory.get("tool_name") or memory.get("metadata", {}).get("tool_name") or "").strip()
-
-        if self._is_filtered_tool_transcript_entry(record_kind, role, message_type):
-            return None
+            (
+                memory.get("message_type")
+                or memory.get("metadata", {}).get("message_type")
+                or ""
+            )
+            .strip()
+            .lower()
+        )
+        tool_name = (
+            memory.get("tool_name") or memory.get("metadata", {}).get("tool_name") or ""
+        ).strip()
 
         if len(content) > 1600:
             content = content[:1597] + "..."
 
         timestamp = memory.get("timestamp") or ""
-        prefix_parts = [part for part in (role or None, message_type or None, tool_name or None) if part]
-        prefix = "|".join(prefix_parts) if prefix_parts else record_kind
+        prefix_parts = [
+            part
+            for part in (role or None, message_type or None, tool_name or None)
+            if part
+        ]
+        prefix = "|".join(prefix_parts) if prefix_parts else "memory"
         return f"[{timestamp}] ({prefix}) {content}"
-
-    @staticmethod
-    def _is_filtered_tool_transcript_entry(
-        record_kind: str,
-        role: str,
-        message_type: str,
-    ) -> bool:
-        if record_kind != "transcript":
-            return False
-
-        # Tool role rows are tool execution chatter (calls/outputs/results).
-        if role == "tool":
-            return True
-
-        # Defensive filtering for older or alternate transcript encodings.
-        return message_type in {
-            "tool-call",
-            "tool-bundle",
-            "tool-output",
-            "tool-result",
-            "tool-bundle-output",
-            "tool-bundle-result",
-        }
 
     def _format_semantic_content(self, summary: str, facts: Sequence[str]) -> str:
         parts = []
@@ -438,15 +433,36 @@ class MemorySummarizer:
         categories: Set[str] = set()
         for fact in facts:
             lowered = fact.lower()
-            if any(token in lowered for token in ("prefer", "preference", "likes", "dislikes", "wants")):
+            if any(
+                token in lowered
+                for token in ("prefer", "preference", "likes", "dislikes", "wants")
+            ):
                 categories.add("preference")
-            if any(token in lowered for token in ("workflow", "uses", "runs", "connects", "manages")):
+            if any(
+                token in lowered
+                for token in ("workflow", "uses", "runs", "connects", "manages")
+            ):
                 categories.add("workflow")
-            if any(token in lowered for token in ("project", "working on", "building", "learning", "focused on")):
+            if any(
+                token in lowered
+                for token in (
+                    "project",
+                    "working on",
+                    "building",
+                    "learning",
+                    "focused on",
+                )
+            ):
                 categories.add("project")
-            if any(token in lowered for token in ("name is", "email", "works as", "account")):
+            if any(
+                token in lowered
+                for token in ("name is", "email", "works as", "account")
+            ):
                 categories.add("identity")
-            if any(token in lowered for token in ("must", "needs", "constraint", "cannot", "should")):
+            if any(
+                token in lowered
+                for token in ("must", "needs", "constraint", "cannot", "should")
+            ):
                 categories.add("constraint")
         return sorted(categories)
 

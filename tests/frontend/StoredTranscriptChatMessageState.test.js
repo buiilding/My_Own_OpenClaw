@@ -11,7 +11,7 @@ describe('storedTranscriptChatMessageState', () => {
       content: 'tool output text',
       correlation_id: 'req-1',
       screenshot: 'artifact-123',
-      record_kind: 'transcript',
+      record_kind: 'chat_event',
       metadata: {
         transparency: {
           systemPrompt: 'System prompt text',
@@ -46,7 +46,7 @@ describe('storedTranscriptChatMessageState', () => {
           request_id: 'req-1',
           output: 'tool output text',
         },
-        screenshotRef: 'artifact-123',
+        screenshot: 'artifact-123',
         systemPrompt: {
           content: 'System prompt text',
           toolSchemas: [{ type: 'function', function: { name: 'read_file', parameters: { type: 'object' } } }],
@@ -70,7 +70,7 @@ describe('storedTranscriptChatMessageState', () => {
       role: 'tool',
       message_type: 'tool-output',
       content: 'tool output text',
-      record_kind: 'transcript',
+      record_kind: 'chat_event',
       metadata: {
         transparency: {
           systemPrompt: 'System prompt text',
@@ -92,7 +92,7 @@ describe('storedTranscriptChatMessageState', () => {
       role: 'tool',
       message_type: 'tool-output',
       content: 'tool output text',
-      record_kind: 'transcript',
+      record_kind: 'chat_event',
       metadata: {
         transparency: {
           systemPrompt: 'System prompt text',
@@ -113,7 +113,7 @@ describe('storedTranscriptChatMessageState', () => {
       role: 'tool',
       message_type: 'tool-output',
       content: 'tool output text',
-      record_kind: 'transcript',
+      record_kind: 'chat_event',
       metadata: {
         transparency: {
           systemPrompt: '  Active: â€œWindieOS â€” READMEâ€\u009d  ',

@@ -77,7 +77,9 @@ async def _insert_semantic_memory(db_path: Path, **payload: Any) -> None:
 
 
 @pytest.mark.asyncio
-async def test_unsemanticized_user_discovery_and_count_respect_interaction_scope(tmp_path: Path):
+async def test_unsemanticized_user_discovery_and_count_respect_interaction_scope(
+    tmp_path: Path,
+):
     episodic_db_path = tmp_path / "episodic.db"
     await init_episodic_schema(episodic_db_path)
 
@@ -107,10 +109,10 @@ async def test_unsemanticized_user_discovery_and_count_respect_interaction_scope
     )
     await _insert_episodic_memory(
         episodic_db_path,
-        id="m_transcript",
-        user_id="user-transcript",
+        id="m_non_interaction",
+        user_id="user-non-interaction",
         timestamp="2026-01-04T00:00:00+00:00",
-        record_kind="transcript",
+        record_kind="memory",
         is_semanticized=0,
     )
 
@@ -141,18 +143,29 @@ async def test_semantic_summary_exists_matches_summary_hash_metadata(tmp_path: P
         id="s1",
         user_id="user-1",
         timestamp="2026-01-05T00:00:00+00:00",
-        metadata=json.dumps({"summary_hash": "hash-123", "source": "periodic_summarization"}),
+        metadata=json.dumps(
+            {"summary_hash": "hash-123", "source": "periodic_summarization"}
+        ),
     )
 
-    assert await runtime.semantic_summary_exists(
-        semantic_db_path=str(semantic_db_path),
-        summary_hash="",
-    ) is False
-    assert await runtime.semantic_summary_exists(
-        semantic_db_path=str(semantic_db_path),
-        summary_hash="missing",
-    ) is False
-    assert await runtime.semantic_summary_exists(
-        semantic_db_path=str(semantic_db_path),
-        summary_hash="hash-123",
-    ) is True
+    assert (
+        await runtime.semantic_summary_exists(
+            semantic_db_path=str(semantic_db_path),
+            summary_hash="",
+        )
+        is False
+    )
+    assert (
+        await runtime.semantic_summary_exists(
+            semantic_db_path=str(semantic_db_path),
+            summary_hash="missing",
+        )
+        is False
+    )
+    assert (
+        await runtime.semantic_summary_exists(
+            semantic_db_path=str(semantic_db_path),
+            summary_hash="hash-123",
+        )
+        is True
+    )

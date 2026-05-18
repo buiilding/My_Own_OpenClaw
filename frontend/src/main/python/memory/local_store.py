@@ -46,12 +46,6 @@ from memory.chat_event_store import (
     list_chat_conversations,
     search_chat_conversations,
 )
-from memory.conversation_list_runtime import (
-    list_transcript_conversations,
-)
-from memory.conversation_search_runtime import (
-    search_transcript_conversations,
-)
 from memory.conversation_semanticization_runtime import (
     count_unsemanticized_interaction_memories as fetch_unsemanticized_interaction_count,
 )
@@ -61,18 +55,9 @@ from memory.conversation_semanticization_runtime import (
 from memory.conversation_semanticization_runtime import (
     semantic_summary_exists as check_semantic_summary_exists,
 )
-from memory.conversation_title_runtime import (
-    cancel_title_generation_tasks,
-    ensure_title_generation_runtime_state,
-    generate_conversation_title_and_persist,
-    maybe_generate_conversation_title,
-    run_conversation_title_generation,
-)
 from memory.conversation_window_runtime import (
     conversation_where_clause,
     format_transcript_rows,
-    get_episodic_memories_for_conversation,
-    get_next_message_index_for_conversation,
 )
 from memory.conversation_window_runtime import (
     get_unprocessed_memories_after_id as fetch_unprocessed_memories_after_id,
@@ -90,10 +75,8 @@ from memory.conversation_window_runtime import (
     mark_episodic_memories_semanticized as mark_semanticized_memories_runtime,
 )
 from memory.faiss_index import read_index_safe_async, save_indices_async
-from memory.operations import format_interaction_memory
 from memory.record_kinds import (
     INTERACTION_RECORD_KIND,
-    TRANSCRIPT_RECORD_KIND,
 )
 from memory.sqlite_store import (
     init_episodic_schema,
@@ -388,7 +371,6 @@ class LocalMemoryStore:
 
     async def close(self) -> None:
         """Close the embedding client and save indices."""
-        await self._cancel_title_generation_tasks()
         await self.title_client.close()
         await self.embedder.close()
         await self._save_faiss_indices()
@@ -722,14 +704,12 @@ class LocalMemoryStore:
         # Rebuild from database
         async with aiosqlite.connect(db_path) as conn:
             cursor = await conn.cursor()
-            await cursor.execute(
-                """
+            await cursor.execute("""
                 SELECT id, content
                 FROM memories
                 WHERE embedding_id IS NOT NULL
                 ORDER BY embedding_id ASC, id ASC
-                """
-            )
+                """)
             rows = await cursor.fetchall()
 
             for memory_id, content in rows:
@@ -802,16 +782,16 @@ class LocalMemoryStore:
             text: Content to store
             user_id: User identifier
             metadata: Optional metadata dictionary (must include "type": "episodic" or "semantic")
-            record_kind: "memory" (default) or "transcript"
-            role: Optional role for transcript entries ("user", "assistant", "tool")
+            record_kind: Optional source kind for memory rows
+            role: Optional role metadata for memory rows
             message_index: Optional per-conversation ordering index
             message_type: Optional message type (e.g. "llm-text", "tool-call", "tool-output")
             tool_name: Optional tool name for tool-related entries
             correlation_id: Optional correlation id for tool calls/outputs
-            model_id: Optional model id used for the transcript entry
-            model_provider: Optional model provider for the transcript entry
-            screenshot: Optional base64 screenshot (stored for transcripts)
-            skip_embedding: Skip embedding/FAISS indexing (useful for transcript rows)
+            model_id: Optional model id metadata
+            model_provider: Optional model provider metadata
+            screenshot: Optional screenshot metadata
+            skip_embedding: Skip embedding/FAISS indexing
             timestamp: Optional ISO timestamp to store (defaults to now)
 
         Returns:
@@ -871,7 +851,7 @@ class LocalMemoryStore:
         memory_id = str(uuid.uuid4())
         timestamp_value = self._normalize_timestamp(timestamp)
 
-        # Extract memory type from metadata; transcript records are episodic by default.
+        # Extract memory type from metadata.
         memory_type_str = metadata.get("type", "episodic") if metadata else "episodic"
 
         # Extract conversation_id from metadata if not provided directly
@@ -880,9 +860,6 @@ class LocalMemoryStore:
 
         # Convert string to enum for type safety
         memory_type = self._normalize_memory_type(memory_type_str)
-
-        if record_kind == TRANSCRIPT_RECORD_KIND and memory_type != "episodic":
-            memory_type = "episodic"
 
         (
             db_path,
@@ -980,21 +957,6 @@ class LocalMemoryStore:
         # Save FAISS indices after each addition to ensure persistence
         if not skip_embedding and vector_id is not None:
             await self._save_faiss_indices()
-
-        normalized_message_type = (message_type or "").strip().lower().replace("_", "-")
-        if (
-            memory_type == "episodic"
-            and record_kind == TRANSCRIPT_RECORD_KIND
-            and conversation_id
-            and role == "assistant"
-            and normalized_message_type == "llm-text"
-        ):
-            await self._maybe_generate_conversation_title(
-                user_id=user_id,
-                conversation_id=conversation_id,
-                preferred_model_id=model_id,
-                preferred_model_provider=model_provider,
-            )
 
         logger.debug(f"Stored {memory_type} memory {memory_id} for user {user_id}")
         return memory_id
@@ -1098,13 +1060,7 @@ class LocalMemoryStore:
             for memory_type, db_path, index, vector_id_to_memory_id in search_targets
         ]
         all_results = await self._collect_search_results(search_tasks)
-        final_results = self._finalize_search_results(all_results, limit)
-        if search_episodic and final_results:
-            await self._enrich_transcript_user_results_with_assistant_pairs(
-                results=final_results,
-                user_id=user_id,
-            )
-        return final_results
+        return self._finalize_search_results(all_results, limit)
 
     def _build_search_targets(
         self,
@@ -1157,7 +1113,7 @@ class LocalMemoryStore:
             db_path,
             memory_ids,
             include_conversation_id=(memory_type == "episodic"),
-            include_transcript_context=(memory_type == "episodic"),
+            include_memory_context=(memory_type == "episodic"),
         )
         results: List[Dict[str, Any]] = []
         # Reconstruct results in order of similarity
@@ -1227,190 +1183,6 @@ class LocalMemoryStore:
             all_results.extend(results)
         return all_results
 
-    @staticmethod
-    def _normalize_message_index(value: Any) -> Optional[int]:
-        if isinstance(value, bool):
-            return None
-        if isinstance(value, int):
-            return value
-        if isinstance(value, str):
-            stripped = value.strip()
-            if stripped.isdigit():
-                return int(stripped)
-        return None
-
-    @staticmethod
-    def _extract_result_metadata(result: Dict[str, Any]) -> Dict[str, Any]:
-        metadata = result.get("metadata")
-        if isinstance(metadata, dict):
-            return metadata
-        return {}
-
-    @staticmethod
-    def _result_field_as_str(
-        result: Dict[str, Any],
-        field_name: str,
-        metadata: Dict[str, Any],
-    ) -> str:
-        value = result.get(field_name, metadata.get(field_name))
-        if not isinstance(value, str):
-            return ""
-        return value.strip()
-
-    @staticmethod
-    def _is_retrievable_assistant_message_type(message_type: str) -> bool:
-        normalized = message_type.strip().lower()
-        return normalized in {"", "llm-text", "error"}
-
-    @staticmethod
-    def _assistant_sort_key(candidate: Tuple[Optional[int], str]) -> Tuple[int, int]:
-        message_index = candidate[0]
-        return (
-            message_index if message_index is not None else 10**9,
-            0 if message_index is not None else 1,
-        )
-
-    @classmethod
-    def _find_companion_assistant_text(
-        cls,
-        candidates: List[Tuple[Optional[int], str]],
-        user_message_index: Optional[int],
-    ) -> Optional[str]:
-        if not candidates:
-            return None
-        if user_message_index is None:
-            return candidates[0][1]
-        for assistant_index, assistant_text in candidates:
-            if assistant_index is None or assistant_index > user_message_index:
-                return assistant_text
-        return None
-
-    async def _fetch_next_assistant_transcript_text(
-        self,
-        *,
-        user_id: str,
-        conversation_id: str,
-        after_message_index: int,
-    ) -> Optional[str]:
-        async with aiosqlite.connect(self.episodic_db_path) as conn:
-            conn.row_factory = aiosqlite.Row
-            cursor = await conn.cursor()
-            await cursor.execute(
-                """
-                SELECT content
-                FROM memories
-                WHERE user_id = ?
-                  AND conversation_id = ?
-                  AND COALESCE(record_kind, '') = 'transcript'
-                  AND LOWER(TRIM(COALESCE(role, ''))) = 'assistant'
-                  AND message_index > ?
-                  AND LOWER(TRIM(COALESCE(message_type, ''))) IN ('', 'llm-text', 'error')
-                ORDER BY message_index ASC, timestamp ASC
-                LIMIT 1
-                """,
-                (user_id, conversation_id, after_message_index),
-            )
-            row = await cursor.fetchone()
-
-        if not row:
-            return None
-        content = row["content"]
-        if not isinstance(content, str) or not content.strip():
-            return None
-        return content
-
-    async def _enrich_transcript_user_results_with_assistant_pairs(
-        self,
-        *,
-        results: List[Dict[str, Any]],
-        user_id: str,
-    ) -> None:
-        assistant_candidates_by_conversation: Dict[
-            str, List[Tuple[Optional[int], str]]
-        ] = {}
-        for result in results:
-            if result.get("type") != "episodic":
-                continue
-            metadata = self._extract_result_metadata(result)
-            record_kind = self._result_field_as_str(
-                result, "record_kind", metadata
-            ).lower()
-            role = self._result_field_as_str(result, "role", metadata).lower()
-            if record_kind != "transcript" or role != "assistant":
-                continue
-
-            message_type = self._result_field_as_str(result, "message_type", metadata)
-            if not self._is_retrievable_assistant_message_type(message_type):
-                continue
-
-            conversation_id = self._result_field_as_str(
-                result, "conversation_id", metadata
-            )
-            if not conversation_id:
-                continue
-
-            assistant_text = result.get("text")
-            if not isinstance(assistant_text, str) or not assistant_text.strip():
-                continue
-
-            assistant_message_index = self._normalize_message_index(
-                result.get("message_index", metadata.get("message_index"))
-            )
-            assistant_candidates_by_conversation.setdefault(conversation_id, []).append(
-                (assistant_message_index, assistant_text)
-            )
-
-        for conversation_id in assistant_candidates_by_conversation:
-            assistant_candidates_by_conversation[conversation_id].sort(
-                key=self._assistant_sort_key
-            )
-
-        lookup_cache: Dict[Tuple[str, int], Optional[str]] = {}
-        for result in results:
-            if result.get("type") != "episodic":
-                continue
-            user_text = result.get("text")
-            if not isinstance(user_text, str) or not user_text.strip():
-                continue
-            normalized_text = user_text.lower()
-            if "user:" in normalized_text and "assistant:" in normalized_text:
-                continue
-
-            metadata = self._extract_result_metadata(result)
-            record_kind = self._result_field_as_str(
-                result, "record_kind", metadata
-            ).lower()
-            role = self._result_field_as_str(result, "role", metadata).lower()
-            conversation_id = self._result_field_as_str(
-                result, "conversation_id", metadata
-            )
-            if record_kind != "transcript" or role != "user" or not conversation_id:
-                continue
-
-            user_message_index = self._normalize_message_index(
-                result.get("message_index", metadata.get("message_index"))
-            )
-            assistant_text: Optional[str] = None
-            if user_message_index is not None:
-                cache_key = (conversation_id, user_message_index)
-                if cache_key not in lookup_cache:
-                    lookup_cache[cache_key] = (
-                        await self._fetch_next_assistant_transcript_text(
-                            user_id=user_id,
-                            conversation_id=conversation_id,
-                            after_message_index=user_message_index,
-                        )
-                    )
-                assistant_text = lookup_cache[cache_key]
-            if not assistant_text:
-                assistant_text = self._find_companion_assistant_text(
-                    assistant_candidates_by_conversation.get(conversation_id, []),
-                    user_message_index,
-                )
-
-            if assistant_text:
-                result["text"] = format_interaction_memory(user_text, assistant_text)
-
     def _finalize_search_results(
         self, all_results: List[Dict[str, Any]], limit: int
     ) -> List[Dict[str, Any]]:
@@ -1477,7 +1249,7 @@ class LocalMemoryStore:
         db_path: str,
         memory_ids: List[str],
         include_conversation_id: bool = False,
-        include_transcript_context: bool = False,
+        include_memory_context: bool = False,
     ) -> Dict[str, Dict[str, Any]]:
         async with aiosqlite.connect(db_path) as conn:
             conn.row_factory = aiosqlite.Row
@@ -1487,7 +1259,7 @@ class LocalMemoryStore:
             select_columns = "id, user_id, content, timestamp, metadata"
             if include_conversation_id:
                 select_columns += ", conversation_id"
-            if include_transcript_context:
+            if include_memory_context:
                 select_columns += ", record_kind, role, message_index, message_type"
             query = f"""
                 SELECT {select_columns}
@@ -1753,27 +1525,6 @@ class LocalMemoryStore:
             summary_hash=summary_hash,
         )
 
-    async def list_conversations(
-        self, user_id: str, limit: Optional[int] = None, record_kind: Optional[str] = "transcript"
-    ) -> List[Dict[str, Any]]:
-        """
-        List conversation windows for a user.
-        Returns latest conversations first based on last message timestamp.
-
-        Args:
-            user_id: User identifier
-            limit: Maximum number of conversations to return
-            record_kind: Optional transcript-family filter.
-
-        Returns:
-            List of conversation summaries with timestamps and entry counts
-        """
-        return await list_transcript_conversations(
-            episodic_db_path=self.episodic_db_path,
-            user_id=user_id,
-            limit=limit,
-        )
-
     async def append_chat_event(
         self,
         *,
@@ -1835,90 +1586,8 @@ class LocalMemoryStore:
             limit=limit,
         )
 
-    async def search_conversations(
-        self,
-        user_id: str,
-        query: str,
-        limit: int = 40,
-        lexical_limit: int = 120,
-        semantic_limit: int = 40,
-        record_kind: Optional[str] = TRANSCRIPT_RECORD_KIND,
-    ) -> List[Dict[str, Any]]:
-        """
-        Search conversation windows by message content.
-
-        Search visible transcript rows. SDK chat events use dedicated
-        search_chat_conversations().
-        """
-        return await search_transcript_conversations(
-            store=self,
-            episodic_db_path=self.episodic_db_path,
-            user_id=user_id,
-            query=query,
-            limit=limit,
-            lexical_limit=lexical_limit,
-            semantic_limit=semantic_limit,
-            logger=logger,
-            now_epoch_seconds=datetime.now(timezone.utc).timestamp(),
-        )
-
-    async def _maybe_generate_conversation_title(
-        self,
-        user_id: str,
-        conversation_id: str,
-        preferred_model_id: Optional[str] = None,
-        preferred_model_provider: Optional[str] = None,
-    ) -> None:
-        """
-        Non-blocking title generation trigger after assistant transcript writes.
-        """
-        await maybe_generate_conversation_title(
-            store=self,
-            user_id=user_id,
-            conversation_id=conversation_id,
-            preferred_model_id=preferred_model_id,
-            preferred_model_provider=preferred_model_provider,
-            logger=logger,
-        )
-
-    def _ensure_title_generation_runtime_state(self) -> None:
-        ensure_title_generation_runtime_state(store=self)
-
     async def _cancel_title_generation_tasks(self) -> None:
-        await cancel_title_generation_tasks(store=self)
-
-    async def _run_conversation_title_generation(
-        self,
-        *,
-        user_id: str,
-        conversation_id: str,
-        preferred_model_id: Optional[str],
-        preferred_model_provider: Optional[str],
-    ) -> None:
-        await run_conversation_title_generation(
-            store=self,
-            user_id=user_id,
-            conversation_id=conversation_id,
-            preferred_model_id=preferred_model_id,
-            preferred_model_provider=preferred_model_provider,
-            logger=logger,
-        )
-
-    async def _generate_conversation_title_and_persist(
-        self,
-        *,
-        user_id: str,
-        conversation_id: str,
-        preferred_model_id: Optional[str],
-        preferred_model_provider: Optional[str],
-    ) -> None:
-        await generate_conversation_title_and_persist(
-            store=self,
-            user_id=user_id,
-            conversation_id=conversation_id,
-            preferred_model_id=preferred_model_id,
-            preferred_model_provider=preferred_model_provider,
-        )
+        return None
 
     async def list_semantic_memories(
         self, user_id: str, limit: int = 200
@@ -2115,105 +1784,6 @@ class LocalMemoryStore:
             conversation_id=conversation_id,
         )
 
-    async def delete_conversation(
-        self,
-        user_id: str,
-        conversation_id: Optional[str],
-        record_kind: Optional[str] = "transcript",
-    ) -> int:
-        """
-        Delete episodic memories for a given conversation window.
-
-        Note: We do not remove vectors from FAISS; we remove DB rows and in-memory
-        mappings so stale vectors cannot be resolved back to memory IDs.
-
-        Args:
-            user_id: User identifier
-            conversation_id: Conversation window identifier (None deletes rows with NULL conversation_id)
-            record_kind: Optional filter. Transcript-only; non-transcript values are ignored.
-
-        Returns:
-            Number of rows deleted.
-        """
-        normalized_record_kind = TRANSCRIPT_RECORD_KIND
-        record_kind_clause = "AND record_kind = ?"
-        conversation_clause, conversation_params = self._conversation_where_clause(
-            conversation_id
-        )
-
-        deleted_count = 0
-
-        async with aiosqlite.connect(self.episodic_db_path) as conn:
-            cursor = await conn.cursor()
-            select_params = (user_id, *conversation_params, normalized_record_kind)
-            await cursor.execute(
-                f"""
-                SELECT id, embedding_id
-                FROM memories
-                WHERE user_id = ? AND {conversation_clause}
-                {record_kind_clause}
-            """,
-                select_params,
-            )
-
-            rows = await cursor.fetchall()
-
-            memory_ids: List[str] = []
-            vector_ids: List[int] = []
-            for memory_id, embedding_id in rows:
-                if memory_id:
-                    memory_ids.append(memory_id)
-                if embedding_id is not None:
-                    try:
-                        vector_ids.append(int(embedding_id))
-                    except Exception:
-                        continue
-
-            await cursor.execute(
-                f"""
-                DELETE FROM memories
-                WHERE user_id = ? AND {conversation_clause}
-                {record_kind_clause}
-            """,
-                select_params,
-            )
-
-            deleted_count = (
-                cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
-            )
-            if (
-                conversation_id is not None
-                and normalized_record_kind == TRANSCRIPT_RECORD_KIND
-            ):
-                await cursor.execute(
-                    """
-                    DELETE FROM conversation_titles
-                    WHERE user_id = ? AND conversation_id = ?
-                """,
-                    (user_id, conversation_id),
-                )
-            await conn.commit()
-
-        for vector_id in vector_ids:
-            memory_id = self.episodic_vector_id_to_memory_id.pop(vector_id, None)
-            if memory_id:
-                self.episodic_memory_id_to_vector_id.pop(memory_id, None)
-
-        for memory_id in memory_ids:
-            self.episodic_memory_id_to_vector_id.pop(memory_id, None)
-
-        if deleted_count > 0:
-            await self._cleanup_index_artifacts_if_empty("episodic")
-
-        logger.debug(
-            "Deleted conversation (user_id=%s conversation_id=%s record_kind=%s) -> %s rows",
-            user_id,
-            conversation_id,
-            normalized_record_kind,
-            deleted_count,
-        )
-        return int(deleted_count)
-
     async def _cleanup_index_artifacts_if_empty(self, memory_type: str) -> None:
         """
         Drop in-memory/disk FAISS artifacts when a memory type has no indexed rows left.
@@ -2282,22 +1852,6 @@ class LocalMemoryStore:
             memory_type,
         )
 
-    async def get_next_message_index(
-        self,
-        user_id: str,
-        conversation_id: Optional[str],
-        record_kind: Optional[str] = TRANSCRIPT_RECORD_KIND,
-    ) -> int:
-        """
-        Get the next message index for a transcript conversation.
-        """
-        return await get_next_message_index_for_conversation(
-            episodic_db_path=self.episodic_db_path,
-            user_id=user_id,
-            conversation_id=conversation_id,
-            record_kind=record_kind,
-        )
-
     async def get_next_chat_event_index(
         self, user_id: str, conversation_id: Optional[str]
     ) -> int:
@@ -2320,39 +1874,6 @@ class LocalMemoryStore:
             conversation_id=conversation_id,
             limit=limit,
             after_message_index=after_message_index,
-        )
-
-    async def get_episodic_memories_by_conversation(
-        self,
-        user_id: str,
-        conversation_id: Optional[str],
-        limit: int = 1000,
-        record_kind: Optional[str] = "transcript",
-        after_message_index: Optional[int] = None,
-    ) -> List[Dict[str, Any]]:
-        """
-        Get episodic memories for a specific conversation window.
-        Returns memories in chronological order to maintain conversation history.
-
-        Args:
-            user_id: User identifier
-            conversation_id: Conversation window identifier (None for memories without conversation_id)
-            limit: Maximum number of memories to return (for safety)
-            record_kind: Optional filter. Transcript-only; non-transcript values are ignored.
-            after_message_index: Optional cursor. When provided, returns rows with
-                message_index strictly greater than this cursor.
-
-        Returns:
-            List of memory dictionaries with 'id', 'content', 'timestamp', 'metadata', 'conversation_id'
-        """
-        return await get_episodic_memories_for_conversation(
-            episodic_db_path=self.episodic_db_path,
-            user_id=user_id,
-            conversation_id=conversation_id,
-            limit=limit,
-            record_kind=record_kind,
-            after_message_index=after_message_index,
-            parse_raw_metadata=self._parse_raw_metadata,
         )
 
     async def get_unsemanticized_conversation_windows(self, user_id: str) -> List[str]:

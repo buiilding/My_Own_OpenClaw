@@ -238,4 +238,3 @@ Tool-output transcript persistence is intentionally shared outside the projectio
 - [Transcript Transparency Normalization and Snapshot Pruning Contract Reference](contracts/transcript_transparency_normalization_and_snapshot_pruning_contract_reference.md)
 - [Transcript Session and Rehydrate Reference](../transcript_session_and_rehydrate_reference.md)
 - [Memory IPC and RPC Mapping Reference](../../contracts/memory_ipc_and_rpc_mapping_reference.md)
-- [Transcript Storage, Semantic Candidate, and Watermark Reference](../../sidecar/memory/transcript_storage_semantic_candidate_and_watermark_reference.md)

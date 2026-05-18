@@ -32,18 +32,18 @@ Direct handlers:
 
 Mapped handlers via `registerMappedRpcHandlers(registerRpcHandler, COMPILED_RPC_HANDLER_DEFINITIONS)`:
 
-- `search-conversations`
-- `list-conversations`
+- `search-chat-conversations`
+- `list-chat-conversations`
 - `list-episodic-memories`
-- `get-conversation`
+- `get-chat-events`
 - `list-semantic-memories`
 - `delete-episodic-memory`
-- `delete-conversation`
+- `delete-chat-conversation`
 - `delete-semantic-memory`
 - `clear-local-memory`
 - `clear-chat-history`
 - `store-memory`
-- `store-transcript`
+- `store-chat-event`
 
 `registerRpcHandler` contract:
 
@@ -155,28 +155,28 @@ Guarantee:
 
 `COMPILED_RPC_HANDLER_DEFINITIONS` map highlights:
 
-- `search-conversations` -> `search_conversations` with `{ query, userId, limit } -> { query, user_id, limit }`
-- `list-conversations` -> `list_conversations` with `{ userId, limit, recordKind } -> { user_id, limit, record_kind }`
+- `search-chat-conversations` -> `search_chat_conversations` with `{ query, userId, limit } -> { query, user_id, limit }`
+- `list-chat-conversations` -> `list_chat_conversations` with `{ userId, limit, recordKind } -> { user_id, limit, record_kind }`
 - `list-episodic-memories` -> `list_episodic_memories` with `{ userId, limit } -> { user_id, limit }`
-- `get-conversation` -> `get_conversation` with `conversation_id = conversationId ?? null`
+- `get-chat-events` -> `get_chat_events` with `conversation_id = conversationId ?? null`
 - `list-semantic-memories` -> `list_semantic_memories` with `{ userId, limit } -> { user_id, limit }`
 - `delete-episodic-memory` -> `delete_episodic_memory` with `{ memoryId } -> { memory_id }`
-- `delete-conversation` -> `delete_conversation` with null-safe `conversation_id`
+- `delete-chat-conversation` -> `delete_chat_conversation` with null-safe `conversation_id`
 - `delete-semantic-memory` -> `delete_semantic_memory` with `{ memoryId } -> { memory_id }`
 - `clear-local-memory` -> `clear_local_memory` with `{ userId } -> { user_id }`
 - `clear-chat-history` -> `clear_chat_history` with `{ userId } -> { user_id }`
 - `store-memory` -> `store_memory` with camelCase-to-snake_case memory write fields
-- `store-transcript` -> `store_transcript` mapping transcript metadata (`conversation_ref`, `message_type`, `tool_name`, `correlation_id`, `message_index`, `model_id`, `model_provider`)
+- `store-chat-event` -> `store_chat_event` mapping transcript metadata (`conversation_ref`, `message_type`, `tool_name`, `correlation_id`, `message_index`, `model_id`, `model_provider`)
 
 ## Test-Backed Invariants
 
 From `tests/frontend/LocalBackendBridge.rpc.test.cjs`:
 
 - mapped channels send expected JSON-RPC method names and param keys
-- non-object payloads do not crash mapper paths (`list-conversations` sends `{}`)
+- non-object payloads do not crash mapper paths (`list-chat-conversations` sends `{}`)
 - `search-memory` accepts both camelCase and snake_case exclusion keys
-- `get-conversation` emits explicit `conversation_id: null` when `conversationId` absent
-- `store-transcript` errors normalize to `{ success:false, error }`
+- `get-chat-events` emits explicit `conversation_id: null` when `conversationId` absent
+- `store-chat-event` errors normalize to `{ success:false, error }`
 - `WINDIE_BACKEND_HTTP_URL` env and `NODE_OPTIONS --no-deprecation` propagation are validated at spawn
 - deprecation stderr lines are filtered while normal stderr lines remain logged
 - screenshot path materialization returns artifact refs on success and inline fallback on upload failures
@@ -187,7 +187,7 @@ From `tests/frontend/LocalBackendBridge.rpc.test.cjs`:
 
 1. channel constants drift between preload allowlist and `ipcMain.handle` registration
 2. renamed payload keys in renderer invoke calls not mirrored in mapper field map
-3. method name drift (`delete_semantic_memory`, `store_transcript`, etc.) breaking sidecar routing silently
+3. method name drift (`delete_semantic_memory`, `store_chat_event`, etc.) breaking sidecar routing silently
 4. wrapper-specific behavior drift (`screenshot` visibility runtime wrapper ownership, browser timeout tier)
 
 ## Related Pages

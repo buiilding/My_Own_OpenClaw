@@ -119,7 +119,7 @@ Role:
 Examples:
 
 - `search-memory`: `excludeConversationId` fallback to `exclude_conversation_id`.
-- `get-conversation`/`delete-conversation`: `conversationId` normalized to `conversation_id` with explicit `null` default.
+- `get-chat-events`/`delete-chat-conversation`: `conversationId` normalized to `conversation_id` with explicit `null` default.
 - transcript mapper preserves optional metadata fields while normalizing key names.
 
 Role:

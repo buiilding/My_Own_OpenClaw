@@ -233,4 +233,3 @@ For end-to-end query-send owner routing across renderer compose, Electron main r
 For replay and transcript session-sync normalization details, see [IPC Event Replay and Transcript Session Sync Reference](ipc_event_replay_and_transcript_session_sync_reference.md).
 For helper-level contracts (`prepareRendererQueryPayload`, `buildQueryPayload`, `prepareAutomatedQueryPayload`, `applyTranscriptSessionSync`), see [IPC Query Runtime and Transcript Sync Helper Reference](ipc_query_runtime_and_transcript_sync_helper_reference.md).
 For the extracted renderer query-send orchestration helper, see `frontend/src/main/ipc/ipc_query_send_runtime.cjs`.
-For full pairing/grouping details behind `<episodic_memory>` content generation, see [Memory Search Grouping and Transcript Pair Synthesis Contract Reference](../sidecar/memory/memory_search_grouping_and_transcript_pair_synthesis_contract_reference.md).

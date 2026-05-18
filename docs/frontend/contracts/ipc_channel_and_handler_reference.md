@@ -128,17 +128,17 @@ Removed legacy renderer-callable channels:
 - `execute-tool`
 - `get-system-state`
 - `search-memory`
-- `search-conversations`
+- `search-chat-conversations`
 - mapped JSON-RPC channels:
-- `list-conversations`
+- `list-chat-conversations`
 - `list-episodic-memories`
-- `get-conversation`
+- `get-chat-events`
 - `list-semantic-memories`
 - `delete-episodic-memory`
-- `delete-conversation`
+- `delete-chat-conversation`
 - `delete-semantic-memory`
 - `store-memory`
-- `store-transcript`
+- `store-chat-event`
 
 `execute-tool` runtime nuances:
 

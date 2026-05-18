@@ -135,4 +135,3 @@ Together they form the persistence substrate for all sidecar memory and summariz
 
 - [Frontend Sidecar Memory Storage Docs Hub](README.md)
 - [Local Memory Store Embedding, Search, and Memory-Type Routing Reference](local_memory_store_embedding_search_and_memory_type_routing_reference.md)
-- [Conversation Transcript Window Queries and FAISS Artifact Cleanup Reference](conversation_transcript_window_queries_and_faiss_artifact_cleanup_reference.md)

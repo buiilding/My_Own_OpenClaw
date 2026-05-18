@@ -20,7 +20,6 @@ if TYPE_CHECKING:
 
 from memory.record_kinds import (
     INTERACTION_RECORD_KIND,
-    TRANSCRIPT_RECORD_KIND,
 )
 from memory.chat_event_store import init_chat_event_schema
 
@@ -71,7 +70,9 @@ async def clear_local_memory(store: "LocalMemoryStore", user_id: str) -> Dict[st
             """,
             (user_id, INTERACTION_RECORD_KIND),
         )
-        episodic_deleted = cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
+        episodic_deleted = (
+            cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
+        )
         await conn.commit()
 
     async with aiosqlite.connect(store.semantic_db_path) as conn:
@@ -80,10 +81,14 @@ async def clear_local_memory(store: "LocalMemoryStore", user_id: str) -> Dict[st
             "DELETE FROM memories WHERE user_id = ?",
             (user_id,),
         )
-        semantic_deleted = cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
+        semantic_deleted = (
+            cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
+        )
         await conn.commit()
 
-    await store._watermark_store.update(last_semanticized_id=None, pending_message_count=0)
+    await store._watermark_store.update(
+        last_semanticized_id=None, pending_message_count=0
+    )
     await _rebuild_and_sync_index(store, "episodic")
     await _rebuild_and_sync_index(store, "semantic")
 
@@ -100,27 +105,13 @@ async def clear_local_memory(store: "LocalMemoryStore", user_id: str) -> Dict[st
 
 
 async def clear_chat_history(store: "LocalMemoryStore", user_id: str) -> Dict[str, int]:
-    """Clear transcript chat history and conversation titles while preserving memory rows."""
-    await store._cancel_title_generation_tasks()
-
-    transcript_deleted = 0
+    """Clear chat event history and conversation titles while preserving memory rows."""
     chat_events_deleted = 0
     conversation_titles_deleted = 0
 
     await init_chat_event_schema(store.episodic_db_path)
     async with aiosqlite.connect(store.episodic_db_path) as conn:
         cursor = await conn.cursor()
-        await cursor.execute(
-            """
-            DELETE FROM memories
-            WHERE user_id = ? AND record_kind = ?
-            """,
-            (
-                user_id,
-                TRANSCRIPT_RECORD_KIND,
-            ),
-        )
-        transcript_deleted = cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
         await cursor.execute(
             "DELETE FROM chat_events WHERE user_id = ?",
             (user_id,),
@@ -137,16 +128,13 @@ async def clear_chat_history(store: "LocalMemoryStore", user_id: str) -> Dict[st
         )
         await conn.commit()
 
-    await _rebuild_and_sync_index(store, "episodic")
-
     logger.info(
-        "Cleared chat history for user_id=%s (transcripts=%s chat_events=%s titles=%s)",
+        "Cleared chat history for user_id=%s (chat_events=%s titles=%s)",
         user_id,
-        transcript_deleted,
         chat_events_deleted,
         conversation_titles_deleted,
     )
     return {
-        "deleted_count": int(transcript_deleted) + int(chat_events_deleted),
+        "deleted_count": int(chat_events_deleted),
         "deleted_title_count": int(conversation_titles_deleted),
     }

@@ -348,7 +348,7 @@ describe('episodicMemoryUtils', () => {
     ]);
   });
 
-  test('parseMemoriesToMessages maps transcript screenshot value to screenshotRef', () => {
+  test('parseMemoriesToMessages maps chat event screenshot value to screenshotRef', () => {
     const messages = parseMemoriesToMessages([
       {
         id: 'tool-1',
@@ -356,7 +356,7 @@ describe('episodicMemoryUtils', () => {
         message_type: 'tool-output',
         content: 'tool output',
         screenshot: 'artifact-123',
-        record_kind: 'transcript',
+        record_kind: 'chat_event',
       },
     ]);
 
@@ -366,7 +366,7 @@ describe('episodicMemoryUtils', () => {
         text: 'tool output',
         sender: 'assistant',
         type: 'tool-output',
-        screenshotRef: 'artifact-123',
+        screenshot: 'artifact-123',
         isComplete: true,
       },
     ]);

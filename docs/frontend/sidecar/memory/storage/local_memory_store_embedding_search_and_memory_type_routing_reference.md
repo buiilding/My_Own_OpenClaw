@@ -74,7 +74,7 @@ Routing rules in `add(...)`:
 
 - default memory type is episodic
 - explicit metadata `type` can request semantic
-- transcript record kind (`record_kind="transcript"`) is force-routed to episodic even if metadata says semantic
+- transcript record kind (`record_kind="chat_event"`) is force-routed to episodic even if metadata says semantic
 
 ## Embedding Generation Gate
 
@@ -171,7 +171,7 @@ Regression coverage:
 
 - `tests/sidecar/test_local_store_search_pairing.py`
 
-Conversation search surface (`search_conversations(...)`):
+Conversation search surface (`search_chat_conversations(...)`):
 
 - lexical + semantic transcript hit collection now routes through `conversation_search_runtime`
 - helper module owns FTS/LIKE fallback, transcript filtering, and summary/title fetch normalization
@@ -196,9 +196,5 @@ Test coverage confirms sparse/legacy embedding IDs are rewritten deterministical
 ## Related Pages
 
 - [Frontend Sidecar Memory Storage Docs Hub](README.md)
-- [Memory Search Grouping and Transcript Pair Synthesis Contract Reference](../memory_search_grouping_and_transcript_pair_synthesis_contract_reference.md)
 - [Conversation Search Helper Term, Snippet, Grouping, and Timestamp Contract Reference](conversation_search_helper_term_snippet_grouping_and_timestamp_contract_reference.md)
-- [Conversation Search Runtime FTS, Semantic Fusion, and Summary-Fetch Contract Reference](conversation_search_runtime_fts_semantic_fusion_and_summary_fetch_contract_reference.md)
-- [Conversation Title Generation Runtime and Helper Contract Reference](conversation_title_generation_runtime_and_helper_contract_reference.md)
-- [Conversation Transcript Window Queries and FAISS Artifact Cleanup Reference](conversation_transcript_window_queries_and_faiss_artifact_cleanup_reference.md)
 - [SQLite Schema Migration, FAISS Index I/O, and Watermark State Reference](sqlite_schema_migration_faiss_index_and_watermark_state_reference.md)

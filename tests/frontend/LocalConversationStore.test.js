@@ -12,11 +12,8 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
   INVOKE_CHANNELS: {
     LIST_CHAT_CONVERSATIONS: 'list-chat-conversations',
-    LIST_CONVERSATIONS: 'list-conversations',
     SEARCH_CHAT_CONVERSATIONS: 'search-chat-conversations',
-    SEARCH_CONVERSATIONS: 'search-conversations',
     GET_CHAT_EVENTS: 'get-chat-events',
-    GET_CONVERSATION: 'get-conversation',
   },
 }));
 
@@ -25,7 +22,7 @@ describe('localConversationStore', () => {
     mockInvoke.mockReset();
   });
 
-  test('paginates get-conversation calls by afterMessageIndex and returns merged memories', async () => {
+  test('paginates get-chat-events calls by afterMessageIndex and returns merged memories', async () => {
     mockInvoke
       .mockResolvedValueOnce({
         success: true,
@@ -100,7 +97,7 @@ describe('localConversationStore', () => {
     );
   });
 
-  test('sends an explicit conversation list limit when requested', async () => {
+  test('sends an explicit chat-event conversation list limit when requested', async () => {
     mockInvoke.mockResolvedValue({
       success: true,
       data: { conversations: [] },
@@ -113,10 +110,10 @@ describe('localConversationStore', () => {
     });
 
     expect(mockInvoke).toHaveBeenCalledWith(
-      'list-conversations',
+      'list-chat-conversations',
       {
         userId: 'default_user',
-        recordKind: 'transcript',
+        recordKind: 'chat_event',
         limit: 25,
       },
     );

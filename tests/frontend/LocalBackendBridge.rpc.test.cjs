@@ -864,46 +864,6 @@ describe('local_backend_bridge RPC handlers', () => {
     expect(result).toEqual({ success: true, data: { memories: [] } });
   });
 
-  test('list-conversations handler maps payload keys to backend params', async () => {
-    const { handlers, stdoutHandler } = initBridge();
-    markReady();
-
-    const promise = handlers['list-conversations'](null, {
-      userId: 'u-1',
-      limit: 7,
-      recordKind: 'transcript',
-    });
-
-    expectLastRequestWith('list_conversations', {
-      user_id: 'u-1',
-      limit: 7,
-      record_kind: 'transcript',
-    });
-
-    await expectResolvedSuccess(stdoutHandler, promise, { items: [] });
-  });
-
-  test('search-conversations handler maps payload keys to backend params', async () => {
-    const { handlers, stdoutHandler } = initBridge();
-    markReady();
-
-    const promise = handlers['search-conversations'](null, {
-      userId: 'u-1',
-      query: 'ubuntu mic',
-      limit: 9,
-      recordKind: 'transcript',
-    });
-
-    expectLastRequestWith('search_conversations', {
-      user_id: 'u-1',
-      query: 'ubuntu mic',
-      limit: 9,
-      record_kind: 'transcript',
-    });
-
-    await expectResolvedSuccess(stdoutHandler, promise, { conversations: [] });
-  });
-
   test('chat-event handlers map dedicated chat storage params', async () => {
     const { handlers, stdoutHandler } = initBridge();
     markReady();
@@ -951,17 +911,6 @@ describe('local_backend_bridge RPC handlers', () => {
     await expectResolvedSuccess(stdoutHandler, promise, { ok: true });
   });
 
-  test('list-conversations handler safely handles non-object payloads', async () => {
-    const { handlers, stdoutHandler } = initBridge();
-    markReady();
-
-    const promise = handlers['list-conversations'](null, 'invalid-payload');
-
-    expectLastRequestWith('list_conversations', {});
-
-    await expectResolvedSuccess(stdoutHandler, promise, { items: [] });
-  });
-
   test('list-semantic-memories handler maps payload keys to backend params', async () => {
     const { handlers, stdoutHandler } = initBridge();
     markReady();
@@ -994,69 +943,6 @@ describe('local_backend_bridge RPC handlers', () => {
     });
 
     await expectResolvedSuccess(stdoutHandler, promise, { memories: [] });
-  });
-
-  test('get-conversation handler maps missing conversationId to null', async () => {
-    const { handlers, stdoutHandler } = initBridge();
-    markReady();
-
-    const promise = handlers['get-conversation'](null, {
-      userId: 'u-1',
-      limit: 4,
-      recordKind: 'transcript',
-    });
-
-    expectLastRequestWith('get_conversation', {
-      user_id: 'u-1',
-      conversation_id: null,
-      limit: 4,
-      record_kind: 'transcript',
-      after_message_index: undefined,
-    });
-
-    await expectResolvedSuccess(stdoutHandler, promise, { messages: [] });
-  });
-
-  test('get-conversation handler maps afterMessageIndex cursor', async () => {
-    const { handlers, stdoutHandler } = initBridge();
-    markReady();
-
-    const promise = handlers['get-conversation'](null, {
-      userId: 'u-1',
-      conversationId: 'conv-1',
-      limit: 100,
-      recordKind: 'transcript',
-      afterMessageIndex: 500,
-    });
-
-    expectLastRequestWith('get_conversation', {
-      user_id: 'u-1',
-      conversation_id: 'conv-1',
-      limit: 100,
-      record_kind: 'transcript',
-      after_message_index: 500,
-    });
-
-    await expectResolvedSuccess(stdoutHandler, promise, { messages: [] });
-  });
-
-  test('delete-conversation handler maps payload keys to backend params', async () => {
-    const { handlers, stdoutHandler } = initBridge();
-    markReady();
-
-    const promise = handlers['delete-conversation'](null, {
-      userId: 'u-1',
-      conversationId: 'c-1',
-      recordKind: 'transcript',
-    });
-
-    expectLastRequestWith('delete_conversation', {
-      user_id: 'u-1',
-      conversation_id: 'c-1',
-      record_kind: 'transcript',
-    });
-
-    await expectResolvedSuccess(stdoutHandler, promise, { deleted_count: 3 });
   });
 
   test('delete-semantic-memory handler maps payload keys to backend params', async () => {
@@ -1127,139 +1013,6 @@ describe('local_backend_bridge RPC handlers', () => {
       deleted_count: 4,
       deleted_title_count: 1,
     });
-  });
-
-  test('store-transcript handler returns standardized error payload', async () => {
-    const { handlers, stdoutHandler } = initBridge();
-    markReady();
-
-    const promise = handlers['store-transcript'](null, {
-      content: 'hello',
-      userId: 'u-1',
-      conversationRef: 'conv-1',
-      role: 'assistant',
-      transparency: {
-        systemPrompt: 'prompt',
-      },
-    });
-
-    const request = getLastWrittenRequest();
-    expect(request).toEqual(
-      expect.objectContaining({
-        method: 'store_transcript',
-        params: expect.objectContaining({
-          user_id: 'u-1',
-          conversation_ref: 'conv-1',
-          role: 'assistant',
-          transparency: {
-            systemPrompt: 'prompt',
-          },
-        }),
-      }),
-    );
-
-    emitRpcError(stdoutHandler, 'store failed');
-
-    await expect(promise).resolves.toEqual({ success: false, error: 'store failed' });
-  });
-
-  test('store-transcript handler sanitizes surrogate and mojibake payload text', async () => {
-    const { handlers, stdoutHandler } = initBridge();
-    markReady();
-
-    const promise = handlers['store-transcript'](null, {
-      content: 'bad\udc9dcontent',
-      userId: 'u-1',
-      conversationRef: 'conv-1',
-      role: 'assistant',
-      transparency: {
-        systemPrompt: 'Active: â€œWindieOS â€” READMEâ€\u009d',
-      },
-    });
-
-    expectLastRequestWith('store_transcript', {
-      content: 'bad�content',
-      user_id: 'u-1',
-      conversation_ref: 'conv-1',
-      role: 'assistant',
-      message_type: undefined,
-      tool_name: undefined,
-      correlation_id: undefined,
-      message_index: undefined,
-      model_id: undefined,
-      model_provider: undefined,
-      screenshot: undefined,
-      timestamp: undefined,
-      transparency: {
-        systemPrompt: 'Active: “WindieOS — README”',
-      },
-    });
-
-    await expectResolvedSuccess(stdoutHandler, promise, { ok: true });
-  });
-
-  test('store-transcript handler preserves emoji while replacing lone surrogate payload text', async () => {
-    const { handlers, stdoutHandler } = initBridge();
-    markReady();
-
-    const promise = handlers['store-transcript'](null, {
-      content: 'Hey 👋\udc9d',
-      userId: 'u-1',
-      conversationRef: 'conv-1',
-      role: 'assistant',
-      transparency: {
-        systemPrompt: 'Wave 👋 then lone \udc9d',
-      },
-    });
-
-    expectLastRequestWith('store_transcript', expect.objectContaining({
-      content: 'Hey 👋\uFFFD',
-      user_id: 'u-1',
-      conversation_ref: 'conv-1',
-      role: 'assistant',
-      transparency: {
-        systemPrompt: 'Wave 👋 then lone \uFFFD',
-      },
-    }));
-
-    await expectResolvedSuccess(stdoutHandler, promise, { ok: true });
-  });
-
-  test('store-transcript handler maps transcript rehydrate payload fields', async () => {
-    const { handlers, stdoutHandler } = initBridge();
-    markReady();
-
-    const promise = handlers['store-transcript'](null, {
-      content: '[sdk event]',
-      userId: 'u-1',
-      conversationRef: 'conv-1',
-      role: 'assistant',
-      messageType: 'compaction_applied',
-      messageIndex: 12,
-      recordKind: 'transcript',
-      rehydrateEntry: {
-        role: 'assistant',
-        content: '[[CONTEXT COMPACTION SUMMARY]]\nsummary',
-        message_type: 'context_compaction',
-      },
-    });
-
-    expectLastRequestWith('store_transcript', expect.objectContaining({
-      content: '[sdk event]',
-      user_id: 'u-1',
-      conversation_ref: 'conv-1',
-      role: 'assistant',
-      message_type: 'compaction_applied',
-      message_index: 12,
-      record_kind: 'transcript',
-      rehydrate_entry: {
-        role: 'assistant',
-        content: '[[CONTEXT COMPACTION SUMMARY]]\nsummary',
-        message_type: 'context_compaction',
-      },
-    }));
-
-    await expectResolvedSuccess(stdoutHandler, promise, { ok: true });
   });
 
   test('store-memory handler maps payload keys to backend params', async () => {

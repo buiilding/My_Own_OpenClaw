@@ -53,10 +53,7 @@ describe('useConversationReplayActions', () => {
     };
     mockConversationRef = 'conv-existing';
     jest.spyOn(IpcBridge, 'invoke').mockImplementation(async (channel) => {
-      if (channel === INVOKE_CHANNELS.DELETE_CONVERSATION) {
-        return { success: true };
-      }
-      if (channel === INVOKE_CHANNELS.STORE_TRANSCRIPT) {
+      if (channel === INVOKE_CHANNELS.DELETE_CHAT_CONVERSATION) {
         return { success: true };
       }
       return null;

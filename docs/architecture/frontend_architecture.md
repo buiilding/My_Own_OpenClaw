@@ -241,7 +241,7 @@ Primary modules:
   - Artifact upload HTTP helper.
 - `renderer/infrastructure/transcript/localConversationStore.ts`:
   - Renderer-owned read boundary for locally stored SDK conversation events.
-  - Wraps `list-conversations`, `search-conversations`, and paginated `get-conversation` IPC so chat history stays explicitly local-first in renderer code.
+  - Wraps `list-chat-conversations`, `search-chat-conversations`, and paginated `get-chat-events` IPC so chat history stays explicitly local-first in renderer code.
 - `renderer/features/chat/session/conversationInferenceSessionRuntime.ts`:
   - Tracks whether a given conversation needs backend inference-session hydration from canonical SDK conversation-store snapshots.
   - Makes backend state explicitly disposable and rebuildable instead of treating it as conversation truth.

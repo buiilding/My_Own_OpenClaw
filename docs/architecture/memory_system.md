@@ -96,23 +96,12 @@ $mem = Join-Path $env:APPDATA "desktop-assistant\\memory"; Remove-Item -Force `
 - Supports search, add, update, delete
 - Delegates bulk destructive reset flows to `memory/admin.py`
 - Generates embeddings via `RemoteEmbeddingClient`
-- Transcript-aware indexing behavior:
-  - `record_kind='transcript'` rows are stored in episodic SQLite.
-  - Only semantic-candidate transcript rows are embedded for retrieval
-    (user turns + assistant `llm-text` / `error` turns).
-  - Tool-call/tool-bundle transcript rows remain unembedded to avoid low-signal
-    JSON chatter in episodic retrieval.
-  - Tool-related transcript rows can carry a typed metadata `structured_payload`
-    snapshot so replay and rehydrate can recover tool semantics without reparsing
-    the user-facing display text.
-- On startup, sidecar backfills missing embeddings for existing transcript
-  semantic-candidate rows.
+- Chat history is not stored as memory rows. The sidecar stores visible chat replay in `chat_events`.
+- Episodic memory rows are durable memory facts/interaction pairs, not the visible chat log.
+- On startup, sidecar backfills missing embeddings for existing memory rows.
 - If the backend embedding provider is unavailable, sidecar memory degrades to
   SQLite-only behavior and omits memory context from prompts instead of blocking
   the agent loop.
-  - On retrieval, top-ranked episodic transcript user hits are enriched with the
-    next assistant reply from the same conversation (when available), producing
-    canonical paired interaction text for prompt injection.
 
 ### MemorySummarizer
 
@@ -120,20 +109,13 @@ $mem = Join-Path $env:APPDATA "desktop-assistant\\memory"; Remove-Item -Force `
 - Periodically converts episodic memory into semantic summaries
 - Calls backend `/api/semantic/summarize` via `RemoteSemanticClient`
 
-### Conversation Title Generation
-
-`frontend/src/main/python/memory/conversation_title_runtime.py`
-- Generates model-backed transcript titles after the first user and first assistant `llm-text` rows exist
-- Calls backend `/api/semantic/title` via `RemoteTitleClient`
-- Runs best-effort in the background and falls back to heuristic list titles until a saved model title exists
-
 **Behavior notes**:
 - Runs an immediate startup pass, then continues on a fixed interval; summarization proceeds immediately for large backlogs (`min_batch_size`, default `6`) and for smaller idle backlogs (`min_batch_size_idle`, default `1`) when age checks pass.
 - Deduplicates summaries using a `summary_hash` over source memory IDs.
 - Marks episodic memories as semanticized only after a successful summary write.
 - Uses `watermark_state.json` to track progress and resumes safely after restarts.
 - Summarizes episodic interaction rows only (`record_kind='interaction'`).
-- Transcript rows (`record_kind='transcript'`) are excluded from semantic summarization.
+- Chat-event rows are excluded from semantic summarization because they live outside the memory table.
 
 ### Summarization and Deletion FAQ (Current Behavior)
 
@@ -146,11 +128,11 @@ $mem = Join-Path $env:APPDATA "desktop-assistant\\memory"; Remove-Item -Force `
 - For partial deletes, stale vectors may remain in existing FAISS index files.
 - When a memory type reaches zero indexed rows, WindieOS clears in-memory vector mappings and removes that FAISS index file from disk.
 
-#### Does every assistant transcript message trigger summarization?
+#### Does every assistant message trigger summarization?
 
 - No.
 - Summarizer triggering is based on database count of unsemanticized episodic interaction rows (`record_kind='interaction'`).
-- Transcript writes do not affect the run gate.
+- Chat-event writes do not affect the run gate.
 
 #### Does idle mode trigger summarization?
 
@@ -206,14 +188,14 @@ $mem = Join-Path $env:APPDATA "desktop-assistant\\memory"; Remove-Item -Force `
 
 ## Dashboard Read APIs
 
-The Electron renderer reads memory through sidecar JSON-RPC handlers exposed over IPC:
-- `list_conversations` + `get_conversation` for episodic/transcript browsing.
+The Electron renderer reads local data through sidecar JSON-RPC handlers exposed over IPC:
+- `list_chat_conversations` + `get_chat_events` for chat history and replay.
+- `list_episodic_memories` for completed interaction memories.
 - `list_semantic_memories` for semantic-memory browsing in the Semantic Memory tab.
 
-Current title behavior for transcript chats:
-- A new chat can appear in `Your chats` immediately after the first user transcript row is stored.
-- Until a saved model title exists, list/search reads derive a temporary heuristic title from the first user message.
-- After the first assistant `llm-text` transcript row is stored, async model title generation can replace that temporary title.
+Current title behavior for chats:
+- A new chat can appear in `Your chats` after the first chat event is stored.
+- List/search reads derive the display title from the first user message or latest content in `chat_events`.
 - Hosted debugging note: backend `/api/embeddings`, `/api/semantic/summarize`, and `/api/semantic/title` now emit route-level start/success/failure logs so a hosted `502` can be separated into “request never hit FastAPI” versus “origin app received and failed the request.”
 
 ## Chat Transcript vs SDK Event State
@@ -223,7 +205,7 @@ WindieOS now persists one first-class SDK conversation representation for chat h
 - `chat_events`: normalized SDK event log used for desktop display, conversation lists, backend rehydrate, edit/resend, retry, and compaction lifecycle.
 - `chat_events.attachments`: JSON image attachment records for user-message screenshots and tool-output screenshot artifacts, kept separate from memory/vector rows while the original SDK event payload remains available for replay.
 - `record_kind='interaction'` remains the episodic memory source for completed user+assistant pairs.
-- `record_kind='transcript'` remains a legacy/visible projection path and is not the active SDK continuity source.
+- Legacy transcript memory rows are not an active storage path.
 
 SDK event behavior:
 
@@ -244,8 +226,8 @@ Practical effect:
 
 Settings now exposes two destructive local-data actions:
 
-- `Nuke memory`: deletes user-local episodic interaction memory plus semantic memory, then rebuilds local indices so transcript chats remain searchable.
-- `Nuke chats`: deletes transcript chat history plus saved conversation titles, then rebuilds the episodic index so non-chat memory stays intact.
+- `Nuke memory`: deletes user-local episodic interaction memory plus semantic memory, then rebuilds local indices so chat events remain intact.
+- `Nuke chats`: deletes chat-event history plus saved conversation titles so non-chat memory stays intact.
 
 These actions are user-scoped (`user_id`) and run through the frontend sidecar memory admin module/store boundary, not the backend FastAPI service. In hosted mode, that `user_id` is now a server-issued identity derived from the install token bootstrap flow rather than a client-chosen value.
 
@@ -260,13 +242,13 @@ Prompt-time memory injection is not a raw database dump.
   - semantic limit `2`
   - semantic minimum similarity `0.20`
 - Practical effect:
-  - semantic memories no longer lose every prompt slot to highly similar episodic transcript rows
+  - semantic memories no longer lose every prompt slot to highly similar episodic rows
   - trivial or low-similarity semantic summaries still stay out of the prompt
 
 ## Completed Turn Persistence Contract
 
 - A completed `user -> assistant` turn should persist two different artifacts:
-  - transcript rows (`record_kind='transcript'`) for chat history
+  - chat-event rows in `chat_events` for visible chat history
   - one completed-turn interaction memory row (`record_kind='interaction'`) for the Episodic Memory view and semantic summarizer input
 - The interaction row is triggered by the backend `memory-store` stream event after terminal assistant completion.
 - Electron main must persist that `memory-store` event even though it arrives after `streaming-complete`.

@@ -26,7 +26,7 @@ describe('storedTranscriptMemoryState', () => {
       modelProvider: ' OpenAI ',
       model_id: 'gpt-5.4',
       screenshot_url: 'http://127.0.0.1:8765/api/artifacts/artifact-77',
-      record_kind: 'transcript',
+      record_kind: 'chat_event',
       timestamp: '2026-04-05T12:00:00Z',
     });
 

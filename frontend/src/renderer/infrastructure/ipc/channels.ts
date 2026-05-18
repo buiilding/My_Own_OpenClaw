@@ -21,13 +21,9 @@ type SharedChannelRegistry = {
     GET_SYSTEM_STATE: 'get-system-state';
     STORE_MEMORY: 'store-memory';
     SEARCH_MEMORY: 'search-memory';
-    SEARCH_CONVERSATIONS: 'search-conversations';
-    LIST_CONVERSATIONS: 'list-conversations';
     LIST_EPISODIC_MEMORIES: 'list-episodic-memories';
-    GET_CONVERSATION: 'get-conversation';
     LIST_SEMANTIC_MEMORIES: 'list-semantic-memories';
     DELETE_EPISODIC_MEMORY: 'delete-episodic-memory';
-    DELETE_CONVERSATION: 'delete-conversation';
     DELETE_SEMANTIC_MEMORY: 'delete-semantic-memory';
     CLEAR_LOCAL_MEMORY: 'clear-local-memory';
     CLEAR_CHAT_HISTORY: 'clear-chat-history';
@@ -36,7 +32,6 @@ type SharedChannelRegistry = {
     SEARCH_CHAT_CONVERSATIONS: 'search-chat-conversations';
     GET_CHAT_EVENTS: 'get-chat-events';
     DELETE_CHAT_CONVERSATION: 'delete-chat-conversation';
-    STORE_TRANSCRIPT: 'store-transcript';
     GET_CLIENT_USER_ID: 'get-client-user-id';
     COPY_IMAGE_TO_CLIPBOARD: 'copy-image-to-clipboard';
     SHOW_IMAGE_CONTEXT_MENU: 'show-image-context-menu';

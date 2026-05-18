@@ -141,41 +141,11 @@ const mapSearchMemoryPayload = createPayloadMapper({
 
 const COMPILED_RPC_HANDLER_DEFINITIONS = [
   {
-    channel: 'search-conversations',
-    method: 'search_conversations',
-    mapParams: createPayloadMapper({
-      query: 'query',
-      user_id: 'userId',
-      limit: 'limit',
-      record_kind: 'recordKind',
-    }),
-  },
-  {
-    channel: 'list-conversations',
-    method: 'list_conversations',
-    mapParams: createPayloadMapper({
-      user_id: 'userId',
-      limit: 'limit',
-      record_kind: 'recordKind',
-    }),
-  },
-  {
     channel: 'list-episodic-memories',
     method: 'list_episodic_memories',
     mapParams: createPayloadMapper({
       user_id: 'userId',
       limit: 'limit',
-    }),
-  },
-  {
-    channel: 'get-conversation',
-    method: 'get_conversation',
-    mapParams: createPayloadMapper({
-      user_id: 'userId',
-      conversation_id: ({ conversationId }) => conversationId ?? null,
-      limit: 'limit',
-      record_kind: 'recordKind',
-      after_message_index: 'afterMessageIndex',
     }),
   },
   {
@@ -192,15 +162,6 @@ const COMPILED_RPC_HANDLER_DEFINITIONS = [
     mapParams: createPayloadMapper({
       user_id: 'userId',
       memory_id: 'memoryId',
-    }),
-  },
-  {
-    channel: 'delete-conversation',
-    method: 'delete_conversation',
-    mapParams: createPayloadMapper({
-      user_id: 'userId',
-      conversation_id: ({ conversationId }) => conversationId ?? null,
-      record_kind: 'recordKind',
     }),
   },
   {
@@ -292,30 +253,6 @@ const COMPILED_RPC_HANDLER_DEFINITIONS = [
       memory_type: 'memoryType',
       user_id: 'userId',
       session_id: 'sessionId',
-    }),
-  },
-  {
-    channel: 'store-transcript',
-    method: 'store_transcript',
-    mapParams: createPayloadMapper({
-      content: 'content',
-      user_id: 'userId',
-      conversation_ref: 'conversationRef',
-      role: 'role',
-      message_type: 'messageType',
-      tool_name: 'toolName',
-      correlation_id: 'correlationId',
-      message_index: 'messageIndex',
-      model_id: 'modelId',
-      model_provider: 'modelProvider',
-      screenshot: 'screenshot',
-      timestamp: 'timestamp',
-      workspace_path: 'workspacePath',
-      workspace_name: 'workspaceName',
-      transparency: 'transparency',
-      structured_payload: 'structuredPayload',
-      record_kind: 'recordKind',
-      rehydrate_entry: 'rehydrateEntry',
     }),
   },
 ];

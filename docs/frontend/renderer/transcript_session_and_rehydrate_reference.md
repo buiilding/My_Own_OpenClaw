@@ -1,7 +1,7 @@
 ---
 summary: "Renderer transcript runtime reference: session identity state, queued transcript write semantics, IPC storage contract, and dashboard conversation resume/rehydrate flow."
 read_when:
-  - When changing transcript write behavior, session identity wiring, or `store-transcript` payload shape.
+  - When changing transcript write behavior, session identity wiring, or `store-chat-event` payload shape.
   - When debugging missing transcript rows, stuck pending transcript queues, or resume-conversation rehydrate mismatches.
   - When changing try-again/edit+resend replay sequencing in `useConversationReplayActions.js`.
 title: "Transcript Session and Rehydrate Reference"
@@ -107,7 +107,7 @@ Each path:
 
 1. resolve session identity from explicit options + current session state
 2. if missing identity fields, queue for retry and return
-3. otherwise invoke `store-transcript` over main IPC bridge
+3. otherwise invoke `store-chat-event` over main IPC bridge
 
 Stored fields include:
 
@@ -215,7 +215,7 @@ triggered by the SDK continuity service rather than by dashboard or chat
 feature code.
 
 `DesktopTranscriptProjectionRuntimeClient` routes new visible projection appends
-through this adapter. Direct `store-transcript` calls and replay append mutation
+through this adapter. Direct `store-chat-event` calls and replay append mutation
 are not renderer feature-code surfaces.
 
 `ensureConversationInferenceSessionHydrated(...)` now uses the continuity
@@ -269,9 +269,9 @@ This contract prevents provider tool-call sequencing errors without losing valid
 
 ## Main/Sidecar Contract for Transcript Storage
 
-Renderer `STORE_TRANSCRIPT` invoke path:
+Renderer `STORE_CHAT_EVENT` invoke path:
 
-- main mapped handler: `store-transcript` -> JSON-RPC `store_transcript`
+- main mapped handler: `store-chat-event` -> JSON-RPC `store_chat_event`
 - camelCase to snake_case mapping includes:
   - `conversationRef` -> `conversation_ref`
   - `userId` -> `user_id`
@@ -312,4 +312,3 @@ If resumed conversation loses screenshot/tool linkage:
 - [Transcript Session Sync Payload Normalization and Alias Contract Reference](transcript/contracts/transcript_session_sync_payload_normalization_and_alias_contract_reference.md)
 - [Transcript Transparency Normalization and Snapshot Pruning Contract Reference](transcript/contracts/transcript_transparency_normalization_and_snapshot_pruning_contract_reference.md)
 - [Memory IPC and RPC Mapping Reference](../contracts/memory_ipc_and_rpc_mapping_reference.md)
-- [Transcript Storage, Semantic Candidate, and Watermark Reference](../sidecar/memory/transcript_storage_semantic_candidate_and_watermark_reference.md)

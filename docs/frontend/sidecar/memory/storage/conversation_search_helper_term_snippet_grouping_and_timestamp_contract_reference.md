@@ -169,5 +169,4 @@ Used for recency scoring/sort tie-break safety across heterogeneous stored times
 ## Related Pages
 
 - [Frontend Sidecar Memory Storage Docs Hub](README.md)
-- [Conversation Search Runtime FTS, Semantic Fusion, and Summary-Fetch Contract Reference](conversation_search_runtime_fts_semantic_fusion_and_summary_fetch_contract_reference.md)
 - [Local Memory Store Embedding, Search, and Memory-Type Routing Reference](local_memory_store_embedding_search_and_memory_type_routing_reference.md)

@@ -12,7 +12,6 @@ from core.unicode_sanitizer import sanitize_surrogates_in_text
 from memory.record_kinds import (
     COMPLETED_TURN_MEMORY_SOURCE,
     INTERACTION_RECORD_KIND,
-    TRANSCRIPT_RECORD_KIND,
 )
 
 _NO_DURABLE_MEMORY_MARKERS = {
@@ -30,7 +29,9 @@ _LOW_SIGNAL_SEMANTIC_FACT_PATTERNS = (
     re.compile(r"\bno (?:user )?preferences?\b", re.IGNORECASE),
     re.compile(r"\bno key facts?\b", re.IGNORECASE),
     re.compile(r"\bno durable (?:memory|memories|fact|facts)\b", re.IGNORECASE),
-    re.compile(r"\buser (?:greeted|said hi|said hello|initiated contact)\b", re.IGNORECASE),
+    re.compile(
+        r"\buser (?:greeted|said hi|said hello|initiated contact)\b", re.IGNORECASE
+    ),
     re.compile(r"\bcasual greeting\b", re.IGNORECASE),
     re.compile(r"\bcommunication style is casual\b", re.IGNORECASE),
     re.compile(r"\bfinder\b", re.IGNORECASE),
@@ -79,7 +80,9 @@ def is_explicit_no_durable_memory_result(summary: Any, facts: Any) -> bool:
     """Return True when the summarizer explicitly reported no durable memory."""
     normalized_summary = sanitize_surrogates_in_text(str(summary or "")).strip()
     lowered = normalized_summary.lower().rstrip(".!")
-    return lowered in _NO_DURABLE_MEMORY_MARKERS and not normalize_semantic_fact_list(facts)
+    return lowered in _NO_DURABLE_MEMORY_MARKERS and not normalize_semantic_fact_list(
+        facts
+    )
 
 
 def filter_durable_semantic_facts(facts: Iterable[str]) -> List[str]:
@@ -276,7 +279,9 @@ def _is_low_signal_semantic_fact(fact: str) -> bool:
     lowered = normalized.lower()
     if lowered in _NO_DURABLE_MEMORY_MARKERS:
         return True
-    return any(pattern.search(normalized) for pattern in _LOW_SIGNAL_SEMANTIC_FACT_PATTERNS)
+    return any(
+        pattern.search(normalized) for pattern in _LOW_SIGNAL_SEMANTIC_FACT_PATTERNS
+    )
 
 
 def is_durable_semantic_text(text: Any) -> bool:
@@ -321,7 +326,6 @@ def group_memory_texts(results: Iterable[Dict[str, Any]]) -> Dict[str, List[str]
     grouped: Dict[str, List[str]] = {"semantic": [], "episodic": []}
     episodic_interactions: List[str] = []
     episodic_fallback: List[str] = []
-    episodic_structured_rows: List[Dict[str, Any]] = []
 
     def _is_completed_turn_interaction(result: Dict[str, Any], text: str) -> bool:
         metadata = result.get("metadata")
@@ -350,129 +354,13 @@ def group_memory_texts(results: Iterable[Dict[str, Any]]) -> Dict[str, List[str]
                 episodic_interactions.append(text)
             else:
                 episodic_fallback.append(text)
-                episodic_structured_rows.append(result)
 
     if episodic_interactions:
         grouped["episodic"] = episodic_interactions
         return grouped
 
-    synthesized_pairs = synthesize_transcript_interaction_pairs(episodic_structured_rows)
-    grouped["episodic"] = synthesized_pairs or episodic_fallback
+    grouped["episodic"] = episodic_fallback
     return grouped
-
-
-def _normalize_message_index(value: Any) -> Optional[int]:
-    if isinstance(value, bool):
-        return None
-    if isinstance(value, int):
-        return value
-    if isinstance(value, str):
-        stripped = value.strip()
-        if stripped.isdigit():
-            return int(stripped)
-    return None
-
-
-def _resolve_result_metadata(result: Dict[str, Any]) -> Dict[str, Any]:
-    metadata = result.get("metadata")
-    if isinstance(metadata, dict):
-        return metadata
-    return {}
-
-
-def synthesize_transcript_interaction_pairs(results: Iterable[Dict[str, Any]]) -> List[str]:
-    """
-    Build best-effort user/assistant pairs from transcript search rows.
-
-    This is a fallback for cases where explicit interaction memories are not returned
-    in top-k similarity results.
-    """
-    assistant_rows_by_conversation: Dict[str, List[Tuple[Optional[int], str]]] = {}
-    user_rows_by_conversation: Dict[str, List[Tuple[Optional[int], str]]] = {}
-
-    for result in results:
-        text = result.get("text")
-        if not isinstance(text, str) or not text.strip():
-            continue
-
-        metadata = _resolve_result_metadata(result)
-        record_kind = (
-            result.get("record_kind")
-            or metadata.get("record_kind")
-            or ""
-        )
-        if str(record_kind).strip().lower() != TRANSCRIPT_RECORD_KIND:
-            continue
-
-        conversation_id = (
-            result.get("conversation_id")
-            or metadata.get("conversation_id")
-            or "__unknown_conversation__"
-        )
-        normalized_conversation_id = str(conversation_id).strip() or "__unknown_conversation__"
-        role = (
-            result.get("role")
-            or metadata.get("role")
-            or ""
-        )
-        normalized_role = str(role).strip().lower()
-        message_index = _normalize_message_index(
-            result.get("message_index", metadata.get("message_index"))
-        )
-
-        if normalized_role == "assistant":
-            assistant_rows_by_conversation.setdefault(normalized_conversation_id, []).append((message_index, text))
-            continue
-        if normalized_role == "user":
-            user_rows_by_conversation.setdefault(normalized_conversation_id, []).append((message_index, text))
-
-    if not user_rows_by_conversation or not assistant_rows_by_conversation:
-        return []
-
-    def _row_sort_key(row: Tuple[Optional[int], str]) -> Tuple[int, int]:
-        message_index = row[0]
-        return (
-            message_index if message_index is not None else 10**9,
-            0 if message_index is not None else 1,
-        )
-
-    for conversation_id in assistant_rows_by_conversation:
-        assistant_rows_by_conversation[conversation_id] = sorted(
-            assistant_rows_by_conversation[conversation_id],
-            key=_row_sort_key,
-        )
-    for conversation_id in user_rows_by_conversation:
-        user_rows_by_conversation[conversation_id] = sorted(
-            user_rows_by_conversation[conversation_id],
-            key=_row_sort_key,
-        )
-
-    paired_interactions: List[str] = []
-    for conversation_id, user_rows in user_rows_by_conversation.items():
-        assistant_rows = assistant_rows_by_conversation.get(conversation_id, [])
-        for user_index, user_text in user_rows:
-            selected_assistant_idx = None
-            selected_assistant_text = None
-
-            for idx, (assistant_index, assistant_text) in enumerate(assistant_rows):
-                if user_index is None:
-                    selected_assistant_idx = idx
-                    selected_assistant_text = assistant_text
-                    break
-                if assistant_index is None or assistant_index > user_index:
-                    selected_assistant_idx = idx
-                    selected_assistant_text = assistant_text
-                    break
-
-            if selected_assistant_idx is None or selected_assistant_text is None:
-                continue
-
-            paired_interactions.append(
-                format_interaction_memory(user_text, selected_assistant_text)
-            )
-            assistant_rows.pop(selected_assistant_idx)
-
-    return paired_interactions
 
 
 def format_interaction_memory(user_query: str, assistant_response: str) -> str:

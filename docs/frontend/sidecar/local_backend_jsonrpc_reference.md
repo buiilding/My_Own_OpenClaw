@@ -2,20 +2,18 @@
 summary: "Local backend JSON-RPC reference for Electron main <-> Python sidecar: request envelope, registered methods, renderer IPC mapping, and timeout/error semantics."
 read_when:
   - When adding/changing sidecar JSON-RPC methods or bridge payload mappers.
-  - When debugging execute-tool/search-memory/transcript persistence failures between Electron and Python sidecar.
+  - When debugging execute-tool/search-memory/chat-event persistence failures between Electron and Python sidecar.
 title: "Local Backend JSON-RPC Reference"
 ---
 
 # Local Backend JSON-RPC Reference
 
-> New SDK-facing local execution should use the sidecar daemon contract in [Sidecar Daemon Runtime Reference](sidecar_daemon_runtime_reference.md). This JSON-RPC reference remains for existing Electron bridge methods and memory/service IPC while Electron migration continues.
+> New SDK-facing local execution should use the sidecar daemon contract in [Sidecar Daemon Runtime Reference](sidecar_daemon_runtime_reference.md). This JSON-RPC reference remains for Electron bridge methods and memory/service IPC.
 
 ## Core Modules
 
 - Electron bridge: `frontend/src/main/local_backend_bridge.cjs`
 - Request transport: `frontend/src/main/local_backend_bridge_request_transport.cjs`
-- Execute-tool runtime: `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`
-- Timeout policy: `frontend/src/main/local_backend_bridge_timeout_policy.cjs`
 - IPC->method mappers: `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 - Sidecar service: `frontend/src/main/python/local_backend.py`
 - Sidecar memory handler mixin: `frontend/src/main/python/local_backend_memory_handlers.py`
@@ -23,250 +21,97 @@ title: "Local Backend JSON-RPC Reference"
 
 ## Transport Model
 
-Preferred daemon transport:
+Electron main starts or reuses `sidecar_daemon.py`. The daemon owns one `LocalBackend` instance, including local memory, chat-event storage, embeddings, FAISS indices, and tool execution. Electron sends JSON-RPC envelopes to the daemon `POST /rpc` endpoint.
 
-- Electron main starts/reuses `sidecar_daemon.py`.
-- The daemon owns the single `LocalBackend` instance, including the local memory store.
-- Electron sends JSON-RPC envelopes to daemon `POST /rpc`.
-- The daemon dispatches requests through `LocalBackend.protocol.handle_request(...)` and returns the JSON-RPC response body.
+The older stdin/stdout transport still exists as a fallback, but the daemon path is the preferred runtime.
 
-This keeps memory, transcript writes, embedding backfill, FAISS index writes, and tool execution in one Python process. Do not run a separate `local_backend.py` process beside the daemon as a second memory owner.
-
-Legacy stdin/stdout transport:
-
-Process topology:
-
-- main process spawns `local_backend.py` via resolved Python runtime path.
-- IPC over sidecar stdin/stdout, one JSON object per line.
-- main bridge tracks pending requests by UUID and resolves/rejects with timeout.
-
-Request envelope from main:
+Request envelope:
 
 ```json
 {
   "jsonrpc": "2.0",
   "id": "<uuid>",
   "method": "<method_name>",
-  "params": { ... }
+  "params": {}
 }
 ```
 
-Response envelope from sidecar:
+Response envelope:
 
 ```json
 {
   "jsonrpc": "2.0",
   "id": "<uuid>",
-  "result": { ... }
+  "result": {}
 }
 ```
 
-or
+## Registered Methods
 
-```json
-{
-  "jsonrpc": "2.0",
-  "id": "<uuid>",
-  "error": { "code": -32603, "message": "..." }
-}
-```
-
-## Sidecar Method Registry (`LocalBackend._initialize_methods`)
-
-Registered methods:
+Core/tool methods:
 
 - `ping`
 - `get_status`
 - `execute_tool`
 - `get_system_state`
-- `search_memory`
-- `store_memory`
-- `search_conversations`
-- `list_conversations`
-- `list_episodic_memories`
-- `get_conversation`
-- `list_semantic_memories`
-- `delete_episodic_memory`
-- `delete_conversation`
-- `delete_semantic_memory`
-- `clear_local_memory`
-- `clear_chat_history`
-- `store_transcript`
 - `install_browser_chromium`
 - `determine_macos_system_events_automation_permission`
 
-Method validation behavior:
+Memory methods:
 
-- JSON-RPC protocol validates `jsonrpc == "2.0"`, method exists, and params bind to handler signature.
-- invalid method or params return JSON-RPC errors (`METHOD_NOT_FOUND`, `INVALID_PARAMS`, etc.).
-- memory method implementations are provided via `LocalBackendMemoryHandlersMixin` to keep runtime loop/lifecycle and memory RPC concerns separated.
+- `search_memory`
+- `store_memory`
+- `list_episodic_memories`
+- `list_semantic_memories`
+- `delete_episodic_memory`
+- `delete_semantic_memory`
+- `clear_local_memory`
+- `clear_chat_history`
 
-## Renderer IPC -> JSON-RPC Mapping
+Chat-event methods:
 
-### Direct handlers
+- `store_chat_event`
+- `list_chat_conversations`
+- `search_chat_conversations`
+- `get_chat_events`
+- `delete_chat_conversation`
 
-`local_backend_bridge.cjs` direct mappings:
+The legacy transcript-row conversation methods are not registered.
+
+## Renderer IPC to JSON-RPC Mapping
+
+Direct bridge handlers:
 
 - `execute-tool` -> `execute_tool`
 - `get-system-state` -> `get_system_state`
 - `search-memory` -> `search_memory`
 
-Special behavior:
+Mapped bridge handlers:
 
-- `execute-tool` timeout is resolved by `local_backend_bridge_timeout_policy.cjs`: `120000ms` for `browser`, else `60000ms`.
-- screenshot tool path is wrapped by platform screenshot visibility runtime; current main-process runtime behavior is pass-through and Linux hide/show ownership lives in renderer capture orchestration.
-
-### Mapped handlers (`COMPILED_RPC_HANDLER_DEFINITIONS`)
-
-From `local_backend_bridge_rpc_mappers.cjs`:
-
-- `search-conversations` -> `search_conversations`
-- `list-conversations` -> `list_conversations`
+- `store-chat-event` -> `store_chat_event`
+- `list-chat-conversations` -> `list_chat_conversations`
+- `search-chat-conversations` -> `search_chat_conversations`
+- `get-chat-events` -> `get_chat_events`
+- `delete-chat-conversation` -> `delete_chat_conversation`
 - `list-episodic-memories` -> `list_episodic_memories`
-- `get-conversation` -> `get_conversation`
 - `list-semantic-memories` -> `list_semantic_memories`
 - `delete-episodic-memory` -> `delete_episodic_memory`
-- `delete-conversation` -> `delete_conversation`
 - `delete-semantic-memory` -> `delete_semantic_memory`
 - `clear-local-memory` -> `clear_local_memory`
 - `clear-chat-history` -> `clear_chat_history`
 - `store-memory` -> `store_memory`
-- `store-transcript` -> `store_transcript`
 
-Mapper details:
+## Memory and Chat Semantics
 
-- camelCase renderer keys are converted to snake_case sidecar params.
-- fallback key resolution is used where both naming styles can arrive.
-- payloads are normalized to plain objects before sending.
+`chat_events` is the durable chat log. It stores visible user, assistant, tool-call, tool-output, compaction, metadata, and attachment events. Conversation listing/search/replay reads from this table.
 
-### Main-only JSON-RPC helpers
+`store_memory` writes completed interaction memory rows with `record_kind='interaction'`. Those rows power Episodic Memory and semantic summarization. They are not the visible chat replay source.
 
-`local_backend_bridge.cjs` also exposes main-process helpers that call JSON-RPC directly without a general renderer channel:
+`search_memory` queries episodic and semantic memory for prompt injection. It does not reconstruct chat replay from chat events.
 
-- `getLocalBackendStatus()` -> `get_status`
-- `installBrowserChromium()` -> `install_browser_chromium`
-- `determineMacOsSystemEventsAutomationPermission()` -> `determine_macos_system_events_automation_permission`
-- `warmBrowserAutomation()` -> `execute_tool` with `tool_name="browser"` and `action="connect"`
+## Failure Handling
 
-## Memory-specific Method Semantics
-
-### `search_memory`
-
-Params:
-
-- `query`
-- `user_id` (default `default_user` if caller omits)
-- `limit` (default `5`)
-- `memory_type` (optional filter)
-- `exclude_conversation_id` (optional)
-- `episodic_limit` (optional prompt-injection episodic budget)
-- `semantic_limit` (optional prompt-injection semantic budget)
-- `semantic_min_score` (optional semantic similarity floor, `0..1`)
-
-Validation behavior:
-
-- requires non-empty string `query` (trimmed)
-- validates optional `memory_type` as case-insensitive `episodic|semantic`
-- rejects non-string `memory_type`
-- validates optional `limit` / `episodic_limit` / `semantic_limit` as positive integers
-- validates optional `semantic_min_score` as numeric `0..1`
-
-Returns:
-
-- `{ success: true, data: { memories: { episodic:[], semantic:[] } } }` on success
-- episodic retrieval detail:
-  - default handler pipeline is ordered: `memory_store.search(...)` -> `exclude_conversation_results(...)` -> `group_memory_texts(...)`.
-  - when balanced retrieval params are supplied without an explicit `memory_type`, handler runs separate episodic and semantic searches, applies active-conversation exclusion to episodic, applies `semantic_min_score` to semantic, then groups the merged result buckets.
-  - `LocalMemoryStore.search(...)` enriches transcript user hits with companion assistant replies (primary DB lookup by conversation + `message_index`, fallback to top-k assistant candidates).
-  - `group_memory_texts(...)` then prefers explicit interaction-style rows, else synthesizes transcript user+assistant pairs, else falls back to raw episodic text.
-  - net effect: prompt episodic injection prefers full `User + Assistant` entries and keeps result count stable (rewrites row text without appending rows).
-
-### `store_transcript`
-
-Key params:
-
-- `content`, `user_id`, `conversation_ref`
-- `role`, `message_type`, `tool_name`, `correlation_id`
-- `message_index`, `model_id`, `model_provider`
-- `screenshot`, `timestamp`
-
-Behavior:
-
-- writes transcript record to local memory store as episodic `record_kind="transcript"`
-- selectively skips embedding for non-semantic-candidate rows
-- does not mutate semantic-summarizer pending counters (run gating is DB interaction-row based)
-
-### `store_memory`
-
-Required params:
-
-- `user_query`
-- `assistant_response`
-
-Optional params:
-
-- `memory_type` (`episodic` default; allowlist: `episodic|semantic`)
-- `user_id` (`default_user` default)
-- `session_id`
-
-Validation behavior:
-
-- rejects non-string `user_query` / `assistant_response`
-- rejects non-string `memory_type` when provided
-- trims accepted string fields and rejects blank query/response payloads
-
-Behavior:
-
-- delegates interaction writes to shared `memory.operations.store_interaction_memory(...)`
-- helper persists combined interaction text as `record_kind="interaction"` rows (semantic summarizer source rows)
-
-## Tool Execution Semantics (`execute_tool`)
-
-Sidecar path:
-
-1. `LocalBackend._handle_execute_tool` delegates to `ToolRegistry.execute_tool(tool_name, args)`.
-2. registry dispatches sync/async tool functions and normalizes mapping-shaped outputs to `ToolResult`.
-3. response payload is serialized as standardized `{ success, data?, error? }`.
-
-Failure handling:
-
-- unknown tool -> `ToolResult.error_result("Tool not found: ...")`
-- invalid args type -> error result
-- runtime exceptions -> error result with logged traceback
-
-## Bridge Timeout and Disconnect Behavior
-
-Main bridge defaults:
-
-- request timeout: `60000ms` (or per-request override)
-- on timeout: pending entry removed and promise rejected
-- on subprocess exit/error: all pending requests rejected, ready state reset
-
-Readiness flow:
-
-- bridge sends repeated `ping` checks on startup
-- success marks `isPythonReady=true`
-- max retry exhaustion still marks ready in fallback mode to avoid deadlock, with warnings logged
-
-## Status and Health Diagnostics
-
-`get_status` method includes:
-
-- sidecar running flags
-- memory store init status
-- tool registry status and registered tool list
-
-Main process emits local backend status events:
-
-- `local-backend-status { ready, error? }`
-
-(Used primarily for diagnostics and startup observability in main process.)
-
-## Related Pages
-
-- [Sidecar Core Docs Hub](core/README.md)
-- [Local Backend JSON-RPC Change Workflow](local_backend_jsonrpc_change_workflow.md)
-- [JSON-RPC Protocol, Stdout Framing, and Shutdown Signal Runtime Reference](core/json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md)
-- [Memory IPC and RPC Mapping Reference](../contracts/memory_ipc_and_rpc_mapping_reference.md)
-- [Memory Search Grouping and Transcript Pair Synthesis Contract Reference](memory/memory_search_grouping_and_transcript_pair_synthesis_contract_reference.md)
-- [Transcript Storage, Semantic Candidate, and Watermark Reference](memory/transcript_storage_semantic_candidate_and_watermark_reference.md)
+- invalid method or params return JSON-RPC errors
+- memory handlers return `{ success:false, error:"Memory store not initialized" }` when the memory runtime is unavailable
+- bridge timeouts are owned by `local_backend_bridge_timeout_policy.cjs`
+- mapped responses are forwarded to renderer unchanged

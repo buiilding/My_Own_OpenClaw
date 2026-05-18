@@ -12,10 +12,7 @@ title: "Frontend Sidecar Memory Storage Docs Hub"
 
 - [Local Memory Store Embedding, Search, and Memory-Type Routing Reference](local_memory_store_embedding_search_and_memory_type_routing_reference.md)
 - [Conversation Search Helper Term, Snippet, Grouping, and Timestamp Contract Reference](conversation_search_helper_term_snippet_grouping_and_timestamp_contract_reference.md)
-- [Conversation Search Runtime FTS, Semantic Fusion, and Summary-Fetch Contract Reference](conversation_search_runtime_fts_semantic_fusion_and_summary_fetch_contract_reference.md)
-- [Conversation Title Generation Runtime and Helper Contract Reference](conversation_title_generation_runtime_and_helper_contract_reference.md)
 - [Conversation Heuristic Title Derivation, Sanitization, and Truncation Contract Reference](conversation_heuristic_title_derivation_sanitization_and_truncation_contract_reference.md)
-- [Conversation Transcript Window Queries and FAISS Artifact Cleanup Reference](conversation_transcript_window_queries_and_faiss_artifact_cleanup_reference.md)
 - [SQLite Schema Migration, FAISS Index I/O, and Watermark State Reference](sqlite_schema_migration_faiss_index_and_watermark_state_reference.md)
 
 ## Related Pages
@@ -23,7 +20,6 @@ title: "Frontend Sidecar Memory Storage Docs Hub"
 - [Frontend Sidecar Memory Docs Hub](../README.md)
 - [Memory Pipeline and Summarization](../../memory_pipeline_and_summarization.md)
 - [Summarizer Watermark and Conversation Batch Reference](../summarizer_watermark_and_conversation_batch_reference.md)
-- [Transcript Storage, Semantic Candidate, and Watermark Reference](../transcript_storage_semantic_candidate_and_watermark_reference.md)
 - [Memory Service JSON Protocol and Store Lifecycle Reference](../../services/memory_service_json_protocol_and_store_lifecycle_reference.md)
 
 ## Code Scope

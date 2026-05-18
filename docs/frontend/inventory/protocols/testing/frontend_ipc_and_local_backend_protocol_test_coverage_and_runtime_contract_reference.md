@@ -149,13 +149,13 @@ This reflects current intent: runtime safety in preload, fast-fail ergonomics in
 - suppression of known noisy deprecation stderr lines while preserving meaningful logs
 - key mapping coverage for:
   - `search-memory` (camelCase + snake_case `exclude_conversation_id`)
-  - `list-conversations`
+  - `list-chat-conversations`
   - `list-semantic-memories`
-  - `get-conversation`
-  - `delete-conversation`
+  - `get-chat-events`
+  - `delete-chat-conversation`
   - `delete-episodic-memory`
   - `delete-semantic-memory`
-  - `store-transcript`
+  - `store-chat-event`
   - `store-memory`
 - malformed/non-object IPC payloads normalize to safe empty param objects for mapped handlers
 - `execute-tool` direct `run_shell_command` and nested `system_use -> run_shell_command` payloads inject `sudo_auth_mode` based on `agent_full_sudo_enabled` frontend config

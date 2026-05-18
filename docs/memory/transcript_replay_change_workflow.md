@@ -48,7 +48,7 @@ flowchart LR
 
 | Symptom | First owner | Inspect first | Then inspect |
 | --- | --- | --- | --- |
-| User or assistant row appears in UI but is missing after restart | Renderer projection runtime/pending queues | `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`, `transcriptRecordWrite.ts`, `pending/*` | `tests/frontend/DesktopTranscriptProjectionRuntimeClient.test.ts`, `TranscriptPending*.test.ts`, sidecar `store_transcript` tests |
+| User or assistant row appears in UI but is missing after restart | Renderer projection runtime/pending queues | `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`, `transcriptRecordWrite.ts`, `pending/*` | `tests/frontend/DesktopTranscriptProjectionRuntimeClient.test.ts`, `TranscriptPending*.test.ts`, sidecar `store_chat_event` tests |
 | Tool call or tool output is missing, duplicated, or reordered after replay | Renderer transcript tool message state | `toolCallMessageState.js`, `toolOutputChatMessageState.ts`, `structuredToolPayload.js`, replay tool helpers | `tests/frontend/DesktopTranscriptProjectionRuntimeClient.test.ts`, `ConversationReplayToolMessages.test.js`, backend linkage repair tests |
 | Transcript writes happen under the wrong conversation | Transcript session runtime and Electron sync | `transcriptSessionRuntime.ts`, `sessionInfoState.ts`, `sessionSyncPayload.ts`, `frontend/src/main/ipc/ipc_transcript_session_sync.cjs` | [Session and Conversation Identity Change Workflow](session_conversation_identity_change_workflow.md) |
 | Pending transcript rows never flush | Renderer pending queues | `pending/pendingTranscriptMessages.ts`, `pending/transcriptPendingFlush.ts`, `desktopTranscriptProjectionRuntimeClient.ts` | `tests/frontend/TranscriptPendingQueue.test.ts`, `TranscriptPendingFlush.test.ts`, `TranscriptPendingMessages.test.ts` |
@@ -78,7 +78,7 @@ flowchart LR
    - `transcriptRecordWrite.ts` and `transcriptEntryPersistence.ts` shape the persisted entry.
    - Renderer IPC invokes the main memory bridge.
    - Main process maps payload keys before calling sidecar JSON-RPC.
-   - Sidecar `store_transcript` normalizes and stores rows in `LocalMemoryStore`.
+   - Sidecar `store_chat_event` normalizes and stores rows in `LocalMemoryStore`.
 
 4. Preserve pending-queue guarantees.
    - If session identity is unavailable, queue rows instead of dropping them.
@@ -127,7 +127,7 @@ flowchart LR
 2. Confirm session identity was ready or the row entered a pending queue.
 3. Confirm immediate store failure requeued the row.
 4. Confirm renderer IPC called the main memory bridge with the expected payload.
-5. Confirm sidecar `store_transcript` wrote a row with the expected user/conversation/message type.
+5. Confirm sidecar `store_chat_event` wrote a row with the expected user/conversation/message type.
 6. Confirm dashboard/list replay is querying the same user and conversation.
 
 ### Replay Loses Tool Rows
