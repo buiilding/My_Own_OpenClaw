@@ -39,6 +39,12 @@ def _json_dumps(value: Optional[Dict[str, Any]]) -> Optional[str]:
     return json.dumps(value, separators=(",", ":"), ensure_ascii=False)
 
 
+def _json_dumps_value(value: Any) -> Optional[str]:
+    if value is None:
+        return None
+    return json.dumps(value, separators=(",", ":"), ensure_ascii=False)
+
+
 def _json_loads(value: Any) -> Dict[str, Any]:
     if isinstance(value, dict):
         return value
@@ -49,6 +55,18 @@ def _json_loads(value: Any) -> Dict[str, Any]:
     except Exception:
         return {}
     return parsed if isinstance(parsed, dict) else {}
+
+
+def _json_loads_list(value: Any) -> List[Any]:
+    if isinstance(value, list):
+        return value
+    if not isinstance(value, str) or not value.strip():
+        return []
+    try:
+        parsed = json.loads(value)
+    except Exception:
+        return []
+    return parsed if isinstance(parsed, list) else []
 
 
 def _conversation_clause(conversation_id: Optional[str]) -> Tuple[str, Tuple[Any, ...]]:
@@ -89,11 +107,13 @@ async def init_chat_event_schema(db_path: str) -> None:
                 workspace_path TEXT,
                 workspace_name TEXT,
                 metadata TEXT,
+                attachments TEXT,
                 event_payload TEXT NOT NULL,
                 compaction_checkpoint TEXT
             )
             """
         )
+        await _ensure_chat_event_column(cursor, "attachments", "TEXT")
         await cursor.execute(
             """
             CREATE INDEX IF NOT EXISTS idx_chat_events_conversation_order
@@ -113,6 +133,14 @@ async def init_chat_event_schema(db_path: str) -> None:
             """
         )
         await conn.commit()
+
+
+async def _ensure_chat_event_column(cursor: Any, column_name: str, column_type: str) -> None:
+    await cursor.execute("PRAGMA table_info(chat_events)")
+    columns = await cursor.fetchall()
+    existing = {row[1] for row in columns}
+    if column_name not in existing:
+        await cursor.execute(f"ALTER TABLE chat_events ADD COLUMN {column_name} {column_type}")
 
 
 async def migrate_legacy_conversation_event_rows(db_path: str) -> int:
@@ -182,6 +210,7 @@ async def migrate_legacy_conversation_event_rows(db_path: str) -> int:
                 "legacy_memory_id": row["id"],
                 "migrated_from": "memories.conversation_event",
             },
+            attachments=[],
             event_payload=event_payload,
             compaction_checkpoint=checkpoint,
         )
@@ -227,6 +256,7 @@ async def append_chat_event(
     workspace_path: Optional[str],
     workspace_name: Optional[str],
     metadata: Optional[Dict[str, Any]],
+    attachments: Optional[List[Any]],
     event_payload: Dict[str, Any],
     compaction_checkpoint: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
@@ -248,8 +278,9 @@ async def append_chat_event(
             INSERT OR REPLACE INTO chat_events
             (id, user_id, conversation_id, event_type, role, content, timestamp,
              message_index, revision_id, turn_ref, tool_name, correlation_id,
-             workspace_path, workspace_name, metadata, event_payload, compaction_checkpoint)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             workspace_path, workspace_name, metadata, attachments, event_payload,
+             compaction_checkpoint)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 event_id,
@@ -267,6 +298,7 @@ async def append_chat_event(
                 workspace_path,
                 workspace_name,
                 _json_dumps(metadata),
+                _json_dumps_value(attachments if isinstance(attachments, list) else []),
                 _json_dumps(event_payload) or "{}",
                 _json_dumps(compaction_checkpoint),
             ),
@@ -281,6 +313,7 @@ async def append_chat_event(
 
 def _row_to_dict(row: Any) -> Dict[str, Any]:
     metadata = _json_loads(row["metadata"])
+    attachments = _json_loads_list(row["attachments"])
     event_payload = _json_loads(row["event_payload"])
     checkpoint = _json_loads(row["compaction_checkpoint"])
     result = {
@@ -299,6 +332,7 @@ def _row_to_dict(row: Any) -> Dict[str, Any]:
         "workspace_path": row["workspace_path"],
         "workspace_name": row["workspace_name"],
         "metadata": metadata,
+        "attachments": attachments,
         "event_payload": event_payload,
     }
     if checkpoint:

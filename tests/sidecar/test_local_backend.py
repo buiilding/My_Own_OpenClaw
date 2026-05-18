@@ -1420,6 +1420,13 @@ async def test_handle_store_chat_event_writes_dedicated_chat_storage():
             "source": "ui",
             "payload": {"text": "hello"},
         },
+        attachments=[
+            {
+                "kind": "image",
+                "ref": "artifact-user-1",
+                "contentType": "image/png",
+            }
+        ],
     )
 
     assert result == {
@@ -1432,6 +1439,13 @@ async def test_handle_store_chat_event_writes_dedicated_chat_storage():
     }
     assert backend.memory_store.chat_event_calls[-1]["conversation_id"] == "conv-chat"
     assert backend.memory_store.chat_event_calls[-1]["event_type"] == "user_message"
+    assert backend.memory_store.chat_event_calls[-1]["attachments"] == [
+        {
+            "kind": "image",
+            "ref": "artifact-user-1",
+            "contentType": "image/png",
+        }
+    ]
 
 
 @pytest.mark.asyncio

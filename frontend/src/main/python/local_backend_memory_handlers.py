@@ -8,7 +8,7 @@ import asyncio
 import json
 import logging
 from functools import wraps
-from typing import Any, Awaitable, Callable, Dict, Optional
+from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 from memory.operations import (
     build_memory_filters,
@@ -98,6 +98,19 @@ class LocalBackendMemoryHandlersMixin:
             logger.warning("Dropping non-serializable transcript structured payload")
             return None
         return dict(sanitized_payload)
+
+    @staticmethod
+    def _normalize_attachment_payload(attachments: Optional[List[Any]]) -> List[Any]:
+        """Validate chat-event attachments payload is JSON-serializable array data."""
+        if not isinstance(attachments, list):
+            return []
+        sanitized_payload = sanitize_surrogates(attachments)
+        try:
+            json.dumps(sanitized_payload)
+        except (TypeError, ValueError):
+            logger.warning("Dropping non-serializable chat event attachments payload")
+            return []
+        return list(sanitized_payload)
 
     @staticmethod
     def _is_semantic_transcript_candidate(
@@ -544,6 +557,7 @@ class LocalBackendMemoryHandlersMixin:
         workspace_path: Optional[str] = None,
         workspace_name: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
+        attachments: Optional[List[Any]] = None,
         event_payload: Optional[Dict[str, Any]] = None,
         compaction_checkpoint: Optional[Dict[str, Any]] = None,
         **kwargs,
@@ -559,6 +573,7 @@ class LocalBackendMemoryHandlersMixin:
         if normalized_event_payload is None:
             return {"success": False, "error": "event_payload is required"}
         normalized_metadata = self._normalize_transcript_structured_payload(metadata) or {}
+        normalized_attachments = self._normalize_attachment_payload(attachments)
         normalized_checkpoint = self._normalize_transcript_structured_payload(
             compaction_checkpoint
         )
@@ -587,6 +602,7 @@ class LocalBackendMemoryHandlersMixin:
                 if workspace_name
                 else None,
                 metadata=normalized_metadata,
+                attachments=normalized_attachments,
                 event_payload=normalized_event_payload,
                 compaction_checkpoint=normalized_checkpoint,
             )

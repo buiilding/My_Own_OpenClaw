@@ -1804,6 +1804,7 @@ class LocalMemoryStore:
         workspace_path: Optional[str],
         workspace_name: Optional[str],
         metadata: Optional[Dict[str, Any]],
+        attachments: Optional[List[Any]],
         event_payload: Dict[str, Any],
         compaction_checkpoint: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
@@ -1823,6 +1824,7 @@ class LocalMemoryStore:
             workspace_path=workspace_path,
             workspace_name=workspace_name,
             metadata=metadata,
+            attachments=attachments,
             event_payload=event_payload,
             compaction_checkpoint=compaction_checkpoint,
         )

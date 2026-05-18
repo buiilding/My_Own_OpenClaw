@@ -243,6 +243,7 @@ const COMPILED_RPC_HANDLER_DEFINITIONS = [
       workspace_path: 'workspacePath',
       workspace_name: 'workspaceName',
       metadata: 'metadata',
+      attachments: 'attachments',
       event_payload: 'eventPayload',
       compaction_checkpoint: 'compactionCheckpoint',
     }),

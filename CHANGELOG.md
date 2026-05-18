@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 ### Changed
 
 - frontend/sidecar: move SDK chat continuity from memory `conversation_event` rows into dedicated `chat_events` storage with explicit chat-event RPCs and compaction-checkpoint replay support.
+- frontend/sidecar: persist normalized image attachments on chat events so user-message images and tool-output screenshots survive reload and rehydrate paths.
 - backend/compaction: use WindieOS model catalog context windows and provider-reported prompt-token high-water marks so auto-compaction triggers before oversized tool-continuation turns.
 - frontend/sidecar: generate the built-in client tool manifest from sidecar-owned schemas so Electron sends the rich local tool contracts, including the grouped browser tool, during handshake.
 - frontend/sidecar: rebuild local memory FAISS indexes when persisted vector files drift from SQLite embedding mappings so prompt memory retrieval recovers after partial index saves.

@@ -108,6 +108,10 @@ function normalizeRecord(value: unknown): Record<string, unknown> | null {
   return value as Record<string, unknown>;
 }
 
+function normalizeArray(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
 function parseJsonRecord(value: unknown): Record<string, unknown> | null {
   const record = normalizeRecord(value);
   if (record) {
@@ -196,6 +200,115 @@ function toolNameFromEvent(event: ConversationEvent): string | null {
 
 function correlationIdFromEvent(event: ConversationEvent): string | null {
   return resolveToolEventCorrelationId(event.payload);
+}
+
+function valueByKeys(record: Record<string, unknown>, keys: string[]): unknown {
+  for (const key of keys) {
+    if (record[key] !== undefined && record[key] !== null) {
+      return record[key];
+    }
+  }
+  return undefined;
+}
+
+function addImageAttachment(
+  attachments: Record<string, unknown>[],
+  candidate: unknown,
+  sourceField: string,
+): void {
+  if (candidate === undefined || candidate === null || candidate === '') {
+    return;
+  }
+  const record = normalizeRecord(candidate);
+  if (!record) {
+    attachments.push({
+      kind: 'image',
+      sourceField,
+      value: candidate,
+    });
+    return;
+  }
+
+  const screenshot = valueByKeys(record, ['screenshot', 'image', 'data', 'base64']);
+  const ref = valueByKeys(record, ['screenshotRef', 'screenshot_ref', 'artifactRef', 'artifact_ref', 'ref', 'id']);
+  const url = valueByKeys(record, ['screenshotUrl', 'screenshot_url', 'url']);
+  const contentType = valueByKeys(record, [
+    'screenshotContentType',
+    'screenshot_content_type',
+    'contentType',
+    'content_type',
+    'mimeType',
+    'mime_type',
+  ]);
+
+  attachments.push({
+    kind: 'image',
+    sourceField,
+    ...(ref !== undefined ? { ref } : {}),
+    ...(url !== undefined ? { url } : {}),
+    ...(contentType !== undefined ? { contentType } : {}),
+    ...(screenshot !== undefined ? { data: screenshot } : {}),
+    original: record,
+  });
+}
+
+function collectImageAttachmentsFromRecord(
+  attachments: Record<string, unknown>[],
+  record: Record<string, unknown>,
+): void {
+  const directRef = valueByKeys(record, ['screenshotRef', 'screenshot_ref']);
+  const directUrl = valueByKeys(record, ['screenshotUrl', 'screenshot_url']);
+  const directContentType = valueByKeys(record, ['screenshotContentType', 'screenshot_content_type']);
+  const directScreenshot = valueByKeys(record, ['screenshot', 'image']);
+  if (
+    directRef !== undefined
+    || directUrl !== undefined
+    || directContentType !== undefined
+    || directScreenshot !== undefined
+  ) {
+    addImageAttachment(attachments, {
+      screenshotRef: directRef,
+      screenshotUrl: directUrl,
+      screenshotContentType: directContentType,
+      screenshot: directScreenshot,
+    }, 'screenshot');
+  }
+
+  for (const key of ['screenshots', 'images', 'attachments', 'artifactRefs', 'artifact_refs']) {
+    for (const item of normalizeArray(record[key])) {
+      addImageAttachment(attachments, item, key);
+    }
+  }
+  for (const key of ['screenshotRefs', 'screenshot_refs']) {
+    for (const item of normalizeArray(record[key])) {
+      addImageAttachment(attachments, { screenshotRef: item }, key);
+    }
+  }
+}
+
+function imageAttachmentsFromEvent(event: ConversationEvent): Record<string, unknown>[] {
+  const attachments: Record<string, unknown>[] = [];
+  const payload = normalizeRecord(event.payload) ?? {};
+  const roots = [
+    payload,
+    normalizeRecord(payload.result),
+    normalizeRecord(payload.data),
+    normalizeRecord(payload.output),
+  ].filter((entry): entry is Record<string, unknown> => Boolean(entry));
+
+  for (const root of roots) {
+    collectImageAttachmentsFromRecord(attachments, root);
+  }
+
+  const seen = new Set<string>();
+  return attachments.filter((attachment) => {
+    const key = JSON.stringify(attachment);
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
 }
 
 function roleFromEvent(event: ConversationEvent): string {
@@ -489,6 +602,8 @@ export class ElectronSidecarConversationStore implements ConversationStore {
 
   private async storeEvent(event: ConversationEvent): Promise<void> {
     const workspaceBinding = this.deps.getConversationWorkspaceBinding(event.conversationRef);
+    const attachments = imageAttachmentsFromEvent(event);
+    const firstAttachment = attachments[0] ?? null;
     const result = await this.deps.invoke(INVOKE_CHANNELS.STORE_CHAT_EVENT, {
       content: textFromEvent(event),
       userId: this.userId,
@@ -503,8 +618,13 @@ export class ElectronSidecarConversationStore implements ConversationStore {
       workspacePath: workspaceBinding.workspacePath || null,
       workspaceName: workspaceBinding.workspaceName || null,
       metadata: {
-        screenshot: event.payload.screenshotRef ?? event.payload.screenshot ?? null,
+        screenshot: firstAttachment?.['ref']
+          ?? firstAttachment?.['url']
+          ?? firstAttachment?.['value']
+          ?? firstAttachment?.['data']
+          ?? null,
       },
+      attachments,
       eventPayload: event,
       compactionCheckpoint: event.type === 'compaction_applied' ? event.payload : null,
     });

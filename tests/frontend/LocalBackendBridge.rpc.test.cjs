@@ -920,6 +920,9 @@ describe('local_backend_bridge RPC handlers', () => {
         eventId: 'evt-1',
         type: 'compaction_applied',
       },
+      attachments: [
+        { kind: 'image', ref: 'artifact-1', contentType: 'image/png' },
+      ],
       compactionCheckpoint: {
         entries: [{ role: 'assistant', content: 'summary' }],
       },
@@ -937,6 +940,9 @@ describe('local_backend_bridge RPC handlers', () => {
         eventId: 'evt-1',
         type: 'compaction_applied',
       },
+      attachments: [
+        { kind: 'image', ref: 'artifact-1', contentType: 'image/png' },
+      ],
       compaction_checkpoint: {
         entries: [{ role: 'assistant', content: 'summary' }],
       },

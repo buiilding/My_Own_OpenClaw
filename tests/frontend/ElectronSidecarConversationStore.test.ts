@@ -69,6 +69,41 @@ describe('ElectronSidecarConversationStore', () => {
     }));
   });
 
+  test('stores user-message image attachments as first-class chat event attachments', async () => {
+    const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
+    const event = createConversationEvent({
+      eventId: 'evt-user-image',
+      type: 'user_message',
+      conversationRef: 'conv-1',
+      revisionId: 'rev-1',
+      timestamp: '2026-05-15T12:00:00.000Z',
+      payload: {
+        text: 'look at this',
+        screenshots: [
+          {
+            screenshotRef: 'artifact-user-1',
+            screenshotUrl: '/api/artifacts/artifact-user-1',
+            screenshotContentType: 'image/png',
+          },
+        ],
+      },
+    });
+
+    await store.appendEvent(event);
+
+    expect(mockInvoke).toHaveBeenCalledWith('store-chat-event', expect.objectContaining({
+      attachments: [
+        expect.objectContaining({
+          kind: 'image',
+          ref: 'artifact-user-1',
+          url: '/api/artifacts/artifact-user-1',
+          contentType: 'image/png',
+        }),
+      ],
+      eventPayload: event,
+    }));
+  });
+
   test('uses SDK tool identity helpers when storing SDK tool events', async () => {
     const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
     const event = createConversationEvent({
@@ -89,6 +124,40 @@ describe('ElectronSidecarConversationStore', () => {
     expect(mockInvoke).toHaveBeenCalledWith('store-chat-event', expect.objectContaining({
       correlationId: 'call-read',
       eventType: 'tool_output',
+      eventPayload: event,
+    }));
+  });
+
+  test('stores tool-output image attachments from nested result payloads', async () => {
+    const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
+    const event = createConversationEvent({
+      eventId: 'evt-tool-image',
+      type: 'tool_output',
+      conversationRef: 'conv-1',
+      revisionId: 'rev-1',
+      timestamp: '2026-05-15T12:00:00.000Z',
+      payload: {
+        text: 'tool result',
+        toolCallId: 'call-shot',
+        result: {
+          screenshot_ref: 'artifact-tool-1',
+          screenshot_url: '/api/artifacts/artifact-tool-1',
+          screenshot_content_type: 'image/png',
+        },
+      },
+    });
+
+    await store.appendEvent(event);
+
+    expect(mockInvoke).toHaveBeenCalledWith('store-chat-event', expect.objectContaining({
+      attachments: [
+        expect.objectContaining({
+          kind: 'image',
+          ref: 'artifact-tool-1',
+          url: '/api/artifacts/artifact-tool-1',
+          contentType: 'image/png',
+        }),
+      ],
       eventPayload: event,
     }));
   });
