@@ -252,7 +252,7 @@ async def test_compaction_engine_uses_model_context_window_for_auto_trigger(
     engine = CompactionEngine(session)
 
     decision = engine.evaluate(reason="auto-pre")
-    # 12 seed loops = 48 messages => ~4800 tokens, over 70% of 5000 (3500).
+    # 12 seed loops = 48 messages => ~4800 tokens, over 90% of 5000 (4500).
     assert decision.should_compact is True
 
 

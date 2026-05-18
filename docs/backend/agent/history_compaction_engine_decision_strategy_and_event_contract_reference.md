@@ -66,7 +66,7 @@ Threshold resolution order:
 
 1. `history_compaction_trigger_tokens` when positive integer
 2. WindieOS model catalog context window for the resolved runtime model id, otherwise LiteLLM model metadata
-3. model window trigger at `context_window * 0.70`, capped by `history_compaction_target_tokens` when configured (minimum `2048`)
+3. model window trigger at `context_window * 0.90`, capped by `history_compaction_target_tokens` when configured (minimum `2048`)
 4. hard fallback `120000`
 
 Every decision logs reason, should/skip state, before/projected/trigger tokens, local estimate, source (`local-estimate` or `provider-high-water`), user turn index, and force flag. This is intentionally info-level so live backend logs show why auto-pre or auto-mid did or did not run.

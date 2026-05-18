@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 DEFAULT_TRIGGER_FALLBACK_TOKENS = 120000
-AUTO_TRIGGER_RATIO = 0.70
+AUTO_TRIGGER_RATIO = 0.90
 
 
 class CompactionEngine:
