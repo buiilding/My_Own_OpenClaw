@@ -4,6 +4,7 @@ Remote Embedding Client
 Client for calling the backend embedding API from the frontend memory system.
 """
 
+import asyncio
 import logging
 
 import aiohttp
@@ -164,6 +165,19 @@ class RemoteEmbeddingClient(RemoteApiClientBase):
                     continue
                 logger.error(f"Network error calling embedding API: {e}")
                 raise Exception(f"Failed to connect to embedding service: {e}") from e
+            except asyncio.TimeoutError as e:
+                if index + 1 < len(self.backend_urls):
+                    logger.warning(
+                        "Embedding API at %s timed out; trying fallback %s",
+                        backend_url,
+                        self.backend_urls[index + 1],
+                    )
+                    continue
+                self._service_unavailable = True
+                logger.error("Embedding API timed out")
+                raise EmbeddingServiceUnavailableError(
+                    "Embedding service is unavailable"
+                ) from e
             except EmbeddingServiceUnavailableError:
                 raise
             except Exception as e:
@@ -232,6 +246,17 @@ class RemoteEmbeddingClient(RemoteApiClientBase):
                         continue
                     return False
 
+            except asyncio.TimeoutError:
+                self._service_unavailable = True
+                if index + 1 < len(self.backend_urls):
+                    logger.warning(
+                        "Embedding service health check timed out at %s; trying fallback %s",
+                        backend_url,
+                        self.backend_urls[index + 1],
+                    )
+                    continue
+                logger.error("Embedding service health check timed out")
+                return False
             except Exception as e:
                 if index + 1 < len(self.backend_urls):
                     logger.warning(

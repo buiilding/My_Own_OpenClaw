@@ -74,6 +74,8 @@ Error behavior:
   - `Embedding API returned {status}: {error_text}`
 - `aiohttp.ClientError` raises:
   - `Failed to connect to embedding service: {err}`
+- request or response-body timeout marks the embedding service unavailable and raises:
+  - `EmbeddingServiceUnavailableError`
 - other exceptions are logged and re-raised
 
 ## Embedding-Space Metadata Contract
@@ -112,6 +114,7 @@ All other outcomes return `False`:
 
 - non-200 status
 - non-healthy payload status
+- request timeout
 - thrown exceptions during request/parse
 
 This method is fail-closed and does not raise to callers.
@@ -134,7 +137,9 @@ See backend route reference for serialization + sanitized error mapping details.
 - normalized endpoint URL when backend_url has trailing slash
 - fixed `30s` POST timeout wiring
 - non-200 and network error surfaces
+- embedding request timeouts degrade to `EmbeddingServiceUnavailableError`
 - `health_check()` true/false matrix for healthy/degraded/non-200/exception paths
+- health-check timeouts mark the service unavailable and return `False`
 - initialize/close session reuse + noop close behavior
 - default dimension fallback before metadata discovery
 

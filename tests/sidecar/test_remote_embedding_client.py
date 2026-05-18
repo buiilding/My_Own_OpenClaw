@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+import asyncio
 from tests.sidecar.remote_client_test_utils import (
     DummyResponse,
     DummySession,
@@ -135,6 +136,38 @@ async def test_embed_text_marks_hosted_gateway_error_unavailable_without_local_f
 
 
 @pytest.mark.asyncio
+async def test_embed_text_marks_timeout_unavailable():
+    client = RemoteEmbeddingClient(backend_url="https://api.windieos.com")
+    client._session = DummySession(
+        DummyResponse(200, json_data={"embedding": [1.0]}),
+        post_error=asyncio.TimeoutError(),
+    )
+
+    with pytest.raises(EmbeddingServiceUnavailableError):
+        await client.embed_text("hello")
+
+    assert client.service_unavailable is True
+
+    with pytest.raises(EmbeddingServiceUnavailableError):
+        await client.embed_text("hello again")
+
+
+@pytest.mark.asyncio
+async def test_embed_text_marks_response_body_timeout_unavailable():
+    class TimeoutJsonResponse(DummyResponse):
+        async def json(self):
+            raise asyncio.TimeoutError()
+
+    client = RemoteEmbeddingClient(backend_url="https://api.windieos.com")
+    client._session = DummySession(TimeoutJsonResponse(200))
+
+    with pytest.raises(EmbeddingServiceUnavailableError):
+        await client.embed_text("hello")
+
+    assert client.service_unavailable is True
+
+
+@pytest.mark.asyncio
 async def test_health_check():
     response = DummyResponse(
         200,
@@ -198,6 +231,18 @@ async def test_health_check_returns_false_when_request_raises():
     )
 
     assert await client.health_check() is False
+
+
+@pytest.mark.asyncio
+async def test_health_check_marks_timeout_unavailable():
+    client = RemoteEmbeddingClient()
+    client._session = DummySession(
+        DummyResponse(200, json_data={"status": "healthy"}),
+        get_error=asyncio.TimeoutError(),
+    )
+
+    assert await client.health_check() is False
+    assert client.service_unavailable is True
 
 
 @pytest.mark.asyncio

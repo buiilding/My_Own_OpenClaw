@@ -99,9 +99,9 @@ $mem = Join-Path $env:APPDATA "desktop-assistant\\memory"; Remove-Item -Force `
 - Chat history is not stored as memory rows. The sidecar stores visible chat replay in `chat_events`.
 - Episodic memory rows are durable memory facts/interaction pairs, not the visible chat log.
 - On startup, sidecar backfills missing embeddings for existing memory rows.
-- If the backend embedding provider is unavailable, sidecar memory degrades to
-  SQLite-only behavior and omits memory context from prompts instead of blocking
-  the agent loop.
+- If the backend embedding provider is unavailable or times out, sidecar memory
+  degrades to SQLite-only behavior and omits memory context from prompts instead
+  of blocking the agent loop.
 
 ### MemorySummarizer
 
