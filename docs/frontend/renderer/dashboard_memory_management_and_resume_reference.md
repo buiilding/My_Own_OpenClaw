@@ -71,15 +71,15 @@ Conversation resume now lives in shell + `useDashboardConversations` (consumed b
 Resume call chain:
 
 - sidebar rows and search rows call `onOpenConversation(...)`
-- shell fetches full conversation via `GET_CONVERSATION`
+- shell fetches full conversation via `GET_CHAT_EVENTS`
 - shell asks the desktop conversation runtime to rehydrate backend inference state
 - shell synchronizes transcript state and chat store
 
 IPC methods used by this surface:
 
-- `LIST_CONVERSATIONS`
-- `SEARCH_CONVERSATIONS`
-- `GET_CONVERSATION`
+- `LIST_CHAT_CONVERSATIONS`
+- `SEARCH_CHAT_CONVERSATIONS`
+- `GET_CHAT_EVENTS`
 
 ## Shared Session Identity Contract
 
@@ -139,8 +139,8 @@ Normalization:
 `handleOpenConversation(conversation)` shell behavior:
 
 1. guard missing `conversation_id`.
-2. call `GET_CONVERSATION` with canonical `recordKind: "conversation_event"`.
-3. convert memory rows for UI display (`parseMemoriesToMessages`).
+2. ask the SDK conversation library to load canonical sidecar `chat_events`.
+3. project SDK events for UI display.
 4. ask the desktop conversation runtime to rehydrate with SDK projection payloads.
 5. update active conversation + transcript session identity.
 6. replace chat messages and clear sending/thinking flags.
@@ -156,7 +156,7 @@ Search query behavior:
 
 - trim query.
 - query length `< 2`: no IPC search call; fallback to recent groups.
-- query length `>= 2`: debounced IPC call to `SEARCH_CONVERSATIONS` (`180ms`).
+- query length `>= 2`: debounced IPC call to `SEARCH_CHAT_CONVERSATIONS` (`180ms`).
 
 Search result render extras:
 

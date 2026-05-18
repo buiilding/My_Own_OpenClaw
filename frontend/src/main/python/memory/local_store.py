@@ -44,15 +44,12 @@ from memory.chat_event_store import (
     get_next_chat_event_index,
     init_chat_event_schema,
     list_chat_conversations,
-    migrate_legacy_conversation_event_rows,
     search_chat_conversations,
 )
 from memory.conversation_list_runtime import (
-    list_record_kind_conversations,
     list_transcript_conversations,
 )
 from memory.conversation_search_runtime import (
-    search_record_kind_conversations,
     search_transcript_conversations,
 )
 from memory.conversation_semanticization_runtime import (
@@ -95,7 +92,6 @@ from memory.conversation_window_runtime import (
 from memory.faiss_index import read_index_safe_async, save_indices_async
 from memory.operations import format_interaction_memory
 from memory.record_kinds import (
-    CONVERSATION_EVENT_RECORD_KIND,
     INTERACTION_RECORD_KIND,
     TRANSCRIPT_RECORD_KIND,
 )
@@ -403,7 +399,6 @@ class LocalMemoryStore:
             attrs = self._get_memory_attrs(memory_type)
             await init_fn(getattr(self, attrs.db_path))
         await init_chat_event_schema(self.episodic_db_path)
-        await migrate_legacy_conversation_event_rows(self.episodic_db_path)
 
     async def _load_vector_mappings(self) -> None:
         """Load vector ID to memory ID mappings from both databases."""
@@ -1773,14 +1768,6 @@ class LocalMemoryStore:
         Returns:
             List of conversation summaries with timestamps and entry counts
         """
-        normalized_record_kind = str(record_kind or "").strip().lower()
-        if normalized_record_kind == CONVERSATION_EVENT_RECORD_KIND:
-            return await list_record_kind_conversations(
-                episodic_db_path=self.episodic_db_path,
-                user_id=user_id,
-                record_kind=CONVERSATION_EVENT_RECORD_KIND,
-                limit=limit,
-            )
         return await list_transcript_conversations(
             episodic_db_path=self.episodic_db_path,
             user_id=user_id,
@@ -1855,25 +1842,14 @@ class LocalMemoryStore:
         limit: int = 40,
         lexical_limit: int = 120,
         semantic_limit: int = 40,
-        record_kind: Optional[str] = CONVERSATION_EVENT_RECORD_KIND,
+        record_kind: Optional[str] = TRANSCRIPT_RECORD_KIND,
     ) -> List[Dict[str, Any]]:
         """
         Search conversation windows by message content.
 
-        SDK conversation-event rows are the first-class desktop source. The
-        transcript path remains available only when explicitly requested by
-        callers that inspect transcript rows.
+        Search visible transcript rows. SDK chat events use dedicated
+        search_chat_conversations().
         """
-        normalized_record_kind = str(record_kind or "").strip().lower()
-        if normalized_record_kind == CONVERSATION_EVENT_RECORD_KIND:
-            return await search_record_kind_conversations(
-                episodic_db_path=self.episodic_db_path,
-                user_id=user_id,
-                query=query,
-                limit=limit,
-                record_kind=CONVERSATION_EVENT_RECORD_KIND,
-                now_epoch_seconds=datetime.now(timezone.utc).timestamp(),
-            )
         return await search_transcript_conversations(
             store=self,
             episodic_db_path=self.episodic_db_path,
@@ -2159,12 +2135,7 @@ class LocalMemoryStore:
         Returns:
             Number of rows deleted.
         """
-        requested_record_kind = str(record_kind or "").strip().lower()
-        normalized_record_kind = (
-            requested_record_kind
-            if requested_record_kind == CONVERSATION_EVENT_RECORD_KIND
-            else TRANSCRIPT_RECORD_KIND
-        )
+        normalized_record_kind = TRANSCRIPT_RECORD_KIND
         record_kind_clause = "AND record_kind = ?"
         conversation_clause, conversation_params = self._conversation_where_clause(
             conversation_id

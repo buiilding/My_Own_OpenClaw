@@ -25,18 +25,12 @@ from core.unicode_sanitizer import (
     sanitize_surrogates,
     sanitize_surrogates_in_text,
 )
-from memory.record_kinds import (
-    CONVERSATION_EVENT_RECORD_KIND,
-    TRANSCRIPT_RECORD_KIND,
-)
+from memory.record_kinds import TRANSCRIPT_RECORD_KIND
 from memory.transcript_embedding_policy import is_semantic_transcript_candidate
 
 logger = logging.getLogger(__name__)
 
-_STORE_TRANSCRIPT_RECORD_KINDS = {
-    CONVERSATION_EVENT_RECORD_KIND,
-    TRANSCRIPT_RECORD_KIND,
-}
+_STORE_TRANSCRIPT_RECORD_KINDS = {TRANSCRIPT_RECORD_KIND}
 
 
 def _normalize_store_transcript_record_kind(record_kind: Optional[str]) -> str:
@@ -271,7 +265,7 @@ class LocalBackendMemoryHandlersMixin:
         query: str,
         user_id: str = "default_user",
         limit: int = 40,
-        record_kind: Optional[str] = CONVERSATION_EVENT_RECORD_KIND,
+        record_kind: Optional[str] = TRANSCRIPT_RECORD_KIND,
         **kwargs,
     ) -> Dict[str, Any]:
         """Search conversation windows by message content."""
@@ -747,7 +741,7 @@ class LocalBackendMemoryHandlersMixin:
         normalized_rehydrate_entry = self._normalize_transcript_structured_payload(
             rehydrate_entry
         )
-        if not content and normalized_record_kind != CONVERSATION_EVENT_RECORD_KIND:
+        if not content:
             return {
                 "success": False,
                 "error": "Content is required"
@@ -780,8 +774,6 @@ class LocalBackendMemoryHandlersMixin:
                     ", ".join(surrogate_paths),
                 )
             stored_content = sanitize_surrogates_in_text(content)
-            if not stored_content and normalized_record_kind == CONVERSATION_EVENT_RECORD_KIND:
-                stored_content = "[internal state entry]"
             conversation_id = conversation_ref or session_id
             normalized_correlation_id = None
             if isinstance(correlation_id, str):

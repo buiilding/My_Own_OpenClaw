@@ -13,16 +13,10 @@ try:
 except ImportError:
     aiosqlite = None
 
-from memory.record_kinds import (
-    CONVERSATION_EVENT_RECORD_KIND,
-    TRANSCRIPT_RECORD_KIND,
-)
+from memory.record_kinds import TRANSCRIPT_RECORD_KIND
 
 
-_TRANSCRIPT_WINDOW_RECORD_KINDS = {
-    CONVERSATION_EVENT_RECORD_KIND,
-    TRANSCRIPT_RECORD_KIND,
-}
+_TRANSCRIPT_WINDOW_RECORD_KINDS = {TRANSCRIPT_RECORD_KIND}
 
 
 def normalize_transcript_window_record_kind(record_kind: Optional[str]) -> str:

@@ -203,10 +203,10 @@ records for query, rehydrate, stop, tool-result, and local-runtime operations.
 
 Electron uses a sidecar-backed store adapter:
 
-- canonical SDK events are stored under the sidecar `conversation_event` record
-  kind as the storage truth for desktop display and backend rehydrate
+- canonical SDK events are stored in the sidecar `chat_events` table as the
+  storage truth for desktop display and backend rehydrate
 - transcript/replay fallback is removed; conversations that participate in the
-  SDK runtime must load from canonical `conversation_event` rows
+  SDK runtime must load from canonical `chat_events` rows
 - compacted replay snapshots are persisted as `compaction_applied` conversation
   events with complete generation payloads, not as hidden replay rows
 - desktop compaction replacement-history writes go through the conversation store
@@ -220,7 +220,7 @@ Electron uses a sidecar-backed store adapter:
 - desktop recent-chat and open-chat loading use store metadata/display
   projections over canonical event rows only
 - desktop chat deletion goes through the Electron conversation store adapter and
-  removes canonical `conversation_event` rows
+  removes canonical `chat_events` rows
 - startup metadata loading does not apply a hidden local chat limit; SDK callers
   pass explicit `listMetadata({ limit, cursor })` options when they want bounded
   pages. `cursor` is the last `conversationRef` from the previous page.

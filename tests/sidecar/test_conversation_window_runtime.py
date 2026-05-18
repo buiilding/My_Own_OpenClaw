@@ -56,8 +56,8 @@ def test_conversation_where_clause_handles_null_and_value():
     assert runtime.conversation_where_clause("conv_1") == ("conversation_id = ?", ("conv_1",))
 
 
-def test_normalize_transcript_window_record_kind_preserves_conversation_event_rows():
-    assert runtime.normalize_transcript_window_record_kind("conversation_event") == "conversation_event"
+def test_normalize_transcript_window_record_kind_rejects_non_transcript_rows():
+    assert runtime.normalize_transcript_window_record_kind("chat_event") == "transcript"
     assert runtime.normalize_transcript_window_record_kind("unexpected") == "transcript"
 
 

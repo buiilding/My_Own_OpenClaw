@@ -6,7 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
-- frontend/sidecar: move SDK chat continuity from memory `conversation_event` rows into dedicated `chat_events` storage with explicit chat-event RPCs and compaction-checkpoint replay support.
+- frontend/sidecar: move SDK chat continuity into dedicated `chat_events` storage with explicit chat-event RPCs and compaction-checkpoint replay support.
 - frontend/sidecar: persist normalized image attachments on chat events so user-message images and tool-output screenshots survive reload and rehydrate paths.
 - backend/compaction: use WindieOS model catalog context windows and provider-reported prompt-token high-water marks so auto-compaction triggers before oversized tool-continuation turns.
 - frontend/sidecar: generate the built-in client tool manifest from sidecar-owned schemas so Electron sends the rich local tool contracts, including the grouped browser tool, during handshake.
@@ -103,8 +103,8 @@ All notable changes to WindieOS will be documented in this file.
 - sidecar/browser: rename AI snapshot fallback path as a DOM fallback instead of a legacy compatibility path.
 - sidecar/tools: describe mapping-shaped tool results as a normalized first-class input to the sidecar ToolResult contract.
 - sidecar/browser: remove ignored Chrome launcher restart compatibility parameter and the unused BrowserSession element-index alias.
-- frontend/sdk: make conversation inference-session hydration read canonical `conversation_event` rows by default.
-- frontend/sdk: make dashboard conversation search and local conversation loaders use canonical SDK `conversation_event` rows by default instead of transcript fallback rows.
+- frontend/sdk: make conversation inference-session hydration read canonical `chat_events` rows by default.
+- frontend/sdk: make dashboard conversation search and local conversation loaders use canonical SDK `chat_events` rows by default instead of transcript fallback rows.
 - docs/frontend-sdk: refresh protocol-state, storage, and IPC ownership docs so active change guides route transcript/tool work through the SDK runtime instead of retired renderer-owned writers or tool services.
 - sidecar: remove browser-session cloud parameter aliases so sidecar browser runtime accepts only first-class `cloud_*`, `use_cloud`, and `cloud_browser_params` fields.
 - docs: replace stale transcript writer, replay-state, and renderer tool-runner references in current frontend architecture docs with SDK runtime and transcript projection owners.
@@ -118,7 +118,7 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sdk: reject renderer query sends that omit explicit `conversation_ref` instead of falling back to the main-process active conversation.
 - frontend/sdk: remove the public desktop conversation rewrite-projection escape hatch now that edit/resend and retry go through SDK runtime revision commands.
 - frontend/sdk: remove the renderer `TranscriptWriter` compatibility API; desktop transcript session and projection writes now live behind SDK-facing runtime clients.
-- frontend/sdk: remove hidden `transcript_replay` compatibility storage so desktop display, rehydrate, compaction, edit/resend, retry, and conversation deletion use canonical `conversation_event` rows only.
+- frontend/sdk: remove hidden `transcript_replay` compatibility storage so desktop display, rehydrate, compaction, edit/resend, retry, and conversation deletion use canonical `chat_events` rows only.
 - backend: align rehydrate screenshot artifact compatibility coverage with owner-scoped artifact loading.
 - frontend/sdk: make the desktop transcript projection runtime write through the Electron conversation store without importing `TranscriptWriter`.
 - frontend/sdk: delegate Electron main local tool routing to the SDK package tool coordinator.
@@ -200,14 +200,14 @@ All notable changes to WindieOS will be documented in this file.
 - sdk: preserve provider-facing tool calls and bundle result structure in rehydrate projections so restart/edit/resend history remains provider-safe.
 - sdk: gate conversation runtime backend events by `conversation_ref`/`turn_ref` so simultaneous conversations ignore ambiguous or stale packets on shared transports.
 - frontend: build local conversation rehydrate payloads through SDK-normalized transcript events instead of directly mapping stored transcript rows.
-- frontend/sdk: add an Electron sidecar conversation-store adapter backed by a dedicated `conversation_event` record kind, with legacy transcript fallback and compacted replay loading through SDK projections.
+- frontend/sdk: add an Electron sidecar conversation-store adapter backed by dedicated `chat_events` storage and compacted replay loading through SDK projections.
 - frontend/sdk: route desktop backend-session rehydrate through the Electron sidecar conversation store so active conversation continuation uses the SDK projection path.
 - frontend/sdk: load dashboard recent chats and opened chat messages through the Electron sidecar conversation store projections while preserving legacy transcript fallback.
 - frontend/sdk: route compaction replacement-history persistence through the Electron sidecar conversation store instead of direct stream-handler replay mutation.
 - frontend/sdk: make compacted replay replacement generation-based so partial writes do not delete the previous complete rehydrate snapshot.
 - frontend/sdk: route edit/resend and try-again transcript rewrites through the Electron sidecar conversation store instead of direct replay-hook IPC writes.
 - frontend/sdk: route `TranscriptWriter` visible transcript appends and replay append updates through the Electron sidecar conversation store adapter.
-- frontend/sdk: route dashboard chat deletion through the Electron sidecar conversation store so canonical `conversation_event` rows are removed with transcript and replay rows.
+- frontend/sdk: route dashboard chat deletion through the Electron sidecar conversation store so canonical `chat_events` rows are removed.
 - frontend/sdk: route edit/resend and try-again backend rehydrate generation through the Electron sidecar conversation store projection helper instead of direct renderer payload shaping.
 - frontend/sdk: build deferred query-time model/provider settings through the SDK model-selection helper instead of hand-shaped renderer payloads.
 - frontend: route dashboard and overlay manual compaction controls through one rehydrate-first runtime helper.

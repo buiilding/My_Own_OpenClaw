@@ -891,14 +891,14 @@ describe('local_backend_bridge RPC handlers', () => {
       userId: 'u-1',
       query: 'ubuntu mic',
       limit: 9,
-      recordKind: 'conversation_event',
+      recordKind: 'transcript',
     });
 
     expectLastRequestWith('search_conversations', {
       user_id: 'u-1',
       query: 'ubuntu mic',
       limit: 9,
-      record_kind: 'conversation_event',
+      record_kind: 'transcript',
     });
 
     await expectResolvedSuccess(stdoutHandler, promise, { conversations: [] });
@@ -1225,7 +1225,7 @@ describe('local_backend_bridge RPC handlers', () => {
     await expectResolvedSuccess(stdoutHandler, promise, { ok: true });
   });
 
-  test('store-transcript handler maps conversation-event payload fields', async () => {
+  test('store-transcript handler maps transcript rehydrate payload fields', async () => {
     const { handlers, stdoutHandler } = initBridge();
     markReady();
 
@@ -1236,7 +1236,7 @@ describe('local_backend_bridge RPC handlers', () => {
       role: 'assistant',
       messageType: 'compaction_applied',
       messageIndex: 12,
-      recordKind: 'conversation_event',
+      recordKind: 'transcript',
       rehydrateEntry: {
         role: 'assistant',
         content: '[[CONTEXT COMPACTION SUMMARY]]\nsummary',
@@ -1251,7 +1251,7 @@ describe('local_backend_bridge RPC handlers', () => {
       role: 'assistant',
       message_type: 'compaction_applied',
       message_index: 12,
-      record_kind: 'conversation_event',
+      record_kind: 'transcript',
       rehydrate_entry: {
         role: 'assistant',
         content: '[[CONTEXT COMPACTION SUMMARY]]\nsummary',

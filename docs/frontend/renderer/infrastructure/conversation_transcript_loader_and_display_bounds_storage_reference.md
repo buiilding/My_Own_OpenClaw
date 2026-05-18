@@ -1,7 +1,7 @@
 ---
 summary: "Renderer infrastructure reference for paginated transcript conversation loading and local display-bounds retrieval used by screenshot tool invocation/capture paths."
 read_when:
-  - When changing `localConversationStore.ts` pagination behavior for `get-conversation`.
+  - When changing `localConversationStore.ts` pagination behavior for `get-chat-events`.
   - When changing `displaySelection.ts` storage/parse validation or screenshot `display_bounds` injection behavior.
 title: "Conversation Transcript Loader and Display-Bounds Storage Reference"
 ---
@@ -22,7 +22,7 @@ title: "Conversation Transcript Loader and Display-Bounds Storage Reference"
 
 ## Transcript Conversation Loader Contract
 
-`loadConversationTranscriptMemories(...)` is the SDK projection pagination helper for loading full canonical `conversation_event` rows from local DB IPC.
+`loadConversationTranscriptMemories(...)` is the SDK projection pagination helper for loading full canonical `chat_events` rows from local DB IPC.
 
 Input normalization:
 
@@ -33,12 +33,12 @@ Defaults:
 
 - `pageSize = 1000`
 - `maxPages = 250`
-- `recordKind = "conversation_event"`
+- `recordKind = "chat_event"`
 
 Pagination behavior:
 
-1. invoke `GET_CONVERSATION` with `{ userId, conversationId, limit, recordKind, afterMessageIndex }`
-2. append `result.data.memories` to accumulator
+1. invoke `GET_CHAT_EVENTS` with `{ userId, conversationId, limit, afterMessageIndex }`
+2. append `result.data.events` to accumulator
 3. stop when:
    - page returns empty list
    - returned page has fewer rows than `pageSize`

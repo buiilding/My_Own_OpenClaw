@@ -222,7 +222,6 @@ WindieOS now persists one first-class SDK conversation representation for chat h
 
 - `chat_events`: normalized SDK event log used for desktop display, conversation lists, backend rehydrate, edit/resend, retry, and compaction lifecycle.
 - `chat_events.attachments`: JSON image attachment records for user-message screenshots and tool-output screenshot artifacts, kept separate from memory/vector rows while the original SDK event payload remains available for replay.
-- legacy `record_kind='conversation_event'` rows in the episodic memory DB are migrated into `chat_events` for existing local installs.
 - `record_kind='interaction'` remains the episodic memory source for completed user+assistant pairs.
 - `record_kind='transcript'` remains a legacy/visible projection path and is not the active SDK continuity source.
 

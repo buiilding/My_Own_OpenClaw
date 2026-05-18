@@ -60,7 +60,7 @@ class DummyMemoryStore:
         self.added.append((content, user_id, metadata, conversation_id, kwargs))
         return "memory-1"
 
-    async def search_conversations(self, user_id, query, limit=40, record_kind="conversation_event"):
+    async def search_conversations(self, user_id, query, limit=40, record_kind="transcript"):
         return [
             {
                 "conversation_id": "conv-1",
@@ -191,7 +191,7 @@ class DummyMemoryStoreCapturing(DummyMemoryStore):
             return self.results.get(normalized_type, [])
         return self.results
 
-    async def search_conversations(self, user_id, query, limit=40, record_kind="conversation_event"):
+    async def search_conversations(self, user_id, query, limit=40, record_kind="transcript"):
         self.search_conversation_calls.append((user_id, query, limit, record_kind))
         return self.results
 
@@ -871,7 +871,7 @@ async def test_handle_search_conversations_returns_matches():
     assert result["data"]["count"] == 1
     assert result["data"]["conversations"][0]["conversation_id"] == "conv-2"
     assert backend.memory_store.search_conversation_calls == [
-        ("user-1", "vietnamese lawyer", 25, "conversation_event")
+        ("user-1", "vietnamese lawyer", 25, "transcript")
     ]
 
 
@@ -1218,7 +1218,7 @@ async def test_handle_list_conversations_waits_for_memory_store_initialization()
     list_task = asyncio.create_task(
         backend._handle_list_conversations(
             user_id="user-1",
-            record_kind="conversation_event",
+            record_kind="transcript",
         )
     )
 
@@ -1239,7 +1239,7 @@ async def test_handle_list_conversations_allows_unbounded_limit():
 
     result = await backend._handle_list_conversations(
         user_id="user-1",
-        record_kind="conversation_event",
+        record_kind="transcript",
     )
 
     assert result["success"] is True
@@ -1248,7 +1248,7 @@ async def test_handle_list_conversations_allows_unbounded_limit():
         {
             "user_id": "user-1",
             "limit": None,
-            "record_kind": "conversation_event",
+            "record_kind": "transcript",
         }
     ]
 
@@ -1462,38 +1462,6 @@ async def test_handle_get_chat_events_reads_dedicated_chat_storage():
 
     assert result["success"] is True
     assert result["data"]["events"] == [{"id": "evt-1", "conversation_id": "conv-chat"}]
-
-
-@pytest.mark.asyncio
-async def test_handle_store_transcript_preserves_conversation_event_record_kind():
-    backend = LocalBackend()
-    backend.memory_store = DummyMemoryStore()
-    backend._summarizer = DummySummarizer()
-
-    result = await backend._handle_store_transcript(
-        content='{"type":"user_message"}',
-        user_id="user-1",
-        conversation_ref="conv-sdk",
-        role="user",
-        message_type="user_message",
-        record_kind="conversation_event",
-        structured_payload={
-            "windieSdkConversationEvent": {
-                "eventId": "evt-1",
-                "type": "user_message",
-            },
-        },
-    )
-
-    assert result["success"] is True
-    assert result["data"]["record_kind"] == "conversation_event"
-    _, _, metadata, conversation_id, kwargs = backend.memory_store.added[-1]
-    assert conversation_id == "conv-sdk"
-    assert metadata["record_kind"] == "conversation_event"
-    assert metadata["structured_payload"]["windieSdkConversationEvent"]["eventId"] == "evt-1"
-    assert kwargs["record_kind"] == "conversation_event"
-    assert kwargs["skip_embedding"] is True
-    assert backend._summarizer.notified == []
 
 
 @pytest.mark.asyncio

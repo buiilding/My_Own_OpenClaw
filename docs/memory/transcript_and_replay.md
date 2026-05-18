@@ -59,7 +59,6 @@ SDK-owned conversation state uses a dedicated sidecar chat-event table:
 
 - `chat_events`: normalized SDK event log for runtime/load/rehydrate/display
 - `attachments`: normalized image attachment records extracted from user-message screenshots, screenshot refs/URLs, artifact refs, and tool-output screenshot payloads
-- legacy `record_kind='conversation_event'` memory rows are migrated into `chat_events`
 - compaction replay generations: complete `compaction_applied` events with replacement-history entries
 
 SDK callers should read display and rehydrate state through SDK projections over

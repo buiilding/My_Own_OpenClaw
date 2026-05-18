@@ -9,8 +9,8 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 ensure_frontend_python_path()
 
 from memory.local_store import LocalMemoryStore  # noqa: E402
+from memory.chat_event_store import append_chat_event, init_chat_event_schema  # noqa: E402
 from memory.record_kinds import (  # noqa: E402
-    CONVERSATION_EVENT_RECORD_KIND,
     INTERACTION_RECORD_KIND,
     TRANSCRIPT_RECORD_KIND,
 )
@@ -285,19 +285,6 @@ async def test_list_episodic_memories_returns_interaction_rows_only(tmp_path: Pa
                     None,
                     0,
                 ),
-                (
-                    "event-1",
-                    "user-1",
-                    "[sdk event]",
-                    "2026-04-15T21:45:00Z",
-                    json.dumps({"record_kind": CONVERSATION_EVENT_RECORD_KIND}),
-                    "conv-1",
-                    CONVERSATION_EVENT_RECORD_KIND,
-                    "assistant",
-                    "compaction_applied",
-                    None,
-                    0,
-                ),
             ],
         )
         conn.commit()
@@ -354,7 +341,7 @@ async def test_delete_episodic_memory_clears_faiss_artifacts_when_empty(tmp_path
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(faiss is None, reason="faiss is required")
-async def test_delete_episodic_memory_ignores_conversation_event_rows(tmp_path: Path):
+async def test_delete_episodic_memory_ignores_transcript_rows(tmp_path: Path):
     store = _build_store(tmp_path)
     _create_episodic_memories_table(store.episodic_db_path)
 
@@ -364,31 +351,31 @@ async def test_delete_episodic_memory_ignores_conversation_event_rows(tmp_path: 
             INSERT INTO memories (id, user_id, embedding_id, conversation_id, record_kind)
             VALUES (?, ?, ?, ?, ?)
             """,
-            ("event-1", "user-1", 0, "conv-1", CONVERSATION_EVENT_RECORD_KIND),
+            ("transcript-1", "user-1", 0, "conv-1", TRANSCRIPT_RECORD_KIND),
         )
         conn.commit()
 
-    store.episodic_memory_id_to_vector_id = {"event-1": 0}
-    store.episodic_vector_id_to_memory_id = {0: "event-1"}
+    store.episodic_memory_id_to_vector_id = {"transcript-1": 0}
+    store.episodic_vector_id_to_memory_id = {0: "transcript-1"}
     store.episodic_next_vector_id = 1
     store.episodic_index = faiss.IndexFlatIP(store.embedder.dimension)
 
-    deleted = await store.delete_episodic_memory("user-1", "event-1")
+    deleted = await store.delete_episodic_memory("user-1", "transcript-1")
 
     assert deleted is False
-    assert store.episodic_memory_id_to_vector_id == {"event-1": 0}
-    assert store.episodic_vector_id_to_memory_id == {0: "event-1"}
+    assert store.episodic_memory_id_to_vector_id == {"transcript-1": 0}
+    assert store.episodic_vector_id_to_memory_id == {0: "transcript-1"}
 
     with sqlite3.connect(store.episodic_db_path) as conn:
         remaining_rows = conn.execute(
             "SELECT id, record_kind FROM memories ORDER BY id"
         ).fetchall()
-    assert remaining_rows == [("event-1", CONVERSATION_EVENT_RECORD_KIND)]
+    assert remaining_rows == [("transcript-1", TRANSCRIPT_RECORD_KIND)]
 
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(faiss is None, reason="faiss is required")
-async def test_clear_local_memory_preserves_transcripts_and_conversation_event_rows_and_rebuilds_indices(tmp_path: Path):
+async def test_clear_local_memory_preserves_transcript_rows_and_rebuilds_indices(tmp_path: Path):
     store = _build_store(tmp_path)
     _create_bulk_clear_episodic_memories_table(store.episodic_db_path)
     _create_bulk_clear_semantic_memories_table(store.semantic_db_path)
@@ -421,16 +408,6 @@ async def test_clear_local_memory_preserves_transcripts_and_conversation_event_r
                     "user",
                     "user",
                 ),
-                (
-                    "event-1",
-                    "user-1",
-                    "[sdk event]",
-                    2,
-                    "conv-1",
-                    CONVERSATION_EVENT_RECORD_KIND,
-                    "assistant",
-                    "compaction_applied",
-                ),
             ],
         )
         conn.commit()
@@ -448,7 +425,6 @@ async def test_clear_local_memory_preserves_transcripts_and_conversation_event_r
             [
                 np.full((store.embedder.dimension,), 1.0, dtype=np.float32),
                 np.full((store.embedder.dimension,), 2.0, dtype=np.float32),
-                np.full((store.embedder.dimension,), 3.0, dtype=np.float32),
             ],
             axis=0,
         )
@@ -464,7 +440,7 @@ async def test_clear_local_memory_preserves_transcripts_and_conversation_event_r
         "semantic_deleted_count": 1,
     }
     assert store.episodic_index is not None
-    assert store.episodic_index.ntotal == 2
+    assert store.episodic_index.ntotal == 1
     assert store.semantic_index is not None
     assert store.semantic_index.ntotal == 0
     assert store.semantic_index_path.exists() is False
@@ -480,7 +456,6 @@ async def test_clear_local_memory_preserves_transcripts_and_conversation_event_r
             "SELECT id, record_kind, embedding_id FROM memories ORDER BY id"
         ).fetchall()
     assert remaining_rows == [
-        ("event-1", CONVERSATION_EVENT_RECORD_KIND, 1),
         ("transcript-1", TRANSCRIPT_RECORD_KIND, 0),
     ]
 
@@ -494,6 +469,7 @@ async def test_clear_local_memory_preserves_transcripts_and_conversation_event_r
 async def test_clear_chat_history_preserves_memory_rows_and_titles_are_removed(tmp_path: Path):
     store = _build_store(tmp_path)
     _create_bulk_clear_episodic_memories_table(store.episodic_db_path)
+    await init_chat_event_schema(str(store.episodic_db_path))
 
     with sqlite3.connect(store.episodic_db_path) as conn:
         conn.executemany(
@@ -505,7 +481,6 @@ async def test_clear_chat_history_preserves_memory_rows_and_titles_are_removed(t
             [
                 ("interaction-1", "user-1", "episodic memory", 0, "conv-1", "interaction", "assistant", "llm-text"),
                 ("transcript-1", "user-1", "chat transcript", 1, "conv-1", "transcript", "user", "user"),
-                ("conversation-event-1", "user-1", "sdk event", None, "conv-1", CONVERSATION_EVENT_RECORD_KIND, "user", "user_message"),
             ],
         )
         conn.execute(
@@ -517,6 +492,33 @@ async def test_clear_chat_history_preserves_memory_rows_and_titles_are_removed(t
             ("user-1", "conv-1", "Saved title", "heuristic", 0, "2026-03-11T00:00:00+00:00", "2026-03-11T00:00:00+00:00"),
         )
         conn.commit()
+    await append_chat_event(
+        db_path=str(store.episodic_db_path),
+        user_id="user-1",
+        conversation_id="conv-1",
+        event_type="user_message",
+        role="user",
+        content="sdk event",
+        timestamp="2026-03-11T00:00:00+00:00",
+        message_index=1,
+        revision_id="rev-1",
+        turn_ref=None,
+        tool_name=None,
+        correlation_id=None,
+        workspace_path=None,
+        workspace_name=None,
+        metadata={},
+        attachments=[],
+        event_payload={
+            "eventId": "chat-event-1",
+            "type": "user_message",
+            "conversationRef": "conv-1",
+            "revisionId": "rev-1",
+            "timestamp": "2026-03-11T00:00:00+00:00",
+            "source": "sdk",
+            "payload": {"text": "sdk event"},
+        },
+    )
 
     store.episodic_index = faiss.IndexFlatIP(store.embedder.dimension)
     store.episodic_index.add(

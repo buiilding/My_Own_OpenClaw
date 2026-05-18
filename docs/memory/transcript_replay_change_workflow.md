@@ -11,22 +11,21 @@ title: "Transcript Replay Change Workflow"
 
 Use this workflow for the visible-chat projection path. WindieOS transcript replay is related to memory, but it is not the same thing as semantic memory or backend active model history.
 
-The core rule is: SDK `conversation_event` rows are the canonical client-runtime state. Visible transcript rows are projections persisted for display/search, and backend active history is rebuilt from SDK rehydrate projections before resume. Fix display and replay at the SDK projection/store layer. Fix resumed model context at the rehydrate projection layer. Fix derived memory search/semantic facts in sidecar memory and semanticization code.
+The core rule is: sidecar `chat_events` rows are the canonical client-runtime state. Visible transcript rows are projections persisted for display/search, and backend active history is rebuilt from SDK rehydrate projections before resume. Fix display and replay at the SDK projection/store layer. Fix resumed model context at the rehydrate projection layer. Fix derived memory search/semantic facts in sidecar memory and semanticization code.
 
 ## Runtime Path
 
 ```mermaid
 flowchart LR
     A["Chat stream or local user/tool event"] --> B["DesktopConversationRuntimeClient"]
-    B --> C0["DesktopTranscriptProjectionRuntimeClient"]
+    B --> C0["Desktop conversation continuity service"]
     C0 --> C{"session identity ready?"}
-    C -- "yes" --> D["transcriptRecordWrite"]
-    C -- "no" --> E["pending transcript queues"]
+    C -- "yes" --> D["ElectronSidecarConversationStore"]
+    C -- "no" --> E["pending event queues"]
     E --> D
-    D --> F["ElectronSidecarConversationStore"]
-    F --> G["Electron main memory RPC mapper"]
-    G --> H["sidecar store_transcript handler"]
-    H --> I["LocalMemoryStore conversation_event rows"]
+    D --> G["Electron main memory RPC mapper"]
+    G --> H["sidecar store_chat_event handler"]
+    H --> I["sidecar chat_events rows"]
     I --> J["dashboard conversation list/search"]
     I --> K["SDK display/rehydrate projections"]
     K --> L["rehydratePayload.js"]

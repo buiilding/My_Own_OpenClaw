@@ -497,15 +497,6 @@ def test_should_embed_episodic_entry_matches_transcript_policy():
         )
         is False
     )
-    assert (
-        should_embed_episodic_entry(
-            record_kind="conversation_event",
-            role="assistant",
-            message_type="llm-text",
-        )
-        is True
-    )
-
 
 @pytest.mark.asyncio
 async def test_initialize_rebuilds_indices_when_embedding_space_changes(

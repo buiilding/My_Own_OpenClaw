@@ -63,7 +63,7 @@ Failure behavior:
 Hook search policy (active only when `searchOpen=true`):
 
 - query `< 2` chars -> clear searched list and skip IPC search
-- query `>= 2` chars -> debounced `SEARCH_CONVERSATIONS` call (`180ms`)
+- query `>= 2` chars -> debounced `SEARCH_CHAT_CONVERSATIONS` call (`180ms`)
 - request payload: `{ userId, query, limit: 60 }`
 - cancellation guard prevents stale async writes
 
@@ -96,7 +96,7 @@ When `includeSearchMetadata=true`, adds:
 
 `handleOpenConversation(conversation)`:
 
-1. loads canonical SDK conversation events through `loadConversationTranscriptMemories(...)` (paginated `GET_CONVERSATION` calls with `afterMessageIndex` cursor and `recordKind: "conversation_event"`)
+1. loads canonical SDK conversation events from sidecar `chat_events` through the desktop conversation library/runtime
 2. projects rows through the SDK display conversation builders
 3. asks the desktop conversation runtime to rehydrate backend inference state from the SDK rehydrate snapshot
 4. updates transcript session and active conversation ref

@@ -86,7 +86,7 @@ Dashboard consumers subscribe via `useSyncExternalStore` (`useTranscriptSessionI
 
 Transcript conversation pagination helper:
 
-- `loadConversationTranscriptMemories(...)` centralizes paginated `GET_CONVERSATION` fetch with `afterMessageIndex` cursor progression, used by dashboard open + manual compaction rehydrate flows.
+- `loadConversationTranscriptMemories(...)` centralizes paginated `GET_CHAT_EVENTS` fetch with `afterMessageIndex` cursor progression, used by dashboard open + manual compaction rehydrate flows.
 
 ## Transcript Write API Surface
 
@@ -191,7 +191,7 @@ not execute tools.
 5. set active transcript conversation/session info
 6. replace renderer chat store with projected SDK display messages
 
-Search modal uses the same open path after `search-conversations` results.
+Search modal uses the same open path after `search-chat-conversations` results.
 
 ## SDK Store Boundary
 
@@ -206,8 +206,6 @@ Storage split:
   ids, and structured payloads.
 - `transcript` remains a visible projection/memory-era storage path and is not
   the active SDK continuity source.
-- legacy `record_kind='conversation_event'` memory rows are migrated into
-  `chat_events` so older local chats remain readable.
 - compacted backend rehydrate snapshots are stored as complete
   `compaction_applied` conversation events.
 
@@ -227,10 +225,10 @@ payload comes from the SDK store projection.
 
 Dashboard startup and open-chat loading also use the SDK store adapter:
 
-- recent chats are listed through store metadata from `conversation_event` rows
+- recent chats are listed through store metadata from `chat_events` rows
   and explicit pagination options
 - dashboard chat deletion goes through the store adapter so visible transcript
-  projection rows and canonical `conversation_event` rows are removed together
+  projection rows and canonical `chat_events` rows are removed together
 - opening a chat renders `DisplayConversation` through
   `sdkDisplayChatMessageProjection.ts`
 - the local snapshot loader remains only for workspace binding and projection

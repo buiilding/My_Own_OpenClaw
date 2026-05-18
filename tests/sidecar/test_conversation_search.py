@@ -168,7 +168,7 @@ async def test_search_conversations_merges_semantic_hits_when_lexical_miss(tmp_p
 
 
 @pytest.mark.asyncio
-async def test_search_conversations_uses_conversation_event_rows_by_default(tmp_path: Path):
+async def test_search_conversations_uses_transcript_rows(tmp_path: Path):
     store = _build_store(tmp_path)
     await init_episodic_schema(store.episodic_db_path)
 
@@ -176,8 +176,8 @@ async def test_search_conversations_uses_conversation_event_rows_by_default(tmp_
         text="Plan the modular SDK runtime migration",
         user_id="user-1",
         metadata={"type": "episodic"},
-        conversation_id="conv_sdk",
-        record_kind="conversation_event",
+        conversation_id="conv_transcript",
+        record_kind="transcript",
         role="user",
         message_index=1,
         message_type="user_message",
@@ -185,11 +185,11 @@ async def test_search_conversations_uses_conversation_event_rows_by_default(tmp_
         timestamp="2026-02-25T00:00:00+00:00",
     )
     await store.add(
-        text="Unrelated transcript row should not power first-class search",
+        text="Unrelated interaction row should not power transcript search",
         user_id="user-1",
         metadata={"type": "episodic"},
-        conversation_id="conv_transcript",
-        record_kind="transcript",
+        conversation_id="conv_interaction",
+        record_kind="interaction",
         role="user",
         message_index=1,
         skip_embedding=True,
@@ -199,6 +199,6 @@ async def test_search_conversations_uses_conversation_event_rows_by_default(tmp_
     rows = await store.search_conversations(user_id="user-1", query="modular SDK", limit=10)
 
     assert len(rows) == 1
-    assert rows[0]["conversation_id"] == "conv_sdk"
+    assert rows[0]["conversation_id"] == "conv_transcript"
     assert rows[0]["match_source"] == "lexical"
     assert rows[0]["lexical_match_count"] >= 1

@@ -2,7 +2,7 @@
 summary: "Deep reference for dashboard recent-conversation runtime in `useDashboardConversations`: in-flight request dedupe, stale-response suppression, startup retry backoff, transcript-triggered title visibility polling, and open/delete/search side effects."
 read_when:
   - When changing recent conversation loading, startup retry behavior, or transcript-triggered sidebar refresh logic in `useDashboardConversations`.
-  - When debugging missing new titles in the sidebar, stale conversation list overwrite races, or repeated `list-conversations` calls.
+  - When debugging missing new titles in the sidebar, stale conversation list overwrite races, or repeated `list-chat-conversations` calls.
 title: "Dashboard Recent Conversation Loader, Retry, and Title-Visibility Poll Runtime Reference"
 ---
 
@@ -104,8 +104,7 @@ Failure is reported via `recentConversationsError`.
 
 - confirms with blocking prompt
 - delegates to `ElectronSidecarConversationStore.deleteConversation(...)`, which
-  deletes visible transcript rows, compacted replay rows, and canonical
-  `conversation_event` rows for the chat
+  deletes canonical `chat_events` rows for the chat
 - removes row from recent/searched lists and pin set
 - when deleting currently active session conversation:
   - clears active conversation refs
@@ -119,7 +118,7 @@ Search behavior when modal is open:
 - input is trimmed
 - minimum query length is `2`
 - debounce delay `180ms`
-- invokes `search-conversations` with `limit: 60`
+- invokes `search-chat-conversations` with `limit: 60`
 - cancellation flag prevents stale async search results from mutating state after query changes or unmount
 
 ## Grouping and Pin State
@@ -144,7 +143,7 @@ Pin behavior:
 1. Removing request-id stale suppression can reintroduce overwritten recent-list races.
 2. Broadening transient-error matching can create noisy retry storms on non-retryable failures.
 3. Dropping transcript-entry poll logic can hide newly generated titles until manual refresh.
-4. Forgetting timer cleanup on unmount can leak poll loops and duplicate `list-conversations` calls.
+4. Forgetting timer cleanup on unmount can leak poll loops and duplicate `list-chat-conversations` calls.
 
 ## Related Docs
 

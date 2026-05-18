@@ -64,7 +64,7 @@ Collapsed rail behavior:
 
 Recent chat list behavior:
 
-- source channel: SDK conversation library, backed by `LIST_CONVERSATIONS` with `recordKind: "conversation_event"`.
+- source channel: SDK conversation library, backed by sidecar `chat_events`.
 - load path runs on mount and when session user id changes.
 - list is filtered to rows with `conversation_id`.
 - sort order is descending by `last_timestamp`.
@@ -89,7 +89,7 @@ Query policy:
 
 - trim query.
 - if length `< 2`: skip RPC search and clear search result list.
-- if length `>= 2`: run debounced search (`180ms`) via `SEARCH_CONVERSATIONS`.
+- if length `>= 2`: run debounced search (`180ms`) via `SEARCH_CHAT_CONVERSATIONS`.
 - cancellation guard prevents stale async state writes on rapid query changes/unmount.
 
 Search RPC payload:
@@ -97,7 +97,7 @@ Search RPC payload:
 - `userId`
 - `query`
 - `limit: 60`
-- `recordKind: "conversation_event"`
+- `recordKind: "chat_event"`
 
 Result payload expectations:
 
@@ -117,7 +117,7 @@ Search modal behavior:
 Conversation-open lifecycle (`useDashboardConversations`):
 
 1. resolve `conversation_ref` from selected row.
-2. load the canonical SDK conversation event log (`recordKind: "conversation_event"`).
+2. load the canonical SDK conversation event log from `chat_events`.
 3. project SDK display messages for the renderer.
 4. ask the desktop conversation runtime to rehydrate backend inference state from the SDK rehydrate snapshot.
 5. sync transcript runtime: `setActiveConversationRef(conversationRef)` and `updateTranscriptSession(conversationRef, resolvedUserId)`.
