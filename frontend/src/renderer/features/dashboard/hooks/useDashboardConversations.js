@@ -76,7 +76,7 @@ function useDashboardConversations({
         const list = normalizeRecentConversations(
           metadataList.map((metadata) => ({
             conversation_id: metadata.conversationRef,
-            record_kind: 'conversation_event',
+            record_kind: 'chat_event',
             title: metadata.title || metadata.conversationRef,
             last_message: metadata.lastMessage || '',
             last_timestamp: metadata.updatedAt,

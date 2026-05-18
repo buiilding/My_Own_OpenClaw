@@ -31,6 +31,11 @@ type SharedChannelRegistry = {
     DELETE_SEMANTIC_MEMORY: 'delete-semantic-memory';
     CLEAR_LOCAL_MEMORY: 'clear-local-memory';
     CLEAR_CHAT_HISTORY: 'clear-chat-history';
+    STORE_CHAT_EVENT: 'store-chat-event';
+    LIST_CHAT_CONVERSATIONS: 'list-chat-conversations';
+    SEARCH_CHAT_CONVERSATIONS: 'search-chat-conversations';
+    GET_CHAT_EVENTS: 'get-chat-events';
+    DELETE_CHAT_CONVERSATION: 'delete-chat-conversation';
     STORE_TRANSCRIPT: 'store-transcript';
     GET_CLIENT_USER_ID: 'get-client-user-id';
     COPY_IMAGE_TO_CLIPBOARD: 'copy-image-to-clipboard';

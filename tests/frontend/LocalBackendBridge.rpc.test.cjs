@@ -904,6 +904,47 @@ describe('local_backend_bridge RPC handlers', () => {
     await expectResolvedSuccess(stdoutHandler, promise, { conversations: [] });
   });
 
+  test('chat-event handlers map dedicated chat storage params', async () => {
+    const { handlers, stdoutHandler } = initBridge();
+    markReady();
+
+    const promise = handlers['store-chat-event'](null, {
+      userId: 'u-1',
+      conversationId: 'conv-1',
+      eventType: 'compaction_applied',
+      role: 'assistant',
+      content: '[sdk event]',
+      messageIndex: 12,
+      revisionId: 'rev-1',
+      eventPayload: {
+        eventId: 'evt-1',
+        type: 'compaction_applied',
+      },
+      compactionCheckpoint: {
+        entries: [{ role: 'assistant', content: 'summary' }],
+      },
+    });
+
+    expectLastRequestWith('store_chat_event', expect.objectContaining({
+      user_id: 'u-1',
+      conversation_id: 'conv-1',
+      event_type: 'compaction_applied',
+      role: 'assistant',
+      content: '[sdk event]',
+      message_index: 12,
+      revision_id: 'rev-1',
+      event_payload: {
+        eventId: 'evt-1',
+        type: 'compaction_applied',
+      },
+      compaction_checkpoint: {
+        entries: [{ role: 'assistant', content: 'summary' }],
+      },
+    }));
+
+    await expectResolvedSuccess(stdoutHandler, promise, { ok: true });
+  });
+
   test('list-conversations handler safely handles non-object payloads', async () => {
     const { handlers, stdoutHandler } = initBridge();
     markReady();

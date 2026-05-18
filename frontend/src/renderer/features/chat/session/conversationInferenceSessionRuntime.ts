@@ -125,7 +125,7 @@ export function invalidateConversationInferenceSessionState(): void {
 export async function ensureConversationInferenceSessionHydrated({
   conversationRef,
   userId,
-  recordKind = 'conversation_event',
+  recordKind = 'chat_event',
 }: EnsureConversationInferenceSessionOptions): Promise<void> {
   const normalizedConversationRef = normalizeConversationRef(conversationRef);
   if (!normalizedConversationRef) {

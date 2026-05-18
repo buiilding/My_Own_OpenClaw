@@ -218,15 +218,18 @@ Current title behavior for transcript chats:
 
 ## Chat Transcript vs SDK Event State
 
-WindieOS now persists one first-class SDK conversation representation for chat history:
+WindieOS now persists one first-class SDK conversation representation for chat history outside memory rows:
 
-- `record_kind='conversation_event'`: normalized SDK event log used for desktop display, conversation lists, backend rehydrate, edit/resend, retry, and compaction lifecycle.
+- `chat_events`: normalized SDK event log used for desktop display, conversation lists, backend rehydrate, edit/resend, retry, and compaction lifecycle.
+- legacy `record_kind='conversation_event'` rows in the episodic memory DB are migrated into `chat_events` for existing local installs.
+- `record_kind='interaction'` remains the episodic memory source for completed user+assistant pairs.
+- `record_kind='transcript'` remains a legacy/visible projection path and is not the active SDK continuity source.
 
 SDK event behavior:
 
 - New desktop transcript projections are stored as canonical SDK events.
 - History compaction stores a complete `compaction_applied` event with replacement history entries.
-- Chat delete and replay/edit rewind flows clear canonical event rows before any event rebuild.
+- Chat delete and replay/edit rewind flows clear canonical chat-event rows before any event rebuild.
 - Reopening a chat loads display and rehydrate snapshots from SDK projections over event rows.
 - Clearing chat history deletes canonical event rows with saved conversation titles.
 - After a global chat-history wipe, the renderer drops backend sync cache and per-conversation workspace bindings so resume state cannot survive the underlying storage reset.

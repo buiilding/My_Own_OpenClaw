@@ -36,6 +36,17 @@ from core.unicode_sanitizer import (
 )
 from memory.admin import clear_chat_history as clear_chat_history_admin
 from memory.admin import clear_local_memory as clear_local_memory_admin
+from memory.chat_event_store import (
+    append_chat_event,
+    clear_chat_events,
+    delete_chat_conversation,
+    get_chat_events,
+    get_next_chat_event_index,
+    init_chat_event_schema,
+    list_chat_conversations,
+    migrate_legacy_conversation_event_rows,
+    search_chat_conversations,
+)
 from memory.conversation_list_runtime import (
     list_record_kind_conversations,
     list_transcript_conversations,
@@ -391,6 +402,8 @@ class LocalMemoryStore:
         for memory_type, init_fn in self._MEMORY_SCHEMA_INIT.items():
             attrs = self._get_memory_attrs(memory_type)
             await init_fn(getattr(self, attrs.db_path))
+        await init_chat_event_schema(self.episodic_db_path)
+        await migrate_legacy_conversation_event_rows(self.episodic_db_path)
 
     async def _load_vector_mappings(self) -> None:
         """Load vector ID to memory ID mappings from both databases."""
@@ -1774,6 +1787,65 @@ class LocalMemoryStore:
             limit=limit,
         )
 
+    async def append_chat_event(
+        self,
+        *,
+        user_id: str,
+        conversation_id: Optional[str],
+        event_type: str,
+        role: Optional[str],
+        content: str,
+        timestamp: Optional[str],
+        message_index: Optional[int],
+        revision_id: Optional[str],
+        turn_ref: Optional[str],
+        tool_name: Optional[str],
+        correlation_id: Optional[str],
+        workspace_path: Optional[str],
+        workspace_name: Optional[str],
+        metadata: Optional[Dict[str, Any]],
+        event_payload: Dict[str, Any],
+        compaction_checkpoint: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        return await append_chat_event(
+            db_path=self.episodic_db_path,
+            user_id=user_id,
+            conversation_id=conversation_id,
+            event_type=event_type,
+            role=role,
+            content=content,
+            timestamp=timestamp,
+            message_index=message_index,
+            revision_id=revision_id,
+            turn_ref=turn_ref,
+            tool_name=tool_name,
+            correlation_id=correlation_id,
+            workspace_path=workspace_path,
+            workspace_name=workspace_name,
+            metadata=metadata,
+            event_payload=event_payload,
+            compaction_checkpoint=compaction_checkpoint,
+        )
+
+    async def list_chat_conversations(
+        self, user_id: str, limit: Optional[int] = None
+    ) -> List[Dict[str, Any]]:
+        return await list_chat_conversations(
+            db_path=self.episodic_db_path,
+            user_id=user_id,
+            limit=limit,
+        )
+
+    async def search_chat_conversations(
+        self, user_id: str, query: str, limit: int = 40
+    ) -> List[Dict[str, Any]]:
+        return await search_chat_conversations(
+            db_path=self.episodic_db_path,
+            user_id=user_id,
+            query=query,
+            limit=limit,
+        )
+
     async def search_conversations(
         self,
         user_id: str,
@@ -2053,6 +2125,18 @@ class LocalMemoryStore:
     async def clear_chat_history(self, user_id: str) -> Dict[str, int]:
         return await clear_chat_history_admin(self, user_id=user_id)
 
+    async def clear_chat_events(self, user_id: str) -> int:
+        return await clear_chat_events(db_path=self.episodic_db_path, user_id=user_id)
+
+    async def delete_chat_conversation(
+        self, user_id: str, conversation_id: Optional[str]
+    ) -> int:
+        return await delete_chat_conversation(
+            db_path=self.episodic_db_path,
+            user_id=user_id,
+            conversation_id=conversation_id,
+        )
+
     async def delete_conversation(
         self,
         user_id: str,
@@ -2239,6 +2323,30 @@ class LocalMemoryStore:
             user_id=user_id,
             conversation_id=conversation_id,
             record_kind=record_kind,
+        )
+
+    async def get_next_chat_event_index(
+        self, user_id: str, conversation_id: Optional[str]
+    ) -> int:
+        return await get_next_chat_event_index(
+            db_path=self.episodic_db_path,
+            user_id=user_id,
+            conversation_id=conversation_id,
+        )
+
+    async def get_chat_events(
+        self,
+        user_id: str,
+        conversation_id: Optional[str],
+        limit: int = 1000,
+        after_message_index: Optional[int] = None,
+    ) -> List[Dict[str, Any]]:
+        return await get_chat_events(
+            db_path=self.episodic_db_path,
+            user_id=user_id,
+            conversation_id=conversation_id,
+            limit=limit,
+            after_message_index=after_message_index,
         )
 
     async def get_episodic_memories_by_conversation(

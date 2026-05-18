@@ -528,6 +528,181 @@ class LocalBackendMemoryHandlersMixin:
             }
 
     @requires_memory_store
+    async def _handle_store_chat_event(
+        self,
+        user_id: str = "default_user",
+        conversation_id: Optional[str] = None,
+        event_type: Optional[str] = None,
+        role: Optional[str] = None,
+        content: str = "",
+        timestamp: Optional[str] = None,
+        message_index: Optional[int] = None,
+        revision_id: Optional[str] = None,
+        turn_ref: Optional[str] = None,
+        tool_name: Optional[str] = None,
+        correlation_id: Optional[str] = None,
+        workspace_path: Optional[str] = None,
+        workspace_name: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        event_payload: Optional[Dict[str, Any]] = None,
+        compaction_checkpoint: Optional[Dict[str, Any]] = None,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """Store one first-class chat event outside memory/vector storage."""
+        if not conversation_id:
+            return {"success": False, "error": "conversation_id is required"}
+        if not event_type:
+            return {"success": False, "error": "event_type is required"}
+        normalized_event_payload = self._normalize_transcript_structured_payload(
+            event_payload
+        )
+        if normalized_event_payload is None:
+            return {"success": False, "error": "event_payload is required"}
+        normalized_metadata = self._normalize_transcript_structured_payload(metadata) or {}
+        normalized_checkpoint = self._normalize_transcript_structured_payload(
+            compaction_checkpoint
+        )
+
+        try:
+            stored = await self.memory_store.append_chat_event(
+                user_id=sanitize_surrogates_in_text(user_id),
+                conversation_id=sanitize_surrogates_in_text(conversation_id),
+                event_type=sanitize_surrogates_in_text(event_type),
+                role=sanitize_surrogates_in_text(role) if role else None,
+                content=sanitize_surrogates_in_text(content or ""),
+                timestamp=timestamp,
+                message_index=message_index,
+                revision_id=sanitize_surrogates_in_text(revision_id)
+                if revision_id
+                else None,
+                turn_ref=sanitize_surrogates_in_text(turn_ref) if turn_ref else None,
+                tool_name=sanitize_surrogates_in_text(tool_name) if tool_name else None,
+                correlation_id=sanitize_surrogates_in_text(correlation_id)
+                if correlation_id
+                else None,
+                workspace_path=sanitize_surrogates_in_text(workspace_path)
+                if workspace_path
+                else None,
+                workspace_name=sanitize_surrogates_in_text(workspace_name)
+                if workspace_name
+                else None,
+                metadata=normalized_metadata,
+                event_payload=normalized_event_payload,
+                compaction_checkpoint=normalized_checkpoint,
+            )
+            return {
+                "success": True,
+                "data": {
+                    **stored,
+                    "record_kind": "chat_event",
+                },
+            }
+        except Exception as e:
+            logger.error(f"Chat event store failed: {e}", exc_info=True)
+            return {"success": False, "error": str(e)}
+
+    @requires_memory_store
+    async def _handle_list_chat_conversations(
+        self,
+        user_id: str = "default_user",
+        limit: Optional[int] = None,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        try:
+            conversations = await self.memory_store.list_chat_conversations(
+                user_id=user_id,
+                limit=limit,
+            )
+            return {
+                "success": True,
+                "data": {
+                    "conversations": conversations,
+                    "count": len(conversations),
+                },
+            }
+        except Exception as e:
+            logger.error(f"Chat conversation listing failed: {e}", exc_info=True)
+            return {"success": False, "error": str(e)}
+
+    @requires_memory_store
+    async def _handle_search_chat_conversations(
+        self,
+        query: str,
+        user_id: str = "default_user",
+        limit: int = 40,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        try:
+            conversations = await self.memory_store.search_chat_conversations(
+                user_id=user_id,
+                query=query,
+                limit=limit,
+            )
+            return {
+                "success": True,
+                "data": {
+                    "query": query,
+                    "conversations": conversations,
+                    "count": len(conversations),
+                },
+            }
+        except Exception as e:
+            logger.error(f"Chat conversation search failed: {e}", exc_info=True)
+            return {"success": False, "error": str(e)}
+
+    @requires_memory_store
+    async def _handle_get_chat_events(
+        self,
+        conversation_id: Optional[str] = None,
+        user_id: str = "default_user",
+        limit: int = 1000,
+        after_message_index: Optional[int] = None,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        try:
+            events = await self.memory_store.get_chat_events(
+                user_id=user_id,
+                conversation_id=conversation_id,
+                limit=limit,
+                after_message_index=after_message_index,
+            )
+            return {
+                "success": True,
+                "data": {
+                    "conversation_id": conversation_id,
+                    "events": events,
+                    "count": len(events),
+                },
+            }
+        except Exception as e:
+            logger.error(f"Chat event fetch failed: {e}", exc_info=True)
+            return {"success": False, "error": str(e)}
+
+    @requires_memory_store
+    async def _handle_delete_chat_conversation(
+        self,
+        user_id: str = "default_user",
+        conversation_id: Optional[str] = None,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        try:
+            deleted_count = await self.memory_store.delete_chat_conversation(
+                user_id=user_id,
+                conversation_id=conversation_id,
+            )
+            return {
+                "success": True,
+                "data": {
+                    "conversation_id": conversation_id,
+                    "record_kind": "chat_event",
+                    "deleted_count": deleted_count,
+                },
+            }
+        except Exception as e:
+            logger.error(f"Chat conversation deletion failed: {e}", exc_info=True)
+            return {"success": False, "error": str(e)}
+
+    @requires_memory_store
     async def _handle_store_transcript(
         self,
         content: str,

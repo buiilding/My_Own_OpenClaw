@@ -1,7 +1,7 @@
 import {
   buildRehydrateSnapshotFromTranscriptProjectionEntries,
+  CHAT_EVENT_RECORD_KIND,
   ElectronSidecarConversationStore,
-  SDK_CONVERSATION_EVENT_RECORD_KIND,
 } from '../../frontend/src/renderer/infrastructure/transcript/ElectronSidecarConversationStore';
 import {
   listStoredConversations,
@@ -22,8 +22,8 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     invoke: jest.fn(),
   },
   INVOKE_CHANNELS: {
-    DELETE_CONVERSATION: 'delete-conversation',
-    STORE_TRANSCRIPT: 'store-transcript',
+    DELETE_CHAT_CONVERSATION: 'delete-chat-conversation',
+    STORE_CHAT_EVENT: 'store-chat-event',
   },
 }));
 
@@ -33,11 +33,7 @@ const mockInvoke = IpcBridge.invoke as jest.MockedFunction<typeof IpcBridge.invo
 
 function sdkEventRow(event: ReturnType<typeof createConversationEvent>) {
   return {
-    metadata: {
-      structured_payload: {
-        windieSdkConversationEvent: event,
-      },
-    },
+    event_payload: event,
   } as any;
 }
 
@@ -51,7 +47,7 @@ describe('ElectronSidecarConversationStore', () => {
     mockInvoke.mockResolvedValue({ success: true, data: { message_index: 1 } });
   });
 
-  test('stores normalized SDK events under the conversation-event record kind', async () => {
+  test('stores normalized SDK events in dedicated chat-event storage', async () => {
     const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
     const event = createConversationEvent({
       eventId: 'evt-user',
@@ -64,15 +60,12 @@ describe('ElectronSidecarConversationStore', () => {
 
     await store.appendEvent(event);
 
-    expect(mockInvoke).toHaveBeenCalledWith('store-transcript', expect.objectContaining({
+    expect(mockInvoke).toHaveBeenCalledWith('store-chat-event', expect.objectContaining({
       content: 'hello',
-      conversationRef: 'conv-1',
-      recordKind: SDK_CONVERSATION_EVENT_RECORD_KIND,
+      conversationId: 'conv-1',
+      eventType: 'user_message',
       role: 'user',
-      messageType: 'user_message',
-      structuredPayload: {
-        windieSdkConversationEvent: event,
-      },
+      eventPayload: event,
     }));
   });
 
@@ -93,12 +86,10 @@ describe('ElectronSidecarConversationStore', () => {
 
     await store.appendEvent(event);
 
-    expect(mockInvoke).toHaveBeenCalledWith('store-transcript', expect.objectContaining({
+    expect(mockInvoke).toHaveBeenCalledWith('store-chat-event', expect.objectContaining({
       correlationId: 'call-read',
-      messageType: 'tool_output',
-      structuredPayload: {
-        windieSdkConversationEvent: event,
-      },
+      eventType: 'tool_output',
+      eventPayload: event,
     }));
   });
 
@@ -119,7 +110,7 @@ describe('ElectronSidecarConversationStore', () => {
     expect(events).toEqual([event]);
     expect(mockLoadStoredConversationEntries).toHaveBeenCalledTimes(1);
     expect(mockLoadStoredConversationEntries).toHaveBeenCalledWith(expect.objectContaining({
-      recordKind: SDK_CONVERSATION_EVENT_RECORD_KIND,
+      recordKind: CHAT_EVENT_RECORD_KIND,
     }));
   });
 
@@ -175,27 +166,27 @@ describe('ElectronSidecarConversationStore', () => {
     });
 
     expect(mockInvoke).toHaveBeenCalledTimes(1);
-    expect(mockInvoke).toHaveBeenCalledWith('store-transcript', expect.objectContaining({
+    expect(mockInvoke).toHaveBeenCalledWith('store-chat-event', expect.objectContaining({
       userId: 'user-1',
-      conversationRef: 'conv-compact',
-      recordKind: SDK_CONVERSATION_EVENT_RECORD_KIND,
-      messageType: 'compaction_applied',
-      structuredPayload: {
-        windieSdkConversationEvent: expect.objectContaining({
-          eventId: 'compaction-gen-1',
-          type: 'compaction_applied',
-          revisionId: 'rev-source',
-          turnRef: 'turn-compact',
-          payload: expect.objectContaining({
-            generationId: 'gen-1',
-            entries: [
-              expect.objectContaining({ content: 'compacted summary' }),
-            ],
-            entryCount: 1,
-            complete: true,
-          }),
+      conversationId: 'conv-compact',
+      eventType: 'compaction_applied',
+      compactionCheckpoint: expect.objectContaining({
+        generationId: 'gen-1',
+      }),
+      eventPayload: expect.objectContaining({
+        eventId: 'compaction-gen-1',
+        type: 'compaction_applied',
+        revisionId: 'rev-source',
+        turnRef: 'turn-compact',
+        payload: expect.objectContaining({
+          generationId: 'gen-1',
+          entries: [
+            expect.objectContaining({ content: 'compacted summary' }),
+          ],
+          entryCount: 1,
+          complete: true,
         }),
-      },
+      }),
     }));
   });
 
@@ -265,24 +256,21 @@ describe('ElectronSidecarConversationStore', () => {
     });
 
     expect(mockInvoke).toHaveBeenCalledTimes(1);
-    expect(mockInvoke).toHaveBeenCalledWith('store-transcript', expect.objectContaining({
+    expect(mockInvoke).toHaveBeenCalledWith('store-chat-event', expect.objectContaining({
       content: 'assistant answer',
       userId: 'user-1',
-      conversationRef: 'conv-append',
-      recordKind: SDK_CONVERSATION_EVENT_RECORD_KIND,
+      conversationId: 'conv-append',
+      eventType: 'assistant_message',
       role: 'assistant',
-      messageType: 'assistant_message',
-      structuredPayload: {
-        windieSdkConversationEvent: expect.objectContaining({
-          type: 'assistant_message',
-          payload: expect.objectContaining({
-            text: 'assistant answer',
-            structuredPayload: expect.objectContaining({
-              content: 'assistant answer',
-            }),
+      eventPayload: expect.objectContaining({
+        type: 'assistant_message',
+        payload: expect.objectContaining({
+          text: 'assistant answer',
+          structuredPayload: expect.objectContaining({
+            content: 'assistant answer',
           }),
         }),
-      },
+      }),
     }));
   });
 
@@ -306,17 +294,13 @@ describe('ElectronSidecarConversationStore', () => {
       replacementUserMessage: { text: 'edited' },
     });
 
-    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'delete-conversation', {
+    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'delete-chat-conversation', {
       userId: 'user-1',
       conversationId: 'conv-edit',
-      recordKind: SDK_CONVERSATION_EVENT_RECORD_KIND,
     });
-    expect(mockInvoke).toHaveBeenNthCalledWith(2, 'store-transcript', expect.objectContaining({
-      conversationRef: 'conv-edit',
-      recordKind: SDK_CONVERSATION_EVENT_RECORD_KIND,
-      structuredPayload: {
-        windieSdkConversationEvent: preserved,
-      },
+    expect(mockInvoke).toHaveBeenNthCalledWith(2, 'store-chat-event', expect.objectContaining({
+      conversationId: 'conv-edit',
+      eventPayload: preserved,
     }));
   });
 
@@ -326,10 +310,9 @@ describe('ElectronSidecarConversationStore', () => {
     await store.deleteConversation('conv-delete');
 
     expect(mockInvoke).toHaveBeenCalledTimes(1);
-    expect(mockInvoke).toHaveBeenCalledWith('delete-conversation', {
+    expect(mockInvoke).toHaveBeenCalledWith('delete-chat-conversation', {
       userId: 'user-1',
       conversationId: 'conv-delete',
-      recordKind: SDK_CONVERSATION_EVENT_RECORD_KIND,
     });
   });
 
@@ -363,23 +346,21 @@ describe('ElectronSidecarConversationStore', () => {
       ],
     });
 
-    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'delete-conversation', {
+    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'delete-chat-conversation', {
       userId: 'user-1',
       conversationId: 'conv-edit',
-      recordKind: SDK_CONVERSATION_EVENT_RECORD_KIND,
     });
-    expect(mockInvoke).toHaveBeenNthCalledWith(2, 'store-transcript', expect.objectContaining({
+    expect(mockInvoke).toHaveBeenNthCalledWith(2, 'store-chat-event', expect.objectContaining({
       content: 'edited prompt',
       userId: 'user-1',
-      conversationRef: 'conv-edit',
-      recordKind: SDK_CONVERSATION_EVENT_RECORD_KIND,
+      conversationId: 'conv-edit',
       role: 'user',
-      messageType: 'user_message',
+      eventType: 'user_message',
     }));
-    expect(mockInvoke).toHaveBeenNthCalledWith(3, 'store-transcript', expect.objectContaining({
+    expect(mockInvoke).toHaveBeenNthCalledWith(3, 'store-chat-event', expect.objectContaining({
       content: 'tool output',
       role: 'tool',
-      messageType: 'tool_output',
+      eventType: 'tool_output',
       toolName: 'shell',
       correlationId: 'tool-call-1',
     }));
@@ -421,7 +402,7 @@ describe('ElectronSidecarConversationStore', () => {
     ]);
     expect(mockListStoredConversations).toHaveBeenCalledTimes(1);
     expect(mockListStoredConversations).toHaveBeenCalledWith(expect.objectContaining({
-      recordKind: SDK_CONVERSATION_EVENT_RECORD_KIND,
+      recordKind: CHAT_EVENT_RECORD_KIND,
       limit: null,
     }));
   });
@@ -474,7 +455,7 @@ describe('ElectronSidecarConversationStore', () => {
 
     expect(metadata.map((entry) => entry.conversationRef)).toEqual(['conv-1']);
     expect(mockListStoredConversations).toHaveBeenCalledWith(expect.objectContaining({
-      recordKind: SDK_CONVERSATION_EVENT_RECORD_KIND,
+      recordKind: CHAT_EVENT_RECORD_KIND,
       limit: 1,
     }));
   });
@@ -506,7 +487,7 @@ describe('ElectronSidecarConversationStore', () => {
 
     expect(metadata.map((entry) => entry.conversationRef)).toEqual(['conv-2']);
     expect(mockListStoredConversations).toHaveBeenCalledWith(expect.objectContaining({
-      recordKind: SDK_CONVERSATION_EVENT_RECORD_KIND,
+      recordKind: CHAT_EVENT_RECORD_KIND,
       limit: null,
     }));
   });

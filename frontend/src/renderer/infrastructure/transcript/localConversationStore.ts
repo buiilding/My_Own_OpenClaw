@@ -2,7 +2,7 @@ import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
 
 const DEFAULT_PAGE_SIZE = 1000;
 const DEFAULT_MAX_PAGES = 250;
-const SDK_CONVERSATION_EVENT_RECORD_KIND = 'conversation_event';
+export const CHAT_EVENT_RECORD_KIND = 'chat_event';
 
 type LocalConversationRecordKind = string;
 
@@ -51,7 +51,7 @@ function resolveEntryMessageIndex(entry: Record<string, unknown>) {
 export async function listStoredConversations({
   userId,
   limit = null,
-  recordKind = SDK_CONVERSATION_EVENT_RECORD_KIND,
+  recordKind = CHAT_EVENT_RECORD_KIND,
 }: ListStoredConversationsOptions): Promise<Array<Record<string, unknown>>> {
   const normalizedUserId = normalizeNonEmptyString(userId);
   if (!normalizedUserId) {
@@ -66,7 +66,10 @@ export async function listStoredConversations({
     payload.limit = Math.floor(limit);
   }
 
-  const result = await IpcBridge.invoke(INVOKE_CHANNELS.LIST_CONVERSATIONS, payload);
+  const channel = recordKind === CHAT_EVENT_RECORD_KIND
+    ? INVOKE_CHANNELS.LIST_CHAT_CONVERSATIONS
+    : INVOKE_CHANNELS.LIST_CONVERSATIONS;
+  const result = await IpcBridge.invoke(channel, payload);
   if (!result || result.success === false) {
     throw new Error(result?.error || 'Failed to list stored conversations');
   }
@@ -80,7 +83,7 @@ export async function searchStoredConversations({
   userId,
   query,
   limit = 60,
-  recordKind = SDK_CONVERSATION_EVENT_RECORD_KIND,
+  recordKind = CHAT_EVENT_RECORD_KIND,
 }: SearchStoredConversationsOptions): Promise<Array<Record<string, unknown>>> {
   const normalizedUserId = normalizeNonEmptyString(userId);
   const normalizedQuery = normalizeNonEmptyString(query);
@@ -88,7 +91,10 @@ export async function searchStoredConversations({
     return [];
   }
 
-  const result = await IpcBridge.invoke(INVOKE_CHANNELS.SEARCH_CONVERSATIONS, {
+  const channel = recordKind === CHAT_EVENT_RECORD_KIND
+    ? INVOKE_CHANNELS.SEARCH_CHAT_CONVERSATIONS
+    : INVOKE_CHANNELS.SEARCH_CONVERSATIONS;
+  const result = await IpcBridge.invoke(channel, {
     userId: normalizedUserId,
     query: normalizedQuery,
     limit,
@@ -110,7 +116,7 @@ export async function searchStoredConversations({
 export async function loadStoredConversationEntries({
   userId,
   conversationRef,
-  recordKind = SDK_CONVERSATION_EVENT_RECORD_KIND,
+  recordKind = CHAT_EVENT_RECORD_KIND,
   pageSize = DEFAULT_PAGE_SIZE,
   maxPages = DEFAULT_MAX_PAGES,
 }: LoadStoredConversationEntriesOptions): Promise<Array<Record<string, unknown>>> {
@@ -124,7 +130,10 @@ export async function loadStoredConversationEntries({
   let afterMessageIndex: number | null = null;
 
   for (let page = 0; page < maxPages; page += 1) {
-    const result = await IpcBridge.invoke(INVOKE_CHANNELS.GET_CONVERSATION, {
+    const channel = recordKind === CHAT_EVENT_RECORD_KIND
+      ? INVOKE_CHANNELS.GET_CHAT_EVENTS
+      : INVOKE_CHANNELS.GET_CONVERSATION;
+    const result = await IpcBridge.invoke(channel, {
       userId: normalizedUserId,
       conversationId: normalizedConversationRef,
       limit: pageSize,
@@ -135,7 +144,9 @@ export async function loadStoredConversationEntries({
       throw new Error(result?.error || 'Failed to load stored conversation');
     }
 
-    const entries = Array.isArray(result?.data?.memories) ? result.data.memories : [];
+    const entries = Array.isArray(result?.data?.events)
+      ? result.data.events
+      : (Array.isArray(result?.data?.memories) ? result.data.memories : []);
     if (entries.length === 0) {
       break;
     }

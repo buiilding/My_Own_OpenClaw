@@ -183,8 +183,8 @@ not execute tools.
 
 `ChatGptDashboardShell` conversation-open path:
 
-1. list conversations from the SDK conversation library (`recordKind: "conversation_event"`)
-2. load selected conversation SDK events via `loadConversationTranscriptMemories(...)` (cursor-paginated `get-conversation`)
+1. list conversations from the SDK conversation library (`recordKind: "chat_event"`)
+2. load selected conversation SDK events via the chat-event store adapter (cursor-paginated local RPC)
 3. project SDK display messages for the renderer
 4. ask the desktop conversation runtime to rehydrate the backend inference session through `DesktopConversationRuntimeClient.rehydrateFromStore(...)`
    - rehydrate payload shaping is centralized in SDK projection helpers so dashboard-open rehydrate and edit/retry replay agree on `tool_name`, `tool_call_id`, screenshots, and structured tool payloads
@@ -197,18 +197,21 @@ Search modal uses the same open path after `search-conversations` results.
 
 The desktop runtime uses `ConversationContinuityService` as the SDK-owned
 continuity orchestrator and `ElectronSidecarConversationStore` as the
-SDK-facing conversation-store adapter over sidecar memory IPC.
+SDK-facing conversation-store adapter over sidecar chat-event IPC.
 
-Record-kind split:
+Storage split:
 
-- `conversation_event` stores canonical SDK conversation events for the runtime,
+- `chat_events` stores canonical SDK conversation events for the runtime,
   including `conversationRef`, `turnRef`, `revisionId`, request/bundle/tool-call
   ids, and structured payloads.
-- `transcript` remains a visible projection for dashboard display/search.
+- `transcript` remains a visible projection/memory-era storage path and is not
+  the active SDK continuity source.
+- legacy `record_kind='conversation_event'` memory rows are migrated into
+  `chat_events` so older local chats remain readable.
 - compacted backend rehydrate snapshots are stored as complete
   `compaction_applied` conversation events.
 
-The adapter loads canonical `conversation_event` rows. Display and backend
+The adapter loads canonical chat events. Display and backend
 rehydrate snapshots come from the SDK projection path, and backend resume is
 triggered by the SDK continuity service rather than by dashboard or chat
 feature code.

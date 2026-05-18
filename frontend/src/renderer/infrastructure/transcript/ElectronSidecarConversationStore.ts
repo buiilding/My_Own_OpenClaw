@@ -5,6 +5,7 @@ import {
   getConversationWorkspaceBinding,
 } from '../workspace/conversationWorkspaceBinding';
 import {
+  CHAT_EVENT_RECORD_KIND,
   listStoredConversations,
   loadStoredConversationEntries,
 } from './localConversationStore';
@@ -26,7 +27,7 @@ import {
   resolveToolEventCorrelationId,
 } from '../api/windieSdkClient';
 
-export const SDK_CONVERSATION_EVENT_RECORD_KIND = 'conversation_event';
+export { CHAT_EVENT_RECORD_KIND };
 
 type StoredConversationRow = Record<string, unknown>;
 
@@ -136,11 +137,20 @@ function resolveStructuredPayload(row: StoredConversationRow): Record<string, un
 }
 
 function resolveStoredSdkEvent(row: StoredConversationRow): ConversationEvent | null {
+  const storedPayload = parseJsonRecord(row.event_payload)
+    ?? parseJsonRecord(row.eventPayload);
+  if (storedPayload) {
+    return normalizeConversationEvent(storedPayload);
+  }
   const structuredPayload = resolveStructuredPayload(row);
   const candidate = structuredPayload.windieSdkConversationEvent
     ?? structuredPayload.windie_sdk_conversation_event
     ?? resolveRowMetadata(row).windieSdkConversationEvent
     ?? resolveRowMetadata(row).windie_sdk_conversation_event;
+  return normalizeConversationEvent(candidate);
+}
+
+function normalizeConversationEvent(candidate: unknown): ConversationEvent | null {
   const event = normalizeRecord(candidate);
   if (!event) {
     return null;
@@ -346,12 +356,12 @@ export class ElectronSidecarConversationStore implements ConversationStore {
   }
 
   async rewriteConversation(plan: ConversationRewritePlan): Promise<void> {
-    await this.deleteRecordKind(plan.conversationRef, SDK_CONVERSATION_EVENT_RECORD_KIND);
+    await this.deleteRecordKind(plan.conversationRef);
     await this.appendEvents(plan.preservedEvents);
   }
 
   async deleteConversation(conversationRef: string): Promise<void> {
-    await this.deleteRecordKind(conversationRef, SDK_CONVERSATION_EVENT_RECORD_KIND);
+    await this.deleteRecordKind(conversationRef);
   }
 
   async appendTranscriptProjectionEntry(entry: TranscriptProjectionAppendEntry): Promise<void> {
@@ -373,7 +383,7 @@ export class ElectronSidecarConversationStore implements ConversationStore {
     entries: TranscriptProjectionRewriteEntry[];
     rehydrateEntries?: TranscriptProjectionRewriteEntry[];
   }): Promise<RehydrateSnapshot> {
-    await this.deleteRecordKind(conversationRef, SDK_CONVERSATION_EVENT_RECORD_KIND);
+    await this.deleteRecordKind(conversationRef);
     const revisionId = `rev-rewrite-${conversationRef}-${Date.now()}`;
     await this.appendEvents(entries.map((entry, index) => (
       projectionEntryToConversationEvent(conversationRef, revisionId, entry, index)
@@ -414,7 +424,7 @@ export class ElectronSidecarConversationStore implements ConversationStore {
   }
 
   async loadEvents(conversationRef: string): Promise<ConversationEvent[]> {
-    const storedEventRows = await this.loadRows(conversationRef, SDK_CONVERSATION_EVENT_RECORD_KIND);
+    const storedEventRows = await this.loadRows(conversationRef, CHAT_EVENT_RECORD_KIND);
     return storedEventRows
       .map(resolveStoredSdkEvent)
       .filter((event): event is ConversationEvent => Boolean(event));
@@ -423,7 +433,7 @@ export class ElectronSidecarConversationStore implements ConversationStore {
   async listMetadata(options: ListConversationOptions = {}): Promise<ConversationMetadata[]> {
     const limit = normalizePositiveInteger(options.limit);
     const fetchLimit = options.cursor ? null : limit;
-    const eventMetadata = await this.listMetadataForRecordKind(SDK_CONVERSATION_EVENT_RECORD_KIND, fetchLimit);
+    const eventMetadata = await this.listMetadataForRecordKind(CHAT_EVENT_RECORD_KIND, fetchLimit);
     const sorted = eventMetadata
       .sort((a, b) => (Date.parse(b.updatedAt) || 0) - (Date.parse(a.updatedAt) || 0));
     return applyMetadataPagination(sorted, {
@@ -479,36 +489,37 @@ export class ElectronSidecarConversationStore implements ConversationStore {
 
   private async storeEvent(event: ConversationEvent): Promise<void> {
     const workspaceBinding = this.deps.getConversationWorkspaceBinding(event.conversationRef);
-    const result = await this.deps.invoke(INVOKE_CHANNELS.STORE_TRANSCRIPT, {
+    const result = await this.deps.invoke(INVOKE_CHANNELS.STORE_CHAT_EVENT, {
       content: textFromEvent(event),
       userId: this.userId,
-      conversationRef: event.conversationRef,
+      conversationId: event.conversationRef,
+      eventType: event.type,
       role: roleFromEvent(event),
-      messageType: event.type,
       toolName: toolNameFromEvent(event),
       correlationId: correlationIdFromEvent(event),
-      screenshot: event.payload.screenshotRef ?? event.payload.screenshot ?? null,
       timestamp: event.timestamp,
-      recordKind: SDK_CONVERSATION_EVENT_RECORD_KIND,
+      revisionId: event.revisionId,
+      turnRef: event.turnRef ?? null,
       workspacePath: workspaceBinding.workspacePath || null,
       workspaceName: workspaceBinding.workspaceName || null,
-      structuredPayload: {
-        windieSdkConversationEvent: event,
+      metadata: {
+        screenshot: event.payload.screenshotRef ?? event.payload.screenshot ?? null,
       },
+      eventPayload: event,
+      compactionCheckpoint: event.type === 'compaction_applied' ? event.payload : null,
     });
     if (!result || result.success === false) {
       throw new Error(result?.error || 'Failed to store SDK conversation event');
     }
   }
 
-  private async deleteRecordKind(conversationRef: string, recordKind: string): Promise<void> {
-    const result = await this.deps.invoke(INVOKE_CHANNELS.DELETE_CONVERSATION, {
+  private async deleteRecordKind(conversationRef: string): Promise<void> {
+    const result = await this.deps.invoke(INVOKE_CHANNELS.DELETE_CHAT_CONVERSATION, {
       userId: this.userId,
       conversationId: conversationRef,
-      recordKind,
     });
     if (!result || result.success === false) {
-      throw new Error(result?.error || `Failed to delete ${recordKind} conversation rows`);
+      throw new Error(result?.error || 'Failed to delete chat event conversation rows');
     }
   }
 
@@ -545,7 +556,9 @@ export class ElectronSidecarConversationStore implements ConversationStore {
           ?? null;
         return {
           conversationRef,
-          revisionId: `rev-stored-${conversationRef}`,
+          revisionId: normalizeNonEmptyString(row.revision_id)
+            ?? normalizeNonEmptyString(row.revisionId)
+            ?? `rev-stored-${conversationRef}`,
           title: normalizeNonEmptyString(row.title) ?? conversationRef,
           lastMessage: normalizeNonEmptyString(row.last_message)
             ?? normalizeNonEmptyString(row.lastMessage)

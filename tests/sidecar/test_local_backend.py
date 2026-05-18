@@ -35,6 +35,10 @@ class DummyMemoryStore:
         self.deleted_episodic_calls = []
         self.cleared_local_memory_calls = []
         self.cleared_chat_history_calls = []
+        self.chat_event_calls = []
+        self.list_chat_conversation_calls = []
+        self.chat_event_rows = []
+        self.deleted_chat_conversation_calls = []
         self.delete_semantic_return = True
         self.delete_episodic_return = True
         self.clear_local_memory_return = {
@@ -121,6 +125,26 @@ class DummyMemoryStore:
     async def clear_chat_history(self, user_id):
         self.cleared_chat_history_calls.append(user_id)
         return self.clear_chat_history_return
+
+    async def append_chat_event(self, **kwargs):
+        self.chat_event_calls.append(kwargs)
+        return {"event_id": "evt-1", "message_index": kwargs.get("message_index") or 1}
+
+    async def list_chat_conversations(self, user_id, limit=None):
+        self.list_chat_conversation_calls.append((user_id, limit))
+        return [{"conversation_id": "conv-chat"}]
+
+    async def search_chat_conversations(self, user_id, query, limit=40):
+        return [{"conversation_id": "conv-chat", "query": query, "limit": limit}]
+
+    async def get_chat_events(
+        self, user_id, conversation_id, limit=1000, after_message_index=None
+    ):
+        return self.chat_event_rows or [{"id": "evt-1", "conversation_id": conversation_id}]
+
+    async def delete_chat_conversation(self, user_id, conversation_id):
+        self.deleted_chat_conversation_calls.append((user_id, conversation_id))
+        return 1
 
 
 class DummyRegistryRaises:
@@ -802,6 +826,11 @@ def test_initialize_methods_keeps_memory_handlers_registered():
         "delete_semantic_memory",
         "clear_local_memory",
         "clear_chat_history",
+        "store_chat_event",
+        "list_chat_conversations",
+        "search_chat_conversations",
+        "get_chat_events",
+        "delete_chat_conversation",
         "store_transcript",
     }
     assert expected_methods.issubset(set(backend.protocol.methods.keys()))
@@ -1367,6 +1396,58 @@ async def test_handle_store_transcript_success():
     assert kwargs["skip_embedding"] is False
     assert backend.memory_store.pending_count == 0
     assert backend._summarizer.notified == []
+
+
+@pytest.mark.asyncio
+async def test_handle_store_chat_event_writes_dedicated_chat_storage():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+
+    result = await backend._handle_store_chat_event(
+        user_id="user-1",
+        conversation_id="conv-chat",
+        event_type="user_message",
+        role="user",
+        content="hello",
+        timestamp="2026-05-17T12:00:00+00:00",
+        revision_id="rev-1",
+        event_payload={
+            "eventId": "evt-1",
+            "type": "user_message",
+            "conversationRef": "conv-chat",
+            "revisionId": "rev-1",
+            "timestamp": "2026-05-17T12:00:00+00:00",
+            "source": "ui",
+            "payload": {"text": "hello"},
+        },
+    )
+
+    assert result == {
+        "success": True,
+        "data": {
+            "event_id": "evt-1",
+            "message_index": 1,
+            "record_kind": "chat_event",
+        },
+    }
+    assert backend.memory_store.chat_event_calls[-1]["conversation_id"] == "conv-chat"
+    assert backend.memory_store.chat_event_calls[-1]["event_type"] == "user_message"
+
+
+@pytest.mark.asyncio
+async def test_handle_get_chat_events_reads_dedicated_chat_storage():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+
+    result = await backend._handle_get_chat_events(
+        user_id="user-1",
+        conversation_id="conv-chat",
+        limit=25,
+        after_message_index=2,
+    )
+
+    assert result["success"] is True
+    assert result["data"]["events"] == [{"id": "evt-1", "conversation_id": "conv-chat"}]
 
 
 @pytest.mark.asyncio

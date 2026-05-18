@@ -1,6 +1,6 @@
 import {
+  CHAT_EVENT_RECORD_KIND,
   ElectronSidecarConversationStore,
-  SDK_CONVERSATION_EVENT_RECORD_KIND,
 } from './ElectronSidecarConversationStore';
 import { loadStoredConversationEntries } from './localConversationStore';
 import { resolveConversationWorkspaceBinding } from '../workspace/conversationWorkspaceBinding';
@@ -30,7 +30,7 @@ export type LocalConversationSnapshot = {
 export async function loadLocalConversationSnapshot({
   userId,
   conversationRef,
-  recordKind = SDK_CONVERSATION_EVENT_RECORD_KIND,
+  recordKind = CHAT_EVENT_RECORD_KIND,
   conversation = null,
   includeParsedMessages = false,
   includeReplayState = false,

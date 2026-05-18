@@ -23,6 +23,7 @@ from memory.record_kinds import (
     INTERACTION_RECORD_KIND,
     TRANSCRIPT_RECORD_KIND,
 )
+from memory.chat_event_store import init_chat_event_schema
 
 logger = logging.getLogger(__name__)
 
@@ -104,8 +105,10 @@ async def clear_chat_history(store: "LocalMemoryStore", user_id: str) -> Dict[st
     await store._cancel_title_generation_tasks()
 
     transcript_deleted = 0
+    chat_events_deleted = 0
     conversation_titles_deleted = 0
 
+    await init_chat_event_schema(store.episodic_db_path)
     async with aiosqlite.connect(store.episodic_db_path) as conn:
         cursor = await conn.cursor()
         await cursor.execute(
@@ -121,6 +124,13 @@ async def clear_chat_history(store: "LocalMemoryStore", user_id: str) -> Dict[st
         )
         transcript_deleted = cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
         await cursor.execute(
+            "DELETE FROM chat_events WHERE user_id = ?",
+            (user_id,),
+        )
+        chat_events_deleted = (
+            cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
+        )
+        await cursor.execute(
             "DELETE FROM conversation_titles WHERE user_id = ?",
             (user_id,),
         )
@@ -132,12 +142,13 @@ async def clear_chat_history(store: "LocalMemoryStore", user_id: str) -> Dict[st
     await _rebuild_and_sync_index(store, "episodic")
 
     logger.info(
-        "Cleared chat history for user_id=%s (transcripts=%s titles=%s)",
+        "Cleared chat history for user_id=%s (transcripts=%s chat_events=%s titles=%s)",
         user_id,
         transcript_deleted,
+        chat_events_deleted,
         conversation_titles_deleted,
     )
     return {
-        "deleted_count": int(transcript_deleted),
+        "deleted_count": int(transcript_deleted) + int(chat_events_deleted),
         "deleted_title_count": int(conversation_titles_deleted),
     }

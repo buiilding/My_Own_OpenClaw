@@ -8,7 +8,7 @@ title: "Transcript and Replay"
 
 # Transcript and Replay
 
-Renderer transcript rows are visible projections. Canonical client-runtime state is stored as SDK `conversation_event` rows and projected for display, dashboard replay, and backend rehydrate. Neither visible rows nor backend active model history are storage truth.
+Renderer transcript rows are visible projections. Canonical client-runtime state is stored in the sidecar `chat_events` table and projected for display, dashboard replay, and backend rehydrate. Neither visible rows nor backend active model history are storage truth.
 
 For code changes or debugging, start with [Transcript Replay Change Workflow](transcript_replay_change_workflow.md). That workflow maps SDK projection writes, pending queues, sidecar event storage, dashboard replay/resume, backend rehydrate payloads, tool-row reconstruction, and validation.
 
@@ -55,16 +55,17 @@ Do not invent a second conversation id in a component. Use the transcript sessio
 
 SDK projections convert stored conversation events back into chat messages for renderer display. Rehydrate converts those events into backend-compatible state so an active backend session can continue.
 
-SDK-owned conversation state uses a separate sidecar record kind:
+SDK-owned conversation state uses a dedicated sidecar chat-event table:
 
-- `conversation_event`: normalized SDK event log for runtime/load/rehydrate/display
+- `chat_events`: normalized SDK event log for runtime/load/rehydrate/display
+- legacy `record_kind='conversation_event'` memory rows are migrated into `chat_events`
 - compaction replay generations: complete `compaction_applied` events with replacement-history entries
 
 SDK callers should read display and rehydrate state through SDK projections over
-`conversation_event` rows. The desktop runtime does not write hidden replay rows
+chat events. The desktop runtime does not write hidden replay rows
 or fall back to visible transcript rows for runtime truth.
 
-Dashboard recent-chat loading reads canonical `conversation_event` metadata.
+Dashboard recent-chat loading reads canonical chat-event metadata.
 
 Key files:
 

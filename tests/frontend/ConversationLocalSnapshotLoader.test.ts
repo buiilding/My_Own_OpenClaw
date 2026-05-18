@@ -1,6 +1,6 @@
 import { loadStoredConversationEntries } from '../../frontend/src/renderer/infrastructure/transcript/localConversationStore';
 import {
-  SDK_CONVERSATION_EVENT_RECORD_KIND,
+  CHAT_EVENT_RECORD_KIND,
 } from '../../frontend/src/renderer/infrastructure/transcript/ElectronSidecarConversationStore';
 import { loadLocalConversationSnapshot } from '../../frontend/src/renderer/infrastructure/transcript/conversationLocalSnapshotLoader';
 import {
@@ -59,7 +59,7 @@ describe('conversationLocalSnapshotLoader', () => {
     });
 
     expect(mockLoadStoredConversationEntries).toHaveBeenCalledWith(expect.objectContaining({
-      recordKind: SDK_CONVERSATION_EVENT_RECORD_KIND,
+      recordKind: CHAT_EVENT_RECORD_KIND,
     }));
     expect(snapshot.transcriptEntries).toHaveLength(1);
     expect(snapshot.replayEntries).toHaveLength(0);

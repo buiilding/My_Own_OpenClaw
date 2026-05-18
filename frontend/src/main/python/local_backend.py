@@ -184,6 +184,17 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
         self.protocol.register_method(
             "clear_chat_history", self._handle_clear_chat_history
         )
+        self.protocol.register_method("store_chat_event", self._handle_store_chat_event)
+        self.protocol.register_method(
+            "list_chat_conversations", self._handle_list_chat_conversations
+        )
+        self.protocol.register_method(
+            "search_chat_conversations", self._handle_search_chat_conversations
+        )
+        self.protocol.register_method("get_chat_events", self._handle_get_chat_events)
+        self.protocol.register_method(
+            "delete_chat_conversation", self._handle_delete_chat_conversation
+        )
         self.protocol.register_method("store_transcript", self._handle_store_transcript)
 
         # Health check and diagnostics

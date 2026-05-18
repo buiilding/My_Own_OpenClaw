@@ -226,6 +226,63 @@ const COMPILED_RPC_HANDLER_DEFINITIONS = [
     }),
   },
   {
+    channel: 'store-chat-event',
+    method: 'store_chat_event',
+    mapParams: createPayloadMapper({
+      user_id: 'userId',
+      conversation_id: 'conversationId',
+      event_type: 'eventType',
+      role: 'role',
+      content: 'content',
+      timestamp: 'timestamp',
+      message_index: 'messageIndex',
+      revision_id: 'revisionId',
+      turn_ref: 'turnRef',
+      tool_name: 'toolName',
+      correlation_id: 'correlationId',
+      workspace_path: 'workspacePath',
+      workspace_name: 'workspaceName',
+      metadata: 'metadata',
+      event_payload: 'eventPayload',
+      compaction_checkpoint: 'compactionCheckpoint',
+    }),
+  },
+  {
+    channel: 'list-chat-conversations',
+    method: 'list_chat_conversations',
+    mapParams: createPayloadMapper({
+      user_id: 'userId',
+      limit: 'limit',
+    }),
+  },
+  {
+    channel: 'search-chat-conversations',
+    method: 'search_chat_conversations',
+    mapParams: createPayloadMapper({
+      query: 'query',
+      user_id: 'userId',
+      limit: 'limit',
+    }),
+  },
+  {
+    channel: 'get-chat-events',
+    method: 'get_chat_events',
+    mapParams: createPayloadMapper({
+      user_id: 'userId',
+      conversation_id: ({ conversationId }) => conversationId ?? null,
+      limit: 'limit',
+      after_message_index: 'afterMessageIndex',
+    }),
+  },
+  {
+    channel: 'delete-chat-conversation',
+    method: 'delete_chat_conversation',
+    mapParams: createPayloadMapper({
+      user_id: 'userId',
+      conversation_id: ({ conversationId }) => conversationId ?? null,
+    }),
+  },
+  {
     channel: 'store-memory',
     method: 'store_memory',
     mapParams: createPayloadMapper({

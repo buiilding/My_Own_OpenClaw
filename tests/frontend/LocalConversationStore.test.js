@@ -11,8 +11,11 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     invoke: (...args) => mockInvoke(...args),
   },
   INVOKE_CHANNELS: {
+    LIST_CHAT_CONVERSATIONS: 'list-chat-conversations',
     LIST_CONVERSATIONS: 'list-conversations',
+    SEARCH_CHAT_CONVERSATIONS: 'search-chat-conversations',
     SEARCH_CONVERSATIONS: 'search-conversations',
+    GET_CHAT_EVENTS: 'get-chat-events',
     GET_CONVERSATION: 'get-conversation',
   },
 }));
@@ -27,7 +30,7 @@ describe('localConversationStore', () => {
       .mockResolvedValueOnce({
         success: true,
         data: {
-          memories: [
+          events: [
             { id: 'm1', message_index: 1 },
             { id: 'm2', message_index: 2 },
           ],
@@ -36,7 +39,7 @@ describe('localConversationStore', () => {
       .mockResolvedValueOnce({
         success: true,
         data: {
-          memories: [
+          events: [
             { id: 'm3', message_index: 3 },
           ],
         },
@@ -51,23 +54,23 @@ describe('localConversationStore', () => {
     expect(result.map((entry) => entry.id)).toEqual(['m1', 'm2', 'm3']);
     expect(mockInvoke).toHaveBeenNthCalledWith(
       1,
-      'get-conversation',
+      'get-chat-events',
       expect.objectContaining({
         userId: 'default_user',
         conversationId: 'conv_1',
         limit: 2,
-        recordKind: 'conversation_event',
+        recordKind: 'chat_event',
         afterMessageIndex: null,
       }),
     );
     expect(mockInvoke).toHaveBeenNthCalledWith(
       2,
-      'get-conversation',
+      'get-chat-events',
       expect.objectContaining({
         userId: 'default_user',
         conversationId: 'conv_1',
         limit: 2,
-        recordKind: 'conversation_event',
+        recordKind: 'chat_event',
         afterMessageIndex: 2,
       }),
     );
@@ -85,15 +88,14 @@ describe('localConversationStore', () => {
 
     const result = await listStoredConversations({
       userId: 'default_user',
-      recordKind: 'conversation_event',
     });
 
     expect(result).toEqual([{ conversation_id: 'conv-1' }]);
     expect(mockInvoke).toHaveBeenCalledWith(
-      'list-conversations',
+      'list-chat-conversations',
       {
         userId: 'default_user',
-        recordKind: 'conversation_event',
+        recordKind: 'chat_event',
       },
     );
   });
@@ -125,7 +127,7 @@ describe('localConversationStore', () => {
       success: true,
       data: {
         conversations: [
-          { conversation_id: 'conv-1', record_kind: 'conversation_event' },
+          { conversation_id: 'conv-1', record_kind: 'chat_event' },
         ],
       },
     });
@@ -136,14 +138,14 @@ describe('localConversationStore', () => {
       limit: 5,
     });
 
-    expect(result).toEqual([{ conversation_id: 'conv-1', record_kind: 'conversation_event' }]);
+    expect(result).toEqual([{ conversation_id: 'conv-1', record_kind: 'chat_event' }]);
     expect(mockInvoke).toHaveBeenCalledWith(
-      'search-conversations',
+      'search-chat-conversations',
       {
         userId: 'default_user',
         query: 'project',
         limit: 5,
-        recordKind: 'conversation_event',
+        recordKind: 'chat_event',
       },
     );
   });
