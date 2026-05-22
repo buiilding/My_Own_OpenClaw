@@ -314,6 +314,15 @@ async def list_chat_conversations(
                    MAX(timestamp) as last_timestamp,
                    COUNT(*) as entry_count,
                    (
+                     SELECT title FROM conversation_titles t
+                     WHERE t.user_id = chat_events.user_id
+                       AND t.conversation_id = chat_events.conversation_id
+                       AND t.title IS NOT NULL
+                       AND t.title != ''
+                     ORDER BY t.is_locked DESC, t.updated_at DESC
+                     LIMIT 1
+                   ) as stored_title,
+                   (
                      SELECT content FROM chat_events e2
                      WHERE e2.user_id = chat_events.user_id
                        AND e2.conversation_id = chat_events.conversation_id
@@ -372,7 +381,12 @@ async def list_chat_conversations(
         conversation_id = row["conversation_id"]
         if not isinstance(conversation_id, str) or not conversation_id.strip():
             continue
-        title = str(row["first_user_content"] or row["last_content"] or conversation_id).strip()
+        title = str(
+            row["stored_title"]
+            or row["first_user_content"]
+            or row["last_content"]
+            or conversation_id
+        ).strip()
         results.append(
             {
                 "conversation_id": conversation_id,

@@ -618,6 +618,8 @@ export class ElectronSidecarConversationStore implements ConversationStore {
       workspacePath: workspaceBinding.workspacePath || null,
       workspaceName: workspaceBinding.workspaceName || null,
       metadata: {
+        model_id: entry.modelId ?? null,
+        model_provider: entry.modelProvider ?? null,
         screenshot: firstAttachment?.['ref']
           ?? firstAttachment?.['url']
           ?? firstAttachment?.['value']

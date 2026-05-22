@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sidecar: generate model-backed chat titles after the first completed assistant reply and prefer stored titles in dashboard conversation lists.
 - ops: add an SSH-only developer backend log helper with allowlisted system/user backend and Cloudflare Tunnel service streams.
 - docs: require final fix reports to include implementation approach, previous behavior, and behavior after the fix.
 - frontend/chat: hide the main-list awaiting typing dots as soon as current-turn thinking text makes the `Show thinking` disclosure eligible.

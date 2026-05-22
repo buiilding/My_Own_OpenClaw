@@ -6,6 +6,7 @@ instead of local embedding providers.
 """
 
 import asyncio
+import contextlib
 import json
 import logging
 import uuid
@@ -54,6 +55,11 @@ from memory.conversation_semanticization_runtime import (
 )
 from memory.conversation_semanticization_runtime import (
     semantic_summary_exists as check_semantic_summary_exists,
+)
+from memory.conversation_title_store import (
+    get_conversation_title_state,
+    get_first_title_exchange,
+    upsert_generated_conversation_title,
 )
 from memory.conversation_window_runtime import (
     conversation_where_clause,
@@ -371,6 +377,7 @@ class LocalMemoryStore:
 
     async def close(self) -> None:
         """Close the embedding client and save indices."""
+        await self._cancel_title_generation_tasks()
         await self.title_client.close()
         await self.embedder.close()
         await self._save_faiss_indices()
@@ -1546,7 +1553,7 @@ class LocalMemoryStore:
         event_payload: Dict[str, Any],
         compaction_checkpoint: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
-        return await append_chat_event(
+        stored = await append_chat_event(
             db_path=self.episodic_db_path,
             user_id=user_id,
             conversation_id=conversation_id,
@@ -1566,6 +1573,16 @@ class LocalMemoryStore:
             event_payload=event_payload,
             compaction_checkpoint=compaction_checkpoint,
         )
+        self._schedule_conversation_title_generation(
+            user_id=user_id,
+            conversation_id=conversation_id,
+            role=role,
+            event_type=event_type,
+            content=content,
+            metadata=metadata,
+            event_payload=event_payload,
+        )
+        return stored
 
     async def list_chat_conversations(
         self, user_id: str, limit: Optional[int] = None
@@ -1586,8 +1603,146 @@ class LocalMemoryStore:
             limit=limit,
         )
 
-    async def _cancel_title_generation_tasks(self) -> None:
+    def _schedule_conversation_title_generation(
+        self,
+        *,
+        user_id: str,
+        conversation_id: Optional[str],
+        role: Optional[str],
+        event_type: str,
+        content: str,
+        metadata: Optional[Dict[str, Any]],
+        event_payload: Dict[str, Any],
+    ) -> None:
+        if not self._is_title_generation_trigger(
+            conversation_id=conversation_id,
+            role=role,
+            event_type=event_type,
+            content=content,
+            event_payload=event_payload,
+        ):
+            return
+
+        key = (user_id, conversation_id or "")
+        existing_task = self._title_generation_tasks.get(key)
+        if existing_task and not existing_task.done():
+            return
+
+        task = asyncio.create_task(
+            self._generate_conversation_title_for_exchange(
+                user_id=user_id,
+                conversation_id=conversation_id or "",
+                metadata=metadata or {},
+            )
+        )
+        self._title_generation_tasks[key] = task
+        task.add_done_callback(
+            lambda completed_task, task_key=key: self._title_generation_tasks.pop(
+                task_key, None
+            )
+        )
+
+    @staticmethod
+    def _is_title_generation_trigger(
+        *,
+        conversation_id: Optional[str],
+        role: Optional[str],
+        event_type: str,
+        content: str,
+        event_payload: Dict[str, Any],
+    ) -> bool:
+        if not conversation_id or not isinstance(content, str) or not content.strip():
+            return False
+        if (role or "").strip().lower() != "assistant":
+            return False
+        if (event_type or "").strip().lower() != "assistant_message":
+            return False
+        payload = (
+            event_payload.get("payload") if isinstance(event_payload, dict) else {}
+        )
+        message_type = (
+            payload.get("messageType")
+            or payload.get("message_type")
+            or event_payload.get("messageType")
+            or event_payload.get("message_type")
+        )
+        return str(message_type or "llm-text").strip().lower() == "llm-text"
+
+    async def _generate_conversation_title_for_exchange(
+        self,
+        *,
+        user_id: str,
+        conversation_id: str,
+        metadata: Dict[str, Any],
+    ) -> None:
+        try:
+            async with self._title_generation_semaphore:
+                title_state = await get_conversation_title_state(
+                    db_path=self.episodic_db_path,
+                    user_id=user_id,
+                    conversation_id=conversation_id,
+                )
+                if title_state.get("is_locked"):
+                    return
+                existing_source = str(title_state.get("source") or "").strip()
+                if title_state.get("title") and existing_source not in {
+                    "",
+                    "heuristic",
+                }:
+                    return
+
+                exchange = await get_first_title_exchange(
+                    db_path=self.episodic_db_path,
+                    user_id=user_id,
+                    conversation_id=conversation_id,
+                )
+                user_message = exchange.get("user_message", "")
+                assistant_message = exchange.get("assistant_message", "")
+                if not user_message or not assistant_message:
+                    return
+
+                title = await self.title_client.generate_title(
+                    user_id=user_id,
+                    user_message=user_message,
+                    assistant_message=assistant_message,
+                    model_id=self._extract_metadata_string(metadata, "model_id"),
+                    model_provider=self._extract_metadata_string(
+                        metadata, "model_provider"
+                    ),
+                )
+                if not title:
+                    return
+                await upsert_generated_conversation_title(
+                    db_path=self.episodic_db_path,
+                    user_id=user_id,
+                    conversation_id=conversation_id,
+                    title=title,
+                )
+        except Exception as exc:
+            logger.warning(
+                "Conversation title generation failed for user_id=%s conversation_id=%s: %s",
+                user_id,
+                conversation_id,
+                exc,
+            )
+
+    @staticmethod
+    def _extract_metadata_string(metadata: Dict[str, Any], key: str) -> Optional[str]:
+        value = metadata.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
         return None
+
+    async def _cancel_title_generation_tasks(self) -> None:
+        tasks = [
+            task for task in self._title_generation_tasks.values() if not task.done()
+        ]
+        self._title_generation_tasks.clear()
+        for task in tasks:
+            task.cancel()
+        for task in tasks:
+            with contextlib.suppress(asyncio.CancelledError):
+                await task
 
     async def list_semantic_memories(
         self, user_id: str, limit: int = 200

@@ -66,9 +66,11 @@ Client:
 
 Behavior:
 
-- called by `LocalMemoryStore` async title-generation tasks after first assistant `llm-text` transcript rows
+- called by `LocalMemoryStore` async title-generation tasks after the first completed assistant `llm-text` transcript row for a conversation
 - calls backend `POST /api/semantic/title`
-- returns concise conversation title text (or empty string on blank title response)
+- sends the first non-empty user message and first non-empty assistant reply, with model/provider metadata when the transcript row carries it
+- writes generated titles into `conversation_titles` with `source = model` and does not overwrite locked or manually sourced titles
+- dashboard conversation metadata prefers `conversation_titles.title`, then falls back to the first user message, latest content, or conversation id
 
 ## Periodic Summarizer
 
