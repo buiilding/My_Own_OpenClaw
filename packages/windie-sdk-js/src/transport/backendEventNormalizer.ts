@@ -40,8 +40,9 @@ function revisionIdFor(event: BackendEvent, fallbackRevisionId?: string): string
 function eventBase(
   event: BackendEvent,
   fallbackRevisionId?: string,
+  fallbackConversationRef?: string,
 ): { conversationRef: string; revisionId: string; turnRef: string | null; eventId: string; timestamp: string } | null {
-  const conversationRef = conversationRefOf(event);
+  const conversationRef = conversationRefOf(event) ?? fallbackConversationRef ?? null;
   if (!conversationRef) {
     return null;
   }
@@ -56,13 +57,14 @@ function eventBase(
 
 export type NormalizeBackendEventOptions = {
   fallbackRevisionId?: string;
+  fallbackConversationRef?: string;
 };
 
 export function normalizeBackendEventToConversationEvent(
   event: BackendEvent,
   options: NormalizeBackendEventOptions = {},
 ): ConversationEvent | null {
-  const base = eventBase(event, options.fallbackRevisionId);
+  const base = eventBase(event, options.fallbackRevisionId, options.fallbackConversationRef);
   if (!base) {
     return null;
   }

@@ -35,6 +35,8 @@ import {
 export type WindieWakeUpOptions = {
   backendUrl?: string;
   userId?: string;
+  installToken?: string;
+  installAuth?: WindieInstallAuthOptions;
   systemPrompt?: string;
   workspacePath?: string;
   tools?: WindieToolDefinition[];
@@ -55,12 +57,24 @@ export type WindieClientOptions = {
   fetchImpl?: FetchLike;
   WebSocketImpl?: WebSocketConstructor;
   defaultUserId?: string;
+  installToken?: string;
+  installAuth?: WindieInstallAuthOptions;
   localRuntime?: WindieLocalRuntimeClient;
   sidecar?: WindieLocalRuntimeClient;
   sidecarDaemon?: SidecarDaemonClientOptions;
   ensureLocalRuntime?: WindieLocalRuntimeProvider<WindieWakeUpOptions>;
   autoStartLocalRuntime?: boolean;
   autoSidecar?: WindieAutoSidecarOptions;
+};
+
+export type WindieInstallAuthState = {
+  userId: string;
+  installId?: string;
+  installToken: string;
+};
+
+export type WindieInstallAuthOptions = Partial<WindieInstallAuthState> & {
+  autoRegister?: boolean;
 };
 
 export class WindieClient {
@@ -78,8 +92,14 @@ export class WindieClient {
       ? buildModelSettingsPatch(options.model, 'WindieClient.wakeUp')
       : null;
     const backendUrl = this.resolveBackendUrl(options.backendUrl);
+    const operatingSystem = detectOperatingSystem();
+    const installAuth = await this.resolveInstallAuthState(backendUrl, operatingSystem, options);
+    const userId = installAuth?.userId
+      ?? options.userId
+      ?? this.defaultOptions.defaultUserId
+      ?? 'local-sdk-user';
     const localRuntime = await this.resolveLocalRuntimeForWakeUp(options);
-    const sdkClient = this.createSdkClient(backendUrl);
+    const sdkClient = this.createSdkClient(backendUrl, installAuth?.installToken);
 
     const localTools = await this.prepareLocalRuntime(options, localRuntime);
     const agentDefinition = buildWakeUpAgentDefinition(options, localTools);
@@ -87,8 +107,9 @@ export class WindieClient {
       backendUrl,
       wsUrl: this.defaultOptions.wsUrl,
       WebSocketImpl: this.defaultOptions.WebSocketImpl,
-      userId: options.userId ?? this.defaultOptions.defaultUserId ?? 'local-sdk-user',
-      operatingSystem: detectOperatingSystem(),
+      headers: installAuth?.installToken ? { Authorization: `Bearer ${installAuth.installToken}` } : undefined,
+      userId,
+      operatingSystem,
       agentDefinition: agentDefinition,
     });
     await session.waitForOpen();
@@ -138,11 +159,62 @@ export class WindieClient {
     return backendUrl ?? this.defaultOptions.backendUrl ?? this.defaultOptions.httpBaseUrl ?? 'https://api.windieos.com';
   }
 
-  private createSdkClient(backendUrl: string): WindieSdkClient {
+  private createSdkClient(backendUrl: string, authToken?: string): WindieSdkClient {
     return new WindieSdkClient({
       httpBaseUrl: backendUrl,
       fetchImpl: this.defaultOptions.fetchImpl,
+      authToken,
     });
+  }
+
+  private async resolveInstallAuthState(
+    backendUrl: string,
+    operatingSystem: string,
+    options: WindieWakeUpOptions,
+  ): Promise<WindieInstallAuthState | null> {
+    const configured = options.installAuth ?? this.defaultOptions.installAuth ?? {};
+    const installToken = (
+      options.installToken
+      ?? configured.installToken
+      ?? this.defaultOptions.installToken
+    )?.trim();
+    const configuredUserId = options.userId ?? configured.userId ?? this.defaultOptions.defaultUserId;
+    if (installToken) {
+      return {
+        installToken,
+        installId: configured.installId,
+        userId: configuredUserId ?? 'local-sdk-user',
+      };
+    }
+    if (configured.autoRegister !== true) {
+      return null;
+    }
+    const fetchImpl = this.defaultOptions.fetchImpl ?? globalThis.fetch?.bind(globalThis);
+    if (typeof fetchImpl !== 'function') {
+      throw new Error('WindieClient install auth auto-registration requires fetch');
+    }
+    const response = await fetchImpl(`${backendUrl.replace(/\/+$/, '')}/api/install/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ operating_system: operatingSystem }),
+    });
+    if (!response.ok) {
+      throw new Error(`Windie install registration failed (${response.status} ${response.statusText}): ${await response.text()}`);
+    }
+    const payload = await response.json() as Record<string, unknown>;
+    const registeredUserId = typeof payload.user_id === 'string' ? payload.user_id.trim() : '';
+    const registeredInstallId = typeof payload.install_id === 'string' ? payload.install_id.trim() : '';
+    const registeredInstallToken = typeof payload.install_token === 'string' ? payload.install_token.trim() : '';
+    if (!registeredUserId || !registeredInstallToken) {
+      throw new Error('Windie install registration returned an invalid auth payload');
+    }
+    return {
+      userId: registeredUserId,
+      installId: registeredInstallId || undefined,
+      installToken: registeredInstallToken,
+    };
   }
 
   private resolveConfiguredLocalRuntime(): WindieLocalRuntimeClient | undefined {
@@ -254,7 +326,6 @@ function buildWakeUpAgentDefinition(options: WindieWakeUpOptions, tools: JsonRec
       },
     },
     skills: options.skills ?? [],
-    mcps: options.mcps ?? [],
     plugins: options.plugins ?? [],
     runtime: {
       workspace_path: options.workspacePath,

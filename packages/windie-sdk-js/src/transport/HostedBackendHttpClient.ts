@@ -298,6 +298,7 @@ export type WindieSdkQueryOptions = {
 export type WindieSdkClientOptions = {
   httpBaseUrl: string;
   fetchImpl?: FetchLike;
+  authToken?: string;
 };
 
 function resolveFetchImplementation(fetchImpl?: FetchLike): FetchLike {
@@ -343,6 +344,7 @@ function buildErrorMessage(status: number, statusText: string, bodyText: string)
 export class WindieSdkClient {
   private readonly httpBaseUrl: string;
   private readonly fetchImpl: FetchLike;
+  private readonly authToken?: string;
 
   readonly artifacts = {
     upload: async (file: Blob | File, filename?: string): Promise<SdkArtifactUploadResponse> => this.uploadArtifact(file, filename),
@@ -383,6 +385,7 @@ export class WindieSdkClient {
   constructor(options: WindieSdkClientOptions) {
     this.httpBaseUrl = normalizeHttpBaseUrl(options.httpBaseUrl);
     this.fetchImpl = resolveFetchImplementation(options.fetchImpl);
+    this.authToken = options.authToken?.trim() || undefined;
   }
 
   async models(options?: WindieSdkQueryOptions): Promise<SdkModelsResponse> {
@@ -416,6 +419,7 @@ export class WindieSdkClient {
   async fetchArtifact(artifactId: string): Promise<Response> {
     const response = await this.fetchImpl(this.artifactUrl(artifactId), {
       method: 'GET',
+      headers: this.buildHeaders(),
     });
     if (!response.ok) {
       throw new Error(buildErrorMessage(response.status, response.statusText, await response.text()));
@@ -454,11 +458,22 @@ export class WindieSdkClient {
   }
 
   private async request<TResponse>(path: string, init: RequestInit): Promise<TResponse> {
-    const response = await this.fetchImpl(`${this.httpBaseUrl}${path}`, init);
+    const response = await this.fetchImpl(`${this.httpBaseUrl}${path}`, {
+      ...init,
+      headers: this.buildHeaders(init.headers),
+    });
     if (!response.ok) {
       const bodyText = await response.text();
       throw new Error(buildErrorMessage(response.status, response.statusText, bodyText));
     }
     return response.json() as Promise<TResponse>;
+  }
+
+  private buildHeaders(initHeaders?: HeadersInit): Headers {
+    const headers = new Headers(initHeaders);
+    if (this.authToken && !headers.has('Authorization')) {
+      headers.set('Authorization', `Bearer ${this.authToken}`);
+    }
+    return headers;
   }
 }

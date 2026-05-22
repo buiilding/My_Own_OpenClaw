@@ -23,10 +23,12 @@ class FakeWebSocket {
   readonly listeners = new Map<string, Set<(payload: unknown) => void>>();
   readonly sent: string[] = [];
   readonly url: string;
+  readonly options?: unknown;
   closed = false;
 
-  constructor(url: string) {
+  constructor(url: string, options?: unknown) {
     this.url = url;
+    this.options = options;
     FakeWebSocket.instances.push(this);
   }
 
@@ -159,7 +161,6 @@ describe('WindieSdkClient', () => {
       'https://api.windieos.com/api/sdk/prompt-preview',
       expect.objectContaining({
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       }),
     );
@@ -221,7 +222,6 @@ describe('WindieSdkClient', () => {
       'https://api.windieos.com/api/sdk/query-plan',
       expect.objectContaining({
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       }),
     );
@@ -319,6 +319,40 @@ describe('WindieSdkClient', () => {
     if (init?.method !== 'GET') {
       throw new Error(`unexpected models method: ${String(init?.method)}`);
     }
+  });
+
+  test('WindieClient can register hosted install auth and attach bearer headers', async () => {
+    mockFetch.mockResolvedValueOnce(jsonResponse({
+      user_id: 'registered-user',
+      install_id: 'install-1',
+      install_token: 'install-token-1',
+    }));
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      installAuth: { autoRegister: true },
+    });
+
+    const wakePromise = client.wakeUp({ agentId: 'auth-agent' });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const socket = FakeWebSocket.instances[0];
+    socket.emit('open', {});
+    await wakePromise;
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      'https://api.windieos.com/api/install/register',
+      expect.objectContaining({ method: 'POST' }),
+    );
+    expect(socket.options).toMatchObject({
+      headers: {
+        Authorization: 'Bearer install-token-1',
+      },
+    });
+    expect(JSON.parse(socket.sent[0])).toMatchObject({
+      type: 'handshake',
+      user_id: 'registered-user',
+    });
   });
 
   test('agent.setModel sends a backend settings update with provider-safe model fields', async () => {
@@ -744,6 +778,35 @@ describe('WindieSdkClient', () => {
         },
       },
     });
+  });
+
+  test('wakeUp keeps MCP definitions local instead of sending unsupported handshake fields', async () => {
+    const localRuntime: WindieLocalRuntimeClient = {
+      status: jest.fn(async () => ({ status: 'ok' })),
+      registerMcp: jest.fn(async () => ({ success: true })),
+      listTools: jest.fn(async () => ({ version: 1, tools: [] })),
+    };
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      sidecar: localRuntime,
+    });
+
+    const wakePromise = client.wakeUp({
+      agentId: 'mcp-agent',
+      mcps: [{ id: 'filesystem', command: 'filesystem-server' }],
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    FakeWebSocket.instances[0].emit('open', {});
+    await wakePromise;
+
+    const handshake = JSON.parse(FakeWebSocket.instances[0].sent[0]);
+    expect(localRuntime.registerMcp).toHaveBeenCalledWith({
+      id: 'filesystem',
+      command: 'filesystem-server',
+    });
+    expect(handshake.agent_definition).not.toHaveProperty('mcps');
   });
 
   test('wakeUp ensures a local runtime when module tools need sidecar execution', async () => {
@@ -1290,7 +1353,6 @@ describe('WindieSdkClient', () => {
       payload: {
         text: 'save this note',
         conversation_ref: 'conv-stream',
-        turn_ref: expect.any(String),
       },
     });
 
@@ -1349,6 +1411,46 @@ describe('WindieSdkClient', () => {
       value: {
         type: 'complete',
         finalResponse: 'done',
+      },
+    });
+    await expect(iterator.next()).resolves.toEqual({
+      done: true,
+      value: undefined,
+    });
+  });
+
+  test('agent.stream surfaces backend errors without conversation routing fields', async () => {
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+    });
+
+    const wakePromise = client.wakeUp({ agentId: 'stream-error-agent' });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const socket = FakeWebSocket.instances[0];
+    socket.emit('open', {});
+    const agent = await wakePromise;
+
+    const iterator = agent.stream('bad payload', { conversationRef: 'conv-stream-error' });
+    await expect(iterator.next()).resolves.toMatchObject({
+      done: false,
+      value: { type: 'start' },
+    });
+    socket.emit('message', {
+      data: JSON.stringify({
+        type: 'error',
+        id: null,
+        payload: { message: 'Invalid message format' },
+      }),
+    });
+
+    await expect(iterator.next()).resolves.toMatchObject({
+      done: false,
+      value: {
+        type: 'error',
+        message: 'Invalid message format',
       },
     });
     await expect(iterator.next()).resolves.toEqual({

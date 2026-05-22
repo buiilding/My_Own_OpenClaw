@@ -25,10 +25,12 @@ function printHelp() {
   console.log(`Usage:
   node examples/simple-chat-cli/run.mjs
   node examples/simple-chat-cli/run.mjs --once="hello"
+  node examples/simple-chat-cli/run.mjs --once="hello" --debug-events
 
 Environment:
   WINDIE_BACKEND_URL  Remote backend URL. Defaults to https://api.windieos.com
-  WINDIE_USER_ID      User id for the SDK session. Defaults to cli-user
+  WINDIE_INSTALL_TOKEN  Existing hosted backend install token. Optional.
+  WINDIE_USER_ID      User id for the SDK session. Optional; hosted auth supplies one.
 
 Commands:
   /exit               Quit interactive chat
@@ -45,14 +47,20 @@ const { WebSocketImpl } = loadSdkWebSocket(repoRoot);
 const { WindieClient } = await loadLocalWindieSdk(repoRoot);
 
 const backendUrl = process.env.WINDIE_BACKEND_URL || 'https://api.windieos.com';
-const userId = process.env.WINDIE_USER_ID || 'cli-user';
+const userId = process.env.WINDIE_USER_ID || undefined;
+const installToken = process.env.WINDIE_INSTALL_TOKEN || undefined;
 const conversationRef = argValue('--conversation') || `cli-${Date.now()}`;
 const once = argValue('--once');
+const debugEvents = hasArg('--debug-events');
 
 const client = new WindieClient({
   backendUrl,
   WebSocketImpl,
   defaultUserId: userId,
+  installAuth: {
+    installToken,
+    autoRegister: !installToken,
+  },
 });
 
 const agent = await client.wakeUp({
@@ -61,6 +69,23 @@ const agent = await client.wakeUp({
   name: 'Simple Chat CLI',
   systemPrompt: 'You are a helpful assistant. Be concise.',
 });
+
+if (debugEvents) {
+  const originalQuery = agent.session.query.bind(agent.session);
+  agent.session.query = async payload => {
+    console.error('[debug] sending query', JSON.stringify(payload));
+    return originalQuery(payload);
+  };
+  agent.session.on('message', event => {
+    console.error('[debug] backend message', JSON.stringify(event));
+  });
+  agent.session.on('close', event => {
+    console.error('[debug] websocket closed', JSON.stringify(event));
+  });
+  agent.session.on('socket-error', event => {
+    console.error('[debug] websocket error', event);
+  });
+}
 
 const chat = agent.chat({ conversationRef });
 

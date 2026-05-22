@@ -18,3 +18,11 @@ WINDIE_BACKEND_URL=https://api.windieos.com node examples/simple-chat-cli/run.mj
 The script builds `packages/windie-sdk-js`, wakes an agent, creates
 `agent.chat(...)`, streams assistant text to stdout, and supports `/exit` and
 `/stop` in interactive mode.
+
+For hosted backends, the SDK registers a temporary install identity through
+`/api/install/register` unless `WINDIE_INSTALL_TOKEN` is set. To reuse an
+existing hosted identity, pass:
+
+```bash
+WINDIE_INSTALL_TOKEN=<install-token> WINDIE_BACKEND_URL=https://api.windieos.com node examples/simple-chat-cli/run.mjs
+```

@@ -23,6 +23,7 @@ export type WindieAgentSessionOptions = {
   backendUrl: string;
   wsUrl?: string;
   WebSocketImpl?: WebSocketConstructor;
+  headers?: Record<string, string>;
   userId: string;
   operatingSystem?: string;
   agentDefinition?: JsonRecord;
@@ -93,7 +94,10 @@ export function createWindieAgentSession(options: WindieAgentSessionOptions): Wi
     ? normalizeWsUrl(options.wsUrl)
     : deriveWsUrl(options.backendUrl);
   const WebSocketImpl = resolveWebSocketImplementation(options.WebSocketImpl);
-  const socket = new WebSocketImpl(wsUrl);
+  const socketOptions = options.headers && Object.keys(options.headers).length > 0
+    ? { headers: options.headers }
+    : undefined;
+  const socket = new WebSocketImpl(wsUrl, socketOptions);
   return new WindieAgentSession(socket, {
     user_id: options.userId,
     operating_system: options.operatingSystem,
@@ -235,7 +239,6 @@ export class WindieAgentSession {
     return this.sendBackendMessage('query', {
       text: payload.text,
       conversation_ref: payload.conversationRef,
-      turn_ref: payload.turnRef ?? undefined,
       content: payload.content ?? undefined,
       screenshot: payload.screenshot ?? undefined,
       screenshot_ref: payload.screenshotRef ?? undefined,

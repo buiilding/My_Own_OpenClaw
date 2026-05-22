@@ -158,13 +158,9 @@ export class SdkConversationRuntime {
       if (!isBackendEvent(rawEvent)) {
         return;
       }
-      const hasRoutingIdentity = typeof rawEvent.conversation_ref === 'string'
-        && rawEvent.conversation_ref.trim().length > 0;
-      if (!hasRoutingIdentity) {
-        return;
-      }
       const event = normalizeBackendEventToConversationEvent(rawEvent, {
         fallbackRevisionId: this.state.revisionId,
+        fallbackConversationRef: rawEvent.type === 'error' ? this.options.conversationRef : undefined,
       });
       if (event && this.shouldAcceptBackendEvent(event)) {
         void this.applyEvent(event);
@@ -462,13 +458,6 @@ export class SdkConversationRuntime {
       return true;
     }
     if (event.conversationRef !== this.options.conversationRef) {
-      return false;
-    }
-    if (
-      event.turnRef
-      && this.state.activeTurnRef
-      && event.turnRef !== this.state.activeTurnRef
-    ) {
       return false;
     }
     return true;
