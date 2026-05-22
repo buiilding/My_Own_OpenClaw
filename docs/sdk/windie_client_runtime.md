@@ -40,7 +40,8 @@ Ownership rules:
   introspection, artifact upload URLs, OCR routes, and vision routes exposed to
   public SDK callers.
 - the SDK local-runtime module owns sidecar daemon HTTP calls, daemon discovery,
-  auto-start/reuse, and `moduleTool(...)` registration helpers.
+  auto-start/reuse, sidecar event subscriptions, and `moduleTool(...)`
+  registration helpers.
 - the SDK `WindieClient` runtime module owns wake-up orchestration, websocket
   session creation, initial model selection, local-runtime startup/reuse, and
   conversion of local tool/plugin/MCP definitions into the client manifest.
@@ -167,6 +168,17 @@ await agent.ask("Use the fast model for this one-shot query.", {
 8. Normalize backend events into SDK conversation events.
 9. Route backend events to callers and route local `tool-call` events to the sidecar daemon.
 10. Project display transcript and rehydrate snapshots from normalized events.
+
+When a local runtime supports events, callers can subscribe through the SDK
+runtime instead of connecting to the sidecar daemon directly:
+
+```ts
+const unsubscribe = agent.subscribeLocalRuntimeEvents((event) => {
+  if (event.type === "conversation-title-updated") {
+    // Refresh conversation metadata in the host UI.
+  }
+});
+```
 
 ## Conversation Runtime
 

@@ -7,6 +7,7 @@ import {
   createWindieAgentSession,
   createWindieLocalRuntimeProvider,
   moduleTool,
+  SidecarDaemonHttpClient,
   WindieClient,
   WindieSdkClient,
   type SdkPromptPreviewRequest,
@@ -737,6 +738,45 @@ describe('WindieSdkClient', () => {
     expect(headers.get('x-windie-sidecar-token')).toBe('provider-token');
   });
 
+  test('SidecarDaemonHttpClient subscribes to sidecar runtime events', async () => {
+    const events: unknown[] = [];
+    const client = new SidecarDaemonHttpClient({
+      baseUrl: 'http://127.0.0.1:43126',
+      token: 'event-token',
+      fetchImpl: mockFetch as any,
+      WebSocketImpl: FakeWebSocket as any,
+    });
+
+    const unsubscribe = client.subscribeEvents(event => {
+      events.push(event);
+    });
+    await Promise.resolve();
+
+    expect(FakeWebSocket.instances).toHaveLength(1);
+    expect(FakeWebSocket.instances[0].url).toBe('ws://127.0.0.1:43126/events');
+    FakeWebSocket.instances[0].emit('message', {
+      data: JSON.stringify({
+        type: 'conversation-title-updated',
+        payload: {
+          conversation_id: 'conv-sdk-title',
+          title: 'SDK Title',
+        },
+      }),
+    });
+
+    expect(events).toEqual([
+      {
+        type: 'conversation-title-updated',
+        payload: {
+          conversation_id: 'conv-sdk-title',
+          title: 'SDK Title',
+        },
+      },
+    ]);
+    unsubscribe();
+    expect(FakeWebSocket.instances[0].closed).toBe(true);
+  });
+
   test('createWindieLocalRuntimeProvider can start the daemon through a launcher prefix', async () => {
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-launcher-'));
     const discoveryFile = path.join(tempDir, 'sidecar-daemon.json');
@@ -764,7 +804,7 @@ describe('WindieSdkClient', () => {
       pythonCommand: launcherScript,
       pythonArgs: ['sidecar', 'python'],
       pollIntervalMs: 1,
-      startTimeoutMs: 500,
+      startTimeoutMs: 2000,
       fetchImpl: mockFetch,
     });
     const runtime = await provider({

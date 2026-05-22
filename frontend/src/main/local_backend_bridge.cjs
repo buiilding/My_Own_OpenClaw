@@ -647,17 +647,18 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
   sidecarDaemonManager = options.sidecarDaemonManager || (
     isTestEnv
       ? null
-      : createSidecarDaemonManager({
-          onEvent: (payload) => {
-            for (const win of resolveWindows()) {
-              if (!win || win.isDestroyed?.()) {
-                continue;
-              }
-              win.webContents?.send?.('sidecar-event', payload);
-            }
-          },
-        })
+      : createSidecarDaemonManager()
   );
+  if (typeof sidecarDaemonManager?.subscribeEvents === 'function') {
+    sidecarDaemonManager.subscribeEvents((payload) => {
+      for (const win of resolveWindows()) {
+        if (!win || win.isDestroyed?.()) {
+          continue;
+        }
+        win.webContents?.send?.('sidecar-event', payload);
+      }
+    });
+  }
   const sidecarDaemonClient = options.sidecarDaemonClient || (
     sidecarDaemonManager
       ? {

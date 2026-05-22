@@ -284,8 +284,8 @@ describe('sidecar daemon manager', () => {
       spawnImpl: jest.fn(),
       startTimeoutMs: 50,
       WebSocketImpl: FakeWebSocket,
-      onEvent,
     });
+    const unsubscribe = manager.subscribeEvents(onEvent);
     await manager.ensureDaemon();
 
     expect(FakeWebSocket.instances).toHaveLength(1);
@@ -305,6 +305,7 @@ describe('sidecar daemon manager', () => {
       type: 'conversation-title-updated',
       payload: { conversation_id: 'conv-1', title: 'Generated Title' },
     });
+    unsubscribe();
   });
 
   test('rediscovers daemon when cached client becomes stale', async () => {

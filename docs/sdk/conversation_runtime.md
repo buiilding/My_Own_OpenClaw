@@ -138,6 +138,10 @@ Responsibility split:
 - Electron owns local IPC, sidecar-backed persistence, and renderer wiring.
 - Sidecar owns durable rows, ordering, list/search/title/delete queries, and
   SQLite/FAISS mechanics.
+- SDK local-runtime adapters own the sidecar event subscription surface. Hosts
+  should consume metadata invalidations such as `conversation-title-updated`
+  through SDK/local-runtime events instead of opening sidecar `/events`
+  connections from UI feature code.
 
 ## Compaction Rule
 

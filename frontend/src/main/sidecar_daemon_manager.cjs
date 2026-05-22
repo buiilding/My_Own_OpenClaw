@@ -228,6 +228,7 @@ function createSidecarDaemonManager(options = {}) {
   let eventSocket = null;
   let eventSocketKey = null;
   let activeDiscovery = null;
+  const eventListeners = new Set();
 
   function closeEventSocket() {
     const socket = eventSocket;
@@ -241,10 +242,10 @@ function createSidecarDaemonManager(options = {}) {
   }
 
   function connectEventStream(discovery) {
-    if (typeof options.onEvent !== 'function') {
+    if (!discovery?.baseUrl || !discovery?.token) {
       return;
     }
-    if (!discovery?.baseUrl || !discovery?.token) {
+    if (eventListeners.size === 0) {
       return;
     }
     const key = `${discovery.baseUrl}|${discovery.token}`;
@@ -269,7 +270,9 @@ function createSidecarDaemonManager(options = {}) {
         try {
           const payload = JSON.parse(String(raw || ''));
           if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
-            options.onEvent(payload);
+            for (const listener of eventListeners) {
+              listener(payload);
+            }
           }
         } catch (_error) {
           // Ignore malformed sidecar event packets.
@@ -428,6 +431,20 @@ function createSidecarDaemonManager(options = {}) {
     closeEventSocket();
   }
 
+  function subscribeEvents(listener) {
+    if (typeof listener !== 'function') {
+      return () => {};
+    }
+    eventListeners.add(listener);
+    connectEventStream(activeDiscovery);
+    return () => {
+      eventListeners.delete(listener);
+      if (eventListeners.size === 0) {
+        closeEventSocket();
+      }
+    };
+  }
+
   return {
     ensureDaemon,
     executeTool,
@@ -435,6 +452,7 @@ function createSidecarDaemonManager(options = {}) {
     rpc,
     readDiscovery: () => readDiscoveryFile(discoveryPath),
     shutdown,
+    subscribeEvents,
   };
 }
 

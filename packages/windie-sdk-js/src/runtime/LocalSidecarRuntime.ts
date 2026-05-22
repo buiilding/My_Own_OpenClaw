@@ -1,6 +1,14 @@
 import type { JsonRecord } from '../conversation/types.js';
 
 type FetchLike = typeof fetch;
+type EventWebSocketLike = {
+  close?: () => void;
+  addEventListener?: (event: string, listener: (payload: unknown) => void) => void;
+  removeEventListener?: (event: string, listener: (payload: unknown) => void) => void;
+  on?: (event: string, listener: (payload: unknown) => void) => void;
+  off?: (event: string, listener: (payload: unknown) => void) => void;
+};
+type EventWebSocketConstructor = new (url: string, options?: JsonRecord) => EventWebSocketLike;
 
 export type WindieToolDefinition = {
   name: string;
@@ -38,8 +46,16 @@ export type WindieLocalRuntimeClient = {
   registerPlugin?: (plugin: WindiePluginDefinition) => Promise<JsonRecord>;
   registerMcp?: (mcp: WindieMcpDefinition) => Promise<JsonRecord>;
   executeTool?: (payload: { toolName: string; args: JsonRecord }) => Promise<{ success?: boolean; data?: JsonRecord; error?: string }>;
+  subscribeEvents?: (listener: WindieLocalRuntimeEventListener) => () => void;
   shutdown?: () => Promise<void>;
 };
+
+export type WindieLocalRuntimeEvent = JsonRecord & {
+  type: string;
+  payload?: JsonRecord;
+};
+
+export type WindieLocalRuntimeEventListener = (event: WindieLocalRuntimeEvent) => void;
 
 export type WindieLocalRuntimeProviderContext<TWakeUpOptions = unknown> = {
   wakeUp: TWakeUpOptions;
@@ -54,6 +70,7 @@ export type SidecarDaemonClientOptions = {
   baseUrl: string;
   token: string;
   fetchImpl?: FetchLike;
+  WebSocketImpl?: EventWebSocketConstructor;
 };
 
 export type WindieAutoSidecarOptions = {
@@ -66,6 +83,7 @@ export type WindieAutoSidecarOptions = {
   startTimeoutMs?: number;
   pollIntervalMs?: number;
   fetchImpl?: FetchLike;
+  WebSocketImpl?: EventWebSocketConstructor;
 };
 
 function resolveFetchImplementation(fetchImpl?: FetchLike): FetchLike {
@@ -80,6 +98,17 @@ function resolveFetchImplementation(fetchImpl?: FetchLike): FetchLike {
 
 function normalizeHttpBaseUrl(httpBaseUrl: string): string {
   return httpBaseUrl.replace(/\/+$/, '');
+}
+
+function buildEventWebSocketUrl(baseUrl: string): string {
+  const normalized = normalizeHttpBaseUrl(baseUrl);
+  if (normalized.startsWith('https://')) {
+    return `wss://${normalized.slice('https://'.length)}/events`;
+  }
+  if (normalized.startsWith('http://')) {
+    return `ws://${normalized.slice('http://'.length)}/events`;
+  }
+  return `${normalized}/events`;
 }
 
 function buildErrorMessage(status: number, statusText: string, bodyText: string): string {
@@ -102,11 +131,15 @@ export class SidecarDaemonHttpClient implements WindieLocalRuntimeClient {
   private readonly baseUrl: string;
   private readonly token: string;
   private readonly fetchImpl: FetchLike;
+  private readonly WebSocketImpl?: EventWebSocketConstructor;
+  private eventSocket: EventWebSocketLike | null = null;
+  private eventListeners = new Set<WindieLocalRuntimeEventListener>();
 
   constructor(options: SidecarDaemonClientOptions) {
     this.baseUrl = normalizeHttpBaseUrl(options.baseUrl);
     this.token = options.token;
     this.fetchImpl = resolveFetchImplementation(options.fetchImpl);
+    this.WebSocketImpl = options.WebSocketImpl;
   }
 
   async status(): Promise<JsonRecord> {
@@ -143,7 +176,101 @@ export class SidecarDaemonHttpClient implements WindieLocalRuntimeClient {
   }
 
   async shutdown(): Promise<void> {
+    this.closeEventSocket();
     await this.post('/shutdown', {});
+  }
+
+  subscribeEvents(listener: WindieLocalRuntimeEventListener): () => void {
+    this.eventListeners.add(listener);
+    void this.ensureEventSocket();
+    return () => {
+      this.eventListeners.delete(listener);
+      if (this.eventListeners.size === 0) {
+        this.closeEventSocket();
+      }
+    };
+  }
+
+  private async ensureEventSocket(): Promise<void> {
+    if (this.eventSocket || this.eventListeners.size === 0) {
+      return;
+    }
+    const WebSocketImpl = await this.resolveWebSocketImpl();
+    if (!WebSocketImpl || this.eventSocket || this.eventListeners.size === 0) {
+      return;
+    }
+    const socket = new WebSocketImpl(buildEventWebSocketUrl(this.baseUrl), {
+      headers: {
+        'x-windie-sidecar-token': this.token,
+      },
+    });
+    this.eventSocket = socket;
+    const onMessage = (raw: unknown) => {
+      const event = this.parseEventPayload(raw);
+      if (!event) {
+        return;
+      }
+      for (const eventListener of this.eventListeners) {
+        eventListener(event);
+      }
+    };
+    const onClose = () => {
+      if (this.eventSocket === socket) {
+        this.eventSocket = null;
+      }
+    };
+    socket.addEventListener?.('message', onMessage);
+    socket.addEventListener?.('close', onClose);
+    socket.on?.('message', onMessage);
+    socket.on?.('close', onClose);
+    socket.on?.('error', () => {});
+  }
+
+  private closeEventSocket(): void {
+    const socket = this.eventSocket;
+    this.eventSocket = null;
+    socket?.close?.();
+  }
+
+  private async resolveWebSocketImpl(): Promise<EventWebSocketConstructor | null> {
+    if (this.WebSocketImpl) {
+      return this.WebSocketImpl;
+    }
+    const globalWebSocket = (globalThis as unknown as {
+      WebSocket?: EventWebSocketConstructor;
+    }).WebSocket;
+    if (globalWebSocket) {
+      return globalWebSocket;
+    }
+    try {
+      const module = await importNodeModule<{ default?: EventWebSocketConstructor } & EventWebSocketConstructor>('ws');
+      return module.default ?? module;
+    } catch {
+      return null;
+    }
+  }
+
+  private parseEventPayload(raw: unknown): WindieLocalRuntimeEvent | null {
+    try {
+      const text = typeof raw === 'string'
+        ? raw
+        : typeof (raw as { data?: unknown })?.data === 'string'
+          ? String((raw as { data: string }).data)
+          : raw instanceof Uint8Array
+            ? new TextDecoder().decode(raw)
+            : String(raw ?? '');
+      const payload = JSON.parse(text);
+      if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+        return null;
+      }
+      const type = (payload as JsonRecord).type;
+      if (typeof type !== 'string' || !type.trim()) {
+        return null;
+      }
+      return payload as WindieLocalRuntimeEvent;
+    } catch {
+      return null;
+    }
   }
 
   private async post<TResponse>(path: string, body: unknown): Promise<TResponse> {
@@ -243,6 +370,7 @@ async function sleep(ms: number): Promise<void> {
 async function probeDaemon(
   discovery: SidecarDaemonClientOptions | null,
   fetchImpl?: FetchLike,
+  WebSocketImpl?: EventWebSocketConstructor,
 ): Promise<SidecarDaemonHttpClient | null> {
   if (!discovery) {
     return null;
@@ -250,6 +378,7 @@ async function probeDaemon(
   const client = new SidecarDaemonHttpClient({
     ...discovery,
     fetchImpl,
+    WebSocketImpl,
   });
   try {
     await client.status();
@@ -311,7 +440,11 @@ export function createWindieLocalRuntimeProvider<TWakeUpOptions = unknown>(
         ?? path.join(os.tmpdir(), 'windieos', 'sidecar-daemon.json'),
     );
     const fetchImpl = options.fetchImpl;
-    const existing = await probeDaemon(readDaemonDiscovery(fs, discoveryFile), fetchImpl);
+    const existing = await probeDaemon(
+      readDaemonDiscovery(fs, discoveryFile),
+      fetchImpl,
+      options.WebSocketImpl,
+    );
     if (existing) {
       cachedRuntime = existing;
       return cachedRuntime;
@@ -343,7 +476,11 @@ export function createWindieLocalRuntimeProvider<TWakeUpOptions = unknown>(
     const deadline = Date.now() + (options.startTimeoutMs ?? 10000);
     const pollIntervalMs = options.pollIntervalMs ?? 100;
     while (Date.now() < deadline) {
-      const started = await probeDaemon(readDaemonDiscovery(fs, discoveryFile), fetchImpl);
+      const started = await probeDaemon(
+        readDaemonDiscovery(fs, discoveryFile),
+        fetchImpl,
+        options.WebSocketImpl,
+      );
       if (started) {
         cachedRuntime = {
           status: () => started.status(),
@@ -352,6 +489,7 @@ export function createWindieLocalRuntimeProvider<TWakeUpOptions = unknown>(
           registerPlugin: plugin => started.registerPlugin(plugin),
           registerMcp: mcp => started.registerMcp(mcp),
           executeTool: payload => started.executeTool(payload),
+          subscribeEvents: listener => started.subscribeEvents(listener),
           shutdown: async () => {
             try {
               await started.shutdown();

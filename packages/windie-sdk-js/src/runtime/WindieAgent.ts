@@ -20,6 +20,9 @@ import {
   type WindieModelSelection,
 } from '../settings/modelSelection.js';
 import type { WindieLocalRuntimeClient } from './LocalSidecarRuntime.js';
+import type {
+  WindieLocalRuntimeEventListener,
+} from './LocalSidecarRuntime.js';
 import {
   SdkConversationRuntime,
   type SendInput,
@@ -173,6 +176,10 @@ export class WindieAgent {
 
   subscribeRawBackendEvents(listener: RawBackendEventListener): () => void {
     return this.session.on('event', listener);
+  }
+
+  subscribeLocalRuntimeEvents(listener: WindieLocalRuntimeEventListener): () => void {
+    return this.localRuntime?.subscribeEvents?.(listener) ?? (() => {});
   }
 
   async listConversations(options: ListConversationOptions & {
