@@ -1,6 +1,7 @@
 import type { TokenCounts } from '../features/chat/stores/chatStore';
 
 export type BackendEventType =
+  | 'query-accepted'
   | 'llm-thought'
   | 'streaming-response'
   | 'streaming-complete'
@@ -42,6 +43,9 @@ export type ToolSchema = {
   } & Record<string, unknown>;
 } & Record<string, unknown>;
 
+export type QueryAcceptedEvent = BackendEventBase<'query-accepted', {
+  status?: string;
+}>;
 export type LlmThoughtEvent = BackendEventBase<'llm-thought', { status?: string }>;
 export type StreamingResponseEvent = BackendEventBase<'streaming-response', { text?: string }>;
 export type StreamingCompleteEvent = BackendEventBase<'streaming-complete', {
@@ -179,6 +183,7 @@ export type ErrorEvent = BackendEventBase<'error', {
 }>;
 
 export type BackendEvent =
+  | QueryAcceptedEvent
   | LlmThoughtEvent
   | StreamingResponseEvent
   | StreamingCompleteEvent
@@ -199,6 +204,7 @@ export type BackendEvent =
   | ErrorEvent;
 
 const BACKEND_EVENT_TYPES = new Set<BackendEventType>([
+  'query-accepted',
   'llm-thought',
   'streaming-response',
   'streaming-complete',

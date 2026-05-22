@@ -40,6 +40,7 @@ from backend.src.api.schemas.outgoing import (
     ErrorResponse,
     LlmThought,
     MemoryStoreMessage,
+    QueryAcceptedMessage,
     StreamingComplete,
     StreamingResponse,
     SystemPromptMessage,
@@ -81,6 +82,7 @@ INCOMING_CONTRACTS: tuple[MessageContract, ...] = (
 
 OUTGOING_SCHEMA_CONTRACTS: tuple[MessageContract, ...] = (
     MessageContract(OutgoingMessageType.ERROR, ErrorResponse),
+    MessageContract(OutgoingMessageType.QUERY_ACCEPTED, QueryAcceptedMessage),
     MessageContract(OutgoingMessageType.STREAMING_RESPONSE, StreamingResponse),
     MessageContract(OutgoingMessageType.STREAMING_COMPLETE, StreamingComplete),
     MessageContract(OutgoingMessageType.LLM_THOUGHT, LlmThought),

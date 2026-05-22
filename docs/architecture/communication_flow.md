@@ -138,6 +138,7 @@ The default product topology is remote-first: the app and SDK talk to the hosted
    - The main-process bridge keeps the socket alive during active loop phases (`awaiting-first-chunk`, `streaming`, `tool-call`, `tool-output`)
    - After the loop returns to an idle/terminal phase, the bridge keeps the socket for a 30 minute grace window and then closes it intentionally if no further backend activity occurs
    - Unexpected disconnects only auto-reconnect while a live loop or that grace window still owns the connection; idle intentional closes do not immediately reconnect
+   - If the socket drops during an active query before `streaming-complete` or `error`, Electron emits a normal `error` event for that turn instead of returning the UI to an indefinite waiting state. The user can retry after reconnect; the bridge does not auto-resend accepted turns because tool actions may already have executed.
 
 ### Parallel HTTP Control Plane (`/api/runs/*`)
 
@@ -217,7 +218,7 @@ Authorization: Bearer <install_token>
 ```json
 {
   "id": "uuid-v4",
-  "type": "streaming-response|web-search-progress|tool-call|tool-output|error|...",
+  "type": "query-accepted|streaming-response|web-search-progress|tool-call|tool-output|error|...",
   "payload": { ... }
 }
 ```
@@ -286,6 +287,11 @@ Authorization: Bearer <install_token>
   - If omitted, backend reconstructs valid tool-call linkage from transcript `message_type` + `correlation_id` and synthesizes missing IDs as needed.
 
 #### Server Message Types
+
+**`query-accepted`**
+- Purpose: Acknowledge that backend query execution accepted the turn after validation/session resolution.
+- Payload: `{ status: "accepted" }`
+- Usage: Lets clients distinguish a message that may not have reached backend from a response interrupted after backend acceptance.
 
 **`streaming-response`**
 - Purpose: Streaming text chunks

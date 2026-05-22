@@ -125,6 +125,14 @@ describe('ipc_overlay_phase_events', () => {
 
   test('maps backend events to overlay transitions', () => {
     expect(resolveBackendOverlayPhaseTransition(
+      { type: 'query-accepted' },
+      'awaiting-first-chunk',
+    )).toEqual({
+      phase: 'awaiting-first-chunk',
+      metadata: null,
+    });
+
+    expect(resolveBackendOverlayPhaseTransition(
       { type: 'streaming-response' },
       'awaiting-first-chunk',
     )).toEqual({

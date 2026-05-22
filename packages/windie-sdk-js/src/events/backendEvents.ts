@@ -1,4 +1,5 @@
 export type BackendEventType =
+  | 'query-accepted'
   | 'llm-thought'
   | 'streaming-response'
   | 'streaming-complete'
@@ -41,6 +42,7 @@ export type ToolSchema = {
 } & Record<string, unknown>;
 
 export type BackendEvent =
+  | BackendEventBase<'query-accepted', { status?: string }>
   | BackendEventBase<'llm-thought', { status?: string }>
   | BackendEventBase<'streaming-response', { text?: string }>
   | BackendEventBase<'streaming-complete', { final_response?: string }>
@@ -82,6 +84,7 @@ export type BackendEvent =
   | BackendEventBase<'error', { message?: string; content?: string | null }>;
 
 const BACKEND_EVENT_TYPES = new Set<BackendEventType>([
+  'query-accepted',
   'llm-thought',
   'streaming-response',
   'streaming-complete',

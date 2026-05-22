@@ -44,6 +44,7 @@ class OutgoingMessageType:
     """Outgoing WebSocket message type names."""
 
     ERROR: Final[str] = "error"
+    QUERY_ACCEPTED: Final[str] = "query-accepted"
     STREAMING_RESPONSE: Final[str] = StreamingEventType.STREAMING_RESPONSE.value
     STREAMING_COMPLETE: Final[str] = StreamingEventType.STREAMING_COMPLETE.value
     LLM_THOUGHT: Final[str] = StreamingEventType.LLM_THOUGHT.value
@@ -60,9 +61,15 @@ class OutgoingMessageType:
     MEMORY_STORE: Final[str] = StreamingEventType.MEMORY_STORE.value
     USER_MESSAGE_FULL: Final[str] = StreamingEventType.USER_MESSAGE_FULL.value
     ASSISTANT_MESSAGE_FULL: Final[str] = StreamingEventType.ASSISTANT_MESSAGE_FULL.value
-    CONTEXT_COMPACTION_STARTED: Final[str] = StreamingEventType.CONTEXT_COMPACTION_STARTED.value
-    CONTEXT_COMPACTION_COMPLETED: Final[str] = StreamingEventType.CONTEXT_COMPACTION_COMPLETED.value
-    CONTEXT_COMPACTION_FAILED: Final[str] = StreamingEventType.CONTEXT_COMPACTION_FAILED.value
+    CONTEXT_COMPACTION_STARTED: Final[str] = (
+        StreamingEventType.CONTEXT_COMPACTION_STARTED.value
+    )
+    CONTEXT_COMPACTION_COMPLETED: Final[str] = (
+        StreamingEventType.CONTEXT_COMPACTION_COMPLETED.value
+    )
+    CONTEXT_COMPACTION_FAILED: Final[str] = (
+        StreamingEventType.CONTEXT_COMPACTION_FAILED.value
+    )
     SETTINGS_LOADED: Final[str] = "settings-loaded"
     SETTINGS_UPDATED: Final[str] = "settings-updated"
     MODELS_LISTED: Final[str] = "models-listed"
@@ -70,6 +77,7 @@ class OutgoingMessageType:
 
 OUTGOING_SCHEMA_MESSAGE_TYPES: Final[tuple[str, ...]] = (
     OutgoingMessageType.ERROR,
+    OutgoingMessageType.QUERY_ACCEPTED,
     OutgoingMessageType.STREAMING_RESPONSE,
     OutgoingMessageType.STREAMING_COMPLETE,
     OutgoingMessageType.LLM_THOUGHT,

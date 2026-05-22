@@ -4,6 +4,10 @@ const {
 } = require('./ipc_overlay_phase_contract.cjs');
 
 const BACKEND_OVERLAY_PHASE_TRANSITIONS = Object.freeze({
+  'query-accepted': Object.freeze({
+    phase: 'awaiting-first-chunk',
+    recoveryStage: null,
+  }),
   'streaming-response': Object.freeze({
     phase: 'streaming',
     recoveryStage: null,

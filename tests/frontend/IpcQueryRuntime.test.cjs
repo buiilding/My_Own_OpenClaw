@@ -5,6 +5,9 @@ const {
   prepareAutomatedQueryPayload,
   prepareRendererQueryPayload,
 } = require('../../frontend/src/main/ipc/ipc_query_runtime.cjs');
+const {
+  buildQueryInterrupted: buildQueryInterruptedEvent,
+} = require('../../frontend/src/main/ipc/ipc_query_events.cjs');
 
 describe('ipc_query_runtime', () => {
   test('prepareRendererQueryPayload normalizes attachment fields and requires resolved conversation ref', () => {
@@ -93,5 +96,28 @@ describe('ipc_query_runtime', () => {
       attachmentContext: 'notes',
       memoryRetrievalEnabled: true,
     }));
+  });
+
+  test('buildQueryInterrupted marks active accepted turns as retryable errors', () => {
+    expect(buildQueryInterruptedEvent({
+      queryMessageId: 'turn-1',
+      conversationRef: 'conv-1',
+      currentSessionId: 'session-1',
+      currentServerUserId: 'server-user-1',
+      currentUserId: 'client-user-1',
+      accepted: true,
+    })).toEqual({
+      type: 'error',
+      id: 'turn-1',
+      turn_ref: 'turn-1',
+      session_id: 'session-1',
+      user_id: 'server-user-1',
+      conversation_ref: 'conv-1',
+      payload: {
+        message: 'WindieOS lost connection before the response finished. Retry this message after reconnecting.',
+        interrupted: true,
+        accepted: true,
+      },
+    });
   });
 });

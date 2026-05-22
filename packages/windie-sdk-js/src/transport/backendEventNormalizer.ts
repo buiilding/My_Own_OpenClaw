@@ -69,6 +69,17 @@ export function normalizeBackendEventToConversationEvent(
     return null;
   }
   const payload = payloadOf(event);
+  if (event.type === 'query-accepted') {
+    return createConversationEvent({
+      ...base,
+      type: 'turn_started',
+      source: 'backend',
+      payload: {
+        status: typeof payload.status === 'string' ? payload.status : 'accepted',
+        rawEvent: event,
+      },
+    });
+  }
   if (event.type === 'streaming-response') {
     return createConversationEvent({
       ...base,

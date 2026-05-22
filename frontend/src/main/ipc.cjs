@@ -43,6 +43,7 @@ const { buildQueryPayloadContent } = require('./query_payload_builder.cjs');
 const {
   resolveConversationRef: resolveConversationRefFromPayload,
   buildLocalUserMessage,
+  buildQueryInterrupted,
   buildQuerySendFailure,
 } = require('./ipc/ipc_query_events.cjs');
 const {
@@ -136,6 +137,7 @@ let currentInstallToken = null;
 let currentSessionId = null;
 let currentServerUserId = null;
 let currentConversationRef = null;
+let activeQueryContext = null;
 let latestFrontendConfig = null;
 let hasAttemptedInitialSettingsSync = false;
 let pendingSettingsSyncPromise = null;
@@ -558,6 +560,16 @@ async function buildSdkRuntimeHandshake() {
 }
 
 function handleSdkRuntimeEvent(rendererData) {
+  if (
+    rendererData
+    && typeof rendererData === 'object'
+    && rendererData.type === 'query-accepted'
+    && activeQueryContext
+    && typeof rendererData.turn_ref === 'string'
+    && rendererData.turn_ref === activeQueryContext.queryMessageId
+  ) {
+    activeQueryContext.accepted = true;
+  }
   ipcEventReplayState.appendForActiveTurn(rendererData);
   noteBackendTraffic(`message:${rendererData?.type || 'unknown'}`);
   notifyBackendMessageObservers(rendererData);
@@ -582,6 +594,17 @@ function handleSdkRuntimeEvent(rendererData) {
     broadcastToRenderers,
     log,
   });
+  if (
+    activeQueryContext
+    && rendererData
+    && typeof rendererData === 'object'
+    && typeof rendererData.turn_ref === 'string'
+    && rendererData.turn_ref === activeQueryContext.queryMessageId
+    && (rendererData.type === 'streaming-complete' || rendererData.type === 'error')
+  ) {
+    activeQueryContext = null;
+    ipcEventReplayState.clear();
+  }
 }
 
 function getWindieSdkRuntime() {
@@ -624,8 +647,36 @@ function getWindieSdkRuntime() {
     onClose: ({ closeReason, shouldReconnect }) => {
       isConnected = false;
       resetSettingsSyncState();
+      const activePhase = responseOverlayPhaseState.getPhase();
+      const hadInterruptedQuery = Boolean(
+        activeQueryContext
+        && (
+          activePhase === 'awaiting-first-chunk'
+          || activePhase === 'streaming'
+          || activePhase === 'tool-call'
+          || activePhase === 'tool-output'
+        ),
+      );
+      if (hadInterruptedQuery) {
+        const interruptedEvent = buildQueryInterrupted({
+          queryMessageId: activeQueryContext.queryMessageId,
+          conversationRef: activeQueryContext.conversationRef,
+          currentSessionId,
+          currentServerUserId,
+          currentUserId,
+          accepted: activeQueryContext.accepted,
+        });
+        log(
+          `Active query interrupted by backend disconnect `
+          + `(turn_ref=${activeQueryContext.queryMessageId}, `
+          + `accepted=${activeQueryContext.accepted ? 'true' : 'false'}).`,
+        );
+        handleSdkRuntimeEvent(interruptedEvent);
+        activeQueryContext = null;
+      } else {
+        setResponseOverlayPhase('idle', 'ws-close');
+      }
       resetBackendSessionState();
-      setResponseOverlayPhase('idle', 'ws-close');
       ipcEventReplayState.clear();
       if (shouldReconnect) {
         log('Disconnected from Python backend. Attempting to reconnect...');
@@ -946,6 +997,11 @@ function initializeIpc(win, options = {}) {
       currentConversationRef = preparedQuery.conversationRef;
       queryMessageId = preparedQuery.queryMessageId;
       queryUsedInitialContext = preparedQuery.queryUsedInitialContext;
+      activeQueryContext = {
+        queryMessageId,
+        conversationRef: currentConversationRef,
+        accepted: false,
+      };
       log('Complete user message built successfully');
     }
 
@@ -979,6 +1035,7 @@ function initializeIpc(win, options = {}) {
       });
     }
     if (!messageId && type === 'query') {
+      activeQueryContext = null;
       handleRendererQuerySendFailure({
         payload,
         queryMessageId,

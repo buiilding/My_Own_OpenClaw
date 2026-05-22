@@ -8,6 +8,7 @@ import asyncio
 import inspect
 from typing import TYPE_CHECKING, Any, Optional, Type
 
+from backend.src.api.contracts.message_types import OutgoingMessageType
 from backend.src.api.processing.formatter import ResponseFormatter
 from backend.src.api.processing.pipeline import StreamPipeline
 from backend.src.api.processing.tts.manager import TTSManager
@@ -42,6 +43,7 @@ from backend.src.api.services.query_execution_support.query_execution_terminal_p
 )
 from backend.src.api.services.tts_session import TTSSession
 from backend.src.api.transport.protocol import WebSocketSender
+from backend.src.api.transport.envelope import build_transport_message
 from backend.src.api.transport.sender import WebSocketTransportSender
 from backend.src.core.validation.validators import validate_query_text
 from backend.src.services.artifacts import ArtifactStore
@@ -91,6 +93,14 @@ class QueryExecutionService:
             agent_instance=agent_instance,
             msg_id=msg_id,
             conversation_ref=message.payload.conversation_ref,
+        )
+        await websocket.send_json(
+            build_transport_message(
+                OutgoingMessageType.QUERY_ACCEPTED,
+                msg_id,
+                {"status": "accepted"},
+                context=stream_context,
+            )
         )
         stream_state = QueryExecutionStreamState()
 

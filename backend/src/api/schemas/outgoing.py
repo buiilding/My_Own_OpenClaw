@@ -21,6 +21,17 @@ class ErrorResponse(BaseMessage):
     payload: ErrorPayload
 
 
+class QueryAcceptedPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    status: Literal["accepted"]
+
+
+class QueryAcceptedMessage(BaseMessage):
+    type: Literal["query-accepted"]
+    payload: QueryAcceptedPayload
+
+
 class StreamingResponsePayload(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

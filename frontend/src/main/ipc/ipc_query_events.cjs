@@ -102,8 +102,42 @@ function buildQuerySendFailure({
   };
 }
 
+function buildQueryInterrupted({
+  queryMessageId,
+  conversationRef,
+  currentSessionId,
+  currentServerUserId,
+  currentUserId,
+  accepted = false,
+}) {
+  const queryContext = buildQueryContextFields({
+    queryMessageId,
+    conversationRef,
+    currentSessionId,
+    currentServerUserId,
+    currentUserId,
+    includeClientUserFallback: true,
+  });
+
+  const message = accepted
+    ? 'WindieOS lost connection before the response finished. Retry this message after reconnecting.'
+    : 'WindieOS lost connection before confirming the message was received. Retry this message after reconnecting.';
+
+  return {
+    type: 'error',
+    id: queryMessageId,
+    ...queryContext,
+    payload: {
+      message,
+      interrupted: true,
+      accepted: Boolean(accepted),
+    },
+  };
+}
+
 module.exports = {
   resolveConversationRef,
   buildLocalUserMessage,
   buildQuerySendFailure,
+  buildQueryInterrupted,
 };

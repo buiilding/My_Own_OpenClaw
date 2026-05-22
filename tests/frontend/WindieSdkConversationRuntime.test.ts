@@ -573,6 +573,25 @@ describe('Windie SDK conversation runtime core', () => {
     expect(normalized).toBeNull();
   });
 
+  test('backend query-accepted normalizes to turn_started', () => {
+    const normalized = normalizeBackendEventToConversationEvent({
+      type: 'query-accepted',
+      conversation_ref: 'conv-sdk-runtime',
+      turn_ref: 'turn-accepted',
+      payload: { status: 'accepted' },
+    });
+
+    expect(normalized).toMatchObject({
+      type: 'turn_started',
+      conversationRef: 'conv-sdk-runtime',
+      turnRef: 'turn-accepted',
+      source: 'backend',
+      payload: expect.objectContaining({
+        status: 'accepted',
+      }),
+    });
+  });
+
   test('backend assistant-message-full normalizes to assistant storage truth', () => {
     const assistant = normalizeBackendEventToConversationEvent({
       type: 'assistant-message-full',

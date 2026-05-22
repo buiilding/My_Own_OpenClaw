@@ -574,6 +574,17 @@ async def test_query_handler_success(monkeypatch):
     assert second_event.final_response == "ok"
     assert len(session_manager.register_calls) == 1
     assert len(session_manager.clear_calls) == 1
+    assert websocket.sent == [
+        {
+            "type": "query-accepted",
+            "id": "msg_1",
+            "payload": {"status": "accepted"},
+            "session_id": "session_1",
+            "user_id": "user_1",
+            "conversation_ref": "conv_test",
+            "turn_ref": "msg_1",
+        }
+    ]
 
 
 @pytest.mark.asyncio
