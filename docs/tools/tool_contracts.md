@@ -80,7 +80,9 @@ Client-local schemas are merged with backend registry schemas before policy filt
   `model_llm_content` as the durable model-facing replay text. Legacy local
   fields such as `llm_content`, `return_display`, `output`, and `message` are
   accepted only at local-result ingress and are normalized before storage or
-  rehydrate projection.
+  rehydrate projection. Backend truncates `model_llm_content` with the selected
+  model's LiteLLM tokenizer when available, then falls back to the conservative
+  character estimate used by older local tools.
 - Backend remote tools can be model-visible without sidecar entries. Sidecar helpers can exist without model visibility.
 - Provider-native declarations can coexist with function schemas, but policy must still prevent disabled helper schemas from leaking back into the prompt.
 

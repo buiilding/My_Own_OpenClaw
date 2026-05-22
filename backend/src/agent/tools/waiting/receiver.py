@@ -35,6 +35,14 @@ class ToolResultReceiver:
         """
         self.session = session
 
+    def _selected_model_id(self) -> Optional[str]:
+        cfg = getattr(self.session, "cfg", None)
+        model_id = getattr(cfg, "selected_model_id", None)
+        if isinstance(model_id, str) and model_id.strip():
+            return model_id
+        llm_model = getattr(cfg, "llm_model", None)
+        return llm_model if isinstance(llm_model, str) and llm_model.strip() else None
+
     @staticmethod
     def _normalize_step_result(step: Any) -> Dict[str, Any]:
         """Normalize one bundle step to a plain dict."""
@@ -74,7 +82,10 @@ class ToolResultReceiver:
             }
         )
 
-        return canonicalize_tool_result_for_model(tool_result)
+        return canonicalize_tool_result_for_model(
+            tool_result,
+            model_id=self._selected_model_id(),
+        )
 
     def receive_bundle_result(
         self,
@@ -132,4 +143,7 @@ class ToolResultReceiver:
             }
         )
 
-        return canonicalize_tool_result_for_model(bundle_result)
+        return canonicalize_tool_result_for_model(
+            bundle_result,
+            model_id=self._selected_model_id(),
+        )

@@ -202,6 +202,26 @@ def _fallback_token_estimate(messages: Iterable[Any]) -> int:
     return total_chars // 4
 
 
+def _fallback_truncate_text(
+    text: str,
+    *,
+    token_limit: int,
+    marker: str,
+) -> tuple[str, int, bool, str]:
+    original_tokens = max(1, (len(text) + 3) // 4) if text else 0
+    if original_tokens <= token_limit:
+        return text, original_tokens, False, "estimate"
+
+    char_limit = max(token_limit * 4, 1)
+    if char_limit <= len(marker) + 2:
+        return text[:char_limit], original_tokens, True, "estimate"
+
+    available = char_limit - len(marker)
+    head = max(available // 2, 1)
+    tail = max(available - head, 1)
+    return f"{text[:head]}{marker}{text[-tail:]}", original_tokens, True, "estimate"
+
+
 class TokenService:
     """
     Service for counting tokens in conversation messages.
@@ -266,6 +286,62 @@ class TokenService:
             Token count for the message
         """
         return TokenService.count_tokens([message], model)
+
+    @staticmethod
+    def truncate_text(
+        text: str,
+        *,
+        model: str,
+        token_limit: int,
+        marker: str,
+    ) -> tuple[str, int, bool, str]:
+        """
+        Truncate text using LiteLLM's model tokenizer when available.
+
+        Returns:
+            Tuple of (text, original_tokens, truncated, token_source).
+        """
+        if token_limit <= 0:
+            token_limit = 1
+        try:
+            normalized_model = _normalize_model_for_litellm(
+                resolve_runtime_model_id(model)
+            )
+            tokens = litellm.encode(model=normalized_model, text=text)
+            original_tokens = len(tokens)
+            if original_tokens <= token_limit:
+                return text, original_tokens, False, "litellm"
+
+            marker_tokens = litellm.encode(model=normalized_model, text=marker)
+            if len(marker_tokens) >= token_limit:
+                truncated_tokens = tokens[:token_limit]
+                return (
+                    litellm.decode(model=normalized_model, tokens=truncated_tokens),
+                    original_tokens,
+                    True,
+                    "litellm",
+                )
+
+            available = token_limit - len(marker_tokens)
+            head = max(available // 2, 1)
+            tail = max(available - head, 1)
+            truncated_tokens = tokens[:head] + marker_tokens + tokens[-tail:]
+            return (
+                litellm.decode(model=normalized_model, tokens=truncated_tokens),
+                original_tokens,
+                True,
+                "litellm",
+            )
+        except Exception as exc:
+            logger.warning(
+                "Failed to truncate text via litellm; using fallback estimation: %s",
+                exc,
+            )
+            return _fallback_truncate_text(
+                text,
+                token_limit=token_limit,
+                marker=marker,
+            )
 
     @staticmethod
     def get_model_max_input_tokens(model: str) -> Optional[int]:

@@ -69,6 +69,7 @@ def _canonical_payload_from_result(
         "llm_content_original_tokens": data.get("llm_content_original_tokens"),
         "llm_content_token_limit": data.get("llm_content_token_limit"),
         "llm_content_truncated": bool(data.get("llm_content_truncated")),
+        "llm_content_token_source": data.get("llm_content_token_source"),
         "error": error,
         "metadata": {
             "canonical_model_output": True,

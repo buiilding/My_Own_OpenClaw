@@ -484,6 +484,7 @@ class CanonicalToolOutputSession(DummySession):
                 "llm_content_original_tokens": 50_000,
                 "llm_content_token_limit": 10_000,
                 "llm_content_truncated": True,
+                "llm_content_token_source": "litellm",
             },
             llm_content="bounded model output",
             return_display="full visible output",
@@ -1523,6 +1524,7 @@ async def test_tool_result_handler_echoes_backend_canonical_tool_output():
                 "llm_content_original_tokens": 50_000,
                 "llm_content_token_limit": 10_000,
                 "llm_content_truncated": True,
+                "llm_content_token_source": "litellm",
                 "metadata": {
                     "canonical_model_output": True,
                     "source": "backend",

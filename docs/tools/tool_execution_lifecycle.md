@@ -58,6 +58,10 @@ Single-tool path:
   rehydrate. The legacy `output` field remains display-oriented for existing
   stream consumers. SDK projections prefer this backend event over the earlier
   local display event when both share the same request/tool-call identity.
+- backend includes `llm_content_original_tokens`, `llm_content_token_limit`,
+  `llm_content_truncated`, and `llm_content_token_source` on canonical
+  single-tool outputs so debugging can distinguish LiteLLM-tokenizer truncation
+  from fallback character estimates.
 - backend waiting storage resolves the pending future for that request
 - processing cleanup removes resolved-call state for the request
 

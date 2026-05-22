@@ -108,6 +108,7 @@ export type ToolOutputEvent = BackendEventBase<'tool-output', {
   llm_content_original_tokens?: number | null;
   llm_content_token_limit?: number | null;
   llm_content_truncated?: boolean;
+  llm_content_token_source?: string | null;
   error?: string | null;
   screenshot?: string | null;
   screenshot_ref?: string | null;

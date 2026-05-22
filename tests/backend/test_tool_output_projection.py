@@ -3,6 +3,7 @@ from backend.src.agent.tools.processing.tool_output_projection import (
     canonicalize_tool_result_for_model,
 )
 from backend.src.core.interfaces.tool import ToolResult
+import litellm
 
 
 def test_canonical_tool_output_keeps_display_and_truncates_model_content():
@@ -38,3 +39,26 @@ def test_format_for_history_prefers_model_llm_content_over_display_fields():
     )
 
     assert result.format_for_history("shell") == "bounded model output"
+
+
+def test_canonical_tool_output_uses_litellm_tokenizer_when_model_is_available():
+    long_output = "hello world " * 200
+    result = canonicalize_tool_result_for_model(
+        ToolResult(
+            success=True,
+            data={
+                "display_content": long_output,
+                "llm_content": long_output,
+            },
+        ),
+        token_limit=40,
+        model_id="gpt-4o",
+    )
+
+    encoded = litellm.encode(model="gpt-4o", text=result.data["model_llm_content"])
+    assert len(encoded) <= 40
+    assert result.data["llm_content_truncated"] is True
+    assert result.data["llm_content_token_source"] == "litellm"
+    assert result.data["llm_content_original_tokens"] == len(
+        litellm.encode(model="gpt-4o", text=long_output)
+    )

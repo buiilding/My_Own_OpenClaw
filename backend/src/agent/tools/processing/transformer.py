@@ -74,6 +74,8 @@ class ResultTransformer:
         self,
         tool_name: str,
         tool_result: ToolResult,
+        *,
+        model_id: Optional[str] = None,
     ) -> ProcessedToolResult:
         """
         Transform raw tool result into processed result.
@@ -98,7 +100,8 @@ class ResultTransformer:
                     if isinstance(tool_result.data, dict)
                     else tool_result.data
                 ),
-            )
+            ),
+            model_id=model_id,
         )
         artifacts = dict(canonical_result.artifacts or {})
 
