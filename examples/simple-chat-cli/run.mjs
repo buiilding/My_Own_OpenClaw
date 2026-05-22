@@ -65,18 +65,30 @@ const agent = await client.wakeUp({
 const chat = agent.chat({ conversationRef });
 
 async function sendMessage(text) {
-  process.stdout.write('\nassistant: ');
+  process.stdout.write('\nassistant: waiting for response...\n');
+  let startedOutput = false;
+  const startAssistantOutput = () => {
+    if (!startedOutput) {
+      process.stdout.write('assistant: ');
+      startedOutput = true;
+    }
+  };
   try {
     for await (const event of chat.stream(text)) {
       if (event.type === 'text') {
+        startAssistantOutput();
         process.stdout.write(event.text);
       } else if (event.type === 'tool_call') {
+        startAssistantOutput();
         process.stdout.write(`\n[tool: ${event.toolName}]\n`);
       } else if (event.type === 'tool_output') {
+        startAssistantOutput();
         process.stdout.write('[tool output received]\n');
       } else if (event.type === 'complete') {
+        startAssistantOutput();
         process.stdout.write('\n');
       } else if (event.type === 'error') {
+        startAssistantOutput();
         process.stdout.write(`\n[error: ${event.error}]\n`);
       }
     }
