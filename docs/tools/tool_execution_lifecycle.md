@@ -22,9 +22,9 @@ WindieOS tools run through a distributed pipeline. The backend owns model-facing
 8. SDK runtime normalizes the tool event and routes the call through the local runtime adapter to the sidecar daemon/local executor.
 9. Electron main invokes the Python sidecar daemon or JSON-RPC tool registry as the local executor.
 10. Sidecar executes the local action and returns a normalized `ToolResult`.
-11. SDK runtime sends `tool-result` or `tool-bundle-result` back to backend, appends a normalized `tool_output` or `tool_bundle_output` event, and projects a display-only renderer `tool-output` event for both single calls and bundles. If backend delivery fails after local execution, the SDK stores that output as `success: false` with `deliveryFailed: true` and marks the turn failed.
+11. SDK runtime sends `tool-result` or `tool-bundle-result` back to backend, appends a normalized `tool_output` or `tool_bundle_output` event with display content, and projects a display-only renderer `tool-output` event for both single calls and bundles. If backend delivery fails after local execution, the SDK stores that output as `success: false` with `deliveryFailed: true` and marks the turn failed.
 12. Backend result receiver resolves the pending future.
-13. Backend result transformer formats model-facing tool output and display metadata.
+13. Backend canonicalizes model-facing tool output into bounded `model_llm_content` while preserving full `display_content`, echoes the accepted canonical output as a backend `tool-output` event for storage, and commits the bounded model content to history.
 14. Backend history committer writes tool rows and the interaction loop continues.
 
 ## Owner Map
@@ -53,6 +53,10 @@ Single-tool path:
   is missing, the event is malformed for result delivery and local execution is
   not claimed.
 - failed SDK tool results keep `success: false`, include `error`, and still carry a model-facing `data.llm_content` string when available
+- backend emits the accepted single-tool result back as `tool-output` with
+  `display_content` for UI replay and `model_llm_content` for future model
+  rehydrate; SDK projections prefer this backend event over the earlier local
+  display event when both share the same request/tool-call identity
 - backend waiting storage resolves the pending future for that request
 - processing cleanup removes resolved-call state for the request
 

@@ -27,14 +27,22 @@ function normalizeToolResultData(data: JsonRecord | undefined): JsonRecord {
   if (!data || typeof data !== 'object' || Array.isArray(data)) {
     return {};
   }
+  const display = typeof data.display_content === 'string'
+    ? data.display_content
+    : (typeof data.return_display === 'string'
+      ? data.return_display
+      : (typeof data.output === 'string'
+        ? data.output
+        : (typeof data.message === 'string' ? data.message : '')));
   if (typeof data.llm_content === 'string' && data.llm_content.trim()) {
-    return data;
+    return {
+      ...data,
+      display_content: display || data.llm_content,
+    };
   }
-  const display = typeof data.return_display === 'string'
-    ? data.return_display
-    : (typeof data.output === 'string' ? data.output : '');
   return {
     ...data,
+    display_content: display || JSON.stringify(data),
     llm_content: display || JSON.stringify(data),
   };
 }

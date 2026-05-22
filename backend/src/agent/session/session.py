@@ -591,18 +591,18 @@ class AgentSession:
     async def process_frontend_tool_result(
         self,
         **tool_result_payload: Any,
-    ) -> None:
+    ) -> Any:
         """Forward tool-result payload to ToolResultHandler."""
-        await self.tool_result_handler.process_frontend_tool_result(
+        return await self.tool_result_handler.process_frontend_tool_result(
             **tool_result_payload
         )
 
     async def process_frontend_tool_bundle_result(
         self,
         **bundle_result_payload: Any,
-    ) -> None:
+    ) -> Any:
         """Forward tool-bundle-result payload to ToolResultHandler."""
-        await self.tool_result_handler.process_frontend_tool_bundle_result(
+        return await self.tool_result_handler.process_frontend_tool_bundle_result(
             **bundle_result_payload
         )
 

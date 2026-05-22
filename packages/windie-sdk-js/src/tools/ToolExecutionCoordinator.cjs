@@ -87,22 +87,32 @@ function markRendererToolEventDisplayOnly(event) {
 
 function normalizeToolResultData(data) {
   if (isPlainObject(data)) {
-    if (typeof data.llm_content === 'string' && data.llm_content.trim()) {
-      return data;
-    }
-    const fallbackContent = (
-      typeof data.output === 'string'
-        ? data.output
-        : JSON.stringify(data)
+    const displayContent = (
+      typeof data.display_content === 'string'
+        ? data.display_content
+        : (typeof data.return_display === 'string'
+          ? data.return_display
+          : (typeof data.output === 'string'
+            ? data.output
+            : (typeof data.message === 'string' ? data.message : '')))
     );
+    if (typeof data.llm_content === 'string' && data.llm_content.trim()) {
+      return {
+        ...data,
+        display_content: displayContent || data.llm_content,
+      };
+    }
+    const fallbackContent = displayContent || JSON.stringify(data);
     return {
       ...data,
+      display_content: fallbackContent,
       llm_content: fallbackContent,
     };
   }
   if (typeof data === 'string') {
     return {
       output: data,
+      display_content: data,
       llm_content: data,
     };
   }
@@ -120,7 +130,7 @@ function resolveToolOutputDisplayText(payload) {
     return `Error: ${payload.error}`;
   }
   if (isPlainObject(data)) {
-    for (const key of ['llm_content', 'return_display', 'output', 'message']) {
+    for (const key of ['display_content', 'return_display', 'output', 'message', 'llm_content', 'model_llm_content']) {
       const value = data[key];
       if (typeof value === 'string' && value.trim()) {
         return value;
@@ -181,7 +191,7 @@ function resolveStepOutputText(step) {
     return `Error: ${error}`;
   }
   if (isPlainObject(output)) {
-    for (const key of ['llm_content', 'return_display', 'output', 'message']) {
+    for (const key of ['display_content', 'return_display', 'output', 'message', 'llm_content', 'model_llm_content']) {
       const value = output[key];
       if (typeof value === 'string' && value.trim()) {
         return value;

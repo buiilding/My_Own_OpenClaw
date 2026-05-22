@@ -8,6 +8,9 @@ import logging
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 from backend.src.core.interfaces.tool import ToolResult
+from backend.src.agent.tools.processing.tool_output_projection import (
+    canonicalize_tool_result_for_model,
+)
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
@@ -71,7 +74,7 @@ class ToolResultReceiver:
             }
         )
 
-        return tool_result
+        return canonicalize_tool_result_for_model(tool_result)
 
     def receive_bundle_result(
         self,
@@ -129,4 +132,4 @@ class ToolResultReceiver:
             }
         )
 
-        return bundle_result
+        return canonicalize_tool_result_for_model(bundle_result)

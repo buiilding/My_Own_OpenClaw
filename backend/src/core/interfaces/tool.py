@@ -4,12 +4,15 @@ Tool Interface Definitions.
 This module defines interfaces and data structures for tool execution results
 and tool categorization.
 """
+
 from typing import Any, Dict, List, Protocol, runtime_checkable, Optional
 from dataclasses import dataclass
 from enum import Enum
 
+
 class Kind(Enum):
     """Enumeration of tool types."""
+
     READ = "read"
     EDIT = "edit"
     DELETE = "delete"
@@ -20,13 +23,15 @@ class Kind(Enum):
     FETCH = "fetch"
     OTHER = "other"
 
+
 @dataclass
 class ToolResult:
     """Result of a tool execution.
-    
+
     This is the canonical format for tool results. Tools should return ToolResult
     directly instead of dictionaries to ensure type safety and avoid information loss.
     """
+
     success: bool
     data: Any = None
     error: Optional[str] = None
@@ -37,19 +42,19 @@ class ToolResult:
     semantic_facts: Optional[List[str]] = None
     artifacts: Optional[Dict[str, Any]] = None
     compaction_facts: Optional[Dict[str, Any]] = None
-    
+
     @classmethod
     def from_payload(cls, result_payload: Dict[str, Any]) -> "ToolResult":
         """
         Normalize a tool result payload into a ToolResult.
-        
+
         This is the canonical conversion point for SDK/local-runtime ingress
         payloads and backend tool implementations that return mapping-shaped
         data.
-        
+
         Args:
             result_payload: Dictionary with tool result fields
-            
+
         Returns:
             ToolResult instance
         """
@@ -66,26 +71,21 @@ class ToolResult:
             "artifacts",
             "compaction_facts",
         }
-        
+
         # Extract standard fields
         kwargs = {
-            k: result_payload.get(k)
-            for k in standard_fields
-            if k in result_payload
+            k: result_payload.get(k) for k in standard_fields if k in result_payload
         }
-        
+
         # Determine success if not explicitly set
         if "success" not in kwargs:
             kwargs["success"] = "error" not in result_payload
-        
+
         # Extract data field - if not present, use remaining non-standard fields
         if "data" not in kwargs or kwargs["data"] is None:
-            data = {
-                k: v for k, v in result_payload.items()
-                if k not in standard_fields
-            }
+            data = {k: v for k, v in result_payload.items() if k not in standard_fields}
             kwargs["data"] = data if data else None
-        
+
         # Auto-generate llm_content if missing
         if not kwargs.get("llm_content"):
             if kwargs.get("error"):
@@ -110,30 +110,36 @@ class ToolResult:
                         kwargs["llm_content"] = "Tool executed successfully"
                 else:
                     kwargs["llm_content"] = str(data)
-        
+
         # Auto-generate return_display if missing
         if not kwargs.get("return_display"):
-            kwargs["return_display"] = kwargs.get("llm_content") or "Tool executed successfully"
-        
+            kwargs["return_display"] = (
+                kwargs.get("llm_content") or "Tool executed successfully"
+            )
+
         return cls(**kwargs)
-    
+
     def format_for_history(
         self,
         tool_name: str,
     ) -> str:
         """
         Get pre-formatted message for conversation history.
-        
-        Frontend tools should pre-format plain model-facing message text in
-        llm_content. Backend trusts llm_content when present.
-        
+
+        Frontend tools may provide display text and raw model text, but backend
+        processing should canonicalize model_llm_content before history commit.
+
         Args:
             tool_name: Name of the tool that produced this result (for error messages only)
-            
+
         Returns:
             Message string for history.
         """
-        # Trust frontend-provided llm_content when available.
+        if isinstance(self.data, dict):
+            model_content = self.data.get("model_llm_content")
+            if model_content:
+                return str(model_content)
+
         if self.llm_content:
             return self.llm_content
 
@@ -144,18 +150,20 @@ class ToolResult:
         if self.data:
             if isinstance(self.data, dict):
                 output = (
-                    self.data.get("output")
+                    self.data.get("llm_content")
+                    or self.data.get("output")
                     or self.data.get("message")
-                    or self.data.get("llm_content")
                 )
                 return str(output) if output is not None else str(self.data)
             return str(self.data)
 
         return f"Tool {tool_name} executed"
 
+
 @dataclass
 class ToolContext:
     """Context information for tool execution."""
+
     parsed_response: Optional[Any] = None
     working_directory: Optional[str] = None
     environment: Optional[Dict[str, str]] = None
@@ -163,10 +171,11 @@ class ToolContext:
     user_permissions: Optional[List[str]] = None
     tool_registry: Optional[Any] = None
 
+
 @runtime_checkable
 class ToolInterface(Protocol):
     """Interface that all tools must implement."""
-    
+
     @property
     def name(self) -> str:
         """The unique name of the tool."""

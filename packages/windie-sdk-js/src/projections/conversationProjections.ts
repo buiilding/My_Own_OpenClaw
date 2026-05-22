@@ -32,6 +32,72 @@ function textFromPayload(payload: JsonRecord): string {
   return '';
 }
 
+function nestedResultFromPayload(payload: JsonRecord): JsonRecord | null {
+  return recordFromUnknown(payload.result);
+}
+
+function displayTextFromPayload(payload: JsonRecord): string {
+  const nestedResult = nestedResultFromPayload(payload);
+  const direct = stringField(
+    payload,
+    'display_content',
+    'displayContent',
+    'return_display',
+    'returnDisplay',
+    'output',
+    'message',
+  );
+  if (direct) {
+    return direct;
+  }
+  if (nestedResult) {
+    const nested = stringField(
+      nestedResult,
+      'display_content',
+      'displayContent',
+      'return_display',
+      'returnDisplay',
+      'output',
+      'message',
+      'llm_content',
+      'model_llm_content',
+    );
+    if (nested) {
+      return nested;
+    }
+  }
+  return textFromPayload(payload);
+}
+
+function modelTextFromPayload(payload: JsonRecord): string {
+  const nestedResult = nestedResultFromPayload(payload);
+  const direct = stringField(
+    payload,
+    'model_llm_content',
+    'modelLlmContent',
+    'llm_content',
+    'output',
+    'message',
+  );
+  if (direct) {
+    return direct;
+  }
+  if (nestedResult) {
+    const nested = stringField(
+      nestedResult,
+      'model_llm_content',
+      'modelLlmContent',
+      'llm_content',
+      'output',
+      'message',
+    );
+    if (nested) {
+      return nested;
+    }
+  }
+  return textFromPayload(payload);
+}
+
 function contentFromPayload(payload: JsonRecord): string {
   const text = textFromPayload(payload);
   if (text) {
@@ -153,6 +219,9 @@ function stepOutputContent(step: JsonRecord): string {
   }
   const outputRecord = recordFromUnknown(output);
   if (outputRecord) {
+    if (typeof outputRecord.model_llm_content === 'string') {
+      return outputRecord.model_llm_content;
+    }
     if (typeof outputRecord.llm_content === 'string') {
       return outputRecord.llm_content;
     }
@@ -222,17 +291,37 @@ function bundleOutputMessages(event: ConversationEvent): JsonRecord[] {
 }
 
 function withoutDuplicateToolOutputs(events: ConversationEvent[]): ConversationEvent[] {
-  const seenOutputs = new Set<string>();
+  const preferredOutputs = new Map<string, ConversationEvent>();
+  const prefers = (candidate: ConversationEvent, current: ConversationEvent): boolean => {
+    const candidateHasModelContent = Boolean(modelTextFromPayload(candidate.payload));
+    const currentHasModelContent = Boolean(modelTextFromPayload(current.payload));
+    if (candidate.source === 'backend' && current.source !== 'backend') {
+      return true;
+    }
+    if (candidate.source !== 'backend' && current.source === 'backend') {
+      return false;
+    }
+    if (candidateHasModelContent !== currentHasModelContent) {
+      return candidateHasModelContent;
+    }
+    return false;
+  };
+  for (const event of events) {
+    const key = toolOutputDedupeKey(event);
+    if (!key) {
+      continue;
+    }
+    const current = preferredOutputs.get(key);
+    if (!current || prefers(event, current)) {
+      preferredOutputs.set(key, event);
+    }
+  }
   return events.filter(event => {
     const key = toolOutputDedupeKey(event);
     if (!key) {
       return true;
     }
-    if (seenOutputs.has(key)) {
-      return false;
-    }
-    seenOutputs.add(key);
-    return true;
+    return preferredOutputs.get(key) === event;
   });
 }
 
@@ -287,7 +376,11 @@ function toDisplayMessage(event: ConversationEvent): DisplayMessage | null {
   ) {
     sender = 'tool';
   }
-  const text = textFromPayload(event.payload);
+  const text = (
+    event.type === 'tool_output' || event.type === 'tool_bundle_output'
+      ? displayTextFromPayload(event.payload)
+      : textFromPayload(event.payload)
+  );
   if (!text && sender === 'system') {
     return null;
   }
@@ -415,7 +508,7 @@ function toRehydrateMessages(event: ConversationEvent): JsonRecord[] {
   if (event.type === 'tool_output') {
     return [withStructuredPayload({
       role: 'tool',
-      content: textFromPayload(event.payload),
+      content: modelTextFromPayload(event.payload),
       tool_call_id: stringField(event.payload, 'toolCallId', 'tool_call_id'),
       tool_name: toolNameFromPayload(event.payload),
     }, event.payload)];

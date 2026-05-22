@@ -40,6 +40,7 @@ from backend.src.api.schemas import (
 )
 from backend.src.api.processing.formatter import ResponseFormatter
 from backend.src.core.config.models import AppConfig
+from backend.src.core.interfaces.tool import ToolResult
 from backend.src.core.events.streaming_events import (
     AssistantMessageFullEvent,
     ChunkEvent,
@@ -464,6 +465,31 @@ class DummySession:
         self.bundle_calls.append(kwargs)
 
 
+class CanonicalToolOutputSession(DummySession):
+    def get_resolved_tool_call(self, request_id: str):
+        _ = request_id
+        return SimpleNamespace(
+            tool_name="read_file",
+            metadata={"tool_call_id": "call_read_file"},
+        )
+
+    async def process_frontend_tool_result(self, **kwargs):
+        await super().process_frontend_tool_result(**kwargs)
+        return ToolResult(
+            success=True,
+            data={
+                "display_content": "full visible output",
+                "model_llm_content": "bounded model output",
+                "llm_content": "bounded model output",
+                "llm_content_original_tokens": 50_000,
+                "llm_content_token_limit": 10_000,
+                "llm_content_truncated": True,
+            },
+            llm_content="bounded model output",
+            return_display="full visible output",
+        )
+
+
 class DummyTTSManager:
     async def initialize_if_enabled(self, _cfg):
         return None
@@ -534,19 +560,25 @@ async def test_query_handler_success(monkeypatch):
     assert isinstance(second_event, StreamingCompleteEvent)
     assert first_msg_id == second_msg_id == "msg_1"
     assert first_context is second_context
-    assert first_context == second_context == {
-        "user_id": "user_1",
-        "session_id": "session_1",
-        "conversation_ref": "conv_test",
-        "turn_ref": "msg_1",
-    }
+    assert (
+        first_context
+        == second_context
+        == {
+            "user_id": "user_1",
+            "session_id": "session_1",
+            "conversation_ref": "conv_test",
+            "turn_ref": "msg_1",
+        }
+    )
     assert second_event.final_response == "ok"
     assert len(session_manager.register_calls) == 1
     assert len(session_manager.clear_calls) == 1
 
 
 @pytest.mark.asyncio
-async def test_query_handler_skips_execution_when_stop_consumed_on_register(monkeypatch):
+async def test_query_handler_skips_execution_when_stop_consumed_on_register(
+    monkeypatch,
+):
     websocket = FakeWebSocket()
     session_manager = DummySessionManager()
     session_manager.consume_stop_on_register = True
@@ -581,7 +613,9 @@ async def test_query_handler_skips_execution_when_stop_consumed_on_register(monk
 
 
 @pytest.mark.asyncio
-async def test_query_handler_emits_fallback_chunk_and_completion_when_agent_stream_is_silent(monkeypatch):
+async def test_query_handler_emits_fallback_chunk_and_completion_when_agent_stream_is_silent(
+    monkeypatch,
+):
     websocket = FakeWebSocket()
     session_manager = DummySessionManager()
     session_manager.session = DummySilentAgent()
@@ -628,17 +662,23 @@ async def test_query_handler_emits_fallback_chunk_and_completion_when_agent_stre
     assert "empty final response" in first_event.content
     assert first_msg_id == second_msg_id == "msg_silent_1"
     assert first_context is second_context
-    assert first_context == second_context == {
-        "user_id": "user_1",
-        "session_id": "session_1",
-        "conversation_ref": "conv_test",
-        "turn_ref": "msg_silent_1",
-    }
+    assert (
+        first_context
+        == second_context
+        == {
+            "user_id": "user_1",
+            "session_id": "session_1",
+            "conversation_ref": "conv_test",
+            "turn_ref": "msg_silent_1",
+        }
+    )
     assert second_event.final_response == first_event.content
 
 
 @pytest.mark.asyncio
-async def test_query_handler_backfills_chunk_from_assistant_full_before_completion(monkeypatch):
+async def test_query_handler_backfills_chunk_from_assistant_full_before_completion(
+    monkeypatch,
+):
     websocket = FakeWebSocket()
     session_manager = DummySessionManager()
     session_manager.session = DummyAssistantFullThenCompleteAgent()
@@ -691,7 +731,9 @@ async def test_query_handler_backfills_chunk_from_assistant_full_before_completi
 
 
 @pytest.mark.asyncio
-async def test_query_handler_ignores_post_terminal_events_from_agent_stream(monkeypatch):
+async def test_query_handler_ignores_post_terminal_events_from_agent_stream(
+    monkeypatch,
+):
     websocket = FakeWebSocket()
     session_manager = DummySessionManager()
     session_manager.session = DummyPostTerminalNoiseAgent()
@@ -837,7 +879,9 @@ async def test_query_handler_logs_when_active_query_is_cancelled(caplog):
 
 
 @pytest.mark.asyncio
-async def test_query_handler_cancel_without_pending_tool_calls_skips_reconcile_log(caplog):
+async def test_query_handler_cancel_without_pending_tool_calls_skips_reconcile_log(
+    caplog,
+):
     websocket = FakeWebSocket()
     session_manager = DummySessionManager()
     started_event = asyncio.Event()
@@ -1148,7 +1192,10 @@ async def test_query_handler_applies_runtime_system_state_internal(monkeypatch):
     await handler.handle(message, websocket, "user_1")
 
     assert len(session_manager.session.calls) == 1
-    assert session_manager.session.runtime_state_updates[-1]["screen_resolution"] == "2560x1440"
+    assert (
+        session_manager.session.runtime_state_updates[-1]["screen_resolution"]
+        == "2560x1440"
+    )
 
 
 @pytest.mark.asyncio
@@ -1205,7 +1252,9 @@ async def test_query_handler_forwards_query_scoped_context_to_session(monkeypatc
 
 
 @pytest.mark.asyncio
-async def test_query_handler_allows_concurrent_queries_for_different_conversations(monkeypatch):
+async def test_query_handler_allows_concurrent_queries_for_different_conversations(
+    monkeypatch,
+):
     websocket = FakeWebSocket()
 
     class _ConcurrentSessionManager(DummySessionManager):
@@ -1270,10 +1319,18 @@ async def test_query_handler_allows_concurrent_queries_for_different_conversatio
     task_b = asyncio.create_task(handler.handle(message_b, websocket, "user_1"))
 
     try:
-        await asyncio.wait_for(session_manager.started_events["conv-a"].wait(), timeout=1)
-        await asyncio.wait_for(session_manager.started_events["conv-b"].wait(), timeout=1)
-        assert session_manager.has_active_query_task("user_1", conversation_ref="conv-a")
-        assert session_manager.has_active_query_task("user_1", conversation_ref="conv-b")
+        await asyncio.wait_for(
+            session_manager.started_events["conv-a"].wait(), timeout=1
+        )
+        await asyncio.wait_for(
+            session_manager.started_events["conv-b"].wait(), timeout=1
+        )
+        assert session_manager.has_active_query_task(
+            "user_1", conversation_ref="conv-a"
+        )
+        assert session_manager.has_active_query_task(
+            "user_1", conversation_ref="conv-b"
+        )
     finally:
         task_a.cancel()
         task_b.cancel()
@@ -1423,6 +1480,60 @@ async def test_tool_result_handler_routes_without_system_state_for_non_computer_
 
 
 @pytest.mark.asyncio
+async def test_tool_result_handler_echoes_backend_canonical_tool_output():
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    session_manager.session_instance = CanonicalToolOutputSession()
+    handler = ToolResultHandler(session_manager)
+
+    message = ToolResultMessage(
+        id="msg_canonical_tool_result",
+        type="tool-result",
+        user_id="user_1",
+        conversation_ref="conv_1",
+        turn_ref="turn_1",
+        payload={
+            "request_id": "req_canonical",
+            "success": True,
+            "data": {
+                "llm_content": "raw local model output",
+                "return_display": "full visible output",
+            },
+        },
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert websocket.sent == [
+        {
+            "id": "msg_canonical_tool_result_canonical",
+            "type": "tool-output",
+            "user_id": "user_1",
+            "session_id": None,
+            "conversation_ref": "conv_1",
+            "turn_ref": "turn_1",
+            "payload": {
+                "request_id": "req_canonical",
+                "tool_call_id": "call_read_file",
+                "tool_name": "read_file",
+                "success": True,
+                "output": "bounded model output",
+                "display_content": "full visible output",
+                "model_llm_content": "bounded model output",
+                "llm_content": "bounded model output",
+                "llm_content_original_tokens": 50_000,
+                "llm_content_token_limit": 10_000,
+                "llm_content_truncated": True,
+                "metadata": {
+                    "canonical_model_output": True,
+                    "source": "backend",
+                },
+            },
+        }
+    ]
+
+
+@pytest.mark.asyncio
 async def test_tool_result_handler_accepts_capture_backend_in_capture_meta():
     websocket = FakeWebSocket()
     session_manager = DummySessionManager()
@@ -1514,7 +1625,10 @@ async def test_tool_bundle_result_handler_trims_bundle_id_before_session_routing
 
     await handler.handle(message, websocket, "user_1")
     assert session_manager.session_instance.bundle_calls
-    assert session_manager.session_instance.bundle_calls[0]["bundle_id"] == "bundle_trimmed"
+    assert (
+        session_manager.session_instance.bundle_calls[0]["bundle_id"]
+        == "bundle_trimmed"
+    )
 
 
 @pytest.mark.asyncio
@@ -1734,7 +1848,10 @@ async def test_update_settings_handler_updates_session():
     assert session_manager.session.cfg.provider_api_keys.openai.enabled is True
     assert session_manager.session.cfg.provider_api_keys.openai.api_key == "sk-openai"
     assert session_manager.session.cfg.provider_oauth.openai_codex.connected is True
-    assert session_manager.session.cfg.provider_oauth.openai_codex.access_token == "codex-access"
+    assert (
+        session_manager.session.cfg.provider_oauth.openai_codex.access_token
+        == "codex-access"
+    )
 
 
 @pytest.mark.asyncio
@@ -1913,7 +2030,10 @@ async def test_rehydrate_handler_rebuilds_session_history():
     await handler.handle(message, websocket, "user_1")
 
     assert session_manager.session.rehydrate_calls
-    assert session_manager.session.rehydrate_calls[0]["conversation_ref"] == "conv_resume_1"
+    assert (
+        session_manager.session.rehydrate_calls[0]["conversation_ref"]
+        == "conv_resume_1"
+    )
     assert len(session_manager.session.rehydrate_calls[0]["entries"]) == 2
 
 
@@ -1988,7 +2108,7 @@ async def test_rehydrate_handler_rebuilds_tool_linkage_for_resumed_transcript():
                 },
                 {
                     "role": "tool",
-                    "content": "{\"name\":\"read_file\",\"args\":{\"file_path\":\"/tmp/a.txt\"}}",
+                    "content": '{"name":"read_file","args":{"file_path":"/tmp/a.txt"}}',
                     "message_type": "tool-call",
                     "timestamp": "2026-02-12T10:00:01Z",
                 },

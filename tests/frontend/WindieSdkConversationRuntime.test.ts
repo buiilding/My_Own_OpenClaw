@@ -248,22 +248,51 @@ describe('Windie SDK conversation runtime core', () => {
         requestId: 'req-read',
         toolCallId: 'call-read',
       }),
-      event('tool_output', {
-        text: 'local result',
-        toolName: 'read_file',
-        requestId: 'req-read',
-        toolCallId: 'call-read',
+      createConversationEvent({
+        type: 'tool_output',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-1',
+        turnRef: 'turn-1',
+        source: 'sidecar',
+        payload: {
+          requestId: 'req-read',
+          toolCallId: 'call-read',
+          toolName: 'read_file',
+          result: {
+            display_content: 'full visible output',
+            llm_content: 'local model output',
+          },
+        },
       }),
-      event('tool_output', {
-        text: 'backend ack result',
-        tool_name: 'read_file',
-        request_id: 'req-read',
-        tool_call_id: 'call-read',
+      createConversationEvent({
+        type: 'tool_output',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-1',
+        turnRef: 'turn-1',
+        source: 'backend',
+        payload: {
+          display_content: 'full visible output',
+          model_llm_content: 'bounded backend model output',
+          tool_name: 'read_file',
+          request_id: 'req-read',
+          tool_call_id: 'call-read',
+        },
       }),
     ];
 
-    expect(buildDisplayConversation(events).messages.filter(message => message.messageType === 'tool_output')).toHaveLength(1);
-    expect(buildRehydrateSnapshot(events).messages.filter(message => message.role === 'tool')).toHaveLength(1);
+    expect(buildDisplayConversation(events).messages.filter(message => message.messageType === 'tool_output')).toEqual([
+      expect.objectContaining({
+        text: 'full visible output',
+        metadata: expect.objectContaining({
+          model_llm_content: 'bounded backend model output',
+        }),
+      }),
+    ]);
+    expect(buildRehydrateSnapshot(events).messages.filter(message => message.role === 'tool')).toEqual([
+      expect.objectContaining({
+        content: 'bounded backend model output',
+      }),
+    ]);
   });
 
   test('rehydrate projection excludes partial tool history', () => {

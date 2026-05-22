@@ -4,12 +4,17 @@ Tool Result Handler.
 Facade for tool result processing from the SDK/local runtime.
 Uses receiver and router for separation of concerns.
 """
+
 import logging
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
+from backend.src.core.interfaces.tool import ToolResult
+
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
-    from backend.src.agent.tools.preparation.screenshot.processor import ScreenshotProcessor
+    from backend.src.agent.tools.preparation.screenshot.processor import (
+        ScreenshotProcessor,
+    )
     from backend.src.agent.tools.waiting.receiver import ToolResultReceiver
     from backend.src.agent.tools.waiting.router import ToolResultRouter
     from backend.src.agent.tools.waiting.storage.result_storage import ToolResultStorage
@@ -20,11 +25,11 @@ logger = logging.getLogger(__name__)
 class ToolResultHandler:
     """
     Handles tool result processing from the SDK/local runtime.
-    
+
     Responsibility: Facade for receiving and routing results.
     Delegates to ToolResultReceiver and ToolResultRouter.
     """
-    
+
     def __init__(
         self,
         receiver: "ToolResultReceiver",
@@ -32,7 +37,7 @@ class ToolResultHandler:
     ):
         """
         Initialize the tool result handler.
-        
+
         Args:
             receiver: Receiver for converting local-runtime results
             router: Router for routing results to handlers
@@ -46,7 +51,7 @@ class ToolResultHandler:
         tool_result: "ToolResult",
         *,
         is_bundle: bool,
-    ) -> None:
+    ) -> "ToolResult":
         """
         Route a normalized ToolResult via the unified router path.
 
@@ -58,19 +63,20 @@ class ToolResultHandler:
             tool_result,
             route_mode=route_mode,
         )
-    
+        return tool_result
+
     async def process_frontend_tool_result(
         self,
         request_id: str,
         success: bool,
         result_data: Optional[Dict[str, Any]],
         error: Optional[str],
-    ) -> None:
+    ) -> "ToolResult":
         """
         Process a tool result from the SDK/local runtime.
-        
+
         Public entry point that delegates to receiver and router.
-        
+
         Args:
             request_id: Request ID for the tool result
             success: Whether tool execution succeeded
@@ -81,12 +87,12 @@ class ToolResultHandler:
         tool_result = self.receiver.receive_individual_result(
             request_id, success, result_data, error
         )
-        await self._route_single_or_bundle_result(
+        return await self._route_single_or_bundle_result(
             request_id,
             tool_result,
             is_bundle=False,
         )
-    
+
     async def process_frontend_tool_bundle_result(
         self,
         bundle_id: str,
@@ -96,11 +102,11 @@ class ToolResultHandler:
         screenshot_ref: Optional[str],
         capture_meta: Optional[Dict[str, Any]],
         system_state: Optional[Dict[str, Any]],
-        error: Optional[str]
-    ) -> None:
+        error: Optional[str],
+    ) -> "ToolResult":
         """
         Process an atomic tool-bundle-result from the SDK/local runtime.
-        
+
         Args:
             bundle_id: Bundle ID for the bundle result
             status: Bundle status ("success", "partial_failure", "failure")
@@ -120,9 +126,9 @@ class ToolResultHandler:
             system_state,
             error,
         )
-        
+
         # Route bundle result
-        await self._route_single_or_bundle_result(
+        return await self._route_single_or_bundle_result(
             bundle_id,
             bundle_result,
             is_bundle=True,
