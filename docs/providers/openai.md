@@ -52,6 +52,8 @@ For streamed Responses requests, do not treat `response.completed` or `response.
 
 If a Responses stream closes without a final envelope or any parsed output events, treat it as an incomplete empty assistant response instead of raising a provider exception. This lets the interaction loop use the deterministic empty-final-response fallback rather than surfacing a generic internal server error.
 
+Missing-final-payload fallback logs are intentionally sanitized. They include fallback mode, model id, response id if present, total event count, event-type counts, terminal-event counts, text/reasoning/output-item counters, accumulated text length, output-item counts, and last event key names. They must not log raw text deltas, tool arguments, message content, response payloads, API keys, or bearer tokens.
+
 When changing OpenAI tool behavior, verify:
 
 - Tool schema stays provider-compatible.

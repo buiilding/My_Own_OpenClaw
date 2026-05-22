@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from enum import Enum
 from typing import Any, AsyncGenerator
 
@@ -649,6 +650,7 @@ async def test_openai_responses_runtime_recovers_missing_final_payload_from_func
 @pytest.mark.asyncio
 async def test_openai_responses_runtime_recovers_missing_final_payload_when_only_reasoning_streamed(
     monkeypatch,
+    caplog,
 ):
     provider = OpenAIProvider(api_key="test-key")
 
@@ -666,6 +668,10 @@ async def test_openai_responses_runtime_recovers_missing_final_payload_when_only
         "backend.src.llm.providers.openai_responses_runtime.litellm.aresponses",
         fake_aresponses,
     )
+    caplog.set_level(
+        logging.WARNING,
+        logger="backend.src.llm.providers.openai_responses_runtime",
+    )
 
     events = await _collect_events(
         stream_openai_responses_events(
@@ -682,11 +688,17 @@ async def test_openai_responses_runtime_recovers_missing_final_payload_when_only
         "finish_reason": "incomplete",
         "response_id": "resp_999",
     }
+    assert "fallback=stream_content_without_output" in caplog.text
+    assert "events=1" in caplog.text
+    assert "event_types=response.reasoning_text.delta:1" in caplog.text
+    assert "reasoning_events=1" in caplog.text
+    assert "response_id=resp_999" in caplog.text
 
 
 @pytest.mark.asyncio
 async def test_openai_responses_runtime_recovers_empty_stream_without_internal_error(
     monkeypatch,
+    caplog,
 ):
     provider = OpenAIProvider(api_key="test-key")
 
@@ -700,6 +712,10 @@ async def test_openai_responses_runtime_recovers_empty_stream_without_internal_e
     monkeypatch.setattr(
         "backend.src.llm.providers.openai_responses_runtime.litellm.aresponses",
         fake_aresponses,
+    )
+    caplog.set_level(
+        logging.WARNING,
+        logger="backend.src.llm.providers.openai_responses_runtime",
     )
 
     events = await _collect_events(
@@ -715,6 +731,58 @@ async def test_openai_responses_runtime_recovers_empty_stream_without_internal_e
         "content": "",
         "finish_reason": "incomplete",
     }
+    assert "fallback=empty_stream" in caplog.text
+    assert "events=0" in caplog.text
+    assert "event_types=<none>" in caplog.text
+    assert "last_event_type=<none>" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_openai_responses_runtime_logs_terminal_event_without_response(
+    monkeypatch,
+    caplog,
+):
+    provider = OpenAIProvider(api_key="test-key")
+
+    async def fake_stream():
+        yield {
+            "type": "response.completed",
+            "response_id": "resp_missing",
+            "sequence_number": 7,
+        }
+
+    async def fake_aresponses(**_kwargs):
+        return fake_stream()
+
+    monkeypatch.setattr(
+        "backend.src.llm.providers.openai_responses_runtime.litellm.aresponses",
+        fake_aresponses,
+    )
+    caplog.set_level(
+        logging.WARNING,
+        logger="backend.src.llm.providers.openai_responses_runtime",
+    )
+
+    events = await _collect_events(
+        stream_openai_responses_events(
+            provider,
+            model="gpt-5.4@@gpt-5-4-none-thinking",
+            messages=[{"role": "user", "content": "hi"}],
+        )
+    )
+
+    assert events == []
+    assert provider.get_last_stream_response_payload() == {
+        "content": "",
+        "finish_reason": "incomplete",
+        "response_id": "resp_missing",
+    }
+    assert "fallback=empty_stream" in caplog.text
+    assert "event_types=response.completed:1" in caplog.text
+    assert "terminal_events=1" in caplog.text
+    assert "terminal_with_response=0" in caplog.text
+    assert "terminal_without_response=1" in caplog.text
+    assert "last_event_keys=response_id,sequence_number,type" in caplog.text
 
 
 def test_openai_provider_build_request_params_preserves_browser_root_object_tool_schema():

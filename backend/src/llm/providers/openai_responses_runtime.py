@@ -265,6 +265,14 @@ class _ResponsesStreamOutputAccumulator:
             payload["content"] = accumulated_text
         return payload
 
+    @property
+    def completed_item_count(self) -> int:
+        return len(self._completed_items)
+
+    @property
+    def pending_item_count(self) -> int:
+        return len(self._pending_items)
+
     def _record_added_item(self, event: Any) -> None:
         item = _event_output_item(event)
         if item is None:
@@ -355,6 +363,120 @@ class _ResponsesStreamOutputAccumulator:
                 return self._current_function_call_key
 
         return self._current_function_call_key
+
+
+class _ResponsesStreamDiagnostics:
+    """Sanitized stream counters for missing-final-payload forensics."""
+
+    def __init__(self) -> None:
+        self.total_events = 0
+        self.event_type_counts: Dict[str, int] = {}
+        self.last_event_type = "<none>"
+        self.last_event_keys: List[str] = []
+        self.terminal_events = 0
+        self.terminal_events_with_response = 0
+        self.terminal_events_without_response = 0
+        self.text_delta_events = 0
+        self.reasoning_events = 0
+        self.output_item_added_events = 0
+        self.output_item_done_events = 0
+        self.function_arguments_delta_events = 0
+        self.function_arguments_done_events = 0
+        self.web_search_events = 0
+
+    def record_event(self, event: Any) -> None:
+        event_type = normalize_openai_stream_event_type(event) or "<missing>"
+        self.total_events += 1
+        self.event_type_counts[event_type] = (
+            self.event_type_counts.get(event_type, 0) + 1
+        )
+        self.last_event_type = event_type
+        self.last_event_keys = self._extract_event_keys(event)
+
+        if event_type in {_COMPLETED_EVENT_TYPE, _INCOMPLETE_EVENT_TYPE}:
+            self.terminal_events += 1
+            if get_value(event, "response") is None:
+                self.terminal_events_without_response += 1
+            else:
+                self.terminal_events_with_response += 1
+        if event_type == _OUTPUT_TEXT_EVENT_TYPE:
+            self.text_delta_events += 1
+        elif event_type in _REASONING_EVENT_TYPES:
+            self.reasoning_events += 1
+        elif event_type == _OUTPUT_ITEM_ADDED_EVENT_TYPE:
+            self.output_item_added_events += 1
+        elif event_type == _OUTPUT_ITEM_DONE_EVENT_TYPE:
+            self.output_item_done_events += 1
+        elif event_type == _FUNCTION_CALL_ARGUMENTS_DELTA_EVENT_TYPE:
+            self.function_arguments_delta_events += 1
+        elif event_type == _FUNCTION_CALL_ARGUMENTS_DONE_EVENT_TYPE:
+            self.function_arguments_done_events += 1
+        elif event_type in _WEB_SEARCH_PROGRESS_EVENT_TYPES:
+            self.web_search_events += 1
+
+    def event_type_summary(self) -> str:
+        if not self.event_type_counts:
+            return "<none>"
+        return ",".join(
+            f"{event_type}:{count}"
+            for event_type, count in sorted(self.event_type_counts.items())
+        )
+
+    @staticmethod
+    def _extract_event_keys(event: Any) -> List[str]:
+        if isinstance(event, dict):
+            return sorted(str(key) for key in event.keys())[:12]
+        raw = getattr(event, "__dict__", None)
+        if isinstance(raw, dict):
+            return sorted(str(key) for key in raw.keys())[:12]
+        return []
+
+
+def _log_missing_final_payload_fallback(
+    *,
+    fallback: str,
+    model: str,
+    response_id: Optional[str],
+    diagnostics: _ResponsesStreamDiagnostics,
+    accumulated_text: str,
+    saw_stream_content: bool,
+    output_accumulator: _ResponsesStreamOutputAccumulator,
+) -> None:
+    logger.warning(
+        "OpenAI Responses stream ended without a final response payload; "
+        "fallback=%s model=%s response_id=%s events=%s event_types=%s "
+        "last_event_type=%s terminal_events=%s terminal_with_response=%s "
+        "terminal_without_response=%s text_delta_events=%s reasoning_events=%s "
+        "output_item_added_events=%s output_item_done_events=%s "
+        "function_arguments_delta_events=%s function_arguments_done_events=%s "
+        "web_search_events=%s accumulated_text_chars=%s saw_stream_content=%s "
+        "completed_output_items=%s pending_output_items=%s last_event_keys=%s",
+        fallback,
+        model,
+        response_id,
+        diagnostics.total_events,
+        diagnostics.event_type_summary(),
+        diagnostics.last_event_type,
+        diagnostics.terminal_events,
+        diagnostics.terminal_events_with_response,
+        diagnostics.terminal_events_without_response,
+        diagnostics.text_delta_events,
+        diagnostics.reasoning_events,
+        diagnostics.output_item_added_events,
+        diagnostics.output_item_done_events,
+        diagnostics.function_arguments_delta_events,
+        diagnostics.function_arguments_done_events,
+        diagnostics.web_search_events,
+        len(accumulated_text),
+        saw_stream_content,
+        output_accumulator.completed_item_count,
+        output_accumulator.pending_item_count,
+        (
+            ",".join(diagnostics.last_event_keys)
+            if diagnostics.last_event_keys
+            else "<none>"
+        ),
+    )
 
 
 def _normalize_source_label(url: str) -> str:
@@ -638,11 +760,13 @@ async def stream_openai_responses_events(
     final_response_payload: Optional[NormalizedLLMResponse] = None
     emitted_web_search_progress_keys: set[str] = set()
     output_accumulator = _ResponsesStreamOutputAccumulator()
+    diagnostics = _ResponsesStreamDiagnostics()
     accumulated_text = ""
     last_response_id: Optional[str] = None
     saw_stream_content = False
 
     async for event in stream:
+        diagnostics.record_event(event)
         extracted_response_id = _maybe_extract_response_id(event)
         if extracted_response_id is not None:
             last_response_id = extracted_response_id
@@ -685,10 +809,28 @@ async def stream_openai_responses_events(
             response_id=last_response_id,
         )
         if output_payload is not None:
+            _log_missing_final_payload_fallback(
+                fallback="completed_output_items",
+                model=model,
+                response_id=last_response_id,
+                diagnostics=diagnostics,
+                accumulated_text=accumulated_text,
+                saw_stream_content=saw_stream_content,
+                output_accumulator=output_accumulator,
+            )
             provider._set_last_stream_response_payload(output_payload)
             return
 
         if accumulated_text.strip():
+            _log_missing_final_payload_fallback(
+                fallback="accumulated_text",
+                model=model,
+                response_id=last_response_id,
+                diagnostics=diagnostics,
+                accumulated_text=accumulated_text,
+                saw_stream_content=saw_stream_content,
+                output_accumulator=output_accumulator,
+            )
             fallback_payload = _build_fallback_stream_response_payload(
                 content=accumulated_text,
                 response_id=last_response_id,
@@ -697,6 +839,15 @@ async def stream_openai_responses_events(
             return
 
         if saw_stream_content:
+            _log_missing_final_payload_fallback(
+                fallback="stream_content_without_output",
+                model=model,
+                response_id=last_response_id,
+                diagnostics=diagnostics,
+                accumulated_text=accumulated_text,
+                saw_stream_content=saw_stream_content,
+                output_accumulator=output_accumulator,
+            )
             fallback_payload = _build_fallback_stream_response_payload(
                 content="",
                 response_id=last_response_id,
@@ -704,11 +855,14 @@ async def stream_openai_responses_events(
             provider._set_last_stream_response_payload(fallback_payload)
             return
 
-        logger.warning(
-            "OpenAI Responses stream completed without a final payload or parsed output; "
-            "using incomplete empty response fallback (model=%s, response_id=%s)",
-            model,
-            last_response_id,
+        _log_missing_final_payload_fallback(
+            fallback="empty_stream",
+            model=model,
+            response_id=last_response_id,
+            diagnostics=diagnostics,
+            accumulated_text=accumulated_text,
+            saw_stream_content=saw_stream_content,
+            output_accumulator=output_accumulator,
         )
         fallback_payload = _build_fallback_stream_response_payload(
             content="",
