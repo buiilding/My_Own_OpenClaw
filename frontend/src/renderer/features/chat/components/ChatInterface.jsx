@@ -210,8 +210,11 @@ function ChatInterface({ focusComposerToken = 0 }) {
     showToolLogs,
     isBusy: composerBusy,
   }), [composerBusy, messages, showToolLogs]);
-  const hasLiveToolExplanationMessages = useMemo(() => (
-    renderedMessages.some((message) => message?.type === 'tool-explanation')
+  const hasLiveProgressMessages = useMemo(() => (
+    renderedMessages.some((message) => (
+      message?.type === 'tool-explanation'
+      || message?.type === 'search-source'
+    ))
   ), [renderedMessages]);
   const modelMode = config?.model_mode || 'online';
   const configuredProvider = config?.model_provider || '';
@@ -561,7 +564,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
             thinkingStatus={thinkingStatus}
             thinkingSourceEventType={thinkingSourceEventType}
             compactionDebugInfo={compactionDebugInfo}
-            awaitingDotTargetMessageId={hasLiveToolExplanationMessages ? null : awaitingDotTargetMessageId}
+            awaitingDotTargetMessageId={hasLiveProgressMessages ? null : awaitingDotTargetMessageId}
             findQuery={normalizedFindQuery}
             messageFindMatchIndexesById={threadFindState.messageMatchIndexesById}
             activeFindMatchIndex={resolvedActiveFindMatchIndex}

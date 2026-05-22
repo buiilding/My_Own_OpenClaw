@@ -376,6 +376,31 @@ describe('ChatInterface wiring', () => {
     expect(lastCall.messages[1].text).toBe('Check the selected workspace before reading files.');
   });
 
+  test('hides awaiting dot while live web-search progress is visible', () => {
+    mockChatState.isSending = true;
+    mockChatState.streamTracking.phase = 'tool-call';
+    mockChatState.messages = [
+      { id: 'user-1', sender: 'user', text: 'Search the web' },
+      {
+        id: 'search-1',
+        sender: 'assistant',
+        text: 'Searching web',
+        type: 'search-source',
+        sourceEventType: 'web-search-progress',
+      },
+    ];
+
+    render(<ChatInterface />);
+
+    const lastCall = mockMessageList.mock.calls.at(-1)[0];
+    expect(lastCall.awaitingDotTargetMessageId).toBeNull();
+    expect(lastCall.messages.map((message) => message.type || 'llm-text')).toEqual([
+      'llm-text',
+      'search-source',
+    ]);
+    expect(lastCall.messages[1].text).toBe('Searching web');
+  });
+
   test('keeps live tool explanation rows visible until the assistant reply is complete', () => {
     mockChatState.streamTracking.phase = 'complete';
     mockChatState.messages = [

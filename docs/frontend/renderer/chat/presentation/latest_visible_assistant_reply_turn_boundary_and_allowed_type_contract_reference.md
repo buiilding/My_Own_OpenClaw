@@ -88,6 +88,7 @@ Awaiting-dot visibility is stricter than response-pane visibility:
 
 - the main chat awaiting dot renders only before the current turn has visible assistant activity
 - assistant `thinkingText` after the latest user row counts as visible activity for the main list, because it makes the per-message `Show thinking` disclosure eligible
+- live current-turn progress rows rendered by the dashboard (`tool-explanation` and web-search `search-source`) suppress the awaiting dot even before the first `llm-text` row arrives
 - thinking-only assistant placeholders do not count as visible replies for response-pane selection, so they do not become `activeResponse` / `visibleResponse`
 
 ## Consumer Contracts
