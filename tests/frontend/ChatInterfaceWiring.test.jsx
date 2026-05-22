@@ -1209,6 +1209,27 @@ describe('ChatInterface wiring', () => {
     expect(lastMessageListProps.awaitingDotTargetMessageId).toBeNull();
   });
 
+  test('hides awaiting dot when the first assistant row only has thinking text', () => {
+    mockChatState.messages = [
+      { id: 'user-1', sender: 'user', text: 'hello', type: 'user' },
+      {
+        id: 'assistant-1',
+        sender: 'assistant',
+        text: '',
+        type: 'llm-text',
+        thinkingText: 'Planning response',
+        thinkingSourceEventType: 'llm-thought',
+      },
+    ];
+    mockChatState.streamTracking.phase = 'awaiting-first-chunk';
+    mockChatState.isSending = false;
+
+    render(<ChatInterface />);
+
+    const lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
+    expect(lastMessageListProps.awaitingDotTargetMessageId).toBeNull();
+  });
+
   test('passes active conversation ref to MessageList for conversation-switch scroll resets', () => {
     mockChatState.messages = [
       { id: 'user-1', sender: 'user', text: 'hello', type: 'user' },

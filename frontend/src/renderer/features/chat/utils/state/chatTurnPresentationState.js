@@ -50,6 +50,21 @@ function hasVisibleChatTurnReply(activeResponse) {
   return Boolean(activeResponse);
 }
 
+function hasCurrentTurnAssistantThinking(messages) {
+  const lastUserIndex = findLastUserIndex(messages);
+  const lowerBound = lastUserIndex >= 0 ? lastUserIndex + 1 : 0;
+  for (let index = lowerBound; index < messages.length; index += 1) {
+    const message = messages[index];
+    if (message?.sender !== 'assistant') {
+      continue;
+    }
+    if (typeof message.thinkingText === 'string' && message.thinkingText.trim()) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function findAwaitingDotTargetMessageId(messages, showAssistantAwaitingDot) {
   if (!showAssistantAwaitingDot) {
     return null;
@@ -109,6 +124,7 @@ export function resolveCurrentTurnPresentationState({
     isChatLoopAwaitingReply(loopUiState)
     && messages.length > 0
     && !hasVisibleReply
+    && !hasCurrentTurnAssistantThinking(messages)
   );
   const chatboxSurfaceState = resolveChatboxSurfaceState({
     loopUiState,

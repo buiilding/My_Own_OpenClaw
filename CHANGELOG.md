@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: hide the main-list awaiting typing dots as soon as current-turn thinking text makes the `Show thinking` disclosure eligible.
 - frontend/sidecar: treat remote embedding request timeouts as embedding-service unavailable so memory startup skips vector backfill instead of failing initialization.
 - frontend/sidecar: remove the legacy transcript-row chat storage path, leaving `chat_events` as the active chat continuity store and interaction rows as memory-only data.
 - frontend/sidecar: move SDK chat continuity into dedicated `chat_events` storage with explicit chat-event RPCs and compaction-checkpoint replay support.

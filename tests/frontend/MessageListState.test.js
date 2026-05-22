@@ -28,6 +28,27 @@ describe('messageListState', () => {
     expect(notAwaitingState.awaitingDotTargetMessageId).toBeNull();
   });
 
+  test('awaiting-dot target clears when current turn assistant thinking is visible', () => {
+    const awaitingState = resolveCurrentTurnPresentationState({
+      phase: 'awaiting-first-chunk',
+      lifecycle: OVERLAY_TURN_LIFECYCLE.AWAITING,
+      messages: [
+        { id: 'user-1', sender: 'user', text: 'think through this', type: 'user' },
+        {
+          id: 'assistant-1',
+          sender: 'assistant',
+          text: '',
+          type: 'llm-text',
+          thinkingText: 'Drafting plan',
+          thinkingSourceEventType: 'llm-thought',
+        },
+      ],
+    });
+
+    expect(awaitingState.showAssistantAwaitingDot).toBe(false);
+    expect(awaitingState.awaitingDotTargetMessageId).toBeNull();
+  });
+
   test('resolveCompactionStatusText maps source event to status metadata', () => {
     expect(resolveCompactionStatusText('Compacting...', 'context-compaction-started')).toEqual(
       expect.objectContaining({ state: 'in-progress' }),

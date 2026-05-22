@@ -84,6 +84,12 @@ It returns one shared snapshot for dashboard and overlay consumers:
 - `showChatboxAwaitingReply`
 - `showChatboxResponse`
 
+Awaiting-dot visibility is stricter than response-pane visibility:
+
+- the main chat awaiting dot renders only before the current turn has visible assistant activity
+- assistant `thinkingText` after the latest user row counts as visible activity for the main list, because it makes the per-message `Show thinking` disclosure eligible
+- thinking-only assistant placeholders do not count as visible replies for response-pane selection, so they do not become `activeResponse` / `visibleResponse`
+
 ## Consumer Contracts
 
 `ChatInterface.jsx`:
