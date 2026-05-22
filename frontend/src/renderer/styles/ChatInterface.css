@@ -1986,8 +1986,8 @@
 }
 
 .message-add-photos-under-pill {
-  top: calc(100% + 8px);
-  bottom: auto;
+  top: auto;
+  bottom: calc(100% + 8px);
 }
 
 .message-dropdown-item {
