@@ -388,6 +388,8 @@ function projectionEntryToConversationEvent(
       content: entry.content,
       role: entry.role,
       messageType: entry.messageType,
+      modelId: 'modelId' in entry ? entry.modelId ?? null : null,
+      modelProvider: 'modelProvider' in entry ? entry.modelProvider ?? null : null,
       correlationId: entry.correlationId || null,
       requestId: entry.correlationId || null,
       toolName: entry.toolName || null,
@@ -434,6 +436,18 @@ function compactedReplayFromEvent(event: ConversationEvent): CompactedReplaySnap
     entryCount,
     complete,
     active: event.payload.active !== false,
+  };
+}
+
+function modelMetadataFromEvent(event: ConversationEvent): {
+  modelId: string | null;
+  modelProvider: string | null;
+} {
+  return {
+    modelId: normalizeNonEmptyString(event.payload?.modelId)
+      ?? normalizeNonEmptyString(event.payload?.model_id),
+    modelProvider: normalizeNonEmptyString(event.payload?.modelProvider)
+      ?? normalizeNonEmptyString(event.payload?.model_provider),
   };
 }
 
@@ -604,6 +618,7 @@ export class ElectronSidecarConversationStore implements ConversationStore {
     const workspaceBinding = this.deps.getConversationWorkspaceBinding(event.conversationRef);
     const attachments = imageAttachmentsFromEvent(event);
     const firstAttachment = attachments[0] ?? null;
+    const modelMetadata = modelMetadataFromEvent(event);
     const result = await this.deps.invoke(INVOKE_CHANNELS.STORE_CHAT_EVENT, {
       content: textFromEvent(event),
       userId: this.userId,
@@ -618,8 +633,8 @@ export class ElectronSidecarConversationStore implements ConversationStore {
       workspacePath: workspaceBinding.workspacePath || null,
       workspaceName: workspaceBinding.workspaceName || null,
       metadata: {
-        model_id: entry.modelId ?? null,
-        model_provider: entry.modelProvider ?? null,
+        model_id: modelMetadata.modelId,
+        model_provider: modelMetadata.modelProvider,
         screenshot: firstAttachment?.['ref']
           ?? firstAttachment?.['url']
           ?? firstAttachment?.['value']

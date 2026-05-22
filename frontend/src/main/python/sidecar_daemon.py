@@ -258,6 +258,8 @@ class SidecarDaemon:
         self.events: set[web.WebSocketResponse] = set()
         self.mcp_clients: dict[str, McpStdioClient] = {}
         self.shutdown_event: asyncio.Event | None = None
+        if hasattr(self.backend, "set_event_sink"):
+            self.backend.set_event_sink(self.emit_event)
 
     def bind_shutdown_event(self, shutdown_event: asyncio.Event) -> None:
         self.shutdown_event = shutdown_event

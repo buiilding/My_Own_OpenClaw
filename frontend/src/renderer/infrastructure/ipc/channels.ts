@@ -67,6 +67,7 @@ type SharedChannelRegistry = {
   ON_CHANNELS: {
     FROM_BACKEND: 'from-backend';
     TRANSCRIPT_SESSION_SYNC: 'transcript-session-sync';
+    SIDECAR_EVENT: 'sidecar-event';
     IPC_STATUS: 'ipc-status';
     LOCAL_BACKEND_STATUS: 'local-backend-status';
     LOG: 'log';

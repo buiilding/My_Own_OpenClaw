@@ -39,6 +39,14 @@ class FakeMcpClient:
         }
 
 
+class FakeBackendWithEventSink:
+    def __init__(self):
+        self.event_sink = None
+
+    def set_event_sink(self, event_sink):
+        self.event_sink = event_sink
+
+
 @pytest.mark.asyncio
 async def test_sidecar_daemon_rejects_missing_or_invalid_token():
     daemon = SidecarDaemon(token="test-token")
@@ -124,6 +132,28 @@ async def test_sidecar_daemon_execute_tool_endpoint_normalizes_missing_tool_erro
         {
             "type": "tool-executed",
             "payload": {"tool_name": "missing_tool", "success": False},
+        }
+    ]
+
+
+@pytest.mark.asyncio
+async def test_sidecar_daemon_binds_backend_event_sink_to_event_socket():
+    backend = FakeBackendWithEventSink()
+    daemon = SidecarDaemon(backend=backend, token="test-token")
+    ws = FakeEventSocket()
+    daemon.events.add(ws)
+
+    await backend.event_sink(
+        {
+            "type": "conversation-title-updated",
+            "payload": {"conversation_id": "conv-1", "title": "Generated Title"},
+        }
+    )
+
+    assert ws.sent == [
+        {
+            "type": "conversation-title-updated",
+            "payload": {"conversation_id": "conv-1", "title": "Generated Title"},
         }
     ]
 

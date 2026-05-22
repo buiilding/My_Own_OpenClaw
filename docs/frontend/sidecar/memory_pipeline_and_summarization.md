@@ -70,6 +70,7 @@ Behavior:
 - calls backend `POST /api/semantic/title`
 - sends the first non-empty user message and first non-empty assistant reply, with model/provider metadata when the transcript row carries it
 - writes generated titles into `conversation_titles` with `source = model` and does not overwrite locked or manually sourced titles
+- emits a sidecar `conversation-title-updated` event after a generated title is stored so Electron can refresh dashboard metadata without waiting for transcript polling
 - dashboard conversation metadata prefers `conversation_titles.title`, then falls back to the first user message, latest content, or conversation id
 
 ## Periodic Summarizer

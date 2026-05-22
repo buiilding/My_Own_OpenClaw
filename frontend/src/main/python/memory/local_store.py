@@ -13,7 +13,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple
 
 try:
     import aiosqlite
@@ -181,7 +181,11 @@ class LocalMemoryStore:
         "semantic": init_semantic_schema,
     }
 
-    def __init__(self, db_path: Optional[str] = None):
+    def __init__(
+        self,
+        db_path: Optional[str] = None,
+        event_sink: Optional[Callable[[Dict[str, Any]], Awaitable[None]]] = None,
+    ):
         """
         Initialize the local memory store with remote embedding client.
 
@@ -238,6 +242,7 @@ class LocalMemoryStore:
         self.memory_dir = memory_dir
         self.embedder = RemoteEmbeddingClient()
         self.title_client = RemoteTitleClient()
+        self._event_sink = event_sink
         self._title_generation_tasks: Dict[Tuple[str, str], asyncio.Task[Any]] = {}
         self._title_generation_semaphore = asyncio.Semaphore(2)
 
@@ -278,6 +283,12 @@ class LocalMemoryStore:
         self.episodic_index = None
         self.semantic_index = None
         self._embedding_space_rebuild_in_progress = False
+
+    def set_event_sink(
+        self,
+        event_sink: Optional[Callable[[Dict[str, Any]], Awaitable[None]]],
+    ) -> None:
+        self._event_sink = event_sink
 
     async def initialize(self) -> None:
         """
@@ -1718,9 +1729,39 @@ class LocalMemoryStore:
                     conversation_id=conversation_id,
                     title=title,
                 )
+                await self._emit_conversation_title_updated(
+                    user_id=user_id,
+                    conversation_id=conversation_id,
+                    title=title,
+                )
         except Exception as exc:
             logger.warning(
                 "Conversation title generation failed for user_id=%s conversation_id=%s: %s",
+                user_id,
+                conversation_id,
+                exc,
+            )
+
+    async def _emit_conversation_title_updated(
+        self, *, user_id: str, conversation_id: str, title: str
+    ) -> None:
+        if self._event_sink is None:
+            return
+        try:
+            await self._event_sink(
+                {
+                    "type": "conversation-title-updated",
+                    "payload": {
+                        "user_id": user_id,
+                        "conversation_id": conversation_id,
+                        "title": title,
+                        "source": "model",
+                    },
+                }
+            )
+        except Exception as exc:
+            logger.warning(
+                "Failed to emit conversation title update for user_id=%s conversation_id=%s: %s",
                 user_id,
                 conversation_id,
                 exc,

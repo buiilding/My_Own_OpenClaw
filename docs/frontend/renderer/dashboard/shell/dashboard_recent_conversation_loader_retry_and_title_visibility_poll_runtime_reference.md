@@ -65,6 +65,7 @@ On successful load, retry counter resets to `0`.
 Hook subscribes to browser event:
 
 - `window` event: `transcript-entry-stored`
+- Electron IPC event: `sidecar-event`
 
 Trigger condition:
 
@@ -75,6 +76,7 @@ Behavior:
 
 - no `conversationRef` in event detail -> immediate `loadRecentConversations()`
 - with `conversationRef` -> schedule visibility poll for that conversation id
+- `sidecar-event` with `type = conversation-title-updated` -> immediate `loadRecentConversations()`
 
 Poll contract:
 

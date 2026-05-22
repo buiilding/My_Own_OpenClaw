@@ -17,7 +17,7 @@ import subprocess
 import sys
 from contextlib import suppress
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Awaitable, Callable, Dict, Optional
 
 frontend_python_dir = str(Path(__file__).resolve().parent)
 if frontend_python_dir not in sys.path:
@@ -119,6 +119,9 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
     def __init__(self):
         self.protocol = JSONRPCProtocol()
         self.memory_store = None
+        self._event_sink: Optional[
+            Callable[[Dict[str, Any]], Awaitable[None]]
+        ] = None
         self._summarizer: Optional[MemorySummarizer] = None
         self._runtime_dependency_warnings: list[str] = []
         self._semantic_summarizer_enabled = env_flag_enabled(
@@ -144,6 +147,16 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
 
         self.tool_registry = ToolRegistry()
         self._initialize_methods()
+
+    def set_event_sink(
+        self,
+        event_sink: Optional[Callable[[Dict[str, Any]], Awaitable[None]]],
+    ) -> None:
+        self._event_sink = event_sink
+        if self.memory_store is not None and hasattr(
+            self.memory_store, "set_event_sink"
+        ):
+            self.memory_store.set_event_sink(event_sink)
 
     def _initialize_methods(self):
         """Register all JSON-RPC methods."""
@@ -242,7 +255,7 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
     async def _initialize_memory_runtime(self) -> None:
         memory_store = None
         try:
-            memory_store = LocalMemoryStore()
+            memory_store = LocalMemoryStore(event_sink=self._event_sink)
             await memory_store.initialize()
             self.memory_store = memory_store
             logger.info("Memory store initialized")

@@ -66,7 +66,12 @@ async def test_title_generation_runs_after_first_completed_assistant_text(tmp_pa
     if local_store_module.faiss is None or local_store_module.aiosqlite is None:
         pytest.skip("LocalMemoryStore runtime dependencies are unavailable")
 
-    store = LocalMemoryStore(db_path=str(tmp_path / "memory"))
+    emitted_events = []
+
+    async def event_sink(event):
+        emitted_events.append(event)
+
+    store = LocalMemoryStore(db_path=str(tmp_path / "memory"), event_sink=event_sink)
     await store._init_databases()
     fake_client = FakeTitleClient()
     store.title_client = fake_client
@@ -92,6 +97,17 @@ async def test_title_generation_runs_after_first_completed_assistant_text(tmp_pa
     conversations = await store.list_chat_conversations("user-title", limit=10)
 
     assert conversations[0]["title"] == "Repo Startup Debugging"
+    assert emitted_events == [
+        {
+            "type": "conversation-title-updated",
+            "payload": {
+                "user_id": "user-title",
+                "conversation_id": "conv-title",
+                "title": "Repo Startup Debugging",
+                "source": "model",
+            },
+        }
+    ]
     assert fake_client.calls == [
         {
             "user_id": "user-title",

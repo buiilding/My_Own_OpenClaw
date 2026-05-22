@@ -102,6 +102,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   ON_CHANNELS: {
     MAIN_WINDOW_OPEN_TARGET: 'main-window-open-target',
     IPC_STATUS: 'ipc-status',
+    SIDECAR_EVENT: 'sidecar-event',
   },
 }));
 
@@ -866,6 +867,64 @@ describe('ChatGptDashboardShell', () => {
     });
     await flushMicrotasks();
     expect(screen.getByRole('button', { name: 'Ubuntu mic timeout troubleshooting' })).toBeInTheDocument();
+  });
+
+  test('refreshes recent chats when the sidecar reports a generated title update', async () => {
+    const nowIso = new Date().toISOString();
+    let listCallCount = 0;
+    mockInvoke.mockImplementation(withClientSnapshot(async (channel) => {
+      if (channel === 'list-chat-conversations') {
+        listCallCount += 1;
+        if (listCallCount === 1) {
+          return {
+            success: true,
+            data: {
+              conversations: [
+                {
+                  conversation_id: 'conv-title-event',
+                  record_kind: 'chat_event',
+                  last_timestamp: nowIso,
+                  title: 'I need to know more about the cua-driver',
+                  title_source: 'heuristic',
+                },
+              ],
+            },
+          };
+        }
+        return {
+          success: true,
+          data: {
+            conversations: [
+              {
+                conversation_id: 'conv-title-event',
+                record_kind: 'chat_event',
+                last_timestamp: nowIso,
+                title: 'CUA Driver Overview',
+                title_source: 'model',
+              },
+            ],
+          },
+        };
+      }
+      return { success: true, data: {} };
+    }));
+
+    await renderDashboardShell();
+    expect(screen.getByRole('button', { name: 'I need to know more about the cua-driver' })).toBeInTheDocument();
+
+    act(() => {
+      mockListeners.get('sidecar-event')?.({
+        type: 'conversation-title-updated',
+        payload: {
+          conversation_id: 'conv-title-event',
+          title: 'CUA Driver Overview',
+          source: 'model',
+        },
+      });
+    });
+    await flushMicrotasks();
+
+    expect(screen.getByRole('button', { name: 'CUA Driver Overview' })).toBeInTheDocument();
   });
 
   test('settings chat-clear callback resets active chat state and reloads recent chats', async () => {

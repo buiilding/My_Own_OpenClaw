@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sidecar: forward generated chat-title updates from the sidecar daemon to the dashboard and fix transcript persistence for model metadata.
 - backend/openai: expand missing-final Responses stream fallback logs with sanitized event counters and fallback reason diagnostics.
 - frontend/sidecar: generate model-backed chat titles after the first completed assistant reply and prefer stored titles in dashboard conversation lists.
 - ops: add an SSH-only developer backend log helper with allowlisted system/user backend and Cloudflare Tunnel service streams.

@@ -155,6 +155,28 @@ function createDaemonClient(discovery, options = {}) {
   });
 }
 
+function buildEventWebSocketUrl(baseUrl) {
+  const normalized = String(baseUrl || '').replace(/\/+$/, '');
+  if (normalized.startsWith('https://')) {
+    return `wss://${normalized.slice('https://'.length)}/events`;
+  }
+  if (normalized.startsWith('http://')) {
+    return `ws://${normalized.slice('http://'.length)}/events`;
+  }
+  return `${normalized}/events`;
+}
+
+function loadWebSocketImpl(options = {}) {
+  if (typeof options.WebSocketImpl === 'function') {
+    return options.WebSocketImpl;
+  }
+  try {
+    return require('ws');
+  } catch (_error) {
+    return null;
+  }
+}
+
 function buildDaemonEnv({ isPackaged = false, backendEndpoints, permissionStatePath, authStatePath, launchTarget } = {}) {
   const endpointConfig = backendEndpoints || resolveBackendEndpoints(process.env, {
     isPackaged,
@@ -203,6 +225,67 @@ function createSidecarDaemonManager(options = {}) {
   let daemonProcess = null;
   let client = null;
   let ensurePromise = null;
+  let eventSocket = null;
+  let eventSocketKey = null;
+  let activeDiscovery = null;
+
+  function closeEventSocket() {
+    const socket = eventSocket;
+    eventSocket = null;
+    eventSocketKey = null;
+    try {
+      socket?.close?.();
+    } catch (_error) {
+      // Best-effort close for event streams.
+    }
+  }
+
+  function connectEventStream(discovery) {
+    if (typeof options.onEvent !== 'function') {
+      return;
+    }
+    if (!discovery?.baseUrl || !discovery?.token) {
+      return;
+    }
+    const key = `${discovery.baseUrl}|${discovery.token}`;
+    if (eventSocket && eventSocketKey === key) {
+      return;
+    }
+    closeEventSocket();
+    const WebSocketImpl = loadWebSocketImpl(options);
+    if (!WebSocketImpl) {
+      return;
+    }
+    const url = buildEventWebSocketUrl(discovery.baseUrl);
+    try {
+      const socket = new WebSocketImpl(url, {
+        headers: {
+          'x-windie-sidecar-token': discovery.token,
+        },
+      });
+      eventSocket = socket;
+      eventSocketKey = key;
+      socket.on?.('message', (raw) => {
+        try {
+          const payload = JSON.parse(String(raw || ''));
+          if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
+            options.onEvent(payload);
+          }
+        } catch (_error) {
+          // Ignore malformed sidecar event packets.
+        }
+      });
+      socket.on?.('close', () => {
+        if (eventSocket === socket) {
+          eventSocket = null;
+          eventSocketKey = null;
+        }
+      });
+      socket.on?.('error', () => {});
+    } catch (_error) {
+      closeEventSocket();
+    }
+  }
 
   async function probe(discovery) {
     if (!discovery) {
@@ -222,6 +305,8 @@ function createSidecarDaemonManager(options = {}) {
     const existing = await probe(discovery);
     if (existing) {
       client = existing;
+      activeDiscovery = discovery;
+      connectEventStream(discovery);
       return client;
     }
     if (discovery) {
@@ -273,6 +358,8 @@ function createSidecarDaemonManager(options = {}) {
       const discovered = await probe(readDiscoveryFile(discoveryPath));
       if (discovered) {
         client = discovered;
+        activeDiscovery = readDiscoveryFile(discoveryPath);
+        connectEventStream(activeDiscovery);
         return client;
       }
       await sleep(pollIntervalMs);
@@ -284,9 +371,11 @@ function createSidecarDaemonManager(options = {}) {
     if (client) {
       try {
         await client.health();
+        connectEventStream(activeDiscovery);
         return client;
       } catch (_error) {
         client = null;
+        activeDiscovery = null;
       }
     }
     if (ensurePromise) {
@@ -326,6 +415,7 @@ function createSidecarDaemonManager(options = {}) {
   async function shutdown() {
     const activeClient = client;
     client = null;
+    activeDiscovery = null;
     try {
       await activeClient?.shutdown?.();
     } catch (_error) {
@@ -335,6 +425,7 @@ function createSidecarDaemonManager(options = {}) {
       daemonProcess.kill('SIGTERM');
     }
     daemonProcess = null;
+    closeEventSocket();
   }
 
   return {

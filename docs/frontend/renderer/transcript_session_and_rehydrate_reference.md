@@ -128,7 +128,7 @@ Stored fields include:
 - tool-call message reconstruction is normalized through `toolCallMessageState.js` so live stream rows, session serialization, replayed transcript rows, and rehydrate payloads share one canonical `text/toolCallDisplayText/modelFacingToolCall/toolCallDetails/correlationId` contract
 - screenshot attachment reconstruction is normalized through `screenshotMessageState.js` so live tool rows, replayed transcript rows, and screenshot capture/runtime helpers agree on artifact-ref/url inference and inline-vs-remote attachment behavior
 
-Successful writes dispatch browser event `transcript-entry-stored` so dashboard/chat consumers can refresh derived rows without a full reload.
+Successful writes dispatch browser event `transcript-entry-stored` so dashboard/chat consumers can refresh derived rows without a full reload. Generated title writes are asynchronous sidecar metadata updates; after `conversation_titles` is updated, the sidecar emits `conversation-title-updated`, Electron forwards it as `sidecar-event`, and the dashboard reloads recent conversation metadata.
 
 ## Queue and Retry Semantics
 

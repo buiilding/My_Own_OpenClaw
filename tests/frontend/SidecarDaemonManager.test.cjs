@@ -30,7 +30,25 @@ function jsonResponse(body, status = 200) {
   };
 }
 
+class FakeWebSocket extends EventEmitter {
+  constructor(url, options) {
+    super();
+    this.url = url;
+    this.options = options;
+    this.close = jest.fn(() => {
+      this.emit('close');
+    });
+    FakeWebSocket.instances.push(this);
+  }
+}
+
+FakeWebSocket.instances = [];
+
 describe('sidecar daemon manager', () => {
+  beforeEach(() => {
+    FakeWebSocket.instances = [];
+  });
+
   test('reuses an existing healthy daemon from discovery metadata', async () => {
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-daemon-'));
     const discoveryPath = path.join(tempDir, 'sidecar-daemon.json');
@@ -240,6 +258,53 @@ describe('sidecar daemon manager', () => {
         }),
       }),
     );
+  });
+
+  test('forwards sidecar daemon websocket events to the event callback', async () => {
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-daemon-'));
+    const discoveryPath = path.join(tempDir, 'sidecar-daemon.json');
+    await fsPromises.writeFile(
+      discoveryPath,
+      JSON.stringify({
+        pid: 123,
+        base_url: 'http://127.0.0.1:4567',
+        token: 'token-123',
+      }),
+      'utf8',
+    );
+    const fetchImpl = jest.fn(async () => jsonResponse({ status: 'ok' }));
+    const onEvent = jest.fn();
+    const {
+      createSidecarDaemonManager,
+    } = loadManager();
+
+    const manager = createSidecarDaemonManager({
+      discoveryPath,
+      fetchImpl,
+      spawnImpl: jest.fn(),
+      startTimeoutMs: 50,
+      WebSocketImpl: FakeWebSocket,
+      onEvent,
+    });
+    await manager.ensureDaemon();
+
+    expect(FakeWebSocket.instances).toHaveLength(1);
+    expect(FakeWebSocket.instances[0].url).toBe('ws://127.0.0.1:4567/events');
+    expect(FakeWebSocket.instances[0].options).toMatchObject({
+      headers: {
+        'x-windie-sidecar-token': 'token-123',
+      },
+    });
+
+    FakeWebSocket.instances[0].emit('message', JSON.stringify({
+      type: 'conversation-title-updated',
+      payload: { conversation_id: 'conv-1', title: 'Generated Title' },
+    }));
+
+    expect(onEvent).toHaveBeenCalledWith({
+      type: 'conversation-title-updated',
+      payload: { conversation_id: 'conv-1', title: 'Generated Title' },
+    });
   });
 
   test('rediscovers daemon when cached client becomes stale', async () => {
