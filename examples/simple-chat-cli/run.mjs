@@ -21,6 +21,10 @@ function hasArg(name) {
   return process.argv.includes(name);
 }
 
+function isAbortError(error) {
+  return error && typeof error === 'object' && error.name === 'AbortError';
+}
+
 function printHelp() {
   console.log(`Usage:
   node examples/simple-chat-cli/run.mjs
@@ -133,7 +137,16 @@ try {
     const rl = readline.createInterface({ input, output });
     try {
       while (true) {
-        const text = await rl.question('user: ');
+        let text;
+        try {
+          text = await rl.question('user: ');
+        } catch (error) {
+          if (isAbortError(error)) {
+            process.stdout.write('\n');
+            break;
+          }
+          throw error;
+        }
         const trimmed = text.trim();
         if (!trimmed) {
           continue;
