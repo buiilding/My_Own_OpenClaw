@@ -15,7 +15,15 @@ import {
 } from '../transport/WindieAgentSession.js';
 import {
   WindieSdkClient,
+  type SdkGenerateTitleRequest,
+  type SdkGenerateTitleResponse,
   type SdkModelsResponse,
+  type SdkPromptPreviewRequest,
+  type SdkPromptPreviewResponse,
+  type SdkQueryPlanRequest,
+  type SdkQueryPlanResponse,
+  type SdkSystemPromptResponse,
+  type SdkToolSchemasResponse,
 } from '../transport/HostedBackendHttpClient.js';
 import {
   buildModelSettingsPatch,
@@ -29,6 +37,7 @@ import {
   SdkConversationRuntime,
   type SendInput,
 } from './ConversationRuntime.js';
+import { WindieChatSession } from './WindieChatSession.js';
 import {
   toAgentStreamEvent,
   toolOutputStreamKeys,
@@ -51,6 +60,27 @@ export type LoadConversationOptions = {
 };
 
 export type RawBackendEventListener = (event: BackendEvent) => void;
+
+export type WindieMemoryType = 'episodic' | 'semantic';
+
+export type WindieMemoryQuery = {
+  userId?: string;
+  query?: string;
+  limit?: number;
+  memoryType?: WindieMemoryType;
+  excludeConversationId?: string;
+  episodicLimit?: number;
+  semanticLimit?: number;
+  semanticMinScore?: number;
+};
+
+export type WindieStoreMemoryInput = {
+  userId?: string;
+  userQuery: string;
+  assistantResponse: string;
+  memoryType?: WindieMemoryType;
+  sessionId?: string;
+};
 
 export class WindieAgent {
   private readonly defaultConversationStore = new InMemoryConversationStore();
@@ -148,6 +178,16 @@ export class WindieAgent {
     return runtime;
   }
 
+  chat(options: {
+    conversationRef?: string;
+    revisionId?: string;
+    store?: ConversationStore;
+    localRuntime?: WindieLocalRuntimeClient | null;
+  } = {}): WindieChatSession {
+    const runtime = this.conversation(options);
+    return new WindieChatSession(options.conversationRef ?? `conv-${this.id}`, runtime);
+  }
+
   sleep(): void {
     this.session.close(1000, 'sleep');
   }
@@ -164,6 +204,99 @@ export class WindieAgent {
     return this.sdkClient.models();
   }
 
+  async getSystemPrompt(): Promise<SdkSystemPromptResponse> {
+    return this.sdkClient.systemPrompt();
+  }
+
+  async listToolSchemas(): Promise<SdkToolSchemasResponse> {
+    return this.sdkClient.toolSchemas();
+  }
+
+  async previewPrompt(payload: SdkPromptPreviewRequest): Promise<SdkPromptPreviewResponse> {
+    return this.sdkClient.promptPreview(payload);
+  }
+
+  async planQuery(payload: SdkQueryPlanRequest): Promise<SdkQueryPlanResponse> {
+    return this.sdkClient.queryPlan(payload);
+  }
+
+  async updateSystemPrompt(content: string): Promise<string> {
+    return this.updateSettings({
+      system_prompt: {
+        mode: 'replace',
+        content,
+      },
+    });
+  }
+
+  async updateToolSchemas(toolSchemas: JsonRecord[]): Promise<string> {
+    return this.updateSettings({
+      tools: {
+        mode: 'replace_client_manifest',
+        client_manifest: {
+          version: 1,
+          tools: toolSchemas,
+        },
+      },
+    });
+  }
+
+  async generateConversationTitle(payload: SdkGenerateTitleRequest): Promise<SdkGenerateTitleResponse> {
+    return this.sdkClient.generateConversationTitle(payload);
+  }
+
+  async updateConversationTitle(conversationRef: string, title: string, userId = 'local-sdk-user'): Promise<JsonRecord> {
+    return this.callLocalRuntimeRpc('update_conversation_title', {
+      user_id: userId,
+      conversation_id: conversationRef,
+      title,
+    });
+  }
+
+  async searchMemory(query: string | WindieMemoryQuery): Promise<JsonRecord> {
+    const payload = typeof query === 'string' ? { query } : query;
+    return this.callLocalRuntimeRpc('search_memory', {
+      query: payload.query ?? '',
+      user_id: payload.userId,
+      limit: payload.limit,
+      memory_type: payload.memoryType,
+      exclude_conversation_id: payload.excludeConversationId,
+      episodic_limit: payload.episodicLimit,
+      semantic_limit: payload.semanticLimit,
+      semantic_min_score: payload.semanticMinScore,
+    });
+  }
+
+  async listMemories(options: { userId?: string; type: WindieMemoryType; limit?: number }): Promise<JsonRecord> {
+    return this.callLocalRuntimeRpc(
+      options.type === 'semantic' ? 'list_semantic_memories' : 'list_episodic_memories',
+      {
+        user_id: options.userId,
+        limit: options.limit,
+      },
+    );
+  }
+
+  async storeMemory(input: WindieStoreMemoryInput): Promise<JsonRecord> {
+    return this.callLocalRuntimeRpc('store_memory', {
+      user_id: input.userId,
+      user_query: input.userQuery,
+      assistant_response: input.assistantResponse,
+      memory_type: input.memoryType,
+      session_id: input.sessionId,
+    });
+  }
+
+  async deleteMemory(options: { userId?: string; type: WindieMemoryType; memoryId: string }): Promise<JsonRecord> {
+    return this.callLocalRuntimeRpc(
+      options.type === 'semantic' ? 'delete_semantic_memory' : 'delete_episodic_memory',
+      {
+        user_id: options.userId,
+        memory_id: options.memoryId,
+      },
+    );
+  }
+
   async listTools(): Promise<{ version?: number; tools?: JsonRecord[] } | null> {
     return this.localRuntime?.listTools ? this.localRuntime.listTools() : null;
   }
@@ -174,6 +307,18 @@ export class WindieAgent {
 
   async shutdownLocalRuntime(): Promise<void> {
     await this.localRuntime?.shutdown?.();
+  }
+
+  async uploadArtifact(file: Blob | File, filename?: string) {
+    return this.sdkClient.artifacts.upload(file, filename);
+  }
+
+  artifactUrl(artifactId: string): string {
+    return this.sdkClient.artifacts.url(artifactId);
+  }
+
+  async fetchArtifact(artifactId: string): Promise<Response> {
+    return this.sdkClient.artifacts.fetch(artifactId);
   }
 
   subscribeRawBackendEvents(listener: RawBackendEventListener): () => void {
@@ -227,6 +372,13 @@ export class WindieAgent {
 
   listAgents(): Array<{ id: string; agentDefinition: JsonRecord }> {
     return this.owner.listAgents();
+  }
+
+  private async callLocalRuntimeRpc(method: string, params: JsonRecord): Promise<JsonRecord> {
+    if (!this.localRuntime?.rpc) {
+      throw new Error(`Local runtime RPC is required for ${method}`);
+    }
+    return this.localRuntime.rpc({ method, params });
   }
 
   private buildQueryInput(text: string, options: WindieAgentQueryOptions): WindieAgentQueryInput {

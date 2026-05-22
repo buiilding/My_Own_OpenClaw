@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/runtime: add the phase-one chat session facade, builtin desktop tool selection, sidecar conversation store, memory/title/prompt/tool-schema helpers, and artifact fetch/upload helpers.
 - sdk/runtime: complete the conversation-library surface with SDK-owned search and delete APIs across agent, continuity service, and built-in stores.
 - sdk/frontend: expose sidecar daemon events through the SDK local-runtime client so generated-title metadata updates are not Electron-only transport behavior.
 - frontend/chat: hide the main dashboard awaiting typing dots while live web-search progress rows are visible.

@@ -91,6 +91,9 @@ The SDK ships two reusable store adapters:
 - `InMemoryConversationStore` for tests, demos, and short-lived processes.
 - `FileConversationStore` for Node CLI/custom UI hosts that want durable JSON
   event logs without Electron sidecar storage.
+- `SidecarConversationStore` for Node/Electron hosts that want durable local
+  sidecar storage through the SDK store interface instead of renderer IPC
+  transcript helpers.
 
 Electron's sidecar-backed store is a first-party adapter. It is allowed to know
 about transcript storage IPC, but it must stay behind the SDK store interface.
@@ -215,6 +218,11 @@ host needs a non-default store adapter or revision seed. Deletion should go
 through `agent.deleteConversation(conversationRef)` or the continuity service
 so store adapters, Electron, CLI, and custom UIs share one library command
 surface.
+
+UI clients that want one high-level chat object should use
+`agent.chat({ conversationRef })`. The chat session wraps
+`SdkConversationRuntime` with UI-oriented methods: `stream`, `send`, `stop`,
+`retry`, `editAndResend`, `load`, `display`, `onEvent`, and `subscribe`.
 
 Backend events must carry `conversation_ref` or `turn_ref` to enter a
 conversation runtime. The runtime drops ambiguous packets and ignores packets

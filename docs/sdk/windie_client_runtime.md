@@ -40,8 +40,9 @@ Ownership rules:
   introspection, artifact upload URLs, OCR routes, and vision routes exposed to
   public SDK callers.
 - the SDK local-runtime module owns sidecar daemon HTTP calls, daemon discovery,
-  auto-start/reuse, sidecar event subscriptions, and `moduleTool(...)`
-  registration helpers.
+  auto-start/reuse, sidecar event subscriptions, sidecar-backed conversation
+  storage, builtin desktop tool selection, memory/title RPC helpers, and
+  `moduleTool(...)` registration helpers.
 - the SDK `WindieClient` runtime module owns wake-up orchestration, websocket
   session creation, initial model selection, local-runtime startup/reuse, and
   conversion of local tool/plugin/MCP definitions into the client manifest.
@@ -49,8 +50,10 @@ Ownership rules:
   normalized conversation events to high-level `agent.stream(...)` events,
   including duplicate tool-output suppression for local/backend acknowledgements.
 - the SDK `WindieAgent` runtime module owns high-level agent helpers such as
-  `ask`, `run`, `stream`, model updates, conversation creation, and conversation
-  listing/search/loading/deletion over a store adapter.
+  `ask`, `run`, `stream`, `chat`, model updates, conversation creation,
+  conversation listing/search/loading/deletion over a store adapter, memory
+  commands, title commands, system prompt/tool-schema commands, and artifact
+  helpers.
 - sidecar daemon owns local execution only.
 - backend owns model/provider selection, paid capability gates, OCR/vision/prediction/web-search availability, prompt construction, session policy, and remote/backend tools.
 - Electron owns windows, renderer IPC, overlays, permission prompts, display/screenshot integration, and settings UI.
@@ -70,7 +73,7 @@ behind SDK interfaces like `ConversationStore` and `BackendTransport`.
 ## Public API
 
 ```ts
-import { WindieClient, moduleTool } from "@windie/sdk";
+import { WindieClient, moduleTool, windieBuiltins } from "@windie/sdk";
 
 const client = new WindieClient();
 
@@ -78,6 +81,7 @@ const agent = await client.wakeUp({
   backendUrl: "https://api.windieos.com",
   systemPrompt: "You are a concise coding agent.",
   workspacePath: "/Users/me/project",
+  ...windieBuiltins.desktop(),
   model: {
     modelProvider: "openai",
     modelId: "gpt-5.4@@gpt-5-4-medium-thinking",
@@ -162,6 +166,33 @@ const matchingConversations = await agent.searchConversations({
 });
 await agent.loadConversation(recentConversations[0].conversationRef);
 await agent.deleteConversation(matchingConversations[0].conversationRef);
+
+const chat = agent.chat({ conversationRef: "repo-checks" });
+for await (const event of chat.stream("Continue from the last result.")) {
+  if (event.type === "text") {
+    process.stdout.write(event.text);
+  }
+}
+await chat.retry();
+await chat.stop();
+
+await agent.searchMemory({ query: "repo preferences", memoryType: "semantic" });
+await agent.storeMemory({
+  userQuery: "User prefers focused tests.",
+  assistantResponse: "Use the smallest relevant test slice.",
+  memoryType: "semantic"
+});
+await agent.generateConversationTitle({
+  user_message: "How does the SDK work?",
+  assistant_message: "The SDK owns the reusable runtime."
+});
+await agent.updateConversationTitle("repo-checks", "SDK runtime notes");
+await agent.getSystemPrompt();
+await agent.listToolSchemas();
+await agent.updateSystemPrompt("You are a concise coding agent.");
+await agent.updateToolSchemas([{ name: "read_file", schema: { type: "object" } }]);
+const uploaded = await agent.uploadArtifact(file);
+const artifactUrl = agent.artifactUrl(uploaded.artifact_id);
 ```
 
 `wakeUp` performs this sequence:

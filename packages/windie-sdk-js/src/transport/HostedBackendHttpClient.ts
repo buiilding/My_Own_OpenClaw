@@ -158,6 +158,19 @@ export type SdkArtifactUploadResponse = {
   url: string;
 };
 
+export type SdkGenerateTitleRequest = {
+  user_id?: string;
+  user_message: string;
+  assistant_message: string;
+  model_id?: string;
+  model_provider?: string;
+};
+
+export type SdkGenerateTitleResponse = {
+  title: string;
+  success?: boolean;
+};
+
 export type SdkOcrRunRequest = {
   image: SdkImageSource;
 };
@@ -334,6 +347,7 @@ export class WindieSdkClient {
   readonly artifacts = {
     upload: async (file: Blob | File, filename?: string): Promise<SdkArtifactUploadResponse> => this.uploadArtifact(file, filename),
     url: (artifactId: string): string => this.artifactUrl(artifactId),
+    fetch: async (artifactId: string): Promise<Response> => this.fetchArtifact(artifactId),
   };
 
   readonly ocr = {
@@ -360,6 +374,10 @@ export class WindieSdkClient {
     systemPrompt: async (options?: WindieSdkQueryOptions): Promise<SdkSystemPromptResponse> => this.getJson(`/api/sdk/system-prompt${buildQueryString(options)}`),
     promptPreview: async (payload: SdkPromptPreviewRequest): Promise<SdkPromptPreviewResponse> => this.postJson('/api/sdk/prompt-preview', payload),
     queryPlan: async (payload: SdkQueryPlanRequest): Promise<SdkQueryPlanResponse> => this.postJson('/api/sdk/query-plan', payload),
+  };
+
+  readonly titles = {
+    generate: async (payload: SdkGenerateTitleRequest): Promise<SdkGenerateTitleResponse> => this.postJson('/api/semantic/title', payload),
   };
 
   constructor(options: WindieSdkClientOptions) {
@@ -393,6 +411,20 @@ export class WindieSdkClient {
 
   artifactUrl(artifactId: string): string {
     return `${this.httpBaseUrl}/api/artifacts/${encodeURIComponent(artifactId)}`;
+  }
+
+  async fetchArtifact(artifactId: string): Promise<Response> {
+    const response = await this.fetchImpl(this.artifactUrl(artifactId), {
+      method: 'GET',
+    });
+    if (!response.ok) {
+      throw new Error(buildErrorMessage(response.status, response.statusText, await response.text()));
+    }
+    return response;
+  }
+
+  async generateConversationTitle(payload: SdkGenerateTitleRequest): Promise<SdkGenerateTitleResponse> {
+    return this.titles.generate(payload);
   }
 
   private async uploadArtifact(file: Blob | File, filename?: string): Promise<SdkArtifactUploadResponse> {

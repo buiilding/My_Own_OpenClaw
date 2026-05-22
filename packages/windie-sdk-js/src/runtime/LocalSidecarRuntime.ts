@@ -46,6 +46,7 @@ export type WindieLocalRuntimeClient = {
   registerPlugin?: (plugin: WindiePluginDefinition) => Promise<JsonRecord>;
   registerMcp?: (mcp: WindieMcpDefinition) => Promise<JsonRecord>;
   executeTool?: (payload: { toolName: string; args: JsonRecord }) => Promise<{ success?: boolean; data?: JsonRecord; error?: string }>;
+  rpc?: (payload: { method: string; params?: JsonRecord; id?: string | number }) => Promise<JsonRecord>;
   subscribeEvents?: (listener: WindieLocalRuntimeEventListener) => () => void;
   shutdown?: () => Promise<void>;
 };
@@ -172,6 +173,15 @@ export class SidecarDaemonHttpClient implements WindieLocalRuntimeClient {
     return this.post('/execute-tool', {
       tool_name: payload.toolName,
       args: payload.args,
+    });
+  }
+
+  async rpc(payload: { method: string; params?: JsonRecord; id?: string | number }): Promise<JsonRecord> {
+    return this.post('/rpc', {
+      jsonrpc: '2.0',
+      id: payload.id ?? `sdk-${Date.now()}`,
+      method: payload.method,
+      params: payload.params ?? {},
     });
   }
 
@@ -489,6 +499,7 @@ export function createWindieLocalRuntimeProvider<TWakeUpOptions = unknown>(
           registerPlugin: plugin => started.registerPlugin(plugin),
           registerMcp: mcp => started.registerMcp(mcp),
           executeTool: payload => started.executeTool(payload),
+          rpc: payload => started.rpc(payload),
           subscribeEvents: listener => started.subscribeEvents(listener),
           shutdown: async () => {
             try {

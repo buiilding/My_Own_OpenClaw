@@ -20,6 +20,7 @@ from memory.operations import (
     normalize_search_memory_payload,
     normalize_search_memory_selection,
 )
+from memory.conversation_title_store import upsert_generated_conversation_title
 from core.unicode_sanitizer import (
     find_surrogate_paths,
     sanitize_surrogates,
@@ -347,6 +348,49 @@ class LocalBackendMemoryHandlersMixin:
             }
         except Exception as e:
             logger.error(f"Chat history clear failed: {e}", exc_info=True)
+            return {"success": False, "error": str(e)}
+
+    @requires_memory_store
+    async def _handle_update_conversation_title(
+        self,
+        user_id: str = "default_user",
+        conversation_id: Optional[str] = None,
+        title: Optional[str] = None,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """Manually update a stored conversation title and emit metadata invalidation."""
+        normalized_title = (title or "").strip()
+        if not conversation_id:
+            return {"success": False, "error": "conversation_id is required"}
+        if not normalized_title:
+            return {"success": False, "error": "title is required"}
+        try:
+            await upsert_generated_conversation_title(
+                db_path=self.memory_store.db_path,
+                user_id=user_id,
+                conversation_id=conversation_id,
+                title=normalized_title,
+            )
+            if getattr(self, "_event_sink", None):
+                await self._event_sink(
+                    {
+                        "type": "conversation-title-updated",
+                        "payload": {
+                            "user_id": user_id,
+                            "conversation_id": conversation_id,
+                            "title": normalized_title,
+                        },
+                    }
+                )
+            return {
+                "success": True,
+                "data": {
+                    "conversation_id": conversation_id,
+                    "title": normalized_title,
+                },
+            }
+        except Exception as e:
+            logger.error(f"Conversation title update failed: {e}", exc_info=True)
             return {"success": False, "error": str(e)}
 
     @requires_memory_store

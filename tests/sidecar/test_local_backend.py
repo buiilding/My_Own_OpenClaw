@@ -637,7 +637,7 @@ async def test_initialize_starts_memory_summarizer_when_enabled(monkeypatch):
             super().__init__(memory_store)
             created_summarizers.append(self)
 
-    monkeypatch.setattr(local_backend_module, "LocalMemoryStore", lambda: fake_store)
+    monkeypatch.setattr(local_backend_module, "LocalMemoryStore", lambda **_kwargs: fake_store)
     monkeypatch.setattr(local_backend_module, "MemorySummarizer", _DummySummarizer)
 
     backend = LocalBackend()
@@ -662,7 +662,7 @@ async def test_initialize_skips_memory_summarizer_when_disabled(monkeypatch):
         def __init__(self, *_args, **_kwargs):
             created["count"] += 1
 
-    monkeypatch.setattr(local_backend_module, "LocalMemoryStore", lambda: fake_store)
+    monkeypatch.setattr(local_backend_module, "LocalMemoryStore", lambda **_kwargs: fake_store)
     monkeypatch.setattr(local_backend_module, "MemorySummarizer", _DummySummarizer)
 
     backend = LocalBackend()
@@ -682,7 +682,7 @@ async def test_initialize_does_not_block_on_memory_store_initialization(monkeypa
     release = asyncio.Event()
 
     class _SlowMemoryStore(DummyMemoryStore):
-        def __init__(self):
+        def __init__(self, **_kwargs):
             super().__init__()
             self.initialized = False
 
@@ -775,6 +775,7 @@ def test_initialize_methods_keeps_memory_handlers_registered():
         "search_chat_conversations",
         "get_chat_events",
         "delete_chat_conversation",
+        "update_conversation_title",
     }
     assert expected_methods.issubset(set(backend.protocol.methods.keys()))
 
@@ -1231,6 +1232,59 @@ async def test_handle_store_chat_event_writes_dedicated_chat_storage():
             "kind": "image",
             "ref": "artifact-user-1",
             "contentType": "image/png",
+        }
+    ]
+
+
+@pytest.mark.asyncio
+async def test_handle_update_conversation_title_persists_and_emits(monkeypatch):
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+    backend.memory_store.db_path = "/tmp/test-title.sqlite3"
+    emitted = []
+    calls = []
+
+    async def fake_upsert_generated_conversation_title(**kwargs):
+        calls.append(kwargs)
+
+    async def fake_event_sink(payload):
+        emitted.append(payload)
+
+    monkeypatch.setattr(
+        "local_backend_memory_handlers.upsert_generated_conversation_title",
+        fake_upsert_generated_conversation_title,
+    )
+    backend.set_event_sink(fake_event_sink)
+
+    result = await backend._handle_update_conversation_title(
+        user_id="user-1",
+        conversation_id="conv-title",
+        title="  New Title  ",
+    )
+
+    assert result == {
+        "success": True,
+        "data": {
+            "conversation_id": "conv-title",
+            "title": "New Title",
+        },
+    }
+    assert calls == [
+        {
+            "db_path": "/tmp/test-title.sqlite3",
+            "user_id": "user-1",
+            "conversation_id": "conv-title",
+            "title": "New Title",
+        }
+    ]
+    assert emitted == [
+        {
+            "type": "conversation-title-updated",
+            "payload": {
+                "user_id": "user-1",
+                "conversation_id": "conv-title",
+                "title": "New Title",
+            },
         }
     ]
 

@@ -198,6 +198,9 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
         self.protocol.register_method(
             "delete_chat_conversation", self._handle_delete_chat_conversation
         )
+        self.protocol.register_method(
+            "update_conversation_title", self._handle_update_conversation_title
+        )
 
         # Health check and diagnostics
         self.protocol.register_method("ping", self._handle_ping)

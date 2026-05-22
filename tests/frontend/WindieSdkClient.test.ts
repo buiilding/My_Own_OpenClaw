@@ -8,8 +8,10 @@ import {
   createWindieLocalRuntimeProvider,
   moduleTool,
   SidecarDaemonHttpClient,
+  SidecarConversationStore,
   WindieClient,
   WindieSdkClient,
+  windieBuiltins,
   type SdkPromptPreviewRequest,
   type SdkQueryPlanRequest,
   type WindieLocalRuntimeClient,
@@ -253,6 +255,39 @@ describe('WindieSdkClient', () => {
     );
   });
 
+  test('fetches artifacts and generates conversation titles through SDK helpers', async () => {
+    mockFetch
+      .mockResolvedValueOnce(jsonResponse({ bytes: 'ok' }) as any)
+      .mockResolvedValueOnce(jsonResponse({ success: true, title: 'Generated SDK title' }) as any);
+
+    const client = new WindieSdkClient({
+      httpBaseUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+    });
+
+    await expect(client.artifacts.fetch('artifact-1')).resolves.toMatchObject({
+      ok: true,
+    });
+    await expect(client.generateConversationTitle({
+      user_message: 'How does SDK work?',
+      assistant_message: 'It wraps the runtime.',
+    })).resolves.toEqual({
+      success: true,
+      title: 'Generated SDK title',
+    });
+
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      1,
+      'https://api.windieos.com/api/artifacts/artifact-1',
+      expect.objectContaining({ method: 'GET' }),
+    );
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      2,
+      'https://api.windieos.com/api/semantic/title',
+      expect.objectContaining({ method: 'POST' }),
+    );
+  });
+
   test('does not expose the old direct websocket agent authoring surface', () => {
     const client = new WindieSdkClient({
       httpBaseUrl: 'https://api.windieos.com',
@@ -320,6 +355,92 @@ describe('WindieSdkClient', () => {
         interaction_mode: 'agent',
       },
       user_id: 'dev-user',
+    });
+  });
+
+  test('agent exposes prompt, schema, memory, title, and artifact facades', async () => {
+    const localRuntime: WindieLocalRuntimeClient = {
+      rpc: jest.fn(async ({ method }) => ({ success: true, method, data: {} })),
+    };
+    mockFetch
+      .mockResolvedValueOnce(jsonResponse({
+        config: { model_mode: 'online', model_provider: 'openai', selected_model_id: 'gpt', interaction_mode: 'agent' },
+        system_prompt: 'prompt',
+      }) as any)
+      .mockResolvedValueOnce(jsonResponse({
+        config: { model_mode: 'online', model_provider: 'openai', selected_model_id: 'gpt', interaction_mode: 'agent' },
+        canonical_tool_schemas: [{ name: 'read_file' }],
+        provider_tool_schemas: [],
+      }) as any)
+      .mockResolvedValueOnce(jsonResponse({ success: true, title: 'Generated' }) as any)
+      .mockResolvedValueOnce(jsonResponse({
+        artifact_id: 'artifact-1',
+        content_type: 'text/plain',
+        size_bytes: 4,
+        sha256: 'abc',
+        url: 'https://api.windieos.com/api/artifacts/artifact-1',
+      }) as any);
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      sidecar: localRuntime,
+    });
+
+    const wakePromise = client.wakeUp({ agentId: 'facade-agent' });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const socket = FakeWebSocket.instances[0];
+    socket.emit('open', {});
+    const agent = await wakePromise;
+
+    await expect(agent.getSystemPrompt()).resolves.toMatchObject({ system_prompt: 'prompt' });
+    await expect(agent.listToolSchemas()).resolves.toMatchObject({
+      canonical_tool_schemas: [{ name: 'read_file' }],
+    });
+    await expect(agent.generateConversationTitle({
+      user_message: 'hello',
+      assistant_message: 'world',
+    })).resolves.toMatchObject({ title: 'Generated' });
+    await agent.uploadArtifact(new File(['note'], 'note.txt', { type: 'text/plain' }));
+    await agent.searchMemory('hello');
+    await agent.storeMemory({
+      userQuery: 'hello',
+      assistantResponse: 'world',
+      memoryType: 'semantic',
+    });
+    await agent.deleteMemory({ type: 'semantic', memoryId: 'mem-1' });
+    await agent.updateConversationTitle('conv-1', 'Manual title');
+    await agent.updateSystemPrompt('New prompt');
+    await agent.updateToolSchemas([{ name: 'read_file' }]);
+
+    expect(localRuntime.rpc).toHaveBeenCalledWith(expect.objectContaining({
+      method: 'search_memory',
+    }));
+    expect(localRuntime.rpc).toHaveBeenCalledWith(expect.objectContaining({
+      method: 'store_memory',
+    }));
+    expect(localRuntime.rpc).toHaveBeenCalledWith(expect.objectContaining({
+      method: 'delete_semantic_memory',
+    }));
+    expect(localRuntime.rpc).toHaveBeenCalledWith(expect.objectContaining({
+      method: 'update_conversation_title',
+    }));
+    expect(JSON.parse(socket.sent.at(-2) ?? '{}')).toMatchObject({
+      type: 'update-settings',
+      payload: {
+        system_prompt: {
+          mode: 'replace',
+          content: 'New prompt',
+        },
+      },
+    });
+    expect(JSON.parse(socket.sent.at(-1) ?? '{}')).toMatchObject({
+      type: 'update-settings',
+      payload: {
+        tools: {
+          mode: 'replace_client_manifest',
+        },
+      },
     });
   });
 
@@ -584,6 +705,47 @@ describe('WindieSdkClient', () => {
     expect((registerCall?.[1]?.headers as Headers).get('x-windie-sidecar-token')).toBe('daemon-token');
   });
 
+  test('wakeUp can expose desktop builtin tools from the sidecar manifest', async () => {
+    const localRuntime: WindieLocalRuntimeClient = {
+      status: jest.fn(async () => ({ status: 'ok' })),
+      listTools: jest.fn(async () => ({
+        version: 1,
+        tools: [
+          { name: 'read_file', schema: { type: 'object' } },
+          { name: 'run_shell_command', schema: { type: 'object' } },
+        ],
+      })),
+    };
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      sidecar: localRuntime,
+    });
+
+    const wakePromise = client.wakeUp({
+      agentId: 'builtin-agent',
+      ...windieBuiltins.desktop(),
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    FakeWebSocket.instances[0].emit('open', {});
+    await wakePromise;
+
+    expect(JSON.parse(FakeWebSocket.instances[0].sent[0])).toMatchObject({
+      type: 'handshake',
+      agent_definition: {
+        tools: {
+          client_manifest: {
+            tools: [
+              expect.objectContaining({ name: 'read_file' }),
+              expect.objectContaining({ name: 'run_shell_command' }),
+            ],
+          },
+        },
+      },
+    });
+  });
+
   test('wakeUp ensures a local runtime when module tools need sidecar execution', async () => {
     const localRuntime: WindieLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),
@@ -775,6 +937,70 @@ describe('WindieSdkClient', () => {
     ]);
     unsubscribe();
     expect(FakeWebSocket.instances[0].closed).toBe(true);
+  });
+
+  test('SidecarConversationStore routes conversation commands through sidecar rpc', async () => {
+    const rpc = jest.fn(async ({ method, params }) => {
+      if (method === 'list_chat_conversations') {
+        return {
+          success: true,
+          data: {
+            conversations: [
+              {
+                conversation_id: 'conv-sidecar',
+                revision_id: 'rev-1',
+                title: 'Sidecar',
+                last_message: 'hello',
+                last_timestamp: '2026-05-22T00:00:00.000Z',
+                entry_count: 1,
+              },
+            ],
+          },
+        };
+      }
+      if (method === 'get_chat_events') {
+        return {
+          success: true,
+          data: {
+            events: [
+              {
+                event_payload: {
+                  eventId: 'evt-1',
+                  type: 'user_message',
+                  conversationRef: params.conversation_id,
+                  revisionId: 'rev-1',
+                  timestamp: '2026-05-22T00:00:00.000Z',
+                  source: 'ui',
+                  payload: { text: 'hello' },
+                },
+              },
+            ],
+          },
+        };
+      }
+      return { success: true, data: {} };
+    });
+    const store = new SidecarConversationStore({
+      userId: 'user-1',
+      runtime: { rpc },
+    });
+
+    await expect(store.listMetadata()).resolves.toEqual([
+      expect.objectContaining({
+        conversationRef: 'conv-sidecar',
+        title: 'Sidecar',
+      }),
+    ]);
+    await expect(store.loadForDisplay('conv-sidecar')).resolves.toMatchObject({
+      messages: [
+        expect.objectContaining({ text: 'hello' }),
+      ],
+    });
+    await store.deleteConversation('conv-sidecar');
+
+    expect(rpc).toHaveBeenCalledWith(expect.objectContaining({
+      method: 'delete_chat_conversation',
+    }));
   });
 
   test('createWindieLocalRuntimeProvider can start the daemon through a launcher prefix', async () => {
@@ -1285,5 +1511,60 @@ describe('WindieSdkClient', () => {
     ]);
     await agent.deleteConversation('conv-runtime-public');
     await expect(agent.listConversations()).resolves.toEqual([]);
+  });
+
+  test('agent.chat exposes a UI-facing session facade', async () => {
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+    });
+
+    const wakePromise = client.wakeUp({
+      agentId: 'chat-session-agent',
+      systemPrompt: 'Use chat sessions.',
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const socket = FakeWebSocket.instances[0];
+    socket.emit('open', {});
+    const agent = await wakePromise;
+    const chat = agent.chat({ conversationRef: 'conv-chat-session' });
+    const events: unknown[] = [];
+    const unsubscribe = chat.onEvent((event) => events.push(event));
+
+    const iterator = chat.stream('hello chat');
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: {
+        type: 'start',
+        conversationRef: 'conv-chat-session',
+      },
+    });
+    socket.emit('message', {
+      data: JSON.stringify({
+        type: 'streaming-complete',
+        conversation_ref: 'conv-chat-session',
+        payload: { final_response: 'done' },
+      }),
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: {
+        type: 'complete',
+        finalResponse: 'done',
+      },
+    });
+
+    await expect(chat.display()).resolves.toMatchObject({
+      conversationRef: 'conv-chat-session',
+      messages: [
+        expect.objectContaining({ sender: 'user', text: 'hello chat' }),
+      ],
+    });
+    expect(events).toEqual(expect.arrayContaining([
+      expect.objectContaining({ type: 'user_message' }),
+      expect.objectContaining({ type: 'turn_completed' }),
+    ]));
+    unsubscribe();
+    chat.close();
   });
 });

@@ -4,6 +4,10 @@ import {
 } from '../settings/modelSelection.js';
 import type { JsonRecord } from '../conversation/types.js';
 import {
+  shouldIncludeBuiltinTool,
+  type WindieBuiltinToolSet,
+} from '../tools/builtins.js';
+import {
   createWindieAgentSession,
   createMessageId,
   type WebSocketConstructor,
@@ -37,6 +41,7 @@ export type WindieWakeUpOptions = {
   skills?: WindieSkillDefinition[];
   mcps?: WindieMcpDefinition[];
   plugins?: WindiePluginDefinition[];
+  builtinTools?: WindieBuiltinToolSet[];
   conversationRef?: string;
   agentId?: string;
   name?: string;
@@ -194,7 +199,8 @@ export class WindieClient {
     return Boolean(
       (options.tools ?? []).some(tool => Boolean(tool.module))
       || (options.plugins ?? []).length > 0
-      || (options.mcps ?? []).length > 0,
+      || (options.mcps ?? []).length > 0
+      || (options.builtinTools ?? []).length > 0,
     );
   }
 
@@ -219,10 +225,16 @@ export class WindieClient {
     }
     const manifest = await localRuntime.listTools?.();
     const registeredTools = Array.isArray(manifest?.tools) ? manifest.tools : [];
+    const builtinTools = (options.builtinTools ?? []).length > 0
+      ? registeredTools.filter(tool => (
+        typeof tool.name === 'string'
+        && shouldIncludeBuiltinTool(tool.name, options.builtinTools)
+      ))
+      : registeredTools;
     const explicitTools = (options.tools ?? [])
       .filter(tool => !tool.module)
       .map(tool => buildManifestTool(tool));
-    return [...registeredTools, ...explicitTools];
+    return [...builtinTools, ...explicitTools];
   }
 }
 
