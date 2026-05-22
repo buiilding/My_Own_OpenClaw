@@ -55,8 +55,9 @@ Single-tool path:
 - failed SDK tool results keep `success: false`, include `error`, and still carry a model-facing `data.llm_content` string when available
 - backend emits the accepted single-tool result back as `tool-output` with
   `display_content` for UI replay and `model_llm_content` for future model
-  rehydrate; SDK projections prefer this backend event over the earlier local
-  display event when both share the same request/tool-call identity
+  rehydrate. The legacy `output` field remains display-oriented for existing
+  stream consumers. SDK projections prefer this backend event over the earlier
+  local display event when both share the same request/tool-call identity.
 - backend waiting storage resolves the pending future for that request
 - processing cleanup removes resolved-call state for the request
 

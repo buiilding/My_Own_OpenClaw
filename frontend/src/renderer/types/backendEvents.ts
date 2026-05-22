@@ -103,6 +103,11 @@ export type ToolOutputEvent = BackendEventBase<'tool-output', {
   success?: boolean;
   execution_time?: number | null;
   output?: string;
+  display_content?: string;
+  model_llm_content?: string;
+  llm_content_original_tokens?: number | null;
+  llm_content_token_limit?: number | null;
+  llm_content_truncated?: boolean;
   error?: string | null;
   screenshot?: string | null;
   screenshot_ref?: string | null;

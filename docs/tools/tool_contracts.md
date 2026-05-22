@@ -76,6 +76,11 @@ Client-local schemas are merged with backend registry schemas before policy filt
 - `schema` is the developer-authored extension schema field; `function_tool_schema` is the backend-normalized model-facing shape.
 - `argument_resolution=passthrough` means model args should already be executable; `backend_grounding` means backend preparation may resolve higher-level intent first.
 - `request_id`, `bundle_id`, `tool_call_id`, and renderer `correlation_id` join different stages. Do not collapse them unless the producer and consumer really share the same domain.
+- Single-tool output events use `display_content` as the durable UI text and
+  `model_llm_content` as the durable model-facing replay text. Legacy local
+  fields such as `llm_content`, `return_display`, `output`, and `message` are
+  accepted only at local-result ingress and are normalized before storage or
+  rehydrate projection.
 - Backend remote tools can be model-visible without sidecar entries. Sidecar helpers can exist without model visibility.
 - Provider-native declarations can coexist with function schemas, but policy must still prevent disabled helper schemas from leaking back into the prompt.
 

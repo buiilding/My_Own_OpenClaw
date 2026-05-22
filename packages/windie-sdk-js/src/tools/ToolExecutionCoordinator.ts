@@ -10,6 +10,7 @@ import type {
   ToolResultPayload,
 } from '../conversation/types.js';
 import { resolveModelFacingToolCallId } from './toolCorrelationIds.js';
+import { normalizeLocalToolResultData } from './toolOutputContent.js';
 
 export type ToolExecutionCoordinatorOptions = {
   localRuntime?: Partial<Pick<LocalRuntime, 'executeTool'>> | null;
@@ -22,30 +23,6 @@ export type ToolClaimResult = {
   claimed: boolean;
   reason?: string;
 };
-
-function normalizeToolResultData(data: JsonRecord | undefined): JsonRecord {
-  if (!data || typeof data !== 'object' || Array.isArray(data)) {
-    return {};
-  }
-  const display = typeof data.display_content === 'string'
-    ? data.display_content
-    : (typeof data.return_display === 'string'
-      ? data.return_display
-      : (typeof data.output === 'string'
-        ? data.output
-        : (typeof data.message === 'string' ? data.message : '')));
-  if (typeof data.llm_content === 'string' && data.llm_content.trim()) {
-    return {
-      ...data,
-      display_content: display || data.llm_content,
-    };
-  }
-  return {
-    ...data,
-    display_content: display || JSON.stringify(data),
-    llm_content: display || JSON.stringify(data),
-  };
-}
 
 function failureResult(error: unknown): LocalToolResult {
   const message = errorMessage(error);
@@ -155,7 +132,7 @@ export class ToolExecutionCoordinator {
     const payload: ToolResultPayload = {
       request_id: call.requestId,
       success,
-      data: normalizeToolResultData(result.data),
+      data: normalizeLocalToolResultData(result.data),
       error: success ? undefined : result.error || 'Tool execution failed',
     };
     let deliveryError: unknown = null;
@@ -233,7 +210,7 @@ export class ToolExecutionCoordinator {
         ...(toolCallId ? { toolCallId } : {}),
         status: success ? 'ok' : 'error',
         output: success
-          ? normalizeToolResultData(result.data)
+          ? normalizeLocalToolResultData(result.data)
           : { error: result.error || 'Tool execution failed' },
       });
     }

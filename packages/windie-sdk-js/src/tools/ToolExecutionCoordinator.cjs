@@ -35,6 +35,45 @@ function resolveStringField(payload, keys) {
   return null;
 }
 
+const DISPLAY_FALLBACK_KEYS = ['return_display', 'output', 'message'];
+const MODEL_FALLBACK_KEYS = ['llm_content', 'output', 'message'];
+
+function normalizeLocalToolResultData(data) {
+  if (!isPlainObject(data)) {
+    if (typeof data === 'string') {
+      return {
+        output: data,
+        display_content: data,
+        llm_content: data,
+      };
+    }
+    return data === null || typeof data === 'undefined' ? {} : { output: data };
+  }
+  const displayContent = resolveStringField(data, ['display_content'])
+    ?? resolveStringField(data, DISPLAY_FALLBACK_KEYS)
+    ?? resolveStringField(data, ['llm_content'])
+    ?? JSON.stringify(data);
+  const llmContent = resolveStringField(data, ['llm_content']) ?? displayContent;
+  return {
+    ...data,
+    display_content: displayContent,
+    llm_content: llmContent,
+  };
+}
+
+function readToolOutputDisplayText(data) {
+  if (!isPlainObject(data)) {
+    if (typeof data === 'string' && data.trim()) {
+      return data;
+    }
+    return data !== null && typeof data !== 'undefined' ? JSON.stringify(data) : null;
+  }
+  return resolveStringField(data, ['display_content'])
+    ?? resolveStringField(data, DISPLAY_FALLBACK_KEYS)
+    ?? resolveStringField(data, MODEL_FALLBACK_KEYS)
+    ?? JSON.stringify(data);
+}
+
 function resolveModelFacingToolCallId(payload) {
   const toolCall = payload?.metadata?.model_facing_tool_call;
   return isPlainObject(toolCall) && typeof toolCall.id === 'string' && toolCall.id.trim()
@@ -85,64 +124,14 @@ function markRendererToolEventDisplayOnly(event) {
   return nextEvent;
 }
 
-function normalizeToolResultData(data) {
-  if (isPlainObject(data)) {
-    const displayContent = (
-      typeof data.display_content === 'string'
-        ? data.display_content
-        : (typeof data.return_display === 'string'
-          ? data.return_display
-          : (typeof data.output === 'string'
-            ? data.output
-            : (typeof data.message === 'string' ? data.message : '')))
-    );
-    if (typeof data.llm_content === 'string' && data.llm_content.trim()) {
-      return {
-        ...data,
-        display_content: displayContent || data.llm_content,
-      };
-    }
-    const fallbackContent = displayContent || JSON.stringify(data);
-    return {
-      ...data,
-      display_content: fallbackContent,
-      llm_content: fallbackContent,
-    };
-  }
-  if (typeof data === 'string') {
-    return {
-      output: data,
-      display_content: data,
-      llm_content: data,
-    };
-  }
-  if (data === null || typeof data === 'undefined') {
-    return {};
-  }
-  return {
-    output: data,
-  };
-}
-
 function resolveToolOutputDisplayText(payload) {
   const data = payload?.data;
   if (payload?.success === false && typeof payload?.error === 'string' && payload.error.trim()) {
     return `Error: ${payload.error}`;
   }
-  if (isPlainObject(data)) {
-    for (const key of ['display_content', 'return_display', 'output', 'message', 'llm_content', 'model_llm_content']) {
-      const value = data[key];
-      if (typeof value === 'string' && value.trim()) {
-        return value;
-      }
-    }
-    return JSON.stringify(data);
-  }
-  if (typeof data === 'string' && data.trim()) {
-    return data;
-  }
-  if (data !== null && typeof data !== 'undefined') {
-    return JSON.stringify(data);
+  const displayText = readToolOutputDisplayText(data);
+  if (displayText) {
+    return displayText;
   }
   return payload?.success === false ? 'Tool execution failed' : 'No output';
 }
@@ -191,13 +180,7 @@ function resolveStepOutputText(step) {
     return `Error: ${error}`;
   }
   if (isPlainObject(output)) {
-    for (const key of ['display_content', 'return_display', 'output', 'message', 'llm_content', 'model_llm_content']) {
-      const value = output[key];
-      if (typeof value === 'string' && value.trim()) {
-        return value;
-      }
-    }
-    return JSON.stringify(output);
+    return readToolOutputDisplayText(output);
   }
   if (typeof output === 'string' && output.trim()) {
     return output;
@@ -258,8 +241,8 @@ function buildToolResultPayload({ requestId, result }) {
     request_id: requestId,
     success,
     data: success
-      ? normalizeToolResultData(result?.data)
-      : normalizeToolResultData(result?.data || { output: error }),
+      ? normalizeLocalToolResultData(result?.data)
+      : normalizeLocalToolResultData(result?.data || { output: error }),
     error: success ? undefined : error,
   };
 }
@@ -295,7 +278,7 @@ async function routeToolCallToLocalRuntime(event, deps) {
       request_id: requestId,
       success: false,
       error: error?.message || String(error),
-      data: normalizeToolResultData({ output: error?.message || String(error) }),
+      data: normalizeLocalToolResultData({ output: error?.message || String(error) }),
     };
     deps.sendToolResult(payload);
     deps.onToolOutput?.(buildRendererToolOutputEvent(event, payload, startedAt));
@@ -338,7 +321,7 @@ async function routeToolBundleToLocalRuntime(event, deps) {
         ...(toolCallId ? { toolCallId } : {}),
         status: success ? 'ok' : 'error',
         output: success
-          ? (isPlainObject(result?.data) ? result.data : normalizeToolResultData(result?.data))
+          ? normalizeLocalToolResultData(result?.data)
           : { error: result?.error || 'Tool execution failed' },
       });
     } catch (error) {

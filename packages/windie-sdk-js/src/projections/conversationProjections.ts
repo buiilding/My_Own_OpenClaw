@@ -12,6 +12,12 @@ import {
   resolveToolOutputDedupeKey,
   resolveToolPairKeys,
 } from '../tools/toolCorrelationIds.js';
+import {
+  readBundleStepModelContent,
+  readToolOutputContent,
+  recordFromUnknown,
+  stringField,
+} from '../tools/toolOutputContent.js';
 
 function textFromPayload(payload: JsonRecord): string {
   if (typeof payload.text === 'string') {
@@ -32,70 +38,12 @@ function textFromPayload(payload: JsonRecord): string {
   return '';
 }
 
-function nestedResultFromPayload(payload: JsonRecord): JsonRecord | null {
-  return recordFromUnknown(payload.result);
-}
-
 function displayTextFromPayload(payload: JsonRecord): string {
-  const nestedResult = nestedResultFromPayload(payload);
-  const direct = stringField(
-    payload,
-    'display_content',
-    'displayContent',
-    'return_display',
-    'returnDisplay',
-    'output',
-    'message',
-  );
-  if (direct) {
-    return direct;
-  }
-  if (nestedResult) {
-    const nested = stringField(
-      nestedResult,
-      'display_content',
-      'displayContent',
-      'return_display',
-      'returnDisplay',
-      'output',
-      'message',
-      'llm_content',
-      'model_llm_content',
-    );
-    if (nested) {
-      return nested;
-    }
-  }
-  return textFromPayload(payload);
+  return readToolOutputContent(payload).displayContent;
 }
 
 function modelTextFromPayload(payload: JsonRecord): string {
-  const nestedResult = nestedResultFromPayload(payload);
-  const direct = stringField(
-    payload,
-    'model_llm_content',
-    'modelLlmContent',
-    'llm_content',
-    'output',
-    'message',
-  );
-  if (direct) {
-    return direct;
-  }
-  if (nestedResult) {
-    const nested = stringField(
-      nestedResult,
-      'model_llm_content',
-      'modelLlmContent',
-      'llm_content',
-      'output',
-      'message',
-    );
-    if (nested) {
-      return nested;
-    }
-  }
-  return textFromPayload(payload);
+  return readToolOutputContent(payload).modelContent;
 }
 
 function contentFromPayload(payload: JsonRecord): string {
@@ -116,16 +64,6 @@ function toolNameFromPayload(payload: JsonRecord): string | null {
   }
   if (typeof payload.tool_name === 'string') {
     return payload.tool_name;
-  }
-  return null;
-}
-
-function stringField(payload: JsonRecord, ...keys: string[]): string | null {
-  for (const key of keys) {
-    const value = payload[key];
-    if (typeof value === 'string' && value.trim()) {
-      return value;
-    }
   }
   return null;
 }
@@ -157,12 +95,6 @@ function isToolCallEvent(event: ConversationEvent): boolean {
 
 function isToolOutputEvent(event: ConversationEvent): boolean {
   return event.type === 'tool_output' || event.type === 'tool_bundle_output';
-}
-
-function recordFromUnknown(value: unknown): JsonRecord | null {
-  return value && typeof value === 'object' && !Array.isArray(value)
-    ? value as JsonRecord
-    : null;
 }
 
 function toolCallsFromPayload(payload: JsonRecord): unknown[] | null {
@@ -219,19 +151,7 @@ function stepOutputContent(step: JsonRecord): string {
   }
   const outputRecord = recordFromUnknown(output);
   if (outputRecord) {
-    if (typeof outputRecord.model_llm_content === 'string') {
-      return outputRecord.model_llm_content;
-    }
-    if (typeof outputRecord.llm_content === 'string') {
-      return outputRecord.llm_content;
-    }
-    if (typeof outputRecord.return_display === 'string') {
-      return outputRecord.return_display;
-    }
-    if (typeof outputRecord.output === 'string') {
-      return outputRecord.output;
-    }
-    return JSON.stringify(outputRecord);
+    return readBundleStepModelContent({ output: outputRecord });
   }
   return JSON.stringify(step);
 }
@@ -293,8 +213,8 @@ function bundleOutputMessages(event: ConversationEvent): JsonRecord[] {
 function withoutDuplicateToolOutputs(events: ConversationEvent[]): ConversationEvent[] {
   const preferredOutputs = new Map<string, ConversationEvent>();
   const prefers = (candidate: ConversationEvent, current: ConversationEvent): boolean => {
-    const candidateHasModelContent = Boolean(modelTextFromPayload(candidate.payload));
-    const currentHasModelContent = Boolean(modelTextFromPayload(current.payload));
+    const candidateHasModelContent = readToolOutputContent(candidate.payload).hasModelContent;
+    const currentHasModelContent = readToolOutputContent(current.payload).hasModelContent;
     if (candidate.source === 'backend' && current.source !== 'backend') {
       return true;
     }
