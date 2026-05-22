@@ -175,6 +175,11 @@ Before finishing, verify:
 - you removed at least as much complexity as you added
 
 In the final summary, briefly note any meaningful refactor performed and any important debt intentionally left behind.
+For every completed fix or behavior change, explain:
+
+- how you implemented it
+- what the previous behavior was
+- what the current behavior is after the fix
 
 ## Documentation
 
