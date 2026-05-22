@@ -547,6 +547,10 @@ For a minimal non-Electron consumer, see `examples/cli-agent`. It uses
 `WindieClient.wakeUp`, `agent.conversation`, `FileConversationStore`, and
 `conversation.stream()` against a mock websocket backend.
 
+For the simplest interactive chat script against the remote backend, see
+`examples/simple-chat-cli`. It wakes an agent, creates `agent.chat(...)`, reads
+terminal input, and streams assistant text to stdout.
+
 The frontend SDK test suite includes a mock-backend end-to-end contract that
 starts `scripts/mock-backend.cjs`, wakes `WindieClient`, registers a module tool
 through a fake local runtime, streams a turn, returns the local tool result over

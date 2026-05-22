@@ -93,6 +93,8 @@ pieces exported from this package:
 Runnable repo examples:
 
 - `examples/cli-agent`: minimal Node conversation runtime.
+- `examples/simple-chat-cli`: interactive remote-backend CLI using
+  `agent.chat(...)`.
 - `examples/custom-ui`: browser UI projection demo.
 - `examples/local-tool-extension`: sidecar module-tool registration with
   `moduleTool(...)`.
