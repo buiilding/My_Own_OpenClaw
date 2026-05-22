@@ -110,10 +110,13 @@ Developer live logs from your local checkout:
 WINDIE_BACKEND_SSH_HOST=windie-prod scripts/dev/backend-logs
 scripts/dev/backend-logs --service tunnel
 scripts/dev/backend-logs --service both --tail 500
+scripts/dev/backend-logs --scope user --service both
 ```
 
 `scripts/dev/backend-logs` is intentionally SSH-only and allowlists the backend
-and Cloudflare Tunnel user services. Do not expose live backend logs through a
+and Cloudflare Tunnel services. It defaults to system services for the hosted
+DigitalOcean droplet and supports `--scope user` for the user-service runbook
+setup. Do not expose live backend logs through a
 WindieOS HTTP or WebSocket route.
 
 If hosted clients still see intermittent `502` errors, compare tunnel logs with the backend memory-route ingress logs for `/api/embeddings`, `/api/semantic/summarize`, and `/api/semantic/title`:

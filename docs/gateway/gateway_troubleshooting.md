@@ -62,8 +62,9 @@ Developer-only live log helper:
 WINDIE_BACKEND_SSH_HOST=windie-prod scripts/dev/backend-logs --service both
 ```
 
-Keep live log viewing behind SSH developer access. Do not expose these streams
-through hosted client APIs.
+The helper defaults to system services for the hosted DigitalOcean droplet and
+supports `--scope user` for user-service installs. Keep live log viewing behind
+SSH developer access. Do not expose these streams through hosted client APIs.
 
 ## Endpoint Resolution
 

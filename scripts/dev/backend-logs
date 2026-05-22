@@ -13,6 +13,7 @@ Usage:
 
 Options:
   --service NAME     Log stream to view: backend, tunnel, or both (default: backend)
+  --scope NAME       systemd scope: system or user (default: system)
   --tail N          Number of existing log lines to show before following (default: 200)
   --no-follow       Print the recent logs and exit
   --host HOST       SSH host/user override. Defaults to WINDIE_BACKEND_SSH_HOST.
@@ -22,15 +23,18 @@ Examples:
   WINDIE_BACKEND_SSH_HOST=windie-prod scripts/dev/backend-logs
   scripts/dev/backend-logs --host windie-prod --service both --tail 500
   scripts/dev/backend-logs --service tunnel --no-follow
+  scripts/dev/backend-logs --scope user --service backend
 
 Allowed remote systemd units:
-  backend -> windieos-backend.service
-  tunnel  -> windieos-cloudflared.service
-  both    -> windieos-backend.service + windieos-cloudflared.service
+  system/backend -> windieos-backend.service
+  system/tunnel  -> cloudflared-windieos.service
+  user/backend   -> windieos-backend.service
+  user/tunnel    -> windieos-cloudflared.service
 EOF
 }
 
 SERVICE="backend"
+SCOPE="system"
 TAIL_LINES="200"
 FOLLOW=1
 SSH_HOST="${WINDIE_BACKEND_SSH_HOST:-}"
@@ -49,6 +53,11 @@ while [[ $# -gt 0 ]]; do
     --service)
       require_value "$1" "${2:-}"
       SERVICE="${2:-}"
+      shift 2
+      ;;
+    --scope)
+      require_value "$1" "${2:-}"
+      SCOPE="${2:-}"
       shift 2
       ;;
     --tail)
@@ -93,15 +102,33 @@ if ! [[ "$TAIL_LINES" =~ ^[0-9]+$ ]] || [[ "$TAIL_LINES" -eq 0 ]]; then
   exit 1
 fi
 
-JOURNAL_ARGS=(journalctl --user)
-case "$SERVICE" in
-  backend)
+JOURNAL_ARGS=(journalctl)
+case "$SCOPE" in
+  system)
+    ;;
+  user)
+    JOURNAL_ARGS+=(--user)
+    ;;
+  *)
+    echo "--scope must be one of: system, user" >&2
+    exit 1
+    ;;
+esac
+
+case "${SCOPE}:${SERVICE}" in
+  system:backend|user:backend)
     JOURNAL_ARGS+=(-u windieos-backend.service)
     ;;
-  tunnel)
+  system:tunnel)
+    JOURNAL_ARGS+=(-u cloudflared-windieos.service)
+    ;;
+  user:tunnel)
     JOURNAL_ARGS+=(-u windieos-cloudflared.service)
     ;;
-  both)
+  system:both)
+    JOURNAL_ARGS+=(-u windieos-backend.service -u cloudflared-windieos.service)
+    ;;
+  user:both)
     JOURNAL_ARGS+=(-u windieos-backend.service -u windieos-cloudflared.service)
     ;;
   *)
