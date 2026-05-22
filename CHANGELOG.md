@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- ops: add an SSH-only developer backend log helper with allowlisted backend and Cloudflare Tunnel service streams.
 - docs: require final fix reports to include implementation approach, previous behavior, and behavior after the fix.
 - frontend/chat: hide the main-list awaiting typing dots as soon as current-turn thinking text makes the `Show thinking` disclosure eligible.
 - frontend/sidecar: treat remote embedding request timeouts as embedding-service unavailable so memory startup skips vector backfill instead of failing initialization.

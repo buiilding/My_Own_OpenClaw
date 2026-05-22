@@ -19,6 +19,7 @@ frontend/python-runtime.no-browsers.tar.gz
 
 # Environment variables
 .env
+.env.local
 
 # Logs
 *.log

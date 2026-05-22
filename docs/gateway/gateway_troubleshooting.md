@@ -56,6 +56,15 @@ journalctl --user -u windieos-backend.service -n 100 --no-pager
 journalctl --user -u windieos-cloudflared.service -n 100 --no-pager
 ```
 
+Developer-only live log helper:
+
+```bash
+WINDIE_BACKEND_SSH_HOST=windie-prod scripts/dev/backend-logs --service both
+```
+
+Keep live log viewing behind SSH developer access. Do not expose these streams
+through hosted client APIs.
+
 ## Endpoint Resolution
 
 Electron main chooses backend endpoints using env overrides first, then hosted defaults.

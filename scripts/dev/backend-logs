@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+View live WindieOS backend host logs over SSH.
+
+This is a developer/operator helper. It does not expose logs through a
+WindieOS HTTP/WebSocket API; access remains controlled by SSH.
+
+Usage:
+  scripts/dev/backend-logs [options]
+
+Options:
+  --service NAME     Log stream to view: backend, tunnel, or both (default: backend)
+  --tail N          Number of existing log lines to show before following (default: 200)
+  --no-follow       Print the recent logs and exit
+  --host HOST       SSH host/user override. Defaults to WINDIE_BACKEND_SSH_HOST.
+  -h, --help        Show this help
+
+Examples:
+  WINDIE_BACKEND_SSH_HOST=windie-prod scripts/dev/backend-logs
+  scripts/dev/backend-logs --host windie-prod --service both --tail 500
+  scripts/dev/backend-logs --service tunnel --no-follow
+
+Allowed remote systemd units:
+  backend -> windieos-backend.service
+  tunnel  -> windieos-cloudflared.service
+  both    -> windieos-backend.service + windieos-cloudflared.service
+EOF
+}
+
+SERVICE="backend"
+TAIL_LINES="200"
+FOLLOW=1
+SSH_HOST="${WINDIE_BACKEND_SSH_HOST:-}"
+
+require_value() {
+  local option="$1"
+  local value="${2:-}"
+  if [[ -z "$value" || "$value" == --* ]]; then
+    echo "${option} requires a value" >&2
+    exit 1
+  fi
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --service)
+      require_value "$1" "${2:-}"
+      SERVICE="${2:-}"
+      shift 2
+      ;;
+    --tail)
+      require_value "$1" "${2:-}"
+      TAIL_LINES="${2:-}"
+      shift 2
+      ;;
+    --no-follow)
+      FOLLOW=0
+      shift
+      ;;
+    --host)
+      require_value "$1" "${2:-}"
+      SSH_HOST="${2:-}"
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown argument: $1" >&2
+      usage >&2
+      exit 1
+      ;;
+  esac
+done
+
+if [[ -z "$SSH_HOST" ]]; then
+  cat >&2 <<'EOF'
+Missing backend SSH host.
+
+Set WINDIE_BACKEND_SSH_HOST or pass --host:
+  WINDIE_BACKEND_SSH_HOST=windie-prod scripts/dev/backend-logs
+  scripts/dev/backend-logs --host user@example.com
+EOF
+  exit 1
+fi
+
+if ! [[ "$TAIL_LINES" =~ ^[0-9]+$ ]] || [[ "$TAIL_LINES" -eq 0 ]]; then
+  echo "--tail must be a positive integer" >&2
+  exit 1
+fi
+
+JOURNAL_ARGS=(journalctl --user)
+case "$SERVICE" in
+  backend)
+    JOURNAL_ARGS+=(-u windieos-backend.service)
+    ;;
+  tunnel)
+    JOURNAL_ARGS+=(-u windieos-cloudflared.service)
+    ;;
+  both)
+    JOURNAL_ARGS+=(-u windieos-backend.service -u windieos-cloudflared.service)
+    ;;
+  *)
+    echo "--service must be one of: backend, tunnel, both" >&2
+    exit 1
+    ;;
+esac
+
+JOURNAL_ARGS+=(-n "$TAIL_LINES" --no-pager)
+if ((FOLLOW)); then
+  JOURNAL_ARGS+=(-f)
+fi
+
+exec ssh -- "$SSH_HOST" "${JOURNAL_ARGS[@]}"
