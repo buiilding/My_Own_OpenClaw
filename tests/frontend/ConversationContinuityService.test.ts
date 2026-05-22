@@ -23,6 +23,78 @@ function createStore(overrides: Partial<ConversationStore> = {}) {
 }
 
 describe('ConversationContinuityService', () => {
+  test('searchMetadata delegates to store adapter search when available', async () => {
+    const store = {
+      ...createStore(),
+      searchMetadata: jest.fn().mockResolvedValue([
+        {
+          conversationRef: 'conv-match',
+          revisionId: 'rev-1',
+          title: 'Match',
+          lastMessage: 'hello',
+          updatedAt: '2026-05-22T00:00:00.000Z',
+          eventCount: 2,
+        },
+      ]),
+    };
+    const service = new ConversationContinuityService({
+      storeFactory: () => store,
+    });
+
+    await expect(service.searchMetadata({
+      userId: 'user-1',
+    }, {
+      query: 'match',
+      limit: 5,
+    })).resolves.toEqual([
+      expect.objectContaining({
+        conversationRef: 'conv-match',
+      }),
+    ]);
+
+    expect(store.searchMetadata).toHaveBeenCalledWith({
+      query: 'match',
+      limit: 5,
+    });
+    expect(store.listMetadata).not.toHaveBeenCalled();
+  });
+
+  test('searchMetadata filters listMetadata when store adapter has no native search', async () => {
+    const store = createStore({
+      listMetadata: jest.fn().mockResolvedValue([
+        {
+          conversationRef: 'conv-alpha',
+          revisionId: 'rev-1',
+          title: 'Alpha plan',
+          lastMessage: 'first',
+          updatedAt: '2026-05-22T00:00:00.000Z',
+          eventCount: 2,
+        },
+        {
+          conversationRef: 'conv-beta',
+          revisionId: 'rev-2',
+          title: 'Beta',
+          lastMessage: 'needle in last message',
+          updatedAt: '2026-05-21T00:00:00.000Z',
+          eventCount: 2,
+        },
+      ]),
+    });
+    const service = new ConversationContinuityService({
+      storeFactory: () => store,
+    });
+
+    await expect(service.searchMetadata({
+      userId: 'user-1',
+    }, {
+      query: 'needle',
+    })).resolves.toEqual([
+      expect.objectContaining({
+        conversationRef: 'conv-beta',
+      }),
+    ]);
+  });
+
   test('rehydrateFromStore builds provider-safe backend payload from store projection', async () => {
     const store = createStore({
       loadForRehydrate: jest.fn().mockResolvedValue({

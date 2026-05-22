@@ -1275,5 +1275,15 @@ describe('WindieSdkClient', () => {
         ],
       },
     });
+    await expect(agent.searchConversations({
+      query: 'hello',
+    })).resolves.toEqual([
+      expect.objectContaining({
+        conversationRef: 'conv-runtime-public',
+        lastMessage: 'hello runtime',
+      }),
+    ]);
+    await agent.deleteConversation('conv-runtime-public');
+    await expect(agent.listConversations()).resolves.toEqual([]);
   });
 });

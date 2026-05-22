@@ -5,7 +5,9 @@ import type {
   ConversationStore,
   JsonRecord,
   ListConversationOptions,
+  SearchConversationOptions,
 } from '../conversation/types.js';
+import { searchConversationMetadata } from '../conversation/metadata.js';
 import {
   createWindieAgentBackendTransport,
   type WindieAgentQueryInput,
@@ -187,6 +189,31 @@ export class WindieAgent {
   } = {}): Promise<ConversationMetadata[]> {
     const { store, ...listOptions } = options;
     return (store ?? this.defaultConversationStore).listMetadata(listOptions);
+  }
+
+  async searchConversations(options: SearchConversationOptions & {
+    store?: ConversationStore;
+  }): Promise<ConversationMetadata[]> {
+    const { store, ...searchOptions } = options;
+    const conversationStore = store ?? this.defaultConversationStore;
+    if (typeof conversationStore.searchMetadata === 'function') {
+      return conversationStore.searchMetadata(searchOptions);
+    }
+    return searchConversationMetadata(await conversationStore.listMetadata(), searchOptions);
+  }
+
+  async deleteConversation(options: string | {
+    conversationRef: string;
+    store?: ConversationStore;
+  }): Promise<void> {
+    const deleteOptions = typeof options === 'string'
+      ? { conversationRef: options }
+      : options;
+    const conversationStore = deleteOptions.store ?? this.defaultConversationStore;
+    if (typeof conversationStore.deleteConversation !== 'function') {
+      throw new Error('deleteConversation requires a deletable conversation store');
+    }
+    await conversationStore.deleteConversation(deleteOptions.conversationRef);
   }
 
   async loadConversation(

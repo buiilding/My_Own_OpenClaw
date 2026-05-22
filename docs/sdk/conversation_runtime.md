@@ -204,13 +204,17 @@ display, rehydrate, tool execution, and compaction behavior should consume
 normalized conversation events.
 
 Startup surfaces should load metadata before full logs. Use
-`agent.listConversations({ limit?, cursor? })` for a conversation list, then
-`agent.loadConversation(conversationRef)` when a row is opened. The `cursor`
-value is the last `conversationRef` from the previous page; stores return
-metadata after that row in the same newest-first order. The string shorthand
-returns the same projected snapshot as the object form; use
+`agent.listConversations({ limit?, cursor? })` for a conversation list,
+`agent.searchConversations({ query, limit?, cursor? })` for filtered metadata,
+then `agent.loadConversation(conversationRef)` when a row is opened. The
+`cursor` value is the last `conversationRef` from the previous page; stores
+return metadata after that row in the same newest-first order. The string
+shorthand returns the same projected snapshot as the object form; use
 `agent.loadConversation({ conversationRef, store, revisionId })` only when a
-host needs a non-default store adapter or revision seed.
+host needs a non-default store adapter or revision seed. Deletion should go
+through `agent.deleteConversation(conversationRef)` or the continuity service
+so store adapters, Electron, CLI, and custom UIs share one library command
+surface.
 
 Backend events must carry `conversation_ref` or `turn_ref` to enter a
 conversation runtime. The runtime drops ambiguous packets and ignores packets

@@ -8,7 +8,12 @@ import type {
   DisplayConversation,
   ListConversationOptions,
   RehydrateSnapshot,
+  SearchConversationOptions,
 } from '../conversation/types.js';
+import {
+  applyConversationMetadataPagination,
+  searchConversationMetadata,
+} from '../conversation/metadata.js';
 import {
   buildDisplayConversation,
   buildRehydrateSnapshot,
@@ -34,17 +39,6 @@ function eventText(event: ConversationEvent | undefined): string | null {
     return event.payload.content;
   }
   return null;
-}
-
-function applyMetadataPagination<T extends { conversationRef: string }>(
-  metadata: T[],
-  options: ListConversationOptions,
-): T[] {
-  const cursorIndex = typeof options.cursor === 'string'
-    ? metadata.findIndex(entry => entry.conversationRef === options.cursor)
-    : -1;
-  const afterCursor = cursorIndex >= 0 ? metadata.slice(cursorIndex + 1) : metadata;
-  return typeof options.limit === 'number' ? afterCursor.slice(0, options.limit) : afterCursor;
 }
 
 export class InMemoryConversationStore implements ConversationStore {
@@ -138,7 +132,18 @@ export class InMemoryConversationStore implements ConversationStore {
         eventCount: events.length,
       };
     }).sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
-    return applyMetadataPagination(metadata, options);
+    return applyConversationMetadataPagination(metadata, options);
+  }
+
+  async searchMetadata(options: SearchConversationOptions): Promise<ConversationMetadata[]> {
+    return searchConversationMetadata(await this.listMetadata(), options);
+  }
+
+  async deleteConversation(conversationRef: string): Promise<void> {
+    this.eventsByConversation.delete(conversationRef);
+    this.eventIdsByConversation.delete(conversationRef);
+    this.revisionsByConversation.delete(conversationRef);
+    this.replayByConversation.delete(conversationRef);
   }
 
   async getRevision(conversationRef: string): Promise<ConversationRevision> {

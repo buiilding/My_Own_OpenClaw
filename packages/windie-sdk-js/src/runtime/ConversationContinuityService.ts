@@ -8,9 +8,12 @@ import type {
   ListConversationOptions,
   RehydratePayload,
   RehydrateSnapshot,
+  SearchConversationOptions,
 } from '../conversation/types.js';
+import { searchConversationMetadata } from '../conversation/metadata.js';
 
 type DeletableConversationStore = ConversationStore & {
+  searchMetadata?: (options: SearchConversationOptions) => Promise<ConversationMetadata[]>;
   deleteConversation?: (conversationRef: string) => Promise<void>;
 };
 
@@ -84,6 +87,17 @@ export class ConversationContinuityService {
     options?: ListConversationOptions,
   ): Promise<ConversationMetadata[]> {
     return this.storeFor(input).listMetadata(options);
+  }
+
+  async searchMetadata(
+    input: ConversationUserInput,
+    options: SearchConversationOptions,
+  ): Promise<ConversationMetadata[]> {
+    const store = this.storeFor(input);
+    if (typeof store.searchMetadata === 'function') {
+      return store.searchMetadata(options);
+    }
+    return searchConversationMetadata(await store.listMetadata(), options);
   }
 
   async loadForDisplay(input: ConversationRefInput): Promise<DisplayConversation> {

@@ -92,6 +92,10 @@ export type ListConversationOptions = {
   cursor?: string;
 };
 
+export type SearchConversationOptions = ListConversationOptions & {
+  query: string;
+};
+
 export type DisplayMessage = {
   id: string;
   conversationRef: string;
@@ -252,6 +256,8 @@ export interface ConversationStore {
   loadForDisplay(conversationRef: string): Promise<DisplayConversation>;
   loadForRehydrate(conversationRef: string): Promise<RehydrateSnapshot>;
   listMetadata(options?: ListConversationOptions): Promise<ConversationMetadata[]>;
+  searchMetadata?(options: SearchConversationOptions): Promise<ConversationMetadata[]>;
+  deleteConversation?(conversationRef: string): Promise<void>;
   getRevision(conversationRef: string): Promise<ConversationRevision>;
   loadCompactedReplay?(conversationRef: string): Promise<CompactedReplaySnapshot | null>;
 }

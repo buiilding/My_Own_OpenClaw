@@ -8,7 +8,12 @@ import type {
   DisplayConversation,
   ListConversationOptions,
   RehydrateSnapshot,
+  SearchConversationOptions,
 } from '../conversation/types.js';
+import {
+  applyConversationMetadataPagination,
+  searchConversationMetadata,
+} from '../conversation/metadata.js';
 import {
   buildDisplayConversation,
   buildRehydrateSnapshot,
@@ -20,6 +25,7 @@ type NodeFsPromisesLike = {
   writeFile(path: string, content: string, encoding: string): Promise<void>;
   rename(oldPath: string, newPath: string): Promise<void>;
   readdir(path: string): Promise<string[]>;
+  unlink(path: string): Promise<void>;
 };
 
 type NodePathLike = {
@@ -102,17 +108,6 @@ function buildRevision(conversationRef: string, events: ConversationEvent[]): Co
     revisionId: lastEvent?.revisionId ?? 'rev-empty',
     updatedAt: lastEvent?.timestamp ?? new Date(0).toISOString(),
   };
-}
-
-function applyMetadataPagination<T extends { conversationRef: string }>(
-  metadata: T[],
-  options: ListConversationOptions,
-): T[] {
-  const cursorIndex = typeof options.cursor === 'string'
-    ? metadata.findIndex(entry => entry.conversationRef === options.cursor)
-    : -1;
-  const afterCursor = cursorIndex >= 0 ? metadata.slice(cursorIndex + 1) : metadata;
-  return typeof options.limit === 'number' ? afterCursor.slice(0, options.limit) : afterCursor;
 }
 
 function normalizeStoredFile(conversationRef: string, raw: unknown): StoredConversationFile {
@@ -256,7 +251,23 @@ export class FileConversationStore implements ConversationStore {
       });
     }
     const sorted = metadata.sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
-    return applyMetadataPagination(sorted, options);
+    return applyConversationMetadataPagination(sorted, options);
+  }
+
+  async searchMetadata(options: SearchConversationOptions): Promise<ConversationMetadata[]> {
+    return searchConversationMetadata(await this.listMetadata(), options);
+  }
+
+  async deleteConversation(conversationRef: string): Promise<void> {
+    const { fs } = await this.modules();
+    try {
+      await fs.unlink(await this.filePath(conversationRef));
+    } catch (error) {
+      const code = (error as { code?: string })?.code;
+      if (code !== 'ENOENT') {
+        throw error;
+      }
+    }
   }
 
   async getRevision(conversationRef: string): Promise<ConversationRevision> {
