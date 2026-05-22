@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/runtime: include the SDK agent definition on backend query messages so per-agent system prompt overrides apply deterministically.
 - sdk/examples: make the simple chat CLI work against the hosted backend by registering install auth, sending bearer headers, keeping MCPs out of the backend handshake, and routing streamed responses by conversation.
 - sdk/runtime: add the phase-one chat session facade, builtin desktop tool selection, sidecar conversation store, memory/title/prompt/tool-schema helpers, and artifact fetch/upload helpers.
 - backend/sdk: canonicalize model-facing tool outputs with backend-owned truncation while preserving full display content for stored chat replay.

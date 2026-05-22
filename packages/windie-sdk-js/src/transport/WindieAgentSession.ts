@@ -32,6 +32,7 @@ export type WindieAgentSessionOptions = {
 export type WindieAgentQueryInput = {
   text: string;
   conversationRef: string;
+  agentDefinition?: JsonRecord;
   content?: string | null;
   screenshot?: string | null;
   screenshotRef?: string | null;
@@ -239,6 +240,7 @@ export class WindieAgentSession {
     return this.sendBackendMessage('query', {
       text: payload.text,
       conversation_ref: payload.conversationRef,
+      agent_definition: payload.agentDefinition,
       content: payload.content ?? undefined,
       screenshot: payload.screenshot ?? undefined,
       screenshot_ref: payload.screenshotRef ?? undefined,
@@ -323,6 +325,7 @@ export class WindieAgentSession {
 export function createWindieAgentBackendTransport(
   session: WindieAgentSession,
   conversationRef: string,
+  agentDefinition?: JsonRecord,
 ): BackendTransport {
   return {
     connect: async () => session.waitForOpen(),
@@ -332,6 +335,7 @@ export function createWindieAgentBackendTransport(
       conversationRef: typeof payload.conversation_ref === 'string'
         ? payload.conversation_ref
         : conversationRef,
+      agentDefinition,
       turnRef: typeof payload.turn_ref === 'string' ? payload.turn_ref : null,
       content: typeof payload.content === 'string' ? payload.content : null,
       screenshot: typeof payload.screenshot === 'string' ? payload.screenshot : null,

@@ -171,7 +171,7 @@ export class WindieAgent {
       conversationRef,
       revisionId: options.revisionId,
       store: options.store ?? this.defaultConversationStore,
-      transport: createWindieAgentBackendTransport(this.session, conversationRef),
+      transport: createWindieAgentBackendTransport(this.session, conversationRef, this.agentDefinition),
       localRuntime: options.localRuntime === undefined ? this.localRuntime : options.localRuntime,
     });
     runtime.attachTransport();

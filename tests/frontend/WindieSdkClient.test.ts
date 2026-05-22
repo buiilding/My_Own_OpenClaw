@@ -673,6 +673,42 @@ describe('WindieSdkClient', () => {
     });
   });
 
+  test('agent.chat sends the SDK agent definition with each backend query', async () => {
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+    });
+
+    const wakePromise = client.wakeUp({
+      agentId: 'prompt-agent',
+      systemPrompt: 'You are a CLI assistant named ExampleBot.',
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const socket = FakeWebSocket.instances[0];
+    socket.emit('open', {});
+    const agent = await wakePromise;
+    socket.clearSent();
+
+    await agent.chat({ conversationRef: 'conv-prompt-agent' }).send('who are you?');
+
+    expect(JSON.parse(socket.sent[0])).toMatchObject({
+      type: 'query',
+      payload: {
+        text: 'who are you?',
+        conversation_ref: 'conv-prompt-agent',
+        agent_definition: {
+          id: 'prompt-agent',
+          system_prompt: {
+            mode: 'replace',
+            content: 'You are a CLI assistant named ExampleBot.',
+          },
+        },
+      },
+    });
+  });
+
   test('wakeUp can attach to a configured sidecar daemon HTTP runtime', async () => {
     mockFetch.mockImplementation(async (url, init) => {
       const parsedUrl = String(url);
