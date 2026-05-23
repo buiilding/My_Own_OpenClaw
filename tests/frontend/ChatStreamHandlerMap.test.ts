@@ -4,39 +4,27 @@ import { buildChatStreamHandlerMap } from '../../frontend/src/renderer/features/
 const EVENT_TYPES: BackendEventType[] = [
   'llm-thought',
   'web-search-progress',
-  'system-prompt',
   'local-user-message',
-  'user-message-full',
-  'assistant-message-full',
   'memory-store',
   'token-count',
-  'tool-schemas',
   'error',
 ];
 
 type HandlerName =
   | 'handleLlmThought'
   | 'handleWebSearchProgress'
-  | 'handleSystemPrompt'
   | 'handleLocalUserMessage'
-  | 'handleUserMessageFull'
-  | 'handleAssistantMessageFull'
   | 'handleMemoryStore'
   | 'handleTokenCount'
-  | 'handleToolSchemas'
   | 'handleError';
 
 function buildHandlers(): Record<HandlerName, jest.Mock<void, [unknown]>> {
   return {
     handleLlmThought: jest.fn(),
     handleWebSearchProgress: jest.fn(),
-    handleSystemPrompt: jest.fn(),
     handleLocalUserMessage: jest.fn(),
-    handleUserMessageFull: jest.fn(),
-    handleAssistantMessageFull: jest.fn(),
     handleMemoryStore: jest.fn(),
     handleTokenCount: jest.fn(),
-    handleToolSchemas: jest.fn(),
     handleError: jest.fn(),
   };
 }
@@ -54,6 +42,10 @@ describe('chatStreamHandlerMap', () => {
     expect(map['context-compaction-started']).toBeUndefined();
     expect(map['context-compaction-completed']).toBeUndefined();
     expect(map['context-compaction-failed']).toBeUndefined();
+    expect(map['system-prompt']).toBeUndefined();
+    expect(map['user-message-full']).toBeUndefined();
+    expect(map['assistant-message-full']).toBeUndefined();
+    expect(map['tool-schemas']).toBeUndefined();
   });
 
   test('routes non-error events to matching handlers', () => {
@@ -65,13 +57,9 @@ describe('chatStreamHandlerMap', () => {
     }> = [
       { type: 'llm-thought', handlerName: 'handleLlmThought' },
       { type: 'web-search-progress', handlerName: 'handleWebSearchProgress' },
-      { type: 'system-prompt', handlerName: 'handleSystemPrompt' },
       { type: 'local-user-message', handlerName: 'handleLocalUserMessage' },
-      { type: 'user-message-full', handlerName: 'handleUserMessageFull' },
-      { type: 'assistant-message-full', handlerName: 'handleAssistantMessageFull' },
       { type: 'memory-store', handlerName: 'handleMemoryStore' },
       { type: 'token-count', handlerName: 'handleTokenCount' },
-      { type: 'tool-schemas', handlerName: 'handleToolSchemas' },
     ];
 
     dispatchCases.forEach(({ type, handlerName }) => {

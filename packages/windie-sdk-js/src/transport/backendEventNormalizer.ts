@@ -102,6 +102,29 @@ export function normalizeBackendEventToConversationEvent(
       },
     });
   }
+  if (event.type === 'system-prompt') {
+    return createConversationEvent({
+      ...base,
+      type: 'system_prompt',
+      source: 'backend',
+      payload: {
+        ...payload,
+        rawEvent: event,
+      },
+    });
+  }
+  if (event.type === 'user-message-full') {
+    return createConversationEvent({
+      ...base,
+      type: 'user_message_metadata',
+      source: 'backend',
+      payload: {
+        ...payload,
+        structuredPayload: payload,
+        rawEvent: event,
+      },
+    });
+  }
   if (event.type === 'assistant-message-full') {
     const content = stringFromEventPayloadOrTopLevel(event, 'content');
     return createConversationEvent({
@@ -112,6 +135,17 @@ export function normalizeBackendEventToConversationEvent(
         text: content ?? '',
         content: content ?? '',
         structuredPayload: payload,
+        rawEvent: event,
+      },
+    });
+  }
+  if (event.type === 'tool-schemas') {
+    return createConversationEvent({
+      ...base,
+      type: 'tool_schemas_metadata',
+      source: 'backend',
+      payload: {
+        ...payload,
         rawEvent: event,
       },
     });

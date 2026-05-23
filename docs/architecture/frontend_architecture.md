@@ -128,6 +128,7 @@ Current runtime behavior also relies on these explicit seams:
    - Dispatches assistant text deltas/completions from SDK `assistant_delta`/`turn_completed` events.
    - Dispatches tool display projection from SDK `tool_call`/`tool_output`/`tool_bundle_call` events while main owns tool execution.
    - Dispatches compaction display and compacted replay persistence from SDK compaction events.
+   - Dispatches message metadata/transparency projection from SDK metadata events.
    - Updates Zustand store for thinking, tool messages, metadata, completion, errors.
    - Persists transcript rows (`recordUserMessage`, `recordAssistantMessage`, `recordToolMessage`).
 

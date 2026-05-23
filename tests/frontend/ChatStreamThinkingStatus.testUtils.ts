@@ -88,6 +88,54 @@ jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversation
           },
         };
       }
+      if (event.type === 'system-prompt') {
+        return {
+          type: 'system_prompt',
+          conversationRef,
+          turnRef: event.turn_ref,
+          source: 'backend',
+          payload: {
+            ...(event.payload || {}),
+            rawEvent: event,
+          },
+        };
+      }
+      if (event.type === 'user-message-full') {
+        return {
+          type: 'user_message_metadata',
+          conversationRef,
+          turnRef: event.turn_ref,
+          source: 'backend',
+          payload: {
+            ...(event.payload || {}),
+            rawEvent: event,
+          },
+        };
+      }
+      if (event.type === 'assistant-message-full') {
+        return {
+          type: 'assistant_message',
+          conversationRef,
+          turnRef: event.turn_ref,
+          source: 'backend',
+          payload: {
+            ...(event.payload || {}),
+            rawEvent: event,
+          },
+        };
+      }
+      if (event.type === 'tool-schemas') {
+        return {
+          type: 'tool_schemas_metadata',
+          conversationRef,
+          turnRef: event.turn_ref,
+          source: 'backend',
+          payload: {
+            ...(event.payload || {}),
+            rawEvent: event,
+          },
+        };
+      }
       if (event.type === 'tool-call') {
         return {
           type: 'tool_call',

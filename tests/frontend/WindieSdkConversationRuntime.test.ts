@@ -593,6 +593,52 @@ describe('Windie SDK conversation runtime core', () => {
     });
   });
 
+  test('backend metadata events normalize without producing display messages', () => {
+    const systemPrompt = normalizeBackendEventToConversationEvent({
+      type: 'system-prompt',
+      conversation_ref: 'conv-sdk-runtime',
+      turn_ref: 'turn-1',
+      payload: { content: 'system prompt' },
+    });
+    const userMetadata = normalizeBackendEventToConversationEvent({
+      type: 'user-message-full',
+      conversation_ref: 'conv-sdk-runtime',
+      turn_ref: 'turn-1',
+      payload: { content: 'full user payload' },
+    });
+    const toolSchemas = normalizeBackendEventToConversationEvent({
+      type: 'tool-schemas',
+      conversation_ref: 'conv-sdk-runtime',
+      turn_ref: 'turn-1',
+      payload: { tool_schemas: [{ type: 'function', name: 'read_file' }] },
+    });
+
+    expect(systemPrompt).toMatchObject({
+      type: 'system_prompt',
+      payload: expect.objectContaining({
+        rawEvent: expect.objectContaining({ type: 'system-prompt' }),
+      }),
+    });
+    expect(userMetadata).toMatchObject({
+      type: 'user_message_metadata',
+      payload: expect.objectContaining({
+        structuredPayload: expect.objectContaining({ content: 'full user payload' }),
+        rawEvent: expect.objectContaining({ type: 'user-message-full' }),
+      }),
+    });
+    expect(toolSchemas).toMatchObject({
+      type: 'tool_schemas_metadata',
+      payload: expect.objectContaining({
+        rawEvent: expect.objectContaining({ type: 'tool-schemas' }),
+      }),
+    });
+    expect(buildDisplayConversation([
+      systemPrompt as ConversationEvent,
+      userMetadata as ConversationEvent,
+      toolSchemas as ConversationEvent,
+    ]).messages).toEqual([]);
+  });
+
   test('backend assistant-message-full normalizes to assistant storage truth', () => {
     const assistant = normalizeBackendEventToConversationEvent({
       type: 'assistant-message-full',

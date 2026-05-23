@@ -277,6 +277,13 @@ function toDisplayMessage(event: ConversationEvent): DisplayMessage | null {
   if (event.type === 'turn_completed') {
     return null;
   }
+  if (
+    event.type === 'system_prompt'
+    || event.type === 'user_message_metadata'
+    || event.type === 'tool_schemas_metadata'
+  ) {
+    return null;
+  }
   if (event.type === 'compaction_skipped') {
     return null;
   }

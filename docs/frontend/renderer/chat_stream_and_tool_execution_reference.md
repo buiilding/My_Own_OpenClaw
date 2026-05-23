@@ -151,9 +151,14 @@ Pre-routing and workspace resolution:
   `context-compaction-completed` -> SDK `compaction_applied` or
   `compaction_skipped`, and backend `context-compaction-failed` -> SDK
   `compaction_failed`
-- renderer handlers still consume raw backend events for metadata, memory,
-  token, error, web-search progress, and local-user flows until those projection
-  paths move behind the SDK.
+- metadata/transparency events dispatch from SDK-normalized conversation events:
+  backend `system-prompt` -> SDK `system_prompt`, backend `user-message-full`
+  -> SDK `user_message_metadata`, backend `assistant-message-full` -> SDK
+  `assistant_message`, and backend `tool-schemas` -> SDK
+  `tool_schemas_metadata`
+- renderer handlers still consume raw backend events for memory, token, error,
+  web-search progress, and local-user flows until those projection paths move
+  behind the SDK.
 
 Handler map (`BackendEventType` -> behavior):
 
@@ -169,11 +174,11 @@ Handler map (`BackendEventType` -> behavior):
 - SDK `tool_call` from backend `tool-call`: append assistant tool-call row and transcript tool-call row
 - SDK `tool_output` from backend `tool-output`: append assistant tool-output row with screenshot/tool metadata and transcript tool-output row
 - SDK `tool_bundle_call` from backend `tool-bundle`: append bundle call row and persist a transcript `tool-bundle` trace row so later transcript loads can reconstruct the bundle call card without reclassifying it as a normal executable tool-call
-- `system-prompt`: annotate last user message with system prompt + tool schema snapshot
-- `user-message-full`: annotate user message with full payload metadata
-- `assistant-message-full`: annotate latest assistant `llm-text` message
+- SDK `system_prompt` from backend `system-prompt`: annotate last user message with system prompt + tool schema snapshot
+- SDK `user_message_metadata` from backend `user-message-full`: annotate user message with full payload metadata
+- SDK `assistant_message` from backend `assistant-message-full`: annotate latest assistant `llm-text` message
 - `memory-store`: renderer chat stream path records tracking only; no direct local-memory write side effect is executed in `useChatStreamTerminalHandlers`
-- `tool-schemas`: annotate first user message with tool schema list
+- SDK `tool_schemas_metadata` from backend `tool-schemas`: annotate first user message with tool schema list
 - `token-count`: update token counters
 - SDK `turn_completed` from backend `streaming-complete`: persist final streamed thinking text onto the same-turn assistant `llm-text` message (`thinkingText` + `thinkingSourceEventType`), then mark assistant message complete and clear transient `thinkingStatus`
   - when `turn_ref` is present, completion targeting is strict to assistant rows with the same `turnRef` (no cross-turn fallback)
@@ -183,10 +188,12 @@ Handler map (`BackendEventType` -> behavior):
 Handler composition boundary:
 
 - `buildChatStreamHandlerMap(...)` owns raw backend event-type to handler-function
-  wiring except assistant text, tool display, and compaction events, which
-  dispatch from SDK conversation-event types.
+  wiring except assistant text, tool display, compaction, and metadata events,
+  which dispatch from SDK conversation-event types.
 - local-user-message handling is delegated to `useChatStreamLocalUserHandler`
 - `llm-thought` and SDK `assistant_delta` text/placeholder behavior is delegated to `useChatStreamTextHandlers`
+- SDK `system_prompt`/`user_message_metadata`/`assistant_message`/`tool_schemas_metadata`
+  transparency projection is delegated to `useChatStreamMetadataHandlers`.
 - error/memory-store/token-count terminal behaviors are delegated to `useChatStreamTerminalHandlers`
 - SDK `tool_call`/`tool_output`/`tool_bundle_call` display and transcript
   projection is delegated to `useChatStreamToolHandlers`; local tool execution
@@ -194,11 +201,10 @@ Handler composition boundary:
 - SDK `compaction_started`/`compaction_applied`/`compaction_skipped`/`compaction_failed`
   display and replay persistence is delegated to `useChatStreamCompactionHandlers`.
 - SDK `turn_completed` finalization and transcript write side effects are delegated to `useChatStreamCompletionHandler`
-- turn-scoped wrapper callbacks for metadata, memory, token,
-  error, and local-user events are centralized in
+- turn-scoped wrapper callbacks for memory, token, error, and local-user events are centralized in
   `useTurnScopedBackendEventHandler`, with optional `skipStaleTurnGate` for
   `local-user-message` passthrough behavior. SDK assistant text, tool display,
-  and compaction events run the same stale-turn gate before dispatch.
+  compaction, and metadata events run the same stale-turn gate before dispatch.
 
 Turn guard + error suppression matrix:
 

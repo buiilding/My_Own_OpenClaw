@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import type {
   AssistantMessageFullEvent,
   BackendEvent,
@@ -6,6 +7,7 @@ import type {
   ToolSchemasEvent,
   UserMessageFullEvent,
 } from '../../../../types/backendEvents';
+import type { ConversationEvent } from '../../../../infrastructure/api/windieSdkClient';
 import {
   buildAssistantMessageFullUpdate,
   buildSystemPromptUpdate,
@@ -17,6 +19,12 @@ import type { ChatMessage } from '../../stores/chatStore';
 import { useTurnScopedBackendEventHandler } from './useTurnScopedBackendEventHandler';
 
 type ResolveTargetConversationRef = (event: BackendEvent) => string | null;
+type MetadataBackendEvent =
+  | SystemPromptEvent
+  | UserMessageFullEvent
+  | AssistantMessageFullEvent
+  | ToolSchemasEvent;
+type MetadataStreamEvent = MetadataBackendEvent | ConversationEvent;
 
 type ShouldIgnoreForStaleTurn = (
   event: BackendEvent,
@@ -43,6 +51,25 @@ type UpdateLastAssistantLlmTextMessage = (
   conversationRef?: string | null,
 ) => void;
 
+function unwrapMetadataBackendEvent<TEvent extends MetadataBackendEvent>(
+  event: MetadataStreamEvent,
+  expectedType: TEvent['type'],
+): TEvent | null {
+  if ('turn_ref' in event && event.type === expectedType) {
+    return event as TEvent;
+  }
+  const rawEvent = event.payload?.rawEvent;
+  if (
+    rawEvent
+    && typeof rawEvent === 'object'
+    && !Array.isArray(rawEvent)
+    && (rawEvent as { type?: unknown }).type === expectedType
+  ) {
+    return rawEvent as TEvent;
+  }
+  return null;
+}
+
 export function useChatStreamMetadataHandlers({
   resolveTargetConversationRef,
   shouldIgnoreForStaleTurn,
@@ -56,7 +83,7 @@ export function useChatStreamMetadataHandlers({
   updateLastAssistantLlmTextMessage: UpdateLastAssistantLlmTextMessage;
   recordTrackingEvent: RecordTrackingEvent;
 }) {
-  const handleSystemPrompt = useTurnScopedBackendEventHandler<SystemPromptEvent>({
+  const handleSystemPromptEvent = useTurnScopedBackendEventHandler<SystemPromptEvent>({
     resolveTargetConversationRef,
     shouldIgnoreForStaleTurn,
     onEvent: (event, conversationRef) => {
@@ -67,7 +94,7 @@ export function useChatStreamMetadataHandlers({
     },
   });
 
-  const handleUserMessageFull = useTurnScopedBackendEventHandler<UserMessageFullEvent>({
+  const handleUserMessageFullEvent = useTurnScopedBackendEventHandler<UserMessageFullEvent>({
     resolveTargetConversationRef,
     shouldIgnoreForStaleTurn,
     onEvent: (event, conversationRef) => {
@@ -78,7 +105,7 @@ export function useChatStreamMetadataHandlers({
     },
   });
 
-  const handleAssistantMessageFull = useTurnScopedBackendEventHandler<AssistantMessageFullEvent>({
+  const handleAssistantMessageFullEvent = useTurnScopedBackendEventHandler<AssistantMessageFullEvent>({
     resolveTargetConversationRef,
     shouldIgnoreForStaleTurn,
     onEvent: (event, conversationRef) => {
@@ -89,7 +116,7 @@ export function useChatStreamMetadataHandlers({
     },
   });
 
-  const handleToolSchemas = useTurnScopedBackendEventHandler<ToolSchemasEvent>({
+  const handleToolSchemasEvent = useTurnScopedBackendEventHandler<ToolSchemasEvent>({
     resolveTargetConversationRef,
     shouldIgnoreForStaleTurn,
     onEvent: (event, conversationRef) => {
@@ -99,6 +126,34 @@ export function useChatStreamMetadataHandlers({
       recordTrackingEvent('tool-schemas', event.turn_ref, {}, conversationRef);
     },
   });
+
+  const handleSystemPrompt = useCallback((event: SystemPromptEvent | ConversationEvent) => {
+    const backendEvent = unwrapMetadataBackendEvent<SystemPromptEvent>(event, 'system-prompt');
+    if (backendEvent) {
+      handleSystemPromptEvent(backendEvent);
+    }
+  }, [handleSystemPromptEvent]);
+
+  const handleUserMessageFull = useCallback((event: UserMessageFullEvent | ConversationEvent) => {
+    const backendEvent = unwrapMetadataBackendEvent<UserMessageFullEvent>(event, 'user-message-full');
+    if (backendEvent) {
+      handleUserMessageFullEvent(backendEvent);
+    }
+  }, [handleUserMessageFullEvent]);
+
+  const handleAssistantMessageFull = useCallback((event: AssistantMessageFullEvent | ConversationEvent) => {
+    const backendEvent = unwrapMetadataBackendEvent<AssistantMessageFullEvent>(event, 'assistant-message-full');
+    if (backendEvent) {
+      handleAssistantMessageFullEvent(backendEvent);
+    }
+  }, [handleAssistantMessageFullEvent]);
+
+  const handleToolSchemas = useCallback((event: ToolSchemasEvent | ConversationEvent) => {
+    const backendEvent = unwrapMetadataBackendEvent<ToolSchemasEvent>(event, 'tool-schemas');
+    if (backendEvent) {
+      handleToolSchemasEvent(backendEvent);
+    }
+  }, [handleToolSchemasEvent]);
 
   return {
     handleSystemPrompt,

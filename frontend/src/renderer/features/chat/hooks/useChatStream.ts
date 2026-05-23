@@ -252,24 +252,16 @@ export function useChatStream(enableTranscript: boolean = true) {
   const handlers = useMemo<Partial<Record<BackendEventType, (event: BackendEvent) => void>>>(() => buildChatStreamHandlerMap({
     handleLlmThought,
     handleWebSearchProgress: handleWebSearchProgressEvent,
-    handleSystemPrompt,
     handleLocalUserMessage: handleLocalUserMessageEvent,
-    handleUserMessageFull,
-    handleAssistantMessageFull,
     handleMemoryStore: handleMemoryStoreEvent,
     handleTokenCount: handleTokenCountEvent,
-    handleToolSchemas,
     handleError: handleErrorEvent,
   }), [
     handleLlmThought,
     handleWebSearchProgressEvent,
-    handleSystemPrompt,
     handleLocalUserMessageEvent,
-    handleUserMessageFull,
-    handleAssistantMessageFull,
     handleMemoryStoreEvent,
     handleTokenCountEvent,
-    handleToolSchemas,
     handleErrorEvent,
   ]);
 
@@ -291,6 +283,10 @@ export function useChatStream(enableTranscript: boolean = true) {
       && event.type !== 'compaction_applied'
       && event.type !== 'compaction_skipped'
       && event.type !== 'compaction_failed'
+      && event.type !== 'system_prompt'
+      && event.type !== 'user_message_metadata'
+      && event.type !== 'assistant_message'
+      && event.type !== 'tool_schemas_metadata'
     ) {
       return false;
     }
@@ -325,16 +321,36 @@ export function useChatStream(enableTranscript: boolean = true) {
       handleContextCompactionFailed(event);
       return true;
     }
+    if (event.type === 'system_prompt') {
+      handleSystemPrompt(event);
+      return true;
+    }
+    if (event.type === 'user_message_metadata') {
+      handleUserMessageFull(event);
+      return true;
+    }
+    if (event.type === 'assistant_message') {
+      handleAssistantMessageFull(event);
+      return true;
+    }
+    if (event.type === 'tool_schemas_metadata') {
+      handleToolSchemas(event);
+      return true;
+    }
     processStreamingComplete(event, event.conversationRef);
     return true;
   }, [
     handleAssistantDelta,
+    handleAssistantMessageFull,
     handleContextCompactionCompleted,
     handleContextCompactionFailed,
     handleContextCompactionStarted,
+    handleSystemPrompt,
     handleToolBundle,
     handleToolCall,
     handleToolOutput,
+    handleToolSchemas,
+    handleUserMessageFull,
     processStreamingComplete,
     shouldIgnoreForStaleTurn,
   ]);

@@ -13,6 +13,7 @@ All notable changes to WindieOS will be documented in this file.
 - sidecar/browser: keep Browser Use CLI calls on the headed dedicated-session config by default and parse noisy close output so stale sessions can shut down cleanly.
 - sidecar/browser: fix Browser Use snapshot screenshots so `include_screenshot=true` uses the screenshot default filename instead of requiring snapshot args to carry `file_name`.
 - sidecar/browser: route canonical WindieOS browser tool execution through the official Browser Use CLI daemon adapter, add `browser-use[cli]` as the browser feature-pack dependency, and document that WindieOS owns orchestration while Browser Use owns browser mechanics.
+- frontend/sdk: dispatch chat metadata and transparency projection from SDK-normalized conversation events, deleting their raw backend handler-map entries.
 - frontend/sdk: rename the desktop conversation storage wrapper into an adapter and delegate compacted replay writes to the SDK `SidecarConversationStore`.
 - frontend/sdk: dispatch compaction display and replay persistence from SDK-normalized compaction events, deleting their raw backend handler-map entries.
 - frontend/sdk: dispatch tool call, output, and bundle display projection from SDK-normalized conversation events, deleting their raw backend handler-map entries.
