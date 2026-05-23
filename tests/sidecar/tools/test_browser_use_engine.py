@@ -7,7 +7,11 @@ from unittest import mock
 
 import pytest
 
-from tools.browser.browser_use_engine import BrowserActionError, BrowserUseEngineRuntime
+from tools.browser.browser_use_engine import (
+    BrowserActionError,
+    BrowserUseEngineRuntime,
+    _parse_cli_json,
+)
 from tools.browser.schemas import BrowserControlArgs
 
 EXPLANATION = "Advance the active user task."
@@ -15,6 +19,47 @@ EXPLANATION = "Advance the active user task."
 
 def _args(payload: dict[str, object]) -> BrowserControlArgs:
     return BrowserControlArgs.model_validate({"explanation": EXPLANATION, **payload})
+
+
+def test_parse_cli_json_accepts_prefixed_close_output() -> None:
+    parsed = _parse_cli_json('Closing...{"success": true, "data": {"shutdown": true}}')
+
+    assert parsed == {"success": True, "data": {"shutdown": True}}
+
+
+@pytest.mark.asyncio
+async def test_run_cli_uses_headed_session_by_default() -> None:
+    runtime = BrowserUseEngineRuntime()
+    captured: dict[str, object] = {}
+
+    class FakeProcess:
+        returncode = 0
+
+        async def communicate(self) -> tuple[bytes, bytes]:
+            return b'{"success": true, "data": {"title": "Example"}}', b""
+
+    async def fake_create_subprocess_exec(*command: str, **kwargs: object) -> FakeProcess:
+        captured["command"] = command
+        captured["env"] = kwargs.get("env")
+        return FakeProcess()
+
+    with (
+        mock.patch(
+            "tools.browser.browser_use_engine._feature_pack_pythonpath",
+            return_value=None,
+        ),
+        mock.patch(
+            "tools.browser.browser_use_engine.asyncio.create_subprocess_exec",
+            new=fake_create_subprocess_exec,
+        ),
+    ):
+        result = await runtime._run_cli("get", "title")
+
+    assert result == {"title": "Example"}
+    command = captured["command"]
+    assert isinstance(command, tuple)
+    assert "--headed" in command
+    assert command[-2:] == ("get", "title")
 
 
 @pytest.mark.asyncio
@@ -32,6 +77,36 @@ async def test_connect_starts_headed_browser_use_session() -> None:
     assert result["connected"] is True
     assert result["mode"] == "browser_use"
     assert result["native_source"] == "browser_use.cli"
+
+
+@pytest.mark.asyncio
+async def test_status_does_not_claim_starting_session_is_connected(tmp_path: Path) -> None:
+    runtime = BrowserUseEngineRuntime()
+    runtime._home = str(tmp_path)
+    state_path = tmp_path / "windieos.state.json"
+    state_path.write_text('{"phase": "starting"}')
+
+    with mock.patch.object(runtime, "_run_cli", new=mock.AsyncMock()) as run_cli:
+        result = await runtime.execute(_args({"action": "status"}))
+
+    run_cli.assert_not_awaited()
+    assert result["connected"] is False
+    assert result["phase"] == "starting"
+
+
+@pytest.mark.asyncio
+async def test_status_does_not_claim_headless_session_is_connected(tmp_path: Path) -> None:
+    runtime = BrowserUseEngineRuntime()
+    runtime._home = str(tmp_path)
+    state_path = tmp_path / "windieos.state.json"
+    state_path.write_text('{"phase": "running", "config": {"headed": false}}')
+
+    with mock.patch.object(runtime, "_run_cli", new=mock.AsyncMock()) as run_cli:
+        result = await runtime.execute(_args({"action": "status"}))
+
+    run_cli.assert_not_awaited()
+    assert result["connected"] is False
+    assert result["phase"] == "running"
 
 
 @pytest.mark.asyncio
@@ -100,6 +175,21 @@ async def test_snapshot_include_screenshot_uses_default_screenshot_name() -> Non
         "screenshot",
         "/tmp/browser-screenshot.png",
     )
+
+
+@pytest.mark.asyncio
+async def test_close_uses_config_neutral_browser_use_shutdown() -> None:
+    runtime = BrowserUseEngineRuntime()
+
+    with mock.patch.object(
+        runtime,
+        "_run_cli",
+        new=mock.AsyncMock(return_value={"shutdown": True}),
+    ) as run_cli:
+        result = await runtime.execute(_args({"action": "close"}))
+
+    run_cli.assert_awaited_once_with("close", headed=False)
+    assert result["shutdown"] is True
 
 
 @pytest.mark.asyncio

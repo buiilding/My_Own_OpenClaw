@@ -39,6 +39,8 @@ Browser Use daemon state lives under `WINDIE_BROWSER_USE_HOME` when set, otherwi
 2. lets Browser Use start or reuse the named daemon session,
 3. returns `mode = "browser_use"` and `scope = "windie_dedicated_browser"`.
 
+Normal Browser Use CLI calls also use the headed session config by default. This keeps status probes, snapshots, tab commands, and content reads attached to the same visible dedicated browser instead of creating a second headless session with the same name. A state file for a running headless session is treated as disconnected so callers can close it and reconnect with the dedicated-browser config.
+
 If you change Browser Use session behavior, align:
 
 - `WINDIE_BROWSER_USE_HOME` and `WINDIE_BROWSER_USE_SESSION` handling,

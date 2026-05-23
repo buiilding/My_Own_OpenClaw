@@ -111,16 +111,28 @@ def _parse_cli_json(stdout: str) -> dict[str, Any]:
         candidate = line.strip()
         if not candidate:
             continue
-        try:
-            parsed = json.loads(candidate)
-        except json.JSONDecodeError:
-            continue
-        if isinstance(parsed, dict):
-            return parsed
+        for fragment in _json_object_candidates(candidate):
+            try:
+                parsed = json.loads(fragment)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(parsed, dict):
+                return parsed
     raise BrowserActionError(
         code="BROWSER_USE_ENGINE_ERROR",
         message=f"Browser Use command returned invalid JSON: {stripped[:500]}",
     )
+
+
+def _json_object_candidates(line: str) -> list[str]:
+    candidates = [line]
+    start = line.find("{")
+    while start >= 0:
+        fragment = line[start:]
+        if fragment not in candidates:
+            candidates.append(fragment)
+        start = line.find("{", start + 1)
+    return candidates
 
 
 def _normalize_index(args: Any, *, action: str) -> int:
@@ -250,7 +262,7 @@ class BrowserUseEngineRuntime:
         payload.setdefault("native_source", RUNTIME_SOURCE)
         return payload
 
-    async def _run_cli(self, *args: str, headed: bool = False) -> dict[str, Any]:
+    async def _run_cli(self, *args: str, headed: bool = True) -> dict[str, Any]:
         command = [
             *_base_command(),
             "--session",
@@ -336,7 +348,8 @@ class BrowserUseEngineRuntime:
             state = json.loads(state_path.read_text())
         except Exception:
             state = {}
-        if state.get("phase") not in {"ready", "running", "starting"}:
+        config = state.get("config") if isinstance(state.get("config"), dict) else {}
+        if state.get("phase") not in {"ready", "running"} or config.get("headed") is False:
             return {
                 "connected": False,
                 "mode": "browser_use",
@@ -612,4 +625,4 @@ class BrowserUseEngineRuntime:
         }
 
     async def _handle_close(self, _args: Any) -> dict[str, Any]:
-        return await self._run_cli("close")
+        return await self._run_cli("close", headed=False)
