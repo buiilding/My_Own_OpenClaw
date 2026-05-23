@@ -4,20 +4,50 @@ import {
   type ChatMessage,
 } from '../../stores/chatStore';
 import type {
+  BackendEvent,
   ErrorEvent,
   MemoryStoreEvent,
   TokenCountEvent,
 } from '../../../../types/backendEvents';
-import { resolveErrorText } from '../../utils/chatStream/chatStreamEventUtils';
+import {
+  resolveErrorText,
+  shouldIgnoreStreamError,
+} from '../../utils/chatStream/chatStreamEventUtils';
 import type { ChatStreamThinkingStateDeps } from './chatStreamHandlerTypes';
 import { findLastAssistantLlmTextMessageId } from '../../utils/chatStream/chatStreamMessageUpdates';
 import { DesktopConversationRuntimeClient } from '../../session/desktopConversationRuntimeClient';
+import type { ConversationEvent } from '../../../../infrastructure/api/windieSdkClient';
 
 type UseChatStreamTerminalHandlersDeps = ChatStreamThinkingStateDeps<
   'streaming-complete' | 'token-count' | 'memory-store' | 'error'
 > & {
   enableTranscript: boolean;
 };
+
+function unwrapErrorBackendEvent(event: ErrorEvent | ConversationEvent): ErrorEvent {
+  if ('conversation_ref' in event || 'user_id' in event || event.type === 'error') {
+    return event as ErrorEvent;
+  }
+  const rawEvent = event.payload?.rawEvent;
+  if (
+    rawEvent
+    && typeof rawEvent === 'object'
+    && !Array.isArray(rawEvent)
+    && (rawEvent as { type?: unknown }).type === 'error'
+  ) {
+    return rawEvent as ErrorEvent;
+  }
+  return {
+    type: 'error',
+    conversation_ref: event.conversationRef,
+    turn_ref: event.turnRef ?? undefined,
+    payload: {
+      message: typeof event.payload?.message === 'string'
+        ? event.payload.message
+        : 'Backend error',
+    },
+  } as BackendEvent as ErrorEvent;
+}
 
 export function useChatStreamTerminalHandlers({
   addMessage,
@@ -84,11 +114,15 @@ export function useChatStreamTerminalHandlers({
     setThinkingStatus,
   ]);
 
-  const handleError = useCallback((event: ErrorEvent, conversationRef?: string | null) => {
+  const handleError = useCallback((event: ErrorEvent | ConversationEvent, conversationRef?: string | null) => {
+    const backendEvent = unwrapErrorBackendEvent(event);
+    if (shouldIgnoreStreamError(backendEvent.payload)) {
+      return;
+    }
     setIsSending(false, conversationRef);
     setThinkingStatus('', conversationRef);
     setThinkingSourceEventType(null, conversationRef);
-    const errorText = resolveErrorText(event.payload);
+    const errorText = resolveErrorText(backendEvent.payload);
     const modelContext = modelContextRef.current;
     const newMessage: ChatMessage = {
       id: crypto.randomUUID(),
@@ -97,13 +131,13 @@ export function useChatStreamTerminalHandlers({
       type: 'error',
       sourceEventType: 'error',
       sourceChannel: 'from-backend',
-      turnRef: event.turn_ref,
+      turnRef: backendEvent.turn_ref,
       modelId: modelContext.modelId,
       modelProvider: modelContext.modelProvider,
     };
     addMessage(newMessage, conversationRef);
 
-    recordTrackingEvent('error', event.turn_ref, {
+    recordTrackingEvent('error', backendEvent.turn_ref, {
       phase: 'error',
       errorText,
     }, conversationRef);
@@ -111,8 +145,8 @@ export function useChatStreamTerminalHandlers({
     if (enableTranscript) {
       DesktopConversationRuntimeClient.recordAssistantMessage(errorText, {
         messageType: 'error',
-        conversationRef: event.conversation_ref,
-        userId: event.user_id,
+        conversationRef: backendEvent.conversation_ref,
+        userId: backendEvent.user_id,
         modelId: modelContext.modelId,
         modelProvider: modelContext.modelProvider,
       });

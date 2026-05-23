@@ -7,7 +7,6 @@ const EVENT_TYPES: BackendEventType[] = [
   'local-user-message',
   'memory-store',
   'token-count',
-  'error',
 ];
 
 type HandlerName =
@@ -15,8 +14,7 @@ type HandlerName =
   | 'handleWebSearchProgress'
   | 'handleLocalUserMessage'
   | 'handleMemoryStore'
-  | 'handleTokenCount'
-  | 'handleError';
+  | 'handleTokenCount';
 
 function buildHandlers(): Record<HandlerName, jest.Mock<void, [unknown]>> {
   return {
@@ -25,7 +23,6 @@ function buildHandlers(): Record<HandlerName, jest.Mock<void, [unknown]>> {
     handleLocalUserMessage: jest.fn(),
     handleMemoryStore: jest.fn(),
     handleTokenCount: jest.fn(),
-    handleError: jest.fn(),
   };
 }
 
@@ -46,14 +43,15 @@ describe('chatStreamHandlerMap', () => {
     expect(map['user-message-full']).toBeUndefined();
     expect(map['assistant-message-full']).toBeUndefined();
     expect(map['tool-schemas']).toBeUndefined();
+    expect(map.error).toBeUndefined();
   });
 
-  test('routes non-error events to matching handlers', () => {
+  test('routes raw-map events to matching handlers', () => {
     const handlers = buildHandlers();
     const map = buildChatStreamHandlerMap(handlers);
     const dispatchCases: Array<{
-      type: Exclude<BackendEventType, 'error'>;
-      handlerName: Exclude<HandlerName, 'handleError'>;
+      type: BackendEventType;
+      handlerName: HandlerName;
     }> = [
       { type: 'llm-thought', handlerName: 'handleLlmThought' },
       { type: 'web-search-progress', handlerName: 'handleWebSearchProgress' },
@@ -68,24 +66,5 @@ describe('chatStreamHandlerMap', () => {
       expect(handlers[handlerName]).toHaveBeenCalledTimes(1);
       expect(handlers[handlerName]).toHaveBeenCalledWith(event);
     });
-  });
-
-  test('filters recoverable settings-update errors but routes other errors', () => {
-    const handlers = buildHandlers();
-    const map = buildChatStreamHandlerMap(handlers);
-
-    map.error({
-      type: 'error',
-      payload: { message: 'Failed to update settings: transient issue' },
-    } as BackendEvent);
-    expect(handlers.handleError).not.toHaveBeenCalled();
-
-    const terminalError = {
-      type: 'error',
-      payload: { message: 'Unexpected backend error' },
-    } as BackendEvent;
-    map.error(terminalError);
-    expect(handlers.handleError).toHaveBeenCalledTimes(1);
-    expect(handlers.handleError).toHaveBeenCalledWith(terminalError);
   });
 });

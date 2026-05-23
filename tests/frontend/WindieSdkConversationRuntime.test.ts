@@ -574,6 +574,25 @@ describe('Windie SDK conversation runtime core', () => {
     expect(normalized).toBeNull();
   });
 
+  test('backend error normalizes to turn_error', () => {
+    const normalized = normalizeBackendEventToConversationEvent({
+      type: 'error',
+      conversation_ref: 'conv-sdk-runtime',
+      turn_ref: 'turn-error',
+      payload: { content: 'backend failed' },
+    });
+
+    expect(normalized).toMatchObject({
+      type: 'turn_error',
+      conversationRef: 'conv-sdk-runtime',
+      turnRef: 'turn-error',
+      payload: expect.objectContaining({
+        message: 'backend failed',
+        rawEvent: expect.objectContaining({ type: 'error' }),
+      }),
+    });
+  });
+
   test('backend query-accepted normalizes to turn_started', () => {
     const normalized = normalizeBackendEventToConversationEvent({
       type: 'query-accepted',

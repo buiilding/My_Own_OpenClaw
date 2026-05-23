@@ -255,14 +255,12 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleLocalUserMessage: handleLocalUserMessageEvent,
     handleMemoryStore: handleMemoryStoreEvent,
     handleTokenCount: handleTokenCountEvent,
-    handleError: handleErrorEvent,
   }), [
     handleLlmThought,
     handleWebSearchProgressEvent,
     handleLocalUserMessageEvent,
     handleMemoryStoreEvent,
     handleTokenCountEvent,
-    handleErrorEvent,
   ]);
 
   const dispatchConversationEvent = useCallback((
@@ -287,6 +285,7 @@ export function useChatStream(enableTranscript: boolean = true) {
       && event.type !== 'user_message_metadata'
       && event.type !== 'assistant_message'
       && event.type !== 'tool_schemas_metadata'
+      && event.type !== 'turn_error'
     ) {
       return false;
     }
@@ -337,6 +336,10 @@ export function useChatStream(enableTranscript: boolean = true) {
       handleToolSchemas(event);
       return true;
     }
+    if (event.type === 'turn_error') {
+      handleErrorEvent(event, event.conversationRef);
+      return true;
+    }
     processStreamingComplete(event, event.conversationRef);
     return true;
   }, [
@@ -345,6 +348,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleContextCompactionCompleted,
     handleContextCompactionFailed,
     handleContextCompactionStarted,
+    handleErrorEvent,
     handleSystemPrompt,
     handleToolBundle,
     handleToolCall,

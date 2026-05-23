@@ -136,6 +136,20 @@ jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversation
           },
         };
       }
+      if (event.type === 'error') {
+        return {
+          type: 'turn_error',
+          conversationRef,
+          turnRef: event.turn_ref,
+          source: 'backend',
+          payload: {
+            message: typeof event.payload?.message === 'string'
+              ? event.payload.message
+              : (typeof event.payload?.content === 'string' ? event.payload.content : 'Backend error'),
+            rawEvent: event,
+          },
+        };
+      }
       if (event.type === 'tool-call') {
         return {
           type: 'tool_call',
