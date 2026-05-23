@@ -10,6 +10,7 @@ All notable changes to WindieOS will be documented in this file.
 - sidecar/browser: keep Browser Use CLI calls on the headed dedicated-session config by default and parse noisy close output so stale sessions can shut down cleanly.
 - sidecar/browser: fix Browser Use snapshot screenshots so `include_screenshot=true` uses the screenshot default filename instead of requiring snapshot args to carry `file_name`.
 - sidecar/browser: route canonical WindieOS browser tool execution through the official Browser Use CLI daemon adapter, add `browser-use[cli]` as the browser feature-pack dependency, and document that WindieOS owns orchestration while Browser Use owns browser mechanics.
+- frontend/sdk: dispatch assistant text stream updates from SDK-normalized `assistant_delta` and `turn_completed` events, deleting their raw backend handler-map entries.
 - frontend/sdk: route renderer stream-event validation and SDK conversation-event normalization through the desktop conversation runtime facade.
 - frontend/sdk: route renderer compact-history commands through the SDK conversation runtime transport and delete the legacy `DesktopBackendCommandRuntimeClient` bridge.
 - frontend/sdk: route renderer rehydrate commands through the SDK conversation runtime transport and remove the direct `ApiClient.rehydrateConversation` facade path.

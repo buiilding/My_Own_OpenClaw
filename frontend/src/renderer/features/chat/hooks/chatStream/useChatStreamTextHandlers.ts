@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useChatStore, type ChatMessage } from '../../stores/chatStore';
-import type { LlmThoughtEvent, StreamingResponseEvent } from '../../../../types/backendEvents';
+import type { ConversationEvent } from '../../../../infrastructure/api/windieSdkClient';
+import type { LlmThoughtEvent } from '../../../../types/backendEvents';
 import { buildThinkingStatus } from '../../utils/chatStream/chatStreamFormatting';
 import {
   findLastAssistantLlmTextMessageId,
@@ -93,7 +94,7 @@ export const useChatStreamTextHandlers = ({
     updateMessage,
   ]);
 
-  const handleStreamingResponse = useCallback((event: StreamingResponseEvent, conversationRef: string | null) => {
+  const handleAssistantDelta = useCallback((event: ConversationEvent, conversationRef: string | null) => {
     setIsSending(false, conversationRef);
     const modelContext = modelContextRef.current;
     const modelMetadata = {
@@ -103,8 +104,8 @@ export const useChatStreamTextHandlers = ({
 
     const action = resolveStreamingResponseAction(
       useChatStore.getState().getWorkspaceState(conversationRef).messages,
-      event.payload?.text,
-      event.turn_ref,
+      typeof event.payload?.text === 'string' ? event.payload.text : '',
+      event.turnRef,
     );
     if (action.type === 'append') {
       updateMessage(action.messageId, {
@@ -127,9 +128,9 @@ export const useChatStreamTextHandlers = ({
       addMessage(newMessage, conversationRef);
     }
 
-    recordTrackingEvent('streaming-response', event.turn_ref, {
+    recordTrackingEvent('streaming-response', event.turnRef, {
       phase: 'streaming',
-      chunkSize: (event.payload?.text || '').length,
+      chunkSize: (typeof event.payload?.text === 'string' ? event.payload.text : '').length,
     }, conversationRef);
   }, [
     addMessage,
@@ -141,6 +142,6 @@ export const useChatStreamTextHandlers = ({
 
   return {
     handleLlmThought,
-    handleStreamingResponse,
+    handleAssistantDelta,
   };
 };

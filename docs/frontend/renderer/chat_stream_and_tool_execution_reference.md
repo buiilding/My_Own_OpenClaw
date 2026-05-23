@@ -140,15 +140,18 @@ Pre-routing and workspace resolution:
 - transcript session sync runs only after event conversation identity resolves
 - ingress orchestration for projection sync, turn-map registration, transcript-session update, and handler dispatch is centralized in `chatStreamBackendIngress.ingestBackendEvent(...)`
 - ingress bookkeeping steps are fail-safe isolated (`try/catch` per step) so projection/turn-map/transcript sync errors cannot suppress final handler dispatch for the event
-- SDK-normalized conversation events are currently used as the first stream
-  boundary contract; renderer handlers still consume raw backend events for UI
-  compatibility until display/tool-state projection moves behind the SDK.
+- assistant text stream events dispatch from SDK-normalized conversation events:
+  backend `streaming-response` -> SDK `assistant_delta`, and backend
+  `streaming-complete` -> SDK `turn_completed`
+- renderer handlers still consume raw backend events for tool, metadata,
+  compaction, memory, token, error, and local-user flows until those projection
+  paths move behind the SDK.
 
 Handler map (`BackendEventType` -> behavior):
 
 - `local-user-message`: adds user row, resets `streamTracking` for turn
 - `llm-thought`: accumulates transient thinking text and writes live reasoning (`thinkingText`) onto the same-turn assistant `llm-text` message (creates placeholder assistant row before first text chunk when needed)
-- `streaming-response`: append/create assistant `llm-text` row and increment chunk tracking
+- SDK `assistant_delta` from backend `streaming-response`: append/create assistant `llm-text` row and increment chunk tracking
 - `context-compaction-started`: sets thinking text to `Compacting conversation history...` while backend compaction runs
 - `context-compaction-completed`: replaces in-progress compaction thinking with a terminal `Conversation history compacted.` status and marks source as `context-compaction-completed`
   - in dev UI, also stores compaction debug payload including the full summary text plus the replacement-history preview (summary message + kept tail messages)
@@ -164,20 +167,26 @@ Handler map (`BackendEventType` -> behavior):
 - `memory-store`: renderer chat stream path records tracking only; no direct local-memory write side effect is executed in `useChatStreamTerminalHandlers`
 - `tool-schemas`: annotate first user message with tool schema list
 - `token-count`: update token counters
-- `streaming-complete`: persist final streamed thinking text onto the same-turn assistant `llm-text` message (`thinkingText` + `thinkingSourceEventType`), then mark assistant message complete and clear transient `thinkingStatus`
+- SDK `turn_completed` from backend `streaming-complete`: persist final streamed thinking text onto the same-turn assistant `llm-text` message (`thinkingText` + `thinkingSourceEventType`), then mark assistant message complete and clear transient `thinkingStatus`
   - when `turn_ref` is present, completion targeting is strict to assistant rows with the same `turnRef` (no cross-turn fallback)
   - duplicate completion events do not duplicate assistant transcript writes because transcript recording only runs for not-yet-complete assistant rows
 - `error`: append assistant error row unless ignored by settings-update-error filter
 
 Handler composition boundary:
 
-- `buildChatStreamHandlerMap(...)` owns event-type to handler-function wiring
+- `buildChatStreamHandlerMap(...)` owns raw backend event-type to handler-function
+  wiring except assistant text stream events, which dispatch from SDK
+  conversation-event types
 - local-user-message handling is delegated to `useChatStreamLocalUserHandler`
-- `llm-thought` and `streaming-response` text/placeholder behavior is delegated to `useChatStreamTextHandlers`
+- `llm-thought` and SDK `assistant_delta` text/placeholder behavior is delegated to `useChatStreamTextHandlers`
 - error/memory-store/token-count terminal behaviors are delegated to `useChatStreamTerminalHandlers`
 - tool-call/tool-output/tool-bundle handling is delegated to `useChatStreamToolHandlers`
-- streaming-complete finalization and transcript write side effects are delegated to `useChatStreamCompletionHandler`
-- turn-scoped wrapper callbacks for completion, tool, metadata, compaction, memory, token, error, and local-user events are centralized in `useTurnScopedBackendEventHandler`, with optional `skipStaleTurnGate` for `local-user-message` passthrough behavior.
+- SDK `turn_completed` finalization and transcript write side effects are delegated to `useChatStreamCompletionHandler`
+- turn-scoped wrapper callbacks for tool, metadata, compaction, memory, token,
+  error, and local-user events are centralized in
+  `useTurnScopedBackendEventHandler`, with optional `skipStaleTurnGate` for
+  `local-user-message` passthrough behavior. SDK assistant text events run the
+  same stale-turn gate before dispatch.
 
 Turn guard + error suppression matrix:
 

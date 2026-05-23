@@ -3,8 +3,6 @@ import { buildChatStreamHandlerMap } from '../../frontend/src/renderer/features/
 
 const EVENT_TYPES: BackendEventType[] = [
   'llm-thought',
-  'streaming-response',
-  'streaming-complete',
   'context-compaction-started',
   'context-compaction-completed',
   'context-compaction-failed',
@@ -24,8 +22,6 @@ const EVENT_TYPES: BackendEventType[] = [
 
 type HandlerName =
   | 'handleLlmThought'
-  | 'handleStreamingResponse'
-  | 'handleStreamingComplete'
   | 'handleContextCompactionStarted'
   | 'handleContextCompactionCompleted'
   | 'handleContextCompactionFailed'
@@ -45,8 +41,6 @@ type HandlerName =
 function buildHandlers(): Record<HandlerName, jest.Mock<void, [unknown]>> {
   return {
     handleLlmThought: jest.fn(),
-    handleStreamingResponse: jest.fn(),
-    handleStreamingComplete: jest.fn(),
     handleContextCompactionStarted: jest.fn(),
     handleContextCompactionCompleted: jest.fn(),
     handleContextCompactionFailed: jest.fn(),
@@ -66,10 +60,12 @@ function buildHandlers(): Record<HandlerName, jest.Mock<void, [unknown]>> {
 }
 
 describe('chatStreamHandlerMap', () => {
-  test('registers one handler for every backend event type', () => {
+  test('registers handlers only for backend events still owned by the raw handler map', () => {
     const handlers = buildHandlers();
     const map = buildChatStreamHandlerMap(handlers);
     expect(Object.keys(map).sort()).toEqual([...EVENT_TYPES].sort());
+    expect(map['streaming-response']).toBeUndefined();
+    expect(map['streaming-complete']).toBeUndefined();
   });
 
   test('routes non-error events to matching handlers', () => {
@@ -80,8 +76,6 @@ describe('chatStreamHandlerMap', () => {
       handlerName: Exclude<HandlerName, 'handleError'>;
     }> = [
       { type: 'llm-thought', handlerName: 'handleLlmThought' },
-      { type: 'streaming-response', handlerName: 'handleStreamingResponse' },
-      { type: 'streaming-complete', handlerName: 'handleStreamingComplete' },
       { type: 'context-compaction-started', handlerName: 'handleContextCompactionStarted' },
       { type: 'context-compaction-completed', handlerName: 'handleContextCompactionCompleted' },
       { type: 'context-compaction-failed', handlerName: 'handleContextCompactionFailed' },
@@ -100,7 +94,7 @@ describe('chatStreamHandlerMap', () => {
 
     dispatchCases.forEach(({ type, handlerName }) => {
       const event = { type, payload: {} } as BackendEvent;
-      map[type](event);
+      map[type]?.(event);
       expect(handlers[handlerName]).toHaveBeenCalledTimes(1);
       expect(handlers[handlerName]).toHaveBeenCalledWith(event);
     });

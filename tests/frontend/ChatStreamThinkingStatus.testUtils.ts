@@ -55,10 +55,47 @@ jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversation
         ? data
         : null;
     }),
-    normalizeBackendStreamEvent: jest.fn((event: { type?: string }) => ({
-      type: event.type ?? 'unknown',
-      source: 'backend',
-    })),
+    normalizeBackendStreamEvent: jest.fn((event: {
+      conversation_ref?: string;
+      payload?: Record<string, unknown>;
+      turn_ref?: string;
+      type?: string;
+    }, options?: { conversationRef?: string | null }) => {
+      const conversationRef = event.conversation_ref || options?.conversationRef || mockActiveConversationRef;
+      if (event.type === 'streaming-response') {
+        return {
+          type: 'assistant_delta',
+          conversationRef,
+          turnRef: event.turn_ref,
+          source: 'backend',
+          payload: {
+            text: typeof event.payload?.text === 'string' ? event.payload.text : '',
+            rawEvent: event,
+          },
+        };
+      }
+      if (event.type === 'streaming-complete') {
+        return {
+          type: 'turn_completed',
+          conversationRef,
+          turnRef: event.turn_ref,
+          source: 'backend',
+          payload: {
+            finalResponse: typeof event.payload?.final_response === 'string'
+              ? event.payload.final_response
+              : null,
+            rawEvent: event,
+          },
+        };
+      }
+      return {
+        type: event.type ?? 'unknown',
+        conversationRef,
+        turnRef: event.turn_ref,
+        source: 'backend',
+        payload: { rawEvent: event },
+      };
+    }),
     recordAssistantMessage: jest.fn(),
     recordToolMessage: jest.fn(),
     updateTranscriptSession: jest.fn(),

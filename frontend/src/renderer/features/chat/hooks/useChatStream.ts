@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
+import type { ConversationEvent } from '../../../infrastructure/api/windieSdkClient';
 import {
   useChatStore,
 } from '../stores/chatStore';
@@ -8,8 +9,6 @@ import {
   type BackendEvent,
   type BackendEventType,
   type LlmThoughtEvent,
-  type StreamingCompleteEvent,
-  type StreamingResponseEvent,
   type ToolCallEvent,
   type ToolOutputEvent,
   type ToolBundleEvent,
@@ -126,7 +125,7 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const {
     handleLlmThought: handleLlmThoughtText,
-    handleStreamingResponse: handleStreamingResponseText,
+    handleAssistantDelta,
   } = useChatStreamTextHandlers({
     addMessage,
     updateMessage,
@@ -141,12 +140,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     resolveTargetConversationRef,
     shouldIgnoreForStaleTurn,
     onEvent: handleLlmThoughtText,
-  });
-
-  const handleStreamingResponse = useTurnScopedBackendEventHandler<StreamingResponseEvent>({
-    resolveTargetConversationRef,
-    shouldIgnoreForStaleTurn,
-    onEvent: handleStreamingResponseText,
   });
 
   const {
@@ -245,12 +238,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     persistThinkingForTurn,
   });
 
-  const handleStreamingComplete = useTurnScopedBackendEventHandler<StreamingCompleteEvent>({
-    resolveTargetConversationRef,
-    shouldIgnoreForStaleTurn,
-    onEvent: processStreamingComplete,
-  });
-
   const {
     handleError,
     handleMemoryStore,
@@ -283,10 +270,8 @@ export function useChatStream(enableTranscript: boolean = true) {
     onEvent: handleError,
   });
 
-  const handlers = useMemo<Record<BackendEventType, (event: BackendEvent) => void>>(() => buildChatStreamHandlerMap({
+  const handlers = useMemo<Partial<Record<BackendEventType, (event: BackendEvent) => void>>>(() => buildChatStreamHandlerMap({
     handleLlmThought,
-    handleStreamingResponse,
-    handleStreamingComplete,
     handleContextCompactionStarted,
     handleContextCompactionCompleted,
     handleContextCompactionFailed,
@@ -304,8 +289,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleError: handleErrorEvent,
   }), [
     handleLlmThought,
-    handleStreamingResponse,
-    handleStreamingComplete,
     handleContextCompactionStarted,
     handleContextCompactionCompleted,
     handleContextCompactionFailed,
@@ -321,6 +304,32 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleTokenCountEvent,
     handleToolSchemas,
     handleErrorEvent,
+  ]);
+
+  const dispatchConversationEvent = useCallback((
+    event: ConversationEvent | null,
+    backendEvent: BackendEvent,
+    conversationRef: string | null,
+  ): boolean => {
+    if (!event) {
+      return false;
+    }
+    if (event.type !== 'assistant_delta' && event.type !== 'turn_completed') {
+      return false;
+    }
+    if (shouldIgnoreForStaleTurn(backendEvent, conversationRef)) {
+      return true;
+    }
+    if (event.type === 'assistant_delta') {
+      handleAssistantDelta(event, event.conversationRef);
+      return true;
+    }
+    processStreamingComplete(event, event.conversationRef);
+    return true;
+  }, [
+    handleAssistantDelta,
+    processStreamingComplete,
+    shouldIgnoreForStaleTurn,
   ]);
 
   useEffect(() => {
@@ -345,6 +354,9 @@ export function useChatStream(enableTranscript: boolean = true) {
         registerTurnConversationRef,
         enableTranscript,
         dispatchEvent: (event) => {
+          if (dispatchConversationEvent(conversationEvent, event, conversationRef)) {
+            return;
+          }
           const handler = handlers[event.type];
           if (handler) {
             handler(event);
@@ -362,6 +374,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     return removeListener;
   }, [
     enableTranscript,
+    dispatchConversationEvent,
     handlers,
     registerTurnConversationRef,
     resolveTargetConversationRef,

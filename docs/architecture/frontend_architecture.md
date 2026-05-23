@@ -125,7 +125,8 @@ Current runtime behavior also relies on these explicit seams:
 3. Renderer `useChatStream` asks `DesktopConversationRuntimeClient` to validate raw backend events and produce SDK-normalized conversation events before renderer UI handlers run.
 4. Renderer `useChatStream`:
    - Filters by active conversation/turn tracking.
-   - Updates Zustand store for thinking, streaming text, tool messages, completion, errors.
+   - Dispatches assistant text deltas/completions from SDK `assistant_delta`/`turn_completed` events.
+   - Updates Zustand store for thinking, tool messages, metadata, completion, errors.
    - Persists transcript rows (`recordUserMessage`, `recordAssistantMessage`, `recordToolMessage`).
 
 New-chat behavior:

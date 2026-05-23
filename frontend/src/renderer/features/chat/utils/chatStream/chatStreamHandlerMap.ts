@@ -9,8 +9,6 @@ import type {
   LlmThoughtEvent,
   LocalUserMessageEvent,
   MemoryStoreEvent,
-  StreamingCompleteEvent,
-  StreamingResponseEvent,
   SystemPromptEvent,
   TokenCountEvent,
   ToolBundleEvent,
@@ -24,8 +22,6 @@ import { shouldIgnoreStreamError } from './chatStreamEventUtils';
 
 type ChatStreamEventHandlers = {
   handleLlmThought: (event: LlmThoughtEvent) => void;
-  handleStreamingResponse: (event: StreamingResponseEvent) => void;
-  handleStreamingComplete: (event: StreamingCompleteEvent) => void;
   handleContextCompactionStarted: (event: ContextCompactionStartedEvent) => void;
   handleContextCompactionCompleted: (event: ContextCompactionCompletedEvent) => void;
   handleContextCompactionFailed: (event: ContextCompactionFailedEvent) => void;
@@ -45,11 +41,9 @@ type ChatStreamEventHandlers = {
 
 export function buildChatStreamHandlerMap(
   handlers: ChatStreamEventHandlers,
-): Record<BackendEventType, (event: BackendEvent) => void> {
+): Partial<Record<BackendEventType, (event: BackendEvent) => void>> {
   return {
     'llm-thought': event => handlers.handleLlmThought(event as LlmThoughtEvent),
-    'streaming-response': event => handlers.handleStreamingResponse(event as StreamingResponseEvent),
-    'streaming-complete': event => handlers.handleStreamingComplete(event as StreamingCompleteEvent),
     'context-compaction-started': event => handlers.handleContextCompactionStarted(event as ContextCompactionStartedEvent),
     'context-compaction-completed': event => handlers.handleContextCompactionCompleted(event as ContextCompactionCompletedEvent),
     'context-compaction-failed': event => handlers.handleContextCompactionFailed(event as ContextCompactionFailedEvent),

@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useChatStore, type ChatMessage } from '../../stores/chatStore';
+import type { ConversationEvent } from '../../../../infrastructure/api/windieSdkClient';
 import type { TranscriptTransparencyData } from '../../../../infrastructure/transcript/types';
-import type { StreamingCompleteEvent } from '../../../../types/backendEvents';
 import { findStreamingCompleteAssistantMessage } from '../../utils/chatStream/chatStreamMessageUpdates';
 import { buildAssistantTranscriptTransparency } from '../../utils/chatStream/chatStreamTransparency';
 import type { TranscriptModelContext } from '../../utils/chatStream/chatStreamTypes';
@@ -38,19 +38,28 @@ export const useChatStreamCompletionHandler = ({
   updateMessage,
   persistThinkingForTurn,
 }: UseChatStreamCompletionHandlerOptions) => {
-  return useCallback((event: StreamingCompleteEvent, conversationRef: string | null) => {
+  return useCallback((event: ConversationEvent, conversationRef: string | null) => {
+    const rawEvent = event.payload?.rawEvent && typeof event.payload.rawEvent === 'object'
+      ? event.payload.rawEvent as { conversation_ref?: unknown; user_id?: unknown }
+      : {};
+    const rawConversationRef = typeof rawEvent.conversation_ref === 'string'
+      ? rawEvent.conversation_ref
+      : undefined;
+    const rawUserId = typeof rawEvent.user_id === 'string'
+      ? rawEvent.user_id
+      : undefined;
     const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
     setIsSending(false, conversationRef);
-    persistThinkingForTurn(event.turn_ref || undefined, conversationRef);
+    persistThinkingForTurn(event.turnRef || undefined, conversationRef);
     setThinkingStatus(null, conversationRef);
     setThinkingSourceEventType(null, conversationRef);
 
     const currentMessages = workspace.messages;
     const lastMessage = findStreamingCompleteAssistantMessage(
       currentMessages,
-      event.turn_ref,
+      event.turnRef,
     );
-    const completionText = normalizeIncomingText(event.payload?.final_response)
+    const completionText = normalizeIncomingText(event.payload?.finalResponse)
       || normalizeIncomingText(lastMessage?.fullAssistantMessage?.content);
     const modelContext = modelContextRef.current;
     if (lastMessage && lastMessage.sender === 'assistant' && !lastMessage.isComplete) {
@@ -66,12 +75,12 @@ export const useChatStreamCompletionHandler = ({
       }, conversationRef);
       if (nextText && enableTranscript) {
         const normalizedTransparency: TranscriptTransparencyData | undefined = (
-          buildAssistantTranscriptTransparency(currentMessages, lastMessage, event.turn_ref || undefined)
+          buildAssistantTranscriptTransparency(currentMessages, lastMessage, event.turnRef || undefined)
         );
         DesktopConversationRuntimeClient.recordAssistantMessage(nextText, {
           messageType: lastMessage.type || 'llm-text',
-          conversationRef: conversationRef || event.conversation_ref,
-          userId: event.user_id,
+          conversationRef: conversationRef || rawConversationRef,
+          userId: rawUserId,
           modelId: modelContext.modelId,
           modelProvider: modelContext.modelProvider,
           transparency: normalizedTransparency,
@@ -83,7 +92,7 @@ export const useChatStreamCompletionHandler = ({
         isComplete: true,
         sourceEventType: 'streaming-complete',
         sourceChannel: 'from-backend',
-        turnRef: event.turn_ref || undefined,
+        turnRef: event.turnRef || undefined,
         modelId: modelContext.modelId,
         modelProvider: modelContext.modelProvider,
       }) as ChatMessage;
@@ -91,8 +100,8 @@ export const useChatStreamCompletionHandler = ({
       if (enableTranscript) {
         DesktopConversationRuntimeClient.recordAssistantMessage(completionText, {
           messageType: 'llm-text',
-          conversationRef: conversationRef || event.conversation_ref,
-          userId: event.user_id,
+          conversationRef: conversationRef || rawConversationRef,
+          userId: rawUserId,
           modelId: modelContext.modelId,
           modelProvider: modelContext.modelProvider,
           transparency: undefined,
@@ -100,7 +109,7 @@ export const useChatStreamCompletionHandler = ({
       }
     }
 
-    recordTrackingEvent('streaming-complete', event.turn_ref, { phase: 'complete' }, conversationRef);
+    recordTrackingEvent('streaming-complete', event.turnRef, { phase: 'complete' }, conversationRef);
   }, [
     addMessage,
     enableTranscript,
