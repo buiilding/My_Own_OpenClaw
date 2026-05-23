@@ -41,6 +41,8 @@ Browser Use daemon state lives under `WINDIE_BROWSER_USE_HOME` when set, otherwi
 
 Browser Use treats `--headed` and `--cdp-url` as explicit daemon-config checks. WindieOS passes them only when starting or recovering the dedicated session, then omits them for normal reuse so Browser Use does not compare the daemon's live CDP URL against every fresh CLI invocation. A state file for a running non-WindieOS Browser Use session is treated as disconnected; `connect` closes that stale daemon and waits briefly before starting Browser Use against the WindieOS dedicated profile.
 
+For browser-internal URLs (`chrome://`, `chrome-extension://`, `devtools://`, and `about:`), WindieOS does not call Browser Use CLI `open` because that command normalizes non-web schemes to `https://...`. The adapter uses Browser Use's Python `browser.goto(...)` wrapper for same-tab internal navigation while leaving normal web navigation on Browser Use `open`.
+
 If you change Browser Use session behavior, align:
 
 - `WINDIE_BROWSER_USE_HOME` and `WINDIE_BROWSER_USE_SESSION` handling,

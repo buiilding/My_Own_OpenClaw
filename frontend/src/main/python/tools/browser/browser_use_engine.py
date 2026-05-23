@@ -35,6 +35,12 @@ MAX_SNAPSHOT_WINDOW_CHARS = 120_000
 RUNTIME_SOURCE = "browser_use.cli"
 BROWSER_USE_ENGINE_ACTIONS = frozenset(BROWSER_CANONICAL_ACTIONS)
 HEADLESS_RECOVERY_TIMEOUT_SECONDS = 5.0
+BROWSER_INTERNAL_URL_PREFIXES = (
+    "about:",
+    "chrome://",
+    "chrome-extension://",
+    "devtools://",
+)
 
 
 @dataclass(slots=True)
@@ -135,6 +141,11 @@ def _json_object_candidates(line: str) -> list[str]:
             candidates.append(fragment)
         start = line.find("{", start + 1)
     return candidates
+
+
+def _is_browser_internal_url(url: str) -> bool:
+    normalized = url.strip().lower()
+    return normalized.startswith(BROWSER_INTERNAL_URL_PREFIXES)
 
 
 def _is_pid_alive(pid: int) -> bool:
@@ -454,7 +465,17 @@ class BrowserUseEngineRuntime:
         }
 
     async def _handle_navigate(self, args: Any) -> dict[str, Any]:
-        data = await self._run_cli("tab", "new", args.url) if args.new_tab else await self._run_cli("open", args.url)
+        if _is_browser_internal_url(args.url) and not args.new_tab:
+            data = await self._run_cli(
+                "python",
+                f"browser.goto({json.dumps(args.url)})",
+            )
+            return {"url": args.url, "browser_internal": True, **data}
+        data = (
+            await self._run_cli("tab", "new", args.url)
+            if args.new_tab
+            else await self._run_cli("open", args.url)
+        )
         return {"url": args.url, **data}
 
     async def _handle_snapshot(self, args: Any) -> dict[str, Any]:

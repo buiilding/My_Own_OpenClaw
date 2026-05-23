@@ -278,6 +278,27 @@ async def test_navigate_uses_browser_use_open_command() -> None:
 
 
 @pytest.mark.asyncio
+async def test_navigate_browser_internal_url_uses_python_goto_to_preserve_scheme() -> None:
+    runtime = BrowserUseEngineRuntime()
+
+    with mock.patch.object(
+        runtime,
+        "_run_cli",
+        new=mock.AsyncMock(return_value={}),
+    ) as run_cli:
+        result = await runtime.execute(
+            _args({"action": "navigate", "url": "chrome://settings/syncSetup"})
+        )
+
+    run_cli.assert_awaited_once_with(
+        "python",
+        'browser.goto("chrome://settings/syncSetup")',
+    )
+    assert result["url"] == "chrome://settings/syncSetup"
+    assert result["browser_internal"] is True
+
+
+@pytest.mark.asyncio
 async def test_snapshot_paginates_browser_use_state_text() -> None:
     runtime = BrowserUseEngineRuntime()
 
