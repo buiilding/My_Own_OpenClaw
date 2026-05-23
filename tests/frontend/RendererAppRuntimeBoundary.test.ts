@@ -23,14 +23,14 @@ async function listSourceFiles(dir: string): Promise<string[]> {
 }
 
 describe('renderer app runtime boundary', () => {
-  test('conversation library facade delegates store access to transcript projection runtime', async () => {
+  test('conversation library facade delegates store access to continuity runtime', async () => {
     const source = await fs.readFile(
       path.join(appRoot, 'runtime/desktopConversationLibraryClient.js'),
       'utf8',
     );
 
-    expect(source).toContain('DesktopTranscriptProjectionRuntimeClient');
-    expect(source).not.toContain('ElectronSidecarConversationStore');
+    expect(source).toContain('DesktopConversationContinuityService');
+    expect(source).not.toContain('DesktopConversationStoreAdapter');
   });
 
   test('app provider code uses runtime facades for transcript session helpers', async () => {

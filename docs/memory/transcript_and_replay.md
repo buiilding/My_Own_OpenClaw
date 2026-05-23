@@ -21,7 +21,7 @@ For code changes or debugging, start with [Transcript Replay Change Workflow](tr
 | Session identity | `frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime.ts`, `sessionInfoState.ts`, `sessionInfoStorage.ts` |
 | Pending queues | `frontend/src/renderer/infrastructure/transcript/pending/*` |
 | Entry persistence | `frontend/src/renderer/infrastructure/transcript/transcriptEntryPersistence.ts`, `transcriptRecordWrite.ts` |
-| SDK conversation store adapter | `frontend/src/renderer/infrastructure/transcript/ElectronSidecarConversationStore.ts` |
+| SDK conversation store adapter | `frontend/src/renderer/infrastructure/transcript/desktopConversationStoreAdapter.ts` |
 | SDK display to chat-message projection | `frontend/src/renderer/infrastructure/transcript/sdkDisplayChatMessageProjection.ts` |
 | Local snapshots/replay | `conversationLocalSnapshotLoader.ts`, `rehydratePayload.js`, `rehydrateMessageState.js` |
 | Chat replay actions | `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js` |
@@ -69,7 +69,7 @@ Dashboard recent-chat loading reads canonical chat-event metadata.
 
 Key files:
 
-- Electron sidecar store adapter: `ElectronSidecarConversationStore.ts`,
+- Desktop conversation store adapter: `desktopConversationStoreAdapter.ts`,
 - backend rehydrate payload builder: `rehydratePayload.js`,
 - tool-message reconstruction: `conversationReplayToolMessages.js`,
 - backend rehydrate services: `backend/src/api/services/rehydrate_*`.

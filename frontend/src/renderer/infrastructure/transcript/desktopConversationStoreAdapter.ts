@@ -31,13 +31,11 @@ import {
 
 export { CHAT_EVENT_RECORD_KIND };
 
-type ElectronSidecarConversationStoreOptions = {
+type DesktopConversationStoreAdapterOptions = {
   userId: string;
-  pageSize?: number;
-  maxPages?: number;
 };
 
-type ElectronSidecarConversationStoreDeps = {
+type DesktopConversationStoreAdapterDeps = {
   invoke?: typeof IpcBridge.invoke;
   getConversationWorkspaceBinding?: typeof getConversationWorkspaceBinding;
 };
@@ -294,14 +292,14 @@ function modelMetadataFromEvent(event: ConversationEvent): {
   };
 }
 
-export class ElectronSidecarConversationStore implements ConversationStore {
+export class DesktopConversationStoreAdapter implements ConversationStore {
   private readonly userId: string;
-  private readonly deps: Required<ElectronSidecarConversationStoreDeps>;
+  private readonly deps: Required<DesktopConversationStoreAdapterDeps>;
   private readonly sdkStore: SidecarConversationStore;
 
   constructor(
-    options: ElectronSidecarConversationStoreOptions,
-    deps: ElectronSidecarConversationStoreDeps = {},
+    options: DesktopConversationStoreAdapterOptions,
+    deps: DesktopConversationStoreAdapterDeps = {},
   ) {
     this.userId = options.userId;
     this.deps = {
@@ -361,31 +359,7 @@ export class ElectronSidecarConversationStore implements ConversationStore {
   }
 
   async replaceCompactedReplay(snapshot: CompactedReplaySnapshot): Promise<void> {
-    if (!snapshot.complete || snapshot.entryCount !== snapshot.entries.length) {
-      return;
-    }
-    await this.appendEvent(createConversationEvent({
-      eventId: `compaction-${snapshot.generationId}`,
-      type: 'compaction_applied',
-      conversationRef: snapshot.conversationRef,
-      revisionId: snapshot.sourceRevisionId,
-      turnRef: snapshot.sourceTurnRef ?? null,
-      timestamp: snapshot.createdAt,
-      source: 'sdk',
-      payload: {
-        generationId: snapshot.generationId,
-        sourceRevisionId: snapshot.sourceRevisionId,
-        sourceTurnRef: snapshot.sourceTurnRef ?? null,
-        createdAt: snapshot.createdAt,
-        entries: snapshot.entries,
-        entryCount: snapshot.entryCount,
-        complete: snapshot.complete,
-        active: true,
-        summaryPreview: typeof snapshot.entries[0]?.content === 'string'
-          ? snapshot.entries[0].content
-          : null,
-      },
-    }));
+    await this.sdkStore.replaceCompactedReplay(snapshot);
   }
 
   async loadEvents(conversationRef: string): Promise<ConversationEvent[]> {

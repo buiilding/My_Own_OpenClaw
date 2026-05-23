@@ -1,14 +1,29 @@
 import { loadStoredConversationEntries } from '../../frontend/src/renderer/infrastructure/transcript/localConversationStore';
 import {
   CHAT_EVENT_RECORD_KIND,
-} from '../../frontend/src/renderer/infrastructure/transcript/ElectronSidecarConversationStore';
+} from '../../frontend/src/renderer/infrastructure/transcript/desktopConversationStoreAdapter';
 import { loadLocalConversationSnapshot } from '../../frontend/src/renderer/infrastructure/transcript/conversationLocalSnapshotLoader';
 import {
   createConversationEvent,
 } from '../../frontend/src/renderer/infrastructure/api/windieSdkClient';
 
+const mockInvoke = jest.fn();
+
 jest.mock('../../frontend/src/renderer/infrastructure/transcript/localConversationStore', () => ({
   loadStoredConversationEntries: jest.fn(),
+}));
+
+jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
+  IpcBridge: {
+    invoke: (...args: unknown[]) => mockInvoke(...args),
+  },
+  INVOKE_CHANNELS: {
+    DELETE_CHAT_CONVERSATION: 'delete-chat-conversation',
+    GET_CHAT_EVENTS: 'get-chat-events',
+    LIST_CHAT_CONVERSATIONS: 'list-chat-conversations',
+    SEARCH_CHAT_CONVERSATIONS: 'search-chat-conversations',
+    STORE_CHAT_EVENT: 'store-chat-event',
+  },
 }));
 
 const mockLoadStoredConversationEntries = loadStoredConversationEntries as jest.MockedFunction<typeof loadStoredConversationEntries>;
@@ -16,6 +31,7 @@ const mockLoadStoredConversationEntries = loadStoredConversationEntries as jest.
 function sdkEventRow(event: ReturnType<typeof createConversationEvent>, metadata: Record<string, unknown> = {}) {
   return {
     ...metadata,
+    event_payload: event,
     metadata: {
       ...(metadata.metadata as Record<string, unknown> | undefined),
       structured_payload: {
@@ -25,9 +41,27 @@ function sdkEventRow(event: ReturnType<typeof createConversationEvent>, metadata
   } as any;
 }
 
+function mockSdkConversationRows(rows: Record<string, unknown>[]) {
+  mockInvoke.mockImplementation((channel: string) => {
+    if (channel === 'get-chat-events') {
+      return Promise.resolve({
+        success: true,
+        data: {
+          events: rows,
+        },
+      });
+    }
+    return Promise.resolve({
+      success: true,
+      data: {},
+    });
+  });
+}
+
 describe('conversationLocalSnapshotLoader', () => {
   beforeEach(() => {
     mockLoadStoredConversationEntries.mockReset();
+    mockInvoke.mockReset();
   });
 
   test('loads canonical event rows and derives workspace binding from event metadata', async () => {
@@ -51,6 +85,7 @@ describe('conversationLocalSnapshotLoader', () => {
       .mockResolvedValueOnce(rows)
       .mockResolvedValueOnce(rows)
       .mockResolvedValueOnce(rows);
+    mockSdkConversationRows(rows);
 
     const snapshot = await loadLocalConversationSnapshot({
       userId: 'user-1',
@@ -113,6 +148,7 @@ describe('conversationLocalSnapshotLoader', () => {
     mockLoadStoredConversationEntries
       .mockResolvedValueOnce(eventRows)
       .mockResolvedValueOnce(eventRows);
+    mockSdkConversationRows(eventRows);
 
     const snapshot = await loadLocalConversationSnapshot({
       userId: 'user-1',
@@ -120,7 +156,7 @@ describe('conversationLocalSnapshotLoader', () => {
       includeReplayState: true,
     });
 
-    expect(mockLoadStoredConversationEntries).toHaveBeenCalledTimes(2);
+    expect(mockLoadStoredConversationEntries).toHaveBeenCalledTimes(1);
     expect(snapshot.replayEntries).toHaveLength(0);
     expect(snapshot.rehydrateMessages).toEqual([
       expect.objectContaining({
@@ -182,6 +218,7 @@ describe('conversationLocalSnapshotLoader', () => {
     mockLoadStoredConversationEntries
       .mockResolvedValueOnce(rows)
       .mockResolvedValueOnce(rows);
+    mockSdkConversationRows(rows);
 
     const snapshot = await loadLocalConversationSnapshot({
       userId: 'user-1',
@@ -207,6 +244,7 @@ describe('conversationLocalSnapshotLoader', () => {
     mockLoadStoredConversationEntries
       .mockResolvedValueOnce(rows)
       .mockResolvedValueOnce(rows);
+    mockSdkConversationRows(rows);
 
     const snapshot = await loadLocalConversationSnapshot({
       userId: 'user-1',

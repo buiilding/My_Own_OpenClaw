@@ -17,7 +17,7 @@ title: "Transcript Session and Rehydrate Reference"
 - `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`
 - `frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime.ts`
 - `frontend/src/renderer/infrastructure/transcript/transcriptEntryPersistence.ts`
-- `frontend/src/renderer/infrastructure/transcript/ElectronSidecarConversationStore.ts`
+- `frontend/src/renderer/infrastructure/transcript/desktopConversationStoreAdapter.ts`
 - `frontend/src/renderer/infrastructure/transcript/localConversationStore.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionSyncPayload.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts`
@@ -101,7 +101,7 @@ Shared writer layering:
 - `DesktopTranscriptProjectionRuntimeClient` owns public recorder entrypoints, queue coordination, and `transcript-entry-stored` emission
 - `transcriptRecordWrite.ts` owns the empty-text / resolve-session / immediate-write-or-queue decision boundary
 - `transcriptEntryPersistence.ts` resolves the final session and delegates persistence to the conversation store adapter
-- `SidecarConversationStore` owns sidecar event writes and reads; `ElectronSidecarConversationStore` only supplies desktop write enrichment such as workspace binding, attachments, and compaction checkpoints
+- `SidecarConversationStore` owns sidecar event writes and reads; `DesktopConversationStoreAdapter` only supplies desktop write enrichment such as workspace binding, attachments, and compaction checkpoints
 
 Each path:
 
@@ -196,8 +196,9 @@ Search modal uses the same open path after `search-chat-conversations` results.
 ## SDK Store Boundary
 
 The desktop runtime uses `ConversationContinuityService` as the SDK-owned
-continuity orchestrator and `ElectronSidecarConversationStore` as the
-SDK-facing conversation-store adapter over sidecar chat-event IPC.
+continuity orchestrator and the SDK `SidecarConversationStore` as the
+sidecar-backed conversation-store owner. `DesktopConversationStoreAdapter`
+only adapts desktop projection writes into that SDK store.
 
 Storage split:
 
@@ -238,7 +239,7 @@ Dashboard startup and open-chat loading also use the SDK store adapter:
   `DesktopConversationRuntimeClient.editAndResend(...)` and
   `DesktopConversationRuntimeClient.retryTurn(...)`. The hook identifies the
   clicked message and sets the optimistic display projection, while the desktop
-  runtime facade seeds current display rows into `ElectronSidecarConversationStore`
+  runtime facade seeds current display rows into `DesktopConversationStoreAdapter`
   and delegates revision cutting, rehydrate generation, model sync, and query
   send to `SdkConversationRuntime`.
 - compacted replay replacement appends a new generation with

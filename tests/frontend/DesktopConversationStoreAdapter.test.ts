@@ -1,8 +1,8 @@
 import {
   buildRehydrateSnapshotFromTranscriptProjectionEntries,
   CHAT_EVENT_RECORD_KIND,
-  ElectronSidecarConversationStore,
-} from '../../frontend/src/renderer/infrastructure/transcript/ElectronSidecarConversationStore';
+  DesktopConversationStoreAdapter,
+} from '../../frontend/src/renderer/infrastructure/transcript/desktopConversationStoreAdapter';
 import { IpcBridge } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import {
   createConversationEvent,
@@ -53,7 +53,7 @@ function mockListConversationsOnce(conversations: Array<Record<string, unknown>>
   });
 }
 
-describe('ElectronSidecarConversationStore', () => {
+describe('DesktopConversationStoreAdapter', () => {
   beforeEach(() => {
     mockInvoke.mockReset();
     mockInvoke.mockImplementation(async (channel) => {
@@ -71,7 +71,7 @@ describe('ElectronSidecarConversationStore', () => {
   });
 
   test('stores normalized SDK events in dedicated chat-event storage', async () => {
-    const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
+    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
     const event = createConversationEvent({
       eventId: 'evt-user',
       type: 'user_message',
@@ -93,7 +93,7 @@ describe('ElectronSidecarConversationStore', () => {
   });
 
   test('stores user-message image attachments as first-class chat event attachments', async () => {
-    const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
+    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
     const event = createConversationEvent({
       eventId: 'evt-user-image',
       type: 'user_message',
@@ -128,7 +128,7 @@ describe('ElectronSidecarConversationStore', () => {
   });
 
   test('uses SDK tool identity helpers when storing SDK tool events', async () => {
-    const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
+    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
     const event = createConversationEvent({
       eventId: 'evt-tool',
       type: 'tool_output',
@@ -152,7 +152,7 @@ describe('ElectronSidecarConversationStore', () => {
   });
 
   test('stores tool-output image attachments from nested result payloads', async () => {
-    const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
+    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
     const event = createConversationEvent({
       eventId: 'evt-tool-image',
       type: 'tool_output',
@@ -186,7 +186,7 @@ describe('ElectronSidecarConversationStore', () => {
   });
 
   test('loads only canonical SDK event rows', async () => {
-    const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
+    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
     const event = createConversationEvent({
       eventId: 'evt-assistant',
       type: 'assistant_message',
@@ -207,7 +207,7 @@ describe('ElectronSidecarConversationStore', () => {
   });
 
   test('preserves sidecar append order for same-timestamp SDK event rows', async () => {
-    const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
+    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
     const timestamp = '2026-05-15T12:00:00.000Z';
     const first = createConversationEvent({
       eventId: 'z-first',
@@ -237,7 +237,7 @@ describe('ElectronSidecarConversationStore', () => {
   });
 
   test('stores compacted replay snapshots as compaction events', async () => {
-    const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
+    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
 
     await store.replaceCompactedReplay({
       generationId: 'gen-1',
@@ -283,7 +283,7 @@ describe('ElectronSidecarConversationStore', () => {
   });
 
   test('uses the newest complete compaction event for backend rehydrate snapshots', async () => {
-    const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
+    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
     const partial = createConversationEvent({
       eventId: 'compaction-partial',
       type: 'compaction_applied',
@@ -329,7 +329,7 @@ describe('ElectronSidecarConversationStore', () => {
   });
 
   test('appends transcript projections as canonical conversation events', async () => {
-    const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
+    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
 
     await store.appendTranscriptProjectionEntry({
       conversationRef: 'conv-append',
@@ -367,7 +367,7 @@ describe('ElectronSidecarConversationStore', () => {
   });
 
   test('classifies hyphenated transcript tool-call rows as SDK tool events', async () => {
-    const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
+    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
 
     await store.appendTranscriptProjectionEntry({
       conversationRef: 'conv-tool-call',
@@ -402,7 +402,7 @@ describe('ElectronSidecarConversationStore', () => {
   });
 
   test('classifies hyphenated transcript tool-output rows as SDK tool events', async () => {
-    const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
+    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
 
     await store.appendTranscriptProjectionEntry({
       conversationRef: 'conv-tool-output',
@@ -433,7 +433,7 @@ describe('ElectronSidecarConversationStore', () => {
   });
 
   test('rewrite deletes canonical event rows before storing the new revision projection', async () => {
-    const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
+    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
     const preserved = createConversationEvent({
       eventId: 'evt-preserved',
       type: 'user_message',
@@ -464,7 +464,7 @@ describe('ElectronSidecarConversationStore', () => {
   });
 
   test('deletes only canonical event rows for a conversation', async () => {
-    const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
+    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
 
     await store.deleteConversation('conv-delete');
 
@@ -477,7 +477,7 @@ describe('ElectronSidecarConversationStore', () => {
   });
 
   test('rewrites transcript projection as canonical events', async () => {
-    const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
+    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
 
     const rehydrateSnapshot = await store.rewriteTranscriptProjection({
       conversationRef: 'conv-edit',
@@ -534,7 +534,7 @@ describe('ElectronSidecarConversationStore', () => {
   });
 
   test('lists metadata from canonical event rows only', async () => {
-    const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
+    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
     mockListConversationsOnce([
       {
         conversation_id: 'conv-sdk',
@@ -604,7 +604,7 @@ describe('ElectronSidecarConversationStore', () => {
   });
 
   test('applies explicit metadata limits to canonical event rows', async () => {
-    const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
+    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
     mockListConversationsOnce([
       {
         conversation_id: 'conv-1',
@@ -624,7 +624,7 @@ describe('ElectronSidecarConversationStore', () => {
   });
 
   test('applies metadata cursor pagination to canonical event rows', async () => {
-    const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
+    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
     mockListConversationsOnce([
       {
         conversation_id: 'conv-1',

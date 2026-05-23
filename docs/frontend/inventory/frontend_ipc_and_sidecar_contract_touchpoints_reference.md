@@ -51,7 +51,7 @@ This reference maps frontend-owned contract boundaries and their paired modules.
 
 | Frontend owner | Sidecar/backend owner | Contract files | Contract note |
 | --- | --- | --- | --- |
-| SDK transcript projection store | Sidecar transcript store methods | `renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`, `renderer/infrastructure/transcript/ElectronSidecarConversationStore.ts`, `main/python/local_backend.py` transcript handlers | Missing or duplicate projected transcript rows |
+| SDK transcript projection store | Sidecar transcript store methods | `renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`, `renderer/infrastructure/transcript/desktopConversationStoreAdapter.ts`, `main/python/local_backend.py` transcript handlers | Missing or duplicate projected transcript rows |
 | Memory search/store invokes | Local store + remote clients | Renderer dashboard/memory hooks, `memory/local_store.py`, remote clients | Search quality/latency regressions |
 | Semantic summarizer cadence | Semantic endpoint | `memory/summarizer.py` + backend `/api/semantic/summarize` | Semantic memory not compacted |
 

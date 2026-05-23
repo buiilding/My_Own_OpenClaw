@@ -13,6 +13,7 @@ All notable changes to WindieOS will be documented in this file.
 - sidecar/browser: keep Browser Use CLI calls on the headed dedicated-session config by default and parse noisy close output so stale sessions can shut down cleanly.
 - sidecar/browser: fix Browser Use snapshot screenshots so `include_screenshot=true` uses the screenshot default filename instead of requiring snapshot args to carry `file_name`.
 - sidecar/browser: route canonical WindieOS browser tool execution through the official Browser Use CLI daemon adapter, add `browser-use[cli]` as the browser feature-pack dependency, and document that WindieOS owns orchestration while Browser Use owns browser mechanics.
+- frontend/sdk: rename the desktop conversation storage wrapper into an adapter and delegate compacted replay writes to the SDK `SidecarConversationStore`.
 - frontend/sdk: dispatch compaction display and replay persistence from SDK-normalized compaction events, deleting their raw backend handler-map entries.
 - frontend/sdk: dispatch tool call, output, and bundle display projection from SDK-normalized conversation events, deleting their raw backend handler-map entries.
 - frontend/sdk: dispatch assistant text stream updates from SDK-normalized `assistant_delta` and `turn_completed` events, deleting their raw backend handler-map entries.
@@ -76,7 +77,7 @@ All notable changes to WindieOS will be documented in this file.
 - sdk: centralize provider-facing `model_facing_tool_call.id` extraction for backend event normalization and local tool execution.
 - examples/sdk: add a guardrail that keeps public examples on the high-level `WindieClient` surface instead of desktop/internal runtime modules.
 - examples/sdk: run public local-tool examples through `WindieClient` auto-sidecar startup instead of manual daemon discovery.
-- frontend/sdk: route dashboard conversation library operations through the transcript projection runtime facade before touching the Electron conversation store.
+- frontend/sdk: route dashboard conversation library operations through the transcript projection runtime facade before touching the desktop conversation store adapter.
 - frontend/sdk: move chat and dashboard local conversation snapshot loading behind desktop runtime facades.
 - frontend/sdk: move dashboard conversation search behind the desktop conversation library facade.
 - frontend/sdk: project SDK-owned bundled tool results back into the renderer as display-only `tool-output` rows.
@@ -166,7 +167,7 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sdk: remove the renderer `TranscriptWriter` compatibility API; desktop transcript session and projection writes now live behind SDK-facing runtime clients.
 - frontend/sdk: remove hidden `transcript_replay` compatibility storage so desktop display, rehydrate, compaction, edit/resend, retry, and conversation deletion use canonical `chat_events` rows only.
 - backend: align rehydrate screenshot artifact compatibility coverage with owner-scoped artifact loading.
-- frontend/sdk: make the desktop transcript projection runtime write through the Electron conversation store without importing `TranscriptWriter`.
+- frontend/sdk: make the desktop transcript projection runtime write through the desktop conversation store adapter without importing `TranscriptWriter`.
 - frontend/sdk: delegate Electron main local tool routing to the SDK package tool coordinator.
 - docs: document the SDK managed backend session now owning Electron main websocket lifecycle policy.
 - frontend/sdk: move dashboard replay-cache clearing behind the desktop conversation library runtime facade.
@@ -196,7 +197,7 @@ All notable changes to WindieOS will be documented in this file.
 - docs: refresh core runtime-boundary docs so local tool execution routes through the SDK runtime instead of the renderer.
 - examples: show SDK model catalog loading and `conversation.setModel(...)` in the custom UI example.
 - frontend/sdk: add a renderer guardrail test so backend tool-result delivery stays owned by the SDK runtime.
-- frontend/sdk: move edit/resend and try-again rehydrate projection generation behind the Electron conversation store adapter.
+- frontend/sdk: move edit/resend and try-again rehydrate projection generation behind the desktop conversation store adapter.
 - frontend/sdk: remove the unused renderer bundle execution model and old tool-runner timing logs after SDK-owned tool routing.
 - docs: update active debugging and channel routing docs so tool execution routes through SDK main/runtime and sidecar instead of renderer tool-runner paths.
 - sdk: make runnable examples validate the standalone package dependency tree and add high-level Python `agent.run`/`agent.stream` helpers.
@@ -259,7 +260,7 @@ All notable changes to WindieOS will be documented in this file.
 - frontend: route dashboard and overlay manual compaction controls through one rehydrate-first runtime helper.
 - sdk: add first-class `ConversationStore.loadForDisplay` and `loadForRehydrate` methods backed by shared SDK projections and complete replay snapshots.
 - sdk: add a Node `FileConversationStore` adapter for durable JSON conversation event logs in CLI and custom UI hosts.
-- sdk: honor `listMetadata({ cursor, limit })` in reusable and Electron conversation stores for explicit startup pagination.
+- sdk: honor `listMetadata({ cursor, limit })` in reusable and desktop conversation store adapters for explicit startup pagination.
 - sdk: add `agent.subscribeRawBackendEvents(...)` as an explicit debug-only listener for backend websocket events.
 - sdk: persist conversation-scoped model changes as normalized `settings_updated` events while keeping them out of display and backend rehydrate projections.
 - sdk: mark local tool outputs and turns failed when backend tool-result delivery fails, instead of storing an undelivered result as a successful tool wait.
@@ -285,7 +286,7 @@ All notable changes to WindieOS will be documented in this file.
 - docs: point public TypeScript SDK examples at the standalone `@windie/sdk` package instead of the renderer compatibility barrel.
 - frontend/sdk: route renderer model-list refreshes through `ApiClient.listModels()` instead of direct backend IPC sends.
 - frontend/sdk: move replay-row transcript IPC writes behind the Electron sidecar conversation store boundary.
-- frontend/sdk: add a renderer guardrail test so transcript storage IPC stays owned by the Electron conversation store adapter.
+- frontend/sdk: add a renderer guardrail test so transcript storage IPC stays owned by the desktop conversation store adapter.
 - frontend/sdk: remove `ChatProvider`'s renderer tool-runner mount path so desktop chat surfaces only subscribe to stream state while SDK main owns local tool execution.
 - frontend/sdk: stop mounting renderer-side local tool execution by default now that SDK main runtime owns local tool routing.
 - frontend/sdk: delete the unmounted renderer tool-runner execution stack and runner-specific tests; SDK main runtime and the sidecar now own local tool execution.

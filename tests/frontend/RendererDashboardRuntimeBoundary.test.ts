@@ -20,14 +20,14 @@ async function listSourceFiles(dir: string): Promise<string[]> {
 }
 
 describe('renderer dashboard runtime boundary', () => {
-  test('dashboard feature code does not construct the Electron conversation store directly', async () => {
+  test('dashboard feature code does not construct the desktop conversation store adapter directly', async () => {
     const files = await listSourceFiles(dashboardRoot);
     const offenders: string[] = [];
 
     for (const file of files) {
       const relativePath = path.relative(dashboardRoot, file);
       const source = await fs.readFile(file, 'utf8');
-      if (source.includes('ElectronSidecarConversationStore')) {
+      if (source.includes('DesktopConversationStoreAdapter')) {
         offenders.push(relativePath);
       }
     }

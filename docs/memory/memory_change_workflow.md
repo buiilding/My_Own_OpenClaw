@@ -17,7 +17,7 @@ WindieOS has multiple memory systems. Treating them as one store causes wrong-la
 | --- | --- | --- | --- |
 | Visible chat row is missing or duplicated | SDK projection store plus renderer display handlers | `packages/windie-sdk-js/src/projections`, `frontend/src/main/windie_sdk_runtime.cjs`, chat stream handlers | SDK/main projection tests, `ChatStream*.test.ts` |
 | Conversation list/search is wrong | Sidecar local memory plus dashboard renderer | `frontend/src/main/python/memory/conversation_*`, dashboard hooks | `tests/sidecar/test_conversation_*.py`, `tests/frontend/DashboardConversationLoad.test.js` |
-| Replay displays wrong messages | SDK replay/display projection | `packages/windie-sdk-js/src/projections`, Electron conversation store adapter, replay hooks | SDK projection tests, rehydrate projection tests |
+| Replay displays wrong messages | SDK replay/display projection | `packages/windie-sdk-js/src/projections`, desktop conversation store adapter, replay hooks | SDK projection tests, rehydrate projection tests |
 | Backend forgets prior transcript after reopen | SDK rehydrate projection plus backend rehydrate path | `packages/windie-sdk-js/src/projections`, `backend/src/api/handlers/rehydrate.py`, `backend/src/api/services/rehydrate_*` | `tests/backend/test_rehydrate_*.py`, SDK rehydrate tests |
 | Tool-call/tool-output linkage breaks after replay | SDK tool projection plus backend rehydrate repair | SDK tool projection files, `rehydrate_tool_call_normalization.py`, `rehydrate_tool_linkage_repair.py` | SDK tool projection tests, backend rehydrate linkage tests |
 | Semantic memory is stale or noisy | Sidecar semanticization and backend semantic routes | `frontend/src/main/python/memory/conversation_semanticization_runtime.py`, `summarizer.py`, `backend/src/api/routes/memory/semantic` | `tests/sidecar/test_memory_summarizer.py`, `test_conversation_semanticization_runtime.py`, `tests/backend/test_memory_routes.py` |
@@ -60,7 +60,7 @@ Likely code:
 
 - `packages/windie-sdk-js/src/projections`
 - `frontend/src/main/windie_sdk_runtime.cjs`
-- Electron conversation store adapter
+- desktop conversation store adapter
 - chat stream handler code that renders SDK projections
 
 Validation:
@@ -81,7 +81,7 @@ Read:
 Likely code:
 
 - `packages/windie-sdk-js/src/projections`
-- Electron conversation store adapter
+- desktop conversation store adapter
 - `rehydratePayload.js`
 - `backend/src/api/handlers/rehydrate.py`
 - `backend/src/api/services/rehydrate_*`

@@ -8,8 +8,8 @@ import {
   type CompactedReplaySnapshot,
 } from '../../infrastructure/api/windieSdkClient';
 import {
-  ElectronSidecarConversationStore,
-} from '../../infrastructure/transcript/ElectronSidecarConversationStore';
+  DesktopConversationStoreAdapter,
+} from '../../infrastructure/transcript/desktopConversationStoreAdapter';
 import {
   loadLocalConversationSnapshot,
 } from '../../infrastructure/transcript/conversationLocalSnapshotLoader';
@@ -34,7 +34,7 @@ type SearchConversationsInput = {
 };
 
 export const desktopConversationContinuityService = new ConversationContinuityService({
-  storeFactory: ({ userId }) => new ElectronSidecarConversationStore({ userId }),
+  storeFactory: ({ userId }) => new DesktopConversationStoreAdapter({ userId }),
   transportFactory: ({ workspacePath }) => createDesktopBackendTransport(workspacePath ?? null),
   localRuntimeEventSource: DesktopLocalRuntimeEventSource,
 });

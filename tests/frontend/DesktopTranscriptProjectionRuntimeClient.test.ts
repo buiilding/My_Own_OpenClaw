@@ -17,8 +17,8 @@ function loadDesktopTranscriptRuntimes() {
     ON_CHANNELS: { TRANSCRIPT_SESSION_SYNC: 'transcript-session-sync' },
   }));
 
-  jest.doMock('../../frontend/src/renderer/infrastructure/transcript/ElectronSidecarConversationStore', () => ({
-    ElectronSidecarConversationStore: class {
+  jest.doMock('../../frontend/src/renderer/infrastructure/transcript/desktopConversationStoreAdapter', () => ({
+    DesktopConversationStoreAdapter: class {
       userId: string;
 
       constructor(options: { userId: string }) {

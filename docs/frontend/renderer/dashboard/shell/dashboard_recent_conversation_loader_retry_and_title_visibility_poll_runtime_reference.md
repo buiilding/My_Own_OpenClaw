@@ -105,8 +105,9 @@ Failure is reported via `recentConversationsError`.
 `handleDeleteConversation(conversation)`:
 
 - confirms with blocking prompt
-- delegates to `ElectronSidecarConversationStore.deleteConversation(...)`, which
-  deletes canonical `chat_events` rows for the chat
+- delegates to the SDK `SidecarConversationStore` through the desktop
+  conversation library facade, which deletes canonical `chat_events` rows for
+  the chat
 - removes row from recent/searched lists and pin set
 - when deleting currently active session conversation:
   - clears active conversation refs

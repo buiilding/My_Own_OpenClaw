@@ -1,8 +1,8 @@
-import { ElectronSidecarConversationStore } from './ElectronSidecarConversationStore';
+import type { DesktopConversationStoreAdapter } from './desktopConversationStoreAdapter';
 import { buildRehydrateMessagePayload } from './rehydrateMessageState';
 import type { SessionInfo, TranscriptEntry } from './types';
 
-type TranscriptProjectionStore = Pick<ElectronSidecarConversationStore, 'appendTranscriptProjectionEntry'>;
+type TranscriptProjectionStore = Pick<DesktopConversationStoreAdapter, 'appendTranscriptProjectionEntry'>;
 
 type StoreTranscriptEntryDeps = {
   resolveSessionInfoForEntry: (entry: TranscriptEntry) => SessionInfo;

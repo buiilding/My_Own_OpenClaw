@@ -112,7 +112,7 @@ describe('renderer chat runtime boundary', () => {
       'utf8',
     );
 
-    expect(source).not.toContain('ElectronSidecarConversationStore');
+    expect(source).not.toContain('DesktopConversationStoreAdapter');
     expect(source).not.toContain('CompactedReplaySnapshot');
     expect(source).not.toContain('DesktopConversationRuntimeClient.replaceCompactedReplay(');
     expect(source).toContain('DesktopConversationRuntimeClient.replaceCompactedReplayFromBackendEvent');
@@ -124,7 +124,7 @@ describe('renderer chat runtime boundary', () => {
       'utf8',
     );
 
-    expect(source).not.toContain('ElectronSidecarConversationStore');
+    expect(source).not.toContain('DesktopConversationStoreAdapter');
     expect(source).toContain('DesktopConversationRuntimeClient.editAndResend');
     expect(source).toContain('DesktopConversationRuntimeClient.retryTurn');
   });
@@ -135,7 +135,7 @@ describe('renderer chat runtime boundary', () => {
       'utf8',
     );
 
-    expect(source).not.toContain('ElectronSidecarConversationStore');
+    expect(source).not.toContain('DesktopConversationStoreAdapter');
     expect(source).not.toContain('DesktopConversationRuntimeClient.loadRehydrateSnapshot');
     expect(source).toContain('DesktopConversationRuntimeClient.rehydrateFromStore');
   });

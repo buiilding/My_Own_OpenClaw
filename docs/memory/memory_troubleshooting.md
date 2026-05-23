@@ -30,7 +30,7 @@ npm run test:ci -- WindieSdkConversationRuntime.test.ts ModularRefactorCompletio
 Inspect:
 
 - `packages/windie-sdk-js/src/projections`
-- Electron conversation store adapter
+- desktop conversation store adapter
 - `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js`
 - `frontend/src/renderer/features/chat/utils/conversationReplayToolMessages.js`
 

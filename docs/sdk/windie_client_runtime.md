@@ -276,7 +276,7 @@ Electron uses a sidecar-backed store adapter:
   instead of shaping messages directly from visible transcript rows
 - desktop recent-chat and open-chat loading use store metadata/display
   projections over canonical event rows only
-- desktop chat deletion goes through the Electron conversation store adapter and
+- desktop chat deletion goes through the SDK `SidecarConversationStore` and
   removes canonical `chat_events` rows
 - startup metadata loading does not apply a hidden local chat limit; SDK callers
   pass explicit `listMetadata({ limit, cursor })` options when they want bounded
@@ -286,9 +286,10 @@ Electron uses a sidecar-backed store adapter:
   id because same-timestamp turns, tool pairs, and assistant commits depend on
   append order.
 - desktop edit/resend and try-again visible transcript rewrites are routed
-  through the Electron conversation store adapter. The adapter owns local
-  transcript projection replacement, workspace metadata, rewritten
-  row persistence, and the rehydrate projection used before the resend turn.
+  through the desktop conversation store adapter into the SDK
+  `SidecarConversationStore`. The adapter owns local transcript projection
+  replacement, workspace metadata, rewritten row enrichment, and the rehydrate
+  projection used before the resend turn.
 - desktop visible transcript appends route through
   `DesktopTranscriptProjectionRuntimeClient` and the Electron conversation
   store adapter, so queued user/assistant/tool writes no longer own direct row

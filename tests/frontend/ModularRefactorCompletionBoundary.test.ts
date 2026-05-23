@@ -42,7 +42,7 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).not.toContain('DesktopBackendCommandRuntimeClient');
     expect(source).not.toContain('infrastructure/api/client');
     expect(source).not.toContain('infrastructure/transcript/TranscriptWriter');
-    expect(source.includes('ElectronSidecarConversationStore')).toBe(false);
+    expect(source.includes('DesktopConversationStoreAdapter')).toBe(false);
   });
 
   test('public examples exercise sdk stream, retry, stop, local tool, and model controls', async () => {
@@ -83,7 +83,7 @@ describe('modular sdk refactor completion boundary', () => {
       'createConversationRuntime',
       'ManagedBackendSession',
       'ToolExecutionCoordinator',
-      'ElectronSidecarConversationStore',
+      'DesktopConversationStoreAdapter',
       'DesktopConversationRuntimeClient',
       'DesktopBackendCommandRuntimeClient',
       'packages/windie-sdk-js/src/runtime',

@@ -95,8 +95,8 @@ The SDK ships two reusable store adapters:
   sidecar storage through the SDK store interface instead of renderer IPC
   transcript helpers. The Electron dashboard conversation library uses this
   store for metadata operations such as list, search, delete, and generated-title
-  invalidation refreshes. The Electron sidecar conversation-store adapter also
-  delegates its read/projection conveniences to this SDK store. Desktop supplies
+  invalidation refreshes. The desktop conversation store adapter also delegates
+  its read/projection conveniences to this SDK store. Desktop supplies
   Electron-specific write enrichment such as workspace binding and attachment
   extraction through the store's host write-params hook, while the SDK store
   still owns the sidecar write RPC.
@@ -195,7 +195,7 @@ delete display rows and then reconstruct backend history through a separate
 lossy path.
 
 Desktop edit/resend and try-again seed the current visible projection into the
-Electron conversation store, then call `SdkConversationRuntime.editAndResend`
+desktop conversation store adapter, then call `SdkConversationRuntime.editAndResend`
 or `SdkConversationRuntime.retryTurn`. The renderer hook may identify which
 button was clicked, but revision cutting, rewritten persistence, rehydrate
 projection generation, model sync, and query send live behind the SDK runtime
