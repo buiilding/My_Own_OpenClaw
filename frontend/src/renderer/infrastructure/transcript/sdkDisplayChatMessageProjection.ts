@@ -6,6 +6,7 @@ import {
 import { buildAssistantTextChatMessageState } from './assistantTextChatMessageState';
 import { buildToolCallChatMessageState } from './toolCallChatMessageState';
 import { buildToolOutputChatMessageState } from './toolOutputChatMessageState';
+import { resolveScreenshotAttachmentState } from '../services/screenshotMessageState';
 
 function recordField(record: Record<string, unknown> | null | undefined, key: string): unknown {
   return record && typeof record === 'object' ? record[key] : undefined;
@@ -32,6 +33,23 @@ function structuredPayload(message: DisplayMessage): Record<string, unknown> {
   return payload && typeof payload === 'object' && !Array.isArray(payload)
     ? payload as Record<string, unknown>
     : {};
+}
+
+function screenshotFieldsFromPayload(payload: Record<string, unknown>): Partial<ChatMessage> {
+  const screenshotState = resolveScreenshotAttachmentState({
+    screenshot: stringField(payload, 'screenshot', 'image'),
+    screenshotRef: stringField(payload, 'screenshotRef', 'screenshot_ref'),
+    screenshotUrl: stringField(payload, 'screenshotUrl', 'screenshot_url'),
+    screenshotContentType: stringField(payload, 'screenshotContentType', 'screenshot_content_type'),
+    inferArtifactRefFromScreenshot: true,
+    preserveInlineScreenshotWithRemote: false,
+  });
+  return {
+    ...(screenshotState.screenshot ? { screenshot: screenshotState.screenshot } : {}),
+    ...(screenshotState.screenshotRef ? { screenshotRef: screenshotState.screenshotRef } : {}),
+    ...(screenshotState.screenshotUrl ? { screenshotUrl: screenshotState.screenshotUrl } : {}),
+    ...(screenshotState.screenshotContentType ? { screenshotContentType: screenshotState.screenshotContentType } : {}),
+  };
 }
 
 function firstToolCall(message: DisplayMessage): Record<string, unknown> | null {
@@ -63,12 +81,7 @@ function buildUserChatMessage(message: DisplayMessage): ChatMessage {
     sender: 'user',
     timestamp: message.timestamp,
     isComplete: true,
-    ...(stringField(payload, 'screenshotRef', 'screenshot_ref') ? {
-      screenshotRef: stringField(payload, 'screenshotRef', 'screenshot_ref'),
-    } : {}),
-    ...(stringField(payload, 'screenshot', 'image') ? {
-      screenshot: stringField(payload, 'screenshot', 'image'),
-    } : {}),
+    ...screenshotFieldsFromPayload(payload),
   };
 }
 
@@ -122,9 +135,7 @@ function buildToolOutputMessage(message: DisplayMessage): ChatMessage {
     id: message.id,
     outputText: message.text,
     sourceEventType: message.messageType,
-    screenshot: stringField(payload, 'screenshot', 'image'),
-    screenshotRef: stringField(payload, 'screenshotRef', 'screenshot_ref'),
-    screenshotUrl: stringField(payload, 'screenshotUrl', 'screenshot_url'),
+    ...screenshotFieldsFromPayload(payload),
     toolName: message.toolName ?? null,
     success: typeof payload.success === 'boolean' ? payload.success : null,
     correlationId: message.requestId ?? message.bundleId ?? message.toolCallId ?? message.correlationId ?? null,

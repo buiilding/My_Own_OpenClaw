@@ -33,6 +33,12 @@ Tool message types treated as tool rows:
 - `tool-call`
 - `tool-output`
 
+Stored transcript projection accepts both hyphenated renderer message types
+(`tool-call`, `tool-output`) and underscore SDK/backend message types
+(`tool_call`, `tool_output`). The projection boundary must normalize these
+forms before choosing SDK event types so reloaded tool-call rows render as tool
+cards instead of assistant markdown.
+
 ## Role Mapping Contract
 
 `resolveTranscriptRole(message)`:
@@ -120,6 +126,7 @@ Do not change replay to drop all tool rows; that removes useful context and is o
 2. Diverging role/type mapping between transcript writes and rehydrate payloads causes resume inconsistencies.
 3. Removing screenshot ref normalization can leak non-string payload values to backend.
 4. Replay pruning that removes valid tool pairs (instead of only orphan rows) changes model context and is a regression.
+5. Treating artifact ids as inline screenshot bytes makes reloaded image rows render broken data URLs instead of authenticated artifact images.
 
 ## Related Pages
 

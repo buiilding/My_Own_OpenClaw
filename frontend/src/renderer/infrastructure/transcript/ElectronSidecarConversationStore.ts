@@ -347,19 +347,22 @@ function applyMetadataPagination<T extends { conversationRef: string }>(
 }
 
 function eventTypeFromProjectionEntry(entry: TranscriptProjectionRewriteEntry): ConversationEvent['type'] {
-  if (entry.role === 'user' || entry.messageType === 'user') {
+  const messageType = typeof entry.messageType === 'string'
+    ? entry.messageType.trim().toLowerCase().replaceAll('_', '-')
+    : '';
+  if (entry.role === 'user' || messageType === 'user') {
     return 'user_message';
   }
-  if (entry.messageType === 'tool_bundle_call') {
+  if (messageType === 'tool-bundle-call' || messageType === 'tool-bundle') {
     return 'tool_bundle_call';
   }
-  if (entry.messageType === 'tool_bundle_output') {
+  if (messageType === 'tool-bundle-output') {
     return 'tool_bundle_output';
   }
-  if (entry.messageType === 'tool_call') {
+  if (messageType === 'tool-call') {
     return 'tool_call';
   }
-  if (entry.role === 'tool' || entry.messageType === 'tool_output') {
+  if (entry.role === 'tool' || messageType === 'tool-output') {
     return 'tool_output';
   }
   return 'assistant_message';

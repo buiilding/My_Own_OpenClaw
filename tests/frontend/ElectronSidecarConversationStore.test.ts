@@ -343,6 +343,72 @@ describe('ElectronSidecarConversationStore', () => {
     }));
   });
 
+  test('classifies hyphenated transcript tool-call rows as SDK tool events', async () => {
+    const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
+
+    await store.appendTranscriptProjectionEntry({
+      conversationRef: 'conv-tool-call',
+      content: '{"id":"call-1","name":"mouse_control","arguments":{"action":"click"}}',
+      role: 'assistant',
+      messageType: 'tool-call',
+      toolName: 'mouse_control',
+      correlationId: 'call-1',
+      timestamp: '2026-05-15T12:00:00.000Z',
+      rehydrateEntry: {
+        role: 'assistant',
+        content: '{"id":"call-1","name":"mouse_control","arguments":{"action":"click"}}',
+        message_type: 'tool-call',
+      },
+    });
+
+    expect(mockInvoke).toHaveBeenCalledWith('store-chat-event', expect.objectContaining({
+      content: '{"id":"call-1","name":"mouse_control","arguments":{"action":"click"}}',
+      role: 'assistant',
+      eventType: 'tool_call',
+      toolName: 'mouse_control',
+      correlationId: 'call-1',
+      eventPayload: expect.objectContaining({
+        type: 'tool_call',
+        payload: expect.objectContaining({
+          messageType: 'tool-call',
+          toolName: 'mouse_control',
+          toolCallId: 'call-1',
+        }),
+      }),
+    }));
+  });
+
+  test('classifies hyphenated transcript tool-output rows as SDK tool events', async () => {
+    const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
+
+    await store.appendTranscriptProjectionEntry({
+      conversationRef: 'conv-tool-output',
+      content: 'clicked',
+      role: 'tool',
+      messageType: 'tool-output',
+      toolName: 'mouse_control',
+      correlationId: 'call-1',
+      screenshot: 'artifact-output-1',
+      timestamp: '2026-05-15T12:00:00.000Z',
+      rehydrateEntry: {
+        role: 'tool',
+        content: 'clicked',
+        message_type: 'tool-output',
+      },
+    });
+
+    expect(mockInvoke).toHaveBeenCalledWith('store-chat-event', expect.objectContaining({
+      content: 'clicked',
+      role: 'tool',
+      eventType: 'tool_output',
+      toolName: 'mouse_control',
+      correlationId: 'call-1',
+      eventPayload: expect.objectContaining({
+        type: 'tool_output',
+      }),
+    }));
+  });
+
   test('rewrite deletes canonical event rows before storing the new revision projection', async () => {
     const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
     const preserved = createConversationEvent({

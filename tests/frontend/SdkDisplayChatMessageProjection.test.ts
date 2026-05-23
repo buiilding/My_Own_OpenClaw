@@ -98,4 +98,37 @@ describe('sdkDisplayChatMessageProjection', () => {
       }),
     ]);
   });
+
+  test('normalizes persisted screenshot artifact refs without treating them as inline image bytes', () => {
+    const display: DisplayConversation = {
+      conversationRef: 'conv-shot',
+      revisionId: 'rev-1',
+      compaction: { status: 'idle' },
+      messages: [
+        {
+          id: 'msg-user-shot',
+          conversationRef: 'conv-shot',
+          revisionId: 'rev-1',
+          timestamp: '2026-05-15T12:00:00.000Z',
+          sender: 'user',
+          text: 'look here',
+          messageType: 'user_message',
+          metadata: {
+            screenshotRef: 'artifact-user-1',
+            screenshot: 'artifact-user-1',
+          },
+        },
+      ],
+    };
+
+    expect(buildChatMessagesFromDisplayConversation(display)).toEqual([
+      expect.objectContaining({
+        id: 'msg-user-shot',
+        sender: 'user',
+        screenshotRef: 'artifact-user-1',
+        screenshotUrl: expect.stringContaining('/api/artifacts/artifact-user-1'),
+      }),
+    ]);
+    expect(buildChatMessagesFromDisplayConversation(display)[0]).not.toHaveProperty('screenshot');
+  });
 });

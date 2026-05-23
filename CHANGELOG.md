@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: normalize rehydrated transcript tool message types and screenshot artifact refs so loaded conversations render tool cards and screenshots instead of raw JSON or broken image rows.
 - sdk/frontend: route dashboard generated-title refresh through SDK conversation metadata invalidations instead of direct sidecar-event handling in the dashboard hook.
 - docs/agents: document the SDK-first Electron architecture target and strengthen simplification-first refactoring rules for coding agents.
 - docs/agents: remove stale test-path guidance, replace an obsolete tool-schema example, and fix changelog-before-commit wording.
