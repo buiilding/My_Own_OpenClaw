@@ -125,6 +125,11 @@ Details panel payload:
 
 This separation keeps default view aligned with model-facing call while preserving raw execution payload in details.
 
+Tool-call preview content stays in the transcript flow instead of using a nested
+vertical scroll box. Long JSON lines wrap inside the card so the first line is
+visible immediately after render; the details panel may remain internally
+scrollable for large diagnostic payloads.
+
 Backend contract:
 
 - `metadata.model_facing_tool_call` should carry the exact LLM-emitted tool payload whenever available, including successful unified wrapper calls that are internally normalized before execution

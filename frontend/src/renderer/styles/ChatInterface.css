@@ -1568,7 +1568,11 @@
 }
 
 .tool-call-content {
-  white-space: pre;
+  max-height: none;
+  overflow-x: hidden;
+  overflow-y: visible;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .tool-details-panel {
