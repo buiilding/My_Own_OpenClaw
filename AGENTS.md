@@ -8,7 +8,8 @@ WindieOS is a desktop AI operator with persistent memory, terminal access, and c
 
 - Electron app for UX
   - Renderer for UI
-  - Main process for orchestration bridges
+  - Main process for native shell behavior, windows, IPC, permissions, platform policy, and SDK host adapters
+- Windie SDK runtime for agent/client orchestration that should be reusable by Electron, CLI, custom UI, plugins, and tests
 - Python sidecar for local tool execution and local memory services
 - Python FastAPI backend for the agent loop, LLM orchestration, streaming, remote tools, and internal processing such as OCR and vision
 - The backend is part of this repository and may be self-hosted or hosted
@@ -37,6 +38,12 @@ WindieOS is a desktop AI operator with persistent memory, terminal access, and c
 ## Tooling and Architecture Notes
 
 - Tools execute on the frontend Python sidecar unless they are explicit backend remote tools such as `web_search`
+- The intended frontend direction is SDK-first: Electron should become the first official Windie SDK client, not a parallel runtime implementation
+- New chat/runtime behavior should move into the SDK runtime first when it is useful outside one Electron surface
+- Electron-specific code should stay limited to true desktop shell concerns: BrowserWindow lifecycle, IPC transport, menus, app lifecycle, native permissions, platform window policy, tray/shortcuts, and host capability adapters
+- Avoid adding new Electron-only bridges for behavior that belongs to `WindieClient`, `WindieAgent`, `ConversationRuntime`, `LocalSidecarRuntime`, SDK stores, SDK projections, or SDK tool routing
+- When replacing Electron bridge behavior with SDK behavior, include a deletion milestone for the old bridge/store/helper path in the same phase or in the next explicit phase
+- Do not add adapter layers whose only job is to rename and forward payloads; adapters must enforce a real runtime boundary, security boundary, lifecycle boundary, or testable invariant
 - Windie Agent/frontend owns local tool implementations and model-facing schemas for client-local tools
 - The backend validates client-provided tool manifests, applies policy/provider projection, owns backend remote tools, and owns final prompt compilation
 - Frontend and sidecar must not import backend code for schema parity
@@ -150,6 +157,10 @@ Stable fix contract:
 
 - Fix root causes, not symptoms
 - Do not layer workarounds on top of messy local design if a small refactor can remove the problem
+- Prefer deleting, collapsing, or moving existing behavior over adding new surfaces
+- Add code only when it enables a simpler ownership boundary, removes duplication, unlocks deletion of legacy paths, or makes a real invariant testable
+- Treat net-new wrappers, compatibility shims, fallback aliases, and duplicate state stores as suspicious by default
+- If an implementation adds a new layer, name what existing layer, branch, compatibility path, or duplicated behavior it will remove
 - Prefer bounded, local refactors in the same codepath when they make the implementation simpler, clearer, or easier to test
 - Escalate to the user before widening scope if the cleanup would:
   - cross subsystem boundaries
@@ -165,6 +176,8 @@ Pause and propose a refactor if the planned change would otherwise:
 - add special-case logic to an already confusing flow
 - extend a large mixed-responsibility function or component
 - make testing awkward because responsibilities are poorly separated
+- add another bridge/facade/store for chat, tool execution, sidecar events, conversation history, replay, memory, model settings, or overlay phase without deleting or retiring the older path
+- keep Electron and SDK paths as parallel sources of truth for the same runtime behavior
 
 ### Completion Check
 
@@ -173,6 +186,8 @@ Before finishing, verify:
 - the touched path is not more duplicated or more coupled without a clear reason
 - tests cover the cleaned-up behavior and boundaries
 - you removed at least as much complexity as you added
+- any new abstraction has a deletion or consolidation payoff
+- no obsolete UI, bridge, alias, compatibility path, or fallback remains in the touched area without a stated reason
 
 In the final summary, briefly note any meaningful refactor performed and any important debt intentionally left behind.
 For every completed fix or behavior change, explain:
