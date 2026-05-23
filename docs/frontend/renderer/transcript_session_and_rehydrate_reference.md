@@ -128,7 +128,7 @@ Stored fields include:
 - tool-call message reconstruction is normalized through `toolCallMessageState.js` so live stream rows, session serialization, replayed transcript rows, and rehydrate payloads share one canonical `text/toolCallDisplayText/modelFacingToolCall/toolCallDetails/correlationId` contract
 - screenshot attachment reconstruction is normalized through `screenshotMessageState.js` so live tool rows, replayed transcript rows, and screenshot capture/runtime helpers agree on artifact-ref/url inference and inline-vs-remote attachment behavior
 
-Successful writes dispatch browser event `transcript-entry-stored` so dashboard/chat consumers can refresh derived rows without a full reload. Generated title writes are asynchronous sidecar metadata updates; after `conversation_titles` is updated, the sidecar emits `conversation-title-updated`, Electron forwards it as `sidecar-event`, and the dashboard reloads recent conversation metadata.
+Successful writes dispatch browser event `transcript-entry-stored` so dashboard/chat consumers can refresh derived rows without a full reload. Generated title writes are asynchronous sidecar metadata updates; after `conversation_titles` is updated, the sidecar emits `conversation-title-updated`, the SDK local-runtime event source normalizes it into a conversation metadata invalidation, and the dashboard reloads recent conversation metadata through the conversation library.
 
 ## Queue and Retry Semantics
 
@@ -209,7 +209,8 @@ Storage split:
 - compacted backend rehydrate snapshots are stored as complete
   `compaction_applied` conversation events.
 
-The adapter loads canonical chat events. Display and backend
+The adapter writes enriched canonical chat events through Electron IPC, but its
+read methods delegate to the SDK `SidecarConversationStore`. Display and backend
 rehydrate snapshots come from the SDK projection path, and backend resume is
 triggered by the SDK continuity service rather than by dashboard or chat
 feature code.

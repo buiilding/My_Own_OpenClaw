@@ -6,13 +6,12 @@ import {
 } from '../workspace/conversationWorkspaceBinding';
 import {
   CHAT_EVENT_RECORD_KIND,
-  listStoredConversations,
-  loadStoredConversationEntries,
 } from './localConversationStore';
+import {
+  createIpcSidecarConversationStore,
+} from './sdkSidecarConversationStore';
 import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
 import {
-  buildConversationMetadata,
-  buildDisplayConversation,
   buildRehydrateSnapshot,
   createConversationEvent,
   type CompactedReplaySnapshot,
@@ -24,17 +23,11 @@ import {
   type DisplayConversation,
   type ListConversationOptions,
   type RehydrateSnapshot,
+  type SidecarConversationStore,
   resolveToolEventCorrelationId,
 } from '../api/windieSdkClient';
 
 export { CHAT_EVENT_RECORD_KIND };
-
-type StoredConversationRow = Record<string, unknown>;
-
-type DesktopConversationMetadata = ConversationMetadata & {
-  workspacePath?: string | null;
-  workspaceName?: string | null;
-};
 
 type ElectronSidecarConversationStoreOptions = {
   userId: string;
@@ -43,8 +36,6 @@ type ElectronSidecarConversationStoreOptions = {
 };
 
 type ElectronSidecarConversationStoreDeps = {
-  loadStoredConversationEntries?: typeof loadStoredConversationEntries;
-  listStoredConversations?: typeof listStoredConversations;
   invoke?: typeof IpcBridge.invoke;
   getConversationWorkspaceBinding?: typeof getConversationWorkspaceBinding;
 };
@@ -110,75 +101,6 @@ function normalizeRecord(value: unknown): Record<string, unknown> | null {
 
 function normalizeArray(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
-}
-
-function parseJsonRecord(value: unknown): Record<string, unknown> | null {
-  const record = normalizeRecord(value);
-  if (record) {
-    return record;
-  }
-  if (typeof value !== 'string' || !value.trim()) {
-    return null;
-  }
-  try {
-    return normalizeRecord(JSON.parse(value));
-  } catch {
-    return null;
-  }
-}
-
-function resolveRowMetadata(row: StoredConversationRow): Record<string, unknown> {
-  return parseJsonRecord(row.metadata) ?? {};
-}
-
-function resolveStructuredPayload(row: StoredConversationRow): Record<string, unknown> {
-  const metadata = resolveRowMetadata(row);
-  return parseJsonRecord(metadata.structured_payload)
-    ?? parseJsonRecord(metadata.structuredPayload)
-    ?? parseJsonRecord(row.structured_payload)
-    ?? parseJsonRecord(row.structuredPayload)
-    ?? {};
-}
-
-function resolveStoredSdkEvent(row: StoredConversationRow): ConversationEvent | null {
-  const storedPayload = parseJsonRecord(row.event_payload)
-    ?? parseJsonRecord(row.eventPayload);
-  if (storedPayload) {
-    return normalizeConversationEvent(storedPayload);
-  }
-  const structuredPayload = resolveStructuredPayload(row);
-  const candidate = structuredPayload.windieSdkConversationEvent
-    ?? structuredPayload.windie_sdk_conversation_event
-    ?? resolveRowMetadata(row).windieSdkConversationEvent
-    ?? resolveRowMetadata(row).windie_sdk_conversation_event;
-  return normalizeConversationEvent(candidate);
-}
-
-function normalizeConversationEvent(candidate: unknown): ConversationEvent | null {
-  const event = normalizeRecord(candidate);
-  if (!event) {
-    return null;
-  }
-  if (
-    typeof event.eventId !== 'string'
-    || typeof event.type !== 'string'
-    || typeof event.conversationRef !== 'string'
-    || typeof event.revisionId !== 'string'
-    || typeof event.timestamp !== 'string'
-    || typeof event.source !== 'string'
-  ) {
-    return null;
-  }
-  return {
-    eventId: event.eventId,
-    type: event.type as ConversationEvent['type'],
-    conversationRef: event.conversationRef,
-    turnRef: typeof event.turnRef === 'string' ? event.turnRef : null,
-    revisionId: event.revisionId,
-    timestamp: event.timestamp,
-    source: event.source as ConversationEvent['source'],
-    payload: normalizeRecord(event.payload) ?? {},
-  };
 }
 
 function textFromEvent(event: ConversationEvent): string {
@@ -321,31 +243,6 @@ function roleFromEvent(event: ConversationEvent): string {
   return 'assistant';
 }
 
-function conversationRefFromMetadata(row: StoredConversationRow): string | null {
-  return normalizeNonEmptyString(row.conversation_id)
-    ?? normalizeNonEmptyString(row.conversationId)
-    ?? normalizeNonEmptyString(row.conversation_ref)
-    ?? normalizeNonEmptyString(row.conversationRef);
-}
-
-function updatedAtFromMetadata(row: StoredConversationRow): string {
-  return normalizeNonEmptyString(row.last_timestamp)
-    ?? normalizeNonEmptyString(row.updatedAt)
-    ?? normalizeNonEmptyString(row.timestamp)
-    ?? new Date(0).toISOString();
-}
-
-function applyMetadataPagination<T extends { conversationRef: string }>(
-  metadata: T[],
-  options: ListConversationOptions,
-): T[] {
-  const cursorIndex = typeof options.cursor === 'string'
-    ? metadata.findIndex((entry) => entry.conversationRef === options.cursor)
-    : -1;
-  const afterCursor = cursorIndex >= 0 ? metadata.slice(cursorIndex + 1) : metadata;
-  return typeof options.limit === 'number' ? afterCursor.slice(0, options.limit) : afterCursor;
-}
-
 function eventTypeFromProjectionEntry(entry: TranscriptProjectionRewriteEntry): ConversationEvent['type'] {
   const messageType = typeof entry.messageType === 'string'
     ? entry.messageType.trim().toLowerCase().replaceAll('_', '-')
@@ -404,44 +301,6 @@ function projectionEntryToConversationEvent(
   });
 }
 
-function compactedReplayFromEvent(event: ConversationEvent): CompactedReplaySnapshot | null {
-  if (event.type !== 'compaction_applied') {
-    return null;
-  }
-  const entries = Array.isArray(event.payload.entries)
-    ? event.payload.entries.filter((entry): entry is Record<string, unknown> => (
-      Boolean(entry) && typeof entry === 'object' && !Array.isArray(entry)
-    ))
-    : [];
-  const entryCount = typeof event.payload.entryCount === 'number'
-    ? event.payload.entryCount
-    : (typeof event.payload.entry_count === 'number' ? event.payload.entry_count : entries.length);
-  const complete = event.payload.complete !== false;
-  if (!complete || entryCount !== entries.length || entries.length === 0) {
-    return null;
-  }
-  return {
-    generationId: normalizeNonEmptyString(event.payload.generationId)
-      ?? normalizeNonEmptyString(event.payload.generation_id)
-      ?? `compaction-${event.eventId}`,
-    conversationRef: event.conversationRef,
-    sourceRevisionId: normalizeNonEmptyString(event.payload.sourceRevisionId)
-      ?? normalizeNonEmptyString(event.payload.source_revision_id)
-      ?? event.revisionId,
-    sourceTurnRef: normalizeNonEmptyString(event.payload.sourceTurnRef)
-      ?? normalizeNonEmptyString(event.payload.source_turn_ref)
-      ?? event.turnRef
-      ?? null,
-    createdAt: normalizeNonEmptyString(event.payload.createdAt)
-      ?? normalizeNonEmptyString(event.payload.created_at)
-      ?? event.timestamp,
-    entries,
-    entryCount,
-    complete,
-    active: event.payload.active !== false,
-  };
-}
-
 function modelMetadataFromEvent(event: ConversationEvent): {
   modelId: string | null;
   modelProvider: string | null;
@@ -456,23 +315,19 @@ function modelMetadataFromEvent(event: ConversationEvent): {
 
 export class ElectronSidecarConversationStore implements ConversationStore {
   private readonly userId: string;
-  private readonly pageSize: number;
-  private readonly maxPages: number;
   private readonly deps: Required<ElectronSidecarConversationStoreDeps>;
+  private readonly sdkStore: SidecarConversationStore;
 
   constructor(
     options: ElectronSidecarConversationStoreOptions,
     deps: ElectronSidecarConversationStoreDeps = {},
   ) {
     this.userId = options.userId;
-    this.pageSize = options.pageSize ?? 1000;
-    this.maxPages = options.maxPages ?? 250;
     this.deps = {
-      loadStoredConversationEntries: deps.loadStoredConversationEntries ?? loadStoredConversationEntries,
-      listStoredConversations: deps.listStoredConversations ?? listStoredConversations,
       invoke: deps.invoke ?? IpcBridge.invoke,
       getConversationWorkspaceBinding: deps.getConversationWorkspaceBinding ?? getConversationWorkspaceBinding,
     };
+    this.sdkStore = createIpcSidecarConversationStore(this.userId, this.deps.invoke);
   }
 
   async appendEvent(event: ConversationEvent): Promise<void> {
@@ -554,67 +409,27 @@ export class ElectronSidecarConversationStore implements ConversationStore {
   }
 
   async loadEvents(conversationRef: string): Promise<ConversationEvent[]> {
-    const storedEventRows = await this.loadRows(conversationRef, CHAT_EVENT_RECORD_KIND);
-    return storedEventRows
-      .map(resolveStoredSdkEvent)
-      .filter((event): event is ConversationEvent => Boolean(event));
+    return this.sdkStore.loadEvents(conversationRef);
   }
 
   async listMetadata(options: ListConversationOptions = {}): Promise<ConversationMetadata[]> {
-    const limit = normalizePositiveInteger(options.limit);
-    const fetchLimit = options.cursor ? null : limit;
-    const eventMetadata = await this.listMetadataForRecordKind(CHAT_EVENT_RECORD_KIND, fetchLimit);
-    const sorted = eventMetadata
-      .sort((a, b) => (Date.parse(b.updatedAt) || 0) - (Date.parse(a.updatedAt) || 0));
-    return applyMetadataPagination(sorted, {
-      ...options,
-      limit: limit ?? undefined,
-    });
+    return this.sdkStore.listMetadata(options);
   }
 
   async getRevision(conversationRef: string): Promise<ConversationRevision> {
-    const events = await this.loadEvents(conversationRef);
-    const lastEvent = events[events.length - 1];
-    return {
-      conversationRef,
-      revisionId: lastEvent?.revisionId ?? `rev-stored-${conversationRef}`,
-      updatedAt: lastEvent?.timestamp ?? new Date(0).toISOString(),
-    };
+    return this.sdkStore.getRevision(conversationRef);
   }
 
   async loadCompactedReplay(conversationRef: string): Promise<CompactedReplaySnapshot | null> {
-    const events = await this.loadEvents(conversationRef);
-    for (const event of [...events].reverse()) {
-      const replay = compactedReplayFromEvent(event);
-      if (replay) {
-        return replay;
-      }
-    }
-    return null;
+    return this.sdkStore.loadCompactedReplay?.(conversationRef) ?? null;
   }
 
   async loadForDisplay(conversationRef: string): Promise<DisplayConversation> {
-    return buildDisplayConversation(await this.loadEvents(conversationRef));
+    return this.sdkStore.loadForDisplay(conversationRef);
   }
 
   async loadForRehydrate(conversationRef: string): Promise<RehydrateSnapshot> {
-    const events = await this.loadEvents(conversationRef);
-    let replay: CompactedReplaySnapshot | null = null;
-    for (const event of [...events].reverse()) {
-      replay = compactedReplayFromEvent(event);
-      if (replay) {
-        break;
-      }
-    }
-    if (replay?.complete && replay.entryCount === replay.entries.length) {
-      return {
-        conversationRef,
-        revisionId: replay.sourceRevisionId,
-        messages: replay.entries,
-        replayGenerationId: replay.generationId,
-      };
-    }
-    return buildRehydrateSnapshot(events);
+    return this.sdkStore.loadForRehydrate(conversationRef);
   }
 
   private async storeEvent(event: ConversationEvent): Promise<void> {
@@ -663,66 +478,4 @@ export class ElectronSidecarConversationStore implements ConversationStore {
     }
   }
 
-  private async loadRows(conversationRef: string, recordKind: string): Promise<StoredConversationRow[]> {
-    return this.deps.loadStoredConversationEntries({
-      userId: this.userId,
-      conversationRef,
-      recordKind,
-      pageSize: this.pageSize,
-      maxPages: this.maxPages,
-    });
-  }
-
-  private async listMetadataForRecordKind(
-    recordKind: string,
-    limit: number | null,
-  ): Promise<DesktopConversationMetadata[]> {
-    const rows = await this.deps.listStoredConversations({
-      userId: this.userId,
-      limit,
-      recordKind,
-    });
-    return rows
-      .map((row): DesktopConversationMetadata | null => {
-        const conversationRef = conversationRefFromMetadata(row);
-        if (!conversationRef) {
-          return null;
-        }
-        const workspacePath = normalizeNonEmptyString(row.workspace_path)
-          ?? normalizeNonEmptyString(row.workspacePath)
-          ?? null;
-        const workspaceName = normalizeNonEmptyString(row.workspace_name)
-          ?? normalizeNonEmptyString(row.workspaceName)
-          ?? null;
-        return {
-          conversationRef,
-          revisionId: normalizeNonEmptyString(row.revision_id)
-            ?? normalizeNonEmptyString(row.revisionId)
-            ?? `rev-stored-${conversationRef}`,
-          title: normalizeNonEmptyString(row.title) ?? conversationRef,
-          lastMessage: normalizeNonEmptyString(row.last_message)
-            ?? normalizeNonEmptyString(row.lastMessage)
-            ?? null,
-          updatedAt: updatedAtFromMetadata(row),
-          eventCount: typeof row.entry_count === 'number'
-            ? row.entry_count
-            : Number(row.entryCount ?? 0) || 0,
-          workspacePath,
-          workspaceName,
-        } satisfies DesktopConversationMetadata;
-      })
-      .filter((metadata): metadata is DesktopConversationMetadata => Boolean(metadata));
-  }
-}
-
-function normalizePositiveInteger(value: unknown): number | null {
-  return typeof value === 'number' && Number.isFinite(value) && value > 0
-    ? Math.floor(value)
-    : null;
-}
-
-export function buildElectronSidecarConversationMetadata(
-  events: ConversationEvent[],
-): ConversationMetadata {
-  return buildConversationMetadata(events);
 }

@@ -95,8 +95,10 @@ The SDK ships two reusable store adapters:
   sidecar storage through the SDK store interface instead of renderer IPC
   transcript helpers. The Electron dashboard conversation library uses this
   store for metadata operations such as list, search, delete, and generated-title
-  invalidation refreshes; display and rehydrate loading still use the
-  Electron-specific store adapter until the open-chat path is migrated.
+  invalidation refreshes. The Electron sidecar conversation-store adapter also
+  delegates its read/projection conveniences to this SDK store, while retaining
+  Electron-specific write enrichment such as workspace binding and attachment
+  extraction.
 
 Electron's sidecar-backed store is a first-party adapter. It is allowed to know
 about transcript storage IPC, but it must stay behind the SDK store interface.

@@ -15,7 +15,7 @@ import {
 } from '../../infrastructure/transcript/conversationLocalSnapshotLoader';
 import { createDesktopBackendTransport } from './desktopBackendTransport';
 import { DesktopLocalRuntimeEventSource } from './desktopLocalRuntimeEventSource';
-import { createDesktopSidecarConversationStore } from './desktopSidecarConversationStore';
+import { createIpcSidecarConversationStore } from '../../infrastructure/transcript/sdkSidecarConversationStore';
 import type { LocalConversationSnapshot } from '../../infrastructure/transcript/conversationLocalSnapshotLoader';
 
 type LoadRehydrateSnapshotInput = {
@@ -40,7 +40,7 @@ export const desktopConversationContinuityService = new ConversationContinuitySe
 });
 
 export const desktopConversationMetadataService = new ConversationContinuityService({
-  storeFactory: ({ userId }) => createDesktopSidecarConversationStore(userId),
+  storeFactory: ({ userId }) => createIpcSidecarConversationStore(userId),
   localRuntimeEventSource: DesktopLocalRuntimeEventSource,
 });
 

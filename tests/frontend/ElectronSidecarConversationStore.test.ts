@@ -3,19 +3,10 @@ import {
   CHAT_EVENT_RECORD_KIND,
   ElectronSidecarConversationStore,
 } from '../../frontend/src/renderer/infrastructure/transcript/ElectronSidecarConversationStore';
-import {
-  listStoredConversations,
-  loadStoredConversationEntries,
-} from '../../frontend/src/renderer/infrastructure/transcript/localConversationStore';
 import { IpcBridge } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import {
   createConversationEvent,
 } from '../../frontend/src/renderer/infrastructure/api/windieSdkClient';
-
-jest.mock('../../frontend/src/renderer/infrastructure/transcript/localConversationStore', () => ({
-  listStoredConversations: jest.fn(),
-  loadStoredConversationEntries: jest.fn(),
-}));
 
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   IpcBridge: {
@@ -23,12 +14,13 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
   INVOKE_CHANNELS: {
     DELETE_CHAT_CONVERSATION: 'delete-chat-conversation',
+    GET_CHAT_EVENTS: 'get-chat-events',
+    LIST_CHAT_CONVERSATIONS: 'list-chat-conversations',
+    SEARCH_CHAT_CONVERSATIONS: 'search-chat-conversations',
     STORE_CHAT_EVENT: 'store-chat-event',
   },
 }));
 
-const mockListStoredConversations = listStoredConversations as jest.MockedFunction<typeof listStoredConversations>;
-const mockLoadStoredConversationEntries = loadStoredConversationEntries as jest.MockedFunction<typeof loadStoredConversationEntries>;
 const mockInvoke = IpcBridge.invoke as jest.MockedFunction<typeof IpcBridge.invoke>;
 
 function sdkEventRow(event: ReturnType<typeof createConversationEvent>) {
@@ -37,14 +29,45 @@ function sdkEventRow(event: ReturnType<typeof createConversationEvent>) {
   } as any;
 }
 
+function mockGetChatEventsOnce(events: Array<Record<string, unknown>>) {
+  mockInvoke.mockImplementationOnce(async (channel) => {
+    if (channel === 'get-chat-events') {
+      return {
+        success: true,
+        data: { events },
+      };
+    }
+    return { success: true, data: { message_index: 1 } };
+  });
+}
+
+function mockListConversationsOnce(conversations: Array<Record<string, unknown>>) {
+  mockInvoke.mockImplementationOnce(async (channel) => {
+    if (channel === 'list-chat-conversations') {
+      return {
+        success: true,
+        data: { conversations },
+      };
+    }
+    return { success: true, data: { message_index: 1 } };
+  });
+}
+
 describe('ElectronSidecarConversationStore', () => {
   beforeEach(() => {
-    mockListStoredConversations.mockReset();
-    mockLoadStoredConversationEntries.mockReset();
     mockInvoke.mockReset();
-    mockListStoredConversations.mockResolvedValue([]);
-    mockLoadStoredConversationEntries.mockResolvedValue([]);
-    mockInvoke.mockResolvedValue({ success: true, data: { message_index: 1 } });
+    mockInvoke.mockImplementation(async (channel) => {
+      if (channel === 'get-chat-events') {
+        return { success: true, data: { events: [] } };
+      }
+      if (channel === 'list-chat-conversations') {
+        return { success: true, data: { conversations: [] } };
+      }
+      if (channel === 'search-chat-conversations') {
+        return { success: true, data: { conversations: [] } };
+      }
+      return { success: true, data: { message_index: 1 } };
+    });
   });
 
   test('stores normalized SDK events in dedicated chat-event storage', async () => {
@@ -172,13 +195,13 @@ describe('ElectronSidecarConversationStore', () => {
       timestamp: '2026-05-15T12:00:00.000Z',
       payload: { text: 'from sdk event' },
     });
-    mockLoadStoredConversationEntries.mockResolvedValueOnce([sdkEventRow(event)]);
+    mockGetChatEventsOnce([sdkEventRow(event)]);
 
     const events = await store.loadEvents('conv-1');
 
     expect(events).toEqual([event]);
-    expect(mockLoadStoredConversationEntries).toHaveBeenCalledTimes(1);
-    expect(mockLoadStoredConversationEntries).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mockInvoke).toHaveBeenCalledTimes(1);
+    expect(mockInvoke).toHaveBeenCalledWith('get-chat-events', expect.objectContaining({
       recordKind: CHAT_EVENT_RECORD_KIND,
     }));
   });
@@ -202,7 +225,7 @@ describe('ElectronSidecarConversationStore', () => {
       timestamp,
       payload: { text: 'second in append order' },
     });
-    mockLoadStoredConversationEntries.mockResolvedValueOnce([
+    mockGetChatEventsOnce([
       { message_index: 1, ...sdkEventRow(first) },
       { message_index: 2, ...sdkEventRow(second) },
     ]);
@@ -289,7 +312,7 @@ describe('ElectronSidecarConversationStore', () => {
         complete: true,
       },
     });
-    mockLoadStoredConversationEntries.mockResolvedValueOnce([
+    mockGetChatEventsOnce([
       sdkEventRow(partial),
       sdkEventRow(complete),
     ]);
@@ -324,8 +347,8 @@ describe('ElectronSidecarConversationStore', () => {
       },
     });
 
-    expect(mockInvoke).toHaveBeenCalledTimes(1);
-    expect(mockInvoke).toHaveBeenCalledWith('store-chat-event', expect.objectContaining({
+    expect(mockInvoke).toHaveBeenCalledTimes(2);
+    expect(mockInvoke).toHaveBeenLastCalledWith('store-chat-event', expect.objectContaining({
       content: 'assistant answer',
       userId: 'user-1',
       conversationId: 'conv-append',
@@ -509,7 +532,7 @@ describe('ElectronSidecarConversationStore', () => {
 
   test('lists metadata from canonical event rows only', async () => {
     const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
-    mockListStoredConversations.mockResolvedValueOnce([
+    mockListConversationsOnce([
       {
         conversation_id: 'conv-sdk',
         title: 'SDK title',
@@ -533,12 +556,14 @@ describe('ElectronSidecarConversationStore', () => {
         eventCount: 3,
         workspacePath: '/work/WindieOS',
         workspaceName: 'WindieOS',
+        snippet: null,
+        matchedRole: null,
       },
     ]);
-    expect(mockListStoredConversations).toHaveBeenCalledTimes(1);
-    expect(mockListStoredConversations).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mockInvoke).toHaveBeenCalledTimes(1);
+    expect(mockInvoke).toHaveBeenCalledWith('list-chat-conversations', expect.objectContaining({
       recordKind: CHAT_EVENT_RECORD_KIND,
-      limit: null,
+      limit: undefined,
     }));
   });
 
@@ -577,7 +602,7 @@ describe('ElectronSidecarConversationStore', () => {
 
   test('applies explicit metadata limits to canonical event rows', async () => {
     const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
-    mockListStoredConversations.mockResolvedValueOnce([
+    mockListConversationsOnce([
       {
         conversation_id: 'conv-1',
         title: 'First',
@@ -589,7 +614,7 @@ describe('ElectronSidecarConversationStore', () => {
     const metadata = await store.listMetadata({ limit: 1 });
 
     expect(metadata.map((entry) => entry.conversationRef)).toEqual(['conv-1']);
-    expect(mockListStoredConversations).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mockInvoke).toHaveBeenCalledWith('list-chat-conversations', expect.objectContaining({
       recordKind: CHAT_EVENT_RECORD_KIND,
       limit: 1,
     }));
@@ -597,7 +622,7 @@ describe('ElectronSidecarConversationStore', () => {
 
   test('applies metadata cursor pagination to canonical event rows', async () => {
     const store = new ElectronSidecarConversationStore({ userId: 'user-1' });
-    mockListStoredConversations.mockResolvedValueOnce([
+    mockListConversationsOnce([
       {
         conversation_id: 'conv-1',
         title: 'First',
@@ -621,9 +646,9 @@ describe('ElectronSidecarConversationStore', () => {
     const metadata = await store.listMetadata({ cursor: 'conv-3', limit: 1 });
 
     expect(metadata.map((entry) => entry.conversationRef)).toEqual(['conv-2']);
-    expect(mockListStoredConversations).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mockInvoke).toHaveBeenCalledWith('list-chat-conversations', expect.objectContaining({
       recordKind: CHAT_EVENT_RECORD_KIND,
-      limit: null,
+      limit: undefined,
     }));
   });
 });

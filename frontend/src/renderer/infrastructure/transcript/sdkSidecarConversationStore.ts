@@ -1,8 +1,8 @@
 import {
   SidecarConversationStore,
   type JsonRecord,
-} from '../../infrastructure/api/windieSdkClient';
-import { IpcBridge, INVOKE_CHANNELS } from '../../infrastructure/ipc/bridge';
+} from '../api/windieSdkClient';
+import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
 
 const RPC_METHOD_CHANNELS = {
   store_chat_event: INVOKE_CHANNELS.STORE_CHAT_EVENT,
@@ -13,6 +13,8 @@ const RPC_METHOD_CHANNELS = {
 } as const;
 
 type SupportedRpcMethod = keyof typeof RPC_METHOD_CHANNELS;
+
+type InvokeFunction = typeof IpcBridge.invoke;
 
 function isSupportedRpcMethod(method: string): method is SupportedRpcMethod {
   return Object.prototype.hasOwnProperty.call(RPC_METHOD_CHANNELS, method);
@@ -78,7 +80,10 @@ function toIpcPayload(method: SupportedRpcMethod, params: JsonRecord = {}): Json
   }
 }
 
-export function createDesktopSidecarConversationStore(userId: string): SidecarConversationStore {
+export function createIpcSidecarConversationStore(
+  userId: string,
+  invoke: InvokeFunction = IpcBridge.invoke,
+): SidecarConversationStore {
   return new SidecarConversationStore({
     userId,
     runtime: {
@@ -86,7 +91,7 @@ export function createDesktopSidecarConversationStore(userId: string): SidecarCo
         if (!isSupportedRpcMethod(method)) {
           throw new Error(`Unsupported desktop conversation store RPC method: ${method}`);
         }
-        return IpcBridge.invoke(
+        return invoke(
           RPC_METHOD_CHANNELS[method],
           toIpcPayload(method, params),
         );
