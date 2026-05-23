@@ -1,8 +1,4 @@
 import type { BackendTransport } from '../../infrastructure/api/windieSdkClient';
-import {
-  DesktopBackendCommandRuntimeClient,
-  type RehydrateConversationEntry,
-} from './desktopBackendCommandRuntimeClient';
 import { DesktopSettingsRuntimeClient } from './desktopSettingsRuntimeClient';
 import { IpcBridge, SEND_CHANNELS } from '../../infrastructure/ipc/bridge';
 import { getMemoryRetrievalInjectionEnabled } from '../../utils/memoryRetrievalPreference';
@@ -65,28 +61,42 @@ function sendQuery(payload: Record<string, unknown>, workspacePath: string | nul
   });
 }
 
+function optionalRecordArray(value: unknown): Record<string, unknown>[] {
+  return Array.isArray(value)
+    ? value.filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === 'object' && !Array.isArray(entry))
+    : [];
+}
+
+function sendRehydrateConversation(payload: Record<string, unknown>, workspacePath: string | null): void {
+  IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
+    type: 'rehydrate',
+    payload: {
+      conversation_ref: optionalString(payload.conversation_ref)
+        ?? optionalString(payload.conversationRef)
+        ?? '',
+      messages: optionalRecordArray(payload.messages),
+      rehydrate_mode: 'replace',
+      workspace_path: optionalString(payload.workspace_path)
+        ?? optionalString(payload.workspacePath)
+        ?? workspacePath
+        ?? null,
+    },
+  });
+}
+
 export function createDesktopBackendTransport(workspacePath: string | null = null): BackendTransport {
+  const normalizedWorkspacePath = optionalString(workspacePath);
   return {
     connect: async () => undefined,
     handshake: async () => undefined,
     sendQuery: async (payload) => {
-      sendQuery(payload, workspacePath);
+      sendQuery(payload, normalizedWorkspacePath);
       return optionalString(payload.turn_ref) ?? optionalString(payload.turnRef) ?? '';
     },
     sendToolResult: async () => undefined,
     sendToolBundleResult: async () => undefined,
     rehydrateConversation: async (payload) => {
-      await DesktopBackendCommandRuntimeClient.rehydrateConversation({
-        conversationRef: optionalString(payload.conversation_ref)
-          ?? optionalString(payload.conversationRef)
-          ?? '',
-        messages: Array.isArray(payload.messages)
-          ? payload.messages as RehydrateConversationEntry[]
-          : [],
-        workspacePath: optionalString(payload.workspace_path)
-          ?? optionalString(payload.workspacePath)
-          ?? workspacePath,
-      });
+      sendRehydrateConversation(payload, normalizedWorkspacePath);
     },
     compactHistory: async () => undefined,
     wakewordDetected: async () => undefined,

@@ -23,7 +23,6 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuity
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopBackendCommandRuntimeClient', () => ({
   DesktopBackendCommandRuntimeClient: {
-    rehydrateConversation: jest.fn(),
     compactHistory: jest.fn(),
   },
 }));
@@ -247,6 +246,46 @@ describe('DesktopConversationRuntimeClient', () => {
           workspace_path: '/workspace/WindieOS',
           memory_retrieval_enabled: true,
         }),
+      });
+    } finally {
+      window.ipc = originalIpc;
+    }
+  });
+
+  test('rehydrate routes replace-mode history through the SDK transport', async () => {
+    const send = jest.fn();
+    const originalIpc = window.ipc;
+    window.ipc = {
+      send,
+      invoke: jest.fn(),
+      on: jest.fn(),
+      once: jest.fn(),
+    };
+    const { DesktopConversationRuntimeClient } = require(
+      '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeClient',
+    );
+
+    try {
+      await DesktopConversationRuntimeClient.rehydrate({
+        conversationRef: 'conv-rehydrate',
+        messages: [
+          { role: 'user', content: 'hello' },
+          { role: 'assistant', content: 'hi', message_type: 'assistant' },
+        ],
+        workspacePath: ' /workspace/WindieOS ',
+      });
+
+      expect(send).toHaveBeenCalledWith('to-backend', {
+        type: 'rehydrate',
+        payload: {
+          conversation_ref: 'conv-rehydrate',
+          messages: [
+            { role: 'user', content: 'hello' },
+            { role: 'assistant', content: 'hi', message_type: 'assistant' },
+          ],
+          rehydrate_mode: 'replace',
+          workspace_path: '/workspace/WindieOS',
+        },
       });
     } finally {
       window.ipc = originalIpc;

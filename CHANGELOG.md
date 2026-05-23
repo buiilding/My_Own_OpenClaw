@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sdk: route renderer rehydrate commands through the SDK conversation runtime transport and remove the direct `ApiClient.rehydrateConversation` facade path.
 - frontend/sdk: route renderer query sends through the SDK conversation runtime transport and remove the direct `ApiClient.sendQuery` facade path.
 - frontend/tests: clear stale unused imports and align the main-process SDK tool-runtime assertion with request/correlation id forwarding.
 - frontend/sdk: route renderer stop-query through the SDK conversation runtime transport and remove the direct `ApiClient.stopQuery` facade path.

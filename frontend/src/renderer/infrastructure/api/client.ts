@@ -5,29 +5,10 @@
  */
 
 import { IpcBridge, SEND_CHANNELS } from '../ipc/bridge';
-import { normalizeNonEmptyString } from '../../utils/normalizeNonEmptyString';
 import {
   buildModelSettingsPatch,
   type WindieModelSelection,
 } from './windieSdkClient';
-
-export type RehydrateConversationEntry = {
-  role: 'user' | 'assistant' | 'tool';
-  content: string;
-  message_type?: string;
-  tool_name?: string | null;
-  correlation_id?: string | null;
-  tool_call_id?: string | null;
-  tool_calls?: Array<Record<string, unknown>> | null;
-  timestamp?: string | null;
-  screenshot_ref?: string | null;
-  screenshot?: string | null;
-  image_data?: string | string[] | null;
-  transparency?: Record<string, unknown> | null;
-  structured_content?: Array<Record<string, unknown>> | null;
-  compaction_facts?: Record<string, unknown> | null;
-  structured_payload?: Record<string, unknown> | null;
-};
 
 export const ApiClient = {
   /**
@@ -40,22 +21,6 @@ export const ApiClient = {
       payload: {
         force,
         conversation_ref: conversationRef,
-      },
-    });
-  },
-
-  rehydrateConversation: async (
-    conversationRef: string,
-    messages: RehydrateConversationEntry[],
-    workspacePath: string | null = null,
-  ): Promise<void> => {
-    IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
-      type: 'rehydrate',
-      payload: {
-        conversation_ref: conversationRef,
-        messages,
-        rehydrate_mode: 'replace',
-        workspace_path: normalizeNonEmptyString(workspacePath),
       },
     });
   },

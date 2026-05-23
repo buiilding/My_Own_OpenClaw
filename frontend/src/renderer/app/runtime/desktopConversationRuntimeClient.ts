@@ -2,14 +2,13 @@ import type { WindieModelSelection } from '../../infrastructure/api/windieSdkCli
 import {
   type JsonRecord,
   InMemoryConversationStore,
+  type RehydrateSnapshot,
   createConversationRuntime,
 } from '../../infrastructure/api/windieSdkClient';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { DesktopSettingsRuntimeClient } from './desktopSettingsRuntimeClient';
 import {
   DesktopBackendCommandRuntimeClient,
-  type RehydrateConversationEntry,
-  type SendConversationRehydrateInput,
 } from './desktopBackendCommandRuntimeClient';
 import {
   type LocalConversationSnapshot,
@@ -25,6 +24,24 @@ import { DesktopConversationContinuityService } from './desktopConversationConti
 import type { CaptureMeta } from '../../infrastructure/services/ScreenshotAttachmentPipeline';
 
 export type { RehydrateConversationEntry };
+
+type RehydrateConversationEntry = JsonRecord & {
+  role: 'user' | 'assistant' | 'tool';
+  content: string;
+  message_type?: string;
+  tool_name?: string | null;
+  correlation_id?: string | null;
+  tool_call_id?: string | null;
+  tool_calls?: Array<Record<string, unknown>> | null;
+  timestamp?: string | null;
+  screenshot_ref?: string | null;
+  screenshot?: string | null;
+  image_data?: string | string[] | null;
+  transparency?: Record<string, unknown> | null;
+  structured_content?: Array<Record<string, unknown>> | null;
+  compaction_facts?: Record<string, unknown> | null;
+  structured_payload?: Record<string, unknown> | null;
+};
 
 type SendConversationQueryInput = {
   text: string;
@@ -42,6 +59,12 @@ type SendConversationQueryInput = {
     timestamp?: string | null;
     screenshotRef?: string | null;
   } | null;
+};
+
+type SendConversationRehydrateInput = {
+  conversationRef: string;
+  messages: RehydrateConversationEntry[];
+  workspacePath?: string | null;
 };
 
 type RewriteAndResendInput = {
@@ -122,6 +145,23 @@ async function createSeededConversationRuntime({
   });
   await runtime.load();
   return runtime;
+}
+
+class StaticRehydrateConversationStore extends InMemoryConversationStore {
+  constructor(
+    private readonly conversationRef: string,
+    private readonly messages: RehydrateConversationEntry[],
+  ) {
+    super();
+  }
+
+  async loadForRehydrate(): Promise<RehydrateSnapshot> {
+    return {
+      conversationRef: this.conversationRef,
+      revisionId: `rev-rehydrate-${this.conversationRef}`,
+      messages: this.messages,
+    };
+  }
 }
 
 /**
@@ -250,8 +290,13 @@ export const DesktopConversationRuntimeClient = {
     });
   },
 
-  rehydrate(input: SendConversationRehydrateInput): Promise<void> {
-    return DesktopBackendCommandRuntimeClient.rehydrateConversation(input);
+  async rehydrate(input: SendConversationRehydrateInput): Promise<void> {
+    const runtime = createConversationRuntime({
+      conversationRef: input.conversationRef,
+      store: new StaticRehydrateConversationStore(input.conversationRef, input.messages),
+      transport: createDesktopBackendTransport(input.workspacePath ?? null),
+    });
+    await runtime.rehydrate();
   },
 
   async stop(conversationRef: string | null = null): Promise<void> {
