@@ -24,7 +24,6 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuity
 jest.mock('../../frontend/src/renderer/app/runtime/desktopBackendCommandRuntimeClient', () => ({
   DesktopBackendCommandRuntimeClient: {
     rehydrateConversation: jest.fn(),
-    sendQuery: jest.fn(),
     compactHistory: jest.fn(),
   },
 }));
@@ -54,6 +53,10 @@ describe('DesktopConversationRuntimeClient', () => {
     mockLoadLocalConversationSnapshot.mockReset();
     mockRehydrateFromStore.mockReset();
     mockReplaceCompactedReplay.mockReset();
+    const { DesktopTranscriptProjectionRuntimeClient } = require(
+      '../../frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient',
+    );
+    DesktopTranscriptProjectionRuntimeClient.recordUserMessage.mockReset();
   });
 
   test('loadLocalConversationSnapshot keeps transcript snapshot loading behind the facade', async () => {
@@ -183,6 +186,71 @@ describe('DesktopConversationRuntimeClient', () => {
     });
 
     expect(mockReplaceCompactedReplay).not.toHaveBeenCalled();
+  });
+
+  test('sendQuery records transcript rows and routes query payloads through the SDK transport', async () => {
+    const send = jest.fn();
+    const originalIpc = window.ipc;
+    window.ipc = {
+      send,
+      invoke: jest.fn(),
+      on: jest.fn(),
+      once: jest.fn(),
+    };
+    const { DesktopConversationRuntimeClient } = require(
+      '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeClient',
+    );
+    const { DesktopTranscriptProjectionRuntimeClient } = require(
+      '../../frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient',
+    );
+
+    try {
+      await DesktopConversationRuntimeClient.sendQuery({
+        text: 'hello',
+        conversationRef: 'conv-send',
+        screenshotRef: ' artifact-main ',
+        screenshotUrl: ' https://cdn.example/shot.png ',
+        screenshotRefs: [' artifact-1 ', '   ', '', 'artifact-2'],
+        captureMeta: { source: 'chat' },
+        attachmentContext: ' file context ',
+        attachmentFilenames: [' notes.txt ', '   ', 'image.png'],
+        screenshot: ' inline-shot ',
+        workspacePath: ' /workspace/WindieOS ',
+        transcript: {
+          userId: 'user-1',
+          timestamp: '2026-05-22T12:00:00.000Z',
+          screenshotRef: null,
+        },
+      });
+
+      expect(DesktopTranscriptProjectionRuntimeClient.recordUserMessage).toHaveBeenCalledWith(
+        'hello',
+        {
+          conversationRef: 'conv-send',
+          userId: 'user-1',
+          timestamp: '2026-05-22T12:00:00.000Z',
+          screenshotRef: ' artifact-main ',
+        },
+      );
+      expect(send).toHaveBeenCalledWith('to-backend', {
+        type: 'query',
+        payload: expect.objectContaining({
+          text: 'hello',
+          conversation_ref: 'conv-send',
+          screenshot_ref: 'artifact-main',
+          screenshot_url: 'https://cdn.example/shot.png',
+          screenshot_refs: ['artifact-1', 'artifact-2'],
+          capture_meta: { source: 'chat' },
+          attachment_context: 'file context',
+          attachment_filenames: ['notes.txt', 'image.png'],
+          screenshot: 'inline-shot',
+          workspace_path: '/workspace/WindieOS',
+          memory_retrieval_enabled: true,
+        }),
+      });
+    } finally {
+      window.ipc = originalIpc;
+    }
   });
 
   test('stop routes through the SDK runtime transport', async () => {

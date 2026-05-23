@@ -9,7 +9,6 @@ import { DesktopSettingsRuntimeClient } from './desktopSettingsRuntimeClient';
 import {
   DesktopBackendCommandRuntimeClient,
   type RehydrateConversationEntry,
-  type SendConversationQueryInput as BackendSendConversationQueryInput,
   type SendConversationRehydrateInput,
 } from './desktopBackendCommandRuntimeClient';
 import {
@@ -23,20 +22,21 @@ import {
 import type { CompactedReplaySnapshot } from '../../infrastructure/api/windieSdkClient';
 import { createDesktopBackendTransport } from './desktopBackendTransport';
 import { DesktopConversationContinuityService } from './desktopConversationContinuityService';
+import type { CaptureMeta } from '../../infrastructure/services/ScreenshotAttachmentPipeline';
 
 export type { RehydrateConversationEntry };
 
 type SendConversationQueryInput = {
-  text: BackendSendConversationQueryInput['text'];
-  conversationRef: BackendSendConversationQueryInput['conversationRef'];
-  screenshotRef?: BackendSendConversationQueryInput['screenshotRef'];
-  screenshotUrl?: BackendSendConversationQueryInput['screenshotUrl'];
-  screenshotRefs?: BackendSendConversationQueryInput['screenshotRefs'];
-  captureMeta?: BackendSendConversationQueryInput['captureMeta'];
-  attachmentContext?: BackendSendConversationQueryInput['attachmentContext'];
-  attachmentFilenames?: BackendSendConversationQueryInput['attachmentFilenames'];
-  screenshot?: BackendSendConversationQueryInput['screenshot'];
-  workspacePath?: BackendSendConversationQueryInput['workspacePath'];
+  text: string;
+  conversationRef: string;
+  screenshotRef?: string | null;
+  screenshotUrl?: string | null;
+  screenshotRefs?: string[] | null;
+  captureMeta?: CaptureMeta | null;
+  attachmentContext?: string | null;
+  attachmentFilenames?: string[] | null;
+  screenshot?: string | null;
+  workspacePath?: string | null;
   transcript?: {
     userId?: string | null;
     timestamp?: string | null;
@@ -221,7 +221,7 @@ export const DesktopConversationRuntimeClient = {
     });
   },
 
-  sendQuery(input: SendConversationQueryInput): Promise<void> {
+  async sendQuery(input: SendConversationQueryInput): Promise<void> {
     if (input.transcript) {
       DesktopTranscriptProjectionRuntimeClient.recordUserMessage(input.text, {
         conversationRef: input.conversationRef,
@@ -230,7 +230,24 @@ export const DesktopConversationRuntimeClient = {
         screenshotRef: input.transcript.screenshotRef ?? input.screenshotRef ?? null,
       });
     }
-    return DesktopBackendCommandRuntimeClient.sendQuery(input);
+    const runtime = createConversationRuntime({
+      conversationRef: input.conversationRef,
+      store: new InMemoryConversationStore(),
+      transport: createDesktopBackendTransport(input.workspacePath ?? null),
+    });
+    await runtime.send({
+      text: input.text,
+      payload: {
+        screenshot_ref: input.screenshotRef ?? null,
+        screenshot_url: input.screenshotUrl ?? null,
+        screenshot_refs: input.screenshotRefs ?? null,
+        capture_meta: input.captureMeta ?? null,
+        attachment_context: input.attachmentContext ?? null,
+        attachment_filenames: input.attachmentFilenames ?? null,
+        screenshot: input.screenshot ?? null,
+        workspace_path: input.workspacePath ?? null,
+      },
+    });
   },
 
   rehydrate(input: SendConversationRehydrateInput): Promise<void> {

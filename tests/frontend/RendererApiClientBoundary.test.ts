@@ -10,6 +10,7 @@ const allowedRelativePaths = new Set([
   'infrastructure/api/client.ts',
 ]);
 const allowedBackendIpcRelativePaths = new Set([
+  'app/runtime/desktopBackendTransport.ts',
   'infrastructure/api/client.ts',
   'infrastructure/ipc/channels.ts',
 ]);
@@ -49,7 +50,7 @@ describe('renderer api client boundary', () => {
     expect(offenders).toEqual([]);
   });
 
-  test('renderer backend IPC sends stay inside the desktop api adapter', async () => {
+  test('renderer backend IPC sends stay inside desktop runtime adapters', async () => {
     const files = await listSourceFiles(rendererRoot);
     const offenders: string[] = [];
 

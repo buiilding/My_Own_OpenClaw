@@ -2,13 +2,14 @@ import type { BackendTransport } from '../../infrastructure/api/windieSdkClient'
 import {
   DesktopBackendCommandRuntimeClient,
   type RehydrateConversationEntry,
-  type SendConversationQueryInput,
 } from './desktopBackendCommandRuntimeClient';
 import { DesktopSettingsRuntimeClient } from './desktopSettingsRuntimeClient';
 import { IpcBridge, SEND_CHANNELS } from '../../infrastructure/ipc/bridge';
+import { getMemoryRetrievalInjectionEnabled } from '../../utils/memoryRetrievalPreference';
+import { normalizeNonEmptyString } from '../../utils/normalizeNonEmptyString';
 
 function optionalString(value: unknown): string | null {
-  return typeof value === 'string' && value.trim().length > 0 ? value : null;
+  return normalizeNonEmptyString(value);
 }
 
 function optionalStringArray(value: unknown): string[] | null {
@@ -30,32 +31,46 @@ function sendStopQuery(conversationRef: string | null): void {
   });
 }
 
+function sendQuery(payload: Record<string, unknown>, workspacePath: string | null): void {
+  IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
+    type: 'query',
+    payload: {
+      text: optionalString(payload.text) ?? '',
+      conversation_ref: optionalString(payload.conversation_ref)
+        ?? optionalString(payload.conversationRef)
+        ?? '',
+      screenshot_ref: optionalString(payload.screenshot_ref)
+        ?? optionalString(payload.screenshotRef)
+        ?? null,
+      screenshot: optionalString(payload.screenshot) ?? null,
+      screenshot_url: optionalString(payload.screenshot_url)
+        ?? optionalString(payload.screenshotUrl)
+        ?? null,
+      screenshot_refs: optionalStringArray(payload.screenshot_refs)
+        ?? optionalStringArray(payload.screenshotRefs)
+        ?? null,
+      capture_meta: payload.capture_meta ?? payload.captureMeta ?? null,
+      attachment_context: optionalString(payload.attachment_context)
+        ?? optionalString(payload.attachmentContext)
+        ?? null,
+      attachment_filenames: optionalStringArray(payload.attachment_filenames)
+        ?? optionalStringArray(payload.attachmentFilenames)
+        ?? null,
+      workspace_path: optionalString(payload.workspace_path)
+        ?? optionalString(payload.workspacePath)
+        ?? workspacePath
+        ?? null,
+      memory_retrieval_enabled: getMemoryRetrievalInjectionEnabled(),
+    },
+  });
+}
+
 export function createDesktopBackendTransport(workspacePath: string | null = null): BackendTransport {
   return {
     connect: async () => undefined,
     handshake: async () => undefined,
     sendQuery: async (payload) => {
-      await DesktopBackendCommandRuntimeClient.sendQuery({
-        text: optionalString(payload.text) ?? '',
-        conversationRef: optionalString(payload.conversation_ref)
-          ?? optionalString(payload.conversationRef)
-          ?? '',
-        screenshotRef: optionalString(payload.screenshot_ref)
-          ?? optionalString(payload.screenshotRef),
-        screenshotUrl: optionalString(payload.screenshot_url)
-          ?? optionalString(payload.screenshotUrl),
-        screenshotRefs: optionalStringArray(payload.screenshot_refs)
-          ?? optionalStringArray(payload.screenshotRefs),
-        captureMeta: (payload.capture_meta ?? payload.captureMeta ?? null) as SendConversationQueryInput['captureMeta'],
-        attachmentContext: optionalString(payload.attachment_context)
-          ?? optionalString(payload.attachmentContext),
-        attachmentFilenames: optionalStringArray(payload.attachment_filenames)
-          ?? optionalStringArray(payload.attachmentFilenames),
-        screenshot: optionalString(payload.screenshot),
-        workspacePath: optionalString(payload.workspace_path)
-          ?? optionalString(payload.workspacePath)
-          ?? workspacePath,
-      });
+      sendQuery(payload, workspacePath);
       return optionalString(payload.turn_ref) ?? optionalString(payload.turnRef) ?? '';
     },
     sendToolResult: async () => undefined,

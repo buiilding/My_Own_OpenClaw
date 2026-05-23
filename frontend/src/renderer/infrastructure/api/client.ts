@@ -5,8 +5,6 @@
  */
 
 import { IpcBridge, SEND_CHANNELS } from '../ipc/bridge';
-import { getMemoryRetrievalInjectionEnabled } from '../../utils/memoryRetrievalPreference';
-import type { CaptureMeta } from '../services/ScreenshotAttachmentPipeline';
 import { normalizeNonEmptyString } from '../../utils/normalizeNonEmptyString';
 import {
   buildModelSettingsPatch,
@@ -32,65 +30,6 @@ export type RehydrateConversationEntry = {
 };
 
 export const ApiClient = {
-  /**
-   * Send a user query to the backend
-   * @param {string} text
-   * @param {string} conversationRef
-   * @param {string|null} screenshotRef - Optional artifact reference for screenshot data
-   * @param {string|null} screenshotUrl - Optional artifact URL used for local UI echo; not sent to backend
-   * @param {string[]|null} screenshotRefs - Optional artifact references for multi-image payloads
-   */
-  sendQuery: async (
-    text: string,
-    conversationRef: string,
-    screenshotRef: string | null = null,
-    screenshotUrl: string | null = null,
-    screenshotRefs: string[] | null = null,
-    captureMeta: CaptureMeta | null = null,
-    attachmentContext: string | null = null,
-    attachmentFilenames: string[] | null = null,
-    screenshot: string | null = null,
-    workspacePath: string | null = null,
-  ): Promise<void> => {
-    const normalizedScreenshotRef = normalizeNonEmptyString(screenshotRef);
-    const normalizedScreenshotUrl = normalizeNonEmptyString(screenshotUrl);
-    const normalizedInlineScreenshot = normalizeNonEmptyString(screenshot);
-    const normalizedWorkspacePath = normalizeNonEmptyString(workspacePath);
-    const normalizedScreenshotRefs = Array.isArray(screenshotRefs)
-      ? screenshotRefs
-        .map((ref) => normalizeNonEmptyString(ref))
-        .filter((ref): ref is string => Boolean(ref))
-      : [];
-    const normalizedAttachmentFilenames = Array.isArray(attachmentFilenames)
-      ? attachmentFilenames
-        .filter((filename): filename is string => typeof filename === 'string' && filename.trim().length > 0)
-        .map((filename) => filename.trim())
-      : [];
-    // System state and memories are automatically added by ipc.cjs
-    IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
-      type: 'query',
-      payload: {
-        text,
-        conversation_ref: conversationRef,
-        screenshot_ref: normalizedScreenshotRef,  // Optional screenshot reference
-        screenshot: normalizedInlineScreenshot,
-        screenshot_url: normalizedScreenshotUrl, // UI/local echo hint; stripped before backend send
-        screenshot_refs: normalizedScreenshotRefs.length > 0 ? normalizedScreenshotRefs : null,
-        capture_meta: captureMeta,
-        attachment_context: (
-          typeof attachmentContext === 'string' && attachmentContext.trim().length > 0
-            ? attachmentContext
-            : null
-        ),
-        attachment_filenames: normalizedAttachmentFilenames.length > 0
-          ? normalizedAttachmentFilenames
-          : null,
-        workspace_path: normalizedWorkspacePath,
-        memory_retrieval_enabled: getMemoryRetrievalInjectionEnabled(),
-      }
-    });
-  },
-
   /**
    * Request backend conversation-history compaction.
    * Used for dev harnessing and manual compaction triggers.

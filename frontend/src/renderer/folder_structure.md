@@ -277,8 +277,8 @@ frontend/src/renderer/
        ├─> Overlay sender path: optional captureScreenshotAttachment() screenshot capture
        └─> DesktopConversationRuntimeClient.sendQuery() - Send through the renderer runtime facade
            ↓
-3. IPC BRIDGE
-   └─> infrastructure/ipc/bridge.ts
+3. SDK RUNTIME TRANSPORT
+   └─> app/runtime/desktopBackendTransport.ts
        └─> IpcBridge.send(SEND_CHANNELS.TO_BACKEND, { type: 'query', ... })
            └─> Main process (`src/main/ipc.cjs`) hands query context to the SDK runtime, which owns the hosted backend WebSocket
 ```

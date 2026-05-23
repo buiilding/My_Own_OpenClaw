@@ -41,7 +41,7 @@ chat component until the producer and relay contracts are identified.
 | Change or symptom | Primary owner files | Tests to inspect or add |
 | --- | --- | --- |
 | Message button or keyboard submit behavior changes | `frontend/src/renderer/features/chat/components/MessageInput.jsx`, `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`, `frontend/src/renderer/features/chat/policies/messageSendUiPolicy.ts` | `tests/frontend/MessageInput.test.jsx`, `tests/frontend/MessageSendUiPolicy.test.ts`, `tests/frontend/ChatMessageSender.test.tsx` |
-| Query payload fields, screenshot refs, attachment names, workspace path, or memory toggle changes | `frontend/src/renderer/infrastructure/api/client.ts`, `frontend/src/renderer/features/chat/utils/messageSender/*`, `frontend/src/main/ipc/ipc_query_runtime.cjs`, `frontend/src/main/ipc/ipc_query_send_runtime.cjs` | `tests/frontend/ChatMessageSenderPayloads.test.ts`, `tests/frontend/QueryPayloadBuilder.test.cjs`, `tests/frontend/IpcMainBridge.query.test.cjs` |
+| Query payload fields, screenshot refs, attachment names, workspace path, or memory toggle changes | `frontend/src/renderer/app/runtime/desktopConversationRuntimeClient.ts`, `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`, `frontend/src/renderer/features/chat/utils/messageSender/*`, `frontend/src/main/ipc/ipc_query_runtime.cjs`, `frontend/src/main/ipc/ipc_query_send_runtime.cjs` | `tests/frontend/DesktopConversationRuntimeClient.test.ts`, `tests/frontend/ChatMessageSenderPayloads.test.ts`, `tests/frontend/QueryPayloadBuilder.test.cjs`, `tests/frontend/IpcMainBridge.query.test.cjs` |
 | Stop/cancel routing changes | `frontend/src/renderer/app/runtime/desktopConversationRuntimeClient.ts`, `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`, `frontend/src/main/ipc/ipc_sdk_command_router.cjs` | `tests/frontend/DesktopConversationRuntimeClient.test.ts`, `tests/frontend/ChatInterfaceWiring.test.jsx`, `tests/frontend/IpcMainBridge.lifecycle.test.cjs` |
 | Main-process content enrichment or memory/system-state context changes | `frontend/src/main/query_payload_builder.cjs`, `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`, `frontend/src/main/python/core/system_state.py`, `frontend/src/main/python/memory/*` | `tests/frontend/QueryPayloadBuilder.test.cjs`, `tests/frontend/IpcMainBridge.query.test.cjs`, `tests/sidecar/test_conversation_search_runtime.py`, `tests/sidecar/test_conversation_semanticization_runtime.py` |
 | First query settings are stale or not ACKed | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs`, `frontend/src/renderer/app/providers/appConfigBackendSync.ts` | `tests/frontend/IpcSettingsSync.test.cjs`, `tests/frontend/IpcMainBridge.query.test.cjs`, backend settings handler tests |
@@ -49,7 +49,7 @@ chat component until the producer and relay contracts are identified.
 | Stuck awaiting, wrong overlay phase, or response overlay does not clear | `frontend/src/main/ipc/ipc_overlay_phase_state.cjs`, `frontend/src/main/ipc/ipc_overlay_phase_events.cjs`, `frontend/src/renderer/features/chat/utils/state/streamPhaseState.js`, `frontend/src/renderer/features/chat/hooks/useChatLoopUiState.js` | `tests/frontend/IpcOverlayPhaseState.test.cjs`, `tests/frontend/IpcOverlayPhaseEvents.test.cjs`, `tests/frontend/StreamPhaseState.test.js` |
 | Stream events mutate the wrong conversation or old turn | `frontend/src/renderer/features/chat/hooks/useChatStream.ts`, `frontend/src/renderer/features/chat/hooks/chatStream/*`, `frontend/src/renderer/features/chat/utils/chatStream/*`, `frontend/src/renderer/features/chat/stores/chatStore.ts` | `tests/frontend/ChatStreamConversationGate.test.ts`, `tests/frontend/ChatStreamTurnGuard.test.ts`, `tests/frontend/ChatStreamTerminalHandoffGuard.test.ts` |
 | Backend receives query but emits missing or malformed stream events | `backend/src/api/handlers/query.py`, `backend/src/api/services/query_execution.py`, `backend/src/api/processing/*`, `backend/src/api/routes/websocket/*` | `tests/backend/test_query_execution_*`, `tests/backend/test_stream_pipeline.py`, `tests/backend/test_websocket_message_handler.py` |
-| Send fails while disconnected or websocket is not ready | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_query_send_runtime.cjs`, `frontend/src/main/ipc/ipc_query_broadcast.cjs`, `frontend/src/renderer/infrastructure/api/client.ts` | `tests/frontend/IpcMainBridge.query.test.cjs`, `tests/frontend/StopQueryState.test.js`, websocket reconnect tests |
+| Send fails while disconnected or websocket is not ready | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_query_send_runtime.cjs`, `frontend/src/main/ipc/ipc_query_broadcast.cjs`, `frontend/src/renderer/app/runtime/desktopBackendTransport.ts` | `tests/frontend/IpcMainBridge.query.test.cjs`, `tests/frontend/StopQueryState.test.js`, websocket reconnect tests |
 
 ## Runtime Flow
 
@@ -57,7 +57,7 @@ chat component until the producer and relay contracts are identified.
 sequenceDiagram
     participant R as Renderer compose
     participant A as DesktopConversationRuntimeClient
-    participant IPC as ApiClient
+    participant T as Desktop backend transport
     participant M as Electron main
     participant L as Local sidecar
     participant SDK as SDK runtime
@@ -67,8 +67,9 @@ sequenceDiagram
     R->>R: normalize outgoing text, images, files, conversation_ref
     R->>R: create local pending user row and transcript user row
     R->>A: sendQuery(...)
-    A->>IPC: delegate low-level IPC command
-    IPC->>M: to-backend { type: "query", payload }
+    A->>SDK: runtime.send(...)
+    SDK->>T: sendQuery(payload)
+    T->>M: to-backend { type: "query", payload }
     M->>M: ensure initial settings ACK if needed
     M->>M: prepareRendererQuerySend(...)
     M->>S: local-user-message optimistic event
@@ -82,10 +83,13 @@ sequenceDiagram
     S->>S: gate by conversation_ref + turn_ref, update rows/phase/transcript
 ```
 
-Stop/cancel follows the same app-runtime boundary. Chat UI calls
+Send and stop/cancel follow the same app-runtime boundary. Chat UI calls
+`DesktopConversationRuntimeClient.sendQuery(...)`; that creates an SDK
+conversation runtime and calls `runtime.send(...)`. The desktop backend transport
+adapter is the only renderer-side layer that maps the semantic SDK query command
+into the `to-backend` `query` IPC envelope. Chat UI calls
 `DesktopConversationRuntimeClient.stop(...)`; that creates an SDK conversation
-runtime and calls `runtime.stop(...)`. The desktop backend transport adapter is
-the only renderer-side layer that maps that semantic SDK command into the
+runtime and calls `runtime.stop(...)`, which the same adapter maps into the
 `to-backend` `stop-query` IPC envelope.
 
 ## Change Sequence
@@ -96,7 +100,8 @@ Before editing, answer which contract is changing:
 
 - Compose contract: text, pasted images, readable files, screenshot capture,
   message-send policy, disabled send states.
-- Renderer runtime facade contract: `DesktopConversationRuntimeClient.sendQuery(...)` arguments and
+- Renderer runtime facade contract: `DesktopConversationRuntimeClient.sendQuery(...)` arguments,
+  SDK `runtime.send(...)` payload, and desktop backend transport
   `SEND_CHANNELS.TO_BACKEND` payload shape.
 - Main/SDK runtime contract: query payload filtering, enrichment, settings ACK
   gate, SDK runtime send, local synthetic events, replay, and send failure behavior.
@@ -117,7 +122,8 @@ Read these files when changing what is collected before a query leaves the UI:
 - `frontend/src/renderer/features/chat/utils/messageSender/queryScreenshotPipeline.ts`
 - `frontend/src/renderer/features/chat/utils/messageSender/readableFileAttachmentContext.ts`
 - `frontend/src/renderer/features/chat/session/conversationSessionRuntime.ts`
-- `frontend/src/renderer/infrastructure/api/client.ts`
+- `frontend/src/renderer/app/runtime/desktopConversationRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`
 
 Renderer invariants:
 
@@ -242,7 +248,7 @@ Renderer stream invariants:
 | Response streams into old dashboard conversation | Check `conversation_ref` creation, transcript-session sync, event `conversation_ref`, and `turn_ref` mapping. | renderer session runtime, `ipc_transcript_session_sync.cjs`, chat stream conversation gate |
 | Minimal pill stuck awaiting | Check `local-user-message`, first stream chunk, terminal/error event, overlay phase transitions, and disconnect watchdog. | overlay phase state, stream phase state, `useChatLoopUiState` |
 | Duplicate local user rows | Check renderer optimistic row plus main synthetic `local-user-message` handling and replay dedupe behavior. | `useChatMessageSender`, `useChatStream`, `ipc_event_replay_state.cjs` |
-| Backend rejects query payload | Compare `DesktopConversationRuntimeClient.sendQuery`, `ApiClient.sendQuery`, and main-filtered payload against `backend/src/api/schemas/incoming.py`. | renderer API client, main query runtime, backend incoming schema |
+| Backend rejects query payload | Compare `DesktopConversationRuntimeClient.sendQuery`, `desktopBackendTransport.sendQuery`, and main-filtered payload against `backend/src/api/schemas/incoming.py`. | renderer SDK transport, main query runtime, backend incoming schema |
 
 ## Validation Matrix
 

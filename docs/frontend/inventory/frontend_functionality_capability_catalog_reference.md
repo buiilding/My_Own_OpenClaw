@@ -232,7 +232,7 @@ Capabilities:
 
 ## 10) End-to-End Path Checkpoints
 
-1. Renderer `ApiClient.sendQuery` sends query intent over main-process bridge.
+1. Renderer `DesktopConversationRuntimeClient.sendQuery` sends query intent through the SDK conversation runtime and desktop backend transport.
 2. Main process enriches payload and hands it to the SDK runtime for backend WebSocket transport.
 3. Backend stream envelopes relay from main to renderer `from-backend`.
 4. `useChatStream` updates chat state + transcript and tracks active turn phase.
