@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 ### Changed
 
 - docs/agents: document the SDK-first Electron architecture target and strengthen simplification-first refactoring rules for coding agents.
+- docs/agents: remove stale test-path guidance, replace an obsolete tool-schema example, and fix changelog-before-commit wording.
 - frontend/tests: pin `pretty-format` to Jest 29 so failed matcher output renders correctly, and make SDK conversation runtimes reject stale backend events from older active turns.
 - backend/frontend: emit `query-accepted` for accepted query turns and convert active websocket disconnects into explicit interrupted turn errors instead of leaving the UI waiting silently.
 - backend/sdk: route SDK tool-schema introspection through the live prompt-constructor tool surface and remove the duplicate SDK-side schema filtering path.

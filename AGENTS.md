@@ -30,9 +30,10 @@ WindieOS is a desktop AI operator with persistent memory, terminal access, and c
 - Frontend Python sidecar: `frontend/src/main/python/`
   - IPC, tools, memory
 - Tests: `tests/`
-  - `tests/new_backend`
-  - `tests/new_sidecar`
-  - `tests/new_frontend`
+  - `tests/backend`
+  - `tests/sidecar`
+  - `tests/frontend`
+  - `tests/sdk`
 - Docs: `docs/`
 
 ## Tooling and Architecture Notes
@@ -60,7 +61,7 @@ WindieOS is a desktop AI operator with persistent memory, terminal access, and c
 
 Example:
 
-- backend resolves `click_ocr("file")`
+- backend resolves higher-level screen intent into coordinates
 - frontend executes `click(100, 200)`
 
 ## Product-Specific Notes
@@ -224,7 +225,7 @@ When behavior or APIs change:
 
 - Use `pytest` for backend and sidecar tests
 - Use `jest` for frontend tests
-- New tests should go into `tests/new_*` unless extending an existing test module
+- New tests should go into `tests/backend`, `tests/sidecar`, `tests/frontend`, or `tests/sdk` unless extending an existing test module
 - Prefer unit-level tests with minimal I/O
 - Mock network and system calls
 - For any behavior change, update existing tests and add new coverage in the same change
@@ -337,7 +338,7 @@ If requirements conflict or timing semantics are ambiguous, resolve the spec con
 - If you change files, commit that work before handing the turn back unless the user explicitly says not to commit
 - Prefer small, frequent commits
 - No amend unless asked
-- After committing, update `CHANGELOG.md`
+- Update `CHANGELOG.md` before committing repo-visible changes
 
 ### Commit Helper
 
