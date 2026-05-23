@@ -251,9 +251,6 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const handlers = useMemo<Partial<Record<BackendEventType, (event: BackendEvent) => void>>>(() => buildChatStreamHandlerMap({
     handleLlmThought,
-    handleContextCompactionStarted,
-    handleContextCompactionCompleted,
-    handleContextCompactionFailed,
     handleWebSearchProgress: handleWebSearchProgressEvent,
     handleSystemPrompt,
     handleLocalUserMessage: handleLocalUserMessageEvent,
@@ -265,9 +262,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleError: handleErrorEvent,
   }), [
     handleLlmThought,
-    handleContextCompactionStarted,
-    handleContextCompactionCompleted,
-    handleContextCompactionFailed,
     handleWebSearchProgressEvent,
     handleSystemPrompt,
     handleLocalUserMessageEvent,
@@ -293,6 +287,10 @@ export function useChatStream(enableTranscript: boolean = true) {
       && event.type !== 'tool_call'
       && event.type !== 'tool_output'
       && event.type !== 'tool_bundle_call'
+      && event.type !== 'compaction_started'
+      && event.type !== 'compaction_applied'
+      && event.type !== 'compaction_skipped'
+      && event.type !== 'compaction_failed'
     ) {
       return false;
     }
@@ -315,10 +313,25 @@ export function useChatStream(enableTranscript: boolean = true) {
       handleToolBundle(event, event.conversationRef);
       return true;
     }
+    if (event.type === 'compaction_started') {
+      handleContextCompactionStarted(event);
+      return true;
+    }
+    if (event.type === 'compaction_applied' || event.type === 'compaction_skipped') {
+      handleContextCompactionCompleted(event);
+      return true;
+    }
+    if (event.type === 'compaction_failed') {
+      handleContextCompactionFailed(event);
+      return true;
+    }
     processStreamingComplete(event, event.conversationRef);
     return true;
   }, [
     handleAssistantDelta,
+    handleContextCompactionCompleted,
+    handleContextCompactionFailed,
+    handleContextCompactionStarted,
     handleToolBundle,
     handleToolCall,
     handleToolOutput,

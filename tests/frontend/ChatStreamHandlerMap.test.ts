@@ -3,9 +3,6 @@ import { buildChatStreamHandlerMap } from '../../frontend/src/renderer/features/
 
 const EVENT_TYPES: BackendEventType[] = [
   'llm-thought',
-  'context-compaction-started',
-  'context-compaction-completed',
-  'context-compaction-failed',
   'web-search-progress',
   'system-prompt',
   'local-user-message',
@@ -19,9 +16,6 @@ const EVENT_TYPES: BackendEventType[] = [
 
 type HandlerName =
   | 'handleLlmThought'
-  | 'handleContextCompactionStarted'
-  | 'handleContextCompactionCompleted'
-  | 'handleContextCompactionFailed'
   | 'handleWebSearchProgress'
   | 'handleSystemPrompt'
   | 'handleLocalUserMessage'
@@ -35,9 +29,6 @@ type HandlerName =
 function buildHandlers(): Record<HandlerName, jest.Mock<void, [unknown]>> {
   return {
     handleLlmThought: jest.fn(),
-    handleContextCompactionStarted: jest.fn(),
-    handleContextCompactionCompleted: jest.fn(),
-    handleContextCompactionFailed: jest.fn(),
     handleWebSearchProgress: jest.fn(),
     handleSystemPrompt: jest.fn(),
     handleLocalUserMessage: jest.fn(),
@@ -60,6 +51,9 @@ describe('chatStreamHandlerMap', () => {
     expect(map['tool-call']).toBeUndefined();
     expect(map['tool-output']).toBeUndefined();
     expect(map['tool-bundle']).toBeUndefined();
+    expect(map['context-compaction-started']).toBeUndefined();
+    expect(map['context-compaction-completed']).toBeUndefined();
+    expect(map['context-compaction-failed']).toBeUndefined();
   });
 
   test('routes non-error events to matching handlers', () => {
@@ -70,9 +64,6 @@ describe('chatStreamHandlerMap', () => {
       handlerName: Exclude<HandlerName, 'handleError'>;
     }> = [
       { type: 'llm-thought', handlerName: 'handleLlmThought' },
-      { type: 'context-compaction-started', handlerName: 'handleContextCompactionStarted' },
-      { type: 'context-compaction-completed', handlerName: 'handleContextCompactionCompleted' },
-      { type: 'context-compaction-failed', handlerName: 'handleContextCompactionFailed' },
       { type: 'web-search-progress', handlerName: 'handleWebSearchProgress' },
       { type: 'system-prompt', handlerName: 'handleSystemPrompt' },
       { type: 'local-user-message', handlerName: 'handleLocalUserMessage' },

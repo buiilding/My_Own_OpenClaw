@@ -2,9 +2,6 @@ import type {
   AssistantMessageFullEvent,
   BackendEvent,
   BackendEventType,
-  ContextCompactionCompletedEvent,
-  ContextCompactionFailedEvent,
-  ContextCompactionStartedEvent,
   ErrorEvent,
   LlmThoughtEvent,
   LocalUserMessageEvent,
@@ -19,9 +16,6 @@ import { shouldIgnoreStreamError } from './chatStreamEventUtils';
 
 type ChatStreamEventHandlers = {
   handleLlmThought: (event: LlmThoughtEvent) => void;
-  handleContextCompactionStarted: (event: ContextCompactionStartedEvent) => void;
-  handleContextCompactionCompleted: (event: ContextCompactionCompletedEvent) => void;
-  handleContextCompactionFailed: (event: ContextCompactionFailedEvent) => void;
   handleWebSearchProgress: (event: WebSearchProgressEvent) => void;
   handleSystemPrompt: (event: SystemPromptEvent) => void;
   handleLocalUserMessage: (event: LocalUserMessageEvent) => void;
@@ -38,9 +32,6 @@ export function buildChatStreamHandlerMap(
 ): Partial<Record<BackendEventType, (event: BackendEvent) => void>> {
   return {
     'llm-thought': event => handlers.handleLlmThought(event as LlmThoughtEvent),
-    'context-compaction-started': event => handlers.handleContextCompactionStarted(event as ContextCompactionStartedEvent),
-    'context-compaction-completed': event => handlers.handleContextCompactionCompleted(event as ContextCompactionCompletedEvent),
-    'context-compaction-failed': event => handlers.handleContextCompactionFailed(event as ContextCompactionFailedEvent),
     'web-search-progress': event => handlers.handleWebSearchProgress(event as WebSearchProgressEvent),
     'system-prompt': event => handlers.handleSystemPrompt(event as SystemPromptEvent),
     'local-user-message': event => handlers.handleLocalUserMessage(event as LocalUserMessageEvent),

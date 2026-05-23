@@ -128,6 +128,51 @@ jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversation
           },
         };
       }
+      if (event.type === 'context-compaction-started') {
+        return {
+          type: 'compaction_started',
+          conversationRef,
+          turnRef: event.turn_ref,
+          source: 'backend',
+          payload: {
+            ...(event.payload || {}),
+            rawEvent: event,
+          },
+        };
+      }
+      if (event.type === 'context-compaction-completed') {
+        const replacementHistoryEntries = Array.isArray(event.payload?.replacement_history_entries)
+          ? event.payload.replacement_history_entries
+          : [];
+        const skippedReason = typeof event.payload?.skipped_reason === 'string'
+          ? event.payload.skipped_reason
+          : '';
+        return {
+          type: skippedReason || replacementHistoryEntries.length === 0
+            ? 'compaction_skipped'
+            : 'compaction_applied',
+          conversationRef,
+          turnRef: event.turn_ref,
+          source: 'backend',
+          payload: {
+            ...(event.payload || {}),
+            skippedReason: skippedReason || (replacementHistoryEntries.length > 0 ? null : 'missing-replacement-history'),
+            rawEvent: event,
+          },
+        };
+      }
+      if (event.type === 'context-compaction-failed') {
+        return {
+          type: 'compaction_failed',
+          conversationRef,
+          turnRef: event.turn_ref,
+          source: 'backend',
+          payload: {
+            ...(event.payload || {}),
+            rawEvent: event,
+          },
+        };
+      }
       return {
         type: event.type ?? 'unknown',
         conversationRef,
