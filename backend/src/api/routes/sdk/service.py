@@ -41,9 +41,7 @@ from backend.src.llm.prompts.prompt_constructor import PromptConstructor
 from backend.src.llm.prompts.prompts import PromptManager
 from backend.src.services.artifacts import ArtifactStore
 from backend.src.services.ocr.helpers import decode_screenshot_payload
-from backend.src.tools.provider_projection import project_tool_schemas_for_provider
 from backend.src.tools.client_manifest import validate_client_tool_manifest
-from backend.src.tools.tool_policy import ToolPolicy
 from backend.src.tools.tool_specs import get_tool_spec_name
 
 logger = logging.getLogger(__name__)
@@ -186,88 +184,12 @@ def build_debug_tool_schemas(
     prompt_messages: Optional[list[dict[str, Any]]] = None,
     client_tool_schemas: Optional[list[dict[str, Any]]] = None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    """Return filtered canonical tool specs plus provider-projected tool specs."""
-    tool_registry = _get_tool_registry(container)
-    tool_policy = ToolPolicy.from_config(config)
-    client_tool_schemas = [
+    """Return the same tool surfaces the live prompt path resolves."""
+    constructor = build_prompt_constructor(config=config, container=container)
+    constructor.client_tool_schemas = [
         schema for schema in (client_tool_schemas or []) if isinstance(schema, dict)
     ]
-
-    model_tool_names_getter = getattr(tool_registry, "get_model_tool_names", None)
-    if callable(model_tool_names_getter):
-        registry_tool_names = list(model_tool_names_getter())
-        registry_tool_names.extend(
-            name
-            for name in (get_tool_spec_name(schema) for schema in client_tool_schemas)
-            if isinstance(name, str) and name not in registry_tool_names
-        )
-        filtered_names = tool_policy.filter_tool_names(
-            registry_tool_names,
-            normalize_wrappers=False,
-        )
-        filtered_client_names = set(
-            tool_policy.filter_tool_names(
-                [
-                    name
-                    for name in (
-                        get_tool_spec_name(schema) for schema in client_tool_schemas
-                    )
-                    if isinstance(name, str)
-                ],
-                normalize_wrappers=False,
-            )
-        )
-        canonical_tool_schemas = (
-            tool_registry.get_function_declarations_filtered(filtered_names) or []
-        )
-        existing_names = {
-            name
-            for name in (
-                get_tool_spec_name(schema) for schema in canonical_tool_schemas
-            )
-            if isinstance(name, str)
-        }
-        canonical_tool_schemas.extend(
-            schema
-            for schema in client_tool_schemas
-            if get_tool_spec_name(schema) in filtered_client_names
-            and get_tool_spec_name(schema) not in existing_names
-        )
-    else:
-        canonical_tool_schemas = tool_registry.get_function_declarations() or []
-        canonical_tool_schemas.extend(client_tool_schemas)
-
-    client_tool_names = {
-        name
-        for name in (get_tool_spec_name(schema) for schema in client_tool_schemas)
-        if isinstance(name, str)
-    }
-    registry_tool_schemas = [
-        schema
-        for schema in canonical_tool_schemas
-        if get_tool_spec_name(schema) not in client_tool_names
-    ]
-    filtered_client_tool_schemas = tool_policy.filter_tool_schemas(
-        [
-            schema
-            for schema in canonical_tool_schemas
-            if get_tool_spec_name(schema) in client_tool_names
-        ],
-    )
-    canonical_tool_schemas = [
-        *tool_policy.filter_tool_schemas(registry_tool_schemas),
-        *filtered_client_tool_schemas,
-    ]
-    provider_tool_schemas = project_tool_schemas_for_provider(
-        tool_schemas=canonical_tool_schemas,
-        tool_registry=tool_registry,
-        config=config,
-        prompt_messages=prompt_messages,
-    )
-    provider_tool_schemas = tool_policy.filter_projected_tool_schemas(
-        provider_tool_schemas,
-    )
-    return canonical_tool_schemas, provider_tool_schemas
+    return constructor.get_tool_schema_surfaces(prompt_messages=prompt_messages)
 
 
 def build_prompt_constructor(*, config: Any, container) -> PromptConstructor:
@@ -416,13 +338,12 @@ def build_prompt_preview(
 
     prompt_messages, _, _ = constructor.build_prompt(
         preview_history,
-        include_tools=include_tools,
+        include_tools=False,
     )
-    canonical_tool_schemas, provider_tool_schemas = build_debug_tool_schemas(
-        config=config,
-        container=container,
-        client_tool_schemas=list(getattr(constructor, "client_tool_schemas", []) or []),
-        prompt_messages=prompt_messages,
+    canonical_tool_schemas, provider_tool_schemas = (
+        constructor.get_tool_schema_surfaces(prompt_messages=prompt_messages)
+        if include_tools
+        else ([], [])
     )
 
     prompt_token_count: Optional[int] = None

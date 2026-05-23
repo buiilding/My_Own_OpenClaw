@@ -106,12 +106,12 @@ class PromptConstructor:
         self.client_prompt_layers: List[Dict[str, Any]] = []
         self.client_tool_schemas: List[Dict[str, Any]] = []
 
-    def _get_filtered_tool_schemas(
+    def get_tool_schema_surfaces(
         self,
         *,
         prompt_messages: Optional[List[LLMMessage]] = None,
-    ) -> List[Dict[str, Any]]:
-        """Return tool schemas filtered by centralized tool policy."""
+    ) -> tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+        """Return canonical and provider-facing tool schemas for the prompt."""
         client_tool_schemas = self._get_client_tool_schemas()
         client_tool_names = {
             tool_name
@@ -134,9 +134,21 @@ class PromptConstructor:
             config=self.config,
             prompt_messages=prompt_messages,
         )
-        return self.tool_policy.filter_projected_tool_schemas(
+        provider_tool_schemas = self.tool_policy.filter_projected_tool_schemas(
             projected_schemas,
         )
+        return tool_schemas, provider_tool_schemas
+
+    def _get_filtered_tool_schemas(
+        self,
+        *,
+        prompt_messages: Optional[List[LLMMessage]] = None,
+    ) -> List[Dict[str, Any]]:
+        """Return prompt-visible tool schemas filtered by centralized tool policy."""
+        _, provider_tool_schemas = self.get_tool_schema_surfaces(
+            prompt_messages=prompt_messages,
+        )
+        return provider_tool_schemas
 
     def _get_policy_filtered_registry_tool_schemas(self) -> List[Dict[str, Any]]:
         model_tool_names_getter = getattr(

@@ -13,6 +13,8 @@ from tests.backend.websocket_route_test_utils import (
 
 from backend.src.core.config.models import AppConfig
 from backend.src.core.infrastructure.cache_manager import CacheManager
+from backend.src.core.observability.trust_boundary_metrics import MetricsService
+from backend.src.llm.prompts.prompt_constructor import PromptConstructor
 from backend.src.tools.registry import ToolRegistry
 
 _original_deps = install_route_deps_shim()
@@ -126,6 +128,7 @@ def _container(
     vision_service = _FakeVisionService(point=vision_point)
     return SimpleNamespace(
         config=effective_config,
+        core=SimpleNamespace(metrics_service=lambda: MetricsService()),
         ocr_router=ocr_service,
         ocr_service=ocr_service,
         vision_router=vision_service,
@@ -550,6 +553,38 @@ async def test_sdk_debug_tool_schemas_returns_canonical_and_provider_shapes(
 
 
 @pytest.mark.asyncio
+async def test_sdk_debug_tool_schemas_uses_prompt_constructor_surface(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    def fake_get_tool_schema_surfaces(self, *, prompt_messages=None):
+        assert prompt_messages is None
+        return (
+            [{"type": "function", "name": "debug_canonical", "parameters": {}}],
+            [{"type": "function", "name": "debug_provider", "parameters": {}}],
+        )
+
+    monkeypatch.setattr(
+        PromptConstructor,
+        "get_tool_schema_surfaces",
+        fake_get_tool_schema_surfaces,
+    )
+    container = _container(tmp_path)
+
+    response = await sdk_routes.sdk_debug_tool_schemas(
+        container=container,
+        session_manager=_FakeSessionManager(),
+        user_id=None,
+        model_id=None,
+        model_provider=None,
+        interaction_mode=None,
+    )
+
+    assert response.canonical_tool_schemas[0]["name"] == "debug_canonical"
+    assert response.provider_tool_schemas[0]["name"] == "debug_provider"
+
+
+@pytest.mark.asyncio
 async def test_sdk_debug_tool_capabilities_returns_schema_details(tmp_path) -> None:
     container = _container(tmp_path)
 
@@ -624,7 +659,13 @@ async def test_sdk_debug_prompt_preview_returns_prompt_transparency_payloads(
 
 
 @pytest.mark.asyncio
-async def test_sdk_debug_prompt_preview_applies_agent_definition(tmp_path) -> None:
+async def test_sdk_debug_prompt_preview_applies_agent_definition(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(
+        "backend.src.tools.tool_policy.load_tool_selection", lambda: None
+    )
     container = _container(tmp_path)
 
     response = await sdk_routes.sdk_debug_prompt_preview(
