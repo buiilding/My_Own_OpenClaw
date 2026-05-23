@@ -136,7 +136,7 @@ When `useChatLoopUiState` reports disconnected transport:
 
 1. Changing provider/model fallback rules without matching `chatModelOptions` helpers can leave impossible selected-model combinations.
 2. Removing `waitForNextPaint()` before compaction can hide status transition timing in UI during manual compaction.
-3. Bypassing transcript session fallback on `stopQuery` can send stop signals to wrong/no conversation on edge reconnect states.
+3. Bypassing `DesktopConversationRuntimeClient.stop(...)` can send stop signals outside the SDK runtime/transport boundary.
 
 ## Related Pages
 

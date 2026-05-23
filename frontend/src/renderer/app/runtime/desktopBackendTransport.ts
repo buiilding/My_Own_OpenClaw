@@ -5,6 +5,7 @@ import {
   type SendConversationQueryInput,
 } from './desktopBackendCommandRuntimeClient';
 import { DesktopSettingsRuntimeClient } from './desktopSettingsRuntimeClient';
+import { IpcBridge, SEND_CHANNELS } from '../../infrastructure/ipc/bridge';
 
 function optionalString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value : null;
@@ -18,6 +19,15 @@ function optionalStringArray(value: unknown): string[] | null {
     .filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0)
     .map((entry) => entry.trim());
   return normalized.length > 0 ? normalized : null;
+}
+
+function sendStopQuery(conversationRef: string | null): void {
+  IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
+    type: 'stop-query',
+    payload: {
+      conversation_ref: conversationRef,
+    },
+  });
 }
 
 export function createDesktopBackendTransport(workspacePath: string | null = null): BackendTransport {
@@ -71,7 +81,7 @@ export function createDesktopBackendTransport(workspacePath: string | null = nul
     },
     listModels: async () => undefined,
     stop: async (payload) => {
-      DesktopBackendCommandRuntimeClient.stop(
+      sendStopQuery(
         optionalString(payload.conversation_ref) ?? optionalString(payload.conversationRef),
       );
     },

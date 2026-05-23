@@ -92,18 +92,6 @@ export const ApiClient = {
   },
 
   /**
-   * Request cancellation of the currently active query stream
-   */
-  stopQuery: (conversationRef: string | null = null): void => {
-    IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
-      type: 'stop-query',
-      payload: {
-        conversation_ref: conversationRef,
-      },
-    });
-  },
-
-  /**
    * Request backend conversation-history compaction.
    * Used for dev harnessing and manual compaction triggers.
    */

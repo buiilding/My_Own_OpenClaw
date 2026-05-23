@@ -1,6 +1,7 @@
 import type { WindieModelSelection } from '../../infrastructure/api/windieSdkClient';
 import {
   type JsonRecord,
+  InMemoryConversationStore,
   createConversationRuntime,
 } from '../../infrastructure/api/windieSdkClient';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
@@ -236,8 +237,18 @@ export const DesktopConversationRuntimeClient = {
     return DesktopBackendCommandRuntimeClient.rehydrateConversation(input);
   },
 
-  stop(conversationRef: string | null = null): void {
-    DesktopBackendCommandRuntimeClient.stop(conversationRef);
+  async stop(conversationRef: string | null = null): Promise<void> {
+    const resolvedConversationRef = optionalString(conversationRef)
+      ?? this.getActiveConversationRef();
+    if (!resolvedConversationRef) {
+      return;
+    }
+    const runtime = createConversationRuntime({
+      conversationRef: resolvedConversationRef,
+      store: new InMemoryConversationStore(),
+      transport: createDesktopBackendTransport(null),
+    });
+    await runtime.stop(null);
   },
 
   compactHistory(force: boolean = true, conversationRef: string | null = null): void {

@@ -157,7 +157,6 @@ jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
     compactHistory: (...args) => mockCompactHistory(...args),
     setModel: (...args) => mockUpdateSettings(...args),
     updateSettings: (...args) => mockUpdateSettings(...args),
-    stopQuery: (...args) => mockStopQuery(...args),
   },
 }));
 

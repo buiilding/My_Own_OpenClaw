@@ -107,7 +107,8 @@ When user stops query:
 
 1. renderer applies shared stop-state helper (`applyStopQueryUiState`) to mark terminal stop phase
 2. playback stops immediately
-3. `ApiClient.stopQuery()` sends `stop-query` to backend
+3. `DesktopConversationRuntimeClient.stop(...)` calls the SDK conversation runtime stop command
+4. the desktop backend transport adapter maps that semantic stop into the `stop-query` backend envelope
 
 When user sends a new query:
 

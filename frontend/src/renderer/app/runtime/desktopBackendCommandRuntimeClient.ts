@@ -45,10 +45,6 @@ export const DesktopBackendCommandRuntimeClient = {
     );
   },
 
-  stop(conversationRef: string | null = null): void {
-    ApiClient.stopQuery(conversationRef);
-  },
-
   compactHistory(force: boolean = true, conversationRef: string | null = null): void {
     ApiClient.compactHistory(force, conversationRef);
   },

@@ -25,7 +25,6 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopBackendCommandRuntimeC
   DesktopBackendCommandRuntimeClient: {
     rehydrateConversation: jest.fn(),
     sendQuery: jest.fn(),
-    stop: jest.fn(),
     compactHistory: jest.fn(),
   },
 }));
@@ -184,5 +183,32 @@ describe('DesktopConversationRuntimeClient', () => {
     });
 
     expect(mockReplaceCompactedReplay).not.toHaveBeenCalled();
+  });
+
+  test('stop routes through the SDK runtime transport', async () => {
+    const send = jest.fn();
+    const originalIpc = window.ipc;
+    window.ipc = {
+      send,
+      invoke: jest.fn(),
+      on: jest.fn(),
+      once: jest.fn(),
+    };
+    const { DesktopConversationRuntimeClient } = require(
+      '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeClient',
+    );
+
+    try {
+      await DesktopConversationRuntimeClient.stop('conv-stop');
+
+      expect(send).toHaveBeenCalledWith('to-backend', {
+        type: 'stop-query',
+        payload: {
+          conversation_ref: 'conv-stop',
+        },
+      });
+    } finally {
+      window.ipc = originalIpc;
+    }
   });
 });
