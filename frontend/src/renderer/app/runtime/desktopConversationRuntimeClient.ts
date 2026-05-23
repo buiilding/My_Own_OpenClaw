@@ -8,9 +8,6 @@ import {
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { DesktopSettingsRuntimeClient } from './desktopSettingsRuntimeClient';
 import {
-  DesktopBackendCommandRuntimeClient,
-} from './desktopBackendCommandRuntimeClient';
-import {
   type LocalConversationSnapshot,
 } from '../../infrastructure/transcript/conversationLocalSnapshotLoader';
 import {
@@ -313,7 +310,17 @@ export const DesktopConversationRuntimeClient = {
     await runtime.stop(null);
   },
 
-  compactHistory(force: boolean = true, conversationRef: string | null = null): void {
-    DesktopBackendCommandRuntimeClient.compactHistory(force, conversationRef);
+  async compactHistory(force: boolean = true, conversationRef: string | null = null): Promise<void> {
+    const resolvedConversationRef = optionalString(conversationRef)
+      ?? this.getActiveConversationRef();
+    if (!resolvedConversationRef) {
+      return;
+    }
+    const runtime = createConversationRuntime({
+      conversationRef: resolvedConversationRef,
+      store: new InMemoryConversationStore(),
+      transport: createDesktopBackendTransport(null),
+    });
+    await runtime.compactHistory({ force });
   },
 };

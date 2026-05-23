@@ -107,9 +107,6 @@ jest.mock('../../frontend/src/renderer/infrastructure/audio/PlayerService', () =
 
 jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
   ApiClient: {
-    compactHistory: (...args) => mockCompactHistory(...args),
-    sendQuery: (...args) => mockSendQuery(...args),
-    rehydrateConversation: (...args) => mockSendRehydrateConversation(...args),
     setModel: (...args) => mockSetModel(...args),
     updateSettings: (...args) => mockUpdateSettings(...args),
   },

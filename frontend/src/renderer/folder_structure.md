@@ -168,7 +168,7 @@ frontend/src/renderer/
 ├── infrastructure/                        # Core infrastructure services
 │   │
 │   ├── api/                              # API client
-│   │   ├── client.ts                    # ApiClient - Typed IPC client for desktop app communication with Electron main
+│   │   ├── client.ts                    # ApiClient - Remaining typed IPC client for settings/model commands
 │   │   ├── windieSdkClient.ts           # WindieSdkClient - Hosted backend SDK transport wrapper for `/api/sdk/*`, `/api/artifacts/*`, and `/ws`
 │   │   └── index.ts                     # Stable renderer API export surface for ApiClient + WindieSdkClient
 │   │

@@ -12,20 +12,6 @@ import {
 
 export const ApiClient = {
   /**
-   * Request backend conversation-history compaction.
-   * Used for dev harnessing and manual compaction triggers.
-   */
-  compactHistory: (force: boolean = true, conversationRef: string | null = null): void => {
-    IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
-      type: 'compact-history',
-      payload: {
-        force,
-        conversation_ref: conversationRef,
-      },
-    });
-  },
-
-  /**
    * Request a list of available LLM models
    */
   listModels: (): void => {

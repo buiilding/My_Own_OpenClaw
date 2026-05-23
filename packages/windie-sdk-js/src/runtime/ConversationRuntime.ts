@@ -2,6 +2,7 @@ import { createConversationEvent, createRuntimeId } from '../conversation/events
 import { isBackendEvent } from '../events/backendEvents.js';
 import type {
   BackendTransport,
+  CompactHistoryPayload,
   ConversationEvent,
   ConversationRuntimeState,
   ConversationStore,
@@ -56,6 +57,11 @@ export type RetryTurnInput = {
   turnRef?: string;
   payload?: JsonRecord;
   model?: WindieModelSelection;
+};
+
+export type CompactHistoryInput = {
+  force?: boolean;
+  payload?: JsonRecord;
 };
 
 export type WindieRuntimeEvent =
@@ -366,6 +372,15 @@ export class SdkConversationRuntime {
       rehydrate_mode: 'replace',
     });
     return snapshot;
+  }
+
+  async compactHistory(input: CompactHistoryInput = {}): Promise<string | void> {
+    const payload: CompactHistoryPayload = {
+      ...(input.payload ?? {}),
+      force: input.force ?? true,
+      conversation_ref: this.options.conversationRef,
+    };
+    return this.options.transport?.compactHistory(payload);
   }
 
   async setModel(selection: WindieModelSelection): Promise<string | void> {

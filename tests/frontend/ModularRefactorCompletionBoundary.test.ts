@@ -33,12 +33,13 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).not.toContain('async function routeToolBundleToLocalRuntime');
   });
 
-  test('renderer conversation runtime delegates backend and projection work to app runtimes', async () => {
+  test('renderer conversation runtime delegates through sdk runtimes and app projection facades', async () => {
     const source = await read('frontend/src/renderer/app/runtime/desktopConversationRuntimeClient.ts');
 
-    expect(source).toContain('DesktopBackendCommandRuntimeClient');
+    expect(source).toContain('createConversationRuntime');
     expect(source).toContain('DesktopSettingsRuntimeClient');
     expect(source).toContain('DesktopTranscriptProjectionRuntimeClient');
+    expect(source).not.toContain('DesktopBackendCommandRuntimeClient');
     expect(source).not.toContain('infrastructure/api/client');
     expect(source).not.toContain('infrastructure/transcript/TranscriptWriter');
     expect(source.includes('ElectronSidecarConversationStore')).toBe(false);

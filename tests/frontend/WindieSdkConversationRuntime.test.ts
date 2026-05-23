@@ -44,6 +44,7 @@ function createMockBackendTransport(
     sendToolResult: jest.fn(async () => undefined),
     sendToolBundleResult: jest.fn(async () => undefined),
     rehydrateConversation: jest.fn(async () => undefined),
+    compactHistory: jest.fn(async () => 'compact-unused'),
     updateSettings: jest.fn(async () => 'settings-unused'),
     listModels: jest.fn(async () => 'models-unused'),
     stop: jest.fn(async () => undefined),
@@ -920,6 +921,24 @@ describe('Windie SDK conversation runtime core', () => {
       messages: [
         expect.objectContaining({ role: 'user', content: 'hello' }),
       ],
+    });
+  });
+
+  test('conversation runtime sends compact-history through backend transport', async () => {
+    const compactHistory = jest.fn(async () => 'compact-1');
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store: new InMemoryConversationStore(),
+      transport: createMockBackendTransport({
+        compactHistory,
+      }),
+    });
+
+    await expect(runtime.compactHistory({ force: false })).resolves.toBe('compact-1');
+
+    expect(compactHistory).toHaveBeenCalledWith({
+      force: false,
+      conversation_ref: 'conv-sdk-runtime',
     });
   });
 

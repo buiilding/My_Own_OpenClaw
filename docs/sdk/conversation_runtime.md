@@ -138,7 +138,9 @@ it should not duplicate projection, provider-history filtering, compacted
 replay, or delete orchestration in feature code. Desktop facades can expose
 commands such as `loadForDisplay`, `rehydrateFromStore`, and
 `deleteConversation`, but those commands should delegate to the SDK continuity
-service.
+service. Manual compaction follows the same boundary: callers use
+`SdkConversationRuntime.compactHistory(...)`, and the host backend transport
+maps that SDK command to the backend `compact-history` control message.
 
 Responsibility split:
 

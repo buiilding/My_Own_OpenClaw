@@ -84,6 +84,18 @@ function sendRehydrateConversation(payload: Record<string, unknown>, workspacePa
   });
 }
 
+function sendCompactHistory(payload: Record<string, unknown>): void {
+  IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
+    type: 'compact-history',
+    payload: {
+      force: payload.force !== false,
+      conversation_ref: optionalString(payload.conversation_ref)
+        ?? optionalString(payload.conversationRef)
+        ?? null,
+    },
+  });
+}
+
 export function createDesktopBackendTransport(workspacePath: string | null = null): BackendTransport {
   const normalizedWorkspacePath = optionalString(workspacePath);
   return {
@@ -98,7 +110,10 @@ export function createDesktopBackendTransport(workspacePath: string | null = nul
     rehydrateConversation: async (payload) => {
       sendRehydrateConversation(payload, normalizedWorkspacePath);
     },
-    compactHistory: async () => undefined,
+    compactHistory: async (payload) => {
+      sendCompactHistory(payload);
+      return optionalString(payload.turn_ref) ?? optionalString(payload.turnRef) ?? undefined;
+    },
     wakewordDetected: async () => undefined,
     updateSettings: async (payload) => {
       DesktopSettingsRuntimeClient.updateSettings(payload);
