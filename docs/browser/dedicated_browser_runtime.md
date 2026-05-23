@@ -39,7 +39,7 @@ Browser Use daemon state lives under `WINDIE_BROWSER_USE_HOME` when set, otherwi
 2. lets Browser Use start or reuse the named daemon session,
 3. returns `mode = "browser_use"` and `scope = "windie_dedicated_browser"`.
 
-Browser Use treats `--headed` as an explicit daemon-config check. WindieOS passes it when starting or recovering the dedicated session, then omits it for normal reuse so Browser Use does not compare the daemon's live CDP URL against a fresh CLI invocation that did not specify `--cdp-url`. A state file for a running headless session is treated as disconnected so callers can close it and reconnect with the dedicated-browser config.
+Browser Use treats `--headed` as an explicit daemon-config check. WindieOS passes it when starting or recovering the dedicated session, then omits it for normal reuse so Browser Use does not compare the daemon's live CDP URL against a fresh CLI invocation that did not specify `--cdp-url`. A state file for a running headless session is treated as disconnected; `connect` closes that stale headless daemon and waits briefly before starting the headed dedicated-browser config.
 
 If you change Browser Use session behavior, align:
 

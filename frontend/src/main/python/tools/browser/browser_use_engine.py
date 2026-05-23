@@ -33,6 +33,7 @@ DEFAULT_SNAPSHOT_PAGE_LIMIT = 4_000
 MAX_SNAPSHOT_WINDOW_CHARS = 120_000
 RUNTIME_SOURCE = "browser_use.cli"
 BROWSER_USE_ENGINE_ACTIONS = frozenset(BROWSER_CANONICAL_ACTIONS)
+HEADLESS_RECOVERY_TIMEOUT_SECONDS = 5.0
 
 
 @dataclass(slots=True)
@@ -257,6 +258,26 @@ class BrowserUseEngineRuntime:
     def supported_actions(cls) -> frozenset[str]:
         return BROWSER_USE_ENGINE_ACTIONS
 
+    def _read_session_state(self) -> dict[str, Any]:
+        state_path = Path(self._home) / f"{self._session}.state.json"
+        if not state_path.exists():
+            return {}
+        try:
+            state = json.loads(state_path.read_text())
+        except Exception:
+            return {}
+        return state if isinstance(state, dict) else {}
+
+    def _is_live_headless_session_state(self, state: dict[str, Any]) -> bool:
+        config = state.get("config") if isinstance(state.get("config"), dict) else {}
+        pid = state.get("pid")
+        return (
+            state.get("phase") in {"ready", "running", "starting"}
+            and config.get("headed") is False
+            and isinstance(pid, int)
+            and _is_pid_alive(pid)
+        )
+
     async def execute(self, args: Any) -> dict[str, Any]:
         handler = getattr(self, f"_handle_{args.action}", None)
         if handler is None:
@@ -271,13 +292,7 @@ class BrowserUseEngineRuntime:
         return payload
 
     def _has_running_headed_session(self) -> bool:
-        state_path = Path(self._home) / f"{self._session}.state.json"
-        if not state_path.exists():
-            return False
-        try:
-            state = json.loads(state_path.read_text())
-        except Exception:
-            return False
+        state = self._read_session_state()
         config = state.get("config") if isinstance(state.get("config"), dict) else {}
         pid = state.get("pid")
         return (
@@ -285,6 +300,24 @@ class BrowserUseEngineRuntime:
             and config.get("headed") is True
             and isinstance(pid, int)
             and _is_pid_alive(pid)
+        )
+
+    async def _recover_headless_session_before_connect(self) -> None:
+        if not self._is_live_headless_session_state(self._read_session_state()):
+            return
+
+        await self._run_cli("close", headed=False)
+        deadline = asyncio.get_running_loop().time() + HEADLESS_RECOVERY_TIMEOUT_SECONDS
+        while asyncio.get_running_loop().time() < deadline:
+            if not self._is_live_headless_session_state(self._read_session_state()):
+                return
+            await asyncio.sleep(0.1)
+        raise BrowserActionError(
+            code="BROWSER_USE_ENGINE_ERROR",
+            message=(
+                f"Browser Use session '{self._session}' is still running headless after close; "
+                "stop the stale daemon before reconnecting the headed dedicated browser."
+            ),
         )
 
     async def _run_cli(self, *args: str, headed: bool | None = None) -> dict[str, Any]:
@@ -357,6 +390,7 @@ class BrowserUseEngineRuntime:
         return html_to_markdown(str(data.get("html", "") or ""), extract_links=extract_links)
 
     async def _handle_connect(self, _args: Any) -> dict[str, Any]:
+        await self._recover_headless_session_before_connect()
         data = await self._run_cli("state", headed=True)
         return {
             "status": "connected",
@@ -367,13 +401,9 @@ class BrowserUseEngineRuntime:
         }
 
     async def _handle_status(self, _args: Any) -> dict[str, Any]:
-        state_path = Path(self._home) / f"{self._session}.state.json"
-        if not state_path.exists():
+        state = self._read_session_state()
+        if not state:
             return {"connected": False, "mode": "browser_use", "scope": "windie_dedicated_browser"}
-        try:
-            state = json.loads(state_path.read_text())
-        except Exception:
-            state = {}
         config = state.get("config") if isinstance(state.get("config"), dict) else {}
         if state.get("phase") not in {"ready", "running"} or config.get("headed") is False:
             return {

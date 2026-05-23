@@ -105,8 +105,9 @@ async def test_run_cli_reuses_running_headed_session_without_config_check(tmp_pa
 
 
 @pytest.mark.asyncio
-async def test_connect_starts_headed_browser_use_session() -> None:
+async def test_connect_starts_headed_browser_use_session(tmp_path: Path) -> None:
     runtime = BrowserUseEngineRuntime()
+    runtime._home = str(tmp_path)
 
     with mock.patch.object(
         runtime,
@@ -119,6 +120,58 @@ async def test_connect_starts_headed_browser_use_session() -> None:
     assert result["connected"] is True
     assert result["mode"] == "browser_use"
     assert result["native_source"] == "browser_use.cli"
+
+
+@pytest.mark.asyncio
+async def test_connect_closes_live_headless_session_before_starting_headed(tmp_path: Path) -> None:
+    runtime = BrowserUseEngineRuntime()
+    runtime._home = str(tmp_path)
+    state_path = tmp_path / "windieos.state.json"
+    state_path.write_text(
+        f'{{"phase": "running", "pid": {os.getpid()}, "config": {{"headed": false}}}}'
+    )
+
+    async def run_cli(*args: str, **kwargs: object) -> dict[str, object]:
+        if args == ("close",):
+            state_path.write_text('{"phase": "stopped", "config": {"headed": false}}')
+            return {"shutdown": True}
+        if args == ("state",):
+            return {"_raw_text": "[0]<button>Go</button>"}
+        raise AssertionError(f"unexpected CLI call: {args!r} {kwargs!r}")
+
+    with mock.patch.object(runtime, "_run_cli", new=mock.AsyncMock(side_effect=run_cli)) as run_cli_mock:
+        result = await runtime.execute(_args({"action": "connect"}))
+
+    assert run_cli_mock.await_args_list[0] == mock.call("close", headed=False)
+    assert run_cli_mock.await_args_list[1] == mock.call("state", headed=True)
+    assert result["connected"] is True
+
+
+@pytest.mark.asyncio
+async def test_connect_errors_when_headless_session_survives_close(tmp_path: Path) -> None:
+    runtime = BrowserUseEngineRuntime()
+    runtime._home = str(tmp_path)
+    state_path = tmp_path / "windieos.state.json"
+    state_path.write_text(
+        f'{{"phase": "running", "pid": {os.getpid()}, "config": {{"headed": false}}}}'
+    )
+
+    with (
+        mock.patch.object(
+            runtime,
+            "_run_cli",
+            new=mock.AsyncMock(return_value={"shutdown": True}),
+        ) as run_cli,
+        mock.patch(
+            "tools.browser.browser_use_engine.HEADLESS_RECOVERY_TIMEOUT_SECONDS",
+            0.01,
+        ),
+    ):
+        with pytest.raises(BrowserActionError) as exc_info:
+            await runtime.execute(_args({"action": "connect"}))
+
+    run_cli.assert_awaited_once_with("close", headed=False)
+    assert "still running headless" in exc_info.value.message
 
 
 @pytest.mark.asyncio
