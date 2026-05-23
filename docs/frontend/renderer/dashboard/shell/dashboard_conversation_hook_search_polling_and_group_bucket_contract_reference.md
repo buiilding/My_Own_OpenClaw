@@ -48,6 +48,9 @@ Hook-owned concerns:
   continuity service with no
   hidden limit so startup can see every local chat; explicit limits are applied
   only when a caller requests pagination
+- the continuity service uses the SDK `SidecarConversationStore` for list,
+  search, delete, and title metadata invalidation; full display/rehydrate loading
+  remains on the Electron sidecar store until the open-chat path migrates
 - drops rows without `conversation_id`
 - sorts by `last_timestamp` descending
 - prunes pinned ids no longer present in loaded list

@@ -85,6 +85,10 @@ export type ConversationMetadata = {
   lastMessage?: string | null;
   updatedAt: string;
   eventCount: number;
+  workspacePath?: string | null;
+  workspaceName?: string | null;
+  snippet?: string | null;
+  matchedRole?: string | null;
 };
 
 export type ListConversationOptions = {

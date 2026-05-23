@@ -93,7 +93,10 @@ The SDK ships two reusable store adapters:
   event logs without Electron sidecar storage.
 - `SidecarConversationStore` for Node/Electron hosts that want durable local
   sidecar storage through the SDK store interface instead of renderer IPC
-  transcript helpers.
+  transcript helpers. The Electron dashboard conversation library uses this
+  store for metadata operations such as list, search, delete, and generated-title
+  invalidation refreshes; display and rehydrate loading still use the
+  Electron-specific store adapter until the open-chat path is migrated.
 
 Electron's sidecar-backed store is a first-party adapter. It is allowed to know
 about transcript storage IPC, but it must stay behind the SDK store interface.

@@ -147,6 +147,10 @@ function metadataFromRow(row: Record<string, unknown>): ConversationMetadata | n
       ?? normalizeString(row.timestamp)
       ?? new Date(0).toISOString(),
     eventCount: Number(row.entry_count ?? row.eventCount ?? 0) || 0,
+    workspacePath: normalizeString(row.workspace_path) ?? normalizeString(row.workspacePath),
+    workspaceName: normalizeString(row.workspace_name) ?? normalizeString(row.workspaceName),
+    snippet: normalizeString(row.snippet),
+    matchedRole: normalizeString(row.matched_role) ?? normalizeString(row.matchedRole),
   };
 }
 

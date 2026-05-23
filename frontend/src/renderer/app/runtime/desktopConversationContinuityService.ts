@@ -13,11 +13,9 @@ import {
 import {
   loadLocalConversationSnapshot,
 } from '../../infrastructure/transcript/conversationLocalSnapshotLoader';
-import {
-  searchStoredConversations,
-} from '../../infrastructure/transcript/localConversationStore';
 import { createDesktopBackendTransport } from './desktopBackendTransport';
 import { DesktopLocalRuntimeEventSource } from './desktopLocalRuntimeEventSource';
+import { createDesktopSidecarConversationStore } from './desktopSidecarConversationStore';
 import type { LocalConversationSnapshot } from '../../infrastructure/transcript/conversationLocalSnapshotLoader';
 
 type LoadRehydrateSnapshotInput = {
@@ -29,15 +27,41 @@ type RehydrateFromStoreInput = LoadRehydrateSnapshotInput & {
   workspacePath?: string | null;
 };
 
+type SearchConversationsInput = {
+  userId: string;
+  query: string;
+  limit?: number;
+};
+
 export const desktopConversationContinuityService = new ConversationContinuityService({
   storeFactory: ({ userId }) => new ElectronSidecarConversationStore({ userId }),
   transportFactory: ({ workspacePath }) => createDesktopBackendTransport(workspacePath ?? null),
   localRuntimeEventSource: DesktopLocalRuntimeEventSource,
 });
 
+export const desktopConversationMetadataService = new ConversationContinuityService({
+  storeFactory: ({ userId }) => createDesktopSidecarConversationStore(userId),
+  localRuntimeEventSource: DesktopLocalRuntimeEventSource,
+});
+
+function metadataToDashboardConversation(metadata: ConversationMetadata) {
+  return {
+    conversation_id: metadata.conversationRef,
+    record_kind: 'chat_event',
+    title: metadata.title || metadata.conversationRef,
+    last_message: metadata.lastMessage || '',
+    last_timestamp: metadata.updatedAt,
+    entry_count: metadata.eventCount,
+    workspace_path: metadata.workspacePath || '',
+    workspace_name: metadata.workspaceName || '',
+    snippet: metadata.snippet || '',
+    matched_role: metadata.matchedRole || '',
+  };
+}
+
 export const DesktopConversationContinuityService = {
   listMetadata(userId: string, options?: ListConversationOptions): Promise<ConversationMetadata[]> {
-    return desktopConversationContinuityService.listMetadata({ userId }, options);
+    return desktopConversationMetadataService.listMetadata({ userId }, options);
   },
 
   loadForDisplay(userId: string, conversationRef: string): Promise<DisplayConversation> {
@@ -60,7 +84,7 @@ export const DesktopConversationContinuityService = {
   },
 
   deleteConversation(userId: string, conversationRef: string) {
-    return desktopConversationContinuityService.deleteConversation({
+    return desktopConversationMetadataService.deleteConversation({
       userId,
       conversationRef,
     });
@@ -72,11 +96,17 @@ export const DesktopConversationContinuityService = {
     return loadLocalConversationSnapshot(input);
   },
 
-  searchConversations(input: Parameters<typeof searchStoredConversations>[0]) {
-    return searchStoredConversations(input);
+  async searchConversations(input: SearchConversationsInput) {
+    const metadata = await desktopConversationMetadataService.searchMetadata({
+      userId: input.userId,
+    }, {
+      query: input.query,
+      limit: input.limit,
+    });
+    return metadata.map(metadataToDashboardConversation);
   },
 
   subscribeMetadataInvalidations(listener: ConversationMetadataInvalidationListener) {
-    return desktopConversationContinuityService.subscribeMetadataInvalidations(listener);
+    return desktopConversationMetadataService.subscribeMetadataInvalidations(listener);
   },
 };
