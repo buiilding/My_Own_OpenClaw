@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { buildChatMessagesFromDisplayConversation } from '../../../infrastructure/transcript/sdkDisplayChatMessageProjection';
-import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { DesktopConversationLibraryClient } from '../../../app/runtime/desktopConversationLibraryClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 import {
@@ -392,14 +391,11 @@ function useDashboardConversations({
   }, [loadRecentConversations, scheduleTitleVisibilityPoll]);
 
   useEffect(() => {
-    const removeListener = IpcBridge.on(ON_CHANNELS.SIDECAR_EVENT, (event) => {
-      if (event?.type !== 'conversation-title-updated') {
-        return;
-      }
+    const unsubscribe = DesktopConversationLibraryClient.subscribeMetadataInvalidations(() => {
       void loadRecentConversations();
     });
     return () => {
-      removeListener?.();
+      unsubscribe?.();
     };
   }, [loadRecentConversations]);
 

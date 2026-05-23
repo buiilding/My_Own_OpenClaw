@@ -198,6 +198,9 @@ Those side effects are owned by `useDashboardConversations` (consumed by `ChatGp
 Recent-chat title visibility sync details:
 
 - hook listens for `transcript-entry-stored` events
+- hook also subscribes to desktop conversation-library metadata invalidations,
+  which are mapped from SDK/local-runtime title events before reaching dashboard
+  code
 - when assistant `llm-text` entries land, hook triggers recent-conversation refresh/poll
 - per-conversation title visibility polling:
   - delay: `1250ms`

@@ -25,9 +25,27 @@ export type ConversationContinuityTransportFactory = (input: {
   workspacePath?: string | null;
 }) => Pick<BackendTransport, 'rehydrateConversation'>;
 
+export type ConversationMetadataInvalidationEvent = {
+  type: 'conversation-metadata-invalidated';
+  reason: string;
+  conversationRef?: string | null;
+  title?: string | null;
+  source?: string | null;
+  rawEvent?: JsonRecord;
+};
+
+export type ConversationMetadataInvalidationListener = (
+  event: ConversationMetadataInvalidationEvent,
+) => void;
+
+export type ConversationContinuityLocalRuntimeEventSource = {
+  subscribeEvents?: (listener: (event: JsonRecord & { type?: unknown }) => void) => () => void;
+};
+
 export type ConversationContinuityServiceOptions = {
   storeFactory: ConversationContinuityStoreFactory;
   transportFactory?: ConversationContinuityTransportFactory;
+  localRuntimeEventSource?: ConversationContinuityLocalRuntimeEventSource;
 };
 
 export type ConversationUserInput = {
@@ -77,6 +95,40 @@ function toProviderHistoryMessages(messages: JsonRecord[]): JsonRecord[] {
   return messages
     .map(toProviderHistoryMessage)
     .filter((message): message is JsonRecord => Boolean(message));
+}
+
+function stringByKeys(record: JsonRecord | undefined, keys: string[]): string | null {
+  if (!record) {
+    return null;
+  }
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim();
+    }
+  }
+  return null;
+}
+
+function metadataInvalidationFromLocalRuntimeEvent(
+  event: JsonRecord & { type?: unknown },
+): ConversationMetadataInvalidationEvent | null {
+  if (event.type !== 'conversation-title-updated') {
+    return null;
+  }
+  const payload = event.payload && typeof event.payload === 'object' && !Array.isArray(event.payload)
+    ? event.payload as JsonRecord
+    : {};
+  return {
+    type: 'conversation-metadata-invalidated',
+    reason: 'conversation-title-updated',
+    conversationRef: stringByKeys(payload, ['conversation_id', 'conversationId', 'conversation_ref', 'conversationRef'])
+      ?? stringByKeys(event, ['conversation_id', 'conversationId', 'conversation_ref', 'conversationRef']),
+    title: stringByKeys(payload, ['title']) ?? stringByKeys(event, ['title']),
+    source: stringByKeys(payload, ['source', 'title_source', 'titleSource'])
+      ?? stringByKeys(event, ['source', 'title_source', 'titleSource']),
+    rawEvent: event,
+  };
 }
 
 export class ConversationContinuityService {
@@ -158,6 +210,19 @@ export class ConversationContinuityService {
       return;
     }
     throw new Error('Conversation continuity delete requires a deletable conversation store');
+  }
+
+  subscribeMetadataInvalidations(listener: ConversationMetadataInvalidationListener): () => void {
+    const source = this.options.localRuntimeEventSource;
+    if (typeof source?.subscribeEvents !== 'function') {
+      return () => {};
+    }
+    return source.subscribeEvents((event) => {
+      const invalidation = metadataInvalidationFromLocalRuntimeEvent(event);
+      if (invalidation) {
+        listener(invalidation);
+      }
+    });
   }
 
   private storeFor(input: ConversationUserInput): DeletableConversationStore {

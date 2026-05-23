@@ -4,6 +4,7 @@ import {
   type RehydrateSnapshot,
   type DisplayConversation,
   type ConversationMetadata,
+  type ConversationMetadataInvalidationListener,
   type CompactedReplaySnapshot,
 } from '../../infrastructure/api/windieSdkClient';
 import {
@@ -16,6 +17,7 @@ import {
   searchStoredConversations,
 } from '../../infrastructure/transcript/localConversationStore';
 import { createDesktopBackendTransport } from './desktopBackendTransport';
+import { DesktopLocalRuntimeEventSource } from './desktopLocalRuntimeEventSource';
 import type { LocalConversationSnapshot } from '../../infrastructure/transcript/conversationLocalSnapshotLoader';
 
 type LoadRehydrateSnapshotInput = {
@@ -30,6 +32,7 @@ type RehydrateFromStoreInput = LoadRehydrateSnapshotInput & {
 export const desktopConversationContinuityService = new ConversationContinuityService({
   storeFactory: ({ userId }) => new ElectronSidecarConversationStore({ userId }),
   transportFactory: ({ workspacePath }) => createDesktopBackendTransport(workspacePath ?? null),
+  localRuntimeEventSource: DesktopLocalRuntimeEventSource,
 });
 
 export const DesktopConversationContinuityService = {
@@ -71,5 +74,9 @@ export const DesktopConversationContinuityService = {
 
   searchConversations(input: Parameters<typeof searchStoredConversations>[0]) {
     return searchStoredConversations(input);
+  },
+
+  subscribeMetadataInvalidations(listener: ConversationMetadataInvalidationListener) {
+    return desktopConversationContinuityService.subscribeMetadataInvalidations(listener);
   },
 };

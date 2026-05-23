@@ -192,4 +192,44 @@ describe('ConversationContinuityService', () => {
 
     expect(store.rewriteConversation).not.toHaveBeenCalled();
   });
+
+  test('subscribeMetadataInvalidations maps local runtime title updates', () => {
+    const unsubscribe = jest.fn();
+    let localRuntimeListener: ((event: JsonRecord & { type?: unknown }) => void) | null = null;
+    const onInvalidation = jest.fn();
+    const service = new ConversationContinuityService({
+      storeFactory: () => createStore(),
+      localRuntimeEventSource: {
+        subscribeEvents: (listener) => {
+          localRuntimeListener = listener;
+          return unsubscribe;
+        },
+      },
+    });
+
+    const cleanup = service.subscribeMetadataInvalidations(onInvalidation);
+
+    localRuntimeListener?.({
+      type: 'conversation-title-updated',
+      payload: {
+        conversation_id: 'conv-title',
+        title: 'Generated title',
+        source: 'model',
+      },
+    });
+    localRuntimeListener?.({
+      type: 'tool-output',
+    });
+
+    expect(onInvalidation).toHaveBeenCalledTimes(1);
+    expect(onInvalidation).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'conversation-metadata-invalidated',
+      reason: 'conversation-title-updated',
+      conversationRef: 'conv-title',
+      title: 'Generated title',
+      source: 'model',
+    }));
+    cleanup();
+    expect(unsubscribe).toHaveBeenCalledTimes(1);
+  });
 });

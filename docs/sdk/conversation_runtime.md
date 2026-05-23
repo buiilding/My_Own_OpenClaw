@@ -144,7 +144,11 @@ Responsibility split:
 - SDK local-runtime adapters own the sidecar event subscription surface. Hosts
   should consume metadata invalidations such as `conversation-title-updated`
   through SDK/local-runtime events instead of opening sidecar `/events`
-  connections from UI feature code.
+  connections from UI feature code. The
+  `ConversationContinuityService.subscribeMetadataInvalidations(...)` API is
+  the shared library boundary for this: local-runtime events are normalized into
+  conversation metadata invalidations, and UI adapters reload metadata from the
+  store instead of handling raw sidecar event payloads.
 
 ## Compaction Rule
 

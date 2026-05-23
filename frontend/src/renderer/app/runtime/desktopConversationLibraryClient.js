@@ -22,4 +22,8 @@ export const DesktopConversationLibraryClient = {
   async searchConversations(input) {
     return DesktopConversationContinuityService.searchConversations(input);
   },
+
+  subscribeMetadataInvalidations(listener) {
+    return DesktopConversationContinuityService.subscribeMetadataInvalidations(listener);
+  },
 };

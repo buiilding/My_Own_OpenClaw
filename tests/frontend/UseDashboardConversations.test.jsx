@@ -9,6 +9,7 @@ import {
 jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationLibraryClient', () => ({
   DesktopConversationLibraryClient: {
     listMetadata: jest.fn(),
+    subscribeMetadataInvalidations: jest.fn(),
   },
 }));
 
@@ -65,6 +66,7 @@ describe('useDashboardConversations', () => {
     jest.clearAllMocks();
     getLocalBackendStatusSnapshot.mockReturnValue({ ready: false });
     subscribeLocalBackendStatusStore.mockImplementation(() => jest.fn());
+    DesktopConversationLibraryClient.subscribeMetadataInvalidations.mockImplementation(() => jest.fn());
   });
 
   test('reloads recent conversations when the local backend becomes ready', async () => {
@@ -102,6 +104,60 @@ describe('useDashboardConversations', () => {
         expect.objectContaining({
           conversation_id: 'conv-ready',
           title: 'Loaded after ready',
+        }),
+      ]);
+    });
+    expect(DesktopConversationLibraryClient.listMetadata).toHaveBeenCalledTimes(2);
+  });
+
+  test('reloads recent conversations through SDK metadata invalidations', async () => {
+    let metadataInvalidationListener = null;
+    DesktopConversationLibraryClient.subscribeMetadataInvalidations.mockImplementation((listener) => {
+      metadataInvalidationListener = listener;
+      return jest.fn();
+    });
+    DesktopConversationLibraryClient.listMetadata
+      .mockResolvedValueOnce([
+        {
+          conversationRef: 'conv-title',
+          title: 'Old title',
+          updatedAt: '2026-05-16T20:00:00.000Z',
+          eventCount: 2,
+        },
+      ])
+      .mockResolvedValueOnce([
+        {
+          conversationRef: 'conv-title',
+          title: 'New title',
+          updatedAt: '2026-05-16T20:01:00.000Z',
+          eventCount: 2,
+        },
+      ]);
+
+    const { result } = renderDashboardConversations();
+
+    await waitFor(() => {
+      expect(result.current.recentConversations).toEqual([
+        expect.objectContaining({
+          conversation_id: 'conv-title',
+          title: 'Old title',
+        }),
+      ]);
+    });
+
+    await act(async () => {
+      metadataInvalidationListener?.({
+        type: 'conversation-metadata-invalidated',
+        reason: 'conversation-title-updated',
+        conversationRef: 'conv-title',
+      });
+    });
+
+    await waitFor(() => {
+      expect(result.current.recentConversations).toEqual([
+        expect.objectContaining({
+          conversation_id: 'conv-title',
+          title: 'New title',
         }),
       ]);
     });

@@ -44,7 +44,8 @@ Hook-owned concerns:
 
 `loadRecentConversations()`:
 
-- loads conversation metadata through the SDK conversation store adapter with no
+- loads conversation metadata through the desktop conversation library/SDK
+  continuity service with no
   hidden limit so startup can see every local chat; explicit limits are applied
   only when a caller requests pagination
 - drops rows without `conversation_id`
@@ -127,12 +128,21 @@ Shell behavior:
 
 ## Transcript Title Visibility Poll Contract
 
-Hook listens for `window` event `transcript-entry-stored`.
+Hook listens for `window` event `transcript-entry-stored` and for desktop
+conversation-library metadata invalidations. The library invalidation path is
+SDK-owned: local-runtime events such as `conversation-title-updated` are mapped
+by `ConversationContinuityService.subscribeMetadataInvalidations(...)` before
+the dashboard hook sees them.
 
 Poll trigger condition:
 
 - event role is `assistant`
 - event message type is `llm-text`
+
+Metadata invalidation trigger condition:
+
+- invalidation reason is emitted by the SDK conversation continuity service
+- any invalidation reloads recent conversations through `loadRecentConversations()`
 
 Poll behavior:
 
