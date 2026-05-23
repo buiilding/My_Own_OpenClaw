@@ -18,6 +18,27 @@ let mockConfig: TestAppConfig = createDefaultTestAppConfig();
 const DEFAULT_TEST_CONVERSATION_REF = 'conv-test';
 let mockActiveConversationRef: string | null = DEFAULT_TEST_CONVERSATION_REF;
 const mockUseAppConfigContext = jest.fn(() => ({ config: mockConfig }));
+const mockBackendEventTypes = new Set([
+  'query-accepted',
+  'llm-thought',
+  'streaming-response',
+  'streaming-complete',
+  'context-compaction-started',
+  'context-compaction-completed',
+  'context-compaction-failed',
+  'tool-call',
+  'tool-output',
+  'tool-bundle',
+  'web-search-progress',
+  'local-user-message',
+  'system-prompt',
+  'user-message-full',
+  'assistant-message-full',
+  'memory-store',
+  'token-count',
+  'tool-schemas',
+  'error',
+]);
 
 jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
   useAppConfigContext: () => mockUseAppConfigContext(),
@@ -26,6 +47,18 @@ jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
 jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient', () => ({
   DesktopConversationRuntimeClient: {
     getActiveConversationRef: jest.fn(() => mockActiveConversationRef),
+    toBackendStreamEvent: jest.fn((data: unknown) => {
+      const eventType = data && typeof data === 'object' && !Array.isArray(data)
+        ? (data as { type?: unknown }).type
+        : null;
+      return typeof eventType === 'string' && mockBackendEventTypes.has(eventType)
+        ? data
+        : null;
+    }),
+    normalizeBackendStreamEvent: jest.fn((event: { type?: string }) => ({
+      type: event.type ?? 'unknown',
+      source: 'backend',
+    })),
     recordAssistantMessage: jest.fn(),
     recordToolMessage: jest.fn(),
     updateTranscriptSession: jest.fn(),

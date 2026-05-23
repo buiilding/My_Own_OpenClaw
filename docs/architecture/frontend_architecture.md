@@ -122,7 +122,8 @@ Current runtime behavior also relies on these explicit seams:
 
 1. Backend WebSocket events arrive in main `ipc.cjs`.
 2. Main updates response-overlay phase (`awaiting-first-chunk`/`streaming`/`tool-call`/`complete`/`error`) and broadcasts `from-backend` to renderer windows.
-3. Renderer `useChatStream`:
+3. Renderer `useChatStream` asks `DesktopConversationRuntimeClient` to validate raw backend events and produce SDK-normalized conversation events before renderer UI handlers run.
+4. Renderer `useChatStream`:
    - Filters by active conversation/turn tracking.
    - Updates Zustand store for thinking, streaming text, tool messages, completion, errors.
    - Persists transcript rows (`recordUserMessage`, `recordAssistantMessage`, `recordToolMessage`).

@@ -372,4 +372,70 @@ describe('DesktopConversationRuntimeClient', () => {
       window.ipc = originalIpc;
     }
   });
+
+  test('toBackendStreamEvent rejects malformed stream payloads', () => {
+    const { DesktopConversationRuntimeClient } = require(
+      '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeClient',
+    );
+
+    expect(DesktopConversationRuntimeClient.toBackendStreamEvent({ payload: {} })).toBeNull();
+  });
+
+  test('normalizeBackendStreamEvent uses SDK conversation event normalization', () => {
+    const { DesktopConversationRuntimeClient } = require(
+      '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeClient',
+    );
+
+    const event = DesktopConversationRuntimeClient.toBackendStreamEvent({
+      type: 'streaming-response',
+      conversation_ref: 'conv-stream',
+      turn_ref: 'turn-stream',
+      payload: {
+        text: 'hello',
+      },
+    });
+
+    if (!event) {
+      throw new Error('expected valid backend stream event');
+    }
+
+    expect(DesktopConversationRuntimeClient.normalizeBackendStreamEvent(event)).toMatchObject({
+      type: 'assistant_delta',
+      conversationRef: 'conv-stream',
+      turnRef: 'turn-stream',
+      source: 'backend',
+      payload: {
+        text: 'hello',
+      },
+    });
+  });
+
+  test('normalizeBackendStreamEvent can use resolved conversation fallback for SDK events', () => {
+    const { DesktopConversationRuntimeClient } = require(
+      '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeClient',
+    );
+
+    const event = DesktopConversationRuntimeClient.toBackendStreamEvent({
+      type: 'streaming-complete',
+      turn_ref: 'turn-stream',
+      payload: {
+        final_response: 'done',
+      },
+    });
+
+    if (!event) {
+      throw new Error('expected valid backend stream event');
+    }
+
+    expect(DesktopConversationRuntimeClient.normalizeBackendStreamEvent(event, {
+      conversationRef: 'conv-fallback',
+    })).toMatchObject({
+      type: 'turn_completed',
+      conversationRef: 'conv-fallback',
+      turnRef: 'turn-stream',
+      payload: {
+        finalResponse: 'done',
+      },
+    });
+  });
 });

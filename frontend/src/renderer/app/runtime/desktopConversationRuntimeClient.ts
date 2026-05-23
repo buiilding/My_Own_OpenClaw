@@ -1,10 +1,16 @@
 import type { WindieModelSelection } from '../../infrastructure/api/windieSdkClient';
 import {
+  type ConversationEvent,
   type JsonRecord,
   InMemoryConversationStore,
   type RehydrateSnapshot,
+  normalizeBackendEventToConversationEvent,
   createConversationRuntime,
 } from '../../infrastructure/api/windieSdkClient';
+import {
+  type BackendEvent,
+  isBackendEvent,
+} from '../../types/backendEvents';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { DesktopSettingsRuntimeClient } from './desktopSettingsRuntimeClient';
 import {
@@ -83,6 +89,11 @@ type ReplaceCompactedReplayFromBackendEventInput = {
   event: JsonRecord;
   conversationRef: string;
   userId?: string | null;
+};
+
+type NormalizeBackendStreamEventOptions = {
+  conversationRef?: string | null;
+  revisionId?: string | null;
 };
 
 function optionalString(value: unknown): string | null {
@@ -189,6 +200,20 @@ export const DesktopConversationRuntimeClient = {
 
   setModel(selection: WindieModelSelection): void {
     DesktopSettingsRuntimeClient.setModel(selection);
+  },
+
+  toBackendStreamEvent(data: unknown): BackendEvent | null {
+    return isBackendEvent(data) ? data : null;
+  },
+
+  normalizeBackendStreamEvent(
+    event: BackendEvent,
+    options: NormalizeBackendStreamEventOptions = {},
+  ): ConversationEvent | null {
+    return normalizeBackendEventToConversationEvent(event, {
+      fallbackConversationRef: optionalString(options.conversationRef) ?? undefined,
+      fallbackRevisionId: optionalString(options.revisionId) ?? undefined,
+    });
   },
 
   recordAssistantMessage(

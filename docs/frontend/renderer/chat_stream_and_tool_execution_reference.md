@@ -129,7 +129,8 @@ Listener source:
 
 Pre-routing and workspace resolution:
 
-- event shape validated by `isBackendEvent`
+- event shape validation and SDK conversation-event normalization go through
+  `DesktopConversationRuntimeClient` before renderer-specific UI handlers run
 - event conversation resolved from `conversation_ref`, then a registered turn map fallback
 - `memory-store` events without `conversation_ref` are quarantined instead of using `session_id` as chat identity
 - explicit `conversation_ref` events promote chat-store `activeConversationRef` when no active workspace exists; `local-user-message` also rebinds active workspace to the explicit conversation so overlay-only surfaces (`enableTranscript=false`) project the current turn
@@ -139,6 +140,9 @@ Pre-routing and workspace resolution:
 - transcript session sync runs only after event conversation identity resolves
 - ingress orchestration for projection sync, turn-map registration, transcript-session update, and handler dispatch is centralized in `chatStreamBackendIngress.ingestBackendEvent(...)`
 - ingress bookkeeping steps are fail-safe isolated (`try/catch` per step) so projection/turn-map/transcript sync errors cannot suppress final handler dispatch for the event
+- SDK-normalized conversation events are currently used as the first stream
+  boundary contract; renderer handlers still consume raw backend events for UI
+  compatibility until display/tool-state projection moves behind the SDK.
 
 Handler map (`BackendEventType` -> behavior):
 

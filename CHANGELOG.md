@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sdk: route renderer stream-event validation and SDK conversation-event normalization through the desktop conversation runtime facade.
 - frontend/sdk: route renderer compact-history commands through the SDK conversation runtime transport and delete the legacy `DesktopBackendCommandRuntimeClient` bridge.
 - frontend/sdk: route renderer rehydrate commands through the SDK conversation runtime transport and remove the direct `ApiClient.rehydrateConversation` facade path.
 - frontend/sdk: route renderer query sends through the SDK conversation runtime transport and remove the direct `ApiClient.sendQuery` facade path.

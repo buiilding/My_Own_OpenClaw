@@ -18,7 +18,6 @@ import {
   type MemoryStoreEvent,
   type TokenCountEvent,
   type ErrorEvent,
-  isBackendEvent,
 } from '../../../types/backendEvents';
 import {
   type StreamTrackingOptions,
@@ -46,6 +45,7 @@ import {
   syncActiveConversationProjection as syncActiveConversationProjectionRuntime,
 } from '../utils/chatStream/chatStreamEventRuntime';
 import { logRendererStreamTrace } from '../utils/chatStream/chatStreamDebugTrace';
+import { DesktopConversationRuntimeClient } from '../session/desktopConversationRuntimeClient';
 
 export function useChatStream(enableTranscript: boolean = true) {
   const {
@@ -325,16 +325,22 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, (data: unknown) => {
-      if (!isBackendEvent(data)) {
+      const backendEvent = DesktopConversationRuntimeClient.toBackendStreamEvent(data);
+      if (!backendEvent) {
         return;
       }
-      const conversationRef = resolveTargetConversationRef(data);
+      const conversationRef = resolveTargetConversationRef(backendEvent);
+      const conversationEvent = DesktopConversationRuntimeClient.normalizeBackendStreamEvent(
+        backendEvent,
+        { conversationRef },
+      );
       logRendererStreamTrace('before', {
-        eventType: data.type,
-        turnRef: data.turn_ref,
+        eventType: backendEvent.type,
+        turnRef: backendEvent.turn_ref,
         conversationRef,
+        sdkEventType: conversationEvent?.type,
       });
-      ingestBackendEvent(data, conversationRef, {
+      ingestBackendEvent(backendEvent, conversationRef, {
         syncActiveConversationProjection,
         registerTurnConversationRef,
         enableTranscript,
@@ -346,9 +352,10 @@ export function useChatStream(enableTranscript: boolean = true) {
         },
       });
       logRendererStreamTrace('after', {
-        eventType: data.type,
-        turnRef: data.turn_ref,
+        eventType: backendEvent.type,
+        turnRef: backendEvent.turn_ref,
         conversationRef,
+        sdkEventType: conversationEvent?.type,
       });
     });
 

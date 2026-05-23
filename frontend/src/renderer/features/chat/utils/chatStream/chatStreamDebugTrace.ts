@@ -47,10 +47,12 @@ export function logRendererStreamTrace(
     eventType,
     turnRef,
     conversationRef,
+    sdkEventType,
   }: {
     eventType: string;
     turnRef?: string | null;
     conversationRef: string | null;
+    sdkEventType?: string | null;
   },
 ): void {
   if (!isRendererStreamTraceEnabled()) {
@@ -61,6 +63,7 @@ export function logRendererStreamTrace(
     eventType,
     turnRef: turnRef || null,
     conversationRef,
+    sdkEventType: sdkEventType || null,
     ...summarizeWorkspaceForTrace(conversationRef),
   });
 }
