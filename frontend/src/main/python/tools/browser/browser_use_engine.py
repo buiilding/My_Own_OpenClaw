@@ -452,7 +452,7 @@ class BrowserUseEngineRuntime:
         return {"amount": amount, "direction": direction, **data}
 
     async def _handle_screenshot(self, args: Any) -> dict[str, Any]:
-        requested_name = args.file_name or "browser-screenshot.png"
+        requested_name = getattr(args, "file_name", None) or "browser-screenshot.png"
         output_path = resolve_browser_path(requested_name, ensure_parent=True)
         data = await self._run_cli("screenshot", str(output_path))
         return {

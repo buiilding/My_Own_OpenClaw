@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from unittest import mock
 
 import pytest
@@ -67,6 +68,38 @@ async def test_snapshot_paginates_browser_use_state_text() -> None:
     assert result["returned_chars"] == 3
     assert result["has_more"] is True
     assert result["next_offset"] == 5
+
+
+@pytest.mark.asyncio
+async def test_snapshot_include_screenshot_uses_default_screenshot_name() -> None:
+    runtime = BrowserUseEngineRuntime()
+
+    with (
+        mock.patch.object(
+            runtime,
+            "_run_cli",
+            new=mock.AsyncMock(
+                side_effect=[
+                    {"_raw_text": "[0]<button>Continue</button>"},
+                    {"saved": "/tmp/browser-screenshot.png", "size": 9},
+                ]
+            ),
+        ) as run_cli,
+        mock.patch(
+            "tools.browser.browser_use_engine.resolve_browser_path",
+            return_value=Path("/tmp/browser-screenshot.png"),
+        ),
+    ):
+        result = await runtime.execute(
+            _args({"action": "snapshot", "include_screenshot": True})
+        )
+
+    assert result["screenshot_path"] == "/tmp/browser-screenshot.png"
+    assert result["screenshot_content_type"] == "image/png"
+    assert run_cli.await_args_list[-1].args == (
+        "screenshot",
+        "/tmp/browser-screenshot.png",
+    )
 
 
 @pytest.mark.asyncio
