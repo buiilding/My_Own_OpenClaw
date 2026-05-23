@@ -28,23 +28,23 @@ Listener flow in `useChatStream`:
 3. optionally rebind active workspace projection (`local-user-message` or empty active projection + explicit conversation identity)
 4. register `turn_ref -> conversation_ref` mapping
 5. update transcript session binding (`activeConversationRef || resolvedConversationRef`)
-6. dispatch by `data.type` through `buildChatStreamHandlerMap(...)`
+6. dispatch SDK-owned event families from normalized conversation events, then
+   dispatch remaining raw backend events through `buildChatStreamHandlerMap(...)`
 
 ## Handler Wiring Contract
 
-`buildChatStreamHandlerMap(...)` is the single event-type map for chat stream runtime:
+`buildChatStreamHandlerMap(...)` owns only backend event types that have not yet
+moved behind SDK conversation events:
 
-- thinking/stream: `llm-thought`, `streaming-response`, `streaming-complete`
-- compaction: `context-compaction-started/completed/failed`
-- tool rows: `tool-call`, `tool-output`, `tool-bundle`
-- transparency metadata: `system-prompt`, `user-message-full`, `assistant-message-full`, `tool-schemas`
+- thinking/stream: `llm-thought`
+- tool progress: `web-search-progress`
 - local optimistic user row: `local-user-message`
-- terminal/metrics: `memory-store`, `token-count`, `error`
+- terminal/metrics: `memory-store`
 
-The map performs one additional pre-handler guard:
-
-- `error` events run through `shouldIgnoreStreamError(...)`
-- ignored errors do not call `handleError`
+Assistant text, completion, compaction, tool rows, transparency metadata,
+errors, and token usage dispatch from SDK-normalized conversation events.
+`turn_error` suppression runs inside `useChatStreamTerminalHandlers` before UI
+mutation.
 
 ## Active-Turn Guard Matrix
 
@@ -99,9 +99,9 @@ Reason: local-user-message establishes turn/workspace state and seeds optimistic
 
 - `useChatStreamToolHandlers`: writes tool-call/tool-output/tool-bundle rows, resets thinking state for tool events, records transcript tool rows for call/output only, and routes `tool-output` transcript rows through the shared `toolOutputTranscriptPersistence.ts` helper
 - `useChatStreamTerminalHandlers`:
-  - `token-count`: workspace token counter update
+  - SDK `usage_updated`: workspace token counter update
   - `memory-store`: stream tracking only (no direct memory write side effect)
-  - `error`: assistant error row + transcript error row (unless suppressed by handler map)
+  - SDK `turn_error`: assistant error row + transcript error row unless suppressed
 - `useChatStream` core handlers:
   - `streaming-complete`: assistant message completion + optional transcript assistant write
   - transparency handlers: mutate existing user/assistant rows with metadata snapshots
@@ -110,7 +110,7 @@ Reason: local-user-message establishes turn/workspace state and seeds optimistic
 
 1. Adding a new backend event type without map wiring silently drops the event.
 2. Removing stale-turn guard from a mutable handler can leak old-turn output into the active workspace.
-3. Moving `shouldIgnoreStreamError` out of map-level dispatch can double-emit benign settings errors.
+3. Moving `shouldIgnoreStreamError` out of terminal handling can double-emit benign settings errors.
 4. Adding transcript writes to `memory-store` handler would duplicate side effects already owned by backend-driven memory pipeline.
 
 ## Related Pages

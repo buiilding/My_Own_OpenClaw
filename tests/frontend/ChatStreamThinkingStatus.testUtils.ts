@@ -150,6 +150,18 @@ jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversation
           },
         };
       }
+      if (event.type === 'token-count') {
+        return {
+          type: 'usage_updated',
+          conversationRef,
+          turnRef: event.turn_ref,
+          source: 'backend',
+          payload: {
+            ...(event.payload || {}),
+            rawEvent: event,
+          },
+        };
+      }
       if (event.type === 'tool-call') {
         return {
           type: 'tool_call',

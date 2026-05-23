@@ -49,6 +49,7 @@ The runtime records normalized events:
 - `tool_output`
 - `tool_bundle_call`
 - `tool_bundle_output`
+- `usage_updated`
 - `compaction_started`
 - `compaction_skipped`
 - `compaction_applied`

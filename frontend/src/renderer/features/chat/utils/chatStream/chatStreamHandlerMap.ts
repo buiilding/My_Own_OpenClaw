@@ -4,7 +4,6 @@ import type {
   LlmThoughtEvent,
   LocalUserMessageEvent,
   MemoryStoreEvent,
-  TokenCountEvent,
   WebSearchProgressEvent,
 } from '../../../../types/backendEvents';
 
@@ -13,7 +12,6 @@ type ChatStreamEventHandlers = {
   handleWebSearchProgress: (event: WebSearchProgressEvent) => void;
   handleLocalUserMessage: (event: LocalUserMessageEvent) => void;
   handleMemoryStore: (event: MemoryStoreEvent) => void;
-  handleTokenCount: (event: TokenCountEvent) => void;
 };
 
 export function buildChatStreamHandlerMap(
@@ -24,6 +22,5 @@ export function buildChatStreamHandlerMap(
     'web-search-progress': event => handlers.handleWebSearchProgress(event as WebSearchProgressEvent),
     'local-user-message': event => handlers.handleLocalUserMessage(event as LocalUserMessageEvent),
     'memory-store': event => handlers.handleMemoryStore(event as MemoryStoreEvent),
-    'token-count': event => handlers.handleTokenCount(event as TokenCountEvent),
   };
 }

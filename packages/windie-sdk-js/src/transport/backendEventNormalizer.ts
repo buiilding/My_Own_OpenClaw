@@ -249,5 +249,16 @@ export function normalizeBackendEventToConversationEvent(
       },
     });
   }
+  if (event.type === 'token-count') {
+    return createConversationEvent({
+      ...base,
+      type: 'usage_updated',
+      source: 'backend',
+      payload: {
+        ...payload,
+        rawEvent: event,
+      },
+    });
+  }
   return null;
 }

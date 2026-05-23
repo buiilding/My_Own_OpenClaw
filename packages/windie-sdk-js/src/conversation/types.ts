@@ -16,6 +16,7 @@ export type ConversationEventType =
   | 'system_prompt'
   | 'user_message_metadata'
   | 'tool_schemas_metadata'
+  | 'usage_updated'
   | 'tool_call'
   | 'tool_output'
   | 'tool_bundle_call'

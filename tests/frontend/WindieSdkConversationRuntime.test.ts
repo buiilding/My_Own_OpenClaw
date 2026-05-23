@@ -593,6 +593,33 @@ describe('Windie SDK conversation runtime core', () => {
     });
   });
 
+  test('backend token count normalizes to usage_updated', () => {
+    const normalized = normalizeBackendEventToConversationEvent({
+      type: 'token-count',
+      conversation_ref: 'conv-sdk-runtime',
+      turn_ref: 'turn-usage',
+      payload: {
+        prompt_tokens: 12,
+        visible_output_tokens: 3,
+        output_tokens_total: 3,
+        total_tokens: 15,
+        usage_source: 'provider',
+      },
+    });
+
+    expect(normalized).toMatchObject({
+      type: 'usage_updated',
+      conversationRef: 'conv-sdk-runtime',
+      turnRef: 'turn-usage',
+      payload: expect.objectContaining({
+        prompt_tokens: 12,
+        total_tokens: 15,
+        usage_source: 'provider',
+        rawEvent: expect.objectContaining({ type: 'token-count' }),
+      }),
+    });
+  });
+
   test('backend query-accepted normalizes to turn_started', () => {
     const normalized = normalizeBackendEventToConversationEvent({
       type: 'query-accepted',

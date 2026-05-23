@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import {
   useChatStore,
   type ChatMessage,
+  type TokenCounts,
 } from '../../stores/chatStore';
 import type {
   BackendEvent,
@@ -49,6 +50,28 @@ function unwrapErrorBackendEvent(event: ErrorEvent | ConversationEvent): ErrorEv
   } as BackendEvent as ErrorEvent;
 }
 
+function unwrapTokenCountBackendEvent(event: TokenCountEvent | ConversationEvent): TokenCountEvent {
+  if ('conversation_ref' in event || 'user_id' in event || event.type === 'token-count') {
+    return event as TokenCountEvent;
+  }
+  const rawEvent = event.payload?.rawEvent;
+  if (
+    rawEvent
+    && typeof rawEvent === 'object'
+    && !Array.isArray(rawEvent)
+    && (rawEvent as { type?: unknown }).type === 'token-count'
+  ) {
+    return rawEvent as TokenCountEvent;
+  }
+  const { rawEvent: _rawEvent, ...payload } = event.payload ?? {};
+  return {
+    type: 'token-count',
+    conversation_ref: event.conversationRef,
+    turn_ref: event.turnRef ?? undefined,
+    payload: payload as TokenCounts,
+  } as BackendEvent as TokenCountEvent;
+}
+
 export function useChatStreamTerminalHandlers({
   addMessage,
   enableTranscript,
@@ -61,7 +84,8 @@ export function useChatStreamTerminalHandlers({
   const setTokenCounts = useChatStore((state) => state.setTokenCounts);
   const updateMessage = useChatStore((state) => state.updateMessage);
 
-  const handleTokenCount = useCallback((event: TokenCountEvent, conversationRef?: string | null) => {
+  const handleTokenCount = useCallback((event: TokenCountEvent | ConversationEvent, conversationRef?: string | null) => {
+    const backendEvent = unwrapTokenCountBackendEvent(event);
     const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
     const shouldFinalizePendingStream = (
       workspace.isSending === true
@@ -72,19 +96,19 @@ export function useChatStreamTerminalHandlers({
       setIsSending(false, conversationRef);
       setThinkingStatus(null, conversationRef);
       setThinkingSourceEventType(null, conversationRef);
-      recordTrackingEvent('streaming-complete', event.turn_ref, { phase: 'complete' }, conversationRef);
+      recordTrackingEvent('streaming-complete', backendEvent.turn_ref, { phase: 'complete' }, conversationRef);
     }
-    setTokenCounts(event.payload ?? null, conversationRef);
+    setTokenCounts(backendEvent.payload ?? null, conversationRef);
     const assistantMessageId = findLastAssistantLlmTextMessageId(
       workspace.messages,
-      event.turn_ref || undefined,
+      backendEvent.turn_ref || undefined,
     );
-    if (assistantMessageId && event.payload) {
+    if (assistantMessageId && backendEvent.payload) {
       updateMessage(assistantMessageId, {
-        tokenCounts: event.payload,
+        tokenCounts: backendEvent.payload,
       }, conversationRef);
     }
-    recordTrackingEvent('token-count', event.turn_ref, undefined, conversationRef);
+    recordTrackingEvent('token-count', backendEvent.turn_ref, undefined, conversationRef);
   }, [
     setTokenCounts,
     updateMessage,
