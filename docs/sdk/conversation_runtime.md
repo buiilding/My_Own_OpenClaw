@@ -96,9 +96,10 @@ The SDK ships two reusable store adapters:
   transcript helpers. The Electron dashboard conversation library uses this
   store for metadata operations such as list, search, delete, and generated-title
   invalidation refreshes. The Electron sidecar conversation-store adapter also
-  delegates its read/projection conveniences to this SDK store, while retaining
+  delegates its read/projection conveniences to this SDK store. Desktop supplies
   Electron-specific write enrichment such as workspace binding and attachment
-  extraction.
+  extraction through the store's host write-params hook, while the SDK store
+  still owns the sidecar write RPC.
 
 Electron's sidecar-backed store is a first-party adapter. It is allowed to know
 about transcript storage IPC, but it must stay behind the SDK store interface.

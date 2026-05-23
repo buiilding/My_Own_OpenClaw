@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/frontend: route Electron sidecar conversation writes through the SDK `SidecarConversationStore` using a host write-params hook, removing direct store-event RPC calls from the Electron store.
 - sdk/frontend: delegate Electron sidecar conversation display, rehydrate, revision, and metadata reads to the SDK `SidecarConversationStore` while keeping Electron-specific write enrichment in the adapter.
 - frontend/chat: normalize rehydrated transcript tool message types and screenshot artifact refs so loaded conversations render tool cards and screenshots instead of raw JSON or broken image rows.
 - frontend/chat: keep tool-call preview content in the transcript flow and wrap long JSON lines instead of mounting it as a nested vertical scroll box.

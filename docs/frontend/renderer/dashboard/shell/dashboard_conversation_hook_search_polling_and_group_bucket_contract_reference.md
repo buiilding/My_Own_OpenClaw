@@ -50,7 +50,8 @@ Hook-owned concerns:
   only when a caller requests pagination
 - the continuity service uses the SDK `SidecarConversationStore` for list,
   search, delete, display, rehydrate, revision, and title metadata invalidation
-  reads; the Electron sidecar store remains as the IPC/write-enrichment adapter
+  reads and writes; the Electron sidecar store remains as the desktop
+  write-enrichment adapter
 - drops rows without `conversation_id`
 - sorts by `last_timestamp` descending
 - prunes pinned ids no longer present in loaded list

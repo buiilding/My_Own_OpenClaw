@@ -101,7 +101,7 @@ Shared writer layering:
 - `DesktopTranscriptProjectionRuntimeClient` owns public recorder entrypoints, queue coordination, and `transcript-entry-stored` emission
 - `transcriptRecordWrite.ts` owns the empty-text / resolve-session / immediate-write-or-queue decision boundary
 - `transcriptEntryPersistence.ts` resolves the final session and delegates persistence to the conversation store adapter
-- `ElectronSidecarConversationStore` owns IPC payload shaping, workspace-binding attachment, and canonical event/projection writes for visible transcript rows
+- `SidecarConversationStore` owns sidecar event writes and reads; `ElectronSidecarConversationStore` only supplies desktop write enrichment such as workspace binding, attachments, and compaction checkpoints
 
 Each path:
 
@@ -209,11 +209,11 @@ Storage split:
 - compacted backend rehydrate snapshots are stored as complete
   `compaction_applied` conversation events.
 
-The adapter writes enriched canonical chat events through Electron IPC, but its
-read methods delegate to the SDK `SidecarConversationStore`. Display and backend
-rehydrate snapshots come from the SDK projection path, and backend resume is
-triggered by the SDK continuity service rather than by dashboard or chat
-feature code.
+The adapter supplies desktop write-enrichment params to the SDK
+`SidecarConversationStore`, which owns the sidecar write/read RPCs. Display and
+backend rehydrate snapshots come from the SDK projection path, and backend
+resume is triggered by the SDK continuity service rather than by dashboard or
+chat feature code.
 
 `DesktopTranscriptProjectionRuntimeClient` routes new visible projection appends
 through this adapter. Direct `store-chat-event` calls and replay append mutation

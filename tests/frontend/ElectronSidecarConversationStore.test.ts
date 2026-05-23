@@ -452,10 +452,11 @@ describe('ElectronSidecarConversationStore', () => {
       replacementUserMessage: { text: 'edited' },
     });
 
-    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'delete-chat-conversation', {
+    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'delete-chat-conversation', expect.objectContaining({
       userId: 'user-1',
       conversationId: 'conv-edit',
-    });
+      recordKind: CHAT_EVENT_RECORD_KIND,
+    }));
     expect(mockInvoke).toHaveBeenNthCalledWith(2, 'store-chat-event', expect.objectContaining({
       conversationId: 'conv-edit',
       eventPayload: preserved,
@@ -468,10 +469,11 @@ describe('ElectronSidecarConversationStore', () => {
     await store.deleteConversation('conv-delete');
 
     expect(mockInvoke).toHaveBeenCalledTimes(1);
-    expect(mockInvoke).toHaveBeenCalledWith('delete-chat-conversation', {
+    expect(mockInvoke).toHaveBeenCalledWith('delete-chat-conversation', expect.objectContaining({
       userId: 'user-1',
       conversationId: 'conv-delete',
-    });
+      recordKind: CHAT_EVENT_RECORD_KIND,
+    }));
   });
 
   test('rewrites transcript projection as canonical events', async () => {
@@ -504,10 +506,11 @@ describe('ElectronSidecarConversationStore', () => {
       ],
     });
 
-    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'delete-chat-conversation', {
+    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'delete-chat-conversation', expect.objectContaining({
       userId: 'user-1',
       conversationId: 'conv-edit',
-    });
+      recordKind: CHAT_EVENT_RECORD_KIND,
+    }));
     expect(mockInvoke).toHaveBeenNthCalledWith(2, 'store-chat-event', expect.objectContaining({
       content: 'edited prompt',
       userId: 'user-1',

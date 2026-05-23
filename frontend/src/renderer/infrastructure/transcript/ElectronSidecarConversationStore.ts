@@ -10,7 +10,7 @@ import {
 import {
   createIpcSidecarConversationStore,
 } from './sdkSidecarConversationStore';
-import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
+import { IpcBridge } from '../ipc/bridge';
 import {
   buildRehydrateSnapshot,
   createConversationEvent,
@@ -21,8 +21,10 @@ import {
   type ConversationRewritePlan,
   type ConversationStore,
   type DisplayConversation,
+  type JsonRecord,
   type ListConversationOptions,
   type RehydrateSnapshot,
+  type SidecarConversationStoreEventWriteContext,
   type SidecarConversationStore,
   resolveToolEventCorrelationId,
 } from '../api/windieSdkClient';
@@ -101,17 +103,6 @@ function normalizeRecord(value: unknown): Record<string, unknown> | null {
 
 function normalizeArray(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
-}
-
-function textFromEvent(event: ConversationEvent): string {
-  const payload = normalizeRecord(event.payload) ?? {};
-  for (const key of ['text', 'content', 'finalResponse', 'final_response', 'error']) {
-    const value = payload[key];
-    if (typeof value === 'string' && value.trim()) {
-      return value;
-    }
-  }
-  return `[sdk event: ${event.type}]`;
 }
 
 function toolNameFromEvent(event: ConversationEvent): string | null {
@@ -233,16 +224,6 @@ function imageAttachmentsFromEvent(event: ConversationEvent): Record<string, unk
   });
 }
 
-function roleFromEvent(event: ConversationEvent): string {
-  if (event.type === 'user_message') {
-    return 'user';
-  }
-  if (event.type === 'tool_output' || event.type === 'tool_bundle_output') {
-    return 'tool';
-  }
-  return 'assistant';
-}
-
 function eventTypeFromProjectionEntry(entry: TranscriptProjectionRewriteEntry): ConversationEvent['type'] {
   const messageType = typeof entry.messageType === 'string'
     ? entry.messageType.trim().toLowerCase().replaceAll('_', '-')
@@ -327,26 +308,25 @@ export class ElectronSidecarConversationStore implements ConversationStore {
       invoke: deps.invoke ?? IpcBridge.invoke,
       getConversationWorkspaceBinding: deps.getConversationWorkspaceBinding ?? getConversationWorkspaceBinding,
     };
-    this.sdkStore = createIpcSidecarConversationStore(this.userId, this.deps.invoke);
+    this.sdkStore = createIpcSidecarConversationStore(this.userId, this.deps.invoke, {
+      eventWriteParams: context => this.buildDesktopEventWriteParams(context),
+    });
   }
 
   async appendEvent(event: ConversationEvent): Promise<void> {
-    await this.appendEvents([event]);
+    await this.sdkStore.appendEvent(event);
   }
 
   async appendEvents(events: ConversationEvent[]): Promise<void> {
-    for (const event of events) {
-      await this.storeEvent(event);
-    }
+    await this.sdkStore.appendEvents(events);
   }
 
   async rewriteConversation(plan: ConversationRewritePlan): Promise<void> {
-    await this.deleteRecordKind(plan.conversationRef);
-    await this.appendEvents(plan.preservedEvents);
+    await this.sdkStore.rewriteConversation(plan);
   }
 
   async deleteConversation(conversationRef: string): Promise<void> {
-    await this.deleteRecordKind(conversationRef);
+    await this.sdkStore.deleteConversation(conversationRef);
   }
 
   async appendTranscriptProjectionEntry(entry: TranscriptProjectionAppendEntry): Promise<void> {
@@ -368,7 +348,7 @@ export class ElectronSidecarConversationStore implements ConversationStore {
     entries: TranscriptProjectionRewriteEntry[];
     rehydrateEntries?: TranscriptProjectionRewriteEntry[];
   }): Promise<RehydrateSnapshot> {
-    await this.deleteRecordKind(conversationRef);
+    await this.deleteConversation(conversationRef);
     const revisionId = `rev-rewrite-${conversationRef}-${Date.now()}`;
     await this.appendEvents(entries.map((entry, index) => (
       projectionEntryToConversationEvent(conversationRef, revisionId, entry, index)
@@ -432,24 +412,18 @@ export class ElectronSidecarConversationStore implements ConversationStore {
     return this.sdkStore.loadForRehydrate(conversationRef);
   }
 
-  private async storeEvent(event: ConversationEvent): Promise<void> {
+  private buildDesktopEventWriteParams({
+    event,
+  }: SidecarConversationStoreEventWriteContext): JsonRecord {
     const workspaceBinding = this.deps.getConversationWorkspaceBinding(event.conversationRef);
     const attachments = imageAttachmentsFromEvent(event);
     const firstAttachment = attachments[0] ?? null;
     const modelMetadata = modelMetadataFromEvent(event);
-    const result = await this.deps.invoke(INVOKE_CHANNELS.STORE_CHAT_EVENT, {
-      content: textFromEvent(event),
-      userId: this.userId,
-      conversationId: event.conversationRef,
-      eventType: event.type,
-      role: roleFromEvent(event),
-      toolName: toolNameFromEvent(event),
-      correlationId: correlationIdFromEvent(event),
-      timestamp: event.timestamp,
-      revisionId: event.revisionId,
-      turnRef: event.turnRef ?? null,
-      workspacePath: workspaceBinding.workspacePath || null,
-      workspaceName: workspaceBinding.workspaceName || null,
+    return {
+      tool_name: toolNameFromEvent(event),
+      correlation_id: correlationIdFromEvent(event),
+      workspace_path: workspaceBinding.workspacePath || null,
+      workspace_name: workspaceBinding.workspaceName || null,
       metadata: {
         model_id: modelMetadata.modelId,
         model_provider: modelMetadata.modelProvider,
@@ -460,22 +434,8 @@ export class ElectronSidecarConversationStore implements ConversationStore {
           ?? null,
       },
       attachments,
-      eventPayload: event,
-      compactionCheckpoint: event.type === 'compaction_applied' ? event.payload : null,
-    });
-    if (!result || result.success === false) {
-      throw new Error(result?.error || 'Failed to store SDK conversation event');
-    }
-  }
-
-  private async deleteRecordKind(conversationRef: string): Promise<void> {
-    const result = await this.deps.invoke(INVOKE_CHANNELS.DELETE_CHAT_CONVERSATION, {
-      userId: this.userId,
-      conversationId: conversationRef,
-    });
-    if (!result || result.success === false) {
-      throw new Error(result?.error || 'Failed to delete chat event conversation rows');
-    }
+      compaction_checkpoint: event.type === 'compaction_applied' ? event.payload : null,
+    };
   }
 
 }

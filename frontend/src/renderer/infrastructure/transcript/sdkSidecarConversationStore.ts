@@ -1,5 +1,6 @@
 import {
   SidecarConversationStore,
+  type SidecarConversationStoreEventWriteParams,
   type JsonRecord,
 } from '../api/windieSdkClient';
 import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
@@ -83,9 +84,13 @@ function toIpcPayload(method: SupportedRpcMethod, params: JsonRecord = {}): Json
 export function createIpcSidecarConversationStore(
   userId: string,
   invoke: InvokeFunction = IpcBridge.invoke,
+  options: {
+    eventWriteParams?: SidecarConversationStoreEventWriteParams;
+  } = {},
 ): SidecarConversationStore {
   return new SidecarConversationStore({
     userId,
+    eventWriteParams: options.eventWriteParams,
     runtime: {
       rpc: async ({ method, params = {} }) => {
         if (!isSupportedRpcMethod(method)) {

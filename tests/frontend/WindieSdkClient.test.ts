@@ -1178,6 +1178,58 @@ describe('WindieSdkClient', () => {
     }));
   });
 
+  test('SidecarConversationStore merges host write params before sidecar rpc', async () => {
+    const rpc = jest.fn(async () => ({ success: true, data: {} }));
+    const store = new SidecarConversationStore({
+      userId: 'user-1',
+      runtime: { rpc },
+      eventWriteParams: ({ event, defaultParams }) => ({
+        ...defaultParams,
+        workspace_path: '/work/WindieOS',
+        tool_name: event.payload.toolName,
+        metadata: {
+          model_id: 'model-1',
+        },
+        attachments: [
+          { kind: 'image', ref: 'artifact-1' },
+        ],
+      }),
+    });
+
+    await store.appendEvent({
+      eventId: 'evt-host-write',
+      type: 'tool_output',
+      conversationRef: 'conv-host-write',
+      revisionId: 'rev-1',
+      timestamp: '2026-05-22T00:00:00.000Z',
+      source: 'sdk',
+      payload: {
+        text: 'tool output',
+        toolName: 'read_file',
+      },
+    });
+
+    expect(rpc).toHaveBeenCalledWith(expect.objectContaining({
+      method: 'store_chat_event',
+      params: expect.objectContaining({
+        user_id: 'user-1',
+        conversation_id: 'conv-host-write',
+        event_type: 'tool_output',
+        content: 'tool output',
+        role: 'tool',
+        record_kind: 'chat_event',
+        workspace_path: '/work/WindieOS',
+        tool_name: 'read_file',
+        metadata: {
+          model_id: 'model-1',
+        },
+        attachments: [
+          { kind: 'image', ref: 'artifact-1' },
+        ],
+      }),
+    }));
+  });
+
   test('createWindieLocalRuntimeProvider can start the daemon through a launcher prefix', async () => {
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-launcher-'));
     const discoveryFile = path.join(tempDir, 'sidecar-daemon.json');

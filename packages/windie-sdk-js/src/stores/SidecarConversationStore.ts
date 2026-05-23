@@ -6,6 +6,7 @@ import type {
   ConversationRewritePlan,
   ConversationStore,
   DisplayConversation,
+  JsonRecord,
   ListConversationOptions,
   RehydrateSnapshot,
   SearchConversationOptions,
@@ -22,11 +23,21 @@ import type { WindieLocalRuntimeClient } from '../runtime/LocalSidecarRuntime.js
 
 const CHAT_EVENT_RECORD_KIND = 'chat_event';
 
+export type SidecarConversationStoreEventWriteContext = {
+  event: ConversationEvent;
+  defaultParams: JsonRecord;
+};
+
+export type SidecarConversationStoreEventWriteParams = (
+  context: SidecarConversationStoreEventWriteContext,
+) => JsonRecord | null | undefined;
+
 export type SidecarConversationStoreOptions = {
   userId: string;
   runtime: Pick<WindieLocalRuntimeClient, 'rpc'>;
   pageSize?: number;
   maxPages?: number;
+  eventWriteParams?: SidecarConversationStoreEventWriteParams;
 };
 
 function normalizeRecord(value: unknown): Record<string, unknown> | null {
@@ -169,7 +180,7 @@ export class SidecarConversationStore implements ConversationStore {
 
   async appendEvents(events: ConversationEvent[]): Promise<void> {
     for (const event of events) {
-      await this.call('store_chat_event', {
+      const defaultParams: JsonRecord = {
         user_id: this.options.userId,
         conversation_id: event.conversationRef,
         event_type: event.type,
@@ -180,6 +191,13 @@ export class SidecarConversationStore implements ConversationStore {
         turn_ref: event.turnRef ?? null,
         event_payload: event,
         record_kind: CHAT_EVENT_RECORD_KIND,
+      };
+      await this.call('store_chat_event', {
+        ...defaultParams,
+        ...(this.options.eventWriteParams?.({
+          event,
+          defaultParams: { ...defaultParams },
+        }) ?? {}),
       });
     }
   }
