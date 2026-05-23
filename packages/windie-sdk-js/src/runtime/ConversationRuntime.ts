@@ -460,6 +460,13 @@ export class SdkConversationRuntime {
     if (event.conversationRef !== this.options.conversationRef) {
       return false;
     }
+    if (
+      event.turnRef
+      && this.state.activeTurnRef
+      && event.turnRef !== this.state.activeTurnRef
+    ) {
+      return false;
+    }
     return true;
   }
 
