@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/tests: clear stale unused imports and align the main-process SDK tool-runtime assertion with request/correlation id forwarding.
 - frontend/sdk: route renderer stop-query through the SDK conversation runtime transport and remove the direct `ApiClient.stopQuery` facade path.
 - sdk/frontend: route Electron sidecar conversation writes through the SDK `SidecarConversationStore` using a host write-params hook, removing direct store-event RPC calls from the Electron store.
 - sdk/frontend: delegate Electron sidecar conversation display, rehydrate, revision, and metadata reads to the SDK `SidecarConversationStore` while keeping Electron-specific write enrichment in the adapter.

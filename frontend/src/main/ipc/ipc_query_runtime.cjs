@@ -98,7 +98,7 @@ async function buildQueryPayload({
   };
 }
 
-function prepareAutomatedQueryPayload(options, currentConversationRef) {
+function prepareAutomatedQueryPayload(options) {
   const text = normalizeOptionalString(options.text);
   if (!text) {
     return null;

@@ -39,7 +39,6 @@ import { useTurnScopedBackendEventHandler } from './chatStream/useTurnScopedBack
 import { useChatStreamCompletionHandler } from './chatStream/useChatStreamCompletionHandler';
 import { useChatStreamTextHandlers } from './chatStream/useChatStreamTextHandlers';
 import { ingestBackendEvent } from '../utils/chatStream/chatStreamBackendIngress';
-import { DesktopConversationRuntimeClient } from '../session/desktopConversationRuntimeClient';
 import {
   recordTrackingEvent as recordTrackingEventRuntime,
   resolveTargetConversationRef as resolveTargetConversationRefRuntime,

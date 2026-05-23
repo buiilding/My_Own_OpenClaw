@@ -1194,7 +1194,7 @@ function attachAgentDefinitionContext(payload) {
 }
 
 async function sendAutomatedQuery(options = {}) {
-  const preparedQuery = prepareAutomatedQueryPayload(options, currentConversationRef);
+  const preparedQuery = prepareAutomatedQueryPayload(options);
   if (!preparedQuery) {
     return { ok: false, error: 'Missing query text' };
   }

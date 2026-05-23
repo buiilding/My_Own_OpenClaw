@@ -253,10 +253,13 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(backendBridge.executeToolForBackend).toHaveBeenCalledWith({
+    expect(backendBridge.executeToolForBackend).toHaveBeenCalledWith(expect.objectContaining({
       toolName: 'save_note',
       args: { text: 'hello' },
-    });
+      requestId: 'req-save-note',
+      correlationId: null,
+      toolCallId: null,
+    }));
     const toolResult = ws.sent.map((entry) => JSON.parse(entry))
       .find((entry) => entry.type === 'tool-result');
     expect(toolResult).toMatchObject({

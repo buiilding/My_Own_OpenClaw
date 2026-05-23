@@ -6,7 +6,6 @@ import {
 } from '../../../infrastructure/services/screenshotMessageState';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { buildDeferredQueryModelSelection } from '../../../app/providers/appConfigBackendSync';
-import { DEFAULT_USER_ID } from '../../dashboard/utils/episodicMemoryUtils';
 import {
   getConversationWorkspaceBinding,
   setConversationWorkspaceBinding,
