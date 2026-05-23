@@ -135,6 +135,14 @@ def _json_object_candidates(line: str) -> list[str]:
     return candidates
 
 
+def _is_pid_alive(pid: int) -> bool:
+    try:
+        os.kill(pid, 0)
+    except (OSError, ProcessLookupError):
+        return False
+    return True
+
+
 def _normalize_index(args: Any, *, action: str) -> int:
     raw_ref = getattr(args, "ref", None)
     raw_index = getattr(args, "index", None)
@@ -262,14 +270,32 @@ class BrowserUseEngineRuntime:
         payload.setdefault("native_source", RUNTIME_SOURCE)
         return payload
 
-    async def _run_cli(self, *args: str, headed: bool = True) -> dict[str, Any]:
+    def _has_running_headed_session(self) -> bool:
+        state_path = Path(self._home) / f"{self._session}.state.json"
+        if not state_path.exists():
+            return False
+        try:
+            state = json.loads(state_path.read_text())
+        except Exception:
+            return False
+        config = state.get("config") if isinstance(state.get("config"), dict) else {}
+        pid = state.get("pid")
+        return (
+            state.get("phase") in {"ready", "running"}
+            and config.get("headed") is True
+            and isinstance(pid, int)
+            and _is_pid_alive(pid)
+        )
+
+    async def _run_cli(self, *args: str, headed: bool | None = None) -> dict[str, Any]:
         command = [
             *_base_command(),
             "--session",
             self._session,
             "--json",
         ]
-        if headed:
+        should_request_headed = headed if headed is not None else not self._has_running_headed_session()
+        if should_request_headed:
             command.append("--headed")
         command.extend(args)
 
@@ -380,7 +406,7 @@ class BrowserUseEngineRuntime:
         }
 
     async def _handle_navigate(self, args: Any) -> dict[str, Any]:
-        data = await self._run_cli("tab", "new", args.url) if args.new_tab else await self._run_cli("open", args.url, headed=True)
+        data = await self._run_cli("tab", "new", args.url) if args.new_tab else await self._run_cli("open", args.url)
         return {"url": args.url, **data}
 
     async def _handle_snapshot(self, args: Any) -> dict[str, Any]:
@@ -510,7 +536,7 @@ class BrowserUseEngineRuntime:
 
     async def _handle_search(self, args: Any) -> dict[str, Any]:
         url = _search_url(args.query, args.engine)
-        data = await self._run_cli("open", url, headed=True)
+        data = await self._run_cli("open", url)
         return {"query": args.query, "engine": args.engine or "google", **data}
 
     async def _handle_go_back(self, _args: Any) -> dict[str, Any]:

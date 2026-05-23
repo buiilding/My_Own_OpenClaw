@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from unittest import mock
 
@@ -28,8 +29,9 @@ def test_parse_cli_json_accepts_prefixed_close_output() -> None:
 
 
 @pytest.mark.asyncio
-async def test_run_cli_uses_headed_session_by_default() -> None:
+async def test_run_cli_requests_headed_when_starting_session(tmp_path: Path) -> None:
     runtime = BrowserUseEngineRuntime()
+    runtime._home = str(tmp_path)
     captured: dict[str, object] = {}
 
     class FakeProcess:
@@ -59,6 +61,46 @@ async def test_run_cli_uses_headed_session_by_default() -> None:
     command = captured["command"]
     assert isinstance(command, tuple)
     assert "--headed" in command
+    assert command[-2:] == ("get", "title")
+
+
+@pytest.mark.asyncio
+async def test_run_cli_reuses_running_headed_session_without_config_check(tmp_path: Path) -> None:
+    runtime = BrowserUseEngineRuntime()
+    runtime._home = str(tmp_path)
+    state_path = tmp_path / "windieos.state.json"
+    state_path.write_text(
+        f'{{"phase": "running", "pid": {os.getpid()}, "config": {{"headed": true, "cdp_url": null}}}}'
+    )
+    captured: dict[str, object] = {}
+
+    class FakeProcess:
+        returncode = 0
+
+        async def communicate(self) -> tuple[bytes, bytes]:
+            return b'{"success": true, "data": {"title": "Example"}}', b""
+
+    async def fake_create_subprocess_exec(*command: str, **kwargs: object) -> FakeProcess:
+        captured["command"] = command
+        captured["env"] = kwargs.get("env")
+        return FakeProcess()
+
+    with (
+        mock.patch(
+            "tools.browser.browser_use_engine._feature_pack_pythonpath",
+            return_value=None,
+        ),
+        mock.patch(
+            "tools.browser.browser_use_engine.asyncio.create_subprocess_exec",
+            new=fake_create_subprocess_exec,
+        ),
+    ):
+        result = await runtime._run_cli("get", "title")
+
+    assert result == {"title": "Example"}
+    command = captured["command"]
+    assert isinstance(command, tuple)
+    assert "--headed" not in command
     assert command[-2:] == ("get", "title")
 
 
@@ -122,7 +164,7 @@ async def test_navigate_uses_browser_use_open_command() -> None:
             _args({"action": "navigate", "url": "https://example.com"})
         )
 
-    run_cli.assert_awaited_once_with("open", "https://example.com", headed=True)
+    run_cli.assert_awaited_once_with("open", "https://example.com")
     assert result["url"] == "https://example.com"
 
 
