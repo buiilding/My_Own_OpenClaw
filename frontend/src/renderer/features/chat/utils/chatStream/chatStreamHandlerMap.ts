@@ -11,9 +11,6 @@ import type {
   MemoryStoreEvent,
   SystemPromptEvent,
   TokenCountEvent,
-  ToolBundleEvent,
-  ToolCallEvent,
-  ToolOutputEvent,
   ToolSchemasEvent,
   UserMessageFullEvent,
   WebSearchProgressEvent,
@@ -25,9 +22,6 @@ type ChatStreamEventHandlers = {
   handleContextCompactionStarted: (event: ContextCompactionStartedEvent) => void;
   handleContextCompactionCompleted: (event: ContextCompactionCompletedEvent) => void;
   handleContextCompactionFailed: (event: ContextCompactionFailedEvent) => void;
-  handleToolCall: (event: ToolCallEvent) => void;
-  handleToolOutput: (event: ToolOutputEvent) => void;
-  handleToolBundle: (event: ToolBundleEvent) => void;
   handleWebSearchProgress: (event: WebSearchProgressEvent) => void;
   handleSystemPrompt: (event: SystemPromptEvent) => void;
   handleLocalUserMessage: (event: LocalUserMessageEvent) => void;
@@ -47,9 +41,6 @@ export function buildChatStreamHandlerMap(
     'context-compaction-started': event => handlers.handleContextCompactionStarted(event as ContextCompactionStartedEvent),
     'context-compaction-completed': event => handlers.handleContextCompactionCompleted(event as ContextCompactionCompletedEvent),
     'context-compaction-failed': event => handlers.handleContextCompactionFailed(event as ContextCompactionFailedEvent),
-    'tool-call': event => handlers.handleToolCall(event as ToolCallEvent),
-    'tool-output': event => handlers.handleToolOutput(event as ToolOutputEvent),
-    'tool-bundle': event => handlers.handleToolBundle(event as ToolBundleEvent),
     'web-search-progress': event => handlers.handleWebSearchProgress(event as WebSearchProgressEvent),
     'system-prompt': event => handlers.handleSystemPrompt(event as SystemPromptEvent),
     'local-user-message': event => handlers.handleLocalUserMessage(event as LocalUserMessageEvent),

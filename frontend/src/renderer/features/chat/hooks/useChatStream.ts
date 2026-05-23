@@ -9,9 +9,6 @@ import {
   type BackendEvent,
   type BackendEventType,
   type LlmThoughtEvent,
-  type ToolCallEvent,
-  type ToolOutputEvent,
-  type ToolBundleEvent,
   type WebSearchProgressEvent,
   type LocalUserMessageEvent,
   type MemoryStoreEvent,
@@ -195,24 +192,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     setThinkingStatus,
   });
 
-  const handleToolCallEvent = useTurnScopedBackendEventHandler<ToolCallEvent>({
-    resolveTargetConversationRef,
-    shouldIgnoreForStaleTurn,
-    onEvent: handleToolCall,
-  });
-
-  const handleToolOutputEvent = useTurnScopedBackendEventHandler<ToolOutputEvent>({
-    resolveTargetConversationRef,
-    shouldIgnoreForStaleTurn,
-    onEvent: handleToolOutput,
-  });
-
-  const handleToolBundleEvent = useTurnScopedBackendEventHandler<ToolBundleEvent>({
-    resolveTargetConversationRef,
-    shouldIgnoreForStaleTurn,
-    onEvent: handleToolBundle,
-  });
-
   const handleWebSearchProgressEvent = useTurnScopedBackendEventHandler<WebSearchProgressEvent>({
     resolveTargetConversationRef,
     shouldIgnoreForStaleTurn,
@@ -275,9 +254,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleContextCompactionStarted,
     handleContextCompactionCompleted,
     handleContextCompactionFailed,
-    handleToolCall: handleToolCallEvent,
-    handleToolOutput: handleToolOutputEvent,
-    handleToolBundle: handleToolBundleEvent,
     handleWebSearchProgress: handleWebSearchProgressEvent,
     handleSystemPrompt,
     handleLocalUserMessage: handleLocalUserMessageEvent,
@@ -292,9 +268,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleContextCompactionStarted,
     handleContextCompactionCompleted,
     handleContextCompactionFailed,
-    handleToolCallEvent,
-    handleToolOutputEvent,
-    handleToolBundleEvent,
     handleWebSearchProgressEvent,
     handleSystemPrompt,
     handleLocalUserMessageEvent,
@@ -314,7 +287,13 @@ export function useChatStream(enableTranscript: boolean = true) {
     if (!event) {
       return false;
     }
-    if (event.type !== 'assistant_delta' && event.type !== 'turn_completed') {
+    if (
+      event.type !== 'assistant_delta'
+      && event.type !== 'turn_completed'
+      && event.type !== 'tool_call'
+      && event.type !== 'tool_output'
+      && event.type !== 'tool_bundle_call'
+    ) {
       return false;
     }
     if (shouldIgnoreForStaleTurn(backendEvent, conversationRef)) {
@@ -324,10 +303,25 @@ export function useChatStream(enableTranscript: boolean = true) {
       handleAssistantDelta(event, event.conversationRef);
       return true;
     }
+    if (event.type === 'tool_call') {
+      handleToolCall(event, event.conversationRef);
+      return true;
+    }
+    if (event.type === 'tool_output') {
+      handleToolOutput(event, event.conversationRef);
+      return true;
+    }
+    if (event.type === 'tool_bundle_call') {
+      handleToolBundle(event, event.conversationRef);
+      return true;
+    }
     processStreamingComplete(event, event.conversationRef);
     return true;
   }, [
     handleAssistantDelta,
+    handleToolBundle,
+    handleToolCall,
+    handleToolOutput,
     processStreamingComplete,
     shouldIgnoreForStaleTurn,
   ]);

@@ -143,9 +143,12 @@ Pre-routing and workspace resolution:
 - assistant text stream events dispatch from SDK-normalized conversation events:
   backend `streaming-response` -> SDK `assistant_delta`, and backend
   `streaming-complete` -> SDK `turn_completed`
-- renderer handlers still consume raw backend events for tool, metadata,
-  compaction, memory, token, error, and local-user flows until those projection
-  paths move behind the SDK.
+- tool display events dispatch from SDK-normalized conversation events:
+  backend `tool-call` -> SDK `tool_call`, backend `tool-output` -> SDK
+  `tool_output`, and backend `tool-bundle` -> SDK `tool_bundle_call`
+- renderer handlers still consume raw backend events for metadata, compaction,
+  memory, token, error, web-search progress, and local-user flows until those
+  projection paths move behind the SDK.
 
 Handler map (`BackendEventType` -> behavior):
 
@@ -158,9 +161,9 @@ Handler map (`BackendEventType` -> behavior):
   - when backend sends replacement history, persists the compacted replay through the SDK conversation store adapter instead of directly mutating replay rows from the stream handler
 - `context-compaction-completed` with `skipped_reason`: clears only an active compaction status/debug payload. It does not render a compacted-history panel, persist replay rows, or clear unrelated active thinking/tool state.
 - `context-compaction-failed`: replaces compaction thinking with terminal failure text (backend error string when available, otherwise `Conversation compaction failed.`) and marks source as `context-compaction-failed`
-- `tool-call`: append assistant tool-call row and transcript tool-call row
-- `tool-output`: append assistant tool-output row with screenshot/tool metadata and transcript tool-output row
-- `tool-bundle`: append bundle call row and persist a transcript `tool-bundle` trace row so later transcript loads can reconstruct the bundle call card without reclassifying it as a normal executable tool-call
+- SDK `tool_call` from backend `tool-call`: append assistant tool-call row and transcript tool-call row
+- SDK `tool_output` from backend `tool-output`: append assistant tool-output row with screenshot/tool metadata and transcript tool-output row
+- SDK `tool_bundle_call` from backend `tool-bundle`: append bundle call row and persist a transcript `tool-bundle` trace row so later transcript loads can reconstruct the bundle call card without reclassifying it as a normal executable tool-call
 - `system-prompt`: annotate last user message with system prompt + tool schema snapshot
 - `user-message-full`: annotate user message with full payload metadata
 - `assistant-message-full`: annotate latest assistant `llm-text` message
@@ -175,12 +178,14 @@ Handler map (`BackendEventType` -> behavior):
 Handler composition boundary:
 
 - `buildChatStreamHandlerMap(...)` owns raw backend event-type to handler-function
-  wiring except assistant text stream events, which dispatch from SDK
-  conversation-event types
+  wiring except assistant text and tool display events, which dispatch from SDK
+  conversation-event types.
 - local-user-message handling is delegated to `useChatStreamLocalUserHandler`
 - `llm-thought` and SDK `assistant_delta` text/placeholder behavior is delegated to `useChatStreamTextHandlers`
 - error/memory-store/token-count terminal behaviors are delegated to `useChatStreamTerminalHandlers`
-- tool-call/tool-output/tool-bundle handling is delegated to `useChatStreamToolHandlers`
+- SDK `tool_call`/`tool_output`/`tool_bundle_call` display and transcript
+  projection is delegated to `useChatStreamToolHandlers`; local tool execution
+  remains owned by the main-process SDK runtime and sidecar.
 - SDK `turn_completed` finalization and transcript write side effects are delegated to `useChatStreamCompletionHandler`
 - turn-scoped wrapper callbacks for tool, metadata, compaction, memory, token,
   error, and local-user events are centralized in
