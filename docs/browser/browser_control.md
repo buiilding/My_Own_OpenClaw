@@ -12,61 +12,43 @@ WindieOS provides a powerful **browser control tool** that allows the AI agent t
 
 ## Runtime Selection
 
-Browser execution is routed through the Browser Use compatibility adapter. Runtime selection:
+Browser execution is routed through the maintained Browser Use CLI daemon via `frontend/src/main/python/tools/browser/browser_use_engine.py`.
 
-- Browser Use-native runtime is the default and required execution path (`browser_use_native`).
-- Optional runtime value: `WINDIE_BROWSER_USE_RUNTIME=browser_use` (alias of `browser_use_native`).
-- Startup fails fast if local `browser_use` runtime modules are unavailable or native runtime provider loading fails.
-- Runtime initialization enforces vendored Browser Use import origin (`frontend/src/main/python/tools/browser/browser_use`) and rejects external/site-packages `browser_use` resolution.
-- Optional native handler module override remains available for diagnostics (`WINDIE_BROWSER_USE_NATIVE_HANDLER_MODULE`).
-- Browser Use extraction actions (`extract`, `read_long_content`) resolve the extraction LLM from WindieOS model settings by default.
-- Optional extraction overrides:
-  - Windie-style provider/model: `WINDIE_BROWSER_USE_EXTRACTION_PROVIDER` + `WINDIE_BROWSER_USE_EXTRACTION_MODEL_ID`
-  - Optional provider credentials/endpoint: `WINDIE_BROWSER_USE_EXTRACTION_API_KEY`, `WINDIE_BROWSER_USE_EXTRACTION_BASE_URL`
-  - Browser Use explicit model-name override: `WINDIE_BROWSER_USE_EXTRACTION_MODEL` (example: `openai_gpt_4o_mini`)
+- WindieOS owns the model-facing `browser` tool schema, backend validation, agent loop, permissions, UI status, and result shape.
+- Browser Use owns browser session lifecycle, CDP/Playwright edge cases, DOM state extraction, numeric element indexes, click/input/scroll/upload/tab actions, screenshots, and daemon recovery.
+- The sidecar invokes Browser Use with `python -m browser_use.skill_cli.main` from the same Python environment.
+- Browser Use daemon files live under `WINDIE_BROWSER_USE_HOME` when set, otherwise under the WindieOS app data directory at `browser-use/`.
+- The default Browser Use session name is `windieos`; override with `WINDIE_BROWSER_USE_SESSION`.
+- Override the command path with `WINDIE_BROWSER_USE_CLI` only for diagnostics.
+- Override per-command timeout with `WINDIE_BROWSER_USE_COMMAND_TIMEOUT_SECONDS`.
 
 ## Overview
 
 The `browser` tool uses one connect model:
 
-1. **WindieOS Dedicated Browser Instance** - A persistent, Windie-owned Chrome profile used only for WindieOS automation.
-2. This instance is isolated from the user's default browser profile (credentials/session state do not affect the default profile).
-3. `connect` auto-attaches to this instance when already running, or launches it when not running.
+1. **WindieOS Browser Use Session** - a Browser Use daemon session named `windieos` by default.
+2. Browser Use launches and maintains the browser for that session.
+3. `connect` starts or reuses the Browser Use session and returns Browser Use state text.
 
 ## Installation
 
 ### Prerequisites
 
 ```bash
-# Install Python deps (Browser Use runtime code is vendored in-repo + playwright)
+# Install Python deps (official Browser Use package + Playwright)
 cd frontend/src/main/python
 pip install -r requirements.txt
 playwright install chromium
 ```
 
-Vendored Browser Use sync is manual (no in-repo helper script at this time):
-
-- Copy updates from `../browser-use/browser_use` into `frontend/src/main/python/tools/browser/browser_use`.
-- Update `frontend/src/main/python/tools/browser/browser_use_vendor_manifest.json` (`source_commit`, `synced_at_utc`, `pruned_paths`) to reflect the synced source.
-
-Vendored parity check command:
-
-```bash
-cd WindieOS
-python -m pytest tests/sidecar/tools/test_browser_use_tool_parity.py -q
-```
-
-Parity check guarantees:
-- Runtime import resolves to vendored `frontend/src/main/python/tools/browser/browser_use`.
-- Sidecar requirements do not depend on pip `browser-use`.
-- Sidecar schema, backend schema, native handler registry, and adapter dispatch all cover Browser Use action registry names.
+The browser feature pack now requires the `browser_use` Python module. Browser Use package updates should be handled by changing the dependency version range and rerunning the focused browser tests, not by editing vendored Browser Use source.
 
 ## Connect Behavior
 
 **No manual setup required.** When you issue a browser request, WindieOS connect will:
-1. Attach to the WindieOS dedicated browser instance when its CDP endpoint is already available.
-2. Otherwise launch a dedicated instance with persistent WindieOS profile data.
-3. Leave the user's default browser process/profile untouched, even if it is currently active.
+1. Reuse the named Browser Use daemon session when it is already running.
+2. Otherwise start the Browser Use daemon and a headed browser session.
+3. Leave WindieOS agent orchestration and tool-call policy unchanged.
 
 Connect via the tool:
 ```json
@@ -101,7 +83,8 @@ Notes:
 - `switch` defaults to visible tab activation, but supports `activate=false` for internal-only target changes so WindieOS can control a different tab without bringing it to the foreground in the user-visible browser window.
 - `find_text` supports optional `css_scope` and `max_results`, matching the scoped page-search behavior used by `search_page`.
 - Overlapping actions now run Browser Use-only semantics at runtime (`snapshot`, `navigate`, `extract`, `click`, `type`, `press`, `scroll`, `screenshot`, `wait`, `evaluate`): compatibility-only fields are rejected (for example `snapshot.format`, `snapshot.snapshotFormat`, `snapshot.wait_until`, `snapshot.mode`, `snapshot.max_chars`, `snapshot.refs`, `snapshot.interactive`, `snapshot.compact`, `snapshot.depth`, `snapshot.selector`, `snapshot.frame`, `extract.mode`, `extract.selector`, `extract.frame`, `wait.state`, `screenshot.full_page`, `screenshot.ref`, `screenshot.element`, `screenshot.type`, `screenshot.quality`).
-- For `click`, `input`, `upload_file`, `dropdown_options`, and `select_dropdown`, WindieOS now preserves role refs such as `e12` through the canonical adapter path. Numeric refs / `index` still use Browser Use-native element indexing; role refs route through controller-backed locator resolution on the exact referenced element.
+- For `click`, `input`, `upload_file`, and `select_dropdown`, the Browser Use engine requires numeric Browser Use element indexes. WindieOS role refs such as `e12` are rejected at the adapter boundary instead of being routed through the retired controller locator path.
+- `dropdown_options` remains in the model-visible schema but is not supported by the Browser Use CLI daemon; use `select_dropdown` with the desired visible option text.
 
 ### 1. Connect
 

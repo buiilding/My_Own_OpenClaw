@@ -1,5 +1,5 @@
 ---
-summary: "Dedicated browser runtime guide covering Windie-owned profile isolation, CDP launch, browser session state, feature packs, and file storage."
+summary: "Dedicated browser runtime guide covering the current Browser Use session boundary, retired Windie-owned CDP launcher path, feature packs, and browser file storage."
 read_when:
   - When changing Windie dedicated browser launch, CDP port behavior, browser profile paths, browser session state, or browser feature-pack setup.
   - When debugging connect/status failures or browser profile isolation.
@@ -8,11 +8,17 @@ title: "Dedicated Browser Runtime"
 
 # Dedicated Browser Runtime
 
-WindieOS does not automate the user's default browser profile. `connect` targets a Windie-owned Chromium profile through localhost CDP.
+WindieOS does not automate the user's default browser profile by default. `connect` now targets a WindieOS-named Browser Use daemon session through `BrowserUseEngineRuntime`; Browser Use owns browser launch/session mechanics.
 
 ## Launch And Profile Isolation
 
-`frontend/src/main/python/tools/browser/chrome_launcher.py` owns launch and CDP probing.
+The current runtime path is:
+
+1. `frontend/src/main/python/tools/browser/browser_tool.py` validates `BrowserControlArgs`.
+2. `frontend/src/main/python/tools/browser/browser_use_engine.py` maps the canonical action to `browser-use[cli]`.
+3. Browser Use launches or reuses the named daemon session and performs the browser action.
+
+The older `chrome_launcher.py` / `controller.py` path remains in the tree for compatibility cleanup work, but it is not the browser tool execution path.
 
 | Runtime value | Current behavior |
 | --- | --- |
@@ -23,47 +29,26 @@ WindieOS does not automate the user's default browser profile. `connect` targets
 | Windows profile path | `%LOCALAPPDATA%/WindieOS/BrowserProfile` |
 | Linux profile path | `~/.config/windieos/browser-profile` |
 
-`launch_chrome_with_cdp` starts Chromium with:
-
-- `--remote-debugging-port=<port>`
-- `--user-data-dir=<WindieOS profile>`
-- `--profile-directory=Default`
-
-This keeps Windie session state separate from the user's normal Chrome profile.
+Browser Use daemon state lives under `WINDIE_BROWSER_USE_HOME` when set, otherwise under the WindieOS app data directory at `browser-use/`. The default session name is `windieos`.
 
 ## Connect Flow
 
-`WindieBrowserRuntime._handle_connect`:
+`BrowserUseEngineRuntime._handle_connect`:
 
-1. closes any existing controller connection,
-2. calls `BrowserController.auto_connect_to_chrome(cdp_url="http://127.0.0.1:9333", auto_launch=True, headless=False)`,
-3. returns `scope = "windie_dedicated_browser"`.
+1. invokes Browser Use `state` with `--headed`,
+2. lets Browser Use start or reuse the named daemon session,
+3. returns `mode = "browser_use"` and `scope = "windie_dedicated_browser"`.
 
-Before returning an existing CDP endpoint, `chrome_launcher.py` probes
-`Browser.setDownloadBehavior` with `behavior = "default"`. Playwright sends that
-command during CDP attach setup, so a Windie-owned endpoint that rejects it with
-`Browser context management is not supported` is terminated and relaunched.
-Non-Windie processes bound to the port are not killed.
+If you change Browser Use session behavior, align:
 
-If you change CDP port behavior, align:
-
-- `chrome_launcher.py` default/override resolution,
-- runtime connect URL,
-- docs/tests that assert dedicated browser scope,
+- `WINDIE_BROWSER_USE_HOME` and `WINDIE_BROWSER_USE_SESSION` handling,
+- feature-pack dependency markers,
+- docs/tests that assert Browser Use engine routing,
 - renderer status labels if the visible behavior changes.
 
 ## Sidecar Runtime State
 
-`frontend/src/main/python/tools/browser/session_runtime.py` stores live Playwright/CDP objects for the controller:
-
-- Playwright runtime,
-- browser,
-- context,
-- page,
-- launched process,
-- CDP URL/session metadata.
-
-`frontend/src/main/python/tools/browser/controller.py` is the public facade used by `WindieBrowserRuntime`. Keep one controller boundary; do not let renderer or Electron main inspect Playwright objects directly.
+The sidecar no longer stores live Playwright/CDP objects for normal browser tool execution. Browser Use owns that state in its daemon. WindieOS should keep only adapter state, Browser Use home/session settings, and normalized tool results.
 
 ## Feature Packs
 
@@ -75,7 +60,7 @@ Relevant files:
 - `frontend/src/main/python/requirements.runtime.txt`
 - `frontend/src/main/permission_service_browser.cjs`
 
-The browser feature-pack marker modules are `playwright` and `markdownify`. Permission/onboarding flows can verify or install browser automation runtime support before a browser action runs.
+The browser feature-pack marker modules are `browser_use`, `playwright`, and `markdownify`. Permission/onboarding flows can verify or install browser automation runtime support before a browser action runs.
 
 ## Browser File Storage
 
@@ -92,7 +77,7 @@ Browser actions `write_file`, `replace_file`, `read_file`, `upload_file`, and sc
 ## Tests
 
 ```bash
-./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_session_runtime.py tests/sidecar/tools/test_browser_controller.py -q
+./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine.py -q
 ./scripts/python-in-env sidecar python -m pytest tests/sidecar/test_browser_registry.py tests/sidecar/test_browser_runtime_architecture.py -q
 cd frontend && npm run test:ci -- PermissionService.test.cjs ChatBrowserSessionControl.test.jsx
 ```

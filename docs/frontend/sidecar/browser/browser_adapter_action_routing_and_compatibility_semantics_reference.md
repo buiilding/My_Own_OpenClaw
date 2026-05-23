@@ -1,22 +1,23 @@
 ---
-summary: "Deep reference for BrowserRuntimeAdapter dispatch order, canonical parameter mapping, and tool-facing error semantics under the strict grouped browser contract."
+summary: "Retired reference for the old BrowserRuntimeAdapter path; current browser dispatch uses BrowserUseEngineRuntime over browser-use CLI."
 read_when:
-  - When changing browser action payload contracts in `browser_adapter.py` or `browser_tool.py`.
-  - When debugging why a schema-valid browser payload still fails adapter/runtime execution.
+  - When auditing or deleting the retired BrowserRuntimeAdapter path.
+  - When comparing old adapter behavior with current `browser_use_engine.py` routing.
 title: "Browser Adapter Action Routing Reference"
 ---
 
 # Browser Adapter Action Routing and Compatibility Semantics Reference
 
+> Retired path: current browser dispatch is `browser_tool.py` -> `browser_use_engine.py` -> official `browser-use[cli]`. Do not add new runtime behavior to `browser_adapter.py`.
+
 ## Canonical Modules
 
 - `frontend/src/main/python/tools/browser/browser_tool.py`
-- `frontend/src/main/python/tools/browser/browser_adapter.py`
+- `frontend/src/main/python/tools/browser/browser_use_engine.py`
 - `frontend/src/main/python/tools/browser/browser_action_contract.py`
 - `frontend/src/main/python/tools/browser/schemas.py`
-- `tests/sidecar/tools/test_browser_use_adapter.py`
 - `tests/sidecar/tools/test_browser_tool.py`
-- `tests/sidecar/tools/test_browser_use_tool_parity.py`
+- `tests/sidecar/tools/test_browser_use_engine.py`
 
 ## Entrypoint Boundary (`browser_tool.py`)
 

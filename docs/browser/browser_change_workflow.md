@@ -10,16 +10,17 @@ title: "Browser Change Workflow"
 
 Use this workflow when a browser change could cross the backend model-facing tool, shared browser contract, sidecar action runtime, Electron tool bridge, renderer browser controls, or browser-owned file/profile state.
 
-WindieOS currently controls a Windie-owned dedicated browser profile through the Python sidecar and local CDP. It does not attach to arbitrary user browser profiles. Future extension auto-attach remains a separate design boundary covered by [ADR 004](../adr/004-browser-extension-auto-attach.md).
+WindieOS currently adapts its canonical browser tool contract to the maintained Browser Use CLI daemon through the Python sidecar. WindieOS owns the agent loop, policy, transport, and result normalization; Browser Use owns browser sessions, CDP/Playwright action mechanics, DOM state, element indexes, and daemon lifecycle. Future extension auto-attach remains a separate design boundary covered by [ADR 004](../adr/004-browser-extension-auto-attach.md).
 
 ## Runtime Invariants
 
 - The backend owns model-facing browser tool exposure and validation.
 - The shared Python browser contract is the schema source used by backend wrappers and sidecar runtime validation.
-- The sidecar owns Playwright/CDP objects, browser sessions, tabs, refs, snapshots, extraction, and browser-local files.
+- The sidecar owns Browser Use invocation, browser-local file helpers, and WindieOS result normalization.
+- Browser Use owns Playwright/CDP objects, browser sessions, tabs, numeric refs/indexes, snapshots, and browser action mechanics.
 - Electron main relays `execute_tool` requests and does not inspect Playwright objects.
 - Renderer browser controls call the same `EXECUTE_TOOL` path as model-triggered tools.
-- Browser automation uses a Windie-owned profile, not the user's default Chrome profile.
+- Browser automation uses a WindieOS-named Browser Use session by default, not the user's default Chrome profile.
 - Browser file actions resolve through the browser file store instead of arbitrary filesystem helper paths.
 
 ## Fast Owner Map
@@ -28,7 +29,7 @@ WindieOS currently controls a Windie-owned dedicated browser profile through the
 | --- | --- | --- | --- | --- |
 | Browser tool visible/missing from model | Backend tool catalog/policy | `backend/src/tools/tool_catalog.py`, `backend/src/tools/remote_tools/browser.py`, `backend/src/tools/tool_policy.py`, `backend/src/tools/browser/**` | `tests/backend/test_browser_remote_tool.py`, tool policy/schema tests | [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md) |
 | Browser action schema, fields, or action literals | Shared browser contract plus backend wrappers | `frontend/src/main/python/windie_shared/browser_contract*.py`, `backend/src/tools/browser/**`, `frontend/src/main/python/tools/browser/schemas.py` | `tests/backend/test_browser_remote_tool.py`, `tests/sidecar/tools/test_browser_schemas.py`, `tests/sidecar/test_browser_runtime_architecture.py` | [Browser Action Surface](browser_action_surface.md) |
-| Browser action runtime behavior | Sidecar Windie runtime | `frontend/src/main/python/tools/browser/windie_runtime.py`, `browser_tool.py`, `action_executor.py`, `controller.py` | `tests/sidecar/tools/test_browser_tool.py`, `test_browser_action_executor.py`, `test_browser_controller.py` | [Dedicated Browser Runtime](dedicated_browser_runtime.md) |
+| Browser action runtime behavior | Sidecar Browser Use engine adapter | `frontend/src/main/python/tools/browser/browser_use_engine.py`, `browser_tool.py` | `tests/sidecar/tools/test_browser_tool.py`, `test_browser_use_engine.py` | [Browser Control](browser_control.md) |
 | CDP launch, executable detection, or profile path | Sidecar Chrome launcher/detection | `frontend/src/main/python/tools/browser/chrome_launcher.py`, `chrome_detection.py`, `session_runtime.py` | `tests/sidecar/tools/test_chrome_launcher.py`, `test_chrome_detection.py`, `test_browser_session_runtime.py` | [Dedicated Browser Runtime](dedicated_browser_runtime.md) |
 | Snapshot text, refs, ARIA/DOM extraction | Sidecar controller and snapshot pipeline | `controller.py`, `enhanced_cdp_pipeline.py`, `role_snapshot.py`, `ref_registry.py`, `observation_store.py` | `tests/sidecar/tools/test_browser_enhanced_cdp_pipeline.py`, `test_browser_ref_registry.py`, `test_browser_observation_store.py` | [Browser Action Surface](browser_action_surface.md) |
 | Browser session header/status UI | Renderer browser session store and chat control | `frontend/src/renderer/infrastructure/runtime/browserSessionStore.js`, `useBrowserSessionControl.js`, `frontend/src/renderer/features/chat/components/ChatBrowserSessionControl.jsx` | `tests/frontend/ChatBrowserSessionControl.test.jsx` | [Renderer State Change Workflow](../frontend/renderer/renderer_state_change_workflow.md) |
@@ -46,8 +47,8 @@ WindieOS currently controls a Windie-owned dedicated browser profile through the
 6. Electron main normalizes/relays `execute_tool` to the Python sidecar local backend.
 7. Sidecar `ToolRegistry` resolves `"browser"` to `execute_browser`.
 8. `execute_browser` validates the payload with `BrowserControlArgs`.
-9. `WindieBrowserRuntime.execute()` dispatches to the action handler.
-10. `BrowserController` and helpers perform CDP/Playwright work and return a normalized `ToolResult`.
+9. `BrowserUseEngineRuntime.execute()` maps the canonical action to Browser Use CLI daemon commands.
+10. Browser Use performs CDP/Playwright work and the sidecar normalizes the result into a `ToolResult`.
 11. SDK/main relays the result back to the backend tool-result path and renderer receives display projections.
 
 If a payload parses in the backend but fails in the sidecar, compare the shared contract import path, backend schema wrapper, sidecar schema re-export, and sidecar runtime supported-action registry before changing renderer code.
@@ -76,7 +77,7 @@ Validate:
 
 - backend schema includes or removes the action as intended.
 - sidecar schema accepts the same action/fields and rejects removed fields.
-- `WindieBrowserRuntime.supported_actions()` matches the canonical runtime action set.
+- `BrowserUseEngineRuntime.execute()` covers the canonical runtime action set or returns explicit unsupported-action errors for Browser Use CLI gaps.
 - connected-page actions require an active browser session.
 - model-visible docs and prompt/tool-schema snapshots are updated when the visible schema changes.
 

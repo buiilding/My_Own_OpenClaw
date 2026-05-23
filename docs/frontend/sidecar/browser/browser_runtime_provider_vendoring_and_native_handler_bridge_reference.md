@@ -1,20 +1,22 @@
 ---
-summary: "Deep reference for sidecar browser runtime-provider selection, vendored Browser Use import enforcement, native handler module loading, and BrowserUseNativeRuntimeProvider action execution semantics."
+summary: "Retired deep reference for the old vendored Browser Use runtime-provider path; current browser execution uses browser_use_engine.py and the official browser-use CLI daemon."
 read_when:
-  - When changing `browser_runtime.py` provider selection, handler loading, or Browser Use bridge behavior.
-  - When debugging runtime import failures, missing native handlers, deterministic extraction failures, or snapshot/window state payloads.
+  - When auditing or deleting the retired vendored Browser Use runtime-provider path.
+  - When comparing old native-handler behavior with the current Browser Use CLI engine adapter.
 title: "Browser Runtime Provider, Vendoring, and Native Handler Bridge Reference"
 ---
 
 # Browser Runtime Provider, Vendoring, and Native Handler Bridge Reference
 
+> Retired path: current browser tool execution is `browser_tool.py` -> `browser_use_engine.py` -> official `browser-use[cli]`. Do not add new behavior to the vendored runtime-provider/native-handler path.
+
 ## Canonical Modules
 
-- `frontend/src/main/python/tools/browser/browser_runtime.py`
+- retired `frontend/src/main/python/tools/browser/browser_runtime.py`
+- current `frontend/src/main/python/tools/browser/browser_use_engine.py`
 - `frontend/src/main/python/tools/browser/browser_tool.py`
 - `frontend/src/main/python/tools/browser/controller.py`
-- `tests/sidecar/tools/test_browser_use_adapter.py`
-- `tests/sidecar/tools/test_browser_use_tool_parity.py`
+- `tests/sidecar/tools/test_browser_use_engine.py`
 
 ## Runtime Provider Selection Contract
 

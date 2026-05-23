@@ -30,24 +30,15 @@ class TestBrowserToolRegistration:
         """Test executing browser tool through registry."""
         registry = ToolRegistry()
 
-        with mock.patch(
-            "tools.browser.browser_tool.get_browser_controller"
-        ) as mock_get:
-            mock_controller = mock.AsyncMock()
-            mock_controller.is_connected = False
-            mock_controller.auto_connect_to_chrome.return_value = {
-                "status": "connected",
-                "mode": "user_chrome",
-                "url": "https://example.com",
-            }
-            mock_get.return_value = mock_controller
+        with mock.patch("tools.browser.browser_use_engine.BrowserUseEngineRuntime._run_cli") as run_cli:
+            run_cli.return_value = {"_raw_text": "[0]<button>Continue</button>"}
             result = await registry.execute_tool("browser", {
                 "action": "connect",
                 "explanation": "Connect the browser for the active task.",
             })
             assert result.success is True
-            assert result.data["mode"] == "user_chrome"
-            mock_controller.auto_connect_to_chrome.assert_awaited_once()
+            assert result.data["mode"] == "browser_use"
+            run_cli.assert_awaited_once_with("state", headed=True)
 
     @pytest.mark.asyncio
     async def test_browser_validation_error(self):

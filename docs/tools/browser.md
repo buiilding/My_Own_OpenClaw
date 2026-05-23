@@ -8,7 +8,7 @@ title: "Browser Tool"
 
 # Browser Tool
 
-WindieOS browser automation uses a dedicated browser runtime controlled by the sidecar. It is not the user's normal browser unless explicitly connected through the dedicated runtime path.
+WindieOS browser automation uses the official Browser Use runtime as the sidecar execution engine. WindieOS keeps agent orchestration, model-facing tool policy, permission gates, and result normalization; Browser Use owns browser sessions, DOM/state extraction, element indexing, browser actions, and daemon/browser lifecycle.
 
 For browser changes that can cross schema, sidecar runtime, Electron bridge, renderer controls, CDP launch, snapshots, refs, or files, start with [Browser Change Workflow](../browser/browser_change_workflow.md). For deeper dedicated-browser launch, action-surface, session-UI, and troubleshooting docs, read [Browser Hub](../browser/README.md).
 
@@ -19,13 +19,15 @@ For browser changes that can cross schema, sidecar runtime, Electron bridge, ren
 | Backend | Exposes model-facing `browser` tool schema, validates action payloads, and sends executable browser requests. |
 | Renderer | Shows browser connection/status controls and renders SDK-projected tool status. |
 | SDK runtime and main process | Route backend tool requests to the local runtime adapter, relay execution to the sidecar local backend, and handle dedicated-browser process integration. |
-| Sidecar | Owns browser sessions, Chrome/CDP launch or connect behavior, snapshots, action execution, and compatibility aliases. |
+| Sidecar | Validates the canonical WindieOS browser payload, invokes the Browser Use CLI daemon, and normalizes Browser Use output back into WindieOS tool results. |
+| Browser Use | Owns browser session lifecycle, CDP/Playwright edge cases, state snapshots, element indexing, browser interactions, tab commands, screenshots, and browser recovery behavior. |
 
 ## Files to Inspect
 
 - Backend schema: `backend/src/tools/browser/*`
 - Backend remote tool: `backend/src/tools/remote_tools/browser.py`
-- Sidecar runtime: `frontend/src/main/python/tools/browser/*`
+- Sidecar runtime adapter: `frontend/src/main/python/tools/browser/browser_use_engine.py`
+- Sidecar tool entrypoint: `frontend/src/main/python/tools/browser/browser_tool.py`
 - Shared browser contract: `frontend/src/main/python/windie_shared/browser_contract*`
 - Renderer browser UI: `frontend/src/renderer/features/chat/components/ChatBrowserSessionControl.jsx`
 - Main bridge mapping: `frontend/src/main/local_backend_bridge*.cjs`
@@ -34,8 +36,8 @@ For browser changes that can cross schema, sidecar runtime, Electron bridge, ren
 
 - Check whether the browser action parsed in backend before debugging sidecar execution.
 - Check backend-sidecar schema parity when a backend-valid action fails locally.
-- Check the active page/session state when browser status polling reports a disconnected browser.
-- Do not assume stock Chrome profile behavior; WindieOS uses a dedicated persistent browser profile.
+- Check the Browser Use daemon state under `WINDIE_BROWSER_USE_HOME` or the default WindieOS Browser Use home when browser status polling reports a disconnected browser.
+- Do not debug browser action reliability in the renderer first; Browser Use is the browser automation engine and WindieOS should only own adapter/result boundaries.
 
 ## Deep Docs
 

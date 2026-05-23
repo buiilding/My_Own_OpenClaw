@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sidecar/browser: route canonical WindieOS browser tool execution through the official Browser Use CLI daemon adapter, add `browser-use[cli]` as the browser feature-pack dependency, and document that WindieOS owns orchestration while Browser Use owns browser mechanics.
 - frontend/sdk: route renderer stream-event validation and SDK conversation-event normalization through the desktop conversation runtime facade.
 - frontend/sdk: route renderer compact-history commands through the SDK conversation runtime transport and delete the legacy `DesktopBackendCommandRuntimeClient` bridge.
 - frontend/sdk: route renderer rehydrate commands through the SDK conversation runtime transport and remove the direct `ApiClient.rehydrateConversation` facade path.

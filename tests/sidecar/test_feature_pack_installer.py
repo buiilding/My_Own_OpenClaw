@@ -12,8 +12,12 @@ def test_browser_feature_pack_markers_include_markdownify() -> None:
     assert "markdownify" in _FEATURE_PACK_MODULE_MARKERS["browser"]
 
 
-def test_browser_feature_pack_markers_only_require_windie_runtime_modules() -> None:
-    assert _FEATURE_PACK_MODULE_MARKERS["browser"] == ("playwright", "markdownify")
+def test_browser_feature_pack_markers_require_browser_use_engine() -> None:
+    assert _FEATURE_PACK_MODULE_MARKERS["browser"] == (
+        "browser_use",
+        "playwright",
+        "markdownify",
+    )
 
 
 def test_browser_feature_pack_uses_runtime_requirements_file() -> None:

@@ -39,6 +39,7 @@ pytest>=8.1.1
 pytest-asyncio>=0.23.6
 
 # Browser automation
+browser-use[cli]>=0.12.7,<0.13.0
 playwright>=1.59.0
 # Windie browser runtime dependencies
 markdownify>=0.13.1

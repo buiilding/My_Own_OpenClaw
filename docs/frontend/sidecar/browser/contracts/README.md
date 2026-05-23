@@ -28,4 +28,4 @@ title: "Frontend Sidecar Browser Contracts Docs Hub"
 - `frontend/src/main/python/tools/browser/role_snapshot.py`
 - `frontend/src/main/python/tools/browser/browser_tool.py`
 - `tests/sidecar/tools/test_browser_schemas.py`
-- `tests/sidecar/tools/test_browser_use_tool_parity.py`
+- `tests/sidecar/tools/test_browser_use_engine.py`

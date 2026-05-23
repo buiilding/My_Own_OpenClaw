@@ -8,7 +8,7 @@ title: "Browser Action Surface"
 
 # Browser Action Surface
 
-The browser action surface starts at the backend model-facing `browser` tool and executes in the sidecar through `WindieBrowserRuntime`.
+The browser action surface starts at the backend model-facing `browser` tool and executes in the sidecar through `BrowserUseEngineRuntime`, a thin adapter over the maintained Browser Use CLI daemon.
 
 ## Schema And Dispatch
 
@@ -19,14 +19,14 @@ The browser action surface starts at the backend model-facing `browser` tool and
 | Shared browser contract | `frontend/src/main/python/windie_shared/browser_contract.py` |
 | Sidecar schema re-export | `frontend/src/main/python/tools/browser/schemas.py` |
 | Sidecar entrypoint | `frontend/src/main/python/tools/browser/browser_tool.py` |
-| Runtime dispatch | `frontend/src/main/python/tools/browser/windie_runtime.py` |
-| Imperative page actions | `frontend/src/main/python/tools/browser/action_executor.py` |
+| Runtime dispatch | `frontend/src/main/python/tools/browser/browser_use_engine.py` |
+| Browser engine | installed `browser-use[cli]` package |
 
-The sidecar validates `BrowserControlArgs` before dispatch. Unsupported actions raise `ACTION_UNSUPPORTED`; connected-page actions raise `BROWSER_NOT_CONNECTED` when no browser session exists.
+The sidecar validates `BrowserControlArgs` before dispatch. Unsupported actions raise `ACTION_UNSUPPORTED`; Browser Use daemon failures are normalized as Browser Use engine errors.
 
 ## Current Runtime Actions
 
-`WindieBrowserRuntime` handles:
+`BrowserUseEngineRuntime` maps these canonical actions to Browser Use CLI commands or explicit adapter-owned helpers:
 
 - `connect`, `status`, `profiles`
 - `navigate`, `snapshot`, `extract`
@@ -41,7 +41,7 @@ When adding an action, update all contract surfaces and tests together.
 
 ## Snapshot And Ref Semantics
 
-`snapshot` returns browser-use-style text from `BrowserController.get_page_snapshot(format_type="ai")`.
+`snapshot` returns Browser Use state text from the Browser Use daemon.
 
 Important limits:
 
@@ -52,10 +52,9 @@ Important limits:
 Refs can be:
 
 - numeric Browser Use indexes,
-- role refs like `e12`,
 - target ids for tab/session actions.
 
-Role refs are resolved by `role_snapshot.py`, `ref_registry.py`, `observation_store.py`, and controller/action executor helpers. Do not parse role refs ad hoc inside a new action.
+Role refs such as `e12` are Windie-owned legacy refs and are rejected by the Browser Use engine adapter. Use numeric Browser Use indexes from the latest `snapshot` output.
 
 ## Extraction And Long Content
 
@@ -85,4 +84,3 @@ Renderer controls call the generic `EXECUTE_TOOL` IPC path with `toolName: "brow
 ./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_action_executor.py tests/sidecar/tools/test_browser_ref_registry.py tests/sidecar/tools/test_browser_observation_store.py -q
 cd frontend && npm run test:ci -- ChatBrowserSessionControl.test.jsx
 ```
-

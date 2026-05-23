@@ -8,7 +8,7 @@ title: "Browser Hub"
 
 # Browser Hub
 
-WindieOS browser automation is a first-class local tool path. The backend exposes the model-facing browser tool, while the frontend sidecar owns execution through a Windie-dedicated Chromium profile.
+WindieOS browser automation is a first-class local tool path. The backend exposes the model-facing browser tool, while the frontend sidecar adapts that contract to the maintained Browser Use CLI daemon. WindieOS owns the agent loop and policy; Browser Use owns browser automation mechanics.
 
 ## Browser Pages
 
@@ -26,7 +26,8 @@ WindieOS browser automation is a first-class local tool path. The backend expose
 | Backend | Model-facing `browser` tool schema and provider health/tool policy | `backend/src/tools/tool_catalog.py`, `backend/src/tools/remote_tools/browser.py`, `backend/src/tools/tool_policy.py` |
 | Renderer | Header/session controls and polling store | `frontend/src/renderer/features/chat/components/ChatBrowserSessionControl.jsx`, `frontend/src/renderer/infrastructure/runtime/browserSessionStore.js` |
 | Electron main | Tool execution bridge and browser automation permission/install IPC | `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`, `frontend/src/main/permission_service_browser.cjs`, `frontend/src/main/permission_ipc_runtime.cjs` |
-| Sidecar | Browser runtime, action dispatch, CDP launch, snapshots, refs, files | `frontend/src/main/python/tools/browser` |
+| Sidecar | Browser Use engine adapter, action dispatch, result normalization, browser-local file helpers | `frontend/src/main/python/tools/browser/browser_use_engine.py`, `frontend/src/main/python/tools/browser/browser_tool.py` |
+| Browser Use | Browser daemon/session lifecycle, CDP/Playwright action mechanics, DOM state, element indexes, tab commands | installed `browser-use[cli]` package |
 | Shared contract | Browser action schema re-exported into sidecar | `frontend/src/main/python/windie_shared/browser_contract.py`, `frontend/src/main/python/tools/browser/schemas.py` |
 
 ## Development Rule
@@ -37,7 +38,7 @@ Do not edit the renderer to compensate for sidecar/browser payload bugs. Start w
 
 ```bash
 ./scripts/test-backend tests/backend/test_browser_remote_tool.py -q
-./scripts/test-sidecar tests/sidecar/test_browser_registry.py tests/sidecar/test_browser_runtime_architecture.py -q
-./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_action_executor.py -q
+./scripts/test-sidecar tests/sidecar/test_browser_registry.py tests/sidecar/test_feature_pack_installer.py -q
+./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine.py -q
 cd frontend && npm run test:ci -- ChatBrowserSessionControl.test.jsx
 ```

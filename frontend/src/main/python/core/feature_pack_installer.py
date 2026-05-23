@@ -23,7 +23,7 @@ _FEATURE_PACK_REQUIREMENTS: Dict[str, str] = {
 }
 
 _FEATURE_PACK_MODULE_MARKERS: Dict[str, Tuple[str, ...]] = {
-    "browser": ("playwright", "markdownify"),
+    "browser": ("browser_use", "playwright", "markdownify"),
 }
 
 

@@ -8,23 +8,14 @@ from typing import Any, Dict
 from pydantic import ValidationError
 
 from tools.browser.schemas import BrowserControlArgs
-from tools.browser.windie_runtime import BrowserActionError, WindieBrowserRuntime
+from tools.browser.browser_use_engine import BrowserActionError, BrowserUseEngineRuntime
 from tools.result import ToolResult
 
 logger = logging.getLogger(__name__)
 
 
-def get_browser_controller():
-    """Lazily resolve BrowserController to avoid import-time Playwright dependency."""
-    from tools.browser.controller import (
-        get_browser_controller as _get_browser_controller,
-    )
-
-    return _get_browser_controller()
-
-
 async def execute_browser(raw_args: Dict[str, Any]) -> ToolResult:
-    """Execute a canonical browser action through the Windie-owned runtime."""
+    """Execute a canonical browser action through the Browser Use engine adapter."""
 
     if not isinstance(raw_args, dict):
         return ToolResult(
@@ -48,7 +39,7 @@ async def execute_browser(raw_args: Dict[str, Any]) -> ToolResult:
             data={"error_code": "INVALID_ARGUMENT"},
         )
 
-    runtime = WindieBrowserRuntime(get_browser_controller())
+    runtime = BrowserUseEngineRuntime()
     try:
         result = await runtime.execute(args)
         return ToolResult.success_result(result)

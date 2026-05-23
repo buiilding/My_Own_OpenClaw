@@ -1,12 +1,14 @@
 ---
-summary: "Frontend sidecar browser docs sub-hub for Browser Use vendoring/runtime-provider selection, native handler bridge semantics, compatibility-adapter action normalization, and Browser Use actor/agent/token/filesystem internals."
+summary: "Frontend sidecar browser docs sub-hub for the Browser Use engine adapter, canonical browser contract validation, and retired Windie-owned browser runtime references."
 read_when:
-  - When changing sidecar browser runtime selection, vendored Browser Use import policy, or native handler loading.
-  - When debugging browser action failures across adapter routing, action parameter normalization, or connection-gated execution.
+  - When changing sidecar Browser Use engine routing, browser action validation, or Browser Use daemon invocation.
+  - When debugging browser action failures across adapter routing, action parameter normalization, or Browser Use CLI execution.
 title: "Frontend Sidecar Browser Docs Hub"
 ---
 
 # Frontend Sidecar Browser Docs Hub
+
+Current browser tool execution routes through `frontend/src/main/python/tools/browser/browser_use_engine.py`, which adapts WindieOS's canonical browser payloads to the official `browser-use[cli]` package. WindieOS owns orchestration and tool policy; Browser Use owns browser mechanics.
 
 ## Deep Pages
 
@@ -59,8 +61,7 @@ title: "Frontend Sidecar Browser Docs Hub"
 ## Code Scope
 
 - `frontend/src/main/python/tools/browser/browser_tool.py`
-- `frontend/src/main/python/tools/browser/browser_runtime.py`
-- `frontend/src/main/python/tools/browser/browser_adapter.py`
+- `frontend/src/main/python/tools/browser/browser_use_engine.py`
 - `frontend/src/main/python/tools/browser/chrome_detection.py`
 - `frontend/src/main/python/tools/browser/chrome_launcher.py`
 - `frontend/src/main/python/tools/browser/controller.py`
@@ -74,6 +75,5 @@ title: "Frontend Sidecar Browser Docs Hub"
 - `tests/sidecar/tools/test_chrome_launcher.py`
 - `tests/sidecar/tools/test_browser_controller.py`
 - `tests/sidecar/tools/test_browser_enhanced_cdp_pipeline.py`
-- `tests/sidecar/tools/test_browser_use_adapter.py`
-- `tests/sidecar/tools/test_browser_use_tool_parity.py`
+- `tests/sidecar/tools/test_browser_use_engine.py`
 - `tests/sidecar/tools/test_browser_tool.py`

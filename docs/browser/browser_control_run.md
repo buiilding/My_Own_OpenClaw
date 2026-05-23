@@ -17,22 +17,14 @@ pip install -r requirements.txt
 playwright install chromium
 ```
 
-`browser_use` is vendored in this repository at `frontend/src/main/python/tools/browser/browser_use`, so no pip install of the `browser-use` package is required.
+`browser-use[cli]` is installed from the sidecar requirements and is the maintained browser automation engine.
 
-Vendored Browser Use sync is currently manual (no in-repo helper script):
-
-- Copy updates from `../browser-use/browser_use` into `frontend/src/main/python/tools/browser/browser_use`.
-- Update `frontend/src/main/python/tools/browser/browser_use_vendor_manifest.json` (`source_commit`, `synced_at_utc`, `pruned_paths`) after each sync.
-
-To verify vendored parity + import origin:
+To verify the WindieOS adapter boundary:
 
 ```bash
 cd WindieOS
-python -m pytest tests/sidecar/tools/test_browser_use_tool_parity.py -q
+./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine.py -q
 ```
-
-This check also enforces that sidecar requirements do not reintroduce `browser-use` as a pip dependency.
-It also enforces Browser Use action parity across sidecar schema, backend schema, native handlers, and adapter dispatch coverage.
 
 ### Step 2: Run WindieOS
 
@@ -58,17 +50,20 @@ Connect to my browser and go to Amazon
 Browser Use runtime is now the default execution path. These flags are optional:
 
 ```bash
-# Browser Use-native runtime (default; optional explicit alias)
-export WINDIE_BROWSER_USE_RUNTIME=browser_use_native
+# Browser Use daemon/session state root
+export WINDIE_BROWSER_USE_HOME="$HOME/.config/desktop-assistant/browser-use"
 
-# Optional: use a custom native handler module
-export WINDIE_BROWSER_USE_NATIVE_HANDLER_MODULE=tools.browser.browser_tool
+# Browser Use session name (default: windieos)
+export WINDIE_BROWSER_USE_SESSION=windieos
+
+# Optional diagnostic command override
+export WINDIE_BROWSER_USE_CLI=browser-use
 ```
 
-That's it! WindieOS connect now targets a dedicated Windie browser instance/profile:
-- If Windie browser is already running, it attaches to that instance.
-- If not, it launches the Windie browser instance automatically.
-- Your default browser process/profile is not modified.
+That's it. WindieOS connect now targets the named Browser Use daemon session:
+- If that Browser Use session is already running, WindieOS reuses it.
+- If not, Browser Use starts the browser session automatically.
+- WindieOS keeps the agent loop, policy, UI, and result normalization.
 
 **Terminal 1 - Backend:**
 ```bash
@@ -147,26 +142,40 @@ print(f'Found: {exe}')
 "
 ```
 
-### Test Browser Controller
+### Test Browser Use Engine Adapter
 
 ```bash
 cd WindieOS/frontend/src/main/python
 python -c "
 import asyncio
-from tools.browser.controller import get_browser_controller
+from tools.browser.browser_use_engine import BrowserUseEngineRuntime
+from tools.browser.schemas import BrowserControlArgs
 
 async def test():
-    controller = get_browser_controller()
-    result = await controller.connect_to_user_chrome()
+    runtime = BrowserUseEngineRuntime()
+    result = await runtime.execute(BrowserControlArgs.model_validate({
+        'action': 'connect',
+        'explanation': 'Open the Browser Use session for a smoke test.'
+    }))
     print(f'Connected: {result}')
     
-    result = await controller.navigate('https://example.com')
+    result = await runtime.execute(BrowserControlArgs.model_validate({
+        'action': 'navigate',
+        'url': 'https://example.com',
+        'explanation': 'Navigate during a smoke test.'
+    }))
     print(f'Navigated: {result}')
     
-    snapshot = await controller.get_page_snapshot()
-    print(f'Snapshot: {snapshot.text[:200]}...')
+    snapshot = await runtime.execute(BrowserControlArgs.model_validate({
+        'action': 'snapshot',
+        'explanation': 'Read Browser Use state during a smoke test.'
+    }))
+    print(f'Snapshot: {snapshot["snapshot"][:200]}...')
     
-    await controller.close()
+    await runtime.execute(BrowserControlArgs.model_validate({
+        'action': 'close',
+        'explanation': 'Close the Browser Use session after a smoke test.'
+    }))
 
 asyncio.run(test())
 "
