@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sidecar/browser: attach Browser Use to the WindieOS-owned persistent Chrome profile through the existing CDP launcher instead of starting a disposable Playwright Chromium context.
 - sidecar/browser: make Browser Use `connect` recover from a live headless `windieos` daemon by closing it before starting the headed dedicated-browser session.
 - sidecar/browser: request Browser Use headed config only when starting or recovering the dedicated session so post-connect actions reuse the daemon without tripping Browser Use's live-CDP config check.
 - sidecar/browser: keep Browser Use CLI calls on the headed dedicated-session config by default and parse noisy close output so stale sessions can shut down cleanly.

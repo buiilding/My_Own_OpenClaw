@@ -15,7 +15,7 @@ WindieOS provides a powerful **browser control tool** that allows the AI agent t
 Browser execution is routed through the maintained Browser Use CLI daemon via `frontend/src/main/python/tools/browser/browser_use_engine.py`.
 
 - WindieOS owns the model-facing `browser` tool schema, backend validation, agent loop, permissions, UI status, and result shape.
-- Browser Use owns browser session lifecycle, CDP/Playwright edge cases, DOM state extraction, numeric element indexes, click/input/scroll/upload/tab actions, screenshots, and daemon recovery.
+- WindieOS owns the dedicated Chrome profile launch and CDP endpoint; Browser Use owns daemon session lifecycle after attaching, CDP/Playwright edge cases, DOM state extraction, numeric element indexes, click/input/scroll/upload/tab actions, screenshots, and daemon recovery.
 - The sidecar invokes Browser Use with `python -m browser_use.skill_cli.main` from the same Python environment.
 - Browser Use daemon files live under `WINDIE_BROWSER_USE_HOME` when set, otherwise under the WindieOS app data directory at `browser-use/`.
 - The default Browser Use session name is `windieos`; override with `WINDIE_BROWSER_USE_SESSION`.
@@ -27,8 +27,9 @@ Browser execution is routed through the maintained Browser Use CLI daemon via `f
 The `browser` tool uses one connect model:
 
 1. **WindieOS Browser Use Session** - a Browser Use daemon session named `windieos` by default.
-2. Browser Use launches and maintains the browser for that session.
-3. `connect` starts or reuses the Browser Use session and returns Browser Use state text.
+2. WindieOS launches or reuses its dedicated persistent Chrome profile with CDP.
+3. Browser Use attaches to that CDP endpoint and maintains automation for the session.
+4. `connect` starts or reuses the Browser Use session and returns Browser Use state text.
 
 ## Installation
 

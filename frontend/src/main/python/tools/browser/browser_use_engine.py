@@ -15,6 +15,7 @@ from urllib.parse import quote_plus
 from platformdirs import user_data_dir
 
 from tools.browser.browser_action_contract import BROWSER_CANONICAL_ACTIONS
+from tools.browser.chrome_launcher import DEFAULT_WINDIE_CDP_PORT, ensure_chrome_with_cdp
 from tools.browser.content_extraction import (
     DEFAULT_EXTRACT_CHARS,
     DEFAULT_LONG_CONTENT_CHARS,
@@ -253,6 +254,7 @@ class BrowserUseEngineRuntime:
         self._session = _browser_use_session()
         self._home = _browser_use_home()
         self._timeout = _browser_use_timeout()
+        self._windie_cdp_url = f"http://127.0.0.1:{DEFAULT_WINDIE_CDP_PORT}"
 
     @classmethod
     def supported_actions(cls) -> frozenset[str]:
@@ -268,14 +270,22 @@ class BrowserUseEngineRuntime:
             return {}
         return state if isinstance(state, dict) else {}
 
-    def _is_live_headless_session_state(self, state: dict[str, Any]) -> bool:
-        config = state.get("config") if isinstance(state.get("config"), dict) else {}
+    def _is_live_session_state(self, state: dict[str, Any]) -> bool:
         pid = state.get("pid")
         return (
             state.get("phase") in {"ready", "running", "starting"}
-            and config.get("headed") is False
             and isinstance(pid, int)
             and _is_pid_alive(pid)
+        )
+
+    def _is_windie_cdp_session_state(self, state: dict[str, Any], *, cdp_url: str | None = None) -> bool:
+        config = state.get("config") if isinstance(state.get("config"), dict) else {}
+        return config.get("cdp_url") == (cdp_url or self._windie_cdp_url)
+
+    def _is_live_incompatible_session_state(self, state: dict[str, Any], *, cdp_url: str) -> bool:
+        return self._is_live_session_state(state) and not self._is_windie_cdp_session_state(
+            state,
+            cdp_url=cdp_url,
         )
 
     async def execute(self, args: Any) -> dict[str, Any]:
@@ -291,45 +301,53 @@ class BrowserUseEngineRuntime:
         payload.setdefault("native_source", RUNTIME_SOURCE)
         return payload
 
-    def _has_running_headed_session(self) -> bool:
+    def _has_running_windie_cdp_session(self) -> bool:
         state = self._read_session_state()
-        config = state.get("config") if isinstance(state.get("config"), dict) else {}
-        pid = state.get("pid")
-        return (
-            state.get("phase") in {"ready", "running"}
-            and config.get("headed") is True
-            and isinstance(pid, int)
-            and _is_pid_alive(pid)
-        )
+        return self._is_live_session_state(state) and self._is_windie_cdp_session_state(state)
 
-    async def _recover_headless_session_before_connect(self) -> None:
-        if not self._is_live_headless_session_state(self._read_session_state()):
+    async def _ensure_windie_cdp_target(self) -> str:
+        cdp_url = await ensure_chrome_with_cdp(
+            cdp_port=DEFAULT_WINDIE_CDP_PORT,
+            auto_launch=True,
+            headless=False,
+        )
+        self._windie_cdp_url = cdp_url
+        await self._recover_incompatible_session_before_start(cdp_url)
+        return cdp_url
+
+    async def _recover_incompatible_session_before_start(self, cdp_url: str) -> None:
+        if not self._is_live_incompatible_session_state(self._read_session_state(), cdp_url=cdp_url):
             return
 
         await self._run_cli("close", headed=False)
         deadline = asyncio.get_running_loop().time() + HEADLESS_RECOVERY_TIMEOUT_SECONDS
         while asyncio.get_running_loop().time() < deadline:
-            if not self._is_live_headless_session_state(self._read_session_state()):
+            if not self._is_live_incompatible_session_state(self._read_session_state(), cdp_url=cdp_url):
                 return
             await asyncio.sleep(0.1)
         raise BrowserActionError(
             code="BROWSER_USE_ENGINE_ERROR",
             message=(
-                f"Browser Use session '{self._session}' is still running headless after close; "
-                "stop the stale daemon before reconnecting the headed dedicated browser."
+                f"Browser Use session '{self._session}' is still running with a non-WindieOS profile after close; "
+                "stop the stale daemon before reconnecting the WindieOS dedicated browser."
             ),
         )
 
-    async def _run_cli(self, *args: str, headed: bool | None = None) -> dict[str, Any]:
+    async def _run_cli(self, *args: str, headed: bool | None = None, cdp_url: str | None = None) -> dict[str, Any]:
+        if cdp_url is None and headed is None and not self._has_running_windie_cdp_session():
+            cdp_url = await self._ensure_windie_cdp_target()
+
         command = [
             *_base_command(),
             "--session",
             self._session,
             "--json",
         ]
-        should_request_headed = headed if headed is not None else not self._has_running_headed_session()
+        should_request_headed = headed if headed is not None else not self._has_running_windie_cdp_session()
         if should_request_headed:
             command.append("--headed")
+        if cdp_url:
+            command.extend(["--cdp-url", cdp_url])
         command.extend(args)
 
         env = os.environ.copy()
@@ -390,13 +408,14 @@ class BrowserUseEngineRuntime:
         return html_to_markdown(str(data.get("html", "") or ""), extract_links=extract_links)
 
     async def _handle_connect(self, _args: Any) -> dict[str, Any]:
-        await self._recover_headless_session_before_connect()
-        data = await self._run_cli("state", headed=True)
+        cdp_url = await self._ensure_windie_cdp_target()
+        data = await self._run_cli("state", headed=True, cdp_url=cdp_url)
         return {
             "status": "connected",
             "connected": True,
             "mode": "browser_use",
             "scope": "windie_dedicated_browser",
+            "cdp_url": cdp_url,
             "snapshot": data.get("_raw_text", ""),
         }
 
@@ -404,8 +423,7 @@ class BrowserUseEngineRuntime:
         state = self._read_session_state()
         if not state:
             return {"connected": False, "mode": "browser_use", "scope": "windie_dedicated_browser"}
-        config = state.get("config") if isinstance(state.get("config"), dict) else {}
-        if state.get("phase") not in {"ready", "running"} or config.get("headed") is False:
+        if state.get("phase") not in {"ready", "running"} or not self._is_windie_cdp_session_state(state):
             return {
                 "connected": False,
                 "mode": "browser_use",
