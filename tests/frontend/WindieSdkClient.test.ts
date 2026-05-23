@@ -709,6 +709,37 @@ describe('WindieSdkClient', () => {
     });
   });
 
+  test('wakeUp defaults to no tool schemas for simple SDK chat agents', async () => {
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+    });
+
+    const wakePromise = client.wakeUp({
+      agentId: 'simple-agent',
+      systemPrompt: 'You are a simple chat assistant.',
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const socket = FakeWebSocket.instances[0];
+    socket.emit('open', {});
+    await wakePromise;
+
+    expect(JSON.parse(socket.sent[0])).toMatchObject({
+      type: 'handshake',
+      agent_definition: {
+        id: 'simple-agent',
+        tools: {
+          mode: 'client_only',
+          client_manifest: {
+            tools: [],
+          },
+        },
+      },
+    });
+  });
+
   test('wakeUp can attach to a configured sidecar daemon HTTP runtime', async () => {
     mockFetch.mockImplementation(async (url, init) => {
       const parsedUrl = String(url);
@@ -814,6 +845,51 @@ describe('WindieSdkClient', () => {
         },
       },
     });
+  });
+
+  test('wakeUp can expose selected builtin groups from the sidecar manifest', async () => {
+    const localRuntime: WindieLocalRuntimeClient = {
+      status: jest.fn(async () => ({ status: 'ok' })),
+      listTools: jest.fn(async () => ({
+        version: 1,
+        tools: [
+          { name: 'read_file', schema: { type: 'object' } },
+          { name: 'run_shell_command', schema: { type: 'object' } },
+          { name: 'screenshot', schema: { type: 'object' } },
+        ],
+      })),
+    };
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      sidecar: localRuntime,
+    });
+
+    const wakePromise = client.wakeUp({
+      agentId: 'selected-builtins-agent',
+      builtins: ['filesystem', 'shell'],
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    FakeWebSocket.instances[0].emit('open', {});
+    await wakePromise;
+
+    expect(JSON.parse(FakeWebSocket.instances[0].sent[0])).toMatchObject({
+      type: 'handshake',
+      agent_definition: {
+        tools: {
+          mode: 'client_only',
+          client_manifest: {
+            tools: [
+              expect.objectContaining({ name: 'read_file' }),
+              expect.objectContaining({ name: 'run_shell_command' }),
+            ],
+          },
+        },
+      },
+    });
+    expect(JSON.parse(FakeWebSocket.instances[0].sent[0]).agent_definition.tools.client_manifest.tools)
+      .not.toEqual(expect.arrayContaining([expect.objectContaining({ name: 'screenshot' })]));
   });
 
   test('wakeUp keeps MCP definitions local instead of sending unsupported handshake fields', async () => {
@@ -1225,7 +1301,7 @@ describe('WindieSdkClient', () => {
         version: 1,
         system_prompt: { mode: 'replace', content: 'You are concise.' },
         tools: {
-          mode: 'default_plus_client',
+          mode: 'client_only',
           client_manifest: {
             version: 1,
             tools: [expect.objectContaining({ name: 'save_note' })],
@@ -1581,6 +1657,7 @@ describe('WindieSdkClient', () => {
     await conversation.rehydrate();
 
     expect(JSON.parse(socket.sent[1])).toMatchObject({
+      id: 'turn-runtime-public',
       type: 'query',
       payload: {
         text: 'hello runtime',

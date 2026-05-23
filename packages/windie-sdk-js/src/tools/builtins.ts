@@ -1,38 +1,62 @@
-export type WindieBuiltinToolSet = 'desktop' | 'filesystem' | 'shell' | 'browser' | 'computer' | 'memory';
+export type WindieBuiltinToolSet =
+  | 'desktop'
+  | 'filesystem'
+  | 'shell'
+  | 'browser'
+  | 'browser-use'
+  | 'computer'
+  | 'computer-use'
+  | 'memory';
+
+export type WindieBuiltinSelection = 'none' | 'default' | WindieBuiltinToolSet[];
 
 export type WindieBuiltinToolSelection = {
-  builtinTools: WindieBuiltinToolSet[];
+  builtins: WindieBuiltinSelection;
+  /**
+   * @deprecated Use builtins instead.
+   */
+  builtinTools?: WindieBuiltinToolSet[];
 };
 
 export const windieBuiltins = {
+  none(): WindieBuiltinToolSelection {
+    return {
+      builtins: 'none',
+    };
+  },
+  default(): WindieBuiltinToolSelection {
+    return {
+      builtins: 'default',
+    };
+  },
   desktop(): WindieBuiltinToolSelection {
     return {
-      builtinTools: ['desktop'],
+      builtins: 'default',
     };
   },
   filesystem(): WindieBuiltinToolSelection {
     return {
-      builtinTools: ['filesystem'],
+      builtins: ['filesystem'],
     };
   },
   shell(): WindieBuiltinToolSelection {
     return {
-      builtinTools: ['shell'],
+      builtins: ['shell'],
     };
   },
   browser(): WindieBuiltinToolSelection {
     return {
-      builtinTools: ['browser'],
+      builtins: ['browser'],
     };
   },
   computer(): WindieBuiltinToolSelection {
     return {
-      builtinTools: ['computer'],
+      builtins: ['computer'],
     };
   },
   memory(): WindieBuiltinToolSelection {
     return {
-      builtinTools: ['memory'],
+      builtins: ['memory'],
     };
   },
 };
@@ -42,7 +66,9 @@ const BUILTIN_PREFIXES: Record<WindieBuiltinToolSet, string[]> = {
   filesystem: ['read_file', 'replace', 'list_files', 'search_files'],
   shell: ['run_shell_command', 'run_command', 'shell'],
   browser: ['browser', 'open_url', 'click', 'type'],
+  'browser-use': ['browser', 'open_url', 'click', 'type'],
   computer: ['computer', 'screenshot', 'click', 'type', 'scroll'],
+  'computer-use': ['computer', 'screenshot', 'click', 'type', 'scroll'],
   memory: ['memory', 'search_memory', 'store_memory'],
 };
 

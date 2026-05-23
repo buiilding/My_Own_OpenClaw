@@ -249,7 +249,7 @@ export class WindieAgentSession {
       attachment_filenames: payload.attachmentFilenames ?? undefined,
       system_state_internal: payload.systemStateInternal ?? undefined,
       workspace_path: payload.workspacePath ?? undefined,
-    });
+    }, payload.turnRef ?? undefined);
   }
 
   async stopQuery(conversationRef?: string | null): Promise<string> {
@@ -293,9 +293,9 @@ export class WindieAgentSession {
     this.socket.close(code, reason);
   }
 
-  private async sendBackendMessage(type: string, payload: JsonRecord): Promise<string> {
+  private async sendBackendMessage(type: string, payload: JsonRecord, messageId?: string): Promise<string> {
     await this.waitForOpen();
-    const id = createMessageId();
+    const id = messageId || createMessageId();
     this.socket.send(JSON.stringify({
       id,
       type,

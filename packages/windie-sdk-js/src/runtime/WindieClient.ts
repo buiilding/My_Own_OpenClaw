@@ -5,6 +5,7 @@ import {
 import type { JsonRecord } from '../conversation/types.js';
 import {
   shouldIncludeBuiltinTool,
+  type WindieBuiltinSelection,
   type WindieBuiltinToolSet,
 } from '../tools/builtins.js';
 import {
@@ -43,6 +44,10 @@ export type WindieWakeUpOptions = {
   skills?: WindieSkillDefinition[];
   mcps?: WindieMcpDefinition[];
   plugins?: WindiePluginDefinition[];
+  builtins?: WindieBuiltinSelection;
+  /**
+   * @deprecated Use builtins instead.
+   */
   builtinTools?: WindieBuiltinToolSet[];
   conversationRef?: string;
   agentId?: string;
@@ -268,11 +273,12 @@ export class WindieClient {
   }
 
   private needsLocalRuntime(options: WindieWakeUpOptions): boolean {
+    const builtins = normalizeBuiltins(options);
     return Boolean(
       (options.tools ?? []).some(tool => Boolean(tool.module))
       || (options.plugins ?? []).length > 0
       || (options.mcps ?? []).length > 0
-      || (options.builtinTools ?? []).length > 0,
+      || builtins.length > 0,
     );
   }
 
@@ -297,16 +303,21 @@ export class WindieClient {
     }
     const manifest = await localRuntime.listTools?.();
     const registeredTools = Array.isArray(manifest?.tools) ? manifest.tools : [];
-    const builtinTools = (options.builtinTools ?? []).length > 0
+    const builtins = normalizeBuiltins(options);
+    const hasRuntimeExtensions = (options.tools ?? []).some(tool => Boolean(tool.module))
+      || (options.plugins ?? []).length > 0
+      || (options.mcps ?? []).length > 0;
+    const registeredRuntimeTools = hasRuntimeExtensions ? registeredTools : [];
+    const builtinTools = builtins.length > 0
       ? registeredTools.filter(tool => (
         typeof tool.name === 'string'
-        && shouldIncludeBuiltinTool(tool.name, options.builtinTools)
+        && shouldIncludeBuiltinTool(tool.name, builtins)
       ))
-      : registeredTools;
+      : [];
     const explicitTools = (options.tools ?? [])
       .filter(tool => !tool.module)
       .map(tool => buildManifestTool(tool));
-    return [...builtinTools, ...explicitTools];
+    return dedupeManifestTools([...registeredRuntimeTools, ...builtinTools, ...explicitTools]);
   }
 }
 
@@ -319,7 +330,7 @@ function buildWakeUpAgentDefinition(options: WindieWakeUpOptions, tools: JsonRec
       ? { mode: 'replace', content: options.systemPrompt }
       : undefined,
     tools: {
-      mode: 'default_plus_client',
+      mode: 'client_only',
       client_manifest: {
         version: 1,
         tools,
@@ -334,6 +345,44 @@ function buildWakeUpAgentDefinition(options: WindieWakeUpOptions, tools: JsonRec
   };
 }
 
+function normalizeBuiltins(options: WindieWakeUpOptions): WindieBuiltinToolSet[] {
+  const selected = options.builtins;
+  if (selected === 'none') {
+    return [];
+  }
+  if (selected === 'default') {
+    return ['desktop'];
+  }
+  if (Array.isArray(selected)) {
+    return dedupeBuiltinToolSets(selected);
+  }
+  return dedupeBuiltinToolSets(options.builtinTools ?? []);
+}
+
+function dedupeBuiltinToolSets(values: WindieBuiltinToolSet[]): WindieBuiltinToolSet[] {
+  const normalized: WindieBuiltinToolSet[] = [];
+  const seen = new Set<string>();
+  for (const value of values) {
+    const canonical = canonicalBuiltinToolSet(value);
+    if (seen.has(canonical)) {
+      continue;
+    }
+    seen.add(canonical);
+    normalized.push(canonical);
+  }
+  return normalized;
+}
+
+function canonicalBuiltinToolSet(value: WindieBuiltinToolSet): WindieBuiltinToolSet {
+  if (value === 'computer-use') {
+    return 'computer';
+  }
+  if (value === 'browser-use') {
+    return 'browser';
+  }
+  return value;
+}
+
 function buildManifestTool(tool: WindieToolDefinition): JsonRecord {
   return {
     name: tool.name,
@@ -342,6 +391,20 @@ function buildManifestTool(tool: WindieToolDefinition): JsonRecord {
     argument_resolution: tool.argument_resolution ?? 'passthrough',
     schema: tool.schema,
   };
+}
+
+function dedupeManifestTools(tools: JsonRecord[]): JsonRecord[] {
+  const deduped: JsonRecord[] = [];
+  const seen = new Set<string>();
+  for (const tool of tools) {
+    const name = typeof tool.name === 'string' ? tool.name.trim() : '';
+    if (!name || seen.has(name)) {
+      continue;
+    }
+    seen.add(name);
+    deduped.push(tool);
+  }
+  return deduped;
 }
 
 function detectOperatingSystem(): string {

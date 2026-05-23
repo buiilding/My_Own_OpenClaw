@@ -33,7 +33,7 @@ Send `agent_definition` in the first `/ws` message:
       "content": "You are a focused desktop operator."
     },
     "tools": {
-      "mode": "default_plus_client",
+      "mode": "client_only",
       "client_manifest": {
         "version": 1,
         "tools": []
@@ -64,7 +64,7 @@ accepted during handshake.
 | --- | --- |
 | `system_prompt` | Uses backend default prompt with `mode: "default"` or replaces it with client text using `mode: "replace"`. |
 | `tools.client_manifest` | Client-owned local tool schemas. The backend validates shape and limits, then exposes accepted tools. |
-| `tools.mode` | `default`, `default_plus_client`, `client_only`, or `explicit`. |
+| `tools.mode` | Backend wire-policy detail. SDK clients normally author `builtins`, custom `tools`, `mcps`, `plugins`, and `skills` instead of setting this directly. |
 | `prompt_layers` | General client instructions compiled after the system prompt. |
 | `skills` | Skill instruction packs already resolved by the client into content. Skills are not executable tools. |
 | `agents_md` | AGENTS.md or repo instruction content already resolved by the client. Hosted backend must not assume local filesystem access. |
@@ -78,6 +78,11 @@ accepted during handshake.
 - `client_only`: expose accepted client tools and explicitly enabled remote tools.
 - `explicit`: expose `available_tools` plus accepted client tools and explicitly
   enabled remote tools.
+
+For SDK-authored agents, omitted `builtins`, `tools`, `mcps`, and `plugins`
+mean no tool schemas. The SDK maps this to `client_only` with an empty client
+manifest. Use `builtins: "default"` or an explicit built-in group list such as
+`builtins: ["filesystem", "shell"]` to expose WindieOS built-in tools.
 
 ## Prompt Sources
 

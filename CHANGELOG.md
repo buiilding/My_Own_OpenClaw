@@ -9,6 +9,8 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/tests: pin `pretty-format` to Jest 29 so failed matcher output renders correctly, and make SDK conversation runtimes reject stale backend events from older active turns.
 - backend/frontend: emit `query-accepted` for accepted query turns and convert active websocket disconnects into explicit interrupted turn errors instead of leaving the UI waiting silently.
 - backend/sdk: route SDK tool-schema introspection through the live prompt-constructor tool surface and remove the duplicate SDK-side schema filtering path.
+- sdk/runtime: add the user-facing `builtins` option, default SDK agents to no tool schemas, and keep backend tool modes internal.
+- sdk/runtime: forward SDK turn refs on websocket queries so hosted backend streams are not rejected as stale.
 - sdk/runtime: include the SDK agent definition on backend query messages so per-agent system prompt overrides apply deterministically.
 - sdk/examples: make the simple chat CLI work against the hosted backend by registering install auth, sending bearer headers, keeping MCPs out of the backend handshake, and routing streamed responses by conversation.
 - sdk/runtime: add the phase-one chat session facade, builtin desktop tool selection, sidecar conversation store, memory/title/prompt/tool-schema helpers, and artifact fetch/upload helpers.

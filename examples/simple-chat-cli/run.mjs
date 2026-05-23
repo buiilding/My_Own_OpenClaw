@@ -71,7 +71,7 @@ const agent = await client.wakeUp({
   userId,
   agentId: `simple-chat-cli-${Date.now()}`,
   name: 'Simple Chat CLI',
-  systemPrompt: 'You are a helpful assistant. Be concise.',
+  systemPrompt: 'You are a helpful assistant. Be concise. This text-only CLI has no callable tools.',
 });
 
 if (debugEvents) {
