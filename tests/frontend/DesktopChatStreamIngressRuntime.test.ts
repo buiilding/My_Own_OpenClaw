@@ -1,4 +1,5 @@
 import {
+  handleBackendStreamIngress,
   ingestBackendEvent,
   normalizeBackendIngressEvent,
   toBackendIngressEvent,
@@ -92,6 +93,82 @@ describe('DesktopChatStreamIngressRuntime', () => {
         finalResponse: 'done',
       },
     });
+  });
+
+  test('handles raw backend ingress as an app-runtime envelope', () => {
+    const setActiveConversationRef = jest.fn();
+    const registerTurnConversationRef = jest.fn();
+    const dispatchConversationEvent = jest.fn(() => true);
+    const logTrace = jest.fn();
+
+    expect(handleBackendStreamIngress({
+      type: 'streaming-response',
+      conversation_ref: 'conv-stream',
+      turn_ref: 'turn-stream',
+      user_id: 'user-stream',
+      payload: { text: 'hello' },
+    }, {
+      resolveConversationRefForTurn: jest.fn(),
+      getActiveConversationRef: () => null,
+      setActiveConversationRef,
+      registerTurnConversationRef,
+      enableTranscript: true,
+      dispatchConversationEvent,
+      logTrace,
+    })).toBe(true);
+
+    expect(setActiveConversationRef).toHaveBeenCalledWith('conv-stream');
+    expect(registerTurnConversationRef).toHaveBeenCalledWith('turn-stream', 'conv-stream');
+    expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-stream', 'user-stream');
+    expect(dispatchConversationEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'assistant_delta',
+        conversationRef: 'conv-stream',
+        turnRef: 'turn-stream',
+      }),
+      'conv-stream',
+    );
+    expect(logTrace).toHaveBeenCalledWith('before', expect.objectContaining({
+      eventType: 'streaming-response',
+      turnRef: 'turn-stream',
+      conversationRef: 'conv-stream',
+      sdkEventType: 'assistant_delta',
+    }));
+    expect(logTrace).toHaveBeenCalledWith('after', expect.objectContaining({
+      eventType: 'streaming-response',
+      turnRef: 'turn-stream',
+      conversationRef: 'conv-stream',
+      sdkEventType: 'assistant_delta',
+    }));
+  });
+
+  test('handles turn-mapped backend ingress without exposing raw events to chat hooks', () => {
+    const dispatchConversationEvent = jest.fn(() => true);
+
+    expect(handleBackendStreamIngress({
+      type: 'streaming-complete',
+      turn_ref: 'turn-mapped',
+      user_id: 'user-stream',
+      payload: { final_response: 'done' },
+    }, {
+      resolveConversationRefForTurn: (turnRef) => (
+        turnRef === 'turn-mapped' ? 'conv-mapped' : null
+      ),
+      getActiveConversationRef: () => null,
+      setActiveConversationRef: jest.fn(),
+      registerTurnConversationRef: jest.fn(),
+      enableTranscript: false,
+      dispatchConversationEvent,
+    })).toBe(true);
+
+    expect(dispatchConversationEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'turn_completed',
+        conversationRef: 'conv-mapped',
+        turnRef: 'turn-mapped',
+      }),
+      'conv-mapped',
+    );
   });
 
   test('quarantines events with whitespace conversation refs before projection or dispatch', () => {

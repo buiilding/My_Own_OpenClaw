@@ -33,7 +33,7 @@ Audio output from backend follows this route:
 
 Important distinction:
 
-- typed stream handling in `useChatStream` uses `isBackendEvent` and does not include `audio-chunk`
+- typed stream handling in `desktopChatStreamIngressRuntime` uses `isBackendEvent` and does not include `audio-chunk`
 - audio chunk handling is intentionally separate from typed stream handlers and is bound via dedicated `ChatInterface` runtime binding hooks
 
 ## Main-Process Relay Semantics

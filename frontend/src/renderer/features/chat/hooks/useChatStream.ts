@@ -5,10 +5,6 @@ import {
   useChatStore,
 } from '../stores/chatStore';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
-import {
-  type BackendEvent,
-  type BackendEventType,
-} from '../../../types/backendEvents';
 import { resolveThinkingCapabilities } from '../utils/modelThinkingCapabilities';
 import { normalizePersistedThinkingStatus } from '../utils/chatStream/chatStreamThinkingStatus';
 import { type TranscriptModelContext } from '../utils/chatStream/chatStreamTypes';
@@ -23,17 +19,14 @@ import { useChatStreamMetadataHandlers } from './chatStream/useChatStreamMetadat
 import { useChatStreamCompletionHandler } from './chatStream/useChatStreamCompletionHandler';
 import { useChatStreamTextHandlers } from './chatStream/useChatStreamTextHandlers';
 import {
-  ingestBackendEvent,
-  normalizeBackendIngressEvent,
-  toBackendIngressEvent,
+  handleBackendStreamIngress,
 } from '../../../app/runtime/desktopChatStreamIngressRuntime';
 import {
   recordTrackingEvent as recordTrackingEventRuntime,
-  resolveTargetConversationRef as resolveTargetConversationRefRuntime,
-  shouldIgnoreForStaleTurn as shouldIgnoreForStaleTurnRuntime,
-  syncActiveConversationProjection as syncActiveConversationProjectionRuntime,
+  shouldIgnoreConversationEventForStaleTurn,
 } from '../../../app/runtime/desktopChatStreamEventRuntime';
 import {
+  type StreamTrackingEventType,
   type StreamTrackingOptions,
 } from '../../../app/runtime/desktopChatStreamTrackingRuntime';
 import { logRendererStreamTrace } from '../utils/chatStream/chatStreamDebugTrace';
@@ -63,25 +56,8 @@ export function useChatStream(enableTranscript: boolean = true) {
     supportsThinkingTextStream: modelCapabilities.supportsThinkingTextStream,
   });
 
-  const resolveTargetConversationRef = useCallback(
-    (event: BackendEvent): string | null => resolveTargetConversationRefRuntime(event, {
-      resolveConversationRefForTurn: useChatStore.getState().resolveConversationRefForTurn,
-    }),
-    [],
-  );
-
-  const syncActiveConversationProjection = useCallback((
-    event: BackendEvent,
-    conversationRef: string | null,
-  ) => syncActiveConversationProjectionRuntime(event, conversationRef, {
-    activeConversationRef: useChatStore.getState().activeConversationRef,
-    setActiveConversationRef,
-  }), [
-    setActiveConversationRef,
-  ]);
-
   const recordTrackingEvent = useCallback((
-    eventType: BackendEventType,
+    eventType: StreamTrackingEventType,
     turnRef: string | null | undefined,
     options: StreamTrackingOptions = {},
     conversationRef?: string | null,
@@ -95,20 +71,12 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   // Active-turn gating is shared across most handlers so late events from older turns
   // never mutate the current workspace stream state.
-  const shouldIgnoreForStaleTurn = useCallback((
-    event: BackendEvent,
+  const shouldIgnoreSdkEventForStaleTurn = useCallback((
+    event: { turnRef?: string | null },
     conversationRef?: string | null,
-  ): boolean => shouldIgnoreForStaleTurnRuntime(event, conversationRef, {
+  ): boolean => shouldIgnoreConversationEventForStaleTurn(event, conversationRef, {
     getWorkspaceState: useChatStore.getState().getWorkspaceState,
   }), []);
-
-  const shouldIgnoreSdkEventForStaleTurn = useCallback((
-    event: { turn_ref?: string | null },
-    conversationRef?: string | null,
-  ): boolean => shouldIgnoreForStaleTurn({
-    type: 'system-prompt',
-    turn_ref: event.turn_ref ?? undefined,
-  } as BackendEvent, conversationRef), [shouldIgnoreForStaleTurn]);
 
   const {
     updateLastMessageBySender,
@@ -222,7 +190,6 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const dispatchConversationEvent = useCallback((
     event: ConversationEvent | null,
-    backendEvent: BackendEvent,
     conversationRef: string | null,
   ): boolean => {
     if (!event) {
@@ -251,7 +218,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     ) {
       return false;
     }
-    if (shouldIgnoreForStaleTurn(backendEvent, conversationRef)) {
+    if (shouldIgnoreSdkEventForStaleTurn(event, conversationRef)) {
       return true;
     }
     if (event.type === 'user_message') {
@@ -343,39 +310,19 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleToolSchemas,
     handleUserMessageFull,
     processStreamingComplete,
-    shouldIgnoreForStaleTurn,
+    shouldIgnoreSdkEventForStaleTurn,
   ]);
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, (data: unknown) => {
-      const backendEvent = toBackendIngressEvent(data);
-      if (!backendEvent) {
-        return;
-      }
-      const conversationRef = resolveTargetConversationRef(backendEvent);
-      const conversationEvent = normalizeBackendIngressEvent(
-        backendEvent,
-        { conversationRef },
-      );
-      logRendererStreamTrace('before', {
-        eventType: backendEvent.type,
-        turnRef: backendEvent.turn_ref,
-        conversationRef,
-        sdkEventType: conversationEvent?.type,
-      });
-      ingestBackendEvent(backendEvent, conversationRef, {
-        syncActiveConversationProjection,
+      handleBackendStreamIngress(data, {
+        resolveConversationRefForTurn: useChatStore.getState().resolveConversationRefForTurn,
+        getActiveConversationRef: () => useChatStore.getState().activeConversationRef,
+        setActiveConversationRef,
         registerTurnConversationRef,
         enableTranscript,
-        dispatchEvent: (event) => {
-          dispatchConversationEvent(conversationEvent, event, conversationRef);
-        },
-      });
-      logRendererStreamTrace('after', {
-        eventType: backendEvent.type,
-        turnRef: backendEvent.turn_ref,
-        conversationRef,
-        sdkEventType: conversationEvent?.type,
+        dispatchConversationEvent,
+        logTrace: logRendererStreamTrace,
       });
     });
 
@@ -384,7 +331,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     enableTranscript,
     dispatchConversationEvent,
     registerTurnConversationRef,
-    resolveTargetConversationRef,
-    syncActiveConversationProjection,
+    setActiveConversationRef,
   ]);
 }

@@ -7,6 +7,10 @@ import {
   type BackendEvent,
   isBackendEvent,
 } from '../../types/backendEvents';
+import {
+  resolveTargetConversationRef,
+  syncActiveConversationProjection,
+} from './desktopChatStreamEventRuntime';
 
 type NormalizeBackendIngressEventOptions = {
   conversationRef?: string | null;
@@ -18,6 +22,31 @@ type IngressDeps = {
   registerTurnConversationRef: (turnRef: string, conversationRef: string) => void;
   enableTranscript: boolean;
   dispatchEvent: (event: BackendEvent) => void;
+};
+
+type StreamIngressTracePhase = 'before' | 'after';
+
+type StreamIngressTracePayload = {
+  eventType: string;
+  turnRef?: string | null;
+  conversationRef: string | null;
+  sdkEventType?: string | null;
+};
+
+type HandleBackendStreamIngressDeps = {
+  resolveConversationRefForTurn: (turnRef: string) => string | null | undefined;
+  getActiveConversationRef: () => string | null | undefined;
+  setActiveConversationRef: (conversationRef: string | null) => void;
+  registerTurnConversationRef: (turnRef: string, conversationRef: string) => void;
+  enableTranscript: boolean;
+  dispatchConversationEvent: (
+    event: ConversationEvent | null,
+    conversationRef: string | null,
+  ) => boolean;
+  logTrace?: (
+    phase: StreamIngressTracePhase,
+    payload: StreamIngressTracePayload,
+  ) => void;
 };
 
 function optionalString(value: unknown): string | null {
@@ -116,3 +145,42 @@ export const ingestBackendEvent = (
   dispatchEvent(event);
   return true;
 };
+
+export function handleBackendStreamIngress(
+  data: unknown,
+  deps: HandleBackendStreamIngressDeps,
+): boolean {
+  const backendEvent = toBackendIngressEvent(data);
+  if (!backendEvent) {
+    return false;
+  }
+  const conversationRef = resolveTargetConversationRef(backendEvent, {
+    resolveConversationRefForTurn: deps.resolveConversationRefForTurn,
+  });
+  const conversationEvent = normalizeBackendIngressEvent(
+    backendEvent,
+    { conversationRef },
+  );
+  const tracePayload: StreamIngressTracePayload = {
+    eventType: backendEvent.type,
+    turnRef: backendEvent.turn_ref,
+    conversationRef,
+    sdkEventType: conversationEvent?.type,
+  };
+  deps.logTrace?.('before', tracePayload);
+  const accepted = ingestBackendEvent(backendEvent, conversationRef, {
+    syncActiveConversationProjection: (event, resolvedConversationRef) => {
+      syncActiveConversationProjection(event, resolvedConversationRef, {
+        activeConversationRef: deps.getActiveConversationRef(),
+        setActiveConversationRef: deps.setActiveConversationRef,
+      });
+    },
+    registerTurnConversationRef: deps.registerTurnConversationRef,
+    enableTranscript: deps.enableTranscript,
+    dispatchEvent: () => {
+      deps.dispatchConversationEvent(conversationEvent, conversationRef);
+    },
+  });
+  deps.logTrace?.('after', tracePayload);
+  return accepted;
+}

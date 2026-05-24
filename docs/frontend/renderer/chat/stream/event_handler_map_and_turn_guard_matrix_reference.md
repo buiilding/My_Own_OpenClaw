@@ -20,14 +20,15 @@ title: "Stream Dispatch and Turn Guard Matrix Reference"
 
 ## Dispatch Pipeline
 
-Listener flow in `useChatStream`:
+Listener flow in `desktopChatStreamIngressRuntime`:
 
 1. validate envelope with `isBackendEvent`
 2. resolve target workspace conversation identity
 3. optionally rebind active workspace projection (`local-user-message` or empty active projection + explicit conversation identity)
 4. register `turn_ref -> conversation_ref` mapping
 5. update transcript session binding (`activeConversationRef || resolvedConversationRef`)
-6. dispatch SDK-owned event families from normalized conversation events
+6. dispatch SDK-owned event families from normalized conversation events through
+   the chat hook callback
 
 ## Dispatch Wiring Contract
 

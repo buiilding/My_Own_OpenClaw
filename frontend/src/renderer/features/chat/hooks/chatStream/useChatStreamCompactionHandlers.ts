@@ -4,18 +4,20 @@ import type {
   ConversationEvent,
   JsonRecord,
 } from '../../../../infrastructure/api/windieSdkClient';
-import type { BackendEventType } from '../../../../types/backendEvents';
 import {
   COMPACTION_THINKING_STATUS,
   COMPACTION_COMPLETED_THINKING_STATUS,
   COMPACTION_FAILED_THINKING_STATUS,
 } from '../../utils/chatStream/chatStreamThinkingStatus';
-import type { StreamTrackingOptions } from '../../../../app/runtime/desktopChatStreamTrackingRuntime';
+import type {
+  StreamTrackingEventType,
+  StreamTrackingOptions,
+} from '../../../../app/runtime/desktopChatStreamTrackingRuntime';
 import { DesktopConversationContinuityService } from '../../../../app/runtime/desktopConversationContinuityService';
 import { useLatestRef } from '../../../../infrastructure/hooks/useLatestRef';
 
 type ShouldIgnoreForStaleTurn = (
-  event: { turn_ref?: string | null },
+  event: { turnRef?: string | null },
   conversationRef?: string | null,
 ) => boolean;
 
@@ -55,7 +57,7 @@ type SetCompactionDebugInfo = (
 ) => void;
 
 type RecordTrackingEvent = (
-  eventType: BackendEventType,
+  eventType: StreamTrackingEventType,
   turnRef: string | null | undefined,
   options?: StreamTrackingOptions,
   conversationRef?: string | null,
@@ -182,7 +184,7 @@ export function useChatStreamCompactionHandlers({
       return;
     }
     const conversationRef = event.conversationRef;
-    if (shouldIgnoreForStaleTurnRef.current({ turn_ref: event.turnRef }, conversationRef)) {
+    if (shouldIgnoreForStaleTurnRef.current({ turnRef: event.turnRef }, conversationRef)) {
       return;
     }
     setThinkingStatusRef.current(COMPACTION_THINKING_STATUS, conversationRef);
@@ -202,7 +204,7 @@ export function useChatStreamCompactionHandlers({
       return;
     }
     const conversationRef = event.conversationRef;
-    if (shouldIgnoreForStaleTurnRef.current({ turn_ref: event.turnRef }, conversationRef)) {
+    if (shouldIgnoreForStaleTurnRef.current({ turnRef: event.turnRef }, conversationRef)) {
       return;
     }
     const skippedReason = skippedReasonFromEvent(event);
@@ -271,7 +273,7 @@ export function useChatStreamCompactionHandlers({
       return;
     }
     const conversationRef = event.conversationRef;
-    if (shouldIgnoreForStaleTurnRef.current({ turn_ref: event.turnRef }, conversationRef)) {
+    if (shouldIgnoreForStaleTurnRef.current({ turnRef: event.turnRef }, conversationRef)) {
       return;
     }
     const errorText = optionalString(event.payload.error) ?? '';

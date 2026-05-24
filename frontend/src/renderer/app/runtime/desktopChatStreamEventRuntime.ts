@@ -26,6 +26,10 @@ type ShouldIgnoreForStaleTurnDeps = {
   getWorkspaceState: (conversationRef?: string | null) => StreamGuardWorkspace;
 };
 
+type ConversationTurnRefEvent = {
+  turnRef?: string | null;
+};
+
 function optionalString(value: unknown): string | null {
   if (typeof value !== 'string') {
     return null;
@@ -101,6 +105,17 @@ export function shouldIgnoreForStaleTurn(
     );
   }
   return isStaleTurnForActiveStream(eventTurnRef, activeTurnRef);
+}
+
+export function shouldIgnoreConversationEventForStaleTurn(
+  event: ConversationTurnRefEvent,
+  conversationRef?: string | null,
+  deps?: ShouldIgnoreForStaleTurnDeps,
+): boolean {
+  return shouldIgnoreForStaleTurn({
+    type: 'system-prompt',
+    turn_ref: event.turnRef ?? undefined,
+  }, conversationRef, deps);
 }
 
 type UpdateStreamTracking = (

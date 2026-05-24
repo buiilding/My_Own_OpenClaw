@@ -45,7 +45,7 @@ title: "Frontend Domain Ownership Matrix Reference"
 ## Fast Triage Map
 
 - Query not reaching backend: start `main/ipc.cjs` + renderer API client.
-- Event visible in main but not UI: start `renderer/types/backendEvents.ts` + `useChatStream.ts`.
+- Event visible in main but not UI: start `renderer/app/runtime/desktopChatStreamIngressRuntime.ts` + `renderer/types/backendEvents.ts`.
 - Tool call issued but no result: start `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` + `main/ipc/ipc_sdk_tool_router.cjs` + `main/python/tools/registry.py`.
 - Wakeword detected inconsistently: start `renderer/useWakewordDetection.ts` + `main/wakeword_bridge.cjs` + `main/python/wakeword_service.py`.
 - Memory search/summary drift: start `main/python/memory/local_store.py` + remote memory clients + dashboard memory hooks.

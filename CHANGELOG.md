@@ -36,6 +36,7 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sdk: rename the remaining send/stop renderer command facade to a live-turn runtime and remove the old conversation runtime shim.
 - frontend/sdk: move chat stream backend-event ingress into an app runtime and delete the feature-level ingress helper.
 - frontend/sdk: move chat stream event routing, stale-turn guards, and tracking reducers into app runtime helpers.
+- frontend/sdk: move the raw backend stream ingress envelope out of chat hooks so renderer chat code dispatches SDK conversation events through app runtime.
 - frontend/sdk: consume SDK compaction payloads directly in renderer compaction handlers and build compacted replay snapshots without unwrapping raw backend events.
 - frontend/sdk: consume SDK metadata payloads directly in renderer transparency handlers and delete backend metadata event unwrapping.
 - frontend/sdk: consume SDK terminal event payloads directly in renderer error, token usage, and memory-store handlers, deleting raw backend terminal event unwrapping.

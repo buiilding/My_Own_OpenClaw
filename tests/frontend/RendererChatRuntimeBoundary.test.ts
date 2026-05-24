@@ -182,6 +182,20 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('normalizeBackendEventToConversationEvent');
   });
 
+  test('chat stream hooks do not import backend event contracts directly', async () => {
+    const files = await listSourceFiles(path.join(chatRoot, 'hooks'));
+    const offenders: string[] = [];
+
+    for (const file of files) {
+      const source = await fs.readFile(file, 'utf8');
+      if (source.includes('types/backendEvents')) {
+        offenders.push(path.relative(chatRoot, file));
+      }
+    }
+
+    expect(offenders).toEqual([]);
+  });
+
   test('chat stream event routing and stale-turn guards stay behind app runtime helpers', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'hooks/useChatStream.ts'),

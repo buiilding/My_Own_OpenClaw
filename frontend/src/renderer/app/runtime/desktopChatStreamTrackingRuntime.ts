@@ -1,5 +1,7 @@
 import type { BackendEventType } from '../../types/backendEvents';
 
+export type StreamTrackingEventType = BackendEventType;
+
 export type StreamPhase = 'idle'
   | 'awaiting-first-chunk'
   | 'streaming'

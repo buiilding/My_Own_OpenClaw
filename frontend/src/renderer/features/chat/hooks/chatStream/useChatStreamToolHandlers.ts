@@ -1,9 +1,7 @@
 import { useCallback } from 'react';
 import type { ConversationEvent } from '../../../../infrastructure/api/windieSdkClient';
 import { type ChatMessage } from '../../stores/chatStore';
-import {
-  type BackendEventType,
-} from '../../../../types/backendEvents';
+import type { StreamTrackingEventType } from '../../../../app/runtime/desktopChatStreamTrackingRuntime';
 import {
   buildToolCallChatMessageState,
 } from '../../../../infrastructure/transcript/toolCallChatMessageState';
@@ -30,7 +28,7 @@ type MinimalModelContext = {
 };
 
 type TrackEventFn = (
-  eventType: BackendEventType,
+  eventType: StreamTrackingEventType,
   turnRef: string | null | undefined,
   options?: Record<string, unknown>,
   conversationRef?: string | null,

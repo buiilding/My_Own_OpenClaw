@@ -120,7 +120,7 @@ Failure handling:
 
 - on query-send failure, `isSending=false` and synthetic assistant error message is appended.
 
-## Stream Event Ingestion (`useChatStream`)
+## Stream Event Ingestion (`desktopChatStreamIngressRuntime`)
 
 Listener source:
 
@@ -140,7 +140,9 @@ Pre-routing and workspace resolution:
 - transcript session sync runs only after event conversation identity resolves
 - ingress orchestration for raw event validation, SDK conversation-event
   normalization, projection sync, turn-map registration, transcript-session
-  update, and handler dispatch is centralized in `desktopChatStreamIngressRuntime.ts`
+  update, trace metadata, and handler dispatch is centralized in
+  `desktopChatStreamIngressRuntime.ts`; `useChatStream` supplies handler and
+  store callbacks but does not import backend event contracts directly
 - ingress bookkeeping steps are fail-safe isolated (`try/catch` per step) so projection/turn-map/transcript sync errors cannot suppress final handler dispatch for the event
 - assistant text stream events dispatch from SDK-normalized conversation events:
   backend `streaming-response` -> SDK `assistant_delta`, and backend

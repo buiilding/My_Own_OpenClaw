@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for chat-stream backend ingress orchestration: projection/turn-map/transcript-sync ordering, best-effort failure isolation, and dispatch-continuation guarantees."
 read_when:
-  - When changing `DesktopChatStreamIngressRuntime` behavior or `useChatStream` listener ingress ordering.
+  - When changing `desktopChatStreamIngressRuntime` behavior or `useChatStream` listener ingress ordering.
   - When debugging dropped stream side effects after projection/turn-map/transcript sync exceptions.
 title: "Backend Ingress Fail-Safe and Dispatch Order Reference"
 ---
@@ -11,12 +11,21 @@ title: "Backend Ingress Fail-Safe and Dispatch Order Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime.ts`
-- `frontend/src/renderer/features/chat/hooks/chatStream/useChatStream.ts`
+- `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`
 - `tests/frontend/DesktopChatStreamIngressRuntime.test.ts`
 
 ## Ingress Ownership Boundary
+
+`handleBackendStreamIngress(...)` owns the full raw backend ingress envelope:
+
+- backend event validation
+- conversation resolution
+- SDK conversation-event normalization
+- renderer trace payload creation
+- pre-dispatch bookkeeping through `ingestBackendEvent(...)`
+- final SDK conversation-event dispatch
 
 `ingestBackendEvent(...)` centralizes pre-dispatch orchestration for each validated backend event:
 
@@ -77,13 +86,13 @@ When transcript sync is disabled:
 
 Listener flow:
 
-1. validate envelope with `isBackendEvent(...)`
-2. compute `conversationRef` via runtime conversation gate
-3. call `ingestBackendEvent(...)`; unresolved events return `false` and are not dispatched
+1. receive `ON_CHANNELS.FROM_BACKEND`
+2. call `handleBackendStreamIngress(...)` with store and handler callbacks
+3. app runtime validates, resolves, normalizes, traces, and runs ingress bookkeeping
 4. ingress callback dispatches the SDK-normalized conversation event for the
    resolved backend event
 
-This keeps listener-level pre-dispatch behavior deterministic and shared across all backend event types.
+This keeps listener-level pre-dispatch behavior deterministic and shared across all backend event types while keeping backend event contracts out of chat hook modules.
 
 ## Test-Backed Invariants
 
@@ -96,12 +105,15 @@ This keeps listener-level pre-dispatch behavior deterministic and shared across 
 - turn-map throw still updates transcript and dispatches
 - transcript disabled skips transcript updates
 - transcript update throw still dispatches event
+- raw backend ingress is converted to SDK conversation events before chat hook
+  dispatch
 
 ## Drift Hotspots
 
 1. Removing fail-safe catches can allow transcript/projection errors to black-hole stream events.
 2. Reordering ingress steps can break turn-map availability for downstream events with missing `conversation_ref`.
 3. Dropping active transcript conversation precedence can desync transcript session routing during background conversation event ingress.
+4. Reintroducing backend event imports in chat hooks splits raw event ownership between feature code and app runtime.
 
 ## Related Pages
 

@@ -53,16 +53,17 @@ Handled backend event types:
 
 ## Event Ingress and Conversation Routing
 
-`useChatStream` listener flow:
+`desktopChatStreamIngressRuntime` listener flow:
 
 1. validate payload with `isBackendEvent(...)`
 2. resolve target conversation ref through `desktopChatStreamEventRuntime.resolveTargetConversationRef(...)`
-3. call `ingestBackendEvent(...)` to:
+3. normalize the backend payload into a SDK conversation event
+4. call `ingestBackendEvent(...)` to:
   - sync active conversation projection when event has explicit conversation identity
   - register `turn_ref -> conversation_ref` mapping
   - refresh transcript session binding (`activeConversationRef || resolvedConversationRef`)
-  - dispatch to SDK-normalized handlers
-4. optional renderer trace logging (`[StreamTrace][renderer][before|after]`) runs only when the window URL includes `debug_stream=1` so normal `electron:dev` sessions do not spam console output
+  - dispatch to SDK-normalized handlers through the chat hook callback
+5. optional renderer trace logging (`[StreamTrace][renderer][before|after]`) runs only when the window URL includes `debug_stream=1` so normal `electron:dev` sessions do not spam console output
 
 Conversation resolution order:
 

@@ -1,13 +1,15 @@
 import { useCallback } from 'react';
 import type { ConversationEvent } from '../../../../infrastructure/api/windieSdkClient';
-import type { BackendEventType } from '../../../../types/backendEvents';
 import {
   buildAssistantMessageFullUpdate,
   buildSystemPromptUpdate,
   buildToolSchemasUpdate,
   buildUserMessageFullUpdate,
 } from '../../utils/chatStream/chatStreamMessageUpdates';
-import type { StreamTrackingOptions } from '../../../../app/runtime/desktopChatStreamTrackingRuntime';
+import type {
+  StreamTrackingEventType,
+  StreamTrackingOptions,
+} from '../../../../app/runtime/desktopChatStreamTrackingRuntime';
 import type { ChatMessage } from '../../stores/chatStore';
 
 type MetadataEventType =
@@ -21,12 +23,12 @@ type MetadataConversationEvent = ConversationEvent & {
 };
 
 type ShouldIgnoreForStaleTurn = (
-  event: { turn_ref?: string | null },
+  event: { turnRef?: string | null },
   conversationRef?: string | null,
 ) => boolean;
 
 type RecordTrackingEvent = (
-  eventType: BackendEventType,
+  eventType: StreamTrackingEventType,
   turnRef: string | null | undefined,
   options?: StreamTrackingOptions,
   conversationRef?: string | null,
@@ -81,7 +83,7 @@ export function useChatStreamMetadataHandlers({
       return;
     }
     const conversationRef = event.conversationRef;
-    if (shouldIgnoreForStaleTurn({ turn_ref: event.turnRef }, conversationRef)) {
+    if (shouldIgnoreForStaleTurn({ turnRef: event.turnRef }, conversationRef)) {
       return;
     }
     updateLastMessageBySender('user', {
@@ -95,7 +97,7 @@ export function useChatStreamMetadataHandlers({
       return;
     }
     const conversationRef = event.conversationRef;
-    if (shouldIgnoreForStaleTurn({ turn_ref: event.turnRef }, conversationRef)) {
+    if (shouldIgnoreForStaleTurn({ turnRef: event.turnRef }, conversationRef)) {
       return;
     }
     updateLastMessageBySender('user', {
@@ -109,7 +111,7 @@ export function useChatStreamMetadataHandlers({
       return;
     }
     const conversationRef = event.conversationRef;
-    if (shouldIgnoreForStaleTurn({ turn_ref: event.turnRef }, conversationRef)) {
+    if (shouldIgnoreForStaleTurn({ turnRef: event.turnRef }, conversationRef)) {
       return;
     }
     updateLastAssistantLlmTextMessage({
@@ -123,7 +125,7 @@ export function useChatStreamMetadataHandlers({
       return;
     }
     const conversationRef = event.conversationRef;
-    if (shouldIgnoreForStaleTurn({ turn_ref: event.turnRef }, conversationRef)) {
+    if (shouldIgnoreForStaleTurn({ turnRef: event.turnRef }, conversationRef)) {
       return;
     }
     updateLastMessageBySender('user', {
