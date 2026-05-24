@@ -3,11 +3,7 @@ import type { ConversationEvent } from '../../../../infrastructure/api/windieSdk
 import { type ChatMessage } from '../../stores/chatStore';
 import {
   type BackendEventType,
-  type ToolBundleEvent,
 } from '../../../../types/backendEvents';
-import {
-  buildToolBundleMessage,
-} from '../../utils/chatStream/chatStreamToolMessages';
 import {
   buildToolCallChatMessageState,
 } from '../../../../infrastructure/transcript/toolCallChatMessageState';
@@ -41,7 +37,6 @@ type TrackEventFn = (
 ) => void;
 
 type JsonObject = Record<string, unknown>;
-type ToolStreamEvent = ToolBundleEvent | ConversationEvent;
 
 type UseChatStreamToolHandlersDeps = {
   enableTranscript: boolean;
@@ -53,25 +48,6 @@ type UseChatStreamToolHandlersDeps = {
   recordTrackingEvent: TrackEventFn;
 };
 
-function unwrapToolBackendEvent<TEvent extends ToolBundleEvent>(
-  event: ToolStreamEvent,
-  expectedType: TEvent['type'],
-): TEvent | null {
-  if ('turn_ref' in event && event.type === expectedType) {
-    return event as TEvent;
-  }
-  const rawEvent = event.payload?.rawEvent;
-  if (
-    rawEvent
-    && typeof rawEvent === 'object'
-    && !Array.isArray(rawEvent)
-    && (rawEvent as { type?: unknown }).type === expectedType
-  ) {
-    return rawEvent as TEvent;
-  }
-  return null;
-}
-
 function asJsonObject(value: unknown): JsonObject | null {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? value as JsonObject
@@ -80,6 +56,22 @@ function asJsonObject(value: unknown): JsonObject | null {
 
 function readString(value: unknown): string | null {
   return typeof value === 'string' ? value : null;
+}
+
+function readJsonArray(value: unknown): unknown[] | null {
+  return Array.isArray(value) ? value : null;
+}
+
+function sdkToolBundleDetails(payload: JsonObject): JsonObject {
+  const structuredPayload = asJsonObject(payload.structuredPayload);
+  if (structuredPayload) {
+    return structuredPayload;
+  }
+  return {
+    ...payload,
+    bundle_id: readString(payload.bundleId) ?? readString(payload.bundle_id) ?? undefined,
+    tools: readJsonArray(payload.tools) ?? [],
+  };
 }
 
 function formatSdkToolOutputText(payload: JsonObject | null): string {
@@ -256,21 +248,31 @@ export function useChatStreamToolHandlers({
     recordTrackingEvent,
   ]);
 
-  const handleToolBundle = useCallback((event: ToolBundleEvent | ConversationEvent, conversationRef?: string | null) => {
-    const backendEvent = unwrapToolBackendEvent<ToolBundleEvent>(event, 'tool-bundle');
-    if (!backendEvent) {
+  const handleToolBundle = useCallback((event: ConversationEvent, conversationRef?: string | null) => {
+    if (event.type !== 'tool_bundle_call') {
       return;
     }
-    const resolvedConversationRef = conversationRef ?? ('conversationRef' in event ? event.conversationRef : null);
+    const resolvedConversationRef = conversationRef ?? event.conversationRef;
     setThinkingStatus(null, resolvedConversationRef);
     setThinkingSourceEventType(null, resolvedConversationRef);
-    const toolBundleMessageState = buildToolBundleMessageState(backendEvent.payload);
+    const toolBundleDetails = sdkToolBundleDetails(event.payload);
+    const toolBundleMessageState = buildToolBundleMessageState(toolBundleDetails);
     const modelContext = modelContextRef.current;
-    addMessage(buildToolBundleMessage(backendEvent, toolBundleMessageState, modelContext), resolvedConversationRef);
+    addMessage(buildToolCallChatMessageState({
+      text: toolBundleMessageState.text,
+      toolCallDisplayText: toolBundleMessageState.toolCallDisplayText,
+      toolCallDetails: toolBundleMessageState.toolCallDetails ?? null,
+      correlationId: toolBundleMessageState.correlationId ?? null,
+      sourceEventType: 'tool-bundle',
+      sourceChannel: 'from-backend',
+      turnRef: event.turnRef ?? undefined,
+      modelId: modelContext.modelId,
+      modelProvider: modelContext.modelProvider,
+    }) as ChatMessage, resolvedConversationRef);
 
     recordTrackingEvent(
       'tool-bundle',
-      backendEvent.turn_ref,
+      event.turnRef,
       { phase: 'tool-call', toolCall: true },
       resolvedConversationRef,
     );
@@ -279,18 +281,14 @@ export function useChatStreamToolHandlers({
         messageType: 'tool-bundle',
         toolName: 'tool-bundle',
         correlationId: toolBundleMessageState.correlationId || undefined,
-        conversationRef: backendEvent.conversation_ref,
-        userId: backendEvent.user_id,
+        conversationRef: event.conversationRef,
+        userId: readString(event.payload?.userId) ?? undefined,
         modelId: modelContext.modelId,
         modelProvider: modelContext.modelProvider,
         structuredPayload: buildStructuredToolPayload({
           kind: 'tool-bundle',
           toolCalls: toolBundleMessageState.toolCalls,
-          toolCallDetails: (
-            backendEvent.payload && typeof backendEvent.payload === 'object' && !Array.isArray(backendEvent.payload)
-              ? backendEvent.payload
-              : null
-          ),
+          toolCallDetails: toolBundleDetails,
         }),
       });
     }

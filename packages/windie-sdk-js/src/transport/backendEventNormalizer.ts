@@ -235,6 +235,8 @@ export function normalizeBackendEventToConversationEvent(
       source: 'backend',
       payload: {
         bundleId: typeof payload.bundle_id === 'string' ? payload.bundle_id : null,
+        correlationId: typeof payload.bundle_id === 'string' ? payload.bundle_id : null,
+        userId: typeof event.user_id === 'string' ? event.user_id : null,
         tools: Array.isArray(payload.tools) ? payload.tools : [],
         structuredPayload: payload,
         rawEvent: event,

@@ -198,6 +198,10 @@ SDK dispatch and raw fallback behavior:
     metadata, request ids, and screenshot refs. It does not unwrap
     `payload.rawEvent` back into a backend `tool-output` event.
 - SDK `tool_bundle_call` from backend `tool-bundle`: append bundle call row and persist a transcript `tool-bundle` trace row so later transcript loads can reconstruct the bundle call card without reclassifying it as a normal executable tool-call
+  - the renderer consumes SDK `tool_bundle_call` payloads directly, using
+    normalized bundle identity fields plus `structuredPayload` for backend
+    detail fields such as `bundle_id` and per-tool metadata. It does not unwrap
+    `payload.rawEvent` back into a backend `tool-bundle` event.
 - SDK `system_prompt` from backend `system-prompt`: annotate last user message with system prompt + tool schema snapshot
 - SDK `user_message_metadata` from backend `user-message-full`: annotate user message with full payload metadata
 - SDK `assistant_message` from backend `assistant-message-full`: annotate latest assistant `llm-text` message

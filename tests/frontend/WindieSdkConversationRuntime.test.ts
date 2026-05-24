@@ -902,6 +902,38 @@ describe('Windie SDK conversation runtime core', () => {
     });
   });
 
+  test('backend tool-bundle normalization exposes renderer identity fields', () => {
+    const normalized = normalizeBackendEventToConversationEvent({
+      type: 'tool-bundle',
+      conversation_ref: 'conv-sdk-runtime',
+      user_id: 'user-sdk-runtime',
+      turn_ref: 'turn-bundle',
+      payload: {
+        bundle_id: 'bundle-sdk-runtime',
+        tools: [
+          {
+            name: 'read_file',
+            args: { file_path: '/tmp/a' },
+          },
+        ],
+      },
+    });
+
+    expect(normalized).toMatchObject({
+      type: 'tool_bundle_call',
+      payload: expect.objectContaining({
+        bundleId: 'bundle-sdk-runtime',
+        correlationId: 'bundle-sdk-runtime',
+        userId: 'user-sdk-runtime',
+        tools: [
+          expect.objectContaining({
+            name: 'read_file',
+          }),
+        ],
+      }),
+    });
+  });
+
   test('backend compaction-completed only normalizes to applied when replacement history exists', () => {
     const applied = normalizeBackendEventToConversationEvent({
       type: 'context-compaction-completed',

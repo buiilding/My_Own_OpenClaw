@@ -1,5 +1,4 @@
 import type {
-  ToolBundleEvent,
   ToolCallEvent,
   ToolOutputEvent,
 } from '../../../../types/backendEvents';
@@ -20,24 +19,6 @@ export function buildToolCallMessage(
     toolCallDetails: messageState.toolCallDetails ?? null,
     correlationId: messageState.correlationId ?? null,
     sourceEventType: 'tool-call',
-    sourceChannel: 'from-backend',
-    turnRef: event.turn_ref,
-    modelId: modelContext.modelId,
-    modelProvider: modelContext.modelProvider,
-  }) as ChatMessage;
-}
-
-export function buildToolBundleMessage(
-  event: ToolBundleEvent,
-  messageState: Pick<ChatMessage, 'text' | 'toolCallDisplayText' | 'toolCallDetails' | 'correlationId'>,
-  modelContext: TranscriptModelContext,
-): ChatMessage {
-  return buildToolCallChatMessageState({
-    text: messageState.text,
-    toolCallDisplayText: messageState.toolCallDisplayText,
-    toolCallDetails: messageState.toolCallDetails ?? null,
-    correlationId: messageState.correlationId ?? null,
-    sourceEventType: 'tool-bundle',
     sourceChannel: 'from-backend',
     turnRef: event.turn_ref,
     modelId: modelContext.modelId,

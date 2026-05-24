@@ -266,13 +266,22 @@ describe('useChatStreamToolHandlers', () => {
     expect(() => {
       act(() => {
         result.current.handleToolBundle({
-          id: 'event-tool-bundle-1',
-          type: 'tool-bundle',
-          turn_ref: 'turn-bundle-1',
-          conversation_ref: 'conversation-bundle-1',
+          eventId: 'event-tool-bundle-1',
+          type: 'tool_bundle_call',
+          conversationRef: 'conversation-bundle-1',
+          turnRef: 'turn-bundle-1',
+          revisionId: 'rev-bundle-1',
+          timestamp: '2026-05-24T00:00:00.000Z',
+          source: 'backend',
           payload: {
-            bundle_id: 'bundle-1',
-            tools: null,
+            bundleId: 'bundle-1',
+            correlationId: 'bundle-1',
+            userId: 'user-bundle-1',
+            tools: [],
+            structuredPayload: {
+              bundle_id: 'bundle-1',
+              tools: null,
+            },
           },
         } as any, 'conversation-bundle-1');
       });
@@ -304,6 +313,7 @@ describe('useChatStreamToolHandlers', () => {
         toolName: 'tool-bundle',
         correlationId: 'bundle-1',
         conversationRef: 'conversation-bundle-1',
+        userId: 'user-bundle-1',
         modelId: 'model-3',
         modelProvider: 'provider-3',
         structuredPayload: {

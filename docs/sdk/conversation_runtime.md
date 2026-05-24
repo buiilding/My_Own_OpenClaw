@@ -160,6 +160,12 @@ for display text, metadata, transcript trace rows, and malformed-payload
 fallbacks. Renderer tool-output display should not reconstruct backend
 `tool-output` events from `payload.rawEvent`.
 
+Desktop tool-bundle projection consumes SDK `tool_bundle_call` directly. The
+SDK payload exposes normalized bundle identity, correlation id, tool list, and
+user id, while `structuredPayload` carries backend detail fields used for
+display and transcript trace rows. Renderer tool-bundle display should not
+reconstruct backend `tool-bundle` events from `payload.rawEvent`.
+
 ## Continuity Service Rule
 
 `ConversationContinuityService` is the SDK-owned orchestration layer for chat
