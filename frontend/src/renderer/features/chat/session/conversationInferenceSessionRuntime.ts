@@ -2,6 +2,7 @@ import {
   getConversationWorkspaceBinding,
   setConversationWorkspaceBinding,
 } from '../../../infrastructure/workspace/conversationWorkspaceBinding';
+import { DesktopConversationContinuityService } from '../../../app/runtime/desktopConversationContinuityService';
 import { DEFAULT_USER_ID } from '../../dashboard/utils/episodicMemoryUtils';
 import { DesktopConversationRuntimeClient } from './desktopConversationRuntimeClient';
 import type { RehydrateConversationEntry } from './desktopConversationRuntimeClient';
@@ -150,13 +151,13 @@ export async function ensureConversationInferenceSessionHydrated({
   const startingEpoch = connectionEpoch;
   const ensurePromise = (async () => {
     const normalizedUserId = resolveUserId(userId);
-    const snapshot = await DesktopConversationRuntimeClient.loadLocalConversationSnapshot({
+    const snapshot = await DesktopConversationContinuityService.loadLocalConversationSnapshot({
       userId: normalizedUserId,
       conversationRef: normalizedConversationRef,
       recordKind,
     });
     setConversationWorkspaceBinding(normalizedConversationRef, snapshot.workspaceBinding);
-    await DesktopConversationRuntimeClient.rehydrateFromStore({
+    await DesktopConversationContinuityService.rehydrateFromStore({
       conversationRef: normalizedConversationRef,
       userId: normalizedUserId,
       workspacePath: getConversationWorkspaceBinding(normalizedConversationRef).workspacePath || null,

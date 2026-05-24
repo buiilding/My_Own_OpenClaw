@@ -7,15 +7,10 @@ import {
 } from '../../infrastructure/api/windieSdkClient';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import {
-  type LocalConversationSnapshot,
-} from '../../infrastructure/transcript/conversationLocalSnapshotLoader';
-import {
   DesktopTranscriptProjectionRuntimeClient,
-  type LoadRehydrateSnapshotInput,
   type TranscriptProjectionRewriteEntry,
 } from './desktopTranscriptProjectionRuntimeClient';
 import { createDesktopBackendTransport } from './desktopBackendTransport';
-import { DesktopConversationContinuityService } from './desktopConversationContinuityService';
 import type { CaptureMeta } from '../../infrastructure/services/ScreenshotAttachmentPipeline';
 
 export type { RehydrateConversationEntry };
@@ -68,10 +63,6 @@ type RewriteAndResendInput = {
   workspacePath?: string | null;
 };
 
-type RehydrateFromStoreInput = LoadRehydrateSnapshotInput & {
-  workspacePath?: string | null;
-};
-
 function optionalString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value : null;
 }
@@ -120,20 +111,6 @@ class StaticRehydrateConversationStore extends InMemoryConversationStore {
  * low-level backend IPC or transcript storage adapters directly.
  */
 export const DesktopConversationRuntimeClient = {
-  async loadRehydrateSnapshot(input: LoadRehydrateSnapshotInput) {
-    return DesktopConversationContinuityService.loadRehydrateSnapshot(input);
-  },
-
-  async rehydrateFromStore(input: RehydrateFromStoreInput): Promise<void> {
-    await DesktopConversationContinuityService.rehydrateFromStore(input);
-  },
-
-  async loadLocalConversationSnapshot(
-    input: Parameters<typeof DesktopConversationContinuityService.loadLocalConversationSnapshot>[0],
-  ): Promise<LocalConversationSnapshot> {
-    return DesktopConversationContinuityService.loadLocalConversationSnapshot(input);
-  },
-
   async editAndResend(input: RewriteAndResendInput): Promise<void> {
     const runtime = await createSeededConversationRuntime(input);
     await runtime.editAndResend({

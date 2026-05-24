@@ -1,6 +1,3 @@
-const mockLoadLocalConversationSnapshot = jest.fn();
-const mockLoadRehydrateSnapshot = jest.fn();
-const mockRehydrateFromStore = jest.fn();
 const mockGetActiveConversationRef = jest.fn(() => null);
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient', () => ({
@@ -8,14 +5,6 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptProjectionRu
     createSeededConversationStore: jest.fn(),
     recordAssistantMessage: jest.fn(),
     recordToolMessage: jest.fn(),
-  },
-}));
-
-jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuityService', () => ({
-  DesktopConversationContinuityService: {
-    loadLocalConversationSnapshot: (...args: unknown[]) => mockLoadLocalConversationSnapshot(...args),
-    loadRehydrateSnapshot: (...args: unknown[]) => mockLoadRehydrateSnapshot(...args),
-    rehydrateFromStore: (...args: unknown[]) => mockRehydrateFromStore(...args),
   },
 }));
 
@@ -34,83 +23,8 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRunti
 describe('DesktopConversationRuntimeClient', () => {
   beforeEach(() => {
     jest.resetModules();
-    mockLoadRehydrateSnapshot.mockReset();
-    mockLoadLocalConversationSnapshot.mockReset();
-    mockRehydrateFromStore.mockReset();
     mockGetActiveConversationRef.mockReset();
     mockGetActiveConversationRef.mockReturnValue(null);
-  });
-
-  test('loadLocalConversationSnapshot keeps transcript snapshot loading behind the facade', async () => {
-    mockLoadLocalConversationSnapshot.mockResolvedValueOnce({
-      transcriptEntries: [],
-      replayEntries: [],
-      workspaceBinding: { workspacePath: '/repo', workspaceName: 'repo' },
-      parsedMessages: [],
-      rehydrateMessages: [],
-    });
-    const { DesktopConversationRuntimeClient } = require(
-      '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeClient',
-    );
-
-    await expect(DesktopConversationRuntimeClient.loadLocalConversationSnapshot({
-      conversationRef: 'conv-local',
-      userId: 'user-1',
-    })).resolves.toMatchObject({
-      workspaceBinding: { workspacePath: '/repo' },
-    });
-
-    expect(mockLoadLocalConversationSnapshot).toHaveBeenCalledWith({
-      conversationRef: 'conv-local',
-      userId: 'user-1',
-    });
-  });
-
-  test('rehydrateFromStore delegates backend continuity to the SDK service facade', async () => {
-    mockRehydrateFromStore.mockResolvedValueOnce({
-      conversationRef: 'conv-sdk',
-      revisionId: 'rev-1',
-      messageCount: 2,
-      hydrated: true,
-    });
-    const { DesktopConversationRuntimeClient } = require(
-      '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeClient',
-    );
-
-    await DesktopConversationRuntimeClient.rehydrateFromStore({
-      conversationRef: 'conv-sdk',
-      userId: 'user-1',
-      workspacePath: '/tmp/project',
-    });
-
-    expect(mockRehydrateFromStore).toHaveBeenCalledWith({
-      conversationRef: 'conv-sdk',
-      userId: 'user-1',
-      workspacePath: '/tmp/project',
-    });
-  });
-
-  test('loadRehydrateSnapshot delegates snapshot loading to the SDK continuity service', async () => {
-    mockLoadRehydrateSnapshot.mockResolvedValueOnce({
-      conversationRef: 'conv-sdk',
-      revisionId: 'rev-1',
-      messages: [],
-    });
-    const { DesktopConversationRuntimeClient } = require(
-      '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeClient',
-    );
-
-    await expect(DesktopConversationRuntimeClient.loadRehydrateSnapshot({
-      conversationRef: 'conv-sdk',
-      userId: 'user-1',
-    })).resolves.toMatchObject({
-      conversationRef: 'conv-sdk',
-    });
-
-    expect(mockLoadRehydrateSnapshot).toHaveBeenCalledWith({
-      conversationRef: 'conv-sdk',
-      userId: 'user-1',
-    });
   });
 
   test('sendQuery routes query payloads through the SDK transport', async () => {

@@ -307,8 +307,8 @@ Electron uses the SDK `SidecarConversationStore` through a desktop store factory
   `DesktopTranscriptProjectionRuntimeClient` before reaching the SDK store
   factory.
 - desktop chat and dashboard local snapshot loading also go through
-  `DesktopConversationRuntimeClient` or `DesktopConversationLibraryClient`, so
-  feature code does not import transcript snapshot loaders directly.
+  `DesktopConversationContinuityService` or `DesktopConversationLibraryClient`,
+  so feature code does not import transcript snapshot loaders directly.
 - desktop manual compaction controls share one rehydrate-first runtime helper
   that uses the SDK store-backed conversation rehydrate path before sending
   `compact-history`.

@@ -189,7 +189,7 @@ not execute tools.
 1. list conversations from the SDK conversation library (`recordKind: "chat_event"`)
 2. load selected conversation SDK events via the chat-event store adapter (cursor-paginated local RPC)
 3. project SDK display messages for the renderer
-4. ask the desktop conversation runtime to rehydrate the backend inference session through `DesktopConversationRuntimeClient.rehydrateFromStore(...)`
+4. ask the desktop conversation continuity service to rehydrate the backend inference session through `DesktopConversationContinuityService.rehydrateFromStore(...)`
    - rehydrate payload shaping is centralized in SDK projection helpers so dashboard-open rehydrate and edit/retry replay agree on `tool_name`, `tool_call_id`, screenshots, and structured tool payloads
 5. set active transcript conversation/session info
 6. replace renderer chat store with projected SDK display messages

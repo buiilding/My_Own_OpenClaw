@@ -274,15 +274,18 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('DesktopConversationRuntimeClient.retryTurn');
   });
 
-  test('conversation inference rehydrate snapshots use the desktop runtime facade', async () => {
+  test('conversation inference rehydrate snapshots use the continuity runtime facade', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'session/conversationInferenceSessionRuntime.ts'),
       'utf8',
     );
 
     expect(source).not.toContain('DesktopConversationStoreAdapter');
+    expect(source).toContain('DesktopConversationContinuityService.loadLocalConversationSnapshot');
+    expect(source).toContain('DesktopConversationContinuityService.rehydrateFromStore');
     expect(source).not.toContain('DesktopConversationRuntimeClient.loadRehydrateSnapshot');
-    expect(source).toContain('DesktopConversationRuntimeClient.rehydrateFromStore');
+    expect(source).not.toContain('DesktopConversationRuntimeClient.loadLocalConversationSnapshot');
+    expect(source).not.toContain('DesktopConversationRuntimeClient.rehydrateFromStore');
   });
 
   test('app conversation runtime facade delegates transcript storage to projection runtime', async () => {
@@ -297,6 +300,9 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('recordAssistantMessage');
     expect(source).not.toContain('recordToolMessage');
     expect(source).not.toContain('replaceCompactedReplay(');
+    expect(source).not.toContain('loadLocalConversationSnapshot(');
+    expect(source).not.toContain('loadRehydrateSnapshot(');
+    expect(source).not.toContain('rehydrateFromStore(');
     expect(source).not.toContain('setModel(');
     expect(source).not.toContain('getTranscriptSessionInfo()');
     expect(source).not.toContain('setActiveConversationRef(');
