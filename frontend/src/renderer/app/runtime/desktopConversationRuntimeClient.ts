@@ -64,18 +64,4 @@ export const DesktopConversationRuntimeClient = {
     });
     await runtime.stop(null);
   },
-
-  async compactHistory(force: boolean = true, conversationRef: string | null = null): Promise<void> {
-    const resolvedConversationRef = optionalString(conversationRef)
-      ?? DesktopTranscriptSessionRuntimeClient.getActiveConversationRef();
-    if (!resolvedConversationRef) {
-      return;
-    }
-    const runtime = createConversationRuntime({
-      conversationRef: resolvedConversationRef,
-      store: new InMemoryConversationStore(),
-      transport: createDesktopBackendTransport(null),
-    });
-    await runtime.compactHistory({ force });
-  },
 };

@@ -312,7 +312,7 @@ Electron uses the SDK `SidecarConversationStore` through a desktop store factory
   so feature code does not import transcript snapshot loaders directly.
 - desktop manual compaction controls share one rehydrate-first runtime helper
   that uses the SDK store-backed conversation rehydrate path before sending
-  `compact-history`.
+  `compact-history` through `DesktopConversationContinuityService`.
 - desktop chat feature code routes deferred query-time model/provider sync
   through `DesktopSettingsRuntimeClient`, not through the conversation command
   facade.

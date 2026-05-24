@@ -1,7 +1,7 @@
 import { buildDeferredQueryModelSelection } from '../../../../app/providers/appConfigBackendSync';
 import { DesktopSettingsRuntimeClient } from '../../../../app/runtime/desktopSettingsRuntimeClient';
+import { DesktopConversationContinuityService } from '../../../../app/runtime/desktopConversationContinuityService';
 import { ensureConversationInferenceSessionHydrated } from '../../session/conversationInferenceSessionRuntime';
-import { DesktopConversationRuntimeClient } from '../../session/desktopConversationRuntimeClient';
 import { COMPACTION_THINKING_STATUS } from '../chatStream/chatStreamThinkingStatus';
 
 export function waitForNextPaint() {
@@ -43,5 +43,5 @@ export async function runManualCompaction({
     }
   }
 
-  DesktopConversationRuntimeClient.compactHistory(true, normalizedConversationRef);
+  DesktopConversationContinuityService.compactHistory(true, normalizedConversationRef);
 }

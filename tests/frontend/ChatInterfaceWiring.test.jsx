@@ -119,17 +119,30 @@ jest.mock('../../frontend/src/renderer/features/chat/utils/devUiFlag', () => ({
 
 jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient', () => ({
   DesktopConversationRuntimeClient: {
+    stop: (...args) => mockStopQuery(...args),
+    sendQuery: (...args) => mockSendQuery(...args),
+  },
+}));
+
+jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => ({
+  DesktopTranscriptSessionRuntimeClient: {
     setActiveConversationRef: (...args) => mockSetActiveConversationRef(...args),
     updateTranscriptSession: (...args) => mockUpdateTranscriptSession(...args),
     getActiveConversationRef: (...args) => mockGetActiveConversationRef(...args),
     getTranscriptSessionInfo: (...args) => mockGetTranscriptSessionInfo(...args),
-    stop: (...args) => mockStopQuery(...args),
-    compactHistory: (...args) => mockCompactHistory(...args),
-    sendQuery: (...args) => mockSendQuery(...args),
-    rehydrate: (...args) => mockSendRehydrateConversation(...args),
+  },
+}));
+
+jest.mock('../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient', () => ({
+  DesktopSettingsRuntimeClient: {
     setModel: (...args) => mockSetModel(...args),
     updateSettings: (...args) => mockUpdateSettings(...args),
-    rewriteTranscriptProjection: (...args) => mockRewriteTranscriptProjection(...args),
+  },
+}));
+
+jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuityService', () => ({
+  DesktopConversationContinuityService: {
+    compactHistory: (...args) => mockCompactHistory(...args),
     editAndResend: (...args) => mockEditAndResend(...args),
     retryTurn: (...args) => mockRetryTurn(...args),
   },

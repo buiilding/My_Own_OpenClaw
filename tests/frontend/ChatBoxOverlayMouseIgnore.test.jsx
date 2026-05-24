@@ -154,6 +154,11 @@ jest.mock('../../frontend/src/renderer/features/chat/session/useRendererConversa
 
 jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient', () => ({
   DesktopConversationRuntimeClient: {
+  },
+}));
+
+jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuityService', () => ({
+  DesktopConversationContinuityService: {
     compactHistory: (...args) => mockCompactHistory(...args),
   },
 }));

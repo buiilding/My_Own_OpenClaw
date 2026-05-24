@@ -107,7 +107,7 @@ Current runtime behavior also relies on these explicit seams:
 
 1. User enters message in `renderer/features/chat/components/MessageInput.jsx`.
 2. `useChatMessageSender` builds payload and optional screenshot metadata.
-3. `DesktopConversationRuntimeClient.sendQuery()` records the user projection when needed, creates an SDK conversation runtime, and calls `runtime.send(...)`.
+3. The message sender records the user projection through a focused transcript helper, then `DesktopConversationRuntimeClient.sendQuery()` creates an SDK conversation runtime and calls `runtime.send(...)`.
 4. The desktop backend transport maps the SDK query payload to `to-backend { type: "query" }` IPC.
 5. Main `ipc.cjs`:
    - Ensures one-time initial settings sync ACK gate.
@@ -168,7 +168,7 @@ callbacks through `main/windie_sdk_runtime.cjs`.
    `get-chat-events` resume/hydrate paths use `message_index` cursor pagination (`after_message_index`) so large local chats are fully reloaded instead of capped at one page.
 6. `SidecarConversationStore` is the canonical sidecar-backed SDK conversation store. The desktop conversation store factory only supplies desktop write enrichment such as workspace binding, attachments, and compaction checkpoints.
 7. Opening a past chat replaces in-memory renderer chat state immediately, but backend conversation history is rehydrated lazily only before the first backend-dependent action for that chat. Chat session helpers call `DesktopConversationContinuityService.loadLocalConversationSnapshot(...)`, `DesktopConversationContinuityService.rehydrateFromStore(...)`, or `DesktopConversationContinuityService.rehydrateMessages(...)`; the continuity runtime loads SDK rehydrate projections and sends backend rehydrate commands through the SDK conversation runtime transport so feature code does not shape provider history or IPC envelopes.
-8. Send, stop, and manual compaction pass through the desktop conversation command facade. Edit/resend, retry, rehydrate, and compaction replay persistence pass through the continuity runtime. These facades call the SDK conversation runtime boundary before the Electron transport adapter maps commands to IPC. Electron-only store and transport adapters stay isolated behind the SDK interfaces instead of becoming normal feature-code dependencies.
+8. Send and stop pass through the desktop conversation command facade. Edit/resend, retry, rehydrate, manual compaction, and compaction replay persistence pass through the continuity runtime. These facades call the SDK conversation runtime boundary before the Electron transport adapter maps commands to IPC. Electron-only store and transport adapters stay isolated behind the SDK interfaces instead of becoming normal feature-code dependencies.
 9. Compaction replay persistence also goes through the desktop continuity runtime. Chat stream handlers may update visible thinking/debug state, but the continuity runtime owns active compacted replay persistence.
 
 Current ownership boundary:

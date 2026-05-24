@@ -1,8 +1,15 @@
 const mockCreateSeededConversationStore = jest.fn();
+const mockGetActiveConversationRef = jest.fn(() => null);
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient', () => ({
   DesktopTranscriptProjectionRuntimeClient: {
     createSeededConversationStore: (...args: unknown[]) => mockCreateSeededConversationStore(...args),
+  },
+}));
+
+jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => ({
+  DesktopTranscriptSessionRuntimeClient: {
+    getActiveConversationRef: (...args: unknown[]) => mockGetActiveConversationRef(...args),
   },
 }));
 
@@ -32,6 +39,8 @@ function createSeededStore(events: Array<Record<string, unknown>>) {
 describe('DesktopConversationContinuityService', () => {
   beforeEach(() => {
     mockCreateSeededConversationStore.mockReset();
+    mockGetActiveConversationRef.mockReset();
+    mockGetActiveConversationRef.mockReturnValue(null);
   });
 
   test('rehydrateMessages routes replace-mode history through the SDK transport', async () => {
@@ -215,6 +224,63 @@ describe('DesktopConversationContinuityService', () => {
           conversation_ref: 'conv-retry',
           workspace_path: '/repo',
         }),
+      });
+    } finally {
+      window.ipc = originalIpc;
+    }
+  });
+
+  test('compactHistory routes through the SDK runtime transport', async () => {
+    const send = jest.fn();
+    const originalIpc = window.ipc;
+    window.ipc = {
+      send,
+      invoke: jest.fn(),
+      on: jest.fn(),
+      once: jest.fn(),
+    };
+    const { DesktopConversationContinuityService } = require(
+      '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService',
+    );
+
+    try {
+      await DesktopConversationContinuityService.compactHistory(false, 'conv-compact');
+
+      expect(send).toHaveBeenCalledWith('to-backend', {
+        type: 'compact-history',
+        payload: {
+          force: false,
+          conversation_ref: 'conv-compact',
+        },
+      });
+    } finally {
+      window.ipc = originalIpc;
+    }
+  });
+
+  test('compactHistory falls back to the active conversation ref', async () => {
+    const send = jest.fn();
+    const originalIpc = window.ipc;
+    mockGetActiveConversationRef.mockReturnValue('conv-active');
+    window.ipc = {
+      send,
+      invoke: jest.fn(),
+      on: jest.fn(),
+      once: jest.fn(),
+    };
+    const { DesktopConversationContinuityService } = require(
+      '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService',
+    );
+
+    try {
+      await DesktopConversationContinuityService.compactHistory();
+
+      expect(send).toHaveBeenCalledWith('to-backend', {
+        type: 'compact-history',
+        payload: {
+          force: true,
+          conversation_ref: 'conv-active',
+        },
       });
     } finally {
       window.ipc = originalIpc;

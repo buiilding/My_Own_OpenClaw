@@ -105,7 +105,7 @@ Utility controls:
 3. syncs deferred model selection (`model_provider`, `selected_model_id`) through `DesktopSettingsRuntimeClient.setModel(...)`
 4. resolves transcript session (`conversationRef`, `userId`)
 5. when a conversation ref exists, calls `ensureConversationInferenceSessionHydrated(...)` so backend compaction sees the latest normalized store rehydrate snapshot
-6. always calls `DesktopConversationRuntimeClient.compactHistory(true)` after the pre-rehydrate attempt
+6. always calls `DesktopConversationContinuityService.compactHistory(true)` after the pre-rehydrate attempt
 
 The overlay chatbox dev compaction button uses the same helper, so dashboard and
 overlay compaction controls share the same rehydrate-before-compact behavior.

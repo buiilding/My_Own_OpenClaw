@@ -313,6 +313,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('createSeededConversationRuntime');
     expect(source).not.toContain('editAndResend(input');
     expect(source).not.toContain('retryTurn(input');
+    expect(source).not.toContain('compactHistory(');
     expect(/\n\s{2}rehydrate\(input/.test(source)).toBe(false);
     expect(source).not.toContain('setModel(');
     expect(source).not.toContain('getTranscriptSessionInfo()');
@@ -321,6 +322,16 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('rewriteTranscriptProjection(input');
     expect(/\n\s{2}sendRehydrate\(input/.test(source)).toBe(false);
     expect(source).not.toContain('DesktopTranscriptProjectionRuntimeClient');
+  });
+
+  test('manual compaction uses the continuity runtime facade', async () => {
+    const source = await fs.readFile(
+      path.join(chatRoot, 'utils/session/manualCompactionRuntime.js'),
+      'utf8',
+    );
+
+    expect(source).toContain('DesktopConversationContinuityService.compactHistory');
+    expect(source).not.toContain('DesktopConversationRuntimeClient.compactHistory');
   });
 
   test('app conversation runtime facade does not expose raw stream ingress helpers', async () => {

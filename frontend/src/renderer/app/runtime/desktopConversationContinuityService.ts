@@ -25,6 +25,7 @@ import {
   DesktopTranscriptProjectionRuntimeClient,
   type TranscriptProjectionRewriteEntry,
 } from './desktopTranscriptProjectionRuntimeClient';
+import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 
 export type { RehydrateConversationEntry };
 
@@ -77,6 +78,10 @@ type SearchConversationsInput = {
   query: string;
   limit?: number;
 };
+
+function optionalString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim().length > 0 ? value : null;
+}
 
 class StaticRehydrateConversationStore extends InMemoryConversationStore {
   constructor(
@@ -184,6 +189,20 @@ export const DesktopConversationContinuityService = {
       payload: input.payload,
       model: input.model ?? undefined,
     });
+  },
+
+  async compactHistory(force: boolean = true, conversationRef: string | null = null): Promise<void> {
+    const resolvedConversationRef = optionalString(conversationRef)
+      ?? DesktopTranscriptSessionRuntimeClient.getActiveConversationRef();
+    if (!resolvedConversationRef) {
+      return;
+    }
+    const runtime = createConversationRuntime({
+      conversationRef: resolvedConversationRef,
+      store: new InMemoryConversationStore(),
+      transport: createDesktopBackendTransport(null),
+    });
+    await runtime.compactHistory({ force });
   },
 
   replaceCompactedReplay(snapshot: CompactedReplaySnapshot, userId: string) {
