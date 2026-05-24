@@ -1,4 +1,3 @@
-import { DesktopConversationRuntimeClient } from '../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient';
 import { DesktopConversationContinuityService } from '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService';
 import {
   clearConversationInferenceSessionState,
@@ -10,20 +9,14 @@ import {
   rehydrateConversationInferenceSession,
 } from '../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime';
 
-jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient', () => ({
-  DesktopConversationRuntimeClient: {
-    rehydrate: jest.fn(),
-  },
-}));
-
 jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuityService', () => ({
   DesktopConversationContinuityService: {
     loadLocalConversationSnapshot: jest.fn(),
     rehydrateFromStore: jest.fn(),
+    rehydrateMessages: jest.fn(),
   },
 }));
 
-const mockDesktopRuntime = DesktopConversationRuntimeClient as jest.Mocked<typeof DesktopConversationRuntimeClient>;
 const mockContinuityService = DesktopConversationContinuityService as jest.Mocked<typeof DesktopConversationContinuityService>;
 
 function mockLocalSnapshot() {
@@ -42,8 +35,8 @@ function mockLocalSnapshot() {
 describe('conversationInferenceSessionRuntime', () => {
   beforeEach(() => {
     invalidateConversationInferenceSessionState();
-    mockDesktopRuntime.rehydrate.mockReset();
     mockContinuityService.rehydrateFromStore.mockReset();
+    mockContinuityService.rehydrateMessages.mockReset();
     mockContinuityService.loadLocalConversationSnapshot.mockReset();
     mockLocalSnapshot();
   });
@@ -71,7 +64,7 @@ describe('conversationInferenceSessionRuntime', () => {
       userId: 'user-1',
       workspacePath: null,
     }));
-    expect(mockDesktopRuntime.rehydrate).not.toHaveBeenCalled();
+    expect(mockContinuityService.rehydrateMessages).not.toHaveBeenCalled();
     expect(getConversationInferenceSessionState('conv-existing')).toBe('hydrated');
   });
 
@@ -118,7 +111,7 @@ describe('conversationInferenceSessionRuntime', () => {
 
     expect(mockContinuityService.loadLocalConversationSnapshot).not.toHaveBeenCalled();
     expect(mockContinuityService.rehydrateFromStore).not.toHaveBeenCalled();
-    expect(mockDesktopRuntime.rehydrate).not.toHaveBeenCalled();
+    expect(mockContinuityService.rehydrateMessages).not.toHaveBeenCalled();
     expect(getConversationInferenceSessionState('conv-fresh')).toBe('hydrated');
   });
 
@@ -128,7 +121,7 @@ describe('conversationInferenceSessionRuntime', () => {
       messages: [],
     });
 
-    expect(mockDesktopRuntime.rehydrate).toHaveBeenCalledWith({
+    expect(mockContinuityService.rehydrateMessages).toHaveBeenCalledWith({
       conversationRef: 'conv-replay',
       messages: [],
       workspacePath: null,

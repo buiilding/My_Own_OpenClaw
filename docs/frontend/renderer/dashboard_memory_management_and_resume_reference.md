@@ -72,7 +72,7 @@ Resume call chain:
 
 - sidebar rows and search rows call `onOpenConversation(...)`
 - shell fetches full conversation via `GET_CHAT_EVENTS`
-- shell asks the desktop conversation runtime to rehydrate backend inference state
+- shell marks backend inference state as unknown so the continuity runtime can lazily rehydrate before the next backend-dependent action
 - shell synchronizes transcript state and chat store
 
 IPC methods used by this surface:
@@ -141,7 +141,7 @@ Normalization:
 1. guard missing `conversation_id`.
 2. ask the SDK conversation library to load canonical sidecar `chat_events`.
 3. project SDK events for UI display.
-4. ask the desktop conversation runtime to rehydrate with SDK projection payloads.
+4. mark the conversation inference session unknown for lazy continuity rehydrate.
 5. update active conversation + transcript session identity.
 6. replace chat messages and clear sending/thinking flags.
 

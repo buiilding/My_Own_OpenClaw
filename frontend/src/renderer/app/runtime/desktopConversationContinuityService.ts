@@ -1,11 +1,14 @@
 import {
   ConversationContinuityService,
+  type JsonRecord,
+  InMemoryConversationStore,
   type ListConversationOptions,
   type RehydrateSnapshot,
   type DisplayConversation,
   type ConversationMetadata,
   type ConversationMetadataInvalidationListener,
   type CompactedReplaySnapshot,
+  createConversationRuntime,
 } from '../../infrastructure/api/windieSdkClient';
 import {
   createDesktopConversationStore,
@@ -18,6 +21,26 @@ import { DesktopLocalRuntimeEventSource } from './desktopLocalRuntimeEventSource
 import { createIpcSidecarConversationStore } from '../../infrastructure/transcript/sdkSidecarConversationStore';
 import type { LocalConversationSnapshot } from '../../infrastructure/transcript/conversationLocalSnapshotLoader';
 
+export type { RehydrateConversationEntry };
+
+type RehydrateConversationEntry = JsonRecord & {
+  role: 'user' | 'assistant' | 'tool';
+  content: string;
+  message_type?: string;
+  tool_name?: string | null;
+  correlation_id?: string | null;
+  tool_call_id?: string | null;
+  tool_calls?: Array<Record<string, unknown>> | null;
+  timestamp?: string | null;
+  screenshot_ref?: string | null;
+  screenshot?: string | null;
+  image_data?: string | string[] | null;
+  transparency?: Record<string, unknown> | null;
+  structured_content?: Array<Record<string, unknown>> | null;
+  compaction_facts?: Record<string, unknown> | null;
+  structured_payload?: Record<string, unknown> | null;
+};
+
 type LoadRehydrateSnapshotInput = {
   conversationRef: string;
   userId: string;
@@ -27,11 +50,34 @@ type RehydrateFromStoreInput = LoadRehydrateSnapshotInput & {
   workspacePath?: string | null;
 };
 
+type RehydrateMessagesInput = {
+  conversationRef: string;
+  messages: RehydrateConversationEntry[];
+  workspacePath?: string | null;
+};
+
 type SearchConversationsInput = {
   userId: string;
   query: string;
   limit?: number;
 };
+
+class StaticRehydrateConversationStore extends InMemoryConversationStore {
+  constructor(
+    private readonly conversationRef: string,
+    private readonly messages: RehydrateConversationEntry[],
+  ) {
+    super();
+  }
+
+  async loadForRehydrate(): Promise<RehydrateSnapshot> {
+    return {
+      conversationRef: this.conversationRef,
+      revisionId: `rev-rehydrate-${this.conversationRef}`,
+      messages: this.messages,
+    };
+  }
+}
 
 export const desktopConversationContinuityService = new ConversationContinuityService({
   storeFactory: ({ userId }) => createDesktopConversationStore(userId),
@@ -74,6 +120,15 @@ export const DesktopConversationContinuityService = {
 
   rehydrateFromStore(input: RehydrateFromStoreInput) {
     return desktopConversationContinuityService.rehydrateFromStore(input);
+  },
+
+  async rehydrateMessages(input: RehydrateMessagesInput): Promise<void> {
+    const runtime = createConversationRuntime({
+      conversationRef: input.conversationRef,
+      store: new StaticRehydrateConversationStore(input.conversationRef, input.messages),
+      transport: createDesktopBackendTransport(input.workspacePath ?? null),
+    });
+    await runtime.rehydrate();
   },
 
   replaceCompactedReplay(snapshot: CompactedReplaySnapshot, userId: string) {

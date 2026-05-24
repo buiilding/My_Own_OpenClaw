@@ -119,7 +119,7 @@ Conversation-open lifecycle (`useDashboardConversations`):
 1. resolve `conversation_ref` from selected row.
 2. load the canonical SDK conversation event log from `chat_events`.
 3. project SDK display messages for the renderer.
-4. ask the desktop conversation runtime to rehydrate backend inference state from the SDK rehydrate snapshot.
+4. mark backend inference state unknown so the continuity runtime can lazily rehydrate from the SDK snapshot.
 5. sync transcript runtime: `setActiveConversationRef(conversationRef)` and `updateTranscriptSession(conversationRef, resolvedUserId)`.
 6. replace chat store message list and clear sending/thinking flags.
 

@@ -28,6 +28,7 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sdk: remove compacted replay persistence from the desktop conversation command facade and route stream compaction writes through the continuity runtime.
 - frontend/sdk: remove model sync from the desktop conversation command facade and route deferred chat model updates through the settings runtime.
 - frontend/sdk: remove continuity loading from the desktop conversation command facade and route chat inference rehydrate through the continuity runtime.
+- frontend/sdk: remove explicit replacement rehydrate from the desktop conversation command facade and route it through the continuity runtime.
 - frontend/sdk: consume SDK compaction payloads directly in renderer compaction handlers and build compacted replay snapshots without unwrapping raw backend events.
 - frontend/sdk: consume SDK metadata payloads directly in renderer transparency handlers and delete backend metadata event unwrapping.
 - frontend/sdk: consume SDK terminal event payloads directly in renderer error, token usage, and memory-store handlers, deleting raw backend terminal event unwrapping.

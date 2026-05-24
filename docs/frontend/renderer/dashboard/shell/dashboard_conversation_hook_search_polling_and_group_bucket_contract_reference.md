@@ -103,7 +103,7 @@ When `includeSearchMetadata=true`, adds:
 
 1. loads canonical SDK conversation events from sidecar `chat_events` through the desktop conversation library/runtime
 2. projects rows through the SDK display conversation builders
-3. asks the desktop conversation runtime to rehydrate backend inference state from the SDK rehydrate snapshot
+3. marks backend inference state unknown so the continuity runtime can lazily rehydrate from the SDK snapshot
 4. updates transcript session and active conversation ref
 5. replaces chat store messages and clears sending/thinking flags
 - switches visible chat workspace while in-flight loops continue in their original workspace

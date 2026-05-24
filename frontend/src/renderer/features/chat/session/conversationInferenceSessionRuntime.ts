@@ -3,9 +3,8 @@ import {
   setConversationWorkspaceBinding,
 } from '../../../infrastructure/workspace/conversationWorkspaceBinding';
 import { DesktopConversationContinuityService } from '../../../app/runtime/desktopConversationContinuityService';
+import type { RehydrateConversationEntry } from '../../../app/runtime/desktopConversationContinuityService';
 import { DEFAULT_USER_ID } from '../../dashboard/utils/episodicMemoryUtils';
-import { DesktopConversationRuntimeClient } from './desktopConversationRuntimeClient';
-import type { RehydrateConversationEntry } from './desktopConversationRuntimeClient';
 
 /**
  * The backend only owns transient inference state. The frontend/sidecar transcript remains
@@ -187,7 +186,7 @@ export async function rehydrateConversationInferenceSession({
   }
 
   const startingEpoch = connectionEpoch;
-  await DesktopConversationRuntimeClient.rehydrate({
+  await DesktopConversationContinuityService.rehydrateMessages({
     conversationRef: normalizedConversationRef,
     messages,
     workspacePath: getConversationWorkspaceBinding(normalizedConversationRef).workspacePath || null,

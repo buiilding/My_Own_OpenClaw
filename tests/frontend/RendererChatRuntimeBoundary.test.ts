@@ -283,9 +283,11 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('DesktopConversationStoreAdapter');
     expect(source).toContain('DesktopConversationContinuityService.loadLocalConversationSnapshot');
     expect(source).toContain('DesktopConversationContinuityService.rehydrateFromStore');
+    expect(source).toContain('DesktopConversationContinuityService.rehydrateMessages');
     expect(source).not.toContain('DesktopConversationRuntimeClient.loadRehydrateSnapshot');
     expect(source).not.toContain('DesktopConversationRuntimeClient.loadLocalConversationSnapshot');
     expect(source).not.toContain('DesktopConversationRuntimeClient.rehydrateFromStore');
+    expect(source).not.toContain('DesktopConversationRuntimeClient.rehydrate');
   });
 
   test('app conversation runtime facade delegates transcript storage to projection runtime', async () => {
@@ -303,6 +305,9 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('loadLocalConversationSnapshot(');
     expect(source).not.toContain('loadRehydrateSnapshot(');
     expect(source).not.toContain('rehydrateFromStore(');
+    expect(source).not.toContain('StaticRehydrateConversationStore');
+    expect(source).not.toContain('RehydrateConversationEntry');
+    expect(/\n\s{2}rehydrate\(input/.test(source)).toBe(false);
     expect(source).not.toContain('setModel(');
     expect(source).not.toContain('getTranscriptSessionInfo()');
     expect(source).not.toContain('setActiveConversationRef(');
