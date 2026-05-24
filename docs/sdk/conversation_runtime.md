@@ -120,7 +120,8 @@ They should not fetch projection rows and shape provider history themselves.
 Desktop compaction replay persistence follows the same rule. Chat stream
 handlers render visible lifecycle/debug state from SDK `compaction_*` events and
 build complete active replay snapshots from the SDK-normalized compaction
-payload before delegating persistence through `DesktopConversationRuntimeClient`.
+payload before delegating persistence through the desktop conversation
+continuity service.
 
 Desktop metadata and transparency projection also consumes SDK-normalized
 payloads directly. Renderer handlers should read SDK `system_prompt`,

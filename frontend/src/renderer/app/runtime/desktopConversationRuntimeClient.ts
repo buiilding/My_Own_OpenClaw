@@ -15,7 +15,6 @@ import {
   type LoadRehydrateSnapshotInput,
   type TranscriptProjectionRewriteEntry,
 } from './desktopTranscriptProjectionRuntimeClient';
-import type { CompactedReplaySnapshot } from '../../infrastructure/api/windieSdkClient';
 import { createDesktopBackendTransport } from './desktopBackendTransport';
 import { DesktopConversationContinuityService } from './desktopConversationContinuityService';
 import type { CaptureMeta } from '../../infrastructure/services/ScreenshotAttachmentPipeline';
@@ -124,13 +123,6 @@ class StaticRehydrateConversationStore extends InMemoryConversationStore {
 export const DesktopConversationRuntimeClient = {
   setModel(selection: WindieModelSelection): void {
     DesktopSettingsRuntimeClient.setModel(selection);
-  },
-
-  async replaceCompactedReplay(
-    snapshot: CompactedReplaySnapshot,
-    userId: string,
-  ): Promise<void> {
-    await DesktopConversationContinuityService.replaceCompactedReplay(snapshot, userId);
   },
 
   async loadRehydrateSnapshot(input: LoadRehydrateSnapshotInput) {

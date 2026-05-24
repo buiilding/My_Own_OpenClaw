@@ -2,12 +2,17 @@ import { act, renderHook } from '@testing-library/react';
 
 jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient', () => ({
   DesktopConversationRuntimeClient: {
+  },
+}));
+
+jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuityService', () => ({
+  DesktopConversationContinuityService: {
     replaceCompactedReplay: jest.fn(() => Promise.resolve()),
   },
 }));
 
 import { useChatStreamCompactionHandlers } from '../../frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamCompactionHandlers';
-import { DesktopConversationRuntimeClient } from '../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient';
+import { DesktopConversationContinuityService } from '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService';
 import {
   COMPACTION_COMPLETED_THINKING_STATUS,
   COMPACTION_FAILED_THINKING_STATUS,
@@ -30,7 +35,7 @@ function sdkEvent(type: string, overrides: Record<string, unknown> = {}) {
 
 describe('useChatStreamCompactionHandlers', () => {
   beforeEach(() => {
-    jest.mocked(DesktopConversationRuntimeClient.replaceCompactedReplay).mockClear();
+    jest.mocked(DesktopConversationContinuityService.replaceCompactedReplay).mockClear();
   });
 
   test('updates thinking state for compaction lifecycle events', async () => {
@@ -170,7 +175,7 @@ describe('useChatStreamCompactionHandlers', () => {
     expect(persistCompactedReplay).not.toHaveBeenCalled();
   });
 
-  test('uses desktop conversation runtime facade for default compaction persistence', async () => {
+  test('uses desktop conversation continuity service for default compaction persistence', async () => {
     const { result } = renderHook(() => useChatStreamCompactionHandlers({
       shouldIgnoreForStaleTurn: jest.fn(() => false),
       setThinkingStatus: jest.fn(),
@@ -198,7 +203,7 @@ describe('useChatStreamCompactionHandlers', () => {
       }) as any);
     });
 
-    expect(DesktopConversationRuntimeClient.replaceCompactedReplay).toHaveBeenCalledWith(
+    expect(DesktopConversationContinuityService.replaceCompactedReplay).toHaveBeenCalledWith(
       expect.objectContaining({
         conversationRef: 'conversation-1',
         generationId: 'compaction-conversation-1-compaction-event-2',

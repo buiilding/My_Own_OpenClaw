@@ -11,7 +11,7 @@ import {
   COMPACTION_FAILED_THINKING_STATUS,
 } from '../../utils/chatStream/chatStreamThinkingStatus';
 import type { StreamTrackingOptions } from '../../utils/chatStream/chatStreamTracking';
-import { DesktopConversationRuntimeClient } from '../../session/desktopConversationRuntimeClient';
+import { DesktopConversationContinuityService } from '../../../../app/runtime/desktopConversationContinuityService';
 import { useLatestRef } from '../../../../infrastructure/hooks/useLatestRef';
 
 type ShouldIgnoreForStaleTurn = (
@@ -143,7 +143,7 @@ async function persistCompactedReplaySnapshot(
   snapshot: CompactedReplaySnapshot,
   userId: string,
 ): Promise<void> {
-  await DesktopConversationRuntimeClient.replaceCompactedReplay(snapshot, userId);
+  await DesktopConversationContinuityService.replaceCompactedReplay(snapshot, userId);
 }
 
 function skippedReasonFromEvent(event: CompactionConversationEvent): string {

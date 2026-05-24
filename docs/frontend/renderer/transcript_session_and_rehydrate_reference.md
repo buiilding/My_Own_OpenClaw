@@ -249,6 +249,9 @@ Dashboard startup and open-chat loading also use the SDK store adapter:
   `replay_generation_entry_count` and `replay_generation_complete` metadata.
   Loaders select the newest complete generation and ignore partial writes, so a
   failed replacement cannot erase the previous replay snapshot.
+- Stream compaction handlers persist compacted replay snapshots through
+  `DesktopConversationContinuityService`, not through the conversation command
+  facade.
 
 ## Try-Again and Edit+Resend Replay Contract
 

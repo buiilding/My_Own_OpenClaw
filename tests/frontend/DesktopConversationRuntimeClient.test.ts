@@ -1,7 +1,6 @@
 const mockLoadLocalConversationSnapshot = jest.fn();
 const mockLoadRehydrateSnapshot = jest.fn();
 const mockRehydrateFromStore = jest.fn();
-const mockReplaceCompactedReplay = jest.fn();
 const mockGetActiveConversationRef = jest.fn(() => null);
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient', () => ({
@@ -17,7 +16,6 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuity
     loadLocalConversationSnapshot: (...args: unknown[]) => mockLoadLocalConversationSnapshot(...args),
     loadRehydrateSnapshot: (...args: unknown[]) => mockLoadRehydrateSnapshot(...args),
     rehydrateFromStore: (...args: unknown[]) => mockRehydrateFromStore(...args),
-    replaceCompactedReplay: (...args: unknown[]) => mockReplaceCompactedReplay(...args),
   },
 }));
 
@@ -45,7 +43,6 @@ describe('DesktopConversationRuntimeClient', () => {
     mockLoadRehydrateSnapshot.mockReset();
     mockLoadLocalConversationSnapshot.mockReset();
     mockRehydrateFromStore.mockReset();
-    mockReplaceCompactedReplay.mockReset();
     mockGetActiveConversationRef.mockReset();
     mockGetActiveConversationRef.mockReturnValue(null);
   });

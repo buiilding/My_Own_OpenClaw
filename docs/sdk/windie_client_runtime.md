@@ -266,9 +266,10 @@ Electron uses the SDK `SidecarConversationStore` through a desktop store factory
   SDK runtime must load from canonical `chat_events` rows
 - compacted replay snapshots are persisted as `compaction_applied` conversation
   events with complete generation payloads, not as hidden replay rows
-- desktop compaction replacement-history writes go through
+- desktop compaction replacement-history writes go through the desktop
+  conversation continuity service into
   `SidecarConversationStore.replaceCompactedReplay(...)` instead of stream
-  handlers directly mutating replay storage
+  handlers or the conversation command facade directly mutating replay storage
 - compacted replay replacement appends a new generation with entry count and
   completion metadata; loaders keep using the previous complete generation if a
   newer write is partial

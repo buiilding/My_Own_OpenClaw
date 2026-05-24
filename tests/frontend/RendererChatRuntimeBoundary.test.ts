@@ -148,14 +148,15 @@ describe('renderer chat runtime boundary', () => {
     expect(offenders).toEqual([]);
   });
 
-  test('chat stream compaction persistence uses the desktop runtime facade', async () => {
+  test('chat stream compaction persistence uses the continuity runtime facade', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'hooks/chatStream/useChatStreamCompactionHandlers.ts'),
       'utf8',
     );
 
     expect(source).not.toContain('DesktopConversationStoreAdapter');
-    expect(source).toContain('DesktopConversationRuntimeClient.replaceCompactedReplay');
+    expect(source).toContain('DesktopConversationContinuityService.replaceCompactedReplay');
+    expect(source).not.toContain('DesktopConversationRuntimeClient.replaceCompactedReplay');
     expect(source).not.toContain('DesktopConversationRuntimeClient.replaceCompactedReplayFromBackendEvent');
   });
 
@@ -295,6 +296,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('recordUserMessage');
     expect(source).not.toContain('recordAssistantMessage');
     expect(source).not.toContain('recordToolMessage');
+    expect(source).not.toContain('replaceCompactedReplay(');
     expect(source).not.toContain('getTranscriptSessionInfo()');
     expect(source).not.toContain('setActiveConversationRef(');
     expect(source).not.toContain('updateTranscriptSession(');
