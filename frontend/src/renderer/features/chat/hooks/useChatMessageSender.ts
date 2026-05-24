@@ -46,6 +46,7 @@ import {
 } from '../../../infrastructure/workspace/conversationWorkspaceBinding';
 import { recordUserTranscriptMessage } from '../utils/messageSender/userTranscriptPersistence';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
+import { DesktopSettingsRuntimeClient } from '../../../app/runtime/desktopSettingsRuntimeClient';
 
 type ChatMessageSenderOptions = {
   senderSurface?: ChatSendSurface;
@@ -241,7 +242,7 @@ export function useChatMessageSender(
     try {
       const deferredQueryModelSelection = buildDeferredQueryModelSelection(config);
       if (deferredQueryModelSelection) {
-        DesktopConversationRuntimeClient.setModel(deferredQueryModelSelection);
+        DesktopSettingsRuntimeClient.setModel(deferredQueryModelSelection);
       }
       recordUserTranscriptMessage({
         text,

@@ -6,7 +6,6 @@ import {
   createConversationRuntime,
 } from '../../infrastructure/api/windieSdkClient';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
-import { DesktopSettingsRuntimeClient } from './desktopSettingsRuntimeClient';
 import {
   type LocalConversationSnapshot,
 } from '../../infrastructure/transcript/conversationLocalSnapshotLoader';
@@ -121,10 +120,6 @@ class StaticRehydrateConversationStore extends InMemoryConversationStore {
  * low-level backend IPC or transcript storage adapters directly.
  */
 export const DesktopConversationRuntimeClient = {
-  setModel(selection: WindieModelSelection): void {
-    DesktopSettingsRuntimeClient.setModel(selection);
-  },
-
   async loadRehydrateSnapshot(input: LoadRehydrateSnapshotInput) {
     return DesktopConversationContinuityService.loadRehydrateSnapshot(input);
   },

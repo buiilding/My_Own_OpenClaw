@@ -31,12 +31,6 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRunti
   },
 }));
 
-jest.mock('../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient', () => ({
-  DesktopSettingsRuntimeClient: {
-    setModel: jest.fn(),
-  },
-}));
-
 describe('DesktopConversationRuntimeClient', () => {
   beforeEach(() => {
     jest.resetModules();

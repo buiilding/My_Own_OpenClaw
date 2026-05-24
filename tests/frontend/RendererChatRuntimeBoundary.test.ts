@@ -297,6 +297,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('recordAssistantMessage');
     expect(source).not.toContain('recordToolMessage');
     expect(source).not.toContain('replaceCompactedReplay(');
+    expect(source).not.toContain('setModel(');
     expect(source).not.toContain('getTranscriptSessionInfo()');
     expect(source).not.toContain('setActiveConversationRef(');
     expect(source).not.toContain('updateTranscriptSession(');

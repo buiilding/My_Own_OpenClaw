@@ -8,6 +8,7 @@ import { captureScreenshotAttachment } from '../../frontend/src/renderer/infrast
 import { uploadArtifactBase64 } from '../../frontend/src/renderer/infrastructure/services/ArtifactUploader';
 import { DesktopConversationRuntimeClient } from '../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
+import { DesktopSettingsRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient';
 import {
   ensureConversationInferenceSessionHydrated,
   markConversationInferenceSessionLocalOnly,
@@ -41,6 +42,11 @@ let mockActiveConversationRef: string | null = null;
 jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient', () => ({
   DesktopConversationRuntimeClient: {
     sendQuery: jest.fn(),
+  },
+}));
+
+jest.mock('../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient', () => ({
+  DesktopSettingsRuntimeClient: {
     setModel: jest.fn(),
   },
 }));
@@ -74,7 +80,7 @@ jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferen
 
 const mockCaptureScreenshotAttachment = captureScreenshotAttachment as jest.MockedFunction<typeof captureScreenshotAttachment>;
 const mockSendQuery = DesktopConversationRuntimeClient.sendQuery as jest.Mock;
-const mockSetModel = DesktopConversationRuntimeClient.setModel as jest.Mock;
+const mockSetModel = DesktopSettingsRuntimeClient.setModel as jest.Mock;
 const mockUploadArtifactBase64 = uploadArtifactBase64 as jest.MockedFunction<typeof uploadArtifactBase64>;
 const mockGetActiveConversationRef = DesktopTranscriptSessionRuntimeClient.getActiveConversationRef as jest.Mock;
 const mockSetActiveConversationRef = DesktopTranscriptSessionRuntimeClient.setActiveConversationRef as jest.Mock;

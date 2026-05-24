@@ -63,7 +63,7 @@ Responsibilities:
 - merge disk/local updates with current in-memory config
 - persist updates to localStorage and disk
 - publish `update-settings` through `DesktopSettingsRuntimeClient.updateSettings(...)`
-- leave deferred model/provider selection to `DesktopConversationRuntimeClient.setModel(...)` on send/replay/compaction paths
+- leave deferred model/provider selection to `DesktopSettingsRuntimeClient.setModel(...)` on send/manual-compaction paths; replay sends its model selection with the retry/edit command payload
 - derive the wakeword preference from persisted `config.wakeword_enabled`
 
 Important guardrails:

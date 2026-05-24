@@ -173,7 +173,7 @@ Persistence rules:
   `{ enabled, api_key }`.
 - If a default selected model changes, update frontend local defaults and
   backend `AppConfig` defaults together.
-- First-query `DesktopConversationRuntimeClient.setModel(...)` sync must still send the latest model selection before a
+- First-query `DesktopSettingsRuntimeClient.setModel(...)` sync must still send the latest model selection before a
   query reaches the backend.
 
 ## Debug Routes

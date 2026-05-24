@@ -312,6 +312,9 @@ Electron uses the SDK `SidecarConversationStore` through a desktop store factory
 - desktop manual compaction controls share one rehydrate-first runtime helper
   that uses the SDK store-backed conversation rehydrate path before sending
   `compact-history`.
+- desktop chat feature code routes deferred query-time model/provider sync
+  through `DesktopSettingsRuntimeClient`, not through the conversation command
+  facade.
 - desktop and custom SDK hosts use the same backend settings route for
   model/provider updates. Public SDK callers should use `agent.setModel(...)`
   rather than shaping `update-settings` payloads by hand.
@@ -512,12 +515,12 @@ backend patch is built through the same SDK model-selection contract instead of
 hand-shaped renderer payloads. `updateSettings(config)` remains available for
 host applications that own a broader settings surface.
 
-Desktop model changes now route through renderer app runtime facades before
-they reach the low-level IPC adapter. Chat features should call
-`DesktopConversationRuntimeClient.setModel(...)`; that facade delegates to the
-settings runtime, which builds the same SDK model-selection patch used by
-public `WindieClient` callers. Feature code should not shape
-`update-settings` payloads or call the backend API adapter directly.
+Desktop model changes now route through the renderer settings runtime facade
+before they reach the low-level IPC adapter. Chat features should call
+`DesktopSettingsRuntimeClient.setModel(...)`; that facade builds the same SDK
+model-selection patch used by public `WindieClient` callers. Feature code
+should not shape `update-settings` payloads, route model sync through the
+conversation command facade, or call the backend API adapter directly.
 
 `stream(input, options)` returns an `AsyncIterableIterator<WindieAgentStreamEvent>`.
 It is a high-level projection over `SdkConversationRuntime.stream()`: it

@@ -67,7 +67,7 @@ Provider dropdown:
 - toggles provider menu and closes model menu
 - `handleProviderSelect(provider)` trims provider id
 - if currently selected model is not in chosen provider pool, selection falls back to first provider model
-- provider/model changes update renderer config immediately but do not call `DesktopConversationRuntimeClient.setModel(...)` yet
+- provider/model changes update renderer config immediately but do not call `DesktopSettingsRuntimeClient.setModel(...)` yet
 
 Model dropdown:
 
@@ -76,7 +76,7 @@ Model dropdown:
 - `handleModelSelect(option)` writes both `selected_model_id` and provider fallback (`option.provider || configuredProvider`)
 - grouping/label/default selection should prefer backend family metadata (`family_id`, `family_label`, `default_model_id`, `default_reasoning_mode`, `reasoning_modes`) when present instead of reconstructing families from display-name text
 - when the selected model exposes multiple reasoning levels, model selection preserves the current reasoning mode when possible (fallback: `medium`, then first available)
-- backend session model selection is synced through `DesktopConversationRuntimeClient.setModel(...)` only when the next send/replay query is dispatched
+- backend session model selection is synced through `DesktopSettingsRuntimeClient.setModel(...)` on the next send/manual-compaction path; retry/edit replay carries the selected model in its command payload
 
 Reasoning mode dropdown (conditional):
 
@@ -102,7 +102,7 @@ Utility controls:
 
 1. sets compaction-specific thinking status/source markers
 2. waits one paint so state is visible before async work
-3. syncs deferred model selection (`model_provider`, `selected_model_id`) through `DesktopConversationRuntimeClient.setModel(...)`
+3. syncs deferred model selection (`model_provider`, `selected_model_id`) through `DesktopSettingsRuntimeClient.setModel(...)`
 4. resolves transcript session (`conversationRef`, `userId`)
 5. when a conversation ref exists, calls `ensureConversationInferenceSessionHydrated(...)` so backend compaction sees the latest normalized store rehydrate snapshot
 6. always calls `DesktopConversationRuntimeClient.compactHistory(true)` after the pre-rehydrate attempt

@@ -181,7 +181,7 @@ If settings button shows perpetual saving:
 
 If updates appear in UI but not backend:
 
-1. verify `DesktopSettingsRuntimeClient.updateSettings` call after `updateConfig` for non-model settings; model selection should wait for `DesktopConversationRuntimeClient.setModel(...)`
+1. verify `DesktopSettingsRuntimeClient.updateSettings` call after `updateConfig` for non-model settings; model selection should wait for `DesktopSettingsRuntimeClient.setModel(...)`
 2. inspect `buildMergedFrontendConfig` filtering for dropped keys
 3. verify connection snapshot path triggers `syncCurrentConfigToBackend` when connected
 

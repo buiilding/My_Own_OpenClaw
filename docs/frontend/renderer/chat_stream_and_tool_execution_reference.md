@@ -114,7 +114,7 @@ Persisted thinking cleanup contract from `chatStreamThinkingStatus.ts`:
 9. record transcript user row
 10. emit backend `query` via `DesktopConversationRuntimeClient.sendQuery(...)`
 
-Before final query dispatch, the hook may send immediate model/provider updates via `DesktopConversationRuntimeClient.setModel(...)` when deferred-model selection changes are detected.
+Before final query dispatch, the hook may send immediate model/provider updates via `DesktopSettingsRuntimeClient.setModel(...)` when deferred-model selection changes are detected.
 
 Failure handling:
 

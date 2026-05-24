@@ -1,4 +1,5 @@
 import { buildDeferredQueryModelSelection } from '../../../../app/providers/appConfigBackendSync';
+import { DesktopSettingsRuntimeClient } from '../../../../app/runtime/desktopSettingsRuntimeClient';
 import { ensureConversationInferenceSessionHydrated } from '../../session/conversationInferenceSessionRuntime';
 import { DesktopConversationRuntimeClient } from '../../session/desktopConversationRuntimeClient';
 import { COMPACTION_THINKING_STATUS } from '../chatStream/chatStreamThinkingStatus';
@@ -27,7 +28,7 @@ export async function runManualCompaction({
 
   const deferredQueryModelSelection = buildDeferredQueryModelSelection(config);
   if (deferredQueryModelSelection) {
-    DesktopConversationRuntimeClient.setModel(deferredQueryModelSelection);
+    DesktopSettingsRuntimeClient.setModel(deferredQueryModelSelection);
   }
 
   const normalizedConversationRef = conversationRef || null;
