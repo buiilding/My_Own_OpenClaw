@@ -17,7 +17,7 @@ describe('vm_worker_runtime', () => {
       fetchFn: jest.fn(),
       getBackendConnectionState: () => ({ isConnected: false }),
       sendAutomatedQuery: jest.fn(),
-      sendMessageToBackend: jest.fn(),
+      sendStopQueryToBackend: jest.fn(),
       registerBackendMessageObserver: () => () => {},
     });
     const context = runtime._internals.buildAttachmentContextFromFiles([
@@ -89,7 +89,7 @@ describe('vm_worker_runtime', () => {
         backendHttpUrl: 'http://localhost:8000',
       }),
       sendAutomatedQuery,
-      sendMessageToBackend: jest.fn(),
+      sendStopQueryToBackend: jest.fn(),
       registerBackendMessageObserver: (handler) => {
         observer = handler;
         return () => {
@@ -176,7 +176,7 @@ describe('vm_worker_runtime', () => {
         backendHttpUrl: 'http://localhost:8000',
       }),
       sendAutomatedQuery,
-      sendMessageToBackend: jest.fn(),
+      sendStopQueryToBackend: jest.fn(),
       registerBackendMessageObserver: (handler) => {
         observer = handler;
         return () => {
@@ -214,6 +214,92 @@ describe('vm_worker_runtime', () => {
     if (runEventCalls.length !== 2) {
       throw new Error(`Expected 2 run event calls, got ${runEventCalls.length}`);
     }
+    runtime.stop();
+  });
+
+  test('applies stop controls through typed backend stop adapter', async () => {
+    const sendAutomatedQuery = jest.fn(async () => ({
+      ok: true,
+      queryMessageId: 'turn-stop',
+      messageId: 'turn-stop',
+    }));
+    const sendStopQueryToBackend = jest.fn();
+    let heartbeatCount = 0;
+    let intervalHandler = null;
+    const fetchFn = jest.fn(async (url) => {
+      if (url.endsWith('/api/runs/workers/heartbeat')) {
+        heartbeatCount += 1;
+        if (heartbeatCount === 1) {
+          return {
+            ok: true,
+            json: async () => ({
+              worker: { worker_id: 'worker-stop' },
+              assigned_run: {
+                run_id: 'run-stop',
+                workspace_id: 'workspace-demo',
+                conversation_ref: 'conv-stop',
+                query: 'run task',
+                files: [],
+              },
+              control_commands: [],
+            }),
+          };
+        }
+        return {
+          ok: true,
+          json: async () => ({
+            worker: { worker_id: 'worker-stop' },
+            assigned_run: null,
+            control_commands: [{
+              action: 'stop',
+              run_id: 'run-stop',
+              command_id: 'cmd-stop',
+            }],
+          }),
+        };
+      }
+      return {
+        ok: true,
+        json: async () => ({ ok: true }),
+      };
+    });
+
+    const runtime = createVmWorkerRuntime({
+      env: {
+        WINDIE_VM_WORKSPACE_ID: 'workspace-demo',
+        WINDIE_VM_WORKER_MODE: '1',
+      },
+      fetchFn,
+      getBackendConnectionState: () => ({
+        isConnected: true,
+        userId: 'vm-user-stop',
+        sessionId: 'session-stop',
+        backendHttpUrl: 'http://localhost:8000',
+      }),
+      sendAutomatedQuery,
+      sendStopQueryToBackend,
+      registerBackendMessageObserver: () => () => {},
+      setIntervalFn: (handler) => {
+        intervalHandler = handler;
+        return 1;
+      },
+      clearIntervalFn: jest.fn(),
+      log: jest.fn(),
+      warn: jest.fn(),
+    });
+
+    runtime.start();
+    await flushPromises();
+    await intervalHandler();
+    await flushPromises();
+
+    expect(sendStopQueryToBackend).toHaveBeenCalledWith({
+      conversation_ref: 'conv-stop',
+    });
+    expect(fetchFn).toHaveBeenCalledWith(
+      'http://localhost:8000/api/runs/run-stop/events',
+      expect.objectContaining({ method: 'POST' }),
+    );
     runtime.stop();
   });
 });

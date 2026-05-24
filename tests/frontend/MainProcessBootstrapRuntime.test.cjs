@@ -43,7 +43,7 @@ describe('main_process_bootstrap_runtime', () => {
         createVmWorkerRuntime: jest.fn(),
         getBackendConnectionState: jest.fn(),
         sendAutomatedQuery: jest.fn(),
-        sendMessageToBackend: jest.fn(),
+        sendStopQueryToBackend: jest.fn(),
         registerBackendMessageObserver: jest.fn(),
         createMainWindowRuntime: jest.fn(() => ({ id: 'main-window' })),
         createChatWindowRuntime: jest.fn(() => ({ id: 'chat-window' })),
@@ -108,6 +108,10 @@ describe('main_process_bootstrap_runtime', () => {
     runtime.createWindow();
 
     expect(deps.createVmWorkerRuntime).toHaveBeenCalledTimes(1);
+    expect(deps.createVmWorkerRuntime).toHaveBeenCalledWith(expect.objectContaining({
+      sendAutomatedQuery: deps.sendAutomatedQuery,
+      sendStopQueryToBackend: deps.sendStopQueryToBackend,
+    }));
     expect(vmWorkerRuntime.start).toHaveBeenCalledTimes(1);
     expect(state.vmWorkerRuntime).toBe(vmWorkerRuntime);
   });

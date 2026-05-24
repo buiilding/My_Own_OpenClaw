@@ -44,7 +44,7 @@ Bootstrap in `index.cjs`:
 - `getBackendConnectionState`
 - `sendAutomatedQuery`
 - `registerBackendMessageObserver`
-- optional `sendMessageToBackend` for control command application
+- optional `sendStopQueryToBackend` for stop-control command application
 
 Optional env inputs:
 
@@ -133,7 +133,7 @@ Control command no-op cases:
 - action is not `stop`
 - command has no `run_id`
 - `run_id` does not resolve to an active conversation mapping
-- `sendMessageToBackend` dependency is not provided
+- `sendStopQueryToBackend` dependency is not provided
 
 ## Worker Runtime Lifecycle Cleanup
 

@@ -69,7 +69,7 @@ On websocket error while open:
 
 ### Outbound Send Failure
 
-`sendMessageToBackend(...)` returns `null` when:
+SDK runtime backend sends return `null` when:
 
 - socket not connected/open,
 - `currentUserId` missing,

@@ -79,7 +79,7 @@ function createVmWorkerRuntime(options = {}) {
     env = process.env,
     getBackendConnectionState,
     sendAutomatedQuery,
-    sendMessageToBackend,
+    sendStopQueryToBackend,
     registerBackendMessageObserver,
     fetchFn = global.fetch,
     setIntervalFn = setInterval,
@@ -240,7 +240,7 @@ function createVmWorkerRuntime(options = {}) {
     if (!Array.isArray(controlCommands) || controlCommands.length === 0) {
       return;
     }
-    if (typeof sendMessageToBackend !== 'function') {
+    if (typeof sendStopQueryToBackend !== 'function') {
       return;
     }
 
@@ -259,7 +259,7 @@ function createVmWorkerRuntime(options = {}) {
       if (!conversationRef) {
         continue;
       }
-      sendMessageToBackend('stop-query', {
+      sendStopQueryToBackend({
         conversation_ref: conversationRef,
       });
       log(`[VM Worker] Applied stop control for run ${runId}.`);

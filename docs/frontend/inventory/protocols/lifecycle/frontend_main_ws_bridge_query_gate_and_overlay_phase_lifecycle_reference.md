@@ -156,7 +156,7 @@ State flow:
      - later queries -> `sequential`
    - call `buildQueryPayloadContent(...)` to enrich payload with system-context XML + memory sections.
    - attach `system_state_internal.screen_resolution` when available.
-5. Send envelope with `sendMessageToBackend(...)`.
+5. Send envelope through the SDK runtime query command router.
 6. If send fails for query, emit synthetic `error` event (`buildQuerySendFailure(...)`) and reset phase to `idle`.
 7. After successful first query send, flip `isFirstQuery = false`.
 

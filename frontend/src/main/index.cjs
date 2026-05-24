@@ -27,7 +27,7 @@ const {
   registerBackendMessageObserver,
   registerRendererWindow,
   sendAutomatedQuery,
-  sendMessageToBackend,
+  sendStopQueryToBackend,
   triggerStopQueryFromMain,
   updateGlobalAgentStopShortcutStatus,
 } = require('./ipc.cjs');
@@ -198,7 +198,7 @@ const {
   createVmWorkerRuntime,
   getBackendConnectionState,
   sendAutomatedQuery,
-  sendMessageToBackend,
+  sendStopQueryToBackend,
   registerBackendMessageObserver,
   createMainWindowRuntime,
   createChatWindowRuntime,

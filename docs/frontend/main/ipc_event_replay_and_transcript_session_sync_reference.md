@@ -63,7 +63,7 @@ Clone safety:
 
 - websocket open: `clear()` (fresh connection lifecycle)
 - websocket close: `clear()` (drop stale buffered packets)
-- query send failure (`sendMessageToBackend` returns null): `clear()` before synthetic error fan-out
+- query send failure (SDK runtime query send returns null): `clear()` before synthetic error fan-out
 
 ## Late Window Rehydrate Contract
 

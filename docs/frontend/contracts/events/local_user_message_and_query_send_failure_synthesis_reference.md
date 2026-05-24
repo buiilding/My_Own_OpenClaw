@@ -84,7 +84,7 @@ In `ipc.cjs` `ipcMain.on("to-backend")` query path:
 2. resolve/fill `conversation_ref`
 3. emit local optimistic user event via `broadcastLocalUserMessage(...)`
 4. enrich query payload (`content`, optional `system_state_internal`)
-5. attempt websocket send (`sendMessageToBackend("query", ...)`)
+5. attempt websocket send through the SDK runtime query command router
 6. if send fails, emit synthetic error via `broadcastQuerySendFailure(...)`
 
 The optimistic user message is emitted before send attempt, so send failures can produce a visible user-message + error pair.
@@ -116,7 +116,7 @@ If user query appears to "vanish" before backend response:
 
 If query send failure is silent:
 
-1. verify `sendMessageToBackend(...)` returned `null`
+1. verify the SDK runtime query send returned `null`
 2. verify `broadcastQuerySendFailure(...)` executed
 3. verify error event passes `isBackendEvent(...)` and `shouldIgnoreStreamError(...)` guards
 

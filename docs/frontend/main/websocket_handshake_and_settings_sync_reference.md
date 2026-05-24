@@ -181,8 +181,8 @@ SDK runtime backend send helpers:
 - inject envelope fields: `id`, `type`, `payload`, `user_id`, `timestamp`
 - expose named helpers for query, wakeword, stop-query, settings, list-models,
   and local tool-result traffic
-- keep the compatibility `sendMessageToBackend(...)` export only for VM/bootstrap
-  adapters that still pass generic backend message types
+- expose a typed `sendStopQueryToBackend(...)` adapter for VM/bootstrap stop
+  controls instead of a generic backend-message escape hatch
 
 `normalizeBackendPayload(...)` strips unsupported/transient fields:
 
@@ -231,7 +231,7 @@ If first query uses stale settings:
 
 If renderer shows local user message but backend never responds:
 
-1. confirm `sendMessageToBackend` returned null (transport down)
+1. confirm the SDK runtime query send returned null (transport down)
 2. verify synthetic query-failure error was emitted
 3. inspect websocket state transitions around reconnect
 

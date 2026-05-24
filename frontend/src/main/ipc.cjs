@@ -699,14 +699,6 @@ function getWindieSdkRuntime() {
   return windieSdkRuntime;
 }
 
-function sendMessageToBackend(type, payload, messageId = null) {
-  return sendSdkRuntimeCommand(getWindieSdkRuntime(), {
-    type,
-    payload,
-    messageId,
-  });
-}
-
 function shutdownIpcForTests() {
   resetSettingsSyncState();
   resetBackendSessionState();
@@ -1058,13 +1050,20 @@ function initializeIpc(win, options = {}) {
   });
 }
 
-function triggerStopQueryFromMain() {
-  const messageId = sendSdkRuntimeCommand(getWindieSdkRuntime(), {
+function sendStopQueryToBackend(payload = {}, messageId = null) {
+  return sendSdkRuntimeCommand(getWindieSdkRuntime(), {
     type: 'stop-query',
-    payload: currentConversationRef
+    payload,
+    messageId,
+  });
+}
+
+function triggerStopQueryFromMain() {
+  const messageId = sendStopQueryToBackend(
+    currentConversationRef
       ? { conversation_ref: currentConversationRef }
       : {},
-  });
+  );
   if (!messageId) {
     return false;
   }
@@ -1271,7 +1270,7 @@ module.exports = {
   registerBackendMessageObserver,
   registerRendererWindow,
   sendAutomatedQuery,
-  sendMessageToBackend,
+  sendStopQueryToBackend,
   shutdownIpcForTests,
   triggerStopQueryFromMain,
   updateGlobalAgentStopShortcutStatus,
