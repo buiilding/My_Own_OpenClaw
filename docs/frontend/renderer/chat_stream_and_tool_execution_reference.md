@@ -128,8 +128,9 @@ Listener source:
 
 Pre-routing and workspace resolution:
 
-- event shape validation and SDK conversation-event normalization go through
-  `DesktopConversationRuntimeClient` before renderer-specific UI handlers run
+- event shape validation and SDK conversation-event normalization are centralized
+  in `chatStreamBackendIngress.ts`; the desktop conversation runtime facade does
+  not expose raw backend stream helpers
 - event conversation resolved from `conversation_ref`, then a registered turn map fallback
 - `memory-store` events without `conversation_ref` are quarantined instead of using `session_id` as chat identity
 - explicit `conversation_ref` events promote chat-store `activeConversationRef` when no active workspace exists; `local-user-message` also rebinds active workspace to the explicit conversation so overlay-only surfaces (`enableTranscript=false`) project the current turn
@@ -137,7 +138,9 @@ Pre-routing and workspace resolution:
 - `turn_ref -> conversation_ref` map is updated opportunistically so later events without `conversation_ref` route correctly
 - handlers write into target conversation workspace instead of only active chat projection
 - transcript session sync runs only after event conversation identity resolves
-- ingress orchestration for projection sync, turn-map registration, transcript-session update, and handler dispatch is centralized in `chatStreamBackendIngress.ingestBackendEvent(...)`
+- ingress orchestration for raw event validation, SDK conversation-event
+  normalization, projection sync, turn-map registration, transcript-session
+  update, and handler dispatch is centralized in `chatStreamBackendIngress.ts`
 - ingress bookkeeping steps are fail-safe isolated (`try/catch` per step) so projection/turn-map/transcript sync errors cannot suppress final handler dispatch for the event
 - assistant text stream events dispatch from SDK-normalized conversation events:
   backend `streaming-response` -> SDK `assistant_delta`, and backend

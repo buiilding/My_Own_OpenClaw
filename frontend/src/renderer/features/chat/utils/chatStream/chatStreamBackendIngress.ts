@@ -1,6 +1,18 @@
 import { DesktopConversationRuntimeClient } from '../../session/desktopConversationRuntimeClient';
 import { syncTranscriptSessionFromBackendEvent } from '../../session/conversationSessionRuntime';
-import type { BackendEvent } from '../../../../types/backendEvents';
+import {
+  type ConversationEvent,
+  normalizeBackendEventToConversationEvent,
+} from '../../../../infrastructure/api/windieSdkClient';
+import {
+  type BackendEvent,
+  isBackendEvent,
+} from '../../../../types/backendEvents';
+
+type NormalizeBackendIngressEventOptions = {
+  conversationRef?: string | null;
+  revisionId?: string | null;
+};
 
 type IngressDeps = {
   syncActiveConversationProjection: (event: BackendEvent, conversationRef: string | null) => void;
@@ -8,6 +20,24 @@ type IngressDeps = {
   enableTranscript: boolean;
   dispatchEvent: (event: BackendEvent) => void;
 };
+
+function optionalString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+}
+
+export function toBackendIngressEvent(data: unknown): BackendEvent | null {
+  return isBackendEvent(data) ? data : null;
+}
+
+export function normalizeBackendIngressEvent(
+  event: BackendEvent,
+  options: NormalizeBackendIngressEventOptions = {},
+): ConversationEvent | null {
+  return normalizeBackendEventToConversationEvent(event, {
+    fallbackConversationRef: optionalString(options.conversationRef) ?? undefined,
+    fallbackRevisionId: optionalString(options.revisionId) ?? undefined,
+  });
+}
 
 export const ingestBackendEvent = (
   event: BackendEvent,

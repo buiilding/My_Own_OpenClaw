@@ -254,4 +254,15 @@ describe('renderer chat runtime boundary', () => {
     expect(/\n\s{2}sendRehydrate\(input/.test(source)).toBe(false);
     expect(source).toContain('DesktopTranscriptProjectionRuntimeClient');
   });
+
+  test('app conversation runtime facade does not expose raw stream ingress helpers', async () => {
+    const source = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeClient.ts'),
+      'utf8',
+    );
+
+    expect(source).not.toContain('toBackendStreamEvent');
+    expect(source).not.toContain('normalizeBackendStreamEvent');
+    expect(source).not.toContain('normalizeBackendEventToConversationEvent');
+  });
 });

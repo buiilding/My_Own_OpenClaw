@@ -25,7 +25,11 @@ import { useChatStreamCompactionHandlers } from './chatStream/useChatStreamCompa
 import { useChatStreamMetadataHandlers } from './chatStream/useChatStreamMetadataHandlers';
 import { useChatStreamCompletionHandler } from './chatStream/useChatStreamCompletionHandler';
 import { useChatStreamTextHandlers } from './chatStream/useChatStreamTextHandlers';
-import { ingestBackendEvent } from '../utils/chatStream/chatStreamBackendIngress';
+import {
+  ingestBackendEvent,
+  normalizeBackendIngressEvent,
+  toBackendIngressEvent,
+} from '../utils/chatStream/chatStreamBackendIngress';
 import {
   recordTrackingEvent as recordTrackingEventRuntime,
   resolveTargetConversationRef as resolveTargetConversationRefRuntime,
@@ -33,7 +37,6 @@ import {
   syncActiveConversationProjection as syncActiveConversationProjectionRuntime,
 } from '../utils/chatStream/chatStreamEventRuntime';
 import { logRendererStreamTrace } from '../utils/chatStream/chatStreamDebugTrace';
-import { DesktopConversationRuntimeClient } from '../session/desktopConversationRuntimeClient';
 
 export function useChatStream(enableTranscript: boolean = true) {
   const {
@@ -338,12 +341,12 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, (data: unknown) => {
-      const backendEvent = DesktopConversationRuntimeClient.toBackendStreamEvent(data);
+      const backendEvent = toBackendIngressEvent(data);
       if (!backendEvent) {
         return;
       }
       const conversationRef = resolveTargetConversationRef(backendEvent);
-      const conversationEvent = DesktopConversationRuntimeClient.normalizeBackendStreamEvent(
+      const conversationEvent = normalizeBackendIngressEvent(
         backendEvent,
         { conversationRef },
       );

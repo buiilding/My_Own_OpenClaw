@@ -209,7 +209,8 @@ wrong:
 
 Renderer stream invariants:
 
-- `local-user-message` seeds the active turn and can bypass the stale-turn guard.
+- SDK `user_message` events normalized from backend `local-user-message` seed
+  the active turn through the shared stream dispatch path.
 - Other stream events must be scoped by `turn_ref` and routed to the correct
   `conversation_ref`.
 - Terminal handoff predicates protect new sends from old terminal events.

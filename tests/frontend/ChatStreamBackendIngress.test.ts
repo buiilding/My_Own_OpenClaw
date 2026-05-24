@@ -1,4 +1,8 @@
-import { ingestBackendEvent } from '../../frontend/src/renderer/features/chat/utils/chatStream/chatStreamBackendIngress';
+import {
+  ingestBackendEvent,
+  normalizeBackendIngressEvent,
+  toBackendIngressEvent,
+} from '../../frontend/src/renderer/features/chat/utils/chatStream/chatStreamBackendIngress';
 
 const mockGetActiveConversationRef = jest.fn();
 const mockUpdateTranscriptSession = jest.fn();
@@ -34,6 +38,60 @@ describe('chatStreamBackendIngress', () => {
     expect(registerTurnConversationRef).toHaveBeenCalledWith('turn-1', 'conv-1');
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-1', 'user-1');
     expect(dispatchEvent).toHaveBeenCalledWith(event);
+  });
+
+  test('rejects malformed stream payloads before ingress bookkeeping', () => {
+    expect(toBackendIngressEvent({ payload: {} })).toBeNull();
+  });
+
+  test('normalizes backend stream packets through the SDK conversation event normalizer', () => {
+    const event = toBackendIngressEvent({
+      type: 'streaming-response',
+      conversation_ref: 'conv-stream',
+      turn_ref: 'turn-stream',
+      payload: {
+        text: 'hello',
+      },
+    });
+
+    if (!event) {
+      throw new Error('expected valid backend stream event');
+    }
+
+    expect(normalizeBackendIngressEvent(event)).toMatchObject({
+      type: 'assistant_delta',
+      conversationRef: 'conv-stream',
+      turnRef: 'turn-stream',
+      source: 'backend',
+      payload: {
+        text: 'hello',
+      },
+    });
+  });
+
+  test('normalizes SDK events with the resolved conversation fallback', () => {
+    const event = toBackendIngressEvent({
+      type: 'streaming-complete',
+      turn_ref: 'turn-stream',
+      payload: {
+        final_response: 'done',
+      },
+    });
+
+    if (!event) {
+      throw new Error('expected valid backend stream event');
+    }
+
+    expect(normalizeBackendIngressEvent(event, {
+      conversationRef: 'conv-fallback',
+    })).toMatchObject({
+      type: 'turn_completed',
+      conversationRef: 'conv-fallback',
+      turnRef: 'turn-stream',
+      payload: {
+        finalResponse: 'done',
+      },
+    });
   });
 
   test('quarantines events with whitespace conversation refs before projection or dispatch', () => {

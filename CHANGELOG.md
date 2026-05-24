@@ -38,7 +38,7 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sdk: dispatch compaction display and replay persistence from SDK-normalized compaction events, deleting their raw backend handler-map entries.
 - frontend/sdk: dispatch tool call, output, and bundle display projection from SDK-normalized conversation events, deleting their raw backend handler-map entries.
 - frontend/sdk: dispatch assistant text stream updates from SDK-normalized `assistant_delta` and `turn_completed` events, deleting their raw backend handler-map entries.
-- frontend/sdk: route renderer stream-event validation and SDK conversation-event normalization through the desktop conversation runtime facade.
+- frontend/sdk: move renderer stream-event validation and SDK conversation-event normalization out of the desktop command facade and into chat stream ingress.
 - frontend/sdk: route renderer compact-history commands through the SDK conversation runtime transport and delete the legacy `DesktopBackendCommandRuntimeClient` bridge.
 - frontend/sdk: route renderer rehydrate commands through the SDK conversation runtime transport and remove the direct `ApiClient.rehydrateConversation` facade path.
 - frontend/sdk: route renderer query sends through the SDK conversation runtime transport and remove the direct `ApiClient.sendQuery` facade path.
