@@ -161,12 +161,12 @@ callbacks through `main/windie_sdk_runtime.cjs`.
 ### Conversation/Transcript Flow
 
 1. Renderer chat hooks call `DesktopConversationRuntimeClient` for visible transcript projection writes.
-2. The conversation runtime facade delegates projection persistence to `DesktopTranscriptProjectionRuntimeClient`, which writes through `DesktopConversationStoreAdapter` rather than reaching into transcript IPC directly.
+2. The conversation runtime facade delegates projection persistence to `DesktopTranscriptProjectionRuntimeClient`, which writes through the desktop conversation store factory rather than reaching into transcript IPC directly.
 3. `DesktopTranscriptSessionRuntimeClient` owns active conversation/user identity for app and dashboard surfaces.
 4. Dashboard conversation-list/load/delete/search and local snapshot calls go through `DesktopConversationLibraryClient`, which delegates store access to `DesktopTranscriptProjectionRuntimeClient` so dashboard feature code does not construct Electron store adapters or import transcript storage/snapshot infrastructure.
 5. Renderer-local conversation store helpers fetch SDK chat events via sidecar RPC (`list-chat-conversations`, `search-chat-conversations`, `get-chat-events`).
    `get-chat-events` resume/hydrate paths use `message_index` cursor pagination (`after_message_index`) so large local chats are fully reloaded instead of capped at one page.
-6. `SidecarConversationStore` is the canonical sidecar-backed SDK conversation store. `DesktopConversationStoreAdapter` only supplies desktop write enrichment such as workspace binding, attachments, and compaction checkpoints.
+6. `SidecarConversationStore` is the canonical sidecar-backed SDK conversation store. The desktop conversation store factory only supplies desktop write enrichment such as workspace binding, attachments, and compaction checkpoints.
 7. Opening a past chat replaces in-memory renderer chat state immediately, but backend conversation history is rehydrated lazily only before the first backend-dependent action for that chat. Chat session helpers call `DesktopConversationRuntimeClient.loadLocalConversationSnapshot(...)` and `DesktopConversationRuntimeClient.rehydrateFromStore(...)`; the facade loads the SDK rehydrate projection and sends the backend rehydrate command through the SDK conversation runtime transport so feature code does not shape provider history or IPC envelopes.
 8. Send, edit/resend, retry, and manual compaction all pass through desktop SDK runtime facades. Edit/resend, retry, and manual compaction call the SDK conversation runtime boundary before the Electron transport adapter maps commands to IPC. Electron-only store and transport adapters stay isolated behind the SDK interfaces instead of becoming normal feature-code dependencies.
 9. Compaction replay persistence also goes through the desktop SDK runtime facade. Chat stream handlers may update visible thinking/debug state, but the facade owns conversion from backend compaction events to active compacted replay snapshots.
@@ -317,7 +317,7 @@ Primary modules:
 - `features/chat/session/conversationInferenceSessionRuntime.ts`:
   - Rehydrates disposable backend inference state on reconnect/resume from SDK conversation-store snapshots.
   - Uses canonical chat events for rehydrate; compaction snapshots are loaded from complete `compaction_applied` SDK events.
-- `renderer/infrastructure/transcript/desktopConversationStoreAdapter.ts`:
+- `renderer/infrastructure/transcript/desktopConversationStore.ts`:
   - Adapts desktop display projections, edit/resend rewrites, and compaction snapshots into canonical SDK conversation events.
   - Delegates sidecar-backed conversation reads/writes to the SDK `SidecarConversationStore`.
   - Does not maintain hidden replay rows or legacy transcript fallback.
@@ -368,7 +368,7 @@ Primary modules:
 
 - `infrastructure/ipc/bridge.ts`: typed channel wrappers over preload API.
 - `infrastructure/api/client.ts`: typed backend command emitter.
-- `app/runtime/desktopTranscriptProjectionRuntimeClient.ts`: queued transcript projection persistence through the SDK conversation store adapter.
+- `app/runtime/desktopTranscriptProjectionRuntimeClient.ts`: queued transcript projection persistence through the SDK `SidecarConversationStore` via the desktop conversation store factory.
 - `app/runtime/desktopTranscriptSessionRuntimeClient.ts`: active transcript conversation/user identity facade.
 - `features/chat/session/useRendererConversationSessionInfo.js`: merged renderer current-session reader for user-facing surfaces.
 - `infrastructure/services/toolExecution/*`: retained display and capture timing helpers; backend tool execution is owned by the SDK runtime in Electron main and the sidecar daemon.

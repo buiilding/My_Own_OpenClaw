@@ -1,7 +1,7 @@
 import { loadStoredConversationEntries } from '../../frontend/src/renderer/infrastructure/transcript/localConversationStore';
 import {
   CHAT_EVENT_RECORD_KIND,
-} from '../../frontend/src/renderer/infrastructure/transcript/desktopConversationStoreAdapter';
+} from '../../frontend/src/renderer/infrastructure/transcript/desktopConversationStore';
 import { loadLocalConversationSnapshot } from '../../frontend/src/renderer/infrastructure/transcript/conversationLocalSnapshotLoader';
 import {
   createConversationEvent,

@@ -1,8 +1,10 @@
 import {
   buildRehydrateSnapshotFromTranscriptProjectionEntries,
   CHAT_EVENT_RECORD_KIND,
-  DesktopConversationStoreAdapter,
-} from '../../frontend/src/renderer/infrastructure/transcript/desktopConversationStoreAdapter';
+  appendTranscriptProjectionEntry,
+  createDesktopConversationStore,
+  rewriteTranscriptProjection,
+} from '../../frontend/src/renderer/infrastructure/transcript/desktopConversationStore';
 import { IpcBridge } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import {
   createConversationEvent,
@@ -53,7 +55,7 @@ function mockListConversationsOnce(conversations: Array<Record<string, unknown>>
   });
 }
 
-describe('DesktopConversationStoreAdapter', () => {
+describe('desktop conversation store factory', () => {
   beforeEach(() => {
     mockInvoke.mockReset();
     mockInvoke.mockImplementation(async (channel) => {
@@ -71,7 +73,7 @@ describe('DesktopConversationStoreAdapter', () => {
   });
 
   test('stores normalized SDK events in dedicated chat-event storage', async () => {
-    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
+    const store = createDesktopConversationStore('user-1');
     const event = createConversationEvent({
       eventId: 'evt-user',
       type: 'user_message',
@@ -93,7 +95,7 @@ describe('DesktopConversationStoreAdapter', () => {
   });
 
   test('stores user-message image attachments as first-class chat event attachments', async () => {
-    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
+    const store = createDesktopConversationStore('user-1');
     const event = createConversationEvent({
       eventId: 'evt-user-image',
       type: 'user_message',
@@ -128,7 +130,7 @@ describe('DesktopConversationStoreAdapter', () => {
   });
 
   test('uses SDK tool identity helpers when storing SDK tool events', async () => {
-    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
+    const store = createDesktopConversationStore('user-1');
     const event = createConversationEvent({
       eventId: 'evt-tool',
       type: 'tool_output',
@@ -152,7 +154,7 @@ describe('DesktopConversationStoreAdapter', () => {
   });
 
   test('stores tool-output image attachments from nested result payloads', async () => {
-    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
+    const store = createDesktopConversationStore('user-1');
     const event = createConversationEvent({
       eventId: 'evt-tool-image',
       type: 'tool_output',
@@ -186,7 +188,7 @@ describe('DesktopConversationStoreAdapter', () => {
   });
 
   test('loads only canonical SDK event rows', async () => {
-    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
+    const store = createDesktopConversationStore('user-1');
     const event = createConversationEvent({
       eventId: 'evt-assistant',
       type: 'assistant_message',
@@ -207,7 +209,7 @@ describe('DesktopConversationStoreAdapter', () => {
   });
 
   test('preserves sidecar append order for same-timestamp SDK event rows', async () => {
-    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
+    const store = createDesktopConversationStore('user-1');
     const timestamp = '2026-05-15T12:00:00.000Z';
     const first = createConversationEvent({
       eventId: 'z-first',
@@ -237,7 +239,7 @@ describe('DesktopConversationStoreAdapter', () => {
   });
 
   test('stores compacted replay snapshots as compaction events', async () => {
-    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
+    const store = createDesktopConversationStore('user-1');
 
     await store.replaceCompactedReplay({
       generationId: 'gen-1',
@@ -283,7 +285,7 @@ describe('DesktopConversationStoreAdapter', () => {
   });
 
   test('uses the newest complete compaction event for backend rehydrate snapshots', async () => {
-    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
+    const store = createDesktopConversationStore('user-1');
     const partial = createConversationEvent({
       eventId: 'compaction-partial',
       type: 'compaction_applied',
@@ -329,9 +331,7 @@ describe('DesktopConversationStoreAdapter', () => {
   });
 
   test('appends transcript projections as canonical conversation events', async () => {
-    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
-
-    await store.appendTranscriptProjectionEntry({
+    await appendTranscriptProjectionEntry('user-1', {
       conversationRef: 'conv-append',
       content: 'assistant answer',
       role: 'assistant',
@@ -367,9 +367,7 @@ describe('DesktopConversationStoreAdapter', () => {
   });
 
   test('classifies hyphenated transcript tool-call rows as SDK tool events', async () => {
-    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
-
-    await store.appendTranscriptProjectionEntry({
+    await appendTranscriptProjectionEntry('user-1', {
       conversationRef: 'conv-tool-call',
       content: '{"id":"call-1","name":"mouse_control","arguments":{"action":"click"}}',
       role: 'assistant',
@@ -402,9 +400,7 @@ describe('DesktopConversationStoreAdapter', () => {
   });
 
   test('classifies hyphenated transcript tool-output rows as SDK tool events', async () => {
-    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
-
-    await store.appendTranscriptProjectionEntry({
+    await appendTranscriptProjectionEntry('user-1', {
       conversationRef: 'conv-tool-output',
       content: 'clicked',
       role: 'tool',
@@ -433,7 +429,7 @@ describe('DesktopConversationStoreAdapter', () => {
   });
 
   test('rewrite deletes canonical event rows before storing the new revision projection', async () => {
-    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
+    const store = createDesktopConversationStore('user-1');
     const preserved = createConversationEvent({
       eventId: 'evt-preserved',
       type: 'user_message',
@@ -464,7 +460,7 @@ describe('DesktopConversationStoreAdapter', () => {
   });
 
   test('deletes only canonical event rows for a conversation', async () => {
-    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
+    const store = createDesktopConversationStore('user-1');
 
     await store.deleteConversation('conv-delete');
 
@@ -477,9 +473,8 @@ describe('DesktopConversationStoreAdapter', () => {
   });
 
   test('rewrites transcript projection as canonical events', async () => {
-    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
-
-    const rehydrateSnapshot = await store.rewriteTranscriptProjection({
+    const rehydrateSnapshot = await rewriteTranscriptProjection({
+      userId: 'user-1',
       conversationRef: 'conv-edit',
       entries: [
         {
@@ -534,7 +529,7 @@ describe('DesktopConversationStoreAdapter', () => {
   });
 
   test('lists metadata from canonical event rows only', async () => {
-    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
+    const store = createDesktopConversationStore('user-1');
     mockListConversationsOnce([
       {
         conversation_id: 'conv-sdk',
@@ -604,7 +599,7 @@ describe('DesktopConversationStoreAdapter', () => {
   });
 
   test('applies explicit metadata limits to canonical event rows', async () => {
-    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
+    const store = createDesktopConversationStore('user-1');
     mockListConversationsOnce([
       {
         conversation_id: 'conv-1',
@@ -624,7 +619,7 @@ describe('DesktopConversationStoreAdapter', () => {
   });
 
   test('applies metadata cursor pagination to canonical event rows', async () => {
-    const store = new DesktopConversationStoreAdapter({ userId: 'user-1' });
+    const store = createDesktopConversationStore('user-1');
     mockListConversationsOnce([
       {
         conversation_id: 'conv-1',

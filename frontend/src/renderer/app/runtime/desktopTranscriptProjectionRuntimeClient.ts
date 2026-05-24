@@ -1,7 +1,9 @@
 import {
-  DesktopConversationStoreAdapter,
+  appendTranscriptProjectionEntry,
+  createDesktopConversationStore,
+  rewriteTranscriptProjection as rewriteDesktopTranscriptProjection,
   type TranscriptProjectionRewriteEntry,
-} from '../../infrastructure/transcript/desktopConversationStoreAdapter';
+} from '../../infrastructure/transcript/desktopConversationStore';
 import { createPendingTranscriptMessages } from '../../infrastructure/transcript/pending/pendingTranscriptMessages';
 import { normalizeTransparencyData } from '../../infrastructure/transcript/transparencyNormalization';
 import {
@@ -91,7 +93,7 @@ function emitTranscriptEntryStoredEvent(
 async function persistProjectionEntry(entry: TranscriptEntry): Promise<void> {
   await storeTranscriptEntry(entry, {
     resolveSessionInfoForEntry,
-    createConversationStore: (userId) => new DesktopConversationStoreAdapter({ userId }),
+    appendTranscriptProjectionEntry,
     emitStoredEvent: emitTranscriptEntryStoredEvent,
   });
 }
@@ -253,7 +255,7 @@ export const DesktopTranscriptProjectionRuntimeClient = {
     snapshot: CompactedReplaySnapshot,
     userId: string,
   ): Promise<void> {
-    const store = new DesktopConversationStoreAdapter({ userId });
+    const store = createDesktopConversationStore(userId);
     await store.replaceCompactedReplay(snapshot);
   },
 
@@ -263,9 +265,9 @@ export const DesktopTranscriptProjectionRuntimeClient = {
     transcriptEntries,
     rehydrateEntries,
   }: RewriteTranscriptProjectionInput): Promise<RehydrateSnapshot> {
-    const store = new DesktopConversationStoreAdapter({ userId });
-    return store.rewriteTranscriptProjection({
+    return rewriteDesktopTranscriptProjection({
       conversationRef,
+      userId,
       entries: transcriptEntries,
       rehydrateEntries,
     });
@@ -275,22 +277,22 @@ export const DesktopTranscriptProjectionRuntimeClient = {
     conversationRef,
     userId,
   }: LoadRehydrateSnapshotInput): Promise<RehydrateSnapshot> {
-    const store = new DesktopConversationStoreAdapter({ userId });
+    const store = createDesktopConversationStore(userId);
     return store.loadForRehydrate(conversationRef);
   },
 
   async listMetadata(userId: string, options?: ListConversationOptions): Promise<ConversationMetadata[]> {
-    const store = new DesktopConversationStoreAdapter({ userId });
+    const store = createDesktopConversationStore(userId);
     return store.listMetadata(options);
   },
 
   async loadForDisplay(userId: string, conversationRef: string): Promise<DisplayConversation> {
-    const store = new DesktopConversationStoreAdapter({ userId });
+    const store = createDesktopConversationStore(userId);
     return store.loadForDisplay(conversationRef);
   },
 
   async deleteConversation(userId: string, conversationRef: string): Promise<void> {
-    const store = new DesktopConversationStoreAdapter({ userId });
+    const store = createDesktopConversationStore(userId);
     await store.deleteConversation(conversationRef);
   },
 
@@ -299,9 +301,10 @@ export const DesktopTranscriptProjectionRuntimeClient = {
     userId,
     projectionEntries,
   }: SeededConversationStoreInput): Promise<ConversationStore> {
-    const store = new DesktopConversationStoreAdapter({ userId });
-    await store.rewriteTranscriptProjection({
+    const store = createDesktopConversationStore(userId);
+    await rewriteDesktopTranscriptProjection({
       conversationRef,
+      userId,
       entries: projectionEntries,
       rehydrateEntries: projectionEntries,
     });

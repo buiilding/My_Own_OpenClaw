@@ -8,8 +8,8 @@ import {
   type CompactedReplaySnapshot,
 } from '../../infrastructure/api/windieSdkClient';
 import {
-  DesktopConversationStoreAdapter,
-} from '../../infrastructure/transcript/desktopConversationStoreAdapter';
+  createDesktopConversationStore,
+} from '../../infrastructure/transcript/desktopConversationStore';
 import {
   loadLocalConversationSnapshot,
 } from '../../infrastructure/transcript/conversationLocalSnapshotLoader';
@@ -34,7 +34,7 @@ type SearchConversationsInput = {
 };
 
 export const desktopConversationContinuityService = new ConversationContinuityService({
-  storeFactory: ({ userId }) => new DesktopConversationStoreAdapter({ userId }),
+  storeFactory: ({ userId }) => createDesktopConversationStore(userId),
   transportFactory: ({ workspacePath }) => createDesktopBackendTransport(workspacePath ?? null),
   localRuntimeEventSource: DesktopLocalRuntimeEventSource,
 });

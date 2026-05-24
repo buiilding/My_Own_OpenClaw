@@ -70,7 +70,7 @@ Edit:
 - `ConversationContinuityService.ts` for SDK-owned display/rehydrate/delete orchestration over a `ConversationStore`.
 - `desktopConversationContinuityService.ts` for Electron's sidecar-backed continuity service instance.
 - `desktopTranscriptProjectionRuntimeClient.ts` for SDK projection write API behavior.
-- `desktopConversationStoreAdapter.ts` for desktop projection conversion and SDK store write enrichment.
+- `desktopConversationStore.ts` for desktop projection conversion and SDK store write enrichment.
 - `transcriptEntryPersistence.ts` and `transcriptRecordWrite.ts` for persisted row shape and IPC payloads.
 - `pending/*` for retry/FIFO behavior.
 - `sessionInfoStorage.ts` only for transcript session identity storage.

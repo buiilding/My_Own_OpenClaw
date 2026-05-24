@@ -17,7 +17,7 @@ title: "Transcript Session and Rehydrate Reference"
 - `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`
 - `frontend/src/renderer/infrastructure/transcript/transcriptSessionRuntime.ts`
 - `frontend/src/renderer/infrastructure/transcript/transcriptEntryPersistence.ts`
-- `frontend/src/renderer/infrastructure/transcript/desktopConversationStoreAdapter.ts`
+- `frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts`
 - `frontend/src/renderer/infrastructure/transcript/localConversationStore.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionSyncPayload.ts`
 - `frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts`
@@ -100,8 +100,8 @@ Shared writer layering:
 
 - `DesktopTranscriptProjectionRuntimeClient` owns public recorder entrypoints, queue coordination, and `transcript-entry-stored` emission
 - `transcriptRecordWrite.ts` owns the empty-text / resolve-session / immediate-write-or-queue decision boundary
-- `transcriptEntryPersistence.ts` resolves the final session and delegates persistence to the conversation store adapter
-- `SidecarConversationStore` owns sidecar event writes and reads; `DesktopConversationStoreAdapter` only supplies desktop write enrichment such as workspace binding, attachments, and compaction checkpoints
+- `transcriptEntryPersistence.ts` resolves the final session and delegates persistence to the desktop conversation store factory
+- `SidecarConversationStore` owns sidecar event writes and reads; the desktop conversation store factory only supplies desktop write enrichment such as workspace binding, attachments, and compaction checkpoints
 
 Each path:
 
@@ -197,7 +197,7 @@ Search modal uses the same open path after `search-chat-conversations` results.
 
 The desktop runtime uses `ConversationContinuityService` as the SDK-owned
 continuity orchestrator and the SDK `SidecarConversationStore` as the
-sidecar-backed conversation-store owner. `DesktopConversationStoreAdapter`
+sidecar-backed conversation-store owner. The desktop conversation store factory
 only adapts desktop projection writes into that SDK store.
 
 Storage split:
@@ -210,7 +210,7 @@ Storage split:
 - compacted backend rehydrate snapshots are stored as complete
   `compaction_applied` conversation events.
 
-The adapter supplies desktop write-enrichment params to the SDK
+The factory supplies desktop write-enrichment params to the SDK
 `SidecarConversationStore`, which owns the sidecar write/read RPCs. Display and
 backend rehydrate snapshots come from the SDK projection path, and backend
 resume is triggered by the SDK continuity service rather than by dashboard or
@@ -229,7 +229,7 @@ Dashboard startup and open-chat loading also use the SDK store adapter:
 
 - recent chats are listed through store metadata from `chat_events` rows
   and explicit pagination options
-- dashboard chat deletion goes through the store adapter so visible transcript
+- dashboard chat deletion goes through the SDK store path so visible transcript
   projection rows and canonical `chat_events` rows are removed together
 - opening a chat renders `DisplayConversation` through
   `sdkDisplayChatMessageProjection.ts`
@@ -239,7 +239,7 @@ Dashboard startup and open-chat loading also use the SDK store adapter:
   `DesktopConversationRuntimeClient.editAndResend(...)` and
   `DesktopConversationRuntimeClient.retryTurn(...)`. The hook identifies the
   clicked message and sets the optimistic display projection, while the desktop
-  runtime facade seeds current display rows into `DesktopConversationStoreAdapter`
+  runtime facade seeds current display rows into the desktop conversation store factory
   and delegates revision cutting, rehydrate generation, model sync, and query
   send to `SdkConversationRuntime`.
 - compacted replay replacement appends a new generation with

@@ -133,14 +133,14 @@ Failure semantics:
 1. ignore empty text payloads
 2. resolve effective session info from explicit options + current state
 3. if identity incomplete: enqueue and return
-4. else delegate the append to `DesktopConversationStoreAdapter`
+4. else delegate the append to the desktop conversation store factory
 5. if immediate write fails: enqueue for retry and warn
 
 Shared immediate-write helper:
 
 - `recordImmediateTranscriptEntry(...)` in `transcriptRecordWrite.ts` centralizes the empty-text guard, session-resolution gate, and `storeImmediateTranscriptEntryWithRetry(...)` invocation so user/assistant/tool recorders keep one retry boundary contract.
-- `storeTranscriptEntry(...)` in `transcriptEntryPersistence.ts` resolves the final session and builds the replay-safe payload, then delegates storage to `DesktopConversationStoreAdapter`.
-- `DesktopConversationStoreAdapter` centralizes desktop projection conversion, conversation workspace binding lookup, and write enrichment while SDK `SidecarConversationStore` owns sidecar IPC payload shaping and storage mechanics.
+- `storeTranscriptEntry(...)` in `transcriptEntryPersistence.ts` resolves the final session and builds the replay-safe payload, then delegates storage to the desktop conversation store factory.
+- The desktop conversation store factory centralizes desktop projection conversion, conversation workspace binding lookup, and write enrichment while SDK `SidecarConversationStore` owns sidecar IPC payload shaping and storage mechanics.
 
 Payload defaults:
 

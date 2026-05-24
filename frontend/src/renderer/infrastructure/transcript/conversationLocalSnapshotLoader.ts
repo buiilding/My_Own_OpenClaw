@@ -1,7 +1,7 @@
 import {
   CHAT_EVENT_RECORD_KIND,
-  DesktopConversationStoreAdapter,
-} from './desktopConversationStoreAdapter';
+  createDesktopConversationStore,
+} from './desktopConversationStore';
 import { loadStoredConversationEntries } from './localConversationStore';
 import { resolveConversationWorkspaceBinding } from '../workspace/conversationWorkspaceBinding';
 
@@ -41,7 +41,7 @@ export async function loadLocalConversationSnapshot({
     conversationRef,
     recordKind,
   });
-  const store = new DesktopConversationStoreAdapter({ userId });
+  const store = createDesktopConversationStore(userId);
   const [displayConversation, rehydrateSnapshot] = await Promise.all([
     includeParsedMessages ? store.loadForDisplay(conversationRef) : Promise.resolve(null),
     store.loadForRehydrate(conversationRef),

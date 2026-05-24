@@ -34,7 +34,7 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sdk: dispatch backend token usage updates from SDK `usage_updated` events, deleting the raw `token-count` backend handler-map entry.
 - frontend/sdk: dispatch backend error display from SDK `turn_error` events, deleting the raw `error` backend handler-map entry.
 - frontend/sdk: dispatch chat metadata and transparency projection from SDK-normalized conversation events, deleting their raw backend handler-map entries.
-- frontend/sdk: rename the desktop conversation storage wrapper into an adapter and delegate compacted replay writes to the SDK `SidecarConversationStore`.
+- frontend/sdk: replace the desktop conversation store adapter class with a factory around the SDK `SidecarConversationStore`, keeping desktop write enrichment as a helper instead of a parallel store.
 - frontend/sdk: dispatch compaction display and replay persistence from SDK-normalized compaction events, deleting their raw backend handler-map entries.
 - frontend/sdk: dispatch tool call, output, and bundle display projection from SDK-normalized conversation events, deleting their raw backend handler-map entries.
 - frontend/sdk: dispatch assistant text stream updates from SDK-normalized `assistant_delta` and `turn_completed` events, deleting their raw backend handler-map entries.

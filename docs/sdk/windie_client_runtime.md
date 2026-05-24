@@ -258,7 +258,7 @@ SDK adapter contracts export named payload types for the core runtime boundary:
 implementations should use those types rather than accepting unstructured
 records for query, rehydrate, stop, tool-result, and local-runtime operations.
 
-Electron uses a sidecar-backed store adapter:
+Electron uses the SDK `SidecarConversationStore` through a desktop store factory:
 
 - canonical SDK events are stored in the sidecar `chat_events` table as the
   storage truth for desktop display and backend rehydrate
@@ -266,13 +266,13 @@ Electron uses a sidecar-backed store adapter:
   SDK runtime must load from canonical `chat_events` rows
 - compacted replay snapshots are persisted as `compaction_applied` conversation
   events with complete generation payloads, not as hidden replay rows
-- desktop compaction replacement-history writes go through the conversation store
-  adapter's `replaceCompactedReplay(...)` path instead of stream handlers
-  directly mutating replay storage
+- desktop compaction replacement-history writes go through
+  `SidecarConversationStore.replaceCompactedReplay(...)` instead of stream
+  handlers directly mutating replay storage
 - compacted replay replacement appends a new generation with entry count and
   completion metadata; loaders keep using the previous complete generation if a
   newer write is partial
-- desktop backend-session rehydrate uses the store adapter's SDK projection
+- desktop backend-session rehydrate uses the SDK store projection
   instead of shaping messages directly from visible transcript rows
 - desktop recent-chat and open-chat loading use store metadata/display
   projections over canonical event rows only
@@ -286,14 +286,14 @@ Electron uses a sidecar-backed store adapter:
   id because same-timestamp turns, tool pairs, and assistant commits depend on
   append order.
 - desktop edit/resend and try-again visible transcript rewrites are routed
-  through the desktop conversation store adapter into the SDK
-  `SidecarConversationStore`. The adapter owns local transcript projection
+  through the desktop conversation store factory into the SDK
+  `SidecarConversationStore`. The factory owns local transcript projection
   replacement, workspace metadata, rewritten row enrichment, and the rehydrate
   projection used before the resend turn.
 - desktop visible transcript appends route through
-  `DesktopTranscriptProjectionRuntimeClient` and the Electron conversation
-  store adapter, so queued user/assistant/tool writes no longer own direct row
-  IPC or replay append mutation.
+  `DesktopTranscriptProjectionRuntimeClient` and the desktop conversation store
+  factory, so queued user/assistant/tool writes no longer own direct row IPC or
+  replay append mutation.
 - desktop chat feature code uses the desktop conversation runtime facade for
   transcript session identity helpers, with transcript writes owned by SDK
   projection/runtime adapters rather than renderer-local writer APIs.
@@ -302,8 +302,8 @@ Electron uses a sidecar-backed store adapter:
   transcript infrastructure directly for conversation/user identity updates.
 - desktop dashboard conversation list/load/delete/search commands use
   `DesktopConversationLibraryClient`, which delegates to
-  `DesktopTranscriptProjectionRuntimeClient` before reaching the Electron store
-  adapter.
+  `DesktopTranscriptProjectionRuntimeClient` before reaching the SDK store
+  factory.
 - desktop chat and dashboard local snapshot loading also go through
   `DesktopConversationRuntimeClient` or `DesktopConversationLibraryClient`, so
   feature code does not import transcript snapshot loaders directly.

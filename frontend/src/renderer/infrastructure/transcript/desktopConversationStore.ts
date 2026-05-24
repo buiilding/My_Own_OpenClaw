@@ -14,15 +14,8 @@ import { IpcBridge } from '../ipc/bridge';
 import {
   buildRehydrateSnapshot,
   createConversationEvent,
-  type CompactedReplaySnapshot,
   type ConversationEvent,
-  type ConversationMetadata,
-  type ConversationRevision,
-  type ConversationRewritePlan,
-  type ConversationStore,
-  type DisplayConversation,
   type JsonRecord,
-  type ListConversationOptions,
   type RehydrateSnapshot,
   type SidecarConversationStoreEventWriteContext,
   type SidecarConversationStore,
@@ -31,11 +24,7 @@ import {
 
 export { CHAT_EVENT_RECORD_KIND };
 
-type DesktopConversationStoreAdapterOptions = {
-  userId: string;
-};
-
-type DesktopConversationStoreAdapterDeps = {
+type DesktopConversationStoreDeps = {
   invoke?: typeof IpcBridge.invoke;
   getConversationWorkspaceBinding?: typeof getConversationWorkspaceBinding;
 };
@@ -292,124 +281,89 @@ function modelMetadataFromEvent(event: ConversationEvent): {
   };
 }
 
-export class DesktopConversationStoreAdapter implements ConversationStore {
-  private readonly userId: string;
-  private readonly deps: Required<DesktopConversationStoreAdapterDeps>;
-  private readonly sdkStore: SidecarConversationStore;
+function resolveDesktopConversationStoreDeps(
+  deps: DesktopConversationStoreDeps = {},
+): Required<DesktopConversationStoreDeps> {
+  return {
+    invoke: deps.invoke ?? IpcBridge.invoke,
+    getConversationWorkspaceBinding: deps.getConversationWorkspaceBinding ?? getConversationWorkspaceBinding,
+  };
+}
 
-  constructor(
-    options: DesktopConversationStoreAdapterOptions,
-    deps: DesktopConversationStoreAdapterDeps = {},
-  ) {
-    this.userId = options.userId;
-    this.deps = {
-      invoke: deps.invoke ?? IpcBridge.invoke,
-      getConversationWorkspaceBinding: deps.getConversationWorkspaceBinding ?? getConversationWorkspaceBinding,
-    };
-    this.sdkStore = createIpcSidecarConversationStore(this.userId, this.deps.invoke, {
-      eventWriteParams: context => this.buildDesktopEventWriteParams(context),
-    });
-  }
+function buildDesktopEventWriteParams(
+  { event }: SidecarConversationStoreEventWriteContext,
+  deps: Required<DesktopConversationStoreDeps>,
+): JsonRecord {
+  const workspaceBinding = deps.getConversationWorkspaceBinding(event.conversationRef);
+  const attachments = imageAttachmentsFromEvent(event);
+  const firstAttachment = attachments[0] ?? null;
+  const modelMetadata = modelMetadataFromEvent(event);
+  return {
+    tool_name: toolNameFromEvent(event),
+    correlation_id: correlationIdFromEvent(event),
+    workspace_path: workspaceBinding.workspacePath || null,
+    workspace_name: workspaceBinding.workspaceName || null,
+    metadata: {
+      model_id: modelMetadata.modelId,
+      model_provider: modelMetadata.modelProvider,
+      screenshot: firstAttachment?.['ref']
+        ?? firstAttachment?.['url']
+        ?? firstAttachment?.['value']
+        ?? firstAttachment?.['data']
+        ?? null,
+    },
+    attachments,
+    compaction_checkpoint: event.type === 'compaction_applied' ? event.payload : null,
+  };
+}
 
-  async appendEvent(event: ConversationEvent): Promise<void> {
-    await this.sdkStore.appendEvent(event);
-  }
+export function createDesktopConversationStore(
+  userId: string,
+  deps: DesktopConversationStoreDeps = {},
+): SidecarConversationStore {
+  const resolvedDeps = resolveDesktopConversationStoreDeps(deps);
+  return createIpcSidecarConversationStore(userId, resolvedDeps.invoke, {
+    eventWriteParams: context => buildDesktopEventWriteParams(context, resolvedDeps),
+  });
+}
 
-  async appendEvents(events: ConversationEvent[]): Promise<void> {
-    await this.sdkStore.appendEvents(events);
-  }
+export async function appendTranscriptProjectionEntry(
+  userId: string,
+  entry: TranscriptProjectionAppendEntry,
+  deps: DesktopConversationStoreDeps = {},
+): Promise<void> {
+  const store = createDesktopConversationStore(userId, deps);
+  const revision = await store.getRevision(entry.conversationRef);
+  await store.appendEvent(projectionEntryToConversationEvent(
+    entry.conversationRef,
+    revision.revisionId,
+    entry,
+    Date.now(),
+  ));
+}
 
-  async rewriteConversation(plan: ConversationRewritePlan): Promise<void> {
-    await this.sdkStore.rewriteConversation(plan);
-  }
+export async function rewriteTranscriptProjection({
+  conversationRef,
+  userId,
+  entries,
+  rehydrateEntries,
+  deps,
+}: {
+  conversationRef: string;
+  userId: string;
+  entries: TranscriptProjectionRewriteEntry[];
+  rehydrateEntries?: TranscriptProjectionRewriteEntry[];
+  deps?: DesktopConversationStoreDeps;
+}): Promise<RehydrateSnapshot> {
+  const store = createDesktopConversationStore(userId, deps);
+  await store.deleteConversation(conversationRef);
+  const revisionId = `rev-rewrite-${conversationRef}-${Date.now()}`;
+  await store.appendEvents(entries.map((entry, index) => (
+    projectionEntryToConversationEvent(conversationRef, revisionId, entry, index)
+  )));
 
-  async deleteConversation(conversationRef: string): Promise<void> {
-    await this.sdkStore.deleteConversation(conversationRef);
-  }
-
-  async appendTranscriptProjectionEntry(entry: TranscriptProjectionAppendEntry): Promise<void> {
-    const revision = await this.getRevision(entry.conversationRef);
-    await this.appendEvent(projectionEntryToConversationEvent(
-      entry.conversationRef,
-      revision.revisionId,
-      entry,
-      Date.now(),
-    ));
-  }
-
-  async rewriteTranscriptProjection({
+  return buildRehydrateSnapshotFromTranscriptProjectionEntries({
     conversationRef,
-    entries,
-    rehydrateEntries,
-  }: {
-    conversationRef: string;
-    entries: TranscriptProjectionRewriteEntry[];
-    rehydrateEntries?: TranscriptProjectionRewriteEntry[];
-  }): Promise<RehydrateSnapshot> {
-    await this.deleteConversation(conversationRef);
-    const revisionId = `rev-rewrite-${conversationRef}-${Date.now()}`;
-    await this.appendEvents(entries.map((entry, index) => (
-      projectionEntryToConversationEvent(conversationRef, revisionId, entry, index)
-    )));
-
-    return buildRehydrateSnapshotFromTranscriptProjectionEntries({
-      conversationRef,
-      entries: rehydrateEntries ?? entries,
-    });
-  }
-
-  async replaceCompactedReplay(snapshot: CompactedReplaySnapshot): Promise<void> {
-    await this.sdkStore.replaceCompactedReplay(snapshot);
-  }
-
-  async loadEvents(conversationRef: string): Promise<ConversationEvent[]> {
-    return this.sdkStore.loadEvents(conversationRef);
-  }
-
-  async listMetadata(options: ListConversationOptions = {}): Promise<ConversationMetadata[]> {
-    return this.sdkStore.listMetadata(options);
-  }
-
-  async getRevision(conversationRef: string): Promise<ConversationRevision> {
-    return this.sdkStore.getRevision(conversationRef);
-  }
-
-  async loadCompactedReplay(conversationRef: string): Promise<CompactedReplaySnapshot | null> {
-    return this.sdkStore.loadCompactedReplay?.(conversationRef) ?? null;
-  }
-
-  async loadForDisplay(conversationRef: string): Promise<DisplayConversation> {
-    return this.sdkStore.loadForDisplay(conversationRef);
-  }
-
-  async loadForRehydrate(conversationRef: string): Promise<RehydrateSnapshot> {
-    return this.sdkStore.loadForRehydrate(conversationRef);
-  }
-
-  private buildDesktopEventWriteParams({
-    event,
-  }: SidecarConversationStoreEventWriteContext): JsonRecord {
-    const workspaceBinding = this.deps.getConversationWorkspaceBinding(event.conversationRef);
-    const attachments = imageAttachmentsFromEvent(event);
-    const firstAttachment = attachments[0] ?? null;
-    const modelMetadata = modelMetadataFromEvent(event);
-    return {
-      tool_name: toolNameFromEvent(event),
-      correlation_id: correlationIdFromEvent(event),
-      workspace_path: workspaceBinding.workspacePath || null,
-      workspace_name: workspaceBinding.workspaceName || null,
-      metadata: {
-        model_id: modelMetadata.modelId,
-        model_provider: modelMetadata.modelProvider,
-        screenshot: firstAttachment?.['ref']
-          ?? firstAttachment?.['url']
-          ?? firstAttachment?.['value']
-          ?? firstAttachment?.['data']
-          ?? null,
-      },
-      attachments,
-      compaction_checkpoint: event.type === 'compaction_applied' ? event.payload : null,
-    };
-  }
-
+    entries: rehydrateEntries ?? entries,
+  });
 }

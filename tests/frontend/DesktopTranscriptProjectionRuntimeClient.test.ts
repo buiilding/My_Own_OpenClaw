@@ -17,21 +17,11 @@ function loadDesktopTranscriptRuntimes() {
     ON_CHANNELS: { TRANSCRIPT_SESSION_SYNC: 'transcript-session-sync' },
   }));
 
-  jest.doMock('../../frontend/src/renderer/infrastructure/transcript/desktopConversationStoreAdapter', () => ({
-    DesktopConversationStoreAdapter: class {
-      userId: string;
-
-      constructor(options: { userId: string }) {
-        this.userId = options.userId;
-      }
-
-      appendTranscriptProjectionEntry(entry: unknown) {
-        return mockAppendTranscriptProjectionEntry({
-          userId: this.userId,
-          entry,
-        });
-      }
-    },
+  jest.doMock('../../frontend/src/renderer/infrastructure/transcript/desktopConversationStore', () => ({
+    appendTranscriptProjectionEntry: (userId: string, entry: unknown) => mockAppendTranscriptProjectionEntry({
+      userId,
+      entry,
+    }),
   }));
 
   const { DesktopTranscriptProjectionRuntimeClient } = require(
@@ -81,7 +71,7 @@ describe('DesktopTranscriptProjectionRuntimeClient', () => {
     });
   });
 
-  test('stores assistant projection entries through the conversation store adapter', async () => {
+  test('stores assistant projection entries through the desktop SDK store projection helper', async () => {
     const { projectionClient, sessionClient } = loadDesktopTranscriptRuntimes();
     mockAppendTranscriptProjectionEntry.mockResolvedValue(undefined);
     sessionClient.updateTranscriptSession('conv-assistant', 'user-assistant');

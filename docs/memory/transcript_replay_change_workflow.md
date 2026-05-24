@@ -20,7 +20,7 @@ flowchart LR
     A["Chat stream or local user/tool event"] --> B["DesktopConversationRuntimeClient"]
     B --> C0["Desktop conversation continuity service"]
     C0 --> C{"session identity ready?"}
-    C -- "yes" --> D["DesktopConversationStoreAdapter"]
+    C -- "yes" --> D["desktop conversation store factory"]
     C -- "no" --> E["pending event queues"]
     E --> D
     D --> G["Electron main memory RPC mapper"]

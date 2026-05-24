@@ -1,12 +1,10 @@
-import type { DesktopConversationStoreAdapter } from './desktopConversationStoreAdapter';
+import type { TranscriptProjectionAppendEntry } from './desktopConversationStore';
 import { buildRehydrateMessagePayload } from './rehydrateMessageState';
 import type { SessionInfo, TranscriptEntry } from './types';
 
-type TranscriptProjectionStore = Pick<DesktopConversationStoreAdapter, 'appendTranscriptProjectionEntry'>;
-
 type StoreTranscriptEntryDeps = {
   resolveSessionInfoForEntry: (entry: TranscriptEntry) => SessionInfo;
-  createConversationStore: (userId: string) => TranscriptProjectionStore;
+  appendTranscriptProjectionEntry: (userId: string, entry: TranscriptProjectionAppendEntry) => Promise<void>;
   emitStoredEvent: (entry: TranscriptEntry, info: SessionInfo) => void;
 };
 
@@ -37,8 +35,7 @@ export async function storeTranscriptEntry(
     return;
   }
 
-  const store = deps.createConversationStore(info.userId);
-  await store.appendTranscriptProjectionEntry({
+  await deps.appendTranscriptProjectionEntry(info.userId, {
     conversationRef: info.conversationRef,
     content: entry.content,
     role: entry.role,
