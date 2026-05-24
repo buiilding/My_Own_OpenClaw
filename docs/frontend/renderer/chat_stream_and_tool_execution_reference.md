@@ -184,6 +184,10 @@ SDK dispatch and raw fallback behavior:
 - SDK `compaction_skipped` from backend `context-compaction-completed` with `skipped_reason`: clears only an active compaction status/debug payload. It does not render a compacted-history panel, persist replay rows, or clear unrelated active thinking/tool state.
 - SDK `compaction_failed` from backend `context-compaction-failed`: replaces compaction thinking with terminal failure text (backend error string when available, otherwise `Conversation compaction failed.`) and marks source as `context-compaction-failed`
 - SDK `tool_call` from backend `tool-call`: append assistant tool-call row and transcript tool-call row
+  - the renderer consumes SDK `tool_call` payloads directly, using
+    `structuredPayload` for backend detail fields such as metadata and
+    parameters. It does not unwrap `payload.rawEvent` back into a backend
+    `tool-call` event.
 - SDK `tool_progress` from backend `web-search-progress`: append transient `search-source` rows for live web-search progress without transcript writes
   - the renderer consumes SDK `tool_progress` payloads directly and keeps
     `web-search-progress` as the UI/tracking source label. It does not unwrap

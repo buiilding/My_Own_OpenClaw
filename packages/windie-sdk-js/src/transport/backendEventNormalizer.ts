@@ -188,6 +188,7 @@ export function normalizeBackendEventToConversationEvent(
         toolCallId: typeof payload.tool_call_id === 'string'
           ? payload.tool_call_id
           : resolveModelFacingToolCallId(payload),
+        userId: typeof event.user_id === 'string' ? event.user_id : null,
         structuredPayload: payload,
         rawEvent: event,
       },

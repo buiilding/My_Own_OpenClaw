@@ -4,7 +4,6 @@ import { type ChatMessage } from '../../stores/chatStore';
 import {
   type BackendEventType,
   type ToolBundleEvent,
-  type ToolCallEvent,
   type ToolOutputEvent,
 } from '../../../../types/backendEvents';
 import {
@@ -12,9 +11,11 @@ import {
 } from '../../utils/chatStream/chatStreamFormatting';
 import {
   buildToolBundleMessage,
-  buildToolCallMessage,
   buildToolOutputMessage,
 } from '../../utils/chatStream/chatStreamToolMessages';
+import {
+  buildToolCallChatMessageState,
+} from '../../../../infrastructure/transcript/toolCallChatMessageState';
 import {
   buildToolBundleMessageState,
   buildToolCallMessageState,
@@ -43,7 +44,8 @@ type TrackEventFn = (
   conversationRef?: string | null,
 ) => void;
 
-type ToolStreamEvent = ToolCallEvent | ToolOutputEvent | ToolBundleEvent | ConversationEvent;
+type JsonObject = Record<string, unknown>;
+type ToolStreamEvent = ToolOutputEvent | ToolBundleEvent | ConversationEvent;
 
 type UseChatStreamToolHandlersDeps = {
   enableTranscript: boolean;
@@ -55,7 +57,7 @@ type UseChatStreamToolHandlersDeps = {
   recordTrackingEvent: TrackEventFn;
 };
 
-function unwrapToolBackendEvent<TEvent extends ToolCallEvent | ToolOutputEvent | ToolBundleEvent>(
+function unwrapToolBackendEvent<TEvent extends ToolOutputEvent | ToolBundleEvent>(
   event: ToolStreamEvent,
   expectedType: TEvent['type'],
 ): TEvent | null {
@@ -74,6 +76,16 @@ function unwrapToolBackendEvent<TEvent extends ToolCallEvent | ToolOutputEvent |
   return null;
 }
 
+function asJsonObject(value: unknown): JsonObject | null {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as JsonObject
+    : null;
+}
+
+function readString(value: unknown): string | null {
+  return typeof value === 'string' ? value : null;
+}
+
 export function useChatStreamToolHandlers({
   enableTranscript,
   addMessage,
@@ -85,7 +97,7 @@ export function useChatStreamToolHandlers({
 }: UseChatStreamToolHandlersDeps) {
   const recordToolCallTranscript = useCallback((
     text: string,
-    event: ToolCallEvent | ToolBundleEvent,
+    identity: { conversationRef: string; userId?: string | null },
     toolName: string,
     correlationId: string | null | undefined,
     structuredPayload: TranscriptStructuredToolPayload | null,
@@ -98,53 +110,69 @@ export function useChatStreamToolHandlers({
       messageType: 'tool-call',
       toolName,
       correlationId,
-      conversationRef: event.conversation_ref,
-      userId: event.user_id,
+      conversationRef: identity.conversationRef,
+      userId: identity.userId ?? undefined,
       modelId: modelContext.modelId,
       modelProvider: modelContext.modelProvider,
       structuredPayload,
     });
   }, [enableTranscript, modelContextRef]);
 
-  const handleToolCall = useCallback((event: ToolCallEvent | ConversationEvent, conversationRef?: string | null) => {
-    const backendEvent = unwrapToolBackendEvent<ToolCallEvent>(event, 'tool-call');
-    if (!backendEvent) {
+  const handleToolCall = useCallback((event: ConversationEvent, conversationRef?: string | null) => {
+    if (event.type !== 'tool_call') {
       return;
     }
-    const resolvedConversationRef = conversationRef ?? ('conversationRef' in event ? event.conversationRef : null);
-    const skipFrontendExecution = backendEvent.payload?.metadata?.skip_frontend_execution === true;
+    const resolvedConversationRef = conversationRef ?? event.conversationRef;
+    const toolCallDetails = asJsonObject(event.payload?.structuredPayload) ?? asJsonObject(event.payload);
+    const metadata = asJsonObject(toolCallDetails?.metadata);
+    const args = asJsonObject(event.payload?.args) ?? asJsonObject(toolCallDetails?.parameters);
+    const toolName = readString(event.payload?.toolName) ?? readString(toolCallDetails?.tool_name) ?? '';
+    const requestId = readString(event.payload?.requestId) ?? readString(toolCallDetails?.request_id);
+    const correlationId = (
+      readString(event.payload?.correlationId)
+      ?? resolveToolCallCorrelationId(toolCallDetails)
+    );
+    const userId = readString(event.payload?.userId);
+    const skipFrontendExecution = metadata?.skip_frontend_execution === true;
     if (!skipFrontendExecution) {
       setIsSending(false, resolvedConversationRef);
       setThinkingStatus(null, resolvedConversationRef);
       setThinkingSourceEventType(null, resolvedConversationRef);
     }
     const toolCallMessageState = buildToolCallMessageState({
-      rawToolCall: backendEvent.payload?.metadata?.model_facing_tool_call || null,
-      fallbackToolName: backendEvent.payload?.tool_name || null,
-      fallbackToolCallId: backendEvent.payload?.request_id || null,
-      fallbackArguments: backendEvent.payload?.parameters || null,
-      metadata: backendEvent.payload?.metadata || null,
-      toolCallDetails: backendEvent.payload || null,
-      correlationId: resolveToolCallCorrelationId(backendEvent.payload),
+      rawToolCall: asJsonObject(metadata?.model_facing_tool_call),
+      fallbackToolName: toolName || null,
+      fallbackToolCallId: requestId,
+      fallbackArguments: args,
+      metadata,
+      toolCallDetails,
+      correlationId,
     });
     const modelContext = modelContextRef.current;
-    addMessage(buildToolCallMessage(backendEvent, toolCallMessageState, modelContext), resolvedConversationRef);
+    addMessage(buildToolCallChatMessageState({
+      text: toolCallMessageState.text,
+      toolCallDisplayText: toolCallMessageState.toolCallDisplayText,
+      modelFacingToolCall: toolCallMessageState.modelFacingToolCall ?? null,
+      toolCallDetails: toolCallMessageState.toolCallDetails ?? null,
+      correlationId: toolCallMessageState.correlationId ?? null,
+      sourceEventType: 'tool-call',
+      sourceChannel: 'from-backend',
+      turnRef: event.turnRef ?? undefined,
+      modelId: modelContext.modelId,
+      modelProvider: modelContext.modelProvider,
+    }) as ChatMessage, resolvedConversationRef);
 
-    recordTrackingEvent('tool-call', backendEvent.turn_ref, { toolCall: true }, resolvedConversationRef);
+    recordTrackingEvent('tool-call', event.turnRef, { toolCall: true }, resolvedConversationRef);
 
     recordToolCallTranscript(
       toolCallMessageState.text,
-      backendEvent,
-      backendEvent.payload?.tool_name || '',
+      { conversationRef: event.conversationRef, userId },
+      toolName,
       toolCallMessageState.correlationId,
       buildStructuredToolPayload({
         kind: 'tool-call',
         toolCall: toolCallMessageState.modelFacingToolCall,
-        toolCallDetails: (
-          backendEvent.payload && typeof backendEvent.payload === 'object' && !Array.isArray(backendEvent.payload)
-            ? backendEvent.payload
-            : null
-        ),
+        toolCallDetails,
       }),
     );
   }, [

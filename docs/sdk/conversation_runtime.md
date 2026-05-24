@@ -147,6 +147,12 @@ Renderer UI/debug state may keep the source label `web-search-progress`, but
 the handler should not reconstruct backend `web-search-progress` events from
 `payload.rawEvent`.
 
+Desktop tool-call projection consumes SDK `tool_call` directly. The SDK payload
+exposes normalized fields such as `toolName`, `args`, request/correlation ids,
+and `userId`, while `structuredPayload` carries backend detail fields needed for
+display metadata and transcript trace rows. Renderer tool-call display should
+not reconstruct backend `tool-call` events from `payload.rawEvent`.
+
 ## Continuity Service Rule
 
 `ConversationContinuityService` is the SDK-owned orchestration layer for chat

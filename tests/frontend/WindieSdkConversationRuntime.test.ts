@@ -845,6 +845,7 @@ describe('Windie SDK conversation runtime core', () => {
     const normalized = normalizeBackendEventToConversationEvent({
       type: 'tool-call',
       conversation_ref: 'conv-sdk-runtime',
+      user_id: 'user-sdk-runtime',
       turn_ref: 'turn-1',
       payload: {
         tool_name: 'read_file',
@@ -868,6 +869,7 @@ describe('Windie SDK conversation runtime core', () => {
       payload: expect.objectContaining({
         requestId: 'req-read',
         toolCallId: 'call-read',
+        userId: 'user-sdk-runtime',
       }),
     });
   });

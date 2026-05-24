@@ -322,24 +322,34 @@ describe('useChatStreamToolHandlers', () => {
 
     act(() => {
       result.current.handleToolCall({
-        id: 'event-tool-call-web-search',
-        type: 'tool-call',
-        turn_ref: 'turn-web-search-1',
-        conversation_ref: 'conversation-web-search-1',
-        user_id: 'user-web-search-1',
+        eventId: 'event-tool-call-web-search',
+        type: 'tool_call',
+        conversationRef: 'conversation-web-search-1',
+        turnRef: 'turn-web-search-1',
+        revisionId: 'rev-web-search-1',
+        timestamp: '2026-05-24T00:00:00.000Z',
+        source: 'backend',
         payload: {
-          tool_name: 'web_search',
-          request_id: 'request-web-search-1',
-          parameters: {
+          toolName: 'web_search',
+          requestId: 'request-web-search-1',
+          userId: 'user-web-search-1',
+          args: {
             query: 'Rachel Green',
           },
-          metadata: {
-            skip_frontend_execution: true,
-            model_facing_tool_call: {
-              id: 'tool_llm_web_search_1',
-              name: 'web_search',
-              arguments: {
-                query: 'Rachel Green',
+          structuredPayload: {
+            tool_name: 'web_search',
+            request_id: 'request-web-search-1',
+            parameters: {
+              query: 'Rachel Green',
+            },
+            metadata: {
+              skip_frontend_execution: true,
+              model_facing_tool_call: {
+                id: 'tool_llm_web_search_1',
+                name: 'web_search',
+                arguments: {
+                  query: 'Rachel Green',
+                },
               },
             },
           },
@@ -362,6 +372,23 @@ describe('useChatStreamToolHandlers', () => {
       'turn-web-search-1',
       { toolCall: true },
       'conversation-web-search-1',
+    );
+    expect(mockRecordToolMessage).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        messageType: 'tool-call',
+        toolName: 'web_search',
+        correlationId: 'request-web-search-1',
+        conversationRef: 'conversation-web-search-1',
+        userId: 'user-web-search-1',
+        structuredPayload: expect.objectContaining({
+          kind: 'tool-call',
+          toolCallDetails: expect.objectContaining({
+            tool_name: 'web_search',
+            request_id: 'request-web-search-1',
+          }),
+        }),
+      }),
     );
   });
 
