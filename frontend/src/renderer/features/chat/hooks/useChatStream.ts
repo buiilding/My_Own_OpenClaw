@@ -22,7 +22,6 @@ import { useStreamMessageUpdaters } from './chatStream/useStreamMessageUpdaters'
 import { useChatStreamToolHandlers } from './chatStream/useChatStreamToolHandlers';
 import { useLatestRef } from '../../../infrastructure/hooks/useLatestRef';
 import { useChatStreamTerminalHandlers } from './chatStream/useChatStreamTerminalHandlers';
-import { buildChatStreamHandlerMap } from '../utils/chatStream/chatStreamHandlerMap';
 import { useChatStreamLocalUserHandler } from './chatStream/useChatStreamLocalUserHandler';
 import { useChatStreamCompactionHandlers } from './chatStream/useChatStreamCompactionHandlers';
 import { useChatStreamMetadataHandlers } from './chatStream/useChatStreamMetadataHandlers';
@@ -221,12 +220,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     onEvent: handleError,
   });
 
-  const handlers = useMemo<Partial<Record<BackendEventType, (event: BackendEvent) => void>>>(() => buildChatStreamHandlerMap({
-    handleLocalUserMessage: handleLocalUserMessageEvent,
-  }), [
-    handleLocalUserMessageEvent,
-  ]);
-
   const dispatchConversationEvent = useCallback((
     event: ConversationEvent | null,
     backendEvent: BackendEvent,
@@ -372,9 +365,8 @@ export function useChatStream(enableTranscript: boolean = true) {
           if (dispatchConversationEvent(conversationEvent, event, conversationRef)) {
             return;
           }
-          const handler = handlers[event.type];
-          if (handler) {
-            handler(event);
+          if (event.type === 'local-user-message') {
+            handleLocalUserMessageEvent(event);
           }
         },
       });
@@ -390,7 +382,7 @@ export function useChatStream(enableTranscript: boolean = true) {
   }, [
     enableTranscript,
     dispatchConversationEvent,
-    handlers,
+    handleLocalUserMessageEvent,
     registerTurnConversationRef,
     resolveTargetConversationRef,
     syncActiveConversationProjection,

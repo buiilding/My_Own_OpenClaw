@@ -80,7 +80,8 @@ Listener flow:
 1. validate envelope with `isBackendEvent(...)`
 2. compute `conversationRef` via runtime conversation gate
 3. call `ingestBackendEvent(...)`; unresolved events return `false` and are not dispatched
-4. ingress callback dispatch selects handler from `buildChatStreamHandlerMap(...)`
+4. ingress callback dispatch first tries SDK-normalized conversation-event
+   handling, then the explicit `local-user-message` raw fallback
 
 This keeps listener-level pre-dispatch behavior deterministic and shared across all backend event types.
 

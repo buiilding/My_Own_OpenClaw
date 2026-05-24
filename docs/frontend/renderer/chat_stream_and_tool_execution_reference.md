@@ -27,7 +27,6 @@ title: "Chat Stream and Tool Execution Reference"
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTracking.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventUtils.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamHandlerMap.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamToolMessages.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamThinkingStatus.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTypes.ts`
@@ -170,7 +169,7 @@ Pre-routing and workspace resolution:
 - renderer handlers still consume raw backend events for local-user flows until
   that projection path moves behind the SDK.
 
-Handler map (`BackendEventType` -> behavior):
+SDK dispatch and raw fallback behavior:
 
 - `local-user-message`: adds user row, resets `streamTracking` for turn
 - SDK `reasoning_delta` from backend `llm-thought`: accumulates transient thinking text and writes live reasoning (`thinkingText`) onto the same-turn assistant `llm-text` message (creates placeholder assistant row before first text chunk when needed)
@@ -198,9 +197,10 @@ Handler map (`BackendEventType` -> behavior):
 
 Handler composition boundary:
 
-- `buildChatStreamHandlerMap(...)` owns raw backend event-type to handler-function
-  wiring except assistant text, tool display, compaction, and metadata events,
-  which dispatch from SDK conversation-event types.
+- `useChatStream` dispatches SDK-normalized conversation events first.
+- `local-user-message` is the only raw backend chat event fallback, because it
+  seeds the optimistic user row and active turn before later SDK-owned stream
+  events arrive.
 - local-user-message handling is delegated to `useChatStreamLocalUserHandler`
 - SDK `reasoning_delta` and SDK `assistant_delta` text/placeholder behavior is delegated to `useChatStreamTextHandlers`
 - SDK `system_prompt`/`user_message_metadata`/`assistant_message`/`tool_schemas_metadata`

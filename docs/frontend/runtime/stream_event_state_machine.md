@@ -61,7 +61,8 @@ Handled backend event types:
   - sync active conversation projection when event has explicit conversation identity
   - register `turn_ref -> conversation_ref` mapping
   - refresh transcript session binding (`activeConversationRef || resolvedConversationRef`)
-  - dispatch to event-type handler map
+  - dispatch to SDK-normalized handlers, then the explicit `local-user-message`
+    raw fallback
 4. optional renderer trace logging (`[StreamTrace][renderer][before|after]`) runs only when the window URL includes `debug_stream=1` so normal `electron:dev` sessions do not spam console output
 
 Conversation resolution order:
@@ -99,7 +100,8 @@ Handler-level skip:
 
 Extra error gate:
 
-- `buildChatStreamHandlerMap(...)` suppresses benign errors through `shouldIgnoreStreamError(...)` before `handleError(...)`.
+- SDK `turn_error` handling suppresses benign errors through
+  `shouldIgnoreStreamError(...)` before UI mutation.
 
 ## Stream Tracking Model
 

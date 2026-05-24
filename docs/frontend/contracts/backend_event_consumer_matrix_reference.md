@@ -56,7 +56,7 @@ Type guard:
 
 ### Chat stream consumer (`useChatStream`)
 
-Consumes typed events via `isBackendEvent` + handler map.
+Consumes typed events via `isBackendEvent`, SDK normalization, and explicit renderer consumers.
 
 Core effects:
 

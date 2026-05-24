@@ -1,17 +1,16 @@
 ---
-summary: "Deep reference for `useChatStream` event-handler map wiring, stale-turn guard coverage, and error suppression boundaries before per-event side effects."
+summary: "Deep reference for `useChatStream` SDK event dispatch, the local-user raw fallback, stale-turn guard coverage, and error suppression boundaries before per-event side effects."
 read_when:
-  - When changing `buildChatStreamHandlerMap` wiring or adding/removing backend event types.
+  - When changing `useChatStream` event dispatch wiring or adding/removing backend event types.
   - When debugging events that route to a conversation workspace but do not mutate UI/transcript state.
-title: "Event Handler Map and Turn Guard Matrix Reference"
+title: "Stream Dispatch and Turn Guard Matrix Reference"
 ---
 
-# Event Handler Map and Turn Guard Matrix Reference
+# Stream Dispatch and Turn Guard Matrix Reference
 
 ## Canonical Modules
 
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamHandlerMap.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts`
 - `frontend/src/renderer/features/chat/utils/toolOutputTranscriptPersistence.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamTerminalHandlers.ts`
@@ -28,13 +27,14 @@ Listener flow in `useChatStream`:
 3. optionally rebind active workspace projection (`local-user-message` or empty active projection + explicit conversation identity)
 4. register `turn_ref -> conversation_ref` mapping
 5. update transcript session binding (`activeConversationRef || resolvedConversationRef`)
-6. dispatch SDK-owned event families from normalized conversation events, then
-   dispatch remaining raw backend events through `buildChatStreamHandlerMap(...)`
+6. dispatch SDK-owned event families from normalized conversation events
+7. if SDK dispatch does not consume the event, route the only raw chat fallback:
+   `local-user-message`
 
-## Handler Wiring Contract
+## Dispatch Wiring Contract
 
-`buildChatStreamHandlerMap(...)` owns only backend event types that have not yet
-moved behind SDK conversation events:
+`useChatStream` owns one explicit backend-event fallback that has not moved
+behind SDK conversation events:
 
 - local optimistic user row: `local-user-message`
 
@@ -110,7 +110,8 @@ Reason: local-user-message establishes turn/workspace state and seeds optimistic
 
 ## Drift Hotspots
 
-1. Adding a new backend event type without map wiring silently drops the event.
+1. Adding a new backend event type without SDK normalization or explicit local
+   fallback handling silently drops the event.
 2. Removing stale-turn guard from a mutable handler can leak old-turn output into the active workspace.
 3. Moving `shouldIgnoreStreamError` out of terminal handling can double-emit benign settings errors.
 4. Adding transcript writes to SDK `memory_stored` handling would duplicate side effects already owned by backend-driven memory pipeline.

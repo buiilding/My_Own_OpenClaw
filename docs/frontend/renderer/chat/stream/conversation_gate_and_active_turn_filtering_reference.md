@@ -12,7 +12,6 @@ title: "Conversation Gate and Conversation Isolation Reference"
 
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamConversationGate.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamHandlerMap.ts`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `tests/frontend/ChatStreamConversationGate.test.ts`
 - `tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx`
@@ -63,7 +62,8 @@ Event flow inside backend listener:
 3. sync active chat projection only when event includes explicit conversation identity and active projection is empty or event is `local-user-message`
 4. register `turn_ref -> conversation_ref` mapping when both are available
 5. update transcript session user binding for the resolved conversation
-6. dispatch to per-event handler map
+6. dispatch to SDK-normalized handlers, then the explicit `local-user-message`
+   raw fallback
 
 Because routing is per-workspace, background conversation events do not leak into the currently active chat.
 

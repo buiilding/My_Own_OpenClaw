@@ -20,7 +20,7 @@ The core rule is: update the producer, formatter, outgoing schema, transport reb
 | add or rename a backend streamed event | backend event contract | `backend/src/core/events/streaming_events.py`, `backend/src/core/types/enums.py`, `backend/src/api/contracts/formatter_specs.py` | [Streaming and Events](../concepts/streaming_and_events.md), [Streaming Event to Formatter and Outgoing Contract Alignment Reference](../backend/contracts/events/streaming_event_to_formatter_and_outgoing_contract_alignment_reference.md) | `tests/backend/test_events.py`, `tests/backend/test_formatter_specs_contract.py`, `tests/backend/test_api_contract_registry.py` |
 | change outgoing payload shape | backend formatter and outgoing schema | `backend/src/api/processing/formatters/*`, `backend/src/api/schemas/outgoing.py`, `backend/src/api/contracts/message_types.py` | [Formatter Dispatch and Schema Alignment Reference](../backend/api/processing/formatter_dispatch_and_schema_alignment_reference.md), [Formatter Validation and Contract-Test Matrix Reference](../backend/api/processing/formatters/formatter_validation_and_contract_test_matrix_reference.md) | `tests/backend/test_formatters.py`, `tests/backend/test_response_formatter.py`, `tests/backend/test_outgoing_schema_contract.py` |
 | event is produced but websocket sends nothing | backend formatter required-field guard or spec registration | formatter spec, formatter class, event dataclass | [Base Formatter Guard Utilities and Skip Semantics Reference](../backend/api/processing/formatters/base_formatter_guard_utilities_and_skip_semantics_reference.md) | formatter tests for skipped vs emitted cases |
-| event reaches Electron main but renderer ignores it | renderer typed event guard or dedicated parser | `frontend/src/renderer/types/backendEvents.ts`, `frontend/src/renderer/features/chat/utils/chatStream/*`, audio parser when relevant | [From-Backend Event Ingress, Typed Guard, and Audio Side-Channel Reference](../frontend/contracts/events/from_backend_event_ingress_typed_guard_and_audio_side_channel_reference.md) | `tests/frontend/ChatStreamBackendIngress.test.ts`, `tests/frontend/ChatStreamHandlerMap.test.ts`, event-specific frontend tests |
+| event reaches Electron main but renderer ignores it | renderer typed event guard, SDK normalizer, or dedicated parser | `frontend/src/renderer/types/backendEvents.ts`, `packages/windie-sdk-js/src/transport/backendEventNormalizer.ts`, `frontend/src/renderer/features/chat/utils/chatStream/*`, audio parser when relevant | [From-Backend Event Ingress, Typed Guard, and Audio Side-Channel Reference](../frontend/contracts/events/from_backend_event_ingress_typed_guard_and_audio_side_channel_reference.md) | `tests/frontend/ChatStreamBackendIngress.test.ts`, `tests/frontend/WindieSdkConversationRuntime.test.ts`, event-specific frontend tests |
 | chat text, thinking, terminal, or error state behaves wrong | renderer chat stream handlers | `frontend/src/renderer/features/chat/hooks/useChatStream.ts`, `frontend/src/renderer/features/chat/hooks/chatStream/*`, `frontend/src/renderer/features/chat/utils/chatStream/*` | [Frontend Stream State Machine](../frontend/runtime/stream_event_state_machine.md), [Frontend Chat Stream and Tool Execution Reference](../frontend/renderer/chat_stream_and_tool_execution_reference.md) | `tests/frontend/ChatStream*.test.ts`, `tests/frontend/StreamPhaseState.test.js` |
 | tool-call, tool-output, or tool-bundle event changes | backend tool formatter plus SDK runtime tool router and renderer display consumers | backend tool formatters, `frontend/src/main/ipc/ipc_sdk_tool_router.cjs`, renderer tool message utilities | [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md), [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) | backend tool formatter/result tests plus SDK router and renderer display tests |
 | prompt transparency event changes | backend prompt/event presenter plus renderer transparency parser | `backend/src/agent/llm/event_presenter.py`, prompt events/formatters, renderer transparency utilities | [Prompt Context Change Workflow](../backend/llm/prompts/prompt_context_change_workflow.md) | prompt/event tests plus `tests/frontend/ChatStreamTransparency.test.ts` |
@@ -50,8 +50,8 @@ The core rule is: update the producer, formatter, outgoing schema, transport reb
 5. Add outgoing type constant and schema model in `backend/src/api/contracts/message_types.py` and `backend/src/api/schemas/outgoing.py`.
 6. Add schema/registry/formatter tests.
 7. Add the renderer TypeScript event type in `frontend/src/renderer/types/backendEvents.ts`.
-8. Add renderer handler-map entry and consumer logic under chat stream utilities.
-9. Add frontend event guard, handler map, and consumer tests.
+8. Add SDK backend-event normalization and renderer consumer logic under chat stream utilities.
+9. Add frontend event guard, SDK normalization, and consumer tests.
 10. Update [WebSocket Event Reference](../reference/websocket_event_reference.md), [Streaming and Events](../concepts/streaming_and_events.md), and any family-specific docs.
 
 ## Change an Existing Event Payload
@@ -69,7 +69,7 @@ The core rule is: update the producer, formatter, outgoing schema, transport reb
 1. Preserve correlation fields at the backend formatter layer.
 2. Confirm Electron main rebroadcasts the event and does not swallow it as a special case.
 3. Update renderer `isBackendEvent(...)` only for typed chat events.
-4. Update handler map coverage for every typed chat event.
+4. Update SDK normalization and consumer coverage for every typed chat event.
 5. Update active conversation and turn guards when event ownership depends on `conversation_ref` or `turn_ref`.
 6. Add tests for matching conversation, stale conversation, matching turn, stale turn, and missing context fields where relevant.
 
@@ -110,7 +110,9 @@ Tool events are both UI state and SDK runtime execution requests.
 
 - Confirm the event is a typed chat event or a side-channel/control event.
 - For typed chat events, confirm `BACKEND_EVENT_TYPES` includes the type.
-- Confirm `buildChatStreamHandlerMap(...)` maps it to a handler.
+- Confirm the SDK normalizer maps it to a conversation event, or that
+  `useChatStream` intentionally handles it as the explicit `local-user-message`
+  raw fallback.
 - Confirm active conversation/turn filters are not dropping it.
 - Confirm payload field names match the renderer consumer.
 - For audio, confirm `extractAudioChunkPayload(...)` accepts the shape.
@@ -135,7 +137,7 @@ Tool events are both UI state and SDK runtime execution requests.
 | backend event dataclass/type/spec | `./scripts/python-in-env backend pytest tests/backend/test_events.py tests/backend/test_formatter_specs_contract.py tests/backend/test_api_contract_registry.py` |
 | formatter/outgoing schema | `./scripts/python-in-env backend pytest tests/backend/test_formatters.py tests/backend/test_response_formatter.py tests/backend/test_outgoing_schema_contract.py` |
 | query stream pipeline | `./scripts/python-in-env backend pytest tests/backend/test_stream_pipeline.py tests/backend/test_query_execution_pipeline_events.py tests/backend/test_query_execution_stream_state.py` |
-| renderer typed guard/handler map | `cd frontend && npm run test -- ChatStreamBackendIngress ChatStreamHandlerMap ChatStreamEventRuntime` |
+| renderer typed guard/SDK dispatch | `cd frontend && npm run test -- ChatStreamBackendIngress ChatStreamEventRuntime WindieSdkConversationRuntime` |
 | renderer stream state/terminal behavior | focused `ChatStream*`, `StreamPhaseState`, and terminal handoff tests |
 | tool event changes | backend tool formatter/result tests plus frontend `ToolRunner` and `ToolExecution` tests |
 | audio event changes | backend TTS tests plus `cd frontend && npm run test -- BackendAudioEvents` |
@@ -145,7 +147,7 @@ Tool events are both UI state and SDK runtime execution requests.
 
 - Event name is canonical kebab-case and appears in every required backend and frontend registry.
 - Formatter output and outgoing schema agree on required and optional fields.
-- Renderer typed union, runtime guard, handler map, and consumer tests all know the event if it is a typed chat event.
+- Renderer typed union, runtime guard, SDK normalization, and consumer tests all know the event if it is a typed chat event.
 - Side-channel or ACK events are documented as side-channel/ACK events instead of accidentally joining chat stream handling.
 - Correlation fields are preserved for events that affect chat, transcript, tools, or terminal state.
 - Terminal event behavior is explicit for success, cancellation, stop, and error paths.
