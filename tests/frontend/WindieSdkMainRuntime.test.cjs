@@ -56,7 +56,7 @@ describe('Windie SDK main runtime', () => {
     });
   });
 
-  test('owns backend websocket handshake and typed sends for Electron main', async () => {
+  test('owns backend websocket handshake and typed non-tool sends for Electron main', async () => {
     const opened = jest.fn();
     const runtime = createWindieSdkMainRuntime({
       WebSocketImpl: FakeWebSocket,
@@ -96,8 +96,8 @@ describe('Windie SDK main runtime', () => {
     expect(runtime.sendListModels()).toBe('msg-1');
     expect(runtime.rehydrateConversation({ conversation_ref: 'conv-1', messages: [] })).toBe('msg-1');
     expect(runtime.sendCompactHistory({ conversation_ref: 'conv-1' })).toBe('msg-1');
-    expect(runtime.sendToolResult({ request_id: 'req-1', success: true })).toBe('msg-1');
-    expect(runtime.sendToolBundleResult({ bundle_id: 'bundle-1', status: 'success' })).toBe('msg-1');
+    expect(runtime.sendToolResult).toBeUndefined();
+    expect(runtime.sendToolBundleResult).toBeUndefined();
     expect(JSON.parse(socket.sent[3])).toMatchObject({
       type: 'update-settings',
       payload: { model_provider: 'openai' },
@@ -116,16 +116,6 @@ describe('Windie SDK main runtime', () => {
     expect(JSON.parse(socket.sent[6])).toMatchObject({
       type: 'compact-history',
       payload: { conversation_ref: 'conv-1' },
-      user_id: 'dev-user',
-    });
-    expect(JSON.parse(socket.sent[7])).toMatchObject({
-      type: 'tool-result',
-      payload: { request_id: 'req-1', success: true },
-      user_id: 'dev-user',
-    });
-    expect(JSON.parse(socket.sent[8])).toMatchObject({
-      type: 'tool-bundle-result',
-      payload: { bundle_id: 'bundle-1', status: 'success' },
       user_id: 'dev-user',
     });
   });

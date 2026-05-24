@@ -21,8 +21,14 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).toContain('sendCompactHistory');
     expect(source).toContain('rehydrateConversation');
     expect(source).not.toContain('sendRehydrate:');
-    expect(source).toContain('sendToolBundleResult');
-    expect(source).toContain('sendToolResult');
+    expect(source).toContain('sendToolBundleResult: (payload, messageId) => session.sendToolBundleResult(payload, messageId)');
+    expect(source).toContain('sendToolResult: (payload, messageId) => session.sendToolResult(payload, messageId)');
+
+    const returnBlockStart = source.indexOf('  return {\n    close:');
+    const returnBlockEnd = source.indexOf('\n  };\n}', returnBlockStart);
+    const runtimeReturnBlock = source.slice(returnBlockStart, returnBlockEnd);
+    expect(runtimeReturnBlock).not.toContain('sendToolBundleResult');
+    expect(runtimeReturnBlock).not.toContain('sendToolResult');
   });
 
   test('main tool router delegates local tool routing to the sdk package', async () => {

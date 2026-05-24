@@ -92,6 +92,11 @@ These are consumed by backend handler stack and routed into session tool-result
 waiting storage for loop continuation. Renderer UI rows are projections and must
 not become the source of backend replay truth.
 
+Electron main does not expose manual `sendToolResult` or
+`sendToolBundleResult` methods from the app runtime. Tool result delivery stays
+inside SDK tool coordination so callers cannot bypass the skip/stale gates,
+bundle correlation, or display-only renderer projection path.
+
 ## Related Docs
 
 - [Sidecar and Tool Channels](../../channels/sidecar_and_tool_channels.md)

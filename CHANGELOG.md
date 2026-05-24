@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sdk: remove public Electron main-runtime tool-result sender methods so backend tool-result delivery stays inside SDK tool coordination.
 - sdk/tools: restore automatic post-action screenshots for computer-use tools, with single-tool captures merged into tool results and atomic bundles capturing once after all steps.
 - frontend/chat: scope awaiting-dot progress suppression to the current user turn so prior tool/search progress does not hide typing dots for sequential messages.
 - frontend/main: log chat-pill show/hide visibility decisions from Electron main with specific handoff reasons, user-hidden state, and window visibility.

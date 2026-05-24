@@ -36,6 +36,9 @@ Ownership rules:
   and the conversation transport adapter used by `ConversationRuntime`. That
   adapter exposes query, rehydrate, stop, tool-result, settings-update, and
   list-models websocket commands as one typed backend boundary.
+- Electron main exposes only non-tool typed websocket commands to app callers;
+  backend tool-result sends are internal to SDK tool coordination after a
+  claimed backend tool event.
 - the SDK hosted HTTP transport owns model listing, prompt/query-plan
   introspection, artifact upload URLs, OCR routes, and vision routes exposed to
   public SDK callers.
