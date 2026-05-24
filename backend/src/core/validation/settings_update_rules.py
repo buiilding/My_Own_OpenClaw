@@ -55,7 +55,6 @@ SETTINGS_UPDATE_RULES: dict[str, SettingsUpdateRule] = {
     "history_compaction_summary_max_tokens": SettingsUpdateRule(
         (int,), allow_none=True
     ),
-    "history_compaction_cooldown_turns": SettingsUpdateRule((int,), allow_none=True),
     "history_compaction_strategy": SettingsUpdateRule((str,)),
     "history_compaction_prompt": SettingsUpdateRule((str,), allow_none=True),
     "embedding_max_concurrent_requests": SettingsUpdateRule((int,), allow_none=True),

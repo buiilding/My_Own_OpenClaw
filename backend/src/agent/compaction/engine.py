@@ -33,7 +33,6 @@ class CompactionEngine:
     def __init__(self, session: "AgentSession") -> None:
         self._session = session
         self._inline_strategy = InlineSummaryCompactionStrategy()
-        self._last_compaction_user_turn_index = -10_000
         self._last_provider_prompt_tokens: Optional[int] = None
 
     def record_provider_prompt_tokens(self, prompt_tokens: Optional[int]) -> None:
@@ -97,25 +96,6 @@ class CompactionEngine:
                 projected_tokens=projected_tokens,
                 user_turn_index=user_turn_index,
                 skip_reason="below-threshold",
-            )
-            self._log_decision(
-                decision,
-                trigger_tokens=trigger_tokens,
-                local_before_tokens=local_before_tokens,
-                decision_source=decision_source,
-                force=force,
-            )
-            return decision
-
-        if not force and self._is_on_cooldown(user_turn_index):
-            decision = CompactionDecision(
-                should_compact=False,
-                reason=reason,
-                strategy_name=strategy_name,
-                before_tokens=before_tokens,
-                projected_tokens=projected_tokens,
-                user_turn_index=user_turn_index,
-                skip_reason="cooldown",
             )
             self._log_decision(
                 decision,
@@ -206,7 +186,6 @@ class CompactionEngine:
 
         after_tokens = self._get_prompt_token_count(model=self._session.cfg.llm_model)
         removed_messages = max(0, len(current_messages) - len(replacement_messages))
-        self._last_compaction_user_turn_index = active_decision.user_turn_index
         self._last_provider_prompt_tokens = None
 
         logger.info(
@@ -350,13 +329,7 @@ class CompactionEngine:
                 )
 
         if isinstance(max_input_tokens, int) and max_input_tokens > 0:
-            context_window_trigger = max(
-                2048, int(max_input_tokens * AUTO_TRIGGER_RATIO)
-            )
-            configured_target = self._session.cfg.history_compaction_target_tokens
-            if isinstance(configured_target, int) and configured_target > 0:
-                return max(2048, min(context_window_trigger, configured_target))
-            return context_window_trigger
+            return max(2048, int(max_input_tokens * AUTO_TRIGGER_RATIO))
         return DEFAULT_TRIGGER_FALLBACK_TOKENS
 
     def _resolve_decision_token_count(self, local_before_tokens: int) -> int:
@@ -403,12 +376,6 @@ class CompactionEngine:
             decision.user_turn_index,
             force,
         )
-
-    def _is_on_cooldown(self, user_turn_index: int) -> bool:
-        cooldown_turns = max(0, self._session.cfg.history_compaction_cooldown_turns)
-        return (
-            user_turn_index - self._last_compaction_user_turn_index
-        ) <= cooldown_turns
 
     def _current_user_turn_index(self) -> int:
         return sum(

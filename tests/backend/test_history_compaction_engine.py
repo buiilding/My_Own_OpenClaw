@@ -175,8 +175,8 @@ async def test_compaction_engine_manual_force_compacts_short_history(monkeypatch
 
 
 @pytest.mark.asyncio
-async def test_compaction_engine_respects_cooldown(monkeypatch):
-    class _CooldownTokenService:
+async def test_compaction_engine_allows_repeated_compaction_above_threshold(monkeypatch):
+    class _RepeatCompactionTokenService:
         def count_tokens(self, messages, model):
             _ = model
             return len(messages) * 300
@@ -188,7 +188,7 @@ async def test_compaction_engine_respects_cooldown(monkeypatch):
     monkeypatch.setattr(
         token_service_module,
         "get_token_service",
-        lambda: _CooldownTokenService(),
+        lambda: _RepeatCompactionTokenService(),
     )
     history = ConversationHistory()
     for _ in range(6):
@@ -196,7 +196,6 @@ async def test_compaction_engine_respects_cooldown(monkeypatch):
     cfg = AppConfig(
         history_compaction_enabled=True,
         history_compaction_trigger_tokens=2048,
-        history_compaction_cooldown_turns=1,
     )
     session = _FakeSession(cfg=cfg, history=history)
     session.prompt_builder = SimpleNamespace(
@@ -210,8 +209,8 @@ async def test_compaction_engine_respects_cooldown(monkeypatch):
     assert first_result.applied is True
 
     second_decision = engine.evaluate(reason="auto-mid")
-    assert second_decision.should_compact is False
-    assert second_decision.skip_reason == "cooldown"
+    assert second_decision.should_compact is True
+    assert second_decision.skip_reason is None
 
 
 @pytest.mark.asyncio
@@ -297,7 +296,7 @@ async def test_compaction_engine_skips_when_dynamic_threshold_not_reached(monkey
 
 
 @pytest.mark.asyncio
-async def test_compaction_engine_uses_configured_target_as_auto_trigger_cap(
+async def test_compaction_engine_uses_model_window_ratio_not_target_as_auto_trigger(
     monkeypatch,
 ):
     class _LargeWindowTokenService:
@@ -331,15 +330,22 @@ async def test_compaction_engine_uses_configured_target_as_auto_trigger_cap(
         history_compaction_target_tokens=60000,
     )
     session = _FakeSession(cfg=cfg, history=history)
+    prompt_count = {"value": 61000}
     session.prompt_builder = SimpleNamespace(
-        get_prompt_token_count=lambda stored_messages, model_id: 61000
+        get_prompt_token_count=lambda stored_messages, model_id: prompt_count["value"]
     )
     engine = CompactionEngine(session)
 
     decision = engine.evaluate(reason="auto-mid")
+    assert decision.should_compact is False
+    assert decision.before_tokens == 61000
+    assert decision.skip_reason == "below-threshold"
+
+    prompt_count["value"] = 360000
+    decision = engine.evaluate(reason="auto-mid")
 
     assert decision.should_compact is True
-    assert decision.before_tokens == 61000
+    assert decision.before_tokens == 360000
 
 
 def test_compaction_engine_uses_provider_prompt_high_water_for_next_decision(
@@ -381,11 +387,11 @@ def test_compaction_engine_uses_provider_prompt_high_water_for_next_decision(
     )
     engine = CompactionEngine(session)
 
-    engine.record_provider_prompt_tokens(288178)
+    engine.record_provider_prompt_tokens(361000)
     decision = engine.evaluate(reason="auto-mid")
 
     assert decision.should_compact is True
-    assert decision.before_tokens == 288178
+    assert decision.before_tokens == 361000
 
 
 def test_compaction_engine_counts_contextual_prompt_messages(monkeypatch):

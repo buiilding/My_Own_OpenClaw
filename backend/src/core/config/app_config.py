@@ -41,7 +41,6 @@ APP_CONFIG = AppConfig(
     history_compaction_summary_max_tokens=1200,
     history_compaction_strategy="auto",
     history_compaction_prompt=None,
-    history_compaction_cooldown_turns=1,
     # Vision Model Settings (UI grounding / Venus)
     vision_backend="local",
     vision_model_name="OpenGVLab/InternVL3_5-4B",

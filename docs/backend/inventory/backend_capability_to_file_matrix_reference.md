@@ -47,7 +47,7 @@ This matrix maps backend capabilities to implementation files.
 | Session runtime state stores | `backend/src/agent/session/{runtime_state,state}.py`, `backend/src/agent/session/session.py` | Holds system-state, conversation refs, tool execution refs/results. |
 | Query execution state machine | `backend/src/agent/execution/{executor,interaction_loop,policies}.py` | Multi-iteration loop with terminal/error/tool branches. |
 | Recoverable tool-call parse error bridge | `backend/src/agent/execution/tool_call_bridge.py`, `backend/src/agent/execution/interaction_loop.py` | Converts malformed tool-call payload issues into synthetic recoverable tool outputs. |
-| Pre/mid-turn compaction integration | `backend/src/agent/compaction/{engine,models,prompt}.py`, `backend/src/agent/compaction/strategies/inline_summary.py` | Threshold/cooldown decision and summary insertion replacement. |
+| Pre/mid-turn compaction integration | `backend/src/agent/compaction/{engine,models,prompt}.py`, `backend/src/agent/compaction/strategies/inline_summary.py` | Threshold decision and summary insertion replacement. |
 
 ## 4) Tool Lifecycle (Prepare -> Send -> Wait -> Process)
 

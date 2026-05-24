@@ -30,7 +30,6 @@ class SessionRuntimeConfigView:
     history_compaction_summary_max_tokens: int
     history_compaction_strategy: str
     history_compaction_prompt: Optional[str]
-    history_compaction_cooldown_turns: int
     include_query_screenshot: bool
 
 
@@ -89,7 +88,6 @@ def session_runtime_config(config: AppConfig) -> SessionRuntimeConfigView:
         history_compaction_summary_max_tokens=config.history_compaction_summary_max_tokens,
         history_compaction_strategy=config.history_compaction_strategy,
         history_compaction_prompt=config.history_compaction_prompt,
-        history_compaction_cooldown_turns=config.history_compaction_cooldown_turns,
         include_query_screenshot=config.include_query_screenshot,
     )
 

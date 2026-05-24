@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for backend history compaction internals: decision thresholds, cooldown gating, inline strategy prompt/fallback behavior, and auto/manual event emission integration points."
+summary: "Deep reference for backend history compaction internals: decision thresholds, inline strategy prompt/fallback behavior, and auto/manual event emission integration points."
 read_when:
   - When changing `backend/src/agent/compaction/*` decision or strategy behavior.
   - When debugging `context-compaction-*` lifecycle events emitted from auto-pre/auto-mid/manual flows.
@@ -28,10 +28,9 @@ title: "History Compaction Engine Decision, Strategy, and Event Contract Referen
 
 `init_compaction_engine(session)` wires one `CompactionEngine` per `AgentSession`.
 
-The engine is stateful only for cooldown tracking:
+The engine keeps only one decision carryover value:
 
-- `_last_compaction_user_turn_index` defaults to `-10_000`
-- updated only after a successful applied compaction
+- `_last_provider_prompt_tokens` stores the highest provider-reported prompt-token count observed since the last applied compaction
 
 Everything else is computed per call from current history/config/token services.
 
@@ -40,7 +39,7 @@ Everything else is computed per call from current history/config/token services.
 Inputs:
 
 - `reason` (`auto-pre`, `auto-mid`, `manual`)
-- `force` (bypasses threshold + cooldown checks)
+- `force` (bypasses the threshold check)
 - optional `pending_user_content` (used for `auto-pre` projected token calculation)
 
 Computed values:
@@ -55,7 +54,6 @@ Skip reasons returned via `CompactionDecision.skip_reason`:
 
 - `disabled`
 - `below-threshold`
-- `cooldown`
 
 Enabled gating:
 
@@ -66,16 +64,14 @@ Threshold resolution order:
 
 1. `history_compaction_trigger_tokens` when positive integer
 2. WindieOS model catalog context window for the resolved runtime model id, otherwise LiteLLM model metadata
-3. model window trigger at `context_window * 0.90`, capped by `history_compaction_target_tokens` when configured (minimum `2048`)
+3. model window trigger at `context_window * 0.90` (minimum `2048`)
 4. hard fallback `120000`
 
 Every decision logs reason, should/skip state, before/projected/trigger tokens, local estimate, source (`local-estimate` or `provider-high-water`), user turn index, and force flag. This is intentionally info-level so live backend logs show why auto-pre or auto-mid did or did not run.
 
-Cooldown rule:
+There is no compaction cooldown gate. If the projected prompt remains above the trigger after one applied compaction, the next auto-pre or auto-mid evaluation may compact again immediately.
 
-- skip when `(current_user_turn_index - last_compaction_user_turn_index) <= history_compaction_cooldown_turns`
-
-`force=True` bypasses threshold and cooldown checks, but does not bypass manual/auto enable flags.
+`force=True` bypasses the threshold check, but does not bypass manual/auto enable flags.
 
 ## Apply Contract (`CompactionEngine.compact`)
 
@@ -101,7 +97,7 @@ If compaction proceeds:
 5. replace history with:
   - `[summary_message, *keep_tail_messages]`
 6. compute post metrics (`after_tokens`, `removed_messages`)
-7. update cooldown anchor index to decision `user_turn_index`
+7. clear the provider prompt-token high-water mark
 
 If `_build_compaction_input(...)` cannot produce compactable input:
 

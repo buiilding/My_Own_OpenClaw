@@ -328,7 +328,6 @@ class AppConfig(BaseModel):
     history_compaction_summary_max_tokens: int = Field(default=1200, ge=128)
     history_compaction_strategy: Literal["auto", "inline", "openai-remote"] = "auto"
     history_compaction_prompt: Optional[str] = None
-    history_compaction_cooldown_turns: int = Field(default=1, ge=0)
 
     # Tool Execution Settings
     # This section is largely redundant as tools execute on the frontend

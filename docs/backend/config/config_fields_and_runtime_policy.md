@@ -76,13 +76,12 @@ Provider defaults in `LLMProviders`:
 | `history_compaction_enabled` | `bool` | `true` | Enables auto compaction gates in pre-query and mid-loop execution paths. |
 | `history_compaction_manual_enabled` | `bool` | `true` | Enables manual `compact-history` WebSocket command. |
 | `history_compaction_openai_remote_enabled` | `bool` | `false` | Phase-gate for OpenAI remote compaction strategy path (currently inline fallback). |
-| `history_compaction_trigger_tokens` | `int \| null` | `null` | Threshold to trigger compaction evaluation. `null` uses auto-threshold from active model max input context (`~90%` of `max_input_tokens`). |
-| `history_compaction_target_tokens` | `int` | `60000` | Target budget used by compaction planning logic. |
+| `history_compaction_trigger_tokens` | `int \| null` | `null` | Exact threshold to trigger compaction. `null` uses 90% of the active model max input context. |
+| `history_compaction_target_tokens` | `int` | `60000` | Compaction planning budget; it does not cap the auto-trigger threshold. |
 | `history_compaction_keep_recent_user_messages` | `int` | `6` | Keeps tail history anchored on the most recent N user messages. |
 | `history_compaction_summary_max_tokens` | `int` | `1200` | Max tokens for generated summary content. |
 | `history_compaction_strategy` | `"auto" \| "inline" \| "openai-remote"` | `"auto"` | Strategy selector; current rollout resolves to inline strategy. |
 | `history_compaction_prompt` | `str \| None` | `None` | Optional custom compaction prompt override. |
-| `history_compaction_cooldown_turns` | `int` | `1` | Prevents repeated compaction on adjacent user turns. |
 
 Execution/event semantics for these fields (decision skip reasons, trigger fallback order, and auto-pre/auto-mid/manual lifecycle emissions) are documented in [History Compaction Engine Decision, Strategy, and Event Contract Reference](../agent/history_compaction_engine_decision_strategy_and_event_contract_reference.md).
 

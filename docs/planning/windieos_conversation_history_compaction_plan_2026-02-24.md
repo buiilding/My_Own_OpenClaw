@@ -192,7 +192,6 @@ Add compaction settings to `AppConfig` (`backend/src/core/config/models.py`) and
 - `history_compaction_summary_max_tokens: int = 1200`
 - `history_compaction_strategy: Literal["auto", "inline", "openai-remote"] = "auto"`
 - `history_compaction_prompt: Optional[str] = None`
-- `history_compaction_cooldown_turns: int = 1`
 
 Validation updates in `backend/src/core/validation/validators.py`.
 
@@ -378,7 +377,7 @@ Risk: Over-compaction loses task-critical context.
 - Mitigation: preserve recent user turns, unresolved tool span, configurable target budget.
 
 Risk: Compaction loops (compact every iteration).
-- Mitigation: per-turn cooldown + minimum token delta requirement.
+- Mitigation: threshold evaluation against active model context, preserved recent-turn tail, and provider/token diagnostics so repeated compaction only happens while the prompt remains over the active trigger.
 
 Risk: Provider-specific parse drift.
 - Mitigation: strict output normalization + fallback to inline local builder.
