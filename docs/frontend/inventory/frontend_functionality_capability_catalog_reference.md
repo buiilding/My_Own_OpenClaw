@@ -162,7 +162,7 @@ Primary files:
 - `frontend/src/renderer/features/chat/hooks/{useChatMessageSender,useChatStream,useStreamMessageUpdaters}.ts`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/features/chat/components/*`
-- `frontend/src/renderer/app/runtime/desktopConversationRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
@@ -232,7 +232,7 @@ Capabilities:
 
 ## 10) End-to-End Path Checkpoints
 
-1. Renderer `DesktopConversationRuntimeClient.sendQuery` sends query intent through the SDK conversation runtime and desktop backend transport.
+1. Renderer `DesktopLiveTurnRuntimeClient.sendQuery` sends query intent through the SDK conversation runtime and desktop backend transport.
 2. Main process enriches payload and hands it to the SDK runtime for backend WebSocket transport.
 3. Backend stream envelopes relay from main to renderer `from-backend`.
 4. `useChatStream` updates chat state + transcript and tracks active turn phase.

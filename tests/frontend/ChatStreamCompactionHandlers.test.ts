@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 
-jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient', () => ({
-  DesktopConversationRuntimeClient: {
+jest.mock('../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient', () => ({
+  DesktopLiveTurnRuntimeClient: {
   },
 }));
 

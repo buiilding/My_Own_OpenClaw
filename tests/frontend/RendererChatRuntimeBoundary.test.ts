@@ -2,9 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 const chatRoot = path.resolve(__dirname, '../../frontend/src/renderer/features/chat');
-const allowedRelativePaths = new Set([
-  'session/desktopConversationRuntimeClient.ts',
-]);
+const allowedRelativePaths = new Set<string>();
 
 async function listSourceFiles(dir: string): Promise<string[]> {
   const entries = await fs.readdir(dir, { withFileTypes: true });
@@ -23,7 +21,7 @@ async function listSourceFiles(dir: string): Promise<string[]> {
 }
 
 describe('renderer chat runtime boundary', () => {
-  test('chat feature code uses the desktop conversation runtime facade for backend commands', async () => {
+  test('chat feature code uses desktop runtime facades for backend commands', async () => {
     const files = await listSourceFiles(chatRoot);
     const offenders: string[] = [];
 
@@ -52,9 +50,9 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('recordUserTranscriptMessage');
   });
 
-  test('app conversation runtime facade does not own transcript projection writes', async () => {
+  test('app live-turn runtime facade does not own transcript projection writes', async () => {
     const source = await fs.readFile(
-      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeClient.ts'),
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts'),
       'utf8',
     );
 
@@ -63,14 +61,14 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('recordToolMessage');
   });
 
-  test('chat feature code does not use the conversation command facade for transcript session identity', async () => {
+  test('chat feature code does not use the live-turn facade for transcript session identity', async () => {
     const files = await listSourceFiles(chatRoot);
     const offenders: string[] = [];
     const forbiddenCalls = [
-      'DesktopConversationRuntimeClient.getActiveConversationRef',
-      'DesktopConversationRuntimeClient.getTranscriptSessionInfo',
-      'DesktopConversationRuntimeClient.setActiveConversationRef',
-      'DesktopConversationRuntimeClient.updateTranscriptSession',
+      'DesktopLiveTurnRuntimeClient.getActiveConversationRef',
+      'DesktopLiveTurnRuntimeClient.getTranscriptSessionInfo',
+      'DesktopLiveTurnRuntimeClient.setActiveConversationRef',
+      'DesktopLiveTurnRuntimeClient.updateTranscriptSession',
     ];
 
     for (const file of files) {
@@ -156,8 +154,8 @@ describe('renderer chat runtime boundary', () => {
 
     expect(source).not.toContain('DesktopConversationStoreAdapter');
     expect(source).toContain('DesktopConversationContinuityService.replaceCompactedReplay');
-    expect(source).not.toContain('DesktopConversationRuntimeClient.replaceCompactedReplay');
-    expect(source).not.toContain('DesktopConversationRuntimeClient.replaceCompactedReplayFromBackendEvent');
+    expect(source).not.toContain('DesktopLiveTurnRuntimeClient.replaceCompactedReplay');
+    expect(source).not.toContain('DesktopLiveTurnRuntimeClient.replaceCompactedReplayFromBackendEvent');
   });
 
   test('chat stream terminal handlers consume SDK events directly', async () => {
@@ -272,8 +270,8 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('DesktopConversationStoreAdapter');
     expect(source).toContain('DesktopConversationContinuityService.editAndResend');
     expect(source).toContain('DesktopConversationContinuityService.retryTurn');
-    expect(source).not.toContain('DesktopConversationRuntimeClient.editAndResend');
-    expect(source).not.toContain('DesktopConversationRuntimeClient.retryTurn');
+    expect(source).not.toContain('DesktopLiveTurnRuntimeClient.editAndResend');
+    expect(source).not.toContain('DesktopLiveTurnRuntimeClient.retryTurn');
   });
 
   test('conversation inference rehydrate snapshots use the continuity runtime facade', async () => {
@@ -286,15 +284,15 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('DesktopConversationContinuityService.loadLocalConversationSnapshot');
     expect(source).toContain('DesktopConversationContinuityService.rehydrateFromStore');
     expect(source).toContain('DesktopConversationContinuityService.rehydrateMessages');
-    expect(source).not.toContain('DesktopConversationRuntimeClient.loadRehydrateSnapshot');
-    expect(source).not.toContain('DesktopConversationRuntimeClient.loadLocalConversationSnapshot');
-    expect(source).not.toContain('DesktopConversationRuntimeClient.rehydrateFromStore');
-    expect(source).not.toContain('DesktopConversationRuntimeClient.rehydrate');
+    expect(source).not.toContain('DesktopLiveTurnRuntimeClient.loadRehydrateSnapshot');
+    expect(source).not.toContain('DesktopLiveTurnRuntimeClient.loadLocalConversationSnapshot');
+    expect(source).not.toContain('DesktopLiveTurnRuntimeClient.rehydrateFromStore');
+    expect(source).not.toContain('DesktopLiveTurnRuntimeClient.rehydrate');
   });
 
-  test('app conversation runtime facade delegates transcript storage to projection runtime', async () => {
+  test('app live-turn runtime facade delegates transcript storage to projection runtime', async () => {
     const source = await fs.readFile(
-      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeClient.ts'),
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts'),
       'utf8',
     );
 
@@ -331,12 +329,12 @@ describe('renderer chat runtime boundary', () => {
     );
 
     expect(source).toContain('DesktopConversationContinuityService.compactHistory');
-    expect(source).not.toContain('DesktopConversationRuntimeClient.compactHistory');
+    expect(source).not.toContain('DesktopLiveTurnRuntimeClient.compactHistory');
   });
 
-  test('app conversation runtime facade does not expose raw stream ingress helpers', async () => {
+  test('app live-turn runtime facade does not expose raw stream ingress helpers', async () => {
     const source = await fs.readFile(
-      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeClient.ts'),
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts'),
       'utf8',
     );
 

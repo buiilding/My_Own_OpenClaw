@@ -117,8 +117,8 @@ jest.mock('../../frontend/src/renderer/features/chat/utils/devUiFlag', () => ({
   isDevUiEnabled: () => mockIsDevUiEnabled(),
 }));
 
-jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient', () => ({
-  DesktopConversationRuntimeClient: {
+jest.mock('../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient', () => ({
+  DesktopLiveTurnRuntimeClient: {
     stop: (...args) => mockStopQuery(...args),
     sendQuery: (...args) => mockSendQuery(...args),
   },

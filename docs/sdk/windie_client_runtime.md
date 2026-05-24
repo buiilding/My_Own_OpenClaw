@@ -269,7 +269,7 @@ Electron uses the SDK `SidecarConversationStore` through a desktop store factory
 - desktop compaction replacement-history writes go through the desktop
   conversation continuity service into
   `SidecarConversationStore.replaceCompactedReplay(...)` instead of stream
-  handlers or the conversation command facade directly mutating replay storage
+  handlers or the live-turn facade directly mutating replay storage
 - compacted replay replacement appends a new generation with entry count and
   completion metadata; loaders keep using the previous complete generation if a
   newer write is partial
@@ -299,7 +299,7 @@ Electron uses the SDK `SidecarConversationStore` through a desktop store factory
 - desktop chat feature code uses the transcript-session runtime facade for
   active conversation/user identity, while user, assistant, and tool transcript
   writes go through focused chat-feature persistence helpers into the SDK-backed
-  projection runtime instead of through the conversation command facade.
+  projection runtime instead of through the live-turn facade.
 - desktop dashboard and app config session synchronization use an app-level
   transcript-session runtime facade, so feature/provider code does not import
   transcript infrastructure directly for conversation/user identity updates.
@@ -521,7 +521,7 @@ before they reach the low-level IPC adapter. Chat features should call
 `DesktopSettingsRuntimeClient.setModel(...)`; that facade builds the same SDK
 model-selection patch used by public `WindieClient` callers. Feature code
 should not shape `update-settings` payloads, route model sync through the
-conversation command facade, or call the backend API adapter directly.
+live-turn facade, or call the backend API adapter directly.
 
 `stream(input, options)` returns an `AsyncIterableIterator<WindieAgentStreamEvent>`.
 It is a high-level projection over `SdkConversationRuntime.stream()`: it

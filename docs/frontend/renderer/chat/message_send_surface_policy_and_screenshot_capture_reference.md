@@ -109,7 +109,7 @@ When attachment(s) exist:
 10. update optimistic message with `screenshotRef/screenshotUrl` plus `screenshots[]`.
 11. record the visible user transcript row through `userTranscriptPersistence.ts`,
     which delegates to the SDK-backed transcript projection runtime.
-12. call `DesktopConversationRuntimeClient.sendQuery`, which owns backend query dispatch only, with:
+12. call `DesktopLiveTurnRuntimeClient.sendQuery`, which owns backend query dispatch only, with:
   - `screenshot_ref` (first ref for backend protocol ingress)
   - `screenshot_refs` (all uploaded refs for multi-image queries)
   - optional `attachment_context` (hidden read_file output for selected non-image files)
@@ -124,7 +124,7 @@ Readable file injection path:
 
 Assistant and tool transcript projection writes from stream ingestion route
 through `chatStreamTranscriptPersistence.ts`, keeping projection calls behind
-focused chat-feature helpers instead of the conversation command facade.
+focused chat-feature helpers instead of the live-turn facade.
 
 ## Screenshot Source and Fallback Chain
 
@@ -172,7 +172,7 @@ Non-fatal failures (send still continues):
 
 Fatal failure:
 
-- `DesktopConversationRuntimeClient.sendQuery` throw
+- `DesktopLiveTurnRuntimeClient.sendQuery` throw
 - sender sets `isSending=false`
 - appends assistant error message (`Failed to send message. Please try again.`)
 - error rethrown

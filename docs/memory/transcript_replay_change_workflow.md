@@ -17,8 +17,8 @@ The core rule is: sidecar `chat_events` rows are the canonical client-runtime st
 
 ```mermaid
 flowchart LR
-    A["Chat stream or local user/tool event"] --> B["DesktopConversationRuntimeClient"]
-    B --> C0["Desktop conversation continuity service"]
+    A["Chat stream or local user/tool event"] --> B["chat feature transcript persistence helpers"]
+    B --> C0["desktop transcript projection runtime"]
     C0 --> C{"session identity ready?"}
     C -- "yes" --> D["desktop conversation store factory"]
     C -- "no" --> E["pending event queues"]
@@ -73,7 +73,7 @@ flowchart LR
    - If the identity is right but the row is missing or malformed, continue here.
 
 3. Trace the write path.
-   - Chat stream handlers and local send code call `DesktopConversationRuntimeClient`.
+   - Chat stream handlers and local send code call focused transcript persistence helpers.
    - `DesktopTranscriptProjectionRuntimeClient` resolves session identity, writes immediately when possible, or queues into pending transcript queues.
    - `transcriptRecordWrite.ts` and `transcriptEntryPersistence.ts` shape the persisted entry.
    - Renderer IPC invokes the main memory bridge.
@@ -123,7 +123,7 @@ flowchart LR
 
 ### Visible Row Missing After Restart
 
-1. Confirm the row was passed to `DesktopConversationRuntimeClient` / `DesktopTranscriptProjectionRuntimeClient`.
+1. Confirm the row was passed through the chat-feature transcript persistence helper into `DesktopTranscriptProjectionRuntimeClient`.
 2. Confirm session identity was ready or the row entered a pending queue.
 3. Confirm immediate store failure requeued the row.
 4. Confirm renderer IPC called the main memory bridge with the expected payload.

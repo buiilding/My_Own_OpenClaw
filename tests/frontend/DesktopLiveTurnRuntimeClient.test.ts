@@ -12,7 +12,7 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRunti
   },
 }));
 
-describe('DesktopConversationRuntimeClient', () => {
+describe('DesktopLiveTurnRuntimeClient', () => {
   beforeEach(() => {
     jest.resetModules();
     mockGetActiveConversationRef.mockReset();
@@ -28,12 +28,12 @@ describe('DesktopConversationRuntimeClient', () => {
       on: jest.fn(),
       once: jest.fn(),
     };
-    const { DesktopConversationRuntimeClient } = require(
-      '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeClient',
+    const { DesktopLiveTurnRuntimeClient } = require(
+      '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient',
     );
 
     try {
-      await DesktopConversationRuntimeClient.sendQuery({
+      await DesktopLiveTurnRuntimeClient.sendQuery({
         text: 'hello',
         conversationRef: 'conv-send',
         screenshotRef: ' artifact-main ',
@@ -76,12 +76,12 @@ describe('DesktopConversationRuntimeClient', () => {
       on: jest.fn(),
       once: jest.fn(),
     };
-    const { DesktopConversationRuntimeClient } = require(
-      '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeClient',
+    const { DesktopLiveTurnRuntimeClient } = require(
+      '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient',
     );
 
     try {
-      await DesktopConversationRuntimeClient.stop('conv-stop');
+      await DesktopLiveTurnRuntimeClient.stop('conv-stop');
 
       expect(send).toHaveBeenCalledWith('to-backend', {
         type: 'stop-query',

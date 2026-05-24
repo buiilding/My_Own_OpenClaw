@@ -46,7 +46,7 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 | Phase | Module ownership |
 | --- | --- |
 | Query send from UI | `renderer/features/chat/hooks/useChatMessageSender.ts` |
-| Renderer runtime call | `renderer/app/runtime/desktopConversationRuntimeClient.ts` |
+| Renderer runtime call | `renderer/app/runtime/desktopLiveTurnRuntimeClient.ts` |
 | Main relay and gating | `main/ipc.cjs`, `main/windie_sdk_runtime.cjs` |
 | Backend websocket send | SDK managed backend session -> backend `/ws` |
 | Stream event return | backend `/ws` -> `main/ipc.cjs` -> renderer `ON_CHANNELS.FROM_BACKEND` |

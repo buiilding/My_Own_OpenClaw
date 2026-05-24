@@ -16,7 +16,7 @@ title: "Dashboard Conversation Hook Search, Polling, and Group Bucket Contract R
 - `frontend/src/renderer/features/dashboard/components/DashboardSidebar.jsx`
 - `frontend/src/renderer/features/dashboard/components/SearchChatsModal.jsx`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
-- `frontend/src/renderer/app/runtime/desktopConversationRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`
 - `frontend/src/renderer/infrastructure/transcript/localConversationStore.ts`
 - `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`
 - `tests/frontend/ConversationGroups.test.js`

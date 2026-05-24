@@ -112,7 +112,7 @@ Persisted thinking cleanup contract from `chatStreamThinkingStatus.ts`:
 7. optional screenshot materialization (`ScreenshotAttachmentPipeline`)
 8. update already-rendered user message with `screenshot_ref/url`
 9. record transcript user row
-10. emit backend `query` via `DesktopConversationRuntimeClient.sendQuery(...)`
+10. emit backend `query` via `DesktopLiveTurnRuntimeClient.sendQuery(...)`
 
 Before final query dispatch, the hook may send immediate model/provider updates via `DesktopSettingsRuntimeClient.setModel(...)` when deferred-model selection changes are detected.
 
@@ -129,7 +129,7 @@ Listener source:
 Pre-routing and workspace resolution:
 
 - event shape validation and SDK conversation-event normalization are centralized
-  in `chatStreamBackendIngress.ts`; the desktop conversation runtime facade does
+  in `chatStreamBackendIngress.ts`; the desktop live-turn runtime facade does
   not expose raw backend stream helpers
 - event conversation resolved from `conversation_ref`, then a registered turn map fallback
 - `memory-store` events without `conversation_ref` are quarantined instead of using `session_id` as chat identity

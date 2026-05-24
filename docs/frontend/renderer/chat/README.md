@@ -77,7 +77,7 @@ title: "Frontend Renderer Chat Docs Hub"
 - `frontend/src/renderer/features/chat/components/MessageContent.jsx`
 - `frontend/src/renderer/features/chat/components/message/MessageTransparencySections.jsx`
 - `frontend/src/renderer/features/chat/components/message/TransparencySection.jsx`
-- `frontend/src/renderer/app/runtime/desktopConversationRuntimeClient.ts`
+- `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`
 - `tests/frontend/ChatMessageSender.test.tsx`
 - `tests/frontend/ChatLoopUiState.test.js`

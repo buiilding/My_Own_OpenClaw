@@ -48,7 +48,7 @@ import {
 import {
   VISIBLE_ASSISTANT_REPLY_TYPE_SET,
 } from '../utils/state/chatTurnPresentationState';
-import { DesktopConversationRuntimeClient } from '../session/desktopConversationRuntimeClient';
+import { DesktopLiveTurnRuntimeClient } from '../../../app/runtime/desktopLiveTurnRuntimeClient';
 import {
   buildThreadPresentationMessages,
   hasCurrentTurnLiveProgressMessages,
@@ -363,7 +363,7 @@ function ChatInterface({ focusComposerToken = 0 }) {
       updateStreamTracking,
     });
     stopPlayback();
-    DesktopConversationRuntimeClient.stop(sessionInfo.conversationRef || null);
+    DesktopLiveTurnRuntimeClient.stop(sessionInfo.conversationRef || null);
   }, [
     composerBusy,
     sessionInfo.conversationRef,

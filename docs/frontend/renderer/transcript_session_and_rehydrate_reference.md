@@ -271,7 +271,7 @@ Replay rehydrate must keep prior context stable.
 - Local transcript rewriting must be owned by the SDK runtime/store boundary,
   not by chat UI hooks. Hooks may build the optimistic display projection, but
   persistence, revision cutting, rehydrate shaping, and resend delivery stay
-  behind `DesktopConversationRuntimeClient`.
+  behind `DesktopLiveTurnRuntimeClient`.
 
 This contract prevents provider tool-call sequencing errors without losing valid tool context.
 

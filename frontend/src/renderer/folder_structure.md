@@ -72,7 +72,7 @@ frontend/src/renderer/
 │   │   │   └── useTranscription.ts      # useTranscription - Manages input state and voice transcription text insertion
 │   │   │
 │   │   ├── session/                     # Chat SDK/runtime command and conversation session helpers
-│   │   │   ├── desktopConversationRuntimeClient.ts # Renderer command facade for SDK runtime hosted by Electron main
+│   │   │   ├── desktopLiveTurnRuntimeClient.ts # Renderer live-turn facade for SDK send/stop commands
 │   │   │   └── conversationInferenceSessionRuntime.ts # Backend inference rehydrate state for local conversations
 │   │   │
 │   │   ├── stores/                      # State management
@@ -274,7 +274,7 @@ frontend/src/renderer/
        ├─> Add to chatStore
        ├─> Main-window sender path: send query directly (no screenshot capture, no window handoff)
        ├─> Overlay sender path: optional captureScreenshotAttachment() screenshot capture
-       └─> DesktopConversationRuntimeClient.sendQuery() - Send through the renderer runtime facade
+       └─> DesktopLiveTurnRuntimeClient.sendQuery() - Send through the renderer runtime facade
            ↓
 3. SDK RUNTIME TRANSPORT
    └─> app/runtime/desktopBackendTransport.ts

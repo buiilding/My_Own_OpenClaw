@@ -152,8 +152,8 @@ jest.mock('../../frontend/src/renderer/features/chat/session/useRendererConversa
   }),
 }));
 
-jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient', () => ({
-  DesktopConversationRuntimeClient: {
+jest.mock('../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient', () => ({
+  DesktopLiveTurnRuntimeClient: {
   },
 }));
 
@@ -418,7 +418,8 @@ describe('ChatBox overlay mouse ignore', () => {
       ([channel, payload]) =>
         channel === 'show-main-window'
         && payload?.maximize === true
-        && payload?.open === 'chat',
+        && payload?.open === 'chat'
+        && payload?.reason === 'chat-pill-settings',
     );
   });
 

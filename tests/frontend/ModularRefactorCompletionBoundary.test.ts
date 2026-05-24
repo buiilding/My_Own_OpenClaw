@@ -33,8 +33,8 @@ describe('modular sdk refactor completion boundary', () => {
     expect(source).not.toContain('async function routeToolBundleToLocalRuntime');
   });
 
-  test('renderer conversation runtime stays on live sdk command dispatch', async () => {
-    const source = await read('frontend/src/renderer/app/runtime/desktopConversationRuntimeClient.ts');
+  test('renderer live-turn runtime stays on sdk command dispatch', async () => {
+    const source = await read('frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts');
 
     expect(source).toContain('createConversationRuntime');
     expect(source).not.toContain('DesktopSettingsRuntimeClient');
@@ -84,7 +84,7 @@ describe('modular sdk refactor completion boundary', () => {
       'ManagedBackendSession',
       'ToolExecutionCoordinator',
       'DesktopConversationStoreAdapter',
-      'DesktopConversationRuntimeClient',
+      'DesktopLiveTurnRuntimeClient',
       'DesktopBackendCommandRuntimeClient',
       'packages/windie-sdk-js/src/runtime',
       'packages/windie-sdk-js/src/transport',

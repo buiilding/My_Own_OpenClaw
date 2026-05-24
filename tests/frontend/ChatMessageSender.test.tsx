@@ -6,7 +6,7 @@ import {
 import { INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import { captureScreenshotAttachment } from '../../frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline';
 import { uploadArtifactBase64 } from '../../frontend/src/renderer/infrastructure/services/ArtifactUploader';
-import { DesktopConversationRuntimeClient } from '../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient';
+import { DesktopLiveTurnRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 import { DesktopSettingsRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient';
 import {
@@ -39,8 +39,8 @@ jest.mock('../../frontend/src/renderer/infrastructure/services/ArtifactUploader'
 }));
 
 let mockActiveConversationRef: string | null = null;
-jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient', () => ({
-  DesktopConversationRuntimeClient: {
+jest.mock('../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient', () => ({
+  DesktopLiveTurnRuntimeClient: {
     sendQuery: jest.fn(),
   },
 }));
@@ -79,7 +79,7 @@ jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferen
 }));
 
 const mockCaptureScreenshotAttachment = captureScreenshotAttachment as jest.MockedFunction<typeof captureScreenshotAttachment>;
-const mockSendQuery = DesktopConversationRuntimeClient.sendQuery as jest.Mock;
+const mockSendQuery = DesktopLiveTurnRuntimeClient.sendQuery as jest.Mock;
 const mockSetModel = DesktopSettingsRuntimeClient.setModel as jest.Mock;
 const mockUploadArtifactBase64 = uploadArtifactBase64 as jest.MockedFunction<typeof uploadArtifactBase64>;
 const mockGetActiveConversationRef = DesktopTranscriptSessionRuntimeClient.getActiveConversationRef as jest.Mock;

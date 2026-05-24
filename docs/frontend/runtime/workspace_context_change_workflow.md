@@ -38,7 +38,7 @@ execution, and backend prompt construction.
 | --- | --- | --- |
 | Workspace picker, active workspace display, or permission status changes | `frontend/src/renderer/features/dashboard/components/sections/settings/WorkspaceSettingsTab.jsx`, `frontend/src/renderer/infrastructure/workspace/workspaceAccess.js`, `frontend/src/main/permission_service_workspace.cjs`, `frontend/src/main/permission_ipc_runtime.cjs` | `tests/frontend/PermissionIpcRuntime.test.cjs`, settings tab tests when UI changes |
 | Per-conversation workspace binding is missing or stale | `frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding.js`, `useChatMessageSender.ts`, `useDashboardConversations.js`, transcript snapshot loader | `tests/frontend/ChatWorkspaceState.test.ts`, dashboard conversation tests, transcript snapshot tests |
-| Query payload has missing or wrong `workspace_path` | `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`, `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`, `frontend/src/main/ipc/ipc_query_send_runtime.cjs`, `frontend/src/main/ipc/ipc_query_runtime.cjs` | `tests/frontend/DesktopConversationRuntimeClient.test.ts`, `tests/frontend/IpcMainBridge.query.test.cjs`, `tests/frontend/QueryPayloadBuilder.test.cjs` |
+| Query payload has missing or wrong `workspace_path` | `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`, `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`, `frontend/src/main/ipc/ipc_query_send_runtime.cjs`, `frontend/src/main/ipc/ipc_query_runtime.cjs` | `tests/frontend/DesktopLiveTurnRuntimeClient.test.ts`, `tests/frontend/IpcMainBridge.query.test.cjs`, `tests/frontend/QueryPayloadBuilder.test.cjs` |
 | Electron main AGENTS.md injection changes | `frontend/src/main/repo_instruction_runtime.cjs`, `frontend/src/main/ipc.cjs` | `tests/frontend/RepoInstructionRuntime.test.cjs`, query relay tests |
 | Backend query execution does not pass workspace into agent session | `backend/src/api/services/query_execution_support/query_execution_inputs.py`, `backend/src/api/services/query_execution.py`, `backend/src/agent/session/manager.py` | `tests/backend/test_query_execution_inputs.py`, `tests/backend/test_api_handlers.py`, `tests/backend/test_session_manager.py` |
 | Backend prompt misses AGENTS.md or uses stale repo instructions | `backend/src/llm/prompts/repo_instructions.py`, prompt constructor/manager modules | `tests/backend/test_repo_instructions.py`, `tests/backend/test_prompt_constructor_utils.py`, `tests/backend/test_prompt_manager.py` |
@@ -135,7 +135,7 @@ Read these files when `workspace_path` is missing on the backend:
 
 Forwarding rules:
 
-- Renderer sends normalized `workspace_path` through `DesktopConversationRuntimeClient.sendQuery`.
+- Renderer sends normalized `workspace_path` through `DesktopLiveTurnRuntimeClient.sendQuery`.
 - Electron main resolves local AGENTS.md instructions from the workspace path
   into `agent_definition.agents_md` before forwarding to the backend.
 - Backend query execution normalizes `workspace_path` and `agent_definition`
@@ -195,7 +195,7 @@ Prompt rules:
 | Symptom | First checks | Likely owner |
 | --- | --- | --- |
 | Workspace settings shows no workspace after choosing one | Check permission result payload, `workspace-access-updated`, selected paths, and `normalizeActiveWorkspace`. | Permission IPC and workspace settings |
-| New query omits `workspace_path` | Check conversation binding, `fetchActiveWorkspaceSelection`, and `DesktopConversationRuntimeClient.sendQuery` args. | Renderer send path |
+| New query omits `workspace_path` | Check conversation binding, `fetchActiveWorkspaceSelection`, and `DesktopLiveTurnRuntimeClient.sendQuery` args. | Renderer send path |
 | Resumed chat uses another workspace | Check snapshot workspace metadata, `setConversationWorkspaceBinding`, and `setActiveWorkspaceSelection`. | Dashboard conversation handoff |
 | AGENTS.md works locally but not with hosted backend | Check Electron-injected `agent_definition.agents_md`; do not rely on backend reading a desktop path. | Main repo instruction runtime |
 | Backend prompt uses old workspace | Check `QueryExecutionInputs.workspace_path`, `process_query`, and session manager workspace update path. | Backend query/session runtime |
@@ -223,7 +223,7 @@ Conversation binding or dashboard resume change:
 
 Query forwarding or repo instruction injection change:
 
-- `cd frontend && npm run test -- DesktopConversationRuntimeClient`
+- `cd frontend && npm run test -- DesktopLiveTurnRuntimeClient`
 - `cd frontend && npm run test -- IpcMainBridge.query`
 - `cd frontend && npm run test -- RepoInstructionRuntime`
 - `./scripts/python-in-env backend pytest tests/backend/test_query_execution_inputs.py`

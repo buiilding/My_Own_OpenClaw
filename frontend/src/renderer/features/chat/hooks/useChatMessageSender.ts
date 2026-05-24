@@ -24,7 +24,7 @@ import {
   markConversationInferenceSessionLocalOnly,
   markConversationInferenceSessionUnknown,
 } from '../session/conversationInferenceSessionRuntime';
-import { DesktopConversationRuntimeClient } from '../session/desktopConversationRuntimeClient';
+import { DesktopLiveTurnRuntimeClient } from '../../../app/runtime/desktopLiveTurnRuntimeClient';
 import {
   normalizeAttachmentFilenames,
   normalizeOutgoingPayload,
@@ -251,7 +251,7 @@ export function useChatMessageSender(
         timestamp: messageTimestamp,
         screenshotRef,
       });
-      await DesktopConversationRuntimeClient.sendQuery({
+      await DesktopLiveTurnRuntimeClient.sendQuery({
         text,
         conversationRef,
         screenshotRef,

@@ -24,12 +24,12 @@ function optionalString(value: unknown): string | null {
 }
 
 /**
- * Renderer command facade for the SDK runtime hosted by Electron main.
+ * Renderer live-turn facade for SDK-backed query and stop commands.
  *
- * Feature code should use this app runtime module instead of importing
- * low-level backend IPC or transcript storage adapters directly.
+ * Continuity, transcript, replay, compaction, and settings behavior belongs in
+ * focused runtime services instead of this live-turn command surface.
  */
-export const DesktopConversationRuntimeClient = {
+export const DesktopLiveTurnRuntimeClient = {
   async sendQuery(input: SendConversationQueryInput): Promise<void> {
     const runtime = createConversationRuntime({
       conversationRef: input.conversationRef,

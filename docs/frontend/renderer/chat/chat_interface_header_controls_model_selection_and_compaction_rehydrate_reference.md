@@ -40,7 +40,7 @@ Derived flags:
 1. no-op when not busy
 2. applies UI-side stop state reset via `applyStopQueryUiState(...)`
 3. stops local audio playback
-4. calls `DesktopConversationRuntimeClient.stop(...)` using:
+4. calls `DesktopLiveTurnRuntimeClient.stop(...)` using:
   - transcript-session conversation ref first
   - fallback `getActiveConversationRef()`
 
@@ -136,7 +136,7 @@ When `useChatLoopUiState` reports disconnected transport:
 
 1. Changing provider/model fallback rules without matching `chatModelOptions` helpers can leave impossible selected-model combinations.
 2. Removing `waitForNextPaint()` before compaction can hide status transition timing in UI during manual compaction.
-3. Bypassing `DesktopConversationRuntimeClient.stop(...)` can send stop signals outside the SDK runtime/transport boundary.
+3. Bypassing `DesktopLiveTurnRuntimeClient.stop(...)` can send stop signals outside the SDK runtime/transport boundary.
 
 ## Related Pages
 
