@@ -1,6 +1,6 @@
 import {
   applyTrackingEvent,
-} from '../../frontend/src/renderer/features/chat/utils/chatStream/chatStreamTracking';
+} from '../../frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime';
 import type { StreamTracking } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 
 function buildTracking(overrides: Partial<StreamTracking> = {}): StreamTracking {
@@ -25,7 +25,7 @@ function buildTracking(overrides: Partial<StreamTracking> = {}): StreamTracking 
   };
 }
 
-describe('chatStreamTracking', () => {
+describe('DesktopChatStreamTrackingRuntime', () => {
   test('resetForTurn seeds a fresh tracking state', () => {
     const now = '2026-02-24T00:00:00.000Z';
     const next = applyTrackingEvent(

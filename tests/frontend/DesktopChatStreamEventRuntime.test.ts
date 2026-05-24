@@ -1,10 +1,10 @@
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
   recordTrackingEvent,
-  resolveTargetConversationRef,
-  shouldIgnoreForStaleTurn,
-  syncActiveConversationProjection,
-} from '../../frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventRuntime';
+  resolveTargetConversationRef as resolveTargetConversationRefRuntime,
+  shouldIgnoreForStaleTurn as shouldIgnoreForStaleTurnRuntime,
+  syncActiveConversationProjection as syncActiveConversationProjectionRuntime,
+} from '../../frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime';
 
 function createEvent(overrides: Record<string, unknown> = {}) {
   return {
@@ -15,7 +15,34 @@ function createEvent(overrides: Record<string, unknown> = {}) {
   } as any;
 }
 
-describe('chatStreamEventRuntime', () => {
+function resolveConversationRefForTurn(turnRef: string): string | null | undefined {
+  return useChatStore.getState().resolveConversationRefForTurn(turnRef);
+}
+
+function getWorkspaceState(conversationRef?: string | null) {
+  return useChatStore.getState().getWorkspaceState(conversationRef);
+}
+
+function resolveTarget(event: ReturnType<typeof createEvent>): string | null {
+  return resolveTargetConversationRefRuntime(event, { resolveConversationRefForTurn });
+}
+
+function shouldIgnore(event: ReturnType<typeof createEvent>, conversationRef?: string | null): boolean {
+  return shouldIgnoreForStaleTurnRuntime(event, conversationRef, { getWorkspaceState });
+}
+
+function syncProjection(
+  event: ReturnType<typeof createEvent>,
+  conversationRef: string | null,
+  setActiveConversationRef: (conversationRef: string | null) => void,
+): void {
+  syncActiveConversationProjectionRuntime(event, conversationRef, {
+    activeConversationRef: useChatStore.getState().activeConversationRef,
+    setActiveConversationRef,
+  });
+}
+
+describe('DesktopChatStreamEventRuntime', () => {
   beforeEach(() => {
     useChatStore.setState((state) => ({
       ...state,
@@ -43,7 +70,7 @@ describe('chatStreamEventRuntime', () => {
   });
 
   test('resolves conversation ref from explicit event field', () => {
-    const ref = resolveTargetConversationRef(
+    const ref = resolveTarget(
       createEvent({ conversation_ref: 'conv-explicit' }),
     );
     expect(ref).toBe('conv-explicit');
@@ -51,14 +78,14 @@ describe('chatStreamEventRuntime', () => {
 
   test('resolves conversation ref from registered turn mapping fallback', () => {
     useChatStore.getState().registerTurnConversationRef('turn-mapped', 'conv-mapped');
-    const ref = resolveTargetConversationRef(
+    const ref = resolveTarget(
       createEvent({ turn_ref: 'turn-mapped' }),
     );
     expect(ref).toBe('conv-mapped');
   });
 
   test('does not resolve conversation ref from memory-store payload session id', () => {
-    const ref = resolveTargetConversationRef(
+    const ref = resolveTarget(
       createEvent({
         type: 'memory-store',
         payload: { session_id: 'conv-memory-payload' },
@@ -69,7 +96,7 @@ describe('chatStreamEventRuntime', () => {
   });
 
   test('does not resolve conversation ref from memory-store event session id', () => {
-    const ref = resolveTargetConversationRef(
+    const ref = resolveTarget(
       createEvent({
         type: 'memory-store',
         payload: {},
@@ -81,7 +108,7 @@ describe('chatStreamEventRuntime', () => {
   });
 
   test('resolves conversation ref from local-user-message payload fallback', () => {
-    const ref = resolveTargetConversationRef(
+    const ref = resolveTarget(
       createEvent({
         type: 'local-user-message',
         payload: { text: 'hello', conversation_ref: 'conv-local-payload' },
@@ -92,7 +119,7 @@ describe('chatStreamEventRuntime', () => {
   });
 
   test('resolves conversation ref from local-user payload when top-level conversation ref is whitespace', () => {
-    const ref = resolveTargetConversationRef(
+    const ref = resolveTarget(
       createEvent({
         type: 'local-user-message',
         conversation_ref: '   ',
@@ -104,7 +131,7 @@ describe('chatStreamEventRuntime', () => {
   });
 
   test('resolveTargetConversationRef prefers explicit conversation ref over session metadata', () => {
-    const ref = resolveTargetConversationRef(
+    const ref = resolveTarget(
       createEvent({
         type: 'memory-store',
         conversation_ref: 'conv-explicit',
@@ -117,7 +144,7 @@ describe('chatStreamEventRuntime', () => {
   });
 
   test('resolveTargetConversationRef returns null when no explicit or turn-mapped identity exists', () => {
-    const ref = resolveTargetConversationRef(
+    const ref = resolveTarget(
       createEvent({
         type: 'streaming-response',
         payload: { content: 'chunk' },
@@ -150,7 +177,7 @@ describe('chatStreamEventRuntime', () => {
       },
     }));
 
-    expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-new' }), null)).toBe(false);
+    expect(shouldIgnore(createEvent({ turn_ref: 'turn-new' }), null)).toBe(false);
   });
 
   test('stale turn guard ignores packets from just-completed active turn during terminal pending handoff', () => {
@@ -182,7 +209,7 @@ describe('chatStreamEventRuntime', () => {
       },
     }));
 
-    expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-old' }), null)).toBe(true);
+    expect(shouldIgnore(createEvent({ turn_ref: 'turn-old' }), null)).toBe(true);
   });
 
   test('stale turn guard keeps same-turn packets during terminal pending handoff when a new optimistic user row is present', () => {
@@ -214,7 +241,7 @@ describe('chatStreamEventRuntime', () => {
       },
     }));
 
-    expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-current' }), null)).toBe(false);
+    expect(shouldIgnore(createEvent({ turn_ref: 'turn-current' }), null)).toBe(false);
   });
 
   test('stale turn guard keeps same-turn packets during terminal pending handoff when an incomplete current-turn assistant placeholder is present', () => {
@@ -262,7 +289,7 @@ describe('chatStreamEventRuntime', () => {
       },
     }));
 
-    expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-current' }), null)).toBe(false);
+    expect(shouldIgnore(createEvent({ turn_ref: 'turn-current' }), null)).toBe(false);
   });
 
   test('stale turn guard allows next-turn packets during idle pending handoff', () => {
@@ -288,7 +315,7 @@ describe('chatStreamEventRuntime', () => {
       },
     }));
 
-    expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-new' }), null)).toBe(false);
+    expect(shouldIgnore(createEvent({ turn_ref: 'turn-new' }), null)).toBe(false);
   });
 
   test('stale turn guard keeps same-turn packets during idle sending handoff after re-anchor', () => {
@@ -314,7 +341,7 @@ describe('chatStreamEventRuntime', () => {
       },
     }));
 
-    expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-current' }), null)).toBe(false);
+    expect(shouldIgnore(createEvent({ turn_ref: 'turn-current' }), null)).toBe(false);
   });
 
   test('stale turn guard allows next-turn packets during error pending handoff', () => {
@@ -340,7 +367,7 @@ describe('chatStreamEventRuntime', () => {
       },
     }));
 
-    expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-new' }), null)).toBe(false);
+    expect(shouldIgnore(createEvent({ turn_ref: 'turn-new' }), null)).toBe(false);
   });
 
   test('stale turn guard ignores same-turn packets during error pending handoff', () => {
@@ -372,7 +399,7 @@ describe('chatStreamEventRuntime', () => {
       },
     }));
 
-    expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-old' }), null)).toBe(true);
+    expect(shouldIgnore(createEvent({ turn_ref: 'turn-old' }), null)).toBe(true);
   });
 
   test('stale turn guard keeps same-turn packets during error pending handoff when a new optimistic user row is present', () => {
@@ -404,7 +431,7 @@ describe('chatStreamEventRuntime', () => {
       },
     }));
 
-    expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-current' }), null)).toBe(false);
+    expect(shouldIgnore(createEvent({ turn_ref: 'turn-current' }), null)).toBe(false);
   });
 
   test('stale turn guard allows mismatched turn packets while sending during awaiting-first-chunk', () => {
@@ -430,15 +457,15 @@ describe('chatStreamEventRuntime', () => {
       },
     }));
 
-    expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-new' }), null)).toBe(false);
+    expect(shouldIgnore(createEvent({ turn_ref: 'turn-new' }), null)).toBe(false);
   });
 
   test('stale turn guard keeps packets when turn ref is absent', () => {
-    expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: undefined }), null)).toBe(false);
+    expect(shouldIgnore(createEvent({ turn_ref: undefined }), null)).toBe(false);
   });
 
   test('stale turn guard treats whitespace turn ref as absent', () => {
-    expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: '   ' }), null)).toBe(false);
+    expect(shouldIgnore(createEvent({ turn_ref: '   ' }), null)).toBe(false);
   });
 
   test('stale turn guard compares normalized turn refs', () => {
@@ -463,7 +490,7 @@ describe('chatStreamEventRuntime', () => {
       },
     }));
 
-    expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: ' turn-1 ' }), null)).toBe(false);
+    expect(shouldIgnore(createEvent({ turn_ref: ' turn-1 ' }), null)).toBe(false);
   });
 
   test('stale turn guard allows next-turn packets when pending handoff has no active turn ref', () => {
@@ -489,11 +516,11 @@ describe('chatStreamEventRuntime', () => {
       },
     }));
 
-    expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-new' }), null)).toBe(false);
+    expect(shouldIgnore(createEvent({ turn_ref: 'turn-new' }), null)).toBe(false);
   });
 
   test('stale turn guard ignores old-turn packets during active stream', () => {
-    expect(shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-old' }), null)).toBe(true);
+    expect(shouldIgnore(createEvent({ turn_ref: 'turn-old' }), null)).toBe(true);
   });
 
   test('stale turn guard is scoped to the provided conversation workspace', () => {
@@ -523,7 +550,7 @@ describe('chatStreamEventRuntime', () => {
     }));
 
     expect(
-      shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-default' }), 'conv-scoped'),
+      shouldIgnore(createEvent({ turn_ref: 'turn-default' }), 'conv-scoped'),
     ).toBe(true);
   });
 
@@ -560,14 +587,14 @@ describe('chatStreamEventRuntime', () => {
     }));
 
     expect(
-      shouldIgnoreForStaleTurn(createEvent({ turn_ref: 'turn-conv-new' }), 'conv-scoped'),
+      shouldIgnore(createEvent({ turn_ref: 'turn-conv-new' }), 'conv-scoped'),
     ).toBe(true);
   });
 
   test('active conversation projection is a no-op when resolved conversation ref is missing', () => {
     const setActiveConversationRef = jest.fn();
 
-    syncActiveConversationProjection(
+    syncProjection(
       createEvent({ conversation_ref: 'conv-explicit' }),
       null,
       setActiveConversationRef,
@@ -583,7 +610,7 @@ describe('chatStreamEventRuntime', () => {
       activeConversationRef: null,
     }));
 
-    syncActiveConversationProjection(
+    syncProjection(
       createEvent({ turn_ref: 'turn-mapped-no-explicit' }),
       'conv-mapped',
       setActiveConversationRef,
@@ -599,7 +626,7 @@ describe('chatStreamEventRuntime', () => {
       activeConversationRef: 'conv-current',
     }));
 
-    syncActiveConversationProjection(
+    syncProjection(
       createEvent({ conversation_ref: 'conv-current' }),
       'conv-current',
       setActiveConversationRef,
@@ -615,7 +642,7 @@ describe('chatStreamEventRuntime', () => {
       activeConversationRef: null,
     }));
 
-    syncActiveConversationProjection(
+    syncProjection(
       createEvent({ conversation_ref: 'conv-next' }),
       'conv-next',
       setActiveConversationRef,
@@ -631,7 +658,7 @@ describe('chatStreamEventRuntime', () => {
       activeConversationRef: 'conv-current',
     }));
 
-    syncActiveConversationProjection(
+    syncProjection(
       createEvent({ conversation_ref: 'conv-next' }),
       'conv-next',
       setActiveConversationRef,
@@ -647,7 +674,7 @@ describe('chatStreamEventRuntime', () => {
       activeConversationRef: 'conv-current',
     }));
 
-    syncActiveConversationProjection(
+    syncProjection(
       createEvent({
         type: 'local-user-message',
         conversation_ref: 'conv-next',

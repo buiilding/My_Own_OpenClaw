@@ -9,9 +9,6 @@ import {
   type BackendEvent,
   type BackendEventType,
 } from '../../../types/backendEvents';
-import {
-  type StreamTrackingOptions,
-} from '../utils/chatStream/chatStreamTracking';
 import { resolveThinkingCapabilities } from '../utils/modelThinkingCapabilities';
 import { normalizePersistedThinkingStatus } from '../utils/chatStream/chatStreamThinkingStatus';
 import { type TranscriptModelContext } from '../utils/chatStream/chatStreamTypes';
@@ -35,7 +32,10 @@ import {
   resolveTargetConversationRef as resolveTargetConversationRefRuntime,
   shouldIgnoreForStaleTurn as shouldIgnoreForStaleTurnRuntime,
   syncActiveConversationProjection as syncActiveConversationProjectionRuntime,
-} from '../utils/chatStream/chatStreamEventRuntime';
+} from '../../../app/runtime/desktopChatStreamEventRuntime';
+import {
+  type StreamTrackingOptions,
+} from '../../../app/runtime/desktopChatStreamTrackingRuntime';
 import { logRendererStreamTrace } from '../utils/chatStream/chatStreamDebugTrace';
 
 export function useChatStream(enableTranscript: boolean = true) {
@@ -64,14 +64,19 @@ export function useChatStream(enableTranscript: boolean = true) {
   });
 
   const resolveTargetConversationRef = useCallback(
-    (event: BackendEvent): string | null => resolveTargetConversationRefRuntime(event),
+    (event: BackendEvent): string | null => resolveTargetConversationRefRuntime(event, {
+      resolveConversationRefForTurn: useChatStore.getState().resolveConversationRefForTurn,
+    }),
     [],
   );
 
   const syncActiveConversationProjection = useCallback((
     event: BackendEvent,
     conversationRef: string | null,
-  ) => syncActiveConversationProjectionRuntime(event, conversationRef, setActiveConversationRef), [
+  ) => syncActiveConversationProjectionRuntime(event, conversationRef, {
+    activeConversationRef: useChatStore.getState().activeConversationRef,
+    setActiveConversationRef,
+  }), [
     setActiveConversationRef,
   ]);
 
@@ -93,7 +98,9 @@ export function useChatStream(enableTranscript: boolean = true) {
   const shouldIgnoreForStaleTurn = useCallback((
     event: BackendEvent,
     conversationRef?: string | null,
-  ): boolean => shouldIgnoreForStaleTurnRuntime(event, conversationRef), []);
+  ): boolean => shouldIgnoreForStaleTurnRuntime(event, conversationRef, {
+    getWorkspaceState: useChatStore.getState().getWorkspaceState,
+  }), []);
 
   const shouldIgnoreSdkEventForStaleTurn = useCallback((
     event: { turn_ref?: string | null },

@@ -22,8 +22,8 @@ title: "Chat Stream and Tool Execution Reference"
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamTextHandlers.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamTerminalHandlers.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamConversationGate.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTracking.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamConversationGateRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventUtils.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamToolMessages.ts`
@@ -74,7 +74,7 @@ Workspace identity state:
 - timing markers: `startedAt`, `firstChunkAt`, `completedAt`, `lastEventAt`
 - counters: events/chunks/tool calls/tool outputs
 - last error text
-- transition math lives in `chatStreamTracking.applyTrackingEvent(...)`
+- transition math lives in `desktopChatStreamTrackingRuntime.applyTrackingEvent(...)`
 
 ## Model Capability Resolution and Thinking Fallback Policy
 

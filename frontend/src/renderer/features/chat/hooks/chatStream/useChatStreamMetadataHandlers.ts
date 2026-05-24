@@ -7,7 +7,7 @@ import {
   buildToolSchemasUpdate,
   buildUserMessageFullUpdate,
 } from '../../utils/chatStream/chatStreamMessageUpdates';
-import type { StreamTrackingOptions } from '../../utils/chatStream/chatStreamTracking';
+import type { StreamTrackingOptions } from '../../../../app/runtime/desktopChatStreamTrackingRuntime';
 import type { ChatMessage } from '../../stores/chatStore';
 
 type MetadataEventType =

@@ -17,11 +17,11 @@ title: "Stream Event State Machine"
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamCompletionHandler.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamTerminalHandlers.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventRuntime.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTerminalHandoffGuard.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamConversationGate.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTurnGuard.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTracking.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamTerminalHandoffRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamConversationGateRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime.ts`
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/hooks/useChatLoopUiState.js`
@@ -56,23 +56,20 @@ Handled backend event types:
 `useChatStream` listener flow:
 
 1. validate payload with `isBackendEvent(...)`
-2. resolve target conversation ref through `chatStreamEventRuntime.resolveTargetConversationRef(...)`
+2. resolve target conversation ref through `desktopChatStreamEventRuntime.resolveTargetConversationRef(...)`
 3. call `ingestBackendEvent(...)` to:
   - sync active conversation projection when event has explicit conversation identity
   - register `turn_ref -> conversation_ref` mapping
   - refresh transcript session binding (`activeConversationRef || resolvedConversationRef`)
-  - dispatch to SDK-normalized handlers, then the explicit `local-user-message`
-    raw fallback
+  - dispatch to SDK-normalized handlers
 4. optional renderer trace logging (`[StreamTrace][renderer][before|after]`) runs only when the window URL includes `debug_stream=1` so normal `electron:dev` sessions do not spam console output
 
 Conversation resolution order:
 
 1. explicit `event.conversation_ref`
-2. compatibility fallbacks:
-  - `memory-store`: `payload.session_id`, then `event.session_id`
-  - `local-user-message`: `payload.conversation_ref`
+2. `local-user-message` payload `conversation_ref`
 3. `turn_ref` workspace mapping
-4. active transcript conversation fallback
+4. quarantine when neither identity source resolves
 
 This is workspace routing, not active-chat filtering. Background conversations keep receiving their own events.
 
@@ -91,7 +88,7 @@ Guard exception:
 
 - if workspace is sending a new turn (`isSending=true`) while stream phase is terminal (`idle|complete|error`), stale-turn guard is temporarily relaxed so first packets of the new turn are not dropped due to lagging turn-reset bookkeeping.
 - when terminal handoff has already re-anchored to the current `turn_ref`, same-turn packets are still allowed only if the workspace tail is the optimistic user row for that new turn; assistant-tailed completed/error workspaces still reject trailing old-turn packets.
-- terminal-handoff packet policy now lives in `chatStreamTerminalHandoffGuard.ts` as pure predicates so re-anchor behavior can be regression-tested without going through the whole ingress runtime.
+- terminal-handoff packet policy now lives in `desktopChatStreamTerminalHandoffRuntime.ts` as pure predicates so re-anchor behavior can be regression-tested without going through the whole ingress runtime.
 - SDK/main execution-side stale-turn handling should stay aligned with this stream ingress policy so display projections and local result delivery do not diverge during later-turn re-anchor windows.
 
 Handler-level skip:

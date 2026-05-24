@@ -1,5 +1,28 @@
-import type { BackendEventType } from '../../../../types/backendEvents';
-import type { StreamPhase, StreamTracking } from '../../stores/chatStore';
+import type { BackendEventType } from '../../types/backendEvents';
+
+export type StreamPhase = 'idle'
+  | 'awaiting-first-chunk'
+  | 'streaming'
+  | 'tool-call'
+  | 'tool-output'
+  | 'complete'
+  | 'error';
+
+export type StreamTracking = {
+  activeTurnRef: string | null;
+  phase: StreamPhase;
+  startedAt: string | null;
+  firstChunkAt: string | null;
+  completedAt: string | null;
+  lastEventAt: string | null;
+  lastEventType: BackendEventType | null;
+  eventCount: number;
+  chunkCount: number;
+  toolCallCount: number;
+  toolOutputCount: number;
+  lastChunkSize: number;
+  lastError: string | null;
+};
 
 export type StreamTrackingOptions = {
   phase?: StreamPhase;

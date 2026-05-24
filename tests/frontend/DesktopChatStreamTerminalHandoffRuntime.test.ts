@@ -3,7 +3,7 @@ import {
   isAwaitingFirstChunkMismatch,
   normalizeTurnRef,
   shouldIgnoreForTerminalPendingHandoff,
-} from '../../frontend/src/renderer/features/chat/utils/chatStream/chatStreamTerminalHandoffGuard';
+} from '../../frontend/src/renderer/app/runtime/desktopChatStreamTerminalHandoffRuntime';
 
 function createWorkspace({
   phase = 'complete',
@@ -19,7 +19,7 @@ function createWorkspace({
   } as any;
 }
 
-describe('chatStreamTerminalHandoffGuard', () => {
+describe('DesktopChatStreamTerminalHandoffRuntime', () => {
   test('normalizes empty and whitespace turn refs', () => {
     expect(normalizeTurnRef(undefined)).toBe('');
     expect(normalizeTurnRef(null)).toBe('');

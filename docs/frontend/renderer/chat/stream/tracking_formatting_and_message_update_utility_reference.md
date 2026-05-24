@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for chat stream utility modules: tracking reducer semantics, thinking/tool payload formatting, screenshot/correlation extraction, and message-target resolution rules."
 read_when:
-  - When changing `chatStreamTracking`, `chatStreamFormatting`, `chatStreamEventUtils`, or `chatStreamMessageUpdates`.
+  - When changing `desktopChatStreamTrackingRuntime`, `chatStreamFormatting`, `chatStreamEventUtils`, or `chatStreamMessageUpdates`.
   - When debugging chunk-append duplication, tool-output correlation IDs, or stream terminal-state timestamps.
 title: "Tracking, Formatting, and Message-Update Utility Reference"
 ---
@@ -10,16 +10,16 @@ title: "Tracking, Formatting, and Message-Update Utility Reference"
 
 ## Canonical Modules
 
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTracking.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamFormatting.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventUtils.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates.ts`
 - `frontend/src/renderer/infrastructure/text/incomingTextNormalization.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
-- `tests/frontend/ChatStreamTracking.test.ts`
+- `tests/frontend/DesktopChatStreamTrackingRuntime.test.ts`
 - `tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx`
 
-## Stream Tracking Reducer Contract (`chatStreamTracking.ts`)
+## Stream Tracking Reducer Contract (`desktopChatStreamTrackingRuntime.ts`)
 
 `applyTrackingEvent(current, eventType, turnRef, now, options)` is a pure reducer used by `useChatStream`.
 
@@ -102,7 +102,7 @@ Metadata normalization:
 
 ## Test-Backed Invariants
 
-`tests/frontend/ChatStreamTracking.test.ts` locks:
+`tests/frontend/DesktopChatStreamTrackingRuntime.test.ts` locks:
 
 - turn reset semantics (`resetForTurn`)
 - first chunk timestamp/counter behavior

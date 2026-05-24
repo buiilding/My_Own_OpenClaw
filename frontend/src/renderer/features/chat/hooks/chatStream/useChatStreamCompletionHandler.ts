@@ -5,7 +5,7 @@ import type { TranscriptTransparencyData } from '../../../../infrastructure/tran
 import { findStreamingCompleteAssistantMessage } from '../../utils/chatStream/chatStreamMessageUpdates';
 import { buildAssistantTranscriptTransparency } from '../../utils/chatStream/chatStreamTransparency';
 import type { TranscriptModelContext } from '../../utils/chatStream/chatStreamTypes';
-import type { StreamTrackingOptions } from '../../utils/chatStream/chatStreamTracking';
+import type { StreamTrackingOptions } from '../../../../app/runtime/desktopChatStreamTrackingRuntime';
 import { normalizeIncomingText } from '../../../../infrastructure/text/incomingTextNormalization';
 import { buildAssistantTextChatMessageState } from '../../../../infrastructure/transcript/assistantTextChatMessageState';
 import { recordAssistantTranscriptMessage } from '../../utils/chatStream/chatStreamTranscriptPersistence';

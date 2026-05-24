@@ -28,7 +28,7 @@ title: "Frontend Protocol State Hub"
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamConversationGate.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamConversationGateRuntime.ts`
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`
@@ -36,7 +36,7 @@ title: "Frontend Protocol State Hub"
 - `tests/frontend/IpcMainBridge.query.test.cjs`
 - `tests/frontend/IpcMainBridge.lifecycle.test.cjs`
 - `tests/frontend/AppConfigProvider.storageAndIpc.test.tsx`
-- `tests/frontend/ChatStreamConversationGate.test.ts`
+- `tests/frontend/DesktopChatStreamConversationGateRuntime.test.ts`
 - `tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx`
 - `tests/frontend/TranscriptSessionState.test.ts`
 - `tests/frontend/DesktopTranscriptSessionRuntime.test.ts`

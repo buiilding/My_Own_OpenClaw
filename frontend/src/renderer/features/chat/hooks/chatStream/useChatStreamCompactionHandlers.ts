@@ -10,7 +10,7 @@ import {
   COMPACTION_COMPLETED_THINKING_STATUS,
   COMPACTION_FAILED_THINKING_STATUS,
 } from '../../utils/chatStream/chatStreamThinkingStatus';
-import type { StreamTrackingOptions } from '../../utils/chatStream/chatStreamTracking';
+import type { StreamTrackingOptions } from '../../../../app/runtime/desktopChatStreamTrackingRuntime';
 import { DesktopConversationContinuityService } from '../../../../app/runtime/desktopConversationContinuityService';
 import { useLatestRef } from '../../../../infrastructure/hooks/useLatestRef';
 

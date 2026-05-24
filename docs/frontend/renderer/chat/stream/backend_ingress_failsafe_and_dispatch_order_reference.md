@@ -12,7 +12,7 @@ title: "Backend Ingress Fail-Safe and Dispatch Order Reference"
 
 - `frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStream.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`
 - `tests/frontend/DesktopChatStreamIngressRuntime.test.ts`
 

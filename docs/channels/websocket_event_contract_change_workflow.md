@@ -110,9 +110,8 @@ Tool events are both UI state and SDK runtime execution requests.
 
 - Confirm the event is a typed chat event or a side-channel/control event.
 - For typed chat events, confirm `BACKEND_EVENT_TYPES` includes the type.
-- Confirm the SDK normalizer maps it to a conversation event, or that
-  `useChatStream` intentionally handles it as the explicit `local-user-message`
-  raw fallback.
+- Confirm the SDK normalizer maps it to a conversation event before renderer
+  dispatch.
 - Confirm active conversation/turn filters are not dropping it.
 - Confirm payload field names match the renderer consumer.
 - For audio, confirm `extractAudioChunkPayload(...)` accepts the shape.
@@ -137,7 +136,7 @@ Tool events are both UI state and SDK runtime execution requests.
 | backend event dataclass/type/spec | `./scripts/python-in-env backend pytest tests/backend/test_events.py tests/backend/test_formatter_specs_contract.py tests/backend/test_api_contract_registry.py` |
 | formatter/outgoing schema | `./scripts/python-in-env backend pytest tests/backend/test_formatters.py tests/backend/test_response_formatter.py tests/backend/test_outgoing_schema_contract.py` |
 | query stream pipeline | `./scripts/python-in-env backend pytest tests/backend/test_stream_pipeline.py tests/backend/test_query_execution_pipeline_events.py tests/backend/test_query_execution_stream_state.py` |
-| renderer typed guard/SDK dispatch | `cd frontend && npm run test -- DesktopChatStreamIngressRuntime ChatStreamEventRuntime WindieSdkConversationRuntime` |
+| renderer typed guard/SDK dispatch | `cd frontend && npm run test -- DesktopChatStreamIngressRuntime DesktopChatStreamEventRuntime WindieSdkConversationRuntime` |
 | renderer stream state/terminal behavior | focused `ChatStream*`, `StreamPhaseState`, and terminal handoff tests |
 | tool event changes | backend tool formatter/result tests plus frontend `ToolRunner` and `ToolExecution` tests |
 | audio event changes | backend TTS tests plus `cd frontend && npm run test -- BackendAudioEvents` |

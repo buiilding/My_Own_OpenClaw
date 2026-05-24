@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for `useChatStream` SDK event dispatch, the local-user raw fallback, stale-turn guard coverage, and error suppression boundaries before per-event side effects."
+summary: "Deep reference for `useChatStream` SDK event dispatch, stale-turn guard coverage, and error suppression boundaries before per-event side effects."
 read_when:
   - When changing `useChatStream` event dispatch wiring or adding/removing backend event types.
   - When debugging events that route to a conversation workspace but do not mutate UI/transcript state.
@@ -14,8 +14,8 @@ title: "Stream Dispatch and Turn Guard Matrix Reference"
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts`
 - `frontend/src/renderer/features/chat/utils/toolOutputTranscriptPersistence.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamTerminalHandlers.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamConversationGate.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTurnGuard.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamConversationGateRuntime.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime.ts`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 
 ## Dispatch Pipeline
@@ -28,15 +28,8 @@ Listener flow in `useChatStream`:
 4. register `turn_ref -> conversation_ref` mapping
 5. update transcript session binding (`activeConversationRef || resolvedConversationRef`)
 6. dispatch SDK-owned event families from normalized conversation events
-7. if SDK dispatch does not consume the event, route the only raw chat fallback:
-   `local-user-message`
 
 ## Dispatch Wiring Contract
-
-`useChatStream` owns one explicit backend-event fallback that has not moved
-behind SDK conversation events:
-
-- local optimistic user row: `local-user-message`
 
 Assistant thinking, text, completion, compaction, tool rows, transparency
 metadata, errors, token usage, memory-store telemetry, and tool progress

@@ -182,6 +182,21 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('normalizeBackendEventToConversationEvent');
   });
 
+  test('chat stream event routing and stale-turn guards stay behind app runtime helpers', async () => {
+    const source = await fs.readFile(
+      path.join(chatRoot, 'hooks/useChatStream.ts'),
+      'utf8',
+    );
+
+    expect(source).toContain('desktopChatStreamEventRuntime');
+    expect(source).toContain('desktopChatStreamTrackingRuntime');
+    expect(source).not.toContain('chatStreamEventRuntime');
+    expect(source).not.toContain('chatStreamConversationGate');
+    expect(source).not.toContain('chatStreamTurnGuard');
+    expect(source).not.toContain('chatStreamTerminalHandoffGuard');
+    expect(source).not.toContain('chatStreamTracking');
+  });
+
   test('chat stream text handlers consume SDK reasoning events directly', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'hooks/chatStream/useChatStreamTextHandlers.ts'),

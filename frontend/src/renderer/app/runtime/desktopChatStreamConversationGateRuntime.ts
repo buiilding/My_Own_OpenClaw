@@ -1,4 +1,4 @@
-import type { BackendEvent } from '../../../../types/backendEvents';
+import type { BackendEvent } from '../../types/backendEvents';
 
 type ResolveConversationRefWithTurnFallbackArgs = {
   explicitConversationRef?: string | null;

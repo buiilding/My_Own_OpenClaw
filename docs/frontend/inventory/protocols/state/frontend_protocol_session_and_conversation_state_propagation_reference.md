@@ -23,7 +23,7 @@ Primary runtime sources:
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamConversationGate.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamConversationGateRuntime.ts`
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`
@@ -34,7 +34,7 @@ Primary test sources:
 - `tests/frontend/IpcMainBridge.query.test.cjs`
 - `tests/frontend/IpcMainBridge.lifecycle.test.cjs`
 - `tests/frontend/AppConfigProvider.storageAndIpc.test.tsx`
-- `tests/frontend/ChatStreamConversationGate.test.ts`
+- `tests/frontend/DesktopChatStreamConversationGateRuntime.test.ts`
 - `tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx`
 - `tests/frontend/TranscriptSessionState.test.ts`
 - `tests/frontend/DesktopTranscriptSessionRuntime.test.ts`
@@ -158,7 +158,7 @@ Locked by:
 
 `useChatStream` applies `shouldIgnoreEventForActiveConversation(...)` before handling backend events.
 
-`chatStreamConversationGate.ts` rules:
+`desktopChatStreamConversationGateRuntime.ts` rules:
 
 - if no active conversation ref, do not ignore
 - if event has no conversation ref, do not ignore identity-less lifecycle events
@@ -170,7 +170,7 @@ Locked by:
 
 Locked by:
 
-- `tests/frontend/ChatStreamConversationGate.test.ts`
+- `tests/frontend/DesktopChatStreamConversationGateRuntime.test.ts`
 - `tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx`
 
 This prevents stale streaming events from other conversations from mutating current view during active turns.
@@ -249,7 +249,7 @@ When changing this surface, keep aligned:
 | backend context-field cache updates | `frontend/src/main/ipc.cjs` | inbound `session_id`/`user_id`/`conversation_ref` cache fields track latest backend correlation context |
 | conversation_ref fallback for query/local echo | `frontend/src/main/ipc/ipc_query_events.cjs`, `frontend/src/main/ipc.cjs` | query payload and synthetic local-user-message share same resolved conversation reference |
 | dashboard conversation open/delete session transitions | `useDashboardConversations`, SDK transcript session runtime | active conversation + transcript session identity stay in sync during rehydrate/delete flows |
-| renderer stale-event gating | `chatStreamConversationGate.ts` + `useChatStream.ts` | active conversation mismatch rules prevent cross-conversation stream pollution while preserving identity-less lifecycle events |
+| renderer stale-event gating | `desktopChatStreamConversationGateRuntime.ts` + `useChatStream.ts` | active conversation mismatch rules prevent cross-conversation stream pollution while preserving identity-less lifecycle events |
 | websocket-close display affinity continuity | `frontend/src/main/ipc.cjs`, `frontend/src/main/display_affinity_runtime.cjs` | backend session identity resets do not clear active monitor affinity, preserving reconnect-time screenshot/main-window fallback targeting |
 | frontend config to sidecar sudo-mode propagation | `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/local_backend_bridge_tool_args.cjs` | `agent_full_sudo_enabled` deterministically maps to `sudo_auth_mode` in direct run-shell args and nested `system_use -> run_shell_command` args |
 

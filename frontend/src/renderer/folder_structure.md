@@ -17,7 +17,12 @@ frontend/src/renderer/
 │   ├── main.jsx                         # React entry point - renders App with StrictMode in dev
 │   │
 │   ├── runtime/                         # App-level SDK/runtime command facades
+│   │   ├── desktopChatStreamConversationGateRuntime.ts # Renderer stream conversation identity resolution helpers
+│   │   ├── desktopChatStreamEventRuntime.ts # Renderer stream event routing, projection, stale-turn guard, and tracking facade
 │   │   ├── desktopChatStreamIngressRuntime.ts # Renderer stream ingress facade for SDK event normalization and transcript sync
+│   │   ├── desktopChatStreamTerminalHandoffRuntime.ts # Renderer terminal-handoff stale-turn policy helpers
+│   │   ├── desktopChatStreamTrackingRuntime.ts # Renderer stream phase/counter transition helpers
+│   │   ├── desktopChatStreamTurnGuardRuntime.ts # Renderer active-turn stale event predicate
 │   │   ├── desktopLiveTurnRuntimeClient.ts # Renderer live-turn facade for SDK send/stop commands
 │   │   ├── desktopSettingsRuntimeClient.ts # Renderer settings/model facade over Electron main IPC
 │   │   └── desktopVoiceRuntimeClient.ts # Renderer voice/wakeword facade over Electron main IPC
@@ -100,13 +105,11 @@ frontend/src/renderer/
 │   │       │   ├── stopQueryState.js    # stopQueryState - Stop-query UI patch helper for stream tracking + thinking reset
 │   │       │   └── streamPhaseState.js  # streamPhaseState - Phase predicates (active/terminal/awaiting/stop-control)
 │   │       ├── chatSelectors.js         # chatSelectors - Shared Zustand selectors for ChatInterface/ChatBox
-│   │       ├── chatStream/              # chatStream - Stream event/update/tracking/thinking/transparency utility helpers
-│   │       │   ├── chatStreamConversationGate.ts # chatStreamConversationGate - Active-conversation filtering helpers for backend stream events
+│   │       ├── chatStream/              # chatStream - Stream event/update/thinking/transparency utility helpers
 │   │       │   ├── chatStreamDebugTrace.ts # chatStreamDebugTrace - Gated stream + chat-pill renderer trace helpers
 │   │       │   ├── chatStreamEventUtils.ts # chatStreamEventUtils - Screenshot attachment, error filtering/text, and correlation-id event helpers
 │   │       │   ├── chatStreamFormatting.ts # chatStreamFormatting - Thought/tool message formatting helpers
 │   │       │   ├── chatStreamMessageUpdates.ts # chatStreamMessageUpdates - Message selection and streaming/system/full-message update shaping helpers
-│   │       │   ├── chatStreamTracking.ts # chatStreamTracking - Stream phase/counter transition helpers
 │   │       ├── message/                 # message - Message-focused formatting, screenshot, and source-tag helpers
 │   │       │   ├── messageInput.js      # messageInput - Input normalization helper before send dispatch
 │   │       │   ├── messageListClasses.js # messageListClasses - Message row class-name builder (sender/type/streaming/screenshot flags)

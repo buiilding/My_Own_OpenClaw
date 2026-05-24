@@ -33,7 +33,7 @@ Python commands use `scripts/python-in-env`, so do not manually activate conda e
 | Backend SDK routes | `./scripts/test-backend tests/backend/test_sdk_routes.py tests/backend/test_sdk_helpers.py -q` |
 | Electron main IPC | `cd frontend && npm run test:ci -- IpcMainBridge.query.test.cjs IpcQueryRuntime.test.cjs PreloadIpcChannels.test.cjs` |
 | Overlay windows/phases | `cd frontend && npm run test:ci -- OverlayPhaseContractParity.test.js ResponseOverlayPhaseHandler.test.cjs SurfaceOrchestratorPhases.test.ts WindowVisibilityRuntime.test.cjs` |
-| Renderer chat stream | `cd frontend && npm run test:ci -- ChatStreamEventRuntime.test.ts ChatStreamMessageUpdates.test.ts ChatStreamTurnGuard.test.ts ChatMessageSender.test.tsx` |
+| Renderer chat stream | `cd frontend && npm run test:ci -- DesktopChatStreamEventRuntime.test.ts ChatStreamMessageUpdates.test.ts DesktopChatStreamTurnGuardRuntime.test.ts ChatMessageSender.test.tsx` |
 | Renderer dashboard/settings | `cd frontend && npm run test:ci -- ChatGptDashboardShell.test.jsx DashboardSidebar.test.jsx ModelsSection.test.jsx SettingsSection.test.jsx` |
 | Permissions/onboarding | `cd frontend && npm run test:ci -- PermissionService.test.cjs PermissionIpcRuntime.test.cjs AppPermissionGate.test.jsx FrontendOnboardingSlideshow.test.jsx` |
 | Artifacts/screenshots | `cd frontend && npm run test:ci -- ArtifactUploader.test.ts ScreenshotAttachmentPipeline.test.ts IpcArtifactFetch.test.cjs QueryScreenshotPipeline.test.ts` |

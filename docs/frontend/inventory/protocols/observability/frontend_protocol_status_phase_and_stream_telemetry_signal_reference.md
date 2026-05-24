@@ -20,7 +20,7 @@ Primary runtime sources:
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTracking.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime.ts`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
 - `frontend/src/renderer/app/providers/appConfigEvents.js`
@@ -28,7 +28,7 @@ Primary runtime sources:
 Primary test sources:
 
 - `tests/frontend/IpcMainBridge.lifecycle.test.cjs`
-- `tests/frontend/ChatStreamTracking.test.ts`
+- `tests/frontend/DesktopChatStreamTrackingRuntime.test.ts`
 - `tests/frontend/ChatStreamThinkingStatus.state.test.tsx`
 - `tests/frontend/AppConfigProvider.storageAndIpc.test.tsx`
 
@@ -39,7 +39,7 @@ Primary test sources:
 | backend connection status | `ipc.cjs` | `ipc-status` | broadcasts connection/user/endpoint snapshot to all renderer windows on open/close transitions |
 | overlay phase telemetry | `ipc.cjs` | `response-overlay-phase` | emits canonical phase transitions from backend stream events and query send failures |
 | settings sync diagnostics | `ipc.cjs` | timeout log + ACK map state | pending settings ACKs resolve true/false on success/error/timeout with timeout-source logging |
-| renderer stream telemetry | `chatStore` + `chatStreamTracking` | `streamTracking` fields | tracks per-turn timestamps, counts, phase, chunk sizes, and terminal errors |
+| renderer stream telemetry | `chatStore` + `desktopChatStreamTrackingRuntime` | `streamTracking` fields | tracks per-turn timestamps, counts, phase, chunk sizes, and terminal errors |
 | token usage telemetry | `useChatStream` | `token-count` handler | updates store token counters from backend protocol event payload |
 
 ## Main-Process Status and Phase Signal Contract
@@ -116,7 +116,7 @@ This provides explicit observability around settings gate stalls without blockin
 - counts: `eventCount`, `chunkCount`, `toolCallCount`, `toolOutputCount`
 - diagnostics: `lastEventType`, `lastChunkSize`, `lastError`
 
-`applyTrackingEvent(...)` in `chatStreamTracking.ts` rules:
+`applyTrackingEvent(...)` in `desktopChatStreamTrackingRuntime.ts` rules:
 
 - `resetForTurn` seeds fresh state for local user send
 - streaming response increments chunk counters and first-chunk timestamp
@@ -124,7 +124,7 @@ This provides explicit observability around settings gate stalls without blockin
 - error marks terminal state and stamps completion timestamp
 - complete phase stamps completion timestamp if missing
 
-Covered by `tests/frontend/ChatStreamTracking.test.ts`.
+Covered by `tests/frontend/DesktopChatStreamTrackingRuntime.test.ts`.
 
 ## Stream and Token Telemetry Ingress (`useChatStream.ts`)
 
@@ -177,7 +177,7 @@ When changing observability surfaces, keep aligned:
 | ws connection snapshot broadcast | `frontend/src/main/ipc.cjs` | `ipc-status` carries connection/user/backend endpoint metadata across open/close lifecycle |
 | overlay phase transition broadcast | `frontend/src/main/ipc.cjs` | `response-overlay-phase` stays constrained to canonical phase literals and transition sources |
 | settings ACK timeout diagnostics | `frontend/src/main/ipc.cjs` | unresolved ACKs log timeout source + id and resolve without deadlocking query flow |
-| stream turn telemetry aggregation | `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTracking.ts` | per-turn phase/timestamp/counter fields remain coherent across local-user/chunk/tool/error events |
+| stream turn telemetry aggregation | `frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime.ts` | per-turn phase/timestamp/counter fields remain coherent across local-user/chunk/tool/error events |
 | token usage ingestion | `frontend/src/renderer/features/chat/hooks/useChatStream.ts` | `token-count` events update token counters without mutating turn-phase telemetry semantics |
 
 ## Related Pages

@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for `chatStreamConversationGate`: conversation/session identity resolution helpers and workspace routing behavior for multi-conversation streaming."
+summary: "Deep reference for `desktopChatStreamConversationGateRuntime`: conversation/session identity resolution helpers and workspace routing behavior for multi-conversation streaming."
 read_when:
   - When changing cross-conversation event handling in `useChatStream`.
   - When debugging dropped backend events during chatbox/main-window handoff.
@@ -10,15 +10,15 @@ title: "Conversation Gate and Conversation Isolation Reference"
 
 ## Canonical Modules
 
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamConversationGate.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamConversationGateRuntime.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
-- `tests/frontend/ChatStreamConversationGate.test.ts`
+- `tests/frontend/DesktopChatStreamConversationGateRuntime.test.ts`
 - `tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx`
 
 ## Ownership Boundary
 
-`chatStreamConversationGate` resolves conversation identity from first-class backend event state: explicit `conversation_ref`, local-user payload `conversation_ref`, or an SDK-recorded `turn_ref -> conversationRef` mapping. Runtime event acceptance/filtering now lives in `useChatStream` workspace routing logic.
+`desktopChatStreamConversationGateRuntime` resolves conversation identity from first-class backend event state: explicit `conversation_ref`, local-user payload `conversation_ref`, or an SDK-recorded `turn_ref -> conversationRef` mapping. Runtime event acceptance/filtering now lives in `useChatStream` workspace routing logic.
 
 It does not:
 
@@ -62,14 +62,13 @@ Event flow inside backend listener:
 3. sync active chat projection only when event includes explicit conversation identity and active projection is empty or event is `local-user-message`
 4. register `turn_ref -> conversation_ref` mapping when both are available
 5. update transcript session user binding for the resolved conversation
-6. dispatch to SDK-normalized handlers, then the explicit `local-user-message`
-   raw fallback
+6. dispatch to SDK-normalized handlers
 
 Because routing is per-workspace, background conversation events do not leak into the currently active chat.
 
 ## Active-Turn Filter Boundary
 
-`chatStreamConversationGate` does not enforce stale-turn filtering.
+`desktopChatStreamConversationGateRuntime` does not enforce stale-turn filtering.
 
 `useChatStream` applies the active-turn mismatch guard before most handlers:
 
@@ -81,7 +80,7 @@ This split keeps identity routing in one helper and turn-phase acceptance in the
 
 ## Test-Backed Invariants
 
-`tests/frontend/ChatStreamConversationGate.test.ts` verifies:
+`tests/frontend/DesktopChatStreamConversationGateRuntime.test.ts` verifies:
 
 - top-level `conversation_ref` precedence
 - `local-user-message` payload fallback resolution

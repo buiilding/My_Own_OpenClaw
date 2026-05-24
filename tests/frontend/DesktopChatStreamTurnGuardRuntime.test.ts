@@ -1,6 +1,6 @@
-import { isStaleTurnForActiveStream } from '../../frontend/src/renderer/features/chat/utils/chatStream/chatStreamTurnGuard';
+import { isStaleTurnForActiveStream } from '../../frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime';
 
-describe('chatStreamTurnGuard', () => {
+describe('DesktopChatStreamTurnGuardRuntime', () => {
   test('treats missing event turn refs as non-stale', () => {
     expect(isStaleTurnForActiveStream(undefined, 'turn-1')).toBe(false);
     expect(isStaleTurnForActiveStream(null, 'turn-1')).toBe(false);

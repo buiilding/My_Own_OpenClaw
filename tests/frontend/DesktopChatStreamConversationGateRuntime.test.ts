@@ -1,7 +1,7 @@
 import {
   resolveConversationRefWithTurnFallback,
   resolveEventConversationRef,
-} from '../../frontend/src/renderer/features/chat/utils/chatStream/chatStreamConversationGate';
+} from '../../frontend/src/renderer/app/runtime/desktopChatStreamConversationGateRuntime';
 import type { BackendEvent } from '../../frontend/src/renderer/types/backendEvents';
 
 function buildEvent(overrides: Partial<BackendEvent>): BackendEvent {
@@ -12,7 +12,7 @@ function buildEvent(overrides: Partial<BackendEvent>): BackendEvent {
   } as BackendEvent;
 }
 
-describe('chatStreamConversationGate', () => {
+describe('DesktopChatStreamConversationGateRuntime', () => {
   test('resolveConversationRefWithTurnFallback prefers explicit conversation ref', () => {
     expect(resolveConversationRefWithTurnFallback({
       explicitConversationRef: ' conv-explicit ',

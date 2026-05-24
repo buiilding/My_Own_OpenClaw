@@ -1,10 +1,17 @@
-import type { ChatMessage, StreamPhase } from '../../stores/chatStore';
+import type { StreamPhase } from './desktopChatStreamTrackingRuntime';
 
-type GuardWorkspace = {
+type StreamGuardMessage = {
+  sender?: string | null;
+  isComplete?: boolean | null;
+  turnRef?: string | null;
+};
+
+export type StreamGuardWorkspace = {
   isSending: boolean;
-  messages: ChatMessage[];
+  messages: StreamGuardMessage[];
   streamTracking: {
     phase: StreamPhase;
+    activeTurnRef?: string | null;
   };
 };
 
@@ -19,7 +26,7 @@ export function normalizeTurnRef(turnRef: string | null | undefined): string {
 }
 
 export function isAwaitingFirstChunkMismatch(
-  workspace: GuardWorkspace,
+  workspace: StreamGuardWorkspace,
   eventTurnRef: string,
   activeTurnRef: string,
 ): boolean {
@@ -31,20 +38,20 @@ export function isAwaitingFirstChunkMismatch(
   );
 }
 
-export function hasTerminalPendingHandoff(workspace: GuardWorkspace): boolean {
+export function hasTerminalPendingHandoff(workspace: StreamGuardWorkspace): boolean {
   return (
     workspace.isSending === true
     && TERMINAL_PENDING_HANDOFF_PHASES.has(workspace.streamTracking.phase)
   );
 }
 
-function hasOptimisticPendingUserTurn(workspace: GuardWorkspace): boolean {
+function hasOptimisticPendingUserTurn(workspace: StreamGuardWorkspace): boolean {
   const lastMessage = workspace.messages[workspace.messages.length - 1];
   return lastMessage?.sender === 'user';
 }
 
 function hasIncompleteCurrentTurnAssistantPlaceholder(
-  workspace: GuardWorkspace,
+  workspace: StreamGuardWorkspace,
   eventTurnRef: string,
 ): boolean {
   const lastMessage = workspace.messages[workspace.messages.length - 1];
@@ -56,7 +63,7 @@ function hasIncompleteCurrentTurnAssistantPlaceholder(
 }
 
 export function shouldIgnoreForTerminalPendingHandoff(
-  workspace: GuardWorkspace,
+  workspace: StreamGuardWorkspace,
   eventTurnRef: string,
   activeTurnRef: string,
 ): boolean {
