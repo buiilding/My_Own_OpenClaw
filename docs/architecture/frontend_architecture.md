@@ -125,6 +125,7 @@ Current runtime behavior also relies on these explicit seams:
 3. Renderer `useChatStream` asks `DesktopConversationRuntimeClient` to validate raw backend events and produce SDK-normalized conversation events before renderer UI handlers run.
 4. Renderer `useChatStream`:
    - Filters by active conversation/turn tracking.
+   - Dispatches live thinking/reasoning display from SDK `reasoning_delta` events.
    - Dispatches assistant text deltas/completions from SDK `assistant_delta`/`turn_completed` events.
    - Dispatches tool display projection from SDK `tool_call`/`tool_output`/`tool_bundle_call` events while main owns tool execution.
    - Dispatches compaction display and compacted replay persistence from SDK compaction events.

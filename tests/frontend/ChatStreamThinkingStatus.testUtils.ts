@@ -62,6 +62,20 @@ jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversation
       type?: string;
     }, options?: { conversationRef?: string | null }) => {
       const conversationRef = event.conversation_ref || options?.conversationRef || mockActiveConversationRef;
+      if (event.type === 'llm-thought') {
+        return {
+          type: 'reasoning_delta',
+          conversationRef,
+          turnRef: event.turn_ref,
+          source: 'backend',
+          payload: {
+            text: typeof event.payload?.status === 'string'
+              ? event.payload.status
+              : (typeof event.payload?.content === 'string' ? event.payload.content : ''),
+            rawEvent: event,
+          },
+        };
+      }
       if (event.type === 'streaming-response') {
         return {
           type: 'assistant_delta',

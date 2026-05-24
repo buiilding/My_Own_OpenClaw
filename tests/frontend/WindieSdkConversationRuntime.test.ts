@@ -643,6 +643,48 @@ describe('Windie SDK conversation runtime core', () => {
     });
   });
 
+  test('backend llm thought normalizes to reasoning_delta', () => {
+    const normalized = normalizeBackendEventToConversationEvent({
+      type: 'llm-thought',
+      conversation_ref: 'conv-sdk-runtime',
+      turn_ref: 'turn-reasoning',
+      payload: { status: 'thinking through it' },
+    });
+
+    expect(normalized).toMatchObject({
+      type: 'reasoning_delta',
+      conversationRef: 'conv-sdk-runtime',
+      turnRef: 'turn-reasoning',
+      payload: expect.objectContaining({
+        text: 'thinking through it',
+        rawEvent: expect.objectContaining({ type: 'llm-thought' }),
+      }),
+    });
+  });
+
+  test('backend llm thought content fallback normalizes to reasoning_delta', () => {
+    const normalized = normalizeBackendEventToConversationEvent({
+      type: 'llm-thought',
+      conversation_ref: 'conv-sdk-runtime',
+      turn_ref: 'turn-reasoning',
+      payload: { content: 'reasoning fallback' },
+    });
+
+    expect(normalized).toMatchObject({
+      type: 'reasoning_delta',
+      payload: expect.objectContaining({
+        text: 'reasoning fallback',
+      }),
+    });
+  });
+
+  test('reasoning deltas stay out of display and rehydrate projections', () => {
+    const reasoning = event('reasoning_delta', { text: 'private reasoning stream' });
+
+    expect(buildDisplayConversation([reasoning]).messages).toEqual([]);
+    expect(buildRehydrateSnapshot([reasoning]).messages).toEqual([]);
+  });
+
   test('backend query-accepted normalizes to turn_started', () => {
     const normalized = normalizeBackendEventToConversationEvent({
       type: 'query-accepted',

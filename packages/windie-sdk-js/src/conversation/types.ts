@@ -12,6 +12,7 @@ export type ConversationEventType =
   | 'turn_error'
   | 'user_message'
   | 'assistant_delta'
+  | 'reasoning_delta'
   | 'assistant_message'
   | 'system_prompt'
   | 'user_message_metadata'

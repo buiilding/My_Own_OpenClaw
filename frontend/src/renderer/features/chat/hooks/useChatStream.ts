@@ -8,7 +8,6 @@ import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import {
   type BackendEvent,
   type BackendEventType,
-  type LlmThoughtEvent,
   type WebSearchProgressEvent,
   type LocalUserMessageEvent,
   type ErrorEvent,
@@ -131,12 +130,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     recordTrackingEvent,
   });
 
-  const handleLlmThought = useTurnScopedBackendEventHandler<LlmThoughtEvent>({
-    resolveTargetConversationRef,
-    shouldIgnoreForStaleTurn,
-    onEvent: handleLlmThoughtText,
-  });
-
   const {
     handleContextCompactionStarted,
     handleContextCompactionCompleted,
@@ -236,11 +229,9 @@ export function useChatStream(enableTranscript: boolean = true) {
   });
 
   const handlers = useMemo<Partial<Record<BackendEventType, (event: BackendEvent) => void>>>(() => buildChatStreamHandlerMap({
-    handleLlmThought,
     handleWebSearchProgress: handleWebSearchProgressEvent,
     handleLocalUserMessage: handleLocalUserMessageEvent,
   }), [
-    handleLlmThought,
     handleWebSearchProgressEvent,
     handleLocalUserMessageEvent,
   ]);
@@ -255,6 +246,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     }
     if (
       event.type !== 'assistant_delta'
+      && event.type !== 'reasoning_delta'
       && event.type !== 'turn_completed'
       && event.type !== 'tool_call'
       && event.type !== 'tool_output'
@@ -278,6 +270,10 @@ export function useChatStream(enableTranscript: boolean = true) {
     }
     if (event.type === 'assistant_delta') {
       handleAssistantDelta(event, event.conversationRef);
+      return true;
+    }
+    if (event.type === 'reasoning_delta') {
+      handleLlmThoughtText(event, event.conversationRef);
       return true;
     }
     if (event.type === 'tool_call') {
@@ -341,6 +337,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleContextCompactionFailed,
     handleContextCompactionStarted,
     handleErrorEvent,
+    handleLlmThoughtText,
     handleMemoryStore,
     handleSystemPrompt,
     handleTokenCount,

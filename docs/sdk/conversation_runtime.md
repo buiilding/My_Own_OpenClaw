@@ -44,6 +44,7 @@ The runtime records normalized events:
 - `turn_error`
 - `user_message`
 - `assistant_delta`
+- `reasoning_delta`
 - `assistant_message`
 - `tool_call`
 - `tool_output`

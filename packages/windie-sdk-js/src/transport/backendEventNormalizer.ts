@@ -80,6 +80,19 @@ export function normalizeBackendEventToConversationEvent(
       },
     });
   }
+  if (event.type === 'llm-thought') {
+    return createConversationEvent({
+      ...base,
+      type: 'reasoning_delta',
+      source: 'backend',
+      payload: {
+        text: typeof payload.status === 'string'
+          ? payload.status
+          : (typeof payload.content === 'string' ? payload.content : ''),
+        rawEvent: event,
+      },
+    });
+  }
   if (event.type === 'streaming-response') {
     return createConversationEvent({
       ...base,

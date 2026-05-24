@@ -36,12 +36,12 @@ Listener flow in `useChatStream`:
 `buildChatStreamHandlerMap(...)` owns only backend event types that have not yet
 moved behind SDK conversation events:
 
-- thinking/stream: `llm-thought`
 - tool progress: `web-search-progress`
 - local optimistic user row: `local-user-message`
 
-Assistant text, completion, compaction, tool rows, transparency metadata,
-errors, token usage, and memory-store telemetry dispatch from SDK-normalized conversation events.
+Assistant thinking, text, completion, compaction, tool rows, transparency
+metadata, errors, token usage, and memory-store telemetry dispatch from
+SDK-normalized conversation events.
 `turn_error` suppression runs inside `useChatStreamTerminalHandlers` before UI
 mutation.
 
@@ -101,6 +101,9 @@ Reason: local-user-message establishes turn/workspace state and seeds optimistic
   - SDK `usage_updated`: workspace token counter update
   - SDK `memory_stored`: stream tracking only (no direct memory write side effect)
   - SDK `turn_error`: assistant error row + transcript error row unless suppressed
+- `useChatStreamTextHandlers`:
+  - SDK `reasoning_delta`: live thinking text, assistant thinking placeholder, and stream tracking
+  - SDK `assistant_delta`: assistant text chunk append/create behavior
 - `useChatStream` core handlers:
   - `streaming-complete`: assistant message completion + optional transcript assistant write
   - transparency handlers: mutate existing user/assistant rows with metadata snapshots

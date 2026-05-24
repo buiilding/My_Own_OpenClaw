@@ -90,7 +90,8 @@ Workspace identity state:
 Resulting policy:
 
 - if `supportsThinking=true` and `supportsThinkingTextStream=false`, local-user send path sets generic `Thinking...` status until stream text arrives
-- otherwise thinking state starts empty and waits for `llm-thought` chunks
+- otherwise thinking state starts empty and waits for SDK `reasoning_delta`
+  events normalized from backend `llm-thought` chunks
 
 Persisted thinking cleanup contract from `chatStreamThinkingStatus.ts`:
 
@@ -162,13 +163,15 @@ Pre-routing and workspace resolution:
   backend `token-count` -> SDK `usage_updated`
 - memory-store telemetry events dispatch from SDK-normalized conversation events:
   backend `memory-store` -> SDK `memory_stored`
+- thinking/reasoning events dispatch from SDK-normalized conversation events:
+  backend `llm-thought` -> SDK `reasoning_delta`
 - renderer handlers still consume raw backend events for web-search progress and
   local-user flows until those projection paths move behind the SDK.
 
 Handler map (`BackendEventType` -> behavior):
 
 - `local-user-message`: adds user row, resets `streamTracking` for turn
-- `llm-thought`: accumulates transient thinking text and writes live reasoning (`thinkingText`) onto the same-turn assistant `llm-text` message (creates placeholder assistant row before first text chunk when needed)
+- SDK `reasoning_delta` from backend `llm-thought`: accumulates transient thinking text and writes live reasoning (`thinkingText`) onto the same-turn assistant `llm-text` message (creates placeholder assistant row before first text chunk when needed)
 - SDK `assistant_delta` from backend `streaming-response`: append/create assistant `llm-text` row and increment chunk tracking
 - SDK `compaction_started` from backend `context-compaction-started`: sets thinking text to `Compacting conversation history...` while backend compaction runs
 - SDK `compaction_applied` from backend `context-compaction-completed`: replaces in-progress compaction thinking with a terminal `Conversation history compacted.` status and marks source as `context-compaction-completed`
@@ -196,7 +199,7 @@ Handler composition boundary:
   wiring except assistant text, tool display, compaction, and metadata events,
   which dispatch from SDK conversation-event types.
 - local-user-message handling is delegated to `useChatStreamLocalUserHandler`
-- `llm-thought` and SDK `assistant_delta` text/placeholder behavior is delegated to `useChatStreamTextHandlers`
+- SDK `reasoning_delta` and SDK `assistant_delta` text/placeholder behavior is delegated to `useChatStreamTextHandlers`
 - SDK `system_prompt`/`user_message_metadata`/`assistant_message`/`tool_schemas_metadata`
   transparency projection is delegated to `useChatStreamMetadataHandlers`.
 - SDK `turn_error`, SDK `usage_updated`, and SDK `memory_stored` terminal behaviors are delegated to `useChatStreamTerminalHandlers`
@@ -209,8 +212,8 @@ Handler composition boundary:
 - turn-scoped wrapper callbacks for local-user events are centralized in
   `useTurnScopedBackendEventHandler`, with optional `skipStaleTurnGate` for
   `local-user-message` passthrough behavior. SDK assistant text, tool display,
-  compaction, metadata, error, usage, and memory-store events run the same
-  stale-turn gate before dispatch.
+  compaction, metadata, error, usage, memory-store, and reasoning events run the
+  same stale-turn gate before dispatch.
 
 Turn guard + error suppression matrix:
 
