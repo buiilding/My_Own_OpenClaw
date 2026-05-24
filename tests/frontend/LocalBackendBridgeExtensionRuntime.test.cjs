@@ -100,4 +100,50 @@ describe('local backend bridge extension runtime', () => {
       },
     });
   });
+
+  test('prepares the desktop surface before computer-use tool execution', async () => {
+    const sendRequest = jest.fn(async () => ({
+      success: true,
+      data: {
+        llm_content: 'typed',
+      },
+    }));
+    const prepareComputerUseSurface = jest.fn(async () => ({ success: true }));
+
+    const runtime = createLocalBackendExecuteToolRuntime({
+      sendRequest,
+      backendHttpUrl: 'http://127.0.0.1:8765',
+      getArtifactUploadHeaders: async () => ({}),
+      getFrontendConfig: () => ({}),
+      resolveWindows: () => [],
+      resolveChatWindow: () => null,
+      resolveMainWindow: () => null,
+      resolveResponseWindow: () => null,
+      prepareComputerUseSurface,
+    });
+
+    const result = await runtime.executeTool(null, {
+      toolName: 'keyboard_control',
+      args: { action: 'type', text: '123456' },
+    });
+
+    expect(prepareComputerUseSurface).toHaveBeenCalledWith({
+      toolName: 'keyboard_control',
+      args: { action: 'type', text: '123456' },
+    });
+    expect(sendRequest).toHaveBeenCalledWith(
+      'execute_tool',
+      {
+        tool_name: 'keyboard_control',
+        args: { action: 'type', text: '123456' },
+      },
+      expect.objectContaining({ timeoutMs: expect.any(Number) }),
+    );
+    expect(result).toEqual({
+      success: true,
+      data: {
+        llm_content: 'typed',
+      },
+    });
+  });
 });

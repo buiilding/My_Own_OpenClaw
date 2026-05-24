@@ -1,5 +1,5 @@
 ---
-summary: "Renderer capture and payload reference: screenshot/system-state capture pathways, artifact upload URL handling, tool payload field filtering, and content-type normalization contracts."
+summary: "Capture and payload reference: user screenshot/system-state capture pathways, SDK/main post-action capture, artifact upload URL handling, tool payload field filtering, and content-type normalization contracts."
 read_when:
   - When changing screenshot/system-state capture timing, display-bounds injection, or sidecar screenshot data handling.
   - When changing `tool-result`/`tool-bundle-result` payload shaping (`system_state`, `screenshot_ref`, `llm_content`) before backend relay.
@@ -12,66 +12,61 @@ title: "Capture, Artifact Upload, and Payload Normalization Reference"
 
 - `frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline.ts`
 - `frontend/src/renderer/infrastructure/services/SystemStateCapture.ts`
-- `frontend/src/renderer/infrastructure/services/ToolExecutionInvoker.ts`
-- `frontend/src/renderer/infrastructure/services/ToolExecutionCapture.ts`
-- `frontend/src/renderer/infrastructure/services/ToolExecutionPayloads.ts`
-- `frontend/src/renderer/infrastructure/services/ToolExecutionBackendPayload.ts`
 - `frontend/src/renderer/infrastructure/services/ArtifactUploader.ts`
 - `frontend/src/renderer/infrastructure/services/ArtifactImageUtils.ts`
 - `frontend/src/renderer/infrastructure/services/MessageFormatter.ts`
 - `frontend/src/renderer/infrastructure/services/ToolExecutionLogger.ts`
+- `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
+- `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.cjs`
+- `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`
 - `tests/frontend/ScreenshotAttachmentPipeline.test.ts`
 - `tests/frontend/SystemStateCapture.test.ts`
-- `tests/frontend/ToolExecutionCapture.test.ts`
-- `tests/frontend/ToolExecutionPayloads.test.ts`
-- `tests/frontend/ToolExecutionBackendPayload.test.ts`
 - `tests/frontend/ArtifactUploader.test.ts`
 - `tests/frontend/ArtifactImageUtils.test.ts`
-- `tests/frontend/ToolExecutionInvoker.test.ts`
 - `tests/frontend/ToolExecutionLogger.test.ts`
+- `tests/frontend/IpcSdkToolRouter.test.cjs`
+- `tests/frontend/LocalBackendBridgeExtensionRuntime.test.cjs`
 
 ## Screenshot Invocation and Display-Bounds Injection
 
-`ToolExecutionInvoker.invokeTool(...)` behavior:
+Main/sidecar screenshot behavior:
 
 - for `screenshot` tool:
   - args normalized to object
   - selected display bounds from local storage injected as `display_bounds` when present
 - non-screenshot tools pass args unchanged
-- returns both tool result and precise IPC invoke duration
 
 This ensures screenshot capture respects the user-selected display in multi-monitor setups.
 
-## Capture Policy (`ToolExecutionCapture`)
+## SDK Post-Action Capture Policy
 
-`isComputerUseTool(...)` returns true for:
+`ToolExecutionCoordinator` owns post-action screenshot policy for local tool execution.
 
-- known computer-use tools (`mouse_control`, `keyboard_control`, `scroll_control`, `screenshot`, `wait`, `switch_window`)
+Capture-worthy tools:
+
+- known computer-use tools (`mouse_control`, `keyboard_control`, `scroll_control`, `wait`, `switch_window`, plus `click`, `type`, `scroll`)
 - `run_shell_command` when `wait > 0`
 
-`ensureAutoCapture(...)` rules:
+Rules:
 
-- if result already contains screenshot data (`screenshot` or `image_data`), no new capture runs
-- otherwise auto-captures when:
-  - not `skipAutoCapture`
-  - and tool is computer-use or explicit `screenshot`
-- capture writes screenshot/system-state/content-type back into tool result object for downstream formatting/payload paths
+- explicit `screenshot` tools return their own screenshot result
+- single capture-worthy tools merge one post-action screenshot into the `tool-result` data
+- atomic bundles execute every step first and then capture once at bundle level
+- bundles with an explicit successful `screenshot` step promote that screenshot to the top-level bundle result instead of taking a duplicate capture
+- no capture runs when the original result already contains screenshot data
 
 Wait-delay resolution:
 
 - explicit `wait.seconds` for `wait` tool
 - otherwise `args.wait` if present
-- fallback defaults:
-  - screenshot tool: `0`
-  - other computer-use tools: `2`
+- fallback default: `2s`
+- bundle capture waits once, using the maximum resolved wait among successful capture-worthy steps
 
 ## Screenshot and System-State Capture Execution Paths
 
 Shared behavior:
 
 - optional wait (seconds -> milliseconds) before capture
-- when screenshot capture is enabled, renderer hides chat-pill overlays before capture (`show-chatbox {focus:false}` -> `hide-chatbox`) and restores after capture
-- no renderer-callable focus-prep IPC; any capture focus demotion stays internal to the main-process query-capture path
 - wraps screenshot activity in window event markers:
   - `windie:screenshot-capture {active:true|false}`
 
@@ -151,15 +146,16 @@ Bundle helpers standardize UI/backend interchange:
 
 ## SDK/Main Result Envelope Layer
 
-`ToolExecutionBackendPayload.ts` is the final send-side wrapper used by the SDK tool router/result relay:
+`ToolExecutionCoordinator` is the final send-side wrapper used by the SDK tool router/result relay:
 
 - single-tool:
-  - delegates `data` normalization to `buildToolResultPayloadData(...)`
+  - normalizes `data`
+  - merges SDK-owned post-action screenshot fields when applicable
   - wraps payload in `type: "tool-result"`
 - bundle:
   - builds `type: "tool-bundle-result"`
   - always includes `error` key (nullable)
-  - includes `screenshot_ref`/`capture_meta`/`system_state` only when include flags are true
+  - includes top-level `screenshot_ref`/`capture_meta` when available from an explicit or post-action screenshot
 
 Correlation contract is inherited from `ToolResultEnvelope`:
 
@@ -194,25 +190,16 @@ Error logs still emit through `console.error`.
 - screenshot content-type extraction, artifact upload fallback, and screenshot-ref/url normalization
 - default versus `includeWindows` system-state field selection
 
-`tests/frontend/ToolExecutionCapture.test.ts` verifies:
-
-- computer-tool detection and wait-resolution logic
-- capture reuse when screenshot already present
-- skip-auto-capture behavior
-- result data backfill with captured screenshot/system-state
-
-`tests/frontend/ToolExecutionPayloads.test.ts` verifies:
-
-- raw screenshot field stripping
-- screenshot_ref inclusion gates
-- required system-state fallback values
-- internal-only `screen_resolution` preservation behavior
-
-`tests/frontend/ToolExecutionBackendPayload.test.ts` verifies:
+`tests/frontend/IpcSdkToolRouter.test.cjs` verifies:
 
 - envelope type + payload key contracts for single-tool and bundle sends
-- `error: null` bundle success shape stability
-- inclusion gates for `screenshot_ref`, `capture_meta`, and `system_state`
+- single computer-use tools merge one post-action screenshot into tool result data
+- bundled computer-use execution captures once after all steps
+- explicit bundle screenshot steps are promoted instead of duplicated
+
+`tests/frontend/LocalBackendBridgeExtensionRuntime.test.cjs` verifies:
+
+- main runtime prepares the desktop surface before computer-use sidecar execution
 
 `tests/frontend/ArtifactUploader.test.ts` and `ArtifactImageUtils.test.ts` verify:
 

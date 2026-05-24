@@ -227,6 +227,11 @@ function createMainWindow({
     isPackaged: app.isPackaged,
     permissionStatePath,
     authStatePath: getInstallAuthStatePath(),
+    prepareComputerUseSurface: () => showChatWindow({
+      focus: false,
+      restoreResponseOverlay: true,
+      reason: 'tool-computer-use',
+    }),
   });
   initializeMainProcessIpc();
 

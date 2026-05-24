@@ -1,7 +1,7 @@
 ---
-summary: "Deep reference for renderer computer-use tool catalog ownership: canonical interactive/capture-only tool-name sets, surface-mode resolution coupling, and auto-capture classification behavior."
+summary: "Deep reference for renderer computer-use tool catalog ownership: canonical interactive/capture-only tool-name sets, surface-mode resolution coupling, and SDK-owned post-action capture classification behavior."
 read_when:
-  - When changing computer-use tool-name handling in renderer surface orchestration or capture policy paths.
+  - When changing computer-use tool-name handling in renderer surface orchestration or SDK/main capture policy paths.
   - When debugging mismatches where tool execution mode/capture behavior differs from expected interactive vs screenshot flows.
 title: "Tool Computer-Use Catalog, Surface Mode, and Capture Policy Reference"
 ---
@@ -12,9 +12,11 @@ title: "Tool Computer-Use Catalog, Surface Mode, and Capture Policy Reference"
 
 - `frontend/src/renderer/infrastructure/services/ToolComputerUseCatalog.ts`
 - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/mode.ts`
-- `frontend/src/renderer/infrastructure/services/ToolExecutionCapture.ts`
+- `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
+- `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.cjs`
 - `tests/frontend/ToolComputerUseCatalog.test.ts`
 - `tests/frontend/ToolRunnerSurface.test.ts`
+- `tests/frontend/IpcSdkToolRouter.test.cjs`
 
 ## Catalog Ownership Contract
 
@@ -68,32 +70,35 @@ Test-backed invariant:
 2. else any screenshot-mode tool -> `screenshot`
 3. else -> `none`
 
-## Auto-Capture Classification Coupling
+## Post-Action Capture Classification Coupling
 
-`ToolExecutionCapture.isComputerUseTool(toolName, args)` uses `STANDARD_COMPUTER_USE_TOOLS` for classification.
+`ToolExecutionCoordinator` owns post-action capture for SDK/main tool execution. Its capture-worthy tool set must stay aligned with the renderer catalog for concrete computer-use names.
 
 Behavior:
 
 - standard catalog tool name -> treated as computer-use tool
 - plus special case: `run_shell_command` with numeric positive `args.wait` is treated as capture-worthy
 
-This classification drives `ensureAutoCapture(...)` capture decisions and system-state-only fallback behavior.
+This classification drives SDK post-action screenshot behavior:
+
+- single computer-use tools merge one screenshot into the `tool-result` data
+- atomic bundles capture once after all bundle steps
+- bundles with an explicit `screenshot` step promote that screenshot to the top-level bundle result instead of taking a duplicate capture
 
 ## Wait/Delay Semantics Connected to Catalog Use
 
-When a tool is classified as computer-use (or is `screenshot`):
+When a tool is classified as capture-worthy:
 
 - default wait: `2s` for most computer tools
-- screenshot default wait: `0s`
 - explicit waits override defaults:
   - `wait.seconds`
   - otherwise generic `args.wait`
 
-These values affect both full screenshot capture and system-state-only capture fallback.
+These values affect the SDK-owned post-action screenshot. Bundle capture waits once, using the maximum resolved wait among successful capture-worthy steps.
 
 ## Drift Hotspots
 
-1. Adding/removing tool names outside `ToolComputerUseCatalog.ts` can desync surface mode and capture behavior.
+1. Adding/removing tool names outside `ToolComputerUseCatalog.ts` and `ToolExecutionCoordinator` can desync surface mode and capture behavior.
 2. Removing alias names (`click`, `type`, `scroll`) can regress compatibility for action-normalized dispatch paths.
 3. Adding `computer_use` directly into renderer catalog can cause wrapper/concrete mode ambiguity.
 4. Changing bundle mode precedence can break expected screenshot collapse/interactive handling in mixed bundles.

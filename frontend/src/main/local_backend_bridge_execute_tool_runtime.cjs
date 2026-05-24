@@ -29,6 +29,24 @@ const {
   hasDiscoveredMcpTool,
 } = require('./mcp_runtime.cjs');
 
+const COMPUTER_USE_SURFACE_TOOL_NAMES = new Set([
+  'mouse_control',
+  'keyboard_control',
+  'scroll_control',
+  'switch_window',
+  'wait',
+  'screenshot',
+  'click',
+  'type',
+  'scroll',
+]);
+
+function isComputerUseSurfaceTool(toolName) {
+  return COMPUTER_USE_SURFACE_TOOL_NAMES.has(
+    typeof toolName === 'string' ? toolName.trim().toLowerCase() : '',
+  );
+}
+
 function createLocalBackendExecuteToolRuntime({
   sendRequest,
   backendHttpUrl,
@@ -42,6 +60,7 @@ function createLocalBackendExecuteToolRuntime({
   executeLocalMcpTool = executeMcpTool,
   hasLocalMcpTool = hasDiscoveredMcpTool,
   sidecarDaemonClient = null,
+  prepareComputerUseSurface = null,
 } = {}) {
   function resolveDisplayBounds(event) {
     return resolveScreenshotToolDisplayBounds({
@@ -91,6 +110,12 @@ function createLocalBackendExecuteToolRuntime({
       const normalizedArgs = resolveNormalizedToolArgs(toolName, args, event);
       const timeoutMs = resolveExecuteToolTimeoutMs(toolName);
       let result = null;
+      if (
+        isComputerUseSurfaceTool(toolName)
+        && typeof prepareComputerUseSurface === 'function'
+      ) {
+        await prepareComputerUseSurface({ toolName, args: normalizedArgs });
+      }
       if (hasLocalMcpTool(toolName)) {
         result = await executeLocalMcpTool(toolName, normalizedArgs, {
           senderWindowId: event?.sender?.id || null,

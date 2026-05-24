@@ -37,6 +37,17 @@ function resolveStringField(payload, keys) {
 
 const DISPLAY_FALLBACK_KEYS = ['return_display', 'output', 'message'];
 const MODEL_FALLBACK_KEYS = ['llm_content', 'output', 'message'];
+const COMPUTER_USE_CAPTURE_TOOL_NAMES = new Set([
+  'mouse_control',
+  'keyboard_control',
+  'scroll_control',
+  'switch_window',
+  'wait',
+  'click',
+  'type',
+  'scroll',
+]);
+const DEFAULT_POST_ACTION_CAPTURE_WAIT_SECONDS = 2;
 
 function normalizeLocalToolResultData(data) {
   if (!isPlainObject(data)) {
@@ -72,6 +83,225 @@ function readToolOutputDisplayText(data) {
     ?? resolveStringField(data, DISPLAY_FALLBACK_KEYS)
     ?? resolveStringField(data, MODEL_FALLBACK_KEYS)
     ?? JSON.stringify(data);
+}
+
+function normalizeToolName(value) {
+  return typeof value === 'string' ? value.trim().toLowerCase() : '';
+}
+
+function isPositiveFiniteNumber(value) {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0;
+}
+
+function isCaptureWorthyTool(toolName, args) {
+  const normalizedToolName = normalizeToolName(toolName);
+  if (COMPUTER_USE_CAPTURE_TOOL_NAMES.has(normalizedToolName)) {
+    return true;
+  }
+  return (
+    normalizedToolName === 'run_shell_command'
+    && isPlainObject(args)
+    && isPositiveFiniteNumber(args.wait)
+  );
+}
+
+function isExplicitScreenshotTool(toolName) {
+  return normalizeToolName(toolName) === 'screenshot';
+}
+
+function resolvePostActionWaitSeconds(toolName, args) {
+  const normalizedToolName = normalizeToolName(toolName);
+  if (normalizedToolName === 'wait' && isPlainObject(args) && isPositiveFiniteNumber(args.seconds)) {
+    return args.seconds;
+  }
+  if (isPlainObject(args) && typeof args.wait === 'number' && Number.isFinite(args.wait)) {
+    return Math.max(0, args.wait);
+  }
+  if (normalizedToolName === 'run_shell_command' && isPlainObject(args) && isPositiveFiniteNumber(args.wait)) {
+    return args.wait;
+  }
+  return DEFAULT_POST_ACTION_CAPTURE_WAIT_SECONDS;
+}
+
+function delaySeconds(seconds) {
+  const milliseconds = Math.max(0, seconds) * 1000;
+  if (milliseconds <= 0) {
+    return Promise.resolve();
+  }
+  return new Promise(resolve => setTimeout(resolve, milliseconds));
+}
+
+function extractScreenshotData(result) {
+  const data = isPlainObject(result?.data) ? result.data : null;
+  if (!data) {
+    return null;
+  }
+  const screenshot = typeof data.screenshot === 'string' && data.screenshot.trim()
+    ? data.screenshot
+    : null;
+  const screenshotRef = typeof data.screenshot_ref === 'string' && data.screenshot_ref.trim()
+    ? data.screenshot_ref
+    : (typeof data.screenshotRef === 'string' && data.screenshotRef.trim() ? data.screenshotRef : null);
+  if (!screenshot && !screenshotRef) {
+    return null;
+  }
+  return {
+    ...(screenshot ? { screenshot } : {}),
+    ...(screenshotRef ? { screenshot_ref: screenshotRef } : {}),
+    ...(typeof data.screenshot_content_type === 'string' ? { screenshot_content_type: data.screenshot_content_type } : {}),
+    ...(isPlainObject(data.capture_meta) ? { capture_meta: data.capture_meta } : {}),
+  };
+}
+
+function extractScreenshotDataFromData(data) {
+  return extractScreenshotData({ data });
+}
+
+function mergePostActionScreenshot(data, screenshotData, sourceToolName) {
+  const normalizedData = normalizeLocalToolResultData(data);
+  if (!screenshotData) {
+    return normalizedData;
+  }
+  return {
+    ...normalizedData,
+    ...screenshotData,
+    post_action_screenshot: true,
+    post_action_screenshot_tool: sourceToolName,
+  };
+}
+
+async function capturePostActionScreenshot(deps, {
+  waitSeconds,
+  explanation,
+  turnRef,
+  conversationRef,
+}) {
+  if (typeof deps.executeLocalTool !== 'function') {
+    return null;
+  }
+  await delaySeconds(waitSeconds);
+  try {
+    const result = await deps.executeLocalTool({
+      toolName: 'screenshot',
+      args: {
+        explanation,
+        wait: 0,
+      },
+      turnRef,
+      conversationRef,
+    });
+    if (result?.success === false) {
+      return null;
+    }
+    return extractScreenshotData(result);
+  } catch (_error) {
+    return null;
+  }
+}
+
+async function attachSinglePostActionScreenshot(deps, {
+  toolName,
+  args,
+  data,
+  turnRef,
+  conversationRef,
+}) {
+  const normalizedData = normalizeLocalToolResultData(data);
+  if (
+    isExplicitScreenshotTool(toolName)
+    || !isCaptureWorthyTool(toolName, args)
+    || extractScreenshotDataFromData(normalizedData)
+  ) {
+    return normalizedData;
+  }
+  const screenshotData = await capturePostActionScreenshot(deps, {
+    waitSeconds: resolvePostActionWaitSeconds(toolName, args),
+    explanation: `Capturing the screen after ${toolName} execution.`,
+    turnRef,
+    conversationRef,
+  });
+  return mergePostActionScreenshot(normalizedData, screenshotData, toolName);
+}
+
+function resolveBundleCaptureWaitSeconds(tools) {
+  let waitSeconds = 0;
+  for (const tool of tools) {
+    if (!isPlainObject(tool)) {
+      continue;
+    }
+    const toolName = typeof tool.name === 'string' ? tool.name : '';
+    const args = isPlainObject(tool.args) ? tool.args : {};
+    if (isCaptureWorthyTool(toolName, args)) {
+      waitSeconds = Math.max(waitSeconds, resolvePostActionWaitSeconds(toolName, args));
+    }
+  }
+  return waitSeconds;
+}
+
+function bundleContainsCaptureWorthyTool(tools, stepResults) {
+  return tools.some((tool, index) => {
+    if (!isPlainObject(tool)) {
+      return false;
+    }
+    const step = stepResults[index];
+    const toolName = typeof tool.name === 'string' ? tool.name : '';
+    const args = isPlainObject(tool.args) ? tool.args : {};
+    return step?.status === 'ok' && isCaptureWorthyTool(toolName, args);
+  });
+}
+
+function findBundleScreenshotFromExplicitStep(tools, stepResults) {
+  for (let index = stepResults.length - 1; index >= 0; index -= 1) {
+    const tool = tools[index];
+    const step = stepResults[index];
+    if (
+      !isPlainObject(tool)
+      || !isExplicitScreenshotTool(tool.name)
+      || step?.status !== 'ok'
+    ) {
+      continue;
+    }
+    const screenshotData = extractScreenshotDataFromData(step.output);
+    if (screenshotData) {
+      return screenshotData;
+    }
+  }
+  return null;
+}
+
+async function attachBundlePostActionScreenshot(deps, {
+  tools,
+  stepResults,
+  resultPayload,
+  turnRef,
+  conversationRef,
+}) {
+  if (extractScreenshotDataFromData(resultPayload)) {
+    return resultPayload;
+  }
+  const explicitScreenshot = findBundleScreenshotFromExplicitStep(tools, stepResults);
+  if (explicitScreenshot) {
+    return {
+      ...resultPayload,
+      ...explicitScreenshot,
+    };
+  }
+  if (!bundleContainsCaptureWorthyTool(tools, stepResults)) {
+    return resultPayload;
+  }
+  const screenshotData = await capturePostActionScreenshot(deps, {
+    waitSeconds: resolveBundleCaptureWaitSeconds(tools),
+    explanation: 'Capturing the screen after bundled computer-use execution.',
+    turnRef,
+    conversationRef,
+  });
+  if (!screenshotData) {
+    return resultPayload;
+  }
+  return {
+    ...resultPayload,
+    ...screenshotData,
+  };
 }
 
 function resolveModelFacingToolCallId(payload) {
@@ -224,6 +454,13 @@ function buildRendererToolBundleOutputEvent(event, payload, startedAt) {
       error: payload?.status === 'success' ? null : (payload?.error || 'Bundled tool execution failed'),
       bundle_id: bundleId || undefined,
       step_results: stepResults,
+      screenshot: typeof payload?.screenshot === 'string' ? payload.screenshot : null,
+      screenshot_ref: (
+        typeof payload?.screenshot_ref === 'string'
+          ? payload.screenshot_ref
+          : (typeof payload?.screenshotRef === 'string' ? payload.screenshotRef : null)
+      ),
+      capture_meta: isPlainObject(payload?.capture_meta) ? payload.capture_meta : null,
       metadata: {
         ...metadata,
         skip_frontend_execution: true,
@@ -267,9 +504,24 @@ async function routeToolCallToLocalRuntime(event, deps) {
       toolCallId: resolveStringField(event.payload, ['toolCallId', 'tool_call_id']) ?? resolveModelFacingToolCallId(event.payload),
       correlationId: resolveStringField(event.payload, ['correlationId', 'correlation_id']),
     });
+    const args = isPlainObject(event.payload.args)
+      ? event.payload.args
+      : (isPlainObject(event.payload.parameters) ? event.payload.parameters : {});
+    const data = result?.success === false
+      ? normalizeLocalToolResultData(result?.data || { output: result?.error || 'Tool execution failed' })
+      : await attachSinglePostActionScreenshot(deps, {
+        toolName,
+        args,
+        data: result?.data,
+        turnRef: event.turn_ref,
+        conversationRef: event.conversation_ref,
+      });
     const payload = buildToolResultPayload({
       requestId,
-      result,
+      result: {
+        ...result,
+        data,
+      },
     });
     deps.sendToolResult(payload);
     deps.onToolOutput?.(buildRendererToolOutputEvent(event, payload, startedAt));
@@ -309,9 +561,10 @@ async function routeToolBundleToLocalRuntime(event, deps) {
     const toolCallId = resolveStringField(tool, ['toolCallId', 'tool_call_id'])
       ?? resolveModelFacingToolCallId(tool);
     try {
+      const args = isPlainObject(tool.args) ? tool.args : {};
       const result = await deps.executeLocalTool({
         toolName,
-        args: isPlainObject(tool.args) ? tool.args : {},
+        args,
         bundleId,
         toolCallId,
       });
@@ -342,12 +595,18 @@ async function routeToolBundleToLocalRuntime(event, deps) {
   const status = failedSteps.length === 0
     ? 'success'
     : (failedSteps.length === stepResults.length ? 'failure' : 'partial_failure');
-  const resultPayload = {
-    bundle_id: bundleId,
-    status,
-    step_results: stepResults,
-    error: failedSteps.length > 0 ? `${failedSteps.length} bundled tool step(s) failed` : null,
-  };
+  const resultPayload = await attachBundlePostActionScreenshot(deps, {
+    tools,
+    stepResults,
+    resultPayload: {
+      bundle_id: bundleId,
+      status,
+      step_results: stepResults,
+      error: failedSteps.length > 0 ? `${failedSteps.length} bundled tool step(s) failed` : null,
+    },
+    turnRef: event.turn_ref,
+    conversationRef: event.conversation_ref,
+  });
   deps.sendToolBundleResult(resultPayload);
   deps.onToolOutput?.(buildRendererToolBundleOutputEvent(event, resultPayload, startedAt));
   return true;

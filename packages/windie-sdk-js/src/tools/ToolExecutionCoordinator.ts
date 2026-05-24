@@ -24,6 +24,18 @@ export type ToolClaimResult = {
   reason?: string;
 };
 
+const COMPUTER_USE_CAPTURE_TOOL_NAMES = new Set([
+  'mouse_control',
+  'keyboard_control',
+  'scroll_control',
+  'switch_window',
+  'wait',
+  'click',
+  'type',
+  'scroll',
+]);
+const DEFAULT_POST_ACTION_CAPTURE_WAIT_SECONDS = 2;
+
 function failureResult(error: unknown): LocalToolResult {
   const message = errorMessage(error);
   return {
@@ -47,6 +59,89 @@ function stringPayloadField(payload: JsonRecord, ...keys: string[]): string | nu
     }
   }
   return null;
+}
+
+function isJsonRecord(value: unknown): value is JsonRecord {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
+function normalizeToolName(value: unknown): string {
+  return typeof value === 'string' ? value.trim().toLowerCase() : '';
+}
+
+function isPositiveFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0;
+}
+
+function isExplicitScreenshotTool(toolName: unknown): boolean {
+  return normalizeToolName(toolName) === 'screenshot';
+}
+
+function isCaptureWorthyTool(toolName: unknown, args: unknown): boolean {
+  const normalizedToolName = normalizeToolName(toolName);
+  if (COMPUTER_USE_CAPTURE_TOOL_NAMES.has(normalizedToolName)) {
+    return true;
+  }
+  return (
+    normalizedToolName === 'run_shell_command'
+    && isJsonRecord(args)
+    && isPositiveFiniteNumber(args.wait)
+  );
+}
+
+function resolvePostActionWaitSeconds(toolName: unknown, args: unknown): number {
+  const normalizedToolName = normalizeToolName(toolName);
+  if (normalizedToolName === 'wait' && isJsonRecord(args) && isPositiveFiniteNumber(args.seconds)) {
+    return args.seconds;
+  }
+  if (isJsonRecord(args) && typeof args.wait === 'number' && Number.isFinite(args.wait)) {
+    return Math.max(0, args.wait);
+  }
+  if (normalizedToolName === 'run_shell_command' && isJsonRecord(args) && isPositiveFiniteNumber(args.wait)) {
+    return args.wait;
+  }
+  return DEFAULT_POST_ACTION_CAPTURE_WAIT_SECONDS;
+}
+
+function delaySeconds(seconds: number): Promise<void> {
+  const milliseconds = Math.max(0, seconds) * 1000;
+  if (milliseconds <= 0) {
+    return Promise.resolve();
+  }
+  return new Promise(resolve => setTimeout(resolve, milliseconds));
+}
+
+function extractScreenshotDataFromData(data: unknown): JsonRecord | null {
+  if (!isJsonRecord(data)) {
+    return null;
+  }
+  const screenshot = typeof data.screenshot === 'string' && data.screenshot.trim()
+    ? data.screenshot
+    : null;
+  const screenshotRef = typeof data.screenshot_ref === 'string' && data.screenshot_ref.trim()
+    ? data.screenshot_ref
+    : (typeof data.screenshotRef === 'string' && data.screenshotRef.trim() ? data.screenshotRef : null);
+  if (!screenshot && !screenshotRef) {
+    return null;
+  }
+  return {
+    ...(screenshot ? { screenshot } : {}),
+    ...(screenshotRef ? { screenshot_ref: screenshotRef } : {}),
+    ...(typeof data.screenshot_content_type === 'string' ? { screenshot_content_type: data.screenshot_content_type } : {}),
+    ...(isJsonRecord(data.capture_meta) ? { capture_meta: data.capture_meta } : {}),
+  };
+}
+
+function mergePostActionScreenshot(data: JsonRecord, screenshotData: JsonRecord | null, sourceToolName: string): JsonRecord {
+  if (!screenshotData) {
+    return data;
+  }
+  return {
+    ...data,
+    ...screenshotData,
+    post_action_screenshot: true,
+    post_action_screenshot_tool: sourceToolName,
+  };
 }
 
 function localToolCallFromEvent(event: ConversationEvent): LocalToolCall | null {
@@ -78,6 +173,138 @@ function localToolCallFromEvent(event: ConversationEvent): LocalToolCall | null 
 
 export class ToolExecutionCoordinator {
   constructor(private readonly options: ToolExecutionCoordinatorOptions) {}
+
+  private async capturePostActionScreenshot({
+    waitSeconds,
+    explanation,
+    turnRef,
+    conversationRef,
+  }: {
+    waitSeconds: number;
+    explanation: string;
+    turnRef?: string | null;
+    conversationRef?: string | null;
+  }): Promise<JsonRecord | null> {
+    if (!this.options.localRuntime?.executeTool) {
+      return null;
+    }
+    await delaySeconds(waitSeconds);
+    try {
+      const result = await this.options.localRuntime.executeTool({
+        toolName: 'screenshot',
+        args: {
+          explanation,
+          wait: 0,
+        },
+        turnRef,
+        conversationRef,
+      });
+      if (result.success === false) {
+        return null;
+      }
+      return extractScreenshotDataFromData(result.data);
+    } catch (_error) {
+      return null;
+    }
+  }
+
+  private async attachSinglePostActionScreenshot(call: LocalToolCall, result: LocalToolResult): Promise<JsonRecord> {
+    const data = normalizeLocalToolResultData(result.data);
+    if (
+      isExplicitScreenshotTool(call.toolName)
+      || !isCaptureWorthyTool(call.toolName, call.args)
+      || extractScreenshotDataFromData(data)
+    ) {
+      return data;
+    }
+    const screenshotData = await this.capturePostActionScreenshot({
+      waitSeconds: resolvePostActionWaitSeconds(call.toolName, call.args),
+      explanation: `Capturing the screen after ${call.toolName} execution.`,
+      turnRef: call.turnRef,
+      conversationRef: call.conversationRef,
+    });
+    return mergePostActionScreenshot(data, screenshotData, call.toolName);
+  }
+
+  private resolveBundleCaptureWaitSeconds(tools: unknown[]): number {
+    let waitSeconds = 0;
+    for (const tool of tools) {
+      if (!isJsonRecord(tool)) {
+        continue;
+      }
+      const args = isJsonRecord(tool.args) ? tool.args : {};
+      if (isCaptureWorthyTool(tool.name, args)) {
+        waitSeconds = Math.max(waitSeconds, resolvePostActionWaitSeconds(tool.name, args));
+      }
+    }
+    return waitSeconds;
+  }
+
+  private bundleContainsCaptureWorthyTool(tools: unknown[], stepResults: JsonRecord[]): boolean {
+    return tools.some((tool, index) => {
+      if (!isJsonRecord(tool)) {
+        return false;
+      }
+      const args = isJsonRecord(tool.args) ? tool.args : {};
+      return stepResults[index]?.status === 'ok' && isCaptureWorthyTool(tool.name, args);
+    });
+  }
+
+  private findBundleScreenshotFromExplicitStep(tools: unknown[], stepResults: JsonRecord[]): JsonRecord | null {
+    for (let index = stepResults.length - 1; index >= 0; index -= 1) {
+      const tool = tools[index];
+      const step = stepResults[index];
+      if (!isJsonRecord(tool) || !isExplicitScreenshotTool(tool.name) || step?.status !== 'ok') {
+        continue;
+      }
+      const screenshotData = extractScreenshotDataFromData(step.output);
+      if (screenshotData) {
+        return screenshotData;
+      }
+    }
+    return null;
+  }
+
+  private async attachBundlePostActionScreenshot({
+    tools,
+    stepResults,
+    resultPayload,
+    turnRef,
+    conversationRef,
+  }: {
+    tools: unknown[];
+    stepResults: JsonRecord[];
+    resultPayload: ToolBundleResultPayload;
+    turnRef?: string | null;
+    conversationRef?: string | null;
+  }): Promise<ToolBundleResultPayload> {
+    if (extractScreenshotDataFromData(resultPayload)) {
+      return resultPayload;
+    }
+    const explicitScreenshot = this.findBundleScreenshotFromExplicitStep(tools, stepResults);
+    if (explicitScreenshot) {
+      return {
+        ...resultPayload,
+        ...explicitScreenshot,
+      };
+    }
+    if (!this.bundleContainsCaptureWorthyTool(tools, stepResults)) {
+      return resultPayload;
+    }
+    const screenshotData = await this.capturePostActionScreenshot({
+      waitSeconds: this.resolveBundleCaptureWaitSeconds(tools),
+      explanation: 'Capturing the screen after bundled computer-use execution.',
+      turnRef,
+      conversationRef,
+    });
+    if (!screenshotData) {
+      return resultPayload;
+    }
+    return {
+      ...resultPayload,
+      ...screenshotData,
+    };
+  }
 
   canClaim(event: ConversationEvent): ToolClaimResult {
     if (!this.options.localRuntime?.executeTool) {
@@ -129,10 +356,13 @@ export class ToolExecutionCoordinator {
       result = failureResult(error);
     }
     const success = result.success !== false;
+    const data = success
+      ? await this.attachSinglePostActionScreenshot(call, result)
+      : normalizeLocalToolResultData(result.data);
     const payload: ToolResultPayload = {
       request_id: call.requestId,
       success,
-      data: normalizeLocalToolResultData(result.data),
+      data,
       error: success ? undefined : result.error || 'Tool execution failed',
     };
     let deliveryError: unknown = null;
@@ -177,7 +407,7 @@ export class ToolExecutionCoordinator {
       ? payload.bundleId
       : (typeof payload.bundle_id === 'string' ? payload.bundle_id : '');
     const tools = Array.isArray(payload.tools) ? payload.tools : [];
-    const stepResults = [];
+    const stepResults: JsonRecord[] = [];
     for (const step of tools) {
       if (!step || typeof step !== 'object' || Array.isArray(step)) {
         continue;
@@ -218,12 +448,18 @@ export class ToolExecutionCoordinator {
     const status = failures.length === 0
       ? 'success'
       : (failures.length === stepResults.length ? 'failure' : 'partial_failure');
-    const resultPayload: ToolBundleResultPayload = {
-      bundle_id: bundleId,
-      status,
-      step_results: stepResults,
-      error: failures.length > 0 ? `${failures.length} bundled tool step(s) failed` : undefined,
-    };
+    const resultPayload = await this.attachBundlePostActionScreenshot({
+      tools,
+      stepResults,
+      resultPayload: {
+        bundle_id: bundleId,
+        status,
+        step_results: stepResults,
+        error: failures.length > 0 ? `${failures.length} bundled tool step(s) failed` : undefined,
+      },
+      turnRef: event.turnRef,
+      conversationRef: event.conversationRef,
+    });
     let deliveryError: unknown = null;
     try {
       await this.options.sendToolBundleResult(resultPayload);
@@ -244,6 +480,9 @@ export class ToolExecutionCoordinator {
           bundleId,
           status: deliveryError ? 'failure' : status,
           stepResults,
+          screenshot: resultPayload.screenshot ?? null,
+          screenshotRef: resultPayload.screenshot_ref ?? null,
+          captureMeta: resultPayload.capture_meta ?? null,
           error: deliveryErrorMessage ?? resultPayload.error ?? null,
           deliveryFailed: Boolean(deliveryError),
         },
