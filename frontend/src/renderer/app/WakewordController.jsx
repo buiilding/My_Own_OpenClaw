@@ -10,7 +10,9 @@ function WakewordController() {
   const handleWakewordDetected = useCallback(() => {
     console.log('[WakewordController] Wakeword detected!');
     DesktopVoiceRuntimeClient.wakewordDetected();
-    IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX).catch((error) => {
+    IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, {
+      reason: 'wakeword',
+    }).catch((error) => {
       console.warn('[WakewordController] Failed to show chatbox:', error);
     });
   }, []);

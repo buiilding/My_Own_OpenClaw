@@ -25,6 +25,42 @@ const {
   prepareOverlayQueryCaptureFocus: prepareOverlayQueryCaptureFocusRuntime,
 } = require('./main_window_runtime.cjs');
 
+const CHAT_PILL_SHOW_REASON = Object.freeze({
+  APP_ACTIVATE: 'app-activate',
+  DASHBOARD_CLOSE: 'dashboard-close',
+  HOTKEY: 'hotkey',
+  STARTUP: 'startup',
+  WAKEWORD: 'wakeword',
+});
+
+const CHAT_PILL_HIDE_REASON = Object.freeze({
+  USER: 'user',
+});
+
+const GENERIC_CHAT_PILL_SHOW_REASONS = new Set([
+  CHAT_PILL_SHOW_REASON.APP_ACTIVATE,
+  CHAT_PILL_SHOW_REASON.STARTUP,
+  'second-instance',
+]);
+
+const USER_SUMMON_CHAT_PILL_SHOW_REASONS = new Set([
+  CHAT_PILL_SHOW_REASON.DASHBOARD_CLOSE,
+  CHAT_PILL_SHOW_REASON.HOTKEY,
+  CHAT_PILL_SHOW_REASON.WAKEWORD,
+  'manual',
+  'onboarding-complete',
+  'tray',
+  'user',
+]);
+
+function normalizeChatPillReason(value, fallback = null) {
+  if (typeof value !== 'string') {
+    return fallback;
+  }
+  const normalized = value.trim().toLowerCase();
+  return normalized || fallback;
+}
+
 function createSurfaceRuntime({
   screen,
   getActiveDisplayAffinity,
@@ -44,6 +80,8 @@ function createSurfaceRuntime({
   mainWindowOpenTargetChannel,
   mainWindowOpenTargets,
   windowPlatformPolicy,
+  initialChatPillUserHidden = false,
+  persistChatPillUserHidden = () => {},
   warn = console.warn,
 } = {}) {
   const state = {
@@ -57,6 +95,7 @@ function createSurfaceRuntime({
     responseOverlayPhase: 'idle',
     chatVisualAnchorHeight: initialChatVisualAnchorHeight,
     chatboxHitTestActive: false,
+    chatPillUserHidden: initialChatPillUserHidden === true,
     primarySurface: 'dashboard',
     mainWindowMode: 'dashboard',
   };
@@ -75,6 +114,7 @@ function createSurfaceRuntime({
       windows: getWindows(),
       vmWorkerRuntime: state.vmWorkerRuntime,
       responseOverlayPhase: state.responseOverlayPhase,
+      chatPillUserHidden: state.chatPillUserHidden,
       applyResponseOverlayPhase,
       setResponseOverlayVisible: (nextVisible) => {
         state.responseOverlayVisible = Boolean(nextVisible);
@@ -235,7 +275,40 @@ function createSurfaceRuntime({
     );
   }
 
+  function setChatPillUserHidden(userHidden) {
+    const nextUserHidden = userHidden === true;
+    if (state.chatPillUserHidden === nextUserHidden) {
+      return false;
+    }
+    state.chatPillUserHidden = nextUserHidden;
+    try {
+      persistChatPillUserHidden(nextUserHidden);
+    } catch (error) {
+      warn('[Main] Failed to persist chat pill visibility intent:', error?.message || error);
+    }
+    return true;
+  }
+
+  function shouldSuppressChatPillShow(options = {}) {
+    if (!state.chatPillUserHidden) {
+      return false;
+    }
+    const reason = normalizeChatPillReason(options?.reason, 'unspecified');
+    return GENERIC_CHAT_PILL_SHOW_REASONS.has(reason);
+  }
+
   function showChatWindow(options = {}) {
+    const reason = normalizeChatPillReason(options?.reason, 'unspecified');
+    if (shouldSuppressChatPillShow(options)) {
+      return {
+        success: true,
+        suppressed: true,
+        reason: 'chat-pill-user-hidden',
+      };
+    }
+    if (USER_SUMMON_CHAT_PILL_SHOW_REASONS.has(reason)) {
+      setChatPillUserHidden(false);
+    }
     state.primarySurface = 'chat';
     return showChatWindowRuntime(normalizeChatSurfaceWindowOptions(options), {
       chatWindow: state.chatWindow,
@@ -261,7 +334,11 @@ function createSurfaceRuntime({
     });
   }
 
-  function hideChatWindow() {
+  function hideChatWindow(options = {}) {
+    const reason = normalizeChatPillReason(options?.reason, null);
+    if (reason === CHAT_PILL_HIDE_REASON.USER) {
+      setChatPillUserHidden(true);
+    }
     return hideChatWindowRuntime({
       chatWindow: state.chatWindow,
       responseWindow: state.responseWindow,
@@ -292,7 +369,10 @@ function createSurfaceRuntime({
       syncWindowDisplayAffinity,
       setActiveDisplayAffinity,
       getActiveDisplayAffinity,
-      hideChatWindow,
+      hideChatWindow: (hideOptions = {}) => hideChatWindow({
+        reason: 'surface-handoff',
+        ...hideOptions,
+      }),
       activateWindowForInteraction: windowPlatformPolicy.activateWindowForInteraction,
     });
   }
@@ -383,8 +463,9 @@ function createSurfaceRuntime({
     initializeMainProcessIpcOnce,
     normalizeMainWindowOpenTarget,
     overlayHelpers,
-    setChatboxHitTestActive,
     prepareOverlayQueryCaptureFocus,
+    setChatPillUserHidden,
+    setChatboxHitTestActive,
     setChatVisualAnchorHeight,
     setChatWindow: (nextWindow) => {
       state.chatWindow = nextWindow;
@@ -409,5 +490,7 @@ function createSurfaceRuntime({
 }
 
 module.exports = {
+  CHAT_PILL_HIDE_REASON,
+  CHAT_PILL_SHOW_REASON,
   createSurfaceRuntime,
 };

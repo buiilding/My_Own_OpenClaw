@@ -274,7 +274,7 @@ function ChatBox() {
       return;
     }
     try {
-      await IpcBridge.invoke(INVOKE_CHANNELS.HIDE_CHATBOX);
+      await IpcBridge.invoke(INVOKE_CHANNELS.HIDE_CHATBOX, { reason: 'user' });
     } catch (error) {
       console.warn('[ChatBox] Failed to hide chat window:', error);
     }

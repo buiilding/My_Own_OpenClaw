@@ -2,6 +2,22 @@
 
 const { createSurfaceRuntime } = require('../../frontend/src/main/surface_runtime.cjs');
 
+function createWindow({ visible = false, destroyed = false } = {}) {
+  return {
+    isDestroyed: jest.fn(() => destroyed),
+    isVisible: jest.fn(() => visible),
+    show: jest.fn(),
+    showInactive: jest.fn(),
+    hide: jest.fn(),
+    focus: jest.fn(),
+    setIgnoreMouseEvents: jest.fn(),
+    setFocusable: jest.fn(),
+    webContents: {
+      send: jest.fn(),
+    },
+  };
+}
+
 function createSurfaceDeps() {
   return {
     screen: {},
@@ -68,5 +84,74 @@ describe('surface_runtime', () => {
     expect(runtime.stopVmWorker()).toBe(true);
     expect(vmWorkerRuntime.stop).toHaveBeenCalledTimes(1);
     expect(runtime.stopVmWorker()).toBe(false);
+  });
+
+  test('persists user intent when the chat pill is hidden by the user', () => {
+    const persistChatPillUserHidden = jest.fn();
+    const runtime = createSurfaceRuntime({
+      ...createSurfaceDeps(),
+      persistChatPillUserHidden,
+    });
+    const chatWindow = createWindow({ visible: true });
+    runtime.setChatWindow(chatWindow);
+
+    expect(runtime.hideChatWindow({ reason: 'user' })).toEqual({ success: true });
+
+    expect(persistChatPillUserHidden).toHaveBeenCalledWith(true);
+    expect(runtime.getState().chatPillUserHidden).toBe(true);
+    expect(chatWindow.hide).toHaveBeenCalledTimes(1);
+  });
+
+  test('suppresses generic startup restore when the user hid the chat pill', () => {
+    const runtime = createSurfaceRuntime({
+      ...createSurfaceDeps(),
+      initialChatPillUserHidden: true,
+    });
+    const chatWindow = createWindow({ visible: false });
+    runtime.setChatWindow(chatWindow);
+
+    const result = runtime.showChatWindow({ focus: true, reason: 'startup' });
+
+    expect(result).toEqual({
+      success: true,
+      suppressed: true,
+      reason: 'chat-pill-user-hidden',
+    });
+    expect(chatWindow.show).not.toHaveBeenCalled();
+    expect(runtime.getState().chatPillUserHidden).toBe(true);
+  });
+
+  test('wakeword clears user-hidden intent and reopens the chat pill', () => {
+    const persistChatPillUserHidden = jest.fn();
+    const runtime = createSurfaceRuntime({
+      ...createSurfaceDeps(),
+      initialChatPillUserHidden: true,
+      persistChatPillUserHidden,
+    });
+    const chatWindow = createWindow({ visible: false });
+    runtime.setChatWindow(chatWindow);
+
+    const result = runtime.showChatWindow({ focus: true, reason: 'wakeword' });
+
+    expect(result).toEqual({ success: true });
+    expect(persistChatPillUserHidden).toHaveBeenCalledWith(false);
+    expect(chatWindow.show).toHaveBeenCalledTimes(1);
+    expect(chatWindow.focus).toHaveBeenCalledTimes(1);
+    expect(runtime.getState().chatPillUserHidden).toBe(false);
+  });
+
+  test('runtime capture hides do not mark the chat pill as user-hidden', () => {
+    const persistChatPillUserHidden = jest.fn();
+    const runtime = createSurfaceRuntime({
+      ...createSurfaceDeps(),
+      persistChatPillUserHidden,
+    });
+    const chatWindow = createWindow({ visible: true });
+    runtime.setChatWindow(chatWindow);
+
+    expect(runtime.hideChatWindow({ reason: 'capture' })).toEqual({ success: true });
+
+    expect(persistChatPillUserHidden).not.toHaveBeenCalled();
+    expect(runtime.getState().chatPillUserHidden).toBe(false);
   });
 });

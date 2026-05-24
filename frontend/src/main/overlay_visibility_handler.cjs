@@ -33,9 +33,9 @@ function handleShowChatbox(
   }));
 }
 
-function handleHideChatbox(deps = {}) {
+function handleHideChatbox(options = {}, deps = {}) {
   const { hideChatWindow } = deps;
-  return hideChatWindow();
+  return hideChatWindow(options);
 }
 
 function handleHandoffSurfaceForComputerUse(options = {}, deps = {}) {

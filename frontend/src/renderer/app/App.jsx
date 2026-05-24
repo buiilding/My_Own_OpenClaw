@@ -75,7 +75,10 @@ function AppContent() {
           return;
         }
 
-        await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, { focus: true });
+        await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, {
+          focus: true,
+          reason: 'startup',
+        });
       } catch (error) {
         console.warn('[App] Failed to apply startup surface:', error);
       }

@@ -187,7 +187,7 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
       return;
     }
 
-    showChatWindow({ focus: true });
+    showChatWindow({ focus: true, reason: 'app-activate' });
   }
 
   const singleInstanceLockAcquired = requestSingleInstanceLock();
@@ -253,9 +253,9 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
           return;
         }
         if (chatWindow.isVisible()) {
-          hideChatWindow();
+          hideChatWindow({ reason: 'user' });
         } else {
-          showChatWindow({ focus: true });
+          showChatWindow({ focus: true, reason: 'hotkey' });
         }
       };
 

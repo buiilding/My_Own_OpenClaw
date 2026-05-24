@@ -712,7 +712,7 @@ describe('main_window_runtime createMainWindow', () => {
     handlers['once:leave-full-screen']();
 
     expect(mainWindow.hide).toHaveBeenCalledTimes(1);
-    expect(deps.showChatWindow).toHaveBeenCalledWith({ focus: true });
+    expect(deps.showChatWindow).toHaveBeenCalledWith({ focus: true, reason: 'dashboard-close' });
   });
 
   test('hides onboarding without restoring the chat pill on close', () => {
@@ -748,7 +748,7 @@ describe('main_window_runtime collapseMainWindowToChatPill', () => {
     });
 
     expect(mainWindow.hide).toHaveBeenCalledTimes(1);
-    expect(showChatWindow).toHaveBeenCalledWith({ focus: true });
+    expect(showChatWindow).toHaveBeenCalledWith({ focus: true, reason: 'dashboard-close' });
   });
 });
 

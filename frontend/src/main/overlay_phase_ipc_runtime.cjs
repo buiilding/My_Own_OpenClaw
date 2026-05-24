@@ -125,8 +125,8 @@ function initializeOverlayPhaseHandlersRuntime(deps = {}) {
     });
   });
 
-  ipcMain.handle('hide-chatbox', async () => {
-    return handleHideChatbox({ hideChatWindow });
+  ipcMain.handle('hide-chatbox', async (_event, options = {}) => {
+    return handleHideChatbox(options, { hideChatWindow });
   });
 
   ipcMain.handle('handoff-surface-for-computer-use', async (_event, options = {}) => {

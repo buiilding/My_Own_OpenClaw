@@ -92,7 +92,10 @@ describe('App permission gate', () => {
     expect(screen.getByTestId('dashboard-shell-stub')).toHaveTextContent('vmModeEnabled:false');
     expect(screen.queryByTestId('frontend-onboarding-stub')).not.toBeInTheDocument();
     expect(mockWakewordController).toHaveBeenCalledTimes(1);
-    expect(mockIpcInvoke).toHaveBeenCalledWith('show-chatbox', { focus: true });
+    expect(mockIpcInvoke).toHaveBeenCalledWith('show-chatbox', {
+      focus: true,
+      reason: 'startup',
+    });
   });
 
   test('does not flash onboarding before bootstrap when onboarding was already completed', () => {
@@ -105,7 +108,10 @@ describe('App permission gate', () => {
     expect(screen.getByTestId('dashboard-shell-stub')).toHaveTextContent('vmModeEnabled:false');
     expect(screen.queryByTestId('frontend-onboarding-stub')).not.toBeInTheDocument();
     expect(mockWakewordController).toHaveBeenCalledTimes(1);
-    expect(mockIpcInvoke).toHaveBeenCalledWith('show-chatbox', { focus: true });
+    expect(mockIpcInvoke).toHaveBeenCalledWith('show-chatbox', {
+      focus: true,
+      reason: 'startup',
+    });
   });
 
   test('switches from onboarding to the chat pill when onboarding completes', () => {
@@ -128,6 +134,9 @@ describe('App permission gate', () => {
     rerender(<App />);
 
     expect(mockWakewordController).toHaveBeenCalledTimes(1);
-    expect(mockIpcInvoke).toHaveBeenCalledWith('show-chatbox', { focus: true });
+    expect(mockIpcInvoke).toHaveBeenCalledWith('show-chatbox', {
+      focus: true,
+      reason: 'startup',
+    });
   });
 });

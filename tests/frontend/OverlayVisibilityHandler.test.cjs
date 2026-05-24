@@ -104,10 +104,10 @@ describe('overlay_visibility_handler', () => {
   test('hide-chatbox delegates return value', () => {
     const hideChatWindow = jest.fn().mockReturnValue({ success: true, hidden: true });
 
-    const result = handleHideChatbox({ hideChatWindow });
+    const result = handleHideChatbox({ reason: 'user' }, { hideChatWindow });
 
     expect(result).toEqual({ success: true, hidden: true });
-    expect(hideChatWindow).toHaveBeenCalledTimes(1);
+    expect(hideChatWindow).toHaveBeenCalledWith({ reason: 'user' });
   });
 
   test('handoff-surface-for-computer-use switches visible dashboard to chat pill', () => {

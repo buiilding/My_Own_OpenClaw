@@ -108,7 +108,7 @@ function collapseMainWindowToChatPill({
       return;
     }
     mainWindow.hide();
-    showChatWindow({ focus: true });
+    showChatWindow({ focus: true, reason: 'dashboard-close' });
   };
 
   const shouldExitFullscreenFirst = (
@@ -217,7 +217,7 @@ function createMainWindow({
     getWindows,
   });
   initializeWakewordBridge(mainWindow, () => {
-    const result = showChatWindow({ focus: true });
+    const result = showChatWindow({ focus: true, reason: 'wakeword' });
     if (result?.success) {
       emitWakewordSttTrigger();
     }
@@ -339,7 +339,7 @@ function createChatWindow({
   chatWindow.on('close', (event) => {
     if (!app.isQuitting) {
       event.preventDefault();
-      hideChatWindow();
+      hideChatWindow({ reason: 'user' });
     }
     return false;
   });

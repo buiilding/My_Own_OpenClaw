@@ -78,6 +78,10 @@ const {
 } = require('./agent_stop_shortcut_runtime.cjs');
 const { createWindowPlatformPolicy } = require('./window_platform_policy.cjs');
 const { createSurfaceRuntime } = require('./surface_runtime.cjs');
+const {
+  readChatPillVisibilityIntent,
+  writeChatPillVisibilityIntent,
+} = require('./chat_pill_visibility_intent_store.cjs');
 
 configureGpuRuntime({ app, env: process.env });
 
@@ -119,6 +123,9 @@ const windowPlatformPolicy = createWindowPlatformPolicy({
   platform: process.platform,
   warn: console.warn,
 });
+const chatPillVisibilityIntent = readChatPillVisibilityIntent({
+  userDataPath: getUserDataPath(),
+});
 const surfaceRuntime = createSurfaceRuntime({
   screen,
   getActiveDisplayAffinity: getActiveDisplayAffinityRuntime,
@@ -138,6 +145,14 @@ const surfaceRuntime = createSurfaceRuntime({
   mainWindowOpenTargetChannel: MAIN_WINDOW_OPEN_TARGET_CHANNEL,
   mainWindowOpenTargets: MAIN_WINDOW_OPEN_TARGETS,
   windowPlatformPolicy,
+  initialChatPillUserHidden: chatPillVisibilityIntent.userHidden,
+  persistChatPillUserHidden: (userHidden) => {
+    writeChatPillVisibilityIntent({
+      userHidden,
+    }, {
+      userDataPath: getUserDataPath(),
+    });
+  },
   warn: console.warn,
 });
 const {

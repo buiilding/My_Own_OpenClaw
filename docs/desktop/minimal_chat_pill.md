@@ -23,6 +23,11 @@ The minimal chat pill is the small always-available desktop command surface. It 
 ## Behavior Contracts
 
 - The pill is a command surface, not a separate chat backend session.
+- Closing the pill is durable user intent. Generic lifecycle paths such as
+  startup-surface reapply or app activation must not reopen it while that intent
+  is set.
+- Intentional summons such as wakeword detection, the global hotkey, and
+  dashboard-close handoff may reopen the pill and clear the user-hidden intent.
 - Screenshot capture behavior differs by platform; Linux hides WindieOS overlays, Windows/macOS do not.
 - Drag and resize behavior should preserve the user-perceived anchor, especially when multiline input or image previews grow.
 - The pill should avoid focus stealing unless explicitly requested.

@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: persist user-hidden minimal chat pill intent so generic app wake/startup restores do not reopen it, while wakeword and hotkey summons still do.
 - docs/agents: require coding agents to identify the owning layer before edits, report exact validation commands, check security and migration implications, and keep scratch logs for larger refactors.
 - backend/compaction: enforce the post-compaction target budget on retained history tails and add one-shot overflow/empty-stream compaction recovery before surfacing a model failure.
 - backend/compaction: remove the auto-compaction cooldown gate and restore 90%-of-model-context auto-trigger semantics so oversized histories can compact again immediately when still above threshold.

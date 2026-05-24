@@ -153,6 +153,11 @@ Overlay focus behavior is now the same on every desktop OS:
 `showChatWindow({focus})` behavior:
 
 - hides main window if visible
+- respects persisted user-hidden chat-pill intent for generic lifecycle reasons
+  such as startup and app activation, so a pill closed by the user does not
+  reappear just because the app wakes or remounts
+- explicit summons such as wakeword detection, global hotkey, and dashboard
+  close-to-pill handoff clear the user-hidden intent and may show the pill
 - display target resolution is centralized in `resolveShowTargetDisplayAffinity(...)`:
   - explicit display target wins
   - stored active display affinity fallback applies only when chat window is hidden
@@ -166,6 +171,9 @@ Overlay focus behavior is now the same on every desktop OS:
 - hides chat overlay
 - hides response overlay
 - re-enables wakeword toggle broadcast
+- records persisted user-hidden intent only when the hide reason is user-driven;
+  capture, dashboard handoff, and other runtime hides do not mark the pill as
+  user-hidden
 
 Tool-execution chat-pill lifecycle (interactive computer-use path):
 

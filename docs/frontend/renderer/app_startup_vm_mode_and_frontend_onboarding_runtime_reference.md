@@ -64,7 +64,7 @@ Routing behavior:
   - mount `WakewordController`
   - render `ChatGptDashboardShell`
   - pass `vmModeEnabled={false}`
-  - request `show-chatbox({ focus: true })` from the renderer startup-surface controller so cold start lands on the minimal chat pill instead of the dashboard window
+  - request `show-chatbox({ focus: true, reason: "startup" })` from the renderer startup-surface controller so cold start lands on the minimal chat pill unless Electron main has persisted user-hidden chat-pill intent
 
 Pre-bootstrap startup behavior:
 
@@ -120,6 +120,9 @@ Navigation behavior:
 - permission slides advance through the current manifest in order
 - final CTA `Start WindieOS` calls `permissionStore.completeOnboarding()`
 - after completion, `AppContent` re-resolves startup surface and hands visibility to the minimal chat pill instead of leaving the dashboard window open
+- startup-surface handoff is a generic lifecycle restore, not a wakeword/user
+  summon; Electron main may suppress it when the user previously closed the
+  minimal chat pill
 - `Start WindieOS` stays enabled once permission status has loaded, even if some permissions are still missing
 - the final slide warns when permissions remain missing and points the user to Settings for follow-up
 - while onboarding is active, closing the main window hides onboarding without restoring the minimal chat pill; reopening the app restores onboarding until the wizard is completed

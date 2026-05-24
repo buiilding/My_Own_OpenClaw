@@ -672,7 +672,10 @@ describe('ChatBox overlay mouse ignore', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Hide chat pill' }));
     });
 
-    expectInvokeCall(([channel]) => channel === 'hide-chatbox');
+    expectInvokeCall(([channel, payload]) => (
+      channel === 'hide-chatbox'
+      && payload?.reason === 'user'
+    ));
   });
 
   test('keeps send button rendered but disabled during active stream', () => {

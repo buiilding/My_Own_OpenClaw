@@ -89,7 +89,7 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
     expect(deps.log).toHaveBeenCalledWith(
       '[Main][StartupMetrics] second-instance event received; focusing existing window.',
     );
-    expect(deps.showChatWindow).toHaveBeenCalledWith({ focus: true });
+    expect(deps.showChatWindow).toHaveBeenCalledWith({ focus: true, reason: 'app-activate' });
   });
 
   test('throttles rapid second-instance focus storms to prevent focus stealing loops', async () => {
@@ -111,8 +111,8 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
     appEvents['second-instance']();
 
     expect(deps.showChatWindow).toHaveBeenCalledTimes(2);
-    expect(deps.showChatWindow).toHaveBeenNthCalledWith(1, { focus: true }); // first second-instance
-    expect(deps.showChatWindow).toHaveBeenNthCalledWith(2, { focus: true }); // post-throttle second-instance
+    expect(deps.showChatWindow).toHaveBeenNthCalledWith(1, { focus: true, reason: 'app-activate' }); // first second-instance
+    expect(deps.showChatWindow).toHaveBeenNthCalledWith(2, { focus: true, reason: 'app-activate' }); // post-throttle second-instance
     expect(deps.log).toHaveBeenCalledWith(
       '[Main][StartupMetrics] second-instance event throttled; skip focus to avoid loop.',
     );
@@ -373,7 +373,7 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
 
     appEvents.activate();
 
-    expect(deps.showChatWindow).toHaveBeenCalledWith({ focus: true });
+    expect(deps.showChatWindow).toHaveBeenCalledWith({ focus: true, reason: 'app-activate' });
     expect(deps.showMainWindow).not.toHaveBeenCalled();
   });
 

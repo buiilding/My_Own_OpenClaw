@@ -36,7 +36,9 @@ title: "Wakeword Detection IPC Capture and Cooldown Reference"
 Detection callback behavior:
 
 1. send backend `wakeword-detected` signal via `DesktopVoiceRuntimeClient`
-2. invoke `show-chatbox` through IPC
+2. invoke `show-chatbox` through IPC with `reason="wakeword"` so Electron main
+   treats the wakeword as an intentional summon even when the user previously
+   closed the minimal chat pill
 
 Controller wiring:
 

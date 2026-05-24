@@ -14,6 +14,7 @@ describe('surface_window_options_runtime', () => {
         monitor_id: '2',
         bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
       },
+      reason: ' Wakeword ',
       ignoredField: 'value',
     })).toEqual({
       focus: false,
@@ -22,6 +23,7 @@ describe('surface_window_options_runtime', () => {
         monitor_id: '2',
         bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
       },
+      reason: 'wakeword',
     });
   });
 

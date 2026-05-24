@@ -9,10 +9,14 @@ function normalizeTargetDisplayAffinity(targetDisplayAffinity) {
 }
 
 function normalizeChatSurfaceWindowOptions(options = {}) {
+  const reason = typeof options?.reason === 'string' && options.reason.trim()
+    ? { reason: options.reason.trim().toLowerCase() }
+    : {};
   return {
     focus: options?.focus !== false,
     restoreResponseOverlay: options?.restoreResponseOverlay === true,
     targetDisplayAffinity: normalizeTargetDisplayAffinity(options?.targetDisplayAffinity),
+    ...reason,
   };
 }
 
