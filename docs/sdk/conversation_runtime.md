@@ -137,6 +137,11 @@ Renderer UI/debug state may keep the source label `llm-thought` for continuity,
 but the handler should not reconstruct backend `llm-thought` events from
 `payload.rawEvent`.
 
+Desktop completion projection consumes SDK `turn_completed` identity directly.
+The SDK event carries `conversationRef`, `turnRef`, and `payload.userId` for
+renderer transcript writes, so the completion handler should not unwrap
+`payload.rawEvent` to recover backend `conversation_ref` or `user_id`.
+
 ## Continuity Service Rule
 
 `ConversationContinuityService` is the SDK-owned orchestration layer for chat

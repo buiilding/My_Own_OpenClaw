@@ -98,6 +98,7 @@ jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversation
             finalResponse: typeof event.payload?.final_response === 'string'
               ? event.payload.final_response
               : null,
+            userId: typeof event.user_id === 'string' ? event.user_id : null,
             rawEvent: event,
           },
         };

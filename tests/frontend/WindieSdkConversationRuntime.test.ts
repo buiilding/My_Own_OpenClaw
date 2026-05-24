@@ -802,6 +802,7 @@ describe('Windie SDK conversation runtime core', () => {
     const complete = normalizeBackendEventToConversationEvent({
       type: 'streaming-complete',
       conversation_ref: 'conv-sdk-runtime',
+      user_id: 'user-sdk-runtime',
       turn_ref: 'turn-1',
       payload: { final_response: 'final assistant answer' },
     });
@@ -810,6 +811,13 @@ describe('Windie SDK conversation runtime core', () => {
       type: 'assistant_message',
       payload: expect.objectContaining({
         text: 'final assistant answer',
+      }),
+    });
+    expect(complete).toMatchObject({
+      type: 'turn_completed',
+      payload: expect.objectContaining({
+        finalResponse: 'final assistant answer',
+        userId: 'user-sdk-runtime',
       }),
     });
     expect(buildDisplayConversation([

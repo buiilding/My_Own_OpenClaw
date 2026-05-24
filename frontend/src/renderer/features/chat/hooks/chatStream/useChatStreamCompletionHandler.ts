@@ -39,14 +39,8 @@ export const useChatStreamCompletionHandler = ({
   persistThinkingForTurn,
 }: UseChatStreamCompletionHandlerOptions) => {
   return useCallback((event: ConversationEvent, conversationRef: string | null) => {
-    const rawEvent = event.payload?.rawEvent && typeof event.payload.rawEvent === 'object'
-      ? event.payload.rawEvent as { conversation_ref?: unknown; user_id?: unknown }
-      : {};
-    const rawConversationRef = typeof rawEvent.conversation_ref === 'string'
-      ? rawEvent.conversation_ref
-      : undefined;
-    const rawUserId = typeof rawEvent.user_id === 'string'
-      ? rawEvent.user_id
+    const userId = typeof event.payload?.userId === 'string'
+      ? event.payload.userId
       : undefined;
     const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
     setIsSending(false, conversationRef);
@@ -79,8 +73,8 @@ export const useChatStreamCompletionHandler = ({
         );
         DesktopConversationRuntimeClient.recordAssistantMessage(nextText, {
           messageType: lastMessage.type || 'llm-text',
-          conversationRef: conversationRef || rawConversationRef,
-          userId: rawUserId,
+          conversationRef: event.conversationRef,
+          userId,
           modelId: modelContext.modelId,
           modelProvider: modelContext.modelProvider,
           transparency: normalizedTransparency,
@@ -100,8 +94,8 @@ export const useChatStreamCompletionHandler = ({
       if (enableTranscript) {
         DesktopConversationRuntimeClient.recordAssistantMessage(completionText, {
           messageType: 'llm-text',
-          conversationRef: conversationRef || rawConversationRef,
-          userId: rawUserId,
+          conversationRef: event.conversationRef,
+          userId,
           modelId: modelContext.modelId,
           modelProvider: modelContext.modelProvider,
           transparency: undefined,

@@ -111,6 +111,7 @@ export function normalizeBackendEventToConversationEvent(
       source: 'backend',
       payload: {
         finalResponse: typeof payload.final_response === 'string' ? payload.final_response : null,
+        userId: typeof event.user_id === 'string' ? event.user_id : null,
         rawEvent: event,
       },
     });

@@ -142,6 +142,19 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('ConversationEvent');
   });
 
+  test('chat stream completion handler consumes SDK completion identity directly', async () => {
+    const source = await fs.readFile(
+      path.join(chatRoot, 'hooks/chatStream/useChatStreamCompletionHandler.ts'),
+      'utf8',
+    );
+
+    expect(source).not.toContain('payload.rawEvent');
+    expect(source).not.toContain('rawConversationRef');
+    expect(source).not.toContain('rawUserId');
+    expect(source).toContain('event.conversationRef');
+    expect(source).toContain('payload?.userId');
+  });
+
   test('conversation replay rewrites use the desktop runtime facade', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'hooks/useConversationReplayActions.js'),
