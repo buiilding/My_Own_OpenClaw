@@ -263,15 +263,17 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('payload.bundleId');
   });
 
-  test('conversation replay rewrites use the desktop runtime facade', async () => {
+  test('conversation replay rewrites use the continuity runtime facade', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'hooks/useConversationReplayActions.js'),
       'utf8',
     );
 
     expect(source).not.toContain('DesktopConversationStoreAdapter');
-    expect(source).toContain('DesktopConversationRuntimeClient.editAndResend');
-    expect(source).toContain('DesktopConversationRuntimeClient.retryTurn');
+    expect(source).toContain('DesktopConversationContinuityService.editAndResend');
+    expect(source).toContain('DesktopConversationContinuityService.retryTurn');
+    expect(source).not.toContain('DesktopConversationRuntimeClient.editAndResend');
+    expect(source).not.toContain('DesktopConversationRuntimeClient.retryTurn');
   });
 
   test('conversation inference rehydrate snapshots use the continuity runtime facade', async () => {
@@ -307,6 +309,10 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('rehydrateFromStore(');
     expect(source).not.toContain('StaticRehydrateConversationStore');
     expect(source).not.toContain('RehydrateConversationEntry');
+    expect(source).not.toContain('DesktopTranscriptProjectionRuntimeClient');
+    expect(source).not.toContain('createSeededConversationRuntime');
+    expect(source).not.toContain('editAndResend(input');
+    expect(source).not.toContain('retryTurn(input');
     expect(/\n\s{2}rehydrate\(input/.test(source)).toBe(false);
     expect(source).not.toContain('setModel(');
     expect(source).not.toContain('getTranscriptSessionInfo()');
@@ -314,7 +320,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('updateTranscriptSession(');
     expect(source).not.toContain('rewriteTranscriptProjection(input');
     expect(/\n\s{2}sendRehydrate\(input/.test(source)).toBe(false);
-    expect(source).toContain('DesktopTranscriptProjectionRuntimeClient');
+    expect(source).not.toContain('DesktopTranscriptProjectionRuntimeClient');
   });
 
   test('app conversation runtime facade does not expose raw stream ingress helpers', async () => {

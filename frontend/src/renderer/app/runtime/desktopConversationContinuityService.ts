@@ -2,6 +2,7 @@ import {
   ConversationContinuityService,
   type JsonRecord,
   InMemoryConversationStore,
+  type WindieModelSelection,
   type ListConversationOptions,
   type RehydrateSnapshot,
   type DisplayConversation,
@@ -20,6 +21,10 @@ import { createDesktopBackendTransport } from './desktopBackendTransport';
 import { DesktopLocalRuntimeEventSource } from './desktopLocalRuntimeEventSource';
 import { createIpcSidecarConversationStore } from '../../infrastructure/transcript/sdkSidecarConversationStore';
 import type { LocalConversationSnapshot } from '../../infrastructure/transcript/conversationLocalSnapshotLoader';
+import {
+  DesktopTranscriptProjectionRuntimeClient,
+  type TranscriptProjectionRewriteEntry,
+} from './desktopTranscriptProjectionRuntimeClient';
 
 export type { RehydrateConversationEntry };
 
@@ -56,6 +61,17 @@ type RehydrateMessagesInput = {
   workspacePath?: string | null;
 };
 
+type RewriteAndResendInput = {
+  conversationRef: string;
+  userId: string;
+  messageId: string;
+  text?: string;
+  projectionEntries: TranscriptProjectionRewriteEntry[];
+  payload?: JsonRecord;
+  model?: WindieModelSelection | null;
+  workspacePath?: string | null;
+};
+
 type SearchConversationsInput = {
   userId: string;
   query: string;
@@ -77,6 +93,26 @@ class StaticRehydrateConversationStore extends InMemoryConversationStore {
       messages: this.messages,
     };
   }
+}
+
+async function createSeededConversationRuntime({
+  conversationRef,
+  userId,
+  projectionEntries,
+  workspacePath,
+}: Pick<RewriteAndResendInput, 'conversationRef' | 'userId' | 'projectionEntries' | 'workspacePath'>) {
+  const store = await DesktopTranscriptProjectionRuntimeClient.createSeededConversationStore({
+    conversationRef,
+    userId,
+    projectionEntries,
+  });
+  const runtime = createConversationRuntime({
+    conversationRef,
+    store,
+    transport: createDesktopBackendTransport(workspacePath ?? null),
+  });
+  await runtime.load();
+  return runtime;
 }
 
 export const desktopConversationContinuityService = new ConversationContinuityService({
@@ -129,6 +165,25 @@ export const DesktopConversationContinuityService = {
       transport: createDesktopBackendTransport(input.workspacePath ?? null),
     });
     await runtime.rehydrate();
+  },
+
+  async editAndResend(input: RewriteAndResendInput): Promise<void> {
+    const runtime = await createSeededConversationRuntime(input);
+    await runtime.editAndResend({
+      messageId: input.messageId,
+      text: input.text ?? '',
+      payload: input.payload,
+      model: input.model ?? undefined,
+    });
+  },
+
+  async retryTurn(input: RewriteAndResendInput): Promise<void> {
+    const runtime = await createSeededConversationRuntime(input);
+    await runtime.retryTurn({
+      messageId: input.messageId,
+      payload: input.payload,
+      model: input.model ?? undefined,
+    });
   },
 
   replaceCompactedReplay(snapshot: CompactedReplaySnapshot, userId: string) {

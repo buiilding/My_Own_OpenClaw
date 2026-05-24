@@ -29,7 +29,7 @@ flowchart LR
     I --> J["Electron query IPC payload normalization"]
     J --> K["Backend query_execution_inputs"]
     K --> L["model image/content context"]
-    G --> M["DesktopConversationRuntimeClient transcript projection and replay"]
+    G --> M["focused transcript projection and continuity replay helpers"]
 ```
 
 ## Fast Owner Map

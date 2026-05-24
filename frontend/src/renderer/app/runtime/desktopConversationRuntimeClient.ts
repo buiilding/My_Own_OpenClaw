@@ -1,14 +1,8 @@
-import type { WindieModelSelection } from '../../infrastructure/api/windieSdkClient';
 import {
-  type JsonRecord,
   InMemoryConversationStore,
   createConversationRuntime,
 } from '../../infrastructure/api/windieSdkClient';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
-import {
-  DesktopTranscriptProjectionRuntimeClient,
-  type TranscriptProjectionRewriteEntry,
-} from './desktopTranscriptProjectionRuntimeClient';
 import { createDesktopBackendTransport } from './desktopBackendTransport';
 import type { CaptureMeta } from '../../infrastructure/services/ScreenshotAttachmentPipeline';
 
@@ -25,39 +19,8 @@ type SendConversationQueryInput = {
   workspacePath?: string | null;
 };
 
-type RewriteAndResendInput = {
-  conversationRef: string;
-  userId: string;
-  messageId: string;
-  text?: string;
-  projectionEntries: TranscriptProjectionRewriteEntry[];
-  payload?: JsonRecord;
-  model?: WindieModelSelection | null;
-  workspacePath?: string | null;
-};
-
 function optionalString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value : null;
-}
-
-async function createSeededConversationRuntime({
-  conversationRef,
-  userId,
-  projectionEntries,
-  workspacePath,
-}: Pick<RewriteAndResendInput, 'conversationRef' | 'userId' | 'projectionEntries' | 'workspacePath'>) {
-  const store = await DesktopTranscriptProjectionRuntimeClient.createSeededConversationStore({
-    conversationRef,
-    userId,
-    projectionEntries,
-  });
-  const runtime = createConversationRuntime({
-    conversationRef,
-    store,
-    transport: createDesktopBackendTransport(workspacePath ?? null),
-  });
-  await runtime.load();
-  return runtime;
 }
 
 /**
@@ -67,25 +30,6 @@ async function createSeededConversationRuntime({
  * low-level backend IPC or transcript storage adapters directly.
  */
 export const DesktopConversationRuntimeClient = {
-  async editAndResend(input: RewriteAndResendInput): Promise<void> {
-    const runtime = await createSeededConversationRuntime(input);
-    await runtime.editAndResend({
-      messageId: input.messageId,
-      text: input.text ?? '',
-      payload: input.payload,
-      model: input.model ?? undefined,
-    });
-  },
-
-  async retryTurn(input: RewriteAndResendInput): Promise<void> {
-    const runtime = await createSeededConversationRuntime(input);
-    await runtime.retryTurn({
-      messageId: input.messageId,
-      payload: input.payload,
-      model: input.model ?? undefined,
-    });
-  },
-
   async sendQuery(input: SendConversationQueryInput): Promise<void> {
     const runtime = createConversationRuntime({
       conversationRef: input.conversationRef,

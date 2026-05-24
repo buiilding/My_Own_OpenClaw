@@ -287,7 +287,8 @@ Electron uses the SDK `SidecarConversationStore` through a desktop store factory
   id because same-timestamp turns, tool pairs, and assistant commits depend on
   append order.
 - desktop edit/resend and try-again visible transcript rewrites are routed
-  through the desktop conversation store factory into the SDK
+  through `DesktopConversationContinuityService`, the desktop conversation
+  store factory, and the SDK
   `SidecarConversationStore`. The factory owns local transcript projection
   replacement, workspace metadata, rewritten row enrichment, and the rehydrate
   projection used before the resend turn.

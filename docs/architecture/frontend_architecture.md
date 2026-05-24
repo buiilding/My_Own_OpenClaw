@@ -160,16 +160,16 @@ callbacks through `main/windie_sdk_runtime.cjs`.
 
 ### Conversation/Transcript Flow
 
-1. Renderer chat hooks call `DesktopConversationRuntimeClient` for visible transcript projection writes.
-2. The conversation runtime facade delegates projection persistence to `DesktopTranscriptProjectionRuntimeClient`, which writes through the desktop conversation store factory rather than reaching into transcript IPC directly.
+1. Renderer chat hooks use focused projection helpers for visible transcript writes.
+2. The projection helpers delegate persistence to `DesktopTranscriptProjectionRuntimeClient`, which writes through the desktop conversation store factory rather than reaching into transcript IPC directly.
 3. `DesktopTranscriptSessionRuntimeClient` owns active conversation/user identity for app and dashboard surfaces.
 4. Dashboard conversation-list/load/delete/search and local snapshot calls go through `DesktopConversationLibraryClient`, which delegates store access to `DesktopTranscriptProjectionRuntimeClient` so dashboard feature code does not construct Electron store adapters or import transcript storage/snapshot infrastructure.
 5. Renderer-local conversation store helpers fetch SDK chat events via sidecar RPC (`list-chat-conversations`, `search-chat-conversations`, `get-chat-events`).
    `get-chat-events` resume/hydrate paths use `message_index` cursor pagination (`after_message_index`) so large local chats are fully reloaded instead of capped at one page.
 6. `SidecarConversationStore` is the canonical sidecar-backed SDK conversation store. The desktop conversation store factory only supplies desktop write enrichment such as workspace binding, attachments, and compaction checkpoints.
 7. Opening a past chat replaces in-memory renderer chat state immediately, but backend conversation history is rehydrated lazily only before the first backend-dependent action for that chat. Chat session helpers call `DesktopConversationContinuityService.loadLocalConversationSnapshot(...)`, `DesktopConversationContinuityService.rehydrateFromStore(...)`, or `DesktopConversationContinuityService.rehydrateMessages(...)`; the continuity runtime loads SDK rehydrate projections and sends backend rehydrate commands through the SDK conversation runtime transport so feature code does not shape provider history or IPC envelopes.
-8. Send, edit/resend, retry, and manual compaction all pass through desktop SDK runtime facades. Edit/resend, retry, and manual compaction call the SDK conversation runtime boundary before the Electron transport adapter maps commands to IPC. Electron-only store and transport adapters stay isolated behind the SDK interfaces instead of becoming normal feature-code dependencies.
-9. Compaction replay persistence also goes through the desktop SDK runtime facade. Chat stream handlers may update visible thinking/debug state, but the facade owns conversion from backend compaction events to active compacted replay snapshots.
+8. Send, stop, and manual compaction pass through the desktop conversation command facade. Edit/resend, retry, rehydrate, and compaction replay persistence pass through the continuity runtime. These facades call the SDK conversation runtime boundary before the Electron transport adapter maps commands to IPC. Electron-only store and transport adapters stay isolated behind the SDK interfaces instead of becoming normal feature-code dependencies.
+9. Compaction replay persistence also goes through the desktop continuity runtime. Chat stream handlers may update visible thinking/debug state, but the continuity runtime owns active compacted replay persistence.
 
 Current ownership boundary:
 

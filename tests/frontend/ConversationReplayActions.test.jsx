@@ -3,7 +3,7 @@ import { act, renderHook } from '@testing-library/react';
 import { useConversationReplayActions } from '../../frontend/src/renderer/features/chat/hooks/useConversationReplayActions';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
-import { DesktopConversationRuntimeClient } from '../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient';
+import { DesktopConversationContinuityService } from '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 import {
   markConversationInferenceSessionLocalOnly,
@@ -25,8 +25,8 @@ jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferen
 }));
 
 let mockConversationRef = 'conv-existing';
-jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient', () => ({
-  DesktopConversationRuntimeClient: {
+jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuityService', () => ({
+  DesktopConversationContinuityService: {
     editAndResend: jest.fn(async () => undefined),
     retryTurn: jest.fn(async () => undefined),
   },
@@ -43,8 +43,8 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRunti
   },
 }));
 
-const mockEditAndResend = DesktopConversationRuntimeClient.editAndResend;
-const mockRetryTurn = DesktopConversationRuntimeClient.retryTurn;
+const mockEditAndResend = DesktopConversationContinuityService.editAndResend;
+const mockRetryTurn = DesktopConversationContinuityService.retryTurn;
 const mockGetActiveConversationRef = DesktopTranscriptSessionRuntimeClient.getActiveConversationRef;
 const mockGetTranscriptSessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo;
 const mockUpdateTranscriptSession = DesktopTranscriptSessionRuntimeClient.updateTranscriptSession;

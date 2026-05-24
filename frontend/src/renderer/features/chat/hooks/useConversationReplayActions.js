@@ -13,7 +13,7 @@ import {
 import {
   markConversationInferenceSessionLocalOnly,
 } from '../session/conversationInferenceSessionRuntime';
-import { DesktopConversationRuntimeClient } from '../session/desktopConversationRuntimeClient';
+import { DesktopConversationContinuityService } from '../../../app/runtime/desktopConversationContinuityService';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 import {
   applyRendererConversationSelection,
@@ -121,9 +121,9 @@ async function executeReplayAction({
       workspacePath: workspaceBinding.workspacePath || null,
     };
     if (action === 'edit_resend') {
-      await DesktopConversationRuntimeClient.editAndResend(rewritePayload);
+      await DesktopConversationContinuityService.editAndResend(rewritePayload);
     } else {
-      await DesktopConversationRuntimeClient.retryTurn(rewritePayload);
+      await DesktopConversationContinuityService.retryTurn(rewritePayload);
     }
   } catch (error) {
     console.error(`[ChatInterface] ${errorPrefix}:`, error);

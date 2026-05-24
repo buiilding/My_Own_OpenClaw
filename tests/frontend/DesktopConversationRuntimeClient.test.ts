@@ -1,13 +1,5 @@
 const mockGetActiveConversationRef = jest.fn(() => null);
 
-jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient', () => ({
-  DesktopTranscriptProjectionRuntimeClient: {
-    createSeededConversationStore: jest.fn(),
-    recordAssistantMessage: jest.fn(),
-    recordToolMessage: jest.fn(),
-  },
-}));
-
 jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => ({
   DesktopTranscriptSessionRuntimeClient: {
     getActiveConversationRef: (...args: unknown[]) => mockGetActiveConversationRef(...args),
