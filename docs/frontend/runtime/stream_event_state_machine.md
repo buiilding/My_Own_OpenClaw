@@ -16,7 +16,7 @@ title: "Stream Event State Machine"
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamCompletionHandler.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamTerminalHandlers.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamBackendIngress.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventRuntime.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTerminalHandoffGuard.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamConversationGate.ts`

@@ -1,13 +1,12 @@
-import { DesktopTranscriptSessionRuntimeClient } from '../../../../app/runtime/desktopTranscriptSessionRuntimeClient';
-import { syncTranscriptSessionFromBackendEvent } from '../../session/conversationSessionRuntime';
+import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import {
   type ConversationEvent,
   normalizeBackendEventToConversationEvent,
-} from '../../../../infrastructure/api/windieSdkClient';
+} from '../../infrastructure/api/windieSdkClient';
 import {
   type BackendEvent,
   isBackendEvent,
-} from '../../../../types/backendEvents';
+} from '../../types/backendEvents';
 
 type NormalizeBackendIngressEventOptions = {
   conversationRef?: string | null;
@@ -23,6 +22,31 @@ type IngressDeps = {
 
 function optionalString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+}
+
+function syncTranscriptSessionFromStreamEvent({
+  eventType,
+  eventUserId,
+  resolvedConversationRef,
+  activeConversationRef,
+}: {
+  eventType: string;
+  eventUserId?: string | null;
+  resolvedConversationRef: unknown;
+  activeConversationRef: unknown;
+}): void {
+  const normalizedResolvedConversationRef = optionalString(resolvedConversationRef);
+  const normalizedActiveConversationRef = optionalString(activeConversationRef);
+  const transcriptConversationRef = (
+    eventType === 'local-user-message' && normalizedResolvedConversationRef
+      ? normalizedResolvedConversationRef
+      : normalizedActiveConversationRef ?? normalizedResolvedConversationRef ?? undefined
+  );
+
+  DesktopTranscriptSessionRuntimeClient.updateTranscriptSession(
+    transcriptConversationRef,
+    eventUserId ?? undefined,
+  );
 }
 
 export function toBackendIngressEvent(data: unknown): BackendEvent | null {
@@ -79,12 +103,11 @@ export const ingestBackendEvent = (
   }
   if (enableTranscript) {
     try {
-      syncTranscriptSessionFromBackendEvent({
+      syncTranscriptSessionFromStreamEvent({
         eventType: event.type,
         eventUserId: event.user_id,
         resolvedConversationRef: normalizedConversationRef,
         activeConversationRef: DesktopTranscriptSessionRuntimeClient.getActiveConversationRef(),
-        updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
       });
     } catch {
       // Transcript session sync is best-effort. Stream event dispatch must continue.

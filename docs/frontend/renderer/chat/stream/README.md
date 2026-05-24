@@ -26,7 +26,7 @@ title: "Frontend Renderer Chat Stream Docs Hub"
 
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useTurnScopedBackendEventHandler.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamBackendIngress.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useStreamMessageUpdaters.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamConversationGate.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTracking.ts`
@@ -34,6 +34,6 @@ title: "Frontend Renderer Chat Stream Docs Hub"
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventUtils.ts`
 - `tests/frontend/ChatStreamConversationGate.test.ts`
-- `tests/frontend/ChatStreamBackendIngress.test.ts`
+- `tests/frontend/DesktopChatStreamIngressRuntime.test.ts`
 - `tests/frontend/ChatStreamTracking.test.ts`
 - `tests/frontend/ChatStreamThinkingStatus.transcript.test.tsx`

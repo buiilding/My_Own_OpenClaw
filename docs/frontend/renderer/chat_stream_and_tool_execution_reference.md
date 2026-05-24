@@ -29,7 +29,7 @@ title: "Chat Stream and Tool Execution Reference"
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamToolMessages.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamThinkingStatus.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTypes.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamBackendIngress.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime.ts`
 - `frontend/src/renderer/features/chat/utils/transcriptModelContext.ts`
 - `frontend/src/renderer/features/chat/utils/toolOutputTranscriptPersistence.ts`
 - `frontend/src/renderer/features/chat/utils/modelThinkingCapabilities.ts`
@@ -129,7 +129,7 @@ Listener source:
 Pre-routing and workspace resolution:
 
 - event shape validation and SDK conversation-event normalization are centralized
-  in `chatStreamBackendIngress.ts`; the desktop live-turn runtime facade does
+  in `desktopChatStreamIngressRuntime.ts`; the desktop live-turn runtime facade does
   not expose raw backend stream helpers
 - event conversation resolved from `conversation_ref`, then a registered turn map fallback
 - `memory-store` events without `conversation_ref` are quarantined instead of using `session_id` as chat identity
@@ -140,7 +140,7 @@ Pre-routing and workspace resolution:
 - transcript session sync runs only after event conversation identity resolves
 - ingress orchestration for raw event validation, SDK conversation-event
   normalization, projection sync, turn-map registration, transcript-session
-  update, and handler dispatch is centralized in `chatStreamBackendIngress.ts`
+  update, and handler dispatch is centralized in `desktopChatStreamIngressRuntime.ts`
 - ingress bookkeeping steps are fail-safe isolated (`try/catch` per step) so projection/turn-map/transcript sync errors cannot suppress final handler dispatch for the event
 - assistant text stream events dispatch from SDK-normalized conversation events:
   backend `streaming-response` -> SDK `assistant_delta`, and backend

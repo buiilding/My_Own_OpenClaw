@@ -50,4 +50,18 @@ describe('renderer app runtime boundary', () => {
 
     expect(offenders).toEqual([]);
   });
+
+  test('app runtime modules do not import chat feature internals', async () => {
+    const files = await listSourceFiles(path.join(appRoot, 'runtime'));
+    const offenders: string[] = [];
+
+    for (const file of files) {
+      const source = await fs.readFile(file, 'utf8');
+      if (source.includes('features/chat')) {
+        offenders.push(path.relative(appRoot, file));
+      }
+    }
+
+    expect(offenders).toEqual([]);
+  });
 });

@@ -171,6 +171,17 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('ConversationEvent');
   });
 
+  test('chat stream backend ingress normalization stays behind the app runtime', async () => {
+    const source = await fs.readFile(
+      path.join(chatRoot, 'hooks/useChatStream.ts'),
+      'utf8',
+    );
+
+    expect(source).toContain('desktopChatStreamIngressRuntime');
+    expect(source).not.toContain('chatStreamBackendIngress');
+    expect(source).not.toContain('normalizeBackendEventToConversationEvent');
+  });
+
   test('chat stream text handlers consume SDK reasoning events directly', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'hooks/chatStream/useChatStreamTextHandlers.ts'),

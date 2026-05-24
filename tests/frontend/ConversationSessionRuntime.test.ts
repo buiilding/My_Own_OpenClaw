@@ -11,7 +11,6 @@ import {
   normalizeMainSessionSnapshot,
   resolveRendererConversationSessionSnapshot,
   resolveConversationRefForSend,
-  syncTranscriptSessionFromBackendEvent,
   shouldProjectSessionConversationRef,
 } from '../../frontend/src/renderer/features/chat/session/conversationSessionRuntime';
 
@@ -287,48 +286,6 @@ describe('conversationSessionRuntime', () => {
     })).toBe(false);
 
     expect(updateTranscriptSession).not.toHaveBeenCalled();
-  });
-
-  test('syncTranscriptSessionFromBackendEvent prefers local-user-message conversation refs over stale active refs', () => {
-    const updateTranscriptSession = jest.fn();
-
-    syncTranscriptSessionFromBackendEvent({
-      eventType: 'local-user-message',
-      eventUserId: 'user-local',
-      resolvedConversationRef: ' conv-event ',
-      activeConversationRef: ' conv-active ',
-      updateTranscriptSession,
-    });
-
-    expect(updateTranscriptSession).toHaveBeenCalledWith('conv-event', 'user-local');
-  });
-
-  test('syncTranscriptSessionFromBackendEvent keeps the active conversation for non-local events', () => {
-    const updateTranscriptSession = jest.fn();
-
-    syncTranscriptSessionFromBackendEvent({
-      eventType: 'token-count',
-      eventUserId: 'user-token',
-      resolvedConversationRef: ' conv-event ',
-      activeConversationRef: ' conv-active ',
-      updateTranscriptSession,
-    });
-
-    expect(updateTranscriptSession).toHaveBeenCalledWith('conv-active', 'user-token');
-  });
-
-  test('syncTranscriptSessionFromBackendEvent falls back to undefined when no conversation refs exist', () => {
-    const updateTranscriptSession = jest.fn();
-
-    syncTranscriptSessionFromBackendEvent({
-      eventType: 'token-count',
-      eventUserId: 'user-none',
-      resolvedConversationRef: '   ',
-      activeConversationRef: null,
-      updateTranscriptSession,
-    });
-
-    expect(updateTranscriptSession).toHaveBeenCalledWith(undefined, 'user-none');
   });
 
   test('hydrateConversationSessionFromMainSnapshot normalizes, projects, and marks unknown inference state', async () => {

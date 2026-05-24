@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for chat-stream backend ingress orchestration: projection/turn-map/transcript-sync ordering, best-effort failure isolation, and dispatch-continuation guarantees."
 read_when:
-  - When changing `chatStreamBackendIngress` behavior or `useChatStream` listener ingress ordering.
+  - When changing `DesktopChatStreamIngressRuntime` behavior or `useChatStream` listener ingress ordering.
   - When debugging dropped stream side effects after projection/turn-map/transcript sync exceptions.
 title: "Backend Ingress Fail-Safe and Dispatch Order Reference"
 ---
@@ -10,11 +10,11 @@ title: "Backend Ingress Fail-Safe and Dispatch Order Reference"
 
 ## Canonical Modules
 
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamBackendIngress.ts`
+- `frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStream.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`
-- `tests/frontend/ChatStreamBackendIngress.test.ts`
+- `tests/frontend/DesktopChatStreamIngressRuntime.test.ts`
 
 ## Ingress Ownership Boundary
 
@@ -80,14 +80,14 @@ Listener flow:
 1. validate envelope with `isBackendEvent(...)`
 2. compute `conversationRef` via runtime conversation gate
 3. call `ingestBackendEvent(...)`; unresolved events return `false` and are not dispatched
-4. ingress callback dispatch first tries SDK-normalized conversation-event
-   handling, then the explicit `local-user-message` raw fallback
+4. ingress callback dispatches the SDK-normalized conversation event for the
+   resolved backend event
 
 This keeps listener-level pre-dispatch behavior deterministic and shared across all backend event types.
 
 ## Test-Backed Invariants
 
-`tests/frontend/ChatStreamBackendIngress.test.ts` verifies:
+`tests/frontend/DesktopChatStreamIngressRuntime.test.ts` verifies:
 
 - normal path ordering: projection sync -> turn map -> transcript update -> dispatch
 - unresolved events are quarantined before projection, transcript sync, or dispatch

@@ -29,7 +29,7 @@ import {
   ingestBackendEvent,
   normalizeBackendIngressEvent,
   toBackendIngressEvent,
-} from '../utils/chatStream/chatStreamBackendIngress';
+} from '../../../app/runtime/desktopChatStreamIngressRuntime';
 import {
   recordTrackingEvent as recordTrackingEventRuntime,
   resolveTargetConversationRef as resolveTargetConversationRefRuntime,

@@ -134,14 +134,6 @@ type TranscriptSessionUserBindingOptions = {
   updateTranscriptSession: TranscriptSessionUpdater;
 };
 
-type BackendEventTranscriptSessionSyncOptions = {
-  eventType: string;
-  eventUserId?: string | null;
-  resolvedConversationRef: unknown;
-  activeConversationRef: unknown;
-  updateTranscriptSession: TranscriptSessionUpdater;
-};
-
 export function applyMainSessionSnapshot(
   snapshot: MainSessionSnapshot,
   callbacks: SessionProjectionCallbacks,
@@ -255,24 +247,6 @@ export function applyTranscriptSessionUserBinding({
 
   updateTranscriptSession(undefined, normalizedUserId);
   return true;
-}
-
-export function syncTranscriptSessionFromBackendEvent({
-  eventType,
-  eventUserId,
-  resolvedConversationRef,
-  activeConversationRef,
-  updateTranscriptSession,
-}: BackendEventTranscriptSessionSyncOptions): void {
-  const normalizedResolvedConversationRef = normalizeConversationRef(resolvedConversationRef);
-  const normalizedActiveConversationRef = normalizeConversationRef(activeConversationRef);
-  const transcriptConversationRef = (
-    eventType === 'local-user-message' && normalizedResolvedConversationRef
-      ? normalizedResolvedConversationRef
-      : normalizedActiveConversationRef ?? normalizedResolvedConversationRef ?? undefined
-  );
-
-  updateTranscriptSession(transcriptConversationRef, eventUserId ?? undefined);
 }
 
 export async function hydrateConversationSessionFromMainSnapshot({

@@ -2,7 +2,7 @@ import {
   ingestBackendEvent,
   normalizeBackendIngressEvent,
   toBackendIngressEvent,
-} from '../../frontend/src/renderer/features/chat/utils/chatStream/chatStreamBackendIngress';
+} from '../../frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime';
 
 const mockGetActiveConversationRef = jest.fn();
 const mockUpdateTranscriptSession = jest.fn();
@@ -14,7 +14,7 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRunti
   },
 }));
 
-describe('chatStreamBackendIngress', () => {
+describe('DesktopChatStreamIngressRuntime', () => {
   beforeEach(() => {
     mockGetActiveConversationRef.mockReset();
     mockUpdateTranscriptSession.mockReset();

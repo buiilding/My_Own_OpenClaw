@@ -34,6 +34,7 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sdk: remove edit/retry replay from the desktop conversation command facade and route it through the continuity runtime.
 - frontend/sdk: remove manual compaction from the desktop conversation command facade and route it through the continuity runtime.
 - frontend/sdk: rename the remaining send/stop renderer command facade to a live-turn runtime and remove the old conversation runtime shim.
+- frontend/sdk: move chat stream backend-event ingress into an app runtime and delete the feature-level ingress helper.
 - frontend/sdk: consume SDK compaction payloads directly in renderer compaction handlers and build compacted replay snapshots without unwrapping raw backend events.
 - frontend/sdk: consume SDK metadata payloads directly in renderer transparency handlers and delete backend metadata event unwrapping.
 - frontend/sdk: consume SDK terminal event payloads directly in renderer error, token usage, and memory-store handlers, deleting raw backend terminal event unwrapping.

@@ -17,6 +17,8 @@ frontend/src/renderer/
 │   ├── main.jsx                         # React entry point - renders App with StrictMode in dev
 │   │
 │   ├── runtime/                         # App-level SDK/runtime command facades
+│   │   ├── desktopChatStreamIngressRuntime.ts # Renderer stream ingress facade for SDK event normalization and transcript sync
+│   │   ├── desktopLiveTurnRuntimeClient.ts # Renderer live-turn facade for SDK send/stop commands
 │   │   ├── desktopSettingsRuntimeClient.ts # Renderer settings/model facade over Electron main IPC
 │   │   └── desktopVoiceRuntimeClient.ts # Renderer voice/wakeword facade over Electron main IPC
 │   │
@@ -71,8 +73,7 @@ frontend/src/renderer/
 │   │   │   ├── useStreamMessageUpdaters.ts # useStreamMessageUpdaters - Shared message update callbacks extracted from useChatStream
 │   │   │   └── useTranscription.ts      # useTranscription - Manages input state and voice transcription text insertion
 │   │   │
-│   │   ├── session/                     # Chat SDK/runtime command and conversation session helpers
-│   │   │   ├── desktopLiveTurnRuntimeClient.ts # Renderer live-turn facade for SDK send/stop commands
+│   │   ├── session/                     # Conversation session helpers
 │   │   │   └── conversationInferenceSessionRuntime.ts # Backend inference rehydrate state for local conversations
 │   │   │
 │   │   ├── stores/                      # State management
@@ -99,7 +100,7 @@ frontend/src/renderer/
 │   │       │   ├── stopQueryState.js    # stopQueryState - Stop-query UI patch helper for stream tracking + thinking reset
 │   │       │   └── streamPhaseState.js  # streamPhaseState - Phase predicates (active/terminal/awaiting/stop-control)
 │   │       ├── chatSelectors.js         # chatSelectors - Shared Zustand selectors for ChatInterface/ChatBox
-│   │       ├── chatStream/              # chatStream - Stream ingress/event/update/tracking/thinking/transparency utility helpers
+│   │       ├── chatStream/              # chatStream - Stream event/update/tracking/thinking/transparency utility helpers
 │   │       │   ├── chatStreamConversationGate.ts # chatStreamConversationGate - Active-conversation filtering helpers for backend stream events
 │   │       │   ├── chatStreamDebugTrace.ts # chatStreamDebugTrace - Gated stream + chat-pill renderer trace helpers
 │   │       │   ├── chatStreamEventUtils.ts # chatStreamEventUtils - Screenshot attachment, error filtering/text, and correlation-id event helpers
