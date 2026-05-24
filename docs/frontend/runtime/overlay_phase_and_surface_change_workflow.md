@@ -47,8 +47,8 @@ component that happens to render the symptom.
 | Response overlay window shows/hides at wrong time | `frontend/src/main/response_overlay_phase_handler.cjs`, `frontend/src/main/response_overlay_visibility_policy.cjs`, `frontend/src/main/overlay_responsebox_handler.cjs` | `tests/frontend/ResponseOverlayPhaseHandler.test.cjs`, `tests/frontend/ResponseOverlayVisibilityPolicy.test.cjs`, `tests/frontend/OverlayResponseboxHandler.test.cjs` |
 | Chat pill click-through or focusability is wrong | `frontend/src/main/response_overlay_phase_handler.cjs`, `frontend/src/main/overlay_chatbox_handler.cjs`, `frontend/src/main/surface_runtime.cjs`, `frontend/src/renderer/features/chat/components/ChatBox.jsx` | `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`, `tests/frontend/OverlayChatboxHandler.test.cjs`, `tests/frontend/SurfaceRuntime.test.cjs` |
 | Awaiting indicator flickers or sticks | `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`, `frontend/src/renderer/features/chat/hooks/useResponseOverlayViewModel.js`, `frontend/src/renderer/features/chat/utils/overlay/responseOverlayLayoutMode.js`, `frontend/src/renderer/features/chat/utils/state/streamPhaseState.js` | `tests/frontend/ChatBoxResponse.state.test.jsx`, `tests/frontend/ResponseOverlayLayoutMode.test.js`, `tests/frontend/StreamPhaseState.test.js` |
-| Screenshot captures WindieOS UI or hides surfaces on the wrong OS | `frontend/src/renderer/infrastructure/services/SurfaceOrchestrator.ts`, `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/*`, `frontend/src/main/platform/screenshot_window_visibility/*`, `frontend/src/main/platform/content_protection/*` | `tests/frontend/SurfaceOrchestratorCaptureLifecycle.test.ts`, `tests/frontend/SurfaceOrchestratorSurfaceVisibility.test.ts`, platform policy tests |
-| Tool execution handoff leaves dashboard/pill in wrong state | `frontend/src/renderer/features/chat/utils/toolRunner/toolRunnerSurfaceExecution.ts`, `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/surfaceHandoff.ts`, `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/toolLifecycle.ts` | `tests/frontend/ToolRunnerSurfaceExecution.test.ts`, `tests/frontend/ToolRunnerSurface.test.ts`, `tests/frontend/SurfaceOrchestratorPhases.test.ts` |
+| Screenshot captures WindieOS UI or hides surfaces on the wrong OS | `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`, `frontend/src/main/local_backend_bridge_window_visibility.cjs`, `frontend/src/main/platform/screenshot_window_visibility/*`, `frontend/src/main/platform/content_protection/*`, renderer capture services for user-initiated attachments | `tests/frontend/LocalBackendBridgeExtensionRuntime.test.cjs`, `tests/frontend/SurfaceOrchestratorCaptureLifecycle.test.ts`, platform policy tests |
+| Tool execution handoff leaves dashboard/pill in wrong state | `frontend/src/main/main_window_runtime.cjs`, `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`, `frontend/src/main/window_visibility_runtime.cjs`, `frontend/src/main/overlay_visibility_handler.cjs`, `frontend/src/main/windie_sdk_runtime.cjs` | `tests/frontend/LocalBackendBridgeExtensionRuntime.test.cjs`, `tests/frontend/OverlayVisibilityHandler.test.cjs`, `tests/frontend/ResponseOverlayPhaseHandler.test.cjs` |
 | Window bounds, frame size, or drag anchor jumps | `frontend/src/main/overlay_bounds.cjs`, `frontend/src/main/overlay_chatbox_visual_anchor_handler.cjs`, `frontend/src/renderer/features/chat/utils/overlay/overlayFrameSize.js`, `frontend/src/renderer/features/chat/utils/chatbox/chatboxPillLayout.js` | `tests/frontend/OverlayBounds.test.cjs`, `tests/frontend/OverlayFrameSize.test.js`, `tests/frontend/ChatBoxPillLayout.test.js` |
 
 ## Phase Pipeline
@@ -96,7 +96,12 @@ Common phase producers:
 - backend stream fan-out in `frontend/src/main/ipc.cjs`
 - overlay phase helpers in `frontend/src/main/ipc/ipc_overlay_phase_events.cjs`
 - renderer stream state projection in `frontend/src/renderer/features/chat/utils/state/streamPhaseState.js`
-- tool/capture lifecycle transitions in `frontend/src/renderer/infrastructure/services/SurfaceOrchestrator.ts`
+- SDK/main tool routing in `frontend/src/main/windie_sdk_runtime.cjs` and
+  `frontend/src/main/ipc/ipc_sdk_tool_router.cjs`
+- main-process computer-use surface prep in
+  `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`
+- renderer capture lifecycle transitions for user-initiated attachments in
+  `frontend/src/renderer/infrastructure/services/SurfaceOrchestrator.ts`
 
 Producer rules:
 
@@ -164,12 +169,14 @@ Renderer rules:
 
 Read these files before changing screenshot or content-protection behavior:
 
-- `frontend/src/renderer/infrastructure/services/SurfaceOrchestrator.ts`
-- `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/captureLifecycle.ts`
-- `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/surfaceVisibility.ts`
-- `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/platform/surfaceVisibility/*`
+- `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`
+- `frontend/src/main/local_backend_bridge_window_visibility.cjs`
+- `frontend/src/main/window_visibility_runtime.cjs`
+- `frontend/src/main/overlay_visibility_handler.cjs`
 - `frontend/src/main/platform/screenshot_window_visibility/*`
 - `frontend/src/main/platform/content_protection/*`
+- `frontend/src/renderer/infrastructure/services/SurfaceOrchestrator.ts` for
+  renderer-initiated attachment capture flows
 
 Platform rules:
 
@@ -179,8 +186,8 @@ Platform rules:
   pill or response overlay.
 - macOS and Windows content protection should be enabled only while the loop is
   active and disabled for idle/terminal phases.
-- Dashboard-originated computer-use should hand off to the minimal pill before
-  capture-sensitive tool execution.
+- Dashboard-originated computer-use should hand off to the minimal pill in
+  Electron main before SDK/main invokes the sidecar executor.
 - Surface restore should not steal focus.
 
 ## Debug Routes
@@ -189,11 +196,11 @@ Platform rules:
 | --- | --- | --- |
 | Response overlay never appears | Confirm main receives `awaiting-first-chunk` or `streaming`, then check window mode resolution and renderer phase parser. | `ipc_overlay_phase_state.cjs`, `response_overlay_phase_handler.cjs`, overlay listener |
 | Response overlay stays after completion | Check terminal phase handling, visible-state restore policy, and renderer layout mode. | `response_overlay_visibility_policy.cjs`, `ChatBoxResponse.jsx` |
-| Awaiting dots flicker after screenshot | Check Linux hide-only collapse path, transient `idle` latch, and response content visibility clear. | SurfaceOrchestrator, `streamPhaseState.js`, response overlay view model |
+| Awaiting dots flicker after screenshot | Check Linux hide-only collapse path, transient `idle` latch, and response content visibility clear. | local-backend surface prep, `streamPhaseState.js`, response overlay view model |
 | Chat pill blocks clicks during idle | Check active-loop interactivity decision and chatbox hit-test active state. | `response_overlay_phase_handler.cjs`, `overlay_chatbox_handler.cjs` |
-| Screenshot includes WindieOS UI on Linux | Check surface visibility prepare/restore path and compositor settle timing. | SurfaceOrchestrator capture lifecycle and Linux surface visibility |
+| Screenshot includes WindieOS UI on Linux | Check surface visibility prepare/restore path and compositor settle timing. | local-backend surface prep, renderer attachment capture lifecycle, and Linux surface visibility |
 | Screenshot hides WindieOS UI on macOS/Windows | Remove capture-time hide/show path and verify content-protection policy instead. | platform surface visibility and content protection |
-| Focus jumps after tool screenshot | Check for renderer focus hacks or platform restore calls outside main/window policy. | SurfaceOrchestrator, main window policy |
+| Focus jumps after tool screenshot | Check for renderer focus hacks or platform restore calls outside main/window policy. | local-backend surface prep and main window policy |
 | Overlay frame jumps while streaming | Check frame-size reporting, layout mode, fixed height contracts, and per-token resize paths. | `overlayFrameSize.js`, `responseOverlayLayoutMode.js`, CSS |
 
 ## Validation Matrix
@@ -227,9 +234,9 @@ Renderer overlay presentation change:
 
 Capture/platform behavior change:
 
+- `cd frontend && npm run test -- LocalBackendBridgeExtensionRuntime`
+- `cd frontend && npm run test -- OverlayVisibilityHandler`
 - `cd frontend && npm run test -- SurfaceOrchestratorCaptureLifecycle`
-- `cd frontend && npm run test -- SurfaceOrchestratorSurfaceVisibility`
-- `cd frontend && npm run test -- ToolRunnerSurfaceExecution`
 - platform-specific manual screenshot check on the affected OS
 
 ## Docs to Sync

@@ -142,7 +142,9 @@ For local tool execution where `toolName === 'screenshot'`:
 
 - wraps call with `withHiddenWindowForScreenshot(...)`, which dispatches platform runtime behavior
 - current runtime modules are pass-through on all platforms
-- Linux hide/show ownership is renderer-side (`SurfaceOrchestrator`), not Electron-main hide/restore logic in this module
+- dashboard-to-pill handoff for SDK/main computer-use execution happens before
+  sidecar execution in Electron main; renderer `SurfaceOrchestrator` remains
+  scoped to renderer-initiated attachment capture flows
 
 ## IPC Handlers Registered by Bridge
 
@@ -173,5 +175,7 @@ If requests time out unexpectedly:
 If Linux screenshots include overlays:
 
 1. verify screenshot calls go through `capture-screenshot-attachment` or SDK/main local tool execution with tool name `screenshot`
-2. verify renderer capture prep/hide flow (`SurfaceOrchestrator`) executed
-3. verify no legacy main-process hide/restore assumptions remain in local debugging instrumentation
+2. verify SDK/main computer-use surface prep ran before sidecar execution
+3. verify renderer capture prep/hide flow (`SurfaceOrchestrator`) only when the
+   screenshot came from renderer-initiated attachment capture
+4. verify no legacy wrapper-level hide/restore assumptions remain in local debugging instrumentation

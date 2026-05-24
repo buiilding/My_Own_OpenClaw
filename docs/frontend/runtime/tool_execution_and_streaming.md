@@ -41,10 +41,13 @@ Runtime path:
 
 1. Backend emits `tool-call` or `tool-bundle`.
 2. SDK main runtime normalizes the event, preserves backend IDs, and claims local execution only when a local runtime can execute it.
-3. Electron main routes the request to the sidecar daemon/local bridge.
-4. Python sidecar executes the filesystem, shell, browser, computer-use, MCP, plugin, or extension tool.
-5. SDK main runtime sends exactly one `tool-result` or `tool-bundle-result` to backend.
-6. Renderer receives display-only events and renders the visible transcript projection.
+3. Electron main prepares the desktop surface for computer-use tools before local
+   execution, handing a visible dashboard to the minimal pill with the response
+   overlay restored.
+4. Electron main routes the request to the sidecar daemon/local bridge.
+5. Python sidecar executes the filesystem, shell, browser, computer-use, MCP, plugin, or extension tool.
+6. SDK main runtime sends exactly one `tool-result` or `tool-bundle-result` to backend.
+7. Renderer receives display-only events and renders the visible transcript projection.
 
 Correlation rules:
 
@@ -71,6 +74,8 @@ Renderer bundle code should only render and replay bundle projections.
 Surface/capture orchestration is split:
 
 - Electron main owns sidecar execution, artifact upload plumbing, window authority, and sidecar daemon lifecycle.
+- Electron main owns computer-use surface prep for SDK/main tool execution,
+  including dashboard-to-minimal-pill handoff before sidecar execution.
 - Renderer capture services are retained for user-initiated screenshot attachment and display/artifact helpers.
 - Backend result payload construction for local tool results belongs to SDK/main, not renderer services.
 

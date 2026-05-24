@@ -185,10 +185,11 @@ Overlay focus behavior is now the same on every desktop OS:
   capture, dashboard handoff, and other runtime hides do not mark the pill as
   user-hidden
 
-Tool-execution chat-pill lifecycle (interactive computer-use path):
+Tool-execution chat-pill lifecycle (SDK/main computer-use path):
 
 - shared response-overlay phase is now the only owner of active-loop interactivity: `awaiting-first-chunk|streaming|tool-call|tool-output` force chat/response overlays into click-through + non-focusable mode; outside active-loop phases the chat pill falls back to main-owned idle hit-testing that keeps transparent regions click-through until the renderer hover state says the pointer is over the visible pill shell
-- SDK/local-runtime tool-surface prep no longer performs external-window focus restoration/verification; frontend prep is blur-only and avoids hide/show focus demotion churn
+- SDK/local-runtime tool-surface prep runs through Electron main before sidecar execution; it shows the minimal pill with `focus: false` and `restoreResponseOverlay: true`, which hides a visible dashboard through the main window visibility runtime
+- renderer code remains display-only for backend tool events; it does not execute computer-use tools or own the dashboard-to-pill handoff
 - screenshot capture visibility prep now hides whichever WindieOS surface owns the capture:
   - `chatbox` for pill-originated capture
   - `main-window` for dashboard-originated capture
@@ -290,9 +291,8 @@ For renderer-only deep dives:
 
 - selects a platform-specific screenshot visibility runtime
 - Linux behavior lives in `platform/screenshot_window_visibility/linux.cjs`
-- platform-specific screenshot-window runtimes are now bypassed for WindieOS-owned capture prep; renderer `SurfaceOrchestrator` and main-process `prepare-surface-for-screenshot` own the single active-surface hide/show path to avoid double-collapse races
-- result: screenshot tool execution no longer adds a second hide/restore cycle on top of renderer capture prep, and dashboard-originated captures use the same prep/restore symmetry as pill-originated captures
-- dashboard-visible computer-use turns now perform an explicit main-process dashboard-to-pill handoff before any computer-use tool prep runs; after handoff, main hides the dashboard, restores the pill/response-overlay surface, and all later capture/restore behavior in that turn is pill-owned instead of trying to bounce back to the dashboard after each tool
+- current platform-specific screenshot-window runtimes are pass-through wrappers for local tool execution; they do not perform a second hide/restore cycle around the sidecar screenshot task
+- result: dashboard-visible computer-use turns perform an explicit main-process dashboard-to-pill handoff before any computer-use sidecar execution runs; after handoff, main hides the dashboard and restores the pill/response-overlay surface, while renderer capture orchestration remains scoped to renderer-initiated attachment flows
 
 For deeper focus/capture guard internals:
 

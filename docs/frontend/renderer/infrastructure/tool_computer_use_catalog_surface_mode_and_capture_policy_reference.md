@@ -1,7 +1,7 @@
 ---
-summary: "Deep reference for renderer computer-use tool catalog ownership: canonical interactive/capture-only tool-name sets, surface-mode resolution coupling, and SDK-owned post-action capture classification behavior."
+summary: "Deep reference for computer-use tool catalog ownership: concrete tool-name sets, legacy renderer surface-mode resolution, and SDK/main post-action capture classification behavior."
 read_when:
-  - When changing computer-use tool-name handling in renderer surface orchestration or SDK/main capture policy paths.
+  - When changing computer-use tool-name handling in SDK/main capture policy paths or legacy renderer surface-mode helpers.
   - When debugging mismatches where tool execution mode/capture behavior differs from expected interactive vs screenshot flows.
 title: "Tool Computer-Use Catalog, Surface Mode, and Capture Policy Reference"
 ---
@@ -15,12 +15,14 @@ title: "Tool Computer-Use Catalog, Surface Mode, and Capture Policy Reference"
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.cjs`
 - `tests/frontend/ToolComputerUseCatalog.test.ts`
-- `tests/frontend/ToolRunnerSurface.test.ts`
+- `tests/frontend/LocalBackendBridgeExtensionRuntime.test.cjs`
 - `tests/frontend/IpcSdkToolRouter.test.cjs`
 
 ## Catalog Ownership Contract
 
-`ToolComputerUseCatalog.ts` is the single source of truth for renderer-side computer-use tool names.
+`ToolComputerUseCatalog.ts` is the shared concrete-name catalog for renderer-side
+display/capture helpers. Backend tool execution is not owned by the renderer; live
+computer-use execution flows through SDK/main and the Electron sidecar bridge.
 
 Exports:
 
@@ -51,7 +53,8 @@ Test-backed invariant:
 
 ## Surface Mode Resolution Coupling
 
-`surfaceOrchestrator/mode.ts` constructs set lookups from the catalog:
+`surfaceOrchestrator/mode.ts` constructs set lookups from the catalog for legacy
+renderer capture helpers:
 
 - `INTERACTIVE_COMPUTER_TOOL_NAMES = new Set(INTERACTIVE_COMPUTER_USE_TOOLS)`
 - `CAPTURE_ONLY_COMPUTER_TOOL_NAMES = new Set(CAPTURE_ONLY_COMPUTER_USE_TOOLS)`
@@ -72,7 +75,9 @@ Test-backed invariant:
 
 ## Post-Action Capture Classification Coupling
 
-`ToolExecutionCoordinator` owns post-action capture for SDK/main tool execution. Its capture-worthy tool set must stay aligned with the renderer catalog for concrete computer-use names.
+`ToolExecutionCoordinator` owns post-action capture classification for SDK/main
+tool execution. Its capture-worthy tool set must stay aligned with the concrete
+computer-use names used by Electron main and the sidecar bridge.
 
 Behavior:
 
@@ -98,7 +103,7 @@ These values affect the SDK-owned post-action screenshot. Bundle capture waits o
 
 ## Drift Hotspots
 
-1. Adding/removing tool names outside `ToolComputerUseCatalog.ts` and `ToolExecutionCoordinator` can desync surface mode and capture behavior.
+1. Adding/removing tool names outside `ToolComputerUseCatalog.ts`, `ToolExecutionCoordinator`, and Electron main's local tool surface-prep set can desync display helpers, post-action capture, and dashboard-to-pill handoff behavior.
 2. Removing alias names (`click`, `type`, `scroll`) can regress compatibility for action-normalized dispatch paths.
 3. Adding `computer_use` directly into renderer catalog can cause wrapper/concrete mode ambiguity.
 4. Changing bundle mode precedence can break expected screenshot collapse/interactive handling in mixed bundles.

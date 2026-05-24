@@ -52,7 +52,10 @@ Dispatch behavior:
 Current runtime implementation contract:
 
 - all platform modules (`linux`, `windows`, `macos`) execute `task()` directly
-- Linux runtime explicitly documents renderer `SurfaceOrchestrator` as owner of hide/show capture lifecycle
+- Linux runtime is pass-through for local tool execution; dashboard-to-pill
+  handoff happens earlier through Electron main's computer-use surface-prep hook,
+  while renderer `SurfaceOrchestrator` remains scoped to renderer-initiated
+  attachment capture flows
 
 ## Why Resolver Contracts Still Matter
 
@@ -76,12 +79,16 @@ Although platform modules are currently pass-through, resolver helpers remain pa
 
 Implication:
 
-- screenshot visibility behavior is intentional and scoped, but Linux hide/show ownership now lives in renderer orchestration rather than this main-process module
+- screenshot visibility behavior is intentional and scoped. This wrapper does not
+  own dashboard-to-pill handoff; local computer-use surface prep happens in
+  `local_backend_bridge_execute_tool_runtime.cjs` before sidecar execution.
 
 ## Drift Hotspots
 
 1. changing resolver shape handling can silently drop `responseWindow` in callers that pass object snapshots.
-2. reintroducing main-process hide/restore logic without coordinating renderer capture ownership can create double-collapse races.
+2. reintroducing screenshot-wrapper hide/restore logic without coordinating main
+   computer-use prep and renderer attachment capture ownership can create
+   double-collapse races.
 3. broadening wrapper to non-screenshot tools can produce unnecessary platform behavior coupling.
 4. changing platform runtime dispatch without updating docs can hide ownership drift during screenshot debugging.
 
