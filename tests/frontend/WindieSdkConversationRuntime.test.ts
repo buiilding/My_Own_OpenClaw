@@ -886,6 +886,9 @@ describe('Windie SDK conversation runtime core', () => {
       payload: expect.objectContaining({
         generationId: 'gen-applied',
         summaryPreview: 'summary',
+        replacementHistoryEntries: [
+          expect.objectContaining({ message_type: 'context_compaction' }),
+        ],
         skippedReason: null,
       }),
     });

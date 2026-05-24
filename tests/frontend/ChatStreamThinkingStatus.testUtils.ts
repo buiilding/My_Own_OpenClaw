@@ -248,11 +248,15 @@ jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversation
       if (event.type === 'context-compaction-started') {
         return {
           type: 'compaction_started',
+          eventId: event.id,
           conversationRef,
           turnRef: event.turn_ref,
+          revisionId: event.payload?.revision_id,
+          timestamp: '2026-05-24T00:00:00.000Z',
           source: 'backend',
           payload: {
             ...(event.payload || {}),
+            reason: typeof event.payload?.reason === 'string' ? event.payload.reason : null,
             rawEvent: event,
           },
         };
@@ -268,12 +272,28 @@ jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversation
           type: skippedReason || replacementHistoryEntries.length === 0
             ? 'compaction_skipped'
             : 'compaction_applied',
+          eventId: event.id,
           conversationRef,
           turnRef: event.turn_ref,
+          revisionId: event.payload?.revision_id,
+          timestamp: '2026-05-24T00:00:00.000Z',
           source: 'backend',
           payload: {
             ...(event.payload || {}),
             skippedReason: skippedReason || (replacementHistoryEntries.length > 0 ? null : 'missing-replacement-history'),
+            generationId: typeof event.payload?.generation_id === 'string' ? event.payload.generation_id : null,
+            reason: typeof event.payload?.reason === 'string' ? event.payload.reason : null,
+            strategy: typeof event.payload?.strategy === 'string' ? event.payload.strategy : null,
+            beforeTokens: typeof event.payload?.before_tokens === 'number' ? event.payload.before_tokens : null,
+            afterTokens: typeof event.payload?.after_tokens === 'number' ? event.payload.after_tokens : null,
+            removedMessages: typeof event.payload?.removed_messages === 'number' ? event.payload.removed_messages : null,
+            summaryPreview: typeof event.payload?.summary_preview === 'string' ? event.payload.summary_preview : null,
+            summaryText: typeof event.payload?.summary_text === 'string' ? event.payload.summary_text : null,
+            replacementHistoryPreview: Array.isArray(event.payload?.replacement_history_preview)
+              ? event.payload.replacement_history_preview
+              : [],
+            replacementHistoryEntries,
+            userId: typeof event.user_id === 'string' ? event.user_id : null,
             rawEvent: event,
           },
         };
@@ -281,11 +301,15 @@ jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversation
       if (event.type === 'context-compaction-failed') {
         return {
           type: 'compaction_failed',
+          eventId: event.id,
           conversationRef,
           turnRef: event.turn_ref,
+          revisionId: event.payload?.revision_id,
+          timestamp: '2026-05-24T00:00:00.000Z',
           source: 'backend',
           payload: {
             ...(event.payload || {}),
+            error: typeof event.payload?.error === 'string' ? event.payload.error : null,
             rawEvent: event,
           },
         };
@@ -300,6 +324,7 @@ jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversation
     }),
     recordAssistantMessage: jest.fn(),
     recordToolMessage: jest.fn(),
+    replaceCompactedReplay: jest.fn(() => Promise.resolve()),
     updateTranscriptSession: jest.fn(),
   },
 }));
@@ -307,6 +332,7 @@ jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversation
 export const transcriptSpies = {
   recordAssistantMessage: DesktopConversationRuntimeClient.recordAssistantMessage as jest.Mock,
   recordToolMessage: DesktopConversationRuntimeClient.recordToolMessage as jest.Mock,
+  replaceCompactedReplay: DesktopConversationRuntimeClient.replaceCompactedReplay as jest.Mock,
   updateTranscriptSession: DesktopConversationRuntimeClient.updateTranscriptSession as jest.Mock,
 };
 

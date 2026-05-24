@@ -1,12 +1,10 @@
 import { useCallback } from 'react';
-import type { ConversationEvent } from '../../../../infrastructure/api/windieSdkClient';
 import type {
-  BackendEvent,
-  BackendEventType,
-  ContextCompactionCompletedEvent,
-  ContextCompactionFailedEvent,
-  ContextCompactionStartedEvent,
-} from '../../../../types/backendEvents';
+  CompactedReplaySnapshot,
+  ConversationEvent,
+  JsonRecord,
+} from '../../../../infrastructure/api/windieSdkClient';
+import type { BackendEventType } from '../../../../types/backendEvents';
 import {
   COMPACTION_THINKING_STATUS,
   COMPACTION_COMPLETED_THINKING_STATUS,
@@ -16,10 +14,8 @@ import type { StreamTrackingOptions } from '../../utils/chatStream/chatStreamTra
 import { DesktopConversationRuntimeClient } from '../../session/desktopConversationRuntimeClient';
 import { useLatestRef } from '../../../../infrastructure/hooks/useLatestRef';
 
-type ResolveTargetConversationRef = (event: BackendEvent) => string | null;
-
 type ShouldIgnoreForStaleTurn = (
-  event: BackendEvent,
+  event: { turn_ref?: string | null },
   conversationRef?: string | null,
 ) => boolean;
 
@@ -65,91 +61,114 @@ type RecordTrackingEvent = (
   conversationRef?: string | null,
 ) => void;
 
-type PersistCompactedReplayFromBackendEvent = (
-  event: ContextCompactionCompletedEvent,
-  conversationRef: string,
+type PersistCompactedReplaySnapshot = (
+  snapshot: CompactedReplaySnapshot,
   userId: string,
 ) => Promise<void>;
 
-type CompactionStreamEvent =
-  | ContextCompactionStartedEvent
-  | ContextCompactionCompletedEvent
-  | ContextCompactionFailedEvent
-  | ConversationEvent;
+type CompactionEventType =
+  | 'compaction_started'
+  | 'compaction_applied'
+  | 'compaction_skipped'
+  | 'compaction_failed';
 
-function unwrapCompactionBackendEvent<
-  TEvent extends ContextCompactionStartedEvent | ContextCompactionCompletedEvent | ContextCompactionFailedEvent,
->(
-  event: CompactionStreamEvent,
-  expectedType: TEvent['type'],
-): TEvent | null {
-  if ('turn_ref' in event && event.type === expectedType) {
-    return event as TEvent;
-  }
-  const rawEvent = event.payload?.rawEvent;
-  if (
-    rawEvent
-    && typeof rawEvent === 'object'
-    && !Array.isArray(rawEvent)
-    && (rawEvent as { type?: unknown }).type === expectedType
-  ) {
-    return rawEvent as TEvent;
-  }
-  return null;
+type CompactionConversationEvent = ConversationEvent & {
+  type: CompactionEventType;
+};
+
+function isCompactionEvent(
+  event: ConversationEvent,
+  expectedType: CompactionEventType,
+): event is CompactionConversationEvent {
+  return event.type === expectedType;
 }
 
-function resolveCompactionConversationRef(
-  event: CompactionStreamEvent,
-  backendEvent: BackendEvent,
-  resolveTargetConversationRef: ResolveTargetConversationRef,
-): string | null {
-  if ('conversationRef' in event && typeof event.conversationRef === 'string') {
-    return event.conversationRef;
-  }
-  return resolveTargetConversationRef(backendEvent);
+function optionalString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
 
-function hasReplacementHistoryEntries(
-  event: ContextCompactionCompletedEvent,
-): boolean {
-  return Array.isArray(event.payload?.replacement_history_entries)
-    && event.payload.replacement_history_entries.some(
-      (entry) => Boolean(entry) && typeof entry === 'object' && !Array.isArray(entry),
-    );
+function stringOrNull(value: unknown): string | null {
+  return typeof value === 'string' ? value : null;
 }
 
-async function persistCompactedReplayFromBackendEvent(
-  event: ContextCompactionCompletedEvent,
+function numberOrNull(value: unknown): number | null {
+  return typeof value === 'number' ? value : null;
+}
+
+function arrayOrEmpty(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function recordOrNull(value: unknown): JsonRecord | null {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+    ? value as JsonRecord
+    : null;
+}
+
+function replacementHistoryEntriesFromEvent(event: CompactionConversationEvent): JsonRecord[] {
+  return arrayOrEmpty(
+    event.payload.replacementHistoryEntries ?? event.payload.replacement_history_entries,
+  ).map(recordOrNull).filter((entry): entry is JsonRecord => Boolean(entry));
+}
+
+function hasReplacementHistoryEntries(event: CompactionConversationEvent): boolean {
+  return replacementHistoryEntriesFromEvent(event).length > 0;
+}
+
+function buildCompactedReplaySnapshot(
+  event: CompactionConversationEvent,
   conversationRef: string,
+): CompactedReplaySnapshot | null {
+  const entries = replacementHistoryEntriesFromEvent(event);
+  if (entries.length === 0) {
+    return null;
+  }
+  const stableSuffix = optionalString(event.eventId)
+    ?? optionalString(event.turnRef)
+    ?? `${Date.now()}`;
+  return {
+    generationId: optionalString(event.payload.generationId) ?? `compaction-${conversationRef}-${stableSuffix}`,
+    conversationRef,
+    sourceRevisionId: optionalString(event.revisionId) ?? `rev-compaction-${conversationRef}-${stableSuffix}`,
+    sourceTurnRef: optionalString(event.turnRef),
+    createdAt: event.timestamp,
+    entries,
+    entryCount: entries.length,
+    complete: true,
+    active: true,
+  };
+}
+
+async function persistCompactedReplaySnapshot(
+  snapshot: CompactedReplaySnapshot,
   userId: string,
 ): Promise<void> {
-  await DesktopConversationRuntimeClient.replaceCompactedReplayFromBackendEvent({
-    event,
-    conversationRef,
-    userId,
-  });
+  await DesktopConversationRuntimeClient.replaceCompactedReplay(snapshot, userId);
+}
+
+function skippedReasonFromEvent(event: CompactionConversationEvent): string {
+  return optionalString(event.payload.skippedReason)
+    ?? optionalString(event.payload.skipped_reason)
+    ?? '';
 }
 
 export function useChatStreamCompactionHandlers({
-  resolveTargetConversationRef,
   shouldIgnoreForStaleTurn,
   setThinkingStatus,
   setThinkingSourceEventType,
   getThinkingSourceEventType,
   setCompactionDebugInfo,
   recordTrackingEvent,
-  persistCompactedReplay = persistCompactedReplayFromBackendEvent,
+  persistCompactedReplay = persistCompactedReplaySnapshot,
 }: {
-  resolveTargetConversationRef: ResolveTargetConversationRef;
   shouldIgnoreForStaleTurn: ShouldIgnoreForStaleTurn;
   setThinkingStatus: SetThinkingStatus;
   setThinkingSourceEventType: SetThinkingSourceEventType;
   getThinkingSourceEventType?: GetThinkingSourceEventType;
   setCompactionDebugInfo: SetCompactionDebugInfo;
   recordTrackingEvent: RecordTrackingEvent;
-  persistCompactedReplay?: PersistCompactedReplayFromBackendEvent;
+  persistCompactedReplay?: PersistCompactedReplaySnapshot;
 }) {
-  const resolveTargetConversationRefRef = useLatestRef(resolveTargetConversationRef);
   const shouldIgnoreForStaleTurnRef = useLatestRef(shouldIgnoreForStaleTurn);
   const setThinkingStatusRef = useLatestRef(setThinkingStatus);
   const setThinkingSourceEventTypeRef = useLatestRef(setThinkingSourceEventType);
@@ -158,49 +177,36 @@ export function useChatStreamCompactionHandlers({
   const recordTrackingEventRef = useLatestRef(recordTrackingEvent);
   const persistCompactedReplayRef = useLatestRef(persistCompactedReplay);
 
-  const handleContextCompactionStarted = useCallback((event: ContextCompactionStartedEvent | ConversationEvent) => {
-    const backendEvent = unwrapCompactionBackendEvent<ContextCompactionStartedEvent>(
-      event,
-      'context-compaction-started',
-    );
-    if (!backendEvent) {
+  const handleContextCompactionStarted = useCallback((event: ConversationEvent) => {
+    if (!isCompactionEvent(event, 'compaction_started')) {
       return;
     }
-    const conversationRef = resolveCompactionConversationRef(event, backendEvent, resolveTargetConversationRefRef.current);
-    if (shouldIgnoreForStaleTurnRef.current(backendEvent, conversationRef)) {
+    const conversationRef = event.conversationRef;
+    if (shouldIgnoreForStaleTurnRef.current({ turn_ref: event.turnRef }, conversationRef)) {
       return;
     }
     setThinkingStatusRef.current(COMPACTION_THINKING_STATUS, conversationRef);
     setThinkingSourceEventTypeRef.current('context-compaction-started', conversationRef);
     setCompactionDebugInfoRef.current(null, conversationRef);
-    recordTrackingEventRef.current('context-compaction-started', backendEvent.turn_ref, {}, conversationRef);
+    recordTrackingEventRef.current('context-compaction-started', event.turnRef, {}, conversationRef);
   }, [
     recordTrackingEventRef,
-    resolveTargetConversationRefRef,
     setCompactionDebugInfoRef,
     setThinkingSourceEventTypeRef,
     setThinkingStatusRef,
     shouldIgnoreForStaleTurnRef,
   ]);
 
-  const handleContextCompactionCompleted = useCallback((event: ContextCompactionCompletedEvent | ConversationEvent) => {
-    const backendEvent = unwrapCompactionBackendEvent<ContextCompactionCompletedEvent>(
-      event,
-      'context-compaction-completed',
-    );
-    if (!backendEvent) {
+  const handleContextCompactionCompleted = useCallback((event: ConversationEvent) => {
+    if (!isCompactionEvent(event, 'compaction_applied') && !isCompactionEvent(event, 'compaction_skipped')) {
       return;
     }
-    const conversationRef = resolveCompactionConversationRef(event, backendEvent, resolveTargetConversationRefRef.current);
-    if (shouldIgnoreForStaleTurnRef.current(backendEvent, conversationRef)) {
+    const conversationRef = event.conversationRef;
+    if (shouldIgnoreForStaleTurnRef.current({ turn_ref: event.turnRef }, conversationRef)) {
       return;
     }
-    const skippedReason = (
-      typeof backendEvent.payload?.skipped_reason === 'string'
-        ? backendEvent.payload.skipped_reason.trim()
-        : ''
-    );
-    if (skippedReason) {
+    const skippedReason = skippedReasonFromEvent(event);
+    if (event.type === 'compaction_skipped' || skippedReason) {
       const currentSourceEventType = getThinkingSourceEventTypeRef.current?.(conversationRef) ?? null;
       if (
         currentSourceEventType === 'context-compaction-started'
@@ -211,7 +217,7 @@ export function useChatStreamCompactionHandlers({
         setThinkingSourceEventTypeRef.current(null, conversationRef);
       }
       setCompactionDebugInfoRef.current(null, conversationRef);
-      recordTrackingEventRef.current('context-compaction-completed', backendEvent.turn_ref, {}, conversationRef);
+      recordTrackingEventRef.current('context-compaction-completed', event.turnRef, {}, conversationRef);
       return;
     }
     setThinkingStatusRef.current(
@@ -220,69 +226,61 @@ export function useChatStreamCompactionHandlers({
     );
     setThinkingSourceEventTypeRef.current('context-compaction-completed', conversationRef);
     setCompactionDebugInfoRef.current({
-      reason: typeof backendEvent.payload?.reason === 'string' ? backendEvent.payload.reason : null,
-      strategy: typeof backendEvent.payload?.strategy === 'string' ? backendEvent.payload.strategy : null,
-      beforeTokens: typeof backendEvent.payload?.before_tokens === 'number' ? backendEvent.payload.before_tokens : null,
-      afterTokens: typeof backendEvent.payload?.after_tokens === 'number' ? backendEvent.payload.after_tokens : null,
-      removedMessages: typeof backendEvent.payload?.removed_messages === 'number' ? backendEvent.payload.removed_messages : null,
-      summaryPreview: typeof backendEvent.payload?.summary_preview === 'string' ? backendEvent.payload.summary_preview : null,
-      summaryText: typeof backendEvent.payload?.summary_text === 'string' ? backendEvent.payload.summary_text : null,
-      replacementHistoryPreview: Array.isArray(backendEvent.payload?.replacement_history_preview)
-        ? backendEvent.payload.replacement_history_preview.map((entry) => ({
-          role: typeof entry?.role === 'string' ? entry.role : null,
-          messageType: typeof entry?.message_type === 'string' ? entry.message_type : null,
-          content: typeof entry?.content === 'string' ? entry.content : null,
-          toolName: typeof entry?.tool_name === 'string' ? entry.tool_name : null,
-          toolCallId: typeof entry?.tool_call_id === 'string' ? entry.tool_call_id : null,
-        }))
-        : [],
+      reason: stringOrNull(event.payload.reason),
+      strategy: stringOrNull(event.payload.strategy),
+      beforeTokens: numberOrNull(event.payload.beforeTokens ?? event.payload.before_tokens),
+      afterTokens: numberOrNull(event.payload.afterTokens ?? event.payload.after_tokens),
+      removedMessages: numberOrNull(event.payload.removedMessages ?? event.payload.removed_messages),
+      summaryPreview: stringOrNull(event.payload.summaryPreview ?? event.payload.summary_preview),
+      summaryText: stringOrNull(event.payload.summaryText ?? event.payload.summary_text),
+      replacementHistoryPreview: arrayOrEmpty(
+        event.payload.replacementHistoryPreview ?? event.payload.replacement_history_preview,
+      ).map(recordOrNull).filter((entry): entry is JsonRecord => Boolean(entry)).map((entry) => ({
+        role: typeof entry.role === 'string' ? entry.role : null,
+        messageType: typeof entry.message_type === 'string' ? entry.message_type : null,
+        content: typeof entry.content === 'string' ? entry.content : null,
+        toolName: typeof entry.tool_name === 'string' ? entry.tool_name : null,
+        toolCallId: typeof entry.tool_call_id === 'string' ? entry.tool_call_id : null,
+      })),
       skippedReason: skippedReason || null,
     }, conversationRef);
-    if (!skippedReason && conversationRef && hasReplacementHistoryEntries(backendEvent)) {
+    const snapshot = hasReplacementHistoryEntries(event)
+      ? buildCompactedReplaySnapshot(event, conversationRef)
+      : null;
+    if (snapshot) {
       void persistCompactedReplayRef.current(
-        backendEvent,
-        conversationRef,
-        backendEvent.user_id || 'default_user',
+        snapshot,
+        optionalString(event.payload.userId) || 'default_user',
       ).catch((error) => {
         console.warn('[useChatStreamCompactionHandlers] Failed to persist compacted replay state:', error);
       });
     }
-    recordTrackingEventRef.current('context-compaction-completed', backendEvent.turn_ref, {}, conversationRef);
+    recordTrackingEventRef.current('context-compaction-completed', event.turnRef, {}, conversationRef);
   }, [
     getThinkingSourceEventTypeRef,
     persistCompactedReplayRef,
     recordTrackingEventRef,
-    resolveTargetConversationRefRef,
     setCompactionDebugInfoRef,
     setThinkingSourceEventTypeRef,
     setThinkingStatusRef,
     shouldIgnoreForStaleTurnRef,
   ]);
 
-  const handleContextCompactionFailed = useCallback((event: ContextCompactionFailedEvent | ConversationEvent) => {
-    const backendEvent = unwrapCompactionBackendEvent<ContextCompactionFailedEvent>(
-      event,
-      'context-compaction-failed',
-    );
-    if (!backendEvent) {
+  const handleContextCompactionFailed = useCallback((event: ConversationEvent) => {
+    if (!isCompactionEvent(event, 'compaction_failed')) {
       return;
     }
-    const conversationRef = resolveCompactionConversationRef(event, backendEvent, resolveTargetConversationRefRef.current);
-    if (shouldIgnoreForStaleTurnRef.current(backendEvent, conversationRef)) {
+    const conversationRef = event.conversationRef;
+    if (shouldIgnoreForStaleTurnRef.current({ turn_ref: event.turnRef }, conversationRef)) {
       return;
     }
-    const errorText = (
-      typeof backendEvent.payload?.error === 'string'
-        ? backendEvent.payload.error.trim()
-        : ''
-    );
+    const errorText = optionalString(event.payload.error) ?? '';
     setThinkingStatusRef.current(errorText || COMPACTION_FAILED_THINKING_STATUS, conversationRef);
     setThinkingSourceEventTypeRef.current('context-compaction-failed', conversationRef);
     setCompactionDebugInfoRef.current(null, conversationRef);
-    recordTrackingEventRef.current('context-compaction-failed', backendEvent.turn_ref, {}, conversationRef);
+    recordTrackingEventRef.current('context-compaction-failed', event.turnRef, {}, conversationRef);
   }, [
     recordTrackingEventRef,
-    resolveTargetConversationRefRef,
     setCompactionDebugInfoRef,
     setThinkingSourceEventTypeRef,
     setThinkingStatusRef,

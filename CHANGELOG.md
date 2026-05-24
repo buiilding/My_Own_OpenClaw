@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/compaction: remove the auto-compaction cooldown gate and restore 90%-of-model-context auto-trigger semantics so oversized histories can compact again immediately when still above threshold.
 - sidecar/browser: attach Browser Use to the WindieOS-owned persistent Chrome profile through the existing CDP launcher instead of starting a disposable Playwright Chromium context.
 - sidecar/browser: route browser-internal URLs through Browser Use's Python navigation wrapper so `chrome://` targets are not rewritten by the CLI `open` command.
 - sidecar/browser: make Browser Use `connect` recover from a live headless `windieos` daemon by closing it before starting the headed dedicated-browser session.
@@ -15,6 +16,7 @@ All notable changes to WindieOS will be documented in this file.
 - sidecar/browser: route canonical WindieOS browser tool execution through the official Browser Use CLI daemon adapter, add `browser-use[cli]` as the browser feature-pack dependency, and document that WindieOS owns orchestration while Browser Use owns browser mechanics.
 - frontend/sdk: dispatch live web-search progress rows from SDK `tool_progress` events, deleting the raw `web-search-progress` backend handler-map entry.
 - frontend/sdk: delete the one-entry chat stream handler map and route `local-user-message` as an explicit raw fallback after SDK conversation-event dispatch.
+- frontend/sdk: consume SDK compaction payloads directly in renderer compaction handlers and build compacted replay snapshots without unwrapping raw backend events.
 - frontend/sdk: dispatch live thinking text from SDK `reasoning_delta` events, deleting the raw `llm-thought` backend handler-map entry.
 - frontend/sdk: dispatch backend memory-store tracking from SDK `memory_stored` events, deleting the raw `memory-store` backend handler-map entry.
 - frontend/sdk: dispatch backend token usage updates from SDK `usage_updated` events, deleting the raw `token-count` backend handler-map entry.

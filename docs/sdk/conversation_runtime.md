@@ -118,10 +118,9 @@ projection from the configured store and send the backend rehydrate command.
 They should not fetch projection rows and shape provider history themselves.
 
 Desktop compaction replay persistence follows the same rule. Chat stream
-handlers may render visible lifecycle/debug state, but
-`DesktopConversationRuntimeClient.replaceCompactedReplayFromBackendEvent(...)`
-owns conversion from backend compaction events to complete active replay
-snapshots before delegating to the store adapter.
+handlers render visible lifecycle/debug state from SDK `compaction_*` events and
+build complete active replay snapshots from the SDK-normalized compaction
+payload before delegating persistence through `DesktopConversationRuntimeClient`.
 
 ## Continuity Service Rule
 
@@ -169,7 +168,9 @@ Backend `context-compaction-completed` with `skipped_reason` normalizes to
 Completed compaction without replacement history also normalizes to
 `compaction_skipped` with `skippedReason: "missing-replacement-history"`; the
 SDK only uses `compaction_applied` when replay-safe replacement entries are
-present.
+present. SDK compaction payloads expose renderer-facing camelCase fields such as
+`summaryText`, `replacementHistoryPreview`, and `replacementHistoryEntries`, so
+renderer handlers do not need to unwrap `payload.rawEvent`.
 
 Only `compaction_applied` with actual replacement history should affect compacted
 replay snapshots. A store adapter must activate a compacted replay generation

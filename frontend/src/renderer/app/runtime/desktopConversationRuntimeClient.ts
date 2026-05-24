@@ -85,12 +85,6 @@ type RehydrateFromStoreInput = LoadRehydrateSnapshotInput & {
   workspacePath?: string | null;
 };
 
-type ReplaceCompactedReplayFromBackendEventInput = {
-  event: JsonRecord;
-  conversationRef: string;
-  userId?: string | null;
-};
-
 type NormalizeBackendStreamEventOptions = {
   conversationRef?: string | null;
   revisionId?: string | null;
@@ -98,41 +92,6 @@ type NormalizeBackendStreamEventOptions = {
 
 function optionalString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value : null;
-}
-
-function resolveReplacementHistoryEntries(event: JsonRecord): JsonRecord[] {
-  const payload = event.payload;
-  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
-    return [];
-  }
-  const entries = (payload as JsonRecord).replacement_history_entries;
-  return Array.isArray(entries)
-    ? entries.filter((entry): entry is JsonRecord => Boolean(entry) && typeof entry === 'object' && !Array.isArray(entry))
-    : [];
-}
-
-function buildCompactedReplaySnapshotFromBackendEvent({
-  event,
-  conversationRef,
-}: ReplaceCompactedReplayFromBackendEventInput): CompactedReplaySnapshot | null {
-  const entries = resolveReplacementHistoryEntries(event);
-  if (entries.length === 0) {
-    return null;
-  }
-  const eventId = optionalString(event.id);
-  const turnRef = optionalString(event.turn_ref) ?? optionalString(event.turnRef);
-  const stableSuffix = eventId ?? turnRef ?? `${Date.now()}`;
-  return {
-    generationId: `compaction-${conversationRef}-${stableSuffix}`,
-    conversationRef,
-    sourceRevisionId: `rev-compaction-${conversationRef}-${stableSuffix}`,
-    sourceTurnRef: turnRef,
-    createdAt: new Date().toISOString(),
-    entries,
-    entryCount: entries.length,
-    complete: true,
-    active: true,
-  };
 }
 
 async function createSeededConversationRuntime({
@@ -235,19 +194,6 @@ export const DesktopConversationRuntimeClient = {
     userId: string,
   ): Promise<void> {
     await DesktopConversationContinuityService.replaceCompactedReplay(snapshot, userId);
-  },
-
-  async replaceCompactedReplayFromBackendEvent(
-    input: ReplaceCompactedReplayFromBackendEventInput,
-  ): Promise<void> {
-    const snapshot = buildCompactedReplaySnapshotFromBackendEvent(input);
-    if (!snapshot) {
-      return;
-    }
-    await DesktopConversationContinuityService.replaceCompactedReplay(
-      snapshot,
-      input.userId || 'default_user',
-    );
   },
 
   async loadRehydrateSnapshot(input: LoadRehydrateSnapshotInput) {

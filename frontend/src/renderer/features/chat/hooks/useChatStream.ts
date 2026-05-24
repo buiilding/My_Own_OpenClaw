@@ -133,8 +133,10 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleContextCompactionCompleted,
     handleContextCompactionFailed,
   } = useChatStreamCompactionHandlers({
-    resolveTargetConversationRef,
-    shouldIgnoreForStaleTurn,
+    shouldIgnoreForStaleTurn: (event, conversationRef) => shouldIgnoreForStaleTurn({
+      type: 'context-compaction-started',
+      turn_ref: event.turn_ref ?? undefined,
+    } as BackendEvent, conversationRef),
     setThinkingStatus,
     setThinkingSourceEventType,
     getThinkingSourceEventType: (conversationRef?: string | null) => (

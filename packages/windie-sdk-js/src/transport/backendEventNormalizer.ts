@@ -229,6 +229,7 @@ export function normalizeBackendEventToConversationEvent(
       source: 'backend',
       payload: {
         ...payload,
+        reason: typeof payload.reason === 'string' ? payload.reason : null,
         rawEvent: event,
       },
     });
@@ -249,7 +250,18 @@ export function normalizeBackendEventToConversationEvent(
         ...payload,
         skippedReason: skippedReason || (hasReplacementHistory ? null : 'missing-replacement-history'),
         generationId: typeof payload.generation_id === 'string' ? payload.generation_id : null,
+        reason: typeof payload.reason === 'string' ? payload.reason : null,
+        strategy: typeof payload.strategy === 'string' ? payload.strategy : null,
+        beforeTokens: typeof payload.before_tokens === 'number' ? payload.before_tokens : null,
+        afterTokens: typeof payload.after_tokens === 'number' ? payload.after_tokens : null,
+        removedMessages: typeof payload.removed_messages === 'number' ? payload.removed_messages : null,
         summaryPreview: typeof payload.summary_preview === 'string' ? payload.summary_preview : null,
+        summaryText: typeof payload.summary_text === 'string' ? payload.summary_text : null,
+        replacementHistoryPreview: Array.isArray(payload.replacement_history_preview)
+          ? payload.replacement_history_preview
+          : [],
+        replacementHistoryEntries,
+        userId: typeof event.user_id === 'string' ? event.user_id : null,
         rawEvent: event,
       },
     });
@@ -261,6 +273,7 @@ export function normalizeBackendEventToConversationEvent(
       source: 'backend',
       payload: {
         ...payload,
+        error: typeof payload.error === 'string' ? payload.error : null,
         rawEvent: event,
       },
     });

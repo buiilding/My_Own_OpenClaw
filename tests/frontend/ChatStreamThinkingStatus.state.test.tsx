@@ -189,7 +189,17 @@ describe('useChatStream state + stream handling', () => {
       useChatStore.setState({ thinkingStatus: 'Compacting conversation history...' });
       emitBackendEvent({
         type: 'context-compaction-completed',
-        payload: { reason: 'auto-pre', strategy: 'inline' },
+        payload: {
+          reason: 'auto-pre',
+          strategy: 'inline',
+          replacement_history_entries: [
+            {
+              role: 'assistant',
+              content: 'summary',
+              message_type: 'context_compaction',
+            },
+          ],
+        },
       });
     });
 
