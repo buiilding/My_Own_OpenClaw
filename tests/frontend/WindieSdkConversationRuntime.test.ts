@@ -761,20 +761,25 @@ describe('Windie SDK conversation runtime core', () => {
     expect(systemPrompt).toMatchObject({
       type: 'system_prompt',
       payload: expect.objectContaining({
-        rawEvent: expect.objectContaining({ type: 'system-prompt' }),
+        content: 'system prompt',
+        toolSchemas: [],
+        structuredPayload: expect.objectContaining({ content: 'system prompt' }),
       }),
     });
     expect(userMetadata).toMatchObject({
       type: 'user_message_metadata',
       payload: expect.objectContaining({
+        content: 'full user payload',
         structuredPayload: expect.objectContaining({ content: 'full user payload' }),
-        rawEvent: expect.objectContaining({ type: 'user-message-full' }),
       }),
     });
     expect(toolSchemas).toMatchObject({
       type: 'tool_schemas_metadata',
       payload: expect.objectContaining({
-        rawEvent: expect.objectContaining({ type: 'tool-schemas' }),
+        toolSchemas: [expect.objectContaining({ name: 'read_file' })],
+        structuredPayload: expect.objectContaining({
+          tool_schemas: [expect.objectContaining({ name: 'read_file' })],
+        }),
       }),
     });
     expect(buildDisplayConversation([

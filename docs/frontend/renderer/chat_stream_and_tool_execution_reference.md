@@ -187,6 +187,8 @@ SDK dispatch and raw fallback behavior:
 - SDK `system_prompt` from backend `system-prompt`: annotate last user message with system prompt + tool schema snapshot
 - SDK `user_message_metadata` from backend `user-message-full`: annotate user message with full payload metadata
 - SDK `assistant_message` from backend `assistant-message-full`: annotate latest assistant `llm-text` message
+- metadata/transparency handlers consume SDK payload fields directly instead of
+  unwrapping raw backend metadata events
 - SDK `memory_stored` from backend `memory-store`: renderer chat stream path records tracking only; no direct local-memory write side effect is executed in `useChatStreamTerminalHandlers`
 - SDK `tool_schemas_metadata` from backend `tool-schemas`: annotate first user message with tool schema list
 - SDK `usage_updated` from backend `token-count`: update token counters

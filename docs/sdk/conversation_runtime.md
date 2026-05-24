@@ -122,6 +122,11 @@ handlers render visible lifecycle/debug state from SDK `compaction_*` events and
 build complete active replay snapshots from the SDK-normalized compaction
 payload before delegating persistence through `DesktopConversationRuntimeClient`.
 
+Desktop metadata and transparency projection also consumes SDK-normalized
+payloads directly. Renderer handlers should read SDK `system_prompt`,
+`user_message_metadata`, `assistant_message`, and `tool_schemas_metadata` fields
+instead of unwrapping backend `payload.rawEvent` metadata events.
+
 ## Continuity Service Rule
 
 `ConversationContinuityService` is the SDK-owned orchestration layer for chat

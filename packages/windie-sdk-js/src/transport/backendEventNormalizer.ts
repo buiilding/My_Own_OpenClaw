@@ -116,12 +116,16 @@ export function normalizeBackendEventToConversationEvent(
     });
   }
   if (event.type === 'system-prompt') {
+    const toolSchemas = Array.isArray(payload.tool_schemas) ? payload.tool_schemas : [];
     return createConversationEvent({
       ...base,
       type: 'system_prompt',
       source: 'backend',
       payload: {
         ...payload,
+        content: typeof payload.content === 'string' ? payload.content : '',
+        toolSchemas,
+        structuredPayload: payload,
         rawEvent: event,
       },
     });
@@ -133,6 +137,10 @@ export function normalizeBackendEventToConversationEvent(
       source: 'backend',
       payload: {
         ...payload,
+        content: typeof payload.content === 'string' ? payload.content : '',
+        metadata: payload.metadata && typeof payload.metadata === 'object' && !Array.isArray(payload.metadata)
+          ? payload.metadata
+          : null,
         structuredPayload: payload,
         rawEvent: event,
       },
@@ -153,12 +161,15 @@ export function normalizeBackendEventToConversationEvent(
     });
   }
   if (event.type === 'tool-schemas') {
+    const toolSchemas = Array.isArray(payload.tool_schemas) ? payload.tool_schemas : [];
     return createConversationEvent({
       ...base,
       type: 'tool_schemas_metadata',
       source: 'backend',
       payload: {
         ...payload,
+        toolSchemas,
+        structuredPayload: payload,
         rawEvent: event,
       },
     });

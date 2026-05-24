@@ -95,6 +95,14 @@ export function useChatStream(enableTranscript: boolean = true) {
     conversationRef?: string | null,
   ): boolean => shouldIgnoreForStaleTurnRuntime(event, conversationRef), []);
 
+  const shouldIgnoreSdkEventForStaleTurn = useCallback((
+    event: { turn_ref?: string | null },
+    conversationRef?: string | null,
+  ): boolean => shouldIgnoreForStaleTurn({
+    type: 'system-prompt',
+    turn_ref: event.turn_ref ?? undefined,
+  } as BackendEvent, conversationRef), [shouldIgnoreForStaleTurn]);
+
   const {
     updateLastMessageBySender,
     updateLastAssistantLlmTextMessage,
@@ -133,10 +141,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleContextCompactionCompleted,
     handleContextCompactionFailed,
   } = useChatStreamCompactionHandlers({
-    shouldIgnoreForStaleTurn: (event, conversationRef) => shouldIgnoreForStaleTurn({
-      type: 'context-compaction-started',
-      turn_ref: event.turn_ref ?? undefined,
-    } as BackendEvent, conversationRef),
+    shouldIgnoreForStaleTurn: shouldIgnoreSdkEventForStaleTurn,
     setThinkingStatus,
     setThinkingSourceEventType,
     getThinkingSourceEventType: (conversationRef?: string | null) => (
@@ -167,8 +172,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleAssistantMessageFull,
     handleToolSchemas,
   } = useChatStreamMetadataHandlers({
-    resolveTargetConversationRef,
-    shouldIgnoreForStaleTurn,
+    shouldIgnoreForStaleTurn: shouldIgnoreSdkEventForStaleTurn,
     updateLastMessageBySender,
     updateLastAssistantLlmTextMessage,
     recordTrackingEvent,

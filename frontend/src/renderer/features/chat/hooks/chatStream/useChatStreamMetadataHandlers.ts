@@ -1,13 +1,6 @@
 import { useCallback } from 'react';
-import type {
-  AssistantMessageFullEvent,
-  BackendEvent,
-  BackendEventType,
-  SystemPromptEvent,
-  ToolSchemasEvent,
-  UserMessageFullEvent,
-} from '../../../../types/backendEvents';
 import type { ConversationEvent } from '../../../../infrastructure/api/windieSdkClient';
+import type { BackendEventType } from '../../../../types/backendEvents';
 import {
   buildAssistantMessageFullUpdate,
   buildSystemPromptUpdate,
@@ -16,18 +9,19 @@ import {
 } from '../../utils/chatStream/chatStreamMessageUpdates';
 import type { StreamTrackingOptions } from '../../utils/chatStream/chatStreamTracking';
 import type { ChatMessage } from '../../stores/chatStore';
-import { useTurnScopedBackendEventHandler } from './useTurnScopedBackendEventHandler';
 
-type ResolveTargetConversationRef = (event: BackendEvent) => string | null;
-type MetadataBackendEvent =
-  | SystemPromptEvent
-  | UserMessageFullEvent
-  | AssistantMessageFullEvent
-  | ToolSchemasEvent;
-type MetadataStreamEvent = MetadataBackendEvent | ConversationEvent;
+type MetadataEventType =
+  | 'system_prompt'
+  | 'user_message_metadata'
+  | 'assistant_message'
+  | 'tool_schemas_metadata';
+
+type MetadataConversationEvent = ConversationEvent & {
+  type: MetadataEventType;
+};
 
 type ShouldIgnoreForStaleTurn = (
-  event: BackendEvent,
+  event: { turn_ref?: string | null },
   conversationRef?: string | null,
 ) => boolean;
 
@@ -51,109 +45,92 @@ type UpdateLastAssistantLlmTextMessage = (
   conversationRef?: string | null,
 ) => void;
 
-function unwrapMetadataBackendEvent<TEvent extends MetadataBackendEvent>(
-  event: MetadataStreamEvent,
-  expectedType: TEvent['type'],
-): TEvent | null {
-  if ('turn_ref' in event && event.type === expectedType) {
-    return event as TEvent;
-  }
-  const rawEvent = event.payload?.rawEvent;
-  if (
-    rawEvent
-    && typeof rawEvent === 'object'
-    && !Array.isArray(rawEvent)
-    && (rawEvent as { type?: unknown }).type === expectedType
-  ) {
-    return rawEvent as TEvent;
-  }
-  return null;
+function isMetadataEvent(
+  event: ConversationEvent,
+  expectedType: MetadataEventType,
+): event is MetadataConversationEvent {
+  return event.type === expectedType;
+}
+
+function turnRefForUpdate(event: ConversationEvent): string | undefined {
+  return typeof event.turnRef === 'string' && event.turnRef.trim()
+    ? event.turnRef
+    : undefined;
+}
+
+function toolSchemasPayload(event: MetadataConversationEvent) {
+  return {
+    ...event.payload,
+    tool_schemas: event.payload.tool_schemas ?? event.payload.toolSchemas,
+  };
 }
 
 export function useChatStreamMetadataHandlers({
-  resolveTargetConversationRef,
   shouldIgnoreForStaleTurn,
   updateLastMessageBySender,
   updateLastAssistantLlmTextMessage,
   recordTrackingEvent,
 }: {
-  resolveTargetConversationRef: ResolveTargetConversationRef;
   shouldIgnoreForStaleTurn: ShouldIgnoreForStaleTurn;
   updateLastMessageBySender: UpdateLastMessageBySender;
   updateLastAssistantLlmTextMessage: UpdateLastAssistantLlmTextMessage;
   recordTrackingEvent: RecordTrackingEvent;
 }) {
-  const handleSystemPromptEvent = useTurnScopedBackendEventHandler<SystemPromptEvent>({
-    resolveTargetConversationRef,
-    shouldIgnoreForStaleTurn,
-    onEvent: (event, conversationRef) => {
-      updateLastMessageBySender('user', {
-        systemPrompt: buildSystemPromptUpdate(event.payload),
-      }, event.turn_ref || undefined, conversationRef);
-      recordTrackingEvent('system-prompt', event.turn_ref, {}, conversationRef);
-    },
-  });
-
-  const handleUserMessageFullEvent = useTurnScopedBackendEventHandler<UserMessageFullEvent>({
-    resolveTargetConversationRef,
-    shouldIgnoreForStaleTurn,
-    onEvent: (event, conversationRef) => {
-      updateLastMessageBySender('user', {
-        fullUserMessage: buildUserMessageFullUpdate(event.payload),
-      }, event.turn_ref || undefined, conversationRef);
-      recordTrackingEvent('user-message-full', event.turn_ref, {}, conversationRef);
-    },
-  });
-
-  const handleAssistantMessageFullEvent = useTurnScopedBackendEventHandler<AssistantMessageFullEvent>({
-    resolveTargetConversationRef,
-    shouldIgnoreForStaleTurn,
-    onEvent: (event, conversationRef) => {
-      updateLastAssistantLlmTextMessage({
-        fullAssistantMessage: buildAssistantMessageFullUpdate(event.payload),
-      }, event.turn_ref || undefined, conversationRef);
-      recordTrackingEvent('assistant-message-full', event.turn_ref, {}, conversationRef);
-    },
-  });
-
-  const handleToolSchemasEvent = useTurnScopedBackendEventHandler<ToolSchemasEvent>({
-    resolveTargetConversationRef,
-    shouldIgnoreForStaleTurn,
-    onEvent: (event, conversationRef) => {
-      updateLastMessageBySender('user', {
-        ...buildToolSchemasUpdate(event.payload),
-      }, event.turn_ref || undefined, conversationRef);
-      recordTrackingEvent('tool-schemas', event.turn_ref, {}, conversationRef);
-    },
-  });
-
-  const handleSystemPrompt = useCallback((event: SystemPromptEvent | ConversationEvent) => {
-    const backendEvent = unwrapMetadataBackendEvent<SystemPromptEvent>(event, 'system-prompt');
-    if (backendEvent) {
-      handleSystemPromptEvent(backendEvent);
+  const handleSystemPrompt = useCallback((event: ConversationEvent) => {
+    if (!isMetadataEvent(event, 'system_prompt')) {
+      return;
     }
-  }, [handleSystemPromptEvent]);
-
-  const handleUserMessageFull = useCallback((event: UserMessageFullEvent | ConversationEvent) => {
-    const backendEvent = unwrapMetadataBackendEvent<UserMessageFullEvent>(event, 'user-message-full');
-    if (backendEvent) {
-      handleUserMessageFullEvent(backendEvent);
+    const conversationRef = event.conversationRef;
+    if (shouldIgnoreForStaleTurn({ turn_ref: event.turnRef }, conversationRef)) {
+      return;
     }
-  }, [handleUserMessageFullEvent]);
+    updateLastMessageBySender('user', {
+      systemPrompt: buildSystemPromptUpdate(event.payload),
+    }, turnRefForUpdate(event), conversationRef);
+    recordTrackingEvent('system-prompt', event.turnRef, {}, conversationRef);
+  }, [recordTrackingEvent, shouldIgnoreForStaleTurn, updateLastMessageBySender]);
 
-  const handleAssistantMessageFull = useCallback((event: AssistantMessageFullEvent | ConversationEvent) => {
-    const backendEvent = unwrapMetadataBackendEvent<AssistantMessageFullEvent>(event, 'assistant-message-full');
-    if (backendEvent) {
-      handleAssistantMessageFullEvent(backendEvent);
+  const handleUserMessageFull = useCallback((event: ConversationEvent) => {
+    if (!isMetadataEvent(event, 'user_message_metadata')) {
+      return;
     }
-  }, [handleAssistantMessageFullEvent]);
+    const conversationRef = event.conversationRef;
+    if (shouldIgnoreForStaleTurn({ turn_ref: event.turnRef }, conversationRef)) {
+      return;
+    }
+    updateLastMessageBySender('user', {
+      fullUserMessage: buildUserMessageFullUpdate(event.payload),
+    }, turnRefForUpdate(event), conversationRef);
+    recordTrackingEvent('user-message-full', event.turnRef, {}, conversationRef);
+  }, [recordTrackingEvent, shouldIgnoreForStaleTurn, updateLastMessageBySender]);
 
-  const handleToolSchemas = useCallback((event: ToolSchemasEvent | ConversationEvent) => {
-    const backendEvent = unwrapMetadataBackendEvent<ToolSchemasEvent>(event, 'tool-schemas');
-    if (backendEvent) {
-      handleToolSchemasEvent(backendEvent);
+  const handleAssistantMessageFull = useCallback((event: ConversationEvent) => {
+    if (!isMetadataEvent(event, 'assistant_message')) {
+      return;
     }
-  }, [handleToolSchemasEvent]);
+    const conversationRef = event.conversationRef;
+    if (shouldIgnoreForStaleTurn({ turn_ref: event.turnRef }, conversationRef)) {
+      return;
+    }
+    updateLastAssistantLlmTextMessage({
+      fullAssistantMessage: buildAssistantMessageFullUpdate(event.payload),
+    }, turnRefForUpdate(event), conversationRef);
+    recordTrackingEvent('assistant-message-full', event.turnRef, {}, conversationRef);
+  }, [recordTrackingEvent, shouldIgnoreForStaleTurn, updateLastAssistantLlmTextMessage]);
+
+  const handleToolSchemas = useCallback((event: ConversationEvent) => {
+    if (!isMetadataEvent(event, 'tool_schemas_metadata')) {
+      return;
+    }
+    const conversationRef = event.conversationRef;
+    if (shouldIgnoreForStaleTurn({ turn_ref: event.turnRef }, conversationRef)) {
+      return;
+    }
+    updateLastMessageBySender('user', {
+      ...buildToolSchemasUpdate(toolSchemasPayload(event)),
+    }, turnRefForUpdate(event), conversationRef);
+    recordTrackingEvent('tool-schemas', event.turnRef, {}, conversationRef);
+  }, [recordTrackingEvent, shouldIgnoreForStaleTurn, updateLastMessageBySender]);
 
   return {
     handleSystemPrompt,

@@ -103,6 +103,7 @@ jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversation
         };
       }
       if (event.type === 'system-prompt') {
+        const toolSchemas = Array.isArray(event.payload?.tool_schemas) ? event.payload.tool_schemas : [];
         return {
           type: 'system_prompt',
           conversationRef,
@@ -110,6 +111,9 @@ jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversation
           source: 'backend',
           payload: {
             ...(event.payload || {}),
+            content: typeof event.payload?.content === 'string' ? event.payload.content : '',
+            toolSchemas,
+            structuredPayload: event.payload || {},
             rawEvent: event,
           },
         };
@@ -122,6 +126,11 @@ jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversation
           source: 'backend',
           payload: {
             ...(event.payload || {}),
+            content: typeof event.payload?.content === 'string' ? event.payload.content : '',
+            metadata: event.payload?.metadata && typeof event.payload.metadata === 'object' && !Array.isArray(event.payload.metadata)
+              ? event.payload.metadata
+              : null,
+            structuredPayload: event.payload || {},
             rawEvent: event,
           },
         };
@@ -134,11 +143,15 @@ jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversation
           source: 'backend',
           payload: {
             ...(event.payload || {}),
+            text: typeof event.payload?.content === 'string' ? event.payload.content : '',
+            content: typeof event.payload?.content === 'string' ? event.payload.content : '',
+            structuredPayload: event.payload || {},
             rawEvent: event,
           },
         };
       }
       if (event.type === 'tool-schemas') {
+        const toolSchemas = Array.isArray(event.payload?.tool_schemas) ? event.payload.tool_schemas : [];
         return {
           type: 'tool_schemas_metadata',
           conversationRef,
@@ -146,6 +159,8 @@ jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversation
           source: 'backend',
           payload: {
             ...(event.payload || {}),
+            toolSchemas,
+            structuredPayload: event.payload || {},
             rawEvent: event,
           },
         };

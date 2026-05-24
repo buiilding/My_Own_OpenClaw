@@ -1,16 +1,27 @@
 import { act, renderHook } from '@testing-library/react';
 import { useChatStreamMetadataHandlers } from '../../frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamMetadataHandlers';
 
+function sdkEvent(type: string, payload: Record<string, unknown> = {}) {
+  return {
+    eventId: `${type}-event`,
+    type,
+    conversationRef: 'conversation-1',
+    turnRef: 'turn-1',
+    revisionId: 'rev-1',
+    timestamp: '2026-05-24T00:00:00.000Z',
+    source: 'backend',
+    payload,
+  };
+}
+
 describe('useChatStreamMetadataHandlers', () => {
   test('routes metadata events to message updaters and tracking', () => {
-    const resolveTargetConversationRef = jest.fn(() => 'conversation-1');
     const shouldIgnoreForStaleTurn = jest.fn(() => false);
     const updateLastMessageBySender = jest.fn();
     const updateLastAssistantLlmTextMessage = jest.fn();
     const recordTrackingEvent = jest.fn();
 
     const { result } = renderHook(() => useChatStreamMetadataHandlers({
-      resolveTargetConversationRef,
       shouldIgnoreForStaleTurn,
       updateLastMessageBySender,
       updateLastAssistantLlmTextMessage,
@@ -18,26 +29,12 @@ describe('useChatStreamMetadataHandlers', () => {
     }));
 
     act(() => {
-      result.current.handleSystemPrompt({
-        type: 'system-prompt',
-        turn_ref: 'turn-1',
-        payload: { content: 'prompt' },
-      } as any);
-      result.current.handleUserMessageFull({
-        type: 'user-message-full',
-        turn_ref: 'turn-1',
-        payload: { content: 'full user' },
-      } as any);
-      result.current.handleAssistantMessageFull({
-        type: 'assistant-message-full',
-        turn_ref: 'turn-1',
-        payload: { content: 'full assistant' },
-      } as any);
-      result.current.handleToolSchemas({
-        type: 'tool-schemas',
-        turn_ref: 'turn-1',
-        payload: { tool_schemas: [{ type: 'function', name: 'tool-a', parameters: { type: 'object' } }] },
-      } as any);
+      result.current.handleSystemPrompt(sdkEvent('system_prompt', { content: 'prompt' }) as any);
+      result.current.handleUserMessageFull(sdkEvent('user_message_metadata', { content: 'full user' }) as any);
+      result.current.handleAssistantMessageFull(sdkEvent('assistant_message', { content: 'full assistant' }) as any);
+      result.current.handleToolSchemas(sdkEvent('tool_schemas_metadata', {
+        toolSchemas: [{ type: 'function', name: 'tool-a', parameters: { type: 'object' } }],
+      }) as any);
     });
 
     expect(updateLastMessageBySender).toHaveBeenCalledTimes(3);
@@ -54,14 +51,12 @@ describe('useChatStreamMetadataHandlers', () => {
   });
 
   test('ignores stale-turn metadata events', () => {
-    const resolveTargetConversationRef = jest.fn(() => 'conversation-1');
     const shouldIgnoreForStaleTurn = jest.fn(() => true);
     const updateLastMessageBySender = jest.fn();
     const updateLastAssistantLlmTextMessage = jest.fn();
     const recordTrackingEvent = jest.fn();
 
     const { result } = renderHook(() => useChatStreamMetadataHandlers({
-      resolveTargetConversationRef,
       shouldIgnoreForStaleTurn,
       updateLastMessageBySender,
       updateLastAssistantLlmTextMessage,
@@ -69,10 +64,10 @@ describe('useChatStreamMetadataHandlers', () => {
     }));
 
     act(() => {
-      result.current.handleSystemPrompt({ type: 'system-prompt' } as any);
-      result.current.handleUserMessageFull({ type: 'user-message-full' } as any);
-      result.current.handleAssistantMessageFull({ type: 'assistant-message-full' } as any);
-      result.current.handleToolSchemas({ type: 'tool-schemas' } as any);
+      result.current.handleSystemPrompt(sdkEvent('system_prompt') as any);
+      result.current.handleUserMessageFull(sdkEvent('user_message_metadata') as any);
+      result.current.handleAssistantMessageFull(sdkEvent('assistant_message') as any);
+      result.current.handleToolSchemas(sdkEvent('tool_schemas_metadata') as any);
     });
 
     expect(updateLastMessageBySender).not.toHaveBeenCalled();
