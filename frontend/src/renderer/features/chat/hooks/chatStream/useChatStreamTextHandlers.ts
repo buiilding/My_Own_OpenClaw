@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 import { useChatStore, type ChatMessage } from '../../stores/chatStore';
 import type { ConversationEvent } from '../../../../infrastructure/api/windieSdkClient';
-import type { BackendEvent, LlmThoughtEvent } from '../../../../types/backendEvents';
 import { buildThinkingStatus } from '../../utils/chatStream/chatStreamFormatting';
 import {
   findLastAssistantLlmTextMessageId,
@@ -26,31 +25,6 @@ type UseChatStreamTextHandlersOptions = {
   ) => void;
 };
 
-function unwrapLlmThoughtBackendEvent(event: LlmThoughtEvent | ConversationEvent): LlmThoughtEvent {
-  if ('conversation_ref' in event || 'user_id' in event || event.type === 'llm-thought') {
-    return event as LlmThoughtEvent;
-  }
-  const rawEvent = event.payload?.rawEvent;
-  if (
-    rawEvent
-    && typeof rawEvent === 'object'
-    && !Array.isArray(rawEvent)
-    && (rawEvent as { type?: unknown }).type === 'llm-thought'
-  ) {
-    return rawEvent as LlmThoughtEvent;
-  }
-  return {
-    type: 'llm-thought',
-    conversation_ref: event.conversationRef,
-    turn_ref: event.turnRef ?? undefined,
-    payload: {
-      status: typeof event.payload?.text === 'string'
-        ? event.payload.text
-        : '',
-    },
-  } as BackendEvent as LlmThoughtEvent;
-}
-
 export const useChatStreamTextHandlers = ({
   addMessage,
   updateMessage,
@@ -60,17 +34,12 @@ export const useChatStreamTextHandlers = ({
   modelContextRef,
   recordTrackingEvent,
 }: UseChatStreamTextHandlersOptions) => {
-  const handleLlmThought = useCallback((event: LlmThoughtEvent | ConversationEvent, conversationRef: string | null) => {
-    const backendEvent = unwrapLlmThoughtBackendEvent(event);
+  const handleLlmThought = useCallback((event: ConversationEvent, conversationRef: string | null) => {
     const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
     const currentStatus = workspace.thinkingStatus;
-    const payload = backendEvent.payload as { status?: string; content?: string } | undefined;
-    const thoughtChunk =
-      typeof payload?.status === 'string'
-        ? payload.status
-        : typeof payload?.content === 'string'
-          ? payload.content
-          : undefined;
+    const thoughtChunk = typeof event.payload?.text === 'string'
+      ? event.payload.text
+      : undefined;
     const nextBaseStatus = currentStatus === GENERIC_THINKING_STATUS ? null : currentStatus;
     const nextThinkingStatus = buildThinkingStatus(nextBaseStatus, thoughtChunk);
     setThinkingStatus(nextThinkingStatus, conversationRef);
@@ -81,7 +50,7 @@ export const useChatStreamTextHandlers = ({
       modelId: modelContext.modelId,
       modelProvider: modelContext.modelProvider,
     };
-    const turnRef = backendEvent.turn_ref || undefined;
+    const turnRef = event.turnRef || undefined;
     const messages = useChatStore.getState().getWorkspaceState(conversationRef).messages;
     const assistantMessageId = findLastAssistantLlmTextMessageId(messages, turnRef);
     if (assistantMessageId) {
@@ -110,7 +79,7 @@ export const useChatStreamTextHandlers = ({
       addMessage(placeholderAssistantMessage, conversationRef);
     }
 
-    recordTrackingEvent('llm-thought', backendEvent.turn_ref, {}, conversationRef);
+    recordTrackingEvent('llm-thought', event.turnRef, {}, conversationRef);
   }, [
     addMessage,
     modelContextRef,

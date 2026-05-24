@@ -132,6 +132,11 @@ read SDK `turn_error`, `usage_updated`, and `memory_stored` payloads directly;
 they should not reconstruct backend `error`, `token-count`, or `memory-store`
 events from `payload.rawEvent`.
 
+Desktop reasoning projection consumes SDK `reasoning_delta.text` directly.
+Renderer UI/debug state may keep the source label `llm-thought` for continuity,
+but the handler should not reconstruct backend `llm-thought` events from
+`payload.rawEvent`.
+
 ## Continuity Service Rule
 
 `ConversationContinuityService` is the SDK-owned orchestration layer for chat

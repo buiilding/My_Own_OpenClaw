@@ -130,6 +130,18 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('ConversationEvent');
   });
 
+  test('chat stream text handlers consume SDK reasoning events directly', async () => {
+    const source = await fs.readFile(
+      path.join(chatRoot, 'hooks/chatStream/useChatStreamTextHandlers.ts'),
+      'utf8',
+    );
+
+    expect(source).not.toContain('unwrapLlmThoughtBackendEvent');
+    expect(source).not.toContain('LlmThoughtEvent');
+    expect(source).not.toContain('types/backendEvents');
+    expect(source).toContain('ConversationEvent');
+  });
+
   test('conversation replay rewrites use the desktop runtime facade', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'hooks/useConversationReplayActions.js'),

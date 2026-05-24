@@ -173,6 +173,9 @@ SDK dispatch and raw fallback behavior:
 
 - `local-user-message`: adds user row, resets `streamTracking` for turn
 - SDK `reasoning_delta` from backend `llm-thought`: accumulates transient thinking text and writes live reasoning (`thinkingText`) onto the same-turn assistant `llm-text` message (creates placeholder assistant row before first text chunk when needed)
+  - the renderer consumes SDK `reasoning_delta.text` directly. It keeps
+    `llm-thought` as the UI/tracking source label, but does not unwrap
+    `payload.rawEvent` back into a backend `llm-thought` event.
 - SDK `assistant_delta` from backend `streaming-response`: append/create assistant `llm-text` row and increment chunk tracking
 - SDK `compaction_started` from backend `context-compaction-started`: sets thinking text to `Compacting conversation history...` while backend compaction runs
 - SDK `compaction_applied` from backend `context-compaction-completed`: replaces in-progress compaction thinking with a terminal `Conversation history compacted.` status and marks source as `context-compaction-completed`
