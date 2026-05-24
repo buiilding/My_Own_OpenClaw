@@ -15,7 +15,7 @@ title: "Settings and Model ACK Event Routing Reference"
 - `frontend/src/renderer/app/providers/appConfigEvents.js`
 - `frontend/src/renderer/features/settings/hooks/useSettingsManagement.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventUtils.ts`
-- `frontend/src/renderer/infrastructure/api/client.ts`
+- `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`
 - `frontend/src/main/ipc.cjs`
 - `backend/src/api/handlers/settings.py`
 
@@ -33,7 +33,7 @@ They are consumed by app/provider-specific listeners, not typed stream hooks.
 
 Flow:
 
-1. renderer requests models (`ApiClient.listModels()` -> `to-backend`)
+1. renderer requests models (`DesktopSettingsRuntimeClient.listModels()` -> `to-backend`)
 2. backend `ListModelsHandler` responds with `type: "models-listed"`
 3. main `ipc.cjs` rebroadcasts event on `from-backend`
 4. `AppConfigProvider` listener calls `routeConfigBackendEvent(...)`
@@ -78,7 +78,7 @@ If backend error text changes, both save-status failure detection and chat-error
 
 - updates transcript user/session snapshot
 - sets backend HTTP URL for artifact uploader
-- may trigger `ApiClient.updateSettings(currentConfig)` when backend connection is active
+- may trigger `DesktopSettingsRuntimeClient.updateSettings(currentConfig)` when backend connection is active
 
 This path is separate from `from-backend` ACK/control events but interacts with settings lifecycle timing.
 

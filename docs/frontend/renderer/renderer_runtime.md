@@ -112,7 +112,7 @@ Primary hooks/components:
 
 Core modules:
 
-- `infrastructure/api/client.ts`: typed backend command surface
+- `app/runtime/desktopBackendTransport.ts`: typed backend command surface
 - `infrastructure/ipc/bridge.ts`: typed IPC wrapper over preload API
 - `infrastructure/services/*`: tool execution/capture/payload services
 - `app/runtime/desktopTranscriptProjectionRuntimeClient.ts` + `infrastructure/transcript/*`: transcript projection queues and session storage

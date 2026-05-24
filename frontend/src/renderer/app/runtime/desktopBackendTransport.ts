@@ -1,5 +1,4 @@
 import type { BackendTransport } from '../../infrastructure/api/windieSdkClient';
-import { DesktopSettingsRuntimeClient } from './desktopSettingsRuntimeClient';
 import { IpcBridge, SEND_CHANNELS } from '../../infrastructure/ipc/bridge';
 import { getMemoryRetrievalInjectionEnabled } from '../../utils/memoryRetrievalPreference';
 import { normalizeNonEmptyString } from '../../utils/normalizeNonEmptyString';
@@ -96,6 +95,26 @@ function sendCompactHistory(payload: Record<string, unknown>): void {
   });
 }
 
+function sendWakewordDetected(payload: Record<string, unknown>): void {
+  IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
+    type: 'wakeword-detected',
+    payload,
+  });
+}
+
+function sendUpdateSettings(payload: Record<string, unknown>): void {
+  IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
+    type: 'update-settings',
+    payload,
+  });
+}
+
+function sendListModels(): void {
+  IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
+    type: 'list-models',
+  });
+}
+
 export function createDesktopBackendTransport(workspacePath: string | null = null): BackendTransport {
   const normalizedWorkspacePath = optionalString(workspacePath);
   return {
@@ -114,12 +133,18 @@ export function createDesktopBackendTransport(workspacePath: string | null = nul
       sendCompactHistory(payload);
       return optionalString(payload.turn_ref) ?? optionalString(payload.turnRef) ?? undefined;
     },
-    wakewordDetected: async () => undefined,
+    wakewordDetected: async (payload) => {
+      sendWakewordDetected(payload);
+      return optionalString(payload.turn_ref) ?? optionalString(payload.turnRef) ?? undefined;
+    },
     updateSettings: async (payload) => {
-      DesktopSettingsRuntimeClient.updateSettings(payload);
+      sendUpdateSettings(payload);
+      return optionalString(payload.turn_ref) ?? optionalString(payload.turnRef) ?? undefined;
+    },
+    listModels: async () => {
+      sendListModels();
       return undefined;
     },
-    listModels: async () => undefined,
     stop: async (payload) => {
       sendStopQuery(
         optionalString(payload.conversation_ref) ?? optionalString(payload.conversationRef),

@@ -1,5 +1,8 @@
-import { ApiClient } from '../../infrastructure/api/client';
-import type { WindieModelSelection } from '../../infrastructure/api/windieSdkClient';
+import {
+  buildModelSettingsPatch,
+  type WindieModelSelection,
+} from '../../infrastructure/api/windieSdkClient';
+import { createDesktopBackendTransport } from './desktopBackendTransport';
 
 type RuntimeSettingsPatch = Record<string, unknown>;
 
@@ -11,14 +14,16 @@ type RuntimeSettingsPatch = Record<string, unknown>;
  */
 export const DesktopSettingsRuntimeClient = {
   listModels(): void {
-    ApiClient.listModels();
+    void createDesktopBackendTransport(null).listModels();
   },
 
   updateSettings(config: RuntimeSettingsPatch): void {
-    ApiClient.updateSettings(config);
+    void createDesktopBackendTransport(null).updateSettings(config);
   },
 
   setModel(selection: WindieModelSelection): void {
-    ApiClient.setModel(selection);
+    void createDesktopBackendTransport(null).updateSettings(
+      buildModelSettingsPatch(selection, 'DesktopSettingsRuntimeClient.setModel'),
+    );
   },
 };

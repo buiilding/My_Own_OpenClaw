@@ -8,7 +8,7 @@ title: "Hosted Backend Clients"
 
 # Hosted Backend Clients
 
-WindieOS includes transport-only SDK clients for hosted backend APIs. These clients are intentionally separate from the Electron renderer `ApiClient`, which talks through app-internal IPC. Agent sessions should use `WindieClient.wakeUp(...)`, not a direct hosted-client websocket helper.
+WindieOS includes transport-only SDK clients for hosted backend APIs. These clients are intentionally separate from the Electron desktop runtime facades, which talk through app-internal IPC. Agent sessions should use `WindieClient.wakeUp(...)`, not a direct hosted-client websocket helper.
 
 ## TypeScript Client
 

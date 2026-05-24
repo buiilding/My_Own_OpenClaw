@@ -158,13 +158,6 @@ jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversation
   },
 }));
 
-jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
-  ApiClient: {
-    setModel: (...args) => mockUpdateSettings(...args),
-    updateSettings: (...args) => mockUpdateSettings(...args),
-  },
-}));
-
 jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime', () => ({
   ensureConversationInferenceSessionHydrated: (...args) => mockEnsureConversationInferenceSessionHydrated(...args),
 }));

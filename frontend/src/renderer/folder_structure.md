@@ -167,10 +167,9 @@ frontend/src/renderer/
 │
 ├── infrastructure/                        # Core infrastructure services
 │   │
-│   ├── api/                              # API client
-│   │   ├── client.ts                    # ApiClient - Remaining typed IPC client for settings/model commands
+│   ├── api/                              # Hosted SDK client exports
 │   │   ├── windieSdkClient.ts           # WindieSdkClient - Hosted backend SDK transport wrapper for `/api/sdk/*`, `/api/artifacts/*`, and `/ws`
-│   │   └── index.ts                     # Stable renderer API export surface for ApiClient + WindieSdkClient
+│   │   └── index.ts                     # Stable renderer API export surface for WindieSdkClient
 │   │
 │   ├── audio/                            # Audio services
 │   │   └── PlayerService.ts            # PlayerService - Audio playback queue management (TTS audio chunks from backend)

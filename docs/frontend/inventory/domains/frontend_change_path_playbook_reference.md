@@ -14,7 +14,7 @@ Use this playbook for common frontend change scenarios.
 
 ### 1) Add a new renderer -> backend command
 
-1. Add client method in `renderer/infrastructure/api/client.ts`.
+1. Add runtime facade method and backend transport mapping under `renderer/app/runtime`.
 2. Add IPC channel constant if needed in `renderer/infrastructure/ipc/channels.ts`.
 3. Handle channel in `main/ipc.cjs`.
 4. Relay to backend websocket with stable message type/payload.

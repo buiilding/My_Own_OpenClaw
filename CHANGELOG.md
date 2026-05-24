@@ -21,6 +21,7 @@ All notable changes to WindieOS will be documented in this file.
 - sidecar/browser: route canonical WindieOS browser tool execution through the official Browser Use CLI daemon adapter, add `browser-use[cli]` as the browser feature-pack dependency, and document that WindieOS owns orchestration while Browser Use owns browser mechanics.
 - frontend/sdk: dispatch live web-search progress rows from SDK `tool_progress` events, deleting the raw `web-search-progress` backend handler-map entry.
 - frontend/sdk: consume SDK `user_message` payloads for backend `local-user-message` echoes and delete the explicit raw local-user fallback after SDK conversation-event dispatch.
+- frontend/sdk: delete the legacy renderer `ApiClient` backend command surface and route settings, model-list, model-selection, and wakeword commands through desktop runtime facades backed by the SDK transport adapter.
 - frontend/sdk: consume SDK compaction payloads directly in renderer compaction handlers and build compacted replay snapshots without unwrapping raw backend events.
 - frontend/sdk: consume SDK metadata payloads directly in renderer transparency handlers and delete backend metadata event unwrapping.
 - frontend/sdk: consume SDK terminal event payloads directly in renderer error, token usage, and memory-store handlers, deleting raw backend terminal event unwrapping.

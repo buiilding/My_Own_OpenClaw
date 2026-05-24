@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 
 import ModelsSection from '../../frontend/src/renderer/features/dashboard/components/sections/ModelsSection';
-import { ApiClient } from '../../frontend/src/renderer/infrastructure/api/client';
+import { DesktopSettingsRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient';
 
 describe('ModelsSection', () => {
   const config = {
@@ -182,7 +182,7 @@ describe('ModelsSection', () => {
       on: jest.fn(() => jest.fn()),
       once: jest.fn(),
     };
-    jest.spyOn(ApiClient, 'listModels').mockImplementation(() => undefined);
+    jest.spyOn(DesktopSettingsRuntimeClient, 'listModels').mockImplementation(() => undefined);
 
     render(
       <ModelsSection
@@ -193,6 +193,6 @@ describe('ModelsSection', () => {
       />,
     );
 
-    expect(ApiClient.listModels).toHaveBeenCalledTimes(1);
+    expect(DesktopSettingsRuntimeClient.listModels).toHaveBeenCalledTimes(1);
   });
 });

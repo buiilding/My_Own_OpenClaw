@@ -123,7 +123,7 @@ This is the central dedupe guard preventing redundant writes and backend updates
 3. optional save-status callback fire
 4. persist localStorage (`saveConfigToStorage`)
 5. async disk save (`SAVE_FRONTEND_CONFIG`)
-6. backend sync (`ApiClient.updateSettings`) for non-model settings only
+6. backend sync (`DesktopSettingsRuntimeClient.updateSettings`) for non-model settings only
 
 Deferred backend fields:
 
@@ -136,7 +136,7 @@ Those two fields remain renderer-local until an actual query/replay send path ru
 
 When IPC status reports connected:
 
-- provider sends current non-model config to backend (`ApiClient.updateSettings`)
+- provider sends current non-model config to backend (`DesktopSettingsRuntimeClient.updateSettings`)
 - deferred model selection is not pushed on connect/reconnect
 
 ### Storage-event sync behavior

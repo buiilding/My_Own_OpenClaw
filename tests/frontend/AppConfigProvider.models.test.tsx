@@ -1,12 +1,12 @@
 import {
   act,
-  ApiClient,
+  DesktopSettingsRuntimeClient,
   flushAsyncEffects,
   getBackendHandler,
   getRemoveBackendListenerMock,
   INVOKE_CHANNELS,
   IpcBridge,
-  mockApiClientListModels,
+  mockDesktopSettingsListModels,
   mockLoadConfigFromStorage,
   mockSaveConfigToStorage,
   mockUseSettingsManagement,
@@ -39,13 +39,13 @@ describe('AppConfigProvider model + config wiring', () => {
       ON_CHANNELS.FROM_BACKEND,
       expect.any(Function),
     );
-    expect(mockApiClientListModels).not.toHaveBeenCalled();
+    expect(mockDesktopSettingsListModels).not.toHaveBeenCalled();
 
     act(() => {
       getBackendHandler(ON_CHANNELS.IPC_STATUS)?.({ isConnected: true });
     });
 
-    expect(mockApiClientListModels).toHaveBeenCalledTimes(1);
+    expect(mockDesktopSettingsListModels).toHaveBeenCalledTimes(1);
   });
 
   test('does not request model list from chatbox-response view', () => {
@@ -56,7 +56,7 @@ describe('AppConfigProvider model + config wiring', () => {
       getBackendHandler(ON_CHANNELS.IPC_STATUS)?.({ isConnected: true });
     });
 
-    expect(mockApiClientListModels).not.toHaveBeenCalled();
+    expect(mockDesktopSettingsListModels).not.toHaveBeenCalled();
   });
 
   test('requests model list only once per renderer session', () => {
@@ -70,7 +70,7 @@ describe('AppConfigProvider model + config wiring', () => {
       getBackendHandler(ON_CHANNELS.IPC_STATUS)?.({ isConnected: true });
     });
 
-    expect(mockApiClientListModels).toHaveBeenCalledTimes(1);
+    expect(mockDesktopSettingsListModels).toHaveBeenCalledTimes(1);
   });
 
   test('requests model list from initial connected backend snapshot', async () => {
@@ -79,7 +79,7 @@ describe('AppConfigProvider model + config wiring', () => {
     renderAppConfigContext();
     await flushAsyncEffects();
 
-    expect(mockApiClientListModels).toHaveBeenCalledTimes(1);
+    expect(mockDesktopSettingsListModels).toHaveBeenCalledTimes(1);
   });
 
   test('routes models-listed event to settings handler', () => {
@@ -125,7 +125,7 @@ describe('AppConfigProvider model + config wiring', () => {
       INVOKE_CHANNELS.SAVE_FRONTEND_CONFIG,
       expect.anything(),
     );
-    expect(((ApiClient.updateSettings as jest.Mock).mock.calls || []).length).toBe(0);
+    expect(((DesktopSettingsRuntimeClient.updateSettings as jest.Mock).mock.calls || []).length).toBe(0);
   });
 
   test('removes backend listener on unmount', () => {
@@ -165,7 +165,7 @@ describe('AppConfigProvider model + config wiring', () => {
       }),
       expect.any(Number),
     );
-    expect(((ApiClient.updateSettings as jest.Mock).mock.calls || []).length).toBe(0);
+    expect(((DesktopSettingsRuntimeClient.updateSettings as jest.Mock).mock.calls || []).length).toBe(0);
   });
 
   test('keeps model-only config changes local until a query is sent', () => {
@@ -185,7 +185,7 @@ describe('AppConfigProvider model + config wiring', () => {
       }),
       expect.any(Number),
     );
-    expect(((ApiClient.updateSettings as jest.Mock).mock.calls || []).length).toBe(0);
+    expect(((DesktopSettingsRuntimeClient.updateSettings as jest.Mock).mock.calls || []).length).toBe(0);
   });
 
   test('registerSaveStatusCallback is invoked before persisting changed config', () => {

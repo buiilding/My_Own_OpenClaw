@@ -1,10 +1,10 @@
-import { ApiClient } from '../../infrastructure/api/client';
+import { createDesktopBackendTransport } from './desktopBackendTransport';
 
 /**
  * Renderer voice command facade for the SDK runtime hosted by Electron main.
  */
 export const DesktopVoiceRuntimeClient = {
   wakewordDetected(): void {
-    ApiClient.wakewordDetected();
+    void createDesktopBackendTransport(null).wakewordDetected({});
   },
 };

@@ -24,7 +24,7 @@ title: "Voice Capture and Wakeword Controller Reference"
 - `frontend/src/renderer/features/voice/utils/wakewordEventUtils.ts`
 - `frontend/src/renderer/features/voice/utils/wakewordCaptureGuard.ts`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
-- `frontend/src/renderer/infrastructure/api/client.ts`
+- `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`
 - `tests/frontend/voice/WakewordDetectionHook.test.ts`
 
 ## Two Distinct Voice Pipelines

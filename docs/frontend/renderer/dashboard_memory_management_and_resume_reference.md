@@ -24,7 +24,7 @@ title: "Dashboard Memory Management and Resume Reference"
 - `frontend/src/renderer/infrastructure/ipc/bridge.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntime.ts`
-- `frontend/src/renderer/infrastructure/api/client.ts`
+- `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`
 
 ## Runtime Surfaces
 

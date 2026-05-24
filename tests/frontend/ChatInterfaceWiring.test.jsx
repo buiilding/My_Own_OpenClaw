@@ -105,13 +105,6 @@ jest.mock('../../frontend/src/renderer/infrastructure/audio/PlayerService', () =
   PlayerService: jest.fn(() => mockPlayerService),
 }));
 
-jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
-  ApiClient: {
-    setModel: (...args) => mockSetModel(...args),
-    updateSettings: (...args) => mockUpdateSettings(...args),
-  },
-}));
-
 jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime', () => ({
   ensureConversationInferenceSessionHydrated: (...args) => mockEnsureConversationInferenceSessionHydrated(...args),
   rehydrateConversationInferenceSession: (...args) => mockRehydrateConversationInferenceSession(...args),

@@ -78,7 +78,7 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 | Phase | Module ownership |
 | --- | --- |
 | Transcript buffering/session state | `renderer/infrastructure/transcript/*` |
-| Store/search invoke | `renderer/infrastructure/api/client.ts` + IPC invoke |
+| Store/search invoke | `renderer/infrastructure/transcript/sdkSidecarConversationStore.ts` + IPC invoke |
 | Sidecar memory handlers | `main/python/{local_backend.py,local_backend_memory_handlers.py}` + `memory/local_store.py` |
 | Optional semantic summarization | `memory/summarizer.py` + `core/{remote_api_client_base,remote_semantic_client,remote_title_client}.py` |
 

@@ -1,11 +1,11 @@
 import {
   act,
-  ApiClient,
+  DesktopSettingsRuntimeClient,
   flushAsyncEffects,
   getBackendHandler,
   INVOKE_CHANNELS,
   IpcBridge,
-  mockApiClientUpdateSettings,
+  mockDesktopSettingsUpdateSettings,
   mockLoadConfigFromStorage,
   mockSaveConfigToStorage,
   mockSetBackendHttpUrl,
@@ -27,7 +27,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     await flushAsyncEffects();
 
     expect(mockSaveConfigToStorage).not.toHaveBeenCalled();
-    expect(ApiClient.updateSettings).not.toHaveBeenCalled();
+    expect(DesktopSettingsRuntimeClient.updateSettings).not.toHaveBeenCalled();
   });
 
   test('applies disk config when it differs from stored config', async () => {
@@ -48,12 +48,12 @@ describe('AppConfigProvider storage + IPC status handling', () => {
       }),
       expect.any(Number),
     );
-    expect(ApiClient.updateSettings).toHaveBeenCalledWith(
+    expect(DesktopSettingsRuntimeClient.updateSettings).toHaveBeenCalledWith(
       expect.objectContaining({
         speech_mode_enabled: true,
       }),
     );
-    expect(ApiClient.updateSettings).not.toHaveBeenCalledWith(
+    expect(DesktopSettingsRuntimeClient.updateSettings).not.toHaveBeenCalledWith(
       expect.objectContaining({
         selected_model_id: 'model-x',
       }),
@@ -179,7 +179,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     renderAppConfigContext();
     await flushAsyncEffects();
 
-    expect(mockApiClientUpdateSettings).toHaveBeenCalledWith(
+    expect(mockDesktopSettingsUpdateSettings).toHaveBeenCalledWith(
       expect.objectContaining({ speech_mode_enabled: false }),
     );
   });
@@ -229,7 +229,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
       ipcStatusHandler?.({ isConnected: true });
     });
 
-    expect(ApiClient.updateSettings).toHaveBeenCalledWith(
+    expect(DesktopSettingsRuntimeClient.updateSettings).toHaveBeenCalledWith(
       expect.objectContaining({ speech_mode_enabled: false }),
     );
   });
@@ -243,7 +243,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     renderAppConfigContext();
     await flushAsyncEffects();
 
-    expect(ApiClient.updateSettings).not.toHaveBeenCalled();
+    expect(DesktopSettingsRuntimeClient.updateSettings).not.toHaveBeenCalled();
   });
 
   test('does not include deferred model selection in connection sync payloads', async () => {
@@ -256,7 +256,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     renderAppConfigContext();
     await flushAsyncEffects();
 
-    expect(ApiClient.updateSettings).not.toHaveBeenCalled();
+    expect(DesktopSettingsRuntimeClient.updateSettings).not.toHaveBeenCalled();
   });
 
   test('does not sync config when IPC status reports disconnected', () => {
@@ -269,7 +269,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
       ipcStatusHandler?.({ isConnected: false });
     });
 
-    expect(ApiClient.updateSettings).not.toHaveBeenCalled();
+    expect(DesktopSettingsRuntimeClient.updateSettings).not.toHaveBeenCalled();
   });
 
   test('ignores IPC status events when userId is invalid', () => {
@@ -340,7 +340,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
         wakeword_enabled: false,
       }),
     );
-    expect(ApiClient.updateSettings).toHaveBeenCalledWith(
+    expect(DesktopSettingsRuntimeClient.updateSettings).toHaveBeenCalledWith(
       expect.objectContaining({
         wakeword_enabled: false,
       }),
@@ -466,7 +466,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
         global_agent_stop_shortcut: 'CommandOrControl+Alt+.',
       }),
     );
-    expect(ApiClient.updateSettings).not.toHaveBeenCalledWith(
+    expect(DesktopSettingsRuntimeClient.updateSettings).not.toHaveBeenCalledWith(
       expect.objectContaining({
         global_agent_stop_shortcut: 'CommandOrControl+Alt+.',
       }),

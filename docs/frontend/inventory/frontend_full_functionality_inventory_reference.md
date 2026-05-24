@@ -283,7 +283,7 @@ Functionality:
 
 Primary files:
 
-- API client: `frontend/src/renderer/infrastructure/api/client.ts`
+- Desktop backend transport: `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`
 - IPC bridge/channels: `frontend/src/renderer/infrastructure/ipc/*`
 - Transcript writer/session/queues: `frontend/src/renderer/infrastructure/transcript/*`
 - Tool execution stack: `frontend/src/renderer/infrastructure/services/*`

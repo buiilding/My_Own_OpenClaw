@@ -1,4 +1,3 @@
-export { ApiClient } from './client';
 export {
   createWindieLocalRuntimeProvider,
   moduleTool,

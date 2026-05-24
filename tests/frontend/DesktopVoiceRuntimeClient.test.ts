@@ -1,4 +1,4 @@
-import { ApiClient } from '../../frontend/src/renderer/infrastructure/api/client';
+import { DesktopVoiceRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopVoiceRuntimeClient';
 import { IpcBridge, SEND_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => {
@@ -12,25 +12,19 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => {
   };
 });
 
-describe('ApiClient.setModel', () => {
+describe('DesktopVoiceRuntimeClient', () => {
   const mockSend = IpcBridge.send as jest.MockedFunction<typeof IpcBridge.send>;
 
   beforeEach(() => {
     mockSend.mockReset();
   });
 
-  test('sends model changes through the SDK model settings contract', () => {
-    ApiClient.setModel({
-      modelId: ' gpt-5.4@@gpt-5-4-high-thinking ',
-      modelProvider: ' openai ',
-    });
+  test('sends wakeword notifications through the desktop backend transport', () => {
+    DesktopVoiceRuntimeClient.wakewordDetected();
 
     expect(mockSend).toHaveBeenCalledWith(SEND_CHANNELS.TO_BACKEND, {
-      type: 'update-settings',
-      payload: {
-        selected_model_id: 'gpt-5.4@@gpt-5-4-high-thinking',
-        model_provider: 'openai',
-      },
+      type: 'wakeword-detected',
+      payload: {},
     });
   });
 });

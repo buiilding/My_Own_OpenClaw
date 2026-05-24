@@ -6,11 +6,9 @@ const allowedRelativePaths = new Set([
   'app/runtime/desktopConversationRuntimeClient.ts',
   'app/runtime/desktopSettingsRuntimeClient.ts',
   'app/runtime/desktopVoiceRuntimeClient.ts',
-  'infrastructure/api/client.ts',
 ]);
 const allowedBackendIpcRelativePaths = new Set([
   'app/runtime/desktopBackendTransport.ts',
-  'infrastructure/api/client.ts',
   'infrastructure/ipc/channels.ts',
 ]);
 
@@ -31,6 +29,10 @@ async function listSourceFiles(dir: string): Promise<string[]> {
 }
 
 describe('renderer api client boundary', () => {
+  test('legacy renderer ApiClient has been deleted', async () => {
+    await expect(fs.access(path.join(rendererRoot, 'infrastructure/api/client.ts'))).rejects.toThrow();
+  });
+
   test('renderer features use desktop runtime facades instead of direct ApiClient calls', async () => {
     const files = await listSourceFiles(rendererRoot);
     const offenders: string[] = [];

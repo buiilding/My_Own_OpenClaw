@@ -20,7 +20,7 @@ title: "Dashboard Shell Modal Routing Contract Reference"
 - `frontend/src/renderer/features/dashboard/utils/episodicMemoryUtils.js`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - `frontend/src/renderer/app/runtime/desktopConversationRuntimeClient.ts`
-- `frontend/src/renderer/infrastructure/api/client.ts`
+- `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`
 - `tests/frontend/ChatGptDashboardShell.test.jsx`
 
 ## Primary Surface Contract

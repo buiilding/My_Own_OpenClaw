@@ -11,7 +11,7 @@ import { AppConfigProvider } from '../../frontend/src/renderer/app/providers/App
 import { useAppConfigContext } from '../../frontend/src/renderer/app/providers/AppConfigContext';
 import { useSettingsManagement } from '../../frontend/src/renderer/features/settings/hooks/useSettingsManagement';
 import { loadConfigFromStorage, saveConfigToStorage } from '../../frontend/src/renderer/utils/configStorage';
-import { ApiClient } from '../../frontend/src/renderer/infrastructure/api/client';
+import { DesktopSettingsRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 import { setBackendHttpUrl } from '../../frontend/src/renderer/infrastructure/services/BackendEndpointStore';
 
@@ -31,8 +31,8 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRunti
 jest.mock('../../frontend/src/renderer/infrastructure/services/BackendEndpointStore', () => ({
   setBackendHttpUrl: jest.fn(),
 }));
-jest.mock('../../frontend/src/renderer/infrastructure/api/client', () => ({
-  ApiClient: {
+jest.mock('../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient', () => ({
+  DesktopSettingsRuntimeClient: {
     listModels: jest.fn(),
     updateSettings: jest.fn(),
   },
@@ -49,8 +49,8 @@ export const mockLoadConfigFromStorage = loadConfigFromStorage as jest.Mock;
 export const mockSaveConfigToStorage = saveConfigToStorage as jest.Mock;
 export const mockUpdateTranscriptSession = DesktopTranscriptSessionRuntimeClient.updateTranscriptSession as jest.Mock;
 export const mockSetBackendHttpUrl = setBackendHttpUrl as jest.Mock;
-export const mockApiClientListModels = ApiClient.listModels as jest.Mock;
-export const mockApiClientUpdateSettings = ApiClient.updateSettings as jest.Mock;
+export const mockDesktopSettingsListModels = DesktopSettingsRuntimeClient.listModels as jest.Mock;
+export const mockDesktopSettingsUpdateSettings = DesktopSettingsRuntimeClient.updateSettings as jest.Mock;
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
   <AppConfigProvider>{children}</AppConfigProvider>
@@ -120,7 +120,7 @@ export function registerAppConfigProviderSuiteLifecycle() {
 
 export {
   act,
-  ApiClient,
+  DesktopSettingsRuntimeClient,
   INVOKE_CHANNELS,
   IpcBridge,
   ON_CHANNELS,
