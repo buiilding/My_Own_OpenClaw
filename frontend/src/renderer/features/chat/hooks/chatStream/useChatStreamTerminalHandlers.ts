@@ -4,12 +4,6 @@ import {
   type ChatMessage,
   type TokenCounts,
 } from '../../stores/chatStore';
-import type {
-  BackendEvent,
-  ErrorEvent,
-  MemoryStoreEvent,
-  TokenCountEvent,
-} from '../../../../types/backendEvents';
 import {
   resolveErrorText,
   shouldIgnoreStreamError,
@@ -25,73 +19,9 @@ type UseChatStreamTerminalHandlersDeps = ChatStreamThinkingStateDeps<
   enableTranscript: boolean;
 };
 
-function unwrapErrorBackendEvent(event: ErrorEvent | ConversationEvent): ErrorEvent {
-  if ('conversation_ref' in event || 'user_id' in event || event.type === 'error') {
-    return event as ErrorEvent;
-  }
-  const rawEvent = event.payload?.rawEvent;
-  if (
-    rawEvent
-    && typeof rawEvent === 'object'
-    && !Array.isArray(rawEvent)
-    && (rawEvent as { type?: unknown }).type === 'error'
-  ) {
-    return rawEvent as ErrorEvent;
-  }
-  return {
-    type: 'error',
-    conversation_ref: event.conversationRef,
-    turn_ref: event.turnRef ?? undefined,
-    payload: {
-      message: typeof event.payload?.message === 'string'
-        ? event.payload.message
-        : 'Backend error',
-    },
-  } as BackendEvent as ErrorEvent;
-}
-
-function unwrapTokenCountBackendEvent(event: TokenCountEvent | ConversationEvent): TokenCountEvent {
-  if ('conversation_ref' in event || 'user_id' in event || event.type === 'token-count') {
-    return event as TokenCountEvent;
-  }
-  const rawEvent = event.payload?.rawEvent;
-  if (
-    rawEvent
-    && typeof rawEvent === 'object'
-    && !Array.isArray(rawEvent)
-    && (rawEvent as { type?: unknown }).type === 'token-count'
-  ) {
-    return rawEvent as TokenCountEvent;
-  }
+function terminalPayloadWithoutRawEvent(event: ConversationEvent): Record<string, unknown> {
   const { rawEvent: _rawEvent, ...payload } = event.payload ?? {};
-  return {
-    type: 'token-count',
-    conversation_ref: event.conversationRef,
-    turn_ref: event.turnRef ?? undefined,
-    payload: payload as TokenCounts,
-  } as BackendEvent as TokenCountEvent;
-}
-
-function unwrapMemoryStoreBackendEvent(event: MemoryStoreEvent | ConversationEvent): MemoryStoreEvent {
-  if ('conversation_ref' in event || 'user_id' in event || event.type === 'memory-store') {
-    return event as MemoryStoreEvent;
-  }
-  const rawEvent = event.payload?.rawEvent;
-  if (
-    rawEvent
-    && typeof rawEvent === 'object'
-    && !Array.isArray(rawEvent)
-    && (rawEvent as { type?: unknown }).type === 'memory-store'
-  ) {
-    return rawEvent as MemoryStoreEvent;
-  }
-  const { rawEvent: _rawEvent, ...payload } = event.payload ?? {};
-  return {
-    type: 'memory-store',
-    conversation_ref: event.conversationRef,
-    turn_ref: event.turnRef ?? undefined,
-    payload,
-  } as BackendEvent as MemoryStoreEvent;
+  return payload;
 }
 
 export function useChatStreamTerminalHandlers({
@@ -106,8 +36,8 @@ export function useChatStreamTerminalHandlers({
   const setTokenCounts = useChatStore((state) => state.setTokenCounts);
   const updateMessage = useChatStore((state) => state.updateMessage);
 
-  const handleTokenCount = useCallback((event: TokenCountEvent | ConversationEvent, conversationRef?: string | null) => {
-    const backendEvent = unwrapTokenCountBackendEvent(event);
+  const handleTokenCount = useCallback((event: ConversationEvent, conversationRef?: string | null) => {
+    const tokenCounts = terminalPayloadWithoutRawEvent(event) as TokenCounts;
     const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
     const shouldFinalizePendingStream = (
       workspace.isSending === true
@@ -118,19 +48,19 @@ export function useChatStreamTerminalHandlers({
       setIsSending(false, conversationRef);
       setThinkingStatus(null, conversationRef);
       setThinkingSourceEventType(null, conversationRef);
-      recordTrackingEvent('streaming-complete', backendEvent.turn_ref, { phase: 'complete' }, conversationRef);
+      recordTrackingEvent('streaming-complete', event.turnRef, { phase: 'complete' }, conversationRef);
     }
-    setTokenCounts(backendEvent.payload ?? null, conversationRef);
+    setTokenCounts(tokenCounts, conversationRef);
     const assistantMessageId = findLastAssistantLlmTextMessageId(
       workspace.messages,
-      backendEvent.turn_ref || undefined,
+      event.turnRef || undefined,
     );
-    if (assistantMessageId && backendEvent.payload) {
+    if (assistantMessageId) {
       updateMessage(assistantMessageId, {
-        tokenCounts: backendEvent.payload,
+        tokenCounts,
       }, conversationRef);
     }
-    recordTrackingEvent('token-count', backendEvent.turn_ref, undefined, conversationRef);
+    recordTrackingEvent('token-count', event.turnRef, undefined, conversationRef);
   }, [
     setTokenCounts,
     updateMessage,
@@ -140,8 +70,7 @@ export function useChatStreamTerminalHandlers({
     setThinkingStatus,
   ]);
 
-  const handleMemoryStore = useCallback((event: MemoryStoreEvent | ConversationEvent, conversationRef?: string | null) => {
-    const backendEvent = unwrapMemoryStoreBackendEvent(event);
+  const handleMemoryStore = useCallback((event: ConversationEvent, conversationRef?: string | null) => {
     const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
     const shouldFinalizePendingStream = (
       workspace.isSending === true
@@ -151,9 +80,9 @@ export function useChatStreamTerminalHandlers({
       setIsSending(false, conversationRef);
       setThinkingStatus(null, conversationRef);
       setThinkingSourceEventType(null, conversationRef);
-      recordTrackingEvent('streaming-complete', backendEvent.turn_ref, { phase: 'complete' }, conversationRef);
+      recordTrackingEvent('streaming-complete', event.turnRef, { phase: 'complete' }, conversationRef);
     }
-    recordTrackingEvent('memory-store', backendEvent.turn_ref, undefined, conversationRef);
+    recordTrackingEvent('memory-store', event.turnRef, undefined, conversationRef);
   }, [
     recordTrackingEvent,
     setIsSending,
@@ -161,15 +90,15 @@ export function useChatStreamTerminalHandlers({
     setThinkingStatus,
   ]);
 
-  const handleError = useCallback((event: ErrorEvent | ConversationEvent, conversationRef?: string | null) => {
-    const backendEvent = unwrapErrorBackendEvent(event);
-    if (shouldIgnoreStreamError(backendEvent.payload)) {
+  const handleError = useCallback((event: ConversationEvent, conversationRef?: string | null) => {
+    const errorPayload = terminalPayloadWithoutRawEvent(event);
+    if (shouldIgnoreStreamError(errorPayload)) {
       return;
     }
     setIsSending(false, conversationRef);
     setThinkingStatus('', conversationRef);
     setThinkingSourceEventType(null, conversationRef);
-    const errorText = resolveErrorText(backendEvent.payload);
+    const errorText = resolveErrorText(errorPayload);
     const modelContext = modelContextRef.current;
     const newMessage: ChatMessage = {
       id: crypto.randomUUID(),
@@ -178,13 +107,13 @@ export function useChatStreamTerminalHandlers({
       type: 'error',
       sourceEventType: 'error',
       sourceChannel: 'from-backend',
-      turnRef: backendEvent.turn_ref,
+      turnRef: event.turnRef ?? undefined,
       modelId: modelContext.modelId,
       modelProvider: modelContext.modelProvider,
     };
     addMessage(newMessage, conversationRef);
 
-    recordTrackingEvent('error', backendEvent.turn_ref, {
+    recordTrackingEvent('error', event.turnRef, {
       phase: 'error',
       errorText,
     }, conversationRef);
@@ -192,8 +121,8 @@ export function useChatStreamTerminalHandlers({
     if (enableTranscript) {
       DesktopConversationRuntimeClient.recordAssistantMessage(errorText, {
         messageType: 'error',
-        conversationRef: backendEvent.conversation_ref,
-        userId: backendEvent.user_id,
+        conversationRef: event.conversationRef,
+        userId: typeof errorPayload.userId === 'string' ? errorPayload.userId : undefined,
         modelId: modelContext.modelId,
         modelProvider: modelContext.modelProvider,
       });

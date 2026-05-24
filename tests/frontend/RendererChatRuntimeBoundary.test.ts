@@ -117,6 +117,19 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('DesktopConversationRuntimeClient.replaceCompactedReplayFromBackendEvent');
   });
 
+  test('chat stream terminal handlers consume SDK events directly', async () => {
+    const source = await fs.readFile(
+      path.join(chatRoot, 'hooks/chatStream/useChatStreamTerminalHandlers.ts'),
+      'utf8',
+    );
+
+    expect(source).not.toContain('unwrapErrorBackendEvent');
+    expect(source).not.toContain('unwrapTokenCountBackendEvent');
+    expect(source).not.toContain('unwrapMemoryStoreBackendEvent');
+    expect(source).not.toContain('types/backendEvents');
+    expect(source).toContain('ConversationEvent');
+  });
+
   test('conversation replay rewrites use the desktop runtime facade', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'hooks/useConversationReplayActions.js'),

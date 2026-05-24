@@ -192,6 +192,9 @@ SDK dispatch and raw fallback behavior:
 - SDK `memory_stored` from backend `memory-store`: renderer chat stream path records tracking only; no direct local-memory write side effect is executed in `useChatStreamTerminalHandlers`
 - SDK `tool_schemas_metadata` from backend `tool-schemas`: annotate first user message with tool schema list
 - SDK `usage_updated` from backend `token-count`: update token counters
+- terminal handlers consume SDK `turn_error`, `usage_updated`, and
+  `memory_stored` payloads directly. They do not unwrap `payload.rawEvent`
+  back into backend terminal events.
 - SDK `turn_completed` from backend `streaming-complete`: persist final streamed thinking text onto the same-turn assistant `llm-text` message (`thinkingText` + `thinkingSourceEventType`), then mark assistant message complete and clear transient `thinkingStatus`
   - when `turn_ref` is present, completion targeting is strict to assistant rows with the same `turnRef` (no cross-turn fallback)
   - duplicate completion events do not duplicate assistant transcript writes because transcript recording only runs for not-yet-complete assistant rows

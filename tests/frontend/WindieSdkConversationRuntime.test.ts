@@ -578,6 +578,7 @@ describe('Windie SDK conversation runtime core', () => {
     const normalized = normalizeBackendEventToConversationEvent({
       type: 'error',
       conversation_ref: 'conv-sdk-runtime',
+      user_id: 'user-sdk-runtime',
       turn_ref: 'turn-error',
       payload: { content: 'backend failed' },
     });
@@ -588,6 +589,8 @@ describe('Windie SDK conversation runtime core', () => {
       turnRef: 'turn-error',
       payload: expect.objectContaining({
         message: 'backend failed',
+        content: 'backend failed',
+        userId: 'user-sdk-runtime',
         rawEvent: expect.objectContaining({ type: 'error' }),
       }),
     });

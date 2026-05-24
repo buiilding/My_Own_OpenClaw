@@ -127,6 +127,11 @@ payloads directly. Renderer handlers should read SDK `system_prompt`,
 `user_message_metadata`, `assistant_message`, and `tool_schemas_metadata` fields
 instead of unwrapping backend `payload.rawEvent` metadata events.
 
+Desktop terminal projection follows the same rule. Renderer terminal handlers
+read SDK `turn_error`, `usage_updated`, and `memory_stored` payloads directly;
+they should not reconstruct backend `error`, `token-count`, or `memory-store`
+events from `payload.rawEvent`.
+
 ## Continuity Service Rule
 
 `ConversationContinuityService` is the SDK-owned orchestration layer for chat

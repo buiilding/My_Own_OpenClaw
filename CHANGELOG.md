@@ -18,6 +18,7 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sdk: delete the one-entry chat stream handler map and route `local-user-message` as an explicit raw fallback after SDK conversation-event dispatch.
 - frontend/sdk: consume SDK compaction payloads directly in renderer compaction handlers and build compacted replay snapshots without unwrapping raw backend events.
 - frontend/sdk: consume SDK metadata payloads directly in renderer transparency handlers and delete backend metadata event unwrapping.
+- frontend/sdk: consume SDK terminal event payloads directly in renderer error, token usage, and memory-store handlers, deleting raw backend terminal event unwrapping.
 - frontend/sdk: dispatch live thinking text from SDK `reasoning_delta` events, deleting the raw `llm-thought` backend handler-map entry.
 - frontend/sdk: dispatch backend memory-store tracking from SDK `memory_stored` events, deleting the raw `memory-store` backend handler-map entry.
 - frontend/sdk: dispatch backend token usage updates from SDK `usage_updated` events, deleting the raw `token-count` backend handler-map entry.

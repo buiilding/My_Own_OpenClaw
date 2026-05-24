@@ -9,7 +9,6 @@ import {
   type BackendEvent,
   type BackendEventType,
   type LocalUserMessageEvent,
-  type ErrorEvent,
 } from '../../../types/backendEvents';
 import {
   type StreamTrackingOptions,
@@ -220,12 +219,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     setThinkingStatus,
   });
 
-  const handleErrorEvent = useTurnScopedBackendEventHandler<ErrorEvent>({
-    resolveTargetConversationRef,
-    shouldIgnoreForStaleTurn,
-    onEvent: handleError,
-  });
-
   const dispatchConversationEvent = useCallback((
     event: ConversationEvent | null,
     backendEvent: BackendEvent,
@@ -312,7 +305,7 @@ export function useChatStream(enableTranscript: boolean = true) {
       return true;
     }
     if (event.type === 'turn_error') {
-      handleErrorEvent(event, event.conversationRef);
+      handleError(event, event.conversationRef);
       return true;
     }
     if (event.type === 'usage_updated') {
@@ -331,7 +324,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleContextCompactionCompleted,
     handleContextCompactionFailed,
     handleContextCompactionStarted,
-    handleErrorEvent,
+    handleError,
     handleLlmThoughtText,
     handleMemoryStore,
     handleSystemPrompt,

@@ -290,14 +290,17 @@ export function normalizeBackendEventToConversationEvent(
     });
   }
   if (event.type === 'error') {
+    const message = typeof payload.message === 'string'
+      ? payload.message
+      : (typeof payload.content === 'string' ? payload.content : 'Backend error');
     return createConversationEvent({
       ...base,
       type: 'turn_error',
       source: 'backend',
       payload: {
-        message: typeof payload.message === 'string'
-          ? payload.message
-          : (typeof payload.content === 'string' ? payload.content : 'Backend error'),
+        message,
+        content: typeof payload.content === 'string' ? payload.content : message,
+        userId: typeof event.user_id === 'string' ? event.user_id : null,
         rawEvent: event,
       },
     });
