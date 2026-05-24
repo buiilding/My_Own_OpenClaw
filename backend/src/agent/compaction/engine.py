@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, List, Optional
+from dataclasses import replace
+from typing import TYPE_CHECKING, Any, List, Optional
 
 from backend.src.agent.compaction.models import (
     CompactionDecision,
@@ -25,6 +26,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 DEFAULT_TRIGGER_FALLBACK_TOKENS = 120000
 AUTO_TRIGGER_RATIO = 0.90
+OVERSIZED_TAIL_MARKER = "\n\n[[TRUNCATED DURING CONTEXT COMPACTION]]\n\n"
 
 
 class CompactionEngine:
@@ -149,7 +151,7 @@ class CompactionEngine:
         current_messages = self._session.history.get_stored_messages()
         compaction_input = self._build_compaction_input(
             current_messages,
-            allow_minimal_history=(reason == "manual"),
+            allow_minimal_history=(reason in {"manual", "overflow-retry"}),
         )
         if compaction_input is None:
             return CompactionResult(
@@ -278,6 +280,10 @@ class CompactionEngine:
 
         messages_to_compact = messages[:split_index]
         keep_tail_messages = messages[split_index:]
+        messages_to_compact, keep_tail_messages = self._fit_tail_to_target_budget(
+            messages_to_compact=messages_to_compact,
+            keep_tail_messages=keep_tail_messages,
+        )
         if not messages_to_compact:
             return None
         return CompactionInput(
@@ -285,6 +291,77 @@ class CompactionEngine:
             keep_tail_messages=keep_tail_messages,
             summary_max_tokens=cfg.history_compaction_summary_max_tokens,
             custom_prompt=cfg.history_compaction_prompt,
+        )
+
+    def _fit_tail_to_target_budget(
+        self,
+        *,
+        messages_to_compact: List[StoredMessage],
+        keep_tail_messages: List[StoredMessage],
+    ) -> tuple[List[StoredMessage], List[StoredMessage]]:
+        cfg = self._session.cfg
+        target_tokens = cfg.history_compaction_target_tokens
+        if not isinstance(target_tokens, int) or target_tokens <= 0:
+            return messages_to_compact, keep_tail_messages
+
+        tail_budget = max(1, target_tokens - cfg.history_compaction_summary_max_tokens)
+        compacted_messages = list(messages_to_compact)
+        tail_messages = list(keep_tail_messages)
+
+        while (
+            len(tail_messages) > 1
+            and self._count_messages_tokens(tail_messages) > tail_budget
+        ):
+            compacted_messages.append(tail_messages.pop(0))
+
+        if tail_messages and self._count_messages_tokens(tail_messages) > tail_budget:
+            tail_messages = [
+                self._truncate_tail_message_for_budget(tail_messages[0], tail_budget)
+            ]
+
+        return compacted_messages, tail_messages
+
+    def _count_messages_tokens(self, messages: List[StoredMessage]) -> int:
+        if not messages:
+            return 0
+        token_service = get_token_service()
+        return token_service.count_tokens(
+            [message.to_llm_message() for message in messages],
+            self._session.cfg.llm_model,
+        )
+
+    def _truncate_tail_message_for_budget(
+        self,
+        message: StoredMessage,
+        token_budget: int,
+    ) -> StoredMessage:
+        token_service = get_token_service()
+        truncator = getattr(token_service, "truncate_text", None)
+        if callable(truncator):
+            truncated, _original_tokens, did_truncate, _source = truncator(
+                message.content,
+                model=self._session.cfg.llm_model,
+                token_limit=max(1, token_budget),
+                marker=OVERSIZED_TAIL_MARKER,
+            )
+        else:
+            char_limit = max(1, token_budget * 4)
+            did_truncate = len(message.content) > char_limit
+            truncated = (
+                message.content[:char_limit] if did_truncate else message.content
+            )
+
+        if not did_truncate:
+            return message
+
+        compaction_facts: dict[str, Any] = dict(message.compaction_facts or {})
+        compaction_facts["context_compaction_truncated"] = True
+        return replace(
+            message,
+            content=truncated,
+            structured_content=None,
+            image_data=None,
+            compaction_facts=compaction_facts,
         )
 
     @staticmethod

@@ -77,7 +77,7 @@ Provider defaults in `LLMProviders`:
 | `history_compaction_manual_enabled` | `bool` | `true` | Enables manual `compact-history` WebSocket command. |
 | `history_compaction_openai_remote_enabled` | `bool` | `false` | Phase-gate for OpenAI remote compaction strategy path (currently inline fallback). |
 | `history_compaction_trigger_tokens` | `int \| null` | `null` | Exact threshold to trigger compaction. `null` uses 90% of the active model max input context. |
-| `history_compaction_target_tokens` | `int` | `60000` | Compaction planning budget; it does not cap the auto-trigger threshold. |
+| `history_compaction_target_tokens` | `int` | `60000` | Post-compaction retained-tail budget. It does not cap the auto-trigger threshold. |
 | `history_compaction_keep_recent_user_messages` | `int` | `6` | Keeps tail history anchored on the most recent N user messages. |
 | `history_compaction_summary_max_tokens` | `int` | `1200` | Max tokens for generated summary content. |
 | `history_compaction_strategy` | `"auto" \| "inline" \| "openai-remote"` | `"auto"` | Strategy selector; current rollout resolves to inline strategy. |

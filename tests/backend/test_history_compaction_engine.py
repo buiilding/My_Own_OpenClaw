@@ -175,7 +175,9 @@ async def test_compaction_engine_manual_force_compacts_short_history(monkeypatch
 
 
 @pytest.mark.asyncio
-async def test_compaction_engine_allows_repeated_compaction_above_threshold(monkeypatch):
+async def test_compaction_engine_allows_repeated_compaction_above_threshold(
+    monkeypatch,
+):
     class _RepeatCompactionTokenService:
         def count_tokens(self, messages, model):
             _ = model
@@ -211,6 +213,107 @@ async def test_compaction_engine_allows_repeated_compaction_above_threshold(monk
     second_decision = engine.evaluate(reason="auto-mid")
     assert second_decision.should_compact is True
     assert second_decision.skip_reason is None
+
+
+@pytest.mark.asyncio
+async def test_compaction_engine_moves_retained_tail_under_target_budget(monkeypatch):
+    class _BudgetTokenService:
+        def count_tokens(self, messages, model):
+            _ = model
+            return len(messages) * 400
+
+        def count_message_tokens(self, message, model):
+            _ = (message, model)
+            return 0
+
+    monkeypatch.setattr(
+        token_service_module,
+        "get_token_service",
+        lambda: _BudgetTokenService(),
+    )
+    monkeypatch.setattr(
+        compaction_engine_module,
+        "get_token_service",
+        lambda: _BudgetTokenService(),
+    )
+    history = ConversationHistory()
+    for index in range(5):
+        history.add_user_message(f"user {index}")
+        history.add_assistant_message(f"assistant {index}")
+    cfg = AppConfig(
+        history_compaction_enabled=True,
+        history_compaction_trigger_tokens=2048,
+        history_compaction_keep_recent_user_messages=3,
+        history_compaction_target_tokens=1200,
+        history_compaction_summary_max_tokens=200,
+    )
+    session = _FakeSession(cfg=cfg, history=history)
+    engine = CompactionEngine(session)
+
+    decision = engine.evaluate(reason="auto-mid", force=True)
+    result = await engine.compact(reason="auto-mid", decision=decision)
+
+    assert result.applied is True
+    stored = history.get_stored_messages()
+    assert len(stored) == 3
+    assert stored[0].message_type == MessageType.CONTEXT_COMPACTION
+    assert [message.content for message in stored[1:]] == ["user 4", "assistant 4"]
+    assert result.after_tokens == 300
+
+
+@pytest.mark.asyncio
+async def test_compaction_engine_truncates_oversized_single_tail_message(monkeypatch):
+    class _OversizedTailTokenService:
+        def count_tokens(self, messages, model):
+            _ = model
+            total = 0
+            for message in messages:
+                total += len(str(message.get("content", ""))) // 4
+            return total
+
+        def count_message_tokens(self, message, model):
+            _ = model
+            return len(str(message.get("content", ""))) // 4
+
+        def truncate_text(self, text, *, model, token_limit, marker):
+            _ = model
+            original_tokens = len(text) // 4
+            if original_tokens <= token_limit:
+                return text, original_tokens, False, "test"
+            return f"{text[: token_limit * 4]}{marker}", original_tokens, True, "test"
+
+    monkeypatch.setattr(
+        token_service_module,
+        "get_token_service",
+        lambda: _OversizedTailTokenService(),
+    )
+    monkeypatch.setattr(
+        compaction_engine_module,
+        "get_token_service",
+        lambda: _OversizedTailTokenService(),
+    )
+    history = ConversationHistory()
+    history.add_user_message("old user")
+    history.add_assistant_message("old assistant")
+    history.add_user_message("x" * 6000)
+    cfg = AppConfig(
+        history_compaction_enabled=True,
+        history_compaction_trigger_tokens=2048,
+        history_compaction_keep_recent_user_messages=1,
+        history_compaction_target_tokens=1200,
+        history_compaction_summary_max_tokens=200,
+    )
+    session = _FakeSession(cfg=cfg, history=history)
+    engine = CompactionEngine(session)
+
+    decision = engine.evaluate(reason="overflow-retry", force=True)
+    result = await engine.compact(reason="overflow-retry", decision=decision)
+
+    assert result.applied is True
+    stored = history.get_stored_messages()
+    assert len(stored) == 2
+    assert stored[-1].content.endswith("[[TRUNCATED DURING CONTEXT COMPACTION]]\n\n")
+    assert stored[-1].compaction_facts == {"context_compaction_truncated": True}
 
 
 @pytest.mark.asyncio

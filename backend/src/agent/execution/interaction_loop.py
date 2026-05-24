@@ -5,6 +5,7 @@ Controls the agent execution state machine.
 Only responsible for loop control, sequencing, and termination decisions.
 All content, I/O, and presentation is delegated to specialized components.
 """
+
 import logging
 from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, List
 from uuid import uuid4
@@ -54,12 +55,27 @@ if TYPE_CHECKING:
     from backend.src.agent.tools.orchestrator import ToolOrchestrator
 
 logger = logging.getLogger(__name__)
+COMPACTION_RECOVERY_REASON = "overflow-retry"
+MAX_COMPACTION_RECOVERY_ATTEMPTS = 1
+COMPACTION_RECOVERY_FAILED_MESSAGE = (
+    "The model response still failed after compacting history. Please retry, "
+    "or start a new chat if this conversation remains too large."
+)
+CONTEXT_OVERFLOW_ERROR_MARKERS = (
+    "context_length_exceeded",
+    "maximum context length",
+    "context window",
+    "context length",
+    "too many tokens",
+    "input is too long",
+    "token limit",
+)
 
 
 class InteractionLoop:
     """
     Controls the agent execution state machine.
-    
+
     Responsibility: Loop control, sequencing, and termination decisions only.
     Delegates all content, I/O, and presentation to specialized components.
     """
@@ -74,7 +90,7 @@ class InteractionLoop:
     ):
         """
         Initialize the interaction loop.
-        
+
         Args:
             session: Agent session for state access
             prompt_coordinator: Manages conversation context
@@ -91,10 +107,11 @@ class InteractionLoop:
     async def run_loop(self) -> AsyncGenerator[AgentStreamingEvent, None]:
         """
         Executes the agent loop: Prompt -> LLM -> Parse -> Tools -> Repeat.
-        
+
         Controls the state machine and delegates all work to specialized components.
         """
         iteration = 0
+        compaction_recovery_attempts = 0
         tool_execution_policy = ToolExecutionPolicy()
 
         while True:
@@ -102,56 +119,14 @@ class InteractionLoop:
 
             compaction_engine = getattr(self.session, "compaction_engine", None)
             if iteration > 1 and compaction_engine is not None:
-                mid_compaction_decision = compaction_engine.evaluate(
-                    reason="auto-mid"
-                )
+                mid_compaction_decision = compaction_engine.evaluate(reason="auto-mid")
                 if mid_compaction_decision.should_compact:
-                    yield ContextCompactionStartedEvent(
+                    _applied, compaction_events = await self._run_compaction(
                         reason="auto-mid",
-                        strategy=mid_compaction_decision.strategy_name,
-                        before_tokens=mid_compaction_decision.before_tokens,
-                        projected_tokens=mid_compaction_decision.projected_tokens,
+                        decision=mid_compaction_decision,
                     )
-                    try:
-                        mid_compaction_result = await compaction_engine.compact(
-                            reason="auto-mid",
-                            decision=mid_compaction_decision,
-                        )
-                        yield ContextCompactionCompletedEvent(
-                            reason="auto-mid",
-                            strategy=mid_compaction_result.strategy_name,
-                            before_tokens=mid_compaction_result.before_tokens,
-                            after_tokens=mid_compaction_result.after_tokens,
-                            removed_messages=mid_compaction_result.removed_messages,
-                            summary_preview=self._summary_preview(
-                                mid_compaction_result.summary_text
-                            ),
-                            summary_text=mid_compaction_result.summary_text,
-                            replacement_history_preview=[
-                                {
-                                    "role": entry.role,
-                                    "message_type": entry.message_type,
-                                    "content": entry.content,
-                                    "tool_name": entry.tool_name,
-                                    "tool_call_id": entry.tool_call_id,
-                                }
-                                for entry in mid_compaction_result.replacement_history_preview
-                            ],
-                            replacement_history_entries=mid_compaction_result.replacement_history_entries,
-                            skipped_reason=mid_compaction_result.skip_reason,
-                        )
-                    except Exception as exc:
-                        logger.error(
-                            "[Compaction] Mid-loop compaction failed: %s",
-                            exc,
-                            exc_info=True,
-                        )
-                        yield ContextCompactionFailedEvent(
-                            reason="auto-mid",
-                            strategy=mid_compaction_decision.strategy_name,
-                            error=str(exc),
-                            before_tokens=mid_compaction_decision.before_tokens,
-                        )
+                    for event in compaction_events:
+                        yield event
 
             # Step 1: Get prompt (delegated to PromptCoordinator)
             prompt, tool_schemas, prompt_metadata = self.prompt_coordinator.get_prompt(
@@ -192,6 +167,23 @@ class InteractionLoop:
                     yield event
                 return
             except Exception as e:
+                if self._is_context_overflow_error(str(e)):
+                    recovered, recovery_events = (
+                        await self._attempt_compaction_recovery(
+                            force=True,
+                            attempts_used=compaction_recovery_attempts,
+                        )
+                    )
+                    for event in recovery_events:
+                        yield event
+                    if recovered:
+                        compaction_recovery_attempts += 1
+                        continue
+                    async for event in self._emit_error_and_record(
+                        COMPACTION_RECOVERY_FAILED_MESSAGE
+                    ):
+                        yield event
+                    return
                 logger.error(f"LLM error: {e}", exc_info=True)
                 async for event in self._emit_error_and_record(
                     INTERNAL_SERVER_ERROR_MESSAGE
@@ -212,6 +204,23 @@ class InteractionLoop:
                     ):
                         yield event
                     continue
+                if self._is_context_overflow_error(llm_error_event_content):
+                    recovered, recovery_events = (
+                        await self._attempt_compaction_recovery(
+                            force=True,
+                            attempts_used=compaction_recovery_attempts,
+                        )
+                    )
+                    for event in recovery_events:
+                        yield event
+                    if recovered:
+                        compaction_recovery_attempts += 1
+                        continue
+                    async for event in self._emit_error_and_record(
+                        COMPACTION_RECOVERY_FAILED_MESSAGE
+                    ):
+                        yield event
+                    return
                 logger.warning(
                     "Aborting interaction loop turn after LLM stream error event: %s",
                     llm_error_event_content,
@@ -219,9 +228,7 @@ class InteractionLoop:
                 sanitized_error_message = sanitize_stream_error_message(
                     llm_error_event_content
                 )
-                async for event in self._emit_error_and_record(
-                    sanitized_error_message
-                ):
+                async for event in self._emit_error_and_record(sanitized_error_message):
                     yield event
                 return
 
@@ -231,6 +238,23 @@ class InteractionLoop:
             parsed_response = self._to_parsed_response(normalized_response)
             llm_response_text = parsed_response.text_content
 
+            if self._is_empty_failed_response(normalized_response, parsed_response):
+                recovered, recovery_events = await self._attempt_compaction_recovery(
+                    force=False,
+                    attempts_used=compaction_recovery_attempts,
+                )
+                for event in recovery_events:
+                    yield event
+                if recovered:
+                    compaction_recovery_attempts += 1
+                    continue
+                if compaction_recovery_attempts >= MAX_COMPACTION_RECOVERY_ATTEMPTS:
+                    async for event in self._emit_error_and_record(
+                        COMPACTION_RECOVERY_FAILED_MESSAGE
+                    ):
+                        yield event
+                    return
+
             if llm_response_text:
                 async for event in self.event_presenter.present_assistant_message(
                     llm_response_text
@@ -239,8 +263,8 @@ class InteractionLoop:
 
             # Step 4: Decision - final answer or tools?
             if not parsed_response.has_tool_calls:
-                llm_response_text, emit_backfill_message = self._resolve_final_assistant_turn_text(
-                    llm_response_text
+                llm_response_text, emit_backfill_message = (
+                    self._resolve_final_assistant_turn_text(llm_response_text)
                 )
                 if emit_backfill_message:
                     async for event in self.event_presenter.present_assistant_message(
@@ -268,19 +292,27 @@ class InteractionLoop:
                     parsed_response=parsed_response,
                     tool_execution_policy=tool_execution_policy,
                 )
-                
+
                 # Yield all resolution events (ToolBundleEvent or ToolCallEvent)
-                async for event in self.tool_executor.execute(parsed_response, self.session):
+                async for event in self.tool_executor.execute(
+                    parsed_response, self.session
+                ):
                     yield event
-                
+
                 # BUNDLE EXECUTION FIX: For bundles, wait for results immediately after
                 # sending the bundle event, before the interaction loop continues.
                 # This ensures the bundle completes before any subsequent tool calls.
                 if is_bundle:
-                    logger.info("Waiting for bundle execution to complete before continuing...")
-                    await self.tool_executor.process_results(parsed_response, self.session)
+                    logger.info(
+                        "Waiting for bundle execution to complete before continuing..."
+                    )
+                    await self.tool_executor.process_results(
+                        parsed_response, self.session
+                    )
                     results_processed = True
-                    logger.info("Bundle execution completed, continuing interaction loop")
+                    logger.info(
+                        "Bundle execution completed, continuing interaction loop"
+                    )
             except Exception as e:
                 logger.error(f"Critical tool execution error: {e}", exc_info=True)
                 async for event in self._emit_error_and_record(
@@ -301,14 +333,111 @@ class InteractionLoop:
                 # but we still need to handle cleanup for non-bundle tools or error cases.
                 if not results_processed:
                     try:
-                        await self.tool_executor.process_results(parsed_response, self.session)
+                        await self.tool_executor.process_results(
+                            parsed_response, self.session
+                        )
                     except Exception as cleanup_error:
                         # Log but don't re-raise - we're in finally block and don't want to
                         # mask the original exception if one occurred
                         logger.error(
                             f"Error during tool result cleanup: {cleanup_error}",
-                            exc_info=True
+                            exc_info=True,
                         )
+
+    async def _attempt_compaction_recovery(
+        self,
+        *,
+        force: bool,
+        attempts_used: int,
+    ) -> tuple[bool, List[AgentStreamingEvent]]:
+        if attempts_used >= MAX_COMPACTION_RECOVERY_ATTEMPTS:
+            return False, []
+
+        compaction_engine = getattr(self.session, "compaction_engine", None)
+        if compaction_engine is None:
+            return False, []
+
+        decision = compaction_engine.evaluate(
+            reason=COMPACTION_RECOVERY_REASON,
+            force=force,
+        )
+        if not decision.should_compact:
+            return False, []
+
+        logger.warning(
+            "[Compaction] Attempting model overflow recovery (force=%s, before=%s, projected=%s)",
+            force,
+            decision.before_tokens,
+            decision.projected_tokens,
+        )
+        return await self._run_compaction(
+            reason=COMPACTION_RECOVERY_REASON,
+            decision=decision,
+        )
+
+    async def _run_compaction(
+        self,
+        *,
+        reason: str,
+        decision: Any,
+    ) -> tuple[bool, List[AgentStreamingEvent]]:
+        compaction_engine = getattr(self.session, "compaction_engine", None)
+        if compaction_engine is None:
+            return False, []
+
+        events: List[AgentStreamingEvent] = [
+            ContextCompactionStartedEvent(
+                reason=reason,
+                strategy=decision.strategy_name,
+                before_tokens=decision.before_tokens,
+                projected_tokens=decision.projected_tokens,
+            )
+        ]
+        try:
+            result = await compaction_engine.compact(
+                reason=reason,
+                decision=decision,
+            )
+            events.append(
+                ContextCompactionCompletedEvent(
+                    reason=reason,
+                    strategy=result.strategy_name,
+                    before_tokens=result.before_tokens,
+                    after_tokens=result.after_tokens,
+                    removed_messages=result.removed_messages,
+                    summary_preview=self._summary_preview(result.summary_text),
+                    summary_text=result.summary_text,
+                    replacement_history_preview=[
+                        {
+                            "role": entry.role,
+                            "message_type": entry.message_type,
+                            "content": entry.content,
+                            "tool_name": entry.tool_name,
+                            "tool_call_id": entry.tool_call_id,
+                        }
+                        for entry in result.replacement_history_preview
+                    ],
+                    replacement_history_entries=result.replacement_history_entries,
+                    skipped_reason=result.skip_reason,
+                )
+            )
+            return bool(result.applied), events
+        except Exception as exc:
+            logger.error(
+                "[Compaction] %s compaction failed: %s",
+                reason,
+                exc,
+                exc_info=True,
+            )
+            events.append(
+                ContextCompactionFailedEvent(
+                    reason=reason,
+                    strategy=decision.strategy_name,
+                    error=str(exc),
+                    before_tokens=decision.before_tokens,
+                )
+            )
+            return False, events
 
     def _resolve_final_assistant_turn_text(
         self,
@@ -359,11 +488,7 @@ class InteractionLoop:
         This keeps the interaction loop alive and gives the model explicit,
         tool-shaped feedback so it can retry with corrected arguments.
         """
-        structured_metadata = (
-            dict(metadata)
-            if isinstance(metadata, dict)
-            else {}
-        )
+        structured_metadata = dict(metadata) if isinstance(metadata, dict) else {}
         tool_name = self._extract_tool_name_from_metadata_or_error(
             structured_metadata,
             error_msg,
@@ -372,17 +497,23 @@ class InteractionLoop:
             structured_metadata,
             error_msg,
         )
-        raw_tool_call_preview = self._extract_raw_tool_call_preview_from_metadata_or_error(
-            structured_metadata,
-            error_msg,
+        raw_tool_call_preview = (
+            self._extract_raw_tool_call_preview_from_metadata_or_error(
+                structured_metadata,
+                error_msg,
+            )
         )
-        raw_arguments_preview = self._extract_raw_arguments_preview_from_metadata_or_error(
-            structured_metadata,
-            error_msg,
+        raw_arguments_preview = (
+            self._extract_raw_arguments_preview_from_metadata_or_error(
+                structured_metadata,
+                error_msg,
+            )
         )
-        parse_error_summary = self._extract_tool_call_parse_error_from_metadata_or_error(
-            structured_metadata,
-            error_msg,
+        parse_error_summary = (
+            self._extract_tool_call_parse_error_from_metadata_or_error(
+                structured_metadata,
+                error_msg,
+            )
         )
         if not tool_call_id:
             tool_call_id = f"llm_tool_call_error_{uuid4().hex[:12]}"
@@ -405,8 +536,8 @@ class InteractionLoop:
         }
         if raw_arguments_preview:
             metadata["llm_tool_call_raw_arguments_preview"] = raw_arguments_preview
-            metadata["llm_tool_call_raw_arguments_preview_truncated"] = raw_arguments_preview.endswith(
-                "...[truncated]"
+            metadata["llm_tool_call_raw_arguments_preview_truncated"] = (
+                raw_arguments_preview.endswith("...[truncated]")
             )
         if raw_tool_call_preview:
             metadata["llm_tool_call_raw_tool_call_preview"] = raw_tool_call_preview
@@ -495,6 +626,25 @@ class InteractionLoop:
                 content = f"{content[:597]}..."
             return content
         return ""
+
+    @staticmethod
+    def _is_context_overflow_error(error_msg: str) -> bool:
+        normalized = str(error_msg or "").strip().lower()
+        if not normalized:
+            return False
+        return any(marker in normalized for marker in CONTEXT_OVERFLOW_ERROR_MARKERS)
+
+    @staticmethod
+    def _is_empty_failed_response(
+        normalized_response: NormalizedLLMResponse,
+        parsed_response: ParsedResponse,
+    ) -> bool:
+        if parsed_response.text_content.strip() or parsed_response.has_tool_calls:
+            return False
+        finish_reason = (
+            str(normalized_response.get("finish_reason") or "").strip().lower()
+        )
+        return finish_reason in {"incomplete", "length"}
 
     @staticmethod
     def _is_recoverable_llm_tool_call_error(error_msg: str) -> bool:

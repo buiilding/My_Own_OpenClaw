@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for backend history compaction internals: decision thresholds, inline strategy prompt/fallback behavior, and auto/manual event emission integration points."
+summary: "Deep reference for backend history compaction internals: decision thresholds, target-budget retention, overflow recovery, inline strategy prompt/fallback behavior, and auto/manual event emission integration points."
 read_when:
   - When changing `backend/src/agent/compaction/*` decision or strategy behavior.
   - When debugging `context-compaction-*` lifecycle events emitted from auto-pre/auto-mid/manual flows.
@@ -38,7 +38,7 @@ Everything else is computed per call from current history/config/token services.
 
 Inputs:
 
-- `reason` (`auto-pre`, `auto-mid`, `manual`)
+- `reason` (`auto-pre`, `auto-mid`, `manual`, `overflow-retry`)
 - `force` (bypasses the threshold check)
 - optional `pending_user_content` (used for `auto-pre` projected token calculation)
 
@@ -106,6 +106,7 @@ If `_build_compaction_input(...)` cannot produce compactable input:
 Manual nuance:
 
 - for `reason="manual"`, `allow_minimal_history=True` permits compacting short transcripts by collapsing full history into one summary row
+- for `reason="overflow-retry"`, minimal-history compaction is also allowed so provider context-overflow recovery can still compact a short but oversized transcript
 
 ## Split/Retention Contract
 
@@ -117,6 +118,21 @@ Manual nuance:
 - keeps tail from split onward
 
 This preserves recent user-context turn window while collapsing older history.
+
+## Target Budget Contract
+
+`history_compaction_target_tokens` is a post-compaction retention budget, not an auto-trigger threshold.
+
+Before invoking the summary strategy, the engine checks the retained tail against:
+
+- `tail_budget = history_compaction_target_tokens - history_compaction_summary_max_tokens`
+
+If the retained tail is still too large:
+
+- older retained-tail messages are moved into `messages_to_compact` so they are summarized instead of preserved verbatim
+- if one remaining tail message is still oversized, its text is truncated with `[[TRUNCATED DURING CONTEXT COMPACTION]]`, structured multimodal payloads are removed, and `compaction_facts.context_compaction_truncated=true` is recorded
+
+This keeps the prompt from staying oversized after a nominally successful compaction.
 
 ## Strategy and Prompt Contract
 
@@ -162,6 +178,14 @@ Auto-mid flow (`InteractionLoop.run_loop`):
 - emits same started/completed/failed lifecycle events with `reason="auto-mid"`
 - uses provider-reported prompt usage from the prior LLM request when available, which covers tokens charged for provider-native request shape such as tool schemas that local prompt-message estimates can undercount
 
+Overflow recovery flow (`InteractionLoop.run_loop`):
+
+- detects provider context-overflow errors from raised exceptions or stream `ErrorEvent` content
+- detects empty failed Responses payloads with `finish_reason in {"incomplete", "length"}` when the compaction decision is above threshold
+- runs one forced or threshold-gated compaction with `reason="overflow-retry"`
+- retries the model request once after successful recovery compaction
+- emits a visible error instead of silently completing if the retry still fails or recovery cannot compact
+
 Manual flow (`CompactHistoryHandler`):
 
 - rejects while query active (`context-compaction-failed` payload)
@@ -181,9 +205,10 @@ This prevents concurrent history rewrites in one session.
 ## Drift Hotspots
 
 1. Changing split-index logic without updating keep-recent-user semantics can remove active context unexpectedly.
-2. Changing trigger fallback or `AUTO_TRIGGER_RATIO` without config/docs/test updates can silently alter compaction frequency.
-3. Emitting compaction events in different order breaks frontend thinking-status transitions.
-4. Introducing non-inline strategy selection without updating decision/result payload contracts can desync `strategy` values shown to clients.
+2. Changing target-budget enforcement without updating retained-tail tests can leave compaction results above the intended budget.
+3. Changing trigger fallback or `AUTO_TRIGGER_RATIO` without config/docs/test updates can silently alter compaction frequency.
+4. Emitting compaction events in different order breaks frontend thinking-status transitions.
+5. Introducing non-inline strategy selection without updating decision/result payload contracts can desync `strategy` values shown to clients.
 
 ## Related Docs
 

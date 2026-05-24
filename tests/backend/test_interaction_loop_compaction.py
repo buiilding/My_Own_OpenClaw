@@ -14,6 +14,7 @@ from backend.src.core.events.streaming_events import (
     AssistantMessageFullEvent,
     ContextCompactionCompletedEvent,
     ContextCompactionStartedEvent,
+    ErrorEvent,
     FullResponseEvent,
     StreamingCompleteEvent,
 )
@@ -32,7 +33,9 @@ class _FakeHistory:
         self.assistant_messages.append((message, tool_calls))
 
     def stage_tool_call_ids(self, tool_call_ids, consume_all_on_next_output=False):
-        self.staged_tool_call_ids.append((list(tool_call_ids), consume_all_on_next_output))
+        self.staged_tool_call_ids.append(
+            (list(tool_call_ids), consume_all_on_next_output)
+        )
 
     def add_tool_output(self, message, image_data=None, **kwargs):
         _ = (message, image_data, kwargs)
@@ -85,11 +88,34 @@ class _FakeCompactionEngine:
         )
 
 
-class _FakeSession:
+class _RecoveryCompactionEngine(_FakeCompactionEngine):
     def __init__(self):
+        super().__init__()
+        self.recovery_used = False
+
+    def evaluate(self, *, reason, force=False, pending_user_content=None):
+        self.evaluate_calls.append((reason, force, pending_user_content))
+        should_compact = reason == "overflow-retry" and not self.recovery_used
+        return CompactionDecision(
+            should_compact=should_compact,
+            reason=reason,
+            strategy_name="inline",
+            before_tokens=360000,
+            projected_tokens=360000,
+            user_turn_index=2,
+            skip_reason=None if should_compact else "below-threshold",
+        )
+
+    async def compact(self, *, reason, decision=None):
+        self.recovery_used = True
+        return await super().compact(reason=reason, decision=decision)
+
+
+class _FakeSession:
+    def __init__(self, compaction_engine=None):
         self.cfg = _FakeConfig()
         self.history = _FakeHistory()
-        self.compaction_engine = _FakeCompactionEngine()
+        self.compaction_engine = compaction_engine or _FakeCompactionEngine()
         self.session_id = "session-test"
 
 
@@ -116,10 +142,60 @@ class _TwoTurnLLMHandler:
             return {
                 "content": "",
                 "tool_calls": [
-                    {"id": "call_1", "name": "read_file", "arguments": {"path": "/tmp/a"}}
+                    {
+                        "id": "call_1",
+                        "name": "read_file",
+                        "arguments": {"path": "/tmp/a"},
+                    }
                 ],
             }
         return {"content": "done"}
+
+
+class _EmptyIncompleteThenRecoveredLLMHandler:
+    def __init__(self):
+        self.calls = 0
+
+    async def get_response(self, prompt, tools=None):
+        _ = (prompt, tools)
+        self.calls += 1
+        if self.calls == 1:
+            yield FullResponseEvent(content="")
+            return
+        yield FullResponseEvent(content="done after compaction")
+
+    def get_last_response_payload(self):
+        if self.calls == 1:
+            return {"content": "", "finish_reason": "incomplete"}
+        return {"content": "done after compaction"}
+
+
+class _AlwaysEmptyIncompleteLLMHandler(_EmptyIncompleteThenRecoveredLLMHandler):
+    async def get_response(self, prompt, tools=None):
+        _ = (prompt, tools)
+        self.calls += 1
+        yield FullResponseEvent(content="")
+
+    def get_last_response_payload(self):
+        return {"content": "", "finish_reason": "incomplete"}
+
+
+class _ContextOverflowThenRecoveredLLMHandler:
+    def __init__(self):
+        self.calls = 0
+
+    async def get_response(self, prompt, tools=None):
+        _ = (prompt, tools)
+        self.calls += 1
+        if self.calls == 1:
+            yield ErrorEvent(content="context_length_exceeded: maximum context length")
+            return
+        yield FullResponseEvent(content="done after overflow recovery")
+
+    def get_last_response_payload(self):
+        if self.calls == 1:
+            return {"content": ""}
+        return {"content": "done after overflow recovery"}
 
 
 class _FakeToolExecutor:
@@ -146,9 +222,7 @@ class _FakeEventPresenter:
         yield StreamingCompleteEvent(final_response=final_response)
 
     async def present_error(self, error_message):
-        _ = error_message
-        if False:
-            yield None
+        yield ErrorEvent(content=error_message)
 
 
 @pytest.mark.asyncio
@@ -181,3 +255,86 @@ async def test_interaction_loop_runs_mid_turn_compaction_before_second_sampling(
             "message_type": "context_compaction",
         }
     ]
+
+
+@pytest.mark.asyncio
+async def test_interaction_loop_recovers_empty_incomplete_stream_with_compaction():
+    compaction_engine = _RecoveryCompactionEngine()
+    session = _FakeSession(compaction_engine=compaction_engine)
+    llm_handler = _EmptyIncompleteThenRecoveredLLMHandler()
+    loop = InteractionLoop(
+        session=session,
+        prompt_coordinator=_FakePromptCoordinator(),
+        llm_handler=llm_handler,
+        tool_executor=_FakeToolExecutor(),
+        event_presenter=_FakeEventPresenter(),
+    )
+
+    events = [event async for event in loop.run_loop()]
+
+    assert llm_handler.calls == 2
+    assert ("overflow-retry", False, None) in compaction_engine.evaluate_calls
+    completed_event = next(
+        event
+        for event in events
+        if isinstance(event, ContextCompactionCompletedEvent)
+        and event.reason == "overflow-retry"
+    )
+    assert completed_event.summary_text == "summary text"
+    assert any(
+        isinstance(event, StreamingCompleteEvent)
+        and event.final_response == "done after compaction"
+        for event in events
+    )
+
+
+@pytest.mark.asyncio
+async def test_interaction_loop_recovers_context_overflow_error_with_forced_compaction():
+    compaction_engine = _RecoveryCompactionEngine()
+    session = _FakeSession(compaction_engine=compaction_engine)
+    llm_handler = _ContextOverflowThenRecoveredLLMHandler()
+    loop = InteractionLoop(
+        session=session,
+        prompt_coordinator=_FakePromptCoordinator(),
+        llm_handler=llm_handler,
+        tool_executor=_FakeToolExecutor(),
+        event_presenter=_FakeEventPresenter(),
+    )
+
+    events = [event async for event in loop.run_loop()]
+
+    assert llm_handler.calls == 2
+    assert ("overflow-retry", True, None) in compaction_engine.evaluate_calls
+    assert any(
+        isinstance(event, ContextCompactionCompletedEvent)
+        and event.reason == "overflow-retry"
+        for event in events
+    )
+    assert any(
+        isinstance(event, StreamingCompleteEvent)
+        and event.final_response == "done after overflow recovery"
+        for event in events
+    )
+
+
+@pytest.mark.asyncio
+async def test_interaction_loop_stops_empty_incomplete_recovery_after_one_retry():
+    compaction_engine = _RecoveryCompactionEngine()
+    session = _FakeSession(compaction_engine=compaction_engine)
+    llm_handler = _AlwaysEmptyIncompleteLLMHandler()
+    loop = InteractionLoop(
+        session=session,
+        prompt_coordinator=_FakePromptCoordinator(),
+        llm_handler=llm_handler,
+        tool_executor=_FakeToolExecutor(),
+        event_presenter=_FakeEventPresenter(),
+    )
+
+    events = [event async for event in loop.run_loop()]
+
+    assert llm_handler.calls == 2
+    assert len(compaction_engine.compact_calls) == 1
+    error_events = [event for event in events if isinstance(event, ErrorEvent)]
+    assert len(error_events) == 1
+    assert "still failed after compacting history" in error_events[0].content
+    assert not any(isinstance(event, StreamingCompleteEvent) for event in events)
