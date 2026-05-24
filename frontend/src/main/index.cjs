@@ -123,9 +123,11 @@ const windowPlatformPolicy = createWindowPlatformPolicy({
   platform: process.platform,
   warn: console.warn,
 });
-const chatPillVisibilityIntent = readChatPillVisibilityIntent({
-  userDataPath: getUserDataPath(),
-});
+const chatPillVisibilityIntent = ENABLE_DEV_TRANSPARENCY_UI
+  ? { userHidden: false }
+  : readChatPillVisibilityIntent({
+    userDataPath: getUserDataPath(),
+  });
 const surfaceRuntime = createSurfaceRuntime({
   screen,
   getActiveDisplayAffinity: getActiveDisplayAffinityRuntime,
@@ -147,6 +149,9 @@ const surfaceRuntime = createSurfaceRuntime({
   windowPlatformPolicy,
   initialChatPillUserHidden: chatPillVisibilityIntent.userHidden,
   persistChatPillUserHidden: (userHidden) => {
+    if (ENABLE_DEV_TRANSPARENCY_UI) {
+      return;
+    }
     writeChatPillVisibilityIntent({
       userHidden,
     }, {
