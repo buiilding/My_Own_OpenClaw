@@ -7,8 +7,8 @@ import {
 const mockGetActiveConversationRef = jest.fn();
 const mockUpdateTranscriptSession = jest.fn();
 
-jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient', () => ({
-  DesktopConversationRuntimeClient: {
+jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => ({
+  DesktopTranscriptSessionRuntimeClient: {
     getActiveConversationRef: (...args: unknown[]) => mockGetActiveConversationRef(...args),
     updateTranscriptSession: (...args: unknown[]) => mockUpdateTranscriptSession(...args),
   },

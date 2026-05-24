@@ -45,6 +45,7 @@ import {
   workspaceSelectionToBinding,
 } from '../../../infrastructure/workspace/conversationWorkspaceBinding';
 import { recordUserTranscriptMessage } from '../utils/messageSender/userTranscriptPersistence';
+import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 
 type ChatMessageSenderOptions = {
   senderSurface?: ChatSendSurface;
@@ -86,9 +87,9 @@ export function useChatMessageSender(
   const hydrateSessionFromMainSnapshot = useCallback(async (): Promise<string | null> => {
     const snapshot = await hydrateConversationSessionFromMainSnapshot({
       loadMainSessionSnapshot: () => IpcBridge.invoke(INVOKE_CHANNELS.GET_CLIENT_USER_ID),
-      setTranscriptConversationRef: DesktopConversationRuntimeClient.setActiveConversationRef,
+      setTranscriptConversationRef: DesktopTranscriptSessionRuntimeClient.setActiveConversationRef,
       setChatConversationRef: setChatActiveConversationRef,
-      updateTranscriptSession: DesktopConversationRuntimeClient.updateTranscriptSession,
+      updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
       markConversationInferenceSessionUnknown,
       onError: (error) => {
         console.warn('[useChatMessageSender] Failed to load startup session snapshot:', error);
@@ -99,15 +100,15 @@ export function useChatMessageSender(
 
   const ensureConversationRef = useCallback(async (): Promise<string> => {
     return ensureConversationRefForSend({
-      transcriptConversationRef: DesktopConversationRuntimeClient.getActiveConversationRef(),
+      transcriptConversationRef: DesktopTranscriptSessionRuntimeClient.getActiveConversationRef(),
       storeConversationRef: useChatStore.getState().activeConversationRef,
-      setTranscriptConversationRef: DesktopConversationRuntimeClient.setActiveConversationRef,
+      setTranscriptConversationRef: DesktopTranscriptSessionRuntimeClient.setActiveConversationRef,
       setChatConversationRef: setChatActiveConversationRef,
       hydrateMainSessionSnapshot: async () => {
         const conversationRef = await hydrateSessionFromMainSnapshot();
         return {
           conversationRef,
-          userId: DesktopConversationRuntimeClient.getTranscriptSessionInfo().userId,
+          userId: DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo().userId,
         };
       },
       createConversationRef,
@@ -152,7 +153,7 @@ export function useChatMessageSender(
     const hadUserMessages = hasUserMessages(useChatStore.getState().messages);
     const conversationRef = await ensureConversationRef();
     const workspaceBinding = await ensureConversationWorkspaceBinding(conversationRef);
-    const sessionInfo = DesktopConversationRuntimeClient.getTranscriptSessionInfo();
+    const sessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
     await ensureConversationInferenceSessionHydrated({
       conversationRef,
       userId: sessionInfo.userId,

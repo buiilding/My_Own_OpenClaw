@@ -1,5 +1,5 @@
 import { startNewChatSession } from '../../frontend/src/renderer/features/chat/utils/session/newChatSession';
-import { DesktopConversationRuntimeClient } from '../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient';
+import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 import {
   clearConversationInferenceSessionState,
   markConversationInferenceSessionLocalOnly,
@@ -8,8 +8,8 @@ import {
   setConversationWorkspaceBinding,
 } from '../../frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding';
 
-jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient', () => ({
-  DesktopConversationRuntimeClient: {
+jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => ({
+  DesktopTranscriptSessionRuntimeClient: {
     updateTranscriptSession: jest.fn(),
   },
 }));
@@ -30,7 +30,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/workspace/conversationWork
 describe('startNewChatSession', () => {
   beforeEach(() => {
     jest.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('new-chat-ref');
-    (DesktopConversationRuntimeClient.updateTranscriptSession as jest.Mock).mockReset();
+    (DesktopTranscriptSessionRuntimeClient.updateTranscriptSession as jest.Mock).mockReset();
     (clearConversationInferenceSessionState as jest.MockedFunction<typeof clearConversationInferenceSessionState>).mockReset();
     (markConversationInferenceSessionLocalOnly as jest.MockedFunction<typeof markConversationInferenceSessionLocalOnly>).mockReset();
     (setConversationWorkspaceBinding as jest.MockedFunction<typeof setConversationWorkspaceBinding>).mockReset();
@@ -58,7 +58,7 @@ describe('startNewChatSession', () => {
     });
 
     expect(conversationRef).toBe('conv_new-chat-ref');
-    expect(DesktopConversationRuntimeClient.updateTranscriptSession).toHaveBeenCalledWith('conv_new-chat-ref', undefined);
+    expect(DesktopTranscriptSessionRuntimeClient.updateTranscriptSession).toHaveBeenCalledWith('conv_new-chat-ref', undefined);
     expect(setConversationWorkspaceBinding).toHaveBeenCalledWith('conv_new-chat-ref', {
       workspacePath: '/work/WindieOS',
       workspaceName: 'WindieOS',

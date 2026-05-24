@@ -7,6 +7,7 @@ import { INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/
 import { captureScreenshotAttachment } from '../../frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline';
 import { uploadArtifactBase64 } from '../../frontend/src/renderer/infrastructure/services/ArtifactUploader';
 import { DesktopConversationRuntimeClient } from '../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient';
+import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 import {
   ensureConversationInferenceSessionHydrated,
   markConversationInferenceSessionLocalOnly,
@@ -39,6 +40,13 @@ jest.mock('../../frontend/src/renderer/infrastructure/services/ArtifactUploader'
 let mockActiveConversationRef: string | null = null;
 jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient', () => ({
   DesktopConversationRuntimeClient: {
+    sendQuery: jest.fn(),
+    setModel: jest.fn(),
+  },
+}));
+
+jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => ({
+  DesktopTranscriptSessionRuntimeClient: {
     getActiveConversationRef: jest.fn(() => mockActiveConversationRef),
     setActiveConversationRef: jest.fn((ref: string | null) => {
       mockActiveConversationRef = ref;
@@ -51,8 +59,6 @@ jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversation
       conversationRef: mockActiveConversationRef,
       userId: null,
     })),
-    sendQuery: jest.fn(),
-    setModel: jest.fn(),
   },
 }));
 
@@ -70,10 +76,10 @@ const mockCaptureScreenshotAttachment = captureScreenshotAttachment as jest.Mock
 const mockSendQuery = DesktopConversationRuntimeClient.sendQuery as jest.Mock;
 const mockSetModel = DesktopConversationRuntimeClient.setModel as jest.Mock;
 const mockUploadArtifactBase64 = uploadArtifactBase64 as jest.MockedFunction<typeof uploadArtifactBase64>;
-const mockGetActiveConversationRef = DesktopConversationRuntimeClient.getActiveConversationRef as jest.Mock;
-const mockSetActiveConversationRef = DesktopConversationRuntimeClient.setActiveConversationRef as jest.Mock;
-const mockUpdateTranscriptSession = DesktopConversationRuntimeClient.updateTranscriptSession as jest.Mock;
-const mockGetTranscriptSessionInfo = DesktopConversationRuntimeClient.getTranscriptSessionInfo as jest.Mock;
+const mockGetActiveConversationRef = DesktopTranscriptSessionRuntimeClient.getActiveConversationRef as jest.Mock;
+const mockSetActiveConversationRef = DesktopTranscriptSessionRuntimeClient.setActiveConversationRef as jest.Mock;
+const mockUpdateTranscriptSession = DesktopTranscriptSessionRuntimeClient.updateTranscriptSession as jest.Mock;
+const mockGetTranscriptSessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo as jest.Mock;
 const mockRecordUserTranscriptMessage = recordUserTranscriptMessage as jest.MockedFunction<typeof recordUserTranscriptMessage>;
 const mockEnsureConversationInferenceSessionHydrated = ensureConversationInferenceSessionHydrated as jest.MockedFunction<typeof ensureConversationInferenceSessionHydrated>;
 const mockMarkConversationInferenceSessionLocalOnly = markConversationInferenceSessionLocalOnly as jest.MockedFunction<typeof markConversationInferenceSessionLocalOnly>;

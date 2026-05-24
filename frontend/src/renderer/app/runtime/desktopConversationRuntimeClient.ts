@@ -122,25 +122,6 @@ class StaticRehydrateConversationStore extends InMemoryConversationStore {
  * low-level backend IPC or transcript storage adapters directly.
  */
 export const DesktopConversationRuntimeClient = {
-  getActiveConversationRef(): string | null {
-    return DesktopTranscriptSessionRuntimeClient.getActiveConversationRef();
-  },
-
-  getTranscriptSessionInfo(): ReturnType<typeof DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo> {
-    return DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
-  },
-
-  setActiveConversationRef(conversationRef: string | null): void {
-    DesktopTranscriptSessionRuntimeClient.setActiveConversationRef(conversationRef);
-  },
-
-  updateTranscriptSession(
-    conversationRef?: string | null,
-    userId?: string | null,
-  ): void {
-    DesktopTranscriptSessionRuntimeClient.updateTranscriptSession(conversationRef, userId);
-  },
-
   setModel(selection: WindieModelSelection): void {
     DesktopSettingsRuntimeClient.setModel(selection);
   },
@@ -217,7 +198,7 @@ export const DesktopConversationRuntimeClient = {
 
   async stop(conversationRef: string | null = null): Promise<void> {
     const resolvedConversationRef = optionalString(conversationRef)
-      ?? this.getActiveConversationRef();
+      ?? DesktopTranscriptSessionRuntimeClient.getActiveConversationRef();
     if (!resolvedConversationRef) {
       return;
     }
@@ -231,7 +212,7 @@ export const DesktopConversationRuntimeClient = {
 
   async compactHistory(force: boolean = true, conversationRef: string | null = null): Promise<void> {
     const resolvedConversationRef = optionalString(conversationRef)
-      ?? this.getActiveConversationRef();
+      ?? DesktopTranscriptSessionRuntimeClient.getActiveConversationRef();
     if (!resolvedConversationRef) {
       return;
     }

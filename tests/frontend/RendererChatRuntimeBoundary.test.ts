@@ -63,6 +63,30 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('recordToolMessage');
   });
 
+  test('chat feature code does not use the conversation command facade for transcript session identity', async () => {
+    const files = await listSourceFiles(chatRoot);
+    const offenders: string[] = [];
+    const forbiddenCalls = [
+      'DesktopConversationRuntimeClient.getActiveConversationRef',
+      'DesktopConversationRuntimeClient.getTranscriptSessionInfo',
+      'DesktopConversationRuntimeClient.setActiveConversationRef',
+      'DesktopConversationRuntimeClient.updateTranscriptSession',
+    ];
+
+    for (const file of files) {
+      const relativePath = path.relative(chatRoot, file);
+      if (allowedRelativePaths.has(relativePath)) {
+        continue;
+      }
+      const source = await fs.readFile(file, 'utf8');
+      if (forbiddenCalls.some((call) => source.includes(call))) {
+        offenders.push(relativePath);
+      }
+    }
+
+    expect(offenders).toEqual([]);
+  });
+
   test('chat stream transcript writes stay behind the transcript persistence helper', async () => {
     const persistenceCallerFiles = [
       'hooks/chatStream/useChatStreamCompletionHandler.ts',
@@ -271,6 +295,9 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('recordUserMessage');
     expect(source).not.toContain('recordAssistantMessage');
     expect(source).not.toContain('recordToolMessage');
+    expect(source).not.toContain('getTranscriptSessionInfo()');
+    expect(source).not.toContain('setActiveConversationRef(');
+    expect(source).not.toContain('updateTranscriptSession(');
     expect(source).not.toContain('rewriteTranscriptProjection(input');
     expect(/\n\s{2}sendRehydrate\(input/.test(source)).toBe(false);
     expect(source).toContain('DesktopTranscriptProjectionRuntimeClient');

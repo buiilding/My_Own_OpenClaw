@@ -2,11 +2,11 @@ import { act, renderHook } from '@testing-library/react';
 import { useChatSessionBootstrap } from '../../frontend/src/renderer/features/chat/hooks/useChatSessionBootstrap';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
-import { DesktopConversationRuntimeClient } from '../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient';
+import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 import { markConversationInferenceSessionUnknown } from '../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime';
 
-jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient', () => ({
-  DesktopConversationRuntimeClient: {
+jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => ({
+  DesktopTranscriptSessionRuntimeClient: {
     setActiveConversationRef: jest.fn(),
     updateTranscriptSession: jest.fn(),
   },
@@ -16,8 +16,8 @@ jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferen
   markConversationInferenceSessionUnknown: jest.fn(),
 }));
 
-const mockSetActiveConversationRef = DesktopConversationRuntimeClient.setActiveConversationRef as jest.Mock;
-const mockUpdateTranscriptSession = DesktopConversationRuntimeClient.updateTranscriptSession as jest.Mock;
+const mockSetActiveConversationRef = DesktopTranscriptSessionRuntimeClient.setActiveConversationRef as jest.Mock;
+const mockUpdateTranscriptSession = DesktopTranscriptSessionRuntimeClient.updateTranscriptSession as jest.Mock;
 const mockMarkConversationInferenceSessionUnknown = markConversationInferenceSessionUnknown as jest.MockedFunction<typeof markConversationInferenceSessionUnknown>;
 
 describe('useChatSessionBootstrap', () => {

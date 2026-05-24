@@ -4,6 +4,7 @@ import { useConversationReplayActions } from '../../frontend/src/renderer/featur
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import { DesktopConversationRuntimeClient } from '../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient';
+import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 import {
   markConversationInferenceSessionLocalOnly,
 } from '../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime';
@@ -26,22 +27,27 @@ jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferen
 let mockConversationRef = 'conv-existing';
 jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient', () => ({
   DesktopConversationRuntimeClient: {
+    editAndResend: jest.fn(async () => undefined),
+    retryTurn: jest.fn(async () => undefined),
+  },
+}));
+
+jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => ({
+  DesktopTranscriptSessionRuntimeClient: {
     getActiveConversationRef: jest.fn(() => mockConversationRef),
     getTranscriptSessionInfo: jest.fn(() => ({
       conversationRef: mockConversationRef,
       userId: 'user-1',
     })),
     updateTranscriptSession: jest.fn(),
-    editAndResend: jest.fn(async () => undefined),
-    retryTurn: jest.fn(async () => undefined),
   },
 }));
 
 const mockEditAndResend = DesktopConversationRuntimeClient.editAndResend;
 const mockRetryTurn = DesktopConversationRuntimeClient.retryTurn;
-const mockGetActiveConversationRef = DesktopConversationRuntimeClient.getActiveConversationRef;
-const mockGetTranscriptSessionInfo = DesktopConversationRuntimeClient.getTranscriptSessionInfo;
-const mockUpdateTranscriptSession = DesktopConversationRuntimeClient.updateTranscriptSession;
+const mockGetActiveConversationRef = DesktopTranscriptSessionRuntimeClient.getActiveConversationRef;
+const mockGetTranscriptSessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo;
+const mockUpdateTranscriptSession = DesktopTranscriptSessionRuntimeClient.updateTranscriptSession;
 const mockMarkConversationInferenceSessionLocalOnly = markConversationInferenceSessionLocalOnly;
 
 describe('useConversationReplayActions', () => {

@@ -1,9 +1,9 @@
 import { resetActiveChatSession } from '../../frontend/src/renderer/features/chat/utils/session/resetActiveChatSession';
-import { DesktopConversationRuntimeClient } from '../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient';
+import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 import { clearConversationInferenceSessionState } from '../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime';
 
-jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient', () => ({
-  DesktopConversationRuntimeClient: {
+jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient', () => ({
+  DesktopTranscriptSessionRuntimeClient: {
     updateTranscriptSession: jest.fn(),
   },
 }));
@@ -12,7 +12,7 @@ jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferen
   clearConversationInferenceSessionState: jest.fn(),
 }));
 
-const mockUpdateTranscriptSession = DesktopConversationRuntimeClient.updateTranscriptSession as jest.Mock;
+const mockUpdateTranscriptSession = DesktopTranscriptSessionRuntimeClient.updateTranscriptSession as jest.Mock;
 const mockClearConversationInferenceSessionState = clearConversationInferenceSessionState as jest.MockedFunction<typeof clearConversationInferenceSessionState>;
 
 describe('resetActiveChatSession', () => {

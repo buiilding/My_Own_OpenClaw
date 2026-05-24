@@ -1,6 +1,6 @@
 import type { TokenCounts } from '../../stores/chatStore';
 import { markConversationInferenceSessionLocalOnly } from '../../session/conversationInferenceSessionRuntime';
-import { DesktopConversationRuntimeClient } from '../../session/desktopConversationRuntimeClient';
+import { DesktopTranscriptSessionRuntimeClient } from '../../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 import {
   applyRendererConversationSelection,
   initializeLocalConversationSession,
@@ -42,7 +42,7 @@ export const startNewChatSession = ({
     selectConversationRef: (conversationRef) => {
       applyRendererConversationSelection({
         conversationRef,
-        updateTranscriptSession: DesktopConversationRuntimeClient.updateTranscriptSession,
+        updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
       });
     },
     onConversationCreated: (conversationRef) => {

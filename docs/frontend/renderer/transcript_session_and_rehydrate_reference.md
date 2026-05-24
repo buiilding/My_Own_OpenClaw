@@ -81,6 +81,9 @@ Responsibility split:
 
 - `transcriptSessionRuntime.ts` owns session-state bootstrap, storage persistence, browser/main-process sync, and session resolution helpers
 - `DesktopTranscriptProjectionRuntimeClient` is the public projection write API and queue coordinator; `transcriptSessionRuntime.ts` owns session identity.
+- Chat feature code reads and updates active conversation/user identity through
+  `DesktopTranscriptSessionRuntimeClient`, not through the desktop conversation
+  command facade.
 
 Dashboard consumers subscribe via `useSyncExternalStore` (`useTranscriptSessionInfo`) for stable snapshot behavior.
 

@@ -14,6 +14,7 @@ import {
   markConversationInferenceSessionLocalOnly,
 } from '../session/conversationInferenceSessionRuntime';
 import { DesktopConversationRuntimeClient } from '../session/desktopConversationRuntimeClient';
+import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 import {
   applyRendererConversationSelection,
   initializeLocalConversationSession,
@@ -46,7 +47,7 @@ function buildTranscriptProjectionEntries(messages) {
 
 function ensureConversationRef(sessionConversationRef, storeConversationRef) {
   let conversationRef = resolveRendererConversationSessionSnapshot({
-    transcriptConversationRef: DesktopConversationRuntimeClient.getActiveConversationRef() || sessionConversationRef,
+    transcriptConversationRef: DesktopTranscriptSessionRuntimeClient.getActiveConversationRef() || sessionConversationRef,
     storeConversationRef,
   }).conversationRef;
   if (!conversationRef) {
@@ -55,7 +56,7 @@ function ensureConversationRef(sessionConversationRef, storeConversationRef) {
       selectConversationRef: (nextConversationRef) => {
         applyRendererConversationSelection({
           conversationRef: nextConversationRef,
-          updateTranscriptSession: DesktopConversationRuntimeClient.updateTranscriptSession,
+          updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
         });
       },
       onConversationCreated: (nextConversationRef) => {
@@ -93,7 +94,7 @@ async function executeReplayAction({
   applyRendererConversationSelection({
     conversationRef,
     userId: sessionInfo.userId || undefined,
-    updateTranscriptSession: DesktopConversationRuntimeClient.updateTranscriptSession,
+    updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession,
   });
 
   setMessages(replayMessages, conversationRef);
@@ -163,7 +164,7 @@ export function useConversationReplayActions({
     const preservedMessages = messages.slice(0, userIndex);
     const replayContextMessages = buildReplayContextMessages(preservedMessages);
     const replayConversation = [...replayContextMessages, editUserMessage];
-    const sessionInfo = DesktopConversationRuntimeClient.getTranscriptSessionInfo();
+    const sessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
     const replayScreenshot = resolveReplayScreenshotState({
       screenshot: editUserMessage.screenshot || null,
       screenshotRef: editUserMessage.screenshotRef || null,
@@ -220,7 +221,7 @@ export function useConversationReplayActions({
     const retryUserMessage = messages[userIndex];
     const preservedMessages = messages.slice(0, userIndex + 1);
     const replayContextMessages = buildReplayContextMessages(preservedMessages);
-    const sessionInfo = DesktopConversationRuntimeClient.getTranscriptSessionInfo();
+    const sessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo();
     const replayScreenshot = resolveReplayScreenshotState({
       screenshot: retryUserMessage.screenshot || null,
       screenshotRef: retryUserMessage.screenshotRef || null,
