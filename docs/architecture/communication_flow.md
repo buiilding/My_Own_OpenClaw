@@ -435,7 +435,7 @@ The Python sidecar uses REST endpoints on the same FastAPI server for memory ope
    ↓
 4. If captured/pasted, screenshot artifact(s) uploaded via HTTP `/api/artifacts` → returns `screenshot_ref`/`screenshot_refs`
    ↓
-5. IpcBridge.send('to-backend', { type: 'query', payload: { screenshot_ref, screenshot_refs?, ... } })
+5. IpcBridge.invoke('send-chat-query', { screenshot_ref, screenshot_refs?, ... })
    ↓
 6. Main process receives IPC message
    ↓

@@ -20,7 +20,8 @@ chat component until the producer and relay contracts are identified.
 
 - Renderer owns compose state, local optimistic rows, screenshot/file collection,
   transcript writes, and active conversation selection.
-- Electron main owns the `to-backend` IPC handler, settings ACK gate, query payload enrichment, synthetic
+- Electron main owns the typed `send-chat-query`/`stop-chat-query` IPC handlers,
+  settings ACK gate, query payload enrichment, synthetic
   `local-user-message` events, synthetic send-failure errors, replay buffer, and
   overlay phase fan-out.
 - The SDK runtime owns backend websocket construction, envelope send/close
@@ -69,7 +70,7 @@ sequenceDiagram
     R->>A: sendQuery(...)
     A->>SDK: runtime.send(...)
     SDK->>T: sendQuery(payload)
-    T->>M: to-backend { type: "query", payload }
+    T->>M: send-chat-query(payload)
     M->>M: ensure initial settings ACK if needed
     M->>M: prepareRendererQuerySend(...)
     M->>S: local-user-message optimistic event
@@ -87,10 +88,10 @@ Send and stop/cancel follow the same app-runtime boundary. Chat UI calls
 `DesktopLiveTurnRuntimeClient.sendQuery(...)`; that creates an SDK
 conversation runtime and calls `runtime.send(...)`. The desktop backend transport
 adapter is the only renderer-side layer that maps the semantic SDK query command
-into the `to-backend` `query` IPC envelope. Chat UI calls
+into the `send-chat-query` IPC invoke. Chat UI calls
 `DesktopLiveTurnRuntimeClient.stop(...)`; that creates an SDK conversation
 runtime and calls `runtime.stop(...)`, which the same adapter maps into the
-`to-backend` `stop-query` IPC envelope.
+`stop-chat-query` IPC invoke.
 
 ## Change Sequence
 
@@ -102,7 +103,7 @@ Before editing, answer which contract is changing:
   message-send policy, disabled send states.
 - Renderer runtime facade contract: `DesktopLiveTurnRuntimeClient.sendQuery(...)` arguments,
   SDK `runtime.send(...)` payload, and desktop backend transport
-  `SEND_CHANNELS.TO_BACKEND` payload shape.
+  typed chat IPC payload shape.
 - Main/SDK runtime contract: query payload filtering, enrichment, settings ACK
   gate, SDK runtime send, local synthetic events, replay, and send failure behavior.
 - Backend websocket contract: incoming `query` schema, handler dispatch, stream
@@ -242,7 +243,7 @@ Renderer stream invariants:
 
 | Symptom | First checks | Likely fix area |
 | --- | --- | --- |
-| User row appears but no backend response | Confirm `DesktopLiveTurnRuntimeClient.sendQuery` fired, low-level `to-backend` reached main, websocket was connected, and send failure event was not synthesized. | `useChatMessageSender.ts`, `desktopLiveTurnRuntimeClient.ts`, `ipc.cjs`, `ipc_query_send_runtime.cjs`, websocket connection docs |
+| User row appears but no backend response | Confirm `DesktopLiveTurnRuntimeClient.sendQuery` fired, typed `send-chat-query` reached main, websocket was connected, and send failure event was not synthesized. | `useChatMessageSender.ts`, `desktopLiveTurnRuntimeClient.ts`, `ipc.cjs`, `ipc_query_send_runtime.cjs`, websocket connection docs |
 | First query uses old model/settings | Check `ensureInitialSettingsSync()`, pending ACK map, `settings-updated` event id, and timeout logs. | `ipc_settings_sync.cjs`, app config backend sync, backend settings handler |
 | Screenshot displays locally but model cannot inspect it | Check artifact upload result, `screenshot_ref`/`screenshot_refs`, inline screenshot fallback, and backend artifact lookup. | query screenshot pipeline, `DesktopLiveTurnRuntimeClient.sendQuery`, backend `QueryExecutionService` |
 | File attachment is visible but ignored by model | Check readable file context generation, `attachment_context` stripping, and `<attached_file_context>` insertion. | renderer file helper, `ipc_query_runtime.cjs`, `query_payload_builder.cjs` |

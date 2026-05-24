@@ -54,6 +54,8 @@ Main-process handler registration is split by responsibility:
 
 `ipcMain.handle`:
 
+- `send-chat-query`
+- `stop-chat-query`
 - `load-frontend-config`
 - `get-client-user-id`
 - `upload-artifact`
@@ -65,7 +67,8 @@ Main-process handler registration is split by responsibility:
 
 Notable behavior:
 
-- `to-backend` query path performs initial settings sync gate, local optimistic user event synthesis, payload enrichment, and websocket send
+- `send-chat-query` performs initial settings sync gate, local optimistic user event synthesis, payload enrichment, and websocket send
+- `stop-chat-query` sends the backend stop command without exposing generic renderer command routing
 - `save/load-frontend-config` call atomic file helpers in `ipc_frontend_config.cjs`
 - helper-module split:
   - inbound backend message normalization/state/phase fan-out: `ipc_runtime_helpers.cjs`

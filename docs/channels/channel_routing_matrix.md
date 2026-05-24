@@ -14,7 +14,7 @@ This matrix maps entry channels to the transport and code that own them. Start h
 
 | Channel | Primary input | Transport path | Backend owner | Frontend/sidecar owner | Validate |
 | --- | --- | --- | --- | --- | --- |
-| Dashboard chat query | dashboard composer submit | renderer `to-backend` IPC -> Electron main -> `/ws` `query` | `backend/src/api/handlers/query.py`, `backend/src/api/services/query_execution.py` | `frontend/src/renderer/features/chat/**`, `frontend/src/main/ipc.cjs` | backend query tests, frontend chat/IPC tests |
+| Dashboard chat query | dashboard composer submit | renderer `send-chat-query` IPC -> Electron main -> `/ws` `query` | `backend/src/api/handlers/query.py`, `backend/src/api/services/query_execution.py` | `frontend/src/renderer/features/chat/**`, `frontend/src/main/ipc.cjs` | backend query tests, frontend chat/IPC tests |
 | Minimal pill query | overlay composer submit | overlay renderer IPC -> Electron main -> `/ws` `query` | same backend query path | `frontend/src/renderer/app/ChatBox*.jsx`, overlay IPC/window runtime | overlay/main-process tests, query-send tests |
 | Settings/model messages | dashboard settings or startup sync | renderer `to-backend` IPC -> `/ws` non-query handlers | `backend/src/api/handlers/settings.py`, model/list handlers | settings provider, `ipc_settings_sync.cjs` | settings ACK and model-list tests |
 | Stop query | user stop, VM stop control | renderer SDK conversation runtime or VM worker -> `/ws` `stop-query` | `backend/src/api/handlers/stop_query.py` | renderer controls, SDK backend transport adapter, `vm_worker_runtime.cjs` | stop/cancellation tests, VM worker tests |

@@ -1,5 +1,5 @@
 import type { BackendTransport } from '../../infrastructure/api/windieSdkClient';
-import { IpcBridge, SEND_CHANNELS } from '../../infrastructure/ipc/bridge';
+import { IpcBridge, INVOKE_CHANNELS, SEND_CHANNELS } from '../../infrastructure/ipc/bridge';
 import { getMemoryRetrievalInjectionEnabled } from '../../utils/memoryRetrievalPreference';
 import { normalizeNonEmptyString } from '../../utils/normalizeNonEmptyString';
 
@@ -17,46 +17,40 @@ function optionalStringArray(value: unknown): string[] | null {
   return normalized.length > 0 ? normalized : null;
 }
 
-function sendStopQuery(conversationRef: string | null): void {
-  IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
-    type: 'stop-query',
-    payload: {
-      conversation_ref: conversationRef,
-    },
+async function sendStopQuery(conversationRef: string | null): Promise<void> {
+  await IpcBridge.invoke(INVOKE_CHANNELS.STOP_CHAT_QUERY, {
+    conversation_ref: conversationRef,
   });
 }
 
-function sendQuery(payload: Record<string, unknown>, workspacePath: string | null): void {
-  IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
-    type: 'query',
-    payload: {
-      text: optionalString(payload.text) ?? '',
-      conversation_ref: optionalString(payload.conversation_ref)
-        ?? optionalString(payload.conversationRef)
-        ?? '',
-      screenshot_ref: optionalString(payload.screenshot_ref)
-        ?? optionalString(payload.screenshotRef)
-        ?? null,
-      screenshot: optionalString(payload.screenshot) ?? null,
-      screenshot_url: optionalString(payload.screenshot_url)
-        ?? optionalString(payload.screenshotUrl)
-        ?? null,
-      screenshot_refs: optionalStringArray(payload.screenshot_refs)
-        ?? optionalStringArray(payload.screenshotRefs)
-        ?? null,
-      capture_meta: payload.capture_meta ?? payload.captureMeta ?? null,
-      attachment_context: optionalString(payload.attachment_context)
-        ?? optionalString(payload.attachmentContext)
-        ?? null,
-      attachment_filenames: optionalStringArray(payload.attachment_filenames)
-        ?? optionalStringArray(payload.attachmentFilenames)
-        ?? null,
-      workspace_path: optionalString(payload.workspace_path)
-        ?? optionalString(payload.workspacePath)
-        ?? workspacePath
-        ?? null,
-      memory_retrieval_enabled: getMemoryRetrievalInjectionEnabled(),
-    },
+async function sendQuery(payload: Record<string, unknown>, workspacePath: string | null): Promise<void> {
+  await IpcBridge.invoke(INVOKE_CHANNELS.SEND_CHAT_QUERY, {
+    text: optionalString(payload.text) ?? '',
+    conversation_ref: optionalString(payload.conversation_ref)
+      ?? optionalString(payload.conversationRef)
+      ?? '',
+    screenshot_ref: optionalString(payload.screenshot_ref)
+      ?? optionalString(payload.screenshotRef)
+      ?? null,
+    screenshot: optionalString(payload.screenshot) ?? null,
+    screenshot_url: optionalString(payload.screenshot_url)
+      ?? optionalString(payload.screenshotUrl)
+      ?? null,
+    screenshot_refs: optionalStringArray(payload.screenshot_refs)
+      ?? optionalStringArray(payload.screenshotRefs)
+      ?? null,
+    capture_meta: payload.capture_meta ?? payload.captureMeta ?? null,
+    attachment_context: optionalString(payload.attachment_context)
+      ?? optionalString(payload.attachmentContext)
+      ?? null,
+    attachment_filenames: optionalStringArray(payload.attachment_filenames)
+      ?? optionalStringArray(payload.attachmentFilenames)
+      ?? null,
+    workspace_path: optionalString(payload.workspace_path)
+      ?? optionalString(payload.workspacePath)
+      ?? workspacePath
+      ?? null,
+    memory_retrieval_enabled: getMemoryRetrievalInjectionEnabled(),
   });
 }
 
@@ -121,7 +115,7 @@ export function createDesktopBackendTransport(workspacePath: string | null = nul
     connect: async () => undefined,
     handshake: async () => undefined,
     sendQuery: async (payload) => {
-      sendQuery(payload, normalizedWorkspacePath);
+      await sendQuery(payload, normalizedWorkspacePath);
       return optionalString(payload.turn_ref) ?? optionalString(payload.turnRef) ?? '';
     },
     sendToolResult: async () => undefined,
@@ -146,7 +140,7 @@ export function createDesktopBackendTransport(workspacePath: string | null = nul
       return undefined;
     },
     stop: async (payload) => {
-      sendStopQuery(
+      await sendStopQuery(
         optionalString(payload.conversation_ref) ?? optionalString(payload.conversationRef),
       );
     },

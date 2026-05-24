@@ -893,13 +893,163 @@ function initializeIpc(win, options = {}) {
     currentUserId = syncResult.nextUserId;
   });
 
-  ipcMain.on('to-backend', async (event, message = {}) => {
+  async function handleRendererChatQuery(event, payloadInput = {}) {
+    let payload = (
+      payloadInput
+      && typeof payloadInput === 'object'
+      && !Array.isArray(payloadInput)
+    ) ? { ...payloadInput } : {};
+    let queryMessageId = null;
+    let queryUsedInitialContext = false;
+
+    if (!currentUserId) {
+      try {
+        await ensureInstallAuthState();
+      } catch (error) {
+        log(`Failed to resolve authenticated user before query: ${error?.message || error}`);
+      }
+    }
+
+    let preparedQuery = null;
+    try {
+      preparedQuery = await prepareRendererQuerySend({
+        event,
+        payload,
+        currentConversationRef,
+        currentSessionId,
+        currentServerUserId,
+        currentUserId,
+        backendHttpUrl: resolvePreferredArtifactHttpUrl(
+          BACKEND_HTTP_URL,
+          BACKEND_ENDPOINT_CANDIDATES,
+        ),
+        isFirstQuery,
+        deps: {
+          BrowserWindow,
+          screen,
+          runBeforeOverlayQueryCapture,
+          onBeforeOverlayQueryCapture,
+          log,
+          prepareRendererQueryPayload,
+          resolveConversationRefFromPayload,
+          uuidGenerator: uuidv4,
+          logChatPillMainTrace,
+          setResponseOverlayPhase,
+          getWindows,
+          setActiveDisplayAffinity,
+          resolveActiveSurfaceDisplayAffinity,
+          broadcastLocalUserMessageRuntime,
+          buildLocalUserMessage,
+          broadcastToRenderers,
+          ipcEventReplayState,
+          buildQueryPayload,
+          buildQueryPayloadContent,
+          getSystemState,
+          searchMemory,
+        },
+      });
+    } catch (error) {
+      log(`Rejected renderer query: ${error?.message || error}`);
+      setResponseOverlayPhase('error', 'query-missing-conversation-ref');
+      return { ok: false, error: error?.message || 'Rejected renderer query' };
+    }
+
+    payload = attachAgentDefinitionContext(preparedQuery.payload);
+    currentConversationRef = preparedQuery.conversationRef;
+    queryMessageId = preparedQuery.queryMessageId;
+    queryUsedInitialContext = preparedQuery.queryUsedInitialContext;
+    activeQueryContext = {
+      queryMessageId,
+      conversationRef: currentConversationRef,
+      accepted: false,
+    };
+    log('Received query from renderer');
+    log('Complete user message built successfully');
+
+    let backendConnectionReady = true;
+    if (!isBackendRuntimeConnected()) {
+      try {
+        await ensureBackendConnection('query');
+      } catch (error) {
+        backendConnectionReady = false;
+        log(`Failed to connect backend for query: ${error?.message || error}`);
+      }
+    }
+
+    if (backendConnectionReady) {
+      await ensureInitialSettingsSync();
+      if (pendingSettingsSyncPromise) {
+        await pendingSettingsSyncPromise;
+      }
+    }
+
+    let messageId = null;
+    if (backendConnectionReady) {
+      messageId = sendSdkRuntimeCommand(getWindieSdkRuntime(), {
+        type: 'query',
+        payload,
+        messageId: queryMessageId,
+      });
+    }
+
+    if (!messageId) {
+      activeQueryContext = null;
+      handleRendererQuerySendFailure({
+        payload,
+        queryMessageId,
+        currentSessionId,
+        currentServerUserId,
+        currentUserId,
+        currentConversationRef,
+        deps: {
+          resolveConversationRefFromPayload,
+          ipcEventReplayState,
+          broadcastQuerySendFailureRuntime,
+          buildQuerySendFailure,
+          setResponseOverlayPhase,
+          broadcastToRenderers,
+        },
+      });
+      return { ok: false, error: 'Failed to send query to backend' };
+    }
+
+    if (queryUsedInitialContext) {
+      isFirstQuery = false;
+    }
+    return { ok: true, messageId, queryMessageId };
+  }
+
+  function handleRendererStopQuery(payloadInput = {}) {
+    const payload = (
+      payloadInput
+      && typeof payloadInput === 'object'
+      && !Array.isArray(payloadInput)
+    ) ? { ...payloadInput } : {};
+    const messageId = sendStopQueryToBackend(payload);
+    setResponseOverlayPhase('complete', 'stop-query');
+    return { ok: Boolean(messageId), messageId };
+  }
+
+  ipcMain.handle('send-chat-query', async (event, payload = {}) => (
+    handleRendererChatQuery(event, payload)
+  ));
+
+  ipcMain.handle('stop-chat-query', async (_event, payload = {}) => (
+    handleRendererStopQuery(payload)
+  ));
+
+  ipcMain.on('to-backend', async (_event, message = {}) => {
     const normalizedCommand = normalizeSdkRuntimeCommand(message);
     const type = normalizedCommand.type;
     let payload = normalizedCommand.payload;
 
     if (!type) {
       log('Ignoring malformed to-backend message: missing string "type"');
+      return;
+    }
+
+    if (type === 'query' || type === 'stop-query') {
+      log(`Ignoring ${type} on generic to-backend IPC; use the typed chat IPC channel.`);
       return;
     }
 
@@ -919,82 +1069,13 @@ function initializeIpc(win, options = {}) {
       return;
     }
 
-    if (type === 'stop-query') {
-      setResponseOverlayPhase('complete', 'stop-query');
-    }
-
     // Only log important message types
     if (shouldLogRendererSdkRuntimeCommand(type)) {
       log(`Received ${type} from renderer`);
     }
 
-    let queryMessageId = null;
-    let queryUsedInitialContext = false;
-
-    if (type === 'query') {
-      if (!currentUserId) {
-        try {
-          await ensureInstallAuthState();
-        } catch (error) {
-          log(`Failed to resolve authenticated user before query: ${error?.message || error}`);
-        }
-      }
-      let preparedQuery = null;
-      try {
-        preparedQuery = await prepareRendererQuerySend({
-          event,
-          payload,
-          currentConversationRef,
-          currentSessionId,
-          currentServerUserId,
-          currentUserId,
-          backendHttpUrl: resolvePreferredArtifactHttpUrl(
-            BACKEND_HTTP_URL,
-            BACKEND_ENDPOINT_CANDIDATES,
-          ),
-          isFirstQuery,
-          deps: {
-            BrowserWindow,
-            screen,
-            runBeforeOverlayQueryCapture,
-            onBeforeOverlayQueryCapture,
-            log,
-            prepareRendererQueryPayload,
-            resolveConversationRefFromPayload,
-            uuidGenerator: uuidv4,
-            logChatPillMainTrace,
-            setResponseOverlayPhase,
-            getWindows,
-            setActiveDisplayAffinity,
-            resolveActiveSurfaceDisplayAffinity,
-            broadcastLocalUserMessageRuntime,
-            buildLocalUserMessage,
-            broadcastToRenderers,
-            ipcEventReplayState,
-            buildQueryPayload,
-            buildQueryPayloadContent,
-            getSystemState,
-            searchMemory,
-          },
-        });
-      } catch (error) {
-        log(`Rejected renderer query: ${error?.message || error}`);
-        setResponseOverlayPhase('error', 'query-missing-conversation-ref');
-        return;
-      }
-      payload = preparedQuery.payload;
-      if (type === 'query' || type === 'rehydrate') {
-        payload = attachAgentDefinitionContext(payload);
-      }
-      currentConversationRef = preparedQuery.conversationRef;
-      queryMessageId = preparedQuery.queryMessageId;
-      queryUsedInitialContext = preparedQuery.queryUsedInitialContext;
-      activeQueryContext = {
-        queryMessageId,
-        conversationRef: currentConversationRef,
-        accepted: false,
-      };
-      log('Complete user message built successfully');
+    if (type === 'rehydrate') {
+      payload = attachAgentDefinitionContext(payload);
     }
 
     let backendConnectionReady = true;
@@ -1017,35 +1098,12 @@ function initializeIpc(win, options = {}) {
     // System context is now pre-formatted in llm_content by ChatContext.jsx
     // No need to extract or add system_context here - backend expects pre-formatted messages
     
-    let messageId = null;
     if (backendConnectionReady) {
       const runtime = getWindieSdkRuntime();
-      messageId = sendSdkRuntimeCommand(runtime, {
+      sendSdkRuntimeCommand(runtime, {
         type,
         payload,
-        messageId: queryMessageId,
       });
-    }
-    if (!messageId && type === 'query') {
-      activeQueryContext = null;
-      handleRendererQuerySendFailure({
-        payload,
-        queryMessageId,
-        currentSessionId,
-        currentServerUserId,
-        currentUserId,
-        currentConversationRef,
-        deps: {
-          resolveConversationRefFromPayload,
-          ipcEventReplayState,
-          broadcastQuerySendFailureRuntime,
-          buildQuerySendFailure,
-          setResponseOverlayPhase,
-          broadcastToRenderers,
-        },
-      });
-    } else if (type === 'query' && queryUsedInitialContext) {
-      isFirstQuery = false;
     }
   });
 }

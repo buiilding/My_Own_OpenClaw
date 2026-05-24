@@ -15,6 +15,8 @@ type SharedChannelRegistry = {
     WAKEWORD_DISABLE: 'wakeword-disable';
   };
   INVOKE_CHANNELS: {
+    SEND_CHAT_QUERY: 'send-chat-query';
+    STOP_CHAT_QUERY: 'stop-chat-query';
     CAPTURE_SCREENSHOT_ATTACHMENT: 'capture-screenshot-attachment';
     READ_ATTACHMENT_FILE: 'read-attachment-file';
     RUN_BROWSER_ACTION: 'run-browser-action';

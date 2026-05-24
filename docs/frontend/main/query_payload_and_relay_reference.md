@@ -1,5 +1,5 @@
 ---
-summary: "Electron main query relay reference: renderer to-backend handling, SDK runtime sends, initial settings ACK gating, system/memory context payload assembly, and local-user-message/failure event synthesis."
+summary: "Electron main query relay reference: typed renderer chat IPC handling, SDK runtime sends, initial settings ACK gating, system/memory context payload assembly, and local-user-message/failure event synthesis."
 read_when:
   - When changing query transport from renderer to the SDK runtime/backend websocket, including helper payload shaping in `ipc_query_runtime.cjs`.
   - When debugging first-query context assembly, settings-sync gate timing, or local-user-message/error event behavior.
@@ -27,15 +27,17 @@ title: "Query Payload and Relay Reference"
 - `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`
 
-## Relay Entry: `ipcMain.on('to-backend', ...)`
+## Relay Entry: `ipcMain.handle('send-chat-query', ...)`
 
-Main receives renderer messages and branches by `type`.
+Main receives live chat query invokes on the typed `send-chat-query` channel.
+The older generic `to-backend` channel remains for non-chat backend commands
+such as settings updates, model list requests, wakeword activation, rehydrate,
+and compaction; it does not accept live chat `query` or `stop-query` commands.
 
 Common input normalization:
 
-- validates `type` is string
 - shallow-copies object payload only
-- drops malformed events early
+- drops malformed payloads early through query preparation validation
 
 Endpoint context for SDK runtime calls:
 
@@ -46,12 +48,17 @@ Endpoint context for SDK runtime calls:
 
 Special handling paths:
 
-- `update-settings`: delegated to settings ACK pipeline, no generic relay path
-- `query` and `wakeword-detected`: pass through initial settings sync gate before backend send
+- `send-chat-query`: prepares the renderer query, runs the initial settings gate,
+  and sends the backend websocket `query` through the SDK runtime
+- `stop-chat-query`: sends backend websocket `stop-query` through the SDK runtime
+- `update-settings`: delegated to settings ACK pipeline on the generic
+  `to-backend` channel, no generic relay path
+- live chat query and `wakeword-detected`: pass through initial settings sync gate before backend send
 
 ## Initial Settings ACK Gate Before Query
 
-For `query`/`wakeword-detected`, main calls `ensureInitialSettingsSync()`.
+For typed live chat query invokes and `wakeword-detected`, main calls
+`ensureInitialSettingsSync()`.
 
 Gate behavior:
 

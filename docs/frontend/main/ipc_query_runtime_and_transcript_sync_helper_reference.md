@@ -105,7 +105,7 @@ Returns:
 
 ## `ipc.cjs` Integration Contract
 
-### Renderer query path (`to-backend` -> `type === "query"`)
+### Renderer query path (`send-chat-query`)
 
 1. `prepareRendererQueryPayload(...)` normalizes mutable relay payload.
 2. optimistic local-user message uses normalized conversation/attachment context.

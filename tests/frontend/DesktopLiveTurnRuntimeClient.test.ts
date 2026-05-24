@@ -21,10 +21,11 @@ describe('DesktopLiveTurnRuntimeClient', () => {
 
   test('sendQuery routes query payloads through the SDK transport', async () => {
     const send = jest.fn();
+    const invoke = jest.fn();
     const originalIpc = window.ipc;
     window.ipc = {
       send,
-      invoke: jest.fn(),
+      invoke,
       on: jest.fn(),
       once: jest.fn(),
     };
@@ -46,21 +47,19 @@ describe('DesktopLiveTurnRuntimeClient', () => {
         workspacePath: ' /workspace/WindieOS ',
       });
 
-      expect(send).toHaveBeenCalledWith('to-backend', {
-        type: 'query',
-        payload: expect.objectContaining({
-          text: 'hello',
-          conversation_ref: 'conv-send',
-          screenshot_ref: 'artifact-main',
-          screenshot_url: 'https://cdn.example/shot.png',
-          screenshot_refs: ['artifact-1', 'artifact-2'],
-          capture_meta: { source: 'chat' },
-          attachment_context: 'file context',
-          attachment_filenames: ['notes.txt', 'image.png'],
-          screenshot: 'inline-shot',
-          workspace_path: '/workspace/WindieOS',
-          memory_retrieval_enabled: true,
-        }),
+      expect(send).not.toHaveBeenCalled();
+      expect(invoke).toHaveBeenCalledWith('send-chat-query', {
+        text: 'hello',
+        conversation_ref: 'conv-send',
+        screenshot_ref: 'artifact-main',
+        screenshot_url: 'https://cdn.example/shot.png',
+        screenshot_refs: ['artifact-1', 'artifact-2'],
+        capture_meta: { source: 'chat' },
+        attachment_context: 'file context',
+        attachment_filenames: ['notes.txt', 'image.png'],
+        screenshot: 'inline-shot',
+        workspace_path: '/workspace/WindieOS',
+        memory_retrieval_enabled: true,
       });
     } finally {
       window.ipc = originalIpc;
@@ -69,10 +68,11 @@ describe('DesktopLiveTurnRuntimeClient', () => {
 
   test('stop routes through the SDK runtime transport', async () => {
     const send = jest.fn();
+    const invoke = jest.fn();
     const originalIpc = window.ipc;
     window.ipc = {
       send,
-      invoke: jest.fn(),
+      invoke,
       on: jest.fn(),
       once: jest.fn(),
     };
@@ -83,11 +83,9 @@ describe('DesktopLiveTurnRuntimeClient', () => {
     try {
       await DesktopLiveTurnRuntimeClient.stop('conv-stop');
 
-      expect(send).toHaveBeenCalledWith('to-backend', {
-        type: 'stop-query',
-        payload: {
-          conversation_ref: 'conv-stop',
-        },
+      expect(send).not.toHaveBeenCalled();
+      expect(invoke).toHaveBeenCalledWith('stop-chat-query', {
+        conversation_ref: 'conv-stop',
       });
     } finally {
       window.ipc = originalIpc;

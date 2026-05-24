@@ -57,10 +57,7 @@ describe('ipc.cjs bridge query handling', () => {
   }
 
   function sendQuery(handlers, payload, sender = null) {
-    return handlers['to-backend']({ sender }, {
-      type: 'query',
-      payload,
-    });
+    return handlers['send-chat-query']({ sender }, payload);
   }
 
   async function beginQuerySend(bridge, payload, sender = null) {

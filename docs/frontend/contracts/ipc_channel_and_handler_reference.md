@@ -48,9 +48,9 @@ Owner: `ipc.cjs`
 
 Behavior:
 
-- primary relay channel into the SDK runtime adapter.
-- supports message types like `query`, `update-settings`, `tool-result`, `tool-bundle-result`, `wakeword-detected`, etc.
-- query path enriches payload with system state + memory context and generates local optimistic user event.
+- generic relay channel into the SDK runtime adapter for non-chat backend commands.
+- supports message types like `update-settings`, `list-models`, `rehydrate`, `compact-history`, and `wakeword-detected`.
+- live chat `query` and `stop-query` are intentionally not accepted on this channel; use the typed invoke channels below.
 
 ### `move-chatbox-to`
 
@@ -82,6 +82,8 @@ Behavior:
 
 ## IPC bridge channels (`ipc.cjs`)
 
+- `send-chat-query` -> prepares the renderer query payload, runs the settings ACK gate, emits local optimistic events, enriches system/memory context, and sends backend websocket `query` through the SDK runtime
+- `stop-chat-query` -> sends backend websocket `stop-query` through the SDK runtime for live chat cancellation
 - `load-frontend-config` -> loads persisted config JSON from userData
 - `save-frontend-config` -> atomic temp-write + rename persistence
 - `get-client-user-id` -> returns websocket user/session endpoint metadata
@@ -180,11 +182,11 @@ Permission onboarding and settings data-controls use invoke-only channels:
 
 These channels are registered in `permission_ipc_runtime.cjs` and delegated to `permission_service.cjs`.
 
-## `to-backend` Query Relay Lifecycle (main process)
+## `send-chat-query` Relay Lifecycle (main process)
 
 Owner: `ipc.cjs` (with helper-module delegation to `ipc_runtime_helpers.cjs`, `ipc_query_broadcast.cjs`, and `ipc_query_events.cjs`).
 
-1. validates message envelope and type.
+1. validates and normalizes the chat payload.
 2. for first query after connect, enforces one-time settings sync gate (`update-settings` ACK/timeout handling).
 3. runs overlay pre-capture hook for chatbox sender.
 4. generates local optimistic user event (`local-user-message`) to render instantly.

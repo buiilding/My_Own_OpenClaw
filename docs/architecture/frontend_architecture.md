@@ -108,7 +108,7 @@ Current runtime behavior also relies on these explicit seams:
 1. User enters message in `renderer/features/chat/components/MessageInput.jsx`.
 2. `useChatMessageSender` builds payload and optional screenshot metadata.
 3. The message sender records the user projection through a focused transcript helper, then `DesktopLiveTurnRuntimeClient.sendQuery()` creates an SDK conversation runtime and calls `runtime.send(...)`.
-4. The desktop backend transport maps the SDK query payload to `to-backend { type: "query" }` IPC.
+4. The desktop backend transport maps the SDK query payload to the typed `send-chat-query` IPC invoke.
 5. Main `ipc.cjs`:
    - Ensures one-time initial settings sync ACK gate.
    - Runs blur-only overlay pre-capture prep for chatbox-surface sends.

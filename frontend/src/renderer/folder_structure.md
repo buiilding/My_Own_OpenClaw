@@ -282,7 +282,7 @@ frontend/src/renderer/
            ↓
 3. SDK RUNTIME TRANSPORT
    └─> app/runtime/desktopBackendTransport.ts
-       └─> IpcBridge.send(SEND_CHANNELS.TO_BACKEND, { type: 'query', ... })
+       └─> IpcBridge.invoke(INVOKE_CHANNELS.SEND_CHAT_QUERY, payload)
            └─> Main process (`src/main/ipc.cjs`) hands query context to the SDK runtime, which owns the hosted backend WebSocket
 ```
 

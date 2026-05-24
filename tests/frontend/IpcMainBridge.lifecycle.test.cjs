@@ -206,12 +206,9 @@ describe('ipc.cjs bridge lifecycle/config', () => {
 
     // Dashboard closes; chat pill sends query with explicit conversation_ref from
     // its synchronized SDK conversation session.
-    await handlers['to-backend']({ sender: chatPillWindow.webContents }, {
-      type: 'query',
-      payload: {
-        text: 'follow-up with explicit conversation ref',
-        conversation_ref: 'conv-dashboard-selected',
-      },
+    await handlers['send-chat-query']({ sender: chatPillWindow.webContents }, {
+      text: 'follow-up with explicit conversation ref',
+      conversation_ref: 'conv-dashboard-selected',
     });
 
     const sentQuery = JSON.parse(ws.sent[ws.sent.length - 1]);
@@ -402,11 +399,45 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(ws).toBeNull();
   });
 
-  test('rejects query events with missing payload object without throwing', async () => {
+  test('ignores generic to-backend query events without throwing', async () => {
     const { handlers, ws, backendBridge } = await setupOpenedIpc();
     primeQueryContext(backendBridge);
 
     await handlers['to-backend']({ sender: null }, { type: 'query' });
+
+    expect(ws.sent.map((entry) => JSON.parse(entry).type)).not.toContain('query');
+  });
+
+  test('ignores generic to-backend stop-query events without throwing', async () => {
+    const { handlers, ws } = await setupOpenedIpc();
+
+    await handlers['to-backend']({ sender: null }, {
+      type: 'stop-query',
+      payload: { conversation_ref: 'conv-generic-stop' },
+    });
+
+    expect(ws.sent.map((entry) => JSON.parse(entry).type)).not.toContain('stop-query');
+  });
+
+  test('sends typed stop-chat-query through the SDK runtime', async () => {
+    const { handlers, ws } = await setupOpenedIpc();
+
+    await handlers['stop-chat-query']({ sender: null }, {
+      conversation_ref: 'conv-typed-stop',
+    });
+
+    const sentStopQuery = JSON.parse(ws.sent[ws.sent.length - 1]);
+    expect(sentStopQuery.type).toBe('stop-query');
+    expect(sentStopQuery.payload).toEqual({
+      conversation_ref: 'conv-typed-stop',
+    });
+  });
+
+  test('rejects typed query invokes with missing payload object without throwing', async () => {
+    const { handlers, ws, backendBridge } = await setupOpenedIpc();
+    primeQueryContext(backendBridge);
+
+    await handlers['send-chat-query']({ sender: null });
 
     expect(ws.sent.map((entry) => JSON.parse(entry).type)).not.toContain('query');
   });
@@ -418,9 +449,9 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     });
     primeQueryContext(backendBridge);
 
-    await handlers['to-backend']({ sender: mainWindow.webContents }, {
-      type: 'query',
-      payload: { text: 'stop shortcut lifecycle', conversation_ref: 'conv-stop-shortcut' },
+    await handlers['send-chat-query']({ sender: mainWindow.webContents }, {
+      text: 'stop shortcut lifecycle',
+      conversation_ref: 'conv-stop-shortcut',
     });
 
     expect(setAgentLoopStopShortcutEnabled).toHaveBeenLastCalledWith(true);
@@ -442,9 +473,9 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     });
     primeQueryContext(backendBridge);
 
-    await handlers['to-backend']({ sender: mainWindow.webContents }, {
-      type: 'query',
-      payload: { text: 'query before global stop' },
+    await handlers['send-chat-query']({ sender: mainWindow.webContents }, {
+      text: 'query before global stop',
+      conversation_ref: 'conv-global-stop',
     });
 
     const stopTriggered = ipc.triggerStopQueryFromMain();
