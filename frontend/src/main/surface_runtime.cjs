@@ -82,6 +82,7 @@ function createSurfaceRuntime({
   windowPlatformPolicy,
   initialChatPillUserHidden = false,
   persistChatPillUserHidden = () => {},
+  log = console.log,
   warn = console.warn,
 } = {}) {
   const state = {
@@ -286,6 +287,10 @@ function createSurfaceRuntime({
     } catch (error) {
       warn('[Main] Failed to persist chat pill visibility intent:', error?.message || error);
     }
+    logChatPillVisibilityDecision({
+      action: 'user-hidden-state-changed',
+      userHidden: nextUserHidden,
+    }, { log });
     return true;
   }
 
@@ -300,6 +305,13 @@ function createSurfaceRuntime({
   function showChatWindow(options = {}) {
     const reason = normalizeChatPillReason(options?.reason, 'unspecified');
     if (shouldSuppressChatPillShow(options)) {
+      logChatPillVisibilityDecision({
+        action: 'show-suppressed',
+        reason,
+        userHidden: state.chatPillUserHidden,
+        focus: options?.focus !== false,
+        restoreResponseOverlay: options?.restoreResponseOverlay === true,
+      }, { log });
       return {
         success: true,
         suppressed: true,
@@ -310,7 +322,7 @@ function createSurfaceRuntime({
       setChatPillUserHidden(false);
     }
     state.primarySurface = 'chat';
-    return showChatWindowRuntime(normalizeChatSurfaceWindowOptions(options), {
+    const result = showChatWindowRuntime(normalizeChatSurfaceWindowOptions(options), {
       chatWindow: state.chatWindow,
       mainWindow: state.mainWindow,
       responseWindow: state.responseWindow,
@@ -332,6 +344,17 @@ function createSurfaceRuntime({
       getActiveDisplayAffinity,
       getResponseOverlayPhase: () => state.responseOverlayPhase,
     });
+    logChatPillVisibilityDecision({
+      action: result?.success ? 'show-applied' : 'show-failed',
+      reason,
+      userHidden: state.chatPillUserHidden,
+      focus: options?.focus !== false,
+      restoreResponseOverlay: options?.restoreResponseOverlay === true,
+      resultReason: typeof result?.reason === 'string' ? result.reason : null,
+      chatWindowVisible: safeWindowVisible(state.chatWindow),
+      responseWindowVisible: safeWindowVisible(state.responseWindow),
+    }, { log });
+    return result;
   }
 
   function hideChatWindow(options = {}) {
@@ -339,7 +362,7 @@ function createSurfaceRuntime({
     if (reason === CHAT_PILL_HIDE_REASON.USER) {
       setChatPillUserHidden(true);
     }
-    return hideChatWindowRuntime({
+    const result = hideChatWindowRuntime({
       chatWindow: state.chatWindow,
       responseWindow: state.responseWindow,
       contextLabelWindow: state.contextLabelWindow,
@@ -347,6 +370,15 @@ function createSurfaceRuntime({
       syncWakewordToggleForChatVisibility,
       getResponseOverlayPhase: () => state.responseOverlayPhase,
     });
+    logChatPillVisibilityDecision({
+      action: result?.success ? 'hide-applied' : 'hide-failed',
+      reason: reason || 'unspecified',
+      userHidden: state.chatPillUserHidden,
+      resultReason: typeof result?.reason === 'string' ? result.reason : null,
+      chatWindowVisible: safeWindowVisible(state.chatWindow),
+      responseWindowVisible: safeWindowVisible(state.responseWindow),
+    }, { log });
+    return result;
   }
 
   function hideMainWindow(options = {}) {
@@ -489,8 +521,40 @@ function createSurfaceRuntime({
   };
 }
 
+function safeWindowVisible(win) {
+  if (!win || typeof win !== 'object') {
+    return null;
+  }
+  if (typeof win.isDestroyed === 'function' && win.isDestroyed()) {
+    return null;
+  }
+  return typeof win.isVisible === 'function' ? Boolean(win.isVisible()) : null;
+}
+
+function logChatPillVisibilityDecision(event = {}, deps = {}) {
+  const { log = console.log } = deps;
+  const payload = {
+    action: normalizeChatPillReason(event.action, 'unknown'),
+    reason: normalizeChatPillReason(event.reason, null),
+    user_hidden: event.userHidden === true,
+    focus: typeof event.focus === 'boolean' ? event.focus : null,
+    restore_response_overlay: typeof event.restoreResponseOverlay === 'boolean'
+      ? event.restoreResponseOverlay
+      : null,
+    result_reason: normalizeChatPillReason(event.resultReason, null),
+    chat_window_visible: typeof event.chatWindowVisible === 'boolean'
+      ? event.chatWindowVisible
+      : null,
+    response_window_visible: typeof event.responseWindowVisible === 'boolean'
+      ? event.responseWindowVisible
+      : null,
+  };
+  log('[ChatPillVisibility][main]', payload);
+}
+
 module.exports = {
   CHAT_PILL_HIDE_REASON,
   CHAT_PILL_SHOW_REASON,
+  logChatPillVisibilityDecision,
   createSurfaceRuntime,
 };

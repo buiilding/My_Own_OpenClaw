@@ -49,6 +49,7 @@ function createSurfaceDeps() {
       applyOverlayWindowPolicy: jest.fn(),
       activateWindowForInteraction: jest.fn(),
     },
+    log: jest.fn(),
     warn: jest.fn(),
   };
 }
@@ -153,5 +154,46 @@ describe('surface_runtime', () => {
 
     expect(persistChatPillUserHidden).not.toHaveBeenCalled();
     expect(runtime.getState().chatPillUserHidden).toBe(false);
+  });
+
+  test('logs chat pill show decisions with reasons', () => {
+    const log = jest.fn();
+    const runtime = createSurfaceRuntime({
+      ...createSurfaceDeps(),
+      log,
+    });
+    const chatWindow = createWindow({ visible: false });
+    runtime.setChatWindow(chatWindow);
+
+    runtime.showChatWindow({ focus: true, reason: 'wakeword' });
+
+    expect(log).toHaveBeenCalledWith('[ChatPillVisibility][main]', expect.objectContaining({
+      action: 'show-applied',
+      reason: 'wakeword',
+      user_hidden: false,
+      focus: true,
+      chat_window_visible: false,
+    }));
+  });
+
+  test('logs suppressed chat pill show decisions with reasons', () => {
+    const log = jest.fn();
+    const runtime = createSurfaceRuntime({
+      ...createSurfaceDeps(),
+      initialChatPillUserHidden: true,
+      log,
+    });
+    const chatWindow = createWindow({ visible: false });
+    runtime.setChatWindow(chatWindow);
+
+    runtime.showChatWindow({ focus: true, reason: 'startup' });
+
+    expect(log).toHaveBeenCalledWith('[ChatPillVisibility][main]', expect.objectContaining({
+      action: 'show-suppressed',
+      reason: 'startup',
+      user_hidden: true,
+      focus: true,
+      result_reason: null,
+    }));
   });
 });

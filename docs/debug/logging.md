@@ -57,6 +57,15 @@ Important main-process flags:
 | `WINDIE_DEBUG_TOOL_SCREENSHOT=1` | Adds renderer screenshot debug query params for tool screenshot traces. |
 | `WINDIE_DEBUG_GHOST_OVERLAY=1` | Enabled by `npm run test:ghost-cursor` for OS tool ghost overlay debugging. |
 
+Chat pill visibility decisions are always logged from Electron main with:
+
+- `[ChatPillVisibility][main]`
+
+The payload includes `action`, `reason`, `user_hidden`, `focus`,
+`restore_response_overlay`, `result_reason`, `chat_window_visible`, and
+`response_window_visible`. Use it to tell why the pill appeared or why a
+generic restore was suppressed.
+
 ## Renderer Logs
 
 Renderer logs are visible in Electron DevTools and are usually gated by query params that Electron main injects into window URLs.

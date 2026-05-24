@@ -48,6 +48,9 @@ Shared ownership model:
   - `mainWindowMode`: `onboarding|dashboard`
 - `window_platform_policy.cjs` is the single owner for per-platform `BrowserWindow` policy such as content protection, overlay topmost/workspace rules, and explicit activation/focus handoff.
 - `response_overlay_visibility_policy.cjs` is the shared pure policy layer for response-overlay phase -> window mode mapping and chat-pill response-shell restore eligibility.
+- `surface_runtime.cjs` emits always-on `[ChatPillVisibility][main]` logs for
+  chat-pill show/hide decisions, including `reason`, `user_hidden`, focus, and
+  final window visibility.
 - `chat_pill_trace_runtime.cjs` is the gated main-process trace helper for chat-pill / response-overlay transitions (`[ChatPillTrace][main]`).
 - `index.cjs` now wires those owners together and passes their narrow callbacks into bootstrap/lifecycle/IPC modules instead of mutating window state directly.
 
@@ -158,6 +161,9 @@ Overlay focus behavior is now the same on every desktop OS:
   reappear just because the app wakes or remounts
 - explicit summons such as wakeword detection, global hotkey, and dashboard
   close-to-pill handoff clear the user-hidden intent and may show the pill
+- emits `[ChatPillVisibility][main]` with `action="show-applied"`,
+  `action="show-failed"`, or `action="show-suppressed"` so Electron logs show
+  why the pill appeared or stayed hidden
 - display target resolution is centralized in `resolveShowTargetDisplayAffinity(...)`:
   - explicit display target wins
   - stored active display affinity fallback applies only when chat window is hidden

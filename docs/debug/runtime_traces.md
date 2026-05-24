@@ -59,8 +59,15 @@ WINDIE_DEBUG_CHAT_PILL=1 npm run electron:dev
 
 Expected markers:
 
+- `[ChatPillVisibility][main]`
 - `[ChatPillTrace][main]`
 - `[ChatPillTrace][renderer]`
+
+`[ChatPillVisibility][main]` is always emitted for chat-pill show/hide
+decisions and includes the show/hide `reason`, whether persisted
+`user_hidden` intent was active, and whether a generic restore was suppressed.
+`[ChatPillTrace][main]` and `[ChatPillTrace][renderer]` require the debug flag
+above and include deeper phase/window snapshots.
 
 Phase invariants to check:
 
