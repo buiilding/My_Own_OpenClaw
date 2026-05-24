@@ -260,5 +260,16 @@ export function normalizeBackendEventToConversationEvent(
       },
     });
   }
+  if (event.type === 'memory-store') {
+    return createConversationEvent({
+      ...base,
+      type: 'memory_stored',
+      source: 'backend',
+      payload: {
+        ...payload,
+        rawEvent: event,
+      },
+    });
+  }
   return null;
 }

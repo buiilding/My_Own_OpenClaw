@@ -5,21 +5,18 @@ const EVENT_TYPES: BackendEventType[] = [
   'llm-thought',
   'web-search-progress',
   'local-user-message',
-  'memory-store',
 ];
 
 type HandlerName =
   | 'handleLlmThought'
   | 'handleWebSearchProgress'
-  | 'handleLocalUserMessage'
-  | 'handleMemoryStore';
+  | 'handleLocalUserMessage';
 
 function buildHandlers(): Record<HandlerName, jest.Mock<void, [unknown]>> {
   return {
     handleLlmThought: jest.fn(),
     handleWebSearchProgress: jest.fn(),
     handleLocalUserMessage: jest.fn(),
-    handleMemoryStore: jest.fn(),
   };
 }
 
@@ -42,6 +39,7 @@ describe('chatStreamHandlerMap', () => {
     expect(map['tool-schemas']).toBeUndefined();
     expect(map.error).toBeUndefined();
     expect(map['token-count']).toBeUndefined();
+    expect(map['memory-store']).toBeUndefined();
   });
 
   test('routes raw-map events to matching handlers', () => {
@@ -54,7 +52,6 @@ describe('chatStreamHandlerMap', () => {
       { type: 'llm-thought', handlerName: 'handleLlmThought' },
       { type: 'web-search-progress', handlerName: 'handleWebSearchProgress' },
       { type: 'local-user-message', handlerName: 'handleLocalUserMessage' },
-      { type: 'memory-store', handlerName: 'handleMemoryStore' },
     ];
 
     dispatchCases.forEach(({ type, handlerName }) => {

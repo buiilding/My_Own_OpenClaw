@@ -131,6 +131,7 @@ Current runtime behavior also relies on these explicit seams:
    - Dispatches message metadata/transparency projection from SDK metadata events.
    - Dispatches backend error display and terminal state from SDK `turn_error` events.
    - Dispatches token usage telemetry from SDK `usage_updated` events.
+   - Dispatches memory-store telemetry from SDK `memory_stored` events without owning memory persistence.
    - Updates Zustand store for thinking, tool messages, metadata, completion, errors.
    - Persists transcript rows (`recordUserMessage`, `recordAssistantMessage`, `recordToolMessage`).
 

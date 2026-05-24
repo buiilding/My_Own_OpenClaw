@@ -17,6 +17,7 @@ export type ConversationEventType =
   | 'user_message_metadata'
   | 'tool_schemas_metadata'
   | 'usage_updated'
+  | 'memory_stored'
   | 'tool_call'
   | 'tool_output'
   | 'tool_bundle_call'

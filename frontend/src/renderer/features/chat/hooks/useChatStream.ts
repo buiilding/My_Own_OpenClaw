@@ -11,7 +11,6 @@ import {
   type LlmThoughtEvent,
   type WebSearchProgressEvent,
   type LocalUserMessageEvent,
-  type MemoryStoreEvent,
   type ErrorEvent,
 } from '../../../types/backendEvents';
 import {
@@ -230,12 +229,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     setThinkingStatus,
   });
 
-  const handleMemoryStoreEvent = useTurnScopedBackendEventHandler<MemoryStoreEvent>({
-    resolveTargetConversationRef,
-    shouldIgnoreForStaleTurn,
-    onEvent: handleMemoryStore,
-  });
-
   const handleErrorEvent = useTurnScopedBackendEventHandler<ErrorEvent>({
     resolveTargetConversationRef,
     shouldIgnoreForStaleTurn,
@@ -246,12 +239,10 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleLlmThought,
     handleWebSearchProgress: handleWebSearchProgressEvent,
     handleLocalUserMessage: handleLocalUserMessageEvent,
-    handleMemoryStore: handleMemoryStoreEvent,
   }), [
     handleLlmThought,
     handleWebSearchProgressEvent,
     handleLocalUserMessageEvent,
-    handleMemoryStoreEvent,
   ]);
 
   const dispatchConversationEvent = useCallback((
@@ -278,6 +269,7 @@ export function useChatStream(enableTranscript: boolean = true) {
       && event.type !== 'tool_schemas_metadata'
       && event.type !== 'turn_error'
       && event.type !== 'usage_updated'
+      && event.type !== 'memory_stored'
     ) {
       return false;
     }
@@ -336,6 +328,10 @@ export function useChatStream(enableTranscript: boolean = true) {
       handleTokenCount(event, event.conversationRef);
       return true;
     }
+    if (event.type === 'memory_stored') {
+      handleMemoryStore(event, event.conversationRef);
+      return true;
+    }
     processStreamingComplete(event, event.conversationRef);
     return true;
   }, [
@@ -345,6 +341,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleContextCompactionFailed,
     handleContextCompactionStarted,
     handleErrorEvent,
+    handleMemoryStore,
     handleSystemPrompt,
     handleTokenCount,
     handleToolBundle,

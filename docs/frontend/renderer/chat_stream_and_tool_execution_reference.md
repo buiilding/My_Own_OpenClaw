@@ -160,9 +160,10 @@ Pre-routing and workspace resolution:
   backend `error` -> SDK `turn_error`
 - token usage events dispatch from SDK-normalized conversation events:
   backend `token-count` -> SDK `usage_updated`
-- renderer handlers still consume raw backend events for memory, web-search
-  progress, and local-user flows until those projection paths move behind the
-  SDK.
+- memory-store telemetry events dispatch from SDK-normalized conversation events:
+  backend `memory-store` -> SDK `memory_stored`
+- renderer handlers still consume raw backend events for web-search progress and
+  local-user flows until those projection paths move behind the SDK.
 
 Handler map (`BackendEventType` -> behavior):
 
@@ -181,7 +182,7 @@ Handler map (`BackendEventType` -> behavior):
 - SDK `system_prompt` from backend `system-prompt`: annotate last user message with system prompt + tool schema snapshot
 - SDK `user_message_metadata` from backend `user-message-full`: annotate user message with full payload metadata
 - SDK `assistant_message` from backend `assistant-message-full`: annotate latest assistant `llm-text` message
-- `memory-store`: renderer chat stream path records tracking only; no direct local-memory write side effect is executed in `useChatStreamTerminalHandlers`
+- SDK `memory_stored` from backend `memory-store`: renderer chat stream path records tracking only; no direct local-memory write side effect is executed in `useChatStreamTerminalHandlers`
 - SDK `tool_schemas_metadata` from backend `tool-schemas`: annotate first user message with tool schema list
 - SDK `usage_updated` from backend `token-count`: update token counters
 - SDK `turn_completed` from backend `streaming-complete`: persist final streamed thinking text onto the same-turn assistant `llm-text` message (`thinkingText` + `thinkingSourceEventType`), then mark assistant message complete and clear transient `thinkingStatus`
@@ -198,18 +199,18 @@ Handler composition boundary:
 - `llm-thought` and SDK `assistant_delta` text/placeholder behavior is delegated to `useChatStreamTextHandlers`
 - SDK `system_prompt`/`user_message_metadata`/`assistant_message`/`tool_schemas_metadata`
   transparency projection is delegated to `useChatStreamMetadataHandlers`.
-- SDK `turn_error`, SDK `usage_updated`, and memory-store terminal behaviors are delegated to `useChatStreamTerminalHandlers`
+- SDK `turn_error`, SDK `usage_updated`, and SDK `memory_stored` terminal behaviors are delegated to `useChatStreamTerminalHandlers`
 - SDK `tool_call`/`tool_output`/`tool_bundle_call` display and transcript
   projection is delegated to `useChatStreamToolHandlers`; local tool execution
   remains owned by the main-process SDK runtime and sidecar.
 - SDK `compaction_started`/`compaction_applied`/`compaction_skipped`/`compaction_failed`
   display and replay persistence is delegated to `useChatStreamCompactionHandlers`.
 - SDK `turn_completed` finalization and transcript write side effects are delegated to `useChatStreamCompletionHandler`
-- turn-scoped wrapper callbacks for memory and local-user events are centralized in
+- turn-scoped wrapper callbacks for local-user events are centralized in
   `useTurnScopedBackendEventHandler`, with optional `skipStaleTurnGate` for
   `local-user-message` passthrough behavior. SDK assistant text, tool display,
-  compaction, metadata, error, and usage events run the same stale-turn gate
-  before dispatch.
+  compaction, metadata, error, usage, and memory-store events run the same
+  stale-turn gate before dispatch.
 
 Turn guard + error suppression matrix:
 

@@ -50,6 +50,7 @@ The runtime records normalized events:
 - `tool_bundle_call`
 - `tool_bundle_output`
 - `usage_updated`
+- `memory_stored`
 - `compaction_started`
 - `compaction_skipped`
 - `compaction_applied`

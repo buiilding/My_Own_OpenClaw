@@ -162,6 +162,18 @@ jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversation
           },
         };
       }
+      if (event.type === 'memory-store') {
+        return {
+          type: 'memory_stored',
+          conversationRef,
+          turnRef: event.turn_ref,
+          source: 'backend',
+          payload: {
+            ...(event.payload || {}),
+            rawEvent: event,
+          },
+        };
+      }
       if (event.type === 'tool-call') {
         return {
           type: 'tool_call',

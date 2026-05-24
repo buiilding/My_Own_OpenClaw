@@ -72,6 +72,28 @@ function unwrapTokenCountBackendEvent(event: TokenCountEvent | ConversationEvent
   } as BackendEvent as TokenCountEvent;
 }
 
+function unwrapMemoryStoreBackendEvent(event: MemoryStoreEvent | ConversationEvent): MemoryStoreEvent {
+  if ('conversation_ref' in event || 'user_id' in event || event.type === 'memory-store') {
+    return event as MemoryStoreEvent;
+  }
+  const rawEvent = event.payload?.rawEvent;
+  if (
+    rawEvent
+    && typeof rawEvent === 'object'
+    && !Array.isArray(rawEvent)
+    && (rawEvent as { type?: unknown }).type === 'memory-store'
+  ) {
+    return rawEvent as MemoryStoreEvent;
+  }
+  const { rawEvent: _rawEvent, ...payload } = event.payload ?? {};
+  return {
+    type: 'memory-store',
+    conversation_ref: event.conversationRef,
+    turn_ref: event.turnRef ?? undefined,
+    payload,
+  } as BackendEvent as MemoryStoreEvent;
+}
+
 export function useChatStreamTerminalHandlers({
   addMessage,
   enableTranscript,
@@ -118,7 +140,8 @@ export function useChatStreamTerminalHandlers({
     setThinkingStatus,
   ]);
 
-  const handleMemoryStore = useCallback((event: MemoryStoreEvent, conversationRef?: string | null) => {
+  const handleMemoryStore = useCallback((event: MemoryStoreEvent | ConversationEvent, conversationRef?: string | null) => {
+    const backendEvent = unwrapMemoryStoreBackendEvent(event);
     const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
     const shouldFinalizePendingStream = (
       workspace.isSending === true
@@ -128,9 +151,9 @@ export function useChatStreamTerminalHandlers({
       setIsSending(false, conversationRef);
       setThinkingStatus(null, conversationRef);
       setThinkingSourceEventType(null, conversationRef);
-      recordTrackingEvent('streaming-complete', event.turn_ref, { phase: 'complete' }, conversationRef);
+      recordTrackingEvent('streaming-complete', backendEvent.turn_ref, { phase: 'complete' }, conversationRef);
     }
-    recordTrackingEvent('memory-store', event.turn_ref, undefined, conversationRef);
+    recordTrackingEvent('memory-store', backendEvent.turn_ref, undefined, conversationRef);
   }, [
     recordTrackingEvent,
     setIsSending,

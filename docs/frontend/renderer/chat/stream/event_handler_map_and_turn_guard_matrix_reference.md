@@ -39,10 +39,9 @@ moved behind SDK conversation events:
 - thinking/stream: `llm-thought`
 - tool progress: `web-search-progress`
 - local optimistic user row: `local-user-message`
-- terminal/metrics: `memory-store`
 
 Assistant text, completion, compaction, tool rows, transparency metadata,
-errors, and token usage dispatch from SDK-normalized conversation events.
+errors, token usage, and memory-store telemetry dispatch from SDK-normalized conversation events.
 `turn_error` suppression runs inside `useChatStreamTerminalHandlers` before UI
 mutation.
 
@@ -100,7 +99,7 @@ Reason: local-user-message establishes turn/workspace state and seeds optimistic
 - `useChatStreamToolHandlers`: writes tool-call/tool-output/tool-bundle rows, resets thinking state for tool events, records transcript tool rows for call/output only, and routes `tool-output` transcript rows through the shared `toolOutputTranscriptPersistence.ts` helper
 - `useChatStreamTerminalHandlers`:
   - SDK `usage_updated`: workspace token counter update
-  - `memory-store`: stream tracking only (no direct memory write side effect)
+  - SDK `memory_stored`: stream tracking only (no direct memory write side effect)
   - SDK `turn_error`: assistant error row + transcript error row unless suppressed
 - `useChatStream` core handlers:
   - `streaming-complete`: assistant message completion + optional transcript assistant write
@@ -111,7 +110,7 @@ Reason: local-user-message establishes turn/workspace state and seeds optimistic
 1. Adding a new backend event type without map wiring silently drops the event.
 2. Removing stale-turn guard from a mutable handler can leak old-turn output into the active workspace.
 3. Moving `shouldIgnoreStreamError` out of terminal handling can double-emit benign settings errors.
-4. Adding transcript writes to `memory-store` handler would duplicate side effects already owned by backend-driven memory pipeline.
+4. Adding transcript writes to SDK `memory_stored` handling would duplicate side effects already owned by backend-driven memory pipeline.
 
 ## Related Pages
 
