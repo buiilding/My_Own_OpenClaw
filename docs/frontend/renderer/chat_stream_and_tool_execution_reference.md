@@ -22,7 +22,6 @@ title: "Chat Stream and Tool Execution Reference"
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamTextHandlers.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamTerminalHandlers.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts`
-- `frontend/src/renderer/features/chat/hooks/chatStream/useTurnScopedBackendEventHandler.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamConversationGate.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTracking.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates.ts`
@@ -166,12 +165,15 @@ Pre-routing and workspace resolution:
   backend `llm-thought` -> SDK `reasoning_delta`
 - tool progress events dispatch from SDK-normalized conversation events:
   backend `web-search-progress` -> SDK `tool_progress`
-- renderer handlers still consume raw backend events for local-user flows until
-  that projection path moves behind the SDK.
+- local user echo events dispatch from SDK-normalized conversation events:
+  backend `local-user-message` -> SDK `user_message`
 
-SDK dispatch and raw fallback behavior:
+SDK dispatch behavior:
 
-- `local-user-message`: adds user row, resets `streamTracking` for turn
+- SDK `user_message` from backend `local-user-message`: adds user row, resets `streamTracking` for turn
+  - the renderer consumes SDK `user_message` payloads directly while keeping
+    `local-user-message` as the UI/tracking source label. It does not handle a
+    raw backend `local-user-message` fallback after SDK dispatch.
 - SDK `reasoning_delta` from backend `llm-thought`: accumulates transient thinking text and writes live reasoning (`thinkingText`) onto the same-turn assistant `llm-text` message (creates placeholder assistant row before first text chunk when needed)
   - the renderer consumes SDK `reasoning_delta.text` directly. It keeps
     `llm-thought` as the UI/tracking source label, but does not unwrap
@@ -224,10 +226,8 @@ SDK dispatch and raw fallback behavior:
 Handler composition boundary:
 
 - `useChatStream` dispatches SDK-normalized conversation events first.
-- `local-user-message` is the only raw backend chat event fallback, because it
-  seeds the optimistic user row and active turn before later SDK-owned stream
-  events arrive.
-- local-user-message handling is delegated to `useChatStreamLocalUserHandler`
+- SDK `user_message` handling for backend `local-user-message` is delegated to
+  `useChatStreamLocalUserHandler`
 - SDK `reasoning_delta` and SDK `assistant_delta` text/placeholder behavior is delegated to `useChatStreamTextHandlers`
 - SDK `system_prompt`/`user_message_metadata`/`assistant_message`/`tool_schemas_metadata`
   transparency projection is delegated to `useChatStreamMetadataHandlers`.
@@ -238,15 +238,13 @@ Handler composition boundary:
 - SDK `compaction_started`/`compaction_applied`/`compaction_skipped`/`compaction_failed`
   display and replay persistence is delegated to `useChatStreamCompactionHandlers`.
 - SDK `turn_completed` finalization and transcript write side effects are delegated to `useChatStreamCompletionHandler`
-- turn-scoped wrapper callbacks for local-user events are centralized in
-  `useTurnScopedBackendEventHandler`, with optional `skipStaleTurnGate` for
-  `local-user-message` passthrough behavior. SDK assistant text, tool display,
-  compaction, metadata, error, usage, memory-store, reasoning, and tool-progress
-  events run the same stale-turn gate before dispatch.
+- SDK user messages, assistant text, tool display, compaction, metadata, error,
+  usage, memory-store, reasoning, and tool-progress events run the same
+  stale-turn gate before dispatch.
 
 Turn guard + error suppression matrix:
 
-- `useChatStream` applies the same stale-turn guard to every handler except `local-user-message`
+- `useChatStream` applies the same stale-turn guard to SDK-dispatched chat stream handlers
 - guard condition: `event.turn_ref` exists, workspace has `activeTurnRef`, and values mismatch
 - dropped stale events have no chat-store mutation and no transcript side effects
 - `turn_error` has one extra gate in `useChatStreamTerminalHandlers`: `shouldIgnoreStreamError(...)` suppresses benign settings-sync errors before UI mutation

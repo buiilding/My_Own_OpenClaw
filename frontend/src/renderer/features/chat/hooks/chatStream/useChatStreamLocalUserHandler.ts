@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import type { LocalUserMessageEvent } from '../../../../types/backendEvents';
+import type { ConversationEvent } from '../../../../infrastructure/api/windieSdkClient';
 import { type ChatMessage } from '../../stores/chatStore';
 import {
   buildScreenshotAttachment,
@@ -10,6 +10,16 @@ import type { ChatStreamThinkingStateDeps } from './chatStreamHandlerTypes';
 
 type UseChatStreamLocalUserHandlerDeps = ChatStreamThinkingStateDeps<'local-user-message'>;
 
+function readString(value: unknown): string | null {
+  return typeof value === 'string' ? value : null;
+}
+
+function readStringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === 'string')
+    : [];
+}
+
 export function useChatStreamLocalUserHandler({
   addMessage,
   modelContextRef,
@@ -18,18 +28,25 @@ export function useChatStreamLocalUserHandler({
   setThinkingSourceEventType,
   setThinkingStatus,
 }: UseChatStreamLocalUserHandlerDeps) {
-  return useCallback((event: LocalUserMessageEvent, conversationRef?: string | null) => {
-    const text = event.payload?.text;
+  return useCallback((event: ConversationEvent, conversationRef?: string | null) => {
+    if (event.type !== 'user_message') {
+      return;
+    }
+    const text = readString(event.payload?.text) ?? readString(event.payload?.content);
     if (!text) {
       return;
     }
+    const screenshotRefs = readStringArray(event.payload?.screenshotRefs);
+    const attachmentFilenames = readStringArray(event.payload?.attachmentFilenames);
     const screenshotAttachments = buildScreenshotAttachments(
-      event.payload?.screenshot_refs || [event.payload?.screenshot_ref],
-      event.payload?.screenshot_url,
+      screenshotRefs.length > 0
+        ? screenshotRefs
+        : [readString(event.payload?.screenshotRef)],
+      readString(event.payload?.screenshotUrl),
     );
     const firstScreenshotAttachment = screenshotAttachments[0] || buildScreenshotAttachment(
-      event.payload?.screenshot_ref,
-      event.payload?.screenshot_url,
+      readString(event.payload?.screenshotRef),
+      readString(event.payload?.screenshotUrl),
     );
     const newMessage: ChatMessage = {
       id: crypto.randomUUID(),
@@ -37,9 +54,7 @@ export function useChatStreamLocalUserHandler({
       sender: 'user',
       sourceEventType: 'local-user-message',
       sourceChannel: 'from-backend',
-      attachmentFilenames: Array.isArray(event.payload?.attachment_filenames)
-        ? event.payload.attachment_filenames
-        : null,
+      attachmentFilenames: attachmentFilenames.length > 0 ? attachmentFilenames : null,
       screenshotRef: firstScreenshotAttachment.screenshotRef,
       screenshotUrl: firstScreenshotAttachment.screenshotUrl,
       screenshots: screenshotAttachments.length > 0
@@ -48,8 +63,8 @@ export function useChatStreamLocalUserHandler({
           screenshotUrl: attachment.screenshotUrl,
         }))
         : null,
-      timestamp: event.payload?.timestamp,
-      turnRef: event.turn_ref,
+      timestamp: readString(event.payload?.timestamp) ?? event.timestamp,
+      turnRef: event.turnRef ?? undefined,
     };
     addMessage(newMessage, conversationRef);
     setIsSending(true, conversationRef);
@@ -62,7 +77,7 @@ export function useChatStreamLocalUserHandler({
       setThinkingSourceEventType(null, conversationRef);
     }
 
-    recordTrackingEvent('local-user-message', event.turn_ref, {
+    recordTrackingEvent('local-user-message', event.turnRef, {
       phase: 'awaiting-first-chunk',
       resetForTurn: true,
     }, conversationRef);

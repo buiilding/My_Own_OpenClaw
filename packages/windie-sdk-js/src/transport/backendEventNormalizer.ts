@@ -116,6 +116,26 @@ export function normalizeBackendEventToConversationEvent(
       },
     });
   }
+  if (event.type === 'local-user-message') {
+    return createConversationEvent({
+      ...base,
+      type: 'user_message',
+      source: 'backend',
+      payload: {
+        ...payload,
+        text: typeof payload.text === 'string' ? payload.text : '',
+        content: typeof payload.text === 'string' ? payload.text : '',
+        screenshotRef: typeof payload.screenshot_ref === 'string' ? payload.screenshot_ref : null,
+        screenshotUrl: typeof payload.screenshot_url === 'string' ? payload.screenshot_url : null,
+        screenshotRefs: Array.isArray(payload.screenshot_refs) ? payload.screenshot_refs : [],
+        attachmentFilenames: Array.isArray(payload.attachment_filenames) ? payload.attachment_filenames : [],
+        userId: typeof event.user_id === 'string' ? event.user_id : null,
+        sourceEventType: 'local-user-message',
+        structuredPayload: payload,
+        rawEvent: event,
+      },
+    });
+  }
   if (event.type === 'system-prompt') {
     const toolSchemas = Array.isArray(payload.tool_schemas) ? payload.tool_schemas : [];
     return createConversationEvent({

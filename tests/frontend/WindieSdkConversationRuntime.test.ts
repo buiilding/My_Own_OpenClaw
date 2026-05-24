@@ -841,6 +841,38 @@ describe('Windie SDK conversation runtime core', () => {
     ]);
   });
 
+  test('backend local-user-message normalization exposes renderer user-message fields', () => {
+    const normalized = normalizeBackendEventToConversationEvent({
+      type: 'local-user-message',
+      conversation_ref: 'conv-sdk-runtime',
+      user_id: 'user-sdk-runtime',
+      turn_ref: 'turn-local-user',
+      payload: {
+        text: 'hello from chatbox',
+        screenshot_ref: 'artifact-local',
+        screenshot_url: '/api/artifacts/artifact-local',
+        screenshot_refs: ['artifact-local', 'artifact-local-2'],
+        attachment_filenames: ['a.png'],
+      },
+    });
+
+    expect(normalized).toMatchObject({
+      type: 'user_message',
+      conversationRef: 'conv-sdk-runtime',
+      turnRef: 'turn-local-user',
+      payload: expect.objectContaining({
+        text: 'hello from chatbox',
+        content: 'hello from chatbox',
+        screenshotRef: 'artifact-local',
+        screenshotUrl: '/api/artifacts/artifact-local',
+        screenshotRefs: ['artifact-local', 'artifact-local-2'],
+        attachmentFilenames: ['a.png'],
+        userId: 'user-sdk-runtime',
+        sourceEventType: 'local-user-message',
+      }),
+    });
+  });
+
   test('backend tool-call normalization preserves model-facing tool call ids', () => {
     const normalized = normalizeBackendEventToConversationEvent({
       type: 'tool-call',

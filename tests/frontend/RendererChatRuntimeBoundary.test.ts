@@ -155,6 +155,23 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('payload?.userId');
   });
 
+  test('chat stream local-user display consumes SDK user-message events directly', async () => {
+    const streamSource = await fs.readFile(
+      path.join(chatRoot, 'hooks/useChatStream.ts'),
+      'utf8',
+    );
+    const handlerSource = await fs.readFile(
+      path.join(chatRoot, 'hooks/chatStream/useChatStreamLocalUserHandler.ts'),
+      'utf8',
+    );
+
+    expect(streamSource).not.toContain("if (event.type === 'local-user-message')");
+    expect(streamSource).toContain("event.type !== 'user_message'");
+    expect(handlerSource).not.toContain('LocalUserMessageEvent');
+    expect(handlerSource).toContain("event.type !== 'user_message'");
+    expect(handlerSource).toContain('payload?.screenshotRefs');
+  });
+
   test('chat stream tool progress consumes SDK tool progress directly', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'hooks/chatStream/useChatStreamToolHandlers.ts'),

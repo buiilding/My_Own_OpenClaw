@@ -8,7 +8,6 @@ import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import {
   type BackendEvent,
   type BackendEventType,
-  type LocalUserMessageEvent,
 } from '../../../types/backendEvents';
 import {
   type StreamTrackingOptions,
@@ -24,7 +23,6 @@ import { useChatStreamTerminalHandlers } from './chatStream/useChatStreamTermina
 import { useChatStreamLocalUserHandler } from './chatStream/useChatStreamLocalUserHandler';
 import { useChatStreamCompactionHandlers } from './chatStream/useChatStreamCompactionHandlers';
 import { useChatStreamMetadataHandlers } from './chatStream/useChatStreamMetadataHandlers';
-import { useTurnScopedBackendEventHandler } from './chatStream/useTurnScopedBackendEventHandler';
 import { useChatStreamCompletionHandler } from './chatStream/useChatStreamCompletionHandler';
 import { useChatStreamTextHandlers } from './chatStream/useChatStreamTextHandlers';
 import { ingestBackendEvent } from '../utils/chatStream/chatStreamBackendIngress';
@@ -186,13 +184,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     setThinkingStatus,
   });
 
-  const handleLocalUserMessageEvent = useTurnScopedBackendEventHandler<LocalUserMessageEvent>({
-    resolveTargetConversationRef,
-    shouldIgnoreForStaleTurn,
-    onEvent: handleLocalUserMessage,
-    skipStaleTurnGate: true,
-  });
-
   const processStreamingComplete = useChatStreamCompletionHandler({
     addMessage,
     enableTranscript,
@@ -229,6 +220,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     }
     if (
       event.type !== 'assistant_delta'
+      && event.type !== 'user_message'
       && event.type !== 'reasoning_delta'
       && event.type !== 'turn_completed'
       && event.type !== 'tool_call'
@@ -250,6 +242,10 @@ export function useChatStream(enableTranscript: boolean = true) {
       return false;
     }
     if (shouldIgnoreForStaleTurn(backendEvent, conversationRef)) {
+      return true;
+    }
+    if (event.type === 'user_message') {
+      handleLocalUserMessage(event, event.conversationRef);
       return true;
     }
     if (event.type === 'assistant_delta') {
@@ -325,6 +321,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleContextCompactionFailed,
     handleContextCompactionStarted,
     handleError,
+    handleLocalUserMessage,
     handleLlmThoughtText,
     handleMemoryStore,
     handleSystemPrompt,
@@ -361,12 +358,7 @@ export function useChatStream(enableTranscript: boolean = true) {
         registerTurnConversationRef,
         enableTranscript,
         dispatchEvent: (event) => {
-          if (dispatchConversationEvent(conversationEvent, event, conversationRef)) {
-            return;
-          }
-          if (event.type === 'local-user-message') {
-            handleLocalUserMessageEvent(event);
-          }
+          dispatchConversationEvent(conversationEvent, event, conversationRef);
         },
       });
       logRendererStreamTrace('after', {
@@ -381,7 +373,6 @@ export function useChatStream(enableTranscript: boolean = true) {
   }, [
     enableTranscript,
     dispatchConversationEvent,
-    handleLocalUserMessageEvent,
     registerTurnConversationRef,
     resolveTargetConversationRef,
     syncActiveConversationProjection,

@@ -103,6 +103,27 @@ jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversation
           },
         };
       }
+      if (event.type === 'local-user-message') {
+        return {
+          type: 'user_message',
+          conversationRef,
+          turnRef: event.turn_ref,
+          source: 'backend',
+          payload: {
+            ...(event.payload || {}),
+            text: typeof event.payload?.text === 'string' ? event.payload.text : '',
+            content: typeof event.payload?.text === 'string' ? event.payload.text : '',
+            screenshotRef: typeof event.payload?.screenshot_ref === 'string' ? event.payload.screenshot_ref : null,
+            screenshotUrl: typeof event.payload?.screenshot_url === 'string' ? event.payload.screenshot_url : null,
+            screenshotRefs: Array.isArray(event.payload?.screenshot_refs) ? event.payload.screenshot_refs : [],
+            attachmentFilenames: Array.isArray(event.payload?.attachment_filenames) ? event.payload.attachment_filenames : [],
+            userId: typeof event.user_id === 'string' ? event.user_id : null,
+            sourceEventType: 'local-user-message',
+            structuredPayload: event.payload || {},
+            rawEvent: event,
+          },
+        };
+      }
       if (event.type === 'system-prompt') {
         const toolSchemas = Array.isArray(event.payload?.tool_schemas) ? event.payload.tool_schemas : [];
         return {

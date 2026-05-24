@@ -147,6 +147,11 @@ Renderer UI/debug state may keep the source label `web-search-progress`, but
 the handler should not reconstruct backend `web-search-progress` events from
 `payload.rawEvent`.
 
+Desktop local-user projection consumes SDK `user_message` directly for backend
+`local-user-message` echoes. Renderer UI/debug state may keep the source label
+`local-user-message`, but the handler should not consume a raw backend
+`local-user-message` fallback after SDK dispatch.
+
 Desktop tool-call projection consumes SDK `tool_call` directly. The SDK payload
 exposes normalized fields such as `toolName`, `args`, request/correlation ids,
 and `userId`, while `structuredPayload` carries backend detail fields needed for
