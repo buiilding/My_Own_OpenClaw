@@ -158,6 +158,7 @@ Stable fix contract:
 
 - Fix root causes, not symptoms
 - Do not layer workarounds on top of messy local design if a small refactor can remove the problem
+- Before changing code, identify the owning runtime or layer: backend, SDK runtime, Electron main, renderer, preload, sidecar, docs, or tests
 - Prefer deleting, collapsing, or moving existing behavior over adding new surfaces
 - Add code only when it enables a simpler ownership boundary, removes duplication, unlocks deletion of legacy paths, or makes a real invariant testable
 - Treat net-new wrappers, compatibility shims, fallback aliases, and duplicate state stores as suspicious by default
@@ -189,6 +190,8 @@ Before finishing, verify:
 - you removed at least as much complexity as you added
 - any new abstraction has a deletion or consolidation payoff
 - no obsolete UI, bridge, alias, compatibility path, or fallback remains in the touched area without a stated reason
+- security-sensitive changes were checked for trust-boundary, permission, credential, IPC, tool-execution, and machine-specific path regressions
+- storage, API, event-payload, tool-schema, settings, or persisted-data changes include an explicit migration or compatibility note, even when the note is that no migration is required
 
 In the final summary, briefly note any meaningful refactor performed and any important debt intentionally left behind.
 For every completed fix or behavior change, explain:
@@ -196,6 +199,8 @@ For every completed fix or behavior change, explain:
 - how you implemented it
 - what the previous behavior was
 - what the current behavior is after the fix
+- which validation commands were run, including focused tests, lint/typecheck/build checks, docs-list, and diff checks when relevant
+- any validation command that was intentionally skipped or could not run, with the reason
 
 ## Documentation
 
@@ -284,6 +289,7 @@ Always mention:
 - If still blocked, ask with short options
 - Call out conflicts and choose the safer path
 - Leave concise breadcrumb notes in the thread when useful
+- For larger refactors or multi-turn changes, maintain a scratch log of decisions, tradeoffs, validation commands, blockers, and assumptions so the work can be audited later
 
 ### Handling Other Changes in the Workspace
 

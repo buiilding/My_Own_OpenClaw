@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/agents: require coding agents to identify the owning layer before edits, report exact validation commands, check security and migration implications, and keep scratch logs for larger refactors.
 - backend/compaction: enforce the post-compaction target budget on retained history tails and add one-shot overflow/empty-stream compaction recovery before surfacing a model failure.
 - backend/compaction: remove the auto-compaction cooldown gate and restore 90%-of-model-context auto-trigger semantics so oversized histories can compact again immediately when still above threshold.
 - sidecar/browser: attach Browser Use to the WindieOS-owned persistent Chrome profile through the existing CDP launcher instead of starting a disposable Playwright Chromium context.
