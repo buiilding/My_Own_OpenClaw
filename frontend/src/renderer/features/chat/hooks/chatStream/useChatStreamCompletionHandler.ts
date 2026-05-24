@@ -8,7 +8,7 @@ import type { TranscriptModelContext } from '../../utils/chatStream/chatStreamTy
 import type { StreamTrackingOptions } from '../../utils/chatStream/chatStreamTracking';
 import { normalizeIncomingText } from '../../../../infrastructure/text/incomingTextNormalization';
 import { buildAssistantTextChatMessageState } from '../../../../infrastructure/transcript/assistantTextChatMessageState';
-import { DesktopConversationRuntimeClient } from '../../session/desktopConversationRuntimeClient';
+import { recordAssistantTranscriptMessage } from '../../utils/chatStream/chatStreamTranscriptPersistence';
 
 type UseChatStreamCompletionHandlerOptions = {
   addMessage: (message: ChatMessage, conversationRef?: string | null) => void;
@@ -71,12 +71,12 @@ export const useChatStreamCompletionHandler = ({
         const normalizedTransparency: TranscriptTransparencyData | undefined = (
           buildAssistantTranscriptTransparency(currentMessages, lastMessage, event.turnRef || undefined)
         );
-        DesktopConversationRuntimeClient.recordAssistantMessage(nextText, {
+        recordAssistantTranscriptMessage({
+          text: nextText,
           messageType: lastMessage.type || 'llm-text',
           conversationRef: event.conversationRef,
           userId,
-          modelId: modelContext.modelId,
-          modelProvider: modelContext.modelProvider,
+          modelContext,
           transparency: normalizedTransparency,
         });
       }
@@ -92,12 +92,12 @@ export const useChatStreamCompletionHandler = ({
       }) as ChatMessage;
       addMessage(newMessage, conversationRef);
       if (enableTranscript) {
-        DesktopConversationRuntimeClient.recordAssistantMessage(completionText, {
+        recordAssistantTranscriptMessage({
+          text: completionText,
           messageType: 'llm-text',
           conversationRef: event.conversationRef,
           userId,
-          modelId: modelContext.modelId,
-          modelProvider: modelContext.modelProvider,
+          modelContext,
           transparency: undefined,
         });
       }

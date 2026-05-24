@@ -5,8 +5,8 @@ import { useChatStreamToolHandlers } from '../../frontend/src/renderer/features/
 const mockRecordToolMessage = jest.fn();
 const mockRecordAssistantMessage = jest.fn();
 
-jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient', () => ({
-  DesktopConversationRuntimeClient: {
+jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient', () => ({
+  DesktopTranscriptProjectionRuntimeClient: {
     recordToolMessage: (...args: unknown[]) => mockRecordToolMessage(...args),
     recordAssistantMessage: (...args: unknown[]) => mockRecordAssistantMessage(...args),
   },

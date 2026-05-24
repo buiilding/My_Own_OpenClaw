@@ -22,7 +22,7 @@ import {
 } from '../../utils/chatStream/chatStreamEventUtils';
 import { buildToolOutputEnvelopeMessage } from '../../utils/toolOutputMessages';
 import { recordToolOutputTranscriptMessage } from '../../utils/toolOutputTranscriptPersistence';
-import { DesktopConversationRuntimeClient } from '../../session/desktopConversationRuntimeClient';
+import { recordToolTranscriptMessage } from '../../utils/chatStream/chatStreamTranscriptPersistence';
 
 type MinimalModelContext = {
   modelId: string | null;
@@ -107,14 +107,14 @@ export function useChatStreamToolHandlers({
       return;
     }
     const modelContext = modelContextRef.current;
-    DesktopConversationRuntimeClient.recordToolMessage(text, {
+    recordToolTranscriptMessage({
+      text,
       messageType: 'tool-call',
       toolName,
       correlationId,
       conversationRef: identity.conversationRef,
       userId: identity.userId ?? undefined,
-      modelId: modelContext.modelId,
-      modelProvider: modelContext.modelProvider,
+      modelContext,
       structuredPayload,
     });
   }, [enableTranscript, modelContextRef]);
@@ -277,14 +277,14 @@ export function useChatStreamToolHandlers({
       resolvedConversationRef,
     );
     if (enableTranscript) {
-      DesktopConversationRuntimeClient.recordToolMessage(toolBundleMessageState.text, {
+      recordToolTranscriptMessage({
+        text: toolBundleMessageState.text,
         messageType: 'tool-bundle',
         toolName: 'tool-bundle',
         correlationId: toolBundleMessageState.correlationId || undefined,
         conversationRef: event.conversationRef,
         userId: readString(event.payload?.userId) ?? undefined,
-        modelId: modelContext.modelId,
-        modelProvider: modelContext.modelProvider,
+        modelContext,
         structuredPayload: buildStructuredToolPayload({
           kind: 'tool-bundle',
           toolCalls: toolBundleMessageState.toolCalls,

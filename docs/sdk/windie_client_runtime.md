@@ -295,8 +295,9 @@ Electron uses the SDK `SidecarConversationStore` through a desktop store factory
   factory, so queued user/assistant/tool writes no longer own direct row IPC or
   replay append mutation.
 - desktop chat feature code uses the desktop conversation runtime facade for
-  transcript session identity helpers, with transcript writes owned by SDK
-  projection/runtime adapters rather than renderer-local writer APIs.
+  transcript session identity helpers, while stream assistant/tool transcript
+  writes go through `chatStreamTranscriptPersistence.ts` into the SDK-backed
+  projection runtime instead of through the conversation command facade.
 - desktop dashboard and app config session synchronization use an app-level
   transcript-session runtime facade, so feature/provider code does not import
   transcript infrastructure directly for conversation/user identity updates.

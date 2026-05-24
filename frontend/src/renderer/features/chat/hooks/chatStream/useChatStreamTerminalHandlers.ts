@@ -10,8 +10,8 @@ import {
 } from '../../utils/chatStream/chatStreamEventUtils';
 import type { ChatStreamThinkingStateDeps } from './chatStreamHandlerTypes';
 import { findLastAssistantLlmTextMessageId } from '../../utils/chatStream/chatStreamMessageUpdates';
-import { DesktopConversationRuntimeClient } from '../../session/desktopConversationRuntimeClient';
 import type { ConversationEvent } from '../../../../infrastructure/api/windieSdkClient';
+import { recordAssistantTranscriptMessage } from '../../utils/chatStream/chatStreamTranscriptPersistence';
 
 type UseChatStreamTerminalHandlersDeps = ChatStreamThinkingStateDeps<
   'streaming-complete' | 'token-count' | 'memory-store' | 'error'
@@ -119,12 +119,12 @@ export function useChatStreamTerminalHandlers({
     }, conversationRef);
 
     if (enableTranscript) {
-      DesktopConversationRuntimeClient.recordAssistantMessage(errorText, {
+      recordAssistantTranscriptMessage({
+        text: errorText,
         messageType: 'error',
         conversationRef: event.conversationRef,
         userId: typeof errorPayload.userId === 'string' ? errorPayload.userId : undefined,
-        modelId: modelContext.modelId,
-        modelProvider: modelContext.modelProvider,
+        modelContext,
       });
     }
   }, [

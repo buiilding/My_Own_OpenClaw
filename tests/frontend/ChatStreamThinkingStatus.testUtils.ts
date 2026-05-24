@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react';
 import { IpcBridge, ON_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import { useChatStream } from '../../frontend/src/renderer/features/chat/hooks/useChatStream';
 import { DesktopConversationRuntimeClient } from '../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient';
+import { DesktopTranscriptProjectionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
   createAssistantSeedMessage,
@@ -26,16 +27,21 @@ jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
 jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversationRuntimeClient', () => ({
   DesktopConversationRuntimeClient: {
     getActiveConversationRef: jest.fn(() => mockActiveConversationRef),
-    recordAssistantMessage: jest.fn(),
-    recordToolMessage: jest.fn(),
     replaceCompactedReplay: jest.fn(() => Promise.resolve()),
     updateTranscriptSession: jest.fn(),
   },
 }));
 
+jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient', () => ({
+  DesktopTranscriptProjectionRuntimeClient: {
+    recordAssistantMessage: jest.fn(),
+    recordToolMessage: jest.fn(),
+  },
+}));
+
 export const transcriptSpies = {
-  recordAssistantMessage: DesktopConversationRuntimeClient.recordAssistantMessage as jest.Mock,
-  recordToolMessage: DesktopConversationRuntimeClient.recordToolMessage as jest.Mock,
+  recordAssistantMessage: DesktopTranscriptProjectionRuntimeClient.recordAssistantMessage as jest.Mock,
+  recordToolMessage: DesktopTranscriptProjectionRuntimeClient.recordToolMessage as jest.Mock,
   replaceCompactedReplay: DesktopConversationRuntimeClient.replaceCompactedReplay as jest.Mock,
   updateTranscriptSession: DesktopConversationRuntimeClient.updateTranscriptSession as jest.Mock,
 };

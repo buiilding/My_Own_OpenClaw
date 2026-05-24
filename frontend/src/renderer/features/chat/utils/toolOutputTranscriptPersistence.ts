@@ -1,5 +1,5 @@
 import { buildStructuredToolPayload } from '../../../infrastructure/transcript/structuredToolPayload';
-import { DesktopConversationRuntimeClient } from '../session/desktopConversationRuntimeClient';
+import { recordToolTranscriptMessage } from './chatStream/chatStreamTranscriptPersistence';
 import type { TranscriptModelContext } from './transcriptModelContext';
 
 type RecordToolOutputTranscriptMessageOptions = {
@@ -23,15 +23,15 @@ export function recordToolOutputTranscriptMessage({
   modelContext,
   toolOutputDetails = null,
 }: RecordToolOutputTranscriptMessageOptions): void {
-  DesktopConversationRuntimeClient.recordToolMessage(text, {
+  recordToolTranscriptMessage({
+    text,
     messageType: 'tool-output',
-    toolName: toolName || undefined,
-    correlationId: correlationId || undefined,
-    conversationRef: conversationRef || undefined,
-    userId: userId || undefined,
-    screenshotRef: screenshotRef || undefined,
-    modelId: modelContext.modelId,
-    modelProvider: modelContext.modelProvider,
+    toolName,
+    correlationId,
+    conversationRef,
+    userId,
+    screenshotRef,
+    modelContext,
     structuredPayload: buildStructuredToolPayload({
       kind: 'tool-output',
       toolCallDetails: toolOutputDetails,

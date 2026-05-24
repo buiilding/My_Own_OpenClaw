@@ -150,20 +150,6 @@ export const DesktopConversationRuntimeClient = {
     DesktopSettingsRuntimeClient.setModel(selection);
   },
 
-  recordAssistantMessage(
-    text: string,
-    options: Parameters<typeof DesktopTranscriptProjectionRuntimeClient.recordAssistantMessage>[1] = {},
-  ): void {
-    DesktopTranscriptProjectionRuntimeClient.recordAssistantMessage(text, options);
-  },
-
-  recordToolMessage(
-    text: string,
-    options: Parameters<typeof DesktopTranscriptProjectionRuntimeClient.recordToolMessage>[1],
-  ): void {
-    DesktopTranscriptProjectionRuntimeClient.recordToolMessage(text, options);
-  },
-
   async replaceCompactedReplay(
     snapshot: CompactedReplaySnapshot,
     userId: string,

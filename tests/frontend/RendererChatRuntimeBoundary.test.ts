@@ -50,7 +50,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('recordUserMessage');
   });
 
-  test('chat feature transcript persistence calls stay inside the runtime facade', async () => {
+  test('chat stream transcript writes stay behind the transcript persistence helper', async () => {
     const persistenceCallerFiles = [
       'hooks/chatStream/useChatStreamCompletionHandler.ts',
       'hooks/chatStream/useChatStreamTerminalHandlers.ts',
@@ -62,7 +62,12 @@ describe('renderer chat runtime boundary', () => {
     for (const relativePath of persistenceCallerFiles) {
       const file = path.join(chatRoot, relativePath);
       const source = await fs.readFile(file, 'utf8');
-      if (source.includes('infrastructure/transcript/TranscriptWriter')) {
+      if (
+        source.includes('DesktopTranscriptProjectionRuntimeClient')
+        || source.includes('recordAssistantMessage')
+        || source.includes('recordToolMessage')
+        || source.includes('infrastructure/transcript/TranscriptWriter')
+      ) {
         offenders.push(relativePath);
       }
     }
@@ -250,6 +255,8 @@ describe('renderer chat runtime boundary', () => {
 
     expect(source).not.toContain('infrastructure/transcript/TranscriptWriter');
     expect(source).toContain('createConversationRuntime');
+    expect(source).not.toContain('recordAssistantMessage');
+    expect(source).not.toContain('recordToolMessage');
     expect(source).not.toContain('rewriteTranscriptProjection(input');
     expect(/\n\s{2}sendRehydrate\(input/.test(source)).toBe(false);
     expect(source).toContain('DesktopTranscriptProjectionRuntimeClient');

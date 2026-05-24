@@ -298,7 +298,8 @@ Renderer display contract:
 
 - render `tool-call`, `tool-bundle`, and `tool-output` cards from stream events
 - preserve backend identifiers in structured payloads for replay and debugging
-- write visible transcript rows through transcript helpers
+- write visible transcript rows through `chatStreamTranscriptPersistence.ts`,
+  which delegates to `DesktopTranscriptProjectionRuntimeClient`
 - keep skipped or display-only execution metadata out of model-facing history
 
 Execution contract:
