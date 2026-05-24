@@ -41,13 +41,26 @@ describe('renderer chat runtime boundary', () => {
     expect(offenders).toEqual([]);
   });
 
-  test('message sender leaves user transcript persistence to the runtime facade', async () => {
+  test('message sender keeps user transcript persistence behind its helper', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'hooks/useChatMessageSender.ts'),
       'utf8',
     );
 
     expect(source).not.toContain('recordUserMessage');
+    expect(source).not.toContain('DesktopTranscriptProjectionRuntimeClient');
+    expect(source).toContain('recordUserTranscriptMessage');
+  });
+
+  test('app conversation runtime facade does not own transcript projection writes', async () => {
+    const source = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeClient.ts'),
+      'utf8',
+    );
+
+    expect(source).not.toContain('recordUserMessage');
+    expect(source).not.toContain('recordAssistantMessage');
+    expect(source).not.toContain('recordToolMessage');
   });
 
   test('chat stream transcript writes stay behind the transcript persistence helper', async () => {
@@ -255,6 +268,7 @@ describe('renderer chat runtime boundary', () => {
 
     expect(source).not.toContain('infrastructure/transcript/TranscriptWriter');
     expect(source).toContain('createConversationRuntime');
+    expect(source).not.toContain('recordUserMessage');
     expect(source).not.toContain('recordAssistantMessage');
     expect(source).not.toContain('recordToolMessage');
     expect(source).not.toContain('rewriteTranscriptProjection(input');

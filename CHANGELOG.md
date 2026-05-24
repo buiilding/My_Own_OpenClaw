@@ -23,6 +23,7 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sdk: consume SDK `user_message` payloads for backend `local-user-message` echoes and delete the explicit raw local-user fallback after SDK conversation-event dispatch.
 - frontend/sdk: delete the legacy renderer `ApiClient` backend command surface and route settings, model-list, model-selection, and wakeword commands through desktop runtime facades backed by the SDK transport adapter.
 - frontend/sdk: remove assistant/tool transcript write pass-throughs from the desktop conversation command facade and route stream transcript persistence through a dedicated projection helper.
+- frontend/sdk: remove user transcript persistence from the desktop conversation command facade and route sender transcript writes through a focused projection helper.
 - frontend/sdk: consume SDK compaction payloads directly in renderer compaction handlers and build compacted replay snapshots without unwrapping raw backend events.
 - frontend/sdk: consume SDK metadata payloads directly in renderer transparency handlers and delete backend metadata event unwrapping.
 - frontend/sdk: consume SDK terminal event payloads directly in renderer error, token usage, and memory-store handlers, deleting raw backend terminal event unwrapping.

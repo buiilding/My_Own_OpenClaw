@@ -107,7 +107,9 @@ When attachment(s) exist:
   - fallback to artifact URL-derived ref when only `screenshotUrl` exists
   - dedupe final `screenshot_refs[]` for backend send
 10. update optimistic message with `screenshotRef/screenshotUrl` plus `screenshots[]`.
-11. call `DesktopConversationRuntimeClient.sendQuery`, which owns user transcript projection persistence and backend query dispatch, with:
+11. record the visible user transcript row through `userTranscriptPersistence.ts`,
+    which delegates to the SDK-backed transcript projection runtime.
+12. call `DesktopConversationRuntimeClient.sendQuery`, which owns backend query dispatch only, with:
   - `screenshot_ref` (first ref for backend protocol ingress)
   - `screenshot_refs` (all uploaded refs for multi-image queries)
   - optional `attachment_context` (hidden read_file output for selected non-image files)
@@ -120,9 +122,9 @@ Readable file injection path:
 - context is appended into backend-bound composed query content by main process.
 - raw `read_file` content is never rendered in user-visible chat row.
 
-Assistant and tool transcript projection writes from stream ingestion also route
-through `DesktopConversationRuntimeClient`, keeping transcript persistence calls
-behind the desktop conversation runtime facade instead of scattered chat hooks.
+Assistant and tool transcript projection writes from stream ingestion route
+through `chatStreamTranscriptPersistence.ts`, keeping projection calls behind
+focused chat-feature helpers instead of the conversation command facade.
 
 ## Screenshot Source and Fallback Chain
 

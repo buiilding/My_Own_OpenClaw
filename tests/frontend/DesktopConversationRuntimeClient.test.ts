@@ -7,7 +7,6 @@ const mockGetActiveConversationRef = jest.fn(() => null);
 jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient', () => ({
   DesktopTranscriptProjectionRuntimeClient: {
     createSeededConversationStore: jest.fn(),
-    recordUserMessage: jest.fn(),
     recordAssistantMessage: jest.fn(),
     recordToolMessage: jest.fn(),
   },
@@ -49,10 +48,6 @@ describe('DesktopConversationRuntimeClient', () => {
     mockReplaceCompactedReplay.mockReset();
     mockGetActiveConversationRef.mockReset();
     mockGetActiveConversationRef.mockReturnValue(null);
-    const { DesktopTranscriptProjectionRuntimeClient } = require(
-      '../../frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient',
-    );
-    DesktopTranscriptProjectionRuntimeClient.recordUserMessage.mockReset();
   });
 
   test('loadLocalConversationSnapshot keeps transcript snapshot loading behind the facade', async () => {
@@ -127,7 +122,7 @@ describe('DesktopConversationRuntimeClient', () => {
     });
   });
 
-  test('sendQuery records transcript rows and routes query payloads through the SDK transport', async () => {
+  test('sendQuery routes query payloads through the SDK transport', async () => {
     const send = jest.fn();
     const originalIpc = window.ipc;
     window.ipc = {
@@ -138,9 +133,6 @@ describe('DesktopConversationRuntimeClient', () => {
     };
     const { DesktopConversationRuntimeClient } = require(
       '../../frontend/src/renderer/app/runtime/desktopConversationRuntimeClient',
-    );
-    const { DesktopTranscriptProjectionRuntimeClient } = require(
-      '../../frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient',
     );
 
     try {
@@ -155,22 +147,8 @@ describe('DesktopConversationRuntimeClient', () => {
         attachmentFilenames: [' notes.txt ', '   ', 'image.png'],
         screenshot: ' inline-shot ',
         workspacePath: ' /workspace/WindieOS ',
-        transcript: {
-          userId: 'user-1',
-          timestamp: '2026-05-22T12:00:00.000Z',
-          screenshotRef: null,
-        },
       });
 
-      expect(DesktopTranscriptProjectionRuntimeClient.recordUserMessage).toHaveBeenCalledWith(
-        'hello',
-        {
-          conversationRef: 'conv-send',
-          userId: 'user-1',
-          timestamp: '2026-05-22T12:00:00.000Z',
-          screenshotRef: ' artifact-main ',
-        },
-      );
       expect(send).toHaveBeenCalledWith('to-backend', {
         type: 'query',
         payload: expect.objectContaining({

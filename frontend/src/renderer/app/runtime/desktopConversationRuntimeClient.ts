@@ -51,11 +51,6 @@ type SendConversationQueryInput = {
   attachmentFilenames?: string[] | null;
   screenshot?: string | null;
   workspacePath?: string | null;
-  transcript?: {
-    userId?: string | null;
-    timestamp?: string | null;
-    screenshotRef?: string | null;
-  } | null;
 };
 
 type SendConversationRehydrateInput = {
@@ -191,14 +186,6 @@ export const DesktopConversationRuntimeClient = {
   },
 
   async sendQuery(input: SendConversationQueryInput): Promise<void> {
-    if (input.transcript) {
-      DesktopTranscriptProjectionRuntimeClient.recordUserMessage(input.text, {
-        conversationRef: input.conversationRef,
-        userId: input.transcript.userId ?? null,
-        timestamp: input.transcript.timestamp ?? undefined,
-        screenshotRef: input.transcript.screenshotRef ?? input.screenshotRef ?? null,
-      });
-    }
     const runtime = createConversationRuntime({
       conversationRef: input.conversationRef,
       store: new InMemoryConversationStore(),

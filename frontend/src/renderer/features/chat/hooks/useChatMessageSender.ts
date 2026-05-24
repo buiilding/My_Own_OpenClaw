@@ -44,6 +44,7 @@ import {
   setConversationWorkspaceBinding,
   workspaceSelectionToBinding,
 } from '../../../infrastructure/workspace/conversationWorkspaceBinding';
+import { recordUserTranscriptMessage } from '../utils/messageSender/userTranscriptPersistence';
 
 type ChatMessageSenderOptions = {
   senderSurface?: ChatSendSurface;
@@ -241,6 +242,13 @@ export function useChatMessageSender(
       if (deferredQueryModelSelection) {
         DesktopConversationRuntimeClient.setModel(deferredQueryModelSelection);
       }
+      recordUserTranscriptMessage({
+        text,
+        conversationRef,
+        userId: sessionInfo.userId,
+        timestamp: messageTimestamp,
+        screenshotRef,
+      });
       await DesktopConversationRuntimeClient.sendQuery({
         text,
         conversationRef,
@@ -251,11 +259,6 @@ export function useChatMessageSender(
         attachmentContext,
         attachmentFilenames: attachmentFilenames.length > 0 ? attachmentFilenames : null,
         workspacePath: workspaceBinding.workspacePath || null,
-        transcript: {
-          userId: sessionInfo.userId,
-          timestamp: messageTimestamp,
-          screenshotRef,
-        },
       });
       logRendererChatPillTrace({
         source: 'renderer-send',

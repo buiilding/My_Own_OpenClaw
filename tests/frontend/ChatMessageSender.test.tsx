@@ -12,6 +12,7 @@ import {
   markConversationInferenceSessionLocalOnly,
   markConversationInferenceSessionUnknown,
 } from '../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime';
+import { recordUserTranscriptMessage } from '../../frontend/src/renderer/features/chat/utils/messageSender/userTranscriptPersistence';
 
 let mockFrontendConfig: Record<string, unknown> = {
   include_query_screenshot: true,
@@ -50,10 +51,13 @@ jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversation
       conversationRef: mockActiveConversationRef,
       userId: null,
     })),
-    recordUserMessage: jest.fn(),
     sendQuery: jest.fn(),
     setModel: jest.fn(),
   },
+}));
+
+jest.mock('../../frontend/src/renderer/features/chat/utils/messageSender/userTranscriptPersistence', () => ({
+  recordUserTranscriptMessage: jest.fn(),
 }));
 
 jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime', () => ({
@@ -70,6 +74,7 @@ const mockGetActiveConversationRef = DesktopConversationRuntimeClient.getActiveC
 const mockSetActiveConversationRef = DesktopConversationRuntimeClient.setActiveConversationRef as jest.Mock;
 const mockUpdateTranscriptSession = DesktopConversationRuntimeClient.updateTranscriptSession as jest.Mock;
 const mockGetTranscriptSessionInfo = DesktopConversationRuntimeClient.getTranscriptSessionInfo as jest.Mock;
+const mockRecordUserTranscriptMessage = recordUserTranscriptMessage as jest.MockedFunction<typeof recordUserTranscriptMessage>;
 const mockEnsureConversationInferenceSessionHydrated = ensureConversationInferenceSessionHydrated as jest.MockedFunction<typeof ensureConversationInferenceSessionHydrated>;
 const mockMarkConversationInferenceSessionLocalOnly = markConversationInferenceSessionLocalOnly as jest.MockedFunction<typeof markConversationInferenceSessionLocalOnly>;
 const mockMarkConversationInferenceSessionUnknown = markConversationInferenceSessionUnknown as jest.MockedFunction<typeof markConversationInferenceSessionUnknown>;
@@ -174,6 +179,7 @@ describe('useChatMessageSender', () => {
     mockSetActiveConversationRef.mockClear();
     mockUpdateTranscriptSession.mockClear();
     mockGetTranscriptSessionInfo.mockClear();
+    mockRecordUserTranscriptMessage.mockReset();
     mockEnsureConversationInferenceSessionHydrated.mockReset();
     mockMarkConversationInferenceSessionLocalOnly.mockReset();
     mockMarkConversationInferenceSessionUnknown.mockReset();
@@ -492,7 +498,10 @@ describe('useChatMessageSender', () => {
         screenshotUrl: '/api/artifacts/artifact-1',
       }),
     );
-    expect(mockSendQuery.mock.calls[0][0].transcript).toEqual(expect.objectContaining({
+    expect(mockSendQuery.mock.calls[0][0].transcript).toBeUndefined();
+    expect(mockRecordUserTranscriptMessage).toHaveBeenCalledWith(expect.objectContaining({
+      text: 'hello',
+      conversationRef: 'conv_msg-1',
       screenshotRef: 'artifact-1',
     }));
   });
