@@ -128,6 +128,7 @@ Current runtime behavior also relies on these explicit seams:
    - Dispatches live thinking/reasoning display from SDK `reasoning_delta` events.
    - Dispatches assistant text deltas/completions from SDK `assistant_delta`/`turn_completed` events.
    - Dispatches tool display projection from SDK `tool_call`/`tool_output`/`tool_bundle_call` events while main owns tool execution.
+   - Dispatches live tool progress projection from SDK `tool_progress` events while main keeps overlay phase handling.
    - Dispatches compaction display and compacted replay persistence from SDK compaction events.
    - Dispatches message metadata/transparency projection from SDK metadata events.
    - Dispatches backend error display and terminal state from SDK `turn_error` events.

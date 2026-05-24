@@ -36,12 +36,11 @@ Listener flow in `useChatStream`:
 `buildChatStreamHandlerMap(...)` owns only backend event types that have not yet
 moved behind SDK conversation events:
 
-- tool progress: `web-search-progress`
 - local optimistic user row: `local-user-message`
 
 Assistant thinking, text, completion, compaction, tool rows, transparency
-metadata, errors, token usage, and memory-store telemetry dispatch from
-SDK-normalized conversation events.
+metadata, errors, token usage, memory-store telemetry, and tool progress
+dispatch from SDK-normalized conversation events.
 `turn_error` suppression runs inside `useChatStreamTerminalHandlers` before UI
 mutation.
 
@@ -97,6 +96,7 @@ Reason: local-user-message establishes turn/workspace state and seeds optimistic
 ## Side-Effect Ownership After Dispatch
 
 - `useChatStreamToolHandlers`: writes tool-call/tool-output/tool-bundle rows, resets thinking state for tool events, records transcript tool rows for call/output only, and routes `tool-output` transcript rows through the shared `toolOutputTranscriptPersistence.ts` helper
+  - SDK `tool_progress`: transient live web-search progress rows without transcript writes
 - `useChatStreamTerminalHandlers`:
   - SDK `usage_updated`: workspace token counter update
   - SDK `memory_stored`: stream tracking only (no direct memory write side effect)

@@ -8,7 +8,6 @@ import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import {
   type BackendEvent,
   type BackendEventType,
-  type WebSearchProgressEvent,
   type LocalUserMessageEvent,
   type ErrorEvent,
 } from '../../../types/backendEvents';
@@ -183,12 +182,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     setThinkingStatus,
   });
 
-  const handleWebSearchProgressEvent = useTurnScopedBackendEventHandler<WebSearchProgressEvent>({
-    resolveTargetConversationRef,
-    shouldIgnoreForStaleTurn,
-    onEvent: handleWebSearchProgress,
-  });
-
   const handleLocalUserMessageEvent = useTurnScopedBackendEventHandler<LocalUserMessageEvent>({
     resolveTargetConversationRef,
     shouldIgnoreForStaleTurn,
@@ -229,10 +222,8 @@ export function useChatStream(enableTranscript: boolean = true) {
   });
 
   const handlers = useMemo<Partial<Record<BackendEventType, (event: BackendEvent) => void>>>(() => buildChatStreamHandlerMap({
-    handleWebSearchProgress: handleWebSearchProgressEvent,
     handleLocalUserMessage: handleLocalUserMessageEvent,
   }), [
-    handleWebSearchProgressEvent,
     handleLocalUserMessageEvent,
   ]);
 
@@ -249,6 +240,7 @@ export function useChatStream(enableTranscript: boolean = true) {
       && event.type !== 'reasoning_delta'
       && event.type !== 'turn_completed'
       && event.type !== 'tool_call'
+      && event.type !== 'tool_progress'
       && event.type !== 'tool_output'
       && event.type !== 'tool_bundle_call'
       && event.type !== 'compaction_started'
@@ -278,6 +270,10 @@ export function useChatStream(enableTranscript: boolean = true) {
     }
     if (event.type === 'tool_call') {
       handleToolCall(event, event.conversationRef);
+      return true;
+    }
+    if (event.type === 'tool_progress') {
+      handleWebSearchProgress(event, event.conversationRef);
       return true;
     }
     if (event.type === 'tool_output') {
@@ -343,6 +339,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleTokenCount,
     handleToolBundle,
     handleToolCall,
+    handleWebSearchProgress,
     handleToolOutput,
     handleToolSchemas,
     handleUserMessageFull,

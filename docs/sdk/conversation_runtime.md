@@ -47,6 +47,7 @@ The runtime records normalized events:
 - `reasoning_delta`
 - `assistant_message`
 - `tool_call`
+- `tool_progress`
 - `tool_output`
 - `tool_bundle_call`
 - `tool_bundle_output`

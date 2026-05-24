@@ -685,6 +685,40 @@ describe('Windie SDK conversation runtime core', () => {
     expect(buildRehydrateSnapshot([reasoning]).messages).toEqual([]);
   });
 
+  test('backend web search progress normalizes to tool_progress', () => {
+    const normalized = normalizeBackendEventToConversationEvent({
+      type: 'web-search-progress',
+      conversation_ref: 'conv-sdk-runtime',
+      turn_ref: 'turn-search',
+      payload: {
+        text: 'Searched example.com',
+        request_id: 'req-search-1',
+        query: 'example',
+      },
+    });
+
+    expect(normalized).toMatchObject({
+      type: 'tool_progress',
+      conversationRef: 'conv-sdk-runtime',
+      turnRef: 'turn-search',
+      payload: expect.objectContaining({
+        toolName: 'web_search',
+        text: 'Searched example.com',
+        requestId: 'req-search-1',
+        correlationId: 'req-search-1',
+        structuredPayload: expect.objectContaining({ query: 'example' }),
+        rawEvent: expect.objectContaining({ type: 'web-search-progress' }),
+      }),
+    });
+  });
+
+  test('tool progress stays out of display and rehydrate projections', () => {
+    const progress = event('tool_progress', { text: 'Searched example.com', toolName: 'web_search' });
+
+    expect(buildDisplayConversation([progress]).messages).toEqual([]);
+    expect(buildRehydrateSnapshot([progress]).messages).toEqual([]);
+  });
+
   test('backend query-accepted normalizes to turn_started', () => {
     const normalized = normalizeBackendEventToConversationEvent({
       type: 'query-accepted',

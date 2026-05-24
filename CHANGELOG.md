@@ -13,6 +13,7 @@ All notable changes to WindieOS will be documented in this file.
 - sidecar/browser: keep Browser Use CLI calls on the headed dedicated-session config by default and parse noisy close output so stale sessions can shut down cleanly.
 - sidecar/browser: fix Browser Use snapshot screenshots so `include_screenshot=true` uses the screenshot default filename instead of requiring snapshot args to carry `file_name`.
 - sidecar/browser: route canonical WindieOS browser tool execution through the official Browser Use CLI daemon adapter, add `browser-use[cli]` as the browser feature-pack dependency, and document that WindieOS owns orchestration while Browser Use owns browser mechanics.
+- frontend/sdk: dispatch live web-search progress rows from SDK `tool_progress` events, deleting the raw `web-search-progress` backend handler-map entry.
 - frontend/sdk: dispatch live thinking text from SDK `reasoning_delta` events, deleting the raw `llm-thought` backend handler-map entry.
 - frontend/sdk: dispatch backend memory-store tracking from SDK `memory_stored` events, deleting the raw `memory-store` backend handler-map entry.
 - frontend/sdk: dispatch backend token usage updates from SDK `usage_updated` events, deleting the raw `token-count` backend handler-map entry.

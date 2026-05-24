@@ -201,6 +201,23 @@ jest.mock('../../frontend/src/renderer/features/chat/session/desktopConversation
           },
         };
       }
+      if (event.type === 'web-search-progress') {
+        return {
+          type: 'tool_progress',
+          conversationRef,
+          turnRef: event.turn_ref,
+          source: 'backend',
+          payload: {
+            ...(event.payload || {}),
+            toolName: 'web_search',
+            text: typeof event.payload?.text === 'string' ? event.payload.text : '',
+            requestId: typeof event.payload?.request_id === 'string' ? event.payload.request_id : null,
+            correlationId: typeof event.payload?.request_id === 'string' ? event.payload.request_id : null,
+            structuredPayload: event.payload || {},
+            rawEvent: event,
+          },
+        };
+      }
       if (event.type === 'tool-output') {
         return {
           type: 'tool_output',

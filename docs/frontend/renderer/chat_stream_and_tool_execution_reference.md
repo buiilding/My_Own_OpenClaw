@@ -165,8 +165,10 @@ Pre-routing and workspace resolution:
   backend `memory-store` -> SDK `memory_stored`
 - thinking/reasoning events dispatch from SDK-normalized conversation events:
   backend `llm-thought` -> SDK `reasoning_delta`
-- renderer handlers still consume raw backend events for web-search progress and
-  local-user flows until those projection paths move behind the SDK.
+- tool progress events dispatch from SDK-normalized conversation events:
+  backend `web-search-progress` -> SDK `tool_progress`
+- renderer handlers still consume raw backend events for local-user flows until
+  that projection path moves behind the SDK.
 
 Handler map (`BackendEventType` -> behavior):
 
@@ -180,6 +182,7 @@ Handler map (`BackendEventType` -> behavior):
 - SDK `compaction_skipped` from backend `context-compaction-completed` with `skipped_reason`: clears only an active compaction status/debug payload. It does not render a compacted-history panel, persist replay rows, or clear unrelated active thinking/tool state.
 - SDK `compaction_failed` from backend `context-compaction-failed`: replaces compaction thinking with terminal failure text (backend error string when available, otherwise `Conversation compaction failed.`) and marks source as `context-compaction-failed`
 - SDK `tool_call` from backend `tool-call`: append assistant tool-call row and transcript tool-call row
+- SDK `tool_progress` from backend `web-search-progress`: append transient `search-source` rows for live web-search progress without transcript writes
 - SDK `tool_output` from backend `tool-output`: append assistant tool-output row with screenshot/tool metadata and transcript tool-output row
 - SDK `tool_bundle_call` from backend `tool-bundle`: append bundle call row and persist a transcript `tool-bundle` trace row so later transcript loads can reconstruct the bundle call card without reclassifying it as a normal executable tool-call
 - SDK `system_prompt` from backend `system-prompt`: annotate last user message with system prompt + tool schema snapshot
@@ -203,7 +206,7 @@ Handler composition boundary:
 - SDK `system_prompt`/`user_message_metadata`/`assistant_message`/`tool_schemas_metadata`
   transparency projection is delegated to `useChatStreamMetadataHandlers`.
 - SDK `turn_error`, SDK `usage_updated`, and SDK `memory_stored` terminal behaviors are delegated to `useChatStreamTerminalHandlers`
-- SDK `tool_call`/`tool_output`/`tool_bundle_call` display and transcript
+- SDK `tool_call`/`tool_progress`/`tool_output`/`tool_bundle_call` display and transcript
   projection is delegated to `useChatStreamToolHandlers`; local tool execution
   remains owned by the main-process SDK runtime and sidecar.
 - SDK `compaction_started`/`compaction_applied`/`compaction_skipped`/`compaction_failed`
@@ -212,8 +215,8 @@ Handler composition boundary:
 - turn-scoped wrapper callbacks for local-user events are centralized in
   `useTurnScopedBackendEventHandler`, with optional `skipStaleTurnGate` for
   `local-user-message` passthrough behavior. SDK assistant text, tool display,
-  compaction, metadata, error, usage, memory-store, and reasoning events run the
-  same stale-turn gate before dispatch.
+  compaction, metadata, error, usage, memory-store, reasoning, and tool-progress
+  events run the same stale-turn gate before dispatch.
 
 Turn guard + error suppression matrix:
 

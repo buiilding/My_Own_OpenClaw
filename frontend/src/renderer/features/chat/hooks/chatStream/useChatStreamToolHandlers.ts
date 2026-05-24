@@ -45,6 +45,7 @@ type TrackEventFn = (
 ) => void;
 
 type ToolStreamEvent = ToolCallEvent | ToolOutputEvent | ToolBundleEvent | ConversationEvent;
+type WebSearchProgressStreamEvent = WebSearchProgressEvent | ConversationEvent;
 
 type UseChatStreamToolHandlersDeps = {
   enableTranscript: boolean;
@@ -73,6 +74,40 @@ function unwrapToolBackendEvent<TEvent extends ToolCallEvent | ToolOutputEvent |
     return rawEvent as TEvent;
   }
   return null;
+}
+
+function unwrapWebSearchProgressBackendEvent(event: WebSearchProgressStreamEvent): WebSearchProgressEvent | null {
+  if ('turn_ref' in event && event.type === 'web-search-progress') {
+    return event as WebSearchProgressEvent;
+  }
+  const rawEvent = event.payload?.rawEvent;
+  if (
+    rawEvent
+    && typeof rawEvent === 'object'
+    && !Array.isArray(rawEvent)
+    && (rawEvent as { type?: unknown }).type === 'web-search-progress'
+  ) {
+    return rawEvent as WebSearchProgressEvent;
+  }
+  if (event.type !== 'tool_progress') {
+    return null;
+  }
+  return {
+    id: event.eventId,
+    type: 'web-search-progress',
+    conversation_ref: event.conversationRef,
+    turn_ref: event.turnRef ?? undefined,
+    payload: {
+      text: typeof event.payload.text === 'string' ? event.payload.text : '',
+      request_id: typeof event.payload.requestId === 'string'
+        ? event.payload.requestId
+        : (typeof event.payload.correlationId === 'string' ? event.payload.correlationId : null),
+      action_type: typeof event.payload.action_type === 'string' ? event.payload.action_type : null,
+      query: typeof event.payload.query === 'string' ? event.payload.query : null,
+      url: typeof event.payload.url === 'string' ? event.payload.url : null,
+      pattern: typeof event.payload.pattern === 'string' ? event.payload.pattern : null,
+    },
+  };
 }
 
 export function useChatStreamToolHandlers({
@@ -257,10 +292,15 @@ export function useChatStreamToolHandlers({
   ]);
 
   const handleWebSearchProgress = useCallback((
-    event: WebSearchProgressEvent,
+    event: WebSearchProgressStreamEvent,
     conversationRef?: string | null,
   ) => {
-    const text = typeof event.payload?.text === 'string' ? event.payload.text.trim() : '';
+    const backendEvent = unwrapWebSearchProgressBackendEvent(event);
+    if (!backendEvent) {
+      return;
+    }
+    const resolvedConversationRef = conversationRef ?? ('conversationRef' in event ? event.conversationRef : null);
+    const text = typeof backendEvent.payload?.text === 'string' ? backendEvent.payload.text.trim() : '';
     if (!text) {
       return;
     }
@@ -273,19 +313,19 @@ export function useChatStreamToolHandlers({
       sourceEventType: 'web-search-progress',
       sourceChannel: 'from-backend',
       correlationId: (
-        typeof event.payload?.request_id === 'string' && event.payload.request_id.trim()
-          ? event.payload.request_id.trim()
+        typeof backendEvent.payload?.request_id === 'string' && backendEvent.payload.request_id.trim()
+          ? backendEvent.payload.request_id.trim()
           : undefined
       ),
-      turnRef: event.turn_ref,
+      turnRef: backendEvent.turn_ref,
       modelId: modelContext.modelId,
       modelProvider: modelContext.modelProvider,
-    }, conversationRef);
+    }, resolvedConversationRef);
     recordTrackingEvent(
       'web-search-progress',
-      event.turn_ref,
+      backendEvent.turn_ref,
       { phase: 'tool-call', toolCall: true },
-      conversationRef,
+      resolvedConversationRef,
     );
   }, [
     addMessage,

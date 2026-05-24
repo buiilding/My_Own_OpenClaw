@@ -181,6 +181,22 @@ export function normalizeBackendEventToConversationEvent(
       },
     });
   }
+  if (event.type === 'web-search-progress') {
+    return createConversationEvent({
+      ...base,
+      type: 'tool_progress',
+      source: 'backend',
+      payload: {
+        ...payload,
+        toolName: 'web_search',
+        text: typeof payload.text === 'string' ? payload.text : '',
+        requestId: typeof payload.request_id === 'string' ? payload.request_id : null,
+        correlationId: typeof payload.request_id === 'string' ? payload.request_id : null,
+        structuredPayload: payload,
+        rawEvent: event,
+      },
+    });
+  }
   if (event.type === 'tool-output') {
     return createConversationEvent({
       ...base,

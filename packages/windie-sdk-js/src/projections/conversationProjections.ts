@@ -277,6 +277,9 @@ function toDisplayMessage(event: ConversationEvent): DisplayMessage | null {
   if (event.type === 'reasoning_delta') {
     return null;
   }
+  if (event.type === 'tool_progress') {
+    return null;
+  }
   if (event.type === 'turn_completed') {
     return null;
   }

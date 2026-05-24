@@ -414,4 +414,58 @@ describe('useChatStreamToolHandlers', () => {
     );
     expect(mockRecordToolMessage).not.toHaveBeenCalled();
   });
+
+  test('adds transient search-source rows from SDK tool progress events', () => {
+    const addMessage = jest.fn();
+    const recordTrackingEvent = jest.fn();
+
+    const { result } = renderHook(() => useChatStreamToolHandlers({
+      enableTranscript: true,
+      addMessage,
+      setIsSending: jest.fn(),
+      setThinkingStatus: jest.fn(),
+      setThinkingSourceEventType: jest.fn(),
+      modelContextRef: {
+        current: {
+          modelId: 'model-search-1',
+          modelProvider: 'openai',
+        },
+      },
+      recordTrackingEvent,
+    }));
+
+    act(() => {
+      result.current.handleWebSearchProgress({
+        eventId: 'event-search-progress-2',
+        type: 'tool_progress',
+        conversationRef: 'conversation-search-2',
+        turnRef: 'turn-search-2',
+        revisionId: 'rev-search-2',
+        timestamp: '2026-05-24T00:00:00.000Z',
+        source: 'backend',
+        payload: {
+          toolName: 'web_search',
+          text: 'Searched example.com',
+          requestId: 'req-search-2',
+        },
+      } as any, 'conversation-search-2');
+    });
+
+    expect(addMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: 'Searched example.com',
+        type: 'search-source',
+        sourceEventType: 'web-search-progress',
+        correlationId: 'req-search-2',
+      }),
+      'conversation-search-2',
+    );
+    expect(recordTrackingEvent).toHaveBeenCalledWith(
+      'web-search-progress',
+      'turn-search-2',
+      { phase: 'tool-call', toolCall: true },
+      'conversation-search-2',
+    );
+    expect(mockRecordToolMessage).not.toHaveBeenCalled();
+  });
 });

@@ -20,6 +20,7 @@ export type ConversationEventType =
   | 'usage_updated'
   | 'memory_stored'
   | 'tool_call'
+  | 'tool_progress'
   | 'tool_output'
   | 'tool_bundle_call'
   | 'tool_bundle_output'

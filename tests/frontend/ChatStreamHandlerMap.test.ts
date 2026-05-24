@@ -2,17 +2,14 @@ import type { BackendEvent, BackendEventType } from '../../frontend/src/renderer
 import { buildChatStreamHandlerMap } from '../../frontend/src/renderer/features/chat/utils/chatStream/chatStreamHandlerMap';
 
 const EVENT_TYPES: BackendEventType[] = [
-  'web-search-progress',
   'local-user-message',
 ];
 
 type HandlerName =
-  | 'handleWebSearchProgress'
   | 'handleLocalUserMessage';
 
 function buildHandlers(): Record<HandlerName, jest.Mock<void, [unknown]>> {
   return {
-    handleWebSearchProgress: jest.fn(),
     handleLocalUserMessage: jest.fn(),
   };
 }
@@ -38,6 +35,7 @@ describe('chatStreamHandlerMap', () => {
     expect(map['token-count']).toBeUndefined();
     expect(map['memory-store']).toBeUndefined();
     expect(map['llm-thought']).toBeUndefined();
+    expect(map['web-search-progress']).toBeUndefined();
   });
 
   test('routes raw-map events to matching handlers', () => {
@@ -47,7 +45,6 @@ describe('chatStreamHandlerMap', () => {
       type: BackendEventType;
       handlerName: HandlerName;
     }> = [
-      { type: 'web-search-progress', handlerName: 'handleWebSearchProgress' },
       { type: 'local-user-message', handlerName: 'handleLocalUserMessage' },
     ];
 
