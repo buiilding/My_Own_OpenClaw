@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-cli-command-23979e83b8-_e41ed09bb5",
+  "featureId": "feat_cli-command_23979e83b8",
+  "title": "Detected command is a CPU feature probe, not a usable CLI",
+  "category": "api-contract",
+  "severity": "low",
+  "confidence": "high",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "frontend/python-runtime/lib/python3.11/site-packages/numpy/distutils/checks/cpu_fma3.c",
+      "startLine": 17,
+      "endLine": 21,
+      "symbol": "main",
+      "quote": null
+    }
+  ],
+  "reasoning": "The top-level main does not implement a command interface: it treats argv[argc-1] as a float buffer and feeds it to AVX/FMA intrinsics. If this semantic feature is surfaced as a runnable cpu_fma3 CLI command, normal invocation can execute undefined behavior or crash because argv points to command-line strings, not a guaranteed 32-byte float array. The file appears to be a compile/runtime CPU capability check rather than an application entrypoint.",
+  "reproduction": null,
+  "recommendation": "Exclude NumPy distutils CPU check sources under vendored python-runtime/site-packages from CLI-command feature extraction, or classify this as a build probe/internal check instead of a user-facing command.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for the feature extraction classification, and the file itself contains only the probe main.",
+  "suggestedRegressionTest": "Add a feature-detection regression test asserting numpy/distutils/checks/cpu_*.c files in vendored python-runtime are not emitted as cli-command features.",
+  "minimumFixScope": "Update the semantic feature extractor or its ignore rules for vendored NumPy CPU check files.",
+  "status": "false-positive",
+  "history": [
+    {
+      "runId": null,
+      "kind": "triage",
+      "status": "false-positive",
+      "note": "Excluded vendored frontend/python-runtime dependency probe from WindieOS-owned review scope",
+      "reasoning": null,
+      "commands": [],
+      "createdAt": "2026-05-24T21:02:45.829Z"
+    }
+  ],
+  "signature": "sig_feat-cli-command-23979e83b8_3362fdb2dd",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210113-a6c478",
+  "createdAt": "2026-05-24T21:01:47.574Z",
+  "updatedAt": "2026-05-24T21:02:45.828Z"
+}

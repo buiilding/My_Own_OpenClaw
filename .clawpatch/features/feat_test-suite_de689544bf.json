@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_test-suite_de689544bf",
+  "title": "Python test suite tests/backend#6",
+  "summary": "Python pytest files in tests/backend#6.",
+  "kind": "test-suite",
+  "source": "python-test-suite",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "tests/backend#6",
+      "symbol": "tests/backend#6",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "tests/backend/test_interaction_tool_call_bridge.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_kimi_coding_provider.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_llm_client.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_llm_client_response_normalization.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_llm_provider_base.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_llm_provider_stream_event_pipeline.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_llm_provider_utils.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_llm_request_kwargs.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_llm_stream_processor.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_llm_stream_processor_helpers.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_llm_thinking_extraction.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_local_llm_providers.py",
+      "reason": "pytest file"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_interaction_tool_call_bridge.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_kimi_coding_provider.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_llm_client.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_llm_client_response_normalization.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_llm_provider_base.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_llm_provider_stream_event_pipeline.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_llm_provider_utils.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_llm_request_kwargs.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_llm_stream_processor.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_llm_stream_processor_helpers.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_llm_thinking_extraction.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_local_llm_providers.py",
+      "reason": "nearby test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_interaction_tool_call_bridge.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_kimi_coding_provider.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_llm_client.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_llm_client_response_normalization.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_llm_provider_base.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_llm_provider_stream_event_pipeline.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_llm_provider_utils.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_llm_request_kwargs.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_llm_stream_processor.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_llm_stream_processor_helpers.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_llm_thinking_extraction.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_local_llm_providers.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "test"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-test-suite-de689544bf-d_492f7d52e3"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=167844 bytes; approxTokens=41961; includedFiles=12; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:24:33.868Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:24:33.868Z"
+}

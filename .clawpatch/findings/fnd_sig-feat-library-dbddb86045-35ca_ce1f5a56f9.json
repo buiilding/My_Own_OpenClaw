@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-dbddb86045-35ca_ce1f5a56f9",
+  "featureId": "feat_library_dbddb86045",
+  "title": "Schema cleaning drops typed dictionary value schemas",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "backend/src/sdk/tool.py",
+      "startLine": 123,
+      "endLine": 132,
+      "symbol": "Tool._clean_schema",
+      "quote": null
+    },
+    {
+      "path": "backend/src/sdk/tool.py",
+      "startLine": 203,
+      "endLine": 224,
+      "symbol": "Tool.build_tool_spec",
+      "quote": null
+    }
+  ],
+  "reasoning": "Pydantic emits object map fields such as dict[str, NestedModel] or dict[str, int] using additionalProperties as a schema object. _clean_schema only preserves additionalProperties when it is a bool, so typed map fields lose their value schema in the generated tool spec. That weakens or breaks the model-facing parameter contract for SDK tools with dictionary arguments.",
+  "reproduction": null,
+  "recommendation": "Preserve additionalProperties when it is a dict by recursively cleaning that nested schema, while keeping the existing bool handling.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were provided, and the implementation only covers bool additionalProperties, indicating typed map schemas are not asserted.",
+  "suggestedRegressionTest": "Define a Tool args_model with a field like mapping: dict[str, int] or dict[str, NestedArgs], build the tool spec, and assert parameters.properties.mapping.additionalProperties retains the cleaned value schema.",
+  "minimumFixScope": "backend/src/sdk/tool.py and a focused SDK schema-generation test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-dbddb86045_35ca987d5f",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:18:48.999Z",
+  "updatedAt": "2026-05-24T21:18:48.999Z"
+}

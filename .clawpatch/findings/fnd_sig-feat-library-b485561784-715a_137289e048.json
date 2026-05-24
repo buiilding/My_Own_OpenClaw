@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-b485561784-715a_137289e048",
+  "featureId": "feat_library_b485561784",
+  "title": "OCR candidate retry can crash on candidates with invalid bbox",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "backend/src/agent/tools/preparation/coordinate_resolution/resolvers.py",
+      "startLine": 242,
+      "endLine": 247,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/tools/preparation/coordinate_resolution/resolvers.py",
+      "startLine": 73,
+      "endLine": 81,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The resolver includes OCR candidates with unknown coordinates in the machine-readable retry payload and formatted retry instructions, but a later retry with that candidate_id directly indexes candidate['bbox']['x'], ['width'], ['y'], and ['height']. If the candidate was listed because its bbox was missing or malformed, the retry path raises KeyError/TypeError instead of the documented ValueError coordinate-resolution failure. This makes the advertised recovery path unreliable for malformed OCR entries.",
+  "reproduction": "Call OcrCoordinateResolver.resolve with text that produces no match against an OCR result like {'text': 'Close'} without a valid bbox, read the emitted candidate_id from the no-match ambiguity payload, then call resolve again with candidate_id set to that value. The second call reaches the candidate_id branch and crashes while indexing bbox.",
+  "recommendation": "Validate the candidate bbox with _extract_bbox_center before returning coordinates in the candidate_id branch. If the center cannot be extracted, raise a ValueError that explains the candidate has no executable coordinates and re-grounding or a different candidate is required.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for this feature, and the code path that emits candidate IDs for unknown-coordinate matches is separate from the candidate_id retry path that dereferences bbox.",
+  "suggestedRegressionTest": "Add an OCR resolver test with a malformed or missing bbox result that appears in the retry candidates, then retry by candidate_id and assert a controlled ValueError rather than KeyError/TypeError.",
+  "minimumFixScope": "Update OcrCoordinateResolver.resolve's candidate_id branch to use _extract_bbox_center and add a focused unit test for malformed bbox candidate retries.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-b485561784_715a9fce6c",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:15:54.750Z",
+  "updatedAt": "2026-05-24T21:15:54.750Z"
+}

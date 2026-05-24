@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-1eb9f792ca-6144_174fab8f94",
+  "featureId": "feat_library_1eb9f792ca",
+  "title": "Provided optional value 0 is silently ignored",
+  "category": "bug",
+  "severity": "low",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "backend/src/tools/templates/sdk_tool_template/tool.py",
+      "startLine": 32,
+      "endLine": 35,
+      "symbol": "ExampleToolArgs.optional_param",
+      "quote": null
+    },
+    {
+      "path": "backend/src/tools/templates/sdk_tool_template/tool.py",
+      "startLine": 137,
+      "endLine": 138,
+      "symbol": "ExampleTool._process_input",
+      "quote": null
+    }
+  ],
+  "reasoning": "optional_param is declared as Optional[int] with no constraint excluding 0, but _process_input checks truthiness instead of None. Passing optional_param=0 is treated the same as omitting the parameter, so a valid provided value is dropped from the result. Because this is a template, the bug can be copied into newly created tools.",
+  "reproduction": "Call ExampleTool._process_input('x', 0); the returned string is 'Processed x' instead of including option 0.",
+  "recommendation": "Change the condition to `if optional is not None:` so every provided integer value, including 0, is handled.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for this template, and no evidence shows coverage for falsey-but-valid optional integer values.",
+  "suggestedRegressionTest": "Add a focused test that constructs ExampleTool and asserts `_process_input('input', 0)` includes `with option 0`, while `_process_input('input', None)` omits the option text.",
+  "minimumFixScope": "Update the optional_param check in backend/src/tools/templates/sdk_tool_template/tool.py and add a small regression test for None versus 0.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-1eb9f792ca_6144e3c4e5",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:05:27.649Z",
+  "updatedAt": "2026-05-24T21:05:27.649Z"
+}

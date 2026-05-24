@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_5bf79cfc53",
+  "title": "Node source frontend/src/renderer/components",
+  "summary": "Node/TypeScript source group frontend/src/renderer/components with 3 files.",
+  "kind": "library",
+  "source": "node-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "frontend/package.json",
+      "symbol": "frontend/src/renderer/components",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "frontend/src/renderer/components/ErrorBoundary.jsx",
+      "reason": "source group frontend/src/renderer/components"
+    },
+    {
+      "path": "frontend/src/renderer/components/MainWindowControls.jsx",
+      "reason": "source group frontend/src/renderer/components"
+    },
+    {
+      "path": "frontend/src/renderer/components/WindieGlyph.jsx",
+      "reason": "source group frontend/src/renderer/components"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "frontend/package.json",
+      "reason": "package manifest"
+    }
+  ],
+  "tests": [],
+  "tags": [
+    "node",
+    "typescript",
+    "source-group",
+    "project:windieos",
+    "project-root:frontend"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-5bf79cfc53-63eb_16132f37aa"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=14502 bytes; approxTokens=3626; includedFiles=4; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:09:53.740Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:09:53.740Z"
+}

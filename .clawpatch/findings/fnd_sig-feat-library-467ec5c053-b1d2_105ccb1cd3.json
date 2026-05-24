@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-467ec5c053-b1d2_105ccb1cd3",
+  "featureId": "feat_library_467ec5c053",
+  "title": "Default session creation bypasses the DI LLM client provider",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "backend/src/core/container/session_factory.py",
+      "startLine": 80,
+      "endLine": 87,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/container/session_runtime.py",
+      "startLine": 66,
+      "endLine": 78,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "AgentSessionFactory always resolves a non-null session_config, even when the caller did not pass a session-specific override, then calls llm_client_factory(session_config). That means SessionRuntimeCoordinator.llm_client_factory always takes the session_config branch and calls either _mock_llm_factory or get_llm_client(session_config), while the DI-container path at line 78 is unreachable for normal default sessions. This contradicts the local comment that the DI container factory may be overridden for simulation and can break dependency injection, test overrides, or runtime-provided LLM clients for default sessions.",
+  "reproduction": null,
+  "recommendation": "Preserve the distinction between no override and explicit session config. For default sessions, call the LLM factory without an argument so the DI container provider is used; only pass config when create_agent_session receives a real session-specific override. Alternatively make the coordinator factory explicitly route the factory's base config through the same DI override path.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for this feature, and the unreachable DI branch would require a test that creates a default session with an overridden DI LLM provider and asserts that provider is used.",
+  "suggestedRegressionTest": "Add a focused session runtime test with a fake container whose _di_container.llm_client returns a sentinel client, call create_agent_session without a config override, and assert the session receives the sentinel instead of a get_llm_client-created client. Add a second case proving an explicit config override still uses the config-aware path.",
+  "minimumFixScope": "Update AgentSessionFactory.create_session and/or SessionRuntimeCoordinator.llm_client_factory so default config use and explicit config override remain distinguishable, then add focused tests for both paths.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-467ec5c053_b1d22ef4d5",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:08:10.128Z",
+  "updatedAt": "2026-05-24T21:08:10.128Z"
+}

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-release-36a60cc78c-31c3_0aa724c3ec",
+  "featureId": "feat_release_36a60cc78c",
+  "title": "Release packaging can ship without TypeScript or lint validation",
+  "category": "build-release",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/package.json",
+      "startLine": 17,
+      "endLine": 21,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/package.json",
+      "startLine": 26,
+      "endLine": 27,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/package.json",
+      "startLine": 40,
+      "endLine": 41,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The release packaging scripts all invoke `npm run build`, but `build` is only `vite build`. Vite's production build generally transpiles TypeScript and bundles assets, while the explicit `typecheck`, `lint`, and Jest test scripts are separate and not part of the package path. A package command can therefore produce distributable artifacts even when type errors, lint-enforced release blockers, or frontend test regressions exist.",
+  "reproduction": null,
+  "recommendation": "Make the release packaging path depend on a validation script, for example `npm run typecheck && npm run lint && npm run test:ci && vite build`, or introduce a dedicated `prepackage`/`release:check` script used by all package variants before `electron-builder`.",
+  "whyTestsDoNotAlreadyCoverThis": "No included test or package-script assertion covers the command graph for release packaging; the only evidence shows validation scripts exist but are not wired into `build` or `package`.",
+  "suggestedRegressionTest": "Add a small package-script contract test that parses `frontend/package.json` and asserts every release packaging script runs the required validation script before `electron-builder`.",
+  "minimumFixScope": "Update `frontend/package.json` scripts so package/release commands run frontend typecheck, lint, and CI tests before producing distributable artifacts.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-release-36a60cc78c_31c360d958",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:20:44.454Z",
+  "updatedAt": "2026-05-24T21:20:44.454Z"
+}

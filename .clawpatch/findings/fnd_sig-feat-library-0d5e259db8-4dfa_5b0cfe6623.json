@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-0d5e259db8-4dfa_5b0cfe6623",
+  "featureId": "feat_library_0d5e259db8",
+  "title": "Duplicate future creation can orphan the first waiter",
+  "category": "concurrency",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/agent/tools/waiting/storage/result_storage.py",
+      "startLine": 111,
+      "endLine": 125,
+      "symbol": "ToolResultStorage.create_result_future",
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/tools/waiting/storage/result_storage.py",
+      "startLine": 219,
+      "endLine": 233,
+      "symbol": "ToolResultStorage.create_bundle_future",
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/tools/waiting/storage/result_storage.py",
+      "startLine": 127,
+      "endLine": 146,
+      "symbol": "ToolResultStorage.resolve_result_future",
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/tools/waiting/storage/result_storage.py",
+      "startLine": 235,
+      "endLine": 254,
+      "symbol": "ToolResultStorage.resolve_bundle_future",
+      "quote": null
+    }
+  ],
+  "reasoning": "create_result_future and create_bundle_future unconditionally overwrite the dict entry for a correlation id. If two waiters are registered for the same request or bundle id, the first Future remains pending but is no longer reachable from storage, so resolve_result_future/resolve_bundle_future can only complete the most recently created Future. This can hang the earlier caller and leak the orphaned Future.",
+  "reproduction": "Call create_result_future('r1') twice, keep both returned futures, then call resolve_result_future('r1', result). The second future resolves and the first remains pending indefinitely.",
+  "recommendation": "Make duplicate future registration explicit: either return the existing pending Future for the same id, reject duplicates with an exception, or complete/cancel the replaced Future before overwriting it. Mirror the chosen behavior for bundle futures.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for duplicate request_id or bundle_id waiter registration.",
+  "suggestedRegressionTest": "Add tests that call create_result_future and create_bundle_future twice with the same id and assert the first waiter is not left pending under the chosen contract.",
+  "minimumFixScope": "Update duplicate handling in create_result_future and create_bundle_future, plus focused storage tests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-0d5e259db8_4dfa5f7efe",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:04:12.570Z",
+  "updatedAt": "2026-05-24T21:04:12.570Z"
+}

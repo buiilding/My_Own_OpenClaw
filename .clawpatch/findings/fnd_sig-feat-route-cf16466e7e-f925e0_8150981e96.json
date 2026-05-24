@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-cf16466e7e-f925e0_8150981e96",
+  "featureId": "feat_route_cf16466e7e",
+  "title": "POST /embed has no route-level authentication or authorization",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/embeddings/service_app.py",
+      "startLine": 76,
+      "endLine": 87,
+      "symbol": "app",
+      "quote": null
+    },
+    {
+      "path": "backend/src/embeddings/service_app.py",
+      "startLine": 86,
+      "endLine": 98,
+      "symbol": "embed",
+      "quote": null
+    }
+  ],
+  "reasoning": "The FastAPI app registers POST /embed without any dependency, middleware, token check, or caller authorization in the shown service file. Because the route crosses network and user-input trust boundaries and triggers expensive embedding work, accidental exposure would allow unauthenticated callers to consume embedding capacity. Confidence is medium because the excerpt does not show deployment binding or upstream network controls.",
+  "reproduction": null,
+  "recommendation": "Enforce an internal service authentication mechanism at this app boundary, or document and test a deliberate localhost-only/upstream-protected deployment contract. Prefer a dependency or middleware that fails closed when credentials are absent or misconfigured.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were provided, and there is no evidence in the excerpt of tests asserting unauthorized requests are rejected or that the service is only reachable behind a trusted boundary.",
+  "suggestedRegressionTest": "Add route tests for missing, invalid, and valid service credentials, or a deployment-contract test that verifies the app is only started behind the intended protected listener.",
+  "minimumFixScope": "Add authentication middleware/dependency for backend/src/embeddings/service_app.py or add explicit startup/config enforcement for the intended internal-only boundary, plus focused tests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-cf16466e7e_f925e022d8",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:22:48.378Z",
+  "updatedAt": "2026-05-24T21:22:48.378Z"
+}

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-4f3ef7d33a-0e1a_924772ecef",
+  "featureId": "feat_library_4f3ef7d33a",
+  "title": "Full-screen collapse can get stuck when leave-full-screen never fires",
+  "category": "bug",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/main/main_window_runtime.cjs",
+      "startLine": 101,
+      "endLine": 137,
+      "symbol": "collapseMainWindowToChatPill",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/main_window_controls_handler.cjs",
+      "startLine": 60,
+      "endLine": 89,
+      "symbol": "focusWindowForPermissionPrompt",
+      "quote": null
+    }
+  ],
+  "reasoning": "collapseMainWindowToChatPill on macOS full-screen waits only for the leave-full-screen event before hiding the main window and showing the chat pill. Unlike focusWindowForPermissionPrompt, which includes a timeout fallback for the same leave-full-screen transition, collapseMainWindowToChatPill has no timeout or error path. If Electron or macOS does not emit the event, the main window remains visible, the chat pill is not shown, and __windiePendingCollapseToChatPill stays true so future close attempts return immediately.",
+  "reproduction": "On macOS, close the dashboard while it is full-screen and simulate or encounter a missed leave-full-screen event. The first close sets __windiePendingCollapseToChatPill and never calls finishCollapse; subsequent close attempts hit the pending guard and do nothing.",
+  "recommendation": "Mirror the bounded wait pattern used by focusWindowForPermissionPrompt: install a timeout fallback, clear it when the event fires, and reset __windiePendingCollapseToChatPill in both success and fallback paths.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests cover macOS full-screen close/collapse transitions or missed leave-full-screen events.",
+  "suggestedRegressionTest": "Add a unit test for collapseMainWindowToChatPill that uses a fake mainWindow whose once('leave-full-screen') callback never fires, advances timers, and asserts hide/showChatWindow are called and the pending flag is cleared.",
+  "minimumFixScope": "frontend/src/main/main_window_runtime.cjs collapseMainWindowToChatPill plus a focused timer-based unit test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-4f3ef7d33a_0e1a19fea2",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:08:56.555Z",
+  "updatedAt": "2026-05-24T21:08:56.555Z"
+}

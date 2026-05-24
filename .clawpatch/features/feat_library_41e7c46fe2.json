@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_41e7c46fe2",
+  "title": "Python source backend/src/core/container/:api",
+  "summary": "Python source group backend/src/core/container/:api with 2 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/core/container/:api",
+      "symbol": "backend/src/core/container/:api",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/core/container/api_container.py",
+      "reason": "source group backend/src/core/container/:api"
+    },
+    {
+      "path": "backend/src/core/container/api_runtime.py",
+      "reason": "source group backend/src/core/container/:api"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-41e7c46fe2-335a_556454a391",
+    "fnd_sig-feat-library-41e7c46fe2-c00c_dee3f653c8"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=12953 bytes; approxTokens=3239; includedFiles=2; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:08:06.206Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:08:06.206Z"
+}

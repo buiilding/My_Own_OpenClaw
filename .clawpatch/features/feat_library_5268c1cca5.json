@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_5268c1cca5",
+  "title": "Python source backend/src/services/ocr",
+  "summary": "Python source group backend/src/services/ocr with 5 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/services/ocr",
+      "symbol": "backend/src/services/ocr",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/services/ocr/__init__.py",
+      "reason": "source group backend/src/services/ocr"
+    },
+    {
+      "path": "backend/src/services/ocr/helpers.py",
+      "reason": "source group backend/src/services/ocr"
+    },
+    {
+      "path": "backend/src/services/ocr/ocr_service.py",
+      "reason": "source group backend/src/services/ocr"
+    },
+    {
+      "path": "backend/src/services/ocr/provider.py",
+      "reason": "source group backend/src/services/ocr"
+    },
+    {
+      "path": "backend/src/services/ocr/remote_provider.py",
+      "reason": "source group backend/src/services/ocr"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_ocr_service.py",
+      "reason": "associated test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_ocr_service.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-5268c1cca5-a6cc_8fb4c93e84",
+    "fnd_sig-feat-library-5268c1cca5-45c7_93b4ba26e8"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=42579 bytes; approxTokens=10645; includedFiles=6; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:09:04.065Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:09:04.065Z"
+}

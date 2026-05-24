@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_test-suite_06e98e8b82",
+  "title": "Python test suite tests/backend#4",
+  "summary": "Python pytest files in tests/backend#4.",
+  "kind": "test-suite",
+  "source": "python-test-suite",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "tests/backend#4",
+      "symbol": "tests/backend#4",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "tests/backend/test_coordinate_scaling.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_dev_tool_selection.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_elevenlabs_tts_service.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_embeddings_imports.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_embeddings_provider.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_embeddings_service.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_event_bus.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_events.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_exceptions.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_execution_policies.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_execution_ref.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_formatter_specs_contract.py",
+      "reason": "pytest file"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_coordinate_scaling.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_dev_tool_selection.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_elevenlabs_tts_service.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_embeddings_imports.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_embeddings_provider.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_embeddings_service.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_event_bus.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_events.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_exceptions.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_execution_policies.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_execution_ref.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_formatter_specs_contract.py",
+      "reason": "nearby test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_coordinate_scaling.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_dev_tool_selection.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_elevenlabs_tts_service.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_embeddings_imports.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_embeddings_provider.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_embeddings_service.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_event_bus.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_events.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_exceptions.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_execution_policies.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_execution_ref.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_formatter_specs_contract.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "test"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-test-suite-06e98e8b82-a_51bf6eb4d1"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=120425 bytes; approxTokens=30107; includedFiles=12; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:23:21.839Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:23:21.839Z"
+}

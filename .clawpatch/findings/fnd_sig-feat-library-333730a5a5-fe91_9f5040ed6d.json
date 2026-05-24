@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-333730a5a5-fe91_9f5040ed6d",
+  "featureId": "feat_library_333730a5a5",
+  "title": "Out-of-bounds vision describe regions are silently moved to the image edge",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 323,
+      "endLine": 336,
+      "symbol": "sdk_vision_describe",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/sdk/service.py",
+      "startLine": 511,
+      "endLine": 541,
+      "symbol": "crop_image_source",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/sdk/models.py",
+      "startLine": 203,
+      "endLine": 208,
+      "symbol": "VisionDescribeRequest",
+      "quote": null
+    }
+  ],
+  "reasoning": "The /vision/describe request accepts any non-negative BoundingBoxModel, then crop_image_source clamps region.x and region.y into the image instead of rejecting coordinates outside the source image. A request for a region starting beyond the right or bottom edge therefore describes a 1-pixel edge crop, not the region the client asked for. The response also reports metadata for the cropped image while returning the clamped original coordinates, so the returned region can be outside the returned image dimensions. This is a correctness and API contract issue for SDK clients that depend on precise visual grounding.",
+  "reproduction": "Call /api/sdk/vision/describe with a 100x100 image and region {\"x\":200,\"y\":10,\"width\":20,\"height\":20}. crop_image_source clamps x to 99 and returns a 1x20 crop instead of rejecting the invalid region.",
+  "recommendation": "Reject regions whose origin is outside the source image with a 422, and choose one response contract: either return original image metadata plus the clamped original-region coordinates, or return cropped image metadata with region normalized to {x:0,y:0,width,height}. Avoid silently moving the requested origin.",
+  "whyTestsDoNotAlreadyCoverThis": "No tests were included for this feature, and the current code path has no visible assertion for out-of-bounds region rejection or response metadata/region consistency.",
+  "suggestedRegressionTest": "Add a focused /vision/describe service or route test using a small image. Assert that a region whose x or y starts outside the image returns 422, and assert that a valid partial-overflow region returns internally consistent image metadata and region coordinates according to the chosen contract.",
+  "minimumFixScope": "Update crop_image_source bounds handling and the /vision/describe response contract; add focused tests for valid region, partial overflow, and origin-outside-image cases.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-333730a5a5_fe91a88992",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:06:57.703Z",
+  "updatedAt": "2026-05-24T21:06:57.703Z"
+}

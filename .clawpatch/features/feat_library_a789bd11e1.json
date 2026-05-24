@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_a789bd11e1",
+  "title": "Python source backend/src/agent/tools/shared",
+  "summary": "Python source group backend/src/agent/tools/shared with 4 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/agent/tools/shared",
+      "symbol": "backend/src/agent/tools/shared",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/agent/tools/shared/__init__.py",
+      "reason": "source group backend/src/agent/tools/shared"
+    },
+    {
+      "path": "backend/src/agent/tools/shared/bundle_detection.py",
+      "reason": "source group backend/src/agent/tools/shared"
+    },
+    {
+      "path": "backend/src/agent/tools/shared/bundle_result_formatter.py",
+      "reason": "source group backend/src/agent/tools/shared"
+    },
+    {
+      "path": "backend/src/agent/tools/shared/logging_utils.py",
+      "reason": "source group backend/src/agent/tools/shared"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_bundle_detection.py",
+      "reason": "associated test"
+    },
+    {
+      "path": "tests/backend/test_bundle_result_formatter.py",
+      "reason": "associated test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_bundle_detection.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_bundle_result_formatter.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-a789bd11e1-69f1_7334d05e01",
+    "fnd_sig-feat-library-a789bd11e1-430d_52a1057e87"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=20250 bytes; approxTokens=5063; includedFiles=6; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:15:32.789Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:15:32.789Z"
+}

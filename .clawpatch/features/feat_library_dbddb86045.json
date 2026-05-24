@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_dbddb86045",
+  "title": "Python source backend/src/sdk",
+  "summary": "Python source group backend/src/sdk with 6 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/sdk",
+      "symbol": "backend/src/sdk",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/sdk/__init__.py",
+      "reason": "source group backend/src/sdk"
+    },
+    {
+      "path": "backend/src/sdk/agents/config_helper.py",
+      "reason": "source group backend/src/sdk"
+    },
+    {
+      "path": "backend/src/sdk/agents/response_extractor.py",
+      "reason": "source group backend/src/sdk"
+    },
+    {
+      "path": "backend/src/sdk/agents/session_builder.py",
+      "reason": "source group backend/src/sdk"
+    },
+    {
+      "path": "backend/src/sdk/context.py",
+      "reason": "source group backend/src/sdk"
+    },
+    {
+      "path": "backend/src/sdk/tool.py",
+      "reason": "source group backend/src/sdk"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-dbddb86045-262a_e008d08a88",
+    "fnd_sig-feat-library-dbddb86045-35ca_ce1f5a56f9"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=30604 bytes; approxTokens=7648; includedFiles=6; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:18:49.000Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:18:49.000Z"
+}

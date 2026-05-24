@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_bfae81359d",
+  "title": "Python source backend/src/api/routes/memory",
+  "summary": "Python source group backend/src/api/routes/memory with 11 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/api/routes/memory",
+      "symbol": "backend/src/api/routes/memory",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/api/routes/memory/__init__.py",
+      "reason": "source group backend/src/api/routes/memory"
+    },
+    {
+      "path": "backend/src/api/routes/memory/embeddings/__init__.py",
+      "reason": "source group backend/src/api/routes/memory"
+    },
+    {
+      "path": "backend/src/api/routes/memory/embeddings/models.py",
+      "reason": "source group backend/src/api/routes/memory"
+    },
+    {
+      "path": "backend/src/api/routes/memory/embeddings/router.py",
+      "reason": "source group backend/src/api/routes/memory"
+    },
+    {
+      "path": "backend/src/api/routes/memory/embeddings/service.py",
+      "reason": "source group backend/src/api/routes/memory"
+    },
+    {
+      "path": "backend/src/api/routes/memory/health.py",
+      "reason": "source group backend/src/api/routes/memory"
+    },
+    {
+      "path": "backend/src/api/routes/memory/semantic/__init__.py",
+      "reason": "source group backend/src/api/routes/memory"
+    },
+    {
+      "path": "backend/src/api/routes/memory/semantic/models.py",
+      "reason": "source group backend/src/api/routes/memory"
+    },
+    {
+      "path": "backend/src/api/routes/memory/semantic/parser.py",
+      "reason": "source group backend/src/api/routes/memory"
+    },
+    {
+      "path": "backend/src/api/routes/memory/semantic/router.py",
+      "reason": "source group backend/src/api/routes/memory"
+    },
+    {
+      "path": "backend/src/api/routes/memory/semantic/service.py",
+      "reason": "source group backend/src/api/routes/memory"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-bfae81359d-94f2_3f432d5ad3",
+    "fnd_sig-feat-library-bfae81359d-676f_534c6ca6cd"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=52370 bytes; approxTokens=13093; includedFiles=11; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:16:41.200Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:16:41.200Z"
+}

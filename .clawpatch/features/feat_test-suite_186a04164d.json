@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_test-suite_186a04164d",
+  "title": "Python test suite tests/backend#12",
+  "summary": "Python pytest files in tests/backend#12.",
+  "kind": "test-suite",
+  "source": "python-test-suite",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "tests/backend#12",
+      "symbol": "tests/backend#12",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "tests/backend/test_session_initializer.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_session_llm_factory.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_session_manager.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_session_registry.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_settings_payload_builder.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_settings_update_rules.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_single_tool_execution.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_stream_pipeline.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_system_use_catalog_parity.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_system_use_schema_contract.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_token_service_fallback.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_tool_bundle_formatter.py",
+      "reason": "pytest file"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_session_initializer.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_session_llm_factory.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_session_manager.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_session_registry.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_settings_payload_builder.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_settings_update_rules.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_single_tool_execution.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_stream_pipeline.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_system_use_catalog_parity.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_system_use_schema_contract.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_token_service_fallback.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_tool_bundle_formatter.py",
+      "reason": "nearby test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_session_initializer.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_session_llm_factory.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_session_manager.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_session_registry.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_settings_payload_builder.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_settings_update_rules.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_single_tool_execution.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_stream_pipeline.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_system_use_catalog_parity.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_system_use_schema_contract.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_token_service_fallback.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_tool_bundle_formatter.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "test"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-test-suite-186a04164d-4_ff5d0a0e91"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=91992 bytes; approxTokens=22998; includedFiles=12; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:23:51.195Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:23:51.195Z"
+}

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-15a846a04c-7e37_7f43c430b8",
+  "featureId": "feat_library_15a846a04c",
+  "title": "Bootstrap status read can overwrite a newer backend status event",
+  "category": "concurrency",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/infrastructure/runtime/localBackendStatusStore.js",
+      "startLine": 51,
+      "endLine": 53,
+      "symbol": "ensureIpcSubscription",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/runtime/localBackendStatusStore.js",
+      "startLine": 56,
+      "endLine": 72,
+      "symbol": "ensureBootstrapStatusRead",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/runtime/localBackendStatusStore.js",
+      "startLine": 85,
+      "endLine": 89,
+      "symbol": "subscribeLocalBackendStatusStore",
+      "quote": null
+    }
+  ],
+  "reasoning": "subscribeLocalBackendStatusStore installs the live IPC listener and then starts an async bootstrap read. Because both paths directly call applySnapshot with no generation, timestamp, or freshness check, a stale GET_LOCAL_BACKEND_STATUS response can arrive after a newer LOCAL_BACKEND_STATUS event and overwrite it. That can make subscribers see ready=false/stopped even after the backend has already emitted ready=true.",
+  "reproduction": "Subscribe to the store. Let GET_LOCAL_BACKEND_STATUS remain pending, emit LOCAL_BACKEND_STATUS with ready=true, then resolve the bootstrap invoke with an older ready=false payload. The final snapshot becomes the stale bootstrap value.",
+  "recommendation": "Prevent bootstrap responses from overwriting newer events. Track a local revision that increments on IPC events and only apply the bootstrap result if no event has arrived since the bootstrap request started, or perform the bootstrap read before registering live events with an explicit ordering guarantee.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for this feature, so there is no first-class evidence that bootstrap/event ordering is exercised.",
+  "suggestedRegressionTest": "Add a Jest test for subscribeLocalBackendStatusStore that controls the invoke promise and listener callback, emits ready=true before resolving the bootstrap with ready=false, and asserts the final snapshot remains ready=true.",
+  "minimumFixScope": "frontend/src/renderer/infrastructure/runtime/localBackendStatusStore.js plus a focused renderer store test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-15a846a04c_7e370f8b02",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:04:40.660Z",
+  "updatedAt": "2026-05-24T21:04:40.660Z"
+}

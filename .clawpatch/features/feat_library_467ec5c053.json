@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_467ec5c053",
+  "title": "Python source backend/src/core/container/:session",
+  "summary": "Python source group backend/src/core/container/:session with 2 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/core/container/:session",
+      "symbol": "backend/src/core/container/:session",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/core/container/session_factory.py",
+      "reason": "source group backend/src/core/container/:session"
+    },
+    {
+      "path": "backend/src/core/container/session_runtime.py",
+      "reason": "source group backend/src/core/container/:session"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-467ec5c053-b1d2_105ccb1cd3"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=12825 bytes; approxTokens=3207; includedFiles=2; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:08:10.129Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:08:10.129Z"
+}

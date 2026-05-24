@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-dc1ce97fb6-e59d29_366c1999ca",
+  "featureId": "feat_route_dc1ce97fb6",
+  "title": "OCR overlay route has no local authentication or caller authorization check",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 262,
+      "endLine": 267,
+      "symbol": "sdk_ocr_overlay",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 268,
+      "endLine": 293,
+      "symbol": "sdk_ocr_overlay",
+      "quote": null
+    }
+  ],
+  "reasoning": "The SDK OCR overlay endpoint accepts a network request containing user-controlled image/query data, runs OCR, and returns an overlay artifact without any visible route-level authenticated user, session, permission dependency, or authorization decision in the included route implementation. If this SDK router is exposed without an enclosing global auth guard, callers can invoke OCR/overlay rendering directly. Because only this file is available, global middleware could exist elsewhere, so confidence is medium rather than high.",
+  "reproduction": null,
+  "recommendation": "Require the same authenticated SDK/session dependency used for protected SDK endpoints, or document and test that the router is always mounted behind a global auth dependency. Pass caller identity into the route if image sources or artifact access need per-user authorization.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for this feature, and the shown implementation has no assertion-visible auth dependency at the route boundary.",
+  "suggestedRegressionTest": "Add a FastAPI route test for POST /api/sdk/ocr/overlay that verifies unauthenticated requests are rejected, or, if auth is enforced globally, a router-mount test proving the SDK router includes the required global dependency.",
+  "minimumFixScope": "Route dependency or router mount/auth configuration plus focused API tests for unauthenticated and authenticated overlay requests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-dc1ce97fb6_e59d291cbf",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:22:53.625Z",
+  "updatedAt": "2026-05-24T21:22:53.625Z"
+}

@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_f6c5c85f58",
+  "title": "Node source frontend/src/main/:overlay",
+  "summary": "Node/TypeScript source group frontend/src/main/:overlay with 10 files.",
+  "kind": "library",
+  "source": "node-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "frontend/package.json",
+      "symbol": "frontend/src/main/:overlay",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "frontend/src/main/overlay_bounds.cjs",
+      "reason": "source group frontend/src/main/:overlay"
+    },
+    {
+      "path": "frontend/src/main/overlay_chatbox_handler.cjs",
+      "reason": "source group frontend/src/main/:overlay"
+    },
+    {
+      "path": "frontend/src/main/overlay_chatbox_visual_anchor_handler.cjs",
+      "reason": "source group frontend/src/main/:overlay"
+    },
+    {
+      "path": "frontend/src/main/overlay_phase_ipc_runtime.cjs",
+      "reason": "source group frontend/src/main/:overlay"
+    },
+    {
+      "path": "frontend/src/main/overlay_renderer_registration.cjs",
+      "reason": "source group frontend/src/main/:overlay"
+    },
+    {
+      "path": "frontend/src/main/overlay_responsebox_handler.cjs",
+      "reason": "source group frontend/src/main/:overlay"
+    },
+    {
+      "path": "frontend/src/main/overlay_signal_runtime.cjs",
+      "reason": "source group frontend/src/main/:overlay"
+    },
+    {
+      "path": "frontend/src/main/overlay_topmost_runtime.cjs",
+      "reason": "source group frontend/src/main/:overlay"
+    },
+    {
+      "path": "frontend/src/main/overlay_visibility_handler.cjs",
+      "reason": "source group frontend/src/main/:overlay"
+    },
+    {
+      "path": "frontend/src/main/overlay_window_helpers_runtime.cjs",
+      "reason": "source group frontend/src/main/:overlay"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "frontend/package.json",
+      "reason": "package manifest"
+    }
+  ],
+  "tests": [],
+  "tags": [
+    "node",
+    "typescript",
+    "source-group",
+    "project:windieos",
+    "project-root:frontend"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-f6c5c85f58-fdfd_04ba1d587e"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=64383 bytes; approxTokens=16096; includedFiles=11; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:20:11.467Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:20:11.467Z"
+}

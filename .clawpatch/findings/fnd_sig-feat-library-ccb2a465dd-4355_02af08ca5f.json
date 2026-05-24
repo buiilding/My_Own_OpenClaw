@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-ccb2a465dd-4355_02af08ca5f",
+  "featureId": "feat_library_ccb2a465dd",
+  "title": "Backend-prioritized duplicate selection can discard model-visible tool output",
+  "category": "data-loss",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "packages/windie-sdk-js/src/projections/conversationProjections.ts",
+      "startLine": 213,
+      "endLine": 245,
+      "symbol": "withoutDuplicateToolOutputs",
+      "quote": null
+    },
+    {
+      "path": "packages/windie-sdk-js/src/projections/conversationProjections.ts",
+      "startLine": 441,
+      "endLine": 457,
+      "symbol": "toRehydrateMessages/buildRehydrateSnapshot",
+      "quote": null
+    }
+  ],
+  "reasoning": "Duplicate tool outputs are resolved by preferring backend-sourced events before checking whether either event has model-visible content. If a backend echo and a client/sidecar output share the same dedupe key, and only the non-backend event carries modelContent, the backend event wins anyway. buildRehydrateSnapshot then serializes the chosen tool_output with modelTextFromPayload, so the replay/rehydration message can contain an empty or less useful tool result even though a duplicate event with model-visible content was available.",
+  "reproduction": null,
+  "recommendation": "Change duplicate selection so model-visible content is the primary criterion for rehydration, or split display and rehydrate dedupe policies. At minimum, do not allow backend source preference to override an existing output that has model content when the candidate lacks it.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for this feature, and the excerpt shows no assertion covering duplicate tool outputs where source priority conflicts with modelContent availability.",
+  "suggestedRegressionTest": "Add an SDK projection test with duplicate tool_output events sharing one dedupe key: a backend event without modelContent and a non-backend event with modelContent. Assert buildRehydrateSnapshot keeps the model-visible output content.",
+  "minimumFixScope": "packages/windie-sdk-js/src/projections/conversationProjections.ts",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-ccb2a465dd_4355cdb548",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:17:27.291Z",
+  "updatedAt": "2026-05-24T21:17:27.291Z"
+}

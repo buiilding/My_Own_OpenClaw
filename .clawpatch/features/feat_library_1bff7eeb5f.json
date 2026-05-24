@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_1bff7eeb5f",
+  "title": "Python source backend/src/llm/providers#2",
+  "summary": "Python source group backend/src/llm/providers#2 with 4 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/llm/providers#2",
+      "symbol": "backend/src/llm/providers#2",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/llm/providers/stream_event_pipeline.py",
+      "reason": "source group backend/src/llm/providers#2"
+    },
+    {
+      "path": "backend/src/llm/providers/streaming_tool_call_aggregation.py",
+      "reason": "source group backend/src/llm/providers#2"
+    },
+    {
+      "path": "backend/src/llm/providers/thinking_extraction.py",
+      "reason": "source group backend/src/llm/providers#2"
+    },
+    {
+      "path": "backend/src/llm/providers/usage_diagnostics.py",
+      "reason": "source group backend/src/llm/providers#2"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-1bff7eeb5f-0445_c94c3e865d"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=32087 bytes; approxTokens=8022; includedFiles=4; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:05:29.696Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:05:29.696Z"
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-8322e2e176-458458_d64334934c",
+  "featureId": "feat_route_8322e2e176",
+  "title": "GET /api/sdk/models has no focused contract coverage",
+  "category": "test-gap",
+  "severity": "low",
+  "confidence": "high",
+  "triage": "test-gap",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 357,
+      "endLine": 378,
+      "symbol": "sdk_debug_models",
+      "quote": null
+    }
+  ],
+  "reasoning": "The feature exposes a public FastAPI response_model and several query parameters that affect model-provider configuration, but no linked tests were supplied. Without focused coverage, regressions in query parsing, config snapshot construction, model listing, or error behavior can ship unnoticed.",
+  "reproduction": null,
+  "recommendation": "Add focused route tests for the default response, model_id/model_provider overrides, interaction_mode validation, and the user_id authorization behavior chosen for this endpoint.",
+  "whyTestsDoNotAlreadyCoverThis": "The feature metadata lists no tests, and the prompt includes only the owned route file.",
+  "suggestedRegressionTest": "Use FastAPI TestClient or the repo's existing API test harness to call GET /api/sdk/models with default and override query parameters, assert the DebugModelsResponse shape, and assert invalid interaction_mode returns FastAPI validation failure.",
+  "minimumFixScope": "tests/backend coverage for backend/src/api/routes/sdk/router.py::sdk_debug_models",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-8322e2e176_458458bea1",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:22:16.715Z",
+  "updatedAt": "2026-05-24T21:22:16.715Z"
+}

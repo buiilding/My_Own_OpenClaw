@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-67d1b5afa7-0456_a80b718689",
+  "featureId": "feat_library_67d1b5afa7",
+  "title": "Session package imports a module that is not part of the session source group",
+  "category": "build-release",
+  "severity": "high",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/agent/session/__init__.py",
+      "startLine": 3,
+      "endLine": 8,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/session/manager.py",
+      "startLine": 8,
+      "endLine": 14,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The package initializer and manager both import backend.src.agent.session.session.AgentSession, but the reviewed source group contains no backend/src/agent/session/session.py and the prompt states there are no omitted files. If that module is genuinely absent, importing backend.src.agent.session or backend.src.agent.session.manager will fail at import time, taking down session management before any runtime behavior can execute.",
+  "reproduction": "Run `python -c \"import backend.src.agent.session\"` in a checkout where backend/src/agent/session/session.py is absent; the import should raise ModuleNotFoundError.",
+  "recommendation": "Restore or move the AgentSession implementation into backend/src/agent/session/session.py, or update these imports to the current AgentSession module and include a regression import test for the package and manager.",
+  "whyTestsDoNotAlreadyCoverThis": "The included test imports ActiveQueryTracker directly from its module and never imports backend.src.agent.session or SessionManager, so it would not exercise the broken package-level import path.",
+  "suggestedRegressionTest": "Add a backend import smoke test that imports `backend.src.agent.session`, `SessionManager`, and `AgentSession` from the public package surface.",
+  "minimumFixScope": "Fix the AgentSession import target in __init__.py and manager.py, or add the missing session.py module if it was unintentionally dropped.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-67d1b5afa7_0456798fe5",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:10:32.664Z",
+  "updatedAt": "2026-05-24T21:10:32.664Z"
+}

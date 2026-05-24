@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_6f5dd222fa",
+  "title": "Node source frontend/src/renderer/features/dashboard/components/sections",
+  "summary": "Node/TypeScript source group frontend/src/renderer/features/dashboard/components/sections with 12 files.",
+  "kind": "library",
+  "source": "node-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "frontend/package.json",
+      "symbol": "frontend/src/renderer/features/dashboard/components/sections",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "frontend/src/renderer/features/dashboard/components/sections/ApiKeysSection.jsx",
+      "reason": "source group frontend/src/renderer/features/dashboard/components/sections"
+    },
+    {
+      "path": "frontend/src/renderer/features/dashboard/components/sections/MemoryItem.jsx",
+      "reason": "source group frontend/src/renderer/features/dashboard/components/sections"
+    },
+    {
+      "path": "frontend/src/renderer/features/dashboard/components/sections/MemorySection.jsx",
+      "reason": "source group frontend/src/renderer/features/dashboard/components/sections"
+    },
+    {
+      "path": "frontend/src/renderer/features/dashboard/components/sections/ModelsSection.jsx",
+      "reason": "source group frontend/src/renderer/features/dashboard/components/sections"
+    },
+    {
+      "path": "frontend/src/renderer/features/dashboard/components/sections/SettingsSection.jsx",
+      "reason": "source group frontend/src/renderer/features/dashboard/components/sections"
+    },
+    {
+      "path": "frontend/src/renderer/features/dashboard/components/sections/UsageSection.jsx",
+      "reason": "source group frontend/src/renderer/features/dashboard/components/sections"
+    },
+    {
+      "path": "frontend/src/renderer/features/dashboard/components/sections/memorySectionData.js",
+      "reason": "source group frontend/src/renderer/features/dashboard/components/sections"
+    },
+    {
+      "path": "frontend/src/renderer/features/dashboard/components/sections/memorySectionState.js",
+      "reason": "source group frontend/src/renderer/features/dashboard/components/sections"
+    },
+    {
+      "path": "frontend/src/renderer/features/dashboard/components/sections/modelCardData.js",
+      "reason": "source group frontend/src/renderer/features/dashboard/components/sections"
+    },
+    {
+      "path": "frontend/src/renderer/features/dashboard/components/sections/modelCards.jsx",
+      "reason": "source group frontend/src/renderer/features/dashboard/components/sections"
+    },
+    {
+      "path": "frontend/src/renderer/features/dashboard/components/sections/providerApiKeys.js",
+      "reason": "source group frontend/src/renderer/features/dashboard/components/sections"
+    },
+    {
+      "path": "frontend/src/renderer/features/dashboard/components/sections/providerApiKeysPropTypes.js",
+      "reason": "source group frontend/src/renderer/features/dashboard/components/sections"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "frontend/package.json",
+      "reason": "package manifest"
+    }
+  ],
+  "tests": [],
+  "tags": [
+    "node",
+    "typescript",
+    "source-group",
+    "project:windieos",
+    "project-root:frontend"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-6f5dd222fa-fe10_5139c79c56"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=78763 bytes; approxTokens=19691; includedFiles=13; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:11:03.213Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:11:03.213Z"
+}

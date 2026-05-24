@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-fef97d262c-f04c_52d993d7ba",
+  "featureId": "feat_library_fef97d262c",
+  "title": "No tests cover model-selection patch validation or key mapping",
+  "category": "test-gap",
+  "severity": "low",
+  "confidence": "high",
+  "triage": "test-gap",
+  "evidence": [
+    {
+      "path": "packages/windie-sdk-js/src/settings/modelSelection.ts",
+      "startLine": 19,
+      "endLine": 44,
+      "symbol": "buildModelSettingsPatch",
+      "quote": null
+    },
+    {
+      "path": "packages/windie-sdk-js/package.json",
+      "startLine": 29,
+      "endLine": 32,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The feature has no linked tests, while buildModelSettingsPatch enforces non-empty modelId/modelProvider, accepts provider as an alias, trims string inputs, and maps SDK field names to persisted/backend-style keys. A regression here would silently change the public SDK settings payload contract or error behavior.",
+  "reproduction": null,
+  "recommendation": "Add focused SDK tests for required modelId/modelProvider validation, provider alias handling, whitespace trimming, optional modelMode/interactionMode inclusion, and output key names.",
+  "whyTestsDoNotAlreadyCoverThis": "The feature metadata lists no tests, and the package manifest only exposes build/prepack scripts, not a package-level test target.",
+  "suggestedRegressionTest": "Add a unit test module for buildModelSettingsPatch that asserts the exact patch object for valid selections and thrown errors for missing/blank modelId or provider values.",
+  "minimumFixScope": "Add focused tests for packages/windie-sdk-js/src/settings/modelSelection.ts without changing runtime behavior.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-fef97d262c_f04c247e71",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:20:33.572Z",
+  "updatedAt": "2026-05-24T21:20:33.572Z"
+}

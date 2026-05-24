@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-a1bb9ba4f9-e55c_01c5b298bb",
+  "featureId": "feat_library_a1bb9ba4f9",
+  "title": "Package import path references formatter modules outside the declared source group",
+  "category": "build-release",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/processing/formatters/__init__.py",
+      "startLine": 11,
+      "endLine": 29,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The package initializer eagerly imports several formatter modules that are not part of the declared 12-file source group and are not included in the provided file set. If this feature is packaged, moved, or reviewed as the complete formatter library described by the metadata, importing backend.src.api.processing.formatters will require modules such as tool_call, tool_output, tool_schemas, context_compaction_*, and tool_bundle that are outside the owned feature surface. That creates a build/import hazard for the semantic feature boundary and makes unrelated formatter modules required just to use the included ones.",
+  "reproduction": null,
+  "recommendation": "Either include those modules in this feature boundary or narrow __init__.py to export only modules owned by this source group. If the eager imports are intentionally cross-feature, add an explicit context/test boundary showing that the full package import is covered.",
+  "whyTestsDoNotAlreadyCoverThis": "No tests were included for this feature, and no import smoke test is shown for backend.src.api.processing.formatters.",
+  "suggestedRegressionTest": "Add a focused import smoke test that imports backend.src.api.processing.formatters and asserts the expected exported formatter classes are available under the intended package boundary.",
+  "minimumFixScope": "backend/src/api/processing/formatters/__init__.py plus the feature metadata or tests that define the intended package boundary.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-a1bb9ba4f9_e55c3614d2",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:15:09.080Z",
+  "updatedAt": "2026-05-24T21:15:09.080Z"
+}

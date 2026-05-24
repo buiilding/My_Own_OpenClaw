@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_9a79195fcc",
+  "title": "Python source backend/src/api/services/transcription",
+  "summary": "Python source group backend/src/api/services/transcription with 7 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/api/services/transcription",
+      "symbol": "backend/src/api/services/transcription",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/api/services/transcription/__init__.py",
+      "reason": "source group backend/src/api/services/transcription"
+    },
+    {
+      "path": "backend/src/api/services/transcription/audio_frames.py",
+      "reason": "source group backend/src/api/services/transcription"
+    },
+    {
+      "path": "backend/src/api/services/transcription/factory.py",
+      "reason": "source group backend/src/api/services/transcription"
+    },
+    {
+      "path": "backend/src/api/services/transcription/nova_proxy.py",
+      "reason": "source group backend/src/api/services/transcription"
+    },
+    {
+      "path": "backend/src/api/services/transcription/openai_realtime.py",
+      "reason": "source group backend/src/api/services/transcription"
+    },
+    {
+      "path": "backend/src/api/services/transcription/protocol.py",
+      "reason": "source group backend/src/api/services/transcription"
+    },
+    {
+      "path": "backend/src/api/services/transcription/provider_helpers.py",
+      "reason": "source group backend/src/api/services/transcription"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-9a79195fcc-45f9_507e3e641e",
+    "fnd_sig-feat-library-9a79195fcc-eace_952a0b4cfd",
+    "fnd_sig-feat-library-9a79195fcc-849b_49310a05c1"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "3 finding(s); prompt=25332 bytes; approxTokens=6333; includedFiles=7; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:14:51.801Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:14:51.801Z"
+}

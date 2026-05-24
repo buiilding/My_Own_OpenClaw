@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-8854be7a22-b025_a321e347b9",
+  "featureId": "feat_library_8854be7a22",
+  "title": "ReplaceArgs documents mutually exclusive and required edit modes but does not validate them",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "backend/src/tools/filesystem/schemas.py",
+      "startLine": 114,
+      "endLine": 165,
+      "symbol": "ReplaceArgs",
+      "quote": null
+    }
+  ],
+  "reasoning": "The schema exposes three different edit modes: legacy top-level old_string/new_string fields, batched replacements, and patch_chunks. Field descriptions state that new_string is required when old_string is used, replacements override top-level fields, and patch_chunks cannot be combined with old_string/new_string/replacements, but the Pydantic model has no model-level validator enforcing any of those contracts. As a result, invalid or ambiguous payloads such as old_string without new_string, replacements plus patch_chunks, or patch_chunks plus top-level fields can pass schema validation and fail later in execution or be interpreted inconsistently by callers.",
+  "reproduction": null,
+  "recommendation": "Add a Pydantic model validator on ReplaceArgs that enforces exactly one edit mode, requires new_string when old_string is provided for legacy mode, rejects patch_chunks combined with replacements or top-level edit fields, and rejects empty replacements or patch_chunks if those are not meaningful operations.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for this feature, and the owned file contains only field-level constraints, so mode-combination validation is currently untested in the shown evidence.",
+  "suggestedRegressionTest": "Add tests that instantiate ReplaceArgs with valid single-operation, replacements, and patch_chunks payloads, then assert ValidationError for old_string without new_string, patch_chunks combined with replacements, patch_chunks combined with top-level fields, and no edit operation at all.",
+  "minimumFixScope": "backend/src/tools/filesystem/schemas.py plus focused schema validation tests for ReplaceArgs",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-8854be7a22_b0255fbcc6",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:13:32.276Z",
+  "updatedAt": "2026-05-24T21:13:32.276Z"
+}

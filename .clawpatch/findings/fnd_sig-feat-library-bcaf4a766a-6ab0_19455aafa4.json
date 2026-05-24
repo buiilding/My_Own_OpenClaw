@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-bcaf4a766a-6ab0_19455aafa4",
+  "featureId": "feat_library_bcaf4a766a",
+  "title": "Runs API becomes unauthenticated when the key environment variable is unset",
+  "category": "security",
+  "severity": "high",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/runs/support.py",
+      "startLine": 43,
+      "endLine": 59,
+      "symbol": "verify_runs_api_key",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/runs/router.py",
+      "startLine": 44,
+      "endLine": 49,
+      "symbol": "create_run",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/runs/router.py",
+      "startLine": 124,
+      "endLine": 129,
+      "symbol": "control_run",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/runs/router.py",
+      "startLine": 144,
+      "endLine": 149,
+      "symbol": "stop_all_runs",
+      "quote": null
+    }
+  ],
+  "reasoning": "Every mutating and read route depends on verify_runs_api_key, but verify_runs_api_key returns successfully when neither WINDIE_RUNS_API_KEY nor WINDIE_DEMO_API_KEY is configured. That turns missing configuration into an allow-all mode for creating runs, polling worker assignments, ingesting events, controlling runs, and stopping all runs. For hosted VM run/control endpoints, a fail-open auth dependency is a concrete permission gap and makes deployment misconfiguration dangerous.",
+  "reproduction": null,
+  "recommendation": "Fail closed by default: require a configured runs API key for these routes, or gate unauthenticated mode behind an explicit local-development flag that cannot be enabled accidentally in hosted deployments. Add startup/config validation if the API is enabled but no key is configured.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for this feature, and the excerpts show no test coverage asserting the no-env-key behavior.",
+  "suggestedRegressionTest": "Add route-level tests that clear WINDIE_RUNS_API_KEY and WINDIE_DEMO_API_KEY and assert protected endpoints return an auth/config error, then set a key and assert missing or wrong x-windie-runs-key is rejected while the correct key succeeds.",
+  "minimumFixScope": "support.py auth helper plus focused route tests for at least one read endpoint and one mutating endpoint.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-bcaf4a766a_6ab07e8dc4",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:16:33.552Z",
+  "updatedAt": "2026-05-24T21:16:33.552Z"
+}

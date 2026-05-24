@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_4cad86d91f",
+  "title": "Python source backend/src/api/services",
+  "summary": "Python source group backend/src/api/services with 10 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/api/services",
+      "symbol": "backend/src/api/services",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/api/services/__init__.py",
+      "reason": "source group backend/src/api/services"
+    },
+    {
+      "path": "backend/src/api/services/query_event_extraction.py",
+      "reason": "source group backend/src/api/services"
+    },
+    {
+      "path": "backend/src/api/services/query_execution.py",
+      "reason": "source group backend/src/api/services"
+    },
+    {
+      "path": "backend/src/api/services/rehydrate_entry_normalization.py",
+      "reason": "source group backend/src/api/services"
+    },
+    {
+      "path": "backend/src/api/services/rehydrate_execution.py",
+      "reason": "source group backend/src/api/services"
+    },
+    {
+      "path": "backend/src/api/services/rehydrate_tool_call_normalization.py",
+      "reason": "source group backend/src/api/services"
+    },
+    {
+      "path": "backend/src/api/services/rehydrate_tool_linkage_repair.py",
+      "reason": "source group backend/src/api/services"
+    },
+    {
+      "path": "backend/src/api/services/rehydrate_transparency_resolution.py",
+      "reason": "source group backend/src/api/services"
+    },
+    {
+      "path": "backend/src/api/services/tts_session.py",
+      "reason": "source group backend/src/api/services"
+    },
+    {
+      "path": "backend/src/api/services/wakeword_execution.py",
+      "reason": "source group backend/src/api/services"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_query_event_extraction.py",
+      "reason": "associated test"
+    },
+    {
+      "path": "tests/backend/test_rehydrate_tool_call_normalization.py",
+      "reason": "associated test"
+    },
+    {
+      "path": "tests/backend/test_rehydrate_tool_linkage_repair.py",
+      "reason": "associated test"
+    },
+    {
+      "path": "tests/backend/test_rehydrate_transparency_resolution.py",
+      "reason": "associated test"
+    },
+    {
+      "path": "tests/backend/test_tts_session.py",
+      "reason": "associated test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_query_event_extraction.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_rehydrate_tool_call_normalization.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_rehydrate_tool_linkage_repair.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_rehydrate_transparency_resolution.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_tts_session.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-4cad86d91f-f71e_5a7a51b30d"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=106113 bytes; approxTokens=26529; includedFiles=15; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:08:39.003Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:08:39.003Z"
+}

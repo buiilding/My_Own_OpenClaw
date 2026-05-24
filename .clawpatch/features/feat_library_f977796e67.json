@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_f977796e67",
+  "title": "Python source backend/src/agent/tools/processing",
+  "summary": "Python source group backend/src/agent/tools/processing with 6 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/agent/tools/processing",
+      "symbol": "backend/src/agent/tools/processing",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/agent/tools/processing/__init__.py",
+      "reason": "source group backend/src/agent/tools/processing"
+    },
+    {
+      "path": "backend/src/agent/tools/processing/coordinator.py",
+      "reason": "source group backend/src/agent/tools/processing"
+    },
+    {
+      "path": "backend/src/agent/tools/processing/processor.py",
+      "reason": "source group backend/src/agent/tools/processing"
+    },
+    {
+      "path": "backend/src/agent/tools/processing/synthetic_factory.py",
+      "reason": "source group backend/src/agent/tools/processing"
+    },
+    {
+      "path": "backend/src/agent/tools/processing/tool_output_projection.py",
+      "reason": "source group backend/src/agent/tools/processing"
+    },
+    {
+      "path": "backend/src/agent/tools/processing/transformer.py",
+      "reason": "source group backend/src/agent/tools/processing"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_tool_output_projection.py",
+      "reason": "associated test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_tool_output_projection.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-f977796e67-3439_10d9b86cb6"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=39325 bytes; approxTokens=9828; includedFiles=7; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:20:24.497Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:20:24.497Z"
+}

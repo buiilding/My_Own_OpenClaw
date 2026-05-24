@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-5186d21051-ef52_5d3dd600d2",
+  "featureId": "feat_library_5186d21051",
+  "title": "Failed proactive OCR task bypasses the intended on-demand fallback",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/agent/tools/preparation/ocr/coordinator.py",
+      "startLine": 56,
+      "endLine": 75,
+      "symbol": "OcrCoordinator.get_ocr_results",
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/tools/preparation/ocr/coordinator.py",
+      "startLine": 96,
+      "endLine": 112,
+      "symbol": "OcrCoordinator.get_ocr_results",
+      "quote": null
+    }
+  ],
+  "reasoning": "The coordinator waits for an in-flight proactive OCR task and only handles asyncio.TimeoutError. If that task fails with any other exception, the exception propagates immediately and the code never reaches the on-demand OCR fallback. This contradicts the fallback path's stated role for cases where proactive OCR is disabled, failed, or unavailable, and can turn a recoverable proactive-task failure into a user-visible failure even when ocr_service.perform_ocr(screenshot_data) would succeed.",
+  "reproduction": "Set ocr_state.get_active_task(screenshot_id) to return a task that raises RuntimeError, while the OCR service is enabled and perform_ocr would return valid results. get_ocr_results raises RuntimeError instead of running the fallback OCR path.",
+  "recommendation": "Catch proactive-task failures separately from timeout, log them, and continue into the existing cache check and on-demand OCR path. Preserve cancellation semantics by not swallowing asyncio.CancelledError unless there is an explicit reason to do so.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included, and the excerpt has no coverage demonstrating behavior when the proactive OCR task raises before cached OCR results are available.",
+  "suggestedRegressionTest": "Add a coordinator test with an active OCR task that raises a non-cancellation exception and an enabled fake OCR service; assert that get_ocr_results returns the fallback service result and logs or records the proactive failure.",
+  "minimumFixScope": "Update the active_ocr_task wait block in OcrCoordinator.get_ocr_results and add one focused failure-path test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-5186d21051_ef5295cd17",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:09:09.090Z",
+  "updatedAt": "2026-05-24T21:09:09.090Z"
+}

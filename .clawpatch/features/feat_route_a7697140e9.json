@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_route_a7697140e9",
+  "title": "FastAPI route POST /api/semantic/summarize",
+  "summary": "FastAPI route POST /api/semantic/summarize handled by summarize_conversations in backend/src/api/routes/memory/semantic/router.py.",
+  "kind": "route",
+  "source": "python-fastapi-route",
+  "confidence": "high",
+  "entrypoints": [
+    {
+      "path": "backend/src/api/routes/memory/semantic/router.py",
+      "symbol": "summarize_conversations",
+      "route": "POST /api/semantic/summarize",
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/api/routes/memory/semantic/router.py",
+      "reason": "FastAPI route handler summarize_conversations"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "fastapi",
+    "route"
+  ],
+  "trustBoundaries": [
+    "network",
+    "user-input",
+    "serialization",
+    "auth"
+  ],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-route-a7697140e9-81e197_bdc8073b61"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=11336 bytes; approxTokens=2834; includedFiles=1; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:22:13.230Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:22:13.230Z"
+}

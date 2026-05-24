@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_44f6c0668f",
+  "title": "Python source backend/src/agent/tools/preparation/screenshot",
+  "summary": "Python source group backend/src/agent/tools/preparation/screenshot with 4 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/agent/tools/preparation/screenshot",
+      "symbol": "backend/src/agent/tools/preparation/screenshot",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/agent/tools/preparation/screenshot/__init__.py",
+      "reason": "source group backend/src/agent/tools/preparation/screenshot"
+    },
+    {
+      "path": "backend/src/agent/tools/preparation/screenshot/manager.py",
+      "reason": "source group backend/src/agent/tools/preparation/screenshot"
+    },
+    {
+      "path": "backend/src/agent/tools/preparation/screenshot/processor.py",
+      "reason": "source group backend/src/agent/tools/preparation/screenshot"
+    },
+    {
+      "path": "backend/src/agent/tools/preparation/screenshot/state.py",
+      "reason": "source group backend/src/agent/tools/preparation/screenshot"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-44f6c0668f-d552_7eac47cef6"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=23921 bytes; approxTokens=5981; includedFiles=4; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:08:08.304Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:08:08.304Z"
+}

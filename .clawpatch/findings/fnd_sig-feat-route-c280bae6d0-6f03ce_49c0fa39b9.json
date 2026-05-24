@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-c280bae6d0-6f03ce_49c0fa39b9",
+  "featureId": "feat_route_c280bae6d0",
+  "title": "No regression coverage is linked for worker dispatch acknowledgement",
+  "category": "test-gap",
+  "severity": "low",
+  "confidence": "high",
+  "triage": "test-gap",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/runs/router.py",
+      "startLine": 161,
+      "endLine": 175,
+      "symbol": "worker_dispatched",
+      "quote": null
+    }
+  ],
+  "reasoning": "The reviewed feature is an authenticated network route that acknowledges dispatch state using caller-provided run_id, worker_id, user_id, turn_ref, and conversation_ref, but the feature metadata includes no tests. Without route-level coverage, regressions in API-key enforcement, 404 behavior for missing or mismatched workers, or response-shaping for the dispatched run can slip through unnoticed.",
+  "reproduction": null,
+  "recommendation": "Add focused pytest coverage for POST /api/runs/{run_id}/worker-dispatched covering successful acknowledgement, missing run or worker mismatch behavior, and missing or invalid API key rejection.",
+  "whyTestsDoNotAlreadyCoverThis": "The included feature metadata lists an empty tests array, and no linked tests were provided as first-class evidence for this route.",
+  "suggestedRegressionTest": "Add a backend route test that exercises POST /api/runs/{run_id}/worker-dispatched with a fake VmRunControlService, asserting the service receives run_id plus payload fields, a None service result returns the expected not-found response, and the route requires the runs API key dependency.",
+  "minimumFixScope": "Add route-level backend tests for worker_dispatched and any required test fixture wiring only.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-c280bae6d0_6f03ce7ad0",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:22:41.631Z",
+  "updatedAt": "2026-05-24T21:22:41.631Z"
+}

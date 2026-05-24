@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-f4997418a4-a778f7_5a71ae5890",
+  "featureId": "feat_route_f4997418a4",
+  "title": "User-controlled model name is written to logs without sanitization",
+  "category": "security",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/memory/embeddings/router.py",
+      "startLine": 118,
+      "endLine": 121,
+      "symbol": "generate_embedding",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/memory/embeddings/router.py",
+      "startLine": 40,
+      "endLine": 44,
+      "symbol": "_log_embedding_route_start",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/memory/embeddings/router.py",
+      "startLine": 82,
+      "endLine": 89,
+      "symbol": "_log_embedding_route_failure",
+      "quote": null
+    }
+  ],
+  "reasoning": "The route accepts request.model_name from the network request and passes it directly into route log messages. If model_name can contain newlines or control characters, a caller can forge or obscure log entries, which matters because this route crosses network and user-input trust boundaries and logs both normal and failure paths.",
+  "reproduction": null,
+  "recommendation": "Normalize model_name before logging, for example by replacing control characters/newlines, bounding length, or logging a validated canonical model identifier rather than the raw request field.",
+  "whyTestsDoNotAlreadyCoverThis": "No tests are linked for this feature, and the excerpt contains no coverage asserting log-safe handling of untrusted request fields.",
+  "suggestedRegressionTest": "Add a route-level or helper-level test that passes a model_name containing a newline/control character and asserts the emitted log record contains only a sanitized single-line value.",
+  "minimumFixScope": "Sanitize or canonicalize request.model_name at the logging boundary in this router or in the logging helper functions.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-f4997418a4_a778f74332",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:22:59.195Z",
+  "updatedAt": "2026-05-24T21:22:59.195Z"
+}

@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_route_3d3e36bea4",
+  "title": "FastAPI route POST /api/sdk/ocr/inspect",
+  "summary": "FastAPI route POST /api/sdk/ocr/inspect handled by sdk_ocr_inspect in backend/src/api/routes/sdk/router.py.",
+  "kind": "route",
+  "source": "python-fastapi-route",
+  "confidence": "high",
+  "entrypoints": [
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "symbol": "sdk_ocr_inspect",
+      "route": "POST /api/sdk/ocr/inspect",
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "reason": "FastAPI route handler sdk_ocr_inspect"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "fastapi",
+    "route"
+  ],
+  "trustBoundaries": [
+    "network",
+    "user-input",
+    "serialization",
+    "auth"
+  ],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-route-3d3e36bea4-250f60_d9bfcf726f"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=24786 bytes; approxTokens=6197; includedFiles=1; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:21:26.918Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:21:26.918Z"
+}

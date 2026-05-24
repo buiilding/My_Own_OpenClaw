@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-d8cdfe998d-9966_54d6992e0c",
+  "featureId": "feat_library_d8cdfe998d",
+  "title": "Main message composer drops attachment parsing failures as unhandled promises",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/features/chat/components/MessageInput.jsx",
+      "startLine": 192,
+      "endLine": 200,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/components/ChatBox.jsx",
+      "startLine": 420,
+      "endLine": 424,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/components/ChatBox.jsx",
+      "startLine": 476,
+      "endLine": 480,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The main composer invokes handleAttachmentSelection as a voided promise without a catch handler. If attachment parsing rejects, this becomes an unhandled rejection and the user gets no stable UI/log path for the failure. The overlay ChatBox handles the same attachment and paste parsing flows with catch handlers, so the two composer surfaces have inconsistent error handling for the same feature.",
+  "reproduction": null,
+  "recommendation": "Mirror the ChatBox error handling in MessageInput for attachment selection, and consider handling paste parsing failures there as well if handleComposerPaste is asynchronous. Route failures to the existing warning/error surface where available instead of leaving them as unhandled promises.",
+  "whyTestsDoNotAlreadyCoverThis": "No MessageInput attachment failure tests were included, and the included component code has no assertion-visible error path for rejected attachment parsing.",
+  "suggestedRegressionTest": "Mock useChatComposerDraft so handleAttachmentSelection rejects, fire a change event on the hidden attachment input, and assert the rejection is caught/logged without an unhandledrejection event.",
+  "minimumFixScope": "MessageInput attachment input onChange handler and focused composer attachment error tests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-d8cdfe998d_9966d87ce4",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:18:53.658Z",
+  "updatedAt": "2026-05-24T21:18:53.658Z"
+}

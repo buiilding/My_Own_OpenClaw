@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_a1bb9ba4f9",
+  "title": "Python source backend/src/api/processing/formatters",
+  "summary": "Python source group backend/src/api/processing/formatters with 12 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/api/processing/formatters",
+      "symbol": "backend/src/api/processing/formatters",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/api/processing/formatters/__init__.py",
+      "reason": "source group backend/src/api/processing/formatters"
+    },
+    {
+      "path": "backend/src/api/processing/formatters/assistant_message.py",
+      "reason": "source group backend/src/api/processing/formatters"
+    },
+    {
+      "path": "backend/src/api/processing/formatters/base.py",
+      "reason": "source group backend/src/api/processing/formatters"
+    },
+    {
+      "path": "backend/src/api/processing/formatters/chunk.py",
+      "reason": "source group backend/src/api/processing/formatters"
+    },
+    {
+      "path": "backend/src/api/processing/formatters/complete.py",
+      "reason": "source group backend/src/api/processing/formatters"
+    },
+    {
+      "path": "backend/src/api/processing/formatters/error.py",
+      "reason": "source group backend/src/api/processing/formatters"
+    },
+    {
+      "path": "backend/src/api/processing/formatters/memory_store.py",
+      "reason": "source group backend/src/api/processing/formatters"
+    },
+    {
+      "path": "backend/src/api/processing/formatters/system_prompt.py",
+      "reason": "source group backend/src/api/processing/formatters"
+    },
+    {
+      "path": "backend/src/api/processing/formatters/thinking.py",
+      "reason": "source group backend/src/api/processing/formatters"
+    },
+    {
+      "path": "backend/src/api/processing/formatters/token_count.py",
+      "reason": "source group backend/src/api/processing/formatters"
+    },
+    {
+      "path": "backend/src/api/processing/formatters/user_message.py",
+      "reason": "source group backend/src/api/processing/formatters"
+    },
+    {
+      "path": "backend/src/api/processing/formatters/web_search_progress.py",
+      "reason": "source group backend/src/api/processing/formatters"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-a1bb9ba4f9-e55c_01c5b298bb"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=27393 bytes; approxTokens=6849; includedFiles=12; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:15:09.081Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:15:09.081Z"
+}

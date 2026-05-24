@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_b5dbc2a239",
+  "title": "Python source backend/src/agent/compaction",
+  "summary": "Python source group backend/src/agent/compaction with 7 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/agent/compaction",
+      "symbol": "backend/src/agent/compaction",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/agent/compaction/__init__.py",
+      "reason": "source group backend/src/agent/compaction"
+    },
+    {
+      "path": "backend/src/agent/compaction/engine.py",
+      "reason": "source group backend/src/agent/compaction"
+    },
+    {
+      "path": "backend/src/agent/compaction/models.py",
+      "reason": "source group backend/src/agent/compaction"
+    },
+    {
+      "path": "backend/src/agent/compaction/prompt.py",
+      "reason": "source group backend/src/agent/compaction"
+    },
+    {
+      "path": "backend/src/agent/compaction/strategies/__init__.py",
+      "reason": "source group backend/src/agent/compaction"
+    },
+    {
+      "path": "backend/src/agent/compaction/strategies/base.py",
+      "reason": "source group backend/src/agent/compaction"
+    },
+    {
+      "path": "backend/src/agent/compaction/strategies/inline_summary.py",
+      "reason": "source group backend/src/agent/compaction"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-b5dbc2a239-0134_a340107968",
+    "fnd_sig-feat-library-b5dbc2a239-2b8d_efcecbcd18"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=52259 bytes; approxTokens=13065; includedFiles=7; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:16:03.105Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:16:03.105Z"
+}

@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_test-suite_d2a59e1da7",
+  "title": "Python test suite tests/backend#16",
+  "summary": "Python pytest files in tests/backend#16.",
+  "kind": "test-suite",
+  "source": "python-test-suite",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "tests/backend#16",
+      "symbol": "tests/backend#16",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "tests/backend/test_wakeword_execution_service.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_web_search_capabilities.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_web_search_tool.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_websocket_connection.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_websocket_json_parse.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_websocket_loop_runtime.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_websocket_message_handler.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_websocket_message_parse_runtime.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_websocket_route.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_websocket_task_manager.py",
+      "reason": "pytest file"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_wakeword_execution_service.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_web_search_capabilities.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_web_search_tool.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_websocket_connection.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_websocket_json_parse.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_websocket_loop_runtime.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_websocket_message_handler.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_websocket_message_parse_runtime.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_websocket_route.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_websocket_task_manager.py",
+      "reason": "nearby test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_wakeword_execution_service.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_web_search_capabilities.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_web_search_tool.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_websocket_connection.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_websocket_json_parse.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_websocket_loop_runtime.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_websocket_message_handler.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_websocket_message_parse_runtime.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_websocket_route.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_websocket_task_manager.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "test"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-test-suite-d2a59e1da7-a_4e324bf019"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=141413 bytes; approxTokens=35351; includedFiles=10; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:24:31.717Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:24:31.717Z"
+}

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-bfda34589c-ed9f_f2001fdbe7",
+  "featureId": "feat_library_bfda34589c",
+  "title": "Replay failure leaves the UI on a truncated conversation",
+  "category": "data-loss",
+  "severity": "high",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js",
+      "startLine": 100,
+      "endLine": 105,
+      "symbol": "executeReplayAction",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js",
+      "startLine": 107,
+      "endLine": 131,
+      "symbol": "executeReplayAction",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js",
+      "startLine": 164,
+      "endLine": 178,
+      "symbol": "handleEditFromUser",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js",
+      "startLine": 221,
+      "endLine": 235,
+      "symbol": "handleTryAgainFromAssistant",
+      "quote": null
+    }
+  ],
+  "reasoning": "Both edit-and-resend and retry build a shortened replay conversation, immediately replace the visible messages with that replay state, and only then call the continuity service. If the service rejects, the catch path only clears isSending and never restores the original sourceMessages. A transient backend or IPC failure therefore permanently drops later messages from the active UI state even though the replay did not actually start.",
+  "reproduction": "Trigger edit/resend or try-again on an older message, force DesktopConversationContinuityService.editAndResend or retryTurn to reject, and observe that messages after the replay point remain removed after the failure.",
+  "recommendation": "Keep the original messages until the service accepts the replay, or restore sourceMessages in the catch block before clearing isSending. Also surface a local error message so the user can tell the replay failed.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for these replay hooks, and the failure branch currently has no assertion that the previous conversation is preserved on continuity-service rejection.",
+  "suggestedRegressionTest": "Add a hook/unit test that seeds messages, mocks retryTurn or editAndResend to reject, invokes the replay action, and asserts setMessages is either not called with the truncated replay state before success or is called again with the original source messages on failure.",
+  "minimumFixScope": "frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js plus a focused frontend test for replay service failure rollback.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-bfda34589c_ed9fe64c47",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:18:30.041Z",
+  "updatedAt": "2026-05-24T21:18:30.041Z"
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-670ea42541-04f337_fea9785c9c",
+  "featureId": "feat_route_670ea42541",
+  "title": "Overlay accepts result coordinates without image/result consistency validation",
+  "category": "api-contract",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 346,
+      "endLine": 353,
+      "symbol": "sdk_vision_overlay",
+      "quote": null
+    }
+  ],
+  "reasoning": "The handler resolves the requested image, then directly renders payload.result.points and payload.result.regions against that image. There is no visible check that the supplied vision result was produced for the same image, dimensions, or source id. A client can accidentally or maliciously pair stale result coordinates with a different image, yielding a valid-looking but incorrect overlay artifact.",
+  "reproduction": null,
+  "recommendation": "Validate that VisionOverlayRequest carries image metadata or source identity for payload.result and reject mismatches before rendering, or make the route recompute/derive the overlay result from the submitted image instead of trusting detached result coordinates.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are provided for this feature, and the route currently has no validation branch for mismatched image/result metadata.",
+  "suggestedRegressionTest": "Add a route test that submits an overlay result tied to one image/source and a different payload.image, expecting a 400 response instead of rendering the overlay.",
+  "minimumFixScope": "Vision overlay request validation and tests for mismatched image/result metadata.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-670ea42541_04f3377bcf",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:21:47.236Z",
+  "updatedAt": "2026-05-24T21:21:47.236Z"
+}

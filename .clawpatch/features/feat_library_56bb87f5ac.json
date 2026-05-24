@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_56bb87f5ac",
+  "title": "Python source backend/src/tools/web_search",
+  "summary": "Python source group backend/src/tools/web_search with 5 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/tools/web_search",
+      "symbol": "backend/src/tools/web_search",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/tools/web_search/__init__.py",
+      "reason": "source group backend/src/tools/web_search"
+    },
+    {
+      "path": "backend/src/tools/web_search/capabilities.py",
+      "reason": "source group backend/src/tools/web_search"
+    },
+    {
+      "path": "backend/src/tools/web_search/schemas.py",
+      "reason": "source group backend/src/tools/web_search"
+    },
+    {
+      "path": "backend/src/tools/web_search/source_normalization.py",
+      "reason": "source group backend/src/tools/web_search"
+    },
+    {
+      "path": "backend/src/tools/web_search/tool.py",
+      "reason": "source group backend/src/tools/web_search"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-56bb87f5ac-9ec1_34038ecc4a",
+    "fnd_sig-feat-library-56bb87f5ac-fd11_03b4aebd93"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=46715 bytes; approxTokens=11679; includedFiles=5; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:09:31.910Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:09:31.910Z"
+}

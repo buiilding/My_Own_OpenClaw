@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-20c1c90b9e-e60c_06fa8ae727",
+  "featureId": "feat_library_20c1c90b9e",
+  "title": "Preview removal passes undefined for attachments without ids",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/features/chat/components/chatbox/ChatBoxImagePreviewRow.jsx",
+      "startLine": 17,
+      "endLine": 29,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/components/chatbox/ChatBoxImagePreviewRow.jsx",
+      "startLine": 34,
+      "endLine": 52,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/components/chatbox/ChatBoxImagePreviewRow.jsx",
+      "startLine": 61,
+      "endLine": 70,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "Both preview lists allow items without an id: the render keys explicitly fall back to index/filename, and the prop types make id optional. However, the remove buttons always call onRemoveImage(clipboardImage.id) or onRemoveFile(file.id). For any item constructed without an id, clicking remove sends undefined, so the parent cannot reliably identify which preview should be removed. This can leave a visible attachment stuck in the composer or remove the wrong item if the parent treats undefined specially.",
+  "reproduction": null,
+  "recommendation": "Either require stable ids for clipboardImages and readableFiles at this component boundary, or pass a fallback removal token such as the index when id is absent and update the handler contract accordingly. Prefer enforcing ids upstream if the rest of the composer model already depends on id-based removal.",
+  "whyTestsDoNotAlreadyCoverThis": "The feature metadata lists no linked tests, and the shown prop types allow the missing-id case that would expose the failure.",
+  "suggestedRegressionTest": "Render ChatBoxImagePreviewRow with one clipboard image and one readable file that omit id, click each remove button, and assert the parent receives a usable identifier or that the item is removed from state.",
+  "minimumFixScope": "Update ChatBoxImagePreviewRow's remove handler contract and prop validation, plus the immediate parent/test that supplies and removes preview items.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-20c1c90b9e_e60c7587b7",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:05:34.334Z",
+  "updatedAt": "2026-05-24T21:05:34.334Z"
+}

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-333730a5a5-7471_56c314b458",
+  "featureId": "feat_library_333730a5a5",
+  "title": "SDK debug routes can select another user's session config when no authenticated identity is present",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 357,
+      "endLine": 374,
+      "symbol": "sdk_debug_models",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 444,
+      "endLine": 465,
+      "symbol": "sdk_debug_system_prompt",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 468,
+      "endLine": 490,
+      "symbol": "sdk_debug_prompt_preview",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/sdk/service.py",
+      "startLine": 126,
+      "endLine": 154,
+      "symbol": "resolve_effective_debug_config",
+      "quote": null
+    }
+  ],
+  "reasoning": "The debug routes accept a caller-supplied user_id and pass it to resolve_effective_debug_config. That helper uses the authenticated install identity only when present; otherwise it falls back to the supplied user_id and loads that user's session config. These endpoints return model config, tool schemas, system prompt, and constructed prompt data. If these SDK routes are reachable in any unauthenticated or weakly authenticated context, a client can enumerate or inspect another user's effective prompt/config by guessing a user_id.",
+  "reproduction": "In an environment where get_current_authenticated_install_identity() returns None, call /api/sdk/system-prompt?user_id=<other-user> or /api/sdk/models?user_id=<other-user>. The helper attempts session_manager.get_session(<other-user>) and builds the response from that session config.",
+  "recommendation": "Do not trust user_id query/body values for session selection on SDK debug endpoints. Require an authenticated identity for user-scoped session lookup, or restrict user_id override to privileged/internal callers with an explicit authorization check. If unauthenticated SDK debug access is intentionally allowed, ignore user_id and use only container/global config.",
+  "whyTestsDoNotAlreadyCoverThis": "No tests were included for this feature, and there is no visible authorization test around user_id selection for the debug routes.",
+  "suggestedRegressionTest": "Add route/service tests that simulate no authenticated identity and a supplied user_id, asserting that user-scoped session config is not loaded unless the caller is authorized. Also test the authenticated identity case ignores conflicting user_id parameters.",
+  "minimumFixScope": "Tighten resolve_effective_debug_config or the debug route dependencies so caller-supplied user_id cannot select arbitrary sessions without authorization.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-333730a5a5_747118e441",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:06:57.703Z",
+  "updatedAt": "2026-05-24T21:06:57.703Z"
+}

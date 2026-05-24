@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_cli-command_afb7e1c5e5",
+  "title": "C binary extra_avx512f_reduce",
+  "summary": "C/C++ source file with a top-level main() at frontend/python-runtime/lib/python3.11/site-packages/numpy/distutils/checks/extra_avx512f_reduce.c.",
+  "kind": "cli-command",
+  "source": "c-main",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "frontend/python-runtime/lib/python3.11/site-packages/numpy/distutils/checks/extra_avx512f_reduce.c",
+      "symbol": "main",
+      "route": null,
+      "command": "extra_avx512f_reduce"
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "frontend/python-runtime/lib/python3.11/site-packages/numpy/distutils/checks/extra_avx512f_reduce.c",
+      "reason": "entrypoint"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "c",
+    "cli"
+  ],
+  "trustBoundaries": [
+    "user-input",
+    "filesystem",
+    "process-exec"
+  ],
+  "status": "skipped",
+  "lock": null,
+  "findingIds": [],
+  "patchAttemptIds": [],
+  "analysisHistory": [],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:02:24.781Z"
+}

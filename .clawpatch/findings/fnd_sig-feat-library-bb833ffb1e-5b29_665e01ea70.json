@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-bb833ffb1e-5b29_665e01ea70",
+  "featureId": "feat_library_bb833ffb1e",
+  "title": "Closing a conversation runtime leaves event listeners retained",
+  "category": "performance",
+  "severity": "low",
+  "confidence": "high",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "packages/windie-sdk-js/src/runtime/ConversationRuntime.ts",
+      "startLine": 119,
+      "endLine": 121,
+      "symbol": "SdkConversationRuntime",
+      "quote": null
+    },
+    {
+      "path": "packages/windie-sdk-js/src/runtime/ConversationRuntime.ts",
+      "startLine": 408,
+      "endLine": 412,
+      "symbol": "SdkConversationRuntime.close",
+      "quote": null
+    },
+    {
+      "path": "packages/windie-sdk-js/src/runtime/WindieChatSession.ts",
+      "startLine": 87,
+      "endLine": 89,
+      "symbol": "WindieChatSession.close",
+      "quote": null
+    }
+  ],
+  "reasoning": "SdkConversationRuntime owns both snapshot listeners and event listeners, but close() only clears snapshot listeners. WindieChatSession.close() delegates to runtime.close(), so callbacks registered with onEvent()/onConversationEvent() can stay strongly referenced after close. If the runtime is retained by the caller or any pending async path applies events after close, those stale callbacks can still fire and their captured UI/resources cannot be collected.",
+  "reproduction": "Create a chat session, register an onEvent listener that closes over a large object, call chat.close(), then inspect the runtime behavior by applying or receiving a later event; the event listener set was not cleared by close().",
+  "recommendation": "Clear this.eventListeners in SdkConversationRuntime.close() alongside this.listeners and detachTransport.",
+  "whyTestsDoNotAlreadyCoverThis": "The feature metadata lists no linked tests, and the shown code has no close/disposal regression covering event listener cleanup.",
+  "suggestedRegressionTest": "Add a ConversationRuntime close test that subscribes both subscribe() and subscribeEvents(), calls close(), then verifies no event listener is invoked by subsequent runtime activity or that listener sets are emptied through observable behavior.",
+  "minimumFixScope": "Update SdkConversationRuntime.close() to clear eventListeners and add focused runtime disposal coverage.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-bb833ffb1e_5b29155698",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:16:28.926Z",
+  "updatedAt": "2026-05-24T21:16:28.926Z"
+}

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-1a017caec3-427a_67ff682ca4",
+  "featureId": "feat_library_1a017caec3",
+  "title": "Failed flush requeues older messages behind newly enqueued messages",
+  "category": "concurrency",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/infrastructure/transcript/pending/transcriptPendingFlush.ts",
+      "startLine": 14,
+      "endLine": 18,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/transcript/pending/transcriptPendingFlush.ts",
+      "startLine": 28,
+      "endLine": 39,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/transcript/pending/pendingTranscriptMessages.ts",
+      "startLine": 88,
+      "endLine": 105,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "flushPendingMessages drains a snapshot of pending messages, then awaits storeTranscriptEntry per entry. If new retry messages are enqueued while the await is pending and a later store fails, requeuePending appends the unflushed older snapshot entries to the tail of the live queue. A later flush can then persist newer messages before older failed messages, corrupting transcript ordering under an async failure interleaving.",
+  "reproduction": null,
+  "recommendation": "Requeue failed snapshot entries ahead of any messages that arrived during the flush, or serialize flush/enqueue ordering with an in-flight buffer so older drained entries retain priority after retry.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included, and this requires a storeTranscriptEntry mock that yields to allow enqueueing during an in-flight flush before throwing.",
+  "suggestedRegressionTest": "Add a test that starts a flush with two pending user messages, lets the second store call yield, enqueues a third message before the second call rejects, then verifies the next flush persists the second message before the third.",
+  "minimumFixScope": "Adjust queue reinsert semantics or pending flush synchronization for the pending transcript queues, with a focused async ordering regression test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-1a017caec3_427a9a759c",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:05:07.292Z",
+  "updatedAt": "2026-05-24T21:05:07.292Z"
+}

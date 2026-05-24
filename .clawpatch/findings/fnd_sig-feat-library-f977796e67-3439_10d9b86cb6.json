@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-f977796e67-3439_10d9b86cb6",
+  "featureId": "feat_library_f977796e67",
+  "title": "Atomic bundle results are not cleaned up if history processing fails",
+  "category": "performance",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/agent/tools/processing/processor.py",
+      "startLine": 80,
+      "endLine": 134,
+      "symbol": "ToolResultProcessor.process",
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/tools/processing/processor.py",
+      "startLine": 145,
+      "endLine": 178,
+      "symbol": "ToolResultProcessor.process",
+      "quote": null
+    }
+  ],
+  "reasoning": "The non-bundled path extracts request ids before processing and performs cleanup in a finally block, so transform or history commit failures still release stored results and resolved tool calls. The atomic bundle path instead removes the stored bundle only after transform and commit both succeed, then returns. If BundleResultFormatter, transform, or history_committer.commit raises, session.remove_bundle_result(bundle_id) is skipped and the stored bundle remains in session storage for the lifetime of the session or until some unrelated cleanup handles it. The surrounding comments already identify this class of failure as a memory leak in the individual-result path, but the same protection is missing for bundled results.",
+  "reproduction": "Create an atomic bundle with a stored bundle result, inject a HistoryCommitter whose commit method raises, call ToolResultProcessor.process, then assert session.remove_bundle_result(bundle_id) was called. It will not be called on the current atomic-bundle path.",
+  "recommendation": "Wrap the atomic bundle transform/commit section in try/finally once the bundle_id has been found, and call session.remove_bundle_result(bundle_id) in the finally block. Keep the successful return after cleanup, and preserve the existing behavior for missing bundle results falling through to individual processing.",
+  "whyTestsDoNotAlreadyCoverThis": "The included tests only cover canonical tool output projection and format_for_history behavior. They do not exercise ToolResultProcessor.process, atomic bundle storage, or failure cleanup paths.",
+  "suggestedRegressionTest": "Add a backend unit test for ToolResultProcessor.process with is_atomic_bundle_from_results true, a session returning a bundle result, and a committer that raises; assert the exception propagates and remove_bundle_result is still called exactly once.",
+  "minimumFixScope": "backend/src/agent/tools/processing/processor.py plus a focused backend processor cleanup test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-f977796e67_3439af3b7a",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:20:24.497Z",
+  "updatedAt": "2026-05-24T21:20:24.497Z"
+}

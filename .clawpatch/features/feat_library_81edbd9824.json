@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_81edbd9824",
+  "title": "Python source backend/src/api/schemas",
+  "summary": "Python source group backend/src/api/schemas with 5 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/api/schemas",
+      "symbol": "backend/src/api/schemas",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/api/schemas/__init__.py",
+      "reason": "source group backend/src/api/schemas"
+    },
+    {
+      "path": "backend/src/api/schemas/agent_definition.py",
+      "reason": "source group backend/src/api/schemas"
+    },
+    {
+      "path": "backend/src/api/schemas/common.py",
+      "reason": "source group backend/src/api/schemas"
+    },
+    {
+      "path": "backend/src/api/schemas/incoming.py",
+      "reason": "source group backend/src/api/schemas"
+    },
+    {
+      "path": "backend/src/api/schemas/outgoing.py",
+      "reason": "source group backend/src/api/schemas"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-81edbd9824-590a_0b01c037bd",
+    "fnd_sig-feat-library-81edbd9824-351d_bada75abda"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=50740 bytes; approxTokens=12685; includedFiles=5; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:12:51.337Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:12:51.337Z"
+}

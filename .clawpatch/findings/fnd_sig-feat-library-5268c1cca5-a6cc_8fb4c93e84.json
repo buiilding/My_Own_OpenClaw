@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-5268c1cca5-a6cc_8fb4c93e84",
+  "featureId": "feat_library_5268c1cca5",
+  "title": "Invalid OCR boxes can shift later boxes onto the wrong text",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "backend/src/services/ocr/ocr_service.py",
+      "startLine": 287,
+      "endLine": 300,
+      "symbol": "OcrService._build_ocr_results",
+      "quote": null
+    },
+    {
+      "path": "backend/src/services/ocr/ocr_service.py",
+      "startLine": 362,
+      "endLine": 368,
+      "symbol": "OcrService._build_bbox_list",
+      "quote": null
+    },
+    {
+      "path": "tests/backend/test_ocr_service.py",
+      "startLine": 199,
+      "endLine": 219,
+      "symbol": "test_build_ocr_results_maps_valid_rows_and_skips_invalid_rows",
+      "quote": null
+    }
+  ],
+  "reasoning": "_build_bbox_list drops invalid boxes and returns a compacted list, then _build_ocr_results zips the original text_list with that compacted bbox_list. If an invalid polygon appears before later valid rows, the later valid bounding boxes are paired with earlier text values, corrupting OCR coordinates. The included test only covers an invalid trailing row, so it does not exercise the index-shift case.",
+  "reproduction": "Use txts=['first','bad','third'] and boxes=[valid_first, invalid_box, valid_third]. _build_bbox_list returns [valid_first, valid_third], then zip pairs 'bad' with valid_third and omits 'third'.",
+  "recommendation": "Build records by iterating original OCR rows by index and parsing each row's box in place. Skip only the row whose text/box/score is invalid so remaining rows preserve their original alignment.",
+  "whyTestsDoNotAlreadyCoverThis": "The existing regression has a valid first row and invalid second row only, so compaction does not cause a later valid box to be assigned to the wrong text.",
+  "suggestedRegressionTest": "Add a test where an invalid box is in the middle of three OCR rows and assert the third text keeps the third box while the middle row is skipped.",
+  "minimumFixScope": "Change _build_ocr_results to parse boxes per original row index, or return index-preserving parsed boxes from _build_bbox_list.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-5268c1cca5_a6cc4d290e",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:09:04.064Z",
+  "updatedAt": "2026-05-24T21:09:04.064Z"
+}

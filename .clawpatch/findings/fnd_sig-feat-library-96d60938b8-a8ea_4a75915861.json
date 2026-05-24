@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-96d60938b8-a8ea_4a75915861",
+  "featureId": "feat_library_96d60938b8",
+  "title": "Previous user's conversations can remain visible after user id clears",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js",
+      "startLine": 55,
+      "endLine": 60,
+      "symbol": "loadRecentConversations",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js",
+      "startLine": 67,
+      "endLine": 96,
+      "symbol": "loadRecentConversations",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js",
+      "startLine": 322,
+      "endLine": 324,
+      "symbol": "useEffect",
+      "quote": null
+    }
+  ],
+  "reasoning": "When resolvedUserId is missing or cleared, loadRecentConversations only clears loading and error state, then returns an empty array. It does not clear recentConversations or pinnedConversationRefs, and it also does not advance recentConversationLoadRequestIdRef. That means a logout/user-clear transition can continue showing the previous user's recent chat list, and an older in-flight load can still pass the request-id check and repopulate the old user's conversations after the user id has become invalid. For a dashboard conversation library this is a cross-user privacy leak, not just stale UI.",
+  "reproduction": "Start with a valid user and a populated recentConversations list. Trigger a user/session transition that makes resolvedUserId empty while a listMetadata request is pending, or after the list has already loaded. The invalid-user branch returns without clearing the list, and the pending old request can still update state because its requestId remains current.",
+  "recommendation": "When resolvedUserId is invalid, invalidate outstanding loads by incrementing recentConversationLoadRequestIdRef, clear recentConversations and pinnedConversationRefs, and clear the in-flight ref if it belongs to the old user. Also consider resetting retry state so the empty-user state is terminal until a valid user arrives.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for this feature, and the excerpt shows no coverage for user-id transitions or pending load invalidation.",
+  "suggestedRegressionTest": "Add a hook test that seeds recent conversations for one user, then rerenders with an empty resolvedUserId while the previous listMetadata promise is unresolved; assert the list is cleared immediately and the old promise cannot repopulate it.",
+  "minimumFixScope": "frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-96d60938b8_a8eafbb785",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:14:25.682Z",
+  "updatedAt": "2026-05-24T21:14:25.682Z"
+}

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-cddaa1a4b0-10c8_e0017d7047",
+  "featureId": "feat_library_cddaa1a4b0",
+  "title": "Shared pending TTS set can drop tasks created while waiting",
+  "category": "concurrency",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/processing/pipeline.py",
+      "startLine": 49,
+      "endLine": 55,
+      "symbol": "StreamPipeline.__init__",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/processing/pipeline.py",
+      "startLine": 119,
+      "endLine": 125,
+      "symbol": "StreamPipeline.process",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/processing/pipeline.py",
+      "startLine": 143,
+      "endLine": 147,
+      "symbol": "StreamPipeline.wait_for_pending_tts",
+      "quote": null
+    }
+  ],
+  "reasoning": "The pipeline stores pending TTS tasks in an instance-level set, then wait_for_pending_tts snapshots the current set, awaits only that snapshot, and unconditionally clears the whole set. If the same StreamPipeline instance processes another event while wait_for_pending_tts is awaiting, the new task can be added to _pending_tts_tasks after the snapshot and then removed by clear() without being awaited. A subsequent flush could therefore run before that TTS chunk finishes, reintroducing the audio-loss race this tracking is meant to prevent. The class comments also say all per-stream state should live outside the pipeline, but this set is pipeline-owned shared state.",
+  "reproduction": null,
+  "recommendation": "Move pending TTS tracking to a per-stream processor/context, or make wait_for_pending_tts remove only the tasks it actually awaited, for example by discarding the snapshot tasks instead of clearing the entire shared set. If StreamPipeline is intended to be per-query, enforce that lifecycle at construction/use sites and document it in the contract.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for concurrent calls or for tasks added while wait_for_pending_tts is awaiting.",
+  "suggestedRegressionTest": "Create a fake TTS processor whose first task blocks, call wait_for_pending_tts, then call process again before the first task completes. Assert the second task remains pending or is awaited before flush is allowed.",
+  "minimumFixScope": "backend/src/api/processing/pipeline.py",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-cddaa1a4b0_10c8af81d0",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:17:44.608Z",
+  "updatedAt": "2026-05-24T21:17:44.608Z"
+}

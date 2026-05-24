@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_test-suite_f9da80985c",
+  "title": "Python test suite tests/backend#14",
+  "summary": "Python pytest files in tests/backend#14.",
+  "kind": "test-suite",
+  "source": "python-test-suite",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "tests/backend#14",
+      "symbol": "tests/backend#14",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "tests/backend/test_tool_result_storage.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_tool_sender.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_tool_specs.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_transcription_gateway.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_transport_envelope.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_transport_protocol.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_transport_sender.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_trust_boundary_metrics.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_tts_buffer.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_tts_manager.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_tts_session.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_typed_message_handler.py",
+      "reason": "pytest file"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_tool_result_storage.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_tool_sender.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_tool_specs.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_transcription_gateway.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_transport_envelope.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_transport_protocol.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_transport_sender.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_trust_boundary_metrics.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_tts_buffer.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_tts_manager.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_tts_session.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_typed_message_handler.py",
+      "reason": "nearby test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_tool_result_storage.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_tool_sender.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_tool_specs.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_transcription_gateway.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_transport_envelope.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_transport_protocol.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_transport_sender.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_trust_boundary_metrics.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_tts_buffer.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_tts_manager.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_tts_session.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_typed_message_handler.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "test"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-test-suite-f9da80985c-2_6a33c0cf92"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=82526 bytes; approxTokens=20632; includedFiles=12; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:24:46.514Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:24:46.514Z"
+}

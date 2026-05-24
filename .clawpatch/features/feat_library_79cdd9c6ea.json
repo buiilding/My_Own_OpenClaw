@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_79cdd9c6ea",
+  "title": "Python source backend/src/llm/prompts",
+  "summary": "Python source group backend/src/llm/prompts with 5 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/llm/prompts",
+      "symbol": "backend/src/llm/prompts",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/llm/prompts/__init__.py",
+      "reason": "source group backend/src/llm/prompts"
+    },
+    {
+      "path": "backend/src/llm/prompts/prompt_constructor.py",
+      "reason": "source group backend/src/llm/prompts"
+    },
+    {
+      "path": "backend/src/llm/prompts/prompt_metadata.py",
+      "reason": "source group backend/src/llm/prompts"
+    },
+    {
+      "path": "backend/src/llm/prompts/prompts.py",
+      "reason": "source group backend/src/llm/prompts"
+    },
+    {
+      "path": "backend/src/llm/prompts/repo_instructions.py",
+      "reason": "source group backend/src/llm/prompts"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_repo_instructions.py",
+      "reason": "associated test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_repo_instructions.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-79cdd9c6ea-3693_ee03629a14"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=44993 bytes; approxTokens=11248; includedFiles=6; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:11:48.611Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:11:48.611Z"
+}

@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_af30eb86f9",
+  "title": "Python source backend/src/api/infrastructure",
+  "summary": "Python source group backend/src/api/infrastructure with 4 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/api/infrastructure",
+      "symbol": "backend/src/api/infrastructure",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/api/infrastructure/__init__.py",
+      "reason": "source group backend/src/api/infrastructure"
+    },
+    {
+      "path": "backend/src/api/infrastructure/errors.py",
+      "reason": "source group backend/src/api/infrastructure"
+    },
+    {
+      "path": "backend/src/api/infrastructure/handler.py",
+      "reason": "source group backend/src/api/infrastructure"
+    },
+    {
+      "path": "backend/src/api/infrastructure/registry.py",
+      "reason": "source group backend/src/api/infrastructure"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-af30eb86f9-17f2_8a5a5db9d8",
+    "fnd_sig-feat-library-af30eb86f9-5ca9_286641dfad"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=25335 bytes; approxTokens=6334; includedFiles=4; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:15:38.724Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:15:38.724Z"
+}

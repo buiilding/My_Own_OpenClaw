@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-68324f407d-980e_7f6cd59934",
+  "featureId": "feat_library_68324f407d",
+  "title": "Embedded oversized tool-call JSON is silently ignored instead of rejected",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "backend/src/llm/parser_extraction.py",
+      "startLine": 112,
+      "endLine": 114,
+      "symbol": "JsonToolCallExtractor.parse_embedded_json",
+      "quote": null
+    },
+    {
+      "path": "backend/src/llm/parser_extraction.py",
+      "startLine": 36,
+      "endLine": 48,
+      "symbol": "JsonToolCallExtractor.parse_json_response",
+      "quote": null
+    },
+    {
+      "path": "backend/src/llm/parser.py",
+      "startLine": 142,
+      "endLine": 150,
+      "symbol": "ResponseParser.parse_response",
+      "quote": null
+    }
+  ],
+  "reasoning": "The parser advertises max JSON size enforcement as part of the LLM response trust boundary, and pure JSON responses over max_json_size raise InputSizeLimitError. Embedded JSON takes a different path: when an embedded JSON object exceeds max_json_size, parse_embedded_json just advances the scan position and continues. A model can therefore include an oversized tool-call-shaped JSON object inside surrounding text and have it treated as conversational content, bypassing the hard-error behavior and metrics used for pure JSON.",
+  "reproduction": "Configure max_json_size smaller than an embedded JSON object that contains a functionCall, then parse a response like `prefix {\"functionCall\":{\"name\":\"read_file\",\"args\":{\"payload\":\"...large...\"}}} suffix`. The embedded path skips the object instead of raising the same size-limit error as parse_json_response.",
+  "recommendation": "Make embedded JSON size violations raise InputSizeLimitError and record the size violation when the decoded JSON object exceeds max_json_size, at least when the object has the configured tool-call root key. If deliberately ignoring non-tool JSON is required, inspect only enough to distinguish tool-call-shaped payloads before deciding whether to raise.",
+  "whyTestsDoNotAlreadyCoverThis": "The included extraction tests cover the max_response_size scan boundary and a small valid JSON object followed by large trailing text, but there is no test for an embedded tool-call JSON object whose own size exceeds max_json_size.",
+  "suggestedRegressionTest": "Add a parser_extraction test with low max_json_size and an embedded functionCall object larger than the limit; assert InputSizeLimitError and a size-violation metric rather than an empty tool call list.",
+  "minimumFixScope": "Update JsonToolCallExtractor.parse_embedded_json oversized-object handling and add focused parser_extraction coverage.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-68324f407d_980e82bb72",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:10:41.304Z",
+  "updatedAt": "2026-05-24T21:10:41.304Z"
+}

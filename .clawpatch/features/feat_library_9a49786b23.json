@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_9a49786b23",
+  "title": "Node source frontend/src/renderer/app/providers",
+  "summary": "Node/TypeScript source group frontend/src/renderer/app/providers with 12 files.",
+  "kind": "library",
+  "source": "node-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "frontend/package.json",
+      "symbol": "frontend/src/renderer/app/providers",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "frontend/src/renderer/app/providers/AppConfigContext.jsx",
+      "reason": "source group frontend/src/renderer/app/providers"
+    },
+    {
+      "path": "frontend/src/renderer/app/providers/AppConfigProvider.jsx",
+      "reason": "source group frontend/src/renderer/app/providers"
+    },
+    {
+      "path": "frontend/src/renderer/app/providers/AppContextHooks.js",
+      "reason": "source group frontend/src/renderer/app/providers"
+    },
+    {
+      "path": "frontend/src/renderer/app/providers/AppProvider.jsx",
+      "reason": "source group frontend/src/renderer/app/providers"
+    },
+    {
+      "path": "frontend/src/renderer/app/providers/AppStatusContext.jsx",
+      "reason": "source group frontend/src/renderer/app/providers"
+    },
+    {
+      "path": "frontend/src/renderer/app/providers/AppStatusProvider.jsx",
+      "reason": "source group frontend/src/renderer/app/providers"
+    },
+    {
+      "path": "frontend/src/renderer/app/providers/ChatContext.jsx",
+      "reason": "source group frontend/src/renderer/app/providers"
+    },
+    {
+      "path": "frontend/src/renderer/app/providers/ChatProvider.jsx",
+      "reason": "source group frontend/src/renderer/app/providers"
+    },
+    {
+      "path": "frontend/src/renderer/app/providers/appConfigBackendSync.js",
+      "reason": "source group frontend/src/renderer/app/providers"
+    },
+    {
+      "path": "frontend/src/renderer/app/providers/appConfigEvents.js",
+      "reason": "source group frontend/src/renderer/app/providers"
+    },
+    {
+      "path": "frontend/src/renderer/app/providers/appConfigPersistence.js",
+      "reason": "source group frontend/src/renderer/app/providers"
+    },
+    {
+      "path": "frontend/src/renderer/app/providers/configComparison.ts",
+      "reason": "source group frontend/src/renderer/app/providers"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "frontend/package.json",
+      "reason": "package manifest"
+    }
+  ],
+  "tests": [],
+  "tags": [
+    "node",
+    "typescript",
+    "source-group",
+    "project:windieos",
+    "project-root:frontend"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-9a49786b23-133a_dbca6e593b"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=47361 bytes; approxTokens=11841; includedFiles=13; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:14:37.690Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:14:37.690Z"
+}

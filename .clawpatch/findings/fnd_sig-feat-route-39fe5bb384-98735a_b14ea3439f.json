@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-39fe5bb384-98735a_b14ea3439f",
+  "featureId": "feat_route_39fe5bb384",
+  "title": "No regression coverage for embeddings health route behavior",
+  "category": "test-gap",
+  "severity": "low",
+  "confidence": "high",
+  "triage": "test-gap",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/memory/embeddings/router.py",
+      "startLine": 179,
+      "endLine": 199,
+      "symbol": "health_check",
+      "quote": null
+    }
+  ],
+  "reasoning": "The reviewed feature exposes GET /api/embeddings/health, but the feature metadata includes no linked tests. This route has observable API behavior for at least healthy, missing-provider, and dependency-error cases, and those behaviors can drift if dependency resolution or health payload formatting changes.",
+  "reproduction": null,
+  "recommendation": "Add focused FastAPI route tests for GET /api/embeddings/health covering a resolved embedding provider, no configured provider, and an exception raised while resolving or building the health payload.",
+  "whyTestsDoNotAlreadyCoverThis": "The provided feature context lists no tests, and no included test evidence exercises this route.",
+  "suggestedRegressionTest": "Use a FastAPI TestClient with dependency overrides for ContainerDep to provide containers with an embedding router, without an embedding router/provider, and with a resolver/payload path that raises; assert status codes and response payload shape for each case.",
+  "minimumFixScope": "Add focused backend route tests for backend/src/api/routes/memory/embeddings/router.py health_check without changing route behavior.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-39fe5bb384_98735acb20",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:21:11.982Z",
+  "updatedAt": "2026-05-24T21:21:11.982Z"
+}

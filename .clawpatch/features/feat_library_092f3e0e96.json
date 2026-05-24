@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_092f3e0e96",
+  "title": "Node source frontend/src/renderer/infrastructure/ipc",
+  "summary": "Node/TypeScript source group frontend/src/renderer/infrastructure/ipc with 2 files.",
+  "kind": "library",
+  "source": "node-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "frontend/package.json",
+      "symbol": "frontend/src/renderer/infrastructure/ipc",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "frontend/src/renderer/infrastructure/ipc/bridge.ts",
+      "reason": "source group frontend/src/renderer/infrastructure/ipc"
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/ipc/channels.ts",
+      "reason": "source group frontend/src/renderer/infrastructure/ipc"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "frontend/package.json",
+      "reason": "package manifest"
+    }
+  ],
+  "tests": [],
+  "tags": [
+    "node",
+    "typescript",
+    "source-group",
+    "project:windieos",
+    "project-root:frontend"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-092f3e0e96-64d3_003244c90f"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=19073 bytes; approxTokens=4769; includedFiles=3; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:03:51.005Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:03:51.005Z"
+}

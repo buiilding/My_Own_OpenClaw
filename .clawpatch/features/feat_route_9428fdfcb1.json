@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_route_9428fdfcb1",
+  "title": "FastAPI route POST /api/runs/{run_id}/events",
+  "summary": "FastAPI route POST /api/runs/{run_id}/events handled by ingest_run_event in backend/src/api/routes/runs/router.py.",
+  "kind": "route",
+  "source": "python-fastapi-route",
+  "confidence": "high",
+  "entrypoints": [
+    {
+      "path": "backend/src/api/routes/runs/router.py",
+      "symbol": "ingest_run_event",
+      "route": "POST /api/runs/{run_id}/events",
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/api/routes/runs/router.py",
+      "reason": "FastAPI route handler ingest_run_event"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "fastapi",
+    "route"
+  ],
+  "trustBoundaries": [
+    "network",
+    "user-input",
+    "serialization",
+    "auth"
+  ],
+  "status": "reviewed",
+  "lock": null,
+  "findingIds": [],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "0 finding(s); prompt=10341 bytes; approxTokens=2586; includedFiles=1; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:22:15.449Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:22:15.450Z"
+}

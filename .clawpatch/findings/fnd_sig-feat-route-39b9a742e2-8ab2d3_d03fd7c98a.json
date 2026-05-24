@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-39b9a742e2-8ab2d3_d03fd7c98a",
+  "featureId": "feat_route_39b9a742e2",
+  "title": "Prompt preview can be generated for arbitrary user-selected debug config without route-level authorization",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 468,
+      "endLine": 480,
+      "symbol": "sdk_debug_prompt_preview",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 491,
+      "endLine": 500,
+      "symbol": "sdk_debug_prompt_preview",
+      "quote": null
+    }
+  ],
+  "reasoning": "The network-exposed POST /api/sdk/prompt-preview handler accepts caller-supplied user_id, model_id, model_provider, and interaction_mode, resolves an effective debug config from those values, and returns prompt construction internals including the system prompt, prompt messages, user message, and tool schemas. The handler signature only requires the payload, container, and session manager; there is no visible auth/permission dependency or check in the owned route before returning these debug artifacts. If this router is reachable by an untrusted client, the endpoint can disclose prompt and configuration details for arbitrary requested users or modes.",
+  "reproduction": null,
+  "recommendation": "Require the same authenticated session/authorization gate used for SDK debug endpoints before resolving caller-supplied user_id or returning prompt internals. If this endpoint is intended to be local/dev-only, enforce that explicitly at route registration or in the handler and reject remote or unauthorized requests.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for this feature, and the excerpt shows no assertions around authentication or authorization for this route.",
+  "suggestedRegressionTest": "Add a route-level test that an unauthenticated or unauthorized request to POST /api/sdk/prompt-preview is rejected, and that an authenticated caller cannot preview prompt config for a different user_id without explicit permission.",
+  "minimumFixScope": "backend/src/api/routes/sdk/router.py plus the focused API test for the prompt-preview route.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-39b9a742e2_8ab2d3ce7a",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:21:12.291Z",
+  "updatedAt": "2026-05-24T21:21:12.291Z"
+}

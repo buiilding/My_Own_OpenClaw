@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_route_9df74c0a79",
+  "title": "FastAPI route POST /api/runs/workers/heartbeat",
+  "summary": "FastAPI route POST /api/runs/workers/heartbeat handled by worker_poll_heartbeat in backend/src/api/routes/runs/router.py.",
+  "kind": "route",
+  "source": "python-fastapi-route",
+  "confidence": "high",
+  "entrypoints": [
+    {
+      "path": "backend/src/api/routes/runs/router.py",
+      "symbol": "worker_poll_heartbeat",
+      "route": "POST /api/runs/workers/heartbeat",
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/api/routes/runs/router.py",
+      "reason": "FastAPI route handler worker_poll_heartbeat"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "fastapi",
+    "route"
+  ],
+  "trustBoundaries": [
+    "network",
+    "user-input",
+    "serialization",
+    "auth"
+  ],
+  "status": "reviewed",
+  "lock": null,
+  "findingIds": [],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "0 finding(s); prompt=10362 bytes; approxTokens=2591; includedFiles=1; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:22:06.021Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:22:06.021Z"
+}

@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_route_bc1a119a3b",
+  "title": "FastAPI route POST /api/sdk/ocr/find-text",
+  "summary": "FastAPI route POST /api/sdk/ocr/find-text handled by sdk_ocr_find_text in backend/src/api/routes/sdk/router.py.",
+  "kind": "route",
+  "source": "python-fastapi-route",
+  "confidence": "high",
+  "entrypoints": [
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "symbol": "sdk_ocr_find_text",
+      "route": "POST /api/sdk/ocr/find-text",
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "reason": "FastAPI route handler sdk_ocr_find_text"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "fastapi",
+    "route"
+  ],
+  "trustBoundaries": [
+    "network",
+    "user-input",
+    "serialization",
+    "auth"
+  ],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-route-bc1a119a3b-3e2c23_1fc677e56c"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=24798 bytes; approxTokens=6200; includedFiles=1; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:22:27.878Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:22:27.878Z"
+}

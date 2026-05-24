@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-8161046fcf-bd7e_772b23c15e",
+  "featureId": "feat_library_8161046fcf",
+  "title": "Provider credentials and OAuth tokens are persisted in renderer localStorage",
+  "category": "security",
+  "severity": "high",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/utils/configFilter.js",
+      "startLine": 25,
+      "endLine": 26,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/utils/configStorage.js",
+      "startLine": 15,
+      "endLine": 31,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/utils/configStorage.js",
+      "startLine": 219,
+      "endLine": 220,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/utils/configStorage.js",
+      "startLine": 285,
+      "endLine": 286,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The frontend allow-list includes provider_api_keys and provider_oauth, and configStorage normalizes access_token, refresh_token, and api_key values into the object written directly to localStorage. In an Electron renderer, localStorage is accessible to any renderer compromise or injected script, so long-lived API keys and OAuth refresh tokens become much easier to exfiltrate than if they were held behind a main-process or OS credential boundary.",
+  "reproduction": null,
+  "recommendation": "Do not persist raw provider API keys or OAuth tokens in renderer localStorage. Store secrets in a main-process controlled credential store or OS keychain, expose only non-secret metadata such as connected/enabled/profile state to renderer config, and keep token access behind explicit IPC or SDK capability boundaries.",
+  "whyTestsDoNotAlreadyCoverThis": "No tests are included for this feature, and a normal persistence round-trip test would likely assert the current insecure behavior unless it explicitly checks that secret fields are excluded from renderer storage.",
+  "suggestedRegressionTest": "Add a renderer config persistence test that saves provider_api_keys and provider_oauth with non-empty secret values, then asserts the serialized localStorage payload contains only safe metadata and no api_key, access_token, or refresh_token values.",
+  "minimumFixScope": "Change the frontend config filter/storage contract to exclude raw secret fields from localStorage and add a secure credential-storage path for those values.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-8161046fcf_bd7e7b34f5",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:12:49.828Z",
+  "updatedAt": "2026-05-24T21:12:49.828Z"
+}

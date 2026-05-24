@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-9352222a5b-b3f6_a1ae5cf38a",
+  "featureId": "feat_library_9352222a5b",
+  "title": "Vision logs can persist sensitive screenshot-derived text",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/services/vision/providers/internvl.py",
+      "startLine": 480,
+      "endLine": 491,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "backend/src/services/vision/providers/ui_venus.py",
+      "startLine": 236,
+      "endLine": 246,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "backend/src/services/vision/providers/internvl_runtime_helpers.py",
+      "startLine": 97,
+      "endLine": 98,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "This feature processes screenshots/images that may contain private UI text. InternVL logs up to 1000 characters of the raw model response at warning level and logs the full output when coordinate parsing fails; Venus does the same. The shared chat helper also logs the full chat response. For image-question APIs, responses may contain OCR-like descriptions or user-visible data from the screenshot, so these logs can persist sensitive screen contents in backend logs. The code already hashes/sanitizes the user instruction for one log path, which suggests logs are expected to avoid raw user/image-derived content, but the model responses bypass that protection.",
+  "reproduction": null,
+  "recommendation": "Do not log raw vision model responses by default. Log only bounded metadata such as response length, a stable hash, parse status, and perhaps a very short redacted preview behind an explicit debug flag. Also avoid logging full unparsed output on parse failures.",
+  "whyTestsDoNotAlreadyCoverThis": "tests/backend/test_vision_service.py only covers VisionService initialization, provider selection, and unload state; it does not exercise provider inference logging or assert redaction behavior.",
+  "suggestedRegressionTest": "Add focused provider/helper tests with a fake model response containing a sentinel secret and assert normal/error logs do not include the sentinel while still recording parse success/failure metadata.",
+  "minimumFixScope": "Update InternVL, Venus, and shared runtime helper logging for raw model responses and parse failures; add redaction-focused tests around those log paths.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-9352222a5b_b3f6a1e3db",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:14:01.688Z",
+  "updatedAt": "2026-05-24T21:14:01.688Z"
+}

@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_b90075c5e0",
+  "title": "Python source backend/src/llm/providers#1",
+  "summary": "Python source group backend/src/llm/providers#1 with 12 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/llm/providers#1",
+      "symbol": "backend/src/llm/providers#1",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/llm/providers/__init__.py",
+      "reason": "source group backend/src/llm/providers#1"
+    },
+    {
+      "path": "backend/src/llm/providers/anthropic.py",
+      "reason": "source group backend/src/llm/providers#1"
+    },
+    {
+      "path": "backend/src/llm/providers/error_mapping.py",
+      "reason": "source group backend/src/llm/providers#1"
+    },
+    {
+      "path": "backend/src/llm/providers/gemini.py",
+      "reason": "source group backend/src/llm/providers#1"
+    },
+    {
+      "path": "backend/src/llm/providers/kimi_coding.py",
+      "reason": "source group backend/src/llm/providers#1"
+    },
+    {
+      "path": "backend/src/llm/providers/local.py",
+      "reason": "source group backend/src/llm/providers#1"
+    },
+    {
+      "path": "backend/src/llm/providers/message_normalization.py",
+      "reason": "source group backend/src/llm/providers#1"
+    },
+    {
+      "path": "backend/src/llm/providers/mistral.py",
+      "reason": "source group backend/src/llm/providers#1"
+    },
+    {
+      "path": "backend/src/llm/providers/online.py",
+      "reason": "source group backend/src/llm/providers#1"
+    },
+    {
+      "path": "backend/src/llm/providers/openrouter.py",
+      "reason": "source group backend/src/llm/providers#1"
+    },
+    {
+      "path": "backend/src/llm/providers/provider_native_reasoning.py",
+      "reason": "source group backend/src/llm/providers#1"
+    },
+    {
+      "path": "backend/src/llm/providers/response_parsing.py",
+      "reason": "source group backend/src/llm/providers#1"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_provider_native_reasoning.py",
+      "reason": "associated test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_provider_native_reasoning.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-b90075c5e0-2e10_b567c5a504",
+    "fnd_sig-feat-library-b90075c5e0-23e0_89c4762be5"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=91642 bytes; approxTokens=22911; includedFiles=13; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:16:18.126Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:16:18.126Z"
+}

@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_c71f146881",
+  "title": "Python source backend/src/embeddings",
+  "summary": "Python source group backend/src/embeddings with 8 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/embeddings",
+      "symbol": "backend/src/embeddings",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/embeddings/__init__.py",
+      "reason": "source group backend/src/embeddings"
+    },
+    {
+      "path": "backend/src/embeddings/embeddings.py",
+      "reason": "source group backend/src/embeddings"
+    },
+    {
+      "path": "backend/src/embeddings/errors.py",
+      "reason": "source group backend/src/embeddings"
+    },
+    {
+      "path": "backend/src/embeddings/limited_provider.py",
+      "reason": "source group backend/src/embeddings"
+    },
+    {
+      "path": "backend/src/embeddings/main.py",
+      "reason": "source group backend/src/embeddings"
+    },
+    {
+      "path": "backend/src/embeddings/openai_provider.py",
+      "reason": "source group backend/src/embeddings"
+    },
+    {
+      "path": "backend/src/embeddings/remote_provider.py",
+      "reason": "source group backend/src/embeddings"
+    },
+    {
+      "path": "backend/src/embeddings/service_app.py",
+      "reason": "source group backend/src/embeddings"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_openai_provider.py",
+      "reason": "associated test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_openai_provider.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-c71f146881-1380_6006498703"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=73135 bytes; approxTokens=18284; includedFiles=9; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:17:10.748Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:17:10.748Z"
+}

@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-cli-command-10fd2d832c-_18b2265653",
+  "featureId": "feat_cli-command_10fd2d832c",
+  "title": "CPU feature probe is misclassified as a user-facing CLI command",
+  "category": "build-release",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/python-runtime/lib/python3.11/site-packages/numpy/distutils/checks/cpu_avx512cd.c",
+      "startLine": 16,
+      "endLine": 19,
+      "symbol": "main",
+      "quote": null
+    }
+  ],
+  "reasoning": "The detected entrypoint is a NumPy distutils CPU capability probe, not a real WindieOS command. Its main() immediately executes an AVX512CD intrinsic and reads a 512-bit vector from argv memory, with no command contract, argument validation, help path, or runtime CPU guard. If clawpatch treats this as an executable CLI feature named cpu_avx512cd, invoking it on ordinary user input or an unsupported CPU can crash or fail unpredictably, and packaging/release logic may surface vendored build-check sources as product commands.",
+  "reproduction": null,
+  "recommendation": "Exclude vendored runtime paths such as frontend/python-runtime/lib/python3.11/site-packages/numpy/distutils/checks from CLI-command feature discovery, or classify these files as build probes rather than product entrypoints.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for this feature, and the file itself contains no assertions or command-level behavior to validate the claimed CLI contract.",
+  "suggestedRegressionTest": "Add a discovery test that scans this fixture path and asserts numpy/distutils/checks/cpu_avx512cd.c is not emitted as a cli-command feature.",
+  "minimumFixScope": "Update the feature discovery classifier or ignore rules for vendored Python runtime CPU-check sources.",
+  "status": "false-positive",
+  "history": [
+    {
+      "runId": null,
+      "kind": "triage",
+      "status": "false-positive",
+      "note": "Excluded vendored frontend/python-runtime dependency probe from WindieOS-owned review scope",
+      "reasoning": null,
+      "commands": [],
+      "createdAt": "2026-05-24T21:02:45.236Z"
+    }
+  ],
+  "signature": "sig_feat-cli-command-10fd2d832c_ac9891191e",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210113-a6c478",
+  "createdAt": "2026-05-24T21:01:29.817Z",
+  "updatedAt": "2026-05-24T21:02:45.235Z"
+}

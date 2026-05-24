@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_343861e455",
+  "title": "Python source backend/src/core/validation",
+  "summary": "Python source group backend/src/core/validation with 3 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/core/validation",
+      "symbol": "backend/src/core/validation",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/core/validation/__init__.py",
+      "reason": "source group backend/src/core/validation"
+    },
+    {
+      "path": "backend/src/core/validation/settings_update_rules.py",
+      "reason": "source group backend/src/core/validation"
+    },
+    {
+      "path": "backend/src/core/validation/validators.py",
+      "reason": "source group backend/src/core/validation"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_settings_update_rules.py",
+      "reason": "associated test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_settings_update_rules.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-343861e455-508b_e9e9e6e55d",
+    "fnd_sig-feat-library-343861e455-d5fb_52c83037e4"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=24353 bytes; approxTokens=6089; includedFiles=4; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:07:07.549Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:07:07.549Z"
+}

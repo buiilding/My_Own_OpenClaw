@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-b90075c5e0-2e10_b567c5a504",
+  "featureId": "feat_library_b90075c5e0",
+  "title": "Finalizer cannot close local provider HTTP clients",
+  "category": "performance",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/llm/providers/local.py",
+      "startLine": 33,
+      "endLine": 38,
+      "symbol": "LocalLLMProvider.__init__",
+      "quote": null
+    },
+    {
+      "path": "backend/src/llm/providers/local.py",
+      "startLine": 67,
+      "endLine": 86,
+      "symbol": "LocalLLMProvider._cleanup_http_client_finalizer",
+      "quote": null
+    },
+    {
+      "path": "backend/src/llm/providers/__init__.py",
+      "startLine": 107,
+      "endLine": 115,
+      "symbol": "_create_cached_provider_factory",
+      "quote": null
+    }
+  ],
+  "reasoning": "The local provider registers a weakref finalizer whose only way to reach the provider is weakref.ref(self). When weakref.finalize invokes the callback, the provider object is already being finalized, so provider_weakref() can be None and the callback returns before closing the captured httpx.AsyncClient. Because provider instances are cached and can later be evicted by the bounded lru_cache, evicted local providers can leave connection pools and file descriptors open despite the comment claiming the finalizer prevents this leak.",
+  "reproduction": null,
+  "recommendation": "Do not depend on recovering the provider from a weakref during finalization. Capture only the client/loop cleanup state needed by the finalizer, or provide an explicit provider-factory cache close/clear path that awaits _close_http_client before eviction/shutdown. If the client is lazily created, update the finalizer registration when the client is created or use a small cleanup holder object that owns the client reference.",
+  "whyTestsDoNotAlreadyCoverThis": "The included tests only cover provider-native thinking request parameters and do not instantiate LocalLLMProvider, create an HTTP client, evict cached providers, or assert client closure.",
+  "suggestedRegressionTest": "Add a backend test that creates a local provider, forces _get_http_client(), evicts or deletes the provider, runs garbage collection/event-loop cleanup, and asserts the httpx client is closed or that an explicit cache shutdown path closes it.",
+  "minimumFixScope": "backend/src/llm/providers/local.py and, if adding explicit factory cache cleanup, backend/src/llm/providers/__init__.py",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-b90075c5e0_2e10bbb803",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:16:18.125Z",
+  "updatedAt": "2026-05-24T21:16:18.125Z"
+}

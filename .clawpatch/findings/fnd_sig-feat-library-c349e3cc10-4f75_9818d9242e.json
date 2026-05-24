@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-c349e3cc10-4f75_9818d9242e",
+  "featureId": "feat_library_c349e3cc10",
+  "title": "Canonical tool-output reuses client-supplied context after routing by request id",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "backend/src/api/handlers/tool_result.py",
+      "startLine": 163,
+      "endLine": 210,
+      "symbol": "ToolResultHandler.handle",
+      "quote": null
+    }
+  ],
+  "reasoning": "The handler resolves the authoritative session using user_id and request_id, processes the result on that session, and then emits the canonical tool-output with session_id, conversation_ref, and turn_ref copied from the incoming frontend message. If the frontend sends stale or mismatched context fields for a valid request_id, the backend can apply the result to one session while publishing the canonical event under a different conversation or turn context. That can attach tool output to the wrong UI stream/history projection and makes request_id routing inconsistent with the emitted event contract.",
+  "reproduction": "Send a tool-result with a request_id that maps to an active session, but include a stale conversation_ref or turn_ref in the message. The session processing follows request_id, while the emitted tool-output includes the stale message fields.",
+  "recommendation": "Build the canonical event context from the resolved session/request metadata, or validate that the client-supplied session_id, conversation_ref, and turn_ref match the resolved request before emitting. Reject or sanitize mismatches.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for mismatched tool-result context fields or canonical tool-output routing.",
+  "suggestedRegressionTest": "Add a test where a valid request_id is submitted with mismatched conversation_ref/turn_ref and assert the canonical tool-output uses authoritative session metadata or the message is rejected.",
+  "minimumFixScope": "ToolResultHandler canonical event construction and, if necessary, AgentSession request metadata accessors.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-c349e3cc10_4f75c93752",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:16:53.699Z",
+  "updatedAt": "2026-05-24T21:16:53.699Z"
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-test-suite-4836a0505e-d_08378594ec",
+  "featureId": "feat_test-suite_4836a0505e",
+  "title": "Concurrent config update test blocks the event loop instead of exercising overlap",
+  "category": "test-gap",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "test-gap",
+  "evidence": [
+    {
+      "path": "tests/backend/test_config_service.py",
+      "startLine": 131,
+      "endLine": 149,
+      "symbol": "test_update_config_serializes_concurrent_updates",
+      "quote": null
+    }
+  ],
+  "reasoning": "The concurrency regression test uses a synchronous side effect with time.sleep inside the async update path. Because this blocks the event loop, task_two cannot actually enter update_config while task_one is sleeping; the test mostly verifies sequential updates after the first call returns, not that the service's single-writer gate serializes genuinely overlapping async updates. A broken or removed async lock could still pass if the underlying update call blocks the loop in the same way.",
+  "reproduction": null,
+  "recommendation": "Make the mocked update path yield control while the first update is in progress, or instrument the service boundary so the second task can reach the lock before the first update completes. For example, use async synchronization primitives around an awaitable collaborator if the production path supports it, or add a focused test hook/fake that records attempted entry order without blocking the event loop.",
+  "whyTestsDoNotAlreadyCoverThis": "The existing test starts two asyncio tasks, but the synchronous time.sleep at lines 139-142 prevents real task interleaving, so it does not cover the race it names.",
+  "suggestedRegressionTest": "Replace the blocking sleep with an event-driven async fake that lets task_two attempt update_config while task_one is still inside the critical section, then assert the observed old/new config sequence and final config remain serialized.",
+  "minimumFixScope": "tests/backend/test_config_service.py",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-test-suite-4836a0505e_d0b83b4bb4",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:23:59.717Z",
+  "updatedAt": "2026-05-24T21:23:59.717Z"
+}

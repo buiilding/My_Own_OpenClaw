@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_0605e3afd8",
+  "title": "Node source frontend/src/renderer/features/voice",
+  "summary": "Node/TypeScript source group frontend/src/renderer/features/voice with 10 files.",
+  "kind": "library",
+  "source": "node-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "frontend/package.json",
+      "symbol": "frontend/src/renderer/features/voice",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "frontend/src/renderer/features/voice/components/VoiceStatus.jsx",
+      "reason": "source group frontend/src/renderer/features/voice"
+    },
+    {
+      "path": "frontend/src/renderer/features/voice/hooks/useAudioCaptureRefs.ts",
+      "reason": "source group frontend/src/renderer/features/voice"
+    },
+    {
+      "path": "frontend/src/renderer/features/voice/hooks/useVoiceMode.ts",
+      "reason": "source group frontend/src/renderer/features/voice"
+    },
+    {
+      "path": "frontend/src/renderer/features/voice/hooks/useWakewordBridgeEvents.ts",
+      "reason": "source group frontend/src/renderer/features/voice"
+    },
+    {
+      "path": "frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts",
+      "reason": "source group frontend/src/renderer/features/voice"
+    },
+    {
+      "path": "frontend/src/renderer/features/voice/utils/audioCaptureCleanup.ts",
+      "reason": "source group frontend/src/renderer/features/voice"
+    },
+    {
+      "path": "frontend/src/renderer/features/voice/utils/audioEncoding.ts",
+      "reason": "source group frontend/src/renderer/features/voice"
+    },
+    {
+      "path": "frontend/src/renderer/features/voice/utils/audioProcessorNode.ts",
+      "reason": "source group frontend/src/renderer/features/voice"
+    },
+    {
+      "path": "frontend/src/renderer/features/voice/utils/wakewordCaptureGuard.ts",
+      "reason": "source group frontend/src/renderer/features/voice"
+    },
+    {
+      "path": "frontend/src/renderer/features/voice/utils/wakewordEventUtils.ts",
+      "reason": "source group frontend/src/renderer/features/voice"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "frontend/package.json",
+      "reason": "package manifest"
+    }
+  ],
+  "tests": [],
+  "tags": [
+    "node",
+    "typescript",
+    "source-group",
+    "project:windieos",
+    "project-root:frontend"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-0605e3afd8-2677_b41b6ec468",
+    "fnd_sig-feat-library-0605e3afd8-2258_9229cb0892",
+    "fnd_sig-feat-library-0605e3afd8-d2d2_7cc2ffff4d"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "3 finding(s); prompt=59010 bytes; approxTokens=14751; includedFiles=11; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:04:01.709Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:04:01.709Z"
+}

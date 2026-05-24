@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_18c503a9af",
+  "title": "Python source backend/src/agent/tools/preparation/types",
+  "summary": "Python source group backend/src/agent/tools/preparation/types with 3 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/agent/tools/preparation/types",
+      "symbol": "backend/src/agent/tools/preparation/types",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/agent/tools/preparation/types/__init__.py",
+      "reason": "source group backend/src/agent/tools/preparation/types"
+    },
+    {
+      "path": "backend/src/agent/tools/preparation/types/execution_ref.py",
+      "reason": "source group backend/src/agent/tools/preparation/types"
+    },
+    {
+      "path": "backend/src/agent/tools/preparation/types/resolved_tool_call.py",
+      "reason": "source group backend/src/agent/tools/preparation/types"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_execution_ref.py",
+      "reason": "associated test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_execution_ref.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "reviewed",
+  "lock": null,
+  "findingIds": [],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "0 finding(s); prompt=14082 bytes; approxTokens=3521; includedFiles=4; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:05:00.672Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:05:00.672Z"
+}

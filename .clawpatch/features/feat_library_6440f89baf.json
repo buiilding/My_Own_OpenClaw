@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_6440f89baf",
+  "title": "Node source frontend/src/main/:agent",
+  "summary": "Node/TypeScript source group frontend/src/main/:agent with 4 files.",
+  "kind": "library",
+  "source": "node-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "frontend/package.json",
+      "symbol": "frontend/src/main/:agent",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "frontend/src/main/agent_capability_handshake.cjs",
+      "reason": "source group frontend/src/main/:agent"
+    },
+    {
+      "path": "frontend/src/main/agent_definition.cjs",
+      "reason": "source group frontend/src/main/:agent"
+    },
+    {
+      "path": "frontend/src/main/agent_stop_shortcut_runtime.cjs",
+      "reason": "source group frontend/src/main/:agent"
+    },
+    {
+      "path": "frontend/src/main/agent_sudo_access_handler.cjs",
+      "reason": "source group frontend/src/main/:agent"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "frontend/package.json",
+      "reason": "package manifest"
+    }
+  ],
+  "tests": [],
+  "tags": [
+    "node",
+    "typescript",
+    "source-group",
+    "project:windieos",
+    "project-root:frontend"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-6440f89baf-ccc6_38fc9392a7"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=34880 bytes; approxTokens=8720; includedFiles=5; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:10:31.684Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:10:31.684Z"
+}

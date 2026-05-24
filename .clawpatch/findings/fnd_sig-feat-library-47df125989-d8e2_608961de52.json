@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-47df125989-d8e2_608961de52",
+  "featureId": "feat_library_47df125989",
+  "title": "Readiness timeout marks the backend ready even when ping never succeeds",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "frontend/src/main/local_backend_bridge.cjs",
+      "startLine": 263,
+      "endLine": 274,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/local_backend_bridge.cjs",
+      "startLine": 279,
+      "endLine": 290,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/local_backend_bridge_request_transport.cjs",
+      "startLine": 57,
+      "endLine": 61,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "checkReadiness treats failed ping responses and repeated ping timeouts as success by calling markBackendReady after max attempts. sendRequest only checks the supervisor ready flag before writing JSON-RPC to stdin, so a backend process that is alive but not speaking the expected protocol will be exposed as ready and subsequent calls will sit until request timeout instead of failing fast with the real startup/readiness error.",
+  "reproduction": null,
+  "recommendation": "Leave the supervisor in an error or starting/unready state when ping fails or times out after the retry budget. Surface a local-backend-status error and keep sendRequest blocked until an actual ping response reports status ok.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for readiness failure behavior; the fallback-to-ready path is explicit in the implementation and would need a test that simulates no ping response.",
+  "suggestedRegressionTest": "Add a test that starts readiness checks against a process stub that never returns the readiness response, advances timers through all retries, and asserts get-local-backend-status remains ready:false with an error and sendRequest rejects immediately.",
+  "minimumFixScope": "Change the max-attempt branches in checkReadiness to clear or mark error instead of calling markBackendReady, and update status notification accordingly.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-47df125989_d8e2759f70",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:08:30.095Z",
+  "updatedAt": "2026-05-24T21:08:30.095Z"
+}

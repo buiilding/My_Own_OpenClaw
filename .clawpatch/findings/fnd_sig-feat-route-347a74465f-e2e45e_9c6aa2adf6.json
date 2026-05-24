@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-347a74465f-e2e45e_9c6aa2adf6",
+  "featureId": "feat_route_347a74465f",
+  "title": "find-text-candidates echoes threshold but returns matches below it",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 163,
+      "endLine": 179,
+      "symbol": "sdk_ocr_find_text",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 182,
+      "endLine": 195,
+      "symbol": "sdk_ocr_find_text_candidates",
+      "quote": null
+    }
+  ],
+  "reasoning": "The candidates route accepts the same OcrTextQueryRequest and returns the same OcrFindTextResponse shape as /ocr/find-text, including the echoed threshold, but it slices the ranked list without applying request.threshold. The sibling /ocr/find-text route filters matches by threshold before applying max_results. A caller that treats the shared response contract consistently can receive low-confidence matches while the response says a threshold was used, which is risky for OCR-driven automation that may resolve or click text based on these candidates. Confidence is medium because the route name may intend broader candidate discovery, but the shared request/response contract and echoed threshold make the current behavior ambiguous and easy to misuse.",
+  "reproduction": null,
+  "recommendation": "Either apply the same threshold filter before slicing candidates, or make the API contract explicit by using a candidates-specific request/response field that does not imply threshold filtering. If unfiltered candidates are intentional, rename or document the threshold semantics in the route contract and avoid echoing it as if it constrained matches.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for this feature, and there is no evidence in the provided excerpt of a regression test asserting whether find-text-candidates should honor or ignore threshold.",
+  "suggestedRegressionTest": "Add a route-level test that stubs OCR results with one match above and one below a requested threshold, calls POST /api/sdk/ocr/find-text-candidates, and asserts the intended threshold behavior explicitly.",
+  "minimumFixScope": "backend/src/api/routes/sdk/router.py plus a focused backend route test for POST /api/sdk/ocr/find-text-candidates.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-347a74465f_e2e45e73aa",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:21:12.241Z",
+  "updatedAt": "2026-05-24T21:21:12.241Z"
+}

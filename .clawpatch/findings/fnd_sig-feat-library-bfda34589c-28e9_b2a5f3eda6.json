@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-bfda34589c-28e9_b2a5f3eda6",
+  "featureId": "feat_library_bfda34589c",
+  "title": "Composer draft is cleared before send success, losing attachments on failure",
+  "category": "data-loss",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/features/chat/hooks/useChatComposerDraft.js",
+      "startLine": 35,
+      "endLine": 49,
+      "symbol": "submitMessageValue",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/hooks/useChatComposerDraft.js",
+      "startLine": 25,
+      "endLine": 33,
+      "symbol": "clearDraft",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts",
+      "startLine": 272,
+      "endLine": 277,
+      "symbol": "sendMessage",
+      "quote": null
+    }
+  ],
+  "reasoning": "submitMessageValue clears the input, transcription, clipboard images, selected readable files, and file input before awaiting onSendMessage. The sender can throw when dispatch to the runtime fails. In that path the user gets an error, but the original typed text and any selected/pasted attachments have already been removed, making retry or correction impossible without reconstructing the draft.",
+  "reproduction": "Compose a message with text and an attachment, make DesktopLiveTurnRuntimeClient.sendQuery reject, and submit. The error path throws from sendMessage after the draft has already been cleared.",
+  "recommendation": "Clear the draft only after onSendMessage resolves successfully, or snapshot the draft and restore it in the catch path when send fails before the backend accepts the turn.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for composer send failure behavior, and the current code has no visible regression guard for preserving draft state when onSendMessage rejects.",
+  "suggestedRegressionTest": "Add a hook test for useChatComposerDraft where onSendMessage rejects; assert input value, clipboard images, selected files, and attachment input state remain available or are restored after the failed submit.",
+  "minimumFixScope": "frontend/src/renderer/features/chat/hooks/useChatComposerDraft.js and a focused frontend hook test covering rejected sends.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-bfda34589c_28e9c029e8",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:18:30.041Z",
+  "updatedAt": "2026-05-24T21:18:30.041Z"
+}

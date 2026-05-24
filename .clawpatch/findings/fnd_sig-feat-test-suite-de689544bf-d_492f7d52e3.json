@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-test-suite-de689544bf-d_492f7d52e3",
+  "featureId": "feat_test-suite_de689544bf",
+  "title": "Tests codify duplicate tool-call IDs as acceptable",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "tests/backend/test_llm_provider_utils.py",
+      "startLine": 416,
+      "endLine": 439,
+      "symbol": "test_extract_completion_response_keeps_same_id_when_tool_names_differ",
+      "quote": null
+    }
+  ],
+  "reasoning": "The test suite asserts that two tool calls with the same id but different names should be preserved unchanged. Tool-call IDs are the join key used by later tool response messages, so preserving duplicate IDs makes the assistant-to-tool-result association ambiguous and can route or validate the wrong result against a call. This is especially risky because nearby tests also enforce dropping orphan tool messages by matching tool_call_id, so the contract relies on IDs being usable as unique references.",
+  "reproduction": null,
+  "recommendation": "Change the intended contract to reject duplicate tool-call IDs in a single assistant message, or normalize them into unique IDs with an explicit mapping before any tool responses are generated. Update this test to cover that behavior instead of preserving duplicates.",
+  "whyTestsDoNotAlreadyCoverThis": "The current test covers the opposite behavior: it locks in duplicate-ID preservation as expected, so a uniqueness guard would fail the suite.",
+  "suggestedRegressionTest": "Replace this case with a test that passes two raw tool calls sharing id=call_1 and asserts normalize/extract raises LLMAPIError, or asserts deterministic unique IDs are emitted and later tool responses can be matched unambiguously.",
+  "minimumFixScope": "Update response/tool-call normalization and the provider utility test that currently expects duplicate ID preservation.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-test-suite-de689544bf_d01d2e083e",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:24:33.867Z",
+  "updatedAt": "2026-05-24T21:24:33.867Z"
+}

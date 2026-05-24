@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-6a38404de9-50f4_b63c78a42f",
+  "featureId": "feat_library_6a38404de9",
+  "title": "Mid-chunk code fences leak code text to TTS",
+  "category": "bug",
+  "severity": "high",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "backend/src/api/processing/tts/processor.py",
+      "startLine": 123,
+      "endLine": 143,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/processing/tts/processor.py",
+      "startLine": 259,
+      "endLine": 289,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "When text mode sees a code marker mid-chunk, it enters code suppression but recursively reprocesses post_marker including the opening ``` marker. The suppression branch then finds that marker at index 0 and treats it as the closing fence, immediately exits suppression, and processes the code body as normal text. For a chunk like 'text ```secret``` done', 'secret' is passed to TTS even though code blocks are intended to be filtered.",
+  "reproduction": "Call TTSProcessor._process_chunk with a ChunkEvent whose content is 'before ```secret``` after' after the processor is already in text mode. The manager receives 'before ', then 'secret', then ' after'.",
+  "recommendation": "When entering code suppression mid-chunk, consume the opening marker before recursively processing the remainder, or make the suppression branch distinguish an opening fence from a closing fence based on state entered before the current chunk. Add coverage for code fences that start and end inside the same chunk and for fences that start mid-chunk.",
+  "whyTestsDoNotAlreadyCoverThis": "No tests were included for this feature, and the shown implementation has no in-file assertions covering mid-chunk code fence transitions.",
+  "suggestedRegressionTest": "Add a processor unit test with a fake TTSManager/SpeechService asserting that 'hello ```print(secret)``` world' only sends 'hello ' and ' world' to TTS.",
+  "minimumFixScope": "backend/src/api/processing/tts/processor.py code-marker transition logic plus focused TTSProcessor tests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-6a38404de9_50f416abe6",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:10:55.338Z",
+  "updatedAt": "2026-05-24T21:10:55.338Z"
+}

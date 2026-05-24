@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-405798b7bc-5a49_879034f5ed",
+  "featureId": "feat_library_405798b7bc",
+  "title": "Import-time sys.path prepend can shadow backend modules globally",
+  "category": "build-release",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/tools/browser/shared_contract_loader.py",
+      "startLine": 9,
+      "endLine": 14,
+      "symbol": "ensure_frontend_python_path",
+      "quote": null
+    },
+    {
+      "path": "backend/src/tools/browser/browser_control_args_schema.py",
+      "startLine": 5,
+      "endLine": 9,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "backend/src/tools/browser/schema_types.py",
+      "startLine": 5,
+      "endLine": 9,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "Importing either browser_control_args_schema or schema_types mutates process-global import resolution by inserting frontend/src/main/python at the front of sys.path. Because this happens at module import time and uses index 0, any later import in the backend process can resolve to a same-named module from the sidecar-visible frontend tree before the backend environment or installed packages. That creates order-dependent backend behavior and release hazards that are hard to diagnose, especially in pytest where importing this feature can affect unrelated tests in the same interpreter.",
+  "reproduction": null,
+  "recommendation": "Avoid process-global path prepending for the backend import path. Prefer packaging the shared contract as an explicit importable module for both backend and sidecar, or load this specific contract through a bounded import mechanism that does not alter global import precedence. If sys.path mutation is kept temporarily, append rather than prepend and constrain it behind a compatibility note with deletion plan.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were provided for this feature, and the included files show no guard that verifies imports after this module cannot be shadowed by frontend/src/main/python.",
+  "suggestedRegressionTest": "Add a backend import-order test that imports backend.src.tools.browser.browser_control_args_schema, then verifies a deliberately conflicting module name resolves from the backend or environment path rather than frontend/src/main/python.",
+  "minimumFixScope": "Change shared_contract_loader.ensure_frontend_python_path and the import strategy used by browser_control_args_schema.py and schema_types.py.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-405798b7bc_5a49e882f5",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:07:54.510Z",
+  "updatedAt": "2026-05-24T21:07:54.510Z"
+}

@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_68324f407d",
+  "title": "Python source backend/src/llm",
+  "summary": "Python source group backend/src/llm with 8 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/llm",
+      "symbol": "backend/src/llm",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/llm/__init__.py",
+      "reason": "source group backend/src/llm"
+    },
+    {
+      "path": "backend/src/llm/client.py",
+      "reason": "source group backend/src/llm"
+    },
+    {
+      "path": "backend/src/llm/client_response_normalization.py",
+      "reason": "source group backend/src/llm"
+    },
+    {
+      "path": "backend/src/llm/parser.py",
+      "reason": "source group backend/src/llm"
+    },
+    {
+      "path": "backend/src/llm/parser_extraction.py",
+      "reason": "source group backend/src/llm"
+    },
+    {
+      "path": "backend/src/llm/parser_types.py",
+      "reason": "source group backend/src/llm"
+    },
+    {
+      "path": "backend/src/llm/parser_validation.py",
+      "reason": "source group backend/src/llm"
+    },
+    {
+      "path": "backend/src/llm/request_kwargs.py",
+      "reason": "source group backend/src/llm"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_parser_extraction.py",
+      "reason": "associated test"
+    },
+    {
+      "path": "tests/backend/test_parser_types.py",
+      "reason": "associated test"
+    },
+    {
+      "path": "tests/backend/test_parser_validation.py",
+      "reason": "associated test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_parser_extraction.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_parser_types.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_parser_validation.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-68324f407d-980e_7f6cd59934",
+    "fnd_sig-feat-library-68324f407d-d970_e49ec81d1c"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=91432 bytes; approxTokens=22858; includedFiles=11; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:10:41.306Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:10:41.306Z"
+}

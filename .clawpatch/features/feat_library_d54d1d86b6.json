@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_d54d1d86b6",
+  "title": "Python source backend/src/api/auth",
+  "summary": "Python source group backend/src/api/auth with 5 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/api/auth",
+      "symbol": "backend/src/api/auth",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/api/auth/__init__.py",
+      "reason": "source group backend/src/api/auth"
+    },
+    {
+      "path": "backend/src/api/auth/context.py",
+      "reason": "source group backend/src/api/auth"
+    },
+    {
+      "path": "backend/src/api/auth/http_middleware.py",
+      "reason": "source group backend/src/api/auth"
+    },
+    {
+      "path": "backend/src/api/auth/router.py",
+      "reason": "source group backend/src/api/auth"
+    },
+    {
+      "path": "backend/src/api/auth/service.py",
+      "reason": "source group backend/src/api/auth"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-d54d1d86b6-6e02_c8d5cc9905",
+    "fnd_sig-feat-library-d54d1d86b6-660c_b21299f390"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=17449 bytes; approxTokens=4363; includedFiles=5; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:18:08.728Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:18:08.728Z"
+}

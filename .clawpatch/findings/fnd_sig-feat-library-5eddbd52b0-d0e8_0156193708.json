@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-5eddbd52b0-d0e8_0156193708",
+  "featureId": "feat_library_5eddbd52b0",
+  "title": "Concurrent screenshot tool preparation can double-hide the surface before any token is registered",
+  "category": "concurrency",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/infrastructure/services/surfaceOrchestrator/toolLifecycle.ts",
+      "startLine": 67,
+      "endLine": 73,
+      "symbol": "prepareToolExecutionSurface",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/services/surfaceOrchestrator/toolLifecycle.ts",
+      "startLine": 75,
+      "endLine": 91,
+      "symbol": "prepareToolExecutionSurface",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/services/surfaceOrchestrator/toolLifecycle.ts",
+      "startLine": 101,
+      "endLine": 101,
+      "symbol": "prepareToolExecutionSurface",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/services/surfaceOrchestrator/state.ts",
+      "startLine": 37,
+      "endLine": 57,
+      "symbol": "registerSurfaceToken/releaseSurfaceToken",
+      "quote": null
+    }
+  ],
+  "reasoning": "The decision to collapse for a screenshot is based on !hasActiveSurfaceTokens(), but the token is not registered until after the async dashboard handoff and async suppressSurfaceForBackgroundCapture calls complete. Two concurrent screenshot preparations can both observe no active tokens, both enter the handoff/collapse path, and only then register tokens. That makes the active-token guard ineffective during the critical async window and can produce duplicate hide operations or overwrite the single pendingHiddenSurfaceRestore value, leaving restore behavior dependent on whichever preparation finishes last.",
+  "reproduction": null,
+  "recommendation": "Reserve a surface token, or another explicit in-flight preparation marker, before the first await in the mode !== 'none' path. Use that reservation to make the collapse/handoff decision atomic for overlapping preparations, and release it on preparation failure.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for overlapping prepareToolExecutionSurface calls, and the package scripts only show generic Jest entrypoints rather than coverage for this orchestrator race.",
+  "suggestedRegressionTest": "Add a Jest test that stubs suppressSurfaceForBackgroundCapture as a deferred promise, starts two screenshot prepareToolExecutionSurface calls concurrently, and asserts the suppress/handoff path runs only once while both preparations receive valid tokens and final restore occurs once.",
+  "minimumFixScope": "frontend/src/renderer/infrastructure/services/surfaceOrchestrator/toolLifecycle.ts and a focused frontend test for concurrent screenshot preparation.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-5eddbd52b0_d0e8fc5e60",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:10:16.005Z",
+  "updatedAt": "2026-05-24T21:10:16.005Z"
+}

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-4ff8786511-f9ef_d7171cc541",
+  "featureId": "feat_library_4ff8786511",
+  "title": "Tool output events drop backend correlation_id",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "packages/windie-sdk-js/src/transport/backendEventNormalizer.ts",
+      "startLine": 198,
+      "endLine": 215,
+      "symbol": "normalizeBackendEventToConversationEvent",
+      "quote": null
+    },
+    {
+      "path": "packages/windie-sdk-js/src/transport/backendEventNormalizer.ts",
+      "startLine": 233,
+      "endLine": 249,
+      "symbol": "normalizeBackendEventToConversationEvent",
+      "quote": null
+    }
+  ],
+  "reasoning": "The normalizer preserves payload.correlation_id for tool-call events, but tool-output events set correlationId from payload.request_id and ignore payload.correlation_id. When the backend sends a distinct correlation_id, the SDK emits a tool_output event that cannot be matched to the corresponding tool_call by the shared correlation id, which can break UI grouping, pending-tool resolution, and replay logic.",
+  "reproduction": "Send a backend tool-call event with payload.correlation_id set to one value and request_id set to another, then send a matching tool-output event carrying the same correlation_id. The normalized tool_call has correlationId from correlation_id, while the normalized tool_output has correlationId from request_id.",
+  "recommendation": "For tool-output, prefer payload.correlation_id when it is a string, falling back to payload.request_id only if needed. Apply the same rule to any progress events that are intended to correlate with tool calls.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for this feature, and the excerpt does not show a regression test asserting correlation id preservation across tool-call and tool-output normalization.",
+  "suggestedRegressionTest": "Add a backendEventNormalizer test that normalizes a tool-call and tool-output with both request_id and correlation_id present and asserts both ConversationEvents expose the same correlationId from payload.correlation_id.",
+  "minimumFixScope": "Update the tool-output correlationId mapping in backendEventNormalizer.ts and add focused SDK normalizer coverage.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-4ff8786511_f9efcf2552",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:08:58.692Z",
+  "updatedAt": "2026-05-24T21:08:58.692Z"
+}

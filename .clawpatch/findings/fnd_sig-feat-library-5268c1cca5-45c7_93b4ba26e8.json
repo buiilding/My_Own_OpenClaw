@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-5268c1cca5-45c7_93b4ba26e8",
+  "featureId": "feat_library_5268c1cca5",
+  "title": "Remote provider ignores its not-ready state when analyzing images",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "backend/src/services/ocr/remote_provider.py",
+      "startLine": 43,
+      "endLine": 53,
+      "symbol": "RemoteHttpOcrProvider.enabled",
+      "quote": null
+    },
+    {
+      "path": "backend/src/services/ocr/remote_provider.py",
+      "startLine": 68,
+      "endLine": 93,
+      "symbol": "RemoteHttpOcrProvider.health_check",
+      "quote": null
+    },
+    {
+      "path": "backend/src/services/ocr/remote_provider.py",
+      "startLine": 95,
+      "endLine": 103,
+      "symbol": "RemoteHttpOcrProvider.analyze_image",
+      "quote": null
+    }
+  ],
+  "reasoning": "The provider advertises enabled/is_ready as false when health checks have marked _ready false, but analyze_image gates only on _enabled and still sends requests to the remote OCR endpoint. Callers that rely on enabled or is_ready to represent provider availability can observe the provider as unavailable while analyze_image continues to make network calls and potentially mutate _ready back to true. That makes readiness semantics inconsistent and can route work to a provider that failed health.",
+  "reproduction": "After health_check catches a timeout and sets _ready=False, enabled and is_ready both return False. A subsequent analyze_image call still posts to /ocr/analyze because it checks only _enabled.",
+  "recommendation": "Either make analyze_image enforce readiness by checking self.enabled/is_ready and raising ProviderRequestError when not ready, or explicitly document and rename the readiness semantics so failed health is advisory and request success may recover the provider.",
+  "whyTestsDoNotAlreadyCoverThis": "The included test file covers only local OcrService helpers and CUDA fallback behavior; it has no RemoteHttpOcrProvider readiness or health-failure tests.",
+  "suggestedRegressionTest": "Add a remote provider test with a mocked client where health_check times out, then assert analyze_image does not issue a POST and raises a ProviderRequestError while _ready is false.",
+  "minimumFixScope": "Update RemoteHttpOcrProvider.analyze_image readiness guard and add focused tests for health failure followed by analyze_image.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-5268c1cca5_45c797b1e3",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:09:04.064Z",
+  "updatedAt": "2026-05-24T21:09:04.064Z"
+}

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-af30eb86f9-17f2_8a5a5db9d8",
+  "featureId": "feat_library_af30eb86f9",
+  "title": "Error helper can send unsanitized raw messages despite the canonical security contract",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "backend/src/api/infrastructure/errors.py",
+      "startLine": 23,
+      "endLine": 26,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/infrastructure/errors.py",
+      "startLine": 108,
+      "endLine": 121,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/infrastructure/errors.py",
+      "startLine": 123,
+      "endLine": 138,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The module-level contract says all client-facing error messages are sanitized to prevent leakage, but send_error_response only sanitizes when an exception object is supplied. If callers pass a raw exception string, file path, provider response, or internal state as the message argument without also passing exception, that content is placed directly in the transport payload. Because the same doc says all handlers must use this utility, this helper is the intended enforcement point and currently does not enforce the stated security invariant.",
+  "reproduction": null,
+  "recommendation": "Make send_error_response enforce sanitization for all error responses, for example by requiring exception for internal failures and adding an explicit safe/user_facing flag or typed user-facing error path for validation messages. Avoid sending arbitrary message strings as-is by default.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for this feature, and the excerpt does not show a regression test asserting that raw internal error messages are blocked when exception is omitted.",
+  "suggestedRegressionTest": "Add a test that calls send_error_response with a raw internal-looking message and no exception, then asserts the emitted payload contains only an approved safe message unless the call explicitly marks the message as user-facing.",
+  "minimumFixScope": "backend/src/api/infrastructure/errors.py plus focused tests for error payload sanitization behavior.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-af30eb86f9_17f2dde879",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:15:38.724Z",
+  "updatedAt": "2026-05-24T21:15:38.724Z"
+}

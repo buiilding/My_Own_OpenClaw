@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_d8cdfe998d",
+  "title": "Node source frontend/src/renderer/features/chat/components",
+  "summary": "Node/TypeScript source group frontend/src/renderer/features/chat/components with 11 files.",
+  "kind": "library",
+  "source": "node-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "frontend/package.json",
+      "symbol": "frontend/src/renderer/features/chat/components",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "frontend/src/renderer/features/chat/components/ChatBox.jsx",
+      "reason": "source group frontend/src/renderer/features/chat/components"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/components/ChatBoxContextLabel.jsx",
+      "reason": "source group frontend/src/renderer/features/chat/components"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx",
+      "reason": "source group frontend/src/renderer/features/chat/components"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/components/ChatBrowserSessionControl.jsx",
+      "reason": "source group frontend/src/renderer/features/chat/components"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/components/ChatFindBar.jsx",
+      "reason": "source group frontend/src/renderer/features/chat/components"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/components/ChatInterface.jsx",
+      "reason": "source group frontend/src/renderer/features/chat/components"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/components/ChatInterfaceHeaderControls.jsx",
+      "reason": "source group frontend/src/renderer/features/chat/components"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/components/MessageContent.jsx",
+      "reason": "source group frontend/src/renderer/features/chat/components"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/components/MessageInput.jsx",
+      "reason": "source group frontend/src/renderer/features/chat/components"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/components/MessageList.jsx",
+      "reason": "source group frontend/src/renderer/features/chat/components"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/components/ToolGhostCursor.jsx",
+      "reason": "source group frontend/src/renderer/features/chat/components"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "frontend/package.json",
+      "reason": "package manifest"
+    }
+  ],
+  "tests": [],
+  "tags": [
+    "node",
+    "typescript",
+    "source-group",
+    "project:windieos",
+    "project-root:frontend"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-d8cdfe998d-8988_220f4b3aef",
+    "fnd_sig-feat-library-d8cdfe998d-9966_54d6992e0c"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=117835 bytes; approxTokens=29458; includedFiles=12; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:18:53.659Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:18:53.659Z"
+}

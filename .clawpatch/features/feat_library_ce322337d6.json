@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_ce322337d6",
+  "title": "Python source backend/src/api/contracts",
+  "summary": "Python source group backend/src/api/contracts with 4 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/api/contracts",
+      "symbol": "backend/src/api/contracts",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/api/contracts/__init__.py",
+      "reason": "source group backend/src/api/contracts"
+    },
+    {
+      "path": "backend/src/api/contracts/formatter_specs.py",
+      "reason": "source group backend/src/api/contracts"
+    },
+    {
+      "path": "backend/src/api/contracts/message_types.py",
+      "reason": "source group backend/src/api/contracts"
+    },
+    {
+      "path": "backend/src/api/contracts/registry.py",
+      "reason": "source group backend/src/api/contracts"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-ce322337d6-4b46_4e9fdb2015"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=21044 bytes; approxTokens=5261; includedFiles=4; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:17:47.359Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:17:47.359Z"
+}

@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_405798b7bc",
+  "title": "Python source backend/src/tools/browser",
+  "summary": "Python source group backend/src/tools/browser with 5 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/tools/browser",
+      "symbol": "backend/src/tools/browser",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/tools/browser/__init__.py",
+      "reason": "source group backend/src/tools/browser"
+    },
+    {
+      "path": "backend/src/tools/browser/browser_control_args_schema.py",
+      "reason": "source group backend/src/tools/browser"
+    },
+    {
+      "path": "backend/src/tools/browser/schema_types.py",
+      "reason": "source group backend/src/tools/browser"
+    },
+    {
+      "path": "backend/src/tools/browser/schemas.py",
+      "reason": "source group backend/src/tools/browser"
+    },
+    {
+      "path": "backend/src/tools/browser/shared_contract_loader.py",
+      "reason": "source group backend/src/tools/browser"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-405798b7bc-5a49_879034f5ed"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=14588 bytes; approxTokens=3647; includedFiles=5; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:07:54.511Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:07:54.511Z"
+}

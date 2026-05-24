@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-5a98219e1a-0d1c_2ea3931399",
+  "featureId": "feat_library_5a98219e1a",
+  "title": "Blind `Â` removal corrupts valid non-mojibake text",
+  "category": "data-loss",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/infrastructure/text/incomingTextNormalization.ts",
+      "startLine": 1,
+      "endLine": 12,
+      "symbol": "MOJIBAKE_REPLACEMENTS",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/text/incomingTextNormalization.ts",
+      "startLine": 42,
+      "endLine": 47,
+      "symbol": "repairCommonMojibake",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/text/incomingTextNormalization.ts",
+      "startLine": 50,
+      "endLine": 54,
+      "symbol": "normalizeIncomingText",
+      "quote": null
+    }
+  ],
+  "reasoning": "The replacement table removes every literal `Â` from incoming strings, and `normalizeIncomingText` applies that table unconditionally to any string. That repairs common `Â ` mojibake, but it also corrupts legitimate text containing the character, such as names or words beginning with `Â`, by deleting the character. Because this helper is a general incoming-text normalization entry point, the data loss happens before callers can distinguish actual mojibake from valid Unicode.",
+  "reproduction": "Call `normalizeIncomingText('Ângela')`; the current implementation returns `ngela` instead of preserving `Ângela`.",
+  "recommendation": "Remove the blanket `['Â', '']` replacement. Keep targeted repairs for known mojibake sequences, or only strip `Â` in contexts that strongly indicate UTF-8/Latin-1 mojibake such as before non-breaking-space artifacts.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for this feature, and there is no evidence of a regression test covering legitimate Unicode characters that overlap with mojibake repair tokens.",
+  "suggestedRegressionTest": "Add tests for `normalizeIncomingText` that preserve valid strings such as `Ângela` while still repairing known mojibake examples like `HelloÂ world` or curly quote artifacts.",
+  "minimumFixScope": "Update the replacement table and add focused Jest coverage for valid Unicode preservation plus the intended mojibake repairs.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-5a98219e1a_0d1cc7efaa",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:09:58.011Z",
+  "updatedAt": "2026-05-24T21:09:58.011Z"
+}

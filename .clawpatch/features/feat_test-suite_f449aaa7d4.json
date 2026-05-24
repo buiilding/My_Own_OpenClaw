@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_test-suite_f449aaa7d4",
+  "title": "Python test suite tests/backend#11",
+  "summary": "Python pytest files in tests/backend#11.",
+  "kind": "test-suite",
+  "source": "python-test-suite",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "tests/backend#11",
+      "symbol": "tests/backend#11",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "tests/backend/test_run_control_routes.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_runtime_architecture_guardrails.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_safe_websocket.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_schema_fields.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_screenshot_manager.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_screenshot_state.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_sdk_helpers.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_sdk_routes.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_sdk_runtime_backend_compatibility.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_semantic_parser_service.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_session_cleanup.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_session_config_service.py",
+      "reason": "pytest file"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_run_control_routes.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_runtime_architecture_guardrails.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_safe_websocket.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_schema_fields.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_screenshot_manager.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_screenshot_state.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_sdk_helpers.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_sdk_routes.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_sdk_runtime_backend_compatibility.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_semantic_parser_service.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_session_cleanup.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_session_config_service.py",
+      "reason": "nearby test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_run_control_routes.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_runtime_architecture_guardrails.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_safe_websocket.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_schema_fields.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_screenshot_manager.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_screenshot_state.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_sdk_helpers.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_sdk_routes.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_sdk_runtime_backend_compatibility.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_semantic_parser_service.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_session_cleanup.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_session_config_service.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "test"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-test-suite-f449aaa7d4-d_28df87cfdd",
+    "fnd_sig-feat-test-suite-f449aaa7d4-e_2dcd119334"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=102870 bytes; approxTokens=25718; includedFiles=12; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:24:46.750Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:24:46.750Z"
+}

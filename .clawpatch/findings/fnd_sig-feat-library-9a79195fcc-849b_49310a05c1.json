@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-9a79195fcc-849b_49310a05c1",
+  "featureId": "feat_library_9a79195fcc",
+  "title": "Malformed odd-length PCM16 buffers can raise uncaught resampling errors",
+  "category": "bug",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/services/transcription/audio_frames.py",
+      "startLine": 42,
+      "endLine": 60,
+      "symbol": "resample_pcm16_mono",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/services/transcription/openai_realtime.py",
+      "startLine": 67,
+      "endLine": 80,
+      "symbol": "OpenAIRealtimeTranscriptionSession.handle_audio_chunk",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/services/transcription/protocol.py",
+      "startLine": 20,
+      "endLine": 21,
+      "symbol": "TranscriptionProviderSession.handle_audio_chunk",
+      "quote": null
+    }
+  ],
+  "reasoning": "The protocol says chunks are PCM16 mono, but resample_pcm16_mono passes arbitrary bytes directly to np.frombuffer(dtype=np.int16). If a malformed or truncated audio chunk has an odd byte length and needs resampling, NumPy raises ValueError because the buffer size is not a multiple of int16. handle_audio_chunk does not catch or normalize this, so one malformed frame can fail the provider task instead of being rejected predictably.",
+  "reproduction": "Call resample_pcm16_mono(b'\\x00', 16000, 24000) or OpenAIRealtimeTranscriptionSession.handle_audio_chunk with a one-byte buffer and a non-24000 sample rate.",
+  "recommendation": "Validate that PCM16 input length is even before np.frombuffer. Either raise a clear ValueError at the frame boundary, drop the trailing byte with logging, or reject the frame without tearing down the streaming session.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked audio-frame tests were included, and the helper lacks an explicit edge-case guard for malformed PCM16 byte lengths.",
+  "suggestedRegressionTest": "Add an audio_frames unit test for odd-length PCM16 input during resampling and assert the chosen behavior is deterministic and does not surface an unhandled NumPy exception.",
+  "minimumFixScope": "backend/src/api/services/transcription/audio_frames.py input validation plus a focused helper test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-9a79195fcc_849b77c011",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:14:51.800Z",
+  "updatedAt": "2026-05-24T21:14:51.800Z"
+}

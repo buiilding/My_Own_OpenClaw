@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-test-suite-790d646ac7-b_348f5c6896",
+  "featureId": "feat_test-suite_790d646ac7",
+  "title": "Local-model dedupe test does not cover provider/model pairs across providers",
+  "category": "test-gap",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "test-gap",
+  "evidence": [
+    {
+      "path": "tests/backend/test_model_service.py",
+      "startLine": 48,
+      "endLine": 61,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "tests/backend/test_model_service.py",
+      "startLine": 143,
+      "endLine": 153,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The test name and assertion target deduplication of provider/model pairs, but the duplicate fixture always returns provider='ollama'. The test registers the fixture under both 'ollama' and 'lmstudio', yet the payloads themselves are identical ollama/dup-model entries, so it only proves exact duplicate payload removal. It would not catch a regression that incorrectly deduplicates by model id alone and drops a legitimate lmstudio/dup-model entry.",
+  "reproduction": null,
+  "recommendation": "Change the fixture or add a second fixture that returns the factory provider name so the suite verifies that identical ids from different providers are retained while exact provider/id duplicates are collapsed.",
+  "whyTestsDoNotAlreadyCoverThis": "The current assertions expect a single ollama entry and never include a valid lmstudio/dup-model payload to prove cross-provider duplicates survive.",
+  "suggestedRegressionTest": "Add a test where ollama and lmstudio each return id='dup-model' with their own provider value, and assert both provider/id pairs are present.",
+  "minimumFixScope": "Update tests/backend/test_model_service.py fixture coverage for local model deduplication.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-test-suite-790d646ac7_b366e30ad3",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:24:13.727Z",
+  "updatedAt": "2026-05-24T21:24:13.727Z"
+}

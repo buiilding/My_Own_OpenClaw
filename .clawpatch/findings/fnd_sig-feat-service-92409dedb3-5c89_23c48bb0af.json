@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-service-92409dedb3-5c89_23c48bb0af",
+  "featureId": "feat_service_92409dedb3",
+  "title": "Callback subscribers cannot be unsubscribed",
+  "category": "maintainability",
+  "severity": "low",
+  "confidence": "high",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/core/config/service.py",
+      "startLine": 114,
+      "endLine": 139,
+      "symbol": "ConfigurationService.subscribe_callback/unsubscribe",
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/config/subscriptions.py",
+      "startLine": 61,
+      "endLine": 96,
+      "symbol": "ConfigSubscriptionManager.subscribe_callback/unsubscribe",
+      "quote": null
+    }
+  ],
+  "reasoning": "The service exposes subscribe_callback and stores callbacks in ConfigSubscriptionManager, but unsubscribe only accepts/removes protocol subscribers from _subscribers. There is no API path to remove entries from _callbacks. Any component that registers a lifecycle-bound callback cannot detach it, so stale callbacks keep receiving config updates and retained callback closures can leak resources.",
+  "reproduction": null,
+  "recommendation": "Add an unsubscribe_callback method on ConfigSubscriptionManager and ConfigurationService, or make subscribe_callback return a disposable/unsubscribe handle. Ensure callback removal uses the same identity semantics as subscription.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for callback subscription lifecycle or ensuring callbacks stop firing after disposal.",
+  "suggestedRegressionTest": "Subscribe a callback, remove it through the new unsubscribe path, trigger notify_subscribers, and assert the callback is not invoked while protocol subscriber removal still works.",
+  "minimumFixScope": "backend/src/core/config/subscriptions.py, backend/src/core/config/service.py, and a focused backend unit test for callback unsubscribe behavior.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-service-92409dedb3_5c89963489",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:23:12.933Z",
+  "updatedAt": "2026-05-24T21:23:12.933Z"
+}

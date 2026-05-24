@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-b90075c5e0-23e0_89c4762be5",
+  "featureId": "feat_library_b90075c5e0",
+  "title": "Gemini streaming drops native web search option",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/llm/providers/online.py",
+      "startLine": 17,
+      "endLine": 23,
+      "symbol": "OnlineLLMProvider._REQUEST_OPTION_KEYS",
+      "quote": null
+    },
+    {
+      "path": "backend/src/llm/providers/online.py",
+      "startLine": 96,
+      "endLine": 114,
+      "symbol": "OnlineLLMProvider._stream_internal",
+      "quote": null
+    },
+    {
+      "path": "backend/src/llm/providers/gemini.py",
+      "startLine": 127,
+      "endLine": 147,
+      "symbol": "GeminiProvider._open_stream",
+      "quote": null
+    }
+  ],
+  "reasoning": "Gemini implements _open_stream to append the google_search tool when native_web_search_enabled is present, but the shared OnlineLLMProvider._stream_internal does not call _open_stream. It instead rebuilds request params from _extract_request_options, whose allowlist does not include native_web_search_enabled, and streams those params directly. As a result, Gemini non-streaming requests can enable native web search, while Gemini streaming requests silently omit the google_search tool.",
+  "reproduction": null,
+  "recommendation": "Route the shared streaming path through _open_stream, or include native_web_search_enabled in Gemini's streaming request construction path and pass the resulting params to the stream handler. Keep this scoped so other providers do not start accepting unsupported request options accidentally.",
+  "whyTestsDoNotAlreadyCoverThis": "The included test file only checks apply_provider_native_thinking_request_params. There is no Gemini streaming test that passes native_web_search_enabled and asserts the emitted LiteLLM params include the google_search tool.",
+  "suggestedRegressionTest": "Add a GeminiProvider streaming test with litellm.acompletion mocked, call the stream path with native_web_search_enabled=True, and assert the request tools include {'google_search': {}}.",
+  "minimumFixScope": "backend/src/llm/providers/online.py and backend/src/llm/providers/gemini.py",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-b90075c5e0_23e01d15ff",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:16:18.125Z",
+  "updatedAt": "2026-05-24T21:16:18.125Z"
+}

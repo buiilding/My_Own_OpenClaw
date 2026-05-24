@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-bfae81359d-676f_534c6ca6cd",
+  "featureId": "feat_library_bfae81359d",
+  "title": "Embedding space version can disagree with the returned vector dimension",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/memory/embeddings/service.py",
+      "startLine": 27,
+      "endLine": 36,
+      "symbol": "resolve_embedding_space_version",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/memory/embeddings/service.py",
+      "startLine": 56,
+      "endLine": 75,
+      "symbol": "generate_embedding_response",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/memory/embeddings/service.py",
+      "startLine": 82,
+      "endLine": 98,
+      "symbol": "resolve_health_payload",
+      "quote": null
+    }
+  ],
+  "reasoning": "The response dimension is computed from the actual embedding length, but embedding_space_version is built from embedding_provider.dimension. When the provider does not expose dimension, exposes a stale dimension, or changes runtime fallback behavior, the same response can report dimension=len(embedding_list) while embedding_space_version contains unknown-dimension or a different provider dimension. Since the route documents this version as the compatibility key for local FAISS indexes, a mismatched version can make clients reuse incompatible indexes or unnecessarily rebuild compatible ones.",
+  "reproduction": null,
+  "recommendation": "Derive embedding_space_version from the actual returned embedding dimension in response-producing paths, or verify provider.dimension matches len(embedding_list) and fail with a clear provider contract error when it does not.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for providers without a dimension attribute or with a dimension that differs from the returned embedding length.",
+  "suggestedRegressionTest": "Add service tests with a fake provider returning a 3-element embedding while dimension is missing or set to a conflicting value; assert embedding_space_version uses or validates the actual returned dimension consistently with response.dimension.",
+  "minimumFixScope": "backend/src/api/routes/memory/embeddings/service.py and focused embedding service tests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-bfae81359d_676feec1f3",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:16:41.198Z",
+  "updatedAt": "2026-05-24T21:16:41.198Z"
+}

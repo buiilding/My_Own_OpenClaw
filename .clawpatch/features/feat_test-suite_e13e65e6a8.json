@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_test-suite_e13e65e6a8",
+  "title": "Python test suite tests/backend#13",
+  "summary": "Python pytest files in tests/backend#13.",
+  "kind": "test-suite",
+  "source": "python-test-suite",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "tests/backend#13",
+      "symbol": "tests/backend#13",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "tests/backend/test_tool_call_thought_signature.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_tool_orchestrator.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_tool_output_projection.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_tool_policy.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_tool_preparer.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_tool_registry_schema.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_tool_result_compaction_facts.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_tool_result_formatting.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_tool_result_handler.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_tool_result_orchestrator.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_tool_result_receiver.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_tool_result_router.py",
+      "reason": "pytest file"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_tool_call_thought_signature.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_tool_orchestrator.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_tool_output_projection.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_tool_policy.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_tool_preparer.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_tool_registry_schema.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_tool_result_compaction_facts.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_tool_result_formatting.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_tool_result_handler.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_tool_result_orchestrator.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_tool_result_receiver.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_tool_result_router.py",
+      "reason": "nearby test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_tool_call_thought_signature.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_tool_orchestrator.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_tool_output_projection.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_tool_policy.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_tool_preparer.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_tool_registry_schema.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_tool_result_compaction_facts.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_tool_result_formatting.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_tool_result_handler.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_tool_result_orchestrator.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_tool_result_receiver.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_tool_result_router.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "test"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-test-suite-e13e65e6a8-e_5082c42e07"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=106560 bytes; approxTokens=26640; includedFiles=12; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:24:39.025Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:24:39.025Z"
+}

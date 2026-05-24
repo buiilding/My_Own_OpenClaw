@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_34828634ec",
+  "title": "Node source frontend/src/renderer/features/dashboard/utils",
+  "summary": "Node/TypeScript source group frontend/src/renderer/features/dashboard/utils with 4 files.",
+  "kind": "library",
+  "source": "node-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "frontend/package.json",
+      "symbol": "frontend/src/renderer/features/dashboard/utils",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "frontend/src/renderer/features/dashboard/utils/conversationGroups.js",
+      "reason": "source group frontend/src/renderer/features/dashboard/utils"
+    },
+    {
+      "path": "frontend/src/renderer/features/dashboard/utils/dashboardConversationLoad.js",
+      "reason": "source group frontend/src/renderer/features/dashboard/utils"
+    },
+    {
+      "path": "frontend/src/renderer/features/dashboard/utils/episodicMemoryUtils.js",
+      "reason": "source group frontend/src/renderer/features/dashboard/utils"
+    },
+    {
+      "path": "frontend/src/renderer/features/dashboard/utils/modelSelectionUtils.js",
+      "reason": "source group frontend/src/renderer/features/dashboard/utils"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "frontend/package.json",
+      "reason": "package manifest"
+    }
+  ],
+  "tests": [],
+  "tags": [
+    "node",
+    "typescript",
+    "source-group",
+    "project:windieos",
+    "project-root:frontend"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-34828634ec-c69c_4ed8e98593"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=24126 bytes; approxTokens=6032; includedFiles=5; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:07:10.056Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:07:10.056Z"
+}

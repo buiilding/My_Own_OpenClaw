@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-3d3e36bea4-250f60_d9bfcf726f",
+  "featureId": "feat_route_3d3e36bea4",
+  "title": "OCR inspect masks unexpected resolver failures as normal resolution errors",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 113,
+      "endLine": 135,
+      "symbol": "sdk_ocr_inspect",
+      "quote": null
+    }
+  ],
+  "reasoning": "The route catches every Exception raised while resolving OCR coordinates and serializes it into the successful OcrInspectResponse as resolution_error. That is appropriate for expected OCR resolution failures, but it also hides unexpected programmer/runtime errors from OcrCoordinateResolver.resolve or the surrounding mapping logic as a 200 response. Clients cannot distinguish a genuine no-match condition from a backend failure, and monitoring/error handling will miss the failure path.",
+  "reproduction": null,
+  "recommendation": "Catch only the expected OCR resolution exception types, or have build_ocr_resolution_error indicate whether the exception is known and re-raise/log unknown exceptions as server errors.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for POST /api/sdk/ocr/inspect, and the route currently has no visible regression assertion for unexpected resolver exceptions versus expected resolution misses.",
+  "suggestedRegressionTest": "Add a focused route/service test that makes OcrCoordinateResolver.resolve raise an unexpected RuntimeError and asserts the request fails with a server error instead of returning a successful response with resolution_error.",
+  "minimumFixScope": "Limit the change to sdk_ocr_inspect exception handling and the expected OCR resolution error type boundary.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-3d3e36bea4_250f60eb15",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:21:26.918Z",
+  "updatedAt": "2026-05-24T21:21:26.918Z"
+}

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-service-37c269c6cc-4d39_5d19f44cde",
+  "featureId": "feat_service_37c269c6cc",
+  "title": "Turn refs are stored unnormalized when inferred from messages",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/features/chat/stores/chatStore.ts",
+      "startLine": 293,
+      "endLine": 317,
+      "symbol": "registerTurnConversationRef / resolveConversationRefForTurn",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/stores/chatStore.ts",
+      "startLine": 331,
+      "endLine": 336,
+      "symbol": "addMessage",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/stores/chatStore.ts",
+      "startLine": 360,
+      "endLine": 365,
+      "symbol": "updateMessage",
+      "quote": null
+    }
+  ],
+  "reasoning": "The explicit registration and lookup path trims turn refs before storing and resolving them, but the implicit registration done by addMessage and updateMessage writes message.turnRef / updates.turnRef directly. If an upstream event supplies a turnRef with leading or trailing whitespace, addMessage stores the untrimmed key while resolveConversationRefForTurn trims the lookup key, so the conversation cannot be resolved for that turn. updateMessage also treats whitespace-only turn refs as valid because it checks length without trimming. This can misroute or drop later turn-scoped updates in multi-conversation chat state.",
+  "reproduction": "Call addMessage({ id: 'm1', text: 'x', sender: 'assistant', turnRef: ' turn-1 ' }, 'conv-a'), then resolveConversationRefForTurn(' turn-1 '); the resolver trims to 'turn-1' but the map key was stored as ' turn-1 ', so it returns null.",
+  "recommendation": "Normalize turn refs in addMessage and updateMessage with the same trim logic used by registerTurnConversationRef, and ignore empty normalized turn refs.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for this source group, and the package manifest only exposes the Jest commands.",
+  "suggestedRegressionTest": "Add a store unit test that adds and updates messages with padded and whitespace-only turnRef values, then verifies resolveConversationRefForTurn returns the conversation only for normalized non-empty refs.",
+  "minimumFixScope": "Change the implicit turn-ref registration branches in addMessage and updateMessage to compute a normalizedTurnRef before updating turnConversationRefs.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-service-37c269c6cc_4d392cf3d4",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:23:08.655Z",
+  "updatedAt": "2026-05-24T21:23:08.655Z"
+}

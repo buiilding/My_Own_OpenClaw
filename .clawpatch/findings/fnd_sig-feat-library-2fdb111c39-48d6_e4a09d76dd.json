@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-2fdb111c39-48d6_e4a09d76dd",
+  "featureId": "feat_library_2fdb111c39",
+  "title": "Event handler deduplication uses unstable ids for weak bound methods",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/core/infrastructure/event_bus_registry.py",
+      "startLine": 30,
+      "endLine": 44,
+      "symbol": "EventHandlerWrapper.handler",
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/infrastructure/event_bus_registry.py",
+      "startLine": 167,
+      "endLine": 180,
+      "symbol": "EventHandlerStore._dedupe_handlers",
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/infrastructure/event_bus_registry.py",
+      "startLine": 114,
+      "endLine": 126,
+      "symbol": "EventHandlerStore.resolve_handlers",
+      "quote": null
+    }
+  ],
+  "reasoning": "Bound method handlers are stored via WeakMethod, and each access to wrapper.handler can materialize a fresh bound-method object. _dedupe_handlers then records id(handler), which is only stable for that transient object, not for the underlying instance/function pair. During MRO handler resolution this can fail to deduplicate the same subscribed method consistently, and object-id reuse can also incorrectly collapse distinct bound handlers. The result is incorrect publish behavior: duplicate handler execution or skipped handlers when base and subclass subscriptions are resolved together.",
+  "reproduction": "Subscribe bound instance methods across an event class hierarchy, then publish a subclass event so resolve_handlers aggregates multiple subscriber lists and _dedupe_handlers processes WeakMethod-backed wrappers.",
+  "recommendation": "Deduplicate handlers by a stable identity. For bound methods, use a tuple of the target instance identity and function identity, or keep a stable key on EventHandlerWrapper when it is constructed. For plain functions, the function object identity is sufficient.",
+  "whyTestsDoNotAlreadyCoverThis": "The included tests do not cover EventBus or EventHandlerStore behavior, inheritance-based handler resolution, weak bound handlers, or duplicate subscription semantics.",
+  "suggestedRegressionTest": "Add EventHandlerStore/EventBus tests with bound methods subscribed on both a base event and derived event, asserting intended single execution, and with two different instances using the same method asserting neither is dropped.",
+  "minimumFixScope": "backend/src/core/infrastructure/event_bus_registry.py plus event bus registry tests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-2fdb111c39_48d6ec9104",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:06:59.790Z",
+  "updatedAt": "2026-05-24T21:06:59.790Z"
+}

@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_service_da2cdbf6a3",
+  "title": "Node source packages/windie-sdk-js/src/stores",
+  "summary": "Node/TypeScript source group packages/windie-sdk-js/src/stores with 3 files.",
+  "kind": "service",
+  "source": "node-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "packages/windie-sdk-js/package.json",
+      "symbol": "packages/windie-sdk-js/src/stores",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "packages/windie-sdk-js/src/stores/FileConversationStore.ts",
+      "reason": "source group packages/windie-sdk-js/src/stores"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/stores/InMemoryConversationStore.ts",
+      "reason": "source group packages/windie-sdk-js/src/stores"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/stores/SidecarConversationStore.ts",
+      "reason": "source group packages/windie-sdk-js/src/stores"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "packages/windie-sdk-js/package.json",
+      "reason": "package manifest"
+    }
+  ],
+  "tests": [],
+  "tags": [
+    "node",
+    "typescript",
+    "source-group",
+    "project:@windie/sdk",
+    "project-root:packages/windie-sdk-js"
+  ],
+  "trustBoundaries": [
+    "filesystem",
+    "database"
+  ],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-service-da2cdbf6a3-79f6_ad2e6d88c5",
+    "fnd_sig-feat-service-da2cdbf6a3-8a92_44a7ce34ff"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=40427 bytes; approxTokens=10107; includedFiles=4; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:23:23.615Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:23:23.616Z"
+}

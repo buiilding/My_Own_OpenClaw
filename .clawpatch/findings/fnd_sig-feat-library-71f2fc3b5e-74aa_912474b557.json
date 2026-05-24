@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-71f2fc3b5e-74aa_912474b557",
+  "featureId": "feat_library_71f2fc3b5e",
+  "title": "PlayerService has no focused queue, stop, or error tests",
+  "category": "test-gap",
+  "severity": "low",
+  "confidence": "high",
+  "triage": "test-gap",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/infrastructure/audio/PlayerService.ts",
+      "startLine": 19,
+      "endLine": 174,
+      "symbol": "PlayerService",
+      "quote": null
+    },
+    {
+      "path": "frontend/package.json",
+      "startLine": 40,
+      "endLine": 41,
+      "symbol": "scripts.test",
+      "quote": null
+    }
+  ],
+  "reasoning": "This service owns stateful playback sequencing, cancellation, cleanup, and decode-error recovery, but the feature metadata includes no linked tests and the available package scripts only establish that Jest exists. Regressions in stopPlayback generation handling, queue ordering, cleanup, and failed chunk handling would be easy to miss.",
+  "reproduction": null,
+  "recommendation": "Add focused unit tests with mocked AudioContext/AudioBufferSourceNode covering sequential playback, stopPlayback cancelling queued and active audio, cleanup closing the context, and malformed chunks being skipped safely.",
+  "whyTestsDoNotAlreadyCoverThis": "The supplied feature lists no tests, and no test file is included as evidence for the intended behavior.",
+  "suggestedRegressionTest": "Create a PlayerService Jest test module that stubs Web Audio APIs and asserts queue progression, stop behavior, cleanup, and decode-error handling.",
+  "minimumFixScope": "Add tests under the frontend Jest suite for PlayerService without changing runtime behavior except where tests expose a concrete bug.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-71f2fc3b5e_74aa689787",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:11:19.895Z",
+  "updatedAt": "2026-05-24T21:11:19.895Z"
+}

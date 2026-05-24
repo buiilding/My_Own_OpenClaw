@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-34828634ec-c69c_4ed8e98593",
+  "featureId": "feat_library_34828634ec",
+  "title": "Pinned workspace conversations do not affect workspace group ordering",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/features/dashboard/utils/conversationGroups.js",
+      "startLine": 107,
+      "endLine": 122,
+      "symbol": "buildWorkspaceConversationGroups",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/dashboard/utils/conversationGroups.js",
+      "startLine": 142,
+      "endLine": 152,
+      "symbol": "buildWorkspaceConversationGroups",
+      "quote": null
+    }
+  ],
+  "reasoning": "The workspace grouping path accepts pinnedConversationRefs and marks each item with isPinned, then sorts items within each workspace so pinned conversations appear first. However, the outer workspace groups are sorted only by latestTimestampValue. This means an old pinned conversation in one workspace can still be buried below every workspace with a more recent unpinned conversation, which weakens or breaks the expected dashboard pinning behavior at the group level.",
+  "reproduction": "Create two workspace groups: workspace A with an older pinned conversation, and workspace B with a newer unpinned conversation. buildWorkspaceConversationGroups will place workspace B before workspace A even though workspace A contains the pinned item.",
+  "recommendation": "Track whether each workspace group contains any pinned item, then sort workspace groups by pinned status before latestTimestampValue, matching the item-level pinned-first behavior.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for this source group, and the excerpt contains no test evidence covering workspace-level ordering with pinned conversations across multiple groups.",
+  "suggestedRegressionTest": "Add a dashboard utility test where pinnedConversationRefs contains a conversation in an older workspace and assert that the containing workspace group sorts ahead of a newer unpinned workspace group.",
+  "minimumFixScope": "Update buildWorkspaceConversationGroups to maintain a group-level pinned flag and include it in the final group comparator.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-34828634ec_c69ce98d0c",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:07:10.056Z",
+  "updatedAt": "2026-05-24T21:07:10.056Z"
+}

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-092f3e0e96-64d3_003244c90f",
+  "featureId": "feat_library_092f3e0e96",
+  "title": "Blind cast lets IPC registry drift reach runtime",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/infrastructure/ipc/channels.ts",
+      "startLine": 6,
+      "endLine": 86,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/ipc/bridge.ts",
+      "startLine": 83,
+      "endLine": 86,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The renderer imports the shared IPC JSON and asserts it is a complete SharedChannelRegistry, so TypeScript will trust every listed channel key even if the JSON is missing, renamed, or has an unexpected value. A drifted entry would still compile, but consumers of INVOKE_CHANNELS/SEND_CHANNELS could receive undefined or a wrong channel string at runtime and then pass it into IpcBridge.invoke/send. In production, bridge validation is skipped, so the bad channel would be forwarded to window.ipc/preload instead of failing at module load with a clear parity error.",
+  "reproduction": null,
+  "recommendation": "Replace the unchecked cast with a small runtime shape check for the expected SEND_CHANNELS, INVOKE_CHANNELS, and ON_CHANNELS keys, or generate the TypeScript registry/types from the shared JSON so missing keys fail before release. Keep the validation local to this boundary so renderer callers cannot observe a partially invalid registry.",
+  "whyTestsDoNotAlreadyCoverThis": "The feature metadata includes no linked tests, and the package only exposes general Jest/typecheck scripts; the shown source has no regression test asserting the imported JSON contains every renderer-declared channel key.",
+  "suggestedRegressionTest": "Add a Jest test for frontend/src/renderer/infrastructure/ipc/channels.ts that imports the channel module and asserts each expected registry key is present with the exact string value, plus a negative/unit test for the runtime validator if one is added.",
+  "minimumFixScope": "frontend/src/renderer/infrastructure/ipc/channels.ts plus a focused frontend Jest test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-092f3e0e96_64d38265f1",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:03:51.004Z",
+  "updatedAt": "2026-05-24T21:03:51.004Z"
+}

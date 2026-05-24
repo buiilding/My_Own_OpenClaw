@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-cd45c89b51-360f_7f9e5273ad",
+  "featureId": "feat_library_cd45c89b51",
+  "title": "Renderer-generated turn refs are returned but never sent to the backend",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/app/runtime/desktopBackendTransport.ts",
+      "startLine": 29,
+      "endLine": 60,
+      "symbol": "sendQuery",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/app/runtime/desktopBackendTransport.ts",
+      "startLine": 123,
+      "endLine": 126,
+      "symbol": "createDesktopBackendTransport.sendQuery",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime.ts",
+      "startLine": 77,
+      "endLine": 108,
+      "symbol": "shouldIgnoreForStaleTurn",
+      "quote": null
+    }
+  ],
+  "reasoning": "The transport reports the caller-provided turn_ref/turnRef as the query's turn id, but the IPC payload sent to the backend omits that same turn_ref. Downstream stream gating relies on backend events carrying turn_ref to reject stale packets. If the SDK runtime generated a turn ref for the local optimistic turn, the backend has no way to echo it through this IPC path, so the renderer can fail to correlate stream events with the active turn or may fail open in stale-turn checks.",
+  "reproduction": null,
+  "recommendation": "Include the normalized turn_ref in the query IPC payload whenever the SDK payload contains turn_ref or turnRef, and ensure backend event echoes preserve that value.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for the desktop backend transport contract or for SDK send payload serialization through IPC.",
+  "suggestedRegressionTest": "Add a frontend runtime test that calls createDesktopBackendTransport().sendQuery with a turn_ref and asserts the sent TO_BACKEND query payload includes the same turn_ref.",
+  "minimumFixScope": "frontend/src/renderer/app/runtime/desktopBackendTransport.ts plus a focused frontend runtime test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-cd45c89b51_360f249633",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:17:39.389Z",
+  "updatedAt": "2026-05-24T21:17:39.389Z"
+}

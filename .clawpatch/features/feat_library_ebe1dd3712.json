@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_ebe1dd3712",
+  "title": "Node source frontend/src/renderer/features/chat/components/message",
+  "summary": "Node/TypeScript source group frontend/src/renderer/features/chat/components/message with 10 files.",
+  "kind": "library",
+  "source": "node-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "frontend/package.json",
+      "symbol": "frontend/src/renderer/features/chat/components/message",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "frontend/src/renderer/features/chat/components/message/AssistantMessageActions.jsx",
+      "reason": "source group frontend/src/renderer/features/chat/components/message"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/components/message/MessageItem.jsx",
+      "reason": "source group frontend/src/renderer/features/chat/components/message"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/components/message/MessageSourceBadge.jsx",
+      "reason": "source group frontend/src/renderer/features/chat/components/message"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/components/message/MessageTransparencySections.jsx",
+      "reason": "source group frontend/src/renderer/features/chat/components/message"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/components/message/ThinkingDisplay.jsx",
+      "reason": "source group frontend/src/renderer/features/chat/components/message"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/components/message/TransparencySection.jsx",
+      "reason": "source group frontend/src/renderer/features/chat/components/message"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/components/message/UserMessageActions.jsx",
+      "reason": "source group frontend/src/renderer/features/chat/components/message"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/components/message/UserMessageEditComposer.jsx",
+      "reason": "source group frontend/src/renderer/features/chat/components/message"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/components/message/messageShapePropType.js",
+      "reason": "source group frontend/src/renderer/features/chat/components/message"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/components/message/toolSchemaPropType.js",
+      "reason": "source group frontend/src/renderer/features/chat/components/message"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "frontend/package.json",
+      "reason": "package manifest"
+    }
+  ],
+  "tests": [],
+  "tags": [
+    "node",
+    "typescript",
+    "source-group",
+    "project:windieos",
+    "project-root:frontend"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-ebe1dd3712-24ca_c3565793ef"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=39341 bytes; approxTokens=9834; includedFiles=11; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:20:19.801Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:20:19.801Z"
+}

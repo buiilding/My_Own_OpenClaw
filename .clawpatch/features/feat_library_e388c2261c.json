@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_e388c2261c",
+  "title": "Node source frontend/src/renderer/features/onboarding",
+  "summary": "Node/TypeScript source group frontend/src/renderer/features/onboarding with 5 files.",
+  "kind": "library",
+  "source": "node-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "frontend/package.json",
+      "symbol": "frontend/src/renderer/features/onboarding",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "frontend/src/renderer/features/onboarding/components/FrontendOnboardingSlideshow.jsx",
+      "reason": "source group frontend/src/renderer/features/onboarding"
+    },
+    {
+      "path": "frontend/src/renderer/features/onboarding/components/PermissionOnboardingSlide.jsx",
+      "reason": "source group frontend/src/renderer/features/onboarding"
+    },
+    {
+      "path": "frontend/src/renderer/features/onboarding/components/StopShortcutOnboardingSlide.jsx",
+      "reason": "source group frontend/src/renderer/features/onboarding"
+    },
+    {
+      "path": "frontend/src/renderer/features/onboarding/hooks/useOnboardingPermissionActions.js",
+      "reason": "source group frontend/src/renderer/features/onboarding"
+    },
+    {
+      "path": "frontend/src/renderer/features/onboarding/utils/onboardingSlides.js",
+      "reason": "source group frontend/src/renderer/features/onboarding"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "frontend/package.json",
+      "reason": "package manifest"
+    }
+  ],
+  "tests": [],
+  "tags": [
+    "node",
+    "typescript",
+    "source-group",
+    "project:windieos",
+    "project-root:frontend"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-e388c2261c-0589_57d09990ac",
+    "fnd_sig-feat-library-e388c2261c-0c94_a3f6e31083"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=34025 bytes; approxTokens=8506; includedFiles=6; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:18:56.237Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:18:56.237Z"
+}

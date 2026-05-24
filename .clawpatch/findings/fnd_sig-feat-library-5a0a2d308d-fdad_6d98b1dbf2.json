@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-5a0a2d308d-fdad_6d98b1dbf2",
+  "featureId": "feat_library_5a0a2d308d",
+  "title": "Paste-region update ignores replaced selection length",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/features/chat/utils/transcriptionRegions.ts",
+      "startLine": 76,
+      "endLine": 87,
+      "symbol": "buildValueAfterPaste",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/utils/transcriptionRegions.ts",
+      "startLine": 90,
+      "endLine": 116,
+      "symbol": "updateRegionAfterPaste",
+      "quote": null
+    }
+  ],
+  "reasoning": "The paste value builder supports replacing an arbitrary selection using both selectionStart and selectionEnd, but the region updater receives only cursorPosition and pastedTextLength. When a paste replaces selected text before or across the active transcription region, the active region is shifted by the inserted length only and never accounts for the removed selection span. For example, if the active region starts at 10 and the user replaces characters 0-5 with a 2-character paste, the value shrinks by 3 but updateRegionAfterPaste shifts the region forward by 2, leaving stale offsets that point at the wrong text. If the selection overlaps the active region, the updater can also preserve a region that should be cleared.",
+  "reproduction": null,
+  "recommendation": "Pass the full paste selection range into updateRegionAfterPaste and update/clear the region based on the net length delta and overlap with the selected range. Shift only when the replacement range is entirely before the region, preserve only when entirely after, and clear or recompute when it overlaps the region.",
+  "whyTestsDoNotAlreadyCoverThis": "No tests are listed for this feature, and the included package scripts show Jest is available but no linked test covers these region edge cases.",
+  "suggestedRegressionTest": "Add Jest coverage for paste replacement before an active transcription region and paste replacement overlapping an active region, asserting the first shifts by pastedTextLength - removedLength and the second clears the region.",
+  "minimumFixScope": "Update transcriptionRegions.ts paste-region API and its call sites/tests to include selectionEnd or removed length.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-5a0a2d308d_fdaddfb7a6",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:09:55.415Z",
+  "updatedAt": "2026-05-24T21:09:55.415Z"
+}

@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_9352222a5b",
+  "title": "Python source backend/src/services/vision",
+  "summary": "Python source group backend/src/services/vision with 11 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/services/vision",
+      "symbol": "backend/src/services/vision",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/services/vision/__init__.py",
+      "reason": "source group backend/src/services/vision"
+    },
+    {
+      "path": "backend/src/services/vision/coordinates.py",
+      "reason": "source group backend/src/services/vision"
+    },
+    {
+      "path": "backend/src/services/vision/provider.py",
+      "reason": "source group backend/src/services/vision"
+    },
+    {
+      "path": "backend/src/services/vision/providers/__init__.py",
+      "reason": "source group backend/src/services/vision"
+    },
+    {
+      "path": "backend/src/services/vision/providers/base.py",
+      "reason": "source group backend/src/services/vision"
+    },
+    {
+      "path": "backend/src/services/vision/providers/internvl.py",
+      "reason": "source group backend/src/services/vision"
+    },
+    {
+      "path": "backend/src/services/vision/providers/internvl_runtime_helpers.py",
+      "reason": "source group backend/src/services/vision"
+    },
+    {
+      "path": "backend/src/services/vision/providers/ui_venus.py",
+      "reason": "source group backend/src/services/vision"
+    },
+    {
+      "path": "backend/src/services/vision/remote_provider.py",
+      "reason": "source group backend/src/services/vision"
+    },
+    {
+      "path": "backend/src/services/vision/utils.py",
+      "reason": "source group backend/src/services/vision"
+    },
+    {
+      "path": "backend/src/services/vision/vision_service.py",
+      "reason": "source group backend/src/services/vision"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_vision_service.py",
+      "reason": "associated test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_vision_service.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-9352222a5b-b3f6_a1ae5cf38a"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=97791 bytes; approxTokens=24448; includedFiles=12; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:14:01.689Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:14:01.689Z"
+}

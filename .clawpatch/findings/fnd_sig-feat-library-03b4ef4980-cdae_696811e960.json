@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-03b4ef4980-cdae_696811e960",
+  "featureId": "feat_library_03b4ef4980",
+  "title": "Unsupported backend-tool bundles resolve storage without emitting any streaming failure event",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "backend/src/agent/tools/sending/sender.py",
+      "startLine": 116,
+      "endLine": 127,
+      "symbol": "ToolSender.send_tools",
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/tools/sending/execution_lanes.py",
+      "startLine": 149,
+      "endLine": 189,
+      "symbol": "store_failed_bundle_result",
+      "quote": null
+    }
+  ],
+  "reasoning": "When a prepared bundle contains any backend-executed tool, send_tools marks the bundle failed in result storage and returns without yielding a ToolBundleEvent, ToolCallEvent, ToolOutputEvent, or other streaming error event. Consumers that rely on the stream rather than result_storage get a silent stop for this unsupported path, while other preparation failures emit per-tool failure envelopes before returning. That creates an observable contract mismatch in the sending phase: a rejected execution path is recorded internally but not surfaced through the normal streaming event channel.",
+  "reproduction": null,
+  "recommendation": "Emit an explicit streaming failure event for the unsupported backend-tool bundle path before returning, preferably using the same envelope/error-event shape as preparation failures or a bundle-level failure event if one exists. Keep result_storage resolution as the internal completion mechanism, but do not make it the only visible signal.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for this feature, and the current excerpt has no test evidence asserting stream behavior for rejected mixed/backend bundles.",
+  "suggestedRegressionTest": "Add a sender test with a prepared bundle containing a backend-target tool and assert that send_tools yields a visible failure event and resolves the bundle result as failed.",
+  "minimumFixScope": "ToolSender.send_tools unsupported backend bundle branch, plus focused sender tests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-03b4ef4980_cdae2e14c0",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:03:28.605Z",
+  "updatedAt": "2026-05-24T21:03:28.605Z"
+}

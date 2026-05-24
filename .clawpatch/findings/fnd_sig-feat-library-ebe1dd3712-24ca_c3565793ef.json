@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-ebe1dd3712-24ca_c3565793ef",
+  "featureId": "feat_library_ebe1dd3712",
+  "title": "Assistant action reveal state is not reset when the message changes",
+  "category": "bug",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/features/chat/components/message/AssistantMessageActions.jsx",
+      "startLine": 21,
+      "endLine": 46,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/components/message/MessageItem.jsx",
+      "startLine": 56,
+      "endLine": 65,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "AssistantMessageActions intentionally delays showing controls for a visible message, and the effect reruns when messageId changes. However, it only resets isRevealed when visible is false. If the same component instance receives a different messageId after the controls have already been revealed, isRevealed stays true until the new timer fires, so the new message bypasses the 2 second reveal delay. This can happen when a renderer reuses the component instance across message data changes, such as virtualization, replacement, or non-keyed list updates.",
+  "reproduction": "Render AssistantMessageActions with visible=true, wait past ACTION_REVEAL_DELAY_MS so actions are shown, then rerender the same instance with a different messageId and visible=true. The action buttons remain visible immediately instead of returning to the placeholder state for the new message.",
+  "recommendation": "Reset isRevealed to false whenever a new visible messageId starts a reveal cycle, before scheduling the timer. Keep the existing visible=false reset and cleanup behavior.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for this component, and the current excerpts do not show a rerender test that changes messageId on an already revealed action group.",
+  "suggestedRegressionTest": "Add a React Testing Library test that renders AssistantMessageActions, advances timers to reveal actions, rerenders with a new messageId while visible remains true, and asserts that the placeholder is restored until the delay elapses again.",
+  "minimumFixScope": "frontend/src/renderer/features/chat/components/message/AssistantMessageActions.jsx plus a focused component test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-ebe1dd3712_24cad0e483",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:20:19.801Z",
+  "updatedAt": "2026-05-24T21:20:19.801Z"
+}

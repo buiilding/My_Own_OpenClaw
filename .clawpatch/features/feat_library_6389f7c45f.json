@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_6389f7c45f",
+  "title": "Python source backend/src/api",
+  "summary": "Python source group backend/src/api with 3 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/api",
+      "symbol": "backend/src/api",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/api/__init__.py",
+      "reason": "source group backend/src/api"
+    },
+    {
+      "path": "backend/src/api/app_assembly.py",
+      "reason": "source group backend/src/api"
+    },
+    {
+      "path": "backend/src/api/deps.py",
+      "reason": "source group backend/src/api"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_app_assembly.py",
+      "reason": "associated test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_app_assembly.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "reviewed",
+  "lock": null,
+  "findingIds": [],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "0 finding(s); prompt=15118 bytes; approxTokens=3777; includedFiles=4; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:10:12.171Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:10:12.171Z"
+}

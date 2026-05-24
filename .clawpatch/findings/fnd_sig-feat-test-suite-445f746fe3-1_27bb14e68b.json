@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-test-suite-445f746fe3-1_27bb14e68b",
+  "featureId": "feat_test-suite_445f746fe3",
+  "title": "Concurrent initialization test can pass while one worker thread fails",
+  "category": "test-gap",
+  "severity": "low",
+  "confidence": "high",
+  "triage": "test-gap",
+  "evidence": [
+    {
+      "path": "tests/backend/test_prompt_manager.py",
+      "startLine": 52,
+      "endLine": 64,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The concurrency test starts two raw threads and only asserts the final read count and prompt value after joining. Exceptions raised inside either worker are not captured and re-raised in the main pytest thread, so a regression where one concurrent initialize call fails while the other succeeds can still satisfy the final state assertions and only surface as a thread warning depending on pytest warning configuration.",
+  "reproduction": null,
+  "recommendation": "Capture worker exceptions and assert the collection is empty after both joins, or replace the raw threads with ThreadPoolExecutor futures and call result() on each future before asserting the final state.",
+  "whyTestsDoNotAlreadyCoverThis": "The current test validates shared final state but not per-thread success, so it does not prove both concurrent callers observed a successful initialize path.",
+  "suggestedRegressionTest": "Update test_initialize_concurrent_calls_read_prompt_once so each thread appends exceptions to a shared list or returns through a future, then assert no worker exceptions occurred before checking call_count and system_prompt.",
+  "minimumFixScope": "tests/backend/test_prompt_manager.py",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-test-suite-445f746fe3_1b643e7ba0",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:23:54.852Z",
+  "updatedAt": "2026-05-24T21:23:54.852Z"
+}

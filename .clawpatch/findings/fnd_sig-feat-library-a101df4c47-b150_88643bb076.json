@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-a101df4c47-b150_88643bb076",
+  "featureId": "feat_library_a101df4c47",
+  "title": "No focused tests cover malformed storage values or write failures",
+  "category": "test-gap",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "test-gap",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/infrastructure/storage/jsonLocalStorage.js",
+      "startLine": 1,
+      "endLine": 20,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/package.json",
+      "startLine": 40,
+      "endLine": 41,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The storage helper intentionally swallows parse, getItem, and setItem failures and returns null or keeps runtime state in memory. That is a reasonable best-effort contract, but the feature metadata lists no linked tests even though the frontend has a Jest test target. Without tests, regressions could change the failure contract, throw during renderer startup, or persist non-readable values without being caught.",
+  "reproduction": null,
+  "recommendation": "Add a focused Jest test for this helper covering valid object round-trip, missing keys, malformed JSON, JSON primitives, getItem throwing, and setItem throwing.",
+  "whyTestsDoNotAlreadyCoverThis": "The feature declares no linked tests, and the included package manifest only shows general Jest commands, not coverage for this helper.",
+  "suggestedRegressionTest": "Create a frontend Jest test for jsonLocalStorage.js that mocks window.localStorage and verifies readJsonObjectFromLocalStorage returns null for missing, invalid, primitive, and throwing cases, and writeJsonObjectToLocalStorage does not throw when setItem fails.",
+  "minimumFixScope": "Add focused frontend unit tests for frontend/src/renderer/infrastructure/storage/jsonLocalStorage.js.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-a101df4c47_b150827e6b",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:15:01.317Z",
+  "updatedAt": "2026-05-24T21:15:01.317Z"
+}

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-5546b12cae-860668_3b9a8b6f17",
+  "featureId": "feat_route_5546b12cae",
+  "title": "Query-plan debug route exposes prompt construction without an explicit authorization gate",
+  "category": "security",
+  "severity": "high",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 503,
+      "endLine": 526,
+      "symbol": "sdk_debug_query_plan",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 527,
+      "endLine": 538,
+      "symbol": "sdk_debug_query_plan",
+      "quote": null
+    }
+  ],
+  "reasoning": "The POST /api/sdk/query-plan handler accepts network-provided debug inputs, including user_id, workspace_path, agent_definition, and conversation_ref, then returns the resolved config, query message, transparency events, system prompt, prompt messages, canonical and provider tool schemas, and full user message. In the shown route there is no explicit auth, permission, caller ownership, or debug-mode dependency before resolving another requested user/config/conversation context. If this router is reachable outside a trusted local/debug channel, a caller could inspect prompt assembly and potentially sensitive conversation or workspace-derived prompt material for arbitrary payload-selected contexts.",
+  "reproduction": null,
+  "recommendation": "Gate this route behind the same authenticated/debug-only authorization boundary used for privileged SDK diagnostics, and validate that payload-selected user_id, workspace_path, and conversation_ref are owned by or permitted for the caller before building or returning the plan.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were provided for this feature, and the route excerpt does not show any test-enforced authorization or ownership invariant for query-plan payloads.",
+  "suggestedRegressionTest": "Add a FastAPI route test that unauthenticated or unauthorized callers cannot call POST /api/sdk/query-plan, and that an authenticated caller cannot request another user's conversation_ref or workspace context.",
+  "minimumFixScope": "Add route-level or router-level auth/debug dependency plus ownership validation for user_id/conversation_ref/workspace_path before build_query_plan is invoked.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-5546b12cae_860668a49b",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:21:42.039Z",
+  "updatedAt": "2026-05-24T21:21:42.039Z"
+}

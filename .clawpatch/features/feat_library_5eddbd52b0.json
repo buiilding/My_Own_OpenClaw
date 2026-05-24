@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_5eddbd52b0",
+  "title": "Node source frontend/src/renderer/infrastructure/services/surfaceOrchestrator#1",
+  "summary": "Node/TypeScript source group frontend/src/renderer/infrastructure/services/surfaceOrchestrator#1 with 12 files.",
+  "kind": "library",
+  "source": "node-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "frontend/package.json",
+      "symbol": "frontend/src/renderer/infrastructure/services/surfaceOrchestrator#1",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "frontend/src/renderer/infrastructure/services/surfaceOrchestrator/captureLifecycle.ts",
+      "reason": "source group frontend/src/renderer/infrastructure/services/surfaceOrchestrator#1"
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/services/surfaceOrchestrator/context.ts",
+      "reason": "source group frontend/src/renderer/infrastructure/services/surfaceOrchestrator#1"
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/services/surfaceOrchestrator/logging.ts",
+      "reason": "source group frontend/src/renderer/infrastructure/services/surfaceOrchestrator#1"
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/services/surfaceOrchestrator/loggingGate.ts",
+      "reason": "source group frontend/src/renderer/infrastructure/services/surfaceOrchestrator#1"
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/services/surfaceOrchestrator/mode.ts",
+      "reason": "source group frontend/src/renderer/infrastructure/services/surfaceOrchestrator#1"
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/services/surfaceOrchestrator/preparation.ts",
+      "reason": "source group frontend/src/renderer/infrastructure/services/surfaceOrchestrator#1"
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/services/surfaceOrchestrator/reasons.ts",
+      "reason": "source group frontend/src/renderer/infrastructure/services/surfaceOrchestrator#1"
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/services/surfaceOrchestrator/state.ts",
+      "reason": "source group frontend/src/renderer/infrastructure/services/surfaceOrchestrator#1"
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/services/surfaceOrchestrator/surfaceHandoff.ts",
+      "reason": "source group frontend/src/renderer/infrastructure/services/surfaceOrchestrator#1"
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/services/surfaceOrchestrator/surfaceVisibility.ts",
+      "reason": "source group frontend/src/renderer/infrastructure/services/surfaceOrchestrator#1"
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/services/surfaceOrchestrator/toolLifecycle.ts",
+      "reason": "source group frontend/src/renderer/infrastructure/services/surfaceOrchestrator#1"
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/services/surfaceOrchestrator/types.ts",
+      "reason": "source group frontend/src/renderer/infrastructure/services/surfaceOrchestrator#1"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "frontend/package.json",
+      "reason": "package manifest"
+    }
+  ],
+  "tests": [],
+  "tags": [
+    "node",
+    "typescript",
+    "source-group",
+    "project:windieos",
+    "project-root:frontend"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-5eddbd52b0-d0e8_0156193708"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=46195 bytes; approxTokens=11549; includedFiles=13; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:10:16.005Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:10:16.005Z"
+}

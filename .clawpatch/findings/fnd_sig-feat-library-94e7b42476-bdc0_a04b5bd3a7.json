@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-94e7b42476-bdc0_a04b5bd3a7",
+  "featureId": "feat_library_94e7b42476",
+  "title": "Display affinity behavior has no included regression coverage",
+  "category": "test-gap",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "test-gap",
+  "evidence": [
+    {
+      "path": "frontend/src/main/display_affinity_runtime.cjs",
+      "startLine": 187,
+      "endLine": 230,
+      "symbol": "resolveActiveSurfaceDisplayAffinity",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/display_affinity_runtime.cjs",
+      "startLine": 321,
+      "endLine": 355,
+      "symbol": "activeDisplayAffinity",
+      "quote": null
+    },
+    {
+      "path": "frontend/package.json",
+      "startLine": 40,
+      "endLine": 41,
+      "symbol": "scripts.test",
+      "quote": null
+    }
+  ],
+  "reasoning": "The feature implements multi-branch display selection with sender-window preference, visible surface fallback, and stored affinity fallback, plus mutable module-level cached affinity. No linked tests are included for this feature, while the package has a Jest test entrypoint available. A regression here can route screenshots, overlay placement, or window fitting to the wrong monitor, especially on multi-display setups where stale stored affinity and visible-window selection interact.",
+  "reproduction": null,
+  "recommendation": "Add focused Jest coverage for active display selection: visible sender window wins, hidden sender falls back to visible chat/main, no visible surfaces falls back to stored affinity, and sync only updates stored affinity when a visible target resolves.",
+  "whyTestsDoNotAlreadyCoverThis": "The feature metadata lists no tests, and the included files contain only implementation plus the package-level Jest command, so there is no first-class evidence of intended behavior being asserted.",
+  "suggestedRegressionTest": "Create a frontend Jest test for display_affinity_runtime.cjs using fake screen, BrowserWindow.fromWebContents, chatWindow, and mainWindow objects to exercise the active-surface and stored-affinity fallback matrix.",
+  "minimumFixScope": "Add tests under the existing frontend Jest setup; no production code change is required unless the tests expose incorrect behavior.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-94e7b42476_bdc0362d61",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:15:12.667Z",
+  "updatedAt": "2026-05-24T21:15:12.667Z"
+}

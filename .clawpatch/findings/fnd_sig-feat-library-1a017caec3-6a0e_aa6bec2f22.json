@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-1a017caec3-6a0e_aa6bec2f22",
+  "featureId": "feat_library_1a017caec3",
+  "title": "Assistant retry drops structured payloads before persistence",
+  "category": "data-loss",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/infrastructure/transcript/pending/pendingTranscriptMessages.ts",
+      "startLine": 30,
+      "endLine": 37,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/transcript/pending/pendingTranscriptMessages.ts",
+      "startLine": 113,
+      "endLine": 122,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/transcript/pending/pendingTranscriptMessages.ts",
+      "startLine": 174,
+      "endLine": 185,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "Assistant retry options explicitly accept structuredPayload and the flush path persists message.structuredPayload, but queueAssistantMessageForRetry never copies options.structuredPayload into the pending assistant message. Any assistant message queued through this retry path loses its structured tool payload before storeTranscriptEntry is called, while the analogous tool retry path preserves the field.",
+  "reproduction": null,
+  "recommendation": "Include structuredPayload: options.structuredPayload when enqueueing pending assistant messages, or remove the option and persistence expectation if assistant retries must not carry structured payloads.",
+  "whyTestsDoNotAlreadyCoverThis": "No tests were included for this source group, and the package test script is only context evidence that Jest exists, not that this retry payload path is covered.",
+  "suggestedRegressionTest": "Add a Jest unit test for createPendingTranscriptMessages that queues an assistant retry with structuredPayload, flushes it, and asserts storeTranscriptEntry receives the same structuredPayload.",
+  "minimumFixScope": "Update queueAssistantMessageForRetry and add focused pending transcript retry coverage.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-1a017caec3_6a0e006752",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:05:07.292Z",
+  "updatedAt": "2026-05-24T21:05:07.292Z"
+}

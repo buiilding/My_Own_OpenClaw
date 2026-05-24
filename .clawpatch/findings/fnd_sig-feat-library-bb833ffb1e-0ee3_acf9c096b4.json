@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-bb833ffb1e-0ee3_acf9c096b4",
+  "featureId": "feat_library_bb833ffb1e",
+  "title": "FileConversationStore can lose events during concurrent appends",
+  "category": "data-loss",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "packages/windie-sdk-js/src/stores/FileConversationStore.ts",
+      "startLine": 147,
+      "endLine": 174,
+      "symbol": "FileConversationStore.appendEvents",
+      "quote": null
+    },
+    {
+      "path": "packages/windie-sdk-js/src/stores/FileConversationStore.ts",
+      "startLine": 297,
+      "endLine": 319,
+      "symbol": "FileConversationStore.readConversation/writeConversation",
+      "quote": null
+    }
+  ],
+  "reasoning": "appendEvents performs a read-modify-write per conversation without any per-file serialization. Two concurrent appendEvent/appendEvents calls for the same conversation can both read the same stored event list, each merge its own unique event, then the last rename wins and drops the other event. The temporary-file rename makes each write atomic, but it does not prevent lost updates across overlapping reads and writes.",
+  "reproduction": "Call appendEvent(eventA) and appendEvent(eventB) concurrently on the same FileConversationStore and conversationRef while the file initially has the same contents for both calls; whichever write finishes last can overwrite the other event.",
+  "recommendation": "Serialize writes per conversationRef inside FileConversationStore, for example with a per-conversation promise queue around the read/merge/write section. Keep the atomic temp-file rename for crash safety.",
+  "whyTestsDoNotAlreadyCoverThis": "The feature metadata lists no linked tests, and the implementation excerpt does not show any concurrent append coverage for the file-backed store.",
+  "suggestedRegressionTest": "Add a FileConversationStore test that fires many appendEvent calls for the same conversationRef concurrently, then asserts every unique event is present after loadEvents().",
+  "minimumFixScope": "Add per-conversation write serialization in FileConversationStore.appendEvents and a focused concurrent append regression test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-bb833ffb1e_0ee376faf2",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:16:28.926Z",
+  "updatedAt": "2026-05-24T21:16:28.926Z"
+}

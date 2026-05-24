@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-b5dbc2a239-0134_a340107968",
+  "featureId": "feat_library_b5dbc2a239",
+  "title": "Compaction can drop messages appended while summary generation is in flight",
+  "category": "data-loss",
+  "severity": "high",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "backend/src/agent/compaction/engine.py",
+      "startLine": 151,
+      "endLine": 187,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "compact() snapshots current_messages, builds a replacement from that snapshot, then awaits the LLM summary before replacing the entire session history. If any user message, assistant chunk, tool call, or tool output is appended during the await, replace_with_stored_messages() overwrites history with the stale replacement list and silently loses the concurrent entries. This is especially risky because compaction is triggered near context limits, exactly when tool loops and retries may still be active.",
+  "reproduction": null,
+  "recommendation": "Guard compaction with a session-history revision/checkpoint or lock. Before replacing history, verify that the current history is still the same snapshot that was compacted; if it changed, either rebuild/retry compaction against the new history or merge only the compacted prefix while preserving newly appended suffix entries.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for this feature, and the excerpt shows no concurrency or stale-history replacement coverage.",
+  "suggestedRegressionTest": "Add an async test where compaction starts, the fake LLM blocks, a new StoredMessage is appended to session.history, the LLM returns, and the final history is asserted to preserve the appended message or abort/retry instead of overwriting it.",
+  "minimumFixScope": "CompactionEngine.compact history replacement path plus the session/history API needed to expose an atomic revision check or replacement lock.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-b5dbc2a239_01340ef722",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:16:03.104Z",
+  "updatedAt": "2026-05-24T21:16:03.104Z"
+}

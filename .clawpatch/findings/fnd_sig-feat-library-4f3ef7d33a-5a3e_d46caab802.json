@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-4f3ef7d33a-5a3e_d46caab802",
+  "featureId": "feat_library_4f3ef7d33a",
+  "title": "MCP client cache ignores changed environment values",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "frontend/src/main/mcp_runtime.cjs",
+      "startLine": 84,
+      "endLine": 91,
+      "symbol": "cacheKeyForServer",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/mcp_runtime.cjs",
+      "startLine": 112,
+      "endLine": 117,
+      "symbol": "McpStdioClient.ensureStarted",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/mcp_runtime.cjs",
+      "startLine": 271,
+      "endLine": 279,
+      "symbol": "getMcpClient",
+      "quote": null
+    }
+  ],
+  "reasoning": "The MCP client cache key includes only sorted environment variable names, not their values. If an extension server is rediscovered with the same id, command, args, cwd, and env keys but different env values, getMcpClient returns the already cached client. ensureStarted then continues using the old process environment from the original server spec, so updated credentials, endpoint URLs, feature flags, or user settings are silently ignored until the runtime cache is cleared or the app restarts.",
+  "reproduction": "Create an MCP server spec with env {TOKEN:'old'}, discover or execute a tool so the client is cached, then rediscover the same server with env {TOKEN:'new'} without calling clearMcpRuntimeCache. The cache key remains unchanged and the old client/process is reused.",
+  "recommendation": "Include env key/value pairs in the cache key, or explicitly close and replace cached clients when normalized server environment changes. If secrets should not be embedded in a string cache key, hash the normalized env object or compare a structured fingerprint.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for MCP client cache invalidation or environment changes. The package has Jest support, but this feature metadata lists no tests.",
+  "suggestedRegressionTest": "Add a Jest unit test for getMcpClient or executeMcpTool that creates two server specs differing only by an env value and asserts that a new client/process is used or that the spawned env reflects the updated value.",
+  "minimumFixScope": "frontend/src/main/mcp_runtime.cjs cache key or client replacement logic, plus focused MCP runtime test coverage.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-4f3ef7d33a_5a3e1ac009",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:08:56.555Z",
+  "updatedAt": "2026-05-24T21:08:56.555Z"
+}

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-41e7c46fe2-335a_556454a391",
+  "featureId": "feat_library_41e7c46fe2",
+  "title": "Refreshing overrides does not refresh already-created singleton handlers",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/core/container/api_runtime.py",
+      "startLine": 30,
+      "endLine": 35,
+      "symbol": "ApiRuntimeBinder.refresh_overrides",
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/container/api_runtime.py",
+      "startLine": 43,
+      "endLine": 53,
+      "symbol": "ApiRuntimeBinder._sync_api_container_overrides",
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/container/api_container.py",
+      "startLine": 66,
+      "endLine": 115,
+      "symbol": "ApiContainer",
+      "quote": null
+    }
+  ],
+  "reasoning": "refresh_overrides claims to refresh runtime overrides on an existing ApiContainer, but the target container builds handlers and the registry as Singleton providers. If get_handler_registry has already materialized handler_registry or any handler, changing dependency overrides afterward only changes provider wiring for future creations; it does not replace cached singleton handler instances that already captured the old session_manager, model_service, config, or other dependencies. A facade that expects refresh_overrides to rebind runtime dependencies can continue dispatching through stale handlers.",
+  "reproduction": null,
+  "recommendation": "When refreshing overrides after creation, either reset the affected singleton providers before the next registry lookup, rebuild the ApiContainer, or make refresh_overrides explicitly no-op unless nothing has been materialized. Keep the behavior documented in the binder contract.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for this feature, and the shown code has no regression coverage asserting that handler dependencies change after refresh_overrides is called post-materialization.",
+  "suggestedRegressionTest": "Create an ApiRuntimeBinder with a fake parent container, materialize the registry, replace the parent session_manager/model_service, call refresh_overrides, then assert dispatched handlers use the replacement dependency rather than the original one.",
+  "minimumFixScope": "ApiRuntimeBinder refresh lifecycle plus focused container lifecycle tests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-41e7c46fe2_335a63c454",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:08:06.205Z",
+  "updatedAt": "2026-05-24T21:08:06.205Z"
+}

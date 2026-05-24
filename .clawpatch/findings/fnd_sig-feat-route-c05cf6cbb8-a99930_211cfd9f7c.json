@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-c05cf6cbb8-a99930_211cfd9f7c",
+  "featureId": "feat_route_c05cf6cbb8",
+  "title": "Bulk stop is authorized only by a global API key while workspace scope comes from the request body",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/runs/router.py",
+      "startLine": 144,
+      "endLine": 153,
+      "symbol": "stop_all_runs",
+      "quote": null
+    }
+  ],
+  "reasoning": "The route performs a destructive bulk operation for whatever workspace_id the caller supplies, and the only visible authorization dependency is the generic runs API key. If that key is shared by workers, dashboards, or automation across workspaces, any valid caller can stop runs in another workspace by changing the body. This is a concrete trust-boundary risk because the authorization context is not bound to the workspace being stopped in the route.",
+  "reproduction": null,
+  "recommendation": "Bind the authenticated principal/API key to an allowed workspace or role before calling service.stop_all_runs, or require a privileged control credential distinct from ordinary run/worker API access. Return 403 when the supplied workspace_id is outside the caller's allowed scope.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for this feature, and the route excerpt contains no coverage proving cross-workspace stop attempts are rejected.",
+  "suggestedRegressionTest": "Add a route-level test that authenticates with a credential scoped to workspace A, posts /api/runs/stop-all with workspace_id B, and asserts 403 with no service.stop_all_runs call.",
+  "minimumFixScope": "backend/src/api/routes/runs/router.py plus the runs API-key dependency contract if it currently has no workspace/role information",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-c05cf6cbb8_a99930af26",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:22:36.615Z",
+  "updatedAt": "2026-05-24T21:22:36.615Z"
+}

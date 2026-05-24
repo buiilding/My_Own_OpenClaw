@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_route_69a1f66229",
+  "title": "FastAPI route GET /api/sdk/tool-schemas",
+  "summary": "FastAPI route GET /api/sdk/tool-schemas handled by sdk_debug_tool_schemas in backend/src/api/routes/sdk/router.py.",
+  "kind": "route",
+  "source": "python-fastapi-route",
+  "confidence": "high",
+  "entrypoints": [
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "symbol": "sdk_debug_tool_schemas",
+      "route": "GET /api/sdk/tool-schemas",
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "reason": "FastAPI route handler sdk_debug_tool_schemas"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "fastapi",
+    "route"
+  ],
+  "trustBoundaries": [
+    "network",
+    "user-input",
+    "serialization"
+  ],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-route-69a1f66229-c4e513_13569a44da",
+    "fnd_sig-feat-route-69a1f66229-2bb8d3_4449b06cd4"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=24795 bytes; approxTokens=6199; includedFiles=1; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:21:50.126Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:21:50.126Z"
+}

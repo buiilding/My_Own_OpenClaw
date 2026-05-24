@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_8161046fcf",
+  "title": "Node source frontend/src/renderer/utils",
+  "summary": "Node/TypeScript source group frontend/src/renderer/utils with 4 files.",
+  "kind": "library",
+  "source": "node-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "frontend/package.json",
+      "symbol": "frontend/src/renderer/utils",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "frontend/src/renderer/utils/configFilter.js",
+      "reason": "source group frontend/src/renderer/utils"
+    },
+    {
+      "path": "frontend/src/renderer/utils/configStorage.js",
+      "reason": "source group frontend/src/renderer/utils"
+    },
+    {
+      "path": "frontend/src/renderer/utils/memoryRetrievalPreference.js",
+      "reason": "source group frontend/src/renderer/utils"
+    },
+    {
+      "path": "frontend/src/renderer/utils/normalizeNonEmptyString.ts",
+      "reason": "source group frontend/src/renderer/utils"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "frontend/package.json",
+      "reason": "package manifest"
+    }
+  ],
+  "tests": [],
+  "tags": [
+    "node",
+    "typescript",
+    "source-group",
+    "project:windieos",
+    "project-root:frontend"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-8161046fcf-bd7e_772b23c15e",
+    "fnd_sig-feat-library-8161046fcf-c99b_8e1779bfde"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=25664 bytes; approxTokens=6416; includedFiles=5; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:12:49.829Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:12:49.829Z"
+}

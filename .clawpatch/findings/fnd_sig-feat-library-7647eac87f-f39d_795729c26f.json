@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-7647eac87f-f39d_795729c26f",
+  "featureId": "feat_library_7647eac87f",
+  "title": "Concurrent screenshot captures can clear the active capture state too early",
+  "category": "concurrency",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline.ts",
+      "startLine": 181,
+      "endLine": 186,
+      "symbol": "captureScreenshotAttachment",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline.ts",
+      "startLine": 220,
+      "endLine": 230,
+      "symbol": "captureScreenshotAttachment",
+      "quote": null
+    }
+  ],
+  "reasoning": "Each capture emits a global `windie:screenshot-capture` active=true event at start and active=false in its own finally block. With two overlapping captures, the first one to finish emits active=false even though the second capture is still running. Any listener that uses this event to gate UI state, capture masking, or user feedback will observe the capture as inactive during an active capture window.",
+  "reproduction": "Start two `captureScreenshotAttachment()` calls without awaiting the first. Let the shorter one finish first; it dispatches `active: false` while the longer one is still between its active=true dispatch and its finally block.",
+  "recommendation": "Track active screenshot captures with a shared counter or capture-id set and emit `active: false` only when the last outstanding capture completes. Keep the event payload compatible, optionally adding the count/capture id for diagnostics.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for this source group, and the excerpt shows no scenario coverage for overlapping capture calls or global capture event ordering.",
+  "suggestedRegressionTest": "Add a unit test that stubs the IPC screenshot call with two deferred promises, starts two captures, resolves the first, and asserts no `active:false` event is dispatched until the second resolves.",
+  "minimumFixScope": "ScreenshotAttachmentPipeline.ts plus a focused frontend test for capture event reference-counting.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-7647eac87f_f39d407fec",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:13:36.643Z",
+  "updatedAt": "2026-05-24T21:13:36.643Z"
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-4caa9ecdef-a229_af8de9602b",
+  "featureId": "feat_library_4caa9ecdef",
+  "title": "Artifact image failures are cached permanently",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/features/chat/utils/message/useResolvedMessageScreenshots.js",
+      "startLine": 27,
+      "endLine": 42,
+      "symbol": "resolveArtifactAttachmentSrc",
+      "quote": null
+    }
+  ],
+  "reasoning": "The artifact resolver stores the IPC promise in a module-level cache before it resolves, and the catch path converts any failure to null. Because the null-producing promise remains cached, a transient FETCH_ARTIFACT_IMAGE failure, permission race, backend restart, or artifact service warmup issue makes that artifact image unrecoverable for the lifetime of the renderer session. Future renders reuse the cached null result and never retry.",
+  "reproduction": "Render a message whose screenshot requires artifact resolution, make FETCH_ARTIFACT_IMAGE reject once for that artifact key, then render the same message again after the service is available. The second render still resolves to no source because the rejected result was cached as null.",
+  "recommendation": "Evict the cache entry on rejection or null result, or cache only successful non-empty data URLs. If deduping in-flight requests is still desired, keep the pending promise while in flight and delete it when it resolves to null or rejects.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for artifact screenshot resolution or retry behavior, and the package manifest only shows generic Jest commands.",
+  "suggestedRegressionTest": "Add a hook/unit test that mocks IpcBridge.invoke to reject once and then return a valid dataUrl, verifying that a later render retries and displays the image.",
+  "minimumFixScope": "Update resolveArtifactAttachmentSrc cache handling and add focused frontend coverage for retry after failure.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-4caa9ecdef_a2296163fa",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:08:33.466Z",
+  "updatedAt": "2026-05-24T21:08:33.466Z"
+}

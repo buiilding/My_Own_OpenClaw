@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_5186d21051",
+  "title": "Python source backend/src/agent/tools/preparation/ocr",
+  "summary": "Python source group backend/src/agent/tools/preparation/ocr with 2 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/agent/tools/preparation/ocr",
+      "symbol": "backend/src/agent/tools/preparation/ocr",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/agent/tools/preparation/ocr/__init__.py",
+      "reason": "source group backend/src/agent/tools/preparation/ocr"
+    },
+    {
+      "path": "backend/src/agent/tools/preparation/ocr/coordinator.py",
+      "reason": "source group backend/src/agent/tools/preparation/ocr"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-5186d21051-072c_e409103ed0",
+    "fnd_sig-feat-library-5186d21051-ef52_5d3dd600d2",
+    "fnd_sig-feat-library-5186d21051-75c0_6eaaf46375"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "3 finding(s); prompt=10137 bytes; approxTokens=2535; includedFiles=2; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:09:09.092Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:09:09.092Z"
+}

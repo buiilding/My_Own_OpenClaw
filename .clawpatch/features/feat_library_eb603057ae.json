@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_eb603057ae",
+  "title": "Python source backend/src/core/bootstrap",
+  "summary": "Python source group backend/src/core/bootstrap with 4 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/core/bootstrap",
+      "symbol": "backend/src/core/bootstrap",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/core/bootstrap/__init__.py",
+      "reason": "source group backend/src/core/bootstrap"
+    },
+    {
+      "path": "backend/src/core/bootstrap/coordinator.py",
+      "reason": "source group backend/src/core/bootstrap"
+    },
+    {
+      "path": "backend/src/core/bootstrap/entrypoint.py",
+      "reason": "source group backend/src/core/bootstrap"
+    },
+    {
+      "path": "backend/src/core/bootstrap/handler_initializer.py",
+      "reason": "source group backend/src/core/bootstrap"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-eb603057ae-e315_28b7928c8c",
+    "fnd_sig-feat-library-eb603057ae-61bc_eb50cf627d"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=24070 bytes; approxTokens=6018; includedFiles=4; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:18:57.431Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:18:57.431Z"
+}

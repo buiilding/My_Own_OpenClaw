@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-service-37c269c6cc-3919_7a6a611272",
+  "featureId": "feat_service_37c269c6cc",
+  "title": "Hydrating messages does not rebuild turn-to-conversation routing",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/features/chat/stores/chatStore.ts",
+      "startLine": 133,
+      "endLine": 146,
+      "symbol": "ChatState.turnConversationRefs",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/stores/chatStore.ts",
+      "startLine": 373,
+      "endLine": 382,
+      "symbol": "setMessages",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/stores/chatStore.ts",
+      "startLine": 311,
+      "endLine": 317,
+      "symbol": "resolveConversationRefForTurn",
+      "quote": null
+    }
+  ],
+  "reasoning": "The store keeps a global turnConversationRefs index used to resolve later turn-scoped events to a conversation. addMessage and updateMessage maintain that index, but setMessages replaces a workspace's full message list without indexing any message turnRefs. Any caller that hydrates or restores a conversation with setMessages will display the messages but leave resolveConversationRefForTurn unable to resolve their turns, so subsequent turn-scoped updates can fail to find the intended workspace.",
+  "reproduction": "Call setMessages([{ id: 'm1', text: 'x', sender: 'assistant', turnRef: 'turn-1' }], 'conv-a'), then resolveConversationRefForTurn('turn-1'); it returns null because setMessages only updates the workspace messages array.",
+  "recommendation": "When setMessages receives a concrete normalized conversationRef, derive normalized turn refs from the provided messages and merge them into turnConversationRefs. If setMessages is intentionally display-only, split that API from a hydration API and document the difference with tests.",
+  "whyTestsDoNotAlreadyCoverThis": "No tests were linked for this feature, so the index-maintenance contract is not exercised across addMessage, updateMessage, and setMessages.",
+  "suggestedRegressionTest": "Add a store test that calls setMessages with messages containing turnRef for a non-active conversation and verifies resolveConversationRefForTurn maps those turns to that conversation.",
+  "minimumFixScope": "Extend setMessages to update turnConversationRefs for message.turnRef values when the target conversation can be normalized.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-service-37c269c6cc_3919277b2c",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:23:08.655Z",
+  "updatedAt": "2026-05-24T21:23:08.655Z"
+}

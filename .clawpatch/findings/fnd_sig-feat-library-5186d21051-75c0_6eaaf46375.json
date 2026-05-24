@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-5186d21051-75c0_6eaaf46375",
+  "featureId": "feat_library_5186d21051",
+  "title": "OCR service fallback attribute access can raise before using ocr_router",
+  "category": "api-contract",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "backend/src/agent/tools/preparation/ocr/coordinator.py",
+      "startLine": 103,
+      "endLine": 110,
+      "symbol": "OcrCoordinator.get_ocr_results",
+      "quote": null
+    }
+  ],
+  "reasoning": "The expression getattr(session, \"ocr_router\", session.ocr_service) evaluates session.ocr_service before getattr is called. If a valid session implementation provides ocr_router but not ocr_service, this line raises AttributeError instead of using ocr_router. That makes the apparent router-first fallback contract fragile for test doubles or newer session shapes that only expose the router.",
+  "reproduction": "Pass a session object with ocr_router set to an enabled OCR service and no ocr_service attribute. The coordinator raises AttributeError at service lookup before it can use ocr_router.",
+  "recommendation": "Use a lazy fallback lookup, for example getattr(session, \"ocr_router\", None) or getattr(session, \"ocr_service\", None), so missing legacy attributes do not prevent use of the preferred OCR router.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included, and a fake session with only ocr_router would catch this Python evaluation-order issue.",
+  "suggestedRegressionTest": "Add a coordinator test using a minimal session double that exposes ocr_router but intentionally omits ocr_service, then assert fallback OCR succeeds.",
+  "minimumFixScope": "Change only the OCR service lookup expression and add a small session-shape regression test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-5186d21051_75c0ae51f5",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:09:09.090Z",
+  "updatedAt": "2026-05-24T21:09:09.090Z"
+}

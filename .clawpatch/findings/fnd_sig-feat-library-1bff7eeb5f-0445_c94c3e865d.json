@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-1bff7eeb5f-0445_c94c3e865d",
+  "featureId": "feat_library_1bff7eeb5f",
+  "title": "Nested list/dict reasoning payloads are dropped inside dict fields",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/llm/providers/thinking_extraction.py",
+      "startLine": 30,
+      "endLine": 56,
+      "symbol": "_extract_string_content",
+      "quote": null
+    },
+    {
+      "path": "backend/src/llm/providers/thinking_extraction.py",
+      "startLine": 69,
+      "endLine": 77,
+      "symbol": "_extract_thinking_from_content_blocks",
+      "quote": null
+    }
+  ],
+  "reasoning": "_extract_string_content claims to extract strings from list and dict payload shapes, but when it handles a dict it only returns nested values that are already strings. It does not recurse into dict fields whose values are lists or nested dicts. As a result, a reasoning content block such as {\"type\":\"reasoning\",\"content\":[{\"text\":\"...\"}]} or {\"type\":\"thinking\",\"reasoning_details\":[...]} reaches _extract_string_content(block) and returns None even though the same helper can extract from a list when the list is passed directly. Providers often wrap reasoning text in content/details arrays, so these thinking deltas can be silently omitted from the stream.",
+  "reproduction": null,
+  "recommendation": "In the dict branch of _extract_string_content, call _extract_string_content(nested) for each supported key and return the first non-empty result, instead of accepting only direct strings.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for this feature, and the excerpt has no regression coverage for structured reasoning blocks with nested list or dict content.",
+  "suggestedRegressionTest": "Add a unit test for extract_thinking_content with a delta containing content=[{\"type\":\"reasoning\",\"content\":[{\"text\":\"hidden reasoning\"}]}] and assert it returns \"hidden reasoning\".",
+  "minimumFixScope": "backend/src/llm/providers/thinking_extraction.py",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-1bff7eeb5f_0445a14239",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:05:29.695Z",
+  "updatedAt": "2026-05-24T21:05:29.695Z"
+}

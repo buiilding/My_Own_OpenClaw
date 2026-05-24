@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_test-suite_445f746fe3",
+  "title": "Python test suite tests/backend#8",
+  "summary": "Python pytest files in tests/backend#8.",
+  "kind": "test-suite",
+  "source": "python-test-suite",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "tests/backend#8",
+      "symbol": "tests/backend#8",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "tests/backend/test_openai_provider.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_openai_realtime_transcription.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_openrouter_provider.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_outgoing_schema_contract.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_parser_extraction.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_parser_types.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_parser_types_system_use_shell_auth_mode.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_parser_validation.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_prompt_constructor_utils.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_prompt_manager.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_prompt_package_exports.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_provider_factory_helpers.py",
+      "reason": "pytest file"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_openai_provider.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_openai_realtime_transcription.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_openrouter_provider.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_outgoing_schema_contract.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_parser_extraction.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_parser_types.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_parser_types_system_use_shell_auth_mode.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_parser_validation.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_prompt_constructor_utils.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_prompt_manager.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_prompt_package_exports.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_provider_factory_helpers.py",
+      "reason": "nearby test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_openai_provider.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_openai_realtime_transcription.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_openrouter_provider.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_outgoing_schema_contract.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_parser_extraction.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_parser_types.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_parser_types_system_use_shell_auth_mode.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_parser_validation.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_prompt_constructor_utils.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_prompt_manager.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_prompt_package_exports.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_provider_factory_helpers.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "test"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-test-suite-445f746fe3-1_27bb14e68b"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=119517 bytes; approxTokens=29880; includedFiles=12; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:23:54.853Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:23:54.853Z"
+}

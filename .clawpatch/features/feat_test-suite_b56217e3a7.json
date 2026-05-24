@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_test-suite_b56217e3a7",
+  "title": "Python test suite tests/backend#1",
+  "summary": "Python pytest files in tests/backend#1.",
+  "kind": "test-suite",
+  "source": "python-test-suite",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "tests/backend#1",
+      "symbol": "tests/backend#1",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "tests/backend/test_active_query_tracker.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_agent_executor_completion_side_effects.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_agent_executor_user_query_sanitization.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_anthropic_provider.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_api_container_source.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_api_contract_registry.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_api_errors.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_api_handlers.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_app_assembly.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_artifact_routes.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_artifacts_store.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_browser_remote_tool.py",
+      "reason": "pytest file"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_active_query_tracker.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_agent_executor_completion_side_effects.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_agent_executor_user_query_sanitization.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_anthropic_provider.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_api_container_source.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_api_contract_registry.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_api_errors.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_api_handlers.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_app_assembly.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_artifact_routes.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_artifacts_store.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_browser_remote_tool.py",
+      "reason": "nearby test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_active_query_tracker.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_agent_executor_completion_side_effects.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_agent_executor_user_query_sanitization.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_anthropic_provider.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_api_container_source.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_api_contract_registry.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_api_errors.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_api_handlers.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_app_assembly.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_artifact_routes.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_artifacts_store.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_browser_remote_tool.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "test"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-test-suite-b56217e3a7-b_2b2cbfd16c"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=89884 bytes; approxTokens=22471; includedFiles=12; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:24:20.626Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:24:20.626Z"
+}

@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tooling: add Clawpatch review state and report artifacts for a full WindieOS owned-code review, excluding bundled runtime dependency output from the generated review scope.
 - frontend/ipc: remove the Electron renderer `execute-tool` IPC handler and keep local tool execution behind SDK/main and scoped host-capability adapters.
 - frontend/main: delete the generic `sendMessageToBackend` export and keep VM run stop controls on a typed SDK-runtime stop-query adapter.
 - frontend/ipc: replace renderer generic `execute-tool` usage with scoped host-capability channels for screenshot attachments, readable file attachments, and browser controls.

@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_1b7f4b0027",
+  "title": "Python source backend/src/core/observability",
+  "summary": "Python source group backend/src/core/observability with 2 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/core/observability",
+      "symbol": "backend/src/core/observability",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/core/observability/__init__.py",
+      "reason": "source group backend/src/core/observability"
+    },
+    {
+      "path": "backend/src/core/observability/trust_boundary_metrics.py",
+      "reason": "source group backend/src/core/observability"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_trust_boundary_metrics.py",
+      "reason": "associated test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_trust_boundary_metrics.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "reviewed",
+  "lock": null,
+  "findingIds": [],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "0 finding(s); prompt=20127 bytes; approxTokens=5032; includedFiles=3; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:05:01.506Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:05:01.506Z"
+}

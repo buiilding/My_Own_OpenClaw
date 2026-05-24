@@ -16,6 +16,7 @@ This matrix helps agents choose the right planning doc without treating every pl
 | --- | --- | --- | --- |
 | packaged desktop + bundled sidecar runtime | implemented, still evolving | [Frontend + Sidecar Packaging Plan](windieos_frontend_sidecar_packaging_plan_2026-02-25.md) | [Install Hub](../install/README.md), [Packaging Runtime Matrix](../platforms/packaging_runtime_matrix.md) |
 | hosted backend + Cloudflare ingress | implemented deployment path | [Future Product Plan](future_plan.md), [Deployment](../operations/deployment.md) | [Gateway Hub](../gateway/README.md), [Operations Hub](../operations/README.md) |
+| self-hosted backend onboarding and auto-install | planned | [Self-Hosted Backend Onboarding Plan](windieos_self_hosted_backend_onboarding_plan.md) | install, operations, frontend main, security, providers |
 | VM runs API and Electron VM worker | implemented control-plane slice | [VM Multi-Agent Plan](windieos_vm_multi_agent_plan.md), [Automation Hub](../automation/README.md) | [Automation Hub](../automation/README.md), [Runtime Nodes Hub](../nodes/README.md) |
 | one-agent-per-VM runtime and remote control | planned | [VM Multi-Agent Plan](windieos_vm_multi_agent_plan.md) | nodes, automation, operations, security |
 | mobile companion | planned | [Mobile App Plan](windieos_mobile_app_plan.md) | nodes, channels, web/API client docs |

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-cd45c89b51-c8c9_8ac4416599",
+  "featureId": "feat_library_cd45c89b51",
+  "title": "Ingress reports unhandled events as accepted even when dispatch rejects them",
+  "category": "bug",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime.ts",
+      "startLine": 160,
+      "endLine": 183,
+      "symbol": "handleBackendStreamIngress",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime.ts",
+      "startLine": 145,
+      "endLine": 146,
+      "symbol": "ingestBackendEvent",
+      "quote": null
+    }
+  ],
+  "reasoning": "handleBackendStreamIngress normalizes a backend event to a ConversationEvent, then dispatches it through dispatchConversationEvent, whose boolean result is ignored. ingestBackendEvent returns true after dispatchEvent regardless of whether the normalized event was null or dispatchConversationEvent returned false. Callers and traces therefore see the event as accepted even when it was not actually dispatched to the SDK conversation stream, masking dropped or unsupported backend events.",
+  "reproduction": null,
+  "recommendation": "Propagate the dispatchConversationEvent boolean through ingestBackendEvent, or return false when normalization produces null and no conversation event is dispatched. Keep any side-effect-only event types explicit if they are intentionally accepted without dispatch.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests exercise handleBackendStreamIngress with an unsupported backend event or a dispatchConversationEvent implementation that returns false.",
+  "suggestedRegressionTest": "Add a test where normalizeBackendIngressEvent returns null or dispatchConversationEvent returns false, then assert handleBackendStreamIngress returns false and logs the rejected state.",
+  "minimumFixScope": "frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime.ts and a focused ingress-runtime test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-cd45c89b51_c8c937620e",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:17:39.389Z",
+  "updatedAt": "2026-05-24T21:17:39.389Z"
+}

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-69aa448df6-9eb8_259405a852",
+  "featureId": "feat_library_69aa448df6",
+  "title": "Sidecar discovery can redirect privileged daemon requests to arbitrary URLs",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/main/sidecar_daemon_manager.cjs",
+      "startLine": 24,
+      "endLine": 41,
+      "symbol": "normalizeDiscovery",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/sidecar_daemon_manager.cjs",
+      "startLine": 44,
+      "endLine": 49,
+      "symbol": "readDiscoveryFile",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/sidecar_daemon_manager.cjs",
+      "startLine": 133,
+      "endLine": 146,
+      "symbol": "SidecarDaemonNodeClient.request",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/sidecar_daemon_manager.cjs",
+      "startLine": 306,
+      "endLine": 313,
+      "symbol": "reuseExistingDaemon",
+      "quote": null
+    }
+  ],
+  "reasoning": "The manager trusts base_url and token from a discovery file and immediately probes/reuses that endpoint. normalizeDiscovery only requires non-empty strings; it does not restrict scheme, host, or loopback address. The client then sends the x-windie-sidecar-token header to `${baseUrl}${pathname}` for health, tool execution, RPC, plugin registration, MCP registration, shutdown, and event connection. A malicious or stale discovery file can therefore make the Electron main process send privileged sidecar credentials and requests to a non-local endpoint.",
+  "reproduction": "Create a discovery file at the configured discoveryPath with base_url pointing to an attacker-controlled HTTP server and any token. On ensureDaemon, reuseExistingDaemon probes that URL with the sidecar token header.",
+  "recommendation": "Validate discovery base_url before using it. Restrict accepted discovery endpoints to loopback HTTP(S) hosts or the expected local daemon origin, reject unsupported protocols, and delete invalid discovery files. Consider binding token acceptance to the expected pid/host/port if available.",
+  "whyTestsDoNotAlreadyCoverThis": "No tests are included for sidecar_daemon_manager.cjs discovery validation, and the feature metadata lists no linked tests.",
+  "suggestedRegressionTest": "Add tests for read/reuse discovery that reject http://example.com, file-like or malformed schemes, and non-loopback hosts, while accepting 127.0.0.1/localhost loopback daemon URLs.",
+  "minimumFixScope": "frontend/src/main/sidecar_daemon_manager.cjs discovery normalization/reuse path plus focused manager tests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-69aa448df6_9eb811fb3c",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:10:54.789Z",
+  "updatedAt": "2026-05-24T21:10:54.789Z"
+}

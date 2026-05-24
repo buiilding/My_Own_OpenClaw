@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-test-suite-f449aaa7d4-e_2dcd119334",
+  "featureId": "feat_test-suite_f449aaa7d4",
+  "title": "Line-count guardrails make backend tests fail on benign edits",
+  "category": "maintainability",
+  "severity": "low",
+  "confidence": "high",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "tests/backend/test_runtime_architecture_guardrails.py",
+      "startLine": 11,
+      "endLine": 21,
+      "symbol": "test_runtime_module_size_guardrails",
+      "quote": null
+    }
+  ],
+  "reasoning": "The guardrail test asserts hard maximum line counts for several implementation files. This creates a brittle failure mode where harmless changes such as comments, clearer formatting, imports, or additional tests hooks can break backend pytest without indicating a real architecture regression. The concrete impact is noisy CI failures and pressure to optimize for line count rather than ownership boundaries or behavior.",
+  "reproduction": "Add a single explanatory line to any listed file that is already at its threshold and run `pytest tests/backend/test_runtime_architecture_guardrails.py`; the test fails even if runtime behavior and module ownership are unchanged.",
+  "recommendation": "Replace raw line-count assertions with targeted architectural checks, such as forbidden dependency imports, ownership-state assertions, or explicit TODO/deletion-path checks. If size limits are retained, make them advisory in a lint/report job rather than a blocking backend pytest assertion.",
+  "whyTestsDoNotAlreadyCoverThis": "The current test only checks numeric file length and cannot distinguish real responsibility creep from benign edits.",
+  "suggestedRegressionTest": "Add focused guardrail tests for the actual boundaries intended here, for example forbidden ownership fields or disallowed imports, and remove the raw line-count assertions from blocking pytest.",
+  "minimumFixScope": "tests/backend/test_runtime_architecture_guardrails.py.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-test-suite-f449aaa7d4_e0ac3a5ea2",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:24:46.749Z",
+  "updatedAt": "2026-05-24T21:24:46.749Z"
+}

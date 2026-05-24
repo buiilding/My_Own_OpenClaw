@@ -1,0 +1,158 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_bb833ffb1e",
+  "title": "Node package @windie/sdk",
+  "summary": "Node package @windie/sdk with package metadata and review context rooted at packages/windie-sdk-js.",
+  "kind": "library",
+  "source": "node-package",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "packages/windie-sdk-js/package.json",
+      "symbol": "@windie/sdk",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "packages/windie-sdk-js/package.json",
+      "reason": "package manifest"
+    },
+    {
+      "path": "packages/windie-sdk-js/tsconfig.build.json",
+      "reason": "typescript build configuration"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "packages/windie-sdk-js/README.md",
+      "reason": "package context"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/index.ts",
+      "reason": "package entrypoint"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/conversation/events.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/conversation/metadata.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/conversation/types.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/events/backendEvents.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/projections/conversationProjections.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/runtime/AgentStreamEvents.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/runtime/ConversationContinuityService.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/runtime/ConversationRuntime.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/runtime/WindieAgent.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/runtime/WindieChatSession.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/runtime/WindieClient.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/runtime/conversationReducer.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/settings/modelSelection.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/stores/FileConversationStore.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/stores/InMemoryConversationStore.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/stores/SidecarConversationStore.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.cjs",
+      "reason": "package source overview"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/tools/builtins.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/tools/toolCorrelationIds.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/tools/toolOutputContent.ts",
+      "reason": "package source overview"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/transport/BackendSocketFactory.cjs",
+      "reason": "package source overview"
+    }
+  ],
+  "tests": [],
+  "tags": [
+    "node",
+    "package",
+    "project:@windie/sdk",
+    "project-root:packages/windie-sdk-js",
+    "workspace"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-bb833ffb1e-5b29_665e01ea70",
+    "fnd_sig-feat-library-bb833ffb1e-0ee3_acf9c096b4"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=249078 bytes; approxTokens=62270; includedFiles=26; omittedFiles=1",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:16:28.927Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:16:28.927Z"
+}

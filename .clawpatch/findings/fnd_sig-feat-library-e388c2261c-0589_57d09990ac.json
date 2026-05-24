@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-e388c2261c-0589_57d09990ac",
+  "featureId": "feat_library_e388c2261c",
+  "title": "Permission polling only stops on one granted status shape",
+  "category": "bug",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/features/onboarding/hooks/useOnboardingPermissionActions.js",
+      "startLine": 55,
+      "endLine": 65,
+      "symbol": "recheckWatchedPermission",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/onboarding/components/PermissionOnboardingSlide.jsx",
+      "startLine": 29,
+      "endLine": 31,
+      "symbol": "PermissionOnboardingSlide",
+      "quote": null
+    }
+  ],
+  "reasoning": "The UI treats a permission as granted when either status.granted is true or status.status is 'granted', but the onboarding watcher stops only when status.granted is true. If runPermissionProbe returns the status-only granted shape, the onboarding state can keep waitingPermissionId set and continue interval/focus rechecks until the two-minute timeout even though the permission is already granted by the rest of this feature's own status contract.",
+  "reproduction": null,
+  "recommendation": "Make recheckWatchedPermission use the same granted predicate as the slide, for example status?.granted === true || status?.status === 'granted', and centralize that predicate if possible.",
+  "whyTestsDoNotAlreadyCoverThis": "No tests are included for this source group, and the package test script only shows that Jest exists, not that polling lifecycle/status-shape behavior is covered.",
+  "suggestedRegressionTest": "Add a hook-level test that starts a watched permission, has runPermissionProbe resolve to { status: 'granted' }, and asserts the interval is cleared and waitingPermissionId is reset.",
+  "minimumFixScope": "Update the watcher granted check in useOnboardingPermissionActions.js and add focused coverage for both granted status shapes.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-e388c2261c_0589fb4db9",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:18:56.235Z",
+  "updatedAt": "2026-05-24T21:18:56.235Z"
+}

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-a7697140e9-81e197_bdc8073b61",
+  "featureId": "feat_route_a7697140e9",
+  "title": "Unauthenticated requests can act as any user_id",
+  "category": "security",
+  "severity": "high",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/memory/semantic/router.py",
+      "startLine": 96,
+      "endLine": 104,
+      "symbol": "summarize_conversations",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/memory/semantic/router.py",
+      "startLine": 112,
+      "endLine": 117,
+      "symbol": "summarize_conversations",
+      "quote": null
+    }
+  ],
+  "reasoning": "The route accepts network input and does not declare an authentication dependency in its signature or decorator. It reads the authenticated install identity from ambient context, but if no identity is present it falls back to request.user_id and passes that resolved value into the summarization service. That means an unauthenticated or context-missing request can select an arbitrary user_id for model/session-backed summarization, which is an authorization bypass if the router is not protected at a higher level. The excerpt provides no linked tests or route-level guard showing this fallback is intentionally restricted.",
+  "reproduction": null,
+  "recommendation": "Require authenticated identity for this endpoint, or explicitly reject requests when identity is absent. If a legacy unauthenticated mode is still required, constrain it to a non-user-scoped local identity and document/test the boundary.",
+  "whyTestsDoNotAlreadyCoverThis": "No tests were included for this feature, and the shown code has no assertion that unauthenticated requests are rejected or that request.user_id cannot impersonate another user.",
+  "suggestedRegressionTest": "Add a FastAPI route test that calls POST /api/semantic/summarize without an authenticated identity and asserts 401/403, plus a test where authenticated identity.user_id differs from request.user_id and verifies the authenticated user is used.",
+  "minimumFixScope": "backend/src/api/routes/memory/semantic/router.py authentication handling for summarize_conversations, with focused route tests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-a7697140e9_81e1974667",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:22:13.229Z",
+  "updatedAt": "2026-05-24T21:22:13.229Z"
+}

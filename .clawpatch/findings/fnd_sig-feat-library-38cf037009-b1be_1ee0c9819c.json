@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-38cf037009-b1be_1ee0c9819c",
+  "featureId": "feat_library_38cf037009",
+  "title": "Streaming error path can emit partial content before the terminal error",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "backend/src/agent/llm/llm_stream_processor.py",
+      "startLine": 138,
+      "endLine": 151,
+      "symbol": "LLMStreamProcessor.get_response",
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/llm/llm_stream_processor.py",
+      "startLine": 202,
+      "endLine": 205,
+      "symbol": "LLMStreamProcessor.get_response",
+      "quote": null
+    },
+    {
+      "path": "tests/backend/test_llm_stream_processor.py",
+      "startLine": 128,
+      "endLine": 140,
+      "symbol": "_UnsupportedEventLLMClient",
+      "quote": null
+    },
+    {
+      "path": "tests/backend/test_llm_stream_processor.py",
+      "startLine": 469,
+      "endLine": 484,
+      "symbol": "test_rejects_unsupported_stream_event_types",
+      "quote": null
+    }
+  ],
+  "reasoning": "If a provider stream yields one or more valid ChunkEvent values and then yields an unsupported event, the processor will already have emitted those chunks to the frontend, then catch the TypeError and emit ErrorEvent before re-raising. The included unsupported-event test only covers the first-event failure case, so it verifies an ErrorEvent is produced but does not cover the mixed partial-success/late-failure contract. Consumers can observe partial assistant text followed by an error without a FullResponseEvent or TokenCountEvent, which is an inconsistent terminal stream shape and can leave UI/history code with transient content that should not be committed.",
+  "reproduction": "Use an LLM client whose get_completion_stream yields ChunkEvent(content='partial') and then {'event':'unsupported'}. Iterating get_response will yield the chunk, then yield ErrorEvent from the generic exception handler, and then raise TypeError, with no FullResponseEvent or TokenCountEvent.",
+  "recommendation": "Define the terminal contract for late stream failures. If partial chunks must be shown, emit an explicit failure terminal event/metadata that downstream code can use to discard or mark the partial assistant text. If partial text must not escape on invalid provider events, validate provider events before yielding user-visible chunks or buffer until the stream is known valid.",
+  "whyTestsDoNotAlreadyCoverThis": "The existing unsupported-event regression starts with the unsupported object, so no partial ChunkEvent is emitted before the error path is exercised.",
+  "suggestedRegressionTest": "Add a fake stream client that yields a ChunkEvent followed by an unsupported object, then assert the intended contract: either partial chunks are absent, or the ErrorEvent carries enough terminal/failure metadata and no history-commit event follows.",
+  "minimumFixScope": "LLMStreamProcessor.get_response stream loop and one focused test in tests/backend/test_llm_stream_processor.py",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-38cf037009_b1be5f0dcd",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:07:36.122Z",
+  "updatedAt": "2026-05-24T21:07:36.122Z"
+}

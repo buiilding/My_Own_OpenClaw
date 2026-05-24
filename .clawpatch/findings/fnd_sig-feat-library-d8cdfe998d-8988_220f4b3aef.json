@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-d8cdfe998d-8988_220f4b3aef",
+  "featureId": "feat_library_d8cdfe998d",
+  "title": "Response overlay renders prebuilt markdown HTML without a local sanitization boundary",
+  "category": "security",
+  "severity": "high",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx",
+      "startLine": 31,
+      "endLine": 35,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/package.json",
+      "startLine": 44,
+      "endLine": 50,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "Default response entries are injected with dangerouslySetInnerHTML using entry.markdownHtml. The excerpt does not show a local DOMPurify/sanitization step or an invariant check before injection, even though this renderer has DOMPurify available. If markdownHtml is derived from assistant/tool/search content, a malicious model output or tool result could execute HTML/script-like payloads in the Electron renderer context. This is higher impact than ordinary web XSS because the renderer participates in desktop app IPC and local workflows.",
+  "reproduction": null,
+  "recommendation": "Sanitize markdownHtml at the rendering boundary, or change the response overlay contract so it only accepts a branded/sanitized HTML value created by a single sanitizer module. Add tests that prove scriptable HTML, event handlers, javascript: URLs, and unsafe SVG/MathML payloads are removed before rendering.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for ChatBoxResponse or the response overlay HTML contract, and the component currently accepts markdownHtml directly.",
+  "suggestedRegressionTest": "Add a renderer/unit test for ChatBoxResponse or the overlay view model that renders a response entry containing unsafe HTML and asserts no unsafe attributes/elements survive in the DOM.",
+  "minimumFixScope": "ChatBoxResponse rendering boundary plus the response-overlay markdown/sanitizer contract used to create entry.markdownHtml.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-d8cdfe998d_898848c4d3",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:18:53.658Z",
+  "updatedAt": "2026-05-24T21:18:53.658Z"
+}

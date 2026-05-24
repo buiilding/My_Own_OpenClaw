@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-44f6c0668f-d552_7eac47cef6",
+  "featureId": "feat_library_44f6c0668f",
+  "title": "OCR completion event can signal readiness for the wrong screenshot",
+  "category": "concurrency",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "backend/src/agent/tools/preparation/screenshot/manager.py",
+      "startLine": 140,
+      "endLine": 172,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/tools/preparation/screenshot/state.py",
+      "startLine": 71,
+      "endLine": 78,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/tools/preparation/screenshot/state.py",
+      "startLine": 137,
+      "endLine": 143,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "A new screenshot clears OCR results by binding the new screenshot, then cancels any active OCR task and schedules a new task. The shared ocr_completion_event is cleared only inside the newly scheduled task, not synchronously before process_screenshot returns. If the event was still set from a previous OCR, a tool can observe the new screenshot with no OCR results and skip waiting. There is also a race where the canceled old OCR task's finally block unconditionally sets the same shared event after the new task has cleared it, causing waiters for the new screenshot to unblock before the new OCR has finished. The screenshot_id guard protects result storage, but it does not protect the readiness event.",
+  "reproduction": null,
+  "recommendation": "Clear the OCR completion event synchronously when binding a screenshot that will run OCR, and only set the event from an OCR task if that task still corresponds to the current active screenshot/current screenshot id. Alternatively use per-screenshot events or store completion state keyed by screenshot_id so canceled or stale tasks cannot signal readiness for newer screenshots.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for this feature, and the current excerpts show no scenario test that interleaves consecutive screenshots with cancellation and waiters on ocr_completion_event.",
+  "suggestedRegressionTest": "Add an async test that starts OCR for screenshot A with a controllable pending perform_ocr, processes screenshot B before A completes, then verifies ocr_completion_event is cleared for B and is not set by A's cancellation/finally until B's OCR completes.",
+  "minimumFixScope": "backend/src/agent/tools/preparation/screenshot/manager.py plus focused async tests for consecutive screenshot OCR task cancellation and event readiness semantics.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-44f6c0668f_d55255aaa2",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:08:08.304Z",
+  "updatedAt": "2026-05-24T21:08:08.304Z"
+}

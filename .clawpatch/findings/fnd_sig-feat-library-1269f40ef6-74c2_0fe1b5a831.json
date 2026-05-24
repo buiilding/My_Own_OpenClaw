@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-1269f40ef6-74c2_0fe1b5a831",
+  "featureId": "feat_library_1269f40ef6",
+  "title": "Browser permission failures escape without any user-visible error",
+  "category": "bug",
+  "severity": "low",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/features/dashboard/components/sections/settings/BrowserSettingsTab.jsx",
+      "startLine": 57,
+      "endLine": 69,
+      "symbol": "handleOpenBrowser",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/dashboard/components/sections/settings/BrowserSettingsTab.jsx",
+      "startLine": 112,
+      "endLine": 115,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "handleOpenBrowser awaits requestPermission inside a try/finally but has no catch. Because the click handler deliberately discards the promise with void, any rejection from the IPC/store request becomes an unhandled rejection and the settings page does not set a remediation or error message for the user. The button is re-enabled in finally, but the failure path is effectively silent except for global console/runtime handling.",
+  "reproduction": null,
+  "recommendation": "Catch requestPermission failures in handleOpenBrowser and surface a local status/error message, or route the error into the permission store error state in a way this component already renders.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for the browser settings action or permission request failure path.",
+  "suggestedRegressionTest": "Render BrowserSettingsTab with a mocked permission store whose requestPermission rejects, click Open Windie Browser, and assert that a user-visible error is rendered and no unhandled rejection occurs.",
+  "minimumFixScope": "BrowserSettingsTab handleOpenBrowser failure handling plus a focused component test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-1269f40ef6_74c24af40f",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:05:48.629Z",
+  "updatedAt": "2026-05-24T21:05:48.629Z"
+}

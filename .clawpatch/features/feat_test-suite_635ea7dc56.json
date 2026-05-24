@@ -1,0 +1,189 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_test-suite_635ea7dc56",
+  "title": "Python test suite tests/backend#15",
+  "summary": "Python pytest files in tests/backend#15.",
+  "kind": "test-suite",
+  "source": "python-test-suite",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "tests/backend#15",
+      "symbol": "tests/backend#15",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "tests/backend/test_validation_utils.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_vision_coordinates.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_vision_provider_loader.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_vision_service.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_vision_utils.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_vision_venus_provider.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_vm_run_control_assignment.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_vm_run_control_bulk_stop.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_vm_run_control_event_log.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_vm_run_control_event_payloads.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_vm_run_control_pending_controls.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_vm_run_control_transitions.py",
+      "reason": "pytest file"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_validation_utils.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_vision_coordinates.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_vision_provider_loader.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_vision_service.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_vision_utils.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_vision_venus_provider.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_vm_run_control_assignment.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_vm_run_control_bulk_stop.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_vm_run_control_event_log.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_vm_run_control_event_payloads.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_vm_run_control_pending_controls.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_vm_run_control_transitions.py",
+      "reason": "nearby test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_validation_utils.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_vision_coordinates.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_vision_provider_loader.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_vision_service.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_vision_utils.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_vision_venus_provider.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_vm_run_control_assignment.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_vm_run_control_bulk_stop.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_vm_run_control_event_log.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_vm_run_control_event_payloads.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_vm_run_control_pending_controls.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_vm_run_control_transitions.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "test"
+  ],
+  "trustBoundaries": [],
+  "status": "reviewed",
+  "lock": null,
+  "findingIds": [],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "0 finding(s); prompt=62241 bytes; approxTokens=15561; includedFiles=12; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:24:05.825Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:24:05.825Z"
+}

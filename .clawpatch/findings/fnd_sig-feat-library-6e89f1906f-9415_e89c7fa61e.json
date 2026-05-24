@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-6e89f1906f-9415_e89c7fa61e",
+  "featureId": "feat_library_6e89f1906f",
+  "title": "No focused coverage for the split tool dispatch and result-processing lifecycle",
+  "category": "test-gap",
+  "severity": "low",
+  "confidence": "high",
+  "triage": "test-gap",
+  "evidence": [
+    {
+      "path": "backend/src/agent/tools/orchestrator.py",
+      "startLine": 46,
+      "endLine": 88,
+      "symbol": "ToolOrchestrator",
+      "quote": null
+    }
+  ],
+  "reasoning": "The orchestrator intentionally separates dispatch in execute() from waiting and processing in process_results(). That boundary is small but semantically important: a caller using only execute() will only send tools and yield dispatch events, while result waiting and processing require a separate call. The feature metadata includes no linked tests, so regressions that accidentally remove one phase, reorder the calls, or make execute() appear to complete the lifecycle would not be caught within this feature.",
+  "reproduction": null,
+  "recommendation": "Add focused tests that assert execute() delegates to tool_sender.send_tools() with parsed_response.tool_calls and yields its events, and that process_results() passes session user/session identifiers into tool_result_orchestrator before handing the orchestration result to tool_processing_coordinator.process().",
+  "whyTestsDoNotAlreadyCoverThis": "The feature lists no tests, and the included source excerpt contains no local assertions or contract checks around this lifecycle split.",
+  "suggestedRegressionTest": "Create a pytest async unit test for ToolOrchestrator using fake sender/result-orchestrator/processor objects to verify dispatch events are yielded and result processing receives the exact orchestration result and session.",
+  "minimumFixScope": "Add focused backend unit tests for backend/src/agent/tools/orchestrator.py; no production code change is required unless the intended lifecycle contract differs.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-6e89f1906f_9415f3c76b",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:10:56.887Z",
+  "updatedAt": "2026-05-24T21:10:56.887Z"
+}

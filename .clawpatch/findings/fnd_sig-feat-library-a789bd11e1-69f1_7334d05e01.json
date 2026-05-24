@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-a789bd11e1-69f1_7334d05e01",
+  "featureId": "feat_library_a789bd11e1",
+  "title": "Mixed bundle IDs are treated as one atomic bundle",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/agent/tools/shared/bundle_detection.py",
+      "startLine": 14,
+      "endLine": 32,
+      "symbol": "is_atomic_bundle",
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/tools/shared/bundle_detection.py",
+      "startLine": 35,
+      "endLine": 56,
+      "symbol": "is_atomic_bundle_from_results",
+      "quote": null
+    },
+    {
+      "path": "tests/backend/test_bundle_detection.py",
+      "startLine": 29,
+      "endLine": 46,
+      "symbol": "test_is_atomic_bundle_requires_bundle_id_and_no_request_id",
+      "quote": null
+    }
+  ],
+  "reasoning": "Both bundle detectors only require every call/result to have bundle metadata and no request metadata. They do not verify that all entries belong to the same bundle ID. That means two unrelated bundle fragments with different bundle_id values in the same parsed response or result list can be classified as a single atomic bundle, which can collapse unrelated execution results into one atomic narrative or cause orchestration logic to apply bundle semantics to mixed groups. The existing test covers matching bundle IDs and request_id exclusion, but not mismatched bundle IDs.",
+  "reproduction": null,
+  "recommendation": "Track the first bundle execution reference or bundle_id and require every subsequent tool call/result to match it before returning true.",
+  "whyTestsDoNotAlreadyCoverThis": "The included detection tests only use bundle_id=\"b1\" for all positive examples and never pass multiple distinct bundle IDs.",
+  "suggestedRegressionTest": "Add cases where two ParsedToolCall objects have different bundle_id values and assert both is_atomic_bundle and is_atomic_bundle_from_results return False.",
+  "minimumFixScope": "Update bundle_detection.py to compare bundle identity across calls/results and extend tests/backend/test_bundle_detection.py with mismatched-bundle cases.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-a789bd11e1_69f16c70e7",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:15:32.789Z",
+  "updatedAt": "2026-05-24T21:15:32.789Z"
+}

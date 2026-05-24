@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_3c0324609f",
+  "title": "Python source backend/src/core/infrastructure/error_types",
+  "summary": "Python source group backend/src/core/infrastructure/error_types with 8 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/core/infrastructure/error_types",
+      "symbol": "backend/src/core/infrastructure/error_types",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/core/infrastructure/error_types/__init__.py",
+      "reason": "source group backend/src/core/infrastructure/error_types"
+    },
+    {
+      "path": "backend/src/core/infrastructure/error_types/base.py",
+      "reason": "source group backend/src/core/infrastructure/error_types"
+    },
+    {
+      "path": "backend/src/core/infrastructure/error_types/configuration.py",
+      "reason": "source group backend/src/core/infrastructure/error_types"
+    },
+    {
+      "path": "backend/src/core/infrastructure/error_types/llm.py",
+      "reason": "source group backend/src/core/infrastructure/error_types"
+    },
+    {
+      "path": "backend/src/core/infrastructure/error_types/memory.py",
+      "reason": "source group backend/src/core/infrastructure/error_types"
+    },
+    {
+      "path": "backend/src/core/infrastructure/error_types/session.py",
+      "reason": "source group backend/src/core/infrastructure/error_types"
+    },
+    {
+      "path": "backend/src/core/infrastructure/error_types/tooling.py",
+      "reason": "source group backend/src/core/infrastructure/error_types"
+    },
+    {
+      "path": "backend/src/core/infrastructure/error_types/trust_boundary.py",
+      "reason": "source group backend/src/core/infrastructure/error_types"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-3c0324609f-4510_454e77abba"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=30016 bytes; approxTokens=7504; includedFiles=8; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:07:32.281Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:07:32.281Z"
+}

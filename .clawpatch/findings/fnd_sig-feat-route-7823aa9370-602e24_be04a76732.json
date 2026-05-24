@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-7823aa9370-602e24_be04a76732",
+  "featureId": "feat_route_7823aa9370",
+  "title": "System prompt debug route is exposed without route-level authorization",
+  "category": "security",
+  "severity": "high",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 444,
+      "endLine": 465,
+      "symbol": "sdk_debug_system_prompt",
+      "quote": null
+    }
+  ],
+  "reasoning": "The GET /api/sdk/system-prompt handler accepts network query parameters, including user_id/model selection, builds the effective debug config, and returns the raw system_prompt. The route signature has no visible authentication, authorization, or debug-mode guard dependency, so any caller able to reach this SDK router could retrieve internal prompt instructions and potentially request another user's effective prompt by supplying user_id. If this router is mounted only behind a global auth/debug gate elsewhere, that would mitigate the issue, but no such protection is present in the included owned file.",
+  "reproduction": null,
+  "recommendation": "Require an explicit authorization/debug capability check for this route before building or returning the prompt. Bind user_id to the authenticated principal or remove arbitrary user_id selection unless the caller has an admin/debug permission. Consider returning redacted prompt metadata by default and raw prompt text only under a deliberate debug flag.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for this feature, and the excerpt does not show any route-level test asserting unauthorized callers are rejected or that user_id is constrained to the caller.",
+  "suggestedRegressionTest": "Add FastAPI route tests for GET /api/sdk/system-prompt covering unauthenticated rejection, non-admin cross-user user_id rejection, and authorized debug/admin access returning the expected response shape.",
+  "minimumFixScope": "backend/src/api/routes/sdk/router.py route dependency or shared SDK debug-route guard used by this handler",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-7823aa9370_602e240e71",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:22:00.052Z",
+  "updatedAt": "2026-05-24T21:22:00.052Z"
+}

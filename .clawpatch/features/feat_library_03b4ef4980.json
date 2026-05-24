@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_03b4ef4980",
+  "title": "Python source backend/src/agent/tools/sending",
+  "summary": "Python source group backend/src/agent/tools/sending with 4 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/agent/tools/sending",
+      "symbol": "backend/src/agent/tools/sending",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/agent/tools/sending/__init__.py",
+      "reason": "source group backend/src/agent/tools/sending"
+    },
+    {
+      "path": "backend/src/agent/tools/sending/execution_envelope.py",
+      "reason": "source group backend/src/agent/tools/sending"
+    },
+    {
+      "path": "backend/src/agent/tools/sending/execution_lanes.py",
+      "reason": "source group backend/src/agent/tools/sending"
+    },
+    {
+      "path": "backend/src/agent/tools/sending/sender.py",
+      "reason": "source group backend/src/agent/tools/sending"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-03b4ef4980-cdae_696811e960"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=27583 bytes; approxTokens=6896; includedFiles=4; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:03:28.606Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:03:28.606Z"
+}

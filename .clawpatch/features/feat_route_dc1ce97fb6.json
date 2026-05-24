@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_route_dc1ce97fb6",
+  "title": "FastAPI route POST /api/sdk/ocr/overlay",
+  "summary": "FastAPI route POST /api/sdk/ocr/overlay handled by sdk_ocr_overlay in backend/src/api/routes/sdk/router.py.",
+  "kind": "route",
+  "source": "python-fastapi-route",
+  "confidence": "high",
+  "entrypoints": [
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "symbol": "sdk_ocr_overlay",
+      "route": "POST /api/sdk/ocr/overlay",
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "reason": "FastAPI route handler sdk_ocr_overlay"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "fastapi",
+    "route"
+  ],
+  "trustBoundaries": [
+    "network",
+    "user-input",
+    "serialization",
+    "auth"
+  ],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-route-dc1ce97fb6-e59d29_366c1999ca",
+    "fnd_sig-feat-route-dc1ce97fb6-2bea74_3a2401dd24"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=24786 bytes; approxTokens=6197; includedFiles=1; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:22:53.626Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:22:53.626Z"
+}

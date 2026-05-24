@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_d66dd70414",
+  "title": "Node package windieos",
+  "summary": "Node package windieos with package metadata and review context rooted at frontend.",
+  "kind": "library",
+  "source": "node-package",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "frontend/package.json",
+      "symbol": "windieos",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "frontend/package.json",
+      "reason": "package manifest"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "frontend/src/main/index.cjs",
+      "reason": "package entrypoint"
+    },
+    {
+      "path": "frontend/src/landing/LandingPage.jsx",
+      "reason": "package source overview"
+    },
+    {
+      "path": "frontend/src/landing/components/AvailableTodaySection.jsx",
+      "reason": "package source overview"
+    },
+    {
+      "path": "frontend/src/landing/components/CTAFooter.jsx",
+      "reason": "package source overview"
+    },
+    {
+      "path": "frontend/src/landing/components/HeroSection.jsx",
+      "reason": "package source overview"
+    },
+    {
+      "path": "frontend/src/landing/components/HowItWorksSection.jsx",
+      "reason": "package source overview"
+    },
+    {
+      "path": "frontend/src/landing/components/PrivacySection.jsx",
+      "reason": "package source overview"
+    },
+    {
+      "path": "frontend/src/landing/components/RoadmapSection.jsx",
+      "reason": "package source overview"
+    },
+    {
+      "path": "frontend/src/landing/components/SectionIntro.jsx",
+      "reason": "package source overview"
+    },
+    {
+      "path": "frontend/src/landing/components/WhySection.jsx",
+      "reason": "package source overview"
+    },
+    {
+      "path": "frontend/src/landing/components/icons/ProviderStackIcon.jsx",
+      "reason": "package source overview"
+    },
+    {
+      "path": "frontend/src/landing/main.jsx",
+      "reason": "package source overview"
+    },
+    {
+      "path": "frontend/src/main/agent_capability_handshake.cjs",
+      "reason": "package source overview"
+    },
+    {
+      "path": "frontend/src/main/agent_definition.cjs",
+      "reason": "package source overview"
+    },
+    {
+      "path": "frontend/src/main/agent_stop_shortcut_runtime.cjs",
+      "reason": "package source overview"
+    },
+    {
+      "path": "frontend/src/main/agent_sudo_access_handler.cjs",
+      "reason": "package source overview"
+    },
+    {
+      "path": "frontend/src/main/app_menu_runtime.cjs",
+      "reason": "package source overview"
+    },
+    {
+      "path": "frontend/src/main/backend_endpoints.cjs",
+      "reason": "package source overview"
+    },
+    {
+      "path": "frontend/src/main/chat_pill_trace_runtime.cjs",
+      "reason": "package source overview"
+    },
+    {
+      "path": "frontend/src/main/chat_pill_visibility_intent_store.cjs",
+      "reason": "package source overview"
+    },
+    {
+      "path": "frontend/src/main/display_affinity_runtime.cjs",
+      "reason": "package source overview"
+    },
+    {
+      "path": "frontend/src/main/display_query_handler.cjs",
+      "reason": "package source overview"
+    },
+    {
+      "path": "frontend/src/main/extension_manifest.cjs",
+      "reason": "package source overview"
+    },
+    {
+      "path": "frontend/src/main/gpu_runtime.cjs",
+      "reason": "package source overview"
+    }
+  ],
+  "tests": [],
+  "tags": [
+    "node",
+    "package",
+    "project:windieos",
+    "project-root:frontend",
+    "workspace"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-d66dd70414-fcc5_38e418e033",
+    "fnd_sig-feat-library-d66dd70414-cf58_b6c6cc7e45"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=154126 bytes; approxTokens=38528; includedFiles=25; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:18:25.425Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:18:25.425Z"
+}

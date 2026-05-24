@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-0542387a45-91ec_a1b4b7b8bc",
+  "featureId": "feat_library_0542387a45",
+  "title": "Audit sanitization can still retain or materialize large parameter payloads",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "backend/src/core/security/policy.py",
+      "startLine": 44,
+      "endLine": 70,
+      "symbol": "ToolExecutionAudit",
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/security/policy.py",
+      "startLine": 107,
+      "endLine": 137,
+      "symbol": "ToolExecutionAudit._sanitize_parameters",
+      "quote": null
+    }
+  ],
+  "reasoning": "The audit entry explicitly promises bounded memory use for large parameters, but excluded keys call len(str(value)), which can materialize an entire large payload just to report its size. Non-string, non-dict, non-list values are also stored as-is, so large bytes, bytearrays, tuples, custom containers, or objects under non-excluded keys can remain in the capped deque. A capped entry count does not prevent memory exhaustion if each retained entry can contain large objects.",
+  "reproduction": null,
+  "recommendation": "Avoid stringifying excluded values for size reporting unless the value has a cheap length, and sanitize or summarize all non-scalar values instead of preserving them by reference. Treat bytes-like values and generic containers as bounded summaries, and only keep primitive scalar values directly.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for audit sanitization, and the excerpted implementation contains comments for prior recursion and memory-DoS fixes without coverage evidence for bytes-like or generic object payloads.",
+  "suggestedRegressionTest": "Add tests that create ToolExecutionAudit entries with very large bytes/bytearray values, excluded-key objects whose __str__ is expensive or huge, nested containers, and arbitrary objects, then assert the sanitized parameters contain bounded summaries and do not retain the original payload object.",
+  "minimumFixScope": "ToolExecutionAudit._sanitize_parameters and focused backend security-policy tests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-0542387a45_91ec244b97",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:03:29.809Z",
+  "updatedAt": "2026-05-24T21:03:29.809Z"
+}

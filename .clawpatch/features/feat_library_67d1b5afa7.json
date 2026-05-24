@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_67d1b5afa7",
+  "title": "Python source backend/src/agent/session",
+  "summary": "Python source group backend/src/agent/session with 10 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/agent/session",
+      "symbol": "backend/src/agent/session",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/agent/session/__init__.py",
+      "reason": "source group backend/src/agent/session"
+    },
+    {
+      "path": "backend/src/agent/session/active_query_tracker.py",
+      "reason": "source group backend/src/agent/session"
+    },
+    {
+      "path": "backend/src/agent/session/config_runtime.py",
+      "reason": "source group backend/src/agent/session"
+    },
+    {
+      "path": "backend/src/agent/session/conversation_refs.py",
+      "reason": "source group backend/src/agent/session"
+    },
+    {
+      "path": "backend/src/agent/session/initializer.py",
+      "reason": "source group backend/src/agent/session"
+    },
+    {
+      "path": "backend/src/agent/session/lifecycle.py",
+      "reason": "source group backend/src/agent/session"
+    },
+    {
+      "path": "backend/src/agent/session/manager.py",
+      "reason": "source group backend/src/agent/session"
+    },
+    {
+      "path": "backend/src/agent/session/message_builders.py",
+      "reason": "source group backend/src/agent/session"
+    },
+    {
+      "path": "backend/src/agent/session/runtime_state.py",
+      "reason": "source group backend/src/agent/session"
+    },
+    {
+      "path": "backend/src/agent/session/state.py",
+      "reason": "source group backend/src/agent/session"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_active_query_tracker.py",
+      "reason": "associated test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_active_query_tracker.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-67d1b5afa7-0456_a80b718689"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=79410 bytes; approxTokens=19853; includedFiles=11; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:10:32.664Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:10:32.664Z"
+}

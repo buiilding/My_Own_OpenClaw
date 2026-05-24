@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-f05dc711c2-6392_d1a93dc336",
+  "featureId": "feat_library_f05dc711c2",
+  "title": "Schema normalizer cannot accept the top-level function schema shape it appears to normalize",
+  "category": "api-contract",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/infrastructure/transcript/toolSchemaShape.ts",
+      "startLine": 16,
+      "endLine": 24,
+      "symbol": "normalizeFunctionToolSchema",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/transcript/toolSchemaShape.ts",
+      "startLine": 46,
+      "endLine": 60,
+      "symbol": "isSupportedToolSchema",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/transcript/toolSchemaShape.ts",
+      "startLine": 62,
+      "endLine": 71,
+      "symbol": "normalizeToolSchema",
+      "quote": null
+    }
+  ],
+  "reasoning": "normalizeFunctionToolSchema has an explicit branch for schemas with top-level name and parameters, but normalizeToolSchema calls isSupportedToolSchema first, and that guard rejects every object without a string type before checking the function shape. As a result, a schema shaped as {name, parameters} can never reach the normalization branch that would wrap it as {type: 'function', function: ...}. If transparency payloads can contain that legacy/top-level function shape, the entire toolSchemas list is dropped by normalizeToolSchemaList rather than normalized.",
+  "reproduction": null,
+  "recommendation": "Either remove the unreachable top-level normalization branch if the contract requires type: 'function', or update isSupportedToolSchema/normalizeToolSchema to allow top-level {name, parameters} and normalize it consistently.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for tool schema normalization, and the unreachable branch would only be caught by a test using a top-level {name, parameters} schema without type.",
+  "suggestedRegressionTest": "Add a normalizeToolSchemaList test with a top-level {name: 'x', parameters: {...}} item and assert it either normalizes to a function schema or is intentionally rejected after removing the dead branch.",
+  "minimumFixScope": "Align isSupportedToolSchema with normalizeFunctionToolSchema, plus a focused unit test for the accepted/rejected schema shapes.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-f05dc711c2_63924996f2",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:19:37.429Z",
+  "updatedAt": "2026-05-24T21:19:37.429Z"
+}

@@ -1,0 +1,189 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_test-suite_22a4ebb34a",
+  "title": "Python test suite tests/backend#9",
+  "summary": "Python pytest files in tests/backend#9.",
+  "kind": "test-suite",
+  "source": "python-test-suite",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "tests/backend#9",
+      "symbol": "tests/backend#9",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "tests/backend/test_provider_health_policy.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_provider_native_reasoning.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_query_event_extraction.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_query_execution_cancellation.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_query_execution_inputs.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_query_execution_pipeline_events.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_query_execution_service_helpers.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_query_execution_stream_state.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_rehydrate_execution_service.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_rehydrate_tool_call_normalization.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_rehydrate_tool_linkage_repair.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_rehydrate_transparency_resolution.py",
+      "reason": "pytest file"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_provider_health_policy.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_provider_native_reasoning.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_query_event_extraction.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_query_execution_cancellation.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_query_execution_inputs.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_query_execution_pipeline_events.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_query_execution_service_helpers.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_query_execution_stream_state.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_rehydrate_execution_service.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_rehydrate_tool_call_normalization.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_rehydrate_tool_linkage_repair.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_rehydrate_transparency_resolution.py",
+      "reason": "nearby test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_provider_health_policy.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_provider_native_reasoning.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_query_event_extraction.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_query_execution_cancellation.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_query_execution_inputs.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_query_execution_pipeline_events.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_query_execution_service_helpers.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_query_execution_stream_state.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_rehydrate_execution_service.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_rehydrate_tool_call_normalization.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_rehydrate_tool_linkage_repair.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_rehydrate_transparency_resolution.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "test"
+  ],
+  "trustBoundaries": [],
+  "status": "reviewed",
+  "lock": null,
+  "findingIds": [],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "0 finding(s); prompt=99673 bytes; approxTokens=24919; includedFiles=12; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:23:47.465Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:23:47.465Z"
+}

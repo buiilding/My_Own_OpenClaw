@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-b547bec35e-27dbae_e06df161cf",
+  "featureId": "feat_route_b547bec35e",
+  "title": "Artifact retrieval allows unauthenticated owner context",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/artifacts/router.py",
+      "startLine": 47,
+      "endLine": 59,
+      "symbol": "get_artifact",
+      "quote": null
+    }
+  ],
+  "reasoning": "The GET route is network-accessible and does not require an authenticated dependency before serving a FileResponse. It calls get_current_authenticated_install_identity(), but treats a missing identity as acceptable and passes owner_user_id=None into artifact resolution. If artifacts are expected to be scoped to an authenticated install/user, this creates an anonymous retrieval path for any artifact resolvable under the None owner context, including artifacts uploaded without identity or any store behavior that falls back when the owner is absent.",
+  "reproduction": null,
+  "recommendation": "Require authentication for artifact retrieval when artifacts are private, or explicitly separate public artifacts from owner-scoped artifacts and reject unauthenticated requests for owner-scoped data before resolving the file path.",
+  "whyTestsDoNotAlreadyCoverThis": "The feature metadata includes no linked tests, and the shown route has no evidence of coverage for unauthenticated GET requests or owner mismatch behavior.",
+  "suggestedRegressionTest": "Add a route-level test that uploads or registers an artifact under one authenticated identity, then verifies GET /api/artifacts/{artifact_id} returns 401/403 for no identity and 404/403 for a different identity while succeeding for the owner.",
+  "minimumFixScope": "Update get_artifact authentication/authorization handling and add focused backend route tests for unauthenticated, wrong-owner, and owner retrieval cases.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-b547bec35e_27dbaeb219",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:22:29.380Z",
+  "updatedAt": "2026-05-24T21:22:29.380Z"
+}

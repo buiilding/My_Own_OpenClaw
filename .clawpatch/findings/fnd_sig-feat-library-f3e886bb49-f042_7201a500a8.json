@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-f3e886bb49-f042_7201a500a8",
+  "featureId": "feat_library_f3e886bb49",
+  "title": "recordKind options are exposed but not honored",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/infrastructure/transcript/localConversationStore.ts",
+      "startLine": 7,
+      "endLine": 26,
+      "symbol": "ListStoredConversationsOptions/SearchStoredConversationsOptions/LoadStoredConversationEntriesOptions",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/transcript/localConversationStore.ts",
+      "startLine": 49,
+      "endLine": 64,
+      "symbol": "listStoredConversations",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/transcript/localConversationStore.ts",
+      "startLine": 76,
+      "endLine": 92,
+      "symbol": "searchStoredConversations",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/transcript/localConversationStore.ts",
+      "startLine": 106,
+      "endLine": 128,
+      "symbol": "loadStoredConversationEntries",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/transcript/conversationLocalSnapshotLoader.ts",
+      "startLine": 30,
+      "endLine": 43,
+      "symbol": "loadLocalConversationSnapshot",
+      "quote": null
+    }
+  ],
+  "reasoning": "The public option types include recordKind and loadLocalConversationSnapshot forwards a recordKind to loadStoredConversationEntries, but the local store functions hard-code CHAT_EVENT_RECORD_KIND in every IPC payload. loadStoredConversationEntries does not destructure recordKind at all. Any caller requesting a non-default record kind receives chat_event data instead, which can load, search, or list the wrong transcript records.",
+  "reproduction": null,
+  "recommendation": "Destructure recordKind with a default of CHAT_EVENT_RECORD_KIND in all affected functions and pass the normalized value through to IPC payloads. If non-chat record kinds are no longer supported, remove the option from the types and callers.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for non-default recordKind propagation from snapshot loading or local store calls into IPC payloads.",
+  "suggestedRegressionTest": "Inject/mock IpcBridge.invoke, call loadStoredConversationEntries/listStoredConversations/searchStoredConversations with a custom recordKind, and assert the IPC payload uses that custom value.",
+  "minimumFixScope": "Fix recordKind propagation in localConversationStore and verify loadLocalConversationSnapshot's recordKind reaches GET_CHAT_EVENTS.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-f3e886bb49_f042c1a7fd",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:20:05.647Z",
+  "updatedAt": "2026-05-24T21:20:05.647Z"
+}

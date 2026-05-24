@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-29233be3bb-40a54f_a3a9f83fa4",
+  "featureId": "feat_route_29233be3bb",
+  "title": "Vision locate route has no visible authentication or authorization dependency",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 67,
+      "endLine": 67,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 296,
+      "endLine": 306,
+      "symbol": "sdk_vision_locate",
+      "quote": null
+    }
+  ],
+  "reasoning": "The SDK router is declared without router-level dependencies in the included file, and POST /api/sdk/vision/locate accepts network user input and invokes vision location work using only the request body and container dependency. If this router is mounted without an external auth wrapper, any network caller can submit images/descriptions for backend vision processing. Because the excerpt does not show the application mount site, this is reported with medium confidence rather than high confidence.",
+  "reproduction": null,
+  "recommendation": "Add an explicit auth/session dependency to the SDK router or this route, or document and test the mount-level dependency that protects it. Keep the authorization check close enough to the route that future router reuse cannot accidentally expose the endpoint.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for this feature, and the provided file shows no route-level test asserting unauthorized requests are rejected.",
+  "suggestedRegressionTest": "Add a FastAPI route test for POST /api/sdk/vision/locate that verifies requests without the required auth/session context receive 401/403, plus an authorized request still reaches the vision service path with mocked dependencies.",
+  "minimumFixScope": "backend/src/api/routes/sdk/router.py and the corresponding SDK route tests",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-29233be3bb_40a54f05c2",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:20:59.174Z",
+  "updatedAt": "2026-05-24T21:20:59.174Z"
+}

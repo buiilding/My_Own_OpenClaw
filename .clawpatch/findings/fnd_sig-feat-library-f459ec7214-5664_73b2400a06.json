@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-f459ec7214-5664_73b2400a06",
+  "featureId": "feat_library_f459ec7214",
+  "title": "Root logging profile changes can be skipped after any handler is installed",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/core/logging_setup.py",
+      "startLine": 102,
+      "endLine": 117,
+      "symbol": "configure_logging",
+      "quote": null
+    },
+    {
+      "path": "tests/backend/test_logging_setup.py",
+      "startLine": 12,
+      "endLine": 48,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "configure_logging computes the intended root level from the selected profile or LOG_LEVEL, but applies it only through logging.basicConfig. In Python, basicConfig is a no-op once the root logger already has handlers, which is common when a server, test harness, or embedding host initializes logging first. In that case the profile-specific root level and format are silently not applied, while the function still proceeds to mutate selected named loggers, leaving logging in a partially configured state. The included tests cover constants and the LiteLLM helper, but they do not exercise configure_logging with a pre-existing root handler, so this regression would pass.",
+  "reproduction": "Install any root handler before calling configure_logging, then call configure_logging(profile=\"verbose\") and observe that the root logger level/format is not changed by logging.basicConfig.",
+  "recommendation": "Make configure_logging explicitly set the root logger level and either pass force=True to basicConfig where acceptable or update existing handlers intentionally. If preserving existing handlers is required, document that behavior and set only the root level directly.",
+  "whyTestsDoNotAlreadyCoverThis": "The current tests import _IMPORTANT_PROFILE_LOGGERS and _configure_litellm_runtime_flags only; they never call configure_logging or simulate an already-configured root logger.",
+  "suggestedRegressionTest": "Add a test that attaches a temporary root handler, calls configure_logging(profile=\"verbose\") with LOG_LEVEL unset, and asserts the root logger is set to DEBUG or that the intended handler policy is applied deterministically.",
+  "minimumFixScope": "backend/src/core/logging_setup.py plus focused tests in tests/backend/test_logging_setup.py",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-f459ec7214_56641183af",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:19:56.180Z",
+  "updatedAt": "2026-05-24T21:19:56.180Z"
+}

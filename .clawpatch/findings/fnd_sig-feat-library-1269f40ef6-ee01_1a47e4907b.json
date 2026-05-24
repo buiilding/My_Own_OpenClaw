@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-1269f40ef6-ee01_1a47e4907b",
+  "featureId": "feat_library_1269f40ef6",
+  "title": "Successful destructive IPC can be reported as a failed delete if the UI callback throws",
+  "category": "bug",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/features/dashboard/components/sections/settings/useMemorySettingsActions.js",
+      "startLine": 34,
+      "endLine": 56,
+      "symbol": "runDestructiveAction",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/dashboard/components/sections/settings/useMemorySettingsActions.js",
+      "startLine": 67,
+      "endLine": 73,
+      "symbol": "clearChatHistory",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/dashboard/components/sections/settings/MemorySettingsTab.jsx",
+      "startLine": 41,
+      "endLine": 43,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "runDestructiveAction treats the optional onSuccess callback as part of the destructive operation. For chat deletion, the IPC clear can succeed and already delete the data, but if onChatsCleared throws or rejects, the catch path changes the status to an error and returns false. That misreports the persisted result and can lead users to retry or distrust the state after data has already been removed.",
+  "reproduction": null,
+  "recommendation": "Separate destructive IPC success from post-success UI refresh. Set the delete success state after a successful IPC response, then handle onSuccess errors independently with a refresh-specific warning or by logging them without changing the deletion result.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for MemorySettingsTab or useMemorySettingsActions, especially the partial-success path where IPC succeeds but the callback fails.",
+  "suggestedRegressionTest": "Mock CLEAR_CHAT_HISTORY to resolve successfully and pass an onChatsCleared callback that rejects; assert the hook reports the chat deletion as successful or a distinct refresh warning rather than a destructive-action failure.",
+  "minimumFixScope": "useMemorySettingsActions success/error ordering plus a hook or component regression test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-1269f40ef6_ee011e958a",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:05:48.629Z",
+  "updatedAt": "2026-05-24T21:05:48.629Z"
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-69a1f66229-2bb8d3_4449b06cd4",
+  "featureId": "feat_route_69a1f66229",
+  "title": "Tool schema route lacks focused regression coverage",
+  "category": "test-gap",
+  "severity": "low",
+  "confidence": "high",
+  "triage": "test-gap",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 381,
+      "endLine": 406,
+      "symbol": "sdk_debug_tool_schemas",
+      "quote": null
+    }
+  ],
+  "reasoning": "The feature exposes a network route that resolves effective debug config from query parameters and serializes both canonical and provider tool schemas, but no tests are linked for the route. Without focused coverage, regressions in query parameter handling, config snapshot serialization, or canonical/provider schema separation could ship unnoticed.",
+  "reproduction": null,
+  "recommendation": "Add route-level tests that exercise the default request, model/provider overrides, interaction_mode values, and response shape for canonical_tool_schemas and provider_tool_schemas.",
+  "whyTestsDoNotAlreadyCoverThis": "The feature metadata lists no tests, so there is no first-class evidence that this route behavior is covered.",
+  "suggestedRegressionTest": "Use the FastAPI test client with a mocked container/session manager to assert GET /api/sdk/tool-schemas returns the expected config snapshot and separates canonical and provider schemas for chat and agent interaction modes.",
+  "minimumFixScope": "Add focused tests under tests/backend for backend/src/api/routes/sdk/router.py.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-69a1f66229_2bb8d3f48b",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:21:50.125Z",
+  "updatedAt": "2026-05-24T21:21:50.125Z"
+}

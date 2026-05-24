@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-9d744ac113-cab9_9352de8975",
+  "featureId": "feat_library_9d744ac113",
+  "title": "Python error status does not clear supervisor readiness",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "frontend/src/main/wakeword_bridge_runtime.cjs",
+      "startLine": 31,
+      "endLine": 37,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/wakeword_bridge.cjs",
+      "startLine": 127,
+      "endLine": 132,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/wakeword_bridge.cjs",
+      "startLine": 273,
+      "endLine": 275,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The stderr runtime helper treats a JSON status:error message as a readiness transition by calling setIsPythonReady(false) and emitting ready:false. The bridge-provided setter ignores false values and only calls markReady when nextReady is true, so the supervisor snapshot remains ready after the service reports an error. sendAudioChunk gates on the supervisor snapshot, not the emitted renderer status, so audio can continue being written to a service that has reported it is no longer ready or healthy.",
+  "reproduction": null,
+  "recommendation": "Make the bridge setter handle false by clearing or explicitly marking the supervisor not-ready/error state, or change the helper contract to accept dedicated markReady/markError callbacks and update the supervisor consistently before emitting status.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for stderr error status handling or for the supervisor state used by sendAudioChunk after an error status.",
+  "suggestedRegressionTest": "Add a wakeword bridge/runtime test that feeds a stderr JSON line with status:error after a ready transition, then asserts the supervisor snapshot is no longer ready and sendAudioChunk does not write to stdin.",
+  "minimumFixScope": "Update the bridge/runtime readiness callback contract and add focused coverage for status:error transitions.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-9d744ac113_cab9ba8615",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:14:48.068Z",
+  "updatedAt": "2026-05-24T21:14:48.068Z"
+}

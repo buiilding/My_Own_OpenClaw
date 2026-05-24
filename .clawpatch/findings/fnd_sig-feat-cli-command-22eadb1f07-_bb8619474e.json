@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-cli-command-22eadb1f07-_bb8619474e",
+  "featureId": "feat_cli-command_22eadb1f07",
+  "title": "main reads argv entries as raw float buffers without validating argument count or alignment",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "frontend/python-runtime/lib/python3.11/site-packages/numpy/distutils/checks/cpu_neon_vfpv4.c",
+      "startLine": 6,
+      "endLine": 18,
+      "symbol": "main",
+      "quote": null
+    }
+  ],
+  "reasoning": "The executable entrypoint accepts arbitrary CLI invocation but immediately casts argv strings to float and double pointers and reads multiple elements. With no user arguments, line 8 reads from argv[0] as a float buffer; on AArch64 line 14 uses argv[argc-2], which is out of bounds when argc is 1. Even with arguments, argv memory is byte strings, not guaranteed to be suitably sized or aligned for float/double vector loads, so running this as a command can return meaningless results or crash.",
+  "reproduction": "Build and run the command with no additional arguments on a target where this file compiles; the code will derive src from argv[0] and, on AArch64, src2 from argv[-1].",
+  "recommendation": "If this is meant to be runnable, validate argc before indexing, parse numeric arguments into properly aligned float/double arrays, and return a clear usage error on invalid input. If this is only a compile-time CPU feature probe, prevent it from being exposed or treated as a user-facing CLI command.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for this feature, and the excerpt shows no defensive path for invalid invocation.",
+  "suggestedRegressionTest": "Add a test that invokes the built probe with zero and insufficient arguments and asserts a deterministic non-crashing usage error, or add a detection test ensuring compile-only NumPy distutils probes are excluded from CLI feature registration.",
+  "minimumFixScope": "Limit the change to this probe's entrypoint behavior or to the feature discovery logic that classifies vendored compile checks as runnable commands.",
+  "status": "false-positive",
+  "history": [
+    {
+      "runId": null,
+      "kind": "triage",
+      "status": "false-positive",
+      "note": "Excluded vendored frontend/python-runtime dependency probe from WindieOS-owned review scope",
+      "reasoning": null,
+      "commands": [],
+      "createdAt": "2026-05-24T21:02:45.679Z"
+    }
+  ],
+  "signature": "sig_feat-cli-command-22eadb1f07_b4d204ceaf",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210113-a6c478",
+  "createdAt": "2026-05-24T21:01:39.916Z",
+  "updatedAt": "2026-05-24T21:02:45.679Z"
+}

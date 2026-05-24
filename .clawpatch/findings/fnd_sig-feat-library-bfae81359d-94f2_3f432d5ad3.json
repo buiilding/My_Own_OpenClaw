@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-bfae81359d-94f2_3f432d5ad3",
+  "featureId": "feat_library_bfae81359d",
+  "title": "Unauthenticated semantic requests can choose an arbitrary user_id",
+  "category": "security",
+  "severity": "high",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/memory/semantic/router.py",
+      "startLine": 103,
+      "endLine": 104,
+      "symbol": "summarize_conversations",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/memory/semantic/router.py",
+      "startLine": 149,
+      "endLine": 150,
+      "symbol": "generate_conversation_title",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/memory/semantic/models.py",
+      "startLine": 21,
+      "endLine": 25,
+      "symbol": "SummarizeRequest.user_id",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/memory/semantic/models.py",
+      "startLine": 58,
+      "endLine": 62,
+      "symbol": "GenerateTitleRequest.user_id",
+      "quote": null
+    }
+  ],
+  "reasoning": "Both semantic routes use the authenticated identity when present, but silently fall back to the caller-supplied request.user_id when no identity is available. The models only validate the shape of user_id, not authorization. If these routes are reachable without an authenticated install identity, a client can request summarization or title generation under another user's session/config by supplying that user_id, because the resolved_user_id is passed into the session-backed service path.",
+  "reproduction": null,
+  "recommendation": "Require an authenticated install identity for these routes, or enforce an explicit local-only trust boundary before accepting request.user_id. If unauthenticated fallback is required for tests or single-user local mode, gate it behind a clearly named configuration flag and reject arbitrary user_id values otherwise.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for authentication fallback or user_id spoofing behavior.",
+  "suggestedRegressionTest": "Add route tests where get_current_authenticated_install_identity returns None and request.user_id names a different/valid user; assert the request is rejected unless an explicit local unauthenticated mode is enabled.",
+  "minimumFixScope": "backend/src/api/routes/memory/semantic/router.py and focused route/auth tests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-bfae81359d_94f2296df3",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:16:41.198Z",
+  "updatedAt": "2026-05-24T21:16:41.198Z"
+}

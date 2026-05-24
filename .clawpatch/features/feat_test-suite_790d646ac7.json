@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_test-suite_790d646ac7",
+  "title": "Python test suite tests/backend#7",
+  "summary": "Python pytest files in tests/backend#7.",
+  "kind": "test-suite",
+  "source": "python-test-suite",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "tests/backend#7",
+      "symbol": "tests/backend#7",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "tests/backend/test_logging_setup.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_logging_utils_shared.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_memory_routes.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_message_handler_registry.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_messages_and_converters.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_mock_llm_browser_client.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_mock_llm_client.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_model_service.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_models_config.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_ocr_coordinate_resolver.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_ocr_service.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_openai_embedding_provider.py",
+      "reason": "pytest file"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_logging_setup.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_logging_utils_shared.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_memory_routes.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_message_handler_registry.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_messages_and_converters.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_mock_llm_browser_client.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_mock_llm_client.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_model_service.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_models_config.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_ocr_coordinate_resolver.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_ocr_service.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_openai_embedding_provider.py",
+      "reason": "nearby test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_logging_setup.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_logging_utils_shared.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_memory_routes.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_message_handler_registry.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_messages_and_converters.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_mock_llm_browser_client.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_mock_llm_client.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_model_service.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_models_config.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_ocr_coordinate_resolver.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_ocr_service.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_openai_embedding_provider.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "test"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-test-suite-790d646ac7-b_348f5c6896"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=108228 bytes; approxTokens=27057; includedFiles=12; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:24:13.728Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:24:13.728Z"
+}

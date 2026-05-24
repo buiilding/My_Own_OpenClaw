@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-service-da2cdbf6a3-8a92_44a7ce34ff",
+  "featureId": "feat_service_da2cdbf6a3",
+  "title": "Sidecar rewrites discard the requested replacement revision",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "packages/windie-sdk-js/src/stores/SidecarConversationStore.ts",
+      "startLine": 205,
+      "endLine": 208,
+      "symbol": "SidecarConversationStore.rewriteConversation",
+      "quote": null
+    },
+    {
+      "path": "packages/windie-sdk-js/src/stores/SidecarConversationStore.ts",
+      "startLine": 313,
+      "endLine": 320,
+      "symbol": "SidecarConversationStore.getRevision",
+      "quote": null
+    },
+    {
+      "path": "packages/windie-sdk-js/src/stores/FileConversationStore.ts",
+      "startLine": 177,
+      "endLine": 189,
+      "symbol": "FileConversationStore.rewriteConversation",
+      "quote": null
+    },
+    {
+      "path": "packages/windie-sdk-js/src/stores/InMemoryConversationStore.ts",
+      "startLine": 73,
+      "endLine": 85,
+      "symbol": "InMemoryConversationStore.rewriteConversation",
+      "quote": null
+    }
+  ],
+  "reasoning": "ConversationRewritePlan carries newRevisionId and the file and memory stores persist that replacement revision after a rewrite. The sidecar store instead deletes the conversation and appends only preservedEvents, then getRevision derives the revision from the last preserved event. If preservedEvents are old events, the rewritten conversation reports the old revision; if preservedEvents is empty, it reports a synthetic rev-stored value. That breaks the ConversationStore contract across store implementations and can make callers believe a rewrite did not advance the conversation revision.",
+  "reproduction": "Call SidecarConversationStore.rewriteConversation with preservedEvents containing events from revision rev-old and newRevisionId rev-new, then call getRevision. The returned revisionId is rev-old rather than rev-new.",
+  "recommendation": "Persist rewrite revision metadata through the sidecar path, either via a dedicated sidecar rewrite RPC that records newRevisionId atomically or by writing an explicit rewrite marker/metadata record that getRevision and listMetadata honor.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were provided, and the included excerpts show no cross-store contract test asserting rewriteConversation produces the same revision behavior for file, memory, and sidecar stores.",
+  "suggestedRegressionTest": "Add a shared ConversationStore contract test for rewriteConversation that runs against InMemoryConversationStore and a mocked SidecarConversationStore runtime, asserting getRevision returns plan.newRevisionId for non-empty and empty preservedEvents.",
+  "minimumFixScope": "SidecarConversationStore rewrite and revision retrieval semantics, plus the sidecar RPC contract if no current method can store rewrite revisions atomically.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-service-da2cdbf6a3_8a92ade7bf",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:23:23.614Z",
+  "updatedAt": "2026-05-24T21:23:23.614Z"
+}

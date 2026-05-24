@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-0a20863e2d-70c2_a6771b83ec",
+  "featureId": "feat_library_0a20863e2d",
+  "title": "One-time IPC listeners cannot be cleaned up before they fire",
+  "category": "performance",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/preload.js",
+      "startLine": 45,
+      "endLine": 59,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The persistent listener API returns a cleanup function that removes the exact subscription, but the one-time listener API registers an anonymous wrapper and returns nothing. If renderer code installs a one-time listener for a channel and the component/request is cancelled or unmounted before the main process emits the event, that listener remains registered until a future event eventually fires. That can leak callbacks and can also deliver a stale event into a renderer flow that no longer owns the request.",
+  "reproduction": null,
+  "recommendation": "Mirror the `on` API shape for `once`: create a named subscription wrapper, register it with `ipcRenderer.once`, and return a cleanup function that calls `ipcRenderer.removeListener(channel, subscription)`.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for the preload IPC listener lifecycle, and the excerpt has no coverage demonstrating cancellation/unmount behavior for one-time listeners.",
+  "suggestedRegressionTest": "Add a preload IPC test with a mocked `ipcRenderer` that calls `window.ipc.once`, invokes the returned cleanup before any event is emitted, and asserts `removeListener` is called with the same channel and wrapper.",
+  "minimumFixScope": "Change only `frontend/src/preload.js` listener registration for `once` and add a focused preload IPC lifecycle test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-0a20863e2d_70c20af4bc",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:03:53.578Z",
+  "updatedAt": "2026-05-24T21:03:53.578Z"
+}

@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_ef7a926afe",
+  "title": "Python source backend/src/services/vm_run_control_support",
+  "summary": "Python source group backend/src/services/vm_run_control_support with 9 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/services/vm_run_control_support",
+      "symbol": "backend/src/services/vm_run_control_support",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/services/vm_run_control_support/__init__.py",
+      "reason": "source group backend/src/services/vm_run_control_support"
+    },
+    {
+      "path": "backend/src/services/vm_run_control_support/vm_run_control_assignment.py",
+      "reason": "source group backend/src/services/vm_run_control_support"
+    },
+    {
+      "path": "backend/src/services/vm_run_control_support/vm_run_control_bulk_stop.py",
+      "reason": "source group backend/src/services/vm_run_control_support"
+    },
+    {
+      "path": "backend/src/services/vm_run_control_support/vm_run_control_event_log.py",
+      "reason": "source group backend/src/services/vm_run_control_support"
+    },
+    {
+      "path": "backend/src/services/vm_run_control_support/vm_run_control_event_payloads.py",
+      "reason": "source group backend/src/services/vm_run_control_support"
+    },
+    {
+      "path": "backend/src/services/vm_run_control_support/vm_run_control_helpers.py",
+      "reason": "source group backend/src/services/vm_run_control_support"
+    },
+    {
+      "path": "backend/src/services/vm_run_control_support/vm_run_control_pending_controls.py",
+      "reason": "source group backend/src/services/vm_run_control_support"
+    },
+    {
+      "path": "backend/src/services/vm_run_control_support/vm_run_control_transitions.py",
+      "reason": "source group backend/src/services/vm_run_control_support"
+    },
+    {
+      "path": "backend/src/services/vm_run_control_support/vm_run_control_worker_state.py",
+      "reason": "source group backend/src/services/vm_run_control_support"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_vm_run_control_assignment.py",
+      "reason": "associated test"
+    },
+    {
+      "path": "tests/backend/test_vm_run_control_bulk_stop.py",
+      "reason": "associated test"
+    },
+    {
+      "path": "tests/backend/test_vm_run_control_event_log.py",
+      "reason": "associated test"
+    },
+    {
+      "path": "tests/backend/test_vm_run_control_event_payloads.py",
+      "reason": "associated test"
+    },
+    {
+      "path": "tests/backend/test_vm_run_control_pending_controls.py",
+      "reason": "associated test"
+    },
+    {
+      "path": "tests/backend/test_vm_run_control_transitions.py",
+      "reason": "associated test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_vm_run_control_assignment.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_vm_run_control_bulk_stop.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_vm_run_control_event_log.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_vm_run_control_event_payloads.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_vm_run_control_pending_controls.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_vm_run_control_transitions.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-ef7a926afe-5f60_19237a6369"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=41448 bytes; approxTokens=10362; includedFiles=15; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:19:19.040Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:19:19.040Z"
+}

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-714d8b406f-c7f0_f14c3e8b82",
+  "featureId": "feat_library_714d8b406f",
+  "title": "Installation-guide CTA points to a download CTA section rather than installation instructions",
+  "category": "bug",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/landing/components/AvailableTodaySection.jsx",
+      "startLine": 78,
+      "endLine": 95,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/landing/components/CTAFooter.jsx",
+      "startLine": 8,
+      "endLine": 23,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "AvailableTodaySection labels the button as 'View Installation Guide' but links it to '#download'. The target section with id='download' is a marketing CTA that says to install locally and links to GitHub; it does not contain installation instructions in the included excerpt. Users looking for setup steps are sent to another CTA instead of an installation guide.",
+  "reproduction": "Click 'View Installation Guide' in the Available Today section. It scrolls to the '#download' CTA section, which does not show installation steps.",
+  "recommendation": "Point the button to an actual installation guide route or documentation URL. If the download CTA is the intended target, rename the button to match the destination, such as 'Download from GitHub' or 'Get Started'.",
+  "whyTestsDoNotAlreadyCoverThis": "No landing-page tests are included, and there is no evidence of a test asserting CTA labels match their target sections.",
+  "suggestedRegressionTest": "Add a render/link test asserting 'View Installation Guide' targets a real installation route or a section containing installation-guide content.",
+  "minimumFixScope": "Change the AvailableTodaySection CTA href or label so the action and destination match.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-714d8b406f_c7f02b85d7",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:11:15.494Z",
+  "updatedAt": "2026-05-24T21:11:15.494Z"
+}

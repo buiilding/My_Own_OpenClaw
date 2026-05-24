@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-59e3cf7639-3167_91addcd9a5",
+  "featureId": "feat_library_59e3cf7639",
+  "title": "Unmount cleanup marks the overlay hidden before sending the hide IPC",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/features/chat/hooks/useResponseOverlayWindowSync.js",
+      "startLine": 37,
+      "endLine": 47,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/hooks/useResponseOverlayWindowSync.js",
+      "startLine": 171,
+      "endLine": 178,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The unmount cleanup resets lastFrameRef.current to the hidden state before calling reportOverlaySize({ visible: false }). reportOverlaySize immediately returns when lastFrameRef.current.visible is already false, so a visible response overlay can be left visible in the main process after the hook unmounts.",
+  "reproduction": null,
+  "recommendation": "Call reportOverlaySize({ visible: false }) before resetting lastFrameRef.current, or add a dedicated hide path that always invokes SET_RESPONSEBOX_SIZE on unmount when the last recorded frame was visible.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for this feature, and the existing package scripts only show that Jest exists, not that this lifecycle path is covered.",
+  "suggestedRegressionTest": "Add a hook/unit test that sets the last frame to visible, unmounts the hook, and asserts IpcBridge.invoke(INVOKE_CHANNELS.SET_RESPONSEBOX_SIZE, { visible: false, width: 0, height: 0 }) is called.",
+  "minimumFixScope": "frontend/src/renderer/features/chat/hooks/useResponseOverlayWindowSync.js",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-59e3cf7639_316725e7e3",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:09:39.162Z",
+  "updatedAt": "2026-05-24T21:09:39.162Z"
+}

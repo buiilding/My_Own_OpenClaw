@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-69aa448df6-0b50_a6d2ce7855",
+  "featureId": "feat_library_69aa448df6",
+  "title": "Failed browser launch leaves OAuth callback promise alive",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "frontend/src/main/openai_codex_oauth.cjs",
+      "startLine": 163,
+      "endLine": 165,
+      "symbol": "waitForOAuthCallback",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/openai_codex_oauth.cjs",
+      "startLine": 268,
+      "endLine": 287,
+      "symbol": "loginOpenAICodexOAuth",
+      "quote": null
+    }
+  ],
+  "reasoning": "loginOpenAICodexOAuth starts waitForOAuthCallback before launching the browser. If openExternal rejects, the catch closes the server and throws, but it never settles or catches waitForCallbackPromise. The promise remains pending until the 10 minute timeout, keeping the timeout handle alive and eventually rejecting without an await/catch path. That can produce an unhandled rejection and unnecessarily keep the process alive after a failed login launch.",
+  "reproduction": "Use a test openExternal implementation that rejects. The function throws immediately, while the callback wait promise remains scheduled until OPENAI_CODEX_LOGIN_TIMEOUT_MS and then rejects independently.",
+  "recommendation": "Add a cancellation/finish path for the callback waiter when browser launch fails, or attach a catch to the waiter before throwing. The cleanup should clear the timeout and close the server through the same finish path used by normal completion.",
+  "whyTestsDoNotAlreadyCoverThis": "No tests are included for openai_codex_oauth.cjs, and the listed scripts only expose Jest plus a shell smoke test.",
+  "suggestedRegressionTest": "Add a Jest test that injects a rejecting openExternal and fake timers, asserts loginOpenAICodexOAuth rejects with the launch error, and asserts no later unhandled callback timeout rejection is produced.",
+  "minimumFixScope": "frontend/src/main/openai_codex_oauth.cjs plus focused Jest coverage.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-69aa448df6_0b50996188",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:10:54.789Z",
+  "updatedAt": "2026-05-24T21:10:54.789Z"
+}

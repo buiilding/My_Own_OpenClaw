@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-f0fc56ef53-0ab9_6d293bd91c",
+  "featureId": "feat_library_f0fc56ef53",
+  "title": "Wakeword backend failures are silently fire-and-forgotten",
+  "category": "api-contract",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/app/runtime/desktopVoiceRuntimeClient.ts",
+      "startLine": 6,
+      "endLine": 9,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "wakewordDetected starts the backend transport request and discards the returned promise without a catch or any caller-visible completion signal. If the SDK-hosted Electron backend rejects or is unavailable, the renderer cannot observe or handle the failure, and the runtime may produce an unhandled rejection depending on the transport implementation.",
+  "reproduction": "Make createDesktopBackendTransport(null).wakewordDetected reject, then call DesktopVoiceRuntimeClient.wakewordDetected and observe that the client neither reports failure nor handles the rejected promise locally.",
+  "recommendation": "Either return the promise from wakewordDetected so callers can handle failure, or catch and route the error through the renderer's established runtime logging/error-reporting path.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are provided for this feature, and there is no evidence of a contract test asserting how wakeword transport failures are surfaced.",
+  "suggestedRegressionTest": "Add a test that stubs wakewordDetected to reject and asserts the client either returns the rejection to the caller or logs/reports it through the chosen error channel.",
+  "minimumFixScope": "Change desktopVoiceRuntimeClient wakewordDetected error handling contract and cover the rejection path.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-f0fc56ef53_0ab98bdbdf",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:19:38.848Z",
+  "updatedAt": "2026-05-24T21:19:38.848Z"
+}

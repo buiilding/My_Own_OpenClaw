@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-4f3ef7d33a-8c5c_6f42f0e25b",
+  "featureId": "feat_library_4f3ef7d33a",
+  "title": "MCP tool registry keeps stale registrations after rediscovery",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/main/mcp_runtime.cjs",
+      "startLine": 282,
+      "endLine": 307,
+      "symbol": "normalizeDiscoveredTool",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/mcp_runtime.cjs",
+      "startLine": 310,
+      "endLine": 339,
+      "symbol": "discoverMcpTools",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/mcp_runtime.cjs",
+      "startLine": 385,
+      "endLine": 399,
+      "symbol": "executeMcpTool",
+      "quote": null
+    }
+  ],
+  "reasoning": "normalizeDiscoveredTool writes every discovered tool into the module-level toolRegistry, but discoverMcpTools never clears registrations for servers or tools that are no longer present. executeMcpTool only rediscoveres when the requested name is missing; if a tool was previously discovered and then removed or disabled from the MCP server configuration, the stale registry entry remains executable against the old cached server registration. That can expose disabled extension tools until cache clear or app restart.",
+  "reproduction": "Discover an MCP server that exposes tool A, then remove or disable that server/tool and call executeMcpTool('A') without clearMcpRuntimeCache. Since toolRegistry still has A, executeMcpTool skips rediscovery and calls the stale registration.",
+  "recommendation": "Make discovery reconcile registry state with the current server specs. For example, remove all registry entries for the affected MCP server before repopulating, or rebuild toolRegistry from the complete discovered set. DisabledTools filtering in buildClientToolManifestWithMcp should also prevent stale execution if executeMcpTool can be reached by name.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests exercise MCP tool removal, disabled server behavior, or registry reconciliation across rediscovery.",
+  "suggestedRegressionTest": "Add a test that discovers a tool, changes the configured MCP servers to remove or disable it, runs discovery again, and asserts hasDiscoveredMcpTool is false and executeMcpTool returns null.",
+  "minimumFixScope": "frontend/src/main/mcp_runtime.cjs registry lifecycle handling in discoverMcpTools/executeMcpTool, plus focused MCP runtime tests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-4f3ef7d33a_8c5cdc557d",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:08:56.555Z",
+  "updatedAt": "2026-05-24T21:08:56.555Z"
+}

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-fe7aecfc70-c90e_742f6f0f3e",
+  "featureId": "feat_library_fe7aecfc70",
+  "title": "Shell execution probes report granted based only on runtime availability",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "frontend/src/main/permission_service_workspace.cjs",
+      "startLine": 55,
+      "endLine": 99,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/permission_service_workspace.cjs",
+      "startLine": 120,
+      "endLine": 135,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/permission_service_workspace.cjs",
+      "startLine": 181,
+      "endLine": 220,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "`probeShellExecution` treats `verifyShellExecutionCapability` success as a granted permission, but the verifier only checks that PowerShell, `osascript`, bash, or sh is available. That means `checkPermissions` can mark `shell_execution` granted on ordinary systems even if the user has never completed the shell-execution authorization flow. The request path runs an elevated authentication prompt, but that result is not persisted and is not what subsequent probes check.",
+  "reproduction": "On macOS, Windows, or Linux with a normal shell runtime installed, run the shell execution probe before any explicit grant; it will return `granted` when the runtime command exists.",
+  "recommendation": "Separate runtime capability from permission grant state. Persist a successful explicit shell-execution grant, and have `probeShellExecution` require that stored grant plus runtime availability before returning `granted`.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for pre-grant shell execution status or the difference between runtime availability and permission authorization.",
+  "suggestedRegressionTest": "Add a test where shell runtime verification succeeds but no stored shell permission exists, and assert `probeShellExecution` returns `needs-action`; then assert a successful request stores a grant and later probes can return granted.",
+  "minimumFixScope": "Update shell execution probe/request state handling and add focused permission-state tests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-fe7aecfc70_c90ecc01fd",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:20:46.267Z",
+  "updatedAt": "2026-05-24T21:20:46.267Z"
+}

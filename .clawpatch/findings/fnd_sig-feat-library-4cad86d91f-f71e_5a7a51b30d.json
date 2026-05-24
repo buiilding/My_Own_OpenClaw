@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-4cad86d91f-f71e_5a7a51b30d",
+  "featureId": "feat_library_4cad86d91f",
+  "title": "Deferred ElevenLabs audio stream can hang forever when no text is produced",
+  "category": "concurrency",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/services/tts_session.py",
+      "startLine": 22,
+      "endLine": 33,
+      "symbol": "_DeferredSpeechService._ensure_service",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/services/tts_session.py",
+      "startLine": 56,
+      "endLine": 62,
+      "symbol": "_DeferredSpeechService.stream_audio",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/services/tts_session.py",
+      "startLine": 82,
+      "endLine": 94,
+      "symbol": "TTSSession.__aenter__",
+      "quote": null
+    },
+    {
+      "path": "tests/backend/test_tts_session.py",
+      "startLine": 58,
+      "endLine": 100,
+      "symbol": "test_tts_session_defers_elevenlabs_initialize_until_first_text_chunk",
+      "quote": null
+    }
+  ],
+  "reasoning": "For ElevenLabs, TTSSession starts the audio streaming task immediately with a deferred proxy, but the proxy's stream_audio waits on _activation_event until process_text initializes the real service. If a query or wakeword path creates the session but never sends text to TTS, stream_audio has no completion path other than task cancellation during cleanup. That leaves a per-request task blocked for the entire request lifetime and makes any manager path that expects the stream generator to finish naturally vulnerable to hangs. The existing test asserts lazy initialization on first text but does not exercise the no-text path or verify stream_audio can terminate without activation.",
+  "reproduction": null,
+  "recommendation": "Give the deferred proxy an explicit closed/no-activation path, such as setting a shutdown event in shutdown/cleanup and having stream_audio return when either activation or shutdown occurs. Alternatively, do not start the streaming task for the deferred ElevenLabs proxy until the first text chunk initializes a real service.",
+  "whyTestsDoNotAlreadyCoverThis": "The TTS tests cover deferred initialization after process_text and cleanup cancellation, but they never iterate stream_audio when no text arrives, so the permanently waiting activation_event path is untested.",
+  "suggestedRegressionTest": "Add an async test that enters an ElevenLabs TTSSession, never calls process_text, invokes/starts stream_audio, exits the session, and asserts the stream task completes or is cleanly cancelled without waiting indefinitely.",
+  "minimumFixScope": "backend/src/api/services/tts_session.py plus tests/backend/test_tts_session.py",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-4cad86d91f_f71e2bc8ab",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:08:39.002Z",
+  "updatedAt": "2026-05-24T21:08:39.002Z"
+}

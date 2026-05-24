@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_714d8b406f",
+  "title": "Node source frontend/src/landing",
+  "summary": "Node/TypeScript source group frontend/src/landing with 11 files.",
+  "kind": "library",
+  "source": "node-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "frontend/package.json",
+      "symbol": "frontend/src/landing",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "frontend/src/landing/LandingPage.jsx",
+      "reason": "source group frontend/src/landing"
+    },
+    {
+      "path": "frontend/src/landing/components/AvailableTodaySection.jsx",
+      "reason": "source group frontend/src/landing"
+    },
+    {
+      "path": "frontend/src/landing/components/CTAFooter.jsx",
+      "reason": "source group frontend/src/landing"
+    },
+    {
+      "path": "frontend/src/landing/components/HeroSection.jsx",
+      "reason": "source group frontend/src/landing"
+    },
+    {
+      "path": "frontend/src/landing/components/HowItWorksSection.jsx",
+      "reason": "source group frontend/src/landing"
+    },
+    {
+      "path": "frontend/src/landing/components/PrivacySection.jsx",
+      "reason": "source group frontend/src/landing"
+    },
+    {
+      "path": "frontend/src/landing/components/RoadmapSection.jsx",
+      "reason": "source group frontend/src/landing"
+    },
+    {
+      "path": "frontend/src/landing/components/SectionIntro.jsx",
+      "reason": "source group frontend/src/landing"
+    },
+    {
+      "path": "frontend/src/landing/components/WhySection.jsx",
+      "reason": "source group frontend/src/landing"
+    },
+    {
+      "path": "frontend/src/landing/components/icons/ProviderStackIcon.jsx",
+      "reason": "source group frontend/src/landing"
+    },
+    {
+      "path": "frontend/src/landing/main.jsx",
+      "reason": "source group frontend/src/landing"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "frontend/package.json",
+      "reason": "package manifest"
+    }
+  ],
+  "tests": [],
+  "tags": [
+    "node",
+    "typescript",
+    "source-group",
+    "project:windieos",
+    "project-root:frontend"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-714d8b406f-e24e_84a519e932",
+    "fnd_sig-feat-library-714d8b406f-c7f0_f14c3e8b82"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=50253 bytes; approxTokens=12560; includedFiles=12; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:11:15.495Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:11:15.495Z"
+}

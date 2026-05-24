@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_c63cead7dc",
+  "title": "Python source backend/src/core/types",
+  "summary": "Python source group backend/src/core/types with 4 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/core/types",
+      "symbol": "backend/src/core/types",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/core/types/__init__.py",
+      "reason": "source group backend/src/core/types"
+    },
+    {
+      "path": "backend/src/core/types/aliases.py",
+      "reason": "source group backend/src/core/types"
+    },
+    {
+      "path": "backend/src/core/types/enums.py",
+      "reason": "source group backend/src/core/types"
+    },
+    {
+      "path": "backend/src/core/types/schemas.py",
+      "reason": "source group backend/src/core/types"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "reviewed",
+  "lock": null,
+  "findingIds": [],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "0 finding(s); prompt=21419 bytes; approxTokens=5355; includedFiles=4; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:17:00.648Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:17:00.648Z"
+}

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-69a1f66229-c4e513_13569a44da",
+  "featureId": "feat_route_69a1f66229",
+  "title": "Tool schema debug route has no route-level authentication or authorization guard",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 67,
+      "endLine": 67,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 381,
+      "endLine": 406,
+      "symbol": "sdk_debug_tool_schemas",
+      "quote": null
+    }
+  ],
+  "reasoning": "The SDK router is created without dependencies, and the GET /api/sdk/tool-schemas handler accepts network-controlled query parameters including user_id, model_id, and model_provider before returning the effective config snapshot plus canonical and provider tool schemas. Within the shown file there is no request, identity, permission, or debug-mode dependency on this route, so any caller able to reach the router can request schema/config projections for arbitrary supplied user/model context. This can expose internal tool availability and provider-specific schema shaping across a network trust boundary. Confidence is medium because application-level middleware outside the provided excerpt could still enforce access control, but there is no route-local protection in the owned file.",
+  "reproduction": null,
+  "recommendation": "Add an explicit authorization/debug-access dependency to this route or the /api/sdk debug route group, and bind user_id to the authenticated principal instead of trusting an arbitrary query parameter when access is user-scoped.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were provided for this feature, and the route excerpt shows no test-only guard or assertion of required auth behavior.",
+  "suggestedRegressionTest": "Add a FastAPI route test that unauthenticated requests to GET /api/sdk/tool-schemas are rejected, and an authorized request can only retrieve schemas for the permitted user/model context.",
+  "minimumFixScope": "backend/src/api/routes/sdk/router.py plus the focused backend route tests for SDK debug access control.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-69a1f66229_c4e51308b6",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:21:50.125Z",
+  "updatedAt": "2026-05-24T21:21:50.125Z"
+}

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-eb603057ae-e315_28b7928c8c",
+  "featureId": "feat_library_eb603057ae",
+  "title": "Initialization lock is shared across threads as an asyncio.Lock",
+  "category": "concurrency",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/core/bootstrap/coordinator.py",
+      "startLine": 52,
+      "endLine": 55,
+      "symbol": "InitializationCoordinator.__init__",
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/bootstrap/coordinator.py",
+      "startLine": 93,
+      "endLine": 102,
+      "symbol": "InitializationCoordinator.initialize",
+      "quote": null
+    }
+  ],
+  "reasoning": "The coordinator documents thread-safe initialization, but it creates one asyncio.Lock and then awaits it from initialize(). The threading.Lock only serializes creation of the asyncio.Lock; it does not make acquiring that asyncio.Lock safe across different threads or event loops. If the same InitializationCoordinator is initialized concurrently from two threads using separate event loops, the shared asyncio.Lock can fail with event-loop affinity errors or fail to provide the intended cross-thread exclusion. That means the advertised protection against multiple concurrent initializations is incomplete exactly in the cross-thread case called out by the comments.",
+  "reproduction": "Create one InitializationCoordinator, start two OS threads, and call asyncio.run(coordinator.initialize(...)) in both threads. Depending on timing and loop binding, one call can raise an asyncio lock/event-loop error instead of the intended serialized initialization/RuntimeError path.",
+  "recommendation": "Use a real cross-thread gate for the whole initialization decision, such as a threading.Lock around a single in-flight initialization future/task owned by one loop, or explicitly make the coordinator single-event-loop only and remove the cross-thread safety claim. If cross-thread calls are supported, serialize entry before touching asyncio primitives and return/raise a deterministic result to losing callers.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for this feature, and the affected path requires concurrent calls from separate threads/event loops rather than ordinary single-loop async tests.",
+  "suggestedRegressionTest": "Add a test that calls initialize() concurrently from two threads with separate event loops and asserts one initialization succeeds while the other fails deterministically with the documented already-initialized error, without asyncio loop-affinity errors.",
+  "minimumFixScope": "backend/src/core/bootstrap/coordinator.py initialization locking strategy and a focused concurrency regression test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-eb603057ae_e315902f3d",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:18:57.430Z",
+  "updatedAt": "2026-05-24T21:18:57.430Z"
+}

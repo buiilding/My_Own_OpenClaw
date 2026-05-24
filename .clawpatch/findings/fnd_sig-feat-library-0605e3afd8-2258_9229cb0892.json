@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-0605e3afd8-2258_9229cb0892",
+  "featureId": "feat_library_0605e3afd8",
+  "title": "Pending voice getUserMedia can start recording after voice mode is disabled",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/features/voice/hooks/useVoiceMode.ts",
+      "startLine": 190,
+      "endLine": 247,
+      "symbol": "startAudioCapture",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/voice/hooks/useVoiceMode.ts",
+      "startLine": 256,
+      "endLine": 272,
+      "symbol": "stopAudioCapture",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/voice/hooks/useVoiceMode.ts",
+      "startLine": 287,
+      "endLine": 319,
+      "symbol": "shutdownVoiceMode effects",
+      "quote": null
+    }
+  ],
+  "reasoning": "startAudioCapture awaits microphone permission and then unconditionally stores the stream, creates an AudioContext, and sets isRecording true. If enabled becomes false or the component unmounts while getUserMedia is pending, shutdownVoiceMode calls stopAudioCapture, but stopAudioCapture returns early when isRecordingRef is still false. When getUserMedia later resolves, capture starts even though voice mode is no longer enabled, leaving microphone tracks and an AudioContext active until another cleanup path happens to run.",
+  "reproduction": "Enable voice mode, let WebSocket connect, trigger startAudioCapture, then disable voice mode or unmount before navigator.mediaDevices.getUserMedia resolves. Resolve getUserMedia afterward; the hook proceeds to create nodes and marks recording true despite disabled state.",
+  "recommendation": "Add a capture generation/cancellation guard like the wakeword hook uses. Increment it on shutdown, check it after each await or resource creation, stop newly acquired tracks and close AudioContext when stale, and check enabledRef before marking recording active.",
+  "whyTestsDoNotAlreadyCoverThis": "No included tests exercise delayed microphone permission or disable/unmount races for useVoiceMode.",
+  "suggestedRegressionTest": "Mock getUserMedia as a deferred promise, disable the hook before resolving it, then assert tracks are stopped, AudioContext is closed, and isRecording remains false.",
+  "minimumFixScope": "useVoiceMode startAudioCapture and shutdown/stop cancellation handling.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-0605e3afd8_22586ea3c5",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:04:01.707Z",
+  "updatedAt": "2026-05-24T21:04:01.707Z"
+}

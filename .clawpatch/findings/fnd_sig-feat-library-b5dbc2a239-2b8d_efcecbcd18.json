@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-b5dbc2a239-2b8d_efcecbcd18",
+  "featureId": "feat_library_b5dbc2a239",
+  "title": "Tail budget trimming can leave invalid orphan tool messages in retained history",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "backend/src/agent/compaction/engine.py",
+      "startLine": 281,
+      "endLine": 286,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/compaction/engine.py",
+      "startLine": 311,
+      "endLine": 320,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/compaction/engine.py",
+      "startLine": 175,
+      "endLine": 187,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The initial split keeps recent history starting at a USER_QUERY, but _fit_tail_to_target_budget then repeatedly removes the first retained tail message one at a time until the tail fits. That trimming is role-agnostic, so it can remove the user message or assistant tool-call message while retaining a following tool result. The final replacement history is then summary + remaining tail, which may contain tool messages without their required preceding assistant tool_calls. That can violate downstream LLM message contracts or make replayed tool context incoherent.",
+  "reproduction": null,
+  "recommendation": "Trim retained tail at conversation-turn/tool-exchange boundaries instead of individual messages. At minimum, when dropping from the tail, drop a whole user turn including assistant tool-call and tool-result sequence, and validate that the replacement history has no orphan tool messages before replacing session history.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included, and there is no evidence of a test that constructs oversized recent tool-use history and validates post-compaction message ordering.",
+  "suggestedRegressionTest": "Create a history with a recent user query, assistant tool_calls, and tool result where the retained tail exceeds target_tokens; after compaction, assert the replacement history either preserves the complete tool-call/result sequence or drops the whole sequence without leaving a leading tool result.",
+  "minimumFixScope": "CompactionEngine._fit_tail_to_target_budget plus focused validation/tests for retained tail role ordering.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-b5dbc2a239_2b8d603f0c",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:16:03.104Z",
+  "updatedAt": "2026-05-24T21:16:03.104Z"
+}

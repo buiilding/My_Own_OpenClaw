@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-test-suite-186a04164d-4_ff5d0a0e91",
+  "featureId": "feat_test-suite_186a04164d",
+  "title": "Settings payload test locks in returning raw provider API keys to the frontend",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "tests/backend/test_settings_payload_builder.py",
+      "startLine": 20,
+      "endLine": 36,
+      "symbol": "test_build_frontend_settings_payload_includes_only_frontend_owned_fields",
+      "quote": null
+    }
+  ],
+  "reasoning": "The test asserts that _build_frontend_settings_payload includes provider_api_keys with the literal api_key value in the payload returned to the frontend. If this payload is exposed to the renderer, browser devtools, logs, or IPC subscribers, it creates a secret exposure path and makes later masking/redaction changes fail this regression test. The test name treats provider_api_keys as frontend-owned, so this may be an intended current contract, but the security impact is concrete enough to flag.",
+  "reproduction": null,
+  "recommendation": "Change the settings payload contract and test to return only non-secret metadata, such as provider enabled state and whether a key is configured, while omitting or masking api_key values. Add a separate write-only update path for changing keys if needed.",
+  "whyTestsDoNotAlreadyCoverThis": "The existing test covers the opposite behavior by asserting the raw api_key is present, so it would fail a secure redaction change.",
+  "suggestedRegressionTest": "Add a test that provider_api_keys entries preserve enabled/configured metadata but do not include raw api_key values in the frontend settings payload.",
+  "minimumFixScope": "Update _build_frontend_settings_payload and this test's expected payload for provider_api_keys redaction.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-test-suite-186a04164d_4be4f7514b",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:23:51.194Z",
+  "updatedAt": "2026-05-24T21:23:51.194Z"
+}

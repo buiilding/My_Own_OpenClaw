@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_route_f4997418a4",
+  "title": "FastAPI route POST /api/embeddings/",
+  "summary": "FastAPI route POST /api/embeddings/ handled by generate_embedding in backend/src/api/routes/memory/embeddings/router.py.",
+  "kind": "route",
+  "source": "python-fastapi-route",
+  "confidence": "high",
+  "entrypoints": [
+    {
+      "path": "backend/src/api/routes/memory/embeddings/router.py",
+      "symbol": "generate_embedding",
+      "route": "POST /api/embeddings/",
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/api/routes/memory/embeddings/router.py",
+      "reason": "FastAPI route handler generate_embedding"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "fastapi",
+    "route"
+  ],
+  "trustBoundaries": [
+    "network",
+    "user-input",
+    "serialization",
+    "auth"
+  ],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-route-f4997418a4-a778f7_5a71ae5890",
+    "fnd_sig-feat-route-f4997418a4-44bf9a_abc42f785d"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=10867 bytes; approxTokens=2717; includedFiles=1; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:22:59.196Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:22:59.196Z"
+}

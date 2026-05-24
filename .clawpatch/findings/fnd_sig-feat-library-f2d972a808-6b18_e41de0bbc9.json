@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-f2d972a808-6b18_e41de0bbc9",
+  "featureId": "feat_library_f2d972a808",
+  "title": "Gate state is computed from stale permission statuses",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/features/permissions/stores/permissionStore.js",
+      "startLine": 66,
+      "endLine": 84,
+      "symbol": "buildStatusStateUpdate",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/permissions/stores/permissionStore.js",
+      "startLine": 162,
+      "endLine": 184,
+      "symbol": "runPermissionProbe/requestPermission",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/permissions/stores/permissionStore.js",
+      "startLine": 192,
+      "endLine": 203,
+      "symbol": "recheckAllPermissions",
+      "quote": null
+    }
+  ],
+  "reasoning": "buildStatusStateUpdate merges or replaces incoming statuses into a local statusesByPermissionId object, but resolveGateState is called with currentState.statusesByPermissionId instead of that newly computed object. Any probe, request, or recheck updates the displayed status map while leaving requiredPermissionIds, missingRequiredPermissions, needsOnboarding, and completedForManifest derived from the old statuses. This can keep onboarding/runtime gating stale after a permission is granted or revoked until a later full bootstrap or unrelated recalculation.",
+  "reproduction": "Grant a required permission through requestPermission or re-run all checks so the returned status has granted=true. The status badge updates from the new status map, but missingRequiredPermissions is recalculated against the previous map and can still list the permission as missing.",
+  "recommendation": "Pass the newly computed statusesByPermissionId into resolveGateState inside buildStatusStateUpdate. Keep the update helper as the single place where status map and gate state are derived together.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for the permission store helper or for gate-state updates after runPermissionProbe, requestPermission, or recheckAllPermissions. A test that asserted both the status map and missingRequiredPermissions after a returned grant would catch this.",
+  "suggestedRegressionTest": "Add a store/unit test that starts with one required permission missing, returns a granted status from RUN_PERMISSION_PROBE or CHECK_PERMISSIONS, and asserts statusesByPermissionId[id].granted is true and missingRequiredPermissions no longer contains that id.",
+  "minimumFixScope": "One-line fix in buildStatusStateUpdate plus a focused permissionStore regression test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-f2d972a808_6b182be241",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:19:39.712Z",
+  "updatedAt": "2026-05-24T21:19:39.712Z"
+}

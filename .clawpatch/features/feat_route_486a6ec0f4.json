@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_route_486a6ec0f4",
+  "title": "FastAPI route POST /api/artifacts/",
+  "summary": "FastAPI route POST /api/artifacts/ handled by upload_artifact in backend/src/api/routes/artifacts/router.py.",
+  "kind": "route",
+  "source": "python-fastapi-route",
+  "confidence": "high",
+  "entrypoints": [
+    {
+      "path": "backend/src/api/routes/artifacts/router.py",
+      "symbol": "upload_artifact",
+      "route": "POST /api/artifacts/",
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/api/routes/artifacts/router.py",
+      "reason": "FastAPI route handler upload_artifact"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "fastapi",
+    "route"
+  ],
+  "trustBoundaries": [
+    "network",
+    "user-input",
+    "serialization",
+    "auth"
+  ],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-route-486a6ec0f4-04c2dc_103be43e5b",
+    "fnd_sig-feat-route-486a6ec0f4-c39696_c30622d862"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=6209 bytes; approxTokens=1553; includedFiles=1; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:21:31.148Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:21:31.148Z"
+}

@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-38cf037009-fa72_09225344c7",
+  "featureId": "feat_library_38cf037009",
+  "title": "Per-instance mutable response state is unsafe for overlapping LLM turns",
+  "category": "concurrency",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/agent/llm/llm_stream_processor.py",
+      "startLine": 68,
+      "endLine": 70,
+      "symbol": "LLMStreamProcessor.__init__",
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/llm/llm_stream_processor.py",
+      "startLine": 93,
+      "endLine": 114,
+      "symbol": "LLMStreamProcessor.get_response",
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/llm/llm_stream_processor.py",
+      "startLine": 127,
+      "endLine": 164,
+      "symbol": "LLMStreamProcessor.get_response",
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/llm/llm_stream_processor.py",
+      "startLine": 207,
+      "endLine": 211,
+      "symbol": "LLMStreamProcessor.get_last_response_payload",
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/llm/llm_stream_processor.py",
+      "startLine": 281,
+      "endLine": 298,
+      "symbol": "LLMStreamProcessor._resolve_previous_response_id",
+      "quote": null
+    }
+  ],
+  "reasoning": "The processor stores turn-local data such as _last_response_payload and prompt fingerprints on the shared processor instance. get_response clears _last_response_payload at the start of every call, then later writes the result payload; _resolve_previous_response_id also reads that shared field to wire OpenAI tool-result continuations. If two get_response generators overlap on the same processor, one turn can clear or overwrite another turn's payload, causing get_last_response_payload to return the wrong tool calls or causing an OpenAI tool-result turn to miss/use the wrong previous_response_id. This is a concrete async race because get_response awaits provider streaming between reads and writes of shared mutable state.",
+  "reproduction": "Start two tasks that iterate the same LLMStreamProcessor.get_response instance concurrently, with one tool-call turn producing a response_id/tool_calls and a second turn starting before the first caller reads get_last_response_payload. The second turn sets _last_response_payload to None at line 114 and can later overwrite it, so the first caller can observe None or the second turn's payload.",
+  "recommendation": "Keep turn-local response payload in a local variable returned or yielded through the response event path, or serialize get_response calls per processor/session with an async lock. For OpenAI previous_response_id continuation, store continuation state under an explicit conversation/tool-call key instead of a single shared last-payload slot.",
+  "whyTestsDoNotAlreadyCoverThis": "All included tests collect one response at a time from a processor instance; none overlap two get_response async generators or read get_last_response_payload while another turn is in flight.",
+  "suggestedRegressionTest": "Add an asyncio test with a controlled fake client that blocks mid-stream, starts a second get_response call on the same processor, then resumes both and asserts each caller sees its own payload and previous_response_id state.",
+  "minimumFixScope": "LLMStreamProcessor response-state ownership and focused async concurrency coverage",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-38cf037009_fa72f91d30",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:07:36.122Z",
+  "updatedAt": "2026-05-24T21:07:36.122Z"
+}

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-dbddb86045-262a_e008d08a88",
+  "featureId": "feat_library_dbddb86045",
+  "title": "Tool-loop response extraction can return a pre-tool response instead of the final answer",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/sdk/agents/response_extractor.py",
+      "startLine": 70,
+      "endLine": 75,
+      "symbol": "extract_response",
+      "quote": null
+    },
+    {
+      "path": "backend/src/sdk/agents/response_extractor.py",
+      "startLine": 76,
+      "endLine": 95,
+      "symbol": "extract_response",
+      "quote": null
+    }
+  ],
+  "reasoning": "FullResponseEvent is described in-code as the LLM response for the current iteration, but the extractor only accepts the first non-empty full response and then refuses to overwrite it. In a tool loop, an earlier iteration may produce a tool-calling response before ToolCallEvent/ToolOutputEvent, while a later iteration produces the actual final answer. Because final_response remains non-empty, the later full response is ignored and StreamingCompleteEvent returns stale pre-tool content.",
+  "reproduction": null,
+  "recommendation": "Track response text per assistant iteration and reset/replace it when a tool call occurs, or prefer the last assistant response observed before StreamingCompleteEvent. Add an explicit test covering a first FullResponseEvent followed by a tool call and then a final FullResponseEvent.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were provided for this feature, and the shown code has no local assertion for multi-iteration tool-loop response selection.",
+  "suggestedRegressionTest": "Create a fake AgentSession whose process_query yields FullResponseEvent('calling tool'), ToolCallEvent, ToolOutputEvent, FullResponseEvent('final answer'), StreamingCompleteEvent, then assert extract_response returns 'final answer'.",
+  "minimumFixScope": "backend/src/sdk/agents/response_extractor.py plus a focused backend SDK test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-dbddb86045_262af4e2bb",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:18:48.999Z",
+  "updatedAt": "2026-05-24T21:18:48.999Z"
+}

@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_59e3cf7639",
+  "title": "Node source frontend/src/renderer/features/chat/hooks#2",
+  "summary": "Node/TypeScript source group frontend/src/renderer/features/chat/hooks#2 with 7 files.",
+  "kind": "library",
+  "source": "node-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "frontend/package.json",
+      "symbol": "frontend/src/renderer/features/chat/hooks#2",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "frontend/src/renderer/features/chat/hooks/useMessageListAutoScroll.js",
+      "reason": "source group frontend/src/renderer/features/chat/hooks#2"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/hooks/useOverlayTurnLifecycle.js",
+      "reason": "source group frontend/src/renderer/features/chat/hooks#2"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/hooks/useResponseOverlayPhase.js",
+      "reason": "source group frontend/src/renderer/features/chat/hooks#2"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/hooks/useResponseOverlayScrollState.js",
+      "reason": "source group frontend/src/renderer/features/chat/hooks#2"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/hooks/useResponseOverlayViewModel.js",
+      "reason": "source group frontend/src/renderer/features/chat/hooks#2"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/hooks/useResponseOverlayWindowSync.js",
+      "reason": "source group frontend/src/renderer/features/chat/hooks#2"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/hooks/useTranscription.ts",
+      "reason": "source group frontend/src/renderer/features/chat/hooks#2"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "frontend/package.json",
+      "reason": "package manifest"
+    }
+  ],
+  "tests": [],
+  "tags": [
+    "node",
+    "typescript",
+    "source-group",
+    "project:windieos",
+    "project-root:frontend"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-59e3cf7639-3167_91addcd9a5"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=40309 bytes; approxTokens=10078; includedFiles=8; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:09:39.162Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:09:39.162Z"
+}

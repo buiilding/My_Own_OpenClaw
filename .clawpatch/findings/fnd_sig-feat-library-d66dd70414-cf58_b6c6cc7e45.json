@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-d66dd70414-cf58_b6c6cc7e45",
+  "featureId": "feat_library_d66dd70414",
+  "title": "Passwordless sudo grant is unbounded after one OS approval",
+  "category": "security",
+  "severity": "high",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/main/agent_sudo_access_handler.cjs",
+      "startLine": 3,
+      "endLine": 3,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/agent_sudo_access_handler.cjs",
+      "startLine": 28,
+      "endLine": 37,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/agent_sudo_access_handler.cjs",
+      "startLine": 163,
+      "endLine": 179,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "Enabling agent sudo access writes a sudoers rule that grants the current user `NOPASSWD: ALL`, which removes password prompts for every sudo command on the machine, not just WindieOS-controlled commands. A single successful pkexec approval therefore permanently broadens privilege for the whole user session/system until disabled, so any later local process running as that user can invoke arbitrary sudo commands without authentication.",
+  "reproduction": "On Linux, enable passwordless sudo through this handler. After it returns success, run any unrelated `sudo` command from the same user account; it will no longer require a password because the sudoers rule applies to `ALL` commands.",
+  "recommendation": "Replace the blanket sudoers rule with the narrowest command allowlist needed by WindieOS, or avoid persistent sudoers mutation and use per-operation OS authorization. If broad access is intentionally required, gate it behind explicit high-risk copy and add a verification path that reports the exact sudoers scope.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for the generated sudoers content or for limiting the privilege scope of the rule.",
+  "suggestedRegressionTest": "Add a unit test for the enable-script builder that asserts the sudoers rule does not contain `NOPASSWD: ALL` and only grants approved WindieOS command paths.",
+  "minimumFixScope": "frontend/src/main/agent_sudo_access_handler.cjs and focused tests around generated sudoers rules and disable behavior.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-d66dd70414_cf58aceab4",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:18:25.424Z",
+  "updatedAt": "2026-05-24T21:18:25.424Z"
+}

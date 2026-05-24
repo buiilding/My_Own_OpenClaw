@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-test-suite-b56217e3a7-b_2b2cbfd16c",
+  "featureId": "feat_test-suite_b56217e3a7",
+  "title": "Source-text assertion is cwd-dependent and can fail outside the repo root",
+  "category": "build-release",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "tests/backend/test_api_container_source.py",
+      "startLine": 16,
+      "endLine": 18,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The test opens backend/src/core/container/api_container.py through a relative Path without anchoring it to the test file or repository root. Running pytest from a different working directory, or through a test runner that changes cwd, will raise FileNotFoundError before checking the intended contract. This makes the suite less portable and can create false CI failures unrelated to the backend behavior being tested.",
+  "reproduction": null,
+  "recommendation": "Resolve the source path relative to the repository root or the test file location, or replace the text search with an import-level behavioral assertion that does not depend on cwd.",
+  "whyTestsDoNotAlreadyCoverThis": "The test itself is the fragile behavior; the included tests do not exercise running the suite from a non-root working directory.",
+  "suggestedRegressionTest": "Add a small test or helper assertion that resolves the target source path from pathlib.Path(__file__).resolve() and succeeds regardless of the current working directory.",
+  "minimumFixScope": "Update tests/backend/test_api_container_source.py to anchor the path resolution before read_text, or replace the source-text check with a behavior-based assertion.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-test-suite-b56217e3a7_b97466a1ca",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:24:20.625Z",
+  "updatedAt": "2026-05-24T21:24:20.625Z"
+}

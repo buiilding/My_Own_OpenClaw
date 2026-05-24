@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_cli-command_10fd2d832c",
+  "title": "C binary cpu_avx512cd",
+  "summary": "C/C++ source file with a top-level main() at frontend/python-runtime/lib/python3.11/site-packages/numpy/distutils/checks/cpu_avx512cd.c.",
+  "kind": "cli-command",
+  "source": "c-main",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "frontend/python-runtime/lib/python3.11/site-packages/numpy/distutils/checks/cpu_avx512cd.c",
+      "symbol": "main",
+      "route": null,
+      "command": "cpu_avx512cd"
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "frontend/python-runtime/lib/python3.11/site-packages/numpy/distutils/checks/cpu_avx512cd.c",
+      "reason": "entrypoint"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "c",
+    "cli"
+  ],
+  "trustBoundaries": [
+    "user-input",
+    "filesystem",
+    "process-exec"
+  ],
+  "status": "fixed",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-cli-command-10fd2d832c-_18b2265653"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210113-a6c478",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=4764 bytes; approxTokens=1191; includedFiles=1; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:01:29.817Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:02:45.253Z"
+}

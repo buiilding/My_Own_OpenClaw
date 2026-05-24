@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-2a61430ac7-4804_016986dc16",
+  "featureId": "feat_library_2a61430ac7",
+  "title": "Best-effort runtime state seeding can still abort when reading existing state fails",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/services/query_execution_support/query_execution_runtime.py",
+      "startLine": 95,
+      "endLine": 118,
+      "symbol": "apply_query_runtime_system_state",
+      "quote": null
+    }
+  ],
+  "reasoning": "The helper is documented as best-effort and catches failures from set_current_system_state, but it calls get_current_system_state without the same protection. If an agent implementation exposes a callable getter that raises because its runtime state store is unavailable or transiently invalid, the exception escapes before the setter try/except and can fail query execution instead of merely skipping state seeding.",
+  "reproduction": null,
+  "recommendation": "Wrap the getter call in the same best-effort error handling used for the setter, log the failure, and proceed with only the incoming runtime_state or skip applying state if that is the intended invariant.",
+  "whyTestsDoNotAlreadyCoverThis": "The included tests cover input shaping, stream state, completion event forwarding, and cancellation reconciliation, but none exercise apply_query_runtime_system_state or a failing get_current_system_state path.",
+  "suggestedRegressionTest": "Add a backend unit test for apply_query_runtime_system_state with an agent whose get_current_system_state raises and set_current_system_state records whether incoming runtime state is still applied or safely skipped, according to the chosen contract.",
+  "minimumFixScope": "backend/src/api/services/query_execution_support/query_execution_runtime.py plus a focused backend test for runtime state getter failure handling.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-2a61430ac7_4804b502ec",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:06:17.847Z",
+  "updatedAt": "2026-05-24T21:06:17.847Z"
+}

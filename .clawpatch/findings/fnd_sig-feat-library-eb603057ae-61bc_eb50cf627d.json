@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-eb603057ae-61bc_eb50cf627d",
+  "featureId": "feat_library_eb603057ae",
+  "title": "Initialization failure messages report the last completed phase, not the failing phase",
+  "category": "bug",
+  "severity": "low",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "backend/src/core/bootstrap/coordinator.py",
+      "startLine": 109,
+      "endLine": 120,
+      "symbol": "InitializationCoordinator.initialize",
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/bootstrap/coordinator.py",
+      "startLine": 129,
+      "endLine": 140,
+      "symbol": "InitializationCoordinator.initialize",
+      "quote": null
+    }
+  ],
+  "reasoning": "The phase list is appended only after each phase succeeds, but the exception handler formats the error using self._initialized_phases[-1]. If container initialization fails, the error says it failed at 'configuration'; if service initialization fails, it says 'container'; and if configuration fails, it says 'unknown'. This makes startup failures misleading and can send operators toward the wrong subsystem.",
+  "reproduction": "Force _initialize_container() to raise after configuration succeeds. The resulting InitializationError message reports phase 'configuration' even though the container phase failed.",
+  "recommendation": "Track the current phase before entering each phase, and use that current phase in the error message and log. Keep _initialized_phases only for rollback of completed phases.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included, and this requires asserting failure diagnostics for each initialization phase rather than only success or rollback behavior.",
+  "suggestedRegressionTest": "Add parameterized tests that force failures in configuration, container, and services phases and assert the InitializationError identifies the actual failing phase.",
+  "minimumFixScope": "backend/src/core/bootstrap/coordinator.py phase tracking in initialize(), plus focused failure-diagnostic tests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-eb603057ae_61bc02a8af",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:18:57.430Z",
+  "updatedAt": "2026-05-24T21:18:57.430Z"
+}

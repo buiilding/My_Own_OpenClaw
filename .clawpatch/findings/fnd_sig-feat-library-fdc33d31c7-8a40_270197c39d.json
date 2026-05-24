@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-fdc33d31c7-8a40_270197c39d",
+  "featureId": "feat_library_fdc33d31c7",
+  "title": "truncate_text can return more tokens than requested when only one non-marker token is available",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "backend/src/services/token_service.py",
+      "startLine": 315,
+      "endLine": 330,
+      "symbol": "TokenService.truncate_text",
+      "quote": null
+    },
+    {
+      "path": "backend/src/services/token_service.py",
+      "startLine": 219,
+      "endLine": 222,
+      "symbol": "_fallback_truncate_text",
+      "quote": null
+    }
+  ],
+  "reasoning": "When the marker itself fits and leaves exactly one token of remaining budget, the code sets head to 1 and tail to 1, producing head + marker + tail and exceeding token_limit by one token. The fallback character estimator has the same shape when available is one character, so both paths can violate the caller's requested cap. This matters for prompt/window enforcement paths because a truncation helper that returns over-budget content can still overflow a strict context limit.",
+  "reproduction": "Call TokenService.truncate_text with a long text, token_limit equal to len(marker_tokens) + 1, and a marker whose token count is smaller than token_limit. The returned litellm token sequence is tokens[:1] + marker_tokens + tokens[-1:], which is one token over budget.",
+  "recommendation": "Allocate head and tail so their sum never exceeds available. For example, compute head = max(available // 2, 0), tail = available - head, and only force at least one side when available permits it. Mirror the same invariant in the fallback character truncation path.",
+  "whyTestsDoNotAlreadyCoverThis": "No tests were included for this feature, and the edge case requires a narrow token_limit where the marker leaves exactly one token of remaining budget.",
+  "suggestedRegressionTest": "Add a focused TokenService.truncate_text test that stubs litellm.encode/decode, uses token_limit = len(marker_tokens) + 1, and asserts the decoded truncated token list length is <= token_limit. Add the same edge case for the fallback path by forcing litellm.encode to raise.",
+  "minimumFixScope": "backend/src/services/token_service.py truncation budget calculation plus focused backend tests for both litellm and fallback paths.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-fdc33d31c7_8a4002d37e",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:20:32.829Z",
+  "updatedAt": "2026-05-24T21:20:32.829Z"
+}

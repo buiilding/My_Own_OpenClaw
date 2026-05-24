@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-20206d512e-e60e21_54e97a6ed2",
+  "featureId": "feat_route_20206d512e",
+  "title": "No regression coverage for vision describe region handling",
+  "category": "test-gap",
+  "severity": "low",
+  "confidence": "high",
+  "triage": "test-gap",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 323,
+      "endLine": 337,
+      "symbol": "sdk_vision_describe",
+      "quote": null
+    }
+  ],
+  "reasoning": "The route accepts network/user-controlled image input, optionally crops a caller-provided region, calls the vision description service, and serializes image metadata plus the returned region. No linked tests were provided for the route, so regressions in region cropping, omitted-region behavior, or response shape could pass unnoticed.",
+  "reproduction": null,
+  "recommendation": "Add focused route tests for POST /api/sdk/vision/describe covering the no-region path and the region path, with service dependencies mocked so the test asserts resolve/crop/describe call flow and the response fields.",
+  "whyTestsDoNotAlreadyCoverThis": "The feature metadata lists no tests, and no test files were included as evidence for this route.",
+  "suggestedRegressionTest": "Add a pytest/FastAPI client test that posts a VisionDescribeRequest with a region, mocks resolve_image_source, crop_image_source, describe_image_region, and build_image_metadata, then asserts crop is called once, describe receives the cropped source, and the response includes the expected image, region, and description. Add a companion no-region case asserting crop is not called.",
+  "minimumFixScope": "Route-level tests for sdk_vision_describe with mocked service helpers.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-20206d512e_e60e21bffc",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:20:55.286Z",
+  "updatedAt": "2026-05-24T21:20:55.286Z"
+}

@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-cli-command-0a38be6a56-_575b396d48",
+  "featureId": "feat_cli-command_0a38be6a56",
+  "title": "Feature probe can dereference past argv when run without arguments",
+  "category": "bug",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/python-runtime/lib/python3.11/site-packages/numpy/distutils/checks/cpu_avx512_icl.c",
+      "startLine": 16,
+      "endLine": 18,
+      "symbol": "main",
+      "quote": null
+    }
+  ],
+  "reasoning": "main reads argv[argc-1] and passes it to _mm512_loadu_si512. If the binary is executed with argc == 0 in a nonstandard process launch, this indexes before argv. More commonly with argc == 1 it reads from argv[0], which is a short NUL-terminated string and the 64-byte unaligned vector load can read beyond the argument string object. As a compile/run feature check this may usually be invoked by build tooling rather than end users, so severity is low, but the top-level CLI entrypoint is not robust to its declared user-input/process-exec boundary.",
+  "reproduction": null,
+  "recommendation": "Avoid loading from argv storage. Use a local aligned or unaligned 64-byte buffer initialized in the function, or guard argc and input length before loading from argv.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for this feature probe or for direct execution behavior.",
+  "suggestedRegressionTest": "Add a build/probe test that compiles and executes cpu_avx512_icl with no extra CLI arguments under the expected probe harness and verifies it exits without invalid memory access on supported hardware or an emulator environment.",
+  "minimumFixScope": "Change main to load from a local 64-byte buffer instead of argv, preserving the intrinsic calls used to validate compiler support.",
+  "status": "false-positive",
+  "history": [
+    {
+      "runId": null,
+      "kind": "triage",
+      "status": "false-positive",
+      "note": "Excluded vendored frontend/python-runtime dependency probe from WindieOS-owned review scope",
+      "reasoning": null,
+      "commands": [],
+      "createdAt": "2026-05-24T21:02:45.087Z"
+    }
+  ],
+  "signature": "sig_feat-cli-command-0a38be6a56_3a56026718",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210113-a6c478",
+  "createdAt": "2026-05-24T21:01:25.865Z",
+  "updatedAt": "2026-05-24T21:02:45.086Z"
+}

@@ -14,6 +14,7 @@ Use this page when you know the initiative area but not the plan filename.
 
 - [Future Product Plan](future_plan.md)
 - [Company Future Overview](windieos_company_future_overview.md)
+- [Self-Hosted Backend Onboarding Plan](windieos_self_hosted_backend_onboarding_plan.md)
 - [Database Schema](database_schema.md)
 - [Security and Compliance](security_and_compliance.md)
 - [Deployment](../operations/deployment.md)
@@ -30,6 +31,7 @@ Use this page when you know the initiative area but not the plan filename.
 - [Frontend Chat Surface Refactor Plan](windieos_frontend_chat_surface_refactor_plan_2026-04-01.md)
 - [Dashboard Tool Trace Toggle Plan](windieos_dashboard_tool_trace_toggle_plan_2026-03-02.md)
 - [Install Permission Onboarding Plan](windieos_install_permission_onboarding_plan.md)
+- [Self-Hosted Backend Onboarding Plan](windieos_self_hosted_backend_onboarding_plan.md)
 - [Self Edit Config Plan](windieos_self_edit_config_plan.md)
 
 ## Sidecar, Browser, and Packaging

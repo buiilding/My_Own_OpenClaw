@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-68324f407d-d970_e49ec81d1c",
+  "featureId": "feat_library_68324f407d",
+  "title": "Embedded JSON parsing bypasses configured nesting-depth validation",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "backend/src/llm/parser_extraction.py",
+      "startLine": 105,
+      "endLine": 116,
+      "symbol": "JsonToolCallExtractor.parse_embedded_json",
+      "quote": null
+    },
+    {
+      "path": "backend/src/llm/parser_extraction.py",
+      "startLine": 154,
+      "endLine": 157,
+      "symbol": "JsonToolCallExtractor._safe_json_loads",
+      "quote": null
+    },
+    {
+      "path": "backend/src/llm/parser_extraction.py",
+      "startLine": 218,
+      "endLine": 235,
+      "symbol": "JsonToolCallExtractor._validate_json_depth",
+      "quote": null
+    }
+  ],
+  "reasoning": "The pure-JSON path calls _safe_json_loads, which validates max_json_nesting_depth after json.loads. The embedded path decodes objects with JSONDecoder.raw_decode and immediately extracts tool calls without calling _validate_json_depth. That creates inconsistent trust-boundary enforcement: a deeply nested tool-call args payload is rejected when it is the whole response but can be accepted when wrapped in surrounding text.",
+  "reproduction": "Set a low max_json_nesting_depth and parse an embedded response containing `prefix {\"functionCall\":{\"name\":\"read_file\",\"args\":{\"a\":{\"b\":{\"c\":1}}}}} suffix`. The embedded raw_decode path reaches schema extraction and validation without the depth check used by _safe_json_loads.",
+  "recommendation": "Run _validate_json_depth(parsed, self.limits.max_json_nesting_depth) after raw_decode and before schema extraction in parse_embedded_json, converting RecursionError to ParseValidationError consistently with _safe_json_loads.",
+  "whyTestsDoNotAlreadyCoverThis": "The included tests exercise timeout, extraction, removal, max_response_size, max_json_size for trailing text, and validator constraints, but none assert that embedded JSON observes max_json_nesting_depth.",
+  "suggestedRegressionTest": "Add a parser_extraction test that configures max_json_nesting_depth to a small value and asserts an embedded over-depth functionCall raises ParseValidationError.",
+  "minimumFixScope": "Add depth validation to the embedded JSON path and focused regression coverage.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-68324f407d_d970e5ae9a",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:10:41.304Z",
+  "updatedAt": "2026-05-24T21:10:41.304Z"
+}

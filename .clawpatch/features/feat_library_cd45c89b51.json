@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_cd45c89b51",
+  "title": "Node source frontend/src/renderer/app/runtime#1",
+  "summary": "Node/TypeScript source group frontend/src/renderer/app/runtime#1 with 12 files.",
+  "kind": "library",
+  "source": "node-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "frontend/package.json",
+      "symbol": "frontend/src/renderer/app/runtime#1",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "frontend/src/renderer/app/runtime/desktopBackendTransport.ts",
+      "reason": "source group frontend/src/renderer/app/runtime#1"
+    },
+    {
+      "path": "frontend/src/renderer/app/runtime/desktopChatStreamConversationGateRuntime.ts",
+      "reason": "source group frontend/src/renderer/app/runtime#1"
+    },
+    {
+      "path": "frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime.ts",
+      "reason": "source group frontend/src/renderer/app/runtime#1"
+    },
+    {
+      "path": "frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime.ts",
+      "reason": "source group frontend/src/renderer/app/runtime#1"
+    },
+    {
+      "path": "frontend/src/renderer/app/runtime/desktopChatStreamTerminalHandoffRuntime.ts",
+      "reason": "source group frontend/src/renderer/app/runtime#1"
+    },
+    {
+      "path": "frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime.ts",
+      "reason": "source group frontend/src/renderer/app/runtime#1"
+    },
+    {
+      "path": "frontend/src/renderer/app/runtime/desktopChatStreamTurnGuardRuntime.ts",
+      "reason": "source group frontend/src/renderer/app/runtime#1"
+    },
+    {
+      "path": "frontend/src/renderer/app/runtime/desktopConversationContinuityService.ts",
+      "reason": "source group frontend/src/renderer/app/runtime#1"
+    },
+    {
+      "path": "frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js",
+      "reason": "source group frontend/src/renderer/app/runtime#1"
+    },
+    {
+      "path": "frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts",
+      "reason": "source group frontend/src/renderer/app/runtime#1"
+    },
+    {
+      "path": "frontend/src/renderer/app/runtime/desktopLocalRuntimeEventSource.ts",
+      "reason": "source group frontend/src/renderer/app/runtime#1"
+    },
+    {
+      "path": "frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient.ts",
+      "reason": "source group frontend/src/renderer/app/runtime#1"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "frontend/package.json",
+      "reason": "package manifest"
+    }
+  ],
+  "tests": [],
+  "tags": [
+    "node",
+    "typescript",
+    "source-group",
+    "project:windieos",
+    "project-root:frontend"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-cd45c89b51-360f_7f9e5273ad",
+    "fnd_sig-feat-library-cd45c89b51-c8c9_8ac4416599"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=59296 bytes; approxTokens=14824; includedFiles=13; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:17:39.390Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:17:39.390Z"
+}

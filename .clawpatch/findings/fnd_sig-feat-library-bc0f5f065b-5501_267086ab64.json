@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-bc0f5f065b-5501_267086ab64",
+  "featureId": "feat_library_bc0f5f065b",
+  "title": "Multimodal conversion drops all but the first image",
+  "category": "data-loss",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "backend/src/core/messages/converters.py",
+      "startLine": 34,
+      "endLine": 50,
+      "symbol": "content_to_message_content",
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/messages/structures.py",
+      "startLine": 202,
+      "endLine": 222,
+      "symbol": "ImageContent",
+      "quote": null
+    }
+  ],
+  "reasoning": "The converter collects every image URL from a multimodal content list, but then constructs ImageContent with only image_urls[0]. ImageContent itself stores a single image_url and exposes only that one URL, so converting a message with multiple images irreversibly loses the remaining images before it can be sent back through to_llm_format or inspected via get_image_urls.",
+  "reproduction": "Pass content_to_message_content a multimodal list containing two image_url parts. The returned ImageContent.get_image_urls() contains only the first URL, and to_llm_format() emits only that image.",
+  "recommendation": "Represent image content as a list of image URLs, or return a multimodal MessageContent implementation that preserves every image part. Update to_llm_format and get_image_urls to emit all images.",
+  "whyTestsDoNotAlreadyCoverThis": "The included tests only cover thought-signature extraction and attachment; they do not exercise content_to_message_content or multi-image multimodal conversion.",
+  "suggestedRegressionTest": "Add a converter test with two image_url parts and assert get_image_urls() and to_llm_format() preserve both images in order.",
+  "minimumFixScope": "backend/src/core/messages/converters.py and backend/src/core/messages/structures.py, plus focused converter tests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-bc0f5f065b_5501deb8a8",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:16:26.096Z",
+  "updatedAt": "2026-05-24T21:16:26.096Z"
+}

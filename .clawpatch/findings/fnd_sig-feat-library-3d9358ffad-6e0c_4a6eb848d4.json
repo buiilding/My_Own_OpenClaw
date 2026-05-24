@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-3d9358ffad-6e0c_4a6eb848d4",
+  "featureId": "feat_library_3d9358ffad",
+  "title": "Orchestrator drops non-bundle tool calls that lack request_id instead of returning the placeholder result",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "backend/src/tools/orchestrator.py",
+      "startLine": 88,
+      "endLine": 99,
+      "symbol": "ToolResultOrchestrator.execute_tools_from_response",
+      "quote": null
+    },
+    {
+      "path": "backend/src/tools/single_tool_execution.py",
+      "startLine": 73,
+      "endLine": 82,
+      "symbol": "execute_single_tool",
+      "quote": null
+    },
+    {
+      "path": "tests/backend/test_single_tool_execution.py",
+      "startLine": 54,
+      "endLine": 63,
+      "symbol": "test_execute_single_tool_missing_request_id_returns_placeholder",
+      "quote": null
+    }
+  ],
+  "reasoning": "The single-tool helper has explicit intended behavior for a missing request_id: it returns a successful placeholder ToolResult indicating local runtime execution is pending, and the included test verifies that contract. The orchestrator's non-bundle path bypasses that helper behavior by skipping such calls entirely, so callers through the normal orchestrator get fewer tool results than tool calls. In an LLM tool-call loop this can leave a requested tool without a corresponding result message, causing dropped work or protocol mismatch depending on the caller's expectations.",
+  "reproduction": "Construct a ParsedResponse with one non-bundle ParsedToolCall whose metadata is None or lacks request_id, then call ToolResultOrchestrator.execute_tools_from_response with a session_ref. The returned ToolExecutionBatch will contain zero tool_results, whereas execute_single_tool on the same call would return the placeholder result tested in tests/backend/test_single_tool_execution.py.",
+  "recommendation": "Remove the orchestrator-level skip and delegate all non-bundle calls to execute_single_tool, or make the orchestrator produce the same placeholder result for missing request_id calls. Keep one source of truth for this fallback behavior.",
+  "whyTestsDoNotAlreadyCoverThis": "The included test covers execute_single_tool directly, but there is no orchestrator-level test proving that missing-request_id fallback survives the normal execute_tools_from_response path.",
+  "suggestedRegressionTest": "Add a backend test for ToolResultOrchestrator.execute_tools_from_response with a non-bundle tool call lacking request_id, asserting that one placeholder tool result is returned instead of dropping the call.",
+  "minimumFixScope": "backend/src/tools/orchestrator.py plus an orchestrator regression test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-3d9358ffad_6e0c650eed",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:07:41.421Z",
+  "updatedAt": "2026-05-24T21:07:41.421Z"
+}

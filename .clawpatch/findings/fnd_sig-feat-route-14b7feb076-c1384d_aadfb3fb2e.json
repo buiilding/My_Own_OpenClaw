@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-14b7feb076-c1384d_aadfb3fb2e",
+  "featureId": "feat_route_14b7feb076",
+  "title": "Semantic health can report ready without validating semantic service configuration",
+  "category": "api-contract",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/memory/semantic/router.py",
+      "startLine": 87,
+      "endLine": 93,
+      "symbol": "_build_semantic_service",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/memory/semantic/router.py",
+      "startLine": 185,
+      "endLine": 197,
+      "symbol": "health_check",
+      "quote": null
+    }
+  ],
+  "reasoning": "The semantic service used by summarize/title depends on both an LLM client and provider API-key loading, but the health route only checks that container.llm_client exists before returning a ready payload. That can make GET /api/semantic/health advertise the semantic summarization service as ready even when provider credentials/configuration required by the actual semantic operations are missing or unusable.",
+  "reproduction": null,
+  "recommendation": "Align the health check with the readiness contract: either narrow the payload wording to say only the LLM client dependency is present, or validate the same semantic configuration needed by SemanticSummarizationService before returning ready.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for this route, and the shown file has no route-level assertion that readiness covers provider/API-key configuration.",
+  "suggestedRegressionTest": "Add a FastAPI route test where container.llm_client is present but provider key loading/configuration is unavailable, and assert /api/semantic/health does not report full semantic service readiness unless that is intentionally only a shallow dependency check.",
+  "minimumFixScope": "Update health_check readiness semantics and add a focused route test for shallow-versus-full readiness behavior.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-14b7feb076_c1384dd7df",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:20:56.250Z",
+  "updatedAt": "2026-05-24T21:20:56.250Z"
+}

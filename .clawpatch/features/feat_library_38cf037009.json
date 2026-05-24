@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_38cf037009",
+  "title": "Python source backend/src/agent/llm",
+  "summary": "Python source group backend/src/agent/llm with 6 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/agent/llm",
+      "symbol": "backend/src/agent/llm",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/agent/llm/__init__.py",
+      "reason": "source group backend/src/agent/llm"
+    },
+    {
+      "path": "backend/src/agent/llm/conversation_context.py",
+      "reason": "source group backend/src/agent/llm"
+    },
+    {
+      "path": "backend/src/agent/llm/event_presenter.py",
+      "reason": "source group backend/src/agent/llm"
+    },
+    {
+      "path": "backend/src/agent/llm/llm_stream_processor.py",
+      "reason": "source group backend/src/agent/llm"
+    },
+    {
+      "path": "backend/src/agent/llm/stream_processor_helpers.py",
+      "reason": "source group backend/src/agent/llm"
+    },
+    {
+      "path": "backend/src/agent/llm/token_counting.py",
+      "reason": "source group backend/src/agent/llm"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_llm_stream_processor.py",
+      "reason": "associated test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_llm_stream_processor.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-38cf037009-b1be_1ee0c9819c",
+    "fnd_sig-feat-library-38cf037009-fa72_09225344c7"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=72856 bytes; approxTokens=18214; includedFiles=7; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:07:36.124Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:07:36.124Z"
+}

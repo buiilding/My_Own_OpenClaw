@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-service-92409dedb3-1b6c_4b2690ff03",
+  "featureId": "feat_service_92409dedb3",
+  "title": "Reloaded config changes are not published to the event bus",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "backend/src/core/config/service.py",
+      "startLine": 172,
+      "endLine": 175,
+      "symbol": "ConfigurationService.update_config",
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/config/service.py",
+      "startLine": 224,
+      "endLine": 253,
+      "symbol": "ConfigurationService.reload_config",
+      "quote": null
+    }
+  ],
+  "reasoning": "ConfigurationService advertises centralized change notifications and update_config publishes ConfigChanged on the EventBus after subscriber notification. reload_config performs the same effective state change and notifies direct subscribers, but never publishes ConfigChanged to the EventBus. Components that subscribe through the bus will observe runtime updates but miss file reloads, leaving caches or policy-dependent services stale after reload.",
+  "reproduction": null,
+  "recommendation": "Publish the same ConfigChanged event in reload_config after direct subscriber notification, matching update_config semantics, or explicitly remove event-bus support from the reload contract if reloads are intentionally local-only.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for ConfigurationService reload behavior or EventBus publication parity between update_config and reload_config.",
+  "suggestedRegressionTest": "Add an async service test with a fake EventBus, initialize the service, call reload_config, and assert one ConfigChanged event with the old and reloaded config is published.",
+  "minimumFixScope": "backend/src/core/config/service.py plus a focused backend test for reload event publication.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-service-92409dedb3_1b6c19f17c",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:23:12.933Z",
+  "updatedAt": "2026-05-24T21:23:12.933Z"
+}

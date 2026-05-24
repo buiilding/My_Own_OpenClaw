@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-2ce5f9322a-c127_ed68e89065",
+  "featureId": "feat_library_2ce5f9322a",
+  "title": "Screenshot restore bounds are discarded when the hidden main window has an active display affinity",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/main/window_suppression_runtime.cjs",
+      "startLine": 87,
+      "endLine": 103,
+      "symbol": "rememberWindowBoundsForScreenshotSuppression / restoreWindowBoundsFromScreenshotSuppression",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/window_visibility_runtime.cjs",
+      "startLine": 258,
+      "endLine": 287,
+      "symbol": "showMainWindow",
+      "quote": null
+    }
+  ],
+  "reasoning": "Screenshot suppression records the pre-suppression bounds on the window, but showMainWindow resolves a target display affinity for any hidden main window via getActiveDisplayAffinity. When that value exists, the restore marker is deleted and the window is centered or fit on the active display instead of restoring the exact saved bounds. This means a hide/show cycle used only for screenshot capture can unexpectedly move or resize the main window.",
+  "reproduction": "Have the main window visible at a custom size/position, call hideMainWindow({ suppressForScreenshot: true }) while getActiveDisplayAffinity returns a display object, then call showMainWindow() without an explicit targetDisplayAffinity. The saved __windieScreenshotRestoreBounds is deleted and centerWindowOnDisplayWorkArea or fitWindowToDisplayWorkArea is used instead of restoreWindowBoundsFromScreenshotSuppression.",
+  "recommendation": "Prioritize restoring __windieScreenshotRestoreBounds before resolving implicit display affinity, or only bypass restoration when the caller explicitly supplied targetDisplayAffinity or requested a display move.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for this feature, and the provided package manifest only exposes generic Jest commands, so there is no evidence that screenshot suppression restore behavior is covered.",
+  "suggestedRegressionTest": "Add a main-process unit test for hideMainWindow({ suppressForScreenshot: true }) followed by showMainWindow() with getActiveDisplayAffinity returning a display object, asserting the saved bounds are restored and not deleted before restoration.",
+  "minimumFixScope": "Change showMainWindow's ordering/condition around lines 258-287 so saved screenshot restore bounds win over implicit active display affinity unless a caller explicitly opts into repositioning.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-2ce5f9322a_c127d548e3",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:06:27.869Z",
+  "updatedAt": "2026-05-24T21:06:27.869Z"
+}

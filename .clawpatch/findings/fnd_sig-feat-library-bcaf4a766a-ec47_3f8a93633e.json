@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-bcaf4a766a-ec47_3f8a93633e",
+  "featureId": "feat_library_bcaf4a766a",
+  "title": "Lazy service initialization can replace in-memory run state under concurrent first requests",
+  "category": "concurrency",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/runs/support.py",
+      "startLine": 23,
+      "endLine": 33,
+      "symbol": "get_vm_run_control_service",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/runs/router.py",
+      "startLine": 44,
+      "endLine": 61,
+      "symbol": "create_run",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/runs/router.py",
+      "startLine": 83,
+      "endLine": 89,
+      "symbol": "get_run",
+      "quote": null
+    }
+  ],
+  "reasoning": "get_vm_run_control_service lazily creates and stores the singleton on request.app.state without synchronization. If two first requests observe no service at the same time, both can construct separate VmRunControlService instances and whichever assignment happens last becomes the app-wide service. Any run created or event appended through the losing instance can then be unavailable to later requests, because later routes read from the overwritten instance. The impact depends on the ASGI concurrency model and service storage behavior, so confidence is medium, but the race is present in the route helper as shown.",
+  "reproduction": null,
+  "recommendation": "Initialize VmRunControlService during app startup, or protect lazy initialization with an app-level lock so only one instance can be created and published. Prefer startup initialization because it also makes configuration failures explicit.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included, and there is no evidence of a concurrent first-request regression test around service initialization.",
+  "suggestedRegressionTest": "Add a focused async test that invokes the dependency concurrently on a fresh app state and asserts all callers receive the same VmRunControlService instance and that a run created through one caller is visible through the final stored service.",
+  "minimumFixScope": "support.py service dependency initialization path and one concurrency-focused backend test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-bcaf4a766a_ec47ff1ace",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:16:33.552Z",
+  "updatedAt": "2026-05-24T21:16:33.552Z"
+}

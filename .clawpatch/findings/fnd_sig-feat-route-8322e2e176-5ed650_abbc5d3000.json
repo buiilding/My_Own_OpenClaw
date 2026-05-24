@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-8322e2e176-5ed650_abbc5d3000",
+  "featureId": "feat_route_8322e2e176",
+  "title": "Models debug route accepts arbitrary user_id without route-level authorization",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 67,
+      "endLine": 67,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 357,
+      "endLine": 378,
+      "symbol": "sdk_debug_models",
+      "quote": null
+    }
+  ],
+  "reasoning": "The /api/sdk/models route is mounted on the SDK router with no visible route-level auth dependency, accepts a caller-supplied user_id query parameter, resolves the effective debug config for that user_id, then returns the config snapshot and model list. If this router is reachable over the network without a higher-level authentication/authorization gate, one caller can query another user's model configuration and available model metadata. Confidence is medium because the excerpt does not show how this router is included in the app; a global dependency may exist outside the provided evidence.",
+  "reproduction": null,
+  "recommendation": "Require an authenticated principal for this route and derive the user identity from that principal, or explicitly restrict the route to a trusted local/debug context. If cross-user debugging is intentional, gate user_id override behind an admin/debug permission check.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for this feature, and the route body has no visible authorization branch to exercise.",
+  "suggestedRegressionTest": "Add an API test proving an unauthenticated or non-admin caller cannot pass another user's user_id to GET /api/sdk/models, while an authorized local/admin caller receives the expected DebugModelsResponse.",
+  "minimumFixScope": "backend/src/api/routes/sdk/router.py and the route registration/auth dependency used for SDK debug routes",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-8322e2e176_5ed6503847",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:22:16.715Z",
+  "updatedAt": "2026-05-24T21:22:16.715Z"
+}

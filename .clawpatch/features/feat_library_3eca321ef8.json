@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_3eca321ef8",
+  "title": "Python source backend/src/api/routes/websocket",
+  "summary": "Python source group backend/src/api/routes/websocket with 8 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/api/routes/websocket",
+      "symbol": "backend/src/api/routes/websocket",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/api/routes/websocket/__init__.py",
+      "reason": "source group backend/src/api/routes/websocket"
+    },
+    {
+      "path": "backend/src/api/routes/websocket/connection.py",
+      "reason": "source group backend/src/api/routes/websocket"
+    },
+    {
+      "path": "backend/src/api/routes/websocket/json_parse.py",
+      "reason": "source group backend/src/api/routes/websocket"
+    },
+    {
+      "path": "backend/src/api/routes/websocket/loop_runtime.py",
+      "reason": "source group backend/src/api/routes/websocket"
+    },
+    {
+      "path": "backend/src/api/routes/websocket/message_handler.py",
+      "reason": "source group backend/src/api/routes/websocket"
+    },
+    {
+      "path": "backend/src/api/routes/websocket/message_parse_runtime.py",
+      "reason": "source group backend/src/api/routes/websocket"
+    },
+    {
+      "path": "backend/src/api/routes/websocket/router.py",
+      "reason": "source group backend/src/api/routes/websocket"
+    },
+    {
+      "path": "backend/src/api/routes/websocket/task_manager.py",
+      "reason": "source group backend/src/api/routes/websocket"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-3eca321ef8-c3a9_a4d6cc5eec"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=46935 bytes; approxTokens=11734; includedFiles=8; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:07:51.618Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:07:51.618Z"
+}

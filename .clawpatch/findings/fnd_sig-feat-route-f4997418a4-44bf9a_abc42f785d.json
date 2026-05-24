@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-f4997418a4-44bf9a_abc42f785d",
+  "featureId": "feat_route_f4997418a4",
+  "title": "Missing-provider path logs the same HTTP error twice",
+  "category": "maintainability",
+  "severity": "low",
+  "confidence": "high",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/memory/embeddings/router.py",
+      "startLine": 123,
+      "endLine": 136,
+      "symbol": "generate_embedding",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/memory/embeddings/router.py",
+      "startLine": 150,
+      "endLine": 158,
+      "symbol": "generate_embedding",
+      "quote": null
+    }
+  ],
+  "reasoning": "When _resolve_embedding_provider returns no provider, the route logs a failure immediately before raising HTTPException. That exception is then caught by the generic HTTPException handler and logged again with the same request metadata and status. During provider outages this doubles warning volume and makes operational logs less reliable without adding distinct information.",
+  "reproduction": null,
+  "recommendation": "Remove the pre-raise failure log in the missing-provider branch and let the HTTPException handler perform the single standardized failure log, or bypass the catch block for that branch if a local log is required.",
+  "whyTestsDoNotAlreadyCoverThis": "No tests are linked for this feature, and the included file shows no assertion around failure logging behavior.",
+  "suggestedRegressionTest": "Add a test for the unavailable-provider path that asserts the response is 503 and only one failure log record is emitted for the request.",
+  "minimumFixScope": "Change only the missing-provider branch in generate_embedding so each HTTPException path is logged once.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-f4997418a4_44bf9aebad",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:22:59.195Z",
+  "updatedAt": "2026-05-24T21:22:59.195Z"
+}

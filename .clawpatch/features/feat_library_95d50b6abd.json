@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_95d50b6abd",
+  "title": "Python source backend/src/llm/models",
+  "summary": "Python source group backend/src/llm/models with 3 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/llm/models",
+      "symbol": "backend/src/llm/models",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/llm/models/__init__.py",
+      "reason": "source group backend/src/llm/models"
+    },
+    {
+      "path": "backend/src/llm/models/model_service.py",
+      "reason": "source group backend/src/llm/models"
+    },
+    {
+      "path": "backend/src/llm/models/models_config.py",
+      "reason": "source group backend/src/llm/models"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_model_service.py",
+      "reason": "associated test"
+    },
+    {
+      "path": "tests/backend/test_models_config.py",
+      "reason": "associated test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_model_service.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_models_config.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "reviewed",
+  "lock": null,
+  "findingIds": [],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "0 finding(s); prompt=78664 bytes; approxTokens=19666; includedFiles=5; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:14:12.377Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:14:12.377Z"
+}

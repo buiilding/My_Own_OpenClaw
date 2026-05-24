@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_service_92409dedb3",
+  "title": "Python source backend/src/core/config",
+  "summary": "Python source group backend/src/core/config with 9 files.",
+  "kind": "service",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/core/config",
+      "symbol": "backend/src/core/config",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/core/config/__init__.py",
+      "reason": "source group backend/src/core/config"
+    },
+    {
+      "path": "backend/src/core/config/app_config.py",
+      "reason": "source group backend/src/core/config"
+    },
+    {
+      "path": "backend/src/core/config/domains.py",
+      "reason": "source group backend/src/core/config"
+    },
+    {
+      "path": "backend/src/core/config/loader.py",
+      "reason": "source group backend/src/core/config"
+    },
+    {
+      "path": "backend/src/core/config/manager.py",
+      "reason": "source group backend/src/core/config"
+    },
+    {
+      "path": "backend/src/core/config/models.py",
+      "reason": "source group backend/src/core/config"
+    },
+    {
+      "path": "backend/src/core/config/runtime.py",
+      "reason": "source group backend/src/core/config"
+    },
+    {
+      "path": "backend/src/core/config/service.py",
+      "reason": "source group backend/src/core/config"
+    },
+    {
+      "path": "backend/src/core/config/subscriptions.py",
+      "reason": "source group backend/src/core/config"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [
+    "filesystem",
+    "database"
+  ],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-service-92409dedb3-1b6c_4b2690ff03",
+    "fnd_sig-feat-service-92409dedb3-5c89_23c48bb0af"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=75955 bytes; approxTokens=18989; includedFiles=9; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:23:12.934Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:23:12.934Z"
+}

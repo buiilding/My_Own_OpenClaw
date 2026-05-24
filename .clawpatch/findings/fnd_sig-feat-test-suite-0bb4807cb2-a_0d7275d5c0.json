@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-test-suite-0bb4807cb2-a_0d7275d5c0",
+  "featureId": "feat_test-suite_0bb4807cb2",
+  "title": "Browser registry tests skip on any browser import failure",
+  "category": "test-gap",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "test-gap",
+  "evidence": [
+    {
+      "path": "tests/sidecar/test_browser_registry.py",
+      "startLine": 10,
+      "endLine": 19,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The suite treats every ImportError raised while importing execute_browser as meaning Playwright is unavailable, then skips the whole browser registration class. That also skips tests when the browser tool itself is broken by a missing internal module, bad relative import, or packaging regression, which is exactly the kind of release hazard these registry tests should catch.",
+  "reproduction": null,
+  "recommendation": "Only skip when the missing dependency is specifically Playwright, for example by using pytest.importorskip for the Playwright dependency before importing the Windie browser tool, or by inspecting the ImportError name/path and re-raising unrelated import failures.",
+  "whyTestsDoNotAlreadyCoverThis": "The skip condition is evaluated before any tests run, so unrelated browser import failures prevent all assertions in this file from executing.",
+  "suggestedRegressionTest": "Add a test or import guard path that proves an ImportError from tools.browser.browser_tool or one of WindieOS's own modules is not converted into a skip.",
+  "minimumFixScope": "tests/sidecar/test_browser_registry.py import/skip setup only.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-test-suite-0bb4807cb2_a28fde6aba",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:23:32.882Z",
+  "updatedAt": "2026-05-24T21:23:32.882Z"
+}

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-c840c8d98d-daaa_36bac949b9",
+  "featureId": "feat_library_c840c8d98d",
+  "title": "Closing a conversation runtime leaves event listeners registered",
+  "category": "performance",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "packages/windie-sdk-js/src/runtime/ConversationRuntime.ts",
+      "startLine": 119,
+      "endLine": 121,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "packages/windie-sdk-js/src/runtime/ConversationRuntime.ts",
+      "startLine": 152,
+      "endLine": 157,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "packages/windie-sdk-js/src/runtime/ConversationRuntime.ts",
+      "startLine": 408,
+      "endLine": 412,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "packages/windie-sdk-js/src/runtime/ConversationRuntime.ts",
+      "startLine": 488,
+      "endLine": 492,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "SdkConversationRuntime tracks both snapshot listeners and event listeners, but close() only clears snapshot listeners. Any callbacks registered through subscribeEvents(), WindieChatSession.onEvent(), or stream-adjacent consumers remain retained after close. If an in-flight send, stop, rewrite, or tool execution applies another event after close, notify() still invokes those closed-session event callbacks and the Set continues to retain captured UI/session state.",
+  "reproduction": null,
+  "recommendation": "Have close() also clear eventListeners, and consider making apply/notify paths no-op after close if closed runtimes should not emit anything further.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for close/unsubscribe semantics, and the excerpt has no assertion that event listeners are cleared on close.",
+  "suggestedRegressionTest": "Create a runtime, register both subscribe() and subscribeEvents() listeners, call close(), then apply a user-visible action such as stop() or a backend event and assert neither listener fires and both listener sets are released through public behavior.",
+  "minimumFixScope": "ConversationRuntime.close() and focused runtime close/unsubscribe tests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-c840c8d98d_daaabebb4a",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:17:17.988Z",
+  "updatedAt": "2026-05-24T21:17:17.988Z"
+}

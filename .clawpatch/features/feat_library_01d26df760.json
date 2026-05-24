@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_01d26df760",
+  "title": "Python source backend/src/core/inference",
+  "summary": "Python source group backend/src/core/inference with 6 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/core/inference",
+      "symbol": "backend/src/core/inference",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/core/inference/__init__.py",
+      "reason": "source group backend/src/core/inference"
+    },
+    {
+      "path": "backend/src/core/inference/circuit_breaker.py",
+      "reason": "source group backend/src/core/inference"
+    },
+    {
+      "path": "backend/src/core/inference/embedding_router.py",
+      "reason": "source group backend/src/core/inference"
+    },
+    {
+      "path": "backend/src/core/inference/errors.py",
+      "reason": "source group backend/src/core/inference"
+    },
+    {
+      "path": "backend/src/core/inference/ocr_router.py",
+      "reason": "source group backend/src/core/inference"
+    },
+    {
+      "path": "backend/src/core/inference/vision_router.py",
+      "reason": "source group backend/src/core/inference"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-01d26df760-35c6_d4a2be1d76",
+    "fnd_sig-feat-library-01d26df760-e150_9e1a1bdb15"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=40707 bytes; approxTokens=10177; includedFiles=6; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:03:31.538Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:03:31.538Z"
+}

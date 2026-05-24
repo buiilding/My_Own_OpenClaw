@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-9a49786b23-133a_dbca6e593b",
+  "featureId": "feat_library_9a49786b23",
+  "title": "Cross-window config sync can re-broadcast unchanged nested provider config indefinitely",
+  "category": "concurrency",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/app/providers/AppConfigProvider.jsx",
+      "startLine": 102,
+      "endLine": 107,
+      "symbol": "commitFrontendConfig",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/app/providers/AppConfigProvider.jsx",
+      "startLine": 248,
+      "endLine": 267,
+      "symbol": "storage event handler",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/app/providers/appConfigPersistence.js",
+      "startLine": 107,
+      "endLine": 123,
+      "symbol": "mergeFrontendProviderConfig",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/app/providers/configComparison.ts",
+      "startLine": 15,
+      "endLine": 19,
+      "symbol": "hasShallowConfigChanges",
+      "quote": null
+    }
+  ],
+  "reasoning": "The storage-event path receives a localStorage update from another renderer, rebuilds the merged config, then calls applyResolvedConfig with persistToDisk false and syncBackend false. However commitFrontendConfig still always writes the config back to localStorage before checking persistToDisk, so a passive storage sync re-broadcasts the same config. For configs containing nested provider_api_keys or provider_oauth, mergeFrontendProviderConfig creates fresh nested objects even when their contents are unchanged, while hasShallowConfigChanges compares those object values by reference. That makes an unchanged storage event look like a real config change, so two windows can repeatedly trigger each other with localStorage writes.",
+  "reproduction": "Open two renderer windows with a config containing provider_api_keys or provider_oauth. Change a setting in one window. The other window handles the storage event, creates fresh nested provider config objects, treats them as changed, writes localStorage again, and can trigger the first window to repeat the same cycle.",
+  "recommendation": "Do not write back to localStorage when applying a storage-event snapshot, or add an explicit persistToLocalStorage option and set it false for storage sync. Also use content-aware comparison for nested provider config so unchanged provider_api_keys/provider_oauth snapshots are not treated as changes only because object references differ.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for multi-window storage synchronization or unchanged nested provider config comparisons.",
+  "suggestedRegressionTest": "Add a provider-level unit test that simulates a storage event with unchanged provider_api_keys/provider_oauth and asserts saveConfigToStorage is not called again; add a companion test proving equivalent nested provider config does not count as changed.",
+  "minimumFixScope": "AppConfigProvider commit/apply options plus config comparison or provider merge behavior for nested provider config.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-9a49786b23_133a3b8cdb",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:14:37.689Z",
+  "updatedAt": "2026-05-24T21:14:37.689Z"
+}

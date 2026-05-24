@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-3eca321ef8-c3a9_a4d6cc5eec",
+  "featureId": "feat_library_3eca321ef8",
+  "title": "Disconnect during startup sends can bypass task/session cleanup",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/websocket/router.py",
+      "startLine": 75,
+      "endLine": 79,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/websocket/router.py",
+      "startLine": 121,
+      "endLine": 137,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/websocket/router.py",
+      "startLine": 139,
+      "endLine": 199,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/websocket/connection.py",
+      "startLine": 222,
+      "endLine": 233,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The route increments the session connection count immediately after a successful handshake, but the cleanup finally block does not begin until line 139. The client-tool-manifest and remote-tool-catalog sends happen before that protected region. If either send raises because the client disconnected or the socket failed, cleanup_connection is skipped, so the per-user connection count is not decremented and end_session may never run for that connection. This can leak session state and leave subsequent cleanup decisions using a stale active-connection count.",
+  "reproduction": null,
+  "recommendation": "Move the try/finally to cover all post-handshake session mutation and startup sends, or wrap the startup sends in the same protected connection lifecycle block after increment_connection_count.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for startup send failures or disconnects between handshake completion and receive-loop entry.",
+  "suggestedRegressionTest": "Add a websocket route test where SafeWebSocket.send_json raises after increment_connection_count, then assert cleanup_connection runs and session_manager.decrement_connection_count/end_session are called as appropriate.",
+  "minimumFixScope": "backend/src/api/routes/websocket/router.py",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-3eca321ef8_c3a9cef76e",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:07:51.618Z",
+  "updatedAt": "2026-05-24T21:07:51.618Z"
+}

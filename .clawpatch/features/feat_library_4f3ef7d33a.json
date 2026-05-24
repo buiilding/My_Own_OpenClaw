@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_4f3ef7d33a",
+  "title": "Node source frontend/src/main#1",
+  "summary": "Node/TypeScript source group frontend/src/main#1 with 12 files.",
+  "kind": "library",
+  "source": "node-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "frontend/package.json",
+      "symbol": "frontend/src/main#1",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "frontend/src/main/app_menu_runtime.cjs",
+      "reason": "source group frontend/src/main#1"
+    },
+    {
+      "path": "frontend/src/main/backend_endpoints.cjs",
+      "reason": "source group frontend/src/main#1"
+    },
+    {
+      "path": "frontend/src/main/extension_manifest.cjs",
+      "reason": "source group frontend/src/main#1"
+    },
+    {
+      "path": "frontend/src/main/gpu_runtime.cjs",
+      "reason": "source group frontend/src/main#1"
+    },
+    {
+      "path": "frontend/src/main/index.cjs",
+      "reason": "source group frontend/src/main#1"
+    },
+    {
+      "path": "frontend/src/main/main_process_bootstrap_runtime.cjs",
+      "reason": "source group frontend/src/main#1"
+    },
+    {
+      "path": "frontend/src/main/main_process_lifecycle_runtime.cjs",
+      "reason": "source group frontend/src/main#1"
+    },
+    {
+      "path": "frontend/src/main/main_window_controls_handler.cjs",
+      "reason": "source group frontend/src/main#1"
+    },
+    {
+      "path": "frontend/src/main/main_window_icon_runtime.cjs",
+      "reason": "source group frontend/src/main#1"
+    },
+    {
+      "path": "frontend/src/main/main_window_overlay_runtime.cjs",
+      "reason": "source group frontend/src/main#1"
+    },
+    {
+      "path": "frontend/src/main/main_window_runtime.cjs",
+      "reason": "source group frontend/src/main#1"
+    },
+    {
+      "path": "frontend/src/main/mcp_runtime.cjs",
+      "reason": "source group frontend/src/main#1"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "frontend/package.json",
+      "reason": "package manifest"
+    }
+  ],
+  "tests": [],
+  "tags": [
+    "node",
+    "typescript",
+    "source-group",
+    "project:windieos",
+    "project-root:frontend"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-4f3ef7d33a-5a3e_d46caab802",
+    "fnd_sig-feat-library-4f3ef7d33a-8c5c_6f42f0e25b",
+    "fnd_sig-feat-library-4f3ef7d33a-0e1a_924772ecef"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "3 finding(s); prompt=127470 bytes; approxTokens=31867; includedFiles=13; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:08:56.556Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:08:56.556Z"
+}

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-714d8b406f-e24e_84a519e932",
+  "featureId": "feat_library_714d8b406f",
+  "title": "Landing-page documentation and legal links resolve to the current page instead of real targets",
+  "category": "bug",
+  "severity": "low",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "frontend/src/landing/components/CTAFooter.jsx",
+      "startLine": 38,
+      "endLine": 40,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/landing/components/CTAFooter.jsx",
+      "startLine": 91,
+      "endLine": 104,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "Several visible calls to action and footer resource/legal links use href=\"#\". In a deployed landing page, clicking these links does not navigate to documentation, installation, changelog, license, or terms content; it either stays on the same page or jumps to the top depending on browser behavior. This is user-facing broken navigation, and it is especially misleading for documentation/install links that are presented as primary next steps.",
+  "reproduction": "Open the landing page and click Read Documentation, Documentation, Installation, Changelog, License, or Terms. The URL target is just # rather than a real route or document.",
+  "recommendation": "Replace placeholder href=\"#\" values with real routes or external documentation URLs. If some pages do not exist yet, remove the links or label them as unavailable rather than shipping dead navigation.",
+  "whyTestsDoNotAlreadyCoverThis": "The feature metadata lists no linked tests, and the included package test command is generic; there is no evidence of a landing-page navigation/link integrity test.",
+  "suggestedRegressionTest": "Add a landing-page render test that collects visible anchors in CTAFooter and asserts resource/legal CTAs do not use '#' placeholders unless explicitly marked disabled.",
+  "minimumFixScope": "Update CTAFooter link targets for documentation, installation, changelog, license, and terms, or remove unavailable links.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-714d8b406f_e24e5cb439",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:11:15.494Z",
+  "updatedAt": "2026-05-24T21:11:15.494Z"
+}

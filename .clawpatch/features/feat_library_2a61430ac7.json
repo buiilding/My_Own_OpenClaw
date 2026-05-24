@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_2a61430ac7",
+  "title": "Python source backend/src/api/services/query_execution_support",
+  "summary": "Python source group backend/src/api/services/query_execution_support with 8 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/api/services/query_execution_support",
+      "symbol": "backend/src/api/services/query_execution_support",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/api/services/query_execution_support/__init__.py",
+      "reason": "source group backend/src/api/services/query_execution_support"
+    },
+    {
+      "path": "backend/src/api/services/query_execution_support/query_execution_cancellation.py",
+      "reason": "source group backend/src/api/services/query_execution_support"
+    },
+    {
+      "path": "backend/src/api/services/query_execution_support/query_execution_completion.py",
+      "reason": "source group backend/src/api/services/query_execution_support"
+    },
+    {
+      "path": "backend/src/api/services/query_execution_support/query_execution_inputs.py",
+      "reason": "source group backend/src/api/services/query_execution_support"
+    },
+    {
+      "path": "backend/src/api/services/query_execution_support/query_execution_pipeline_events.py",
+      "reason": "source group backend/src/api/services/query_execution_support"
+    },
+    {
+      "path": "backend/src/api/services/query_execution_support/query_execution_runtime.py",
+      "reason": "source group backend/src/api/services/query_execution_support"
+    },
+    {
+      "path": "backend/src/api/services/query_execution_support/query_execution_stream_state.py",
+      "reason": "source group backend/src/api/services/query_execution_support"
+    },
+    {
+      "path": "backend/src/api/services/query_execution_support/query_execution_terminal_policy.py",
+      "reason": "source group backend/src/api/services/query_execution_support"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_query_execution_cancellation.py",
+      "reason": "associated test"
+    },
+    {
+      "path": "tests/backend/test_query_execution_inputs.py",
+      "reason": "associated test"
+    },
+    {
+      "path": "tests/backend/test_query_execution_pipeline_events.py",
+      "reason": "associated test"
+    },
+    {
+      "path": "tests/backend/test_query_execution_stream_state.py",
+      "reason": "associated test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_query_execution_cancellation.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_query_execution_inputs.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_query_execution_pipeline_events.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_query_execution_stream_state.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-2a61430ac7-4804_016986dc16"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=38007 bytes; approxTokens=9502; includedFiles=12; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:06:17.848Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:06:17.848Z"
+}

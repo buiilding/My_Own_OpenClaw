@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-1346364f94-7d38_f16e5b79db",
+  "featureId": "feat_library_1346364f94",
+  "title": "IPC initialization cannot be retried after initializer failure",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "frontend/src/main/surface_runtime.cjs",
+      "startLine": 473,
+      "endLine": 479,
+      "symbol": "initializeMainProcessIpcOnce",
+      "quote": null
+    }
+  ],
+  "reasoning": "initializeMainProcessIpcOnce flips mainProcessIpcHandlersInitialized to true before calling initializer. If initializer throws partway through registration, the runtime is left marked initialized and every later call returns false, preventing recovery or a clean retry of missing handlers in the same process.",
+  "reproduction": null,
+  "recommendation": "Set the initialized flag only after initializer completes successfully, or catch errors, reset the flag, and rethrow so callers can retry or fail clearly.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for this feature, and there is no evidence of a test covering a throwing initializer path.",
+  "suggestedRegressionTest": "Add a unit test that passes an initializer which throws, verifies a second call attempts initialization again, then verifies a successful initializer prevents further retries.",
+  "minimumFixScope": "Change initializeMainProcessIpcOnce error handling and add a focused test for thrown and successful initializer cases.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-1346364f94_7d38f9d7da",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:04:19.777Z",
+  "updatedAt": "2026-05-24T21:04:19.777Z"
+}

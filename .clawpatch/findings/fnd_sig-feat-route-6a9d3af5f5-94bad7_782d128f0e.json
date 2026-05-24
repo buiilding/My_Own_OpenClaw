@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-6a9d3af5f5-94bad7_782d128f0e",
+  "featureId": "feat_route_6a9d3af5f5",
+  "title": "SDK OCR run route has no route-level authentication or authorization dependency",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 67,
+      "endLine": 80,
+      "symbol": "sdk_ocr_run",
+      "quote": null
+    }
+  ],
+  "reasoning": "The SDK router is created without visible dependencies, and POST /api/sdk/ocr/run accepts network input and immediately resolves an image source and runs OCR using only ContainerDep. For an SDK-facing route that crosses network, user-input, serialization, and auth boundaries, this leaves the handler with no local proof that the caller is authenticated or authorized to submit the referenced image for OCR. Confidence is medium because a parent router or application-level dependency could still protect this route outside the provided excerpt, but the owned route itself does not enforce or document that invariant.",
+  "reproduction": null,
+  "recommendation": "Add an explicit SDK auth/session dependency to this router or route, or document and test the parent-level protection in a way that fails if the route is mounted without it.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were provided for this feature, and the excerpt contains no route-level assertion or dependency that would make the auth requirement testable here.",
+  "suggestedRegressionTest": "Add a FastAPI route test for POST /api/sdk/ocr/run that verifies unauthenticated requests are rejected and authenticated SDK requests can reach the OCR service with mocked OCR execution.",
+  "minimumFixScope": "backend/src/api/routes/sdk/router.py plus focused backend route tests for the SDK OCR route authentication contract.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-6a9d3af5f5_94bad7219a",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:21:56.119Z",
+  "updatedAt": "2026-05-24T21:21:56.119Z"
+}

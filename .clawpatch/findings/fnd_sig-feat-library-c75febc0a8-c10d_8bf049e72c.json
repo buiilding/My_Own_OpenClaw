@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-c75febc0a8-c10d_8bf049e72c",
+  "featureId": "feat_library_c75febc0a8",
+  "title": "Partial transcript session sync broadcasts null conversation_ref",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "frontend/src/main/ipc/ipc_transcript_session_sync.cjs",
+      "startLine": 18,
+      "endLine": 25,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/ipc/ipc_transcript_session_sync.cjs",
+      "startLine": 63,
+      "endLine": 75,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The normalizer intentionally accepts payloads that contain only a user id, and applyTranscriptSessionSync preserves the currentConversationRef locally when conversationRef is omitted. However, the broadcast payload uses normalizedPayload.conversationRef ?? null, so an omitted conversationRef is sent to other renderers as null. A user-only sync can therefore make sibling renderers clear or detach from the active transcript session even though the local return path kept the existing conversation ref.",
+  "reproduction": null,
+  "recommendation": "When conversationRef is omitted, broadcast the resolved nextConversationRef or omit the field instead of converting undefined to null. Preserve null only when the sender explicitly requested clearing the conversation ref.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were provided for transcript session sync, and the included package scripts only show the general Jest test entrypoint, not coverage for omitted-field sync behavior.",
+  "suggestedRegressionTest": "Add a Jest unit test for applyTranscriptSessionSync with payload { userId: 'u2' } and currentConversationRef 'conv1', asserting that the broadcast does not contain conversationRef: null and that nextConversationRef remains 'conv1'. Also test explicit { conversationRef: null } still clears.",
+  "minimumFixScope": "Update applyTranscriptSessionSync broadcast payload construction and add focused frontend IPC unit coverage for omitted versus explicit-null transcript session fields.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-c75febc0a8_c10d1cc194",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:17:10.542Z",
+  "updatedAt": "2026-05-24T21:17:10.542Z"
+}

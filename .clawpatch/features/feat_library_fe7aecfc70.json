@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_fe7aecfc70",
+  "title": "Node source frontend/src/main/:permission",
+  "summary": "Node/TypeScript source group frontend/src/main/:permission with 10 files.",
+  "kind": "library",
+  "source": "node-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "frontend/package.json",
+      "symbol": "frontend/src/main/:permission",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "frontend/src/main/permission_ipc_runtime.cjs",
+      "reason": "source group frontend/src/main/:permission"
+    },
+    {
+      "path": "frontend/src/main/permission_service.cjs",
+      "reason": "source group frontend/src/main/:permission"
+    },
+    {
+      "path": "frontend/src/main/permission_service_automation.cjs",
+      "reason": "source group frontend/src/main/:permission"
+    },
+    {
+      "path": "frontend/src/main/permission_service_browser.cjs",
+      "reason": "source group frontend/src/main/:permission"
+    },
+    {
+      "path": "frontend/src/main/permission_service_input_control.cjs",
+      "reason": "source group frontend/src/main/:permission"
+    },
+    {
+      "path": "frontend/src/main/permission_service_microphone.cjs",
+      "reason": "source group frontend/src/main/:permission"
+    },
+    {
+      "path": "frontend/src/main/permission_service_runtime.cjs",
+      "reason": "source group frontend/src/main/:permission"
+    },
+    {
+      "path": "frontend/src/main/permission_service_screen_capture.cjs",
+      "reason": "source group frontend/src/main/:permission"
+    },
+    {
+      "path": "frontend/src/main/permission_service_workspace.cjs",
+      "reason": "source group frontend/src/main/:permission"
+    },
+    {
+      "path": "frontend/src/main/permission_state_store.cjs",
+      "reason": "source group frontend/src/main/:permission"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "frontend/package.json",
+      "reason": "package manifest"
+    }
+  ],
+  "tests": [],
+  "tags": [
+    "node",
+    "typescript",
+    "source-group",
+    "project:windieos",
+    "project-root:frontend"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-fe7aecfc70-a388_cc054f2466",
+    "fnd_sig-feat-library-fe7aecfc70-c90e_742f6f0f3e",
+    "fnd_sig-feat-library-fe7aecfc70-8730_a1d562f875"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "3 finding(s); prompt=91614 bytes; approxTokens=22904; includedFiles=11; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:20:46.268Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:20:46.268Z"
+}

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-c349e3cc10-f1d5_60ff8813e1",
+  "featureId": "feat_library_c349e3cc10",
+  "title": "Settings handlers are defined but not exported from the handlers package",
+  "category": "api-contract",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "backend/src/api/handlers/__init__.py",
+      "startLine": 36,
+      "endLine": 54,
+      "symbol": "__all__",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/handlers/settings.py",
+      "startLine": 55,
+      "endLine": 67,
+      "symbol": "LoadSettingsHandler",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/handlers/settings.py",
+      "startLine": 148,
+      "endLine": 160,
+      "symbol": "UpdateSettingsHandler",
+      "quote": null
+    }
+  ],
+  "reasoning": "The package-level handlers module exports ListModelsHandler from settings.py but omits LoadSettingsHandler and UpdateSettingsHandler even though both are concrete message handlers in the same source group. Code that imports handlers through backend.src.api.handlers cannot access the load/update settings handlers, which is an API surface mismatch and can lead to registration/import drift as settings behavior evolves.",
+  "reproduction": "Attempt `from backend.src.api.handlers import LoadSettingsHandler, UpdateSettingsHandler`; the import fails because the package does not import or include those classes in __all__.",
+  "recommendation": "Import LoadSettingsHandler and UpdateSettingsHandler in backend/src/api/handlers/__init__.py and include them in __all__, or document that only ListModelsHandler is intended to be exported and adjust package exports consistently.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for handler package exports or registry import coverage.",
+  "suggestedRegressionTest": "Add a small import/export test that asserts all concrete settings handlers intended for registry use are importable from backend.src.api.handlers.",
+  "minimumFixScope": "backend/src/api/handlers/__init__.py export list.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-c349e3cc10_f1d504b375",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:16:53.699Z",
+  "updatedAt": "2026-05-24T21:16:53.699Z"
+}

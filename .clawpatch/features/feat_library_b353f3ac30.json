@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_b353f3ac30",
+  "title": "Python source backend/src/simulation",
+  "summary": "Python source group backend/src/simulation with 11 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/simulation",
+      "symbol": "backend/src/simulation",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/simulation/__init__.py",
+      "reason": "source group backend/src/simulation"
+    },
+    {
+      "path": "backend/src/simulation/__main__.py",
+      "reason": "source group backend/src/simulation"
+    },
+    {
+      "path": "backend/src/simulation/app_factory.py",
+      "reason": "source group backend/src/simulation"
+    },
+    {
+      "path": "backend/src/simulation/base_mock_llm_client.py",
+      "reason": "source group backend/src/simulation"
+    },
+    {
+      "path": "backend/src/simulation/browser.py",
+      "reason": "source group backend/src/simulation"
+    },
+    {
+      "path": "backend/src/simulation/computer.py",
+      "reason": "source group backend/src/simulation"
+    },
+    {
+      "path": "backend/src/simulation/lifespan_factory.py",
+      "reason": "source group backend/src/simulation"
+    },
+    {
+      "path": "backend/src/simulation/main.py",
+      "reason": "source group backend/src/simulation"
+    },
+    {
+      "path": "backend/src/simulation/mock_llm_browser_client.py",
+      "reason": "source group backend/src/simulation"
+    },
+    {
+      "path": "backend/src/simulation/mock_llm_client.py",
+      "reason": "source group backend/src/simulation"
+    },
+    {
+      "path": "backend/src/simulation/native_tool_adapter.py",
+      "reason": "source group backend/src/simulation"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_mock_llm_browser_client.py",
+      "reason": "associated test"
+    },
+    {
+      "path": "tests/backend/test_mock_llm_client.py",
+      "reason": "associated test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_mock_llm_browser_client.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_mock_llm_client.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "reviewed",
+  "lock": null,
+  "findingIds": [],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "0 finding(s); prompt=66229 bytes; approxTokens=16558; includedFiles=13; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:15:47.152Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:15:47.152Z"
+}

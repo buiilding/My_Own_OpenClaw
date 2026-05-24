@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-41e7c46fe2-c00c_dee3f653c8",
+  "featureId": "feat_library_41e7c46fe2",
+  "title": "Repeated override refreshes stack provider overrides without cleanup",
+  "category": "performance",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/core/container/api_runtime.py",
+      "startLine": 30,
+      "endLine": 35,
+      "symbol": "ApiRuntimeBinder.refresh_overrides",
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/container/api_runtime.py",
+      "startLine": 43,
+      "endLine": 53,
+      "symbol": "ApiRuntimeBinder._sync_api_container_overrides",
+      "quote": null
+    }
+  ],
+  "reasoning": "Each refresh call applies new provider overrides to config, config_service, model_service, and session_manager. dependency_injector provider overrides are stacked unless reset, so repeated refresh_overrides calls can leave an unbounded chain of stale Object providers attached to each dependency provider. Besides memory growth, later reset behavior becomes surprising because old overrides remain underneath the newest one.",
+  "reproduction": null,
+  "recommendation": "Before applying replacement overrides, reset the existing overrides for these dependency providers or replace the ApiContainer wholesale. If stacking is intentional, document the lifecycle and expose a cleanup path.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included, and there is no evidence of a test that calls refresh_overrides repeatedly and inspects provider override depth or cleanup behavior.",
+  "suggestedRegressionTest": "Call refresh_overrides multiple times after creating the ApiContainer and assert each dependency provider has only the expected active override after refresh.",
+  "minimumFixScope": "ApiRuntimeBinder._sync_api_container_overrides and a focused lifecycle regression test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-41e7c46fe2_c00cccfd33",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:08:06.205Z",
+  "updatedAt": "2026-05-24T21:08:06.205Z"
+}

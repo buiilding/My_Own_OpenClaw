@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-01d26df760-e150_9e1a1bdb15",
+  "featureId": "feat_library_01d26df760",
+  "title": "In-flight successes can reopen a failed provider circuit",
+  "category": "concurrency",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/core/inference/circuit_breaker.py",
+      "startLine": 83,
+      "endLine": 90,
+      "symbol": "ProviderCircuitBreaker.record_success / record_failure",
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/inference/embedding_router.py",
+      "startLine": 129,
+      "endLine": 151,
+      "symbol": "EmbeddingRouter.embed_text",
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/inference/ocr_router.py",
+      "startLine": 181,
+      "endLine": 202,
+      "symbol": "OcrRouter.analyze_image",
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/inference/vision_router.py",
+      "startLine": 191,
+      "endLine": 212,
+      "symbol": "VisionRouter.predict_coordinates",
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/inference/vision_router.py",
+      "startLine": 236,
+      "endLine": 257,
+      "symbol": "VisionRouter.answer_question_about_image",
+      "quote": null
+    }
+  ],
+  "reasoning": "Each router checks the circuit before awaiting provider work, then records success or failure after the await. The circuit breaker has a single mutable state where record_success unconditionally resets all failures and opened_until. With concurrent requests, several failures can open the circuit while an older request is still in flight; if that older request later succeeds, record_success resets the opened circuit and immediately allows new traffic before the cooldown expires. This defeats the repeated-failure protection under realistic async concurrency.",
+  "reproduction": "Set failure_threshold=2. Start three concurrent router calls while the circuit is closed. Let two fail first so record_failure opens the circuit, then let the earlier in-flight call succeed. Its record_success resets opened_until, making circuit_open false during the intended cooldown.",
+  "recommendation": "Track whether a success belongs to the current circuit generation before allowing it to reset an opened circuit, or protect the breaker with request epochs so successes that began before the circuit opened cannot clear opened_until. At minimum, do not let record_success clear an already-open circuit unless it is part of an explicit probe/recovery path.",
+  "whyTestsDoNotAlreadyCoverThis": "No tests are included for this feature, and there is no concurrent request scenario covering out-of-order provider completions.",
+  "suggestedRegressionTest": "Add an async concurrency test using a controllable fake provider where two failed calls open the circuit and a delayed success from a request started earlier must not clear circuit_open before cooldown.",
+  "minimumFixScope": "backend/src/core/inference/circuit_breaker.py and focused async router or circuit breaker regression tests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-01d26df760_e150a89ad7",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:03:31.537Z",
+  "updatedAt": "2026-05-24T21:03:31.537Z"
+}

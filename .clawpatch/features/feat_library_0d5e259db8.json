@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_0d5e259db8",
+  "title": "Python source backend/src/agent/tools/waiting",
+  "summary": "Python source group backend/src/agent/tools/waiting with 6 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/agent/tools/waiting",
+      "symbol": "backend/src/agent/tools/waiting",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/agent/tools/waiting/__init__.py",
+      "reason": "source group backend/src/agent/tools/waiting"
+    },
+    {
+      "path": "backend/src/agent/tools/waiting/handler.py",
+      "reason": "source group backend/src/agent/tools/waiting"
+    },
+    {
+      "path": "backend/src/agent/tools/waiting/receiver.py",
+      "reason": "source group backend/src/agent/tools/waiting"
+    },
+    {
+      "path": "backend/src/agent/tools/waiting/router.py",
+      "reason": "source group backend/src/agent/tools/waiting"
+    },
+    {
+      "path": "backend/src/agent/tools/waiting/storage/__init__.py",
+      "reason": "source group backend/src/agent/tools/waiting"
+    },
+    {
+      "path": "backend/src/agent/tools/waiting/storage/result_storage.py",
+      "reason": "source group backend/src/agent/tools/waiting"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-0d5e259db8-5743_345431a213",
+    "fnd_sig-feat-library-0d5e259db8-4dfa_5b0cfe6623"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=43354 bytes; approxTokens=10839; includedFiles=6; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:04:12.571Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:04:12.571Z"
+}

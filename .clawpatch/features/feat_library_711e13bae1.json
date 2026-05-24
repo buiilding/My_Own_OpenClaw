@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_711e13bae1",
+  "title": "Node source frontend/src/renderer/features/chat/utils/overlay",
+  "summary": "Node/TypeScript source group frontend/src/renderer/features/chat/utils/overlay with 8 files.",
+  "kind": "library",
+  "source": "node-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "frontend/package.json",
+      "symbol": "frontend/src/renderer/features/chat/utils/overlay",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "frontend/src/renderer/features/chat/utils/overlay/overlayFrameSize.js",
+      "reason": "source group frontend/src/renderer/features/chat/utils/overlay"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/utils/overlay/overlayPhaseListener.js",
+      "reason": "source group frontend/src/renderer/features/chat/utils/overlay"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/utils/overlay/overlayTurnLifecycleContract.js",
+      "reason": "source group frontend/src/renderer/features/chat/utils/overlay"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/utils/overlay/responseOverlayLayoutContract.js",
+      "reason": "source group frontend/src/renderer/features/chat/utils/overlay"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/utils/overlay/responseOverlayLayoutMode.js",
+      "reason": "source group frontend/src/renderer/features/chat/utils/overlay"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhaseContract.js",
+      "reason": "source group frontend/src/renderer/features/chat/utils/overlay"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhasePayload.js",
+      "reason": "source group frontend/src/renderer/features/chat/utils/overlay"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/utils/overlay/responseOverlayViewContract.ts",
+      "reason": "source group frontend/src/renderer/features/chat/utils/overlay"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "frontend/package.json",
+      "reason": "package manifest"
+    }
+  ],
+  "tests": [],
+  "tags": [
+    "node",
+    "typescript",
+    "source-group",
+    "project:windieos",
+    "project-root:frontend"
+  ],
+  "trustBoundaries": [],
+  "status": "reviewed",
+  "lock": null,
+  "findingIds": [],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "0 finding(s); prompt=23804 bytes; approxTokens=5951; includedFiles=9; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:12:03.897Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:12:03.897Z"
+}

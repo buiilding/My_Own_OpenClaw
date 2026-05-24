@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-d66dd70414-fcc5_38e418e033",
+  "featureId": "feat_library_d66dd70414",
+  "title": "Published package entrypoint requires a dev-only dependency",
+  "category": "build-release",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/package.json",
+      "startLine": 2,
+      "endLine": 13,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/package.json",
+      "startLine": 44,
+      "endLine": 56,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/package.json",
+      "startLine": 57,
+      "endLine": 72,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/index.cjs",
+      "startLine": 1,
+      "endLine": 13,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The package is publishable (`private: false`) and declares `src/main/index.cjs` as its Node entrypoint, but that entrypoint immediately requires `electron`. Electron is only listed in devDependencies, not dependencies or peerDependencies, so an npm consumer installing `windieos` and importing/requiring the package without this repo's dev dependencies will fail at module resolution before any API can be used.",
+  "reproduction": "From a clean consumer project, install the packed/published frontend package with production dependencies only, then run `node -e \"require('windieos')\"`; Node will attempt to load `src/main/index.cjs` and fail to resolve `electron`.",
+  "recommendation": "Either make this package non-publishable/private, expose a real library-safe entrypoint that does not require Electron at import time, or declare Electron as an explicit runtime/peer dependency and document that the package is an Electron app entrypoint rather than a general Node library.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for npm packing, production install shape, or requiring the published package entrypoint from a clean consumer project.",
+  "suggestedRegressionTest": "Add a packaging smoke test that runs `npm pack`, installs the tarball into a temporary project with production dependencies, and verifies the declared `main` can be resolved or intentionally fails with a documented package type.",
+  "minimumFixScope": "frontend/package.json plus any new dedicated package entrypoint needed to separate publishable library API from Electron app bootstrap.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-d66dd70414_fcc556137e",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:18:25.424Z",
+  "updatedAt": "2026-05-24T21:18:25.424Z"
+}

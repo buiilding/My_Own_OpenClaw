@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-1346364f94-3f80_d8690a75bc",
+  "featureId": "feat_library_1346364f94",
+  "title": "Surface state is updated before show operations are known to succeed",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/main/surface_runtime.cjs",
+      "startLine": 335,
+      "endLine": 368,
+      "symbol": "showChatWindow",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/surface_runtime.cjs",
+      "startLine": 401,
+      "endLine": 422,
+      "symbol": "showMainWindow",
+      "quote": null
+    }
+  ],
+  "reasoning": "showChatWindow sets primarySurface to 'chat' before showChatWindowRuntime returns, and showMainWindow sets mainWindowMode, primarySurface, and startupChatPillShowHandled before showMainWindowRuntime returns. If either runtime helper fails or returns a failure result, exported getters can report that the active surface changed even though the window transition did not apply. The main-window path can also mark startup handling complete after a failed show, affecting later startup chat-pill behavior.",
+  "reproduction": null,
+  "recommendation": "Move primarySurface, mainWindowMode, and startupChatPillShowHandled updates after the runtime helper returns success, or explicitly roll them back on failure. Keep any intentional pre-state mutation documented and covered by tests.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for this feature, and the package manifest only shows broad Jest commands rather than focused coverage for failed surface transitions.",
+  "suggestedRegressionTest": "Add a Jest test for createSurfaceRuntime where showChatWindowRuntime/showMainWindowRuntime is mocked or dependency-injected to fail, then assert getPrimarySurface/getMainWindowMode/startup suppression state do not advance on failure.",
+  "minimumFixScope": "Limit the fix to the two show methods' state mutation order and add focused runtime tests around success and failure results.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-1346364f94_3f80c7dfa4",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:04:19.777Z",
+  "updatedAt": "2026-05-24T21:04:19.777Z"
+}

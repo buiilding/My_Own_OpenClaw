@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-27d2cf9500-8c34_b684c519dc",
+  "featureId": "feat_library_27d2cf9500",
+  "title": "Workspace bindings are never tested despite owning persistence and fallback resolution",
+  "category": "test-gap",
+  "severity": "low",
+  "confidence": "high",
+  "triage": "test-gap",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding.js",
+      "startLine": 51,
+      "endLine": 86,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding.js",
+      "startLine": 144,
+      "endLine": 172,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/package.json",
+      "startLine": 40,
+      "endLine": 41,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "This module owns nontrivial behavior: it parses and rewrites sessionStorage state, normalizes conversation refs and workspace bindings, and chooses a workspace binding from either conversation metadata or the first memory metadata. The feature metadata includes no linked tests, while the package has an available Jest test command. A regression in parse failure handling, malformed metadata normalization, or conversation-vs-memory precedence would silently change which workspace is associated with a conversation.",
+  "reproduction": null,
+  "recommendation": "Add focused Jest coverage for storage round trips, malformed storage payloads, empty conversation refs, clearing single/all bindings, and resolveConversationWorkspaceBinding precedence between conversation metadata and memory metadata.",
+  "whyTestsDoNotAlreadyCoverThis": "The feature declares no linked tests, and no test file excerpt is included for these exported helpers.",
+  "suggestedRegressionTest": "Create a workspace infrastructure test that mocks window.sessionStorage, imports the module in isolation per case, and verifies set/get/clear behavior plus resolveConversationWorkspaceBinding precedence and malformed input handling.",
+  "minimumFixScope": "Add focused tests for conversationWorkspaceBinding.js exports without changing production behavior.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-27d2cf9500_8c34fab285",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:06:00.811Z",
+  "updatedAt": "2026-05-24T21:06:00.811Z"
+}

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-343861e455-d5fb_52c83037e4",
+  "featureId": "feat_library_343861e455",
+  "title": "Boolean values are accepted for numeric-only settings",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/core/validation/settings_update_rules.py",
+      "startLine": 18,
+      "endLine": 19,
+      "symbol": "SETTINGS_UPDATE_RULES",
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/validation/settings_update_rules.py",
+      "startLine": 50,
+      "endLine": 56,
+      "symbol": "SETTINGS_UPDATE_RULES",
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/validation/validators.py",
+      "startLine": 160,
+      "endLine": 164,
+      "symbol": "validate_field",
+      "quote": null
+    }
+  ],
+  "reasoning": "Numeric settings are validated with isinstance(value, int) or isinstance(value, (int, float)). In Python, bool is a subclass of int, so True and False pass validation for timeout and token-count settings even though they are semantically boolean values, not numeric limits. That can persist invalid configuration such as history_compaction_trigger_tokens=True or llm_timeout=False.",
+  "reproduction": "Call validate_settings_update({\"history_compaction_trigger_tokens\": True}) or validate_settings_update({\"llm_timeout\": False}); the value passes the isinstance check for int.",
+  "recommendation": "For numeric settings, reject bool explicitly before the isinstance check or add a numeric validator/rule flag that treats bool as invalid for int and float fields.",
+  "whyTestsDoNotAlreadyCoverThis": "The included tests verify allowed None, unknown-key behavior, and a valid boolean field, but they do not cover booleans supplied to numeric settings.",
+  "suggestedRegressionTest": "Add tests asserting that bool values are rejected for representative int-only and int-or-float settings while real int/float values remain accepted.",
+  "minimumFixScope": "Tighten numeric validation in validate_field or settings_update_rules and add focused tests for bool-as-int rejection.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-343861e455_d5fbe9b942",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:07:07.548Z",
+  "updatedAt": "2026-05-24T21:07:07.548Z"
+}

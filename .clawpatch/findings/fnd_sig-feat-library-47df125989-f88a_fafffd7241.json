@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-47df125989-f88a_fafffd7241",
+  "featureId": "feat_library_47df125989",
+  "title": "Screenshot materialization trusts and deletes arbitrary returned paths",
+  "category": "security",
+  "severity": "high",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs",
+      "startLine": 119,
+      "endLine": 141,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/local_backend_bridge_screenshot_attachment.cjs",
+      "startLine": 106,
+      "endLine": 160,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "Every tool result, including local MCP tool results, is passed through screenshot materialization. If the result contains data.screenshot_path, the main process reads that path, uploads or inlines its contents, and then unlinks it in finally. There is no check that the path came from the screenshot tool, is inside an expected temporary screenshot directory, or was created by the sidecar for this request. A malicious or buggy local tool/MCP result can therefore exfiltrate and delete an arbitrary user-readable file by returning it as screenshot_path.",
+  "reproduction": null,
+  "recommendation": "Only materialize screenshot attachments for the screenshot tool, and validate screenshot_path against an owned temporary screenshot directory or an opaque sidecar-issued artifact handle before reading or deleting it. Do not unlink paths that fail validation.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for screenshot attachment materialization, and the current code has no assertions around path ownership or tool-name gating.",
+  "suggestedRegressionTest": "Add a main-process unit test that executes a non-screenshot local MCP tool returning data.screenshot_path outside the screenshot temp directory and asserts the file is neither read nor deleted and no screenshot payload is attached.",
+  "minimumFixScope": "Gate materializeScreenshotAttachment by toolName in executeTool and add path ownership validation before readFile/unlink in local_backend_bridge_screenshot_attachment.cjs.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-47df125989_f88abdad63",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:08:30.095Z",
+  "updatedAt": "2026-05-24T21:08:30.095Z"
+}

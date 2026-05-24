@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-8161046fcf-c99b_8e1779bfde",
+  "featureId": "feat_library_8161046fcf",
+  "title": "Memory retrieval preference helpers can throw on storage access failures",
+  "category": "bug",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/utils/memoryRetrievalPreference.js",
+      "startLine": 17,
+      "endLine": 32,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/utils/memoryRetrievalPreference.js",
+      "startLine": 35,
+      "endLine": 44,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The memory retrieval preference helpers call getItem and setItem on the resolved storage object without the try/catch protection used by configStorage. Browser storage operations can throw, for example when storage is unavailable, disabled, or quota/security policies reject access. That turns a non-critical preference read or write into a renderer exception instead of falling back to the default enabled value or returning the normalized setting.",
+  "reproduction": null,
+  "recommendation": "Wrap storage getItem/setItem calls in try/catch. Reads should return the safe default true when storage fails, and writes should return the normalized preference while optionally logging a warning.",
+  "whyTestsDoNotAlreadyCoverThis": "No tests are included for this feature, and there is no evidence of a fake storage object that throws on getItem or setItem.",
+  "suggestedRegressionTest": "Add unit tests using a storage stub whose getItem and setItem throw, asserting getMemoryRetrievalInjectionEnabled returns true and setMemoryRetrievalInjectionEnabled returns the normalized boolean without throwing.",
+  "minimumFixScope": "Update memoryRetrievalPreference.js to handle storage exceptions for both read and write paths.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-8161046fcf_c99b589ae1",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:12:49.828Z",
+  "updatedAt": "2026-05-24T21:12:49.828Z"
+}

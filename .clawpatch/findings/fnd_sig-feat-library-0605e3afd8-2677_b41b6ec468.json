@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-0605e3afd8-2677_b41b6ec468",
+  "featureId": "feat_library_0605e3afd8",
+  "title": "Voice mode can open duplicate WebSockets during normal re-renders",
+  "category": "concurrency",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/features/voice/hooks/useVoiceMode.ts",
+      "startLine": 73,
+      "endLine": 80,
+      "symbol": "connectWebSocket",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/voice/hooks/useVoiceMode.ts",
+      "startLine": 292,
+      "endLine": 306,
+      "symbol": "useVoiceMode enabled effect",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/voice/hooks/useAudioCaptureRefs.ts",
+      "startLine": 10,
+      "endLine": 24,
+      "symbol": "useAudioCaptureRefs setters",
+      "quote": null
+    }
+  ],
+  "reasoning": "connectWebSocket only treats an OPEN socket as already connected. A socket in CONNECTING state is not protected, so a later effect pass can create another WebSocket and overwrite websocketRef. That effect is especially prone to rerun because useAudioCaptureRefs returns new setter functions every render, which flow into start/stop/shutdown callback dependencies. The prior CONNECTING socket can still open, send the language payload, and remain connected without being tracked by websocketRef, creating duplicate backend clients and leaked transcription connections.",
+  "reproduction": "Enable voice mode in a component that re-renders while the first WebSocket is still CONNECTING. The enabled effect runs again, connectWebSocket creates a second socket because the first is not OPEN, and the first socket is no longer reachable through websocketRef.",
+  "recommendation": "Treat CONNECTING as an existing connection, or close any previous non-CLOSED socket before replacing websocketRef. Also make the ref setter callbacks stable with useCallback or avoid putting unstable setter wrappers into callback dependency chains.",
+  "whyTestsDoNotAlreadyCoverThis": "No tests are listed for this source group, and the package test command is generic Jest with no included voice hook coverage.",
+  "suggestedRegressionTest": "Add a hook test with a mock WebSocket that remains CONNECTING across a re-render while enabled is true, then assert only one WebSocket instance is created and only one language payload can be sent.",
+  "minimumFixScope": "useVoiceMode connectWebSocket guard plus stabilizing useAudioCaptureRefs setter identity or removing those setters from unstable dependency chains.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-0605e3afd8_26771efc71",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:04:01.707Z",
+  "updatedAt": "2026-05-24T21:04:01.707Z"
+}

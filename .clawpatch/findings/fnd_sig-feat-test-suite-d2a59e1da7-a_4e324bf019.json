@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-test-suite-d2a59e1da7-a_4e324bf019",
+  "featureId": "feat_test-suite_d2a59e1da7",
+  "title": "Missing Brave key test depends on ambient environment",
+  "category": "test-gap",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "test-gap",
+  "evidence": [
+    {
+      "path": "tests/backend/test_web_search_tool.py",
+      "startLine": 95,
+      "endLine": 110,
+      "symbol": "test_web_search_tool_reports_missing_backend_configuration",
+      "quote": null
+    }
+  ],
+  "reasoning": "This test asserts that WebSearchTool reports missing Brave configuration, but it does not clear BRAVE_SEARCH_API_KEY and does not monkeypatch _resolve_api_key. If a developer or CI environment has BRAVE_SEARCH_API_KEY set, the test no longer exercises the missing-configuration branch and may perform the configured path instead, making the backend test suite environment-dependent.",
+  "reproduction": "Run this test with BRAVE_SEARCH_API_KEY set in the environment; the asserted missing-configuration error is no longer guaranteed.",
+  "recommendation": "Use monkeypatch.delenv(\"BRAVE_SEARCH_API_KEY\", raising=False) in this test or monkeypatch _resolve_api_key to return None so the intended branch is deterministic.",
+  "whyTestsDoNotAlreadyCoverThis": "The test is intended to cover the missing configuration path but omits the environment isolation needed to make that path stable.",
+  "suggestedRegressionTest": "Keep this test but explicitly set the environment to the configured and unconfigured cases so both branches are deterministic.",
+  "minimumFixScope": "Update tests/backend/test_web_search_tool.py to clear or mock Brave configuration in the missing-configuration test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-test-suite-d2a59e1da7_aaeb0e3a72",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:24:31.716Z",
+  "updatedAt": "2026-05-24T21:24:31.716Z"
+}

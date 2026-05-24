@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-75136c3e16-9a2c_fe2f795c8f",
+  "featureId": "feat_library_75136c3e16",
+  "title": "Unidentified tool outputs can be paired with unrelated identified calls during replay",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/features/chat/utils/conversationReplayToolMessages.js",
+      "startLine": 65,
+      "endLine": 87,
+      "symbol": "findMatchingPendingToolCallIndex",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/utils/conversationReplayToolMessages.js",
+      "startLine": 108,
+      "endLine": 118,
+      "symbol": "buildReplayContextMessages",
+      "quote": null
+    }
+  ],
+  "reasoning": "When a replayed tool-output has no resolvable correlation id, findMatchingPendingToolCallIndex falls back to returning the first pending call even if every pending call has its own correlation id. That can preserve a tool call/output pair that were never correlated, corrupting replay context with the wrong tool result. The inverse fallback for an identified output to an idless pending call may be a legacy compatibility path, but matching an idless output to an identified call has no evidence of a safe contract in the included code.",
+  "reproduction": null,
+  "recommendation": "Only use the positional fallback when both sides are idless, or when a documented legacy replay mode explicitly permits positional matching. If pending calls have correlation ids and the output does not, leave the output unmatched.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for replay filtering or mismatched correlation-id behavior.",
+  "suggestedRegressionTest": "Add a test where messages contain two correlated tool-call entries followed by an idless tool-output, and assert buildReplayContextMessages drops the idless output instead of preserving it with the first call.",
+  "minimumFixScope": "Update findMatchingPendingToolCallIndex matching rules and add focused replay-correlation tests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-75136c3e16_9a2c028dac",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:11:22.200Z",
+  "updatedAt": "2026-05-24T21:11:22.200Z"
+}

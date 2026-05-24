@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_bc0f5f065b",
+  "title": "Python source backend/src/core/messages",
+  "summary": "Python source group backend/src/core/messages with 5 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/core/messages",
+      "symbol": "backend/src/core/messages",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/core/messages/__init__.py",
+      "reason": "source group backend/src/core/messages"
+    },
+    {
+      "path": "backend/src/core/messages/content_blocks.py",
+      "reason": "source group backend/src/core/messages"
+    },
+    {
+      "path": "backend/src/core/messages/converters.py",
+      "reason": "source group backend/src/core/messages"
+    },
+    {
+      "path": "backend/src/core/messages/structures.py",
+      "reason": "source group backend/src/core/messages"
+    },
+    {
+      "path": "backend/src/core/messages/tool_call_thought_signature.py",
+      "reason": "source group backend/src/core/messages"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_tool_call_thought_signature.py",
+      "reason": "associated test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_tool_call_thought_signature.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-bc0f5f065b-5501_267086ab64"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=24144 bytes; approxTokens=6036; includedFiles=6; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:16:26.096Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:16:26.096Z"
+}

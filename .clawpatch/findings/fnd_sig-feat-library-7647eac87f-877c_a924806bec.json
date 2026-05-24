@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-7647eac87f-877c_a924806bec",
+  "featureId": "feat_library_7647eac87f",
+  "title": "Restore failure can leave screenshot capture listeners stuck active",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline.ts",
+      "startLine": 220,
+      "endLine": 241,
+      "symbol": "captureScreenshotAttachment",
+      "quote": null
+    }
+  ],
+  "reasoning": "The finally block awaits `restoreScreenshotCaptureVisibility` before emitting `active:false` and before logging timing. If the restore call rejects, JavaScript exits the finally block immediately, so listeners never receive the inactive event and the function rejects instead of returning the empty or captured attachment. That makes a cleanup failure cascade into stale UI/capture state.",
+  "reproduction": "Mock `restoreScreenshotCaptureVisibility` to reject during `captureScreenshotAttachment()`. The `windie:screenshot-capture` active=false event is skipped because it is after the awaited restore call in the same finally block.",
+  "recommendation": "Wrap restore in its own try/catch inside finally, record/log the restore error, then always dispatch the inactive event and timing log. If callers must know restore failed, return the attachment while logging or rethrow only after cleanup notifications have run.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for cleanup failure paths, and the current structure has no evidence of assertions around restore rejection behavior.",
+  "suggestedRegressionTest": "Add a test where capture succeeds but `restoreScreenshotCaptureVisibility` rejects; assert `active:false` is still dispatched and timing/log cleanup still runs.",
+  "minimumFixScope": "ScreenshotAttachmentPipeline.ts finally-block cleanup ordering plus one focused frontend test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-7647eac87f_877c527f75",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:13:36.643Z",
+  "updatedAt": "2026-05-24T21:13:36.643Z"
+}

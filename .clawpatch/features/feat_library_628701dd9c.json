@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_628701dd9c",
+  "title": "Python source backend/src/core/container",
+  "summary": "Python source group backend/src/core/container with 10 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/core/container",
+      "symbol": "backend/src/core/container",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/core/container/__init__.py",
+      "reason": "source group backend/src/core/container"
+    },
+    {
+      "path": "backend/src/core/container/application.py",
+      "reason": "source group backend/src/core/container"
+    },
+    {
+      "path": "backend/src/core/container/config_updater.py",
+      "reason": "source group backend/src/core/container"
+    },
+    {
+      "path": "backend/src/core/container/core_container.py",
+      "reason": "source group backend/src/core/container"
+    },
+    {
+      "path": "backend/src/core/container/facade.py",
+      "reason": "source group backend/src/core/container"
+    },
+    {
+      "path": "backend/src/core/container/factories.py",
+      "reason": "source group backend/src/core/container"
+    },
+    {
+      "path": "backend/src/core/container/incoming_routing.py",
+      "reason": "source group backend/src/core/container"
+    },
+    {
+      "path": "backend/src/core/container/initializer.py",
+      "reason": "source group backend/src/core/container"
+    },
+    {
+      "path": "backend/src/core/container/memory_container.py",
+      "reason": "source group backend/src/core/container"
+    },
+    {
+      "path": "backend/src/core/container/tool_container.py",
+      "reason": "source group backend/src/core/container"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_incoming_routing.py",
+      "reason": "associated test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_incoming_routing.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-628701dd9c-eafb_e35d5670ff",
+    "fnd_sig-feat-library-628701dd9c-ebf5_1b98913c37"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=68064 bytes; approxTokens=17016; includedFiles=11; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:10:24.284Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:10:24.284Z"
+}

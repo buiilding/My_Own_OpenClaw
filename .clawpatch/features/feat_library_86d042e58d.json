@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_86d042e58d",
+  "title": "Python source backend/src/agent/history",
+  "summary": "Python source group backend/src/agent/history with 3 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/agent/history",
+      "symbol": "backend/src/agent/history",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/agent/history/__init__.py",
+      "reason": "source group backend/src/agent/history"
+    },
+    {
+      "path": "backend/src/agent/history/history_admission.py",
+      "reason": "source group backend/src/agent/history"
+    },
+    {
+      "path": "backend/src/agent/history/history_committer.py",
+      "reason": "source group backend/src/agent/history"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-86d042e58d-d850_866b4aaa56"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=10344 bytes; approxTokens=2586; includedFiles=3; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:13:17.321Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:13:17.321Z"
+}

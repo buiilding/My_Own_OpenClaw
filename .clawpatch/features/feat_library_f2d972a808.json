@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_f2d972a808",
+  "title": "Node source frontend/src/renderer/features/permissions",
+  "summary": "Node/TypeScript source group frontend/src/renderer/features/permissions with 8 files.",
+  "kind": "library",
+  "source": "node-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "frontend/package.json",
+      "symbol": "frontend/src/renderer/features/permissions",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "frontend/src/renderer/features/permissions/components/PermissionControlCenter.jsx",
+      "reason": "source group frontend/src/renderer/features/permissions"
+    },
+    {
+      "path": "frontend/src/renderer/features/permissions/components/PermissionRowMain.jsx",
+      "reason": "source group frontend/src/renderer/features/permissions"
+    },
+    {
+      "path": "frontend/src/renderer/features/permissions/components/PermissionStatusBadge.jsx",
+      "reason": "source group frontend/src/renderer/features/permissions"
+    },
+    {
+      "path": "frontend/src/renderer/features/permissions/stores/permissionStore.js",
+      "reason": "source group frontend/src/renderer/features/permissions"
+    },
+    {
+      "path": "frontend/src/renderer/features/permissions/utils/permissionGrantEffects.js",
+      "reason": "source group frontend/src/renderer/features/permissions"
+    },
+    {
+      "path": "frontend/src/renderer/features/permissions/utils/permissionPresentation.js",
+      "reason": "source group frontend/src/renderer/features/permissions"
+    },
+    {
+      "path": "frontend/src/renderer/features/permissions/utils/permissionStatus.js",
+      "reason": "source group frontend/src/renderer/features/permissions"
+    },
+    {
+      "path": "frontend/src/renderer/features/permissions/utils/permissionStorage.js",
+      "reason": "source group frontend/src/renderer/features/permissions"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "frontend/package.json",
+      "reason": "package manifest"
+    }
+  ],
+  "tests": [],
+  "tags": [
+    "node",
+    "typescript",
+    "source-group",
+    "project:windieos",
+    "project-root:frontend"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-f2d972a808-6b18_e41de0bbc9"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=30385 bytes; approxTokens=7597; includedFiles=9; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:19:39.712Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:19:39.712Z"
+}

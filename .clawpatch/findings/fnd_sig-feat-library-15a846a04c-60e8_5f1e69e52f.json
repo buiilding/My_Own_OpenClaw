@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-15a846a04c-60e8_5f1e69e52f",
+  "featureId": "feat_library_15a846a04c",
+  "title": "In-flight session sync can restore a connected snapshot after disconnect",
+  "category": "concurrency",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/infrastructure/runtime/browserSessionStore.js",
+      "startLine": 180,
+      "endLine": 237,
+      "symbol": "syncBrowserSession",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/runtime/browserSessionStore.js",
+      "startLine": 359,
+      "endLine": 371,
+      "symbol": "disconnectBrowserSession",
+      "quote": null
+    }
+  ],
+  "reasoning": "syncBrowserSession only invalidates older syncs when another sync starts, then applies a connected snapshot after both status and get_tabs complete. disconnectBrowserSession closes the browser and applies a disconnected snapshot, but it does not invalidate any already-running sync request. If a poll sync started just before disconnect and finishes afterward with stale connected data, it can apply lines 227-237 and put the UI back into a connected state even though close already succeeded.",
+  "reproduction": "Have a connected session with polling active. Let syncBrowserSession start and complete the status request, then trigger disconnectBrowserSession before get_tabs resolves. If get_tabs resolves with the pre-close tab list after disconnect applies its disconnected snapshot, the older sync can reapply connected=true.",
+  "recommendation": "Invalidate pending syncs before state-changing actions such as disconnect, for example by incrementing syncRequestId at the start of disconnectBrowserSession or by using a dedicated generation token shared by sync and mutations. After close succeeds, ignore any sync result that began before the disconnect generation.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for this feature, and the package test script only shows a general Jest entrypoint without evidence of race coverage for this store.",
+  "suggestedRegressionTest": "Add a Jest test that stubs IpcBridge.invoke so a status/get_tabs sync is paused, calls disconnectBrowserSession while it is in flight, then resolves the stale get_tabs call and asserts getBrowserSessionSnapshot().connected remains false.",
+  "minimumFixScope": "frontend/src/renderer/infrastructure/runtime/browserSessionStore.js plus a focused renderer store test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-15a846a04c_60e83da94d",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:04:40.660Z",
+  "updatedAt": "2026-05-24T21:04:40.660Z"
+}

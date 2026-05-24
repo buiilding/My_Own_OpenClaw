@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-f841033d5b-bb69_aa5a727cc6",
+  "featureId": "feat_library_f841033d5b",
+  "title": "ElevenLabs speech backend becomes permanently silent after the first flush",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/core/services/elevenlabs_tts_service.py",
+      "startLine": 92,
+      "endLine": 108,
+      "symbol": "ElevenLabsTTSService.flush",
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/services/elevenlabs_tts_service.py",
+      "startLine": 184,
+      "endLine": 197,
+      "symbol": "ElevenLabsTTSService._send_text_chunk",
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/services/elevenlabs_tts_service.py",
+      "startLine": 199,
+      "endLine": 225,
+      "symbol": "ElevenLabsTTSService._receive_audio_loop",
+      "quote": null
+    },
+    {
+      "path": "tests/backend/test_elevenlabs_tts_service.py",
+      "startLine": 55,
+      "endLine": 104,
+      "symbol": "test_elevenlabs_tts_service_streams_incremental_text_chunks_and_flush",
+      "quote": null
+    }
+  ],
+  "reasoning": "flush() marks _eos_sent True and sends the terminal empty text frame, while the receive loop exits on isFinal, sets running False, enqueues the stream sentinel, and closes the websocket. _send_text_chunk then silently returns forever when _eos_sent is true. Unlike the local TTSService, where flush only drains the current buffered text and the worker can continue accepting later text, the ElevenLabs provider cannot speak a second assistant response unless the entire service is reinitialized. The included ElevenLabs test validates only the first utterance and flush path, so it does not contradict this but misses the reuse contract implied by process_text/flush as a runtime speech service.",
+  "reproduction": "Initialize ElevenLabsTTSService, call process_text('first'), flush(), then call process_text('second') on the same service. The second call reaches _send_text_chunk with _eos_sent true and sends no websocket message; after the receive loop finalizes, running is also false.",
+  "recommendation": "Make the ElevenLabs provider support a new generation after flush, either by reopening a websocket session and resetting _eos_sent/running before accepting new text, or by documenting and enforcing one-shot lifecycle semantics at the SpeechService factory/caller boundary. Prefer provider parity with TTSService so flush finalizes only the current output, not the whole backend.",
+  "whyTestsDoNotAlreadyCoverThis": "The current ElevenLabs tests assert one initialization, several process_text calls, one flush, and stream termination. They never call process_text after flush or assert that multiple assistant responses can be spoken by the same service instance.",
+  "suggestedRegressionTest": "Add an async ElevenLabs test that initializes the service, processes and flushes a first utterance, then processes a second utterance on the same instance and asserts a new websocket session or successful second text send occurs without silent return.",
+  "minimumFixScope": "backend/src/core/services/elevenlabs_tts_service.py plus tests/backend/test_elevenlabs_tts_service.py",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-f841033d5b_bb6955432e",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:20:17.197Z",
+  "updatedAt": "2026-05-24T21:20:17.197Z"
+}

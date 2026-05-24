@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-test-suite-af445991b3-0_4f082c8b7c",
+  "featureId": "feat_test-suite_af445991b3",
+  "title": "Concurrent cache tests do not enforce single-flight execution",
+  "category": "test-gap",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "test-gap",
+  "evidence": [
+    {
+      "path": "tests/backend/test_cache_layer.py",
+      "startLine": 38,
+      "endLine": 64,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "tests/backend/test_cache_layer.py",
+      "startLine": 66,
+      "endLine": 87,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The sequential cache test asserts that get_or_compute calls the producer only once, but the concurrent waiter tests only assert that both callers receive the same value. A regression where both threads or async tasks execute the expensive compute function concurrently would still satisfy these assertions as long as both return \"value\". That misses the core single-flight behavior these tests appear intended to protect, which matters for duplicate side effects, unnecessary backend calls, and cache stampede prevention.",
+  "reproduction": null,
+  "recommendation": "Track a call counter protected by a lock for the threaded test and a simple counter for the async test, then assert the compute function was invoked exactly once after both waiters complete.",
+  "whyTestsDoNotAlreadyCoverThis": "The concurrent tests assert waiter completion and returned values, but they never count how many times the compute callback ran under contention.",
+  "suggestedRegressionTest": "Extend test_cache_get_or_compute_waiters_complete and test_cache_get_or_compute_async_waiters_complete to increment a compute call counter and assert it equals 1 after the two callers finish.",
+  "minimumFixScope": "Update the two concurrent cache tests in tests/backend/test_cache_layer.py to assert single producer invocation under contention.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-test-suite-af445991b3_09c912cece",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:24:20.707Z",
+  "updatedAt": "2026-05-24T21:24:20.707Z"
+}

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-4caa9ecdef-2ed5_606b5e7720",
+  "featureId": "feat_library_4caa9ecdef",
+  "title": "Live progress detection misses raw tool-call explanations",
+  "category": "api-contract",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/features/chat/utils/message/messagePresentationPipeline.js",
+      "startLine": 99,
+      "endLine": 106,
+      "symbol": "queueToolMessageEntries",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/utils/message/messagePresentationPipeline.js",
+      "startLine": 148,
+      "endLine": 164,
+      "symbol": "hasCurrentTurnLiveProgressMessages",
+      "quote": null
+    }
+  ],
+  "reasoning": "The overlay entry builder treats a raw assistant tool-call with explanation arguments as live progress by deriving tool-explanation entries from it, but hasCurrentTurnLiveProgressMessages only returns true for messages that are already typed as tool-explanation or search-source. For the same current-turn raw tool-call input, one API reports renderable progress while the boolean helper reports none, which can desynchronize UI decisions that depend on the boolean.",
+  "reproduction": "Pass messages containing a last user message followed by an assistant tool-call with modelFacingToolCall.arguments.explanation. buildCurrentTurnResponseOverlayEntries produces a tool-explanation entry, while hasCurrentTurnLiveProgressMessages returns false because the source message type remains tool-call.",
+  "recommendation": "Make hasCurrentTurnLiveProgressMessages use the same derivation rule as the overlay builder, for example by returning true when a current-turn tool-call has collectToolExplanationTexts(message).length > 0.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for the presentation pipeline helpers, and the excerpt shows two related helpers with inconsistent criteria.",
+  "suggestedRegressionTest": "Add a test covering a current-turn raw tool-call with an explanation and assert both overlay entries are produced and live progress detection is true.",
+  "minimumFixScope": "Change hasCurrentTurnLiveProgressMessages in messagePresentationPipeline.js and add a focused pipeline test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-4caa9ecdef_2ed5e71972",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:08:33.466Z",
+  "updatedAt": "2026-05-24T21:08:33.466Z"
+}

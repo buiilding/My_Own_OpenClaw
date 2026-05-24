@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-a3814e83b5-6c03_7d425f0bfa",
+  "featureId": "feat_library_a3814e83b5",
+  "title": "Renderer-controlled image copy fetches arbitrary URLs in the main process",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "frontend/src/main/ipc/ipc_clipboard_image.cjs",
+      "startLine": 19,
+      "endLine": 41,
+      "symbol": "copyImageToClipboard",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/ipc/ipc_clipboard_image.cjs",
+      "startLine": 52,
+      "endLine": 72,
+      "symbol": "registerClipboardImageHandler",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/ipc/ipc_image_context_menu.cjs",
+      "startLine": 57,
+      "endLine": 82,
+      "symbol": "registerImageContextMenuHandler",
+      "quote": null
+    }
+  ],
+  "reasoning": "Both IPC handlers accept a renderer-provided image src and pass it to main-process fetch without restricting scheme, origin, host, redirects, size, or content type. Main-process fetch can bypass renderer CORS and network policy assumptions, so a compromised renderer or XSS path can coerce the desktop app into requesting local network or metadata-service URLs and then decoding the response as an image buffer.",
+  "reproduction": null,
+  "recommendation": "Constrain copyable image sources before fetch: allow data:image URLs only within a size limit and allow http(s) only for trusted Windie artifact/image origins, with redirect limits, response size limits, and image content-type validation. Consider requiring artifact IDs rather than arbitrary URLs for backend-hosted images.",
+  "whyTestsDoNotAlreadyCoverThis": "The feature metadata lists no linked tests, and the included package scripts only show that Jest exists; there is no included test evidence asserting URL policy for these IPC handlers.",
+  "suggestedRegressionTest": "Add Jest tests for copyImageToClipboard/register handlers that reject file:, localhost/private-network, untrusted http(s), oversized data URLs, non-image content types, and cross-origin redirects while accepting trusted artifact image URLs.",
+  "minimumFixScope": "ipc_clipboard_image.cjs and ipc_image_context_menu.cjs URL validation plus focused frontend main-process IPC tests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-a3814e83b5_6c0351f1e8",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:15:36.950Z",
+  "updatedAt": "2026-05-24T21:15:36.950Z"
+}

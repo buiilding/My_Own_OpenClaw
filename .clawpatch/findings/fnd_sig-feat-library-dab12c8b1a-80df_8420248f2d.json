@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-dab12c8b1a-80df_8420248f2d",
+  "featureId": "feat_library_dab12c8b1a",
+  "title": "Disabled math still rewrites LaTeX delimiters",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/infrastructure/llmOutputContract.ts",
+      "startLine": 251,
+      "endLine": 262,
+      "symbol": "resolveLlmOutputContract",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/markdown.ts",
+      "startLine": 396,
+      "endLine": 397,
+      "symbol": "toSanitizedMarkdownHtml",
+      "quote": null
+    }
+  ],
+  "reasoning": "resolveLlmOutputContract computes mathEnabled from options.enableMath, but normalizeLatexMathDelimiters runs unconditionally. That means callers that pass enableMath: false still get \\(...\\) rewritten to $...$ and \\[...\\] rewritten to $$...$$ before rendering. The renderer later honors enableMath by choosing the non-math Marked instance, so disabled math can surface as altered literal text rather than preserving the provider output.",
+  "reproduction": null,
+  "recommendation": "Only call normalizeLatexMathDelimiters when mathEnabled is true, or remove enableMath from this contract if normalization is intentionally independent of math rendering.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for this feature, and the provided excerpts do not show coverage for enableMath=false behavior.",
+  "suggestedRegressionTest": "Add a renderer infrastructure test that calls resolveLlmOutputContract('Use \\\\(x+1\\\\)', { enableMath: false }) and asserts the markdown remains unchanged, then verifies enableMath=true still normalizes delimiters.",
+  "minimumFixScope": "Change resolveLlmOutputContract to gate delimiter normalization on mathEnabled and add focused tests for both enabled and disabled math paths.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-dab12c8b1a_80dfd3f2c3",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:18:29.709Z",
+  "updatedAt": "2026-05-24T21:18:29.709Z"
+}

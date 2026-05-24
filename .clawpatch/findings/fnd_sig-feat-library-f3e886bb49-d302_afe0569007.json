@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-f3e886bb49-d302_afe0569007",
+  "featureId": "feat_library_f3e886bb49",
+  "title": "Rewrite deletes the existing transcript before the replacement is durable",
+  "category": "data-loss",
+  "severity": "high",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/infrastructure/transcript/desktopConversationStore.ts",
+      "startLine": 358,
+      "endLine": 363,
+      "symbol": "rewriteTranscriptProjection",
+      "quote": null
+    }
+  ],
+  "reasoning": "rewriteTranscriptProjection removes the current conversation and only then appends the replacement events. If appendEvents rejects, the process exits, or IPC partially fails after deleteConversation succeeds, the previous transcript is already gone and the function never restores it. This makes a projection rewrite capable of permanently erasing a conversation on a transient write failure.",
+  "reproduction": null,
+  "recommendation": "Make rewrite atomic at the storage boundary, or write the replacement revision first and only swap/delete the old revision after the append succeeds. If the IPC store cannot support transactions, add a two-phase replacement API in the owning store instead of composing delete plus append in the renderer.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for rewriteTranscriptProjection failure ordering or partial IPC failure behavior.",
+  "suggestedRegressionTest": "Mock createDesktopConversationStore so deleteConversation resolves and appendEvents rejects, then assert the rewrite path either does not delete first or invokes an atomic replacement API that preserves the old transcript on failure.",
+  "minimumFixScope": "Change rewriteTranscriptProjection and the sidecar/store API it calls enough to provide atomic replacement semantics or durable rollback.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-f3e886bb49_d302421b3f",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:20:05.647Z",
+  "updatedAt": "2026-05-24T21:20:05.647Z"
+}

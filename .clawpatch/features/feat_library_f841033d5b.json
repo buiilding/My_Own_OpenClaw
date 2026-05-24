@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_f841033d5b",
+  "title": "Python source backend/src/core/services",
+  "summary": "Python source group backend/src/core/services with 12 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/core/services",
+      "symbol": "backend/src/core/services",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/core/services/__init__.py",
+      "reason": "source group backend/src/core/services"
+    },
+    {
+      "path": "backend/src/core/services/agent_factory.py",
+      "reason": "source group backend/src/core/services"
+    },
+    {
+      "path": "backend/src/core/services/context_factory.py",
+      "reason": "source group backend/src/core/services"
+    },
+    {
+      "path": "backend/src/core/services/elevenlabs_tts_service.py",
+      "reason": "source group backend/src/core/services"
+    },
+    {
+      "path": "backend/src/core/services/speech_service.py",
+      "reason": "source group backend/src/core/services"
+    },
+    {
+      "path": "backend/src/core/services/speech_service_factory.py",
+      "reason": "source group backend/src/core/services"
+    },
+    {
+      "path": "backend/src/core/services/tts_audio.py",
+      "reason": "source group backend/src/core/services"
+    },
+    {
+      "path": "backend/src/core/services/tts_buffer.py",
+      "reason": "source group backend/src/core/services"
+    },
+    {
+      "path": "backend/src/core/services/tts_cuda.py",
+      "reason": "source group backend/src/core/services"
+    },
+    {
+      "path": "backend/src/core/services/tts_service.py",
+      "reason": "source group backend/src/core/services"
+    },
+    {
+      "path": "backend/src/core/services/tts_worker.py",
+      "reason": "source group backend/src/core/services"
+    },
+    {
+      "path": "backend/src/core/services/wakeword_service.py",
+      "reason": "source group backend/src/core/services"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_context_factory.py",
+      "reason": "associated test"
+    },
+    {
+      "path": "tests/backend/test_elevenlabs_tts_service.py",
+      "reason": "associated test"
+    },
+    {
+      "path": "tests/backend/test_tts_buffer.py",
+      "reason": "associated test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_context_factory.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_elevenlabs_tts_service.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_tts_buffer.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-f841033d5b-bb69_aa5a727cc6"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=79499 bytes; approxTokens=19875; includedFiles=15; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:20:17.198Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:20:17.198Z"
+}

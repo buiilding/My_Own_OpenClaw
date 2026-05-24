@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-79cdd9c6ea-3693_ee03629a14",
+  "featureId": "feat_library_79cdd9c6ea",
+  "title": "Prompt construction does not enforce declared size limits",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "backend/src/llm/prompts/prompt_constructor.py",
+      "startLine": 183,
+      "endLine": 202,
+      "symbol": "PromptConstructor.build_prompt",
+      "quote": null
+    },
+    {
+      "path": "backend/src/llm/prompts/prompt_constructor.py",
+      "startLine": 203,
+      "endLine": 221,
+      "symbol": "PromptConstructor.build_prompt",
+      "quote": null
+    },
+    {
+      "path": "backend/src/llm/prompts/prompt_constructor.py",
+      "startLine": 223,
+      "endLine": 241,
+      "symbol": "PromptConstructor._build_prompt_messages",
+      "quote": null
+    },
+    {
+      "path": "backend/src/llm/prompts/repo_instructions.py",
+      "startLine": 47,
+      "endLine": 61,
+      "symbol": "resolve_workspace_repo_instruction_messages",
+      "quote": null
+    }
+  ],
+  "reasoning": "The prompt constructor is documented as a trust boundary that enforces history, per-message, and total prompt size limits, but build_prompt simply concatenates repo instructions, client layers, and stored history and returns them. The only size checks in this feature are limited to XML metadata extraction, not the prompt payload sent to the model. This allows oversized stored messages or large AGENTS.md files to bypass the configured limits, increasing denial-of-service and provider-request-failure risk at the exact boundary the module says should reject hostile inputs.",
+  "reproduction": "Create a stored_messages object whose get_history() returns a user message much larger than config.security_limits.max_message_content_size, then call PromptConstructor.build_prompt(). The oversized message is included in prompt_messages instead of raising a limit error.",
+  "recommendation": "Add explicit validation in prompt construction for message count/history size, per-message content size, and total prompt size after all injected repo/client/history messages are assembled. Apply the same checks to AGENTS.md and client prompt layer content before they can enter the model-visible prompt, and record the existing metrics on rejection.",
+  "whyTestsDoNotAlreadyCoverThis": "tests/backend/test_repo_instructions.py only verifies AGENTS.md discovery, ordering, blank handling, and file-path normalization; it does not exercise PromptConstructor size-limit enforcement or oversized repo instruction content.",
+  "suggestedRegressionTest": "Add backend tests that configure small security limits and assert build_prompt raises for an oversized stored message, an oversized aggregate prompt, and an oversized AGENTS.md instruction file.",
+  "minimumFixScope": "PromptConstructor prompt assembly and repo instruction ingestion size validation, plus focused backend tests for the configured limits.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-79cdd9c6ea_3693c8f853",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:11:48.611Z",
+  "updatedAt": "2026-05-24T21:11:48.611Z"
+}

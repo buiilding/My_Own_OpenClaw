@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_5a46c3e63b",
+  "title": "Python source backend/src/tools/:tool",
+  "summary": "Python source group backend/src/tools/:tool with 4 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/tools/:tool",
+      "symbol": "backend/src/tools/:tool",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/tools/tool_catalog.py",
+      "reason": "source group backend/src/tools/:tool"
+    },
+    {
+      "path": "backend/src/tools/tool_policy.py",
+      "reason": "source group backend/src/tools/:tool"
+    },
+    {
+      "path": "backend/src/tools/tool_selection.py",
+      "reason": "source group backend/src/tools/:tool"
+    },
+    {
+      "path": "backend/src/tools/tool_specs.py",
+      "reason": "source group backend/src/tools/:tool"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_tool_policy.py",
+      "reason": "associated test"
+    },
+    {
+      "path": "tests/backend/test_tool_specs.py",
+      "reason": "associated test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_tool_policy.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_tool_specs.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-5a46c3e63b-c9c2_2f7a3c2d47"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=69026 bytes; approxTokens=17257; includedFiles=6; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:09:58.698Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:09:58.698Z"
+}

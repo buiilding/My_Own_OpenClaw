@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-c71f146881-1380_6006498703",
+  "featureId": "feat_library_c71f146881",
+  "title": "Remote embedding responses are not checked against input count",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "backend/src/embeddings/remote_provider.py",
+      "startLine": 87,
+      "endLine": 115,
+      "symbol": "RemoteHttpEmbeddingProvider.embed_batch",
+      "quote": null
+    },
+    {
+      "path": "backend/src/embeddings/remote_provider.py",
+      "startLine": 155,
+      "endLine": 168,
+      "symbol": "RemoteHttpEmbeddingProvider._validate_response_body",
+      "quote": null
+    },
+    {
+      "path": "backend/src/embeddings/openai_provider.py",
+      "startLine": 112,
+      "endLine": 117,
+      "symbol": "OpenAIEmbeddingProvider.embed_batch",
+      "quote": null
+    }
+  ],
+  "reasoning": "RemoteHttpEmbeddingProvider sends N texts to /embed but only validates that the returned embeddings field is a non-empty list before converting and returning it. It does not require one vector per input, unlike OpenAIEmbeddingProvider, which explicitly treats a count mismatch as a provider error. A remote service bug or incompatible service version can therefore silently drop, add, or reorder vectors, causing callers to associate embeddings with the wrong source text.",
+  "reproduction": null,
+  "recommendation": "In RemoteHttpEmbeddingProvider.embed_batch or _validate_response_body, validate len(embeddings) == len(texts) and raise EmbeddingProviderRequestError with a 502 status when it does not match. Keep vector conversion after that check.",
+  "whyTestsDoNotAlreadyCoverThis": "The included context test file exercises OpenAI LLM responses behavior and does not cover backend/src/embeddings/remote_provider.py or remote embedding response validation.",
+  "suggestedRegressionTest": "Add a pytest for RemoteHttpEmbeddingProvider.embed_batch using a mocked httpx client that returns one embedding for two input texts, asserting EmbeddingProviderRequestError and no partial vector list returned.",
+  "minimumFixScope": "backend/src/embeddings/remote_provider.py plus a focused remote-provider unit test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-c71f146881_1380b459ce",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:17:10.748Z",
+  "updatedAt": "2026-05-24T21:17:10.748Z"
+}

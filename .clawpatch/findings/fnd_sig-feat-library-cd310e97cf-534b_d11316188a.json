@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-cd310e97cf-534b_d11316188a",
+  "featureId": "feat_library_cd310e97cf",
+  "title": "Test shutdown leaves authentication and config state behind",
+  "category": "test-gap",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "test-gap",
+  "evidence": [
+    {
+      "path": "frontend/src/main/ipc.cjs",
+      "startLine": 131,
+      "endLine": 155,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/ipc.cjs",
+      "startLine": 710,
+      "endLine": 724,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The IPC module keeps process-global state for install auth, user/session identity, active config, connection state, and runtime objects. The test shutdown helper resets the runtime, windows, observers, callbacks, and some pending state, but it does not clear currentUserId, currentInstallId, currentInstallToken, latestFrontendConfig, hasAttemptedInitialSettingsSync, or currentGlobalAgentStopShortcutStatus. Tests that initialize IPC after a prior authenticated/configured test can accidentally reuse stale auth headers or config values, masking regressions or making tests order-dependent.",
+  "reproduction": null,
+  "recommendation": "Extend shutdownIpcForTests to reset all process-global IPC state that can influence a subsequent initialization, especially install auth, frontend config, shortcut status, and first-query/settings flags. Keep the reset list close to the declarations so future globals are harder to miss.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for this feature, and the existing shutdown helper itself is the only test isolation mechanism visible in the excerpt.",
+  "suggestedRegressionTest": "Add a Jest test that initializes IPC with auth/config state, calls shutdownIpcForTests, reinitializes, and asserts that subsequent handshakes/status payloads do not include the prior install token, user id, config, or shortcut status.",
+  "minimumFixScope": "frontend/src/main/ipc.cjs shutdownIpcForTests plus a focused frontend IPC test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-cd310e97cf_534b61e225",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:17:27.844Z",
+  "updatedAt": "2026-05-24T21:17:27.844Z"
+}

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-fe7aecfc70-a388_cc054f2466",
+  "featureId": "feat_library_fe7aecfc70",
+  "title": "Workspace permission can be granted from an arbitrary IPC path without user selection",
+  "category": "security",
+  "severity": "high",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "frontend/src/main/permission_ipc_runtime.cjs",
+      "startLine": 135,
+      "endLine": 151,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/permission_ipc_runtime.cjs",
+      "startLine": 153,
+      "endLine": 156,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/permission_service_workspace.cjs",
+      "startLine": 12,
+      "endLine": 52,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The `set-active-workspace` IPC handler accepts a renderer-provided string, stores it as `filesystem_workspace_access` with `granted: true`, and then emits the updated permission status. The later probe only checks that the selected path exists, not that it came from the OS folder picker or any trusted conversation binding. A compromised renderer or unintended caller can therefore grant workspace access to any existing local path without the explicit `showOpenDialog` flow used by `requestFilesystemWorkspaceAccessPermission`.",
+  "reproduction": "Invoke `set-active-workspace` with an existing sensitive directory such as a home-directory subpath; the store is updated as granted and `runPermissionProbe('filesystem_workspace_access')` will return granted if the path exists.",
+  "recommendation": "Restrict this handler to a trusted main-process conversation binding source, or require the same picker/allowlist validation as `requestFilesystemWorkspaceAccessPermission`. At minimum, validate sender/context and avoid writing `granted: true` for arbitrary renderer-supplied paths.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for permission IPC caller trust, workspace path provenance, or bypassing the workspace picker.",
+  "suggestedRegressionTest": "Add an IPC/runtime unit test that calls `set-active-workspace` with a raw renderer path and asserts it does not grant workspace access unless the call is marked as a trusted conversation binding or passes an approved picker result.",
+  "minimumFixScope": "Change `set-active-workspace` permission writes and add focused tests for workspace permission provenance.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-fe7aecfc70_a3880891d4",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:20:46.267Z",
+  "updatedAt": "2026-05-24T21:20:46.267Z"
+}

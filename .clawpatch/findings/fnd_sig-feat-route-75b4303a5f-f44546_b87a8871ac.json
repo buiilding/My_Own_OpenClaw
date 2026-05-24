@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-75b4303a5f-f44546_b87a8871ac",
+  "featureId": "feat_route_75b4303a5f",
+  "title": "Route has no visible authentication or authorization gate before invoking vision processing",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 67,
+      "endLine": 67,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 309,
+      "endLine": 320,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The SDK router is mounted under a network-visible FastAPI prefix, and the locate-all handler accepts a client request and immediately resolves the supplied image and invokes the vision locate-all service using only the container dependency. No user/session/auth dependency or route-level authorization check is visible in the included file. Because this endpoint can process user-supplied image data and likely invoke expensive vision work, exposing it without an explicit auth boundary can allow unauthorized use or abuse if the router is reachable beyond a trusted local channel.",
+  "reproduction": null,
+  "recommendation": "Add or document an explicit authentication/authorization dependency for SDK vision routes, or enforce that this router is mounted only behind a trusted local/internal boundary. If the SDK API is intentionally unauthenticated, make that invariant explicit in code and tests so deployment changes cannot accidentally expose it.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for this feature, and the shown route has no auth-related assertions or dependencies to exercise.",
+  "suggestedRegressionTest": "Add a FastAPI route test for POST /api/sdk/vision/locate-all that verifies unauthenticated requests are rejected, or, if intentionally local-only, a mount/configuration test proving the route is unavailable on public API surfaces.",
+  "minimumFixScope": "backend/src/api/routes/sdk/router.py plus the existing auth dependency or SDK router mounting configuration.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-75b4303a5f_f44546521a",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:21:56.516Z",
+  "updatedAt": "2026-05-24T21:21:56.516Z"
+}

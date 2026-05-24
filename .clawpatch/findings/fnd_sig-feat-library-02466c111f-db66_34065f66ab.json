@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-02466c111f-db66_34065f66ab",
+  "featureId": "feat_library_02466c111f",
+  "title": "Bundle preparation does not register resolved calls in session storage",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "backend/src/agent/tools/preparation/preparer.py",
+      "startLine": 220,
+      "endLine": 230,
+      "symbol": "ToolPreparer._prepare_bundle",
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/tools/preparation/preparer.py",
+      "startLine": 303,
+      "endLine": 316,
+      "symbol": "ToolPreparer._prepare_single",
+      "quote": null
+    }
+  ],
+  "reasoning": "Single-tool preparation registers the resolved call in session runtime storage before returning, and the helper documents that as session runtime registration. Bundle preparation returns resolved calls but never invokes the same registration path for any bundled call. That creates inconsistent behavior between single and bundled calls: downstream code that relies on session.register_resolved_tool_call for lookup, replay, or request correlation will work for single calls and miss bundled calls.",
+  "reproduction": null,
+  "recommendation": "Register each successfully resolved bundled call with the session using a stable execution identifier, or document and enforce that bundled calls must never be looked up through session runtime storage. Prefer using the existing registration helper if the contract is shared.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were provided, and the excerpt shows no bundle test asserting session registration parity with single-call preparation.",
+  "suggestedRegressionTest": "Add a bundle preparation test with a fake session that records register_resolved_tool_call invocations and assert every resolved bundled call is registered with the expected bundle/request metadata.",
+  "minimumFixScope": "Update _prepare_bundle to register resolved calls consistently, plus a focused regression test for bundle registration behavior.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-02466c111f_db66b6ec1e",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:03:32.416Z",
+  "updatedAt": "2026-05-24T21:03:32.416Z"
+}

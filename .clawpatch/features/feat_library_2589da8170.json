@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_2589da8170",
+  "title": "Python source backend/src/tools/:result",
+  "summary": "Python source group backend/src/tools/:result with 2 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/tools/:result",
+      "symbol": "backend/src/tools/:result",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/tools/result_helpers.py",
+      "reason": "source group backend/src/tools/:result"
+    },
+    {
+      "path": "backend/src/tools/result_types.py",
+      "reason": "source group backend/src/tools/:result"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_result_helpers.py",
+      "reason": "associated test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_result_helpers.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "reviewed",
+  "lock": null,
+  "findingIds": [],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "0 finding(s); prompt=10657 bytes; approxTokens=2665; includedFiles=3; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:05:46.498Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:05:46.498Z"
+}

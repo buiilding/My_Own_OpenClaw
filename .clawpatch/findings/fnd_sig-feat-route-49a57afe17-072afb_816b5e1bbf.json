@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-49a57afe17-072afb_816b5e1bbf",
+  "featureId": "feat_route_49a57afe17",
+  "title": "Unauthenticated install-token registration route has no included regression coverage",
+  "category": "test-gap",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "test-gap",
+  "evidence": [
+    {
+      "path": "backend/src/api/auth/router.py",
+      "startLine": 28,
+      "endLine": 44,
+      "symbol": "register_install",
+      "quote": null
+    }
+  ],
+  "reasoning": "This route is a network- and auth-boundary entrypoint that issues a durable install token and server-owned identity. The feature metadata includes no linked tests, so there is no first-class evidence that the API contract is locked down for status codes, response shape, forbidden extra fields, service-unavailable behavior, or token issuance behavior.",
+  "reproduction": null,
+  "recommendation": "Add focused FastAPI route tests covering successful registration, 503 when install_auth_service is absent, extra request fields rejected by the Pydantic model, and propagation/mapping of service failures if the service has defined error modes.",
+  "whyTestsDoNotAlreadyCoverThis": "The provided feature metadata lists no tests, and the only included file is the route implementation.",
+  "suggestedRegressionTest": "Add tests/backend coverage for POST /api/install/register using a test FastAPI app with app.state.install_auth_service stubbed for success and absent-service cases, plus a request with an unexpected JSON field to assert validation failure.",
+  "minimumFixScope": "Add route-level backend tests for backend/src/api/auth/router.py without changing the route contract unless those tests reveal a contract mismatch.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-49a57afe17_072afb0573",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:21:23.916Z",
+  "updatedAt": "2026-05-24T21:21:23.916Z"
+}

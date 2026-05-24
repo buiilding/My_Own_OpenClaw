@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-a5d246a9f0-ee82_6c7933ed05",
+  "featureId": "feat_library_a5d246a9f0",
+  "title": "Shortcut platform and key matching lack focused regression coverage",
+  "category": "test-gap",
+  "severity": "low",
+  "confidence": "high",
+  "triage": "test-gap",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/infrastructure/shortcuts/agentStopShortcut.js",
+      "startLine": 22,
+      "endLine": 65,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/package.json",
+      "startLine": 40,
+      "endLine": 41,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The feature contains user-visible shortcut behavior with platform-dependent global shortcut selection, accelerator normalization, label lookup, and DOM keyboard-event filtering, but the feature metadata lists no linked tests even though the frontend has a Jest test command. A regression here could silently display or accept the wrong stop shortcut on a platform, or fail to ignore repeated/modifier Escape events, without any focused test catching it.",
+  "reproduction": null,
+  "recommendation": "Add focused Jest coverage for darwin, win32, and linux platform label resolution; valid and invalid accelerator normalization; label fallback behavior; and isAgentStopShortcutEvent handling of Escape/Esc, repeat events, and modifier keys.",
+  "whyTestsDoNotAlreadyCoverThis": "The feature declares no tests, and the included package manifest only shows generic Jest commands rather than a linked test for this shortcut module.",
+  "suggestedRegressionTest": "Add a frontend Jest test module for agentStopShortcut.js that stubs navigator.userAgentData.platform or navigator.platform and asserts platform-specific options plus keyboard-event acceptance/rejection cases.",
+  "minimumFixScope": "Add focused tests for frontend/src/renderer/infrastructure/shortcuts/agentStopShortcut.js without changing runtime behavior.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-a5d246a9f0_ee828367eb",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:16:01.427Z",
+  "updatedAt": "2026-05-24T21:16:01.427Z"
+}

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-2fdb111c39-1a17_58e49e6429",
+  "featureId": "feat_library_2fdb111c39",
+  "title": "Async cache coalescing shares asyncio.Event across event loops",
+  "category": "concurrency",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "backend/src/core/infrastructure/cache_store.py",
+      "startLine": 47,
+      "endLine": 49,
+      "symbol": "Cache.__init__",
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/infrastructure/cache_store.py",
+      "startLine": 77,
+      "endLine": 84,
+      "symbol": "Cache._new_async_event",
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/infrastructure/cache_store.py",
+      "startLine": 213,
+      "endLine": 236,
+      "symbol": "Cache.get_or_compute_async",
+      "quote": null
+    }
+  ],
+  "reasoning": "The cache is documented as thread-safe, and the async coalescing map is stored on the shared Cache instance, but it stores raw asyncio.Event objects. Those events are loop-affine/non-thread-safe synchronization primitives, so concurrent get_or_compute_async calls for the same key from different event loops can cause waiters to await an event created for another loop or miss correct wakeup semantics. This can raise runtime errors or leave callers blocked in multi-loop backend/test contexts.",
+  "reproduction": "Create one Cache instance, start get_or_compute_async for the same key concurrently from two different threads each running its own event loop, and have the second caller hit the existing _computing_async event at lines 214-220 before awaiting it at line 236.",
+  "recommendation": "Do not share asyncio.Event instances across loops. Scope async in-flight coordination by both key and running loop, or replace it with loop-safe coordination such as per-loop futures plus thread-safe completion notification. Keep the threading lock only for registry mutation, not as a substitute for asyncio primitive safety.",
+  "whyTestsDoNotAlreadyCoverThis": "The included tests only cover CacheEntry and CacheManager key/stat behavior; they never exercise Cache.get_or_compute_async, cross-loop callers, or async in-flight coalescing.",
+  "suggestedRegressionTest": "Add a backend test that calls Cache.get_or_compute_async for the same key from two separate threads with separate event loops and asserts both callers complete and compute_func runs only according to the intended per-loop/coalescing contract.",
+  "minimumFixScope": "backend/src/core/infrastructure/cache_store.py plus focused async cache tests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-2fdb111c39_1a178e87ad",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:06:59.790Z",
+  "updatedAt": "2026-05-24T21:06:59.790Z"
+}

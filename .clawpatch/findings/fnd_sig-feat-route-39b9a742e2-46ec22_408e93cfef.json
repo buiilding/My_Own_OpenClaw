@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-39b9a742e2-46ec22_408e93cfef",
+  "featureId": "feat_route_39b9a742e2",
+  "title": "Prompt-preview route has no included regression coverage for its response contract",
+  "category": "test-gap",
+  "severity": "low",
+  "confidence": "high",
+  "triage": "test-gap",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 482,
+      "endLine": 500,
+      "symbol": "sdk_debug_prompt_preview",
+      "quote": null
+    }
+  ],
+  "reasoning": "The route manually maps a dict returned by build_prompt_preview into PromptPreviewResponse fields. This creates an API contract that can drift if preview keys or response fields change, but the feature metadata includes no tests. A focused route test would catch missing keys, renamed fields, include_tools behavior, and token-count error serialization before clients break.",
+  "reproduction": null,
+  "recommendation": "Add a focused API test for POST /api/sdk/prompt-preview that stubs or uses deterministic prompt preview construction and asserts the response contains the expected config, prompt messages, tool schema fields, user_message_full, prompt_token_count, and token_count_error behavior.",
+  "whyTestsDoNotAlreadyCoverThis": "The feature lists no linked tests, so there is no first-class evidence that this route-level response mapping is covered.",
+  "suggestedRegressionTest": "Exercise POST /api/sdk/prompt-preview with a minimal payload and include_tools both true and false, then assert the JSON response matches PromptPreviewResponse's expected field names and null/error handling.",
+  "minimumFixScope": "Add or extend a backend API route test for backend/src/api/routes/sdk/router.py.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-39b9a742e2_46ec22a881",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:21:12.291Z",
+  "updatedAt": "2026-05-24T21:21:12.291Z"
+}

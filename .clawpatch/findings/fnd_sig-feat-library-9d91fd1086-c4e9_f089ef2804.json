@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-9d91fd1086-c4e9_f089ef2804",
+  "featureId": "feat_library_9d91fd1086",
+  "title": "Payloads with explicit null error are marked as failures",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "backend/src/core/interfaces/tool.py",
+      "startLine": 80,
+      "endLine": 83,
+      "symbol": "ToolResult.from_payload",
+      "quote": null
+    }
+  ],
+  "reasoning": "ToolResult.from_payload infers success from the presence of the error key, not from whether the error value is meaningful. A mapping-shaped tool payload that includes a stable field set such as {\"error\": null, \"data\": ...} will be normalized with success=false even though there is no error. That can make successful SDK/local-runtime ingress results look failed whenever callers include nullable error fields for schema stability.",
+  "reproduction": "Call ToolResult.from_payload({\"error\": None, \"data\": {\"output\": \"ok\"}}); the returned ToolResult has success=False.",
+  "recommendation": "Infer success from a truthy/non-empty error value when success is absent, for example kwargs[\"success\"] = not bool(result_payload.get(\"error\")), while preserving explicit success values.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for this feature, and the edge case requires a payload that includes an explicit nullable error field while omitting success.",
+  "suggestedRegressionTest": "Add a unit test for ToolResult.from_payload with {\"error\": None, \"data\": {\"output\": \"ok\"}} asserting success is True and llm_content is \"ok\", plus a non-empty error case asserting success is False.",
+  "minimumFixScope": "backend/src/core/interfaces/tool.py and a focused backend unit test for ToolResult.from_payload normalization.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-9d91fd1086_c4e9ba719f",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:14:50.849Z",
+  "updatedAt": "2026-05-24T21:14:50.849Z"
+}

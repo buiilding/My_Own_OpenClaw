@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-02466c111f-9792_8b2339ccef",
+  "featureId": "feat_library_02466c111f",
+  "title": "prepare crashes on empty tool call batches",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/agent/tools/preparation/preparer.py",
+      "startLine": 81,
+      "endLine": 94,
+      "symbol": "ToolPreparer.prepare",
+      "quote": null
+    }
+  ],
+  "reasoning": "prepare accepts a list of parsed tool calls and logs the batch size, but any batch with length 0 falls into the single-call branch and indexes tool_calls[0]. That raises IndexError instead of returning an empty PreparationResult or a controlled validation error. If an upstream parser or retry path invokes preparation after filtering invalid/no-op calls, this becomes a hard agent-loop failure rather than a recoverable preparation result.",
+  "reproduction": null,
+  "recommendation": "Handle an empty tool_calls list before the bundle/single branch, returning PreparationResult(resolved_calls=[], errors=[]) or a deliberate preparation error consistent with caller expectations.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were provided for this feature, and the shown code has no guard or documented precondition covering empty batches.",
+  "suggestedRegressionTest": "Add a unit test that calls ToolPreparer.prepare([], session) and asserts it returns a controlled PreparationResult without raising IndexError.",
+  "minimumFixScope": "Add an explicit empty-list branch in ToolPreparer.prepare and cover it with a focused backend preparation test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-02466c111f_979266def4",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:03:32.416Z",
+  "updatedAt": "2026-05-24T21:03:32.416Z"
+}

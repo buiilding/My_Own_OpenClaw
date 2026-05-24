@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_cli-command_5e3157ff95",
+  "title": "C binary cpu_vxe",
+  "summary": "C/C++ source file with a top-level main() at frontend/python-runtime/lib/python3.11/site-packages/numpy/distutils/checks/cpu_vxe.c.",
+  "kind": "cli-command",
+  "source": "c-main",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "frontend/python-runtime/lib/python3.11/site-packages/numpy/distutils/checks/cpu_vxe.c",
+      "symbol": "main",
+      "route": null,
+      "command": "cpu_vxe"
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "frontend/python-runtime/lib/python3.11/site-packages/numpy/distutils/checks/cpu_vxe.c",
+      "reason": "entrypoint"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "c",
+    "cli"
+  ],
+  "trustBoundaries": [
+    "user-input",
+    "filesystem",
+    "process-exec"
+  ],
+  "status": "skipped",
+  "lock": null,
+  "findingIds": [],
+  "patchAttemptIds": [],
+  "analysisHistory": [],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:02:24.779Z"
+}

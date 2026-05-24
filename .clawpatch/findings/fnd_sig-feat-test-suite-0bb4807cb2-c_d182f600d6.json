@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-test-suite-0bb4807cb2-c_d182f600d6",
+  "featureId": "feat_test-suite_0bb4807cb2",
+  "title": "Architecture tests assert source substrings instead of executable contracts",
+  "category": "test-gap",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "test-gap",
+  "evidence": [
+    {
+      "path": "tests/sidecar/test_browser_runtime_architecture.py",
+      "startLine": 7,
+      "endLine": 20,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "tests/sidecar/test_browser_runtime_architecture.py",
+      "startLine": 23,
+      "endLine": 29,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "tests/sidecar/test_browser_use_runtime_owners.py",
+      "startLine": 7,
+      "endLine": 23,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "tests/sidecar/test_browser_use_runtime_owners.py",
+      "startLine": 25,
+      "endLine": 34,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "These tests read Python files as text and check for literal class, method, and assignment strings. They can pass while the relevant classes are unreachable, unused, incorrectly wired at runtime, or shadowed by dead code/comments; they can also fail on harmless formatting or rename-only refactors. That weakens the sidecar test suite as a guard for the intended browser runtime ownership boundary.",
+  "reproduction": null,
+  "recommendation": "Replace the most important substring checks with imports and behavioral or structural assertions against the actual classes and collaborators. Keep source-level checks only for negative ownership constraints that are genuinely hard to express behaviorally.",
+  "whyTestsDoNotAlreadyCoverThis": "The tests validate text presence, not importability or runtime wiring, so they do not prove that the asserted owners are the active execution path.",
+  "suggestedRegressionTest": "Instantiate or inspect BrowserSession/BrowserController dependencies with lightweight fakes and assert that navigation and watchdog events dispatch through BrowserSessionNavigationRuntime and BrowserWatchdogSupervisor.",
+  "minimumFixScope": "tests/sidecar/test_browser_runtime_architecture.py and tests/sidecar/test_browser_use_runtime_owners.py.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-test-suite-0bb4807cb2_c1c606a4d6",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:23:32.882Z",
+  "updatedAt": "2026-05-24T21:23:32.882Z"
+}

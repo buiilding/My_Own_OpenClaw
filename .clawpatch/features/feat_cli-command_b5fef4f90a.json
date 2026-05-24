@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_cli-command_b5fef4f90a",
+  "title": "C binary tkAppInit",
+  "summary": "C/C++ source file with a top-level main() at frontend/python-runtime/lib/tk8.6/tkAppInit.c.",
+  "kind": "cli-command",
+  "source": "c-main",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "frontend/python-runtime/lib/tk8.6/tkAppInit.c",
+      "symbol": "main",
+      "route": null,
+      "command": "tkAppInit"
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "frontend/python-runtime/lib/tk8.6/tkAppInit.c",
+      "reason": "entrypoint"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "c",
+    "cli"
+  ],
+  "trustBoundaries": [
+    "user-input",
+    "filesystem",
+    "process-exec"
+  ],
+  "status": "skipped",
+  "lock": null,
+  "findingIds": [],
+  "patchAttemptIds": [],
+  "analysisHistory": [],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:02:24.781Z"
+}

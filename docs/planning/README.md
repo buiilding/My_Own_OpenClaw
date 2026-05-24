@@ -32,6 +32,7 @@ Single entrypoint for future work. Use this page first.
 
 - `os_layer_ux_evolution_plan.md`
 - `windieos_install_permission_onboarding_plan.md`
+- `windieos_self_hosted_backend_onboarding_plan.md`
 - `windieos_mobile_app_plan.md`
 - `windieos_self_edit_config_plan.md`
 - `windieos_cli_os_control_plan.md`

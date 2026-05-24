@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_test-suite_4836a0505e",
+  "title": "Python test suite tests/backend#3",
+  "summary": "Python pytest files in tests/backend#3.",
+  "kind": "test-suite",
+  "source": "python-test-suite",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "tests/backend#3",
+      "symbol": "tests/backend#3",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "tests/backend/test_config_loader.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_config_manager.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_config_models.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_config_service.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_config_subscriptions.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_container_config_updater.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_container_initializer_dev_selection.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_context_factory.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_conversation_history.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_coordinate_contract.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_coordinate_methods_utils.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_coordinate_resolution_helper.py",
+      "reason": "pytest file"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_config_loader.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_config_manager.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_config_models.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_config_service.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_config_subscriptions.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_container_config_updater.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_container_initializer_dev_selection.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_context_factory.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_conversation_history.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_coordinate_contract.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_coordinate_methods_utils.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_coordinate_resolution_helper.py",
+      "reason": "nearby test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_config_loader.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_config_manager.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_config_models.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_config_service.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_config_subscriptions.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_container_config_updater.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_container_initializer_dev_selection.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_context_factory.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_conversation_history.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_coordinate_contract.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_coordinate_methods_utils.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_coordinate_resolution_helper.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "test"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-test-suite-4836a0505e-d_08378594ec"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=103576 bytes; approxTokens=25894; includedFiles=12; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:23:59.718Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:23:59.718Z"
+}

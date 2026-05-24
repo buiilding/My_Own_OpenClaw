@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-test-suite-f449aaa7d4-d_28df87cfdd",
+  "featureId": "feat_test-suite_f449aaa7d4",
+  "title": "Backend pytest compatibility test hard-requires npm build tooling",
+  "category": "build-release",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "tests/backend/test_sdk_runtime_backend_compatibility.py",
+      "startLine": 20,
+      "endLine": 28,
+      "symbol": "_build_sdk_dist",
+      "quote": null
+    },
+    {
+      "path": "tests/backend/test_sdk_runtime_backend_compatibility.py",
+      "startLine": 31,
+      "endLine": 39,
+      "symbol": "_collect_sdk_payloads",
+      "quote": null
+    },
+    {
+      "path": "tests/backend/test_sdk_runtime_backend_compatibility.py",
+      "startLine": 184,
+      "endLine": 190,
+      "symbol": "_collect_sdk_payloads",
+      "quote": null
+    }
+  ],
+  "reasoning": "A backend pytest module unconditionally shells out to `npm run build` under `packages/windie-sdk-js` and then runs a Node ESM script. That makes the Python backend test suite depend on Node, npm, installed JS dependencies, and a successful SDK build even when the test command for this feature is simply pytest. In Python-only CI, backend-only developer loops, or environments where npm deps have not been installed, these tests fail before exercising the backend schemas they are meant to validate.",
+  "reproduction": "Run `pytest tests/backend/test_sdk_runtime_backend_compatibility.py` in an environment with Python dependencies installed but without Node/npm or without `packages/windie-sdk-js` dependencies installed; collection/execution will fail from the subprocess calls rather than from a backend compatibility assertion.",
+  "recommendation": "Gate this as an explicit integration test or add a clear skip when Node/npm or the SDK package dependencies are unavailable. If backend pytest must remain self-contained, replace the live npm build with checked-in fixture payloads plus a separate SDK CI job that regenerates or validates those fixtures.",
+  "whyTestsDoNotAlreadyCoverThis": "The test itself is the hazard: it validates the happy path only when JS tooling is present and does not cover the backend-test environment missing that tooling.",
+  "suggestedRegressionTest": "Add a small test around the helper or marker behavior that verifies the compatibility test is skipped with an actionable reason when the SDK build prerequisites are unavailable.",
+  "minimumFixScope": "tests/backend/test_sdk_runtime_backend_compatibility.py and the relevant pytest marker/CI selection for SDK compatibility tests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-test-suite-f449aaa7d4_de65e5c8d9",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:24:46.749Z",
+  "updatedAt": "2026-05-24T21:24:46.749Z"
+}

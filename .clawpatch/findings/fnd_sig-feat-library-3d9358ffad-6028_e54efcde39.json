@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-3d9358ffad-6028_e54efcde39",
+  "featureId": "feat_library_3d9358ffad",
+  "title": "Function-style client schemas are unreachable despite normalization code supporting them",
+  "category": "api-contract",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "backend/src/tools/client_manifest.py",
+      "startLine": 72,
+      "endLine": 85,
+      "symbol": "ClientToolManifestEntry.function_tool_schema",
+      "quote": null
+    },
+    {
+      "path": "backend/src/tools/client_manifest.py",
+      "startLine": 217,
+      "endLine": 222,
+      "symbol": "_validate_tool_entry",
+      "quote": null
+    },
+    {
+      "path": "backend/src/tools/client_manifest.py",
+      "startLine": 31,
+      "endLine": 59,
+      "symbol": "ALLOWED_SCHEMA_KEYS",
+      "quote": null
+    },
+    {
+      "path": "backend/src/tools/client_manifest.py",
+      "startLine": 258,
+      "endLine": 260,
+      "symbol": "_walk_schema",
+      "quote": null
+    }
+  ],
+  "reasoning": "ClientToolManifestEntry.function_tool_schema explicitly handles schemas that are already function tool specs, but validation rejects unsupported schema keys before entries are accepted. ALLOWED_SCHEMA_KEYS does not include function-spec keys such as top-level name, so a client that sends the already-flat function schema shape implied by function_tool_schema is rejected before that normalization branch can run. That creates a misleading API surface and can break clients that reasonably provide function-shaped schemas.",
+  "reproduction": "Submit a manifest entry with name, description, execution_target sidecar, and schema shaped as a function tool spec containing a top-level name plus parameters. _validate_tool_entry calls _validate_json_schema_subset on schema, _walk_schema rejects the top-level name key, and the entry is rejected before function_tool_schema can normalize it.",
+  "recommendation": "Choose one contract and enforce it consistently. If manifest schema must always be a parameters JSON schema, remove the is_function_tool_spec branch or document/reject function specs with a clearer reason. If function specs are intended to be accepted, validate that shape separately before walking only the parameters schema.",
+  "whyTestsDoNotAlreadyCoverThis": "No included tests exercise client_manifest validation or the function_tool_schema branch, so this contract mismatch is not pinned by current coverage.",
+  "suggestedRegressionTest": "Add client manifest tests for both accepted parameters-schema entries and the chosen behavior for flat function-tool schemas, including the rejection reason if they remain unsupported.",
+  "minimumFixScope": "backend/src/tools/client_manifest.py and focused backend tests for client manifest validation.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-3d9358ffad_602840002c",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:07:41.421Z",
+  "updatedAt": "2026-05-24T21:07:41.421Z"
+}

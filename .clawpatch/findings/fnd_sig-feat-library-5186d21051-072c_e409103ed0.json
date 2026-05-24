@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-5186d21051-072c_e409103ed0",
+  "featureId": "feat_library_5186d21051",
+  "title": "Fallback OCR can cache results under the wrong screenshot",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "backend/src/agent/tools/preparation/ocr/coordinator.py",
+      "startLine": 79,
+      "endLine": 90,
+      "symbol": "OcrCoordinator.get_ocr_results",
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/tools/preparation/ocr/coordinator.py",
+      "startLine": 112,
+      "endLine": 119,
+      "symbol": "OcrCoordinator.get_ocr_results",
+      "quote": null
+    }
+  ],
+  "reasoning": "When a caller requests OCR for a screenshot_id that no longer matches the runtime state's current screenshot, the coordinator correctly avoids using cached results. It then performs OCR on the caller-provided screenshot_data, but stores those results with ocr_state.set_results() while the runtime current_screenshot_id still points at a different screenshot. That can poison the current screenshot cache with OCR extracted from the requested, now-stale screenshot, causing a later call for the actual current screenshot to reuse mismatched OCR results.",
+  "reproduction": "Call get_ocr_results(session, screenshot_data_for_A, screenshot_id='A') after ocr_state.get_current_screenshot_id() has advanced to 'B'. The fallback performs OCR on A's image and then stores those results via set_results() while the OCR state is still current for B. A later call for B can read A's OCR from get_results().",
+  "recommendation": "Do not write fallback OCR results into the shared current-screenshot cache when the requested screenshot_id differs from the OCR state's current screenshot. Either store results keyed by the requested screenshot_id, update the state with the matching screenshot id atomically, or return the fallback results without caching in the mismatch path.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for this feature, and the excerpt shows no regression coverage for screenshot-id mismatch followed by fallback OCR and subsequent cache reuse.",
+  "suggestedRegressionTest": "Add a unit test where the requested screenshot_id differs from ocr_state.get_current_screenshot_id(), fallback OCR returns a sentinel result for the requested screenshot, and the test asserts that the current screenshot cache is not populated with that sentinel result.",
+  "minimumFixScope": "Limit the fix to OcrCoordinator.get_ocr_results cache writes around the screenshot mismatch fallback path, plus a focused coordinator test with a fake session and OCR runtime state.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-5186d21051_072c33b253",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:09:09.090Z",
+  "updatedAt": "2026-05-24T21:09:09.090Z"
+}

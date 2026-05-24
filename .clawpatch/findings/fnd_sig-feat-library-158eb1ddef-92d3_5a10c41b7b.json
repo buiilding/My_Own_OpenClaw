@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-158eb1ddef-92d3_5a10c41b7b",
+  "featureId": "feat_library_158eb1ddef",
+  "title": "Bundle screenshot attachment can miss successful actions after skipped steps",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts",
+      "startLine": 243,
+      "endLine": 260,
+      "symbol": "bundleContainsCaptureWorthyTool/findBundleScreenshotFromExplicitStep",
+      "quote": null
+    },
+    {
+      "path": "packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts",
+      "startLine": 411,
+      "endLine": 445,
+      "symbol": "executeBundle",
+      "quote": null
+    },
+    {
+      "path": "packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.cjs",
+      "startLine": 241,
+      "endLine": 265,
+      "symbol": "bundleContainsCaptureWorthyTool/findBundleScreenshotFromExplicitStep",
+      "quote": null
+    },
+    {
+      "path": "packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.cjs",
+      "startLine": 553,
+      "endLine": 579,
+      "symbol": "routeToolBundleToLocalRuntime",
+      "quote": null
+    }
+  ],
+  "reasoning": "Bundle execution skips invalid or nameless tool entries while building stepResults, but later screenshot attachment assumes stepResults has the same indexes as the original tools array. If an invalid entry appears before a successful capture-worthy tool, the successful step shifts to an earlier index and bundleContainsCaptureWorthyTool can read undefined for that tool index, so no post-action screenshot is captured. The same index mismatch can prevent reuse of an explicit screenshot step.",
+  "reproduction": "Pass a tool bundle with tools like [{}, { name: 'click', args: { x: 1, y: 1 } }] where the click executes successfully. stepResults contains one ok click result at index 0, but bundleContainsCaptureWorthyTool checks the click at tools index 1 against stepResults[1], so it returns false and skips capture.",
+  "recommendation": "Preserve the original tool index in each step result or build an aligned list that includes skipped steps, then use that stable mapping when deciding capture-worthy and explicit screenshot behavior.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were provided for this feature, and the shown code has no assertion covering malformed bundle entries before screenshot-producing or capture-worthy steps.",
+  "suggestedRegressionTest": "Add a bundle coordinator test where an invalid first tool is followed by a successful click and assert that a post-action screenshot is requested and attached. Add the same shape for an explicit screenshot step after a skipped entry.",
+  "minimumFixScope": "Update bundle step result construction and screenshot attachment in both the TypeScript source and the CJS runtime copy, plus focused SDK tests for shifted bundle indexes.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-158eb1ddef_92d3543833",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:04:38.440Z",
+  "updatedAt": "2026-05-24T21:04:38.440Z"
+}

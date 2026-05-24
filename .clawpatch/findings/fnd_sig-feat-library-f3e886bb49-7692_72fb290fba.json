@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-f3e886bb49-7692_72fb290fba",
+  "featureId": "feat_library_f3e886bb49",
+  "title": "Explicit userId clears are ignored in session state",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/infrastructure/transcript/sessionInfoState.ts",
+      "startLine": 40,
+      "endLine": 54,
+      "symbol": "createTranscriptSessionState.update",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/transcript/sessionSyncPayload.ts",
+      "startLine": 7,
+      "endLine": 12,
+      "symbol": "normalizeOptionalSessionField",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/transcript/sessionSyncPayload.ts",
+      "startLine": 40,
+      "endLine": 47,
+      "symbol": "extractTranscriptSessionSyncPayload",
+      "quote": null
+    }
+  ],
+  "reasoning": "The update API accepts userId?: string | null, and the sync payload parser preserves an explicit null userId. However update computes nextUserId with userId || currentUserId and only assigns when nextUserId is truthy, so a caller cannot clear the stored userId. A session switch or logout-style sync that sends userId: null will keep using the prior userId, which can attach later transcript operations to the wrong user.",
+  "reproduction": null,
+  "recommendation": "Treat undefined as 'leave unchanged' and null as 'clear'. For example, compute nextUserId with userId === undefined ? currentUserId : userId and assign currentUserId directly.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for session sync null semantics or clearing a previously loaded userId.",
+  "suggestedRegressionTest": "Create a transcript session state with an initial stored userId, call update(undefined, null), and assert get().userId is null while conversationRef remains unchanged.",
+  "minimumFixScope": "Update createTranscriptSessionState.update and add focused session state tests for undefined versus null.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-f3e886bb49_7692850da6",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:20:05.647Z",
+  "updatedAt": "2026-05-24T21:20:05.647Z"
+}

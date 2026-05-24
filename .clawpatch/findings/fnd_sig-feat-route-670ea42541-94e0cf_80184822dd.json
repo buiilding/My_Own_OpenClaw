@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-670ea42541-94e0cf_80184822dd",
+  "featureId": "feat_route_670ea42541",
+  "title": "Vision overlay route lacks route-level authorization",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 340,
+      "endLine": 354,
+      "symbol": "sdk_vision_overlay",
+      "quote": null
+    }
+  ],
+  "reasoning": "The network-facing POST /api/sdk/vision/overlay handler accepts user-supplied image and overlay data and can produce an artifact, but the route signature only requires Request, VisionOverlayRequest, and ContainerDep. There is no route-local auth, session, or user dependency visible on this handler. If the SDK router is not protected globally, any caller with network access could submit arbitrary images and cause backend vision overlay artifact generation.",
+  "reproduction": null,
+  "recommendation": "Require the same authentication/session dependency used for protected SDK operations, or document and enforce this router as local-only behind a global auth guard. Add a focused test that unauthenticated requests to /api/sdk/vision/overlay are rejected when the app is configured for protected SDK access.",
+  "whyTestsDoNotAlreadyCoverThis": "The feature metadata includes no linked tests, and the shown route has no local auth dependency to exercise.",
+  "suggestedRegressionTest": "Add a FastAPI route test for POST /api/sdk/vision/overlay that verifies unauthenticated access returns 401/403 under the protected app configuration and authenticated access still succeeds.",
+  "minimumFixScope": "backend/src/api/routes/sdk/router.py and the route test covering SDK vision overlay authorization.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-670ea42541_94e0cf172a",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:21:47.236Z",
+  "updatedAt": "2026-05-24T21:21:47.236Z"
+}

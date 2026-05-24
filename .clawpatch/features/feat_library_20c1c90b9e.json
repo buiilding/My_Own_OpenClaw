@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_20c1c90b9e",
+  "title": "Node source frontend/src/renderer/features/chat/components/chatbox",
+  "summary": "Node/TypeScript source group frontend/src/renderer/features/chat/components/chatbox with 2 files.",
+  "kind": "library",
+  "source": "node-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "frontend/package.json",
+      "symbol": "frontend/src/renderer/features/chat/components/chatbox",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "frontend/src/renderer/features/chat/components/chatbox/ChatBoxIcons.jsx",
+      "reason": "source group frontend/src/renderer/features/chat/components/chatbox"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/components/chatbox/ChatBoxImagePreviewRow.jsx",
+      "reason": "source group frontend/src/renderer/features/chat/components/chatbox"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "frontend/package.json",
+      "reason": "package manifest"
+    }
+  ],
+  "tests": [],
+  "tags": [
+    "node",
+    "typescript",
+    "source-group",
+    "project:windieos",
+    "project-root:frontend"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-20c1c90b9e-e60c_06fa8ae727"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=15077 bytes; approxTokens=3770; includedFiles=3; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:05:34.335Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:05:34.335Z"
+}

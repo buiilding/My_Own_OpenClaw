@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-bc1a119a3b-3e2c23_1fc677e56c",
+  "featureId": "feat_route_bc1a119a3b",
+  "title": "SDK OCR find-text route is exposed without any route-level authentication or authorization dependency",
+  "category": "security",
+  "severity": "high",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 67,
+      "endLine": 67,
+      "symbol": "router",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 163,
+      "endLine": 170,
+      "symbol": "sdk_ocr_find_text",
+      "quote": null
+    }
+  ],
+  "reasoning": "The SDK router is created with only a prefix and tags, and the POST /api/sdk/ocr/find-text handler accepts a caller-provided image/text request and immediately resolves the image source and runs OCR. In the shown route there is no FastAPI Depends, session/user validation, capability check, or request-scoped authorization before doing backend work. Because this feature crosses network, user-input, serialization, and auth trust boundaries, an exposed unauthenticated route could let any network caller submit images for OCR and receive extracted match metadata.",
+  "reproduction": null,
+  "recommendation": "Require the same authenticated SDK/session dependency used for protected backend APIs before resolving the image source or running OCR. If this endpoint is intentionally local-only, enforce that invariant in the route/dependency layer and document it in the API contract.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for this feature, and the excerpt shows no route-level dependency that a test could exercise for unauthorized requests.",
+  "suggestedRegressionTest": "Add a FastAPI route test for POST /api/sdk/ocr/find-text that asserts unauthenticated or unauthorized requests are rejected before OCR/image resolution is invoked, plus an authenticated success path.",
+  "minimumFixScope": "backend/src/api/routes/sdk/router.py and the focused SDK OCR route tests",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-bc1a119a3b_3e2c2330c8",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:22:27.877Z",
+  "updatedAt": "2026-05-24T21:22:27.877Z"
+}

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-fe7aecfc70-8730_a1d562f875",
+  "featureId": "feat_library_fe7aecfc70",
+  "title": "Permission state read-modify-write can lose concurrent updates",
+  "category": "data-loss",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "frontend/src/main/permission_state_store.cjs",
+      "startLine": 79,
+      "endLine": 87,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/permission_state_store.cjs",
+      "startLine": 100,
+      "endLine": 112,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/permission_state_store.cjs",
+      "startLine": 115,
+      "endLine": 127,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "Each `set` and `delete` call reads the whole JSON file, mutates one permission, and writes the whole file through a fixed temp path. Concurrent permission updates can both read the same old state and then whichever write finishes last overwrites the other update. The shared `${statePath}.tmp` path also means overlapping writes can collide during `writeFile`/`rename`.",
+  "reproduction": "Start two simultaneous `set` calls for different permission IDs against the same store; both can read the same initial state, then the later rename writes a file containing only one of the two updates.",
+  "recommendation": "Serialize writes per state path or use an atomic update queue around the read-modify-write sequence. Use unique temporary filenames if concurrent writes remain possible.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for concurrent permission-state writes or preservation of independent permission entries.",
+  "suggestedRegressionTest": "Add a test that issues concurrent `set` calls for two permission IDs and asserts both entries are present after all promises resolve.",
+  "minimumFixScope": "Add per-store write serialization in `createPermissionStateStore` and cover concurrent set/delete behavior.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-fe7aecfc70_873007912e",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:20:46.267Z",
+  "updatedAt": "2026-05-24T21:20:46.267Z"
+}

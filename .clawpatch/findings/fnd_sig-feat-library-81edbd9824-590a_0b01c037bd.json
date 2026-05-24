@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-81edbd9824-590a_0b01c037bd",
+  "featureId": "feat_library_81edbd9824",
+  "title": "Handshake policy coordinate methods use a different override key than the other handshake paths",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "backend/src/api/schemas/common.py",
+      "startLine": 102,
+      "endLine": 113,
+      "symbol": "HandshakeMessage.to_session_config_overrides",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/schemas/common.py",
+      "startLine": 131,
+      "endLine": 141,
+      "symbol": "HandshakeAgentPolicy.to_session_config_overrides",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/schemas/agent_definition.py",
+      "startLine": 226,
+      "endLine": 229,
+      "symbol": "AgentDefinition.to_session_config_overrides",
+      "quote": null
+    }
+  ],
+  "reasoning": "The top-level handshake and agent-definition paths both emit coordinate capability overrides under agent_available_coordinate_methods, but requested_agent_policy.coordinate_methods emits agent_coordinate_methods. That creates two schema-level names for the same concept, so clients using requested_agent_policy.coordinate_methods can produce an override the session config path may not consume while the equivalent top-level field works.",
+  "reproduction": null,
+  "recommendation": "Change HandshakeAgentPolicy.to_session_config_overrides to emit agent_available_coordinate_methods for coordinate_methods, or explicitly support both keys at the config boundary with a migration note if agent_coordinate_methods is already persisted or externally documented.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for this feature, and the mismatch is visible only by comparing sibling schema conversion methods.",
+  "suggestedRegressionTest": "Add a schema/unit test that HandshakeMessage(requested_agent_policy={coordinate_methods:[...]}) produces the same coordinate override key as available_coordinate_methods and AgentDefinition.runtime.coordinate_methods.",
+  "minimumFixScope": "Update the policy override key and add focused coverage for all coordinate-method handshake paths.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-81edbd9824_590ab0adc0",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:12:51.336Z",
+  "updatedAt": "2026-05-24T21:12:51.336Z"
+}

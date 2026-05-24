@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_3d9358ffad",
+  "title": "Python source backend/src/tools",
+  "summary": "Python source group backend/src/tools with 9 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/tools",
+      "symbol": "backend/src/tools",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/tools/__init__.py",
+      "reason": "source group backend/src/tools"
+    },
+    {
+      "path": "backend/src/tools/agent_capability_policy.py",
+      "reason": "source group backend/src/tools"
+    },
+    {
+      "path": "backend/src/tools/bundle_execution.py",
+      "reason": "source group backend/src/tools"
+    },
+    {
+      "path": "backend/src/tools/categorization.py",
+      "reason": "source group backend/src/tools"
+    },
+    {
+      "path": "backend/src/tools/client_manifest.py",
+      "reason": "source group backend/src/tools"
+    },
+    {
+      "path": "backend/src/tools/execution_timeout.py",
+      "reason": "source group backend/src/tools"
+    },
+    {
+      "path": "backend/src/tools/orchestrator.py",
+      "reason": "source group backend/src/tools"
+    },
+    {
+      "path": "backend/src/tools/registry.py",
+      "reason": "source group backend/src/tools"
+    },
+    {
+      "path": "backend/src/tools/single_tool_execution.py",
+      "reason": "source group backend/src/tools"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_bundle_execution.py",
+      "reason": "associated test"
+    },
+    {
+      "path": "tests/backend/test_categorization.py",
+      "reason": "associated test"
+    },
+    {
+      "path": "tests/backend/test_single_tool_execution.py",
+      "reason": "associated test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_bundle_execution.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_categorization.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_single_tool_execution.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-3d9358ffad-6e0c_4a6eb848d4",
+    "fnd_sig-feat-library-3d9358ffad-6028_e54efcde39"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=78055 bytes; approxTokens=19514; includedFiles=12; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:07:41.422Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:07:41.422Z"
+}

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_cddaa1a4b0",
+  "title": "Python source backend/src/api/processing",
+  "summary": "Python source group backend/src/api/processing with 3 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/api/processing",
+      "symbol": "backend/src/api/processing",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/api/processing/__init__.py",
+      "reason": "source group backend/src/api/processing"
+    },
+    {
+      "path": "backend/src/api/processing/formatter.py",
+      "reason": "source group backend/src/api/processing"
+    },
+    {
+      "path": "backend/src/api/processing/pipeline.py",
+      "reason": "source group backend/src/api/processing"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-cddaa1a4b0-10c8_e0017d7047"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=14861 bytes; approxTokens=3716; includedFiles=3; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:17:44.608Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:17:44.608Z"
+}

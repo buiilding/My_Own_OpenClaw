@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-32dc81fbcf-294c_25b9131789",
+  "featureId": "feat_library_32dc81fbcf",
+  "title": "Platform dispatch and Linux IPC timing behavior have no focused regression coverage",
+  "category": "test-gap",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "test-gap",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/infrastructure/services/surfaceOrchestrator/platform/surfaceVisibility/index.ts",
+      "startLine": 12,
+      "endLine": 27,
+      "symbol": "resolveSurfaceVisibilityRuntime",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/services/surfaceOrchestrator/platform/surfaceVisibility/linux.ts",
+      "startLine": 18,
+      "endLine": 30,
+      "symbol": "linuxSurfaceVisibilityRuntime",
+      "quote": null
+    },
+    {
+      "path": "frontend/package.json",
+      "startLine": 26,
+      "endLine": 41,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "This feature contains platform-sensitive behavior: user-agent based runtime selection chooses whether screenshot capture hides surfaces, while Linux invokes IPC with wait and settle timing. The feature metadata includes no linked tests, even though the package has typecheck and Jest commands. A regression in user-agent detection or the Linux IPC payload would directly break the documented platform contract for screenshot capture visibility without a focused test failing.",
+  "reproduction": null,
+  "recommendation": "Add focused Jest coverage for platform resolution across Linux, macOS, Windows, and unknown user agents, plus Linux suppress/restore IPC payload and result normalization. Mock navigator.userAgent and IpcBridge.invoke so the tests stay unit-level.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for this feature, and none of the owned files contain inline test evidence showing the platform matrix or IPC contract is covered.",
+  "suggestedRegressionTest": "A Jest suite for surfaceVisibility that stubs navigator.userAgent and IpcBridge.invoke, asserting Linux returns management=true and sends PREPARE_SURFACE_FOR_SCREENSHOT with hideSurface=true/waitMs/settleMs, while macOS and Windows return noop results without invoking IPC.",
+  "minimumFixScope": "Add tests only; no runtime code change is required unless the new coverage exposes an actual behavior mismatch.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-32dc81fbcf_294c45bf7b",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:06:52.178Z",
+  "updatedAt": "2026-05-24T21:06:52.178Z"
+}

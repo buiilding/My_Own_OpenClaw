@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-5a46c3e63b-c9c2_2f7a3c2d47",
+  "featureId": "feat_library_5a46c3e63b",
+  "title": "Invalid mouse method config is treated as an empty allowlist instead of being ignored",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/tools/tool_selection.py",
+      "startLine": 387,
+      "endLine": 415,
+      "symbol": "_parse_selection",
+      "quote": null
+    },
+    {
+      "path": "backend/src/tools/tool_selection.py",
+      "startLine": 77,
+      "endLine": 89,
+      "symbol": "ToolSelection.get_allowed_mouse_coordinate_methods",
+      "quote": null
+    },
+    {
+      "path": "backend/src/tools/tool_selection.py",
+      "startLine": 470,
+      "endLine": 483,
+      "symbol": "should_initialize_ocr/should_initialize_vision",
+      "quote": null
+    },
+    {
+      "path": "tests/backend/test_tool_policy.py",
+      "startLine": 484,
+      "endLine": 498,
+      "symbol": "test_should_initialize_startup_services_follow_mouse_methods",
+      "quote": null
+    }
+  ],
+  "reasoning": "When tool_options.mouse_control.enabled_coordinate_methods is present but not an array, the parser logs that it is ignoring the invalid value, but still assigns mouse_methods to an empty frozenset. Downstream, an empty frozenset means mouse_control has no allowed coordinate methods, which disables mouse_control and prevents OCR/vision initialization. That contradicts the warning's stated behavior and makes a malformed dev config disable local desktop capability rather than falling back to the default of all coordinate methods. The existing startup-service test covers an explicit valid manual-only list, not the malformed-config path.",
+  "reproduction": null,
+  "recommendation": "Only assign mouse_methods when enabled_coordinate_methods is a valid list/tuple/set, or leave it as None for malformed values so the default all-methods behavior is preserved. If fail-closed behavior is intentional, change the warning and add an explicit test documenting that invalid config disables all coordinate methods.",
+  "whyTestsDoNotAlreadyCoverThis": "The included tests exercise valid coordinate-method lists and the resulting OCR/vision startup gating, but do not cover a malformed enabled_coordinate_methods value despite the parser having a specific invalid-value branch.",
+  "suggestedRegressionTest": "Add a test that loads a config with [tool_options.mouse_control] enabled_coordinate_methods = \"manual\" and asserts get_allowed_mouse_coordinate_methods() returns manual, ocr, and prediction, and should_initialize_ocr()/should_initialize_vision() remain true.",
+  "minimumFixScope": "backend/src/tools/tool_selection.py _parse_selection plus one focused backend test in tests/backend/test_tool_policy.py or a dedicated tool_selection test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-5a46c3e63b_c9c2069e3d",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:09:58.696Z",
+  "updatedAt": "2026-05-24T21:09:58.696Z"
+}

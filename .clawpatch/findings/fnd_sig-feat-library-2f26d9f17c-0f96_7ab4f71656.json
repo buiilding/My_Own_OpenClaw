@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-2f26d9f17c-0f96_7ab4f71656",
+  "featureId": "feat_library_2f26d9f17c",
+  "title": "Provider projection ignores all provider context and returns every schema",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "backend/src/tools/provider_projection.py",
+      "startLine": 8,
+      "endLine": 18,
+      "symbol": "project_tool_schemas_for_provider",
+      "quote": null
+    }
+  ],
+  "reasoning": "The projection function accepts tool_registry, config, and prompt_messages, but discards all three and returns a shallow copy of the incoming schemas. For a provider-aware model-facing projection helper, this means provider restrictions, unavailable capabilities, registry metadata, or prompt-derived execution mode cannot affect the schemas exposed to the model. The concrete impact is that unsupported or disabled tools can remain advertised unless every caller filters them before this function.",
+  "reproduction": null,
+  "recommendation": "Implement the provider projection in this function or remove it from the provider-aware path and route callers to the real projection authority. If filtering is intentionally owned elsewhere, narrow the function signature and name so it cannot be mistaken for the projection boundary.",
+  "whyTestsDoNotAlreadyCoverThis": "No tests were included for this feature, and there is no evidence asserting that config or registry state changes the returned schema list.",
+  "suggestedRegressionTest": "Add tests where config or registry marks a capability unavailable and assert project_tool_schemas_for_provider omits or transforms the corresponding model-facing tool schema according to the intended projection contract.",
+  "minimumFixScope": "Define and enforce the projection contract in backend/src/tools/provider_projection.py, then cover it with focused tests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-2f26d9f17c_0f962d200c",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:06:46.026Z",
+  "updatedAt": "2026-05-24T21:06:46.026Z"
+}

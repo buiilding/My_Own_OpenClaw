@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-56bb87f5ac-9ec1_34038ecc4a",
+  "featureId": "feat_library_56bb87f5ac",
+  "title": "Disabled web_search policy does not prevent direct Brave execution",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "backend/src/tools/web_search/capabilities.py",
+      "startLine": 60,
+      "endLine": 75,
+      "symbol": "resolve_web_search_execution_mode",
+      "quote": null
+    },
+    {
+      "path": "backend/src/tools/web_search/tool.py",
+      "startLine": 526,
+      "endLine": 555,
+      "symbol": "WebSearchTool.run",
+      "quote": null
+    }
+  ],
+  "reasoning": "The capability resolver returns None when web_search is disabled, but WebSearchTool.run treats any non-native mode, including None, as permission to resolve a Brave API key and execute the backend search. That means a disabled capability can still run if the tool is invoked directly, through a stale registry, or through another backend path that reaches run(). Exposure policy and execution policy are not enforced at the same boundary.",
+  "reproduction": null,
+  "recommendation": "Make run() distinguish disabled/unavailable from backend-brave. Only execute Brave when resolve_web_search_execution_mode(config) returns \"backend-brave\", and return a policy/configuration error otherwise. If direct fallback is intentionally allowed when config is missing, document and gate that separately.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for disabled capability enforcement or direct tool invocation with a configured Brave key.",
+  "suggestedRegressionTest": "Add a backend unit test with disabled_capabilities containing web_search and BRAVE_SEARCH_API_KEY set; assert WebSearchTool.run() does not call _perform_request and returns a failure indicating web_search is disabled or unavailable.",
+  "minimumFixScope": "WebSearchTool.run execution-mode branching plus focused backend tests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-56bb87f5ac_9ec1ece4d3",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:09:31.909Z",
+  "updatedAt": "2026-05-24T21:09:31.909Z"
+}

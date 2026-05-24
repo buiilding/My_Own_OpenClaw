@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-6440f89baf-ccc6_38fc9392a7",
+  "featureId": "feat_library_6440f89baf",
+  "title": "Stop shortcut status changes are suppressed when only enabled/registered state changes",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "frontend/src/main/agent_stop_shortcut_runtime.cjs",
+      "startLine": 76,
+      "endLine": 92,
+      "symbol": "buildStatus",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/agent_stop_shortcut_runtime.cjs",
+      "startLine": 95,
+      "endLine": 110,
+      "symbol": "emitStatusChange",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/agent_stop_shortcut_runtime.cjs",
+      "startLine": 212,
+      "endLine": 220,
+      "symbol": "setEnabled",
+      "quote": null
+    }
+  ],
+  "reasoning": "buildStatus exposes enabled and registeredAccelerator/registration state to consumers, and setEnabled(false) unregisters before relying on emitStatusChange. However emitStatusChange deduplicates using a key that omits enabled, registered, and registeredAccelerator. After a successful registration with the requested accelerator, disabling the runtime can produce the same status key as the enabled state because requestedAccelerator, resolvedAccelerator, registrationFailed, usingFallback, and supportedAccelerators are unchanged. Consumers then receive no disabled/unregistered status update and can keep showing the global stop shortcut as active even though it has been unregistered.",
+  "reproduction": "Initialize the runtime with a globalShortcut mock whose register returns true, attach onStatusChange, call setEnabled(true), then call setEnabled(false). The second call should emit enabled:false/registeredAccelerator:null, but emitStatusChange can return early because the dedupe key is unchanged.",
+  "recommendation": "Include enabled and registeredAccelerator, and preferably registered, in the status dedupe key, or compare the full buildStatus payload so every externally visible status field can trigger onStatusChange.",
+  "whyTestsDoNotAlreadyCoverThis": "The feature metadata lists no linked tests, and the excerpt shows no regression coverage for status emissions across enable/disable transitions.",
+  "suggestedRegressionTest": "Add a Jest test for initializeAgentStopShortcutRuntime that enables a successfully registered shortcut, disables it, and asserts onStatusChange receives a final status with enabled:false and registeredAccelerator:null.",
+  "minimumFixScope": "Update emitStatusChange in frontend/src/main/agent_stop_shortcut_runtime.cjs and add focused coverage for enable/disable status transitions.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-6440f89baf_ccc6798e1c",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:10:31.683Z",
+  "updatedAt": "2026-05-24T21:10:31.683Z"
+}

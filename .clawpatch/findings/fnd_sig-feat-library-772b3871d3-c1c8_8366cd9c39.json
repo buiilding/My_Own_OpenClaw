@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-772b3871d3-c1c8_8366cd9c39",
+  "featureId": "feat_library_772b3871d3",
+  "title": "Message-send UI policy has no linked regression coverage",
+  "category": "test-gap",
+  "severity": "low",
+  "confidence": "high",
+  "triage": "test-gap",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/features/chat/policies/messageSendUiPolicy.ts",
+      "startLine": 25,
+      "endLine": 36,
+      "symbol": "resolveReturnToChatboxOnSend",
+      "quote": null
+    },
+    {
+      "path": "frontend/package.json",
+      "startLine": 40,
+      "endLine": 41,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The owned policy encodes behavior-sensitive branching for when the UI should return to the chatbox after send, but the feature metadata includes no linked tests and the package only exposes the general Jest commands. A future change could invert the `auto`/screenshot behavior or surface defaults without a focused failure signal.",
+  "reproduction": null,
+  "recommendation": "Add focused Jest coverage for `resolveMessageSendUiBehavior`, covering main-window default auto behavior, overlay-chatbox default never behavior, and explicit always/never overrides with both screenshot values.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were provided for this feature, and the included context only shows generic frontend test scripts rather than a targeted policy test.",
+  "suggestedRegressionTest": "Create a Jest test module for `messageSendUiPolicy.ts` that table-tests each sender surface, policy override, and `includeQueryScreenshot` combination for the returned `shouldReturnToChatboxOnSend` value.",
+  "minimumFixScope": "Add a focused frontend unit test for this policy helper; no production code change is required unless the tests reveal unintended behavior.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-772b3871d3_c1c859e1a6",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:11:33.212Z",
+  "updatedAt": "2026-05-24T21:11:33.212Z"
+}

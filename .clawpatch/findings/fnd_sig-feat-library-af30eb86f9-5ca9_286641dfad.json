@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-af30eb86f9-5ca9_286641dfad",
+  "featureId": "feat_library_af30eb86f9",
+  "title": "Duplicate handler registration silently overwrites despite documented rejection",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "backend/src/api/infrastructure/registry.py",
+      "startLine": 53,
+      "endLine": 63,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The register docstring declares ValueError on an already registered message_type, but the implementation only logs a warning and overwrites the existing handler. That makes handler ownership order-dependent and can replace an existing route without a hard failure, which is especially risky for WebSocket message routing where duplicate message types should be caught during startup or test setup.",
+  "reproduction": null,
+  "recommendation": "Either enforce the documented contract by raising ValueError on duplicate registration, or intentionally change the API to make replacement explicit with a separate replace/override path and update docs/tests accordingly.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked registry tests are included, and this mismatch would only be caught by a test that registers the same message type twice and asserts the intended duplicate behavior.",
+  "suggestedRegressionTest": "Add a registry unit test that registers a message type twice and asserts ValueError is raised, or, if replacement is intentional, asserts replacement only occurs through an explicit override API.",
+  "minimumFixScope": "backend/src/api/infrastructure/registry.py plus a focused registry duplicate-registration test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-af30eb86f9_5ca9f3431f",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:15:38.724Z",
+  "updatedAt": "2026-05-24T21:15:38.724Z"
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-0542387a45-c197_c99241e7eb",
+  "featureId": "feat_library_0542387a45",
+  "title": "Declared tool permissions are treated as authorization grants",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/core/security/policy.py",
+      "startLine": 198,
+      "endLine": 228,
+      "symbol": "SecurityPolicy.check_permission",
+      "quote": null
+    }
+  ],
+  "reasoning": "check_permission derives the required permission set from tool metadata or a local dictionary, then grants access whenever the requested permission is present in that set. That verifies a tool declared the capability, but it does not verify that the user, session, role, policy, or deployment actually authorized that capability. A tool that is registered with broad required_permissions is therefore allowed to perform those actions unconditionally unless separately blocked by name.",
+  "reproduction": null,
+  "recommendation": "Separate capability declaration from authorization. Keep required_permissions as the tool's requested capability set, but compare it against an explicit allow policy for the current user/session/context or a trusted registry-managed grant set before returning true.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked permission-policy tests are included, and the implementation comment states that user/role-based permission checking is not implemented.",
+  "suggestedRegressionTest": "Add a test with a tool declaring NETWORK_ACCESS or EXECUTE_COMMANDS where the active policy has not granted that permission, and assert check_permission returns false until an explicit grant is configured.",
+  "minimumFixScope": "SecurityPolicy permission model and tests for denied-by-default authorization grants.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-0542387a45_c1973aad67",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:03:29.809Z",
+  "updatedAt": "2026-05-24T21:03:29.809Z"
+}

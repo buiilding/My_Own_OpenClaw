@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-343861e455-508b_e9e9e6e55d",
+  "featureId": "feat_library_343861e455",
+  "title": "Multi-type settings validation can raise AttributeError instead of ValidationError",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "backend/src/core/validation/settings_update_rules.py",
+      "startLine": 18,
+      "endLine": 19,
+      "symbol": "SETTINGS_UPDATE_RULES",
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/validation/settings_update_rules.py",
+      "startLine": 88,
+      "endLine": 93,
+      "symbol": "validate_settings_update_field",
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/validation/validators.py",
+      "startLine": 160,
+      "endLine": 164,
+      "symbol": "validate_field",
+      "quote": null
+    },
+    {
+      "path": "tests/backend/test_settings_update_rules.py",
+      "startLine": 38,
+      "endLine": 53,
+      "symbol": "test_validate_settings_update_field_validates_expected_type",
+      "quote": null
+    }
+  ],
+  "reasoning": "Several settings rules pass a tuple of expected types such as (int, float) into validate_field. On type mismatch, validate_field formats expected_type.__name__, but tuples do not have __name__, so invalid numeric settings can escape the intended ValidationError path as AttributeError. The included test only exercises a single expected type, so it does not catch the tuple branch.",
+  "reproduction": "Call validate_settings_update_field(key=\"llm_timeout\", value=\"bad\", validate_field=validate_field) or validate_settings_update({\"llm_timeout\": \"bad\"}); the mismatch path attempts expected_type.__name__ on a tuple.",
+  "recommendation": "Make validate_field format tuple expected types safely, for example by joining each type.__name__, and keep raising the custom ValidationError for mismatches.",
+  "whyTestsDoNotAlreadyCoverThis": "The only expected-type test uses browser_automation_enabled, whose rule has a single bool type, so expected_type.__name__ exists.",
+  "suggestedRegressionTest": "Add a test that validates a tuple-typed key such as llm_timeout with an invalid string value and asserts a ValidationError with a useful message, not AttributeError.",
+  "minimumFixScope": "Update validate_field's type-name formatting for tuple expected_type values and add focused coverage for a tuple-typed settings rule.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-343861e455_508ba99e54",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:07:07.548Z",
+  "updatedAt": "2026-05-24T21:07:07.548Z"
+}

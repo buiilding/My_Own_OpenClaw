@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_9d91fd1086",
+  "title": "Python source backend/src/core/interfaces",
+  "summary": "Python source group backend/src/core/interfaces with 5 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/core/interfaces",
+      "symbol": "backend/src/core/interfaces",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/core/interfaces/__init__.py",
+      "reason": "source group backend/src/core/interfaces"
+    },
+    {
+      "path": "backend/src/core/interfaces/embedding.py",
+      "reason": "source group backend/src/core/interfaces"
+    },
+    {
+      "path": "backend/src/core/interfaces/ocr.py",
+      "reason": "source group backend/src/core/interfaces"
+    },
+    {
+      "path": "backend/src/core/interfaces/tool.py",
+      "reason": "source group backend/src/core/interfaces"
+    },
+    {
+      "path": "backend/src/core/interfaces/vision.py",
+      "reason": "source group backend/src/core/interfaces"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-9d91fd1086-c4e9_f089ef2804"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=18168 bytes; approxTokens=4542; includedFiles=5; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:14:50.849Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:14:50.849Z"
+}

@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_158eb1ddef",
+  "title": "Node source packages/windie-sdk-js/src/tools",
+  "summary": "Node/TypeScript source group packages/windie-sdk-js/src/tools with 5 files.",
+  "kind": "library",
+  "source": "node-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "packages/windie-sdk-js/package.json",
+      "symbol": "packages/windie-sdk-js/src/tools",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.cjs",
+      "reason": "source group packages/windie-sdk-js/src/tools"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts",
+      "reason": "source group packages/windie-sdk-js/src/tools"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/tools/builtins.ts",
+      "reason": "source group packages/windie-sdk-js/src/tools"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/tools/toolCorrelationIds.ts",
+      "reason": "source group packages/windie-sdk-js/src/tools"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/tools/toolOutputContent.ts",
+      "reason": "source group packages/windie-sdk-js/src/tools"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "packages/windie-sdk-js/package.json",
+      "reason": "package manifest"
+    }
+  ],
+  "tests": [],
+  "tags": [
+    "node",
+    "typescript",
+    "source-group",
+    "project:@windie/sdk",
+    "project-root:packages/windie-sdk-js"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-158eb1ddef-92d3_5a10c41b7b",
+    "fnd_sig-feat-library-158eb1ddef-3c8f_7a6a252654"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=63042 bytes; approxTokens=15761; includedFiles=6; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:04:38.441Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:04:38.441Z"
+}

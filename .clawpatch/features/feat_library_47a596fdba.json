@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_47a596fdba",
+  "title": "Python source backend/src/core/events",
+  "summary": "Python source group backend/src/core/events with 4 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/core/events",
+      "symbol": "backend/src/core/events",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/core/events/__init__.py",
+      "reason": "source group backend/src/core/events"
+    },
+    {
+      "path": "backend/src/core/events/base.py",
+      "reason": "source group backend/src/core/events"
+    },
+    {
+      "path": "backend/src/core/events/bus_events.py",
+      "reason": "source group backend/src/core/events"
+    },
+    {
+      "path": "backend/src/core/events/streaming_events.py",
+      "reason": "source group backend/src/core/events"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-47a596fdba-99e5_bcd03d247c"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=18047 bytes; approxTokens=4512; includedFiles=4; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:08:17.100Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:08:17.100Z"
+}

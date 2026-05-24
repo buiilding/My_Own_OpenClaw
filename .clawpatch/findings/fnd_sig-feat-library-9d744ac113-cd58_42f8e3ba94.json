@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-9d744ac113-cd58_42f8e3ba94",
+  "featureId": "feat_library_9d744ac113",
+  "title": "Length-prefixed stdout frame can grow result buffer without bounds",
+  "category": "performance",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/main/wakeword_bridge.cjs",
+      "startLine": 221,
+      "endLine": 230,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/wakeword_bridge.cjs",
+      "startLine": 232,
+      "endLine": 265,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "processDetectionResults trusts the 32-bit length prefix from the Python child and keeps buffering until 4 + length bytes arrive. A faulty or compromised wakeword service can send a very large length and then stream arbitrary data or stop, causing the Electron main process to retain an ever-growing resultBuffer with no maximum frame size, reset, or process error. Because this runs in the main process, it can degrade or crash the desktop app.",
+  "reproduction": null,
+  "recommendation": "Define a maximum wakeword result frame size appropriate for the JSON messages, reject frames above that size, clear the buffer, emit/log an error, and consider stopping the child process when the framing protocol is violated.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for malformed stdout framing, oversized result frames, or buffer reset behavior after protocol violations.",
+  "suggestedRegressionTest": "Add a processDetectionResults-focused test that sends a length prefix above the configured maximum and verifies the buffer is cleared, no detection is emitted, and an error path is taken.",
+  "minimumFixScope": "Add frame-size validation in processDetectionResults and cover malformed length-prefixed stdout input.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-9d744ac113_cd5836dbbf",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:14:48.068Z",
+  "updatedAt": "2026-05-24T21:14:48.068Z"
+}

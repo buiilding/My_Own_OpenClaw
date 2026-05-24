@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-69aa448df6-e212_dde43d33d4",
+  "featureId": "feat_library_69aa448df6",
+  "title": "VM worker can dispatch duplicate conversation runs before backend events arrive",
+  "category": "concurrency",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/main/vm_worker_runtime.cjs",
+      "startLine": 201,
+      "endLine": 203,
+      "symbol": "dispatchAssignedRun",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/vm_worker_runtime.cjs",
+      "startLine": 211,
+      "endLine": 229,
+      "symbol": "dispatchAssignedRun",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/vm_worker_runtime.cjs",
+      "startLine": 296,
+      "endLine": 319,
+      "symbol": "heartbeatTick",
+      "quote": null
+    }
+  ],
+  "reasoning": "dispatchAssignedRun only checks whether the run_id is already active, and it records the run/conversation mapping only after sendAutomatedQuery succeeds. During that gap the next heartbeat still reports ready when no active mapping exists and can accept another assigned_run for the same conversation_ref or a different run targeting the same conversation. This allows overlapping automated queries for the same conversation and ambiguous run event routing once mappings are later set.",
+  "reproduction": "Have the heartbeat API return an assigned_run while sendAutomatedQuery is slow, then return another assigned_run with a different run_id but the same conversation_ref before the first call stores the mapping. Both automated queries can be dispatched.",
+  "recommendation": "Reserve the run/conversation mapping before awaiting sendAutomatedQuery, and clear it on dispatch failure. Also reject assignments when either the run_id or conversation_ref is already active/pending.",
+  "whyTestsDoNotAlreadyCoverThis": "No VM worker runtime tests are included, and there is no test evidence covering slow dispatch or duplicate heartbeat assignment races.",
+  "suggestedRegressionTest": "Add a unit test with a deferred sendAutomatedQuery and two assigned_run heartbeat responses for the same conversation_ref, asserting only one query dispatch occurs and the worker status becomes running while dispatch is pending.",
+  "minimumFixScope": "frontend/src/main/vm_worker_runtime.cjs dispatch bookkeeping plus focused Jest coverage.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-69aa448df6_e2120ec820",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:10:54.789Z",
+  "updatedAt": "2026-05-24T21:10:54.789Z"
+}

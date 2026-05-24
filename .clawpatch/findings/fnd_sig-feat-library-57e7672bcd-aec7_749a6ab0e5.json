@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-57e7672bcd-aec7_749a6ab0e5",
+  "featureId": "feat_library_57e7672bcd",
+  "title": "Artifact endpoints do not enforce authenticated access",
+  "category": "security",
+  "severity": "high",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/artifacts/router.py",
+      "startLine": 23,
+      "endLine": 35,
+      "symbol": "upload_artifact",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/artifacts/router.py",
+      "startLine": 47,
+      "endLine": 59,
+      "symbol": "get_artifact",
+      "quote": null
+    }
+  ],
+  "reasoning": "Both upload and fetch routes call get_current_authenticated_install_identity() but explicitly continue when it returns None, passing owner_user_id=None into storage operations. For an API described as handling large artifacts such as screenshots, this makes the route layer accept anonymous uploads and anonymous retrieval attempts instead of requiring an authenticated install identity before touching artifact storage. If the backend is reachable beyond a trusted local loopback, this is a permission gap for sensitive screenshot artifacts and can also allow unauthenticated storage abuse.",
+  "reproduction": null,
+  "recommendation": "Require an authenticated install identity for artifact upload and retrieval, returning 401/403 before save_upload or resolve_path_for_owner when identity is missing. If anonymous artifacts are intentionally supported, make that an explicit route contract and isolate them from authenticated artifact namespaces with tests.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for this feature, and there is no visible route-level assertion that missing identity is rejected.",
+  "suggestedRegressionTest": "Add FastAPI route tests that mock get_current_authenticated_install_identity() returning None and assert POST /api/artifacts/ and GET /api/artifacts/{artifact_id} return 401 or 403 without calling ArtifactStore.save_upload or ArtifactStore.resolve_path_for_owner.",
+  "minimumFixScope": "backend/src/api/routes/artifacts/router.py plus focused backend route tests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-57e7672bcd_aec75229b0",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:09:38.414Z",
+  "updatedAt": "2026-05-24T21:09:38.414Z"
+}

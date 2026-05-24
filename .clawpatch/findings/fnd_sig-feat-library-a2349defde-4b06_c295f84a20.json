@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-a2349defde-4b06_c295f84a20",
+  "featureId": "feat_library_a2349defde",
+  "title": "JSON schema conditional rules do not enforce required fields when defaulted grounding modes are omitted",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "backend/src/tools/computer/grounding_contract.py",
+      "startLine": 163,
+      "endLine": 168,
+      "symbol": "build_source_grounding_json_properties",
+      "quote": null
+    },
+    {
+      "path": "backend/src/tools/computer/grounding_contract.py",
+      "startLine": 202,
+      "endLine": 230,
+      "symbol": "build_source_grounding_json_rules",
+      "quote": null
+    },
+    {
+      "path": "backend/src/tools/computer/grounding_contract.py",
+      "startLine": 251,
+      "endLine": 255,
+      "symbol": "build_drag_destination_json_properties",
+      "quote": null
+    },
+    {
+      "path": "backend/src/tools/computer/grounding_contract.py",
+      "startLine": 276,
+      "endLine": 313,
+      "symbol": "build_drag_destination_json_rules",
+      "quote": null
+    },
+    {
+      "path": "backend/src/tools/computer/schemas.py",
+      "startLine": 57,
+      "endLine": 64,
+      "symbol": "MouseControlArgs.validate_conditional_fields",
+      "quote": null
+    },
+    {
+      "path": "backend/src/tools/computer/grounding_contract.py",
+      "startLine": 116,
+      "endLine": 120,
+      "symbol": "validate_source_grounding_fields",
+      "quote": null
+    },
+    {
+      "path": "backend/src/tools/computer/grounding_contract.py",
+      "startLine": 140,
+      "endLine": 144,
+      "symbol": "validate_drag_destination_grounding_fields",
+      "quote": null
+    }
+  ],
+  "reasoning": "The exported JSON schema advertises default manual grounding, but the conditional rules only apply when find_coordinates_by or drag_to_find_coordinates_by is explicitly present. JSON Schema validators generally do not materialize defaults before evaluating if/then rules, so a payload can omit find_coordinates_by and x/y, or omit drag_to_find_coordinates_by and drag_to_x/drag_to_y for a drag action, while still passing the published schema. The Pydantic runtime defaults those modes to manual and then rejects the same payload. That creates a contract mismatch between model-facing tool schemas and backend runtime validation, causing avoidable tool-call failures for payloads that conform to the published schema.",
+  "reproduction": null,
+  "recommendation": "Make the JSON schema rules match runtime defaults. For source grounding, require x/y whenever find_coordinates_by is absent or manual. For drag destination grounding, require drag_to_x/drag_to_y when action is drag and drag_to_find_coordinates_by is absent or manual. Alternatively, make the mode fields required in the JSON schema instead of relying on defaults.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for these schema builders or for parity between generated JSON schema validation and Pydantic validation.",
+  "suggestedRegressionTest": "Add a schema-parity test that validates example payloads against the generated JSON schema and the corresponding Pydantic models, including omitted find_coordinates_by and omitted drag_to_find_coordinates_by on drag actions. Assert both layers reject missing manual coordinates consistently.",
+  "minimumFixScope": "Update the JSON schema conditional rules in backend/src/tools/computer/grounding_contract.py and add focused parity coverage for MouseControlArgs and any tool schema that consumes these helper rules.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-a2349defde_4b06c1488f",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:15:19.329Z",
+  "updatedAt": "2026-05-24T21:15:19.329Z"
+}

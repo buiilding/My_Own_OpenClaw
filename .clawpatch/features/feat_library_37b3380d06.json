@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_37b3380d06",
+  "title": "Python source backend/src/api/processing/formatters/:context",
+  "summary": "Python source group backend/src/api/processing/formatters/:context with 3 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/api/processing/formatters/:context",
+      "symbol": "backend/src/api/processing/formatters/:context",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/api/processing/formatters/context_compaction_completed.py",
+      "reason": "source group backend/src/api/processing/formatters/:context"
+    },
+    {
+      "path": "backend/src/api/processing/formatters/context_compaction_failed.py",
+      "reason": "source group backend/src/api/processing/formatters/:context"
+    },
+    {
+      "path": "backend/src/api/processing/formatters/context_compaction_started.py",
+      "reason": "source group backend/src/api/processing/formatters/:context"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "reviewed",
+  "lock": null,
+  "findingIds": [],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "0 finding(s); prompt=11726 bytes; approxTokens=2932; includedFiles=3; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:07:16.200Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:07:16.200Z"
+}

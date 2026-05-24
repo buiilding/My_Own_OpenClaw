@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_ed619aedb2",
+  "title": "Python source backend/src/llm/providers/:base",
+  "summary": "Python source group backend/src/llm/providers/:base with 2 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/llm/providers/:base",
+      "symbol": "backend/src/llm/providers/:base",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/llm/providers/base.py",
+      "reason": "source group backend/src/llm/providers/:base"
+    },
+    {
+      "path": "backend/src/llm/providers/base_payload_helpers.py",
+      "reason": "source group backend/src/llm/providers/:base"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-ed619aedb2-ff00_4534a39bca",
+    "fnd_sig-feat-library-ed619aedb2-1b44_317497093d",
+    "fnd_sig-feat-library-ed619aedb2-4edd_c5e8d7a080"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "3 finding(s); prompt=31791 bytes; approxTokens=7948; includedFiles=2; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:19:22.450Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:19:22.450Z"
+}

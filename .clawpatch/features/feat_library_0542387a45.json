@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_0542387a45",
+  "title": "Python source backend/src/core/security",
+  "summary": "Python source group backend/src/core/security with 3 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/core/security",
+      "symbol": "backend/src/core/security",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/core/security/__init__.py",
+      "reason": "source group backend/src/core/security"
+    },
+    {
+      "path": "backend/src/core/security/executor.py",
+      "reason": "source group backend/src/core/security"
+    },
+    {
+      "path": "backend/src/core/security/policy.py",
+      "reason": "source group backend/src/core/security"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-0542387a45-91ec_a1b4b7b8bc",
+    "fnd_sig-feat-library-0542387a45-c197_c99241e7eb"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=23744 bytes; approxTokens=5936; includedFiles=3; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:03:29.809Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:03:29.809Z"
+}

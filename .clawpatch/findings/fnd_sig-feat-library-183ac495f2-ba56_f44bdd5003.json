@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-183ac495f2-ba56_f44bdd5003",
+  "featureId": "feat_library_183ac495f2",
+  "title": "Applying an agent definition clears existing repo instruction messages",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/agent/session/session_config_service.py",
+      "startLine": 142,
+      "endLine": 174,
+      "symbol": "SessionConfigService.apply_prompt_context_to_session",
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/session/session_config_service.py",
+      "startLine": 247,
+      "endLine": 260,
+      "symbol": "SessionConfigService.apply_agent_definition_to_session",
+      "quote": null
+    }
+  ],
+  "reasoning": "apply_prompt_context_to_session normalizes repo_instruction_messages from the provided argument and writes the result back to runtime.repo_instruction_messages. apply_agent_definition_to_session calls it with repo_instruction_messages=None whenever the agent definition has any prompt context, so installing or updating an agent definition on an active session drops previously applied repository instruction messages. That can remove AGENTS.md/project guidance from the prompt even though changing an agent definition should layer agent-specific context rather than erase unrelated repo context. Confidence is medium because the manager call sites are not shown, but the included code clearly performs the clear.",
+  "reproduction": null,
+  "recommendation": "When applying an agent definition, preserve the session's existing runtime.repo_instruction_messages unless the agent definition explicitly supplies replacement repo instructions. Pass getattr(runtime, 'repo_instruction_messages', None) through instead of None, or make replacement semantics explicit with a separate field.",
+  "whyTestsDoNotAlreadyCoverThis": "The included config-service tests only cover applying a frontend operating system and building config overrides; they do not set existing repo_instruction_messages and then apply an agent definition.",
+  "suggestedRegressionTest": "Create a dummy session with runtime.repo_instruction_messages populated, apply an agent definition with a workspace_path or system_prompt_override, and assert the existing repo instruction messages remain on both runtime and prompt_builder.",
+  "minimumFixScope": "backend/src/agent/session/session_config_service.py plus a focused test in tests/backend/test_session_config_service.py",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-183ac495f2_ba5682754d",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:04:41.767Z",
+  "updatedAt": "2026-05-24T21:04:41.767Z"
+}

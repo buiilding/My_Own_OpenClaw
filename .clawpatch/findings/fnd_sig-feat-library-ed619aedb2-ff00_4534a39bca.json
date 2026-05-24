@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-ed619aedb2-ff00_4534a39bca",
+  "featureId": "feat_library_ed619aedb2",
+  "title": "Stream usage can return stale data after a stream with no usage payload",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/llm/providers/base.py",
+      "startLine": 230,
+      "endLine": 247,
+      "symbol": "LLMProvider.get_completion_stream",
+      "quote": null
+    },
+    {
+      "path": "backend/src/llm/providers/base.py",
+      "startLine": 249,
+      "endLine": 259,
+      "symbol": "LLMProvider.clear_last_stream_usage",
+      "quote": null
+    },
+    {
+      "path": "backend/src/llm/providers/base.py",
+      "startLine": 299,
+      "endLine": 317,
+      "symbol": "LLMProvider._record_stream_usage_from_chunk",
+      "quote": null
+    }
+  ],
+  "reasoning": "The provider stores stream usage on the instance, but get_completion_stream does not clear the previous values before starting a new stream. _record_stream_usage_from_chunk only updates _last_stream_usage when a later chunk contains usage, and get_last_stream_usage returns the stored value. If a previous stream captured usage and the next stream fails early or completes without provider usage metadata, callers can read the earlier request's token/cache usage as if it belonged to the latest stream.",
+  "reproduction": "Run two streaming requests through the same provider instance: first with a response that includes usage, then a second that emits no usage chunks or errors before a usage chunk. After consuming the second stream, call get_last_stream_usage(); it can still return the first stream's payload.",
+  "recommendation": "Clear _last_stream_usage, _last_usage, and _last_stream_response_payload at the start of each streaming request, or make the usage payload request-scoped and returned through the stream/result path instead of provider instance state.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for this feature, and this requires a sequential two-request regression where the second stream lacks usage metadata.",
+  "suggestedRegressionTest": "Add a provider test with a fake _stream_internal that records usage on the first stream and emits no usage on the second, then assert get_last_stream_usage() is None after the second stream completes.",
+  "minimumFixScope": "Update get_completion_stream to reset stream-scoped state before iterating _stream_internal, plus add a focused provider base regression test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-ed619aedb2_ff0015c589",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:19:22.448Z",
+  "updatedAt": "2026-05-24T21:19:22.448Z"
+}

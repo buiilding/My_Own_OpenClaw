@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-b826096e8e-52fd_d1f9a44942",
+  "featureId": "feat_library_b826096e8e",
+  "title": "Drag-destination-only tools are forced through source-coordinate validation",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/agent/tools/preparation/helpers/preparation_helper.py",
+      "startLine": 71,
+      "endLine": 94,
+      "symbol": "resolve_tool_with_coordinates",
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/tools/preparation/helpers/grounded_source_preparation.py",
+      "startLine": 207,
+      "endLine": 227,
+      "symbol": "resolve_grounded_source_coordinates",
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/tools/preparation/helpers/mouse_drag_destination_preparation.py",
+      "startLine": 102,
+      "endLine": 128,
+      "symbol": "resolve_mouse_drag_destination_coordinates",
+      "quote": null
+    }
+  ],
+  "reasoning": "The facade always calls source-coordinate preparation before drag-destination preparation. The source helper does not first check whether the tool actually supports source grounding; non-OCR/PREDICTION calls fall into the manual branch and require top-level x/y. A tool that only needs drag destination grounding, or a drag call whose source is already executable but whose destination needs resolution, can fail with 'Manual coordinates require numeric x and y values' before the destination helper gets a chance to resolve drag_to_* coordinates. The separate supports_drag_destination_grounding gate in the destination helper indicates destination grounding is an independent capability, but the call order makes it dependent on source-coordinate validity.",
+  "reproduction": null,
+  "recommendation": "Gate resolve_grounded_source_coordinates behind supports_source_grounding or tool_call_has_manual/source-resolution need, then run drag-destination resolution independently when supports_drag_destination_grounding applies.",
+  "whyTestsDoNotAlreadyCoverThis": "The included coordinate-resolution tests cover OCR/PREDICTION source paths only and do not exercise resolve_tool_with_coordinates with a drag-destination grounding case that lacks valid top-level x/y.",
+  "suggestedRegressionTest": "Add a backend test for resolve_tool_with_coordinates where a drag action has drag_to_find_coordinates_by requiring OCR/PREDICTION and no top-level x/y; assert destination coordinates are resolved without the source helper raising.",
+  "minimumFixScope": "preparation_helper.py and/or grounded_source_preparation.py, plus a focused backend regression test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-b826096e8e_52fdc593eb",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:16:10.064Z",
+  "updatedAt": "2026-05-24T21:16:10.064Z"
+}

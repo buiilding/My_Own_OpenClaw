@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-2fdb111c39-5b4c_5b9c2f7f5e",
+  "featureId": "feat_library_2fdb111c39",
+  "title": "Cache cannot reliably cache None results",
+  "category": "api-contract",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "backend/src/core/infrastructure/cache_store.py",
+      "startLine": 51,
+      "endLine": 75,
+      "symbol": "Cache.get",
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/infrastructure/cache_store.py",
+      "startLine": 86,
+      "endLine": 106,
+      "symbol": "Cache.set",
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/infrastructure/cache_store.py",
+      "startLine": 171,
+      "endLine": 189,
+      "symbol": "Cache.get_or_compute",
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/infrastructure/cache_store.py",
+      "startLine": 208,
+      "endLine": 226,
+      "symbol": "Cache.get_or_compute_async",
+      "quote": null
+    }
+  ],
+  "reasoning": "Cache.set accepts Any values, but Cache.get returns None both for misses and for stored None values. The get_or_compute methods treat value is not None as the only cache-hit condition, so a compute function that legitimately returns None is recomputed on every call even though the cache contains an unexpired entry. This breaks the generic cache contract for a valid Python value and can create repeated expensive calls or repeated side effects.",
+  "reproduction": "Call cache.get_or_compute('k', lambda: None) twice. The second call enters the miss path again because get('k') returns None for the cached value.",
+  "recommendation": "Separate miss detection from value retrieval with a sentinel or internal lookup method that returns entry presence independently of entry.value. Preserve public get behavior only if callers depend on None-as-miss, but make get_or_compute use the unambiguous internal path.",
+  "whyTestsDoNotAlreadyCoverThis": "The included CacheManager tests only cache string values and assert misses return None; they do not cover storing None or compute functions that return None.",
+  "suggestedRegressionTest": "Add sync and async get_or_compute tests where compute_func returns None and assert the function is invoked once while subsequent calls return None from the cached entry.",
+  "minimumFixScope": "backend/src/core/infrastructure/cache_store.py and focused cache_store tests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-2fdb111c39_5b4c99e7e9",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:06:59.790Z",
+  "updatedAt": "2026-05-24T21:06:59.790Z"
+}

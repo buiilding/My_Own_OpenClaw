@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_333730a5a5",
+  "title": "Python source backend/src/api/routes/sdk",
+  "summary": "Python source group backend/src/api/routes/sdk with 4 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/api/routes/sdk",
+      "symbol": "backend/src/api/routes/sdk",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/api/routes/sdk/__init__.py",
+      "reason": "source group backend/src/api/routes/sdk"
+    },
+    {
+      "path": "backend/src/api/routes/sdk/models.py",
+      "reason": "source group backend/src/api/routes/sdk"
+    },
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "reason": "source group backend/src/api/routes/sdk"
+    },
+    {
+      "path": "backend/src/api/routes/sdk/service.py",
+      "reason": "source group backend/src/api/routes/sdk"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-333730a5a5-fe91_9f5040ed6d",
+    "fnd_sig-feat-library-333730a5a5-7471_56c314b458"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=71149 bytes; approxTokens=17788; includedFiles=4; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:06:57.704Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:06:57.704Z"
+}

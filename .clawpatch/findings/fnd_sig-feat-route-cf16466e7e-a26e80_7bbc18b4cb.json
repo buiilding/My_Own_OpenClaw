@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-cf16466e7e-a26e80_7bbc18b4cb",
+  "featureId": "feat_route_cf16466e7e",
+  "title": "POST /embed accepts unbounded text size",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "backend/src/embeddings/service_app.py",
+      "startLine": 30,
+      "endLine": 34,
+      "symbol": "EmbedRequest",
+      "quote": null
+    },
+    {
+      "path": "backend/src/embeddings/service_app.py",
+      "startLine": 86,
+      "endLine": 99,
+      "symbol": "embed",
+      "quote": null
+    }
+  ],
+  "reasoning": "The request model caps the number of texts at 256 but does not cap the length of each string. The route sends all provided text directly into the embedding provider, so a network caller can submit very large strings that drive excessive memory, tokenization, CPU/GPU work, and response latency before any provider-level limit is visible in this handler.",
+  "reproduction": null,
+  "recommendation": "Add a per-text maximum length and, if appropriate for the embedding model, a total request character or token budget before calling the provider. Return a deterministic 4xx validation error when the request exceeds the limit.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were provided for this feature, and the excerpt shows no route-level validation beyond list length.",
+  "suggestedRegressionTest": "Add FastAPI route tests asserting that an overlong text and an over-budget batch are rejected before provider.embed_batch is called, while a normal batch still succeeds.",
+  "minimumFixScope": "Update EmbedRequest validation in backend/src/embeddings/service_app.py and add focused route tests for accepted and rejected payload sizes.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-cf16466e7e_a26e80c974",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:22:48.378Z",
+  "updatedAt": "2026-05-24T21:22:48.378Z"
+}

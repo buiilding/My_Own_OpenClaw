@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-d54d1d86b6-660c_b21299f390",
+  "featureId": "feat_library_d54d1d86b6",
+  "title": "Registration route returns an unhandled 500 if the auth service is miswired",
+  "category": "bug",
+  "severity": "low",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "backend/src/api/auth/router.py",
+      "startLine": 34,
+      "endLine": 39,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/auth/http_middleware.py",
+      "startLine": 42,
+      "endLine": 48,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The middleware validates that app.state.install_auth_service is an InstallAuthService before using it, but the registration route only checks for None. If the app state contains the wrong object, register_install will raise AttributeError instead of returning the same controlled 503 error used by authenticated requests. This makes startup/configuration mistakes leak as generic internal errors on a public endpoint.",
+  "reproduction": null,
+  "recommendation": "Mirror the middleware guard in register_install by checking isinstance(install_auth_service, InstallAuthService) before calling register_install, and return the existing 503 detail when the service is missing or invalid.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were provided, and the mismatch is visible only by comparing the router guard with the middleware guard.",
+  "suggestedRegressionTest": "Add a router test where app.state.install_auth_service is an arbitrary object and assert POST /api/install/register returns 503 rather than a 500.",
+  "minimumFixScope": "backend/src/api/auth/router.py.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-d54d1d86b6_660cf80a8d",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:18:08.726Z",
+  "updatedAt": "2026-05-24T21:18:08.726Z"
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-dc1ce97fb6-2bea74_3a2401dd24",
+  "featureId": "feat_route_dc1ce97fb6",
+  "title": "No regression coverage is linked for OCR overlay request branching",
+  "category": "test-gap",
+  "severity": "low",
+  "confidence": "high",
+  "triage": "test-gap",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 268,
+      "endLine": 293,
+      "symbol": "sdk_ocr_overlay",
+      "quote": null
+    }
+  ],
+  "reasoning": "The route has three behavior branches: candidate_id lookup with a 404 on missing candidates, text ranking filtered by threshold and max_results, and default max_results overlay rendering. The feature metadata lists no tests, so regressions in branch selection, empty-match behavior, threshold filtering, or show_labels propagation would not be caught by the included evidence.",
+  "reproduction": null,
+  "recommendation": "Add focused API or handler-level tests that mock OCR results and overlay rendering for candidate_id, text, and default requests, including the missing-candidate 404 path.",
+  "whyTestsDoNotAlreadyCoverThis": "The feature explicitly includes an empty tests list, and no test excerpts were provided as evidence of intended route behavior.",
+  "suggestedRegressionTest": "Mock run_ocr and render_ocr_overlay_response, then assert POST /api/sdk/ocr/overlay filters by candidate_id, applies text threshold/max_results, returns 404 for an unknown candidate, and forwards show_labels to the renderer.",
+  "minimumFixScope": "Focused tests for sdk_ocr_overlay branch behavior; no production code change is required unless tests expose a contract mismatch.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-dc1ce97fb6_2bea74fceb",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:22:53.625Z",
+  "updatedAt": "2026-05-24T21:22:53.625Z"
+}

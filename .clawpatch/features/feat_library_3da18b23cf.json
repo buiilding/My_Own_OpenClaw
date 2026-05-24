@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_3da18b23cf",
+  "title": "Node source frontend/src/renderer/features/chat/utils/messageSender",
+  "summary": "Node/TypeScript source group frontend/src/renderer/features/chat/utils/messageSender with 5 files.",
+  "kind": "library",
+  "source": "node-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "frontend/package.json",
+      "symbol": "frontend/src/renderer/features/chat/utils/messageSender",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "frontend/src/renderer/features/chat/utils/messageSender/chatMessageSenderPayloads.ts",
+      "reason": "source group frontend/src/renderer/features/chat/utils/messageSender"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/utils/messageSender/chatMessageSenderUtils.ts",
+      "reason": "source group frontend/src/renderer/features/chat/utils/messageSender"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/utils/messageSender/queryScreenshotPipeline.ts",
+      "reason": "source group frontend/src/renderer/features/chat/utils/messageSender"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/utils/messageSender/readableFileAttachmentContext.ts",
+      "reason": "source group frontend/src/renderer/features/chat/utils/messageSender"
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/utils/messageSender/userTranscriptPersistence.ts",
+      "reason": "source group frontend/src/renderer/features/chat/utils/messageSender"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "frontend/package.json",
+      "reason": "package manifest"
+    }
+  ],
+  "tests": [],
+  "tags": [
+    "node",
+    "typescript",
+    "source-group",
+    "project:windieos",
+    "project-root:frontend"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-3da18b23cf-428a_0a26cfd4da"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=24208 bytes; approxTokens=6052; includedFiles=6; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:07:50.985Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:07:50.985Z"
+}

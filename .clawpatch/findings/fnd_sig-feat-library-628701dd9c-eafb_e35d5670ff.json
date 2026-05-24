@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-628701dd9c-eafb_e35d5670ff",
+  "featureId": "feat_library_628701dd9c",
+  "title": "Runtime config updates leave DI config consumers on the old AppConfig",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/core/container/core_container.py",
+      "startLine": 41,
+      "endLine": 54,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/container/config_updater.py",
+      "startLine": 47,
+      "endLine": 84,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/container/facade.py",
+      "startLine": 71,
+      "endLine": 74,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/container/tool_container.py",
+      "startLine": 59,
+      "endLine": 67,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "CoreContainer.config is a singleton loaded once and used by factory providers such as llm_client and by the ToolContainer config dependency. update_config updates ConfigService/ConfigManager and manually refreshes selected facade references, but it does not reset or override the DI config provider. As a result, later calls through DI-backed factories can still receive the startup AppConfig even after Container.update_config succeeds; llm_client is one direct example because the facade property always calls _di_container.llm_client(), whose cfg argument is still core.config. New ToolResultOrchestrator instances can have the same stale-config problem through ToolContainer.config.",
+  "reproduction": null,
+  "recommendation": "When applying updated_config, reset or override the core.config provider to providers.Object(updated_config), then invalidate or reset dependent config-scoped providers that should be recreated. Keep the existing manual refresh_runtime_config calls only for already-instantiated objects that cannot be refreshed through DI reset.",
+  "whyTestsDoNotAlreadyCoverThis": "The included tests only cover incoming route validation and handler binding. They never instantiate Container, call update_config, or assert that DI-backed factories observe the updated AppConfig.",
+  "suggestedRegressionTest": "Add a backend container test that constructs Container with an initial ConfigManager, calls update_config with a distinguishable AppConfig value, and asserts that container.config, container.llm_client creation, and a newly created tool_orchestrator receive the updated config rather than the startup config.",
+  "minimumFixScope": "ContainerConfigUpdater.update_config and any directly dependent provider reset/invalidation needed for config consumers.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-628701dd9c_eafb9a54dc",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:10:24.283Z",
+  "updatedAt": "2026-05-24T21:10:24.283Z"
+}

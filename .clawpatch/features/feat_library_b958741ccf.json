@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_b958741ccf",
+  "title": "Node source packages/windie-sdk-js/src/conversation",
+  "summary": "Node/TypeScript source group packages/windie-sdk-js/src/conversation with 3 files.",
+  "kind": "library",
+  "source": "node-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "packages/windie-sdk-js/package.json",
+      "symbol": "packages/windie-sdk-js/src/conversation",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "packages/windie-sdk-js/src/conversation/events.ts",
+      "reason": "source group packages/windie-sdk-js/src/conversation"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/conversation/metadata.ts",
+      "reason": "source group packages/windie-sdk-js/src/conversation"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/conversation/types.ts",
+      "reason": "source group packages/windie-sdk-js/src/conversation"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "packages/windie-sdk-js/package.json",
+      "reason": "package manifest"
+    }
+  ],
+  "tests": [],
+  "tags": [
+    "node",
+    "typescript",
+    "source-group",
+    "project:@windie/sdk",
+    "project-root:packages/windie-sdk-js"
+  ],
+  "trustBoundaries": [],
+  "status": "reviewed",
+  "lock": null,
+  "findingIds": [],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "0 finding(s); prompt=19417 bytes; approxTokens=4855; includedFiles=4; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:16:10.935Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:16:10.935Z"
+}

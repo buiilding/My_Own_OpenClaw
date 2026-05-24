@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-486a6ec0f4-c39696_c30622d862",
+  "featureId": "feat_route_486a6ec0f4",
+  "title": "Returned artifact URL is built from the incoming request base URL",
+  "category": "security",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/artifacts/router.py",
+      "startLine": 36,
+      "endLine": 43,
+      "symbol": "upload_artifact",
+      "quote": null
+    }
+  ],
+  "reasoning": "The upload response constructs the artifact URL directly from request.base_url. In common ASGI deployments, that value can depend on Host or forwarded headers unless separately constrained by trusted-host/proxy middleware. A malicious or misconfigured inbound host can therefore cause the API to return an attacker-chosen absolute artifact URL, which is risky if clients persist, display, or later fetch the returned URL as authoritative.",
+  "reproduction": "POST /api/artifacts/ with a forged Host header in a deployment that does not enforce trusted hosts; the response url field will use that host.",
+  "recommendation": "Build artifact URLs from a configured public base URL, or return a relative path such as /api/artifacts/{artifact_id}. If request-derived hosts are required, ensure trusted host/proxy middleware is enforced and add a test for the expected base URL behavior.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for response URL construction, and the handler has no local guard showing the request host has been validated.",
+  "suggestedRegressionTest": "Add a route test that sends a forged Host header and asserts the returned url uses the configured public base URL or remains relative.",
+  "minimumFixScope": "backend/src/api/routes/artifacts/router.py and configuration/test coverage for artifact URL generation.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-486a6ec0f4_c396965569",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:21:31.147Z",
+  "updatedAt": "2026-05-24T21:21:31.147Z"
+}

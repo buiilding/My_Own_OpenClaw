@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_ccb2a465dd",
+  "title": "Node source packages/windie-sdk-js/src/projections",
+  "summary": "Node/TypeScript source file packages/windie-sdk-js/src/projections/conversationProjections.ts.",
+  "kind": "library",
+  "source": "node-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "packages/windie-sdk-js/package.json",
+      "symbol": "packages/windie-sdk-js/src/projections",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "packages/windie-sdk-js/src/projections/conversationProjections.ts",
+      "reason": "source group packages/windie-sdk-js/src/projections"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "packages/windie-sdk-js/package.json",
+      "reason": "package manifest"
+    }
+  ],
+  "tests": [],
+  "tags": [
+    "node",
+    "typescript",
+    "source-group",
+    "project:@windie/sdk",
+    "project-root:packages/windie-sdk-js"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-ccb2a465dd-4355_02af08ca5f"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=22824 bytes; approxTokens=5706; includedFiles=2; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:17:27.291Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:17:27.291Z"
+}

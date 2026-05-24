@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-service-da2cdbf6a3-79f6_ad2e6d88c5",
+  "featureId": "feat_service_da2cdbf6a3",
+  "title": "Concurrent file-store appends can overwrite each other",
+  "category": "data-loss",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "packages/windie-sdk-js/src/stores/FileConversationStore.ts",
+      "startLine": 154,
+      "endLine": 173,
+      "symbol": "FileConversationStore.appendEvents",
+      "quote": null
+    },
+    {
+      "path": "packages/windie-sdk-js/src/stores/FileConversationStore.ts",
+      "startLine": 312,
+      "endLine": 318,
+      "symbol": "FileConversationStore.writeConversation",
+      "quote": null
+    }
+  ],
+  "reasoning": "FileConversationStore.appendEvents performs an unlocked read-modify-write per conversation. Two overlapping appendEvents calls for the same conversation can both read the same stored event list, merge their own unique events, and then each rename a complete JSON file over the target. The later rename wins and silently drops the other append, even though the temporary-file rename only makes each individual write atomic.",
+  "reproduction": "Start with an empty file-backed conversation, issue two appendEvent calls for the same conversationRef concurrently with different eventIds, and observe that the final JSON can contain only one of the two events depending on write ordering.",
+  "recommendation": "Serialize writes per conversationRef in FileConversationStore, or add an optimistic revision check/retry loop that rereads and remerges if the target changed between read and rename.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were provided for this feature, and the included code has no evidence of a concurrency test around overlapping file-backed appends.",
+  "suggestedRegressionTest": "Add a FileConversationStore test using a controllable fs mock that pauses both appendEvent calls after readConversation, then releases writes in reverse order and asserts both unique events are retained.",
+  "minimumFixScope": "FileConversationStore append/write path for same-conversation writes.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-service-da2cdbf6a3_79f6454a78",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:23:23.614Z",
+  "updatedAt": "2026-05-24T21:23:23.614Z"
+}

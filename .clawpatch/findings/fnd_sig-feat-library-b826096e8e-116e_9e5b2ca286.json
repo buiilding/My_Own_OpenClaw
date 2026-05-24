@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-b826096e8e-116e_9e5b2ca286",
+  "featureId": "feat_library_b826096e8e",
+  "title": "Manual drag-destination normalization can be skipped for destination-only tools",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/agent/tools/preparation/helpers/preparation_helper.py",
+      "startLine": 97,
+      "endLine": 120,
+      "symbol": "normalize_manual_coordinates",
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/tools/preparation/helpers/mouse_drag_destination_preparation.py",
+      "startLine": 163,
+      "endLine": 199,
+      "symbol": "normalize_manual_drag_destination_coordinates",
+      "quote": null
+    }
+  ],
+  "reasoning": "normalize_manual_coordinates returns immediately when the resolved tool does not support source grounding, so it never reaches normalize_manual_drag_destination_coordinates. Because drag destination grounding is checked by supports_drag_destination_grounding in its own helper, a destination-grounded tool that does not also support source grounding will leave drag_to_x/drag_to_y in screenshot space and omit drag_destination_coordinate_contract metadata.",
+  "reproduction": null,
+  "recommendation": "Do not make manual drag-destination normalization depend on supports_source_grounding. Normalize the source coordinates only when source grounding is supported, then independently normalize drag destination coordinates when drag destination grounding is supported.",
+  "whyTestsDoNotAlreadyCoverThis": "The included tests cover coordinate contracts, image dimension parsing, and resolve_coordinates service selection; none cover normalize_manual_coordinates or drag destination normalization.",
+  "suggestedRegressionTest": "Add a backend test for normalize_manual_coordinates with a resolved drag tool that supports drag destination grounding but not source grounding, asserting drag_to_x/drag_to_y are normalized and metadata is attached.",
+  "minimumFixScope": "preparation_helper.py plus a focused manual drag-destination regression test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-b826096e8e_116eee3091",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:16:10.064Z",
+  "updatedAt": "2026-05-24T21:16:10.064Z"
+}

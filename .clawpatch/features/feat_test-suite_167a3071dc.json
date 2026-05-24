@@ -1,0 +1,189 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_test-suite_167a3071dc",
+  "title": "Python test suite tests/backend#5",
+  "summary": "Python pytest files in tests/backend#5.",
+  "kind": "test-suite",
+  "source": "python-test-suite",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "tests/backend#5",
+      "symbol": "tests/backend#5",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "tests/backend/test_formatters.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_gemini_provider.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_handler_context.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_history_compaction_engine.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_image_dimensions.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_incoming_routing.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_incoming_tool_result_schemas.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_inference_factory_selection.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_inference_routers.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_install_auth.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_interaction_loop.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_interaction_loop_compaction.py",
+      "reason": "pytest file"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_formatters.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_gemini_provider.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_handler_context.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_history_compaction_engine.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_image_dimensions.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_incoming_routing.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_incoming_tool_result_schemas.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_inference_factory_selection.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_inference_routers.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_install_auth.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_interaction_loop.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_interaction_loop_compaction.py",
+      "reason": "nearby test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_formatters.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_gemini_provider.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_handler_context.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_history_compaction_engine.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_image_dimensions.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_incoming_routing.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_incoming_tool_result_schemas.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_inference_factory_selection.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_inference_routers.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_install_auth.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_interaction_loop.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_interaction_loop_compaction.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "test"
+  ],
+  "trustBoundaries": [],
+  "status": "reviewed",
+  "lock": null,
+  "findingIds": [],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "0 finding(s); prompt=132936 bytes; approxTokens=33234; includedFiles=12; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:23:37.413Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:23:37.413Z"
+}

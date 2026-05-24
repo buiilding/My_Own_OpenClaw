@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-6f5dd222fa-fe10_5139c79c56",
+  "featureId": "feat_library_6f5dd222fa",
+  "title": "Memory edits and additions are only applied to local React state",
+  "category": "data-loss",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/features/dashboard/components/sections/MemorySection.jsx",
+      "startLine": 142,
+      "endLine": 158,
+      "symbol": "handleSaveEdit",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/dashboard/components/sections/MemorySection.jsx",
+      "startLine": 160,
+      "endLine": 174,
+      "symbol": "handleAdd",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/dashboard/components/sections/MemorySection.jsx",
+      "startLine": 52,
+      "endLine": 85,
+      "symbol": "loadMemories",
+      "quote": null
+    }
+  ],
+  "reasoning": "The memory panel loads episodic and semantic memories from IPC-backed stores, and deletion calls the backend IPC delete channel before mutating UI state. In contrast, save edit only rewrites the in-memory array and add only prepends a local draft with backendMemoryId null. Users can edit or add memories successfully in the UI, but those changes are not persisted and will disappear after reload or when the panel reloads memories. This is especially risky for semantic memory because the section presents these as first-class long-term memory entries.",
+  "reproduction": "Open Memory, edit an existing semantic memory or add a new semantic memory, close/reopen the panel or trigger loadMemories again; the change is lost because no create/update IPC call was made.",
+  "recommendation": "Persist add/edit operations through the same owning memory service boundary used by load/delete, or disable/hide editing and adding for backend-backed memory types until create/update APIs exist. If edits remain local-only, label them explicitly and avoid presenting them as saved memory.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for MemorySection add/edit persistence, and the implementation has no assertions around create/update IPC calls or reload behavior.",
+  "suggestedRegressionTest": "Add a MemorySection test that edits a semantic memory, verifies the expected update IPC channel is invoked with userId and memory id/content, then reloads mocked memories and confirms the edited content remains visible.",
+  "minimumFixScope": "MemorySection add/edit handlers plus the corresponding IPC contract/tests for semantic and episodic memory persistence.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-6f5dd222fa_fe10565c21",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:11:03.213Z",
+  "updatedAt": "2026-05-24T21:11:03.213Z"
+}

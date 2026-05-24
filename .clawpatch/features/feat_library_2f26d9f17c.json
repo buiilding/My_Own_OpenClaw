@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_2f26d9f17c",
+  "title": "Python source backend/src/tools/:provider",
+  "summary": "Python source group backend/src/tools/:provider with 2 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/tools/:provider",
+      "symbol": "backend/src/tools/:provider",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/tools/provider_health.py",
+      "reason": "source group backend/src/tools/:provider"
+    },
+    {
+      "path": "backend/src/tools/provider_projection.py",
+      "reason": "source group backend/src/tools/:provider"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-2f26d9f17c-5b59_24c52d763b",
+    "fnd_sig-feat-library-2f26d9f17c-0f96_7ab4f71656"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=7575 bytes; approxTokens=1894; includedFiles=2; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:06:46.028Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:06:46.028Z"
+}

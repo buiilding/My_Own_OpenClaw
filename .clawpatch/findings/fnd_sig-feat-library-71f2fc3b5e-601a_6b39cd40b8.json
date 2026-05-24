@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-71f2fc3b5e-601a_6b39cd40b8",
+  "featureId": "feat_library_71f2fc3b5e",
+  "title": "Malformed audio chunks are skipped with synchronous recursion",
+  "category": "bug",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/infrastructure/audio/PlayerService.ts",
+      "startLine": 76,
+      "endLine": 115,
+      "symbol": "PlayerService.playNext",
+      "quote": null
+    }
+  ],
+  "reasoning": "When decoding or buffer creation fails, the catch handler calls playNext() directly. If the queue contains many malformed chunks, each failure recurses synchronously before the stack unwinds because atob/createBuffer errors happen before source.start schedules any async boundary. A burst of bad chunks can therefore overflow the call stack and leave playback state inconsistent instead of draining safely.",
+  "reproduction": "Enqueue a large number of chunks with invalid base64 or invalid PCM byte length while playback is idle; each failed chunk enters the catch path and calls playNext() synchronously until the stack limit is hit.",
+  "recommendation": "Schedule the next skip on a microtask or loop through failed chunks iteratively, and ensure isPlaying/activeSource are reset if draining aborts unexpectedly.",
+  "whyTestsDoNotAlreadyCoverThis": "No tests are included for PlayerService error-drain behavior, and the package test scripts only show a Jest harness without linked coverage for this service.",
+  "suggestedRegressionTest": "Add a Jest test that mocks window.atob to throw for many queued chunks and verifies enqueueAudio drains without throwing RangeError/stack overflow and ends with getIsPlaying() false.",
+  "minimumFixScope": "Change the catch path in PlayerService.playNext so failed chunks advance asynchronously or via an iterative drain, then add focused PlayerService tests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-71f2fc3b5e_601a5b5ba9",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:11:19.895Z",
+  "updatedAt": "2026-05-24T21:11:19.895Z"
+}

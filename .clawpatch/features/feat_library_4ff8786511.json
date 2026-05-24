@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_4ff8786511",
+  "title": "Node source packages/windie-sdk-js/src/transport",
+  "summary": "Node/TypeScript source group packages/windie-sdk-js/src/transport with 7 files.",
+  "kind": "library",
+  "source": "node-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "packages/windie-sdk-js/package.json",
+      "symbol": "packages/windie-sdk-js/src/transport",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "packages/windie-sdk-js/src/transport/BackendSocketFactory.cjs",
+      "reason": "source group packages/windie-sdk-js/src/transport"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/transport/BackendSocketFactory.ts",
+      "reason": "source group packages/windie-sdk-js/src/transport"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/transport/HostedBackendHttpClient.ts",
+      "reason": "source group packages/windie-sdk-js/src/transport"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/transport/ManagedBackendSession.cjs",
+      "reason": "source group packages/windie-sdk-js/src/transport"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/transport/ManagedBackendSession.ts",
+      "reason": "source group packages/windie-sdk-js/src/transport"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/transport/WindieAgentSession.ts",
+      "reason": "source group packages/windie-sdk-js/src/transport"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/transport/backendEventNormalizer.ts",
+      "reason": "source group packages/windie-sdk-js/src/transport"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "packages/windie-sdk-js/package.json",
+      "reason": "package manifest"
+    }
+  ],
+  "tests": [],
+  "tags": [
+    "node",
+    "typescript",
+    "source-group",
+    "project:@windie/sdk",
+    "project-root:packages/windie-sdk-js"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-4ff8786511-f9ef_d7171cc541",
+    "fnd_sig-feat-library-4ff8786511-8ed6_3954173e8f"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=87692 bytes; approxTokens=21923; includedFiles=8; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:08:58.693Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:08:58.693Z"
+}

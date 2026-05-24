@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-2f26d9f17c-5b59_24c52d763b",
+  "featureId": "feat_library_2f26d9f17c",
+  "title": "Ready-check helpers treat callable readiness APIs as unavailable",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "backend/src/tools/provider_health.py",
+      "startLine": 19,
+      "endLine": 21,
+      "symbol": "_ocr_unavailable",
+      "quote": null
+    },
+    {
+      "path": "backend/src/tools/provider_health.py",
+      "startLine": 27,
+      "endLine": 29,
+      "symbol": "_vision_unavailable",
+      "quote": null
+    }
+  ],
+  "reasoning": "The helpers compare router readiness attributes directly to True. If a router exposes is_ready or is_initialized as a method, which is a common readiness API shape, getattr returns the bound method object rather than the method result, so the capability is marked unavailable even when the provider is actually ready. That can wrongly remove OCR or vision capability from prompt policy before construction.",
+  "reproduction": null,
+  "recommendation": "Handle both boolean properties and zero-argument readiness methods explicitly, and treat exceptions from readiness calls as unavailable with a logged/debuggable reason if appropriate.",
+  "whyTestsDoNotAlreadyCoverThis": "No tests were included for this feature, and there is no evidence of coverage for routers that expose readiness as methods instead of boolean attributes.",
+  "suggestedRegressionTest": "Add tests for resolve_unavailable_agent_capabilities using OCR and vision router doubles where is_ready/is_initialized are callable methods returning True and False, plus existing boolean-property cases.",
+  "minimumFixScope": "Update the local readiness helpers in backend/src/tools/provider_health.py and add focused provider-health tests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-2f26d9f17c_5b59fcc2ed",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:06:46.026Z",
+  "updatedAt": "2026-05-24T21:06:46.026Z"
+}

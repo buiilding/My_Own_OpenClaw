@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-134248e4a1-1037_f7623ff206",
+  "featureId": "feat_library_134248e4a1",
+  "title": "Grounded computer remote tools are defined but omitted from exports and model mapping",
+  "category": "api-contract",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "backend/src/tools/remote_tools/computer.py",
+      "startLine": 138,
+      "endLine": 177,
+      "symbol": "RemoteGroundedMouseTool, RemoteGroundedScrollTool",
+      "quote": null
+    },
+    {
+      "path": "backend/src/tools/remote_tools/computer.py",
+      "startLine": 179,
+      "endLine": 186,
+      "symbol": "_COMPUTER_USE_MODEL_BY_TOOL",
+      "quote": null
+    },
+    {
+      "path": "backend/src/tools/remote_tools/__init__.py",
+      "startLine": 5,
+      "endLine": 13,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "backend/src/tools/remote_tools/__init__.py",
+      "startLine": 33,
+      "endLine": 53,
+      "symbol": "__all__",
+      "quote": null
+    }
+  ],
+  "reasoning": "RemoteGroundedMouseTool and RemoteGroundedScrollTool are concrete remote tool classes, but the package initializer imports and exports only the older computer tool classes, and the local computer-use model map also omits the grounded tool names. Consumers that discover remote tools through the package exports or the computer-use mapping will not see these grounded tools even though the classes exist, which can cause schema/catalog drift between backend prompt/tool exposure and frontend executable capabilities.",
+  "reproduction": null,
+  "recommendation": "Either wire the grounded remote tools into the same export and model-mapping paths as the other computer tools, or remove the dead classes if grounded actions are intentionally unsupported through this remote_tools surface.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked catalog or export parity tests are included, and the omission is visible only by comparing the class definitions with the export and mapping lists.",
+  "suggestedRegressionTest": "Add a remote tool catalog parity test that asserts every concrete RemoteToolBase computer class intended for use is discoverable through the package/catalog path and any computer-use model mapping.",
+  "minimumFixScope": "backend/src/tools/remote_tools/__init__.py, backend/src/tools/remote_tools/computer.py, and a focused catalog/export parity test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-134248e4a1_10373993c4",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:04:24.901Z",
+  "updatedAt": "2026-05-24T21:04:24.901Z"
+}

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-0d5e259db8-5743_345431a213",
+  "featureId": "feat_library_0d5e259db8",
+  "title": "TTL cleanup drops unresolved futures without completing waiters",
+  "category": "concurrency",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "backend/src/agent/tools/waiting/storage/result_storage.py",
+      "startLine": 160,
+      "endLine": 176,
+      "symbol": "ToolResultStorage.remove_result_future",
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/tools/waiting/storage/result_storage.py",
+      "startLine": 268,
+      "endLine": 284,
+      "symbol": "ToolResultStorage.remove_bundle_future",
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/tools/waiting/storage/result_storage.py",
+      "startLine": 286,
+      "endLine": 325,
+      "symbol": "ToolResultStorage.cleanup_old_results",
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/tools/waiting/storage/result_storage.py",
+      "startLine": 346,
+      "endLine": 354,
+      "symbol": "ToolResultStorage.clear_all",
+      "quote": null
+    }
+  ],
+  "reasoning": "cleanup_old_results and clear_all remove stored asyncio.Future objects while leaving the Future instances pending. Any coroutine that already received and is awaiting one of those futures will never be resumed with a result, cancellation, or timeout signal from this storage layer. That turns cleanup/session shutdown into a possible permanent wait rather than a bounded failure path.",
+  "reproduction": "Create a result future with create_result_future('r1'), let its timestamp expire, call cleanup_old_results(0), then await the previously returned future; it remains pending because remove_result_future only pops it from the dict and never cancels or sets an exception.",
+  "recommendation": "Before removing futures during TTL cleanup, request-specific cleanup, or clear_all, complete them deterministically, preferably by setting a timeout/cleanup exception or cancelling them if that is the established caller contract. Apply the same behavior to bundle futures.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for cleanup_old_results, clear_all, or waiter behavior after cleanup.",
+  "suggestedRegressionTest": "Add an async storage test that creates individual and bundle futures, runs cleanup_old_results or clear_all, and asserts the returned Future objects are done with the expected cancellation/exception instead of remaining pending.",
+  "minimumFixScope": "Update ToolResultStorage future removal/cleanup paths and add focused async tests for individual and bundle futures.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-0d5e259db8_5743ec3e75",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:04:12.570Z",
+  "updatedAt": "2026-05-24T21:04:12.570Z"
+}

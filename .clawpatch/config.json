@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "stateDir": ".clawpatch",
+  "include": [
+    "**/*"
+  ],
+  "exclude": [
+    "node_modules/**",
+    "**/node_modules/**",
+    "dist/**",
+    "**/dist/**",
+    "build/**",
+    "**/build/**",
+    "target/**",
+    "**/target/**",
+    ".build/**",
+    "**/.build/**",
+    ".git/**",
+    ".clawpatch/**",
+    ".pytest_cache/**",
+    "**/.pytest_cache/**",
+    "**/__pycache__/**",
+    "**/.mypy_cache/**",
+    "**/.ruff_cache/**",
+    "**/.next/**",
+    "**/.vite/**",
+    "**/coverage/**",
+    "frontend/python-runtime/**"
+  ],
+  "provider": {
+    "name": "codex",
+    "model": null,
+    "reasoningEffort": null
+  },
+  "commands": {
+    "typecheck": null,
+    "lint": null,
+    "format": null,
+    "test": "pytest"
+  },
+  "review": {
+    "maxContextFiles": 24,
+    "maxOwnedFiles": 12,
+    "maxFindingsPerFeature": 10,
+    "minConfidenceToFix": "medium"
+  },
+  "git": {
+    "requireCleanWorktreeForFix": true,
+    "commit": false,
+    "openPr": false
+  }
+}

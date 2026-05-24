@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-628701dd9c-ebf5_1b98913c37",
+  "featureId": "feat_library_628701dd9c",
+  "title": "Embedding router circuit breaker settings are not refreshed on config update",
+  "category": "bug",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/core/container/application.py",
+      "startLine": 76,
+      "endLine": 84,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/container/config_updater.py",
+      "startLine": 72,
+      "endLine": 80,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/container/config_updater.py",
+      "startLine": 111,
+      "endLine": 153,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The embedding_router is initially constructed with provider_circuit_breaker_failure_threshold and provider_circuit_breaker_cooldown_seconds from config. On later config updates, OCR and vision routers explicitly call configure_circuit_breaker before swapping providers, but the embedder path only recreates the provider and calls set_provider. If the user changes the provider circuit breaker settings, OCR and vision honor the new values while embedding keeps the old thresholds/cooldown.",
+  "reproduction": null,
+  "recommendation": "Mirror the OCR/vision update behavior in _reinitialize_embedder by calling embedding_router.configure_circuit_breaker with the updated config before or after set_provider, guarded with hasattr if needed.",
+  "whyTestsDoNotAlreadyCoverThis": "The included tests are limited to incoming_routing and do not exercise provider routers or config update behavior.",
+  "suggestedRegressionTest": "Add a focused config updater test with a fake embedding_router that records configure_circuit_breaker and set_provider calls, then verify update_config applies the new threshold and cooldown for memory-enabled configs.",
+  "minimumFixScope": "ContainerConfigUpdater._reinitialize_embedder.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-628701dd9c_ebf557a6b1",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:10:24.283Z",
+  "updatedAt": "2026-05-24T21:10:24.283Z"
+}

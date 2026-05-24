@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-56bb87f5ac-fd11_03b4aebd93",
+  "featureId": "feat_library_56bb87f5ac",
+  "title": "Default Brave API key support is inconsistent between exposure and execution",
+  "category": "api-contract",
+  "severity": "low",
+  "confidence": "high",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "backend/src/tools/web_search/capabilities.py",
+      "startLine": 50,
+      "endLine": 57,
+      "symbol": "has_brave_search_api_key",
+      "quote": null
+    },
+    {
+      "path": "backend/src/tools/web_search/capabilities.py",
+      "startLine": 87,
+      "endLine": 89,
+      "symbol": "should_expose_backend_web_search_tool",
+      "quote": null
+    },
+    {
+      "path": "backend/src/tools/web_search/tool.py",
+      "startLine": 437,
+      "endLine": 446,
+      "symbol": "WebSearchTool._resolve_api_key",
+      "quote": null
+    }
+  ],
+  "reasoning": "The exposure/capability path only reports Brave availability when cfg.brave_search.api_key_env is non-empty, but execution falls back to BRAVE_SEARCH_API_KEY when that config field is empty. With only BRAVE_SEARCH_API_KEY set, should_expose_backend_web_search_tool() can hide the tool while WebSearchTool.run() can still execute it. That creates a registry/runtime contract mismatch and makes configuration behavior depend on which code path is consulted.",
+  "reproduction": null,
+  "recommendation": "Use the same API-key resolution semantics for capability checks and execution. Either remove the default fallback from execution or add the same BRAVE_SEARCH_API_KEY fallback to has_brave_search_api_key().",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for Brave availability detection with cfg.brave_search.api_key_env unset and BRAVE_SEARCH_API_KEY present.",
+  "suggestedRegressionTest": "Add a capability test where cfg.brave_search.api_key_env is empty, BRAVE_SEARCH_API_KEY is set, and assert exposure and execution-mode resolution match the intended default-key behavior.",
+  "minimumFixScope": "Align has_brave_search_api_key() and _resolve_api_key() semantics, then cover the default-env case.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-56bb87f5ac_fd11efaccc",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:09:31.909Z",
+  "updatedAt": "2026-05-24T21:09:31.909Z"
+}

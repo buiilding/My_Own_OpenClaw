@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-2c26cc8d9a-c4f8_19a0b31dfe",
+  "featureId": "feat_library_2c26cc8d9a",
+  "title": "Manual compaction can leave the UI stuck if setup throws before compaction starts",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/features/chat/utils/session/manualCompactionRuntime.js",
+      "startLine": 25,
+      "endLine": 32,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/utils/session/manualCompactionRuntime.js",
+      "startLine": 34,
+      "endLine": 47,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "runManualCompaction sets the thinking status/source before doing setup work, but only the hydration step is guarded. If buildDeferredQueryModelSelection, DesktopSettingsRuntimeClient.setModel, or compactHistory throws synchronously, this helper exits after publishing the compaction thinking state and does not clear or transition it. The user can see an indefinite compaction status even though no compaction is running.",
+  "reproduction": null,
+  "recommendation": "Wrap the whole setup-and-compact sequence in a try/catch or move status ownership into a runtime operation that guarantees a terminal status. At minimum, catch failures from model selection and compactHistory and clear/update the thinking status with an error path.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for manual compaction failure paths, and the only local error handling covers hydration rather than the earlier model-selection or final compaction calls.",
+  "suggestedRegressionTest": "Add a frontend unit test for runManualCompaction that mocks DesktopSettingsRuntimeClient.setModel or DesktopConversationContinuityService.compactHistory to throw and asserts the caller-visible thinking state is not left at COMPACTION_THINKING_STATUS indefinitely.",
+  "minimumFixScope": "frontend/src/renderer/features/chat/utils/session/manualCompactionRuntime.js plus a focused frontend test around runManualCompaction failure handling.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-2c26cc8d9a_c4f8ba8b4d",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:06:20.386Z",
+  "updatedAt": "2026-05-24T21:06:20.386Z"
+}

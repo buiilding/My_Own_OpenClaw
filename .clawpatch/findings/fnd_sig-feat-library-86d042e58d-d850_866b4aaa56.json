@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-86d042e58d-d850_866b4aaa56",
+  "featureId": "feat_library_86d042e58d",
+  "title": "Replay history admission lacks focused regression coverage",
+  "category": "test-gap",
+  "severity": "low",
+  "confidence": "high",
+  "triage": "test-gap",
+  "evidence": [
+    {
+      "path": "backend/src/agent/history/history_admission.py",
+      "startLine": 15,
+      "endLine": 73,
+      "symbol": "normalize_history_structured_content",
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/history/history_admission.py",
+      "startLine": 83,
+      "endLine": 106,
+      "symbol": "normalize_history_text_content / should_store_assistant_history_message",
+      "quote": null
+    }
+  ],
+  "reasoning": "This module decides what multimodal/text content is persisted and replayed, including role-specific assistant text conversion, refusal retention, image admission only for non-assistant roles, scalar stringification, and assistant admission based on tool_calls or normalized text. The feature metadata includes no linked tests, so regressions here could silently drop replayable content, persist the wrong block shape, or admit/reject assistant messages incorrectly.",
+  "reproduction": null,
+  "recommendation": "Add focused unit tests that lock the intended normalization and admission contract for assistant, user, empty, refusal, image, scalar, and tool_call cases.",
+  "whyTestsDoNotAlreadyCoverThis": "The feature declares no tests, and no included test file provides intended behavior evidence for these replay/persistence paths.",
+  "suggestedRegressionTest": "Add tests under tests/backend for history_admission covering assistant text/input_text/output_text normalization to output_text, refusal preservation, non-assistant image_url/input_image preservation, assistant image omission, empty/unknown blocks returning None, mixed text concatenation, and should_store_assistant_history_message behavior with valid tool_calls versus blank content.",
+  "minimumFixScope": "Add a focused backend unit test module for backend.src.agent.history.history_admission; no production code change is required unless tests reveal a contract mismatch.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-86d042e58d_d85025c2de",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:13:17.320Z",
+  "updatedAt": "2026-05-24T21:13:17.320Z"
+}

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-02466c111f-9b03_bcf497638a",
+  "featureId": "feat_library_02466c111f",
+  "title": "Grounding-field stripping can crash when resolved parameters are missing",
+  "category": "bug",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/agent/tools/preparation/validation.py",
+      "startLine": 215,
+      "endLine": 230,
+      "symbol": "sanitize_and_validate_resolved_tool_call",
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/tools/preparation/validation.py",
+      "startLine": 244,
+      "endLine": 253,
+      "symbol": "_strip_grounding_only_fields",
+      "quote": null
+    }
+  ],
+  "reasoning": "sanitize_and_validate_resolved_tool_call calls _strip_grounding_only_fields before validating executor arguments. _strip_grounding_only_fields unconditionally calls resolved_call.parameters.pop for mouse_control and scroll_control, while the later model validation explicitly tolerates missing parameters via resolved_call.parameters or {}. A malformed resolved call with parameters=None will therefore raise AttributeError during sanitization instead of returning the intended validation error message.",
+  "reproduction": null,
+  "recommendation": "Normalize resolved_call.parameters to an empty dict before stripping, or make _strip_grounding_only_fields return early when parameters is not a mutable dict. Then let model validation produce the controlled preparation error.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were provided for malformed resolved calls, and the current order means the validation error path is bypassed before Pydantic can report missing required fields.",
+  "suggestedRegressionTest": "Add a unit test for sanitize_and_validate_resolved_tool_call on a mouse_control ResolvedToolCall with parameters=None and enabled=True, asserting a validation error string is returned and no AttributeError is raised.",
+  "minimumFixScope": "Harden _strip_grounding_only_fields against None/non-dict parameters and add one validation regression test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-02466c111f_9b0315c8a0",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:03:32.416Z",
+  "updatedAt": "2026-05-24T21:03:32.416Z"
+}

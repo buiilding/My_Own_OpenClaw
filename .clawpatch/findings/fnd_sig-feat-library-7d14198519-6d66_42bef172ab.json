@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-7d14198519-6d66_42bef172ab",
+  "featureId": "feat_library_7d14198519",
+  "title": "Stale hydration can mutate session bindings after connection invalidation",
+  "category": "concurrency",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime.ts",
+      "startLine": 119,
+      "endLine": 123,
+      "symbol": "invalidateConversationInferenceSessionState",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime.ts",
+      "startLine": 150,
+      "endLine": 166,
+      "symbol": "ensureConversationInferenceSessionHydrated",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime.ts",
+      "startLine": 188,
+      "endLine": 196,
+      "symbol": "rehydrateConversationInferenceSession",
+      "quote": null
+    }
+  ],
+  "reasoning": "The module tracks connectionEpoch and clears sync/in-flight state on invalidation, which implies async hydration from an old connection should not affect the current session. However, ensureConversationInferenceSessionHydrated captures startingEpoch but performs setConversationWorkspaceBinding and rehydrateFromStore before checking whether the epoch is still current; only the final hydrated state marker is guarded. Similarly, rehydrateConversationInferenceSession sends rehydrateMessages before the epoch check. If invalidateConversationInferenceSessionState runs while a snapshot load or rehydrate is in progress, the stale async continuation can still write a workspace binding or rehydrate messages into the now-current backend session, even though it will not mark the local state hydrated.",
+  "reproduction": null,
+  "recommendation": "Check startingEpoch against connectionEpoch immediately after each awaited operation and before any side effects, or pass a cancellable/session token through the continuity service so stale hydration cannot update workspace bindings or backend state after invalidation.",
+  "whyTestsDoNotAlreadyCoverThis": "No tests are included for this feature, and the code has no visible regression coverage for invalidation occurring between snapshot load and backend rehydration.",
+  "suggestedRegressionTest": "Add a unit test that starts ensureConversationInferenceSessionHydrated with a deferred loadLocalConversationSnapshot promise, calls invalidateConversationInferenceSessionState before resolving it, then asserts setConversationWorkspaceBinding and rehydrateFromStore are not called for the stale epoch.",
+  "minimumFixScope": "frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime.ts",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-7d14198519_6d663123fa",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:12:15.522Z",
+  "updatedAt": "2026-05-24T21:12:15.522Z"
+}

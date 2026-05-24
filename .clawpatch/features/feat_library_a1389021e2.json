@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_a1389021e2",
+  "title": "Python source backend/src/agent/execution",
+  "summary": "Python source group backend/src/agent/execution with 6 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/agent/execution",
+      "symbol": "backend/src/agent/execution",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/agent/execution/__init__.py",
+      "reason": "source group backend/src/agent/execution"
+    },
+    {
+      "path": "backend/src/agent/execution/completion_side_effects.py",
+      "reason": "source group backend/src/agent/execution"
+    },
+    {
+      "path": "backend/src/agent/execution/executor.py",
+      "reason": "source group backend/src/agent/execution"
+    },
+    {
+      "path": "backend/src/agent/execution/interaction_loop.py",
+      "reason": "source group backend/src/agent/execution"
+    },
+    {
+      "path": "backend/src/agent/execution/policies.py",
+      "reason": "source group backend/src/agent/execution"
+    },
+    {
+      "path": "backend/src/agent/execution/tool_call_bridge.py",
+      "reason": "source group backend/src/agent/execution"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_interaction_loop.py",
+      "reason": "associated test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_interaction_loop.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-a1389021e2-6a24_66618b2794"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=85105 bytes; approxTokens=21277; includedFiles=7; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:15:09.082Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:15:09.082Z"
+}

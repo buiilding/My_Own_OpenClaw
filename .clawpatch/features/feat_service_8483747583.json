@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_service_8483747583",
+  "title": "Python source backend/src/llm/providers/:openai",
+  "summary": "Python source group backend/src/llm/providers/:openai with 5 files.",
+  "kind": "service",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/llm/providers/:openai",
+      "symbol": "backend/src/llm/providers/:openai",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/llm/providers/openai.py",
+      "reason": "source group backend/src/llm/providers/:openai"
+    },
+    {
+      "path": "backend/src/llm/providers/openai_responses_input.py",
+      "reason": "source group backend/src/llm/providers/:openai"
+    },
+    {
+      "path": "backend/src/llm/providers/openai_responses_payload.py",
+      "reason": "source group backend/src/llm/providers/:openai"
+    },
+    {
+      "path": "backend/src/llm/providers/openai_responses_runtime.py",
+      "reason": "source group backend/src/llm/providers/:openai"
+    },
+    {
+      "path": "backend/src/llm/providers/openai_tool_prep.py",
+      "reason": "source group backend/src/llm/providers/:openai"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [
+    "network",
+    "external-api",
+    "serialization"
+  ],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-service-8483747583-4866_4cc00fbd5b"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=66100 bytes; approxTokens=16525; includedFiles=5; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:24:14.817Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:24:14.817Z"
+}

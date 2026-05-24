@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-ade1787d80-aebf8d_09611d775b",
+  "featureId": "feat_route_ade1787d80",
+  "title": "Unauthenticated debug route exposes effective tool configuration for arbitrary user_id",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 409,
+      "endLine": 420,
+      "symbol": "sdk_debug_tool_capabilities",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/routes/sdk/router.py",
+      "startLine": 421,
+      "endLine": 440,
+      "symbol": "sdk_debug_tool_capabilities",
+      "quote": null
+    }
+  ],
+  "reasoning": "The network-facing GET route accepts caller-controlled tool_name and user_id/model/provider query parameters, resolves an effective debug config, and returns the config plus canonical/provider tool capability schemas. The handler has no visible authentication, authorization, or debug-mode guard dependency. If this router is reachable outside a trusted local context, a caller can enumerate tool capability/config details for arbitrary user IDs, which is a permission and information-disclosure gap.",
+  "reproduction": null,
+  "recommendation": "Require an authenticated or explicitly local/debug-only dependency for this route, and authorize the requested user_id against the caller before resolving or returning the effective config. If this endpoint is intended to be local-only, enforce that invariant at the route or router dependency level rather than relying on deployment assumptions.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for this feature, and the shown handler has no assertion-enforced auth or debug gating behavior.",
+  "suggestedRegressionTest": "Add a FastAPI route test that unauthenticated requests to /api/sdk/tool-capabilities/{tool_name} are rejected, and that an authenticated caller cannot request another user's effective config unless explicitly authorized.",
+  "minimumFixScope": "Add route/router-level auth or debug-local guard and cover sdk_debug_tool_capabilities with focused API tests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-ade1787d80_aebf8d159d",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:22:20.373Z",
+  "updatedAt": "2026-05-24T21:22:20.373Z"
+}

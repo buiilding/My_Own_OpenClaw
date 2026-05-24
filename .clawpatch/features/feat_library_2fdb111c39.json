@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_2fdb111c39",
+  "title": "Python source backend/src/core/infrastructure",
+  "summary": "Python source group backend/src/core/infrastructure with 8 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/core/infrastructure",
+      "symbol": "backend/src/core/infrastructure",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/core/infrastructure/__init__.py",
+      "reason": "source group backend/src/core/infrastructure"
+    },
+    {
+      "path": "backend/src/core/infrastructure/bus.py",
+      "reason": "source group backend/src/core/infrastructure"
+    },
+    {
+      "path": "backend/src/core/infrastructure/cache.py",
+      "reason": "source group backend/src/core/infrastructure"
+    },
+    {
+      "path": "backend/src/core/infrastructure/cache_entry.py",
+      "reason": "source group backend/src/core/infrastructure"
+    },
+    {
+      "path": "backend/src/core/infrastructure/cache_manager.py",
+      "reason": "source group backend/src/core/infrastructure"
+    },
+    {
+      "path": "backend/src/core/infrastructure/cache_store.py",
+      "reason": "source group backend/src/core/infrastructure"
+    },
+    {
+      "path": "backend/src/core/infrastructure/event_bus_registry.py",
+      "reason": "source group backend/src/core/infrastructure"
+    },
+    {
+      "path": "backend/src/core/infrastructure/user_facing_errors.py",
+      "reason": "source group backend/src/core/infrastructure"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_cache_entry.py",
+      "reason": "associated test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_cache_entry.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-2fdb111c39-1a17_58e49e6429",
+    "fnd_sig-feat-library-2fdb111c39-48d6_e4a09d76dd",
+    "fnd_sig-feat-library-2fdb111c39-5b4c_5b9c2f7f5e"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "3 finding(s); prompt=40300 bytes; approxTokens=10075; includedFiles=9; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:06:59.792Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:06:59.792Z"
+}

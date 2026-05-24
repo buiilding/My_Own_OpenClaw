@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-29d32b5f10-45e4_719107e765",
+  "featureId": "feat_library_29d32b5f10",
+  "title": "Model-list event can overwrite settings state with an invalid payload",
+  "category": "api-contract",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/features/settings/hooks/useSettingsManagement.ts",
+      "startLine": 10,
+      "endLine": 13,
+      "symbol": "useSettingsManagement",
+      "quote": null
+    }
+  ],
+  "reasoning": "The hook declares the backend event payload as optional unknown and forwards it directly into available-models state. If the event is missing payload, uses a changed envelope, or carries a non-list value, the current model list is replaced with undefined or another invalid value instead of preserving the last known-good state or failing visibly. This is an API boundary issue because the hook is the settings-side handler for backend model-listing events.",
+  "reproduction": null,
+  "recommendation": "Define the expected payload shape for listed models and validate it before calling setAvailableModels. On invalid payload, ignore the event or route an error state rather than replacing the available models with an arbitrary value.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were provided for this feature, and the package has Jest scripts available but no included test evidence exercising malformed or missing model-list payloads.",
+  "suggestedRegressionTest": "Add a Jest test for useSettingsManagement that calls handleModelsListed with a valid model list and with missing/invalid payloads, asserting only valid payloads update available models.",
+  "minimumFixScope": "Tighten the event payload type and add a local guard in useSettingsManagement, plus a focused hook test for valid and invalid model-list events.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-29d32b5f10_45e4eb30ba",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:06:03.916Z",
+  "updatedAt": "2026-05-24T21:06:03.916Z"
+}

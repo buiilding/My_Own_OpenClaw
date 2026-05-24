@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_134248e4a1",
+  "title": "Python source backend/src/tools/remote_tools",
+  "summary": "Python source group backend/src/tools/remote_tools with 6 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/tools/remote_tools",
+      "symbol": "backend/src/tools/remote_tools",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/tools/remote_tools/__init__.py",
+      "reason": "source group backend/src/tools/remote_tools"
+    },
+    {
+      "path": "backend/src/tools/remote_tools/base.py",
+      "reason": "source group backend/src/tools/remote_tools"
+    },
+    {
+      "path": "backend/src/tools/remote_tools/browser.py",
+      "reason": "source group backend/src/tools/remote_tools"
+    },
+    {
+      "path": "backend/src/tools/remote_tools/computer.py",
+      "reason": "source group backend/src/tools/remote_tools"
+    },
+    {
+      "path": "backend/src/tools/remote_tools/filesystem.py",
+      "reason": "source group backend/src/tools/remote_tools"
+    },
+    {
+      "path": "backend/src/tools/remote_tools/system.py",
+      "reason": "source group backend/src/tools/remote_tools"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-134248e4a1-8910_86845b5dfb",
+    "fnd_sig-feat-library-134248e4a1-63b8_801699b6ac",
+    "fnd_sig-feat-library-134248e4a1-1037_f7623ff206"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "3 finding(s); prompt=28804 bytes; approxTokens=7201; includedFiles=6; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:04:24.903Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:04:24.903Z"
+}

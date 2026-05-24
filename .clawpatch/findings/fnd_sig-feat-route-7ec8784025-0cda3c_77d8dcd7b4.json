@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-7ec8784025-0cda3c_77d8dcd7b4",
+  "featureId": "feat_route_7ec8784025",
+  "title": "GET /health has no linked regression coverage",
+  "category": "test-gap",
+  "severity": "low",
+  "confidence": "high",
+  "triage": "test-gap",
+  "evidence": [
+    {
+      "path": "backend/src/embeddings/service_app.py",
+      "startLine": 119,
+      "endLine": 132,
+      "symbol": "health",
+      "quote": null
+    }
+  ],
+  "reasoning": "The health route has observable behavior for the available-provider path, unavailable-provider 503 path via _get_provider, and exception-to-503 handling around payload construction, but the feature metadata includes no tests. That leaves the route contract easy to regress without detection.",
+  "reproduction": null,
+  "recommendation": "Add focused tests for GET /health covering a configured provider returning the healthy payload and a missing or failing provider returning HTTP 503.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were provided for this feature, and the included owned file contains only the implementation.",
+  "suggestedRegressionTest": "Add a pytest/FastAPI TestClient test module that overrides app.state.embedding_provider with a stub provider for the success case, clears it for the unavailable-provider case, and uses a provider that makes resolve_embedding_space_version fail for the unhealthy case.",
+  "minimumFixScope": "Add route-level tests for backend/src/embeddings/service_app.py GET /health without changing production behavior.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-7ec8784025_0cda3c8f25",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:22:03.055Z",
+  "updatedAt": "2026-05-24T21:22:03.055Z"
+}

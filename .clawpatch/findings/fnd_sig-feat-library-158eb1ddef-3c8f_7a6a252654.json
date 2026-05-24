@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-158eb1ddef-3c8f_7a6a252654",
+  "featureId": "feat_library_158eb1ddef",
+  "title": "CJS request-id fallback is declared but never used",
+  "category": "api-contract",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.cjs",
+      "startLine": 12,
+      "endLine": 23,
+      "symbol": "resolveToolCallRequestId",
+      "quote": null
+    },
+    {
+      "path": "packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.cjs",
+      "startLine": 491,
+      "endLine": 493,
+      "symbol": "routeToolCallToLocalRuntime",
+      "quote": null
+    },
+    {
+      "path": "packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.cjs",
+      "startLine": 628,
+      "endLine": 635,
+      "symbol": "routeSdkToolEventToLocalRuntime",
+      "quote": null
+    }
+  ],
+  "reasoning": "resolveToolCallRequestId accepts a fallbackId and routeToolCallToLocalRuntime passes event.id as that fallback, but the helper always returns an empty string when payload requestId/request_id is missing. The outer claim path also calls the helper without a fallback, so CJS tool-call events that rely on the event id as their only request identifier are rejected or cannot use the intended fallback.",
+  "reproduction": "Send a CJS SDK tool-call event with payload.toolName set, no payload.requestId/request_id, and event.id set. routeSdkToolEventToLocalRuntime returns false because resolveToolCallRequestId ignores the fallback and returns an empty string.",
+  "recommendation": "Either honor fallbackId in resolveToolCallRequestId when it is a non-empty string, and pass event.id in the claim check, or remove the fallback parameter and align callers so the request id contract is explicit.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were provided, and the dead fallback parameter indicates there is no coverage for event-id fallback behavior in the CJS routing path.",
+  "suggestedRegressionTest": "Add a CJS coordinator test asserting whether an event.id-only tool call should be claimable. If supported, assert sendToolResult uses that id; if unsupported, assert the fallback parameter is removed from the implementation.",
+  "minimumFixScope": "Clarify and align request id fallback handling in the CJS coordinator, with a focused regression test for the supported contract.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-158eb1ddef_3c8f5c92a8",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:04:38.440Z",
+  "updatedAt": "2026-05-24T21:04:38.440Z"
+}

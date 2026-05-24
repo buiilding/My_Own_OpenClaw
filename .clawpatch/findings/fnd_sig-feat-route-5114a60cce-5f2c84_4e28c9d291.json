@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-5114a60cce-5f2c84_4e28c9d291",
+  "featureId": "feat_route_5114a60cce",
+  "title": "Unauthenticated calls can select the user context from the request body",
+  "category": "security",
+  "severity": "high",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/memory/semantic/router.py",
+      "startLine": 149,
+      "endLine": 166,
+      "symbol": "generate_conversation_title",
+      "quote": null
+    }
+  ],
+  "reasoning": "The route resolves the user id from authenticated context when present, but falls back to request.user_id when no authenticated identity exists, then uses that resolved id to generate the title with the shared container/session manager. For a network route with an auth trust boundary, this makes the authorization boundary optional at the handler level: a caller without identity can supply another user's id and potentially use that user's model/session configuration for title generation. The excerpt does not show a route-level dependency that rejects missing identity, so the handler itself does not enforce the boundary.",
+  "reproduction": null,
+  "recommendation": "Require an authenticated install identity for this route, or explicitly gate the unauthenticated local path behind a separate trusted transport/dependency. Do not use request.user_id as an authorization fallback for network requests; at most treat it as advisory and verify it matches the authenticated identity.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were provided for this route, and the excerpt has no evidence of a test covering missing authenticated identity or cross-user request.user_id spoofing.",
+  "suggestedRegressionTest": "Add a route-level test for POST /api/semantic/title that verifies a request without authenticated identity is rejected, and a request whose body user_id differs from the authenticated identity cannot cause service.generate_title to receive the body user_id.",
+  "minimumFixScope": "backend/src/api/routes/memory/semantic/router.py and focused backend route tests",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-5114a60cce_5f2c843687",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:21:28.108Z",
+  "updatedAt": "2026-05-24T21:21:28.108Z"
+}

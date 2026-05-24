@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-ce322337d6-4b46_4e9fdb2015",
+  "featureId": "feat_library_ce322337d6",
+  "title": "Registry alignment validation masks duplicate message contract entries",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "backend/src/api/contracts/message_types.py",
+      "startLine": 29,
+      "endLine": 40,
+      "symbol": "INCOMING_MESSAGE_TYPES",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/contracts/message_types.py",
+      "startLine": 78,
+      "endLine": 100,
+      "symbol": "OUTGOING_SCHEMA_MESSAGE_TYPES",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/contracts/registry.py",
+      "startLine": 119,
+      "endLine": 145,
+      "symbol": "validate_registry_alignment",
+      "quote": null
+    }
+  ],
+  "reasoning": "The exported type lists and contract registries are ordered tuples, but the public helpers and validation collapse them to sets before comparison. That means duplicate message type constants or duplicate contract entries can pass validation as long as the unique set still matches. For a contract registry, duplicates are not benign: downstream dispatch/schema maps built from these tuples can silently overwrite one model binding or hide that one expected contract was replaced by a duplicate. The validator is specifically meant to fail fast on drift, so losing multiplicity makes it miss a concrete class of registry corruption.",
+  "reproduction": null,
+  "recommendation": "Validate both uniqueness and exact membership. For example, add a duplicate check for each tuple before the set comparison, or compare Counters/ordered tuples where ordering is intentional. Keep the existing mismatch error but add explicit duplicate errors naming repeated message types.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for this feature, and the current validator implementation itself would allow a duplicate to pass any test that only asserts set equality or successful validation.",
+  "suggestedRegressionTest": "Add a focused registry test that monkeypatches or constructs duplicate incoming/outgoing contract/type tuples and asserts validation fails with a duplicate-specific error.",
+  "minimumFixScope": "Update backend/src/api/contracts/registry.py validation helpers to preserve multiplicity and add focused tests for duplicate incoming and outgoing contract/type entries.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-ce322337d6_4b468758e6",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:17:47.359Z",
+  "updatedAt": "2026-05-24T21:17:47.359Z"
+}

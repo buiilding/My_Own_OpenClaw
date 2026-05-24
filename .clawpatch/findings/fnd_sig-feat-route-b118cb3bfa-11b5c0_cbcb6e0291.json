@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-route-b118cb3bfa-11b5c0_cbcb6e0291",
+  "featureId": "feat_route_b118cb3bfa",
+  "title": "GET run route has no linked regression coverage for its network contract",
+  "category": "test-gap",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "test-gap",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/runs/router.py",
+      "startLine": 83,
+      "endLine": 89,
+      "symbol": "get_run",
+      "quote": null
+    }
+  ],
+  "reasoning": "The route is a network-facing API entrypoint that accepts user-controlled run_id input, depends on API-key authentication, performs lookup/not-found handling through require_run, and serializes a RunView response. The feature metadata includes no tests, so regressions in success serialization, 404 mapping, or auth enforcement could ship without a targeted signal for this route.",
+  "reproduction": null,
+  "recommendation": "Add focused FastAPI route tests for GET /api/runs/{run_id}: successful RunView response, missing run returns the intended 404 contract, and missing or invalid API key is rejected.",
+  "whyTestsDoNotAlreadyCoverThis": "The provided feature metadata lists no linked tests, and no test excerpt is included as evidence of intended behavior for this route.",
+  "suggestedRegressionTest": "Use a TestClient or async HTTP client with an overridden VmRunControlService dependency to cover success, not-found, and unauthorized cases for GET /api/runs/{run_id}.",
+  "minimumFixScope": "Add route-level tests for get_run without changing production behavior unless the tests expose a contract mismatch.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-route-b118cb3bfa_11b5c03cf7",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:22:23.865Z",
+  "updatedAt": "2026-05-24T21:22:23.865Z"
+}

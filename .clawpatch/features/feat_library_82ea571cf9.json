@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_82ea571cf9",
+  "title": "Python source backend/src/api/processing/formatters/:tool",
+  "summary": "Python source group backend/src/api/processing/formatters/:tool with 4 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/api/processing/formatters/:tool",
+      "symbol": "backend/src/api/processing/formatters/:tool",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/api/processing/formatters/tool_bundle.py",
+      "reason": "source group backend/src/api/processing/formatters/:tool"
+    },
+    {
+      "path": "backend/src/api/processing/formatters/tool_call.py",
+      "reason": "source group backend/src/api/processing/formatters/:tool"
+    },
+    {
+      "path": "backend/src/api/processing/formatters/tool_output.py",
+      "reason": "source group backend/src/api/processing/formatters/:tool"
+    },
+    {
+      "path": "backend/src/api/processing/formatters/tool_schemas.py",
+      "reason": "source group backend/src/api/processing/formatters/:tool"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-82ea571cf9-4cac_761965b19b"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=11759 bytes; approxTokens=2940; includedFiles=4; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:13:17.421Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:13:17.421Z"
+}

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-01d26df760-35c6_d4a2be1d76",
+  "featureId": "feat_library_01d26df760",
+  "title": "OCR routing ignores provider readiness before execution",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "backend/src/core/inference/ocr_router.py",
+      "startLine": 77,
+      "endLine": 83,
+      "symbol": "OcrRouter.is_ready",
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/inference/ocr_router.py",
+      "startLine": 115,
+      "endLine": 122,
+      "symbol": "OcrRouter.unavailable_error_message",
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/inference/ocr_router.py",
+      "startLine": 163,
+      "endLine": 182,
+      "symbol": "OcrRouter.analyze_image",
+      "quote": null
+    }
+  ],
+  "reasoning": "The router exposes readiness as provider presence, provider.is_ready, and a closed circuit, and its unavailable message reports a distinct not-ready state. However analyze_image only rejects missing providers, open circuits, and disabled providers before calling provider.analyze_image. An enabled but not-ready OCR provider is therefore invoked directly instead of producing the structured ProviderUnavailableError promised by the router's own readiness surface. This can turn a deterministic routing/state error into provider-specific failures or undefined behavior.",
+  "reproduction": "Create an OCR provider with enabled=True, is_ready=False, and an analyze_image method that records calls. OcrRouter(provider).is_ready is false and unavailable_error_message says not ready, but await analyze_image(...) still calls the provider.",
+  "recommendation": "In OcrRouter.analyze_image, after the enabled check and before provider.analyze_image, reject providers whose is_ready is false with ProviderUnavailableError using the existing not-ready message semantics.",
+  "whyTestsDoNotAlreadyCoverThis": "No tests are included for this feature, and the excerpt has no regression asserting that is_ready gates analyze_image execution.",
+  "suggestedRegressionTest": "Add an OCR router test with enabled=True and is_ready=False asserting analyze_image raises ProviderUnavailableError and does not call provider.analyze_image.",
+  "minimumFixScope": "backend/src/core/inference/ocr_router.py plus a focused OCR router unit test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-01d26df760_35c6c2a969",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:03:31.537Z",
+  "updatedAt": "2026-05-24T21:03:31.537Z"
+}

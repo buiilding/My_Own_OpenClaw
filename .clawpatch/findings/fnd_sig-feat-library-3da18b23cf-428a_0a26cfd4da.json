@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-3da18b23cf-428a_0a26cfd4da",
+  "featureId": "feat_library_3da18b23cf",
+  "title": "Readable attachment read failures are silently omitted from the outgoing context",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/features/chat/utils/messageSender/readableFileAttachmentContext.ts",
+      "startLine": 36,
+      "endLine": 42,
+      "symbol": "readAttachmentSection",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/utils/messageSender/readableFileAttachmentContext.ts",
+      "startLine": 61,
+      "endLine": 66,
+      "symbol": "buildReadableFileAttachmentContext",
+      "quote": null
+    }
+  ],
+  "reasoning": "When read_file fails or returns no usable content, the helper logs a warning and returns null. The caller then filters null sections and sends the remaining attachment context, or no context at all if every read failed. That means a user can send a message with selected readable files but the model receives an incomplete or empty attachment context without any failure being surfaced to the send flow. This is especially risky for multi-file prompts where the model may answer as if all attachments were considered.",
+  "reproduction": null,
+  "recommendation": "Return structured success/failure information from attachment context building, and make the send flow block or surface a user-visible error when any requested readable attachment cannot be read. If partial send is intentional, include an explicit omitted-attachment notice in the model-visible context and UI state.",
+  "whyTestsDoNotAlreadyCoverThis": "The feature metadata lists no linked tests, and the included package scripts only show generic Jest commands rather than focused coverage for partial readable-file failures.",
+  "suggestedRegressionTest": "Add a test for buildReadableFileAttachmentContext with two readable files where one read_file invocation fails; assert the caller receives a failure/omission signal instead of silently producing context for only the successful file.",
+  "minimumFixScope": "Change readableFileAttachmentContext to preserve per-file read status and update its immediate caller to handle failed attachments explicitly.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-3da18b23cf_428ad82af7",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:07:50.984Z",
+  "updatedAt": "2026-05-24T21:07:50.984Z"
+}

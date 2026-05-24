@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_6a38404de9",
+  "title": "Python source backend/src/api/processing/tts",
+  "summary": "Python source group backend/src/api/processing/tts with 3 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/api/processing/tts",
+      "symbol": "backend/src/api/processing/tts",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/api/processing/tts/__init__.py",
+      "reason": "source group backend/src/api/processing/tts"
+    },
+    {
+      "path": "backend/src/api/processing/tts/manager.py",
+      "reason": "source group backend/src/api/processing/tts"
+    },
+    {
+      "path": "backend/src/api/processing/tts/processor.py",
+      "reason": "source group backend/src/api/processing/tts"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-6a38404de9-50f4_b63c78a42f",
+    "fnd_sig-feat-library-6a38404de9-8510_bca84a25c5"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=25975 bytes; approxTokens=6494; includedFiles=3; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:10:55.338Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:10:55.338Z"
+}

@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-134248e4a1-63b8_801699b6ac",
+  "featureId": "feat_library_134248e4a1",
+  "title": "Powerful remote tools inherit an empty permission set",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/tools/remote_tools/base.py",
+      "startLine": 37,
+      "endLine": 43,
+      "symbol": "RemoteToolBase",
+      "quote": null
+    },
+    {
+      "path": "backend/src/tools/remote_tools/filesystem.py",
+      "startLine": 17,
+      "endLine": 28,
+      "symbol": "RemoteReadFileTool",
+      "quote": null
+    },
+    {
+      "path": "backend/src/tools/remote_tools/filesystem.py",
+      "startLine": 31,
+      "endLine": 49,
+      "symbol": "RemoteReplaceTool",
+      "quote": null
+    },
+    {
+      "path": "backend/src/tools/remote_tools/system.py",
+      "startLine": 37,
+      "endLine": 74,
+      "symbol": "RemoteShellTool",
+      "quote": null
+    },
+    {
+      "path": "backend/src/tools/remote_tools/system.py",
+      "startLine": 99,
+      "endLine": 113,
+      "symbol": "RemoteProcessTool",
+      "quote": null
+    }
+  ],
+  "reasoning": "RemoteToolBase declares required_permissions as an empty set, and the filesystem and shell/process remote tools shown do not override it. These stubs expose local file reads, file replacement, shell command execution, and process management to the frontend executor. If backend policy checks rely on each tool's required_permissions before emitting a RemoteToolResult, these sensitive capabilities are advertised with no permission requirement, allowing authorization or consent gates to be skipped before the frontend receives executable instructions.",
+  "reproduction": null,
+  "recommendation": "Assign explicit required_permissions on sensitive remote tool classes, matching the existing Permission model for filesystem, shell/process, and other local machine control capabilities. Add tests that assert these remote tools are not permission-empty.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for permission metadata on remote tool stubs, and the excerpt shows no per-tool override for the sensitive classes.",
+  "suggestedRegressionTest": "Add a policy/metadata unit test that enumerates RemoteReadFileTool, RemoteReplaceTool, RemoteShellTool, and RemoteProcessTool and asserts each declares the expected non-empty Permission set.",
+  "minimumFixScope": "backend/src/tools/remote_tools/filesystem.py, backend/src/tools/remote_tools/system.py, and focused permission metadata tests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-134248e4a1_63b8b4899d",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:04:24.901Z",
+  "updatedAt": "2026-05-24T21:04:24.901Z"
+}

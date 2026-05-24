@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-56bace5973-8b13_9b348a2cdb",
+  "featureId": "feat_library_56bace5973",
+  "title": "Background session action accepts arbitrary strings despite a closed action contract",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "backend/src/tools/system/schemas.py",
+      "startLine": 124,
+      "endLine": 130,
+      "symbol": "ProcessShellCommandArgs.action",
+      "quote": null
+    }
+  ],
+  "reasoning": "The schema describes a fixed set of supported process-session actions, but models the field as an unconstrained string. That means invalid action names pass schema validation and are deferred to downstream execution, weakening the tool contract exposed to callers and making malformed tool calls look valid at the schema layer.",
+  "reproduction": null,
+  "recommendation": "Change action to a Literal union for the documented values, or add an equivalent Pydantic validator if aliases/normalization are required.",
+  "whyTestsDoNotAlreadyCoverThis": "No tests were included for this feature, and the schema itself currently has no validation that would reject an unsupported action.",
+  "suggestedRegressionTest": "Add a schema validation test that accepts each documented action and rejects an unknown action such as \"restart\".",
+  "minimumFixScope": "Update ProcessShellCommandArgs.action typing and add focused schema validation coverage.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-56bace5973_8b13402ffc",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:09:11.886Z",
+  "updatedAt": "2026-05-24T21:09:11.886Z"
+}

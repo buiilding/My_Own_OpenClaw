@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "projectId": "prj_https-github-com-buiilding-windi_255f90b4a6",
+  "name": "WindieOS",
+  "rootPath": "/Users/peterbui/Agent_workspaces/Windieos_workspace/WindieOS",
+  "git": {
+    "remoteUrl": "https://github.com/buiilding/WindieOS",
+    "defaultBranch": "main",
+    "currentBranch": "main",
+    "headSha": "35e7e806fa3d198c4af5c1ffaaa70a961ea45564"
+  },
+  "detected": {
+    "languages": [
+      "python",
+      "c"
+    ],
+    "frameworks": [],
+    "packageManagers": [
+      "python"
+    ],
+    "commands": {
+      "typecheck": null,
+      "lint": null,
+      "format": null,
+      "test": "pytest"
+    }
+  },
+  "createdAt": "2026-05-24T21:00:09.276Z",
+  "updatedAt": "2026-05-24T21:00:09.276Z"
+}

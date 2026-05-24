@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-5f12ed4d4c-3ba7_dff7a16f14",
+  "featureId": "feat_library_5f12ed4d4c",
+  "title": "Backend event guard validates only the discriminator",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/types/backendEvents.ts",
+      "startLine": 24,
+      "endLine": 32,
+      "symbol": "BackendEventBase",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/types/backendEvents.ts",
+      "startLine": 228,
+      "endLine": 234,
+      "symbol": "isBackendEvent",
+      "quote": null
+    }
+  ],
+  "reasoning": "`isBackendEvent` is exported as a full `value is BackendEvent` guard, but it only verifies that `type` is one of the known strings. It does not verify that the event has an object-shaped payload, that payload fields have the expected primitive/container types, or that required top-level identity fields are well-formed when present. Callers that rely on this guard get TypeScript narrowing for the entire event union even when malformed backend or IPC data contains invalid payload shapes, which can turn a transport/schema mismatch into renderer-side runtime errors or incorrect UI state.",
+  "reproduction": null,
+  "recommendation": "Either rename/scope the helper to a discriminator-only predicate, or add per-event payload validation for the fields the renderer relies on before returning `value is BackendEvent`. Keep the runtime contract aligned with the exported TypeScript type.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for this feature, and the shown package test scripts do not demonstrate coverage for malformed backend event payloads passing through this guard.",
+  "suggestedRegressionTest": "Add a frontend unit test for `isBackendEvent` that rejects known event types with invalid payload shapes, or, if intentionally discriminator-only, asserts the narrower helper name/return type so callers cannot treat it as full payload validation.",
+  "minimumFixScope": "Update `frontend/src/renderer/types/backendEvents.ts` and add focused frontend tests for valid and malformed backend event objects.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-5f12ed4d4c_3ba751eeff",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:10:14.435Z",
+  "updatedAt": "2026-05-24T21:10:14.435Z"
+}

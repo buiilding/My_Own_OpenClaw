@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-e388c2261c-0c94_a3f6e31083",
+  "featureId": "feat_library_e388c2261c",
+  "title": "No regression coverage for onboarding slide state or permission watcher lifecycle",
+  "category": "test-gap",
+  "severity": "low",
+  "confidence": "high",
+  "triage": "test-gap",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/features/onboarding/hooks/useOnboardingPermissionActions.js",
+      "startLine": 80,
+      "endLine": 146,
+      "symbol": "useOnboardingPermissionActions",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/onboarding/utils/onboardingSlides.js",
+      "startLine": 1,
+      "endLine": 29,
+      "symbol": "buildOnboardingSlideState",
+      "quote": null
+    },
+    {
+      "path": "frontend/package.json",
+      "startLine": 40,
+      "endLine": 41,
+      "symbol": "scripts.test",
+      "quote": null
+    }
+  ],
+  "reasoning": "This feature has nontrivial behavior around slide count clamping, empty permission manifests, external OS permission polling, focus/visibility rechecks, and timeout cleanup, but the feature metadata lists no tests and no included file provides assertions for these paths. Regressions here would affect first-run onboarding and OS permission grants, where manual reproduction is timing-dependent.",
+  "reproduction": null,
+  "recommendation": "Add focused Jest coverage for buildOnboardingSlideState and a hook/component test for permission grant polling cleanup, timeout behavior, and empty permission-manifest rendering.",
+  "whyTestsDoNotAlreadyCoverThis": "The feature declares no linked tests, and the only context evidence is the package-level Jest commands, so this source group appears unprotected by feature-local regression tests.",
+  "suggestedRegressionTest": "Cover buildOnboardingSlideState with zero, one, and multiple permissions, plus useOnboardingPermissionActions with fake timers for needs-action polling, granted cleanup, timeout cleanup, and unmount cleanup.",
+  "minimumFixScope": "Add feature-local Jest tests under the existing frontend test setup without changing runtime behavior.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-e388c2261c_0c943e90ef",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:18:56.235Z",
+  "updatedAt": "2026-05-24T21:18:56.235Z"
+}

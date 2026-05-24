@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-3c0324609f-4510_454e77abba",
+  "featureId": "feat_library_3c0324609f",
+  "title": "Falsy error context values are silently dropped from metadata",
+  "category": "api-contract",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "backend/src/core/infrastructure/error_types/base.py",
+      "startLine": 17,
+      "endLine": 23,
+      "symbol": "_metadata_with_optional_field",
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/infrastructure/error_types/base.py",
+      "startLine": 26,
+      "endLine": 37,
+      "symbol": "_merge_trust_boundary_metadata",
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/infrastructure/error_types/llm.py",
+      "startLine": 90,
+      "endLine": 104,
+      "symbol": "LLMAPIError.__init__",
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/infrastructure/error_types/trust_boundary.py",
+      "startLine": 56,
+      "endLine": 75,
+      "symbol": "InputSizeLimitError.__init__",
+      "quote": null
+    },
+    {
+      "path": "backend/src/core/infrastructure/error_types/trust_boundary.py",
+      "startLine": 81,
+      "endLine": 99,
+      "symbol": "ParseTimeoutError.__init__",
+      "quote": null
+    }
+  ],
+  "reasoning": "Several exception constructors mirror caller-supplied context into attributes, but metadata inclusion is gated with bool(field_value) or any(fields.values()). Valid falsy values such as status_code=0, retry_after=0, actual_size=0, max_size=0, or timeout_seconds=0 are retained on the exception attributes while disappearing from metadata. That creates inconsistent machine-readable error payloads for callers that serialize BaseAppError.metadata rather than inspecting type-specific attributes.",
+  "reproduction": "Instantiate ParseTimeoutError('timeout', timeout_seconds=0) or InputSizeLimitError('limit', actual_size=0, max_size=0) and inspect error.metadata; the provided size/timeout fields are absent while the attributes are set.",
+  "recommendation": "Treat None as the absent value for optional scalar metadata instead of using truthiness. For trust-boundary metadata, include metadata when boundary_name is not None or any provided field value is not None, and consider filtering only absent fields if null metadata is not desired.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for this feature, and the excerpt contains no assertions covering metadata parity for falsy but valid context values.",
+  "suggestedRegressionTest": "Add focused tests that construct LLMAPIError(status_code=0), LLMRateLimitError(retry_after=0), InputSizeLimitError(actual_size=0, max_size=0), and ParseTimeoutError(timeout_seconds=0), then assert those values are present in metadata and still mirrored to attributes.",
+  "minimumFixScope": "Update the metadata helper predicates in base.py and any affected trust-boundary helper logic, then add regression tests for falsy context values.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-3c0324609f_4510508afb",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:07:32.280Z",
+  "updatedAt": "2026-05-24T21:07:32.280Z"
+}

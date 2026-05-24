@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-test-suite-f5f2cbc5d3-7_a0c9bc1354",
+  "featureId": "feat_test-suite_f5f2cbc5d3",
+  "title": "Remote tool contract test pollutes global import state",
+  "category": "maintainability",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "tests/backend/test_remote_tool_contract.py",
+      "startLine": 7,
+      "endLine": 16,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The test inserts the frontend sidecar Python directory at the front of sys.path and then imports a top-level tools.registry module without restoring sys.path or cleaning sys.modules. Because this is a backend test process, that global mutation can make later tests resolve top-level imports from frontend/src/main/python first, creating order-dependent failures or masking backend import problems. The impact is concrete because the mutation is process-wide and persists after this helper returns.",
+  "reproduction": null,
+  "recommendation": "Use pytest's monkeypatch.syspath_prepend in the test, keep the import inside a scope that restores sys.path automatically, and remove any imported top-level tools modules from sys.modules after the assertion if needed. A cleaner option is to load the frontend registry by explicit file/module spec rather than globally prepending the sidecar package root.",
+  "whyTestsDoNotAlreadyCoverThis": "The existing test only verifies that the backend and frontend tool-name sets match. It does not assert that sys.path and sys.modules are restored after loading the frontend registry, so import pollution would not be caught.",
+  "suggestedRegressionTest": "Add a test around _load_frontend_exposed_tool_names that snapshots sys.path and relevant sys.modules entries before the call, invokes the helper, and asserts no frontend path remains at sys.path[0] and no unexpected top-level tools module is left behind.",
+  "minimumFixScope": "Confine the frontend registry import in tests/backend/test_remote_tool_contract.py so it does not leave process-global import state changed.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-test-suite-f5f2cbc5d3_77dd95610c",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:24:48.712Z",
+  "updatedAt": "2026-05-24T21:24:48.712Z"
+}

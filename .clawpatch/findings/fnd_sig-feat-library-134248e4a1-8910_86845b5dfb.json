@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-134248e4a1-8910_86845b5dfb",
+  "featureId": "feat_library_134248e4a1",
+  "title": "Remote wait drops the session request id used for frontend correlation",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "backend/src/tools/remote_tools/base.py",
+      "startLine": 45,
+      "endLine": 53,
+      "symbol": "RemoteToolBase._get_request_id",
+      "quote": null
+    },
+    {
+      "path": "backend/src/tools/remote_tools/computer.py",
+      "startLine": 115,
+      "endLine": 120,
+      "symbol": "RemoteWaitTool.execute_remote",
+      "quote": null
+    }
+  ],
+  "reasoning": "RemoteToolBase centralizes request id selection from ctx.session.metadata so a backend remote stub can correlate the frontend execution result with the active request. RemoteWaitTool bypasses that helper by always passing a fresh UUID, unlike sibling remote tools, so any caller that supplied a request_id in session metadata will receive a RemoteToolResult that cannot be matched to the original request id. That is especially risky because wait is described as returning a delayed status and fresh screen image, so lost correlation can strand or misattribute the asynchronous frontend response.",
+  "reproduction": null,
+  "recommendation": "Remove the explicit request_id override in RemoteWaitTool so it uses _build_remote_result's default _get_request_id behavior, or only generate a new id when no session request_id exists and document why wait requires a distinct child id.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for request id propagation across remote tool stubs, and the inconsistency is visible only by comparing RemoteWaitTool to the base contract.",
+  "suggestedRegressionTest": "Add a backend unit test that runs RemoteWaitTool with a ToolContext containing session.metadata.request_id and asserts the returned RemoteToolResult.request_id preserves that value, alongside one sibling tool for parity.",
+  "minimumFixScope": "backend/src/tools/remote_tools/computer.py and a focused remote tool request-id test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-134248e4a1_89101c19af",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:04:24.901Z",
+  "updatedAt": "2026-05-24T21:04:24.901Z"
+}

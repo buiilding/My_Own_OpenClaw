@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-6a38404de9-8510_bca84a25c5",
+  "featureId": "feat_library_6a38404de9",
+  "title": "JSON suppression mishandles the opening brace and drops or suppresses following text",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "backend/src/api/processing/tts/processor.py",
+      "startLine": 148,
+      "endLine": 176,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/processing/tts/processor.py",
+      "startLine": 207,
+      "endLine": 217,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/processing/tts/processor.py",
+      "startLine": 259,
+      "endLine": 289,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The processor sets _json_brace_depth to 1 when it sees an opening brace, but in the mid-chunk path it recursively processes post_marker including that same opening brace. The JSON suppression branch increments depth again, so a normal one-object JSON payload never returns to zero on its closing brace and all following text in that chunk is dropped. In the initial buffering path, a complete buffered JSON object with trailing natural language is dropped wholesale without scanning for the matching closing brace, so speech after JSON can be lost.",
+  "reproduction": "After the processor is in text mode, process a chunk like 'Intro {\"x\":1} outro'. 'Intro ' is sent, but the opening brace is counted twice and ' outro' is not sent. Starting from the indeterminate state with '{\"x\":1} outro' drops the entire buffer and does not recover ' outro'.",
+  "recommendation": "Use one consistent JSON parser state transition: either consume the opening brace before entering suppression with depth 1, or enter with depth 0 and let the suppression scanner count the included content. Also scan the current buffered content for JSON completion so trailing non-JSON text can be passed through.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are present, and the edge cases with JSON beginning mid-chunk or completing in the initial buffer are not evidenced by any included test.",
+  "suggestedRegressionTest": "Add tests asserting that 'Intro {\"x\":1} outro' and '{\"x\":1} outro' suppress only the JSON object and still send the surrounding text to TTS.",
+  "minimumFixScope": "backend/src/api/processing/tts/processor.py JSON brace-depth handling plus focused TTSProcessor tests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-6a38404de9_851095b45a",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:10:55.338Z",
+  "updatedAt": "2026-05-24T21:10:55.338Z"
+}

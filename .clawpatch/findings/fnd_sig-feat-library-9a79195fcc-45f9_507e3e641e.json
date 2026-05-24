@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-9a79195fcc-45f9_507e3e641e",
+  "featureId": "feat_library_9a79195fcc",
+  "title": "Failed OpenAI transcription items leave partial transcripts retained",
+  "category": "performance",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/services/transcription/openai_realtime.py",
+      "startLine": 111,
+      "endLine": 113,
+      "symbol": "OpenAIRealtimeTranscriptionSession.stream_events",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/services/transcription/openai_realtime.py",
+      "startLine": 128,
+      "endLine": 129,
+      "symbol": "OpenAIRealtimeTranscriptionSession.stream_events",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/services/transcription/openai_realtime.py",
+      "startLine": 141,
+      "endLine": 148,
+      "symbol": "OpenAIRealtimeTranscriptionSession.stream_events",
+      "quote": null
+    }
+  ],
+  "reasoning": "Delta events append text into _partial_transcripts by item_id, and completed events explicitly pop that item. The failed-event branch emits an error but does not remove the failed item_id from _partial_transcripts, so repeated failed transcription items after partial deltas can retain transcript text for the lifetime of the websocket session.",
+  "reproduction": "Drive stream_events with a delta event for item_id X followed by conversation.item.input_audio_transcription.failed for the same item_id, then inspect that _partial_transcripts still contains X.",
+  "recommendation": "In the failed-event branch, read item_id and pop it from _partial_transcripts before or after sending the error event, matching the completed branch cleanup behavior.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for OpenAI realtime event handling, and the excerpt shows no regression test asserting partial transcript cleanup on failed events.",
+  "suggestedRegressionTest": "Add a unit test for stream_events using a fake websocket that emits a delta followed by a failed event for the same item_id, then assert the session emits an error and no partial transcript entry remains.",
+  "minimumFixScope": "backend/src/api/services/transcription/openai_realtime.py failed-event handling plus a focused backend unit test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-9a79195fcc_45f9ab9787",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:14:51.800Z",
+  "updatedAt": "2026-05-24T21:14:51.800Z"
+}

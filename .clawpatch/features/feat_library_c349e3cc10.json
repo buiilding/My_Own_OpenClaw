@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_c349e3cc10",
+  "title": "Python source backend/src/api/handlers",
+  "summary": "Python source group backend/src/api/handlers with 9 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/api/handlers",
+      "symbol": "backend/src/api/handlers",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/api/handlers/__init__.py",
+      "reason": "source group backend/src/api/handlers"
+    },
+    {
+      "path": "backend/src/api/handlers/compact_history.py",
+      "reason": "source group backend/src/api/handlers"
+    },
+    {
+      "path": "backend/src/api/handlers/context.py",
+      "reason": "source group backend/src/api/handlers"
+    },
+    {
+      "path": "backend/src/api/handlers/query.py",
+      "reason": "source group backend/src/api/handlers"
+    },
+    {
+      "path": "backend/src/api/handlers/rehydrate.py",
+      "reason": "source group backend/src/api/handlers"
+    },
+    {
+      "path": "backend/src/api/handlers/settings.py",
+      "reason": "source group backend/src/api/handlers"
+    },
+    {
+      "path": "backend/src/api/handlers/stop_query.py",
+      "reason": "source group backend/src/api/handlers"
+    },
+    {
+      "path": "backend/src/api/handlers/tool_result.py",
+      "reason": "source group backend/src/api/handlers"
+    },
+    {
+      "path": "backend/src/api/handlers/wakeword.py",
+      "reason": "source group backend/src/api/handlers"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-c349e3cc10-3cca_036fc1a06c",
+    "fnd_sig-feat-library-c349e3cc10-4f75_9818d9242e",
+    "fnd_sig-feat-library-c349e3cc10-f1d5_60ff8813e1"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "3 finding(s); prompt=52962 bytes; approxTokens=13241; includedFiles=9; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:16:53.699Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:16:53.699Z"
+}

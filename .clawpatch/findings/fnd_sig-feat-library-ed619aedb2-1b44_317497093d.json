@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-ed619aedb2-1b44_317497093d",
+  "featureId": "feat_library_ed619aedb2",
+  "title": "Instance-level last-usage fields are unsafe for overlapping provider requests",
+  "category": "concurrency",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/llm/providers/base.py",
+      "startLine": 69,
+      "endLine": 71,
+      "symbol": "LLMProvider.__init__",
+      "quote": null
+    },
+    {
+      "path": "backend/src/llm/providers/base.py",
+      "startLine": 255,
+      "endLine": 275,
+      "symbol": "LLMProvider usage accessors",
+      "quote": null
+    },
+    {
+      "path": "backend/src/llm/providers/base.py",
+      "startLine": 299,
+      "endLine": 317,
+      "symbol": "LLMProvider._record_usage_from_payload_container",
+      "quote": null
+    },
+    {
+      "path": "backend/src/llm/providers/base.py",
+      "startLine": 451,
+      "endLine": 476,
+      "symbol": "LLMProvider stream helpers",
+      "quote": null
+    }
+  ],
+  "reasoning": "Usage and normalized stream response payloads are stored as mutable state on the provider object. The stream helpers pass bound self recorders into the streaming pipeline, so two concurrent streams on the same provider instance can overwrite each other's _last_usage, _last_stream_usage, or _last_stream_response_payload. Downstream code that reads these accessors after a stream may attach the wrong usage or tool-call payload to a turn.",
+  "reproduction": "Start two get_completion_stream calls concurrently on one provider instance, with stream A receiving a usage chunk after stream B. After stream B finishes and reads get_last_stream_usage(), stream A can overwrite the shared provider field before or during that read.",
+  "recommendation": "Move usage and stream response payload capture into request-local state returned by the streaming pipeline, or key the stored payload by request/turn id. If global last-value accessors must remain, document them as diagnostics only and avoid using them for turn-critical behavior.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included, and ordinary single-stream tests would not expose cross-request overwrites.",
+  "suggestedRegressionTest": "Add an async test that runs two fake streams concurrently through one provider instance and asserts each request observes only its own usage/payload state.",
+  "minimumFixScope": "Refactor stream usage/payload capture so the active stream owns its state rather than writing request-critical metadata to shared provider fields.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-ed619aedb2_1b442d3acd",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:19:22.448Z",
+  "updatedAt": "2026-05-24T21:19:22.448Z"
+}

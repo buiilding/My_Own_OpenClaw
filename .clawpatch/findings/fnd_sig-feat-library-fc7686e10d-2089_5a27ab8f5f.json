@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-fc7686e10d-2089_5a27ab8f5f",
+  "featureId": "feat_library_fc7686e10d",
+  "title": "Chat pill session flow has no focused regression coverage",
+  "category": "test-gap",
+  "severity": "low",
+  "confidence": "high",
+  "triage": "test-gap",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/features/chat/utils/chatPill/chatPillSessionFlow.ts",
+      "startLine": 34,
+      "endLine": 61,
+      "symbol": "resolveChatPillSendLifecycle",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/utils/chatPill/chatPillSessionFlow.ts",
+      "startLine": 64,
+      "endLine": 93,
+      "symbol": "resolveChatPillViewIntent",
+      "quote": null
+    },
+    {
+      "path": "frontend/package.json",
+      "startLine": 40,
+      "endLine": 41,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The feature contains branchy UI lifecycle behavior for screenshot capture, return-to-chatbox policy, overlay view intent, dismissed response handling, and turnId fallback, but the feature metadata includes no linked tests even though the frontend package has Jest test commands. Regressions in these rules would affect chat pill visibility and response association without a focused safety net.",
+  "reproduction": null,
+  "recommendation": "Add focused Jest tests for resolveChatPillSendLifecycle and resolveChatPillViewIntent covering overlay versus main-window sends, includeQueryScreenshot true and false, return-to-chatbox behavior, visibleResponse versus activeResponse precedence, dismissed response propagation through the view contract, and fallback to the latest non-empty message turnRef.",
+  "whyTestsDoNotAlreadyCoverThis": "No tests are linked for this semantic feature, and the provided package manifest only shows generic Jest commands rather than evidence of coverage for this file.",
+  "suggestedRegressionTest": "Create a chatPillSessionFlow.test.ts suite that imports these utilities and asserts the decision matrix for capture, surfaceReason, shouldReturnToChatboxOnSend, and turnId precedence with representative ChatMessage arrays.",
+  "minimumFixScope": "Add or extend frontend Jest unit tests for frontend/src/renderer/features/chat/utils/chatPill/chatPillSessionFlow.ts.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-fc7686e10d_2089d52547",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:20:29.766Z",
+  "updatedAt": "2026-05-24T21:20:29.766Z"
+}

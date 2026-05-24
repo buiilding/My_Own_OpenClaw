@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_7fdf529e44",
+  "title": "Python source backend/src/api/routes/transcription",
+  "summary": "Python source group backend/src/api/routes/transcription with 2 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/api/routes/transcription",
+      "symbol": "backend/src/api/routes/transcription",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/api/routes/transcription/__init__.py",
+      "reason": "source group backend/src/api/routes/transcription"
+    },
+    {
+      "path": "backend/src/api/routes/transcription/router.py",
+      "reason": "source group backend/src/api/routes/transcription"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-7fdf529e44-af79_d9ebca6d55"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=8773 bytes; approxTokens=2194; includedFiles=2; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:13:23.209Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:13:23.209Z"
+}

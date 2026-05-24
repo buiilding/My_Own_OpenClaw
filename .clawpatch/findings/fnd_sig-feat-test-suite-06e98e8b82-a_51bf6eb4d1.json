@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-test-suite-06e98e8b82-a_51bf6eb4d1",
+  "featureId": "feat_test-suite_06e98e8b82",
+  "title": "Event bus wrapper and core bus tests are not collected by pytest",
+  "category": "test-gap",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "test-gap",
+  "evidence": [
+    {
+      "path": "tests/backend/test_event_bus.py",
+      "startLine": 37,
+      "endLine": 47,
+      "symbol": "MockEventHandlerWrapper",
+      "quote": null
+    },
+    {
+      "path": "tests/backend/test_event_bus.py",
+      "startLine": 157,
+      "endLine": 164,
+      "symbol": "MockEventBus",
+      "quote": null
+    }
+  ],
+  "reasoning": "Pytest only collects test classes whose names start with Test by default. The classes MockEventHandlerWrapper and MockEventBus contain many methods named test_*, but the class names do not match pytest's collection pattern, so these tests are silently skipped. That removes coverage for EventHandlerWrapper basics, EventBus subscription, publishing, global listeners, error recovery, cache invalidation, dead-handler cleanup, and concurrent subscribe behavior.",
+  "reproduction": null,
+  "recommendation": "Rename MockEventHandlerWrapper to TestEventHandlerWrapper and MockEventBus to TestEventBus, or otherwise configure pytest collection explicitly. Renaming is the smallest fix and matches the rest of this file's TestEventHandlerStore and TestEventBusRuntime classes.",
+  "whyTestsDoNotAlreadyCoverThis": "The affected methods are themselves intended tests, but because their containing classes are misnamed, pytest does not execute them. The later TestEventHandlerStore and TestEventBusRuntime classes cover some related behavior but do not replace the full skipped coverage.",
+  "suggestedRegressionTest": "Run `pytest --collect-only tests/backend/test_event_bus.py` and assert the collected test count includes the methods under the renamed EventHandlerWrapper and EventBus classes.",
+  "minimumFixScope": "Rename the two non-collected test classes in tests/backend/test_event_bus.py and verify collection.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-test-suite-06e98e8b82_a5acc7cc00",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:23:21.839Z",
+  "updatedAt": "2026-05-24T21:23:21.839Z"
+}

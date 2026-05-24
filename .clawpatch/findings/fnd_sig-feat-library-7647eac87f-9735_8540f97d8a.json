@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-7647eac87f-9735_8540f97d8a",
+  "featureId": "feat_library_7647eac87f",
+  "title": "`includeWindows` requests a field omitted from the returned type contract",
+  "category": "api-contract",
+  "severity": "low",
+  "confidence": "high",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/infrastructure/services/MessageFormatter.ts",
+      "startLine": 10,
+      "endLine": 16,
+      "symbol": "SystemState",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/services/SystemStateCapture.ts",
+      "startLine": 41,
+      "endLine": 48,
+      "symbol": "captureSystemState",
+      "quote": null
+    }
+  ],
+  "reasoning": "`captureSystemState({ includeWindows: true })` asks IPC for a `windows` field, but the exported `SystemState` interface returned by the function does not include `windows`. TypeScript consumers cannot safely read the requested data without casting or using `any`, so the public contract contradicts the behavior.",
+  "reproduction": null,
+  "recommendation": "Add a typed `windows` field to `SystemState` using the shape returned by the IPC system-state endpoint, or introduce a more specific return type for `includeWindows: true`. Add a contract test or type-level coverage if this API is consumed by typed frontend code.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included, and this is a TypeScript contract issue that plain runtime tests would not catch unless they assert the returned shape and its typed access.",
+  "suggestedRegressionTest": "Add a TypeScript-facing test or compile-time fixture that calls `captureSystemState({ includeWindows: true })` and accesses the `windows` field without casts.",
+  "minimumFixScope": "MessageFormatter.ts type definition, and any nearby typed callers/tests that rely on `SystemState`.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-7647eac87f_97356eae91",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:13:36.643Z",
+  "updatedAt": "2026-05-24T21:13:36.643Z"
+}

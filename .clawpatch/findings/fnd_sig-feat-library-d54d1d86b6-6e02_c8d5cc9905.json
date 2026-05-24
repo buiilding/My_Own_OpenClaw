@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-d54d1d86b6-6e02_c8d5cc9905",
+  "featureId": "feat_library_d54d1d86b6",
+  "title": "Unauthenticated registration can mint unlimited durable install identities",
+  "category": "security",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/auth/http_middleware.py",
+      "startLine": 19,
+      "endLine": 33,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/auth/router.py",
+      "startLine": 28,
+      "endLine": 39,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/auth/service.py",
+      "startLine": 83,
+      "endLine": 123,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The middleware explicitly exempts /api/install/register from authentication, and that route immediately creates a new user_id, install_id, durable bearer token, and database row. With no rate limit, proof-of-work, invitation/bootstrap secret, IP/device throttling, or quota shown in the owned files, any remote caller can repeatedly create hosted identities and grow the auth database. Because these tokens are durable and then accepted by the rest of /api/*, this is an abuse and resource-exhaustion boundary rather than just a public signup endpoint.",
+  "reproduction": null,
+  "recommendation": "Add an explicit anti-abuse gate for registration, such as deployment-controlled enablement, bootstrap secret/invite code, per-IP throttling, or a quota policy. Keep /api/install/register public only when the configured deployment mode intentionally allows open enrollment.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were provided for this feature, and the excerpts do not show registration abuse or enrollment-policy coverage.",
+  "suggestedRegressionTest": "Add tests that unauthenticated registration is rejected or throttled when open enrollment is disabled, and that only the intended registration policy can create a durable install token.",
+  "minimumFixScope": "backend/src/api/auth/router.py plus backend/src/api/auth/service.py or middleware/config wiring for the chosen registration policy.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-d54d1d86b6_6e021e9553",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:18:08.726Z",
+  "updatedAt": "2026-05-24T21:18:08.726Z"
+}

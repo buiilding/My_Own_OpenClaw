@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_c840c8d98d",
+  "title": "Node source packages/windie-sdk-js/src/runtime",
+  "summary": "Node/TypeScript source group packages/windie-sdk-js/src/runtime with 8 files.",
+  "kind": "library",
+  "source": "node-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "packages/windie-sdk-js/package.json",
+      "symbol": "packages/windie-sdk-js/src/runtime",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "packages/windie-sdk-js/src/runtime/AgentStreamEvents.ts",
+      "reason": "source group packages/windie-sdk-js/src/runtime"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/runtime/ConversationContinuityService.ts",
+      "reason": "source group packages/windie-sdk-js/src/runtime"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/runtime/ConversationRuntime.ts",
+      "reason": "source group packages/windie-sdk-js/src/runtime"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts",
+      "reason": "source group packages/windie-sdk-js/src/runtime"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/runtime/WindieAgent.ts",
+      "reason": "source group packages/windie-sdk-js/src/runtime"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/runtime/WindieChatSession.ts",
+      "reason": "source group packages/windie-sdk-js/src/runtime"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/runtime/WindieClient.ts",
+      "reason": "source group packages/windie-sdk-js/src/runtime"
+    },
+    {
+      "path": "packages/windie-sdk-js/src/runtime/conversationReducer.ts",
+      "reason": "source group packages/windie-sdk-js/src/runtime"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "packages/windie-sdk-js/package.json",
+      "reason": "package manifest"
+    }
+  ],
+  "tests": [],
+  "tags": [
+    "node",
+    "typescript",
+    "source-group",
+    "project:@windie/sdk",
+    "project-root:packages/windie-sdk-js"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-c840c8d98d-daaa_36bac949b9"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=107663 bytes; approxTokens=26916; includedFiles=9; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:17:17.989Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:17:17.989Z"
+}

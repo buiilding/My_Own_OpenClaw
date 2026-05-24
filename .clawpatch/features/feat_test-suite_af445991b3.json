@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_test-suite_af445991b3",
+  "title": "Python test suite tests/backend#2",
+  "summary": "Python pytest files in tests/backend#2.",
+  "kind": "test-suite",
+  "source": "python-test-suite",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "tests/backend#2",
+      "symbol": "tests/backend#2",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "tests/backend/test_bundle_detection.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_bundle_execution.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_bundle_result_formatter.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_cache_entry.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_cache_layer.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_categorization.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_client_tool_manifest.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_common_schemas.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_compact_history_handler.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_compaction_prompt.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_computer_use_catalog_parity.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/backend/test_computer_use_schema_contract.py",
+      "reason": "pytest file"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_bundle_detection.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_bundle_execution.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_bundle_result_formatter.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_cache_entry.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_cache_layer.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_categorization.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_client_tool_manifest.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_common_schemas.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_compact_history_handler.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_compaction_prompt.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_computer_use_catalog_parity.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/backend/test_computer_use_schema_contract.py",
+      "reason": "nearby test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_bundle_detection.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_bundle_execution.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_bundle_result_formatter.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_cache_entry.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_cache_layer.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_categorization.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_client_tool_manifest.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_common_schemas.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_compact_history_handler.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_compaction_prompt.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_computer_use_catalog_parity.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_computer_use_schema_contract.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "test"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-test-suite-af445991b3-0_4f082c8b7c"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "1 finding(s); prompt=76399 bytes; approxTokens=19100; includedFiles=12; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:24:20.707Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:24:20.707Z"
+}

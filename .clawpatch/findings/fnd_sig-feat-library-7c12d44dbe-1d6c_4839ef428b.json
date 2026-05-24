@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-7c12d44dbe-1d6c_4839ef428b",
+  "featureId": "feat_library_7c12d44dbe",
+  "title": "Tool call content can render blank for valid message payloads",
+  "category": "api-contract",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "contract-mismatch",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/features/chat/components/message/content/ToolCallMessage.jsx",
+      "startLine": 12,
+      "endLine": 20,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/components/message/content/ToolCallMessage.jsx",
+      "startLine": 41,
+      "endLine": 48,
+      "symbol": null,
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/components/message/content/ToolCallMessage.jsx",
+      "startLine": 61,
+      "endLine": 67,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The component contract requires only message.text, while toolCallDisplayText and modelFacingToolCall are optional. However, the displayed tool call body is derived only from those optional fields, so a payload that satisfies the declared contract with just text renders an empty pre block. The fallback text is only included in the details payload, hidden behind the Details toggle, which makes legacy or partially projected tool-call messages appear blank in the main chat.",
+  "reproduction": "Render ToolCallMessage with message={ text: 'call search with query x' } and no toolCallDisplayText/modelFacingToolCall. The main tool-call content receives an empty string.",
+  "recommendation": "Include message.text as the final display fallback for modelFacingText, or tighten the message contract so toolCallDisplayText/modelFacingToolCall is required and covered by tests.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for this source group, and the current propTypes still allow the blank-rendering payload shape.",
+  "suggestedRegressionTest": "Add a renderer test that renders ToolCallMessage with only the required text field and asserts the main tool-call content contains that text.",
+  "minimumFixScope": "ToolCallMessage display fallback and a focused component regression test.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-7c12d44dbe_1d6c85a43b",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:12:01.768Z",
+  "updatedAt": "2026-05-24T21:12:01.768Z"
+}

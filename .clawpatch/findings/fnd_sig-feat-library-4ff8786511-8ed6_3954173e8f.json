@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-4ff8786511-8ed6_3954173e8f",
+  "featureId": "feat_library_4ff8786511",
+  "title": "Handshake failure leaves socket open but session treated as connected",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "packages/windie-sdk-js/src/transport/ManagedBackendSession.ts",
+      "startLine": 131,
+      "endLine": 146,
+      "symbol": "ManagedBackendSession.connect",
+      "quote": null
+    },
+    {
+      "path": "packages/windie-sdk-js/src/transport/ManagedBackendSession.ts",
+      "startLine": 231,
+      "endLine": 249,
+      "symbol": "ManagedBackendSession.ensureConnected",
+      "quote": null
+    },
+    {
+      "path": "packages/windie-sdk-js/src/transport/ManagedBackendSession.cjs",
+      "startLine": 90,
+      "endLine": 105,
+      "symbol": "ManagedBackendSession.connect",
+      "quote": null
+    },
+    {
+      "path": "packages/windie-sdk-js/src/transport/ManagedBackendSession.cjs",
+      "startLine": 184,
+      "endLine": 202,
+      "symbol": "ManagedBackendSession.ensureConnected",
+      "quote": null
+    }
+  ],
+  "reasoning": "The open handler marks the connection as opened before buildHandshake/send succeeds. If buildHandshake or send throws, waiters are rejected, but the socket is not closed or cleared and opened remains true. Later ensureConnected only checks isOpen and returns true, so callers can send messages over a backend websocket that never received the handshake.",
+  "reproduction": "Use a WebSocket implementation that reaches readyState 1 and emits open, and provide buildHandshake that throws. The first ensureConnected rejects, but the underlying open socket remains assigned; a subsequent ensureConnected returns true because isOpen is true even though no handshake completed.",
+  "recommendation": "Track handshake completion separately from socket open state. If handshake construction or send fails, close and clear the socket, notify onSocketChange, and ensure later ensureConnected does not succeed until a handshake has completed.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests were included for this feature, and the excerpt does not show coverage for handshake build/send failure or subsequent ensureConnected behavior.",
+  "suggestedRegressionTest": "Add ManagedBackendSession tests where buildHandshake throws and where socket.send throws during handshake; assert the socket is closed/cleared, connect waiters reject, and a later ensureConnected attempts a fresh connection instead of treating the stale open socket as ready.",
+  "minimumFixScope": "Update ManagedBackendSession.ts and its CommonJS counterpart or generation source so handshake failure closes/clears the socket and distinguishes open transport from completed session handshake.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-4ff8786511_8ed62fb081",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:08:58.692Z",
+  "updatedAt": "2026-05-24T21:08:58.692Z"
+}

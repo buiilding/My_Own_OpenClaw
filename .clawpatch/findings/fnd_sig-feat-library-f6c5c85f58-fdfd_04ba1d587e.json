@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-f6c5c85f58-fdfd_04ba1d587e",
+  "featureId": "feat_library_f6c5c85f58",
+  "title": "Visual anchor height IPC never applies the chat window frame resize path",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/main/overlay_phase_ipc_runtime.cjs",
+      "startLine": 45,
+      "endLine": 55,
+      "symbol": "initializeOverlayPhaseHandlersRuntime",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/overlay_chatbox_visual_anchor_handler.cjs",
+      "startLine": 23,
+      "endLine": 30,
+      "symbol": "handleSetChatboxVisualAnchorHeight",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/main/overlay_window_helpers_runtime.cjs",
+      "startLine": 235,
+      "endLine": 283,
+      "symbol": "setChatWindowBoundsForVisualAnchorHeight",
+      "quote": null
+    }
+  ],
+  "reasoning": "The IPC runtime passes setChatWindowBoundsForVisualAnchorHeight and resizeChatWindowForVisualAnchorHeight into the visual-anchor handler, and the helper has a dedicated path that preserves the chat window bottom edge while changing the frame height. The handler never consumes either dependency; it only records the anchor height and repositions the response/context windows. That means a renderer update to the visual anchor height can leave the actual BrowserWindow frame at its old height, so the anchored overlay math changes without the chat surface bounds being updated to match. This is especially risky for the minimal-pill/awaiting layout where the response window is positioned off the visual anchor rather than the full chat frame.",
+  "reproduction": null,
+  "recommendation": "Have handleSetChatboxVisualAnchorHeight invoke the bottom-preserving bounds update, likely setChatWindowBoundsForVisualAnchorHeight(nextHeight) as the primary path, and only then reposition dependent windows. Remove the unused resize dependency if it is not part of the intended contract, or use it explicitly as a fallback with tests documenting the precedence.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for this feature, and the dead dependency passed through the IPC layer would only be caught by a focused handler/helper test that asserts the chat window bounds are updated when the visual anchor height changes.",
+  "suggestedRegressionTest": "Add a frontend main-process unit test for set-chatbox-visual-anchor-height/handleSetChatboxVisualAnchorHeight using stub windows. Assert that changing the anchor height calls the bottom-preserving chat-window bounds updater before response/context repositioning, and that unchanged/invalid heights do not reposition unnecessarily.",
+  "minimumFixScope": "frontend/src/main/overlay_chatbox_visual_anchor_handler.cjs plus a focused frontend test for the handler or IPC runtime wiring.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-f6c5c85f58_fdfdc2efec",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:20:11.467Z",
+  "updatedAt": "2026-05-24T21:20:11.467Z"
+}

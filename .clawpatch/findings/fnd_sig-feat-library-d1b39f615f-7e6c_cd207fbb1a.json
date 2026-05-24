@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-d1b39f615f-7e6c_cd207fbb1a",
+  "featureId": "feat_library_d1b39f615f",
+  "title": "Resolved calls are stored by reference despite the immutable-copy contract",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/agent/tools/preparation/storage/resolved_call_storage.py",
+      "startLine": 14,
+      "endLine": 16,
+      "symbol": "ResolvedToolCallStorage",
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/tools/preparation/storage/resolved_call_storage.py",
+      "startLine": 23,
+      "endLine": 34,
+      "symbol": "ResolvedToolCallStorage.register",
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/tools/preparation/storage/resolved_call_storage.py",
+      "startLine": 36,
+      "endLine": 49,
+      "symbol": "ResolvedToolCallStorage.get",
+      "quote": null
+    }
+  ],
+  "reasoning": "The class contract says resolved tool calls are immutable copies used later by ToolOrchestrator during execution, but register stores the provided object directly and get returns the same object. If the caller keeps and mutates the original parsed/resolved call after registration, or mutates the object returned by get, the stored execution payload changes behind the storage boundary. That can corrupt resolved coordinates or arguments for later execution.",
+  "reproduction": null,
+  "recommendation": "Copy or freeze resolved_call at the storage boundary, and avoid returning the mutable stored object directly. If resolved calls are dataclasses or Pydantic models, use the appropriate model copy/freeze API; otherwise use a structured deep copy for plain dict/list payloads.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for this feature, and the current excerpt has no test coverage asserting copy isolation or immutability.",
+  "suggestedRegressionTest": "Register a mutable resolved call, mutate the original and a retrieved value, then assert a subsequent get still returns the originally registered resolved arguments.",
+  "minimumFixScope": "Update ResolvedToolCallStorage.register/get to enforce snapshot semantics for the supported resolved-call payload type and add focused storage tests.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-d1b39f615f_7e6c621c54",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:17:59.478Z",
+  "updatedAt": "2026-05-24T21:17:59.478Z"
+}

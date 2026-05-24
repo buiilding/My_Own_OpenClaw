@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-f05dc711c2-47e8_4dcd62e7c2",
+  "featureId": "feat_library_f05dc711c2",
+  "title": "Persisted screenshot refs are written into the inline screenshot field",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/infrastructure/transcript/transcriptEntryPersistence.ts",
+      "startLine": 19,
+      "endLine": 22,
+      "symbol": "buildReplayRehydrateEntry",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/transcript/transcriptEntryPersistence.ts",
+      "startLine": 38,
+      "endLine": 52,
+      "symbol": "storeTranscriptEntry",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/infrastructure/transcript/storedTranscriptMemoryState.js",
+      "startLine": 33,
+      "endLine": 58,
+      "symbol": "resolveStoredTranscriptScreenshotAttachment",
+      "quote": null
+    }
+  ],
+  "reasoning": "The replay payload correctly treats entry.screenshotRef as a screenshotRef, but the persisted projection entry writes that same value to the field named screenshot. The stored transcript reader distinguishes screenshot from screenshotRef, passing memory.screenshot as inline screenshot data and only memory.screenshot_ref/screenshotRef as the artifact reference. That means persisted transcript rows can rehydrate a ref-like value through the inline screenshot path, which can lose or misclassify screenshot attachments depending on downstream normalization.",
+  "reproduction": null,
+  "recommendation": "Persist entry.screenshotRef using the projection field that maps to screenshotRef, or update the stored reader/writer contract so screenshot refs and inline screenshot data are not conflated.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for transcript entry persistence or stored screenshot rehydration, and the current excerpt shows no assertion that a stored screenshotRef round-trips as screenshotRef rather than screenshot.",
+  "suggestedRegressionTest": "Add a transcript persistence round-trip test that stores an entry with screenshotRef and verifies the resulting rehydrate/projection state exposes screenshotRef while leaving inline screenshot data null.",
+  "minimumFixScope": "Change the transcript projection append payload and any matching projection type/store mapping needed to write screenshot refs to a screenshotRef-compatible field.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-f05dc711c2_47e8ad26dd",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:19:37.429Z",
+  "updatedAt": "2026-05-24T21:19:37.429Z"
+}

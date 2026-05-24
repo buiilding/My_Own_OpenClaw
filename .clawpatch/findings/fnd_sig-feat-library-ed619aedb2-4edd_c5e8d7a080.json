@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-ed619aedb2-4edd_c5e8d7a080",
+  "featureId": "feat_library_ed619aedb2",
+  "title": "Streaming errors expose raw provider exception text to clients",
+  "category": "security",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/llm/providers/base.py",
+      "startLine": 237,
+      "endLine": 247,
+      "symbol": "LLMProvider.get_completion_stream",
+      "quote": null
+    },
+    {
+      "path": "backend/src/llm/providers/base.py",
+      "startLine": 141,
+      "endLine": 164,
+      "symbol": "LLMProvider._get_completion_with_standard_errors",
+      "quote": null
+    }
+  ],
+  "reasoning": "The non-streaming path maps provider/API failures to standard LLMAPIError/LLMError messages, but the streaming path yields ErrorEvent content built from str(e) for LiteLLM APIError and all unexpected exceptions. Provider exception strings can include upstream response bodies, request URLs, deployment names, or other operational details that should not be sent directly to the model/user stream. This also creates inconsistent public error contracts between streaming and non-streaming calls.",
+  "reproduction": "Raise a LiteLLM APIError or generic exception from _stream_internal whose message contains provider response details; get_completion_stream yields that raw message in ErrorEvent.content.",
+  "recommendation": "Use the same sanitized error mapping as the non-streaming path for stream ErrorEvent content, preserving detailed exception text in server logs only.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for streaming error content, and a test would need to assert that sensitive exception details are logged but not emitted in ErrorEvent.content.",
+  "suggestedRegressionTest": "Add a streaming test where _stream_internal raises an exception containing a fake secret or upstream body, then assert the yielded ErrorEvent contains only the sanitized provider error text.",
+  "minimumFixScope": "Change get_completion_stream exception handlers to emit sanitized messages using the existing status-code/error-message helpers and add focused tests for APIError and unexpected exceptions.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-ed619aedb2_4eddc3b7dc",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:19:22.448Z",
+  "updatedAt": "2026-05-24T21:19:22.448Z"
+}

@@ -1,0 +1,168 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_test-suite_0bb4807cb2",
+  "title": "Python test suite tests/sidecar",
+  "summary": "Python pytest files in tests/sidecar.",
+  "kind": "test-suite",
+  "source": "python-test-suite",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "tests/sidecar",
+      "symbol": "tests/sidecar",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "tests/sidecar/test_backend_config.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/sidecar/test_bootstrap_paths.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/sidecar/test_browser_registry.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/sidecar/test_browser_runtime_architecture.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/sidecar/test_browser_use_runtime_owners.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/sidecar/test_chat_event_store.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/sidecar/test_conversation_search_helpers.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/sidecar/test_conversation_semanticization_runtime.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/sidecar/test_conversation_window_runtime.py",
+      "reason": "pytest file"
+    },
+    {
+      "path": "tests/sidecar/test_env_flags.py",
+      "reason": "pytest file"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/sidecar/test_backend_config.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/sidecar/test_bootstrap_paths.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/sidecar/test_browser_registry.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/sidecar/test_browser_runtime_architecture.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/sidecar/test_browser_use_runtime_owners.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/sidecar/test_chat_event_store.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/sidecar/test_conversation_search_helpers.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/sidecar/test_conversation_semanticization_runtime.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/sidecar/test_conversation_window_runtime.py",
+      "reason": "nearby test"
+    },
+    {
+      "path": "tests/sidecar/test_env_flags.py",
+      "reason": "nearby test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/sidecar/test_backend_config.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/sidecar/test_bootstrap_paths.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/sidecar/test_browser_registry.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/sidecar/test_browser_runtime_architecture.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/sidecar/test_browser_use_runtime_owners.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/sidecar/test_chat_event_store.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/sidecar/test_conversation_search_helpers.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/sidecar/test_conversation_semanticization_runtime.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/sidecar/test_conversation_window_runtime.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/sidecar/test_env_flags.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "test"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-test-suite-0bb4807cb2-a_0d7275d5c0",
+    "fnd_sig-feat-test-suite-0bb4807cb2-c_d182f600d6"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=46164 bytes; approxTokens=11540; includedFiles=10; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:23:32.884Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:23:32.884Z"
+}

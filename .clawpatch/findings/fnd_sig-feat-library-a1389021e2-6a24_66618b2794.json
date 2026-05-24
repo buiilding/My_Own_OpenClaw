@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-a1389021e2-6a24_66618b2794",
+  "featureId": "feat_library_a1389021e2",
+  "title": "Fallback tool-call IDs are written to history but never staged for the matching tool output",
+  "category": "bug",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "backend/src/agent/execution/tool_call_bridge.py",
+      "startLine": 144,
+      "endLine": 146,
+      "symbol": "to_history_tool_calls",
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/execution/tool_call_bridge.py",
+      "startLine": 178,
+      "endLine": 187,
+      "symbol": "extract_tool_call_ids",
+      "quote": null
+    },
+    {
+      "path": "backend/src/agent/execution/interaction_loop.py",
+      "startLine": 461,
+      "endLine": 468,
+      "symbol": "_commit_assistant_tool_turn",
+      "quote": null
+    },
+    {
+      "path": "tests/backend/test_interaction_loop.py",
+      "startLine": 383,
+      "endLine": 390,
+      "symbol": "test_interaction_loop_replays_invalid_direct_mouse_tool_call",
+      "quote": null
+    }
+  ],
+  "reasoning": "When a parsed tool call has no metadata tool_call_id, to_history_tool_calls persists a fallback ID such as tool_call_0, but extract_tool_call_ids only returns IDs already present in metadata. _commit_assistant_tool_turn therefore records assistant tool_calls with fallback IDs while staging an empty ID list. Tool outputs added afterward cannot be linked to the assistant tool call, which can corrupt the LLM conversation history format for providers that require each tool output to reference a previous tool_call id.",
+  "reproduction": null,
+  "recommendation": "Make the ID derivation shared between to_history_tool_calls and extract_tool_call_ids, or have _commit_assistant_tool_turn build history tool calls once and stage the exact same IDs it persists. Preserve provider IDs when present and use deterministic fallback IDs when absent.",
+  "whyTestsDoNotAlreadyCoverThis": "The current tests only assert staging for native tool calls that include explicit ids, e.g. call_mouse_1 and call_browser_invalid_1. They do not cover a tool call without an id, where the history fallback and staged IDs diverge.",
+  "suggestedRegressionTest": "Add an InteractionLoop test whose LLM payload returns a tool call without an id, then assert the assistant history stores id tool_call_0 and stage_tool_call_ids receives [\"tool_call_0\"].",
+  "minimumFixScope": "backend/src/agent/execution/tool_call_bridge.py plus a focused test in tests/backend/test_interaction_loop.py",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-a1389021e2_6a24e82e6d",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:15:09.082Z",
+  "updatedAt": "2026-05-24T21:15:09.082Z"
+}

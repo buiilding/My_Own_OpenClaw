@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_b826096e8e",
+  "title": "Python source backend/src/agent/tools/preparation/helpers",
+  "summary": "Python source group backend/src/agent/tools/preparation/helpers with 9 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/agent/tools/preparation/helpers",
+      "symbol": "backend/src/agent/tools/preparation/helpers",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/agent/tools/preparation/helpers/__init__.py",
+      "reason": "source group backend/src/agent/tools/preparation/helpers"
+    },
+    {
+      "path": "backend/src/agent/tools/preparation/helpers/coordinate_contract.py",
+      "reason": "source group backend/src/agent/tools/preparation/helpers"
+    },
+    {
+      "path": "backend/src/agent/tools/preparation/helpers/coordinate_resolution_helper.py",
+      "reason": "source group backend/src/agent/tools/preparation/helpers"
+    },
+    {
+      "path": "backend/src/agent/tools/preparation/helpers/grounded_source_preparation.py",
+      "reason": "source group backend/src/agent/tools/preparation/helpers"
+    },
+    {
+      "path": "backend/src/agent/tools/preparation/helpers/image_dimensions.py",
+      "reason": "source group backend/src/agent/tools/preparation/helpers"
+    },
+    {
+      "path": "backend/src/agent/tools/preparation/helpers/mouse_drag_destination_preparation.py",
+      "reason": "source group backend/src/agent/tools/preparation/helpers"
+    },
+    {
+      "path": "backend/src/agent/tools/preparation/helpers/preparation_helper.py",
+      "reason": "source group backend/src/agent/tools/preparation/helpers"
+    },
+    {
+      "path": "backend/src/agent/tools/preparation/helpers/source_coordinate_method.py",
+      "reason": "source group backend/src/agent/tools/preparation/helpers"
+    },
+    {
+      "path": "backend/src/agent/tools/preparation/helpers/vision_service_provider.py",
+      "reason": "source group backend/src/agent/tools/preparation/helpers"
+    }
+  ],
+  "contextFiles": [
+    {
+      "path": "tests/backend/test_coordinate_contract.py",
+      "reason": "associated test"
+    },
+    {
+      "path": "tests/backend/test_coordinate_resolution_helper.py",
+      "reason": "associated test"
+    },
+    {
+      "path": "tests/backend/test_image_dimensions.py",
+      "reason": "associated test"
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/backend/test_coordinate_contract.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_coordinate_resolution_helper.py",
+      "command": "pytest"
+    },
+    {
+      "path": "tests/backend/test_image_dimensions.py",
+      "command": "pytest"
+    }
+  ],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "needs-fix",
+  "lock": null,
+  "findingIds": [
+    "fnd_sig-feat-library-b826096e8e-52fd_d1f9a44942",
+    "fnd_sig-feat-library-b826096e8e-116e_9e5b2ca286"
+  ],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "2 finding(s); prompt=77207 bytes; approxTokens=19302; includedFiles=12; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:16:10.066Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:16:10.066Z"
+}

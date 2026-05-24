@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "featureId": "feat_library_ec1e345903",
+  "title": "Python source backend/src/core/utils",
+  "summary": "Python source group backend/src/core/utils with 4 files.",
+  "kind": "library",
+  "source": "python-source-group",
+  "confidence": "medium",
+  "entrypoints": [
+    {
+      "path": "backend/src/core/utils",
+      "symbol": "backend/src/core/utils",
+      "route": null,
+      "command": null
+    }
+  ],
+  "ownedFiles": [
+    {
+      "path": "backend/src/core/utils/__init__.py",
+      "reason": "source group backend/src/core/utils"
+    },
+    {
+      "path": "backend/src/core/utils/coordinate_methods.py",
+      "reason": "source group backend/src/core/utils"
+    },
+    {
+      "path": "backend/src/core/utils/raw_tool_call_preview.py",
+      "reason": "source group backend/src/core/utils"
+    },
+    {
+      "path": "backend/src/core/utils/string_normalization.py",
+      "reason": "source group backend/src/core/utils"
+    }
+  ],
+  "contextFiles": [],
+  "tests": [],
+  "tags": [
+    "python",
+    "source-group"
+  ],
+  "trustBoundaries": [],
+  "status": "reviewed",
+  "lock": null,
+  "findingIds": [],
+  "patchAttemptIds": [],
+  "analysisHistory": [
+    {
+      "runId": "20260524T210255-a3a46a",
+      "kind": "review",
+      "summary": "0 finding(s); prompt=7605 bytes; approxTokens=1902; includedFiles=4; omittedFiles=0",
+      "provider": "codex",
+      "model": null,
+      "reasoningEffort": null,
+      "createdAt": "2026-05-24T21:19:01.834Z"
+    }
+  ],
+  "createdAt": "2026-05-24T21:00:13.578Z",
+  "updatedAt": "2026-05-24T21:19:01.834Z"
+}

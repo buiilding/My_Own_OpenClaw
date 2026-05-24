@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-c349e3cc10-3cca_036fc1a06c",
+  "featureId": "feat_library_c349e3cc10",
+  "title": "Active query limits are checked before registration, allowing concurrent requests to bypass caps",
+  "category": "concurrency",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/handlers/query.py",
+      "startLine": 99,
+      "endLine": 126,
+      "symbol": "QueryMessageHandler.handle_typed",
+      "quote": null
+    }
+  ],
+  "reasoning": "The handler counts active tasks and rejects over-limit requests before it registers the current task. Two or more query messages for the same user can run this check concurrently, all observe counts below the configured limit, and then all register, exceeding both the per-user and global capacity caps. This weakens the resource protection the limits are meant to provide and can overload the backend under bursty WebSocket traffic.",
+  "reproduction": "Configure max_active_queries_per_user to 1 and send two query messages for the same user concurrently. If both reach the count check before either calls register_active_query_task, both will pass and register.",
+  "recommendation": "Move the capacity check into an atomic SessionManager registration operation, or add a lock around count-and-register so the limit decision and registration happen as one critical section.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for concurrent query admission or limit enforcement races.",
+  "suggestedRegressionTest": "Add an async test that launches two handle_typed calls concurrently with max_active_queries_per_user=1 and asserts exactly one query is registered/executed while the other receives the limit error.",
+  "minimumFixScope": "Query admission path plus SessionManager active-query registration API if needed to make count-and-register atomic.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-c349e3cc10_3ccaf6c0f0",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:16:53.699Z",
+  "updatedAt": "2026-05-24T21:16:53.699Z"
+}

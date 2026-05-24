@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-4aae2bc30f-86c0_c905f628f9",
+  "featureId": "feat_library_4aae2bc30f",
+  "title": "Turn-scoped metadata falls back to updating an unrelated message",
+  "category": "data-loss",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "confirmed-bug",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/features/chat/hooks/chatStream/useStreamMessageUpdaters.ts",
+      "startLine": 25,
+      "endLine": 39,
+      "symbol": "updateLastMessageBySender",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamMetadataHandlers.ts",
+      "startLine": 89,
+      "endLine": 106,
+      "symbol": "handleSystemPrompt/handleUserMessageFull",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamMetadataHandlers.ts",
+      "startLine": 131,
+      "endLine": 134,
+      "symbol": "handleToolSchemas",
+      "quote": null
+    }
+  ],
+  "reasoning": "When a metadata event includes a turnRef, updateLastMessageBySender first looks for a same-turn message, but if none is found it falls back to the last message from that sender without any turnRef. The metadata handlers pass turnRefForUpdate(event), so an out-of-order, replayed, or delayed metadata event for a missing turn can overwrite systemPrompt, fullUserMessage, or tool schema data on a different user message. That corrupts the transcript context displayed and persisted for the wrong turn instead of dropping or buffering unmatched metadata.",
+  "reproduction": null,
+  "recommendation": "When a turnRef is supplied, only update a message whose turnRef matches. If unmatched metadata must be tolerated, buffer it by turnRef or log/drop it; reserve sender-only fallback for events that truly have no turnRef.",
+  "whyTestsDoNotAlreadyCoverThis": "The feature metadata lists no linked tests, and no included test evidence exercises out-of-order or unmatched turnRef metadata events.",
+  "suggestedRegressionTest": "Add a frontend hook/store test that creates a previous user message with turnRef A, then sends user_message_metadata or tool_schemas_metadata with turnRef B and asserts the turnRef A message is not modified.",
+  "minimumFixScope": "Change useStreamMessageUpdaters.updateLastMessageBySender so the sender-only fallback is not used when a non-empty turnRef is provided, then cover the metadata handlers that rely on it.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-4aae2bc30f_86c02beb6e",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:08:28.041Z",
+  "updatedAt": "2026-05-24T21:08:28.041Z"
+}

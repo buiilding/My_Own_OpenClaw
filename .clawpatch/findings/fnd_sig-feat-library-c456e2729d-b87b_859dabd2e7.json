@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-c456e2729d-b87b_859dabd2e7",
+  "featureId": "feat_library_c456e2729d",
+  "title": "Close can hang forever if the sender task is cancelled while close is waiting",
+  "category": "concurrency",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/transport/websocket.py",
+      "startLine": 166,
+      "endLine": 214,
+      "symbol": "SafeWebSocket._sender_loop",
+      "quote": null
+    },
+    {
+      "path": "backend/src/api/transport/websocket.py",
+      "startLine": 284,
+      "endLine": 319,
+      "symbol": "SafeWebSocket.close",
+      "quote": null
+    }
+  ],
+  "reasoning": "close() waits unconditionally on _close_event after trying to enqueue or directly close. _close_event is only set by the sender loop's finally block or the direct-close path when no sender task exists. However, _sender_loop catches ordinary send failures but does not catch asyncio.CancelledError, which is a BaseException in modern Python. If the background sender task is externally cancelled while close() is in progress, the finally block should normally run, but if the task was never allowed to reach or complete that finally before close waits, or if cancellation happens around task creation/loop scheduling, close has no timeout or task-await fallback and can block the caller indefinitely. This is most visible during shutdown paths where task cancellation and graceful close often race.",
+  "reproduction": null,
+  "recommendation": "Make close robust against sender-task cancellation by awaiting the sender task with cancellation handling or adding a bounded wait around _close_event.wait(), and ensure close always completes after attempting direct close. Also consider explicitly handling asyncio.CancelledError in the sender loop to store a terminal sender error before setting the close event.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are provided for cancellation or shutdown races around SafeWebSocket.close().",
+  "suggestedRegressionTest": "Create a SafeWebSocket, start a send so the sender task exists, cancel _sender_task, then assert close() returns within a short timeout and does not hang.",
+  "minimumFixScope": "backend/src/api/transport/websocket.py close and sender-loop shutdown handling",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-c456e2729d_b87b987599",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:16:51.680Z",
+  "updatedAt": "2026-05-24T21:16:51.680Z"
+}

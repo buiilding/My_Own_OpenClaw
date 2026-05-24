@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-ee352cdeb6-16fd_9569f747fe",
+  "featureId": "feat_library_ee352cdeb6",
+  "title": "Assistant transcript transparency can attach metadata from the wrong turn",
+  "category": "data-loss",
+  "severity": "medium",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "frontend/src/renderer/features/chat/utils/chatStream/chatStreamTransparency.ts",
+      "startLine": 5,
+      "endLine": 17,
+      "symbol": "resolveUserMessageForTurn",
+      "quote": null
+    },
+    {
+      "path": "frontend/src/renderer/features/chat/utils/chatStream/chatStreamTransparency.ts",
+      "startLine": 20,
+      "endLine": 66,
+      "symbol": "buildAssistantTranscriptTransparency",
+      "quote": null
+    }
+  ],
+  "reasoning": "When a turnRef is supplied but no user message matches it, resolveUserMessageForTurn falls back to the most recent user message from any turn. buildAssistantTranscriptTransparency then persists that fallback message's system prompt, tool schemas, full user content, and metadata onto the assistant transcript. In concurrent, replayed, or partially migrated streams where an assistant message has a turnRef but the matching user message is absent from the local message list, this can corrupt transcript provenance and potentially expose a different turn's user metadata as if it belonged to the assistant response.",
+  "reproduction": "Call buildAssistantTranscriptTransparency with messages containing only a user message for turnRef 'turn-a' and an assistantMessage for turnRef 'turn-b', passing turnRef 'turn-b'. The returned transparency object will include the user data from 'turn-a'.",
+  "recommendation": "If turnRef is provided, return null when no user message with that exact turnRef exists. Only use the latest-user fallback when no turnRef was supplied, or make the fallback explicit at the caller with a documented compatibility case.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for this feature, and the current code path lacks an assertion for the missing-matching-turn case.",
+  "suggestedRegressionTest": "Add a unit test for buildAssistantTranscriptTransparency where turnRef is supplied and no user message matches it, asserting that unrelated user fullUserMessage, systemPrompt, and toolSchemas are not persisted.",
+  "minimumFixScope": "Change resolveUserMessageForTurn in chatStreamTransparency.ts to avoid cross-turn fallback when turnRef is present, then add focused coverage for matching, missing, and no-turnRef cases.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-ee352cdeb6_16fdd83462",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:19:14.613Z",
+  "updatedAt": "2026-05-24T21:19:14.613Z"
+}

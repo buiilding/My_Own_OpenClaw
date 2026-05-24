@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-test-suite-f9da80985c-2_6a33c0cf92",
+  "featureId": "feat_test-suite_f9da80985c",
+  "title": "Thread-safety test cannot fail on corrupted or dropped TTS buffer output",
+  "category": "test-gap",
+  "severity": "medium",
+  "confidence": "high",
+  "triage": "test-gap",
+  "evidence": [
+    {
+      "path": "tests/backend/test_tts_buffer.py",
+      "startLine": 180,
+      "endLine": 201,
+      "symbol": "TestSentenceBuffer.test_thread_safety_append",
+      "quote": null
+    }
+  ],
+  "reasoning": "The only assertion in the concurrent append test is `len(results) >= 0`, which is always true for any list. The comment also acknowledges results may vary due to race conditions, so this test would pass even if concurrent appends dropped text, duplicated chunks, interleaved buffer state incorrectly, or returned no output at all. Because SentenceBuffer is mutable shared state used for streaming TTS, this leaves the advertised thread-safety behavior effectively untested.",
+  "reproduction": null,
+  "recommendation": "Replace the tautological assertion with deterministic checks around invariants that must hold under concurrency, such as no exceptions from worker threads, all submitted text being present exactly once after collecting emitted chunks plus final flush, and no partial/corrupted fragments. Use a barrier to start threads together and capture worker exceptions explicitly.",
+  "whyTestsDoNotAlreadyCoverThis": "The existing test only starts and joins threads, then asserts a condition that is true for every possible result list. It does not validate output integrity, buffer state, or worker failures.",
+  "suggestedRegressionTest": "Add a concurrent append test that launches workers through a barrier, records exceptions, appends uniquely identifiable sentences, flushes remaining buffered content, and asserts every unique sentence appears exactly once across emitted chunks plus flush output.",
+  "minimumFixScope": "tests/backend/test_tts_buffer.py",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-test-suite-f9da80985c_26dd66ae93",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:24:46.513Z",
+  "updatedAt": "2026-05-24T21:24:46.513Z"
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "findingId": "fnd_sig-feat-library-7fdf529e44-af79_d9ebca6d55",
+  "featureId": "feat_library_7fdf529e44",
+  "title": "Cancelled websocket receive task is never awaited",
+  "category": "concurrency",
+  "severity": "low",
+  "confidence": "medium",
+  "triage": "risk",
+  "evidence": [
+    {
+      "path": "backend/src/api/routes/transcription/router.py",
+      "startLine": 93,
+      "endLine": 98,
+      "symbol": null,
+      "quote": null
+    }
+  ],
+  "reasoning": "The cleanup path cancels an in-flight websocket.receive task but does not await it, while the provider stream task is both cancelled and awaited. If cancellation or the underlying receive coroutine completes with an exception, it can be left unobserved and may produce pending-task or unretrieved-exception warnings during shutdown. This is especially likely when the provider stream ends first while the receive task is still blocked.",
+  "reproduction": null,
+  "recommendation": "After cancelling receive_task, await it under contextlib.suppress(asyncio.CancelledError, Exception) or otherwise consume its terminal state consistently with provider_stream_task cleanup.",
+  "whyTestsDoNotAlreadyCoverThis": "No linked tests are included for this feature, and the existing code path only exposes the issue during teardown timing where provider_stream_task completes before websocket.receive.",
+  "suggestedRegressionTest": "Add an async websocket route teardown test with a fake provider stream that completes while receive is pending, then assert cleanup awaits/cancels both background tasks without pending-task warnings.",
+  "minimumFixScope": "Update the finally block in backend/src/api/routes/transcription/router.py to await receive_task after cancellation.",
+  "status": "open",
+  "history": [],
+  "signature": "sig_feat-library-7fdf529e44_af79306f15",
+  "linkedPatchAttemptIds": [],
+  "createdByRunId": "20260524T210255-a3a46a",
+  "createdAt": "2026-05-24T21:13:23.208Z",
+  "updatedAt": "2026-05-24T21:13:23.208Z"
+}
