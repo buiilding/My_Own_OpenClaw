@@ -6,7 +6,6 @@ import {
   type ToolBundleEvent,
   type ToolCallEvent,
   type ToolOutputEvent,
-  type WebSearchProgressEvent,
 } from '../../../../types/backendEvents';
 import {
   formatToolOutputText,
@@ -45,7 +44,6 @@ type TrackEventFn = (
 ) => void;
 
 type ToolStreamEvent = ToolCallEvent | ToolOutputEvent | ToolBundleEvent | ConversationEvent;
-type WebSearchProgressStreamEvent = WebSearchProgressEvent | ConversationEvent;
 
 type UseChatStreamToolHandlersDeps = {
   enableTranscript: boolean;
@@ -74,40 +72,6 @@ function unwrapToolBackendEvent<TEvent extends ToolCallEvent | ToolOutputEvent |
     return rawEvent as TEvent;
   }
   return null;
-}
-
-function unwrapWebSearchProgressBackendEvent(event: WebSearchProgressStreamEvent): WebSearchProgressEvent | null {
-  if ('turn_ref' in event && event.type === 'web-search-progress') {
-    return event as WebSearchProgressEvent;
-  }
-  const rawEvent = event.payload?.rawEvent;
-  if (
-    rawEvent
-    && typeof rawEvent === 'object'
-    && !Array.isArray(rawEvent)
-    && (rawEvent as { type?: unknown }).type === 'web-search-progress'
-  ) {
-    return rawEvent as WebSearchProgressEvent;
-  }
-  if (event.type !== 'tool_progress') {
-    return null;
-  }
-  return {
-    id: event.eventId,
-    type: 'web-search-progress',
-    conversation_ref: event.conversationRef,
-    turn_ref: event.turnRef ?? undefined,
-    payload: {
-      text: typeof event.payload.text === 'string' ? event.payload.text : '',
-      request_id: typeof event.payload.requestId === 'string'
-        ? event.payload.requestId
-        : (typeof event.payload.correlationId === 'string' ? event.payload.correlationId : null),
-      action_type: typeof event.payload.action_type === 'string' ? event.payload.action_type : null,
-      query: typeof event.payload.query === 'string' ? event.payload.query : null,
-      url: typeof event.payload.url === 'string' ? event.payload.url : null,
-      pattern: typeof event.payload.pattern === 'string' ? event.payload.pattern : null,
-    },
-  };
 }
 
 export function useChatStreamToolHandlers({
@@ -292,18 +256,22 @@ export function useChatStreamToolHandlers({
   ]);
 
   const handleWebSearchProgress = useCallback((
-    event: WebSearchProgressStreamEvent,
+    event: ConversationEvent,
     conversationRef?: string | null,
   ) => {
-    const backendEvent = unwrapWebSearchProgressBackendEvent(event);
-    if (!backendEvent) {
+    if (event.type !== 'tool_progress') {
       return;
     }
-    const resolvedConversationRef = conversationRef ?? ('conversationRef' in event ? event.conversationRef : null);
-    const text = typeof backendEvent.payload?.text === 'string' ? backendEvent.payload.text.trim() : '';
+    const resolvedConversationRef = conversationRef ?? event.conversationRef;
+    const text = typeof event.payload?.text === 'string' ? event.payload.text.trim() : '';
     if (!text) {
       return;
     }
+    const correlationId = typeof event.payload?.requestId === 'string' && event.payload.requestId.trim()
+      ? event.payload.requestId.trim()
+      : typeof event.payload?.correlationId === 'string' && event.payload.correlationId.trim()
+        ? event.payload.correlationId.trim()
+        : undefined;
     const modelContext = modelContextRef.current;
     addMessage({
       id: crypto.randomUUID(),
@@ -312,18 +280,14 @@ export function useChatStreamToolHandlers({
       type: 'search-source',
       sourceEventType: 'web-search-progress',
       sourceChannel: 'from-backend',
-      correlationId: (
-        typeof backendEvent.payload?.request_id === 'string' && backendEvent.payload.request_id.trim()
-          ? backendEvent.payload.request_id.trim()
-          : undefined
-      ),
-      turnRef: backendEvent.turn_ref,
+      correlationId,
+      turnRef: event.turnRef ?? undefined,
       modelId: modelContext.modelId,
       modelProvider: modelContext.modelProvider,
     }, resolvedConversationRef);
     recordTrackingEvent(
       'web-search-progress',
-      backendEvent.turn_ref,
+      event.turnRef,
       { phase: 'tool-call', toolCall: true },
       resolvedConversationRef,
     );

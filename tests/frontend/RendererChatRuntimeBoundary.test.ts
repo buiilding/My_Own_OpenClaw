@@ -155,6 +155,18 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('payload?.userId');
   });
 
+  test('chat stream tool progress consumes SDK tool progress directly', async () => {
+    const source = await fs.readFile(
+      path.join(chatRoot, 'hooks/chatStream/useChatStreamToolHandlers.ts'),
+      'utf8',
+    );
+
+    expect(source).not.toContain('unwrapWebSearchProgressBackendEvent');
+    expect(source).not.toContain('WebSearchProgressEvent');
+    expect(source).toContain("event.type !== 'tool_progress'");
+    expect(source).toContain('payload?.requestId');
+  });
+
   test('conversation replay rewrites use the desktop runtime facade', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'hooks/useConversationReplayActions.js'),

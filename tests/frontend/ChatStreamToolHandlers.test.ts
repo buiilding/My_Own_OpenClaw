@@ -365,7 +365,7 @@ describe('useChatStreamToolHandlers', () => {
     );
   });
 
-  test('adds transient search-source rows for live web-search progress without writing transcript tool rows', () => {
+  test('adds transient search-source rows for SDK tool progress without writing transcript tool rows', () => {
     const addMessage = jest.fn();
     const recordTrackingEvent = jest.fn();
 
@@ -386,13 +386,17 @@ describe('useChatStreamToolHandlers', () => {
 
     act(() => {
       result.current.handleWebSearchProgress({
-        id: 'event-search-progress-1',
-        type: 'web-search-progress',
-        turn_ref: 'turn-search-1',
-        conversation_ref: 'conversation-search-1',
+        eventId: 'event-search-progress-1',
+        type: 'tool_progress',
+        conversationRef: 'conversation-search-1',
+        turnRef: 'turn-search-1',
+        revisionId: 'rev-search-1',
+        timestamp: '2026-05-24T00:00:00.000Z',
+        source: 'backend',
         payload: {
+          toolName: 'web_search',
           text: 'Searched youtube.com',
-          request_id: 'req-search-1',
+          requestId: 'req-search-1',
         },
       } as any, 'conversation-search-1');
     });
@@ -415,7 +419,7 @@ describe('useChatStreamToolHandlers', () => {
     expect(mockRecordToolMessage).not.toHaveBeenCalled();
   });
 
-  test('adds transient search-source rows from SDK tool progress events', () => {
+  test('uses SDK tool progress correlation id when request id is absent', () => {
     const addMessage = jest.fn();
     const recordTrackingEvent = jest.fn();
 
@@ -446,7 +450,7 @@ describe('useChatStreamToolHandlers', () => {
         payload: {
           toolName: 'web_search',
           text: 'Searched example.com',
-          requestId: 'req-search-2',
+          correlationId: 'corr-search-2',
         },
       } as any, 'conversation-search-2');
     });
@@ -456,7 +460,7 @@ describe('useChatStreamToolHandlers', () => {
         text: 'Searched example.com',
         type: 'search-source',
         sourceEventType: 'web-search-progress',
-        correlationId: 'req-search-2',
+        correlationId: 'corr-search-2',
       }),
       'conversation-search-2',
     );

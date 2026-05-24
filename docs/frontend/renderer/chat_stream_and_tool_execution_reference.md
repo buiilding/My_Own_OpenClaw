@@ -185,6 +185,9 @@ SDK dispatch and raw fallback behavior:
 - SDK `compaction_failed` from backend `context-compaction-failed`: replaces compaction thinking with terminal failure text (backend error string when available, otherwise `Conversation compaction failed.`) and marks source as `context-compaction-failed`
 - SDK `tool_call` from backend `tool-call`: append assistant tool-call row and transcript tool-call row
 - SDK `tool_progress` from backend `web-search-progress`: append transient `search-source` rows for live web-search progress without transcript writes
+  - the renderer consumes SDK `tool_progress` payloads directly and keeps
+    `web-search-progress` as the UI/tracking source label. It does not unwrap
+    `payload.rawEvent` back into a backend `web-search-progress` event.
 - SDK `tool_output` from backend `tool-output`: append assistant tool-output row with screenshot/tool metadata and transcript tool-output row
 - SDK `tool_bundle_call` from backend `tool-bundle`: append bundle call row and persist a transcript `tool-bundle` trace row so later transcript loads can reconstruct the bundle call card without reclassifying it as a normal executable tool-call
 - SDK `system_prompt` from backend `system-prompt`: annotate last user message with system prompt + tool schema snapshot

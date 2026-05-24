@@ -142,6 +142,11 @@ The SDK event carries `conversationRef`, `turnRef`, and `payload.userId` for
 renderer transcript writes, so the completion handler should not unwrap
 `payload.rawEvent` to recover backend `conversation_ref` or `user_id`.
 
+Desktop tool-progress projection consumes SDK `tool_progress` directly.
+Renderer UI/debug state may keep the source label `web-search-progress`, but
+the handler should not reconstruct backend `web-search-progress` events from
+`payload.rawEvent`.
+
 ## Continuity Service Rule
 
 `ConversationContinuityService` is the SDK-owned orchestration layer for chat
