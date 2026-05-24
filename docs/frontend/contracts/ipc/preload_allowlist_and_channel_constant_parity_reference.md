@@ -47,7 +47,9 @@ Invalid behavior:
 
 Shared names from `ipcChannels.json`, consumed by preload + `INVOKE_CHANNELS`:
 
-- `execute-tool`
+- `capture-screenshot-attachment`
+- `read-attachment-file`
+- `run-browser-action`
 - `upload-artifact`
 - `fetch-artifact-image`
 - `get-system-state`

@@ -173,7 +173,7 @@ Test-backed guarantee:
 
 ## Tool Timeout Tier and Screenshot Wrapper Hook
 
-`local_backend_bridge_timeout_policy.cjs` owns execute-tool timeout tiers:
+`local_backend_bridge_timeout_policy.cjs` owns local tool execution timeout tiers:
 
 - `browser` tool: `120000ms`
 - all others: `60000ms`

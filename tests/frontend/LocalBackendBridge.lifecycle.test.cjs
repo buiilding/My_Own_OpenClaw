@@ -87,11 +87,11 @@ describe('local_backend_bridge process lifecycle', () => {
     });
   });
 
-  test('execute-tool rejects in-flight request when sidecar exits', async () => {
-    const { handlers, processHandlers } = initBridge();
+  test('internal tool execution rejects in-flight request when sidecar exits', async () => {
+    const { bridge, processHandlers } = initBridge();
     markReady();
 
-    const promise = handlers['execute-tool'](null, {
+    const promise = bridge.executeToolForBackend({
       toolName: 'read_file',
       args: { file_path: '/tmp/a' },
     });
@@ -116,11 +116,11 @@ describe('local_backend_bridge process lifecycle', () => {
     });
   });
 
-  test('execute-tool rejects in-flight request when sidecar emits process error', async () => {
-    const { mainWindow, handlers, processHandlers } = initBridge();
+  test('internal tool execution rejects in-flight request when sidecar emits process error', async () => {
+    const { mainWindow, bridge, processHandlers } = initBridge();
     markReady();
 
-    const promise = handlers['execute-tool'](null, {
+    const promise = bridge.executeToolForBackend({
       toolName: 'read_file',
       args: { file_path: '/tmp/a' },
     });

@@ -707,7 +707,6 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
     ));
   };
 
-  ipcMain.handle('execute-tool', executeToolRuntime.executeTool);
   ipcMain.handle('capture-screenshot-attachment', async (event, payload = {}) => (
     executeToolRuntime.executeTool(event, {
       toolName: 'screenshot',

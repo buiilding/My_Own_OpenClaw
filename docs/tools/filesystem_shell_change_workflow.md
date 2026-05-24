@@ -76,7 +76,8 @@ flowchart LR
 3. Trace the request through SDK main runtime and Electron.
    - SDK runtime: `frontend/src/main/windie_sdk_runtime.cjs`.
    - Tool router: `frontend/src/main/ipc/ipc_sdk_tool_router.cjs`.
-   - Electron handler: `frontend/src/main/local_backend_bridge.cjs` registers `ipcMain.handle('execute-tool', ...)`.
+   - Electron internal adapter: `frontend/src/main/local_backend_bridge.cjs`
+     exposes `executeToolForBackend(...)` for SDK/main tool routing.
    - Tool execution runtime: `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`.
    - Argument mapper: `frontend/src/main/local_backend_bridge_tool_args.cjs`.
 
@@ -128,7 +129,7 @@ flowchart LR
 | Sidecar `replace` behavior | `./scripts/python-in-env sidecar pytest tests/sidecar/test_replace_engine.py tests/sidecar/test_replace_tool.py` |
 | Sidecar shell/process behavior | `./scripts/python-in-env sidecar pytest tests/sidecar/test_shell_process_tool.py tests/sidecar/test_shell_process_registry.py tests/sidecar/test_shell_output_formatting.py` |
 | Sidecar registry/result normalization | `./scripts/python-in-env sidecar pytest tests/sidecar/test_tool_registry.py` |
-| Electron bridge argument shaping, sudo mode, and execute-tool failures | `cd frontend && npm run test -- LocalBackendBridgeToolArgs LocalBackendBridge.lifecycle` |
+| Electron bridge argument shaping, sudo mode, and local tool failures | `cd frontend && npm run test -- LocalBackendBridgeToolArgs LocalBackendBridge.lifecycle` |
 | SDK/main dispatch/result envelope behavior | `cd frontend && npm run test -- WindieSdkMainRuntime IpcSdkToolRouter` |
 | Tool event parsing and display projection | `cd frontend && npm run test -- ChatStreamEventUtils ChatBoxResponse ChatStreamToolHandlers` |
 | Workspace default-folder behavior | Workspace tests plus the focused shell/read-file tests that exercise selected-workspace path resolution |
@@ -143,7 +144,7 @@ If a listed test file has moved, search by the test stem before adding a new tes
 1. Confirm the backend schema includes the tool and the active policy profile exposes it.
 2. Check the streamed `tool-call` event reaches the SDK main-runtime tool router.
 3. Check `ipc_sdk_tool_router.cjs` dispatches the local runtime call.
-4. Check `local_backend_bridge.cjs` has registered `execute-tool`.
+4. Check `local_backend_bridge.cjs` exposes `executeToolForBackend(...)`.
 5. Check `local_backend_bridge_execute_tool_runtime.cjs` sends `execute_tool` with `tool_name` and normalized `args`.
 6. Check sidecar `ToolRegistry.execute_tool` has the executable name registered.
 7. Add or update one test at the failing boundary, then one adjacent contract test if drift is possible.

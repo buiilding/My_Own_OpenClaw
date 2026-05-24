@@ -99,11 +99,17 @@ describe('local_backend_bridge RPC handlers', () => {
     );
   }
 
-  test('execute-tool handler returns success for valid response', async () => {
-    const { handlers, stdoutHandler } = initBridge();
+  test('does not register generic renderer execute-tool IPC handler', () => {
+    const { handlers } = initBridge();
+
+    expect(handlers['execute-tool']).toBeUndefined();
+  });
+
+  test('internal tool execution returns success for valid response', async () => {
+    const { bridge, stdoutHandler } = initBridge();
     markReady();
 
-    const promise = handlers['execute-tool'](null, {
+    const promise = bridge.executeToolForBackend({
       toolName: 'read_file',
       args: { file_path: '/tmp/a' },
     });
@@ -155,15 +161,15 @@ describe('local_backend_bridge RPC handlers', () => {
     await expectResolvedSuccess(stdoutHandler, screenshotPromise, { screenshot: 'shot' });
   });
 
-  test('execute-tool handler routes fallback execution through sidecar daemon client', async () => {
+  test('internal tool execution routes fallback execution through sidecar daemon client', async () => {
     const sidecarDaemonClient = {
       executeTool: jest.fn(async () => ({ success: true, data: { value: 2 } })),
     };
-    const { handlers, pythonProcess } = initBridge({ sidecarDaemonClient });
+    const { bridge, pythonProcess } = initBridge({ sidecarDaemonClient });
     markReady();
     pythonProcess.stdin.write.mockClear();
 
-    const result = await handlers['execute-tool'](null, {
+    const result = await bridge.executeToolForBackend({
       toolName: 'read_file',
       args: { file_path: '/tmp/a' },
     });
@@ -195,12 +201,12 @@ describe('local_backend_bridge RPC handlers', () => {
     await expect(promise).resolves.toEqual({ success: true, data: { success: true, data: { connected: true } } });
   });
 
-  test('execute-tool handles large JSON-RPC stdout lines', async () => {
-    const { handlers, stdoutHandler } = initBridge();
+  test('internal tool execution handles large JSON-RPC stdout lines', async () => {
+    const { bridge, stdoutHandler } = initBridge();
     markReady();
 
     const largePayload = 'x'.repeat(140 * 1024);
-    const promise = handlers['execute-tool'](null, {
+    const promise = bridge.executeToolForBackend({
       toolName: 'read_file',
       args: { file_path: '/tmp/a' },
     });
@@ -215,7 +221,7 @@ describe('local_backend_bridge RPC handlers', () => {
     expect(result.data.large_payload).toHaveLength(140 * 1024);
   });
 
-  test('execute-tool uploads screenshot temp-path responses and returns artifact refs', async () => {
+  test('screenshot host channel uploads temp-path responses and returns artifact refs', async () => {
     const { handlers, stdoutHandler } = initBridge({
       getArtifactUploadHeaders: async () => ({
         Authorization: 'Bearer test-install-token',
@@ -238,8 +244,7 @@ describe('local_backend_bridge RPC handlers', () => {
     global.fetch = fetchMock;
 
     try {
-      const promise = handlers['execute-tool'](null, {
-        toolName: 'screenshot',
+      const promise = handlers['capture-screenshot-attachment'](null, {
         args: {},
       });
 
@@ -280,7 +285,7 @@ describe('local_backend_bridge RPC handlers', () => {
     }
   });
 
-  test('execute-tool injects active display affinity for screenshot capture when sender window is hidden', async () => {
+  test('screenshot host channel injects active display affinity when sender window is hidden', async () => {
     const { handlers, stdoutHandler, mainWindow } = initBridge();
     markReady();
 
@@ -295,8 +300,7 @@ describe('local_backend_bridge RPC handlers', () => {
       desktopVirtualBounds: { x: 0, y: 0, width: 4480, height: 1440 },
     });
 
-    const promise = handlers['execute-tool']({ sender: {} }, {
-      toolName: 'screenshot',
+    const promise = handlers['capture-screenshot-attachment']({ sender: {} }, {
       args: { explanation: 'Current monitor' },
     });
 
@@ -324,7 +328,7 @@ describe('local_backend_bridge RPC handlers', () => {
     await expect(promise).resolves.toEqual({ success: true, data: { ok: true } });
   });
 
-  test('execute-tool prefers visible chat window display bounds over stale active affinity when sender window is hidden', async () => {
+  test('screenshot host channel prefers visible chat window display bounds over stale active affinity', async () => {
     const chatWindow = createWindow({
       getBounds: jest.fn(() => ({ x: 1920, y: 0, width: 900, height: 600 })),
     });
@@ -375,8 +379,7 @@ describe('local_backend_bridge RPC handlers', () => {
       desktopVirtualBounds: { x: 0, y: 0, width: 4480, height: 1440 },
     });
 
-    const promise = handlers['execute-tool']({ sender: {} }, {
-      toolName: 'screenshot',
+    const promise = handlers['capture-screenshot-attachment']({ sender: {} }, {
       args: { explanation: 'Current monitor' },
     });
 
@@ -404,7 +407,7 @@ describe('local_backend_bridge RPC handlers', () => {
     await expect(promise).resolves.toEqual({ success: true, data: { ok: true } });
   });
 
-  test('execute-tool injects visible chat window display bounds into direct screenshot requests', async () => {
+  test('screenshot host channel injects visible chat window display bounds', async () => {
     const chatWindow = createWindow({
       getBounds: jest.fn(() => ({ x: 1920, y: 0, width: 900, height: 600 })),
     });
@@ -455,8 +458,7 @@ describe('local_backend_bridge RPC handlers', () => {
       desktopVirtualBounds: { x: 0, y: 0, width: 4480, height: 1440 },
     });
 
-    const promise = handlers['execute-tool']({ sender: {} }, {
-      toolName: 'screenshot',
+    const promise = handlers['capture-screenshot-attachment']({ sender: {} }, {
       args: {
         explanation: 'Current monitor',
       },
@@ -486,7 +488,7 @@ describe('local_backend_bridge RPC handlers', () => {
     await expect(promise).resolves.toEqual({ success: true, data: { ok: true } });
   });
 
-  test('execute-tool ignores visible response overlay when resolving screenshot monitor fallback', async () => {
+  test('screenshot host channel ignores visible response overlay when resolving monitor fallback', async () => {
     const responseWindow = createWindow({
       getBounds: jest.fn(() => ({ x: 1920, y: 0, width: 900, height: 600 })),
     });
@@ -505,8 +507,7 @@ describe('local_backend_bridge RPC handlers', () => {
       desktopVirtualBounds: { x: 0, y: 0, width: 4480, height: 1440 },
     });
 
-    const promise = handlers['execute-tool']({ sender: {} }, {
-      toolName: 'screenshot',
+    const promise = handlers['capture-screenshot-attachment']({ sender: {} }, {
       args: { explanation: 'Current monitor' },
     });
 
@@ -534,7 +535,7 @@ describe('local_backend_bridge RPC handlers', () => {
     await expect(promise).resolves.toEqual({ success: true, data: { ok: true } });
   });
 
-  test('execute-tool falls back to inline screenshot when screenshot-path artifact upload fails', async () => {
+  test('screenshot host channel falls back to inline screenshot when artifact upload fails', async () => {
     const { handlers, stdoutHandler } = initBridge({
       getArtifactUploadHeaders: async () => ({
         Authorization: 'Bearer test-install-token',
@@ -555,8 +556,7 @@ describe('local_backend_bridge RPC handlers', () => {
     global.fetch = fetchMock;
 
     try {
-      const promise = handlers['execute-tool'](null, {
-        toolName: 'screenshot',
+      const promise = handlers['capture-screenshot-attachment'](null, {
         args: {},
       });
 
@@ -594,13 +594,13 @@ describe('local_backend_bridge RPC handlers', () => {
     }
   });
 
-  test('execute-tool injects native sudo auth mode when full sudo access is enabled', async () => {
-    const { handlers, stdoutHandler } = initBridge({
+  test('internal tool execution injects native sudo auth mode when full sudo access is enabled', async () => {
+    const { bridge, stdoutHandler } = initBridge({
       frontendConfig: { agent_full_sudo_enabled: true },
     });
     markReady();
 
-    const promise = handlers['execute-tool'](null, {
+    const promise = bridge.executeToolForBackend({
       toolName: 'run_shell_command',
       args: { command: 'sudo apt update', run_in_background: false },
     });
@@ -618,13 +618,13 @@ describe('local_backend_bridge RPC handlers', () => {
     await expect(promise).resolves.toEqual({ success: true, data: { value: 1 } });
   });
 
-  test('execute-tool injects os_prompt sudo auth mode when full sudo access is disabled', async () => {
-    const { handlers, stdoutHandler } = initBridge({
+  test('internal tool execution injects os_prompt sudo auth mode when full sudo access is disabled', async () => {
+    const { bridge, stdoutHandler } = initBridge({
       frontendConfig: { agent_full_sudo_enabled: false },
     });
     markReady();
 
-    const promise = handlers['execute-tool'](null, {
+    const promise = bridge.executeToolForBackend({
       toolName: 'run_shell_command',
       args: { command: 'sudo apt update', run_in_background: false },
     });
@@ -642,8 +642,8 @@ describe('local_backend_bridge RPC handlers', () => {
     await expect(promise).resolves.toEqual({ success: true, data: { value: 1 } });
   });
 
-  test('execute-tool does not mutate caller run_shell_command args when injecting sudo mode', async () => {
-    const { handlers, stdoutHandler } = initBridge({
+  test('internal tool execution does not mutate caller run_shell_command args when injecting sudo mode', async () => {
+    const { bridge, stdoutHandler } = initBridge({
       frontendConfig: { agent_full_sudo_enabled: true },
     });
     markReady();
@@ -654,7 +654,7 @@ describe('local_backend_bridge RPC handlers', () => {
       args: callerArgs,
     };
 
-    const promise = handlers['execute-tool'](null, payload);
+    const promise = bridge.executeToolForBackend(payload);
 
     expect(payload.args).toEqual({ command: 'sudo apt update', run_in_background: false });
     expect(callerArgs).toEqual({ command: 'sudo apt update', run_in_background: false });
@@ -671,8 +671,8 @@ describe('local_backend_bridge RPC handlers', () => {
     await expect(promise).resolves.toEqual({ success: true, data: { value: 1 } });
   });
 
-  test('execute-tool forwards direct tool args unchanged', async () => {
-    const { handlers, stdoutHandler } = initBridge();
+  test('internal tool execution forwards direct tool args unchanged', async () => {
+    const { bridge, stdoutHandler } = initBridge();
     markReady();
 
     const args = {
@@ -681,7 +681,7 @@ describe('local_backend_bridge RPC handlers', () => {
       ocr_text: 'Submit',
     };
 
-    const promise = handlers['execute-tool'](null, {
+    const promise = bridge.executeToolForBackend({
       toolName: 'mouse_control',
       args,
     });
@@ -805,11 +805,11 @@ describe('local_backend_bridge RPC handlers', () => {
     ).toBe(true);
   });
 
-  test('execute-tool handler returns error on json-rpc error', async () => {
-    const { handlers, stdoutHandler } = initBridge();
+  test('internal tool execution returns error on json-rpc error', async () => {
+    const { bridge, stdoutHandler } = initBridge();
     markReady();
 
-    const promise = handlers['execute-tool'](null, {
+    const promise = bridge.executeToolForBackend({
       toolName: 'read_file',
       args: { file_path: '/tmp/a' },
     });

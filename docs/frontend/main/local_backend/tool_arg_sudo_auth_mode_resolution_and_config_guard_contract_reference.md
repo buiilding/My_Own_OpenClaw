@@ -1,7 +1,7 @@
 ---
-summary: "Deep reference for local-backend execute-tool argument normalization: direct and unified-wrapper run-shell sudo-auth mode derivation, screenshot display-bounds fallback injection, config-read guardrails, and deep-clone passthrough semantics."
+summary: "Deep reference for local-backend tool argument normalization: direct and unified-wrapper run-shell sudo-auth mode derivation, screenshot display-bounds fallback injection, config-read guardrails, and deep-clone passthrough semantics."
 read_when:
-  - When changing `execute-tool` argument shaping in `local_backend_bridge.cjs` or `local_backend_bridge_tool_args.cjs`.
+  - When changing local tool argument shaping in `local_backend_bridge_execute_tool_runtime.cjs` or `local_backend_bridge_tool_args.cjs`.
   - When debugging shell-tool sudo prompt mode drift (`native` vs `os_prompt`), unified `system_use` wrapper shell arg rewrites, screenshot display-bounds routing, or malformed/non-object tool args reaching sidecar JSON-RPC.
 title: "Tool Arg Sudo-Auth Mode Resolution and Config-Guard Contract Reference"
 ---
@@ -17,7 +17,7 @@ title: "Tool Arg Sudo-Auth Mode Resolution and Config-Guard Contract Reference"
 
 ## Runtime Ownership
 
-`local_backend_bridge_tool_args.cjs` owns normalization of `execute-tool` args before JSON-RPC dispatch to sidecar:
+`local_backend_bridge_tool_args.cjs` owns normalization of local tool args before JSON-RPC dispatch to sidecar:
 
 - tool-specific augmentation for `run_shell_command`
 - wrapper-aware augmentation for `system_use` when nested `tool === "run_shell_command"`
@@ -25,7 +25,7 @@ title: "Tool Arg Sudo-Auth Mode Resolution and Config-Guard Contract Reference"
 - deep cloning/pass-through for other tools
 - defensive fallback for non-object args
 
-`local_backend_bridge.cjs` consumes this helper inside `ipcMain.handle("execute-tool", ...)`.
+`local_backend_bridge_execute_tool_runtime.cjs` consumes this helper before sending sidecar `execute_tool` requests.
 
 ## Entry Point Contract
 

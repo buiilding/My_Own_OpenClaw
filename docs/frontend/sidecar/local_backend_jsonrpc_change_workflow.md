@@ -33,7 +33,7 @@ This workflow is narrower than the general [Sidecar Runtime Change Workflow](sid
 | Change stdout parsing or large response handling | main bridge stdout loop | `frontend/src/main/local_backend_bridge.cjs` | local-backend bridge lifecycle/RPC tests |
 | Change sidecar readiness or status event behavior | main supervisor plus `ping`/`get_status` handlers | `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/local_backend_supervisor.cjs`, `frontend/src/main/python/local_backend.py` | frontend lifecycle tests, sidecar local-backend tests |
 | Change memory method payloads | RPC mapper plus memory mixin | `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`, `frontend/src/main/python/local_backend_memory_handlers.py` | `tests/frontend/LocalBackendBridge.rpc.test.cjs`, sidecar memory/conversation tests |
-| Change `execute_tool` behavior | SDK/main execute-tool runtime plus sidecar tool registry | `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`, `frontend/src/main/python/tools/registry.py`, specific tool module | SDK/main dispatch tests, sidecar tool tests |
+| Change `execute_tool` behavior | SDK/main local tool runtime plus sidecar tool registry | `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`, `frontend/src/main/python/tools/registry.py`, specific tool module | SDK/main dispatch tests, sidecar tool tests |
 | Change browser runtime install/warmup methods | main bridge helper plus local backend browser feature-pack handling | `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/python/local_backend.py`, browser feature-pack helpers | browser runtime and local-backend tests |
 | Change macOS automation permission method | main permission bridge plus sidecar platform helper | `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/python/core/platform/macos_automation_permission.py`, `frontend/src/main/python/local_backend.py` | permission IPC tests, macOS automation sidecar tests |
 
@@ -41,11 +41,12 @@ This workflow is narrower than the general [Sidecar Runtime Change Workflow](sid
 
 ### Direct Main Bridge Calls
 
-These methods are invoked by focused helper code in `local_backend_bridge.cjs` or execute-tool runtime code rather than the compiled mapper table.
+These methods are invoked by focused helper code in `local_backend_bridge.cjs`
+or local tool runtime code rather than the compiled mapper table.
 
 | Main-side entry | JSON-RPC method | Sidecar handler | Notes |
 | --- | --- | --- | --- |
-| `execute-tool` IPC | `execute_tool` | `_handle_execute_tool` | Runs sidecar tools through `ToolRegistry`; screenshot path may be materialized into backend artifacts by Electron main. |
+| scoped host channels / `executeToolForBackend(...)` | `execute_tool` | `_handle_execute_tool` | Runs sidecar tools through `ToolRegistry`; screenshot path may be materialized into backend artifacts by Electron main. |
 | `get-system-state` IPC | `get_system_state` | `_handle_get_system_state` | Returns system/window/runtime state; failure normalizes to `null` in main helper paths. |
 | `search-memory` IPC | `search_memory` | `_handle_search_memory` | Uses dedicated mapper because it accepts both camelCase and snake_case exclusion/retrieval keys. |
 | readiness loop | `ping` | `_handle_ping` | Used before the bridge marks sidecar ready. |
@@ -168,7 +169,7 @@ Avoid returning mixed shapes from one method. If a method currently returns a su
 | JSON parse errors in main | Python stdout pollution, non-JSON output, partial/large response parsing |
 | Method works in source but fails packaged | runtime dependency packaging, `WINDIE_PACKAGED_APP`, feature-pack availability, Python path resolution |
 | Memory channel maps wrong user/conversation | camelCase-to-snake_case mapper, fallback keys, sidecar memory handler defaults |
-| Tool result shape differs from renderer expectation | `ToolResult`, execute-tool runtime normalization, screenshot materialization wrapper |
+| Tool result shape differs from renderer expectation | `ToolResult`, local tool runtime normalization, screenshot materialization wrapper |
 
 ## Validation Matrix
 

@@ -1,8 +1,8 @@
 ---
-summary: "Local backend JSON-RPC reference for Electron main <-> Python sidecar: request envelope, registered methods, renderer IPC mapping, and timeout/error semantics."
+summary: "Local backend JSON-RPC reference for Electron main <-> Python sidecar: request envelope, registered methods, bridge mapping, and timeout/error semantics."
 read_when:
   - When adding/changing sidecar JSON-RPC methods or bridge payload mappers.
-  - When debugging execute-tool/search-memory/chat-event persistence failures between Electron and Python sidecar.
+  - When debugging execute_tool/search-memory/chat-event persistence failures between Electron and Python sidecar.
 title: "Local Backend JSON-RPC Reference"
 ---
 
@@ -78,11 +78,11 @@ Chat-event methods:
 
 The legacy transcript-row conversation methods are not registered.
 
-## Renderer IPC to JSON-RPC Mapping
+## Main Bridge to JSON-RPC Mapping
 
 Direct bridge handlers:
 
-- `execute-tool` -> `execute_tool`
+- scoped host channels and `executeToolForBackend(...)` -> `execute_tool`
 - `get-system-state` -> `get_system_state`
 - `search-memory` -> `search_memory`
 

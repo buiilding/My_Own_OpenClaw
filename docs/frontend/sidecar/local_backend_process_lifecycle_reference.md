@@ -113,7 +113,7 @@ Default timeout:
 
 Per-request timeout overrides:
 
-- browser tool execution uses 120s (`execute-tool` branch)
+- browser tool execution uses 120s in the local tool execution runtime
 
 Response dispatch (`handlePythonResponse`):
 
@@ -138,7 +138,7 @@ On process `exit` or `error`:
 
 ## Window Handling for Linux Screenshot Tool
 
-For `execute-tool` where `toolName === 'screenshot'`:
+For local tool execution where `toolName === 'screenshot'`:
 
 - wraps call with `withHiddenWindowForScreenshot(...)`, which dispatches platform runtime behavior
 - current runtime modules are pass-through on all platforms
@@ -148,7 +148,9 @@ For `execute-tool` where `toolName === 'screenshot'`:
 
 Core handlers:
 
-- `execute-tool`
+- `capture-screenshot-attachment`
+- `read-attachment-file`
+- `run-browser-action`
 - `get-system-state`
 - `search-memory`
 
@@ -170,6 +172,6 @@ If requests time out unexpectedly:
 
 If Linux screenshots include overlays:
 
-1. verify screenshot calls go through `execute-tool` with tool name `screenshot`
+1. verify screenshot calls go through `capture-screenshot-attachment` or SDK/main local tool execution with tool name `screenshot`
 2. verify renderer capture prep/hide flow (`SurfaceOrchestrator`) executed
 3. verify no legacy main-process hide/restore assumptions remain in local debugging instrumentation

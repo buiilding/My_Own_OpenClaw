@@ -44,7 +44,9 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 
 | Channel | Main owner | Notes |
 |---|---|---|
-| `execute-tool` | `main/local_backend_bridge.cjs` | Proxies to JSON-RPC `execute_tool` |
+| `capture-screenshot-attachment` | `main/local_backend_bridge.cjs` | Maps renderer screenshot attachment capture to local `screenshot` execution |
+| `read-attachment-file` | `main/local_backend_bridge.cjs` | Maps readable attachment context reads to local `read_file` execution |
+| `run-browser-action` | `main/local_backend_bridge.cjs` | Maps browser session controls to local `browser` execution |
 | `get-system-state` | `main/local_backend_bridge.cjs` | Proxies to `get_system_state` |
 | `search-memory` | `main/local_backend_bridge.cjs` | Proxies to `search_memory` |
 | `search-chat-conversations` | `main/local_backend_bridge.cjs` | Proxies to `search_chat_conversations` |
@@ -137,13 +139,13 @@ Transport:
 
 - JSON-RPC 2.0 over `stdin/stdout`, one JSON object per line.
 - Request correlation by UUID `id` in `pendingRequests` map.
-- Default timeout `60000ms`; `execute-tool` for `browser` uses `120000ms`.
+- Default timeout `60000ms`; local browser tool execution uses `120000ms`.
 
 ### JSON-RPC Method Map (IPC channel -> method)
 
 | IPC channel | JSON-RPC method | Param mapping notes |
 |---|---|---|
-| `execute-tool` | `execute_tool` | `{ toolName, args } -> { tool_name, args }`; screenshot tool uses Linux hide/show guard; direct `run_shell_command` and nested `system_use -> run_shell_command` arguments receive derived `sudo_auth_mode` from frontend config state |
+| scoped host channels / `executeToolForBackend(...)` | `execute_tool` | Electron main chooses `tool_name` for renderer host channels; SDK/main internal execution passes `{ toolName, args }`; screenshot tool uses Linux hide/show guard; direct `run_shell_command` and nested `system_use -> run_shell_command` arguments receive derived `sudo_auth_mode` from frontend config state |
 | `get-system-state` | `get_system_state` | Optional `{ fields }` passthrough |
 | `search-memory` | `search_memory` | Maps `excludeConversationId` fallback to `exclude_conversation_id` |
 | `search-chat-conversations` | `search_chat_conversations` | `userId -> user_id` with query/limit passthrough |

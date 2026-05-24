@@ -15,7 +15,7 @@ WindieOS currently uses a first-party Windie browser runtime. Older Browser Use 
 Request path for browser actions:
 
 1. SDK main runtime routes a local browser tool call through the Electron local-runtime adapter.
-2. Electron main `local_backend_bridge.cjs` handles `execute-tool` and sends JSON-RPC `execute_tool`.
+2. Electron main `local_backend_bridge.cjs` sends JSON-RPC `execute_tool`.
 3. Python sidecar `local_backend.py` routes to `ToolRegistry.execute_tool("browser", args)`.
 4. `tools/browser/browser_tool.py:execute_browser(...)` validates `BrowserControlArgs`.
 5. `WindieBrowserRuntime.execute(...)` maps the canonical action to a runtime handler.

@@ -136,14 +136,14 @@ This reflects current intent: runtime safety in preload, fast-fail ergonomics in
 
 `tests/frontend/LocalBackendBridge.lifecycle.test.cjs` enforces process-generation safety:
 
-- sidecar exit/error rejects pending execute-tool requests with standardized unavailable errors
+- sidecar exit/error rejects pending internal tool execution requests with standardized unavailable errors
 - non-zero exit broadcasts `local-backend-status` with `{ready:false,error:<message>}`
 - stale readiness timeout/retry callbacks from previous process generation are ignored
 - delayed force-kill timer from `stopLocalBackend` cannot kill a newly restarted process
 
 `tests/frontend/LocalBackendBridge.rpc.test.cjs` enforces IPC-to-JSON-RPC mapping:
 
-- `execute-tool` success/error response normalization
+- internal tool execution success/error response normalization
 - resolved backend HTTP URL export in child-process env (`WINDIE_BACKEND_HTTP_URL`)
 - `NODE_OPTIONS` augmentation with `--no-deprecation`
 - suppression of known noisy deprecation stderr lines while preserving meaningful logs
@@ -158,7 +158,7 @@ This reflects current intent: runtime safety in preload, fast-fail ergonomics in
   - `store-chat-event`
   - `store-memory`
 - malformed/non-object IPC payloads normalize to safe empty param objects for mapped handlers
-- `execute-tool` direct `run_shell_command` and nested `system_use -> run_shell_command` payloads inject `sudo_auth_mode` based on `agent_full_sudo_enabled` frontend config
+- internal tool execution direct `run_shell_command` and nested `system_use -> run_shell_command` payloads inject `sudo_auth_mode` based on `agent_full_sudo_enabled` frontend config
 
 ## Wakeword Bridge Protocol Contract
 

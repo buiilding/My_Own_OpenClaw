@@ -57,7 +57,7 @@ frontend/src/
 │   ├── local_backend_bridge.cjs           # Main <-> sidecar bridge composition root (startup, readiness, IPC registration)
 │   ├── local_backend_bridge_request_transport.cjs # Sidecar JSON-RPC request ids, pending map, timeout ownership, and response correlation
 │   ├── local_backend_bridge_execute_tool_runtime.cjs # Execute-tool routing, timeout tier selection, screenshot wrapping, and attachment materialization
-│   ├── local_backend_bridge_timeout_policy.cjs # Shared sidecar request/execute-tool timeout constants and tool timeout selection
+│   ├── local_backend_bridge_timeout_policy.cjs # Shared sidecar request/local-tool timeout constants and tool timeout selection
 │   ├── wakeword_supervisor.cjs            # Explicit wakeword subprocess state supervisor (starting/ready/stopping/error)
 │   ├── wakeword_bridge.cjs                # Main <-> wakeword subprocess bridge
 │   ├── query_payload_builder.cjs          # System-state/memory XML augmentation for query payload
@@ -82,7 +82,7 @@ frontend/src/
 Current runtime behavior also relies on these explicit seams:
 
 - **Main-process composition is split by role**: `frontend/src/main/index.cjs` composes `main_process_bootstrap_runtime.cjs` (window creation/bootstrap), `main_process_lifecycle_runtime.cjs` (ready/activate/quit), and `surface_runtime.cjs` (window ownership + overlay phase state).
-- **Local sidecar bridge is now split by ownership**: `local_backend_bridge.cjs` keeps process lifecycle + IPC registration, `local_backend_bridge_request_transport.cjs` owns JSON-RPC request correlation/timeouts, and `local_backend_bridge_execute_tool_runtime.cjs` owns execute-tool routing plus screenshot-specific attachment handling.
+- **Local sidecar bridge is now split by ownership**: `local_backend_bridge.cjs` keeps process lifecycle, scoped host IPC registration, and SDK/main local-runtime adapter exports, `local_backend_bridge_request_transport.cjs` owns JSON-RPC request correlation/timeouts, and `local_backend_bridge_execute_tool_runtime.cjs` owns local tool routing plus screenshot-specific attachment handling.
 - **Renderer browser-session control is now runtime-backed**: renderer-side browser session UX should read local-backend readiness from the shared IPC status surface and consume shared browser-session/local-backend runtime stores rather than issuing ad hoc per-component browser polling directly from UI components. `localBackendStatusStore` owns the initial `get-local-backend-status` bootstrap plus `local-backend-status` event subscription, while `browserSessionStore` owns browser status sync, tab normalization, and shared polling cadence for all subscribers.
 - **Renderer now has two distinct API clients by boundary**: `renderer/infrastructure/api/client.ts` remains the app-internal Electron IPC bridge for settings and model listing commands that have not moved to SDK transport calls, while `renderer/infrastructure/api/windieSdkClient.ts` exposes the SDK runtime surface used by CLI/custom UI clients and first-party Electron facades. Feature code should reach the Electron bridge through app runtime facades such as `app/runtime/desktopLiveTurnRuntimeClient.ts`, `app/runtime/desktopSettingsRuntimeClient.ts`, and `app/runtime/desktopTranscriptProjectionRuntimeClient.ts`; `renderer/infrastructure/api/index.ts` is the stable barrel export for low-level client modules. Desktop-specific adapters are allowed behind SDK interfaces such as `ConversationStore` and `BackendTransport`; the app facades may use lower-level SDK modules, but renderer feature code should not reimplement SDK conversation, tool-routing, rehydrate, compaction, or projection semantics.
 - **Tool identity normalization is SDK-owned**: renderer chat display helpers may
@@ -201,7 +201,7 @@ Current ownership boundary:
 
 1. Main `local_backend_bridge.cjs` owns sidecar readiness state through `local_backend_supervisor.cjs`.
 2. Main emits `local-backend-status` renderer events when startup/ready/error state changes and exposes `get-local-backend-status` for initial snapshot reads.
-3. Renderer features that depend on local tool execution should subscribe to that shared readiness surface instead of racing `execute-tool` during startup.
+3. Renderer features that depend on local host capabilities should subscribe to that shared readiness surface instead of racing scoped host IPC calls during startup.
 4. When the last renderer subscriber detaches, the local-backend status store drops its IPC listener and resets to an empty snapshot so a later remount always reboots from a fresh readiness read instead of stale cached state.
 
 ### Browser Header Session Flow

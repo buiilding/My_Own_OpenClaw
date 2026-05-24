@@ -127,8 +127,8 @@ Core native handler map includes:
 
 ### Main-process timeout boundaries
 
-- browser `execute-tool`: `120000ms`
-- non-browser `execute-tool`: `60000ms`
+- local browser tool execution: `120000ms`
+- other local tool execution: `60000ms`
 - generic bridge default: `60000ms`
 
 ### Adapter error code mapping

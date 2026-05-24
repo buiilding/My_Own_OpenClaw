@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/ipc: remove the Electron renderer `execute-tool` IPC handler and keep local tool execution behind SDK/main and scoped host-capability adapters.
 - frontend/ipc: replace renderer generic `execute-tool` usage with scoped host-capability channels for screenshot attachments, readable file attachments, and browser controls.
 - frontend/sdk: remove public Electron main-runtime tool-result sender methods so backend tool-result delivery stays inside SDK tool coordination.
 - sdk/tools: restore automatic post-action screenshots for computer-use tools, with single-tool captures merged into tool results and atomic bundles capturing once after all steps.

@@ -64,7 +64,7 @@ Precedence:
 
 ## Screenshot Path Materialization Contract
 
-`materializeScreenshotAttachment(result, backendHttpUrl, ...)` runs after sidecar execution in `execute-tool`.
+`materializeScreenshotAttachment(result, backendHttpUrl, ...)` runs after sidecar screenshot tool execution.
 
 It only runs when all are true:
 

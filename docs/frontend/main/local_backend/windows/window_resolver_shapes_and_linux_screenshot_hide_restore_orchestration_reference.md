@@ -42,7 +42,7 @@ Design intent:
 
 `withHiddenWindowForScreenshot(...)` runs only when:
 
-- `execute-tool` requests target screenshot tool path in local backend bridge
+- the local tool execution runtime targets the screenshot tool path
 
 Dispatch behavior:
 
@@ -69,7 +69,7 @@ Although platform modules are currently pass-through, resolver helpers remain pa
 
 ## Integration Boundary in Bridge
 
-`local_backend_bridge.cjs` execute-tool handler:
+`local_backend_bridge_execute_tool_runtime.cjs` screenshot path:
 
 - wraps only `toolName === 'screenshot'` with `withHiddenWindowForScreenshot(...)`
 - all other tools bypass screenshot visibility runtime wrapper
@@ -90,6 +90,6 @@ Implication:
 When touching window wrapper flow:
 
 1. verify resolver output shape (`main/chat/response`) remains stable for callers
-2. verify screenshot tool only path remains scoped in execute-tool handler
+2. verify screenshot tool only path remains scoped in the local tool execution runtime
 3. verify platform runtime dispatch still matches `process.platform`
 4. verify renderer capture orchestration assumptions stay aligned with Linux runtime comment/ownership

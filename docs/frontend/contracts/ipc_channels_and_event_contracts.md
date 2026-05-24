@@ -31,7 +31,9 @@ Allowlisted examples:
 
 Key examples:
 
-- `execute-tool`
+- `capture-screenshot-attachment`
+- `read-attachment-file`
+- `run-browser-action`
 - `upload-artifact`
 - `get-system-state`
 - `search-memory`, `search-chat-conversations`, `store-memory`, list/get/delete memory records

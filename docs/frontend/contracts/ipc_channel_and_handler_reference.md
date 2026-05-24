@@ -125,7 +125,9 @@ Removed legacy renderer-callable channels:
 
 ## Local sidecar bridge channels (`local_backend_bridge.cjs`)
 
-- `execute-tool`
+- `capture-screenshot-attachment`
+- `read-attachment-file`
+- `run-browser-action`
 - `get-system-state`
 - `search-memory`
 - `search-chat-conversations`
@@ -140,7 +142,7 @@ Removed legacy renderer-callable channels:
 - `store-memory`
 - `store-chat-event`
 
-`execute-tool` runtime nuances:
+Local tool runtime nuances:
 
 - screenshot calls resolve display bounds in main-process order:
   1. visible sender window display affinity

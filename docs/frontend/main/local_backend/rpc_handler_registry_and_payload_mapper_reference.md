@@ -26,7 +26,9 @@ title: "Local-Backend RPC Handler Registry and Payload-Mapper Reference"
 
 Direct handlers:
 
-- `execute-tool`
+- `capture-screenshot-attachment`
+- `read-attachment-file`
+- `run-browser-action`
 - `get-system-state`
 - `search-memory`
 
@@ -52,18 +54,19 @@ Mapped handlers via `registerMappedRpcHandlers(registerRpcHandler, COMPILED_RPC_
 
 ## Direct Handler Semantics
 
-### `execute-tool`
+### Scoped host tool channels
 
-Input payload:
+Renderer-callable host channels are intentionally narrow:
 
-- `{ toolName, args }`
+- `capture-screenshot-attachment` maps to local `screenshot`
+- `read-attachment-file` maps to local `read_file`
+- `run-browser-action` maps to local `browser`
 
 Dispatch:
 
 - JSON-RPC method: `execute_tool`
-- params:
-  - `tool_name = toolName`
-  - `args = resolveToolArgs(toolName, args, getFrontendConfig)`
+- params are built by Electron main before entering the shared local tool
+  runtime; renderer code cannot provide arbitrary `toolName` values
 
 Tool-arg normalization behavior:
 
@@ -74,9 +77,10 @@ Tool-arg normalization behavior:
 - invalid non-object `system_use.arguments` values are intentionally passed through unchanged for sidecar validation ownership
 - non-shell tools receive deep-cloned object args
 - non-object args normalize to `{}`
-- screenshot tools may receive injected fallback `display_bounds` derived from main-process display-affinity runtime when explicit bounds are missing
+- screenshot tools may receive injected fallback `display_bounds` derived from
+  main-process display-affinity runtime when explicit bounds are missing
 
-Display-affinity fallback precedence for screenshot `execute-tool` calls:
+Display-affinity fallback precedence for screenshot local tool calls:
 
 1. resolve affinity through `resolveActiveSurfaceDisplayAffinityForWindows(...)` with sender webContents + `getWindows()` adapter
 2. wrapper precedence: visible sender surface (chat/main) -> visible chat/main surface -> stored active query-origin affinity

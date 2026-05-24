@@ -34,7 +34,9 @@ The core rule is: backend owns backend remote tools and validation; Windie Agent
 - Windie Agent owns client-local schemas and sidecar tool implementations.
 - SDK/main owns streamed tool-call consumption for execution, single/bundle local orchestration, and backend result envelope submission.
 - Renderer owns streamed tool-call/tool-output display projection and transcript rendering.
-- Electron main owns the `execute-tool` IPC bridge, sidecar request transport, display/window context, and sidecar process availability.
+- Electron main owns the local tool execution adapter, scoped renderer host
+  capability channels, sidecar request transport, display/window context, and
+  sidecar process availability.
 - Python sidecar owns local executable tool registry entries and actual local machine actions.
 - Backend-only tools such as `web_search` do not need sidecar parity, but they still need policy and provider capability tests.
 - Sidecar-only helper behavior must not be model-visible until the backend catalog and policy deliberately expose it.

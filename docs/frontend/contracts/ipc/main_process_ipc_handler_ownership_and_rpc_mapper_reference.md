@@ -141,7 +141,9 @@ Visibility runtime owners:
 
 Direct `ipcMain.handle`:
 
-- `execute-tool`
+- `capture-screenshot-attachment`
+- `read-attachment-file`
+- `run-browser-action`
 - `get-system-state`
 - `search-memory`
 
@@ -160,14 +162,14 @@ Mapped `ipcMain.handle` registrations via `registerMappedRpcHandlers(...)`:
 
 Notable behavior:
 
-- `execute-tool` sets extended timeout for `browser` tool (120s vs default 30s)
-- `execute-tool` args are normalized by `resolveToolArgs(...)` before JSON-RPC dispatch, including:
+- local browser tool execution uses an extended timeout (120s vs default 30s)
+- local tool args are normalized by `resolveToolArgs(...)` before JSON-RPC dispatch, including:
   - `run_shell_command` `sudo_auth_mode` derivation from frontend config (`native` vs `os_prompt`)
   - nested `system_use -> run_shell_command` `arguments.sudo_auth_mode` derivation from the same frontend config policy
   - non-object nested `system_use.arguments` values are passed through unchanged so sidecar schema validation remains authoritative
   - deep-clone normalization for non-shell payloads
   - screenshot-only `display_bounds` default injection from display-affinity fallback
-- screenshot display-affinity precedence for `execute-tool`:
+- screenshot display-affinity precedence for local screenshot tool execution:
   1. `resolveActiveSurfaceDisplayAffinityForWindows(...)` resolves sender + visible-surface + stored-affinity selection
   2. internal precedence: visible sender surface (chat/main) -> visible chat/main surface -> stored active query display affinity
 - screenshot tool results with sidecar temp files are materialized in main process:
