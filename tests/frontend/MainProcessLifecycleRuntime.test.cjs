@@ -333,7 +333,7 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
     expect(deps.createChatWindow).not.toHaveBeenCalled();
     expect(deps.createResponseWindow).not.toHaveBeenCalled();
     expect(deps.createTray).not.toHaveBeenCalled();
-    expect(deps.showMainWindow).toHaveBeenCalledWith({ focus: true });
+    expect(deps.showMainWindow).toHaveBeenCalledWith({ focus: true, reason: 'startup-vm' });
     expect(deps.syncWakewordToggleForChatVisibility).not.toHaveBeenCalled();
     expect(deps.globalShortcut.register).not.toHaveBeenCalled();
     expect(deps.screen.on).not.toHaveBeenCalled();
@@ -353,7 +353,7 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
 
     appEvents['second-instance']();
 
-    expect(deps.showMainWindow).toHaveBeenCalledWith({ focus: true });
+    expect(deps.showMainWindow).toHaveBeenCalledWith({ focus: true, reason: 'app-activate-main-visible' });
     expect(deps.showChatWindow).not.toHaveBeenCalled();
   });
 
@@ -395,7 +395,11 @@ describe('main_process_lifecycle_runtime single-instance behavior', () => {
 
     appEvents.activate();
 
-    expect(deps.showMainWindow).toHaveBeenCalledWith({ focus: true, open: 'onboarding' });
+    expect(deps.showMainWindow).toHaveBeenCalledWith({
+      focus: true,
+      open: 'onboarding',
+      reason: 'app-activate-onboarding',
+    });
     expect(deps.showChatWindow).not.toHaveBeenCalled();
   });
 

@@ -24,6 +24,7 @@ describe('overlay_visibility_handler', () => {
       focus: true,
       maximize: false,
       open: '',
+      reason: 'renderer:show-main-window',
       targetDisplayAffinity: null,
     });
   });
@@ -46,6 +47,7 @@ describe('overlay_visibility_handler', () => {
       focus: true,
       maximize: true,
       open: '',
+      reason: 'renderer:show-main-window',
       targetDisplayAffinity: {
         monitor_id: '2',
         bounds: { x: 1920, y: 0, width: 2560, height: 1440 },

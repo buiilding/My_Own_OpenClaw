@@ -58,12 +58,16 @@ function AppContent() {
     if (lastAppliedStartupSurfaceRef.current === startupSurface) {
       return;
     }
+    const previousStartupSurface = lastAppliedStartupSurfaceRef.current;
     lastAppliedStartupSurfaceRef.current = startupSurface;
 
     async function applyStartupSurface() {
       try {
         if (startupSurface === 'dashboard-vm') {
-          await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_MAIN_WINDOW, { focus: true });
+          await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_MAIN_WINDOW, {
+            focus: true,
+            reason: 'startup-vm',
+          });
           return;
         }
 
@@ -71,13 +75,16 @@ function AppContent() {
           await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_MAIN_WINDOW, {
             focus: true,
             open: 'onboarding',
+            reason: 'startup-onboarding',
           });
           return;
         }
 
         await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_CHATBOX, {
           focus: true,
-          reason: 'startup',
+          reason: previousStartupSurface === 'onboarding'
+            ? 'onboarding-complete'
+            : 'startup',
         });
       } catch (error) {
         console.warn('[App] Failed to apply startup surface:', error);

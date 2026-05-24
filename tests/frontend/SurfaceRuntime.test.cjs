@@ -193,7 +193,31 @@ describe('surface_runtime', () => {
       reason: 'startup',
       user_hidden: true,
       focus: true,
-      result_reason: null,
+      result_reason: 'chat-pill-user-hidden',
+    }));
+  });
+
+  test('suppresses repeated startup chat pill shows after startup handoff already ran', () => {
+    const log = jest.fn();
+    const runtime = createSurfaceRuntime({
+      ...createSurfaceDeps(),
+      log,
+    });
+    const chatWindow = createWindow({ visible: false });
+    runtime.setChatWindow(chatWindow);
+
+    expect(runtime.showChatWindow({ focus: true, reason: 'startup' })).toEqual({ success: true });
+    const secondResult = runtime.showChatWindow({ focus: true, reason: 'startup' });
+
+    expect(secondResult).toEqual({
+      success: true,
+      suppressed: true,
+      reason: 'startup-surface-already-applied',
+    });
+    expect(log).toHaveBeenCalledWith('[ChatPillVisibility][main]', expect.objectContaining({
+      action: 'show-suppressed',
+      reason: 'startup',
+      result_reason: 'startup-surface-already-applied',
     }));
   });
 });

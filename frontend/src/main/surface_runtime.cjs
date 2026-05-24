@@ -97,6 +97,7 @@ function createSurfaceRuntime({
     chatVisualAnchorHeight: initialChatVisualAnchorHeight,
     chatboxHitTestActive: false,
     chatPillUserHidden: initialChatPillUserHidden === true,
+    startupChatPillShowHandled: false,
     primarySurface: 'dashboard',
     mainWindowMode: 'dashboard',
   };
@@ -295,28 +296,38 @@ function createSurfaceRuntime({
   }
 
   function shouldSuppressChatPillShow(options = {}) {
+    const reason = normalizeChatPillReason(options?.reason, 'unspecified');
+    if (reason === CHAT_PILL_SHOW_REASON.STARTUP && state.startupChatPillShowHandled) {
+      return true;
+    }
     if (!state.chatPillUserHidden) {
       return false;
     }
-    const reason = normalizeChatPillReason(options?.reason, 'unspecified');
     return GENERIC_CHAT_PILL_SHOW_REASONS.has(reason);
   }
 
   function showChatWindow(options = {}) {
     const reason = normalizeChatPillReason(options?.reason, 'unspecified');
     if (shouldSuppressChatPillShow(options)) {
+      const resultReason = reason === CHAT_PILL_SHOW_REASON.STARTUP && state.startupChatPillShowHandled
+        ? 'startup-surface-already-applied'
+        : 'chat-pill-user-hidden';
       logChatPillVisibilityDecision({
         action: 'show-suppressed',
         reason,
         userHidden: state.chatPillUserHidden,
         focus: options?.focus !== false,
         restoreResponseOverlay: options?.restoreResponseOverlay === true,
+        resultReason,
       }, { log });
       return {
         success: true,
         suppressed: true,
-        reason: 'chat-pill-user-hidden',
+        reason: resultReason,
       };
+    }
+    if (reason === CHAT_PILL_SHOW_REASON.STARTUP) {
+      state.startupChatPillShowHandled = true;
     }
     if (USER_SUMMON_CHAT_PILL_SHOW_REASONS.has(reason)) {
       setChatPillUserHidden(false);
@@ -389,10 +400,12 @@ function createSurfaceRuntime({
 
   function showMainWindow(options = {}) {
     const normalizedOptions = normalizeMainSurfaceWindowOptions(options);
+    const reason = normalizeChatPillReason(normalizedOptions.reason, 'show-main-window');
     state.mainWindowMode = normalizedOptions.open === 'onboarding'
       ? 'onboarding'
       : 'dashboard';
     state.primarySurface = state.mainWindowMode;
+    state.startupChatPillShowHandled = true;
     return showMainWindowRuntime(normalizedOptions, {
       mainWindow: state.mainWindow,
       chatWindow: state.chatWindow,
@@ -402,7 +415,7 @@ function createSurfaceRuntime({
       setActiveDisplayAffinity,
       getActiveDisplayAffinity,
       hideChatWindow: (hideOptions = {}) => hideChatWindow({
-        reason: 'surface-handoff',
+        reason: `surface-handoff:${reason}`,
         ...hideOptions,
       }),
       activateWindowForInteraction: windowPlatformPolicy.activateWindowForInteraction,

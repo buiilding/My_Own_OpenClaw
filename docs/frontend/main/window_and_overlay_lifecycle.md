@@ -164,6 +164,10 @@ Overlay focus behavior is now the same on every desktop OS:
 - emits `[ChatPillVisibility][main]` with `action="show-applied"`,
   `action="show-failed"`, or `action="show-suppressed"` so Electron logs show
   why the pill appeared or stayed hidden
+- suppresses repeated `reason="startup"` chat-pill show requests after the
+  startup surface has already handed off once; onboarding completion uses
+  `reason="onboarding-complete"` so the first-run wizard can still hand off to
+  the pill intentionally
 - display target resolution is centralized in `resolveShowTargetDisplayAffinity(...)`:
   - explicit display target wins
   - stored active display affinity fallback applies only when chat window is hidden

@@ -263,6 +263,7 @@ function ChatBox() {
       await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_MAIN_WINDOW, {
         maximize: true,
         open: 'chat',
+        reason: 'chat-pill-settings',
       });
     } catch (error) {
       console.warn('[ChatBox] Failed to show main window:', error);

@@ -250,7 +250,10 @@ function showMainWindow(options = {}, deps = {}) {
     || safeWindowVisible(contextLabelWindow)
   );
   if (overlaySurfaceVisible) {
-    hideChatWindow({ reason: 'surface-handoff' });
+    const handoffReason = typeof options?.reason === 'string' && options.reason.trim()
+      ? `surface-handoff:${options.reason.trim().toLowerCase()}`
+      : 'surface-handoff:show-main-window';
+    hideChatWindow({ reason: handoffReason });
   }
   const resolvedTargetDisplayAffinity = resolveShowTargetDisplayAffinity({
     targetDisplayAffinity: options?.targetDisplayAffinity,

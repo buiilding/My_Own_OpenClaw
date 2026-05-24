@@ -122,7 +122,10 @@ Navigation behavior:
 - after completion, `AppContent` re-resolves startup surface and hands visibility to the minimal chat pill instead of leaving the dashboard window open
 - startup-surface handoff is a generic lifecycle restore, not a wakeword/user
   summon; Electron main may suppress it when the user previously closed the
-  minimal chat pill
+  minimal chat pill or when the same renderer startup-surface handoff is
+  replayed after the initial startup decision
+- onboarding completion uses `show-chatbox({ reason: "onboarding-complete" })`
+  so the first-run wizard can still intentionally land on the minimal chat pill
 - `Start WindieOS` stays enabled once permission status has loaded, even if some permissions are still missing
 - the final slide warns when permissions remain missing and points the user to Settings for follow-up
 - while onboarding is active, closing the main window hides onboarding without restoring the minimal chat pill; reopening the app restores onboarding until the wizard is completed

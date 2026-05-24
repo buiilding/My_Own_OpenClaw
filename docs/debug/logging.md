@@ -64,7 +64,9 @@ Chat pill visibility decisions are always logged from Electron main with:
 The payload includes `action`, `reason`, `user_hidden`, `focus`,
 `restore_response_overlay`, `result_reason`, `chat_window_visible`, and
 `response_window_visible`. Use it to tell why the pill appeared or why a
-generic restore was suppressed.
+generic restore was suppressed. Handoff hides include the main-window cause in
+the reason, for example `surface-handoff:chat-pill-settings` or
+`surface-handoff:renderer:settings`.
 
 ## Renderer Logs
 

@@ -482,7 +482,7 @@ function createTray({
     {
       label: 'Show App',
       click: () => {
-        showMainWindow({ focus: true });
+        showMainWindow({ focus: true, reason: 'tray-show-app' });
       },
     },
     {
@@ -497,7 +497,7 @@ function createTray({
   tray.setToolTip('WindieOS');
   tray.setContextMenu(contextMenu);
   tray.on('double-click', () => {
-    showMainWindow({ focus: true });
+    showMainWindow({ focus: true, reason: 'tray-double-click' });
   });
 
   return tray;

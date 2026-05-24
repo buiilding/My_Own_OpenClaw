@@ -89,6 +89,7 @@ describe('window_controls_ipc_runtime', () => {
       focus: true,
       maximize: false,
       open: 'settings',
+      reason: 'renderer:settings',
       targetDisplayAffinity: {
         monitor_id: '2',
         bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
@@ -156,6 +157,7 @@ describe('window_controls_ipc_runtime', () => {
       focus: true,
       maximize: true,
       open: 'chat',
+      reason: 'renderer:chat',
       targetDisplayAffinity: {
         monitor_id: '2',
         bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
@@ -231,6 +233,7 @@ describe('window_controls_ipc_runtime', () => {
       focus: true,
       maximize: false,
       open: 'settings',
+      reason: 'renderer:settings',
       targetDisplayAffinity: {
         monitor_id: '2',
         bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
@@ -306,6 +309,7 @@ describe('window_controls_ipc_runtime', () => {
       focus: true,
       maximize: false,
       open: 'settings',
+      reason: 'renderer:settings',
       targetDisplayAffinity: {
         monitor_id: '2',
         bounds: { x: 1920, y: 0, width: 2560, height: 1440 },

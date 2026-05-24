@@ -255,7 +255,7 @@ describe('window_visibility_runtime showMainWindow', () => {
     );
 
     expect(result).toEqual({ success: true });
-    expect(hideChatWindow).toHaveBeenCalledWith({ reason: 'surface-handoff' });
+    expect(hideChatWindow).toHaveBeenCalledWith({ reason: 'surface-handoff:show-main-window' });
     expect(mainWindow.show).toHaveBeenCalledTimes(1);
   });
 

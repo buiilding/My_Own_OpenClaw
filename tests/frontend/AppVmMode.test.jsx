@@ -71,6 +71,9 @@ describe('App VM mode', () => {
     expect(screen.getByTestId('dashboard-shell-stub')).toHaveTextContent('vmModeEnabled:true');
     expect(screen.queryByTestId('frontend-onboarding-stub')).not.toBeInTheDocument();
     expect(mockWakewordController).toHaveBeenCalledTimes(1);
-    expect(mockIpcInvoke).toHaveBeenCalledWith('show-main-window', { focus: true });
+    expect(mockIpcInvoke).toHaveBeenCalledWith('show-main-window', {
+      focus: true,
+      reason: 'startup-vm',
+    });
   });
 });

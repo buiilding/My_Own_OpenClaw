@@ -12,6 +12,11 @@ function handleShowMainWindow(options = {}, deps = {}) {
     return showMainWindow(normalizeMainSurfaceWindowOptions({
       ...options,
       focus: true,
+      reason: typeof options?.reason === 'string' && options.reason.trim()
+        ? options.reason
+        : (typeof options?.open === 'string' && options.open.trim()
+          ? `renderer:${options.open.trim().toLowerCase()}`
+          : 'renderer:show-main-window'),
       targetDisplayAffinity: resolveTargetDisplayAffinity(options),
     }));
   } catch (error) {

@@ -160,7 +160,7 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
 
   function focusPrimarySurface() {
     if (vmMode) {
-      showMainWindow({ focus: true });
+      showMainWindow({ focus: true, reason: 'app-activate-vm' });
       return;
     }
 
@@ -175,15 +175,15 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
 
     if (mainWindowVisible) {
       if (getMainWindowMode() === 'onboarding') {
-        showMainWindow({ focus: true, open: 'onboarding' });
+        showMainWindow({ focus: true, open: 'onboarding', reason: 'app-activate-onboarding' });
         return;
       }
-      showMainWindow({ focus: true });
+      showMainWindow({ focus: true, reason: 'app-activate-main-visible' });
       return;
     }
 
     if (getPrimarySurface() === 'onboarding') {
-      showMainWindow({ focus: true, open: 'onboarding' });
+      showMainWindow({ focus: true, open: 'onboarding', reason: 'app-activate-onboarding' });
       return;
     }
 
@@ -226,7 +226,7 @@ function initializeMainProcessLifecycleRuntime(deps = {}) {
       createTray();
     }
     if (vmMode) {
-      showMainWindow({ focus: true });
+      showMainWindow({ focus: true, reason: 'startup-vm' });
     }
     if (!vmMode) {
       syncWakewordToggleForChatVisibility();

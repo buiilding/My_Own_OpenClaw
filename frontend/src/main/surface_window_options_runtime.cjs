@@ -24,11 +24,15 @@ function normalizeMainSurfaceWindowOptions(options = {}) {
   const open = typeof options?.open === 'string'
     ? options.open.trim().toLowerCase()
     : '';
+  const reason = typeof options?.reason === 'string' && options.reason.trim()
+    ? { reason: options.reason.trim().toLowerCase() }
+    : {};
   return {
     focus: options?.focus !== false,
     maximize: options?.maximize === true,
     open,
     targetDisplayAffinity: normalizeTargetDisplayAffinity(options?.targetDisplayAffinity),
+    ...reason,
   };
 }
 

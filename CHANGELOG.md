@@ -8,7 +8,8 @@ All notable changes to WindieOS will be documented in this file.
 
 - sdk/tools: restore automatic post-action screenshots for computer-use tools, with single-tool captures merged into tool results and atomic bundles capturing once after all steps.
 - frontend/chat: scope awaiting-dot progress suppression to the current user turn so prior tool/search progress does not hide typing dots for sequential messages.
-- frontend/main: log chat-pill show/hide visibility decisions from Electron main with reason, user-hidden state, and window visibility.
+- frontend/main: log chat-pill show/hide visibility decisions from Electron main with specific handoff reasons, user-hidden state, and window visibility.
+- frontend/main: suppress replayed startup-surface chat pill show requests after initial startup while preserving onboarding-complete handoff.
 - frontend/main: persist user-hidden minimal chat pill intent so generic app wake/startup restores do not reopen it, while wakeword and hotkey summons still do; dev launches ignore the persisted hidden state so `electron:dev` remains visible.
 - docs/agents: require coding agents to identify the owning layer before edits, report exact validation commands, check security and migration implications, and keep scratch logs for larger refactors.
 - backend/compaction: enforce the post-compaction target budget on retained history tails and add one-shot overflow/empty-stream compaction recovery before surfacing a model failure.

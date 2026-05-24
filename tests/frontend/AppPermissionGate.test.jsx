@@ -79,6 +79,7 @@ describe('App permission gate', () => {
     expect(mockIpcInvoke).toHaveBeenCalledWith('show-main-window', {
       focus: true,
       open: 'onboarding',
+      reason: 'startup-onboarding',
     });
   });
 
@@ -125,6 +126,7 @@ describe('App permission gate', () => {
     expect(mockIpcInvoke).toHaveBeenCalledWith('show-main-window', {
       focus: true,
       open: 'onboarding',
+      reason: 'startup-onboarding',
     });
 
     mockIpcInvoke.mockClear();
@@ -136,7 +138,7 @@ describe('App permission gate', () => {
     expect(mockWakewordController).toHaveBeenCalledTimes(1);
     expect(mockIpcInvoke).toHaveBeenCalledWith('show-chatbox', {
       focus: true,
-      reason: 'startup',
+      reason: 'onboarding-complete',
     });
   });
 });

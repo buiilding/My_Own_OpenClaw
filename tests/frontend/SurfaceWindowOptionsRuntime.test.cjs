@@ -44,6 +44,7 @@ describe('surface_window_options_runtime', () => {
         monitor_id: '1',
         bounds: { x: 0, y: 0, width: 1920, height: 1080 },
       },
+      reason: ' Chat-Pill-Settings ',
       ignoredField: 'value',
     })).toEqual({
       focus: false,
@@ -53,6 +54,7 @@ describe('surface_window_options_runtime', () => {
         monitor_id: '1',
         bounds: { x: 0, y: 0, width: 1920, height: 1080 },
       },
+      reason: 'chat-pill-settings',
     });
   });
 
