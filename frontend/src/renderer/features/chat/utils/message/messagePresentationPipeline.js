@@ -145,6 +145,27 @@ export function buildCurrentTurnResponseOverlayEntries(messages) {
   return entries;
 }
 
+export function hasCurrentTurnLiveProgressMessages(messages) {
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return false;
+  }
+
+  const lastUserIndex = findLastUserIndex(messages);
+  const lowerBound = lastUserIndex >= 0 ? lastUserIndex + 1 : 0;
+
+  for (let index = lowerBound; index < messages.length; index += 1) {
+    const message = messages[index];
+    if (
+      message?.type === 'tool-explanation'
+      || message?.type === 'search-source'
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export function buildThreadPresentationMessages(
   messages,
   { showToolLogs = true, isBusy = false } = {},

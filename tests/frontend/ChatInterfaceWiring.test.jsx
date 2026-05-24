@@ -397,6 +397,27 @@ describe('ChatInterface wiring', () => {
     expect(lastCall.messages[1].text).toBe('Searching web');
   });
 
+  test('shows awaiting dot for a later user message when only prior-turn progress is visible', () => {
+    mockChatState.isSending = true;
+    mockChatState.streamTracking.phase = 'awaiting-first-chunk';
+    mockChatState.messages = [
+      { id: 'user-1', sender: 'user', text: 'Search the web' },
+      {
+        id: 'search-1',
+        sender: 'assistant',
+        text: 'Searching web',
+        type: 'search-source',
+        sourceEventType: 'web-search-progress',
+      },
+      { id: 'user-2', sender: 'user', text: 'Summarize it now' },
+    ];
+
+    render(<ChatInterface />);
+
+    const lastCall = mockMessageList.mock.calls.at(-1)[0];
+    expect(lastCall.awaitingDotTargetMessageId).toBe('user-2');
+  });
+
   test('keeps live tool explanation rows visible until the assistant reply is complete', () => {
     mockChatState.streamTracking.phase = 'complete';
     mockChatState.messages = [

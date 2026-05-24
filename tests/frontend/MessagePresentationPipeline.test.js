@@ -1,6 +1,7 @@
 import {
   buildCurrentTurnResponseOverlayEntries,
   buildThreadPresentationMessages,
+  hasCurrentTurnLiveProgressMessages,
 } from '../../frontend/src/renderer/features/chat/utils/message/messagePresentationPipeline';
 
 describe('messagePresentationPipeline', () => {
@@ -94,5 +95,35 @@ describe('messagePresentationPipeline', () => {
       showToolLogs: false,
       isBusy: true,
     })).toEqual(messages);
+  });
+
+  test('current-turn live progress ignores progress rows before the latest user', () => {
+    expect(hasCurrentTurnLiveProgressMessages([
+      { id: 'user-1', sender: 'user', text: 'Search the web' },
+      {
+        id: 'search-1',
+        sender: 'assistant',
+        type: 'search-source',
+        text: 'Searched example.com',
+      },
+      { id: 'user-2', sender: 'user', text: 'Now answer this' },
+    ])).toBe(false);
+
+    expect(hasCurrentTurnLiveProgressMessages([
+      { id: 'user-1', sender: 'user', text: 'Search the web' },
+      {
+        id: 'search-1',
+        sender: 'assistant',
+        type: 'search-source',
+        text: 'Searched example.com',
+      },
+      { id: 'user-2', sender: 'user', text: 'Now answer this' },
+      {
+        id: 'tool-call-2:tool-explanation:0',
+        sender: 'assistant',
+        type: 'tool-explanation',
+        text: 'Read the latest file.',
+      },
+    ])).toBe(true);
   });
 });

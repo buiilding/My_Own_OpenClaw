@@ -49,7 +49,10 @@ import {
   VISIBLE_ASSISTANT_REPLY_TYPE_SET,
 } from '../utils/state/chatTurnPresentationState';
 import { DesktopConversationRuntimeClient } from '../session/desktopConversationRuntimeClient';
-import { buildThreadPresentationMessages } from '../utils/message/messagePresentationPipeline';
+import {
+  buildThreadPresentationMessages,
+  hasCurrentTurnLiveProgressMessages,
+} from '../utils/message/messagePresentationPipeline';
 import { buildThreadFindState } from '../utils/message/threadFindState';
 import '../../../styles/ChatInterface.css';
 
@@ -210,12 +213,10 @@ function ChatInterface({ focusComposerToken = 0 }) {
     showToolLogs,
     isBusy: composerBusy,
   }), [composerBusy, messages, showToolLogs]);
-  const hasLiveProgressMessages = useMemo(() => (
-    renderedMessages.some((message) => (
-      message?.type === 'tool-explanation'
-      || message?.type === 'search-source'
-    ))
-  ), [renderedMessages]);
+  const hasLiveProgressMessages = useMemo(
+    () => hasCurrentTurnLiveProgressMessages(renderedMessages),
+    [renderedMessages],
+  );
   const modelMode = config?.model_mode || 'online';
   const configuredProvider = config?.model_provider || '';
   const configuredModelId = config?.selected_model_id || '';
