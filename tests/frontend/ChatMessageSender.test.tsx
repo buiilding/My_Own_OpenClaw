@@ -670,12 +670,10 @@ describe('useChatMessageSender', () => {
 
   test('reads selected non-image files via read_file and injects hidden attachment context', async () => {
     (window as any).ipc.invoke = jest.fn().mockImplementation((channel: string, payload: any) => {
-      if (channel === INVOKE_CHANNELS.EXECUTE_TOOL) {
-        expect(payload).toEqual(expect.objectContaining({
-          toolName: 'read_file',
-          args: { file_path: '/tmp/notes.txt' },
-          skipAutoCapture: true,
-        }));
+      if (channel === INVOKE_CHANNELS.READ_ATTACHMENT_FILE) {
+        expect(payload).toEqual({
+          filePath: '/tmp/notes.txt',
+        });
         return Promise.resolve({
           success: true,
           data: {

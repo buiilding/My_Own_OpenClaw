@@ -60,10 +60,8 @@ describe('chatMessageSenderPayloads', () => {
       { filePath: '/tmp/a', filename: 'a.txt' },
     ]);
 
-    expect(invokeSpy).toHaveBeenCalledWith(INVOKE_CHANNELS.EXECUTE_TOOL, {
-      toolName: 'read_file',
-      args: { file_path: '/tmp/a' },
-      skipAutoCapture: true,
+    expect(invokeSpy).toHaveBeenCalledWith(INVOKE_CHANNELS.READ_ATTACHMENT_FILE, {
+      filePath: '/tmp/a',
     });
     expect(context).toContain('Attached File: a.txt');
     expect(context).toContain('File body text');

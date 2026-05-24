@@ -23,7 +23,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     },
   },
   INVOKE_CHANNELS: {
-    EXECUTE_TOOL: 'execute-tool',
+    RUN_BROWSER_ACTION: 'run-browser-action',
     GET_LOCAL_BACKEND_STATUS: 'get-local-backend-status',
   },
   ON_CHANNELS: {
@@ -41,10 +41,9 @@ function createBrowserToolHandler(session) {
       };
     }
 
-    expect(channel).toBe('execute-tool');
-    expect(payload.toolName).toBe('browser');
+    expect(channel).toBe('run-browser-action');
 
-    const action = payload?.args?.action;
+    const action = payload?.action;
     const currentTab = session.tabs.find((tab) => tab.targetId === session.currentTargetId) || null;
 
     if (action === 'status') {
@@ -96,7 +95,7 @@ function createBrowserToolHandler(session) {
     }
 
     if (action === 'switch') {
-      session.currentTargetId = payload?.args?.tab_id || session.currentTargetId;
+      session.currentTargetId = payload?.tab_id || session.currentTargetId;
       const nextTab = session.tabs.find((tab) => tab.targetId === session.currentTargetId) || null;
       return {
         success: true,
@@ -153,9 +152,8 @@ describe('ChatBrowserSessionControl', () => {
     fireEvent.click(connectButton);
 
     await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith('execute-tool', expect.objectContaining({
-        toolName: 'browser',
-        args: expect.objectContaining({ action: 'connect' }),
+      expect(mockInvoke).toHaveBeenCalledWith('run-browser-action', expect.objectContaining({
+        action: 'connect',
       }));
     });
 
@@ -186,13 +184,10 @@ describe('ChatBrowserSessionControl', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Next browser tab' }));
 
     await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith('execute-tool', expect.objectContaining({
-        toolName: 'browser',
-        args: expect.objectContaining({
-          action: 'switch',
-          tab_id: 'tab-2',
-          activate: false,
-        }),
+      expect(mockInvoke).toHaveBeenCalledWith('run-browser-action', expect.objectContaining({
+        action: 'switch',
+        tab_id: 'tab-2',
+        activate: false,
       }));
     });
 
@@ -203,9 +198,8 @@ describe('ChatBrowserSessionControl', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Disconnect browser' }));
 
     await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith('execute-tool', expect.objectContaining({
-        toolName: 'browser',
-        args: expect.objectContaining({ action: 'close' }),
+      expect(mockInvoke).toHaveBeenCalledWith('run-browser-action', expect.objectContaining({
+        action: 'close',
       }));
     });
 
@@ -261,7 +255,7 @@ describe('ChatBrowserSessionControl', () => {
     expect(await screen.findByRole('button', { name: 'Connect browser' })).toBeDisabled();
     expect(mockInvoke.mock.calls[0]).toEqual(['get-local-backend-status', undefined]);
     const issuedBrowserToolCall = mockInvoke.mock.calls.some(([channel, payload]) => (
-      channel === 'execute-tool' && payload?.toolName === 'browser'
+      channel === 'run-browser-action'
     ));
     if (issuedBrowserToolCall) {
       throw new Error('Browser tool should not be called before the local backend is ready.');
@@ -276,10 +270,9 @@ describe('ChatBrowserSessionControl', () => {
       await screen.findByRole('button', { name: 'Browser Tab: Docs' }),
     ).toBeInTheDocument();
     expect(mockInvoke).toHaveBeenCalledWith(
-      'execute-tool',
+      'run-browser-action',
       expect.objectContaining({
-        toolName: 'browser',
-        args: expect.objectContaining({ action: 'status' }),
+        action: 'status',
       }),
     );
   });

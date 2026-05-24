@@ -42,6 +42,7 @@ let readinessCheckCallback = null;
 let readinessCheckToken = 0;
 
 const LARGE_JSON_PARSE_OFFLOAD_THRESHOLD_BYTES = 128 * 1024;
+const BROWSER_CONTROL_EXPLANATION = 'Manage the dedicated browser session from the chat header.';
 const isTestEnv = process.env.NODE_ENV === 'test';
 let runtimeScreenCaptureCapabilityVerifier = async () => ({
   granted: false,
@@ -707,6 +708,29 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
   };
 
   ipcMain.handle('execute-tool', executeToolRuntime.executeTool);
+  ipcMain.handle('capture-screenshot-attachment', async (event, payload = {}) => (
+    executeToolRuntime.executeTool(event, {
+      toolName: 'screenshot',
+      args: payload?.args || {},
+    })
+  ));
+  ipcMain.handle('read-attachment-file', async (event, payload = {}) => (
+    executeToolRuntime.executeTool(event, {
+      toolName: 'read_file',
+      args: { file_path: payload?.filePath },
+    })
+  ));
+  ipcMain.handle('run-browser-action', async (event, payload = {}) => {
+    const { action, ...extras } = payload || {};
+    return executeToolRuntime.executeTool(event, {
+      toolName: 'browser',
+      args: {
+        action,
+        explanation: BROWSER_CONTROL_EXPLANATION,
+        ...extras,
+      },
+    });
+  });
   ipcMain.handle('get-local-backend-status', async () => buildLocalBackendStatusPayload());
 
   runtimeScreenCaptureCapabilityVerifier = executeToolRuntime.createScreenCaptureCapabilityVerifier();

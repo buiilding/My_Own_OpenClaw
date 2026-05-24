@@ -15,7 +15,9 @@ type SharedChannelRegistry = {
     WAKEWORD_DISABLE: 'wakeword-disable';
   };
   INVOKE_CHANNELS: {
-    EXECUTE_TOOL: 'execute-tool';
+    CAPTURE_SCREENSHOT_ATTACHMENT: 'capture-screenshot-attachment';
+    READ_ATTACHMENT_FILE: 'read-attachment-file';
+    RUN_BROWSER_ACTION: 'run-browser-action';
     UPLOAD_ARTIFACT: 'upload-artifact';
     FETCH_ARTIFACT_IMAGE: 'fetch-artifact-image';
     GET_SYSTEM_STATE: 'get-system-state';

@@ -4,7 +4,6 @@ import {
   subscribeLocalBackendStatusStore,
 } from './localBackendStatusStore';
 
-const BROWSER_CONTROL_EXPLANATION = 'Manage the dedicated browser session from the chat header.';
 const DEFAULT_CONNECTED_POLL_MS = 2000;
 const INTERACTIVE_CONNECTED_POLL_MS = 1000;
 
@@ -125,14 +124,9 @@ function updateSnapshot(partial) {
 }
 
 async function runBrowserAction(action, extras = {}) {
-  const result = await IpcBridge.invoke(INVOKE_CHANNELS.EXECUTE_TOOL, {
-    toolName: 'browser',
-    args: {
-      action,
-      explanation: BROWSER_CONTROL_EXPLANATION,
-      ...extras,
-    },
-    skipAutoCapture: true,
+  const result = await IpcBridge.invoke(INVOKE_CHANNELS.RUN_BROWSER_ACTION, {
+    action,
+    ...extras,
   });
 
   if (!result || result.success !== true) {

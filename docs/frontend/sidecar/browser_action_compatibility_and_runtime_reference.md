@@ -31,8 +31,9 @@ title: "Browser Action Compatibility and Runtime Reference"
 
 ## End-to-End Action Path
 
-1. Renderer invokes `INVOKE_CHANNELS.EXECUTE_TOOL`.
-2. Electron main forwards JSON-RPC `execute_tool`.
+1. Renderer invokes `INVOKE_CHANNELS.RUN_BROWSER_ACTION`.
+2. Electron main maps that scoped request to the local browser tool and forwards
+   JSON-RPC `execute_tool`.
 3. Browser tool has extended timeout (`120000ms`; non-browser tools `60000ms`).
 4. Sidecar `LocalBackend._handle_execute_tool` calls `ToolRegistry.execute_tool("browser", args)`.
 5. `browser_tool.execute_browser` applies removed-alias gate, then invokes adapter.

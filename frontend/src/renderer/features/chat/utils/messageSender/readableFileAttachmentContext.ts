@@ -27,10 +27,8 @@ function resolveReadableAttachmentText(result: ReadFileToolResult): string | nul
 
 async function readAttachmentSection(readableFile: ReadableFilePayload): Promise<string | null> {
   try {
-    const result = await IpcBridge.invoke(INVOKE_CHANNELS.EXECUTE_TOOL, {
-      toolName: 'read_file',
-      args: { file_path: readableFile.filePath },
-      skipAutoCapture: true,
+    const result = await IpcBridge.invoke(INVOKE_CHANNELS.READ_ATTACHMENT_FILE, {
+      filePath: readableFile.filePath,
     }) as ReadFileToolResult;
     const llmContent = resolveReadableAttachmentText(result);
     if (!result?.success || !llmContent) {

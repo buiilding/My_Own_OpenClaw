@@ -53,7 +53,9 @@ For invalid channels:
 
 Allowed channels (from shared `INVOKE_CHANNELS` registry):
 
-- `execute-tool`
+- `capture-screenshot-attachment`
+- `read-attachment-file`
+- `run-browser-action`
 - `upload-artifact`
 - `fetch-artifact-image`
 - `get-system-state`

@@ -159,7 +159,6 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     invoke: (...args) => mockIpcInvoke(...args),
   },
   INVOKE_CHANNELS: {
-    EXECUTE_TOOL: 'execute-tool',
     GET_CHAT_EVENTS: 'get-chat-events',
     DELETE_CHAT_CONVERSATION: 'delete-chat-conversation',
     STORE_CHAT_EVENT: 'store-chat-event',

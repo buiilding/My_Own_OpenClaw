@@ -74,7 +74,9 @@ Relevant renderer files:
 - `frontend/src/renderer/infrastructure/hooks/useBrowserSessionControl.js`
 - `frontend/src/renderer/features/chat/components/ChatBrowserSessionControl.jsx`
 
-Renderer controls call the generic `EXECUTE_TOOL` IPC path with `toolName: "browser"` and `skipAutoCapture: true`. They should not bypass the tool bridge.
+Renderer controls call the named `RUN_BROWSER_ACTION` IPC channel. Electron
+main maps that scoped host-capability request to the local browser tool; renderer
+code should not invoke the generic `execute-tool` bridge directly.
 
 ## Tests
 

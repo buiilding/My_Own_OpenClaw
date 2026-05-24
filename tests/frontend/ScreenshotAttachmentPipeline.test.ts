@@ -3,7 +3,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     invoke: jest.fn(),
   },
   INVOKE_CHANNELS: {
-    EXECUTE_TOOL: 'execute-tool',
+    CAPTURE_SCREENSHOT_ATTACHMENT: 'capture-screenshot-attachment',
   },
 }));
 
@@ -78,13 +78,11 @@ describe('ScreenshotAttachmentPipeline', () => {
       correlationId: 'cap-1',
     });
 
-    expect(mockInvoke).toHaveBeenCalledWith(INVOKE_CHANNELS.EXECUTE_TOOL, {
-      toolName: 'screenshot',
+    expect(mockInvoke).toHaveBeenCalledWith(INVOKE_CHANNELS.CAPTURE_SCREENSHOT_ATTACHMENT, {
       args: {
         explanation: 'Initial user message screenshot',
         expectation: 'Current screen state',
       },
-      skipAutoCapture: false,
     });
     expect(result).toEqual({
       screenshot: 'shot',

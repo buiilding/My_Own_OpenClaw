@@ -114,6 +114,47 @@ describe('local_backend_bridge RPC handlers', () => {
     expect(result).toEqual({ success: true, data: { value: 1 } });
   });
 
+  test('named renderer host channels map to scoped local tools', async () => {
+    const { handlers, stdoutHandler } = initBridge();
+    markReady();
+
+    const readPromise = handlers['read-attachment-file'](null, {
+      filePath: '/tmp/a',
+    });
+    expectLastRequestWith('execute_tool', {
+      tool_name: 'read_file',
+      args: { file_path: '/tmp/a' },
+    });
+    await expectResolvedSuccess(stdoutHandler, readPromise, { content: 'body' });
+
+    const browserPromise = handlers['run-browser-action'](null, {
+      action: 'switch',
+      tab_id: 'tab-2',
+      activate: false,
+    });
+    expectLastRequestWith('execute_tool', {
+      tool_name: 'browser',
+      args: {
+        action: 'switch',
+        explanation: 'Manage the dedicated browser session from the chat header.',
+        tab_id: 'tab-2',
+        activate: false,
+      },
+    });
+    await expectResolvedSuccess(stdoutHandler, browserPromise, { target_id: 'tab-2' });
+
+    const screenshotPromise = handlers['capture-screenshot-attachment'](null, {
+      args: { explanation: 'Attach current screen' },
+    });
+    expectLastRequestWith('execute_tool', {
+      tool_name: 'screenshot',
+      args: expect.objectContaining({
+        explanation: 'Attach current screen',
+      }),
+    });
+    await expectResolvedSuccess(stdoutHandler, screenshotPromise, { screenshot: 'shot' });
+  });
+
   test('execute-tool handler routes fallback execution through sidecar daemon client', async () => {
     const sidecarDaemonClient = {
       executeTool: jest.fn(async () => ({ success: true, data: { value: 2 } })),

@@ -209,10 +209,8 @@ export async function captureScreenshotAttachment({
     focusPrepTime = (performance.now() - focusPrepStartTime) / 1000;
 
     const screenshotInvokeStartTime = performance.now();
-    const screenshotResult = await IpcBridge.invoke<ToolResult>(INVOKE_CHANNELS.EXECUTE_TOOL, {
-      toolName: 'screenshot',
+    const screenshotResult = await IpcBridge.invoke<ToolResult>(INVOKE_CHANNELS.CAPTURE_SCREENSHOT_ATTACHMENT, {
       args: buildScreenshotArgs(resolveScreenshotExplanation(explanation, isFirstUserMessage)),
-      skipAutoCapture: false,
     });
     screenshotInvokeTime = (performance.now() - screenshotInvokeStartTime) / 1000;
     attachment = extractScreenshotAttachment(screenshotResult);

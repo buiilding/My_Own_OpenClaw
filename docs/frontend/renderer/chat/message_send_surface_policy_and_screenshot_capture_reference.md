@@ -117,7 +117,8 @@ When attachment(s) exist:
 
 Readable file injection path:
 
-- for each `readableFiles[]` item, sender executes sidecar `read_file` via `execute-tool`.
+- for each `readableFiles[]` item, sender invokes `read-attachment-file`;
+  Electron main maps that scoped host-capability request to sidecar `read_file`.
 - successful `llm_content` outputs are concatenated into hidden attachment context.
 - context is appended into backend-bound composed query content by main process.
 - raw `read_file` content is never rendered in user-visible chat row.

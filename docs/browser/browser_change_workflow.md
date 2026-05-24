@@ -19,7 +19,8 @@ WindieOS currently adapts its canonical browser tool contract to the maintained 
 - The sidecar owns Browser Use invocation, browser-local file helpers, and WindieOS result normalization.
 - Browser Use owns Playwright/CDP objects, browser sessions, tabs, numeric refs/indexes, snapshots, and browser action mechanics.
 - Electron main relays `execute_tool` requests and does not inspect Playwright objects.
-- Renderer browser controls call the same `EXECUTE_TOOL` path as model-triggered tools.
+- Renderer browser controls call the scoped `RUN_BROWSER_ACTION` IPC channel;
+  Electron main maps that to the local browser tool.
 - Browser automation uses a WindieOS-named Browser Use session by default, not the user's default Chrome profile.
 - Browser file actions resolve through the browser file store instead of arbitrary filesystem helper paths.
 
@@ -43,7 +44,8 @@ WindieOS currently adapts its canonical browser tool contract to the maintained 
 2. Backend browser schema wrappers import the shared browser contract and emit grouped action parameters.
 3. The model emits a `browser` tool call with an action-specific payload.
 4. Backend validation accepts or rejects the action before dispatch.
-5. SDK/main tool routing receives the remote tool call and invokes Electron `EXECUTE_TOOL`.
+5. SDK/main tool routing receives the remote tool call and invokes the local
+   execute-tool runtime directly.
 6. Electron main normalizes/relays `execute_tool` to the Python sidecar local backend.
 7. Sidecar `ToolRegistry` resolves `"browser"` to `execute_browser`.
 8. `execute_browser` validates the payload with `BrowserControlArgs`.
@@ -208,7 +210,7 @@ Edit:
 
 Validate:
 
-- controls use `INVOKE_CHANNELS.EXECUTE_TOOL` with `toolName: "browser"`.
+- controls use `INVOKE_CHANNELS.RUN_BROWSER_ACTION`.
 - `connect`, `status`, `get_tabs`, `switch`, and `close` payloads remain canonical browser actions.
 - polling starts only while subscribed and connected.
 - stale async status responses cannot overwrite newer state.
@@ -271,7 +273,8 @@ Before committing a browser change:
 1. Confirm whether the change is schema, runtime, CDP/profile, renderer UI, permission/readiness, or file/download behavior.
 2. Confirm the backend and sidecar still share the same canonical browser action contract.
 3. Confirm dedicated browser profile isolation remains intact.
-4. Confirm renderer controls still use the generic browser tool bridge.
+4. Confirm renderer controls still use `RUN_BROWSER_ACTION`, not generic
+   renderer `execute-tool`.
 5. Confirm browser file behavior stays browser-owned and does not bypass filesystem-tool boundaries.
 6. Confirm stale renderer polling and disconnected-browser states are tested when UI state changes.
 7. Confirm future extension/auto-attach behavior remains in ADR or planning docs unless implemented with permissions and tests.

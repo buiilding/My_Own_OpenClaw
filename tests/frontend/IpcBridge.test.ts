@@ -16,8 +16,8 @@ describe('IpcBridge', () => {
   });
 
   test('invoke forwards to window.ipc and returns result', async () => {
-    const result = await IpcBridge.invoke(INVOKE_CHANNELS.EXECUTE_TOOL, { toolName: 'read_file' });
-    expect((window as any).ipc.invoke).toHaveBeenCalledWith('execute-tool', { toolName: 'read_file' });
+    const result = await IpcBridge.invoke(INVOKE_CHANNELS.READ_ATTACHMENT_FILE, { filePath: '/tmp/a' });
+    expect((window as any).ipc.invoke).toHaveBeenCalledWith('read-attachment-file', { filePath: '/tmp/a' });
     expect(result).toBe('ok');
   });
 
@@ -40,7 +40,7 @@ describe('IpcBridge', () => {
 
   test('throws when window.ipc is missing', async () => {
     clearMockIpc();
-    await expect(IpcBridge.invoke(INVOKE_CHANNELS.EXECUTE_TOOL, {})).rejects.toThrow(
+    await expect(IpcBridge.invoke(INVOKE_CHANNELS.READ_ATTACHMENT_FILE, {})).rejects.toThrow(
       'window.ipc is not available'
     );
   });

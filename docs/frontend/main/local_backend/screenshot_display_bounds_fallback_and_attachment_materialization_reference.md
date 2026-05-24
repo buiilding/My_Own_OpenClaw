@@ -21,7 +21,9 @@ title: "Screenshot Display-Bounds Fallback and Attachment Materialization Refere
 
 ## Runtime Ownership
 
-For `execute-tool` calls where `toolName === "screenshot"`, Electron main owns two contracts before returning to renderer:
+For screenshot tool calls, including renderer `capture-screenshot-attachment`
+requests mapped by Electron main, Electron main owns two contracts before
+returning to renderer:
 
 1. resolve fallback `display_bounds` for monitor-targeted capture
 2. materialize sidecar `screenshot_path` into durable attachment fields (`screenshot_ref`/`screenshot_url`) or inline fallback (`screenshot`)

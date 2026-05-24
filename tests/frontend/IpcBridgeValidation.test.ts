@@ -21,6 +21,9 @@ describe('IpcBridge validation', () => {
     await expect(IpcBridge.invoke('bad-channel' as any, {})).rejects.toThrow(
       'Invalid invoke channel',
     );
+    await expect(IpcBridge.invoke('execute-tool' as any, {})).rejects.toThrow(
+      'Invalid invoke channel',
+    );
     expect(() => IpcBridge.on('bad-channel' as any, jest.fn())).toThrow(
       'Invalid on channel',
     );

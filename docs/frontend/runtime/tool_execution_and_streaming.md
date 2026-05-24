@@ -81,6 +81,11 @@ Retained renderer infrastructure:
 - `ArtifactUploader.ts`
 - `ToolExecutionLogger.ts`
 
+Renderer host-capability calls use scoped IPC channels such as
+`capture-screenshot-attachment`, `read-attachment-file`, and
+`run-browser-action`; renderer code should not call the generic `execute-tool`
+bridge directly.
+
 ## Contract with Backend
 
 Outbound payload types from the SDK/main runtime:
