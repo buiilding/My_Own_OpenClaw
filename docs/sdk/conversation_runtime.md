@@ -153,6 +153,13 @@ and `userId`, while `structuredPayload` carries backend detail fields needed for
 display metadata and transcript trace rows. Renderer tool-call display should
 not reconstruct backend `tool-call` events from `payload.rawEvent`.
 
+Desktop tool-output projection consumes SDK `tool_output` directly. The SDK
+payload exposes normalized identity, request/correlation id, tool name, and
+screenshot fields, while `structuredPayload` carries backend detail fields used
+for display text, metadata, transcript trace rows, and malformed-payload
+fallbacks. Renderer tool-output display should not reconstruct backend
+`tool-output` events from `payload.rawEvent`.
+
 ## Continuity Service Rule
 
 `ConversationContinuityService` is the SDK-owned orchestration layer for chat

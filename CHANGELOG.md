@@ -26,6 +26,7 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sdk: consume SDK completion identity directly in renderer completion handlers and delete raw backend `streaming-complete` identity unwrapping.
 - frontend/sdk: consume SDK tool-progress payloads directly in renderer web-search progress handlers and delete raw backend `web-search-progress` event unwrapping.
 - frontend/sdk: consume SDK tool-call payloads directly in renderer tool-call display handlers and delete raw backend `tool-call` event unwrapping.
+- frontend/sdk: consume SDK tool-output payloads directly in renderer tool-output display handlers and delete raw backend `tool-output` event unwrapping.
 - frontend/sdk: dispatch live thinking text from SDK `reasoning_delta` events, deleting the raw `llm-thought` backend handler-map entry.
 - frontend/sdk: dispatch backend memory-store tracking from SDK `memory_stored` events, deleting the raw `memory-store` backend handler-map entry.
 - frontend/sdk: dispatch backend token usage updates from SDK `usage_updated` events, deleting the raw `token-count` backend handler-map entry.

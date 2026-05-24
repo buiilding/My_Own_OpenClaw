@@ -4,14 +4,9 @@ import { type ChatMessage } from '../../stores/chatStore';
 import {
   type BackendEventType,
   type ToolBundleEvent,
-  type ToolOutputEvent,
 } from '../../../../types/backendEvents';
 import {
-  formatToolOutputText,
-} from '../../utils/chatStream/chatStreamFormatting';
-import {
   buildToolBundleMessage,
-  buildToolOutputMessage,
 } from '../../utils/chatStream/chatStreamToolMessages';
 import {
   buildToolCallChatMessageState,
@@ -29,6 +24,7 @@ import {
   resolveToolCallCorrelationId,
   resolveToolOutputCorrelationId,
 } from '../../utils/chatStream/chatStreamEventUtils';
+import { buildToolOutputEnvelopeMessage } from '../../utils/toolOutputMessages';
 import { recordToolOutputTranscriptMessage } from '../../utils/toolOutputTranscriptPersistence';
 import { DesktopConversationRuntimeClient } from '../../session/desktopConversationRuntimeClient';
 
@@ -45,7 +41,7 @@ type TrackEventFn = (
 ) => void;
 
 type JsonObject = Record<string, unknown>;
-type ToolStreamEvent = ToolOutputEvent | ToolBundleEvent | ConversationEvent;
+type ToolStreamEvent = ToolBundleEvent | ConversationEvent;
 
 type UseChatStreamToolHandlersDeps = {
   enableTranscript: boolean;
@@ -57,7 +53,7 @@ type UseChatStreamToolHandlersDeps = {
   recordTrackingEvent: TrackEventFn;
 };
 
-function unwrapToolBackendEvent<TEvent extends ToolOutputEvent | ToolBundleEvent>(
+function unwrapToolBackendEvent<TEvent extends ToolBundleEvent>(
   event: ToolStreamEvent,
   expectedType: TEvent['type'],
 ): TEvent | null {
@@ -84,6 +80,19 @@ function asJsonObject(value: unknown): JsonObject | null {
 
 function readString(value: unknown): string | null {
   return typeof value === 'string' ? value : null;
+}
+
+function formatSdkToolOutputText(payload: JsonObject | null): string {
+  if (typeof payload?.display_content === 'string' && payload.display_content.length > 0) {
+    return payload.display_content;
+  }
+  if (typeof payload?.output === 'string' && payload.output.length > 0) {
+    return payload.output;
+  }
+  if (payload?.error) {
+    return `Error: ${payload.error}`;
+  }
+  return 'No output';
 }
 
 export function useChatStreamToolHandlers({
@@ -185,42 +194,53 @@ export function useChatStreamToolHandlers({
     recordTrackingEvent,
   ]);
 
-  const handleToolOutput = useCallback((event: ToolOutputEvent | ConversationEvent, conversationRef?: string | null) => {
-    const backendEvent = unwrapToolBackendEvent<ToolOutputEvent>(event, 'tool-output');
-    if (!backendEvent) {
+  const handleToolOutput = useCallback((event: ConversationEvent, conversationRef?: string | null) => {
+    if (event.type !== 'tool_output') {
       return;
     }
-    const resolvedConversationRef = conversationRef ?? ('conversationRef' in event ? event.conversationRef : null);
+    const resolvedConversationRef = conversationRef ?? event.conversationRef;
     setIsSending(false, resolvedConversationRef);
     setThinkingStatus(null, resolvedConversationRef);
     setThinkingSourceEventType(null, resolvedConversationRef);
-    const outputText = formatToolOutputText(backendEvent.payload);
-    const { screenshotRef, screenshotUrl } = buildScreenshotAttachment(backendEvent.payload?.screenshot_ref);
+    const toolOutputDetails = asJsonObject(event.payload?.structuredPayload) ?? asJsonObject(event.payload);
+    const outputText = formatSdkToolOutputText(toolOutputDetails);
+    const toolName = readString(event.payload?.toolName) ?? readString(toolOutputDetails?.tool_name);
+    const requestId = readString(event.payload?.requestId) ?? readString(toolOutputDetails?.request_id);
+    const correlationId = (
+      readString(event.payload?.correlationId)
+      ?? resolveToolOutputCorrelationId(toolOutputDetails, event.eventId)
+      ?? requestId
+      ?? undefined
+    );
+    const screenshot = readString(event.payload?.screenshot) ?? readString(toolOutputDetails?.screenshot);
+    const screenshotRefValue = readString(event.payload?.screenshotRef) ?? readString(toolOutputDetails?.screenshot_ref);
+    const { screenshotRef, screenshotUrl } = buildScreenshotAttachment(screenshotRefValue);
     const modelContext = modelContextRef.current;
-    addMessage(buildToolOutputMessage(
-      backendEvent,
+    addMessage(buildToolOutputEnvelopeMessage({
       outputText,
-      modelContext,
-      backendEvent.payload?.screenshot || null,
+      sourceEventType: 'tool-output',
+      sourceChannel: 'from-backend',
+      screenshot: screenshotRef ? null : screenshot,
       screenshotRef,
       screenshotUrl,
-    ), resolvedConversationRef);
-    recordTrackingEvent('tool-output', backendEvent.turn_ref, { toolOutput: true }, resolvedConversationRef);
-
-    const correlationId = resolveToolOutputCorrelationId(backendEvent.payload, backendEvent.id) || undefined;
-    const toolOutputDetails = (
-      backendEvent.payload && typeof backendEvent.payload === 'object' && !Array.isArray(backendEvent.payload)
-        ? backendEvent.payload
-        : null
-    );
+      toolMetadata: asJsonObject(toolOutputDetails?.metadata),
+      toolName,
+      executionTime: typeof toolOutputDetails?.execution_time === 'number' ? toolOutputDetails.execution_time : null,
+      success: typeof toolOutputDetails?.success === 'boolean' ? toolOutputDetails.success : null,
+      correlationId,
+      toolOutputDetails,
+      turnRef: event.turnRef ?? null,
+      modelContext,
+    }), resolvedConversationRef);
+    recordTrackingEvent('tool-output', event.turnRef, { toolOutput: true }, resolvedConversationRef);
 
     if (enableTranscript) {
       recordToolOutputTranscriptMessage({
         text: outputText,
-        toolName: backendEvent.payload?.tool_name,
+        toolName,
         correlationId,
-        conversationRef: backendEvent.conversation_ref,
-        userId: backendEvent.user_id,
+        conversationRef: event.conversationRef,
+        userId: readString(event.payload?.userId),
         screenshotRef,
         modelContext,
         toolOutputDetails,

@@ -217,6 +217,12 @@ export function normalizeBackendEventToConversationEvent(
       source: 'backend',
       payload: {
         ...payload,
+        toolName: typeof payload.tool_name === 'string' ? payload.tool_name : null,
+        requestId: typeof payload.request_id === 'string' ? payload.request_id : null,
+        correlationId: typeof payload.request_id === 'string' ? payload.request_id : null,
+        screenshotRef: typeof payload.screenshot_ref === 'string' ? payload.screenshot_ref : null,
+        screenshot: typeof payload.screenshot === 'string' ? payload.screenshot : null,
+        userId: typeof event.user_id === 'string' ? event.user_id : null,
         structuredPayload: payload,
         rawEvent: event,
       },

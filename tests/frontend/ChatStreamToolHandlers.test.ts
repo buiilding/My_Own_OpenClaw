@@ -43,11 +43,13 @@ describe('useChatStreamToolHandlers', () => {
     expect(() => {
       act(() => {
         result.current.handleToolOutput({
-          id: ' event-tool-output ',
-          type: 'tool-output',
-          turn_ref: 'turn-1',
-          conversation_ref: 'conversation-1',
-          user_id: 'user-1',
+          eventId: ' event-tool-output ',
+          type: 'tool_output',
+          conversationRef: 'conversation-1',
+          turnRef: 'turn-1',
+          revisionId: 'rev-1',
+          timestamp: '2026-05-24T00:00:00.000Z',
+          source: 'backend',
           payload: 'invalid payload',
         } as any, 'conversation-1');
       });
@@ -108,18 +110,27 @@ describe('useChatStreamToolHandlers', () => {
 
     act(() => {
       result.current.handleToolOutput({
-        id: 'event-tool-output-2',
-        type: 'tool-output',
-        turn_ref: 'turn-2',
-        conversation_ref: 'conversation-2',
-        user_id: 'user-2',
+        eventId: 'event-tool-output-2',
+        type: 'tool_output',
+        conversationRef: 'conversation-2',
+        turnRef: 'turn-2',
+        revisionId: 'rev-2',
+        timestamp: '2026-05-24T00:00:00.000Z',
+        source: 'backend',
         payload: {
-          tool_name: 'mouse_control',
-          success: true,
-          output: 'clicked',
-          request_id: 'request-2',
+          toolName: 'mouse_control',
+          requestId: 'request-2',
+          userId: 'user-2',
           screenshot: 'inline-shot',
-          screenshot_ref: 'artifact-shot-2',
+          screenshotRef: 'artifact-shot-2',
+          structuredPayload: {
+            tool_name: 'mouse_control',
+            success: true,
+            output: 'clicked',
+            request_id: 'request-2',
+            screenshot: 'inline-shot',
+            screenshot_ref: 'artifact-shot-2',
+          },
         },
       } as any, 'conversation-2');
     });
@@ -175,19 +186,28 @@ describe('useChatStreamToolHandlers', () => {
 
     act(() => {
       result.current.handleToolOutput({
-        id: 'event-tool-output-2b',
-        type: 'tool-output',
-        turn_ref: 'turn-2b',
-        conversation_ref: 'conversation-2b',
-        user_id: 'user-2b',
+        eventId: 'event-tool-output-2b',
+        type: 'tool_output',
+        conversationRef: 'conversation-2b',
+        turnRef: 'turn-2b',
+        revisionId: 'rev-2b',
+        timestamp: '2026-05-24T00:00:00.000Z',
+        source: 'backend',
         payload: {
-          tool_name: 'mouse_control',
-          success: true,
-          output: 'clicked-inline',
-          request_id: 'request-2b',
+          toolName: 'mouse_control',
+          requestId: 'request-2b',
+          userId: 'user-2b',
           screenshot: 'inline-shot-2b',
-          screenshot_ref: '   ',
-          screenshot_url: '   ',
+          screenshotRef: '   ',
+          structuredPayload: {
+            tool_name: 'mouse_control',
+            success: true,
+            output: 'clicked-inline',
+            request_id: 'request-2b',
+            screenshot: 'inline-shot-2b',
+            screenshot_ref: '   ',
+            screenshot_url: '   ',
+          },
         },
       } as any, 'conversation-2b');
     });

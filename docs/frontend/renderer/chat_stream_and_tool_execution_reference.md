@@ -193,6 +193,10 @@ SDK dispatch and raw fallback behavior:
     `web-search-progress` as the UI/tracking source label. It does not unwrap
     `payload.rawEvent` back into a backend `web-search-progress` event.
 - SDK `tool_output` from backend `tool-output`: append assistant tool-output row with screenshot/tool metadata and transcript tool-output row
+  - the renderer consumes SDK `tool_output` payloads directly, using
+    `structuredPayload` for backend detail fields such as output text,
+    metadata, request ids, and screenshot refs. It does not unwrap
+    `payload.rawEvent` back into a backend `tool-output` event.
 - SDK `tool_bundle_call` from backend `tool-bundle`: append bundle call row and persist a transcript `tool-bundle` trace row so later transcript loads can reconstruct the bundle call card without reclassifying it as a normal executable tool-call
 - SDK `system_prompt` from backend `system-prompt`: annotate last user message with system prompt + tool schema snapshot
 - SDK `user_message_metadata` from backend `user-message-full`: annotate user message with full payload metadata

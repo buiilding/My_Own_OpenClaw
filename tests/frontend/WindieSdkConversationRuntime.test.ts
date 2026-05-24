@@ -874,6 +874,34 @@ describe('Windie SDK conversation runtime core', () => {
     });
   });
 
+  test('backend tool-output normalization exposes renderer identity and attachment fields', () => {
+    const normalized = normalizeBackendEventToConversationEvent({
+      type: 'tool-output',
+      conversation_ref: 'conv-sdk-runtime',
+      user_id: 'user-sdk-runtime',
+      turn_ref: 'turn-output',
+      payload: {
+        tool_name: 'mouse_control',
+        request_id: 'req-output',
+        output: 'clicked',
+        screenshot: 'inline-shot',
+        screenshot_ref: 'artifact-shot',
+      },
+    });
+
+    expect(normalized).toMatchObject({
+      type: 'tool_output',
+      payload: expect.objectContaining({
+        toolName: 'mouse_control',
+        requestId: 'req-output',
+        correlationId: 'req-output',
+        screenshot: 'inline-shot',
+        screenshotRef: 'artifact-shot',
+        userId: 'user-sdk-runtime',
+      }),
+    });
+  });
+
   test('backend compaction-completed only normalizes to applied when replacement history exists', () => {
     const applied = normalizeBackendEventToConversationEvent({
       type: 'context-compaction-completed',
