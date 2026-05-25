@@ -1,6 +1,8 @@
 /** @jest-environment node */
 
 const {
+  BACKEND_QUERY_PAYLOAD_KEYS,
+  buildBackendQueryPayload,
   buildQueryPayload,
   prepareAutomatedQueryPayload,
   prepareRendererQueryPayload,
@@ -10,6 +12,46 @@ const {
 } = require('../../frontend/src/main/ipc/ipc_query_events.cjs');
 
 describe('ipc_query_runtime', () => {
+  test('buildBackendQueryPayload keeps the exact backend query contract keys', () => {
+    expect(BACKEND_QUERY_PAYLOAD_KEYS).toEqual([
+      'text',
+      'conversation_ref',
+      'content',
+      'screenshot',
+      'screenshot_ref',
+      'screenshot_refs',
+      'capture_meta',
+      'system_state_internal',
+      'workspace_path',
+      'repo_instruction_messages',
+      'client_prompt_layers',
+      'agent_definition',
+    ]);
+
+    expect(buildBackendQueryPayload({
+      text: 'hello',
+      conversation_ref: 'conv-1',
+      content: '<user_query>hello</user_query>',
+      screenshot_ref: 'artifact-1',
+      screenshot_url: 'http://localhost/artifact-1',
+      attachment_context: 'local only',
+      attachment_filenames: ['notes.txt'],
+      memory_retrieval_enabled: false,
+      turn_ref: 'legacy-turn',
+      query_message_id: 'query-1',
+      unknown_backend_field: true,
+      system_state_internal: { screen_resolution: '1920x1080' },
+      agent_definition: { mode: 'custom' },
+    })).toEqual({
+      text: 'hello',
+      conversation_ref: 'conv-1',
+      content: '<user_query>hello</user_query>',
+      screenshot_ref: 'artifact-1',
+      system_state_internal: { screen_resolution: '1920x1080' },
+      agent_definition: { mode: 'custom' },
+    });
+  });
+
   test('prepareRendererQueryPayload normalizes attachment fields and requires resolved conversation ref', () => {
     const result = prepareRendererQueryPayload(
       {

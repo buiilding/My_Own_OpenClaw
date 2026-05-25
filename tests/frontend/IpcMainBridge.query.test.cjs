@@ -178,6 +178,12 @@ describe('ipc.cjs bridge query handling', () => {
     expect(lastMessage.id).toBe('uuid-1');
     expect(lastMessage.turn_ref).toBeUndefined();
     expect(lastMessage.payload).not.toHaveProperty('turn_ref');
+    expect(Object.keys(lastMessage.payload)).toEqual([
+      'text',
+      'conversation_ref',
+      'content',
+      'system_state_internal',
+    ]);
     expect(lastMessage.payload.content).not.toContain('<system_context>');
     expect(lastMessage.payload.content).toContain('<episodic_memory>');
     expect(lastMessage.payload.content).toContain('- e1');

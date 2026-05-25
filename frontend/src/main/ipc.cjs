@@ -53,6 +53,7 @@ const {
   uploadArtifact,
 } = require('./ipc/ipc_runtime_helpers.cjs');
 const {
+  buildBackendQueryPayload,
   buildQueryPayload,
   prepareAutomatedQueryPayload,
   prepareRendererQueryPayload,
@@ -987,7 +988,9 @@ function initializeIpc(win, options = {}) {
       return { ok: false, error: error?.message || 'Rejected renderer query' };
     }
 
-    payload = attachAgentDefinitionContext(preparedQuery.payload);
+    payload = buildBackendQueryPayload(
+      attachAgentDefinitionContext(preparedQuery.payload),
+    );
     currentConversationRef = preparedQuery.conversationRef;
     queryMessageId = preparedQuery.queryMessageId;
     queryUsedInitialContext = preparedQuery.queryUsedInitialContext;
@@ -1323,10 +1326,9 @@ async function sendAutomatedQuery(options = {}) {
     conversation_ref: conversationRef,
     ...builtQuery.payload,
   };
-  if (preparedQuery.attachmentFilenames.length > 0) {
-    payload.attachment_filenames = preparedQuery.attachmentFilenames;
-  }
-  const payloadWithAgentDefinition = attachAgentDefinitionContext(payload);
+  const payloadWithAgentDefinition = buildBackendQueryPayload(
+    attachAgentDefinitionContext(payload),
+  );
 
   const queryMessageId = uuidv4();
   const messageId = sendSdkRuntimeCommand(getWindieSdkRuntime(), {

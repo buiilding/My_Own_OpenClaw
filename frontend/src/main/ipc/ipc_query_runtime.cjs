@@ -19,6 +19,34 @@ function normalizeQueryMessageId(value) {
   return normalizeOptionalString(value);
 }
 
+const BACKEND_QUERY_PAYLOAD_KEYS = Object.freeze([
+  'text',
+  'conversation_ref',
+  'content',
+  'screenshot',
+  'screenshot_ref',
+  'screenshot_refs',
+  'capture_meta',
+  'system_state_internal',
+  'workspace_path',
+  'repo_instruction_messages',
+  'client_prompt_layers',
+  'agent_definition',
+]);
+
+function buildBackendQueryPayload(input) {
+  const source = (
+    input && typeof input === 'object' && !Array.isArray(input)
+  ) ? input : {};
+  const payload = {};
+  for (const key of BACKEND_QUERY_PAYLOAD_KEYS) {
+    if (Object.prototype.hasOwnProperty.call(source, key) && source[key] !== undefined) {
+      payload[key] = source[key];
+    }
+  }
+  return payload;
+}
+
 function prepareRendererQueryPayload(payload, currentConversationRef, resolveConversationRef) {
   const nextPayload = (
     payload && typeof payload === 'object' && !Array.isArray(payload)
@@ -104,7 +132,7 @@ async function buildQueryPayload({
   }
 
   return {
-    payload,
+    payload: buildBackendQueryPayload(payload),
     userId,
     conversationRef,
     queryUsedInitialContext: contextType === 'initial',
@@ -130,6 +158,8 @@ function prepareAutomatedQueryPayload(options) {
 }
 
 module.exports = {
+  BACKEND_QUERY_PAYLOAD_KEYS,
+  buildBackendQueryPayload,
   buildQueryPayload,
   normalizeQueryMessageId,
   prepareAutomatedQueryPayload,

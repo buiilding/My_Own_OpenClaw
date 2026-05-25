@@ -84,6 +84,7 @@ jest.mock('fs', () => ({
     mkdir: jest.fn(),
     writeFile: jest.fn(),
     rename: jest.fn(),
+    rm: jest.fn(),
   },
 }));
 

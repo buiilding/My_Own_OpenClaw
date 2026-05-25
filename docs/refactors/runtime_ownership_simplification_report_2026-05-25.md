@@ -45,9 +45,32 @@ Notes:
 
 - `npm` and a directly runnable `node` executable were unavailable in this shell. Frontend validation used the repo-local Electron binary with `ELECTRON_RUN_AS_NODE=1`, which successfully ran Jest, TypeScript, and docs-list.
 
+### Desktop Query Payload Contract
+
+Status: completed and verified.
+
+Changes:
+
+- Added a single `buildBackendQueryPayload()` mapper with an explicit `BACKEND_QUERY_PAYLOAD_KEYS` allowlist for desktop query websocket payloads.
+- Routed renderer query sends through the mapper after main-process enrichment and agent definition attachment.
+- Routed automated query sends through the same mapper, removing the historical path that could add UI-only attachment filenames to backend payloads.
+- Added contract tests for the exact backend-safe key list and for the main bridge's final outbound query payload shape.
+- Updated the shared IPC bridge test harness with the `fs.promises.rm` mock required by current install-auth setup before websocket connection.
+
+Success criteria covered:
+
+- There is one tested function that maps desktop query input/enriched state to backend query payload keys.
+- Main query tests assert exact backend payload keys for the enriched query path.
+- UI-only fields such as `screenshot_url`, `attachment_context`, `attachment_filenames`, `memory_retrieval_enabled`, `query_message_id`, and legacy `turn_ref` are rejected by omission from the mapper.
+- Adding a new backend query field now requires changing the mapper allowlist and its contract test.
+
+Verification:
+
+- `cd frontend && ELECTRON_RUN_AS_NODE=1 .\node_modules\electron\dist\electron.exe .\node_modules\jest\bin\jest.js IpcQueryRuntime IpcMainBridge.query --runInBand` - pass
+- `cd frontend && ELECTRON_RUN_AS_NODE=1 .\node_modules\electron\dist\electron.exe .\node_modules\jest\bin\jest.js DesktopBackendTransport DesktopLiveTurnRuntimeClient IpcQueryRuntime IpcMainBridge.query WindieSdkConversationRuntime WindieSdkMainRuntime --runInBand` - pass
+
 ## Pending
 
-- Query payload construction single-contract cleanup.
 - `frontend/src/main/ipc.cjs` composition-root split.
 - SDK-owned live turn projection.
 - Renderer stream handling split between live projection and side effects.
