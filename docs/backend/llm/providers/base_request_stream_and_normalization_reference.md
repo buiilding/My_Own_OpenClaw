@@ -129,6 +129,7 @@ Public streaming entrypoint: `LLMProvider.get_completion_stream(...)`.
 Contract:
 
 - subclasses implement `_stream_internal(...)` and do not catch exceptions there.
+- base method clears request-scoped usage and normalized stream payload state before each stream starts.
 - base method converts exceptions into `ErrorEvent` instead of raising.
 - stream callers always consume events, never exception-based control flow.
 

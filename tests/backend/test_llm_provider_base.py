@@ -960,6 +960,43 @@ class TestGetCompletionStream:
         assert isinstance(events[1], StreamingCompleteEvent)
 
     @pytest.mark.asyncio
+    async def test_stream_resets_stored_usage_before_each_request(self):
+        class SequentialUsageProvider(MockProvider):
+            def __init__(self):
+                super().__init__()
+                self.stream_count = 0
+
+            async def _stream_internal(self, model, messages, **request_kwargs):
+                self.stream_count += 1
+                if self.stream_count == 1:
+                    self._record_stream_usage_from_chunk(
+                        {"usage": {"prompt_tokens": 10, "total_tokens": 15}}
+                    )
+                    self._set_last_stream_response_payload({"content": "first"})
+                yield ChunkEvent(content=f"stream-{self.stream_count}")
+
+        provider = SequentialUsageProvider()
+
+        async for _event in provider.get_completion_stream("model", []):
+            pass
+        assert provider.get_last_stream_usage() == {
+            "prompt_tokens": 10,
+            "total_tokens": 15,
+        }
+        assert provider.get_last_usage() == {
+            "prompt_tokens": 10,
+            "total_tokens": 15,
+        }
+        assert provider.get_last_stream_response_payload() == {"content": "first"}
+
+        async for _event in provider.get_completion_stream("model", []):
+            pass
+
+        assert provider.get_last_stream_usage() is None
+        assert provider.get_last_usage() is None
+        assert provider.get_last_stream_response_payload() is None
+
+    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         ("error_factory", "expected_message"),
         [

@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/llm: clear stream-scoped usage and normalized response payload state before each provider stream.
 - frontend/chat: gate backend conversation hydration side effects on the current connection epoch.
 - frontend/sidecar: reject daemon discovery files that point outside loopback HTTP(S) origins before sending sidecar tokens.
 - backend/tts: drain pending stream TTS task snapshots without dropping tasks scheduled during the wait barrier.

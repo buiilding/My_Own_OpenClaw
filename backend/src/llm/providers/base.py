@@ -240,6 +240,7 @@ class LLMProvider(ProviderPayloadHelpersMixin, ABC):
         allowing callers to handle errors as part of the event flow
         rather than via exception handling.
         """
+        self.clear_last_stream_usage()
         try:
             async for event in self._stream_internal(
                 model,
