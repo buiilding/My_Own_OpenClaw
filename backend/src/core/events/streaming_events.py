@@ -107,7 +107,7 @@ class ToolOutputEvent(StreamingEvent):
 
     tool_name: str
     success: bool
-    output: str
+    output: Any
     execution_time: Optional[float] = None
     error: Optional[str] = None
     screenshot: Optional[str] = None

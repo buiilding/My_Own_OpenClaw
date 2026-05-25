@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/api: allow explicit `null` tool-output payloads through websocket formatter and schema validation.
 - backend/llm: reject duplicate tool-call IDs during provider response normalization.
 - backend/compaction: trim retained history at turn boundaries so tool outputs are not orphaned after target-budget enforcement.
 - frontend/main: advance high-level surface state only after chat or dashboard show operations succeed.

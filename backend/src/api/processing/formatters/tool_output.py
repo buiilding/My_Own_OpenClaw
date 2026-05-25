@@ -15,20 +15,20 @@ class ToolOutputEventFormatter(EventFormatter):
         # Validate required fields
         tool_name = event_dict.get("tool_name")
         success = event_dict.get("success")
-        output = event_dict.get("output")
         
-        if tool_name is None or success is None or output is None:
+        if tool_name is None or success is None or "output" not in event_dict:
             # Missing required fields - log warning and skip formatting
             missing_fields = []
             if tool_name is None:
                 missing_fields.append("tool_name")
             if success is None:
                 missing_fields.append("success")
-            if output is None:
+            if "output" not in event_dict:
                 missing_fields.append("output")
             
             self._log_missing_fields("ToolOutputEvent", missing_fields, msg_id)
             return None
+        output = event_dict["output"]
         
         return {
             "type": self.message_type,

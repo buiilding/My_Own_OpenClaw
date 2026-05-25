@@ -51,7 +51,7 @@ Optional passthrough fields:
 
 - `tool_name` is not `None`
 - `success` is not `None`
-- `output` is not `None`
+- `output` key is present; explicit `null` is a valid tool result payload
 
 Failure behavior:
 
@@ -62,6 +62,7 @@ Accepted edge cases:
 
 - `success=False` allowed
 - empty output string `""` allowed
+- explicit JSON null / Python `None` output allowed when the `output` field is present
 
 Payload mapping always includes:
 

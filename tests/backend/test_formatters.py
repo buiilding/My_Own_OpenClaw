@@ -480,6 +480,18 @@ class TestToolOutputEventFormatter:
 
         assert result["payload"]["screenshot_ref"] == "artifact-shot-1"
 
+    def test_format_preserves_null_output_payload(self, formatter):
+        event = {
+            "type": "tool_output",
+            "tool_name": "noop",
+            "success": True,
+            "output": None,
+        }
+
+        result = formatter.format(event, "msg-null")
+
+        assert result["payload"]["output"] is None
+
     def test_format_preserves_metadata_request_id_for_frontend_correlation_fallback(self, formatter):
         event = {
             "type": "tool_output",

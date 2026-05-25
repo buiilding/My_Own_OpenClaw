@@ -104,7 +104,7 @@ class ToolOutputPayload(BaseModel):
     tool_name: str
     success: bool
     execution_time: Optional[float] = None
-    output: str
+    output: Optional[Any] = None
     error: Optional[str] = None
     screenshot: Optional[str] = None
     screenshot_ref: Optional[str] = None
