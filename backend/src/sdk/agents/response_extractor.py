@@ -70,11 +70,11 @@ async def extract_response(
         elif isinstance(event, FullResponseEvent):
             # Use full response if provided (this is the LLM's response for this iteration)
             if event.content:
-                # Don't overwrite if we already have accumulated chunks
-                if not final_response:
-                    final_response = event.content
+                final_response = event.content
         elif isinstance(event, ToolCallEvent):
             # Agent is calling a tool - the loop will continue
+            # Discard any pre-tool response text so the next assistant iteration wins.
+            final_response = ""
             if collect_tool_calls:
                 tool_calls.append({
                     "tool": event.tool_name,

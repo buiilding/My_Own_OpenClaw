@@ -4,8 +4,10 @@ from backend.src.core.config.models import AppConfig
 from backend.src.core.events.streaming_events import (
     ChunkEvent,
     ErrorEvent,
+    FullResponseEvent,
     StreamingCompleteEvent,
     ToolCallEvent,
+    ToolOutputEvent,
 )
 from backend.src.sdk.agents.config_helper import override_model_id
 from backend.src.sdk.agents.response_extractor import extract_response
@@ -45,6 +47,24 @@ async def test_extract_response_uses_stream_chunks_and_collects_tool_calls():
 
     assert response == "Hello world"
     assert tool_calls == [{"tool": "read_file", "parameters": {"file_path": "/tmp/a"}}]
+
+
+@pytest.mark.asyncio
+async def test_extract_response_prefers_final_full_response_after_tool_loop():
+    session = _FakeSession(
+        events=[
+            FullResponseEvent(content="I will inspect the file."),
+            ToolCallEvent(tool_name="read_file", parameters={"file_path": "README.md"}),
+            ToolOutputEvent(tool_name="read_file", success=True, output="contents"),
+            FullResponseEvent(content="Final answer after reading the file."),
+            StreamingCompleteEvent(),
+        ],
+        history_rows=[],
+    )
+
+    response = await extract_response(session, "q")
+
+    assert response == "Final answer after reading the file."
 
 
 @pytest.mark.asyncio
