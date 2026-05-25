@@ -631,7 +631,31 @@ async def test_sdk_ocr_overlay_writes_artifact(
 
 
 @pytest.mark.asyncio
-async def test_sdk_vision_locate_returns_predicted_coordinates(tmp_path) -> None:
+async def test_sdk_vision_locate_requires_authenticated_identity_before_vision(
+    tmp_path,
+) -> None:
+    container = _container(tmp_path, vision_point=(612, 241))
+
+    with pytest.raises(HTTPException) as exc_info:
+        await sdk_routes.sdk_vision_locate(
+            VisionLocateRequest(
+                image=ImageSourceInput(image_base64=_png_base64()),
+                description="orange search button",
+            ),
+            container,
+        )
+
+    assert exc_info.value.status_code == 401
+    assert exc_info.value.detail == "Authenticated install identity required"
+    assert container.vision_service.coordinate_calls == 0
+
+
+@pytest.mark.asyncio
+async def test_sdk_vision_locate_returns_authenticated_predicted_coordinates(
+    tmp_path,
+    authenticated_install_identity,
+) -> None:
+    _ = authenticated_install_identity
     container = _container(tmp_path, vision_point=(612, 241))
 
     response = await sdk_routes.sdk_vision_locate(

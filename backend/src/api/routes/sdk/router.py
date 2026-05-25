@@ -341,6 +341,7 @@ async def sdk_vision_locate(
     request: VisionLocateRequest,
     container: ContainerDep,
 ) -> VisionLocateResponse:
+    require_authenticated_sdk_identity()
     source = resolve_image_source(request.image, container)
     return await build_vision_locate_response(
         source=source,
