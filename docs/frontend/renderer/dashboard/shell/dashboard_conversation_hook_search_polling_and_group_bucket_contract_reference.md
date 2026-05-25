@@ -92,6 +92,10 @@ Each item shape:
 - `conversation`
 - `isPinned`
 
+Workspace grouping also tracks `hasPinnedConversation` on each workspace group.
+Pinned workspace groups sort before unpinned workspace groups, and recency still
+orders groups within the same pinned/unpinned tier.
+
 When `includeSearchMetadata=true`, adds:
 
 - `snippet` (trimmed)

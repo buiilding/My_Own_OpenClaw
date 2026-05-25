@@ -130,12 +130,14 @@ function buildWorkspaceConversationGroups(conversations, options = {}) {
           ? conversation.workspace_path.trim()
           : '',
         items: [],
+        hasPinnedConversation: false,
         latestTimestampValue: item.timestampValue,
       });
     }
 
     const group = groupsByKey.get(groupKey);
     group.items.push(item);
+    group.hasPinnedConversation = group.hasPinnedConversation || item.isPinned;
     group.latestTimestampValue = Math.max(group.latestTimestampValue, item.timestampValue);
   });
 
@@ -149,7 +151,12 @@ function buildWorkspaceConversationGroups(conversations, options = {}) {
         return right.timestampValue - left.timestampValue;
       }),
     }))
-    .sort((left, right) => right.latestTimestampValue - left.latestTimestampValue);
+    .sort((left, right) => {
+      if (left.hasPinnedConversation !== right.hasPinnedConversation) {
+        return left.hasPinnedConversation ? -1 : 1;
+      }
+      return right.latestTimestampValue - left.latestTimestampValue;
+    });
 }
 
 export { buildConversationGroups, buildWorkspaceConversationGroups };

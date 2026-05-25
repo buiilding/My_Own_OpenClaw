@@ -87,4 +87,33 @@ describe('conversationGroups', () => {
       title: 'Lodex',
     }));
   });
+
+  test('sorts workspace groups with pinned conversations before newer unpinned groups', () => {
+    const groups = buildWorkspaceConversationGroups([
+      {
+        conversation_id: 'newer-unpinned',
+        title: 'Newer unpinned chat',
+        workspace_path: '/work/Newer',
+        workspace_name: 'Newer',
+        last_timestamp: isoDaysAgo(0),
+      },
+      {
+        conversation_id: 'older-pinned',
+        title: 'Older pinned chat',
+        workspace_path: '/work/Older',
+        workspace_name: 'Older',
+        last_timestamp: isoDaysAgo(10),
+      },
+    ], {
+      pinnedConversationRefs: ['older-pinned'],
+    });
+
+    expect(groups.map((group) => group.key)).toEqual(['/work/Older', '/work/Newer']);
+    expect(groups[0]).toEqual(expect.objectContaining({
+      hasPinnedConversation: true,
+    }));
+    expect(groups[1]).toEqual(expect.objectContaining({
+      hasPinnedConversation: false,
+    }));
+  });
 });

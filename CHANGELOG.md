@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/dashboard: sort workspace conversation groups with pinned chats ahead of unpinned workspace groups.
 - frontend/main: ignore stale response-overlay terminal phase events whose correlation id no longer owns the active response.
 - frontend/transcript: persist screenshot artifact refs as `screenshotRef` instead of inline `screenshot` data in projection entries.
 - backend/llm: serialize overlapping `LLMStreamProcessor.get_response` calls so turn-local payload and continuation state cannot race.
