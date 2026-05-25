@@ -148,11 +148,12 @@ Behavior details:
 Update steps:
 
 1. update via `ConfigurationService.update_config()` when available (publishes notifications)
-2. refresh facade runtime references (`refresh_runtime_config`)
-3. recreate `ModelService` provider override with new config singleton
-4. recreate embedder provider when memory enabled; otherwise set `embedder=None`
-5. invalidate cached session factory so new sessions resolve latest config/dependencies
-6. refresh API runtime overrides
+2. rebind DI `core.config` to the updated `AppConfig`
+3. refresh facade runtime references (`refresh_runtime_config`)
+4. recreate `ModelService` provider override with new config singleton
+5. recreate embedder provider when memory enabled; otherwise set `embedder=None`
+6. invalidate cached session factory so new sessions resolve latest config/dependencies
+7. refresh API runtime overrides
 
 Key boundary:
 

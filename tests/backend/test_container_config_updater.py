@@ -1,9 +1,13 @@
 from types import SimpleNamespace
 
+import pytest
 from dependency_injector import providers
 
+import backend.src.core.container.core_container as core_container
+from backend.src.core.config.manager import ConfigManager
 from backend.src.core.config.models import AppConfig
 from backend.src.core.container.config_updater import ContainerConfigUpdater
+from backend.src.core.container.facade import Container
 
 
 def test_reinitialize_embedder_rebinds_embedding_router(monkeypatch) -> None:
@@ -33,6 +37,47 @@ def test_reinitialize_embedder_rebinds_embedding_router(monkeypatch) -> None:
 
     assert captured["provider"] is new_provider
     assert container.embedding_provider is new_provider
+
+
+@pytest.mark.asyncio
+async def test_update_config_rebinds_di_config_consumers(monkeypatch) -> None:
+    initial_config = AppConfig(
+        llm_timeout=111,
+        memory_enabled=False,
+        ocr_backend="disabled",
+        vision_backend="disabled",
+        tts_model_path="/tmp/windieos-test-tts-initial",
+    )
+    config_manager = ConfigManager()
+    config_manager._config = initial_config
+    container = Container(config_manager=config_manager)
+    container.config_service.initialize()
+
+    captured_llm_configs = []
+
+    def fake_get_llm_client(config):
+        captured_llm_configs.append(config)
+        return SimpleNamespace(config=config)
+
+    monkeypatch.setattr(core_container, "get_llm_client", fake_get_llm_client)
+
+    await container.update_config(
+        initial_config.model_copy(
+            update={
+                "llm_timeout": 222,
+                "tts_model_path": "/tmp/windieos-test-tts-updated",
+            }
+        )
+    )
+
+    updated_config = config_manager.get_config()
+    assert container.config is updated_config
+    assert container._di_container.config() is updated_config
+    assert container._di_container.core.config() is updated_config
+    assert container.llm_client.config is updated_config
+    assert captured_llm_configs[-1] is updated_config
+    assert container._di_container.tool_orchestrator().config is updated_config
+    assert container.model_service.config is updated_config
 
 
 def test_reinitialize_ocr_provider_rebinds_router_and_context(monkeypatch) -> None:

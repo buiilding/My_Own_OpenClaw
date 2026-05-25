@@ -64,12 +64,15 @@ Use this path when backend-owned config changes at runtime.
 
 1. Call `Container.update_config(new_config)`.
 2. `ContainerConfigUpdater.update_config(...)` updates `ConfigurationService` or `ConfigManager`.
-3. `container.refresh_runtime_config(updated_config)` refreshes facade references.
-4. `ModelService` provider override is reset and recreated with the updated config.
-5. Embedding provider/router is recreated or cleared depending on `memory_enabled`.
-6. OCR and vision providers are recreated, routers get current circuit-breaker settings, and `context_factory` receives fresh services.
-7. Cached `AgentSessionFactory` is invalidated so future sessions resolve current dependencies.
-8. API runtime overrides refresh if the API container already exists; cached API
+3. The DI `core.config` provider is rebound to the updated `AppConfig`, so
+   future DI-backed factories such as LLM clients and tool orchestrators resolve
+   the same config as the facade.
+4. `container.refresh_runtime_config(updated_config)` refreshes facade references.
+5. `ModelService` provider override is reset and recreated with the updated config.
+6. Embedding provider/router is recreated or cleared depending on `memory_enabled`.
+7. OCR and vision providers are recreated, routers get current circuit-breaker settings, and `context_factory` receives fresh services.
+8. Cached `AgentSessionFactory` is invalidated so future sessions resolve current dependencies.
+9. API runtime overrides refresh if the API container already exists; cached API
    handler/registry singletons are reset before overrides are re-synced so the
    next lookup captures current runtime dependencies.
 
@@ -158,6 +161,8 @@ Container wiring changes are higher risk because they alter startup, API handler
 ### New Sessions Use Old Dependencies
 
 - Confirm config update went through `Container.update_config(...)`.
+- Confirm `ContainerConfigUpdater` rebound `core.config` before future DI-backed
+  factories are resolved.
 - Confirm `invalidate_session_factory()` ran.
 - Confirm `SessionRuntimeCoordinator` created a new `AgentSessionFactory`.
 - Confirm the stale dependency is not a separate singleton outside the container update path.

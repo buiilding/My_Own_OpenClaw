@@ -54,6 +54,8 @@ class ContainerConfigUpdater:
             config_manager = self.container._di_container.config_manager()
             updated_config = config_manager.update_config(config)
 
+        self._rebind_runtime_config_provider(updated_config)
+
         # Update container's config-dependent references
         self.container.refresh_runtime_config(updated_config)
 
@@ -84,6 +86,12 @@ class ContainerConfigUpdater:
         self.container.invalidate_session_factory()
 
         logger.info("Container configuration updated")
+
+    def _rebind_runtime_config_provider(self, config: AppConfig) -> None:
+        """Make future DI resolutions use the latest runtime config."""
+        config_provider = self.container._di_container.core.config
+        config_provider.reset_override()
+        config_provider.override(providers.Object(config))
 
     def _reinitialize_embedder(self, config: AppConfig) -> None:
         """
