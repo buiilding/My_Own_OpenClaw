@@ -102,6 +102,35 @@ describe('chatSelectors', () => {
     ]);
   });
 
+  test('keeps projected dashboard messages stable for unchanged current-turn inputs', () => {
+    const messages = [
+      { id: 'user-1', text: 'question', sender: 'user', turnRef: 'turn-1' },
+      { id: 'assistant-1', text: 'stale partial', sender: 'assistant', type: 'llm-text', turnRef: 'turn-1' },
+    ];
+    const currentTurnProjection = {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'streaming',
+      assistantText: 'projected answer',
+      reasoningText: null,
+      toolEvents: [],
+      lastError: null,
+    };
+    const state = {
+      messages,
+      isSending: true,
+      thinkingStatus: null,
+      currentTurnProjection,
+      tokenCounts: null,
+      streamTracking: { phase: 'streaming' },
+    };
+
+    const first = selectChatInterfaceState(state);
+    const second = selectChatInterfaceState(state);
+
+    expect(first.messages).toBe(second.messages);
+  });
+
   test('defaults optional active-workspace fields when not present', () => {
     const selected = selectChatInterfaceState({
       messages: [],
