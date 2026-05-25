@@ -51,8 +51,9 @@ def _extract_string_content(value: Any) -> Optional[str]:
             "thoughts",
         ):
             nested = value.get(key)
-            if isinstance(nested, str) and nested:
-                return nested
+            extracted = _extract_string_content(nested)
+            if extracted:
+                return extracted
     return None
 
 

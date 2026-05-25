@@ -25,6 +25,32 @@ def test_extract_thinking_content_from_structured_content_blocks():
     assert extract_thinking_content(delta) == "Block reasoning text"
 
 
+def test_extract_thinking_content_from_nested_content_block_list():
+    delta = {
+        "content": [
+            {
+                "type": "reasoning",
+                "content": [{"text": "Nested block reasoning text"}],
+            },
+        ]
+    }
+
+    assert extract_thinking_content(delta) == "Nested block reasoning text"
+
+
+def test_extract_thinking_content_from_nested_reasoning_details_block():
+    delta = {
+        "content": [
+            {
+                "type": "thinking",
+                "reasoning_details": [{"text": "Nested details reasoning text"}],
+            },
+        ]
+    }
+
+    assert extract_thinking_content(delta) == "Nested details reasoning text"
+
+
 def test_extract_thinking_content_from_thinking_tags():
     delta = {"content": "prefix <thinking>tagged reasoning</thinking> suffix"}
 

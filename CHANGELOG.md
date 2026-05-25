@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/llm: recurse through nested list and dict reasoning payloads when extracting streamed thinking text.
 - backend/sdk: require authenticated install identity for the models debug route and reject cross-user model config inspection.
 - backend/tools: reject atomic bundle detection when grouped tool calls or results carry mixed bundle IDs.
 - frontend/mcp: reconcile the executable MCP registry on discovery so removed or disabled tools cannot run from stale registrations.

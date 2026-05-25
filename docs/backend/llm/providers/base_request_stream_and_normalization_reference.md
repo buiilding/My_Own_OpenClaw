@@ -152,6 +152,7 @@ Key extraction helpers:
 - `_extract_thinking_content(...)` (delegated to `thinking_extraction.py`) supports:
   - object fields (`reasoning_content`, `thinking`, `reasoning`, `thought`),
   - dict fields of same names,
+  - nested list/dict reasoning payloads under those fields,
   - `<thinking>...</thinking>` tagged content.
 
 Completion response normalization (`_extract_completion_response(...)`):
