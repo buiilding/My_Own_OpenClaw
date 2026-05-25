@@ -50,12 +50,14 @@ describe('desktopBackendTransport', () => {
     await expect(transport.sendQuery({
       text: 'hello',
       conversation_ref: 'conv-1',
-      turn_ref: 'turn-1',
-    })).resolves.toBe('turn-1');
+    }, {
+      messageId: 'turn-1',
+    })).resolves.toBe('msg-1');
     expect(invoke).toHaveBeenCalledWith('send-chat-query', expect.objectContaining({
       text: 'hello',
       conversation_ref: 'conv-1',
-      turn_ref: 'turn-1',
+      query_message_id: 'turn-1',
     }));
+    expect(invoke.mock.calls[0][1]).not.toHaveProperty('turn_ref');
   });
 });

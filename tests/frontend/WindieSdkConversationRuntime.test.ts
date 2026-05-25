@@ -1403,8 +1403,15 @@ describe('Windie SDK conversation runtime core', () => {
     expect(sentQueries[0]).toMatchObject({
       text: 'hello',
       conversation_ref: 'conv-sdk-runtime',
-      turn_ref: 'turn-send',
     });
+    expect(sentQueries[0]).not.toHaveProperty('turn_ref');
+    expect(transport.sendQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: 'hello',
+        conversation_ref: 'conv-sdk-runtime',
+      }),
+      { messageId: 'turn-send' },
+    );
     expect(rehydrate.messages).toEqual([
       expect.objectContaining({ role: 'user', content: 'hello' }),
     ]);
@@ -1477,8 +1484,15 @@ describe('Windie SDK conversation runtime core', () => {
     expect(sentQueries[0]).toMatchObject({
       text: 'use the selected model',
       conversation_ref: 'conv-sdk-runtime',
-      turn_ref: 'turn-model',
     });
+    expect(sentQueries[0]).not.toHaveProperty('turn_ref');
+    expect(transport.sendQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: 'use the selected model',
+        conversation_ref: 'conv-sdk-runtime',
+      }),
+      { messageId: 'turn-model' },
+    );
     const events = await store.loadEvents('conv-sdk-runtime');
     expect(events.map(event => event.type)).toEqual([
       'settings_updated',
@@ -1561,8 +1575,15 @@ describe('Windie SDK conversation runtime core', () => {
     expect(sentQueries[0]).toMatchObject({
       text: 'stream this',
       conversation_ref: 'conv-sdk-runtime',
-      turn_ref: 'turn-stream',
     });
+    expect(sentQueries[0]).not.toHaveProperty('turn_ref');
+    expect(transport.sendQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: 'stream this',
+        conversation_ref: 'conv-sdk-runtime',
+      }),
+      { messageId: 'turn-stream' },
+    );
     expect(backendListener).toBeTruthy();
     backendListener?.({
       type: 'streaming-response',
@@ -1871,9 +1892,9 @@ describe('Windie SDK conversation runtime core', () => {
     expect(sentQueries[0]).toMatchObject({
       text: 'new text',
       conversation_ref: 'conv-sdk-runtime',
-      turn_ref: 'turn-edited',
       artifactRefs: ['artifact-old'],
     });
+    expect(sentQueries[0]).not.toHaveProperty('turn_ref');
     expect(buildDisplayConversation(events).messages.map(message => message.text)).toEqual([
       'keep this',
       'new text',
@@ -1928,8 +1949,8 @@ describe('Windie SDK conversation runtime core', () => {
     expect(events.map(storedEvent => storedEvent.eventId)).not.toContain('assistant-retry');
     expect(sentQueries[0]).toMatchObject({
       text: 'try this again',
-      turn_ref: 'turn-retry',
     });
+    expect(sentQueries[0]).not.toHaveProperty('turn_ref');
   });
 
   test('rehydrate uses the active complete compacted replay generation when present', async () => {

@@ -15,6 +15,10 @@ function normalizeAttachmentFilenames(value) {
     .map((filename) => filename.trim());
 }
 
+function normalizeQueryMessageId(value) {
+  return normalizeOptionalString(value);
+}
+
 function prepareRendererQueryPayload(payload, currentConversationRef, resolveConversationRef) {
   const nextPayload = (
     payload && typeof payload === 'object' && !Array.isArray(payload)
@@ -23,6 +27,14 @@ function prepareRendererQueryPayload(payload, currentConversationRef, resolveCon
     typeof nextPayload.attachment_context === 'string' && nextPayload.attachment_context.trim().length > 0
   ) ? nextPayload.attachment_context : null;
   const normalizedAttachmentFilenames = normalizeAttachmentFilenames(nextPayload.attachment_filenames);
+  const queryMessageId = normalizeQueryMessageId(
+    nextPayload.query_message_id || nextPayload.queryMessageId,
+  );
+
+  delete nextPayload.query_message_id;
+  delete nextPayload.queryMessageId;
+  delete nextPayload.turn_ref;
+  delete nextPayload.turnRef;
 
   if (normalizedAttachmentFilenames.length > 0) {
     nextPayload.attachment_filenames = normalizedAttachmentFilenames;
@@ -47,6 +59,7 @@ function prepareRendererQueryPayload(payload, currentConversationRef, resolveCon
     attachmentContext,
     conversationRef,
     memoryRetrievalEnabled,
+    queryMessageId,
   };
 }
 
@@ -118,6 +131,7 @@ function prepareAutomatedQueryPayload(options) {
 
 module.exports = {
   buildQueryPayload,
+  normalizeQueryMessageId,
   prepareAutomatedQueryPayload,
   prepareRendererQueryPayload,
 };

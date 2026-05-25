@@ -173,7 +173,10 @@ export type AgentDefinition = JsonRecord;
 export type QueryPayload = JsonRecord & {
   text: string;
   conversation_ref: string;
-  turn_ref?: string | null;
+};
+
+export type SendQueryOptions = {
+  messageId?: string | null;
 };
 
 export type ToolResultPayload = {
@@ -306,7 +309,7 @@ export interface ConversationStore {
 export type BackendTransport = {
   connect(): Promise<void>;
   handshake(agentDefinition: AgentDefinition): Promise<void>;
-  sendQuery(payload: QueryPayload): Promise<string>;
+  sendQuery(payload: QueryPayload, options?: SendQueryOptions): Promise<string>;
   sendToolResult(payload: ToolResultPayload): Promise<void>;
   sendToolBundleResult(payload: ToolBundleResultPayload): Promise<void>;
   rehydrateConversation(payload: RehydratePayload): Promise<void>;

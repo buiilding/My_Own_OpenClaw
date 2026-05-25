@@ -65,10 +65,10 @@ sequenceDiagram
   participant Backend
   participant Session as Backend session
   Renderer->>Renderer: create or reuse conversationRef
-  Renderer->>Renderer: create optimistic user message id as turn_ref
-  Renderer->>Main: send query payload with conversation_ref, turn_ref, screenshot refs, workspace path
+  Renderer->>Renderer: create SDK turn id for local optimistic state
+  Renderer->>Main: send query command with conversation_ref, query_message_id, screenshot refs, workspace path
   Main->>Main: normalize payload and enrich content/system state
-  Main->>Backend: websocket query with snake_case payload
+  Main->>Backend: websocket query envelope id is the turn_ref; query.payload excludes turn_ref
   Backend->>Backend: validate QueryPayload and resolve inputs
   Backend->>Session: route by user_id + conversation_ref
   Session-->>Renderer: stream events with conversation/turn context where available
@@ -76,7 +76,7 @@ sequenceDiagram
 
 | Step | Shape to preserve | Owner files | Check when debugging |
 | --- | --- | --- | --- |
-| Renderer send | `conversationRef`, optimistic message id as `turn_ref`, attachment refs, workspace binding | `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`, `frontend/src/renderer/features/chat/session`, `frontend/src/renderer/app/runtime/desktopBackendTransport.ts` | The user row should be recorded with the same conversation and turn refs sent to backend. |
+| Renderer send | `conversationRef`, SDK `query_message_id`, attachment refs, workspace binding | `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`, `frontend/src/renderer/features/chat/session`, `frontend/src/renderer/app/runtime/desktopBackendTransport.ts` | The user row should be recorded with the same conversation and websocket envelope id used by backend stream events. |
 | Main query prep | `conversation_ref`, `content`, `system_state_internal`, attachment filenames | `frontend/src/main/ipc/ipc_query_runtime.cjs`, `frontend/src/main/query_payload_builder.cjs` | Main should not create a second conversation if renderer already provided one. |
 | Backend validation | required `conversation_ref`, optional screenshots, workspace, repo instructions | `backend/src/api/schemas/incoming.py`, `backend/src/api/services/query_execution_support/query_execution_inputs.py` | Reject empty refs at the boundary instead of allowing a fallback session. |
 | Session routing | `user_id` plus `conversation_ref` | `backend/src/agent/session`, `backend/src/api/services/query_execution.py` | Wrong-user and wrong-conversation bugs usually start here or in the renderer active-conversation gate. |

@@ -88,7 +88,7 @@ class QueryMessageHandler(TypedMessageHandler[QueryMessage]):
             user_id: User ID from connection context
         """
         msg_id = message.id
-        turn_ref = message.payload.turn_ref or msg_id
+        turn_ref = msg_id
         current_task = asyncio.current_task()
         config = getattr(self.session_manager, "config", None)
         max_active_queries_per_user = int(

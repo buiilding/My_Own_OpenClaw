@@ -17,6 +17,8 @@ describe('ipc_query_runtime', () => {
         attachment_context: 'file context',
         attachment_filenames: [' notes.txt ', '', 42, 'todo.md'],
         memory_retrieval_enabled: false,
+        query_message_id: ' turn-transport ',
+        turn_ref: 'legacy-turn',
       },
       'conv-current',
       jest.fn(() => 'conv-resolved'),
@@ -31,6 +33,7 @@ describe('ipc_query_runtime', () => {
       attachmentContext: 'file context',
       conversationRef: 'conv-resolved',
       memoryRetrievalEnabled: false,
+      queryMessageId: 'turn-transport',
     });
   });
 

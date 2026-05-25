@@ -59,9 +59,10 @@ describe('DesktopLiveTurnRuntimeClient', () => {
         attachment_filenames: ['notes.txt', 'image.png'],
         screenshot: 'inline-shot',
         workspace_path: '/workspace/WindieOS',
-        turn_ref: expect.stringMatching(/^turn_/),
+        query_message_id: expect.stringMatching(/^turn_/),
         memory_retrieval_enabled: true,
       });
+      expect(invoke.mock.calls[0][1]).not.toHaveProperty('turn_ref');
     } finally {
       window.ipc = originalIpc;
     }

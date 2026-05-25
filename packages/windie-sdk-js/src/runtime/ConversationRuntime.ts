@@ -208,7 +208,8 @@ export class SdkConversationRuntime {
       ...(input.payload ?? {}),
       text: input.text,
       conversation_ref: this.options.conversationRef,
-      turn_ref: turnRef,
+    }, {
+      messageId: turnRef,
     }) ?? turnRef;
     return { turnRef, queryMessageId };
   }

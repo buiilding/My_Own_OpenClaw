@@ -23,14 +23,17 @@ async function sendStopQuery(conversationRef: string | null): Promise<void> {
   });
 }
 
-async function sendQuery(payload: Record<string, unknown>, workspacePath: string | null): Promise<void> {
-  const turnRef = optionalString(payload.turn_ref) ?? optionalString(payload.turnRef) ?? null;
+async function sendQuery(
+  payload: Record<string, unknown>,
+  workspacePath: string | null,
+  messageId: string | null,
+): Promise<string | null> {
   const result = await IpcBridge.invoke(INVOKE_CHANNELS.SEND_CHAT_QUERY, {
     text: optionalString(payload.text) ?? '',
     conversation_ref: optionalString(payload.conversation_ref)
       ?? optionalString(payload.conversationRef)
       ?? '',
-    turn_ref: turnRef,
+    query_message_id: messageId,
     screenshot_ref: optionalString(payload.screenshot_ref)
       ?? optionalString(payload.screenshotRef)
       ?? null,
@@ -60,6 +63,16 @@ async function sendQuery(payload: Record<string, unknown>, workspacePath: string
       : 'Failed to send query to backend';
     throw new Error(message);
   }
+  if (
+    result
+    && typeof result === 'object'
+    && 'messageId' in result
+    && typeof result.messageId === 'string'
+    && result.messageId.trim().length > 0
+  ) {
+    return result.messageId.trim();
+  }
+  return messageId;
 }
 
 function optionalRecordArray(value: unknown): Record<string, unknown>[] {
@@ -122,9 +135,9 @@ export function createDesktopBackendTransport(workspacePath: string | null = nul
   return {
     connect: async () => undefined,
     handshake: async () => undefined,
-    sendQuery: async (payload) => {
-      await sendQuery(payload, normalizedWorkspacePath);
-      return optionalString(payload.turn_ref) ?? optionalString(payload.turnRef) ?? '';
+    sendQuery: async (payload, options = {}) => {
+      const messageId = optionalString(options.messageId);
+      return await sendQuery(payload, normalizedWorkspacePath, messageId) ?? '';
     },
     sendToolResult: async () => undefined,
     sendToolBundleResult: async () => undefined,

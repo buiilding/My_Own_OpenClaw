@@ -51,7 +51,7 @@ async function prepareRendererQuerySend({
     memoryRetrievalEnabled,
   } = preparedQuery;
 
-  const queryMessageId = uuidGenerator();
+  const queryMessageId = preparedQuery.queryMessageId || uuidGenerator();
   logChatPillMainTrace({
     source: 'ipc',
     action: 'query-send-accepted',

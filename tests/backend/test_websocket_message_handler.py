@@ -105,7 +105,7 @@ async def test_parse_and_validate_message_success() -> None:
 
 
 @pytest.mark.asyncio
-async def test_parse_and_validate_message_accepts_matching_query_payload_turn_ref() -> None:
+async def test_parse_and_validate_message_rejects_query_payload_turn_ref() -> None:
     payload = json.dumps(
         {
             "id": "turn_1",
@@ -122,33 +122,9 @@ async def test_parse_and_validate_message_accepts_matching_query_payload_turn_re
         payload, user_id="user_1", max_message_size=1024
     )
 
-    assert error is None
-    assert isinstance(message, QueryMessage)
-    assert message.payload.turn_ref == "turn_1"
-
-
-@pytest.mark.asyncio
-async def test_parse_and_validate_message_accepts_distinct_query_payload_turn_ref() -> None:
-    payload = json.dumps(
-        {
-            "id": "transport_1",
-            "type": "query",
-            "payload": {
-                "text": "hello",
-                "conversation_ref": "conv_test",
-                "turn_ref": "turn_1",
-            },
-        }
-    )
-
-    message, error = await mh.parse_and_validate_message(
-        payload, user_id="user_1", max_message_size=1024
-    )
-
-    assert error is None
-    assert isinstance(message, QueryMessage)
-    assert message.id == "transport_1"
-    assert message.payload.turn_ref == "turn_1"
+    assert message is None
+    assert error is not None
+    assert "payload.turn_ref" in error
 
 
 @pytest.mark.asyncio

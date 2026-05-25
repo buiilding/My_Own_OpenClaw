@@ -44,7 +44,6 @@ class QueryPayload(BaseModel):
 
     text: str
     conversation_ref: str
-    turn_ref: Optional[str] = None
     content: Optional[str] = None
     screenshot: Optional[str] = None
     screenshot_ref: Optional[str] = None
@@ -65,13 +64,6 @@ class QueryPayload(BaseModel):
     @classmethod
     def validate_workspace_path(cls, value: Optional[str]) -> Optional[str]:
         return _validate_optional_workspace_path(value)
-
-    @field_validator("turn_ref")
-    @classmethod
-    def validate_turn_ref(cls, value: Optional[str]) -> Optional[str]:
-        if value is None:
-            return None
-        return _validate_correlation_ref(value, field_name="turn_ref")
 
 
 class QueryMessage(BaseMessage):

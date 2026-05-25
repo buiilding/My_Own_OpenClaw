@@ -42,9 +42,9 @@ Payload (`QueryPayload`):
 
 - `text: str`
 - `conversation_ref: str`
-- `turn_ref: Optional[str]` accepted for desktop/SDK query correlation; when
-  present it becomes the canonical `turn_ref` echoed on backend stream events,
-  while the envelope `id` remains transport-scoped.
+- `turn_ref` is not accepted in the query payload. Desktop/SDK query
+  correlation belongs in the websocket envelope `id`, which becomes the
+  canonical `turn_ref` echoed on backend stream events.
 - `content: Optional[str]`
 - `screenshot: Optional[str]`
 - `screenshot_ref: Optional[str]`

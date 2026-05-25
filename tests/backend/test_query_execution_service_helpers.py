@@ -59,6 +59,14 @@ def _build_service(session_manager=None):
     )
 
 
+class _FakeWebSocket:
+    def __init__(self):
+        self.sent = []
+
+    async def send_json(self, payload):
+        self.sent.append(payload)
+
+
 def _first_screenshot(
     message,
     *,
@@ -674,7 +682,7 @@ async def test_execute_emits_fallback_completion_when_agent_stream_ends_without_
 
     await service.execute(
         _build_message(),
-        websocket=object(),
+        websocket=_FakeWebSocket(),
         user_id="user-1",
         pipeline_cls=_Pipeline,
     )
@@ -742,7 +750,7 @@ async def test_execute_ignores_post_error_events_and_skips_fallback_completion()
 
     await service.execute(
         _build_message(),
-        websocket=object(),
+        websocket=_FakeWebSocket(),
         user_id="user-1",
         pipeline_cls=_Pipeline,
     )
@@ -814,7 +822,7 @@ async def test_execute_preserves_memory_store_after_terminal_completion():
 
     await service.execute(
         _build_message(),
-        websocket=object(),
+        websocket=_FakeWebSocket(),
         user_id="user-1",
         pipeline_cls=_Pipeline,
     )
@@ -886,7 +894,7 @@ async def test_execute_re_raises_cancellation_and_reconciles_pending_tool_calls(
     with pytest.raises(asyncio.CancelledError):
         await service.execute(
             _build_message(),
-            websocket=object(),
+            websocket=_FakeWebSocket(),
             user_id="user-1",
             pipeline_cls=_Pipeline,
         )

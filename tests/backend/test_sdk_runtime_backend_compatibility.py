@@ -11,6 +11,7 @@ from pathlib import Path
 import pytest
 
 from backend.src.api.schemas.incoming import (
+    QueryPayload,
     RehydrateConversationPayload,
     ToolBundleResultPayload,
     ToolResultPayload,
@@ -263,6 +264,19 @@ def test_sdk_rehydrate_projection_matches_backend_ingress_schema():
     assert payload.messages[2].tool_call_id == "call-bundle-readme"
     assert payload.messages[3].tool_name == "read_file"
     assert payload.messages[3].tool_call_id == "call-bundle-package"
+
+
+def test_backend_query_payload_rejects_turn_ref_context_field():
+    payload = {
+        "text": "hello",
+        "conversation_ref": "conv-sdk-backend-compat",
+        "turn_ref": "turn-compat",
+    }
+
+    with pytest.raises(Exception) as exc_info:
+        QueryPayload.model_validate(payload)
+
+    assert "turn_ref" in str(exc_info.value)
 
 
 def test_sdk_build_prerequisite_reason_when_npm_is_missing(monkeypatch):

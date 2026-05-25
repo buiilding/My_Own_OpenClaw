@@ -650,7 +650,7 @@ async def test_query_handler_success(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_query_handler_uses_payload_turn_ref_for_stream_context(monkeypatch):
+async def test_query_handler_uses_message_id_for_stream_context(monkeypatch):
     websocket = FakeWebSocket()
     session_manager = DummySessionManager()
     handler = QueryMessageHandler(
@@ -681,20 +681,19 @@ async def test_query_handler_uses_payload_turn_ref_for_stream_context(monkeypatc
         payload={
             "text": "hi",
             "conversation_ref": "conv_test",
-            "turn_ref": "turn_1",
             "content": "<user_query>hi</user_query>",
         },
     )
 
     await handler.handle(message, websocket, "user_1")
 
-    assert session_manager.register_calls[0]["turn_ref"] == "turn_1"
+    assert session_manager.register_calls[0]["turn_ref"] == "transport_1"
     first_event, first_msg_id, first_context = created_pipelines[0].processed[0]
     assert isinstance(first_event, ChunkEvent)
-    assert first_msg_id == "turn_1"
-    assert first_context["turn_ref"] == "turn_1"
-    assert websocket.sent[0]["id"] == "turn_1"
-    assert websocket.sent[0]["turn_ref"] == "turn_1"
+    assert first_msg_id == "transport_1"
+    assert first_context["turn_ref"] == "transport_1"
+    assert websocket.sent[0]["id"] == "transport_1"
+    assert websocket.sent[0]["turn_ref"] == "transport_1"
 
 
 @pytest.mark.asyncio
