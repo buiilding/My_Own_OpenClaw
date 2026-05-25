@@ -769,7 +769,39 @@ async def test_sdk_vision_describe_rejects_region_origin_outside_image(
 
 
 @pytest.mark.asyncio
-async def test_sdk_vision_overlay_writes_artifact(tmp_path) -> None:
+async def test_sdk_vision_overlay_requires_authenticated_identity_before_write(
+    tmp_path,
+) -> None:
+    container = _container(tmp_path)
+
+    with pytest.raises(HTTPException) as exc_info:
+        await sdk_routes.sdk_vision_overlay(
+            _sdk_request("/api/sdk/vision/overlay"),
+            VisionOverlayRequest(
+                image=ImageSourceInput(image_base64=_png_base64()),
+                result=VisionOverlayPayload(
+                    points=[OverlayPointModel(x=120, y=90, label="target")],
+                    regions=[
+                        OverlayRegionModel(
+                            x=80, y=40, width=100, height=60, label="region"
+                        )
+                    ],
+                ),
+            ),
+            container,
+        )
+
+    assert exc_info.value.status_code == 401
+    assert exc_info.value.detail == "Authenticated install identity required"
+    assert not any(tmp_path.iterdir())
+
+
+@pytest.mark.asyncio
+async def test_sdk_vision_overlay_writes_authenticated_artifact(
+    tmp_path,
+    authenticated_install_identity,
+) -> None:
+    _ = authenticated_install_identity
     container = _container(tmp_path)
 
     response = await sdk_routes.sdk_vision_overlay(

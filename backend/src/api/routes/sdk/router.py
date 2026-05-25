@@ -388,6 +388,7 @@ async def sdk_vision_overlay(
     payload: VisionOverlayRequest,
     container: ContainerDep,
 ) -> OverlayArtifactResponse:
+    require_authenticated_sdk_identity()
     source = resolve_image_source(payload.image, container)
     return render_vision_overlay_response(
         request=request,
