@@ -245,6 +245,20 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('payload?.userId');
   });
 
+  test('chat stream terminal telemetry does not own live response phase', async () => {
+    const source = await fs.readFile(
+      path.join(chatRoot, 'hooks/chatStream/useChatStreamTerminalHandlers.ts'),
+      'utf8',
+    );
+
+    expect(source).not.toContain("recordTrackingEvent('streaming-complete'");
+    expect(source).not.toContain('setIsSending(');
+    expect(source).not.toContain('setThinkingStatus(');
+    expect(source).not.toContain('setThinkingSourceEventType(');
+    expect(source).toContain("recordTrackingEvent('token-count'");
+    expect(source).toContain("recordTrackingEvent('memory-store'");
+  });
+
   test('chat stream local-user display consumes SDK user-message events directly', async () => {
     const streamSource = await fs.readFile(
       path.join(chatRoot, 'hooks/useChatStream.ts'),

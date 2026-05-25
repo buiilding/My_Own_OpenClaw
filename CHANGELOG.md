@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sdk: remove token-count and memory-store fallback completion so only SDK current-turn projection advances live response terminal phase.
 - frontend/sdk: move terminal complete/error phase tracking onto SDK current-turn projection and keep renderer terminal handlers focused on transcript/materialization side effects.
 - frontend/sdk: move active tool phase/progress tracking onto SDK current-turn tool events and shrink stream tool handlers to transcript persistence.
 - frontend/sdk: delete the unused raw backend tool-row message shaper after moving live tool display onto the SDK current-turn projection.

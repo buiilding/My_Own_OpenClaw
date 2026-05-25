@@ -139,9 +139,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     enableTranscript,
     modelContextRef,
     recordTrackingEvent,
-    setIsSending,
-    setThinkingSourceEventType,
-    setThinkingStatus,
   });
 
   const dispatchConversationEvent = useCallback((

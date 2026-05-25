@@ -17,10 +17,7 @@ import type { TranscriptModelContext } from '../../utils/chatStream/chatStreamTy
 type UseChatStreamTerminalHandlersDeps = {
   enableTranscript: boolean;
   modelContextRef: { current: TranscriptModelContext };
-  recordTrackingEvent: TrackEventFn<'streaming-complete' | 'token-count' | 'memory-store' | 'error'>;
-  setIsSending: (value: boolean, conversationRef?: string | null) => void;
-  setThinkingSourceEventType: (value: string | null, conversationRef?: string | null) => void;
-  setThinkingStatus: (value: string | null, conversationRef?: string | null) => void;
+  recordTrackingEvent: TrackEventFn<'token-count' | 'memory-store' | 'error'>;
 };
 
 function terminalPayloadWithoutRawEvent(event: ConversationEvent): Record<string, unknown> {
@@ -32,9 +29,6 @@ export function useChatStreamTerminalHandlers({
   enableTranscript,
   modelContextRef,
   recordTrackingEvent,
-  setIsSending,
-  setThinkingSourceEventType,
-  setThinkingStatus,
 }: UseChatStreamTerminalHandlersDeps) {
   const setTokenCounts = useChatStore((state) => state.setTokenCounts);
   const updateMessage = useChatStore((state) => state.updateMessage);
@@ -42,17 +36,6 @@ export function useChatStreamTerminalHandlers({
   const handleTokenCount = useCallback((event: ConversationEvent, conversationRef?: string | null) => {
     const tokenCounts = terminalPayloadWithoutRawEvent(event) as TokenCounts;
     const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
-    const shouldFinalizePendingStream = (
-      workspace.isSending === true
-      && workspace.streamTracking.phase !== 'complete'
-      && workspace.streamTracking.phase !== 'error'
-    );
-    if (shouldFinalizePendingStream) {
-      setIsSending(false, conversationRef);
-      setThinkingStatus(null, conversationRef);
-      setThinkingSourceEventType(null, conversationRef);
-      recordTrackingEvent('streaming-complete', event.turnRef, { phase: 'complete' }, conversationRef);
-    }
     setTokenCounts(tokenCounts, conversationRef);
     const assistantMessageId = findLastAssistantLlmTextMessageId(
       workspace.messages,
@@ -68,29 +51,12 @@ export function useChatStreamTerminalHandlers({
     setTokenCounts,
     updateMessage,
     recordTrackingEvent,
-    setIsSending,
-    setThinkingSourceEventType,
-    setThinkingStatus,
   ]);
 
   const handleMemoryStore = useCallback((event: ConversationEvent, conversationRef?: string | null) => {
-    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
-    const shouldFinalizePendingStream = (
-      workspace.isSending === true
-      && workspace.streamTracking.phase === 'awaiting-first-chunk'
-    );
-    if (shouldFinalizePendingStream) {
-      setIsSending(false, conversationRef);
-      setThinkingStatus(null, conversationRef);
-      setThinkingSourceEventType(null, conversationRef);
-      recordTrackingEvent('streaming-complete', event.turnRef, { phase: 'complete' }, conversationRef);
-    }
     recordTrackingEvent('memory-store', event.turnRef, undefined, conversationRef);
   }, [
     recordTrackingEvent,
-    setIsSending,
-    setThinkingSourceEventType,
-    setThinkingStatus,
   ]);
 
   const handleError = useCallback((event: ConversationEvent, conversationRef?: string | null) => {

@@ -153,7 +153,10 @@ instead of unwrapping backend `payload.rawEvent` metadata events.
 Desktop terminal projection follows the same rule. Renderer terminal handlers
 read SDK `turn_error`, `usage_updated`, and `memory_stored` payloads directly;
 they should not reconstruct backend `error`, `token-count`, or `memory-store`
-events from `payload.rawEvent`.
+events from `payload.rawEvent`. `usage_updated` and `memory_stored` are
+telemetry/session side effects only; they should not clear live send state or
+advance the response phase. Completion and error phase ownership stays with
+`snapshot.currentTurn`.
 
 Desktop reasoning projection consumes SDK `currentTurn.reasoningText` from the
 conversation runtime snapshot. Renderer UI/debug state may keep the source label
