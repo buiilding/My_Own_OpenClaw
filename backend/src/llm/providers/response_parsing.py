@@ -262,15 +262,47 @@ def extract_message_tool_calls(
                 )
             )
 
+    deduped_calls = _dedupe_exact_tool_calls(normalized_calls)
+    _validate_unique_tool_call_ids(
+        deduped_calls,
+        model=model,
+        invalid_response_message=invalid_response_message,
+    )
+    return deduped_calls
+
+
+def _dedupe_exact_tool_calls(
+    tool_calls: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
     deduped: List[Dict[str, Any]] = []
-    seen: set[tuple[str, str]] = set()
-    for call in normalized_calls:
-        key = (call["id"], call["name"])
+    seen: set[str] = set()
+    for call in tool_calls:
+        key = json.dumps(call, sort_keys=True, separators=(",", ":"), default=str)
         if key in seen:
             continue
         seen.add(key)
         deduped.append(call)
     return deduped
+
+
+def _validate_unique_tool_call_ids(
+    tool_calls: List[Dict[str, Any]],
+    *,
+    model: str,
+    invalid_response_message: str,
+) -> None:
+    seen_ids: set[str] = set()
+    for index, call in enumerate(tool_calls):
+        tool_call_id = call["id"]
+        if tool_call_id in seen_ids:
+            raise LLMAPIError(
+                (
+                    f"{invalid_response_message}: duplicate tool-call id "
+                    f"'{tool_call_id}' at index {index}"
+                ),
+                model=model,
+            )
+        seen_ids.add(tool_call_id)
 
 
 def normalize_raw_tool_calls(

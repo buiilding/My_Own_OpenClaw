@@ -163,7 +163,10 @@ Completion response normalization (`_extract_completion_response(...)`):
 - parses tool calls from both:
   - OpenAI-style `message.tool_calls`,
   - Anthropic-style `content` blocks with `type=tool_use`,
-- deduplicates normalized tool calls by `(id,name)`,
+- collapses exact duplicate tool-call representations when a provider exposes
+  the same call in multiple fields, then rejects any remaining duplicate
+  normalized tool-call IDs in one assistant response because `tool_call_id` is
+  the join key for later `role=tool` messages,
 - includes `finish_reason` when present.
 
 Tool-call argument normalization supports:
@@ -210,6 +213,7 @@ After provider returns, `LiteLLMClient` revalidates payload:
 
 - `content` required and string (or `None` coerced to empty string),
 - `tool_calls` must be list of `{id,name,arguments}` with strict types,
+- tool-call IDs must be unique within the response,
 - `finish_reason` must be string or absent.
 
 It also snapshots provider diagnostics/payload for downstream stream processor access:

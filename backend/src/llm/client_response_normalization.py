@@ -92,10 +92,20 @@ def normalize_tool_calls(
             "Invalid tool_calls type from provider: expected list",
             model=model,
         )
-    return [
+    normalized_tool_calls = [
         normalize_tool_call_entry(tool_call, index=index, model=model)
         for index, tool_call in enumerate(tool_calls)
     ]
+    seen_ids: set[str] = set()
+    for index, tool_call in enumerate(normalized_tool_calls):
+        tool_call_id = tool_call["id"]
+        if tool_call_id in seen_ids:
+            raise LLMAPIError(
+                f"Invalid tool_calls from provider: duplicate id '{tool_call_id}' at index {index}",
+                model=model,
+            )
+        seen_ids.add(tool_call_id)
+    return normalized_tool_calls
 
 
 def normalize_finish_reason(

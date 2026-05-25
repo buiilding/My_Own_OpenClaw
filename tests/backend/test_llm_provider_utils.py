@@ -5,6 +5,7 @@ from types import SimpleNamespace
 import pytest
 
 from backend.src.core.infrastructure.error_types import LLMAPIError
+from backend.src.llm.client_response_normalization import normalize_response_payload
 from backend.src.llm.providers.error_mapping import (
     build_api_error_message,
     extract_status_code,
@@ -413,7 +414,7 @@ def test_extract_completion_response_preserves_tool_call_thought_signature():
     ]
 
 
-def test_extract_completion_response_keeps_same_id_when_tool_names_differ():
+def test_extract_completion_response_rejects_duplicate_tool_call_ids():
     response = {
         "choices": [
             {
@@ -428,15 +429,26 @@ def test_extract_completion_response_keeps_same_id_when_tool_names_differ():
         ]
     }
 
-    normalized = extract_completion_response(
-        response,
-        model="m",
-        invalid_response_message="Invalid response",
-    )
-    assert normalized["tool_calls"] == [
-        {"id": "call_1", "name": "read_file", "arguments": {"path": "/tmp/a"}},
-        {"id": "call_1", "name": "replace", "arguments": {"path": "/tmp/b"}},
-    ]
+    with pytest.raises(LLMAPIError, match="duplicate tool-call id 'call_1'"):
+        extract_completion_response(
+            response,
+            model="m",
+            invalid_response_message="Invalid response",
+        )
+
+
+def test_normalize_response_payload_rejects_duplicate_tool_call_ids():
+    with pytest.raises(LLMAPIError, match="duplicate id 'call_1'"):
+        normalize_response_payload(
+            {
+                "content": "",
+                "tool_calls": [
+                    {"id": "call_1", "name": "read_file", "arguments": {"path": "/tmp/a"}},
+                    {"id": "call_1", "name": "replace", "arguments": {"path": "/tmp/b"}},
+                ],
+            },
+            model="m",
+        )
 
 
 def test_extract_completion_response_falls_back_to_choice_text_when_message_content_empty():

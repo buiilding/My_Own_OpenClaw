@@ -37,6 +37,8 @@ Key nuance:
 
 - Live runtime currently does not call `ResponseParser.parse_response(...)` for tool turns.
 - Tool-call structure validation in this path is enforced by `LiteLLMClient._normalize_response_payload(...)` (non-empty `id`/`name`, dict `arguments`).
+- Duplicate provider tool-call IDs are rejected before bridge conversion, because
+  later tool-output rows use `tool_call_id` as their unambiguous join key.
 - Provider-native built-ins are first normalized into canonical `tool_calls[]` rows upstream before they pass through the same interaction-loop bridge as any other normalized tool turn. Desktop execution now stays on the shared direct-function tool path.
 
 ## Parser module path (trust-boundary library)

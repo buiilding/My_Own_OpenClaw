@@ -138,6 +138,11 @@ def normalize_assistant_message_tool_calls(
         normalized_tool_calls.append(normalized_call)
         call_id = normalized_call.get("id")
         if isinstance(call_id, str) and call_id:
+            if call_id in tool_call_ids:
+                raise LLMAPIError(
+                    f"Invalid assistant.tool_calls at message index {index}: duplicate id '{call_id}'",
+                    model=model,
+                )
             tool_call_ids.add(call_id)
 
     if changed:
