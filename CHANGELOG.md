@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/diagnostics: add renderer interaction logs for clicked controls, opened chats, changed controls, and submitted messages.
 - frontend/chat: keep SDK current-turn projected dashboard messages referentially stable to avoid React external-store update loops.
 - docs/frontend: update renderer folder structure docs to show SDK current-turn projection and `conversation-event` stream ownership.
 - frontend/sdk: route renderer chat stream side effects through main-owned SDK-normalized `conversation-event` IPC and delete the renderer raw backend ingress path.

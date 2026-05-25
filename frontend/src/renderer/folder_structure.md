@@ -177,6 +177,9 @@ frontend/src/renderer/
 │   ├── audio/                            # Audio services
 │   │   └── PlayerService.ts            # PlayerService - Audio playback queue management (TTS audio chunks from backend)
 │   │
+│   ├── interaction/                      # Frontend interaction diagnostics
+│   │   └── frontendInteractionLogger.js # frontendInteractionLogger - capture-phase click/control-change logging and send-message traces
+│   │
 │   ├── ipc/                              # IPC communication layer
 │   │   ├── bridge.ts                   # IpcBridge - Type-safe IPC wrapper with channel validation (send, invoke, on, once)
 │   │   └── channels.ts                 # Channel constants - SEND_CHANNELS, INVOKE_CHANNELS, ON_CHANNELS (centralized channel names)
@@ -534,6 +537,13 @@ App
 - `LOG` - Log messages from main process
 - `WAKEWORD_DETECTED` - Wakeword detection event
 - `WAKEWORD_STATUS` - Wakeword service status
+
+### Frontend Interaction Logs
+
+- `infrastructure/interaction/frontendInteractionLogger.js` installs one capture-phase renderer listener for user clicks and control changes.
+- Click logs include the resolved control label, element role/type, class/test id metadata, and current renderer view.
+- Chat rows provide an explicit interaction label so logs include the visible chat title when a user opens a chat.
+- Message sends log from `useChatMessageSender` after the message is accepted into UI state, without logging the message text.
 
 ---
 

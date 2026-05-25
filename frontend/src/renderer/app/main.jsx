@@ -5,10 +5,12 @@ import ChatBoxApp from './ChatBoxApp';
 import ChatBoxResponseApp from './ChatBoxResponseApp';
 import ChatBoxContextLabelApp from './ChatBoxContextLabelApp';
 import ToolGhostDebugApp from './ToolGhostDebugApp';
+import { installFrontendInteractionLogger } from '../infrastructure/interaction/frontendInteractionLogger';
 
 // This is the standard entry point for a React application.
 // StrictMode causes double rendering in development - disable in production for performance
 const isDev = import.meta.env.DEV;
+installFrontendInteractionLogger();
 const root = ReactDOM.createRoot(document.getElementById('root'));
 const view = new URLSearchParams(window.location.search).get('view');
 const RootComponent = view === 'chatbox'

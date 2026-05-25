@@ -90,6 +90,7 @@ function DashboardSidebar({
       <button
         type="button"
         className={`cg-chat-item${conversation.key === activeConversationRef ? ' active' : ''}`}
+        data-interaction-label={`Chat: ${conversation.title}`}
         onClick={() => onOpenConversation(conversation.conversation)}
       >
         {conversation.title}

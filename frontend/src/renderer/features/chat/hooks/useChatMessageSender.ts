@@ -47,6 +47,7 @@ import {
 import { recordUserTranscriptMessage } from '../utils/messageSender/userTranscriptPersistence';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 import { DesktopSettingsRuntimeClient } from '../../../app/runtime/desktopSettingsRuntimeClient';
+import { logUserSentMessage } from '../../../infrastructure/interaction/frontendInteractionLogger';
 
 type ChatMessageSenderOptions = {
   senderSurface?: ChatSendSurface;
@@ -195,6 +196,14 @@ export function useChatMessageSender(
     addMessage(userMessage, conversationRef);
     setIsSending(true, conversationRef);
     setThinkingStatus(null, conversationRef);
+    logUserSentMessage({
+      conversationRef,
+      senderSurface,
+      textLength: text.length,
+      attachmentCount: attachmentFilenames.length,
+      imageCount: clipboardImages.length,
+      readableFileCount: readableFiles.length,
+    });
 
     if (senderSurface === 'overlay-chatbox') {
       try {
