@@ -441,8 +441,9 @@ frontend/src/renderer/
    └─> Executes bundle deterministically through sidecar and sends one tool-bundle-result
            ↓
 3. UI UPDATE
-   └─> features/chat/hooks/useChatStream.ts
-       └─> chatStore.addMessage() - Add display projection for bundle/tool output
+   └─> features/chat/hooks/useConversationRuntimeProjectionStream.ts
+       └─> chatStore.setCurrentTurnProjection()
+           └─> features/chat/utils/state/chatBoxResponseState.js renders projected bundle/tool output
 ```
 
 ---
