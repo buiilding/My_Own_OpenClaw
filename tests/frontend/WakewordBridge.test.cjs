@@ -233,6 +233,40 @@ describe('wakeword_bridge', () => {
     );
   });
 
+  test('rejects oversized detection result frames and clears the buffer', () => {
+    const { mainWindow, onWakewordDetected } = initBridge();
+    enableAndReady();
+
+    const oversizedHeader = Buffer.alloc(4);
+    oversizedHeader.writeUInt32LE(64 * 1024 + 1, 0);
+    emitRawBytes(oversizedHeader);
+
+    expect(console.error).toHaveBeenCalledWith(
+      expect.stringContaining('Invalid detection result frame length'),
+    );
+    expect(onWakewordDetected).not.toHaveBeenCalled();
+    expect(mainWindow.webContents.send).not.toHaveBeenCalledWith(
+      'wakeword-detected',
+      expect.anything(),
+    );
+
+    emitDetection({
+      detected: true,
+      model: 'hey_jarvis',
+      confidence: 0.96,
+      score: 0.96,
+    });
+
+    expect(onWakewordDetected).toHaveBeenCalledTimes(1);
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith(
+      'wakeword-detected',
+      expect.objectContaining({
+        model: 'hey_jarvis',
+        confidence: 0.96,
+      }),
+    );
+  });
+
   test('ignores stale exit from old process after beforeExit/enable restart', () => {
     const { createdProcesses, beforeExitHandler } = initBridge();
     enableAndReady();

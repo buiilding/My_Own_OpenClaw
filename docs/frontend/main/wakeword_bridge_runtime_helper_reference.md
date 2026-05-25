@@ -17,7 +17,8 @@ title: "Wakeword Bridge Runtime Helper Reference"
 
 ## Runtime Split
 
-`wakeword_bridge.cjs` owns subprocess lifecycle and buffered binary frame ingestion.
+`wakeword_bridge.cjs` owns subprocess lifecycle and buffered binary frame ingestion,
+including the `64 KiB` maximum detection-result frame guard for subprocess stdout.
 
 `wakeword_bridge_runtime.cjs` owns focused helper primitives used by that bridge:
 

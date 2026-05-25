@@ -103,11 +103,14 @@ Invalid payload types are rejected with logging.
 Main keeps `resultBuffer` and parses stream as:
 
 1. read 4-byte little-endian message length
-2. wait until full payload bytes available
-3. parse JSON payload
-4. if detected and enabled, emit callbacks/events and clear buffer
+2. reject lengths above `64 KiB`, log the protocol error, and clear the buffer
+3. wait until full payload bytes are available
+4. parse JSON payload
+5. if detected and enabled, emit callbacks/events and clear buffer
 
 This buffering avoids partial-frame parse failures when stdout chunks split messages.
+The maximum frame size bounds Electron main memory retained for malformed or
+compromised wakeword subprocess output.
 
 ## Enable/Disable Policy and Retrigger Prevention
 

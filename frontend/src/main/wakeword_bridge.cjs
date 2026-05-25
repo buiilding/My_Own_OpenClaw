@@ -19,6 +19,8 @@ const {
 } = require('./wakeword_bridge_runtime.cjs');
 const { createWakewordSupervisor } = require('./wakeword_supervisor.cjs');
 
+const MAX_WAKEWORD_RESULT_FRAME_BYTES = 64 * 1024;
+
 let pythonProcess = null;
 let stderrBuffer = '';
 let wakewordDetectedCallback = null;
@@ -225,6 +227,15 @@ function processDetectionResults(data, mainWindow, onWakewordDetected) {
   while (resultBuffer.length >= 4) {
     // Read message length
     const length = resultBuffer.readUInt32LE(0);
+    if (length > MAX_WAKEWORD_RESULT_FRAME_BYTES) {
+      writeWakewordLog(
+        'error',
+        `[Wakeword] Invalid detection result frame length ${length}; ` +
+        `maximum is ${MAX_WAKEWORD_RESULT_FRAME_BYTES} bytes. Clearing buffer.`,
+      );
+      clearResultBuffer();
+      return;
+    }
     
     if (resultBuffer.length < 4 + length) {
       // Not enough data yet
