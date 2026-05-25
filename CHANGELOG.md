@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/refactors: add a runtime ownership simplification plan for deleting duplicated renderer, main, SDK, sidecar, and backend responsibilities.
 - backend/api: accept desktop query payload `turn_ref` values as the canonical stream turn id while leaving websocket envelope ids transport-scoped.
 - backend/api: allow explicit `null` tool-output payloads through websocket formatter and schema validation.
 - backend/llm: reject duplicate tool-call IDs during provider response normalization.
