@@ -557,6 +557,8 @@ Resolve a previously returned OCR `candidate_id` to its exact bbox and center in
 
 Render OCR annotations onto the source image and save the overlay as a first-class artifact.
 
+Requires an authenticated install identity before image resolution or OCR work.
+
 **Response**:
 ```json
 {

@@ -40,6 +40,9 @@ the resolver reports as `ValueError`. Unexpected resolver/runtime failures must
 propagate as route errors so monitoring and SDK callers do not treat backend
 failures as normal no-match results.
 
+OCR overlay requires an authenticated install identity before resolving image
+sources, running OCR, or writing overlay artifacts.
+
 Vision describe region responses are crop-relative when a region is supplied:
 the backend rejects origins outside the source image, trims partial overflow at
 the image edge, and returns cropped-image metadata with the region origin

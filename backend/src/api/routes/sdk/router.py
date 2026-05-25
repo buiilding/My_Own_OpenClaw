@@ -306,6 +306,7 @@ async def sdk_ocr_overlay(
     payload: OcrOverlayRequest,
     container: ContainerDep,
 ) -> OverlayArtifactResponse:
+    require_authenticated_sdk_identity()
     source = resolve_image_source(payload.image, container)
     ocr_results = await run_ocr(source, container)
     if payload.candidate_id:

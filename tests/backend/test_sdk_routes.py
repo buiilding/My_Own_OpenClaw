@@ -523,7 +523,41 @@ async def test_sdk_ocr_resolve_candidate_returns_exact_candidate(tmp_path) -> No
 
 
 @pytest.mark.asyncio
-async def test_sdk_ocr_overlay_writes_artifact(tmp_path) -> None:
+async def test_sdk_ocr_overlay_requires_authenticated_identity_before_ocr(
+    tmp_path,
+) -> None:
+    container = _container(
+        tmp_path,
+        ocr_results=[
+            {
+                "id": "row-1",
+                "text": "Search Amazon",
+                "confidence": 0.99,
+                "bbox": {"x": 500, "y": 216, "width": 174, "height": 36},
+            }
+        ],
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        await sdk_routes.sdk_ocr_overlay(
+            _sdk_request("/api/sdk/ocr/overlay"),
+            OcrOverlayRequest(
+                image=ImageSourceInput(image_base64=_png_base64()),
+                text="Search Amazon",
+            ),
+            container,
+        )
+
+    assert exc_info.value.status_code == 401
+    assert exc_info.value.detail == "Authenticated install identity required"
+    assert container.ocr_service.calls == 0
+
+
+@pytest.mark.asyncio
+async def test_sdk_ocr_overlay_writes_artifact(
+    tmp_path,
+    authenticated_install_identity,
+) -> None:
     container = _container(
         tmp_path,
         ocr_results=[
