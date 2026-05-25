@@ -17,6 +17,8 @@ describe('DesktopSettingsRuntimeClient', () => {
 
   beforeEach(() => {
     mockSend.mockReset();
+    window.history.replaceState({}, '', '/');
+    DesktopSettingsRuntimeClient.resetDashboardStartupModelListForTests();
   });
 
   test('requests model lists through the desktop backend transport', () => {
@@ -25,6 +27,39 @@ describe('DesktopSettingsRuntimeClient', () => {
     expect(mockSend).toHaveBeenCalledWith(SEND_CHANNELS.TO_BACKEND, {
       type: 'list-models',
     });
+  });
+
+  test('requests dashboard startup model list only once per renderer session', () => {
+    expect(DesktopSettingsRuntimeClient.requestDashboardStartupModelList()).toBe(true);
+    expect(DesktopSettingsRuntimeClient.requestDashboardStartupModelList()).toBe(false);
+
+    expect(mockSend).toHaveBeenCalledTimes(1);
+    expect(mockSend).toHaveBeenCalledWith(SEND_CHANNELS.TO_BACKEND, {
+      type: 'list-models',
+    });
+  });
+
+  test('skips dashboard startup model list from secondary renderer views', () => {
+    window.history.replaceState({}, '', '/?view=chatbox-response');
+
+    expect(DesktopSettingsRuntimeClient.requestDashboardStartupModelList()).toBe(false);
+
+    expect(mockSend).not.toHaveBeenCalled();
+  });
+
+  test('does not throw when startup model list request fails', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    mockSend.mockImplementationOnce(() => {
+      throw new Error('ipc unavailable');
+    });
+
+    expect(DesktopSettingsRuntimeClient.requestDashboardStartupModelList()).toBe(false);
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      '[SettingsRuntime] Failed to request startup model list:',
+      'ipc unavailable',
+    );
+    warnSpy.mockRestore();
   });
 
   test('sends settings patches through the desktop backend transport', () => {

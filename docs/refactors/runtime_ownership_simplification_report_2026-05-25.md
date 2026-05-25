@@ -136,12 +136,36 @@ Verification:
 - `ELECTRON_RUN_AS_NODE=1 .\frontend\node_modules\electron\dist\electron.exe .\scripts\docs-list.js` - pass
 - `git diff --check` - pass
 
+### Settings/Model Startup Ownership
+
+Status: completed and verified.
+
+Changes:
+
+- Moved the dashboard startup model-list session guard from `AppConfigProvider` into `DesktopSettingsRuntimeClient.requestDashboardStartupModelList()`.
+- `AppConfigProvider` now delegates startup model refresh to the settings runtime and no longer owns URL-view checks, session guard keys, reconnect model-list policy, or raw backend subscriptions.
+- Added settings-runtime tests for cold-start model list, secondary-view suppression, once-per-renderer-session behavior, and startup request failure handling.
+- Updated provider tests so backend reconnect and disconnected initial snapshots prove the provider delegates to the settings runtime without calling `listModels()` directly.
+
+Success criteria covered:
+
+- Dashboard startup requests models through the settings runtime once per renderer session; explicit refresh remains available through `DesktopSettingsRuntimeClient.listModels()`.
+- `AppConfigProvider` has no raw backend event subscription and no direct model-list connection policy.
+- Focused tests cover cold start, backend reconnect, config load from disk, model-list failure, and settings-update acknowledgement.
+
+Verification:
+
+- `cd frontend && ELECTRON_RUN_AS_NODE=1 .\node_modules\electron\dist\electron.exe .\node_modules\jest\bin\jest.js DesktopSettingsRuntimeClient AppConfigProvider.models AppConfigProvider.storageAndIpc AppStatusProvider ModelsSection --runInBand` - pass
+- `rg -n "listModels\(|LIST_MODELS_REQUEST_GUARD|requestModelListIfNeeded|FROM_BACKEND" frontend/src/renderer/app/providers/AppConfigProvider.jsx -S` - pass, no matches
+- `cd packages/windie-sdk-js && ELECTRON_RUN_AS_NODE=1 ..\..\frontend\node_modules\electron\dist\electron.exe ..\..\frontend\node_modules\typescript\bin\tsc -p tsconfig.build.json` - pass
+- `ELECTRON_RUN_AS_NODE=1 .\frontend\node_modules\electron\dist\electron.exe .\scripts\docs-list.js` - pass
+- `git diff --check` - pass
+
 ## Pending
 
 - `frontend/src/main/ipc.cjs` composition-root split.
   - In progress: model-list request queueing moved to `frontend/src/main/ipc/ipc_model_list_runtime.cjs` with focused unit tests.
   - In progress: renderer diagnostic log routing moved to `frontend/src/main/ipc/ipc_diagnostics_runtime.cjs` with focused unit tests.
-- Settings/model runtime ownership consolidation.
 - Conversation session authority service.
 - Conversation persistence adapter collapse.
 - Tool execution routing ownership hardening.

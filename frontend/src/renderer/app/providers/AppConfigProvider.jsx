@@ -20,8 +20,6 @@ import {
 import { DesktopSettingsRuntimeClient } from '../runtime/desktopSettingsRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../runtime/desktopTranscriptSessionRuntimeClient';
 
-const LIST_MODELS_REQUEST_GUARD_KEY = '__windie_models_list_requested__';
-
 function resolveInitialWakewordSuppressed() {
   if (typeof window === 'undefined') {
     return true;
@@ -142,22 +140,6 @@ export function AppConfigProvider({ children }) {
     routeConfigBackendEvent(data, handlersRef);
   }, [handlersRef]);
 
-  const requestModelListIfNeeded = useCallback(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-    const view = new URLSearchParams(window.location.search).get('view');
-    const isMainView = !view;
-    const hasRequestedModels = Boolean(window[LIST_MODELS_REQUEST_GUARD_KEY]);
-    if (!isMainView || hasRequestedModels) {
-      return;
-    }
-
-    logConfigInfo('[Config] Requesting available models...');
-    window[LIST_MODELS_REQUEST_GUARD_KEY] = true;
-    DesktopSettingsRuntimeClient.listModels();
-  }, []);
-
   const applyBackendConnectionSnapshot = useCallback((data) => {
     const shortcutStatus = (
       data?.globalAgentStopShortcutStatus
@@ -195,13 +177,11 @@ export function AppConfigProvider({ children }) {
     setBackendHttpUrl(data?.backendHttpUrl);
     if (data?.isConnected === true) {
       syncCurrentConfigToBackend();
-      requestModelListIfNeeded();
     }
   }, [
     applyFrontendConfigPatch,
     configRef,
     globalAgentStopShortcutStatusRef,
-    requestModelListIfNeeded,
     syncCurrentConfigToBackend,
   ]);
 
@@ -214,8 +194,8 @@ export function AppConfigProvider({ children }) {
   }, [onBackendEvent]);
 
   useEffect(() => {
-    requestModelListIfNeeded();
-  }, [requestModelListIfNeeded]);
+    DesktopSettingsRuntimeClient.requestDashboardStartupModelList();
+  }, []);
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.IPC_STATUS, (data) => {

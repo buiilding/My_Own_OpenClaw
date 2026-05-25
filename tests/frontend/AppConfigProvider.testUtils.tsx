@@ -34,6 +34,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/services/BackendEndpointSt
 jest.mock('../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient', () => ({
   DesktopSettingsRuntimeClient: {
     listModels: jest.fn(),
+    requestDashboardStartupModelList: jest.fn(),
     updateSettings: jest.fn(),
   },
 }));
@@ -50,6 +51,7 @@ export const mockSaveConfigToStorage = saveConfigToStorage as jest.Mock;
 export const mockUpdateTranscriptSession = DesktopTranscriptSessionRuntimeClient.updateTranscriptSession as jest.Mock;
 export const mockSetBackendHttpUrl = setBackendHttpUrl as jest.Mock;
 export const mockDesktopSettingsListModels = DesktopSettingsRuntimeClient.listModels as jest.Mock;
+export const mockDesktopSettingsRequestStartupModels = DesktopSettingsRuntimeClient.requestDashboardStartupModelList as jest.Mock;
 export const mockDesktopSettingsUpdateSettings = DesktopSettingsRuntimeClient.updateSettings as jest.Mock;
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -93,6 +95,7 @@ export function registerAppConfigProviderSuiteLifecycle() {
     clientUserIdResponse = null;
 
     mockLoadConfigFromStorage.mockReturnValue({ speech_mode_enabled: false });
+    mockDesktopSettingsRequestStartupModels.mockReturnValue(true);
     mockUseSettingsManagement.mockReturnValue({
       handleModelsListed: jest.fn(),
     });

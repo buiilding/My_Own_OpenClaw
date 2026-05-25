@@ -7,6 +7,7 @@ import {
   INVOKE_CHANNELS,
   IpcBridge,
   mockDesktopSettingsListModels,
+  mockDesktopSettingsRequestStartupModels,
   mockLoadConfigFromStorage,
   mockSaveConfigToStorage,
   mockUseSettingsManagement,
@@ -39,18 +40,20 @@ describe('AppConfigProvider model + config wiring', () => {
       ON_CHANNELS.BACKEND_SETTINGS_EVENT,
       expect.any(Function),
     );
-    expect(mockDesktopSettingsListModels).toHaveBeenCalledTimes(1);
+    expect(mockDesktopSettingsRequestStartupModels).toHaveBeenCalledTimes(1);
+    expect(mockDesktopSettingsListModels).not.toHaveBeenCalled();
   });
 
-  test('does not request model list from chatbox-response view', () => {
+  test('delegates secondary view model-list decisions to the settings runtime', () => {
     window.history.pushState({}, '', '/?view=chatbox-response');
 
     renderAppConfigContext();
 
+    expect(mockDesktopSettingsRequestStartupModels).toHaveBeenCalledTimes(1);
     expect(mockDesktopSettingsListModels).not.toHaveBeenCalled();
   });
 
-  test('requests model list only once per renderer session', () => {
+  test('delegates each provider mount to settings runtime while reconnect does not request models directly', () => {
     const firstRender = renderAppConfigContext();
     firstRender.unmount();
     renderAppConfigContext();
@@ -58,7 +61,8 @@ describe('AppConfigProvider model + config wiring', () => {
       getBackendHandler(ON_CHANNELS.IPC_STATUS)?.({ isConnected: true });
     });
 
-    expect(mockDesktopSettingsListModels).toHaveBeenCalledTimes(1);
+    expect(mockDesktopSettingsRequestStartupModels).toHaveBeenCalledTimes(2);
+    expect(mockDesktopSettingsListModels).not.toHaveBeenCalled();
   });
 
   test('requests model list even when initial backend snapshot is disconnected', async () => {
@@ -67,7 +71,8 @@ describe('AppConfigProvider model + config wiring', () => {
     renderAppConfigContext();
     await flushAsyncEffects();
 
-    expect(mockDesktopSettingsListModels).toHaveBeenCalledTimes(1);
+    expect(mockDesktopSettingsRequestStartupModels).toHaveBeenCalledTimes(1);
+    expect(mockDesktopSettingsListModels).not.toHaveBeenCalled();
   });
 
   test('routes models-listed event to settings handler', () => {
