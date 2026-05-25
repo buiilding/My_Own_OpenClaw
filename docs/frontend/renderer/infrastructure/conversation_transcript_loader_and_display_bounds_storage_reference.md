@@ -64,7 +64,7 @@ Index parsing helper (`resolveMemoryMessageIndex`):
 Primary consumers:
 
 - dashboard open-conversation flow (`useDashboardConversations.handleOpenConversation`)
-- manual compaction pre-rehydrate flow (`ChatInterface.handleRunAutoCompaction`)
+- manual compaction pre-rehydrate flow (`ChatInterface.handleRunAutoCompaction`), including local failed-status cleanup if setup or compact dispatch fails before backend events arrive
 
 Shared intent:
 

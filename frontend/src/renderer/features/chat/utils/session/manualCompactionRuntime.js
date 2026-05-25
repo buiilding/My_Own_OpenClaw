@@ -2,7 +2,10 @@ import { buildDeferredQueryModelSelection } from '../../../../app/providers/appC
 import { DesktopSettingsRuntimeClient } from '../../../../app/runtime/desktopSettingsRuntimeClient';
 import { DesktopConversationContinuityService } from '../../../../app/runtime/desktopConversationContinuityService';
 import { ensureConversationInferenceSessionHydrated } from '../../session/conversationInferenceSessionRuntime';
-import { COMPACTION_THINKING_STATUS } from '../chatStream/chatStreamThinkingStatus';
+import {
+  COMPACTION_FAILED_THINKING_STATUS,
+  COMPACTION_THINKING_STATUS,
+} from '../chatStream/chatStreamThinkingStatus';
 
 export function waitForNextPaint() {
   return new Promise((resolve) => {
@@ -26,22 +29,28 @@ export async function runManualCompaction({
   setThinkingSourceEventType('context-compaction-started');
   await waitForNextPaint();
 
-  const deferredQueryModelSelection = buildDeferredQueryModelSelection(config);
-  if (deferredQueryModelSelection) {
-    DesktopSettingsRuntimeClient.setModel(deferredQueryModelSelection);
-  }
-
-  const normalizedConversationRef = conversationRef || null;
-  if (normalizedConversationRef) {
-    try {
-      await ensureConversationInferenceSessionHydrated({
-        conversationRef: normalizedConversationRef,
-        userId: userId || null,
-      });
-    } catch (error) {
-      console.warn(`[${warningContext}] Failed to rehydrate conversation before compaction:`, error);
+  try {
+    const deferredQueryModelSelection = buildDeferredQueryModelSelection(config);
+    if (deferredQueryModelSelection) {
+      DesktopSettingsRuntimeClient.setModel(deferredQueryModelSelection);
     }
-  }
 
-  DesktopConversationContinuityService.compactHistory(true, normalizedConversationRef);
+    const normalizedConversationRef = conversationRef || null;
+    if (normalizedConversationRef) {
+      try {
+        await ensureConversationInferenceSessionHydrated({
+          conversationRef: normalizedConversationRef,
+          userId: userId || null,
+        });
+      } catch (error) {
+        console.warn(`[${warningContext}] Failed to rehydrate conversation before compaction:`, error);
+      }
+    }
+
+    await DesktopConversationContinuityService.compactHistory(true, normalizedConversationRef);
+  } catch (error) {
+    console.warn(`[${warningContext}] Failed to start manual compaction:`, error);
+    setThinkingStatus(COMPACTION_FAILED_THINKING_STATUS);
+    setThinkingSourceEventType('context-compaction-failed');
+  }
 }
