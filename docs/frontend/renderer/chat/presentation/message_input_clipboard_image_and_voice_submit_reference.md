@@ -117,7 +117,9 @@ Preview UI:
 
 - thumbnail image row above composer textarea
 - multiple cards render when multiple images are pasted
-- per-card remove button clears one image from `clipboardImages[]`
+- per-card remove button clears one image from `clipboardImages[]`; preview
+  items with stable ids remove by id, while id-less preview items remove by
+  their current preview index
 
 ## Voice Mode Handoff
 

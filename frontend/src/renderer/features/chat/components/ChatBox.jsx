@@ -34,6 +34,7 @@ import {
   SoundIcon,
 } from './chatbox/ChatBoxIcons';
 import ChatBoxImagePreviewRow from './chatbox/ChatBoxImagePreviewRow';
+import { removePreviewAttachmentByIdOrIndex } from './chatbox/chatBoxPreviewRemoval';
 
 function applyBooleanConfigUpdate(updateConfig, key, nextValue) {
   if (typeof updateConfig !== 'function') {
@@ -426,11 +427,15 @@ function ChatBox() {
           <ChatBoxImagePreviewRow
             clipboardImages={clipboardImages}
             readableFiles={selectedReadableFiles}
-            onRemoveImage={(id) => {
-              setClipboardImages((previous) => previous.filter((image) => image.id !== id));
+            onRemoveImage={(id, fallbackIndex) => {
+              setClipboardImages((previous) => (
+                removePreviewAttachmentByIdOrIndex(previous, id, fallbackIndex)
+              ));
             }}
-            onRemoveFile={(id) => {
-              setSelectedReadableFiles((previous) => previous.filter((file) => file.id !== id));
+            onRemoveFile={(id, fallbackIndex) => {
+              setSelectedReadableFiles((previous) => (
+                removePreviewAttachmentByIdOrIndex(previous, id, fallbackIndex)
+              ));
             }}
           />
           <div className="chatbox-main-row">

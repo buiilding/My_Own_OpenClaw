@@ -25,7 +25,7 @@ function ChatBoxImagePreviewRow({
             type="button"
             className="chatbox-image-preview-remove"
             aria-label={`Remove screenshot ${index + 1}`}
-            onClick={() => onRemoveImage(clipboardImage.id)}
+            onClick={() => onRemoveImage(clipboardImage.id || null, index)}
           >
             <X size={11} />
           </button>
@@ -48,7 +48,7 @@ function ChatBoxImagePreviewRow({
             type="button"
             className="chatbox-file-preview-remove"
             aria-label={`Remove attached file ${index + 1}`}
-            onClick={() => onRemoveFile(file.id)}
+            onClick={() => onRemoveFile(file.id || null, index)}
           >
             <X size={11} />
           </button>

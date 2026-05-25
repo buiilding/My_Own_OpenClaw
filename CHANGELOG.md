@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: remove id-less image and readable-file previews by fallback index instead of passing `undefined` to removal handlers.
 - backend/tools: return an empty `PreparationResult` for empty tool-call batches instead of indexing the missing first call.
 - backend/tools: declare filesystem and command-execution permissions on sensitive frontend-executed remote tool stubs.
 - backend/embeddings: require an internal service API key for standalone `POST /embed` requests and send it from the remote HTTP embedding provider.
