@@ -129,6 +129,7 @@ Mouse policy has method-level controls beyond tool name visibility.
 - if `mouse_control` disabled by top-level selection mode, returns empty set
 - if enabled and no per-method list configured, all methods allowed
 - if explicit method list configured, only those methods are allowed
+- if `enabled_coordinate_methods` is malformed, the parser ignores that field and preserves the default all-methods behavior
 
 If allowed method set is empty:
 

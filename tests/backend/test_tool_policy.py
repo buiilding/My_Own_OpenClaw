@@ -496,3 +496,23 @@ def test_should_initialize_startup_services_follow_mouse_methods(tmp_path: Path)
 
     assert policy.should_initialize_ocr() is False
     assert policy.should_initialize_vision() is False
+
+
+def test_invalid_mouse_method_config_keeps_default_startup_services(tmp_path: Path):
+    selection = _load_selection(
+        tmp_path,
+        (
+            "enabled = true\n"
+            'mode = "allowlist"\n'
+            'tools = ["mouse_control"]\n'
+            "[tool_options.mouse_control]\n"
+            'enabled_coordinate_methods = "manual"\n'
+        ),
+    )
+    policy = ToolPolicy(config=AppConfig(interaction_mode="agent"), selection=selection)
+
+    assert selection.get_allowed_mouse_coordinate_methods() == frozenset(
+        {"manual", "ocr", "prediction"}
+    )
+    assert policy.should_initialize_ocr() is True
+    assert policy.should_initialize_vision() is True

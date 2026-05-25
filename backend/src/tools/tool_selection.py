@@ -14,14 +14,13 @@ Override path via env var:
 from __future__ import annotations
 
 import copy
-from dataclasses import dataclass
 import hashlib
 import logging
 import os
+import tomllib
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
-
-import tomllib
 
 from backend.src.tools.tool_specs import get_tool_spec_name
 
@@ -100,27 +99,31 @@ class ToolSelection:
         """Filter tool names according to selection mode (stable order)."""
         _ = normalize_wrappers
         if not self.enabled:
-            return [
-                name
-                for name in tool_names
-                if isinstance(name, str)
-            ]
+            return [name for name in tool_names if isinstance(name, str)]
         filtered: List[str] = []
         for name in tool_names:
             if not isinstance(name, str):
                 continue
             if not self.is_tool_enabled(name):
                 continue
-            if name == "mouse_control" and not self._is_mouse_control_effectively_enabled():
+            if (
+                name == "mouse_control"
+                and not self._is_mouse_control_effectively_enabled()
+            ):
                 continue
-            if name in _NON_MANUAL_GROUNDED_TOOL_NAMES and not self._has_non_manual_methods(
-                self.get_allowed_mouse_coordinate_methods()
+            if (
+                name in _NON_MANUAL_GROUNDED_TOOL_NAMES
+                and not self._has_non_manual_methods(
+                    self.get_allowed_mouse_coordinate_methods()
+                )
             ):
                 continue
             filtered.append(name)
         return filtered
 
-    def filter_tool_schemas(self, tool_schemas: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def filter_tool_schemas(
+        self, tool_schemas: Sequence[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
         """Filter canonical tool objects by nested function.name."""
         if not self.enabled:
             return list(tool_schemas)
@@ -169,8 +172,9 @@ class ToolSelection:
         """
         if tool_name == "mouse_control" and not allowed_methods:
             return None
-        if tool_name in _NON_MANUAL_GROUNDED_TOOL_NAMES and not self._has_non_manual_methods(
-            allowed_methods
+        if (
+            tool_name in _NON_MANUAL_GROUNDED_TOOL_NAMES
+            and not self._has_non_manual_methods(allowed_methods)
         ):
             return None
 
@@ -389,7 +393,10 @@ def _parse_selection(data: Dict[str, Any]) -> Optional[ToolSelection]:
     mode_raw = data.get("mode", "denylist")
     mode = str(mode_raw).strip().lower()
     if mode not in {"allowlist", "denylist"}:
-        logger.warning("Invalid tool selection mode=%r (expected allowlist|denylist). Using denylist.", mode_raw)
+        logger.warning(
+            "Invalid tool selection mode=%r (expected allowlist|denylist). Using denylist.",
+            mode_raw,
+        )
         mode = "denylist"
 
     tools_raw = data.get("tools", [])
@@ -401,7 +408,9 @@ def _parse_selection(data: Dict[str, Any]) -> Optional[ToolSelection]:
             elif item is not None:
                 logger.debug("Ignoring non-string tool selection entry: %r", item)
     elif tools_raw is not None:
-        logger.warning("Invalid tool selection tools=%r (expected array). Ignoring.", tools_raw)
+        logger.warning(
+            "Invalid tool selection tools=%r (expected array). Ignoring.", tools_raw
+        )
 
     mouse_methods: Optional[frozenset[str]] = None
     tool_options = data.get("tool_options", {})
@@ -409,11 +418,14 @@ def _parse_selection(data: Dict[str, Any]) -> Optional[ToolSelection]:
         mouse_cfg = tool_options.get("mouse_control", {})
         if isinstance(mouse_cfg, dict) and "enabled_coordinate_methods" in mouse_cfg:
             methods_raw = mouse_cfg.get("enabled_coordinate_methods")
-            parsed_methods: set[str] = set()
+            parsed_methods: Optional[set[str]] = set()
             if isinstance(methods_raw, (list, tuple, set)):
                 for item in methods_raw:
                     if not isinstance(item, str):
-                        logger.debug("Ignoring non-string mouse enabled_coordinate_methods entry: %r", item)
+                        logger.debug(
+                            "Ignoring non-string mouse enabled_coordinate_methods entry: %r",
+                            item,
+                        )
                         continue
                     normalized = item.strip().lower()
                     if normalized in _MOUSE_COORD_METHODS:
@@ -429,9 +441,13 @@ def _parse_selection(data: Dict[str, Any]) -> Optional[ToolSelection]:
                     "Invalid mouse enabled_coordinate_methods=%r (expected array). Ignoring.",
                     methods_raw,
                 )
-            mouse_methods = frozenset(parsed_methods)
+                parsed_methods = None
+            if parsed_methods is not None:
+                mouse_methods = frozenset(parsed_methods)
     elif tool_options is not None:
-        logger.warning("Invalid tool_options=%r (expected table/object). Ignoring.", tool_options)
+        logger.warning(
+            "Invalid tool_options=%r (expected table/object). Ignoring.", tool_options
+        )
 
     return ToolSelection(
         enabled=True,
@@ -474,7 +490,9 @@ def load_tool_selection(path: Optional[Path] = None) -> Optional[ToolSelection]:
         if isinstance(data, dict):
             selection = _parse_selection(data)
         else:
-            logger.warning("Tool selection file %s did not parse to a dict. Ignoring.", path)
+            logger.warning(
+                "Tool selection file %s did not parse to a dict. Ignoring.", path
+            )
             selection = None
     except Exception as e:
         logger.warning("Failed to load tool selection file %s: %s", path, e)
@@ -482,7 +500,9 @@ def load_tool_selection(path: Optional[Path] = None) -> Optional[ToolSelection]:
 
     _CACHE[path] = (stat_signature, content_signature, selection)
     if selection is not None and selection.mode == "allowlist" and not selection.tools:
-        logger.warning("Tool selection enabled with allowlist mode but no tools configured (0 tools allowed).")
+        logger.warning(
+            "Tool selection enabled with allowlist mode but no tools configured (0 tools allowed)."
+        )
     return selection
 
 
