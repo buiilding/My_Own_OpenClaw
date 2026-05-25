@@ -78,6 +78,9 @@ Major aggregator files:
 - `backend/src/agent/tools/__init__.py`: complete multi-phase tool lifecycle surface (prepare/send/wait/process/shared)
 - `backend/src/api/handlers/__init__.py`: handler base + concrete websocket handlers
 - `backend/src/api/transport/__init__.py`: protocol/sender/envelope/safe-websocket surface
+- `backend/src/api/processing/formatters/__init__.py`: formatter package
+  exports for all websocket event formatter classes, covered by
+  `tests/backend/test_formatter_package_exports.py`
 - `backend/src/core/config/__init__.py`: runtime config models + loader/manager/runtime policy exports
 - `backend/src/core/infrastructure/__init__.py`: bus/cache/exceptions umbrella surface
 - `backend/src/core/events/__init__.py`: base + bus + streaming event model exports
