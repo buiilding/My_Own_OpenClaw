@@ -236,4 +236,42 @@ describe('surface_runtime', () => {
       result_reason: 'startup-surface-already-applied',
     }));
   });
+
+  test('does not advance chat surface state when chat show fails', () => {
+    const runtime = createSurfaceRuntime(createSurfaceDeps());
+    const missingChatResult = runtime.showChatWindow({ focus: true, reason: 'startup' });
+
+    expect(missingChatResult).toEqual({
+      success: false,
+      reason: 'Chat window not available',
+    });
+    expect(runtime.getPrimarySurface()).toBe('dashboard');
+
+    const chatWindow = createWindow({ visible: false });
+    runtime.setChatWindow(chatWindow);
+
+    expect(runtime.showChatWindow({ focus: true, reason: 'startup' })).toEqual({ success: true });
+    expect(runtime.getPrimarySurface()).toBe('chat');
+    expect(chatWindow.show).toHaveBeenCalledTimes(1);
+  });
+
+  test('does not advance main surface state when main-window show fails', () => {
+    const runtime = createSurfaceRuntime(createSurfaceDeps());
+
+    expect(runtime.showChatWindow({ focus: true, reason: 'startup' })).toEqual({
+      success: false,
+      reason: 'Chat window not available',
+    });
+    expect(runtime.showMainWindow({ open: 'onboarding', reason: 'startup' })).toEqual({
+      success: false,
+      reason: 'Main window not available',
+    });
+
+    expect(runtime.getPrimarySurface()).toBe('dashboard');
+    expect(runtime.getMainWindowMode()).toBe('dashboard');
+
+    const chatWindow = createWindow({ visible: false });
+    runtime.setChatWindow(chatWindow);
+    expect(runtime.showChatWindow({ focus: true, reason: 'startup' })).toEqual({ success: true });
+  });
 });

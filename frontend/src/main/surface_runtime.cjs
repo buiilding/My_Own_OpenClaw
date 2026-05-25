@@ -327,13 +327,6 @@ function createSurfaceRuntime({
         reason: resultReason,
       };
     }
-    if (reason === CHAT_PILL_SHOW_REASON.STARTUP) {
-      state.startupChatPillShowHandled = true;
-    }
-    if (USER_SUMMON_CHAT_PILL_SHOW_REASONS.has(reason)) {
-      setChatPillUserHidden(false);
-    }
-    state.primarySurface = 'chat';
     const result = showChatWindowRuntime(normalizeChatSurfaceWindowOptions(options), {
       chatWindow: state.chatWindow,
       mainWindow: state.mainWindow,
@@ -356,6 +349,15 @@ function createSurfaceRuntime({
       getActiveDisplayAffinity,
       getResponseOverlayPhase: () => state.responseOverlayPhase,
     });
+    if (result?.success) {
+      if (reason === CHAT_PILL_SHOW_REASON.STARTUP) {
+        state.startupChatPillShowHandled = true;
+      }
+      if (USER_SUMMON_CHAT_PILL_SHOW_REASONS.has(reason)) {
+        setChatPillUserHidden(false);
+      }
+      state.primarySurface = 'chat';
+    }
     logChatPillVisibilityDecision({
       action: result?.success ? 'show-applied' : 'show-failed',
       reason,
@@ -402,12 +404,10 @@ function createSurfaceRuntime({
   function showMainWindow(options = {}) {
     const normalizedOptions = normalizeMainSurfaceWindowOptions(options);
     const reason = normalizeChatPillReason(normalizedOptions.reason, 'show-main-window');
-    state.mainWindowMode = normalizedOptions.open === 'onboarding'
+    const nextMainWindowMode = normalizedOptions.open === 'onboarding'
       ? 'onboarding'
       : 'dashboard';
-    state.primarySurface = state.mainWindowMode;
-    state.startupChatPillShowHandled = true;
-    return showMainWindowRuntime(normalizedOptions, {
+    const result = showMainWindowRuntime(normalizedOptions, {
       mainWindow: state.mainWindow,
       chatWindow: state.chatWindow,
       responseWindow: state.responseWindow,
@@ -421,6 +421,12 @@ function createSurfaceRuntime({
       }),
       activateWindowForInteraction: windowPlatformPolicy.activateWindowForInteraction,
     });
+    if (result?.success) {
+      state.mainWindowMode = nextMainWindowMode;
+      state.primarySurface = nextMainWindowMode;
+      state.startupChatPillShowHandled = true;
+    }
+    return result;
   }
 
   function getPrimarySurface() {
