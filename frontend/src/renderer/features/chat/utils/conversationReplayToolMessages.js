@@ -83,7 +83,7 @@ function findMatchingPendingToolCallIndex(pendingCalls, outputCorrelationId) {
   if (idlessIndex >= 0) {
     return idlessIndex;
   }
-  return 0;
+  return -1;
 }
 
 export function buildReplayContextMessages(messages) {

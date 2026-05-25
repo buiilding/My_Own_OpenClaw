@@ -35,7 +35,7 @@ describe('conversationReplayToolMessages', () => {
     ]);
   });
 
-  test('uses the earliest pending call when output id is missing and no idless call exists', () => {
+  test('drops an idless output instead of pairing it with identified pending calls', () => {
     const messages = [
       { id: 'm-1', type: 'tool-call', correlationId: 'corr-a' },
       { id: 'm-2', type: 'tool-call', correlationId: 'corr-b' },
@@ -44,9 +44,21 @@ describe('conversationReplayToolMessages', () => {
     ];
 
     expect(buildReplayContextMessages(messages).map((message) => message.id)).toEqual([
-      'm-1',
-      'm-3',
       'm-4',
+    ]);
+  });
+
+  test('matches idless outputs with idless pending tool calls', () => {
+    const messages = [
+      { id: 'm-1', type: 'tool-call', correlationId: '   ' },
+      { id: 'm-2', type: 'tool-output', correlationId: '   ' },
+      { id: 'm-3', type: 'llm-text', text: 'tail' },
+    ];
+
+    expect(buildReplayContextMessages(messages).map((message) => message.id)).toEqual([
+      'm-1',
+      'm-2',
+      'm-3',
     ]);
   });
 
