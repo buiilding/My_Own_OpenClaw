@@ -86,7 +86,7 @@ This path is separate from `from-backend` ACK/control events but interacts with 
 
 If model list never updates:
 
-1. verify `list-models` request is sent from provider/main view
+1. verify `list-models` request is sent from the main dashboard provider on startup; it should not wait for an already-connected `ipc-status` snapshot
 2. verify backend emits `models-listed`
 3. verify `routeConfigBackendEvent(...)` receives event and `handleModelsListed` runs
 

@@ -214,6 +214,10 @@ export function AppConfigProvider({ children }) {
   }, [onBackendEvent]);
 
   useEffect(() => {
+    requestModelListIfNeeded();
+  }, [requestModelListIfNeeded]);
+
+  useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.IPC_STATUS, (data) => {
       applyBackendConnectionSnapshot(data);
     });

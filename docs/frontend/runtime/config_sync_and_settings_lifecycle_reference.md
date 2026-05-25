@@ -58,7 +58,7 @@ All outbound config updates use this boundary before backend sync.
 Responsibilities:
 
 - source config state from localStorage on startup
-- request model list once for main view through `DesktopSettingsRuntimeClient.listModels()`
+- request model list once for the main dashboard through `DesktopSettingsRuntimeClient.listModels()` after registering the backend event listener, even when the initial connection snapshot is disconnected; this is the startup signal that makes Electron main open the backend websocket for model metadata
 - sync non-model config to backend on connection availability
 - merge disk/local updates with current in-memory config
 - persist updates to localStorage and disk

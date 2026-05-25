@@ -32,19 +32,13 @@ describe('AppConfigProvider model + config wiring', () => {
     return { settingsHandlers, backendHandler };
   }
 
-  test('registers backend listener before requesting model list after connect', () => {
+  test('registers backend listener before requesting model list on dashboard startup', () => {
     renderAppConfigContext();
 
     expect(IpcBridge.on).toHaveBeenCalledWith(
       ON_CHANNELS.FROM_BACKEND,
       expect.any(Function),
     );
-    expect(mockDesktopSettingsListModels).not.toHaveBeenCalled();
-
-    act(() => {
-      getBackendHandler(ON_CHANNELS.IPC_STATUS)?.({ isConnected: true });
-    });
-
     expect(mockDesktopSettingsListModels).toHaveBeenCalledTimes(1);
   });
 
@@ -52,18 +46,12 @@ describe('AppConfigProvider model + config wiring', () => {
     window.history.pushState({}, '', '/?view=chatbox-response');
 
     renderAppConfigContext();
-    act(() => {
-      getBackendHandler(ON_CHANNELS.IPC_STATUS)?.({ isConnected: true });
-    });
 
     expect(mockDesktopSettingsListModels).not.toHaveBeenCalled();
   });
 
   test('requests model list only once per renderer session', () => {
     const firstRender = renderAppConfigContext();
-    act(() => {
-      getBackendHandler(ON_CHANNELS.IPC_STATUS)?.({ isConnected: true });
-    });
     firstRender.unmount();
     renderAppConfigContext();
     act(() => {
@@ -73,8 +61,8 @@ describe('AppConfigProvider model + config wiring', () => {
     expect(mockDesktopSettingsListModels).toHaveBeenCalledTimes(1);
   });
 
-  test('requests model list from initial connected backend snapshot', async () => {
-    setClientUserIdResponse({ isConnected: true });
+  test('requests model list even when initial backend snapshot is disconnected', async () => {
+    setClientUserIdResponse({ isConnected: false });
 
     renderAppConfigContext();
     await flushAsyncEffects();
