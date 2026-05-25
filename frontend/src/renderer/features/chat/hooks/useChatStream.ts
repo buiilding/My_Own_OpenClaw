@@ -129,10 +129,6 @@ export function useChatStream(enableTranscript: boolean = true) {
   const processStreamingComplete = useChatStreamCompletionHandler({
     enableTranscript,
     modelContextRef,
-    recordTrackingEvent,
-    setIsSending,
-    setThinkingStatus,
-    setThinkingSourceEventType,
   });
 
   const {

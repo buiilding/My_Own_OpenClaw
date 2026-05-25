@@ -730,18 +730,35 @@ describe('useChatStream state + stream handling', () => {
     );
   });
 
-  test('clears thinking status on streaming complete', () => {
-    const { emitBackendEvent } = registerBackendListener();
+  test('clears thinking status on SDK projected completion', () => {
+    const { emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
 
     act(() => {
       useChatStore.setState({ thinkingStatus: 'thinking' });
-      emitBackendEvent({
-        type: 'streaming-complete',
-        payload: {},
+      emitConversationRuntimeUpdated({
+        conversationRef: 'conv-test',
+        currentTurn: {
+          conversationRef: 'conv-test',
+          turnRef: 'turn-complete',
+          phase: 'complete',
+          assistantText: 'done',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+        },
       });
     });
 
-    expect(useChatStore.getState().thinkingStatus).toBeNull();
+    expect(useChatStore.getState()).toEqual(expect.objectContaining({
+      isSending: false,
+      thinkingStatus: null,
+      thinkingSourceEventType: null,
+    }));
+    expect(useChatStore.getState().streamTracking).toEqual(expect.objectContaining({
+      activeTurnRef: 'turn-complete',
+      phase: 'complete',
+      lastEventType: 'streaming-complete',
+    }));
   });
 
   test('ignores stale streaming-complete turn when a newer active turn is in progress', () => {
@@ -803,8 +820,8 @@ describe('useChatStream state + stream handling', () => {
     );
   });
 
-  test('clears streamed thinking on completion without mutating raw assistant rows', () => {
-    const { emitBackendEvent } = registerBackendListener();
+  test('clears streamed thinking on SDK projected completion without mutating raw assistant rows', () => {
+    const { emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
 
     act(() => {
       useChatStore.setState({
@@ -821,10 +838,17 @@ describe('useChatStream state + stream handling', () => {
         thinkingStatus: 'step 1\nstep 2',
         thinkingSourceEventType: 'llm-thought',
       });
-      emitBackendEvent({
-        type: 'streaming-complete',
-        turn_ref: 'turn-1',
-        payload: {},
+      emitConversationRuntimeUpdated({
+        conversationRef: 'conv-test',
+        currentTurn: {
+          conversationRef: 'conv-test',
+          turnRef: 'turn-1',
+          phase: 'complete',
+          assistantText: 'final answer',
+          reasoningText: 'step 1\nstep 2',
+          toolEvents: [],
+          lastError: null,
+        },
       });
     });
 
@@ -1382,15 +1406,28 @@ describe('useChatStream state + stream handling', () => {
     expect(useChatStore.getState().messages).toHaveLength(1);
   });
 
-  test('handles real errors even when error text is in payload content', () => {
-    const { emitBackendEvent } = registerBackendListener();
+  test('tracks SDK projected real errors even when error text is in payload content', () => {
+    const { emitBackendEvent, emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
     act(() => {
       useChatStore.setState({ isSending: true, thinkingStatus: 'thinking' });
     });
 
     act(() => {
+      emitConversationRuntimeUpdated({
+        conversationRef: 'conv-test',
+        currentTurn: {
+          conversationRef: 'conv-test',
+          turnRef: 'turn-error',
+          phase: 'error',
+          assistantText: '',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: 'Gateway request failed',
+        },
+      });
       emitBackendEvent({
         type: 'error',
+        turn_ref: 'turn-error',
         payload: {
           content: 'Gateway request failed',
         },
@@ -1400,8 +1437,16 @@ describe('useChatStream state + stream handling', () => {
     const state = useChatStore.getState();
     expect(state.isSending).toBe(false);
     expect(state.thinkingStatus).toBe('');
+    expect(state.streamTracking).toEqual(expect.objectContaining({
+      activeTurnRef: 'turn-error',
+      phase: 'error',
+      lastEventType: 'error',
+      lastError: 'Gateway request failed',
+    }));
     expect(state.messages.at(-1)).toEqual(expect.objectContaining({
-      text: 'Hello!',
+      text: 'Gateway request failed',
+      type: 'error',
+      sourceChannel: 'conversation-runtime-updated',
     }));
   });
 
@@ -1576,6 +1621,18 @@ describe('useChatStream state + stream handling', () => {
           conversationRef: 'conv-test',
           turnRef: 'turn-123',
           phase: 'streaming',
+          assistantText: 'chunk',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+        },
+      });
+      emitConversationRuntimeUpdated({
+        conversationRef: 'conv-test',
+        currentTurn: {
+          conversationRef: 'conv-test',
+          turnRef: 'turn-123',
+          phase: 'complete',
           assistantText: 'chunk',
           reasoningText: null,
           toolEvents: [],

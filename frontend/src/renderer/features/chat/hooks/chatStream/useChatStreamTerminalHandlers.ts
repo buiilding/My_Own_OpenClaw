@@ -98,9 +98,6 @@ export function useChatStreamTerminalHandlers({
     if (shouldIgnoreStreamError(errorPayload)) {
       return;
     }
-    setIsSending(false, conversationRef);
-    setThinkingStatus('', conversationRef);
-    setThinkingSourceEventType(null, conversationRef);
     const errorText = resolveErrorText(errorPayload);
     const modelContext = modelContextRef.current;
     const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
@@ -111,11 +108,6 @@ export function useChatStreamTerminalHandlers({
     if (nextMessages !== workspace.messages) {
       useChatStore.getState().setMessages(nextMessages, conversationRef);
     }
-
-    recordTrackingEvent('error', event.turnRef, {
-      phase: 'error',
-      errorText,
-    }, conversationRef);
 
     if (enableTranscript) {
       recordAssistantTranscriptMessage({
@@ -129,10 +121,6 @@ export function useChatStreamTerminalHandlers({
   }, [
     enableTranscript,
     modelContextRef,
-    setIsSending,
-    setThinkingSourceEventType,
-    setThinkingStatus,
-    recordTrackingEvent,
   ]);
 
   return {

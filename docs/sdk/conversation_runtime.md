@@ -170,6 +170,13 @@ Desktop completion projection consumes SDK `turn_completed` identity directly.
 The SDK event carries `conversationRef`, `turnRef`, and `payload.userId` for
 renderer transcript writes, so the completion handler should not unwrap
 `payload.rawEvent` to recover backend `conversation_ref` or `user_id`.
+Active desktop completion and error phase tracking consumes
+`snapshot.currentTurn.phase` and `snapshot.currentTurn.lastError`; renderer raw
+terminal handlers should only materialize/persist transcript rows for
+`turn_completed` and `turn_error`.
+The current-turn projection filters benign settings-update failures and
+recoverable streamed tool-call parse failures so those non-turn errors do not
+become response-overlay errors.
 
 Desktop live tool projection consumes SDK `snapshot.currentTurn.toolEvents`.
 Renderer UI/debug state may keep source labels such as `tool-call`,

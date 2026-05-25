@@ -5,7 +5,6 @@ import type { TranscriptTransparencyData } from '../../../../infrastructure/tran
 import { findStreamingCompleteAssistantMessage } from '../../utils/chatStream/chatStreamMessageUpdates';
 import { buildAssistantTranscriptTransparency } from '../../utils/chatStream/chatStreamTransparency';
 import type { TranscriptModelContext } from '../../utils/chatStream/chatStreamTypes';
-import type { StreamTrackingOptions } from '../../../../app/runtime/desktopChatStreamTrackingRuntime';
 import { normalizeIncomingText } from '../../../../infrastructure/text/incomingTextNormalization';
 import { recordAssistantTranscriptMessage } from '../../utils/chatStream/chatStreamTranscriptPersistence';
 import { replaceCurrentTurnMessagesWithProjection } from '../../utils/state/chatBoxResponseState';
@@ -13,43 +12,23 @@ import { replaceCurrentTurnMessagesWithProjection } from '../../utils/state/chat
 type UseChatStreamCompletionHandlerOptions = {
   enableTranscript: boolean;
   modelContextRef: { current: TranscriptModelContext };
-  recordTrackingEvent: (
-    eventType: 'streaming-complete',
-    turnRef: string | null | undefined,
-    options: StreamTrackingOptions,
-    conversationRef?: string | null,
-  ) => void;
-  setIsSending: (isSending: boolean, conversationRef?: string | null) => void;
-  setThinkingStatus: (status: string | null, conversationRef?: string | null) => void;
-  setThinkingSourceEventType: (eventType: string | null, conversationRef?: string | null) => void;
 };
 
 export const useChatStreamCompletionHandler = ({
   enableTranscript,
   modelContextRef,
-  recordTrackingEvent,
-  setIsSending,
-  setThinkingStatus,
-  setThinkingSourceEventType,
 }: UseChatStreamCompletionHandlerOptions) => {
   return useCallback((event: ConversationEvent, conversationRef: string | null) => {
     const userId = typeof event.payload?.userId === 'string'
       ? event.payload.userId
       : undefined;
     const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
-    const alreadyCompleted = (
-      workspace.streamTracking.phase === 'complete'
-      && workspace.streamTracking.activeTurnRef === event.turnRef
-    );
-    setIsSending(false, conversationRef);
-    setThinkingStatus(null, conversationRef);
-    setThinkingSourceEventType(null, conversationRef);
-
     const currentMessages = workspace.messages;
     const lastMessage = findStreamingCompleteAssistantMessage(
       currentMessages,
       event.turnRef,
     );
+    const alreadyCompleted = lastMessage?.isComplete === true;
     const completionText = normalizeIncomingText(event.payload?.finalResponse)
       || normalizeIncomingText(lastMessage?.fullAssistantMessage?.content);
     const modelContext = modelContextRef.current;
@@ -82,13 +61,8 @@ export const useChatStreamCompletionHandler = ({
       });
     }
 
-    recordTrackingEvent('streaming-complete', event.turnRef, { phase: 'complete' }, conversationRef);
   }, [
     enableTranscript,
     modelContextRef,
-    recordTrackingEvent,
-    setIsSending,
-    setThinkingSourceEventType,
-    setThinkingStatus,
   ]);
 };

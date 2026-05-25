@@ -122,8 +122,8 @@ Automatic updates:
 - SDK `currentTurn.assistantText` growth records a `streaming-response` tracking event, increments `chunkCount`, sets first chunk timestamp, and defaults phase to `streaming`
 - SDK `currentTurn.reasoningText` growth records an `llm-thought` tracking event
 - SDK `currentTurn.toolEvents` growth records `tool-call`, `tool-output`, or `web-search-progress` tracking and increments tool counters
-- error options set `lastError`, terminal phase, and completion timestamp
-- `phase='complete'` stamps completion timestamp when missing
+- SDK `currentTurn.phase='complete'` records `streaming-complete`, clears send/thinking state, and stamps completion timestamp when missing
+- SDK `currentTurn.phase='error'` records `error`, clears send/thinking state, stores `lastError`, and stamps completion timestamp when missing
 
 Dashboard/pill presentation note:
 
@@ -160,6 +160,12 @@ SDK current-turn tool events:
 - dashboard and response overlay render tool-call/tool-output/tool-progress rows from the SDK projection rather than raw backend events
 - record active tool phase tracking from `currentTurn.toolEvents`
 
+SDK current-turn terminal phase:
+
+- clear transient sending/thinking state from `currentTurn.phase='complete'|'error'`
+- record terminal complete/error phase tracking from the SDK projection rather than raw backend terminal events
+- dashboard and response overlay render terminal error text from `currentTurn.lastError`
+
 Tool transcript events:
 
 - `useChatStreamToolHandlers` persists tool-call/tool-output/tool-bundle transcript rows when transcript is enabled
@@ -175,8 +181,8 @@ Terminal/diagnostic events:
 
 - `token-count`: update token counts
 - `memory-store`: tracking-only side effect in renderer stream handler path
-- `streaming-complete`: runs through the shared turn-scoped handler wrapper, then persists final thinking text, marks assistant row complete, and optionally writes assistant transcript row
-- `error`: clear sending/thinking, append assistant error row, optionally record transcript error row
+- `streaming-complete`: runs through the shared turn-scoped handler wrapper, then materializes the projected final assistant row and optionally writes assistant transcript row
+- `error`: materializes the projected assistant error row and optionally records transcript error row
 
 ## Loop UI Projection Coupling
 

@@ -380,6 +380,33 @@ describe('Windie SDK main runtime', () => {
     });
   });
 
+  test('does not emit current-turn projection updates for ignored backend errors', async () => {
+    const onConversationRuntimeUpdated = jest.fn();
+    const runtime = createWindieSdkMainRuntime({
+      WebSocketImpl: FakeWebSocket,
+      getEndpoint: () => ({ wsUrl: 'wss://api.windieos.com/ws' }),
+      getUserId: () => 'dev-user',
+      buildHandshake: async () => ({ type: 'handshake', user_id: 'dev-user' }),
+      onConversationRuntimeUpdated,
+    });
+
+    runtime.connect();
+    const socket = FakeWebSocket.instances[0];
+    socket.open();
+    await Promise.resolve();
+
+    socket.emit('message', JSON.stringify({
+      id: 'event-settings-error',
+      type: 'error',
+      conversation_ref: 'conv-1',
+      turn_ref: 'turn-1',
+      payload: { message: 'Failed to update settings: timeout' },
+    }));
+    await Promise.resolve();
+
+    expect(onConversationRuntimeUpdated).not.toHaveBeenCalled();
+  });
+
   test('owns idle disconnect policy', async () => {
     jest.useFakeTimers();
     try {

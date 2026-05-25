@@ -13,6 +13,27 @@ function textFromPayload(payload) {
   return '';
 }
 
+const SETTINGS_UPDATE_ERROR_TEXT = 'Failed to update settings';
+const RECOVERABLE_TOOL_PARSE_ERROR_MARKERS = [
+  'failed to parse streamed tool-call arguments',
+  'raw arguments preview:',
+];
+
+function shouldIgnoreCurrentTurnError(payload) {
+  const message = typeof payload.message === 'string' ? payload.message : '';
+  const content = typeof payload.content === 'string' ? payload.content : '';
+  const normalizedMessage = message.toLowerCase();
+  const normalizedContent = content.toLowerCase();
+  const isRecoverableToolParseError = RECOVERABLE_TOOL_PARSE_ERROR_MARKERS.every((marker) => (
+    normalizedMessage.includes(marker) || normalizedContent.includes(marker)
+  ));
+  return (
+    message.includes(SETTINGS_UPDATE_ERROR_TEXT)
+    || content.includes(SETTINGS_UPDATE_ERROR_TEXT)
+    || isRecoverableToolParseError
+  );
+}
+
 function conversationRefFrom(event, fallbackConversationRef) {
   if (typeof event?.conversation_ref === 'string' && event.conversation_ref.trim()) {
     return event.conversation_ref.trim();
@@ -171,6 +192,9 @@ function updateCurrentTurnProjectionFromBackendEvent(currentProjection, event, o
     };
   }
   if (eventRecord.type === 'error' || eventRecord.type === 'context-compaction-failed') {
+    if (eventRecord.type === 'error' && shouldIgnoreCurrentTurnError(payload)) {
+      return null;
+    }
     return {
       ...projection,
       phase: 'error',

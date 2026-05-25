@@ -24,6 +24,8 @@ function isCurrentTurnProjection(value: unknown): value is SdkCurrentTurnProject
 type ProjectionCursor = {
   assistantLength: number;
   reasoningLength: number;
+  phase: string | null;
+  lastError: string | null;
   toolEventIds: Set<string>;
 };
 
@@ -95,6 +97,8 @@ export function useConversationRuntimeProjectionStream(): void {
       const previousCursor = projectionCursorsRef.current.get(cursorKey) ?? {
         assistantLength: 0,
         reasoningLength: 0,
+        phase: null,
+        lastError: null,
         toolEventIds: new Set<string>(),
       };
       const assistantText = typeof currentTurn.assistantText === 'string'
@@ -183,9 +187,41 @@ export function useConversationRuntimeProjectionStream(): void {
         }
       }
 
+      if (currentTurn.phase === 'complete' && previousCursor.phase !== 'complete') {
+        setIsSending(false, conversationRef);
+        setThinkingStatus(null, conversationRef);
+        setThinkingSourceEventType(null, conversationRef);
+        recordTrackingEventRuntime(
+          updateStreamTracking,
+          'streaming-complete',
+          currentTurn.turnRef,
+          { phase: 'complete' },
+          conversationRef,
+        );
+      } else if (
+        currentTurn.phase === 'error'
+        && (previousCursor.phase !== 'error' || previousCursor.lastError !== currentTurn.lastError)
+      ) {
+        const errorText = typeof currentTurn.lastError === 'string' && currentTurn.lastError.trim()
+          ? currentTurn.lastError
+          : 'Unknown runtime error';
+        setIsSending(false, conversationRef);
+        setThinkingStatus('', conversationRef);
+        setThinkingSourceEventType(null, conversationRef);
+        recordTrackingEventRuntime(
+          updateStreamTracking,
+          'error',
+          currentTurn.turnRef,
+          { phase: 'error', errorText },
+          conversationRef,
+        );
+      }
+
       projectionCursorsRef.current.set(cursorKey, {
         assistantLength: assistantText.length,
         reasoningLength: reasoningText.length,
+        phase: currentTurn.phase,
+        lastError: currentTurn.lastError ?? null,
         toolEventIds: nextToolEventIds,
       });
     });

@@ -146,6 +146,26 @@ describe('Windie SDK conversation runtime core', () => {
     });
   });
 
+  test('current-turn projection ignores recoverable display-only backend errors', () => {
+    const events = [
+      event('turn_started', {}),
+      event('assistant_delta', { text: 'Still working' }),
+      event('turn_error', { message: 'Failed to update settings: timeout', content: 'Failed to update settings: timeout' }),
+      event('turn_error', {
+        message: (
+          'Unexpected system error: Invalid response from stream: '
+          + 'failed to parse streamed tool-call arguments. Raw arguments preview: {"command":"cat"}'
+        ),
+      }),
+    ];
+
+    expect(buildCurrentTurnProjection(events)).toMatchObject({
+      phase: 'streaming',
+      assistantText: 'Still working',
+      lastError: null,
+    });
+  });
+
   test('rehydrate projection preserves provider-safe tool linkage', () => {
     const events = [
       event('user_message', { text: 'inspect file' }),

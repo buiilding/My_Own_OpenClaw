@@ -26,6 +26,9 @@ function textFromPayload(payload: JsonRecord): string {
   if (typeof payload.text === 'string') {
     return payload.text;
   }
+  if (typeof payload.message === 'string') {
+    return payload.message;
+  }
   if (typeof payload.content === 'string') {
     return payload.content;
   }
@@ -39,6 +42,27 @@ function textFromPayload(payload: JsonRecord): string {
     return payload.error;
   }
   return '';
+}
+
+const SETTINGS_UPDATE_ERROR_TEXT = 'Failed to update settings';
+const RECOVERABLE_TOOL_PARSE_ERROR_MARKERS = [
+  'failed to parse streamed tool-call arguments',
+  'raw arguments preview:',
+];
+
+function shouldIgnoreCurrentTurnError(payload: JsonRecord): boolean {
+  const message = typeof payload.message === 'string' ? payload.message : '';
+  const content = typeof payload.content === 'string' ? payload.content : '';
+  const normalizedMessage = message.toLowerCase();
+  const normalizedContent = content.toLowerCase();
+  const isRecoverableToolParseError = RECOVERABLE_TOOL_PARSE_ERROR_MARKERS.every((marker) => (
+    normalizedMessage.includes(marker) || normalizedContent.includes(marker)
+  ));
+  return (
+    message.includes(SETTINGS_UPDATE_ERROR_TEXT)
+    || content.includes(SETTINGS_UPDATE_ERROR_TEXT)
+    || isRecoverableToolParseError
+  );
 }
 
 function displayTextFromPayload(payload: JsonRecord): string {
@@ -218,6 +242,9 @@ export function buildCurrentTurnProjection(events: ConversationEvent[]): Current
       continue;
     }
     if (event.type === 'turn_error' || event.type === 'runtime_error' || event.type === 'compaction_failed') {
+      if (event.type !== 'compaction_failed' && shouldIgnoreCurrentTurnError(event.payload)) {
+        continue;
+      }
       projection = {
         ...projection,
         phase: 'error',

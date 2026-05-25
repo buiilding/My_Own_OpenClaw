@@ -32,13 +32,14 @@ Listener flow in `desktopChatStreamIngressRuntime`:
 
 ## Dispatch Wiring Contract
 
-Assistant thinking, assistant text, live tool rows, and active tool phase
-tracking come from the SDK `currentTurn` projection. Completion, compaction,
-transparency metadata, errors, token usage, memory-store telemetry, and
-transcript tool persistence still dispatch from SDK-normalized conversation
-events.
-`turn_error` suppression runs inside `useChatStreamTerminalHandlers` before UI
-mutation.
+Assistant thinking, assistant text, live tool rows, active tool phase tracking,
+and terminal complete/error phase tracking come from the SDK `currentTurn`
+projection. Completion transcript persistence/materialization, compaction,
+transparency metadata, error transcript persistence/materialization, token
+usage, memory-store telemetry, and transcript tool persistence still dispatch
+from SDK-normalized conversation events.
+Benign/recoverable error suppression runs in the SDK current-turn projection and
+inside `useChatStreamTerminalHandlers` before transcript/error materialization.
 
 ## Active-Turn Guard Matrix
 
@@ -95,11 +96,12 @@ Reason: local-user-message establishes turn/workspace state and seeds optimistic
 - `useChatStreamTerminalHandlers`:
   - SDK `usage_updated`: workspace token counter update
   - SDK `memory_stored`: stream tracking only (no direct memory write side effect)
-  - SDK `turn_error`: assistant error row + transcript error row unless suppressed
+  - SDK `turn_error`: materialized assistant error row + transcript error row unless suppressed
 - `useConversationRuntimeProjectionStream`:
   - SDK `currentTurn.reasoningText`: live thinking text and `llm-thought` stream tracking
   - SDK `currentTurn.assistantText`: clear the send latch and record `streaming-response` chunk tracking without creating raw assistant rows
   - SDK `currentTurn.toolEvents`: clear send/thinking state for active tool rows and record `tool-call`, `tool-output`, and `web-search-progress` phase tracking
+  - SDK `currentTurn.phase`: clear send/thinking state and record terminal `streaming-complete`/`error` tracking for `complete`/`error`
 - `useChatStream` core handlers:
   - `streaming-complete`: assistant message completion + optional transcript assistant write
   - transparency handlers: mutate existing user/assistant rows with metadata snapshots
@@ -109,7 +111,7 @@ Reason: local-user-message establishes turn/workspace state and seeds optimistic
 1. Adding a new backend event type without SDK normalization or explicit local
    fallback handling silently drops the event.
 2. Removing stale-turn guard from a mutable handler can leak old-turn output into the active workspace.
-3. Moving `shouldIgnoreStreamError` out of terminal handling can double-emit benign settings errors.
+3. Removing ignored-error filtering from either SDK current-turn projection or terminal transcript handling can reintroduce benign settings/recoverable parser errors.
 4. Adding transcript writes to SDK `memory_stored` handling would duplicate side effects already owned by backend-driven memory pipeline.
 
 ## Related Pages

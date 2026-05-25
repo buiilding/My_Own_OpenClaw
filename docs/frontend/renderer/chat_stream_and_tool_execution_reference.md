@@ -163,7 +163,9 @@ Pre-routing and workspace resolution:
   `assistant_message`, and backend `tool-schemas` -> SDK
   `tool_schemas_metadata`
 - error events dispatch from SDK-normalized conversation events:
-  backend `error` -> SDK `turn_error`
+  backend `error` -> SDK `turn_error`; terminal live state comes from
+  `currentTurn.phase='error'`/`currentTurn.lastError`, while SDK `turn_error`
+  remains for transcript/error materialization
 - token usage events dispatch from SDK-normalized conversation events:
   backend `token-count` -> SDK `usage_updated`
 - memory-store telemetry events dispatch from SDK-normalized conversation events:
@@ -184,6 +186,8 @@ SDK dispatch behavior:
   - the renderer consumes the SDK current-turn projection directly. It keeps `llm-thought` as the UI/tracking source label, but does not unwrap `payload.rawEvent` back into a backend `llm-thought` event.
 - SDK `currentTurn.assistantText` from the conversation runtime projection: dashboard and response overlay render the live assistant text from the projection, while the projection listener clears the send latch and records `streaming-response` chunk tracking
   - raw backend `streaming-response` and normalized SDK `assistant_delta` are not live-row fallbacks in renderer chat code.
+- SDK `currentTurn.phase` from the conversation runtime projection: records terminal `streaming-complete`/`error` tracking and clears transient send/thinking state for `complete` and `error`
+  - benign settings-update errors and recoverable streamed tool-call parse errors are filtered before they become SDK current-turn terminal errors.
 - SDK `compaction_started` from backend `context-compaction-started`: sets thinking text to `Compacting conversation history...` while backend compaction runs
 - SDK `compaction_applied` from backend `context-compaction-completed`: replaces in-progress compaction thinking with a terminal `Conversation history compacted.` status and marks source as `context-compaction-completed`
   - in dev UI, also stores compaction debug payload including the full summary text plus the replacement-history preview (summary message + kept tail messages)
@@ -209,23 +213,23 @@ SDK dispatch behavior:
 - terminal handlers consume SDK `turn_error`, `usage_updated`, and
   `memory_stored` payloads directly. They do not unwrap `payload.rawEvent`
   back into backend terminal events.
-- SDK `turn_completed` from backend `streaming-complete`: persist final streamed thinking text onto the same-turn assistant `llm-text` message (`thinkingText` + `thinkingSourceEventType`), then mark assistant message complete and clear transient `thinkingStatus`
+- SDK `turn_completed` from backend `streaming-complete`: materialize the SDK-projected same-turn assistant `llm-text` message and write the assistant transcript when needed. Active terminal phase tracking comes from `currentTurn.phase='complete'`.
   - completion transcript writes read identity from SDK event fields:
     `event.conversationRef` and `payload.userId`. They do not unwrap
     `payload.rawEvent` to recover backend `conversation_ref` or `user_id`.
   - when `turn_ref` is present, completion targeting is strict to assistant rows with the same `turnRef` (no cross-turn fallback)
   - duplicate completion events do not duplicate assistant transcript writes because transcript recording only runs for not-yet-complete assistant rows
-- SDK `turn_error` from backend `error`: append assistant error row unless ignored by settings-update-error filter
+- SDK `turn_error` from backend `error`: materialize the SDK-projected assistant error row and write the transcript error row unless ignored by the benign/recoverable error filter. Active terminal phase tracking comes from `currentTurn.phase='error'`.
 
 Handler composition boundary:
 
 - `useChatStream` dispatches SDK-normalized conversation events first.
 - SDK `user_message` handling for backend `local-user-message` is delegated to
   `useChatStreamLocalUserHandler`
-- SDK current-turn `reasoningText` and `assistantText` active-turn side effects are delegated to `useConversationRuntimeProjectionStream`
+- SDK current-turn `reasoningText`, `assistantText`, and terminal `phase` active-turn side effects are delegated to `useConversationRuntimeProjectionStream`
 - SDK `system_prompt`/`user_message_metadata`/`assistant_message`/`tool_schemas_metadata`
   transparency projection is delegated to `useChatStreamMetadataHandlers`.
-- SDK `turn_error`, SDK `usage_updated`, and SDK `memory_stored` terminal behaviors are delegated to `useChatStreamTerminalHandlers`
+- SDK `turn_error` transcript/error materialization plus SDK `usage_updated` and SDK `memory_stored` terminal behaviors are delegated to `useChatStreamTerminalHandlers`
 - SDK current-turn `toolEvents` active-turn display and phase tracking is delegated to `useConversationRuntimeProjectionStream`.
 - SDK `tool_call`/`tool_output`/`tool_bundle_call` transcript persistence is delegated to `useChatStreamToolHandlers`; local tool execution remains owned by the main-process SDK runtime and sidecar.
 - SDK `compaction_started`/`compaction_applied`/`compaction_skipped`/`compaction_failed`
