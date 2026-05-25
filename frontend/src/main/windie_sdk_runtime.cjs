@@ -17,6 +17,9 @@ const {
 const {
   createCurrentTurnProjector,
 } = require('../../../packages/windie-sdk-js/src/projections/currentTurnProjection.cjs');
+const {
+  normalizeBackendEventToConversationEvent,
+} = require('../../../packages/windie-sdk-js/src/transport/backendEventNormalizer.cjs');
 
 const DEFAULT_RECONNECT_INTERVAL_MS = 1000;
 const DEFAULT_CONNECT_TIMEOUT_MS = 10000;
@@ -81,6 +84,22 @@ function createWindieSdkMainRuntime(options = {}) {
     });
   }
 
+  function emitConversationEvent(data) {
+    if (typeof options.onConversationEvent !== 'function') {
+      return;
+    }
+    const conversationEvent = normalizeBackendEventToConversationEvent(data, {
+      fallbackConversationRef: options.getCurrentConversationRef?.(),
+    });
+    if (!conversationEvent) {
+      return;
+    }
+    options.onConversationEvent({
+      type: 'conversation-event',
+      conversationEvent,
+    });
+  }
+
   function handleBackendEvent(data) {
     routeSdkToolEventToLocalRuntime(data, {
       executeLocalTool: options.executeLocalTool,
@@ -91,6 +110,7 @@ function createWindieSdkMainRuntime(options = {}) {
     });
     const rendererData = markRendererToolEventDisplayOnly(data);
     emitConversationRuntimeUpdate(rendererData);
+    emitConversationEvent(rendererData);
     emitRendererEvent(rendererData);
     return rendererData;
   }

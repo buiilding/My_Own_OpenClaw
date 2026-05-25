@@ -117,6 +117,9 @@ const {
   buildWindieSdkMainHandshake,
   createWindieSdkMainRuntime,
 } = require('./windie_sdk_runtime.cjs');
+const {
+  buildConversationEventFromBackendEvent,
+} = require('./ipc_conversation_event_broadcast.cjs');
 const { logChatPillMainTrace } = require('./chat_pill_trace_runtime.cjs');
 
 let BACKEND_ENDPOINTS = resolveBackendEndpoints();
@@ -514,6 +517,9 @@ function trackRendererWindow(win) {
     rendererWindows,
     getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
     getReplayEvents: () => ipcEventReplayState.snapshot(),
+    buildConversationEvent: (event) => buildConversationEventFromBackendEvent(event, {
+      fallbackConversationRef: currentConversationRef,
+    }),
   });
 }
 
@@ -644,6 +650,9 @@ function getWindieSdkRuntime() {
     onEvent: handleSdkRuntimeEvent,
     onConversationRuntimeUpdated: (payload) => {
       broadcastToRenderers('conversation-runtime-updated', payload);
+    },
+    onConversationEvent: ({ conversationEvent }) => {
+      broadcastToRenderers('conversation-event', conversationEvent);
     },
     onMessageError: (error) => {
       log(`Error parsing message from backend: ${error}`);

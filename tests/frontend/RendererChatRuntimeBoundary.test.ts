@@ -232,6 +232,22 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionSource).toContain('streaming-response');
   });
 
+  test('chat stream consumes main-owned SDK conversation events instead of raw backend events', async () => {
+    const streamSource = await fs.readFile(
+      path.join(chatRoot, 'hooks/useChatStream.ts'),
+      'utf8',
+    );
+    const ingressSource = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime.ts'),
+      'utf8',
+    );
+
+    expect(streamSource).toContain('ON_CHANNELS.CONVERSATION_EVENT');
+    expect(streamSource).not.toContain('ON_CHANNELS.FROM_BACKEND');
+    expect(streamSource).not.toContain('handleBackendStreamIngress');
+    expect(ingressSource).not.toContain('normalizeBackendEventToConversationEvent');
+  });
+
   test('chat stream completion handler consumes SDK completion identity directly', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'hooks/chatStream/useChatStreamCompletionHandler.ts'),

@@ -32,9 +32,11 @@ type SharedChannelRegistry = {
     CLEAR_LOCAL_MEMORY: 'clear-local-memory';
     CLEAR_CHAT_HISTORY: 'clear-chat-history';
     STORE_CHAT_EVENT: 'store-chat-event';
+    REPLACE_CHAT_CONVERSATION: 'replace-chat-conversation';
     LIST_CHAT_CONVERSATIONS: 'list-chat-conversations';
     SEARCH_CHAT_CONVERSATIONS: 'search-chat-conversations';
     GET_CHAT_EVENTS: 'get-chat-events';
+    GET_CHAT_CONVERSATION_REVISION: 'get-chat-conversation-revision';
     DELETE_CHAT_CONVERSATION: 'delete-chat-conversation';
     GET_CLIENT_USER_ID: 'get-client-user-id';
     COPY_IMAGE_TO_CLIPBOARD: 'copy-image-to-clipboard';
@@ -84,6 +86,7 @@ type SharedChannelRegistry = {
     MAIN_WINDOW_OPEN_TARGET: 'main-window-open-target';
     RESPONSE_OVERLAY_PHASE: 'response-overlay-phase';
     CONVERSATION_RUNTIME_UPDATED: 'conversation-runtime-updated';
+    CONVERSATION_EVENT: 'conversation-event';
     RESPONSE_OVERLAY_VISIBILITY: 'response-overlay-visibility';
   };
 };

@@ -17,7 +17,7 @@ import { useChatStreamCompactionHandlers } from './chatStream/useChatStreamCompa
 import { useChatStreamMetadataHandlers } from './chatStream/useChatStreamMetadataHandlers';
 import { useChatStreamCompletionHandler } from './chatStream/useChatStreamCompletionHandler';
 import {
-  handleBackendStreamIngress,
+  handleConversationEventIngress,
 } from '../../../app/runtime/desktopChatStreamIngressRuntime';
 import {
   recordTrackingEvent as recordTrackingEventRuntime,
@@ -27,7 +27,6 @@ import {
   type StreamTrackingEventType,
   type StreamTrackingOptions,
 } from '../../../app/runtime/desktopChatStreamTrackingRuntime';
-import { logRendererStreamTrace } from '../utils/chatStream/chatStreamDebugTrace';
 
 export function useChatStream(enableTranscript: boolean = true) {
   const {
@@ -249,15 +248,13 @@ export function useChatStream(enableTranscript: boolean = true) {
   ]);
 
   useEffect(() => {
-    const removeListener = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, (data: unknown) => {
-      handleBackendStreamIngress(data, {
-        resolveConversationRefForTurn: useChatStore.getState().resolveConversationRefForTurn,
+    const removeListener = IpcBridge.on(ON_CHANNELS.CONVERSATION_EVENT, (data: unknown) => {
+      handleConversationEventIngress(data as ConversationEvent, {
         getActiveConversationRef: () => useChatStore.getState().activeConversationRef,
         setActiveConversationRef,
         registerTurnConversationRef,
         enableTranscript,
         dispatchConversationEvent,
-        logTrace: logRendererStreamTrace,
       });
     });
 

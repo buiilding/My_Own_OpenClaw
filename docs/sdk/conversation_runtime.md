@@ -85,10 +85,14 @@ UI adapters:
 Electron main also emits this projection to renderer surfaces as
 `conversation-runtime-updated`. Renderer overlays should render this projection
 instead of independently interpreting raw backend stream/tool events.
+Electron main emits SDK-normalized conversation side-effect events separately
+as `conversation-event`; chat transcript/session handlers consume that channel
+instead of subscribing to raw `from-backend` stream semantics.
 When a same-turn `currentTurn` projection is present, renderer raw backend
-handlers should not build duplicate live assistant/tool rows. They may still
-handle transcript persistence, stream tracking, and fallback behavior for tests
-or legacy hosts that do not emit the SDK projection.
+handlers should not build duplicate live assistant/tool rows or own chat stream
+normalization. Raw backend events may remain as compatibility traffic for
+non-chat consumers, diagnostics, or legacy hosts that do not emit the SDK
+projection.
 
 ## Store Rule
 

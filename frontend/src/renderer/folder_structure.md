@@ -17,9 +17,8 @@ frontend/src/renderer/
 │   ├── main.jsx                         # React entry point - renders App with StrictMode in dev
 │   │
 │   ├── runtime/                         # App-level SDK/runtime command facades
-│   │   ├── desktopChatStreamConversationGateRuntime.ts # Renderer stream conversation identity resolution helpers
 │   │   ├── desktopChatStreamEventRuntime.ts # Renderer stream event routing, projection, stale-turn guard, and tracking facade
-│   │   ├── desktopChatStreamIngressRuntime.ts # Renderer stream ingress facade for SDK event normalization and transcript sync
+│   │   ├── desktopChatStreamIngressRuntime.ts # Renderer normalized SDK conversation-event ingress and transcript sync
 │   │   ├── desktopChatStreamTerminalHandoffRuntime.ts # Renderer terminal-handoff stale-turn policy helpers
 │   │   ├── desktopChatStreamTrackingRuntime.ts # Renderer stream phase/counter transition helpers
 │   │   ├── desktopChatStreamTurnGuardRuntime.ts # Renderer active-turn stale event predicate

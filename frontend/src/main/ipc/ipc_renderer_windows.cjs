@@ -7,6 +7,7 @@ function trackRendererWindow({
   rendererWindows,
   getResponseOverlayPhase,
   getReplayEvents = null,
+  buildConversationEvent = null,
 }) {
   if (!win || (win.isDestroyed && win.isDestroyed())) {
     return;
@@ -41,6 +42,12 @@ function trackRendererWindow({
     }
     for (const replayEvent of replayEvents) {
       webContents.send('from-backend', replayEvent);
+      if (typeof buildConversationEvent === 'function') {
+        const conversationEvent = buildConversationEvent(replayEvent);
+        if (conversationEvent) {
+          webContents.send('conversation-event', conversationEvent);
+        }
+      }
     }
   };
   if (canSubscribeToLoad) {

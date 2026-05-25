@@ -79,6 +79,12 @@ describe('ipc.cjs bridge query handling', () => {
     return localUserMessages[localUserMessages.length - 1]?.[1];
   }
 
+  function getLatestConversationEvent(mainWindow, type) {
+    const conversationEvents = mainWindow.webContents.send.mock.calls
+      .filter(([channel, payload]) => channel === 'conversation-event' && payload?.type === type);
+    return conversationEvents[conversationEvents.length - 1]?.[1] || null;
+  }
+
   function getLatestErrorEvent(mainWindow) {
     const errorEvents = mainWindow.webContents.send.mock.calls
       .filter(([channel, payload]) => channel === 'from-backend' && payload?.type === 'error');
@@ -143,6 +149,11 @@ describe('ipc.cjs bridge query handling', () => {
     expect(messageTypes).toEqual(expect.arrayContaining(['handshake', 'query']));
     const localUserMessage = getLatestLocalUserMessage(mainWindow);
     expect(localUserMessage.payload.conversation_ref).toBe('conv-lazy-connect');
+    expect(getLatestConversationEvent(mainWindow, 'user_message')).toMatchObject({
+      type: 'user_message',
+      conversationRef: 'conv-lazy-connect',
+      turnRef: 'uuid-1',
+    });
   });
 
   test('builds full query payload with system state + memories', async () => {
@@ -404,6 +415,21 @@ describe('ipc.cjs bridge query handling', () => {
       expect.objectContaining({
         type: 'streaming-response',
         turn_ref: 'uuid-1',
+      }),
+    ]));
+    const replayConversationEvents = lateWindow.webContents.send.mock.calls
+      .filter(([channel]) => channel === 'conversation-event')
+      .map(([, payload]) => payload);
+    expect(replayConversationEvents).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        type: 'user_message',
+        conversationRef: 'conv-replay',
+        turnRef: 'uuid-1',
+      }),
+      expect.objectContaining({
+        type: 'assistant_delta',
+        conversationRef: 'conv-replay',
+        turnRef: 'uuid-1',
       }),
     ]));
   });

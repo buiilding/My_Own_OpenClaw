@@ -6,6 +6,7 @@ import { DesktopConversationContinuityService } from '../../frontend/src/rendere
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 import { DesktopTranscriptProjectionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
+import { normalizeBackendEventToConversationEvent } from '../../packages/windie-sdk-js/src/transport/backendEventNormalizer';
 import {
   createAssistantSeedMessage,
   resetChatStoreForTests,
@@ -79,8 +80,32 @@ export function setMockActiveConversationRef(conversationRef: string | null) {
 
 function createEmitBackendEvent(handlers: Record<string, (data: unknown) => void>) {
   return (event: unknown, options: { injectConversationRef?: boolean } = {}) => {
+    const conversationEventHandler = handlers[ON_CHANNELS.CONVERSATION_EVENT];
+    expect(conversationEventHandler).toEqual(expect.any(Function));
+    if (options.injectConversationRef !== false && event && typeof event === 'object' && !Array.isArray(event)) {
+      const eventRecord = event as Record<string, unknown>;
+      const conversationEvent = normalizeBackendEventToConversationEvent({
+        conversation_ref: eventRecord.conversation_ref ?? mockActiveConversationRef,
+        ...eventRecord,
+      } as any);
+      if (conversationEvent) {
+        conversationEventHandler(conversationEvent);
+      }
+      return;
+    }
+    const conversationEvent = normalizeBackendEventToConversationEvent(event as any);
+    if (conversationEvent) {
+      conversationEventHandler(conversationEvent);
+    }
+  };
+}
+
+function createEmitRawBackendEvent(handlers: Record<string, (data: unknown) => void>) {
+  return (event: unknown, options: { injectConversationRef?: boolean } = {}) => {
     const backendHandler = handlers[ON_CHANNELS.FROM_BACKEND];
-    expect(backendHandler).toEqual(expect.any(Function));
+    if (!backendHandler) {
+      return;
+    }
     if (options.injectConversationRef !== false && event && typeof event === 'object' && !Array.isArray(event)) {
       const eventRecord = event as Record<string, unknown>;
       backendHandler({
@@ -105,7 +130,7 @@ export function registerBackendListener(enableTranscript = true) {
   return {
     handlers,
     emitBackendEvent: createEmitBackendEvent(handlers),
-    emitRawBackendEvent: (event: unknown) => createEmitBackendEvent(handlers)(
+    emitRawBackendEvent: (event: unknown) => createEmitRawBackendEvent(handlers)(
       event,
       { injectConversationRef: false },
     ),
@@ -127,7 +152,7 @@ export function registerBackendAndProjectionListeners(enableTranscript = true) {
   return {
     handlers,
     emitBackendEvent: createEmitBackendEvent(handlers),
-    emitRawBackendEvent: (event: unknown) => createEmitBackendEvent(handlers)(
+    emitRawBackendEvent: (event: unknown) => createEmitRawBackendEvent(handlers)(
       event,
       { injectConversationRef: false },
     ),
@@ -158,7 +183,7 @@ export function renderBackendListenerWithSpy(enableTranscript = true) {
     onSpy,
     removeListener,
     emitBackendEvent: createEmitBackendEvent(handlers),
-    emitRawBackendEvent: (event: unknown) => createEmitBackendEvent(handlers)(
+    emitRawBackendEvent: (event: unknown) => createEmitRawBackendEvent(handlers)(
       event,
       { injectConversationRef: false },
     ),

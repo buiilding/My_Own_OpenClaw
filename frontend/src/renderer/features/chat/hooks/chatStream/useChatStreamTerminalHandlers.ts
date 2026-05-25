@@ -25,6 +25,11 @@ function terminalPayloadWithoutRawEvent(event: ConversationEvent): Record<string
   return payload;
 }
 
+function usagePayloadFromEvent(event: ConversationEvent): Record<string, unknown> {
+  const { rawEvent: _rawEvent, userId: _userId, ...payload } = event.payload ?? {};
+  return payload;
+}
+
 export function useChatStreamTerminalHandlers({
   enableTranscript,
   modelContextRef,
@@ -34,7 +39,7 @@ export function useChatStreamTerminalHandlers({
   const updateMessage = useChatStore((state) => state.updateMessage);
 
   const handleTokenCount = useCallback((event: ConversationEvent, conversationRef?: string | null) => {
-    const tokenCounts = terminalPayloadWithoutRawEvent(event) as TokenCounts;
+    const tokenCounts = usagePayloadFromEvent(event) as TokenCounts;
     const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
     setTokenCounts(tokenCounts, conversationRef);
     const assistantMessageId = findLastAssistantLlmTextMessageId(

@@ -53,7 +53,7 @@ export function useChatStreamLocalUserHandler({
       text,
       sender: 'user',
       sourceEventType: 'local-user-message',
-      sourceChannel: 'from-backend',
+      sourceChannel: 'conversation-event',
       attachmentFilenames: attachmentFilenames.length > 0 ? attachmentFilenames : null,
       screenshotRef: firstScreenshotAttachment.screenshotRef,
       screenshotUrl: firstScreenshotAttachment.screenshotUrl,

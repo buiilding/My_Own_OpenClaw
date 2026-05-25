@@ -1,3 +1,7 @@
+const {
+  buildConversationEventFromBackendEvent,
+} = require('../ipc_conversation_event_broadcast.cjs');
+
 function broadcastLocalUserMessage({
   sourceWebContents,
   payload,
@@ -29,6 +33,16 @@ function broadcastLocalUserMessage({
     payload: localUserMessage,
     sourceWebContents,
   });
+  const conversationEvent = buildConversationEventFromBackendEvent(localUserMessage, {
+    fallbackConversationRef: conversationRef,
+  });
+  if (conversationEvent) {
+    broadcastToRenderers({
+      channel: 'conversation-event',
+      payload: conversationEvent,
+      sourceWebContents,
+    });
+  }
   return localUserMessage;
 }
 
@@ -55,6 +69,15 @@ function broadcastQuerySendFailure({
     channel: 'from-backend',
     payload: queryFailure,
   });
+  const conversationEvent = buildConversationEventFromBackendEvent(queryFailure, {
+    fallbackConversationRef: conversationRef,
+  });
+  if (conversationEvent) {
+    broadcastToRenderers({
+      channel: 'conversation-event',
+      payload: conversationEvent,
+    });
+  }
 }
 
 module.exports = {

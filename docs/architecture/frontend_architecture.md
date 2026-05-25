@@ -121,8 +121,8 @@ Current runtime behavior also relies on these explicit seams:
 ### Stream Receive Flow
 
 1. Backend WebSocket events arrive in main `ipc.cjs`.
-2. Main updates response-overlay phase (`awaiting-first-chunk`/`streaming`/`tool-call`/`complete`/`error`), applies backend events to the SDK conversation runtime projection, and broadcasts both `conversation-runtime-updated` and `from-backend` to renderer windows.
-3. Renderer dashboard and response-overlay live assistant/tool rows render from the SDK `currentTurn` projection. Renderer `useConversationRuntimeProjectionStream` also derives live thinking text, first assistant chunk tracking, tool phase tracking, terminal complete/error phase tracking, and send-latch clears from that projection. Renderer `useChatStream` still consumes `from-backend` for scoped transcript/session side effects and metadata until those responsibilities are moved, but production live row shaping and active assistant/reasoning/tool/terminal phase state do not fall back to raw backend events.
+2. Main updates response-overlay phase (`awaiting-first-chunk`/`streaming`/`tool-call`/`complete`/`error`), applies backend events to the SDK conversation runtime projection, broadcasts `conversation-runtime-updated`, and broadcasts SDK-normalized `conversation-event` payloads to renderer windows. The legacy `from-backend` broadcast may still exist for non-chat consumers and compatibility, but chat no longer subscribes to it for stream semantics.
+3. Renderer dashboard and response-overlay live assistant/tool rows render from the SDK `currentTurn` projection. Renderer `useConversationRuntimeProjectionStream` also derives live thinking text, first assistant chunk tracking, tool phase tracking, terminal complete/error phase tracking, and send-latch clears from that projection. Renderer `useChatStream` consumes SDK-normalized `conversation-event` payloads for scoped transcript/session side effects and metadata; production live row shaping and active assistant/reasoning/tool/terminal phase state do not fall back to raw backend events.
 4. Renderer `useChatStream`:
    - Filters by active conversation/turn tracking.
    - Keeps transcript/session side effects for SDK `turn_completed`, `tool_call`, `tool_output`, and `tool_bundle_call` events.
@@ -301,7 +301,7 @@ Primary modules:
 - `features/chat/stores/chatStore.ts`: canonical chat state + stream tracking.
 - `features/chat/utils/message/messagePresentationPipeline.js`: pure presentation pipeline that derives visible dashboard and overlay message rows from raw transcript state, including hidden-tool explanation rows and collapsed action summaries.
 - `features/chat/hooks/useChatStream.ts`:
-  - Stream event routing for transcript/session side effects, metadata, terminal state, and token-count handling.
+  - SDK-normalized conversation-event routing for transcript/session side effects, metadata, terminal materialization, and token-count handling.
   - Dashboard/response-overlay live assistant and tool rows come from SDK `conversation-runtime-updated` current-turn projection state instead of raw `from-backend` stream interpretation.
   - Conversation gating and turn tracking.
   - Dev transparency source tagging: in `electron:dev` (`dev_ui=1`), message/thinking/response surfaces show source badges mapped to stream/event origin (`streaming-response`, `tool-call`, `tool-output`, `llm-thought`, etc.).

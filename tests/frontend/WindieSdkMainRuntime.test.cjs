@@ -331,12 +331,14 @@ describe('Windie SDK main runtime', () => {
 
   test('emits SDK current-turn projection updates for renderer surfaces', async () => {
     const onConversationRuntimeUpdated = jest.fn();
+    const onConversationEvent = jest.fn();
     const runtime = createWindieSdkMainRuntime({
       WebSocketImpl: FakeWebSocket,
       getEndpoint: () => ({ wsUrl: 'wss://api.windieos.com/ws' }),
       getUserId: () => 'dev-user',
       buildHandshake: async () => ({ type: 'handshake', user_id: 'dev-user' }),
       onConversationRuntimeUpdated,
+      onConversationEvent,
     });
 
     runtime.connect();
@@ -376,6 +378,17 @@ describe('Windie SDK main runtime', () => {
         turnRef: 'turn-1',
         phase: 'complete',
         assistantText: 'Hello',
+      }),
+    });
+    expect(onConversationEvent).toHaveBeenLastCalledWith({
+      type: 'conversation-event',
+      conversationEvent: expect.objectContaining({
+        type: 'turn_completed',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        payload: expect.objectContaining({
+          userId: null,
+        }),
       }),
     });
   });

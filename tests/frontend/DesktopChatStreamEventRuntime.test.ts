@@ -1,9 +1,7 @@
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
   recordTrackingEvent,
-  resolveTargetConversationRef as resolveTargetConversationRefRuntime,
   shouldIgnoreForStaleTurn as shouldIgnoreForStaleTurnRuntime,
-  syncActiveConversationProjection as syncActiveConversationProjectionRuntime,
 } from '../../frontend/src/renderer/app/runtime/desktopChatStreamEventRuntime';
 
 function createEvent(overrides: Record<string, unknown> = {}) {
@@ -15,31 +13,12 @@ function createEvent(overrides: Record<string, unknown> = {}) {
   } as any;
 }
 
-function resolveConversationRefForTurn(turnRef: string): string | null | undefined {
-  return useChatStore.getState().resolveConversationRefForTurn(turnRef);
-}
-
 function getWorkspaceState(conversationRef?: string | null) {
   return useChatStore.getState().getWorkspaceState(conversationRef);
 }
 
-function resolveTarget(event: ReturnType<typeof createEvent>): string | null {
-  return resolveTargetConversationRefRuntime(event, { resolveConversationRefForTurn });
-}
-
 function shouldIgnore(event: ReturnType<typeof createEvent>, conversationRef?: string | null): boolean {
   return shouldIgnoreForStaleTurnRuntime(event, conversationRef, { getWorkspaceState });
-}
-
-function syncProjection(
-  event: ReturnType<typeof createEvent>,
-  conversationRef: string | null,
-  setActiveConversationRef: (conversationRef: string | null) => void,
-): void {
-  syncActiveConversationProjectionRuntime(event, conversationRef, {
-    activeConversationRef: useChatStore.getState().activeConversationRef,
-    setActiveConversationRef,
-  });
 }
 
 describe('DesktopChatStreamEventRuntime', () => {
@@ -67,91 +46,6 @@ describe('DesktopChatStreamEventRuntime', () => {
         },
       },
     }));
-  });
-
-  test('resolves conversation ref from explicit event field', () => {
-    const ref = resolveTarget(
-      createEvent({ conversation_ref: 'conv-explicit' }),
-    );
-    expect(ref).toBe('conv-explicit');
-  });
-
-  test('resolves conversation ref from registered turn mapping fallback', () => {
-    useChatStore.getState().registerTurnConversationRef('turn-mapped', 'conv-mapped');
-    const ref = resolveTarget(
-      createEvent({ turn_ref: 'turn-mapped' }),
-    );
-    expect(ref).toBe('conv-mapped');
-  });
-
-  test('does not resolve conversation ref from memory-store payload session id', () => {
-    const ref = resolveTarget(
-      createEvent({
-        type: 'memory-store',
-        payload: { session_id: 'conv-memory-payload' },
-      }),
-    );
-
-    expect(ref).toBeNull();
-  });
-
-  test('does not resolve conversation ref from memory-store event session id', () => {
-    const ref = resolveTarget(
-      createEvent({
-        type: 'memory-store',
-        payload: {},
-        session_id: 'conv-memory-event',
-      }),
-    );
-
-    expect(ref).toBeNull();
-  });
-
-  test('resolves conversation ref from local-user-message payload fallback', () => {
-    const ref = resolveTarget(
-      createEvent({
-        type: 'local-user-message',
-        payload: { text: 'hello', conversation_ref: 'conv-local-payload' },
-      }),
-    );
-
-    expect(ref).toBe('conv-local-payload');
-  });
-
-  test('resolves conversation ref from local-user payload when top-level conversation ref is whitespace', () => {
-    const ref = resolveTarget(
-      createEvent({
-        type: 'local-user-message',
-        conversation_ref: '   ',
-        payload: { text: 'hello', conversation_ref: 'conv-local-payload' },
-      }),
-    );
-
-    expect(ref).toBe('conv-local-payload');
-  });
-
-  test('resolveTargetConversationRef prefers explicit conversation ref over session metadata', () => {
-    const ref = resolveTarget(
-      createEvent({
-        type: 'memory-store',
-        conversation_ref: 'conv-explicit',
-        payload: { session_id: 'conv-memory-payload' },
-        session_id: 'conv-memory-event',
-      }),
-    );
-
-    expect(ref).toBe('conv-explicit');
-  });
-
-  test('resolveTargetConversationRef returns null when no explicit or turn-mapped identity exists', () => {
-    const ref = resolveTarget(
-      createEvent({
-        type: 'streaming-response',
-        payload: { content: 'chunk' },
-      }),
-    );
-
-    expect(ref).toBeNull();
   });
 
   test('stale turn guard allows next-turn packets during terminal pending handoff', () => {
@@ -589,101 +483,6 @@ describe('DesktopChatStreamEventRuntime', () => {
     expect(
       shouldIgnore(createEvent({ turn_ref: 'turn-conv-new' }), 'conv-scoped'),
     ).toBe(true);
-  });
-
-  test('active conversation projection is a no-op when resolved conversation ref is missing', () => {
-    const setActiveConversationRef = jest.fn();
-
-    syncProjection(
-      createEvent({ conversation_ref: 'conv-explicit' }),
-      null,
-      setActiveConversationRef,
-    );
-
-    expect(setActiveConversationRef).not.toHaveBeenCalled();
-  });
-
-  test('active conversation projection is a no-op when event has no explicit conversation identity', () => {
-    const setActiveConversationRef = jest.fn();
-    useChatStore.setState((state) => ({
-      ...state,
-      activeConversationRef: null,
-    }));
-
-    syncProjection(
-      createEvent({ turn_ref: 'turn-mapped-no-explicit' }),
-      'conv-mapped',
-      setActiveConversationRef,
-    );
-
-    expect(setActiveConversationRef).not.toHaveBeenCalled();
-  });
-
-  test('active conversation projection is a no-op when active conversation already matches', () => {
-    const setActiveConversationRef = jest.fn();
-    useChatStore.setState((state) => ({
-      ...state,
-      activeConversationRef: 'conv-current',
-    }));
-
-    syncProjection(
-      createEvent({ conversation_ref: 'conv-current' }),
-      'conv-current',
-      setActiveConversationRef,
-    );
-
-    expect(setActiveConversationRef).not.toHaveBeenCalled();
-  });
-
-  test('active conversation projection promotes explicit ref when active conversation is empty', () => {
-    const setActiveConversationRef = jest.fn();
-    useChatStore.setState((state) => ({
-      ...state,
-      activeConversationRef: null,
-    }));
-
-    syncProjection(
-      createEvent({ conversation_ref: 'conv-next' }),
-      'conv-next',
-      setActiveConversationRef,
-    );
-
-    expect(setActiveConversationRef).toHaveBeenCalledWith('conv-next');
-  });
-
-  test('active conversation projection does not let non-local stream events replace an active chat', () => {
-    const setActiveConversationRef = jest.fn();
-    useChatStore.setState((state) => ({
-      ...state,
-      activeConversationRef: 'conv-current',
-    }));
-
-    syncProjection(
-      createEvent({ conversation_ref: 'conv-next' }),
-      'conv-next',
-      setActiveConversationRef,
-    );
-
-    expect(setActiveConversationRef).not.toHaveBeenCalled();
-  });
-
-  test('active conversation projection promotes explicit ref on local-user-message', () => {
-    const setActiveConversationRef = jest.fn();
-    useChatStore.setState((state) => ({
-      ...state,
-      activeConversationRef: 'conv-current',
-    }));
-
-    syncProjection(
-      createEvent({
-        type: 'local-user-message',
-        conversation_ref: 'conv-next',
-      }),
-      'conv-next',
-      setActiveConversationRef,
-    );
-
-    expect(setActiveConversationRef).toHaveBeenCalledWith('conv-next');
   });
 
   test('recordTrackingEvent delegates updater with applied event metadata', () => {
