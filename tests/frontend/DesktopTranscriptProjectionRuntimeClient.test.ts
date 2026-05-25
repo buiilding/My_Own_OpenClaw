@@ -123,4 +123,69 @@ describe('DesktopTranscriptProjectionRuntimeClient', () => {
     }));
     expect(stored.entry).not.toHaveProperty('screenshot');
   });
+
+  test('retry preserves assistant and tool transcript metadata after immediate write failure', async () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const { projectionClient, sessionClient } = loadDesktopTranscriptRuntimes();
+    mockAppendTranscriptProjectionEntry
+      .mockRejectedValueOnce(new Error('assistant write failed'))
+      .mockRejectedValueOnce(new Error('tool write failed'))
+      .mockResolvedValue(undefined);
+    sessionClient.updateTranscriptSession('conv-initial', 'user-retry');
+
+    projectionClient.recordAssistantMessage('assistant row', {
+      timestamp: '2026-05-25T12:00:00.000Z',
+      structuredPayload: {
+        kind: 'tool-output',
+        toolCallDetails: { provider: 'openai' },
+      },
+    });
+    projectionClient.recordToolMessage('tool row', {
+      messageType: 'tool-output',
+      toolName: 'browser',
+      correlationId: 'call-1',
+      timestamp: '2026-05-25T12:00:01.000Z',
+      structuredPayload: {
+        kind: 'tool-output',
+        toolCallDetails: { status: 'ok' },
+      },
+    });
+    await flushMicrotasks();
+
+    sessionClient.updateTranscriptSession('conv-retry', 'user-retry');
+    await flushMicrotasks();
+
+    expect(mockAppendTranscriptProjectionEntry).toHaveBeenCalledTimes(4);
+    expect(mockAppendTranscriptProjectionEntry.mock.calls[2][0]).toEqual({
+      userId: 'user-retry',
+      entry: expect.objectContaining({
+        conversationRef: 'conv-retry',
+        content: 'assistant row',
+        role: 'assistant',
+        messageType: 'llm-text',
+        timestamp: '2026-05-25T12:00:00.000Z',
+        structuredPayload: {
+          kind: 'tool-output',
+          toolCallDetails: { provider: 'openai' },
+        },
+      }),
+    });
+    expect(mockAppendTranscriptProjectionEntry.mock.calls[3][0]).toEqual({
+      userId: 'user-retry',
+      entry: expect.objectContaining({
+        conversationRef: 'conv-retry',
+        content: 'tool row',
+        role: 'tool',
+        messageType: 'tool-output',
+        toolName: 'browser',
+        correlationId: 'call-1',
+        timestamp: '2026-05-25T12:00:01.000Z',
+        structuredPayload: {
+          kind: 'tool-output',
+          toolCallDetails: { status: 'ok' },
+        },
+      }),
+    });
+    warnSpy.mockRestore();
+  });
 });

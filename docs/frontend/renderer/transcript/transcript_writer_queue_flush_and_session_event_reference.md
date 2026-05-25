@@ -148,6 +148,8 @@ Payload defaults:
 
 - assistant default `messageType` is `llm-text`
 - tool rows include optional `toolName`/`correlationId`
+- assistant and tool retry queues preserve original `timestamp` fields so
+  failed immediate writes do not reorder or lose audit metadata on replay
 - tool rows preserve optional `structuredPayload` metadata through both immediate writes and queued flush retries so replay can rebuild tool-call/tool-output cards from stored transcript rows
 - screenshot refs are passed as `screenshotRef`/`screenshot_ref`; inline
   screenshot payloads use `screenshot`

@@ -181,10 +181,12 @@ export const DesktopTranscriptProjectionRuntimeClient = {
     const normalizedTransparency = normalizeTransparencyData(options.transparency);
     const retryOptions = {
       messageType,
+      timestamp: options.timestamp,
       modelId: options.modelId,
       modelProvider: options.modelProvider,
       screenshotRef: options.screenshotRef,
       transparency: normalizedTransparency,
+      structuredPayload: options.structuredPayload,
     };
     const queueForRetry = () => pendingProjectionMessages.queueAssistantMessageForRetry(text, retryOptions);
     recordImmediateTranscriptEntry({
@@ -220,6 +222,7 @@ export const DesktopTranscriptProjectionRuntimeClient = {
       messageType: options.messageType,
       toolName: options.toolName,
       correlationId: options.correlationId,
+      timestamp: options.timestamp,
       modelId: options.modelId,
       modelProvider: options.modelProvider,
       screenshotRef: options.screenshotRef,

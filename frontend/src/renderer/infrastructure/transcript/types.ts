@@ -38,6 +38,7 @@ export type PendingToolMessage = {
   messageType: string;
   toolName?: string | null;
   correlationId?: string | null;
+  timestamp?: string;
   modelId?: string | null;
   modelProvider?: string | null;
   screenshotRef?: string | null;
@@ -48,6 +49,7 @@ export type PendingToolMessage = {
 export type PendingAssistantMessage = {
   text: string;
   messageType?: string;
+  timestamp?: string;
   modelId?: string | null;
   modelProvider?: string | null;
   screenshotRef?: string | null;

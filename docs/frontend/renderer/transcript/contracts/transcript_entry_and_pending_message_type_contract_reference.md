@@ -60,10 +60,12 @@ Optional metadata:
 
 - `toolName`
 - `correlationId`
+- `timestamp`
 - `modelId`
 - `modelProvider`
 - `screenshotRef`
 - `transparency`
+- `structuredPayload`
 
 ### `PendingAssistantMessage`
 
@@ -74,10 +76,12 @@ Required:
 Optional metadata:
 
 - `messageType`
+- `timestamp`
 - `modelId`
 - `modelProvider`
 - `screenshotRef`
 - `transparency`
+- `structuredPayload`
 
 ## Persisted Row Contract (`TranscriptEntry`)
 

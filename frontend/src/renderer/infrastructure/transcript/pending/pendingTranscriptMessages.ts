@@ -29,6 +29,7 @@ type UserRetryOptions = {
 
 type AssistantRetryOptions = {
   messageType?: string;
+  timestamp?: string;
   modelId?: string | null;
   modelProvider?: string | null;
   screenshotRef?: string | null;
@@ -40,6 +41,7 @@ type ToolRetryOptions = {
   messageType: string;
   toolName?: string;
   correlationId?: string;
+  timestamp?: string;
   modelId?: string | null;
   modelProvider?: string | null;
   screenshotRef?: string | null;
@@ -114,6 +116,7 @@ export function createPendingTranscriptMessages({
         content: message.text,
         role: 'assistant',
         messageType: message.messageType || 'llm-text',
+        timestamp: message.timestamp,
         modelId: message.modelId,
         modelProvider: message.modelProvider,
         screenshotRef: message.screenshotRef,
@@ -138,6 +141,7 @@ export function createPendingTranscriptMessages({
         messageType: message.messageType,
         toolName: message.toolName || undefined,
         correlationId: message.correlationId || undefined,
+        timestamp: message.timestamp,
         modelId: message.modelId,
         modelProvider: message.modelProvider,
         screenshotRef: message.screenshotRef,
@@ -178,6 +182,7 @@ export function createPendingTranscriptMessages({
       pendingAssistantQueue.enqueue({
         text,
         messageType: options.messageType,
+        timestamp: options.timestamp,
         modelId: options.modelId,
         modelProvider: options.modelProvider,
         screenshotRef: options.screenshotRef,
@@ -194,6 +199,7 @@ export function createPendingTranscriptMessages({
         messageType: options.messageType,
         toolName: options.toolName,
         correlationId: options.correlationId,
+        timestamp: options.timestamp,
         modelId: options.modelId,
         modelProvider: options.modelProvider,
         screenshotRef: options.screenshotRef,

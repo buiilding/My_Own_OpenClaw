@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/transcript: preserve assistant/tool timestamps and assistant structured payloads when immediate projection writes retry later.
 - frontend/screenshot: always clear screenshot-capture active state and timing cleanup when visibility restore fails.
 - backend/llm: normalize OpenAI chat-shaped function tools before building Responses API tool payloads.
 - backend/tools: snapshot resolved tool calls at the storage boundary so later caller mutations cannot corrupt execution payloads.
