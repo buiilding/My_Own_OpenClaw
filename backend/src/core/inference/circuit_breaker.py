@@ -81,6 +81,9 @@ class ProviderCircuitBreaker:
         )
 
     def record_success(self) -> None:
+        opened_until = self._state.opened_until
+        if opened_until is not None and self._time_func() < opened_until:
+            return
         self.reset()
 
     def record_failure(self, error: BaseException | str) -> None:

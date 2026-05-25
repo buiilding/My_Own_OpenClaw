@@ -84,6 +84,9 @@ Pick exactly one primary capability first:
 - TTS: response speech chunks, suppression of code/tool JSON, provider cleanup,
   wakeword greeting audio.
 - Provider health: capability hidden from the model before prompt construction.
+- Circuit breaker successes clear accumulated failures only while the circuit is
+  closed; an already-open circuit stays open until cooldown/reconfiguration
+  because late successes can belong to older in-flight requests.
 
 If the change is chat completion, model picker metadata, tool-calling transport,
 or reasoning behavior, use [Provider Change Workflow](provider_change_workflow.md)
