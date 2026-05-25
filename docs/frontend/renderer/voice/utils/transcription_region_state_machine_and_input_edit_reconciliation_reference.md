@@ -60,9 +60,9 @@ This preserves replacement targeting only when edit happened outside the live tr
 
 1. builds next value from selection range (`buildValueAfterPaste`)
 2. adjusts region with `updateRegionAfterPaste(...)`:
-- paste before region -> shift start/end by pasted length
+- replacement before region -> shift start/end by net length delta
 - paste after region -> region unchanged
-- paste inside region -> invalidate region
+- replacement inside or overlapping region -> invalidate region
 - missing cursor -> invalidate region
 3. sets caret asynchronously to pasted-text end (`setTimeout(... setSelectionRange ...)`)
 4. prevents default browser paste

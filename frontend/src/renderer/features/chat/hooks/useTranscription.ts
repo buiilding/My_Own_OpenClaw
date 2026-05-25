@@ -86,6 +86,7 @@ export function useTranscription(initialValue: string = '') {
       transcriptionRegionRef.current = updateRegionAfterPaste(
         transcriptionRegionRef.current,
         cursorPosition,
+        input.selectionEnd,
         pastedText.length,
       );
       

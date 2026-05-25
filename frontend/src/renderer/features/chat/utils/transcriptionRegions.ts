@@ -89,26 +89,32 @@ export function buildValueAfterPaste(
 
 export function updateRegionAfterPaste(
   region: TranscriptionRegion,
-  cursorPosition: number | null,
+  selectionStart: number | null,
+  selectionEnd: number | null,
   pastedTextLength: number,
 ): TranscriptionRegion {
   if (!region.active) {
     return region;
   }
 
-  if (cursorPosition === null) {
+  if (selectionStart === null) {
     return createEmptyTranscriptionRegion();
   }
 
-  if (cursorPosition <= region.start) {
+  const replacementStart = selectionStart;
+  const replacementEnd = selectionEnd ?? selectionStart;
+  const removedLength = Math.max(0, replacementEnd - replacementStart);
+  const lengthDelta = pastedTextLength - removedLength;
+
+  if (replacementEnd <= region.start) {
     return {
-      start: region.start + pastedTextLength,
-      end: region.end + pastedTextLength,
+      start: region.start + lengthDelta,
+      end: region.end + lengthDelta,
       active: true,
     };
   }
 
-  if (cursorPosition >= region.end) {
+  if (replacementStart >= region.end) {
     return region;
   }
 
