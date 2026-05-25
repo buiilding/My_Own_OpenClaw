@@ -20,5 +20,6 @@ export function selectChatBoxState(state) {
     isSending: activeWorkspace.isSending,
     thinkingStatus: activeWorkspace.thinkingStatus,
     thinkingSourceEventType: activeWorkspace.thinkingSourceEventType,
+    currentTurnProjection: activeWorkspace.currentTurnProjection,
   };
 }

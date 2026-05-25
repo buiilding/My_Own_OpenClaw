@@ -59,6 +59,7 @@ Inbound event streams:
 - `wakeword-toggle`
 - `main-window-open-target`
 - `response-overlay-phase`
+- `conversation-runtime-updated`
 
 ## Backend Event Contract in Renderer
 
@@ -99,6 +100,21 @@ Main process emits overlay phase updates consumed by renderer and chatbox/respon
 - `error`
 
 These phases gate UI behavior and stale-turn protection in tool execution.
+
+## Conversation Runtime Projection Contract
+
+Main process emits `conversation-runtime-updated` after SDK runtime projection
+updates. The payload contains:
+
+- `conversationRef`
+- `turnRef`
+- `currentTurn`
+
+`currentTurn` is SDK-owned runtime meaning, not a renderer-only message shape.
+It includes the active turn phase, assistant text, reasoning text, tool events,
+and last error. Dashboard and response overlay surfaces should consume this
+projection for live-turn display instead of separately interpreting raw backend
+stream/tool events.
 
 ## Settings Sync Contract
 

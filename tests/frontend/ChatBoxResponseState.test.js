@@ -1,4 +1,5 @@
 import {
+  buildCurrentTurnMessagesFromProjection,
   buildCurrentTurnResponseOverlayEntries,
   isResponseCloseable,
   normalizeThinkingText,
@@ -53,5 +54,31 @@ describe('chatBoxResponseState', () => {
       { id: 'user-1', sender: 'user', text: 'find the answer' },
       { id: 'assistant-1', sender: 'assistant', type: 'tool-explanation', text: 'Searching https://example.com' },
     ])).toEqual([]);
+  });
+
+  test('buildCurrentTurnMessagesFromProjection creates overlay-ready active turn messages', () => {
+    const messages = buildCurrentTurnMessagesFromProjection({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'tool_call',
+      assistantText: '',
+      reasoningText: 'Inspecting files',
+      lastError: null,
+      toolEvents: [{
+        id: 'tool-1',
+        kind: 'tool_call',
+        toolName: 'read_file',
+        text: 'Reading README.md',
+        status: null,
+        payload: { toolName: 'read_file' },
+      }],
+    });
+
+    expect(buildCurrentTurnResponseOverlayEntries(messages)).toEqual([
+      expect.objectContaining({
+        type: 'tool-explanation',
+        text: 'Reading README.md',
+      }),
+    ]);
   });
 });

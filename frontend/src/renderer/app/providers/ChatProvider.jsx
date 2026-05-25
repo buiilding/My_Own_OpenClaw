@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useChatStream } from '../../features/chat/hooks/useChatStream';
+import { useConversationRuntimeProjectionStream } from '../../features/chat/hooks/useConversationRuntimeProjectionStream';
 import { useChatSessionBootstrap } from '../../features/chat/hooks/useChatSessionBootstrap';
 import { invalidateConversationInferenceSessionState } from '../../features/chat/session/conversationInferenceSessionRuntime';
 import { useChatStore } from '../../features/chat/stores/chatStore';
@@ -42,6 +43,7 @@ export function ChatProvider({ children, enableTranscript = true }) {
     };
   }, []);
 
+  useConversationRuntimeProjectionStream();
   useChatStream(enableTranscript);
 
   return (

@@ -6,12 +6,14 @@ import type {
   ConversationEvent,
   ConversationRuntimeState,
   ConversationStore,
+  CurrentTurnProjection,
   DisplayConversation,
   JsonRecord,
   LocalRuntime,
   RehydrateSnapshot,
 } from '../conversation/types.js';
 import {
+  buildCurrentTurnProjection,
   buildDisplayConversation,
   buildRehydrateSnapshot,
 } from '../projections/conversationProjections.js';
@@ -30,6 +32,7 @@ export type ConversationSnapshot = {
   state: ConversationRuntimeState;
   display: DisplayConversation;
   rehydrate: RehydrateSnapshot;
+  currentTurn: CurrentTurnProjection;
 };
 
 export type SendInput = {
@@ -547,6 +550,7 @@ export class SdkConversationRuntime {
       state: this.state,
       display: buildDisplayConversation(events),
       rehydrate: buildRehydrateSnapshot(events),
+      currentTurn: buildCurrentTurnProjection(events),
     };
   }
 }

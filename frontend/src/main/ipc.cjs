@@ -621,6 +621,7 @@ function getWindieSdkRuntime() {
     buildHandshake: buildSdkRuntimeHandshake,
     executeLocalTool: executeToolForBackend,
     getUserId: () => currentUserId,
+    getCurrentConversationRef: () => currentConversationRef,
     normalizePayload: normalizeBackendPayload,
     advanceEndpoint: advanceToNextBackendEndpoint,
     connectTimeoutMs: BACKEND_CONNECT_TIMEOUT_MS,
@@ -641,6 +642,9 @@ function getWindieSdkRuntime() {
       log(`Error sending handshake: ${error}`);
     },
     onEvent: handleSdkRuntimeEvent,
+    onConversationRuntimeUpdated: (payload) => {
+      broadcastToRenderers('conversation-runtime-updated', payload);
+    },
     onMessageError: (error) => {
       log(`Error parsing message from backend: ${error}`);
     },

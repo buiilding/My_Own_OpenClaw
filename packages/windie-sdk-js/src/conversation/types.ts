@@ -131,6 +131,36 @@ export type DisplayConversation = {
   compaction: CompactionState;
 };
 
+export type CurrentTurnProjectionPhase =
+  | 'idle'
+  | 'awaiting'
+  | 'streaming'
+  | 'tool_call'
+  | 'tool_output'
+  | 'complete'
+  | 'error';
+
+export type CurrentTurnToolEventKind = 'tool_call' | 'tool_output' | 'tool_progress';
+
+export type CurrentTurnToolEvent = {
+  id: string;
+  kind: CurrentTurnToolEventKind;
+  toolName?: string | null;
+  text?: string;
+  status?: string | null;
+  payload: JsonRecord;
+};
+
+export type CurrentTurnProjection = {
+  conversationRef: string;
+  turnRef: string | null;
+  phase: CurrentTurnProjectionPhase;
+  assistantText: string;
+  reasoningText: string | null;
+  toolEvents: CurrentTurnToolEvent[];
+  lastError: string | null;
+};
+
 export type RehydrateSnapshot = {
   conversationRef: string;
   revisionId: string;

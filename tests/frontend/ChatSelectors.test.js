@@ -41,6 +41,7 @@ describe('chatSelectors', () => {
       isSending: false,
       thinkingStatus: null,
       thinkingSourceEventType: null,
+      currentTurnProjection: null,
     });
   });
 

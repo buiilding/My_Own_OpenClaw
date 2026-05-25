@@ -2,6 +2,9 @@ import type {
   CompactionState,
   ConversationEvent,
   ConversationMetadata,
+  CurrentTurnProjection,
+  CurrentTurnProjectionPhase,
+  CurrentTurnToolEvent,
   DisplayConversation,
   DisplayMessage,
   JsonRecord,
@@ -66,6 +69,163 @@ function toolNameFromPayload(payload: JsonRecord): string | null {
     return payload.tool_name;
   }
   return null;
+}
+
+function statusFromToolPayload(payload: JsonRecord): string | null {
+  if (typeof payload.status === 'string') {
+    return payload.status;
+  }
+  if (typeof payload.success === 'boolean') {
+    return payload.success ? 'success' : 'error';
+  }
+  if (typeof payload.error === 'string' && payload.error.length > 0) {
+    return 'error';
+  }
+  return null;
+}
+
+function currentTurnToolEventFrom(event: ConversationEvent): CurrentTurnToolEvent | null {
+  if (event.type !== 'tool_call'
+    && event.type !== 'tool_bundle_call'
+    && event.type !== 'tool_progress'
+    && event.type !== 'tool_output'
+    && event.type !== 'tool_bundle_output') {
+    return null;
+  }
+  const kind = event.type === 'tool_progress'
+    ? 'tool_progress'
+    : (event.type === 'tool_output' || event.type === 'tool_bundle_output' ? 'tool_output' : 'tool_call');
+  const toolName = toolNameFromPayload(event.payload)
+    ?? (event.type === 'tool_bundle_call' || event.type === 'tool_bundle_output' ? 'tool_bundle' : null);
+  const outputText = event.type === 'tool_output' || event.type === 'tool_bundle_output'
+    ? displayTextFromPayload(event.payload)
+    : textFromPayload(event.payload);
+  return {
+    id: event.eventId,
+    kind,
+    toolName,
+    ...(outputText ? { text: outputText } : {}),
+    status: statusFromToolPayload(event.payload),
+    payload: event.payload,
+  };
+}
+
+function emptyCurrentTurnProjection(
+  conversationRef: string,
+  turnRef: string | null = null,
+): CurrentTurnProjection {
+  return {
+    conversationRef,
+    turnRef,
+    phase: turnRef ? 'awaiting' : 'idle',
+    assistantText: '',
+    reasoningText: null,
+    toolEvents: [],
+    lastError: null,
+  };
+}
+
+function resetCurrentTurnIfNeeded(
+  current: CurrentTurnProjection,
+  event: ConversationEvent,
+): CurrentTurnProjection {
+  if (!event.turnRef || current.turnRef === event.turnRef) {
+    return current;
+  }
+  return emptyCurrentTurnProjection(event.conversationRef, event.turnRef);
+}
+
+function appendText(current: string, next: string): string {
+  if (!next) {
+    return current;
+  }
+  return `${current}${next}`;
+}
+
+function appendNullableText(current: string | null, next: string): string | null {
+  if (!next) {
+    return current;
+  }
+  return `${current ?? ''}${next}`;
+}
+
+function advanceCurrentTurnPhase(
+  current: CurrentTurnProjection,
+  phase: CurrentTurnProjectionPhase,
+): CurrentTurnProjection {
+  if (current.phase === phase) {
+    return current;
+  }
+  return { ...current, phase };
+}
+
+export function buildCurrentTurnProjection(events: ConversationEvent[]): CurrentTurnProjection {
+  let projection = emptyCurrentTurnProjection(events[0]?.conversationRef ?? '');
+  for (const event of events) {
+    projection = resetCurrentTurnIfNeeded(projection, event);
+    if (!projection.conversationRef) {
+      projection = { ...projection, conversationRef: event.conversationRef };
+    }
+    if (!projection.turnRef && event.turnRef) {
+      projection = { ...projection, turnRef: event.turnRef };
+    }
+
+    if (event.type === 'turn_started' || event.type === 'user_message') {
+      projection = advanceCurrentTurnPhase(projection, 'awaiting');
+      continue;
+    }
+    if (event.type === 'reasoning_delta') {
+      projection = {
+        ...advanceCurrentTurnPhase(projection, projection.phase === 'idle' ? 'awaiting' : projection.phase),
+        reasoningText: appendNullableText(projection.reasoningText, textFromPayload(event.payload)),
+      };
+      continue;
+    }
+    if (event.type === 'assistant_delta') {
+      projection = {
+        ...projection,
+        phase: 'streaming',
+        assistantText: appendText(projection.assistantText, textFromPayload(event.payload)),
+      };
+      continue;
+    }
+    if (event.type === 'assistant_message') {
+      const text = textFromPayload(event.payload);
+      projection = {
+        ...projection,
+        phase: text ? 'streaming' : projection.phase,
+        assistantText: text || projection.assistantText,
+      };
+      continue;
+    }
+    const toolEvent = currentTurnToolEventFrom(event);
+    if (toolEvent) {
+      projection = {
+        ...projection,
+        phase: toolEvent.kind === 'tool_output' ? 'tool_output' : 'tool_call',
+        toolEvents: [...projection.toolEvents, toolEvent],
+      };
+      continue;
+    }
+    if (event.type === 'turn_completed') {
+      const finalResponse = textFromPayload(event.payload);
+      projection = {
+        ...projection,
+        phase: 'complete',
+        assistantText: projection.assistantText || finalResponse,
+        lastError: null,
+      };
+      continue;
+    }
+    if (event.type === 'turn_error' || event.type === 'runtime_error' || event.type === 'compaction_failed') {
+      projection = {
+        ...projection,
+        phase: 'error',
+        lastError: textFromPayload(event.payload) || 'Unknown runtime error',
+      };
+    }
+  }
+  return projection;
 }
 
 function toolOutputDedupeKey(event: ConversationEvent): string | null {

@@ -1,5 +1,6 @@
 import {
   type BackendEvent,
+  buildCurrentTurnProjection,
   buildDisplayConversation,
   buildRehydrateSnapshot,
   createConversationEvent,
@@ -104,6 +105,45 @@ describe('Windie SDK conversation runtime core', () => {
     expect(Object.keys(afterTool.pendingTools)).toEqual(['call-read']);
     expect(afterOutput.pendingTools).toEqual({});
     expect(afterOutput.phase).toBe('tool_result_sent');
+  });
+
+  test('current-turn projection reduces stream reasoning and tool events once', () => {
+    const events = [
+      event('turn_started', {}),
+      event('user_message', { text: 'inspect files' }),
+      event('reasoning_delta', { text: 'Checking the workspace.' }),
+      event('tool_call', { toolName: 'read_file', requestId: 'req-read' }),
+      event('tool_output', {
+        toolName: 'read_file',
+        requestId: 'req-read',
+        text: 'README contents',
+        success: true,
+      }),
+      event('assistant_delta', { text: 'Done' }),
+      event('assistant_delta', { text: '.' }),
+      event('turn_completed', {}),
+    ];
+
+    expect(buildCurrentTurnProjection(events)).toMatchObject({
+      conversationRef: 'conv-sdk-runtime',
+      turnRef: 'turn-1',
+      phase: 'complete',
+      assistantText: 'Done.',
+      reasoningText: 'Checking the workspace.',
+      lastError: null,
+      toolEvents: [
+        expect.objectContaining({
+          kind: 'tool_call',
+          toolName: 'read_file',
+        }),
+        expect.objectContaining({
+          kind: 'tool_output',
+          toolName: 'read_file',
+          text: 'README contents',
+          status: 'success',
+        }),
+      ],
+    });
   });
 
   test('rehydrate projection preserves provider-safe tool linkage', () => {

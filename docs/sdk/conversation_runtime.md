@@ -26,6 +26,7 @@ SDK interfaces such as `ConversationStore` and `BackendTransport`.
 | normalized conversation events | SDK runtime | source of truth for local client-side conversation state |
 | event store adapters | SDK-defined interface; adapter implementation owns persistence mechanics | stores append/load events and snapshots, but do not interpret display or rehydrate shape |
 | display transcript | SDK projection | React, CLI, and custom UIs render this projection |
+| current-turn projection | SDK projection | active assistant text, reasoning text, tool rows, phase, and error state for live UI surfaces |
 | backend rehydrate payload | SDK projection | generated from normalized events, not visible transcript rows |
 | tool execution coordination | SDK runtime | claimed local tools must return exactly one backend result or failure |
 | sidecar execution | local sidecar | sidecar runs local tools; it does not own conversation replay semantics |
@@ -69,6 +70,21 @@ per-turn `model` options write this event only after the backend settings update
 succeeds. Runtime snapshots expose the latest merged settings on
 `snapshot.state.settings`, but display and rehydrate projections do not render
 or replay those settings as chat/provider history.
+
+Runtime snapshots expose `snapshot.currentTurn` alongside `state`, `display`,
+and `rehydrate`. The current-turn projection is the SDK-owned live-turn view for
+UI adapters:
+
+- `phase`: `idle`, `awaiting`, `streaming`, `tool_call`, `tool_output`,
+  `complete`, or `error`
+- `assistantText`: accumulated assistant deltas or final assistant text
+- `reasoningText`: accumulated reasoning/thinking deltas
+- `toolEvents`: normalized tool call/progress/output rows
+- `lastError`: normalized terminal runtime error text
+
+Electron main also emits this projection to renderer surfaces as
+`conversation-runtime-updated`. Renderer overlays should render this projection
+instead of independently interpreting raw backend stream/tool events.
 
 ## Store Rule
 

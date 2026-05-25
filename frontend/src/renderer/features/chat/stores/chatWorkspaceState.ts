@@ -1,5 +1,6 @@
 import type {
   ChatMessage,
+  SdkCurrentTurnProjection,
   StreamTracking,
   TokenCounts,
 } from './chatStore';
@@ -28,6 +29,7 @@ export interface ChatWorkspaceState {
   } | null;
   tokenCounts: TokenCounts | null;
   streamTracking: StreamTracking;
+  currentTurnProjection: SdkCurrentTurnProjection | null;
 }
 
 interface ChatWorkspaceStoreSnapshot {
@@ -40,6 +42,7 @@ interface ChatWorkspaceStoreSnapshot {
   compactionDebugInfo?: ChatWorkspaceState['compactionDebugInfo'];
   tokenCounts?: TokenCounts | null;
   streamTracking?: StreamTracking;
+  currentTurnProjection?: SdkCurrentTurnProjection | null;
 }
 
 export const DEFAULT_CHAT_WORKSPACE_REF = '__default__';
@@ -99,6 +102,7 @@ export function createInitialWorkspaceState(): ChatWorkspaceState {
     compactionDebugInfo: null,
     tokenCounts: null,
     streamTracking: createInitialStreamTracking(),
+    currentTurnProjection: null,
   };
 }
 
@@ -111,6 +115,7 @@ function buildActiveWorkspaceSnapshot(state: ChatWorkspaceStoreSnapshot): ChatWo
     compactionDebugInfo: state.compactionDebugInfo ?? null,
     tokenCounts: state.tokenCounts ?? null,
     streamTracking: state.streamTracking ?? createInitialStreamTracking(),
+    currentTurnProjection: state.currentTurnProjection ?? null,
   };
 }
 
@@ -126,6 +131,7 @@ function doesWorkspaceMatch(
     && workspace.compactionDebugInfo === activeWorkspace.compactionDebugInfo
     && workspace.tokenCounts === activeWorkspace.tokenCounts
     && workspace.streamTracking === activeWorkspace.streamTracking
+    && workspace.currentTurnProjection === activeWorkspace.currentTurnProjection
   );
 }
 

@@ -6,6 +6,7 @@
 
 import { create } from 'zustand';
 import type { ToolSchema } from '../../../types/backendEvents';
+import type { CurrentTurnProjection } from '../../../infrastructure/api/windieSdkClient';
 import {
   DEFAULT_CHAT_WORKSPACE_REF,
   createInitialStreamTracking,
@@ -124,6 +125,8 @@ export interface StreamTracking {
   lastError: string | null;
 }
 
+export type SdkCurrentTurnProjection = CurrentTurnProjection;
+
 /**
  * Chat store state
  */
@@ -140,6 +143,7 @@ interface ChatState {
   compactionDebugInfo: ChatWorkspaceState['compactionDebugInfo'];
   tokenCounts: TokenCounts | null;
   streamTracking: StreamTracking;
+  currentTurnProjection: SdkCurrentTurnProjection | null;
   getWorkspaceState: (conversationRef?: string | null) => ChatWorkspaceState;
   setActiveConversationRef: (conversationRef: string | null) => void;
   registerTurnConversationRef: (turnRef: string, conversationRef: string | null | undefined) => void;
@@ -164,6 +168,10 @@ interface ChatState {
     conversationRef?: string | null,
   ) => void;
   setTokenCounts: (counts: TokenCounts | null, conversationRef?: string | null) => void;
+  setCurrentTurnProjection: (
+    currentTurnProjection: SdkCurrentTurnProjection | null,
+    conversationRef?: string | null,
+  ) => void;
   updateStreamTracking: (
     updater: (current: StreamTracking) => StreamTracking,
     conversationRef?: string | null,
@@ -180,6 +188,7 @@ ChatState,
 | 'compactionDebugInfo'
 | 'tokenCounts'
 | 'streamTracking'
+| 'currentTurnProjection'
 >;
 
 function getProjectedWorkspaceFields(workspace: ChatWorkspaceState): ProjectedWorkspaceFields {
@@ -191,6 +200,7 @@ function getProjectedWorkspaceFields(workspace: ChatWorkspaceState): ProjectedWo
     compactionDebugInfo: workspace.compactionDebugInfo,
     tokenCounts: workspace.tokenCounts,
     streamTracking: workspace.streamTracking,
+    currentTurnProjection: workspace.currentTurnProjection,
   };
 }
 
@@ -252,6 +262,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   compactionDebugInfo: null,
   tokenCounts: null,
   streamTracking: createInitialStreamTracking(),
+  currentTurnProjection: null,
   getWorkspaceState: (conversationRef) => {
     const state = get();
     const workspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
@@ -274,6 +285,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         && state.compactionDebugInfo === nextWorkspace.compactionDebugInfo
         && state.tokenCounts === nextWorkspace.tokenCounts
         && state.streamTracking === nextWorkspace.streamTracking
+        && state.currentTurnProjection === nextWorkspace.currentTurnProjection
       ) {
         return state;
       }
@@ -436,6 +448,17 @@ export const useChatStore = create<ChatState>((set, get) => ({
       return buildWorkspaceUpdate(state, targetWorkspaceRef, nextWorkspace);
     }),
 
+  setCurrentTurnProjection: (currentTurnProjection, conversationRef) =>
+    set((state) => {
+      const targetWorkspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
+      const currentWorkspace = readWorkspaceState(state, targetWorkspaceRef);
+      if (currentWorkspace.currentTurnProjection === currentTurnProjection) {
+        return state;
+      }
+      const nextWorkspace = { ...currentWorkspace, currentTurnProjection };
+      return buildWorkspaceUpdate(state, targetWorkspaceRef, nextWorkspace);
+    }),
+
   updateStreamTracking: (updater, conversationRef) =>
     set((state) => {
       const targetWorkspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
@@ -461,6 +484,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         thinkingSourceEventType: null,
         compactionDebugInfo: null,
         streamTracking: createInitialStreamTracking(),
+        currentTurnProjection: null,
       };
       return buildWorkspaceUpdate(state, targetWorkspaceRef, nextWorkspace);
     }),

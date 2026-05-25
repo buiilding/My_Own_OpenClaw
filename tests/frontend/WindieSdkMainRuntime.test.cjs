@@ -329,6 +329,57 @@ describe('Windie SDK main runtime', () => {
     }));
   });
 
+  test('emits SDK current-turn projection updates for renderer surfaces', async () => {
+    const onConversationRuntimeUpdated = jest.fn();
+    const runtime = createWindieSdkMainRuntime({
+      WebSocketImpl: FakeWebSocket,
+      getEndpoint: () => ({ wsUrl: 'wss://api.windieos.com/ws' }),
+      getUserId: () => 'dev-user',
+      buildHandshake: async () => ({ type: 'handshake', user_id: 'dev-user' }),
+      onConversationRuntimeUpdated,
+    });
+
+    runtime.connect();
+    const socket = FakeWebSocket.instances[0];
+    socket.open();
+    await Promise.resolve();
+
+    socket.emit('message', JSON.stringify({
+      id: 'event-query-accepted',
+      type: 'query-accepted',
+      conversation_ref: 'conv-1',
+      turn_ref: 'turn-1',
+      payload: { status: 'accepted' },
+    }));
+    socket.emit('message', JSON.stringify({
+      id: 'event-stream-1',
+      type: 'streaming-response',
+      conversation_ref: 'conv-1',
+      turn_ref: 'turn-1',
+      payload: { text: 'Hello' },
+    }));
+    socket.emit('message', JSON.stringify({
+      id: 'event-complete',
+      type: 'streaming-complete',
+      conversation_ref: 'conv-1',
+      turn_ref: 'turn-1',
+      payload: {},
+    }));
+    await Promise.resolve();
+
+    expect(onConversationRuntimeUpdated).toHaveBeenLastCalledWith({
+      type: 'conversation-runtime-updated',
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      currentTurn: expect.objectContaining({
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        phase: 'complete',
+        assistantText: 'Hello',
+      }),
+    });
+  });
+
   test('owns idle disconnect policy', async () => {
     jest.useFakeTimers();
     try {

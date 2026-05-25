@@ -41,6 +41,7 @@ function ChatBoxResponse() {
     messages,
     isSending,
     thinkingStatus,
+    currentTurnProjection,
   } = useChatStore(useShallow(selectChatBoxState));
   const overlayPhase = useResponseOverlayPhase();
   const shellRef = useRef(null);
@@ -64,6 +65,7 @@ function ChatBoxResponse() {
     isSending,
     thinkingStatus,
     overlayPhase,
+    currentTurnProjection,
   });
   const {
     hasOverflowAbove,

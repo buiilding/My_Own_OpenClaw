@@ -83,6 +83,7 @@ type SharedChannelRegistry = {
     WORKSPACE_ACCESS_UPDATED: 'workspace-access-updated';
     MAIN_WINDOW_OPEN_TARGET: 'main-window-open-target';
     RESPONSE_OVERLAY_PHASE: 'response-overlay-phase';
+    CONVERSATION_RUNTIME_UPDATED: 'conversation-runtime-updated';
     RESPONSE_OVERLAY_VISIBILITY: 'response-overlay-visibility';
   };
 };

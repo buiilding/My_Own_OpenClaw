@@ -14,6 +14,9 @@ const {
 const {
   createManagedBackendSession,
 } = require('../../../packages/windie-sdk-js/src/transport/ManagedBackendSession.cjs');
+const {
+  createCurrentTurnProjector,
+} = require('../../../packages/windie-sdk-js/src/projections/currentTurnProjection.cjs');
 
 const DEFAULT_RECONNECT_INTERVAL_MS = 1000;
 const DEFAULT_CONNECT_TIMEOUT_MS = 10000;
@@ -53,12 +56,29 @@ function createWindieSdkMainRuntime(options = {}) {
     throw new Error('createWindieSdkMainRuntime requires WebSocketImpl');
   }
   const createBackendSocket = options.createBackendSocket || createWindieSdkBackendSocket;
+  const currentTurnProjector = options.currentTurnProjector || createCurrentTurnProjector();
+
   function emitRendererEvent(data) {
     if (typeof options.onEvent === 'function') {
       options.onEvent(data);
     } else {
       options.onMessage?.(data);
     }
+  }
+
+  function emitConversationRuntimeUpdate(data) {
+    const currentTurn = currentTurnProjector.applyBackendEvent(data, {
+      fallbackConversationRef: options.getCurrentConversationRef?.(),
+    });
+    if (!currentTurn || typeof options.onConversationRuntimeUpdated !== 'function') {
+      return;
+    }
+    options.onConversationRuntimeUpdated({
+      type: 'conversation-runtime-updated',
+      conversationRef: currentTurn.conversationRef,
+      turnRef: currentTurn.turnRef,
+      currentTurn,
+    });
   }
 
   function handleBackendEvent(data) {
@@ -70,6 +90,7 @@ function createWindieSdkMainRuntime(options = {}) {
       log: options.log,
     });
     const rendererData = markRendererToolEventDisplayOnly(data);
+    emitConversationRuntimeUpdate(rendererData);
     emitRendererEvent(rendererData);
     return rendererData;
   }

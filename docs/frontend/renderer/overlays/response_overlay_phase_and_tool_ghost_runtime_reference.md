@@ -13,6 +13,7 @@ title: "Response Overlay Phase Runtime Reference"
 - `frontend/src/renderer/app/ChatBoxResponseApp.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
 - `frontend/src/renderer/features/chat/hooks/useResponseOverlayViewModel.js`
+- `frontend/src/renderer/features/chat/hooks/useConversationRuntimeProjectionStream.ts`
 - `frontend/src/renderer/features/chat/hooks/useResponseOverlayWindowSync.js`
 - `frontend/src/renderer/features/chat/hooks/useResponseOverlayScrollState.js`
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
@@ -37,11 +38,14 @@ title: "Response Overlay Phase Runtime Reference"
 
 Primary inputs:
 
+- SDK `currentTurn` projection from `conversation-runtime-updated`
 - `messages`
 - `thinkingStatus`
 
 Current-turn entry construction:
 
+- when SDK `currentTurn` is present, `ChatBoxResponse` converts that projection
+  into overlay-ready current-turn messages and entries
 - `buildCurrentTurnResponseOverlayEntries(...)` scans assistant messages after the latest user boundary.
 - entry types currently included:
   - `llm-text`
@@ -82,6 +86,11 @@ Modes:
 
 Contract ownership:
 
+- SDK owns current-turn runtime meaning: active phase, assistant text,
+  reasoning text, tool events, and terminal error state.
+- renderer owns only presentation mapping from `currentTurn` into compact overlay
+  rows; it must not execute tools, write transcripts, or reinterpret backend
+  stream semantics for the overlay.
 - `resolveResponseOverlayViewContract(...)` is the canonical pure helper for:
   - latest visible response entry id
   - `showResponse`
