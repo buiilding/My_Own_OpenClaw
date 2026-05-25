@@ -10,12 +10,39 @@ try {
 }
 
 const INSTALL_AUTH_FILENAME = 'install-auth.json';
+const INSTALL_AUTH_FILE_MODE = 0o600;
+const INSTALL_AUTH_DIR_MODE = 0o700;
+
+function shouldApplyPosixFileModes(platform = process.platform) {
+  return platform !== 'win32';
+}
 
 function getInstallAuthStatePath() {
   const userDataPath = typeof electronApp?.getPath === 'function'
     ? electronApp.getPath('userData')
     : path.join(os.tmpdir(), 'windieos');
   return path.join(userDataPath, INSTALL_AUTH_FILENAME);
+}
+
+async function chmodIfSupported(targetPath, mode) {
+  if (!shouldApplyPosixFileModes()) {
+    return;
+  }
+  await fs.promises.chmod(targetPath, mode);
+}
+
+async function ensureInstallAuthStateDirectory(filePath) {
+  const directoryPath = path.dirname(filePath);
+  await fs.promises.mkdir(directoryPath, {
+    recursive: true,
+    mode: INSTALL_AUTH_DIR_MODE,
+  });
+  await chmodIfSupported(directoryPath, INSTALL_AUTH_DIR_MODE);
+}
+
+async function hardenInstallAuthStatePath(filePath) {
+  await chmodIfSupported(path.dirname(filePath), INSTALL_AUTH_DIR_MODE);
+  await chmodIfSupported(filePath, INSTALL_AUTH_FILE_MODE);
 }
 
 function normalizeInstallAuthState(payload) {
@@ -47,6 +74,7 @@ async function loadInstallAuthStateFromDisk(log) {
       log('Install auth state on disk is invalid; ignoring');
       return null;
     }
+    await hardenInstallAuthStatePath(filePath);
     return normalized;
   } catch (error) {
     log(`Failed to load install auth state from disk: ${error.message}`);
@@ -61,10 +89,16 @@ async function saveInstallAuthStateToDisk(state, log) {
       return { success: false, error: 'Invalid install auth state payload' };
     }
     const filePath = getInstallAuthStatePath();
-    await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
+    await ensureInstallAuthStateDirectory(filePath);
     const tempPath = `${filePath}.tmp`;
-    await fs.promises.writeFile(tempPath, JSON.stringify(normalized, null, 2), 'utf-8');
+    await fs.promises.rm(tempPath, { force: true });
+    await fs.promises.writeFile(tempPath, JSON.stringify(normalized, null, 2), {
+      encoding: 'utf-8',
+      mode: INSTALL_AUTH_FILE_MODE,
+    });
+    await chmodIfSupported(tempPath, INSTALL_AUTH_FILE_MODE);
     await fs.promises.rename(tempPath, filePath);
+    await hardenInstallAuthStatePath(filePath);
     return { success: true, state: normalized };
   } catch (error) {
     log(`Failed to save install auth state to disk: ${error.message}`);
@@ -123,8 +157,10 @@ async function registerInstallWithBackend({
 module.exports = {
   clearInstallAuthStateFromDisk,
   getInstallAuthStatePath,
+  hardenInstallAuthStatePath,
   loadInstallAuthStateFromDisk,
   normalizeInstallAuthState,
   registerInstallWithBackend,
   saveInstallAuthStateToDisk,
+  shouldApplyPosixFileModes,
 };

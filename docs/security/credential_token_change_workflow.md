@@ -90,7 +90,8 @@ The sidecar does not own install authentication. It reads persisted install auth
 1. Electron main registers through `POST /api/install/register`.
 2. Backend creates `user_id`, `install_id`, and `wnd_install_<secret>` token.
 3. Backend stores only the token hash.
-4. Electron main normalizes and persists `{ installToken, userId, installId }`.
+4. Electron main normalizes and persists `{ installToken, userId, installId }` in `install-auth.json` under the app user-data directory.
+   On POSIX platforms, saves and valid loads harden the file to owner read/write only and the containing user-data directory to owner-only access.
 5. Main process HTTP clients attach `Authorization: Bearer <installToken>`.
 6. Backend middleware authenticates `/api/*` paths except install registration.
 7. Middleware sets `request.state.install_identity` and request-local auth context.
@@ -162,6 +163,7 @@ Validate:
 - malformed registration payloads are rejected at the route schema.
 - token is returned once and stored hashed.
 - existing installs keep working or a real migration exists.
+- persisted desktop auth state is owner-only on POSIX platforms, or the platform-specific storage/ACL behavior is documented.
 - docs and examples use placeholders only.
 
 ### Change REST bearer auth
