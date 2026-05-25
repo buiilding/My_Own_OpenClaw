@@ -22,6 +22,7 @@ from backend.src.agent.tools.sending.execution_lanes import (
     build_backend_execution_lane,
     build_preparation_failure_lane,
     build_tool_event_metadata,
+    build_unsupported_backend_bundle_failure_lane,
     bundle_contains_backend_tool,
     resolve_execution_target,
     resolve_tool,
@@ -115,14 +116,32 @@ class ToolSender:
         # Send frontend or backend execution events for prepared tools.
         if preparation_result.bundle_id:
             if bundle_contains_backend_tool(preparation_result.resolved_calls, session):
+                error_msg = (
+                    "Tool bundles that include backend-executed tools are not supported yet."
+                )
+                for tool_call in tool_calls:
+                    failure_lane = build_unsupported_backend_bundle_failure_lane(
+                        tool_call=tool_call,
+                        error_msg=error_msg,
+                        synthetic_result_factory=self.synthetic_result_factory,
+                    )
+                    if failure_lane is None:
+                        logger.warning(
+                            "Unsupported backend bundle tool call missing request_id: %s",
+                            tool_call.tool_name,
+                        )
+                        continue
+
+                    request_id, synthetic_result, envelope = failure_lane
+                    session.register_pending_tool_result(request_id, synthetic_result)
+                    for event in emit_tool_execution_envelope(envelope):
+                        yield event
+
                 store_failed_bundle_result(
                     session=session,
                     bundle_id=preparation_result.bundle_id,
                     tool_calls=tool_calls,
-                    errors=[(
-                        tool_calls[0],
-                        "Tool bundles that include backend-executed tools are not supported yet.",
-                    )],
+                    errors=[(tool_calls[0], error_msg)],
                 )
                 return
             # Bundle: send single ToolBundleEvent

@@ -127,6 +127,46 @@ def build_preparation_failure_lane(
         result=synthetic_result,
     )
     return request_id, synthetic_result, envelope
+
+
+def build_unsupported_backend_bundle_failure_lane(
+    *,
+    tool_call: "ParsedToolCall",
+    error_msg: str,
+    synthetic_result_factory: "SyntheticResultFactory",
+) -> Optional[Tuple[str, ToolResult, ToolExecutionEnvelope]]:
+    execution_ref = ExecutionRef.from_metadata(tool_call.metadata)
+    request_id = execution_ref.request_id if execution_ref else None
+    if not request_id:
+        return None
+
+    synthetic_result = synthetic_result_factory.create(tool_call, error_msg)
+    tool_metadata = dict(tool_call.metadata) if isinstance(tool_call.metadata, dict) else {}
+    tool_metadata.setdefault(
+        "model_facing_tool_call",
+        build_model_facing_tool_call(
+            tool_name=tool_call.tool_name,
+            parameters=tool_call.parameters,
+            metadata=tool_call.metadata,
+        ),
+    )
+    tool_metadata.update(
+        {
+            "backend_tool_bundle_unsupported": True,
+            "request_id": request_id,
+            "skip_frontend_execution": True,
+        }
+    )
+    envelope = ToolExecutionEnvelope(
+        tool_name=tool_call.tool_name,
+        parameters=tool_call.parameters,
+        request_id=request_id,
+        metadata=tool_metadata,
+        result=synthetic_result,
+    )
+    return request_id, synthetic_result, envelope
+
+
 def build_backend_execution_lane(
     *,
     resolved_call: Any,

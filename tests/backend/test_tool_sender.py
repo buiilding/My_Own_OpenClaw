@@ -628,7 +628,16 @@ async def test_send_tools_rejects_bundles_that_include_backend_tools():
 
     emitted = await _collect_emitted_events(sender, [parsed_call], session)
 
-    assert emitted == []
+    assert [type(event).__name__ for event in emitted] == [
+        "ToolCallEvent",
+        "ToolOutputEvent",
+    ]
+    assert emitted[0].metadata["backend_tool_bundle_unsupported"] is True
+    assert emitted[0].metadata["skip_frontend_execution"] is True
+    assert emitted[0].metadata["request_id"] == "req-backend-bundle-1"
+    assert emitted[1].success is False
+    assert "backend-executed tools" in (emitted[1].error or "")
+    assert session.pending_results["req-backend-bundle-1"].success is False
     assert bundle_id in session.result_storage.bundled_results
     bundle_result = session.result_storage.bundled_results[bundle_id]
     assert bundle_result.success is False
