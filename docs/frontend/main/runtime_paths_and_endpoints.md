@@ -120,6 +120,8 @@ Resolution behavior:
   - command: `resolvePythonExecutablePath()`
   - script path:
     - packaged: `<resources>/python-runtime/sidecar/<script>.pyc`
+      (`local_backend`, `local_backend.py`, and `local_backend.pyc` all resolve
+      to the packaged bytecode path)
     - dev: `frontend/src/main/python/<script>.py`
 
 Returned launch target object:

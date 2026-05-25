@@ -70,6 +70,10 @@ function resolvePythonScriptPath(scriptName) {
       candidates.push(
         path.join(resourcesRoot, 'python-runtime', 'sidecar', scriptBaseName),
       );
+    } else if (scriptBaseName) {
+      candidates.push(
+        path.join(resourcesRoot, 'python-runtime', 'sidecar', `${scriptBaseName}.pyc`),
+      );
     }
     return firstExistingPath(candidates) || candidates[0];
   }

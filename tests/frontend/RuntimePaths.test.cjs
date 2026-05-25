@@ -96,6 +96,28 @@ describe('runtime_paths sidecar launch target resolution', () => {
     });
   });
 
+  test('packaged mode resolves extensionless service names to sidecar bytecode', () => {
+    withIsolatedRuntimePaths(({ fs, app, runtimePaths }) => {
+      app.isPackaged = true;
+      const sidecarPyc = '/opt/WindieOS/resources/python-runtime/sidecar/local_backend.pyc';
+      const runtimePython = process.platform === 'win32'
+        ? '/opt/WindieOS/resources/python-runtime/python.exe'
+        : '/opt/WindieOS/resources/python-runtime/bin/python3';
+      fs.existsSync.mockImplementation((candidate) => (
+        candidate === sidecarPyc
+        || candidate === runtimePython
+      ));
+
+      const target = runtimePaths.resolveSidecarLaunchTarget('local_backend');
+
+      expect(target.kind).toBe('python');
+      expect(target.command).toBe(runtimePython);
+      expect(target.args).toEqual([sidecarPyc]);
+      expect(target.cwd).toBe('/opt/WindieOS/resources/python-runtime/sidecar');
+      expect(target.resolvedPath).toBe(sidecarPyc);
+    });
+  });
+
   test('packaged Windows resolves bundled venv interpreter under Scripts/python.exe', () => {
     Object.defineProperty(process, 'platform', {
       value: 'win32',
