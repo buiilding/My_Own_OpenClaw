@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: restore screenshot-suppressed main-window bounds before applying implicit display affinity.
 - backend/container: rebind the DI config provider during runtime updates so new LLM clients and tool orchestrators use the updated AppConfig.
 - backend/sdk: require authenticated install identity before SDK vision locate-all resolves images or invokes provider work.
 - backend/logging: apply the resolved root log level even when a server runner or test harness installed handlers before logging setup.
@@ -55,6 +56,7 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/chat: keep edit/resend UI pending until replay dispatch resolves and show the same local send-failure error when replay dispatch fails.
 - frontend/chat: reject renderer SDK query sends when main reports dispatch failure so edit/resend and retry do not silently treat failed backend sends as accepted.
 - backend/frontend/sdk: address Clawpatch-reported regressions across websocket/session cleanup, tool-result routing, OCR/vision grounding, credential and permission boundaries, transcript persistence, provider routing, and SDK transport lifecycle with focused docs and regression coverage.
+- frontend/diagnostics: forward renderer interaction logs to Electron main so `npm run electron:dev` prints clicked controls, opened chats, changed controls, and submitted messages in the terminal.
 - frontend/diagnostics: add renderer interaction logs for clicked controls, opened chats, changed controls, and submitted messages.
 - frontend/chat: keep SDK current-turn projected dashboard messages referentially stable to avoid React external-store update loops.
 - docs/frontend: update renderer folder structure docs to show SDK current-turn projection and `conversation-event` stream ownership.

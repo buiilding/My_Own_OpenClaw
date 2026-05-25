@@ -49,6 +49,9 @@ Rules:
 - hide the chat pill before screenshot capture
 - keep chat pill and response overlay non-focusable during the loop
 - restore chat pill visibility after capture
+- restore a screenshot-suppressed dashboard to its saved bounds before applying
+  implicit stored display affinity; only an explicit target display move should
+  discard the saved screenshot bounds
 - do not use a pre-hide show path
 - do not animate awaiting-to-response transitions in the minimal pill loop
 - keep the awaiting indicator latched through transient `idle`

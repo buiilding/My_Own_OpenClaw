@@ -370,6 +370,114 @@ describe('window_visibility_runtime showMainWindow', () => {
     expect(mainWindow.webContents.invalidate.mock.calls).toHaveLength(1);
   });
 
+  test('restores screenshot-suppressed bounds before implicit display affinity', () => {
+    const mainWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => false),
+      isMaximized: jest.fn(() => false),
+      getSize: jest.fn(() => [1000, 700]),
+      setBounds: jest.fn(),
+      show: jest.fn(),
+      moveTop: jest.fn(),
+      focus: jest.fn(),
+      setOpacity: jest.fn(),
+      restore: jest.fn(),
+      isMinimized: jest.fn(() => false),
+      __windieScreenshotRestoreBounds: {
+        x: 123,
+        y: 234,
+        width: 900,
+        height: 640,
+      },
+      webContents: {
+        focus: jest.fn(),
+        invalidate: jest.fn(),
+      },
+    };
+    const syncWindowDisplayAffinity = jest.fn();
+    const setActiveDisplayAffinity = jest.fn();
+    const getActiveDisplayAffinity = jest.fn(() => ({
+      monitor_id: '2',
+      bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+      workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+    }));
+
+    const result = showMainWindow(
+      { focus: true },
+      {
+        mainWindow,
+        syncWindowDisplayAffinity,
+        setActiveDisplayAffinity,
+        getActiveDisplayAffinity,
+      },
+    );
+
+    expect(result).toEqual({ success: true });
+    expect(mainWindow.setBounds).toHaveBeenCalledWith({
+      x: 123,
+      y: 234,
+      width: 900,
+      height: 640,
+    }, false);
+    expect(getActiveDisplayAffinity).not.toHaveBeenCalled();
+    expect(setActiveDisplayAffinity).not.toHaveBeenCalled();
+    expect(mainWindow.getSize).not.toHaveBeenCalled();
+    expect(mainWindow.__windieScreenshotRestoreBounds).toBeUndefined();
+    expect(mainWindow.show).toHaveBeenCalledTimes(1);
+    expect(syncWindowDisplayAffinity).toHaveBeenCalledWith(mainWindow);
+  });
+
+  test('explicit target display affinity overrides screenshot restore bounds', () => {
+    const mainWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => false),
+      isMaximized: jest.fn(() => false),
+      getSize: jest.fn(() => [1000, 700]),
+      setBounds: jest.fn(),
+      show: jest.fn(),
+      moveTop: jest.fn(),
+      focus: jest.fn(),
+      setOpacity: jest.fn(),
+      restore: jest.fn(),
+      isMinimized: jest.fn(() => false),
+      __windieScreenshotRestoreBounds: {
+        x: 123,
+        y: 234,
+        width: 900,
+        height: 640,
+      },
+      webContents: {
+        focus: jest.fn(),
+        invalidate: jest.fn(),
+      },
+    };
+    const targetDisplayAffinity = {
+      monitor_id: '2',
+      bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+      workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+    };
+    const setActiveDisplayAffinity = jest.fn();
+
+    const result = showMainWindow(
+      { focus: true, targetDisplayAffinity },
+      {
+        mainWindow,
+        syncWindowDisplayAffinity: jest.fn(),
+        setActiveDisplayAffinity,
+      },
+    );
+
+    expect(result).toEqual({ success: true });
+    expect(setActiveDisplayAffinity).toHaveBeenCalledWith(targetDisplayAffinity);
+    expect(mainWindow.setBounds).toHaveBeenCalledWith({
+      x: 2700,
+      y: 350,
+      width: 1000,
+      height: 700,
+    }, false);
+    expect(mainWindow.__windieScreenshotRestoreBounds).toBeUndefined();
+  });
+
   test('uses target display work area instead of native maximize when opening from another monitor maximized', () => {
     const mainWindow = {
       isDestroyed: jest.fn(() => false),

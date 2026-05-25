@@ -255,11 +255,21 @@ function showMainWindow(options = {}, deps = {}) {
       : 'surface-handoff:show-main-window';
     hideChatWindow({ reason: handoffReason });
   }
-  const resolvedTargetDisplayAffinity = resolveShowTargetDisplayAffinity({
-    targetDisplayAffinity: options?.targetDisplayAffinity,
-    targetWindow: mainWindow,
-    getActiveDisplayAffinity,
-  });
+  const hasExplicitTargetDisplayAffinity = Boolean(
+    options?.targetDisplayAffinity
+    && typeof options.targetDisplayAffinity === 'object'
+  );
+  const restoredScreenshotBounds = (
+    !hasExplicitTargetDisplayAffinity
+    && restoreWindowBoundsFromScreenshotSuppression(mainWindow)
+  );
+  const resolvedTargetDisplayAffinity = restoredScreenshotBounds
+    ? null
+    : resolveShowTargetDisplayAffinity({
+      targetDisplayAffinity: options?.targetDisplayAffinity,
+      targetWindow: mainWindow,
+      getActiveDisplayAffinity,
+    });
   if (resolvedTargetDisplayAffinity) {
     delete mainWindow.__windieScreenshotRestoreBounds;
     setActiveDisplayAffinity(resolvedTargetDisplayAffinity);
@@ -281,9 +291,6 @@ function showMainWindow(options = {}, deps = {}) {
   }
   if (isWindowMinimized(mainWindow) && typeof mainWindow.restore === 'function') {
     mainWindow.restore();
-  }
-  if (!resolvedTargetDisplayAffinity) {
-    restoreWindowBoundsFromScreenshotSuppression(mainWindow);
   }
   setWindowOpacityIfSupported(mainWindow, 1);
   if (!mainWindow.isVisible()) {
