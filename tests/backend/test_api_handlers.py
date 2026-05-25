@@ -2071,6 +2071,43 @@ async def test_load_settings_handler_returns_frontend_config():
 
 
 @pytest.mark.asyncio
+async def test_load_settings_handler_redacts_provider_api_keys():
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    session_manager.session.cfg.provider_api_keys.openai.enabled = True
+    session_manager.session.cfg.provider_api_keys.openai.api_key = "sk-openai-secret"
+    session_manager.session.cfg.provider_api_keys.openrouter.enabled = True
+    session_manager.session.cfg.provider_api_keys.openrouter.api_key = (
+        "sk-openrouter-secret"
+    )
+    session_manager.session_instance = session_manager.session
+    handler = LoadSettingsHandler(session_manager)
+
+    message = LoadSettingsMessage(
+        id="msg_11_redact_keys",
+        type="load-settings",
+        user_id="user_1",
+        payload={},
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert websocket.sent
+    assert websocket.sent[0]["type"] == "settings-loaded"
+    config = websocket.sent[0]["payload"]["config"]
+    assert config["provider_api_keys"]["openai"] == {
+        "api_key": "",
+        "enabled": True,
+    }
+    assert config["provider_api_keys"]["openrouter"] == {
+        "api_key": "",
+        "enabled": True,
+    }
+    assert "sk-openai-secret" not in repr(websocket.sent[0])
+    assert "sk-openrouter-secret" not in repr(websocket.sent[0])
+
+
+@pytest.mark.asyncio
 async def test_load_settings_handler_uses_global_config_when_session_missing():
     websocket = FakeWebSocket()
     session_manager = DummySessionManager()

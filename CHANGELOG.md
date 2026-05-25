@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/settings: redact provider API key values from `load-settings` responses while preserving non-secret provider state.
 - backend/sdk: require authenticated install identity before SDK OCR run resolves images or invokes OCR work.
 - backend/sdk: ignore caller-supplied debug `user_id` values for session lookup unless an authenticated install identity is present.
 - frontend/main: restore screenshot-suppressed main-window bounds before applying implicit display affinity.

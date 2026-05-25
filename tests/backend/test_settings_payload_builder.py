@@ -31,10 +31,27 @@ def test_build_frontend_settings_payload_includes_only_frontend_owned_fields() -
     assert payload == {
         "interaction_mode": "chat",
         "model_provider": "openai",
-        "provider_api_keys": {"openai": {"enabled": True, "api_key": "sk"}},
+        "provider_api_keys": {"openai": {"enabled": True, "api_key": ""}},
         "selected_model_id": "gpt-5.4@@gpt-5-4-none-thinking",
     }
     assert "unrelated_internal_field" not in payload
+
+
+def test_build_frontend_settings_payload_redacts_raw_provider_api_keys() -> None:
+    config = SimpleNamespace(
+        provider_api_keys={
+            "openai": {"enabled": True, "api_key": "sk-secret-openai"},
+            "openrouter": {"enabled": False, "api_key": "sk-secret-openrouter"},
+        },
+    )
+
+    payload = _build_frontend_settings_payload(config)
+
+    assert payload["provider_api_keys"] == {
+        "openai": {"enabled": True, "api_key": ""},
+        "openrouter": {"enabled": False, "api_key": ""},
+    }
+    assert "sk-secret" not in repr(payload)
 
 
 def test_build_frontend_settings_payload_is_stably_sorted_by_key() -> None:

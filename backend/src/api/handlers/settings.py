@@ -32,6 +32,22 @@ from backend.src.llm.models.model_service import ModelService
 logger = logging.getLogger(__name__)
 
 
+def _redact_provider_api_keys(value: Any) -> Any:
+    if not isinstance(value, dict):
+        return value
+
+    redacted: Dict[str, Any] = {}
+    for provider, entry in value.items():
+        if not isinstance(entry, dict):
+            redacted[provider] = entry
+            continue
+        redacted_entry = dict(entry)
+        if "api_key" in redacted_entry:
+            redacted_entry["api_key"] = ""
+        redacted[provider] = redacted_entry
+    return redacted
+
+
 def _build_frontend_settings_payload(config: Any) -> Dict[str, Any]:
     """
     Extract frontend-owned config keys from an AppConfig-like object.
@@ -46,8 +62,13 @@ def _build_frontend_settings_payload(config: Any) -> Dict[str, Any]:
             continue
         value = getattr(config, key)
         if hasattr(value, "model_dump"):
-            payload[key] = value.model_dump()
+            dumped = value.model_dump()
+            if key == "provider_api_keys":
+                dumped = _redact_provider_api_keys(dumped)
+            payload[key] = dumped
             continue
+        if key == "provider_api_keys":
+            value = _redact_provider_api_keys(value)
         payload[key] = value
     return payload
 

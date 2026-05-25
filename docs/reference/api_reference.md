@@ -1227,7 +1227,7 @@ Request current application settings.
 
 **Response**: `settings-loaded`
 
-**Status**: Handled by the backend. Returns frontend-owned settings from the active session config (or global defaults if no session exists).
+**Status**: Handled by the backend. Returns frontend-owned settings from the active session config (or global defaults if no session exists). Provider API key entries are included only in redacted form; raw `api_key` values are never returned by this response.
 
 **Example**:
 ```json
@@ -1661,12 +1661,15 @@ Response to load-settings request.
     "wakeword_stt_enabled": false,
     "agent_full_sudo_enabled": false,
     "browser_automation_enabled": false,
-    "include_query_screenshot": true
+    "include_query_screenshot": true,
+    "provider_api_keys": {
+      "openai": { "enabled": true, "api_key": "" }
+    }
   }
 }
 ```
 
-**Status**: Emitted by backend in response to `load-settings`.
+**Status**: Emitted by backend in response to `load-settings`. Provider API key entries preserve non-secret state such as `enabled`, but `api_key` is redacted to an empty string.
 
 **Example**:
 ```json
@@ -1684,7 +1687,10 @@ Response to load-settings request.
       "wakeword_stt_enabled": false,
       "agent_full_sudo_enabled": false,
       "browser_automation_enabled": false,
-      "include_query_screenshot": true
+      "include_query_screenshot": true,
+      "provider_api_keys": {
+        "openai": { "enabled": true, "api_key": "" }
+      }
     }
   },
   "timestamp": "2025-01-20T10:00:00Z"

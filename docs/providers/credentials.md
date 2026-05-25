@@ -33,6 +33,8 @@ Embedding vendor mode also defaults to `OPENAI_API_KEY`.
 
 Use these overrides only through the config/settings path. Do not bypass the backend config service.
 
+`update-settings` may carry raw provider API keys into backend session config. `load-settings` must not echo those secrets back to clients; it returns the provider entries with `api_key` redacted to an empty string while preserving non-secret state such as `enabled`.
+
 ## OAuth Entries
 
 The current OAuth config surface includes `openai_codex`. The main-process OAuth helper lives at `frontend/src/main/openai_codex_oauth.cjs`. Renderer controls may not expose every compatible backend setting, so verify current UI before documenting a user-visible OAuth flow.
