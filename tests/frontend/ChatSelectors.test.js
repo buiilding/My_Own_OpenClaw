@@ -65,6 +65,43 @@ describe('chatSelectors', () => {
     expect(chatBox.messages).toBe(messages);
   });
 
+  test('projects active dashboard turn from SDK current-turn state', () => {
+    const messages = [
+      { id: 'user-1', text: 'old question', sender: 'user', turnRef: 'turn-old' },
+      { id: 'assistant-1', text: 'old answer', sender: 'assistant', type: 'llm-text', turnRef: 'turn-old' },
+      { id: 'user-2', text: 'new question', sender: 'user', turnRef: 'turn-new' },
+      { id: 'stale-active-assistant', text: 'stale partial', sender: 'assistant', type: 'llm-text', turnRef: 'turn-new' },
+    ];
+    const selected = selectChatInterfaceState({
+      messages,
+      isSending: true,
+      thinkingStatus: null,
+      currentTurnProjection: {
+        conversationRef: 'conv-1',
+        turnRef: 'turn-new',
+        phase: 'streaming',
+        assistantText: 'projected answer',
+        reasoningText: null,
+        toolEvents: [],
+        lastError: null,
+      },
+      tokenCounts: null,
+      streamTracking: { phase: 'streaming' },
+    });
+
+    expect(selected.messages).toEqual([
+      messages[0],
+      messages[1],
+      messages[2],
+      expect.objectContaining({
+        id: 'conv-1:turn-new:assistant',
+        text: 'projected answer',
+        type: 'llm-text',
+        sourceChannel: 'conversation-runtime-updated',
+      }),
+    ]);
+  });
+
   test('defaults optional active-workspace fields when not present', () => {
     const selected = selectChatInterfaceState({
       messages: [],
