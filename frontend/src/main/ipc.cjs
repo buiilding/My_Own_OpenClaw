@@ -36,6 +36,9 @@ const {
   waitForSettingsAck,
 } = require('./ipc/ipc_settings_sync.cjs');
 const {
+  createModelListRequestRuntime,
+} = require('./ipc/ipc_model_list_runtime.cjs');
+const {
   fetchArtifactImage,
 } = require('./ipc/ipc_artifact_fetch.cjs');
 const { persistMemoryStoreEvent } = require('./ipc/ipc_memory_store_persistence.cjs');
@@ -146,7 +149,7 @@ let latestFrontendConfig = null;
 let hasAttemptedInitialSettingsSync = false;
 let pendingSettingsSyncPromise = null;
 const pendingSettingsSyncs = new Map();
-let hasPendingListModelsRequest = false;
+const modelListRequestRuntime = createModelListRequestRuntime();
 const backendMessageObservers = new Set();
 let applyResponseOverlayPhase = null;
 let onBeforeOverlayQueryCapture = null;
@@ -431,22 +434,11 @@ function broadcastConnectionStatus(connected) {
   broadcastToRenderers('ipc-status', buildIpcStatusPayload(connected));
 }
 
-function queueListModelsRequest() {
-  hasPendingListModelsRequest = true;
-}
-
 function flushPendingListModelsRequest() {
-  if (!hasPendingListModelsRequest) {
-    return;
-  }
-  const msgId = sendSdkRuntimeCommand(getWindieSdkRuntime(), {
-    type: 'list-models',
-    payload: {},
+  modelListRequestRuntime.flush({
+    runtime: getWindieSdkRuntime(),
+    sendSdkRuntimeCommand,
   });
-  if (!msgId) {
-    return;
-  }
-  hasPendingListModelsRequest = false;
 }
 
 async function sendSettingsUpdate(config, source = 'renderer') {
@@ -717,7 +709,7 @@ function getWindieSdkRuntime() {
 function shutdownIpcForTests() {
   resetSettingsSyncState();
   resetBackendSessionState();
-  hasPendingListModelsRequest = false;
+  modelListRequestRuntime.clear();
   rendererWindows = new Set();
   backendMessageObservers.clear();
   applyResponseOverlayPhase = null;
@@ -1095,7 +1087,7 @@ function initializeIpc(win, options = {}) {
     }
 
     if (shouldQueueUntilConnected(type) && !isBackendRuntimeConnected()) {
-      queueListModelsRequest();
+      modelListRequestRuntime.queue();
       log('Queued list-models request until backend websocket is connected.');
       try {
         await ensureBackendConnection('list-models');
