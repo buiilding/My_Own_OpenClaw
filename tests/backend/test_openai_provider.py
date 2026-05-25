@@ -878,6 +878,40 @@ def test_openai_responses_tools_keeps_direct_function_tools_only():
     ]
 
 
+def test_openai_responses_tools_preserve_chat_shaped_function_tools():
+    tools = build_openai_responses_tools(
+        [
+            {
+                "type": "function",
+                "function": {
+                    "name": "click",
+                    "description": "Click a coordinate.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {"x": {"type": "integer"}},
+                        "required": ["x"],
+                    },
+                    "strict": True,
+                },
+            }
+        ]
+    )
+
+    assert tools == [
+        {
+            "type": "function",
+            "name": "click",
+            "description": "Click a coordinate.",
+            "parameters": {
+                "type": "object",
+                "properties": {"x": {"type": "integer"}},
+                "required": ["x"],
+            },
+            "strict": True,
+        }
+    ]
+
+
 def test_openai_provider_build_request_params_preserves_plain_object_tool_schema():
     provider = OpenAIProvider(api_key="test-key")
     plain_parameters = {

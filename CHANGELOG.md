@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/llm: normalize OpenAI chat-shaped function tools before building Responses API tool payloads.
 - backend/tools: snapshot resolved tool calls at the storage boundary so later caller mutations cannot corrupt execution payloads.
 - frontend/sdk: include renderer-generated `turn_ref` in desktop query IPC payloads so backend stream events can echo active-turn correlation.
 - backend/ocr: fail remote OCR analysis closed after a failed health check instead of posting work while the provider is not ready.

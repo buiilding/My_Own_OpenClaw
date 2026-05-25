@@ -123,6 +123,36 @@ def make_openai_chat_tools_compatible(
     return compatible_tools
 
 
+def _extract_responses_function_tool(tool: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    if is_function_tool_spec(tool):
+        return {
+            "name": tool["name"].strip(),
+            "description": tool.get("description"),
+            "parameters": tool.get("parameters") or {},
+            "strict": bool(tool.get("strict", False)),
+        }
+
+    if tool.get("type") != "function":
+        return None
+    function_payload = tool.get("function")
+    if not isinstance(function_payload, dict):
+        return None
+    name = function_payload.get("name")
+    if not isinstance(name, str) or not name.strip():
+        return None
+    description = function_payload.get("description")
+    parameters = function_payload.get("parameters")
+    strict = function_payload.get("strict")
+    if strict is None:
+        strict = tool.get("strict")
+    return {
+        "name": name.strip(),
+        "description": description if isinstance(description, str) else None,
+        "parameters": parameters if isinstance(parameters, dict) else {},
+        "strict": bool(strict) if isinstance(strict, bool) else False,
+    }
+
+
 def build_openai_responses_tools(
     tools: Optional[List[Dict[str, Any]]],
     *,
@@ -131,17 +161,20 @@ def build_openai_responses_tools(
     normalized: List[Dict[str, Any]] = []
     if tools is not None:
         for tool in tools:
-            if not is_function_tool_spec(tool):
+            if not isinstance(tool, dict):
+                continue
+            function_tool = _extract_responses_function_tool(tool)
+            if function_tool is None:
                 continue
             normalized.append(
                 {
                     "type": "function",
-                    "name": tool.get("name"),
-                    "description": tool.get("description"),
+                    "name": function_tool["name"],
+                    "description": function_tool["description"],
                     "parameters": make_openai_parameters_compatible(
-                        tool.get("parameters") or {}
+                        function_tool["parameters"]
                     ),
-                    "strict": bool(tool.get("strict", False)),
+                    "strict": function_tool["strict"],
                 }
             )
     if native_web_search_enabled:
