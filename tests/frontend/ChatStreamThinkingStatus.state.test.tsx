@@ -1,6 +1,7 @@
 import { act } from '@testing-library/react';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
+  registerBackendAndProjectionListeners,
   registerBackendListener,
   resetChatStreamTestState,
   setMockConfig,
@@ -25,7 +26,7 @@ describe('useChatStream state + stream handling', () => {
     expect(useChatStore.getState().thinkingStatus).toBe('thinking');
   });
 
-  test('updates thinking status from llm-thought events', () => {
+  test('does not update thinking status from raw llm-thought events', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
@@ -36,7 +37,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    expect(useChatStore.getState().thinkingStatus).toContain('thinking');
+    expect(useChatStore.getState().thinkingStatus).toBeNull();
   });
 
   test('ignores stale llm-thought event when a newer active turn is in progress', () => {
@@ -102,7 +103,65 @@ describe('useChatStream state + stream handling', () => {
     );
   });
 
-  test('tracks live thinking without creating raw assistant rows', () => {
+  test('ignores stale SDK current-turn projection when a newer active turn is in progress', () => {
+    const { emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
+
+    act(() => {
+      const store = useChatStore.getState();
+      store.setCurrentTurnProjection({
+        conversationRef: 'conv-test',
+        turnRef: 'turn-new',
+        phase: 'streaming',
+        assistantText: 'current answer',
+        reasoningText: 'current step',
+        toolEvents: [],
+        lastError: null,
+      }, 'conv-test');
+      store.setThinkingStatus('current step', 'conv-test');
+      store.setThinkingSourceEventType('llm-thought', 'conv-test');
+      store.updateStreamTracking(() => ({
+        activeTurnRef: 'turn-new',
+        phase: 'streaming',
+        startedAt: '2026-03-05T00:00:00.000Z',
+        firstChunkAt: '2026-03-05T00:00:01.000Z',
+        completedAt: null,
+        lastEventAt: '2026-03-05T00:00:01.000Z',
+        lastEventType: 'streaming-response',
+        eventCount: 2,
+        chunkCount: 1,
+        toolCallCount: 0,
+        toolOutputCount: 0,
+        lastChunkSize: 14,
+        lastError: null,
+      }), 'conv-test');
+
+      emitConversationRuntimeUpdated({
+        conversationRef: 'conv-test',
+        currentTurn: {
+          conversationRef: 'conv-test',
+          turnRef: 'turn-old',
+          phase: 'streaming',
+          assistantText: 'stale answer',
+          reasoningText: 'stale step',
+          toolEvents: [],
+          lastError: null,
+        },
+      });
+    });
+
+    const state = useChatStore.getState();
+    expect(state.currentTurnProjection).toEqual(expect.objectContaining({
+      turnRef: 'turn-new',
+      assistantText: 'current answer',
+    }));
+    expect(state.thinkingStatus).toBe('current step');
+    expect(state.streamTracking).toEqual(expect.objectContaining({
+      activeTurnRef: 'turn-new',
+      eventCount: 2,
+    }));
+  });
+
+  test('does not track live thinking from raw llm-thought events', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
@@ -116,15 +175,15 @@ describe('useChatStream state + stream handling', () => {
 
     const state = useChatStore.getState();
     expect(state.messages).toEqual([]);
-    expect(state.thinkingStatus).toBe('drafting plan');
-    expect(state.thinkingSourceEventType).toBe('llm-thought');
+    expect(state.thinkingStatus).toBeNull();
+    expect(state.thinkingSourceEventType).toBeNull();
   });
 
-  test('tracks streaming response chunks without creating raw assistant rows', () => {
+  test('does not track streaming response chunks from raw backend events', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
-      useChatStore.setState({ messages: [] });
+      useChatStore.setState({ messages: [], isSending: true });
       emitBackendEvent({
         type: 'llm-thought',
         turn_ref: 'turn-live',
@@ -139,12 +198,12 @@ describe('useChatStream state + stream handling', () => {
 
     const state = useChatStore.getState();
     expect(state.messages).toEqual([]);
-    expect(state.isSending).toBe(false);
-    expect(state.thinkingStatus).toBe('step 1');
+    expect(state.isSending).toBe(true);
+    expect(state.thinkingStatus).toBeNull();
     expect(state.streamTracking).toEqual(expect.objectContaining({
-      activeTurnRef: 'turn-live',
-      phase: 'streaming',
-      lastEventType: 'streaming-response',
+      activeTurnRef: null,
+      phase: 'idle',
+      lastEventType: null,
     }));
   });
 
@@ -233,7 +292,7 @@ describe('useChatStream state + stream handling', () => {
     ]);
   });
 
-  test('accepts llm-thought payload content fallback', () => {
+  test('does not consume raw llm-thought content fallback in the renderer stream', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
@@ -244,7 +303,7 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    expect(useChatStore.getState().thinkingStatus).toContain('reasoning step');
+    expect(useChatStore.getState().thinkingStatus).toBeNull();
   });
 
   test('shows compacting status while context compaction is running', () => {
@@ -765,21 +824,30 @@ describe('useChatStream state + stream handling', () => {
     expect(useChatStore.getState().thinkingStatus).toBe('Thinking...');
   });
 
-  test('replaces generic thinking fallback when llm-thought chunks arrive', () => {
+  test('replaces generic thinking fallback when SDK projection reasoning arrives', () => {
     setMockConfig({
       selected_model_id: 'gemini-3.1-pro-preview',
       model_provider: 'gemini',
     });
-    const { emitBackendEvent } = registerBackendListener();
+    const { emitBackendEvent, emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
 
     act(() => {
       emitBackendEvent({
         type: 'local-user-message',
+        turn_ref: 'turn-live',
         payload: { text: 'hello from chatbox', screenshot: null },
       });
-      emitBackendEvent({
-        type: 'llm-thought',
-        payload: { status: 'reasoning chunk' },
+      emitConversationRuntimeUpdated({
+        conversationRef: 'conv-test',
+        currentTurn: {
+          conversationRef: 'conv-test',
+          turnRef: 'turn-live',
+          phase: 'awaiting',
+          assistantText: '',
+          reasoningText: 'reasoning chunk',
+          toolEvents: [],
+          lastError: null,
+        },
       });
     });
 
@@ -1116,8 +1184,8 @@ describe('useChatStream state + stream handling', () => {
     );
   });
 
-  test('accepts next-turn first chunk after local send when previous turn is terminal', () => {
-    const { emitBackendEvent } = registerBackendListener();
+  test('accepts next-turn first SDK projection chunk after local send when previous turn is terminal', () => {
+    const { emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
 
     act(() => {
       useChatStore.setState({
@@ -1155,10 +1223,17 @@ describe('useChatStream state + stream handling', () => {
         },
       });
 
-      emitBackendEvent({
-        type: 'streaming-response',
-        turn_ref: 'turn-new',
-        payload: { text: 'next answer' },
+      emitConversationRuntimeUpdated({
+        conversationRef: 'conv-test',
+        currentTurn: {
+          conversationRef: 'conv-test',
+          turnRef: 'turn-new',
+          phase: 'streaming',
+          assistantText: 'next answer',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+        },
       });
     });
 
@@ -1410,7 +1485,7 @@ describe('useChatStream state + stream handling', () => {
   });
 
   test('tracks stream lifecycle fields across local-user-message and chunks', () => {
-    const { emitBackendEvent } = registerBackendListener();
+    const { emitBackendEvent, emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
 
     act(() => {
       emitBackendEvent({
@@ -1418,10 +1493,17 @@ describe('useChatStream state + stream handling', () => {
         turn_ref: 'turn-123',
         payload: { text: 'hello' },
       });
-      emitBackendEvent({
-        type: 'streaming-response',
-        turn_ref: 'turn-123',
-        payload: { text: 'chunk' },
+      emitConversationRuntimeUpdated({
+        conversationRef: 'conv-test',
+        currentTurn: {
+          conversationRef: 'conv-test',
+          turnRef: 'turn-123',
+          phase: 'streaming',
+          assistantText: 'chunk',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+        },
       });
       emitBackendEvent({
         type: 'streaming-complete',

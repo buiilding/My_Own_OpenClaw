@@ -11,8 +11,8 @@ title: "Stream Event State Machine"
 ## Owner Modules
 
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
+- `frontend/src/renderer/features/chat/hooks/useConversationRuntimeProjectionStream.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useTurnScopedBackendEventHandler.ts`
-- `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamTextHandlers.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamCompletionHandler.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamTerminalHandlers.ts`
@@ -119,7 +119,8 @@ Reset/start contract:
 
 Automatic updates:
 
-- `streaming-response` increments `chunkCount`, sets first chunk timestamp, defaults phase to `streaming`
+- SDK `currentTurn.assistantText` growth records a `streaming-response` tracking event, increments `chunkCount`, sets first chunk timestamp, and defaults phase to `streaming`
+- SDK `currentTurn.reasoningText` growth records an `llm-thought` tracking event
 - tool handlers increment tool call/output counters
 - error options set `lastError`, terminal phase, and completion timestamp
 - `phase='complete'` stamps completion timestamp when missing
@@ -137,15 +138,16 @@ Dashboard/pill presentation note:
 - initialize thinking fallback for non-thinking-text models
 - reset stream tracking for new turn
 
-`llm-thought`:
+SDK current-turn reasoning text:
 
-- accumulate thinking status and thinking text on current assistant row
-- create assistant placeholder row when needed
+- accumulate transient thinking status from `currentTurn.reasoningText`
+- keep `llm-thought` as the UI/tracking source label
 
-`streaming-response`:
+SDK current-turn assistant text:
 
 - clear sending latch
-- append/extend assistant `llm-text` row for the turn
+- record `streaming-response` tracking from `currentTurn.assistantText` growth
+- dashboard and response overlay render the assistant text from the SDK projection rather than raw backend chunks
 
 Compaction events:
 

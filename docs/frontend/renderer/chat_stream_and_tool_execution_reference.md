@@ -17,9 +17,9 @@ title: "Chat Stream and Tool Execution Reference"
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
+- `frontend/src/renderer/features/chat/hooks/useConversationRuntimeProjectionStream.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamCompletionHandler.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamLocalUserHandler.ts`
-- `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamTextHandlers.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamTerminalHandlers.ts`
 - `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamConversationGateRuntime.ts`
@@ -88,8 +88,8 @@ Workspace identity state:
 Resulting policy:
 
 - if `supportsThinking=true` and `supportsThinkingTextStream=false`, local-user send path sets generic `Thinking...` status until stream text arrives
-- otherwise thinking state starts empty and waits for SDK `reasoning_delta`
-  events normalized from backend `llm-thought` chunks
+- otherwise thinking state starts empty and waits for SDK `currentTurn.reasoningText`
+  projection updates derived from backend `llm-thought` chunks
 
 Persisted thinking cleanup contract from `chatStreamThinkingStatus.ts`:
 
@@ -167,7 +167,7 @@ Pre-routing and workspace resolution:
 - memory-store telemetry events dispatch from SDK-normalized conversation events:
   backend `memory-store` -> SDK `memory_stored`
 - thinking/reasoning events dispatch from SDK-normalized conversation events:
-  backend `llm-thought` -> SDK `reasoning_delta`
+  backend `llm-thought` -> SDK `reasoning_delta`; the renderer does not handle the normalized event directly for live text, because live thinking state comes from the SDK `currentTurn` projection emitted on `conversation-runtime-updated`
 - tool progress events dispatch from SDK-normalized conversation events:
   backend `web-search-progress` -> SDK `tool_progress`
 - local user echo events dispatch from SDK-normalized conversation events:
@@ -179,11 +179,10 @@ SDK dispatch behavior:
   - the renderer consumes SDK `user_message` payloads directly while keeping
     `local-user-message` as the UI/tracking source label. It does not handle a
     raw backend `local-user-message` fallback after SDK dispatch.
-- SDK `reasoning_delta` from backend `llm-thought`: accumulates transient thinking text and writes live reasoning (`thinkingText`) onto the same-turn assistant `llm-text` message (creates placeholder assistant row before first text chunk when needed)
-  - the renderer consumes SDK `reasoning_delta.text` directly. It keeps
-    `llm-thought` as the UI/tracking source label, but does not unwrap
-    `payload.rawEvent` back into a backend `llm-thought` event.
-- SDK `assistant_delta` from backend `streaming-response`: append/create assistant `llm-text` row and increment chunk tracking
+- SDK `currentTurn.reasoningText` from the conversation runtime projection: accumulates transient thinking text and records `llm-thought` tracking without creating raw assistant rows
+  - the renderer consumes the SDK current-turn projection directly. It keeps `llm-thought` as the UI/tracking source label, but does not unwrap `payload.rawEvent` back into a backend `llm-thought` event.
+- SDK `currentTurn.assistantText` from the conversation runtime projection: dashboard and response overlay render the live assistant text from the projection, while the projection listener clears the send latch and records `streaming-response` chunk tracking
+  - raw backend `streaming-response` and normalized SDK `assistant_delta` are not live-row fallbacks in renderer chat code.
 - SDK `compaction_started` from backend `context-compaction-started`: sets thinking text to `Compacting conversation history...` while backend compaction runs
 - SDK `compaction_applied` from backend `context-compaction-completed`: replaces in-progress compaction thinking with a terminal `Conversation history compacted.` status and marks source as `context-compaction-completed`
   - in dev UI, also stores compaction debug payload including the full summary text plus the replacement-history preview (summary message + kept tail messages)
@@ -233,7 +232,7 @@ Handler composition boundary:
 - `useChatStream` dispatches SDK-normalized conversation events first.
 - SDK `user_message` handling for backend `local-user-message` is delegated to
   `useChatStreamLocalUserHandler`
-- SDK `reasoning_delta` and SDK `assistant_delta` text/placeholder behavior is delegated to `useChatStreamTextHandlers`
+- SDK current-turn `reasoningText` and `assistantText` active-turn side effects are delegated to `useConversationRuntimeProjectionStream`
 - SDK `system_prompt`/`user_message_metadata`/`assistant_message`/`tool_schemas_metadata`
   transparency projection is delegated to `useChatStreamMetadataHandlers`.
 - SDK `turn_error`, SDK `usage_updated`, and SDK `memory_stored` terminal behaviors are delegated to `useChatStreamTerminalHandlers`

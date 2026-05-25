@@ -155,10 +155,16 @@ read SDK `turn_error`, `usage_updated`, and `memory_stored` payloads directly;
 they should not reconstruct backend `error`, `token-count`, or `memory-store`
 events from `payload.rawEvent`.
 
-Desktop reasoning projection consumes SDK `reasoning_delta.text` directly.
-Renderer UI/debug state may keep the source label `llm-thought` for continuity,
-but the handler should not reconstruct backend `llm-thought` events from
-`payload.rawEvent`.
+Desktop reasoning projection consumes SDK `currentTurn.reasoningText` from the
+conversation runtime snapshot. Renderer UI/debug state may keep the source label
+`llm-thought` for continuity, but the handler should not reconstruct backend
+`llm-thought` events from `payload.rawEvent` or consume normalized
+`reasoning_delta` as a separate live-state path.
+
+Desktop assistant live text consumes SDK `currentTurn.assistantText` from the
+conversation runtime snapshot. Raw backend `streaming-response` and normalized
+SDK `assistant_delta` events may still exist in the event log, but they should
+not be renderer live-row or active-turn state fallbacks.
 
 Desktop completion projection consumes SDK `turn_completed` identity directly.
 The SDK event carries `conversationRef`, `turnRef`, and `payload.userId` for

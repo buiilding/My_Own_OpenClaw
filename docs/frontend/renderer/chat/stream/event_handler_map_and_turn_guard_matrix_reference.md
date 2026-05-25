@@ -95,9 +95,9 @@ Reason: local-user-message establishes turn/workspace state and seeds optimistic
   - SDK `usage_updated`: workspace token counter update
   - SDK `memory_stored`: stream tracking only (no direct memory write side effect)
   - SDK `turn_error`: assistant error row + transcript error row unless suppressed
-- `useChatStreamTextHandlers`:
-  - SDK `reasoning_delta`: live thinking text, assistant thinking placeholder, and stream tracking
-  - SDK `assistant_delta`: assistant text chunk append/create behavior
+- `useConversationRuntimeProjectionStream`:
+  - SDK `currentTurn.reasoningText`: live thinking text and `llm-thought` stream tracking
+  - SDK `currentTurn.assistantText`: clear the send latch and record `streaming-response` chunk tracking without creating raw assistant rows
 - `useChatStream` core handlers:
   - `streaming-complete`: assistant message completion + optional transcript assistant write
   - transparency handlers: mutate existing user/assistant rows with metadata snapshots

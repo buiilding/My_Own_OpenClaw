@@ -16,7 +16,6 @@ import { useChatStreamLocalUserHandler } from './chatStream/useChatStreamLocalUs
 import { useChatStreamCompactionHandlers } from './chatStream/useChatStreamCompactionHandlers';
 import { useChatStreamMetadataHandlers } from './chatStream/useChatStreamMetadataHandlers';
 import { useChatStreamCompletionHandler } from './chatStream/useChatStreamCompletionHandler';
-import { useChatStreamTextHandlers } from './chatStream/useChatStreamTextHandlers';
 import {
   handleBackendStreamIngress,
 } from '../../../app/runtime/desktopChatStreamIngressRuntime';
@@ -81,16 +80,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     updateLastMessageBySender,
     updateLastAssistantLlmTextMessage,
   } = useStreamMessageUpdaters(updateMessage);
-
-  const {
-    handleLlmThought: handleLlmThoughtText,
-    handleAssistantDelta,
-  } = useChatStreamTextHandlers({
-    setIsSending,
-    setThinkingStatus,
-    setThinkingSourceEventType,
-    recordTrackingEvent,
-  });
 
   const {
     handleContextCompactionStarted,
@@ -172,9 +161,7 @@ export function useChatStream(enableTranscript: boolean = true) {
       return false;
     }
     if (
-      event.type !== 'assistant_delta'
-      && event.type !== 'user_message'
-      && event.type !== 'reasoning_delta'
+      event.type !== 'user_message'
       && event.type !== 'turn_completed'
       && event.type !== 'tool_call'
       && event.type !== 'tool_progress'
@@ -199,14 +186,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     }
     if (event.type === 'user_message') {
       handleLocalUserMessage(event, event.conversationRef);
-      return true;
-    }
-    if (event.type === 'assistant_delta') {
-      handleAssistantDelta(event, event.conversationRef);
-      return true;
-    }
-    if (event.type === 'reasoning_delta') {
-      handleLlmThoughtText(event, event.conversationRef);
       return true;
     }
     if (event.type === 'tool_call') {
@@ -268,14 +247,12 @@ export function useChatStream(enableTranscript: boolean = true) {
     processStreamingComplete(event, event.conversationRef);
     return true;
   }, [
-    handleAssistantDelta,
     handleAssistantMessageFull,
     handleContextCompactionCompleted,
     handleContextCompactionFailed,
     handleContextCompactionStarted,
     handleError,
     handleLocalUserMessage,
-    handleLlmThoughtText,
     handleMemoryStore,
     handleSystemPrompt,
     handleTokenCount,

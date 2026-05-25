@@ -1,6 +1,7 @@
 import { renderHook } from '@testing-library/react';
 import { IpcBridge, ON_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import { useChatStream } from '../../frontend/src/renderer/features/chat/hooks/useChatStream';
+import { useConversationRuntimeProjectionStream } from '../../frontend/src/renderer/features/chat/hooks/useConversationRuntimeProjectionStream';
 import { DesktopConversationContinuityService } from '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 import { DesktopTranscriptProjectionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient';
@@ -108,6 +109,33 @@ export function registerBackendListener(enableTranscript = true) {
       event,
       { injectConversationRef: false },
     ),
+  };
+}
+
+export function registerBackendAndProjectionListeners(enableTranscript = true) {
+  const handlers: Record<string, (data: unknown) => void> = {};
+  jest.spyOn(IpcBridge, 'on').mockImplementation((channel, handler) => {
+    handlers[channel] = handler;
+    return () => {};
+  });
+
+  renderHook(() => {
+    useConversationRuntimeProjectionStream();
+    useChatStream(enableTranscript);
+  });
+
+  return {
+    handlers,
+    emitBackendEvent: createEmitBackendEvent(handlers),
+    emitRawBackendEvent: (event: unknown) => createEmitBackendEvent(handlers)(
+      event,
+      { injectConversationRef: false },
+    ),
+    emitConversationRuntimeUpdated: (payload: unknown) => {
+      const projectionHandler = handlers[ON_CHANNELS.CONVERSATION_RUNTIME_UPDATED];
+      expect(projectionHandler).toEqual(expect.any(Function));
+      projectionHandler(payload);
+    },
   };
 }
 

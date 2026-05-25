@@ -211,16 +211,25 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('chatStreamTracking');
   });
 
-  test('chat stream text handlers consume SDK reasoning events directly', async () => {
-    const source = await fs.readFile(
+  test('chat stream text state is owned by the SDK current-turn projection listener', async () => {
+    await expect(fs.stat(
       path.join(chatRoot, 'hooks/chatStream/useChatStreamTextHandlers.ts'),
+    )).rejects.toThrow();
+
+    const streamSource = await fs.readFile(
+      path.join(chatRoot, 'hooks/useChatStream.ts'),
+      'utf8',
+    );
+    const projectionSource = await fs.readFile(
+      path.join(chatRoot, 'hooks/useConversationRuntimeProjectionStream.ts'),
       'utf8',
     );
 
-    expect(source).not.toContain('unwrapLlmThoughtBackendEvent');
-    expect(source).not.toContain('LlmThoughtEvent');
-    expect(source).not.toContain('types/backendEvents');
-    expect(source).toContain('ConversationEvent');
+    expect(streamSource).not.toContain('assistant_delta');
+    expect(streamSource).not.toContain('reasoning_delta');
+    expect(projectionSource).toContain('SdkCurrentTurnProjection');
+    expect(projectionSource).toContain('setThinkingStatus');
+    expect(projectionSource).toContain('streaming-response');
   });
 
   test('chat stream completion handler consumes SDK completion identity directly', async () => {

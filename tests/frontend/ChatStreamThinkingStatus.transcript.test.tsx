@@ -1,6 +1,7 @@
 import { act } from '@testing-library/react';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import {
+  registerBackendAndProjectionListeners,
   registerBackendListener,
   renderBackendListenerWithSpy,
   resetChatStreamTestState,
@@ -430,7 +431,7 @@ describe('useChatStream transcript + event filtering', () => {
 
   test('routes non-active conversation events into their own workspace', () => {
     setMockActiveConversationRef('conv-active');
-    const { emitBackendEvent } = registerBackendListener();
+    const { emitBackendEvent, emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
     useChatStore.getState().setMessages([
       {
         id: 'active-assistant-1',
@@ -445,6 +446,18 @@ describe('useChatStream transcript + event filtering', () => {
         type: 'streaming-response',
         conversation_ref: 'conv-stale',
         payload: { text: 'stale chunk' },
+      });
+      emitConversationRuntimeUpdated({
+        conversationRef: 'conv-stale',
+        currentTurn: {
+          conversationRef: 'conv-stale',
+          turnRef: 'turn-stale',
+          phase: 'streaming',
+          assistantText: 'stale chunk',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+        },
       });
     });
 

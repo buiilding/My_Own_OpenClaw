@@ -122,16 +122,16 @@ Current runtime behavior also relies on these explicit seams:
 
 1. Backend WebSocket events arrive in main `ipc.cjs`.
 2. Main updates response-overlay phase (`awaiting-first-chunk`/`streaming`/`tool-call`/`complete`/`error`), applies backend events to the SDK conversation runtime projection, and broadcasts both `conversation-runtime-updated` and `from-backend` to renderer windows.
-3. Renderer dashboard and response-overlay live assistant/tool rows render from the SDK `currentTurn` projection. Renderer `useChatStream` still consumes `from-backend` for scoped transcript/session side effects and metadata until those responsibilities are moved, but production live row shaping does not fall back to raw backend events.
+3. Renderer dashboard and response-overlay live assistant/tool rows render from the SDK `currentTurn` projection. Renderer `useConversationRuntimeProjectionStream` also derives live thinking text, first assistant chunk tracking, and the send-latch clear from that projection. Renderer `useChatStream` still consumes `from-backend` for scoped transcript/session side effects and metadata until those responsibilities are moved, but production live row shaping and active assistant/reasoning state do not fall back to raw backend events.
 4. Renderer `useChatStream`:
    - Filters by active conversation/turn tracking.
-   - Keeps transcript/session side effects for SDK `reasoning_delta`, `assistant_delta`, `turn_completed`, `tool_call`, `tool_output`, `tool_bundle_call`, and `tool_progress` events.
+   - Keeps transcript/session side effects for SDK `turn_completed`, `tool_call`, `tool_output`, `tool_bundle_call`, and `tool_progress` events.
    - Dispatches compaction display and compacted replay persistence from SDK compaction events.
    - Dispatches message metadata/transparency projection from SDK metadata events.
    - Dispatches backend error display and terminal state from SDK `turn_error` events.
    - Dispatches token usage telemetry from SDK `usage_updated` events.
    - Dispatches memory-store telemetry from SDK `memory_stored` events without owning memory persistence.
-   - Updates Zustand store for metadata, completion, errors, token usage, stream tracking, and fallback-only handler-test rendering.
+   - Updates Zustand store for metadata, completion, errors, token usage, and non-text stream tracking.
    - Persists transcript rows (`recordUserMessage`, `recordAssistantMessage`, `recordToolMessage`).
 
 New-chat behavior:
