@@ -121,12 +121,15 @@ describe('overlay_phase_ipc_runtime', () => {
       changed: true,
     });
     expect(setChatVisualAnchorHeight).toHaveBeenCalledWith(116);
-    expect(setChatWindowBoundsForVisualAnchorHeight).not.toHaveBeenCalled();
-    expect(resizeChatWindowForVisualAnchorHeight).not.toHaveBeenCalled();
+    expect(setChatWindowBoundsForVisualAnchorHeight).toHaveBeenCalledWith(116);
+    expect(resizeChatWindowForVisualAnchorHeight).toHaveBeenCalledWith(116);
     expect(positionChatWindow).not.toHaveBeenCalled();
     expect(positionResponseWindow).toHaveBeenCalledTimes(1);
     expect(positionContextLabelWindow).toHaveBeenCalledTimes(1);
     expect(syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
+    expect(
+      setChatWindowBoundsForVisualAnchorHeight.mock.invocationCallOrder[0],
+    ).toBeLessThan(positionResponseWindow.mock.invocationCallOrder[0]);
   });
 
   test('routes chatbox hit-test updates to main-owned idle passthrough state', async () => {
