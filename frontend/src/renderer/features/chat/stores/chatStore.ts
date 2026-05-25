@@ -371,13 +371,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
         ...currentWorkspace,
         messages: [...currentWorkspace.messages, message],
       };
-      const nextTurnConversationRefs = (
-        message.turnRef && normalizedConversationRef
-          ? {
-            ...state.turnConversationRefs,
-            [message.turnRef]: normalizedConversationRef,
-          }
-          : state.turnConversationRefs
+      const nextTurnConversationRefs = mergeTurnConversationRefs(
+        state.turnConversationRefs,
+        [message],
+        normalizedConversationRef,
       );
 
       return buildWorkspaceUpdate(state, workspaceRef, nextWorkspace, {
@@ -400,13 +397,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const nextMessages = [...currentWorkspace.messages];
       nextMessages[index] = { ...nextMessages[index], ...updates };
       const nextWorkspace = { ...currentWorkspace, messages: nextMessages };
-      const nextTurnConversationRefs = (
-        typeof updates.turnRef === 'string' && updates.turnRef.length > 0 && normalizedConversationRef
-          ? {
-            ...state.turnConversationRefs,
-            [updates.turnRef]: normalizedConversationRef,
-          }
-          : state.turnConversationRefs
+      const nextTurnConversationRefs = mergeTurnConversationRefs(
+        state.turnConversationRefs,
+        updates.turnRef !== undefined ? [nextMessages[index]] : [],
+        normalizedConversationRef,
       );
       return buildWorkspaceUpdate(state, workspaceRef, nextWorkspace, {
         turnConversationRefs: nextTurnConversationRefs,
