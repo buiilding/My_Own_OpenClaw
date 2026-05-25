@@ -90,12 +90,32 @@ Verification:
 
 - `cd frontend && ELECTRON_RUN_AS_NODE=1 .\node_modules\electron\dist\electron.exe .\node_modules\jest\bin\jest.js WindieSdkMainRuntime WindieSdkConversationRuntime --runInBand` - pass
 
+### Renderer Stream Live Projection Boundary
+
+Status: completed and verified.
+
+Changes:
+
+- No code change was needed after the SDK-owned current-turn projection update. Existing renderer code already routes live assistant/reasoning/tool display through `useConversationRuntimeProjectionStream.ts` and keeps `useChatStream.ts` on SDK conversation events plus transcript/metadata side effects.
+- The existing renderer boundary tests now pass against the normalized main-runtime projection path.
+
+Success criteria covered:
+
+- Renderer chat stream code does not consume `ON_CHANNELS.FROM_BACKEND` for chat live state.
+- `useChatStream.ts` does not own assistant delta/reasoning text mutation.
+- Tool progress and active tool-display state are owned by the SDK current-turn projection listener.
+- Transcript side-effect handlers continue to consume SDK conversation events directly.
+- Dashboard selectors and response overlay contract tests verify both surfaces consume the same current-turn projection.
+
+Verification:
+
+- `cd frontend && ELECTRON_RUN_AS_NODE=1 .\node_modules\electron\dist\electron.exe .\node_modules\jest\bin\jest.js RendererChatRuntimeBoundary ChatStreamThinkingStatus.state ChatStreamThinkingStatus.transcript ChatSelectors ResponseOverlayViewContract --runInBand` - pass
+
 ## Pending
 
 - `frontend/src/main/ipc.cjs` composition-root split.
   - In progress: model-list request queueing moved to `frontend/src/main/ipc/ipc_model_list_runtime.cjs` with focused unit tests.
   - In progress: renderer diagnostic log routing moved to `frontend/src/main/ipc/ipc_diagnostics_runtime.cjs` with focused unit tests.
-- Renderer stream handling split between live projection and side effects.
 - Raw `from-backend` channel classification and typed-channel migration.
 - Settings/model runtime ownership consolidation.
 - Conversation session authority service.
