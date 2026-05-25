@@ -96,4 +96,31 @@ describe('DesktopTranscriptProjectionRuntimeClient', () => {
       }),
     });
   });
+
+  test('stores screenshot refs as refs instead of inline screenshot data', async () => {
+    const { projectionClient, sessionClient } = loadDesktopTranscriptRuntimes();
+    mockAppendTranscriptProjectionEntry.mockResolvedValue(undefined);
+    sessionClient.updateTranscriptSession('conv-shot', 'user-shot');
+
+    projectionClient.recordToolMessage('screenshot result', {
+      messageType: 'tool-output',
+      toolName: 'screenshot',
+      correlationId: 'call-shot',
+      screenshotRef: 'artifact-shot-1',
+    });
+    await flushMicrotasks();
+
+    expect(mockAppendTranscriptProjectionEntry).toHaveBeenCalledTimes(1);
+    const stored = mockAppendTranscriptProjectionEntry.mock.calls[0][0];
+    expect(stored.userId).toBe('user-shot');
+    expect(stored.entry).toEqual(expect.objectContaining({
+      conversationRef: 'conv-shot',
+      screenshotRef: 'artifact-shot-1',
+      rehydrateEntry: expect.objectContaining({
+        screenshot_ref: 'artifact-shot-1',
+        screenshot: null,
+      }),
+    }));
+    expect(stored.entry).not.toHaveProperty('screenshot');
+  });
 });

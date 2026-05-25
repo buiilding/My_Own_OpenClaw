@@ -349,7 +349,7 @@ describe('desktop conversation store factory', () => {
       messageType: 'llm-text',
       modelId: 'model-1',
       modelProvider: 'provider-1',
-      screenshot: 'artifact-1',
+      screenshotRef: 'artifact-1',
       timestamp: '2026-05-15T12:00:00.000Z',
       rehydrateEntry: {
         role: 'assistant',
@@ -369,6 +369,8 @@ describe('desktop conversation store factory', () => {
         type: 'assistant_message',
         payload: expect.objectContaining({
           text: 'assistant answer',
+          screenshotRef: 'artifact-1',
+          screenshot: null,
           structuredPayload: expect.objectContaining({
             content: 'assistant answer',
           }),
@@ -418,7 +420,7 @@ describe('desktop conversation store factory', () => {
       messageType: 'tool-output',
       toolName: 'mouse_control',
       correlationId: 'call-1',
-      screenshot: 'artifact-output-1',
+      screenshotRef: 'artifact-output-1',
       timestamp: '2026-05-15T12:00:00.000Z',
       rehydrateEntry: {
         role: 'tool',
@@ -435,6 +437,10 @@ describe('desktop conversation store factory', () => {
       correlationId: 'call-1',
       eventPayload: expect.objectContaining({
         type: 'tool_output',
+        payload: expect.objectContaining({
+          screenshotRef: 'artifact-output-1',
+          screenshot: null,
+        }),
       }),
     }));
   });

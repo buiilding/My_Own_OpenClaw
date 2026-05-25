@@ -37,6 +37,7 @@ export type TranscriptProjectionRewriteEntry = {
   toolName?: string | null;
   correlationId?: string | null;
   screenshot?: unknown;
+  screenshotRef?: string | null;
   timestamp?: string | null;
 };
 
@@ -262,7 +263,7 @@ function projectionEntryToConversationEvent(
       requestId: entry.correlationId || null,
       toolName: entry.toolName || null,
       toolCallId: entry.correlationId || null,
-      screenshotRef: entry.screenshot ?? null,
+      screenshotRef: entry.screenshotRef ?? null,
       screenshot: entry.screenshot ?? null,
       structuredPayload,
     },

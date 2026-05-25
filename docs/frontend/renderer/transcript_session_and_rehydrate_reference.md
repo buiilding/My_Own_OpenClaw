@@ -119,9 +119,9 @@ Stored fields include:
 - `structuredPayload` for tool rows so queued retries and later transcript rehydrate preserve model-facing call/output details
 - `conversationRef`, `userId`
 - optional `modelId`, `modelProvider`, `timestamp`
-- screenshot attachment under IPC key `screenshot`
-  - persisted as artifact ref when available
-  - otherwise persisted as inline screenshot payload for replay-safe rows that do not have a stored artifact ref
+- screenshot attachments keep artifact refs separate from inline screenshot data:
+  - `screenshotRef`/`screenshot_ref` carries persisted artifact refs
+  - `screenshot` is reserved for inline screenshot payloads
 - optional `transparency` object snapshot (when available on assistant turns):
   - `systemPrompt`
   - `toolSchemas`

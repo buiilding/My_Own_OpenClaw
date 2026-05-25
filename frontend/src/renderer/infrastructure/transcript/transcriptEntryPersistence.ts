@@ -44,7 +44,7 @@ export async function storeTranscriptEntry(
     correlationId: entry.correlationId,
     modelId: entry.modelId,
     modelProvider: entry.modelProvider,
-    screenshot: entry.screenshotRef,
+    screenshotRef: entry.screenshotRef || null,
     timestamp: entry.timestamp,
     transparency: entry.transparency,
     structuredPayload: entry.structuredPayload,
