@@ -75,7 +75,7 @@ OpenAI continuation rule:
 `_last_response_payload` stores normalized latest turn payload for parser bridge:
 
 - non-stream path uses response dict from `get_completion_response`
-- stream path merges `get_last_stream_response_payload()` when available
+- stream path merges `get_last_stream_response_payload()` when available from the active async request context
 - if stream payload missing content, falls back to aggregated chunk text
 - if client exposes no payload getter, fallback payload is `{"content": full_text}`
 
@@ -102,6 +102,8 @@ Two diagnostics channels are logged each turn:
 - `history_shortened`
 - `prefix_mutated`
 2. provider-reported cache diagnostics (`[Provider Cache]`) from client metadata
+
+Provider stream usage and normalized response payloads are captured in request-local provider context. Legacy provider last-value accessors remain diagnostics fallback outside an active request and must not drive turn-critical routing for overlapping streams.
 
 Fingerprint behavior:
 

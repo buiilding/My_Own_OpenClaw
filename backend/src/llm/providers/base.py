@@ -1,24 +1,21 @@
+import contextvars
+import copy
+import logging
 from abc import ABC, abstractmethod
 from typing import Any, AsyncGenerator, Dict, List, Optional
-import logging
-import copy
 
 import litellm
 from litellm import exceptions as litellm_exceptions
 
-from backend.src.core.events.streaming_events import (
-    ErrorEvent,
-    StreamingEvent,
-)
+from backend.src.core.events.streaming_events import ErrorEvent, StreamingEvent
 from backend.src.core.infrastructure.error_types import (
     LLMAPIError,
     LLMError,
     LLMRateLimitError,
 )
 from backend.src.core.types.schemas import LLMMessage, NormalizedLLMResponse
-from backend.src.llm.providers.base_payload_helpers import (
-    ProviderPayloadHelpersMixin,
-)
+from backend.src.llm.models.models_config import resolve_runtime_model_id
+from backend.src.llm.providers.base_payload_helpers import ProviderPayloadHelpersMixin
 from backend.src.llm.providers.error_mapping import (
     build_api_error_message,
     extract_status_code,
@@ -29,7 +26,6 @@ from backend.src.llm.providers.stream_event_pipeline import (
     stream_text_content_events,
     stream_thinking_and_text_events,
 )
-from backend.src.llm.models.models_config import resolve_runtime_model_id
 from backend.src.llm.providers.usage_diagnostics import (
     build_stream_cache_diagnostics,
     collect_usage_payload,
@@ -39,6 +35,7 @@ from backend.src.llm.providers.usage_diagnostics import (
 from backend.src.llm.request_kwargs import apply_prompt_cache_key
 
 logger = logging.getLogger(__name__)
+_NO_REQUEST_VALUE = object()
 
 
 class LLMProvider(ProviderPayloadHelpersMixin, ABC):
@@ -69,6 +66,22 @@ class LLMProvider(ProviderPayloadHelpersMixin, ABC):
         self._last_stream_usage: Optional[Dict[str, Any]] = None
         self._last_usage: Optional[Dict[str, Any]] = None
         self._last_stream_response_payload: Optional[NormalizedLLMResponse] = None
+        self._request_stream_usage: contextvars.ContextVar[Any] = (
+            contextvars.ContextVar(
+                f"{self.__class__.__name__}.{id(self)}.stream_usage",
+                default=_NO_REQUEST_VALUE,
+            )
+        )
+        self._request_usage: contextvars.ContextVar[Any] = contextvars.ContextVar(
+            f"{self.__class__.__name__}.{id(self)}.usage",
+            default=_NO_REQUEST_VALUE,
+        )
+        self._request_stream_response_payload: contextvars.ContextVar[Any] = (
+            contextvars.ContextVar(
+                f"{self.__class__.__name__}.{id(self)}.stream_response_payload",
+                default=_NO_REQUEST_VALUE,
+            )
+        )
         self._validate_dependencies()
 
     @abstractmethod
@@ -251,28 +264,48 @@ class LLMProvider(ProviderPayloadHelpersMixin, ABC):
         self._last_stream_usage = None
         self._last_usage = None
         self._last_stream_response_payload = None
+        self._request_stream_usage.set(None)
+        self._request_usage.set(None)
+        self._request_stream_response_payload.set(None)
 
     def get_last_stream_usage(self) -> Optional[Dict[str, Any]]:
-        """Return a copy of the last captured usage payload."""
+        """Return a copy of the current request's stream usage payload."""
+        request_usage = self._request_stream_usage.get()
+        if request_usage is not _NO_REQUEST_VALUE:
+            if request_usage is None:
+                return None
+            return copy.deepcopy(request_usage)
         if self._last_stream_usage is None:
             return None
         return copy.deepcopy(self._last_stream_usage)
 
     def get_last_usage(self) -> Optional[Dict[str, Any]]:
-        """Return the most recent usage payload from stream or completion responses."""
+        """Return the current request's usage payload, falling back to diagnostics."""
+        request_usage = self._request_usage.get()
+        if request_usage is not _NO_REQUEST_VALUE:
+            if request_usage is None:
+                return None
+            return copy.deepcopy(request_usage)
         if self._last_usage is None:
             return None
         return copy.deepcopy(self._last_usage)
 
     def get_last_stream_response_payload(self) -> Optional[NormalizedLLMResponse]:
-        """Return normalized payload captured from the most recent streaming request."""
+        """Return normalized payload captured for the current streaming request."""
+        request_payload = self._request_stream_response_payload.get()
+        if request_payload is not _NO_REQUEST_VALUE:
+            if request_payload is None:
+                return None
+            return copy.deepcopy(request_payload)
         if self._last_stream_response_payload is None:
             return None
         return copy.deepcopy(self._last_stream_response_payload)
 
     def _set_last_stream_response_payload(self, payload: NormalizedLLMResponse) -> None:
         """Store normalized stream payload for downstream tool-call handling."""
-        self._last_stream_response_payload = copy.deepcopy(payload)
+        payload_copy = copy.deepcopy(payload)
+        self._last_stream_response_payload = payload_copy
+        self._request_stream_response_payload.set(copy.deepcopy(payload_copy))
 
     def supports_streaming_tool_turns(self, model: str) -> bool:
         """
@@ -303,6 +336,7 @@ class LLMProvider(ProviderPayloadHelpersMixin, ABC):
         captured = self._record_usage_from_payload_container(chunk)
         if captured:
             self._last_stream_usage = captured
+            self._request_stream_usage.set(copy.deepcopy(captured))
         return captured
 
     def _record_usage_from_payload_container(
@@ -313,6 +347,7 @@ class LLMProvider(ProviderPayloadHelpersMixin, ABC):
         captured_usage = collect_usage_payload(payload_container)
         if captured_usage:
             self._last_usage = captured_usage
+            self._request_usage.set(copy.deepcopy(captured_usage))
             return captured_usage
         return None
 
@@ -411,13 +446,17 @@ class LLMProvider(ProviderPayloadHelpersMixin, ABC):
 
         params = {
             "model": model_string or self._get_full_model_string(runtime_model_id),
-            "messages": self._normalize_messages_for_provider(messages, model=runtime_model_id),
+            "messages": self._normalize_messages_for_provider(
+                messages, model=runtime_model_id
+            ),
             "api_key": self.api_key,
             "base_url": self.base_url,
             "timeout": self.timeout,
         }
         if tools is not None:
-            params["tools"] = self._normalize_tools_for_litellm(tools, model=runtime_model_id)
+            params["tools"] = self._normalize_tools_for_litellm(
+                tools, model=runtime_model_id
+            )
         if tool_choice is not None:
             params["tool_choice"] = tool_choice
         if parallel_tool_calls is not None:

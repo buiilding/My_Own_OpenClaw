@@ -1,25 +1,32 @@
 """Tests for LLMProvider base class."""
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
-from types import SimpleNamespace
-import litellm
 
-from backend.src.llm.providers.base import LLMProvider
-from backend.src.llm.providers.online import OnlineLLMProvider
-from backend.src.core.infrastructure.error_types import LLMAPIError, LLMError, LLMRateLimitError
+import asyncio
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import litellm
+import pytest
+
 from backend.src.core.events.streaming_events import (
     ChunkEvent,
     ErrorEvent,
     StreamingCompleteEvent,
 )
+from backend.src.core.infrastructure.error_types import (
+    LLMAPIError,
+    LLMError,
+    LLMRateLimitError,
+)
+from backend.src.llm.providers.base import LLMProvider
+from backend.src.llm.providers.online import OnlineLLMProvider
 
 
 class MockProvider(LLMProvider):
     """Mock implementation of LLMProvider for testing."""
-    
+
     def _validate_dependencies(self) -> None:
         pass
-    
+
     async def get_completion(
         self,
         model,
@@ -30,7 +37,7 @@ class MockProvider(LLMProvider):
         prompt_cache_key=None,
     ):
         return {"content": "test", "tool_calls": None}
-    
+
     async def _stream_internal(
         self,
         model,
@@ -42,10 +49,10 @@ class MockProvider(LLMProvider):
     ):
         yield ChunkEvent(content="Hello")
         yield StreamingCompleteEvent()
-    
+
     async def list_models(self):
         return [{"id": "model1", "provider": "mock", "display_name": "Model 1"}]
-    
+
     def _get_full_model_string(self, model_id: str) -> str:
         return f"mock/{model_id}"
 
@@ -107,25 +114,23 @@ class TestLLMProvider:
 
     def test_init_with_defaults(self):
         provider = MockProvider()
-        
+
         assert provider.api_key is None
         assert provider.base_url is None
         assert provider.timeout == 60.0
 
     def test_init_with_custom_values(self):
         provider = MockProvider(
-            api_key="test-key",
-            base_url="https://api.test.com",
-            timeout=30.0
+            api_key="test-key", base_url="https://api.test.com", timeout=30.0
         )
-        
+
         assert provider.api_key == "test-key"
         assert provider.base_url == "https://api.test.com"
         assert provider.timeout == 30.0
 
     def test_validate_dependencies_called(self):
         """Test that _validate_dependencies is called during init."""
-        with patch.object(MockProvider, '_validate_dependencies') as mock_validate:
+        with patch.object(MockProvider, "_validate_dependencies") as mock_validate:
             MockProvider()
             mock_validate.assert_called_once()
 
@@ -140,7 +145,7 @@ class TestBuildRequestParams:
     def test_build_with_valid_model(self, provider):
         messages = [{"role": "user", "content": "Hello"}]
         params = provider._build_request_params("gpt-4", messages)
-        
+
         assert params["model"] == "mock/gpt-4"
         assert params["messages"] is messages
         assert params["api_key"] == "test-key"
@@ -149,8 +154,10 @@ class TestBuildRequestParams:
 
     def test_build_with_custom_model_string(self, provider):
         messages = [{"role": "user", "content": "Hello"}]
-        params = provider._build_request_params("gpt-4", messages, model_string="custom/model")
-        
+        params = provider._build_request_params(
+            "gpt-4", messages, model_string="custom/model"
+        )
+
         assert params["model"] == "custom/model"
 
     def test_build_applies_provider_request_param_hook(self, provider, monkeypatch):
@@ -172,25 +179,25 @@ class TestBuildRequestParams:
 
     def test_build_raises_on_none_model(self, provider):
         messages = [{"role": "user", "content": "Hello"}]
-        
+
         with pytest.raises(ValueError, match="model parameter cannot be None"):
             provider._build_request_params(None, messages)
 
     def test_build_raises_on_empty_string_model(self, provider):
         messages = [{"role": "user", "content": "Hello"}]
-        
+
         with pytest.raises(ValueError, match="model parameter cannot be empty"):
             provider._build_request_params("", messages)
 
     def test_build_raises_on_whitespace_model(self, provider):
         messages = [{"role": "user", "content": "Hello"}]
-        
+
         with pytest.raises(ValueError, match="model parameter cannot be empty"):
             provider._build_request_params("   ", messages)
 
     def test_build_raises_on_non_string_model(self, provider):
         messages = [{"role": "user", "content": "Hello"}]
-        
+
         with pytest.raises(TypeError, match="model must be str"):
             provider._build_request_params(123, messages)
 
@@ -200,7 +207,9 @@ class TestBuildRequestParams:
 
     def test_build_raises_on_non_list_messages(self, provider):
         with pytest.raises(TypeError, match="messages must be list"):
-            provider._build_request_params("gpt-4", {"role": "user", "content": "Hello"})
+            provider._build_request_params(
+                "gpt-4", {"role": "user", "content": "Hello"}
+            )
 
     def test_build_includes_native_tool_calling_params(self, provider):
         messages = [{"role": "user", "content": "Hello"}]
@@ -237,7 +246,10 @@ class TestBuildRequestParams:
             {
                 "name": "read_file",
                 "description": "Read file contents",
-                "parameters": {"type": "object", "properties": {"path": {"type": "string"}}},
+                "parameters": {
+                    "type": "object",
+                    "properties": {"path": {"type": "string"}},
+                },
             }
         ]
 
@@ -289,13 +301,15 @@ class TestBuildRequestParams:
                 "type": "function",
                 "function": {
                     "name": "run_shell_command",
-                    "arguments": "{\"command\":\"ls -la\"}",
+                    "arguments": '{"command":"ls -la"}',
                 },
             }
         ]
         assert params["messages"][2]["tool_call_id"] == "call_1"
 
-    def test_build_drops_orphan_tool_messages_without_matching_tool_call_id(self, provider):
+    def test_build_drops_orphan_tool_messages_without_matching_tool_call_id(
+        self, provider
+    ):
         messages = _messages_with_single_tool_call(
             tool_response_id="missing_call",
             tool_response_content="orphan",
@@ -339,18 +353,18 @@ class TestExtractThinkingContent:
     def test_extract_from_object_reasoning_content(self, provider):
         delta = MagicMock()
         delta.reasoning_content = "This is reasoning"
-        
+
         result = provider._extract_thinking_content(delta)
-        
+
         assert result == "This is reasoning"
 
     def test_extract_from_object_thinking(self, provider):
         delta = MagicMock()
         delta.reasoning_content = None
         delta.thinking = "This is thinking"
-        
+
         result = provider._extract_thinking_content(delta)
-        
+
         assert result == "This is thinking"
 
     def test_extract_from_object_reasoning(self, provider):
@@ -358,9 +372,9 @@ class TestExtractThinkingContent:
         delta.reasoning_content = None
         delta.thinking = None
         delta.reasoning = "This is reasoning"
-        
+
         result = provider._extract_thinking_content(delta)
-        
+
         assert result == "This is reasoning"
 
     def test_extract_from_object_thought(self, provider):
@@ -369,37 +383,37 @@ class TestExtractThinkingContent:
         delta.thinking = None
         delta.reasoning = None
         delta.thought = "This is a thought"
-        
+
         result = provider._extract_thinking_content(delta)
-        
+
         assert result == "This is a thought"
 
     def test_extract_from_dict(self, provider):
         delta = {"reasoning_content": "Dict reasoning"}
-        
+
         result = provider._extract_thinking_content(delta)
-        
+
         assert result == "Dict reasoning"
 
     def test_extract_from_dict_thinking_key(self, provider):
         delta = {"thinking": "Dict thinking"}
-        
+
         result = provider._extract_thinking_content(delta)
-        
+
         assert result == "Dict thinking"
 
     def test_extract_xml_thinking_tags(self, provider):
         delta = {"thinking": "<thinking>XML content</thinking>"}
-        
+
         result = provider._extract_thinking_content(delta)
-        
+
         assert result == "XML content"
 
     def test_extract_xml_multiline(self, provider):
         delta = {"thinking": "<thinking>Line 1\nLine 2\nLine 3</thinking>"}
-        
+
         result = provider._extract_thinking_content(delta)
-        
+
         assert result == "Line 1\nLine 2\nLine 3"
 
     def test_extract_short_think_tags(self, provider):
@@ -411,9 +425,9 @@ class TestExtractThinkingContent:
 
     def test_extract_from_dict_text_field(self, provider):
         delta = {"reasoning_content": {"text": "Nested text"}}
-        
+
         result = provider._extract_thinking_content(delta)
-        
+
         assert result == "Nested text"
 
     def test_extract_from_dict_content_field(self, provider):
@@ -499,14 +513,14 @@ class TestExtractThinkingContent:
         delta.thinking = None
         delta.reasoning = None
         delta.thought = None
-        
+
         result = provider._extract_thinking_content(delta)
-        
+
         assert result is None
 
     def test_extract_empty_dict_returns_none(self, provider):
         result = provider._extract_thinking_content({})
-        
+
         assert result is None
 
 
@@ -518,7 +532,12 @@ class TestStreamDeltaHelpers:
     def test_extract_stream_delta_returns_none_for_invalid_chunks(self, provider):
         assert provider._extract_stream_delta(None) is None
         assert provider._extract_stream_delta(SimpleNamespace(choices=[])) is None
-        assert provider._extract_stream_delta(SimpleNamespace(choices=[SimpleNamespace(delta=None)])) is None
+        assert (
+            provider._extract_stream_delta(
+                SimpleNamespace(choices=[SimpleNamespace(delta=None)])
+            )
+            is None
+        )
 
     def test_extract_stream_delta_returns_delta_for_valid_chunk(self, provider):
         delta = SimpleNamespace(content="hello")
@@ -544,24 +563,41 @@ class TestStreamDeltaHelpers:
         assert provider._extract_stream_delta(chunk) is None
 
     def test_extract_delta_content_supports_object_and_dict_delta(self, provider):
-        assert provider._extract_delta_content(SimpleNamespace(content="hello")) == "hello"
+        assert (
+            provider._extract_delta_content(SimpleNamespace(content="hello")) == "hello"
+        )
         assert provider._extract_delta_content({"content": "world"}) == "world"
         assert provider._extract_delta_content({"content": ""}) is None
         assert provider._extract_delta_content({"content": 123}) is None
 
-    def test_extract_stream_finish_reason_supports_dict_and_object_chunks(self, provider):
-        dict_chunk = {"choices": [{"delta": {"content": "hi"}, "finish_reason": "stop"}]}
+    def test_extract_stream_finish_reason_supports_dict_and_object_chunks(
+        self, provider
+    ):
+        dict_chunk = {
+            "choices": [{"delta": {"content": "hi"}, "finish_reason": "stop"}]
+        }
         obj_chunk = SimpleNamespace(
-            choices=[SimpleNamespace(delta=SimpleNamespace(content="ok"), finish_reason="tool_calls")]
+            choices=[
+                SimpleNamespace(
+                    delta=SimpleNamespace(content="ok"), finish_reason="tool_calls"
+                )
+            ]
         )
 
         assert provider._extract_stream_finish_reason(dict_chunk) == "stop"
         assert provider._extract_stream_finish_reason(obj_chunk) == "tool_calls"
 
-    def test_extract_stream_finish_reason_returns_none_for_missing_values(self, provider):
+    def test_extract_stream_finish_reason_returns_none_for_missing_values(
+        self, provider
+    ):
         assert provider._extract_stream_finish_reason(None) is None
         assert provider._extract_stream_finish_reason({"choices": []}) is None
-        assert provider._extract_stream_finish_reason({"choices": [{"delta": {"content": "x"}}]}) is None
+        assert (
+            provider._extract_stream_finish_reason(
+                {"choices": [{"delta": {"content": "x"}}]}
+            )
+            is None
+        )
 
 
 class TestStreamUsageDiagnostics:
@@ -594,7 +630,12 @@ class TestStreamUsageDiagnostics:
 
     def test_stream_cache_diagnostics_reports_hit(self, provider):
         provider._record_stream_usage_from_chunk(
-            {"usage": {"prompt_tokens": 100, "prompt_tokens_details": {"cached_tokens": 30}}}
+            {
+                "usage": {
+                    "prompt_tokens": 100,
+                    "prompt_tokens_details": {"cached_tokens": 30},
+                }
+            }
         )
 
         diagnostics = provider.get_stream_cache_diagnostics(model="model")
@@ -606,7 +647,12 @@ class TestStreamUsageDiagnostics:
 
     def test_stream_cache_diagnostics_reports_miss(self, provider):
         provider._record_stream_usage_from_chunk(
-            {"usage": {"prompt_tokens": 100, "prompt_tokens_details": {"cached_tokens": 0}}}
+            {
+                "usage": {
+                    "prompt_tokens": 100,
+                    "prompt_tokens_details": {"cached_tokens": 0},
+                }
+            }
         )
 
         diagnostics = provider.get_stream_cache_diagnostics(model="model")
@@ -644,12 +690,65 @@ class TestStreamUsageDiagnostics:
         assert diagnostics["thinking_tokens"] == 9
 
     def test_record_usage_from_completion_response(self, provider):
-        response = {"usage": {"prompt_tokens": 5, "completion_tokens": 2, "total_tokens": 7}}
+        response = {
+            "usage": {"prompt_tokens": 5, "completion_tokens": 2, "total_tokens": 7}
+        }
 
         captured = provider._record_usage_from_payload_container(response)
 
         assert captured == response["usage"]
         assert provider.get_last_usage() == response["usage"]
+
+    @pytest.mark.asyncio
+    async def test_concurrent_streams_keep_request_local_usage_and_payloads(self):
+        a_recorded = asyncio.Event()
+        release_a = asyncio.Event()
+
+        class ConcurrentUsageProvider(MockProvider):
+            async def _stream_internal(self, model, messages, **request_kwargs):
+                label = request_kwargs["label"]
+                if label == "a":
+                    self._record_stream_usage_from_chunk(
+                        {"usage": {"prompt_tokens": 1, "total_tokens": 11}}
+                    )
+                    self._set_last_stream_response_payload({"content": "alpha"})
+                    a_recorded.set()
+                    await release_a.wait()
+                else:
+                    await a_recorded.wait()
+                    self._record_stream_usage_from_chunk(
+                        {"usage": {"prompt_tokens": 2, "total_tokens": 22}}
+                    )
+                    self._set_last_stream_response_payload({"content": "bravo"})
+                yield ChunkEvent(content=label)
+
+        provider = ConcurrentUsageProvider()
+
+        async def run_stream(label):
+            provider.clear_last_stream_usage()
+            async for _event in provider.get_completion_stream(
+                "model", [], label=label
+            ):
+                pass
+            return (
+                provider.get_last_stream_usage(),
+                provider.get_last_usage(),
+                provider.get_last_stream_response_payload(),
+            )
+
+        task_a = asyncio.create_task(run_stream("a"))
+        await a_recorded.wait()
+        task_b = asyncio.create_task(run_stream("b"))
+        b_stream_usage, b_usage, b_payload = await task_b
+        release_a.set()
+        a_stream_usage, a_usage, a_payload = await task_a
+
+        assert b_stream_usage == {"prompt_tokens": 2, "total_tokens": 22}
+        assert b_usage == {"prompt_tokens": 2, "total_tokens": 22}
+        assert b_payload == {"content": "bravo"}
+        assert a_stream_usage == {"prompt_tokens": 1, "total_tokens": 11}
+        assert a_usage == {"prompt_tokens": 1, "total_tokens": 11}
+        assert a_payload == {"content": "alpha"}
 
 
 class TestCompletionContentHelpers:
@@ -680,7 +779,9 @@ class TestCompletionContentHelpers:
                 invalid_response_message="Invalid response",
             )
 
-    def test_extract_completion_content_raises_on_malformed_string_choices(self, provider):
+    def test_extract_completion_content_raises_on_malformed_string_choices(
+        self, provider
+    ):
         response = SimpleNamespace(choices="not-a-list")
 
         with pytest.raises(LLMAPIError, match="Invalid response"):
@@ -733,7 +834,9 @@ class TestCompletionResponseHelpers:
             }
         ]
 
-    def test_extract_completion_response_parses_anthropic_tool_use_blocks(self, provider):
+    def test_extract_completion_response_parses_anthropic_tool_use_blocks(
+        self, provider
+    ):
         response = SimpleNamespace(
             choices=[
                 SimpleNamespace(
@@ -767,7 +870,9 @@ class TestCompletionResponseHelpers:
             }
         ]
 
-    def test_extract_completion_response_raises_on_invalid_tool_arguments_json(self, provider):
+    def test_extract_completion_response_raises_on_invalid_tool_arguments_json(
+        self, provider
+    ):
         response = SimpleNamespace(
             choices=[
                 SimpleNamespace(
@@ -794,7 +899,9 @@ class TestCompletionResponseHelpers:
                 invalid_response_message="Invalid response",
             )
 
-    def test_extract_completion_response_reads_choice_level_text_fallback(self, provider):
+    def test_extract_completion_response_reads_choice_level_text_fallback(
+        self, provider
+    ):
         response = SimpleNamespace(
             choices=[
                 SimpleNamespace(
@@ -812,7 +919,9 @@ class TestCompletionResponseHelpers:
 
         assert normalized["content"] == "legacy text payload"
 
-    def test_extract_completion_response_reads_message_content_block_content_key(self, provider):
+    def test_extract_completion_response_reads_message_content_block_content_key(
+        self, provider
+    ):
         response = SimpleNamespace(
             choices=[
                 SimpleNamespace(
@@ -845,7 +954,7 @@ class TestGetCompletionStream:
     @pytest.mark.asyncio
     async def test_stream_yields_events(self, provider):
         events = await _collect_stream_events(provider)
-        
+
         assert len(events) == 2
         assert isinstance(events[0], ChunkEvent)
         assert isinstance(events[1], StreamingCompleteEvent)
@@ -875,7 +984,9 @@ class TestGetCompletionStream:
         ],
         ids=["rate_limit", "api_error", "generic_error"],
     )
-    async def test_stream_maps_errors_to_error_event(self, error_factory, expected_message):
+    async def test_stream_maps_errors_to_error_event(
+        self, error_factory, expected_message
+    ):
         provider = _provider_with_stream_error(error_factory)
         events = await _collect_stream_events(provider)
 
@@ -889,7 +1000,9 @@ class TestStandardCompletionHelper:
     def provider(self):
         return MockProvider()
 
-    def test_build_standard_completion_params_adds_stream_fields_when_enabled(self, provider):
+    def test_build_standard_completion_params_adds_stream_fields_when_enabled(
+        self, provider
+    ):
         messages = [{"role": "user", "content": "Hello"}]
 
         params = provider._build_standard_completion_params(
@@ -907,13 +1020,22 @@ class TestStandardCompletionHelper:
         self, provider, monkeypatch
     ):
         messages = [{"role": "user", "content": "Hello"}]
-        tools = [{"type": "function", "function": {"name": "ping", "parameters": {"type": "object"}}}]
+        tools = [
+            {
+                "type": "function",
+                "function": {"name": "ping", "parameters": {"type": "object"}},
+            }
+        ]
         built_params = {"model": "mock/model", "messages": messages}
         build_params_mock = MagicMock(return_value=built_params)
         get_completion_mock = AsyncMock(return_value={"content": "ok"})
 
-        monkeypatch.setattr(provider, "_build_standard_completion_params", build_params_mock)
-        monkeypatch.setattr(provider, "_get_completion_with_standard_errors", get_completion_mock)
+        monkeypatch.setattr(
+            provider, "_build_standard_completion_params", build_params_mock
+        )
+        monkeypatch.setattr(
+            provider, "_get_completion_with_standard_errors", get_completion_mock
+        )
 
         result = await provider._get_completion_with_standard_params(
             provider_label="Mock",
@@ -959,7 +1081,9 @@ class TestStandardCompletionHelper:
         assert result == {"content": "ok"}
 
     @pytest.mark.asyncio
-    async def test_raises_llm_api_error_for_invalid_response_shape(self, provider, monkeypatch):
+    async def test_raises_llm_api_error_for_invalid_response_shape(
+        self, provider, monkeypatch
+    ):
         response = SimpleNamespace(choices=[SimpleNamespace(message=None)])
         monkeypatch.setattr(litellm, "acompletion", AsyncMock(return_value=response))
 
@@ -1009,7 +1133,9 @@ class TestStandardCompletionHelper:
             )
 
     @pytest.mark.asyncio
-    async def test_maps_generic_http_520_exception_to_llm_api_error(self, provider, monkeypatch):
+    async def test_maps_generic_http_520_exception_to_llm_api_error(
+        self, provider, monkeypatch
+    ):
         async def raise_http_520(**_kwargs):
             error = RuntimeError("transport failed")
             error.response = SimpleNamespace(status_code=520)
@@ -1061,9 +1187,13 @@ class TestOnlineLLMProvider:
         provider = self._MockOnlineProvider(api_key="test-key")
         messages = [{"role": "user", "content": "hello"}]
         get_completion_mock = AsyncMock(return_value={"content": "ok"})
-        monkeypatch.setattr(provider, "_get_completion_with_standard_params", get_completion_mock)
+        monkeypatch.setattr(
+            provider, "_get_completion_with_standard_params", get_completion_mock
+        )
 
-        result = await provider.get_completion("model", messages, prompt_cache_key="cache-key")
+        result = await provider.get_completion(
+            "model", messages, prompt_cache_key="cache-key"
+        )
 
         get_completion_mock.assert_awaited_once_with(
             provider_label="MockOnline",
@@ -1091,9 +1221,13 @@ class TestOnlineLLMProvider:
             calls["thinking"] += 1
             yield ChunkEvent(content="thinking")
 
-        monkeypatch.setattr(provider, "_build_standard_completion_params", MagicMock(return_value={}))
+        monkeypatch.setattr(
+            provider, "_build_standard_completion_params", MagicMock(return_value={})
+        )
         monkeypatch.setattr(provider, "_stream_text_content_events", fake_text_stream)
-        monkeypatch.setattr(provider, "_stream_thinking_and_text_events", fake_thinking_stream)
+        monkeypatch.setattr(
+            provider, "_stream_thinking_and_text_events", fake_thinking_stream
+        )
 
         events = []
         async for event in provider._stream_internal("model", []):
@@ -1116,9 +1250,13 @@ class TestOnlineLLMProvider:
             calls["thinking"] += 1
             yield ChunkEvent(content="thinking")
 
-        monkeypatch.setattr(provider, "_build_standard_completion_params", MagicMock(return_value={}))
+        monkeypatch.setattr(
+            provider, "_build_standard_completion_params", MagicMock(return_value={})
+        )
         monkeypatch.setattr(provider, "_stream_text_content_events", fake_text_stream)
-        monkeypatch.setattr(provider, "_stream_thinking_and_text_events", fake_thinking_stream)
+        monkeypatch.setattr(
+            provider, "_stream_thinking_and_text_events", fake_thinking_stream
+        )
 
         events = []
         async for event in provider._stream_internal("model", []):
@@ -1135,7 +1273,9 @@ class TestOnlineLLMProvider:
         async def fake_text_stream(_params):
             yield ChunkEvent(content="text")
 
-        monkeypatch.setattr(provider, "_build_stream_completion_params", build_params_mock)
+        monkeypatch.setattr(
+            provider, "_build_stream_completion_params", build_params_mock
+        )
         monkeypatch.setattr(provider, "_stream_text_content_events", fake_text_stream)
 
         events = []
@@ -1163,7 +1303,9 @@ class TestOnlineLLMProvider:
     def test_build_stream_completion_params_enables_stream_mode(self, monkeypatch):
         provider = self._MockOnlineProvider(api_key="test-key")
         build_params_mock = MagicMock(return_value={"ok": True})
-        monkeypatch.setattr(provider, "_build_standard_completion_params", build_params_mock)
+        monkeypatch.setattr(
+            provider, "_build_standard_completion_params", build_params_mock
+        )
 
         result = provider._build_stream_completion_params(
             model="model",

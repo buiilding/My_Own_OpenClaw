@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/llm: keep streaming provider usage and normalized response payloads request-local so overlapping streams cannot overwrite turn diagnostics.
 - frontend/auth: save and load persisted install auth state with owner-only file permissions on POSIX platforms.
 - backend/bootstrap: reject concurrent cross-thread initialization deterministically instead of sharing an event-loop-bound `asyncio.Lock`.
 - backend/inference: keep provider circuits open through cooldown even if an older in-flight request reports success.
