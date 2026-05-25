@@ -164,7 +164,7 @@ async def sdk_ocr_inspect(
                 ),
                 None,
             )
-        except Exception as exc:
+        except ValueError as exc:
             status_code, detail = build_ocr_resolution_error(exc)
             resolution_error = OcrResolutionErrorModel(
                 status_code=status_code,
@@ -250,7 +250,7 @@ async def sdk_ocr_resolve_text(
             threshold=request.threshold,
             screenshot_id=source.source_id,
         )
-    except Exception as exc:
+    except ValueError as exc:
         raise_ocr_resolution_error(exc)
 
     ranked = rank_ocr_matches(request.text, ocr_results, source_id=source.source_id)

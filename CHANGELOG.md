@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/sdk: let unexpected OCR inspect resolver failures propagate instead of serializing them as successful resolution errors.
 - backend/llm: recurse through nested list and dict reasoning payloads when extracting streamed thinking text.
 - backend/sdk: require authenticated install identity for the models debug route and reject cross-user model config inspection.
 - backend/tools: reject atomic bundle detection when grouped tool calls or results carry mixed bundle IDs.

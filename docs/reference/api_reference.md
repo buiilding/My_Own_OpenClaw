@@ -500,7 +500,7 @@ separate debugging subsystem. It combines:
 - `ranked_matches`: top fuzzy matches for `text`
 - `accepted_matches`: matches whose score meets `threshold`
 - `resolved_match`: the single resolved target when disambiguation succeeds
-- `resolution_error`: structured `status_code` plus `detail` when single-target resolution fails
+- `resolution_error`: structured `status_code` plus `detail` when expected single-target resolution fails; unexpected resolver/runtime errors return as route errors
 - `overlay`: optional saved artifact when `include_overlay=true`
 
 ### POST `/api/sdk/ocr/find-text`

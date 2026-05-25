@@ -34,6 +34,12 @@ ranked candidate list that remains after threshold filtering.
 
 SDK routes can resolve image input through backend helpers, including artifact-backed sources. Preserve artifact identity when the image came from a screenshot or upload.
 
+OCR inspect returns `resolution_error` only for expected coordinate-resolution
+misses, ambiguous matches, stale-frame candidates, or malformed OCR rows that
+the resolver reports as `ValueError`. Unexpected resolver/runtime failures must
+propagate as route errors so monitoring and SDK callers do not treat backend
+failures as normal no-match results.
+
 Vision describe region responses are crop-relative when a region is supplied:
 the backend rejects origins outside the source image, trims partial overflow at
 the image edge, and returns cropped-image metadata with the region origin

@@ -455,6 +455,43 @@ async def test_sdk_ocr_inspect_includes_structured_resolution_error(tmp_path) ->
 
 
 @pytest.mark.asyncio
+async def test_sdk_ocr_inspect_propagates_unexpected_resolver_errors(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    def raise_unexpected(*_args, **_kwargs):
+        raise RuntimeError("resolver crashed")
+
+    resolver = sdk_routes.sdk_ocr_inspect.__globals__["OcrCoordinateResolver"]
+    monkeypatch.setattr(
+        resolver,
+        "resolve",
+        staticmethod(raise_unexpected),
+    )
+    container = _container(
+        tmp_path,
+        ocr_results=[
+            {
+                "id": "row-1",
+                "text": "Search Amazon",
+                "confidence": 0.99,
+                "bbox": {"x": 500, "y": 216, "width": 174, "height": 36},
+            },
+        ],
+    )
+
+    with pytest.raises(RuntimeError, match="resolver crashed"):
+        await sdk_routes.sdk_ocr_inspect(
+            _sdk_request("/api/sdk/ocr/inspect"),
+            OcrInspectRequest(
+                image=ImageSourceInput(image_base64=_png_base64()),
+                text="Search Amazon",
+            ),
+            container,
+        )
+
+
+@pytest.mark.asyncio
 async def test_sdk_ocr_resolve_candidate_returns_exact_candidate(tmp_path) -> None:
     container = _container(
         tmp_path,
