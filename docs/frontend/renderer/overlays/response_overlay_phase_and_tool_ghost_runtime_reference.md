@@ -91,6 +91,10 @@ Contract ownership:
 - renderer owns only presentation mapping from `currentTurn` into compact overlay
   rows; it must not execute tools, write transcripts, or reinterpret backend
   stream semantics for the overlay.
+- renderer raw backend stream handlers are fallback/history side-effect paths.
+  When the SDK projection for the same turn exists, they suppress duplicate live
+  assistant/tool row construction and commit the projected turn into message
+  history on terminal events.
 - `resolveResponseOverlayViewContract(...)` is the canonical pure helper for:
   - latest visible response entry id
   - `showResponse`
@@ -123,6 +127,9 @@ Scroll behavior:
   `AppProvider` must apply the saved appearance theme there too; the indicator
   itself uses dedicated light-mode typing tokens for visible dots and shell.
 - `ChatBoxResponse` does not render a separate reasoning/thinking stream region.
+- `ChatBoxResponse` sanitizes markdown HTML at the render boundary before
+  `dangerouslySetInnerHTML`, even though upstream markdown projection already
+  emits sanitized HTML.
 - compaction status text alone does not render overlay content unless awaiting/response mode is active.
 
 ## Overlay Size IPC Contract

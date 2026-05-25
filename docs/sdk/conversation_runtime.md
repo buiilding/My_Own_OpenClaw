@@ -85,6 +85,10 @@ UI adapters:
 Electron main also emits this projection to renderer surfaces as
 `conversation-runtime-updated`. Renderer overlays should render this projection
 instead of independently interpreting raw backend stream/tool events.
+When a same-turn `currentTurn` projection is present, renderer raw backend
+handlers should not build duplicate live assistant/tool rows. They may still
+handle transcript persistence, stream tracking, and fallback behavior for tests
+or legacy hosts that do not emit the SDK projection.
 
 ## Store Rule
 
@@ -110,7 +114,9 @@ The SDK ships two reusable store adapters:
 
 - `InMemoryConversationStore` for tests, demos, and short-lived processes.
 - `FileConversationStore` for Node CLI/custom UI hosts that want durable JSON
-  event logs without Electron sidecar storage.
+  event logs without Electron sidecar storage. Same-conversation mutations are
+  serialized inside the adapter so overlapping append/rewrite/replay/delete
+  operations do not lose events through read-modify-write races.
 - `SidecarConversationStore` for Node/Electron hosts that want durable local
   sidecar storage through the SDK store interface instead of renderer IPC
   transcript helpers. The Electron dashboard conversation library uses this

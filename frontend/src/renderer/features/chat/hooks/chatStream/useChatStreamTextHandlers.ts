@@ -17,6 +17,7 @@ type UseChatStreamTextHandlersOptions = {
   setThinkingStatus: (status: string | null, conversationRef?: string | null) => void;
   setThinkingSourceEventType: (eventType: string | null, conversationRef?: string | null) => void;
   modelContextRef: { current: TranscriptModelContext };
+  renderLiveMessages?: boolean | ((event: ConversationEvent, conversationRef?: string | null) => boolean);
   recordTrackingEvent: (
     eventType: 'llm-thought' | 'streaming-response',
     turnRef: string | null | undefined,
@@ -25,6 +26,14 @@ type UseChatStreamTextHandlersOptions = {
   ) => void;
 };
 
+function shouldRenderLiveMessage(
+  option: UseChatStreamTextHandlersOptions['renderLiveMessages'],
+  event: ConversationEvent,
+  conversationRef?: string | null,
+): boolean {
+  return typeof option === 'function' ? option(event, conversationRef) : option !== false;
+}
+
 export const useChatStreamTextHandlers = ({
   addMessage,
   updateMessage,
@@ -32,6 +41,7 @@ export const useChatStreamTextHandlers = ({
   setThinkingStatus,
   setThinkingSourceEventType,
   modelContextRef,
+  renderLiveMessages = true,
   recordTrackingEvent,
 }: UseChatStreamTextHandlersOptions) => {
   const handleLlmThought = useCallback((event: ConversationEvent, conversationRef: string | null) => {
@@ -44,6 +54,11 @@ export const useChatStreamTextHandlers = ({
     const nextThinkingStatus = buildThinkingStatus(nextBaseStatus, thoughtChunk);
     setThinkingStatus(nextThinkingStatus, conversationRef);
     setThinkingSourceEventType('llm-thought', conversationRef);
+
+    if (!shouldRenderLiveMessage(renderLiveMessages, event, conversationRef)) {
+      recordTrackingEvent('llm-thought', event.turnRef, {}, conversationRef);
+      return;
+    }
 
     const modelContext = modelContextRef.current;
     const modelMetadata = {
@@ -84,6 +99,7 @@ export const useChatStreamTextHandlers = ({
     addMessage,
     modelContextRef,
     recordTrackingEvent,
+    renderLiveMessages,
     setThinkingSourceEventType,
     setThinkingStatus,
     updateMessage,
@@ -91,6 +107,13 @@ export const useChatStreamTextHandlers = ({
 
   const handleAssistantDelta = useCallback((event: ConversationEvent, conversationRef: string | null) => {
     setIsSending(false, conversationRef);
+    if (!shouldRenderLiveMessage(renderLiveMessages, event, conversationRef)) {
+      recordTrackingEvent('streaming-response', event.turnRef, {
+        phase: 'streaming',
+        chunkSize: (typeof event.payload?.text === 'string' ? event.payload.text : '').length,
+      }, conversationRef);
+      return;
+    }
     const modelContext = modelContextRef.current;
     const modelMetadata = {
       modelId: modelContext.modelId,
@@ -131,6 +154,7 @@ export const useChatStreamTextHandlers = ({
     addMessage,
     modelContextRef,
     recordTrackingEvent,
+    renderLiveMessages,
     setIsSending,
     updateMessage,
   ]);

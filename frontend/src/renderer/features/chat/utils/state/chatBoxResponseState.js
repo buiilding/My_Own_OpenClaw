@@ -109,6 +109,67 @@ export function buildCurrentTurnMessagesFromProjection(currentTurnProjection) {
   return messages;
 }
 
+function isActiveCurrentTurnProjection(currentTurnProjection) {
+  if (!currentTurnProjection || typeof currentTurnProjection !== 'object') {
+    return false;
+  }
+  if (currentTurnProjection.phase && currentTurnProjection.phase !== 'idle') {
+    return true;
+  }
+  return Boolean(
+    currentTurnProjection.assistantText
+    || currentTurnProjection.reasoningText
+    || currentTurnProjection.lastError
+    || currentTurnProjection.toolEvents?.length,
+  );
+}
+
+function findCurrentTurnUserAnchor(messages, currentTurnProjection) {
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return -1;
+  }
+  const turnRef = currentTurnProjection?.turnRef;
+  if (typeof turnRef === 'string' && turnRef) {
+    for (let index = messages.length - 1; index >= 0; index -= 1) {
+      if (messages[index]?.sender === 'user' && messages[index]?.turnRef === turnRef) {
+        return index;
+      }
+    }
+  }
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    if (messages[index]?.sender === 'user') {
+      return index;
+    }
+  }
+  return -1;
+}
+
+export function replaceCurrentTurnMessagesWithProjection(messages, currentTurnProjection) {
+  if (!isActiveCurrentTurnProjection(currentTurnProjection)) {
+    return messages;
+  }
+  const projectedAssistantMessages = buildCurrentTurnMessagesFromProjection(currentTurnProjection)
+    .filter((message) => message?.sender !== 'user');
+  if (projectedAssistantMessages.length === 0) {
+    return messages;
+  }
+  const sourceMessages = Array.isArray(messages) ? messages : [];
+  const anchorIndex = findCurrentTurnUserAnchor(sourceMessages, currentTurnProjection);
+  if (anchorIndex === -1) {
+    return projectedAssistantMessages;
+  }
+  const turnRef = currentTurnProjection?.turnRef;
+  const nextTail = sourceMessages.slice(anchorIndex + 1).filter((message) => (
+    message?.sender !== 'assistant'
+    || (turnRef && message.turnRef && message.turnRef !== turnRef)
+  ));
+  return [
+    ...sourceMessages.slice(0, anchorIndex + 1),
+    ...projectedAssistantMessages,
+    ...nextTail,
+  ];
+}
+
 export function isResponseCloseable(response) {
   if (!response) {
     return false;

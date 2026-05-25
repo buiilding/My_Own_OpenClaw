@@ -154,6 +154,73 @@ describe('useChatStream state + stream handling', () => {
     }));
   });
 
+  test('skips raw live assistant chunks when SDK current-turn projection owns the turn', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.setState({
+        messages: [
+          { id: 'user-live', text: 'hello', sender: 'user', turnRef: 'turn-live' },
+        ],
+        currentTurnProjection: {
+          conversationRef: 'conv-test',
+          turnRef: 'turn-live',
+          phase: 'streaming',
+          assistantText: 'Projected answer',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+        },
+      });
+      emitBackendEvent({
+        type: 'streaming-response',
+        turn_ref: 'turn-live',
+        payload: { text: 'raw duplicate chunk' },
+      });
+    });
+
+    expect(useChatStore.getState().messages).toEqual([
+      { id: 'user-live', text: 'hello', sender: 'user', turnRef: 'turn-live' },
+    ]);
+  });
+
+  test('commits SDK current-turn projection into message history on completion', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.setState({
+        messages: [
+          { id: 'user-live', text: 'hello', sender: 'user', turnRef: 'turn-live' },
+        ],
+        currentTurnProjection: {
+          conversationRef: 'conv-test',
+          turnRef: 'turn-live',
+          phase: 'complete',
+          assistantText: 'Projected answer',
+          reasoningText: 'Projected thought',
+          toolEvents: [],
+          lastError: null,
+        },
+      });
+      emitBackendEvent({
+        type: 'streaming-complete',
+        turn_ref: 'turn-live',
+        payload: {},
+      });
+    });
+
+    expect(useChatStore.getState().messages).toEqual([
+      { id: 'user-live', text: 'hello', sender: 'user', turnRef: 'turn-live' },
+      expect.objectContaining({
+        id: 'conv-test:turn-live:assistant',
+        text: 'Projected answer',
+        thinkingText: 'Projected thought',
+        sourceChannel: 'conversation-runtime-updated',
+        type: 'llm-text',
+      }),
+    ]);
+  });
+
   test('accepts llm-thought payload content fallback', () => {
     const { emitBackendEvent } = registerBackendListener();
 

@@ -12,16 +12,26 @@ import type { ChatStreamThinkingStateDeps } from './chatStreamHandlerTypes';
 import { findLastAssistantLlmTextMessageId } from '../../utils/chatStream/chatStreamMessageUpdates';
 import type { ConversationEvent } from '../../../../infrastructure/api/windieSdkClient';
 import { recordAssistantTranscriptMessage } from '../../utils/chatStream/chatStreamTranscriptPersistence';
+import { replaceCurrentTurnMessagesWithProjection } from '../../utils/state/chatBoxResponseState';
 
 type UseChatStreamTerminalHandlersDeps = ChatStreamThinkingStateDeps<
   'streaming-complete' | 'token-count' | 'memory-store' | 'error'
 > & {
   enableTranscript: boolean;
+  renderLiveMessages?: boolean | ((event: ConversationEvent, conversationRef?: string | null) => boolean);
 };
 
 function terminalPayloadWithoutRawEvent(event: ConversationEvent): Record<string, unknown> {
   const { rawEvent: _rawEvent, ...payload } = event.payload ?? {};
   return payload;
+}
+
+function shouldRenderLiveMessage(
+  option: UseChatStreamTerminalHandlersDeps['renderLiveMessages'],
+  event: ConversationEvent,
+  conversationRef?: string | null,
+): boolean {
+  return typeof option === 'function' ? option(event, conversationRef) : option !== false;
 }
 
 export function useChatStreamTerminalHandlers({
@@ -32,6 +42,7 @@ export function useChatStreamTerminalHandlers({
   setIsSending,
   setThinkingSourceEventType,
   setThinkingStatus,
+  renderLiveMessages = true,
 }: UseChatStreamTerminalHandlersDeps) {
   const setTokenCounts = useChatStore((state) => state.setTokenCounts);
   const updateMessage = useChatStore((state) => state.updateMessage);
@@ -100,18 +111,29 @@ export function useChatStreamTerminalHandlers({
     setThinkingSourceEventType(null, conversationRef);
     const errorText = resolveErrorText(errorPayload);
     const modelContext = modelContextRef.current;
-    const newMessage: ChatMessage = {
-      id: crypto.randomUUID(),
-      text: errorText,
-      sender: 'assistant',
-      type: 'error',
-      sourceEventType: 'error',
-      sourceChannel: 'from-backend',
-      turnRef: event.turnRef ?? undefined,
-      modelId: modelContext.modelId,
-      modelProvider: modelContext.modelProvider,
-    };
-    addMessage(newMessage, conversationRef);
+    if (shouldRenderLiveMessage(renderLiveMessages, event, conversationRef)) {
+      const newMessage: ChatMessage = {
+        id: crypto.randomUUID(),
+        text: errorText,
+        sender: 'assistant',
+        type: 'error',
+        sourceEventType: 'error',
+        sourceChannel: 'from-backend',
+        turnRef: event.turnRef ?? undefined,
+        modelId: modelContext.modelId,
+        modelProvider: modelContext.modelProvider,
+      };
+      addMessage(newMessage, conversationRef);
+    } else {
+      const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
+      const nextMessages = replaceCurrentTurnMessagesWithProjection(
+        workspace.messages,
+        workspace.currentTurnProjection,
+      );
+      if (nextMessages !== workspace.messages) {
+        useChatStore.getState().setMessages(nextMessages, conversationRef);
+      }
+    }
 
     recordTrackingEvent('error', event.turnRef, {
       phase: 'error',
@@ -131,6 +153,7 @@ export function useChatStreamTerminalHandlers({
     addMessage,
     enableTranscript,
     modelContextRef,
+    renderLiveMessages,
     setIsSending,
     setThinkingSourceEventType,
     setThinkingStatus,

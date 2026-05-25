@@ -78,6 +78,20 @@ export function useChatStream(enableTranscript: boolean = true) {
     getWorkspaceState: useChatStore.getState().getWorkspaceState,
   }), []);
 
+  const shouldRenderRawLiveMessages = useCallback((
+    event: { turnRef?: string | null },
+    conversationRef?: string | null,
+  ): boolean => {
+    const projection = useChatStore.getState().getWorkspaceState(conversationRef).currentTurnProjection;
+    if (!projection || projection.phase === 'idle') {
+      return true;
+    }
+    if (!projection.turnRef || !event.turnRef) {
+      return true;
+    }
+    return projection.turnRef !== event.turnRef;
+  }, []);
+
   const {
     updateLastMessageBySender,
     updateLastAssistantLlmTextMessage,
@@ -108,6 +122,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     setThinkingStatus,
     setThinkingSourceEventType,
     modelContextRef,
+    renderLiveMessages: shouldRenderRawLiveMessages,
     recordTrackingEvent,
   });
 
@@ -138,6 +153,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     setThinkingStatus,
     setThinkingSourceEventType,
     modelContextRef,
+    renderLiveMessages: shouldRenderRawLiveMessages,
     recordTrackingEvent,
   });
 
@@ -172,6 +188,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     setThinkingSourceEventType,
     updateMessage,
     persistThinkingForTurn,
+    renderLiveMessages: shouldRenderRawLiveMessages,
   });
 
   const {
@@ -186,6 +203,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     setIsSending,
     setThinkingSourceEventType,
     setThinkingStatus,
+    renderLiveMessages: shouldRenderRawLiveMessages,
   });
 
   const dispatchConversationEvent = useCallback((
@@ -310,6 +328,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleToolSchemas,
     handleUserMessageFull,
     processStreamingComplete,
+    shouldRenderRawLiveMessages,
     shouldIgnoreSdkEventForStaleTurn,
   ]);
 

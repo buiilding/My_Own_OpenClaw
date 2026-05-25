@@ -9,6 +9,7 @@ import type { StreamTrackingOptions } from '../../../../app/runtime/desktopChatS
 import { normalizeIncomingText } from '../../../../infrastructure/text/incomingTextNormalization';
 import { buildAssistantTextChatMessageState } from '../../../../infrastructure/transcript/assistantTextChatMessageState';
 import { recordAssistantTranscriptMessage } from '../../utils/chatStream/chatStreamTranscriptPersistence';
+import { replaceCurrentTurnMessagesWithProjection } from '../../utils/state/chatBoxResponseState';
 
 type UseChatStreamCompletionHandlerOptions = {
   addMessage: (message: ChatMessage, conversationRef?: string | null) => void;
@@ -25,7 +26,16 @@ type UseChatStreamCompletionHandlerOptions = {
   setThinkingSourceEventType: (eventType: string | null, conversationRef?: string | null) => void;
   updateMessage: (messageId: string, updates: Record<string, unknown>, conversationRef?: string | null) => void;
   persistThinkingForTurn: (turnRef?: string, conversationRef?: string | null) => void;
+  renderLiveMessages?: boolean | ((event: ConversationEvent, conversationRef?: string | null) => boolean);
 };
+
+function shouldRenderLiveMessage(
+  option: UseChatStreamCompletionHandlerOptions['renderLiveMessages'],
+  event: ConversationEvent,
+  conversationRef?: string | null,
+): boolean {
+  return typeof option === 'function' ? option(event, conversationRef) : option !== false;
+}
 
 export const useChatStreamCompletionHandler = ({
   addMessage,
@@ -37,14 +47,18 @@ export const useChatStreamCompletionHandler = ({
   setThinkingSourceEventType,
   updateMessage,
   persistThinkingForTurn,
+  renderLiveMessages = true,
 }: UseChatStreamCompletionHandlerOptions) => {
   return useCallback((event: ConversationEvent, conversationRef: string | null) => {
+    const shouldRenderLiveMessages = shouldRenderLiveMessage(renderLiveMessages, event, conversationRef);
     const userId = typeof event.payload?.userId === 'string'
       ? event.payload.userId
       : undefined;
     const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
     setIsSending(false, conversationRef);
-    persistThinkingForTurn(event.turnRef || undefined, conversationRef);
+    if (shouldRenderLiveMessages) {
+      persistThinkingForTurn(event.turnRef || undefined, conversationRef);
+    }
     setThinkingStatus(null, conversationRef);
     setThinkingSourceEventType(null, conversationRef);
 
@@ -56,7 +70,33 @@ export const useChatStreamCompletionHandler = ({
     const completionText = normalizeIncomingText(event.payload?.finalResponse)
       || normalizeIncomingText(lastMessage?.fullAssistantMessage?.content);
     const modelContext = modelContextRef.current;
-    if (lastMessage && lastMessage.sender === 'assistant' && !lastMessage.isComplete) {
+    const currentTurnProjection = workspace.currentTurnProjection;
+    const projectedCompletionText = (
+      currentTurnProjection?.turnRef === event.turnRef
+        ? normalizeIncomingText(currentTurnProjection.assistantText)
+        : ''
+    );
+    const transcriptText = completionText || projectedCompletionText;
+
+    if (!shouldRenderLiveMessages) {
+      const nextMessages = replaceCurrentTurnMessagesWithProjection(
+        currentMessages,
+        currentTurnProjection,
+      );
+      if (nextMessages !== currentMessages) {
+        useChatStore.getState().setMessages(nextMessages, conversationRef);
+      }
+      if (transcriptText && enableTranscript) {
+        recordAssistantTranscriptMessage({
+          text: transcriptText,
+          messageType: 'llm-text',
+          conversationRef: event.conversationRef,
+          userId,
+          modelContext,
+          transparency: undefined,
+        });
+      }
+    } else if (lastMessage && lastMessage.sender === 'assistant' && !lastMessage.isComplete) {
       const nextText = lastMessage.text || completionText;
       updateMessage(lastMessage.id, {
         text: nextText,
@@ -110,6 +150,7 @@ export const useChatStreamCompletionHandler = ({
     modelContextRef,
     persistThinkingForTurn,
     recordTrackingEvent,
+    renderLiveMessages,
     setIsSending,
     setThinkingSourceEventType,
     setThinkingStatus,
