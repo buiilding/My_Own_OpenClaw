@@ -435,10 +435,14 @@ async def sdk_debug_tool_schemas(
     model_provider: Optional[str] = Query(None),
     interaction_mode: InteractionModeQuery = Query(None),
 ) -> DebugToolSchemasResponse:
+    identity = require_sdk_debug_identity(
+        user_id,
+        context_label="SDK debug tool schemas",
+    )
     config = resolve_effective_debug_config(
         container=container,
         session_manager=session_manager,
-        user_id=user_id,
+        user_id=identity.user_id,
         model_id=model_id,
         model_provider=model_provider,
         interaction_mode=interaction_mode,

@@ -838,7 +838,9 @@ async def test_sdk_debug_models_rejects_other_user_context(
 @pytest.mark.asyncio
 async def test_sdk_debug_tool_schemas_returns_canonical_and_provider_shapes(
     tmp_path,
+    authenticated_install_identity,
 ) -> None:
+    _ = authenticated_install_identity
     config = AppConfig(
         artifact_store_path=str(tmp_path),
         artifact_max_bytes=1024 * 1024,
@@ -866,7 +868,7 @@ async def test_sdk_debug_tool_schemas_returns_canonical_and_provider_shapes(
 
 
 @pytest.mark.asyncio
-async def test_sdk_debug_tool_schemas_ignore_user_id_without_authenticated_identity(
+async def test_sdk_debug_tool_schemas_requires_authenticated_identity(
     tmp_path,
 ) -> None:
     config = AppConfig(
@@ -877,18 +879,41 @@ async def test_sdk_debug_tool_schemas_ignore_user_id_without_authenticated_ident
     )
     container = _container(tmp_path, config=config)
 
-    response = await sdk_routes.sdk_debug_tool_schemas(
-        container=container,
-        session_manager=_RejectingSessionManager(),
-        user_id="other-user",
-        model_id=None,
-        model_provider=None,
-        interaction_mode=None,
-    )
+    with pytest.raises(HTTPException) as exc_info:
+        await sdk_routes.sdk_debug_tool_schemas(
+            container=container,
+            session_manager=_RejectingSessionManager(),
+            user_id="other-user",
+            model_id=None,
+            model_provider=None,
+            interaction_mode=None,
+        )
 
-    assert response.config.model_provider == "openai"
-    assert any(
-        schema.get("name") == "read_file" for schema in response.canonical_tool_schemas
+    assert exc_info.value.status_code == 401
+    assert exc_info.value.detail == "Authenticated install identity required"
+
+
+@pytest.mark.asyncio
+async def test_sdk_debug_tool_schemas_rejects_other_user_context(
+    tmp_path,
+    authenticated_install_identity,
+) -> None:
+    container = _container(tmp_path)
+
+    with pytest.raises(HTTPException) as exc_info:
+        await sdk_routes.sdk_debug_tool_schemas(
+            container=container,
+            session_manager=_RejectingSessionManager(),
+            user_id="other-user",
+            model_id=None,
+            model_provider=None,
+            interaction_mode=None,
+        )
+
+    assert exc_info.value.status_code == 403
+    assert (
+        exc_info.value.detail
+        == "SDK debug tool schemas cannot inspect another user's context"
     )
 
 
@@ -896,7 +921,10 @@ async def test_sdk_debug_tool_schemas_ignore_user_id_without_authenticated_ident
 async def test_sdk_debug_tool_schemas_uses_prompt_constructor_surface(
     tmp_path,
     monkeypatch,
+    authenticated_install_identity,
 ) -> None:
+    _ = authenticated_install_identity
+
     def fake_get_tool_schema_surfaces(self, *, prompt_messages=None):
         assert prompt_messages is None
         return (
