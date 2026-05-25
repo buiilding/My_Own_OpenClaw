@@ -411,6 +411,21 @@ describe('SettingsSection', () => {
     });
   });
 
+  test('browser tab renders permission request rejections inline', async () => {
+    mockRequestPermission.mockRejectedValueOnce(new Error('Browser permission IPC failed'));
+
+    renderSettingsSection({ initialTab: 'browser' });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Open Windie Browser' }));
+
+    expect(await screen.findByText(
+      'Unable to open Windie Browser: Browser permission IPC failed',
+    )).toBeInTheDocument();
+    expect(mockAppConfigContext.updateConfig).not.toHaveBeenCalledWith({
+      browser_automation_enabled: true,
+    });
+  });
+
   test('appearance tab updates theme controls through frontend config', () => {
     const onConfigChange = jest.fn();
     renderSettingsSection({ initialTab: 'appearance', onConfigChange });

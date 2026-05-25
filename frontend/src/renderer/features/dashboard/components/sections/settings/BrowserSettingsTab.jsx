@@ -18,6 +18,7 @@ function BrowserSettingsTab() {
   const { updateConfig } = useAppConfigContext();
   const [isOpeningBrowser, setIsOpeningBrowser] = useState(false);
   const [statusOverride, setStatusOverride] = useState(null);
+  const [openBrowserError, setOpenBrowserError] = useState('');
 
   const browserPermission = useMemo(() => (
     permissions.find((permission) => permission?.permission_id === BROWSER_PERMISSION_ID) || {
@@ -54,6 +55,7 @@ function BrowserSettingsTab() {
 
     setIsOpeningBrowser(true);
     setStatusOverride(null);
+    setOpenBrowserError('');
     try {
       const status = await requestPermission(BROWSER_PERMISSION_ID);
       if (status) {
@@ -64,6 +66,9 @@ function BrowserSettingsTab() {
           updateConfig,
         });
       }
+    } catch (err) {
+      const message = err?.message || 'Unable to open Windie Browser.';
+      setOpenBrowserError(`Unable to open Windie Browser: ${message}`);
     } finally {
       setIsOpeningBrowser(false);
     }
@@ -92,7 +97,10 @@ function BrowserSettingsTab() {
           {remediation ? (
             <p className="clone-settings-inline-warning">{remediation}</p>
           ) : null}
-          {!statusReason && error ? (
+          {openBrowserError ? (
+            <p className="clone-settings-action-status clone-settings-action-status-error">{openBrowserError}</p>
+          ) : null}
+          {!statusReason && !openBrowserError && error ? (
             <p className="clone-settings-action-status clone-settings-action-status-error">{error}</p>
           ) : null}
         </div>
