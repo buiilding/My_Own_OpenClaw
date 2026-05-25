@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Annotated, Any, Dict, List, Literal, Optional, Union
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 def _validate_conversation_ref(value: str) -> str:
@@ -77,13 +77,6 @@ class QueryPayload(BaseModel):
 class QueryMessage(BaseMessage):
     type: Literal["query"]
     payload: QueryPayload
-
-    @model_validator(mode="after")
-    def validate_payload_turn_ref_matches_envelope(self) -> "QueryMessage":
-        payload_turn_ref = self.payload.turn_ref
-        if payload_turn_ref is not None and payload_turn_ref != self.id:
-            raise ValueError("query payload turn_ref must match envelope id")
-        return self
 
 
 class RepoInstructionMessage(BaseModel):

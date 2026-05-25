@@ -43,8 +43,8 @@ Payload (`QueryPayload`):
 - `text: str`
 - `conversation_ref: str`
 - `turn_ref: Optional[str]` accepted for desktop/SDK query correlation; when
-  present it must equal the envelope `id`, which remains the canonical
-  `turn_ref` echoed on backend stream events.
+  present it becomes the canonical `turn_ref` echoed on backend stream events,
+  while the envelope `id` remains transport-scoped.
 - `content: Optional[str]`
 - `screenshot: Optional[str]`
 - `screenshot_ref: Optional[str]`

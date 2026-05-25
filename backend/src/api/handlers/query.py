@@ -88,6 +88,7 @@ class QueryMessageHandler(TypedMessageHandler[QueryMessage]):
             user_id: User ID from connection context
         """
         msg_id = message.id
+        turn_ref = message.payload.turn_ref or msg_id
         current_task = asyncio.current_task()
         config = getattr(self.session_manager, "config", None)
         max_active_queries_per_user = int(
@@ -107,7 +108,7 @@ class QueryMessageHandler(TypedMessageHandler[QueryMessage]):
                 registration_status = register_with_limits(
                     user_id,
                     current_task,
-                    turn_ref=msg_id,
+                    turn_ref=turn_ref,
                     conversation_ref=message.payload.conversation_ref,
                     max_active_queries_per_user=max_active_queries_per_user,
                     max_active_queries_global=max_active_queries_global,
@@ -115,7 +116,7 @@ class QueryMessageHandler(TypedMessageHandler[QueryMessage]):
                 if registration_status == ACTIVE_QUERY_USER_LIMIT:
                     await self._send_error(
                         websocket,
-                        msg_id,
+                        turn_ref,
                         (
                             "Too many active queries for this user. "
                             "Wait for an existing query to finish or stop it."
@@ -125,7 +126,7 @@ class QueryMessageHandler(TypedMessageHandler[QueryMessage]):
                 if registration_status == ACTIVE_QUERY_GLOBAL_LIMIT:
                     await self._send_error(
                         websocket,
-                        msg_id,
+                        turn_ref,
                         "Backend query capacity is saturated. Please retry shortly.",
                     )
                     return
@@ -144,7 +145,7 @@ class QueryMessageHandler(TypedMessageHandler[QueryMessage]):
                     if user_active_queries >= max_active_queries_per_user:
                         await self._send_error(
                             websocket,
-                            msg_id,
+                            turn_ref,
                             (
                                 "Too many active queries for this user. "
                                 "Wait for an existing query to finish or stop it."
@@ -154,7 +155,7 @@ class QueryMessageHandler(TypedMessageHandler[QueryMessage]):
                     if global_active_queries >= max_active_queries_global:
                         await self._send_error(
                             websocket,
-                            msg_id,
+                            turn_ref,
                             "Backend query capacity is saturated. Please retry shortly.",
                         )
                         return
@@ -162,7 +163,7 @@ class QueryMessageHandler(TypedMessageHandler[QueryMessage]):
                     self.session_manager.register_active_query_task(
                         user_id,
                         current_task,
-                        turn_ref=msg_id,
+                        turn_ref=turn_ref,
                         conversation_ref=message.payload.conversation_ref,
                     )
                 )
@@ -178,7 +179,7 @@ class QueryMessageHandler(TypedMessageHandler[QueryMessage]):
                 if user_active_queries >= max_active_queries_per_user:
                     await self._send_error(
                         websocket,
-                        msg_id,
+                        turn_ref,
                         (
                             "Too many active queries for this user. "
                             "Wait for an existing query to finish or stop it."
@@ -188,7 +189,7 @@ class QueryMessageHandler(TypedMessageHandler[QueryMessage]):
                 if global_active_queries >= max_active_queries_global:
                     await self._send_error(
                         websocket,
-                        msg_id,
+                        turn_ref,
                         "Backend query capacity is saturated. Please retry shortly.",
                     )
                     return
@@ -197,7 +198,7 @@ class QueryMessageHandler(TypedMessageHandler[QueryMessage]):
                 "[Query Cancelled] Stop request consumed before query execution "
                 "(user_id=%s, turn_ref=%s, conversation_ref=%s)",
                 user_id,
-                msg_id,
+                turn_ref,
                 message.payload.conversation_ref,
             )
             return
@@ -218,15 +219,15 @@ class QueryMessageHandler(TypedMessageHandler[QueryMessage]):
                 "[Query Cancelled] Active query task cancelled "
                 "(user_id=%s, turn_ref=%s, conversation_ref=%s)",
                 user_id,
-                msg_id,
+                turn_ref,
                 message.payload.conversation_ref,
             )
             raise
         except ValidationError as e:
-            await self._send_error(websocket, msg_id, f"Invalid query: {e.message}")
+            await self._send_error(websocket, turn_ref, f"Invalid query: {e.message}")
         except Exception as e:
             # Full details logged server-side, sanitized message sent to client
-            await self._send_error(websocket, msg_id, None, exception=e)
+            await self._send_error(websocket, turn_ref, None, exception=e)
         finally:
             if current_task is not None:
                 self.session_manager.clear_active_query_task(user_id, current_task)

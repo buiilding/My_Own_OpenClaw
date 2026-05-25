@@ -81,7 +81,7 @@ class QueryExecutionService:
     ) -> None:
         """Execute a validated query through the agent stream pipeline."""
         query_start_time = time.perf_counter()
-        msg_id = message.id
+        msg_id = message.payload.turn_ref or message.id
 
         query_text = validate_query_text(message.payload.text)
         agent_instance = await self._session_manager.get_or_create_session(

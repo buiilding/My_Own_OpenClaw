@@ -650,6 +650,54 @@ async def test_query_handler_success(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_query_handler_uses_payload_turn_ref_for_stream_context(monkeypatch):
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    handler = QueryMessageHandler(
+        session_manager, DummyTTSManager(), ResponseFormatter()
+    )
+    created_pipelines = []
+
+    class DummyPipeline:
+        def __init__(self, *_args, **_kwargs):
+            self.processed = []
+            created_pipelines.append(self)
+
+        async def process(self, event, tts_service, msg_id, context=None):
+            self.processed.append((event, msg_id, context))
+
+        async def wait_for_pending_tts(self):
+            return None
+
+    monkeypatch.setattr(
+        "backend.src.api.handlers.query.StreamPipeline",
+        DummyPipeline,
+    )
+
+    message = QueryMessage(
+        id="transport_1",
+        type="query",
+        user_id="user_1",
+        payload={
+            "text": "hi",
+            "conversation_ref": "conv_test",
+            "turn_ref": "turn_1",
+            "content": "<user_query>hi</user_query>",
+        },
+    )
+
+    await handler.handle(message, websocket, "user_1")
+
+    assert session_manager.register_calls[0]["turn_ref"] == "turn_1"
+    first_event, first_msg_id, first_context = created_pipelines[0].processed[0]
+    assert isinstance(first_event, ChunkEvent)
+    assert first_msg_id == "turn_1"
+    assert first_context["turn_ref"] == "turn_1"
+    assert websocket.sent[0]["id"] == "turn_1"
+    assert websocket.sent[0]["turn_ref"] == "turn_1"
+
+
+@pytest.mark.asyncio
 async def test_query_handler_skips_execution_when_stop_consumed_on_register(
     monkeypatch,
 ):
