@@ -205,7 +205,8 @@ provider health and tool policy together.
 ### OCR
 
 - Factory handles `local`, `remote-http`, and `disabled`.
-- Remote provider validates `/ocr/analyze` and health response shapes.
+- Remote provider validates `/ocr/analyze` and health response shapes, and
+  refuses analysis while the last health probe leaves the provider not ready.
 - OCR row normalization still works for mixed provider fields.
 - Coordinate resolver behavior stays deterministic for ambiguous or missing
   text matches.

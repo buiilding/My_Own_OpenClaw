@@ -58,7 +58,9 @@ async def test_remote_ocr_provider_checks_health_and_runs_analysis() -> None:
 
 @pytest.mark.asyncio
 async def test_remote_ocr_provider_maps_bad_payload_to_provider_error() -> None:
-    async def handler(_request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/health":
+            return httpx.Response(200, json={"ready": True})
         return httpx.Response(200, json={"unexpected": True})
 
     provider = RemoteHttpOcrProvider(
@@ -70,8 +72,39 @@ async def test_remote_ocr_provider_maps_bad_payload_to_provider_error() -> None:
         ),
     )
 
+    await provider.initialize()
     with pytest.raises(ProviderRequestError, match="without results"):
         await provider.perform_ocr("image-b64")
+
+    await provider.close()
+
+
+@pytest.mark.asyncio
+async def test_remote_ocr_provider_rejects_analysis_after_failed_health() -> None:
+    paths: list[str] = []
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        paths.append(request.url.path)
+        if request.url.path == "/health":
+            raise httpx.ReadTimeout("health timed out")
+        return httpx.Response(200, json={"results": [{"text": "stale"}]})
+
+    provider = RemoteHttpOcrProvider(
+        service_url="http://ocr.internal",
+        model_id="rapidocr",
+        http_client=httpx.AsyncClient(
+            base_url="http://ocr.internal",
+            transport=_build_transport(handler),
+        ),
+    )
+
+    assert await provider.health_check() is False
+    assert provider.is_ready is False
+
+    with pytest.raises(ProviderRequestError, match="health check timed out"):
+        await provider.perform_ocr("image-b64")
+
+    assert paths == ["/health"]
 
     await provider.close()
 

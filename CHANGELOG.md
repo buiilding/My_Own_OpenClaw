@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/ocr: fail remote OCR analysis closed after a failed health check instead of posting work while the provider is not ready.
 - frontend/release: run typecheck, lint, and frontend CI tests before Electron package commands build distributable artifacts.
 - frontend/types: fix release-gate typecheck blockers in desktop stop payload handling and transcript projection rewrites.
 - backend/container: reset cached API handler singletons when refreshing runtime overrides so handlers capture current dependencies.

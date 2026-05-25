@@ -99,6 +99,12 @@ class RemoteHttpOcrProvider:
                 provider_id=self.provider_id,
                 message="Remote OCR provider is disabled",
             )
+        if not self._ready:
+            raise ProviderRequestError(
+                capability="ocr",
+                provider_id=self.provider_id,
+                message=self._last_health_error or "Remote OCR provider is not ready",
+            )
         client = await self._get_client()
         payload = {"image": image_base64, "model": self.model_id}
         try:
