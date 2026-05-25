@@ -4,7 +4,8 @@ Streaming Events.
 This module provides streaming events for agent interaction loop and WebSocket communication.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field, is_dataclass
+from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
 from backend.src.core.types.enums import StreamingEventType
@@ -22,13 +23,32 @@ class StreamingEvent:
         result = {"type": self.type.value}
         for key, value in self.__dict__.items():
             if key != "type":
-                if isinstance(value, dict):
-                    result[key] = value
-                elif isinstance(value, list):
-                    result[key] = value
-                else:
-                    result[key] = value
+                result[key] = _normalize_event_value(value)
         return result
+
+
+def _normalize_event_value(value: Any) -> Any:
+    """Recursively convert event payload values into JSON-compatible shapes."""
+    if isinstance(value, Enum):
+        return value.value
+    if isinstance(value, dict):
+        return {
+            key: _normalize_event_value(nested_value)
+            for key, nested_value in value.items()
+        }
+    if isinstance(value, list):
+        return [_normalize_event_value(item) for item in value]
+    if isinstance(value, tuple):
+        return [_normalize_event_value(item) for item in value]
+    model_dump = getattr(value, "model_dump", None)
+    if callable(model_dump):
+        return _normalize_event_value(model_dump())
+    if is_dataclass(value) and not isinstance(value, type):
+        return _normalize_event_value(asdict(value))
+    legacy_dict = getattr(value, "dict", None)
+    if callable(legacy_dict):
+        return _normalize_event_value(legacy_dict())
+    return value
 
 
 @dataclass

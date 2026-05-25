@@ -1,7 +1,9 @@
 """Tests for event system."""
+import json
 import time
 import pytest
 
+from backend.src.api.schemas.outgoing import ToolSchemaPayload
 from backend.src.core.events.base import Event
 from backend.src.core.events.bus_events import ConfigChanged, InteractionCompleted
 from backend.src.core.events.streaming_events import (
@@ -17,6 +19,8 @@ from backend.src.core.events.streaming_events import (
     AssistantMessageFullEvent,
     TokenCountEvent,
     MemoryStoreEvent,
+    SystemPromptEvent,
+    ToolSchemasEvent,
 )
 from backend.src.core.config.models import AppConfig
 
@@ -439,3 +443,29 @@ class TestStreamingEventToDict:
         result = event.to_dict()
         
         assert result["metadata"]["items"] == [1, 2, 3]
+
+    def test_schema_events_serialize_nested_schema_objects(self):
+        schema = ToolSchemaPayload(
+            type="function",
+            name="read_file",
+            description="Read a file",
+            parameters={
+                "type": "object",
+                "properties": {
+                    "file_path": {"type": "string"},
+                },
+            },
+        )
+
+        system_prompt = SystemPromptEvent(
+            content="system",
+            tool_schemas=[schema],
+            client_prompt_layers=[{"schemas": (schema,)}],
+        ).to_dict()
+        tool_schemas = ToolSchemasEvent(tool_schemas=[schema]).to_dict()
+
+        json.dumps(system_prompt)
+        json.dumps(tool_schemas)
+        assert system_prompt["tool_schemas"][0]["name"] == "read_file"
+        assert isinstance(system_prompt["client_prompt_layers"][0]["schemas"], list)
+        assert tool_schemas["tool_schemas"][0]["parameters"]["type"] == "object"
