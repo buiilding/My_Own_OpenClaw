@@ -953,7 +953,10 @@ async def test_sdk_debug_tool_schemas_uses_prompt_constructor_surface(
 
 
 @pytest.mark.asyncio
-async def test_sdk_debug_tool_capabilities_returns_schema_details(tmp_path) -> None:
+async def test_sdk_debug_tool_capabilities_returns_schema_details(
+    tmp_path,
+    authenticated_install_identity,
+) -> None:
     container = _container(tmp_path)
 
     response = await sdk_routes.sdk_debug_tool_capabilities(
@@ -969,6 +972,52 @@ async def test_sdk_debug_tool_capabilities_returns_schema_details(tmp_path) -> N
     assert response.capability["name"] == "read_file"
     assert response.canonical_tool_schema is not None
     assert response.canonical_tool_schema["name"] == "read_file"
+
+
+@pytest.mark.asyncio
+async def test_sdk_debug_tool_capabilities_requires_authenticated_identity(
+    tmp_path,
+) -> None:
+    container = _container(tmp_path)
+
+    with pytest.raises(HTTPException) as exc_info:
+        await sdk_routes.sdk_debug_tool_capabilities(
+            "read_file",
+            container=container,
+            session_manager=_FakeSessionManager(),
+            user_id=None,
+            model_id=None,
+            model_provider=None,
+            interaction_mode=None,
+        )
+
+    assert exc_info.value.status_code == 401
+    assert exc_info.value.detail == "Authenticated install identity required"
+
+
+@pytest.mark.asyncio
+async def test_sdk_debug_tool_capabilities_rejects_other_user_context(
+    tmp_path,
+    authenticated_install_identity,
+) -> None:
+    container = _container(tmp_path)
+
+    with pytest.raises(HTTPException) as exc_info:
+        await sdk_routes.sdk_debug_tool_capabilities(
+            "read_file",
+            container=container,
+            session_manager=_RejectingSessionManager(),
+            user_id="other-user",
+            model_id=None,
+            model_provider=None,
+            interaction_mode=None,
+        )
+
+    assert exc_info.value.status_code == 403
+    assert (
+        exc_info.value.detail
+        == "SDK debug tool capabilities cannot inspect another user's context"
+    )
 
 
 @pytest.mark.asyncio
