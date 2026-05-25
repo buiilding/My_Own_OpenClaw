@@ -2,18 +2,8 @@
 
 from __future__ import annotations
 
-from backend.src.tools.browser.shared_contract_loader import ensure_frontend_python_path
-
-ensure_frontend_python_path()
-
-from windie_shared.browser_contract import (  # noqa: E402
-    BROWSER_CANONICAL_ACTIONS,
-    BrowserCanonicalAction,
-    BrowserCoreAction,
-    BrowserMouseButton,
-    BrowserNavigationState,
-    BrowserScrollDirection,
-    BrowserWaitState,
+from backend.src.tools.browser.shared_contract_loader import (
+    load_shared_browser_contract,
 )
 
 __all__ = [
@@ -25,3 +15,8 @@ __all__ = [
     "BrowserScrollDirection",
     "BrowserWaitState",
 ]
+
+_browser_contract = load_shared_browser_contract()
+for _name in __all__:
+    globals()[_name] = getattr(_browser_contract, _name)
+del _browser_contract, _name
