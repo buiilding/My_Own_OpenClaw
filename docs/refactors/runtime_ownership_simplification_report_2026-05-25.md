@@ -73,6 +73,7 @@ Verification:
 
 - `frontend/src/main/ipc.cjs` composition-root split.
   - In progress: model-list request queueing moved to `frontend/src/main/ipc/ipc_model_list_runtime.cjs` with focused unit tests.
+  - In progress: renderer diagnostic log routing moved to `frontend/src/main/ipc/ipc_diagnostics_runtime.cjs` with focused unit tests.
 - SDK-owned live turn projection.
 - Renderer stream handling split between live projection and side effects.
 - Raw `from-backend` channel classification and typed-channel migration.

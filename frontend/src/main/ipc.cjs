@@ -39,6 +39,9 @@ const {
   createModelListRequestRuntime,
 } = require('./ipc/ipc_model_list_runtime.cjs');
 const {
+  handleRendererLog,
+} = require('./ipc/ipc_diagnostics_runtime.cjs');
+const {
   fetchArtifactImage,
 } = require('./ipc/ipc_artifact_fetch.cjs');
 const { persistMemoryStoreEvent } = require('./ipc/ipc_memory_store_persistence.cjs');
@@ -909,14 +912,7 @@ function initializeIpc(win, options = {}) {
   });
 
   ipcMain.on('renderer-log', (_event, payload = {}) => {
-    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
-      return;
-    }
-    if (payload.source === 'frontend-interaction') {
-      console.log('[FrontendInteraction][renderer]', payload.entry || {});
-      return;
-    }
-    console.log('[RendererLog]', payload);
+    handleRendererLog(payload);
   });
 
   async function handleRendererChatQuery(event, payloadInput = {}) {
