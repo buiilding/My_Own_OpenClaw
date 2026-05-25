@@ -1,8 +1,179 @@
 import { resolveSourceTag } from '../message/sourceTags';
 import { buildCurrentTurnResponseOverlayEntries as buildCurrentTurnResponseOverlayEntriesFromPipeline } from '../message/messagePresentationPipeline';
+import {
+  buildToolBundleMessageState,
+  buildToolCallMessageState,
+} from '../../../../infrastructure/transcript/toolCallMessageState';
+import { buildToolCallChatMessageState } from '../../../../infrastructure/transcript/toolCallChatMessageState';
+import { buildToolOutputEnvelopeMessage } from '../toolOutputMessages';
+import {
+  buildScreenshotAttachment,
+  resolveToolCallCorrelationId,
+  resolveToolOutputCorrelationId,
+} from '../chatStream/chatStreamEventUtils';
 
 export function buildCurrentTurnResponseOverlayEntries(messages) {
   return buildCurrentTurnResponseOverlayEntriesFromPipeline(messages);
+}
+
+function asObject(value) {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value : null;
+}
+
+function readString(value) {
+  return typeof value === 'string' ? value : null;
+}
+
+function readArray(value) {
+  return Array.isArray(value) ? value : null;
+}
+
+function resolveToolPayload(toolEvent) {
+  return asObject(toolEvent?.payload) || {};
+}
+
+function buildProjectedToolCallMessage({
+  baseId,
+  turnRef,
+  toolEvent,
+  payload,
+}) {
+  const structuredPayload = asObject(payload.structuredPayload);
+  const toolCallDetails = structuredPayload || payload;
+  const metadata = asObject(toolCallDetails.metadata);
+  const args = asObject(payload.args) || asObject(payload.parameters) || asObject(toolCallDetails.parameters);
+  const toolName = readString(payload.toolName) || readString(payload.tool_name) || toolEvent.toolName || '';
+  const requestId = readString(payload.requestId) || readString(payload.request_id);
+  const correlationId = (
+    readString(payload.correlationId)
+    || readString(payload.correlation_id)
+    || resolveToolCallCorrelationId(toolCallDetails)
+  );
+
+  if (toolName === 'tool_bundle' || readArray(toolCallDetails.tools)) {
+    const bundleState = buildToolBundleMessageState(toolCallDetails);
+    return buildToolCallChatMessageState({
+      id: `${baseId}:tool:${toolEvent.id}`,
+      text: bundleState.text,
+      toolCallDisplayText: bundleState.toolCallDisplayText,
+      toolCallDetails: bundleState.toolCallDetails ?? null,
+      correlationId: bundleState.correlationId ?? null,
+      sourceEventType: toolEvent.kind,
+      sourceChannel: 'conversation-runtime-updated',
+      turnRef: turnRef || undefined,
+    });
+  }
+
+  const toolCallState = buildToolCallMessageState({
+    rawToolCall: asObject(metadata?.model_facing_tool_call),
+    fallbackToolName: toolName || null,
+    fallbackToolCallId: requestId,
+    fallbackArguments: args,
+    metadata,
+    toolCallDetails,
+    correlationId,
+  });
+
+  return buildToolCallChatMessageState({
+    id: `${baseId}:tool:${toolEvent.id}`,
+    text: toolCallState.text,
+    toolCallDisplayText: toolCallState.toolCallDisplayText,
+    modelFacingToolCall: toolCallState.modelFacingToolCall ?? null,
+    toolCallDetails: toolCallState.toolCallDetails ?? null,
+    correlationId: toolCallState.correlationId ?? null,
+    sourceEventType: toolEvent.kind,
+    sourceChannel: 'conversation-runtime-updated',
+    turnRef: turnRef || undefined,
+  });
+}
+
+function formatProjectedToolOutputText(payload) {
+  if (typeof payload.display_content === 'string' && payload.display_content.length > 0) {
+    return payload.display_content;
+  }
+  if (typeof payload.output === 'string' && payload.output.length > 0) {
+    return payload.output;
+  }
+  if (payload.error) {
+    return `Error: ${payload.error}`;
+  }
+  return 'No output';
+}
+
+function buildProjectedToolOutputMessage({
+  baseId,
+  turnRef,
+  toolEvent,
+  payload,
+}) {
+  const structuredPayload = asObject(payload.structuredPayload);
+  const toolOutputDetails = structuredPayload || payload;
+  const screenshot = readString(payload.screenshot) || readString(toolOutputDetails.screenshot);
+  const screenshotRefValue = readString(payload.screenshotRef) || readString(toolOutputDetails.screenshot_ref);
+  const { screenshotRef, screenshotUrl } = buildScreenshotAttachment(screenshotRefValue);
+  const requestId = readString(payload.requestId) || readString(toolOutputDetails.request_id);
+  const correlationId = (
+    readString(payload.correlationId)
+    || readString(payload.correlation_id)
+    || resolveToolOutputCorrelationId(toolOutputDetails, toolEvent.id)
+    || requestId
+    || undefined
+  );
+  return {
+    ...buildToolOutputEnvelopeMessage({
+      outputText: toolEvent.text || formatProjectedToolOutputText(toolOutputDetails),
+      sourceEventType: toolEvent.kind,
+      sourceChannel: 'conversation-runtime-updated',
+      screenshot: screenshotRef ? null : screenshot,
+      screenshotRef,
+      screenshotUrl,
+      toolMetadata: asObject(toolOutputDetails.metadata),
+      toolName: toolEvent.toolName || readString(payload.toolName) || readString(toolOutputDetails.tool_name),
+      executionTime: typeof toolOutputDetails.execution_time === 'number' ? toolOutputDetails.execution_time : null,
+      success: typeof toolOutputDetails.success === 'boolean' ? toolOutputDetails.success : null,
+      correlationId,
+      toolOutputDetails,
+      turnRef: turnRef || null,
+      modelContext: { modelId: null, modelProvider: null },
+    }),
+    id: `${baseId}:tool:${toolEvent.id}`,
+  };
+}
+
+function buildProjectedToolProgressMessage({
+  baseId,
+  turnRef,
+  toolEvent,
+}) {
+  const text = typeof toolEvent?.text === 'string' && toolEvent.text.trim()
+    ? toolEvent.text
+    : (typeof toolEvent?.toolName === 'string' ? toolEvent.toolName : '');
+  if (!text) {
+    return null;
+  }
+  return {
+    id: `${baseId}:tool:${toolEvent.id}`,
+    text,
+    sender: 'assistant',
+    type: 'search-source',
+    sourceEventType: toolEvent.kind,
+    sourceChannel: 'conversation-runtime-updated',
+    turnRef: turnRef || undefined,
+    toolName: toolEvent.toolName || undefined,
+    success: toolEvent.status === 'success' ? true : undefined,
+    toolMetadata: toolEvent.payload || null,
+  };
+}
+
+function buildProjectedToolMessage({ baseId, turnRef, toolEvent }) {
+  const payload = resolveToolPayload(toolEvent);
+  if (toolEvent.kind === 'tool_output') {
+    return buildProjectedToolOutputMessage({ baseId, turnRef, toolEvent, payload });
+  }
+  if (toolEvent.kind === 'tool_progress') {
+    return buildProjectedToolProgressMessage({ baseId, turnRef, toolEvent });
+  }
+  return buildProjectedToolCallMessage({ baseId, turnRef, toolEvent, payload });
 }
 
 export function buildCurrentTurnMessagesFromProjection(currentTurnProjection) {
@@ -52,30 +223,14 @@ export function buildCurrentTurnMessagesFromProjection(currentTurnProjection) {
 
   if (hasToolEvents) {
     toolEvents.forEach((toolEvent, index) => {
-      const text = typeof toolEvent?.text === 'string' && toolEvent.text.trim()
-        ? toolEvent.text
-        : (typeof toolEvent?.toolName === 'string' ? toolEvent.toolName : '');
-      if (!text) {
-        return;
+      const projectedToolEvent = {
+        ...toolEvent,
+        id: toolEvent.id || index,
+      };
+      const message = buildProjectedToolMessage({ baseId, turnRef, toolEvent: projectedToolEvent });
+      if (message) {
+        messages.push(message);
       }
-      messages.push({
-        id: `${baseId}:tool:${toolEvent.id || index}`,
-        text,
-        sender: 'assistant',
-        type: toolEvent.kind === 'tool_progress' ? 'search-source' : 'tool-call',
-        sourceEventType: toolEvent.kind,
-        sourceChannel: 'conversation-runtime-updated',
-        turnRef: turnRef || undefined,
-        toolName: toolEvent.toolName || undefined,
-        success: toolEvent.status === 'success' ? true : undefined,
-        actionExplanations: toolEvent.kind === 'tool_progress' ? null : [text],
-        toolCallDetails: {
-          parameters: {
-            explanation: text,
-          },
-        },
-        toolMetadata: toolEvent.payload || null,
-      });
     });
   }
 

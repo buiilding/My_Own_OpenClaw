@@ -1,9 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { IpcBridge, ON_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
-import {
-  useChatStream,
-  type UseChatStreamOptions,
-} from '../../frontend/src/renderer/features/chat/hooks/useChatStream';
+import { useChatStream } from '../../frontend/src/renderer/features/chat/hooks/useChatStream';
 import { DesktopConversationContinuityService } from '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 import { DesktopTranscriptProjectionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient';
@@ -95,21 +92,14 @@ function createEmitBackendEvent(handlers: Record<string, (data: unknown) => void
   };
 }
 
-const LEGACY_RAW_LIVE_FALLBACK_OPTIONS: UseChatStreamOptions = {
-  renderRawLiveFallback: true,
-};
-
-export function registerBackendListener(
-  enableTranscript = true,
-  options: UseChatStreamOptions = LEGACY_RAW_LIVE_FALLBACK_OPTIONS,
-) {
+export function registerBackendListener(enableTranscript = true) {
   const handlers: Record<string, (data: unknown) => void> = {};
   jest.spyOn(IpcBridge, 'on').mockImplementation((channel, handler) => {
     handlers[channel] = handler;
     return () => {};
   });
 
-  renderHook(() => useChatStream(enableTranscript, options));
+  renderHook(() => useChatStream(enableTranscript));
 
   return {
     handlers,
@@ -121,10 +111,7 @@ export function registerBackendListener(
   };
 }
 
-export function renderBackendListenerWithSpy(
-  enableTranscript = true,
-  options: UseChatStreamOptions = LEGACY_RAW_LIVE_FALLBACK_OPTIONS,
-) {
+export function renderBackendListenerWithSpy(enableTranscript = true) {
   const handlers: Record<string, (data: unknown) => void> = {};
   const removeListener = jest.fn();
   const onSpy = jest.spyOn(IpcBridge, 'on').mockImplementation((channel, handler) => {
@@ -133,7 +120,7 @@ export function renderBackendListenerWithSpy(
   });
 
   const hook = renderHook(
-    ({ shouldEnableTranscript }) => useChatStream(shouldEnableTranscript, options),
+    ({ shouldEnableTranscript }) => useChatStream(shouldEnableTranscript),
     { initialProps: { shouldEnableTranscript: enableTranscript } },
   );
 

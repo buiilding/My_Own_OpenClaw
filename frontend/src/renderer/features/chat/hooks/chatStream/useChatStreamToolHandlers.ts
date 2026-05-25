@@ -1,10 +1,6 @@
 import { useCallback } from 'react';
 import type { ConversationEvent } from '../../../../infrastructure/api/windieSdkClient';
-import { type ChatMessage } from '../../stores/chatStore';
 import type { StreamTrackingEventType } from '../../../../app/runtime/desktopChatStreamTrackingRuntime';
-import {
-  buildToolCallChatMessageState,
-} from '../../../../infrastructure/transcript/toolCallChatMessageState';
 import {
   buildToolBundleMessageState,
   buildToolCallMessageState,
@@ -18,7 +14,6 @@ import {
   resolveToolCallCorrelationId,
   resolveToolOutputCorrelationId,
 } from '../../utils/chatStream/chatStreamEventUtils';
-import { buildToolOutputEnvelopeMessage } from '../../utils/toolOutputMessages';
 import { recordToolOutputTranscriptMessage } from '../../utils/toolOutputTranscriptPersistence';
 import { recordToolTranscriptMessage } from '../../utils/chatStream/chatStreamTranscriptPersistence';
 
@@ -38,12 +33,10 @@ type JsonObject = Record<string, unknown>;
 
 type UseChatStreamToolHandlersDeps = {
   enableTranscript: boolean;
-  addMessage: (message: ChatMessage, conversationRef?: string | null) => void;
   setIsSending: (value: boolean, conversationRef?: string | null) => void;
   setThinkingStatus: (value: string | null, conversationRef?: string | null) => void;
   setThinkingSourceEventType: (value: string | null, conversationRef?: string | null) => void;
   modelContextRef: { current: MinimalModelContext };
-  renderLiveMessages?: boolean | ((event: ConversationEvent, conversationRef?: string | null) => boolean);
   recordTrackingEvent: TrackEventFn;
 };
 
@@ -86,22 +79,12 @@ function formatSdkToolOutputText(payload: JsonObject | null): string {
   return 'No output';
 }
 
-function shouldRenderLiveMessage(
-  option: UseChatStreamToolHandlersDeps['renderLiveMessages'],
-  event: ConversationEvent,
-  conversationRef?: string | null,
-): boolean {
-  return typeof option === 'function' ? option(event, conversationRef) : option !== false;
-}
-
 export function useChatStreamToolHandlers({
   enableTranscript,
-  addMessage,
   setIsSending,
   setThinkingStatus,
   setThinkingSourceEventType,
   modelContextRef,
-  renderLiveMessages = true,
   recordTrackingEvent,
 }: UseChatStreamToolHandlersDeps) {
   const recordToolCallTranscript = useCallback((
@@ -157,22 +140,6 @@ export function useChatStreamToolHandlers({
       toolCallDetails,
       correlationId,
     });
-    const modelContext = modelContextRef.current;
-    if (shouldRenderLiveMessage(renderLiveMessages, event, resolvedConversationRef)) {
-      addMessage(buildToolCallChatMessageState({
-        text: toolCallMessageState.text,
-        toolCallDisplayText: toolCallMessageState.toolCallDisplayText,
-        modelFacingToolCall: toolCallMessageState.modelFacingToolCall ?? null,
-        toolCallDetails: toolCallMessageState.toolCallDetails ?? null,
-        correlationId: toolCallMessageState.correlationId ?? null,
-        sourceEventType: 'tool-call',
-        sourceChannel: 'from-backend',
-        turnRef: event.turnRef ?? undefined,
-        modelId: modelContext.modelId,
-        modelProvider: modelContext.modelProvider,
-      }) as ChatMessage, resolvedConversationRef);
-    }
-
     recordTrackingEvent('tool-call', event.turnRef, { toolCall: true }, resolvedConversationRef);
 
     recordToolCallTranscript(
@@ -187,10 +154,7 @@ export function useChatStreamToolHandlers({
       }),
     );
   }, [
-    addMessage,
-    modelContextRef,
     recordToolCallTranscript,
-    renderLiveMessages,
     setIsSending,
     setThinkingSourceEventType,
     setThinkingStatus,
@@ -215,28 +179,9 @@ export function useChatStreamToolHandlers({
       ?? requestId
       ?? undefined
     );
-    const screenshot = readString(event.payload?.screenshot) ?? readString(toolOutputDetails?.screenshot);
     const screenshotRefValue = readString(event.payload?.screenshotRef) ?? readString(toolOutputDetails?.screenshot_ref);
-    const { screenshotRef, screenshotUrl } = buildScreenshotAttachment(screenshotRefValue);
+    const { screenshotRef } = buildScreenshotAttachment(screenshotRefValue);
     const modelContext = modelContextRef.current;
-    if (shouldRenderLiveMessage(renderLiveMessages, event, resolvedConversationRef)) {
-      addMessage(buildToolOutputEnvelopeMessage({
-        outputText,
-        sourceEventType: 'tool-output',
-        sourceChannel: 'from-backend',
-        screenshot: screenshotRef ? null : screenshot,
-        screenshotRef,
-        screenshotUrl,
-        toolMetadata: asJsonObject(toolOutputDetails?.metadata),
-        toolName,
-        executionTime: typeof toolOutputDetails?.execution_time === 'number' ? toolOutputDetails.execution_time : null,
-        success: typeof toolOutputDetails?.success === 'boolean' ? toolOutputDetails.success : null,
-        correlationId,
-        toolOutputDetails,
-        turnRef: event.turnRef ?? null,
-        modelContext,
-      }), resolvedConversationRef);
-    }
     recordTrackingEvent('tool-output', event.turnRef, { toolOutput: true }, resolvedConversationRef);
 
     if (enableTranscript) {
@@ -252,10 +197,8 @@ export function useChatStreamToolHandlers({
       });
     }
   }, [
-    addMessage,
     enableTranscript,
     modelContextRef,
-    renderLiveMessages,
     setIsSending,
     setThinkingSourceEventType,
     setThinkingStatus,
@@ -272,19 +215,6 @@ export function useChatStreamToolHandlers({
     const toolBundleDetails = sdkToolBundleDetails(event.payload);
     const toolBundleMessageState = buildToolBundleMessageState(toolBundleDetails);
     const modelContext = modelContextRef.current;
-    if (shouldRenderLiveMessage(renderLiveMessages, event, resolvedConversationRef)) {
-      addMessage(buildToolCallChatMessageState({
-        text: toolBundleMessageState.text,
-        toolCallDisplayText: toolBundleMessageState.toolCallDisplayText,
-        toolCallDetails: toolBundleMessageState.toolCallDetails ?? null,
-        correlationId: toolBundleMessageState.correlationId ?? null,
-        sourceEventType: 'tool-bundle',
-        sourceChannel: 'from-backend',
-        turnRef: event.turnRef ?? undefined,
-        modelId: modelContext.modelId,
-        modelProvider: modelContext.modelProvider,
-      }) as ChatMessage, resolvedConversationRef);
-    }
 
     recordTrackingEvent(
       'tool-bundle',
@@ -309,10 +239,8 @@ export function useChatStreamToolHandlers({
       });
     }
   }, [
-    addMessage,
     enableTranscript,
     modelContextRef,
-    renderLiveMessages,
     setThinkingSourceEventType,
     setThinkingStatus,
     recordTrackingEvent,
@@ -330,26 +258,6 @@ export function useChatStreamToolHandlers({
     if (!text) {
       return;
     }
-    const correlationId = typeof event.payload?.requestId === 'string' && event.payload.requestId.trim()
-      ? event.payload.requestId.trim()
-      : typeof event.payload?.correlationId === 'string' && event.payload.correlationId.trim()
-        ? event.payload.correlationId.trim()
-        : undefined;
-    const modelContext = modelContextRef.current;
-    if (shouldRenderLiveMessage(renderLiveMessages, event, resolvedConversationRef)) {
-      addMessage({
-        id: crypto.randomUUID(),
-        text,
-        sender: 'assistant',
-        type: 'search-source',
-        sourceEventType: 'web-search-progress',
-        sourceChannel: 'from-backend',
-        correlationId,
-        turnRef: event.turnRef ?? undefined,
-        modelId: modelContext.modelId,
-        modelProvider: modelContext.modelProvider,
-      }, resolvedConversationRef);
-    }
     recordTrackingEvent(
       'web-search-progress',
       event.turnRef,
@@ -357,10 +265,7 @@ export function useChatStreamToolHandlers({
       resolvedConversationRef,
     );
   }, [
-    addMessage,
-    modelContextRef,
     recordTrackingEvent,
-    renderLiveMessages,
   ]);
 
   return {

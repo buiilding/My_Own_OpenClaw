@@ -102,7 +102,7 @@ describe('useChatStream state + stream handling', () => {
     );
   });
 
-  test('creates assistant placeholder with live thinking before first text chunk', () => {
+  test('tracks live thinking without creating raw assistant rows', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
@@ -114,19 +114,13 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    const messages = useChatStore.getState().messages;
-    expect(messages).toHaveLength(1);
-    expect(messages[0]).toEqual(expect.objectContaining({
-      sender: 'assistant',
-      type: 'llm-text',
-      turnRef: 'turn-live',
-      text: '',
-      thinkingText: 'drafting plan',
-      thinkingSourceEventType: 'llm-thought',
-    }));
+    const state = useChatStore.getState();
+    expect(state.messages).toEqual([]);
+    expect(state.thinkingStatus).toBe('drafting plan');
+    expect(state.thinkingSourceEventType).toBe('llm-thought');
   });
 
-  test('appends streaming response text to same assistant message that holds live thinking', () => {
+  test('tracks streaming response chunks without creating raw assistant rows', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
@@ -143,14 +137,14 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    const messages = useChatStore.getState().messages;
-    expect(messages).toHaveLength(1);
-    expect(messages[0]).toEqual(expect.objectContaining({
-      sender: 'assistant',
-      type: 'llm-text',
-      turnRef: 'turn-live',
-      text: 'Final answer',
-      thinkingText: 'step 1',
+    const state = useChatStore.getState();
+    expect(state.messages).toEqual([]);
+    expect(state.isSending).toBe(false);
+    expect(state.thinkingStatus).toBe('step 1');
+    expect(state.streamTracking).toEqual(expect.objectContaining({
+      activeTurnRef: 'turn-live',
+      phase: 'streaming',
+      lastEventType: 'streaming-response',
     }));
   });
 
@@ -184,8 +178,8 @@ describe('useChatStream state + stream handling', () => {
     ]);
   });
 
-  test('does not render raw live assistant chunks when projection fallback is disabled', () => {
-    const { emitBackendEvent } = registerBackendListener(true, {});
+  test('does not render raw live assistant chunks without an SDK projection', () => {
+    const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
       useChatStore.setState({
@@ -673,7 +667,7 @@ describe('useChatStream state + stream handling', () => {
     );
   });
 
-  test('persists streamed thinking text onto completed assistant message', () => {
+  test('clears streamed thinking on completion without mutating raw assistant rows', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
@@ -698,10 +692,13 @@ describe('useChatStream state + stream handling', () => {
       });
     });
 
-    const message = useChatStore.getState().messages[0];
-    expect(message.thinkingText).toBe('step 1\nstep 2');
-    expect(message.thinkingSourceEventType).toBe('llm-thought');
-    expect(useChatStore.getState().thinkingStatus).toBeNull();
+    const state = useChatStore.getState();
+    expect(state.messages[0]).toEqual(expect.objectContaining({
+      id: 'assistant-turn-1',
+      text: 'final answer',
+    }));
+    expect(state.messages[0].thinkingText).toBeUndefined();
+    expect(state.thinkingStatus).toBeNull();
   });
 
   test('adds local user message to store', () => {
@@ -997,7 +994,7 @@ describe('useChatStream state + stream handling', () => {
     });
   });
 
-  test('appends text to last incomplete assistant streaming message', () => {
+  test('does not append raw chunks to existing assistant streaming messages', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
@@ -1021,13 +1018,13 @@ describe('useChatStream state + stream handling', () => {
     expect(useChatStore.getState().messages).toEqual([
       expect.objectContaining({
         id: 'assistant-1',
-        text: 'hello world',
+        text: 'hello',
         type: 'llm-text',
       }),
     ]);
   });
 
-  test('creates new assistant message when last message is complete', () => {
+  test('does not create raw assistant messages from streaming chunks', () => {
     const { emitBackendEvent } = registerBackendListener();
 
     act(() => {
@@ -1049,15 +1046,12 @@ describe('useChatStream state + stream handling', () => {
     });
 
     const messages = useChatStore.getState().messages;
-    expect(messages).toHaveLength(2);
-    expect(messages[1]).toEqual(
-      expect.objectContaining({
-        sender: 'assistant',
-        text: 'new chunk',
-        type: 'llm-text',
-        isComplete: false,
-      }),
-    );
+    expect(messages).toHaveLength(1);
+    expect(messages[0]).toEqual(expect.objectContaining({
+      id: 'assistant-1',
+      text: 'existing',
+      isComplete: true,
+    }));
   });
 
   test('ignores stale streaming-response event when a newer active turn is in progress', () => {
@@ -1170,14 +1164,12 @@ describe('useChatStream state + stream handling', () => {
 
     const state = useChatStore.getState();
     expect(state.isSending).toBe(false);
-    expect(state.messages.at(-1)).toEqual(
-      expect.objectContaining({
-        sender: 'assistant',
-        type: 'llm-text',
-        text: 'next answer',
-        turnRef: 'turn-new',
-      }),
-    );
+    expect(state.messages.at(-1)).toEqual(expect.objectContaining({
+      id: 'user-new',
+      sender: 'user',
+      text: 'follow up',
+      turnRef: 'turn-new',
+    }));
     expect(state.streamTracking).toEqual(
       expect.objectContaining({
         activeTurnRef: 'turn-new',
@@ -1256,13 +1248,9 @@ describe('useChatStream state + stream handling', () => {
     const state = useChatStore.getState();
     expect(state.isSending).toBe(false);
     expect(state.thinkingStatus).toBe('');
-    expect(state.messages.at(-1)).toEqual(
-      expect.objectContaining({
-        sender: 'assistant',
-        type: 'error',
-        text: 'Gateway request failed',
-      }),
-    );
+    expect(state.messages.at(-1)).toEqual(expect.objectContaining({
+      text: 'Hello!',
+    }));
   });
 
   test('ignores stale error event when a newer active turn is in progress', () => {
@@ -1369,10 +1357,9 @@ describe('useChatStream state + stream handling', () => {
     expect(assistantOld).toEqual(expect.objectContaining({ text: 'old answer' }));
     expect(messages.at(-1)).toEqual(
       expect.objectContaining({
-        sender: 'assistant',
-        type: 'llm-text',
-        text: ' +next',
-        turnRef: 'turn-old',
+        sender: 'user',
+        text: 'new',
+        turnRef: 'turn-new',
       }),
     );
   });
@@ -1415,8 +1402,8 @@ describe('useChatStream state + stream handling', () => {
     expect(messages.at(-1)).toEqual(
       expect.objectContaining({
         sender: 'assistant',
-        type: 'llm-text',
-        text: 'Here is the final answer.',
+        type: 'tool-output',
+        text: 'tool output',
         turnRef: 'turn-1',
       }),
     );

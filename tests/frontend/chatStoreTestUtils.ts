@@ -48,6 +48,7 @@ export function resetChatStoreForTests(
         thinkingSourceEventType: null,
         tokenCounts: null,
         streamTracking,
+        currentTurnProjection: null,
       },
     },
     messages,
@@ -56,5 +57,6 @@ export function resetChatStoreForTests(
     thinkingSourceEventType: null,
     tokenCounts: null,
     streamTracking,
+    currentTurnProjection: null,
   });
 }

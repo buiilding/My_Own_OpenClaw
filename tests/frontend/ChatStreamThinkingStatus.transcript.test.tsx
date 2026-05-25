@@ -67,13 +67,7 @@ describe('useChatStream transcript + event filtering', () => {
       });
     });
 
-    const last = useChatStore.getState().getWorkspaceState('conv-1').messages.at(-1);
-    expect(last).toEqual(
-      expect.objectContaining({
-        type: 'tool-output',
-        correlationId: 'meta-corr',
-      }),
-    );
+    expect(useChatStore.getState().getWorkspaceState('conv-1').messages).toEqual([]);
     expect(transcriptSpies.recordToolMessage).toHaveBeenCalledWith(
       expect.any(String),
       expect.objectContaining({
@@ -114,6 +108,15 @@ describe('useChatStream transcript + event filtering', () => {
           },
         },
       ], 'conv-1');
+      useChatStore.getState().setCurrentTurnProjection({
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        phase: 'complete',
+        assistantText: 'answer',
+        reasoningText: null,
+        toolEvents: [],
+        lastError: null,
+      }, 'conv-1');
       emitBackendEvent({
         type: 'streaming-complete',
         conversation_ref: 'conv-1',
@@ -123,7 +126,12 @@ describe('useChatStream transcript + event filtering', () => {
     });
 
     expect(useChatStore.getState().getWorkspaceState('conv-1').messages.at(-1)).toEqual(
-      expect.objectContaining({ id: 'assistant-1', isComplete: true }),
+      expect.objectContaining({
+        id: 'conv-1:turn-1:assistant',
+        text: 'answer',
+        isComplete: true,
+        sourceChannel: 'conversation-runtime-updated',
+      }),
     );
     expect(transcriptSpies.recordAssistantMessage).toHaveBeenCalledWith(
       'answer',
@@ -169,6 +177,15 @@ describe('useChatStream transcript + event filtering', () => {
           },
         },
       ], 'conv-1');
+      useChatStore.getState().setCurrentTurnProjection({
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        phase: 'complete',
+        assistantText: 'backend full reply',
+        reasoningText: null,
+        toolEvents: [],
+        lastError: null,
+      }, 'conv-1');
       emitBackendEvent({
         type: 'streaming-complete',
         conversation_ref: 'conv-1',
@@ -182,7 +199,7 @@ describe('useChatStream transcript + event filtering', () => {
 
     expect(useChatStore.getState().getWorkspaceState('conv-1').messages.at(-1)).toEqual(
       expect.objectContaining({
-        id: 'assistant-1',
+        id: 'conv-1:turn-1:assistant',
         text: 'backend full reply',
         isComplete: true,
       }),
@@ -217,6 +234,15 @@ describe('useChatStream transcript + event filtering', () => {
           turnRef: 'turn-1',
         },
       ], 'conv-1');
+      useChatStore.getState().setCurrentTurnProjection({
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        phase: 'complete',
+        assistantText: 'answer',
+        reasoningText: null,
+        toolEvents: [],
+        lastError: null,
+      }, 'conv-1');
       emitBackendEvent({
         type: 'streaming-complete',
         conversation_ref: 'conv-1',
@@ -232,7 +258,11 @@ describe('useChatStream transcript + event filtering', () => {
     });
 
     expect(useChatStore.getState().getWorkspaceState('conv-1').messages.at(-1)).toEqual(
-      expect.objectContaining({ id: 'assistant-1', isComplete: true }),
+      expect.objectContaining({
+        id: 'conv-1:turn-1:assistant',
+        text: 'answer',
+        isComplete: true,
+      }),
     );
     expect(transcriptSpies.recordAssistantMessage).toHaveBeenCalledTimes(1);
   });
@@ -327,14 +357,7 @@ describe('useChatStream transcript + event filtering', () => {
       });
     });
 
-    const last = useChatStore.getState().getWorkspaceState('conv-1').messages.at(-1);
-    expect(last).toEqual(
-      expect.objectContaining({
-        sender: 'assistant',
-        type: 'tool-call',
-        sourceEventType: 'tool-bundle',
-      }),
-    );
+    expect(useChatStore.getState().getWorkspaceState('conv-1').messages).toEqual([]);
     expect(transcriptSpies.recordToolMessage).toHaveBeenCalledWith(
       expect.any(String),
       expect.objectContaining({
@@ -428,13 +451,11 @@ describe('useChatStream transcript + event filtering', () => {
     const activeAfter = useChatStore.getState().getWorkspaceState('conv-active');
     const staleWorkspace = useChatStore.getState().getWorkspaceState('conv-stale');
     expect(activeAfter).toEqual(activeBefore);
-    expect(staleWorkspace.messages.at(-1)).toEqual(
-      expect.objectContaining({
-        text: 'stale chunk',
-        sender: 'assistant',
-        type: 'llm-text',
-      }),
-    );
+    expect(staleWorkspace.messages).toEqual([]);
+    expect(staleWorkspace.streamTracking).toEqual(expect.objectContaining({
+      lastEventType: 'streaming-response',
+      phase: 'streaming',
+    }));
     expect(transcriptSpies.updateTranscriptSession).toHaveBeenCalledWith('conv-active', undefined);
   });
 

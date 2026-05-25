@@ -301,8 +301,8 @@ Primary modules:
 - `features/chat/stores/chatStore.ts`: canonical chat state + stream tracking.
 - `features/chat/utils/message/messagePresentationPipeline.js`: pure presentation pipeline that derives visible dashboard and overlay message rows from raw transcript state, including hidden-tool explanation rows and collapsed action summaries.
 - `features/chat/hooks/useChatStream.ts`:
-  - Stream event routing for transcript/session side effects, metadata, terminal state, token-count handling, and fallback-only handler tests.
-  - Production dashboard/response-overlay live assistant and tool rows come from SDK `conversation-runtime-updated` current-turn projection state instead of raw `from-backend` stream interpretation.
+  - Stream event routing for transcript/session side effects, metadata, terminal state, and token-count handling.
+  - Dashboard/response-overlay live assistant and tool rows come from SDK `conversation-runtime-updated` current-turn projection state instead of raw `from-backend` stream interpretation.
   - Conversation gating and turn tracking.
   - Dev transparency source tagging: in `electron:dev` (`dev_ui=1`), message/thinking/response surfaces show source badges mapped to stream/event origin (`streaming-response`, `tool-call`, `tool-output`, `llm-thought`, etc.).
   - Stream trace logging is separately gated by `WINDIE_DEBUG_STREAM_EVENTS=1`, which main process fans out as `?debug_stream=1` so renderer consoles stay quiet during normal `electron:dev` runs.

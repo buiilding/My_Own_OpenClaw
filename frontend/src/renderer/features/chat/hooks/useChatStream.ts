@@ -6,7 +6,6 @@ import {
 } from '../stores/chatStore';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { resolveThinkingCapabilities } from '../utils/modelThinkingCapabilities';
-import { normalizePersistedThinkingStatus } from '../utils/chatStream/chatStreamThinkingStatus';
 import { type TranscriptModelContext } from '../utils/chatStream/chatStreamTypes';
 import { useChatCommonActions } from './useChatCommonActions';
 import { useStreamMessageUpdaters } from './chatStream/useStreamMessageUpdaters';
@@ -31,15 +30,7 @@ import {
 } from '../../../app/runtime/desktopChatStreamTrackingRuntime';
 import { logRendererStreamTrace } from '../utils/chatStream/chatStreamDebugTrace';
 
-export type UseChatStreamOptions = {
-  renderRawLiveFallback?: boolean;
-};
-
-export function useChatStream(
-  enableTranscript: boolean = true,
-  options: UseChatStreamOptions = {},
-) {
-  const renderRawLiveFallback = options.renderRawLiveFallback === true;
+export function useChatStream(enableTranscript: boolean = true) {
   const {
     addMessage,
     updateMessage,
@@ -86,54 +77,18 @@ export function useChatStream(
     getWorkspaceState: useChatStore.getState().getWorkspaceState,
   }), []);
 
-  const shouldRenderRawLiveMessages = useCallback((
-    event: { turnRef?: string | null },
-    conversationRef?: string | null,
-  ): boolean => {
-    if (!renderRawLiveFallback) {
-      return false;
-    }
-    const projection = useChatStore.getState().getWorkspaceState(conversationRef).currentTurnProjection;
-    if (!projection || projection.phase === 'idle') {
-      return true;
-    }
-    if (!projection.turnRef || !event.turnRef) {
-      return true;
-    }
-    return projection.turnRef !== event.turnRef;
-  }, [renderRawLiveFallback]);
-
   const {
     updateLastMessageBySender,
     updateLastAssistantLlmTextMessage,
   } = useStreamMessageUpdaters(updateMessage);
 
-  const persistThinkingForTurn = useCallback((
-    turnRef?: string,
-    conversationRef?: string | null,
-  ) => {
-    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
-    const thinkingText = normalizePersistedThinkingStatus(workspace.thinkingStatus);
-    if (!thinkingText) {
-      return;
-    }
-    updateLastAssistantLlmTextMessage({
-      thinkingText,
-      thinkingSourceEventType: workspace.thinkingSourceEventType || 'llm-thought',
-    }, turnRef, conversationRef);
-  }, [updateLastAssistantLlmTextMessage]);
-
   const {
     handleLlmThought: handleLlmThoughtText,
     handleAssistantDelta,
   } = useChatStreamTextHandlers({
-    addMessage,
-    updateMessage,
     setIsSending,
     setThinkingStatus,
     setThinkingSourceEventType,
-    modelContextRef,
-    renderLiveMessages: shouldRenderRawLiveMessages,
     recordTrackingEvent,
   });
 
@@ -159,12 +114,10 @@ export function useChatStream(
     handleWebSearchProgress,
   } = useChatStreamToolHandlers({
     enableTranscript,
-    addMessage,
     setIsSending,
     setThinkingStatus,
     setThinkingSourceEventType,
     modelContextRef,
-    renderLiveMessages: shouldRenderRawLiveMessages,
     recordTrackingEvent,
   });
 
@@ -190,16 +143,12 @@ export function useChatStream(
   });
 
   const processStreamingComplete = useChatStreamCompletionHandler({
-    addMessage,
     enableTranscript,
     modelContextRef,
     recordTrackingEvent,
     setIsSending,
     setThinkingStatus,
     setThinkingSourceEventType,
-    updateMessage,
-    persistThinkingForTurn,
-    renderLiveMessages: shouldRenderRawLiveMessages,
   });
 
   const {
@@ -207,14 +156,12 @@ export function useChatStream(
     handleMemoryStore,
     handleTokenCount,
   } = useChatStreamTerminalHandlers({
-    addMessage,
     enableTranscript,
     modelContextRef,
     recordTrackingEvent,
     setIsSending,
     setThinkingSourceEventType,
     setThinkingStatus,
-    renderLiveMessages: shouldRenderRawLiveMessages,
   });
 
   const dispatchConversationEvent = useCallback((
@@ -339,7 +286,6 @@ export function useChatStream(
     handleToolSchemas,
     handleUserMessageFull,
     processStreamingComplete,
-    shouldRenderRawLiveMessages,
     shouldIgnoreSdkEventForStaleTurn,
   ]);
 

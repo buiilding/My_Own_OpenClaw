@@ -1,6 +1,7 @@
 import { act } from '@testing-library/react';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { registerBackendListener, resetChatStreamTestState } from './ChatStreamThinkingStatus.testUtils';
+import { buildCurrentTurnMessagesFromProjection } from '../../frontend/src/renderer/features/chat/utils/state/chatBoxResponseState';
 
 describe('useChatStream message metadata handling', () => {
   beforeEach(() => {
@@ -198,12 +199,18 @@ describe('useChatStream message metadata handling', () => {
     expect(assistantMessage.fullAssistantMessage).toBeUndefined();
   });
 
-  test('tool-call message stores raw arguments preview metadata for recoverable parse failures', () => {
-    const { emitBackendEvent } = registerBackendListener();
-
-    act(() => {
-      emitBackendEvent({
-        type: 'tool-call',
+  test('projected tool-call message stores raw arguments preview metadata for recoverable parse failures', () => {
+    const messages = buildCurrentTurnMessagesFromProjection({
+      conversationRef: 'conv-test',
+      turnRef: 'turn-test',
+      phase: 'tool_call',
+      assistantText: '',
+      reasoningText: null,
+      lastError: null,
+      toolEvents: [{
+        id: 'tool-bad',
+        kind: 'tool_call',
+        toolName: 'run_shell_command',
         payload: {
           tool_name: 'run_shell_command',
           parameters: {},
@@ -215,10 +222,10 @@ describe('useChatStream message metadata handling', () => {
             llm_tool_call_parse_error: 'failed to parse streamed tool-call arguments',
           },
         },
-      });
+      }],
     });
 
-    const toolCallMessage = useChatStore.getState().messages.at(-1);
+    const toolCallMessage = messages.at(-1);
     expect(toolCallMessage).toEqual(expect.objectContaining({
       type: 'tool-call',
       modelFacingToolCall: expect.objectContaining({
@@ -235,12 +242,18 @@ describe('useChatStream message metadata handling', () => {
     );
   });
 
-  test('tool-call message keeps preserved model-facing payload visible for pre-dispatch validation failures', () => {
-    const { emitBackendEvent } = registerBackendListener();
-
-    act(() => {
-      emitBackendEvent({
-        type: 'tool-call',
+  test('projected tool-call message keeps preserved model-facing payload visible for pre-dispatch validation failures', () => {
+    const messages = buildCurrentTurnMessagesFromProjection({
+      conversationRef: 'conv-test',
+      turnRef: 'turn-test',
+      phase: 'tool_call',
+      assistantText: '',
+      reasoningText: null,
+      lastError: null,
+      toolEvents: [{
+        id: 'tool-raw-2',
+        kind: 'tool_call',
+        toolName: 'run_shell_command',
         payload: {
           tool_name: 'run_shell_command',
           parameters: {},
@@ -257,10 +270,10 @@ describe('useChatStream message metadata handling', () => {
             },
           },
         },
-      });
+      }],
     });
 
-    const toolCallMessage = useChatStore.getState().messages.at(-1);
+    const toolCallMessage = messages.at(-1);
     expect(toolCallMessage?.text).toBe(
       JSON.stringify({
         id: 'tool_raw_2',
@@ -290,12 +303,18 @@ describe('useChatStream message metadata handling', () => {
     }));
   });
 
-  test('tool-call message marks frontend execution skipped for direct-tool validation failures', () => {
-    const { emitBackendEvent } = registerBackendListener();
-
-    act(() => {
-      emitBackendEvent({
-        type: 'tool-call',
+  test('projected tool-call message marks frontend execution skipped for direct-tool validation failures', () => {
+    const messages = buildCurrentTurnMessagesFromProjection({
+      conversationRef: 'conv-test',
+      turnRef: 'turn-test',
+      phase: 'tool_call',
+      assistantText: '',
+      reasoningText: null,
+      lastError: null,
+      toolEvents: [{
+        id: 'tool-validation',
+        kind: 'tool_call',
+        toolName: 'mouse_control',
         payload: {
           tool_name: 'mouse_control',
           parameters: {
@@ -308,10 +327,10 @@ describe('useChatStream message metadata handling', () => {
             skip_frontend_execution: true,
           },
         },
-      });
+      }],
     });
 
-    const toolCallMessage = useChatStore.getState().messages.at(-1);
+    const toolCallMessage = messages.at(-1);
     expect(toolCallMessage).toEqual(expect.objectContaining({
       type: 'tool-call',
       modelFacingToolCall: expect.objectContaining({

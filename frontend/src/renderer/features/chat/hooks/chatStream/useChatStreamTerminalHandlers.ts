@@ -1,24 +1,26 @@
 import { useCallback } from 'react';
 import {
   useChatStore,
-  type ChatMessage,
   type TokenCounts,
 } from '../../stores/chatStore';
 import {
   resolveErrorText,
   shouldIgnoreStreamError,
 } from '../../utils/chatStream/chatStreamEventUtils';
-import type { ChatStreamThinkingStateDeps } from './chatStreamHandlerTypes';
+import type { TrackEventFn } from './chatStreamHandlerTypes';
 import { findLastAssistantLlmTextMessageId } from '../../utils/chatStream/chatStreamMessageUpdates';
 import type { ConversationEvent } from '../../../../infrastructure/api/windieSdkClient';
 import { recordAssistantTranscriptMessage } from '../../utils/chatStream/chatStreamTranscriptPersistence';
 import { replaceCurrentTurnMessagesWithProjection } from '../../utils/state/chatBoxResponseState';
+import type { TranscriptModelContext } from '../../utils/chatStream/chatStreamTypes';
 
-type UseChatStreamTerminalHandlersDeps = ChatStreamThinkingStateDeps<
-  'streaming-complete' | 'token-count' | 'memory-store' | 'error'
-> & {
+type UseChatStreamTerminalHandlersDeps = {
   enableTranscript: boolean;
-  renderLiveMessages?: boolean | ((event: ConversationEvent, conversationRef?: string | null) => boolean);
+  modelContextRef: { current: TranscriptModelContext };
+  recordTrackingEvent: TrackEventFn<'streaming-complete' | 'token-count' | 'memory-store' | 'error'>;
+  setIsSending: (value: boolean, conversationRef?: string | null) => void;
+  setThinkingSourceEventType: (value: string | null, conversationRef?: string | null) => void;
+  setThinkingStatus: (value: string | null, conversationRef?: string | null) => void;
 };
 
 function terminalPayloadWithoutRawEvent(event: ConversationEvent): Record<string, unknown> {
@@ -26,23 +28,13 @@ function terminalPayloadWithoutRawEvent(event: ConversationEvent): Record<string
   return payload;
 }
 
-function shouldRenderLiveMessage(
-  option: UseChatStreamTerminalHandlersDeps['renderLiveMessages'],
-  event: ConversationEvent,
-  conversationRef?: string | null,
-): boolean {
-  return typeof option === 'function' ? option(event, conversationRef) : option !== false;
-}
-
 export function useChatStreamTerminalHandlers({
-  addMessage,
   enableTranscript,
   modelContextRef,
   recordTrackingEvent,
   setIsSending,
   setThinkingSourceEventType,
   setThinkingStatus,
-  renderLiveMessages = true,
 }: UseChatStreamTerminalHandlersDeps) {
   const setTokenCounts = useChatStore((state) => state.setTokenCounts);
   const updateMessage = useChatStore((state) => state.updateMessage);
@@ -111,28 +103,13 @@ export function useChatStreamTerminalHandlers({
     setThinkingSourceEventType(null, conversationRef);
     const errorText = resolveErrorText(errorPayload);
     const modelContext = modelContextRef.current;
-    if (shouldRenderLiveMessage(renderLiveMessages, event, conversationRef)) {
-      const newMessage: ChatMessage = {
-        id: crypto.randomUUID(),
-        text: errorText,
-        sender: 'assistant',
-        type: 'error',
-        sourceEventType: 'error',
-        sourceChannel: 'from-backend',
-        turnRef: event.turnRef ?? undefined,
-        modelId: modelContext.modelId,
-        modelProvider: modelContext.modelProvider,
-      };
-      addMessage(newMessage, conversationRef);
-    } else {
-      const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
-      const nextMessages = replaceCurrentTurnMessagesWithProjection(
-        workspace.messages,
-        workspace.currentTurnProjection,
-      );
-      if (nextMessages !== workspace.messages) {
-        useChatStore.getState().setMessages(nextMessages, conversationRef);
-      }
+    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
+    const nextMessages = replaceCurrentTurnMessagesWithProjection(
+      workspace.messages,
+      workspace.currentTurnProjection,
+    );
+    if (nextMessages !== workspace.messages) {
+      useChatStore.getState().setMessages(nextMessages, conversationRef);
     }
 
     recordTrackingEvent('error', event.turnRef, {
@@ -150,10 +127,8 @@ export function useChatStreamTerminalHandlers({
       });
     }
   }, [
-    addMessage,
     enableTranscript,
     modelContextRef,
-    renderLiveMessages,
     setIsSending,
     setThinkingSourceEventType,
     setThinkingStatus,
