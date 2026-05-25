@@ -69,7 +69,9 @@ Use this path when backend-owned config changes at runtime.
 5. Embedding provider/router is recreated or cleared depending on `memory_enabled`.
 6. OCR and vision providers are recreated, routers get current circuit-breaker settings, and `context_factory` receives fresh services.
 7. Cached `AgentSessionFactory` is invalidated so future sessions resolve current dependencies.
-8. API runtime overrides refresh if the API container already exists.
+8. API runtime overrides refresh if the API container already exists; cached API
+   handler/registry singletons are reset before overrides are re-synced so the
+   next lookup captures current runtime dependencies.
 
 ### Session Settings Update Path
 

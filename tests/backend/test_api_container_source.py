@@ -11,10 +11,14 @@ from backend.src.api.deps import (
     get_session_manager,
     set_container,
 )
+from backend.src.core.config.models import AppConfig
+from backend.src.core.container.api_runtime import ApiRuntimeBinder
 
 
 def test_api_container_uses_core_owned_routing_spec() -> None:
-    source = Path("backend/src/core/container/api_container.py").read_text(encoding="utf-8")
+    source = Path("backend/src/core/container/api_container.py").read_text(
+        encoding="utf-8"
+    )
     assert "build_handler_bindings(" in source
 
 
@@ -105,3 +109,39 @@ async def test_dependency_helpers_return_container_members() -> None:
 
     assert await get_session_manager(container) is session_manager
     assert await get_handler_registry(container) is handler_registry
+
+
+def test_api_runtime_refresh_rebuilds_materialized_singleton_handlers() -> None:
+    first_session_manager = object()
+    first_model_service = object()
+    parent = SimpleNamespace(
+        config=AppConfig(),
+        config_service=object(),
+        model_service=first_model_service,
+        session_manager=first_session_manager,
+    )
+    binder = ApiRuntimeBinder(parent)
+
+    first_registry = binder.get_handler_registry()
+    assert first_registry._handlers["list-models"].model_service is first_model_service
+    assert (
+        first_registry._handlers["load-settings"].session_manager
+        is first_session_manager
+    )
+
+    second_session_manager = object()
+    second_model_service = object()
+    parent.model_service = second_model_service
+    parent.session_manager = second_session_manager
+
+    binder.refresh_overrides()
+    second_registry = binder.get_handler_registry()
+
+    assert second_registry is not first_registry
+    assert (
+        second_registry._handlers["list-models"].model_service is second_model_service
+    )
+    assert (
+        second_registry._handlers["load-settings"].session_manager
+        is second_session_manager
+    )

@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/container: reset cached API handler singletons when refreshing runtime overrides so handlers capture current dependencies.
 - backend/tools: treat callable OCR and vision readiness APIs as provider-health checks instead of unavailable method objects.
 - backend/tools: make provider schema projection reapply config-driven tool policy instead of returning every schema unchanged.
 - backend/sdk: require authenticated install identity for prompt-preview debug requests and reject cross-user prompt inspection.

@@ -32,6 +32,7 @@ class ApiRuntimeBinder:
         Refresh runtime overrides if ApiContainer has already been created.
         """
         if self._api_container is not None:
+            self._reset_api_container_singletons(self._api_container)
             self._sync_api_container_overrides(self._api_container)
 
     def _ensure_api_container(self) -> Any:
@@ -52,3 +53,22 @@ class ApiRuntimeBinder:
             providers.Object(self._container.session_manager)
         )
 
+    @staticmethod
+    def _reset_api_container_singletons(api_container: Any) -> None:
+        for provider_name in (
+            "handler_registry",
+            "query_handler",
+            "rehydrate_conversation_handler",
+            "stop_query_handler",
+            "tool_result_handler",
+            "wakeword_handler",
+            "compact_history_handler",
+            "list_models_handler",
+            "load_settings_handler",
+            "update_settings_handler",
+            "wakeword_service",
+        ):
+            provider = getattr(api_container, provider_name, None)
+            reset = getattr(provider, "reset", None)
+            if callable(reset):
+                reset()

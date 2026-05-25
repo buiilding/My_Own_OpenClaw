@@ -111,6 +111,9 @@ Responsibilities:
 - lazy-create `ApiContainer`
 - sync runtime overrides (`config`, `config_service`, `model_service`, `session_manager`)
 - refresh overrides after config mutation when API container already exists
+- reset materialized API handler/registry singletons before re-syncing
+  overrides, so subsequent handler registry lookups rebuild handlers with the
+  current runtime dependencies
 
 ## Async Component Initialization (`ContainerInitializer`)
 
