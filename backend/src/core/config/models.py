@@ -439,6 +439,17 @@ class AppConfig(BaseModel):
         description="Maximum artifact size accepted by HTTP upload",
     )
     install_auth_enabled: bool = True
+    install_registration_enabled: bool = Field(
+        default=True,
+        description="Whether /api/install/register can create durable install tokens",
+    )
+    install_registration_secret: Optional[str] = Field(
+        default=None,
+        description=(
+            "Optional bootstrap secret required in "
+            "X-Windie-Install-Registration-Secret for install registration"
+        ),
+    )
     install_auth_db_path: str = Field(
         default_factory=_default_install_auth_db_path,
         description="SQLite file used for install-token registration and authentication",

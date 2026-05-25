@@ -33,10 +33,20 @@ class _FailingInstallAuthServiceStub:
         raise RuntimeError("registration failed")
 
 
-def _build_app(*, install_auth_enabled: bool, db_path: str) -> FastAPI:
+def _build_app(
+    *,
+    install_auth_enabled: bool,
+    db_path: str,
+    install_registration_enabled: bool = True,
+    install_registration_secret: str | None = None,
+) -> FastAPI:
     app = FastAPI()
     app.state.container = SimpleNamespace(
-        config=SimpleNamespace(install_auth_enabled=install_auth_enabled),
+        config=SimpleNamespace(
+            install_auth_enabled=install_auth_enabled,
+            install_registration_enabled=install_registration_enabled,
+            install_registration_secret=install_registration_secret,
+        ),
     )
     app.state.install_auth_service = InstallAuthService(db_path)
     app.middleware("http")(install_auth_http_middleware)
@@ -60,8 +70,19 @@ def _build_app(*, install_auth_enabled: bool, db_path: str) -> FastAPI:
     return app
 
 
-def _build_register_only_app(install_auth_service: object | None = None) -> FastAPI:
+def _build_register_only_app(
+    install_auth_service: object | None = None,
+    *,
+    install_registration_enabled: bool = True,
+    install_registration_secret: str | None = None,
+) -> FastAPI:
     app = FastAPI()
+    app.state.container = SimpleNamespace(
+        config=SimpleNamespace(
+            install_registration_enabled=install_registration_enabled,
+            install_registration_secret=install_registration_secret,
+        ),
+    )
     if install_auth_service is not None:
         app.state.install_auth_service = install_auth_service
     app.include_router(install_auth_router)
@@ -133,6 +154,50 @@ def test_register_install_rejects_extra_request_fields() -> None:
 
     assert response.status_code == 422
     assert service.calls == []
+
+
+def test_register_install_rejects_when_registration_is_disabled() -> None:
+    service = _InstallAuthServiceStub()
+    app = _build_register_only_app(service, install_registration_enabled=False)
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/install/register",
+            json={"operating_system": "Windows"},
+        )
+
+    assert response.status_code == 403
+    assert response.json() == {"detail": "Install registration is disabled"}
+    assert service.calls == []
+
+
+def test_register_install_requires_configured_bootstrap_secret() -> None:
+    service = _InstallAuthServiceStub()
+    app = _build_register_only_app(
+        service,
+        install_registration_secret="expected-secret",
+    )
+
+    with TestClient(app) as client:
+        missing_response = client.post(
+            "/api/install/register",
+            json={"operating_system": "Windows"},
+        )
+        wrong_response = client.post(
+            "/api/install/register",
+            headers={"X-Windie-Install-Registration-Secret": "wrong-secret"},
+            json={"operating_system": "Windows"},
+        )
+        accepted_response = client.post(
+            "/api/install/register",
+            headers={"X-Windie-Install-Registration-Secret": "expected-secret"},
+            json={"operating_system": "Windows"},
+        )
+
+    assert missing_response.status_code == 403
+    assert wrong_response.status_code == 403
+    assert accepted_response.status_code == 200
+    assert service.calls == [{"operating_system": "Windows"}]
 
 
 def test_register_install_uses_service_response_shape() -> None:
