@@ -133,6 +133,11 @@ class _FakeSessionManager:
         return self._session
 
 
+class _RejectingSessionManager:
+    def get_session(self, user_id):
+        raise AssertionError(f"unexpected session lookup for {user_id}")
+
+
 def _tool_registry(config: AppConfig) -> ToolRegistry:
     return ToolRegistry(config=config, cache_manager=CacheManager())
 
@@ -820,6 +825,33 @@ async def test_sdk_debug_tool_schemas_returns_canonical_and_provider_shapes(
     assert response.provider_tool_schemas
     assert all(
         schema.get("type") == "function" for schema in response.provider_tool_schemas
+    )
+
+
+@pytest.mark.asyncio
+async def test_sdk_debug_tool_schemas_ignore_user_id_without_authenticated_identity(
+    tmp_path,
+) -> None:
+    config = AppConfig(
+        artifact_store_path=str(tmp_path),
+        artifact_max_bytes=1024 * 1024,
+        model_provider="openai",
+        selected_model_id="gpt-5.4@@gpt-5-4-none-thinking",
+    )
+    container = _container(tmp_path, config=config)
+
+    response = await sdk_routes.sdk_debug_tool_schemas(
+        container=container,
+        session_manager=_RejectingSessionManager(),
+        user_id="other-user",
+        model_id=None,
+        model_provider=None,
+        interaction_mode=None,
+    )
+
+    assert response.config.model_provider == "openai"
+    assert any(
+        schema.get("name") == "read_file" for schema in response.canonical_tool_schemas
     )
 
 

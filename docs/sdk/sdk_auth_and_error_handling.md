@@ -15,7 +15,7 @@ SDK clients use hosted backend auth rules. They do not bypass install auth, prov
 | Route family | Auth | Notes |
 | --- | --- | --- |
 | `POST /api/install/register` | None | Issues install token and server-owned identity. |
-| `/api/sdk/*` | `Authorization: Bearer <install_token>` when install auth is enabled | Includes OCR, vision, debug, and prompt-preview routes. `POST /api/sdk/ocr/find-text`, `POST /api/sdk/ocr/overlay`, and `POST /api/sdk/vision/locate-all` reject missing authenticated identity before image resolution/provider work. Models, system-prompt, prompt-preview, and query-plan debug routes require authenticated identity and reject cross-user context; query-plan also rejects payload-selected workspace context. |
+| `/api/sdk/*` | `Authorization: Bearer <install_token>` when install auth is enabled | Includes OCR, vision, debug, and prompt-preview routes. `POST /api/sdk/ocr/find-text`, `POST /api/sdk/ocr/overlay`, and `POST /api/sdk/vision/locate-all` reject missing authenticated identity before image resolution/provider work. Models, system-prompt, prompt-preview, and query-plan debug routes require authenticated identity and reject cross-user context; query-plan also rejects payload-selected workspace context. Debug helpers ignore payload or query `user_id` for session lookup unless an authenticated install identity is present. |
 | `/api/artifacts/*` | Install bearer token | Artifact owner derives from authenticated identity; anonymous artifact access is rejected. |
 | `/ws` | Bearer token in websocket headers plus handshake message | Authenticated identity overrides claimed `user_id`. |
 | `/api/runs/*` | Install auth plus required `x-windie-runs-key` | VM worker/control plane, not normal SDK client path. |

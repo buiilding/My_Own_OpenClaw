@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/sdk: ignore caller-supplied debug `user_id` values for session lookup unless an authenticated install identity is present.
 - frontend/main: restore screenshot-suppressed main-window bounds before applying implicit display affinity.
 - backend/container: rebind the DI config provider during runtime updates so new LLM clients and tool orchestrators use the updated AppConfig.
 - backend/sdk: require authenticated install identity before SDK vision locate-all resolves images or invokes provider work.

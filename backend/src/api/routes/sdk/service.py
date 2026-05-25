@@ -132,9 +132,9 @@ def resolve_effective_debug_config(
     model_provider: Optional[str] = None,
     interaction_mode: Optional[str] = None,
 ):
-    """Resolve the effective debug config from session/global config plus overrides."""
+    """Resolve effective debug config from authorized session/global config plus overrides."""
     identity = get_current_authenticated_install_identity()
-    resolved_user_id = identity.user_id if identity is not None else user_id
+    resolved_user_id = identity.user_id if identity is not None else None
     base_config = container.config
     if resolved_user_id and session_manager is not None:
         session = session_manager.get_session(resolved_user_id)
