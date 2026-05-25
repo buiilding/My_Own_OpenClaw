@@ -13,17 +13,21 @@ from backend.src.agent.tools.preparation.helpers.grounded_source_preparation imp
     attach_source_coordinate_method_metadata,
     ensure_coordinate_resolution_screenshot,
     normalize_manual_source_coordinates,
+    normalize_screenshot_id,
     resolve_grounded_source_coordinates,
     tool_call_has_manual_coordinates,
     tool_call_needs_source_coordinate_resolution,
 )
 from backend.src.agent.tools.preparation.helpers.mouse_drag_destination_preparation import (
     attach_drag_destination_coordinate_method_metadata,
+    normalize_manual_drag_destination_coordinates,
     resolve_mouse_drag_destination_coordinates,
     tool_call_needs_drag_destination_resolution,
-    normalize_manual_drag_destination_coordinates,
 )
-from backend.src.tools.computer.grounding_contract import supports_source_grounding
+from backend.src.tools.computer.grounding_contract import (
+    supports_drag_destination_grounding,
+    supports_source_grounding,
+)
 
 
 def tool_call_needs_coordinate_resolution(tool_call: ParsedToolCall) -> bool:
@@ -106,14 +110,30 @@ def normalize_manual_coordinates(
     """
     Normalize manual grounded-tool coordinates from screenshot pixel space to desktop space.
     """
-    if not supports_source_grounding(resolved_call.tool_name):
-        return
+    screenshot_frame: Optional[tuple[str, str]] = None
+    if supports_source_grounding(resolved_call.tool_name):
+        screenshot_frame = normalize_manual_source_coordinates(
+            resolved_call=resolved_call,
+            session=session,
+            context_id=context_id,
+        )
 
-    screenshot_data, screenshot_id = normalize_manual_source_coordinates(
-        resolved_call=resolved_call,
-        session=session,
-        context_id=context_id,
-    )
+    if not supports_drag_destination_grounding(resolved_call.tool_name):
+        return
+    if resolved_call.parameters.get("action") != "drag":
+        return
+    if screenshot_frame is None:
+        screenshot_id = normalize_screenshot_id(session.get_current_screenshot_id())
+        if not screenshot_id:
+            raise ValueError(
+                "No active screenshot frame available for manual grounding"
+            )
+        screenshot_data = session.get_screenshot()
+        if not isinstance(screenshot_data, str) or not screenshot_data.strip():
+            raise ValueError("No active screenshot data available for manual grounding")
+        screenshot_frame = (screenshot_data, screenshot_id)
+
+    screenshot_data, screenshot_id = screenshot_frame
     normalize_manual_drag_destination_coordinates(
         resolved_call=resolved_call,
         session=session,

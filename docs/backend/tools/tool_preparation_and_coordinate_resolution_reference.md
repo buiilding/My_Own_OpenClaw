@@ -92,6 +92,11 @@ For manual `x/y` calls (no OCR/vision resolution):
 4. normalize screenshot-space manual coordinates to display-space
 5. persist `coordinate_contract` metadata + `coordinate_resolution_screenshot_id`
 
+For manual drag destinations, `drag_to_x/drag_to_y` normalization runs independently
+from source-coordinate support. Destination-grounded drag tools therefore persist
+`drag_destination_coordinate_contract` even when the tool does not also expose
+source grounding fields.
+
 If any manual precondition fails (missing frame id, missing screenshot bytes), preparation fails fast with an actionable error.
 
 ## Coordinate Normalization Contract

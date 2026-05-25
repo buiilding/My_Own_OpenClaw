@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/tools: normalize manual drag destinations independently from source-grounding support.
 - frontend/chat: mark manual compaction as failed when setup or compact dispatch throws before backend compaction starts.
 - frontend/wakeword: bound length-prefixed detection result frames and clear malformed oversized stdout buffers.
 - backend/runs: guard lazy VM run-control service creation so concurrent first requests share one in-memory service.

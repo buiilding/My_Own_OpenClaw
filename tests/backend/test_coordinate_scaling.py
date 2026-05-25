@@ -1,21 +1,23 @@
 import pytest
-
-from backend.src.agent.tools.preparation.helpers.preparation_helper import (
-    normalize_manual_coordinates,
-    resolve_tool_with_coordinates,
-)
-from backend.src.agent.tools.preparation.validation import (
-    sanitize_and_validate_resolved_tool_call,
-)
-from backend.src.agent.tools.preparation.types.resolved_tool_call import ResolvedToolCall
-from backend.src.core.types.enums import CoordinateFindingMethod
-from backend.src.llm.parser import ParsedToolCall
 from frontend.src.main.python.tools.schemas import (
     MouseControlArgs as SidecarMouseControlArgs,
 )
 from frontend.src.main.python.tools.schemas import (
     ScrollControlArgs as SidecarScrollControlArgs,
 )
+
+from backend.src.agent.tools.preparation.helpers.preparation_helper import (
+    normalize_manual_coordinates,
+    resolve_tool_with_coordinates,
+)
+from backend.src.agent.tools.preparation.types.resolved_tool_call import (
+    ResolvedToolCall,
+)
+from backend.src.agent.tools.preparation.validation import (
+    sanitize_and_validate_resolved_tool_call,
+)
+from backend.src.core.types.enums import CoordinateFindingMethod
+from backend.src.llm.parser import ParsedToolCall
 
 
 class _StubScreenshotManager:
@@ -24,7 +26,9 @@ class _StubScreenshotManager:
 
 
 class _StubSession:
-    def __init__(self, screenshot_b64: str, screenshot_id: str, capture_meta: dict | None):
+    def __init__(
+        self, screenshot_b64: str, screenshot_id: str, capture_meta: dict | None
+    ):
         self._screenshot_b64 = screenshot_b64
         self._screenshot_id = screenshot_id
         self._capture_meta = capture_meta
@@ -44,7 +48,10 @@ def _create_session_and_manager(
     screenshot_id: str = "shot-1",
     capture_meta: dict | None,
 ):
-    return _StubSession("fake-base64-image", screenshot_id, capture_meta), _StubScreenshotManager()
+    return (
+        _StubSession("fake-base64-image", screenshot_id, capture_meta),
+        _StubScreenshotManager(),
+    )
 
 
 def _patch_coordinate_resolution(monkeypatch, x: int, y: int):
@@ -61,7 +68,9 @@ def _patch_coordinate_resolution(monkeypatch, x: int, y: int):
     )
 
 
-def _patch_coordinate_resolution_sequence(monkeypatch, coordinates: list[tuple[int, int]]):
+def _patch_coordinate_resolution_sequence(
+    monkeypatch, coordinates: list[tuple[int, int]]
+):
     iterator = iter(coordinates)
 
     async def _fake_resolve_coordinates(*_args, **_kwargs):
@@ -113,7 +122,9 @@ def _build_scroll_call(
     return tool_call, ResolvedToolCall.from_parsed_call(tool_call)
 
 
-async def _resolve_with_stubs(tool_call, resolved_call, session, screenshot_manager, context_id: str):
+async def _resolve_with_stubs(
+    tool_call, resolved_call, session, screenshot_manager, context_id: str
+):
     await resolve_tool_with_coordinates(
         tool_call=tool_call,
         resolved_call=resolved_call,
@@ -159,7 +170,9 @@ async def test_resolve_tool_with_coordinates_scales_using_capture_meta(monkeypat
     )
 
     _patch_coordinate_resolution(monkeypatch, 1000, 1000)
-    await _resolve_with_stubs(tool_call, resolved_call, session, screenshot_manager, "bundle-id")
+    await _resolve_with_stubs(
+        tool_call, resolved_call, session, screenshot_manager, "bundle-id"
+    )
 
     assert resolved_call.parameters["x"] == 500
     assert resolved_call.parameters["y"] == 500
@@ -177,7 +190,9 @@ async def test_resolve_tool_with_coordinates_scales_using_capture_meta(monkeypat
 
 
 @pytest.mark.asyncio
-async def test_resolve_tool_with_coordinates_uses_raw_coordinates_when_capture_meta_missing(monkeypatch):
+async def test_resolve_tool_with_coordinates_uses_raw_coordinates_when_capture_meta_missing(
+    monkeypatch,
+):
     session, screenshot_manager = _create_session_and_manager(
         screenshot_id="shot-missing-meta",
         capture_meta=None,
@@ -189,7 +204,9 @@ async def test_resolve_tool_with_coordinates_uses_raw_coordinates_when_capture_m
     )
 
     _patch_coordinate_resolution(monkeypatch, 1000, 600)
-    await _resolve_with_stubs(tool_call, resolved_call, session, screenshot_manager, "single-id")
+    await _resolve_with_stubs(
+        tool_call, resolved_call, session, screenshot_manager, "single-id"
+    )
 
     assert resolved_call.parameters["x"] == 1000
     assert resolved_call.parameters["y"] == 600
@@ -198,7 +215,9 @@ async def test_resolve_tool_with_coordinates_uses_raw_coordinates_when_capture_m
 
 
 @pytest.mark.asyncio
-async def test_resolve_tool_with_coordinates_preserves_prediction_description(monkeypatch):
+async def test_resolve_tool_with_coordinates_preserves_prediction_description(
+    monkeypatch,
+):
     session, screenshot_manager = _create_session_and_manager(
         screenshot_id="shot-pred",
         capture_meta={
@@ -221,17 +240,24 @@ async def test_resolve_tool_with_coordinates_preserves_prediction_description(mo
     )
 
     _patch_coordinate_resolution(monkeypatch, 743, 873)
-    await _resolve_with_stubs(tool_call, resolved_call, session, screenshot_manager, "prediction-id")
+    await _resolve_with_stubs(
+        tool_call, resolved_call, session, screenshot_manager, "prediction-id"
+    )
 
     assert resolved_call.parameters["x"] == 743
     assert resolved_call.parameters["y"] == 873
-    assert resolved_call.parameters["source_description"] == "the cheapest shoe listing card"
+    assert (
+        resolved_call.parameters["source_description"]
+        == "the cheapest shoe listing card"
+    )
     assert "find_coordinates_by" not in resolved_call.parameters
     assert resolved_call.metadata["coordinate_method"] == "prediction"
 
 
 @pytest.mark.asyncio
-async def test_resolve_tool_with_coordinates_supports_scroll_control_prediction(monkeypatch):
+async def test_resolve_tool_with_coordinates_supports_scroll_control_prediction(
+    monkeypatch,
+):
     session, screenshot_manager = _create_session_and_manager(
         screenshot_id="shot-scroll-pred",
         capture_meta={
@@ -255,11 +281,15 @@ async def test_resolve_tool_with_coordinates_supports_scroll_control_prediction(
     )
 
     _patch_coordinate_resolution(monkeypatch, 120, 420)
-    await _resolve_with_stubs(tool_call, resolved_call, session, screenshot_manager, "scroll-pred-id")
+    await _resolve_with_stubs(
+        tool_call, resolved_call, session, screenshot_manager, "scroll-pred-id"
+    )
 
     assert resolved_call.parameters["x"] == 120
     assert resolved_call.parameters["y"] == 420
-    assert resolved_call.parameters["source_description"] == "the left sidebar list area"
+    assert (
+        resolved_call.parameters["source_description"] == "the left sidebar list area"
+    )
     assert "find_coordinates_by" not in resolved_call.parameters
     assert resolved_call.metadata["coordinate_method"] == "prediction"
 
@@ -350,7 +380,10 @@ async def test_resolved_scroll_prediction_payload_is_valid_sidecar_input(monkeyp
     assert sidecar_args.y == 480
     assert sidecar_args.clicks == 6
     assert sidecar_args.wait == 0.4
-    assert resolved_call.metadata["coordinate_contract"]["screenshot_id"] == "shot-scroll-parity"
+    assert (
+        resolved_call.metadata["coordinate_contract"]["screenshot_id"]
+        == "shot-scroll-parity"
+    )
 
 
 @pytest.mark.asyncio
@@ -380,13 +413,17 @@ async def test_resolve_tool_with_coordinates_normalizes_drag_destination(monkeyp
     )
 
     _patch_coordinate_resolution(monkeypatch, 1000, 1000)
-    await _resolve_with_stubs(tool_call, resolved_call, session, screenshot_manager, "drag-scale-id")
+    await _resolve_with_stubs(
+        tool_call, resolved_call, session, screenshot_manager, "drag-scale-id"
+    )
 
     assert resolved_call.parameters["x"] == 500
     assert resolved_call.parameters["y"] == 500
     assert resolved_call.parameters["drag_to_x"] == 1000
     assert resolved_call.parameters["drag_to_y"] == 250
-    destination_contract = resolved_call.metadata["drag_destination_coordinate_contract"]
+    destination_contract = resolved_call.metadata[
+        "drag_destination_coordinate_contract"
+    ]
     assert destination_contract["source_coordinates"] == {"x": 2000, "y": 500}
     assert destination_contract["normalized_coordinates"] == {"x": 1000, "y": 250}
     assert destination_contract["normalization_status"] == "scaled_to_desktop"
@@ -436,9 +473,14 @@ async def test_resolve_tool_with_coordinates_resolves_prediction_destination_fro
     assert resolved_call.parameters["drag_to_y"] == 320
     assert "drag_to_find_coordinates_by" not in resolved_call.parameters
     assert resolved_call.parameters["destination_description"] == "black rounded square"
-    assert resolved_call.metadata["coordinate_resolution_screenshot_id"] == "shot-drag-destination-prediction"
+    assert (
+        resolved_call.metadata["coordinate_resolution_screenshot_id"]
+        == "shot-drag-destination-prediction"
+    )
     assert resolved_call.metadata["drag_destination_coordinate_method"] == "prediction"
-    destination_contract = resolved_call.metadata["drag_destination_coordinate_contract"]
+    destination_contract = resolved_call.metadata[
+        "drag_destination_coordinate_contract"
+    ]
     assert destination_contract["screenshot_id"] == "shot-drag-destination-prediction"
     assert destination_contract["source_coordinates"] == {"x": 620, "y": 320}
 
@@ -484,8 +526,14 @@ async def test_resolve_tool_with_coordinates_resolves_source_and_destination_aga
     assert resolved_call.parameters["y"] == 540
     assert resolved_call.parameters["drag_to_x"] == 620
     assert resolved_call.parameters["drag_to_y"] == 320
-    assert resolved_call.metadata["coordinate_resolution_screenshot_id"] == "shot-drag-shared-frame"
-    assert resolved_call.metadata["coordinate_contract"]["screenshot_id"] == "shot-drag-shared-frame"
+    assert (
+        resolved_call.metadata["coordinate_resolution_screenshot_id"]
+        == "shot-drag-shared-frame"
+    )
+    assert (
+        resolved_call.metadata["coordinate_contract"]["screenshot_id"]
+        == "shot-drag-shared-frame"
+    )
     assert (
         resolved_call.metadata["drag_destination_coordinate_contract"]["screenshot_id"]
         == "shot-drag-shared-frame"
@@ -599,7 +647,9 @@ def test_normalize_manual_coordinates_uses_current_frame_when_screenshot_id_miss
 
     assert resolved_call.parameters["x"] == 700
     assert resolved_call.parameters["y"] == 300
-    assert resolved_call.metadata["coordinate_resolution_screenshot_id"] == "shot-manual"
+    assert (
+        resolved_call.metadata["coordinate_resolution_screenshot_id"] == "shot-manual"
+    )
 
 
 def test_normalize_manual_coordinates_ignores_legacy_screenshot_id():
@@ -633,7 +683,9 @@ def test_normalize_manual_coordinates_ignores_legacy_screenshot_id():
     )
     assert resolved_call.parameters["x"] == 700
     assert resolved_call.parameters["y"] == 300
-    assert resolved_call.metadata["coordinate_resolution_screenshot_id"] == "shot-current"
+    assert (
+        resolved_call.metadata["coordinate_resolution_screenshot_id"] == "shot-current"
+    )
 
 
 def test_normalize_manual_coordinates_scales_to_desktop_space():
@@ -673,7 +725,10 @@ def test_normalize_manual_coordinates_scales_to_desktop_space():
 
     assert resolved_call.parameters["x"] == 500
     assert resolved_call.parameters["y"] == 300
-    assert resolved_call.metadata["coordinate_resolution_screenshot_id"] == "shot-manual-scale"
+    assert (
+        resolved_call.metadata["coordinate_resolution_screenshot_id"]
+        == "shot-manual-scale"
+    )
     contract = resolved_call.metadata["coordinate_contract"]
     assert contract["source_coordinates"] == {"x": 1000, "y": 600}
     assert contract["capture_crop"] == {"x": 0, "y": 0, "width": 1920, "height": 1080}
@@ -717,7 +772,10 @@ def test_normalize_manual_coordinates_scales_scroll_control_to_desktop_space():
 
     assert resolved_call.parameters["x"] == 500
     assert resolved_call.parameters["y"] == 300
-    assert resolved_call.metadata["coordinate_resolution_screenshot_id"] == "shot-scroll-manual-scale"
+    assert (
+        resolved_call.metadata["coordinate_resolution_screenshot_id"]
+        == "shot-scroll-manual-scale"
+    )
     assert resolved_call.metadata["coordinate_method"] == "manual"
     contract = resolved_call.metadata["coordinate_contract"]
     assert contract["source_coordinates"] == {"x": 1000, "y": 600}
@@ -807,7 +865,66 @@ def test_normalize_manual_coordinates_scales_drag_destination_to_desktop_space()
     assert resolved_call.parameters["y"] == 300
     assert resolved_call.parameters["drag_to_x"] == 1000
     assert resolved_call.parameters["drag_to_y"] == 400
-    destination_contract = resolved_call.metadata["drag_destination_coordinate_contract"]
+    destination_contract = resolved_call.metadata[
+        "drag_destination_coordinate_contract"
+    ]
     assert destination_contract["source_coordinates"] == {"x": 2000, "y": 800}
     assert destination_contract["normalized_coordinates"] == {"x": 1000, "y": 400}
     assert destination_contract["normalization_status"] == "scaled_to_desktop"
+
+
+def test_normalize_manual_coordinates_handles_destination_only_tool(monkeypatch):
+    session, _ = _create_session_and_manager(
+        screenshot_id="shot-destination-only",
+        capture_meta={
+            "screenshot_id": "shot-destination-only",
+            "source_w": 3840,
+            "source_h": 2160,
+            "crop_x": 0,
+            "crop_y": 0,
+            "crop_w": 1920,
+            "crop_h": 1080,
+            "desktop_virtual_bounds": {"x": 0, "y": 0, "width": 1920, "height": 1080},
+            "monitor_id": None,
+            "timestamp": 1,
+        },
+    )
+    monkeypatch.setattr(
+        "backend.src.agent.tools.preparation.helpers.preparation_helper.supports_source_grounding",
+        lambda tool_name: False,
+    )
+    monkeypatch.setattr(
+        "backend.src.agent.tools.preparation.helpers.preparation_helper.supports_drag_destination_grounding",
+        lambda tool_name: tool_name == "destination_only_drag",
+    )
+    monkeypatch.setattr(
+        "backend.src.agent.tools.preparation.helpers.mouse_drag_destination_preparation.supports_drag_destination_grounding",
+        lambda tool_name: tool_name == "destination_only_drag",
+    )
+
+    tool_call = ParsedToolCall(
+        tool_name="destination_only_drag",
+        parameters={
+            "action": "drag",
+            "drag_to_x": 2000,
+            "drag_to_y": 800,
+        },
+        raw_call="{}",
+    )
+    resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
+
+    normalize_manual_coordinates(
+        resolved_call=resolved_call,
+        session=session,
+        context_id="manual-destination-only",
+    )
+
+    assert resolved_call.parameters["drag_to_x"] == 1000
+    assert resolved_call.parameters["drag_to_y"] == 400
+    assert "coordinate_contract" not in resolved_call.metadata
+    destination_contract = resolved_call.metadata[
+        "drag_destination_coordinate_contract"
+    ]
+    assert destination_contract["screenshot_id"] == "shot-destination-only"
+    assert destination_contract["source_coordinates"] == {"x": 2000, "y": 800}
+    assert destination_contract["normalized_coordinates"] == {"x": 1000, "y": 400}
