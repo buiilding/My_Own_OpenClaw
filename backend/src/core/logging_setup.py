@@ -115,6 +115,7 @@ def configure_logging(profile: str | None = None) -> None:
         level = _resolve_level(logging.INFO)
 
     logging.basicConfig(level=level, format=_DEFAULT_FORMAT)
+    logging.getLogger().setLevel(level)
     _configure_litellm_runtime_flags()
 
     # Reduce library noise in all profiles

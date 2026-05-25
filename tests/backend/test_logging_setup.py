@@ -6,6 +6,7 @@ import types
 from backend.src.core.logging_setup import (
     _IMPORTANT_PROFILE_LOGGERS,
     _configure_litellm_runtime_flags,
+    configure_logging,
 )
 
 
@@ -16,6 +17,27 @@ def test_important_profile_keeps_llm_stream_processor_cache_logs_visible() -> No
         _IMPORTANT_PROFILE_LOGGERS["backend.src.agent.llm.llm_stream_processor"]
         == logging.INFO
     )
+
+
+def test_configure_logging_applies_profile_level_with_existing_root_handler(
+    monkeypatch,
+) -> None:
+    root_logger = logging.getLogger()
+    existing_handlers = list(root_logger.handlers)
+    existing_level = root_logger.level
+    handler = logging.NullHandler()
+    root_logger.handlers[:] = [handler]
+    root_logger.setLevel(logging.WARNING)
+    monkeypatch.delenv("LOG_LEVEL", raising=False)
+
+    try:
+        configure_logging(profile="verbose")
+
+        assert root_logger.level == logging.DEBUG
+        assert root_logger.handlers == [handler]
+    finally:
+        root_logger.handlers[:] = existing_handlers
+        root_logger.setLevel(existing_level)
 
 
 def test_configure_litellm_runtime_flags_suppresses_debug_info_by_default(

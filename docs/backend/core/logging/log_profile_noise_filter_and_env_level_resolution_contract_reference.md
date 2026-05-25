@@ -42,6 +42,11 @@ This override applies to both profile branches.
 - `level` resolved as above
 - format: `"%(name)s - %(levelname)s - %(message)s"`
 
+`configure_logging` then sets the root logger level explicitly to the resolved
+level. Existing root handlers are preserved, but profile and `LOG_LEVEL`
+changes still apply when a test harness, server runner, or embedding process
+installed a handler before backend logging setup runs.
+
 ## Noise Filter Maps
 
 Always-applied map (`_NOISY_LIB_LOGGERS`):
@@ -60,9 +65,12 @@ Important-profile map (`_IMPORTANT_PROFILE_LOGGERS`) additionally:
 
 ## Coverage Boundary
 
-No dedicated unit test module currently targets `logging_setup.py` maps/profile resolution directly.
+`tests/backend/test_logging_setup.py` covers:
 
-Behavior is validated indirectly through runtime execution and operational logs.
+- important-profile visibility for `llm_stream_processor` cache diagnostics
+- LiteLLM runtime flag defaults and environment opt-out
+- root-level application when an existing root handler makes `basicConfig`
+  preserve handler state
 
 ## Drift Hotspots
 
