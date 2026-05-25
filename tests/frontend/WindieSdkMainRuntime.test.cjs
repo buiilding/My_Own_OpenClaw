@@ -1,4 +1,6 @@
 const { EventEmitter } = require('events');
+const fs = require('fs');
+const path = require('path');
 const {
   buildWindieSdkMainHandshake,
   createWindieSdkMainRuntime,
@@ -54,6 +56,17 @@ describe('Windie SDK main runtime', () => {
       origin: 'app://windie',
       headers: { authorization: 'Bearer install-token' },
     });
+  });
+
+  test('emits current-turn updates from normalized conversation events only', () => {
+    const source = fs.readFileSync(
+      path.resolve(__dirname, '../../frontend/src/main/windie_sdk_runtime.cjs'),
+      'utf8',
+    );
+
+    expect(source).toContain('createConversationEventCurrentTurnProjector');
+    expect(source).not.toContain('createCurrentTurnProjector');
+    expect(source).not.toContain('applyBackendEvent');
   });
 
   test('owns backend websocket handshake and typed non-tool sends for Electron main', async () => {

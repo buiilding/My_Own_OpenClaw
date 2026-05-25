@@ -15,7 +15,7 @@ const {
   createManagedBackendSession,
 } = require('../../../packages/windie-sdk-js/src/transport/ManagedBackendSession.cjs');
 const {
-  createCurrentTurnProjector,
+  createConversationEventCurrentTurnProjector,
 } = require('../../../packages/windie-sdk-js/src/projections/currentTurnProjection.cjs');
 const {
   normalizeBackendEventToConversationEvent,
@@ -59,7 +59,7 @@ function createWindieSdkMainRuntime(options = {}) {
     throw new Error('createWindieSdkMainRuntime requires WebSocketImpl');
   }
   const createBackendSocket = options.createBackendSocket || createWindieSdkBackendSocket;
-  const currentTurnProjector = options.currentTurnProjector || createCurrentTurnProjector();
+  const currentTurnProjector = options.currentTurnProjector || createConversationEventCurrentTurnProjector();
 
   function emitRendererEvent(data) {
     if (typeof options.onEvent === 'function') {
@@ -69,10 +69,11 @@ function createWindieSdkMainRuntime(options = {}) {
     }
   }
 
-  function emitConversationRuntimeUpdate(data) {
-    const currentTurn = currentTurnProjector.applyBackendEvent(data, {
-      fallbackConversationRef: options.getCurrentConversationRef?.(),
-    });
+  function emitConversationRuntimeUpdate(conversationEvent) {
+    if (!conversationEvent) {
+      return;
+    }
+    const currentTurn = currentTurnProjector.applyConversationEvent(conversationEvent);
     if (!currentTurn || typeof options.onConversationRuntimeUpdated !== 'function') {
       return;
     }
@@ -84,13 +85,10 @@ function createWindieSdkMainRuntime(options = {}) {
     });
   }
 
-  function emitConversationEvent(data) {
+  function emitConversationEvent(conversationEvent) {
     if (typeof options.onConversationEvent !== 'function') {
       return;
     }
-    const conversationEvent = normalizeBackendEventToConversationEvent(data, {
-      fallbackConversationRef: options.getCurrentConversationRef?.(),
-    });
     if (!conversationEvent) {
       return;
     }
@@ -109,8 +107,11 @@ function createWindieSdkMainRuntime(options = {}) {
       log: options.log,
     });
     const rendererData = markRendererToolEventDisplayOnly(data);
-    emitConversationRuntimeUpdate(rendererData);
-    emitConversationEvent(rendererData);
+    const conversationEvent = normalizeBackendEventToConversationEvent(rendererData, {
+      fallbackConversationRef: options.getCurrentConversationRef?.(),
+    });
+    emitConversationRuntimeUpdate(conversationEvent);
+    emitConversationEvent(conversationEvent);
     emitRendererEvent(rendererData);
     return rendererData;
   }

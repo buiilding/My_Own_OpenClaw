@@ -69,12 +69,32 @@ Verification:
 - `cd frontend && ELECTRON_RUN_AS_NODE=1 .\node_modules\electron\dist\electron.exe .\node_modules\jest\bin\jest.js IpcQueryRuntime IpcMainBridge.query --runInBand` - pass
 - `cd frontend && ELECTRON_RUN_AS_NODE=1 .\node_modules\electron\dist\electron.exe .\node_modules\jest\bin\jest.js DesktopBackendTransport DesktopLiveTurnRuntimeClient IpcQueryRuntime IpcMainBridge.query WindieSdkConversationRuntime WindieSdkMainRuntime --runInBand` - pass
 
+### SDK-Owned Live Turn Projection
+
+Status: completed and verified.
+
+Changes:
+
+- Added a normalized-conversation-event current-turn projector in the SDK projection runtime.
+- Electron main now normalizes each backend event once, forwards that normalized conversation event to renderer, and derives `conversation-runtime-updated` from the same normalized event path.
+- Removed Electron main's use of the raw backend `applyBackendEvent()` projector.
+- Added a boundary test that fails if `windie_sdk_runtime.cjs` reintroduces `createCurrentTurnProjector` or `applyBackendEvent`.
+
+Success criteria covered:
+
+- `conversation-runtime-updated` is emitted from normalized SDK conversation event state, not a parallel raw backend projector.
+- Existing SDK tests continue to prove assistant text, reasoning text, tool calls, tool outputs, completion, and error phase projection behavior.
+- The main-runtime test now guards that renderer `conversation-event` and `conversation-runtime-updated` are driven by the normalized path.
+
+Verification:
+
+- `cd frontend && ELECTRON_RUN_AS_NODE=1 .\node_modules\electron\dist\electron.exe .\node_modules\jest\bin\jest.js WindieSdkMainRuntime WindieSdkConversationRuntime --runInBand` - pass
+
 ## Pending
 
 - `frontend/src/main/ipc.cjs` composition-root split.
   - In progress: model-list request queueing moved to `frontend/src/main/ipc/ipc_model_list_runtime.cjs` with focused unit tests.
   - In progress: renderer diagnostic log routing moved to `frontend/src/main/ipc/ipc_diagnostics_runtime.cjs` with focused unit tests.
-- SDK-owned live turn projection.
 - Renderer stream handling split between live projection and side effects.
 - Raw `from-backend` channel classification and typed-channel migration.
 - Settings/model runtime ownership consolidation.
