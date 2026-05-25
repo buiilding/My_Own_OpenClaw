@@ -262,19 +262,23 @@ describe('renderer chat runtime boundary', () => {
     expect(handlerSource).toContain('payload?.screenshotRefs');
   });
 
-  test('chat stream tool progress consumes SDK tool progress directly', async () => {
-    const source = await fs.readFile(
-      path.join(chatRoot, 'hooks/chatStream/useChatStreamToolHandlers.ts'),
+  test('chat stream tool progress state is owned by the SDK current-turn projection listener', async () => {
+    const streamSource = await fs.readFile(
+      path.join(chatRoot, 'hooks/useChatStream.ts'),
+      'utf8',
+    );
+    const projectionSource = await fs.readFile(
+      path.join(chatRoot, 'hooks/useConversationRuntimeProjectionStream.ts'),
       'utf8',
     );
 
-    expect(source).not.toContain('unwrapWebSearchProgressBackendEvent');
-    expect(source).not.toContain('WebSearchProgressEvent');
-    expect(source).toContain("event.type !== 'tool_progress'");
-    expect(source).toContain('payload?.requestId');
+    expect(streamSource).not.toContain("event.type !== 'tool_progress'");
+    expect(streamSource).not.toContain("event.type === 'tool_progress'");
+    expect(projectionSource).toContain("toolEvent.kind === 'tool_progress'");
+    expect(projectionSource).toContain('web-search-progress');
   });
 
-  test('chat stream tool-call display consumes SDK tool-call events directly', async () => {
+  test('chat stream tool-call transcript persistence consumes SDK tool-call events directly', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'hooks/chatStream/useChatStreamToolHandlers.ts'),
       'utf8',
@@ -286,7 +290,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('payload?.structuredPayload');
   });
 
-  test('chat stream tool-output display consumes SDK tool-output events directly', async () => {
+  test('chat stream tool-output transcript persistence consumes SDK tool-output events directly', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'hooks/chatStream/useChatStreamToolHandlers.ts'),
       'utf8',
@@ -298,7 +302,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('payload?.screenshotRef');
   });
 
-  test('chat stream tool-bundle display consumes SDK tool-bundle events directly', async () => {
+  test('chat stream tool-bundle transcript persistence consumes SDK tool-bundle events directly', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'hooks/chatStream/useChatStreamToolHandlers.ts'),
       'utf8',

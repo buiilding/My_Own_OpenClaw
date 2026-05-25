@@ -121,7 +121,7 @@ Automatic updates:
 
 - SDK `currentTurn.assistantText` growth records a `streaming-response` tracking event, increments `chunkCount`, sets first chunk timestamp, and defaults phase to `streaming`
 - SDK `currentTurn.reasoningText` growth records an `llm-thought` tracking event
-- tool handlers increment tool call/output counters
+- SDK `currentTurn.toolEvents` growth records `tool-call`, `tool-output`, or `web-search-progress` tracking and increments tool counters
 - error options set `lastError`, terminal phase, and completion timestamp
 - `phase='complete'` stamps completion timestamp when missing
 
@@ -154,11 +154,16 @@ Compaction events:
 - run through the shared turn-scoped handler wrapper
 - update thinking status/source with compaction start/success/failure messaging
 
-Tool events:
+SDK current-turn tool events:
 
 - clear transient thinking state
-- append tool-call/tool-output/tool-bundle rows
-- record transcript rows for tool-call/tool-output when transcript is enabled
+- dashboard and response overlay render tool-call/tool-output/tool-progress rows from the SDK projection rather than raw backend events
+- record active tool phase tracking from `currentTurn.toolEvents`
+
+Tool transcript events:
+
+- `useChatStreamToolHandlers` persists tool-call/tool-output/tool-bundle transcript rows when transcript is enabled
+- it does not own live tool rows, send-latch cleanup, or phase tracking
 
 Metadata/transparency events (`system-prompt`, `user-message-full`, `assistant-message-full`, `tool-schemas`):
 

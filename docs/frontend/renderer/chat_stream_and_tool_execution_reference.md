@@ -144,12 +144,15 @@ Pre-routing and workspace resolution:
   `desktopChatStreamIngressRuntime.ts`; `useChatStream` supplies handler and
   store callbacks but does not import backend event contracts directly
 - ingress bookkeeping steps are fail-safe isolated (`try/catch` per step) so projection/turn-map/transcript sync errors cannot suppress final handler dispatch for the event
-- assistant text stream events dispatch from SDK-normalized conversation events:
-  backend `streaming-response` -> SDK `assistant_delta`, and backend
-  `streaming-complete` -> SDK `turn_completed`
-- tool display events dispatch from SDK-normalized conversation events:
-  backend `tool-call` -> SDK `tool_call`, backend `tool-output` -> SDK
-  `tool_output`, and backend `tool-bundle` -> SDK `tool_bundle_call`
+- assistant text runtime state comes from the SDK current-turn projection:
+  backend `streaming-response` -> SDK `assistant_delta` -> `currentTurn.assistantText`;
+  backend `streaming-complete` still dispatches as SDK `turn_completed` for
+  completion and transcript finalization
+- tool runtime state comes from the SDK current-turn projection:
+  backend `tool-call`/`tool-output`/`tool-bundle`/`web-search-progress` ->
+  SDK tool events -> `currentTurn.toolEvents`; SDK `tool_call`,
+  `tool_output`, and `tool_bundle_call` still dispatch for transcript
+  persistence
 - compaction events dispatch from SDK-normalized conversation events:
   backend `context-compaction-started` -> SDK `compaction_started`, backend
   `context-compaction-completed` -> SDK `compaction_applied` or
@@ -168,8 +171,7 @@ Pre-routing and workspace resolution:
   backend `memory-store` -> SDK `memory_stored`
 - thinking/reasoning events dispatch from SDK-normalized conversation events:
   backend `llm-thought` -> SDK `reasoning_delta`; the renderer does not handle the normalized event directly for live text, because live thinking state comes from the SDK `currentTurn` projection emitted on `conversation-runtime-updated`
-- tool progress events dispatch from SDK-normalized conversation events:
-  backend `web-search-progress` -> SDK `tool_progress`
+- tool progress events are projected into `currentTurn.toolEvents`; renderer chat code does not dispatch SDK `tool_progress` as a separate live-state path
 - local user echo events dispatch from SDK-normalized conversation events:
   backend `local-user-message` -> SDK `user_message`
 
@@ -189,25 +191,14 @@ SDK dispatch behavior:
   - when SDK payload includes replacement history, builds a compacted replay snapshot from the SDK event and persists it through the desktop runtime facade instead of unwrapping the raw backend event
 - SDK `compaction_skipped` from backend `context-compaction-completed` with `skipped_reason`: clears only an active compaction status/debug payload. It does not render a compacted-history panel, persist replay rows, or clear unrelated active thinking/tool state.
 - SDK `compaction_failed` from backend `context-compaction-failed`: replaces compaction thinking with terminal failure text (backend error string when available, otherwise `Conversation compaction failed.`) and marks source as `context-compaction-failed`
-- SDK `tool_call` from backend `tool-call`: append assistant tool-call row and transcript tool-call row
-  - the renderer consumes SDK `tool_call` payloads directly, using
-    `structuredPayload` for backend detail fields such as metadata and
-    parameters. It does not unwrap `payload.rawEvent` back into a backend
-    `tool-call` event.
-- SDK `tool_progress` from backend `web-search-progress`: append transient `search-source` rows for live web-search progress without transcript writes
-  - the renderer consumes SDK `tool_progress` payloads directly and keeps
-    `web-search-progress` as the UI/tracking source label. It does not unwrap
-    `payload.rawEvent` back into a backend `web-search-progress` event.
-- SDK `tool_output` from backend `tool-output`: append assistant tool-output row with screenshot/tool metadata and transcript tool-output row
-  - the renderer consumes SDK `tool_output` payloads directly, using
-    `structuredPayload` for backend detail fields such as output text,
-    metadata, request ids, and screenshot refs. It does not unwrap
-    `payload.rawEvent` back into a backend `tool-output` event.
-- SDK `tool_bundle_call` from backend `tool-bundle`: append bundle call row and persist a transcript `tool-bundle` trace row so later transcript loads can reconstruct the bundle call card without reclassifying it as a normal executable tool-call
-  - the renderer consumes SDK `tool_bundle_call` payloads directly, using
-    normalized bundle identity fields plus `structuredPayload` for backend
-    detail fields such as `bundle_id` and per-tool metadata. It does not unwrap
-    `payload.rawEvent` back into a backend `tool-bundle` event.
+- SDK `currentTurn.toolEvents` from the conversation runtime projection: dashboard and response overlay render live tool-call/tool-output/tool-progress rows from the projection, while the projection listener records `tool-call`, `tool-output`, and `web-search-progress` phase tracking and clears transient send/thinking state for active tool rows
+  - raw backend `tool-call`, `tool-output`, `tool-bundle`, and `web-search-progress` events are not live-row or active-phase fallbacks in renderer chat code.
+- SDK `tool_call` from backend `tool-call`: persists a transcript tool-call row only. Live display comes from `currentTurn.toolEvents`.
+  - the renderer consumes SDK `tool_call` payloads directly for transcript persistence, using `structuredPayload` for backend detail fields such as metadata and parameters. It does not unwrap `payload.rawEvent` back into a backend `tool-call` event.
+- SDK `tool_output` from backend `tool-output`: persists a transcript tool-output row only. Live display comes from `currentTurn.toolEvents`.
+  - the renderer consumes SDK `tool_output` payloads directly for transcript persistence, using `structuredPayload` for backend detail fields such as output text, metadata, request ids, and screenshot refs. It does not unwrap `payload.rawEvent` back into a backend `tool-output` event.
+- SDK `tool_bundle_call` from backend `tool-bundle`: persists a transcript `tool-bundle` trace row so later transcript loads can reconstruct the bundle call card without reclassifying it as a normal executable tool-call. Live display comes from `currentTurn.toolEvents`.
+  - the renderer consumes SDK `tool_bundle_call` payloads directly for transcript persistence, using normalized bundle identity fields plus `structuredPayload` for backend detail fields such as `bundle_id` and per-tool metadata. It does not unwrap `payload.rawEvent` back into a backend `tool-bundle` event.
 - SDK `system_prompt` from backend `system-prompt`: annotate last user message with system prompt + tool schema snapshot
 - SDK `user_message_metadata` from backend `user-message-full`: annotate user message with full payload metadata
 - SDK `assistant_message` from backend `assistant-message-full`: annotate latest assistant `llm-text` message
@@ -236,9 +227,8 @@ Handler composition boundary:
 - SDK `system_prompt`/`user_message_metadata`/`assistant_message`/`tool_schemas_metadata`
   transparency projection is delegated to `useChatStreamMetadataHandlers`.
 - SDK `turn_error`, SDK `usage_updated`, and SDK `memory_stored` terminal behaviors are delegated to `useChatStreamTerminalHandlers`
-- SDK `tool_call`/`tool_progress`/`tool_output`/`tool_bundle_call` display and transcript
-  projection is delegated to `useChatStreamToolHandlers`; local tool execution
-  remains owned by the main-process SDK runtime and sidecar.
+- SDK current-turn `toolEvents` active-turn display and phase tracking is delegated to `useConversationRuntimeProjectionStream`.
+- SDK `tool_call`/`tool_output`/`tool_bundle_call` transcript persistence is delegated to `useChatStreamToolHandlers`; local tool execution remains owned by the main-process SDK runtime and sidecar.
 - SDK `compaction_started`/`compaction_applied`/`compaction_skipped`/`compaction_failed`
   display and replay persistence is delegated to `useChatStreamCompactionHandlers`.
 - SDK `turn_completed` finalization and transcript write side effects are delegated to `useChatStreamCompletionHandler`
@@ -262,8 +252,6 @@ Message targeting utilities:
 
 Tool-specific handler extraction (`useChatStreamToolHandlers`) ownership:
 
-- clears transient thinking status/source before each tool event
-- converts backend tool payloads into chat rows via `chatStreamToolMessages.ts`
 - records transcript tool rows with model metadata from `modelContextRef`
 - persists bundle-call rows as `messageType='tool-bundle'` so replay/rehydrate can preserve bundle provenance instead of degrading them into generic `tool-call` rows
 - stores a typed transcript `structured_payload` for tool rows (single call, bundle call, and tool output details) so past-chat rendering can restore tool-call cards and tool-output details from structured data, and backend rehydrate can prefer the same payload over reparsing display JSON
@@ -291,13 +279,14 @@ Streaming-complete transcript write nuance:
 
 ## SDK-Owned Tool Execution
 
-The renderer does not execute backend tool events. `tool-call` and
-`tool-bundle` events are displayed by chat-stream handlers, while the SDK main
-runtime routes execution through Electron main and the sidecar daemon.
+The renderer does not execute backend tool events. The SDK conversation runtime
+projects live tool-call/tool-output/tool-progress rows into
+`currentTurn.toolEvents`, while the SDK main runtime routes execution through
+Electron main and the sidecar daemon.
 
 Renderer display contract:
 
-- render `tool-call`, `tool-bundle`, and `tool-output` cards from stream events
+- render active `tool-call`, `tool-output`, and `tool-progress` rows from the SDK `currentTurn.toolEvents` projection
 - preserve backend identifiers in structured payloads for replay and debugging
 - write visible transcript rows through `chatStreamTranscriptPersistence.ts`,
   which delegates to `DesktopTranscriptProjectionRuntimeClient`
@@ -311,8 +300,9 @@ Execution contract:
 - SDK main runtime sends exactly one `tool-result` or `tool-bundle-result` back to backend for each claimed call or bundle
 
 For execution bugs, start with the SDK main runtime and sidecar bridge. For
-visual or replay bugs, start with renderer chat-stream tool handlers and
-transcript projection.
+active visual bugs, start with the SDK current-turn projection and
+`useConversationRuntimeProjectionStream`; for replay bugs, start with renderer
+chat-stream transcript handlers and transcript projection.
 
 ## Debug Checklist
 

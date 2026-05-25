@@ -32,9 +32,11 @@ Listener flow in `desktopChatStreamIngressRuntime`:
 
 ## Dispatch Wiring Contract
 
-Assistant thinking, text, completion, compaction, tool rows, transparency
-metadata, errors, token usage, memory-store telemetry, and tool progress
-dispatch from SDK-normalized conversation events.
+Assistant thinking, assistant text, live tool rows, and active tool phase
+tracking come from the SDK `currentTurn` projection. Completion, compaction,
+transparency metadata, errors, token usage, memory-store telemetry, and
+transcript tool persistence still dispatch from SDK-normalized conversation
+events.
 `turn_error` suppression runs inside `useChatStreamTerminalHandlers` before UI
 mutation.
 
@@ -89,8 +91,7 @@ Reason: local-user-message establishes turn/workspace state and seeds optimistic
 
 ## Side-Effect Ownership After Dispatch
 
-- `useChatStreamToolHandlers`: writes tool-call/tool-output/tool-bundle rows, resets thinking state for tool events, records transcript tool rows for call/output only, and routes `tool-output` transcript rows through the shared `toolOutputTranscriptPersistence.ts` helper
-  - SDK `tool_progress`: transient live web-search progress rows without transcript writes
+- `useChatStreamToolHandlers`: persists tool-call/tool-output/tool-bundle transcript rows only, and routes `tool-output` transcript rows through the shared `toolOutputTranscriptPersistence.ts` helper
 - `useChatStreamTerminalHandlers`:
   - SDK `usage_updated`: workspace token counter update
   - SDK `memory_stored`: stream tracking only (no direct memory write side effect)
@@ -98,6 +99,7 @@ Reason: local-user-message establishes turn/workspace state and seeds optimistic
 - `useConversationRuntimeProjectionStream`:
   - SDK `currentTurn.reasoningText`: live thinking text and `llm-thought` stream tracking
   - SDK `currentTurn.assistantText`: clear the send latch and record `streaming-response` chunk tracking without creating raw assistant rows
+  - SDK `currentTurn.toolEvents`: clear send/thinking state for active tool rows and record `tool-call`, `tool-output`, and `web-search-progress` phase tracking
 - `useChatStream` core handlers:
   - `streaming-complete`: assistant message completion + optional transcript assistant write
   - transparency handlers: mutate existing user/assistant rows with metadata snapshots

@@ -100,14 +100,9 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleToolCall,
     handleToolOutput,
     handleToolBundle,
-    handleWebSearchProgress,
   } = useChatStreamToolHandlers({
     enableTranscript,
-    setIsSending,
-    setThinkingStatus,
-    setThinkingSourceEventType,
     modelContextRef,
-    recordTrackingEvent,
   });
 
   const {
@@ -164,7 +159,6 @@ export function useChatStream(enableTranscript: boolean = true) {
       event.type !== 'user_message'
       && event.type !== 'turn_completed'
       && event.type !== 'tool_call'
-      && event.type !== 'tool_progress'
       && event.type !== 'tool_output'
       && event.type !== 'tool_bundle_call'
       && event.type !== 'compaction_started'
@@ -190,10 +184,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     }
     if (event.type === 'tool_call') {
       handleToolCall(event, event.conversationRef);
-      return true;
-    }
-    if (event.type === 'tool_progress') {
-      handleWebSearchProgress(event, event.conversationRef);
       return true;
     }
     if (event.type === 'tool_output') {
@@ -258,7 +248,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleTokenCount,
     handleToolBundle,
     handleToolCall,
-    handleWebSearchProgress,
     handleToolOutput,
     handleToolSchemas,
     handleUserMessageFull,

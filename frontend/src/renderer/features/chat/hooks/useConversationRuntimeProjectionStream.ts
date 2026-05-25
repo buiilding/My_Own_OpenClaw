@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { useChatStore } from '../stores/chatStore';
 import type { SdkCurrentTurnProjection } from '../stores/chatStore';
+import type { CurrentTurnToolEvent } from '../../../infrastructure/api/windieSdkClient';
 import { buildThinkingStatus } from '../utils/chatStream/chatStreamFormatting';
 import { GENERIC_THINKING_STATUS } from '../utils/chatStream/chatStreamThinkingStatus';
 import {
@@ -23,6 +24,7 @@ function isCurrentTurnProjection(value: unknown): value is SdkCurrentTurnProject
 type ProjectionCursor = {
   assistantLength: number;
   reasoningLength: number;
+  toolEventIds: Set<string>;
 };
 
 function buildProjectionCursorKey(
@@ -40,6 +42,19 @@ function getProjectionTextDelta(
     return '';
   }
   return text.slice(previousLength);
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+}
+
+function isSkipFrontendExecutionToolEvent(toolEvent: CurrentTurnToolEvent): boolean {
+  const payload = asRecord(toolEvent.payload);
+  const structuredPayload = asRecord(payload?.structuredPayload);
+  const metadata = asRecord(structuredPayload?.metadata) ?? asRecord(payload?.metadata);
+  return metadata?.skip_frontend_execution === true;
 }
 
 export function useConversationRuntimeProjectionStream(): void {
@@ -80,6 +95,7 @@ export function useConversationRuntimeProjectionStream(): void {
       const previousCursor = projectionCursorsRef.current.get(cursorKey) ?? {
         assistantLength: 0,
         reasoningLength: 0,
+        toolEventIds: new Set<string>(),
       };
       const assistantText = typeof currentTurn.assistantText === 'string'
         ? currentTurn.assistantText
@@ -126,9 +142,51 @@ export function useConversationRuntimeProjectionStream(): void {
         );
       }
 
+      const nextToolEventIds = new Set(previousCursor.toolEventIds);
+      for (const toolEvent of currentTurn.toolEvents) {
+        if (nextToolEventIds.has(toolEvent.id)) {
+          continue;
+        }
+        nextToolEventIds.add(toolEvent.id);
+        if (toolEvent.kind === 'tool_call') {
+          if (!isSkipFrontendExecutionToolEvent(toolEvent)) {
+            setIsSending(false, conversationRef);
+            setThinkingStatus(null, conversationRef);
+            setThinkingSourceEventType(null, conversationRef);
+          }
+          recordTrackingEventRuntime(
+            updateStreamTracking,
+            'tool-call',
+            currentTurn.turnRef,
+            { phase: 'tool-call', toolCall: true },
+            conversationRef,
+          );
+        } else if (toolEvent.kind === 'tool_output') {
+          setIsSending(false, conversationRef);
+          setThinkingStatus(null, conversationRef);
+          setThinkingSourceEventType(null, conversationRef);
+          recordTrackingEventRuntime(
+            updateStreamTracking,
+            'tool-output',
+            currentTurn.turnRef,
+            { phase: 'tool-output', toolOutput: true },
+            conversationRef,
+          );
+        } else if (toolEvent.kind === 'tool_progress') {
+          recordTrackingEventRuntime(
+            updateStreamTracking,
+            'web-search-progress',
+            currentTurn.turnRef,
+            { phase: 'tool-call', toolCall: true },
+            conversationRef,
+          );
+        }
+      }
+
       projectionCursorsRef.current.set(cursorKey, {
         assistantLength: assistantText.length,
         reasoningLength: reasoningText.length,
+        toolEventIds: nextToolEventIds,
       });
     });
     return () => {

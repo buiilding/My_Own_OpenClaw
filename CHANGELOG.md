@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sdk: move active tool phase/progress tracking onto SDK current-turn tool events and shrink stream tool handlers to transcript persistence.
 - frontend/sdk: move active assistant/reasoning live-state updates onto the SDK current-turn projection listener and delete the renderer raw text stream handler.
 - docs/frontend: update computer-use surface handoff references to the current SDK/main and Electron local-backend bridge ownership, replacing stale renderer tool-runner ownership pointers.
 - tooling: add Clawpatch review state and report artifacts for a full WindieOS owned-code review, excluding bundled runtime dependency output from the generated review scope.

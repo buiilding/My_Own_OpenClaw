@@ -171,34 +171,38 @@ The SDK event carries `conversationRef`, `turnRef`, and `payload.userId` for
 renderer transcript writes, so the completion handler should not unwrap
 `payload.rawEvent` to recover backend `conversation_ref` or `user_id`.
 
-Desktop tool-progress projection consumes SDK `tool_progress` directly.
-Renderer UI/debug state may keep the source label `web-search-progress`, but
-the handler should not reconstruct backend `web-search-progress` events from
-`payload.rawEvent`.
+Desktop live tool projection consumes SDK `snapshot.currentTurn.toolEvents`.
+Renderer UI/debug state may keep source labels such as `tool-call`,
+`tool-output`, and `web-search-progress`, but active tool rows and phase
+tracking should come from the SDK current-turn projection instead of a separate
+normalized-event live-state path.
 
 Desktop local-user projection consumes SDK `user_message` directly for backend
 `local-user-message` echoes. Renderer UI/debug state may keep the source label
 `local-user-message`, but the handler should not consume a raw backend
 `local-user-message` fallback after SDK dispatch.
 
-Desktop tool-call projection consumes SDK `tool_call` directly. The SDK payload
-exposes normalized fields such as `toolName`, `args`, request/correlation ids,
-and `userId`, while `structuredPayload` carries backend detail fields needed for
-display metadata and transcript trace rows. Renderer tool-call display should
-not reconstruct backend `tool-call` events from `payload.rawEvent`.
+Desktop tool-call transcript persistence may consume SDK `tool_call` directly.
+The SDK payload exposes normalized fields such as `toolName`, `args`,
+request/correlation ids, and `userId`, while `structuredPayload` carries backend
+detail fields needed for transcript trace rows. Renderer active tool-call
+display should come from `snapshot.currentTurn.toolEvents`, and should not
+reconstruct backend `tool-call` events from `payload.rawEvent`.
 
-Desktop tool-output projection consumes SDK `tool_output` directly. The SDK
-payload exposes normalized identity, request/correlation id, tool name, and
-screenshot fields, while `structuredPayload` carries backend detail fields used
-for display text, metadata, transcript trace rows, and malformed-payload
-fallbacks. Renderer tool-output display should not reconstruct backend
+Desktop tool-output transcript persistence may consume SDK `tool_output`
+directly. The SDK payload exposes normalized identity, request/correlation id,
+tool name, and screenshot fields, while `structuredPayload` carries backend
+detail fields used for transcript trace rows and malformed-payload fallbacks.
+Renderer active tool-output display should come from
+`snapshot.currentTurn.toolEvents`, and should not reconstruct backend
 `tool-output` events from `payload.rawEvent`.
 
-Desktop tool-bundle projection consumes SDK `tool_bundle_call` directly. The
-SDK payload exposes normalized bundle identity, correlation id, tool list, and
-user id, while `structuredPayload` carries backend detail fields used for
-display and transcript trace rows. Renderer tool-bundle display should not
-reconstruct backend `tool-bundle` events from `payload.rawEvent`.
+Desktop tool-bundle transcript persistence may consume SDK `tool_bundle_call`
+directly. The SDK payload exposes normalized bundle identity, correlation id,
+tool list, and user id, while `structuredPayload` carries backend detail fields
+used for transcript trace rows. Renderer active bundle display should come from
+`snapshot.currentTurn.toolEvents`, and should not reconstruct backend
+`tool-bundle` events from `payload.rawEvent`.
 
 ## Continuity Service Rule
 

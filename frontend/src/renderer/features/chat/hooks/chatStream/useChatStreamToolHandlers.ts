@@ -1,6 +1,5 @@
 import { useCallback } from 'react';
 import type { ConversationEvent } from '../../../../infrastructure/api/windieSdkClient';
-import type { StreamTrackingEventType } from '../../../../app/runtime/desktopChatStreamTrackingRuntime';
 import {
   buildToolBundleMessageState,
   buildToolCallMessageState,
@@ -22,22 +21,11 @@ type MinimalModelContext = {
   modelProvider: string | null;
 };
 
-type TrackEventFn = (
-  eventType: StreamTrackingEventType,
-  turnRef: string | null | undefined,
-  options?: Record<string, unknown>,
-  conversationRef?: string | null,
-) => void;
-
 type JsonObject = Record<string, unknown>;
 
 type UseChatStreamToolHandlersDeps = {
   enableTranscript: boolean;
-  setIsSending: (value: boolean, conversationRef?: string | null) => void;
-  setThinkingStatus: (value: string | null, conversationRef?: string | null) => void;
-  setThinkingSourceEventType: (value: string | null, conversationRef?: string | null) => void;
   modelContextRef: { current: MinimalModelContext };
-  recordTrackingEvent: TrackEventFn;
 };
 
 function asJsonObject(value: unknown): JsonObject | null {
@@ -50,10 +38,6 @@ function readString(value: unknown): string | null {
   return typeof value === 'string' ? value : null;
 }
 
-function readJsonArray(value: unknown): unknown[] | null {
-  return Array.isArray(value) ? value : null;
-}
-
 function sdkToolBundleDetails(payload: JsonObject): JsonObject {
   const structuredPayload = asJsonObject(payload.structuredPayload);
   if (structuredPayload) {
@@ -62,7 +46,7 @@ function sdkToolBundleDetails(payload: JsonObject): JsonObject {
   return {
     ...payload,
     bundle_id: readString(payload.bundleId) ?? readString(payload.bundle_id) ?? undefined,
-    tools: readJsonArray(payload.tools) ?? [],
+    tools: Array.isArray(payload.tools) ? payload.tools : [],
   };
 }
 
@@ -81,11 +65,7 @@ function formatSdkToolOutputText(payload: JsonObject | null): string {
 
 export function useChatStreamToolHandlers({
   enableTranscript,
-  setIsSending,
-  setThinkingStatus,
-  setThinkingSourceEventType,
   modelContextRef,
-  recordTrackingEvent,
 }: UseChatStreamToolHandlersDeps) {
   const recordToolCallTranscript = useCallback((
     text: string,
@@ -114,7 +94,6 @@ export function useChatStreamToolHandlers({
     if (event.type !== 'tool_call') {
       return;
     }
-    const resolvedConversationRef = conversationRef ?? event.conversationRef;
     const toolCallDetails = asJsonObject(event.payload?.structuredPayload) ?? asJsonObject(event.payload);
     const metadata = asJsonObject(toolCallDetails?.metadata);
     const args = asJsonObject(event.payload?.args) ?? asJsonObject(toolCallDetails?.parameters);
@@ -125,12 +104,6 @@ export function useChatStreamToolHandlers({
       ?? resolveToolCallCorrelationId(toolCallDetails)
     );
     const userId = readString(event.payload?.userId);
-    const skipFrontendExecution = metadata?.skip_frontend_execution === true;
-    if (!skipFrontendExecution) {
-      setIsSending(false, resolvedConversationRef);
-      setThinkingStatus(null, resolvedConversationRef);
-      setThinkingSourceEventType(null, resolvedConversationRef);
-    }
     const toolCallMessageState = buildToolCallMessageState({
       rawToolCall: asJsonObject(metadata?.model_facing_tool_call),
       fallbackToolName: toolName || null,
@@ -140,7 +113,6 @@ export function useChatStreamToolHandlers({
       toolCallDetails,
       correlationId,
     });
-    recordTrackingEvent('tool-call', event.turnRef, { toolCall: true }, resolvedConversationRef);
 
     recordToolCallTranscript(
       toolCallMessageState.text,
@@ -155,20 +127,12 @@ export function useChatStreamToolHandlers({
     );
   }, [
     recordToolCallTranscript,
-    setIsSending,
-    setThinkingSourceEventType,
-    setThinkingStatus,
-    recordTrackingEvent,
   ]);
 
   const handleToolOutput = useCallback((event: ConversationEvent, conversationRef?: string | null) => {
     if (event.type !== 'tool_output') {
       return;
     }
-    const resolvedConversationRef = conversationRef ?? event.conversationRef;
-    setIsSending(false, resolvedConversationRef);
-    setThinkingStatus(null, resolvedConversationRef);
-    setThinkingSourceEventType(null, resolvedConversationRef);
     const toolOutputDetails = asJsonObject(event.payload?.structuredPayload) ?? asJsonObject(event.payload);
     const outputText = formatSdkToolOutputText(toolOutputDetails);
     const toolName = readString(event.payload?.toolName) ?? readString(toolOutputDetails?.tool_name);
@@ -182,7 +146,6 @@ export function useChatStreamToolHandlers({
     const screenshotRefValue = readString(event.payload?.screenshotRef) ?? readString(toolOutputDetails?.screenshot_ref);
     const { screenshotRef } = buildScreenshotAttachment(screenshotRefValue);
     const modelContext = modelContextRef.current;
-    recordTrackingEvent('tool-output', event.turnRef, { toolOutput: true }, resolvedConversationRef);
 
     if (enableTranscript) {
       recordToolOutputTranscriptMessage({
@@ -199,29 +162,16 @@ export function useChatStreamToolHandlers({
   }, [
     enableTranscript,
     modelContextRef,
-    setIsSending,
-    setThinkingSourceEventType,
-    setThinkingStatus,
-    recordTrackingEvent,
   ]);
 
   const handleToolBundle = useCallback((event: ConversationEvent, conversationRef?: string | null) => {
     if (event.type !== 'tool_bundle_call') {
       return;
     }
-    const resolvedConversationRef = conversationRef ?? event.conversationRef;
-    setThinkingStatus(null, resolvedConversationRef);
-    setThinkingSourceEventType(null, resolvedConversationRef);
     const toolBundleDetails = sdkToolBundleDetails(event.payload);
     const toolBundleMessageState = buildToolBundleMessageState(toolBundleDetails);
     const modelContext = modelContextRef.current;
 
-    recordTrackingEvent(
-      'tool-bundle',
-      event.turnRef,
-      { phase: 'tool-call', toolCall: true },
-      resolvedConversationRef,
-    );
     if (enableTranscript) {
       recordToolTranscriptMessage({
         text: toolBundleMessageState.text,
@@ -241,37 +191,11 @@ export function useChatStreamToolHandlers({
   }, [
     enableTranscript,
     modelContextRef,
-    setThinkingSourceEventType,
-    setThinkingStatus,
-    recordTrackingEvent,
-  ]);
-
-  const handleWebSearchProgress = useCallback((
-    event: ConversationEvent,
-    conversationRef?: string | null,
-  ) => {
-    if (event.type !== 'tool_progress') {
-      return;
-    }
-    const resolvedConversationRef = conversationRef ?? event.conversationRef;
-    const text = typeof event.payload?.text === 'string' ? event.payload.text.trim() : '';
-    if (!text) {
-      return;
-    }
-    recordTrackingEvent(
-      'web-search-progress',
-      event.turnRef,
-      { phase: 'tool-call', toolCall: true },
-      resolvedConversationRef,
-    );
-  }, [
-    recordTrackingEvent,
   ]);
 
   return {
     handleToolCall,
     handleToolOutput,
     handleToolBundle,
-    handleWebSearchProgress,
   };
 }

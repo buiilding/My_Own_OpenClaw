@@ -430,33 +430,67 @@ describe('useChatStream state + stream handling', () => {
     );
   });
 
-  test('clears thinking status on tool call', () => {
-    const { emitBackendEvent } = registerBackendListener();
+  test('clears thinking status on SDK projected tool call', () => {
+    const { emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
 
     act(() => {
       useChatStore.setState({ thinkingStatus: 'thinking' });
-      emitBackendEvent({
-        type: 'tool-call',
-        payload: { tool_name: 'screenshot', parameters: {} },
+      emitConversationRuntimeUpdated({
+        conversationRef: 'conv-test',
+        currentTurn: {
+          conversationRef: 'conv-test',
+          turnRef: 'turn-tool',
+          phase: 'tool_call',
+          assistantText: '',
+          reasoningText: null,
+          toolEvents: [{
+            id: 'tool-call-1',
+            kind: 'tool_call',
+            toolName: 'screenshot',
+            payload: { toolName: 'screenshot', args: {} },
+          }],
+          lastError: null,
+        },
       });
     });
 
-    expect(useChatStore.getState().thinkingStatus).toBeNull();
+    expect(useChatStore.getState()).toEqual(expect.objectContaining({
+      isSending: false,
+      thinkingStatus: null,
+      thinkingSourceEventType: null,
+    }));
+    expect(useChatStore.getState().streamTracking).toEqual(expect.objectContaining({
+      activeTurnRef: 'turn-tool',
+      phase: 'tool-call',
+      lastEventType: 'tool-call',
+      toolCallCount: 1,
+    }));
   });
 
-  test('clears sending state on tool output so awaiting dot cannot stick', () => {
-    const { emitBackendEvent } = registerBackendListener();
+  test('clears sending state on SDK projected tool output so awaiting dot cannot stick', () => {
+    const { emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
 
     act(() => {
       useChatStore.setState({
         isSending: true,
         thinkingStatus: 'thinking',
       });
-      emitBackendEvent({
-        type: 'tool-output',
-        payload: {
-          tool_name: 'screenshot',
-          output: 'ok',
+      emitConversationRuntimeUpdated({
+        conversationRef: 'conv-test',
+        currentTurn: {
+          conversationRef: 'conv-test',
+          turnRef: 'turn-tool',
+          phase: 'tool_output',
+          assistantText: '',
+          reasoningText: null,
+          toolEvents: [{
+            id: 'tool-output-1',
+            kind: 'tool_output',
+            toolName: 'screenshot',
+            text: 'ok',
+            payload: { toolName: 'screenshot', output: 'ok' },
+          }],
+          lastError: null,
         },
       });
     });
@@ -464,6 +498,49 @@ describe('useChatStream state + stream handling', () => {
     const state = useChatStore.getState();
     expect(state.isSending).toBe(false);
     expect(state.thinkingStatus).toBeNull();
+    expect(state.streamTracking).toEqual(expect.objectContaining({
+      activeTurnRef: 'turn-tool',
+      phase: 'tool-output',
+      lastEventType: 'tool-output',
+      toolOutputCount: 1,
+    }));
+  });
+
+  test('tracks SDK projected tool progress without raw stream ownership', () => {
+    const { emitBackendEvent, emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
+
+    act(() => {
+      emitBackendEvent({
+        type: 'web-search-progress',
+        turn_ref: 'turn-search',
+        payload: { text: 'Searching docs' },
+      });
+      emitConversationRuntimeUpdated({
+        conversationRef: 'conv-test',
+        currentTurn: {
+          conversationRef: 'conv-test',
+          turnRef: 'turn-search',
+          phase: 'tool_call',
+          assistantText: '',
+          reasoningText: null,
+          toolEvents: [{
+            id: 'tool-progress-1',
+            kind: 'tool_progress',
+            toolName: 'web_search',
+            text: 'Searching docs',
+            payload: { toolName: 'web_search', text: 'Searching docs' },
+          }],
+          lastError: null,
+        },
+      });
+    });
+
+    expect(useChatStore.getState().streamTracking).toEqual(expect.objectContaining({
+      activeTurnRef: 'turn-search',
+      phase: 'tool-call',
+      lastEventType: 'web-search-progress',
+      toolCallCount: 1,
+    }));
   });
 
   test('ignores stale tool-call event when a newer active turn is in progress', () => {

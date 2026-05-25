@@ -12,33 +12,26 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptProjectionRu
   },
 }));
 
+function renderToolHandlers(modelId = 'model-1', modelProvider = 'provider-1') {
+  return renderHook(() => useChatStreamToolHandlers({
+    enableTranscript: true,
+    modelContextRef: {
+      current: {
+        modelId,
+        modelProvider,
+      },
+    },
+  }));
+}
+
 describe('useChatStreamToolHandlers', () => {
   beforeEach(() => {
     mockRecordToolMessage.mockReset();
     mockRecordAssistantMessage.mockReset();
   });
 
-  test('handles malformed tool-output payloads without crashing and falls back correlation id to event id', () => {
-    const addMessage = jest.fn();
-    const setIsSending = jest.fn();
-    const setThinkingStatus = jest.fn();
-    const setThinkingSourceEventType = jest.fn();
-    const recordTrackingEvent = jest.fn();
-
-    const { result } = renderHook(() => useChatStreamToolHandlers({
-      enableTranscript: true,
-      addMessage,
-      setIsSending,
-      setThinkingStatus,
-      setThinkingSourceEventType,
-      modelContextRef: {
-        current: {
-          modelId: 'model-1',
-          modelProvider: 'provider-1',
-        },
-      },
-      recordTrackingEvent,
-    }));
+  test('handles malformed tool-output payloads without crashing and persists a fallback transcript row', () => {
+    const { result } = renderToolHandlers();
 
     expect(() => {
       act(() => {
@@ -55,30 +48,6 @@ describe('useChatStreamToolHandlers', () => {
       });
     }).not.toThrow();
 
-    expect(setIsSending).toHaveBeenCalledWith(false, 'conversation-1');
-    expect(setThinkingStatus).toHaveBeenCalledWith(null, 'conversation-1');
-    expect(setThinkingSourceEventType).toHaveBeenCalledWith(null, 'conversation-1');
-
-    expect(addMessage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'tool-output',
-        text: 'No output',
-        toolOutputDetails: null,
-        correlationId: 'event-tool-output',
-        screenshot: null,
-        screenshotRef: null,
-        screenshotUrl: null,
-      }),
-      'conversation-1',
-    );
-
-    expect(recordTrackingEvent).toHaveBeenCalledWith(
-      'tool-output',
-      'turn-1',
-      { toolOutput: true },
-      'conversation-1',
-    );
-
     expect(mockRecordToolMessage).toHaveBeenCalledWith(
       'No output',
       expect.objectContaining({
@@ -88,25 +57,11 @@ describe('useChatStreamToolHandlers', () => {
         structuredPayload: null,
       }),
     );
+    expect(mockRecordAssistantMessage).not.toHaveBeenCalled();
   });
 
-  test('prefers remote screenshot references over inline screenshot payload for tool-output rows', () => {
-    const addMessage = jest.fn();
-
-    const { result } = renderHook(() => useChatStreamToolHandlers({
-      enableTranscript: true,
-      addMessage,
-      setIsSending: jest.fn(),
-      setThinkingStatus: jest.fn(),
-      setThinkingSourceEventType: jest.fn(),
-      modelContextRef: {
-        current: {
-          modelId: 'model-2',
-          modelProvider: 'provider-2',
-        },
-      },
-      recordTrackingEvent: jest.fn(),
-    }));
+  test('prefers remote screenshot references for tool-output transcript rows', () => {
+    const { result } = renderToolHandlers('model-2', 'provider-2');
 
     act(() => {
       result.current.handleToolOutput({
@@ -135,26 +90,17 @@ describe('useChatStreamToolHandlers', () => {
       } as any, 'conversation-2');
     });
 
-    expect(addMessage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'tool-output',
-        text: 'clicked',
-        toolName: 'mouse_control',
-        correlationId: 'request-2',
-        screenshot: null,
-        screenshotRef: 'artifact-shot-2',
-        screenshotUrl: expect.stringContaining('/api/artifacts/artifact-shot-2'),
-      }),
-      'conversation-2',
-    );
-
     expect(mockRecordToolMessage).toHaveBeenCalledWith(
       'clicked',
       expect.objectContaining({
         messageType: 'tool-output',
         toolName: 'mouse_control',
         correlationId: 'request-2',
+        conversationRef: 'conversation-2',
+        userId: 'user-2',
         screenshotRef: 'artifact-shot-2',
+        modelId: 'model-2',
+        modelProvider: 'provider-2',
         structuredPayload: {
           kind: 'tool-output',
           toolCallDetails: expect.objectContaining({
@@ -166,23 +112,8 @@ describe('useChatStreamToolHandlers', () => {
     );
   });
 
-  test('keeps inline screenshot when tool-output screenshot_ref and screenshot_url are whitespace', () => {
-    const addMessage = jest.fn();
-
-    const { result } = renderHook(() => useChatStreamToolHandlers({
-      enableTranscript: true,
-      addMessage,
-      setIsSending: jest.fn(),
-      setThinkingStatus: jest.fn(),
-      setThinkingSourceEventType: jest.fn(),
-      modelContextRef: {
-        current: {
-          modelId: 'model-2b',
-          modelProvider: 'provider-2b',
-        },
-      },
-      recordTrackingEvent: jest.fn(),
-    }));
+  test('omits blank screenshot refs from tool-output transcript rows', () => {
+    const { result } = renderToolHandlers('model-2b', 'provider-2b');
 
     act(() => {
       result.current.handleToolOutput({
@@ -212,56 +143,23 @@ describe('useChatStreamToolHandlers', () => {
       } as any, 'conversation-2b');
     });
 
-    expect(addMessage).toHaveBeenCalledWith(
+    expect(mockRecordToolMessage).toHaveBeenCalledWith(
+      'clicked-inline',
       expect.objectContaining({
-        type: 'tool-output',
-        text: 'clicked-inline',
+        messageType: 'tool-output',
         toolName: 'mouse_control',
         correlationId: 'request-2b',
-        screenshot: 'inline-shot-2b',
-        screenshotRef: null,
-        screenshotUrl: null,
+        conversationRef: 'conversation-2b',
+        userId: 'user-2b',
+        screenshotRef: undefined,
+        modelId: 'model-2b',
+        modelProvider: 'provider-2b',
       }),
-      'conversation-2b',
     );
-
-    const lastRecordToolMessageCall = mockRecordToolMessage.mock.calls.at(-1);
-    expect(lastRecordToolMessageCall?.[0]).toBe('clicked-inline');
-    expect(lastRecordToolMessageCall?.[1]).toEqual(expect.objectContaining({
-      messageType: 'tool-output',
-      toolName: 'mouse_control',
-      correlationId: 'request-2b',
-      screenshotRef: undefined,
-      structuredPayload: expect.objectContaining({
-        kind: 'tool-output',
-        toolCallDetails: expect.objectContaining({
-          tool_name: 'mouse_control',
-          request_id: 'request-2b',
-        }),
-      }),
-    }));
   });
 
-  test('handles malformed tool-bundle tools payload with stable empty bundle formatting and persists a transcript bundle row', () => {
-    const addMessage = jest.fn();
-    const setThinkingStatus = jest.fn();
-    const setThinkingSourceEventType = jest.fn();
-    const recordTrackingEvent = jest.fn();
-
-    const { result } = renderHook(() => useChatStreamToolHandlers({
-      enableTranscript: true,
-      addMessage,
-      setIsSending: jest.fn(),
-      setThinkingStatus,
-      setThinkingSourceEventType,
-      modelContextRef: {
-        current: {
-          modelId: 'model-3',
-          modelProvider: 'provider-3',
-        },
-      },
-      recordTrackingEvent,
-    }));
+  test('handles malformed tool-bundle tools payload with stable empty bundle transcript formatting', () => {
+    const { result } = renderToolHandlers('model-3', 'provider-3');
 
     expect(() => {
       act(() => {
@@ -287,25 +185,6 @@ describe('useChatStreamToolHandlers', () => {
       });
     }).not.toThrow();
 
-    expect(setThinkingStatus).toHaveBeenCalledWith(null, 'conversation-bundle-1');
-    expect(setThinkingSourceEventType).toHaveBeenCalledWith(null, 'conversation-bundle-1');
-    expect(recordTrackingEvent).toHaveBeenCalledWith(
-      'tool-bundle',
-      'turn-bundle-1',
-      { phase: 'tool-call', toolCall: true },
-      'conversation-bundle-1',
-    );
-
-    expect(addMessage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'tool-call',
-        sourceEventType: 'tool-bundle',
-        text: JSON.stringify({ bundle_id: 'bundle-1', tools: [] }, null, 2),
-        toolCallDisplayText: JSON.stringify({ bundle_id: 'bundle-1', tools: [] }, null, 2),
-      }),
-      'conversation-bundle-1',
-    );
-
     expect(mockRecordToolMessage).toHaveBeenCalledWith(
       JSON.stringify({ bundle_id: 'bundle-1', tools: [] }, null, 2),
       expect.objectContaining({
@@ -328,27 +207,8 @@ describe('useChatStreamToolHandlers', () => {
     );
   });
 
-  test('keeps sending/thinking state alive for backend-owned tool calls that skip frontend execution', () => {
-    const addMessage = jest.fn();
-    const setIsSending = jest.fn();
-    const setThinkingStatus = jest.fn();
-    const setThinkingSourceEventType = jest.fn();
-    const recordTrackingEvent = jest.fn();
-
-    const { result } = renderHook(() => useChatStreamToolHandlers({
-      enableTranscript: true,
-      addMessage,
-      setIsSending,
-      setThinkingStatus,
-      setThinkingSourceEventType,
-      modelContextRef: {
-        current: {
-          modelId: 'model-web-search',
-          modelProvider: 'gemini',
-        },
-      },
-      recordTrackingEvent,
-    }));
+  test('persists backend-owned tool calls that skip frontend execution without owning active UI state', () => {
+    const { result } = renderToolHandlers('model-web-search', 'gemini');
 
     act(() => {
       result.current.handleToolCall({
@@ -387,22 +247,6 @@ describe('useChatStreamToolHandlers', () => {
       } as any, 'conversation-web-search-1');
     });
 
-    expect(setIsSending).not.toHaveBeenCalled();
-    expect(setThinkingStatus).not.toHaveBeenCalled();
-    expect(setThinkingSourceEventType).not.toHaveBeenCalled();
-    expect(addMessage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'tool-call',
-        sourceEventType: 'tool-call',
-      }),
-      'conversation-web-search-1',
-    );
-    expect(recordTrackingEvent).toHaveBeenCalledWith(
-      'tool-call',
-      'turn-web-search-1',
-      { toolCall: true },
-      'conversation-web-search-1',
-    );
     expect(mockRecordToolMessage).toHaveBeenCalledWith(
       expect.any(String),
       expect.objectContaining({
@@ -420,113 +264,5 @@ describe('useChatStreamToolHandlers', () => {
         }),
       }),
     );
-  });
-
-  test('adds transient search-source rows for SDK tool progress without writing transcript tool rows', () => {
-    const addMessage = jest.fn();
-    const recordTrackingEvent = jest.fn();
-
-    const { result } = renderHook(() => useChatStreamToolHandlers({
-      enableTranscript: true,
-      addMessage,
-      setIsSending: jest.fn(),
-      setThinkingStatus: jest.fn(),
-      setThinkingSourceEventType: jest.fn(),
-      modelContextRef: {
-        current: {
-          modelId: 'model-search-1',
-          modelProvider: 'openai',
-        },
-      },
-      recordTrackingEvent,
-    }));
-
-    act(() => {
-      result.current.handleWebSearchProgress({
-        eventId: 'event-search-progress-1',
-        type: 'tool_progress',
-        conversationRef: 'conversation-search-1',
-        turnRef: 'turn-search-1',
-        revisionId: 'rev-search-1',
-        timestamp: '2026-05-24T00:00:00.000Z',
-        source: 'backend',
-        payload: {
-          toolName: 'web_search',
-          text: 'Searched youtube.com',
-          requestId: 'req-search-1',
-        },
-      } as any, 'conversation-search-1');
-    });
-
-    expect(addMessage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        text: 'Searched youtube.com',
-        type: 'search-source',
-        sourceEventType: 'web-search-progress',
-        correlationId: 'req-search-1',
-      }),
-      'conversation-search-1',
-    );
-    expect(recordTrackingEvent).toHaveBeenCalledWith(
-      'web-search-progress',
-      'turn-search-1',
-      { phase: 'tool-call', toolCall: true },
-      'conversation-search-1',
-    );
-    expect(mockRecordToolMessage).not.toHaveBeenCalled();
-  });
-
-  test('uses SDK tool progress correlation id when request id is absent', () => {
-    const addMessage = jest.fn();
-    const recordTrackingEvent = jest.fn();
-
-    const { result } = renderHook(() => useChatStreamToolHandlers({
-      enableTranscript: true,
-      addMessage,
-      setIsSending: jest.fn(),
-      setThinkingStatus: jest.fn(),
-      setThinkingSourceEventType: jest.fn(),
-      modelContextRef: {
-        current: {
-          modelId: 'model-search-1',
-          modelProvider: 'openai',
-        },
-      },
-      recordTrackingEvent,
-    }));
-
-    act(() => {
-      result.current.handleWebSearchProgress({
-        eventId: 'event-search-progress-2',
-        type: 'tool_progress',
-        conversationRef: 'conversation-search-2',
-        turnRef: 'turn-search-2',
-        revisionId: 'rev-search-2',
-        timestamp: '2026-05-24T00:00:00.000Z',
-        source: 'backend',
-        payload: {
-          toolName: 'web_search',
-          text: 'Searched example.com',
-          correlationId: 'corr-search-2',
-        },
-      } as any, 'conversation-search-2');
-    });
-
-    expect(addMessage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        text: 'Searched example.com',
-        type: 'search-source',
-        sourceEventType: 'web-search-progress',
-        correlationId: 'corr-search-2',
-      }),
-      'conversation-search-2',
-    );
-    expect(recordTrackingEvent).toHaveBeenCalledWith(
-      'web-search-progress',
-      'turn-search-2',
-      { phase: 'tool-call', toolCall: true },
-      'conversation-search-2',
-    );
-    expect(mockRecordToolMessage).not.toHaveBeenCalled();
   });
 });
