@@ -290,32 +290,28 @@ frontend/src/renderer/
 ```
 1. BACKEND EVENT
    └─> Main process receives WebSocket event
-       └─> IPC to renderer: ON_CHANNELS.FROM_BACKEND
+       ├─> SDK runtime reduces event into currentTurn projection
+       ├─> IPC to renderer: ON_CHANNELS.CONVERSATION_RUNTIME_UPDATED
+       └─> IPC to renderer: ON_CHANNELS.CONVERSATION_EVENT
            ↓
-2. STREAMING HOOK
-   └─> features/chat/hooks/useChatStream.ts
-       ├─> handleLlmThought() - Accumulate thinking tokens
-       ├─> handleStreamingResponse() - Append chunks to assistant message
-       ├─> handleToolCall() - Create tool-call message
-       ├─> handleToolOutput() - Create tool-output message (backend failures only)
-       ├─> handleSystemPrompt() - Attach to last user message
-       ├─> handleUserMessageFull() - Attach transparency data
-       ├─> handleAssistantMessageFull() - Attach transparency data
-       ├─> handleToolSchemas() - Attach to first user message
-       ├─> handleStreamingComplete() - Mark message as complete
-       └─> handleError() - Display error message
+2. CURRENT-TURN PROJECTION HOOK
+   └─> features/chat/hooks/useConversationRuntimeProjectionStream.ts
+       ├─> Stores SDK currentTurn projection
+       ├─> Tracks first assistant/reasoning deltas for UI state
+       ├─> Tracks tool-call/tool-output phases
+       └─> Tracks complete/error phases
            ↓
 3. CHAT STORE
    └─> features/chat/stores/chatStore.ts
-       ├─> addMessage() - Add new messages
-       ├─> updateMessage() - Update existing messages (streaming chunks)
-       ├─> setThinkingStatus() - Update thinking display
-       └─> setTokenCounts() - Update token statistics
+       ├─> setCurrentTurnProjection() - Store SDK live turn state
+       ├─> setThinkingStatus() - Update thinking display from projection
+       └─> setTokenCounts() - Update token statistics from conversation events
            ↓
 4. UI UPDATE
    └─> features/chat/components/MessageList.jsx
-       ├─> Renders messages from chatStore
-       ├─> Displays transparency sections (system prompt, tool schemas, full messages)
+       ├─> Renders transcript messages from chatStore
+       ├─> Renders active assistant/tool rows from SDK currentTurn projection
+       ├─> Displays transparency sections from conversation-event metadata
        └─> Auto-scrolls to bottom
 ```
 
@@ -531,7 +527,9 @@ App
 - `SEARCH_MEMORY` - Search memory via Python sidecar
 
 ### On Channels (Main → Renderer, events)
-- `FROM_BACKEND` - Backend WebSocket events (streaming-response, tool-call, tool-bundle, etc.)
+- `CONVERSATION_RUNTIME_UPDATED` - SDK current-turn projection updates for live dashboard/overlay rendering
+- `CONVERSATION_EVENT` - SDK-normalized chat side-effect events for transcript/session/metadata handlers
+- `FROM_BACKEND` - Legacy backend WebSocket event channel for non-chat consumers, compatibility, audio, and status traffic
 - `IPC_STATUS` - IPC connection status
 - `LOG` - Log messages from main process
 - `WAKEWORD_DETECTED` - Wakeword detection event

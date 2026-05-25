@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/frontend: update renderer folder structure docs to show SDK current-turn projection and `conversation-event` stream ownership.
 - frontend/sdk: route renderer chat stream side effects through main-owned SDK-normalized `conversation-event` IPC and delete the renderer raw backend ingress path.
 - frontend/sdk: remove token-count and memory-store fallback completion so only SDK current-turn projection advances live response terminal phase.
 - frontend/sdk: move terminal complete/error phase tracking onto SDK current-turn projection and keep renderer terminal handlers focused on transcript/materialization side effects.
