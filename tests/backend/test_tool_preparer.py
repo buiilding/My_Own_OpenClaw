@@ -1,11 +1,11 @@
 import pytest
 
-from backend.src.agent.tools.preparation.preparer import ToolPreparer
 from backend.src.agent.tools.preparation.helpers.preparation_helper import (
     resolve_tool_with_coordinates,
     tool_call_has_manual_coordinates,
     tool_call_needs_coordinate_resolution,
 )
+from backend.src.agent.tools.preparation.preparer import ToolPreparer
 from backend.src.agent.tools.preparation.types.resolved_tool_call import (
     ResolvedToolCall,
 )
@@ -106,6 +106,18 @@ class DummyCoordinateResolver:
 async def _collect_preparation(preparer, tool_calls):
     result = await preparer.prepare(tool_calls, DummySession())
     return [], result
+
+
+@pytest.mark.asyncio
+async def test_prepare_empty_tool_batch_returns_empty_result():
+    preparer = ToolPreparer(object(), object(), object())
+
+    events, result = await _collect_preparation(preparer, [])
+
+    assert events == []
+    assert result.resolved_calls == []
+    assert result.errors == []
+    assert result.bundle_id is None
 
 
 def _assert_single_result_with_coordinate_method(

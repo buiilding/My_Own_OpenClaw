@@ -90,7 +90,9 @@ class ToolPreparer:
         preparation_start_time = time.perf_counter()
         logger.info("[Timing] Tool preparation started: %s tool(s)", len(tool_calls))
 
-        if len(tool_calls) > 1:
+        if not tool_calls:
+            result = PreparationResult(resolved_calls=[], errors=[])
+        elif len(tool_calls) > 1:
             result = await self._prepare_bundle(tool_calls, session)
         else:
             result = await self._prepare_single(tool_calls[0], session)

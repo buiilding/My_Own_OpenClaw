@@ -36,6 +36,8 @@ Responsibilities:
 - rewrite resolved grounded tool calls to manual `x/y` parameters
 - attach transparency/diagnostic metadata
 - register resolved single-call payloads in session runtime for later stale-screen checks
+- return `PreparationResult(resolved_calls=[], errors=[])` for empty parsed
+  tool-call batches without assigning a bundle id or indexing the call list
 
 Non-responsibilities:
 
