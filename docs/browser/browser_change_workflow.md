@@ -214,7 +214,9 @@ Validate:
 - controls use `INVOKE_CHANNELS.RUN_BROWSER_ACTION`.
 - `connect`, `status`, `get_tabs`, `switch`, and `close` payloads remain canonical browser actions.
 - polling starts only while subscribed and connected.
-- stale async status responses cannot overwrite newer state.
+- stale async status responses cannot overwrite newer state, and disconnect
+  invalidates in-flight syncs before stale `get_tabs` results can reapply a
+  connected snapshot.
 - UI handles local backend not-ready state without pretending the browser is connected.
 
 ### Change browser permission/readiness behavior

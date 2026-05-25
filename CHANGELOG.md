@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/browser: invalidate in-flight browser session syncs on disconnect so stale tab polling cannot restore a connected UI state.
 - backend/browser: load sidecar browser shared contracts without prepending the frontend Python tree to backend `sys.path`.
 - frontend/chat: index hydrated message turn refs in the chat store so restored conversations can route turn-scoped stream events.
 - frontend/chat: keep edit/resend UI pending until replay dispatch resolves and show the same local send-failure error when replay dispatch fails.

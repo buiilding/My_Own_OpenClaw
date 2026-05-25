@@ -171,6 +171,10 @@ function refreshPollingState() {
   }, getConnectedPollIntervalMs());
 }
 
+function invalidateBrowserSessionSync() {
+  syncRequestId += 1;
+}
+
 async function syncBrowserSession() {
   if (currentSnapshot.localBackendReady !== true) {
     return;
@@ -355,6 +359,7 @@ export async function disconnectBrowserSession() {
     return;
   }
 
+  invalidateBrowserSessionSync();
   updateSnapshot({ busyAction: 'disconnect' });
   try {
     await runBrowserAction('close');
