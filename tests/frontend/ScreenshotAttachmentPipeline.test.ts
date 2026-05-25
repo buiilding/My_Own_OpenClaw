@@ -31,9 +31,11 @@ import {
 } from '../../frontend/src/renderer/infrastructure/services/ScreenshotAttachmentPipeline';
 import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import { uploadArtifactBase64 } from '../../frontend/src/renderer/infrastructure/services/ArtifactUploader';
+import { restoreScreenshotCaptureVisibility } from '../../frontend/src/renderer/infrastructure/services/SurfaceOrchestrator';
 
 const mockInvoke = IpcBridge.invoke as jest.MockedFunction<typeof IpcBridge.invoke>;
 const mockUploadArtifactBase64 = uploadArtifactBase64 as jest.MockedFunction<typeof uploadArtifactBase64>;
+const mockRestoreScreenshotCaptureVisibility = restoreScreenshotCaptureVisibility as jest.MockedFunction<typeof restoreScreenshotCaptureVisibility>;
 
 function deferred<T>(): {
   promise: Promise<T>;
@@ -158,6 +160,43 @@ describe('ScreenshotAttachmentPipeline', () => {
         { active: true, activeCount: 2 },
         { active: false, activeCount: 0 },
       ]);
+    } finally {
+      window.removeEventListener('windie:screenshot-capture', listener);
+    }
+  });
+
+  test('captureScreenshotAttachment clears active state when visibility restore fails', async () => {
+    const captureEvents: Array<{ active: boolean; activeCount: number }> = [];
+    const listener = (event: Event) => {
+      captureEvents.push((event as CustomEvent).detail);
+    };
+    window.addEventListener('windie:screenshot-capture', listener);
+    mockInvoke.mockResolvedValue({
+      success: true,
+      data: {
+        screenshot: 'shot',
+        screenshot_content_type: 'image/png',
+      },
+    } as any);
+    mockRestoreScreenshotCaptureVisibility.mockRejectedValueOnce(new Error('restore failed'));
+
+    try {
+      await expect(captureScreenshotAttachment({ correlationId: 'cap-restore' })).resolves.toEqual({
+        screenshot: 'shot',
+        screenshotRef: null,
+        screenshotUrl: null,
+        screenshotContentType: 'image/png',
+        captureMeta: null,
+      });
+
+      expect(captureEvents).toEqual([
+        { active: true, activeCount: 1 },
+        { active: false, activeCount: 0 },
+      ]);
+      expect(console.warn).toHaveBeenCalledWith(
+        '[captureScreenshotAttachment] Failed to restore screenshot capture visibility:',
+        expect.any(Error),
+      );
     } finally {
       window.removeEventListener('windie:screenshot-capture', listener);
     }

@@ -243,10 +243,15 @@ export async function captureScreenshotAttachment({
     attachment = createEmptyScreenshotAttachment();
   } finally {
     const restoreVisibilityStartTime = performance.now();
-    await restoreScreenshotCaptureVisibility(screenshotVisibilityPreparation, {
-      source: 'system-capture',
-    });
-    restoreVisibilityTime = (performance.now() - restoreVisibilityStartTime) / 1000;
+    try {
+      await restoreScreenshotCaptureVisibility(screenshotVisibilityPreparation, {
+        source: 'system-capture',
+      });
+    } catch (error) {
+      console.warn('[captureScreenshotAttachment] Failed to restore screenshot capture visibility:', error);
+    } finally {
+      restoreVisibilityTime = (performance.now() - restoreVisibilityStartTime) / 1000;
+    }
     if (shouldEmitCaptureEvent) {
       endScreenshotCaptureEvent();
     }

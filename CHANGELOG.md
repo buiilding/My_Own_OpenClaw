@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/screenshot: always clear screenshot-capture active state and timing cleanup when visibility restore fails.
 - backend/llm: normalize OpenAI chat-shaped function tools before building Responses API tool payloads.
 - backend/tools: snapshot resolved tool calls at the storage boundary so later caller mutations cannot corrupt execution payloads.
 - frontend/sdk: include renderer-generated `turn_ref` in desktop query IPC payloads so backend stream events can echo active-turn correlation.

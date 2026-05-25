@@ -88,6 +88,8 @@ Failure policy:
 
 - invoke errors are logged
 - returns `null`/empty attachment instead of throwing
+- screenshot visibility restore errors are logged, but active capture events and
+  timing cleanup still run so listeners cannot remain stuck in active state
 
 ## Artifact Upload and Runtime URL Composition
 
