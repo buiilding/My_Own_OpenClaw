@@ -20,10 +20,12 @@ from backend.src.services.vision.providers.base import (
 from backend.src.services.vision.providers.internvl_runtime_helpers import (
     build_grounding_prompt,
     build_instruction_log_metadata as _build_instruction_log_metadata,
+    build_response_log_metadata,
     disable_flash_attention_runtime,
     is_cuda_kernel_image_error as _is_cuda_kernel_image_error,
     is_meta_tensor_loading_error as _is_meta_tensor_loading_error,
     log_failure_context,
+    log_vision_response_metadata,
     prepare_question,
     resolve_model_dtype,
     run_chat_generation,
@@ -477,18 +479,22 @@ class InternVLModel(BaseVisionModel):
             if not output_text:
                 logger.error("Empty output from model")
                 return None
-            raw_output_preview = output_text[:1000]
-            if len(output_text) > 1000:
-                raw_output_preview += "... [truncated]"
-            logger.warning(
-                "InternVL raw prediction response: %s",
-                repr(raw_output_preview),
+            log_vision_response_metadata(
+                logger,
+                "InternVL prediction response",
+                output_text,
             )
 
             point = extract_point_or_bbox_center(output_text)
             logger.info(f"Extracted point: {point}")
             if point is None:
-                logger.error(f"Could not parse coordinates from output: {output_text}")
+                response_length, response_hash = build_response_log_metadata(output_text)
+                logger.error(
+                    "Could not parse InternVL coordinates from model response "
+                    "(length=%d, sha256=%s)",
+                    response_length,
+                    response_hash,
+                )
                 return None
 
             x_norm, y_norm = point

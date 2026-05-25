@@ -27,6 +27,10 @@ from backend.src.services.vision.providers.internvl import (
     InternVLModel,
     build_grounding_prompt,
 )
+from backend.src.services.vision.providers.internvl_runtime_helpers import (
+    build_response_log_metadata,
+    log_vision_response_metadata,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -233,17 +237,21 @@ class VenusVisionModel(InternVLModel):
             if not output_text:
                 logger.error("Empty output from Venus model")
                 return None
-            raw_output_preview = output_text[:1000]
-            if len(output_text) > 1000:
-                raw_output_preview += "... [truncated]"
-            logger.warning(
-                "Venus raw prediction response: %s",
-                repr(raw_output_preview),
+            log_vision_response_metadata(
+                logger,
+                "Venus prediction response",
+                output_text,
             )
 
             point = extract_point_or_bbox_center(output_text)
             if point is None:
-                logger.error(f"Could not parse coordinates from output: {output_text}")
+                response_length, response_hash = build_response_log_metadata(output_text)
+                logger.error(
+                    "Could not parse Venus coordinates from model response "
+                    "(length=%d, sha256=%s)",
+                    response_length,
+                    response_hash,
+                )
                 return None
 
             x_px, y_px = scale_model_point_to_pixels(

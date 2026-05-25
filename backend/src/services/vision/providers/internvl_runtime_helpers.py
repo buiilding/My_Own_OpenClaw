@@ -24,6 +24,31 @@ def build_instruction_log_metadata(
     return preview, instruction_hash
 
 
+def build_response_log_metadata(response: Any) -> Tuple[int, str]:
+    """Return non-content metadata for potentially sensitive vision responses."""
+    response_text = str(response or "")
+    response_hash = hashlib.sha256(response_text.encode()).hexdigest()[:12]
+    return len(response_text), response_hash
+
+
+def log_vision_response_metadata(
+    logger_instance: Any,
+    label: str,
+    response: Any,
+    *,
+    level: str = "info",
+) -> Tuple[int, str]:
+    response_length, response_hash = build_response_log_metadata(response)
+    log_method = getattr(logger_instance, level, logger_instance.info)
+    log_method(
+        "%s received (length=%d, sha256=%s)",
+        label,
+        response_length,
+        response_hash,
+    )
+    return response_length, response_hash
+
+
 def build_grounding_prompt(instruction: str) -> str:
     """Build the shared grounding prompt used by vision providers."""
     return GROUNDING_PROMPT_TEMPLATE.format(instruction=instruction)
@@ -94,7 +119,7 @@ def run_chat_generation(
         )
     else:
         response = model.chat(tokenizer, pixel_values, question, generation_config)
-    logger_instance.info(f"Chat response received: {repr(response)}")
+    log_vision_response_metadata(logger_instance, "InternVL chat response", response)
     return response or ""
 
 
@@ -133,7 +158,11 @@ def run_generate_fallback(
         )
 
     output_text = tokenizer.decode(generation_output[0], skip_special_tokens=True).strip()
-    logger_instance.info(f"Generate fallback on CUDA succeeded: {repr(output_text)}")
+    log_vision_response_metadata(
+        logger_instance,
+        "InternVL generate fallback response",
+        output_text,
+    )
     return output_text
 
 
