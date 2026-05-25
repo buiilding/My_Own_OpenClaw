@@ -170,7 +170,9 @@ def _container(
 @pytest.mark.asyncio
 async def test_sdk_ocr_run_returns_results_with_centers_and_candidates(
     tmp_path,
+    authenticated_install_identity,
 ) -> None:
+    _ = authenticated_install_identity
     container = _container(
         tmp_path,
         ocr_results=[
@@ -195,7 +197,38 @@ async def test_sdk_ocr_run_returns_results_with_centers_and_candidates(
 
 
 @pytest.mark.asyncio
-async def test_sdk_ocr_run_accepts_artifact_id_sources(tmp_path) -> None:
+async def test_sdk_ocr_run_requires_authenticated_identity_before_ocr(
+    tmp_path,
+) -> None:
+    container = _container(
+        tmp_path,
+        ocr_results=[
+            {
+                "id": "row-1",
+                "text": "Search Amazon",
+                "confidence": 0.99,
+                "bbox": {"x": 500, "y": 216, "width": 174, "height": 36},
+            }
+        ],
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        await sdk_routes.sdk_ocr_run(
+            OcrRunRequest(image=ImageSourceInput(image_base64=_png_base64())),
+            container,
+        )
+
+    assert exc_info.value.status_code == 401
+    assert exc_info.value.detail == "Authenticated install identity required"
+    assert container.ocr_service.calls == 0
+
+
+@pytest.mark.asyncio
+async def test_sdk_ocr_run_accepts_authenticated_artifact_id_sources(
+    tmp_path,
+    authenticated_install_identity,
+) -> None:
+    _ = authenticated_install_identity
     artifact_id = "inline-shot.png"
     image = Image.new("RGB", (320, 200), (255, 255, 255))
     image.save(tmp_path / artifact_id, format="PNG")
@@ -501,7 +534,11 @@ async def test_sdk_ocr_inspect_propagates_unexpected_resolver_errors(
 
 
 @pytest.mark.asyncio
-async def test_sdk_ocr_resolve_candidate_returns_exact_candidate(tmp_path) -> None:
+async def test_sdk_ocr_resolve_candidate_returns_exact_candidate(
+    tmp_path,
+    authenticated_install_identity,
+) -> None:
+    _ = authenticated_install_identity
     container = _container(
         tmp_path,
         ocr_results=[

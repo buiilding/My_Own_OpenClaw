@@ -113,6 +113,7 @@ async def sdk_ocr_run(
     request: OcrRunRequest,
     container: ContainerDep,
 ) -> OcrRunResponse:
+    require_authenticated_sdk_identity()
     source = resolve_image_source(request.image, container)
     ocr_results = await run_ocr(source, container)
     return OcrRunResponse(

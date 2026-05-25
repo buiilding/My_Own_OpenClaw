@@ -40,8 +40,8 @@ the resolver reports as `ValueError`. Unexpected resolver/runtime failures must
 propagate as route errors so monitoring and SDK callers do not treat backend
 failures as normal no-match results.
 
-OCR overlay requires an authenticated install identity before resolving image
-sources, running OCR, or writing overlay artifacts.
+OCR run and OCR overlay require an authenticated install identity before
+resolving image sources, running OCR, or writing overlay artifacts.
 
 Vision locate-all requires an authenticated install identity before resolving
 image sources or invoking provider-backed vision work.
