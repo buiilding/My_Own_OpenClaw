@@ -915,6 +915,17 @@ function initializeIpc(win, options = {}) {
     currentUserId = syncResult.nextUserId;
   });
 
+  ipcMain.on('renderer-log', (_event, payload = {}) => {
+    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+      return;
+    }
+    if (payload.source === 'frontend-interaction') {
+      console.log('[FrontendInteraction][renderer]', payload.entry || {});
+      return;
+    }
+    console.log('[RendererLog]', payload);
+  });
+
   async function handleRendererChatQuery(event, payloadInput = {}) {
     let payload = (
       payloadInput

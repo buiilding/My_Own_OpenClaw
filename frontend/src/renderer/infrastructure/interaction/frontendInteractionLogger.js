@@ -1,3 +1,5 @@
+import { IpcBridge, SEND_CHANNELS } from '../ipc/bridge';
+
 const MAX_LABEL_LENGTH = 120;
 
 let installedCleanup = null;
@@ -133,6 +135,14 @@ export function logFrontendInteraction(action, details = {}) {
     ...details,
   };
   console.log('[FrontendInteraction]', payload);
+  try {
+    IpcBridge.send(SEND_CHANNELS.RENDERER_LOG, {
+      source: 'frontend-interaction',
+      entry: payload,
+    });
+  } catch (_error) {
+    // DevTools logging still works when preload IPC is unavailable in tests or browser-only renders.
+  }
 }
 
 function handleClick(event) {

@@ -1,3 +1,13 @@
+jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
+  IpcBridge: {
+    send: jest.fn(),
+  },
+  SEND_CHANNELS: {
+    RENDERER_LOG: 'renderer-log',
+  },
+}));
+
+import { IpcBridge } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import {
   describeInteractionTarget,
   installFrontendInteractionLogger,
@@ -10,6 +20,7 @@ describe('frontendInteractionLogger', () => {
 
   beforeEach(() => {
     document.body.innerHTML = '';
+    IpcBridge.send.mockClear();
     consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
   });
 
@@ -45,6 +56,15 @@ describe('frontendInteractionLogger', () => {
       target: expect.objectContaining({
         label: 'Chat: Planning notes',
         className: 'cg-chat-item',
+      }),
+    }));
+    expect(IpcBridge.send).toHaveBeenCalledWith('renderer-log', expect.objectContaining({
+      source: 'frontend-interaction',
+      entry: expect.objectContaining({
+        action: 'chat_clicked',
+        target: expect.objectContaining({
+          label: 'Chat: Planning notes',
+        }),
       }),
     }));
   });
@@ -110,5 +130,13 @@ describe('frontendInteractionLogger', () => {
       readableFileCount: 1,
     }));
     expect(consoleSpy.mock.calls[0][1]).not.toHaveProperty('text');
+    expect(IpcBridge.send).toHaveBeenCalledWith('renderer-log', expect.objectContaining({
+      source: 'frontend-interaction',
+      entry: expect.objectContaining({
+        action: 'message_sent',
+        event: 'send-message',
+        conversationRef: 'conv-1',
+      }),
+    }));
   });
 });

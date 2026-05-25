@@ -28,9 +28,22 @@ describe('preload IPC channel registry', () => {
       ipcRenderer: ipcRendererMock,
     }));
 
+    const preloadChannels = {
+      SEND_CHANNELS: {
+        RENDERER_LOG: 'renderer-log',
+      },
+      INVOKE_CHANNELS: {
+        CLEAR_CHAT_HISTORY: 'clear-chat-history',
+        CLEAR_LOCAL_MEMORY: 'clear-local-memory',
+        COPY_IMAGE_TO_CLIPBOARD: 'copy-image-to-clipboard',
+        FETCH_ARTIFACT_IMAGE: 'fetch-artifact-image',
+        SHOW_IMAGE_CONTEXT_MENU: 'show-image-context-menu',
+      },
+      ON_CHANNELS: {},
+    };
     process.argv = [
       '/path/to/electron',
-      '--windie-ipc-channels=%7B%22SEND_CHANNELS%22%3A%7B%7D%2C%22INVOKE_CHANNELS%22%3A%7B%22CLEAR_CHAT_HISTORY%22%3A%22clear-chat-history%22%2C%22CLEAR_LOCAL_MEMORY%22%3A%22clear-local-memory%22%2C%22COPY_IMAGE_TO_CLIPBOARD%22%3A%22copy-image-to-clipboard%22%2C%22FETCH_ARTIFACT_IMAGE%22%3A%22fetch-artifact-image%22%2C%22SHOW_IMAGE_CONTEXT_MENU%22%3A%22show-image-context-menu%22%7D%2C%22ON_CHANNELS%22%3A%7B%7D%7D',
+      `--windie-ipc-channels=${encodeURIComponent(JSON.stringify(preloadChannels))}`,
     ];
 
     require('../../frontend/src/preload.js');
@@ -61,6 +74,18 @@ describe('preload IPC channel registry', () => {
     await expect(exposedIpc.invoke('show-image-context-menu', { src: 'https://cdn.example/screenshot.png' })).resolves.toBe('ok');
     expect(ipcRendererMock.invoke).toHaveBeenCalledWith('show-image-context-menu', {
       src: 'https://cdn.example/screenshot.png',
+    });
+  });
+
+  test('allows shared send channels from the central registry', () => {
+    exposedIpc.send('renderer-log', {
+      source: 'frontend-interaction',
+      entry: { action: 'button_clicked' },
+    });
+
+    expect(ipcRendererMock.send).toHaveBeenCalledWith('renderer-log', {
+      source: 'frontend-interaction',
+      entry: { action: 'button_clicked' },
     });
   });
 
