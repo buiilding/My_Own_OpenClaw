@@ -198,9 +198,15 @@ function createVmWorkerRuntime(options = {}) {
     if (!runId || !conversationRef || !queryText) {
       return;
     }
-    if (activeRunConversationMap.has(runId)) {
+    if (
+      activeRunConversationMap.has(runId)
+      || activeConversationRunMap.has(conversationRef)
+    ) {
       return;
     }
+
+    activeConversationRunMap.set(conversationRef, runId);
+    activeRunConversationMap.set(runId, conversationRef);
 
     const files = normalizeRunFiles(assignedRun?.files);
     const attachmentContext = buildAttachmentContextFromFiles(files);
@@ -208,13 +214,20 @@ function createVmWorkerRuntime(options = {}) {
       .map((file) => file.filename)
       .filter((filename) => typeof filename === 'string' && filename.length > 0);
 
-    const result = await sendAutomatedQuery({
-      text: queryText,
-      conversationRef,
-      attachmentContext,
-      attachmentFilenames,
-    });
+    let result;
+    try {
+      result = await sendAutomatedQuery({
+        text: queryText,
+        conversationRef,
+        attachmentContext,
+        attachmentFilenames,
+      });
+    } catch (error) {
+      clearRunMapping(runId, conversationRef);
+      throw error;
+    }
     if (!result?.ok) {
+      clearRunMapping(runId, conversationRef);
       await postJson(fetchFn, `${backendHttpUrl}/api/runs/${runId}/events`, {
         event_type: 'error',
         source: 'worker',
@@ -224,9 +237,6 @@ function createVmWorkerRuntime(options = {}) {
       }, runsApiHeaders);
       return;
     }
-
-    activeConversationRunMap.set(conversationRef, runId);
-    activeRunConversationMap.set(runId, conversationRef);
 
     await postJson(fetchFn, `${backendHttpUrl}/api/runs/${runId}/worker-dispatched`, {
       worker_id: workerId,
@@ -361,6 +371,8 @@ function createVmWorkerRuntime(options = {}) {
     _internals: {
       normalizeRunFiles,
       buildAttachmentContextFromFiles,
+      dispatchAssignedRun,
+      getActiveRunCount: () => activeRunConversationMap.size,
     },
   };
 }

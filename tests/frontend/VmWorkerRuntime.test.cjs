@@ -8,6 +8,14 @@ function flushPromises() {
   return new Promise((resolve) => setImmediate(resolve));
 }
 
+function createDeferred() {
+  let resolve;
+  const promise = new Promise((promiseResolve) => {
+    resolve = promiseResolve;
+  });
+  return { promise, resolve };
+}
+
 describe('vm_worker_runtime', () => {
   test('buildAttachmentContextFromFiles renders artifact list', () => {
     const runtime = createVmWorkerRuntime({
@@ -301,5 +309,65 @@ describe('vm_worker_runtime', () => {
       expect.objectContaining({ method: 'POST' }),
     );
     runtime.stop();
+  });
+
+  test('reserves conversation mapping while automated query dispatch is pending', async () => {
+    const deferredDispatch = createDeferred();
+    const sendAutomatedQuery = jest.fn(() => deferredDispatch.promise);
+    const fetchFn = jest.fn(async () => ({
+      ok: true,
+      json: async () => ({ ok: true }),
+    }));
+    const runtime = createVmWorkerRuntime({
+      env: { WINDIE_VM_WORKSPACE_ID: 'workspace-demo' },
+      fetchFn,
+      getBackendConnectionState: () => ({
+        isConnected: true,
+        userId: 'vm-user-race',
+        backendHttpUrl: 'http://localhost:8000',
+      }),
+      sendAutomatedQuery,
+      sendStopQueryToBackend: jest.fn(),
+      registerBackendMessageObserver: () => () => {},
+      log: jest.fn(),
+      warn: jest.fn(),
+    });
+
+    const firstDispatch = runtime._internals.dispatchAssignedRun({
+      backendHttpUrl: 'http://localhost:8000',
+      userId: 'vm-user-race',
+      workerId: 'worker-race',
+      assignedRun: {
+        run_id: 'run-race-1',
+        conversation_ref: 'conv-race',
+        query: 'first task',
+      },
+    });
+    await flushPromises();
+
+    expect(runtime._internals.getActiveRunCount()).toBe(1);
+    await runtime._internals.dispatchAssignedRun({
+      backendHttpUrl: 'http://localhost:8000',
+      userId: 'vm-user-race',
+      workerId: 'worker-race',
+      assignedRun: {
+        run_id: 'run-race-2',
+        conversation_ref: 'conv-race',
+        query: 'second task',
+      },
+    });
+    expect(sendAutomatedQuery).toHaveBeenCalledTimes(1);
+
+    deferredDispatch.resolve({
+      ok: true,
+      queryMessageId: 'turn-race-1',
+      messageId: 'turn-race-1',
+    });
+    await firstDispatch;
+
+    expect(fetchFn).toHaveBeenCalledWith(
+      'http://localhost:8000/api/runs/run-race-1/worker-dispatched',
+      expect.objectContaining({ method: 'POST' }),
+    );
   });
 });
