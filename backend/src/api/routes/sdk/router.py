@@ -353,6 +353,7 @@ async def sdk_vision_locate_all(
     request: VisionLocateAllRequest,
     container: ContainerDep,
 ) -> VisionLocateAllResponse:
+    require_authenticated_sdk_identity()
     source = resolve_image_source(request.image, container)
     return await build_vision_locate_all_response(
         source=source,

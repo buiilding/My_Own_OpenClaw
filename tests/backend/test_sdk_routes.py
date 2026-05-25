@@ -96,15 +96,19 @@ class _FakeVisionService:
         self.point = point
         self.is_initialized = True
         self.initialization_error = None
+        self.coordinate_calls = 0
+        self.question_calls = 0
 
     async def initialize(self):
         self.is_initialized = True
         return True
 
     async def predict_coordinates(self, _image_b64: str, _description: str):
+        self.coordinate_calls += 1
         return self.point
 
     async def answer_question_about_image(self, image_b64: str, _prompt: str):
+        self.question_calls += 1
         raw = base64.b64decode(image_b64)
         image = Image.open(io.BytesIO(raw))
         return f"region size {image.size[0]}x{image.size[1]}"
@@ -602,7 +606,32 @@ async def test_sdk_vision_locate_returns_predicted_coordinates(tmp_path) -> None
 
 
 @pytest.mark.asyncio
-async def test_sdk_vision_locate_all_returns_best_match_list(tmp_path) -> None:
+async def test_sdk_vision_locate_all_requires_authenticated_identity_before_vision(
+    tmp_path,
+) -> None:
+    container = _container(tmp_path, vision_point=(612, 241))
+
+    with pytest.raises(HTTPException) as exc_info:
+        await sdk_routes.sdk_vision_locate_all(
+            VisionLocateAllRequest(
+                image=ImageSourceInput(image_base64=_png_base64()),
+                description="orange search button",
+                max_results=3,
+            ),
+            container,
+        )
+
+    assert exc_info.value.status_code == 401
+    assert exc_info.value.detail == "Authenticated install identity required"
+    assert container.vision_service.coordinate_calls == 0
+
+
+@pytest.mark.asyncio
+async def test_sdk_vision_locate_all_returns_authenticated_best_match_list(
+    tmp_path,
+    authenticated_install_identity,
+) -> None:
+    _ = authenticated_install_identity
     container = _container(tmp_path, vision_point=(612, 241))
 
     response = await sdk_routes.sdk_vision_locate_all(

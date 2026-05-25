@@ -52,7 +52,7 @@ Do not add a hosted SDK route just to reach local machine state. Local screensho
 | --- | --- |
 | Image input | SDK image request models should require exactly one of artifact id or inline base64 when that is the route contract. |
 | Artifact ownership | Artifact-backed responses should use authenticated install identity when auth is enabled. |
-| OCR route auth | `POST /api/sdk/ocr/find-text` and `POST /api/sdk/ocr/overlay` must require authenticated install identity before resolving images or invoking OCR. |
+| OCR and vision route auth | `POST /api/sdk/ocr/find-text`, `POST /api/sdk/ocr/overlay`, and `POST /api/sdk/vision/locate-all` must require authenticated install identity before resolving images or invoking OCR/vision work. |
 | Provider unavailability | OCR/vision provider failures should become structured `503` responses, not raw exceptions. |
 | Region bounds | Region-based routes should reject out-of-bounds requests with validation-style errors. |
 | Prompt preview | Debug prompt routes must not become a backdoor for local desktop state or secrets. |

@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/sdk: require authenticated install identity before SDK vision locate-all resolves images or invokes provider work.
 - backend/logging: apply the resolved root log level even when a server runner or test harness installed handlers before logging setup.
 - frontend/transcript: preserve assistant/tool timestamps and assistant structured payloads when immediate projection writes retry later.
 - frontend/screenshot: always clear screenshot-capture active state and timing cleanup when visibility restore fails.
