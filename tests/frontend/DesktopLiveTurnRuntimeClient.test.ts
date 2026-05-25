@@ -59,6 +59,7 @@ describe('DesktopLiveTurnRuntimeClient', () => {
         attachment_filenames: ['notes.txt', 'image.png'],
         screenshot: 'inline-shot',
         workspace_path: '/workspace/WindieOS',
+        turn_ref: expect.stringMatching(/^turn_/),
         memory_retrieval_enabled: true,
       });
     } finally {

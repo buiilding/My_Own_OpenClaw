@@ -24,11 +24,13 @@ async function sendStopQuery(conversationRef: string | null): Promise<void> {
 }
 
 async function sendQuery(payload: Record<string, unknown>, workspacePath: string | null): Promise<void> {
+  const turnRef = optionalString(payload.turn_ref) ?? optionalString(payload.turnRef) ?? null;
   const result = await IpcBridge.invoke(INVOKE_CHANNELS.SEND_CHAT_QUERY, {
     text: optionalString(payload.text) ?? '',
     conversation_ref: optionalString(payload.conversation_ref)
       ?? optionalString(payload.conversationRef)
       ?? '',
+    turn_ref: turnRef,
     screenshot_ref: optionalString(payload.screenshot_ref)
       ?? optionalString(payload.screenshotRef)
       ?? null,
