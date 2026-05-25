@@ -56,6 +56,10 @@ sequenceDiagram
 
 `POST /api/runs/` calls `VmRunControlService.create_run(...)`.
 
+The route dependency lazily publishes exactly one in-memory `VmRunControlService`
+per FastAPI app state behind a thread lock, so concurrent first requests share
+the same run map.
+
 Creation rules:
 
 - `workspace_id` and `query` are required.

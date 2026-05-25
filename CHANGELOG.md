@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/runs: guard lazy VM run-control service creation so concurrent first requests share one in-memory service.
 - backend/tools: ignore malformed mouse coordinate-method config without disabling OCR and vision startup defaults.
 - backend/llm: keep streaming provider usage and normalized response payloads request-local so overlapping streams cannot overwrite turn diagnostics.
 - frontend/auth: save and load persisted install auth state with owner-only file permissions on POSIX platforms.

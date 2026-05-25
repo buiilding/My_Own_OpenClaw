@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import os
+import threading
 from typing import Any, Dict, Optional
 
 from fastapi import Header, HTTPException, Request
 
 from backend.src.services.vm_run_control import VmRunControlService
+
+_VM_RUN_CONTROL_SERVICE_LOCK = threading.Lock()
 
 
 def parse_positive_int(raw_value: Optional[str], default: int) -> int:
@@ -23,14 +26,18 @@ def parse_positive_int(raw_value: Optional[str], default: int) -> int:
 def get_vm_run_control_service(request: Request) -> VmRunControlService:
     state = request.app.state
     service = getattr(state, "vm_run_control_service", None)
-    if service is None:
-        max_active_runs = parse_positive_int(
-            os.getenv("WINDIE_VM_MAX_ACTIVE_RUNS_PER_WORKSPACE"),
-            default=1,
-        )
-        service = VmRunControlService(max_active_runs_per_workspace=max_active_runs)
-        state.vm_run_control_service = service
-    return service
+    if service is not None:
+        return service
+    with _VM_RUN_CONTROL_SERVICE_LOCK:
+        service = getattr(state, "vm_run_control_service", None)
+        if service is None:
+            max_active_runs = parse_positive_int(
+                os.getenv("WINDIE_VM_MAX_ACTIVE_RUNS_PER_WORKSPACE"),
+                default=1,
+            )
+            service = VmRunControlService(max_active_runs_per_workspace=max_active_runs)
+            state.vm_run_control_service = service
+        return service
 
 
 def normalize_optional_string(value: Optional[str]) -> Optional[str]:

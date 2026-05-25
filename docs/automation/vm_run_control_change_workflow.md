@@ -18,6 +18,7 @@ Current VM run control is not a cron scheduler, webhook engine, durable job queu
 - The backend owns run ids, run status, active-run caps, assignment queues, worker records, pending controls, and event sequence numbers.
 - The Electron VM worker owns polling cadence, backend endpoint selection, dispatching assigned runs through `sendAutomatedQuery(...)`, relaying backend stream events, and applying live stop controls to the websocket query path.
 - Runs state is process memory in `VmRunControlService`. It is not durable across backend restarts unless a storage layer is explicitly designed and implemented.
+- The `/api/runs/*` route dependency owns lazy app-state service publication and must keep first-request initialization synchronized.
 - The runs API key uses `x-windie-runs-key` and is separate from install-token bearer auth.
 - Worker-dispatched runs must enter the same backend query path as desktop chat via Electron main. Do not create a parallel model/tool loop in `vm_worker_runtime.cjs`.
 - Frontend and sidecar code must not import backend code for schema parity. Keep route payload parity in docs and tests.

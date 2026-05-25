@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+import asyncio
+import time
+from types import SimpleNamespace
+
 import pytest
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
@@ -20,6 +24,38 @@ def create_runs_test_client() -> TestClient:
     app = FastAPI()
     app.include_router(runs_routes.router)
     return TestClient(app)
+
+
+@pytest.mark.asyncio
+async def test_get_vm_run_control_service_is_singleton_for_concurrent_first_calls(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class SlowVmRunControlService(VmRunControlService):
+        def __init__(self, *args, **kwargs):
+            time.sleep(0.02)
+            super().__init__(*args, **kwargs)
+
+    monkeypatch.setattr(
+        "backend.src.api.routes.runs.support.VmRunControlService",
+        SlowVmRunControlService,
+    )
+    request = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace()))
+
+    services = await asyncio.gather(
+        *[
+            asyncio.to_thread(runs_routes.get_vm_run_control_service, request)
+            for _ in range(8)
+        ]
+    )
+
+    assert len({id(service) for service in services}) == 1
+    stored_service = request.app.state.vm_run_control_service
+    run = await services[0].create_run(
+        workspace_id="workspace-demo",
+        query="first run",
+    )
+
+    assert await stored_service.get_run(run["run_id"]) == run
 
 
 @pytest.mark.asyncio
