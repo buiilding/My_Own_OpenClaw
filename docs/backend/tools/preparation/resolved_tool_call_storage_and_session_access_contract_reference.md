@@ -30,6 +30,10 @@ title: "Resolved Tool-Call Storage and Session Access Contract Reference"
 Behavior guarantees:
 
 - registering same request id overwrites existing value
+- registration stores a deep snapshot of the resolved call instead of caller-owned
+  mutable state
+- retrieval returns a deep snapshot so execution-time callers cannot mutate the
+  stored copy through the object returned by `get`
 - removing missing id is no-op
 - clear is idempotent
 

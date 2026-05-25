@@ -1,6 +1,8 @@
 from backend.src.agent.tools.preparation.storage.resolved_call_storage import (
     ResolvedToolCallStorage,
 )
+from backend.src.agent.tools.preparation.types.resolved_tool_call import ResolvedToolCall
+from backend.src.llm.parser_types import ParsedToolCall
 
 
 def test_resolved_tool_call_storage_register_get_remove_clear():
@@ -50,3 +52,42 @@ def test_clear_is_idempotent():
     storage.clear()
 
     assert storage.get("req-1") is None
+
+
+def test_storage_snapshots_mutable_dict_payloads():
+    storage = ResolvedToolCallStorage()
+    resolved = {"tool": "click", "args": {"x": 1, "y": 2}}
+
+    storage.register("req-1", resolved)
+    resolved["args"]["x"] = 99
+    retrieved = storage.get("req-1")
+    assert retrieved == {"tool": "click", "args": {"x": 1, "y": 2}}
+
+    retrieved["args"]["y"] = 88
+    assert storage.get("req-1") == {"tool": "click", "args": {"x": 1, "y": 2}}
+
+
+def test_storage_snapshots_resolved_tool_call_dataclass_payloads():
+    storage = ResolvedToolCallStorage()
+    parsed_call = ParsedToolCall(
+        tool_name="mouse_control",
+        parameters={"action": "click", "x": 1},
+        metadata={"source": {"kind": "ocr"}},
+    )
+    resolved_call = ResolvedToolCall.from_parsed_call(parsed_call)
+    resolved_call.parameters["x"] = 10
+
+    storage.register("req-1", resolved_call)
+    resolved_call.parameters["x"] = 99
+    resolved_call.metadata["source"]["kind"] = "mutated"
+
+    first_read = storage.get("req-1")
+    assert first_read.parameters["x"] == 10
+    assert first_read.metadata["source"]["kind"] == "ocr"
+
+    first_read.parameters["x"] = 123
+    first_read.metadata["source"]["kind"] = "read-mutated"
+
+    second_read = storage.get("req-1")
+    assert second_read.parameters["x"] == 10
+    assert second_read.metadata["source"]["kind"] == "ocr"

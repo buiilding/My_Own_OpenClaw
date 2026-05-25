@@ -4,6 +4,7 @@ Resolved tool call storage for AgentSession.
 Encapsulates resolved tool call storage logic to reduce
 AgentSession complexity and improve modularity.
 """
+from copy import deepcopy
 from typing import Any, Dict, Optional
 
 
@@ -31,7 +32,7 @@ class ResolvedToolCallStorage:
             request_id: Request ID for the tool call
             resolved_call: Resolved tool call to store
         """
-        self._resolved_tool_calls[request_id] = resolved_call
+        self._resolved_tool_calls[request_id] = deepcopy(resolved_call)
     
     def get(self, request_id: str) -> Optional[Any]:
         """
@@ -46,7 +47,8 @@ class ResolvedToolCallStorage:
         Returns:
             Resolved tool call or None if not found
         """
-        return self._resolved_tool_calls.get(request_id)
+        resolved_call = self._resolved_tool_calls.get(request_id)
+        return deepcopy(resolved_call) if resolved_call is not None else None
     
     def remove(self, request_id: str) -> None:
         """
