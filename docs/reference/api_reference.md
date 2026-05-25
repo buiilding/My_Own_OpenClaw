@@ -231,6 +231,10 @@ when `embedding_backend=remote-http`.
 - `GET /health`
 - `POST /embed`
 
+`POST /embed` is an internal service route. It requires
+`x-windie-embedding-key: <WINDIE_EMBEDDING_SERVICE_API_KEY>` and fails closed
+when the key is missing from service configuration.
+
 `POST /embed` accepts 1..256 text strings. Each text is capped at 8192
 characters and the total request is capped at 65536 characters before provider
 execution.

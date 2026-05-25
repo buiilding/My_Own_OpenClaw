@@ -110,7 +110,13 @@ Error behavior:
 ## Internal `/embed` Service Contract
 
 The standalone embedding service (`backend/src/embeddings/service_app.py`) is
-used behind remote embedding deployments. It accepts a batch payload:
+used behind remote embedding deployments. `POST /embed` requires the internal
+`x-windie-embedding-key` header to match `WINDIE_EMBEDDING_SERVICE_API_KEY`.
+If that env var is unset, the route fails closed with `503` before provider
+execution. Missing credentials return `401`; mismatched credentials return
+`403`.
+
+It accepts a batch payload:
 
 - `texts`: 1..256 strings
 - each string: 1..8192 chars

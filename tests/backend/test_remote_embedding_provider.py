@@ -66,6 +66,35 @@ async def test_remote_provider_propagates_metadata_from_service_response() -> No
 
 
 @pytest.mark.asyncio
+async def test_remote_provider_sends_embedding_service_api_key() -> None:
+    async def handler(request: httpx.Request) -> httpx.Response:
+        assert request.headers["x-windie-embedding-key"] == "service-secret"
+        return httpx.Response(
+            200,
+            json={
+                "embeddings": [[1.0, 2.0]],
+                "provider_id": "embedding-service",
+                "model_id": "remote-model",
+                "dimension": 2,
+            },
+        )
+
+    provider = RemoteHttpEmbeddingProvider(
+        service_url="http://embeddings.internal",
+        api_key="service-secret",
+        http_client=httpx.AsyncClient(
+            base_url="http://embeddings.internal",
+            transport=_build_transport(handler),
+        ),
+    )
+
+    embeddings = await provider.embed_batch(["hello"])
+
+    assert embeddings[0].tolist() == [1.0, 2.0]
+    await provider.close()
+
+
+@pytest.mark.asyncio
 async def test_remote_provider_maps_capacity_response_to_capacity_error() -> None:
     async def handler(_request: httpx.Request) -> httpx.Response:
         return httpx.Response(503, json={"detail": "embedding workers saturated"})

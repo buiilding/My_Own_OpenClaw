@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import os
 import time
 from contextlib import asynccontextmanager
+from secrets import compare_digest
 from typing import Annotated, Any, Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from backend.src.api.routes.memory.embeddings.service import (
@@ -17,7 +19,9 @@ from backend.src.api.routes.memory.embeddings.service import (
 from backend.src.api.routes.memory.health import healthy_payload
 from backend.src.core.bootstrap.entrypoint import initialize_entrypoint_logger
 from backend.src.core.config import AppConfig
-from backend.src.core.container.factories import _create_local_sentence_transformer_provider
+from backend.src.core.container.factories import (
+    _create_local_sentence_transformer_provider,
+)
 from backend.src.embeddings.errors import (
     EmbeddingCapacityExceededError,
     EmbeddingProviderRequestError,
@@ -28,6 +32,8 @@ logger = initialize_entrypoint_logger(__name__)
 
 MAX_EMBED_TEXT_CHARS = 8192
 MAX_EMBED_TOTAL_CHARS = 65536
+EMBEDDING_SERVICE_API_KEY_ENV = "WINDIE_EMBEDDING_SERVICE_API_KEY"
+EMBEDDING_SERVICE_API_KEY_HEADER = "x-windie-embedding-key"
 
 
 class EmbedRequest(BaseModel):
@@ -97,7 +103,38 @@ def _get_provider() -> Any:
     return provider
 
 
-@app.post("/embed", response_model=EmbedResponse)
+def _resolve_expected_embedding_service_api_key() -> str:
+    token = os.getenv(EMBEDDING_SERVICE_API_KEY_ENV, "").strip()
+    if not token:
+        raise HTTPException(
+            status_code=503,
+            detail="Embedding service authentication is not configured",
+        )
+    return token
+
+
+def _require_embedding_service_api_key(
+    api_key: Annotated[
+        Optional[str], Header(alias=EMBEDDING_SERVICE_API_KEY_HEADER)
+    ] = None,
+) -> None:
+    expected_api_key = _resolve_expected_embedding_service_api_key()
+    provided_api_key = api_key.strip() if isinstance(api_key, str) else ""
+    if not provided_api_key:
+        raise HTTPException(
+            status_code=401, detail="Missing embedding service credentials"
+        )
+    if not compare_digest(provided_api_key, expected_api_key):
+        raise HTTPException(
+            status_code=403, detail="Invalid embedding service credentials"
+        )
+
+
+@app.post(
+    "/embed",
+    response_model=EmbedResponse,
+    dependencies=[Depends(_require_embedding_service_api_key)],
+)
 async def embed(payload: EmbedRequest) -> EmbedResponse:
     provider = _get_provider()
     started_at = time.perf_counter()
@@ -116,7 +153,9 @@ async def embed(payload: EmbedRequest) -> EmbedResponse:
             embeddings=embedding_lists,
             provider_id=getattr(provider, "provider_id", "unknown-provider"),
             model_id=getattr(provider, "model_id", "unknown-model"),
-            model_name=getattr(provider, "model_name", getattr(provider, "model_id", "unknown-model")),
+            model_name=getattr(
+                provider, "model_name", getattr(provider, "model_id", "unknown-model")
+            ),
             dimension=len(embedding_lists[0]),
             embedding_space_version=resolve_embedding_space_version(provider),
             queue_wait_ms=queue_wait_ms,
@@ -125,7 +164,9 @@ async def embed(payload: EmbedRequest) -> EmbedResponse:
     except EmbeddingCapacityExceededError as error:
         raise HTTPException(status_code=503, detail=error.detail) from error
     except EmbeddingProviderRequestError as error:
-        raise HTTPException(status_code=error.status_code, detail=error.detail) from error
+        raise HTTPException(
+            status_code=error.status_code, detail=error.detail
+        ) from error
     except Exception as error:
         raise_embedding_error(error=error, logger=logger, started_at=started_at)
 
@@ -137,10 +178,14 @@ async def health() -> dict[str, Any]:
         return healthy_payload(
             provider_id=getattr(provider, "provider_id", "unknown-provider"),
             model_id=getattr(provider, "model_id", "unknown-model"),
-            model_name=getattr(provider, "model_name", getattr(provider, "model_id", "unknown-model")),
+            model_name=getattr(
+                provider, "model_name", getattr(provider, "model_id", "unknown-model")
+            ),
             dimension=getattr(provider, "dimension", 0),
             embedding_space_version=resolve_embedding_space_version(provider),
         )
     except Exception as error:
         logger.error("Embedding service health check failed: %s", error, exc_info=True)
-        raise HTTPException(status_code=503, detail="Embedding service unhealthy") from error
+        raise HTTPException(
+            status_code=503, detail="Embedding service unhealthy"
+        ) from error

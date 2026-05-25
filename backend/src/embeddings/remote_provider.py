@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 from typing import Any, List, Optional
 
 import httpx
@@ -24,6 +25,7 @@ class RemoteHttpEmbeddingProvider(EmbeddingProvider):
         service_url: str,
         model_id: Optional[str] = None,
         timeout_seconds: float = 30.0,
+        api_key: Optional[str] = None,
         http_client: httpx.AsyncClient | None = None,
     ) -> None:
         self._service_url = service_url.rstrip("/")
@@ -33,6 +35,9 @@ class RemoteHttpEmbeddingProvider(EmbeddingProvider):
             else "unknown"
         )
         self._timeout_seconds = timeout_seconds
+        self._api_key = (
+            api_key.strip() if isinstance(api_key, str) and api_key.strip() else None
+        )
         self._client = http_client
         self._client_lock = asyncio.Lock()
         self._provider_id = "remote-http"
@@ -87,8 +92,9 @@ class RemoteHttpEmbeddingProvider(EmbeddingProvider):
     async def embed_batch(self, texts: List[str]) -> List[np.ndarray]:
         client = await self._get_client()
         payload = {"texts": texts}
+        headers = self._auth_headers()
         try:
-            response = await client.post("/embed", json=payload)
+            response = await client.post("/embed", json=payload, headers=headers)
         except httpx.TimeoutException as error:
             raise EmbeddingProviderRequestError(
                 status_code=504,
@@ -122,6 +128,14 @@ class RemoteHttpEmbeddingProvider(EmbeddingProvider):
                     timeout=self._timeout_seconds,
                 )
             return self._client
+
+    def _auth_headers(self) -> dict[str, str]:
+        api_key = (
+            self._api_key or os.getenv("WINDIE_EMBEDDING_SERVICE_API_KEY", "").strip()
+        )
+        if not api_key:
+            return {}
+        return {"x-windie-embedding-key": api_key}
 
     def _update_metadata(self, payload: dict[str, Any]) -> None:
         provider_id = payload.get("provider_id")
