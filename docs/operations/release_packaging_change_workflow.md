@@ -105,7 +105,7 @@ Start with the installed-app signal, not the dev app:
 | Change type | Focused validation |
 | --- | --- |
 | Package script/config docs only | `./bin/docs-list`, `git diff --check`, focused Markdown link checks |
-| `frontend/package.json` package script change | `cd frontend && npm run build`, target package command on target OS |
+| `frontend/package.json` package script change | `cd frontend && npm run release:check`, `cd frontend && npm run build`, target package command on target OS |
 | Runtime path resolver change | `cd frontend && npm run test -- RuntimePaths`, installed app smoke on target OS |
 | Sidecar runtime requirement/build change | `cd frontend && npm run build:sidecar-runtime`, `./scripts/test-sidecar`, target package command |
 | Backend endpoint packaged-default change | frontend endpoint tests, sidecar backend-config tests, installed app websocket smoke |

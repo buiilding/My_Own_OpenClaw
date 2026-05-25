@@ -15,10 +15,10 @@
     "dev": "vite",
     "prebuild": "../scripts/python-in-env frontend python ../scripts/generate-builtin-tool-manifest",
     "build": "vite build",
-    "package": "npm run build:sidecar-runtime && npm run build && electron-builder --config electron-builder.bundled-python.yml",
-    "package:win": "npm run build:sidecar-runtime && npm run build && electron-builder --config electron-builder.bundled-python.yml --win nsis",
-    "package:mac": "npm run build:sidecar-runtime && npm run build && electron-builder --config electron-builder.bundled-python.yml --mac dmg zip",
-    "package:linux": "npm run build:sidecar-runtime && npm run build && electron-builder --config electron-builder.bundled-python.yml --linux AppImage deb rpm",
+    "package": "npm run release:check && npm run build:sidecar-runtime && npm run build && electron-builder --config electron-builder.bundled-python.yml",
+    "package:win": "npm run release:check && npm run build:sidecar-runtime && npm run build && electron-builder --config electron-builder.bundled-python.yml --win nsis",
+    "package:mac": "npm run release:check && npm run build:sidecar-runtime && npm run build && electron-builder --config electron-builder.bundled-python.yml --mac dmg zip",
+    "package:linux": "npm run release:check && npm run build:sidecar-runtime && npm run build && electron-builder --config electron-builder.bundled-python.yml --linux AppImage deb rpm",
     "package:win:bundled-python": "npm run package:win",
     "package:mac:bundled-python": "npm run package:mac",
     "package:linux:bundled-python": "npm run package:linux",
@@ -39,7 +39,8 @@
     "test:ghost-cursor": "node ./scripts/electron-launcher.cjs --debug-ghost-overlay",
     "test": "NODE_OPTIONS=--no-deprecation jest --config jest.config.cjs",
     "test:ci": "NODE_OPTIONS=--no-deprecation jest --config jest.config.cjs --runInBand",
-    "test:shell": "node src/main/test_shell.cjs"
+    "test:shell": "node src/main/test_shell.cjs",
+    "release:check": "npm run typecheck && npm run lint && npm run test:ci"
   },
   "dependencies": {
     "dompurify": "^3.3.1",

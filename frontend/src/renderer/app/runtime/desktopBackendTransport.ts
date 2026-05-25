@@ -147,7 +147,7 @@ export function createDesktopBackendTransport(workspacePath: string | null = nul
     },
     stop: async (payload) => {
       await sendStopQuery(
-        optionalString(payload.conversation_ref) ?? optionalString(payload.conversationRef),
+        optionalString(payload.conversation_ref),
       );
     },
     subscribe: () => () => undefined,

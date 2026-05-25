@@ -64,7 +64,7 @@ export type ConversationRewritePlan = {
   replacementUserMessage?: JsonRecord | null;
   preservedEvents: ConversationEvent[];
   removedEventIds: string[];
-  reason: 'edit_resend' | 'retry';
+  reason: 'edit_resend' | 'retry' | 'transcript_projection_rewrite';
 };
 
 export type CompactedReplaySnapshot = {

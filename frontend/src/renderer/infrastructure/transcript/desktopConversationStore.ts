@@ -214,7 +214,7 @@ function imageAttachmentsFromEvent(event: ConversationEvent): Record<string, unk
 
 function eventTypeFromProjectionEntry(entry: TranscriptProjectionRewriteEntry): ConversationEvent['type'] {
   const messageType = typeof entry.messageType === 'string'
-    ? entry.messageType.trim().toLowerCase().replaceAll('_', '-')
+    ? entry.messageType.trim().toLowerCase().replace(/_/g, '-')
     : '';
   if (entry.role === 'user' || messageType === 'user') {
     return 'user_message';

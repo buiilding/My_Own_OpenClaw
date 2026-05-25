@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/release: run typecheck, lint, and frontend CI tests before Electron package commands build distributable artifacts.
+- frontend/types: fix release-gate typecheck blockers in desktop stop payload handling and transcript projection rewrites.
 - backend/container: reset cached API handler singletons when refreshing runtime overrides so handlers capture current dependencies.
 - backend/tools: treat callable OCR and vision readiness APIs as provider-health checks instead of unavailable method objects.
 - backend/tools: make provider schema projection reapply config-driven tool policy instead of returning every schema unchanged.

@@ -20,7 +20,10 @@ For implementation routing, start with [Release and Packaging Change Workflow](.
 | Windows | `cd frontend && npm run package:win` | NSIS installer | `.\scripts\reinstall-windieos-windows.ps1` | `scripts/ci/smoke-windows-packages.ps1` |
 | Linux | `cd frontend && npm run package:linux` | AppImage, DEB, RPM | `./scripts/reinstall-windieos-linux.sh` | `scripts/ci/smoke-linux-packages.sh` |
 
-All package commands run `npm run build:sidecar-runtime` and `npm run build` before Electron Builder.
+All package commands run `npm run release:check` before producing distributable
+artifacts. `release:check` runs frontend typecheck, lint, and `test:ci`; only
+then do package commands run `npm run build:sidecar-runtime`, `npm run build`,
+and Electron Builder.
 
 ## Bundled Runtime Rules
 
