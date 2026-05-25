@@ -48,6 +48,9 @@ Profile tools are still narrowed by available tools, disabled tools, disabled ca
 Provider projection reuses `ToolPolicy.from_config(...)`, so direct calls to
 `project_tool_schemas_for_provider(...)` cannot bypass those config-driven
 tool availability and disabled-tool gates.
+Provider-health gates accept readiness as either boolean attributes or zero-arg
+methods such as `is_ready()` and `is_initialized()`; readiness exceptions are
+treated as unavailable.
 
 ## Capability Gates
 

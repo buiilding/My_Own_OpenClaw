@@ -2,23 +2,44 @@
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Iterable
 from typing import Any
 
 from backend.src.core.config.models import AgentCapability, AppConfig
 from backend.src.tools.web_search.capabilities import resolve_web_search_execution_mode
 
+logger = logging.getLogger(__name__)
+
 
 def _has_provider(router: Any) -> bool:
     return getattr(router, "provider", None) is not None
+
+
+def _readiness_is_true(
+    router: Any, attribute_name: str, *, default: bool = False
+) -> bool:
+    readiness = getattr(router, attribute_name, default)
+    if callable(readiness):
+        try:
+            readiness = readiness()
+        except Exception:
+            logger.debug(
+                "Provider readiness check %s.%s failed",
+                type(router).__name__,
+                attribute_name,
+                exc_info=True,
+            )
+            return False
+    return readiness is True
 
 
 def _ocr_unavailable(ocr_router: Any) -> bool:
     if not _has_provider(ocr_router):
         return True
     if hasattr(ocr_router, "is_ready"):
-        return getattr(ocr_router, "is_ready", False) is not True
-    return getattr(ocr_router, "enabled", False) is not True
+        return not _readiness_is_true(ocr_router, "is_ready")
+    return not _readiness_is_true(ocr_router, "enabled")
 
 
 def _vision_unavailable(vision_router: Any) -> bool:
@@ -26,7 +47,7 @@ def _vision_unavailable(vision_router: Any) -> bool:
         return True
     if getattr(vision_router, "initialization_error", None):
         return True
-    return getattr(vision_router, "is_initialized", False) is not True
+    return not _readiness_is_true(vision_router, "is_initialized")
 
 
 def _embeddings_unavailable(config: AppConfig, embedding_router: Any) -> bool:

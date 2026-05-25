@@ -74,3 +74,63 @@ def test_provider_health_marks_ocr_unavailable_when_circuit_not_ready(monkeypatc
     )
 
     assert unavailable == ["ocr"]
+
+
+def test_provider_health_accepts_callable_readiness(monkeypatch):
+    monkeypatch.setenv("BRAVE_SEARCH_API_KEY", "test-brave-key")
+    config = AppConfig(
+        model_provider="anthropic",
+        selected_model_id="claude-sonnet-4-20250514",
+    )
+
+    class OcrRouter:
+        provider = object()
+
+        def is_ready(self):
+            return True
+
+    class VisionRouter:
+        provider = object()
+        initialization_error = None
+
+        def is_initialized(self):
+            return True
+
+    unavailable = resolve_unavailable_agent_capabilities(
+        config,
+        ocr_router=OcrRouter(),
+        vision_router=VisionRouter(),
+        embedding_router=SimpleNamespace(provider=object()),
+    )
+
+    assert unavailable == []
+
+
+def test_provider_health_marks_callable_readiness_exceptions_unavailable(monkeypatch):
+    monkeypatch.setenv("BRAVE_SEARCH_API_KEY", "test-brave-key")
+    config = AppConfig(
+        model_provider="anthropic",
+        selected_model_id="claude-sonnet-4-20250514",
+    )
+
+    class OcrRouter:
+        provider = object()
+
+        def is_ready(self):
+            raise RuntimeError("not ready")
+
+    class VisionRouter:
+        provider = object()
+        initialization_error = None
+
+        def is_initialized(self):
+            raise RuntimeError("not initialized")
+
+    unavailable = resolve_unavailable_agent_capabilities(
+        config,
+        ocr_router=OcrRouter(),
+        vision_router=VisionRouter(),
+        embedding_router=SimpleNamespace(provider=object()),
+    )
+
+    assert unavailable == ["ocr", "vision"]
