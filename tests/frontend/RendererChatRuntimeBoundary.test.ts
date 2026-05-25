@@ -373,6 +373,21 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.retryTurn');
   });
 
+  test('renderer feature code routes active conversation selection through session helpers', async () => {
+    const files = await listSourceFiles(path.resolve(__dirname, '../../frontend/src/renderer/features'));
+    const offenders: string[] = [];
+
+    for (const file of files) {
+      const relativePath = path.relative(rendererRoot, file);
+      const source = await fs.readFile(file, 'utf8');
+      if (source.includes('.setActiveConversationRef(')) {
+        offenders.push(relativePath);
+      }
+    }
+
+    expect(offenders).toEqual([]);
+  });
+
   test('conversation inference rehydrate snapshots use the continuity runtime facade', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'session/conversationInferenceSessionRuntime.ts'),

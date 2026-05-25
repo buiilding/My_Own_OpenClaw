@@ -224,7 +224,21 @@ describe('conversationSessionRuntime', () => {
     expect(setChatConversationRef).not.toHaveBeenCalled();
   });
 
-  test('applyEventChatConversationProjection only promotes explicit local-user-message refs over an active conversation', () => {
+  test('applyEventChatConversationProjection promotes explicit user selection refs over an active conversation', () => {
+    const setChatConversationRef = jest.fn();
+
+    expect(applyEventChatConversationProjection({
+      eventType: 'user_message',
+      explicitConversationRef: 'conv-next',
+      resolvedConversationRef: ' conv-next ',
+      activeConversationRef: 'conv-current',
+      setChatConversationRef,
+    })).toBe('conv-next');
+
+    expect(setChatConversationRef).toHaveBeenCalledWith('conv-next');
+  });
+
+  test('applyEventChatConversationProjection keeps legacy local-user-message promotion during migration', () => {
     const setChatConversationRef = jest.fn();
 
     expect(applyEventChatConversationProjection({

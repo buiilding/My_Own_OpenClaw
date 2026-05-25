@@ -2,6 +2,9 @@ import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessio
 import {
   type ConversationEvent,
 } from '../../infrastructure/api/windieSdkClient';
+import {
+  applyEventChatConversationProjection,
+} from '../../features/chat/session/conversationSessionRuntime';
 
 type HandleConversationEventIngressDeps = {
   getActiveConversationRef: () => string | null | undefined;
@@ -55,12 +58,13 @@ export function handleConversationEventIngress(
     return false;
   }
   const activeConversationRef = deps.getActiveConversationRef();
-  if (
-    !optionalString(activeConversationRef)
-    || (event.type === 'user_message' && optionalString(activeConversationRef) !== conversationRef)
-  ) {
-    deps.setActiveConversationRef(conversationRef);
-  }
+  applyEventChatConversationProjection({
+    eventType: event.type,
+    explicitConversationRef: event.conversationRef,
+    resolvedConversationRef: conversationRef,
+    activeConversationRef,
+    setChatConversationRef: deps.setActiveConversationRef,
+  });
   if (event.turnRef) {
     deps.registerTurnConversationRef(event.turnRef, conversationRef);
   }

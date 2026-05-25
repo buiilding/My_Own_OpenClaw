@@ -161,12 +161,36 @@ Verification:
 - `ELECTRON_RUN_AS_NODE=1 .\frontend\node_modules\electron\dist\electron.exe .\scripts\docs-list.js` - pass
 - `git diff --check` - pass
 
+### Conversation Session Authority Boundary
+
+Status: completed and verified.
+
+Changes:
+
+- Routed SDK `user_message` event promotion through `applyEventChatConversationProjection()` so conversation-event ingress uses the same session projection helper as dashboard/history selection and send-time session creation.
+- Preserved legacy `local-user-message` promotion behavior during migration while preventing non-user late events from stealing the active chat focus.
+- Added focused ingress tests for active conversation promotion and late-event quarantine.
+- Added a renderer boundary test that fails if feature code directly calls `.setActiveConversationRef(...)` instead of routing active conversation selection through session helpers.
+
+Success criteria covered:
+
+- Active conversation mutations route through the session projection helpers or the store implementation itself.
+- Renderer feature code no longer directly calls `.setActiveConversationRef(...)`.
+- Existing dashboard open-chat, new-chat, send-from-pill, and late-event transcript tests continue to cover the user workflows listed in the plan.
+
+Verification:
+
+- `cd frontend && ELECTRON_RUN_AS_NODE=1 .\node_modules\electron\dist\electron.exe .\node_modules\jest\bin\jest.js DesktopChatStreamIngressRuntime ConversationSessionRuntime ChatStreamThinkingStatus.transcript ChatMessageSender UseDashboardConversations ChatProvider ResetActiveChatSession RendererChatRuntimeBoundary --runInBand` - pass
+- `rg -n "\.setActiveConversationRef\(|setActiveConversationRef\(" frontend/src/renderer -S` - pass, only transcript runtime facade method remains
+- `cd packages/windie-sdk-js && ELECTRON_RUN_AS_NODE=1 ..\..\frontend\node_modules\electron\dist\electron.exe ..\..\frontend\node_modules\typescript\bin\tsc -p tsconfig.build.json` - pass
+- `ELECTRON_RUN_AS_NODE=1 .\frontend\node_modules\electron\dist\electron.exe .\scripts\docs-list.js` - pass
+- `git diff --check` - pass
+
 ## Pending
 
 - `frontend/src/main/ipc.cjs` composition-root split.
   - In progress: model-list request queueing moved to `frontend/src/main/ipc/ipc_model_list_runtime.cjs` with focused unit tests.
   - In progress: renderer diagnostic log routing moved to `frontend/src/main/ipc/ipc_diagnostics_runtime.cjs` with focused unit tests.
-- Conversation session authority service.
 - Conversation persistence adapter collapse.
 - Tool execution routing ownership hardening.
 - Sidecar bridge split.
