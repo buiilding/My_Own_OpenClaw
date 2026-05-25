@@ -48,7 +48,7 @@ No branching, no validation, no side effects outside history mutation.
 
 When `is_atomic_bundle_from_results(...)` is true:
 
-1. derive `bundle_id` from first tool-call metadata via `ExecutionRef`
+1. derive the shared `bundle_id` from first tool-call metadata via `ExecutionRef`
 2. load stored bundle result (`session.get_bundle_result(bundle_id)`)
 3. format single message via `BundleResultFormatter`
 4. wrap into `ToolResult`, transform once (`tool_name='bundled_tools'`)
@@ -59,6 +59,9 @@ When `is_atomic_bundle_from_results(...)` is true:
 Outcome: one history tool-output message for whole atomic bundle. If formatting,
 transform, or commit raises, the exception propagates but the stored bundle
 payload is still removed.
+
+Detection requires every result tool call to resolve to that same `bundle_id`;
+mixed bundle result groups fall back to individual result processing.
 
 ### Individual result path
 

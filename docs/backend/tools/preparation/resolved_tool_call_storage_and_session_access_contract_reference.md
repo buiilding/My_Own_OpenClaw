@@ -113,7 +113,7 @@ This cleanup runs even when transform/commit path fails, preventing unbounded ma
 1. bypassing session wrappers for storage access increases coupling and breaks encapsulation assumptions.
 2. forgetting cleanup removal in finally paths leaks resolved calls across turns.
 3. changing request-id metadata shape without updating preparer/execution paths can orphan resolved calls.
-4. adding `request_id` to atomic bundle steps breaks bundle detection and should be avoided.
+4. adding `request_id` to atomic bundle steps or mixing `bundle_id` values breaks bundle detection and should be avoided.
 5. weakening stale-screen guard reintroduces risk of executing coordinates resolved from old screenshots.
 
 ## Related Pages

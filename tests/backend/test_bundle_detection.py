@@ -13,7 +13,9 @@ def _make_call(bundle_id=None, request_id=None):
         metadata["bundle_id"] = bundle_id
     if request_id:
         metadata["request_id"] = request_id
-    return ParsedToolCall(tool_name="read_file", parameters={}, raw_call="{}", metadata=metadata)
+    return ParsedToolCall(
+        tool_name="read_file", parameters={}, raw_call="{}", metadata=metadata
+    )
 
 
 def test_is_atomic_bundle_requires_multiple_calls():
@@ -36,10 +38,24 @@ def test_is_atomic_bundle_requires_bundle_id_and_no_request_id():
     )
     assert is_atomic_bundle(response) is True
 
-    calls_with_request = [_make_call(bundle_id="b1"), _make_call(bundle_id="b1", request_id="r1")]
+    calls_with_request = [
+        _make_call(bundle_id="b1"),
+        _make_call(bundle_id="b1", request_id="r1"),
+    ]
     response = ParsedResponse(
         original_response="{}",
         tool_calls=calls_with_request,
+        text_content="",
+        has_tool_calls=True,
+    )
+    assert is_atomic_bundle(response) is False
+
+
+def test_is_atomic_bundle_requires_matching_bundle_ids():
+    calls = [_make_call(bundle_id="b1"), _make_call(bundle_id="b2")]
+    response = ParsedResponse(
+        original_response="{}",
+        tool_calls=calls,
         text_content="",
         has_tool_calls=True,
     )
@@ -54,4 +70,12 @@ def test_is_atomic_bundle_from_results():
     assert is_atomic_bundle_from_results(results) is True
 
     results[1].tool_call.metadata["request_id"] = "r1"
+    assert is_atomic_bundle_from_results(results) is False
+
+
+def test_is_atomic_bundle_from_results_requires_matching_bundle_ids():
+    results = [
+        SimpleNamespace(tool_call=_make_call(bundle_id="b1")),
+        SimpleNamespace(tool_call=_make_call(bundle_id="b2")),
+    ]
     assert is_atomic_bundle_from_results(results) is False

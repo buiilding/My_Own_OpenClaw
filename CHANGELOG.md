@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/tools: reject atomic bundle detection when grouped tool calls or results carry mixed bundle IDs.
 - frontend/mcp: reconcile the executable MCP registry on discovery so removed or disabled tools cannot run from stale registrations.
 - backend/tools: normalize manual drag destinations independently from source-grounding support.
 - frontend/chat: mark manual compaction as failed when setup or compact dispatch throws before backend compaction starts.

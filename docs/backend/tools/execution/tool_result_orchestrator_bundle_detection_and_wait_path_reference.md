@@ -45,14 +45,16 @@ No fallback execution path exists without session state.
 
 - more than one tool call
 - every tool call metadata resolves to `ExecutionRef.kind == "bundle"`
+- every tool call resolves to the same non-empty `bundle_id`
 
-Any call with `request_id` in metadata fails bundle detection and routes to single-tool path.
+Any call with `request_id` in metadata, or any mix of unrelated `bundle_id`
+values, fails bundle detection and routes to the single-tool path.
 
 ## Bundle Wait Path (`execute_bundle`)
 
 For detected bundle responses:
 
-1. read `bundle_id` from first call metadata
+1. read the shared `bundle_id` from first call metadata
 2. create bundle future before checking existing stored result
 3. if result already exists, set future immediately and continue
 4. otherwise wait up to 120 seconds
