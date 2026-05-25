@@ -75,6 +75,25 @@ describe('chatStore', () => {
     expect(useChatStore.getState().messages).toBe(before);
   });
 
+  test('setMessages indexes hydrated turn refs for targeted conversations', () => {
+    useChatStore.getState().setMessages([
+      {
+        id: 'assistant-turn-message',
+        text: 'streamed elsewhere',
+        sender: 'assistant',
+        turnRef: ' turn-elsewhere ',
+      },
+    ], 'conv-other');
+
+    expect(useChatStore.getState().resolveConversationRefForTurn('turn-elsewhere')).toBe('conv-other');
+    expect(useChatStore.getState().resolveConversationRefForTurn(' turn-elsewhere ')).toBe('conv-other');
+    expect(useChatStore.getState().messages).toEqual([
+      expect.objectContaining({
+        id: 'init-message',
+      }),
+    ]);
+  });
+
   test('setIsSending is a no-op when value is unchanged', () => {
     const beforeSnapshot = useChatStore.getState();
     useChatStore.getState().setIsSending(false);

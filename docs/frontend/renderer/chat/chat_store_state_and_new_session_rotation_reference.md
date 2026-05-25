@@ -56,7 +56,10 @@ Message attachment fields used by current send/runtime paths include:
 
 - `addMessage` appends immutably
 - `updateMessage` updates by id; returns original state when id missing
-- `setMessages` no-op when array reference unchanged
+- `setMessages` no-op when array reference unchanged; when hydrating a concrete
+  conversation workspace, it indexes message `turnRef` values into
+  `turnConversationRefs` so later turn-scoped stream events can route even when
+  `conversation_ref` is absent
 - `setIsSending`, `setThinkingStatus`, `setTokenCounts` no-op when value/reference unchanged
 - `updateStreamTracking` always applies updater output
 - `clearMessages` clears messages and resets `streamTracking` to initial idle shape

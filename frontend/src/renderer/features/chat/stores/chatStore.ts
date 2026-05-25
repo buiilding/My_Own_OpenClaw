@@ -224,6 +224,37 @@ function buildWorkspaceUpdate(
   };
 }
 
+function normalizeTurnRef(turnRef?: string | null): string | null {
+  if (typeof turnRef !== 'string') {
+    return null;
+  }
+  const normalizedTurnRef = turnRef.trim();
+  return normalizedTurnRef.length > 0 ? normalizedTurnRef : null;
+}
+
+function mergeTurnConversationRefs(
+  currentTurnConversationRefs: Record<string, string>,
+  messages: ChatMessage[],
+  conversationRef: string | null,
+): Record<string, string> {
+  if (!conversationRef) {
+    return currentTurnConversationRefs;
+  }
+
+  let nextTurnConversationRefs = currentTurnConversationRefs;
+  for (const message of messages) {
+    const turnRef = normalizeTurnRef(message.turnRef);
+    if (!turnRef || nextTurnConversationRefs[turnRef] === conversationRef) {
+      continue;
+    }
+    if (nextTurnConversationRefs === currentTurnConversationRefs) {
+      nextTurnConversationRefs = { ...currentTurnConversationRefs };
+    }
+    nextTurnConversationRefs[turnRef] = conversationRef;
+  }
+  return nextTurnConversationRefs;
+}
+
 function resolveWorkspaceMutationTarget(
   state: ChatState,
   conversationRef?: string | null,
@@ -304,7 +335,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   registerTurnConversationRef: (turnRef, conversationRef) =>
     set((state) => {
-      const normalizedTurnRef = typeof turnRef === 'string' ? turnRef.trim() : '';
+      const normalizedTurnRef = normalizeTurnRef(turnRef);
       const normalizedConversationRef = normalizeConversationRef(conversationRef);
       if (!normalizedTurnRef || !normalizedConversationRef) {
         return state;
@@ -321,7 +352,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     }),
 
   resolveConversationRefForTurn: (turnRef) => {
-    const normalizedTurnRef = typeof turnRef === 'string' ? turnRef.trim() : '';
+    const normalizedTurnRef = normalizeTurnRef(turnRef);
     if (!normalizedTurnRef) {
       return null;
     }
@@ -384,13 +415,23 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   setMessages: (messages, conversationRef) =>
     set((state) => {
-      const targetWorkspaceRef = resolveWorkspaceKey(conversationRef, state.activeConversationRef);
-      const currentWorkspace = readWorkspaceState(state, targetWorkspaceRef);
+      const {
+        normalizedConversationRef,
+        workspaceRef,
+        workspace: currentWorkspace,
+      } = resolveWorkspaceMutationTarget(state, conversationRef);
       if (currentWorkspace.messages === messages) {
         return state;
       }
       const nextWorkspace = { ...currentWorkspace, messages };
-      return buildWorkspaceUpdate(state, targetWorkspaceRef, nextWorkspace);
+      const nextTurnConversationRefs = mergeTurnConversationRefs(
+        state.turnConversationRefs,
+        messages,
+        normalizedConversationRef,
+      );
+      return buildWorkspaceUpdate(state, workspaceRef, nextWorkspace, {
+        turnConversationRefs: nextTurnConversationRefs,
+      });
     }),
 
   setIsSending: (isSending, conversationRef) =>
