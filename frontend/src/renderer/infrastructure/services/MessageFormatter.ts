@@ -13,6 +13,7 @@ export interface SystemState {
   screen_resolution?: string;
   time?: string;
   clipboard?: string;
+  windows?: string[];
 }
 
 /**

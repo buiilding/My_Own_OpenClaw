@@ -53,11 +53,15 @@ describe('SystemStateCapture', () => {
     expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 250);
 
     await jest.runAllTimersAsync();
-    await expect(pending).resolves.toEqual({
+    const capturedState = await pending;
+    const capturedWindows: string[] | undefined = capturedState?.windows;
+
+    expect(capturedState).toEqual({
       active_window: 'App',
       mouse_position: '(1, 1)',
       windows: [],
     });
+    expect(capturedWindows).toEqual([]);
     expect(mockInvoke).toHaveBeenCalledWith(INVOKE_CHANNELS.GET_SYSTEM_STATE, {
       fields: ['active_window', 'mouse_position', 'screen_resolution', 'windows'],
     });
