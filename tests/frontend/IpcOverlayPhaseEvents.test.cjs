@@ -185,11 +185,16 @@ describe('ipc_overlay_phase_events', () => {
     });
 
     expect(resolveBackendOverlayPhaseTransition(
-      { type: 'streaming-complete' },
+      {
+        type: 'streaming-complete',
+        payload: { request_id: 'req-complete-10' },
+      },
       'streaming',
     )).toEqual({
       phase: 'complete',
-      metadata: null,
+      metadata: {
+        correlation_id: 'req-complete-10',
+      },
     });
   });
 
@@ -212,9 +217,14 @@ describe('ipc_overlay_phase_events', () => {
   });
 
   test('treats terminal fallback events as complete when stream is active', () => {
-    expect(resolveBackendOverlayPhaseTransition({ type: 'token-count' }, 'streaming')).toEqual({
+    expect(resolveBackendOverlayPhaseTransition({
+      type: 'token-count',
+      payload: { correlation_id: 'corr-token-1' },
+    }, 'streaming')).toEqual({
       phase: 'complete',
-      metadata: null,
+      metadata: {
+        correlation_id: 'corr-token-1',
+      },
     });
     expect(resolveBackendOverlayPhaseTransition({ type: 'memory-store' }, 'tool-output')).toEqual({
       phase: 'complete',

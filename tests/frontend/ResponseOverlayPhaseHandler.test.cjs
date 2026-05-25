@@ -219,4 +219,66 @@ describe('response_overlay_phase_handler', () => {
       enabled: false,
     });
   });
+
+  test('ignores stale terminal phases from a previous response correlation', () => {
+    let activeCorrelationId = null;
+    const deps = createDeps({
+      getActiveResponseOverlayCorrelationId: jest.fn(() => activeCorrelationId),
+      setActiveResponseOverlayCorrelationId: jest.fn((nextCorrelationId) => {
+        activeCorrelationId = nextCorrelationId;
+      }),
+    });
+
+    handleResponseOverlayPhaseEvent({
+      phase: PHASE.AWAITING_FIRST_CHUNK,
+      correlation_id: 'response-a',
+    }, deps);
+    handleResponseOverlayPhaseEvent({
+      phase: PHASE.STREAMING,
+      correlation_id: 'response-b',
+    }, deps);
+    handleResponseOverlayPhaseEvent({
+      phase: PHASE.COMPLETE,
+      correlation_id: 'response-a',
+    }, deps);
+
+    expect(deps.setResponseOverlayPhase.mock.calls.map(([phase]) => phase)).toEqual([
+      PHASE.AWAITING_FIRST_CHUNK,
+      PHASE.STREAMING,
+    ]);
+    expect(deps.setResponseOverlayVisibilityState).toHaveBeenLastCalledWith(true);
+    expect(deps.applyOverlayContentProtection).toHaveBeenLastCalledWith({
+      targetWindow: deps.responseWindow,
+      windowLabel: 'response overlay',
+      enabled: true,
+    });
+    expect(activeCorrelationId).toBe('response-b');
+  });
+
+  test('clears active response correlation after matching terminal phase', () => {
+    let activeCorrelationId = null;
+    const deps = createDeps({
+      getActiveResponseOverlayCorrelationId: jest.fn(() => activeCorrelationId),
+      setActiveResponseOverlayCorrelationId: jest.fn((nextCorrelationId) => {
+        activeCorrelationId = nextCorrelationId;
+      }),
+      getResponseOverlayVisible: jest.fn().mockReturnValue(true),
+    });
+
+    handleResponseOverlayPhaseEvent({
+      phase: PHASE.STREAMING,
+      correlation_id: 'response-a',
+    }, deps);
+    handleResponseOverlayPhaseEvent({
+      phase: PHASE.COMPLETE,
+      correlation_id: 'response-a',
+    }, deps);
+
+    expect(deps.setResponseOverlayPhase.mock.calls.map(([phase]) => phase)).toEqual([
+      PHASE.STREAMING,
+      PHASE.COMPLETE,
+    ]);
+    expect(activeCorrelationId).toBeNull();
+    expect(deps.showResponseWindowInactive).toHaveBeenCalledTimes(1);
+  });
 });

@@ -137,6 +137,29 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
   }
 }
 
+function normalizeResponseOverlayCorrelationId(value) {
+  if (typeof value !== 'string') {
+    return null;
+  }
+  const normalized = value.trim();
+  return normalized || null;
+}
+
+function shouldApplyResponseOverlayPhaseEvent({
+  nextPhase,
+  eventCorrelationId,
+  activeCorrelationId,
+  RESPONSE_OVERLAY_PHASE,
+}) {
+  if (!activeCorrelationId || eventCorrelationId === activeCorrelationId) {
+    return true;
+  }
+  if (!eventCorrelationId) {
+    return isStreamingResponseOverlayPhase(nextPhase, RESPONSE_OVERLAY_PHASE);
+  }
+  return isStreamingResponseOverlayPhase(nextPhase, RESPONSE_OVERLAY_PHASE);
+}
+
 function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
   const {
     ENABLE_OS_TOOL_GHOST_DEBUG = false,
@@ -152,6 +175,8 @@ function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
     showResponseWindowInactive = () => {},
     syncContextLabelWindowVisibility = () => {},
     getResponseOverlayPhase = () => null,
+    getActiveResponseOverlayCorrelationId = () => null,
+    setActiveResponseOverlayCorrelationId = () => {},
     getChatboxHitTestActive = () => false,
     warn = console.warn,
   } = deps;
@@ -165,13 +190,48 @@ function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
     return;
   }
 
+  const eventCorrelationId = normalizeResponseOverlayCorrelationId(event?.correlation_id);
+  const activeCorrelationId = normalizeResponseOverlayCorrelationId(
+    getActiveResponseOverlayCorrelationId(),
+  );
+  if (!shouldApplyResponseOverlayPhaseEvent({
+    nextPhase,
+    eventCorrelationId,
+    activeCorrelationId,
+    RESPONSE_OVERLAY_PHASE,
+  })) {
+    logChatPillMainTrace({
+      source: 'phase-handler',
+      action: 'ignore-stale-phase',
+      phase: nextPhase,
+      correlationId: eventCorrelationId,
+      reason: activeCorrelationId,
+    }, {
+      ...deps,
+      getResponseOverlayPhase,
+    });
+    return;
+  }
+
+  if (eventCorrelationId && isStreamingResponseOverlayPhase(nextPhase, RESPONSE_OVERLAY_PHASE)) {
+    setActiveResponseOverlayCorrelationId(eventCorrelationId);
+  } else if (
+    eventCorrelationId
+    && activeCorrelationId === eventCorrelationId
+    && !isStreamingResponseOverlayPhase(nextPhase, RESPONSE_OVERLAY_PHASE)
+  ) {
+    setActiveResponseOverlayCorrelationId(null);
+  } else if (!eventCorrelationId && !activeCorrelationId && !isStreamingResponseOverlayPhase(nextPhase, RESPONSE_OVERLAY_PHASE)) {
+    setActiveResponseOverlayCorrelationId(null);
+  }
+
   setResponseOverlayPhase(nextPhase);
   const windowMode = resolveResponseOverlayWindowMode(nextPhase, RESPONSE_OVERLAY_PHASE);
   logChatPillMainTrace({
     source: 'phase-handler',
     action: 'phase-change',
     phase: nextPhase,
-    correlationId: event?.correlation_id || null,
+    correlationId: eventCorrelationId,
     reason: windowMode,
   }, {
     ...deps,

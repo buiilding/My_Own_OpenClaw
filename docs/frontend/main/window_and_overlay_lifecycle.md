@@ -136,6 +136,10 @@ Wiring:
 - backend events in `ipc.cjs` translate to phase transitions
 - phase broadcast channel: `response-overlay-phase`
 - main process callback `applyResponseOverlayPhase(...)` drives response window visibility
+- phase application tracks the active `correlation_id`; active-loop phases can
+  claim a new response owner, while terminal or idle events from an older owner
+  are ignored before they can hide the response window or clear content
+  protection for the newer response
 
 Visibility behavior:
 

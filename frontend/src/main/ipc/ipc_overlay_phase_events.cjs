@@ -68,7 +68,10 @@ function resolveOverlayCorrelationId(data) {
 }
 
 function resolveOverlayPhaseMetadata(data, recoveryStage) {
-  const metadata = { recovery_stage: recoveryStage };
+  const metadata = {};
+  if (recoveryStage) {
+    metadata.recovery_stage = recoveryStage;
+  }
   const correlationId = resolveOverlayCorrelationId(data);
   if (correlationId) {
     metadata.correlation_id = correlationId;
@@ -99,7 +102,7 @@ function resolveOverlayPhaseMetadata(data, recoveryStage) {
     metadata.failure_reason = payloadMessage;
   }
 
-  return metadata;
+  return Object.keys(metadata).length > 0 ? metadata : null;
 }
 
 function resolveBackendOverlayPhaseTransition(data, currentPhase) {
@@ -109,11 +112,10 @@ function resolveBackendOverlayPhaseTransition(data, currentPhase) {
 
   const transition = BACKEND_OVERLAY_PHASE_TRANSITIONS[data.type];
   if (transition) {
+    const metadata = resolveOverlayPhaseMetadata(data, transition.recoveryStage);
     return {
       phase: transition.phase,
-      metadata: transition.recoveryStage
-        ? resolveOverlayPhaseMetadata(data, transition.recoveryStage)
-        : null,
+      metadata,
     };
   }
 
@@ -125,7 +127,7 @@ function resolveBackendOverlayPhaseTransition(data, currentPhase) {
   ) {
     return {
       phase: 'complete',
-      metadata: null,
+      metadata: resolveOverlayPhaseMetadata(data, null),
     };
   }
 

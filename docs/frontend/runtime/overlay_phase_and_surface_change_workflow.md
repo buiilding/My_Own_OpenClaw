@@ -109,6 +109,10 @@ Producer rules:
 - Preserve metadata keys through normalization when they are useful for tracing:
   `correlation_id`, `attempt`, `max_attempts`, `recovery_stage`,
   `failure_reason`.
+- Preserve `correlation_id` on active-loop and terminal events whenever the
+  backend event has a stable request, correlation, bundle, or event id. Main
+  process phase application uses that value to reject stale terminal updates
+  from older responses.
 - Do not invent local-only phase strings in renderer code. Add contract tests if
   a new phase is truly required.
 
@@ -135,6 +139,9 @@ Main-process rules:
 - The response overlay should be shown during active loop phases, hidden on
   idle, and restored after terminal phases only when the overlay was visible and
   the chat window is still visible.
+- Terminal/idle phases with a mismatched active response `correlation_id` must
+  be ignored so late events from a previous response cannot mutate the current
+  overlay visibility, interactivity, or content-protection state.
 - Preserve debug trace fields when changing handler order so phase regressions
   can be reconstructed from logs.
 

@@ -94,6 +94,7 @@ function createSurfaceRuntime({
     mainProcessIpcHandlersInitialized: false,
     responseOverlayVisible: false,
     responseOverlayPhase: 'idle',
+    activeResponseOverlayCorrelationId: null,
     chatVisualAnchorHeight: initialChatVisualAnchorHeight,
     chatboxHitTestActive: false,
     chatPillUserHidden: initialChatPillUserHidden === true,
@@ -454,6 +455,10 @@ function createSurfaceRuntime({
       },
       getResponseOverlayVisible: () => state.responseOverlayVisible,
       getResponseOverlayPhase: () => state.responseOverlayPhase,
+      getActiveResponseOverlayCorrelationId: () => state.activeResponseOverlayCorrelationId,
+      setActiveResponseOverlayCorrelationId: (nextCorrelationId) => {
+        state.activeResponseOverlayCorrelationId = nextCorrelationId;
+      },
       getChatboxHitTestActive: () => state.chatboxHitTestActive,
       setResponseOverlayVisibilityState,
       applyOverlayContentProtection: (options = {}) => {
