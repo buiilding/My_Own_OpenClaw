@@ -56,6 +56,7 @@ Do not add a hosted SDK route just to reach local machine state. Local screensho
 | Provider unavailability | OCR/vision provider failures should become structured `503` responses, not raw exceptions. |
 | Region bounds | Region-based routes should reject out-of-bounds requests with validation-style errors. |
 | Prompt preview | Debug prompt routes must not become a backdoor for local desktop state or secrets. |
+| Models debug | `/api/sdk/models` must derive user context from the authenticated install identity and reject cross-user `user_id` overrides. |
 | Query plan | Query-plan output is a planning/debug contract, not an executed tool path. |
 
 ## Validation Matrix

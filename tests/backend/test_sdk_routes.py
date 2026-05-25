@@ -625,7 +625,10 @@ async def test_sdk_vision_overlay_writes_artifact(tmp_path) -> None:
 
 
 @pytest.mark.asyncio
-async def test_sdk_debug_models_returns_catalog_and_effective_config(tmp_path) -> None:
+async def test_sdk_debug_models_returns_catalog_and_effective_config(
+    tmp_path,
+    authenticated_install_identity,
+) -> None:
     config = AppConfig(
         artifact_store_path=str(tmp_path),
         artifact_max_bytes=1024 * 1024,
@@ -646,6 +649,48 @@ async def test_sdk_debug_models_returns_catalog_and_effective_config(tmp_path) -
     assert response.config.model_provider == "openai"
     assert response.config.selected_model_id == "gpt-5.4@@gpt-5-4-none-thinking"
     assert response.models[0]["id"] == "gpt-5.4@@gpt-5-4-none-thinking"
+
+
+@pytest.mark.asyncio
+async def test_sdk_debug_models_requires_authenticated_identity(tmp_path) -> None:
+    container = _container(tmp_path)
+
+    with pytest.raises(HTTPException) as exc_info:
+        await sdk_routes.sdk_debug_models(
+            container=container,
+            session_manager=_FakeSessionManager(),
+            user_id=None,
+            model_id=None,
+            model_provider=None,
+            interaction_mode=None,
+        )
+
+    assert exc_info.value.status_code == 401
+    assert exc_info.value.detail == "Authenticated install identity required"
+
+
+@pytest.mark.asyncio
+async def test_sdk_debug_models_rejects_other_user_context(
+    tmp_path,
+    authenticated_install_identity,
+) -> None:
+    container = _container(tmp_path)
+
+    with pytest.raises(HTTPException) as exc_info:
+        await sdk_routes.sdk_debug_models(
+            container=container,
+            session_manager=_FakeSessionManager(),
+            user_id="other-user",
+            model_id=None,
+            model_provider=None,
+            interaction_mode=None,
+        )
+
+    assert exc_info.value.status_code == 403
+    assert (
+        exc_info.value.detail
+        == "SDK debug models cannot inspect another user's context"
+    )
 
 
 @pytest.mark.asyncio
