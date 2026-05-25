@@ -37,6 +37,7 @@ function MessageList({
   const showDevCompactionDebug = isDevUiEnabled();
   const [editingUserMessageId, setEditingUserMessageId] = useState(null);
   const [editingUserDraft, setEditingUserDraft] = useState('');
+  const [submittingUserEdit, setSubmittingUserEdit] = useState(false);
   const messagesEndRef = useRef(null);
   const {
     messageListRef,
@@ -49,27 +50,40 @@ function MessageList({
   });
 
   const handleStartUserEdit = useCallback((messageId, messageText) => {
+    if (submittingUserEdit) {
+      return;
+    }
     setEditingUserMessageId(messageId);
     setEditingUserDraft(messageText || '');
-  }, []);
+  }, [submittingUserEdit]);
 
   const handleCancelUserEdit = useCallback(() => {
+    if (submittingUserEdit) {
+      return;
+    }
     setEditingUserMessageId(null);
     setEditingUserDraft('');
-  }, []);
+  }, [submittingUserEdit]);
 
-  const handleSubmitUserEdit = useCallback(() => {
-    if (!editingUserMessageId || typeof onUserEdit !== 'function') {
+  const handleSubmitUserEdit = useCallback(async () => {
+    if (submittingUserEdit || !editingUserMessageId || typeof onUserEdit !== 'function') {
       return;
     }
     const normalizedText = editingUserDraft.trim();
     if (!normalizedText) {
       return;
     }
-    onUserEdit(editingUserMessageId, normalizedText);
-    setEditingUserMessageId(null);
-    setEditingUserDraft('');
-  }, [editingUserDraft, editingUserMessageId, onUserEdit]);
+    setSubmittingUserEdit(true);
+    try {
+      const result = await onUserEdit(editingUserMessageId, normalizedText);
+      if (result !== false) {
+        setEditingUserMessageId(null);
+        setEditingUserDraft('');
+      }
+    } finally {
+      setSubmittingUserEdit(false);
+    }
+  }, [editingUserDraft, editingUserMessageId, onUserEdit, submittingUserEdit]);
 
   useEffect(() => {
     if (!editingUserMessageId) {
@@ -79,6 +93,7 @@ function MessageList({
     if (!stillExists) {
       setEditingUserMessageId(null);
       setEditingUserDraft('');
+      setSubmittingUserEdit(false);
     }
   }, [editingUserMessageId, messages]);
 
@@ -131,6 +146,7 @@ function MessageList({
             onAssistantTryAgain={onAssistantTryAgain}
             isUserEditing={editingUserMessageId === msg.id}
             userEditDraft={editingUserDraft}
+            isUserEditSubmitting={submittingUserEdit}
             onUserEditDraftChange={setEditingUserDraft}
             onStartUserEdit={handleStartUserEdit}
             onCancelUserEdit={handleCancelUserEdit}
@@ -173,6 +189,7 @@ function MessageList({
       onAssistantTryAgain,
       editingUserMessageId,
       editingUserDraft,
+      submittingUserEdit,
       handleStartUserEdit,
       handleCancelUserEdit,
       handleSubmitUserEdit,

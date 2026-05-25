@@ -341,4 +341,49 @@ describe('useConversationReplayActions', () => {
     expect(setIsSending).toHaveBeenLastCalledWith(false, 'conv-existing');
     errorSpy.mockRestore();
   });
+
+  test('retry replay appends a visible local error when continuity service rejects', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    mockRetryTurn.mockRejectedValue(new Error('retry rejected'));
+    const messages = [
+      {
+        id: 'user-1',
+        sender: 'user',
+        text: 'first question',
+        screenshotRef: null,
+        screenshotUrl: null,
+      },
+      {
+        id: 'assistant-1',
+        sender: 'assistant',
+        text: 'first answer',
+      },
+    ];
+    useChatStore.getState().setActiveConversationRef('conv-existing');
+    useChatStore.getState().clearMessages('conv-existing');
+    useChatStore.getState().setMessages(messages, 'conv-existing');
+
+    const { result } = renderHook(() => useConversationReplayActions({
+      messages,
+      setMessages: useChatStore.getState().setMessages,
+      setThinkingStatus: jest.fn(),
+      setThinkingSourceEventType: jest.fn(),
+      setIsSending: useChatStore.getState().setIsSending,
+    }));
+
+    await act(async () => {
+      await result.current.handleTryAgainFromAssistant('assistant-1');
+    });
+
+    expect(useChatStore.getState().messages).toEqual([
+      ...messages,
+      expect.objectContaining({
+        sender: 'assistant',
+        type: 'error',
+        sourceEventType: 'renderer-replay',
+        text: expect.stringContaining("Your message wasn't sent"),
+      }),
+    ]);
+    errorSpy.mockRestore();
+  });
 });

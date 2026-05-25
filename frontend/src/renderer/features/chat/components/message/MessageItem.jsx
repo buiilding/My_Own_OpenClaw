@@ -27,6 +27,7 @@ const MessageItem = memo(function MessageItem({
   onAssistantTryAgain,
   isUserEditing,
   userEditDraft,
+  isUserEditSubmitting,
   onUserEditDraftChange,
   onStartUserEdit,
   onCancelUserEdit,
@@ -43,6 +44,7 @@ const MessageItem = memo(function MessageItem({
           onChange={onUserEditDraftChange}
           onCancel={onCancelUserEdit}
           onSubmit={onSubmitUserEdit}
+          isSubmitting={isUserEditSubmitting}
         />
       ) : (
         <MessageContent
@@ -92,6 +94,7 @@ MessageItem.propTypes = {
   onAssistantTryAgain: PropTypes.func,
   isUserEditing: PropTypes.bool,
   userEditDraft: PropTypes.string,
+  isUserEditSubmitting: PropTypes.bool,
   onUserEditDraftChange: PropTypes.func,
   onStartUserEdit: PropTypes.func,
   onCancelUserEdit: PropTypes.func,

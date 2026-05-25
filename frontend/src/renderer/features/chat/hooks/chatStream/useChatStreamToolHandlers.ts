@@ -90,7 +90,7 @@ export function useChatStreamToolHandlers({
     });
   }, [enableTranscript, modelContextRef]);
 
-  const handleToolCall = useCallback((event: ConversationEvent, conversationRef?: string | null) => {
+  const handleToolCall = useCallback((event: ConversationEvent, _conversationRef?: string | null) => {
     if (event.type !== 'tool_call') {
       return;
     }
@@ -129,7 +129,7 @@ export function useChatStreamToolHandlers({
     recordToolCallTranscript,
   ]);
 
-  const handleToolOutput = useCallback((event: ConversationEvent, conversationRef?: string | null) => {
+  const handleToolOutput = useCallback((event: ConversationEvent, _conversationRef?: string | null) => {
     if (event.type !== 'tool_output') {
       return;
     }
@@ -164,7 +164,7 @@ export function useChatStreamToolHandlers({
     modelContextRef,
   ]);
 
-  const handleToolBundle = useCallback((event: ConversationEvent, conversationRef?: string | null) => {
+  const handleToolBundle = useCallback((event: ConversationEvent, _conversationRef?: string | null) => {
     if (event.type !== 'tool_bundle_call') {
       return;
     }

@@ -85,6 +85,7 @@ async function executeReplayAction({
   deferredQueryModelSelection,
   action,
   messageId,
+  addMessage,
 }) {
   const conversationRef = ensureConversationRef(
     sessionInfo.conversationRef,
@@ -125,10 +126,23 @@ async function executeReplayAction({
     } else {
       await DesktopConversationContinuityService.retryTurn(rewritePayload);
     }
+    return true;
   } catch (error) {
     console.error(`[ChatInterface] ${errorPrefix}:`, error);
     setMessages(sourceMessages, conversationRef);
     setIsSending(false, conversationRef);
+    if (typeof addMessage === 'function') {
+      addMessage({
+        id: crypto.randomUUID(),
+        text: "Your message wasn't sent because WindieOS isn't connected right now. Try again when the backend reconnects.",
+        sender: 'assistant',
+        type: 'error',
+        sourceEventType: 'renderer-replay',
+        sourceChannel: 'renderer-local',
+        isComplete: true,
+      }, conversationRef);
+    }
+    return false;
   }
 }
 
@@ -140,6 +154,7 @@ export function useConversationReplayActions({
   setIsSending,
 }) {
   const activeConversationRef = useChatStore((state) => state.activeConversationRef);
+  const addMessage = useChatStore((state) => state.addMessage);
   const { config } = useAppConfigContext();
   const deferredQueryModelSelection = buildDeferredQueryModelSelection(config);
 
@@ -172,7 +187,7 @@ export function useConversationReplayActions({
       screenshotUrl: editUserMessage.screenshotUrl || null,
       screenshotContentType: editUserMessage.screenshotContentType || null,
     });
-    await executeReplayAction({
+    return executeReplayAction({
       sessionInfo,
       activeConversationRef,
       sourceMessages: messages,
@@ -189,9 +204,11 @@ export function useConversationReplayActions({
       deferredQueryModelSelection,
       action: 'edit_resend',
       messageId: userMessageId,
+      addMessage,
     });
   }, [
     activeConversationRef,
+    addMessage,
     deferredQueryModelSelection,
     messages,
     setIsSending,
@@ -229,7 +246,7 @@ export function useConversationReplayActions({
       screenshotUrl: retryUserMessage.screenshotUrl || null,
       screenshotContentType: retryUserMessage.screenshotContentType || null,
     });
-    await executeReplayAction({
+    return executeReplayAction({
       sessionInfo,
       activeConversationRef,
       sourceMessages: messages,
@@ -246,9 +263,11 @@ export function useConversationReplayActions({
       deferredQueryModelSelection,
       action: 'retry',
       messageId: assistantMessageId,
+      addMessage,
     });
   }, [
     activeConversationRef,
+    addMessage,
     deferredQueryModelSelection,
     messages,
     setIsSending,

@@ -4,6 +4,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
   within,
 } from '@testing-library/react';
 
@@ -241,6 +242,70 @@ describe('MessageList assistant actions', () => {
     expect(onAssistantTryAgain).toHaveBeenCalledWith('assistant-1');
   });
 
+  test('submits user message edits and keeps the editor busy until replay dispatch resolves', async () => {
+    let resolveEdit;
+    const onUserEdit = jest.fn(() => new Promise((resolve) => {
+      resolveEdit = resolve;
+    }));
+
+    render(
+      <MessageList
+        messages={[
+          { id: 'user-1', text: 'old text', sender: 'user', type: 'user' },
+        ]}
+        thinkingStatus={null}
+        enableUserActions
+        onUserEdit={onUserEdit}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit and resend' }));
+    const editor = screen.getByRole('group', { name: 'Edit user message' });
+    fireEvent.change(within(editor).getByRole('textbox'), {
+      target: { value: 'new text' },
+    });
+
+    fireEvent.click(within(editor).getByRole('button', { name: 'Send' }));
+
+    expect(onUserEdit).toHaveBeenCalledWith('user-1', 'new text');
+    expect(within(editor).getByRole('textbox')).toBeDisabled();
+    expect(within(editor).getByRole('button', { name: 'Send' })).toBeDisabled();
+
+    await act(async () => {
+      resolveEdit(true);
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByRole('group', { name: 'Edit user message' })).not.toBeInTheDocument();
+    });
+  });
+
+  test('keeps user message editor open when replay dispatch reports failure', async () => {
+    const onUserEdit = jest.fn(async () => false);
+
+    render(
+      <MessageList
+        messages={[
+          { id: 'user-1', text: 'old text', sender: 'user', type: 'user' },
+        ]}
+        thinkingStatus={null}
+        enableUserActions
+        onUserEdit={onUserEdit}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit and resend' }));
+    const editor = screen.getByRole('group', { name: 'Edit user message' });
+    fireEvent.change(within(editor).getByRole('textbox'), {
+      target: { value: 'new text' },
+    });
+    fireEvent.click(within(editor).getByRole('button', { name: 'Send' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('group', { name: 'Edit user message' })).toBeInTheDocument();
+    });
+  });
+
   test('copy action swaps to check icon for 4 seconds then reverts', async () => {
     jest.useFakeTimers();
     const writeText = jest.fn().mockResolvedValue(undefined);
@@ -291,7 +356,7 @@ describe('MessageList assistant actions', () => {
     jest.useRealTimers();
   });
 
-  test('user edit opens inline composer and sends updated text', () => {
+  test('user edit opens inline composer and sends updated text', async () => {
     const onUserEdit = jest.fn();
 
     render(
@@ -313,7 +378,9 @@ describe('MessageList assistant actions', () => {
     fireEvent.click(within(editor).getByRole('button', { name: 'Send' }));
 
     expect(onUserEdit).toHaveBeenCalledWith('user-1', 'new edited text');
-    expect(screen.queryByRole('group', { name: 'Edit user message' })).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByRole('group', { name: 'Edit user message' })).not.toBeInTheDocument();
+    });
   });
 
   test('user edit cancel closes inline composer without sending', () => {
