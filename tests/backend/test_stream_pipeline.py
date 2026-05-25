@@ -51,6 +51,24 @@ class DummyTTSService:
     pass
 
 
+async def wait_until(predicate, attempts: int = 20) -> bool:
+    for _ in range(attempts):
+        if predicate():
+            return True
+        await asyncio.sleep(0)
+    return predicate()
+
+
+class EventGateTTSProcessor:
+    def __init__(self, gates):
+        self.gates = gates
+        self.calls = []
+
+    async def process_event(self, event, tts_service):
+        self.calls.append((event, tts_service))
+        await self.gates[event["id"]].wait()
+
+
 @pytest.mark.asyncio
 async def test_process_schedules_tts_in_background_and_tracks_pending_tasks():
     formatter = DummyFormatter(response={"type": "streaming-response", "payload": {"text": "hello"}})
@@ -75,6 +93,35 @@ async def test_process_schedules_tts_in_background_and_tracks_pending_tasks():
 
     gate.set()
     await pipeline.wait_for_pending_tts()
+    assert len(pipeline._pending_tts_tasks) == 0
+
+
+@pytest.mark.asyncio
+async def test_wait_for_pending_tts_drains_tasks_added_while_waiting() -> None:
+    formatter = DummyFormatter(response=None)
+    transport = DummyTransportSender()
+    gates = {"first": asyncio.Event(), "second": asyncio.Event()}
+    tts_processor = EventGateTTSProcessor(gates=gates)
+    pipeline = StreamPipeline(tts_processor, formatter, transport)
+    tts_service = DummyTTSService()
+
+    await pipeline.process(event={"id": "first"}, tts_service=tts_service, msg_id="msg_1")
+    await asyncio.sleep(0)
+
+    wait_task = asyncio.create_task(pipeline.wait_for_pending_tts())
+    await asyncio.sleep(0)
+    assert not wait_task.done()
+
+    await pipeline.process(event={"id": "second"}, tts_service=tts_service, msg_id="msg_1")
+    await asyncio.sleep(0)
+    gates["first"].set()
+    assert await wait_until(lambda: len(pipeline._pending_tts_tasks) == 1)
+    assert not wait_task.done()
+
+    gates["second"].set()
+    await wait_task
+
+    assert len(tts_processor.calls) == 2
     assert len(pipeline._pending_tts_tasks) == 0
 
 

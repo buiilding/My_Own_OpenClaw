@@ -111,12 +111,16 @@ Task lifecycle:
 - tasks tracked in `_pending_tts_tasks`
 - done callback removes completed task from set
 - query-end barrier uses `wait_for_pending_tts()` before explicit flush
+- the barrier drains task snapshots in a loop and discards only the tasks it awaited, so tasks scheduled while a previous snapshot is still running are not dropped from tracking
 
 Race fix at query end:
 
-1. await all pending TTS tasks (`gather(return_exceptions=True)`)
-2. flush TTS service once to drain queued text
-3. TTSSession cleanup calls manager cleanup for shutdown/cancel safety
+1. snapshot currently pending TTS tasks
+2. await that snapshot (`gather(return_exceptions=True)`)
+3. remove only the awaited snapshot from tracking
+4. repeat until no pending tasks remain
+5. flush TTS service once to drain queued text
+6. TTSSession cleanup calls manager cleanup for shutdown/cancel safety
 
 ## TTSProcessor Content Suppression State Machine
 

@@ -134,15 +134,12 @@ class StreamPipeline:
 
         Should be called after the event loop completes but before tts_service.flush().
         """
-        if not self._pending_tts_tasks:
-            return
-
-        # Wait for all pending tasks to complete
-        # Use gather with return_exceptions=True to handle individual task failures
-        # gracefully (one task failing shouldn't block others)
-        tasks = list(self._pending_tts_tasks)
-        if tasks:
+        # Drain in snapshots so tasks added while this barrier is awaiting are
+        # not erased by cleanup for an older snapshot.
+        while self._pending_tts_tasks:
+            tasks = set(self._pending_tts_tasks)
             logger.debug(f"Waiting for {len(tasks)} pending TTS tasks to complete...")
             await asyncio.gather(*tasks, return_exceptions=True)
-            self._pending_tts_tasks.clear()
-            logger.debug("All pending TTS tasks completed")
+            self._pending_tts_tasks.difference_update(tasks)
+
+        logger.debug("All pending TTS tasks completed")
