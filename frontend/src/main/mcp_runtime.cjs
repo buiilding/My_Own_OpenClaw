@@ -287,7 +287,7 @@ function getMcpClient(server, options = {}) {
   return clientCache.get(cacheKey);
 }
 
-function normalizeDiscoveredTool(server, tool) {
+function normalizeDiscoveredTool(server, tool, registry = toolRegistry) {
   if (!tool || typeof tool !== 'object' || Array.isArray(tool)) {
     return null;
   }
@@ -308,7 +308,7 @@ function normalizeDiscoveredTool(server, tool) {
     mcp_server_id: server.id,
     mcp_tool_name: originalToolName,
   };
-  toolRegistry.set(exposedName, {
+  registry.set(exposedName, {
     server,
     originalToolName,
   });
@@ -319,6 +319,7 @@ async function discoverMcpTools(options = {}) {
   const servers = loadMcpServerSpecs(options);
   const tools = [];
   const errors = [];
+  const nextToolRegistry = new Map();
   for (const server of servers) {
     try {
       const client = getMcpClient(server, options);
@@ -326,7 +327,7 @@ async function discoverMcpTools(options = {}) {
         ? server.tools
         : await client.listTools();
       for (const tool of discoveredTools) {
-        const manifestTool = normalizeDiscoveredTool(server, tool);
+        const manifestTool = normalizeDiscoveredTool(server, tool, nextToolRegistry);
         if (manifestTool) {
           tools.push(manifestTool);
         }
@@ -337,12 +338,16 @@ async function discoverMcpTools(options = {}) {
         reason: error?.message || String(error),
       });
       for (const fallbackTool of server.tools) {
-        const manifestTool = normalizeDiscoveredTool(server, fallbackTool);
+        const manifestTool = normalizeDiscoveredTool(server, fallbackTool, nextToolRegistry);
         if (manifestTool) {
           tools.push(manifestTool);
         }
       }
     }
+  }
+  toolRegistry.clear();
+  for (const [name, registration] of nextToolRegistry.entries()) {
+    toolRegistry.set(name, registration);
   }
   return { tools, errors };
 }
@@ -354,6 +359,7 @@ async function buildClientToolManifestWithMcp(options = {}) {
   const discovered = await discoverMcpTools(options);
   const mcpTools = discovered.tools.filter((tool) => {
     if (!tool?.name || disabledTools.has(tool.name) || seenNames.has(tool.name)) {
+      toolRegistry.delete(tool?.name);
       return false;
     }
     seenNames.add(tool.name);

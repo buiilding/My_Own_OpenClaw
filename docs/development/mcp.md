@@ -110,6 +110,10 @@ That exposes `local_memory__search`.
    sends MCP `tools/call`.
 8. The MCP result is normalized into WindieOS tool result data.
 
+Each discovery pass reconciles the executable MCP tool registry with the current
+enabled server specs. Removed, disabled, duplicate, or manifest-disabled MCP
+tools are not left executable through stale registry entries.
+
 ## What Devs Should Not Edit
 
 For normal MCP integrations, do not edit:

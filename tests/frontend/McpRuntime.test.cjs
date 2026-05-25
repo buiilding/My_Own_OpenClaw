@@ -8,6 +8,7 @@ const {
   createMcpToolName,
   discoverMcpTools,
   executeMcpTool,
+  hasDiscoveredMcpTool,
 } = require('../../frontend/src/main/mcp_runtime.cjs');
 
 describe('MCP runtime', () => {
@@ -95,6 +96,60 @@ describe('MCP runtime', () => {
         },
       },
     });
+  });
+
+  test('reconciles stale MCP tools after server removal', async () => {
+    const client = createClient();
+    const toolName = createMcpToolName('memory', 'search');
+    await discoverMcpTools({
+      mcpServers: [{
+        id: 'memory',
+        command: 'node',
+        args: ['server.cjs'],
+      }],
+      createClient: () => client,
+    });
+    expect(hasDiscoveredMcpTool(toolName)).toBe(true);
+
+    await discoverMcpTools({
+      mcpServers: [],
+      createClient: () => client,
+    });
+
+    expect(hasDiscoveredMcpTool(toolName)).toBe(false);
+    await expect(
+      executeMcpTool(toolName, { query: 'windie' }, {}, {
+        mcpServers: [],
+        createClient: () => client,
+      }),
+    ).resolves.toBeNull();
+    expect(client.callTool).not.toHaveBeenCalled();
+  });
+
+  test('removes disabled MCP tools from the execution registry', async () => {
+    const client = createClient();
+    const toolName = createMcpToolName('memory', 'search');
+
+    const manifest = await buildClientToolManifestWithMcp({
+      baseManifest: { version: 1, tools: [] },
+      disabledTools: [toolName],
+      mcpServers: [{
+        id: 'memory',
+        command: 'node',
+        args: ['server.cjs'],
+      }],
+      createClient: () => client,
+    });
+
+    expect(manifest.tools).toEqual([]);
+    expect(hasDiscoveredMcpTool(toolName)).toBe(false);
+    await expect(
+      executeMcpTool(toolName, { query: 'windie' }, {}, {
+        mcpServers: [],
+        createClient: () => client,
+      }),
+    ).resolves.toBeNull();
+    expect(client.callTool).not.toHaveBeenCalled();
   });
 
   test('falls back to declared MCP tool schemas when live discovery fails', async () => {

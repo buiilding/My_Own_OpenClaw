@@ -176,8 +176,9 @@ the MCP server's `tools/list` response.
    tools to `client_tool_manifest`.
 2. Electron main reads `skills/**/SKILL.md` and appends prompt
    layers to the agent definition.
-3. Electron main reads `mcps/*/mcp.json`, discovers MCP tools, and
-   appends them to `client_tool_manifest`.
+3. Electron main reads `mcps/*/mcp.json`, discovers MCP tools, reconciles the
+   executable MCP registry with enabled specs, and appends visible tools to
+   `client_tool_manifest`.
 4. The backend validates and policy-projects the client manifest.
 5. Local plugin tool calls route to the sidecar tool registry.
 6. MCP tool calls route through the MCP runtime.

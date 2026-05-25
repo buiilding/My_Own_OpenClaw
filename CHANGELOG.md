@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/mcp: reconcile the executable MCP registry on discovery so removed or disabled tools cannot run from stale registrations.
 - backend/tools: normalize manual drag destinations independently from source-grounding support.
 - frontend/chat: mark manual compaction as failed when setup or compact dispatch throws before backend compaction starts.
 - frontend/wakeword: bound length-prefixed detection result frames and clear malformed oversized stdout buffers.
