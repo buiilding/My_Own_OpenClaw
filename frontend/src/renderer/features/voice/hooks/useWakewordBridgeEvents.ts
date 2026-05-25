@@ -1,4 +1,4 @@
-import { useEffect, type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
+import { useEffect, useRef, type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { isWithinCooldown, resolveConfidence } from '../utils/wakewordEventUtils';
 
@@ -31,8 +31,15 @@ export function useWakewordBridgeEvents({
   setIsReady,
   setError,
 }: UseWakewordBridgeEventsOptions) {
+  const enabledRef = useRef(enabled);
+  enabledRef.current = enabled;
+
   useEffect(() => {
     const unsubscribe = IpcBridge.on(ON_CHANNELS.WAKEWORD_DETECTED, (data: any) => {
+      if (!enabledRef.current) {
+        return;
+      }
+
       const now = Date.now();
       const confidence = resolveConfidence(data?.confidence);
       if (confidence === null) {
