@@ -15,10 +15,14 @@ class ErrorEventFormatter(EventFormatter):
 
     def format(self, event: Union[AgentStreamingEvent, Dict[str, Any]], msg_id: str) -> Optional[Dict[str, Any]]:
         event_dict = self._get_event_dict(event)
+        payload = {
+            "message": sanitize_stream_error_message(event_dict.get("content")),
+        }
+        metadata = event_dict.get("metadata")
+        if isinstance(metadata, dict):
+            payload["metadata"] = metadata
         return {
             "type": self.message_type,
             "id": msg_id,
-            "payload": {
-                "message": sanitize_stream_error_message(event_dict.get("content")),
-            },
+            "payload": payload,
         }

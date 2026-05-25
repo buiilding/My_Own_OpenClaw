@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/llm: mark late stream failures with terminal metadata so partial streamed text is not treated as a successful response.
 - backend/llm: clear stream-scoped usage and normalized response payload state before each provider stream.
 - frontend/chat: gate backend conversation hydration side effects on the current connection epoch.
 - frontend/sidecar: reject daemon discovery files that point outside loopback HTTP(S) origins before sending sidecar tokens.

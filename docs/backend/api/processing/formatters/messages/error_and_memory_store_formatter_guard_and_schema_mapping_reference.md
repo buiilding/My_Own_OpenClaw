@@ -24,7 +24,7 @@ title: "Error and Memory-Store Formatter Guard and Schema-Mapping Reference"
 `ErrorEventFormatter` maps event fields to schema names:
 
 - `payload.message <- event.content` (fallback: `"An unexpected error occurred"`)
-- `payload.content <- event.details` (optional detail channel)
+- `payload.metadata <- event.metadata` when metadata is a dict
 
 Outgoing type is fixed to `error`.
 
@@ -35,7 +35,7 @@ Key compatibility behavior:
 
 Schema alignment:
 
-- matches `ErrorPayload` (`message: str`, optional `content`).
+- matches `ErrorPayload` (`message: str`, optional `content`, optional `metadata`).
 
 ## Memory-Store Formatter Guard Contract
 

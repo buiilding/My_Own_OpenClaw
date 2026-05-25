@@ -210,6 +210,25 @@ class TestErrorEventFormatter:
 
         assert result["payload"]["message"] == "Rate limit exceeded. Please wait."
 
+    def test_format_preserves_structured_metadata(self, formatter):
+        event = {
+            "type": "error",
+            "content": "LLM error",
+            "metadata": {
+                "stream_failed": True,
+                "partial_response_emitted": True,
+                "discard_partial_response": True,
+            },
+        }
+
+        result = formatter.format(event, "msg-789")
+
+        assert result["payload"]["metadata"] == {
+            "stream_failed": True,
+            "partial_response_emitted": True,
+            "discard_partial_response": True,
+        }
+
 
 class TestThinkingEventFormatter:
     """Tests for ThinkingEventFormatter."""

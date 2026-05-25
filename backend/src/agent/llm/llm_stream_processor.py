@@ -131,6 +131,7 @@ class LLMStreamProcessor:
             previous_response_id=previous_response_id,
         )
         self._last_response_payload = None
+        full_text = ""
         logger.info(
             "[Timing] LLM request started (session=%s, turn=%s, model=%s)",
             self.session.session_id,
@@ -153,7 +154,6 @@ class LLMStreamProcessor:
                 self._log_provider_cache_diagnostics(model_id, turn)
             else:
                 first_token_time = None
-                full_text = ""
                 async for event in self._iter_completion_stream(
                     request_kwargs=request_kwargs,
                 ):
@@ -209,19 +209,38 @@ class LLMStreamProcessor:
             )
 
         except LLMRateLimitError:
-            yield ErrorEvent(content="Rate limit exceeded. Please wait.")
+            yield ErrorEvent(
+                content="Rate limit exceeded. Please wait.",
+                metadata=self._build_stream_failure_metadata(full_text),
+            )
             raise
         except LLMAPIError as e:
             logger.error(f"LLM API error: {e}", exc_info=True)
+            metadata = self._build_stream_failure_metadata(full_text)
+            if isinstance(e.metadata, dict):
+                metadata.update(e.metadata)
             yield ErrorEvent(
                 content=self._build_llm_api_error_message(e),
-                metadata=dict(e.metadata) if isinstance(e.metadata, dict) else None,
+                metadata=metadata,
             )
             raise
         except Exception as e:
             logger.error(f"LLM error: {e}", exc_info=True)
-            yield ErrorEvent(content=f"LLM error: {str(e)}")
+            yield ErrorEvent(
+                content=f"LLM error: {str(e)}",
+                metadata=self._build_stream_failure_metadata(full_text),
+            )
             raise
+
+    @staticmethod
+    def _build_stream_failure_metadata(full_text: str) -> dict:
+        partial_response_emitted = bool(full_text)
+        return {
+            "stream_failed": True,
+            "terminal": True,
+            "partial_response_emitted": partial_response_emitted,
+            "discard_partial_response": partial_response_emitted,
+        }
 
     def get_last_response_payload(self) -> Optional[NormalizedLLMResponse]:
         """Return normalized payload captured for the most recent LLM turn."""

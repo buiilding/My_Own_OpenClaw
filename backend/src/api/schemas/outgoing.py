@@ -14,6 +14,7 @@ class ErrorPayload(BaseModel):
 
     message: str
     content: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
 
 
 class ErrorResponse(BaseMessage):

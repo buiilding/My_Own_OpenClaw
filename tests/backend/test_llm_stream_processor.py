@@ -141,6 +141,22 @@ class _UnsupportedEventLLMClient:
         return None
 
 
+class _PartialThenUnsupportedEventLLMClient:
+    async def get_completion_stream(
+        self,
+        model,
+        messages,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+    ):
+        yield ChunkEvent(content="partial")
+        yield {"event": "unsupported"}
+
+    def get_last_stream_cache_diagnostics(self):
+        return None
+
+
 class _BlockingLLMClient:
     def __init__(self):
         self.started_prompts = []
@@ -509,6 +525,33 @@ async def test_rejects_unsupported_stream_event_types(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_late_stream_failure_marks_partial_response_discardable(monkeypatch):
+    _patch_fake_token_service(monkeypatch)
+
+    processor = LLMStreamProcessor(
+        llm_client=_PartialThenUnsupportedEventLLMClient(),
+        session=_FakeSession(),
+    )
+
+    events = []
+    with pytest.raises(TypeError, match="Unsupported stream event type"):
+        async for event in processor.get_response(_hello_prompt()):
+            events.append(event)
+
+    assert isinstance(events[0], ChunkEvent)
+    assert events[0].content == "partial"
+    assert isinstance(events[-1], ErrorEvent)
+    assert events[-1].metadata == {
+        "stream_failed": True,
+        "terminal": True,
+        "partial_response_emitted": True,
+        "discard_partial_response": True,
+    }
+    assert not any(isinstance(event, FullResponseEvent) for event in events)
+    assert not any(isinstance(event, TokenCountEvent) for event in events)
+
+
+@pytest.mark.asyncio
 async def test_get_response_serializes_overlapping_turns(monkeypatch):
     _patch_fake_token_service(monkeypatch)
     llm_client = _BlockingLLMClient()
@@ -590,7 +633,8 @@ async def test_preserves_llm_api_error_metadata_on_error_event(monkeypatch):
 
     assert len(events) == 1
     assert isinstance(events[0], ErrorEvent)
-    assert events[0].metadata == {
+    assert events[0].metadata is not None
+    assert events[0].metadata.items() >= {
         "llm_tool_call_id": "tool_bad",
         "llm_tool_name": "replace",
         "llm_tool_call_raw_tool_call_preview": (
@@ -599,7 +643,7 @@ async def test_preserves_llm_api_error_metadata_on_error_event(monkeypatch):
         "llm_tool_call_raw_arguments_preview": '{"file_path":"/tmp/demo.txt"}',
         "llm_tool_call_parse_error": "invalid tool arguments json",
         "model": "gpt-test",
-    }
+    }.items()
 
 
 @pytest.mark.asyncio

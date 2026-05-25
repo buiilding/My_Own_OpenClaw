@@ -32,6 +32,18 @@ On known failures:
 - `LLMAPIError` -> emits mapped API error `ErrorEvent`, then re-raises
 - any other exception -> emits generic LLM error `ErrorEvent`, then re-raises
 
+Failure `ErrorEvent.metadata` includes a terminal stream-failure marker:
+
+- `stream_failed: true`
+- `terminal: true`
+- `partial_response_emitted: true|false`
+- `discard_partial_response: true|false`
+
+When a provider emits one or more chunks and then fails validation, the already
+emitted chunks are not retroactively hidden. Consumers must treat the terminal
+error metadata as authoritative and avoid committing the partial assistant text
+as a successful response.
+
 ## Stream vs Native Completion Branching
 
 Decision point:
