@@ -109,10 +109,11 @@ describe('frontendInteractionLogger', () => {
     expect(consoleSpy.mock.calls[0][1]).not.toHaveProperty('value');
   });
 
-  test('logs message sends without message text', () => {
+  test('logs message sends with message text', () => {
     logUserSentMessage({
       conversationRef: 'conv-1',
       senderSurface: 'main-window',
+      messageText: 'show this message in logs',
       textLength: 27,
       attachmentCount: 2,
       imageCount: 1,
@@ -124,18 +125,19 @@ describe('frontendInteractionLogger', () => {
       event: 'send-message',
       conversationRef: 'conv-1',
       senderSurface: 'main-window',
+      messageText: 'show this message in logs',
       textLength: 27,
       attachmentCount: 2,
       imageCount: 1,
       readableFileCount: 1,
     }));
-    expect(consoleSpy.mock.calls[0][1]).not.toHaveProperty('text');
     expect(IpcBridge.send).toHaveBeenCalledWith('renderer-log', expect.objectContaining({
       source: 'frontend-interaction',
       entry: expect.objectContaining({
         action: 'message_sent',
         event: 'send-message',
         conversationRef: 'conv-1',
+        messageText: 'show this message in logs',
       }),
     }));
   });

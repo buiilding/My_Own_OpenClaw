@@ -178,6 +178,7 @@ function handleChange(event) {
 export function logUserSentMessage({
   conversationRef = null,
   senderSurface = null,
+  messageText = '',
   textLength = 0,
   attachmentCount = 0,
   imageCount = 0,
@@ -187,6 +188,7 @@ export function logUserSentMessage({
     event: 'send-message',
     conversationRef,
     senderSurface,
+    messageText,
     textLength,
     attachmentCount,
     imageCount,

@@ -543,7 +543,7 @@ App
 - `infrastructure/interaction/frontendInteractionLogger.js` installs one capture-phase renderer listener for user clicks and control changes.
 - Click logs include the resolved control label, element role/type, class/test id metadata, and current renderer view.
 - Chat rows provide an explicit interaction label so logs include the visible chat title when a user opens a chat.
-- Message sends log from `useChatMessageSender` after the message is accepted into UI state, without logging the message text.
+- Message sends log from `useChatMessageSender` after the message is accepted into UI state, including the submitted message text for debugging.
 - Interaction logs are sent over `SEND_CHANNELS.RENDERER_LOG` and printed by Electron main as `[FrontendInteraction][renderer]` so `npm run electron:dev` shows the same sanitized diagnostics in the terminal.
 
 ---

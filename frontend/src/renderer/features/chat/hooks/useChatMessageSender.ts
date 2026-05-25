@@ -228,6 +228,7 @@ export function useChatMessageSender(
     logUserSentMessage({
       conversationRef,
       senderSurface,
+      messageText: text,
       textLength: text.length,
       attachmentCount: attachmentFilenames.length,
       imageCount: clipboardImages.length,

@@ -59,6 +59,7 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/chat: reject renderer SDK query sends when main reports dispatch failure so edit/resend and retry do not silently treat failed backend sends as accepted.
 - backend/frontend/sdk: address Clawpatch-reported regressions across websocket/session cleanup, tool-result routing, OCR/vision grounding, credential and permission boundaries, transcript persistence, provider routing, and SDK transport lifecycle with focused docs and regression coverage.
 - frontend/diagnostics: forward renderer interaction logs to Electron main so `npm run electron:dev` prints clicked controls, opened chats, changed controls, and submitted messages in the terminal.
+- frontend/diagnostics: include submitted message text in `message_sent` interaction logs.
 - frontend/models: request the backend model list from the main dashboard at startup so the provider/model/reasoning selectors do not stay on fallback values until the first chat send.
 - frontend/diagnostics: add renderer interaction logs for clicked controls, opened chats, changed controls, and submitted messages.
 - frontend/chat: keep SDK current-turn projected dashboard messages referentially stable to avoid React external-store update loops.
