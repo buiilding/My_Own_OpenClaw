@@ -1,6 +1,9 @@
 const {
   resolveBackendOverlayPhaseTransition,
 } = require('./ipc_overlay_phase_events.cjs');
+const {
+  broadcastTypedBackendEvent,
+} = require('./ipc_backend_event_channels.cjs');
 
 function isDebugStreamTraceEnabled() {
   return process.env.WINDIE_DEBUG_STREAM_EVENTS === '1';
@@ -233,6 +236,7 @@ function processBackendMessageData(data, {
       log(`Memory-store side effect failed: ${error.message}`);
     }
   }
+  broadcastTypedBackendEvent(data, broadcastToRenderers);
   broadcastToRenderers('from-backend', data);
 }
 

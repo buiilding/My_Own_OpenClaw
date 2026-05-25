@@ -88,6 +88,9 @@ export const EXPECTED_SHARED_CHANNEL_REGISTRY = {
     RESPONSE_OVERLAY_PHASE: 'response-overlay-phase',
     CONVERSATION_RUNTIME_UPDATED: 'conversation-runtime-updated',
     CONVERSATION_EVENT: 'conversation-event',
+    BACKEND_SETTINGS_EVENT: 'backend-settings-event',
+    AGENT_CAPABILITY_EVENT: 'agent-capability-event',
+    AUDIO_CHUNK: 'audio-chunk',
     RESPONSE_OVERLAY_VISIBILITY: 'response-overlay-visibility',
   },
 } as const;

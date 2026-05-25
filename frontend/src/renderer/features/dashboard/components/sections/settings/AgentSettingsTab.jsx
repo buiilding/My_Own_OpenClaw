@@ -71,7 +71,7 @@ function AgentSettingsTab({ config, onConfigChange }) {
         setExtensionRuntime({ plugins: [], skills: [], mcps: [], errors: [] });
       });
 
-    const removeListener = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, (event) => {
+    const removeListener = IpcBridge.on(ON_CHANNELS.AGENT_CAPABILITY_EVENT, (event) => {
       if (event?.type === 'client-tool-manifest') {
         setManifestStatus({
           accepted: Array.isArray(event.payload?.accepted) ? event.payload.accepted : [],

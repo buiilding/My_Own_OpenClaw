@@ -111,12 +111,36 @@ Verification:
 
 - `cd frontend && ELECTRON_RUN_AS_NODE=1 .\node_modules\electron\dist\electron.exe .\node_modules\jest\bin\jest.js RendererChatRuntimeBoundary ChatStreamThinkingStatus.state ChatStreamThinkingStatus.transcript ChatSelectors ResponseOverlayViewContract --runInBand` - pass
 
+### Raw `from-backend` Renderer Subscription Classification
+
+Status: completed and verified.
+
+Changes:
+
+- Added typed renderer channels for settings/model control ACK events, agent capability events, and audio chunks.
+- Main now classifies backend websocket events onto `backend-settings-event`, `agent-capability-event`, and `audio-chunk` before retaining the legacy `from-backend` compatibility fan-out.
+- `AppConfigProvider`, `AppStatusProvider`, `AgentSettingsTab`, and audio playback now subscribe to their named channels instead of `ON_CHANNELS.FROM_BACKEND`.
+- Added routing tests for the main typed-channel classifier and renderer boundary tests that fail if owned app paths subscribe to raw backend traffic again.
+
+Success criteria covered:
+
+- Renderer feature code has no `IpcBridge.on(ON_CHANNELS.FROM_BACKEND)` subscriptions.
+- Remaining settings/model, agent capability, and audio consumers each have a named owner channel and focused payload/routing tests.
+- Model/settings UI startup keeps using `DesktopSettingsRuntimeClient.listModels()` and no longer depends on raw backend stream subscription for normal model-list delivery.
+
+Verification:
+
+- `cd frontend && ELECTRON_RUN_AS_NODE=1 .\node_modules\electron\dist\electron.exe .\node_modules\jest\bin\jest.js IpcBackendEventChannels AppConfigProvider.models AppStatusProvider AgentSettingsTab ChatInterfaceWiring RendererChatRuntimeBoundary IpcBridge --runInBand` - pass
+- `rg -n "IpcBridge\.on\(ON_CHANNELS\.FROM_BACKEND|ON_CHANNELS\.FROM_BACKEND" frontend/src/renderer -S` - pass, no matches
+- `cd packages/windie-sdk-js && ELECTRON_RUN_AS_NODE=1 ..\..\frontend\node_modules\electron\dist\electron.exe ..\..\frontend\node_modules\typescript\bin\tsc -p tsconfig.build.json` - pass
+- `ELECTRON_RUN_AS_NODE=1 .\frontend\node_modules\electron\dist\electron.exe .\scripts\docs-list.js` - pass
+- `git diff --check` - pass
+
 ## Pending
 
 - `frontend/src/main/ipc.cjs` composition-root split.
   - In progress: model-list request queueing moved to `frontend/src/main/ipc/ipc_model_list_runtime.cjs` with focused unit tests.
   - In progress: renderer diagnostic log routing moved to `frontend/src/main/ipc/ipc_diagnostics_runtime.cjs` with focused unit tests.
-- Raw `from-backend` channel classification and typed-channel migration.
 - Settings/model runtime ownership consolidation.
 - Conversation session authority service.
 - Conversation persistence adapter collapse.

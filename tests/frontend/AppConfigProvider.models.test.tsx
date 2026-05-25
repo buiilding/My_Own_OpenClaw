@@ -26,7 +26,7 @@ describe('AppConfigProvider model + config wiring', () => {
     mockUseSettingsManagement.mockReturnValue(settingsHandlers);
     renderAppConfigContext();
 
-    const backendHandler = getBackendHandler(ON_CHANNELS.FROM_BACKEND);
+    const backendHandler = getBackendHandler(ON_CHANNELS.BACKEND_SETTINGS_EVENT);
     expect(backendHandler).toEqual(expect.any(Function));
 
     return { settingsHandlers, backendHandler };
@@ -36,7 +36,7 @@ describe('AppConfigProvider model + config wiring', () => {
     renderAppConfigContext();
 
     expect(IpcBridge.on).toHaveBeenCalledWith(
-      ON_CHANNELS.FROM_BACKEND,
+      ON_CHANNELS.BACKEND_SETTINGS_EVENT,
       expect.any(Function),
     );
     expect(mockDesktopSettingsListModels).toHaveBeenCalledTimes(1);

@@ -5,7 +5,7 @@ import { isAgentStopShortcutEvent } from '../../../infrastructure/shortcuts/agen
 
 export function useChatInterfaceAudioChunkStream(audioPlayerRef) {
   useEffect(() => {
-    const removeListener = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, (data) => {
+    const removeListener = IpcBridge.on(ON_CHANNELS.AUDIO_CHUNK, (data) => {
       const audioChunk = extractAudioChunkPayload(data);
       if (audioChunk && audioPlayerRef.current) {
         audioPlayerRef.current.enqueueAudio(audioChunk);

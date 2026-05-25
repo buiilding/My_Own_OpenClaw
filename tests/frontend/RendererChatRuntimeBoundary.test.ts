@@ -1,7 +1,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-const chatRoot = path.resolve(__dirname, '../../frontend/src/renderer/features/chat');
+const rendererRoot = path.resolve(__dirname, '../../frontend/src/renderer');
+const chatRoot = path.join(rendererRoot, 'features/chat');
 const allowedRelativePaths = new Set<string>();
 
 async function listSourceFiles(dir: string): Promise<string[]> {
@@ -246,6 +247,21 @@ describe('renderer chat runtime boundary', () => {
     expect(streamSource).not.toContain('ON_CHANNELS.FROM_BACKEND');
     expect(streamSource).not.toContain('handleBackendStreamIngress');
     expect(ingressSource).not.toContain('normalizeBackendEventToConversationEvent');
+  });
+
+  test('renderer subscriptions do not use raw backend channel for owned app paths', async () => {
+    const files = await listSourceFiles(rendererRoot);
+    const offenders: string[] = [];
+
+    for (const file of files) {
+      const relativePath = path.relative(rendererRoot, file);
+      const source = await fs.readFile(file, 'utf8');
+      if (source.includes('IpcBridge.on(ON_CHANNELS.FROM_BACKEND')) {
+        offenders.push(relativePath);
+      }
+    }
+
+    expect(offenders).toEqual([]);
   });
 
   test('chat stream completion handler consumes SDK completion identity directly', async () => {

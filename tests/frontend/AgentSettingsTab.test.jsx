@@ -35,7 +35,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     LIST_AGENT_EXTENSIONS: 'list-agent-extensions',
   },
   ON_CHANNELS: {
-    FROM_BACKEND: 'from-backend',
+    AGENT_CAPABILITY_EVENT: 'agent-capability-event',
   },
 }));
 

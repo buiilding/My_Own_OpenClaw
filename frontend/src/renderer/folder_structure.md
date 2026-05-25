@@ -418,7 +418,7 @@ frontend/src/renderer/
 ```
 1. AUDIO CHUNK EVENT
    └─> Backend sends audio-chunk event
-       └─> IPC: ON_CHANNELS.FROM_BACKEND
+       └─> IPC: ON_CHANNELS.AUDIO_CHUNK
            ↓
 2. AUDIO PLAYER SERVICE
    └─> infrastructure/audio/PlayerService.ts
@@ -532,7 +532,10 @@ App
 ### On Channels (Main → Renderer, events)
 - `CONVERSATION_RUNTIME_UPDATED` - SDK current-turn projection updates for live dashboard/overlay rendering
 - `CONVERSATION_EVENT` - SDK-normalized chat side-effect events for transcript/session/metadata handlers
-- `FROM_BACKEND` - Legacy backend WebSocket event channel for non-chat consumers, compatibility, audio, and status traffic
+- `BACKEND_SETTINGS_EVENT` - Typed settings/model ACK and error control events
+- `AGENT_CAPABILITY_EVENT` - Typed tool manifest and remote tool catalog updates
+- `AUDIO_CHUNK` - Typed text-to-speech audio chunk side-channel
+- `FROM_BACKEND` - Legacy backend WebSocket event channel retained for compatibility diagnostics
 - `IPC_STATUS` - IPC connection status
 - `LOG` - Log messages from main process
 - `WAKEWORD_DETECTED` - Wakeword detection event

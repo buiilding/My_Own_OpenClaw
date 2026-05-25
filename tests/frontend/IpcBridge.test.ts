@@ -26,9 +26,9 @@ describe('IpcBridge', () => {
     const cleanupFn = jest.fn();
     (window as any).ipc.on.mockReturnValueOnce(cleanupFn);
 
-    const cleanup = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, handler);
+    const cleanup = IpcBridge.on(ON_CHANNELS.BACKEND_SETTINGS_EVENT, handler);
 
-    expect((window as any).ipc.on).toHaveBeenCalledWith('from-backend', handler);
+    expect((window as any).ipc.on).toHaveBeenCalledWith('backend-settings-event', handler);
     expect(cleanup).toBe(cleanupFn);
   });
 

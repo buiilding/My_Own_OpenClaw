@@ -206,7 +206,7 @@ export function AppConfigProvider({ children }) {
   ]);
 
   useEffect(() => {
-    const removeListener = IpcBridge.on(ON_CHANNELS.FROM_BACKEND, onBackendEvent);
+    const removeListener = IpcBridge.on(ON_CHANNELS.BACKEND_SETTINGS_EVENT, onBackendEvent);
 
     return () => {
       removeListener();

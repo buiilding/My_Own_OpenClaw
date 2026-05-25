@@ -35,7 +35,7 @@ describe('AppStatusProvider', () => {
   });
 
   function emitBackendEvent(data: any): void {
-    const handler = listeners.get(ON_CHANNELS.FROM_BACKEND);
+    const handler = listeners.get(ON_CHANNELS.BACKEND_SETTINGS_EVENT);
     if (!handler) {
       throw new Error('backend listener is not registered');
     }

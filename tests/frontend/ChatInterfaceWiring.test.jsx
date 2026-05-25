@@ -169,7 +169,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     WINDOW_CLOSE: 'window-close',
   },
   ON_CHANNELS: {
-    FROM_BACKEND: 'from-backend',
+    AUDIO_CHUNK: 'audio-chunk',
     IPC_STATUS: 'ipc-status',
     WORKSPACE_ACCESS_UPDATED: 'workspace-access-updated',
   },
@@ -179,8 +179,10 @@ jest.mock('../../frontend/src/renderer/features/dashboard/hooks/useTranscriptSes
   useTranscriptSessionInfo: () => mockTranscriptSessionSnapshot,
 }));
 
+const mockExtractAudioChunkPayload = jest.fn(() => null);
+
 jest.mock('../../frontend/src/renderer/features/chat/utils/backendAudioEvents', () => ({
-  extractAudioChunkPayload: () => null,
+  extractAudioChunkPayload: (...args) => mockExtractAudioChunkPayload(...args),
 }));
 
 jest.mock('../../frontend/src/renderer/features/chat/components/MessageList', () => (props) =>
@@ -268,6 +270,8 @@ describe('ChatInterface wiring', () => {
     });
     mockIpcListeners.clear();
     mockMessageList.mockClear();
+    mockExtractAudioChunkPayload.mockClear();
+    mockExtractAudioChunkPayload.mockReturnValue(null);
     mockUpdateConfig.mockClear();
     mockIsDevUiEnabled.mockReset();
     mockIsDevUiEnabled.mockReturnValue(false);
@@ -556,6 +560,27 @@ describe('ChatInterface wiring', () => {
     render(<ChatInterface />);
 
     expect(screen.getByRole('button', { name: 'Toggle text-to-speech' })).toBeInTheDocument();
+  });
+
+  test('subscribes to typed audio chunks without raw backend stream traffic', () => {
+    mockExtractAudioChunkPayload.mockReturnValue({ audio: 'abc', sample_rate: 24000 });
+
+    render(<ChatInterface />);
+
+    expect(mockIpcListeners.has('audio-chunk')).toBe(true);
+    expect(mockIpcListeners.has('from-backend')).toBe(false);
+
+    act(() => {
+      mockIpcListeners.get('audio-chunk')?.({
+        type: 'audio-chunk',
+        payload: { audio: 'abc', sample_rate: 24000 },
+      });
+    });
+
+    expect(mockPlayerService.enqueueAudio).toHaveBeenCalledWith({
+      audio: 'abc',
+      sample_rate: 24000,
+    });
   });
 
   test('shows the active workspace name next to the text-to-speech toggle', async () => {
