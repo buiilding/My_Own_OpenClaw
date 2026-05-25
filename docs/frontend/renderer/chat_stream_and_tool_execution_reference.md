@@ -26,7 +26,6 @@ title: "Chat Stream and Tool Execution Reference"
 - `frontend/src/renderer/app/runtime/desktopChatStreamTrackingRuntime.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamMessageUpdates.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamEventUtils.ts`
-- `frontend/src/renderer/features/chat/utils/chatStream/chatStreamToolMessages.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamThinkingStatus.ts`
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamTypes.ts`
 - `frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime.ts`

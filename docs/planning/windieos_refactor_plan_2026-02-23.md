@@ -455,7 +455,7 @@ read_when:
     - `frontend/src/renderer/features/chat/hooks/useConversationReplayActions.js`
   - extracted stream utility modules from `useChatStream.ts`:
     - `frontend/src/renderer/features/chat/utils/modelThinkingCapabilities.ts`
-    - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamToolMessages.ts`
+    - `frontend/src/renderer/features/chat/utils/chatStream/*`
   - extracted shared dashboard conversation-group PropTypes:
     - `frontend/src/renderer/features/dashboard/components/shared/conversationGroupPropTypes.js`
   - result:
