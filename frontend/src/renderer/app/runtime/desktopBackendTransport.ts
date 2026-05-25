@@ -24,7 +24,7 @@ async function sendStopQuery(conversationRef: string | null): Promise<void> {
 }
 
 async function sendQuery(payload: Record<string, unknown>, workspacePath: string | null): Promise<void> {
-  await IpcBridge.invoke(INVOKE_CHANNELS.SEND_CHAT_QUERY, {
+  const result = await IpcBridge.invoke(INVOKE_CHANNELS.SEND_CHAT_QUERY, {
     text: optionalString(payload.text) ?? '',
     conversation_ref: optionalString(payload.conversation_ref)
       ?? optionalString(payload.conversationRef)
@@ -52,6 +52,12 @@ async function sendQuery(payload: Record<string, unknown>, workspacePath: string
       ?? null,
     memory_retrieval_enabled: getMemoryRetrievalInjectionEnabled(),
   });
+  if (result && typeof result === 'object' && 'ok' in result && result.ok === false) {
+    const message = typeof result.error === 'string' && result.error.trim().length > 0
+      ? result.error
+      : 'Failed to send query to backend';
+    throw new Error(message);
+  }
 }
 
 function optionalRecordArray(value: unknown): Record<string, unknown>[] {

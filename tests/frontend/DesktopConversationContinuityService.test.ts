@@ -85,10 +85,11 @@ describe('DesktopConversationContinuityService', () => {
 
   test('editAndResend seeds replay rows through the projection runtime before sending', async () => {
     const send = jest.fn();
+    const invoke = jest.fn(async () => ({ ok: true, messageId: 'query-1' }));
     const originalIpc = window.ipc;
     window.ipc = {
       send,
-      invoke: jest.fn(),
+      invoke,
       on: jest.fn(),
       once: jest.fn(),
     };
@@ -137,15 +138,12 @@ describe('DesktopConversationContinuityService', () => {
         reason: 'edit_resend',
         replacementUserMessage: { text: 'edited question' },
       }));
-      expect(send).toHaveBeenCalledWith('to-backend', {
-        type: 'query',
-        payload: expect.objectContaining({
-          text: 'edited question',
-          conversation_ref: 'conv-replay',
-          screenshot_ref: 'artifact-1',
-          workspace_path: '/repo',
-        }),
-      });
+      expect(invoke).toHaveBeenCalledWith('send-chat-query', expect.objectContaining({
+        text: 'edited question',
+        conversation_ref: 'conv-replay',
+        screenshot_ref: 'artifact-1',
+        workspace_path: '/repo',
+      }));
     } finally {
       window.ipc = originalIpc;
     }
@@ -153,10 +151,11 @@ describe('DesktopConversationContinuityService', () => {
 
   test('retryTurn seeds replay rows through the projection runtime before resending the previous user text', async () => {
     const send = jest.fn();
+    const invoke = jest.fn(async () => ({ ok: true, messageId: 'query-1' }));
     const originalIpc = window.ipc;
     window.ipc = {
       send,
-      invoke: jest.fn(),
+      invoke,
       on: jest.fn(),
       once: jest.fn(),
     };
@@ -217,14 +216,11 @@ describe('DesktopConversationContinuityService', () => {
         reason: 'retry',
         replacementUserMessage: { text: 'retry question' },
       }));
-      expect(send).toHaveBeenCalledWith('to-backend', {
-        type: 'query',
-        payload: expect.objectContaining({
-          text: 'retry question',
-          conversation_ref: 'conv-retry',
-          workspace_path: '/repo',
-        }),
-      });
+      expect(invoke).toHaveBeenCalledWith('send-chat-query', expect.objectContaining({
+        text: 'retry question',
+        conversation_ref: 'conv-retry',
+        workspace_path: '/repo',
+      }));
     } finally {
       window.ipc = originalIpc;
     }

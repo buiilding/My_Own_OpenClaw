@@ -173,6 +173,10 @@ Main relay invariants:
   helpers, but it degrades to escaped `<user_query>` content on failure.
 - On websocket send failure, main clears replay state and emits a synthetic
   renderer error through `buildQuerySendFailure(...)`.
+- Renderer SDK transports that call typed `send-chat-query` must inspect the
+  invoke result and reject on `{ ok: false }`. Normal send and replay/edit
+  flows depend on that rejection to clear optimistic UI state instead of
+  treating a failed main-process dispatch as accepted.
 
 ### 4. Inspect backend query handling only when backend semantics change
 
