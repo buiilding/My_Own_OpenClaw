@@ -4,6 +4,7 @@ LLM Stream Processor.
 Handles LLM streaming, text aggregation, and token counting.
 """
 
+import asyncio
 import logging
 import time
 from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, List, Optional
@@ -68,8 +69,26 @@ class LLMStreamProcessor:
         self._llm_turn_counter = 0
         self._last_prompt_fingerprints: Optional[List[str]] = None
         self._last_response_payload: Optional[NormalizedLLMResponse] = None
+        self._response_lock = asyncio.Lock()
 
     async def get_response(
+        self,
+        prompt: List[LLMMessage],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        tool_choice: Optional[Any] = None,
+        parallel_tool_calls: Optional[bool] = None,
+    ) -> AsyncGenerator[AgentStreamingEvent, None]:
+        """Serialize LLM response processing for this session-scoped processor."""
+        async with self._response_lock:
+            async for event in self._get_response_unlocked(
+                prompt=prompt,
+                tools=tools,
+                tool_choice=tool_choice,
+                parallel_tool_calls=parallel_tool_calls,
+            ):
+                yield event
+
+    async def _get_response_unlocked(
         self,
         prompt: List[LLMMessage],
         tools: Optional[List[Dict[str, Any]]] = None,

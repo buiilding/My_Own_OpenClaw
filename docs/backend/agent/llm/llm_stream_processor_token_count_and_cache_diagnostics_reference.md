@@ -81,6 +81,11 @@ OpenAI continuation rule:
 
 `get_last_response_payload()` returns copy to protect internal mutation.
 
+`get_response(...)` is serialized per `LLMStreamProcessor` instance. The
+processor owns session-scoped prompt fingerprints, latest normalized response
+payload, and OpenAI `previous_response_id` continuation lookup, so overlapping
+generators must not mutate those fields concurrently.
+
 Normalized payload nuance:
 
 - OpenAI Responses payloads can now persist `response_id` in addition to `content`, `tool_calls`, and `finish_reason`

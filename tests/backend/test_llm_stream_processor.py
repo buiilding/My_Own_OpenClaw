@@ -1,5 +1,6 @@
 """Tests for LLMStreamProcessor cache diagnostics logging."""
 
+import asyncio
 import logging
 
 import pytest
@@ -135,6 +136,30 @@ class _UnsupportedEventLLMClient:
         parallel_tool_calls=None,
     ):
         yield {"event": "unsupported"}
+
+    def get_last_stream_cache_diagnostics(self):
+        return None
+
+
+class _BlockingLLMClient:
+    def __init__(self):
+        self.started_prompts = []
+        self.release_first = asyncio.Event()
+
+    async def get_completion_stream(
+        self,
+        model,
+        messages,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+    ):
+        _ = (model, tools, tool_choice, parallel_tool_calls)
+        prompt_label = messages[0]["content"]
+        self.started_prompts.append(prompt_label)
+        if prompt_label == "first":
+            await self.release_first.wait()
+        yield ChunkEvent(content=f"resp-{prompt_label}")
 
     def get_last_stream_cache_diagnostics(self):
         return None
@@ -481,6 +506,44 @@ async def test_rejects_unsupported_stream_event_types(monkeypatch):
             events.append(event)
 
     assert any(isinstance(event, ErrorEvent) for event in events)
+
+
+@pytest.mark.asyncio
+async def test_get_response_serializes_overlapping_turns(monkeypatch):
+    _patch_fake_token_service(monkeypatch)
+    llm_client = _BlockingLLMClient()
+    processor = LLMStreamProcessor(llm_client=llm_client, session=_FakeSession())
+
+    async def collect(prompt_label):
+        return [
+            event
+            async for event in processor.get_response(
+                [{"role": "user", "content": prompt_label}]
+            )
+        ]
+
+    first_task = asyncio.create_task(collect("first"))
+    await asyncio.sleep(0)
+    assert llm_client.started_prompts == ["first"]
+
+    second_task = asyncio.create_task(collect("second"))
+    await asyncio.sleep(0)
+    assert llm_client.started_prompts == ["first"]
+
+    llm_client.release_first.set()
+    first_events = await first_task
+    await asyncio.sleep(0)
+    second_events = await second_task
+
+    assert llm_client.started_prompts == ["first", "second"]
+    assert any(
+        isinstance(event, ChunkEvent) and event.content == "resp-first"
+        for event in first_events
+    )
+    assert any(
+        isinstance(event, ChunkEvent) and event.content == "resp-second"
+        for event in second_events
+    )
 
 
 @pytest.mark.asyncio

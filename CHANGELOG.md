@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/llm: serialize overlapping `LLMStreamProcessor.get_response` calls so turn-local payload and continuation state cannot race.
 - backend/tools: treat nullable or empty `error` fields as successful `ToolResult.from_payload` inputs unless success is explicit.
 - frontend/voice: reconcile pasted text selections with active transcription regions using the full replacement range and net length delta.
 - frontend/main: resolve extensionless packaged sidecar service names to bundled `.pyc` launch targets.
