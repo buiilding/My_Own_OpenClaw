@@ -115,7 +115,7 @@ Design intent:
 
 For mapping-shaped tool-result payloads:
 
-- `success` defaults to `True` unless `error` exists
+- `success` defaults to `True` unless `error` has a meaningful non-empty value
 - standard keys are extracted directly
 - non-standard keys become `data` when `data` missing
 - screenshot-only data avoids leaking base64 into text and falls back to generic success string

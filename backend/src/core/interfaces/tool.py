@@ -5,9 +5,9 @@ This module defines interfaces and data structures for tool execution results
 and tool categorization.
 """
 
-from typing import Any, Dict, List, Protocol, runtime_checkable, Optional
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any, Dict, List, Optional, Protocol, runtime_checkable
 
 
 class Kind(Enum):
@@ -79,7 +79,7 @@ class ToolResult:
 
         # Determine success if not explicitly set
         if "success" not in kwargs:
-            kwargs["success"] = "error" not in result_payload
+            kwargs["success"] = not bool(result_payload.get("error"))
 
         # Extract data field - if not present, use remaining non-standard fields
         if "data" not in kwargs or kwargs["data"] is None:

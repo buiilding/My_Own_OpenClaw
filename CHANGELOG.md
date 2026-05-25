@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/tools: treat nullable or empty `error` fields as successful `ToolResult.from_payload` inputs unless success is explicit.
 - frontend/voice: reconcile pasted text selections with active transcription regions using the full replacement range and net length delta.
 - frontend/main: resolve extensionless packaged sidecar service names to bundled `.pyc` launch targets.
 - backend/api: add formatter package import smoke coverage for the public websocket formatter export surface.

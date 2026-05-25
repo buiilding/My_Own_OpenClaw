@@ -18,6 +18,15 @@ def test_from_payload_error_sets_success_false_and_llm_content():
     assert result.return_display == "Error: boom"
 
 
+def test_from_payload_null_error_defaults_success_true():
+    result = ToolResult.from_payload({"error": None, "data": {"output": "ok"}})
+
+    assert result.success is True
+    assert result.error is None
+    assert result.llm_content == "ok"
+    assert result.return_display == "ok"
+
+
 def test_from_payload_screenshot_only_generates_generic_message():
     result = ToolResult.from_payload({"data": {"screenshot": "shot"}})
 
