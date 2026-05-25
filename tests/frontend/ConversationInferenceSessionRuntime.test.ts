@@ -1,5 +1,9 @@
 import { DesktopConversationContinuityService } from '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService';
 import {
+  clearAllConversationWorkspaceBindings,
+  getConversationWorkspaceBinding,
+} from '../../frontend/src/renderer/infrastructure/workspace/conversationWorkspaceBinding';
+import {
   clearConversationInferenceSessionState,
   ensureConversationInferenceSessionHydrated,
   getConversationInferenceSessionState,
@@ -19,6 +23,14 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuity
 
 const mockContinuityService = DesktopConversationContinuityService as jest.Mocked<typeof DesktopConversationContinuityService>;
 
+function createDeferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((innerResolve) => {
+    resolve = innerResolve;
+  });
+  return { promise, resolve };
+}
+
 function mockLocalSnapshot() {
   mockContinuityService.loadLocalConversationSnapshot.mockResolvedValue({
     transcriptEntries: [],
@@ -35,6 +47,7 @@ function mockLocalSnapshot() {
 describe('conversationInferenceSessionRuntime', () => {
   beforeEach(() => {
     invalidateConversationInferenceSessionState();
+    clearAllConversationWorkspaceBindings();
     mockContinuityService.rehydrateFromStore.mockReset();
     mockContinuityService.rehydrateMessages.mockReset();
     mockContinuityService.loadLocalConversationSnapshot.mockReset();
@@ -147,6 +160,48 @@ describe('conversationInferenceSessionRuntime', () => {
     });
 
     expect(mockContinuityService.rehydrateFromStore).toHaveBeenCalledTimes(2);
+  });
+
+  test('skips stale snapshot side effects after connection invalidation', async () => {
+    markConversationInferenceSessionUnknown('conv-stale');
+    const deferredSnapshot = createDeferred<{
+      transcriptEntries: unknown[];
+      replayEntries: unknown[];
+      workspaceBinding: {
+        workspacePath: string;
+        workspaceName: string;
+      };
+      parsedMessages: unknown[];
+      rehydrateMessages: unknown[];
+    }>();
+    mockContinuityService.loadLocalConversationSnapshot.mockReturnValueOnce(
+      deferredSnapshot.promise as ReturnType<typeof mockContinuityService.loadLocalConversationSnapshot>,
+    );
+
+    const ensurePromise = ensureConversationInferenceSessionHydrated({
+      conversationRef: 'conv-stale',
+      userId: 'user-1',
+    });
+    invalidateConversationInferenceSessionState();
+    deferredSnapshot.resolve({
+      transcriptEntries: [],
+      replayEntries: [],
+      workspaceBinding: {
+        workspacePath: '/tmp/stale-workspace',
+        workspaceName: 'stale-workspace',
+      },
+      parsedMessages: [],
+      rehydrateMessages: [],
+    });
+
+    await ensurePromise;
+
+    expect(mockContinuityService.rehydrateFromStore).not.toHaveBeenCalled();
+    expect(getConversationWorkspaceBinding('conv-stale')).toEqual({
+      workspacePath: '',
+      workspaceName: '',
+    });
+    expect(getConversationInferenceSessionState('conv-stale')).toBeNull();
   });
 
   test('clearing a conversation removes its sync state record', () => {

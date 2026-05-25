@@ -61,6 +61,10 @@ function getEnsureKey(conversationRef: string): string {
   return `${connectionEpoch}:${conversationRef}`;
 }
 
+function isCurrentConnectionEpoch(epoch: number): boolean {
+  return epoch === connectionEpoch;
+}
+
 export function getConversationInferenceSessionState(
   conversationRef: string | null | undefined,
 ): ConversationInferenceSessionState | null {
@@ -155,13 +159,16 @@ export async function ensureConversationInferenceSessionHydrated({
       conversationRef: normalizedConversationRef,
       recordKind,
     });
+    if (!isCurrentConnectionEpoch(startingEpoch)) {
+      return;
+    }
     setConversationWorkspaceBinding(normalizedConversationRef, snapshot.workspaceBinding);
     await DesktopConversationContinuityService.rehydrateFromStore({
       conversationRef: normalizedConversationRef,
       userId: normalizedUserId,
       workspacePath: getConversationWorkspaceBinding(normalizedConversationRef).workspacePath || null,
     });
-    if (startingEpoch === connectionEpoch) {
+    if (isCurrentConnectionEpoch(startingEpoch)) {
       markConversationInferenceSessionHydrated(normalizedConversationRef);
     }
   })();
@@ -186,12 +193,16 @@ export async function rehydrateConversationInferenceSession({
   }
 
   const startingEpoch = connectionEpoch;
+  await Promise.resolve();
+  if (!isCurrentConnectionEpoch(startingEpoch)) {
+    return;
+  }
   await DesktopConversationContinuityService.rehydrateMessages({
     conversationRef: normalizedConversationRef,
     messages,
     workspacePath: getConversationWorkspaceBinding(normalizedConversationRef).workspacePath || null,
   });
-  if (startingEpoch === connectionEpoch) {
+  if (isCurrentConnectionEpoch(startingEpoch)) {
     markConversationInferenceSessionHydrated(normalizedConversationRef);
   }
 }

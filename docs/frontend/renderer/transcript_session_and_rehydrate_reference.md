@@ -228,6 +228,11 @@ service for the backend rehydrate payload. The local snapshot loader still
 supplies workspace binding/display metadata, but the backend continuation
 payload comes from the SDK store projection.
 
+Hydration work is scoped to the current backend connection epoch. If the
+connection is invalidated while a local snapshot load or explicit rehydrate is
+pending, stale continuations must return before mutating workspace bindings or
+rehydrating the new backend session.
+
 Dashboard startup and open-chat loading also use the SDK store adapter:
 
 - recent chats are listed through store metadata from `chat_events` rows
