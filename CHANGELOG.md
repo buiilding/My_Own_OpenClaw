@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/bootstrap: reject concurrent cross-thread initialization deterministically instead of sharing an event-loop-bound `asyncio.Lock`.
 - backend/inference: keep provider circuits open through cooldown even if an older in-flight request reports success.
 - frontend/browser: invalidate in-flight browser session syncs on disconnect so stale tab polling cannot restore a connected UI state.
 - backend/browser: load sidecar browser shared contracts without prepending the frontend Python tree to backend `sys.path`.

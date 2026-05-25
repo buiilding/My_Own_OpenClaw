@@ -42,6 +42,12 @@ Startup sequence:
 4. Validation phase
 - Confirms required runtime services are present (config service, tool registry, etc.).
 
+Concurrency contract:
+
+- `initialize()` is a one-shot startup path.
+- A call made after successful initialization raises `RuntimeError`.
+- A call made while another thread or event loop is actively initializing raises `RuntimeError` immediately.
+
 ## Config Model and Runtime Policy
 
 Core model:

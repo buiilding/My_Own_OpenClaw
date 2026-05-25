@@ -50,9 +50,10 @@ Facade entrypoint is `Container`:
 
 Concurrency guards:
 
-- coordinator uses thread-safe lazy creation for `asyncio.Lock`
+- coordinator uses a thread lock only to claim initialization state, then releases it before awaited startup work
+- concurrent calls while startup is active raise `RuntimeError` instead of waiting on a loop-bound lock
 - second call after initialization raises `RuntimeError`
-- race during concurrent calls is guarded by double-check after lock acquisition
+- this contract is valid across OS threads and event loops
 
 Rollback behavior on failure:
 

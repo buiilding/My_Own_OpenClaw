@@ -4,11 +4,9 @@ Initialization Coordinator.
 Coordinates the initialization phases of the application startup process.
 """
 
-import asyncio
 import logging
 import threading
-from typing import cast
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, cast
 
 from fastapi import FastAPI
 
@@ -49,10 +47,8 @@ class InitializationCoordinator:
         self.handler_initializer: Optional[HandlerInitializer] = None
         self._initialized_phases: List[str] = []
         self._is_initialized: bool = False
-        # INITIALIZATION RACE FIX: Use threading.Lock to protect asyncio.Lock creation
-        # This prevents race condition when initialize() is called from multiple threads
-        self._lock_creation_lock = threading.Lock()
-        self._initialization_lock: Optional[asyncio.Lock] = None
+        self._is_initializing: bool = False
+        self._state_lock = threading.Lock()
 
     @property
     def is_initialized(self) -> bool:
@@ -83,65 +79,59 @@ class InitializationCoordinator:
             InitializationError: If any phase fails during initialization.
             RuntimeError: If already initialized (caller should check is_initialized first).
         """
-        # Prevent multiple initializations
-        if self._is_initialized:
-            raise RuntimeError(
-                "InitializationCoordinator already initialized. "
-                "Check is_initialized property before calling initialize()."
-            )
-
-        # INITIALIZATION RACE FIX: Use threading.Lock to protect asyncio.Lock creation
-        # This ensures only one thread creates the asyncio.Lock, preventing race conditions
-        # when initialize() is called concurrently from different threads
-        if self._initialization_lock is None:
-            with self._lock_creation_lock:
-                # Double-check after acquiring threading lock
-                if self._initialization_lock is None:
-                    self._initialization_lock = asyncio.Lock()
-
-        async with self._initialization_lock:
-            # Double-check after acquiring lock
+        with self._state_lock:
             if self._is_initialized:
                 raise RuntimeError(
-                    "InitializationCoordinator already initialized (race condition detected)."
+                    "InitializationCoordinator already initialized. "
+                    "Check is_initialized property before calling initialize()."
                 )
+            if self._is_initializing:
+                raise RuntimeError(
+                    "InitializationCoordinator initialization already in progress. "
+                    "Wait for the active initialize() call to complete before retrying."
+                )
+            self._is_initializing = True
 
-            try:
-                # Phase 1: Configuration
-                await self._initialize_configuration(config_manager)
-                self._initialized_phases.append("configuration")
+        try:
+            # Phase 1: Configuration
+            await self._initialize_configuration(config_manager)
+            self._initialized_phases.append("configuration")
 
-                # Phase 2: Container
-                await self._initialize_container()
-                self._initialized_phases.append("container")
+            # Phase 2: Container
+            await self._initialize_container()
+            self._initialized_phases.append("container")
 
-                # Phase 3: Services (SessionManager, Handlers)
-                await self._initialize_services()
-                self._initialized_phases.append("services")
+            # Phase 3: Services (SessionManager, Handlers)
+            await self._initialize_services()
+            self._initialized_phases.append("services")
 
-                # Validate final state
-                self._validate_final_state()
+            # Validate final state
+            self._validate_final_state()
 
+            with self._state_lock:
                 self._is_initialized = True
-                logger.info("Application initialization complete.")
-                return self.container, self.session_manager
+            logger.info("Application initialization complete.")
+            return self.container, self.session_manager
 
-            except Exception as e:
-                # Preserve original exception type if it's already an InitializationError
-                if isinstance(e, InitializationError):
-                    original_error = e
-                else:
-                    original_error = InitializationError(
-                        f"Initialization failed at phase '{self._initialized_phases[-1] if self._initialized_phases else 'unknown'}': {str(e)}"
-                    )
-
-                logger.error(
-                    f"Initialization failed at phase: {self._initialized_phases[-1] if self._initialized_phases else 'unknown'}",
-                    exc_info=True,
+        except Exception as e:
+            # Preserve original exception type if it's already an InitializationError
+            if isinstance(e, InitializationError):
+                original_error = e
+            else:
+                original_error = InitializationError(
+                    f"Initialization failed at phase '{self._initialized_phases[-1] if self._initialized_phases else 'unknown'}': {str(e)}"
                 )
-                # Attempt cleanup of initialized phases
-                await self._rollback()
-                raise original_error
+
+            logger.error(
+                f"Initialization failed at phase: {self._initialized_phases[-1] if self._initialized_phases else 'unknown'}",
+                exc_info=True,
+            )
+            # Attempt cleanup of initialized phases
+            await self._rollback()
+            raise original_error
+        finally:
+            with self._state_lock:
+                self._is_initializing = False
 
     async def _initialize_configuration(
         self, config_manager: Optional[ConfigManager] = None
