@@ -129,7 +129,11 @@ Before invoking the summary strategy, the engine checks the retained tail agains
 
 If the retained tail is still too large:
 
-- older retained-tail messages are moved into `messages_to_compact` so they are summarized instead of preserved verbatim
+- older retained-tail turns are moved into `messages_to_compact` so they are
+  summarized instead of preserved verbatim
+- turn-boundary trimming keeps a leading user message, assistant tool-call row,
+  and matching tool-output rows together; it never keeps a tool output only
+  because an earlier message from the same retained turn was trimmed
 - if one remaining tail message is still oversized, its text is truncated with `[[TRUNCATED DURING CONTEXT COMPACTION]]`, structured multimodal payloads are removed, and `compaction_facts.context_compaction_truncated=true` is recorded
 
 This keeps the prompt from staying oversized after a nominally successful compaction.

@@ -317,6 +317,70 @@ async def test_compaction_engine_moves_retained_tail_under_target_budget(monkeyp
 
 
 @pytest.mark.asyncio
+async def test_compaction_engine_trims_retained_tail_at_tool_turn_boundary(
+    monkeypatch,
+):
+    class _BudgetTokenService:
+        def count_tokens(self, messages, model):
+            _ = model
+            return len(messages) * 200
+
+        def count_message_tokens(self, message, model):
+            _ = (message, model)
+            return 0
+
+    monkeypatch.setattr(
+        token_service_module,
+        "get_token_service",
+        lambda: _BudgetTokenService(),
+    )
+    monkeypatch.setattr(
+        compaction_engine_module,
+        "get_token_service",
+        lambda: _BudgetTokenService(),
+    )
+    history = ConversationHistory()
+    history.add_user_message("old user")
+    history.add_assistant_message("old assistant")
+    history.add_user_message("tool user")
+    history.add_assistant_message(
+        "",
+        tool_calls=[
+            {
+                "id": "call_1",
+                "name": "read_file",
+                "arguments": {"path": "/tmp/demo.txt"},
+            }
+        ],
+    )
+    history.stage_tool_call_ids(["call_1"])
+    history.add_tool_output("tool result", tool_name="read_file")
+    history.add_user_message("new user")
+    history.add_assistant_message("new assistant")
+    cfg = AppConfig(
+        history_compaction_enabled=True,
+        history_compaction_trigger_tokens=2048,
+        history_compaction_keep_recent_user_messages=2,
+        history_compaction_target_tokens=1024,
+        history_compaction_summary_max_tokens=200,
+    )
+    session = _FakeSession(cfg=cfg, history=history)
+    engine = CompactionEngine(session)
+
+    decision = engine.evaluate(reason="auto-mid", force=True)
+    result = await engine.compact(reason="auto-mid", decision=decision)
+
+    assert result.applied is True
+    stored = history.get_stored_messages()
+    assert stored[0].message_type == MessageType.CONTEXT_COMPACTION
+    assert [message.content for message in stored[1:]] == [
+        "new user",
+        "new assistant",
+    ]
+    assert all(message.tool_call_id is None for message in stored[1:])
+
+
+@pytest.mark.asyncio
 async def test_compaction_engine_truncates_oversized_single_tail_message(monkeypatch):
     class _OversizedTailTokenService:
         def count_tokens(self, messages, model):

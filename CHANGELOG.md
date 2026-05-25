@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/compaction: trim retained history at turn boundaries so tool outputs are not orphaned after target-budget enforcement.
 - frontend/main: advance high-level surface state only after chat or dashboard show operations succeed.
 - backend/llm: mark late stream failures with terminal metadata so partial streamed text is not treated as a successful response.
 - backend/llm: clear stream-scoped usage and normalized response payload state before each provider stream.

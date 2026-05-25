@@ -346,7 +346,9 @@ class CompactionEngine:
             len(tail_messages) > 1
             and self._count_messages_tokens(tail_messages) > tail_budget
         ):
-            compacted_messages.append(tail_messages.pop(0))
+            drop_count = self._count_leading_tail_turn_messages(tail_messages)
+            compacted_messages.extend(tail_messages[:drop_count])
+            tail_messages = tail_messages[drop_count:]
 
         if tail_messages and self._count_messages_tokens(tail_messages) > tail_budget:
             tail_messages = [
@@ -354,6 +356,20 @@ class CompactionEngine:
             ]
 
         return compacted_messages, tail_messages
+
+    @staticmethod
+    def _count_leading_tail_turn_messages(messages: List[StoredMessage]) -> int:
+        if not messages:
+            return 0
+        if messages[0].role != MessageRole.USER:
+            for index, message in enumerate(messages[1:], start=1):
+                if message.role == MessageRole.USER:
+                    return index
+            return len(messages)
+        for index, message in enumerate(messages[1:], start=1):
+            if message.role == MessageRole.USER:
+                return index
+        return len(messages)
 
     def _count_messages_tokens(self, messages: List[StoredMessage]) -> int:
         if not messages:
