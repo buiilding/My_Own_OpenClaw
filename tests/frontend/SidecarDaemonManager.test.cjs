@@ -92,6 +92,128 @@ describe('sidecar daemon manager', () => {
     });
   });
 
+  test('rejects discovery metadata that points outside loopback origins', async () => {
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-daemon-'));
+    const discoveryPath = path.join(tempDir, 'sidecar-daemon.json');
+    const {
+      readDiscoveryFile,
+    } = loadManager();
+
+    for (const baseUrl of [
+      'http://example.com:4567',
+      'https://192.168.1.10:4567',
+      'file:///tmp/sidecar.sock',
+      'http://127.0.0.1:4567/prefix',
+      'http://token@127.0.0.1:4567',
+    ]) {
+      await fsPromises.writeFile(
+        discoveryPath,
+        JSON.stringify({
+          pid: 123,
+          base_url: baseUrl,
+          token: 'token-123',
+        }),
+        'utf8',
+      );
+
+      expect(readDiscoveryFile(discoveryPath)).toBeNull();
+    }
+  });
+
+  test('deletes invalid discovery metadata without probing its base url', async () => {
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-daemon-'));
+    const discoveryPath = path.join(tempDir, 'sidecar-daemon.json');
+    await fsPromises.writeFile(
+      discoveryPath,
+      JSON.stringify({
+        pid: 123,
+        base_url: 'http://example.com:4567',
+        token: 'token-old',
+      }),
+      'utf8',
+    );
+    const fetchImpl = jest.fn(async (url) => {
+      if (url === 'http://127.0.0.1:7654/health') {
+        return jsonResponse({ status: 'ok' });
+      }
+      throw new Error(`unexpected probe: ${url}`);
+    });
+    const proc = new EventEmitter();
+    proc.stderr = new EventEmitter();
+    proc.kill = jest.fn();
+    proc.pid = 456;
+    const spawnImpl = jest.fn(() => {
+      expect(fs.existsSync(discoveryPath)).toBe(false);
+      setTimeout(() => {
+        fs.writeFileSync(
+          discoveryPath,
+          JSON.stringify({
+            pid: 456,
+            base_url: 'http://127.0.0.1:7654',
+            token: 'token-new',
+          }),
+          'utf8',
+        );
+      }, 0);
+      return proc;
+    });
+    const {
+      createSidecarDaemonManager,
+    } = loadManager();
+
+    const manager = createSidecarDaemonManager({
+      discoveryPath,
+      fetchImpl,
+      spawnImpl,
+      startTimeoutMs: 1000,
+      pollIntervalMs: 5,
+    });
+
+    await expect(manager.ensureDaemon()).resolves.toBeDefined();
+    expect(spawnImpl).toHaveBeenCalledTimes(1);
+    expect(fetchImpl).not.toHaveBeenCalledWith(
+      'http://example.com:4567/health',
+      expect.anything(),
+    );
+    expect(fetchImpl).toHaveBeenCalledWith(
+      'http://127.0.0.1:7654/health',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          'x-windie-sidecar-token': 'token-new',
+        }),
+      }),
+    );
+  });
+
+  test('accepts loopback discovery origins', async () => {
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-daemon-'));
+    const discoveryPath = path.join(tempDir, 'sidecar-daemon.json');
+    const {
+      readDiscoveryFile,
+    } = loadManager();
+
+    for (const [baseUrl, expectedBaseUrl] of [
+      ['http://localhost:4567/', 'http://localhost:4567'],
+      ['http://127.9.8.7:4567', 'http://127.9.8.7:4567'],
+      ['http://[::1]:4567', 'http://[::1]:4567'],
+    ]) {
+      await fsPromises.writeFile(
+        discoveryPath,
+        JSON.stringify({
+          pid: 123,
+          base_url: baseUrl,
+          token: 'token-123',
+        }),
+        'utf8',
+      );
+
+      expect(readDiscoveryFile(discoveryPath)).toMatchObject({
+        baseUrl: expectedBaseUrl,
+        token: 'token-123',
+      });
+    }
+  });
+
   test('spawns daemon and waits for discovery when no reusable daemon exists', async () => {
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-daemon-'));
     const discoveryPath = path.join(tempDir, 'sidecar-daemon.json');

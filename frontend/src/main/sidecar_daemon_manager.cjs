@@ -21,11 +21,51 @@ const DEFAULT_DAEMON_DISCOVERY_PATH = path.join(
 const DEFAULT_DAEMON_START_TIMEOUT_MS = 10000;
 const DEFAULT_DAEMON_POLL_INTERVAL_MS = 100;
 
+function isLoopbackHostname(hostname) {
+  const host = String(hostname || '').toLowerCase();
+  if (host === 'localhost' || host === '::1' || host === '[::1]' || host === '0:0:0:0:0:0:0:1') {
+    return true;
+  }
+  const ipv4Match = host.match(/^(\d{1,3})(?:\.(\d{1,3})){3}$/);
+  if (!ipv4Match) {
+    return false;
+  }
+  const octets = host.split('.').map((part) => Number(part));
+  return octets.length === 4
+    && octets.every((octet) => Number.isInteger(octet) && octet >= 0 && octet <= 255)
+    && octets[0] === 127;
+}
+
+function normalizeDaemonBaseUrl(value) {
+  const rawBaseUrl = typeof value === 'string' ? value.trim() : '';
+  if (!rawBaseUrl) {
+    return null;
+  }
+  try {
+    const parsed = new URL(rawBaseUrl);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return null;
+    }
+    if (!isLoopbackHostname(parsed.hostname)) {
+      return null;
+    }
+    if (parsed.username || parsed.password) {
+      return null;
+    }
+    if (parsed.pathname !== '/' || parsed.search || parsed.hash) {
+      return null;
+    }
+    return parsed.origin;
+  } catch (_error) {
+    return null;
+  }
+}
+
 function normalizeDiscovery(raw) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
     return null;
   }
-  const baseUrl = typeof raw.base_url === 'string' ? raw.base_url.trim() : '';
+  const baseUrl = normalizeDaemonBaseUrl(raw.base_url);
   const token = typeof raw.token === 'string' ? raw.token.trim() : '';
   const pid = Number.isFinite(Number(raw.pid)) ? Number(raw.pid) : null;
   if (!baseUrl || !token) {
@@ -305,6 +345,9 @@ function createSidecarDaemonManager(options = {}) {
 
   async function reuseExistingDaemon() {
     const discovery = readDiscoveryFile(discoveryPath);
+    if (!discovery && fs.existsSync(discoveryPath)) {
+      deleteDiscoveryFile(discoveryPath);
+    }
     const existing = await probe(discovery);
     if (existing) {
       client = existing;

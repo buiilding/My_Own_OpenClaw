@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sidecar: reject daemon discovery files that point outside loopback HTTP(S) origins before sending sidecar tokens.
 - backend/tts: drain pending stream TTS task snapshots without dropping tasks scheduled during the wait barrier.
 - backend/settings: redact provider API key values from `load-settings` responses while preserving non-secret provider state.
 - backend/sdk: require authenticated install identity before SDK OCR run resolves images or invokes OCR work.

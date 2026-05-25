@@ -37,6 +37,8 @@ Every endpoint requires the token in either:
 
 Electron's daemon manager probes the discovery file first. If `/health` succeeds with the stored token, the manager reuses that daemon. If discovery is missing or stale, it launches `sidecar_daemon.py` and waits for a fresh discovery file before routing local execution.
 
+Discovery reuse is restricted to loopback HTTP(S) origins. Electron rejects discovery entries with non-loopback hosts, unsupported schemes, userinfo, paths, queries, or fragments before sending the sidecar token, and deletes invalid reusable discovery files before launching a replacement daemon.
+
 ## Endpoints
 
 ```text
