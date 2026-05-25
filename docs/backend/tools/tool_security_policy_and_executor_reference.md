@@ -62,9 +62,17 @@ This keeps tool metadata as a declaration of required capabilities, not an autho
 
 ## Remote Tool Permission Metadata Reality
 
-Remote tools inherit `RemoteToolBase.required_permissions = set()`.
+Remote tools inherit `RemoteToolBase.required_permissions = set()`, but
+sensitive remote stubs override it at the class level:
 
-Current remote tool classes do not override this metadata, so if `SecurityPolicy.check_permission(...)` were enforced directly, tool actions would deny by default (no declared permissions).
+- `read_file`: `READ_FILESYSTEM`
+- `replace`: `READ_FILESYSTEM`, `WRITE_FILESYSTEM`
+- `run_shell_command`: `EXECUTE_COMMANDS`
+- `process`: `EXECUTE_COMMANDS`
+
+If `SecurityPolicy.check_permission(...)` is enforced directly, these stubs now
+declare the machine capability they require before a separate grant authorizes
+execution.
 
 ## Audit Log Memory and Concurrency Guards
 

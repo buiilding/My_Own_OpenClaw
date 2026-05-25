@@ -131,7 +131,10 @@ Partially wired/deferred:
 - `ToolExecutionAudit` runtime logging integration at dispatch boundaries
 - `ProcessSandboxedExecutor` real isolation implementation
 
-Remote tools currently default `required_permissions = set()` in `remote_tools/base.py`; strict `SecurityPolicy` enforcement without per-tool declarations would deny by default.
+Remote tools default `required_permissions = set()` in `remote_tools/base.py`.
+Sensitive filesystem and shell/process stubs override that default with explicit
+filesystem or command-execution permissions so strict `SecurityPolicy`
+enforcement can distinguish declared capability from an actual grant.
 
 ## Hardening Checklist
 

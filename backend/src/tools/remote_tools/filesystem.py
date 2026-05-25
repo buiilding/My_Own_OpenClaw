@@ -4,13 +4,11 @@ Remote filesystem-domain tool stubs.
 
 from __future__ import annotations
 
+from backend.src.core.security.policy import Permission
 from backend.src.sdk.context import ToolContext
 from backend.src.sdk.tool import Tool
 from backend.src.tools.categorization import ToolDomain
-from backend.src.tools.filesystem.schemas import (
-    ReadFileArgs,
-    ReplaceArgs,
-)
+from backend.src.tools.filesystem.schemas import ReadFileArgs, ReplaceArgs
 from backend.src.tools.remote_tools.base import RemoteToolBase, RemoteToolResult
 
 
@@ -19,8 +17,11 @@ class RemoteReadFileTool(RemoteToolBase, Tool[ReadFileArgs]):
     description = "Read file contents. Use this tool to examine existing files."
     args_model = ReadFileArgs
     category = ToolDomain.FILESYSTEM
+    required_permissions = {Permission.READ_FILESYSTEM}
 
-    async def execute_remote(self, args: ReadFileArgs, ctx: ToolContext) -> RemoteToolResult:
+    async def execute_remote(
+        self, args: ReadFileArgs, ctx: ToolContext
+    ) -> RemoteToolResult:
         return self._build_remote_result(
             args,
             ctx,
@@ -40,8 +41,11 @@ class RemoteReplaceTool(RemoteToolBase, Tool[ReplaceArgs]):
     )
     args_model = ReplaceArgs
     category = ToolDomain.FILESYSTEM
+    required_permissions = {Permission.READ_FILESYSTEM, Permission.WRITE_FILESYSTEM}
 
-    async def execute_remote(self, args: ReplaceArgs, ctx: ToolContext) -> RemoteToolResult:
+    async def execute_remote(
+        self, args: ReplaceArgs, ctx: ToolContext
+    ) -> RemoteToolResult:
         return self._build_remote_result(
             args,
             ctx,

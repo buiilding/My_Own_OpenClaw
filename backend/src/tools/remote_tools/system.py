@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from backend.src.core.security.policy import Permission
 from backend.src.core.utils.string_normalization import normalize_non_empty_string
 from backend.src.sdk.context import ToolContext
 from backend.src.sdk.tool import Tool
@@ -30,8 +31,12 @@ class RemoteGetSystemStatsTool(RemoteToolBase, Tool[GetSystemStatsArgs]):
     args_model = GetSystemStatsArgs
     category = ToolDomain.SYSTEM
 
-    async def execute_remote(self, args: GetSystemStatsArgs, ctx: ToolContext) -> RemoteToolResult:
-        return self._build_remote_result(args, ctx, log_message="Remote get system stats tool call")
+    async def execute_remote(
+        self, args: GetSystemStatsArgs, ctx: ToolContext
+    ) -> RemoteToolResult:
+        return self._build_remote_result(
+            args, ctx, log_message="Remote get system stats tool call"
+        )
 
 
 class RemoteShellTool(RemoteToolBase, Tool[RunShellCommandArgs]):
@@ -65,8 +70,11 @@ class RemoteShellTool(RemoteToolBase, Tool[RunShellCommandArgs]):
     )
     args_model = RunShellCommandArgs
     category = ToolDomain.SYSTEM
+    required_permissions = {Permission.EXECUTE_COMMANDS}
 
-    async def execute_remote(self, args: RunShellCommandArgs, ctx: ToolContext) -> RemoteToolResult:
+    async def execute_remote(
+        self, args: RunShellCommandArgs, ctx: ToolContext
+    ) -> RemoteToolResult:
         return self._build_remote_result(
             args,
             ctx,
@@ -88,7 +96,9 @@ class RemoteOpenAppTool(RemoteToolBase, Tool[OpenAppArgs]):
     args_model = OpenAppArgs
     category = ToolDomain.SYSTEM
 
-    async def execute_remote(self, args: OpenAppArgs, ctx: ToolContext) -> RemoteToolResult:
+    async def execute_remote(
+        self, args: OpenAppArgs, ctx: ToolContext
+    ) -> RemoteToolResult:
         return self._build_remote_result(
             args,
             ctx,
@@ -104,8 +114,11 @@ class RemoteProcessTool(RemoteToolBase, Tool[ProcessShellCommandArgs]):
     )
     args_model = ProcessShellCommandArgs
     category = ToolDomain.SYSTEM
+    required_permissions = {Permission.EXECUTE_COMMANDS}
 
-    async def execute_remote(self, args: ProcessShellCommandArgs, ctx: ToolContext) -> RemoteToolResult:
+    async def execute_remote(
+        self, args: ProcessShellCommandArgs, ctx: ToolContext
+    ) -> RemoteToolResult:
         return self._build_remote_result(
             args,
             ctx,
@@ -120,4 +133,6 @@ _SYSTEM_USE_MODEL_BY_TOOL = {
     "get_system_stats": GetSystemStatsArgs,
     "get_open_windows": GetOpenWindowsArgs,
 }
-_SYSTEM_USE_TARGET_TOOL_BY_TOOL = {tool_name: tool_name for tool_name in _SYSTEM_USE_MODEL_BY_TOOL}
+_SYSTEM_USE_TARGET_TOOL_BY_TOOL = {
+    tool_name: tool_name for tool_name in _SYSTEM_USE_MODEL_BY_TOOL
+}

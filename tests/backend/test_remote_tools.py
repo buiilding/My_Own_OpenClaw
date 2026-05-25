@@ -3,11 +3,19 @@ import uuid
 import pytest
 from pydantic import ValidationError
 
+from backend.src.core.security.policy import Permission
 from backend.src.sdk.context import (
     ExecutionRuntime,
     SessionContext,
     ToolContext,
     UserContext,
+)
+from backend.src.tools.computer.schemas import (
+    KeyboardControlArgs,
+    MouseControlArgs,
+    ScrollControlArgs,
+    SwitchTabArgs,
+    WaitToolArgs,
 )
 from backend.src.tools.remote import (
     RemoteMouseTool,
@@ -16,13 +24,6 @@ from backend.src.tools.remote import (
     RemoteWaitTool,
     get_all_remote_tools,
     get_remote_tool,
-)
-from backend.src.tools.computer.schemas import (
-    KeyboardControlArgs,
-    MouseControlArgs,
-    ScrollControlArgs,
-    SwitchTabArgs,
-    WaitToolArgs,
 )
 
 EXPLANATION = "Advance the active user task."
@@ -274,6 +275,20 @@ def test_get_all_remote_tools_returns_copy():
 
     fresh = get_all_remote_tools()
     assert "mouse_control" in fresh
+
+
+def test_sensitive_remote_tools_declare_required_permissions():
+    expected_permissions = {
+        "read_file": {Permission.READ_FILESYSTEM},
+        "replace": {Permission.READ_FILESYSTEM, Permission.WRITE_FILESYSTEM},
+        "run_shell_command": {Permission.EXECUTE_COMMANDS},
+        "process": {Permission.EXECUTE_COMMANDS},
+    }
+
+    for tool_name, permissions in expected_permissions.items():
+        tool_class = get_remote_tool(tool_name)
+        assert tool_class is not None
+        assert set(tool_class().required_permissions) == permissions
 
 
 def test_remote_mouse_tool_schema_explicitly_guides_ocr_for_text_targets():
