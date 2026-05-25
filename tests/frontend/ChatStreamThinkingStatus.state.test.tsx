@@ -184,6 +184,24 @@ describe('useChatStream state + stream handling', () => {
     ]);
   });
 
+  test('does not render raw live assistant chunks when projection fallback is disabled', () => {
+    const { emitBackendEvent } = registerBackendListener(true, {});
+
+    act(() => {
+      useChatStore.setState({
+        messages: [],
+        currentTurnProjection: null,
+      });
+      emitBackendEvent({
+        type: 'streaming-response',
+        turn_ref: 'turn-live',
+        payload: { text: 'raw chunk without sdk projection' },
+      });
+    });
+
+    expect(useChatStore.getState().messages).toEqual([]);
+  });
+
   test('commits SDK current-turn projection into message history on completion', () => {
     const { emitBackendEvent } = registerBackendListener();
 

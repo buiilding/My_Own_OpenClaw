@@ -121,20 +121,17 @@ Current runtime behavior also relies on these explicit seams:
 ### Stream Receive Flow
 
 1. Backend WebSocket events arrive in main `ipc.cjs`.
-2. Main updates response-overlay phase (`awaiting-first-chunk`/`streaming`/`tool-call`/`complete`/`error`) and broadcasts `from-backend` to renderer windows.
-3. Renderer `useChatStream` normalizes raw backend events through the stream ingress helpers before renderer UI handlers run. The live-turn runtime facade only owns send/stop commands.
+2. Main updates response-overlay phase (`awaiting-first-chunk`/`streaming`/`tool-call`/`complete`/`error`), applies backend events to the SDK conversation runtime projection, and broadcasts both `conversation-runtime-updated` and `from-backend` to renderer windows.
+3. Renderer dashboard and response-overlay live assistant/tool rows render from the SDK `currentTurn` projection. Renderer `useChatStream` still consumes `from-backend` for scoped transcript/session side effects and metadata until those responsibilities are moved, but production live row shaping does not fall back to raw backend events.
 4. Renderer `useChatStream`:
    - Filters by active conversation/turn tracking.
-   - Dispatches live thinking/reasoning display from SDK `reasoning_delta` events.
-   - Dispatches assistant text deltas/completions from SDK `assistant_delta`/`turn_completed` events.
-   - Dispatches tool display projection from SDK `tool_call`/`tool_output`/`tool_bundle_call` events while main owns tool execution.
-   - Dispatches live tool progress projection from SDK `tool_progress` events while main keeps overlay phase handling.
+   - Keeps transcript/session side effects for SDK `reasoning_delta`, `assistant_delta`, `turn_completed`, `tool_call`, `tool_output`, `tool_bundle_call`, and `tool_progress` events.
    - Dispatches compaction display and compacted replay persistence from SDK compaction events.
    - Dispatches message metadata/transparency projection from SDK metadata events.
    - Dispatches backend error display and terminal state from SDK `turn_error` events.
    - Dispatches token usage telemetry from SDK `usage_updated` events.
    - Dispatches memory-store telemetry from SDK `memory_stored` events without owning memory persistence.
-   - Updates Zustand store for thinking, tool messages, metadata, completion, errors.
+   - Updates Zustand store for metadata, completion, errors, token usage, stream tracking, and fallback-only handler-test rendering.
    - Persists transcript rows (`recordUserMessage`, `recordAssistantMessage`, `recordToolMessage`).
 
 New-chat behavior:
@@ -304,8 +301,9 @@ Primary modules:
 - `features/chat/stores/chatStore.ts`: canonical chat state + stream tracking.
 - `features/chat/utils/message/messagePresentationPipeline.js`: pure presentation pipeline that derives visible dashboard and overlay message rows from raw transcript state, including hidden-tool explanation rows and collapsed action summaries.
 - `features/chat/hooks/useChatStream.ts`:
- - Stream event routing (`llm-thought`, `streaming-response`, `tool-call`, `tool-output`, `streaming-complete`, etc.).
-  - Conversation gating, turn tracking, token-count handling.
+  - Stream event routing for transcript/session side effects, metadata, terminal state, token-count handling, and fallback-only handler tests.
+  - Production dashboard/response-overlay live assistant and tool rows come from SDK `conversation-runtime-updated` current-turn projection state instead of raw `from-backend` stream interpretation.
+  - Conversation gating and turn tracking.
   - Dev transparency source tagging: in `electron:dev` (`dev_ui=1`), message/thinking/response surfaces show source badges mapped to stream/event origin (`streaming-response`, `tool-call`, `tool-output`, `llm-thought`, etc.).
   - Stream trace logging is separately gated by `WINDIE_DEBUG_STREAM_EVENTS=1`, which main process fans out as `?debug_stream=1` so renderer consoles stay quiet during normal `electron:dev` runs.
 - `features/chat/utils/chatPill/chatPillSessionFlow.ts`:

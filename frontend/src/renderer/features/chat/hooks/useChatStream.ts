@@ -31,7 +31,15 @@ import {
 } from '../../../app/runtime/desktopChatStreamTrackingRuntime';
 import { logRendererStreamTrace } from '../utils/chatStream/chatStreamDebugTrace';
 
-export function useChatStream(enableTranscript: boolean = true) {
+export type UseChatStreamOptions = {
+  renderRawLiveFallback?: boolean;
+};
+
+export function useChatStream(
+  enableTranscript: boolean = true,
+  options: UseChatStreamOptions = {},
+) {
+  const renderRawLiveFallback = options.renderRawLiveFallback === true;
   const {
     addMessage,
     updateMessage,
@@ -82,6 +90,9 @@ export function useChatStream(enableTranscript: boolean = true) {
     event: { turnRef?: string | null },
     conversationRef?: string | null,
   ): boolean => {
+    if (!renderRawLiveFallback) {
+      return false;
+    }
     const projection = useChatStore.getState().getWorkspaceState(conversationRef).currentTurnProjection;
     if (!projection || projection.phase === 'idle') {
       return true;
@@ -90,7 +101,7 @@ export function useChatStream(enableTranscript: boolean = true) {
       return true;
     }
     return projection.turnRef !== event.turnRef;
-  }, []);
+  }, [renderRawLiveFallback]);
 
   const {
     updateLastMessageBySender,
