@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/api: accept desktop query payload `turn_ref` values when they match the websocket envelope id so strict backend validation stays aligned with renderer turn correlation.
 - backend/api: allow explicit `null` tool-output payloads through websocket formatter and schema validation.
 - backend/llm: reject duplicate tool-call IDs during provider response normalization.
 - backend/compaction: trim retained history at turn boundaries so tool outputs are not orphaned after target-budget enforcement.

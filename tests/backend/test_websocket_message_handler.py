@@ -105,6 +105,52 @@ async def test_parse_and_validate_message_success() -> None:
 
 
 @pytest.mark.asyncio
+async def test_parse_and_validate_message_accepts_matching_query_payload_turn_ref() -> None:
+    payload = json.dumps(
+        {
+            "id": "turn_1",
+            "type": "query",
+            "payload": {
+                "text": "hello",
+                "conversation_ref": "conv_test",
+                "turn_ref": " turn_1 ",
+            },
+        }
+    )
+
+    message, error = await mh.parse_and_validate_message(
+        payload, user_id="user_1", max_message_size=1024
+    )
+
+    assert error is None
+    assert isinstance(message, QueryMessage)
+    assert message.payload.turn_ref == "turn_1"
+
+
+@pytest.mark.asyncio
+async def test_parse_and_validate_message_rejects_mismatched_query_payload_turn_ref() -> None:
+    payload = json.dumps(
+        {
+            "id": "turn_1",
+            "type": "query",
+            "payload": {
+                "text": "hello",
+                "conversation_ref": "conv_test",
+                "turn_ref": "turn_2",
+            },
+        }
+    )
+
+    message, error = await mh.parse_and_validate_message(
+        payload, user_id="user_1", max_message_size=1024
+    )
+
+    assert message is None
+    assert "Invalid message format:" in error
+    assert "query payload turn_ref must match envelope id" in error
+
+
+@pytest.mark.asyncio
 async def test_parse_and_validate_message_overrides_client_user_id_with_connection_user_id() -> None:
     payload = json.dumps(
         {
