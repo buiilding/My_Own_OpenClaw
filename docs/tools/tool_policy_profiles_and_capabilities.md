@@ -45,6 +45,9 @@ Primary files:
 | `default` or `custom` | no profile allowlist by itself |
 
 Profile tools are still narrowed by available tools, disabled tools, disabled capabilities, provider health, and dev selection.
+Provider projection reuses `ToolPolicy.from_config(...)`, so direct calls to
+`project_tool_schemas_for_provider(...)` cannot bypass those config-driven
+tool availability and disabled-tool gates.
 
 ## Capability Gates
 

@@ -8,7 +8,6 @@ from backend.src.tools.computer.schemas import MouseControlArgs, ScrollControlAr
 from backend.src.tools.provider_projection import project_tool_schemas_for_provider
 from backend.src.tools.registry import ToolRegistry
 
-
 _COMPUTER_TOOL_NAMES = [
     "mouse_control",
     "keyboard_control",
@@ -124,7 +123,12 @@ def test_scroll_control_schema_stays_direct_and_requires_direction_for_scroll():
         "scroll_up",
         "scroll_down",
     ]
-    assert parameters["properties"]["direction"]["enum"] == ["up", "down", "left", "right"]
+    assert parameters["properties"]["direction"]["enum"] == [
+        "up",
+        "down",
+        "left",
+        "right",
+    ]
 
 
 def test_provider_projection_is_noop_for_openai_computer_tools():
@@ -177,3 +181,41 @@ def test_provider_projection_keeps_direct_computer_tools_even_with_prompt_images
     assert [schema.get("name") for schema in projected] == _COMPUTER_TOOL_NAMES + [
         "get_open_windows"
     ]
+
+
+def test_provider_projection_applies_config_disabled_tools():
+    config = AppConfig(
+        model_provider="openai",
+        agent_disabled_tools=["get_open_windows"],
+    )
+    registry = ToolRegistry(config=config, cache_manager=CacheManager())
+    direct_schemas = registry.get_function_declarations_filtered(
+        _COMPUTER_TOOL_NAMES + ["get_open_windows"]
+    )
+
+    projected = project_tool_schemas_for_provider(
+        tool_schemas=direct_schemas,
+        tool_registry=registry,
+        config=config,
+    )
+
+    assert "get_open_windows" not in [schema.get("name") for schema in projected]
+
+
+def test_provider_projection_applies_available_tools_allowlist():
+    config = AppConfig(
+        model_provider="openai",
+        agent_available_tools=["mouse_control"],
+    )
+    registry = ToolRegistry(config=config, cache_manager=CacheManager())
+    direct_schemas = registry.get_function_declarations_filtered(
+        _COMPUTER_TOOL_NAMES + ["get_open_windows"]
+    )
+
+    projected = project_tool_schemas_for_provider(
+        tool_schemas=direct_schemas,
+        tool_registry=registry,
+        config=config,
+    )
+
+    assert [schema.get("name") for schema in projected] == ["mouse_control"]
