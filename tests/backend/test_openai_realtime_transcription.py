@@ -21,6 +21,12 @@ class _FakeRealtimeConnection:
         self.closed = True
 
 
+class _FailingRealtimeConnection(_FakeRealtimeConnection):
+    async def send(self, payload: str) -> None:
+        await super().send(payload)
+        raise RuntimeError("session update failed")
+
+
 class _FakeStreamingConnection(_FakeRealtimeConnection):
     def __init__(self, messages: list[dict[str, object]]) -> None:
         super().__init__()
@@ -94,6 +100,33 @@ async def test_openai_realtime_connect_uses_transcription_intent_and_session_upd
 
     await session.close()
     assert fake_connection.closed is True
+
+
+@pytest.mark.asyncio
+async def test_openai_realtime_connect_closes_connection_when_session_update_fails(
+    monkeypatch,
+):
+    fake_connection = _FailingRealtimeConnection()
+
+    async def _fake_connect(url: str, *, extra_headers):
+        return fake_connection
+
+    monkeypatch.setattr(
+        "backend.src.api.services.transcription.openai_realtime.websockets.connect",
+        _fake_connect,
+    )
+    monkeypatch.setattr(
+        "backend.src.api.services.transcription.openai_realtime.resolve_openai_api_key",
+        lambda _config: "test-openai-key",
+    )
+
+    session = OpenAIRealtimeTranscriptionSession(AppConfig(stt_provider="openai"))
+
+    with pytest.raises(RuntimeError, match="session update failed"):
+        await session.connect()
+
+    assert fake_connection.closed is True
+    assert session._connection is None
 
 
 @pytest.mark.asyncio

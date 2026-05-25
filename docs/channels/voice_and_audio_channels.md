@@ -70,6 +70,9 @@ Key files:
 Provider notes:
 
 - OpenAI realtime transcription uses provider websocket sessions behind the backend route.
+- OpenAI realtime connect closes and clears the provider websocket if the initial
+  `session.update` fails, so failed setup does not leave a half-initialized
+  connection attached to the session.
 - OpenAI partial transcripts are scoped by provider item id and are cleared on
   both completed and failed item events.
 - Nova and OpenAI modes should preserve the same renderer-facing event protocol.

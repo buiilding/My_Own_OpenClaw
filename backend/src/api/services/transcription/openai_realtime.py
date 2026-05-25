@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
 import json
 import logging
+from collections import defaultdict
 from typing import Any
 
 import websockets
@@ -51,7 +51,14 @@ class OpenAIRealtimeTranscriptionSession(TranscriptionProviderSession):
                 "Authorization": f"Bearer {api_key}",
             },
         )
-        await self._apply_session_update()
+        try:
+            await self._apply_session_update()
+        except Exception:
+            connection = self._connection
+            self._connection = None
+            if connection is not None:
+                await connection.close()
+            raise
 
     async def handle_control_message(self, message: dict[str, object]) -> None:
         message_type = str(message.get("type") or "").strip()

@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/transcription: close and clear OpenAI realtime websocket connections when initial session setup fails.
 - backend/sdk: require authenticated install identity before OCR overlay image resolution or OCR work.
 - backend/sdk: let unexpected OCR inspect resolver failures propagate instead of serializing them as successful resolution errors.
 - backend/llm: recurse through nested list and dict reasoning payloads when extracting streamed thinking text.
