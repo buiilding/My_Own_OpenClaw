@@ -35,11 +35,12 @@ client so the preview uses the same system prompt override, client tool
 manifest, skills, AGENTS.md instructions, plugin prompt layers, and runtime
 facts that the websocket handshake will use.
 
-`/api/sdk/models`, `/api/sdk/system-prompt`, and `/api/sdk/query-plan` are
-privileged debug routes. They require an authenticated install identity and
-reject `user_id` values that do not match that identity. Query-plan also does
-not accept payload-selected `workspace_path` values. Use the normal
-authenticated desktop query path when workspace-local prompt context is needed.
+`/api/sdk/models`, `/api/sdk/system-prompt`, `/api/sdk/prompt-preview`, and
+`/api/sdk/query-plan` are privileged debug routes. They require an
+authenticated install identity and reject `user_id` values that do not match
+that identity. Query-plan also does not accept payload-selected `workspace_path`
+values. Use the normal authenticated desktop query path when workspace-local
+prompt context is needed.
 
 ## Related Docs
 

@@ -521,10 +521,14 @@ async def sdk_debug_prompt_preview(
     container: ContainerDep,
     session_manager: SessionManagerDep,
 ) -> PromptPreviewResponse:
+    identity = require_sdk_debug_identity(
+        payload.user_id,
+        context_label="SDK debug prompt preview",
+    )
     config = resolve_effective_debug_config(
         container=container,
         session_manager=session_manager,
-        user_id=payload.user_id,
+        user_id=identity.user_id,
         model_id=payload.model_id,
         model_provider=payload.model_provider,
         interaction_mode=payload.interaction_mode,

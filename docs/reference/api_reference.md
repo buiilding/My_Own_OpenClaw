@@ -677,6 +677,9 @@ Return the rendered backend system prompt plus the effective config snapshot use
 
 Build a backend prompt preview without executing the agent loop.
 
+Requires an authenticated install identity. If `user_id` is supplied, it must
+match the authenticated identity; cross-user prompt previews are rejected.
+
 **Request**:
 ```json
 {

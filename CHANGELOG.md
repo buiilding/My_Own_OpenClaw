@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/sdk: require authenticated install identity for prompt-preview debug requests and reject cross-user prompt inspection.
 - frontend/chat: remove id-less image and readable-file previews by fallback index instead of passing `undefined` to removal handlers.
 - backend/tools: return an empty `PreparationResult` for empty tool-call batches instead of indexing the missing first call.
 - backend/tools: declare filesystem and command-execution permissions on sensitive frontend-executed remote tool stubs.

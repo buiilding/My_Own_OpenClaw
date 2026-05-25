@@ -912,6 +912,7 @@ async def test_sdk_debug_system_prompt_rejects_other_user_context(
 @pytest.mark.asyncio
 async def test_sdk_debug_prompt_preview_returns_prompt_transparency_payloads(
     tmp_path,
+    authenticated_install_identity,
 ) -> None:
     container = _container(tmp_path)
 
@@ -951,6 +952,7 @@ async def test_sdk_debug_prompt_preview_returns_prompt_transparency_payloads(
 async def test_sdk_debug_prompt_preview_applies_agent_definition(
     tmp_path,
     monkeypatch,
+    authenticated_install_identity,
 ) -> None:
     monkeypatch.setattr(
         "backend.src.tools.tool_policy.load_tool_selection", lambda: None
@@ -1010,6 +1012,46 @@ async def test_sdk_debug_prompt_preview_applies_agent_definition(
         schema.get("name") != "read_file" for schema in response.canonical_tool_schemas
     )
     assert "Always be direct." in response.prompt_messages[0]["content"]
+
+
+@pytest.mark.asyncio
+async def test_sdk_debug_prompt_preview_requires_authenticated_identity(
+    tmp_path,
+) -> None:
+    container = _container(tmp_path)
+
+    with pytest.raises(HTTPException) as exc_info:
+        await sdk_routes.sdk_debug_prompt_preview(
+            PromptPreviewRequest(user_query_raw="inspect prompt"),
+            container=container,
+            session_manager=_FakeSessionManager(),
+        )
+
+    assert exc_info.value.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_sdk_debug_prompt_preview_rejects_other_user_context(
+    tmp_path,
+    authenticated_install_identity,
+) -> None:
+    container = _container(tmp_path)
+
+    with pytest.raises(HTTPException) as exc_info:
+        await sdk_routes.sdk_debug_prompt_preview(
+            PromptPreviewRequest(
+                user_query_raw="inspect prompt",
+                user_id="other-user",
+            ),
+            container=container,
+            session_manager=_FakeSessionManager(),
+        )
+
+    assert exc_info.value.status_code == 403
+    assert (
+        exc_info.value.detail
+        == "SDK debug prompt preview cannot inspect another user's context"
+    )
 
 
 @pytest.mark.asyncio
