@@ -60,3 +60,56 @@ def test_assign_next_run_to_worker_assigns_eligible_run() -> None:
     assert run["worker"]["metadata"] == {"source": "heartbeat"}
     assert queue == []
     assert observed_events[0]["event_type"] == "run-worker-assigned"
+
+
+def test_assign_next_run_to_worker_preserves_run_reserved_for_another_worker() -> None:
+    run = {
+        "run_id": "run-1",
+        "status": "queued",
+        "worker": {"worker_id": "worker-b"},
+        "events": [],
+        "last_event_seq": 0,
+    }
+    runs = {"run-1": run}
+    queue = ["run-1"]
+    append_event_calls: list[dict] = []
+
+    assigned = assign_next_run_to_worker(
+        runs=runs,
+        workers={},
+        workspace_queue=queue,
+        worker_id="worker-a",
+        user_id="user-1",
+        vm_id="vm-1",
+        session_id="session-1",
+        agent_id="agent-1",
+        worker_status="ready",
+        ready_worker_statuses=frozenset({"ready", "running"}),
+        now_iso=lambda: "2026-01-01T00:00:00Z",
+        append_event=lambda *_args, **kwargs: append_event_calls.append(kwargs),
+        clone_run=lambda run_state: dict(run_state),
+    )
+
+    assert assigned is None
+    assert queue == ["run-1"]
+    assert append_event_calls == []
+
+    assigned_to_owner = assign_next_run_to_worker(
+        runs=runs,
+        workers={},
+        workspace_queue=queue,
+        worker_id="worker-b",
+        user_id="user-1",
+        vm_id="vm-1",
+        session_id="session-1",
+        agent_id="agent-1",
+        worker_status="ready",
+        ready_worker_statuses=frozenset({"ready", "running"}),
+        now_iso=lambda: "2026-01-01T00:00:00Z",
+        append_event=lambda *_args, **kwargs: append_event_calls.append(kwargs),
+        clone_run=lambda run_state: dict(run_state),
+    )
+
+    assert assigned_to_owner is not None
+    assert assigned_to_owner["worker"]["worker_id"] == "worker-b"
+    assert queue == []

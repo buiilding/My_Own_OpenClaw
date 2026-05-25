@@ -32,6 +32,8 @@ def assign_next_run_to_worker(
     if worker_status not in ready_worker_statuses:
         return None
 
+    skipped_reserved_run_ids: list[str] = []
+
     while workspace_queue:
         run_id = workspace_queue.pop(0)
         run = runs.get(run_id)
@@ -44,6 +46,7 @@ def assign_next_run_to_worker(
             None,
             worker_id,
         }:
+            skipped_reserved_run_ids.append(run_id)
             continue
 
         now = now_iso()
@@ -72,6 +75,8 @@ def assign_next_run_to_worker(
                 status=run["status"],
             ),
         )
+        workspace_queue[:0] = skipped_reserved_run_ids
         return clone_run(run)
 
+    workspace_queue[:0] = skipped_reserved_run_ids
     return None
