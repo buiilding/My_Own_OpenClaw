@@ -70,8 +70,8 @@ function applyTranscriptSessionSync({
     : currentUserId;
 
   broadcastToRenderers('transcript-session-sync', {
-    conversationRef: normalizedPayload.conversationRef ?? null,
-    userId: normalizedPayload.userId ?? null,
+    conversationRef: nextConversationRef ?? null,
+    userId: nextUserId ?? null,
   }, sender);
 
   return {

@@ -43,10 +43,14 @@ Implications:
 
 Selection order:
 
-1. turn-scoped last match by sender (`findLastMessageIdBySender(..., turnRef)`)
-2. fallback to global last match by sender when scoped match missing and `turnRef` provided
+1. when a non-empty `turnRef` is provided, update only the last same-sender message with that exact turn reference
+2. when no `turnRef` is provided, update the global last same-sender message
 
 If both missing: no-op.
+
+Turn-scoped metadata must not fall back to another same-sender row. Delayed or
+replayed metadata for an absent turn is dropped instead of mutating a different
+turn's transcript transparency.
 
 ### `updateFirstMessageBySender`
 
@@ -67,12 +71,12 @@ If both missing: no-op.
 Benefits:
 
 - shared targeting behavior across handlers
-- turn-scoped fallback policy centralized
+- turn-scoped no-cross-turn policy centralized
 - simpler event handler code in `useChatStream`
 
 ## Drift Hotspots
 
-1. Changing fallback behavior in `updateLastMessageBySender` can retarget updates to wrong turn rows.
+1. Adding sender-only fallback for non-empty `turnRef` metadata can retarget updates to wrong turn rows.
 2. Switching from `getState()` to captured messages can reintroduce stale-update races under rapid stream events.
 3. Diverging selector utility contracts from hook assumptions can produce silent no-op updates.
 

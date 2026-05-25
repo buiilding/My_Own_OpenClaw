@@ -57,10 +57,14 @@ def has_brave_search_api_key(cfg: AppConfig) -> bool:
     return isinstance(value, str) and bool(value.strip())
 
 
+def is_web_search_disabled_by_policy(cfg: AppConfig) -> bool:
+    return "web_search" in disabled_capabilities_from_config(cfg)
+
+
 def resolve_web_search_execution_mode(
     cfg: AppConfig,
 ) -> Optional[WebSearchExecutionMode]:
-    if "web_search" in disabled_capabilities_from_config(cfg):
+    if is_web_search_disabled_by_policy(cfg):
         return None
 
     provider_name = getattr(cfg, "model_provider", None)

@@ -65,7 +65,7 @@ Primary protocol tests:
 | permission/sudo IPC registrar ownership | `permission_ipc_runtime.cjs` | `PermissionIpcRuntime.test.cjs` | permission and sudo invoke handlers are registered in the permission runtime module and remain isolated from overlay/window channels |
 | wakeword stream/restart robustness | wakeword subprocess + framed parser (`wakeword_bridge.cjs`) | `WakewordBridge.test.cjs` | detection callback + renderer event fire only when enabled; process restarts keep callback wiring; stale stdout/stderr partial buffers are cleared across restarts |
 | wakeword helper runtime normalization | helper runtime (`wakeword_bridge_runtime.cjs`) | `WakewordBridgeRuntime.test.cjs` | packaged-vs-dev startup error mapping, ENOENT process error guidance, stderr ready-status promotion, and audio payload normalization (base64/Buffer/ArrayBuffer) |
-| sudo access command-runner protocol | `agent_sudo_access_handler.cjs` | `AgentSudoAccessHandler.test.cjs` | Linux-only guard, pkexec/sudo command execution paths, cancel/auth-failure normalization, and non-interactive disable semantics |
+| sudo access command-runner protocol | `agent_sudo_access_handler.cjs` | `AgentSudoAccessHandler.test.cjs` | Linux-only guard, persistent enable rejection, pkexec legacy cleanup path, and cancel/auth-failure normalization |
 | permission probe/request protocol | `permission_service.cjs` | `PermissionService.test.cjs` | manifest/status shape, per-permission probe behavior, unknown-permission error surface, and request flow normalization |
 | wakeword STT trigger channel consumption | renderer chatbox overlay listeners | `ChatBoxOverlayMouseIgnore.test.jsx` | renderer listener wiring for `wakeword-stt-trigger` channel and overlay-focused behavior consistency |
 | websocket open + overlay phase lifecycle | `connect()` open/message handlers (`ipc.cjs`) | `IpcMainBridge.lifecycle.test.cjs` | handshake user-id sanitization, backend endpoint metadata exposure, backend tool-event to response-overlay phase transitions, and active display-affinity continuity across websocket close |
@@ -184,7 +184,7 @@ This reflects current intent: runtime safety in preload, fast-fail ergonomics in
 
 - Linux-only support guard behavior.
 - Enable flow writes/validates sudoers via `pkexec`.
-- Disable flow uses `sudo -n` and returns explicit remediation guidance when non-interactive disable fails.
+- Disable flow uses `pkexec` to remove the legacy WindieOS sudoers file.
 - Spawn errors and auth-cancel conditions map to normalized renderer-safe result payloads.
 
 `tests/frontend/PermissionService.test.cjs` validates:

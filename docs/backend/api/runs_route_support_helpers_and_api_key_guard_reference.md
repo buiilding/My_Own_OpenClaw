@@ -53,8 +53,17 @@ Both are normalized through `normalize_optional_string(...)` (trim + empty->`Non
 `verify_runs_api_key(...)` dependency behavior:
 
 - reads request header `x-windie-runs-key` (alias via FastAPI `Header`)
-- if no expected env key is configured, auth check is bypassed (route is effectively open)
+- if no expected env key is configured, raises `HTTPException(503, "Runs API key is not configured")`
 - if expected key exists and normalized header mismatch occurs, raises `HTTPException(401, "Invalid runs API key")`
+
+`resolve_runs_control_api_key()` reads `WINDIE_RUNS_CONTROL_API_KEY`.
+
+`verify_runs_control_api_key(...)` dependency behavior:
+
+- reads request header `x-windie-runs-control-key`
+- if no expected control key is configured, raises `HTTPException(503, "Runs control API key is not configured")`
+- if expected key exists and normalized header mismatch occurs, raises `HTTPException(403, "Invalid runs control API key")`
+- protects destructive bulk controls such as `/api/runs/stop-all` so ordinary worker/runs API keys cannot stop arbitrary workspaces by changing request body scope
 
 ## Route-Error Helper Contracts
 
@@ -79,8 +88,9 @@ Dependency aliases:
 
 - `VmRunControlServiceDep = Annotated[VmRunControlService, Depends(get_vm_run_control_service)]`
 - `RunsApiKeyDep = Annotated[None, Depends(verify_runs_api_key)]`
+- `RunsControlApiKeyDep = Annotated[None, Depends(verify_runs_control_api_key)]`
 
-All `/api/runs` routes include `_api_key: RunsApiKeyDep = None`, so auth behavior is uniformly applied without per-handler duplication.
+Most `/api/runs` routes include `_api_key: RunsApiKeyDep = None`, so standard runs auth behavior is uniformly applied without per-handler duplication. `/api/runs/stop-all` uses `RunsControlApiKeyDep` instead because it is a destructive bulk operation.
 
 Helper usage patterns:
 
@@ -93,7 +103,8 @@ Helper usage patterns:
 1. Changing `normalize_optional_string` semantics in helpers without matching route/auth expectations can silently alter valid-key matching.
 2. Removing shared dependency aliases in `router.py` can create endpoint-specific auth drift.
 3. Returning full run objects (with `events`) in non-events routes can inflate payload size and duplicate event data contracts.
-4. Diverging missing-run handling away from `require_run` can produce inconsistent HTTP status/detail surfaces across endpoints.
+4. Falling back from `WINDIE_RUNS_CONTROL_API_KEY` to the ordinary runs key would let worker/dashboard credentials authorize cross-workspace stop-all again.
+5. Diverging missing-run handling away from `require_run` can produce inconsistent HTTP status/detail surfaces across endpoints.
 
 ## Related Pages
 

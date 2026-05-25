@@ -37,6 +37,7 @@ class DummyMemoryStore:
         self.list_chat_conversation_calls = []
         self.chat_event_rows = []
         self.deleted_chat_conversation_calls = []
+        self.replaced_chat_conversation_calls = []
         self.delete_semantic_return = True
         self.delete_episodic_return = True
         self.clear_local_memory_return = {
@@ -98,6 +99,27 @@ class DummyMemoryStore:
     async def delete_chat_conversation(self, user_id, conversation_id):
         self.deleted_chat_conversation_calls.append((user_id, conversation_id))
         return 1
+
+    async def replace_chat_conversation(
+        self,
+        user_id,
+        conversation_id,
+        events,
+        revision_id=None,
+        revision_updated_at=None,
+    ):
+        self.replaced_chat_conversation_calls.append(
+            (user_id, conversation_id, events, revision_id, revision_updated_at)
+        )
+        return {"deleted_count": 2, "inserted_count": len(events)}
+
+    async def get_chat_conversation_revision(self, user_id, conversation_id):
+        return {
+            "conversation_id": conversation_id,
+            "revision_id": "rev-next",
+            "updated_at": "2026-05-17T12:00:00+00:00",
+            "record_kind": "chat_event",
+        }
 
 
 class DummyRegistryRaises:
@@ -637,7 +659,9 @@ async def test_initialize_starts_memory_summarizer_when_enabled(monkeypatch):
             super().__init__(memory_store)
             created_summarizers.append(self)
 
-    monkeypatch.setattr(local_backend_module, "LocalMemoryStore", lambda **_kwargs: fake_store)
+    monkeypatch.setattr(
+        local_backend_module, "LocalMemoryStore", lambda **_kwargs: fake_store
+    )
     monkeypatch.setattr(local_backend_module, "MemorySummarizer", _DummySummarizer)
 
     backend = LocalBackend()
@@ -662,7 +686,9 @@ async def test_initialize_skips_memory_summarizer_when_disabled(monkeypatch):
         def __init__(self, *_args, **_kwargs):
             created["count"] += 1
 
-    monkeypatch.setattr(local_backend_module, "LocalMemoryStore", lambda **_kwargs: fake_store)
+    monkeypatch.setattr(
+        local_backend_module, "LocalMemoryStore", lambda **_kwargs: fake_store
+    )
     monkeypatch.setattr(local_backend_module, "MemorySummarizer", _DummySummarizer)
 
     backend = LocalBackend()
@@ -774,7 +800,9 @@ def test_initialize_methods_keeps_memory_handlers_registered():
         "list_chat_conversations",
         "search_chat_conversations",
         "get_chat_events",
+        "get_chat_conversation_revision",
         "delete_chat_conversation",
+        "replace_chat_conversation",
         "update_conversation_title",
     }
     assert expected_methods.issubset(set(backend.protocol.methods.keys()))
@@ -1234,6 +1262,104 @@ async def test_handle_store_chat_event_writes_dedicated_chat_storage():
             "contentType": "image/png",
         }
     ]
+
+
+@pytest.mark.asyncio
+async def test_handle_replace_chat_conversation_uses_atomic_store_replace():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+
+    result = await backend._handle_replace_chat_conversation(
+        user_id="user-1",
+        conversation_id="conv-chat",
+        revision_id="rev-next",
+        revision_updated_at="2026-05-17T12:00:01+00:00",
+        events=[
+            {
+                "event_type": "user_message",
+                "role": "user",
+                "content": "edited",
+                "timestamp": "2026-05-17T12:00:00+00:00",
+                "message_index": 1,
+                "revision_id": "rev-next",
+                "event_payload": {
+                    "eventId": "evt-edited",
+                    "type": "user_message",
+                    "conversationRef": "conv-chat",
+                    "revisionId": "rev-next",
+                    "timestamp": "2026-05-17T12:00:00+00:00",
+                    "source": "sdk",
+                    "payload": {"text": "edited"},
+                },
+            }
+        ],
+    )
+
+    assert result == {
+        "success": True,
+        "data": {
+            "deleted_count": 2,
+            "inserted_count": 1,
+            "conversation_id": "conv-chat",
+            "record_kind": "chat_event",
+        },
+    }
+    assert backend.memory_store.replaced_chat_conversation_calls == [
+        (
+            "user-1",
+            "conv-chat",
+            [
+                {
+                    "event_type": "user_message",
+                    "role": "user",
+                    "content": "edited",
+                    "timestamp": "2026-05-17T12:00:00+00:00",
+                    "message_index": 1,
+                    "revision_id": "rev-next",
+                    "turn_ref": None,
+                    "tool_name": None,
+                    "correlation_id": None,
+                    "workspace_path": None,
+                    "workspace_name": None,
+                    "metadata": {},
+                    "attachments": [],
+                    "event_payload": {
+                        "eventId": "evt-edited",
+                        "type": "user_message",
+                        "conversationRef": "conv-chat",
+                        "revisionId": "rev-next",
+                        "timestamp": "2026-05-17T12:00:00+00:00",
+                        "source": "sdk",
+                        "payload": {"text": "edited"},
+                    },
+                    "compaction_checkpoint": None,
+                }
+            ],
+            "rev-next",
+            "2026-05-17T12:00:01+00:00",
+        )
+    ]
+
+
+@pytest.mark.asyncio
+async def test_handle_get_chat_conversation_revision_returns_store_revision():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+
+    result = await backend._handle_get_chat_conversation_revision(
+        user_id="user-1",
+        conversation_id="conv-chat",
+    )
+
+    assert result == {
+        "success": True,
+        "data": {
+            "conversation_id": "conv-chat",
+            "revision_id": "rev-next",
+            "updated_at": "2026-05-17T12:00:00+00:00",
+            "record_kind": "chat_event",
+        },
+    }
 
 
 @pytest.mark.asyncio

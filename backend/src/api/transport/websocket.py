@@ -23,6 +23,7 @@ _QUEUE_PRIORITY_AUDIO = 0
 _QUEUE_PRIORITY_DEFAULT = 1
 _QUEUE_PRIORITY_CLOSE = 2
 _AUDIO_CHUNK_TYPE = "audio-chunk"
+_CLOSE_WAIT_TIMEOUT_SECONDS = 1.0
 
 
 class SafeWebSocket:
@@ -96,7 +97,9 @@ class SafeWebSocket:
         """
         while True:
             try:
-                _priority, _sequence, _msg_type, _data, _mode, future = self._send_queue.get_nowait()
+                _priority, _sequence, _msg_type, _data, _mode, future = (
+                    self._send_queue.get_nowait()
+                )
             except asyncio.QueueEmpty:
                 break
             self._set_future_exception(future, exc)
@@ -109,7 +112,11 @@ class SafeWebSocket:
     ) -> int:
         if msg_type == _WS_MSG_CLOSE:
             return _QUEUE_PRIORITY_CLOSE
-        if msg_type == _WS_MSG_JSON and isinstance(data, dict) and data.get("type") == _AUDIO_CHUNK_TYPE:
+        if (
+            msg_type == _WS_MSG_JSON
+            and isinstance(data, dict)
+            and data.get("type") == _AUDIO_CHUNK_TYPE
+        ):
             return _QUEUE_PRIORITY_AUDIO
         return _QUEUE_PRIORITY_DEFAULT
 
@@ -136,7 +143,7 @@ class SafeWebSocket:
             if self._closed and not allow_closed:
                 raise RuntimeError("WebSocket is closed")
 
-            if self._sender_task is not None and self._sender_task.done():
+            if self._sender_task_is_stopping():
                 raise self._resolve_sender_exception(self._sender_error)
 
             try:
@@ -163,6 +170,10 @@ class SafeWebSocket:
         if self._sender_task is None:
             self._sender_task = asyncio.create_task(self._sender_loop())
 
+    def _sender_task_is_stopping(self) -> bool:
+        task = self._sender_task
+        return task is not None and (task.done() or task.cancelling() > 0)
+
     async def _sender_loop(self) -> None:
         """
         Background task that pulls messages from queue and sends them.
@@ -171,9 +182,18 @@ class SafeWebSocket:
         allowing multiple coroutines to enqueue messages concurrently without
         blocking each other.
         """
+        current_future: Optional[asyncio.Future] = None
         try:
             while True:
-                _priority, _sequence, msg_type, data, mode, future = await self._send_queue.get()
+                (
+                    _priority,
+                    _sequence,
+                    msg_type,
+                    data,
+                    mode,
+                    future,
+                ) = await self._send_queue.get()
+                current_future = future
 
                 try:
                     should_stop = False
@@ -195,18 +215,26 @@ class SafeWebSocket:
                         break
 
                     self._set_future_result(future, None)
+                    current_future = None
                     if should_stop:
                         break
 
                 except (WebSocketDisconnect, RuntimeError, ConnectionError) as e:
                     logger.debug("Send failed (connection closed): %s", e)
                     self._mark_sender_error(future=future, exc=e)
+                    current_future = None
                     break
                 except Exception as e:
                     logger.error("Error in sender loop: %s", e, exc_info=True)
                     self._mark_sender_error(future=future, exc=e)
+                    current_future = None
                     break
 
+        except asyncio.CancelledError:
+            cancellation_error = RuntimeError("WebSocket sender task cancelled")
+            self._set_future_exception(current_future, cancellation_error)
+            self._sender_error = self._sender_error or cancellation_error
+            raise
         finally:
             self._closed = True
             sender_exc = self._resolve_sender_exception(self._sender_error)
@@ -316,7 +344,19 @@ class SafeWebSocket:
             )
             await self._close_direct(code=code, reason=reason)
         finally:
-            await self._close_event.wait()
+            try:
+                await asyncio.wait_for(
+                    self._close_event.wait(),
+                    timeout=_CLOSE_WAIT_TIMEOUT_SECONDS,
+                )
+            except asyncio.TimeoutError:
+                logger.debug(
+                    "Timed out waiting for websocket sender close event; closing directly"
+                )
+                if self._sender_task is not None and not self._sender_task.done():
+                    self._sender_task.cancel()
+                await self._close_direct(code=code, reason=reason)
+                self._close_event.set()
 
     async def accept(self) -> None:
         """

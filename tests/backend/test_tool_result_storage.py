@@ -24,6 +24,36 @@ async def test_store_pending_and_future_resolution(monkeypatch):
     assert storage.get_pending_result("req-1") is None
 
 
+@pytest.mark.asyncio
+async def test_duplicate_result_future_registration_reuses_pending_future():
+    storage = ToolResultStorage()
+    result = ToolResult(success=True, data={"ok": True})
+
+    first_future = storage.create_result_future("req-duplicate")
+    second_future = storage.create_result_future("req-duplicate")
+
+    assert second_future is first_future
+    assert storage.resolve_result_future("req-duplicate", result) is True
+    assert first_future.result() == result
+    assert second_future.result() == result
+    assert storage.get_result_future("req-duplicate") is None
+
+
+@pytest.mark.asyncio
+async def test_duplicate_bundle_future_registration_reuses_pending_future():
+    storage = ToolResultStorage()
+    result = ToolResult(success=True, data={"bundle": True})
+
+    first_future = storage.create_bundle_future("bundle-duplicate")
+    second_future = storage.create_bundle_future("bundle-duplicate")
+
+    assert second_future is first_future
+    assert storage.resolve_bundle_future("bundle-duplicate", result) is True
+    assert first_future.result() == result
+    assert second_future.result() == result
+    assert storage.get_bundle_future("bundle-duplicate") is None
+
+
 def test_cleanup_old_results_removes_expired(monkeypatch):
     storage = ToolResultStorage(cleanup_ttl_seconds=1)
     result = ToolResult(success=True)
@@ -32,7 +62,7 @@ def test_cleanup_old_results_removes_expired(monkeypatch):
     storage._result_timestamps["req-old"] = 0
 
     storage.store_bundled_result("bundle-old", result)
-    storage.create_bundle_future("bundle-old")
+    bundle_future = storage.create_bundle_future("bundle-old")
     storage._bundle_timestamps["bundle-old"] = 0
 
     monkeypatch.setattr(time, "time", lambda: 5)
@@ -42,21 +72,30 @@ def test_cleanup_old_results_removes_expired(monkeypatch):
     assert storage.get_pending_result("req-old") is None
     assert storage.get_bundled_result("bundle-old") is None
     assert storage.get_bundle_future("bundle-old") is None
+    assert bundle_future.cancelled()
 
 
 def test_storage_stats_and_clear_all():
     storage = ToolResultStorage()
     storage.store_pending_result("req", ToolResult(success=True))
+    result_future = storage.create_result_future("req")
     storage.store_bundled_result("bundle", ToolResult(success=True))
+    bundle_future = storage.create_bundle_future("bundle")
 
     stats = storage.get_stats()
     assert stats["pending_results"] == 1
     assert stats["bundled_results"] == 1
+    assert stats["result_futures"] == 1
+    assert stats["bundle_futures"] == 1
 
     storage.clear_all()
     cleared = storage.get_stats()
     assert cleared["pending_results"] == 0
     assert cleared["bundled_results"] == 0
+    assert cleared["result_futures"] == 0
+    assert cleared["bundle_futures"] == 0
+    assert result_future.cancelled()
+    assert bundle_future.cancelled()
 
 
 def test_create_futures_in_sync_context():
@@ -87,12 +126,13 @@ async def test_cleanup_request_ids_removes_pending_and_futures():
     result = ToolResult(success=True)
 
     storage.store_pending_result("req-1", result)
-    storage.create_result_future("req-1")
+    future = storage.create_result_future("req-1")
 
     cleaned = storage.cleanup_request_ids({"req-1"})
     assert cleaned == 2
     assert storage.get_pending_result("req-1") is None
     assert storage.get_result_future("req-1") is None
+    assert future.cancelled()
 
 
 @pytest.mark.asyncio
@@ -101,7 +141,7 @@ async def test_cleanup_old_results_removes_expired_futures(monkeypatch):
     result = ToolResult(success=True)
 
     storage.store_pending_result("req-old", result)
-    storage.create_result_future("req-old")
+    future = storage.create_result_future("req-old")
     storage._result_timestamps["req-old"] = 0
 
     monkeypatch.setattr(time, "time", lambda: 5)
@@ -110,14 +150,15 @@ async def test_cleanup_old_results_removes_expired_futures(monkeypatch):
     assert cleaned == 1
     assert storage.get_pending_result("req-old") is None
     assert storage.get_result_future("req-old") is None
+    assert future.cancelled()
 
 
 @pytest.mark.asyncio
 async def test_cleanup_old_results_removes_stale_future_only_entries(monkeypatch):
     storage = ToolResultStorage(cleanup_ttl_seconds=1)
 
-    storage.create_result_future("req-future-only")
-    storage.create_bundle_future("bundle-future-only")
+    result_future = storage.create_result_future("req-future-only")
+    bundle_future = storage.create_bundle_future("bundle-future-only")
     storage._result_timestamps["req-future-only"] = 0
     storage._bundle_timestamps["bundle-future-only"] = 0
 
@@ -127,3 +168,24 @@ async def test_cleanup_old_results_removes_stale_future_only_entries(monkeypatch
     assert cleaned == 2
     assert storage.get_result_future("req-future-only") is None
     assert storage.get_bundle_future("bundle-future-only") is None
+    assert result_future.cancelled()
+    assert bundle_future.cancelled()
+
+
+@pytest.mark.asyncio
+async def test_removed_futures_wake_waiters_with_cancellation():
+    storage = ToolResultStorage()
+    result_future = storage.create_result_future("req-1")
+    bundle_future = storage.create_bundle_future("bundle-1")
+
+    assert storage.remove_result_future("req-1") is True
+    assert storage.remove_bundle_future("bundle-1") is True
+
+    assert result_future.done()
+    assert result_future.cancelled()
+    assert bundle_future.done()
+    assert bundle_future.cancelled()
+    with pytest.raises(asyncio.CancelledError):
+        await result_future
+    with pytest.raises(asyncio.CancelledError):
+        await bundle_future

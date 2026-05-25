@@ -39,6 +39,7 @@ For the computer schema sources touched in `backend/src/tools/computer/schemas.p
 
 - `find_coordinates_by='manual'`:
   - requires `x` and `y`
+  - omitted `find_coordinates_by` is treated as the same default manual mode by both runtime validation and exported JSON Schema
 - `find_coordinates_by='ocr'`:
   - requires `ocr_text` or `candidate_id`
 - `find_coordinates_by='prediction'`:
@@ -46,6 +47,10 @@ For the computer schema sources touched in `backend/src/tools/computer/schemas.p
 
 Action-specific requirement:
 
+- `action='drag'` + omitted or `drag_to_find_coordinates_by='manual'`:
+  - requires `drag_to_x` and `drag_to_y`
+- `action='drag'` + `drag_to_find_coordinates_by='ocr'`:
+  - requires `drag_to_ocr_text` or `drag_to_candidate_id`
 - `action='drag'` + `drag_to_find_coordinates_by='prediction'`:
   - requires `destination_description`
 
@@ -77,6 +82,7 @@ Current field-description guidance is intentionally local and stable:
 
 - `find_coordinates_by='manual'`:
   - requires `x` and `y`
+  - omitted `find_coordinates_by` is treated as the same default manual mode by both runtime validation and exported JSON Schema
 - `find_coordinates_by='ocr'`:
   - requires `ocr_text` or `candidate_id`
 - `find_coordinates_by='prediction'`:

@@ -57,6 +57,8 @@ Hook-owned concerns:
 - prunes pinned ids no longer present in loaded list
 - dedupes concurrent loads for the same `userId` (reuses in-flight promise)
 - ignores stale completion paths when a newer `userId`-scoped load has already started
+- when `userId` is missing or cleared, invalidates outstanding loads and clears
+  recent conversations plus pinned ids so the previous user's list is not shown
 
 Failure behavior:
 

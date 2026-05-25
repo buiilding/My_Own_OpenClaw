@@ -65,6 +65,11 @@ SDK callers should read display and rehydrate state through SDK projections over
 chat events. The desktop runtime does not write hidden replay rows
 or fall back to visible transcript rows for runtime truth.
 
+Edit/resend and try-again rewrites replace the conversation projection through a
+single sidecar chat-event replacement RPC. The sidecar deletes the old
+conversation rows and inserts the replacement event set in one SQLite
+transaction, so a failed replacement leaves the previous transcript intact.
+
 Dashboard recent-chat loading reads canonical chat-event metadata.
 
 Key files:

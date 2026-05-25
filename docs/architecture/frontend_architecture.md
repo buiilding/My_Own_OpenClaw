@@ -164,6 +164,9 @@ callbacks through `main/windie_sdk_runtime.cjs`.
 5. Renderer-local conversation store helpers fetch SDK chat events via sidecar RPC (`list-chat-conversations`, `search-chat-conversations`, `get-chat-events`).
    `get-chat-events` resume/hydrate paths use `message_index` cursor pagination (`after_message_index`) so large local chats are fully reloaded instead of capped at one page.
 6. `SidecarConversationStore` is the canonical sidecar-backed SDK conversation store. The desktop conversation store factory only supplies desktop write enrichment such as workspace binding, attachments, and compaction checkpoints.
+   Sidecar rewrites persist the SDK rewrite revision in sidecar conversation
+   revision metadata, not by editing preserved event payloads, so list metadata
+   and `getRevision()` stay consistent with file and in-memory stores.
 7. Opening a past chat replaces in-memory renderer chat state immediately, but backend conversation history is rehydrated lazily only before the first backend-dependent action for that chat. Chat session helpers call `DesktopConversationContinuityService.loadLocalConversationSnapshot(...)`, `DesktopConversationContinuityService.rehydrateFromStore(...)`, or `DesktopConversationContinuityService.rehydrateMessages(...)`; the continuity runtime loads SDK rehydrate projections and sends backend rehydrate commands through the SDK conversation runtime transport so feature code does not shape provider history or IPC envelopes.
 8. Send and stop pass through the desktop live-turn runtime facade. Edit/resend, retry, rehydrate, manual compaction, and compaction replay persistence pass through the continuity runtime. These facades call the SDK conversation runtime boundary before the Electron transport adapter maps commands to IPC. Electron-only store and transport adapters stay isolated behind the SDK interfaces instead of becoming normal feature-code dependencies.
 9. Compaction replay persistence also goes through the desktop continuity runtime. Chat stream handlers may update visible thinking/debug state, but the continuity runtime owns active compacted replay persistence.
@@ -199,7 +202,8 @@ Current ownership boundary:
 1. Main `local_backend_bridge.cjs` owns sidecar readiness state through `local_backend_supervisor.cjs`.
 2. Main emits `local-backend-status` renderer events when startup/ready/error state changes and exposes `get-local-backend-status` for initial snapshot reads.
 3. Renderer features that depend on local host capabilities should subscribe to that shared readiness surface instead of racing scoped host IPC calls during startup.
-4. When the last renderer subscriber detaches, the local-backend status store drops its IPC listener and resets to an empty snapshot so a later remount always reboots from a fresh readiness read instead of stale cached state.
+4. `localBackendStatusStore` subscribes to live events before starting the bootstrap read, and ignores bootstrap responses if a newer live event arrived first.
+5. When the last renderer subscriber detaches, the local-backend status store drops its IPC listener and resets to an empty snapshot so a later remount always reboots from a fresh readiness read instead of stale cached state.
 
 ### Browser Header Session Flow
 
@@ -352,7 +356,7 @@ Primary modules:
 - `features/dashboard/components/sections/MemorySection.jsx`:
   - Unified episodic/semantic/procedural view.
   - Fetch/delete semantic memory via sidecar RPC.
-  - Local editable/add flows for panel state.
+  - Add/edit controls stay hidden until backed by durable memory create/update IPC.
 - `features/dashboard/components/sections/ModelsSection.jsx`:
   - Provider-first model selection, fallback reconciliation, API-key section.
 

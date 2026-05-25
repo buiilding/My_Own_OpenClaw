@@ -149,7 +149,7 @@ All config persistence/sync side effects are delegated through parent `onConfigC
 
 Exception:
 
-- `GeneralSettingsTab` invokes `IpcBridge.invoke('set-agent-sudo-access', { enabled })` for passwordless sudo toggle handshake before persisting `agent_full_sudo_enabled`.
+- `GeneralSettingsTab` invokes `IpcBridge.invoke('set-agent-sudo-access', { enabled })` before persisting `agent_full_sudo_enabled`; current main-process policy rejects new persistent passwordless sudo grants and only supports legacy cleanup.
 - `useMemorySettingsActions()` invokes `clear-local-memory` / `clear-chat-history` over the local-backend IPC bridge for destructive data resets, while `MemorySettingsTab` stays presentation-focused.
 - `data-controls` branch mounts `PermissionControlCenter`, which uses permission-store probe/recheck actions.
 

@@ -66,14 +66,16 @@ export async function prepareToolExecutionSurface(
 
   let surfaceToken: number | null = null;
   const shouldManageSurfaceVisibility = shouldManageSurfaceVisibilityForBackgroundCapture();
+  const hadActiveSurfaceTokens = hasActiveSurfaceTokens();
+  surfaceToken = registerSurfaceToken();
   const shouldCollapseForScreenshot = (
     mode === 'screenshot'
     && shouldManageSurfaceVisibility
-    && !hasActiveSurfaceTokens()
+    && !hadActiveSurfaceTokens
   );
 
   try {
-    if ((mode === 'interactive' || mode === 'screenshot') && !hasActiveSurfaceTokens()) {
+    if ((mode === 'interactive' || mode === 'screenshot') && !hadActiveSurfaceTokens) {
       if (await isDashboardVisibleForComputerUseHandoff()) {
         await handoffSurfaceForComputerUse();
       }
@@ -97,8 +99,6 @@ export async function prepareToolExecutionSurface(
         phaseAfter: SURFACE_PHASE.CAPTURE_READY,
       });
     }
-
-    surfaceToken = registerSurfaceToken();
 
     if (mode === 'interactive') {
       logSurfaceTransition({
@@ -130,6 +130,8 @@ export async function prepareToolExecutionSurface(
       hiddenSurface: getPendingHiddenSurfaceRestore() ?? 'none',
     });
   } catch (error) {
+    releaseSurfaceToken(surfaceToken);
+    surfaceToken = null;
     console.warn('[SurfaceOrchestrator] Failed to prepare tool execution surface:', error);
     logSurfaceTransition({
       source,

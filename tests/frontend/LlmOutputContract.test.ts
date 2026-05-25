@@ -60,6 +60,16 @@ describe('resolveLlmOutputContract', () => {
     expect(contract.markdown.includes(String.raw`\frac{n(n-1)}{2} \le n^2`)).toBe(true);
   });
 
+  test('preserves latex delimiters when math rendering is disabled', () => {
+    const contract = resolveLlmOutputContract(
+      String.raw`Use \(x + 1\) and \[y + 2\] literally.`,
+      { provider: 'openai', enableMath: false },
+    );
+
+    expect(contract.mathEnabled).toBe(false);
+    expect(contract.markdown).toBe(String.raw`Use \(x + 1\) and \[y + 2\] literally.`);
+  });
+
   test('preserves latex delimiters inside fenced code blocks', () => {
     const contract = resolveLlmOutputContract(
       [

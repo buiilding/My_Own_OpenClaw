@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   MessageSquare,
-  Plus,
   Search,
   X,
 } from 'lucide-react';
@@ -21,7 +20,6 @@ import {
   normalizeSemanticMemories,
 } from './memorySectionData';
 import {
-  buildLocalMemoryDraft,
   filterMemoriesByQuery,
   resolveActiveMemoryTypeInfo,
 } from './memorySectionState';
@@ -30,12 +28,7 @@ function MemorySection({ onClose = () => {} }) {
   const sessionInfo = useTranscriptSessionInfo();
   const [activeType, setActiveType] = useState('episodic');
   const [searchQuery, setSearchQuery] = useState('');
-  const [isAdding, setIsAdding] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
-  const [newDetail, setNewDetail] = useState('');
   const [expandedItemId, setExpandedItemId] = useState(null);
-  const [editingItemId, setEditingItemId] = useState(null);
-  const [editedDetail, setEditedDetail] = useState('');
   const [memoryRetrievalEnabled, setMemoryRetrievalEnabledState] = useState(
     () => getMemoryRetrievalInjectionEnabled(),
   );
@@ -133,45 +126,7 @@ function MemorySection({ onClose = () => {} }) {
     if (expandedItemId === memory.id) {
       setExpandedItemId(null);
     }
-    if (editingItemId === memory.id) {
-      setEditingItemId(null);
-      setEditedDetail('');
-    }
-  }, [activeType, editingItemId, expandedItemId, userId]);
-
-  const handleSaveEdit = useCallback((memoryId) => {
-    setMemoriesByType((previous) => ({
-      ...previous,
-      [activeType]: (previous[activeType] || []).map((item) => {
-        if (item.id !== memoryId) {
-          return item;
-        }
-        return {
-          ...item,
-          detail: editedDetail,
-        };
-      }),
-    }));
-
-    setEditingItemId(null);
-    setEditedDetail('');
-  }, [activeType, editedDetail]);
-
-  const handleAdd = useCallback(() => {
-    const localMemory = buildLocalMemoryDraft(activeType, newTitle, newDetail);
-    if (!localMemory) {
-      return;
-    }
-
-    setMemoriesByType((previous) => ({
-      ...previous,
-      [activeType]: [localMemory, ...(previous[activeType] || [])],
-    }));
-
-    setIsAdding(false);
-    setNewTitle('');
-    setNewDetail('');
-  }, [activeType, newDetail, newTitle]);
+  }, [activeType, expandedItemId, userId]);
 
   const handleMemoryRetrievalToggle = useCallback((event) => {
     const nextEnabled = setMemoryRetrievalInjectionEnabled(event.target.checked === true);
@@ -210,7 +165,6 @@ function MemorySection({ onClose = () => {} }) {
                 onClick={() => {
                   setActiveType(type.id);
                   setExpandedItemId(null);
-                  setEditingItemId(null);
                 }}
               >
                 <Icon size={14} />
@@ -257,45 +211,8 @@ function MemorySection({ onClose = () => {} }) {
                 </button>
               ) : null}
             </div>
-
-            <button type="button" className="clone-memory-add-btn" onClick={() => setIsAdding(true)}>
-              <Plus size={14} />
-              Add
-            </button>
           </div>
         </div>
-
-        {isAdding ? (
-          <div className="clone-memory-add-box">
-            <input
-              value={newTitle}
-              onChange={(event) => setNewTitle(event.target.value)}
-              placeholder="Memory title..."
-            />
-            <textarea
-              value={newDetail}
-              onChange={(event) => setNewDetail(event.target.value)}
-              placeholder="Details..."
-              rows={2}
-            />
-            <div className="clone-memory-add-actions">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsAdding(false);
-                  setNewTitle('');
-                  setNewDetail('');
-                }}
-              >
-                Cancel
-              </button>
-              <button type="button" onClick={handleAdd} className="primary">
-                <Plus size={12} />
-                Add Memory
-              </button>
-            </div>
-          </div>
-        ) : null}
 
         <div className="clone-memory-list">
           {isLoading ? (
@@ -321,23 +238,10 @@ function MemorySection({ onClose = () => {} }) {
                 memory={memory}
                 type={activeType}
                 expanded={expandedItemId === memory.id}
-                editing={editingItemId === memory.id}
-                editedDetail={editedDetail}
                 onToggleExpand={() => setExpandedItemId((current) => (current === memory.id ? null : memory.id))}
-                onStartEdit={() => {
-                  setEditingItemId(memory.id);
-                  setEditedDetail(memory.detail || '');
-                  setExpandedItemId(memory.id);
-                }}
                 onDelete={() => {
                   void handleDelete(memory);
                 }}
-                onCancelEdit={() => {
-                  setEditingItemId(null);
-                  setEditedDetail('');
-                }}
-                onSaveEdit={() => handleSaveEdit(memory.id)}
-                onEditedDetailChange={setEditedDetail}
               />
             ))
           )}

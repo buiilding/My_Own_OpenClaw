@@ -46,7 +46,7 @@ class Cache:
         self._misses = 0
         self._lock = threading.RLock()
         self._computing_sync: Dict[str, threading.Event] = {}
-        self._computing_async: Dict[str, asyncio.Event] = {}
+        self._computing_async: Dict[tuple[str, int], asyncio.Event] = {}
 
     def get(self, key: str) -> Optional[Any]:
         """
@@ -73,15 +73,6 @@ class Cache:
             if entry.is_error:
                 raise entry.value
             return entry.value
-
-    def _new_async_event(self) -> asyncio.Event:
-        """Create an asyncio.Event in the current loop (or a new one if missing)."""
-        try:
-            asyncio.get_running_loop()
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-        return asyncio.Event()
 
     def set(self, key: str, value: Any, ttl: Optional[float] = None) -> None:
         """Set a value in the cache."""
@@ -205,16 +196,18 @@ class Cache:
         ttl: Optional[float] = None,
     ) -> T:
         """Get value from cache or compute it asynchronously if not found."""
+        loop = asyncio.get_running_loop()
+        coordination_key = (key, id(loop))
         while True:
             value = self.get(key)
             if value is not None:
                 return value
 
             with self._lock:
-                event = self._computing_async.get(key)
+                event = self._computing_async.get(coordination_key)
                 if event is None:
-                    event = self._new_async_event()
-                    self._computing_async[key] = event
+                    event = asyncio.Event()
+                    self._computing_async[coordination_key] = event
                     should_compute = True
                 else:
                     should_compute = False
@@ -229,8 +222,8 @@ class Cache:
                     raise
                 finally:
                     with self._lock:
-                        if self._computing_async.get(key) is event:
-                            del self._computing_async[key]
+                        if self._computing_async.get(coordination_key) is event:
+                            del self._computing_async[coordination_key]
                         event.set()
             else:
                 await event.wait()

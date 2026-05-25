@@ -97,10 +97,28 @@ Execution path:
    - `dimension`
    - `embedding_space_version`
 
+`embedding_space_version` uses provider/model identity plus the live returned
+vector dimension. The dimension component is derived from the serialized vector
+or health probe result, not blindly from provider metadata, so sidecar FAISS
+compatibility checks match the actual vector shape.
+
 Error behavior:
 
 - expected unavailability -> `503`
 - unexpected failures -> `500` sanitized message (`"Embedding generation failed: An internal error occurred"`)
+
+## Internal `/embed` Service Contract
+
+The standalone embedding service (`backend/src/embeddings/service_app.py`) is
+used behind remote embedding deployments. It accepts a batch payload:
+
+- `texts`: 1..256 strings
+- each string: 1..8192 chars
+- total request text: max 65536 chars
+- response `embeddings` must contain exactly one vector per submitted text
+
+Oversized payloads fail FastAPI/Pydantic validation before queue acquisition or
+provider execution.
 
 Health route: `GET /api/embeddings/health`
 
@@ -117,7 +135,13 @@ Request constraints:
 
 - `conversations`: 1..100 list entries
 - each conversation max length `32768`
-- `user_id` validated with shared `validate_user_id(...)` guard (rejects empty/whitespace/`default_user`)
+- `user_id` validated with shared `validate_user_id(...)` guard (rejects empty/whitespace/`default_user`) and checked against authenticated install identity
+
+Auth behavior:
+
+- missing authenticated install identity returns `401`
+- body `user_id` mismatch returns `403`
+- summarization/title service calls use the authenticated identity after validation
 
 Service flow (`SemanticSummarizationService.summarize`):
 

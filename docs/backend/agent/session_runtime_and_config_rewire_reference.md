@@ -58,6 +58,17 @@ This boundary matters because handlers/services should still depend on `SessionM
 5. factory `create_agent_session(user_id, config)` and cache insert under the requested conversation ref
 6. apply any frontend operating-system override already registered for that user so prompt/history use the frontend OS instead of the backend host OS
 
+Container-owned default session creation preserves the distinction between the
+factory base config and a real session-specific config override:
+
+- default `Container.create_agent_session(...)` calls the LLM factory without a config argument so the DI `llm_client` provider can be overridden by tests/simulation/runtime containers
+- explicit config overrides still call the config-aware LLM factory branch and become the session `cfg`
+
+Agent definition updates layer onto existing session prompt context. When an
+agent definition changes workspace, client prompt layers, tool manifest, or
+system-prompt override, `SessionConfigService` preserves the session's existing
+repo instruction messages and rewrites only the agent-owned prompt pieces.
+
 Concurrency properties:
 
 - user-level lock prevents duplicate session creation races while still allowing multiple cached conversations per user
@@ -68,8 +79,16 @@ Concurrency properties:
 `ActiveQueryTracker` tracks task -> `(turn_ref, conversation_ref)` per user:
 
 - `register_active_query_task(...)`
+- `register_active_query_task_with_limits(...)`
 - `cancel_active_query_task(...)`
 - `clear_active_query_task(...)`
+
+Admission behavior:
+
+- `register_active_query_task_with_limits(...)` prunes done tasks, checks
+  per-user/global active-query caps, consumes pending stops, and registers the
+  accepted task under one tracker lock
+- rejected queries are not inserted into the active-task map
 
 Cancellation behavior:
 

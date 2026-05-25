@@ -24,7 +24,11 @@ def embedding_to_list(embedding: Any) -> List[float]:
         return list(embedding)
 
 
-def resolve_embedding_space_version(embedding_provider: Any) -> str:
+def resolve_embedding_space_version(
+    embedding_provider: Any,
+    *,
+    dimension: int | str | None = None,
+) -> str:
     """Return a stable embedding-space version string for index compatibility checks."""
     provider_id = getattr(embedding_provider, "provider_id", "unknown-provider")
     model_id = getattr(
@@ -32,8 +36,12 @@ def resolve_embedding_space_version(embedding_provider: Any) -> str:
         "model_id",
         getattr(embedding_provider, "model_name", "unknown-model"),
     )
-    dimension = getattr(embedding_provider, "dimension", "unknown-dimension")
-    return f"{provider_id}:{model_id}:{dimension}"
+    resolved_dimension = (
+        dimension
+        if dimension is not None
+        else getattr(embedding_provider, "dimension", "unknown-dimension")
+    )
+    return f"{provider_id}:{model_id}:{resolved_dimension}"
 
 
 async def generate_embedding_response(
@@ -61,6 +69,7 @@ async def generate_embedding_response(
         request_model_name,
     )
 
+    dimension = len(embedding_list)
     return EmbeddingResponse(
         embedding=embedding_list,
         provider_id=getattr(embedding_provider, "provider_id", "unknown-provider"),
@@ -70,8 +79,11 @@ async def generate_embedding_response(
             getattr(embedding_provider, "model_name", request_model_name),
         ),
         model_name=getattr(embedding_provider, "model_name", request_model_name),
-        dimension=len(embedding_list),
-        embedding_space_version=resolve_embedding_space_version(embedding_provider),
+        dimension=dimension,
+        embedding_space_version=resolve_embedding_space_version(
+            embedding_provider,
+            dimension=dimension,
+        ),
     )
 
 
@@ -94,7 +106,10 @@ async def resolve_health_payload(
         ),
         model_name=getattr(embedding_provider, "model_name", "unknown"),
         dimension=dimension,
-        embedding_space_version=resolve_embedding_space_version(embedding_provider),
+        embedding_space_version=resolve_embedding_space_version(
+            embedding_provider,
+            dimension=dimension,
+        ),
     )
 
 
@@ -131,9 +146,13 @@ async def embed_text_with_runtime_recovery(
 def raise_embedding_error(*, error: Exception, logger: Any, started_at: float) -> None:
     """Emit sanitized internal-error response for embedding failures."""
     if isinstance(error, EmbeddingCapacityExceededError):
-        raise HTTPException(status_code=error.status_code, detail=error.detail) from error
+        raise HTTPException(
+            status_code=error.status_code, detail=error.detail
+        ) from error
     if isinstance(error, EmbeddingProviderRequestError):
-        raise HTTPException(status_code=error.status_code, detail=error.detail) from error
+        raise HTTPException(
+            status_code=error.status_code, detail=error.detail
+        ) from error
     embedding_time = time.perf_counter() - started_at
     logger.error(
         "[Timing] Embedding generation failed after %.3fs: %s",

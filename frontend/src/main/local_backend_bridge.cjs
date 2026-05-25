@@ -197,6 +197,19 @@ function markBackendReady(mainWindow) {
   mainWindow?.webContents.send('local-backend-status', { ready: true });
 }
 
+function markBackendReadinessFailed(mainWindow, error) {
+  const errorMessage = typeof error === 'string' && error.trim()
+    ? error.trim()
+    : 'Local backend readiness check failed';
+  readinessCheckCallback = null;
+  localBackendSupervisor.markError(errorMessage);
+  mainWindow?.webContents.send('local-backend-status', {
+    ready: false,
+    status: 'error',
+    error: errorMessage,
+  });
+}
+
 function buildLocalBackendStatusPayload() {
   const snapshot = localBackendSupervisor.getSnapshot();
   return {
@@ -269,9 +282,12 @@ function checkReadiness(mainWindow, attempt = 1, maxAttempts = 10) {
       } else {
         if (!scheduleReadinessRetry(mainWindow, attempt, maxAttempts, checkToken)) {
           if (!isTestEnv) {
-            console.warn('[LocalBackend] Backend readiness check failed after max attempts, marking as ready');
+            console.warn('[LocalBackend] Backend readiness check failed after max attempts');
           }
-          markBackendReady(mainWindow);
+          markBackendReadinessFailed(
+            mainWindow,
+            'Local backend readiness check failed after max attempts',
+          );
         }
       }
     }
@@ -287,7 +303,10 @@ function checkReadiness(mainWindow, attempt = 1, maxAttempts = 10) {
         if (!isTestEnv) {
           console.warn('[LocalBackend] Backend readiness check timed out after max attempts');
         }
-        markBackendReady(mainWindow);
+        markBackendReadinessFailed(
+          mainWindow,
+          'Local backend readiness check timed out after max attempts',
+        );
       }
     }
   }, 500);

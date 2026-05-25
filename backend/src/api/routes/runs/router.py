@@ -31,14 +31,22 @@ from .response_builders import (
     build_worker_dispatched_response,
     build_worker_poll_heartbeat_response,
 )
-from .support import get_vm_run_control_service, require_run, verify_runs_api_key
+from .support import (
+    get_vm_run_control_service,
+    require_run,
+    verify_runs_api_key,
+    verify_runs_control_api_key,
+)
 from backend.src.services.vm_run_control import VmRunControlService
 
 router = APIRouter(prefix="/api/runs", tags=["runs"])
 
-VmRunControlServiceDep = Annotated[VmRunControlService, Depends(get_vm_run_control_service)]
+VmRunControlServiceDep = Annotated[
+    VmRunControlService, Depends(get_vm_run_control_service)
+]
 
 RunsApiKeyDep = Annotated[None, Depends(verify_runs_api_key)]
+RunsControlApiKeyDep = Annotated[None, Depends(verify_runs_control_api_key)]
 
 
 @router.post("/", response_model=CreateRunResponse)
@@ -129,12 +137,14 @@ async def control_run(
     _api_key: RunsApiKeyDep = None,
 ) -> RunControlResponse:
     validate_control_request(payload)
-    run = require_run(await service.apply_control(
-        run_id,
-        action=payload.action,
-        requested_by=payload.requested_by,
-        control_mode=payload.control_mode,
-    ))
+    run = require_run(
+        await service.apply_control(
+            run_id,
+            action=payload.action,
+            requested_by=payload.requested_by,
+            control_mode=payload.control_mode,
+        )
+    )
     return build_run_control_response(
         run,
         missing_detail="Run control event not recorded",
@@ -145,7 +155,7 @@ async def control_run(
 async def stop_all_runs(
     payload: StopAllRunsRequest,
     service: VmRunControlServiceDep,
-    _api_key: RunsApiKeyDep = None,
+    _control_api_key: RunsControlApiKeyDep = None,
 ) -> StopAllRunsResponse:
     stopped_run_ids = await service.stop_all_runs(
         workspace_id=payload.workspace_id,
@@ -165,11 +175,14 @@ async def worker_dispatched(
     service: VmRunControlServiceDep,
     _api_key: RunsApiKeyDep = None,
 ) -> WorkerDispatchedResponse:
-    run = require_run(await service.acknowledge_run_dispatch(
-        run_id,
-        worker_id=payload.worker_id,
-        user_id=payload.user_id,
-        turn_ref=payload.turn_ref,
-        conversation_ref=payload.conversation_ref,
-    ), detail="Run not found or worker mismatch")
+    run = require_run(
+        await service.acknowledge_run_dispatch(
+            run_id,
+            worker_id=payload.worker_id,
+            user_id=payload.user_id,
+            turn_ref=payload.turn_ref,
+            conversation_ref=payload.conversation_ref,
+        ),
+        detail="Run not found or worker mismatch",
+    )
     return build_worker_dispatched_response(run)

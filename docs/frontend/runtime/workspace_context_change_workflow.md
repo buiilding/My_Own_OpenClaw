@@ -97,7 +97,9 @@ Selection rules:
 - `fetchActiveWorkspaceSelection()` reads permission status through main IPC.
 - `requestActiveWorkspaceSelection()` asks main to open the selection flow.
 - `setActiveWorkspaceSelection(workspacePath)` updates the selected workspace
-  without re-opening the picker.
+  without re-opening the picker only when that path is already present in the
+  stored permission entry from the workspace selection flow. It must not grant
+  access to a renderer-supplied path.
 - The displayed workspace name is derived from the final path segment.
 
 ### 3. Inspect conversation workspace binding

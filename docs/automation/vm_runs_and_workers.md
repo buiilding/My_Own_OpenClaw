@@ -179,7 +179,7 @@ Every control appends:
 - a command in `pending_controls[]`
 - event `run-control` with `source="api"`
 
-`POST /api/runs/stop-all` applies `stop` to every active run, optionally filtered by workspace id, and marks each event payload with `bulk=true`.
+`POST /api/runs/stop-all` applies `stop` to every active run, optionally filtered by workspace id, and marks each event payload with `bulk=true`. This endpoint requires the privileged `x-windie-runs-control-key` / `WINDIE_RUNS_CONTROL_API_KEY`; the ordinary runs key used by workers and normal run-control calls is not sufficient.
 
 ## Worker Control Application
 

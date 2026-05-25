@@ -43,13 +43,12 @@ export function createTranscriptSessionState(readStoredSessionInfo: ReadSessionI
     const nextConversationRef = conversationRef === undefined
       ? currentConversationRef
       : conversationRef;
-    const nextUserId = userId || currentUserId;
+    const nextUserId = userId === undefined
+      ? currentUserId
+      : userId || (userId === null ? null : currentUserId);
 
     currentConversationRef = nextConversationRef;
-
-    if (nextUserId) {
-      currentUserId = nextUserId;
-    }
+    currentUserId = nextUserId;
 
     return { conversationRef: currentConversationRef, userId: currentUserId };
   };

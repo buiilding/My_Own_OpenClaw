@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import json
+import shutil
 import subprocess
 from functools import lru_cache
 from pathlib import Path
+
+import pytest
 
 from backend.src.api.schemas.incoming import (
     RehydrateConversationPayload,
@@ -15,13 +18,36 @@ from backend.src.api.schemas.incoming import (
 
 
 ROOT = Path(__file__).resolve().parents[2]
+SDK_PACKAGE_DIR = ROOT / "packages" / "windie-sdk-js"
+
+
+def _sdk_build_prerequisite_skip_reason(
+    package_dir: Path = SDK_PACKAGE_DIR,
+) -> str | None:
+    if shutil.which("node") is None:
+        return "node is required for SDK/backend compatibility tests"
+    if shutil.which("npm") is None:
+        return "npm is required for SDK/backend compatibility tests"
+    if not (package_dir / "node_modules").is_dir():
+        try:
+            package_label = str(package_dir.relative_to(ROOT))
+        except ValueError:
+            package_label = "packages/windie-sdk-js"
+        return (
+            f"{package_label} dependencies are not installed; "
+            "run npm install in that package to enable SDK/backend compatibility tests"
+        )
+    return None
 
 
 @lru_cache(maxsize=1)
 def _build_sdk_dist() -> None:
+    skip_reason = _sdk_build_prerequisite_skip_reason()
+    if skip_reason:
+        pytest.skip(skip_reason)
     subprocess.run(
         ["npm", "run", "build"],
-        cwd=ROOT / "packages" / "windie-sdk-js",
+        cwd=SDK_PACKAGE_DIR,
         check=True,
         capture_output=True,
         text=True,
@@ -237,3 +263,30 @@ def test_sdk_rehydrate_projection_matches_backend_ingress_schema():
     assert payload.messages[2].tool_call_id == "call-bundle-readme"
     assert payload.messages[3].tool_name == "read_file"
     assert payload.messages[3].tool_call_id == "call-bundle-package"
+
+
+def test_sdk_build_prerequisite_reason_when_npm_is_missing(monkeypatch):
+    def fake_which(name):
+        if name == "npm":
+            return None
+        return f"/usr/bin/{name}"
+
+    monkeypatch.setattr(shutil, "which", fake_which)
+
+    assert _sdk_build_prerequisite_skip_reason() == (
+        "npm is required for SDK/backend compatibility tests"
+    )
+
+
+def test_sdk_build_prerequisite_reason_when_dependencies_are_missing(
+    tmp_path,
+    monkeypatch,
+):
+    package_dir = tmp_path / "windie-sdk-js"
+    package_dir.mkdir()
+    monkeypatch.setattr(shutil, "which", lambda name: f"/usr/bin/{name}")
+
+    assert _sdk_build_prerequisite_skip_reason(package_dir) == (
+        "packages/windie-sdk-js dependencies are not installed; "
+        "run npm install in that package to enable SDK/backend compatibility tests"
+    )

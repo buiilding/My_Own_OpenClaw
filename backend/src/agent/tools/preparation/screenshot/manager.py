@@ -133,15 +133,12 @@ class ScreenshotManager:
         ocr_state = session.get_ocr_runtime_state()
         if not ocr_service or not ocr_service.enabled:
             # OCR disabled: keep event set so tools don't block unnecessarily.
-            session.ocr_completion_event.set()
             ocr_state.cancel_active_task()
+            session.ocr_completion_event.set()
             return
 
         async def run_ocr_task():
             try:
-                # Clear OCR completion event before starting new OCR
-                session.ocr_completion_event.clear()
-
                 # perform_ocr is async and handles GPU cache management internally in a thread
                 results = await ocr_service.perform_ocr(screenshot_data)
                 if results:
@@ -160,14 +157,21 @@ class ScreenshotManager:
             except Exception as e:
                 logger.error(f"Proactive OCR failed: {e}")
             finally:
-                # Always set the event, even if OCR failed, to unblock waiting tools
-                session.ocr_completion_event.set()
+                # Only the active OCR task for the current screenshot may mark
+                # OCR readiness. Canceled stale tasks must not unblock waiters
+                # for a newer screenshot that shares the same session event.
                 current_task = asyncio.current_task()
+                if (
+                    current_task is not None
+                    and ocr_state.get_active_task(screenshot_id) is current_task
+                ):
+                    session.ocr_completion_event.set()
                 if current_task is not None:
                     ocr_state.clear_active_task(current_task)
 
         # Cancel stale OCR task before scheduling next one.
         ocr_state.cancel_active_task()
+        session.ocr_completion_event.clear()
         task: asyncio.Task[Any] = asyncio.create_task(run_ocr_task())
         ocr_state.set_active_task(task, screenshot_id)
 

@@ -307,6 +307,37 @@ describe('wakeword_bridge', () => {
     );
   });
 
+  test('stops writing audio after wakeword service reports an error status', () => {
+    const { mainWindow, createdProcesses } = initBridge();
+    enableAndReady();
+
+    handlers['wakeword-audio-chunk'](null, Buffer.from([1, 2, 3, 4]));
+    expect(createdProcesses[0].stdin.write).toHaveBeenCalledTimes(2);
+
+    createdProcesses[0]._stderrDataHandler(Buffer.from('{"status":"error","message":"model failed"}\n'));
+    handlers['wakeword-audio-chunk'](null, Buffer.from([5, 6, 7, 8]));
+
+    expect(createdProcesses[0].stdin.write).toHaveBeenCalledTimes(2);
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith(
+      'wakeword-status',
+      {
+        ready: false,
+        error: 'model failed',
+      },
+    );
+  });
+
+  test('allows wakeword service to recover readiness after an error status', () => {
+    const { createdProcesses } = initBridge();
+    enableAndReady();
+
+    createdProcesses[0]._stderrDataHandler(Buffer.from('{"status":"error","message":"model failed"}\n'));
+    createdProcesses[0]._stderrDataHandler(Buffer.from('{"status":"ready"}\n'));
+    handlers['wakeword-audio-chunk'](null, Buffer.from([1, 2, 3, 4]));
+
+    expect(createdProcesses[0].stdin.write).toHaveBeenCalledTimes(2);
+  });
+
   test('packaged mode disables wakeword runtime model downloads', () => {
     const originalResourcesPath = process.resourcesPath;
     process.resourcesPath = '/opt/WindieOS/resources';

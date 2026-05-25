@@ -356,11 +356,17 @@ export async function rewriteTranscriptProjection({
   deps?: DesktopConversationStoreDeps;
 }): Promise<RehydrateSnapshot> {
   const store = createDesktopConversationStore(userId, deps);
-  await store.deleteConversation(conversationRef);
   const revisionId = `rev-rewrite-${conversationRef}-${Date.now()}`;
-  await store.appendEvents(entries.map((entry, index) => (
-    projectionEntryToConversationEvent(conversationRef, revisionId, entry, index)
-  )));
+  await store.rewriteConversation({
+    conversationRef,
+    baseRevisionId: '',
+    newRevisionId: revisionId,
+    preservedEvents: entries.map((entry, index) => (
+      projectionEntryToConversationEvent(conversationRef, revisionId, entry, index)
+    )),
+    removedEventIds: [],
+    reason: 'transcript_projection_rewrite',
+  });
 
   return buildRehydrateSnapshotFromTranscriptProjectionEntries({
     conversationRef,

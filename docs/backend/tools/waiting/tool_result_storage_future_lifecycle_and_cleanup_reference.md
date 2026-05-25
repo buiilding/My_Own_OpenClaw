@@ -35,6 +35,14 @@ Plus TTL timestamp maps for result and bundle keys.
 
 This allows unit and runtime code to create futures safely in both async and sync call sites.
 
+Duplicate future registration is idempotent while an existing future is pending:
+
+- `create_result_future(request_id)` returns the existing pending future for the same request id
+- `create_bundle_future(bundle_id)` returns the existing pending future for the same bundle id
+- completed or cancelled stale futures are discarded before a new future is created
+
+This prevents a second waiter from overwriting and orphaning the first waiter.
+
 ## Resolution and Timestamp Rules
 
 Result future resolution (`resolve_result_future`):
@@ -45,6 +53,13 @@ Result future resolution (`resolve_result_future`):
 
 Bundle equivalent (`resolve_bundle_future`) follows same pattern.
 
+Unresolved future removal is a wake-up path, not a silent drop:
+
+- targeted future removal cancels unresolved individual and bundle futures before removing map entries
+- TTL cleanup uses the same removal path, so expired waiters observe cancellation instead of staying pending
+- `clear_all` cancels unresolved futures before clearing maps during session teardown
+- already-resolved futures are removed without changing their completed result
+
 This prevents timestamp loss while corresponding result entries still exist.
 
 ## Cleanup APIs
@@ -53,18 +68,21 @@ This prevents timestamp loss while corresponding result entries still exist.
 
 - default TTL from constructor (`cleanup_ttl_seconds`, default 300s)
 - removes expired pending + future entries for both individual and bundle domains
+- cancels unresolved expired futures so active waiters are resumed deterministically
 - returns count of cleaned ids
 - logs summary when cleanup removes anything
 
 ### Targeted request cleanup (`cleanup_request_ids`)
 
 - removes pending result and future for each request id
+- cancels unresolved futures when request-specific cleanup removes them
 - used by tool-result processing finally blocks to guarantee per-turn cleanup
 - returns count of removed entries
 
 ### Global reset (`clear_all`)
 
 - clears all result/future/timestamp maps
+- cancels unresolved individual and bundle futures before clearing
 - used during session cleanup and teardown paths
 
 ## Router and Processor Integration
@@ -97,11 +115,13 @@ Useful for diagnostics and leak detection in long-running sessions.
 `tests/backend/test_tool_result_storage.py` validates:
 
 - pending store/get/remove semantics
+- duplicate individual and bundle future registration reuses the pending future
 - individual and bundle future resolution removes futures
 - TTL cleanup removes expired results and stale future-only entries
+- cleanup and explicit future removal cancel unresolved waiters
 - targeted cleanup removes both pending and future entries
 - future creation works in sync context
-- clear-all resets all storage counts
+- clear-all resets all storage counts and cancels unresolved waiters
 
 ## Drift Hotspots
 

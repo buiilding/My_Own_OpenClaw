@@ -26,6 +26,23 @@ describe('wakeword_supervisor', () => {
       enabled: false,
     }));
 
+    supervisor.markError('model failed');
+    expect(supervisor.getSnapshot()).toEqual(expect.objectContaining({
+      process: processRef,
+      status: 'error',
+      ready: false,
+      enabled: false,
+      generation: 1,
+      lastError: 'model failed',
+    }));
+
+    supervisor.markReady();
+    expect(supervisor.getSnapshot()).toEqual(expect.objectContaining({
+      status: 'ready',
+      ready: true,
+      lastError: '',
+    }));
+
     supervisor.beginStop();
     expect(supervisor.getSnapshot()).toEqual(expect.objectContaining({
       status: 'stopping',

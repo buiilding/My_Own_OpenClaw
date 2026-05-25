@@ -46,6 +46,10 @@ def resolve_runs_api_key() -> Optional[str]:
     )
 
 
+def resolve_runs_control_api_key() -> Optional[str]:
+    return normalize_optional_string(os.getenv("WINDIE_RUNS_CONTROL_API_KEY"))
+
+
 def verify_runs_api_key(
     x_windie_runs_key: Optional[str] = Header(
         default=None,
@@ -54,16 +58,37 @@ def verify_runs_api_key(
 ) -> None:
     expected_key = resolve_runs_api_key()
     if expected_key is None:
-        return
+        raise HTTPException(
+            status_code=503,
+            detail="Runs API key is not configured",
+        )
     if normalize_optional_string(x_windie_runs_key) != expected_key:
         raise HTTPException(status_code=401, detail="Invalid runs API key")
+
+
+def verify_runs_control_api_key(
+    x_windie_runs_control_key: Optional[str] = Header(
+        default=None,
+        alias="x-windie-runs-control-key",
+    ),
+) -> None:
+    expected_key = resolve_runs_control_api_key()
+    if expected_key is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Runs control API key is not configured",
+        )
+    if normalize_optional_string(x_windie_runs_control_key) != expected_key:
+        raise HTTPException(status_code=403, detail="Invalid runs control API key")
 
 
 def to_run_view_dict(run: Dict[str, Any]) -> Dict[str, Any]:
     return {k: v for k, v in run.items() if k != "events"}
 
 
-def require_run(run: Optional[Dict[str, Any]], detail: str = "Run not found") -> Dict[str, Any]:
+def require_run(
+    run: Optional[Dict[str, Any]], detail: str = "Run not found"
+) -> Dict[str, Any]:
     if run is None:
         raise HTTPException(status_code=404, detail=detail)
     return run

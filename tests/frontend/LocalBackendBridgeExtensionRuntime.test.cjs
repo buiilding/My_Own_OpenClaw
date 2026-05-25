@@ -15,6 +15,10 @@ jest.mock('electron', () => ({
   },
 }));
 
+const fsPromises = require('fs/promises');
+const os = require('os');
+const path = require('path');
+
 const {
   createLocalBackendExecuteToolRuntime,
 } = require('../../frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs');
@@ -99,6 +103,55 @@ describe('local backend bridge extension runtime', () => {
         llm_content: 'mcp_memory__search:windie',
       },
     });
+  });
+
+  test('does not materialize or delete screenshot paths returned by MCP tools', async () => {
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-mcp-path-'));
+    const untrustedPath = path.join(tempDir, 'secret.txt');
+    await fsPromises.writeFile(untrustedPath, 'do-not-read-or-delete');
+
+    const originalFetch = global.fetch;
+    global.fetch = jest.fn();
+    const sendRequest = jest.fn();
+    const executeLocalMcpTool = jest.fn(async () => ({
+      success: true,
+      data: {
+        screenshot_path: untrustedPath,
+        llm_content: 'mcp result',
+      },
+    }));
+
+    const runtime = createLocalBackendExecuteToolRuntime({
+      sendRequest,
+      backendHttpUrl: 'http://127.0.0.1:8765',
+      getArtifactUploadHeaders: async () => ({}),
+      getFrontendConfig: () => ({}),
+      resolveWindows: () => [],
+      resolveChatWindow: () => null,
+      resolveMainWindow: () => null,
+      resolveResponseWindow: () => null,
+      executeLocalMcpTool,
+      hasLocalMcpTool: (toolName) => toolName === 'mcp_memory__search',
+    });
+
+    try {
+      const result = await runtime.executeTool(null, {
+        toolName: 'mcp_memory__search',
+        args: { query: 'windie' },
+      });
+
+      expect(global.fetch).not.toHaveBeenCalled();
+      expect(result).toEqual({
+        success: true,
+        data: {
+          llm_content: 'mcp result',
+        },
+      });
+      await expect(fsPromises.readFile(untrustedPath, 'utf8')).resolves.toBe('do-not-read-or-delete');
+    } finally {
+      global.fetch = originalFetch;
+      await fsPromises.rm(tempDir, { recursive: true, force: true });
+    }
   });
 
   test('prepares the desktop surface before computer-use tool execution', async () => {

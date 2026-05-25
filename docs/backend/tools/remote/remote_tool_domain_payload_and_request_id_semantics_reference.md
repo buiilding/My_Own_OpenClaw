@@ -59,6 +59,8 @@ Test-backed behavior:
 - metadata request-id reuse works
 - generated fallback ID works when metadata is absent
 - explicit override beats metadata-sourced request id
+- `RemoteWaitTool` reuses the active session request id for frontend result
+  correlation, matching sibling concrete remote stubs
 - `_build_remote_result(...)` keeps model defaults in serialized args payload (for example optional defaults like mouse `duration`)
 
 ## Domain Class Matrix
@@ -80,12 +82,8 @@ Behavior:
 
 - `RemoteComputerUseTool` uses `_COMPUTER_USE_MODEL_BY_TOOL` to re-validate `arguments` with tool-specific schemas before envelope creation
 - `RemoteComputerUseTool` uses `_get_request_id(ctx)` and returns `RemoteToolResult` directly
-- non-unified computer stubs use `_build_remote_result(...)` except request-id override nuance below
+- non-unified computer stubs use `_build_remote_result(...)`
 - `category` is `ToolDomain.COMPUTER`
-
-Nuance:
-
-- `RemoteWaitTool` forces a fresh UUID (`request_id=str(uuid.uuid4())`) rather than inheriting session metadata request id
 
 ### Unified `computer_use` metadata and argument contract
 

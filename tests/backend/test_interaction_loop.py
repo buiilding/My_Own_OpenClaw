@@ -333,6 +333,38 @@ class _NativeBrowserMissingActionLLMHandler:
         return {"content": "Final answer after metadata allowlist rejection."}
 
 
+class _NativeToolCallWithoutIdLLMHandler:
+    def __init__(self):
+        self.calls = 0
+
+    async def get_response(
+        self,
+        prompt,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+    ):
+        _ = (prompt, tools, tool_choice, parallel_tool_calls)
+        self.calls += 1
+        if self.calls == 1:
+            yield FullResponseEvent(content="")
+            return
+        yield FullResponseEvent(content="Final answer after fallback id tool call.")
+
+    def get_last_response_payload(self):
+        if self.calls == 1:
+            return {
+                "content": "",
+                "tool_calls": [
+                    {
+                        "name": "mouse_control",
+                        "arguments": {"x": 10, "y": 20},
+                    }
+                ],
+            }
+        return {"content": "Final answer after fallback id tool call."}
+
+
 @pytest.mark.asyncio
 async def test_interaction_loop_stops_after_nonrecoverable_stream_error_event():
     stored_messages = []
@@ -419,4 +451,33 @@ async def test_interaction_loop_replays_invalid_direct_browser_tool_call():
     assert session.history.staged_tool_call_ids[0] == (["call_browser_invalid_1"], False)
     assert session.history.assistant_messages[-1][0] == (
         "Final answer after metadata allowlist rejection."
+    )
+
+
+@pytest.mark.asyncio
+async def test_interaction_loop_stages_fallback_tool_call_id_written_to_history():
+    session = _FakeSession(stored_messages=[])
+    tool_executor = _CapturingToolExecutor()
+    loop = InteractionLoop(
+        session=session,
+        prompt_coordinator=_FakePromptCoordinator(),
+        llm_handler=_NativeToolCallWithoutIdLLMHandler(),
+        tool_executor=tool_executor,
+        event_presenter=_FakeEventPresenter(),
+    )
+
+    events = [event async for event in loop.run_loop()]
+
+    assert any(isinstance(event, StreamingCompleteEvent) for event in events)
+    assert tool_executor.execute_called is True
+    assert session.history.assistant_messages[0][1] == [
+        {
+            "id": "tool_call_0",
+            "name": "mouse_control",
+            "arguments": {"x": 10, "y": 20},
+        }
+    ]
+    assert session.history.staged_tool_call_ids[0] == (["tool_call_0"], False)
+    assert session.history.assistant_messages[-1][0] == (
+        "Final answer after fallback id tool call."
     )

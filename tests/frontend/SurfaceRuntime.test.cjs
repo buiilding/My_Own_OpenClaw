@@ -76,6 +76,22 @@ describe('surface_runtime', () => {
     expect(initializer).toHaveBeenCalledTimes(1);
   });
 
+  test('allows main-process IPC initialization retry after initializer failure', () => {
+    const runtime = createSurfaceRuntime(createSurfaceDeps());
+    const failingInitializer = jest.fn(() => {
+      throw new Error('registration failed');
+    });
+    const successfulInitializer = jest.fn();
+
+    expect(() => runtime.initializeMainProcessIpcOnce(failingInitializer)).toThrow(
+      'registration failed',
+    );
+    expect(runtime.initializeMainProcessIpcOnce(successfulInitializer)).toBe(true);
+    expect(runtime.initializeMainProcessIpcOnce(successfulInitializer)).toBe(false);
+    expect(failingInitializer).toHaveBeenCalledTimes(1);
+    expect(successfulInitializer).toHaveBeenCalledTimes(1);
+  });
+
   test('owns VM worker runtime lifecycle', () => {
     const runtime = createSurfaceRuntime(createSurfaceDeps());
     const vmWorkerRuntime = { stop: jest.fn() };

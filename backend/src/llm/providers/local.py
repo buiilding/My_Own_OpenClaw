@@ -32,10 +32,18 @@ class LocalLLMProvider(OnlineLLMProvider):
         super().__init__(api_key=api_key, base_url=base_url, timeout=timeout)
         self._http_client: Optional[httpx.AsyncClient] = None
         self._http_client_loop: Optional[asyncio.AbstractEventLoop] = None
+        self._http_client_cleanup_state: Dict[str, Any] = {
+            "client": None,
+            "loop": None,
+        }
         self._http_client_lock = asyncio.Lock()
         # Register finalizer to clean up HTTP client on garbage collection
-        # The finalizer will be called when 'self' is about to be garbage collected
-        weakref.finalize(self, LocalLLMProvider._cleanup_http_client_finalizer, weakref.ref(self))
+        # without needing to recover the provider object from a weak reference.
+        weakref.finalize(
+            self,
+            LocalLLMProvider._cleanup_http_client_finalizer,
+            self._http_client_cleanup_state,
+        )
 
     async def _get_http_client(self) -> httpx.AsyncClient:
         """
@@ -54,6 +62,8 @@ class LocalLLMProvider(OnlineLLMProvider):
                     except RuntimeError:
                         # No running loop, finalizer will handle cleanup if possible
                         self._http_client_loop = None
+                    self._http_client_cleanup_state["client"] = self._http_client
+                    self._http_client_cleanup_state["loop"] = self._http_client_loop
         return self._http_client
 
     async def _close_http_client(self) -> None:
@@ -62,9 +72,11 @@ class LocalLLMProvider(OnlineLLMProvider):
             await self._http_client.aclose()
             self._http_client = None
             self._http_client_loop = None
+            self._http_client_cleanup_state["client"] = None
+            self._http_client_cleanup_state["loop"] = None
 
     @staticmethod
-    def _cleanup_http_client_finalizer(provider_weakref: weakref.ref) -> None:
+    def _cleanup_http_client_finalizer(cleanup_state: Dict[str, Any]) -> None:
         """
         Synchronous cleanup callback for weakref.finalize.
         
@@ -75,18 +87,14 @@ class LocalLLMProvider(OnlineLLMProvider):
         lru_cache evicts provider instances.
         
         Args:
-            provider_weakref: Weak reference to the provider instance
+            cleanup_state: Mutable state containing the HTTP client and loop.
         """
-        provider = provider_weakref()
-        if provider is None:
-            return
-        
-        client = provider._http_client
+        client = cleanup_state.get("client")
         if client is None:
             return
         
         # Try to get the event loop
-        loop = provider._http_client_loop
+        loop = cleanup_state.get("loop")
         if loop is None:
             try:
                 loop = asyncio.get_event_loop()
@@ -103,6 +111,8 @@ class LocalLLMProvider(OnlineLLMProvider):
             async def cleanup():
                 try:
                     await client.aclose()
+                    cleanup_state["client"] = None
+                    cleanup_state["loop"] = None
                 except Exception as e:
                     logger.debug(f"Error closing HTTP client in finalizer: {e}")
             
@@ -120,6 +130,8 @@ class LocalLLMProvider(OnlineLLMProvider):
                     logger.debug("Event loop is closed, cannot clean up HTTP client")
                     return
                 loop.run_until_complete(client.aclose())
+                cleanup_state["client"] = None
+                cleanup_state["loop"] = None
             except Exception as e:
                 logger.debug(f"Error running HTTP client cleanup: {e}")
 

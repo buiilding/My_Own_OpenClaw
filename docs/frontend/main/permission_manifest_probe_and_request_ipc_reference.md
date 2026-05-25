@@ -65,7 +65,9 @@ Current probe ownership:
 - `filesystem_workspace_access`:
   - reads persisted folder-selection state from `permission_state_store.cjs` and verifies the selected path still exists
 - `shell_execution`:
-  - probes runtime availability (shell/PowerShell presence), not cached authorization state
+  - requires a persisted explicit shell-execution authorization grant plus a
+    current runtime availability check (shell/PowerShell presence)
+  - shell runtime availability alone reports `needs-action`
 - `browser_automation`:
   - requires both frontend enablement and backend runtime verification; missing verifier now fails closed
   - pre-grant guidance now tells users that WindieOS will open its dedicated browser so they can sign in with the profile WindieOS should use
@@ -111,7 +113,9 @@ the renderer:
   - opens a folder picker and persists the selected paths to `permission_state_store.cjs`
   - the same picker is reused by the native `File -> Set active workspace…` app-menu action so users can switch the default workspace folder outside onboarding/settings
 - `shell_execution`:
-  - runs an elevated authentication flow and reports success/failure for that attempt without caching a fake permanent grant
+  - runs an elevated authentication flow, persists a successful explicit
+    shell-execution grant in the app-managed permission state store, then
+    re-runs the probe so runtime availability is still checked
 - `browser_automation`:
   - verifies runtime availability, optionally installs Chromium on consent, then runs a real dedicated `browser connect` warm-up so onboarding/settings can open the WindieOS browser ahead of first task use
   - successful request leaves the dedicated WindieOS browser available for sign-in/profile setup; status is inferred from real connect success, not a separate OS permission probe
@@ -125,16 +129,21 @@ Request API is best-effort and returns normalized probe/status payloads.
 ## Persistent App-Managed State
 
 `permission_state_store.cjs` persists app-managed grants that are not OS privacy permissions.
+Writes are serialized per resolved state path and use unique temporary files so
+concurrent independent permission updates do not lose each other during
+read-modify-write persistence.
 
 Current persisted item:
 
 - `filesystem_workspace_access` selected folder paths
   - sidecar shell commands use the first still-existing selected path as the default cwd when `directory` is omitted
+- `shell_execution` explicit authorization grant
+  - probes still require the shell/PowerShell runtime verifier to pass, so the
+    stored grant is not treated as runtime availability
 
 Current non-persisted items:
 
 - OS permissions (`screen_capture`, `input_control_accessibility`, `microphone`) because they are re-probed from the platform or capability verifier
-- `shell_execution` because authorization is runtime-scoped
 - `browser_automation` because enablement is frontend-config owned and runtime readiness is re-verified
 
 ## Main IPC Handler Surface (`index.cjs`)

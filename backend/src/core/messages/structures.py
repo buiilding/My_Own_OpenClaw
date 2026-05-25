@@ -200,23 +200,35 @@ class TextContent(MessageContent):
 
 
 class ImageContent(MessageContent):
-    """Multimodal message content with text and image."""
+    """Multimodal message content with text and one or more images."""
 
-    def __init__(self, text: str, image_url: str):
+    def __init__(self, text: str, image_url: Union[str, List[str]]):
         self.text = text
-        self.image_url = image_url
+        if isinstance(image_url, list):
+            self.image_urls = [
+                url for url in image_url if isinstance(url, str) and url
+            ]
+        elif isinstance(image_url, str) and image_url:
+            self.image_urls = [image_url]
+        else:
+            self.image_urls = []
+        self.image_url = self.image_urls[0] if self.image_urls else ""
 
     def to_llm_format(self) -> MultimodalContent:
-        return [
+        content: MultimodalContent = [
             {"type": ContentType.TEXT.value, "text": self.text},
-            {"type": ContentType.IMAGE_URL.value, "image_url": {"url": self.image_url}},
         ]
+        for image_url in self.image_urls:
+            content.append(
+                {"type": ContentType.IMAGE_URL.value, "image_url": {"url": image_url}}
+            )
+        return content
 
     def get_text(self) -> str:
         return self.text
 
     def has_image(self) -> bool:
-        return True
+        return bool(self.image_urls)
 
     def get_image_urls(self) -> List[str]:
-        return [self.image_url]
+        return list(self.image_urls)

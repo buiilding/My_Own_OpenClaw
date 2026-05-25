@@ -67,6 +67,8 @@ async def test_capture_screenshot_success_with_display_bounds(monkeypatch):
     screenshot_path = payload["screenshot_path"]
     screenshot_file = Path(screenshot_path)
     try:
+        assert screenshot_file.parent.name == "windieos-screenshots"
+        assert screenshot_file.name.startswith("windie-shot-")
         assert screenshot_file.read_bytes() == b"fake-jpeg-bytes"
     finally:
         screenshot_file.unlink(missing_ok=True)

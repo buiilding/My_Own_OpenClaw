@@ -52,23 +52,25 @@ Test anchor:
 
 Provider constructor registers:
 
-- `weakref.finalize(self, LocalLLMProvider._cleanup_http_client_finalizer, weakref.ref(self))`
+- `weakref.finalize(self, LocalLLMProvider._cleanup_http_client_finalizer, cleanup_state)`
 
 When provider becomes unreachable:
 
-- finalizer gets weakref
-- fetches provider + existing client
+- finalizer reads the captured cleanup state containing only the existing client
+  and event loop
 - attempts async close using stored loop info
 
 Important boundary:
 
 - this is best-effort cleanup; behavior varies with event-loop state at GC time
+- the finalizer must not depend on recovering the provider object from a weakref,
+  because the provider may already be unreachable when cleanup runs
 
 ## Finalizer Loop Resolution Paths
 
 Finalizer path order:
 
-1. use `provider._http_client_loop` if present
+1. use the cleanup-state loop captured when the client was created
 2. fallback `asyncio.get_event_loop()`
 3. if no loop available -> warning log and return
 

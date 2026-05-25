@@ -24,14 +24,12 @@ title: "Memory Section Data Normalization and Delete Contract Reference"
 - memory type tabs (`episodic`, `semantic`, `procedural`)
 - fetch + normalization on mount/user switch
 - local search filter
-- local add/edit flows
 - episodic/semantic delete RPC flow (for backend-backed rows)
 
 State buckets:
 
 - tab/search: `activeType`, `searchQuery`
-- row UI: `expandedItemId`, `editingItemId`, `editedDetail`
-- add form: `isAdding`, `newTitle`, `newDetail`
+- row UI: `expandedItemId`
 - load status: `isLoading`, `loadError`
 - data: `memoriesByType`
 
@@ -79,38 +77,26 @@ Match behavior:
 - match against memory `title` OR `detail`
 - empty query returns full list
 
-## Add/Edit/Delete Semantics
+## Mutation Semantics
 
-### Add
-
-- local-only insertion (no backend create IPC in current flow)
-- requires non-empty title
-- generated id shape: `local-<type>-<timestamp>`
-- detail fallback: `(empty memory)`
-
-### Edit
-
-- local-only detail update for current tab list
-- save mutates `detail` field in-place by `memory.id`
-
-### Delete
+Add/edit controls are intentionally not exposed in `MemorySection`. The panel is backed by sidecar episodic and semantic stores, and local-only draft mutations would disappear on reload. Until a real create/update memory IPC contract exists for this dashboard shape, delete is the only row mutation.
 
 - no confirmation prompt; delete is single-click
 - rows with `backendMemoryId` and backend type:
   - `semantic` -> `DELETE_SEMANTIC_MEMORY`
   - `episodic` -> `DELETE_EPISODIC_MEMORY`
-- rows without backend id (including local add rows and procedural placeholders) are removed from local list only
+- rows without backend id are removed from local list only
 
 After delete:
 
-- expanded/editing row state clears if it pointed to removed item
+- expanded row state clears if it pointed to removed item
 
 ## MemoryItem Presentation Contract
 
 `MemoryItem` is presentational with callback-only actions:
 
-- header click toggles expand when not editing
-- edit/delete buttons stop propagation
+- header click toggles expand
+- delete button stops propagation
 - metadata row by type:
   - episodic: date + token count
   - semantic: confidence + source
@@ -125,12 +111,13 @@ After delete:
 - left close button delegates `onClose`
 - semantic delete uses `delete-semantic-memory` with expected payload
 - episodic delete uses `delete-episodic-memory` with expected payload
+- unsupported local add/edit actions are not rendered
 - semantic delete path does not use `window.confirm`
 
 ## Drift Hotspots
 
 1. Changing sidecar memory payload shape without updating normalizers.
-2. Treating local add/edit as persisted behavior without backend write path.
+2. Reintroducing local add/edit without a backend write path creates reload-time data loss.
 3. Removing backend id propagation (`backendMemoryId`) breaks backend delete routing.
 4. Divergent user-id fallback policy can split memory visibility by session state.
 

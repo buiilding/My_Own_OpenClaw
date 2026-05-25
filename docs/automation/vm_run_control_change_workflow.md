@@ -238,6 +238,7 @@ Control invariants:
 - `stop-all` targets active statuses only: `awaiting_worker`, `queued`, `running`, and `paused`.
 - `stop-all` may be workspace-scoped.
 - bulk stop events include `bulk=true`.
+- `stop-all` requires `x-windie-runs-control-key` matching `WINDIE_RUNS_CONTROL_API_KEY`; do not authorize it with the ordinary worker/runs key.
 
 When implementing real pause/resume behavior, do not only add backend statuses. Add an Electron runtime behavior, websocket/control semantics, tests for command delivery and live effect, and docs that explain whether the underlying query is actually paused.
 
@@ -250,7 +251,7 @@ Backend:
 - route dependency: `backend/src/api/routes/runs/support.py`
 - accepted env vars: `WINDIE_RUNS_API_KEY`, `WINDIE_DEMO_API_KEY`
 - header: `x-windie-runs-key`
-- when no backend key is configured, routes are open
+- when no backend key is configured, routes fail closed with HTTP `503`
 
 Electron worker:
 

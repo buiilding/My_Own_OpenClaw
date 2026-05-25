@@ -41,6 +41,8 @@ title: "Event Bus and Cache Infrastructure Reference"
 `EventHandlerWrapper` behavior:
 
 - bound methods are stored as `weakref.WeakMethod` (prevents leaking object instances through strong refs)
+- each wrapper stores a stable handler key at subscription time; bound-method
+  keys use the target instance identity plus function identity
 - plain functions are stored strongly
 - optional `filter_func(event)` can short-circuit invocation
 - `call(event)` runs handler and awaits when result is awaitable
@@ -51,7 +53,7 @@ title: "Event Bus and Cache Infrastructure Reference"
 
 1. builds/uses MRO key cache for event class hierarchy
 2. gathers handlers subscribed to each class in the hierarchy
-3. deduplicates handlers by runtime handler object identity
+3. deduplicates handlers by the wrapper's stable handler key
 4. sorts merged handlers by priority
 5. caches resolved result for reuse
 
@@ -86,7 +88,8 @@ Error behavior:
 
 ### ConfigChanged
 
-- emitted by `ConfigurationService.update_config(...)` when `event_bus` is present
+- emitted by `ConfigurationService.update_config(...)` and
+  `ConfigurationService.reload_config(...)` when `event_bus` is present
 - runtime config subscribers are also notified via `ConfigSubscriptionManager`
 
 ## Config Subscription Manager Semantics
@@ -123,8 +126,8 @@ Error behavior:
 ### Compute-on-miss guards
 
 - `get_or_compute(...)` uses per-key `threading.Event` coordination
-- `get_or_compute_async(...)` uses per-key `asyncio.Event` coordination
-- only one caller computes; others wait and reuse result/error
+- `get_or_compute_async(...)` uses per-key and per-event-loop `asyncio.Event` coordination
+- only one same-loop caller computes; callers from different loops do not share loop-bound events and may compute independently
 
 ### Negative caching
 

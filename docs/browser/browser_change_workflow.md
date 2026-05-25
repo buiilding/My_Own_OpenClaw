@@ -82,6 +82,7 @@ Validate:
 - `BrowserUseEngineRuntime.execute()` covers the canonical runtime action set or returns explicit unsupported-action errors for Browser Use CLI gaps.
 - connected-page actions require an active browser session.
 - model-visible docs and prompt/tool-schema snapshots are updated when the visible schema changes.
+- sidecar browser registry tests skip only when Playwright itself is missing; WindieOS browser module import failures should fail collection.
 
 ### Change action payload fields
 

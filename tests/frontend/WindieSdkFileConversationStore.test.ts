@@ -25,6 +25,17 @@ function event(
   });
 }
 
+function deferred<T = void>(): {
+  promise: Promise<T>;
+  resolve: (value?: T | PromiseLike<T>) => void;
+} {
+  let resolve!: (value?: T | PromiseLike<T>) => void;
+  const promise = new Promise<T>((innerResolve) => {
+    resolve = innerResolve;
+  });
+  return { promise, resolve };
+}
+
 describe('FileConversationStore', () => {
   let tempDir: string;
 
@@ -178,6 +189,70 @@ describe('FileConversationStore', () => {
       'z-appended-first',
       'a-appended-second',
     ]);
+  });
+
+  test('serializes overlapping appends for the same conversation', async () => {
+    const store = new FileConversationStore({ directory: tempDir });
+    const first = event('user_message', { text: 'first' }, {
+      eventId: 'evt-first',
+      timestamp: '2026-05-15T12:00:00.000Z',
+    });
+    const second = event('assistant_message', { text: 'second' }, {
+      eventId: 'evt-second',
+      timestamp: '2026-05-15T12:00:01.000Z',
+    });
+    const firstWriteStarted = deferred();
+    const releaseFirstWrite = deferred();
+    let blockedFirstWrite = false;
+    let secondWriteEnteredWhileFirstHeld = false;
+    let storedEvents: ConversationEvent[] = [];
+    const internals = store as unknown as {
+      readConversation(conversationRef: string): Promise<{
+        version: 1;
+        conversationRef: string;
+        events: ConversationEvent[];
+        replay: null;
+        revision: null;
+      }>;
+      writeConversation(file: {
+        version: 1;
+        conversationRef: string;
+        events: ConversationEvent[];
+        replay: null;
+        revision: null;
+      }): Promise<void>;
+    };
+    internals.readConversation = jest.fn(async conversationRef => ({
+      version: 1,
+      conversationRef,
+      events: [...storedEvents],
+      replay: null,
+      revision: null,
+    }));
+    internals.writeConversation = jest.fn(async file => {
+      const eventIds = file.events.map(item => item.eventId);
+      if (!blockedFirstWrite && eventIds.length === 1 && eventIds[0] === 'evt-first') {
+        blockedFirstWrite = true;
+        firstWriteStarted.resolve();
+        await releaseFirstWrite.promise;
+      } else if (eventIds.includes('evt-second')) {
+        secondWriteEnteredWhileFirstHeld = blockedFirstWrite && storedEvents.length === 0;
+      }
+      storedEvents = [...file.events];
+    });
+
+    const firstAppend = store.appendEvent(first);
+    await firstWriteStarted.promise;
+
+    const secondAppend = store.appendEvent(second);
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(secondWriteEnteredWhileFirstHeld).toBe(false);
+
+    releaseFirstWrite.resolve();
+    await Promise.all([firstAppend, secondAppend]);
+
+    expect(storedEvents.map(item => item.eventId)).toEqual(['evt-first', 'evt-second']);
   });
 
   test('rewrites conversations without leaving removed events in the active revision', async () => {

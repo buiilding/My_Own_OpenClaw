@@ -26,6 +26,20 @@ function stringFromEventPayloadOrTopLevel(event: BackendEvent, key: string): str
   return typeof topLevelValue === 'string' ? topLevelValue : null;
 }
 
+function stringField(record: JsonRecord, ...keys: string[]): string | null {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === 'string') {
+      return value;
+    }
+  }
+  return null;
+}
+
+function toolCorrelationIdFromPayload(payload: JsonRecord): string | null {
+  return stringField(payload, 'correlation_id', 'correlationId', 'request_id', 'requestId');
+}
+
 function revisionIdFor(event: BackendEvent, fallbackRevisionId?: string): string {
   const payload = payloadOf(event);
   if (typeof payload.revision_id === 'string' && payload.revision_id.trim()) {
@@ -224,7 +238,7 @@ export function normalizeBackendEventToConversationEvent(
         toolName: 'web_search',
         text: typeof payload.text === 'string' ? payload.text : '',
         requestId: typeof payload.request_id === 'string' ? payload.request_id : null,
-        correlationId: typeof payload.request_id === 'string' ? payload.request_id : null,
+        correlationId: toolCorrelationIdFromPayload(payload),
         structuredPayload: payload,
         rawEvent: event,
       },
@@ -239,7 +253,7 @@ export function normalizeBackendEventToConversationEvent(
         ...payload,
         toolName: typeof payload.tool_name === 'string' ? payload.tool_name : null,
         requestId: typeof payload.request_id === 'string' ? payload.request_id : null,
-        correlationId: typeof payload.request_id === 'string' ? payload.request_id : null,
+        correlationId: toolCorrelationIdFromPayload(payload),
         screenshotRef: typeof payload.screenshot_ref === 'string' ? payload.screenshot_ref : null,
         screenshot: typeof payload.screenshot === 'string' ? payload.screenshot : null,
         userId: typeof event.user_id === 'string' ? event.user_id : null,

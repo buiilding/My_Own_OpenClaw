@@ -60,7 +60,10 @@ class WakewordHandler(TypedMessageHandler[WakewordDetectedMessage]):
         except ValidationError as e:
             # Validation error - send using canonical utility
             await send_error_response(
-                websocket, message.id, f"Invalid wakeword message: {e.message}"
+                websocket,
+                message.id,
+                f"Invalid wakeword message: {e.message}",
+                user_facing=True,
             )
         except Exception as e:
             # Unexpected error - send sanitized error to prevent information leakage

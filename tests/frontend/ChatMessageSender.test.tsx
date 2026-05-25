@@ -715,6 +715,48 @@ describe('useChatMessageSender', () => {
     );
   });
 
+  test('blocks send and surfaces an error when a readable file cannot be read', async () => {
+    (window as any).ipc.invoke = jest.fn().mockImplementation((channel: string) => {
+      if (channel === INVOKE_CHANNELS.READ_ATTACHMENT_FILE) {
+        return Promise.resolve({
+          success: false,
+          error: 'permission denied',
+        });
+      }
+      return Promise.resolve({ success: true });
+    });
+
+    const { result } = renderSender({ senderSurface: 'main-window' });
+
+    let thrownError: Error | null = null;
+    await act(async () => {
+      try {
+        await result.current.sendMessage({
+          text: 'Summarize the attached file',
+          readableFiles: [
+            {
+              filePath: '/tmp/private.txt',
+              filename: 'private.txt',
+            },
+          ],
+        });
+      } catch (error: any) {
+        thrownError = error;
+      }
+    });
+
+    expect(thrownError?.message).toContain("couldn't read private.txt");
+    expect(mockSendQuery).not.toHaveBeenCalled();
+    expect(mockRecordUserTranscriptMessage).not.toHaveBeenCalled();
+    expect(useChatStore.getState().messages).toEqual([
+      expect.objectContaining({
+        sender: 'assistant',
+        type: 'error',
+        text: expect.stringContaining("couldn't read private.txt"),
+      }),
+    ]);
+  });
+
   test('resets sending state and appends error message when send fails', async () => {
     mockSendQuery.mockRejectedValue(new Error('send failed'));
 

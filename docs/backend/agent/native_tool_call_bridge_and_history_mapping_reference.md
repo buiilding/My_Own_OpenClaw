@@ -85,8 +85,14 @@ No wrapper normalization happens in this bridge:
 - otherwise `arguments`: parsed `parameters` copy
 - `thought_signature`: included when metadata contains non-empty signature
 
-`extract_tool_call_ids(...)` returns only metadata-backed ids, preserving emission order.
-Ids are trim-normalized and whitespace-only values are ignored.
+`extract_tool_call_ids(...)` derives ids from the same history shaping path,
+preserving emission order and including deterministic `tool_call_<index>`
+fallbacks when metadata ids are missing or blank.
+
+`extract_history_tool_call_ids(...)` collects ids from an already-rendered
+assistant-history `tool_calls` payload. The interaction loop uses this helper
+after rendering history calls once, so the staged ids exactly match the ids
+persisted on the assistant row.
 
 Deep-copy boundary:
 

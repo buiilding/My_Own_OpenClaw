@@ -7,7 +7,6 @@ Provides type-safe argument validation for all tools.
 from typing import List, Literal, Optional
 from pydantic import BaseModel, Field, ConfigDict, model_validator
 
-
 EXPLANATION_FIELD_DESCRIPTION = (
     "One sentence explanation as to why this tool is being used, "
     "and how it contributes to the goal."
@@ -20,10 +19,12 @@ def _explanation_field():
 
 # --- Mouse Tool Schemas ---
 
+
 class MouseControlArgs(BaseModel):
     """Arguments for mouse control tool."""
-    model_config = ConfigDict(extra='forbid')
-    
+
+    model_config = ConfigDict(extra="forbid")
+
     action: Literal["click", "double_click", "right_click", "move", "drag"] = Field(
         ..., description="Mouse action to perform"
     )
@@ -48,10 +49,10 @@ class MouseControlArgs(BaseModel):
     explanation: str = _explanation_field()
     wait: float = Field(
         0.0,
-        description="Delay in seconds before taking a screenshot after tool execution."
+        description="Delay in seconds before taking a screenshot after tool execution.",
     )
-    
-    @model_validator(mode='after')
+
+    @model_validator(mode="after")
     def validate_coordinates(self):
         """Validate that coordinates are provided when required."""
         if self.x is None or self.y is None:
@@ -63,10 +64,12 @@ class MouseControlArgs(BaseModel):
 
 # --- Keyboard Tool Schemas ---
 
+
 class KeyboardControlArgs(BaseModel):
     """Arguments for keyboard control tool."""
-    model_config = ConfigDict(extra='forbid')
-    
+
+    model_config = ConfigDict(extra="forbid")
+
     action: Literal["type", "paste", "press", "hotkey"] = Field(
         ...,
         description="Keyboard action to perform",
@@ -75,8 +78,12 @@ class KeyboardControlArgs(BaseModel):
         None,
         description="Text to input (required for 'type' and 'paste' actions)",
     )
-    key: Optional[str] = Field(None, description="Single key to press (required for 'press' action)")
-    keys: Optional[List[str]] = Field(None, description="List of keys for hotkey (required for 'hotkey' action)")
+    key: Optional[str] = Field(
+        None, description="Single key to press (required for 'press' action)"
+    )
+    keys: Optional[List[str]] = Field(
+        None, description="List of keys for hotkey (required for 'hotkey' action)"
+    )
     repeat: int = Field(
         1,
         ge=1,
@@ -92,10 +99,10 @@ class KeyboardControlArgs(BaseModel):
     explanation: str = _explanation_field()
     wait: float = Field(
         0.0,
-        description="Delay in seconds before taking a screenshot after tool execution."
+        description="Delay in seconds before taking a screenshot after tool execution.",
     )
-    
-    @model_validator(mode='after')
+
+    @model_validator(mode="after")
     def validate_action_fields(self):
         """Validate that required fields are present based on action."""
         if self.action in {"type", "paste"} and not self.text:
@@ -111,9 +118,11 @@ class KeyboardControlArgs(BaseModel):
 
 # --- Screenshot Tool Schemas ---
 
+
 class DesktopVirtualBounds(BaseModel):
     """Virtual desktop bounds spanning all connected displays."""
-    model_config = ConfigDict(extra='forbid')
+
+    model_config = ConfigDict(extra="forbid")
 
     x: int = Field(..., description="Virtual desktop X origin")
     y: int = Field(..., description="Virtual desktop Y origin")
@@ -123,7 +132,8 @@ class DesktopVirtualBounds(BaseModel):
 
 class DisplayBounds(BaseModel):
     """Screen bounds for targeted screenshot capture."""
-    model_config = ConfigDict(extra='forbid')
+
+    model_config = ConfigDict(extra="forbid")
 
     x: int = Field(..., description="Display X origin")
     y: int = Field(..., description="Display Y origin")
@@ -135,22 +145,25 @@ class DisplayBounds(BaseModel):
         description="Optional virtual desktop bounds for translating a monitor crop from an all-displays screenshot.",
     )
 
+
 class ScreenshotToolArgs(BaseModel):
     """Arguments for screenshot tool."""
-    model_config = ConfigDict(extra='forbid')
+
+    model_config = ConfigDict(extra="forbid")
 
     explanation: str = _explanation_field()
     wait: Optional[float] = Field(
         None,
-        description="(OPTIONAL) Delay in seconds before capturing a screenshot. If provided, waits this duration before capture."
+        description="(OPTIONAL) Delay in seconds before capturing a screenshot. If provided, waits this duration before capture.",
     )
     display_bounds: Optional[DisplayBounds] = Field(
         None,
-        description="(OPTIONAL) Display bounds to capture instead of the full desktop."
+        description="(OPTIONAL) Display bounds to capture instead of the full desktop.",
     )
 
 
 # --- Scroll Tool Schemas ---
+
 
 class ScrollControlArgs(BaseModel):
     """Arguments for scroll control tool. Vertical: up/down (vscroll). Horizontal: left/right (hscroll).
@@ -158,11 +171,20 @@ class ScrollControlArgs(BaseModel):
     Vertical scroll defaults are executor-owned OS-default literal click counts.
     Optional `clicks` remains available as a literal override.
     """
-    model_config = ConfigDict(extra='forbid')
-    
-    action: Literal["scroll", "scroll_up", "scroll_down"] = Field(..., description="Scroll action to perform")
-    x: int = Field(..., description="X coordinate to move to before scrolling (manual coordinates only)")
-    y: int = Field(..., description="Y coordinate to move to before scrolling (manual coordinates only)")
+
+    model_config = ConfigDict(extra="forbid")
+
+    action: Literal["scroll", "scroll_up", "scroll_down"] = Field(
+        ..., description="Scroll action to perform"
+    )
+    x: int = Field(
+        ...,
+        description="X coordinate to move to before scrolling (manual coordinates only)",
+    )
+    y: int = Field(
+        ...,
+        description="Y coordinate to move to before scrolling (manual coordinates only)",
+    )
     clicks: Optional[int] = Field(
         None,
         description=(
@@ -171,7 +193,7 @@ class ScrollControlArgs(BaseModel):
             "the executor chooses the default click amount (8 on macOS, 5 on "
             "Windows/Linux). Provide it only when a smaller or larger manual "
             "adjustment is needed."
-        )
+        ),
     )
     direction: Optional[Literal["up", "down", "left", "right"]] = Field(
         None,
@@ -180,10 +202,10 @@ class ScrollControlArgs(BaseModel):
     explanation: str = _explanation_field()
     wait: float = Field(
         0.0,
-        description="Delay in seconds before taking a screenshot after tool execution."
+        description="Delay in seconds before taking a screenshot after tool execution.",
     )
-    
-    @model_validator(mode='after')
+
+    @model_validator(mode="after")
     def validate_direction(self):
         """Validate that direction is provided for scroll action."""
         if self.action == "scroll" and not self.direction:
@@ -193,10 +215,12 @@ class ScrollControlArgs(BaseModel):
 
 # --- Filesystem Tool Schemas ---
 
+
 class ReadFileArgs(BaseModel):
     """Arguments for read file tool."""
-    model_config = ConfigDict(extra='forbid')
-    
+
+    model_config = ConfigDict(extra="forbid")
+
     file_path: str = Field(
         ...,
         description=(
@@ -223,16 +247,18 @@ class ReadFileArgs(BaseModel):
     )
     explanation: str = Field(
         ...,
-        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
     )
 
 
 # --- System Tool Schemas ---
 
+
 class RunShellCommandArgs(BaseModel):
     """Arguments for shell command tool."""
-    model_config = ConfigDict(extra='forbid')
-    
+
+    model_config = ConfigDict(extra="forbid")
+
     command: str = Field(
         ...,
         description=(
@@ -251,7 +277,9 @@ class RunShellCommandArgs(BaseModel):
         ),
     )
     run_in_background: bool = Field(..., description="Run command in background")
-    terminate_after_seconds: Optional[float] = Field(120.0, description="Timeout in seconds (for foreground execution)")
+    terminate_after_seconds: Optional[float] = Field(
+        120.0, description="Timeout in seconds (for foreground execution)"
+    )
     yield_after_seconds: Optional[float] = Field(
         None,
         description="(OPTIONAL) Return early if command runs longer than this (seconds). The command continues in the background.",
@@ -274,17 +302,18 @@ class RunShellCommandArgs(BaseModel):
     )
     explanation: str = Field(
         ...,
-        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
     )
     wait: Optional[float] = Field(
         None,
-        description="(OPTIONAL) Delay in seconds before taking a screenshot after tool execution. If provided, the tool will wait and capture a screenshot like computer-use tools."
+        description="(OPTIONAL) Delay in seconds before taking a screenshot after tool execution. If provided, the tool will wait and capture a screenshot like computer-use tools.",
     )
 
 
 class OpenAppArgs(BaseModel):
     """Arguments for detached app launch tool."""
-    model_config = ConfigDict(extra='forbid')
+
+    model_config = ConfigDict(extra="forbid")
 
     command: str = Field(..., description="Executable or app command to launch")
     args: Optional[list[str]] = Field(
@@ -313,10 +342,10 @@ class OpenAppArgs(BaseModel):
     )
     explanation: str = Field(
         ...,
-        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
     )
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def validate_open_app_fields(self):
         """Validate open_app argument constraints."""
         if not self.command.strip():
@@ -326,19 +355,40 @@ class OpenAppArgs(BaseModel):
         return self
 
 
+ProcessShellAction = Literal[
+    "list",
+    "poll",
+    "log",
+    "write",
+    "send-keys",
+    "submit",
+    "paste",
+    "kill",
+    "clear",
+    "remove",
+]
+
+
 class ProcessShellCommandArgs(BaseModel):
     """Arguments for process tool (manage background shell sessions)."""
-    model_config = ConfigDict(extra='forbid')
 
-    action: str = Field(
+    model_config = ConfigDict(extra="forbid")
+
+    action: ProcessShellAction = Field(
         ...,
         description="Action to perform: list, poll, log, write, send-keys, submit, paste, kill, clear, remove.",
     )
-    session_id: Optional[str] = Field(None, description="Session id for actions other than list/clear")
+    session_id: Optional[str] = Field(
+        None, description="Session id for actions other than list/clear"
+    )
     data: Optional[str] = Field(None, description="Data to write for write action")
-    keys: Optional[list[str]] = Field(None, description="Key tokens for send-keys action")
+    keys: Optional[list[str]] = Field(
+        None, description="Key tokens for send-keys action"
+    )
     hex: Optional[list[str]] = Field(None, description="Hex bytes for send-keys action")
-    literal: Optional[str] = Field(None, description="Literal text for send-keys action")
+    literal: Optional[str] = Field(
+        None, description="Literal text for send-keys action"
+    )
     text: Optional[str] = Field(None, description="Text for paste action")
     bracketed: Optional[bool] = Field(None, description="Wrap paste in bracketed mode")
     eof: Optional[bool] = Field(None, description="Close stdin after write action")
@@ -348,7 +398,8 @@ class ProcessShellCommandArgs(BaseModel):
 
 class SwitchTabArgs(BaseModel):
     """Arguments for switch tab tool."""
-    model_config = ConfigDict(extra='forbid')
+
+    model_config = ConfigDict(extra="forbid")
 
     tab_name: str = Field(..., description="Name of the tab/window to switch to")
     match_mode: Literal["exact", "contains", "regex"] = Field(
@@ -358,43 +409,48 @@ class SwitchTabArgs(BaseModel):
     explanation: str = _explanation_field()
     wait: float = Field(
         0.0,
-        description="Delay in seconds before taking a screenshot after tool execution."
+        description="Delay in seconds before taking a screenshot after tool execution.",
     )
 
 
 class GetOpenWindowsArgs(BaseModel):
     """Arguments for get open windows tool."""
-    model_config = ConfigDict(extra='forbid')
-    
-    filter_text: str = Field("", description="Optional filter text to search window titles")
+
+    model_config = ConfigDict(extra="forbid")
+
+    filter_text: str = Field(
+        "", description="Optional filter text to search window titles"
+    )
     explanation: str = Field(
         ...,
-        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
     )
 
 
 class GetSystemStatsArgs(BaseModel):
     """Arguments for get system stats tool."""
-    model_config = ConfigDict(extra='forbid')
-    
+
+    model_config = ConfigDict(extra="forbid")
+
     explanation: str = Field(
         ...,
-        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
     )
 
 
 class WaitToolArgs(BaseModel):
     """Arguments for wait tool."""
-    model_config = ConfigDict(extra='forbid')
+
+    model_config = ConfigDict(extra="forbid")
 
     seconds: float = Field(
-        ...,
-        description="Number of seconds to wait before capturing a screenshot."
+        ..., description="Number of seconds to wait before capturing a screenshot."
     )
     explanation: str = _explanation_field()
 
 
 # --- Additional Filesystem Tool Schemas ---
+
 
 def _before_context_field():
     return Field(
@@ -427,7 +483,8 @@ def _require_eof_field():
 
 class ReplaceOperationArgs(BaseModel):
     """Arguments for one replacement operation in a batched replace call."""
-    model_config = ConfigDict(extra='forbid')
+
+    model_config = ConfigDict(extra="forbid")
 
     old_string: str = Field(..., description="The string to search for and replace")
     new_string: str = Field(
@@ -445,7 +502,7 @@ class ReplaceOperationArgs(BaseModel):
     after_context: Optional[str] = _after_context_field()
     occurrence_index: Optional[int] = _occurrence_index_field()
     require_eof: bool = _require_eof_field()
-    match_mode: Optional[Literal['strict', 'lenient']] = Field(
+    match_mode: Optional[Literal["strict", "lenient"]] = Field(
         None,
         description="Matching mode override for this operation",
     )
@@ -453,7 +510,8 @@ class ReplaceOperationArgs(BaseModel):
 
 class ReplacePatchChunkArgs(BaseModel):
     """Arguments for one apply_patch-style ordered update chunk."""
-    model_config = ConfigDict(extra='forbid')
+
+    model_config = ConfigDict(extra="forbid")
 
     change_context: Optional[str] = Field(
         None,
@@ -475,8 +533,9 @@ class ReplacePatchChunkArgs(BaseModel):
 
 class ReplaceArgs(BaseModel):
     """Arguments for replace tool."""
-    model_config = ConfigDict(extra='forbid')
-    
+
+    model_config = ConfigDict(extra="forbid")
+
     file_path: str = Field(
         ...,
         description=(
@@ -504,8 +563,8 @@ class ReplaceArgs(BaseModel):
     after_context: Optional[str] = _after_context_field()
     occurrence_index: Optional[int] = _occurrence_index_field()
     require_eof: bool = _require_eof_field()
-    match_mode: Literal['strict', 'lenient'] = Field(
-        'lenient',
+    match_mode: Literal["strict", "lenient"] = Field(
+        "lenient",
         description="Matching mode for single operation and default for replacements[]",
     )
     replacements: Optional[List[ReplaceOperationArgs]] = Field(
@@ -522,5 +581,5 @@ class ReplaceArgs(BaseModel):
     )
     explanation: str = Field(
         ...,
-        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal."
+        description="One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
     )

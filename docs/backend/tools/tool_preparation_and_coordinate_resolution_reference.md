@@ -55,8 +55,9 @@ Non-responsibilities:
 
 `tool_call_needs_coordinate_resolution(...)` is true only when:
 
-- tool name is `mouse_control` or `scroll_control`
-- `find_coordinates_by` is `ocr` or `prediction`
+- source grounding is supported and `find_coordinates_by` is `ocr` or `prediction`
+- or drag-destination grounding is supported, `action` is `drag`, and
+  `drag_to_find_coordinates_by` is `ocr` or `prediction`
 
 `manual` mode bypasses OCR/vision resolution.
 `tool_call_has_manual_coordinates(...)` marks manual `x/y` calls for strict normalization.
@@ -68,18 +69,20 @@ For a qualifying call:
 
 1. ensure active screenshot exists (`ScreenshotManager.ensure_screenshot`)
 2. fetch screenshot bytes + screenshot id from session
-3. resolve coordinates via shared helper:
+3. resolve source coordinates via shared helper when source grounding needs OCR/prediction or has manual `x/y`
 - OCR path -> `OcrCoordinator.get_ocr_results(...)` + fuzzy text matching
 - prediction path -> vision service model inference
-4. optional screenshot->display coordinate normalization
-5. rewrite prepared call to manual `x/y`
-6. persist metadata (`coordinate_method`, `coordinate_resolution_screenshot_id`, `coordinate_contract`)
+4. resolve drag-destination coordinates independently when destination grounding needs OCR/prediction
+5. optional screenshot->display coordinate normalization
+6. rewrite prepared source calls to manual `x/y` and drag destinations to manual `drag_to_x/drag_to_y`
+7. persist metadata (`coordinate_method`, `coordinate_resolution_screenshot_id`, `coordinate_contract`, and drag-destination equivalents)
 
 For OCR candidate retries (`find_coordinates_by='ocr'` + `candidate_id`):
 
 1. use current session frame id for candidate lookup/normalization
 2. ignore any legacy `screenshot_id` passed by the caller
 3. fail fast with `frame changed, re-ground required` when execution-time frame check detects drift
+4. validate the selected candidate bbox before returning coordinates; candidates with missing or malformed bbox data produce a controlled re-grounding error instead of a raw key/indexing failure
 
 For manual `x/y` calls (no OCR/vision resolution):
 
@@ -147,6 +150,8 @@ Bundle:
 - one `bundle_id` across all steps
 - steps prepare sequentially
 - first coordinate-resolution failure short-circuits remaining bundle preparation
+- if the full bundle prepares without errors, each resolved step is stored in session runtime under `<bundle_id>:step:<1-based-index>`
+- bundle steps intentionally do not receive `request_id`, preserving atomic bundle detection and `bundle_id` wait routing
 
 ## Frontend Dispatch Behavior (`ToolSender`)
 

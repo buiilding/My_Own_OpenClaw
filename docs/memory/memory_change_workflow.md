@@ -138,7 +138,7 @@ Validation:
 
 | Identifier | Use |
 | --- | --- |
-| `userId` / `user_id` | Owner identity. Hosted backend should prefer authenticated identity when install auth is enabled. |
+| `userId` / `user_id` | Owner identity. Hosted backend should require authenticated identity where user-scoped work is performed, and request-body ids must match that identity. |
 | `sessionId` / `session_id` | Runtime session identity; do not use as durable conversation identity when `conversationRef` exists. |
 | `conversationRef` / `conversation_id` | Durable conversation/thread identity across transcript, replay, rehydrate, and sidecar storage. |
 | `turn_ref` | Backend turn-scoped correlation for stream/tool events. |

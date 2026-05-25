@@ -1,4 +1,5 @@
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -93,7 +94,8 @@ async def test_web_search_tool_returns_normalized_brave_results(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_web_search_tool_reports_missing_backend_configuration():
+async def test_web_search_tool_reports_missing_backend_configuration(monkeypatch):
+    monkeypatch.delenv("BRAVE_SEARCH_API_KEY", raising=False)
     tool = WebSearchTool()
     config = AppConfig(
         model_provider="anthropic",
@@ -107,6 +109,28 @@ async def test_web_search_tool_reports_missing_backend_configuration():
 
     assert result.success is False
     assert result.error == "Brave Search is not configured on the backend."
+
+
+@pytest.mark.asyncio
+async def test_web_search_tool_blocks_disabled_policy_before_brave_execution(monkeypatch):
+    tool = WebSearchTool()
+    config = AppConfig(
+        model_provider="anthropic",
+        selected_model_id="claude-sonnet-4-20250514",
+        agent_disabled_capabilities=["web_search"],
+    )
+    monkeypatch.setenv("BRAVE_SEARCH_API_KEY", "test-brave-key")
+    perform_request = AsyncMock()
+    monkeypatch.setattr(tool, "_perform_request", perform_request)
+
+    result = await tool.run(
+        WebSearchArgs(query="windieos latest"),
+        _build_tool_context(config=config),
+    )
+
+    assert result.success is False
+    assert result.error == "web_search is disabled by the current tool policy."
+    perform_request.assert_not_called()
 
 
 @pytest.mark.asyncio

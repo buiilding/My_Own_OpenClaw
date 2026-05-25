@@ -54,4 +54,42 @@ describe('ipc_transcript_session_sync', () => {
 
     expect(broadcastToRenderers).not.toHaveBeenCalled();
   });
+
+  test('broadcasts resolved conversation ref when payload only changes user id', () => {
+    const broadcastToRenderers = jest.fn();
+
+    const result = applyTranscriptSessionSync({
+      payload: { userId: 'user-next' },
+      sender: { id: 'sender-1' },
+      currentConversationRef: 'conv-current',
+      currentUserId: 'user-current',
+      broadcastToRenderers,
+    });
+
+    expect(result.nextConversationRef).toBe('conv-current');
+    expect(result.nextUserId).toBe('user-next');
+    expect(broadcastToRenderers).toHaveBeenCalledWith('transcript-session-sync', {
+      conversationRef: 'conv-current',
+      userId: 'user-next',
+    }, { id: 'sender-1' });
+  });
+
+  test('broadcasts explicit conversation null as a clear', () => {
+    const broadcastToRenderers = jest.fn();
+
+    const result = applyTranscriptSessionSync({
+      payload: { conversationRef: null, userId: 'user-next' },
+      sender: { id: 'sender-1' },
+      currentConversationRef: 'conv-current',
+      currentUserId: 'user-current',
+      broadcastToRenderers,
+    });
+
+    expect(result.nextConversationRef).toBeNull();
+    expect(result.nextUserId).toBe('user-next');
+    expect(broadcastToRenderers).toHaveBeenCalledWith('transcript-session-sync', {
+      conversationRef: null,
+      userId: 'user-next',
+    }, { id: 'sender-1' });
+  });
 });

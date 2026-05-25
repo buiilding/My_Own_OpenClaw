@@ -117,6 +117,15 @@ Implication:
 
 - fallback undercounts multimodal/image token usage compared with LiteLLM primary path
 
+## Text Truncation Contract
+
+`TokenService.truncate_text(...)` uses LiteLLM encode/decode when available and
+falls back to character-budget estimation when tokenization fails. In both paths,
+the truncation marker is counted inside the requested budget. Remaining head and
+tail allocation is split so `head + marker + tail` never exceeds the token or
+estimated character limit, including the one-token/one-character remainder edge
+case.
+
 ## Singleton and Thread-Safety Contract
 
 Global service accessor:

@@ -40,6 +40,9 @@ Compile-time channel safety comes from `channels.ts`:
 - `OnChannel` from `ON_CHANNELS` values
 
 `IpcBridge` signatures use these union types to prevent typos in typed call sites.
+`channels.ts` also validates the imported shared JSON registry at module load.
+Missing families, missing keys, or drifted channel string values throw before
+the exported channel constants can be used by renderer callers.
 
 ## Runtime Validation Policy
 
@@ -119,16 +122,18 @@ If cleanup ignored:
 ## Drift Hotspots
 
 1. adding new channel constant without preload allowlist update causes production invoke rejections.
-2. changing validation environment check can unintentionally enable/disable dev checks.
-3. altering `getRawIpc` error semantics can break test diagnostics and runtime onboarding hints.
-4. forgetting to return cleanup function from preload `on` path breaks renderer unsubscription contract.
+2. editing `ipcChannels.json` without updating the renderer expected registry now fails at module load.
+3. changing validation environment check can unintentionally enable/disable dev checks.
+4. altering `getRawIpc` error semantics can break test diagnostics and runtime onboarding hints.
+5. forgetting to return cleanup function from preload `on` path breaks renderer unsubscription contract.
 
 ## Change Checklist
 
 When changing bridge/runtime validation:
 
 1. keep compile-time channel unions aligned with `channels.ts`
-2. keep dev/prod validation behavior explicit and documented
-3. preserve preload as authoritative allowlist boundary
-4. verify missing-`window.ipc` error remains actionable
-5. run `IpcBridge` test suites
+2. keep `EXPECTED_SHARED_CHANNEL_REGISTRY` and `ipcChannels.json` synchronized
+3. keep dev/prod validation behavior explicit and documented
+4. preserve preload as authoritative allowlist boundary
+5. verify missing-`window.ipc` error remains actionable
+6. run `IpcBridge` and `IpcChannels` test suites

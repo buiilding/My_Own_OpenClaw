@@ -54,7 +54,10 @@ Behavior:
 - `â€\u009d` -> `”`
 - `â€™` -> `’`
 - `â€”` -> `—`
-- `Â` / `Â ` removal
+- targeted `Â ` / `Â\u00A0` whitespace artifact repair
+
+Literal `Â` is not removed by itself, so valid text such as names beginning
+with `Â` is preserved.
 
 Replacement pass is deterministic and ordered by array declaration.
 

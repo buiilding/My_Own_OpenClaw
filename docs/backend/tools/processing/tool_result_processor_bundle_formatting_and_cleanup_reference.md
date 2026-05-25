@@ -40,11 +40,12 @@ Processing sequence:
 4. wrap formatted narrative into a new `ToolResult`
 5. transform once with tool name `bundled_tools`
 6. commit once via `HistoryCommitter`
-7. remove stored bundle result and return early
+7. remove stored bundle result in `finally` and return early
 
 Outcome:
 
 - one consolidated history tool-output message for the whole bundle
+- stored bundle payload is removed even if formatting, transform, or commit raises
 
 ## Bundle Narrative Formatting Semantics
 
@@ -62,7 +63,9 @@ Step line logic:
 Additional inclusions:
 
 - top-level `error` line when present
-- `<os_state>` XML block from bundle/system state
+- `<os_state>` XML block from bundle/system state; dynamic field text is
+  XML-escaped before interpolation so window titles, coordinates, and timestamps
+  cannot inject extra model-visible tags
 - screenshot marker for `screenshot` or `screenshot_ref`
 
 System-state precedence:

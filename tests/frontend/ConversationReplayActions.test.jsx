@@ -294,4 +294,51 @@ describe('useConversationReplayActions', () => {
     expect(mockMarkConversationInferenceSessionLocalOnly).not.toHaveBeenCalled();
     expect(mockRetryTurn.mock.calls[0][0].conversationRef).toBe('conv-store-active');
   });
+
+  test('retry replay restores original messages when continuity service rejects', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    mockRetryTurn.mockRejectedValue(new Error('retry rejected'));
+    const messages = [
+      {
+        id: 'user-1',
+        sender: 'user',
+        text: 'first question',
+        screenshotRef: null,
+        screenshotUrl: null,
+      },
+      {
+        id: 'assistant-1',
+        sender: 'assistant',
+        text: 'first answer',
+      },
+      {
+        id: 'user-2',
+        sender: 'user',
+        text: 'later question',
+      },
+    ];
+    const setMessages = jest.fn();
+    const setIsSending = jest.fn();
+
+    const { result } = renderHook(() => useConversationReplayActions({
+      messages,
+      setMessages,
+      setThinkingStatus: jest.fn(),
+      setThinkingSourceEventType: jest.fn(),
+      setIsSending,
+    }));
+
+    await act(async () => {
+      await result.current.handleTryAgainFromAssistant('assistant-1');
+    });
+
+    expect(setMessages).toHaveBeenNthCalledWith(
+      1,
+      [expect.objectContaining({ id: 'user-1' })],
+      'conv-existing',
+    );
+    expect(setMessages).toHaveBeenLastCalledWith(messages, 'conv-existing');
+    expect(setIsSending).toHaveBeenLastCalledWith(false, 'conv-existing');
+    errorSpy.mockRestore();
+  });
 });

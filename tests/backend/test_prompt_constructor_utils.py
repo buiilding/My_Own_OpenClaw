@@ -2,6 +2,8 @@ import pytest
 
 from backend.src.core.infrastructure.cache_manager import CacheManager
 from backend.src.core.config.models import AppConfig
+from backend.src.core.config.models import SecurityLimits
+from backend.src.core.infrastructure.error_types import InputSizeLimitError
 from backend.src.core.observability.trust_boundary_metrics import MetricsService
 from backend.src.core.types.enums import MessageRole, MessageType
 from backend.src.llm.prompts.prompt_constructor import PromptConstructor
@@ -30,8 +32,12 @@ class DummyStoredEntry:
 class DummyHistory:
     def __init__(self, history, user_query_raw, message_types):
         self._history = history
-        self.last_user_query = DummyStoredQuery(user_query_raw) if user_query_raw is not None else None
-        self._stored_entries = [DummyStoredEntry(msg_type) for msg_type in message_types]
+        self.last_user_query = (
+            DummyStoredQuery(user_query_raw) if user_query_raw is not None else None
+        )
+        self._stored_entries = [
+            DummyStoredEntry(msg_type) for msg_type in message_types
+        ]
 
     def get_history(self):
         return self._history
@@ -40,11 +46,11 @@ class DummyHistory:
         return self._stored_entries
 
 
-def _make_constructor(tool_schemas=None):
+def _make_constructor(tool_schemas=None, config=None, metrics_service=None):
     return PromptConstructor(
         tool_registry=DummyRegistry(tool_schemas),
-        config=AppConfig(),
-        metrics_service=MetricsService(),
+        config=config or AppConfig(),
+        metrics_service=metrics_service or MetricsService(),
         system_prompt="system",
     )
 
@@ -52,9 +58,7 @@ def _make_constructor(tool_schemas=None):
 def test_extract_xml_tag_handles_attributes_with_gt_character():
     constructor = _make_constructor()
     content = (
-        '<system_context code="if a > b: c" note="x">'
-        "payload"
-        "</system_context>"
+        '<system_context code="if a > b: c" note="x">' "payload" "</system_context>"
     )
 
     extracted = constructor._extract_xml_tag(content, "system_context")
@@ -64,11 +68,7 @@ def test_extract_xml_tag_handles_attributes_with_gt_character():
 
 def test_extract_xml_tag_content_returns_stripped_inner_text():
     constructor = _make_constructor()
-    content = (
-        '<active_window title="a > b">\n'
-        "  My App  \n"
-        "</active_window>"
-    )
+    content = '<active_window title="a > b">\n' "  My App  \n" "</active_window>"
 
     extracted = constructor._extract_xml_tag_content(content, "active_window")
 
@@ -123,7 +123,9 @@ def test_format_user_message_content_respects_allowlist_for_tool_schemas():
         system_prompt="system",
     )
 
-    _prompt_messages, schemas, _metadata = constructor.build_prompt(None, include_tools=True)
+    _prompt_messages, schemas, _metadata = constructor.build_prompt(
+        None, include_tools=True
+    )
 
     assert [schema["name"] for schema in schemas] == ["read_file"]
 
@@ -135,7 +137,7 @@ def test_format_user_message_content_filters_mouse_coordinate_methods(
     config_path = tmp_path / "tool_selection.toml"
     config_path.write_text(
         (
-            'enabled = true\n'
+            "enabled = true\n"
             'mode = "allowlist"\n'
             'tools = ["mouse_control"]\n'
             "[tool_options.mouse_control]\n"
@@ -152,7 +154,9 @@ def test_format_user_message_content_filters_mouse_coordinate_methods(
         system_prompt="system",
     )
 
-    _prompt_messages, schemas, _metadata = constructor.build_prompt(None, include_tools=True)
+    _prompt_messages, schemas, _metadata = constructor.build_prompt(
+        None, include_tools=True
+    )
     mouse_schema = schemas[0]
 
     args_props = mouse_schema["parameters"]["properties"]
@@ -189,7 +193,9 @@ def test_build_prompt_populates_user_message_metadata_from_history():
         message_types=[MessageType.USER_QUERY],
     )
 
-    prompt_messages, tool_schemas, metadata = constructor.build_prompt(history, include_tools=True)
+    prompt_messages, tool_schemas, metadata = constructor.build_prompt(
+        history, include_tools=True
+    )
 
     assert prompt_messages == history.get_history()
     assert tool_schemas == [
@@ -217,7 +223,9 @@ def test_build_prompt_sets_sequential_context_when_multiple_user_queries():
         message_types=[MessageType.USER_QUERY, MessageType.USER_QUERY],
     )
 
-    _prompt_messages, _tool_schemas, metadata = constructor.build_prompt(history, include_tools=False)
+    _prompt_messages, _tool_schemas, metadata = constructor.build_prompt(
+        history, include_tools=False
+    )
 
     assert metadata.user_message_metadata is not None
     assert metadata.user_message_metadata.context_type == "sequential"
@@ -227,7 +235,9 @@ def test_build_prompt_sets_sequential_context_when_multiple_user_queries():
 def test_build_prompt_returns_empty_history_and_no_user_metadata_without_store():
     constructor = _make_constructor()
 
-    prompt_messages, tool_schemas, metadata = constructor.build_prompt(None, include_tools=False)
+    prompt_messages, tool_schemas, metadata = constructor.build_prompt(
+        None, include_tools=False
+    )
 
     assert prompt_messages == []
     assert tool_schemas == []
@@ -308,15 +318,21 @@ def test_get_prompt_token_count_uses_contextual_agents_messages(monkeypatch, tmp
 
     assert count == 20
     assert captured["model"] == "model-a"
-    assert captured["messages"][0]["content"].startswith("# AGENTS.md instructions for ")
+    assert captured["messages"][0]["content"].startswith(
+        "# AGENTS.md instructions for "
+    )
     assert captured["messages"][1] == history.get_history()[0]
 
 
-def test_build_prompt_prefers_injected_repo_instruction_messages_over_workspace_lookup(tmp_path):
+def test_build_prompt_prefers_injected_repo_instruction_messages_over_workspace_lookup(
+    tmp_path,
+):
     repo_root = tmp_path / "repo"
     repo_root.mkdir()
     (repo_root / ".git").mkdir()
-    (repo_root / "AGENTS.md").write_text("local instructions that remote backend cannot read", encoding="utf-8")
+    (repo_root / "AGENTS.md").write_text(
+        "local instructions that remote backend cannot read", encoding="utf-8"
+    )
 
     constructor = _make_constructor()
     constructor.workspace_path = str(repo_root / "missing-on-host")
@@ -346,8 +362,110 @@ def test_build_prompt_prefers_injected_repo_instruction_messages_over_workspace_
     assert prompt_messages[1] == history.get_history()[0]
 
 
+def test_build_prompt_rejects_oversized_stored_message_content():
+    metrics_service = MetricsService()
+    constructor = _make_constructor(
+        config=AppConfig(
+            security_limits=SecurityLimits(
+                max_message_history_size=10,
+                max_message_content_size=12,
+                max_prompt_size=1024,
+            )
+        ),
+        metrics_service=metrics_service,
+    )
+    history = DummyHistory(
+        history=[{"role": MessageRole.USER.value, "content": "x" * 13}],
+        user_query_raw="x" * 13,
+        message_types=[MessageType.USER_QUERY],
+    )
+
+    with pytest.raises(InputSizeLimitError) as exc_info:
+        constructor.build_prompt(history, include_tools=False)
+
+    assert exc_info.value.actual_size == 13
+    stats = metrics_service.get_all_metrics()["prompt_constructor"]
+    assert stats["size_limit_violations"] == 1
+
+
+def test_build_prompt_rejects_oversized_aggregate_prompt():
+    constructor = _make_constructor(
+        config=AppConfig(
+            security_limits=SecurityLimits(
+                max_message_history_size=10,
+                max_message_content_size=100,
+                max_prompt_size=90,
+            )
+        )
+    )
+    history = DummyHistory(
+        history=[
+            {"role": MessageRole.USER.value, "content": "x" * 40},
+            {"role": MessageRole.ASSISTANT.value, "content": "y" * 40},
+        ],
+        user_query_raw="x" * 40,
+        message_types=[MessageType.USER_QUERY],
+    )
+
+    with pytest.raises(InputSizeLimitError) as exc_info:
+        constructor.build_prompt(history, include_tools=False)
+
+    assert exc_info.value.max_size == 90
+
+
+def test_build_prompt_rejects_too_many_prompt_messages():
+    constructor = _make_constructor(
+        config=AppConfig(
+            security_limits=SecurityLimits(
+                max_message_history_size=1,
+                max_message_content_size=100,
+                max_prompt_size=1024,
+            )
+        )
+    )
+    history = DummyHistory(
+        history=[
+            {"role": MessageRole.USER.value, "content": "first"},
+            {"role": MessageRole.ASSISTANT.value, "content": "second"},
+        ],
+        user_query_raw="first",
+        message_types=[MessageType.USER_QUERY],
+    )
+
+    with pytest.raises(InputSizeLimitError) as exc_info:
+        constructor.build_prompt(history, include_tools=False)
+
+    assert exc_info.value.actual_size == 2
+    assert exc_info.value.max_size == 1
+
+
+def test_build_prompt_rejects_oversized_agents_md_instruction(tmp_path):
+    repo_root = tmp_path / "repo"
+    repo_root.mkdir()
+    (repo_root / ".git").mkdir()
+    (repo_root / "AGENTS.md").write_text("repo instructions " * 20, encoding="utf-8")
+
+    constructor = _make_constructor(
+        config=AppConfig(
+            security_limits=SecurityLimits(
+                max_message_history_size=10,
+                max_message_content_size=120,
+                max_prompt_size=4096,
+            )
+        )
+    )
+    constructor.workspace_path = str(repo_root)
+
+    with pytest.raises(InputSizeLimitError) as exc_info:
+        constructor.build_prompt(None, include_tools=False)
+
+    assert exc_info.value.boundary_name == "prompt_constructor"
+
+
 def test_build_prompt_allowlisting_mouse_control_yields_single_direct_schema():
-    registry = ToolRegistry(config=AppConfig(tool_allowlist=["mouse_control"]), cache_manager=CacheManager())
+    registry = ToolRegistry(
+        config=AppConfig(tool_allowlist=["mouse_control"]), cache_manager=CacheManager()
+    )
     constructor = PromptConstructor(
         tool_registry=registry,
         config=AppConfig(tool_allowlist=["mouse_control"]),
@@ -355,7 +473,9 @@ def test_build_prompt_allowlisting_mouse_control_yields_single_direct_schema():
         system_prompt="system",
     )
 
-    _prompt_messages, schemas, _metadata = constructor.build_prompt(None, include_tools=True)
+    _prompt_messages, schemas, _metadata = constructor.build_prompt(
+        None, include_tools=True
+    )
 
     assert [schema["name"] for schema in schemas] == ["mouse_control"]
     parameters = schemas[0]["parameters"]
@@ -375,7 +495,7 @@ def test_build_prompt_real_registry_prunes_live_model_facing_grounding_schema(
     config_path = tmp_path / "tool_selection.toml"
     config_path.write_text(
         (
-            'enabled = true\n'
+            "enabled = true\n"
             'mode = "allowlist"\n'
             'tools = ["mouse_control", "scroll_control"]\n'
             "[tool_options.mouse_control]\n"
@@ -394,14 +514,19 @@ def test_build_prompt_real_registry_prunes_live_model_facing_grounding_schema(
         system_prompt="system",
     )
 
-    _prompt_messages, schemas, _metadata = constructor.build_prompt(None, include_tools=True)
+    _prompt_messages, schemas, _metadata = constructor.build_prompt(
+        None, include_tools=True
+    )
 
     assert [schema["name"] for schema in schemas] == ["mouse_control", "scroll_control"]
 
     mouse_props = schemas[0]["parameters"]["properties"]
     assert mouse_props["find_coordinates_by"]["enum"] == ["manual"]
     assert mouse_props["drag_to_find_coordinates_by"]["enum"] == ["manual"]
-    assert mouse_props["find_coordinates_by"]["description"] == "Coordinate targeting method."
+    assert (
+        mouse_props["find_coordinates_by"]["description"]
+        == "Coordinate targeting method."
+    )
     assert mouse_props["drag_to_find_coordinates_by"]["description"] == (
         "Drag destination targeting method."
     )
@@ -423,7 +548,7 @@ def test_build_prompt_openai_projection_filters_grounded_tools_after_projection(
     config_path = tmp_path / "tool_selection.toml"
     config_path.write_text(
         (
-            'enabled = true\n'
+            "enabled = true\n"
             'mode = "allowlist"\n'
             'tools = ["mouse_control", "keyboard_control", "screenshot", "scroll_control", "wait"]\n'
             "[tool_options.mouse_control]\n"
@@ -452,7 +577,9 @@ def test_build_prompt_openai_projection_filters_grounded_tools_after_projection(
         system_prompt="system",
     )
 
-    _prompt_messages, schemas, _metadata = constructor.build_prompt(None, include_tools=True)
+    _prompt_messages, schemas, _metadata = constructor.build_prompt(
+        None, include_tools=True
+    )
 
     schema_names = [schema["name"] for schema in schemas]
     assert schema_names == [
@@ -465,7 +592,9 @@ def test_build_prompt_openai_projection_filters_grounded_tools_after_projection(
 
 
 def test_build_prompt_allowlisting_read_file_yields_single_direct_schema():
-    registry = ToolRegistry(config=AppConfig(tool_allowlist=["read_file"]), cache_manager=CacheManager())
+    registry = ToolRegistry(
+        config=AppConfig(tool_allowlist=["read_file"]), cache_manager=CacheManager()
+    )
     constructor = PromptConstructor(
         tool_registry=registry,
         config=AppConfig(tool_allowlist=["read_file"]),
@@ -473,7 +602,9 @@ def test_build_prompt_allowlisting_read_file_yields_single_direct_schema():
         system_prompt="system",
     )
 
-    _prompt_messages, schemas, _metadata = constructor.build_prompt(None, include_tools=True)
+    _prompt_messages, schemas, _metadata = constructor.build_prompt(
+        None, include_tools=True
+    )
 
     assert [schema["name"] for schema in schemas] == ["read_file"]
     parameters = schemas[0]["parameters"]

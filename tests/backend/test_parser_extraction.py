@@ -3,7 +3,11 @@ import time
 import pytest
 
 from backend.src.core.config.models import SecurityLimits
-from backend.src.core.infrastructure.error_types import ParseTimeoutError
+from backend.src.core.infrastructure.error_types import (
+    InputSizeLimitError,
+    ParseTimeoutError,
+    ParseValidationError,
+)
 from backend.src.llm.parser_extraction import JsonToolCallExtractor
 from backend.src.llm.parser_types import ParsedToolCall
 
@@ -29,15 +33,23 @@ class DummyMetrics:
         return None
 
 
+class RecordingMetrics:
+    def __init__(self):
+        self.size_violations = []
+
+    def record_size_violation(self, *args, **kwargs):
+        self.size_violations.append((args, kwargs))
+
+
 def _make_extractor():
     return _make_extractor_with_limits(SecurityLimits())
 
 
-def _make_extractor_with_limits(limits: SecurityLimits):
+def _make_extractor_with_limits(limits: SecurityLimits, metrics=None):
     return JsonToolCallExtractor(
         schema=DummySchema(),
         validator=DummyValidator(),
-        metrics=DummyMetrics(),
+        metrics=metrics or DummyMetrics(),
         limits=limits,
     )
 
@@ -147,6 +159,55 @@ def test_parse_embedded_json_accepts_small_json_with_large_trailing_text():
 
     assert [call.tool_name for call in tool_calls] == ["read_file"]
     assert remaining_text == "x" * 400
+
+
+def test_parse_embedded_json_enforces_max_json_nesting_depth():
+    response = (
+        "prefix "
+        '{"functionCall":{"name":"read_file","args":{"a":{"b":{"c":1}}}}}'
+        " suffix"
+    )
+    limits = SecurityLimits(max_json_nesting_depth=3)
+    extractor = _make_extractor_with_limits(limits)
+
+    with pytest.raises(ParseValidationError, match="JSON nesting depth exceeds maximum 3"):
+        extractor.parse_embedded_json(
+            response,
+            start_time=time.monotonic(),
+            timeout=1.0,
+        )
+
+
+def test_parse_embedded_json_rejects_oversized_tool_call_json_and_records_metric():
+    metrics = RecordingMetrics()
+    limits = SecurityLimits(max_json_size=96, max_response_size=1000)
+    extractor = _make_extractor_with_limits(limits, metrics=metrics)
+    response = (
+        "prefix "
+        '{"functionCall":{"name":"read_file","args":{"payload":"'
+        + ("x" * 160)
+        + '"}}}'
+        " suffix"
+    )
+
+    with pytest.raises(InputSizeLimitError) as exc_info:
+        extractor.parse_embedded_json(
+            response,
+            start_time=time.monotonic(),
+            timeout=1.0,
+        )
+
+    assert exc_info.value.actual_size > limits.max_json_size
+    assert exc_info.value.max_size == limits.max_json_size
+    assert len(metrics.size_violations) == 1
+    _, kwargs = metrics.size_violations[0]
+    assert kwargs["actual_size"] == exc_info.value.actual_size
+    assert kwargs["max_size"] == limits.max_json_size
+    assert kwargs["boundary_name"] == "response_parser"
+    assert kwargs["metadata"] == {
+        "check": "json_size",
+        "source": "embedded_json",
+    }
 
 
 def test_remove_extracted_calls_removes_repeated_identical_raw_calls():

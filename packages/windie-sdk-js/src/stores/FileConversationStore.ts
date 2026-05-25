@@ -137,6 +137,7 @@ function normalizeStoredFile(conversationRef: string, raw: unknown): StoredConve
 
 export class FileConversationStore implements ConversationStore {
   private modulesPromise?: Promise<FileConversationStoreModules>;
+  private readonly conversationMutationChains = new Map<string, Promise<void>>();
 
   constructor(private readonly options: FileConversationStoreOptions) {}
 
@@ -152,40 +153,44 @@ export class FileConversationStore implements ConversationStore {
       groupedEvents.set(event.conversationRef, group);
     }
     for (const [conversationRef, nextEvents] of groupedEvents) {
-      const stored = await this.readConversation(conversationRef);
-      const knownIds = new Set(stored.events.map(event => event.eventId));
-      const uniqueNextEvents = nextEvents.filter(event => {
-        if (knownIds.has(event.eventId)) {
-          return false;
-        }
-        knownIds.add(event.eventId);
-        return true;
-      });
-      const merged = [
-        ...stored.events,
-        ...uniqueNextEvents,
-      ];
-      await this.writeConversation({
-        ...stored,
-        conversationRef,
-        events: merged,
-        revision: buildRevision(conversationRef, merged),
+      await this.runConversationMutation(conversationRef, async () => {
+        const stored = await this.readConversation(conversationRef);
+        const knownIds = new Set(stored.events.map(event => event.eventId));
+        const uniqueNextEvents = nextEvents.filter(event => {
+          if (knownIds.has(event.eventId)) {
+            return false;
+          }
+          knownIds.add(event.eventId);
+          return true;
+        });
+        const merged = [
+          ...stored.events,
+          ...uniqueNextEvents,
+        ];
+        await this.writeConversation({
+          ...stored,
+          conversationRef,
+          events: merged,
+          revision: buildRevision(conversationRef, merged),
+        });
       });
     }
   }
 
   async rewriteConversation(plan: ConversationRewritePlan): Promise<void> {
-    const events = [...plan.preservedEvents];
-    const stored = await this.readConversation(plan.conversationRef);
-    await this.writeConversation({
-      ...stored,
-      conversationRef: plan.conversationRef,
-      events,
-      revision: {
+    await this.runConversationMutation(plan.conversationRef, async () => {
+      const events = [...plan.preservedEvents];
+      const stored = await this.readConversation(plan.conversationRef);
+      await this.writeConversation({
+        ...stored,
         conversationRef: plan.conversationRef,
-        revisionId: plan.newRevisionId,
-        updatedAt: new Date().toISOString(),
-      },
+        events,
+        revision: {
+          conversationRef: plan.conversationRef,
+          revisionId: plan.newRevisionId,
+          updatedAt: new Date().toISOString(),
+        },
+      });
     });
   }
 
@@ -193,14 +198,16 @@ export class FileConversationStore implements ConversationStore {
     if (!snapshot.complete || snapshot.entryCount !== snapshot.entries.length) {
       return;
     }
-    const stored = await this.readConversation(snapshot.conversationRef);
-    await this.writeConversation({
-      ...stored,
-      conversationRef: snapshot.conversationRef,
-      replay: {
-        ...snapshot,
-        active: true,
-      },
+    await this.runConversationMutation(snapshot.conversationRef, async () => {
+      const stored = await this.readConversation(snapshot.conversationRef);
+      await this.writeConversation({
+        ...stored,
+        conversationRef: snapshot.conversationRef,
+        replay: {
+          ...snapshot,
+          active: true,
+        },
+      });
     });
   }
 
@@ -259,15 +266,17 @@ export class FileConversationStore implements ConversationStore {
   }
 
   async deleteConversation(conversationRef: string): Promise<void> {
-    const { fs } = await this.modules();
-    try {
-      await fs.unlink(await this.filePath(conversationRef));
-    } catch (error) {
-      const code = (error as { code?: string })?.code;
-      if (code !== 'ENOENT') {
-        throw error;
+    await this.runConversationMutation(conversationRef, async () => {
+      const { fs } = await this.modules();
+      try {
+        await fs.unlink(await this.filePath(conversationRef));
+      } catch (error) {
+        const code = (error as { code?: string })?.code;
+        if (code !== 'ENOENT') {
+          throw error;
+        }
       }
-    }
+    });
   }
 
   async getRevision(conversationRef: string): Promise<ConversationRevision> {
@@ -292,6 +301,29 @@ export class FileConversationStore implements ConversationStore {
   private async filePath(conversationRef: string): Promise<string> {
     const { path } = await this.modules();
     return path.join(this.options.directory, conversationFilename(conversationRef));
+  }
+
+  private async runConversationMutation<T>(
+    conversationRef: string,
+    operation: () => Promise<T>,
+  ): Promise<T> {
+    const previous = this.conversationMutationChains.get(conversationRef) ?? Promise.resolve();
+    let releaseCurrent: () => void = () => {};
+    const current = new Promise<void>((resolve) => {
+      releaseCurrent = resolve;
+    });
+    const chain = previous.catch(() => undefined).then(() => current);
+    this.conversationMutationChains.set(conversationRef, chain);
+
+    await previous.catch(() => undefined);
+    try {
+      return await operation();
+    } finally {
+      releaseCurrent();
+      if (this.conversationMutationChains.get(conversationRef) === chain) {
+        this.conversationMutationChains.delete(conversationRef);
+      }
+    }
   }
 
   private async readConversation(conversationRef: string): Promise<StoredConversationFile> {

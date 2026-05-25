@@ -23,6 +23,12 @@ class FakeSocket extends EventEmitter {
   }
 }
 
+class ThrowingSocket extends FakeSocket {
+  send(_message: string): void {
+    throw new Error('handshake send failed');
+  }
+}
+
 describe('ManagedBackendSession', () => {
   beforeEach(() => {
     jest.useRealTimers();
@@ -144,5 +150,69 @@ describe('ManagedBackendSession', () => {
 
     expect(onFallback).toHaveBeenCalledTimes(1);
     expect(session.getSocket()).toBe(secondSocket);
+  });
+
+  test('clears socket and reconnects fresh when handshake construction fails', async () => {
+    const firstSocket = new FakeSocket();
+    const secondSocket = new FakeSocket();
+    const onHandshakeError = jest.fn();
+    const onSocketChange = jest.fn();
+    const createSocket = jest.fn()
+      .mockReturnValueOnce(firstSocket)
+      .mockReturnValueOnce(secondSocket);
+    const buildHandshake = jest.fn()
+      .mockImplementationOnce(() => {
+        throw new Error('handshake build failed');
+      })
+      .mockReturnValueOnce({ type: 'handshake', user_id: 'user-1' });
+    const session = createManagedBackendSession({
+      createSocket,
+      getUserId: () => 'user-1',
+      buildHandshake,
+      onHandshakeError,
+      onSocketChange,
+    });
+
+    const firstConnect = session.ensureConnected({ reason: 'first', timeoutMs: 100 });
+    firstSocket.open();
+
+    await expect(firstConnect).rejects.toThrow('handshake build failed');
+    expect(onHandshakeError).toHaveBeenCalledWith(expect.any(Error));
+    expect(firstSocket.readyState).toBe(3);
+    expect(session.getSocket()).toBeNull();
+    expect(session.isOpen()).toBe(false);
+    expect(onSocketChange).toHaveBeenLastCalledWith(null);
+
+    const secondConnect = session.ensureConnected({ reason: 'second', timeoutMs: 100 });
+    secondSocket.open();
+    await secondConnect;
+
+    expect(createSocket).toHaveBeenCalledTimes(2);
+    expect(JSON.parse(secondSocket.sent[0])).toEqual({ type: 'handshake', user_id: 'user-1' });
+    expect(session.getSocket()).toBe(secondSocket);
+    expect(session.isOpen()).toBe(true);
+  });
+
+  test('closes and clears socket when handshake send fails', async () => {
+    const socket = new ThrowingSocket();
+    const onHandshakeError = jest.fn();
+    const onSocketChange = jest.fn();
+    const session = createManagedBackendSession({
+      createSocket: () => socket,
+      getUserId: () => 'user-1',
+      buildHandshake: () => ({ type: 'handshake', user_id: 'user-1' }),
+      onHandshakeError,
+      onSocketChange,
+    });
+
+    const connected = session.ensureConnected({ reason: 'send-failure', timeoutMs: 100 });
+    socket.open();
+
+    await expect(connected).rejects.toThrow('handshake send failed');
+    expect(onHandshakeError).toHaveBeenCalledWith(expect.any(Error));
+    expect(socket.readyState).toBe(3);
+    expect(session.getSocket()).toBeNull();
+    expect(session.isOpen()).toBe(false);
+    expect(onSocketChange).toHaveBeenLastCalledWith(null);
   });
 });

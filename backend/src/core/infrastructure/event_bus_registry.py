@@ -27,6 +27,7 @@ class EventHandlerWrapper:
         priority: int = 100,
         filter_func: Optional[Callable[[Event], bool]] = None,
     ):
+        self.handler_key = self._build_handler_key(handler)
         if inspect.ismethod(handler):
             self._handler_ref = weakref.WeakMethod(handler)
             self._is_weak = True
@@ -36,6 +37,12 @@ class EventHandlerWrapper:
 
         self.priority = priority
         self.filter_func = filter_func
+
+    @staticmethod
+    def _build_handler_key(handler: EventHandler) -> tuple[str, int, Optional[int]]:
+        if inspect.ismethod(handler):
+            return ("method", id(handler.__self__), id(handler.__func__))
+        return ("callable", id(handler), None)
 
     @property
     def handler(self) -> Optional[EventHandler]:
@@ -94,9 +101,10 @@ class EventHandlerStore:
             if event_type not in self._subscribers:
                 return False
 
+            handler_key = EventHandlerWrapper._build_handler_key(handler)
             handlers = self._subscribers[event_type]
             for i, wrapper in enumerate(handlers):
-                if wrapper.handler == handler:
+                if wrapper.handler_key == handler_key:
                     del handlers[i]
                     self._invalidate_handler_cache()
                     return True
@@ -170,12 +178,10 @@ class EventHandlerStore:
         seen = set()
         unique_handlers = []
         for wrapper in handlers:
-            handler = wrapper.handler
-            if handler is None:
+            if not wrapper.is_alive():
                 continue
-            handler_id = id(handler)
-            if handler_id not in seen:
-                seen.add(handler_id)
+            if wrapper.handler_key not in seen:
+                seen.add(wrapper.handler_key)
                 unique_handlers.append(wrapper)
         return unique_handlers
 

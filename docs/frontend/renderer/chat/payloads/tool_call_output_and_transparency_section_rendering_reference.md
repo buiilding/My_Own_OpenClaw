@@ -66,7 +66,7 @@ Assistant markdown rendering now follows a single contract:
 
 - **Input contract**: model text must resolve to **renderable markdown + optional math**
 - **Provider-aware transport cleanup** happens before markdown parse in `resolveLlmOutputContract(...)`
-- **Provider-agnostic math normalization** converts LaTeX delimiters (`\(...\)` / `\[...\]`) into the dollar-delimited forms consumed by the markdown math renderer
+- **Provider-agnostic math normalization** converts LaTeX delimiters (`\(...\)` / `\[...\]`) into the dollar-delimited forms consumed by the markdown math renderer when math rendering is enabled
 - **Renderer remains model-agnostic** (`toSanitizedMarkdownHtml`) and receives normalized markdown + `enableMath`
 
 Contract fields:
@@ -75,6 +75,7 @@ Contract fields:
 - `source`: `markdown` or `structured-json`
 - `provider` / `modelId`: metadata used for provider-specific normalization
 - `mathEnabled`: boolean toggle for KaTeX-enabled markdown parse
+  - when false, LaTeX delimiters remain literal and are not normalized before markdown rendering
 
 Gemini-specific cleanup:
 
@@ -115,8 +116,9 @@ Screenshot source is resolved through screenshot utility:
 
 Primary preview payload:
 
-1. object `message.modelFacingToolCall` serialized as pretty JSON
-2. fallback raw `message.text`
+1. `message.toolCallDisplayText` string
+2. object `message.modelFacingToolCall` serialized as pretty JSON
+3. fallback raw `message.text`
 
 Details panel payload:
 

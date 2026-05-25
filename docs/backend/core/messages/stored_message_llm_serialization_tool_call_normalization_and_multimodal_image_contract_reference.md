@@ -91,5 +91,5 @@ Additional usage coverage:
 ## Related Pages
 
 - [Backend Core Messages Docs Hub](README.md)
-- [Content Converter Parsing, First-Image Selection, and Type-Alias Export Contract Reference](content_converter_parsing_first_image_selection_and_type_alias_export_contract_reference.md)
+- [Content Converter Parsing, Multi-Image Preservation, and Type-Alias Export Contract Reference](content_converter_parsing_first_image_selection_and_type_alias_export_contract_reference.md)
 - [Conversation History and Prompt Context Runtime Reference](../../runtime/conversation_history_and_prompt_context_runtime_reference.md)

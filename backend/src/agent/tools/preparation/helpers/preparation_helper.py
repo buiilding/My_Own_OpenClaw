@@ -4,6 +4,7 @@ Tool resolution helper for coordinate resolution workflow.
 Public facade for grounded computer-use preparation. Source grounding and
 mouse drag-destination handling live in focused helper modules.
 """
+
 from __future__ import annotations
 
 from typing import Optional
@@ -27,10 +28,9 @@ from backend.src.tools.computer.grounding_contract import supports_source_ground
 
 def tool_call_needs_coordinate_resolution(tool_call: ParsedToolCall) -> bool:
     """Return whether a tool call should run OCR/prediction coordinate resolution."""
-    return (
-        tool_call_needs_source_coordinate_resolution(tool_call)
-        or tool_call_needs_drag_destination_resolution(tool_call)
-    )
+    return tool_call_needs_source_coordinate_resolution(
+        tool_call
+    ) or tool_call_needs_drag_destination_resolution(tool_call)
 
 
 def attach_coordinate_method_metadata(
@@ -68,18 +68,21 @@ async def resolve_tool_with_coordinates(
         context_id=context_id,
     )
 
-    await resolve_grounded_source_coordinates(
-        tool_call=tool_call,
-        resolved_call=resolved_call,
-        session=session,
-        screenshot_b64=screenshot_data,
-        screenshot_id=screenshot_id,
-        ocr_coordinator=ocr_coordinator,
-        coordinate_resolver=coordinate_resolver,
-        vision_service=vision_service,
-        vision_service_provider=vision_service_provider,
-        context_id=context_id,
-    )
+    if tool_call_needs_source_coordinate_resolution(
+        tool_call
+    ) or tool_call_has_manual_coordinates(tool_call):
+        await resolve_grounded_source_coordinates(
+            tool_call=tool_call,
+            resolved_call=resolved_call,
+            session=session,
+            screenshot_b64=screenshot_data,
+            screenshot_id=screenshot_id,
+            ocr_coordinator=ocr_coordinator,
+            coordinate_resolver=coordinate_resolver,
+            vision_service=vision_service,
+            vision_service_provider=vision_service_provider,
+            context_id=context_id,
+        )
     await resolve_mouse_drag_destination_coordinates(
         tool_call=tool_call,
         resolved_call=resolved_call,

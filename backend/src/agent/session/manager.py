@@ -5,7 +5,10 @@ import logging
 from collections.abc import Iterable
 from typing import Any, Callable, Dict, Optional
 
-from backend.src.agent.session.active_query_tracker import ActiveQueryTracker
+from backend.src.agent.session.active_query_tracker import (
+    ActiveQueryTracker,
+    ACTIVE_QUERY_STOP_CONSUMED,
+)
 from backend.src.agent.session.conversation_refs import (
     normalize_optional_conversation_ref,
 )
@@ -212,6 +215,38 @@ class SessionManager(ConfigSubscriber):
             )
             return True
         return False
+
+    def register_active_query_task_with_limits(
+        self,
+        user_id: str,
+        task: asyncio.Task[Any],
+        *,
+        turn_ref: str,
+        conversation_ref: Optional[str] = None,
+        max_active_queries_per_user: Optional[int] = None,
+        max_active_queries_global: Optional[int] = None,
+    ) -> str:
+        """Apply active-query capacity limits and register as one tracker operation."""
+        normalized_conversation_ref = self._normalize_optional_conversation_ref(
+            conversation_ref
+        )
+        status = self._active_queries.register_active_query_task_with_limits(
+            user_id,
+            task,
+            turn_ref=turn_ref,
+            conversation_ref=normalized_conversation_ref,
+            max_active_queries_per_user=max_active_queries_per_user,
+            max_active_queries_global=max_active_queries_global,
+        )
+        if status == ACTIVE_QUERY_STOP_CONSUMED:
+            logger.info(
+                "[Stop Query] Consumed pending stop request during query registration "
+                "(user_id=%s, turn_ref=%s, conversation_ref=%s)",
+                user_id,
+                turn_ref,
+                normalized_conversation_ref,
+            )
+        return status
 
     def clear_active_query_task(
         self,

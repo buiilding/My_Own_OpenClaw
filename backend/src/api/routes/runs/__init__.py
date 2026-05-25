@@ -31,7 +31,11 @@ from .router import (
     worker_dispatched,
     worker_poll_heartbeat,
 )
-from .support import get_vm_run_control_service, verify_runs_api_key
+from .support import (
+    get_vm_run_control_service,
+    verify_runs_api_key,
+    verify_runs_control_api_key,
+)
 
 __all__ = [
     "CreateRunRequest",
@@ -61,6 +65,7 @@ __all__ = [
     "router",
     "stop_all_runs",
     "verify_runs_api_key",
+    "verify_runs_control_api_key",
     "worker_dispatched",
     "worker_poll_heartbeat",
 ]

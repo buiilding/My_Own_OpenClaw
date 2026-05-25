@@ -7,6 +7,7 @@ import type {
   LocalToolCall,
   LocalToolResult,
   ToolBundleResultPayload,
+  ToolBundleStepResult,
   ToolResultPayload,
 } from '../conversation/types.js';
 import { resolveModelFacingToolCallId } from './toolCorrelationIds.js';
@@ -22,6 +23,12 @@ export type ToolExecutionCoordinatorOptions = {
 export type ToolClaimResult = {
   claimed: boolean;
   reason?: string;
+};
+
+type ExecutedBundleStep = {
+  sourceTool: JsonRecord;
+  sourceToolIndex: number;
+  result: ToolBundleStepResult;
 };
 
 const COMPUTER_USE_CAPTURE_TOOL_NAMES = new Set([
@@ -226,10 +233,10 @@ export class ToolExecutionCoordinator {
     return mergePostActionScreenshot(data, screenshotData, call.toolName);
   }
 
-  private resolveBundleCaptureWaitSeconds(tools: unknown[]): number {
+  private resolveBundleCaptureWaitSeconds(executedSteps: ExecutedBundleStep[]): number {
     let waitSeconds = 0;
-    for (const tool of tools) {
-      if (!isJsonRecord(tool)) {
+    for (const { sourceTool: tool, result } of executedSteps) {
+      if (result.status !== 'ok') {
         continue;
       }
       const args = isJsonRecord(tool.args) ? tool.args : {};
@@ -240,24 +247,20 @@ export class ToolExecutionCoordinator {
     return waitSeconds;
   }
 
-  private bundleContainsCaptureWorthyTool(tools: unknown[], stepResults: JsonRecord[]): boolean {
-    return tools.some((tool, index) => {
-      if (!isJsonRecord(tool)) {
-        return false;
-      }
+  private bundleContainsCaptureWorthyTool(executedSteps: ExecutedBundleStep[]): boolean {
+    return executedSteps.some(({ sourceTool: tool, result }) => {
       const args = isJsonRecord(tool.args) ? tool.args : {};
-      return stepResults[index]?.status === 'ok' && isCaptureWorthyTool(tool.name, args);
+      return result.status === 'ok' && isCaptureWorthyTool(tool.name, args);
     });
   }
 
-  private findBundleScreenshotFromExplicitStep(tools: unknown[], stepResults: JsonRecord[]): JsonRecord | null {
-    for (let index = stepResults.length - 1; index >= 0; index -= 1) {
-      const tool = tools[index];
-      const step = stepResults[index];
-      if (!isJsonRecord(tool) || !isExplicitScreenshotTool(tool.name) || step?.status !== 'ok') {
+  private findBundleScreenshotFromExplicitStep(executedSteps: ExecutedBundleStep[]): JsonRecord | null {
+    for (let index = executedSteps.length - 1; index >= 0; index -= 1) {
+      const { sourceTool: tool, result } = executedSteps[index];
+      if (!isExplicitScreenshotTool(tool.name) || result.status !== 'ok') {
         continue;
       }
-      const screenshotData = extractScreenshotDataFromData(step.output);
+      const screenshotData = extractScreenshotDataFromData(result.output);
       if (screenshotData) {
         return screenshotData;
       }
@@ -266,14 +269,12 @@ export class ToolExecutionCoordinator {
   }
 
   private async attachBundlePostActionScreenshot({
-    tools,
-    stepResults,
+    executedSteps,
     resultPayload,
     turnRef,
     conversationRef,
   }: {
-    tools: unknown[];
-    stepResults: JsonRecord[];
+    executedSteps: ExecutedBundleStep[];
     resultPayload: ToolBundleResultPayload;
     turnRef?: string | null;
     conversationRef?: string | null;
@@ -281,18 +282,18 @@ export class ToolExecutionCoordinator {
     if (extractScreenshotDataFromData(resultPayload)) {
       return resultPayload;
     }
-    const explicitScreenshot = this.findBundleScreenshotFromExplicitStep(tools, stepResults);
+    const explicitScreenshot = this.findBundleScreenshotFromExplicitStep(executedSteps);
     if (explicitScreenshot) {
       return {
         ...resultPayload,
         ...explicitScreenshot,
       };
     }
-    if (!this.bundleContainsCaptureWorthyTool(tools, stepResults)) {
+    if (!this.bundleContainsCaptureWorthyTool(executedSteps)) {
       return resultPayload;
     }
     const screenshotData = await this.capturePostActionScreenshot({
-      waitSeconds: this.resolveBundleCaptureWaitSeconds(tools),
+      waitSeconds: this.resolveBundleCaptureWaitSeconds(executedSteps),
       explanation: 'Capturing the screen after bundled computer-use execution.',
       turnRef,
       conversationRef,
@@ -407,8 +408,9 @@ export class ToolExecutionCoordinator {
       ? payload.bundleId
       : (typeof payload.bundle_id === 'string' ? payload.bundle_id : '');
     const tools = Array.isArray(payload.tools) ? payload.tools : [];
-    const stepResults: JsonRecord[] = [];
-    for (const step of tools) {
+    const stepResults: ToolBundleStepResult[] = [];
+    const executedSteps: ExecutedBundleStep[] = [];
+    for (const [sourceToolIndex, step] of tools.entries()) {
       if (!step || typeof step !== 'object' || Array.isArray(step)) {
         continue;
       }
@@ -435,13 +437,19 @@ export class ToolExecutionCoordinator {
         result = failureResult(error);
       }
       const success = result.success !== false;
-      stepResults.push({
+      const stepResult: ToolBundleStepResult = {
         tool: toolName,
         ...(toolCallId ? { toolCallId } : {}),
         status: success ? 'ok' : 'error',
         output: success
           ? normalizeLocalToolResultData(result.data)
           : { error: result.error || 'Tool execution failed' },
+      };
+      stepResults.push(stepResult);
+      executedSteps.push({
+        sourceTool: record,
+        sourceToolIndex,
+        result: stepResult,
       });
     }
     const failures = stepResults.filter(step => step.status !== 'ok');
@@ -449,8 +457,7 @@ export class ToolExecutionCoordinator {
       ? 'success'
       : (failures.length === stepResults.length ? 'failure' : 'partial_failure');
     const resultPayload = await this.attachBundlePostActionScreenshot({
-      tools,
-      stepResults,
+      executedSteps,
       resultPayload: {
         bundle_id: bundleId,
         status,

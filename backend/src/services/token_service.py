@@ -213,13 +213,14 @@ def _fallback_truncate_text(
         return text, original_tokens, False, "estimate"
 
     char_limit = max(token_limit * 4, 1)
-    if char_limit <= len(marker) + 2:
+    if len(marker) >= char_limit:
         return text[:char_limit], original_tokens, True, "estimate"
 
     available = char_limit - len(marker)
-    head = max(available // 2, 1)
-    tail = max(available - head, 1)
-    return f"{text[:head]}{marker}{text[-tail:]}", original_tokens, True, "estimate"
+    head = max(available // 2, 0)
+    tail = max(available - head, 0)
+    tail_text = text[-tail:] if tail else ""
+    return f"{text[:head]}{marker}{tail_text}", original_tokens, True, "estimate"
 
 
 class TokenService:
@@ -323,9 +324,10 @@ class TokenService:
                 )
 
             available = token_limit - len(marker_tokens)
-            head = max(available // 2, 1)
-            tail = max(available - head, 1)
-            truncated_tokens = tokens[:head] + marker_tokens + tokens[-tail:]
+            head = max(available // 2, 0)
+            tail = max(available - head, 0)
+            tail_tokens = tokens[-tail:] if tail else []
+            truncated_tokens = tokens[:head] + marker_tokens + tail_tokens
             return (
                 litellm.decode(model=normalized_model, tokens=truncated_tokens),
                 original_tokens,

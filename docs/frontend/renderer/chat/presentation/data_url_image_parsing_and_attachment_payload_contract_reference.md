@@ -120,6 +120,7 @@ Attachment-only fallback text:
 
 - clipboard paste path uses `parseClipboardImageItems`
 - native file picker path uses `parseSelectedComposerFiles`
+- catches paste and picker parse failures at the component boundary and logs scoped warnings
 - send button is enabled when attachments exist (even with empty typed text)
 
 `ChatBox` overlay:
@@ -144,6 +145,7 @@ Attachment-only fallback text:
 
 - pasted images append (not replace) previews
 - selected readable files appear in outgoing payload
+- pasted-image and picker parse failures are caught and logged
 - attachment-only messages can be sent
 
 ## Drift Hotspots

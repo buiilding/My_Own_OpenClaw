@@ -478,6 +478,161 @@ class LocalBackendMemoryHandlersMixin:
             logger.error(f"Chat event store failed: {e}", exc_info=True)
             return {"success": False, "error": str(e)}
 
+    def _normalize_chat_event_write(
+        self,
+        event: Dict[str, Any],
+    ) -> Optional[Dict[str, Any]]:
+        event_payload = self._normalize_transcript_structured_payload(
+            event.get("event_payload", event.get("eventPayload"))
+        )
+        if event_payload is None:
+            return None
+        metadata = (
+            self._normalize_transcript_structured_payload(event.get("metadata")) or {}
+        )
+        checkpoint = self._normalize_transcript_structured_payload(
+            event.get("compaction_checkpoint", event.get("compactionCheckpoint"))
+        )
+        return {
+            "event_type": sanitize_surrogates_in_text(
+                event.get("event_type", event.get("eventType")) or ""
+            ),
+            "role": (
+                sanitize_surrogates_in_text(event.get("role"))
+                if event.get("role")
+                else None
+            ),
+            "content": sanitize_surrogates_in_text(event.get("content") or ""),
+            "timestamp": event.get("timestamp"),
+            "message_index": event.get("message_index", event.get("messageIndex")),
+            "revision_id": (
+                sanitize_surrogates_in_text(
+                    event.get("revision_id", event.get("revisionId"))
+                )
+                if event.get("revision_id", event.get("revisionId"))
+                else None
+            ),
+            "turn_ref": (
+                sanitize_surrogates_in_text(event.get("turn_ref", event.get("turnRef")))
+                if event.get("turn_ref", event.get("turnRef"))
+                else None
+            ),
+            "tool_name": (
+                sanitize_surrogates_in_text(
+                    event.get("tool_name", event.get("toolName"))
+                )
+                if event.get("tool_name", event.get("toolName"))
+                else None
+            ),
+            "correlation_id": (
+                sanitize_surrogates_in_text(
+                    event.get("correlation_id", event.get("correlationId"))
+                )
+                if event.get("correlation_id", event.get("correlationId"))
+                else None
+            ),
+            "workspace_path": (
+                sanitize_surrogates_in_text(
+                    event.get("workspace_path", event.get("workspacePath"))
+                )
+                if event.get("workspace_path", event.get("workspacePath"))
+                else None
+            ),
+            "workspace_name": (
+                sanitize_surrogates_in_text(
+                    event.get("workspace_name", event.get("workspaceName"))
+                )
+                if event.get("workspace_name", event.get("workspaceName"))
+                else None
+            ),
+            "metadata": metadata,
+            "attachments": self._normalize_attachment_payload(event.get("attachments")),
+            "event_payload": event_payload,
+            "compaction_checkpoint": checkpoint,
+        }
+
+    @requires_memory_store
+    async def _handle_replace_chat_conversation(
+        self,
+        user_id: str = "default_user",
+        conversation_id: Optional[str] = None,
+        events: Optional[List[Dict[str, Any]]] = None,
+        revision_id: Optional[str] = None,
+        revision_updated_at: Optional[str] = None,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        if not conversation_id:
+            return {"success": False, "error": "conversation_id is required"}
+        if not isinstance(events, list):
+            return {"success": False, "error": "events is required"}
+        normalized_events: List[Dict[str, Any]] = []
+        for event in events:
+            if not isinstance(event, dict):
+                return {"success": False, "error": "events must contain objects"}
+            normalized_event = self._normalize_chat_event_write(event)
+            if normalized_event is None or not normalized_event["event_type"]:
+                return {
+                    "success": False,
+                    "error": "each event requires event_type and event_payload",
+                }
+            normalized_events.append(normalized_event)
+
+        try:
+            result = await self.memory_store.replace_chat_conversation(
+                user_id=sanitize_surrogates_in_text(user_id),
+                conversation_id=sanitize_surrogates_in_text(conversation_id),
+                events=normalized_events,
+                revision_id=(
+                    sanitize_surrogates_in_text(revision_id) if revision_id else None
+                ),
+                revision_updated_at=(
+                    sanitize_surrogates_in_text(revision_updated_at)
+                    if revision_updated_at
+                    else None
+                ),
+            )
+            return {
+                "success": True,
+                "data": {
+                    **result,
+                    "conversation_id": conversation_id,
+                    "record_kind": "chat_event",
+                },
+            }
+        except Exception as e:
+            logger.error(f"Chat conversation replace failed: {e}", exc_info=True)
+            return {"success": False, "error": str(e)}
+
+    @requires_memory_store
+    async def _handle_get_chat_conversation_revision(
+        self,
+        user_id: str = "default_user",
+        conversation_id: Optional[str] = None,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        if not conversation_id:
+            return {"success": False, "error": "conversation_id is required"}
+        try:
+            revision = await self.memory_store.get_chat_conversation_revision(
+                user_id=sanitize_surrogates_in_text(user_id),
+                conversation_id=sanitize_surrogates_in_text(conversation_id),
+            )
+            return {
+                "success": True,
+                "data": revision
+                or {
+                    "conversation_id": conversation_id,
+                    "revision_id": f"rev-stored-{conversation_id}",
+                    "updated_at": "1970-01-01T00:00:00+00:00",
+                    "record_kind": "chat_event",
+                },
+            }
+        except Exception as e:
+            logger.error(
+                f"Chat conversation revision lookup failed: {e}", exc_info=True
+            )
+            return {"success": False, "error": str(e)}
+
     @requires_memory_store
     async def _handle_list_chat_conversations(
         self,

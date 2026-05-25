@@ -70,11 +70,11 @@ For each key:
 
 ## Async Compute Coordination Contract (`get_or_compute_async`)
 
-Same semantics as sync path, using `asyncio.Event` and await semantics.
-
-Additional loop-safety helper:
-
-- `_new_async_event` ensures an event loop exists before constructing event.
+Same-loop callers for the same key share one `asyncio.Event` and await the first
+compute result. Async coordination is scoped by both cache key and running event
+loop, because `asyncio.Event` is loop-bound and must not be shared across
+threads or loops. Concurrent callers for the same key from different event loops
+may compute independently; whichever stores last becomes the cached value.
 
 ## Maintenance and Stats Contract
 
@@ -91,6 +91,7 @@ Additional loop-safety helper:
 - sync single-compute path (`get_or_compute` called once)
 - sync waiter fan-in behavior
 - async waiter fan-in behavior
+- async cross-loop callers complete without sharing loop-bound events
 
 ## Drift Hotspots
 

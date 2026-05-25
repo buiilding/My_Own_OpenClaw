@@ -30,11 +30,11 @@ Default CORS is `http://localhost:5173` with credentials, all methods, and all h
 | Route family | Router owner | Identity source | Extra auth | Primary tests | Notes |
 | --- | --- | --- | --- | --- | --- |
 | `POST /api/install/register` | `backend/src/api/auth/router.py` | New server-owned identity from `InstallAuthService` | None | `tests/backend/test_install_auth.py` | Only unauthenticated `/api/*` route. Returns install token once. |
-| `/api/artifacts/*` | `backend/src/api/routes/artifacts/router.py` | Install-auth context when enabled | None | `tests/backend/test_artifact_routes.py` | Artifact owner should come from authenticated identity, not client-claimed user ids. |
-| `/api/sdk/*` | `backend/src/api/routes/sdk/router.py` | Install-auth context inside SDK service where user identity matters | None | `tests/backend/test_sdk_routes.py` | Public developer-facing routes should keep payload examples updated. |
+| `/api/artifacts/*` | `backend/src/api/routes/artifacts/router.py` | Required install-auth context | None | `tests/backend/test_artifact_routes.py` | Artifact owner comes from authenticated identity; anonymous upload/fetch is rejected before storage access. |
+| `/api/sdk/*` | `backend/src/api/routes/sdk/router.py` | Install-auth context inside SDK service where user identity matters | None | `tests/backend/test_sdk_routes.py` | `POST /api/sdk/ocr/find-text` rejects missing identity before OCR/image resolution. System-prompt and query-plan reject anonymous and cross-user debug access. |
 | `/api/embeddings/*` | `backend/src/api/routes/memory/embeddings/router.py` | Install-auth middleware | None | `tests/backend/test_memory_routes.py` | Health reports embedding router/provider readiness. |
-| `/api/semantic/*` | `backend/src/api/routes/memory/semantic/router.py` | Install-auth context for summarize/title behavior | None | `tests/backend/test_memory_routes.py` | Health reports semantic client/service readiness. |
-| `/api/runs/*` | `backend/src/api/routes/runs/router.py` | Install-auth middleware when enabled | `x-windie-runs-key` when configured | `tests/backend/test_run_control_routes.py`, `tests/backend/test_run_control_route_helpers.py` | Runs key is separate from install token and protects worker/control-plane access. |
+| `/api/semantic/*` | `backend/src/api/routes/memory/semantic/router.py` | Required install-auth context for summarize/title behavior | None | `tests/backend/test_memory_routes.py` | Summarize/title reject missing identity and body `user_id` mismatches; health reports semantic client/service readiness. |
+| `/api/runs/*` | `backend/src/api/routes/runs/router.py` | Install-auth middleware when enabled | Required `x-windie-runs-key` matching configured runs key; `/api/runs/stop-all` requires privileged `x-windie-runs-control-key` matching `WINDIE_RUNS_CONTROL_API_KEY` | `tests/backend/test_run_control_routes.py`, `tests/backend/test_run_control_route_helpers.py` | Runs key is separate from install token and protects worker/control-plane access; bulk stop uses a distinct destructive-control key. |
 
 ## Auth Rules
 
@@ -47,7 +47,8 @@ Default CORS is `http://localhost:5173` with credentials, all methods, and all h
 | Missing bearer token | HTTP `401` with `Missing install bearer token` | Middleware |
 | Invalid bearer token | HTTP `401` with `Invalid install bearer token` | `InstallAuthService.authenticate_token` |
 | Valid bearer token | Request continues and `request.state.install_identity` is set | Middleware and auth context |
-| Runs key configured and header mismatch | HTTP `401` with `Invalid runs API key` | `backend/src/api/routes/runs/support.py` |
+| Runs key missing from backend config | HTTP `503` with `Runs API key is not configured` | `backend/src/api/routes/runs/support.py` |
+| Runs key header missing or mismatched | HTTP `401` with `Invalid runs API key` | `backend/src/api/routes/runs/support.py` |
 
 Do not let route handlers trust a request body `user_id` when install auth is enabled. Route code should read authenticated identity from context or request state where ownership matters.
 

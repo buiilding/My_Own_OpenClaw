@@ -7,12 +7,24 @@ from unittest import mock
 
 from tools.registry import ToolRegistry
 
-# Skip all tests if playwright is not installed
+
+def _is_missing_playwright_import(error: ImportError) -> bool:
+    missing_name = getattr(error, "name", None)
+    return isinstance(missing_name, str) and (
+        missing_name == "playwright" or missing_name.startswith("playwright.")
+    )
+
+
+# Skip all tests only if the optional Playwright dependency itself is unavailable.
+# Import failures from WindieOS browser modules should fail collection.
 try:
     from tools.browser.browser_tool import execute_browser
 
     PLAYWRIGHT_AVAILABLE = True
-except ImportError:
+except ImportError as exc:
+    if not _is_missing_playwright_import(exc):
+        raise
+    execute_browser = None
     PLAYWRIGHT_AVAILABLE = False
 
 
@@ -38,7 +50,11 @@ class TestBrowserToolRegistration:
             })
             assert result.success is True
             assert result.data["mode"] == "browser_use"
-            run_cli.assert_awaited_once_with("state", headed=True)
+            run_cli.assert_awaited_once_with(
+                "state",
+                headed=True,
+                cdp_url="http://127.0.0.1:9333",
+            )
 
     @pytest.mark.asyncio
     async def test_browser_validation_error(self):
@@ -50,3 +66,15 @@ class TestBrowserToolRegistration:
 
         assert result.success is False
         assert "action" in result.error.lower() or "Validation" in result.error
+
+
+def test_browser_import_guard_only_skips_missing_playwright():
+    assert _is_missing_playwright_import(
+        ImportError("No module named playwright", name="playwright")
+    ) is True
+    assert _is_missing_playwright_import(
+        ImportError(
+            "No module named tools.browser.internal_missing",
+            name="tools.browser.internal_missing",
+        )
+    ) is False

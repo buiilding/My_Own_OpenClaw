@@ -28,7 +28,9 @@ def _literal_value(model_cls: type) -> str:
     annotation = model_cls.model_fields["type"].annotation
     origin = get_args(annotation)
     if not origin:
-        raise AssertionError(f"Expected Literal type annotation for {model_cls.__name__}")
+        raise AssertionError(
+            f"Expected Literal type annotation for {model_cls.__name__}"
+        )
     return origin[0]
 
 
@@ -100,6 +102,32 @@ def test_validate_registry_alignment_raises_for_incoming_mismatch(
         registry_module.validate_registry_alignment()
 
 
+def test_validate_registry_alignment_raises_for_duplicate_incoming_constants(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(
+        registry_module,
+        "INCOMING_MESSAGE_TYPES",
+        (*INCOMING_MESSAGE_TYPES, INCOMING_MESSAGE_TYPES[0]),
+    )
+
+    with pytest.raises(ValueError, match="Duplicate incoming message types"):
+        registry_module.validate_registry_alignment()
+
+
+def test_validate_registry_alignment_raises_for_duplicate_incoming_contracts(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(
+        registry_module,
+        "INCOMING_CONTRACTS",
+        (*registry_module.INCOMING_CONTRACTS, registry_module.INCOMING_CONTRACTS[0]),
+    )
+
+    with pytest.raises(ValueError, match="Duplicate incoming contract types"):
+        registry_module.validate_registry_alignment()
+
+
 def test_validate_registry_alignment_raises_for_outgoing_mismatch(
     monkeypatch,
 ) -> None:
@@ -110,4 +138,33 @@ def test_validate_registry_alignment_raises_for_outgoing_mismatch(
     )
 
     with pytest.raises(ValueError, match="Outgoing schema contract type mismatch"):
+        registry_module.validate_registry_alignment()
+
+
+def test_validate_registry_alignment_raises_for_duplicate_outgoing_constants(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(
+        registry_module,
+        "OUTGOING_SCHEMA_MESSAGE_TYPES",
+        (*OUTGOING_SCHEMA_MESSAGE_TYPES, OUTGOING_SCHEMA_MESSAGE_TYPES[0]),
+    )
+
+    with pytest.raises(ValueError, match="Duplicate outgoing schema message types"):
+        registry_module.validate_registry_alignment()
+
+
+def test_validate_registry_alignment_raises_for_duplicate_outgoing_contracts(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(
+        registry_module,
+        "OUTGOING_SCHEMA_CONTRACTS",
+        (
+            *registry_module.OUTGOING_SCHEMA_CONTRACTS,
+            registry_module.OUTGOING_SCHEMA_CONTRACTS[0],
+        ),
+    )
+
+    with pytest.raises(ValueError, match="Duplicate outgoing schema contract types"):
         registry_module.validate_registry_alignment()

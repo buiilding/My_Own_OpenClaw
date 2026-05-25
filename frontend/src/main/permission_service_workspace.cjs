@@ -120,17 +120,28 @@ async function probeFilesystemWorkspaceAccess(permission, deps = {}) {
 async function probeShellExecution(permission, deps = {}) {
   const permissionId = permission.permission_id;
   const platform = deps.platform || process.platform;
+  const storedEntry = await getStoredPermissionEntry(permissionId, deps);
   const capability = await verifyShellExecutionCapability(deps);
+
+  if (storedEntry?.granted !== true) {
+    return buildProbeResult(permissionId, PERMISSION_STATUS.NEEDS_ACTION, 'Shell execution requires explicit authorization.', {
+      platform,
+      stored_entry: storedEntry,
+      verification: capability.details,
+    });
+  }
 
   if (capability.granted) {
     return buildProbeResult(permissionId, PERMISSION_STATUS.GRANTED, capability.reason || 'Shell execution runtime is available.', {
       platform,
+      stored_entry: storedEntry,
       verification: capability.details,
     });
   }
 
   return buildProbeResult(permissionId, PERMISSION_STATUS.NEEDS_ACTION, capability.reason || 'Shell execution runtime is unavailable.', {
     platform,
+    stored_entry: storedEntry,
     verification: capability.details,
   });
 }
@@ -201,11 +212,32 @@ async function requestShellExecutionPermission(permission, deps = {}) {
 
   const errorText = result?.stderr || result?.error || result?.reason || '';
   if (result?.success === true) {
-    return buildProbeResult(permissionId, PERMISSION_STATUS.GRANTED, 'Shell execution authentication flow completed.', {
+    const storedEntry = await setStoredPermissionEntry(permissionId, {
+      granted: true,
+      source: 'shell_execution_auth_flow',
+      details: {
+        platform,
+        command_result: result,
+      },
+    }, deps);
+    if (!storedEntry) {
+      return buildProbeResult(permissionId, PERMISSION_STATUS.NEEDS_ACTION, 'Shell execution authorization could not be persisted.', {
+        platform,
+        command_result: result,
+      });
+    }
+
+    return await probeShellExecution(permission, deps);
+  }
+
+  await setStoredPermissionEntry(permissionId, {
+    granted: false,
+    source: 'shell_execution_auth_flow',
+    details: {
       platform,
       command_result: result,
-    });
-  }
+    },
+  }, deps);
 
   return buildProbeResult(
     permissionId,

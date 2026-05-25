@@ -17,7 +17,10 @@ from backend.src.core.interfaces.tool import ToolResult
 from backend.src.sdk.context import ToolContext
 from backend.src.sdk.tool import Tool
 from backend.src.tools.categorization import ToolDomain
-from backend.src.tools.web_search.capabilities import resolve_web_search_execution_mode
+from backend.src.tools.web_search.capabilities import (
+    is_web_search_disabled_by_policy,
+    resolve_web_search_execution_mode,
+)
 from backend.src.tools.web_search.schemas import WebSearchArgs
 from backend.src.tools.web_search.source_normalization import (
     extract_content_web_search_sources,
@@ -538,6 +541,13 @@ class WebSearchTool(Tool[WebSearchArgs]):
                 args=args,
                 ctx=ctx,
                 provider_name="gemini",
+            )
+        if config is not None and is_web_search_disabled_by_policy(config):
+            return ToolResult(
+                success=False,
+                error="web_search is disabled by the current tool policy.",
+                llm_content="Error: web_search is disabled by the current tool policy.",
+                return_display="web_search is disabled by the current tool policy.",
             )
 
         api_key = self._resolve_api_key(ctx)

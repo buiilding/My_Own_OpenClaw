@@ -97,7 +97,10 @@ class LoadSettingsHandler(TypedMessageHandler[LoadSettingsMessage]):
             )
         except ValidationError as e:
             await send_error_response(
-                websocket, message.id, f"Invalid load-settings message: {e.message}"
+                websocket,
+                message.id,
+                f"Invalid load-settings message: {e.message}",
+                user_facing=True,
             )
         except Exception as e:
             await send_error_response(websocket, message.id, None, exception=e)
@@ -138,7 +141,10 @@ class ListModelsHandler(TypedMessageHandler[ListModelsMessage]):
         except ValidationError as e:
             # Validation error - send using canonical utility
             await send_error_response(
-                websocket, message.id, f"Invalid list-models message: {e.message}"
+                websocket,
+                message.id,
+                f"Invalid list-models message: {e.message}",
+                user_facing=True,
             )
         except Exception as e:
             # Unexpected error - send sanitized error to prevent information leakage
@@ -183,7 +189,10 @@ class UpdateSettingsHandler(TypedMessageHandler[UpdateSettingsMessage]):
             )
         except ValidationError as e:
             await send_error_response(
-                websocket, message.id, f"Invalid settings: {e.message}"
+                websocket,
+                message.id,
+                f"Invalid settings: {e.message}",
+                user_facing=True,
             )
         except Exception as e:
             await send_error_response(websocket, message.id, None, exception=e)

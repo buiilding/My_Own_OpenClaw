@@ -11,7 +11,7 @@ title: "Backend Core Messages Docs Hub"
 ## Deep Pages
 
 - [Stored Message LLM Serialization, Tool-Call Normalization, and Multimodal Image Contract Reference](stored_message_llm_serialization_tool_call_normalization_and_multimodal_image_contract_reference.md)
-- [Content Converter Parsing, First-Image Selection, and Type-Alias Export Contract Reference](content_converter_parsing_first_image_selection_and_type_alias_export_contract_reference.md)
+- [Content Converter Parsing, Multi-Image Preservation, and Type-Alias Export Contract Reference](content_converter_parsing_first_image_selection_and_type_alias_export_contract_reference.md)
 
 ## Related Pages
 

@@ -56,7 +56,8 @@ Behavior:
     - sets readiness true only once
     - emits `wakeword-status { ready: true }`
   - parses `{"status":"error","message":"..."}` and:
-    - sets readiness false
+    - marks the active supervisor process not-ready/error without clearing the
+      process reference
     - emits `wakeword-status { ready: false, error: <message> }`
 - for non-JSON lines:
   - logs informational wakeword traces (`[Python]`, `DETECTED`, `hey_jarvis`)
@@ -96,6 +97,8 @@ Returns:
 - packaged vs dev startup error message mapping
 - `normalizeAudioChunk` payload conversion behavior and invalid-type rejection
 - ready-status stderr JSON promotion into `wakeword-status { ready: true }`
+- error-status stderr JSON promotion into `wakeword-status { ready: false }`
+  and supervisor audio-gating
 - `ENOENT` process error mapping by launch-target kind (`binary` vs `python`)
 
 ## Drift Hotspots

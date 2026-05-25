@@ -34,5 +34,40 @@ describe('hasShallowConfigChanges', () => {
     expect(hasShallowConfigChanges(undefined, { a: 1 })).toBe(true);
     expect(hasShallowConfigChanges({ a: 1 }, null)).toBe(true);
   });
-});
 
+  test('returns false for equivalent nested provider config values', () => {
+    const current = {
+      provider_api_keys: {
+        openai: { enabled: true, api_key: 'sk-current' },
+      },
+      provider_oauth: {
+        openai_codex: { connected: true, profile_id: 'openai-codex:default' },
+      },
+    };
+    const next = {
+      provider_api_keys: {
+        openai: { enabled: true, api_key: 'sk-current' },
+      },
+      provider_oauth: {
+        openai_codex: { connected: true, profile_id: 'openai-codex:default' },
+      },
+    };
+
+    expect(hasShallowConfigChanges(current, next)).toBe(false);
+  });
+
+  test('returns true when nested provider config content changes', () => {
+    const current = {
+      provider_api_keys: {
+        openai: { enabled: true, api_key: 'sk-current' },
+      },
+    };
+    const next = {
+      provider_api_keys: {
+        openai: { enabled: false, api_key: 'sk-current' },
+      },
+    };
+
+    expect(hasShallowConfigChanges(current, next)).toBe(true);
+  });
+});

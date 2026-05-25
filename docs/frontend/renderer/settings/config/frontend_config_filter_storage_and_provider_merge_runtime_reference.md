@@ -71,9 +71,10 @@ Default config surface:
 - `include_query_screenshot: true`
 - `provider_api_keys`:
   - `openai`, `anthropic`, `google`, `openrouter`, `mistral`, `kimi_coding`
-  - each entry stores `{ enabled: boolean, api_key: string }`
+  - localStorage stores `{ enabled: boolean, api_key: "" }`; raw API keys are scrubbed at this renderer persistence boundary
 - `provider_oauth`:
-  - `openai_codex` entry stores `{ connected, access_token, refresh_token, expires_at, profile_id }`
+  - `openai_codex` entry stores non-secret metadata `{ connected, access_token: "", refresh_token: "", expires_at, profile_id }`
+  - raw OAuth access and refresh tokens are scrubbed from localStorage
 
 Load semantics (`loadConfigFromStorage`):
 
@@ -81,11 +82,13 @@ Load semantics (`loadConfigFromStorage`):
 - parsed object -> known frontend fields merged over defaults
 - invalid JSON / non-object payload -> clear keys + return defaults
 - deprecated or backend-owned keys are dropped during normalization instead of being re-saved or re-synced
+- legacy localStorage provider secrets are normalized to empty strings on read
 
 Save semantics (`saveConfigToStorage`):
 
 - rejects non-object/array payloads
 - writes config + version (`Date.now()` fallback)
+- strips provider `api_key`, OAuth `access_token`, and OAuth `refresh_token` before serializing to localStorage
 - returns boolean success/failure
 
 ## Provider Merge/Apply Guards (`appConfigPersistence`)
@@ -145,7 +148,8 @@ On `window.storage` for desktop-assistant config keys:
 
 - reload from localStorage
 - merge/filter
-- apply only when shallow-changed
+- apply only when changed; `provider_api_keys` and `provider_oauth` use content-aware comparison so equivalent nested objects from another window are treated as no-ops
+- do not write the applied snapshot back to localStorage, disk, or backend; the storage event is already the persistence broadcast from another renderer
 
 ## Event Router Boundary (`appConfigEvents`)
 
@@ -181,7 +185,7 @@ On `window.storage` for desktop-assistant config keys:
 ## Drift Hotspots
 
 1. Adding frontend-owned fields in backend validator without updating `FRONTEND_CONFIG_FIELDS` or defaults causes silent drops.
-2. Removing shallow-change guards can create write storms to localStorage/disk/backend.
+2. Removing change guards or storage-event write suppression can create write storms to localStorage/disk/backend.
 3. Returning `null` instead of default object from storage loader can break provider assumptions.
 4. Changing storage key names without migration can strand stale config state across windows.
 

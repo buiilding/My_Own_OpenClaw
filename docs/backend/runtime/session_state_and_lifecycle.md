@@ -130,7 +130,8 @@ Behavior:
 - creates futures in sync or async contexts safely.
 - resolves/removes futures on tool-result arrival.
 - supports TTL cleanup (`cleanup_old_results`) and targeted cleanup by request IDs.
-- hard clear during session shutdown (`clear_all`).
+- cancels unresolved individual and bundle futures before cleanup/removal drops them, so waiters do not stay pending forever.
+- hard clear during session shutdown (`clear_all`) cancels unresolved tool-result waiters before resetting maps.
 
 ## Conversation and Runtime Context
 

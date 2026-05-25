@@ -20,6 +20,7 @@ from backend.src.api.routes.memory.embeddings.router import (
     health_check as embeddings_health_check,
     logger as embeddings_logger,
 )
+from backend.src.api.auth.context import AuthenticatedInstallIdentity
 from backend.src.api.routes.memory.semantic.parser import (
     extract_fallback_facts,
     parse_summarization_response,
@@ -91,6 +92,27 @@ def _container_with_embedding_provider(provider=None) -> SimpleNamespace:
 def _patch_semantic_client(monkeypatch, fake_client: FakeLLMClient) -> None:
     monkeypatch.setattr(semantic_routes, "get_llm_client", lambda cfg: fake_client)
     monkeypatch.setattr(semantic_routes, "load_api_key_for_provider", lambda cfg: cfg)
+
+
+@pytest.fixture
+def authenticated_user(monkeypatch):
+    identity_holder = {"identity": None}
+
+    monkeypatch.setattr(
+        semantic_routes,
+        "get_current_authenticated_install_identity",
+        lambda: identity_holder["identity"],
+    )
+
+    def _authenticate(user_id: str) -> AuthenticatedInstallIdentity:
+        identity = AuthenticatedInstallIdentity(
+            user_id=user_id,
+            install_id=f"install-{user_id}",
+        )
+        identity_holder["identity"] = identity
+        return identity
+
+    return _authenticate
 
 
 @pytest.mark.asyncio
@@ -215,7 +237,10 @@ def test_extract_fallback_facts_filters_short_lines() -> None:
 
 
 @pytest.mark.asyncio
-async def test_summarize_conversations_uses_session_config(monkeypatch) -> None:
+async def test_summarize_conversations_uses_session_config(
+    monkeypatch,
+    authenticated_user,
+) -> None:
     session_cfg = _local_ollama_config("session-model")
     container_cfg = _local_ollama_config("container-model")
     fake_client = FakeLLMClient(
@@ -231,6 +256,7 @@ async def test_summarize_conversations_uses_session_config(monkeypatch) -> None:
         conversations=["User: hi\nAssistant: hello"],
         user_id="user_123",
     )
+    authenticated_user("user_123")
 
     response = await semantic_routes.summarize_conversations(
         request, container, session_manager
@@ -245,7 +271,7 @@ async def test_summarize_conversations_uses_session_config(monkeypatch) -> None:
 
 @pytest.mark.asyncio
 async def test_summarize_conversations_logs_route_start_and_success(
-    monkeypatch, caplog
+    monkeypatch, caplog, authenticated_user
 ) -> None:
     container_cfg = _local_ollama_config("container-model")
     fake_client = FakeLLMClient(
@@ -260,6 +286,7 @@ async def test_summarize_conversations_logs_route_start_and_success(
         conversations=["User: hi\nAssistant: hello"],
         user_id="user_123",
     )
+    authenticated_user("user_123")
 
     with caplog.at_level(logging.INFO, logger=semantic_routes.logger.name):
         response = await semantic_routes.summarize_conversations(
@@ -280,8 +307,61 @@ async def test_summarize_conversations_logs_route_start_and_success(
 
 
 @pytest.mark.asyncio
+async def test_summarize_conversations_requires_authenticated_identity(
+    monkeypatch,
+) -> None:
+    fake_client = FakeLLMClient(
+        "SUMMARY: should not run\n\nFACTS:\n- should not run\n"
+    )
+    _patch_semantic_client(monkeypatch, fake_client)
+    request = semantic_routes.SummarizeRequest(
+        conversations=["User: hi\nAssistant: hello"],
+        user_id="user_123",
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        await semantic_routes.summarize_conversations(
+            request,
+            SimpleNamespace(config=_local_ollama_config("container-model")),
+            FakeSessionManager(),
+        )
+
+    assert exc_info.value.status_code == 401
+    assert exc_info.value.detail == "Authenticated install identity required"
+    assert fake_client.calls == []
+
+
+@pytest.mark.asyncio
+async def test_summarize_conversations_rejects_body_user_id_mismatch(
+    monkeypatch,
+    authenticated_user,
+) -> None:
+    authenticated_user("authenticated_user")
+    fake_client = FakeLLMClient(
+        "SUMMARY: should not run\n\nFACTS:\n- should not run\n"
+    )
+    _patch_semantic_client(monkeypatch, fake_client)
+    request = semantic_routes.SummarizeRequest(
+        conversations=["User: hi\nAssistant: hello"],
+        user_id="body_user",
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        await semantic_routes.summarize_conversations(
+            request,
+            SimpleNamespace(config=_local_ollama_config("container-model")),
+            FakeSessionManager(),
+        )
+
+    assert exc_info.value.status_code == 403
+    assert exc_info.value.detail == "Semantic route cannot act as another user"
+    assert fake_client.calls == []
+
+
+@pytest.mark.asyncio
 async def test_summarize_conversations_does_not_use_other_active_session(
     monkeypatch,
+    authenticated_user,
 ) -> None:
     other_session_cfg = _local_ollama_config("other-active-session-model")
     container_cfg = _local_ollama_config("container-model")
@@ -301,6 +381,7 @@ async def test_summarize_conversations_does_not_use_other_active_session(
         conversations=["User: hi\nAssistant: hello"],
         user_id="request-user-without-session",
     )
+    authenticated_user("request-user-without-session")
 
     response = await semantic_routes.summarize_conversations(
         request, container, session_manager
@@ -315,6 +396,7 @@ async def test_summarize_conversations_does_not_use_other_active_session(
 @pytest.mark.asyncio
 async def test_generate_conversation_title_uses_session_config_and_model_override(
     monkeypatch,
+    authenticated_user,
 ) -> None:
     session_cfg = _local_ollama_config("session-model")
     container_cfg = _local_ollama_config("container-model")
@@ -332,6 +414,7 @@ async def test_generate_conversation_title_uses_session_config_and_model_overrid
         model_id="k2p5",
         model_provider="kimi-coding",
     )
+    authenticated_user("user_123")
 
     response = await semantic_routes.generate_conversation_title(
         request,
@@ -347,7 +430,7 @@ async def test_generate_conversation_title_uses_session_config_and_model_overrid
 
 @pytest.mark.asyncio
 async def test_generate_conversation_title_logs_route_start_and_success(
-    monkeypatch, caplog
+    monkeypatch, caplog, authenticated_user
 ) -> None:
     container_cfg = _local_ollama_config("container-model")
     fake_client = FakeLLMClient("Mission Planning")
@@ -361,6 +444,7 @@ async def test_generate_conversation_title_logs_route_start_and_success(
         user_message="plan moon mission",
         assistant_message="Let's break it down into launch, transit, and landing phases.",
     )
+    authenticated_user("user_456")
 
     with caplog.at_level(logging.INFO, logger=semantic_routes.logger.name):
         response = await semantic_routes.generate_conversation_title(
@@ -383,6 +467,7 @@ async def test_generate_conversation_title_logs_route_start_and_success(
 @pytest.mark.asyncio
 async def test_generate_conversation_title_uses_container_config_when_session_missing(
     monkeypatch,
+    authenticated_user,
 ) -> None:
     container_cfg = _local_ollama_config("container-model")
     fake_client = FakeLLMClient("Mission Planning")
@@ -396,6 +481,7 @@ async def test_generate_conversation_title_uses_container_config_when_session_mi
         user_message="plan moon mission",
         assistant_message="Let's break it down into launch, transit, and landing phases.",
     )
+    authenticated_user("user_456")
 
     response = await semantic_routes.generate_conversation_title(
         request,
@@ -410,8 +496,59 @@ async def test_generate_conversation_title_uses_container_config_when_session_mi
 
 
 @pytest.mark.asyncio
+async def test_generate_conversation_title_requires_authenticated_identity(
+    monkeypatch,
+) -> None:
+    fake_client = FakeLLMClient("Should Not Run")
+    _patch_semantic_client(monkeypatch, fake_client)
+    request = semantic_routes.GenerateTitleRequest(
+        user_id="user_456",
+        user_message="plan moon mission",
+        assistant_message="Let's break it down.",
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        await semantic_routes.generate_conversation_title(
+            request,
+            SimpleNamespace(config=_local_ollama_config("container-model")),
+            FakeSessionManager(),
+        )
+
+    assert exc_info.value.status_code == 401
+    assert exc_info.value.detail == "Authenticated install identity required"
+    assert fake_client.calls == []
+
+
+@pytest.mark.asyncio
+async def test_generate_conversation_title_rejects_body_user_id_mismatch(
+    monkeypatch,
+    authenticated_user,
+) -> None:
+    authenticated_user("authenticated_user")
+    fake_client = FakeLLMClient("Should Not Run")
+    _patch_semantic_client(monkeypatch, fake_client)
+    request = semantic_routes.GenerateTitleRequest(
+        user_id="body_user",
+        user_message="plan moon mission",
+        assistant_message="Let's break it down.",
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        await semantic_routes.generate_conversation_title(
+            request,
+            SimpleNamespace(config=_local_ollama_config("container-model")),
+            FakeSessionManager(),
+        )
+
+    assert exc_info.value.status_code == 403
+    assert exc_info.value.detail == "Semantic route cannot act as another user"
+    assert fake_client.calls == []
+
+
+@pytest.mark.asyncio
 async def test_generate_conversation_title_trims_to_short_concise_shape(
     monkeypatch,
+    authenticated_user,
 ) -> None:
     container_cfg = _local_ollama_config("container-model")
     fake_client = FakeLLMClient(
@@ -427,6 +564,7 @@ async def test_generate_conversation_title_trims_to_short_concise_shape(
         user_message="help me plan migration",
         assistant_message="Let's draft phases and risk mitigation steps.",
     )
+    authenticated_user("user_789")
 
     response = await semantic_routes.generate_conversation_title(
         request,

@@ -109,7 +109,7 @@ class RemoteHttpEmbeddingProvider(EmbeddingProvider):
                 detail=self._extract_error_detail(response),
             )
 
-        body = self._validate_response_body(response.json())
+        body = self._validate_response_body(response.json(), expected_count=len(texts))
         self._update_metadata(body)
         raw_embeddings = body["embeddings"]
         return [np.asarray(vector, dtype=np.float32) for vector in raw_embeddings]
@@ -153,7 +153,7 @@ class RemoteHttpEmbeddingProvider(EmbeddingProvider):
         return f"Remote embedding service returned {response.status_code}"
 
     @staticmethod
-    def _validate_response_body(body: Any) -> dict[str, Any]:
+    def _validate_response_body(body: Any, *, expected_count: int) -> dict[str, Any]:
         if not isinstance(body, dict):
             raise EmbeddingProviderRequestError(
                 status_code=502,
@@ -164,6 +164,14 @@ class RemoteHttpEmbeddingProvider(EmbeddingProvider):
             raise EmbeddingProviderRequestError(
                 status_code=502,
                 detail="Remote embedding service returned no embeddings",
+            )
+        if len(embeddings) != expected_count:
+            raise EmbeddingProviderRequestError(
+                status_code=502,
+                detail=(
+                    "Remote embedding service response did not include one vector "
+                    "per input"
+                ),
             )
         return body
 

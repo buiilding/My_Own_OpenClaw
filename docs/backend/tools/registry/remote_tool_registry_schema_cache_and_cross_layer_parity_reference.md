@@ -173,9 +173,9 @@ Test-backed behavior from `test_tool_registry_schema.py`:
 - `request_id`
 - `is_remote`
 
-Notable class-specific difference:
-
-- `RemoteWaitTool` always forces fresh UUID (`request_id=str(uuid.uuid4())`) instead of reusing session metadata request id
+All concrete remote stubs, including `RemoteWaitTool`, use the shared
+`_get_request_id(ctx)` default unless a caller deliberately passes an explicit
+override into `_build_remote_result(...)`.
 - `RemoteBrowserTool` emits `args.model_dump(exclude_defaults=True, exclude_none=True)` for slimmer payloads
 
 ## Cross-Layer Contract Guard
@@ -184,6 +184,11 @@ Notable class-specific difference:
 
 - backend remote tool names (`get_all_remote_tools().keys()`)
 - frontend sidecar exposed set (`frontend/src/main/python/tools/registry.py:ToolRegistry.get_exposed_tool_names()`)
+
+The test loads the sidecar `tools.registry` module inside an isolated import
+window and restores both `sys.path` and top-level `tools.*` entries in
+`sys.modules` afterward, so backend test order cannot be affected by the
+frontend sidecar package root.
 
 Failure modes surfaced by this test:
 

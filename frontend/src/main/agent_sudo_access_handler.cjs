@@ -11,32 +11,6 @@ const AUTH_CANCEL_MARKERS = [
   'user cancelled',
 ];
 
-function sanitizeUsername(username) {
-  if (typeof username !== 'string') {
-    return null;
-  }
-  const trimmed = username.trim();
-  if (!trimmed) {
-    return null;
-  }
-  if (!/^[a-z_][a-z0-9_.-]*$/i.test(trimmed)) {
-    return null;
-  }
-  return trimmed;
-}
-
-function buildEnableScript(username) {
-  const sudoersRule = `${username} ALL=(ALL) NOPASSWD: ALL`;
-  return [
-    'set -euo pipefail',
-    `cat > '${SUDOERS_RULE_PATH}' <<'EOF'`,
-    sudoersRule,
-    'EOF',
-    `chmod 440 '${SUDOERS_RULE_PATH}'`,
-    `visudo -cf '${SUDOERS_RULE_PATH}'`,
-  ].join('\n');
-}
-
 function buildDisableScript() {
   return [
     'set -euo pipefail',
@@ -65,15 +39,6 @@ async function runPkexecBash(script, deps = {}) {
     deps,
     missingBinaryReason: 'OS authentication prompt is unavailable (pkexec not found).',
     startFailureReason: 'Failed to start OS authentication prompt.',
-  });
-}
-
-async function runSudoNonInteractiveBash(script, deps = {}) {
-  return runCommandWithCapturedOutput({
-    command: 'sudo',
-    args: ['-n', 'bash', '-lc', script],
-    deps,
-    startFailureReason: 'Failed to start sudo command.',
   });
 }
 
@@ -151,31 +116,25 @@ async function handleSetAgentSudoAccess(options = {}, deps = {}) {
   }
 
   const enabled = options?.enabled === true;
-  const username = sanitizeUsername(deps.username);
-  if (!username) {
+  if (enabled) {
     return {
       success: false,
+      enabled: false,
       canceled: false,
-      reason: 'Failed to resolve current username for sudoers update.',
+      reason: 'Persistent passwordless sudo access is no longer supported. Sudo commands use per-command OS authentication prompts instead.',
     };
   }
 
-  const actionLabel = enabled
-    ? 'enable passwordless sudo access'
-    : 'disable passwordless sudo access';
-  const script = enabled ? buildEnableScript(username) : buildDisableScript();
-  const execResult = enabled
-    ? await runPkexecBash(script, deps)
-    : await runSudoNonInteractiveBash(script, deps);
+  const actionLabel = 'disable legacy passwordless sudo access';
+  const script = buildDisableScript();
+  const execResult = await runPkexecBash(script, deps);
 
   if (execResult.success) {
     return {
       success: true,
       enabled,
       canceled: false,
-      reason: enabled
-        ? 'Passwordless sudo access has been enabled for the current user.'
-        : 'Passwordless sudo access has been disabled for the current user.',
+      reason: 'Legacy passwordless sudo access has been disabled for the current user.',
     };
   }
 
@@ -198,21 +157,6 @@ async function handleSetAgentSudoAccess(options = {}, deps = {}) {
   }
 
   const authError = summarizeAuthError(execResult.stderr, actionLabel);
-  if (!enabled) {
-    const disableErrorText = String(execResult.stderr || '').toLowerCase();
-    const passwordNeeded = disableErrorText.includes('password is required')
-      || disableErrorText.includes('a password is required')
-      || disableErrorText.includes('permission denied');
-    if (passwordNeeded || authError.canceled) {
-      return {
-        success: false,
-        enabled: !enabled,
-        canceled: false,
-        reason: 'Failed to disable passwordless sudo access without prompt. Run with existing sudo access or remove sudoers rule manually.',
-      };
-    }
-  }
-
   return {
     success: false,
     enabled: !enabled,

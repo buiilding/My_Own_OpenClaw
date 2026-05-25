@@ -82,8 +82,11 @@ Coordinate/capability behavior:
 
 The WebSocket handshake can populate `agent_available_tools`,
 `agent_available_coordinate_methods`, and requested policy fields before the
-first query. These client-provided fields are narrowing inputs only; they do not
-override backend hard-disables or legacy dev-selection narrowing.
+first query. `available_coordinate_methods`, `requested_agent_policy.coordinate_methods`,
+and agent-definition `runtime.coordinate_methods` all converge on
+`agent_available_coordinate_methods` because they describe client/session
+availability. These client-provided fields are narrowing inputs only; they do
+not override backend hard-disables or legacy dev-selection narrowing.
 
 Provider-health gates are also narrowing inputs. The container-backed session
 manager resolves known OCR, vision, embeddings, and web-search availability when

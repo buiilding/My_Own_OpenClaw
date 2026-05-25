@@ -116,6 +116,23 @@ describe('conversationLocalSnapshotLoader', () => {
     ]);
   });
 
+  test('forwards explicit record kind to stored entry loading', async () => {
+    mockLoadStoredConversationEntries.mockResolvedValueOnce([]);
+    mockSdkConversationRows([]);
+
+    await loadLocalConversationSnapshot({
+      userId: 'user-1',
+      conversationRef: 'conv-1',
+      recordKind: 'transcript',
+    });
+
+    expect(mockLoadStoredConversationEntries).toHaveBeenCalledWith(expect.objectContaining({
+      userId: 'user-1',
+      conversationRef: 'conv-1',
+      recordKind: 'transcript',
+    }));
+  });
+
   test('uses compaction events for rehydrate payloads', async () => {
     const eventRows = [
       sdkEventRow(createConversationEvent({

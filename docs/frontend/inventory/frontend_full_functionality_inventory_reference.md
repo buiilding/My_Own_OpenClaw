@@ -129,8 +129,8 @@ Functionality:
   - Flushes stale buffers when disabled.
   - Delegates startup/status/process error mapping and noisy stderr suppression to `wakeword_bridge_runtime.cjs`.
 - Agent sudo bridge (Linux-only):
-  - Enables passwordless sudo via `pkexec` + sudoers file write/validate.
-  - Disables via non-interactive `sudo -n` path.
+  - Rejects persistent passwordless sudo enable; sudo commands use per-command OS authentication prompts.
+  - Removes the legacy WindieOS sudoers file via `pkexec`.
   - Normalizes cancellation/auth failure reasons for renderer UX.
 - Permission bridge:
   - Loads and evaluates permission manifest entries.

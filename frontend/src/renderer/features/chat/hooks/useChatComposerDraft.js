@@ -44,8 +44,11 @@ export function useChatComposerDraft({
     }
 
     onBeforeSend?.();
+    const sendResult = onSendMessage(outgoingMessage);
+    if (sendResult && typeof sendResult.then === 'function') {
+      await sendResult;
+    }
     clearDraft();
-    await onSendMessage(outgoingMessage);
     return true;
   }, [
     clearDraft,

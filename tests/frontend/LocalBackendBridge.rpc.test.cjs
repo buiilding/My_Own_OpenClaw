@@ -11,6 +11,9 @@ const {
   markReady,
   registerBridgeSuiteLifecycleHooks,
 } = require('./__mocks__/localBackendBridgeHarness.cjs');
+const {
+  resolveOwnedScreenshotTempDir,
+} = require('../../frontend/src/main/local_backend_bridge_screenshot_attachment.cjs');
 
 describe('local_backend_bridge RPC handlers', () => {
   registerBridgeSuiteLifecycleHooks();
@@ -229,8 +232,9 @@ describe('local_backend_bridge RPC handlers', () => {
     });
     markReady();
 
-    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-shot-'));
-    const screenshotPath = path.join(tempDir, 'capture.jpg');
+    const tempDir = resolveOwnedScreenshotTempDir();
+    await fsPromises.mkdir(tempDir, { recursive: true, mode: 0o700 });
+    const screenshotPath = path.join(tempDir, `windie-shot-${Date.now()}-capture.jpg`);
     await fsPromises.writeFile(screenshotPath, Buffer.from('fake-jpeg-bytes'));
 
     const originalFetch = global.fetch;
@@ -279,6 +283,50 @@ describe('local_backend_bridge RPC handlers', () => {
         Authorization: 'Bearer test-install-token',
       });
       await expect(fsPromises.access(screenshotPath)).rejects.toThrow();
+    } finally {
+      global.fetch = originalFetch;
+      await fsPromises.rm(screenshotPath, { force: true });
+    }
+  });
+
+  test('screenshot host channel rejects unowned temp paths without reading or deleting', async () => {
+    const { handlers, stdoutHandler } = initBridge({
+      getArtifactUploadHeaders: async () => ({
+        Authorization: 'Bearer test-install-token',
+      }),
+    });
+    markReady();
+
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-unowned-shot-'));
+    const screenshotPath = path.join(tempDir, 'capture.jpg');
+    await fsPromises.writeFile(screenshotPath, Buffer.from('do-not-read-or-delete'));
+
+    const originalFetch = global.fetch;
+    const fetchMock = jest.fn();
+    global.fetch = fetchMock;
+
+    try {
+      const promise = handlers['capture-screenshot-attachment'](null, {
+        args: {},
+      });
+
+      emitRpcResult(stdoutHandler, {
+        success: true,
+        data: {
+          screenshot_path: screenshotPath,
+          screenshot_content_type: 'image/jpeg',
+        },
+      });
+
+      await expect(promise).resolves.toEqual({
+        success: true,
+        data: {
+          screenshot_content_type: 'image/jpeg',
+        },
+      });
+
+      expect(fetchMock).not.toHaveBeenCalled();
+      await expect(fsPromises.readFile(screenshotPath, 'utf8')).resolves.toBe('do-not-read-or-delete');
     } finally {
       global.fetch = originalFetch;
       await fsPromises.rm(tempDir, { recursive: true, force: true });
@@ -543,8 +591,9 @@ describe('local_backend_bridge RPC handlers', () => {
     });
     markReady();
 
-    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-shot-inline-'));
-    const screenshotPath = path.join(tempDir, 'capture.jpg');
+    const tempDir = resolveOwnedScreenshotTempDir();
+    await fsPromises.mkdir(tempDir, { recursive: true, mode: 0o700 });
+    const screenshotPath = path.join(tempDir, `windie-shot-${Date.now()}-inline.jpg`);
     await fsPromises.writeFile(screenshotPath, Buffer.from('fake-jpeg-inline'));
 
     const originalFetch = global.fetch;
@@ -590,7 +639,7 @@ describe('local_backend_bridge RPC handlers', () => {
       await expect(fsPromises.access(screenshotPath)).rejects.toThrow();
     } finally {
       global.fetch = originalFetch;
-      await fsPromises.rm(tempDir, { recursive: true, force: true });
+      await fsPromises.rm(screenshotPath, { force: true });
     }
   });
 
@@ -950,6 +999,74 @@ describe('local_backend_bridge RPC handlers', () => {
     }));
 
     await expectResolvedSuccess(stdoutHandler, promise, { ok: true });
+  });
+
+  test('replace-chat-conversation maps replacement events as one RPC payload', async () => {
+    const { handlers, stdoutHandler } = initBridge();
+    markReady();
+
+    const promise = handlers['replace-chat-conversation'](null, {
+      userId: 'u-1',
+      conversationId: 'conv-1',
+      revisionId: 'rev-next',
+      revisionUpdatedAt: '2026-05-17T12:00:01+00:00',
+      events: [
+        {
+          conversationId: 'conv-1',
+          eventType: 'user_message',
+          role: 'user',
+          content: 'edited',
+          messageIndex: 1,
+          revisionId: 'rev-next',
+          eventPayload: {
+            eventId: 'evt-edited',
+            type: 'user_message',
+          },
+        },
+      ],
+    });
+
+    expectLastRequestWith('replace_chat_conversation', {
+      user_id: 'u-1',
+      conversation_id: 'conv-1',
+      revision_id: 'rev-next',
+      revision_updated_at: '2026-05-17T12:00:01+00:00',
+      events: [
+        expect.objectContaining({
+          conversation_id: 'conv-1',
+          event_type: 'user_message',
+          role: 'user',
+          content: 'edited',
+          message_index: 1,
+          revision_id: 'rev-next',
+          event_payload: {
+            eventId: 'evt-edited',
+            type: 'user_message',
+          },
+        }),
+      ],
+    });
+
+    await expectResolvedSuccess(stdoutHandler, promise, { inserted_count: 1 });
+  });
+
+  test('get-chat-conversation-revision maps to sidecar RPC', async () => {
+    const { handlers, stdoutHandler } = initBridge();
+    markReady();
+
+    const promise = handlers['get-chat-conversation-revision'](null, {
+      userId: 'u-1',
+      conversationId: 'conv-1',
+    });
+
+    expectLastRequestWith('get_chat_conversation_revision', {
+      user_id: 'u-1',
+      conversation_id: 'conv-1',
+    });
+
+    await expectResolvedSuccess(stdoutHandler, promise, {
+      revision_id: 'rev-next',
+    });
   });
 
   test('list-semantic-memories handler maps payload keys to backend params', async () => {

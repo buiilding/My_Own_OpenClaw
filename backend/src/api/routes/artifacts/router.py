@@ -20,6 +20,16 @@ router = APIRouter(prefix="/api/artifacts", tags=["artifacts"])
 logger = logging.getLogger(__name__)
 
 
+def require_authenticated_install_identity():
+    identity = get_current_authenticated_install_identity()
+    if identity is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Authenticated install identity required",
+        )
+    return identity
+
+
 @router.post("/", response_model=ArtifactUploadResponse)
 async def upload_artifact(
     request: Request,
@@ -27,11 +37,11 @@ async def upload_artifact(
     file: UploadFile = File(...),
 ) -> ArtifactUploadResponse:
     """Upload an artifact (multipart/form-data)."""
+    identity = require_authenticated_install_identity()
     store = ArtifactStore.from_config(container.config)
-    identity = get_current_authenticated_install_identity()
     meta = await store.save_upload(
         file,
-        owner_user_id=identity.user_id if identity is not None else None,
+        owner_user_id=identity.user_id,
     )
     base_url = str(request.base_url).rstrip("/")
     url = f"{base_url}/api/artifacts/{meta.artifact_id}"
@@ -50,12 +60,12 @@ async def get_artifact(
     container: ContainerDep,
 ) -> FileResponse:
     """Fetch an artifact by ID."""
+    identity = require_authenticated_install_identity()
     store = ArtifactStore.from_config(container.config)
-    identity = get_current_authenticated_install_identity()
     try:
         path, content_type = store.resolve_path_for_owner(
             artifact_id,
-            owner_user_id=identity.user_id if identity is not None else None,
+            owner_user_id=identity.user_id,
         )
     except HTTPException:
         raise

@@ -129,7 +129,10 @@ The SDK ships two reusable store adapters:
   its read/projection conveniences to this SDK store. Desktop supplies
   Electron-specific write enrichment such as workspace binding and attachment
   extraction through the store's host write-params hook, while the SDK store
-  still owns the sidecar write RPC.
+  still owns the sidecar write RPC. Rewrites send `newRevisionId` as explicit
+  conversation revision metadata; the sidecar stores that revision separately
+  from preserved event rows so `getRevision()` and metadata listing advance even
+  when the rewrite keeps only old events or no events.
 
 Electron's sidecar-backed store is a first-party adapter. It is allowed to know
 about transcript storage IPC, but it must stay behind the SDK store interface.
@@ -207,6 +210,8 @@ Desktop tool-output transcript persistence may consume SDK `tool_output`
 directly. The SDK payload exposes normalized identity, request/correlation id,
 tool name, and screenshot fields, while `structuredPayload` carries backend
 detail fields used for transcript trace rows and malformed-payload fallbacks.
+For `tool_output` and `tool_progress`, normalized `correlationId` prefers
+backend `payload.correlation_id` and falls back to `payload.request_id`.
 Renderer active tool-output display should come from
 `snapshot.currentTurn.toolEvents`, and should not reconstruct backend
 `tool-output` events from `payload.rawEvent`.
@@ -376,6 +381,10 @@ Projection builders collapse duplicate tool outputs that share the same
 `requestId`, `bundleId`, `correlationId`, or `toolCallId`. This handles the
 common local-runtime flow where the SDK appends the local sidecar result and the
 backend later emits an acknowledgement `tool-output` for the same tool wait.
+When duplicate outputs disagree, the projection keeps the output with
+model-visible content first so rehydrate history does not lose provider context;
+backend acknowledgements are preferred only when both candidates have the same
+model-content availability.
 
 Rehydrate projections preserve provider-safe tool history for both single calls
 and bundles. A `tool_call` projection must carry the original `tool_calls` and

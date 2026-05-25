@@ -1,5 +1,6 @@
-import { act, renderHook } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 
+import { useAudioCaptureRefs } from '../../frontend/src/renderer/features/voice/hooks/useAudioCaptureRefs';
 import { useVoiceMode } from '../../frontend/src/renderer/features/voice/hooks/useVoiceMode';
 
 class MockWebSocket {
@@ -117,6 +118,48 @@ describe('useVoiceMode', () => {
     );
   });
 
+  test('does not replace a connecting websocket during rerenders', () => {
+    const { rerender } = renderHook(
+      ({ gatewayUrl }) =>
+        useVoiceMode(true, undefined, undefined, gatewayUrl),
+      { initialProps: { gatewayUrl: 'ws://localhost:5026' } },
+    );
+
+    expect(MockWebSocket.instances).toHaveLength(1);
+    const socket = MockWebSocket.instances[0];
+    expect(socket.readyState).toBe(MockWebSocket.CONNECTING);
+
+    rerender({ gatewayUrl: 'ws://localhost:5027' });
+    rerender({ gatewayUrl: 'ws://localhost:5028' });
+
+    expect(MockWebSocket.instances).toHaveLength(1);
+    act(() => {
+      socket.readyState = MockWebSocket.OPEN;
+      socket.onopen?.({} as Event);
+    });
+    expect(socket.send).toHaveBeenCalledTimes(1);
+    expect(socket.send).toHaveBeenCalledWith(
+      '{"type":"set_langs","source_language":"en","target_language":"en"}',
+    );
+  });
+
+  test('keeps audio capture ref setter identities stable across rerenders', () => {
+    const { result, rerender } = renderHook(() => useAudioCaptureRefs());
+    const firstSetters = {
+      setMediaStreamRef: result.current.setMediaStreamRef,
+      setAudioContextRef: result.current.setAudioContextRef,
+      setSourceNodeRef: result.current.setSourceNodeRef,
+      setScriptNodeRef: result.current.setScriptNodeRef,
+    };
+
+    rerender();
+
+    expect(result.current.setMediaStreamRef).toBe(firstSetters.setMediaStreamRef);
+    expect(result.current.setAudioContextRef).toBe(firstSetters.setAudioContextRef);
+    expect(result.current.setSourceNodeRef).toBe(firstSetters.setSourceNodeRef);
+    expect(result.current.setScriptNodeRef).toBe(firstSetters.setScriptNodeRef);
+  });
+
   test('sends start_over after utterance-end when websocket is open', () => {
     const onUtteranceEnd = jest.fn();
     renderHook(() => useVoiceMode(true, undefined, onUtteranceEnd, 'ws://localhost:5026'));
@@ -190,17 +233,72 @@ describe('useVoiceMode', () => {
     const { result } = renderHook(
       () => useVoiceMode(true, undefined, undefined, 'ws://localhost:5026'),
     );
-    const socket = MockWebSocket.instances[0];
 
-    // Repeated close events on the same socket are enough to drive attempt counting.
-    // We do not need to execute reconnect timers to assert max-attempt error behavior.
-    for (let i = 0; i < 6; i += 1) {
+    for (const delay of [1000, 2000, 4000, 8000, 16000]) {
       act(() => {
+        const socket = MockWebSocket.instances[MockWebSocket.instances.length - 1];
+        socket.readyState = MockWebSocket.CLOSED;
         socket.onclose?.({} as CloseEvent);
+      });
+      act(() => {
+        jest.advanceTimersByTime(delay);
       });
     }
 
+    act(() => {
+      const socket = MockWebSocket.instances[MockWebSocket.instances.length - 1];
+      socket.readyState = MockWebSocket.CLOSED;
+      socket.onclose?.({} as CloseEvent);
+    });
+
     expect(result.current.error).toBe('Failed to connect to voice gateway after multiple attempts');
     jest.useRealTimers();
+  });
+
+  test('stops pending media stream when disabled before permission resolves', async () => {
+    const originalMediaDevices = navigator.mediaDevices;
+    const stopTrack = jest.fn();
+    const mediaStream = {
+      getTracks: () => [{ stop: stopTrack }],
+    } as unknown as MediaStream;
+    let resolveGetUserMedia: ((stream: MediaStream) => void) | undefined;
+    const getUserMedia = jest.fn(() => new Promise<MediaStream>((resolve) => {
+      resolveGetUserMedia = resolve;
+    }));
+    Object.defineProperty(navigator, 'mediaDevices', {
+      configurable: true,
+      value: { getUserMedia },
+    });
+
+    try {
+      const { result, rerender } = renderHook(
+        ({ enabled }) => useVoiceMode(enabled, undefined, undefined, 'ws://localhost:5026'),
+        { initialProps: { enabled: true } },
+      );
+
+      const socket = MockWebSocket.instances[0];
+      await act(async () => {
+        socket.readyState = MockWebSocket.OPEN;
+        socket.onopen?.({} as Event);
+      });
+
+      await waitFor(() => {
+        expect(getUserMedia).toHaveBeenCalledTimes(1);
+      });
+
+      rerender({ enabled: false });
+
+      await act(async () => {
+        resolveGetUserMedia?.(mediaStream);
+      });
+
+      expect(stopTrack).toHaveBeenCalledTimes(1);
+      expect(result.current.isRecording).toBe(false);
+    } finally {
+      Object.defineProperty(navigator, 'mediaDevices', {
+        configurable: true,
+        value: originalMediaDevices,
+      });
+    }
   });
 });

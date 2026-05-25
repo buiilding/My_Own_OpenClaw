@@ -249,6 +249,11 @@ class ConfigurationService:
                 old_config, reloaded_config
             )
 
+            # Publish event for event bus subscribers, matching update_config.
+            if self._event_bus:
+                event = ConfigChanged(old_config=old_config, new_config=reloaded_config)
+                await self._event_bus.publish(event)
+
             logger.info("Configuration reloaded and subscribers notified")
             return reloaded_config
 

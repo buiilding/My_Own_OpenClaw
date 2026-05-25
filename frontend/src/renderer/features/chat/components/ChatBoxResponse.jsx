@@ -5,6 +5,7 @@ import { useResponseOverlayPhase } from '../hooks/useResponseOverlayPhase';
 import { useResponseOverlayViewModel } from '../hooks/useResponseOverlayViewModel';
 import { useResponseOverlayWindowSync } from '../hooks/useResponseOverlayWindowSync';
 import { useResponseOverlayScrollState } from '../hooks/useResponseOverlayScrollState';
+import { sanitizeMarkdownHtml } from '../../../infrastructure/markdown';
 import { selectChatBoxState } from '../utils/chatSelectors';
 import {
   logRendererChatPillTrace,
@@ -31,7 +32,7 @@ function renderResponseEntry(entry, markdownHtml) {
   return (
     <div
       className="chatbox-response-text chatbox-response-markdown"
-      dangerouslySetInnerHTML={{ __html: markdownHtml }}
+      dangerouslySetInnerHTML={{ __html: sanitizeMarkdownHtml(markdownHtml) }}
     />
   );
 }

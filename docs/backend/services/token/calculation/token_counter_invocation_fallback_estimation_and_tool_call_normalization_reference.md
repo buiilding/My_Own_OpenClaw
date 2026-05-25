@@ -108,6 +108,13 @@ Implication:
 
 - fallback is intentionally coarse and can diverge from provider-accurate/multimodal token counts
 
+## Truncation Budget Invariant
+
+`TokenService.truncate_text(...)` must include its truncation marker in the
+requested limit. The LiteLLM-token and fallback-estimate paths split only the
+remaining budget across head and tail text, and must not force both sides to be
+non-empty when only one token or estimated character remains.
+
 ## Singleton and Concurrency Contract
 
 Global accessor:

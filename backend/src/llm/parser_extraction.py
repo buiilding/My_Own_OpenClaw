@@ -34,18 +34,7 @@ class JsonToolCallExtractor:
         json_str = response.strip()
         json_size = len(json_str)
         if json_size > self.limits.max_json_size:
-            self.metrics.record_size_violation(
-                actual_size=json_size,
-                max_size=self.limits.max_json_size,
-                boundary_name="response_parser",
-                metadata={"check": "json_size"},
-            )
-            raise InputSizeLimitError(
-                f"JSON size {json_size} exceeds maximum {self.limits.max_json_size}",
-                actual_size=json_size,
-                max_size=self.limits.max_json_size,
-                boundary_name="response_parser",
-            )
+            self._raise_json_size_limit(json_size)
 
         try:
             parsed_json = self._safe_json_loads(json_str, start_time, timeout)
@@ -110,9 +99,15 @@ class JsonToolCallExtractor:
                 json_obj = response[start_index:end_index]
 
                 if len(json_obj) > self.limits.max_json_size:
+                    if self._is_tool_call_candidate(parsed):
+                        self._raise_json_size_limit(
+                            len(json_obj),
+                            metadata={"source": "embedded_json"},
+                        )
                     pos = start_index + 1
                     continue
 
+                self._validate_parsed_json_depth(parsed)
                 result = self.schema.extract_tool_call(parsed)
 
                 if result:
@@ -153,16 +148,10 @@ class JsonToolCallExtractor:
 
         try:
             parsed = json.loads(json_str)
-            self._validate_json_depth(parsed, self.limits.max_json_nesting_depth)
+            self._validate_parsed_json_depth(parsed)
             return parsed
         except json.JSONDecodeError:
             raise
-        except RecursionError:
-            raise ParseValidationError(
-                f"JSON nesting depth exceeds maximum {self.limits.max_json_nesting_depth}",
-                validation_errors=["JSON nesting too deep"],
-                boundary_name="response_parser",
-            )
 
     def _build_tool_call(
         self,
@@ -232,6 +221,43 @@ class JsonToolCallExtractor:
             elif isinstance(current_obj, list):
                 for item in current_obj:
                     stack.append((item, depth + 1))
+
+    def _is_tool_call_candidate(self, parsed: Any) -> bool:
+        try:
+            return self.schema.extract_tool_call(parsed) is not None
+        except Exception:
+            return False
+
+    def _raise_json_size_limit(
+        self,
+        json_size: int,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        violation_metadata = {"check": "json_size"}
+        if metadata:
+            violation_metadata.update(metadata)
+        self.metrics.record_size_violation(
+            actual_size=json_size,
+            max_size=self.limits.max_json_size,
+            boundary_name="response_parser",
+            metadata=violation_metadata,
+        )
+        raise InputSizeLimitError(
+            f"JSON size {json_size} exceeds maximum {self.limits.max_json_size}",
+            actual_size=json_size,
+            max_size=self.limits.max_json_size,
+            boundary_name="response_parser",
+        )
+
+    def _validate_parsed_json_depth(self, parsed: Any) -> None:
+        try:
+            self._validate_json_depth(parsed, self.limits.max_json_nesting_depth)
+        except RecursionError as exc:
+            raise ParseValidationError(
+                f"JSON nesting depth exceeds maximum {self.limits.max_json_nesting_depth}",
+                validation_errors=["JSON nesting too deep"],
+                boundary_name="response_parser",
+            ) from exc
 
     def _remove_extracted_by_positions(
         self, text: str, positions: List[Tuple[int, int]]

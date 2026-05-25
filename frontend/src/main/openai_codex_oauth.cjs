@@ -139,15 +139,18 @@ function createCallbackResponse(content, statusCode = 200) {
   };
 }
 
-async function waitForOAuthCallback({ server, state, codeVerifier, redirectUri, issuer, clientId, timeoutMs, fetchImpl }) {
+async function waitForOAuthCallback({ server, state, codeVerifier, redirectUri, issuer, clientId, timeoutMs, fetchImpl, cancelSignal }) {
   return await new Promise((resolve, reject) => {
     let settled = false;
+    let timeoutHandle = null;
+    let cleanupCancelListener = () => {};
     const finish = (error, tokenPayload) => {
       if (settled) {
         return;
       }
       settled = true;
       clearTimeout(timeoutHandle);
+      cleanupCancelListener();
       try {
         server.close();
       } catch (_error) {
@@ -160,9 +163,21 @@ async function waitForOAuthCallback({ server, state, codeVerifier, redirectUri, 
       resolve(tokenPayload);
     };
 
-    const timeoutHandle = setTimeout(() => {
+    timeoutHandle = setTimeout(() => {
       finish(new Error('OpenAI Codex login timed out before completing in the browser.'));
     }, timeoutMs);
+
+    if (cancelSignal) {
+      const handleCancel = () => {
+        finish(new Error('OpenAI Codex login was cancelled before completing in the browser.'));
+      };
+      if (cancelSignal.aborted) {
+        handleCancel();
+      } else if (typeof cancelSignal.addEventListener === 'function') {
+        cancelSignal.addEventListener('abort', handleCancel, { once: true });
+        cleanupCancelListener = () => cancelSignal.removeEventListener('abort', handleCancel);
+      }
+    }
 
     server.on('request', async (req, res) => {
       if (settled) {
@@ -265,6 +280,7 @@ async function loginOpenAICodexOAuth(options = {}) {
     });
   });
 
+  const callbackAbortController = new AbortController();
   const waitForCallbackPromise = waitForOAuthCallback({
     server,
     state,
@@ -274,16 +290,14 @@ async function loginOpenAICodexOAuth(options = {}) {
     clientId,
     timeoutMs: OPENAI_CODEX_LOGIN_TIMEOUT_MS,
     fetchImpl,
+    cancelSignal: callbackAbortController.signal,
   });
 
   try {
     await openExternal(authUrl);
   } catch (error) {
-    try {
-      server.close();
-    } catch (_closeError) {
-      // no-op
-    }
+    callbackAbortController.abort();
+    await waitForCallbackPromise.catch(() => {});
     throw new Error(`Failed to open browser for Codex login: ${String(error?.message || error)}`);
   }
 

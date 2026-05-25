@@ -10,6 +10,7 @@ from typing import Any, AsyncGenerator, Dict, Optional
 from urllib.parse import urlencode
 
 from backend.src.core.config import AppConfig
+
 logger = logging.getLogger(__name__)
 
 _DEFAULT_SAMPLE_WIDTH = 2
@@ -34,9 +35,23 @@ class ElevenLabsTTSService:
         self._receiver_task: Optional[asyncio.Task] = None
         self._websocket = None
         self._eos_sent = False
+        self._shutdown_requested = False
+        self._session_lock = asyncio.Lock()
 
     async def initialize(self) -> None:
         """Open ElevenLabs websocket session and start audio receive loop."""
+        self.loop = asyncio.get_running_loop()
+        self.audio_queue = asyncio.Queue()
+        self._processing_complete = asyncio.Event()
+        self._processing_complete.set()
+        self._shutdown_requested = False
+        async with self._session_lock:
+            await self._open_websocket_session()
+
+    async def _open_websocket_session(self) -> None:
+        """Open one ElevenLabs generation websocket for the next text chunks."""
+        if self._shutdown_requested or self.running:
+            return
         api_key = self._resolve_api_key()
         if not api_key:
             logger.warning(
@@ -48,15 +63,12 @@ class ElevenLabsTTSService:
             logger.warning("ElevenLabs TTS not initialized: voice id is not configured")
             return
 
-        self.loop = asyncio.get_running_loop()
-        self.audio_queue = asyncio.Queue()
-        self._processing_complete = asyncio.Event()
-        self._processing_complete.set()
-
         try:
+            await self._close_websocket()
             websockets = _import_websockets()
             self._websocket = await websockets.connect(self._build_uri())
             await self._websocket.send(json.dumps(self._build_initial_message(api_key)))
+            self._eos_sent = False
             self.running = True
             self._receiver_task = asyncio.create_task(self._receive_audio_loop())
             logger.info(
@@ -70,6 +82,7 @@ class ElevenLabsTTSService:
 
     async def shutdown(self) -> None:
         """Shut down websocket receive loop and connection."""
+        self._shutdown_requested = True
         self.running = False
         if self._receiver_task and not self._receiver_task.done():
             self._receiver_task.cancel()
@@ -83,6 +96,28 @@ class ElevenLabsTTSService:
 
     async def process_text(self, text_chunk: str) -> None:
         """Stream plain-text chunks to ElevenLabs as soon as they are speakable."""
+        if self._shutdown_requested:
+            return
+        if self._eos_sent and self._processing_complete:
+            try:
+                await asyncio.wait_for(self._processing_complete.wait(), timeout=5.0)
+            except asyncio.TimeoutError:
+                logger.warning(
+                    "ElevenLabs timed out waiting for prior generation before reopening"
+                )
+        if not self.running or self._eos_sent:
+            async with self._session_lock:
+                if self._eos_sent and self._processing_complete:
+                    try:
+                        await asyncio.wait_for(
+                            self._processing_complete.wait(), timeout=5.0
+                        )
+                    except asyncio.TimeoutError:
+                        logger.warning(
+                            "ElevenLabs timed out waiting for prior generation before reopening"
+                        )
+                if not self.running or self._eos_sent:
+                    await self._open_websocket_session()
         if not self.running:
             return
         if self._processing_complete:
@@ -220,7 +255,7 @@ class ElevenLabsTTSService:
             self.running = False
             if self._processing_complete:
                 self._processing_complete.set()
-            if self.audio_queue is not None:
+            if self._shutdown_requested and self.audio_queue is not None:
                 await self.audio_queue.put(None)
             await self._close_websocket()
 

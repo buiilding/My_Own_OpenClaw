@@ -70,10 +70,9 @@ def test_handshake_message_validates_user_id():
     assert ok.available_tools == ["read_file", "mouse_control"]
     assert ok.to_session_config_overrides() == {
         "agent_available_tools": ["read_file", "mouse_control"],
-        "agent_available_coordinate_methods": ["manual", "ocr"],
+        "agent_available_coordinate_methods": ["manual"],
         "agent_tool_profile": "coding",
         "agent_disabled_tools": ["browser"],
-        "agent_coordinate_methods": ["manual"],
         "agent_disabled_capabilities": ["vision"],
     }
 
@@ -84,8 +83,35 @@ def test_handshake_message_validates_user_id():
         HandshakeMessage(
             type="handshake",
             user_id="user-2",
-            available_tools=["  "],
-        )
+        available_tools=["  "],
+    )
+
+
+def test_handshake_coordinate_method_overrides_use_consistent_key():
+    top_level = HandshakeMessage(
+        type="handshake",
+        user_id="user-2",
+        available_coordinate_methods=["manual", "ocr"],
+    )
+    policy = HandshakeMessage(
+        type="handshake",
+        user_id="user-2",
+        requested_agent_policy={"coordinate_methods": ["manual"]},
+    )
+    definition = AgentDefinition(
+        id="custom-agent",
+        runtime={"coordinate_methods": ["manual"]},
+    )
+
+    assert top_level.to_session_config_overrides() == {
+        "agent_available_coordinate_methods": ["manual", "ocr"],
+    }
+    assert policy.to_session_config_overrides() == {
+        "agent_available_coordinate_methods": ["manual"],
+    }
+    assert definition.to_session_config_overrides() == {
+        "agent_available_coordinate_methods": ["manual"],
+    }
 
 
 def test_agent_definition_normalizes_prompt_tools_and_runtime():

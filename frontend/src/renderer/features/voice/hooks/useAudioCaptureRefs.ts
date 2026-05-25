@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import type { LegacyAudioProcessorNode } from '../utils/audioCaptureCleanup';
 
 export function useAudioCaptureRefs() {
@@ -7,21 +7,21 @@ export function useAudioCaptureRefs() {
   const sourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const scriptNodeRef = useRef<LegacyAudioProcessorNode | null>(null);
 
-  const setMediaStreamRef = (nextValue: MediaStream | null) => {
+  const setMediaStreamRef = useCallback((nextValue: MediaStream | null) => {
     mediaStreamRef.current = nextValue;
-  };
+  }, []);
 
-  const setAudioContextRef = (nextValue: AudioContext | null) => {
+  const setAudioContextRef = useCallback((nextValue: AudioContext | null) => {
     audioContextRef.current = nextValue;
-  };
+  }, []);
 
-  const setSourceNodeRef = (nextValue: MediaStreamAudioSourceNode | null) => {
+  const setSourceNodeRef = useCallback((nextValue: MediaStreamAudioSourceNode | null) => {
     sourceNodeRef.current = nextValue;
-  };
+  }, []);
 
-  const setScriptNodeRef = (nextValue: LegacyAudioProcessorNode | null) => {
+  const setScriptNodeRef = useCallback((nextValue: LegacyAudioProcessorNode | null) => {
     scriptNodeRef.current = nextValue;
-  };
+  }, []);
 
   return {
     mediaStreamRef,

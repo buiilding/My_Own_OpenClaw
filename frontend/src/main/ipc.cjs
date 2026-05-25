@@ -274,6 +274,7 @@ function normalizeGlobalAgentStopShortcutStatus(status) {
     enabled: status.enabled === true,
     requestedAccelerator: normalizeAccelerator(status.requestedAccelerator),
     resolvedAccelerator: normalizeAccelerator(status.resolvedAccelerator),
+    registered: status.registered === true,
     registeredAccelerator: normalizeAccelerator(status.registeredAccelerator),
     registrationFailed: status.registrationFailed === true,
     usingFallback: status.usingFallback === true,
@@ -847,6 +848,10 @@ function initializeIpc(win, options = {}) {
     ipcMain,
     clipboard,
     nativeImage,
+    getTrustedImageOrigins: () => [
+      BACKEND_HTTP_URL,
+      ...BACKEND_ENDPOINT_CANDIDATES.map((candidate) => candidate.httpUrl),
+    ],
   });
   registerImageContextMenuHandler({
     ipcMain,
@@ -854,6 +859,10 @@ function initializeIpc(win, options = {}) {
     BrowserWindow,
     clipboard,
     nativeImage,
+    getTrustedImageOrigins: () => [
+      BACKEND_HTTP_URL,
+      ...BACKEND_ENDPOINT_CANDIDATES.map((candidate) => candidate.httpUrl),
+    ],
   });
 
   ipcMain.handle('openai-codex-oauth-login', async () => {

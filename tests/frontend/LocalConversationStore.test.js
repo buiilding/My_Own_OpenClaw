@@ -97,7 +97,7 @@ describe('localConversationStore', () => {
     );
   });
 
-  test('sends an explicit chat-event conversation list limit when requested', async () => {
+  test('propagates explicit record kind for conversation list requests', async () => {
     mockInvoke.mockResolvedValue({
       success: true,
       data: { conversations: [] },
@@ -113,7 +113,7 @@ describe('localConversationStore', () => {
       'list-chat-conversations',
       {
         userId: 'default_user',
-        recordKind: 'chat_event',
+        recordKind: 'transcript',
         limit: 25,
       },
     );
@@ -144,6 +144,59 @@ describe('localConversationStore', () => {
         limit: 5,
         recordKind: 'chat_event',
       },
+    );
+  });
+
+  test('propagates explicit record kind for conversation search requests', async () => {
+    mockInvoke.mockResolvedValue({
+      success: true,
+      data: { conversations: [] },
+    });
+
+    await searchStoredConversations({
+      userId: 'default_user',
+      query: 'project',
+      limit: 5,
+      recordKind: 'transcript',
+    });
+
+    expect(mockInvoke).toHaveBeenCalledWith(
+      'search-chat-conversations',
+      {
+        userId: 'default_user',
+        query: 'project',
+        limit: 5,
+        recordKind: 'transcript',
+      },
+    );
+  });
+
+  test('propagates explicit record kind for paginated conversation entry loads', async () => {
+    mockInvoke.mockResolvedValue({
+      success: true,
+      data: {
+        events: [
+          { id: 'm1', message_index: 1 },
+        ],
+      },
+    });
+
+    await loadStoredConversationEntries({
+      userId: 'default_user',
+      conversationRef: 'conv_1',
+      recordKind: 'transcript',
+      pageSize: 5,
+    });
+
+    expect(mockInvoke).toHaveBeenCalledWith(
+      'get-chat-events',
+      expect.objectContaining({
+        userId: 'default_user',
+        conversationId: 'conv_1',
+        limit: 5,
+        recordKind: 'transcript',
+        afterMessageIndex: null,
+      }),
     );
   });
 

@@ -18,7 +18,9 @@ from backend.src.api.services.transcription.protocol import (
     GatewayEventSender,
     TranscriptionProviderSession,
 )
-from backend.src.api.services.transcription.provider_helpers import resolve_openai_api_key
+from backend.src.api.services.transcription.provider_helpers import (
+    resolve_openai_api_key,
+)
 from backend.src.core.config import AppConfig
 
 logger = logging.getLogger(__name__)
@@ -88,18 +90,24 @@ class OpenAIRealtimeTranscriptionSession(TranscriptionProviderSession):
                 try:
                     event = json.loads(raw_message)
                 except json.JSONDecodeError:
-                    logger.debug("Ignoring non-JSON OpenAI realtime event: %r", raw_message)
+                    logger.debug(
+                        "Ignoring non-JSON OpenAI realtime event: %r", raw_message
+                    )
                     continue
                 if not isinstance(event, dict):
                     continue
                 event_type = str(event.get("type") or "")
                 if event_type == "error":
                     details = event.get("error")
-                    logger.error("OpenAI realtime transcription error event: %s", details)
+                    logger.error(
+                        "OpenAI realtime transcription error event: %s", details
+                    )
                     await send_event(
                         {
                             "type": "error",
-                            "message": str(details or "OpenAI realtime transcription error"),
+                            "message": str(
+                                details or "OpenAI realtime transcription error"
+                            ),
                         }
                     )
                     continue
@@ -120,7 +128,10 @@ class OpenAIRealtimeTranscriptionSession(TranscriptionProviderSession):
                     )
                     continue
 
-                if event_type == "conversation.item.input_audio_transcription.completed":
+                if (
+                    event_type
+                    == "conversation.item.input_audio_transcription.completed"
+                ):
                     item_id = str(event.get("item_id") or "")
                     transcript = str(event.get("transcript") or "")
                     if not transcript and item_id:
@@ -139,6 +150,9 @@ class OpenAIRealtimeTranscriptionSession(TranscriptionProviderSession):
                     continue
 
                 if event_type == "conversation.item.input_audio_transcription.failed":
+                    item_id = str(event.get("item_id") or "")
+                    if item_id:
+                        self._partial_transcripts.pop(item_id, None)
                     details = event.get("error")
                     await send_event(
                         {

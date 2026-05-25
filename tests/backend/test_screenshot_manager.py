@@ -75,6 +75,16 @@ class _DummyOcrRuntimeState:
     def set_active_task(self, task, screenshot_id):
         self._session.set_active_ocr_task(task, screenshot_id)
 
+    def get_active_task(self, screenshot_id=None):
+        if self._session._active_ocr_task is None:
+            return None
+        if (
+            screenshot_id is not None
+            and self._session._active_ocr_screenshot_id != screenshot_id
+        ):
+            return None
+        return self._session._active_ocr_task
+
     def clear_active_task(self, task):
         self._session.clear_active_ocr_task(task)
 
@@ -147,6 +157,7 @@ async def test_process_screenshot_triggers_ocr_and_stores_results():
 
     await manager.process_screenshot(session, "img-ocr", "req-3")
 
+    assert session.ocr_completion_event.is_set() is False
     await asyncio.wait_for(session.ocr_completion_event.wait(), timeout=1.0)
     if session._active_ocr_task is not None:
         await asyncio.gather(session._active_ocr_task, return_exceptions=True)
@@ -172,4 +183,58 @@ async def test_process_screenshot_ignores_outdated_ocr_results():
 
     assert first_id != second_id
     assert session.get_current_screenshot_id() == second_id
+    assert session._current_ocr_results == [{"text": "second-image"}]
+
+
+@pytest.mark.asyncio
+async def test_process_screenshot_keeps_event_unset_until_active_ocr_finishes():
+    class DeferredOcrService(DummyOcrService):
+        def __init__(self) -> None:
+            super().__init__(enabled=True)
+            self.calls: list[str] = []
+            self.started: asyncio.Queue[asyncio.Event] = asyncio.Queue()
+            self.release: asyncio.Queue[asyncio.Event] = asyncio.Queue()
+
+        async def perform_ocr(self, data):
+            self.calls.append(data)
+            started = asyncio.Event()
+            await self.started.put(started)
+            release = asyncio.Event()
+            await self.release.put(release)
+            started.set()
+            await release.wait()
+            return [{"text": data}]
+
+    manager = ScreenshotManager()
+    ocr_service = DeferredOcrService()
+    session = DummySession(ocr_service=ocr_service)
+
+    await manager.process_screenshot(session, "first-image", "req-a")
+    first_started = await asyncio.wait_for(ocr_service.started.get(), timeout=1.0)
+    await asyncio.wait_for(first_started.wait(), timeout=1.0)
+    first_release = await asyncio.wait_for(ocr_service.release.get(), timeout=1.0)
+
+    assert session.ocr_completion_event.is_set() is False
+
+    await manager.process_screenshot(session, "second-image", "req-b")
+    assert session.ocr_completion_event.is_set() is False
+
+    await asyncio.sleep(0)
+    assert session.ocr_completion_event.is_set() is False
+    assert session._current_ocr_results is None
+
+    second_started = await asyncio.wait_for(ocr_service.started.get(), timeout=1.0)
+    await asyncio.wait_for(second_started.wait(), timeout=1.0)
+    second_release = await asyncio.wait_for(ocr_service.release.get(), timeout=1.0)
+
+    first_release.set()
+    await asyncio.sleep(0)
+    assert session.ocr_completion_event.is_set() is False
+    assert session._current_ocr_results is None
+
+    second_release.set()
+    await asyncio.wait_for(session.ocr_completion_event.wait(), timeout=1.0)
+    if session._active_ocr_task is not None:
+        await asyncio.gather(session._active_ocr_task, return_exceptions=True)
+
     assert session._current_ocr_results == [{"text": "second-image"}]

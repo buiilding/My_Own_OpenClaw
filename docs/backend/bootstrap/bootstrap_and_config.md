@@ -85,6 +85,12 @@ Main composition (`core/container/application.py`):
 
 Facade (`core/container/facade.py`) keeps backward-compatible accessors while delegating to split runtime coordinators.
 
+Session LLM client creation:
+
+- default container-created sessions use the DI `llm_client` provider with no per-session config argument
+- explicit session config overrides use the config-aware LLM factory path
+- this keeps DI/test/simulation LLM provider overrides reachable for normal default sessions
+
 ## Session Configuration Behavior
 
 Session manager (`agent/session/manager.py`):

@@ -182,6 +182,7 @@ export function createPendingTranscriptMessages({
         modelProvider: options.modelProvider,
         screenshotRef: options.screenshotRef,
         transparency: options.transparency,
+        structuredPayload: options.structuredPayload,
       });
     },
     queueToolMessageForRetry: (

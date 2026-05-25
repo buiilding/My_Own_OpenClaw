@@ -74,6 +74,38 @@ describe('ipc image context menu handler', () => {
     expect(clipboard.writeImage).toHaveBeenCalledWith(decodedImage);
   });
 
+  test('context menu copy action rejects untrusted remote image URLs', async () => {
+    const popup = jest.fn();
+    const templateEntries = [];
+    const Menu = {
+      buildFromTemplate: jest.fn((entries) => {
+        templateEntries.push(...entries);
+        return { popup };
+      }),
+    };
+    const fetchImpl = jest.fn();
+
+    const result = await showImageContextMenu({
+      event: { sender: {} },
+      src: 'https://cdn.example/screenshot.png',
+      Menu,
+      BrowserWindow: {
+        fromWebContents: jest.fn(() => null),
+      },
+      clipboard: { writeImage: jest.fn() },
+      nativeImage: {
+        createFromDataURL: jest.fn(),
+        createFromBuffer: jest.fn(),
+      },
+      fetchImpl,
+      trustedImageOrigins: ['https://api.windieos.com'],
+    });
+
+    expect(result).toEqual({ success: true });
+    await expect(templateEntries[0].click()).rejects.toThrow('not a trusted Windie artifact image');
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
   test('registers a safe IPC handler that returns structured failures', async () => {
     const invokeHandlers = {};
     const ipcMain = {

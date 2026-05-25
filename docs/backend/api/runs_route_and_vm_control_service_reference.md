@@ -54,13 +54,13 @@ Registered in `backend/src/api/routes/__init__.py` as:
 
 - `runs.router` mounted at `/api/runs`
 
-Optional shared-key auth:
+Shared-key auth:
 
 - Header: `x-windie-runs-key`
 - Accepted env vars (first non-empty wins):
   - `WINDIE_RUNS_API_KEY`
   - `WINDIE_DEMO_API_KEY`
-- If neither env var is set, routes are open.
+- If neither env var is set, routes fail closed with HTTP `503`.
 
 Service lifecycle:
 

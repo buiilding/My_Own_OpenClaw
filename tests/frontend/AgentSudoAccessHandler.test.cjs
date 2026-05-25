@@ -43,7 +43,7 @@ describe('agent_sudo_access_handler', () => {
     });
   });
 
-  test('enables passwordless sudo via pkexec script', async () => {
+  test('rejects persistent passwordless sudo enable without running privileged command', async () => {
     const spawnImpl = jest.fn(createSpawnStub({ closeCode: 0 }));
     const result = await handleSetAgentSudoAccess(
       { enabled: true },
@@ -51,16 +51,12 @@ describe('agent_sudo_access_handler', () => {
     );
 
     expect(result).toEqual({
-      success: true,
-      enabled: true,
+      success: false,
+      enabled: false,
       canceled: false,
-      reason: 'Passwordless sudo access has been enabled for the current user.',
+      reason: 'Persistent passwordless sudo access is no longer supported. Sudo commands use per-command OS authentication prompts instead.',
     });
-    expect(spawnImpl).toHaveBeenCalledWith(
-      'pkexec',
-      ['bash', '-lc', expect.stringContaining('NOPASSWD: ALL')],
-      expect.any(Object),
-    );
+    expect(spawnImpl).not.toHaveBeenCalled();
   });
 
   test('surfaces user-cancel message on dismissed auth prompt', async () => {
@@ -69,7 +65,7 @@ describe('agent_sudo_access_handler', () => {
       stderr: 'Error executing command as another user: Request dismissed',
     });
     const result = await handleSetAgentSudoAccess(
-      { enabled: true },
+      { enabled: false },
       { platform: 'linux', username: 'peter-bui', spawnImpl },
     );
 
@@ -78,12 +74,12 @@ describe('agent_sudo_access_handler', () => {
     expect(String(result.reason || '')).toContain('User canceled or denied OS authentication');
   });
 
-  test('surfaces missing pkexec error cleanly', async () => {
+  test('surfaces missing pkexec error cleanly when removing legacy sudoers rule', async () => {
     const err = new Error('spawn pkexec ENOENT');
     err.code = 'ENOENT';
     const spawnImpl = createSpawnStub({ error: err });
     const result = await handleSetAgentSudoAccess(
-      { enabled: true },
+      { enabled: false },
       { platform: 'linux', username: 'peter-bui', spawnImpl },
     );
 
@@ -92,7 +88,7 @@ describe('agent_sudo_access_handler', () => {
     expect(String(result.reason || '')).toContain('pkexec not found');
   });
 
-  test('disables passwordless sudo via sudo -n without auth prompt', async () => {
+  test('disables legacy passwordless sudo via pkexec auth prompt', async () => {
     const spawnImpl = jest.fn(createSpawnStub({ closeCode: 0 }));
     const result = await handleSetAgentSudoAccess(
       { enabled: false },
@@ -103,19 +99,23 @@ describe('agent_sudo_access_handler', () => {
       success: true,
       enabled: false,
       canceled: false,
-      reason: 'Passwordless sudo access has been disabled for the current user.',
+      reason: 'Legacy passwordless sudo access has been disabled for the current user.',
     });
     expect(spawnImpl).toHaveBeenCalledWith(
-      'sudo',
-      ['-n', 'bash', '-lc', expect.stringContaining('/etc/sudoers.d/99-windieos-agent-nopasswd')],
+      'pkexec',
+      [
+        'bash',
+        '-lc',
+        expect.not.stringContaining('NOPASSWD: ALL'),
+      ],
       expect.any(Object),
     );
+    expect(spawnImpl.mock.calls[0][1][2]).toContain('/etc/sudoers.d/99-windieos-agent-nopasswd');
   });
 
-  test('disable path returns non-auth guidance when sudo -n cannot run', async () => {
+  test('disable path surfaces pkexec spawn startup errors', async () => {
     const spawnImpl = createSpawnStub({
-      closeCode: 1,
-      stderr: 'sudo: a password is required',
+      error: new Error('spawn pkexec EACCES'),
     });
     const result = await handleSetAgentSudoAccess(
       { enabled: false },
@@ -124,20 +124,6 @@ describe('agent_sudo_access_handler', () => {
 
     expect(result.success).toBe(false);
     expect(result.canceled).toBe(false);
-    expect(String(result.reason || '')).toContain('without prompt');
-  });
-
-  test('disable path surfaces sudo spawn startup errors', async () => {
-    const spawnImpl = createSpawnStub({
-      error: new Error('spawn sudo EACCES'),
-    });
-    const result = await handleSetAgentSudoAccess(
-      { enabled: false },
-      { platform: 'linux', username: 'peter-bui', spawnImpl },
-    );
-
-    expect(result.success).toBe(false);
-    expect(result.canceled).toBe(false);
-    expect(String(result.reason || '')).toContain('spawn sudo EACCES');
+    expect(String(result.reason || '')).toContain('spawn pkexec EACCES');
   });
 });

@@ -196,7 +196,9 @@ function MessageInput({
             data-testid="attachment-input"
             style={{ display: 'none' }}
             onChange={(event) => {
-              void handleAttachmentSelection(event);
+              void handleAttachmentSelection(event).catch((error) => {
+                console.warn('[MessageInput] Failed to parse selected attachments:', error);
+              });
             }}
           />
 
@@ -241,7 +243,11 @@ function MessageInput({
               id="chat-input"
               value={inputValue}
               onChange={handleInputChange}
-              onPaste={handleComposerPaste}
+              onPaste={(event) => {
+                void handleComposerPaste(event).catch((error) => {
+                  console.warn('[MessageInput] Failed to parse pasted image:', error);
+                });
+              }}
               onKeyDown={handleKeyDown}
               placeholder="Ask anything"
               disabled={isSending}

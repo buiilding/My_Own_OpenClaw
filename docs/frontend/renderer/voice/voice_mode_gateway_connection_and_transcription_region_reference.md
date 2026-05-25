@@ -43,7 +43,7 @@ Default endpoint:
 
 On connect:
 
-- open socket if not already open
+- open socket only when no current socket is connecting, open, or closing
 - send language payload:
 - `{"type":"set_langs","source_language":"en","target_language":"en"}`
 
@@ -72,6 +72,9 @@ Capture configuration:
 - `getUserMedia` mono audio
 - requested sample rate `16000`
 - echo cancellation + noise suppression enabled
+- capture startup uses a generation guard; disabling voice mode or unmounting
+  while `getUserMedia` or processor creation is pending invalidates that start
+  attempt and stops any stream acquired by the stale attempt
 
 Node graph:
 
@@ -103,12 +106,16 @@ Optimization:
 
 Shutdown path (`stopAudioCapture` + `disconnectWebSocket`):
 
+- invalidate any pending capture start before it can mark recording active
 - clear reconnect timer
 - disconnect script/source nodes
 - null `onaudioprocess`
 - stop media tracks
 - close and null audio context
 - close websocket and clear client id/connected state
+- audio capture ref setter callbacks are stable across renders so normal voice
+  status updates do not rebuild capture callbacks or encourage duplicate socket
+  connection attempts
 
 `takeAudioContext(...)` ensures close happens on a detached reference to prevent duplicate-close races.
 

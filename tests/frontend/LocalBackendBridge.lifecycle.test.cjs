@@ -191,6 +191,77 @@ describe('local_backend_bridge process lifecycle', () => {
     jest.useRealTimers();
   });
 
+  test('readiness timeout leaves local backend unavailable after max attempts', async () => {
+    jest.useFakeTimers();
+
+    const { bridge, handlers, mainWindow } = initBridge();
+
+    jest.runAllTimers();
+    await Promise.resolve();
+
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith(
+      'local-backend-status',
+      {
+        ready: false,
+        status: 'error',
+        error: 'Local backend readiness check timed out after max attempts',
+      },
+    );
+    await expect(handlers['get-local-backend-status']()).resolves.toEqual(
+      expect.objectContaining({
+        ready: false,
+        status: 'error',
+        error: 'Local backend readiness check timed out after max attempts',
+      }),
+    );
+    await expect(bridge.executeToolForBackend({
+      toolName: 'read_file',
+      args: { file_path: '/tmp/a' },
+    })).resolves.toEqual({
+      success: false,
+      error: 'Local backend not ready',
+    });
+    jest.useRealTimers();
+  });
+
+  test('failed readiness ping responses leave local backend unavailable after max attempts', async () => {
+    jest.useFakeTimers();
+
+    const { handlers, mainWindow, pythonProcess, stdoutHandler } = initBridge();
+
+    for (let attempt = 1; attempt <= 10; attempt += 1) {
+      const calls = pythonProcess.stdin.write.mock.calls;
+      const request = JSON.parse(calls[calls.length - 1][0].trim());
+      stdoutHandler()(Buffer.from(`${JSON.stringify({
+        jsonrpc: '2.0',
+        id: request.id,
+        result: { status: 'starting' },
+      })}\n`));
+      if (attempt < 10) {
+        jest.runOnlyPendingTimers();
+      }
+    }
+
+    await Promise.resolve();
+
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith(
+      'local-backend-status',
+      {
+        ready: false,
+        status: 'error',
+        error: 'Local backend readiness check failed after max attempts',
+      },
+    );
+    await expect(handlers['get-local-backend-status']()).resolves.toEqual(
+      expect.objectContaining({
+        ready: false,
+        status: 'error',
+        error: 'Local backend readiness check failed after max attempts',
+      }),
+    );
+    jest.useRealTimers();
+  });
+
   test('stopLocalBackend force-kill timer does not kill restarted process', () => {
     jest.useFakeTimers();
 

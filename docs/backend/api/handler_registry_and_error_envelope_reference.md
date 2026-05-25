@@ -109,6 +109,7 @@ Send path:
 - `build_transport_message(...)` builds base envelope
 - `WebSocketTransportSender.send(...)` performs one send
 - connection-close failures (`WebSocketDisconnect`, `RuntimeError`, `ConnectionError`) are swallowed at debug level
+- raw string messages are treated as internal unless the caller passes `user_facing=True`
 
 ## Sanitization Rules
 
@@ -122,6 +123,11 @@ When exception object is provided:
 
 - full exception + stack trace logged server-side
 - sanitized text sent to client
+
+When no exception object is provided:
+
+- `user_facing=True`: message is considered already validated and can be sent
+- default: raw message text is blocked and replaced with the generic internal-error text
 
 ## Context Field Attachment Rules
 

@@ -225,10 +225,296 @@ const BACKEND_EVENT_TYPES = new Set<BackendEventType>([
   'error'
 ]);
 
-export function isBackendEvent(value: unknown): value is BackendEvent {
-  if (!value || typeof value !== 'object') {
+type UnknownRecord = Record<string, unknown>;
+type FieldValidator = (value: unknown) => boolean;
+type PayloadValidator = (payload: UnknownRecord) => boolean;
+
+const BASE_CONTEXT_FIELDS = [
+  'id',
+  'session_id',
+  'user_id',
+  'conversation_ref',
+  'turn_ref',
+] as const;
+
+function isRecord(value: unknown): value is UnknownRecord {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function optionalString(value: unknown): boolean {
+  return value === undefined || typeof value === 'string';
+}
+
+function optionalStringOrNull(value: unknown): boolean {
+  return value === undefined || value === null || typeof value === 'string';
+}
+
+function optionalNumber(value: unknown): boolean {
+  return value === undefined || (typeof value === 'number' && Number.isFinite(value));
+}
+
+function optionalNumberOrNull(value: unknown): boolean {
+  return value === undefined || value === null || (typeof value === 'number' && Number.isFinite(value));
+}
+
+function optionalBoolean(value: unknown): boolean {
+  return value === undefined || typeof value === 'boolean';
+}
+
+function optionalBooleanOrNull(value: unknown): boolean {
+  return value === undefined || value === null || typeof value === 'boolean';
+}
+
+function optionalRecord(value: unknown): boolean {
+  return value === undefined || isRecord(value);
+}
+
+function optionalStringArrayOrNull(value: unknown): boolean {
+  return value === undefined
+    || value === null
+    || (Array.isArray(value) && value.every((item) => typeof item === 'string'));
+}
+
+function optionalRecordArrayOrNull(value: unknown): boolean {
+  return value === undefined
+    || value === null
+    || (Array.isArray(value) && value.every((item) => isRecord(item)));
+}
+
+function validateFields(payload: UnknownRecord, validators: Record<string, FieldValidator>): boolean {
+  return Object.entries(validators).every(([field, validator]) => validator(payload[field]));
+}
+
+function optionalModelFacingToolCall(value: unknown): boolean {
+  if (value === undefined) {
+    return true;
+  }
+  if (!isRecord(value)) {
     return false;
   }
-  const candidate = value as { type?: unknown };
-  return typeof candidate.type === 'string' && BACKEND_EVENT_TYPES.has(candidate.type as BackendEventType);
+  return validateFields(value, {
+    id: optionalString,
+    name: optionalString,
+    arguments: optionalRecord,
+    thought_signature: optionalString,
+    thoughtSignature: optionalString,
+  });
+}
+
+function optionalToolMetadata(value: unknown): boolean {
+  if (value === undefined) {
+    return true;
+  }
+  if (!isRecord(value)) {
+    return false;
+  }
+  return validateFields(value, {
+    llm_tool_call_validation_failed: optionalBoolean,
+    llm_tool_call_raw_tool_call_preview: optionalString,
+    llm_tool_call_raw_arguments_preview: optionalString,
+    llm_tool_call_raw_arguments_preview_truncated: optionalBoolean,
+    llm_tool_call_parse_error: optionalString,
+    skip_frontend_execution: optionalBoolean,
+    model_facing_tool_call: optionalModelFacingToolCall,
+  });
+}
+
+function optionalToolSchema(value: unknown): boolean {
+  if (!isRecord(value) || typeof value.type !== 'string') {
+    return false;
+  }
+  if (value.function !== undefined && !isRecord(value.function)) {
+    return false;
+  }
+  const functionRecord = isRecord(value.function) ? value.function : {};
+  return validateFields(value, {
+    name: optionalString,
+    description: optionalString,
+    strict: optionalBoolean,
+    parameters: optionalRecord,
+  }) && validateFields(functionRecord, {
+    name: optionalString,
+    parameters: optionalRecord,
+  });
+}
+
+function optionalToolSchemaArray(value: unknown): boolean {
+  return value === undefined
+    || (Array.isArray(value) && value.every((item) => optionalToolSchema(item)));
+}
+
+function optionalBundleTools(value: unknown): boolean {
+  if (value === undefined) {
+    return true;
+  }
+  if (!Array.isArray(value)) {
+    return false;
+  }
+  return value.every((tool) => {
+    if (!isRecord(tool)) {
+      return false;
+    }
+    return validateFields(tool, {
+      name: optionalString,
+      args: optionalRecord,
+      metadata: optionalToolMetadata,
+    });
+  });
+}
+
+function validateTokenCounts(payload: UnknownRecord): boolean {
+  return validateFields(payload, {
+    prompt_tokens: optionalNumber,
+    visible_output_tokens: optionalNumber,
+    thinking_tokens: optionalNumberOrNull,
+    output_tokens_total: optionalNumber,
+    total_tokens: optionalNumber,
+    conversation_tokens: optionalNumber,
+    cached_tokens: optionalNumberOrNull,
+    cache_hit: optionalBooleanOrNull,
+  }) && (
+    payload.usage_source === undefined
+    || payload.usage_source === 'provider'
+    || payload.usage_source === 'estimated'
+  ) && (
+    payload.cache_status === undefined
+    || payload.cache_status === null
+    || payload.cache_status === 'hit'
+    || payload.cache_status === 'miss'
+    || payload.cache_status === 'unknown'
+  );
+}
+
+const PAYLOAD_VALIDATORS: Record<BackendEventType, PayloadValidator> = {
+  'query-accepted': (payload) => validateFields(payload, {
+    status: optionalString,
+  }),
+  'llm-thought': (payload) => validateFields(payload, {
+    status: optionalString,
+  }),
+  'streaming-response': (payload) => validateFields(payload, {
+    text: optionalString,
+  }),
+  'streaming-complete': (payload) => validateFields(payload, {
+    final_response: optionalString,
+  }),
+  'context-compaction-started': (payload) => validateFields(payload, {
+    reason: optionalString,
+    strategy: optionalString,
+    before_tokens: optionalNumber,
+    projected_tokens: optionalNumber,
+  }),
+  'context-compaction-completed': (payload) => validateFields(payload, {
+    reason: optionalString,
+    strategy: optionalString,
+    before_tokens: optionalNumber,
+    after_tokens: optionalNumber,
+    removed_messages: optionalNumber,
+    summary_preview: optionalStringOrNull,
+    summary_text: optionalStringOrNull,
+    replacement_history_preview: optionalRecordArrayOrNull,
+    replacement_history_entries: optionalRecordArrayOrNull,
+    skipped_reason: optionalStringOrNull,
+  }),
+  'context-compaction-failed': (payload) => validateFields(payload, {
+    reason: optionalString,
+    strategy: optionalString,
+    error: optionalString,
+    before_tokens: optionalNumberOrNull,
+  }),
+  'tool-call': (payload) => validateFields(payload, {
+    tool_name: optionalString,
+    parameters: optionalRecord,
+    correlation_id: optionalString,
+    request_id: optionalString,
+    metadata: optionalToolMetadata,
+  }),
+  'tool-output': (payload) => validateFields(payload, {
+    tool_name: optionalString,
+    success: optionalBoolean,
+    execution_time: optionalNumberOrNull,
+    output: optionalString,
+    display_content: optionalString,
+    model_llm_content: optionalString,
+    llm_content_original_tokens: optionalNumberOrNull,
+    llm_content_token_limit: optionalNumberOrNull,
+    llm_content_truncated: optionalBoolean,
+    llm_content_token_source: optionalStringOrNull,
+    error: optionalStringOrNull,
+    screenshot: optionalStringOrNull,
+    screenshot_ref: optionalStringOrNull,
+    metadata: optionalRecord,
+    request_id: optionalString,
+  }),
+  'tool-bundle': (payload) => validateFields(payload, {
+    bundle_id: optionalString,
+    tools: optionalBundleTools,
+  }),
+  'web-search-progress': (payload) => validateFields(payload, {
+    text: optionalString,
+    request_id: optionalStringOrNull,
+    action_type: optionalStringOrNull,
+    query: optionalStringOrNull,
+    url: optionalStringOrNull,
+    pattern: optionalStringOrNull,
+  }),
+  'local-user-message': (payload) => validateFields(payload, {
+    text: optionalString,
+    screenshot: optionalStringOrNull,
+    screenshot_ref: optionalStringOrNull,
+    screenshot_refs: optionalStringArrayOrNull,
+    attachment_filenames: optionalStringArrayOrNull,
+    screenshot_url: optionalStringOrNull,
+    timestamp: optionalString,
+    session_id: optionalStringOrNull,
+    user_id: optionalStringOrNull,
+    conversation_ref: optionalStringOrNull,
+  }),
+  'system-prompt': (payload) => validateFields(payload, {
+    content: optionalString,
+    tool_schemas: optionalToolSchemaArray,
+  }),
+  'user-message-full': (payload) => validateFields(payload, {
+    content: optionalString,
+    metadata: optionalRecord,
+  }),
+  'assistant-message-full': (payload) => validateFields(payload, {
+    content: optionalString,
+  }),
+  'memory-store': (payload) => validateFields(payload, {
+    user_query: optionalString,
+    assistant_response: optionalString,
+    memory_type: optionalString,
+    user_id: optionalString,
+    session_id: optionalString,
+  }),
+  'token-count': validateTokenCounts,
+  'tool-schemas': (payload) => validateFields(payload, {
+    tool_schemas: optionalToolSchemaArray,
+  }),
+  error: (payload) => validateFields(payload, {
+    message: optionalString,
+    content: optionalStringOrNull,
+  }),
+};
+
+function hasValidBaseContext(candidate: UnknownRecord): boolean {
+  return BASE_CONTEXT_FIELDS.every((field) => optionalString(candidate[field]));
+}
+
+export function isBackendEvent(value: unknown): value is BackendEvent {
+  if (!isRecord(value) || typeof value.type !== 'string') {
+    return false;
+  }
+  if (!BACKEND_EVENT_TYPES.has(value.type as BackendEventType) || !hasValidBaseContext(value)) {
+    return false;
+  }
+  if (value.payload === undefined) {
+    return true;
+  }
+  if (!isRecord(value.payload)) {
+    return false;
+  }
+  const validatePayload = PAYLOAD_VALIDATORS[value.type as BackendEventType];
+  return validatePayload(value.payload);
 }

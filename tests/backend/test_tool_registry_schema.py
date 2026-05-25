@@ -35,6 +35,28 @@ class DummyComputerTool(DummyTool):
     category = ToolDomain.COMPUTER
 
 
+class NestedMapValueArgs(BaseModel):
+    label: str
+    count: int
+
+
+class TypedMapArgs(BaseModel):
+    counts: dict[str, int]
+    nested: dict[str, NestedMapValueArgs]
+
+
+class TypedMapTool(Tool[TypedMapArgs]):
+    name = "typed_map_tool"
+    description = "Typed map tool"
+    args_model = TypedMapArgs
+    category = ToolDomain.OTHER
+
+    async def run(
+        self, args: TypedMapArgs, ctx
+    ):  # pragma: no cover - not used in tests
+        return args.model_dump()
+
+
 def test_tool_schema_standard_format():
     tool = DummyTool()
     schema = tool.get_json_schema()
@@ -55,6 +77,18 @@ def test_tool_schema_computer_format_native():
     assert "action" not in params.get("properties", {})
     assert params["properties"]["path"]["type"] == "string"
     assert "path" in params.get("required", [])
+
+
+def test_tool_schema_preserves_typed_map_value_schemas():
+    schema = TypedMapTool.build_tool_spec()
+    properties = schema["parameters"]["properties"]
+
+    assert properties["counts"]["additionalProperties"]["type"] == "integer"
+    nested_value_schema = properties["nested"]["additionalProperties"]
+    assert nested_value_schema["type"] == "object"
+    assert nested_value_schema["properties"]["label"]["type"] == "string"
+    assert nested_value_schema["properties"]["count"]["type"] == "integer"
+    assert nested_value_schema["required"] == ["label", "count"]
 
 
 def test_schema_registry_caches_schemas():
@@ -182,7 +216,13 @@ def test_tool_registry_filtered_declarations_include_requested_computer_tools():
     )
     names = [d["name"] for d in declarations]
 
-    assert names == ["mouse_control", "keyboard_control", "screenshot", "switch_window", "wait"]
+    assert names == [
+        "mouse_control",
+        "keyboard_control",
+        "screenshot",
+        "switch_window",
+        "wait",
+    ]
 
 
 def test_tool_registry_filtered_declarations_include_requested_system_tools():
@@ -190,7 +230,13 @@ def test_tool_registry_filtered_declarations_include_requested_system_tools():
     registry = ToolRegistry(config=config, cache_manager=CacheManager())
 
     declarations = registry.get_function_declarations_filtered(
-        ["run_shell_command", "replace", "read_file", "get_system_stats", "get_open_windows"]
+        [
+            "run_shell_command",
+            "replace",
+            "read_file",
+            "get_system_stats",
+            "get_open_windows",
+        ]
     )
     names = [d["name"] for d in declarations]
 
@@ -292,7 +338,9 @@ def test_tool_registry_capabilities_handles_non_dict_function_schema():
     registry.register_tool(DummyTool())
 
     original_get_schema = registry.schema_registry.get_schema
-    registry.schema_registry.get_schema = lambda _tool_name, _schema: {"function": "invalid"}
+    registry.schema_registry.get_schema = lambda _tool_name, _schema: {
+        "function": "invalid"
+    }
     try:
         capabilities = registry.get_tool_capabilities("dummy_tool")
     finally:

@@ -77,4 +77,38 @@ describe('pendingTranscriptMessages', () => {
     expect(stored).toEqual(['user:u1', 'assistant:a1', 'assistant:a2', 'tool:t1']);
     expect(manager.hasPendingEntries()).toBe(false);
   });
+
+  test('preserves assistant retry structured payload through flush', async () => {
+    const storedEntries: TranscriptEntry[] = [];
+    const manager = createPendingTranscriptMessages({
+      storeTranscriptEntry: async (entry: TranscriptEntry) => {
+        storedEntries.push(entry);
+      },
+      warn: jest.fn(),
+    });
+    const structuredPayload = {
+      kind: 'tool-call' as const,
+      toolCall: {
+        name: 'read_file',
+        arguments: { file_path: '/tmp/example.txt' },
+      },
+      toolCallDetails: {
+        request_id: 'request-1',
+      },
+    };
+
+    manager.queueAssistantMessageForRetry('assistant tool call', {
+      messageType: 'tool-call',
+      structuredPayload,
+    });
+
+    await manager.flushPendingMessages(readySession);
+
+    expect(storedEntries).toHaveLength(1);
+    expect(storedEntries[0]).toEqual(expect.objectContaining({
+      role: 'assistant',
+      messageType: 'tool-call',
+      structuredPayload,
+    }));
+  });
 });

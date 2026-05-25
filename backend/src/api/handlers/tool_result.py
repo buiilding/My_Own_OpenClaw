@@ -79,6 +79,29 @@ def _canonical_payload_from_result(
     return {key: value for key, value in payload.items() if value is not None}
 
 
+def _non_empty_string(value: Any) -> Optional[str]:
+    if not isinstance(value, str):
+        return None
+    normalized = value.strip()
+    return normalized or None
+
+
+def _canonical_context_from_session(
+    *,
+    session: Any,
+    user_id: str,
+) -> Dict[str, Optional[str]]:
+    runtime = getattr(session, "runtime", None)
+    return {
+        "user_id": user_id,
+        "session_id": _non_empty_string(getattr(session, "session_id", None)),
+        "conversation_ref": _non_empty_string(
+            getattr(runtime, "active_conversation_ref", None)
+        ),
+        "turn_ref": _non_empty_string(getattr(runtime, "active_turn_ref", None)),
+    }
+
+
 class ToolResultHandler(MessageHandler):
     """
     Handler for tool-result messages from the SDK/local runtime.
@@ -191,14 +214,18 @@ class ToolResultHandler(MessageHandler):
             )
 
             if canonical_result is not None:
+                canonical_context = _canonical_context_from_session(
+                    session=session,
+                    user_id=user_id,
+                )
                 await websocket.send_json(
                     {
                         "id": f"{validated.id}_canonical",
                         "type": "tool-output",
-                        "user_id": user_id,
-                        "session_id": validated.session_id,
-                        "conversation_ref": validated.conversation_ref,
-                        "turn_ref": validated.turn_ref,
+                        "user_id": canonical_context["user_id"],
+                        "session_id": canonical_context["session_id"],
+                        "conversation_ref": canonical_context["conversation_ref"],
+                        "turn_ref": canonical_context["turn_ref"],
                         "payload": _canonical_payload_from_result(
                             request_id=request_id,
                             success=payload.success,

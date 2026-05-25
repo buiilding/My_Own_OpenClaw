@@ -114,6 +114,8 @@ Main update behavior:
 - helper returns `nextConversationRef` and `nextUserId` for `ipc.cjs` state assignment
 - `conversationRef` updates include explicit null clears
 - `userId` update only occurs when normalized value is a non-empty string
+- sibling-window rebroadcasts carry the resolved next state; omitted
+  `conversationRef` or `userId` fields do not turn into clears
 - rebroadcast excludes sender window (`broadcastToRenderers(..., sourceWebContents)`)
 
 ### Renderer normalization (`extractTranscriptSessionSyncPayload`)

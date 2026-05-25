@@ -7,12 +7,14 @@ function resolveUserMessageForTurn(
   turnRef?: string,
 ): ChatMessage | null {
   const reverseMessages = messages.slice().reverse();
-  return (
-    reverseMessages.find((message) => (
+  if (turnRef) {
+    return reverseMessages.find((message) => (
       message.sender === 'user'
-      && (!turnRef || message.turnRef === turnRef)
-    ))
-    || reverseMessages.find((message) => message.sender === 'user')
+      && message.turnRef === turnRef
+    )) || null;
+  }
+  return (
+    reverseMessages.find((message) => message.sender === 'user')
     || null
   );
 }

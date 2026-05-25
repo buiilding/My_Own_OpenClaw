@@ -177,11 +177,16 @@ def to_history_tool_calls(
 
 def extract_tool_call_ids(parsed_tool_calls: List[ParsedToolCall]) -> List[str]:
     """Collect tool-call ids in emission order for tool-result linkage."""
+    return extract_history_tool_call_ids(to_history_tool_calls(parsed_tool_calls))
+
+
+def extract_history_tool_call_ids(history_tool_calls: List[Dict[str, Any]]) -> List[str]:
+    """Collect persisted assistant-history tool-call ids in emission order."""
     tool_call_ids: List[str] = []
-    for tool_call in parsed_tool_calls:
-        if not isinstance(tool_call.metadata, dict):
+    for tool_call in history_tool_calls:
+        if not isinstance(tool_call, dict):
             continue
-        candidate = _normalize_tool_call_id(tool_call.metadata.get("tool_call_id"))
+        candidate = _normalize_tool_call_id(tool_call.get("id"))
         if candidate:
             tool_call_ids.append(candidate)
     return tool_call_ids

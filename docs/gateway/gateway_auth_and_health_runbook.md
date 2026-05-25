@@ -88,7 +88,7 @@ Worker lookup can use:
 - `WINDIE_RUNS_API_KEY`
 - `WINDIE_DEMO_API_KEY`
 
-The runs key is separate from install auth. Hosted `/api/runs/*` can pass through both the general install middleware and the runs route dependency.
+The runs key is separate from install auth. Hosted `/api/runs/*` can pass through both the general install middleware and the runs route dependency. Destructive bulk stop additionally requires `WINDIE_RUNS_CONTROL_API_KEY` via `x-windie-runs-control-key`; the ordinary runs key is not accepted for `/api/runs/stop-all`.
 
 ## Health Endpoints
 

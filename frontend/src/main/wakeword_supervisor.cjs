@@ -46,6 +46,17 @@ function createWakewordSupervisor({
     return snapshot();
   }
 
+  function markError(error = '') {
+    if (!state.process) {
+      return snapshot();
+    }
+    state.ready = false;
+    state.status = 'error';
+    state.lastError = error;
+    notify();
+    return snapshot();
+  }
+
   function setEnabled(enabled) {
     state.enabled = enabled === true;
     notify();
@@ -81,6 +92,7 @@ function createWakewordSupervisor({
     clear,
     getSnapshot: snapshot,
     isActiveProcess,
+    markError,
     markReady,
     setEnabled,
   };

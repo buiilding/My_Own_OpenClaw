@@ -47,6 +47,6 @@ def content_to_message_content(
 
         text = " ".join(text_parts)
         if image_urls:
-            return ImageContent(text, image_urls[0])  # Use first image
+            return ImageContent(text, image_urls)
         return TextContent(text)
     return TextContent(str(content))

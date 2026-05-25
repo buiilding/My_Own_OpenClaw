@@ -64,6 +64,7 @@ Memory channels:
 - `delete-semantic-memory` -> `delete_semantic_memory`
 - `clear-local-memory` -> `clear_local_memory`
 - `clear-chat-history` -> `clear_chat_history`
+- `replace-chat-conversation` -> `replace_chat_conversation`
 
 Renderer camelCase to sidecar snake_case conversions include:
 
@@ -105,6 +106,13 @@ The main-process bridge forwards mapped responses to the renderer unchanged.
 - appends or replaces an event in `chat_events`
 - stores metadata, attachments, full event payload, and optional compaction checkpoint
 - assigns `message_index` when omitted
+
+### `replace_chat_conversation`
+
+- atomically replaces all `chat_events` rows for one user conversation
+- accepts the same event fields as `store_chat_event`, batched in `events`
+- uses the provided `message_index` values to preserve replacement order
+- rolls back the delete if any replacement event cannot be inserted
 
 ### `list_chat_conversations`
 

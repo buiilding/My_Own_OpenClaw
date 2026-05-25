@@ -138,11 +138,34 @@ function initializePermissionHandlersRuntime(deps = {}) {
       : '';
 
     if (rawWorkspacePath) {
+      const storedEntry = await resolvedPermissionStateStore.get('filesystem_workspace_access');
+      const selectedPaths = Array.isArray(storedEntry?.selected_paths)
+        ? storedEntry.selected_paths.filter((selectedPath) => (
+          typeof selectedPath === 'string' && selectedPath.trim()
+        ))
+        : [];
+      const hasExistingGrant = selectedPaths.includes(rawWorkspacePath);
+      if (!hasExistingGrant) {
+        const status = await runPermissionProbe('filesystem_workspace_access', permissionDeps);
+        if (typeof emitWorkspaceAccessUpdated === 'function') {
+          emitWorkspaceAccessUpdated(status);
+        }
+        return {
+          success: false,
+          error: 'Workspace path must be selected through the workspace permission prompt before it can become active.',
+          data: {
+            status,
+          },
+        };
+      }
       await resolvedPermissionStateStore.set('filesystem_workspace_access', {
         granted: true,
-        source: 'conversation_binding',
+        source: storedEntry?.source || 'workspace_picker',
         selected_paths: [rawWorkspacePath],
         details: {
+          ...(storedEntry?.details && typeof storedEntry.details === 'object'
+            ? storedEntry.details
+            : {}),
           selected_paths: [rawWorkspacePath],
         },
       });

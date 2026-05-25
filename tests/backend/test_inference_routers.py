@@ -163,6 +163,22 @@ async def test_ocr_router_delegates_and_exposes_enabled_state() -> None:
 
 
 @pytest.mark.asyncio
+async def test_ocr_router_rejects_not_ready_provider_before_invocation() -> None:
+    provider = _FakeOcrProvider()
+    provider.is_ready = False
+    router = OcrRouter(provider)
+
+    with pytest.raises(ProviderUnavailableError) as exc_info:
+        await router.perform_ocr("image-b64")
+
+    assert provider.calls == []
+    payload = exc_info.value.to_payload()
+    assert payload["capability"] == "ocr"
+    assert payload["code"] == "provider_unavailable"
+    assert payload["message"] == "OCR provider is not ready"
+
+
+@pytest.mark.asyncio
 async def test_vision_router_initializes_current_provider() -> None:
     provider = _FakeVisionProvider()
     router = VisionRouter(provider)

@@ -83,6 +83,7 @@ Paste handler logic:
  - prevent default paste behavior
  - parse images via shared `parseClipboardImageItems(...)` helper
  - append new preview payload(s) into `clipboardImages[]` (do not replace previous pasted images)
+  - catch parse failures at the composer boundary and log a scoped warning instead of leaving an unhandled promise rejection
 
 Parsed payload shape:
 
@@ -97,6 +98,8 @@ The helper path uses shared data-URL parse/normalization primitives:
 - `parseBase64ImageDataUrl(...)`
 
 ## File Attachment Picker Flow
+
+The hidden file input calls `parseSelectedComposerFiles(...)` through the shared composer draft hook. `MessageInput` catches rejected parsing promises and logs a scoped warning so picker failures do not escape as unhandled promise rejections.
 
 File-picker handler (`Add photos & files`) delegates to `parseSelectedComposerFiles(...)`.
 

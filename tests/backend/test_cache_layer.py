@@ -39,9 +39,13 @@ def test_cache_get_or_compute_waiters_complete():
     cache = Cache(default_ttl=10.0)
     started = threading.Event()
     proceed = threading.Event()
+    compute_lock = threading.Lock()
+    compute_calls = {"count": 0}
     results = []
 
     def compute():
+        with compute_lock:
+            compute_calls["count"] += 1
         started.set()
         proceed.wait(timeout=2.0)
         return "value"
@@ -61,14 +65,17 @@ def test_cache_get_or_compute_waiters_complete():
     t2.join(timeout=2.0)
 
     assert results.count("value") == 2
+    assert compute_calls["count"] == 1
 
 
 def test_cache_get_or_compute_async_waiters_complete():
     cache = Cache(default_ttl=10.0)
     started = asyncio.Event()
     proceed = asyncio.Event()
+    compute_calls = {"count": 0}
 
     async def compute():
+        compute_calls["count"] += 1
         started.set()
         await proceed.wait()
         return "value"
@@ -80,8 +87,50 @@ def test_cache_get_or_compute_async_waiters_complete():
         task1 = asyncio.create_task(runner())
         task2 = asyncio.create_task(runner())
         await started.wait()
+        await asyncio.sleep(0)
         proceed.set()
         results = await asyncio.gather(task1, task2)
         assert results == ["value", "value"]
+        assert compute_calls["count"] == 1
 
     asyncio.run(run())
+
+
+def test_cache_get_or_compute_async_scopes_waiters_by_event_loop():
+    cache = Cache(default_ttl=10.0)
+    ready = threading.Barrier(3)
+    release = threading.Event()
+    compute_lock = threading.Lock()
+    compute_calls = {"count": 0}
+    results = []
+    errors = []
+
+    async def run_in_loop():
+        async def compute():
+            with compute_lock:
+                compute_calls["count"] += 1
+            await asyncio.to_thread(ready.wait, 2.0)
+            await asyncio.to_thread(release.wait, 2.0)
+            return "value"
+
+        return await cache.get_or_compute_async("shared-key", compute)
+
+    def worker():
+        try:
+            results.append(asyncio.run(run_in_loop()))
+        except Exception as error:  # pragma: no cover - asserted below for thread visibility
+            errors.append(error)
+
+    threads = [threading.Thread(target=worker) for _ in range(2)]
+    for thread in threads:
+        thread.start()
+
+    ready.wait(timeout=2.0)
+    release.set()
+
+    for thread in threads:
+        thread.join(timeout=2.0)
+
+    assert errors == []
+    assert results == ["value", "value"]
+    assert compute_calls["count"] == 2

@@ -1,5 +1,9 @@
 const fsPromises = require('fs/promises');
+const os = require('os');
 const path = require('path');
+
+const SCREENSHOT_TEMP_DIR_NAME = 'windieos-screenshots';
+const SCREENSHOT_TEMP_FILE_PREFIX = 'windie-shot-';
 
 function isRecord(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -94,6 +98,40 @@ async function unlinkQuietly(targetPath, warn = console.warn) {
   }
 }
 
+function resolveOwnedScreenshotTempDir() {
+  return path.join(os.tmpdir(), SCREENSHOT_TEMP_DIR_NAME);
+}
+
+async function isOwnedScreenshotPath(screenshotPath, warn, getErrorMessage) {
+  if (typeof screenshotPath !== 'string' || !path.isAbsolute(screenshotPath)) {
+    return false;
+  }
+
+  const normalizedPath = path.resolve(screenshotPath);
+  const screenshotDir = path.resolve(resolveOwnedScreenshotTempDir());
+  if (path.dirname(normalizedPath) !== screenshotDir) {
+    return false;
+  }
+  if (!path.basename(normalizedPath).startsWith(SCREENSHOT_TEMP_FILE_PREFIX)) {
+    return false;
+  }
+
+  try {
+    await fsPromises.mkdir(screenshotDir, { recursive: true, mode: 0o700 });
+    const [dirRealpath, parentRealpath, stat] = await Promise.all([
+      fsPromises.realpath(screenshotDir),
+      fsPromises.realpath(path.dirname(normalizedPath)),
+      fsPromises.lstat(normalizedPath),
+    ]);
+    return parentRealpath === dirRealpath && stat.isFile() && !stat.isSymbolicLink();
+  } catch (error) {
+    warn(
+      `[LocalBackend] Rejected screenshot temp path ${screenshotPath}: ${getErrorMessage(error)}`,
+    );
+    return false;
+  }
+}
+
 async function materializeScreenshotAttachment(result, backendHttpUrl, options = {}) {
   const warn = typeof options.warn === 'function' ? options.warn : console.warn;
   const getErrorMessage = typeof options.getErrorMessage === 'function'
@@ -111,6 +149,11 @@ async function materializeScreenshotAttachment(result, backendHttpUrl, options =
     ? data.screenshot_path.trim()
     : '';
   if (!screenshotPath) {
+    return result;
+  }
+  if (!(await isOwnedScreenshotPath(screenshotPath, warn, getErrorMessage))) {
+    warn(`[LocalBackend] Rejected unowned screenshot temp path ${screenshotPath}`);
+    delete data.screenshot_path;
     return result;
   }
 
@@ -164,4 +207,5 @@ async function materializeScreenshotAttachment(result, backendHttpUrl, options =
 
 module.exports = {
   materializeScreenshotAttachment,
+  resolveOwnedScreenshotTempDir,
 };

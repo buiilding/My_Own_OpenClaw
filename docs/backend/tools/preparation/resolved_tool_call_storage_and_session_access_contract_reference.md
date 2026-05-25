@@ -52,7 +52,13 @@ During single-tool preparation:
 - preparer resolves coordinates and rewrites executable call shape
 - resolved call is persisted under execution `request_id`
 
-For bundle paths, call metadata carries `bundle_id` and execution uses bundle wait path; per-request resolved-call retrieval is single-tool execution focused.
+During bundle preparation:
+
+- call metadata carries one shared `bundle_id`; steps do not receive `request_id`
+- after the full bundle prepares successfully, each resolved step is persisted under deterministic `<bundle_id>:step:<1-based-index>` storage keys
+- failed bundle preparation does not register partial steps, avoiding stale storage for a bundle that will not execute
+
+Per-request resolved-call retrieval remains single-tool execution focused. Bundle step registrations are stable session-runtime storage entries for diagnostics and shared resolved-call lifecycle handling, while bundle execution and waiting continue to route by `bundle_id`.
 
 ## Read Path (Execution Wait)
 
@@ -107,7 +113,8 @@ This cleanup runs even when transform/commit path fails, preventing unbounded ma
 1. bypassing session wrappers for storage access increases coupling and breaks encapsulation assumptions.
 2. forgetting cleanup removal in finally paths leaks resolved calls across turns.
 3. changing request-id metadata shape without updating preparer/execution paths can orphan resolved calls.
-4. weakening stale-screen guard reintroduces risk of executing coordinates resolved from old screenshots.
+4. adding `request_id` to atomic bundle steps breaks bundle detection and should be avoided.
+5. weakening stale-screen guard reintroduces risk of executing coordinates resolved from old screenshots.
 
 ## Related Pages
 

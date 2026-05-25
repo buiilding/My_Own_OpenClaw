@@ -54,7 +54,9 @@ def _build_message(
 
 def _build_service(session_manager=None):
     manager = session_manager or SimpleNamespace(config=SimpleNamespace())
-    return QueryExecutionService(manager, tts_manager=object(), response_formatter=object())
+    return QueryExecutionService(
+        manager, tts_manager=object(), response_formatter=object()
+    )
 
 
 def _first_screenshot(
@@ -94,7 +96,9 @@ def test_resolve_query_runtime_system_state_filters_to_allowed_string_keys():
 def test_resolve_query_runtime_system_state_returns_none_for_missing_or_invalid_payload():
     assert resolve_query_runtime_system_state(_build_message()) is None
 
-    fake_message = SimpleNamespace(payload=SimpleNamespace(system_state_internal=["not", "a", "dict"]))
+    fake_message = SimpleNamespace(
+        payload=SimpleNamespace(system_state_internal=["not", "a", "dict"])
+    )
     assert resolve_query_runtime_system_state(fake_message) is None
 
 
@@ -137,6 +141,32 @@ def test_apply_query_runtime_system_state_ignores_missing_setter():
     )
 
 
+def test_apply_query_runtime_system_state_continues_when_getter_fails():
+    observed = {}
+
+    class _Agent:
+        def get_current_system_state(self):
+            raise RuntimeError("state unavailable")
+
+        def set_current_system_state(self, state):
+            observed["state"] = state
+
+    apply_query_runtime_system_state(
+        _Agent(),
+        _build_message(
+            system_state_internal={
+                "active_window": " Terminal ",
+                "mouse_position": " 12,34 ",
+            }
+        ),
+    )
+
+    assert observed["state"] == {
+        "active_window": "Terminal",
+        "mouse_position": "12,34",
+    }
+
+
 def test_build_stream_context_uses_agent_identifiers():
     agent = SimpleNamespace(user_id="u-1", session_id="s-1")
     context = QueryExecutionService._build_stream_context(
@@ -153,18 +183,51 @@ def test_build_stream_context_uses_agent_identifiers():
     }
 
 
+def test_active_stream_context_helpers_delegate_when_supported():
+    calls = []
+
+    class _Agent:
+        def set_active_stream_context(self, *, turn_ref, conversation_ref):
+            calls.append(("set", turn_ref, conversation_ref))
+
+        def clear_active_stream_context(self, *, turn_ref):
+            calls.append(("clear", turn_ref, None))
+
+    agent = _Agent()
+
+    QueryExecutionService._set_active_stream_context(
+        agent_instance=agent,
+        msg_id="turn-2",
+        conversation_ref="conv-2",
+    )
+    QueryExecutionService._clear_active_stream_context(
+        agent_instance=agent,
+        msg_id="turn-2",
+    )
+
+    assert calls == [
+        ("set", "turn-2", "conv-2"),
+        ("clear", "turn-2", None),
+    ]
+
+
 def test_resolve_screenshot_prioritizes_inline_data():
     class _ArtifactStore:
         @classmethod
         def from_config(cls, _config):
-            raise AssertionError("artifact store should not be constructed for inline screenshots")
+            raise AssertionError(
+                "artifact store should not be constructed for inline screenshots"
+            )
 
     message = _build_message(screenshot="inline-b64", screenshot_ref="artifact-ref")
-    assert _first_screenshot(
-        message,
-        artifact_store_cls=_ArtifactStore,
-        session_manager_config=SimpleNamespace(),
-    ) == "inline-b64"
+    assert (
+        _first_screenshot(
+            message,
+            artifact_store_cls=_ArtifactStore,
+            session_manager_config=SimpleNamespace(),
+        )
+        == "inline-b64"
+    )
 
 
 def test_resolve_screenshot_loads_artifact_ref_when_inline_missing():
@@ -177,11 +240,14 @@ def test_resolve_screenshot_loads_artifact_ref_when_inline_missing():
             return f"resolved:{screenshot_ref}"
 
     message = _build_message(screenshot=None, screenshot_ref="artifact-ref")
-    assert _first_screenshot(
-        message,
-        artifact_store_cls=_ArtifactStore,
-        session_manager_config=SimpleNamespace(),
-    ) == "resolved:artifact-ref"
+    assert (
+        _first_screenshot(
+            message,
+            artifact_store_cls=_ArtifactStore,
+            session_manager_config=SimpleNamespace(),
+        )
+        == "resolved:artifact-ref"
+    )
 
 
 def test_resolve_screenshots_loads_multi_artifact_refs_when_provided():
@@ -244,11 +310,14 @@ def test_resolve_screenshots_returns_none_for_blank_single_ref():
 
     message = _build_message(screenshot=None, screenshot_ref="   ")
 
-    assert resolve_screenshots(
-        message,
-        artifact_store_cls=_ArtifactStore,
-        session_manager_config=SimpleNamespace(),
-    ) is None
+    assert (
+        resolve_screenshots(
+            message,
+            artifact_store_cls=_ArtifactStore,
+            session_manager_config=SimpleNamespace(),
+        )
+        is None
+    )
 
 
 def test_resolve_screenshots_falls_back_to_single_ref_when_ref_list_is_blank_only():
@@ -273,9 +342,7 @@ def test_resolve_screenshots_falls_back_to_single_ref_when_ref_list_is_blank_onl
         message,
         artifact_store_cls=_ArtifactStore,
         session_manager_config=SimpleNamespace(),
-    ) == [
-        "resolved:legacy-ref"
-    ]
+    ) == ["resolved:legacy-ref"]
     assert calls == ["legacy-ref"]
 
 
@@ -338,21 +405,27 @@ def test_resolve_screenshot_returns_none_when_artifact_load_fails():
 
     message = _build_message(screenshot=None, screenshot_ref="artifact-ref")
 
-    assert _first_screenshot(
-        message,
-        artifact_store_cls=_ArtifactStore,
-        session_manager_config=SimpleNamespace(),
-    ) is None
+    assert (
+        _first_screenshot(
+            message,
+            artifact_store_cls=_ArtifactStore,
+            session_manager_config=SimpleNamespace(),
+        )
+        is None
+    )
 
 
 def test_resolve_screenshot_returns_none_when_no_inline_or_ref():
     message = _build_message(screenshot=None, screenshot_ref=None)
 
-    assert _first_screenshot(
-        message,
-        artifact_store_cls=object,
-        session_manager_config=SimpleNamespace(),
-    ) is None
+    assert (
+        _first_screenshot(
+            message,
+            artifact_store_cls=object,
+            session_manager_config=SimpleNamespace(),
+        )
+        is None
+    )
 
 
 def test_finalize_pending_tool_calls_on_cancel_handles_success_and_failures():
@@ -453,18 +526,24 @@ def test_resolve_query_completion_text_prefers_event_completion_then_state_fallb
         last_assistant_full_text="assistant full",
     )
 
-    assert resolve_query_completion_text(
-        stream_state=state,
-        event={"type": "streaming-complete", "payload": {"final_response": "done"}},
-        event_type="streaming-complete",
-        empty_fallback=EMPTY_FINAL_RESPONSE_FALLBACK,
-    ) == "done"
-    assert resolve_query_completion_text(
-        stream_state=state,
-        event=None,
-        event_type=None,
-        empty_fallback=EMPTY_FINAL_RESPONSE_FALLBACK,
-    ) == "partial answer"
+    assert (
+        resolve_query_completion_text(
+            stream_state=state,
+            event={"type": "streaming-complete", "payload": {"final_response": "done"}},
+            event_type="streaming-complete",
+            empty_fallback=EMPTY_FINAL_RESPONSE_FALLBACK,
+        )
+        == "done"
+    )
+    assert (
+        resolve_query_completion_text(
+            stream_state=state,
+            event=None,
+            event_type=None,
+            empty_fallback=EMPTY_FINAL_RESPONSE_FALLBACK,
+        )
+        == "partial answer"
+    )
 
 
 @pytest.mark.asyncio
@@ -575,6 +654,7 @@ async def test_execute_emits_fallback_completion_when_agent_stream_ends_without_
 
         async def get_or_create_session(self, _user_id, conversation_ref=None):
             _ = conversation_ref
+
             class _Agent:
                 user_id = "user-1"
                 session_id = "session-1"
@@ -633,6 +713,7 @@ async def test_execute_ignores_post_error_events_and_skips_fallback_completion()
 
         async def get_or_create_session(self, _user_id, conversation_ref=None):
             _ = conversation_ref
+
             class _Agent:
                 user_id = "user-1"
                 session_id = "session-1"
@@ -642,8 +723,14 @@ async def test_execute_ignores_post_error_events_and_skips_fallback_completion()
                     yield {"type": "streaming-response", "payload": {"text": "hello "}}
                     yield {"type": "error", "payload": {"message": "tool failed"}}
                     # Post-terminal events from the same stream must be ignored.
-                    yield {"type": "streaming-response", "payload": {"text": "should-not-emit"}}
-                    yield {"type": "streaming-complete", "payload": {"final_response": "ignored"}}
+                    yield {
+                        "type": "streaming-response",
+                        "payload": {"text": "should-not-emit"},
+                    }
+                    yield {
+                        "type": "streaming-complete",
+                        "payload": {"final_response": "ignored"},
+                    }
 
             return _Agent()
 
@@ -664,7 +751,9 @@ async def test_execute_ignores_post_error_events_and_skips_fallback_completion()
         "streaming-response",
         "error",
     ]
-    assert not any(isinstance(event, StreamingCompleteEvent) for event, _ in observed_events)
+    assert not any(
+        isinstance(event, StreamingCompleteEvent) for event, _ in observed_events
+    )
 
 
 @pytest.mark.asyncio
@@ -694,6 +783,7 @@ async def test_execute_preserves_memory_store_after_terminal_completion():
 
         async def get_or_create_session(self, _user_id, conversation_ref=None):
             _ = conversation_ref
+
             class _Agent:
                 user_id = "user-1"
                 session_id = "session-1"
@@ -701,7 +791,10 @@ async def test_execute_preserves_memory_store_after_terminal_completion():
 
                 async def process_query(self, *_args, **_kwargs):
                     yield {"type": "streaming-response", "payload": {"text": "hello "}}
-                    yield {"type": "streaming-complete", "payload": {"final_response": "hello"}}
+                    yield {
+                        "type": "streaming-complete",
+                        "payload": {"final_response": "hello"},
+                    }
                     yield {
                         "type": "memory-store",
                         "payload": {
@@ -800,4 +893,6 @@ async def test_execute_re_raises_cancellation_and_reconciles_pending_tool_calls(
 
     assert session_manager.agent.history.cancel_finalize_calls == 1
     assert [event["type"] for event, _ in observed_events] == ["streaming-response"]
-    assert not any(isinstance(event, StreamingCompleteEvent) for event, _ in observed_events)
+    assert not any(
+        isinstance(event, StreamingCompleteEvent) for event, _ in observed_events
+    )

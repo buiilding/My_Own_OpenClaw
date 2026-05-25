@@ -18,6 +18,10 @@ function buildArtifactCacheKey(attachment) {
   return inferArtifactRefFromUrl(attachment.screenshotUrl);
 }
 
+export function clearResolvedArtifactImageCache() {
+  artifactImagePromiseCache.clear();
+}
+
 async function resolveArtifactAttachmentSrc(attachment) {
   const cacheKey = buildArtifactCacheKey(attachment);
   if (!cacheKey) {
@@ -37,7 +41,16 @@ async function resolveArtifactAttachmentSrc(attachment) {
       )
         ? result.dataUrl.trim()
         : null)
-      .catch(() => null);
+      .then((dataUrl) => {
+        if (!dataUrl) {
+          artifactImagePromiseCache.delete(cacheKey);
+        }
+        return dataUrl;
+      })
+      .catch(() => {
+        artifactImagePromiseCache.delete(cacheKey);
+        return null;
+      });
     artifactImagePromiseCache.set(cacheKey, pending);
   }
   return pending;

@@ -52,6 +52,16 @@ class RecoveringCudaEmbedder:
         return True
 
 
+class StaleDimensionEmbedder:
+    provider_id = "stale-provider"
+    model_id = "stale-embedder-v1"
+    model_name = "stale-embedder"
+    dimension = 999
+
+    async def embed_text(self, _text: str):
+        return FakeArray([0.1, 0.2, 0.3])
+
+
 def test_embedding_to_list_handles_tolist_and_iterable() -> None:
     assert embedding_to_list(FakeArray([1, 2])) == [1, 2]
     assert embedding_to_list((3, 4)) == [3, 4]
@@ -72,6 +82,21 @@ async def test_generate_embedding_response_builds_contract() -> None:
     assert response.dimension == 3
     assert response.embedding == [0.1, 0.2, 0.3]
     assert response.embedding_space_version == "fake-provider:fake-embedder-v1:3"
+
+
+@pytest.mark.asyncio
+async def test_generate_embedding_response_space_version_uses_returned_dimension() -> (
+    None
+):
+    response = await generate_embedding_response(
+        request_text="hello",
+        request_model_name="default",
+        embedding_provider=StaleDimensionEmbedder(),
+        logger=SimpleNamespace(info=lambda *_args, **_kwargs: None),
+    )
+
+    assert response.dimension == 3
+    assert response.embedding_space_version == "stale-provider:stale-embedder-v1:3"
 
 
 @pytest.mark.asyncio
@@ -133,6 +158,17 @@ async def test_resolve_health_payload_uses_live_probe() -> None:
         "dimension": 3,
         "embedding_space_version": "fake-provider:fake-embedder-v1:3",
     }
+
+
+@pytest.mark.asyncio
+async def test_resolve_health_payload_space_version_uses_probe_dimension() -> None:
+    payload = await resolve_health_payload(
+        embedding_provider=StaleDimensionEmbedder(),
+        healthy_payload_fn=lambda **kwargs: {"status": "healthy", **kwargs},
+    )
+
+    assert payload["dimension"] == 3
+    assert payload["embedding_space_version"] == "stale-provider:stale-embedder-v1:3"
 
 
 @pytest.mark.asyncio

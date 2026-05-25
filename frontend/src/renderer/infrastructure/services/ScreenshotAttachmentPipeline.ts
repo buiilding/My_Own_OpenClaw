@@ -59,6 +59,32 @@ type MaterializeScreenshotAttachmentOptions = {
   filenameStem: string;
 };
 
+let activeScreenshotCaptureCount = 0;
+
+function emitScreenshotCaptureActive(active: boolean): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  window.dispatchEvent(new CustomEvent('windie:screenshot-capture', {
+    detail: {
+      active,
+      activeCount: activeScreenshotCaptureCount,
+    },
+  }));
+}
+
+function beginScreenshotCaptureEvent(): void {
+  activeScreenshotCaptureCount += 1;
+  emitScreenshotCaptureActive(true);
+}
+
+function endScreenshotCaptureEvent(): void {
+  activeScreenshotCaptureCount = Math.max(0, activeScreenshotCaptureCount - 1);
+  if (activeScreenshotCaptureCount === 0) {
+    emitScreenshotCaptureActive(false);
+  }
+}
+
 function resolveScreenshotExplanation(
   explanation: string | undefined,
   isFirstUserMessage: boolean,
@@ -180,9 +206,7 @@ export async function captureScreenshotAttachment({
   let attachment = createEmptyScreenshotAttachment();
   const shouldEmitCaptureEvent = typeof window !== 'undefined';
   if (shouldEmitCaptureEvent) {
-    window.dispatchEvent(new CustomEvent('windie:screenshot-capture', {
-      detail: { active: true },
-    }));
+    beginScreenshotCaptureEvent();
   }
 
   try {
@@ -224,9 +248,7 @@ export async function captureScreenshotAttachment({
     });
     restoreVisibilityTime = (performance.now() - restoreVisibilityStartTime) / 1000;
     if (shouldEmitCaptureEvent) {
-      window.dispatchEvent(new CustomEvent('windie:screenshot-capture', {
-        detail: { active: false },
-      }));
+      endScreenshotCaptureEvent();
     }
     logScreenshotCaptureTiming({
       correlationId,

@@ -376,6 +376,32 @@ describe('ChatBoxResponse state behavior', () => {
     });
   });
 
+  test('sanitizes prebuilt markdown HTML at the response overlay render boundary', async () => {
+    setChatState([
+      { id: 'user-1', text: 'question', sender: 'user' },
+      {
+        id: 'assistant-1',
+        text: '<img src=x onerror="window.__xss=1"><a href="javascript:alert(1)" onclick="window.__xss=1">unsafe</a><svg onload="window.__xss=1"><circle /></svg>',
+        sender: 'assistant',
+        type: 'llm-text',
+        isComplete: true,
+      },
+    ]);
+
+    const { container } = render(<ChatBoxResponse />);
+
+    await waitFor(() => {
+      expect(screen.getByText('unsafe')).toBeInTheDocument();
+    });
+
+    const responseHtml = container.querySelector('.chatbox-response-markdown')?.innerHTML || '';
+    expect(responseHtml).not.toContain('onerror');
+    expect(responseHtml).not.toContain('onclick');
+    expect(responseHtml).not.toContain('javascript:');
+    expect(container.querySelector('img')).toBeNull();
+    expect(container.querySelector('svg')).toBeNull();
+  });
+
   test('keeps awaiting indicator stable while thinking text exists', async () => {
     setChatState([
       { id: 'user-1', text: 'think', sender: 'user' },
@@ -532,6 +558,44 @@ describe('ChatBoxResponse state behavior', () => {
         visible: true,
         compact_hover: true,
       }));
+    });
+  });
+
+  test('sends hide size update when visible response overlay unmounts', async () => {
+    setChatState([
+      { id: 'user-1', text: 'run command', sender: 'user' },
+      {
+        id: 'assistant-1',
+        text: 'visible response',
+        sender: 'assistant',
+        type: 'llm-text',
+        isComplete: false,
+      },
+    ]);
+
+    const { unmount } = render(<ChatBoxResponse />);
+    emitOverlayPhase('streaming');
+
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith(
+        'set-responsebox-size',
+        expect.objectContaining({ visible: true }),
+      );
+    });
+
+    act(() => {
+      unmount();
+    });
+
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith(
+        'set-responsebox-size',
+        {
+          visible: false,
+          width: 0,
+          height: 0,
+        },
+      );
     });
   });
 

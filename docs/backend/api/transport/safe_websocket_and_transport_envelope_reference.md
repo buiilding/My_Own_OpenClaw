@@ -79,7 +79,8 @@ For each dequeued item:
 - no sender task yet -> direct close
 - active sender -> enqueue close message so close is serialized after queued sends
 - fallback to direct close if enqueue/flush fails
-- waits for close event before returning
+- waits for close event before returning, but with a bounded timeout
+- if the sender task is externally cancelled, current and queued send futures fail with the stored terminal sender error and close returns after the sender finalizer or direct-close fallback
 
 ## Transport Sender Wrapper
 
@@ -126,6 +127,7 @@ Used by:
 - bounded queue backpressure blocks additional sends until capacity frees
 - sender-loop failure propagates to pending + subsequent sends
 - close flushes queued messages before close frame
+- close returns when the sender task is cancelled during shutdown
 - close without sender loop closes directly
 - close is idempotent
 - unknown queue message type sets terminal sender error

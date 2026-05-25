@@ -54,9 +54,8 @@ class MessageHandlerRegistry:
             ValueError: If message_type is already registered
         """
         if message_type in self._handlers:
-            logger.warning(
-                f"Handler for message type '{message_type}' already registered. "
-                f"Overwriting with {type(handler).__name__}"
+            raise ValueError(
+                f"Handler for message type '{message_type}' is already registered"
             )
         
         self._handlers[message_type] = handler

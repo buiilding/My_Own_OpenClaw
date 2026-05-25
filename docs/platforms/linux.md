@@ -24,7 +24,7 @@ Linux is the only platform where WindieOS should hide overlay surfaces for scree
 - Hide WindieOS overlay surfaces before screenshot capture and restore them after capture.
 - Use the hide-only collapse path for minimal pill screenshot timing; do not pre-hide with a show path.
 - Keep the awaiting indicator latched through transient `idle` until streaming, completion, error, or visible response content clears it.
-- Keep sudo grant/revoke behavior explicit and non-interactive disable behavior documented.
+- Keep sudo behavior explicit: persistent passwordless sudo grants are rejected, and legacy sudoers cleanup uses an OS authentication prompt.
 - Verify `xdotool` or `ydotool` availability before editing window-switching or input-control behavior.
 - Treat AppImage dependency gaps separately from DEB/RPM package dependency metadata.
 

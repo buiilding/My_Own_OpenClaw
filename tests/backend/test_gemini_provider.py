@@ -2,7 +2,11 @@
 
 import pytest
 
-from backend.src.core.events.streaming_events import ChunkEvent, ErrorEvent, ThinkingEvent
+from backend.src.core.events.streaming_events import (
+    ChunkEvent,
+    ErrorEvent,
+    ThinkingEvent,
+)
 from backend.src.llm.providers.gemini import GeminiProvider
 from backend.src.tools.web_search.source_normalization import (
     extract_gemini_web_search_sources,
@@ -159,15 +163,24 @@ async def test_gemini_native_web_search_falls_back_to_sync_completion_when_async
                     "groundingMetadata": {
                         "webSearchQueries": ["latest windieos news"],
                         "groundingChunks": [
-                            {"web": {"uri": "https://example.com/a", "title": "Example A"}}
+                            {
+                                "web": {
+                                    "uri": "https://example.com/a",
+                                    "title": "Example A",
+                                }
+                            }
                         ],
                     }
                 }
             ],
         }
 
-    monkeypatch.setattr("backend.src.llm.providers.gemini.litellm.acompletion", fake_async_completion)
-    monkeypatch.setattr("backend.src.llm.providers.gemini.litellm.completion", fake_sync_completion)
+    monkeypatch.setattr(
+        "backend.src.llm.providers.gemini.litellm.acompletion", fake_async_completion
+    )
+    monkeypatch.setattr(
+        "backend.src.llm.providers.gemini.litellm.completion", fake_sync_completion
+    )
 
     response = await provider.get_completion(
         model="gemini-3-flash-preview@@gemini-3-flash-thinking",
@@ -215,15 +228,24 @@ async def test_gemini_native_web_search_falls_back_when_litellm_wraps_transform_
                     "groundingMetadata": {
                         "webSearchQueries": ["rachel greene"],
                         "groundingChunks": [
-                            {"web": {"uri": "https://example.com/rachel", "title": "Rachel"}}
+                            {
+                                "web": {
+                                    "uri": "https://example.com/rachel",
+                                    "title": "Rachel",
+                                }
+                            }
                         ],
                     }
                 }
             ],
         }
 
-    monkeypatch.setattr("backend.src.llm.providers.gemini.litellm.acompletion", fake_async_completion)
-    monkeypatch.setattr("backend.src.llm.providers.gemini.litellm.completion", fake_sync_completion)
+    monkeypatch.setattr(
+        "backend.src.llm.providers.gemini.litellm.acompletion", fake_async_completion
+    )
+    monkeypatch.setattr(
+        "backend.src.llm.providers.gemini.litellm.completion", fake_sync_completion
+    )
 
     response = await provider.get_completion(
         model="gemini-3-flash-preview@@gemini-3-flash-thinking",
@@ -282,7 +304,9 @@ async def test_gemini_stream_emits_thinking_and_captures_stream_tool_calls(monke
         isinstance(event, ThinkingEvent) and event.content == "step-1"
         for event in events
     )
-    chunk_text = "".join(event.content for event in events if isinstance(event, ChunkEvent))
+    chunk_text = "".join(
+        event.content for event in events if isinstance(event, ChunkEvent)
+    )
     assert chunk_text == "Hello world"
 
     payload = provider.get_last_stream_response_payload()
@@ -299,7 +323,39 @@ async def test_gemini_stream_emits_thinking_and_captures_stream_tool_calls(monke
 
 
 @pytest.mark.asyncio
-async def test_gemini_stream_emits_error_event_when_tool_arguments_json_is_invalid(monkeypatch):
+async def test_gemini_stream_includes_native_web_search_tool(monkeypatch):
+    provider = GeminiProvider(api_key="test-key")
+    captured_kwargs = {}
+
+    async def fake_stream():
+        yield _build_stream_chunk(content="Search result")
+
+    async def fake_acompletion(**kwargs):
+        captured_kwargs.update(kwargs)
+        return fake_stream()
+
+    monkeypatch.setattr(
+        "backend.src.llm.providers.gemini.litellm.acompletion",
+        fake_acompletion,
+    )
+
+    events = await _collect_stream_events(
+        provider,
+        model="gemini-3.1-pro-preview",
+        messages=[{"role": "user", "content": "search"}],
+        native_web_search_enabled=True,
+    )
+
+    assert captured_kwargs["tools"] == [{"google_search": {}}]
+    assert [event.content for event in events if isinstance(event, ChunkEvent)] == [
+        "Search result"
+    ]
+
+
+@pytest.mark.asyncio
+async def test_gemini_stream_emits_error_event_when_tool_arguments_json_is_invalid(
+    monkeypatch,
+):
     provider = GeminiProvider(api_key="test-key")
 
     async def fake_stream():
@@ -328,7 +384,9 @@ async def test_gemini_stream_emits_error_event_when_tool_arguments_json_is_inval
     )
 
     assert any(isinstance(event, ErrorEvent) for event in events)
-    error_messages = [event.content for event in events if isinstance(event, ErrorEvent)]
+    error_messages = [
+        event.content for event in events if isinstance(event, ErrorEvent)
+    ]
     assert any(
         "failed to parse streamed tool-call arguments" in message
         for message in error_messages
@@ -340,7 +398,9 @@ async def test_gemini_stream_emits_error_event_when_tool_arguments_json_is_inval
 
 
 @pytest.mark.asyncio
-async def test_gemini_stream_parses_block_tool_use_and_synthesizes_missing_id(monkeypatch):
+async def test_gemini_stream_parses_block_tool_use_and_synthesizes_missing_id(
+    monkeypatch,
+):
     provider = GeminiProvider(api_key="test-key")
 
     async def fake_stream():
@@ -369,7 +429,9 @@ async def test_gemini_stream_parses_block_tool_use_and_synthesizes_missing_id(mo
         ],
     )
 
-    chunk_text = "".join(event.content for event in events if isinstance(event, ChunkEvent))
+    chunk_text = "".join(
+        event.content for event in events if isinstance(event, ChunkEvent)
+    )
     assert chunk_text == "Hello world"
 
     payload = provider.get_last_stream_response_payload()
@@ -384,7 +446,9 @@ async def test_gemini_stream_parses_block_tool_use_and_synthesizes_missing_id(mo
 
 
 @pytest.mark.asyncio
-async def test_gemini_stream_prefers_object_arguments_over_fragmented_string(monkeypatch):
+async def test_gemini_stream_prefers_object_arguments_over_fragmented_string(
+    monkeypatch,
+):
     provider = GeminiProvider(api_key="test-key")
 
     async def fake_stream():
@@ -483,7 +547,12 @@ def test_extract_gemini_web_search_sources_ignores_entries_without_urls_and_dedu
                     "groundingChunks": [
                         {"web": {"uri": "https://example.com/a", "title": "Example A"}},
                         {"web": {"uri": "", "title": "Missing URL"}},
-                        {"web": {"uri": "https://example.com/a", "title": "Duplicate A"}},
+                        {
+                            "web": {
+                                "uri": "https://example.com/a",
+                                "title": "Duplicate A",
+                            }
+                        },
                         {"web": {"url": "https://example.com/b", "title": "Example B"}},
                     ],
                 }

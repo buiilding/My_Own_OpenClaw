@@ -1,6 +1,7 @@
 """
 Pydantic schemas for system tools.
 """
+
 from typing import Literal, Optional
 from pydantic import BaseModel, Field, ConfigDict
 
@@ -10,10 +11,12 @@ from backend.src.tools.schema_fields import explanation_field
 def _optional_process_field(description: str):
     return Field(None, description=description)
 
+
 # --- Shell Tool Schemas ---
 
+
 class RunShellCommandArgs(BaseModel):
-    model_config = ConfigDict(extra='forbid')
+    model_config = ConfigDict(extra="forbid")
 
     command: str = Field(
         ...,
@@ -44,7 +47,7 @@ class RunShellCommandArgs(BaseModel):
     )
     terminate_after_seconds: Optional[float] = Field(
         120.0,
-        description="(OPTIONAL, only used when run_in_background=False) Maximum time in seconds to allow before terminating the command and returning current output. Default is 120 seconds (2 minutes). Set to None for no timeout limit."
+        description="(OPTIONAL, only used when run_in_background=False) Maximum time in seconds to allow before terminating the command and returning current output. Default is 120 seconds (2 minutes). Set to None for no timeout limit.",
     )
     yield_after_seconds: Optional[float] = Field(
         None,
@@ -82,7 +85,8 @@ class RunShellCommandArgs(BaseModel):
 
 class OpenAppArgs(BaseModel):
     """Arguments for detached GUI app launch."""
-    model_config = ConfigDict(extra='forbid')
+
+    model_config = ConfigDict(extra="forbid")
 
     command: str = Field(
         ...,
@@ -118,10 +122,24 @@ class OpenAppArgs(BaseModel):
     explanation: str = explanation_field()
 
 
-class ProcessShellCommandArgs(BaseModel):
-    model_config = ConfigDict(extra='forbid')
+ProcessShellAction = Literal[
+    "list",
+    "poll",
+    "log",
+    "write",
+    "send-keys",
+    "submit",
+    "paste",
+    "kill",
+    "clear",
+    "remove",
+]
 
-    action: str = Field(
+
+class ProcessShellCommandArgs(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    action: ProcessShellAction = Field(
         ...,
         description=(
             "Action to perform on background shell sessions: "
@@ -135,9 +153,13 @@ class ProcessShellCommandArgs(BaseModel):
         ),
     )
     data: Optional[str] = _optional_process_field("Data to write for write action")
-    keys: Optional[list[str]] = _optional_process_field("Key tokens for send-keys action")
+    keys: Optional[list[str]] = _optional_process_field(
+        "Key tokens for send-keys action"
+    )
     hex: Optional[list[str]] = _optional_process_field("Hex bytes for send-keys action")
-    literal: Optional[str] = _optional_process_field("Literal text for send-keys action")
+    literal: Optional[str] = _optional_process_field(
+        "Literal text for send-keys action"
+    )
     text: Optional[str] = _optional_process_field("Text for paste action")
     bracketed: Optional[bool] = _optional_process_field("Wrap paste in bracketed mode")
     eof: Optional[bool] = _optional_process_field("Close stdin after write action")
@@ -147,18 +169,22 @@ class ProcessShellCommandArgs(BaseModel):
 
 # --- System Info Schemas ---
 
+
 class GetOpenWindowsArgs(BaseModel):
     """Arguments for listing open windows."""
-    model_config = ConfigDict(extra='forbid')
-    
+
+    model_config = ConfigDict(extra="forbid")
+
     filter_text: str = Field(
         default="",
-        description="Optional text to filter window titles by (case-insensitive)."
+        description="Optional text to filter window titles by (case-insensitive).",
     )
     explanation: str = explanation_field()
 
+
 class GetSystemStatsArgs(BaseModel):
     """Arguments for checking system stats."""
-    model_config = ConfigDict(extra='forbid')
-    
+
+    model_config = ConfigDict(extra="forbid")
+
     explanation: str = explanation_field()

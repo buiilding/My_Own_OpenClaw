@@ -162,6 +162,8 @@ Capture backend strategy:
 Encoding/storage behavior:
 
 - image forced to RGB for JPEG compatibility
+- returned screenshot files are written into `${tempfile.gettempdir()}/windieos-screenshots`
+- returned screenshot filenames use the `windie-shot-` prefix so Electron main can validate ownership before reading or cleanup
 - JPEG settings:
   - `quality=85`
   - `optimize=False`
@@ -185,7 +187,7 @@ Payload shape:
 
 Cross-layer note:
 
-- Electron main materializes `screenshot_path` into artifact refs (`screenshot_ref`/`screenshot_url`) when upload succeeds, with inline base64 fallback when upload fails; temporary file is deleted in both paths.
+- Electron main materializes owned screenshot-tool `screenshot_path` values into artifact refs (`screenshot_ref`/`screenshot_url`) when upload succeeds, with inline base64 fallback when upload fails; accepted temporary files are deleted in both paths. Unowned paths are stripped without read or deletion.
 
 ## Schema Notes vs Runtime Enforcement
 

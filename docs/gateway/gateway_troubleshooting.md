@@ -117,7 +117,7 @@ Websocket:
 
 Runs:
 
-- runs routes additionally check `x-windie-runs-key` when configured.
+- runs routes require `x-windie-runs-key` and a configured backend runs key.
 - VM workers can use `WINDIE_VM_RUNS_API_KEY` to avoid sharing the backend-global key name in worker env.
 
 ## When to Update Docs

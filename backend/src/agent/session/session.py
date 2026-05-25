@@ -343,7 +343,42 @@ class AgentSession:
         if self.runtime.active_conversation_ref == conversation_ref:
             return
         self.runtime.active_conversation_ref = conversation_ref
+        self.runtime.active_turn_ref = None
         self.history.clear()
+
+    @staticmethod
+    def _normalize_optional_runtime_ref(value: Optional[str]) -> Optional[str]:
+        if not isinstance(value, str):
+            return None
+        normalized = value.strip()
+        return normalized or None
+
+    def set_active_stream_context(
+        self,
+        *,
+        turn_ref: str,
+        conversation_ref: Optional[str],
+    ) -> None:
+        """Record the authoritative stream context for tool-result echoes."""
+        normalized_turn_ref = self._normalize_optional_runtime_ref(turn_ref)
+        if normalized_turn_ref is None:
+            return
+        normalized_conversation_ref = self._normalize_optional_runtime_ref(
+            conversation_ref
+        )
+        self.runtime.active_turn_ref = normalized_turn_ref
+        if normalized_conversation_ref is not None:
+            self.runtime.active_conversation_ref = normalized_conversation_ref
+
+    def clear_active_stream_context(self, *, turn_ref: Optional[str] = None) -> None:
+        """Clear the active stream context when the matching query finishes."""
+        normalized_turn_ref = self._normalize_optional_runtime_ref(turn_ref)
+        if (
+            normalized_turn_ref is not None
+            and self.runtime.active_turn_ref != normalized_turn_ref
+        ):
+            return
+        self.runtime.active_turn_ref = None
 
     @staticmethod
     def _normalize_workspace_path(workspace_path: Optional[str]) -> Optional[str]:

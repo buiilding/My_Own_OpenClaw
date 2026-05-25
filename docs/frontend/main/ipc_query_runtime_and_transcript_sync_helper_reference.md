@@ -96,7 +96,8 @@ Responsibilities:
 - compute next main-process state:
   - `nextConversationRef`: explicit update when present, otherwise preserve current
   - `nextUserId`: update only when normalized user id is non-empty string, otherwise preserve current
-- broadcast normalized sync envelope to sibling windows (sender excluded)
+- broadcast the resolved next session state to sibling windows (sender excluded),
+  so omitted fields do not become `null` clears in other renderers
 
 Returns:
 

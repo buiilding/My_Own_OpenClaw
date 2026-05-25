@@ -406,3 +406,14 @@ export function toSanitizedMarkdownHtml(markdown: string, options: MarkdownRende
 
   return sanitized;
 }
+
+export function sanitizeMarkdownHtml(html: string): string {
+  if (typeof html !== 'string' || !html.trim()) {
+    return '';
+  }
+  installHooks();
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: allowedTags,
+    ALLOWED_ATTR: allowedAttrs,
+  });
+}

@@ -4,6 +4,7 @@ SDK Tool Base Class.
 This module provides the base Tool class that all tools in the system must inherit from.
 Tools are defined using Pydantic models for argument validation and async execution.
 """
+
 from __future__ import annotations
 
 from typing import Any, Generic, Set, Type, TypeVar, ClassVar, TYPE_CHECKING
@@ -22,10 +23,11 @@ else:
 # Type variable for the arguments model
 TArgs = TypeVar("TArgs", bound=BaseModel)
 
+
 class Tool(ABC, Generic[TArgs]):
     """
     Base class for all tools in the system.
-    
+
     Usage:
         class MyToolArgs(BaseModel):
             path: str = Field(..., description="Path to file")
@@ -38,18 +40,20 @@ class Tool(ABC, Generic[TArgs]):
             async def run(self, args: MyToolArgs, ctx: ToolContext) -> Any:
                 return "result"
     """
-    
+
     # These must be defined by subclasses
     name: ClassVar[str]
     description: ClassVar[str]
     args_model: Type[TArgs]
-    
+
     # Optional metadata - tools should declare these for better type safety
     # Using string annotations (via __future__ import) to avoid circular import
     required_permissions: ClassVar[Set[Permission]] = set()
-    category: ClassVar[ToolDomain] = None  # Will be set in __init_subclass__ if not provided
+    category: ClassVar[ToolDomain] = (
+        None  # Will be set in __init_subclass__ if not provided
+    )
     execution_target: ClassVar[str] = "backend"
-    
+
     def __init_subclass__(cls, **kwargs):
         """Set default category if not specified by subclass."""
         super().__init_subclass__(**kwargs)
@@ -57,17 +61,18 @@ class Tool(ABC, Generic[TArgs]):
         if cls.category is None:
             # Lazy import here to avoid circular dependency
             from backend.src.tools.categorization import ToolDomain
+
             cls.category = ToolDomain.OTHER
 
     @abstractmethod
     async def run(self, args: TArgs, ctx: ToolContext) -> Any:
         """
         The main execution logic of the tool.
-        
+
         Args:
             args: The validated arguments (Pydantic model)
             ctx: The execution context (User, Session, etc.)
-            
+
         Returns:
             The result of the tool execution (must be serializable)
         """
@@ -77,7 +82,7 @@ class Tool(ABC, Generic[TArgs]):
     def _clean_schema(cls, schema: dict[str, Any]) -> dict[str, Any]:
         """
         Clean and optimize Pydantic-generated JSON schema for LLM consumption.
-        
+
         Removes unnecessary fields and simplifies structure:
         - Removes 'title' fields
         - Simplifies Optional types (anyOf with null) to just optional fields
@@ -85,26 +90,26 @@ class Tool(ABC, Generic[TArgs]):
         """
         if not isinstance(schema, dict):
             return schema
-        
+
         cleaned = {}
-        
+
         # Handle properties recursively
         if "properties" in schema:
             cleaned["properties"] = {
                 key: cls._clean_schema(value)
                 for key, value in schema["properties"].items()
             }
-        
+
         # Handle required fields
         if "required" in schema:
             cleaned["required"] = schema["required"]
-        
+
         # Handle type - simplify anyOf for Optional types
         if "anyOf" in schema:
             # Check if it's Optional[T] (Union[T, None])
             any_of = schema["anyOf"]
             non_null_types = [t for t in any_of if t.get("type") != "null"]
-            
+
             if len(non_null_types) == 1:
                 # It's Optional[T], use the non-null type
                 cleaned.update(cls._clean_schema(non_null_types[0]))
@@ -119,28 +124,46 @@ class Tool(ABC, Generic[TArgs]):
             cleaned["oneOf"] = [cls._clean_schema(t) for t in schema["oneOf"]]
         if "allOf" in schema:
             cleaned["allOf"] = [cls._clean_schema(t) for t in schema["allOf"]]
-        
+        for key in ("if", "then", "else", "not"):
+            if key in schema:
+                cleaned[key] = cls._clean_schema(schema[key])
+
         # Handle array items
         if "items" in schema:
             cleaned["items"] = cls._clean_schema(schema["items"])
-        
+
         # Keep description if present
         if "description" in schema:
             cleaned["description"] = schema["description"]
 
-        if "additionalProperties" in schema and isinstance(schema["additionalProperties"], bool):
-            cleaned["additionalProperties"] = schema["additionalProperties"]
-        
+        if "additionalProperties" in schema:
+            additional_properties = schema["additionalProperties"]
+            if isinstance(additional_properties, bool):
+                cleaned["additionalProperties"] = additional_properties
+            elif isinstance(additional_properties, dict):
+                cleaned["additionalProperties"] = cls._clean_schema(
+                    additional_properties
+                )
+
         # Keep default only if it's not None/null (null defaults are implicit for optional fields)
         if "default" in schema and schema["default"] is not None:
             cleaned["default"] = schema["default"]
-        
+
         # Keep validation constraints (min, max, etc.) but remove title
-        for key in ["minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", 
-                    "minLength", "maxLength", "pattern", "enum"]:
+        for key in [
+            "minimum",
+            "maximum",
+            "exclusiveMinimum",
+            "exclusiveMaximum",
+            "minLength",
+            "maxLength",
+            "pattern",
+            "enum",
+            "const",
+        ]:
             if key in schema:
                 cleaned[key] = schema[key]
-        
+
         return cleaned
 
     @classmethod
@@ -162,15 +185,11 @@ class Tool(ABC, Generic[TArgs]):
             # Inline simple local refs.
             ref = node.get("$ref")
             if isinstance(ref, str) and ref.startswith("#/$defs/"):
-                key = ref[len("#/$defs/"):]
+                key = ref[len("#/$defs/") :]
                 target = defs.get(key)
                 if isinstance(target, dict):
                     resolved_target = _resolve(target)
-                    extras = {
-                        k: _resolve(v)
-                        for k, v in node.items()
-                        if k != "$ref"
-                    }
+                    extras = {k: _resolve(v) for k, v in node.items() if k != "$ref"}
                     if isinstance(resolved_target, dict):
                         merged = dict(resolved_target)
                         merged.update(extras)
@@ -181,25 +200,17 @@ class Tool(ABC, Generic[TArgs]):
             all_of = node.get("allOf")
             if isinstance(all_of, list) and len(all_of) == 1:
                 resolved_base = _resolve(all_of[0])
-                extras = {
-                    k: _resolve(v)
-                    for k, v in node.items()
-                    if k != "allOf"
-                }
+                extras = {k: _resolve(v) for k, v in node.items() if k != "allOf"}
                 if isinstance(resolved_base, dict):
                     merged = dict(resolved_base)
                     merged.update(extras)
                     return merged
                 return extras or resolved_base
 
-            return {
-                k: _resolve(v)
-                for k, v in node.items()
-                if k != "$defs"
-            }
+            return {k: _resolve(v) for k, v in node.items() if k != "$defs"}
 
         return _resolve(schema)
-    
+
     @classmethod
     def build_tool_spec(cls) -> dict[str, Any]:
         """Build the canonical flat function-tool spec from class metadata."""
@@ -210,7 +221,7 @@ class Tool(ABC, Generic[TArgs]):
         # Remove unnecessary top-level fields
         cleaned_params.pop("title", None)
         cleaned_params.pop("additionalProperties", None)
-        
+
         # OpenAI Responses API requires function.parameters to be an explicit
         # JSON Schema object with type="object".
         if "properties" in cleaned_params and cleaned_params.get("type") is None:

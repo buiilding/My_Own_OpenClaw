@@ -107,15 +107,19 @@ async def test_registry_fail_closed_on_middleware_exception() -> None:
     assert handler.calls == []
 
 
-def test_registry_register_overwrites_existing_handler_for_same_message_type() -> None:
+def test_registry_register_rejects_duplicate_message_type() -> None:
     registry = MessageHandlerRegistry()
     first = RecordingHandler()
     second = RecordingHandler()
 
     registry.register("query", first)
-    registry.register("query", second)
+    with pytest.raises(
+        ValueError,
+        match="Handler for message type 'query' is already registered",
+    ):
+        registry.register("query", second)
 
-    assert registry.get_handler("query") is second
+    assert registry.get_handler("query") is first
     assert registry.list_handlers() == ["query"]
 
 
@@ -169,8 +173,6 @@ async def test_registry_handle_propagates_handler_exceptions() -> None:
 @pytest.mark.asyncio
 async def test_registry_runs_middleware_in_registration_order_before_handler() -> None:
     registry = MessageHandlerRegistry()
-    handler = RecordingHandler()
-    registry.register("query", handler)
     events: list[str] = []
 
     def first_middleware(message, websocket):  # noqa: ARG001

@@ -49,6 +49,7 @@ Implication:
 
 `backendEvents.ts` includes event types:
 
+- `query-accepted`
 - `llm-thought`
 - `streaming-response`
 - `streaming-complete`
@@ -58,6 +59,7 @@ Implication:
 - `tool-call`
 - `tool-output`
 - `tool-bundle`
+- `web-search-progress`
 - `local-user-message`
 - `system-prompt`
 - `user-message-full`
@@ -67,7 +69,7 @@ Implication:
 - `tool-schemas`
 - `error`
 
-`isBackendEvent(value)` accepts only this static set.
+`isBackendEvent(value)` accepts only this static set and validates the renderer-owned event envelope before narrowing to `BackendEvent`: optional base context fields must be strings, `payload` must be absent or object-shaped, and known payload fields must match their typed primitive/container shapes.
 
 Notable intentional exception:
 

@@ -7,8 +7,8 @@ const MOJIBAKE_REPLACEMENTS: Array<[string, string]> = [
   ['â€“', '–'],
   ['â€¦', '…'],
   ['â€¢', '•'],
+  ['Â\u00A0', ' '],
   ['Â ', ' '],
-  ['Â', ''],
 ];
 
 function replaceLoneSurrogates(value: string): string {

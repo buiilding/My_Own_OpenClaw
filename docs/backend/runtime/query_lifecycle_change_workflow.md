@@ -63,6 +63,9 @@ Fix the producer first. For example, if the backend emits a malformed terminal e
 Query lifecycle changes must preserve these invariants:
 
 - Each accepted query is registered as an active query task before execution starts.
+- Active-query capacity checks and active-task registration happen in one
+  session-manager tracker operation so concurrent admissions cannot all observe
+  the same pre-registration count.
 - Active query task registration is cleared in a `finally` path.
 - Stop requests can cancel an already registered task or be consumed by a query that starts shortly after the stop request.
 - `QueryExecutionService` validates query text before entering the agent loop.

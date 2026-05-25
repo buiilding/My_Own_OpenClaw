@@ -86,6 +86,7 @@ export class ManagedBackendSession {
   private socket: WebSocketLike | null = null;
   private detachSocketListeners: Array<() => void> = [];
   private shouldMaintainConnection = false;
+  private handshakeCompleted = false;
   private intentionalCloseReason: string | null = null;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private idleDisconnectTimer: ReturnType<typeof setTimeout> | null = null;
@@ -105,7 +106,7 @@ export class ManagedBackendSession {
   }
 
   isOpen(): boolean {
-    return isOpenSocket(this.socket);
+    return this.handshakeCompleted && isOpenSocket(this.socket);
   }
 
   isConnecting(): boolean {
@@ -124,6 +125,7 @@ export class ManagedBackendSession {
 
     const nextSocket = this.options.createSocket();
     this.socket = nextSocket;
+    this.handshakeCompleted = false;
     this.options.onSocketChange?.(this.socket);
     let opened = false;
     this.detachSocketListeners.splice(0).forEach(detach => detach());
@@ -137,12 +139,26 @@ export class ManagedBackendSession {
         try {
           const handshake = await this.options.buildHandshake();
           nextSocket.send(JSON.stringify(handshake));
+          this.handshakeCompleted = true;
           this.options.onOpen?.({ socket: nextSocket, handshake });
           this.resolveConnectWaiters();
           this.noteTraffic('ws-open');
         } catch (error) {
           this.options.onHandshakeError?.(error);
           this.rejectConnectWaiters(error);
+          if (this.socket === nextSocket) {
+            this.intentionalCloseReason = 'handshake-failed';
+            try {
+              nextSocket.close();
+            } finally {
+              if (this.socket === nextSocket) {
+                this.socket = null;
+                this.handshakeCompleted = false;
+                this.options.onSocketChange?.(this.socket);
+                this.detachSocketListeners.splice(0).forEach(detach => detach());
+              }
+            }
+          }
         }
       }),
     );
@@ -169,6 +185,7 @@ export class ManagedBackendSession {
           return;
         }
         this.socket = null;
+        this.handshakeCompleted = false;
         this.options.onSocketChange?.(this.socket);
         this.detachSocketListeners.splice(0).forEach(detach => detach());
         this.clearIdleDisconnectTimer();
@@ -202,6 +219,7 @@ export class ManagedBackendSession {
         this.options.onError?.({ error, opened, socket: nextSocket });
         if (!opened && this.shouldMaintainConnection && this.options.advanceEndpoint?.()) {
           this.socket = null;
+          this.handshakeCompleted = false;
           this.options.onSocketChange?.(this.socket);
           this.detachSocketListeners.splice(0).forEach(detach => detach());
           this.options.onFallback?.();
@@ -322,6 +340,7 @@ export class ManagedBackendSession {
     this.rejectConnectWaiters(new Error('Windie SDK managed backend session closed.'));
     const current = this.socket;
     this.socket = null;
+    this.handshakeCompleted = false;
     this.options.onSocketChange?.(this.socket);
     this.detachSocketListeners.splice(0).forEach(detach => detach());
     if (current && (isOpenSocket(current) || isConnectingSocket(current))) {

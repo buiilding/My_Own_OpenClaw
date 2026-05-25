@@ -94,17 +94,22 @@ class QueryExecutionService:
             msg_id=msg_id,
             conversation_ref=message.payload.conversation_ref,
         )
-        await websocket.send_json(
-            build_transport_message(
-                OutgoingMessageType.QUERY_ACCEPTED,
-                msg_id,
-                {"status": "accepted"},
-                context=stream_context,
-            )
+        self._set_active_stream_context(
+            agent_instance=agent_instance,
+            msg_id=msg_id,
+            conversation_ref=message.payload.conversation_ref,
         )
-        stream_state = QueryExecutionStreamState()
-
         try:
+            await websocket.send_json(
+                build_transport_message(
+                    OutgoingMessageType.QUERY_ACCEPTED,
+                    msg_id,
+                    {"status": "accepted"},
+                    context=stream_context,
+                )
+            )
+            stream_state = QueryExecutionStreamState()
+
             async with TTSSession(
                 self._tts_manager,
                 agent_instance.cfg,
@@ -218,6 +223,13 @@ class QueryExecutionService:
                 if tts_session.service:
                     await pipeline.wait_for_pending_tts()
                     await tts_session.service.flush()
+
+            query_total_time = time.perf_counter() - query_start_time
+            logger.info(
+                "[Timing] Query processing completed in %.3fs (user_id=%s)",
+                query_total_time,
+                user_id,
+            )
         except asyncio.CancelledError:
             self._finalize_pending_tool_calls_on_cancel(
                 agent_instance=agent_instance,
@@ -225,13 +237,11 @@ class QueryExecutionService:
                 conversation_ref=message.payload.conversation_ref,
             )
             raise
-
-        query_total_time = time.perf_counter() - query_start_time
-        logger.info(
-            "[Timing] Query processing completed in %.3fs (user_id=%s)",
-            query_total_time,
-            user_id,
-        )
+        finally:
+            self._clear_active_stream_context(
+                agent_instance=agent_instance,
+                msg_id=msg_id,
+            )
 
     @staticmethod
     def _finalize_pending_tool_calls_on_cancel(
@@ -258,6 +268,27 @@ class QueryExecutionService:
             msg_id=msg_id,
             conversation_ref=conversation_ref,
         )
+
+    @staticmethod
+    def _set_active_stream_context(
+        *,
+        agent_instance: Any,
+        msg_id: str,
+        conversation_ref: Optional[str],
+    ) -> None:
+        setter = getattr(agent_instance, "set_active_stream_context", None)
+        if callable(setter):
+            setter(turn_ref=msg_id, conversation_ref=conversation_ref)
+
+    @staticmethod
+    def _clear_active_stream_context(
+        *,
+        agent_instance: Any,
+        msg_id: str,
+    ) -> None:
+        clearer = getattr(agent_instance, "clear_active_stream_context", None)
+        if callable(clearer):
+            clearer(turn_ref=msg_id)
 
     def _get_frontend_operating_system(self, user_id: str) -> Optional[str]:
         get_frontend_operating_system = getattr(

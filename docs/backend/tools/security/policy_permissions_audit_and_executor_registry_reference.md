@@ -41,12 +41,15 @@ Permission enum surface:
 1. blocked tool name -> deny
 2. no declared permissions -> deny + security audit log/error
 3. permission requested but undeclared -> deny + violation warning
-4. declared permission present -> allow
+4. permission declared but not explicitly granted in `granted_permissions` -> deny + violation warning
+5. permission declared and explicitly granted -> allow
 
 Permission source order:
 
 - tool instance `required_permissions`
 - fallback explicit map `required_permissions[tool_name]`
+
+Declaration is not authorization. `required_permissions` describes what a tool may need; `grant_permission(...)` / `grant_permissions(...)` records the policy decision that the named tool may use that permission.
 
 ## Resource and Path Checks
 
@@ -71,8 +74,11 @@ Current `check_resource_limits(...)` enforcement is timeout-only.
 Sanitization controls:
 
 - excluded keys: `image`, `screenshot`, `content`, `data`
-- max string length per value: `1024` bytes-ish
-- list truncation: first `10` entries + truncation marker
+- excluded values are summarized by cheap type/length metadata and are not stringified
+- max string length per value: `1024` chars
+- bytes-like values are summarized by type and byte length
+- list/tuple/set truncation: first `10` entries + truncation marker
+- arbitrary objects are summarized by type instead of retained by reference
 - recursion depth cap: `10`
 - cycle detection by object id to avoid infinite recursion
 
@@ -130,10 +136,11 @@ Remote tools currently default `required_permissions = set()` in `remote_tools/b
 ## Hardening Checklist
 
 1. Define explicit `required_permissions` on each tool class.
-2. Enforce `check_permission` and `check_path_access` at dispatch boundary.
-3. Log `ToolExecutionAudit` on both success and failure paths.
-4. Decide and implement concrete sandbox strategy for `ProcessSandboxedExecutor`.
-5. Add tests for deny-by-default, blocked-path/tool behavior, and audit sanitization cycle/depth edge cases.
+2. Grant authorized permissions explicitly for each tool/deployment boundary.
+3. Enforce `check_permission` and `check_path_access` at dispatch boundary.
+4. Log `ToolExecutionAudit` on both success and failure paths.
+5. Decide and implement concrete sandbox strategy for `ProcessSandboxedExecutor`.
+6. Add tests for deny-by-default, blocked-path/tool behavior, and audit sanitization cycle/depth edge cases.
 
 ## Related Pages
 

@@ -99,6 +99,35 @@ def test_resolve_raises_for_unknown_candidate_id():
         )
 
 
+def test_resolve_candidate_id_with_invalid_bbox_raises_controlled_error():
+    ocr_results = [{"text": "Close", "bbox": {"x": 1}}]
+    candidate_id = OcrCoordinateResolver._build_candidate_id(
+        ocr_results[0],
+        index=0,
+        screenshot_id="shot-invalid-bbox",
+    )
+
+    with pytest.raises(ValueError) as exc_info:
+        OcrCoordinateResolver.resolve(
+            "",
+            ocr_results,
+            screenshot_id="shot-invalid-bbox",
+            candidate_id=candidate_id,
+        )
+
+    message = str(exc_info.value)
+    assert f"OCR candidate_id '{candidate_id}' has no executable coordinates" in message
+    assert "Re-ground the target or choose a different candidate" in message
+
+
+def test_resolve_single_match_with_invalid_bbox_raises_controlled_error():
+    with pytest.raises(ValueError, match="has no executable coordinates"):
+        OcrCoordinateResolver.resolve(
+            "Close",
+            [{"text": "Close", "bbox": {"x": 1}}],
+        )
+
+
 def test_resolve_raises_for_empty_ocr_results():
     with pytest.raises(ValueError, match="OCR results are empty"):
         OcrCoordinateResolver.resolve("anything", [])

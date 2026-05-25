@@ -48,6 +48,31 @@ describe('wakeword_bridge_runtime', () => {
     expect(mainWindow.webContents.send).toHaveBeenCalledWith('wakeword-status', { ready: true });
   });
 
+  test('promotes error/status stderr JSON to not-ready wakeword status updates', () => {
+    const mainWindow = {
+      webContents: {
+        send: jest.fn(),
+      },
+    };
+    let readiness = null;
+
+    handleWakewordStderrLine({
+      line: '{"status":"error","message":"model failed"}',
+      mainWindow,
+      getIsPythonReady: () => true,
+      setIsPythonReady: (nextReady, errorMessage) => {
+        readiness = { nextReady, errorMessage };
+      },
+      error: jest.fn(),
+    });
+
+    expect(readiness).toEqual({ nextReady: false, errorMessage: 'model failed' });
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith(
+      'wakeword-status',
+      { ready: false, error: 'model failed' },
+    );
+  });
+
   test('resolves ENOENT process errors with executable-specific guidance', () => {
     expect(resolveWakewordProcessErrorMessage({
       launchTarget: { kind: 'binary', command: 'wakeword-bin' },

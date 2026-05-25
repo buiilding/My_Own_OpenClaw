@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from types import SimpleNamespace
 
 import pytest
@@ -123,6 +124,60 @@ async def test_compaction_engine_manual_force_replaces_history(monkeypatch):
     assert "Compacted summary" in stored[0].content
     assert session.llm_client.calls[0]["request_kwargs"]["max_output_tokens"] == (
         cfg.history_compaction_summary_max_tokens
+    )
+
+
+@pytest.mark.asyncio
+async def test_compaction_engine_preserves_messages_appended_during_summary(
+    monkeypatch,
+):
+    monkeypatch.setattr(
+        token_service_module,
+        "get_token_service",
+        lambda: _FakeTokenService(),
+    )
+    history = ConversationHistory()
+    _seed_history(history)
+    cfg = AppConfig(
+        history_compaction_enabled=False,
+        history_compaction_manual_enabled=True,
+        history_compaction_keep_recent_user_messages=1,
+    )
+    session = _FakeSession(cfg=cfg, history=history)
+    summary_started = asyncio.Event()
+    release_summary = asyncio.Event()
+
+    class _BlockingStrategy:
+        strategy_name = "inline"
+
+        async def compact(self, *, llm_client, model, compaction_input):
+            _ = (llm_client, model, compaction_input)
+            summary_started.set()
+            await release_summary.wait()
+            return SimpleNamespace(
+                summary_text="Compacted summary",
+                strategy_name="inline",
+            )
+
+    engine = CompactionEngine(session)
+    engine._inline_strategy = _BlockingStrategy()
+    decision = engine.evaluate(reason="manual", force=True)
+
+    compact_task = asyncio.create_task(
+        engine.compact(reason="manual", decision=decision)
+    )
+    await summary_started.wait()
+    history.add_user_message("concurrent user message")
+    release_summary.set()
+
+    result = await compact_task
+
+    assert result.applied is True
+    stored = history.get_stored_messages()
+    assert stored[0].message_type == MessageType.CONTEXT_COMPACTION
+    assert stored[-1].content == "concurrent user message"
+    assert result.replacement_history_entries[-1]["content"] == (
+        "concurrent user message"
     )
 
 

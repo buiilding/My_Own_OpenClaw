@@ -65,7 +65,8 @@ Effect:
 3. resolve tuple future on success
 4. if `close`, break loop after future resolution
 5. on send failure, set terminal sender error, reject current future, break
-6. finally: mark closed, reject all still-queued futures, signal close event
+6. if the sender task is cancelled, reject the current in-flight future with a terminal cancellation error
+7. finally: mark closed, reject all still-queued futures, signal close event
 
 Critical invariant:
 
@@ -100,11 +101,12 @@ Two close modes:
    - enqueue `close` tuple with `allow_closed=True`
    - sender loop serializes close after prior queued sends
    - if enqueue/flush fails, fallback direct close
-   - always wait on `_close_event`
+   - wait on `_close_event` with a bounded timeout, then direct-close and signal the event if the sender does not finalize
 
 Ordering guarantee:
 
 - queued sends ahead of close are attempted before close frame when sender loop remains healthy
+- close does not hang forever if shutdown cancellation prevents the sender from completing normally
 
 ## WebSocketTransportSender Boundary
 
@@ -125,6 +127,7 @@ Implication:
 - bounded backpressure behavior with `max_queue_size=1`
 - sender failure drains pending futures + fails future sends
 - close flushes queued sends before close
+- close completes when sender task cancellation races with shutdown
 - close without sender loop does direct close
 - close idempotency
 - unknown queue message type creates terminal error surface

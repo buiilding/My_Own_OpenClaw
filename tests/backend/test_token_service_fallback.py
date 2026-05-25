@@ -354,6 +354,50 @@ def test_count_tokens_preserves_tool_call_thought_signature(monkeypatch):
     assert normalized_call["function"]["thought_signature"] == "sig-abc"
 
 
+def test_truncate_text_litellm_split_respects_one_token_remainder(monkeypatch):
+    def fake_encode(*, model, text):
+        return list(text)
+
+    def fake_decode(*, model, tokens):
+        return "".join(tokens)
+
+    monkeypatch.setattr(litellm, "encode", fake_encode)
+    monkeypatch.setattr(litellm, "decode", fake_decode)
+
+    truncated, original_tokens, was_truncated, source = TokenService.truncate_text(
+        "abcdefghij",
+        model="gpt-4o-mini",
+        token_limit=4,
+        marker="...",
+    )
+
+    assert original_tokens == 10
+    assert was_truncated is True
+    assert source == "litellm"
+    assert len(truncated) <= 4
+    assert truncated == "...j"
+
+
+def test_truncate_text_estimate_split_respects_one_character_remainder(monkeypatch):
+    def fake_encode(*_args, **_kwargs):
+        raise RuntimeError("force fallback")
+
+    monkeypatch.setattr(litellm, "encode", fake_encode)
+
+    truncated, original_tokens, was_truncated, source = TokenService.truncate_text(
+        "abcdefghijklmnopqrst",
+        model="gpt-4o-mini",
+        token_limit=2,
+        marker="1234567",
+    )
+
+    assert original_tokens == 5
+    assert was_truncated is True
+    assert source == "estimate"
+    assert len(truncated) <= 8
+    assert truncated == "1234567t"
+
+
 def test_get_token_service_singleton_thread_safe(monkeypatch):
     creation_count = {"value": 0}
     barrier = threading.Barrier(16)

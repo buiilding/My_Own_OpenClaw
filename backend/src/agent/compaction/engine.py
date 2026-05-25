@@ -184,6 +184,40 @@ class CompactionEngine:
         replacement_history_entries = self._build_replacement_history_entries(
             replacement_messages
         )
+        current_after_summary = self._session.history.get_stored_messages()
+        if current_after_summary != current_messages:
+            if current_after_summary[: len(current_messages)] == current_messages:
+                concurrent_suffix = current_after_summary[len(current_messages) :]
+                replacement_messages = [*replacement_messages, *concurrent_suffix]
+                replacement_history_preview = self._build_replacement_history_preview(
+                    replacement_messages
+                )
+                replacement_history_entries = self._build_replacement_history_entries(
+                    replacement_messages
+                )
+                logger.warning(
+                    "[Compaction] Preserved %s messages appended while compaction was in flight",
+                    len(concurrent_suffix),
+                )
+            else:
+                logger.warning(
+                    "[Compaction] Skipped stale compaction replacement because history changed during summary generation"
+                )
+                return CompactionResult(
+                    applied=False,
+                    reason=reason,
+                    strategy_name=strategy_output.strategy_name,
+                    before_tokens=active_decision.before_tokens,
+                    after_tokens=self._get_prompt_token_count(
+                        model=self._session.cfg.llm_model
+                    ),
+                    removed_messages=0,
+                    summary_text=strategy_output.summary_text,
+                    replacement_history_preview=[],
+                    replacement_history_entries=[],
+                    skip_reason="history-changed",
+                )
+
         self._session.history.replace_with_stored_messages(replacement_messages)
 
         after_tokens = self._get_prompt_token_count(model=self._session.cfg.llm_model)

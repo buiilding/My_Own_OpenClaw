@@ -96,6 +96,46 @@ describe('display_affinity_runtime', () => {
     expect(targetWindow.getBounds).not.toHaveBeenCalled();
   });
 
+  test('falls back from hidden sender surface to visible main surface', () => {
+    const hiddenChatWindow = { id: 'chat' };
+    const visibleMainWindow = { id: 'main' };
+    const resolveDisplayAffinityForWindow = jest.fn((_screen, targetWindow) => {
+      if (targetWindow === hiddenChatWindow) {
+        return null;
+      }
+      if (targetWindow === visibleMainWindow) {
+        return {
+          monitor_id: '2',
+          bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+          workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+          desktopVirtualBounds: { x: 0, y: 0, width: 4480, height: 1440 },
+        };
+      }
+      return null;
+    });
+
+    const result = resolveActiveSurfaceDisplayAffinity({
+      BrowserWindow: {},
+      screen: {},
+      webContents: { id: 'sender' },
+      chatWindow: hiddenChatWindow,
+      mainWindow: visibleMainWindow,
+      resolveWindowForWebContents: jest.fn(() => hiddenChatWindow),
+      resolveDisplayAffinityForWindow,
+      resolveDisplayAffinityForWebContents: jest.fn(() => null),
+      getActiveDisplayAffinity: jest.fn(() => null),
+    });
+
+    expect(result).toEqual({
+      monitor_id: '2',
+      bounds: { x: 1920, y: 0, width: 2560, height: 1440 },
+      workArea: { x: 1920, y: 0, width: 2560, height: 1400 },
+      desktopVirtualBounds: { x: 0, y: 0, width: 4480, height: 1440 },
+    });
+    expect(resolveDisplayAffinityForWindow).toHaveBeenNthCalledWith(1, {}, hiddenChatWindow, { requireVisible: true });
+    expect(resolveDisplayAffinityForWindow).toHaveBeenNthCalledWith(2, {}, visibleMainWindow, { requireVisible: true });
+  });
+
   test('falls back when destroyed sender surface cannot be resolved', () => {
     const screen = {
       getPrimaryDisplay: jest.fn(() => ({
@@ -254,6 +294,27 @@ describe('display_affinity_runtime', () => {
       desktopVirtualBounds: { x: 0, y: 0, width: 4480, height: 1440 },
     });
     expect(getActiveDisplayAffinity()).toEqual(result);
+  });
+
+  test('does not update stored display affinity from a hidden window', () => {
+    const storedAffinity = {
+      monitor_id: 'stored',
+      bounds: { x: 0, y: 0, width: 1920, height: 1080 },
+      workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+      desktopVirtualBounds: { x: 0, y: 0, width: 4480, height: 1440 },
+    };
+    setActiveDisplayAffinity(storedAffinity);
+    const hiddenWindow = {
+      isDestroyed: jest.fn(() => false),
+      isVisible: jest.fn(() => false),
+      getBounds: jest.fn(),
+    };
+
+    const result = syncActiveDisplayAffinityForWindow({}, hiddenWindow);
+
+    expect(result).toBeNull();
+    expect(hiddenWindow.getBounds).not.toHaveBeenCalled();
+    expect(getActiveDisplayAffinity()).toEqual(storedAffinity);
   });
 
   test('syncs visible surface display affinity from chat before main', () => {

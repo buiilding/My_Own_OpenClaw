@@ -32,6 +32,11 @@ function normalizeNonEmptyString(value: unknown): string {
   return value.trim();
 }
 
+function normalizeRecordKind(value: unknown): string {
+  const normalized = normalizeNonEmptyString(value);
+  return normalized || CHAT_EVENT_RECORD_KIND;
+}
+
 function resolveEntryMessageIndex(entry: Record<string, unknown>) {
   const value = entry?.message_index;
   if (typeof value === 'number' && Number.isFinite(value)) {
@@ -49,6 +54,7 @@ function resolveEntryMessageIndex(entry: Record<string, unknown>) {
 export async function listStoredConversations({
   userId,
   limit = null,
+  recordKind = CHAT_EVENT_RECORD_KIND,
 }: ListStoredConversationsOptions): Promise<Array<Record<string, unknown>>> {
   const normalizedUserId = normalizeNonEmptyString(userId);
   if (!normalizedUserId) {
@@ -57,7 +63,7 @@ export async function listStoredConversations({
 
   const payload: Record<string, unknown> = {
     userId: normalizedUserId,
-    recordKind: CHAT_EVENT_RECORD_KIND,
+    recordKind: normalizeRecordKind(recordKind),
   };
   if (typeof limit === 'number' && Number.isFinite(limit) && limit > 0) {
     payload.limit = Math.floor(limit);
@@ -77,6 +83,7 @@ export async function searchStoredConversations({
   userId,
   query,
   limit = 60,
+  recordKind = CHAT_EVENT_RECORD_KIND,
 }: SearchStoredConversationsOptions): Promise<Array<Record<string, unknown>>> {
   const normalizedUserId = normalizeNonEmptyString(userId);
   const normalizedQuery = normalizeNonEmptyString(query);
@@ -88,7 +95,7 @@ export async function searchStoredConversations({
       userId: normalizedUserId,
       query: normalizedQuery,
       limit,
-      recordKind: CHAT_EVENT_RECORD_KIND,
+      recordKind: normalizeRecordKind(recordKind),
   });
   if (!result || result.success === false) {
     throw new Error(result?.error || 'Failed to search stored conversations');
@@ -106,6 +113,7 @@ export async function searchStoredConversations({
 export async function loadStoredConversationEntries({
   userId,
   conversationRef,
+  recordKind = CHAT_EVENT_RECORD_KIND,
   pageSize = DEFAULT_PAGE_SIZE,
   maxPages = DEFAULT_MAX_PAGES,
 }: LoadStoredConversationEntriesOptions): Promise<Array<Record<string, unknown>>> {
@@ -117,13 +125,14 @@ export async function loadStoredConversationEntries({
 
   const allEntries: Array<Record<string, unknown>> = [];
   let afterMessageIndex: number | null = null;
+  const normalizedRecordKind = normalizeRecordKind(recordKind);
 
   for (let page = 0; page < maxPages; page += 1) {
     const result = await IpcBridge.invoke(INVOKE_CHANNELS.GET_CHAT_EVENTS, {
       userId: normalizedUserId,
       conversationId: normalizedConversationRef,
       limit: pageSize,
-      recordKind: CHAT_EVENT_RECORD_KIND,
+      recordKind: normalizedRecordKind,
       afterMessageIndex,
     });
     if (!result || result.success === false) {

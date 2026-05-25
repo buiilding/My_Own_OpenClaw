@@ -1,4 +1,5 @@
 """Tests for SentenceBuffer TTS buffering."""
+
 import pytest
 from unittest.mock import MagicMock
 
@@ -31,7 +32,7 @@ class TestSentenceBuffer:
         # Period at end is kept in buffer (can't tell if it's end of sentence)
         assert result == []
         assert buffer._buffer_parts == ["Hello world."]
-        
+
         # Flush to get the content
         flushed = buffer.flush()
         assert flushed == "Hello world."
@@ -61,7 +62,7 @@ class TestSentenceBuffer:
         result1 = buffer.append("First sentence.")
         result2 = buffer.append(" Second sentence.")
         result3 = buffer.append(" Third")
-        
+
         # First sentence kept (period at end), second append triggers split
         # Second sentence ends with period, so it stays in buffer
         # Third append triggers split again
@@ -125,7 +126,7 @@ class TestSentenceBuffer:
         buffer = SentenceBuffer(max_size=20)
         long_text = "This is a very long sentence without any delimiters"
         result = buffer.append(long_text)
-        
+
         # Should force split at max_size (plus remaining in buffer)
         assert len(result) >= 1
         # First chunk should be around max_size
@@ -136,7 +137,7 @@ class TestSentenceBuffer:
         # Text with whitespace near the max_size boundary
         text = "This is a very long sentence with spaces"
         result = buffer.append(text)
-        
+
         # Should split at whitespace
         assert len(result) >= 1
         # The split should be at a whitespace
@@ -145,9 +146,9 @@ class TestSentenceBuffer:
     def test_force_split_logs_warning(self):
         logger = MagicMock()
         buffer = SentenceBuffer(max_size=10, logger=logger)
-        
+
         result = buffer.append("This exceeds max size")
-        
+
         # Should log warning about forced split
         assert logger.warning.called
         assert "exceeded" in str(logger.warning.call_args)
@@ -179,35 +180,52 @@ class TestSentenceBuffer:
 
     def test_thread_safety_append(self):
         import threading
+
         buffer = SentenceBuffer()
         results = []
-        
-        def append_text(text):
-            result = buffer.append(text)
-            results.extend(result)
-        
-        threads = [
-            threading.Thread(target=append_text, args=("Hello. ",)),
-            threading.Thread(target=append_text, args=("World. ",)),
-            threading.Thread(target=append_text, args=("Test. ",)),
+        errors = []
+        result_lock = threading.Lock()
+        worker_count = 12
+        start_barrier = threading.Barrier(worker_count)
+
+        submitted_sentences = [
+            f"tts-thread-{index:02d} completed." for index in range(worker_count)
         ]
-        
+
+        def append_text(text):
+            try:
+                start_barrier.wait(timeout=5)
+                result = buffer.append(f"{text} ")
+                with result_lock:
+                    results.extend(result)
+            except BaseException as exc:  # pragma: no cover - asserted below
+                with result_lock:
+                    errors.append(exc)
+
+        threads = [
+            threading.Thread(target=append_text, args=(text,))
+            for text in submitted_sentences
+        ]
+
         for t in threads:
             t.start()
         for t in threads:
-            t.join()
-        
-        # All operations should complete without errors
-        assert len(results) >= 0  # May vary due to race conditions
+            t.join(timeout=5)
+
+        assert all(not thread.is_alive() for thread in threads)
+        assert errors == []
+        flushed = buffer.flush()
+        emitted_sentences = results + ([flushed] if flushed else [])
+        assert sorted(emitted_sentences) == sorted(submitted_sentences)
 
     def test_complex_multipart_text(self):
         buffer = SentenceBuffer()
-        
+
         # Simulate streaming text
         result1 = buffer.append("The quick brown")
         result2 = buffer.append(" fox jumps over.")
         result3 = buffer.append(" The lazy dog.")
-        
+
         assert result1 == []
         # Second append adds content ending with period, kept in buffer
         assert result2 == []

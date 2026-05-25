@@ -65,7 +65,8 @@ If `bundle_id` is missing, orchestrator logs error and returns empty result batc
 
 For each non-bundle call:
 
-- missing `request_id` logs warning and skips call
+- delegates to `execute_single_tool(...)`; missing `request_id` returns that
+  helper's successful pending-local-runtime placeholder result
 - create request future before reading pending result (race prevention)
 - if pending result already exists, resolve immediately
 - else wait up to 120 seconds
@@ -108,7 +109,8 @@ This is the policy gate for tool lists shown to LLM/planners.
 
 - missing session returns empty result batch
 - bundle path with missing `bundle_id` returns empty batch
-- single path executes only calls with request ids
+- single path preserves one result per parsed tool call, including the
+  missing-`request_id` placeholder fallback
 - capability listing returns registry capabilities after selection filter
 
 `tests/backend/test_bundle_detection.py` verifies atomic-bundle rules around `bundle_id` and `request_id`.

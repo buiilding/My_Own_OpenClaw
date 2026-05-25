@@ -68,7 +68,8 @@ Shared behavior:
 
 - optional wait (seconds -> milliseconds) before capture
 - wraps screenshot activity in window event markers:
-  - `windie:screenshot-capture {active:true|false}`
+  - `windie:screenshot-capture {active:true|false, activeCount}`
+  - overlapping captures emit `active:false` only after the last capture has restored visibility
 
 `captureScreenshotAttachment(...)`:
 

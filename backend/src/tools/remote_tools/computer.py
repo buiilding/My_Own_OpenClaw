@@ -4,8 +4,6 @@ Remote computer-domain tool stubs.
 
 from __future__ import annotations
 
-import uuid
-
 from backend.src.sdk.context import ToolContext
 from backend.src.sdk.tool import Tool
 from backend.src.tools.categorization import ToolDomain
@@ -29,7 +27,9 @@ class RemoteMouseTool(RemoteToolBase, Tool[MouseControlArgs]):
     args_model = MouseControlArgs
     category = ToolDomain.COMPUTER
 
-    async def execute_remote(self, args: MouseControlArgs, ctx: ToolContext) -> RemoteToolResult:
+    async def execute_remote(
+        self, args: MouseControlArgs, ctx: ToolContext
+    ) -> RemoteToolResult:
         return self._build_remote_result(
             args,
             ctx,
@@ -49,7 +49,9 @@ class RemoteKeyboardTool(RemoteToolBase, Tool[KeyboardControlArgs]):
     args_model = KeyboardControlArgs
     category = ToolDomain.COMPUTER
 
-    async def execute_remote(self, args: KeyboardControlArgs, ctx: ToolContext) -> RemoteToolResult:
+    async def execute_remote(
+        self, args: KeyboardControlArgs, ctx: ToolContext
+    ) -> RemoteToolResult:
         return self._build_remote_result(
             args,
             ctx,
@@ -63,8 +65,12 @@ class RemoteScreenshotTool(RemoteToolBase, Tool[ScreenshotToolArgs]):
     args_model = ScreenshotToolArgs
     category = ToolDomain.COMPUTER
 
-    async def execute_remote(self, args: ScreenshotToolArgs, ctx: ToolContext) -> RemoteToolResult:
-        return self._build_remote_result(args, ctx, log_message="Remote screenshot tool call")
+    async def execute_remote(
+        self, args: ScreenshotToolArgs, ctx: ToolContext
+    ) -> RemoteToolResult:
+        return self._build_remote_result(
+            args, ctx, log_message="Remote screenshot tool call"
+        )
 
 
 class RemoteScrollTool(RemoteToolBase, Tool[ScrollControlArgs]):
@@ -78,7 +84,9 @@ class RemoteScrollTool(RemoteToolBase, Tool[ScrollControlArgs]):
     args_model = ScrollControlArgs
     category = ToolDomain.COMPUTER
 
-    async def execute_remote(self, args: ScrollControlArgs, ctx: ToolContext) -> RemoteToolResult:
+    async def execute_remote(
+        self, args: ScrollControlArgs, ctx: ToolContext
+    ) -> RemoteToolResult:
         return self._build_remote_result(
             args,
             ctx,
@@ -88,13 +96,13 @@ class RemoteScrollTool(RemoteToolBase, Tool[ScrollControlArgs]):
 
 class RemoteSwitchTabTool(RemoteToolBase, Tool[SwitchTabArgs]):
     name = "switch_window"
-    description = (
-        "Switch focus to a specific window by exact title. Use an exact known window title rather than blind OS-level cycling."
-    )
+    description = "Switch focus to a specific window by exact title. Use an exact known window title rather than blind OS-level cycling."
     args_model = SwitchTabArgs
     category = ToolDomain.COMPUTER
 
-    async def execute_remote(self, args: SwitchTabArgs, ctx: ToolContext) -> RemoteToolResult:
+    async def execute_remote(
+        self, args: SwitchTabArgs, ctx: ToolContext
+    ) -> RemoteToolResult:
         return self._build_remote_result(
             args,
             ctx,
@@ -112,11 +120,12 @@ class RemoteWaitTool(RemoteToolBase, Tool[WaitToolArgs]):
     args_model = WaitToolArgs
     category = ToolDomain.COMPUTER
 
-    async def execute_remote(self, args: WaitToolArgs, ctx: ToolContext) -> RemoteToolResult:
+    async def execute_remote(
+        self, args: WaitToolArgs, ctx: ToolContext
+    ) -> RemoteToolResult:
         return self._build_remote_result(
             args,
             ctx,
-            request_id=str(uuid.uuid4()),
             log_message="Remote wait tool call",
         )
 
@@ -131,8 +140,12 @@ class RemoteGetOpenWindowsTool(RemoteToolBase, Tool[GetOpenWindowsArgs]):
     args_model = GetOpenWindowsArgs
     category = ToolDomain.COMPUTER
 
-    async def execute_remote(self, args: GetOpenWindowsArgs, ctx: ToolContext) -> RemoteToolResult:
-        return self._build_remote_result(args, ctx, log_message="Remote get open windows tool call")
+    async def execute_remote(
+        self, args: GetOpenWindowsArgs, ctx: ToolContext
+    ) -> RemoteToolResult:
+        return self._build_remote_result(
+            args, ctx, log_message="Remote get open windows tool call"
+        )
 
 
 class RemoteGroundedMouseTool(RemoteToolBase, Tool[GroundedMouseActionArgs]):
@@ -175,6 +188,7 @@ class RemoteGroundedScrollTool(RemoteToolBase, Tool[GroundedScrollActionArgs]):
             ctx,
             log_message=f"Remote grounded scroll tool call: {args.action}",
         )
+
 
 _COMPUTER_USE_MODEL_BY_TOOL = {
     "mouse_control": RemoteMouseTool.args_model,

@@ -15,6 +15,7 @@ from backend.src.agent.execution.tool_call_bridge import (
     build_recoverable_tool_output_message,
     extract_raw_arguments_preview_from_error,
     extract_raw_tool_call_preview_from_error,
+    extract_history_tool_call_ids,
     extract_tool_call_parse_error_from_error,
     extract_tool_call_id_from_error,
     extract_tool_call_ids,
@@ -458,13 +459,14 @@ class InteractionLoop:
         tool_execution_policy: ToolExecutionPolicy,
     ) -> bool:
         """Persist the assistant tool-call turn and stage tool ids for outputs."""
+        history_tool_calls = self._to_history_tool_calls(parsed_response.tool_calls)
         self.session.history.add_assistant_message(
             llm_response_text,
-            tool_calls=self._to_history_tool_calls(parsed_response.tool_calls),
+            tool_calls=history_tool_calls,
         )
         is_bundle = tool_execution_policy.is_bundle(len(parsed_response.tool_calls))
         self.session.history.stage_tool_call_ids(
-            self._extract_tool_call_ids(parsed_response.tool_calls),
+            extract_history_tool_call_ids(history_tool_calls),
             consume_all_on_next_output=is_bundle,
         )
         return is_bundle

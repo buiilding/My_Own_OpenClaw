@@ -12,6 +12,8 @@ from backend.src.core.types.enums import (
 from backend.src.tools.computer.grounding_contract import (
     DragDestinationGroundingArgsMixin,
     SourceGroundingArgsMixin,
+    build_drag_destination_json_rules,
+    build_source_grounding_json_rules,
     validate_drag_destination_grounding_fields,
     validate_source_grounding_fields,
 )
@@ -30,6 +32,21 @@ def _has_prediction_target(description: Optional[str]) -> bool:
     return bool((description or "").strip())
 
 
+def _extend_json_schema_all_of(schema: dict[str, Any], rules: list[dict[str, Any]]) -> None:
+    all_of = schema.setdefault("allOf", [])
+    if isinstance(all_of, list):
+        all_of.extend(rules)
+
+
+def _add_mouse_control_json_schema_rules(schema: dict[str, Any]) -> None:
+    _extend_json_schema_all_of(schema, build_source_grounding_json_rules())
+    _extend_json_schema_all_of(schema, build_drag_destination_json_rules())
+
+
+def _add_scroll_control_json_schema_rules(schema: dict[str, Any]) -> None:
+    _extend_json_schema_all_of(schema, build_source_grounding_json_rules())
+
+
 # Scroll direction: vertical (up/down) or horizontal (left/right). Uses vscroll
 # for vertical, hscroll for horizontal.
 ScrollToolDirection = Literal["up", "down", "left", "right"]
@@ -38,7 +55,10 @@ ScrollToolDirection = Literal["up", "down", "left", "right"]
 # --- Mouse Tool Schemas ---
 
 class MouseControlArgs(SourceGroundingArgsMixin, DragDestinationGroundingArgsMixin):
-    model_config = ConfigDict(extra='forbid')
+    model_config = ConfigDict(
+        extra='forbid',
+        json_schema_extra=_add_mouse_control_json_schema_rules,
+    )
 
     action: MouseAction = Field(
         ...,
@@ -264,7 +284,10 @@ class ScreenshotToolArgs(BaseModel):
 # --- Scroll Tool Schemas ---
 
 class ScrollControlArgs(SourceGroundingArgsMixin):
-    model_config = ConfigDict(extra='forbid')
+    model_config = ConfigDict(
+        extra='forbid',
+        json_schema_extra=_add_scroll_control_json_schema_rules,
+    )
 
     action: Literal["scroll", "scroll_up", "scroll_down"] = Field(
         ...,

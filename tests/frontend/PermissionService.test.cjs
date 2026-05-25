@@ -391,6 +391,39 @@ describe('permission_service', () => {
     expect(runCommand).toHaveBeenCalled();
     expect(status.status).toBe('granted');
     expect(status.granted).toBe(true);
+    expect(permissionStateStore.set).toHaveBeenCalledWith(
+      'shell_execution',
+      expect.objectContaining({
+        granted: true,
+        source: 'shell_execution_auth_flow',
+      }),
+    );
+
+    const reprobe = await runPermissionProbe('shell_execution', {
+      platform: 'linux',
+      permissionStateStore,
+      verifyShellExecutionCapability: jest.fn(async () => ({
+        granted: true,
+        reason: 'Shell execution runtime is available.',
+      })),
+    });
+    expect(reprobe.status).toBe('granted');
+    expect(reprobe.granted).toBe(true);
+  });
+
+  test('shell execution runtime availability alone does not grant authorization', async () => {
+    const status = await runPermissionProbe('shell_execution', {
+      platform: 'linux',
+      permissionStateStore,
+      verifyShellExecutionCapability: jest.fn(async () => ({
+        granted: true,
+        reason: 'Shell execution runtime is available.',
+      })),
+    });
+
+    expect(status.status).toBe('needs-action');
+    expect(status.granted).toBe(false);
+    expect(status.reason).toBe('Shell execution requires explicit authorization.');
   });
 
   test('linux screen capture grant depends on desktop capture prompt success', async () => {

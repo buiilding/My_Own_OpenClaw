@@ -26,9 +26,18 @@ SDK OCR and vision routes expose backend-owned perception capabilities for devel
 - Vision describe
 - Vision overlays
 
+`/ocr/find-text` and `/ocr/find-text-candidates` both honor the request
+`threshold` before applying `max_results`. The candidates route returns the
+ranked candidate list that remains after threshold filtering.
+
 ## Image Sources
 
 SDK routes can resolve image input through backend helpers, including artifact-backed sources. Preserve artifact identity when the image came from a screenshot or upload.
+
+Vision describe region responses are crop-relative when a region is supplied:
+the backend rejects origins outside the source image, trims partial overflow at
+the image edge, and returns cropped-image metadata with the region origin
+normalized to `x=0, y=0`.
 
 ## Owner Modules
 

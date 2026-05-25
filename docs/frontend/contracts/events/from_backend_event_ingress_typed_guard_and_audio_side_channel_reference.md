@@ -41,6 +41,7 @@ Renderer typed filtering lives in `backendEvents.ts`:
 
 Current accepted typed event types:
 
+- `query-accepted`
 - `llm-thought`
 - `streaming-response`
 - `streaming-complete`
@@ -50,6 +51,7 @@ Current accepted typed event types:
 - `tool-call`
 - `tool-output`
 - `tool-bundle`
+- `web-search-progress`
 - `local-user-message`
 - `system-prompt`
 - `user-message-full`
@@ -59,7 +61,7 @@ Current accepted typed event types:
 - `tool-schemas`
 - `error`
 
-Events outside this set are ignored by typed consumers.
+Events outside this set are ignored by typed consumers. Known event types are also rejected when optional base context fields are not strings, or when a present `payload` is not an object or contains known fields with values outside the typed event contract.
 
 Notable control ACK events outside typed union:
 

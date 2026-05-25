@@ -3,6 +3,7 @@
 from backend.src.agent.execution.tool_call_bridge import (
     build_raw_tool_call_preview,
     build_recoverable_tool_output_message,
+    extract_history_tool_call_ids,
     extract_raw_arguments_preview_from_error,
     extract_raw_tool_call_preview_from_error,
     extract_tool_call_parse_error_from_error,
@@ -152,7 +153,7 @@ def test_tool_call_bridge_preserves_thought_signature_between_shapes():
     ]
 
 
-def test_extract_tool_call_ids_ignores_missing_or_invalid_values():
+def test_extract_tool_call_ids_matches_persisted_history_ids_with_fallbacks():
     ids = extract_tool_call_ids(
         [
             ParsedToolCall(tool_name="a", parameters={}, metadata={"tool_call_id": "ok_1"}),
@@ -163,7 +164,7 @@ def test_extract_tool_call_ids_ignores_missing_or_invalid_values():
         ]
     )
 
-    assert ids == ["ok_1", "ok_2"]
+    assert ids == ["ok_1", "tool_call_1", "tool_call_2", "tool_call_3", "ok_2"]
 
 
 def test_extract_tool_call_ids_ignores_whitespace_only_ids():
@@ -175,7 +176,20 @@ def test_extract_tool_call_ids_ignores_whitespace_only_ids():
         ]
     )
 
-    assert ids == ["ok_3"]
+    assert ids == ["tool_call_0", "tool_call_1", "ok_3"]
+
+
+def test_extract_history_tool_call_ids_filters_invalid_history_ids():
+    ids = extract_history_tool_call_ids(
+        [
+            {"id": "call_1", "name": "read_file"},
+            {"id": "", "name": "replace"},
+            {"id": 12, "name": "browser"},
+            {"name": "mouse_control"},
+        ]
+    )
+
+    assert ids == ["call_1"]
 
 
 def test_to_history_tool_calls_falls_back_when_tool_call_id_is_whitespace():

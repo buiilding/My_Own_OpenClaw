@@ -85,12 +85,13 @@ def _normalize_sql_limit(limit: Optional[int]) -> int:
 
 async def init_chat_event_schema(db_path: str) -> None:
     if aiosqlite is None:
-        raise ImportError("aiosqlite is not installed. Install with: pip install aiosqlite")
+        raise ImportError(
+            "aiosqlite is not installed. Install with: pip install aiosqlite"
+        )
 
     async with aiosqlite.connect(db_path) as conn:
         cursor = await conn.cursor()
-        await cursor.execute(
-            """
+        await cursor.execute("""
             CREATE TABLE IF NOT EXISTS chat_events (
                 id TEXT PRIMARY KEY,
                 user_id TEXT NOT NULL,
@@ -111,36 +112,46 @@ async def init_chat_event_schema(db_path: str) -> None:
                 event_payload TEXT NOT NULL,
                 compaction_checkpoint TEXT
             )
-            """
-        )
+            """)
         await _ensure_chat_event_column(cursor, "attachments", "TEXT")
-        await cursor.execute(
-            """
+        await cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_chat_events_conversation_order
             ON chat_events(user_id, conversation_id, message_index, timestamp)
-            """
-        )
-        await cursor.execute(
-            """
+            """)
+        await cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_chat_events_timestamp
             ON chat_events(user_id, timestamp)
-            """
-        )
-        await cursor.execute(
-            """
+            """)
+        await cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_chat_events_type
             ON chat_events(user_id, conversation_id, event_type)
-            """
-        )
+            """)
+        await cursor.execute("""
+            CREATE TABLE IF NOT EXISTS chat_conversation_revisions (
+                user_id TEXT NOT NULL,
+                conversation_id TEXT NOT NULL,
+                revision_id TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY (user_id, conversation_id)
+            )
+            """)
+        await cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_chat_conversation_revisions_updated
+            ON chat_conversation_revisions(user_id, updated_at)
+            """)
         await conn.commit()
 
 
-async def _ensure_chat_event_column(cursor: Any, column_name: str, column_type: str) -> None:
+async def _ensure_chat_event_column(
+    cursor: Any, column_name: str, column_type: str
+) -> None:
     await cursor.execute("PRAGMA table_info(chat_events)")
     columns = await cursor.fetchall()
     existing = {row[1] for row in columns}
     if column_name not in existing:
-        await cursor.execute(f"ALTER TABLE chat_events ADD COLUMN {column_name} {column_type}")
+        await cursor.execute(
+            f"ALTER TABLE chat_events ADD COLUMN {column_name} {column_type}"
+        )
 
 
 async def get_next_chat_event_index(
@@ -195,7 +206,9 @@ async def append_chat_event(
             conversation_id=conversation_id,
         )
     )
-    event_id = str(event_payload.get("eventId") or event_payload.get("event_id") or uuid.uuid4())
+    event_id = str(
+        event_payload.get("eventId") or event_payload.get("event_id") or uuid.uuid4()
+    )
 
     async with aiosqlite.connect(db_path) as conn:
         await conn.execute(
@@ -228,6 +241,19 @@ async def append_chat_event(
                 _json_dumps(compaction_checkpoint),
             ),
         )
+        if isinstance(conversation_id, str) and conversation_id.strip() and revision_id:
+            await conn.execute(
+                """
+                INSERT INTO chat_conversation_revisions
+                (user_id, conversation_id, revision_id, updated_at)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(user_id, conversation_id)
+                DO UPDATE SET
+                    revision_id = excluded.revision_id,
+                    updated_at = excluded.updated_at
+                """,
+                (user_id, conversation_id, revision_id, normalized_timestamp),
+            )
         await conn.commit()
 
     return {
@@ -309,14 +335,32 @@ async def list_chat_conversations(
         cursor = await conn.cursor()
         await cursor.execute(
             """
-            SELECT conversation_id,
-                   MIN(timestamp) as first_timestamp,
-                   MAX(timestamp) as last_timestamp,
-                   COUNT(*) as entry_count,
+            WITH conversation_ids AS (
+                SELECT conversation_id
+                FROM chat_events
+                WHERE user_id = ? AND conversation_id IS NOT NULL
+                UNION
+                SELECT conversation_id
+                FROM chat_conversation_revisions
+                WHERE user_id = ? AND conversation_id IS NOT NULL
+            )
+            SELECT c.conversation_id,
+                   (
+                     SELECT MIN(timestamp) FROM chat_events e
+                     WHERE e.user_id = ? AND e.conversation_id = c.conversation_id
+                   ) as first_timestamp,
+                   (
+                     SELECT MAX(timestamp) FROM chat_events e
+                     WHERE e.user_id = ? AND e.conversation_id = c.conversation_id
+                   ) as last_timestamp,
+                   (
+                     SELECT COUNT(*) FROM chat_events e
+                     WHERE e.user_id = ? AND e.conversation_id = c.conversation_id
+                   ) as entry_count,
                    (
                      SELECT title FROM conversation_titles t
-                     WHERE t.user_id = chat_events.user_id
-                       AND t.conversation_id = chat_events.conversation_id
+                     WHERE t.user_id = ?
+                       AND t.conversation_id = c.conversation_id
                        AND t.title IS NOT NULL
                        AND t.title != ''
                      ORDER BY t.is_locked DESC, t.updated_at DESC
@@ -324,8 +368,8 @@ async def list_chat_conversations(
                    ) as stored_title,
                    (
                      SELECT content FROM chat_events e2
-                     WHERE e2.user_id = chat_events.user_id
-                       AND e2.conversation_id = chat_events.conversation_id
+                     WHERE e2.user_id = ?
+                       AND e2.conversation_id = c.conversation_id
                        AND e2.role = 'user'
                        AND e2.content IS NOT NULL
                        AND e2.content != ''
@@ -334,24 +378,36 @@ async def list_chat_conversations(
                    ) as first_user_content,
                    (
                      SELECT content FROM chat_events e2
-                     WHERE e2.user_id = chat_events.user_id
-                       AND e2.conversation_id = chat_events.conversation_id
+                     WHERE e2.user_id = ?
+                       AND e2.conversation_id = c.conversation_id
                        AND e2.content IS NOT NULL
                        AND e2.content != ''
                      ORDER BY e2.message_index DESC, e2.timestamp DESC
                      LIMIT 1
                    ) as last_content,
                    (
+                     SELECT revision_id FROM chat_conversation_revisions r
+                     WHERE r.user_id = ?
+                       AND r.conversation_id = c.conversation_id
+                     LIMIT 1
+                   ) as stored_revision_id,
+                   (
+                     SELECT updated_at FROM chat_conversation_revisions r
+                     WHERE r.user_id = ?
+                       AND r.conversation_id = c.conversation_id
+                     LIMIT 1
+                   ) as revision_updated_at,
+                   (
                      SELECT revision_id FROM chat_events e2
-                     WHERE e2.user_id = chat_events.user_id
-                       AND e2.conversation_id = chat_events.conversation_id
+                     WHERE e2.user_id = ?
+                       AND e2.conversation_id = c.conversation_id
                      ORDER BY e2.message_index DESC, e2.timestamp DESC
                      LIMIT 1
-                   ) as revision_id,
+                   ) as event_revision_id,
                    (
                      SELECT workspace_path FROM chat_events e2
-                     WHERE e2.user_id = chat_events.user_id
-                       AND e2.conversation_id = chat_events.conversation_id
+                     WHERE e2.user_id = ?
+                       AND e2.conversation_id = c.conversation_id
                        AND e2.workspace_path IS NOT NULL
                        AND e2.workspace_path != ''
                      ORDER BY e2.message_index DESC, e2.timestamp DESC
@@ -359,20 +415,33 @@ async def list_chat_conversations(
                    ) as workspace_path,
                    (
                      SELECT workspace_name FROM chat_events e2
-                     WHERE e2.user_id = chat_events.user_id
-                       AND e2.conversation_id = chat_events.conversation_id
+                     WHERE e2.user_id = ?
+                       AND e2.conversation_id = c.conversation_id
                        AND e2.workspace_name IS NOT NULL
                        AND e2.workspace_name != ''
                      ORDER BY e2.message_index DESC, e2.timestamp DESC
                      LIMIT 1
                    ) as workspace_name
-            FROM chat_events
-            WHERE user_id = ? AND conversation_id IS NOT NULL
-            GROUP BY conversation_id
-            ORDER BY last_timestamp DESC
+            FROM conversation_ids c
+            ORDER BY COALESCE(last_timestamp, revision_updated_at) DESC
             LIMIT ?
             """,
-            (user_id, _normalize_sql_limit(limit)),
+            (
+                user_id,
+                user_id,
+                user_id,
+                user_id,
+                user_id,
+                user_id,
+                user_id,
+                user_id,
+                user_id,
+                user_id,
+                user_id,
+                user_id,
+                user_id,
+                _normalize_sql_limit(limit),
+            ),
         )
         rows = await cursor.fetchall()
 
@@ -390,11 +459,13 @@ async def list_chat_conversations(
         results.append(
             {
                 "conversation_id": conversation_id,
-                "first_timestamp": row["first_timestamp"],
-                "last_timestamp": row["last_timestamp"],
+                "first_timestamp": row["first_timestamp"] or row["revision_updated_at"],
+                "last_timestamp": row["last_timestamp"] or row["revision_updated_at"],
                 "entry_count": row["entry_count"],
                 "record_kind": "chat_event",
-                "revision_id": row["revision_id"] or f"rev-stored-{conversation_id}",
+                "revision_id": row["stored_revision_id"]
+                or row["event_revision_id"]
+                or f"rev-stored-{conversation_id}",
                 "title": title or conversation_id,
                 "last_message": row["last_content"] or "",
                 "workspace_path": row["workspace_path"] or "",
@@ -403,6 +474,56 @@ async def list_chat_conversations(
             }
         )
     return results
+
+
+async def get_chat_conversation_revision(
+    *,
+    db_path: str,
+    user_id: str,
+    conversation_id: Optional[str],
+) -> Optional[Dict[str, Any]]:
+    if not isinstance(conversation_id, str) or not conversation_id.strip():
+        return None
+    async with aiosqlite.connect(db_path) as conn:
+        conn.row_factory = aiosqlite.Row
+        cursor = await conn.cursor()
+        await cursor.execute(
+            """
+            SELECT revision_id, updated_at
+            FROM chat_conversation_revisions
+            WHERE user_id = ? AND conversation_id = ?
+            LIMIT 1
+            """,
+            (user_id, conversation_id),
+        )
+        row = await cursor.fetchone()
+        if row:
+            return {
+                "conversation_id": conversation_id,
+                "revision_id": row["revision_id"],
+                "updated_at": row["updated_at"],
+                "record_kind": "chat_event",
+            }
+        await cursor.execute(
+            """
+            SELECT revision_id, timestamp
+            FROM chat_events
+            WHERE user_id = ? AND conversation_id = ?
+            ORDER BY message_index DESC, timestamp DESC
+            LIMIT 1
+            """,
+            (user_id, conversation_id),
+        )
+        row = await cursor.fetchone()
+    if not row:
+        return None
+    return {
+        "conversation_id": conversation_id,
+        "revision_id": row["revision_id"] or f"rev-stored-{conversation_id}",
+        "updated_at": row["timestamp"]
+        or datetime.fromtimestamp(0, timezone.utc).isoformat(),
+        "record_kind": "chat_event",
+    }
 
 
 async def search_chat_conversations(
@@ -457,19 +578,171 @@ async def delete_chat_conversation(
     clause, params = _conversation_clause(conversation_id)
     async with aiosqlite.connect(db_path) as conn:
         cursor = await conn.cursor()
-        await cursor.execute(
-            f"DELETE FROM chat_events WHERE user_id = ? AND {clause}",
-            (user_id, *params),
-        )
-        deleted = cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
-        await conn.commit()
+        await conn.execute("BEGIN")
+        try:
+            await cursor.execute(
+                f"DELETE FROM chat_events WHERE user_id = ? AND {clause}",
+                (user_id, *params),
+            )
+            deleted = cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
+            if isinstance(conversation_id, str) and conversation_id.strip():
+                await cursor.execute(
+                    """
+                    DELETE FROM chat_conversation_revisions
+                    WHERE user_id = ? AND conversation_id = ?
+                    """,
+                    (user_id, conversation_id),
+                )
+            await conn.commit()
+        except Exception:
+            await conn.rollback()
+            raise
     return int(deleted)
+
+
+async def replace_chat_conversation(
+    *,
+    db_path: str,
+    user_id: str,
+    conversation_id: Optional[str],
+    events: List[Dict[str, Any]],
+    revision_id: Optional[str] = None,
+    revision_updated_at: Optional[str] = None,
+) -> Dict[str, int]:
+    clause, params = _conversation_clause(conversation_id)
+    async with aiosqlite.connect(db_path) as conn:
+        cursor = await conn.cursor()
+        await conn.execute("BEGIN")
+        try:
+            await cursor.execute(
+                f"DELETE FROM chat_events WHERE user_id = ? AND {clause}",
+                (user_id, *params),
+            )
+            deleted = cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
+
+            inserted = 0
+            for index, event in enumerate(events):
+                event_payload = event.get("event_payload")
+                if not isinstance(event_payload, dict):
+                    raise ValueError("event_payload is required")
+                event_id = str(
+                    event_payload.get("eventId")
+                    or event_payload.get("event_id")
+                    or uuid.uuid4()
+                )
+                message_index = event.get("message_index")
+                normalized_index = (
+                    int(message_index)
+                    if isinstance(message_index, int) and message_index > 0
+                    else index + 1
+                )
+                await conn.execute(
+                    """
+                    INSERT OR REPLACE INTO chat_events
+                    (id, user_id, conversation_id, event_type, role, content, timestamp,
+                     message_index, revision_id, turn_ref, tool_name, correlation_id,
+                     workspace_path, workspace_name, metadata, attachments, event_payload,
+                     compaction_checkpoint)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        event_id,
+                        user_id,
+                        conversation_id,
+                        event.get("event_type"),
+                        event.get("role"),
+                        event.get("content") or "",
+                        _normalize_timestamp(event.get("timestamp")),
+                        normalized_index,
+                        event.get("revision_id"),
+                        event.get("turn_ref"),
+                        event.get("tool_name"),
+                        event.get("correlation_id"),
+                        event.get("workspace_path"),
+                        event.get("workspace_name"),
+                        _json_dumps(event.get("metadata")),
+                        _json_dumps_value(
+                            event.get("attachments")
+                            if isinstance(event.get("attachments"), list)
+                            else []
+                        ),
+                        _json_dumps(event_payload) or "{}",
+                        _json_dumps(event.get("compaction_checkpoint")),
+                    ),
+                )
+                inserted += 1
+
+            if isinstance(conversation_id, str) and conversation_id.strip():
+                latest_event = events[-1] if events else {}
+                stored_revision_id = (
+                    revision_id
+                    if isinstance(revision_id, str) and revision_id.strip()
+                    else (
+                        latest_event.get("revision_id")
+                        if isinstance(latest_event.get("revision_id"), str)
+                        and latest_event.get("revision_id").strip()
+                        else None
+                    )
+                )
+                if stored_revision_id:
+                    stored_updated_at = _normalize_timestamp(
+                        revision_updated_at
+                        if isinstance(revision_updated_at, str)
+                        and revision_updated_at.strip()
+                        else (
+                            latest_event.get("timestamp")
+                            if isinstance(latest_event.get("timestamp"), str)
+                            else None
+                        )
+                    )
+                    await conn.execute(
+                        """
+                        INSERT INTO chat_conversation_revisions
+                        (user_id, conversation_id, revision_id, updated_at)
+                        VALUES (?, ?, ?, ?)
+                        ON CONFLICT(user_id, conversation_id)
+                        DO UPDATE SET
+                            revision_id = excluded.revision_id,
+                            updated_at = excluded.updated_at
+                        """,
+                        (
+                            user_id,
+                            conversation_id,
+                            stored_revision_id,
+                            stored_updated_at,
+                        ),
+                    )
+                else:
+                    await conn.execute(
+                        """
+                        DELETE FROM chat_conversation_revisions
+                        WHERE user_id = ? AND conversation_id = ?
+                        """,
+                        (user_id, conversation_id),
+                    )
+
+            await conn.commit()
+        except Exception:
+            await conn.rollback()
+            raise
+    return {"deleted_count": int(deleted), "inserted_count": inserted}
 
 
 async def clear_chat_events(*, db_path: str, user_id: str) -> int:
     async with aiosqlite.connect(db_path) as conn:
         cursor = await conn.cursor()
-        await cursor.execute("DELETE FROM chat_events WHERE user_id = ?", (user_id,))
-        deleted = cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
-        await conn.commit()
+        await conn.execute("BEGIN")
+        try:
+            await cursor.execute(
+                "DELETE FROM chat_events WHERE user_id = ?", (user_id,)
+            )
+            deleted = cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
+            await cursor.execute(
+                "DELETE FROM chat_conversation_revisions WHERE user_id = ?",
+                (user_id,),
+            )
+            await conn.commit()
+        except Exception:
+            await conn.rollback()
+            raise
     return int(deleted)

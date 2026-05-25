@@ -153,10 +153,17 @@ describe('permission_ipc_runtime', () => {
     });
   });
 
-  test('sets the active workspace programmatically for conversation binding', async () => {
+  test('sets the active workspace only when the path was already granted', async () => {
     const workspacePath = fs.mkdtempSync(path.join(os.tmpdir(), 'windieos-conversation-workspace-'));
     const emitWorkspaceAccessUpdated = jest.fn();
-    let storedEntry = null;
+    let storedEntry = {
+      granted: true,
+      source: 'workspace_picker',
+      selected_paths: [workspacePath],
+      details: {
+        selected_paths: [workspacePath],
+      },
+    };
     const permissionStateStore = {
       get: jest.fn(async () => storedEntry),
       set: jest.fn(async (_permissionId, entry) => {
@@ -179,7 +186,7 @@ describe('permission_ipc_runtime', () => {
 
     expect(permissionStateStore.set).toHaveBeenCalledWith('filesystem_workspace_access', expect.objectContaining({
       granted: true,
-      source: 'conversation_binding',
+      source: 'workspace_picker',
       selected_paths: [workspacePath],
     }));
     expect(permissionStateStore.delete).not.toHaveBeenCalled();
@@ -199,5 +206,40 @@ describe('permission_ipc_runtime', () => {
         }),
       },
     });
+  });
+
+  test('rejects arbitrary active workspace paths that were not selected through permission flow', async () => {
+    const workspacePath = fs.mkdtempSync(path.join(os.tmpdir(), 'windieos-untrusted-workspace-'));
+    const emitWorkspaceAccessUpdated = jest.fn();
+    const permissionStateStore = {
+      get: jest.fn(async () => null),
+      set: jest.fn(async (_permissionId, entry) => entry),
+      delete: jest.fn(async () => true),
+    };
+    const { invokeHandlers } = createRuntime({
+      permissionStateStore,
+      emitWorkspaceAccessUpdated,
+    });
+
+    const result = await invokeHandlers['set-active-workspace'](null, {
+      workspacePath,
+    });
+
+    expect(permissionStateStore.set).not.toHaveBeenCalled();
+    expect(permissionStateStore.delete).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      success: false,
+      error: 'Workspace path must be selected through the workspace permission prompt before it can become active.',
+      data: {
+        status: expect.objectContaining({
+          permission_id: 'filesystem_workspace_access',
+          granted: false,
+        }),
+      },
+    });
+    expect(emitWorkspaceAccessUpdated).toHaveBeenCalledWith(expect.objectContaining({
+      permission_id: 'filesystem_workspace_access',
+      granted: false,
+    }));
   });
 });

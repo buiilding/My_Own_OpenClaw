@@ -61,6 +61,22 @@ describe('transcript session state', () => {
     });
   });
 
+  test('update keeps current user id when user id is undefined', () => {
+    const state = createTranscriptSessionState(() => ({ conversationRef: 'conv-stored', userId: 'stored-user' }));
+    expect(state.update('conv-next', undefined)).toEqual({
+      conversationRef: 'conv-next',
+      userId: 'stored-user',
+    });
+  });
+
+  test('update clears current user id when null is explicitly provided', () => {
+    const state = createTranscriptSessionState(() => ({ conversationRef: 'conv-stored', userId: 'stored-user' }));
+    expect(state.update(undefined, null)).toEqual({
+      conversationRef: 'conv-stored',
+      userId: null,
+    });
+  });
+
   test('resolve ignores null override values and keeps current state', () => {
     const state = createTranscriptSessionState(() => ({ conversationRef: 'conv-1', userId: 'user-1' }));
     expect(state.resolve({ conversationRef: null, userId: null })).toEqual({

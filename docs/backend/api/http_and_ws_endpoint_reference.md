@@ -103,10 +103,13 @@ Behavior:
 
 Auth note:
 
-- when `WINDIE_RUNS_API_KEY` or `WINDIE_DEMO_API_KEY` is set, runs routes require header `x-windie-runs-key`
+- runs routes require header `x-windie-runs-key`
+- when neither `WINDIE_RUNS_API_KEY` nor `WINDIE_DEMO_API_KEY` is set, runs routes fail closed with HTTP `503`
 
 Failure behavior:
 
+- missing backend runs key -> HTTP 503
+- missing or invalid request runs key -> HTTP 401
 - workspace cap exceeded -> HTTP 409
 
 ### `POST /api/runs/workers/heartbeat`
@@ -233,10 +236,11 @@ Request model (`SummarizeRequest`):
 
 - `conversations`: 1..100 items
 - each conversation <= 32768 chars
-- `user_id`: non-empty and cannot be `default_user`
+- `user_id`: non-empty, cannot be `default_user`, and must match authenticated install identity
 
 Behavior:
 
+- requires authenticated install identity before service execution
 - builds `SemanticSummarizationService` through `_build_semantic_service()`
 - resolves provider client via backend config/API-key path
 - parses/fallback-extracts semantic facts
@@ -257,6 +261,7 @@ Request model (`GenerateTitleRequest`):
 
 Behavior:
 
+- requires authenticated install identity and rejects body `user_id` mismatches
 - builds `SemanticSummarizationService` through `_build_semantic_service()`
 - resolves config from matching session or container defaults
 - applies optional override model/provider

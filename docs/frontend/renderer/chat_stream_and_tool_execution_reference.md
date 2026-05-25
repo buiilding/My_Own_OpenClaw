@@ -207,8 +207,11 @@ SDK dispatch behavior:
 - SDK `assistant_message` from backend `assistant-message-full`: annotate latest assistant `llm-text` message
 - metadata/transparency handlers consume SDK payload fields directly instead of
   unwrapping raw backend metadata events
+- turn-scoped metadata annotations are strict: when `event.turnRef` is present,
+  user/system/tool-schema metadata updates only a same-turn user row; missing
+  same-turn rows are no-ops rather than sender-only fallbacks
 - SDK `memory_stored` from backend `memory-store`: renderer chat stream path records tracking only; no direct local-memory write side effect is executed in `useChatStreamTerminalHandlers`
-- SDK `tool_schemas_metadata` from backend `tool-schemas`: annotate first user message with tool schema list
+- SDK `tool_schemas_metadata` from backend `tool-schemas`: annotate the selected user message with tool schema list
 - SDK `usage_updated` from backend `token-count`: update token counters
 - terminal handlers consume SDK `turn_error`, `usage_updated`, and
   `memory_stored` payloads directly. They do not unwrap `payload.rawEvent`
@@ -279,6 +282,8 @@ Streaming-complete transcript write nuance:
   - tool schemas
   - full user message content/metadata
   - full assistant message content
+- when completion has a `turnRef`, transparency uses only a same-turn user
+  message; latest-user fallback is reserved for unscoped legacy completions
 
 ## SDK-Owned Tool Execution
 

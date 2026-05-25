@@ -79,6 +79,7 @@ Single result path:
 - `_serialize_tool_result_data(...)` converts payload `data` to plain dict
 - supports `dict` and Pydantic `model_dump(...)`
 - unexpected payload types logged and normalized to `None`
+- when the session returns a backend canonical result, the emitted `tool-output` envelope uses backend-owned session context (`session_id`, active `conversation_ref`, active `turn_ref`) instead of echoing client-supplied context fields from the inbound result
 - delegates to `session.process_frontend_tool_result(...)`
 
 Bundle path:

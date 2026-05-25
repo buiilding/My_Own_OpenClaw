@@ -19,6 +19,9 @@ from core.executors import get_interactive_executor
 
 logger = logging.getLogger(__name__)
 
+SCREENSHOT_TEMP_DIR_NAME = "windieos-screenshots"
+SCREENSHOT_TEMP_FILE_PREFIX = "windie-shot-"
+
 
 def _normalize_monitor_id(raw_monitor_id: object) -> Optional[str]:
     if isinstance(raw_monitor_id, str):
@@ -221,6 +224,16 @@ def _crop_if_region(image: object, region: Optional[tuple[int, int, int, int]]) 
     return image.crop((left, top, left + width, top + height))
 
 
+def _screenshot_temp_dir() -> str:
+    temp_dir = os.path.join(tempfile.gettempdir(), SCREENSHOT_TEMP_DIR_NAME)
+    os.makedirs(temp_dir, mode=0o700, exist_ok=True)
+    try:
+        os.chmod(temp_dir, 0o700)
+    except OSError:
+        logger.debug("Unable to tighten screenshot temp directory permissions", exc_info=True)
+    return temp_dir
+
+
 def _capture_with_linux_cursor(region: Optional[tuple[int, int, int, int]]) -> Optional[tuple[object, str]]:
     """
     Capture screenshot on Linux including cursor using gnome-screenshot/scrot.
@@ -238,7 +251,12 @@ def _capture_with_linux_cursor(region: Optional[tuple[int, int, int, int]]) -> O
         from PIL import Image
 
         for base_cmd, backend_label in commands:
-            with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+            with tempfile.NamedTemporaryFile(
+                suffix=".png",
+                prefix=SCREENSHOT_TEMP_FILE_PREFIX,
+                dir=_screenshot_temp_dir(),
+                delete=False,
+            ) as tmp:
                 tmp_path = tmp.name
             try:
                 cmd = [*base_cmd, tmp_path]
@@ -537,7 +555,8 @@ async def capture_screenshot(args: Dict[str, Any]) -> Dict[str, Any]:
             img_bytes = img_buffer.getvalue()
             with tempfile.NamedTemporaryFile(
                 suffix=".jpg",
-                prefix="windie-shot-",
+                prefix=SCREENSHOT_TEMP_FILE_PREFIX,
+                dir=_screenshot_temp_dir(),
                 delete=False,
             ) as screenshot_file:
                 screenshot_file.write(img_bytes)

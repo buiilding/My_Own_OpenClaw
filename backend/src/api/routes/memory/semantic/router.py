@@ -6,7 +6,7 @@ import logging
 import time
 from typing import Any, Dict
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from backend.src.api.auth.context import get_current_authenticated_install_identity
 from backend.src.api.deps import ContainerDep, SessionManagerDep
@@ -93,6 +93,21 @@ def _build_semantic_service() -> SemanticSummarizationService:
     )
 
 
+def _resolve_authenticated_semantic_user_id(request_user_id: str) -> str:
+    identity = get_current_authenticated_install_identity()
+    if identity is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Authenticated install identity required",
+        )
+    if request_user_id.strip() != identity.user_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Semantic route cannot act as another user",
+        )
+    return identity.user_id
+
+
 @router.post("/summarize", response_model=SummarizeResponse)
 async def summarize_conversations(
     request: SummarizeRequest,
@@ -100,8 +115,7 @@ async def summarize_conversations(
     session_manager: SessionManagerDep,
 ) -> SummarizeResponse:
     """Summarize conversations and extract semantic information."""
-    identity = get_current_authenticated_install_identity()
-    resolved_user_id = identity.user_id if identity is not None else request.user_id
+    resolved_user_id = _resolve_authenticated_semantic_user_id(request.user_id)
     route_started_at = _log_semantic_route_start(
         route_label="/api/semantic/summarize",
         user_id=resolved_user_id,
@@ -146,8 +160,7 @@ async def generate_conversation_title(
     session_manager: SessionManagerDep,
 ) -> GenerateTitleResponse:
     """Generate a conversation title using the active user model."""
-    identity = get_current_authenticated_install_identity()
-    resolved_user_id = identity.user_id if identity is not None else request.user_id
+    resolved_user_id = _resolve_authenticated_semantic_user_id(request.user_id)
     route_started_at = _log_semantic_route_start(
         route_label="/api/semantic/title",
         user_id=resolved_user_id,

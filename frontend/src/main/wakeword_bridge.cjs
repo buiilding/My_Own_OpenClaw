@@ -125,9 +125,11 @@ function startWakewordService(mainWindow, onWakewordDetected) {
         line,
         mainWindow,
         getIsPythonReady: () => wakewordSupervisor.getSnapshot().ready,
-        setIsPythonReady: (nextReady) => {
+        setIsPythonReady: (nextReady, errorMessage = '') => {
           if (nextReady) {
             wakewordSupervisor.markReady();
+          } else {
+            wakewordSupervisor.markError(errorMessage);
           }
         },
       });

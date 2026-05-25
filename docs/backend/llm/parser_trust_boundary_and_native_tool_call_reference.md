@@ -82,6 +82,8 @@ Strategy order:
 
 - uses iterative `json.JSONDecoder.raw_decode(...)` scanning from each `{`
 - skips oversized candidate JSON objects
+- rejects oversized tool-call-shaped candidate JSON objects with `InputSizeLimitError`
+- validates each decoded candidate against `max_json_nesting_depth` before schema extraction
 - supports multiple tool-call objects embedded in free text
 - removes extracted spans and normalizes remaining text whitespace
 

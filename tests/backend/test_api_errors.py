@@ -99,13 +99,14 @@ async def test_send_error_response_sanitizes_internal_exception() -> None:
 
 
 @pytest.mark.asyncio
-async def test_send_error_response_uses_provided_message_when_no_exception() -> None:
+async def test_send_error_response_uses_provided_message_when_user_facing() -> None:
     websocket = FakeWebSocket()
 
     await send_error_response(
         websocket=websocket,
         msg_id="msg_err_2",
         message="safe validation error",
+        user_facing=True,
     )
 
     assert websocket.sent == [
@@ -126,6 +127,7 @@ async def test_send_error_response_respects_custom_error_type() -> None:
         msg_id="msg_err_custom",
         message="validation failed",
         error_type="validation-error",
+        user_facing=True,
     )
 
     assert websocket.sent == [
@@ -133,6 +135,25 @@ async def test_send_error_response_respects_custom_error_type() -> None:
             "type": "validation-error",
             "id": "msg_err_custom",
             "payload": {"message": "validation failed"},
+        }
+    ]
+
+
+@pytest.mark.asyncio
+async def test_send_error_response_sanitizes_raw_message_without_user_facing_flag() -> None:
+    websocket = FakeWebSocket()
+
+    await send_error_response(
+        websocket=websocket,
+        msg_id="msg_err_raw",
+        message="Traceback at /Users/peterbui/private.py with token secret",
+    )
+
+    assert websocket.sent == [
+        {
+            "type": "error",
+            "id": "msg_err_raw",
+            "payload": {"message": INTERNAL_SERVER_ERROR_MESSAGE},
         }
     ]
 

@@ -204,17 +204,29 @@ class TTSProcessor:
                 return
 
             # Detect code blocks (```) or JSON ({)
-            if stripped.startswith("`"):
+            if stripped.startswith("```"):
                 # Starts with code block marker
                 self._is_tool_call_context = True
                 self._suppression_type = "code"
-                self._stream_buffer = ""  # Drop buffer (contains code content)
+                code_marker_idx = self._stream_buffer.find("```")
+                post_marker = self._stream_buffer[code_marker_idx + len("```") :]
+                self._stream_buffer = ""  # Drop buffer up to and including marker
+                if post_marker:
+                    await self._process_chunk(
+                        ChunkEvent(content=post_marker), tts_service
+                    )
             elif stripped.startswith("{"):
                 # Starts with JSON object marker
                 self._is_tool_call_context = True
                 self._suppression_type = "json"
                 self._json_brace_depth = 1  # We found the opening brace
-                self._stream_buffer = ""  # Drop buffer (contains JSON content)
+                json_marker_idx = self._stream_buffer.find("{")
+                post_marker = self._stream_buffer[json_marker_idx + len("{") :]
+                self._stream_buffer = ""  # Drop buffer up to and including marker
+                if post_marker:
+                    await self._process_chunk(
+                        ChunkEvent(content=post_marker), tts_service
+                    )
             else:
                 # Starts with text
                 self._is_tool_call_context = False
@@ -259,7 +271,7 @@ class TTSProcessor:
             if marker_idx != -1:
                 # Found marker mid-chunk
                 pre_marker = content[:marker_idx]
-                post_marker = content[marker_idx:]
+                post_marker = content[marker_idx + len(marker) :]
 
                 # Send text before marker
                 if pre_marker:

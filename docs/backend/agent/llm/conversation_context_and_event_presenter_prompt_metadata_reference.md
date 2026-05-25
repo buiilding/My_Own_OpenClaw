@@ -48,6 +48,21 @@ Timing logging:
 - prompt build time always logged on iteration 1
 - subsequent history retrieval time logged only when > 1ms
 
+## Prompt Size Enforcement
+
+`PromptConstructor` is the model-visible prompt trust boundary. After repo
+instructions, client prompt layers, and stored history are assembled, it rejects
+the prompt before tool projection when any configured security limit is exceeded:
+
+- prompt message count: `security_limits.max_message_history_size`
+- per-message content size: `security_limits.max_message_content_size`
+- aggregate serialized prompt size: `security_limits.max_prompt_size`
+
+Rejected prompts raise `InputSizeLimitError` and record a
+`prompt_constructor` size-limit metric with the failing check. The validation
+applies equally to local `AGENTS.md` context, injected repo instruction
+messages, client prompt layers, and conversation history.
+
 ## First-Turn Transparency Event Ordering
 
 `InteractionLoop.run_loop()` emits prompt transparency events only when `iteration == 1` and metadata exists.

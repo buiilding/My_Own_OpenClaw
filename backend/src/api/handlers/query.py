@@ -8,6 +8,11 @@ import asyncio
 import logging
 from typing import TYPE_CHECKING, Optional
 
+from backend.src.agent.session.active_query_tracker import (
+    ACTIVE_QUERY_GLOBAL_LIMIT,
+    ACTIVE_QUERY_STOP_CONSUMED,
+    ACTIVE_QUERY_USER_LIMIT,
+)
 from backend.src.api.infrastructure.handler import TypedMessageHandler
 
 if TYPE_CHECKING:
@@ -91,39 +96,102 @@ class QueryMessageHandler(TypedMessageHandler[QueryMessage]):
         max_active_queries_global = int(
             getattr(config, "max_active_queries_global", 200)
         )
-        count_active_query_tasks = getattr(
-            self.session_manager,
-            "count_active_query_tasks",
-            None,
-        )
-        if callable(count_active_query_tasks):
-            user_active_queries = count_active_query_tasks(user_id)
-            global_active_queries = count_active_query_tasks()
-            if user_active_queries >= max_active_queries_per_user:
-                await self._send_error(
-                    websocket,
-                    msg_id,
-                    (
-                        "Too many active queries for this user. "
-                        "Wait for an existing query to finish or stop it."
-                    ),
-                )
-                return
-            if global_active_queries >= max_active_queries_global:
-                await self._send_error(
-                    websocket,
-                    msg_id,
-                    "Backend query capacity is saturated. Please retry shortly.",
-                )
-                return
         stop_consumed_on_register = False
         if current_task is not None:
-            stop_consumed_on_register = self.session_manager.register_active_query_task(
-                user_id,
-                current_task,
-                turn_ref=msg_id,
-                conversation_ref=message.payload.conversation_ref,
+            register_with_limits = getattr(
+                self.session_manager,
+                "register_active_query_task_with_limits",
+                None,
             )
+            if callable(register_with_limits):
+                registration_status = register_with_limits(
+                    user_id,
+                    current_task,
+                    turn_ref=msg_id,
+                    conversation_ref=message.payload.conversation_ref,
+                    max_active_queries_per_user=max_active_queries_per_user,
+                    max_active_queries_global=max_active_queries_global,
+                )
+                if registration_status == ACTIVE_QUERY_USER_LIMIT:
+                    await self._send_error(
+                        websocket,
+                        msg_id,
+                        (
+                            "Too many active queries for this user. "
+                            "Wait for an existing query to finish or stop it."
+                        ),
+                    )
+                    return
+                if registration_status == ACTIVE_QUERY_GLOBAL_LIMIT:
+                    await self._send_error(
+                        websocket,
+                        msg_id,
+                        "Backend query capacity is saturated. Please retry shortly.",
+                    )
+                    return
+                stop_consumed_on_register = (
+                    registration_status == ACTIVE_QUERY_STOP_CONSUMED
+                )
+            else:
+                count_active_query_tasks = getattr(
+                    self.session_manager,
+                    "count_active_query_tasks",
+                    None,
+                )
+                if callable(count_active_query_tasks):
+                    user_active_queries = count_active_query_tasks(user_id)
+                    global_active_queries = count_active_query_tasks()
+                    if user_active_queries >= max_active_queries_per_user:
+                        await self._send_error(
+                            websocket,
+                            msg_id,
+                            (
+                                "Too many active queries for this user. "
+                                "Wait for an existing query to finish or stop it."
+                            ),
+                        )
+                        return
+                    if global_active_queries >= max_active_queries_global:
+                        await self._send_error(
+                            websocket,
+                            msg_id,
+                            "Backend query capacity is saturated. Please retry shortly.",
+                        )
+                        return
+                stop_consumed_on_register = (
+                    self.session_manager.register_active_query_task(
+                        user_id,
+                        current_task,
+                        turn_ref=msg_id,
+                        conversation_ref=message.payload.conversation_ref,
+                    )
+                )
+        if current_task is None:
+            count_active_query_tasks = getattr(
+                self.session_manager,
+                "count_active_query_tasks",
+                None,
+            )
+            if callable(count_active_query_tasks):
+                user_active_queries = count_active_query_tasks(user_id)
+                global_active_queries = count_active_query_tasks()
+                if user_active_queries >= max_active_queries_per_user:
+                    await self._send_error(
+                        websocket,
+                        msg_id,
+                        (
+                            "Too many active queries for this user. "
+                            "Wait for an existing query to finish or stop it."
+                        ),
+                    )
+                    return
+                if global_active_queries >= max_active_queries_global:
+                    await self._send_error(
+                        websocket,
+                        msg_id,
+                        "Backend query capacity is saturated. Please retry shortly.",
+                    )
+                    return
         if stop_consumed_on_register:
             logger.info(
                 "[Query Cancelled] Stop request consumed before query execution "
@@ -184,4 +252,10 @@ class QueryMessageHandler(TypedMessageHandler[QueryMessage]):
             message: Error message (optional, used if exception is None)
             exception: Optional exception to sanitize. If provided, message is ignored.
         """
-        await send_error_response(websocket, msg_id, message or "", exception=exception)
+        await send_error_response(
+            websocket,
+            msg_id,
+            message or "",
+            exception=exception,
+            user_facing=exception is None,
+        )

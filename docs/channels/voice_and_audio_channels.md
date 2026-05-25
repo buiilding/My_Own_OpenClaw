@@ -70,6 +70,8 @@ Key files:
 Provider notes:
 
 - OpenAI realtime transcription uses provider websocket sessions behind the backend route.
+- OpenAI partial transcripts are scoped by provider item id and are cleared on
+  both completed and failed item events.
 - Nova and OpenAI modes should preserve the same renderer-facing event protocol.
 - invalid control JSON/audio frames are ignored with warnings instead of taking down the route.
 

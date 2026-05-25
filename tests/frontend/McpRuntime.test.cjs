@@ -1,5 +1,7 @@
 /** @jest-environment node */
 
+const { EventEmitter } = require('events');
+
 const {
   buildClientToolManifestWithMcp,
   clearMcpRuntimeCache,
@@ -127,5 +129,67 @@ describe('MCP runtime', () => {
     expect(manifest.mcp_errors).toEqual([
       { server_id: 'declared', reason: 'server offline' },
     ]);
+  });
+
+  test('starts a fresh cached MCP client when server env values change', async () => {
+    const spawnCalls = [];
+    const spawnImpl = jest.fn((command, args, options) => {
+      spawnCalls.push({ command, args, options });
+      const proc = new EventEmitter();
+      proc.stdout = new EventEmitter();
+      proc.stderr = new EventEmitter();
+      proc.stdin = {
+        write: jest.fn((rawMessage) => {
+          const message = JSON.parse(String(rawMessage).trim());
+          if (message.method === 'initialize') {
+            setImmediate(() => {
+              proc.stdout.emit('data', `${JSON.stringify({
+                jsonrpc: '2.0',
+                id: message.id,
+                result: {
+                  protocolVersion: '2024-11-05',
+                  capabilities: {},
+                  serverInfo: { name: 'test' },
+                },
+              })}\n`);
+            });
+            return;
+          }
+          if (message.method === 'tools/list') {
+            setImmediate(() => {
+              proc.stdout.emit('data', `${JSON.stringify({
+                jsonrpc: '2.0',
+                id: message.id,
+                result: {
+                  tools: [{
+                    name: 'search',
+                    description: 'Search',
+                    inputSchema: { type: 'object', properties: {} },
+                  }],
+                },
+              })}\n`);
+            });
+          }
+        }),
+      };
+      proc.kill = jest.fn();
+      return proc;
+    });
+    const server = {
+      id: 'memory',
+      command: 'node',
+      args: ['server.cjs'],
+      env: { TOKEN: 'old' },
+    };
+
+    await discoverMcpTools({ mcpServers: [server], spawnImpl });
+    await discoverMcpTools({
+      mcpServers: [{ ...server, env: { TOKEN: 'new' } }],
+      spawnImpl,
+    });
+
+    expect(spawnImpl).toHaveBeenCalledTimes(2);
+    expect(spawnCalls[0].options.env.TOKEN).toBe('old');
+    expect(spawnCalls[1].options.env.TOKEN).toBe('new');
   });
 });

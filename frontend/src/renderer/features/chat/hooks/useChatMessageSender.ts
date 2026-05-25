@@ -30,7 +30,10 @@ import {
   normalizeOutgoingPayload,
   type OutgoingUserMessagePayload,
 } from '../utils/messageSender/chatMessageSenderPayloads';
-import { buildReadableFileAttachmentContext } from '../utils/messageSender/readableFileAttachmentContext';
+import {
+  buildReadableFileAttachmentContext,
+  type ReadableFileAttachmentFailure,
+} from '../utils/messageSender/readableFileAttachmentContext';
 import {
   buildPendingUserMessage,
   hasUserMessages,
@@ -53,6 +56,16 @@ type ChatMessageSenderOptions = {
   senderSurface?: ChatSendSurface;
   returnToChatboxPolicy?: ReturnToChatboxPolicy;
 };
+
+function buildReadableAttachmentFailureMessage(
+  failures: ReadableFileAttachmentFailure[],
+): string {
+  const filenames = failures
+    .map((failure) => failure.filename)
+    .filter((filename) => typeof filename === 'string' && filename.trim().length > 0);
+  const listedFiles = filenames.length > 0 ? filenames.join(', ') : 'the selected file';
+  return `Your message wasn't sent because WindieOS couldn't read ${listedFiles}. Remove the failed attachment or try again.`;
+}
 
 /**
  * Custom hook for sending chat messages.
@@ -160,6 +173,22 @@ export function useChatMessageSender(
       conversationRef,
       userId: sessionInfo.userId,
     });
+
+    const attachmentContextResult = await buildReadableFileAttachmentContext(readableFiles);
+    if (attachmentContextResult.failures.length > 0) {
+      const failureMessage = buildReadableAttachmentFailureMessage(attachmentContextResult.failures);
+      addMessage({
+        id: crypto.randomUUID(),
+        text: failureMessage,
+        sender: 'assistant',
+        type: 'error',
+        sourceEventType: 'renderer-compose',
+        sourceChannel: 'renderer-local',
+        isComplete: true,
+      }, conversationRef);
+      throw new Error(failureMessage);
+    }
+    const attachmentContext = attachmentContextResult.context;
     
     // Create user message immediately for instant UI display
     const userMessageId = crypto.randomUUID();
@@ -244,8 +273,6 @@ export function useChatMessageSender(
       screenshotUrl,
       screenshots: uploadedScreenshotEntries.length > 0 ? uploadedScreenshotEntries : null,
     }, conversationRef);
-
-    const attachmentContext = await buildReadableFileAttachmentContext(readableFiles);
 
     // Send query with screenshot to backend
     try {

@@ -48,8 +48,8 @@ are ignored by the manager.
 
 `__aexit__`:
 
-1. pre-cancels unfinished audio task
-2. delegates cleanup to `TTSManager.cleanup(...)`
+1. delegates cleanup to `TTSManager.cleanup(...)`
+2. lets manager cleanup flush/shutdown the service before bounded task cancellation
 
 `wait_for_audio_completion(timeout)`:
 
@@ -96,6 +96,11 @@ Design intent:
 
 - service cleanup errors must not skip task cleanup
 - cancellation waits are bounded to avoid request teardown hangs
+- deferred ElevenLabs streams that never receive text are unblocked by shutdown
+  and return before the manager cancellation fallback is needed
+- ElevenLabs generation-final messages do not end the API audio iterator; only
+  service shutdown ends the iterator, so a later text chunk can reopen the
+  provider without losing the manager streaming task
 
 ## Query Flow Integration
 

@@ -32,6 +32,10 @@ Run from the repo root unless noted.
 
 Run from `frontend/`.
 
+The `frontend/package.json` package is private because it is the Electron
+desktop app bootstrap, not the reusable npm SDK surface. Publishable JavaScript
+client APIs live in `packages/windie-sdk-js` as `@windie/sdk`.
+
 | Command | Purpose |
 | --- | --- |
 | `npm run dev` | Vite renderer dev server. |

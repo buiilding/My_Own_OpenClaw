@@ -53,10 +53,12 @@ When `is_atomic_bundle_from_results(...)` is true:
 3. format single message via `BundleResultFormatter`
 4. wrap into `ToolResult`, transform once (`tool_name='bundled_tools'`)
 5. commit once to history
-6. remove bundle result from storage (`session.remove_bundle_result(bundle_id)`)
+6. remove bundle result from storage (`session.remove_bundle_result(bundle_id)`) in `finally`
 7. return early (skip individual loop)
 
-Outcome: one history tool-output message for whole atomic bundle.
+Outcome: one history tool-output message for whole atomic bundle. If formatting,
+transform, or commit raises, the exception propagates but the stored bundle
+payload is still removed.
 
 ### Individual result path
 

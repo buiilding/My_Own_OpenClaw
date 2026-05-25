@@ -5,6 +5,7 @@ Orchestrates tool call preparation (resolution) before execution.
 Coordinates screenshot acquisition, coordinate resolution, and tool rewriting.
 Transforms high-level tool intents into concrete, executable frontend instructions.
 """
+
 from __future__ import annotations
 
 import logging
@@ -27,7 +28,9 @@ from backend.src.agent.tools.preparation.helpers.vision_service_provider import 
 from backend.src.agent.tools.preparation.ocr import OcrCoordinator
 from backend.src.agent.tools.preparation.screenshot import ScreenshotManager
 from backend.src.agent.tools.preparation.types.execution_ref import ExecutionRef
-from backend.src.agent.tools.preparation.types.resolved_tool_call import ResolvedToolCall
+from backend.src.agent.tools.preparation.types.resolved_tool_call import (
+    ResolvedToolCall,
+)
 from backend.src.agent.tools.preparation.validation import (
     sanitize_and_validate_resolved_tool_call,
     validate_parsed_tool_call,
@@ -223,6 +226,13 @@ class ToolPreparer:
             len(errors),
             short_id(bundle_id),
         )
+        if not errors:
+            for index, resolved_call in enumerate(resolved_calls, start=1):
+                self._register_resolved_call(
+                    session,
+                    self._bundle_step_registration_id(bundle_id, index),
+                    resolved_call,
+                )
         return PreparationResult(
             resolved_calls=resolved_calls,
             errors=errors,
@@ -255,7 +265,9 @@ class ToolPreparer:
                     session,
                     request_id,
                 )
-                tool_preparation_time = time.perf_counter() - tool_preparation_start_time
+                tool_preparation_time = (
+                    time.perf_counter() - tool_preparation_start_time
+                )
                 logger.info(
                     "[Timing] Tool preparation completed in %.3fs (request_id=%s, tool=%s)",
                     tool_preparation_time,
@@ -314,6 +326,11 @@ class ToolPreparer:
     ) -> None:
         """Register resolved call in session runtime storage."""
         session.register_resolved_tool_call(request_id, resolved_call)
+
+    @staticmethod
+    def _bundle_step_registration_id(bundle_id: str, step_index: int) -> str:
+        """Return deterministic storage id for a successfully prepared bundle step."""
+        return f"{bundle_id}:step:{step_index}"
 
     def _needs_coordinate_resolution(self, tool_call: ParsedToolCall) -> bool:
         """Check if the tool call requires coordinate resolution."""

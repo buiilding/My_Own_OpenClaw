@@ -11,6 +11,11 @@ from tests.backend.websocket_route_test_utils import (
     restore_route_deps_shim,
 )
 
+from backend.src.api.auth.context import (
+    AuthenticatedInstallIdentity,
+    reset_current_authenticated_install_identity,
+    set_current_authenticated_install_identity,
+)
 from backend.src.core.config.models import AppConfig
 from backend.src.core.infrastructure.cache_manager import CacheManager
 from backend.src.core.observability.trust_boundary_metrics import MetricsService
@@ -62,12 +67,27 @@ def _sdk_request(path: str) -> Request:
     )
 
 
+@pytest.fixture
+def authenticated_install_identity():
+    identity = AuthenticatedInstallIdentity(
+        user_id="user-sdk",
+        install_id="install-sdk",
+    )
+    token = set_current_authenticated_install_identity(identity)
+    try:
+        yield identity
+    finally:
+        reset_current_authenticated_install_identity(token)
+
+
 class _FakeOcrService:
     def __init__(self, results):
         self.enabled = True
         self._results = results
+        self.calls = 0
 
     async def perform_ocr(self, _image_b64: str):
+        self.calls += 1
         return list(self._results)
 
 
@@ -236,7 +256,76 @@ async def test_sdk_ocr_inspect_returns_observability_bundle(tmp_path) -> None:
 
 
 @pytest.mark.asyncio
-async def test_sdk_ocr_find_text_candidates_returns_ranked_matches(tmp_path) -> None:
+async def test_sdk_ocr_find_text_requires_authenticated_identity_before_ocr(
+    tmp_path,
+) -> None:
+    container = _container(
+        tmp_path,
+        ocr_results=[
+            {
+                "id": "row-1",
+                "text": "Search Amazon",
+                "confidence": 0.99,
+                "bbox": {"x": 300, "y": 20, "width": 150, "height": 24},
+            }
+        ],
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        await sdk_routes.sdk_ocr_find_text(
+            OcrTextQueryRequest(
+                image=ImageSourceInput(image_base64=_png_base64()),
+                text="Search Amazon",
+            ),
+            container,
+        )
+
+    assert exc_info.value.status_code == 401
+    assert exc_info.value.detail == "Authenticated install identity required"
+    assert container.ocr_service.calls == 0
+
+
+@pytest.mark.asyncio
+async def test_sdk_ocr_find_text_returns_authenticated_thresholded_matches(
+    tmp_path,
+    authenticated_install_identity,
+) -> None:
+    container = _container(
+        tmp_path,
+        ocr_results=[
+            {
+                "id": "row-1",
+                "text": "Search Walmart",
+                "confidence": 0.91,
+                "bbox": {"x": 100, "y": 20, "width": 150, "height": 24},
+            },
+            {
+                "id": "row-2",
+                "text": "Search Amazon",
+                "confidence": 0.97,
+                "bbox": {"x": 300, "y": 20, "width": 150, "height": 24},
+            },
+        ],
+    )
+
+    response = await sdk_routes.sdk_ocr_find_text(
+        OcrTextQueryRequest(
+            image=ImageSourceInput(image_base64=_png_base64()),
+            text="Search Amazon",
+            max_results=2,
+        ),
+        container,
+    )
+
+    assert response.query == "Search Amazon"
+    assert [row.text for row in response.matches] == ["Search Amazon"]
+    assert container.ocr_service.calls == 1
+
+
+@pytest.mark.asyncio
+async def test_sdk_ocr_find_text_candidates_returns_thresholded_ranked_matches(
+    tmp_path,
+) -> None:
     container = _container(
         tmp_path,
         ocr_results=[
@@ -264,8 +353,8 @@ async def test_sdk_ocr_find_text_candidates_returns_ranked_matches(tmp_path) -> 
         container,
     )
 
-    assert [row.text for row in response.matches] == ["Search Amazon", "Search Walmart"]
-    assert response.matches[0].score >= response.matches[1].score
+    assert response.threshold == 0.8
+    assert [row.text for row in response.matches] == ["Search Amazon"]
 
 
 @pytest.mark.asyncio
@@ -470,10 +559,47 @@ async def test_sdk_vision_describe_uses_cropped_region(tmp_path) -> None:
         container,
     )
 
-    assert response.region == BoundingBoxModel(x=20, y=10, width=80, height=30)
+    assert response.region == BoundingBoxModel(x=0, y=0, width=80, height=30)
     assert response.image.width == 80
     assert response.image.height == 30
     assert response.description == "region size 80x30"
+
+
+@pytest.mark.asyncio
+async def test_sdk_vision_describe_trims_partial_overflow_region(tmp_path) -> None:
+    container = _container(tmp_path)
+
+    response = await sdk_routes.sdk_vision_describe(
+        VisionDescribeRequest(
+            image=ImageSourceInput(image_base64=_png_base64(size=(100, 80))),
+            region=BoundingBoxModel(x=75, y=60, width=50, height=40),
+        ),
+        container,
+    )
+
+    assert response.region == BoundingBoxModel(x=0, y=0, width=25, height=20)
+    assert response.image.width == 25
+    assert response.image.height == 20
+    assert response.description == "region size 25x20"
+
+
+@pytest.mark.asyncio
+async def test_sdk_vision_describe_rejects_region_origin_outside_image(
+    tmp_path,
+) -> None:
+    container = _container(tmp_path)
+
+    with pytest.raises(HTTPException) as exc_info:
+        await sdk_routes.sdk_vision_describe(
+            VisionDescribeRequest(
+                image=ImageSourceInput(image_base64=_png_base64(size=(100, 80))),
+                region=BoundingBoxModel(x=100, y=10, width=20, height=20),
+            ),
+            container,
+        )
+
+    assert exc_info.value.status_code == 422
+    assert exc_info.value.detail == "Requested region is outside image bounds"
 
 
 @pytest.mark.asyncio
@@ -604,13 +730,16 @@ async def test_sdk_debug_tool_capabilities_returns_schema_details(tmp_path) -> N
 
 
 @pytest.mark.asyncio
-async def test_sdk_debug_system_prompt_returns_prompt_text(tmp_path) -> None:
+async def test_sdk_debug_system_prompt_returns_prompt_text(
+    tmp_path,
+    authenticated_install_identity,
+) -> None:
     container = _container(tmp_path)
 
     response = await sdk_routes.sdk_debug_system_prompt(
         container=container,
         session_manager=_FakeSessionManager(),
-        user_id=None,
+        user_id=authenticated_install_identity.user_id,
         model_id=None,
         model_provider=None,
         interaction_mode=None,
@@ -618,6 +747,50 @@ async def test_sdk_debug_system_prompt_returns_prompt_text(tmp_path) -> None:
 
     assert response.system_prompt
     assert response.config.selected_model_id == container.config.selected_model_id
+
+
+@pytest.mark.asyncio
+async def test_sdk_debug_system_prompt_requires_authenticated_identity(
+    tmp_path,
+) -> None:
+    container = _container(tmp_path)
+
+    with pytest.raises(HTTPException) as exc_info:
+        await sdk_routes.sdk_debug_system_prompt(
+            container=container,
+            session_manager=_FakeSessionManager(),
+            user_id=None,
+            model_id=None,
+            model_provider=None,
+            interaction_mode=None,
+        )
+
+    assert exc_info.value.status_code == 401
+    assert exc_info.value.detail == "Authenticated install identity required"
+
+
+@pytest.mark.asyncio
+async def test_sdk_debug_system_prompt_rejects_other_user_context(
+    tmp_path,
+    authenticated_install_identity,
+) -> None:
+    container = _container(tmp_path)
+
+    with pytest.raises(HTTPException) as exc_info:
+        await sdk_routes.sdk_debug_system_prompt(
+            container=container,
+            session_manager=_FakeSessionManager(),
+            user_id="other-user",
+            model_id=None,
+            model_provider=None,
+            interaction_mode=None,
+        )
+
+    assert exc_info.value.status_code == 403
+    assert (
+        exc_info.value.detail
+        == "SDK debug system prompt cannot inspect another user's context"
+    )
 
 
 @pytest.mark.asyncio
@@ -726,6 +899,7 @@ async def test_sdk_debug_prompt_preview_applies_agent_definition(
 @pytest.mark.asyncio
 async def test_sdk_debug_query_plan_returns_query_and_transparency_payloads(
     tmp_path,
+    authenticated_install_identity,
 ) -> None:
     container = _container(tmp_path)
 
@@ -742,7 +916,6 @@ async def test_sdk_debug_query_plan_returns_query_and_transparency_payloads(
             ],
             user_query_raw="open file",
             conversation_ref="conv-sdk",
-            workspace_path="/tmp/workspace",
             include_tools=True,
         ),
         container=container,
@@ -752,7 +925,6 @@ async def test_sdk_debug_query_plan_returns_query_and_transparency_payloads(
     assert response.query_message["type"] == "query"
     assert response.query_message["payload"]["text"] == "open file"
     assert response.query_message["payload"]["conversation_ref"] == "conv-sdk"
-    assert response.query_message["payload"]["workspace_path"] == "/tmp/workspace"
     assert [event["type"] for event in response.transparency_events] == [
         "system-prompt",
         "user-message-full",
@@ -764,7 +936,10 @@ async def test_sdk_debug_query_plan_returns_query_and_transparency_payloads(
 
 
 @pytest.mark.asyncio
-async def test_sdk_debug_query_plan_carries_agent_definition(tmp_path) -> None:
+async def test_sdk_debug_query_plan_carries_agent_definition(
+    tmp_path,
+    authenticated_install_identity,
+) -> None:
     container = _container(tmp_path)
     agent_definition = {
         "id": "tui-agent",
@@ -791,4 +966,65 @@ async def test_sdk_debug_query_plan_carries_agent_definition(tmp_path) -> None:
             "content"
         ]
         == "You are a TUI-defined agent."
+    )
+
+
+@pytest.mark.asyncio
+async def test_sdk_debug_query_plan_requires_authenticated_identity(tmp_path) -> None:
+    container = _container(tmp_path)
+
+    with pytest.raises(HTTPException) as exc_info:
+        await sdk_routes.sdk_debug_query_plan(
+            QueryPlanRequest(user_query_raw="status"),
+            container=container,
+            session_manager=_FakeSessionManager(),
+        )
+
+    assert exc_info.value.status_code == 401
+    assert exc_info.value.detail == "Authenticated install identity required"
+
+
+@pytest.mark.asyncio
+async def test_sdk_debug_query_plan_rejects_other_user_context(
+    tmp_path,
+    authenticated_install_identity,
+) -> None:
+    container = _container(tmp_path)
+
+    with pytest.raises(HTTPException) as exc_info:
+        await sdk_routes.sdk_debug_query_plan(
+            QueryPlanRequest(user_query_raw="status", user_id="other-user"),
+            container=container,
+            session_manager=_FakeSessionManager(),
+        )
+
+    assert exc_info.value.status_code == 403
+    assert (
+        exc_info.value.detail
+        == "SDK debug query plan cannot inspect another user's context"
+    )
+
+
+@pytest.mark.asyncio
+async def test_sdk_debug_query_plan_rejects_payload_workspace_context(
+    tmp_path,
+    authenticated_install_identity,
+) -> None:
+    container = _container(tmp_path)
+
+    with pytest.raises(HTTPException) as exc_info:
+        await sdk_routes.sdk_debug_query_plan(
+            QueryPlanRequest(
+                user_query_raw="status",
+                user_id=authenticated_install_identity.user_id,
+                workspace_path="/tmp/other-workspace",
+            ),
+            container=container,
+            session_manager=_FakeSessionManager(),
+        )
+
+    assert exc_info.value.status_code == 403
+    assert (
+        exc_info.value.detail
+        == "SDK debug query plan does not accept payload-selected workspace paths"
     )

@@ -1171,11 +1171,116 @@ describe('WindieSdkClient', () => {
         expect.objectContaining({ text: 'hello' }),
       ],
     });
+    await store.rewriteConversation({
+      conversationRef: 'conv-sidecar',
+      baseRevisionId: 'rev-1',
+      newRevisionId: 'rev-2',
+      preservedEvents: [
+        {
+          eventId: 'evt-rewrite',
+          type: 'user_message',
+          conversationRef: 'conv-sidecar',
+          revisionId: 'rev-2',
+          timestamp: '2026-05-22T00:01:00.000Z',
+          source: 'sdk',
+          payload: { text: 'edited' },
+        },
+      ],
+      removedEventIds: ['evt-1'],
+      reason: 'edit_resend',
+    });
     await store.deleteConversation('conv-sidecar');
 
     expect(rpc).toHaveBeenCalledWith(expect.objectContaining({
+      method: 'replace_chat_conversation',
+      params: expect.objectContaining({
+        conversation_id: 'conv-sidecar',
+        revision_id: 'rev-2',
+        revision_updated_at: expect.any(String),
+        events: [
+          expect.objectContaining({
+            event_type: 'user_message',
+            message_index: 1,
+            event_payload: expect.objectContaining({
+              eventId: 'evt-rewrite',
+            }),
+          }),
+        ],
+      }),
+    }));
+    expect(rpc).toHaveBeenCalledWith(expect.objectContaining({
       method: 'delete_chat_conversation',
     }));
+  });
+
+  test('SidecarConversationStore keeps rewrite revision metadata for old or empty events', async () => {
+    const revisions = new Map<string, { revision_id: string; updated_at: string }>();
+    const eventsByConversation = new Map<string, unknown[]>();
+    const rpc = jest.fn(async ({ method, params }) => {
+      if (method === 'replace_chat_conversation') {
+        revisions.set(params.conversation_id, {
+          revision_id: params.revision_id,
+          updated_at: params.revision_updated_at,
+        });
+        eventsByConversation.set(params.conversation_id, params.events);
+        return { success: true, data: {} };
+      }
+      if (method === 'get_chat_conversation_revision') {
+        return {
+          success: true,
+          data: revisions.get(params.conversation_id) ?? {},
+        };
+      }
+      if (method === 'get_chat_events') {
+        return {
+          success: true,
+          data: {
+            events: eventsByConversation.get(params.conversation_id) ?? [],
+          },
+        };
+      }
+      return { success: true, data: {} };
+    });
+    const store = new SidecarConversationStore({
+      userId: 'user-1',
+      runtime: { rpc },
+    });
+
+    await store.rewriteConversation({
+      conversationRef: 'conv-preserved',
+      baseRevisionId: 'rev-old',
+      newRevisionId: 'rev-new',
+      preservedEvents: [
+        {
+          eventId: 'evt-old',
+          type: 'user_message',
+          conversationRef: 'conv-preserved',
+          revisionId: 'rev-old',
+          timestamp: '2026-05-22T00:01:00.000Z',
+          source: 'sdk',
+          payload: { text: 'preserved' },
+        },
+      ],
+      removedEventIds: [],
+      reason: 'retry',
+    });
+    await store.rewriteConversation({
+      conversationRef: 'conv-empty',
+      baseRevisionId: 'rev-empty-old',
+      newRevisionId: 'rev-empty-new',
+      preservedEvents: [],
+      removedEventIds: ['evt-removed'],
+      reason: 'edit_resend',
+    });
+
+    await expect(store.getRevision('conv-preserved')).resolves.toMatchObject({
+      conversationRef: 'conv-preserved',
+      revisionId: 'rev-new',
+    });
+    await expect(store.getRevision('conv-empty')).resolves.toMatchObject({
+      conversationRef: 'conv-empty',
+      revisionId: 'rev-empty-new',
+    });
   });
 
   test('SidecarConversationStore merges host write params before sidecar rpc', async () => {

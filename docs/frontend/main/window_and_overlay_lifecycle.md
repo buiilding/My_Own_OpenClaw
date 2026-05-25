@@ -210,7 +210,9 @@ Dashboard-to-chat-pill conversation continuity:
 
 ## Main IPC Handlers for Window Control
 
-Handlers split across narrow registrars (wired by `index.cjs`, guarded by `surface_runtime.initializeMainProcessIpcOnce(...)`):
+Handlers split across narrow registrars (wired by `index.cjs`, guarded by `surface_runtime.initializeMainProcessIpcOnce(...)`).
+The guard marks IPC as initialized only after the registrar completes, so a
+thrown partial registration can fail clearly and be retried in the same process:
 
 - `overlay_phase_ipc_runtime.cjs`
 - `set-responsebox-size`:

@@ -184,7 +184,7 @@ def test_stored_message_tool_role_supports_multimodal_content_with_image():
     )
 
 
-def test_content_to_message_content_uses_first_image_and_ignores_invalid_parts():
+def test_content_to_message_content_preserves_all_images_and_ignores_invalid_parts():
     content = [
         {"type": "text", "text": "first"},
         {"type": "image_url", "image_url": {"url": "http://example.com/one.png"}},
@@ -198,7 +198,21 @@ def test_content_to_message_content_uses_first_image_and_ignores_invalid_parts()
 
     assert isinstance(converted, ImageContent)
     assert converted.get_text() == "first second"
-    assert converted.get_image_urls() == ["http://example.com/one.png"]
+    assert converted.get_image_urls() == [
+        "http://example.com/one.png",
+        "http://example.com/two.png",
+    ]
+    assert converted.to_llm_format() == [
+        {"type": "text", "text": "first second"},
+        {
+            "type": "image_url",
+            "image_url": {"url": "http://example.com/one.png"},
+        },
+        {
+            "type": "image_url",
+            "image_url": {"url": "http://example.com/two.png"},
+        },
+    ]
 
 
 def test_content_to_message_content_non_list_non_str_falls_back_to_string():

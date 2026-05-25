@@ -218,7 +218,7 @@ describe('configStorage', () => {
     const result = loadConfigFromStorage();
     expect(result.provider_api_keys).toEqual({
       ...DEFAULT_FRONTEND_CONFIG.provider_api_keys,
-      openai: { enabled: true, api_key: 'sk-openai' },
+      openai: { enabled: true, api_key: '' },
     });
   });
 
@@ -243,12 +243,49 @@ describe('configStorage', () => {
       ...DEFAULT_FRONTEND_CONFIG.provider_oauth,
       openai_codex: {
         connected: true,
-        access_token: 'codex-access',
-        refresh_token: 'codex-refresh',
+        access_token: '',
+        refresh_token: '',
         expires_at: 12345,
         profile_id: 'openai-codex:default',
       },
     });
+  });
+
+  test('saveConfigToStorage strips provider secrets from localStorage', () => {
+    const ok = saveConfigToStorage({
+      ...DEFAULT_FRONTEND_CONFIG,
+      provider_api_keys: {
+        ...DEFAULT_FRONTEND_CONFIG.provider_api_keys,
+        openai: { enabled: true, api_key: 'sk-openai' },
+      },
+      provider_oauth: {
+        ...DEFAULT_FRONTEND_CONFIG.provider_oauth,
+        openai_codex: {
+          connected: true,
+          access_token: 'codex-access',
+          refresh_token: 'codex-refresh',
+          expires_at: 12345,
+          profile_id: 'openai-codex:default',
+        },
+      },
+    }, 123);
+
+    expect(ok).toBe(true);
+    const stored = JSON.parse(localStorage.getItem(CONFIG_KEY));
+    expect(stored.provider_api_keys.openai).toEqual({
+      enabled: true,
+      api_key: '',
+    });
+    expect(stored.provider_oauth.openai_codex).toEqual({
+      connected: true,
+      access_token: '',
+      refresh_token: '',
+      expires_at: 12345,
+      profile_id: 'openai-codex:default',
+    });
+    expect(JSON.stringify(stored)).not.toContain('sk-openai');
+    expect(JSON.stringify(stored)).not.toContain('codex-access');
+    expect(JSON.stringify(stored)).not.toContain('codex-refresh');
   });
 
   test('loadConfigFromStorage clears invalid JSON', () => {

@@ -10,6 +10,10 @@ describe('chatMessageSenderPayloads', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   test('normalizes string payload and attachment metadata payloads', () => {
     expect(normalizeOutgoingPayload('hello')).toEqual({
       text: 'hello',
@@ -56,30 +60,68 @@ describe('chatMessageSenderPayloads', () => {
       data: { llm_content: 'File body text' },
     });
 
-    const context = await buildReadableFileAttachmentContext([
+    const result = await buildReadableFileAttachmentContext([
       { filePath: '/tmp/a', filename: 'a.txt' },
     ]);
 
     expect(invokeSpy).toHaveBeenCalledWith(INVOKE_CHANNELS.READ_ATTACHMENT_FILE, {
       filePath: '/tmp/a',
     });
-    expect(context).toContain('Attached File: a.txt');
-    expect(context).toContain('File body text');
+    expect(result.failures).toEqual([]);
+    expect(result.context).toContain('Attached File: a.txt');
+    expect(result.context).toContain('File body text');
   });
 
-  test('skips failed/empty readable-file calls and returns null when nothing is usable', async () => {
+  test('returns failed readable-file calls instead of silently omitting them', async () => {
     jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({
       success: false,
       error: 'nope',
     });
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
-    const context = await buildReadableFileAttachmentContext([
+    const result = await buildReadableFileAttachmentContext([
       { filePath: '/tmp/a', filename: 'a.txt' },
     ]);
 
-    expect(context).toBeNull();
+    expect(result.context).toBeNull();
+    expect(result.failures).toEqual([
+      {
+        filePath: '/tmp/a',
+        filename: 'a.txt',
+        error: 'nope',
+      },
+    ]);
     expect(warnSpy).toHaveBeenCalled();
     warnSpy.mockRestore();
+  });
+
+  test('keeps successful readable-file context while reporting partial failures', async () => {
+    jest.spyOn(IpcBridge, 'invoke').mockImplementation(async (_channel, payload: any) => {
+      if (payload.filePath === '/tmp/a') {
+        return {
+          success: true,
+          data: { llm_content: 'Readable A' },
+        };
+      }
+      return {
+        success: false,
+        error: 'missing file',
+      };
+    });
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const result = await buildReadableFileAttachmentContext([
+      { filePath: '/tmp/a', filename: 'a.txt' },
+      { filePath: '/tmp/b', filename: 'b.txt' },
+    ]);
+
+    expect(result.context).toContain('Readable A');
+    expect(result.failures).toEqual([
+      {
+        filePath: '/tmp/b',
+        filename: 'b.txt',
+        error: 'missing file',
+      },
+    ]);
   });
 });

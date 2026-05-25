@@ -59,7 +59,7 @@ Execution transport:
 - non-Windows: `bash -c ...`
 - Linux sudo path:
   - when `sudo_auth_mode=os_prompt` (default), leading `sudo ...` is rewritten to `pkexec bash -lc ...` so elevation uses the OS authentication dialog instead of sidecar terminal password prompts
-  - when `sudo_auth_mode=native`, command stays `sudo ...` unchanged (used when agent passwordless sudo is enabled)
+  - when `sudo_auth_mode=native`, command stays `sudo ...` unchanged for legacy/runtime compatibility; new persistent passwordless sudo grants are not created
 - optional PTY path uses `pty.openpty()` and a single read loop
 - non-PTY path reads stdout/stderr concurrently via `_read_stream`
 
@@ -118,6 +118,10 @@ Lifecycle:
 - sweeper task periodically prunes expired finished sessions
 
 ## `process` Tool Actions
+
+The shared backend/sidecar schema constrains `action` to the closed set below;
+unknown action names are rejected during argument validation instead of being
+deferred to process-tool execution.
 
 `list`:
 

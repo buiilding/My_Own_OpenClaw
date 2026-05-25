@@ -253,6 +253,8 @@ first-class convenience methods, and adapters must implement them by delegating
 to shared SDK projections or to a complete active compacted replay snapshot.
 Conversation event order is append order. Store adapters must not re-sort event
 logs by timestamp or event id; timestamps are metadata, not ordering authority.
+Durable store adapters that use read-modify-write persistence must serialize
+same-conversation mutations so overlapping appends cannot overwrite each other.
 
 SDK adapter contracts export named payload types for the core runtime boundary:
 `AgentDefinition`, `QueryPayload`, `ToolResultPayload`,
@@ -294,7 +296,12 @@ Electron uses the SDK `SidecarConversationStore` through a desktop store factory
   store factory, and the SDK
   `SidecarConversationStore`. The factory owns local transcript projection
   replacement, workspace metadata, rewritten row enrichment, and the rehydrate
-  projection used before the resend turn.
+  projection used before the resend turn. Replacement is one sidecar
+  `replace_chat_conversation` call so local durable state is not deleted before
+  the rewritten projection is stored. The call carries the rewrite
+  `newRevisionId` as conversation revision metadata, so sidecar metadata and
+  `getRevision()` report the replacement revision even if the preserved rows
+  still carry older event revisions or the rewrite removes every row.
 - desktop visible transcript appends route through
   `DesktopTranscriptProjectionRuntimeClient` and the desktop conversation store
   factory, so queued user/assistant/tool writes no longer own direct row IPC or
@@ -471,6 +478,11 @@ that need connection waiters, reconnect scheduling, endpoint fallback, idle
 disconnect, typed backend sends, and raw event parsing. Electron main consumes
 that SDK package transport and only supplies host-specific socket construction,
 headers, handshake data, local tool execution, and renderer fan-out.
+An opened socket is not considered a connected managed session until handshake
+construction and `send()` both succeed. If handshake construction or the
+handshake send fails, the managed session closes and clears that socket,
+rejects connection waiters, and requires a fresh connection attempt before any
+typed backend send can succeed.
 `agent.stream(...)` and `agent.conversation(...).stream(...)` both run through
 `SdkConversationRuntime`, which owns local tool execution when a sidecar/local
 runtime adapter is available.

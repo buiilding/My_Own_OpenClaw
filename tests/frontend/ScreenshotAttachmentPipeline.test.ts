@@ -35,6 +35,17 @@ import { uploadArtifactBase64 } from '../../frontend/src/renderer/infrastructure
 const mockInvoke = IpcBridge.invoke as jest.MockedFunction<typeof IpcBridge.invoke>;
 const mockUploadArtifactBase64 = uploadArtifactBase64 as jest.MockedFunction<typeof uploadArtifactBase64>;
 
+function deferred<T>(): {
+  promise: Promise<T>;
+  resolve: (value: T | PromiseLike<T>) => void;
+} {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  const promise = new Promise<T>((innerResolve) => {
+    resolve = innerResolve;
+  });
+  return { promise, resolve };
+}
+
 describe('ScreenshotAttachmentPipeline', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -93,12 +104,63 @@ describe('ScreenshotAttachmentPipeline', () => {
     });
     expect(dispatchSpy).toHaveBeenNthCalledWith(1, expect.objectContaining({
       type: 'windie:screenshot-capture',
-      detail: { active: true },
+      detail: expect.objectContaining({ active: true, activeCount: 1 }),
     }));
     expect(dispatchSpy).toHaveBeenNthCalledWith(2, expect.objectContaining({
       type: 'windie:screenshot-capture',
-      detail: { active: false },
+      detail: expect.objectContaining({ active: false, activeCount: 0 }),
     }));
+  });
+
+  test('captureScreenshotAttachment keeps capture event active until overlapping captures finish', async () => {
+    const captureEvents: Array<{ active: boolean; activeCount: number }> = [];
+    const listener = (event: Event) => {
+      captureEvents.push((event as CustomEvent).detail);
+    };
+    window.addEventListener('windie:screenshot-capture', listener);
+    const firstCapture = deferred<any>();
+    const secondCapture = deferred<any>();
+    mockInvoke
+      .mockReturnValueOnce(firstCapture.promise)
+      .mockReturnValueOnce(secondCapture.promise);
+
+    try {
+      const firstResult = captureScreenshotAttachment({ correlationId: 'cap-1' });
+      const secondResult = captureScreenshotAttachment({ correlationId: 'cap-2' });
+
+      await Promise.resolve();
+      expect(captureEvents).toEqual([
+        { active: true, activeCount: 1 },
+        { active: true, activeCount: 2 },
+      ]);
+
+      firstCapture.resolve({
+        success: true,
+        data: { screenshot: 'first-shot', screenshot_content_type: 'image/png' },
+      });
+      await expect(firstResult).resolves.toEqual(expect.objectContaining({
+        screenshot: 'first-shot',
+      }));
+      expect(captureEvents).toEqual([
+        { active: true, activeCount: 1 },
+        { active: true, activeCount: 2 },
+      ]);
+
+      secondCapture.resolve({
+        success: true,
+        data: { screenshot: 'second-shot', screenshot_content_type: 'image/png' },
+      });
+      await expect(secondResult).resolves.toEqual(expect.objectContaining({
+        screenshot: 'second-shot',
+      }));
+      expect(captureEvents).toEqual([
+        { active: true, activeCount: 1 },
+        { active: true, activeCount: 2 },
+        { active: false, activeCount: 0 },
+      ]);
+    } finally {
+      window.removeEventListener('windie:screenshot-capture', listener);
+    }
   });
 
   test('materializeScreenshotAttachment uploads inline screenshots and preserves inline fallback on upload failure', async () => {

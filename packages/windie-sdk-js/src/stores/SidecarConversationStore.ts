@@ -180,31 +180,21 @@ export class SidecarConversationStore implements ConversationStore {
 
   async appendEvents(events: ConversationEvent[]): Promise<void> {
     for (const event of events) {
-      const defaultParams: JsonRecord = {
-        user_id: this.options.userId,
-        conversation_id: event.conversationRef,
-        event_type: event.type,
-        role: roleFromEvent(event),
-        content: textFromEvent(event),
-        timestamp: event.timestamp,
-        revision_id: event.revisionId,
-        turn_ref: event.turnRef ?? null,
-        event_payload: event,
-        record_kind: CHAT_EVENT_RECORD_KIND,
-      };
-      await this.call('store_chat_event', {
-        ...defaultParams,
-        ...(this.options.eventWriteParams?.({
-          event,
-          defaultParams: { ...defaultParams },
-        }) ?? {}),
-      });
+      await this.call('store_chat_event', this.buildEventWriteParams(event));
     }
   }
 
   async rewriteConversation(plan: ConversationRewritePlan): Promise<void> {
-    await this.deleteConversation(plan.conversationRef);
-    await this.appendEvents(plan.preservedEvents);
+    await this.call('replace_chat_conversation', {
+      user_id: this.options.userId,
+      conversation_id: plan.conversationRef,
+      record_kind: CHAT_EVENT_RECORD_KIND,
+      revision_id: plan.newRevisionId,
+      revision_updated_at: new Date().toISOString(),
+      events: plan.preservedEvents.map((event, index) => (
+        this.buildEventWriteParams(event, index + 1)
+      )),
+    });
   }
 
   async replaceCompactedReplay(snapshot: CompactedReplaySnapshot): Promise<void> {
@@ -311,6 +301,22 @@ export class SidecarConversationStore implements ConversationStore {
   }
 
   async getRevision(conversationRef: string): Promise<ConversationRevision> {
+    const result = await this.call('get_chat_conversation_revision', {
+      user_id: this.options.userId,
+      conversation_id: conversationRef,
+      record_kind: CHAT_EVENT_RECORD_KIND,
+    });
+    const revision = normalizeRecord(result.data) ?? {};
+    const revisionId = normalizeString(revision.revision_id) ?? normalizeString(revision.revisionId);
+    if (revisionId) {
+      return {
+        conversationRef,
+        revisionId,
+        updatedAt: normalizeString(revision.updated_at)
+          ?? normalizeString(revision.updatedAt)
+          ?? new Date(0).toISOString(),
+      };
+    }
     const events = await this.loadEvents(conversationRef);
     const last = events[events.length - 1];
     return {
@@ -334,5 +340,31 @@ export class SidecarConversationStore implements ConversationStore {
       throw new Error(String(response.error ?? `Sidecar RPC failed: ${method}`));
     }
     return response;
+  }
+
+  private buildEventWriteParams(
+    event: ConversationEvent,
+    messageIndex?: number,
+  ): JsonRecord {
+    const defaultParams: JsonRecord = {
+      user_id: this.options.userId,
+      conversation_id: event.conversationRef,
+      event_type: event.type,
+      role: roleFromEvent(event),
+      content: textFromEvent(event),
+      timestamp: event.timestamp,
+      revision_id: event.revisionId,
+      turn_ref: event.turnRef ?? null,
+      event_payload: event,
+      record_kind: CHAT_EVENT_RECORD_KIND,
+      ...(messageIndex ? { message_index: messageIndex } : {}),
+    };
+    return {
+      ...defaultParams,
+      ...(this.options.eventWriteParams?.({
+        event,
+        defaultParams: { ...defaultParams },
+      }) ?? {}),
+    };
   }
 }

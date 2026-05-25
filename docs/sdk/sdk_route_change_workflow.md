@@ -52,6 +52,7 @@ Do not add a hosted SDK route just to reach local machine state. Local screensho
 | --- | --- |
 | Image input | SDK image request models should require exactly one of artifact id or inline base64 when that is the route contract. |
 | Artifact ownership | Artifact-backed responses should use authenticated install identity when auth is enabled. |
+| OCR find-text auth | `POST /api/sdk/ocr/find-text` must require authenticated install identity before resolving images or invoking OCR. |
 | Provider unavailability | OCR/vision provider failures should become structured `503` responses, not raw exceptions. |
 | Region bounds | Region-based routes should reject out-of-bounds requests with validation-style errors. |
 | Prompt preview | Debug prompt routes must not become a backdoor for local desktop state or secrets. |
@@ -65,6 +66,7 @@ Do not add a hosted SDK route just to reach local machine state. Local screensho
 | Artifact source or overlay change | Backend SDK route tests plus artifact route/store tests |
 | OCR route behavior | SDK route tests plus focused OCR service/provider tests |
 | Vision route behavior | SDK route tests plus focused vision service/provider tests |
+| SDK/backend wire compatibility | `./scripts/python-in-env backend pytest tests/backend/test_sdk_runtime_backend_compatibility.py -q`; skips only when Node/npm or `packages/windie-sdk-js/node_modules` are unavailable |
 | TypeScript client change | `cd frontend && npm run test -- WindieSdkClient WindieSdkClientExports` |
 | Python hosted client change | `./scripts/python-in-env sidecar pytest tests/sidecar/test_windie_sdk_client.py -q` |
 | Public route surface change | Docs-list plus focused Markdown link check for SDK/web/reference docs |

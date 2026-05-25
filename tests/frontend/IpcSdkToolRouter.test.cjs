@@ -410,4 +410,96 @@ describe('ipc sdk tool router', () => {
       screenshot_ref: 'explicit-shot.jpg',
     }));
   });
+
+  test('captures bundle screenshot after skipped invalid step before computer-use action', async () => {
+    const executeLocalTool = jest
+      .fn()
+      .mockResolvedValueOnce({
+        success: true,
+        data: { output: 'typed', llm_content: 'typed' },
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        data: {
+          screenshot_ref: 'after-shifted.jpg',
+          screenshot_content_type: 'image/jpeg',
+        },
+      });
+    const sendToolBundleResult = jest.fn();
+
+    routeSdkToolEventToLocalRuntime({
+      type: 'tool-bundle',
+      turn_ref: 'turn-1',
+      conversation_ref: 'conv-1',
+      payload: {
+        bundle_id: 'bundle-shifted-action',
+        tools: [
+          {},
+          { name: 'keyboard_control', args: { action: 'type', text: '123456', wait: 0 } },
+        ],
+      },
+    }, {
+      executeLocalTool,
+      sendToolBundleResult,
+    });
+    await flushRoutedToolExecution();
+
+    expect(executeLocalTool).toHaveBeenCalledTimes(2);
+    expect(executeLocalTool).toHaveBeenNthCalledWith(2, {
+      toolName: 'screenshot',
+      args: {
+        explanation: 'Capturing the screen after bundled computer-use execution.',
+        wait: 0,
+      },
+      turnRef: 'turn-1',
+      conversationRef: 'conv-1',
+    });
+    expect(sendToolBundleResult).toHaveBeenCalledWith(expect.objectContaining({
+      bundle_id: 'bundle-shifted-action',
+      status: 'success',
+      screenshot_ref: 'after-shifted.jpg',
+      screenshot_content_type: 'image/jpeg',
+      step_results: [
+        { tool: 'keyboard_control', status: 'ok', output: expect.objectContaining({ output: 'typed' }) },
+      ],
+    }));
+  });
+
+  test('promotes explicit bundle screenshot after skipped invalid step', async () => {
+    const executeLocalTool = jest
+      .fn()
+      .mockResolvedValueOnce({
+        success: true,
+        data: {
+          output: 'Screenshot captured',
+          llm_content: 'Screenshot captured',
+          screenshot_ref: 'explicit-shifted.jpg',
+        },
+      });
+    const sendToolBundleResult = jest.fn();
+
+    routeSdkToolEventToLocalRuntime({
+      type: 'tool-bundle',
+      payload: {
+        bundle_id: 'bundle-explicit-shifted-shot',
+        tools: [
+          {},
+          { name: 'screenshot', args: { explanation: 'Checking Messages' } },
+        ],
+      },
+    }, {
+      executeLocalTool,
+      sendToolBundleResult,
+    });
+    await flushRoutedToolExecution();
+
+    expect(executeLocalTool).toHaveBeenCalledTimes(1);
+    expect(sendToolBundleResult).toHaveBeenCalledWith(expect.objectContaining({
+      bundle_id: 'bundle-explicit-shifted-shot',
+      screenshot_ref: 'explicit-shifted.jpg',
+      step_results: [
+        { tool: 'screenshot', status: 'ok', output: expect.objectContaining({ screenshot_ref: 'explicit-shifted.jpg' }) },
+      ],
+    }));
+  });
 });

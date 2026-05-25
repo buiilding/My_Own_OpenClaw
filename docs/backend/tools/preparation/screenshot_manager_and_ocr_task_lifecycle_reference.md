@@ -86,6 +86,11 @@ If screenshot changed mid-run, OCR output is ignored.
 
 This prevents stale OCR text from polluting new-screen coordinate resolution.
 
+The on-demand OCR coordinator follows the same cache-write rule: it may return
+fallback OCR results for an explicitly requested older screenshot, but writes
+those results into `ScreenshotState` only when the requested screenshot id still
+matches the current screenshot after OCR completes.
+
 ## Active OCR Task Controls (`ScreenshotState`)
 
 - `set_active_ocr_task(task, screenshot_id)`
@@ -116,6 +121,12 @@ Effect:
 - screenshot id determinism and storage updates
 - OCR results persist for current screenshot
 - outdated OCR results are ignored when newer screenshot replaces prior one
+
+`tests/backend/test_ocr_coordinator.py` verifies:
+
+- fallback OCR results for mismatched explicit screenshot ids are returned
+  without being cached as current OCR
+- fallback OCR results for the current screenshot are cached
 
 `tests/backend/test_screenshot_state.py` verifies:
 

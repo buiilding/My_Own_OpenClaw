@@ -6,7 +6,9 @@ and tests. Future migration to a core-owned contract source should happen here.
 
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass
+from typing import Iterable
 
 from backend.src.api.contracts.formatter_specs import (
     FormatterSpec,
@@ -128,9 +130,23 @@ def get_formatter_specs() -> tuple[FormatterSpec, ...]:
     return get_formatter_specs_from_registry()
 
 
+def _raise_for_duplicate_types(label: str, message_types: Iterable[str]) -> None:
+    counts = Counter(message_types)
+    duplicates = sorted(
+        message_type for message_type, count in counts.items() if count > 1
+    )
+    if duplicates:
+        raise ValueError(f"Duplicate {label}: {duplicates}")
+
+
 def validate_registry_alignment() -> None:
     """Fail fast if API-local registries drift from canonical constants."""
 
+    _raise_for_duplicate_types("incoming message types", INCOMING_MESSAGE_TYPES)
+    _raise_for_duplicate_types(
+        "incoming contract types",
+        (contract.message_type for contract in INCOMING_CONTRACTS),
+    )
     incoming_contract_types = get_incoming_message_types()
     if incoming_contract_types != set(INCOMING_MESSAGE_TYPES):
         raise ValueError(
@@ -138,6 +154,14 @@ def validate_registry_alignment() -> None:
             f"{sorted(incoming_contract_types)} != {sorted(INCOMING_MESSAGE_TYPES)}"
         )
 
+    _raise_for_duplicate_types(
+        "outgoing schema message types",
+        OUTGOING_SCHEMA_MESSAGE_TYPES,
+    )
+    _raise_for_duplicate_types(
+        "outgoing schema contract types",
+        (contract.message_type for contract in OUTGOING_SCHEMA_CONTRACTS),
+    )
     outgoing_contract_types = get_outgoing_schema_message_types()
     if outgoing_contract_types != set(OUTGOING_SCHEMA_MESSAGE_TYPES):
         raise ValueError(

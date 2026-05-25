@@ -1,12 +1,12 @@
 ---
-summary: "Deep reference for Linux-only agent sudo toggle runtime: username sanitization, pkexec enable flow, non-interactive sudo disable flow, and normalized auth-error/cancel semantics."
+summary: "Deep reference for Linux-only agent sudo toggle runtime: unsupported persistent enable flow, pkexec legacy disable flow, and normalized auth-error/cancel semantics."
 read_when:
   - When changing `set-agent-sudo-access` IPC behavior or Linux privilege-toggle command execution in Electron main process.
-  - When debugging sudo toggle failures (`pkexec` missing, canceled auth dialog, non-interactive disable errors).
+  - When debugging sudo toggle failures (`pkexec` missing, canceled auth dialog, legacy disable errors).
 title: "Agent Sudo Access Handler PKExec and Non-Interactive Disable Contract Reference"
 ---
 
-# Agent Sudo Access Handler PKExec and Non-Interactive Disable Contract Reference
+# Agent Sudo Access Handler PKExec and Legacy Disable Contract Reference
 
 ## Canonical Modules
 
@@ -24,11 +24,10 @@ title: "Agent Sudo Access Handler PKExec and Non-Interactive Disable Contract Re
 Handler dependencies passed into `handleSetAgentSudoAccess(...)`:
 
 - `platform` (`process.platform`)
-- `username` (`os.userInfo()?.username` best effort)
 
 The handler returns normalized payload objects to renderer, not thrown errors, for expected failure modes.
 
-## Platform and User Guards
+## Platform Guard
 
 `handleSetAgentSudoAccess(options, deps)` hard-gates to Linux:
 
@@ -37,24 +36,15 @@ The handler returns normalized payload objects to renderer, not thrown errors, f
   - `canceled: false`
   - reason: Linux-only support message
 
-Username resolution guard:
-
-- `sanitizeUsername(...)` requires non-empty string matching:
-  - `^[a-z_][a-z0-9_.-]*$` (case-insensitive)
-- invalid/empty username returns fail response before any privileged command execution
-
 ## Sudoers Rule Contract
 
 Rule path:
 
 - `/etc/sudoers.d/99-windieos-agent-nopasswd`
 
-Enable script (`buildEnableScript(username)`) executes:
-
-1. `cat > /etc/sudoers.d/99-windieos-agent-nopasswd <<EOF`
-2. writes `${username} ALL=(ALL) NOPASSWD: ALL`
-3. `chmod 440` on the sudoers file
-4. `visudo -cf` validation of written rule
+Persistent passwordless sudo enable is not supported. The handler must not write
+a sudoers rule granting `NOPASSWD: ALL`, because that grant applies to the
+whole local user account outside WindieOS.
 
 Disable script (`buildDisableScript()`) executes:
 
@@ -64,13 +54,14 @@ Disable script (`buildDisableScript()`) executes:
 
 Enable path:
 
-- command: `pkexec bash -lc <enable-script>`
-- rationale: interactive OS authentication prompt for privileged write
+- returns `success: false`
+- does not spawn a privileged command
+- directs sudo commands to the existing per-command OS prompt flow
 
 Disable path:
 
-- command: `sudo -n bash -lc <disable-script>`
-- rationale: non-interactive remove without opening auth prompt
+- command: `pkexec bash -lc <disable-script>`
+- rationale: remove the legacy sudoers rule with an explicit OS authentication prompt
 
 Shared runner (`runCommandWithCapturedOutput`) behavior:
 
@@ -95,15 +86,6 @@ General mapping:
 - matched cancel marker -> `canceled: true` with user-canceled reason
 - unmatched stderr -> `canceled: false` with command-failure reason
 
-Disable-path special handling:
-
-- when stderr indicates password-required/permission-denied (or auth-cancel markers), response is normalized to:
-  - `success: false`
-  - `canceled: false`
-  - reason instructing non-interactive disable limitation (`without prompt`)
-
-This keeps disable UX deterministic even when underlying sudo output varies.
-
 ## Response Shape Semantics
 
 Success responses include:
@@ -125,19 +107,16 @@ Failure responses include:
 `tests/frontend/AgentSudoAccessHandler.test.cjs` locks:
 
 - non-Linux rejection contract
-- enable path executes `pkexec ... NOPASSWD: ALL` script and succeeds on exit `0`
+- enable path rejects persistent passwordless sudo without spawning privileged commands
 - dismissed auth prompt maps to `canceled: true`
 - missing `pkexec` (`ENOENT`) returns explicit unavailable-auth-prompt reason
-- disable path executes `sudo -n` and succeeds on exit `0`
-- disable password-required case returns non-canceled `without prompt` guidance
+- disable path executes `pkexec` to remove the legacy sudoers file and succeeds on exit `0`
 - disable spawn startup errors are surfaced verbatim
 
 ## Drift Hotspots
 
-1. Changing sudoers rule path without updating enable+disable scripts creates one-way toggle behavior.
-2. Relaxing username sanitizer risks shell-script injection in privileged command content.
-3. Removing `visudo -cf` validation can allow malformed sudoers content to be written.
-4. Changing cancel-marker strings without test updates can regress user-cancel detection on some desktop environments.
+1. Reintroducing a broad sudoers rule such as `NOPASSWD: ALL` grants machine-wide passwordless sudo outside WindieOS.
+2. Changing cancel-marker strings without test updates can regress user-cancel detection on some desktop environments.
 
 ## Related Docs
 

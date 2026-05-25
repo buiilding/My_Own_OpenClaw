@@ -45,11 +45,20 @@ This is the currently wired policy path for tool gating.
 1. tool is blocked
 2. tool has no declared permissions (fail-closed)
 3. requested permission is outside declared permissions (fail-closed)
+4. requested permission is declared but not explicitly granted to that tool (fail-closed)
 
 Permissions can come from:
 
 - tool instance `required_permissions`
 - fallback dictionary `required_permissions[tool_name]`
+
+Grant state is separate:
+
+- `grant_permission(tool_name, permission)`
+- `grant_permissions(tool_name, permissions)`
+- `revoke_permission(tool_name, permission)`
+
+This keeps tool metadata as a declaration of required capabilities, not an authorization grant.
 
 ## Remote Tool Permission Metadata Reality
 
@@ -62,9 +71,10 @@ Current remote tool classes do not override this metadata, so if `SecurityPolicy
 `ToolExecutionAudit` + `SecurityPolicy` include hardening details:
 
 - audit deque max length defaults to 1000 (`deque(maxlen=...)`)
-- large/sensitive parameter keys (`image`, `screenshot`, `content`, `data`) are excluded
-- long strings are truncated to 1KB
-- list values are truncated to first 10 entries
+- large/sensitive parameter keys (`image`, `screenshot`, `content`, `data`) are excluded without stringifying their values
+- long strings are truncated to 1024 chars
+- bytes-like values and arbitrary objects are summarized instead of retained
+- list/tuple/set values are truncated to first 10 entries
 - recursive sanitization includes cycle detection + depth limit
 - audit log mutation/iteration is protected by `threading.RLock` to avoid concurrent deque mutation errors
 
@@ -93,10 +103,11 @@ Current default execution path is direct executor semantics; sandboxed executor 
 ## Enablement Checklist (When Hardening Further)
 
 1. Declare explicit `required_permissions` per remote tool class.
-2. Add SecurityPolicy checks at concrete execution boundaries (tool dispatch and/or sidecar bridge send path).
-3. Attach audit logging on both success and failure tool-result paths.
-4. Implement sandboxed executor isolation strategy before selecting `ProcessSandboxedExecutor`.
-5. Add tests that assert deny-by-default, blocked paths/tools, and audit truncation behavior.
+2. Populate explicit `granted_permissions` for authorized tools/deployments.
+3. Add SecurityPolicy checks at concrete execution boundaries (tool dispatch and/or sidecar bridge send path).
+4. Attach audit logging on both success and failure tool-result paths.
+5. Implement sandboxed executor isolation strategy before selecting `ProcessSandboxedExecutor`.
+6. Add tests that assert deny-by-default, blocked paths/tools, and audit truncation behavior.
 
 ## Related Pages
 

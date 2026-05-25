@@ -12,6 +12,10 @@ function createJwt(payload) {
 }
 
 describe('openai_codex_oauth', () => {
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   test('loginOpenAICodexOAuth completes browser callback flow without openclaw binary', async () => {
     const accessToken = createJwt({
       exp: Math.floor(Date.now() / 1000) + 1200,
@@ -49,5 +53,21 @@ describe('openai_codex_oauth', () => {
     expect(fetchImpl).toHaveBeenCalledTimes(1);
     expect(result.token.connected).toBe(true);
     expect(result.token.profile_id).toBe('openai-codex:acct_flow');
+  });
+
+  test('loginOpenAICodexOAuth cancels callback wait when browser launch fails', async () => {
+    jest.useFakeTimers();
+    const openExternal = jest.fn(async () => {
+      throw new Error('launcher unavailable');
+    });
+    const fetchImpl = jest.fn();
+
+    await expect(loginOpenAICodexOAuth({ openExternal, fetchImpl })).rejects.toThrow(
+      'Failed to open browser for Codex login: launcher unavailable',
+    );
+
+    expect(openExternal).toHaveBeenCalledTimes(1);
+    expect(fetchImpl).not.toHaveBeenCalled();
+    expect(jest.getTimerCount()).toBe(0);
   });
 });

@@ -83,6 +83,78 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     );
   });
 
+  test('does not rebroadcast storage-event config changes to localStorage or backend', () => {
+    const { result } = renderAppConfigContext();
+    mockSaveConfigToStorage.mockClear();
+    mockDesktopSettingsUpdateSettings.mockClear();
+    (IpcBridge.invoke as jest.Mock).mockClear();
+
+    mockLoadConfigFromStorage.mockReturnValue({
+      speech_mode_enabled: true,
+      provider_api_keys: {
+        openai: { enabled: true, api_key: 'sk-storage-openai' },
+      },
+    });
+
+    act(() => {
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'desktop-assistant-config',
+        storageArea: window.localStorage,
+      }));
+    });
+
+    expect(result.current.config).toEqual(
+      expect.objectContaining({
+        speech_mode_enabled: true,
+        provider_api_keys: expect.objectContaining({
+          openai: expect.objectContaining({
+            enabled: true,
+            api_key: 'sk-storage-openai',
+          }),
+        }),
+      }),
+    );
+    expect(mockSaveConfigToStorage).not.toHaveBeenCalled();
+    expect(mockDesktopSettingsUpdateSettings).not.toHaveBeenCalled();
+    expect(IpcBridge.invoke).not.toHaveBeenCalledWith(
+      INVOKE_CHANNELS.SAVE_FRONTEND_CONFIG,
+      expect.anything(),
+    );
+  });
+
+  test('ignores equivalent nested provider config storage events', () => {
+    mockLoadConfigFromStorage.mockReturnValue({
+      provider_api_keys: {
+        openai: { enabled: true, api_key: 'sk-local-openai' },
+      },
+      provider_oauth: {
+        openai_codex: { connected: true, profile_id: 'openai-codex:default' },
+      },
+    });
+    const { result } = renderAppConfigContext();
+    const currentConfig = result.current.config;
+    mockSaveConfigToStorage.mockClear();
+
+    mockLoadConfigFromStorage.mockReturnValue({
+      provider_api_keys: {
+        openai: { enabled: true, api_key: 'sk-local-openai' },
+      },
+      provider_oauth: {
+        openai_codex: { connected: true, profile_id: 'openai-codex:default' },
+      },
+    });
+
+    act(() => {
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'desktop-assistant-config',
+        storageArea: window.localStorage,
+      }));
+    });
+
+    expect(result.current.config).toBe(currentConfig);
+    expect(mockSaveConfigToStorage).not.toHaveBeenCalled();
+  });
+
   test('loads provider_api_keys from storage on startup', () => {
     mockLoadConfigFromStorage.mockReturnValue({
       provider_api_keys: {

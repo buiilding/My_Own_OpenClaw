@@ -14,6 +14,7 @@ import { IpcBridge } from '../../frontend/src/renderer/infrastructure/ipc/bridge
 describe('permissionStore', () => {
   beforeEach(() => {
     window.localStorage.clear();
+    IpcBridge.invoke.mockReset();
     usePermissionStore.setState({
       manifestVersion: '',
       generatedAt: null,
@@ -101,5 +102,56 @@ describe('permissionStore', () => {
       status: 'granted',
       granted: true,
     });
+  });
+
+  test('runPermissionProbe recomputes gate state from updated statuses', async () => {
+    usePermissionStore.setState({
+      manifestVersion: 'manifest-v4',
+      permissions: [
+        {
+          permission_id: 'screen_capture',
+          onboarding_required_now: true,
+          required_now: true,
+        },
+      ],
+      statusesByPermissionId: {
+        screen_capture: {
+          permission_id: 'screen_capture',
+          status: 'denied',
+          granted: false,
+        },
+      },
+      requiredPermissionIds: ['screen_capture'],
+      missingRequiredPermissions: ['screen_capture'],
+      onboardingState: {
+        manifest_version: 'manifest-v4',
+        completed: true,
+        completed_at: '2026-04-12T00:00:00.000Z',
+      },
+      completedForManifest: true,
+      needsOnboarding: false,
+    });
+    IpcBridge.invoke.mockResolvedValueOnce({
+      success: true,
+      data: {
+        status: {
+          permission_id: 'screen_capture',
+          status: 'granted',
+          granted: true,
+          reason: 'Screen recording access is granted.',
+          checked_at: '2026-04-12T00:00:00.000Z',
+          details: {},
+        },
+      },
+    });
+
+    await usePermissionStore.getState().runPermissionProbe('screen_capture');
+
+    const nextState = usePermissionStore.getState();
+    expect(nextState.statusesByPermissionId.screen_capture.granted).toBe(true);
+    expect(nextState.requiredPermissionIds).toEqual(['screen_capture']);
+    expect(nextState.missingRequiredPermissions).toEqual([]);
+    expect(nextState.completedForManifest).toBe(true);
+    expect(nextState.needsOnboarding).toBe(false);
   });
 });

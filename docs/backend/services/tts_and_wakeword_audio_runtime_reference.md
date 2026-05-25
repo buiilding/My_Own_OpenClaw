@@ -133,7 +133,8 @@ Important behavior:
 
 - the provider is fed partial text during the live LLM stream; it does not wait for the full assistant response
 - websocket sessions keep `inactivity_timeout=60` by default, but leave `auto_mode` off for the live assistant path so WindieOS can keep manually triggering generation on small incremental chunks
-- `flush()` closes the generation with `flush: true` so tail audio is not lost at end-of-turn
+- `flush()` closes the current websocket generation with `flush: true` so tail audio is not lost at end-of-turn
+- later text on the same service opens a new ElevenLabs websocket generation while the existing audio iterator remains alive until `shutdown()`
 - frontend playback remains provider-agnostic because both providers emit the same normalized payload fields
 
 ## Outbound Audio Chunk Contract (Runtime)

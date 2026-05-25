@@ -217,3 +217,33 @@ def test_build_ocr_results_maps_valid_rows_and_skips_invalid_rows():
             "bbox": {"x": 1, "y": 2, "width": 3, "height": 5},
         }
     ]
+
+
+def test_build_ocr_results_preserves_text_box_alignment_after_invalid_middle_row():
+    service = OcrService()
+
+    class DummyResult:
+        txts = ["first", "bad", "third"]
+        scores = [0.7, 0.2, 0.95]
+        boxes = [
+            [[1, 2], [4, 2], [4, 7], [1, 7]],
+            [[8, 1], [10, "x"], [10, 4], [8, 4]],
+            [[20, 30], [28, 30], [28, 36], [20, 36]],
+        ]
+
+    results = service._build_ocr_results(DummyResult())
+
+    assert results == [
+        {
+            "id": "0",
+            "text": "first",
+            "confidence": 0.7,
+            "bbox": {"x": 1, "y": 2, "width": 3, "height": 5},
+        },
+        {
+            "id": "2",
+            "text": "third",
+            "confidence": 0.95,
+            "bbox": {"x": 20, "y": 30, "width": 8, "height": 6},
+        },
+    ]

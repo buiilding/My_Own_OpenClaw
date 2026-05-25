@@ -89,6 +89,11 @@ Hook lifecycle:
 5. `utterance_end` message -> call the session-end callback and send `{"type":"start_over"}`
 6. disable/unmount -> stop audio capture + close socket + clear reconnect timers
 
+While enabled, a current non-closed WebSocket covers both `CONNECTING` and
+`OPEN` states. Re-renders must not replace an in-flight connection attempt; the
+first socket owns its eventual `onopen`, language payload, close, and reconnect
+callbacks.
+
 Gateway endpoint resolution:
 
 - default URL is derived from the active backend HTTP endpoint

@@ -170,7 +170,6 @@ export function useResponseOverlayWindowSync({
 
   useEffect(() => {
     return () => {
-      lastFrameRef.current = createHiddenFrameState();
       void reportOverlaySize({
         visible: false,
         layoutMode: RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,

@@ -9,6 +9,22 @@ class _DummySession:
     def __init__(self) -> None:
         self.prompt_builder = SimpleNamespace(system_prompt="default")
         self.history = SimpleNamespace(system_prompt="default")
+        self.runtime = SimpleNamespace(
+            workspace_path=None,
+            repo_instruction_messages=[],
+            client_prompt_layers=[],
+            agent_definition=None,
+        )
+
+
+class _AgentDefinitionWithPromptContext:
+    runtime = SimpleNamespace(workspace_path="/agent-workspace", operating_system=None)
+
+    def system_prompt_override(self) -> str:
+        return "Agent prompt"
+
+    def client_prompt_layers(self) -> list[dict[str, object]]:
+        return []
 
 
 def test_session_config_service_applies_frontend_operating_system_to_active_sessions():
@@ -59,4 +75,37 @@ def test_session_config_service_merges_provider_unavailable_capabilities():
         "ocr",
         "vision",
         "web_search",
+    ]
+
+
+def test_apply_agent_definition_preserves_existing_repo_instruction_messages():
+    registry = SessionRegistry()
+    session = _DummySession()
+    session.runtime.repo_instruction_messages = [
+        {"role": "user", "content": "Use repo instructions."},
+    ]
+    session.prompt_builder.repo_instruction_messages = [
+        {"role": "user", "content": "Use repo instructions."},
+    ]
+    service = SessionConfigService(
+        base_config=AppConfig(),
+        registry=registry,
+        assemble_runtime_session_config=lambda cfg: cfg,
+        render_system_prompt=lambda operating_system=None: f"prompt:{operating_system}",
+    )
+
+    service.apply_agent_definition_to_session(
+        session,
+        _AgentDefinitionWithPromptContext(),
+    )
+
+    assert session.runtime.agent_definition is not None
+    assert session.runtime.workspace_path == "/agent-workspace"
+    assert session.prompt_builder.system_prompt == "Agent prompt"
+    assert session.history.system_prompt == "Agent prompt"
+    assert session.runtime.repo_instruction_messages == [
+        {"role": "user", "content": "Use repo instructions."},
+    ]
+    assert session.prompt_builder.repo_instruction_messages == [
+        {"role": "user", "content": "Use repo instructions."},
     ]

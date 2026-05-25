@@ -26,6 +26,7 @@ from functools import lru_cache
 from typing import Any, Dict, List, Optional, Union
 
 from backend.src.core.config import AppConfig
+from backend.src.core.infrastructure.error_types import InputSizeLimitError
 from backend.src.core.messages.converters import content_to_message_content
 from backend.src.core.messages.structures import StoredMessage
 from backend.src.core.observability.trust_boundary_metrics import MetricsService
@@ -65,6 +66,8 @@ class PromptConstructor:
     SECURITY: This is a trust boundary. All inputs are validated with size limits.
     Violations raise hard errors.
     """
+
+    BOUNDARY_NAME = "prompt_constructor"
 
     def __init__(
         self,
@@ -238,7 +241,68 @@ class PromptConstructor:
         prompt_messages.extend(self._get_repo_instruction_messages())
         prompt_messages.extend(self._get_client_prompt_layer_messages())
         prompt_messages.extend(self._get_prompt_messages(stored_messages))
+        self._validate_prompt_messages(prompt_messages)
         return prompt_messages
+
+    def _validate_prompt_messages(self, prompt_messages: List[LLMMessage]) -> None:
+        """Enforce prompt-size limits after every model-visible layer is assembled."""
+        message_count = len(prompt_messages)
+        if message_count > self.limits.max_message_history_size:
+            self._raise_size_limit(
+                check="message_history_size",
+                actual_size=message_count,
+                max_size=self.limits.max_message_history_size,
+            )
+
+        total_size = 0
+        for index, message in enumerate(prompt_messages):
+            content_size = self._calculate_message_content_size(message)
+            if content_size > self.limits.max_message_content_size:
+                self._raise_size_limit(
+                    check="message_content_size",
+                    actual_size=content_size,
+                    max_size=self.limits.max_message_content_size,
+                    metadata={
+                        "message_index": index,
+                        "role": (
+                            message.get("role") if isinstance(message, dict) else None
+                        ),
+                    },
+                )
+
+            total_size += self._calculate_message_size(message)
+            if total_size > self.limits.max_prompt_size:
+                self._raise_size_limit(
+                    check="prompt_size",
+                    actual_size=total_size,
+                    max_size=self.limits.max_prompt_size,
+                    metadata={"message_index": index},
+                )
+
+    def _raise_size_limit(
+        self,
+        *,
+        check: str,
+        actual_size: int,
+        max_size: int,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        violation_metadata = {"check": check}
+        if metadata:
+            violation_metadata.update(metadata)
+        self.metrics.record_size_violation(
+            actual_size=actual_size,
+            max_size=max_size,
+            boundary_name=self.BOUNDARY_NAME,
+            metadata=violation_metadata,
+        )
+        raise InputSizeLimitError(
+            f"Prompt {check} {actual_size} exceeds maximum {max_size}",
+            actual_size=actual_size,
+            max_size=max_size,
+            boundary_name=self.BOUNDARY_NAME,
+            metadata=violation_metadata,
+        )
 
     def _get_repo_instruction_messages(self) -> List[LLMMessage]:
         if self.repo_instruction_messages:
@@ -401,6 +465,22 @@ class PromptConstructor:
                 return len(str(msg))
 
         return size
+
+    def _calculate_message_content_size(self, msg: Dict[str, Any]) -> int:
+        """Calculate the serialized size of a message content payload."""
+        if not isinstance(msg, dict):
+            return len(str(msg))
+        content = msg.get("content", "")
+        if isinstance(content, str):
+            return len(content)
+        if isinstance(content, (dict, list)):
+            try:
+                return len(json.dumps(content, ensure_ascii=False))
+            except (TypeError, ValueError):
+                return len(str(content))
+        if content is None:
+            return 0
+        return len(str(content))
 
     def _extract_xml_tag(self, content: str, tag_name: str) -> str:
         """

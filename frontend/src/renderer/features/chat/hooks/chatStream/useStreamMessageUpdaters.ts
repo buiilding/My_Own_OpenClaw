@@ -28,15 +28,8 @@ export function useStreamMessageUpdaters(
       sender,
       turnRef,
     );
-    const fallbackMessageId = turnRef
-      ? findLastMessageIdBySender(
-        workspaceMessages,
-        sender,
-      )
-      : null;
-    const messageId = scopedMessageId || fallbackMessageId;
-    if (messageId) {
-      updateMessage(messageId, updates, conversationRef);
+    if (scopedMessageId) {
+      updateMessage(scopedMessageId, updates, conversationRef);
     }
   }, [updateMessage]);
 

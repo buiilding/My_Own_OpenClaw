@@ -77,7 +77,9 @@ def resolve_query_screenshot_metadata(
     return dict(capture_meta) if isinstance(capture_meta, dict) else None
 
 
-def resolve_query_runtime_system_state(message: QueryMessage) -> Optional[dict[str, str]]:
+def resolve_query_runtime_system_state(
+    message: QueryMessage,
+) -> Optional[dict[str, str]]:
     """Extract backend-only runtime state (not model-facing prompt content)."""
     payload_state = getattr(message.payload, "system_state_internal", None)
     if not isinstance(payload_state, dict):
@@ -92,7 +94,9 @@ def resolve_query_runtime_system_state(message: QueryMessage) -> Optional[dict[s
     return runtime_state or None
 
 
-def apply_query_runtime_system_state(agent_instance: Any, message: QueryMessage) -> None:
+def apply_query_runtime_system_state(
+    agent_instance: Any, message: QueryMessage
+) -> None:
     """Best-effort seed of session runtime state before tool preparation."""
     runtime_state = resolve_query_runtime_system_state(message)
     if not runtime_state:
@@ -103,7 +107,12 @@ def apply_query_runtime_system_state(agent_instance: Any, message: QueryMessage)
         return
 
     getter = getattr(agent_instance, "get_current_system_state", None)
-    existing_state = getter() if callable(getter) else None
+    existing_state = None
+    if callable(getter):
+        try:
+            existing_state = getter()
+        except Exception as exc:
+            logger.warning("Failed to read query runtime system state: %s", exc)
     merged_state: dict[str, str] = {}
     if isinstance(existing_state, dict):
         for key in _RUNTIME_STATE_KEYS:

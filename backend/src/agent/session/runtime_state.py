@@ -30,6 +30,7 @@ class SessionRuntimeState:
     )
     system_state: Optional[Dict[str, Any]] = None
     active_conversation_ref: Optional[str] = None
+    active_turn_ref: Optional[str] = None
     workspace_path: Optional[str] = None
     repo_instruction_messages: list[Dict[str, str]] = field(default_factory=list)
     client_prompt_layers: list[Dict[str, Any]] = field(default_factory=list)
@@ -62,6 +63,7 @@ class SessionRuntimeState:
         self.background_tasks.clear()
         self.system_state = None
         self.active_conversation_ref = None
+        self.active_turn_ref = None
         self.workspace_path = None
         self.repo_instruction_messages = []
         self.client_prompt_layers = []

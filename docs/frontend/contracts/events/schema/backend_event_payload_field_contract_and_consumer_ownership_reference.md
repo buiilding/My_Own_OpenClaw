@@ -22,6 +22,7 @@ title: "Backend Event Payload Field Contract and Consumer Ownership Reference"
 
 `BackendEventType` currently includes:
 
+- `query-accepted`
 - `llm-thought`
 - `streaming-response`
 - `streaming-complete`
@@ -31,6 +32,7 @@ title: "Backend Event Payload Field Contract and Consumer Ownership Reference"
 - `tool-call`
 - `tool-output`
 - `tool-bundle`
+- `web-search-progress`
 - `local-user-message`
 - `system-prompt`
 - `user-message-full`
@@ -40,7 +42,7 @@ title: "Backend Event Payload Field Contract and Consumer Ownership Reference"
 - `tool-schemas`
 - `error`
 
-`isBackendEvent(value)` accepts objects with `type` in this static set only.
+`isBackendEvent(value)` accepts only object envelopes whose `type` is in this static set, optional base context fields are strings when present, and `payload` is absent or an object whose known fields match the per-event TypeScript payload contract.
 
 ## Base Envelope Fields
 

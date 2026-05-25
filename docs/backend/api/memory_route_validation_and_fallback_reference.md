@@ -103,7 +103,7 @@ Request model `SummarizeRequest`:
 
 - `conversations`: required list length `1..100`
 - each conversation max length `32768`
-- `user_id`: required, validated through shared `validate_user_id(...)`
+- `user_id`: required, validated through shared `validate_user_id(...)`, and must match the authenticated install identity
 
 `validate_user_id(...)` rejects:
 
@@ -117,13 +117,19 @@ Response model:
 - `facts: list[str]`
 - `success: bool` (route currently returns `true` on success)
 
+Auth behavior:
+
+- missing authenticated install identity returns `401`
+- body `user_id` mismatch against authenticated identity returns `403`
+- service execution uses the authenticated identity after that check
+
 ## `/api/semantic/title` Contract
 
 Route: `POST /api/semantic/title`
 
 Request model `GenerateTitleRequest`:
 
-- `user_id`: required, validated through shared `validate_user_id(...)`
+- `user_id`: required, validated through shared `validate_user_id(...)`, and must match the authenticated install identity
 - `user_message`: required, `1..32768` chars
 - `assistant_message`: required, `1..32768` chars
 - `model_id`: optional override
@@ -133,6 +139,8 @@ Response model:
 
 - `title: str`
 - `success: bool` (route currently returns `true` on success)
+
+Auth behavior matches summarize: missing identity returns `401`, body `user_id` mismatch returns `403`, and title generation uses authenticated identity.
 
 ## Semantic Config Resolution and API-Key Loading
 

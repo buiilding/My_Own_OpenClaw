@@ -31,6 +31,9 @@ async function showImageContextMenu({
   clipboard,
   nativeImage,
   fetchImpl = globalThis.fetch,
+  trustedImageOrigins = [],
+  getTrustedImageOrigins,
+  backendHttpUrl,
 }) {
   const menu = buildImageContextMenu({
     src,
@@ -40,6 +43,9 @@ async function showImageContextMenu({
       clipboard,
       nativeImage,
       fetchImpl,
+      trustedImageOrigins,
+      getTrustedImageOrigins,
+      backendHttpUrl,
     }),
   });
 
@@ -61,6 +67,9 @@ function registerImageContextMenuHandler({
   clipboard,
   nativeImage,
   fetchImpl = globalThis.fetch,
+  trustedImageOrigins = [],
+  getTrustedImageOrigins,
+  backendHttpUrl,
 }) {
   ipcMain.handle('show-image-context-menu', async (event, payload = {}) => {
     try {
@@ -72,6 +81,9 @@ function registerImageContextMenuHandler({
         clipboard,
         nativeImage,
         fetchImpl,
+        trustedImageOrigins,
+        getTrustedImageOrigins,
+        backendHttpUrl,
       });
     } catch (error) {
       return {

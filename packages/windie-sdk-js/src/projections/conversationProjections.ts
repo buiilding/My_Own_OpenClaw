@@ -402,14 +402,14 @@ function withoutDuplicateToolOutputs(events: ConversationEvent[]): ConversationE
   const prefers = (candidate: ConversationEvent, current: ConversationEvent): boolean => {
     const candidateHasModelContent = readToolOutputContent(candidate.payload).hasModelContent;
     const currentHasModelContent = readToolOutputContent(current.payload).hasModelContent;
+    if (candidateHasModelContent !== currentHasModelContent) {
+      return candidateHasModelContent;
+    }
     if (candidate.source === 'backend' && current.source !== 'backend') {
       return true;
     }
     if (candidate.source !== 'backend' && current.source === 'backend') {
       return false;
-    }
-    if (candidateHasModelContent !== currentHasModelContent) {
-      return candidateHasModelContent;
     }
     return false;
   };

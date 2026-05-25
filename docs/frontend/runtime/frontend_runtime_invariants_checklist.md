@@ -27,6 +27,7 @@ Any change touching renderer chat loop state, main-process overlay phase handlin
    - before screenshot capture: hide chat pill
    - keep chat pill/response overlay non-focusable
    - after capture: restore chat pill visibility (no focus steal)
+   - overlapping tool screenshot preparations reserve a surface token before async handoff/hide work so only the first preparation owns the hide/restore cycle
 5. Windows/macOS screenshot contract:
    - no renderer hide/show collapse path for capture
    - rely on overlay content protection policy for protected overlays during active loop phases

@@ -21,6 +21,20 @@ class _FakeRealtimeConnection:
         self.closed = True
 
 
+class _FakeStreamingConnection(_FakeRealtimeConnection):
+    def __init__(self, messages: list[dict[str, object]]) -> None:
+        super().__init__()
+        self._messages = [json.dumps(message) for message in messages]
+
+    def __aiter__(self):
+        return self
+
+    async def __anext__(self):
+        if not self._messages:
+            raise StopAsyncIteration
+        return self._messages.pop(0)
+
+
 @pytest.mark.asyncio
 async def test_openai_realtime_connect_uses_transcription_intent_and_session_update(
     monkeypatch,
@@ -45,10 +59,7 @@ async def test_openai_realtime_connect_uses_transcription_intent_and_session_upd
     session = OpenAIRealtimeTranscriptionSession(AppConfig(stt_provider="openai"))
     await session.connect()
 
-    assert (
-        captured["url"]
-        == f"{OPENAI_REALTIME_URL}?intent=transcription"
-    )
+    assert captured["url"] == f"{OPENAI_REALTIME_URL}?intent=transcription"
     assert captured["extra_headers"] == {
         "Authorization": "Bearer test-openai-key",
     }
@@ -83,3 +94,34 @@ async def test_openai_realtime_connect_uses_transcription_intent_and_session_upd
 
     await session.close()
     assert fake_connection.closed is True
+
+
+@pytest.mark.asyncio
+async def test_openai_realtime_failed_transcription_clears_partial_transcript():
+    session = OpenAIRealtimeTranscriptionSession(AppConfig(stt_provider="openai"))
+    session._connection = _FakeStreamingConnection(
+        [
+            {
+                "type": "conversation.item.input_audio_transcription.delta",
+                "item_id": "item-1",
+                "delta": "hel",
+            },
+            {
+                "type": "conversation.item.input_audio_transcription.failed",
+                "item_id": "item-1",
+                "error": {"message": "decode failed"},
+            },
+        ]
+    )
+    events: list[dict[str, object]] = []
+
+    async def _send_event(event: dict[str, object]) -> None:
+        events.append(event)
+
+    await session.stream_events(_send_event)
+
+    assert events == [
+        {"type": "realtime", "text": "hel", "is_final": False},
+        {"type": "error", "message": "{'message': 'decode failed'}"},
+    ]
+    assert dict(session._partial_transcripts) == {}

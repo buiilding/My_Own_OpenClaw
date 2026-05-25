@@ -62,10 +62,14 @@ class FakeSafeWebSocket:
         self.websocket = websocket
         self.accepted = False
         self.closed = []
+        self.sent_json = []
         self.__class__.instances.append(self)
 
     async def accept(self) -> None:
         self.accepted = True
+
+    async def send_json(self, payload) -> None:
+        self.sent_json.append(payload)
 
     async def close(self, code: int = 1000, reason: str | None = None) -> None:
         self.closed.append((code, reason))
@@ -78,6 +82,12 @@ class ExplodingCloseSafeWebSocket(FakeSafeWebSocket):
         raise RuntimeError("close failed")
 
 
+class ExplodingSendSafeWebSocket(FakeSafeWebSocket):
+    async def send_json(self, payload) -> None:
+        await super().send_json(payload)
+        raise RuntimeError("startup send failed")
+
+
 class FakeTaskManager:
     def __init__(self, max_concurrent_tasks: int, task_cancellation_timeout: float):
         self.max_concurrent_tasks = max_concurrent_tasks
@@ -88,6 +98,9 @@ class FakeTaskManager:
         if callable(close):
             close()
         return None, False
+
+    async def cleanup(self, user_id: str) -> None:  # noqa: ARG002
+        return None
 
 
 @pytest.mark.asyncio
@@ -170,6 +183,55 @@ async def test_websocket_endpoint_returns_early_when_handshake_fails(
     assert cleanup_calls == []
     assert len(FakeSafeWebSocket.instances) == 1
     assert FakeSafeWebSocket.instances[0].accepted is True
+
+
+@pytest.mark.asyncio
+async def test_websocket_endpoint_cleans_up_when_startup_send_fails(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    FakeSafeWebSocket.instances = []
+    session_manager = DummySessionManager()
+    increment_calls: list[str] = []
+    decrement_calls: list[str] = []
+    end_session_calls: list[str] = []
+
+    def increment_connection_count(user_id: str) -> None:
+        increment_calls.append(user_id)
+
+    def decrement_connection_count(user_id: str) -> int:
+        decrement_calls.append(user_id)
+        return 0
+
+    async def end_session(user_id: str) -> None:
+        end_session_calls.append(user_id)
+
+    session_manager.increment_connection_count = increment_connection_count
+    session_manager.decrement_connection_count = decrement_connection_count
+    session_manager.end_session = end_session
+
+    async def fake_perform_handshake(websocket, safe_ws, **_kwargs):  # noqa: ARG001
+        return "user_startup_send"
+
+    monkeypatch.setattr(
+        websocket_route_module, "SafeWebSocket", ExplodingSendSafeWebSocket
+    )
+    monkeypatch.setattr(websocket_route_module, "TaskManager", FakeTaskManager)
+    monkeypatch.setattr(
+        websocket_route_module, "perform_handshake", fake_perform_handshake
+    )
+
+    with pytest.raises(RuntimeError, match="startup send failed"):
+        await websocket_route_module.websocket_endpoint(
+            websocket=DummyWebSocket(),
+            session_manager=session_manager,
+            handler_registry=object(),
+        )
+
+    assert increment_calls == ["user_startup_send"]
+    assert decrement_calls == ["user_startup_send"]
+    assert end_session_calls == ["user_startup_send"]
+    assert len(FakeSafeWebSocket.instances) == 1
+    assert FakeSafeWebSocket.instances[0].closed == [(1000, None)]
 
 
 @pytest.mark.asyncio

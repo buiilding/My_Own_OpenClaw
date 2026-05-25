@@ -30,6 +30,7 @@ Renderer has multiple independent listeners on this channel (chat stream, config
 
 Renderer typed union currently includes:
 
+- `query-accepted`
 - `llm-thought`
 - `streaming-response`
 - `streaming-complete`
@@ -39,6 +40,7 @@ Renderer typed union currently includes:
 - `tool-call`
 - `tool-output`
 - `tool-bundle`
+- `web-search-progress`
 - `local-user-message`
 - `system-prompt`
 - `user-message-full`
@@ -50,7 +52,7 @@ Renderer typed union currently includes:
 
 Type guard:
 
-- `isBackendEvent(value)` checks membership in the static event-type set above
+- `isBackendEvent(value)` checks membership in the static event-type set above, validates optional base context fields as strings, and rejects non-object payloads or known payload fields with the wrong primitive/container shape
 
 ## Consumer Matrix
 

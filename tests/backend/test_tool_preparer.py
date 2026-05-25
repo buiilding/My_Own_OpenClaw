@@ -2,8 +2,12 @@ import pytest
 
 from backend.src.agent.tools.preparation.preparer import ToolPreparer
 from backend.src.agent.tools.preparation.helpers.preparation_helper import (
+    resolve_tool_with_coordinates,
     tool_call_has_manual_coordinates,
     tool_call_needs_coordinate_resolution,
+)
+from backend.src.agent.tools.preparation.types.resolved_tool_call import (
+    ResolvedToolCall,
 )
 from backend.src.core.types.enums import CoordinateFindingMethod
 from backend.src.llm.parser import ParsedToolCall
@@ -61,12 +65,52 @@ class DummyToolRegistry:
         return self._mapping.get(tool_name)
 
 
+class DummyScreenshotManager:
+    def __init__(self):
+        self.sessions = []
+
+    async def ensure_screenshot(self, session):
+        self.sessions.append(session)
+
+
+class DummyOcrCoordinator:
+    def __init__(self, results=None):
+        self.results = [] if results is None else results
+        self.calls = []
+
+    async def get_ocr_results(self, session, screenshot_data, screenshot_id):
+        self.calls.append((session, screenshot_data, screenshot_id))
+        return self.results
+
+
+class DummyCoordinateResolver:
+    def __init__(self, coordinates):
+        self.coordinates = coordinates
+        self.calls = []
+
+    async def resolve(
+        self,
+        tool_call,
+        screenshot_data,
+        ocr_results,
+        vision_service,
+        *,
+        screenshot_id=None,
+    ):
+        self.calls.append(
+            (tool_call, screenshot_data, ocr_results, vision_service, screenshot_id)
+        )
+        return self.coordinates
+
+
 async def _collect_preparation(preparer, tool_calls):
     result = await preparer.prepare(tool_calls, DummySession())
     return [], result
 
 
-def _assert_single_result_with_coordinate_method(events, result, expected_method: str) -> None:
+def _assert_single_result_with_coordinate_method(
+    events, result, expected_method: str
+) -> None:
     assert events == []
     assert result is not None
     assert result.resolved_calls
@@ -84,7 +128,10 @@ async def test_prepare_single_tool_assigns_request_id():
     assert result is not None
     assert result.bundle_id is None
     assert "request_id" in tool_call.metadata
-    assert result.resolved_calls[0].metadata["request_id"] == tool_call.metadata["request_id"]
+    assert (
+        result.resolved_calls[0].metadata["request_id"]
+        == tool_call.metadata["request_id"]
+    )
 
 
 @pytest.mark.asyncio
@@ -103,6 +150,29 @@ async def test_prepare_bundle_assigns_bundle_id():
         assert call.metadata["bundle_id"] == result.bundle_id
     for resolved in result.resolved_calls:
         assert resolved.metadata["bundle_id"] == result.bundle_id
+
+
+@pytest.mark.asyncio
+async def test_prepare_bundle_registers_resolved_steps_with_stable_ids():
+    preparer = ToolPreparer(object(), object(), object())
+    session = DummySession()
+    calls = [
+        ParsedToolCall(tool_name="read_file", parameters={}, raw_call="{}"),
+        ParsedToolCall(tool_name="write_file", parameters={}, raw_call="{}"),
+    ]
+
+    result = await preparer.prepare(calls, session)
+
+    assert result.errors == []
+    assert result.bundle_id is not None
+    assert list(session.resolved_calls) == [
+        f"{result.bundle_id}:step:1",
+        f"{result.bundle_id}:step:2",
+    ]
+    assert list(session.resolved_calls.values()) == result.resolved_calls
+    for resolved in result.resolved_calls:
+        assert resolved.metadata["bundle_id"] == result.bundle_id
+        assert "request_id" not in resolved.metadata
 
 
 @pytest.mark.asyncio
@@ -131,7 +201,10 @@ async def test_prepare_scroll_control_uses_coordinate_resolution(monkeypatch):
     preparer = ToolPreparer(object(), object(), object())
     tool_call = ParsedToolCall(
         tool_name="scroll_control",
-        parameters={"action": "scroll_down", "find_coordinates_by": CoordinateFindingMethod.PREDICTION},
+        parameters={
+            "action": "scroll_down",
+            "find_coordinates_by": CoordinateFindingMethod.PREDICTION,
+        },
         raw_call="{}",
     )
 
@@ -432,6 +505,52 @@ def test_tool_call_needs_coordinate_resolution_supports_grounded_mouse_and_scrol
             )
         )
         is False
+    )
+
+
+@pytest.mark.asyncio
+async def test_resolve_tool_with_coordinates_allows_drag_destination_without_source_coordinates():
+    session = DummySession()
+    screenshot_manager = DummyScreenshotManager()
+    ocr_coordinator = DummyOcrCoordinator(results=[{"text": "Drop here"}])
+    coordinate_resolver = DummyCoordinateResolver(coordinates=(300, 400))
+    tool_call = ParsedToolCall(
+        tool_name="mouse_control",
+        parameters={
+            "action": "drag",
+            "explanation": "Drag to the drop target.",
+            "drag_to_find_coordinates_by": CoordinateFindingMethod.OCR,
+            "drag_to_ocr_text": "Drop here",
+        },
+        raw_call="{}",
+    )
+    resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
+
+    await resolve_tool_with_coordinates(
+        tool_call=tool_call,
+        resolved_call=resolved_call,
+        session=session,
+        screenshot_manager=screenshot_manager,
+        ocr_coordinator=ocr_coordinator,
+        coordinate_resolver=coordinate_resolver,
+        vision_service=None,
+        vision_service_provider=lambda _session: None,
+        context_id="request-drag-destination",
+    )
+
+    assert screenshot_manager.sessions == [session]
+    assert ocr_coordinator.calls == [(session, "fake-shot", "shot-prepare")]
+    assert len(coordinate_resolver.calls) == 1
+    destination_call = coordinate_resolver.calls[0][0]
+    assert destination_call.parameters["find_coordinates_by"] == "ocr"
+    assert destination_call.parameters["ocr_text"] == "Drop here"
+    assert "x" not in resolved_call.parameters
+    assert "y" not in resolved_call.parameters
+    assert resolved_call.parameters["drag_to_x"] == 300
+    assert resolved_call.parameters["drag_to_y"] == 400
+    assert (
+        resolved_call.metadata["drag_destination_coordinate_method"]
+        == CoordinateFindingMethod.OCR.value
     )
 
 

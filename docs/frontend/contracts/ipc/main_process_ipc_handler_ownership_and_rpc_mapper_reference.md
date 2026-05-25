@@ -56,6 +56,8 @@ Main-process handler registration is split by responsibility:
 
 - `send-chat-query`
 - `stop-chat-query`
+- `copy-image-to-clipboard`
+- `show-image-context-menu`
 - `load-frontend-config`
 - `get-client-user-id`
 - `upload-artifact`
@@ -70,6 +72,10 @@ Notable behavior:
 - `send-chat-query` performs initial settings sync gate, local optimistic user event synthesis, payload enrichment, and websocket send
 - `stop-chat-query` sends the backend stop command without exposing generic renderer command routing
 - `save/load-frontend-config` call atomic file helpers in `ipc_frontend_config.cjs`
+- clipboard image copy and image context-menu copy share the same main-process
+  fetch policy: bounded `data:image/*` URLs are decoded locally; HTTP(S) fetches
+  are limited to trusted backend-origin `/api/artifacts/...` URLs, use manual
+  redirect validation, and require image content type plus bounded response size
 - helper-module split:
   - inbound backend message normalization/state/phase fan-out: `ipc_runtime_helpers.cjs`
   - renderer-window registration and broadcast fan-out: `ipc_renderer_windows.cjs`
@@ -130,7 +136,7 @@ Notable behavior:
 Notable behavior:
 
 - permission handlers delegate to `permission_service.cjs` using shared deps (`platform`, `shell`, `systemPreferences`)
-- `set-agent-sudo-access` delegates to `agent_sudo_access_handler.cjs` and is Linux-only; enable path uses `pkexec`, disable path uses non-interactive `sudo -n` with normalized auth-cancel/error messaging
+- `set-agent-sudo-access` delegates to `agent_sudo_access_handler.cjs` and is Linux-only; persistent enable is rejected, while legacy sudoers cleanup uses `pkexec` with normalized auth-cancel/error messaging
 
 ### `window_visibility_runtime.cjs`
 
@@ -176,9 +182,11 @@ Notable behavior:
   1. `resolveActiveSurfaceDisplayAffinityForWindows(...)` resolves sender + visible-surface + stored-affinity selection
   2. internal precedence: visible sender surface (chat/main) -> visible chat/main surface -> stored active query display affinity
 - screenshot tool results with sidecar temp files are materialized in main process:
-  - upload `data.screenshot_path` to backend artifacts API when possible
+  - accept only owned temp files under `${os.tmpdir()}/windieos-screenshots` with `windie-shot-` filenames
+  - upload accepted `data.screenshot_path` files to backend artifacts API when possible
   - fallback to inline base64 `data.screenshot` on upload failure
-  - always delete temporary screenshot file and drop `screenshot_path` from returned payload
+  - delete accepted temporary screenshot files and drop `screenshot_path` from returned payload
+  - strip `screenshot_path` from non-screenshot tool results without reading or deleting the path
 - `screenshot` tool path uses hidden-window guard wrapper
 - all mapped handlers call `sendRequestOrError(...)` and return normalized error payloads
 

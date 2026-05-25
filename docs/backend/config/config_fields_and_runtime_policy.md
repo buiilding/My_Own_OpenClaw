@@ -199,7 +199,8 @@ Behavior:
 
 ## Config Mutation and Notification Paths
 
-- Global service-level updates: `ConfigurationService.update_config(...)`.
+- Global service-level updates and reloads:
+  `ConfigurationService.update_config(...)` / `ConfigurationService.reload_config(...)`.
 - Session subscriber propagation: `SessionManager.on_config_changed(...)` -> `update_all_sessions_config(...)`.
 - Single-session frontend updates: `UpdateSettingsHandler` -> `SessionManager.update_session_config(...)`.
 

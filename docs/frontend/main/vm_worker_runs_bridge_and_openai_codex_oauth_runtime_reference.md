@@ -183,6 +183,9 @@ Token completeness requirement:
 Timeout/failure behavior:
 
 - Callback timeout: 10 minutes.
+- Browser-launch failure aborts the callback waiter through the same cleanup path,
+  clearing its timeout and closing the local callback server before returning the
+  launch error.
 - Invalid state/code or token-exchange failure returns `{ success:false, error }` via IPC.
 
 ### Token Normalization Details

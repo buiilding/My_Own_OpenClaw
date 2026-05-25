@@ -41,10 +41,30 @@ const COMPUTER_USE_SURFACE_TOOL_NAMES = new Set([
   'scroll',
 ]);
 
+function normalizeToolName(toolName) {
+  return typeof toolName === 'string' ? toolName.trim().toLowerCase() : '';
+}
+
 function isComputerUseSurfaceTool(toolName) {
-  return COMPUTER_USE_SURFACE_TOOL_NAMES.has(
-    typeof toolName === 'string' ? toolName.trim().toLowerCase() : '',
-  );
+  return COMPUTER_USE_SURFACE_TOOL_NAMES.has(normalizeToolName(toolName));
+}
+
+function isScreenshotTool(toolName) {
+  return normalizeToolName(toolName) === 'screenshot';
+}
+
+function stripUntrustedScreenshotPath(result) {
+  if (
+    result
+    && result.success !== false
+    && result.data
+    && typeof result.data === 'object'
+    && !Array.isArray(result.data)
+    && typeof result.data.screenshot_path === 'string'
+  ) {
+    delete result.data.screenshot_path;
+  }
+  return result;
 }
 
 function createLocalBackendExecuteToolRuntime({
@@ -123,7 +143,7 @@ function createLocalBackendExecuteToolRuntime({
       }
       if (!result) {
         const runTool = () => runExecuteToolRequest(toolName, normalizedArgs, timeoutMs);
-        result = toolName === 'screenshot'
+        result = isScreenshotTool(toolName)
           ? await withHiddenWindowForScreenshot({
             platform,
             task: runTool,
@@ -134,11 +154,15 @@ function createLocalBackendExecuteToolRuntime({
           : await runTool();
       }
 
-      result = await materializeScreenshotAttachment(result, backendHttpUrl, {
-        warn: console.warn,
-        getErrorMessage,
-        getArtifactUploadHeaders,
-      });
+      if (isScreenshotTool(toolName)) {
+        result = await materializeScreenshotAttachment(result, backendHttpUrl, {
+          warn: console.warn,
+          getErrorMessage,
+          getArtifactUploadHeaders,
+        });
+      } else {
+        result = stripUntrustedScreenshotPath(result);
+      }
 
       if (result.success === false) {
         return { success: false, error: result.error };

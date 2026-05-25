@@ -259,7 +259,9 @@ export function resolveLlmOutputContract(
   if (isGeminiProvider(provider)) {
     markdown = normalizeGeminiTransportArtifacts(markdown, stripAccidentalHtmlTokens);
   }
-  markdown = normalizeLatexMathDelimiters(markdown);
+  if (mathEnabled) {
+    markdown = normalizeLatexMathDelimiters(markdown);
+  }
 
   return {
     markdown,

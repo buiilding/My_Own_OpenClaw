@@ -111,7 +111,7 @@ Behavior:
 ## Permission channels (`permission_ipc_runtime.cjs`, wired by `index.cjs`)
 
 - `set-agent-sudo-access`
-  - Linux-only privileged sudoers toggle flow (`pkexec` enable + `sudo -n` disable) with normalized canceled/error semantics
+  - Linux-only sudo flow: rejects persistent passwordless enable and removes legacy WindieOS sudoers files through `pkexec`
   - detailed runtime contract: [Agent Sudo Access Handler PKExec and Non-Interactive Disable Contract Reference](../main/agent_sudo_access_handler_pkexec_and_noninteractive_disable_contract_reference.md)
 - `list-permissions`
 - `check-permissions`

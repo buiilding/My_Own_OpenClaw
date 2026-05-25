@@ -40,6 +40,7 @@ from fastapi import WebSocketDisconnect
 from backend.src.api.contracts.message_types import OutgoingMessageType
 from backend.src.core.validation.validators import ValidationError
 from backend.src.core.infrastructure.user_facing_errors import (
+    INTERNAL_SERVER_ERROR_MESSAGE,
     format_internal_server_error_message,
 )
 from backend.src.api.transport.protocol import WebSocketSender
@@ -96,17 +97,19 @@ def sanitize_error_message(exception: Exception, context: Optional[str] = None) 
 async def send_error_response(
     websocket: WebSocketSender,
     msg_id: Optional[str],
-    message: str,
+    message: Optional[str],
     error_type: str = OutgoingMessageType.ERROR,
     exception: Optional[Exception] = None,
+    user_facing: bool = False,
 ) -> None:
     """
     Send standardized error response to WebSocket client.
 
     Uses WebSocketSender protocol to ensure thread-safe serialization of writes.
 
-    Security: If an exception is provided, the message is sanitized to prevent
-    information leakage. Full exception details are logged server-side.
+    Security: exception messages are sanitized to prevent information leakage.
+    Raw message strings are treated as internal unless explicitly marked
+    user_facing by the caller.
 
     Handles connection errors gracefully - if connection is closed, logs at
     debug level and returns silently. This is expected behavior when clients
@@ -115,12 +118,12 @@ async def send_error_response(
     Args:
         websocket: WebSocketSender (thread-safe protocol implementation)
         msg_id: Message ID from original request (optional)
-        message: Error message to send (if exception is None, this is sent as-is)
+        message: Error message to send when user_facing is true
         error_type: Error message type (default: "error")
         exception: Optional exception to sanitize. If provided, message is ignored
                    and sanitize_error_message() is used instead.
+        user_facing: True only for already-validated client-safe messages.
     """
-    # Sanitize message if exception is provided
     if exception is not None:
         # Log full exception details server-side for debugging
         logger.error(
@@ -129,6 +132,16 @@ async def send_error_response(
         )
         # Use sanitized message for client
         message = sanitize_error_message(exception, context=None)
+    elif user_facing:
+        message = message or INTERNAL_SERVER_ERROR_MESSAGE
+    else:
+        if message:
+            logger.error(
+                "Blocked non-user-facing raw error response (msg_id=%s): %s",
+                msg_id,
+                message,
+            )
+        message = INTERNAL_SERVER_ERROR_MESSAGE
     await _send_transport_message(
         websocket=websocket,
         message=build_transport_message(

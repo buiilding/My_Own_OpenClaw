@@ -134,6 +134,28 @@ async def test_remote_provider_rejects_invalid_response_body() -> None:
     await provider.close()
 
 
+@pytest.mark.asyncio
+async def test_remote_provider_rejects_embedding_count_mismatch() -> None:
+    async def handler(_request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"embeddings": [[1.0, 2.0]]})
+
+    provider = RemoteHttpEmbeddingProvider(
+        service_url="http://embeddings.internal",
+        http_client=httpx.AsyncClient(
+            base_url="http://embeddings.internal",
+            transport=_build_transport(handler),
+        ),
+    )
+
+    with pytest.raises(EmbeddingProviderRequestError) as exc_info:
+        await provider.embed_batch(["hello", "world"])
+
+    assert exc_info.value.status_code == 502
+    assert "one vector per input" in exc_info.value.detail
+
+    await provider.close()
+
+
 class _BlockingProvider(EmbeddingProvider):
     def __init__(self) -> None:
         self.started = asyncio.Event()

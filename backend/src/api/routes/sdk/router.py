@@ -10,6 +10,7 @@ from fastapi import APIRouter, HTTPException, Query, Request
 from backend.src.agent.tools.preparation.coordinate_resolution.resolvers import (
     OcrCoordinateResolver,
 )
+from backend.src.api.auth.context import get_current_authenticated_install_identity
 from backend.src.api.deps import ContainerDep, SessionManagerDep
 from backend.src.api.routes.sdk.models import (
     DebugModelsResponse,
@@ -69,6 +70,42 @@ logger = logging.getLogger(__name__)
 
 
 InteractionModeQuery = Optional[Literal["chat", "agent"]]
+
+
+def require_sdk_debug_identity(
+    payload_user_id: Optional[str],
+    *,
+    context_label: str = "SDK debug query plan",
+):
+    identity = require_authenticated_sdk_identity()
+    if (
+        isinstance(payload_user_id, str)
+        and payload_user_id.strip()
+        and payload_user_id.strip() != identity.user_id
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail=f"{context_label} cannot inspect another user's context",
+        )
+    return identity
+
+
+def require_authenticated_sdk_identity():
+    identity = get_current_authenticated_install_identity()
+    if identity is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Authenticated install identity required",
+        )
+    return identity
+
+
+def reject_untrusted_query_plan_workspace(workspace_path: Optional[str]) -> None:
+    if isinstance(workspace_path, str) and workspace_path.strip():
+        raise HTTPException(
+            status_code=403,
+            detail="SDK debug query plan does not accept payload-selected workspace paths",
+        )
 
 
 @router.post("/ocr/run", response_model=OcrRunResponse)
@@ -165,6 +202,7 @@ async def sdk_ocr_find_text(
     request: OcrTextQueryRequest,
     container: ContainerDep,
 ) -> OcrFindTextResponse:
+    require_authenticated_sdk_identity()
     source = resolve_image_source(request.image, container)
     ocr_results = await run_ocr(source, container)
     ranked = rank_ocr_matches(request.text, ocr_results, source_id=source.source_id)
@@ -187,11 +225,14 @@ async def sdk_ocr_find_text_candidates(
     source = resolve_image_source(request.image, container)
     ocr_results = await run_ocr(source, container)
     ranked = rank_ocr_matches(request.text, ocr_results, source_id=source.source_id)
+    matches = [
+        match for match in ranked if float(match.score or 0.0) >= request.threshold
+    ][: request.max_results]
     return OcrFindTextResponse(
         image=build_image_metadata(source),
         query=request.text,
         threshold=request.threshold,
-        matches=ranked[: request.max_results],
+        matches=matches,
     )
 
 
@@ -450,10 +491,14 @@ async def sdk_debug_system_prompt(
     model_provider: Optional[str] = Query(None),
     interaction_mode: InteractionModeQuery = Query(None),
 ) -> DebugSystemPromptResponse:
+    identity = require_sdk_debug_identity(
+        user_id,
+        context_label="SDK debug system prompt",
+    )
     config = resolve_effective_debug_config(
         container=container,
         session_manager=session_manager,
-        user_id=user_id,
+        user_id=identity.user_id,
         model_id=model_id,
         model_provider=model_provider,
         interaction_mode=interaction_mode,
@@ -506,10 +551,12 @@ async def sdk_debug_query_plan(
     container: ContainerDep,
     session_manager: SessionManagerDep,
 ) -> QueryPlanResponse:
+    identity = require_sdk_debug_identity(payload.user_id)
+    reject_untrusted_query_plan_workspace(payload.workspace_path)
     config = resolve_effective_debug_config(
         container=container,
         session_manager=session_manager,
-        user_id=payload.user_id,
+        user_id=identity.user_id,
         model_id=payload.model_id,
         model_provider=payload.model_provider,
         interaction_mode=payload.interaction_mode,

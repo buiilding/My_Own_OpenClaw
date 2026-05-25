@@ -1,4 +1,5 @@
 const { spawn } = require('child_process');
+const crypto = require('crypto');
 const path = require('path');
 
 const { buildClientToolManifest } = require('./tool_manifest.cjs');
@@ -82,12 +83,19 @@ function loadMcpServerSpecs(options = {}) {
 }
 
 function cacheKeyForServer(server) {
+  const envEntries = Object.keys(server.env || {})
+    .sort()
+    .map((key) => [key, String(server.env[key])]);
+  const envFingerprint = crypto
+    .createHash('sha256')
+    .update(JSON.stringify(envEntries))
+    .digest('hex');
   return [
     server.id,
     server.command,
     JSON.stringify(server.args),
     server.cwd,
-    JSON.stringify(Object.keys(server.env || {}).sort()),
+    envFingerprint,
   ].join('|');
 }
 

@@ -223,37 +223,35 @@ async function attachSinglePostActionScreenshot(deps, {
   return mergePostActionScreenshot(normalizedData, screenshotData, toolName);
 }
 
-function resolveBundleCaptureWaitSeconds(tools) {
+function resolveBundleCaptureWaitSeconds(executedSteps) {
   let waitSeconds = 0;
-  for (const tool of tools) {
+  for (const { sourceTool: tool, result } of executedSteps) {
     if (!isPlainObject(tool)) {
       continue;
     }
     const toolName = typeof tool.name === 'string' ? tool.name : '';
     const args = isPlainObject(tool.args) ? tool.args : {};
-    if (isCaptureWorthyTool(toolName, args)) {
+    if (result?.status === 'ok' && isCaptureWorthyTool(toolName, args)) {
       waitSeconds = Math.max(waitSeconds, resolvePostActionWaitSeconds(toolName, args));
     }
   }
   return waitSeconds;
 }
 
-function bundleContainsCaptureWorthyTool(tools, stepResults) {
-  return tools.some((tool, index) => {
+function bundleContainsCaptureWorthyTool(executedSteps) {
+  return executedSteps.some(({ sourceTool: tool, result }) => {
     if (!isPlainObject(tool)) {
       return false;
     }
-    const step = stepResults[index];
     const toolName = typeof tool.name === 'string' ? tool.name : '';
     const args = isPlainObject(tool.args) ? tool.args : {};
-    return step?.status === 'ok' && isCaptureWorthyTool(toolName, args);
+    return result?.status === 'ok' && isCaptureWorthyTool(toolName, args);
   });
 }
 
-function findBundleScreenshotFromExplicitStep(tools, stepResults) {
-  for (let index = stepResults.length - 1; index >= 0; index -= 1) {
-    const tool = tools[index];
-    const step = stepResults[index];
+function findBundleScreenshotFromExplicitStep(executedSteps) {
+  for (let index = executedSteps.length - 1; index >= 0; index -= 1) {
+    const { sourceTool: tool, result: step } = executedSteps[index];
     if (
       !isPlainObject(tool)
       || !isExplicitScreenshotTool(tool.name)
@@ -270,8 +268,7 @@ function findBundleScreenshotFromExplicitStep(tools, stepResults) {
 }
 
 async function attachBundlePostActionScreenshot(deps, {
-  tools,
-  stepResults,
+  executedSteps,
   resultPayload,
   turnRef,
   conversationRef,
@@ -279,18 +276,18 @@ async function attachBundlePostActionScreenshot(deps, {
   if (extractScreenshotDataFromData(resultPayload)) {
     return resultPayload;
   }
-  const explicitScreenshot = findBundleScreenshotFromExplicitStep(tools, stepResults);
+  const explicitScreenshot = findBundleScreenshotFromExplicitStep(executedSteps);
   if (explicitScreenshot) {
     return {
       ...resultPayload,
       ...explicitScreenshot,
     };
   }
-  if (!bundleContainsCaptureWorthyTool(tools, stepResults)) {
+  if (!bundleContainsCaptureWorthyTool(executedSteps)) {
     return resultPayload;
   }
   const screenshotData = await capturePostActionScreenshot(deps, {
-    waitSeconds: resolveBundleCaptureWaitSeconds(tools),
+    waitSeconds: resolveBundleCaptureWaitSeconds(executedSteps),
     explanation: 'Capturing the screen after bundled computer-use execution.',
     turnRef,
     conversationRef,
@@ -550,7 +547,8 @@ async function routeToolBundleToLocalRuntime(event, deps) {
 
   const startedAt = Date.now();
   const stepResults = [];
-  for (const tool of tools) {
+  const executedSteps = [];
+  for (const [sourceToolIndex, tool] of tools.entries()) {
     if (!isPlainObject(tool)) {
       continue;
     }
@@ -569,22 +567,26 @@ async function routeToolBundleToLocalRuntime(event, deps) {
         toolCallId,
       });
       const success = result?.success !== false;
-      stepResults.push({
+      const stepResult = {
         tool: toolName,
         ...(toolCallId ? { toolCallId } : {}),
         status: success ? 'ok' : 'error',
         output: success
           ? normalizeLocalToolResultData(result?.data)
           : { error: result?.error || 'Tool execution failed' },
-      });
+      };
+      stepResults.push(stepResult);
+      executedSteps.push({ sourceTool: tool, sourceToolIndex, result: stepResult });
     } catch (error) {
-      stepResults.push({
+      const stepResult = {
         tool: toolName,
         status: 'error',
         output: {
           error: error?.message || String(error),
         },
-      });
+      };
+      stepResults.push(stepResult);
+      executedSteps.push({ sourceTool: tool, sourceToolIndex, result: stepResult });
     }
   }
 
@@ -596,8 +598,7 @@ async function routeToolBundleToLocalRuntime(event, deps) {
     ? 'success'
     : (failedSteps.length === stepResults.length ? 'failure' : 'partial_failure');
   const resultPayload = await attachBundlePostActionScreenshot(deps, {
-    tools,
-    stepResults,
+    executedSteps,
     resultPayload: {
       bundle_id: bundleId,
       status,

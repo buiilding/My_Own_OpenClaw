@@ -40,13 +40,23 @@ flowchart LR
 | Selected image file is treated like readable text | File attachment bucketing | `fileAttachmentUtils.js`, `composerAttachmentPresentation.js`, `MessageInput.jsx` | `FileAttachmentUtils.test.js`, `MessageInput.test.jsx` |
 | Readable file appears as a chip but model never sees content | Sender hidden context path | `readableFileAttachmentContext.ts`, `useChatMessageSender.ts` | sidecar `read_file` behavior and query payload tests |
 | Attachment-only send is blocked | Composer outgoing payload builder | `message/messageInput.js`, `MessageInput.jsx` | `MessageInputUtils.test.js`, `MessageInput.test.jsx` |
+| Send failure clears text or attachment previews | Composer draft lifecycle | `useChatComposerDraft.js`, `MessageInput.jsx` | `ChatComposerDraft.test.jsx`, `MessageInput.test.jsx` |
 | Optimistic user row lacks filename chips | Sender payload normalization and chat store row | `chatMessageSenderPayloads.ts`, `chatMessageSenderUtils.ts`, `chatStore.ts` | `ChatMessageSenderPayloads.test.ts`, `ChatMessageSender.test.tsx` |
 | Uploaded image has wrong content type or URL | Artifact upload pipeline | `ScreenshotAttachmentPipeline.ts`, `ArtifactUploader.ts`, `ArtifactImageUtils.ts` | `ScreenshotAttachmentPipeline.test.ts`, `ArtifactUploader.test.ts`, `ArtifactImageUtils.test.ts` |
 | Query sends only one of multiple images | Sender screenshot ref selection | `queryScreenshotPipeline.ts`, `chatMessageSenderUtils.ts` | `ChatMessageSender.test.tsx`, backend query input tests |
 | Electron query payload drops attachment fields | Main query IPC runtime | `frontend/src/main/ipc/ipc_query_runtime.cjs`, `frontend/src/main/query_payload_builder.cjs` | `IpcQueryRuntime.test.cjs`, query payload builder tests |
 | Backend receives refs but model gets no image | Backend query input resolution | `backend/src/api/services/query_execution_support/query_execution_inputs.py` | `tests/backend/test_query_execution_inputs.py`, artifact route/store tests |
-| Replayed message loses images | Message screenshot resolver and transcript replay | `messageScreenshots.js`, `useResolvedMessageScreenshots.js`, transcript replay state | `MessageScreenshots.test.js`, `RehydratePayload.test.js`, transcript tests |
+| Replayed message loses images | Message screenshot resolver and transcript replay | `messageScreenshots.js`, `useResolvedMessageScreenshots.js`, transcript replay state | `MessageScreenshots.test.js`, `MessageContent.test.jsx`, `RehydratePayload.test.js`, transcript tests |
+| Artifact image fails once and never recovers | IPC-backed artifact screenshot cache | `useResolvedMessageScreenshots.js` | `MessageContent.test.jsx` retry-after-failure coverage |
 | Copy image to clipboard fails | Electron clipboard image IPC | `frontend/src/main/ipc/ipc_clipboard_image.cjs` | `IpcClipboardImageHandler.test.cjs` |
+
+Clipboard image IPC trust boundary:
+
+- the renderer may request copy/context-menu actions, but main process only
+  decodes bounded `data:image/*` payloads or fetches trusted backend artifact
+  URLs under `/api/artifacts/...`
+- main-process image fetches validate redirects, response size, and image
+  content type before writing to the native clipboard
 
 ## Change Sequence
 
@@ -60,6 +70,7 @@ flowchart LR
    - `buildOutgoingMessage(...)` may return a string for text-only sends.
    - It must return an object payload when images or readable files are attached.
    - Attachment-only sends should use the existing fallback text rather than blocking submission.
+   - Clear the composer draft only after the send callback succeeds; rejected async sends must leave text, pasted images, and selected readable files available for retry.
 
 3. Preserve image metadata.
    - Keep `base64`, `contentType`, `filename`, and `previewUrl` through composer preview.
@@ -70,7 +81,8 @@ flowchart LR
    - Non-image selected files become visible filename chips.
    - Sender uses sidecar `read_file` to build hidden `attachment_context`.
    - Raw file content should not appear in the visible user row.
-   - Failed file reads should warn and continue with the rest of the send path when possible.
+   - Failed file reads must block dispatch and surface a visible compose error,
+     so the model never receives an incomplete attachment context silently.
 
 5. Preserve backend-bound compatibility fields.
    - `screenshot_ref`: primary image ref for compatibility.

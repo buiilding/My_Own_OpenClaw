@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import time
 from contextlib import asynccontextmanager
-from typing import Any, Optional
+from typing import Annotated, Any, Optional
 
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from backend.src.api.routes.memory.embeddings.service import (
     embedding_to_list,
@@ -26,11 +26,25 @@ from backend.src.embeddings.limited_provider import CapacityLimitedEmbeddingProv
 
 logger = initialize_entrypoint_logger(__name__)
 
+MAX_EMBED_TEXT_CHARS = 8192
+MAX_EMBED_TOTAL_CHARS = 65536
+
 
 class EmbedRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    texts: list[str] = Field(min_length=1, max_length=256)
+    texts: list[
+        Annotated[str, Field(min_length=1, max_length=MAX_EMBED_TEXT_CHARS)]
+    ] = Field(min_length=1, max_length=256)
+
+    @model_validator(mode="after")
+    def validate_total_text_size(self) -> "EmbedRequest":
+        total_chars = sum(len(text) for text in self.texts)
+        if total_chars > MAX_EMBED_TOTAL_CHARS:
+            raise ValueError(
+                f"Total embedded text length exceeds {MAX_EMBED_TOTAL_CHARS} characters"
+            )
+        return self
 
 
 class EmbedResponse(BaseModel):

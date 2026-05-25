@@ -40,20 +40,20 @@ async def test_execute_tools_from_response_requires_session_ref():
 
 
 @pytest.mark.asyncio
-async def test_execute_tools_from_response_bundle_missing_id_returns_empty():
+async def test_execute_tools_from_response_bundle_missing_id_returns_empty(monkeypatch):
     orchestrator = ToolResultOrchestrator(DummyRegistry(), config={})
     tool_calls = [
         ParsedToolCall(
             tool_name="tool-a",
             parameters={},
             raw_call="{}",
-            metadata={"bundle_id": None},
+            metadata={"bundle_id": ""},
         ),
         ParsedToolCall(
             tool_name="tool-b",
             parameters={},
             raw_call="{}",
-            metadata={"bundle_id": None},
+            metadata={"bundle_id": ""},
         ),
     ]
     response = ParsedResponse(
@@ -61,6 +61,10 @@ async def test_execute_tools_from_response_bundle_missing_id_returns_empty():
         tool_calls=tool_calls,
         text_content="",
         has_tool_calls=True,
+    )
+    monkeypatch.setattr(
+        "backend.src.agent.tools.shared.bundle_detection.is_atomic_bundle",
+        lambda _response: True,
     )
 
     result = await orchestrator.execute_tools_from_response(
@@ -109,6 +113,33 @@ async def test_execute_tools_from_response_calls_execute_single_tool(monkeypatch
     assert len(result.tool_results) == 2
     assert result.tool_results[0].tool_call is tool_calls[0]
     assert result.tool_results[1].tool_call is tool_calls[1]
+
+
+@pytest.mark.asyncio
+async def test_execute_tools_from_response_preserves_missing_request_id_placeholder():
+    orchestrator = ToolResultOrchestrator(DummyRegistry(), config={})
+    tool_call = ParsedToolCall(
+        tool_name="tool-without-request-id",
+        parameters={},
+        raw_call="{}",
+        metadata=None,
+    )
+    response = ParsedResponse(
+        original_response="{}",
+        tool_calls=[tool_call],
+        text_content="",
+        has_tool_calls=True,
+    )
+
+    result = await orchestrator.execute_tools_from_response(
+        response, session_ref=DummySession()
+    )
+
+    assert len(result.tool_results) == 1
+    tool_result = result.tool_results[0]
+    assert tool_result.tool_call is tool_call
+    assert tool_result.success is True
+    assert tool_result.result.data == {"status": "pending_local_runtime_execution"}
 
 
 def test_get_available_tools_returns_capabilities():

@@ -45,6 +45,7 @@ The validation layer centralizes:
 
 - required/optional gating
 - type enforcement
+- numeric type checks reject `bool` values unless `bool` is explicitly the expected type
 - optional custom validator callback
 
 `sanitize_string(value, max_length)`:
@@ -144,10 +145,12 @@ All helper sends (`send_error_response`, `send_success_response`) use canonical 
 
 - validate_message/dict failure surfaces structured field errors/context
 - validate_field required/type/custom validator failures
+- bool rejection for numeric fields while preserving real boolean fields
 - sanitize_string null-byte removal and truncation
 - query text stripping/empty rejection
 - user-id invalid-value rejection (`default_user`, whitespace)
 - settings update filtering/type checks
+- settings update rejection of bool values for numeric AppConfig keys
 - frontend config subset enforcement and invalid value rejection
 
 `tests/backend/test_api_errors.py` verifies:

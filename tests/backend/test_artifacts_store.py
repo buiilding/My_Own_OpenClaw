@@ -7,6 +7,11 @@ from fastapi import HTTPException
 from starlette.datastructures import Headers, UploadFile
 from starlette.requests import Request
 
+from backend.src.api.auth.context import (
+    AuthenticatedInstallIdentity,
+    reset_current_authenticated_install_identity,
+    set_current_authenticated_install_identity,
+)
 from backend.src.core.config.models import AppConfig
 from backend.src.services.artifacts import ArtifactStore
 
@@ -183,7 +188,16 @@ async def test_upload_artifact_builds_url(tmp_path) -> None:
         "headers": [],
     }
     request = Request(scope)
+    token = set_current_authenticated_install_identity(
+        AuthenticatedInstallIdentity(
+            user_id="user-artifacts",
+            install_id="install-artifacts",
+        )
+    )
 
-    response = await upload_artifact(request, container, file=upload)
+    try:
+        response = await upload_artifact(request, container, file=upload)
+    finally:
+        reset_current_authenticated_install_identity(token)
 
     assert response.url.startswith("http://testserver/api/artifacts/")

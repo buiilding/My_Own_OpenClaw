@@ -254,7 +254,9 @@ class SessionConfigService:
                 session,
                 operating_system=operating_system,
                 workspace_path=workspace_path,
-                repo_instruction_messages=None,
+                repo_instruction_messages=getattr(
+                    runtime, "repo_instruction_messages", None
+                ),
                 client_prompt_layers=client_prompt_layers,
                 system_prompt_override=system_prompt_override,
             )

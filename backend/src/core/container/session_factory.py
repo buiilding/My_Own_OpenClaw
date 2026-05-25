@@ -4,6 +4,7 @@ Agent Session Factory.
 Creates AgentSession instances with all dependencies properly injected.
 Separates session creation logic from the Container class.
 """
+
 import logging
 import uuid
 from typing import TYPE_CHECKING, Any, Optional
@@ -77,14 +78,19 @@ class AgentSessionFactory:
         if not session_id:
             session_id = str(uuid.uuid4())
 
-        # Use provided config or fall back to factory's config
+        has_config_override = config is not None
         session_config = config if config is not None else self.config
 
-        # Create LLM client with session-specific config
+        # Create LLM client with session-specific config only when the caller
+        # provided an override; default sessions use the DI provider branch.
         # The factory accepts an optional config parameter:
         # - If config is provided, it creates client with that config (for session-specific config)
         # - Otherwise, it uses DI container's factory (which may be overridden for simulation)
-        llm_client = self.llm_client_factory(session_config)
+        llm_client = (
+            self.llm_client_factory(session_config)
+            if has_config_override
+            else self.llm_client_factory()
+        )
         logger.info(
             f"[Session Factory] Created LLM client with session config: "
             f"model_provider='{session_config.model_provider}', "

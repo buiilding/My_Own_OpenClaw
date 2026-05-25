@@ -3,15 +3,27 @@ import uuid
 import pytest
 from pydantic import ValidationError
 
-from backend.src.sdk.context import ExecutionRuntime, SessionContext, ToolContext, UserContext
+from backend.src.sdk.context import (
+    ExecutionRuntime,
+    SessionContext,
+    ToolContext,
+    UserContext,
+)
 from backend.src.tools.remote import (
     RemoteMouseTool,
     RemoteToolBase,
     RemoteToolResult,
+    RemoteWaitTool,
     get_all_remote_tools,
     get_remote_tool,
 )
-from backend.src.tools.computer.schemas import KeyboardControlArgs, MouseControlArgs, ScrollControlArgs, SwitchTabArgs
+from backend.src.tools.computer.schemas import (
+    KeyboardControlArgs,
+    MouseControlArgs,
+    ScrollControlArgs,
+    SwitchTabArgs,
+    WaitToolArgs,
+)
 
 EXPLANATION = "Advance the active user task."
 
@@ -41,6 +53,25 @@ async def test_remote_tool_uses_request_id_from_session_metadata():
 
 
 @pytest.mark.asyncio
+async def test_remote_wait_tool_uses_session_request_id_for_frontend_correlation():
+    ctx = _make_context(metadata={"request_id": "req-wait-123"})
+    wait_tool = RemoteWaitTool()
+    mouse_tool = RemoteMouseTool()
+
+    wait_result = await wait_tool.run(
+        WaitToolArgs(seconds=2, explanation=EXPLANATION), ctx
+    )
+    mouse_result = await mouse_tool.run(
+        MouseControlArgs(action="click", x=1, y=2, explanation=EXPLANATION),
+        ctx,
+    )
+
+    assert wait_result.tool_name == "wait"
+    assert wait_result.request_id == "req-wait-123"
+    assert mouse_result.request_id == "req-wait-123"
+
+
+@pytest.mark.asyncio
 async def test_remote_tool_generates_request_id_when_missing(monkeypatch):
     monkeypatch.setattr(uuid, "uuid4", lambda: "fixed-uuid")
     ctx = _make_context()
@@ -61,7 +92,9 @@ def test_scroll_control_requires_manual_coordinates_when_find_coordinates_by_is_
 
 
 def test_mouse_control_accepts_button_field():
-    args = MouseControlArgs(action="click", x=10, y=20, button="middle", explanation=EXPLANATION)
+    args = MouseControlArgs(
+        action="click", x=10, y=20, button="middle", explanation=EXPLANATION
+    )
 
     assert args.button == "middle"
 
@@ -92,7 +125,9 @@ def test_scroll_control_requires_direction_for_scroll_action():
     with pytest.raises(ValidationError):
         ScrollControlArgs(action="scroll", x=10, y=20, explanation=EXPLANATION)
 
-    args = ScrollControlArgs(action="scroll", x=10, y=20, direction="down", explanation=EXPLANATION)
+    args = ScrollControlArgs(
+        action="scroll", x=10, y=20, direction="down", explanation=EXPLANATION
+    )
     assert args.direction == "down"
 
 
@@ -115,10 +150,14 @@ def test_keyboard_control_requires_action_specific_fields():
     ):
         KeyboardControlArgs(action="paste", explanation=EXPLANATION)
 
-    with pytest.raises(ValidationError, match="key parameter required for press action"):
+    with pytest.raises(
+        ValidationError, match="key parameter required for press action"
+    ):
         KeyboardControlArgs(action="press", explanation=EXPLANATION)
 
-    with pytest.raises(ValidationError, match="keys parameter required for hotkey action"):
+    with pytest.raises(
+        ValidationError, match="keys parameter required for hotkey action"
+    ):
         KeyboardControlArgs(action="hotkey", explanation=EXPLANATION)
 
 
@@ -161,12 +200,18 @@ def test_switch_window_args_accept_match_mode():
 
 def test_scroll_control_requires_ocr_target_when_using_ocr():
     with pytest.raises(ValidationError):
-        ScrollControlArgs(action="scroll_down", find_coordinates_by="ocr", explanation=EXPLANATION)
+        ScrollControlArgs(
+            action="scroll_down", find_coordinates_by="ocr", explanation=EXPLANATION
+        )
 
 
 def test_scroll_control_requires_prediction_description_when_using_prediction():
     with pytest.raises(ValidationError):
-        ScrollControlArgs(action="scroll_down", find_coordinates_by="prediction", explanation=EXPLANATION)
+        ScrollControlArgs(
+            action="scroll_down",
+            find_coordinates_by="prediction",
+            explanation=EXPLANATION,
+        )
 
 
 def test_remote_tool_result_to_dict():
@@ -236,9 +281,18 @@ def test_remote_mouse_tool_schema_explicitly_guides_ocr_for_text_targets():
     schema = tool.get_json_schema()
     parameters = schema["parameters"]["properties"]
 
-    assert schema["description"] == "Control mouse actions with schema-guided coordinate targeting."
-    assert parameters["find_coordinates_by"]["description"] == "Coordinate targeting method."
-    assert parameters["ocr_text"]["description"] == "Exact visible on-screen text for OCR targeting."
+    assert (
+        schema["description"]
+        == "Control mouse actions with schema-guided coordinate targeting."
+    )
+    assert (
+        parameters["find_coordinates_by"]["description"]
+        == "Coordinate targeting method."
+    )
+    assert (
+        parameters["ocr_text"]["description"]
+        == "Exact visible on-screen text for OCR targeting."
+    )
     assert "Beware of the mouse position on the image" in parameters["x"]["description"]
     assert "Beware of the mouse position on the image" in parameters["y"]["description"]
 

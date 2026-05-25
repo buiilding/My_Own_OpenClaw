@@ -10,6 +10,7 @@ from tools.schemas import (  # noqa: E402
     KeyboardControlArgs,
     MouseControlArgs,
     OpenAppArgs,
+    ProcessShellCommandArgs,
     ReadFileArgs,
     ReplaceArgs,
     ReplaceOperationArgs,
@@ -21,6 +22,19 @@ from tools.schemas import (  # noqa: E402
 )
 
 EXPLANATION = "Advance the active user task."
+
+PROCESS_ACTIONS = (
+    "list",
+    "poll",
+    "log",
+    "write",
+    "send-keys",
+    "submit",
+    "paste",
+    "kill",
+    "clear",
+    "remove",
+)
 
 
 def test_mouse_control_requires_coordinates_for_all_actions():
@@ -59,16 +73,22 @@ def test_mouse_control_drag_requires_destination_coordinates():
 
 def test_mouse_control_rejects_unknown_fields():
     with pytest.raises(ValidationError):
-        MouseControlArgs(action="click", x=1, y=2, explanation=EXPLANATION, unknown_field="ignored")
+        MouseControlArgs(
+            action="click", x=1, y=2, explanation=EXPLANATION, unknown_field="ignored"
+        )
 
 
 def test_mouse_control_accepts_button_field():
-    args = MouseControlArgs(action="click", x=1, y=2, button="middle", explanation=EXPLANATION)
+    args = MouseControlArgs(
+        action="click", x=1, y=2, button="middle", explanation=EXPLANATION
+    )
 
     assert args.button == "middle"
 
     with pytest.raises(ValidationError):
-        MouseControlArgs(action="click", x=1, y=2, button="primary", explanation=EXPLANATION)
+        MouseControlArgs(
+            action="click", x=1, y=2, button="primary", explanation=EXPLANATION
+        )
 
 
 def test_keyboard_control_validates_action_fields_and_length():
@@ -93,7 +113,9 @@ def test_keyboard_control_validates_action_fields_and_length():
     args = KeyboardControlArgs(action="type", text="hello", explanation=EXPLANATION)
     assert args.text == "hello"
 
-    paste_args = KeyboardControlArgs(action="paste", text="hello", explanation=EXPLANATION)
+    paste_args = KeyboardControlArgs(
+        action="paste", text="hello", explanation=EXPLANATION
+    )
     assert paste_args.text == "hello"
 
 
@@ -109,7 +131,9 @@ def test_keyboard_control_accepts_press_and_hotkey_actions():
     assert press_args.repeat == 2
     assert press_args.interval_ms == 25
 
-    hotkey_args = KeyboardControlArgs(action="hotkey", keys=["ctrl", "s"], repeat=3, explanation=EXPLANATION)
+    hotkey_args = KeyboardControlArgs(
+        action="hotkey", keys=["ctrl", "s"], repeat=3, explanation=EXPLANATION
+    )
     assert hotkey_args.keys == ["ctrl", "s"]
     assert hotkey_args.repeat == 3
 
@@ -118,7 +142,9 @@ def test_keyboard_control_allows_text_length_boundary():
     args = KeyboardControlArgs(action="type", text="a" * 10000, explanation=EXPLANATION)
     assert len(args.text) == 10000
 
-    paste_args = KeyboardControlArgs(action="paste", text="a" * 10000, explanation=EXPLANATION)
+    paste_args = KeyboardControlArgs(
+        action="paste", text="a" * 10000, explanation=EXPLANATION
+    )
     assert len(paste_args.text) == 10000
 
 
@@ -126,7 +152,9 @@ def test_scroll_control_requires_direction_for_scroll_action():
     with pytest.raises(ValidationError):
         ScrollControlArgs(action="scroll", x=100, y=200, explanation=EXPLANATION)
 
-    args = ScrollControlArgs(action="scroll", x=100, y=200, direction="down", explanation=EXPLANATION)
+    args = ScrollControlArgs(
+        action="scroll", x=100, y=200, direction="down", explanation=EXPLANATION
+    )
     assert args.direction == "down"
 
 
@@ -144,7 +172,9 @@ def test_scroll_control_requires_manual_coordinates_for_all_actions():
 
 def test_scroll_control_scroll_up_down_do_not_require_direction():
     up_args = ScrollControlArgs(action="scroll_up", x=1, y=2, explanation=EXPLANATION)
-    down_args = ScrollControlArgs(action="scroll_down", x=3, y=4, explanation=EXPLANATION)
+    down_args = ScrollControlArgs(
+        action="scroll_down", x=3, y=4, explanation=EXPLANATION
+    )
 
     assert up_args.direction is None
     assert down_args.direction is None
@@ -218,11 +248,15 @@ def test_wait_tool_schema_requires_seconds():
 
 
 def test_switch_window_schema_supports_match_mode():
-    args = SwitchTabArgs(tab_name="Terminal", match_mode="contains", explanation=EXPLANATION)
+    args = SwitchTabArgs(
+        tab_name="Terminal", match_mode="contains", explanation=EXPLANATION
+    )
     assert args.match_mode == "contains"
 
     with pytest.raises(ValidationError):
-        SwitchTabArgs(tab_name="Terminal", match_mode="invalid", explanation=EXPLANATION)
+        SwitchTabArgs(
+            tab_name="Terminal", match_mode="invalid", explanation=EXPLANATION
+        )
 
 
 def test_replace_operation_occurrence_index_must_be_positive():
@@ -249,3 +283,11 @@ def test_open_app_args_validate_command_and_timeout():
             verify_timeout_seconds=-1,
             explanation="Launch Notepad so the user can edit a file.",
         )
+
+
+def test_process_shell_command_action_is_closed_contract():
+    for action in PROCESS_ACTIONS:
+        assert ProcessShellCommandArgs(action=action).action == action
+
+    with pytest.raises(ValidationError, match="action"):
+        ProcessShellCommandArgs(action="restart")

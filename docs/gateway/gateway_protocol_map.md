@@ -100,7 +100,7 @@ Outgoing message families:
 | Route family | Owner | Notes |
 | --- | --- | --- |
 | `/api/install/*` | `backend/src/api/auth/router.py` | registration returns server-owned `user_id`, `install_id`, and one-time token |
-| `/api/artifacts/*` | `backend/src/api/routes/artifacts/*` | upload/fetch artifact files, user identity comes from auth context when present |
+| `/api/artifacts/*` | `backend/src/api/routes/artifacts/*` | upload/fetch artifact files, user identity is required from auth context |
 | `/api/sdk/*` | `backend/src/api/routes/sdk/*` | hosted developer introspection/perception/query-plan routes |
 | `/api/embeddings/*` | `backend/src/api/routes/memory/embeddings/*` | embedding generation and health |
 | `/api/semantic/*` | `backend/src/api/routes/memory/semantic/*` | summarize/title and health |

@@ -288,13 +288,17 @@ class OcrService:
         scores_list = self._normalize_ocr_field(getattr(result, "scores", None))
         boxes_list = self._normalize_ocr_field(getattr(result, "boxes", None))
 
-        bbox_list = self._build_bbox_list(boxes_list)
-        if not text_list or not bbox_list:
+        if not text_list or not boxes_list:
             logger.info("OCR found no text elements")
             return []
 
         ocr_results: List[Dict[str, Any]] = []
-        for i, (text, bbox) in enumerate(zip(text_list, bbox_list)):
+        for i, text in enumerate(text_list):
+            box = boxes_list[i] if i < len(boxes_list) else None
+            bbox = self._parse_bbox(box)
+            if bbox is None:
+                logger.warning("Skipping OCR row %s with invalid bbox", i)
+                continue
             ocr_record = self._build_ocr_record(i, text, bbox, scores_list)
             if ocr_record is not None:
                 ocr_results.append(ocr_record)

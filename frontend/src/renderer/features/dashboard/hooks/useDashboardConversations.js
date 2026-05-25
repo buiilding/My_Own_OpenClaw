@@ -54,6 +54,11 @@ function useDashboardConversations({
 
   const loadRecentConversations = useCallback(async () => {
     if (typeof resolvedUserId !== 'string' || resolvedUserId.trim().length === 0) {
+      recentConversationLoadRequestIdRef.current += 1;
+      recentConversationLoadInFlightRef.current = null;
+      recentConversationsRetryAttemptRef.current = 0;
+      setRecentConversations([]);
+      setPinnedConversationRefs([]);
       setIsLoadingRecentConversations(false);
       setRecentConversationsError('');
       return [];

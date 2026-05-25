@@ -178,6 +178,12 @@ class OcrRouter:
                 provider_id=self.provider_id,
                 message="OCR provider is disabled",
             )
+        if not getattr(provider, "is_ready", False):
+            raise ProviderUnavailableError(
+                capability="ocr",
+                provider_id=self.provider_id,
+                message="OCR provider is not ready",
+            )
         try:
             result = await provider.analyze_image(image_base64)
         except ProviderCapabilityError as error:

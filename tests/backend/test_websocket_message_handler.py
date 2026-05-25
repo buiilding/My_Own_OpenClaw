@@ -67,11 +67,18 @@ def _capture_send_error_calls(monkeypatch):
 def _capture_send_error_response(monkeypatch):
     captured = {}
 
-    async def fake_send_error_response(ws, msg_id, message, exception=None):
+    async def fake_send_error_response(
+        ws,
+        msg_id,
+        message,
+        exception=None,
+        user_facing=False,
+    ):
         captured["ws"] = ws
         captured["msg_id"] = msg_id
         captured["message"] = message
         captured["exception"] = exception
+        captured["user_facing"] = user_facing
 
     monkeypatch.setattr(mh, "send_error_response", fake_send_error_response)
     return captured
@@ -856,6 +863,7 @@ async def test_send_error_delegates_to_send_error_response(monkeypatch) -> None:
     assert captured["ws"] is websocket
     assert captured["msg_id"] == "msg_300"
     assert captured["message"] == "boom"
+    assert captured["user_facing"] is True
 
 
 @pytest.mark.asyncio
@@ -870,6 +878,7 @@ async def test_send_error_forwards_exception_when_provided(monkeypatch) -> None:
     assert captured["msg_id"] == "msg_301"
     assert captured["message"] == "ignored message"
     assert captured["exception"] is error
+    assert captured["user_facing"] is False
 
 
 @pytest.mark.asyncio
@@ -881,6 +890,7 @@ async def test_send_error_defaults_to_empty_message_when_none(monkeypatch) -> No
 
     assert captured["message"] == ""
     assert captured["exception"] is None
+    assert captured["user_facing"] is True
 
 
 @pytest.mark.asyncio

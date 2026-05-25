@@ -132,7 +132,7 @@ def validate_dict(
 def validate_field(
     value: Any,
     field_name: str,
-    expected_type: Type,
+    expected_type: Type | tuple[type, ...],
     required: bool = True,
     validator: Optional[Callable[[Any], Any]] = None,
 ) -> Any:
@@ -157,9 +157,24 @@ def validate_field(
             raise ValidationError(f"Field '{field_name}' is required")
         return None
 
-    if not isinstance(value, expected_type):
+    expected_types = (
+        expected_type if isinstance(expected_type, tuple) else (expected_type,)
+    )
+    bool_is_invalid_numeric = (
+        isinstance(value, bool)
+        and bool not in expected_types
+        and any(type_ in (int, float) for type_ in expected_types)
+    )
+
+    if bool_is_invalid_numeric or not isinstance(value, expected_type):
+        if isinstance(expected_type, tuple):
+            expected_type_name = " or ".join(
+                getattr(type_, "__name__", str(type_)) for type_ in expected_type
+            )
+        else:
+            expected_type_name = getattr(expected_type, "__name__", str(expected_type))
         raise ValidationError(
-            f"Field '{field_name}' must be of type {expected_type.__name__}, "
+            f"Field '{field_name}' must be of type {expected_type_name}, "
             f"got {type(value).__name__}"
         )
 

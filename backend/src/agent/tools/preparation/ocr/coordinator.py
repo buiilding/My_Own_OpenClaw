@@ -73,6 +73,14 @@ class OcrCoordinator:
                     "Falling back to on-demand OCR.",
                     ocr_wait_time,
                 )
+            except Exception:
+                ocr_wait_time = time.perf_counter() - ocr_wait_start
+                logger.warning(
+                    "[Timing] Proactive OCR task failed after %.3fs. "
+                    "Falling back to on-demand OCR.",
+                    ocr_wait_time,
+                    exc_info=True,
+                )
 
         # SIMPLIFIED: Get OCR results for current screenshot only
         # Verify screenshot_id matches current screenshot (if provided)
@@ -115,8 +123,19 @@ class OcrCoordinator:
                 f"[Timing] OCR execution took {ocr_exec_time:.3f}s (found {len(ocr_results) if ocr_results else 0} results)"
             )
 
-            # SIMPLIFIED: Store results for current screenshot only
-            ocr_state.set_results(ocr_results)
+            # Store fallback results only if they still belong to the current
+            # screenshot. Mismatched explicit screenshot requests can still use
+            # the returned OCR result, but must not poison the shared cache.
+            latest_screenshot_id = ocr_state.get_current_screenshot_id()
+            if screenshot_id and latest_screenshot_id == screenshot_id:
+                ocr_state.set_results(ocr_results)
+            else:
+                logger.warning(
+                    "Skipping OCR cache write for requested screenshot %s; "
+                    "current screenshot is %s",
+                    screenshot_id[:8] if screenshot_id else "None",
+                    latest_screenshot_id[:8] if latest_screenshot_id else "None",
+                )
 
         if not ocr_results:
             raise ValueError("OCR analysis returned no results")

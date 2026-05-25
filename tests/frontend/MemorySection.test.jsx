@@ -204,6 +204,41 @@ describe('MemorySection', () => {
     });
   });
 
+  test('does not expose unsupported local add or edit actions', async () => {
+    mockInvoke.mockImplementation(async (channel) => {
+      if (channel === 'list-episodic-memories') {
+        return {
+          success: true,
+          data: {
+            memories: [
+              {
+                id: 'ep-readonly-1',
+                content: 'User: remember this\nAssistant: persisted detail',
+                timestamp: '2026-02-25T08:00:00Z',
+                metadata: { source: 'interaction_completed' },
+              },
+            ],
+          },
+        };
+      }
+      if (channel === 'list-semantic-memories') {
+        return { success: true, data: { memories: [] } };
+      }
+      return { success: true, data: {} };
+    });
+
+    const { default: MemorySection } = await import(
+      '../../frontend/src/renderer/features/dashboard/components/sections/MemorySection'
+    );
+
+    render(<MemorySection />);
+    await screen.findByText(/remember this/i);
+
+    expect(screen.queryByRole('button', { name: /^Add$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument();
+  });
+
   test('deletes semantic memory with one click and does not show confirmation dialog', async () => {
     mockInvoke.mockImplementation(async (channel) => {
       if (channel === 'list-episodic-memories') {

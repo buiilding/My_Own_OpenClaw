@@ -125,8 +125,14 @@ async def send_error(
         message: Error message (optional, used if exception is None)
         exception: Optional exception to sanitize. If provided, message is ignored.
     """
-    # send_error_response now accepts SafeWebSocket directly for thread-safe writes
-    await send_error_response(websocket, msg_id, message or "", exception=exception)
+    # send_error_response accepts SafeWebSocket directly for thread-safe writes.
+    await send_error_response(
+        websocket,
+        msg_id,
+        message or "",
+        exception=exception,
+        user_facing=exception is None,
+    )
 
 
 async def _send_error_with_fallback_logging(

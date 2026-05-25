@@ -40,6 +40,9 @@ Provider health and circuit breakers should hide or fail capabilities predictabl
 
 - Keep local heavyweight imports lazy where possible so disabled/remote modes can start without local model dependencies.
 - Preserve structured provider errors for tool turns.
+- Router execution must reject unavailable providers before invocation. For OCR,
+  disabled, not-ready, and circuit-open states return structured provider
+  unavailability instead of calling the provider implementation directly.
 - Keep health probes bounded by timeout config.
 - Update capability gating when a new provider mode changes model-visible tools.
 

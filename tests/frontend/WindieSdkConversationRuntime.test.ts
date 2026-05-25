@@ -356,6 +356,49 @@ describe('Windie SDK conversation runtime core', () => {
     ]);
   });
 
+  test('deduplicated tool outputs prefer model-visible content over backend source', () => {
+    const events = [
+      event('tool_call', {
+        toolName: 'read_file',
+        requestId: 'req-read',
+        toolCallId: 'call-read',
+      }),
+      createConversationEvent({
+        type: 'tool_output',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-1',
+        turnRef: 'turn-1',
+        source: 'backend',
+        payload: {
+          display_content: 'backend display only',
+          tool_name: 'read_file',
+          request_id: 'req-read',
+          tool_call_id: 'call-read',
+        },
+      }),
+      event('tool_output', {
+        toolName: 'read_file',
+        requestId: 'req-read',
+        toolCallId: 'call-read',
+        result: {
+          display_content: 'local visible output',
+          llm_content: 'local model-visible output',
+        },
+      }),
+    ];
+
+    expect(buildDisplayConversation(events).messages.filter(message => message.messageType === 'tool_output')).toEqual([
+      expect.objectContaining({
+        text: 'local visible output',
+      }),
+    ]);
+    expect(buildRehydrateSnapshot(events).messages.filter(message => message.role === 'tool')).toEqual([
+      expect.objectContaining({
+        content: 'local model-visible output',
+      }),
+    ]);
+  });
+
   test('rehydrate projection excludes partial tool history', () => {
     const events = [
       event('user_message', { text: 'inspect files' }),
@@ -756,6 +799,7 @@ describe('Windie SDK conversation runtime core', () => {
       payload: {
         text: 'Searched example.com',
         request_id: 'req-search-1',
+        correlation_id: 'corr-search-1',
         query: 'example',
       },
     });
@@ -768,7 +812,7 @@ describe('Windie SDK conversation runtime core', () => {
         toolName: 'web_search',
         text: 'Searched example.com',
         requestId: 'req-search-1',
-        correlationId: 'req-search-1',
+        correlationId: 'corr-search-1',
         structuredPayload: expect.objectContaining({ query: 'example' }),
         rawEvent: expect.objectContaining({ type: 'web-search-progress' }),
       }),
@@ -975,6 +1019,7 @@ describe('Windie SDK conversation runtime core', () => {
       payload: {
         tool_name: 'mouse_control',
         request_id: 'req-output',
+        correlation_id: 'corr-output',
         output: 'clicked',
         screenshot: 'inline-shot',
         screenshot_ref: 'artifact-shot',
@@ -986,7 +1031,7 @@ describe('Windie SDK conversation runtime core', () => {
       payload: expect.objectContaining({
         toolName: 'mouse_control',
         requestId: 'req-output',
-        correlationId: 'req-output',
+        correlationId: 'corr-output',
         screenshot: 'inline-shot',
         screenshotRef: 'artifact-shot',
         userId: 'user-sdk-runtime',
@@ -1247,6 +1292,90 @@ describe('Windie SDK conversation runtime core', () => {
       status: 'error',
       output: { error: 'failed-two' },
     });
+  });
+
+  test('tool coordinator captures bundle screenshot after skipped invalid step', async () => {
+    const executeTool = jest
+      .fn()
+      .mockResolvedValueOnce({ success: true, data: { output: 'typed' } })
+      .mockResolvedValueOnce({
+        success: true,
+        data: {
+          screenshot_ref: 'after-shifted.jpg',
+          screenshot_content_type: 'image/jpeg',
+        },
+      });
+    const sendToolBundleResult = jest.fn(async () => undefined);
+    const coordinator = new ToolExecutionCoordinator({
+      localRuntime: { executeTool },
+      sendToolResult: jest.fn(async () => undefined),
+      sendToolBundleResult,
+    });
+
+    const claim = await coordinator.execute(event('tool_bundle_call', {
+      bundleId: 'bundle-shifted-action',
+      tools: [
+        {},
+        { name: 'keyboard_control', args: { action: 'type', text: '123456', wait: 0 } },
+      ],
+    }));
+
+    expect(claim.claimed).toBe(true);
+    expect(executeTool).toHaveBeenCalledTimes(2);
+    expect(executeTool).toHaveBeenNthCalledWith(2, {
+      toolName: 'screenshot',
+      args: {
+        explanation: 'Capturing the screen after bundled computer-use execution.',
+        wait: 0,
+      },
+      turnRef: 'turn-1',
+      conversationRef: 'conv-sdk-runtime',
+    });
+    expect(sendToolBundleResult).toHaveBeenCalledWith(expect.objectContaining({
+      bundle_id: 'bundle-shifted-action',
+      status: 'success',
+      screenshot_ref: 'after-shifted.jpg',
+      screenshot_content_type: 'image/jpeg',
+      step_results: [
+        { tool: 'keyboard_control', status: 'ok', output: expect.objectContaining({ output: 'typed' }) },
+      ],
+    }));
+  });
+
+  test('tool coordinator promotes explicit bundle screenshot after skipped invalid step', async () => {
+    const executeTool = jest
+      .fn()
+      .mockResolvedValueOnce({
+        success: true,
+        data: {
+          output: 'Screenshot captured',
+          screenshot_ref: 'explicit-shifted.jpg',
+        },
+      });
+    const sendToolBundleResult = jest.fn(async () => undefined);
+    const coordinator = new ToolExecutionCoordinator({
+      localRuntime: { executeTool },
+      sendToolResult: jest.fn(async () => undefined),
+      sendToolBundleResult,
+    });
+
+    const claim = await coordinator.execute(event('tool_bundle_call', {
+      bundleId: 'bundle-explicit-shifted-shot',
+      tools: [
+        {},
+        { name: 'screenshot', args: { explanation: 'Checking Messages' } },
+      ],
+    }));
+
+    expect(claim.claimed).toBe(true);
+    expect(executeTool).toHaveBeenCalledTimes(1);
+    expect(sendToolBundleResult).toHaveBeenCalledWith(expect.objectContaining({
+      bundle_id: 'bundle-explicit-shifted-shot',
+      screenshot_ref: 'explicit-shifted.jpg',
+      step_results: [
+        { tool: 'screenshot', status: 'ok', output: expect.objectContaining({ screenshot_ref: 'explicit-shifted.jpg' }) },
+      ],
+    }));
   });
 
   test('conversation runtime stores events and sends rehydrate from projection', async () => {

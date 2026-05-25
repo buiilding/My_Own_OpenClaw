@@ -91,6 +91,7 @@ export function AppConfigProvider({ children }) {
   const commitFrontendConfig = useCallback((nextConfig, previousConfig, options = {}) => {
     const {
       notifySaving = false,
+      persistToStorage = true,
       persistToDisk = true,
       syncBackend = true,
     } = options;
@@ -99,7 +100,9 @@ export function AppConfigProvider({ children }) {
       saveStatusCallbackRef.current();
     }
 
-    saveConfigToStorage(nextConfig, Date.now());
+    if (persistToStorage) {
+      saveConfigToStorage(nextConfig, Date.now());
+    }
     if (persistToDisk) {
       IpcBridge.invoke(INVOKE_CHANNELS.SAVE_FRONTEND_CONFIG, nextConfig).catch((error) => {
         console.warn('[Settings Update] Failed to save config to disk:', error?.message || error);
@@ -261,6 +264,7 @@ export function AppConfigProvider({ children }) {
 
       const filteredConfig = buildMergedFrontendConfig(syncedConfig);
       applyResolvedConfig(filteredConfig, {
+        persistToStorage: false,
         persistToDisk: false,
         syncBackend: false,
       });

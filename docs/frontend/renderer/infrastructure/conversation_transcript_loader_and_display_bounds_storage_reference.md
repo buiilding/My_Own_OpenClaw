@@ -35,9 +35,12 @@ Defaults:
 - `maxPages = 250`
 - `recordKind = "chat_event"`
 
+When callers provide a non-empty `recordKind`, list/search/load IPC payloads
+preserve that value instead of forcing `chat_event`.
+
 Pagination behavior:
 
-1. invoke `GET_CHAT_EVENTS` with `{ userId, conversationId, limit, afterMessageIndex }`
+1. invoke `GET_CHAT_EVENTS` with `{ userId, conversationId, limit, recordKind, afterMessageIndex }`
 2. append `result.data.events` to accumulator
 3. stop when:
    - page returns empty list

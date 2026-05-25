@@ -1,9 +1,7 @@
 import PropTypes from 'prop-types';
 import {
-  Check,
   ChevronDown,
   ChevronRight,
-  Pencil,
   Trash2,
 } from 'lucide-react';
 
@@ -11,23 +9,15 @@ function MemoryItem({
   memory,
   type,
   expanded,
-  editing,
-  editedDetail,
   onToggleExpand,
-  onStartEdit,
   onDelete,
-  onCancelEdit,
-  onSaveEdit,
-  onEditedDetailChange,
 }) {
   return (
     <div className="clone-memory-item">
       <div
         className="clone-memory-item-header"
         onClick={() => {
-          if (!editing) {
-            onToggleExpand();
-          }
+          onToggleExpand();
         }}
       >
         <button type="button" className="clone-memory-expand-btn" aria-label={expanded ? 'Collapse' : 'Expand'}>
@@ -64,12 +54,6 @@ function MemoryItem({
         </div>
 
         <div className="clone-memory-item-actions">
-          <button type="button" className="clone-memory-action-btn" onClick={(event) => {
-            event.stopPropagation();
-            onStartEdit();
-          }} aria-label="Edit">
-            <Pencil size={12} />
-          </button>
           <button type="button" className="clone-memory-action-btn delete" onClick={(event) => {
             event.stopPropagation();
             onDelete();
@@ -81,26 +65,7 @@ function MemoryItem({
 
       {expanded ? (
         <div className="clone-memory-item-body">
-          {editing ? (
-            <div className="clone-memory-editor">
-              <textarea
-                value={editedDetail}
-                onChange={(event) => onEditedDetailChange(event.target.value)}
-                className="clone-memory-editor-textarea"
-                rows={3}
-                autoFocus
-              />
-              <div className="clone-memory-editor-actions">
-                <button type="button" className="clone-memory-editor-btn" onClick={onCancelEdit}>Cancel</button>
-                <button type="button" className="clone-memory-editor-btn save" onClick={onSaveEdit}>
-                  <Check size={12} />
-                  Save
-                </button>
-              </div>
-            </div>
-          ) : (
-            <p className="clone-memory-item-detail">{memory.detail}</p>
-          )}
+          <p className="clone-memory-item-detail">{memory.detail}</p>
         </div>
       ) : null}
     </div>
@@ -119,14 +84,8 @@ MemoryItem.propTypes = {
   }).isRequired,
   type: PropTypes.oneOf(['episodic', 'semantic', 'procedural']).isRequired,
   expanded: PropTypes.bool.isRequired,
-  editing: PropTypes.bool.isRequired,
-  editedDetail: PropTypes.string.isRequired,
   onToggleExpand: PropTypes.func.isRequired,
-  onStartEdit: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
-  onCancelEdit: PropTypes.func.isRequired,
-  onSaveEdit: PropTypes.func.isRequired,
-  onEditedDetailChange: PropTypes.func.isRequired,
 };
 
 export default MemoryItem;

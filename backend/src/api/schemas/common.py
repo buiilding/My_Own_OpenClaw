@@ -135,7 +135,9 @@ class HandshakeAgentPolicy(BaseModel):
         if self.disabled_tools is not None:
             overrides["agent_disabled_tools"] = list(self.disabled_tools)
         if self.coordinate_methods is not None:
-            overrides["agent_coordinate_methods"] = list(self.coordinate_methods)
+            overrides["agent_available_coordinate_methods"] = list(
+                self.coordinate_methods
+            )
         if self.disabled_capabilities is not None:
             overrides["agent_disabled_capabilities"] = list(self.disabled_capabilities)
         return overrides

@@ -3,6 +3,7 @@ const path = require('path');
 
 const PERMISSION_STATE_FILENAME = 'permission-state.json';
 const PERMISSION_STATE_VERSION = 1;
+const stateUpdateQueues = new Map();
 
 function resolveStatePath(deps = {}) {
   if (typeof deps.statePath === 'string' && deps.statePath.trim()) {
@@ -80,11 +81,25 @@ async function writeStateToDisk(state, deps = {}) {
   const fsModule = deps.fs || fs;
   const statePath = resolveStatePath(deps);
   const normalizedState = normalizeState(state);
-  const tempPath = `${statePath}.tmp`;
+  const tempSuffix = `${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const tempPath = `${statePath}.${tempSuffix}.tmp`;
 
   await fsModule.promises.mkdir(path.dirname(statePath), { recursive: true });
   await fsModule.promises.writeFile(tempPath, JSON.stringify(normalizedState, null, 2), 'utf-8');
   await fsModule.promises.rename(tempPath, statePath);
+}
+
+function enqueueStateUpdate(deps, operation) {
+  const statePath = resolveStatePath(deps);
+  const previousUpdate = stateUpdateQueues.get(statePath) || Promise.resolve();
+  const update = previousUpdate.catch(() => undefined).then(operation);
+  const queuedUpdate = update.finally(() => {
+    if (stateUpdateQueues.get(statePath) === queuedUpdate) {
+      stateUpdateQueues.delete(statePath);
+    }
+  });
+  stateUpdateQueues.set(statePath, queuedUpdate);
+  return update;
 }
 
 function createPermissionStateStore(deps = {}) {
@@ -106,10 +121,12 @@ function createPermissionStateStore(deps = {}) {
         return null;
       }
 
-      const state = await readStateFromDisk(deps);
-      state.permissions[permissionId] = normalizedEntry;
-      await writeStateToDisk(state, deps);
-      return normalizedEntry;
+      return enqueueStateUpdate(deps, async () => {
+        const state = await readStateFromDisk(deps);
+        state.permissions[permissionId] = normalizedEntry;
+        await writeStateToDisk(state, deps);
+        return normalizedEntry;
+      });
     },
 
     async delete(permissionId) {
@@ -117,14 +134,16 @@ function createPermissionStateStore(deps = {}) {
         return false;
       }
 
-      const state = await readStateFromDisk(deps);
-      if (!state.permissions[permissionId]) {
-        return false;
-      }
+      return enqueueStateUpdate(deps, async () => {
+        const state = await readStateFromDisk(deps);
+        if (!state.permissions[permissionId]) {
+          return false;
+        }
 
-      delete state.permissions[permissionId];
-      await writeStateToDisk(state, deps);
-      return true;
+        delete state.permissions[permissionId];
+        await writeStateToDisk(state, deps);
+        return true;
+      });
     },
   };
 }

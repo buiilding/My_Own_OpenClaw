@@ -44,6 +44,17 @@ function createLocalBackendSupervisor({
     return snapshot();
   }
 
+  function markError(error = '') {
+    if (!state.process) {
+      return snapshot();
+    }
+    state.ready = false;
+    state.status = 'error';
+    state.lastError = error;
+    notify();
+    return snapshot();
+  }
+
   function beginStop() {
     if (!state.process) {
       return snapshot();
@@ -73,6 +84,7 @@ function createLocalBackendSupervisor({
     clear,
     getSnapshot: snapshot,
     isActiveProcess,
+    markError,
     markReady,
   };
 }

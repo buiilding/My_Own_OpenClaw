@@ -474,8 +474,8 @@ function createSurfaceRuntime({
     if (state.mainProcessIpcHandlersInitialized) {
       return false;
     }
-    state.mainProcessIpcHandlersInitialized = true;
     initializer();
+    state.mainProcessIpcHandlersInitialized = true;
     return true;
   }
 

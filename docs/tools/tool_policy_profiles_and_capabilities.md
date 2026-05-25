@@ -71,6 +71,9 @@ Exposure requires at least one valid route:
 - Brave fallback with `BRAVE_SEARCH_API_KEY`
 
 Explicit policy or provider-health state can hide it even if a provider would normally support it.
+Direct `WebSearchTool.run(...)` execution must enforce the same disabled-capability
+policy before resolving the Brave API key, so stale registries cannot bypass
+`agent_disabled_capabilities=["web_search"]`.
 
 ### OCR and Vision
 

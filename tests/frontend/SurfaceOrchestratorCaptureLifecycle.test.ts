@@ -16,6 +16,15 @@ import {
 describe('surfaceOrchestrator capture lifecycle', () => {
   const originalUserAgent = navigator.userAgent;
 
+  async function waitForInvoke(channel: string): Promise<void> {
+    for (let index = 0; index < 10; index += 1) {
+      if ((IpcBridge.invoke as jest.Mock).mock.calls.some((call) => call[0] === channel)) {
+        return;
+      }
+      await Promise.resolve();
+    }
+  }
+
   beforeEach(() => {
     setPendingHiddenSurfaceRestore(null);
     setPendingScreenshotCaptureRestore(false);
@@ -119,6 +128,76 @@ describe('surfaceOrchestrator capture lifecycle', () => {
     ]);
 
     await restoreToolExecutionSurface(toolPreparation);
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
+      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
+      [INVOKE_CHANNELS.HANDOFF_SURFACE_FOR_COMPUTER_USE, {}],
+      [INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
+      [INVOKE_CHANNELS.RESTORE_SURFACE_AFTER_SCREENSHOT, { hiddenSurface: 'chatbox' }],
+    ]);
+  });
+
+  test('reserves screenshot tool surface token before async collapse for overlapping preparations', async () => {
+    let resolvePrepareSurface: ((value: unknown) => void) | null = null;
+    const prepareSurfacePromise = new Promise((resolve) => {
+      resolvePrepareSurface = resolve;
+    });
+    (IpcBridge.invoke as jest.Mock).mockImplementation((channel: string, data?: any) => {
+      if (channel === INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY) {
+        return Promise.resolve({ success: true, data: { visible: true } });
+      }
+      if (channel === INVOKE_CHANNELS.HANDOFF_SURFACE_FOR_COMPUTER_USE) {
+        return Promise.resolve({ success: true });
+      }
+      if (channel === INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT) {
+        return prepareSurfacePromise;
+      }
+      if (channel === INVOKE_CHANNELS.RESTORE_SURFACE_AFTER_SCREENSHOT) {
+        return Promise.resolve({ success: true });
+      }
+      return Promise.resolve({ success: true, data });
+    });
+
+    const firstPreparation = prepareToolExecutionSurface('screenshot', {
+      correlationId: 'tool-capture-1',
+    });
+    await waitForInvoke(INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT);
+
+    const secondPreparation = prepareToolExecutionSurface('screenshot', {
+      correlationId: 'tool-capture-2',
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
+      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
+      [INVOKE_CHANNELS.HANDOFF_SURFACE_FOR_COMPUTER_USE, {}],
+      [INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
+    ]);
+
+    resolvePrepareSurface?.({
+      success: true,
+      waitMs: 0,
+      settleMs: 120,
+      waitTime: 0,
+      hideInvokeTime: 0.001,
+      settleTime: 0.12,
+      hiddenSurface: 'chatbox',
+    });
+
+    const [first, second] = await Promise.all([firstPreparation, secondPreparation]);
+
+    expect(first.surfaceToken).toEqual(expect.any(Number));
+    expect(second.surfaceToken).toEqual(expect.any(Number));
+    expect(first.surfaceToken).not.toBe(second.surfaceToken);
+
+    await restoreToolExecutionSurface(first);
+    expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
+      [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
+      [INVOKE_CHANNELS.HANDOFF_SURFACE_FOR_COMPUTER_USE, {}],
+      [INVOKE_CHANNELS.PREPARE_SURFACE_FOR_SCREENSHOT, { waitMs: 0, settleMs: 120, hideSurface: true }],
+    ]);
+
+    await restoreToolExecutionSurface(second);
     expect((IpcBridge.invoke as jest.Mock).mock.calls).toEqual([
       [INVOKE_CHANNELS.GET_MAIN_WINDOW_VISIBILITY],
       [INVOKE_CHANNELS.HANDOFF_SURFACE_FOR_COMPUTER_USE, {}],

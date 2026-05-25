@@ -512,9 +512,13 @@ def crop_image_source(
     source: ResolvedImageSource,
     region: BoundingBoxModel,
 ) -> tuple[ResolvedImageSource, BoundingBoxModel]:
-    """Crop source image to a clamped region and return the cropped image."""
-    x = min(max(region.x, 0), max(source.width - 1, 0))
-    y = min(max(region.y, 0), max(source.height - 1, 0))
+    """Crop source image to a region and return crop-relative metadata."""
+    if region.x >= source.width or region.y >= source.height:
+        raise HTTPException(
+            status_code=422, detail="Requested region is outside image bounds"
+        )
+    x = region.x
+    y = region.y
     width = min(region.width, source.width - x)
     height = min(region.height, source.height - y)
     if width <= 0 or height <= 0:
@@ -527,7 +531,6 @@ def crop_image_source(
         buffer = io.BytesIO()
         cropped.save(buffer, format="PNG")
     cropped_bytes = buffer.getvalue()
-    clamped_region = BoundingBoxModel(x=x, y=y, width=width, height=height)
     return (
         ResolvedImageSource(
             image_bytes=cropped_bytes,
@@ -538,7 +541,7 @@ def crop_image_source(
             width=width,
             height=height,
         ),
-        clamped_region,
+        BoundingBoxModel(x=0, y=0, width=width, height=height),
     )
 
 

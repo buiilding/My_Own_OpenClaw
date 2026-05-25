@@ -310,17 +310,36 @@ class ToolSelection:
     ) -> Optional[str]:
         if not isinstance(rule, dict):
             return None
-        if_block = rule.get("if")
-        if not isinstance(if_block, dict):
-            return None
-        properties = if_block.get("properties")
-        if not isinstance(properties, dict):
-            return None
-        method_schema = properties.get(method_field_name)
-        if not isinstance(method_schema, dict):
-            return None
-        method_name = method_schema.get("const")
+        method_name = ToolSelection._find_rule_method_name(
+            rule.get("if"),
+            method_field_name,
+        )
         return method_name if isinstance(method_name, str) else None
+
+    @staticmethod
+    def _find_rule_method_name(
+        node: Any,
+        method_field_name: str,
+    ) -> Optional[str]:
+        if isinstance(node, dict):
+            properties = node.get("properties")
+            if isinstance(properties, dict):
+                method_schema = properties.get(method_field_name)
+                if isinstance(method_schema, dict):
+                    method_name = method_schema.get("const")
+                    if isinstance(method_name, str):
+                        return method_name
+            for key in ("allOf", "anyOf", "oneOf"):
+                children = node.get(key)
+                if isinstance(children, list):
+                    for child in children:
+                        method_name = ToolSelection._find_rule_method_name(
+                            child,
+                            method_field_name,
+                        )
+                        if method_name is not None:
+                            return method_name
+        return None
 
     @staticmethod
     def _has_non_manual_methods(allowed_methods: frozenset[str]) -> bool:

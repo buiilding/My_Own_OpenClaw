@@ -119,9 +119,7 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
     def __init__(self):
         self.protocol = JSONRPCProtocol()
         self.memory_store = None
-        self._event_sink: Optional[
-            Callable[[Dict[str, Any]], Awaitable[None]]
-        ] = None
+        self._event_sink: Optional[Callable[[Dict[str, Any]], Awaitable[None]]] = None
         self._summarizer: Optional[MemorySummarizer] = None
         self._runtime_dependency_warnings: list[str] = []
         self._semantic_summarizer_enabled = env_flag_enabled(
@@ -196,7 +194,14 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
         )
         self.protocol.register_method("get_chat_events", self._handle_get_chat_events)
         self.protocol.register_method(
+            "get_chat_conversation_revision",
+            self._handle_get_chat_conversation_revision,
+        )
+        self.protocol.register_method(
             "delete_chat_conversation", self._handle_delete_chat_conversation
+        )
+        self.protocol.register_method(
+            "replace_chat_conversation", self._handle_replace_chat_conversation
         )
         self.protocol.register_method(
             "update_conversation_title", self._handle_update_conversation_title

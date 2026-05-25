@@ -1,4 +1,6 @@
 import asyncio
+import gc
+import weakref
 from unittest.mock import AsyncMock
 
 import pytest
@@ -197,3 +199,34 @@ async def test_get_http_client_creates_single_client_under_concurrency(monkeypat
 
     assert len(created_clients) == 1
     assert len({id(client) for client in clients}) == 1
+
+
+@pytest.mark.asyncio
+async def test_local_provider_finalizer_closes_http_client_after_provider_gc(monkeypatch):
+    class DummyClient:
+        def __init__(self):
+            self.closed = False
+
+        async def aclose(self):
+            self.closed = True
+
+    created_clients = []
+
+    def fake_async_client(*_args, **_kwargs):
+        client = DummyClient()
+        created_clients.append(client)
+        return client
+
+    monkeypatch.setattr("backend.src.llm.providers.local.httpx.AsyncClient", fake_async_client)
+
+    provider = OllamaProvider(base_url="http://localhost:11434/v1")
+    provider_ref = weakref.ref(provider)
+    client = await provider._get_http_client()
+
+    del provider
+    gc.collect()
+    await asyncio.sleep(0)
+
+    assert provider_ref() is None
+    assert created_clients == [client]
+    assert client.closed is True

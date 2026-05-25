@@ -7,6 +7,11 @@ from starlette.datastructures import Headers, UploadFile
 from starlette.requests import Request
 from starlette.responses import FileResponse
 
+from backend.src.api.auth.context import (
+    AuthenticatedInstallIdentity,
+    reset_current_authenticated_install_identity,
+    set_current_authenticated_install_identity,
+)
 from backend.src.core.config.models import AppConfig
 from tests.backend.websocket_route_test_utils import (
     install_route_deps_shim,
@@ -20,7 +25,10 @@ try:
     from backend.src.api.routes import artifacts as artifacts_routes
 except RuntimeError as exc:
     if "python-multipart" in str(exc):
-        pytest.skip("python-multipart not installed in test environment", allow_module_level=True)
+        pytest.skip(
+            "python-multipart not installed in test environment",
+            allow_module_level=True,
+        )
     raise
 finally:
     restore_route_deps_shim(_original_deps)
@@ -55,10 +63,29 @@ def _artifact_request() -> Request:
     )
 
 
+@pytest.fixture
+def authenticated_install_identity():
+    identity = AuthenticatedInstallIdentity(
+        user_id="user-artifacts",
+        install_id="install-artifacts",
+    )
+    token = set_current_authenticated_install_identity(identity)
+    try:
+        yield identity
+    finally:
+        reset_current_authenticated_install_identity(token)
+
+
 @pytest.mark.asyncio
-async def test_get_artifact_returns_file_response(tmp_path) -> None:
+async def test_get_artifact_returns_file_response(
+    tmp_path, authenticated_install_identity
+) -> None:
     path = tmp_path / "abc123.png"
     path.write_bytes(b"png-bytes")
+    (tmp_path / "abc123.png.meta.json").write_text(
+        '{"owner_user_id":"user-artifacts"}',
+        encoding="utf-8",
+    )
     container = _container(tmp_path)
 
     response = await artifacts_routes.get_artifact("abc123.png", container)
@@ -69,7 +96,9 @@ async def test_get_artifact_returns_file_response(tmp_path) -> None:
 
 
 @pytest.mark.asyncio
-async def test_get_artifact_invalid_id_returns_400(tmp_path) -> None:
+async def test_get_artifact_invalid_id_returns_400(
+    tmp_path, authenticated_install_identity
+) -> None:
     container = _container(tmp_path)
 
     with pytest.raises(HTTPException) as exc_info:
@@ -79,7 +108,9 @@ async def test_get_artifact_invalid_id_returns_400(tmp_path) -> None:
 
 
 @pytest.mark.asyncio
-async def test_get_artifact_missing_file_returns_404(tmp_path) -> None:
+async def test_get_artifact_missing_file_returns_404(
+    tmp_path, authenticated_install_identity
+) -> None:
     container = _container(tmp_path)
 
     with pytest.raises(HTTPException) as exc_info:
@@ -89,7 +120,31 @@ async def test_get_artifact_missing_file_returns_404(tmp_path) -> None:
 
 
 @pytest.mark.asyncio
-async def test_get_artifact_wraps_unexpected_errors_with_500(tmp_path, monkeypatch) -> None:
+async def test_get_artifact_rejects_different_authenticated_owner(
+    tmp_path,
+    authenticated_install_identity,
+) -> None:
+    _ = authenticated_install_identity
+    path = tmp_path / "abc123.png"
+    path.write_bytes(b"png-bytes")
+    (tmp_path / "abc123.png.meta.json").write_text(
+        '{"owner_user_id":"user-other"}',
+        encoding="utf-8",
+    )
+    container = _container(tmp_path)
+
+    with pytest.raises(HTTPException) as exc_info:
+        await artifacts_routes.get_artifact("abc123.png", container)
+
+    assert exc_info.value.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_get_artifact_wraps_unexpected_errors_with_500(
+    tmp_path,
+    monkeypatch,
+    authenticated_install_identity,
+) -> None:
     container = _container(tmp_path)
 
     class BrokenStore:
@@ -110,7 +165,10 @@ async def test_get_artifact_wraps_unexpected_errors_with_500(tmp_path, monkeypat
 
 
 @pytest.mark.asyncio
-async def test_upload_artifact_returns_metadata_and_url(tmp_path) -> None:
+async def test_upload_artifact_returns_metadata_and_url(
+    tmp_path,
+    authenticated_install_identity,
+) -> None:
     container = _container(tmp_path)
     upload = _upload_file(b"png-bytes", "shot.png", "image/png")
     request = _artifact_request()
@@ -125,7 +183,10 @@ async def test_upload_artifact_returns_metadata_and_url(tmp_path) -> None:
 
 
 @pytest.mark.asyncio
-async def test_upload_artifact_enforces_size_limit(tmp_path) -> None:
+async def test_upload_artifact_enforces_size_limit(
+    tmp_path,
+    authenticated_install_identity,
+) -> None:
     container = _container(tmp_path, artifact_max_bytes=4)
     upload = _upload_file(b"png-bytes", "shot.png", "image/png")
     request = _artifact_request()
@@ -134,3 +195,49 @@ async def test_upload_artifact_enforces_size_limit(tmp_path) -> None:
         await artifacts_routes.upload_artifact(request, container, file=upload)
 
     assert exc_info.value.status_code == 413
+
+
+@pytest.mark.asyncio
+async def test_upload_artifact_requires_authenticated_identity(
+    tmp_path, monkeypatch
+) -> None:
+    container = _container(tmp_path)
+    upload = _upload_file(b"png-bytes", "shot.png", "image/png")
+    request = _artifact_request()
+
+    def fail_from_config(_cfg):
+        raise AssertionError("ArtifactStore should not be constructed without identity")
+
+    monkeypatch.setattr(
+        artifacts_routes.ArtifactStore,
+        "from_config",
+        classmethod(lambda _cls, cfg: fail_from_config(cfg)),
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        await artifacts_routes.upload_artifact(request, container, file=upload)
+
+    assert exc_info.value.status_code == 401
+    assert exc_info.value.detail == "Authenticated install identity required"
+
+
+@pytest.mark.asyncio
+async def test_get_artifact_requires_authenticated_identity(
+    tmp_path, monkeypatch
+) -> None:
+    container = _container(tmp_path)
+
+    def fail_from_config(_cfg):
+        raise AssertionError("ArtifactStore should not be constructed without identity")
+
+    monkeypatch.setattr(
+        artifacts_routes.ArtifactStore,
+        "from_config",
+        classmethod(lambda _cls, cfg: fail_from_config(cfg)),
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        await artifacts_routes.get_artifact("abc123.png", container)
+
+    assert exc_info.value.status_code == 401
+    assert exc_info.value.detail == "Authenticated install identity required"

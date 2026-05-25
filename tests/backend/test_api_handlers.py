@@ -7,6 +7,12 @@ from typing import Any, Dict, List, Optional
 import pytest
 
 from backend.src.api.handlers.query import QueryMessageHandler
+from backend.src.agent.session.active_query_tracker import (
+    ACTIVE_QUERY_GLOBAL_LIMIT,
+    ACTIVE_QUERY_REGISTERED,
+    ACTIVE_QUERY_STOP_CONSUMED,
+    ACTIVE_QUERY_USER_LIMIT,
+)
 from backend.src.api.handlers.rehydrate import RehydrateConversationHandler
 from backend.src.api.handlers.settings import (
     ListModelsHandler,
@@ -323,6 +329,7 @@ class DummySessionManager:
         self.clear_calls = []
         self.cancel_calls = []
         self.frontend_operating_system = None
+        self.config = AppConfig()
 
     async def get_or_create_session(
         self,
@@ -380,6 +387,34 @@ class DummySessionManager:
             conversation_ref,
         )
         return False
+
+    def register_active_query_task_with_limits(
+        self,
+        user_id: str,
+        task,
+        *,
+        turn_ref: str,
+        conversation_ref: Optional[str] = None,
+        max_active_queries_per_user: Optional[int] = None,
+        max_active_queries_global: Optional[int] = None,
+    ) -> str:
+        if (
+            max_active_queries_per_user is not None
+            and self.count_active_query_tasks(user_id) >= max_active_queries_per_user
+        ):
+            return ACTIVE_QUERY_USER_LIMIT
+        if (
+            max_active_queries_global is not None
+            and self.count_active_query_tasks() >= max_active_queries_global
+        ):
+            return ACTIVE_QUERY_GLOBAL_LIMIT
+        consumed_stop = self.register_active_query_task(
+            user_id,
+            task,
+            turn_ref=turn_ref,
+            conversation_ref=conversation_ref,
+        )
+        return ACTIVE_QUERY_STOP_CONSUMED if consumed_stop else ACTIVE_QUERY_REGISTERED
 
     def clear_active_query_task(self, user_id: str, task=None) -> None:
         self.clear_calls.append({"user_id": user_id, "task": task})
@@ -441,6 +476,25 @@ class DummySessionManager:
             self.registered_query_tasks.pop(user_id, None)
         return False
 
+    def count_active_query_tasks(self, user_id: Optional[str] = None) -> int:
+        if user_id is None:
+            return sum(
+                self.count_active_query_tasks(candidate_user_id)
+                for candidate_user_id in list(self.registered_query_tasks.keys())
+            )
+        registered = self.registered_query_tasks.get(user_id)
+        if not registered:
+            return 0
+        count = 0
+        for task in list(registered.keys()):
+            if task.done():
+                registered.pop(task, None)
+                continue
+            count += 1
+        if not registered:
+            self.registered_query_tasks.pop(user_id, None)
+        return count
+
     async def update_session_config(
         self, user_id: str, updates: Dict[str, Any]
     ) -> None:
@@ -466,6 +520,14 @@ class DummySession:
 
 
 class CanonicalToolOutputSession(DummySession):
+    def __init__(self):
+        super().__init__()
+        self.session_id = "session_authoritative"
+        self.runtime = SimpleNamespace(
+            active_conversation_ref="conv_authoritative",
+            active_turn_ref="turn_authoritative",
+        )
+
     def get_resolved_tool_call(self, request_id: str):
         _ = request_id
         return SimpleNamespace(
@@ -1353,6 +1415,77 @@ async def test_query_handler_allows_concurrent_queries_for_different_conversatio
 
 
 @pytest.mark.asyncio
+async def test_query_handler_rejects_concurrent_query_when_user_cap_is_reached(
+    monkeypatch,
+):
+    websocket = FakeWebSocket()
+    session_manager = DummySessionManager()
+    session_manager.config = AppConfig(
+        max_active_queries_per_user=1,
+        max_active_queries_global=10,
+    )
+    handler = QueryMessageHandler(
+        session_manager, DummyTTSManager(), ResponseFormatter()
+    )
+    execute_calls: list[str] = []
+    first_started = asyncio.Event()
+    release_first = asyncio.Event()
+
+    async def fake_execute(message, *_args, **_kwargs):
+        execute_calls.append(message.id)
+        first_started.set()
+        await release_first.wait()
+
+    monkeypatch.setattr(handler.execution_service, "execute", fake_execute)
+
+    message_a = QueryMessage(
+        id="msg_cap_a",
+        type="query",
+        user_id="user_1",
+        payload={
+            "text": "first",
+            "conversation_ref": "conv-a",
+            "content": "<user_query>first</user_query>",
+        },
+    )
+    message_b = QueryMessage(
+        id="msg_cap_b",
+        type="query",
+        user_id="user_1",
+        payload={
+            "text": "second",
+            "conversation_ref": "conv-b",
+            "content": "<user_query>second</user_query>",
+        },
+    )
+
+    task_a = asyncio.create_task(handler.handle(message_a, websocket, "user_1"))
+    await asyncio.wait_for(first_started.wait(), timeout=1)
+    task_b = asyncio.create_task(handler.handle(message_b, websocket, "user_1"))
+
+    try:
+        for _ in range(50):
+            if websocket.sent:
+                break
+            await asyncio.sleep(0.01)
+
+        assert execute_calls == ["msg_cap_a"]
+        assert len(session_manager.register_calls) == 1
+        assert websocket.sent[0]["type"] == "error"
+        assert websocket.sent[0]["id"] == "msg_cap_b"
+        assert (
+            "Too many active queries for this user"
+            in websocket.sent[0]["payload"]["message"]
+        )
+    finally:
+        release_first.set()
+        await task_a
+        await task_b
+
+    assert session_manager.count_active_query_tasks("user_1") == 0
+
+
+@pytest.mark.asyncio
 async def test_stop_query_handler_cancels_active_query_and_emits_streaming_complete(
     caplog,
 ):
@@ -1502,8 +1635,9 @@ async def test_tool_result_handler_echoes_backend_canonical_tool_output():
         id="msg_canonical_tool_result",
         type="tool-result",
         user_id="user_1",
-        conversation_ref="conv_1",
-        turn_ref="turn_1",
+        session_id="session_stale",
+        conversation_ref="conv_stale",
+        turn_ref="turn_stale",
         payload={
             "request_id": "req_canonical",
             "success": True,
@@ -1521,9 +1655,9 @@ async def test_tool_result_handler_echoes_backend_canonical_tool_output():
             "id": "msg_canonical_tool_result_canonical",
             "type": "tool-output",
             "user_id": "user_1",
-            "session_id": None,
-            "conversation_ref": "conv_1",
-            "turn_ref": "turn_1",
+            "session_id": "session_authoritative",
+            "conversation_ref": "conv_authoritative",
+            "turn_ref": "turn_authoritative",
             "payload": {
                 "request_id": "req_canonical",
                 "tool_call_id": "call_read_file",

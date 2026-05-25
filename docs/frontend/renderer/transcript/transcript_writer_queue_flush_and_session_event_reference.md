@@ -48,8 +48,10 @@ Transcript identity fields:
 - `update(conversationRef?, userId?)` rules:
   - `conversationRef === undefined` keeps current conversation
   - `conversationRef === null` explicitly clears active conversation
+  - `userId === undefined` keeps current user
+  - `userId === null` explicitly clears current user
   - truthy `userId` overwrites current user
-  - empty/falsey `userId` does not clear existing user
+  - empty non-null `userId` does not clear existing user
 
 Layering:
 

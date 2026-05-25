@@ -64,27 +64,47 @@ describe('useChatStream message metadata handling', () => {
     });
   });
 
-  test('user-message-full falls back to latest user message when turn_ref has no match', () => {
+  test('turn-scoped user-message-full does not update unrelated user messages', () => {
     const { emitBackendEvent } = registerBackendListener();
     act(() => {
       useChatStore.setState({
         messages: [
-          { id: 'user-1', sender: 'user', text: 'ask without turn ref' },
+          { id: 'user-1', sender: 'user', text: 'ask for older turn', turnRef: 'turn-a' },
           { id: 'assistant-1', sender: 'assistant', text: 'reply', type: 'llm-text', turnRef: 'turn-1' },
         ],
       });
       emitBackendEvent({
         type: 'user-message-full',
-        turn_ref: 'turn-1',
-        payload: { content: 'raw user fallback', metadata: { a: 1 } },
+        turn_ref: 'turn-b',
+        payload: { content: 'raw user for missing turn', metadata: { a: 1 } },
       });
     });
 
     const userMessage = useChatStore.getState().messages[0];
-    expect(userMessage.fullUserMessage).toEqual({
-      content: 'raw user fallback',
-      metadata: { a: 1 },
+    expect(userMessage.fullUserMessage).toBeUndefined();
+  });
+
+  test('turn-scoped tool-schemas metadata does not update unrelated user messages', () => {
+    const { emitBackendEvent } = registerBackendListener();
+    act(() => {
+      useChatStore.setState({
+        messages: [
+          { id: 'user-1', sender: 'user', text: 'first user', turnRef: 'turn-a' },
+          { id: 'assistant-1', sender: 'assistant', text: 'assistant', type: 'llm-text', turnRef: 'turn-a' },
+          { id: 'user-2', sender: 'user', text: 'second user', turnRef: 'turn-c' },
+        ],
+      });
+      emitBackendEvent({
+        type: 'tool-schemas',
+        turn_ref: 'turn-b',
+        payload: {
+          tool_schemas: [{ type: 'function', name: 'tool-x', parameters: { type: 'object' } }],
+        },
+      });
     });
+
+    expect(useChatStore.getState().messages[0].toolSchemas).toBeUndefined();
+    expect(useChatStore.getState().messages[2].toolSchemas).toBeUndefined();
   });
 
   test('tool-schemas event updates the current turn user message and later user rows still inherit conversation transparency', () => {

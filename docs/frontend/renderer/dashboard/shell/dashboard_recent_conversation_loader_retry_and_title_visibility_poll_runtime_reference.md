@@ -38,6 +38,8 @@ title: "Dashboard Recent Conversation Loader, Retry, and Title-Visibility Poll R
 2. monotonic request-id suppression
 - each call increments `recentConversationLoadRequestIdRef`
 - late responses whose request id is no longer current are ignored
+- missing or cleared `resolvedUserId` also increments the request id, drops the
+  in-flight load marker, and clears recent/pinned conversation state
 
 This prevents older async results from overwriting newer user/session state.
 

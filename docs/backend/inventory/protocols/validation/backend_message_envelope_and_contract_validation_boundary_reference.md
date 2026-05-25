@@ -145,6 +145,10 @@ Impact:
 
 `validate_registry_alignment()` checks:
 
+- `INCOMING_MESSAGE_TYPES` and `OUTGOING_SCHEMA_MESSAGE_TYPES` contain no
+  duplicate type strings
+- `INCOMING_CONTRACTS` and `OUTGOING_SCHEMA_CONTRACTS` contain no duplicate
+  contract message types
 - `INCOMING_CONTRACTS` types == `INCOMING_MESSAGE_TYPES`
 - `OUTGOING_SCHEMA_CONTRACTS` types == `OUTGOING_SCHEMA_MESSAGE_TYPES`
 

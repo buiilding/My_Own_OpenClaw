@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from types import SimpleNamespace
 
 from fastapi import FastAPI, Request
@@ -9,6 +10,27 @@ from backend.src.api.auth.context import get_current_authenticated_install_ident
 from backend.src.api.auth.http_middleware import install_auth_http_middleware
 from backend.src.api.auth.router import router as install_auth_router
 from backend.src.api.auth.service import InstallAuthService
+
+
+@dataclass
+class _RegisteredInstallStub:
+    user_id: str = "user_test"
+    install_id: str = "install_test"
+    install_token: str = "wnd_install_test"
+
+
+class _InstallAuthServiceStub:
+    def __init__(self) -> None:
+        self.calls: list[dict[str, str | None]] = []
+
+    def register_install(self, *, operating_system: str | None = None):
+        self.calls.append({"operating_system": operating_system})
+        return _RegisteredInstallStub()
+
+
+class _FailingInstallAuthServiceStub:
+    def register_install(self, *, operating_system: str | None = None):  # noqa: ARG002
+        raise RuntimeError("registration failed")
 
 
 def _build_app(*, install_auth_enabled: bool, db_path: str) -> FastAPI:
@@ -35,6 +57,14 @@ def _build_app(*, install_auth_enabled: bool, db_path: str) -> FastAPI:
             ),
         }
 
+    return app
+
+
+def _build_register_only_app(install_auth_service: object | None = None) -> FastAPI:
+    app = FastAPI()
+    if install_auth_service is not None:
+        app.state.install_auth_service = install_auth_service
+    app.include_router(install_auth_router)
     return app
 
 
@@ -73,6 +103,69 @@ def test_register_install_returns_token_and_protected_route_uses_authenticated_i
             "request_user_id": register_payload["user_id"],
             "request_install_id": register_payload["install_id"],
         }
+
+
+def test_register_install_returns_503_when_service_is_unavailable() -> None:
+    app = _build_register_only_app()
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/install/register",
+            json={"operating_system": "Linux"},
+        )
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Install auth service not available"}
+
+
+def test_register_install_rejects_extra_request_fields() -> None:
+    service = _InstallAuthServiceStub()
+    app = _build_register_only_app(service)
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/install/register",
+            json={
+                "operating_system": "macOS",
+                "user_id": "client-chosen-user",
+            },
+        )
+
+    assert response.status_code == 422
+    assert service.calls == []
+
+
+def test_register_install_uses_service_response_shape() -> None:
+    service = _InstallAuthServiceStub()
+    app = _build_register_only_app(service)
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/install/register",
+            json={"operating_system": "Windows"},
+        )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "success": True,
+        "user_id": "user_test",
+        "install_id": "install_test",
+        "install_token": "wnd_install_test",
+    }
+    assert service.calls == [{"operating_system": "Windows"}]
+
+
+def test_register_install_service_failure_is_not_mapped_to_success() -> None:
+    app = _build_register_only_app(_FailingInstallAuthServiceStub())
+
+    with TestClient(app, raise_server_exceptions=False) as client:
+        response = client.post(
+            "/api/install/register",
+            json={"operating_system": "Windows"},
+        )
+
+    assert response.status_code == 500
+    assert "registration failed" not in response.text
 
 
 def test_protected_route_rejects_missing_or_invalid_install_token(tmp_path) -> None:

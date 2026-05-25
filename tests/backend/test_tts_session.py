@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 
 from backend.src.api.services.tts_session import TTSSession
@@ -18,9 +20,10 @@ class _DummyTask:
 
 
 class _FakeTTSManager:
-    def __init__(self, *, service=None, audio_task=None):
+    def __init__(self, *, service=None, audio_task=None, cancel_audio_task=False):
         self._service = service
         self._audio_task = audio_task
+        self._cancel_audio_task = cancel_audio_task
         self.initialize_calls = []
         self.start_calls = []
         self.cleanup_calls = []
@@ -35,6 +38,28 @@ class _FakeTTSManager:
 
     async def cleanup(self, service, audio_task):
         self.cleanup_calls.append((service, audio_task))
+        if self._cancel_audio_task and audio_task and not audio_task.done():
+            audio_task.cancel()
+
+
+class _StreamingTTSManager(_FakeTTSManager):
+    async def start_streaming_task(self, service, websocket, msg_id):
+        self.start_calls.append((service, websocket, msg_id))
+
+        async def _drain_audio():
+            async for _chunk in service.stream_audio():
+                pass
+
+        task = asyncio.create_task(_drain_audio())
+        self._audio_task = task
+        return task
+
+    async def cleanup(self, service, audio_task):
+        self.cleanup_calls.append((service, audio_task))
+        if service is not None:
+            await service.shutdown()
+        if audio_task is not None:
+            await asyncio.wait_for(audio_task, timeout=0.1)
 
 
 @pytest.mark.asyncio
@@ -100,6 +125,29 @@ async def test_tts_session_defers_elevenlabs_initialize_until_first_text_chunk()
 
 
 @pytest.mark.asyncio
+async def test_tts_session_closes_deferred_elevenlabs_stream_when_no_text_arrives():
+    manager = _StreamingTTSManager()
+    config = AppConfig(speech_mode_enabled=True, speech_provider="elevenlabs")
+    websocket = object()
+
+    session = TTSSession(manager, config, websocket, "msg-lazy-empty")
+    await session.__aenter__()
+    await asyncio.sleep(0)
+
+    assert manager.initialize_calls == []
+    assert session.service is not None
+    assert session.audio_task is not None
+    assert session.audio_task.done() is False
+
+    await session.__aexit__(None, None, None)
+
+    assert manager.initialize_calls == []
+    assert session.audio_task.done() is True
+    assert session.audio_task.cancelled() is False
+    assert manager.cleanup_calls == [(session.service, session.audio_task)]
+
+
+@pytest.mark.asyncio
 async def test_tts_session_enter_skips_streaming_when_service_unavailable():
     manager = _FakeTTSManager(service=None, audio_task=None)
     session = TTSSession(manager, AppConfig(), object(), "msg-2")
@@ -115,7 +163,11 @@ async def test_tts_session_enter_skips_streaming_when_service_unavailable():
 async def test_tts_session_exit_cancels_active_task_and_cleans_up():
     service = object()
     audio_task = _DummyTask(done=False)
-    manager = _FakeTTSManager(service=service, audio_task=audio_task)
+    manager = _FakeTTSManager(
+        service=service,
+        audio_task=audio_task,
+        cancel_audio_task=True,
+    )
     session = TTSSession(manager, AppConfig(), object(), "msg-3")
     session.service = service
     session.audio_task = audio_task
@@ -162,7 +214,9 @@ async def test_wait_for_audio_completion_noops_when_task_missing_or_done(monkeyp
     async def _fake_wait_for(task, timeout):  # noqa: ARG001
         called.append("wait")
 
-    monkeypatch.setattr("backend.src.api.services.tts_session.asyncio.wait_for", _fake_wait_for)
+    monkeypatch.setattr(
+        "backend.src.api.services.tts_session.asyncio.wait_for", _fake_wait_for
+    )
 
     await session.wait_for_audio_completion(timeout=0.1)
     session.audio_task = _DummyTask(done=True)
@@ -183,7 +237,9 @@ async def test_wait_for_audio_completion_awaits_active_task(monkeypatch):
         observed["timeout"] = timeout
         return None
 
-    monkeypatch.setattr("backend.src.api.services.tts_session.asyncio.wait_for", _fake_wait_for)
+    monkeypatch.setattr(
+        "backend.src.api.services.tts_session.asyncio.wait_for", _fake_wait_for
+    )
 
     await session.wait_for_audio_completion(timeout=2.5)
 
@@ -199,7 +255,9 @@ async def test_wait_for_audio_completion_propagates_wait_errors(monkeypatch):
     async def _fake_wait_for(_task, timeout):  # noqa: ARG001
         raise TimeoutError("timed out")
 
-    monkeypatch.setattr("backend.src.api.services.tts_session.asyncio.wait_for", _fake_wait_for)
+    monkeypatch.setattr(
+        "backend.src.api.services.tts_session.asyncio.wait_for", _fake_wait_for
+    )
 
     with pytest.raises(TimeoutError, match="timed out"):
         await session.wait_for_audio_completion(timeout=0.01)

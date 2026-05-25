@@ -75,15 +75,18 @@ Race guard contract:
 - `readinessCheckToken` increments for every new check and on process reset
 - scheduled retries/timeouts carry captured token and abort when token is stale
 
-Fail-open startup contract:
+Fail-closed startup contract:
 
-- after max retry or max timeout, bridge still calls `markBackendReady(...)` with warning logs
-- intent: avoid deadlock at app startup if sidecar ping path is unstable
+- after max retry or max timeout, bridge marks the active supervisor process
+  `error` and emits `local-backend-status { ready:false, status:"error", error }`
+- normal JSON-RPC requests stay blocked by `sendRequest(...)` until a real
+  readiness ping reports `status:"ok"`
 
 Test-backed guarantees:
 
 - stale readiness timeout from old process cannot clear new process callback
 - stale retry timer from old process cannot issue retry pings against new generation
+- exhausted readiness retries do not mark the sidecar ready without a valid ping
 
 ## Stdout/Stderr Protocol Handling
 
@@ -202,7 +205,7 @@ If readiness appears stuck:
 
 1. inspect ping ID progression (`__readiness_check_n__`)
 2. inspect token invalidation conditions during restart
-3. inspect whether fail-open path marked ready after max attempts
+3. inspect the fail-closed status emitted after max attempts or timeout
 
 ## Related Pages
 

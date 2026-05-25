@@ -21,9 +21,13 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
 }));
 
-jest.mock('../../frontend/src/renderer/infrastructure/markdown', () => ({
-  toSanitizedMarkdownHtml: (text) => `<p>${text || ''}</p>`,
-}));
+jest.mock('../../frontend/src/renderer/infrastructure/markdown', () => {
+  const actual = jest.requireActual('../../frontend/src/renderer/infrastructure/markdown');
+  return {
+    ...actual,
+    toSanitizedMarkdownHtml: (text) => `<p>${text || ''}</p>`,
+  };
+});
 
 import ChatBoxResponse from '../../frontend/src/renderer/features/chat/components/ChatBoxResponse';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';

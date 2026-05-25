@@ -48,6 +48,29 @@ describe('agent_stop_shortcut_runtime', () => {
     expect(runtime.isRegistered()).toBe(false);
   });
 
+  test('emits disabled and unregistered status when the runtime is disabled', () => {
+    const globalShortcut = {
+      register: jest.fn(() => true),
+      unregister: jest.fn(),
+    };
+    const onStatusChange = jest.fn();
+    const runtime = initializeAgentStopShortcutRuntime({
+      globalShortcut,
+      onStatusChange,
+    });
+
+    runtime.setEnabled(true);
+    runtime.setEnabled(false);
+
+    expect(onStatusChange).toHaveBeenLastCalledWith(expect.objectContaining({
+      enabled: false,
+      registered: false,
+      registeredAccelerator: null,
+      registrationFailed: false,
+    }));
+    expect(onStatusChange).toHaveBeenCalledTimes(2);
+  });
+
   test('does not duplicate registration across repeated enable calls', () => {
     const globalShortcut = {
       register: jest.fn(() => true),

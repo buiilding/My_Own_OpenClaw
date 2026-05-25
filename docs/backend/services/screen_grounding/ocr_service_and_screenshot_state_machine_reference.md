@@ -87,19 +87,24 @@ Test-backed behavior:
   - returns without creating new task
 - if OCR enabled:
   - cancels stale OCR task
+  - clears `ocr_completion_event` synchronously before returning from scheduling
   - schedules background task
-  - clears completion event before OCR run
-  - sets completion event in `finally` on success/failure
+  - sets completion event in `finally` only when the finishing task is still
+    the active task for that screenshot ID
   - stores OCR results only when screenshot ID still matches current screenshot ID
 
 Race guard:
 
 - outdated OCR completion is ignored when a newer screenshot replaced the current screenshot
+- canceled or stale OCR tasks cannot signal readiness for a newer screenshot
+  through the shared completion event
 
 Test-backed behavior:
 
 - disabled OCR path does not schedule task and keeps completion event set
 - new screenshot supersedes old results when first OCR completes late
+- completion event remains unset until the active OCR task for the current
+  screenshot finishes
 
 ## OcrCoordinator Wait/Fallback Behavior
 
@@ -108,7 +113,7 @@ Test-backed behavior:
 1. resolves target screenshot ID (argument or current session screenshot ID)
 2. fetches active OCR task for that screenshot ID
 3. waits up to 5.0s with `asyncio.wait_for(asyncio.shield(task), timeout=5.0)`
-4. if timed out, falls back to on-demand OCR execution
+4. if timed out or the proactive task fails, falls back to on-demand OCR execution
 5. rejects cached OCR reuse when screenshot ID changed
 6. executes `ocr_service.perform_ocr(...)` when cache is absent/stale
 7. stores fresh OCR results back into session current OCR slot
@@ -152,6 +157,8 @@ Runtime CUDA fallback:
 Normalization details:
 
 - `_parse_bbox(...)` converts OCR polygon points to axis-aligned min/max box
+- raw text, score, and box rows are processed by original index; an invalid box
+  skips only that row so later valid boxes stay attached to their matching text
 - `_build_ocr_record(...)` emits:
   - `id` string
   - normalized `text`

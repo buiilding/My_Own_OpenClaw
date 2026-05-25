@@ -82,6 +82,57 @@ describe('buildAssistantTranscriptTransparency', () => {
     ]);
   });
 
+  test('does not copy user transparency from a different turn', () => {
+    const messages: ChatMessage[] = [
+      createUserMessage({
+        id: 'user-old',
+        turnRef: 'turn-a',
+        systemPrompt: {
+          content: 'old prompt',
+          toolSchemas: [{ type: 'function', name: 'old-tool', parameters: { type: 'object' } }],
+        },
+        fullUserMessage: { content: 'old full user', metadata: { source: 'old' } },
+      }),
+    ];
+
+    const transparency = buildAssistantTranscriptTransparency(
+      messages,
+      createAssistantMessage({
+        turnRef: 'turn-b',
+        fullAssistantMessage: { content: ' assistant only ' },
+      }),
+      'turn-b',
+    );
+
+    expect(transparency).toEqual({
+      fullAssistantMessage: { content: 'assistant only' },
+    });
+  });
+
+  test('uses latest user transparency when no turnRef is provided', () => {
+    const messages: ChatMessage[] = [
+      createUserMessage({
+        id: 'user-old',
+        systemPrompt: { content: 'old prompt' },
+      }),
+      createUserMessage({
+        id: 'user-latest',
+        systemPrompt: { content: 'latest prompt' },
+        fullUserMessage: { content: ' latest full user ' },
+      }),
+    ];
+
+    const transparency = buildAssistantTranscriptTransparency(
+      messages,
+      createAssistantMessage(),
+    );
+
+    expect(transparency).toEqual({
+      systemPrompt: 'latest prompt',
+      fullUserMessage: { content: 'latest full user', metadata: undefined },
+    });
+  });
+
   test('returns undefined when no useful transparency fields are available', () => {
     const messages: ChatMessage[] = [
       createUserMessage({

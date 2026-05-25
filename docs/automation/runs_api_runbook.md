@@ -31,7 +31,8 @@ Worker env lookup order:
 2. `WINDIE_RUNS_API_KEY`
 3. `WINDIE_DEMO_API_KEY`
 
-If the backend has no runs key configured, the routes are open. Production-like hosted deployments should set a key.
+If the backend has no runs key configured, `/api/runs/*` fails closed with
+`503`. Configure one of the backend env vars before enabling VM run control.
 
 ## Endpoint Matrix
 
@@ -79,6 +80,7 @@ Response includes:
 
 Failure modes:
 
+- `503`: backend runs key is not configured.
 - `401`: invalid or missing runs key when backend key is configured.
 - `409`: active-run cap reached for the workspace.
 - `422`: request model validation failed.
@@ -246,6 +248,11 @@ Control modes:
 Important implementation detail: controls mutate the run immediately and enqueue a command for the worker. Electron currently applies `stop` to the websocket query path. The other controls are visible in status/control-mode state and command delivery but do not pause or resume the underlying websocket execution by themselves.
 
 ## Stop All
+
+`POST /api/runs/stop-all` requires the privileged control header
+`x-windie-runs-control-key` matching `WINDIE_RUNS_CONTROL_API_KEY`. The ordinary
+`x-windie-runs-key` worker/control-plane key is not accepted for this destructive
+bulk operation.
 
 Request:
 

@@ -28,7 +28,7 @@ returning to renderer:
 1. resolve fallback `display_bounds` for monitor-targeted capture
 2. materialize sidecar `screenshot_path` into durable attachment fields (`screenshot_ref`/`screenshot_url`) or inline fallback (`screenshot`)
 
-This behavior is local-backend bridge specific; non-screenshot tools do not run these paths.
+This behavior is local-backend bridge specific; non-screenshot tools do not run these paths. If a non-screenshot tool returns `screenshot_path`, Electron main strips that local path from the returned payload without reading or deleting it.
 
 ## Display-Bounds Fallback Resolution
 
@@ -71,6 +71,11 @@ It only runs when all are true:
 - `result.success !== false`
 - `result.data` is an object
 - `result.data.screenshot_path` is a non-empty string
+- `result.data.screenshot_path` is an absolute direct child of the owned temp directory `${os.tmpdir()}/windieos-screenshots`
+- the filename starts with `windie-shot-`
+- the path is a regular file, not a symlink
+
+Paths that fail this ownership check are rejected before upload, inline fallback, or cleanup. Electron main drops `data.screenshot_path` from the returned payload but does not read or unlink the unowned path.
 
 ### Upload path
 
@@ -123,6 +128,11 @@ This guarantee applies to success and failure paths to prevent temp-file leaks.
 - successful artifact upload returns `screenshot_ref` + `screenshot_url`
 - failed upload falls back to inline base64 screenshot
 - temporary screenshot file is deleted after handling
+- unowned screenshot temp paths are rejected without upload, inline read, or deletion
+
+`tests/frontend/LocalBackendBridgeExtensionRuntime.test.cjs`:
+
+- non-screenshot MCP tool results do not materialize, read, or delete returned `screenshot_path` values
 
 `tests/frontend/LocalBackendBridgeToolArgs.test.cjs`:
 
@@ -135,6 +145,7 @@ This guarantee applies to success and failure paths to prevent temp-file leaks.
 2. Overwriting explicit `args.display_bounds` with fallback affinity can break intentional monitor targeting.
 3. Returning `screenshot_path` to renderer instead of materializing attachments leaks local temp-path internals.
 4. Skipping cleanup in failure paths can leak temporary screenshot files.
+5. Widening materialization to non-screenshot tools can let local tools or MCP servers exfiltrate arbitrary readable files.
 
 ## Related Pages
 

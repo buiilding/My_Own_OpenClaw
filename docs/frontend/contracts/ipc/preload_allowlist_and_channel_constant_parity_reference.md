@@ -21,11 +21,13 @@ Channel validation has two runtime layers plus one shared source:
 
 1. shared channel registry (`ipcChannels.json`) defines the names
 2. preload allowlists (`preload.js`) are the hard boundary
-3. renderer `IpcBridge` set checks are dev-only safety checks
+3. renderer `channels.ts` validates the shared registry against the expected channel families before exporting constants
+4. renderer `IpcBridge` set checks are dev-only safety checks
 
 Electron main injects the serialized shared registry through `webPreferences.additionalArguments`, and preload parses it from `process.argv` because Electron's sandboxed preload runtime can fail both relative sibling-module resolution and Node builtin imports.
 
 In production, preload is authoritative because `IpcBridge` validation is gated by `NODE_ENV === "development"`.
+The renderer registry validation still runs at module load in every mode so a missing or renamed shared JSON entry fails before callers can observe `undefined` channel constants.
 
 ## Channel Families
 
@@ -134,7 +136,8 @@ If callers skip cleanup, listeners accumulate and duplicate event handling.
 
 1. new channel added to `ipcChannels.json` without a matching main handler
 2. docs drift from the shared registry after channel additions/removals
-3. relying on `IpcBridge` validation in production (it is not active there)
+3. updating `ipcChannels.json` without updating `EXPECTED_SHARED_CHANNEL_REGISTRY`
+4. relying on `IpcBridge` validation in production (it is not active there)
 
 ## Debug Checklist
 

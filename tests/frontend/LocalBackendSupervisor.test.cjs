@@ -30,6 +30,22 @@ describe('local_backend_supervisor', () => {
       ready: true,
     }));
 
+    supervisor.markError('readiness failed');
+    expect(supervisor.getSnapshot()).toEqual(expect.objectContaining({
+      process: processRef,
+      status: 'error',
+      ready: false,
+      generation: 1,
+      lastError: 'readiness failed',
+    }));
+
+    supervisor.markReady();
+    expect(supervisor.getSnapshot()).toEqual(expect.objectContaining({
+      status: 'ready',
+      ready: true,
+      lastError: '',
+    }));
+
     supervisor.beginStop();
     expect(supervisor.getSnapshot()).toEqual(expect.objectContaining({
       status: 'stopping',

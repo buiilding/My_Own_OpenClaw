@@ -30,6 +30,8 @@ Response (`EmbeddingResponse`):
 - `embedding: list[float]`
 - `model_name: str`
 - `dimension: int`
+- `embedding_space_version: str`, built from provider/model identity and the
+  returned vector dimension
 
 ## Package Export Compatibility Surface
 
@@ -62,6 +64,8 @@ Purpose:
 3. call `await embedding_provider.embed_text(request.text)`
 4. serialize vector with `embedding_to_list`
 5. return dimension and provider model name (provider attribute preferred over request hint)
+6. derive `embedding_space_version` from the same serialized vector dimension
+   returned in `dimension`
 
 Exception handling:
 
@@ -78,6 +82,8 @@ Exception handling:
 - otherwise probes live embedder using `"test"` input
 - returns healthy payload with:
   - `model_name`
+  - computed `dimension`
+  - `embedding_space_version` using the computed probe dimension
   - computed `dimension`
 
 Wrapped via `dependency_health_check(...)`:

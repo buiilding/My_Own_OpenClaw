@@ -44,16 +44,23 @@ class _FakeWebSocket:
 
 class _FakeWebsocketsModule:
     def __init__(self, websocket):
-        self.websocket = websocket
+        if isinstance(websocket, list):
+            self.websockets = list(websocket)
+        else:
+            self.websockets = [websocket]
+        self.websocket = self.websockets[0]
         self.connected_uris = []
 
     async def connect(self, uri):
         self.connected_uris.append(uri)
-        return self.websocket
+        index = min(len(self.connected_uris) - 1, len(self.websockets) - 1)
+        return self.websockets[index]
 
 
 @pytest.mark.asyncio
-async def test_elevenlabs_tts_service_streams_incremental_text_chunks_and_flush(monkeypatch):
+async def test_elevenlabs_tts_service_streams_incremental_text_chunks_and_flush(
+    monkeypatch,
+):
     fake_websocket = _FakeWebSocket()
     fake_module = _FakeWebsocketsModule(fake_websocket)
     monkeypatch.setattr(
@@ -78,8 +85,7 @@ async def test_elevenlabs_tts_service_streams_incremental_text_chunks_and_flush(
         "channels": 1,
     }
     assert (
-        fake_module.connected_uris[0]
-        == "wss://api.elevenlabs.io/v1/text-to-speech/"
+        fake_module.connected_uris[0] == "wss://api.elevenlabs.io/v1/text-to-speech/"
         "EXAVITQu4vr4xnSDxMaL/stream-input"
         "?model_id=eleven_flash_v2_5&output_format=pcm_16000"
         "&auto_mode=false&inactivity_timeout=60"
@@ -100,8 +106,42 @@ async def test_elevenlabs_tts_service_streams_incremental_text_chunks_and_flush(
 
     assert await audio_iterator.__anext__() == first_chunk
     assert await audio_iterator.__anext__() == first_chunk
+    await service.shutdown()
     with pytest.raises(StopAsyncIteration):
         await audio_iterator.__anext__()
+
+
+@pytest.mark.asyncio
+async def test_elevenlabs_tts_service_reopens_after_flush_for_later_text(monkeypatch):
+    first_websocket = _FakeWebSocket()
+    second_websocket = _FakeWebSocket()
+    fake_module = _FakeWebsocketsModule([first_websocket, second_websocket])
+    monkeypatch.setattr(
+        "backend.src.core.services.elevenlabs_tts_service._import_websockets",
+        lambda: fake_module,
+    )
+    monkeypatch.setenv("ELEVENLABS_API_KEY", "test-elevenlabs-key")
+
+    service = ElevenLabsTTSService(AppConfig(speech_provider="elevenlabs"))
+    await service.initialize()
+    audio_iterator = service.stream_audio()
+
+    await service.process_text("First")
+    first_chunk = await audio_iterator.__anext__()
+    await service.flush()
+    await service.process_text("Second")
+    second_chunk = await asyncio.wait_for(audio_iterator.__anext__(), timeout=0.1)
+
+    assert first_chunk == second_chunk
+    assert len(fake_module.connected_uris) == 2
+    assert first_websocket.sent_messages[1]["text"] == "First "
+    assert first_websocket.sent_messages[2] == {"text": "", "flush": True}
+    assert first_websocket.closed is True
+    assert second_websocket.sent_messages[0]["text"] == " "
+    assert second_websocket.sent_messages[1]["text"] == "Second "
+    assert service.running is True
+
+    await service.shutdown()
 
 
 @pytest.mark.asyncio
@@ -137,11 +177,11 @@ async def test_elevenlabs_tts_service_uses_auto_mode_when_enabled(
     await service.process_text("Hello")
 
     assert (
-        fake_module.connected_uris[0]
-        == "wss://api.elevenlabs.io/v1/text-to-speech/"
+        fake_module.connected_uris[0] == "wss://api.elevenlabs.io/v1/text-to-speech/"
         "EXAVITQu4vr4xnSDxMaL/stream-input"
         "?model_id=eleven_flash_v2_5&output_format=pcm_16000"
         "&auto_mode=true&inactivity_timeout=120"
     )
     assert "generation_config" not in fake_websocket.sent_messages[0]
     assert "try_trigger_generation" not in fake_websocket.sent_messages[1]
+    await service.shutdown()

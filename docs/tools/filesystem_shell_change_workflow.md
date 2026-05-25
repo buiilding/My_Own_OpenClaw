@@ -91,8 +91,12 @@ flowchart LR
    - `read_file` should resolve relative paths from the selected workspace when available and from the home directory only when workspace context is missing.
    - `read_file` should preserve offset/limit pagination, line truncation, binary guards, and explicit extraction notes.
    - `replace` should require absolute paths for existing-file edits.
-   - Missing-file creation through `replace` should remain narrow: exactly one unconstrained operation with `old_string=''`.
-   - Multi-operation and patch-chunk edits must validate before writing.
+- Missing-file creation through `replace` should remain narrow: exactly one unconstrained operation with `old_string=''`.
+- Backend `ReplaceArgs` rejects ambiguous edit-mode combinations before the
+  request reaches SDK/main or sidecar execution. A valid payload uses exactly
+  one mode: top-level `old_string`/`new_string`, batched `replacements`, or
+  `patch_chunks`.
+- Multi-operation and patch-chunk edits must validate before writing.
    - No failed replacement mode should leave a partially edited file.
 
 6. Preserve shell/process contracts.

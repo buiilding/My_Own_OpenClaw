@@ -139,6 +139,26 @@ const mapSearchMemoryPayload = createPayloadMapper({
   semantic_min_score: ['semanticMinScore', 'semantic_min_score'],
 });
 
+const mapChatEventWritePayload = createPayloadMapper({
+  user_id: 'userId',
+  conversation_id: 'conversationId',
+  event_type: 'eventType',
+  role: 'role',
+  content: 'content',
+  timestamp: 'timestamp',
+  message_index: 'messageIndex',
+  revision_id: 'revisionId',
+  turn_ref: 'turnRef',
+  tool_name: 'toolName',
+  correlation_id: 'correlationId',
+  workspace_path: 'workspacePath',
+  workspace_name: 'workspaceName',
+  metadata: 'metadata',
+  attachments: 'attachments',
+  event_payload: 'eventPayload',
+  compaction_checkpoint: 'compactionCheckpoint',
+});
+
 const COMPILED_RPC_HANDLER_DEFINITIONS = [
   {
     channel: 'list-episodic-memories',
@@ -189,24 +209,19 @@ const COMPILED_RPC_HANDLER_DEFINITIONS = [
   {
     channel: 'store-chat-event',
     method: 'store_chat_event',
+    mapParams: mapChatEventWritePayload,
+  },
+  {
+    channel: 'replace-chat-conversation',
+    method: 'replace_chat_conversation',
     mapParams: createPayloadMapper({
       user_id: 'userId',
-      conversation_id: 'conversationId',
-      event_type: 'eventType',
-      role: 'role',
-      content: 'content',
-      timestamp: 'timestamp',
-      message_index: 'messageIndex',
+      conversation_id: ({ conversationId }) => conversationId ?? null,
       revision_id: 'revisionId',
-      turn_ref: 'turnRef',
-      tool_name: 'toolName',
-      correlation_id: 'correlationId',
-      workspace_path: 'workspacePath',
-      workspace_name: 'workspaceName',
-      metadata: 'metadata',
-      attachments: 'attachments',
-      event_payload: 'eventPayload',
-      compaction_checkpoint: 'compactionCheckpoint',
+      revision_updated_at: 'revisionUpdatedAt',
+      events: ({ events }) => (
+        Array.isArray(events) ? events.map(mapChatEventWritePayload) : []
+      ),
     }),
   },
   {
@@ -234,6 +249,14 @@ const COMPILED_RPC_HANDLER_DEFINITIONS = [
       conversation_id: ({ conversationId }) => conversationId ?? null,
       limit: 'limit',
       after_message_index: 'afterMessageIndex',
+    }),
+  },
+  {
+    channel: 'get-chat-conversation-revision',
+    method: 'get_chat_conversation_revision',
+    mapParams: createPayloadMapper({
+      user_id: 'userId',
+      conversation_id: ({ conversationId }) => conversationId ?? null,
     }),
   },
   {

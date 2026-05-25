@@ -231,6 +231,10 @@ when `embedding_backend=remote-http`.
 - `GET /health`
 - `POST /embed`
 
+`POST /embed` accepts 1..256 text strings. Each text is capped at 8192
+characters and the total request is capped at 65536 characters before provider
+execution.
+
 **Embed response**:
 ```json
 {
@@ -590,7 +594,12 @@ Return a ranked list of visual matches. Current backend support returns the best
 
 ### POST `/api/sdk/vision/describe`
 
-Describe the full image or an optional cropped region for automation/debugging. When `region` is present, the backend crops before passing the image to the vision model.
+Describe the full image or an optional cropped region for automation/debugging.
+When `region` is present, the backend crops before passing the image to the
+vision model. Region origins outside the source image are rejected with `422`.
+Regions that start inside the image but extend past the image edge are trimmed,
+and the response reports cropped-image metadata with `region` normalized to
+`{ "x": 0, "y": 0, "width": cropped_width, "height": cropped_height }`.
 
 **Request**:
 ```json
@@ -827,11 +836,14 @@ Notes:
 These endpoints provide a hosted control-plane contract for web dashboards that drive VM-backed Windie execution.
 Current implementation is an in-memory backend registry designed for demo/runtime integration.
 
-When `WINDIE_RUNS_API_KEY` (or `WINDIE_DEMO_API_KEY`) is configured, every runs endpoint requires:
+Every runs endpoint requires a configured backend key and matching request header:
 
 ```http
 x-windie-runs-key: <shared-key>
 ```
+
+If neither `WINDIE_RUNS_API_KEY` nor `WINDIE_DEMO_API_KEY` is configured, the
+runs API returns HTTP `503`.
 
 ### POST `/api/runs/`
 

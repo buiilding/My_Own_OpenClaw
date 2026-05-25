@@ -110,7 +110,9 @@ History size is reduced only by compaction; the loop is not stopped by a fixed s
 Turn-commit policy:
 
 - final assistant turns commit only replay-safe text; if model text is empty, loop resolves the deterministic fallback first, emits it, then commits that fallback text
-- assistant tool turns commit the assistant row plus staged `tool_call_id`s together before execution so cancellation can still reconcile tool outputs
+- assistant tool turns render the assistant `tool_calls` payload once, commit that
+  row, then stage ids from the same rendered payload before execution so
+  fallback ids and provider ids stay linkable to later tool outputs
 - query cancellation does not synthesize assistant text; it only reconciles pending `role='tool'` rows for already-committed assistant tool-call turns
 - unsupported assistant-only structured blocks (for example stray reasoning/thinking fragments from partial transcript state) are dropped at history-admission boundaries instead of being replayed back to providers
 
@@ -141,7 +143,9 @@ Validated by:
 
 - requires `session_ref`; returns empty batch when absent
 - bundle path uses one bundle future (`execute_bundle`)
-- non-bundle path waits per request id (`execute_single_tool`)
+- non-bundle path delegates every parsed call to `execute_single_tool`; calls
+  missing `request_id` return that helper's pending-local-runtime placeholder
+  instead of being dropped
 
 Bundle waiting behavior:
 

@@ -56,6 +56,28 @@ def test_validate_field_type_and_custom_validator():
         validate_field(0, "count", int, validator=must_be_positive)
 
 
+def test_validate_field_formats_tuple_expected_types():
+    with pytest.raises(ValidationError) as exc:
+        validate_field("bad", "llm_timeout", (int, float))
+
+    assert "int or float" in exc.value.message
+    assert "got str" in exc.value.message
+
+
+def test_validate_field_rejects_bool_for_numeric_types():
+    with pytest.raises(ValidationError) as int_exc:
+        validate_field(True, "count", int)
+    assert "got bool" in int_exc.value.message
+
+    with pytest.raises(ValidationError) as float_exc:
+        validate_field(False, "llm_timeout", (int, float))
+    assert "got bool" in float_exc.value.message
+
+    assert validate_field(True, "enabled", bool) is True
+    assert validate_field(1, "count", int) == 1
+    assert validate_field(1.5, "timeout", (int, float)) == 1.5
+
+
 def test_sanitize_string_removes_null_bytes_and_truncates():
     sanitized = sanitize_string("a\x00b", max_length=1)
     assert sanitized == "a"
@@ -107,6 +129,30 @@ def test_validate_settings_update_rejects_bad_types():
         validate_settings_update({"model_provider": 123})
     with pytest.raises(ValidationError):
         validate_settings_update({"history_compaction_enabled": "yes"})
+    with pytest.raises(ValidationError) as exc:
+        validate_settings_update({"llm_timeout": "bad"})
+    assert "int or float" in exc.value.message
+
+
+def test_validate_settings_update_rejects_booleans_for_numeric_settings():
+    with pytest.raises(ValidationError) as int_exc:
+        validate_settings_update({"history_compaction_trigger_tokens": True})
+    assert "got bool" in int_exc.value.message
+
+    with pytest.raises(ValidationError) as float_exc:
+        validate_settings_update({"llm_timeout": False})
+    assert "got bool" in float_exc.value.message
+
+    assert (
+        validate_settings_update({"history_compaction_trigger_tokens": 4096})[
+            "history_compaction_trigger_tokens"
+        ]
+        == 4096
+    )
+    assert validate_settings_update({"llm_timeout": 1.5})["llm_timeout"] == 1.5
+    assert (
+        validate_settings_update({"memory_enabled": False})["memory_enabled"] is False
+    )
 
 
 def test_validate_frontend_config_allows_subset_and_validates_values():

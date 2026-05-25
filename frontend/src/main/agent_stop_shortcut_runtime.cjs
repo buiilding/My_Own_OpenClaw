@@ -78,6 +78,7 @@ function initializeAgentStopShortcutRuntime(deps = {}) {
       enabled,
       requestedAccelerator,
       resolvedAccelerator,
+      registered,
       registeredAccelerator,
       registrationFailed,
       usingFallback: (
@@ -95,8 +96,11 @@ function initializeAgentStopShortcutRuntime(deps = {}) {
   function emitStatusChange() {
     const nextStatus = buildStatus();
     const nextStatusKey = JSON.stringify({
+      enabled: nextStatus.enabled,
       requestedAccelerator: nextStatus.requestedAccelerator,
       resolvedAccelerator: nextStatus.resolvedAccelerator,
+      registered: nextStatus.registered,
+      registeredAccelerator: nextStatus.registeredAccelerator,
       registrationFailed: nextStatus.registrationFailed,
       usingFallback: nextStatus.usingFallback,
       supportedAccelerators: nextStatus.supportedAccelerators,

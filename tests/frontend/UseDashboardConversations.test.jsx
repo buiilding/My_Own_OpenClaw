@@ -61,6 +61,25 @@ function renderDashboardConversations(options = {}) {
   }));
 }
 
+function renderDashboardConversationsWithProps(initialProps = {}) {
+  return renderHook((props) => useDashboardConversations({
+    resolvedUserId: props.resolvedUserId,
+    sessionConversationRef: '',
+    clearChatMessages: jest.fn(),
+    setChatMessages: jest.fn(),
+    setChatIsSending: jest.fn(),
+    setChatThinkingStatus: jest.fn(),
+    setChatTokenCounts: jest.fn(),
+    setChatActiveConversationRef: jest.fn(),
+    searchOpen: false,
+  }), {
+    initialProps: {
+      resolvedUserId: 'user-test',
+      ...initialProps,
+    },
+  });
+}
+
 describe('useDashboardConversations', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -162,5 +181,65 @@ describe('useDashboardConversations', () => {
       ]);
     });
     expect(DesktopConversationLibraryClient.listMetadata).toHaveBeenCalledTimes(2);
+  });
+
+  test('clears recent conversations and ignores stale loads when user id clears', async () => {
+    let resolveStaleLoad;
+    DesktopConversationLibraryClient.listMetadata
+      .mockResolvedValueOnce([
+        {
+          conversationRef: 'conv-old',
+          title: 'Old user chat',
+          updatedAt: '2026-05-16T20:00:00.000Z',
+          eventCount: 2,
+        },
+      ])
+      .mockImplementationOnce(() => new Promise((resolve) => {
+        resolveStaleLoad = resolve;
+      }));
+
+    const { result, rerender } = renderDashboardConversationsWithProps();
+
+    await waitFor(() => {
+      expect(result.current.recentConversations).toEqual([
+        expect.objectContaining({
+          conversation_id: 'conv-old',
+          title: 'Old user chat',
+        }),
+      ]);
+    });
+
+    act(() => {
+      result.current.handleTogglePinConversation({ conversation_id: 'conv-old' });
+    });
+    expect(result.current.pinnedConversationRefs).toEqual(['conv-old']);
+
+    await act(async () => {
+      void result.current.loadRecentConversations();
+    });
+    expect(DesktopConversationLibraryClient.listMetadata).toHaveBeenCalledTimes(2);
+
+    rerender({ resolvedUserId: '' });
+
+    await waitFor(() => {
+      expect(result.current.recentConversations).toEqual([]);
+    });
+    expect(result.current.pinnedConversationRefs).toEqual([]);
+    expect(result.current.isLoadingRecentConversations).toBe(false);
+    expect(result.current.recentConversationsError).toBe('');
+
+    await act(async () => {
+      resolveStaleLoad([
+        {
+          conversationRef: 'conv-stale',
+          title: 'Stale old user chat',
+          updatedAt: '2026-05-16T20:01:00.000Z',
+          eventCount: 1,
+        },
+      ]);
+    });
+
+    expect(result.current.recentConversations).toEqual([]);
+    expect(result.current.pinnedConversationRefs).toEqual([]);
   });
 });

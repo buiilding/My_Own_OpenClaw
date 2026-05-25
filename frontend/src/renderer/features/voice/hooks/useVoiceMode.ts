@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { buildGatewayAudioMessage, float32ToPcm16 } from '../utils/audioEncoding';
 import {
+  closeAudioContextSafely,
   cleanupAudioCaptureNodes,
   takeAudioContext,
 } from '../utils/audioCaptureCleanup';
@@ -53,6 +54,8 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttemptsRef = useRef(0);
   const isRecordingRef = useRef(false);
+  const isStartingCaptureRef = useRef(false);
+  const captureGenerationRef = useRef(0);
   const enabledRef = useLatestRef(enabled);
   const onTranscriptionUpdateRef = useLatestRef(onTranscriptionUpdate);
   const onUtteranceEndRef = useLatestRef(onUtteranceEnd);
@@ -64,6 +67,10 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
     }
   }, []);
 
+  const logUnexpectedAudioContextCloseError = useCallback((err: unknown) => {
+    console.warn('[VoiceMode] Failed to close AudioContext:', err);
+  }, []);
+
   const markConnectionError = useCallback((message: string) => {
     setError(message);
     setIsConnected(false);
@@ -71,8 +78,11 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
 
   // Connect to the backend-owned transcription WebSocket
   const connectWebSocket = useCallback(() => {
-    if (websocketRef.current?.readyState === WebSocket.OPEN) {
-      return; // Already connected
+    if (
+      websocketRef.current
+      && websocketRef.current.readyState !== WebSocket.CLOSED
+    ) {
+      return; // Already connecting or connected
     }
 
     try {
@@ -149,6 +159,7 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
         }
 
         console.log('[VoiceMode] WebSocket closed');
+        websocketRef.current = null;
         setIsConnected(false);
 
         // Attempt reconnection if enabled and not manually closed
@@ -188,9 +199,12 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
 
   // Start audio capture
   const startAudioCapture = useCallback(async () => {
-    if (isRecordingRef.current) {
+    if (isRecordingRef.current || isStartingCaptureRef.current) {
       return;
     }
+
+    isStartingCaptureRef.current = true;
+    const generation = ++captureGenerationRef.current;
 
     try {
       // Request microphone access
@@ -203,12 +217,24 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
         }
       });
 
+      if (generation !== captureGenerationRef.current || !enabledRef.current) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
+
       setMediaStreamRef(stream);
 
       // Create audio context
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({
         sampleRate: 16000
       });
+
+      if (generation !== captureGenerationRef.current || !enabledRef.current) {
+        stream.getTracks().forEach((track) => track.stop());
+        await closeAudioContextSafely(audioContext, logUnexpectedAudioContextCloseError);
+        return;
+      }
+
       setAudioContextRef(audioContext);
 
       // Create source node from media stream
@@ -234,18 +260,41 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
           }
         },
       });
+
+      if (generation !== captureGenerationRef.current || !enabledRef.current) {
+        scriptNode.disconnect();
+        if (scriptNode.port) {
+          scriptNode.port.onmessage = null;
+        }
+        if (scriptNode.onaudioprocess) {
+          scriptNode.onaudioprocess = null;
+        }
+        stream.getTracks().forEach((track) => track.stop());
+        await closeAudioContextSafely(audioContext, logUnexpectedAudioContextCloseError);
+        return;
+      }
+
       setScriptNodeRef(scriptNode);
 
       isRecordingRef.current = true;
       setIsRecording(true);
       console.log('[VoiceMode] Audio capture started');
     } catch (err: any) {
+      if (generation !== captureGenerationRef.current) {
+        return;
+      }
       console.error('[VoiceMode] Error starting audio capture:', err);
       setError(`Audio capture failed: ${err.message}`);
       setIsRecording(false);
       isRecordingRef.current = false;
+    } finally {
+      if (generation === captureGenerationRef.current) {
+        isStartingCaptureRef.current = false;
+      }
     }
   }, [
+    enabledRef,
+    logUnexpectedAudioContextCloseError,
     setAudioContextRef,
     setMediaStreamRef,
     setScriptNodeRef,
@@ -254,9 +303,15 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
 
   // Stop audio capture
   const stopAudioCapture = useCallback(async () => {
-    if (!isRecordingRef.current) {
-      return;
-    }
+    captureGenerationRef.current += 1;
+    isStartingCaptureRef.current = false;
+    const hadResources = Boolean(
+      isRecordingRef.current
+      || scriptNodeRef.current
+      || sourceNodeRef.current
+      || mediaStreamRef.current
+      || audioContextRef.current
+    );
 
     isRecordingRef.current = false;
     setIsRecording(false);
@@ -265,11 +320,19 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
 
     const audioContext = takeAudioContext(audioContextRef);
     if (audioContext) {
-      await audioContext.close();
+      await closeAudioContextSafely(audioContext, logUnexpectedAudioContextCloseError);
     }
 
-    console.log('[VoiceMode] Audio capture stopped');
-  }, [audioContextRef, mediaStreamRef, scriptNodeRef, sourceNodeRef]);
+    if (hadResources) {
+      console.log('[VoiceMode] Audio capture stopped');
+    }
+  }, [
+    audioContextRef,
+    logUnexpectedAudioContextCloseError,
+    mediaStreamRef,
+    scriptNodeRef,
+    sourceNodeRef,
+  ]);
 
   // Disconnect WebSocket
   const disconnectWebSocket = useCallback(() => {

@@ -56,6 +56,7 @@ Client-local schemas are merged with backend registry schemas before policy filt
 
 1. Frontend generates the built-in local manifest from `frontend/src/main/python/tools/manifest.py` into `frontend/src/main/generated/builtin_tool_manifest.json`.
 2. Electron loads the generated built-in manifest and merges plugin/MCP tools.
+   - MCP stdio clients are cached by server identity, command, args, cwd, and a hashed fingerprint of configured env key/value pairs so changed credentials or endpoints create a fresh client without placing raw secrets in the cache key.
 3. Client sends `client_tool_manifest` during websocket handshake.
 4. Backend validates accepted/rejected manifest entries.
 5. Backend builds backend remote tool schemas from `backend/src/tools/tool_catalog.py` and remote tool classes.

@@ -204,8 +204,13 @@ def build_source_grounding_json_rules() -> list[Dict[str, Any]]:
     return [
         {
             "if": {
-                "properties": {"find_coordinates_by": {"const": "manual"}},
-                "required": ["find_coordinates_by"],
+                "anyOf": [
+                    {"not": {"required": ["find_coordinates_by"]}},
+                    {
+                        "properties": {"find_coordinates_by": {"const": "manual"}},
+                        "required": ["find_coordinates_by"],
+                    },
+                ],
             },
             "then": {"required": ["x", "y"]},
         },
@@ -278,11 +283,23 @@ def build_drag_destination_json_rules() -> list[Dict[str, Any]]:
     return [
         {
             "if": {
-                "properties": {
-                    "action": {"const": "drag"},
-                    "drag_to_find_coordinates_by": {"const": "manual"},
-                },
-                "required": ["action", "drag_to_find_coordinates_by"],
+                "allOf": [
+                    {
+                        "properties": {"action": {"const": "drag"}},
+                        "required": ["action"],
+                    },
+                    {
+                        "anyOf": [
+                            {"not": {"required": ["drag_to_find_coordinates_by"]}},
+                            {
+                                "properties": {
+                                    "drag_to_find_coordinates_by": {"const": "manual"},
+                                },
+                                "required": ["drag_to_find_coordinates_by"],
+                            },
+                        ],
+                    },
+                ],
             },
             "then": {"required": ["drag_to_x", "drag_to_y"]},
         },

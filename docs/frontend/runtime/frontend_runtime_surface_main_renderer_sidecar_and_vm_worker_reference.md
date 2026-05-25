@@ -65,10 +65,15 @@ Settings sync boundary:
 - phase gating (`awaiting-first-chunk`, `streaming`, `tool-call`, `tool-output`)
 - fallback registration candidates when requested key is unavailable
 - status projection fields:
+  - enabled and registered state
   - requested/resolved/registered accelerator
   - registrationFailed
   - usingFallback
   - supportedAccelerators
+
+Status-change deduplication compares every projected status field, so disabling
+the runtime after a successful registration still emits the unregistered state
+even when the requested and resolved accelerator strings are unchanged.
 
 Main process can enable/disable this runtime based on agent loop phase without mutating renderer state directly.
 

@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 import MessageContent from '../../frontend/src/renderer/features/chat/components/MessageContent';
 import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
+import { clearResolvedArtifactImageCache } from '../../frontend/src/renderer/features/chat/utils/message/useResolvedMessageScreenshots';
 
 jest.mock('../../frontend/src/renderer/infrastructure/markdown', () => ({
   toSanitizedMarkdownHtml: jest.fn((text) => text),
@@ -24,6 +25,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => {
 
 describe('MessageContent', () => {
   beforeEach(() => {
+    clearResolvedArtifactImageCache();
     IpcBridge.invoke.mockClear();
     IpcBridge.invoke.mockImplementation(async (channel) => {
       if (channel === INVOKE_CHANNELS.FETCH_ARTIFACT_IMAGE) {
@@ -110,6 +112,64 @@ describe('MessageContent', () => {
     );
     expect(Boolean(artifactFetchCall)).toBe(true);
     expect(artifactFetchCall[1].artifactId).toBe('artifact-1');
+  });
+
+  test('retries artifact screenshot resolution after a transient fetch failure', async () => {
+    IpcBridge.invoke.mockImplementationOnce(async (channel) => {
+      if (channel === INVOKE_CHANNELS.FETCH_ARTIFACT_IMAGE) {
+        throw new Error('artifact service warming up');
+      }
+      return { success: true };
+    });
+    IpcBridge.invoke.mockImplementation(async (channel) => {
+      if (channel === INVOKE_CHANNELS.FETCH_ARTIFACT_IMAGE) {
+        return {
+          success: true,
+          dataUrl: 'data:image/png;base64,recovered-artifact-image',
+        };
+      }
+      return { success: true };
+    });
+
+    const { rerender } = render(
+      <MessageContent
+        message={{
+          sender: 'assistant',
+          type: 'tool-output',
+          text: 'result',
+          screenshotRef: 'artifact-retry-1',
+        }}
+      />,
+    );
+
+    await waitFor(() => {
+      const artifactFetchCalls = IpcBridge.invoke.mock.calls.filter(
+        ([channel]) => channel === INVOKE_CHANNELS.FETCH_ARTIFACT_IMAGE,
+      );
+      expect(artifactFetchCalls).toHaveLength(1);
+    });
+    expect(screen.queryByRole('img', { name: 'Screenshot after tool execution' })).toBeNull();
+
+    rerender(
+      <MessageContent
+        message={{
+          sender: 'assistant',
+          type: 'tool-output',
+          text: 'result',
+          screenshotRef: 'artifact-retry-1',
+        }}
+      />,
+    );
+
+    await waitFor(() => {
+      const image = screen.getByRole('img', { name: 'Screenshot after tool execution' });
+      expect(image.getAttribute('src')).toBe('data:image/png;base64,recovered-artifact-image');
+    });
+
+    const artifactFetchCalls = IpcBridge.invoke.mock.calls.filter(
+      ([channel]) => channel === INVOKE_CHANNELS.FETCH_ARTIFACT_IMAGE,
+    );
+    expect(artifactFetchCalls).toHaveLength(2);
   });
 
   test('shows the native image context menu through IPC on right click', async () => {
@@ -222,6 +282,20 @@ describe('MessageContent', () => {
 
     expect(screen.getByText('{"id":"tool_2","name":"run_shell_command"}')).toBeInTheDocument();
     expect(screen.queryByText('legacy normalized view')).not.toBeInTheDocument();
+  });
+
+  test('tool call display falls back to message text when model-facing fields are absent', () => {
+    render(
+      <MessageContent
+        message={{
+          sender: 'assistant',
+          type: 'tool-call',
+          text: 'call search with query x',
+        }}
+      />,
+    );
+
+    expect(screen.getByText('call search with query x')).toBeInTheDocument();
   });
 
   test('renders tool explanation rows as subdued plain text', () => {

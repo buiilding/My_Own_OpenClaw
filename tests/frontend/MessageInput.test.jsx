@@ -342,6 +342,72 @@ describe('MessageInput', () => {
     ]);
   });
 
+  test('logs selected attachment parse failures without throwing from the handler', async () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const readError = new Error('reader failed');
+    global.FileReader = class RejectingFileReader {
+      constructor() {
+        this.result = null;
+        this.error = readError;
+        this.onload = null;
+        this.onerror = null;
+      }
+
+      readAsDataURL() {
+        if (typeof this.onerror === 'function') {
+          this.onerror();
+        }
+      }
+    };
+
+    render(<MessageInput onSendMessage={jest.fn()} isSending={false} />);
+
+    await act(async () => {
+      fireEvent.change(screen.getByTestId('attachment-input'), {
+        target: {
+          files: [new File(['image'], 'broken.png', { type: 'image/png' })],
+        },
+      });
+    });
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      '[MessageInput] Failed to parse selected attachments:',
+      readError,
+    );
+    warnSpy.mockRestore();
+  });
+
+  test('logs pasted image parse failures without throwing from the handler', async () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const readError = new Error('paste reader failed');
+    global.FileReader = class RejectingFileReader {
+      constructor() {
+        this.result = null;
+        this.error = readError;
+        this.onload = null;
+        this.onerror = null;
+      }
+
+      readAsDataURL() {
+        if (typeof this.onerror === 'function') {
+          this.onerror();
+        }
+      }
+    };
+
+    render(<MessageInput onSendMessage={jest.fn()} isSending={false} />);
+
+    await act(async () => {
+      fireEvent.paste(screen.getByLabelText('Type your message'), buildImagePasteEvent());
+    });
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      '[MessageInput] Failed to parse pasted image:',
+      readError,
+    );
+    warnSpy.mockRestore();
+  });
+
   test('enables send button for attachment-only message', async () => {
     const onSendMessage = jest.fn();
     render(<MessageInput onSendMessage={onSendMessage} isSending={false} />);

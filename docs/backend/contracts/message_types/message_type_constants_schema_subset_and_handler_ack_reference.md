@@ -90,6 +90,7 @@ This split is intentional and verified by registry tests.
 
 `validate_registry_alignment()` in `api/contracts/registry.py` checks:
 
+- incoming/outgoing constant tuples and contract tables are duplicate-free
 - incoming contract table vs `INCOMING_MESSAGE_TYPES`
 - outgoing schema contract table vs `OUTGOING_SCHEMA_MESSAGE_TYPES`
 

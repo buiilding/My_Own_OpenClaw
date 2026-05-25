@@ -63,8 +63,10 @@ Electron main owns the sidecar process lifetime. Renderer code consumes readines
 5. `local_backend_supervisor.attachProcess(...)` must bump generation for every new process.
 6. Readiness pings use `__readiness_check_<attempt>__` ids and stale callbacks/timers must abort when their captured token is no longer current.
 7. A successful readiness response emits `local-backend-status` with `{ ready: true }`.
-8. Non-zero exit and process errors reset state, reject pending requests, and emit unavailable status to renderer.
-9. `stopLocalBackend()` sends `SIGTERM` and only force-kills the same still-active process after the timeout.
+8. Exhausted readiness failures/timeouts mark the active process `error`, keep
+   `ready:false`, and leave normal JSON-RPC requests blocked.
+9. Non-zero exit and process errors reset state, reject pending requests, and emit unavailable status to renderer.
+10. `stopLocalBackend()` sends `SIGTERM` and only force-kills the same still-active process after the timeout.
 
 Do not remove the generation/token guard to make tests easier. That guard is what prevents stale process events, stale readiness timers, and delayed force-kill timers from corrupting a restarted sidecar.
 
@@ -105,6 +107,10 @@ If a source-mode change works but packaged mode fails, inspect `runtime_paths.cj
 ## Renderer Consumer Rules
 
 Renderer readiness consumers should subscribe to `localBackendStatusStore` instead of invoking local-backend status repeatedly.
+The store installs the live `local-backend-status` listener before starting the
+bootstrap `get-local-backend-status` read. If a live event arrives while the
+bootstrap read is pending, the bootstrap response is treated as stale and cannot
+overwrite the newer event snapshot.
 
 | Consumer | Expected behavior |
 | --- | --- |
@@ -120,7 +126,7 @@ When adding a new renderer feature that depends on the sidecar, wire it through 
 | Failure | First proof | Next file |
 | --- | --- | --- |
 | No sidecar spawn | Check launch target, missing command/script errors, and `spawn` call args. | `runtime_paths.cjs`, `local_backend_bridge.cjs` |
-| Spawn succeeds but never ready | Check ping ids, stdout JSON lines, stderr Python import failures, and fail-open readiness path. | `local_backend_bridge.cjs`, `local_backend.py`, `core/ipc_protocol.py` |
+| Spawn succeeds but never ready | Check ping ids, stdout JSON lines, stderr Python import failures, and fail-closed readiness status. | `local_backend_bridge.cjs`, `local_backend.py`, `core/ipc_protocol.py` |
 | Ready event reaches main but renderer still disabled | Check `get-local-backend-status` bootstrap invoke and `local-backend-status` listener cleanup. | `localBackendStatusStore.js` |
 | Browser controls stuck | Check browser session readiness handler and the first browser status/sync request after readiness. | `browserSessionStore.js` |
 | In-flight calls hang after exit | Check pending request rejection on `resetBackendProcessState(...)`. | `local_backend_bridge_request_transport.cjs` |

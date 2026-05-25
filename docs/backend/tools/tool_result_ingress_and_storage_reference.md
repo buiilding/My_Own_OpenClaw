@@ -36,6 +36,7 @@ API handler responsibilities:
 - normalize `data` and `step_results` into plain dict/list structures
 - resolve active `AgentSession` via `SessionManager`
 - delegate to session methods only
+- build any backend canonical `tool-output` response envelope from resolved session/runtime context, not from the frontend's inbound `session_id`, `conversation_ref`, or `turn_ref`
 
 Incoming schema nuance (`api/schemas/incoming.py`):
 
@@ -48,6 +49,13 @@ Session delegation:
 
 - `session.process_frontend_tool_result(...)`
 - `session.process_frontend_tool_bundle_result(...)`
+
+Canonical echo context:
+
+- successful single-result processing may return a backend canonical model-output result
+- the canonical echo reuses `user_id` from the authenticated websocket context
+- `session_id`, `conversation_ref`, and `turn_ref` come from the resolved session runtime
+- client-supplied context fields on the inbound `tool-result` are ignored for this canonical echo so a stale frontend envelope cannot route backend-owned output into the wrong conversation or turn
 
 Session does not parse payload in these methods; it forwards to session-level waiting handler.
 
@@ -102,6 +110,7 @@ State partitions:
 Important behavior:
 
 - future creation works in running-loop and non-running-loop contexts
+- duplicate future creation for the same pending request or bundle id returns the existing future instead of replacing it
 - both arrival orders are supported:
 - result arrives before future
 - future exists before result

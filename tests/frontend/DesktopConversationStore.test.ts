@@ -17,7 +17,9 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   INVOKE_CHANNELS: {
     DELETE_CHAT_CONVERSATION: 'delete-chat-conversation',
     GET_CHAT_EVENTS: 'get-chat-events',
+    GET_CHAT_CONVERSATION_REVISION: 'get-chat-conversation-revision',
     LIST_CHAT_CONVERSATIONS: 'list-chat-conversations',
+    REPLACE_CHAT_CONVERSATION: 'replace-chat-conversation',
     SEARCH_CHAT_CONVERSATIONS: 'search-chat-conversations',
     STORE_CHAT_EVENT: 'store-chat-event',
   },
@@ -61,6 +63,15 @@ describe('desktop conversation store factory', () => {
     mockInvoke.mockImplementation(async (channel) => {
       if (channel === 'get-chat-events') {
         return { success: true, data: { events: [] } };
+      }
+      if (channel === 'get-chat-conversation-revision') {
+        return {
+          success: true,
+          data: {
+            revision_id: 'rev-stored-test',
+            updated_at: '1970-01-01T00:00:00.000Z',
+          },
+        };
       }
       if (channel === 'list-chat-conversations') {
         return { success: true, data: { conversations: [] } };
@@ -428,7 +439,7 @@ describe('desktop conversation store factory', () => {
     }));
   });
 
-  test('rewrite deletes canonical event rows before storing the new revision projection', async () => {
+  test('rewrite replaces canonical event rows through one durable store operation', async () => {
     const store = createDesktopConversationStore('user-1');
     const preserved = createConversationEvent({
       eventId: 'evt-preserved',
@@ -448,14 +459,20 @@ describe('desktop conversation store factory', () => {
       replacementUserMessage: { text: 'edited' },
     });
 
-    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'delete-chat-conversation', expect.objectContaining({
+    expect(mockInvoke).toHaveBeenCalledTimes(1);
+    expect(mockInvoke).toHaveBeenCalledWith('replace-chat-conversation', expect.objectContaining({
       userId: 'user-1',
       conversationId: 'conv-edit',
       recordKind: CHAT_EVENT_RECORD_KIND,
-    }));
-    expect(mockInvoke).toHaveBeenNthCalledWith(2, 'store-chat-event', expect.objectContaining({
-      conversationId: 'conv-edit',
-      eventPayload: preserved,
+      revisionId: 'rev-next',
+      revisionUpdatedAt: expect.any(String),
+      events: [
+        expect.objectContaining({
+          conversationId: 'conv-edit',
+          eventPayload: preserved,
+          messageIndex: 1,
+        }),
+      ],
     }));
   });
 
@@ -501,24 +518,29 @@ describe('desktop conversation store factory', () => {
       ],
     });
 
-    expect(mockInvoke).toHaveBeenNthCalledWith(1, 'delete-chat-conversation', expect.objectContaining({
+    expect(mockInvoke).toHaveBeenCalledTimes(1);
+    expect(mockInvoke).toHaveBeenCalledWith('replace-chat-conversation', expect.objectContaining({
       userId: 'user-1',
       conversationId: 'conv-edit',
       recordKind: CHAT_EVENT_RECORD_KIND,
-    }));
-    expect(mockInvoke).toHaveBeenNthCalledWith(2, 'store-chat-event', expect.objectContaining({
-      content: 'edited prompt',
-      userId: 'user-1',
-      conversationId: 'conv-edit',
-      role: 'user',
-      eventType: 'user_message',
-    }));
-    expect(mockInvoke).toHaveBeenNthCalledWith(3, 'store-chat-event', expect.objectContaining({
-      content: 'tool output',
-      role: 'tool',
-      eventType: 'tool_output',
-      toolName: 'shell',
-      correlationId: 'tool-call-1',
+      events: [
+        expect.objectContaining({
+          content: 'edited prompt',
+          userId: 'user-1',
+          conversationId: 'conv-edit',
+          role: 'user',
+          eventType: 'user_message',
+          messageIndex: 1,
+        }),
+        expect.objectContaining({
+          content: 'tool output',
+          role: 'tool',
+          eventType: 'tool_output',
+          toolName: 'shell',
+          correlationId: 'tool-call-1',
+          messageIndex: 2,
+        }),
+      ],
     }));
     expect(rehydrateSnapshot.messages).toEqual([
       expect.objectContaining({

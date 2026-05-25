@@ -108,8 +108,13 @@ Timeout/error during final audio wait is treated as warning/debug, not fatal han
 `TTSSession` context manager behavior:
 
 - `__aenter__`: initialize optional TTS service and start streaming task
-- `__aexit__`: cancel unfinished audio task and call manager cleanup
+- `__aexit__`: call manager cleanup, which shuts down the service before bounded
+  audio task cancellation
 - `wait_for_audio_completion(timeout)`: waits only when task exists and still running
+
+For ElevenLabs, `TTSSession` installs a deferred proxy so the provider is not
+initialized until the first text chunk. If no text arrives, proxy shutdown wakes
+the background audio iterator and lets it return without opening the provider.
 
 This provides consistent setup/teardown for both query and wakeword service flows.
 

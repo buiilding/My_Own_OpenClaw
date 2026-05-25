@@ -127,6 +127,7 @@ async function executeReplayAction({
     }
   } catch (error) {
     console.error(`[ChatInterface] ${errorPrefix}:`, error);
+    setMessages(sourceMessages, conversationRef);
     setIsSending(false, conversationRef);
   }
 }

@@ -102,7 +102,7 @@ Owns dashboard/display window control channels:
 Owns privilege/permission channels:
 
 - `set-agent-sudo-access`
-  - Linux-only privileged toggle routed through `agent_sudo_access_handler.cjs` (`pkexec` enable, `sudo -n` disable)
+  - Linux-only legacy sudoers cleanup routed through `agent_sudo_access_handler.cjs` (`pkexec` disable; persistent enable is rejected)
   - detailed runtime contract: [Agent Sudo Access Handler PKExec and Non-Interactive Disable Contract Reference](agent_sudo_access_handler_pkexec_and_noninteractive_disable_contract_reference.md)
 - `list-permissions`
 - `check-permissions`

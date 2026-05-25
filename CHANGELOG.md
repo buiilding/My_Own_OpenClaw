@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/frontend/sdk: address Clawpatch-reported regressions across websocket/session cleanup, tool-result routing, OCR/vision grounding, credential and permission boundaries, transcript persistence, provider routing, and SDK transport lifecycle with focused docs and regression coverage.
 - frontend/diagnostics: add renderer interaction logs for clicked controls, opened chats, changed controls, and submitted messages.
 - frontend/chat: keep SDK current-turn projected dashboard messages referentially stable to avoid React external-store update loops.
 - docs/frontend: update renderer folder structure docs to show SDK current-turn projection and `conversation-event` stream ownership.

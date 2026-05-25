@@ -148,6 +148,9 @@ Layout-specific sizing:
 Dedupe behavior:
 
 - skips repeated identical size payloads.
+- unmount cleanup uses the same hide path while the last visible frame is still
+  cached, so a mounted-visible response overlay always reports
+  `{ visible: false, width: 0, height: 0 }` before teardown.
 - unmount cleanup always sends hidden payload.
 
 ## Debug Trace Contract

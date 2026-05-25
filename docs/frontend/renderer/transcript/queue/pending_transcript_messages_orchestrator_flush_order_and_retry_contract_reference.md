@@ -85,7 +85,7 @@ Assistant mapping:
 
 - `role='assistant'`
 - `messageType` defaults to `llm-text` when omitted
-- optional `modelId`, `modelProvider`, `screenshotRef`, `transparency`
+- optional `modelId`, `modelProvider`, `screenshotRef`, `transparency`, `structuredPayload`
 
 Tool mapping:
 

@@ -75,10 +75,13 @@ class OcrCoordinateResolver:
                     f"Could not find OCR candidate_id '{normalized_candidate_id}' in current frame. "
                     "frame changed, re-ground required."
                 )
-            bbox = candidate["bbox"]
-            x = bbox["x"] + bbox["width"] // 2
-            y = bbox["y"] + bbox["height"] // 2
-            return x, y
+            center = OcrCoordinateResolver._extract_bbox_center(candidate.get("bbox"))
+            if center is None:
+                raise ValueError(
+                    f"OCR candidate_id '{normalized_candidate_id}' has no executable coordinates "
+                    "in current frame. Re-ground the target or choose a different candidate."
+                )
+            return center
 
         best_score = 0.0
         target = text.lower().strip()
@@ -119,10 +122,16 @@ class OcrCoordinateResolver:
             )
 
         if len(fuzzy_matches) == 1:
-            bbox = fuzzy_matches[0]["item"]["bbox"]
-            x = bbox["x"] + bbox["width"] // 2
-            y = bbox["y"] + bbox["height"] // 2
-            return x, y
+            matched_item = fuzzy_matches[0]["item"]
+            center = OcrCoordinateResolver._extract_bbox_center(
+                matched_item.get("bbox") if isinstance(matched_item, dict) else None
+            )
+            if center is None:
+                raise ValueError(
+                    f"OCR match for text '{text}' has no executable coordinates. "
+                    "Re-ground the target or use a different OCR candidate."
+                )
+            return center
 
         raise ValueError(
             OcrCoordinateResolver._build_no_match_error(

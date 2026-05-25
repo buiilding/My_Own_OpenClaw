@@ -30,7 +30,7 @@ function handleWakewordStderrLine({
         }
       } else if (message.status === 'error') {
         error('[Wakeword] Python error:', message.message);
-        setIsPythonReady(false);
+        setIsPythonReady(false, message.message || '');
         emitWakewordStatus(mainWindow, {
           ready: false,
           error: message.message,

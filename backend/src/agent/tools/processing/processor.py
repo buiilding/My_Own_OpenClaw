@@ -83,54 +83,59 @@ class ToolResultProcessor:
                         f"Found atomic bundle result for history (bundle_id={bundle_id[:15]}, {len(orchestration_result.tool_results)} tools)"
                     )
 
-                    # Format bundle result using BundleResultFormatter
-                    from backend.src.agent.tools.shared.bundle_result_formatter import (
-                        BundleResultFormatter,
-                    )
+                    try:
+                        # Format bundle result using BundleResultFormatter
+                        from backend.src.agent.tools.shared.bundle_result_formatter import (
+                            BundleResultFormatter,
+                        )
 
-                    formatter = BundleResultFormatter()
-                    bundle_data = (
-                        bundled_result.data
-                        if isinstance(bundled_result.data, dict)
-                        else {}
-                    )
-                    formatted_message = formatter.format(
-                        {
-                            "bundle_id": bundle_id,
-                            "status": (
-                                "success" if bundled_result.success else "failure"
-                            ),
-                            "step_results": bundle_data.get("step_results", []),
-                            "screenshot": bundle_data.get("screenshot"),
-                            "screenshot_ref": bundle_data.get("screenshot_ref"),
-                            "system_state": bundle_data.get("system_state"),
-                            "error": bundled_result.error,
-                        },
-                        bundle_data.get("system_state"),
-                    )
+                        formatter = BundleResultFormatter()
+                        bundle_data = (
+                            bundled_result.data
+                            if isinstance(bundled_result.data, dict)
+                            else {}
+                        )
+                        formatted_message = formatter.format(
+                            {
+                                "bundle_id": bundle_id,
+                                "status": (
+                                    "success" if bundled_result.success else "failure"
+                                ),
+                                "step_results": bundle_data.get("step_results", []),
+                                "screenshot": bundle_data.get("screenshot"),
+                                "screenshot_ref": bundle_data.get("screenshot_ref"),
+                                "system_state": bundle_data.get("system_state"),
+                                "error": bundled_result.error,
+                            },
+                            bundle_data.get("system_state"),
+                        )
 
-                    # Create ToolResult with formatted message
-                    from backend.src.core.interfaces.tool import ToolResult
+                        # Create ToolResult with formatted message
+                        from backend.src.core.interfaces.tool import ToolResult
 
-                    formatted_bundle_result = ToolResult(
-                        success=bundled_result.success,
-                        llm_content=formatted_message,
-                        data=bundled_result.data,
-                        error=bundled_result.error,
-                        artifacts=bundled_result.artifacts,
-                    )
+                        formatted_bundle_result = ToolResult(
+                            success=bundled_result.success,
+                            llm_content=formatted_message,
+                            data=bundled_result.data,
+                            error=bundled_result.error,
+                            artifacts=bundled_result.artifacts,
+                        )
 
-                    # Transform and commit to history
-                    processed = await self.result_transformer.transform(
-                        "bundled_tools", formatted_bundle_result, model_id=model_id
-                    )
-                    self.history_committer.commit(processed)
-                    logger.info(
-                        f"Committed atomic bundle result to history ({len(orchestration_result.tool_results)} tools as single message)"
-                    )
-
-                    # Remove from storage after use
-                    session.remove_bundle_result(bundle_id)
+                        # Transform and commit to history
+                        processed = await self.result_transformer.transform(
+                            "bundled_tools",
+                            formatted_bundle_result,
+                            model_id=model_id,
+                        )
+                        self.history_committer.commit(processed)
+                        logger.info(
+                            f"Committed atomic bundle result to history ({len(orchestration_result.tool_results)} tools as single message)"
+                        )
+                    finally:
+                        # Remove from storage even when formatting, transform, or
+                        # history commit fails so long-running sessions do not retain
+                        # stale bundle payloads.
+                        session.remove_bundle_result(bundle_id)
                     return
 
         # Process individual results (non-bundled or bundled result not found)

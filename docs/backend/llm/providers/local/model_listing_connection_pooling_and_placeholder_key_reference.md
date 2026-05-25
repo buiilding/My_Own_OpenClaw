@@ -40,6 +40,8 @@ Concurrency behavior:
 Cleanup behavior:
 
 - provider registers `weakref.finalize` callback
+- finalizer captures cleanup state containing only the client and event loop, not
+  the provider object
 - finalizer attempts async `aclose()` on captured event loop
 - fallback path handles loop-running vs loop-stopped vs loop-closed cases
 

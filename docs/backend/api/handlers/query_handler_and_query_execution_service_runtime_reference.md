@@ -36,6 +36,7 @@ title: "Query Handler and Query Execution Service Runtime Reference"
 - query text validation (`validate_query_text`)
 - session acquisition (`get_or_create_session`)
 - per-query context construction (`user_id`, `session_id`, `conversation_ref`, `turn_ref`)
+- active stream context publication on the session while the query is running, then cleanup in `finally`
 - event stream processing through `StreamPipeline`
 - terminal completion fallback rules
 - TTS session lifecycle and drain/flush sequencing
@@ -76,7 +77,9 @@ title: "Query Handler and Query Execution Service Runtime Reference"
 `QueryMessageHandler.handle_typed(...)`:
 
 1. resolves `current_task`
-2. registers task with `register_active_query_task(user_id, task, turn_ref, conversation_ref)`
+2. asks `SessionManager.register_active_query_task_with_limits(...)` to apply
+   per-user/global active-query caps and register the task in one tracker
+   operation
 3. executes query service
 4. always clears the same task in `finally`
 
@@ -84,6 +87,8 @@ Cancellation behavior:
 
 - `CancelledError` is logged with user/turn/conversation refs and re-raised
 - stop-query path depends on this task registration map to signal cancellation
+- accepted queries are registered before execution starts; over-cap queries are
+  rejected without entering `QueryExecutionService`
 - `QueryExecutionService` performs cancellation reconciliation before re-raise: if history has staged tool-call ids, it writes synthetic `role='tool'` outputs so the next provider request does not fail assistant-tool-call sequencing validation.
 
 ## Query Payload Ingress and Runtime Seeding
@@ -105,8 +110,12 @@ Only string keys are considered:
 - `mouse_position`
 - `screen_resolution`
 
-Service merges incoming state over any existing state returned by `agent_instance.get_current_system_state()` and writes via `set_current_system_state(...)` when available. Failures are non-fatal warnings.
+Service merges incoming state over any existing state returned by `agent_instance.get_current_system_state()` and writes via `set_current_system_state(...)` when available. Getter and setter failures are non-fatal warnings; if the getter fails, the service still applies the incoming runtime state by itself.
 `screen_resolution` remains diagnostic runtime state; coordinate normalization no longer depends on it.
+
+### Active stream context
+
+When the session exposes `set_active_stream_context(...)`, query execution records the backend-owned `turn_ref` and `conversation_ref` before streaming starts. The matching `clear_active_stream_context(...)` runs in `finally`. Tool-result canonical echo paths use this runtime context so client-submitted tool-result envelopes cannot spoof the destination conversation or turn for backend-generated `tool-output` events.
 
 ## Screenshot Resolution Precedence
 

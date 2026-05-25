@@ -39,7 +39,9 @@ class FakeRawWebSocket:
 
 
 class FailingCloseRawWebSocket(FakeRawWebSocket):
-    async def close(self, code: int = 1000, reason: Optional[str] = None) -> None:  # noqa: ARG002
+    async def close(
+        self, code: int = 1000, reason: Optional[str] = None
+    ) -> None:  # noqa: ARG002
         raise RuntimeError("already closed")
 
 
@@ -104,6 +106,23 @@ async def test_safe_websocket_close_flushes_queued_messages_before_close() -> No
 
 
 @pytest.mark.asyncio
+async def test_safe_websocket_close_returns_when_sender_task_is_cancelled() -> None:
+    raw = FakeRawWebSocket(send_delay=1.0)
+    safe = SafeWebSocket(raw, max_queue_size=2)
+
+    send_task = asyncio.create_task(safe.send_json({"index": 1}))
+    await asyncio.sleep(0.01)
+    assert safe._sender_task is not None
+
+    safe._sender_task.cancel()
+
+    await safe.close(code=1001, reason="shutdown")
+    with pytest.raises(RuntimeError, match="sender task cancelled"):
+        await send_task
+    assert safe._close_event.is_set()
+
+
+@pytest.mark.asyncio
 async def test_safe_websocket_close_without_sender_loop_closes_directly() -> None:
     raw = FakeRawWebSocket()
     safe = SafeWebSocket(raw, max_queue_size=2)
@@ -148,16 +167,24 @@ async def test_safe_websocket_send_json_forwards_custom_mode() -> None:
 
 
 @pytest.mark.asyncio
-async def test_safe_websocket_prioritizes_audio_chunks_over_normal_json_messages() -> None:
+async def test_safe_websocket_prioritizes_audio_chunks_over_normal_json_messages() -> (
+    None
+):
     raw = FakeRawWebSocket(send_delay=0.05)
     safe = SafeWebSocket(raw, max_queue_size=8)
 
-    first = asyncio.create_task(safe.send_json({"type": "tool-call", "payload": {"step": 1}}))
+    first = asyncio.create_task(
+        safe.send_json({"type": "tool-call", "payload": {"step": 1}})
+    )
     await asyncio.sleep(0.005)
-    second = asyncio.create_task(safe.send_json({"type": "tool-output", "payload": {"step": 2}}))
+    second = asyncio.create_task(
+        safe.send_json({"type": "tool-output", "payload": {"step": 2}})
+    )
     await asyncio.sleep(0.005)
     third = asyncio.create_task(
-        safe.send_json({"type": "audio-chunk", "payload": {"audio": "abc", "sample_rate": 16000}})
+        safe.send_json(
+            {"type": "audio-chunk", "payload": {"audio": "abc", "sample_rate": 16000}}
+        )
     )
 
     await asyncio.gather(first, second, third)
