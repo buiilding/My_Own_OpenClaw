@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: delegate transcript-session active conversation projection to
+  a session runtime hook so the chat provider no longer mutates active
+  conversation store state directly.
 - tests/frontend: update renderer chat runtime boundary guards for the shared
   prepared-turn replay dispatch contract.
 - frontend/chat: route retry and edit/resend replay sends through the shared

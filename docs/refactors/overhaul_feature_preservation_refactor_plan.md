@@ -193,6 +193,12 @@ it adds the product-feature guardrails those plans need.
   `DesktopChatStreamIngressRuntime`, `ChatStore`, active-query backend tests,
   and stale-turn frontend tests.
 
+  Progress: `useConversationSessionProjection` now owns transcript-session to
+  active-chat projection, so `ChatProvider` no longer reads or mutates active
+  conversation store state directly. Remaining work: move the rest of the
+  active conversation/workspace mirror mutations behind this session runtime
+  boundary and tighten guard tests around direct feature-code mutation.
+
 - [ ] Promote voice/STT/TTS to a real desktop voice runtime.
 
   Issue: Voice dictation currently lives mostly in `useVoiceMode.ts`, while

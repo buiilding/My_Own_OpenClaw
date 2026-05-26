@@ -444,6 +444,17 @@ describe('renderer chat runtime boundary', () => {
     expect(offenders).toEqual([]);
   });
 
+  test('chat provider delegates active conversation projection to session runtime', async () => {
+    const source = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/renderer/app/providers/ChatProvider.jsx'),
+      'utf8',
+    );
+
+    expect(source).toContain('useConversationSessionProjection');
+    expect(source).not.toContain('applyChatConversationProjection');
+    expect(source).not.toContain('setActiveConversationRef');
+  });
+
   test('renderer feature code does not expose local tool execution IPC paths', async () => {
     const files = await listSourceFiles(path.resolve(__dirname, '../../frontend/src/renderer/features'));
     const offenders: string[] = [];

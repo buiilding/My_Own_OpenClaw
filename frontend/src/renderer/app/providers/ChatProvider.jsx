@@ -3,10 +3,9 @@ import { useChatStream } from '../../features/chat/hooks/useChatStream';
 import { useConversationRuntimeProjectionStream } from '../../features/chat/hooks/useConversationRuntimeProjectionStream';
 import { useChatSessionBootstrap } from '../../features/chat/hooks/useChatSessionBootstrap';
 import { invalidateConversationInferenceSessionState } from '../../features/chat/session/conversationInferenceSessionRuntime';
-import { useChatStore } from '../../features/chat/stores/chatStore';
+import { useConversationSessionProjection } from '../../features/chat/session/useConversationSessionProjection';
 import { IpcBridge, ON_CHANNELS } from '../../infrastructure/ipc/bridge';
 import { useTranscriptSessionInfo } from '../../features/dashboard/hooks/useTranscriptSessionInfo';
-import { applyChatConversationProjection } from '../../features/chat/session/conversationSessionRuntime';
 import { ChatContext, EMPTY_CHAT_CONTEXT } from './ChatContext';
 
 /**
@@ -14,8 +13,6 @@ import { ChatContext, EMPTY_CHAT_CONTEXT } from './ChatContext';
  * No business logic - just composition.
  */
 export function ChatProvider({ children, enableTranscript = true }) {
-  const activeConversationRef = useChatStore((state) => state.activeConversationRef);
-  const setActiveConversationRef = useChatStore((state) => state.setActiveConversationRef);
   const transcriptSessionInfo = useTranscriptSessionInfo();
   const bootstrapSession = useChatSessionBootstrap();
 
@@ -23,13 +20,7 @@ export function ChatProvider({ children, enableTranscript = true }) {
     void bootstrapSession();
   }, [bootstrapSession]);
 
-  useEffect(() => {
-    applyChatConversationProjection({
-      nextConversationRef: transcriptSessionInfo?.conversationRef,
-      activeConversationRef,
-      setChatConversationRef: setActiveConversationRef,
-    });
-  }, [activeConversationRef, setActiveConversationRef, transcriptSessionInfo?.conversationRef]);
+  useConversationSessionProjection(transcriptSessionInfo);
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.IPC_STATUS, (payload) => {
