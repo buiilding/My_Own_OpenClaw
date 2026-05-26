@@ -50,6 +50,18 @@ class _FakeSession:
         return self._ocr_state
 
 
+class _FakeRouterOnlySession:
+    def __init__(self, current_screenshot_id, ocr_router):
+        self.ocr_router = ocr_router
+        self._ocr_state = _FakeOcrRuntimeState(current_screenshot_id)
+
+    def get_current_screenshot_id(self):
+        return self._ocr_state.get_current_screenshot_id()
+
+    def get_ocr_runtime_state(self):
+        return self._ocr_state
+
+
 @pytest.mark.asyncio
 async def test_get_ocr_results_does_not_cache_mismatched_fallback_results():
     stale_result = [{"text": "stale screenshot text"}]
@@ -112,3 +124,23 @@ async def test_get_ocr_results_falls_back_when_proactive_task_fails():
     assert results == fallback_result
     assert session.ocr_service.calls == ["current-image"]
     assert session.get_ocr_runtime_state().set_results_calls == [fallback_result]
+
+
+@pytest.mark.asyncio
+async def test_get_ocr_results_uses_router_when_legacy_service_missing():
+    current_result = [{"text": "router OCR text"}]
+    ocr_router = _FakeOcrService(current_result)
+    session = _FakeRouterOnlySession(
+        current_screenshot_id="current-shot",
+        ocr_router=ocr_router,
+    )
+
+    results = await OcrCoordinator().get_ocr_results(
+        session,
+        screenshot_data="current-image",
+        screenshot_id="current-shot",
+    )
+
+    assert results == current_result
+    assert ocr_router.calls == ["current-image"]
+    assert session.get_ocr_runtime_state().set_results_calls == [current_result]
