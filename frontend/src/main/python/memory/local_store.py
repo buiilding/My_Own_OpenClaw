@@ -83,9 +83,8 @@ from memory.conversation_window_runtime import (
     mark_episodic_memories_semanticized as mark_semanticized_memories_runtime,
 )
 from memory.faiss_index import read_index_safe_async, save_indices_async
-from memory.record_kinds import (
-    INTERACTION_RECORD_KIND,
-)
+from memory.index_artifact_cleanup import cleanup_index_artifacts_if_empty
+from memory.record_kinds import INTERACTION_RECORD_KIND
 from memory.sqlite_store import (
     init_episodic_schema,
     init_semantic_schema,
@@ -2040,63 +2039,26 @@ class LocalMemoryStore:
             self._get_memory_state(memory_type)
         )
 
-        try:
-            async with aiosqlite.connect(db_path) as conn:
-                cursor = await conn.cursor()
-                await cursor.execute(
-                    "SELECT COUNT(*) FROM memories WHERE embedding_id IS NOT NULL"
-                )
-                row = await cursor.fetchone()
-                indexed_rows = int(row[0]) if row and row[0] is not None else 0
-        except Exception as e:
-            logger.warning(
-                "Failed to check remaining indexed rows for %s cleanup: %s",
-                memory_type,
-                e,
-            )
-            return
-
-        if indexed_rows > 0:
-            return
-
-        empty_index = None
-        if faiss is not None:
-            try:
-                empty_index = faiss.IndexFlatIP(self.embedder.dimension)
-            except Exception as e:
-                logger.warning(
-                    "Failed to reinitialize %s FAISS index in cleanup path: %s",
-                    memory_type,
-                    e,
-                )
-        self._set_memory_index(memory_type, empty_index)
-        vector_id_to_memory_id.clear()
-        memory_id_to_vector_id.clear()
-        self._set_next_vector_id(memory_type, 0)
-
         index_path = (
             self.episodic_index_path
             if memory_type == "episodic"
             else self.semantic_index_path
         )
-        try:
-            index_path.unlink(missing_ok=True)
-        except TypeError:
-            # Python fallback when missing_ok is unavailable.
-            if index_path.exists():
-                index_path.unlink()
-        except Exception as e:
-            logger.warning(
-                "Failed to delete %s FAISS index file %s: %s",
-                memory_type,
-                index_path,
-                e,
-            )
 
-        logger.debug(
-            "Cleared %s FAISS index artifacts after indexed rows reached zero",
-            memory_type,
+        cleanup_result = await cleanup_index_artifacts_if_empty(
+            memory_type=memory_type,
+            db_path=db_path,
+            index_path=index_path,
+            embedding_dimension=self.embedder.dimension,
+            faiss_module=faiss,
+            vector_id_to_memory_id=vector_id_to_memory_id,
+            memory_id_to_vector_id=memory_id_to_vector_id,
         )
+        if cleanup_result is None:
+            return
+
+        self._set_memory_index(memory_type, cleanup_result.empty_index)
+        self._set_next_vector_id(memory_type, 0)
 
     async def get_next_chat_event_index(
         self, user_id: str, conversation_id: Optional[str]

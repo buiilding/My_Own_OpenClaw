@@ -256,6 +256,12 @@ it adds the product-feature guardrails those plans need.
   conversation list/search/title tests, memory operations tests, and
   semanticization tests.
 
+  Progress: `memory/index_artifact_cleanup.py` now owns the narrow
+  "delete the last indexed row" vector-artifact cleanup path, including indexed
+  row counting, stale FAISS file removal, and vector mapping clears.
+  `LocalMemoryStore` remains the compatibility facade and still owns the
+  broader memory CRUD/search/index rebuild flows.
+
 - [ ] Finish the local backend bridge split without changing the wire protocol.
 
   Issue: The remaining architecture plan already marks this as pending.

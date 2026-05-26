@@ -6,6 +6,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/tools: mark grounded mouse and scroll helpers as backend-only
+  model-visible tools so client manifests cannot claim non-executable helper
+  names and sidecar parity checks compare only sidecar-executable built-ins.
+- sidecar/memory: move empty FAISS index artifact cleanup out of
+  `LocalMemoryStore` into a focused memory helper while preserving delete and
+  local-memory clear behavior.
 - frontend/voice: move STT gateway URL, websocket construction, setup packets,
   start-over packets, and transcription message normalization into the desktop
   voice runtime client while preserving the existing voice-mode hook lifecycle.

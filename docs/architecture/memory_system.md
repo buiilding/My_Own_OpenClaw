@@ -95,6 +95,7 @@ $mem = Join-Path $env:APPDATA "desktop-assistant\\memory"; Remove-Item -Force `
 - Manages SQLite + FAISS indices
 - Supports search, add, update, delete
 - Delegates bulk destructive reset flows to `memory/admin.py`
+- Delegates empty-index artifact cleanup to `memory/index_artifact_cleanup.py`
 - Generates embeddings via `RemoteEmbeddingClient`
 - Chat history is not stored as memory rows. The sidecar stores visible chat replay in `chat_events`.
 - Episodic memory rows are durable memory facts/interaction pairs, not the visible chat log.

@@ -4,18 +4,18 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+
 from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 
 ensure_frontend_python_path()
 
-from memory.local_store import LocalMemoryStore  # noqa: E402
 from memory.chat_event_store import (
-    append_chat_event,
+    append_chat_event,  # noqa: E402
     init_chat_event_schema,
-)  # noqa: E402
-from memory.record_kinds import (  # noqa: E402
-    INTERACTION_RECORD_KIND,
 )
+from memory.index_artifact_cleanup import cleanup_index_artifacts_if_empty  # noqa: E402
+from memory.local_store import LocalMemoryStore  # noqa: E402
+from memory.record_kinds import INTERACTION_RECORD_KIND  # noqa: E402
 
 try:
     import faiss  # noqa: E402
@@ -327,6 +327,70 @@ async def test_delete_episodic_memory_clears_faiss_artifacts_when_empty(tmp_path
     assert store.episodic_index is not None
     assert store.episodic_index.ntotal == 0
     assert store.episodic_index_path.exists() is False
+
+
+@pytest.mark.asyncio
+async def test_index_artifact_cleanup_preserves_artifacts_when_indexed_rows_remain(
+    tmp_path: Path,
+):
+    db_path = tmp_path / "semantic.db"
+    index_path = tmp_path / "semantic.faiss.index"
+    _create_semantic_memories_table(db_path)
+
+    with sqlite3.connect(db_path) as conn:
+        conn.execute(
+            "INSERT INTO memories (id, user_id, embedding_id) VALUES (?, ?, ?)",
+            ("semantic-1", "user-1", 0),
+        )
+        conn.commit()
+
+    vector_id_to_memory_id = {0: "semantic-1"}
+    memory_id_to_vector_id = {"semantic-1": 0}
+    index_path.write_bytes(b"live-index")
+
+    result = await cleanup_index_artifacts_if_empty(
+        memory_type="semantic",
+        db_path=str(db_path),
+        index_path=index_path,
+        embedding_dimension=8,
+        faiss_module=None,
+        vector_id_to_memory_id=vector_id_to_memory_id,
+        memory_id_to_vector_id=memory_id_to_vector_id,
+    )
+
+    assert result is None
+    assert vector_id_to_memory_id == {0: "semantic-1"}
+    assert memory_id_to_vector_id == {"semantic-1": 0}
+    assert index_path.read_bytes() == b"live-index"
+
+
+@pytest.mark.asyncio
+async def test_index_artifact_cleanup_clears_mappings_without_faiss(
+    tmp_path: Path,
+):
+    db_path = tmp_path / "semantic.db"
+    index_path = tmp_path / "semantic.faiss.index"
+    _create_semantic_memories_table(db_path)
+    index_path.write_bytes(b"stale-index")
+
+    vector_id_to_memory_id = {0: "semantic-1"}
+    memory_id_to_vector_id = {"semantic-1": 0}
+
+    result = await cleanup_index_artifacts_if_empty(
+        memory_type="semantic",
+        db_path=str(db_path),
+        index_path=index_path,
+        embedding_dimension=8,
+        faiss_module=None,
+        vector_id_to_memory_id=vector_id_to_memory_id,
+        memory_id_to_vector_id=memory_id_to_vector_id,
+    )
+
+    assert result is not None
+    assert result.empty_index is None
+    assert vector_id_to_memory_id == {}
+    assert memory_id_to_vector_id == {}
+    assert index_path.exists() is False
 
 
 @pytest.mark.asyncio
