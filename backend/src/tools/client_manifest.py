@@ -10,7 +10,7 @@ from typing import Any, Literal
 
 from backend.src.tools.tool_catalog import (
     get_built_tool_catalog_entry,
-    get_model_visible_tool_names,
+    get_client_executable_tool_names,
 )
 from backend.src.tools.tool_specs import build_function_tool_spec, is_function_tool_spec
 
@@ -30,7 +30,7 @@ RESERVED_BACKEND_TOOL_NAMES = frozenset(
         "grounded_scroll_action",
     }
 )
-OVERRIDABLE_CLIENT_BUILTINS = frozenset(get_model_visible_tool_names())
+OVERRIDABLE_CLIENT_BUILTINS = frozenset(get_client_executable_tool_names())
 ALLOWED_SCHEMA_KEYS = frozenset(
     {
         "$defs",

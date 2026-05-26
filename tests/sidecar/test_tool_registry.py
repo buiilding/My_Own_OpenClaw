@@ -4,7 +4,7 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 
 ensure_frontend_python_path()
 
-from backend.src.tools.tool_catalog import get_backend_exposed_tool_names
+from backend.src.tools.tool_catalog import get_client_executable_tool_names
 from tools.registry import ToolRegistry  # noqa: E402
 from tools.result import ToolResult  # noqa: E402
 
@@ -27,7 +27,9 @@ def test_registered_tools_match_exposed_tool_set():
 
 
 def test_exposed_tool_names_are_derived_from_backend_catalog():
-    assert ToolRegistry.get_exposed_tool_names() == set(get_backend_exposed_tool_names())
+    assert ToolRegistry.get_exposed_tool_names() == set(
+        get_client_executable_tool_names()
+    )
 
 
 @pytest.mark.asyncio

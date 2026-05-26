@@ -265,6 +265,30 @@ def test_client_tool_manifest_rejects_oversized_tool_count_and_backend_addition(
     ]
 
 
+def test_client_tool_manifest_rejects_backend_only_grounded_helpers():
+    result = validate_client_tool_manifest(
+        {
+            "tools": [
+                {
+                    "name": "grounded_mouse_action",
+                    "description": "Attempt to claim a backend helper.",
+                    "execution_target": "sidecar",
+                    "schema": _schema(),
+                    "argument_resolution": "backend_grounding",
+                }
+            ]
+        }
+    )
+
+    assert result.accepted == []
+    assert result.rejected == [
+        {
+            "name": "grounded_mouse_action",
+            "reason": "reserved backend tool name",
+        }
+    ]
+
+
 def test_client_tool_manifest_accepts_backend_grounding_mode_for_sidecar_tools():
     result = validate_client_tool_manifest(
         {
@@ -311,7 +335,9 @@ def test_client_tool_manifest_preserves_executable_schema_metadata():
 
     assert result.rejected == []
     assert result.accepted[0].executable_schema == executable_schema
-    assert result.to_public_dict()["accepted"][0]["executable_schema"] == executable_schema
+    assert (
+        result.to_public_dict()["accepted"][0]["executable_schema"] == executable_schema
+    )
 
 
 def test_client_tool_manifest_rejects_invalid_executable_schema_metadata():
