@@ -161,6 +161,24 @@ async def test_generate_embedding_logs_route_start_and_success(caplog) -> None:
 
 
 @pytest.mark.asyncio
+async def test_generate_embedding_sanitizes_model_name_in_logs(caplog) -> None:
+    container = _container_with_embedding_provider(FakeEmbedder())
+    request = EmbeddingRequest(text="hello", model_name="model-a\nFORGED\tentry")
+
+    with caplog.at_level(logging.INFO, logger=embeddings_logger.name):
+        await generate_embedding(request, container)
+
+    route_records = [
+        record.getMessage()
+        for record in caplog.records
+        if "[MemoryRoute] /api/embeddings" in record.getMessage()
+    ]
+    assert route_records
+    assert all("\n" not in message and "\t" not in message for message in route_records)
+    assert any("model=model-a FORGED entry" in message for message in route_records)
+
+
+@pytest.mark.asyncio
 async def test_generate_embedding_returns_503_when_embedder_missing(caplog) -> None:
     container = _container_with_embedding_provider()
     request = EmbeddingRequest(text="hello")

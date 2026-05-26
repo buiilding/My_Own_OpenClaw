@@ -5,6 +5,7 @@ REST endpoints for embedding operations used by the frontend memory system.
 """
 
 import logging
+import re
 import time
 from typing import Any, Dict
 
@@ -26,6 +27,8 @@ from .service import (
 
 router = APIRouter(prefix="/api/embeddings", tags=["embeddings"])
 logger = logging.getLogger(__name__)
+LOG_CONTROL_CHARS_PATTERN = re.compile(r"[\x00-\x1f\x7f]+")
+LOG_MODEL_NAME_MAX_CHARS = 128
 
 
 def _resolve_embedding_provider(container: Any) -> Any:
@@ -35,12 +38,22 @@ def _resolve_embedding_provider(container: Any) -> Any:
     return embedding_router
 
 
+def _sanitize_log_model_name(model_name: str) -> str:
+    normalized = LOG_CONTROL_CHARS_PATTERN.sub(" ", str(model_name or "")).strip()
+    if not normalized:
+        return "default"
+    if len(normalized) > LOG_MODEL_NAME_MAX_CHARS:
+        return f"{normalized[:LOG_MODEL_NAME_MAX_CHARS - 3].rstrip()}..."
+    return normalized
+
+
 def _log_embedding_route_start(*, text: str, model_name: str) -> float:
     started_at = time.perf_counter()
+    safe_model_name = _sanitize_log_model_name(model_name)
     logger.info(
         "[MemoryRoute] /api/embeddings start chars=%s model=%s",
         len(text),
-        model_name,
+        safe_model_name,
     )
     return started_at
 
@@ -52,10 +65,11 @@ def _log_embedding_route_success(
     model_name: str,
     dimension: int,
 ) -> None:
+    safe_model_name = _sanitize_log_model_name(model_name)
     logger.info(
         "[MemoryRoute] /api/embeddings success chars=%s model=%s dimension=%s duration=%.3fs",
         len(text),
-        model_name,
+        safe_model_name,
         dimension,
         time.perf_counter() - started_at,
     )
@@ -69,11 +83,12 @@ def _log_embedding_route_failure(
     error: Exception,
     status_code: int | None = None,
 ) -> None:
+    safe_model_name = _sanitize_log_model_name(model_name)
     if status_code is None:
         logger.error(
             "[MemoryRoute] /api/embeddings failure chars=%s model=%s duration=%.3fs error=%s",
             len(text),
-            model_name,
+            safe_model_name,
             time.perf_counter() - started_at,
             error,
             exc_info=True,
@@ -82,7 +97,7 @@ def _log_embedding_route_failure(
     logger.warning(
         "[MemoryRoute] /api/embeddings failure chars=%s model=%s status=%s duration=%.3fs error=%s",
         len(text),
-        model_name,
+        safe_model_name,
         status_code,
         time.perf_counter() - started_at,
         error,
