@@ -1413,6 +1413,78 @@ async def test_sdk_debug_prompt_preview_returns_prompt_transparency_payloads(
 
 
 @pytest.mark.asyncio
+async def test_sdk_debug_prompt_preview_maps_preview_contract_fields(
+    tmp_path,
+    monkeypatch,
+    authenticated_install_identity,
+) -> None:
+    container = _container(tmp_path)
+
+    def fake_build_prompt_preview(**kwargs):
+        assert kwargs["include_tools"] is False
+        assert kwargs["messages"] == [{"role": "user", "content": "hello"}]
+        assert kwargs["user_query_raw"] == "hello"
+        return {
+            "system_prompt": "system text",
+            "prompt_messages": [{"role": "user", "content": "hello"}],
+            "canonical_tool_schemas": [],
+            "provider_tool_schemas": [],
+            "user_message_full": {
+                "content": "hello",
+                "metadata": {
+                    "original_query": "hello",
+                    "context_type": "raw",
+                    "injected_context": "",
+                    "active_window": "",
+                },
+            },
+            "prompt_token_count": None,
+            "token_count_error": "tokenizer unavailable",
+        }
+
+    monkeypatch.setitem(
+        sdk_routes.sdk_debug_prompt_preview.__globals__,
+        "build_prompt_preview",
+        fake_build_prompt_preview,
+    )
+
+    response = await sdk_routes.sdk_debug_prompt_preview(
+        PromptPreviewRequest(
+            messages=[{"role": "user", "content": "hello"}],
+            user_query_raw="hello",
+            include_tools=False,
+        ),
+        container=container,
+        session_manager=_FakeSessionManager(),
+    )
+
+    payload = response.model_dump(mode="json")
+    assert set(payload) == {
+        "config",
+        "system_prompt",
+        "prompt_messages",
+        "canonical_tool_schemas",
+        "provider_tool_schemas",
+        "user_message_full",
+        "prompt_token_count",
+        "token_count_error",
+    }
+    assert payload["config"].keys() == {
+        "model_mode",
+        "model_provider",
+        "selected_model_id",
+        "interaction_mode",
+    }
+    assert payload["system_prompt"] == "system text"
+    assert payload["prompt_messages"] == [{"role": "user", "content": "hello"}]
+    assert payload["canonical_tool_schemas"] == []
+    assert payload["provider_tool_schemas"] == []
+    assert payload["user_message_full"]["metadata"]["original_query"] == "hello"
+    assert payload["prompt_token_count"] is None
+    assert payload["token_count_error"] == "tokenizer unavailable"
+
+
+@pytest.mark.asyncio
 async def test_sdk_debug_prompt_preview_applies_agent_definition(
     tmp_path,
     monkeypatch,
