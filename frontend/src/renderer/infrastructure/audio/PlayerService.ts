@@ -70,6 +70,19 @@ export class PlayerService {
     return audioBuffer;
   }
 
+  private scheduleNextAfterPlaybackError(playbackGeneration: number): void {
+    this.isPlaying = false;
+    if (this.audioQueue.length === 0) {
+      return;
+    }
+    queueMicrotask(() => {
+      if (this.playbackGeneration !== playbackGeneration || this.isPlaying) {
+        return;
+      }
+      this.playNext();
+    });
+  }
+
   /**
    * Play next chunk in queue
    */
@@ -111,7 +124,7 @@ export class PlayerService {
         this.activeSource = null;
       }
       console.error('[PlayerService] Error playing audio chunk:', error);
-      this.playNext(); // Skip to next chunk on error
+      this.scheduleNextAfterPlaybackError(playbackGeneration);
     }
   }
 

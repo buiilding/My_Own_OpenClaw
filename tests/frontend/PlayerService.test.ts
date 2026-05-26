@@ -240,4 +240,32 @@ describe('PlayerService', () => {
     atobSpy.mockRestore();
     errorSpy.mockRestore();
   });
+
+  test('drains queued malformed chunks without recursive playback', async () => {
+    const service = new PlayerService();
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const context = enqueueTwoChunks(service);
+    context.sources[0].onended?.();
+    expect(service.getIsPlaying()).toBe(true);
+
+    const atobSpy = jest.spyOn(window, 'atob').mockImplementation(() => {
+      throw new Error('decode-failed');
+    });
+    for (let index = 0; index < 1000; index += 1) {
+      service.enqueueAudio({ audio: `bad-${index}`, sample_rate: 16000 });
+    }
+
+    context.sources[1].onended?.();
+    expect(service.getIsPlaying()).toBe(false);
+
+    for (let index = 0; index < 1000; index += 1) {
+      await Promise.resolve();
+    }
+
+    expect(service.getIsPlaying()).toBe(false);
+    expect(errorSpy).toHaveBeenCalledTimes(1000);
+
+    atobSpy.mockRestore();
+    errorSpy.mockRestore();
+  });
 });
