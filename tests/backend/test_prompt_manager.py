@@ -1,5 +1,5 @@
-import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import pytest
@@ -47,18 +47,14 @@ def test_initialize_concurrent_calls_read_prompt_once(tmp_path, monkeypatch):
     monkeypatch.setattr(type(prompt_file), "read_text", counted_read_text)
 
     manager = PromptManager()
-    start_barrier = threading.Barrier(2)
 
     def init_once():
-        start_barrier.wait(timeout=5)
         manager.initialize(prompt_file)
 
-    t1 = threading.Thread(target=init_once)
-    t2 = threading.Thread(target=init_once)
-    t1.start()
-    t2.start()
-    t1.join(timeout=5)
-    t2.join(timeout=5)
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        futures = [executor.submit(init_once) for _ in range(2)]
+        for future in futures:
+            future.result(timeout=5)
 
     assert call_count["value"] == 1
     assert manager.system_prompt == "hello TestOS"
