@@ -87,7 +87,7 @@ describe('PlayerService', () => {
     expect(context.createBufferSource).toHaveBeenCalledTimes(2);
   });
 
-  test('stopPlayback stops active source and prevents stale onended from continuing playback', () => {
+  test('stopPlayback stops active source, closes context, and prevents queued playback', () => {
     const service = new PlayerService();
     const context = enqueueTwoChunks(service);
     const firstSource = context.sources[0];
@@ -95,6 +95,7 @@ describe('PlayerService', () => {
     service.stopPlayback();
     expect(firstSource.stop).toHaveBeenCalledWith(0);
     expect(firstSource.disconnect).toHaveBeenCalled();
+    expect(context.close).toHaveBeenCalledTimes(1);
     expect(service.getIsPlaying()).toBe(false);
 
     firstSource.onended?.();
@@ -207,6 +208,36 @@ describe('PlayerService', () => {
       '[PlayerService] Error playing audio chunk:',
       expect.any(Error),
     );
+    errorSpy.mockRestore();
+  });
+
+  test('skips malformed chunks without blocking later playback', () => {
+    const service = new PlayerService();
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const atobSpy = jest.spyOn(window, 'atob');
+    atobSpy.mockImplementationOnce(() => {
+      throw new Error('decode-failed');
+    });
+
+    expect(() => {
+      service.enqueueAudio({ audio: 'not-base64', sample_rate: 16000 });
+    }).not.toThrow();
+    expect(service.getIsPlaying()).toBe(false);
+
+    service.enqueueAudio({
+      audio: encodeInt16Samples([7, 8]),
+      sample_rate: 16000,
+    });
+
+    const context = MockAudioContext.instances[0];
+    expect(context.createBufferSource).toHaveBeenCalledTimes(1);
+    expect(context.sources[0].start).toHaveBeenCalledWith(0);
+    expect(errorSpy).toHaveBeenCalledWith(
+      '[PlayerService] Error playing audio chunk:',
+      expect.any(Error),
+    );
+
+    atobSpy.mockRestore();
     errorSpy.mockRestore();
   });
 });
