@@ -44,8 +44,12 @@ function normalizeFunctionToolSchema(toolSchema: Record<string, unknown>): ToolS
 }
 
 export function isSupportedToolSchema(value: unknown): value is ToolSchema {
-  if (!isObjectRecord(value) || typeof value.type !== 'string') {
+  if (!isObjectRecord(value)) {
     return false;
+  }
+
+  if (typeof value.type !== 'string') {
+    return hasNamedParameters(value);
   }
 
   if (value.type === 'computer') {

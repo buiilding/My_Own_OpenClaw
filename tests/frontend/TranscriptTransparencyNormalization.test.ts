@@ -33,6 +33,16 @@ describe('normalizeTransparencyData', () => {
     });
   });
 
+  test('normalizes top-level function schemas without a type field', () => {
+    const normalized = normalizeTransparencyData({
+      toolSchemas: [{ name: 'read_file', parameters: { type: 'object' } }],
+    });
+
+    expect(normalized).toEqual({
+      toolSchemas: [{ type: 'function', function: { name: 'read_file', parameters: { type: 'object' } } }],
+    });
+  });
+
   test('drops empty nested payloads while retaining valid metadata', () => {
     const normalized = normalizeTransparencyData({
       systemPrompt: '   ',
