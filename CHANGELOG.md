@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: delete the renderer-owned raw backend event contract and keep display-only stream labels/tool-schema types in renderer-owned modules.
 - docs/agents: clarify client-owned tool schema assembly, backend validation
   responsibility, computer-use screenshot output contracts, SDK-first UI
   expectations, and dashboard/pill/response-overlay progress parity.

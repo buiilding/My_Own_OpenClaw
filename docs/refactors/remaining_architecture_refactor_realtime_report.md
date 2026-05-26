@@ -72,3 +72,59 @@ Validation:
 Skipped or failed validation:
 
 - None for this slice.
+
+## Delete The Renderer-Owned Backend Event Contract
+
+Status: completed.
+
+Commit: included in the same commit as this report entry.
+
+Implementation:
+
+- Deleted `frontend/src/renderer/types/backendEvents.ts`, removing the
+  renderer-owned raw backend event unions, payload validators, and
+  `isBackendEvent` guard.
+- Deleted the renderer `BackendEvents.test.ts` guard tests because raw backend
+  event validation now belongs in SDK/backend transport tests, not renderer
+  display tests.
+- Added renderer-owned `toolSchemas.ts` for display/transcript tool-schema
+  typing that does not imply websocket event ownership.
+- Kept stream tracking labels display-only by typing them as renderer-local
+  strings instead of mirroring backend event unions.
+- Updated renderer transcript/chat utilities to import display tool-schema
+  types or local payload-like shapes instead of backend event contracts.
+- Added a runtime-boundary test proving
+  `frontend/src/renderer/types/backendEvents.ts` remains deleted.
+
+Previous behavior:
+
+- Renderer owned a duplicate raw backend websocket event contract with event
+  unions, validators, and payload shapes.
+- Some renderer utilities imported that module only to borrow tool-schema or
+  tool payload types, keeping a misleading dependency on backend event shapes.
+
+Current behavior:
+
+- SDK remains the client-side owner for raw backend event types and
+  normalization.
+- Renderer keeps only display-scoped tool-schema types, source labels, and
+  local payload-like formatter types.
+- Chat feature code and runtime boundary tests continue to enforce that raw
+  backend event normalization stays outside renderer feature code.
+
+Success criteria:
+
+- Renderer has no raw backend websocket event contract: completed.
+- SDK remains the single client-side backend event normalization boundary:
+  completed.
+- Renderer display utilities no longer import `types/backendEvents`: completed.
+
+Validation:
+
+- `cd frontend && npm run test -- RendererChatRuntimeBoundary WindieSdkConversationRuntime ChatStreamMetadataHandlers --runInBand`
+- `cd frontend && npm run lint`
+- `git diff --check`
+
+Skipped or failed validation:
+
+- None for this slice.

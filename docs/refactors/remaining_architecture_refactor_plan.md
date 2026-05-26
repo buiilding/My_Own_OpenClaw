@@ -61,7 +61,7 @@ layers unless a verified external dependency requires one.
   Validation: Backend prompt tests, frontend query payload tests, websocket
   schema tests, and a focused desktop send-query integration test.
 
-- [ ] Delete the renderer-owned backend event contract.
+- [x] Delete the renderer-owned backend event contract.
 
   Issue: Renderer still has a backend event type module that mirrors SDK event
   contracts even though chat runtime tests already enforce that chat feature

@@ -1,4 +1,4 @@
-import type { ToolSchema } from '../../../../types/backendEvents';
+import type { ToolSchema } from '../../../../types/toolSchemas';
 import type { ChatMessage } from '../../stores/chatStore';
 import { normalizeIncomingText } from '../../../../infrastructure/text/incomingTextNormalization';
 import { normalizeToolSchemaList } from '../../../../infrastructure/transcript/toolSchemaShape';

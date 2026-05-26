@@ -1,4 +1,4 @@
-import type { ToolSchema } from '../../types/backendEvents';
+import type { ToolSchema } from '../../types/toolSchemas';
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === 'object' && !Array.isArray(value);

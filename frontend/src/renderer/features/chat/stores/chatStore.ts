@@ -5,7 +5,7 @@
  */
 
 import { create } from 'zustand';
-import type { ToolSchema } from '../../../types/backendEvents';
+import type { ToolSchema } from '../../../types/toolSchemas';
 import type { CurrentTurnProjection } from '../../../infrastructure/api/windieSdkClient';
 import {
   DEFAULT_CHAT_WORKSPACE_REF,

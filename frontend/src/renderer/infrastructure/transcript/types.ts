@@ -1,4 +1,4 @@
-import type { ToolSchema } from '../../types/backendEvents';
+import type { ToolSchema } from '../../types/toolSchemas';
 
 export type SessionInfo = {
   conversationRef: string | null;

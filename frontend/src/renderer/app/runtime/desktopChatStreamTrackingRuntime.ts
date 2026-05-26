@@ -1,6 +1,4 @@
-import type { BackendEventType } from '../../types/backendEvents';
-
-export type StreamTrackingEventType = BackendEventType;
+export type StreamTrackingEventType = string;
 
 export type StreamPhase = 'idle'
   | 'awaiting-first-chunk'
@@ -17,7 +15,7 @@ export type StreamTracking = {
   firstChunkAt: string | null;
   completedAt: string | null;
   lastEventAt: string | null;
-  lastEventType: BackendEventType | null;
+  lastEventType: StreamTrackingEventType | null;
   eventCount: number;
   chunkCount: number;
   toolCallCount: number;
@@ -36,7 +34,7 @@ export type StreamTrackingOptions = {
 };
 
 function createTrackingForNewTurn(
-  eventType: BackendEventType,
+  eventType: StreamTrackingEventType,
   now: string,
   turnRef: string | null,
 ): StreamTracking {
@@ -59,7 +57,7 @@ function createTrackingForNewTurn(
 
 export function applyTrackingEvent(
   current: StreamTracking,
-  eventType: BackendEventType,
+  eventType: StreamTrackingEventType,
   turnRef: string | null | undefined,
   now: string,
   options: StreamTrackingOptions = {},

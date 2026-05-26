@@ -1,5 +1,8 @@
-import { type BackendEventType } from '../../types/backendEvents';
-import { applyTrackingEvent, type StreamTrackingOptions } from './desktopChatStreamTrackingRuntime';
+import {
+  applyTrackingEvent,
+  type StreamTrackingEventType,
+  type StreamTrackingOptions,
+} from './desktopChatStreamTrackingRuntime';
 import { isStaleTurnForActiveStream } from './desktopChatStreamTurnGuardRuntime';
 import {
   hasTerminalPendingHandoff,
@@ -71,7 +74,7 @@ type UpdateStreamTracking = (
 
 export function recordTrackingEvent(
   updateStreamTracking: UpdateStreamTracking,
-  eventType: BackendEventType,
+  eventType: StreamTrackingEventType,
   turnRef: string | null | undefined,
   options: StreamTrackingOptions = {},
   conversationRef?: string | null,

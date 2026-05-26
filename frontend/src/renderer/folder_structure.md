@@ -221,7 +221,7 @@ frontend/src/renderer/
 │   └── theme.css                        # Shared CSS variables/theme tokens
 │
 ├── types/                                 # Local renderer types
-│   └── backendEvents.ts                  # Backend event payload types + guards
+│   └── toolSchemas.ts                    # Renderer display tool-schema type helpers
 │
 └── utils/                                 # Utility functions
     ├── configFilter.js                  # configFilter - Filters config to frontend-managed fields only
