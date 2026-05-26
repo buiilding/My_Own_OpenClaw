@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: route retry and edit/resend replay sends through the shared
+  prepared-turn dispatch helper while preserving replay transcript rewrite and
+  rehydrate ownership.
 - frontend/chat: split composer send preparation from final live-turn dispatch
   behind a reusable prepared-turn helper while preserving screenshot,
   attachment, transcript, model-sync, and chat-pill handoff behavior.

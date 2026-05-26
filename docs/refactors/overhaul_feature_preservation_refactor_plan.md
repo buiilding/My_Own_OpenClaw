@@ -140,7 +140,7 @@ it adds the product-feature guardrails those plans need.
   resolution, transcript-write inputs, deferred model selection, and the final
   live-turn dispatch payload.
 
-- [ ] Collapse replay send and normal send onto one prepared-turn contract.
+- [x] Collapse replay send and normal send onto one prepared-turn contract.
 
   Issue: The replay convergence work split preparation from dispatch, but
   replay still constructs its own rewrite payload, screenshot payload, model
@@ -160,6 +160,13 @@ it adds the product-feature guardrails those plans need.
   Validation: `ConversationReplayActions`, `DesktopConversationContinuityService`,
   `DesktopLiveTurnRuntimeClient`, backend rehydrate tests, and dashboard replay
   tests.
+
+  Completed: retry and edit/resend replay actions now adapt continuity
+  preparation results into the same `PreparedDesktopChatTurn` dispatch helper
+  used by composer sends. Replay marks the transcript user projection as
+  already prepared, preserving rewrite/rehydrate ownership while sharing the
+  final live-turn dispatch shape for model selection, screenshots, workspace
+  path, and turn refs.
 
 - [ ] Make multi-chat state authoritative in one session service.
 

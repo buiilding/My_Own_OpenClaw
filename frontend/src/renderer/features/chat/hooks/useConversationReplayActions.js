@@ -14,7 +14,6 @@ import {
   markConversationInferenceSessionLocalOnly,
 } from '../session/conversationInferenceSessionRuntime';
 import { DesktopConversationContinuityService } from '../../../app/runtime/desktopConversationContinuityService';
-import { DesktopLiveTurnRuntimeClient } from '../../../app/runtime/desktopLiveTurnRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 import {
   applyRendererConversationSelection,
@@ -27,6 +26,7 @@ import {
   resolveTranscriptRole,
 } from '../utils/session/transcriptMessagePayload';
 import { buildReplayContextMessages } from '../utils/conversationReplayToolMessages';
+import { dispatchPreparedDesktopChatTurn } from '../utils/messageSender/desktopChatSendPreparation';
 
 const REPLAY_PREPARATION_FAILURE_MESSAGE = 'Your message was not resent because WindieOS could not prepare the conversation replay. Try reopening the chat and sending again.';
 const REPLAY_SEND_FAILURE_MESSAGE = "Your message wasn't sent because WindieOS isn't connected right now. Try again when the backend reconnects.";
@@ -70,6 +70,46 @@ function ensureConversationRef(sessionConversationRef, storeConversationRef) {
     });
   }
   return conversationRef;
+}
+
+function buildPreparedReplayDesktopChatTurn({
+  preparedReplayTurn,
+  conversationRef,
+  deferredQueryModelSelection,
+  screenshotRef,
+  screenshotUrl,
+  screenshot,
+  sessionInfo,
+  workspacePath,
+}) {
+  return {
+    attachmentContext: null,
+    attachmentFilenames: null,
+    captureMeta: null,
+    conversationRef: preparedReplayTurn.conversationRef || conversationRef,
+    deferredQueryModelSelection: null,
+    model: preparedReplayTurn.model ?? deferredQueryModelSelection ?? null,
+    recordTranscriptUserMessage: false,
+    screenshot: preparedReplayTurn.payload?.screenshot ?? screenshot ?? null,
+    screenshotRef: preparedReplayTurn.payload?.screenshot_ref ?? screenshotRef ?? null,
+    screenshotRefs: preparedReplayTurn.payload?.screenshot_refs ?? null,
+    screenshotUrl: preparedReplayTurn.payload?.screenshot_url ?? screenshotUrl ?? null,
+    sendLifecycle: {
+      shouldCaptureQueryScreenshot: false,
+      shouldReturnToChatboxOnSend: false,
+      surfaceReason: 'replay',
+    },
+    sessionInfo,
+    text: preparedReplayTurn.text,
+    timestamp: new Date().toISOString(),
+    turnId: preparedReplayTurn.turnRef || messageIdForReplay(preparedReplayTurn, conversationRef),
+    turnRef: preparedReplayTurn.turnRef ?? null,
+    workspacePath: preparedReplayTurn.workspacePath ?? workspacePath ?? null,
+  };
+}
+
+function messageIdForReplay(preparedReplayTurn, conversationRef) {
+  return `${preparedReplayTurn.conversationRef || conversationRef}:replay`;
 }
 
 async function executeReplayAction({
@@ -129,17 +169,16 @@ async function executeReplayAction({
       ? await DesktopConversationContinuityService.prepareEditAndResend(rewritePayload)
       : await DesktopConversationContinuityService.prepareRetryTurn(rewritePayload);
     try {
-      await DesktopLiveTurnRuntimeClient.sendQuery({
-        text: preparedReplayTurn.text,
-        conversationRef: preparedReplayTurn.conversationRef || conversationRef,
-        screenshotRef: preparedReplayTurn.payload?.screenshot_ref ?? screenshotRef ?? null,
-        screenshotUrl: preparedReplayTurn.payload?.screenshot_url ?? screenshotUrl ?? null,
-        screenshotRefs: preparedReplayTurn.payload?.screenshot_refs ?? null,
-        screenshot: preparedReplayTurn.payload?.screenshot ?? screenshot ?? null,
-        workspacePath: preparedReplayTurn.workspacePath ?? workspaceBinding.workspacePath ?? null,
-        model: preparedReplayTurn.model ?? deferredQueryModelSelection ?? null,
-        turnRef: preparedReplayTurn.turnRef ?? null,
-      });
+      await dispatchPreparedDesktopChatTurn(buildPreparedReplayDesktopChatTurn({
+        preparedReplayTurn,
+        conversationRef,
+        deferredQueryModelSelection,
+        screenshotRef,
+        screenshotUrl,
+        screenshot,
+        sessionInfo,
+        workspacePath: workspaceBinding.workspacePath ?? null,
+      }));
     } catch (sendError) {
       if (sendError && typeof sendError === 'object') {
         sendError.__windieReplayStep = 'send';

@@ -35,6 +35,9 @@ title: "Message Send Surface Policy and Screenshot Capture Reference"
 playback cleanup, app config, and sender options. It delegates preparation and
 final live-turn dispatch to `desktopChatSendPreparation.ts`, which returns a
 `PreparedDesktopChatTurn` before calling the backend-facing live-turn runtime.
+Retry and edit/resend replay actions also adapt their continuity-prepared
+turns into this same dispatch shape, with transcript recording disabled because
+continuity preparation has already rewritten the replay projection.
 
 `useChatMessageSender` accepts:
 
@@ -124,6 +127,9 @@ When attachment(s) exist:
 Steps 1-11 produce a `PreparedDesktopChatTurn`. The final dispatch helper
 applies deferred model selection, records the user transcript row, and sends
 that prepared payload through `DesktopLiveTurnRuntimeClient.sendQuery`.
+Replay-prepared turns use the same dispatch helper but set
+`recordTranscriptUserMessage: false` so edit/resend and retry do not duplicate
+the transcript row that continuity preparation already wrote.
 
 Readable file injection path:
 
