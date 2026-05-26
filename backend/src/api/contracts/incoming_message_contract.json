@@ -1,0 +1,120 @@
+{
+  "version": 1,
+  "envelope_keys": [
+    "id",
+    "type",
+    "payload",
+    "user_id",
+    "session_id",
+    "conversation_ref",
+    "turn_ref",
+    "timestamp"
+  ],
+  "payloads": {
+    "query": {
+      "keys": [
+        "text",
+        "conversation_ref",
+        "content",
+        "screenshot",
+        "screenshot_ref",
+        "screenshot_refs",
+        "capture_meta",
+        "system_state_internal",
+        "workspace_path",
+        "repo_instruction_messages",
+        "client_prompt_layers",
+        "agent_definition"
+      ]
+    },
+    "stop-query": {
+      "keys": [
+        "conversation_ref"
+      ]
+    },
+    "rehydrate-conversation": {
+      "keys": [
+        "conversation_ref",
+        "messages",
+        "rehydrate_mode",
+        "workspace_path",
+        "repo_instruction_messages"
+      ]
+    },
+    "load-settings": {
+      "keys": [
+        "client_version"
+      ]
+    },
+    "list-models": {
+      "keys": []
+    },
+    "update-settings": {
+      "keys": [
+        "model_mode",
+        "model_provider",
+        "selected_model_id",
+        "interaction_mode",
+        "speech_mode_enabled",
+        "wakeword_enabled",
+        "wakeword_stt_enabled",
+        "agent_full_sudo_enabled",
+        "browser_automation_enabled",
+        "include_query_screenshot",
+        "provider_api_keys",
+        "provider_oauth"
+      ]
+    },
+    "wakeword-detected": {
+      "keys": []
+    },
+    "compact-history": {
+      "keys": [
+        "force",
+        "conversation_ref"
+      ]
+    },
+    "tool-result": {
+      "keys": [
+        "request_id",
+        "success",
+        "data",
+        "error"
+      ],
+      "nested": {
+        "data": {
+          "extra": "allow",
+          "keys": [
+            "llm_content",
+            "system_state",
+            "screenshot",
+            "screenshot_ref",
+            "capture_meta"
+          ]
+        }
+      }
+    },
+    "tool-bundle-result": {
+      "keys": [
+        "bundle_id",
+        "status",
+        "screenshot",
+        "screenshot_ref",
+        "capture_meta",
+        "system_state",
+        "step_results",
+        "error"
+      ],
+      "nested": {
+        "step_results[]": {
+          "extra": "allow",
+          "keys": [
+            "tool",
+            "status",
+            "output"
+          ]
+        }
+      }
+    }
+  }
+}

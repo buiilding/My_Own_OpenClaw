@@ -256,11 +256,38 @@ Verification:
 - `cd frontend && ELECTRON_RUN_AS_NODE=1 .\node_modules\electron\dist\electron.exe .\node_modules\jest\bin\jest.js LocalBackendReadinessRuntime LocalBackendStdoutTransport LocalBackendRpcTransport LocalBackendBridgeRpcMappers LocalBackendStatusBroadcaster LocalBackendBridge.lifecycle LocalBackendBridge.rpc SidecarDaemonManager --runInBand` - pass
 - `rg -n "stdout\.on\('data'|readinessCheck|stdoutBuffer|pendingStdoutLines|isDrainingStdoutLines|shouldOffloadJsonParse|parseJsonInWorker|source\.userQuery|source\.assistantResponse|source\.memoryType|source\.userId|source\.sessionId|sidecarDaemonManager\s*&&\s*typeof sidecarDaemonManager\.rpc" frontend/src/main/local_backend_bridge.cjs -S` - pass, no matches
 
+### Frontend/Backend Websocket Command Contract Tests
+
+Status: completed and verified.
+
+Changes:
+
+- Added backend-owned `backend/src/api/contracts/incoming_message_contract.json` with allowed websocket envelope keys and payload keys for query, stop, rehydrate, settings, model-list, wakeword, compact-history, tool-result, and bundle-result commands.
+- Added backend parity tests that compare the JSON contract fixture to Pydantic incoming message payload models and nested extra-allowance contracts.
+- Added frontend contract tests that validate query payload building and SDK managed websocket sends against the backend-owned fixture without importing backend Python.
+- Added `docs/frontend/contracts/backend_websocket_command_contract.md` to document envelope context versus payload fields, including that `turn_ref` belongs to envelope/stream context and not `query.payload`.
+
+Success criteria covered:
+
+- Frontend tests fail if query, stop, rehydrate, settings, list-models, tool-result, or bundle-result payloads include backend-unknown top-level keys.
+- Frontend tests no longer expect invalid `turn_ref` inside `query.payload`.
+- Backend tests keep the exported contract fixture aligned with the Pydantic schema owner.
+- Docs identify websocket envelope context fields separately from payload-owned fields.
+
+Verification:
+
+- `cd frontend && ELECTRON_RUN_AS_NODE=1 .\node_modules\electron\dist\electron.exe .\node_modules\jest\bin\jest.js FrontendBackendWebsocketContract IpcQueryRuntime WindieSdkManagedBackendSession --runInBand` - pass
+- `.\.venv-backend\Scripts\python.exe -m pytest tests/backend/test_incoming_message_contract.py -q` - pass
+- `cd packages/windie-sdk-js && ELECTRON_RUN_AS_NODE=1 ..\..\frontend\node_modules\electron\dist\electron.exe ..\..\frontend\node_modules\typescript\bin\tsc -p tsconfig.build.json` - pass
+- `ELECTRON_RUN_AS_NODE=1 .\frontend\node_modules\electron\dist\electron.exe .\scripts\docs-list.js` - pass
+- `rg -n "query\.payload\.turn_ref|turn_ref.*query payload|query payload.*turn_ref|payload:\s*\{[^\n]*turn_ref" tests frontend/src packages/windie-sdk-js/src docs -S` - pass, only historical plan/report/doc references
+- `git diff --check -- backend/src/api/contracts/incoming_message_contract.json docs/frontend/contracts/backend_websocket_command_contract.md docs/refactors/runtime_ownership_simplification_report_2026-05-25.md tests/backend/test_incoming_message_contract.py tests/frontend/FrontendBackendWebsocketContract.test.cjs` - pass
+- Repo-wide `git diff --check` was not used for this commit because unrelated dirty landing-page files currently contain trailing whitespace.
+
 ## Pending
 
 - `frontend/src/main/ipc.cjs` composition-root split.
   - In progress: model-list request queueing moved to `frontend/src/main/ipc/ipc_model_list_runtime.cjs` with focused unit tests.
   - In progress: renderer diagnostic log routing moved to `frontend/src/main/ipc/ipc_diagnostics_runtime.cjs` with focused unit tests.
-- Frontend/backend websocket contract tests for all message families.
 - Diagnostics runtime and redaction boundary.
 - Architecture docs current/target/debt updates for remaining duplicate paths.
