@@ -68,7 +68,7 @@ Responsibilities:
 - normalize optional attachment context/filenames
 - normalize `memoryRetrievalEnabled` flag (default true)
 
-Used by `sendAutomatedQuery(...)` in `ipc.cjs`.
+Used by `ipc_automated_query_dispatcher.cjs`.
 
 ## Transcript Sync Helper Ownership (`ipc_transcript_session_sync.cjs`)
 
@@ -116,8 +116,12 @@ Returns:
 ### Automated query path (`sendAutomatedQuery`)
 
 1. `prepareAutomatedQueryPayload(...)` validates/normalizes options.
-2. `buildQueryPayload(...)` builds enriched outbound payload.
+2. `ipc_automated_query_dispatcher.cjs` connects the backend, waits for
+   settings sync, and builds enriched outbound payload through
+   `buildQueryPayload(...)`.
 3. attachment filenames remain top-level payload metadata; hidden `attachmentContext` stays prompt-only.
+4. the dispatcher attaches agent-definition context and sends the SDK runtime
+   `query` command.
 
 ### Transcript sync path (`transcript-session-sync`)
 

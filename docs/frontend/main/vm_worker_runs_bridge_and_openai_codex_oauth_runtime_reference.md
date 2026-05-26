@@ -91,7 +91,7 @@ For assigned runs, runtime:
 
 1. Validates `run_id`, `conversation_ref`, `query`.
 2. Normalizes `files[]` and builds multiline attachment context from artifact refs.
-3. Calls `sendAutomatedQuery({ text, conversationRef, attachmentContext, attachmentFilenames })`.
+3. Calls `sendAutomatedQuery({ text, conversationRef, attachmentContext, attachmentFilenames })`, which delegates dispatch orchestration to `ipc_automated_query_dispatcher.cjs`.
 4. On success:
   - stores mapping `conversation_ref <-> run_id`
   - acks `POST /api/runs/{run_id}/worker-dispatched` with `turn_ref`

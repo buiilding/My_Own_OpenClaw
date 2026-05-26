@@ -13,6 +13,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
 - `frontend/src/main/ipc/ipc_query_runtime.cjs`
+- `frontend/src/main/ipc/ipc_automated_query_dispatcher.cjs`
 - `frontend/src/main/ipc/ipc_transcript_session_sync.cjs`
 - `frontend/src/main/ipc/ipc_event_replay_state.cjs`
 - `frontend/src/main/ipc/ipc_overlay_phase_events.cjs`
@@ -34,7 +35,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 
 - websocket connection lifecycle (`connect`, reconnect, handshake)
 - settings ACK gate (`ensureInitialSettingsSync`, pending-ack map)
-- query relay orchestration and overlay phase transition application
+- query relay wiring and overlay phase transition application
 - handler registration (`ipcMain.handle/on`)
 
 Helper modules hold isolated runtime responsibilities.
@@ -57,11 +58,22 @@ Owns cross-cutting utilities used by relay hot paths:
 
 ### `ipc_query_runtime.cjs`
 
-Owns query payload shaping helpers used by both renderer query sends and automated VM query sends:
+Owns query payload shaping helpers used by renderer query sends and automated VM query dispatch:
 
 - `prepareRendererQueryPayload` (attachment/memory toggle/conversation-ref normalization)
 - `buildQueryPayload` (context-type/user-id derivation + `buildQueryPayloadContent` composition)
-- `prepareAutomatedQueryPayload` (sendAutomatedQuery option normalization + validation)
+- `prepareAutomatedQueryPayload` (automated query option normalization + validation)
+
+### `ipc_automated_query_dispatcher.cjs`
+
+Owns VM automated-query dispatch orchestration:
+
+- validates assigned-run query options through `prepareAutomatedQueryPayload`
+- connects the managed backend session for `automated-query`
+- waits for initial settings sync and any pending settings ACK
+- builds the enriched query payload through `buildQueryPayload`
+- attaches agent-definition context
+- sends the SDK runtime `query` command and advances conversation/first-query state through injected setters
 
 ### `ipc_transcript_session_sync.cjs`
 
@@ -215,14 +227,15 @@ This isolates persistence to main process once per backend event before renderer
 2. websocket inbound messages append turn-scoped replay state before delegating event processing to `processBackendMessageData`.
 3. query pre-capture delegates chatbox-only hook guard to `runBeforeOverlayQueryCapture`.
 4. query optimistic/synthetic events delegate to `ipc_query_broadcast.cjs` with builders from `ipc_query_events.cjs` and seed replay state for late-window hydration.
-5. query payload shaping and automated-query normalization delegate to `ipc_query_runtime.cjs`.
-6. transcript-session-sync normalization and state updates delegate to `ipc_transcript_session_sync.cjs`.
-7. frontend config load/save handlers delegate to `ipc_frontend_config.cjs`.
-8. remaining non-chat `to-backend` command forwarding delegates to
+5. query payload shaping delegates to `ipc_query_runtime.cjs`.
+6. automated VM query dispatch delegates to `ipc_automated_query_dispatcher.cjs`.
+7. transcript-session-sync normalization and state updates delegate to `ipc_transcript_session_sync.cjs`.
+8. frontend config load/save handlers delegate to `ipc_frontend_config.cjs`.
+9. remaining non-chat `to-backend` command forwarding delegates to
    `ipc_sdk_command_forwarding.cjs`.
-9. artifact upload/fetch handler registration delegates to
+10. artifact upload/fetch handler registration delegates to
    `ipc_artifact_handlers.cjs`.
-10. OpenAI Codex OAuth login/logout handler registration delegates to
+11. OpenAI Codex OAuth login/logout handler registration delegates to
     `ipc_openai_codex_oauth_handlers.cjs`.
 
 ## Drift Hotspots

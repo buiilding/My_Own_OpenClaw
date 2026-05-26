@@ -318,6 +318,10 @@ Current behavior:
 - `ipc_openai_codex_oauth_handlers.cjs` owns OpenAI Codex OAuth login/logout
   handler registration and normalized success/failure payload shaping while the
   OAuth callback/token flow stays in `openai_codex_oauth.cjs`.
+- `ipc_automated_query_dispatcher.cjs` owns VM automated-query dispatch
+  orchestration: validation, backend connection, settings-sync wait,
+  query-payload build, agent-definition attachment, SDK query send, and
+  conversation/first-query state advancement through injected setters.
 
 Success criteria:
 
@@ -331,11 +335,14 @@ Success criteria:
   composition root: completed.
 - OpenAI Codex OAuth IPC handler registration is no longer inline in the IPC
   composition root: completed.
+- Automated VM query dispatch is no longer inline in the IPC composition root:
+  completed.
 - Full IPC root shrink is not complete; remaining inline areas include generic
-  config/bootstrap state and automated query dispatch.
+  config/bootstrap state.
 
 Validation:
 
+- `cd frontend && npm run test -- IpcAutomatedQueryDispatcher IpcQueryRuntime VmWorkerRuntime MainProcessBootstrapRuntime --runInBand`
 - `cd frontend && npm run test -- IpcArtifactHandlers IpcOpenAICodexOAuthHandlers IpcMainBridge.lifecycle IpcArtifactFetch OpenAICodexOAuth --runInBand`
 - `node -e "const m=require('./frontend/src/main/ipc/ipc_openai_codex_oauth_handlers.cjs'); console.log(typeof m.registerOpenAICodexOAuthHandlers)"`
 - `cd frontend && npm run test -- IpcArtifactHandlers IpcArtifactFetch IpcMainBridge.lifecycle --runInBand`

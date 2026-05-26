@@ -72,6 +72,9 @@ const {
   prepareRendererQueryPayload,
 } = require('./ipc/ipc_query_runtime.cjs');
 const {
+  createAutomatedQueryDispatcher,
+} = require('./ipc/ipc_automated_query_dispatcher.cjs');
+const {
   resolveWorkspaceRepoInstructionPromptLayers,
 } = require('./repo_instruction_runtime.cjs');
 const {
@@ -1078,69 +1081,38 @@ function attachAgentDefinitionContext(payload) {
   };
 }
 
-async function sendAutomatedQuery(options = {}) {
-  const preparedQuery = prepareAutomatedQueryPayload(options);
-  if (!preparedQuery) {
-    return { ok: false, error: 'Missing query text' };
-  }
-
-  try {
-    await ensureBackendConnection('automated-query');
-  } catch (error) {
-    return {
-      ok: false,
-      error: error?.message || 'Backend websocket is not connected',
-    };
-  }
-
-  await ensureInitialSettingsSync();
-  await settingsSyncRuntime.waitForPendingSync();
-
-  const conversationRef = preparedQuery.conversationRef || `vm-run-${uuidv4()}`;
-  const builtQuery = await buildQueryPayload({
-    basePayload: {},
-    text: preparedQuery.text,
-    conversationRef,
-    attachmentContext: preparedQuery.attachmentContext,
-    memoryRetrievalEnabled: preparedQuery.memoryRetrievalEnabled,
+const automatedQueryDispatcher = createAutomatedQueryDispatcher({
+  prepareAutomatedQueryPayload,
+  ensureBackendConnection,
+  ensureInitialSettingsSync,
+  getPendingSettingsSyncPromise: () => settingsSyncRuntime.waitForPendingSync(),
+  buildQueryPayload,
+  buildQueryPayloadContext,
+  getSystemState,
+  searchMemory,
+  attachAgentDefinitionContext: (payload) => buildBackendQueryPayload(
+    attachAgentDefinitionContext(payload),
+  ),
+  sendSdkRuntimeCommand,
+  getWindieSdkRuntime,
+  getState: () => ({
     currentUserId,
     isFirstQuery,
-    buildQueryPayloadContext,
-    getSystemState,
-    searchMemory,
-    log,
-  });
+  }),
+  setCurrentConversationRef: (conversationRef) => {
+    currentConversationRef = conversationRef;
+  },
+  setFirstQuery: (nextValue) => {
+    isFirstQuery = nextValue;
+  },
+  uuidGenerator: uuidv4,
+  log,
+});
 
-  const payload = {
-    text: preparedQuery.text,
-    conversation_ref: conversationRef,
-    ...builtQuery.payload,
-  };
-  const payloadWithAgentDefinition = buildBackendQueryPayload(
-    attachAgentDefinitionContext(payload),
-  );
+async function sendAutomatedQuery(options = {}) {
+  return automatedQueryDispatcher.sendAutomatedQuery(options);
+}
 
-  const queryMessageId = uuidv4();
-  const messageId = sendSdkRuntimeCommand(getWindieSdkRuntime(), {
-    type: 'query',
-    payload: payloadWithAgentDefinition,
-    messageId: queryMessageId,
-  });
-  if (!messageId) {
-    return { ok: false, error: 'Failed to send query to backend' };
-  }
-
-  currentConversationRef = conversationRef;
-  if (builtQuery.queryUsedInitialContext) {
-    isFirstQuery = false;
-  }
-  return {
-    ok: true,
-    messageId,
-    queryMessageId,
-    conversationRef,
-    userId: builtQuery.userId,
-  };
 }
 
 module.exports = {
