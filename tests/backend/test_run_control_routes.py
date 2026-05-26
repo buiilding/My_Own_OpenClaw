@@ -428,6 +428,56 @@ def test_runs_routes_require_matching_key_when_configured(
     assert read_response.json()["run_id"] == run_id
 
 
+def test_worker_dispatched_route_requires_key_and_acknowledges_run(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("WINDIE_RUNS_API_KEY", "runs-secret")
+    monkeypatch.delenv("WINDIE_DEMO_API_KEY", raising=False)
+    client = create_runs_test_client()
+    headers = {"x-windie-runs-key": "runs-secret"}
+    created_response = client.post(
+        "/api/runs/",
+        headers=headers,
+        json={"workspace_id": "workspace-demo", "query": "run this"},
+    )
+    run_id = created_response.json()["run"]["run_id"]
+    client.post(
+        "/api/runs/workers/heartbeat",
+        headers=headers,
+        json={
+            "workspace_id": "workspace-demo",
+            "worker_id": "worker-route",
+            "vm_id": "vm-route",
+            "user_id": "vm-user-route",
+            "session_id": "session-route",
+            "status": "ready",
+        },
+    )
+
+    missing_key_response = client.post(
+        f"/api/runs/{run_id}/worker-dispatched",
+        json={"worker_id": "worker-route", "user_id": "vm-user-route"},
+    )
+    dispatched_response = client.post(
+        f"/api/runs/{run_id}/worker-dispatched",
+        headers=headers,
+        json={
+            "worker_id": "worker-route",
+            "user_id": "vm-user-route",
+            "turn_ref": "turn-route",
+            "conversation_ref": "conv-route",
+        },
+    )
+
+    assert missing_key_response.status_code == 401
+    assert dispatched_response.status_code == 200
+    body = dispatched_response.json()
+    assert body["run"]["run_id"] == run_id
+    assert body["run"]["status"] == "running"
+    assert body["run"]["query_message_id"] == "turn-route"
+    assert body["latest_event"]["event_type"] == "run-dispatched"
+
+
 def test_stop_all_requires_distinct_control_key(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
