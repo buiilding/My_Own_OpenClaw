@@ -65,7 +65,7 @@ Runtime flow for each frame after handshake:
 |---|---|---|---|
 | `query` | `QueryMessage` | `text`, `conversation_ref`, optional `content`, `query_context`, screenshots/refs, `system_state_internal`, `workspace_path`, `agent_definition` | `query_handler` |
 | `stop-query` | `StopQueryMessage` | Optional `conversation_ref` | `stop_query_handler` |
-| `rehydrate-conversation` | `RehydrateConversationMessage` | `conversation_ref`, `messages[]`, `rehydrate_mode="replace"` | `rehydrate_conversation_handler` |
+| `rehydrate-conversation` | `RehydrateConversationMessage` | `conversation_ref`, `messages[]`, `rehydrate_mode="replace"`, optional `workspace_path`, `repo_instruction_messages` | `rehydrate_conversation_handler` |
 | `load-settings` | `LoadSettingsMessage` | Optional `client_version` | `load_settings_handler` |
 | `list-models` | `ListModelsMessage` | Empty payload object | `list_models_handler` |
 | `update-settings` | `UpdateSettingsMessage` | Optional frontend-owned config fields (`model_mode`, `model_provider`, `selected_model_id`, `interaction_mode`, `speech_mode_enabled`, `wakeword_enabled`, `wakeword_stt_enabled`, `agent_full_sudo_enabled`, `browser_automation_enabled`, `include_query_screenshot`, `provider_api_keys`, `provider_oauth`) | `update_settings_handler` |
