@@ -32,7 +32,9 @@ contextBridge.exposeInMainWorld('ipc', {
   send: (channel, data) => {
     if (VALID_SEND_CHANNELS.has(channel)) {
       ipcRenderer.send(channel, data);
+      return;
     }
+    throw new Error(`Invalid send channel: ${channel}`);
   },
   // Invoke async handlers (returns Promise)
   invoke: (channel, data) => {

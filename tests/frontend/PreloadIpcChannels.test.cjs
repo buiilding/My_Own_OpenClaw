@@ -95,6 +95,13 @@ describe('preload IPC channel registry', () => {
     );
   });
 
+  test('throws for channels outside the shared send registry', () => {
+    expect(() => exposedIpc.send('missing-channel', {})).toThrow(
+      'Invalid send channel: missing-channel',
+    );
+    expect(ipcRendererMock.send).not.toHaveBeenCalledWith('missing-channel', {});
+  });
+
   test('loads channel data from the injected preload argument', () => {
     expect(process.argv).toEqual(
       expect.arrayContaining([
