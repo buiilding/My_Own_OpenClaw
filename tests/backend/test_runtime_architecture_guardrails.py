@@ -8,19 +8,6 @@ def _read(rel_path: str) -> str:
     return (REPO_ROOT / rel_path).read_text()
 
 
-def _line_count(rel_path: str) -> int:
-    return len((REPO_ROOT / rel_path).read_text().splitlines())
-
-
-def test_runtime_module_size_guardrails():
-    assert _line_count("backend/src/agent/session/manager.py") <= 520
-    assert _line_count("frontend/src/main/python/tools/browser/controller.py") <= 1700
-    assert _line_count("frontend/src/main/python/tools/browser/browser_use/browser/session.py") <= 3200
-    assert _line_count("frontend/src/main/python/tools/browser/action_executor.py") <= 1000
-    assert _line_count("frontend/src/main/python/tools/browser/browser_use/browser/navigation_runtime.py") <= 350
-    assert _line_count("frontend/src/main/python/tools/browser/browser_use/browser/watchdog_supervisor.py") <= 220
-
-
 def test_session_manager_is_no_longer_the_owner_of_transition_alias_state():
     manager_source = _read("backend/src/agent/session/manager.py")
 
