@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: share pill and dashboard chat-surface controls for busy/stop
+  state, speech mode, query screenshots, and manual compaction through a common
+  controller hook.
 - docs/refactors: add an overhaul feature-preservation refactor plan covering
   pill/dashboard parity, multi-chat, replay, memory, voice, tools, providers,
   permissions, SDK extensibility, artifacts, and VM runs.

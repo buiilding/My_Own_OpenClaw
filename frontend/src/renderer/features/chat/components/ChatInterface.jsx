@@ -19,7 +19,6 @@ import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { selectChatInterfaceState } from '../utils/chatSelectors';
 import { useRendererConversationSessionInfo } from '../session/useRendererConversationSessionInfo';
 import { startNewChatSession } from '../utils/session/newChatSession';
-import { runManualCompaction } from '../utils/session/manualCompactionRuntime';
 import {
   buildChatModelOptions,
   buildChatProviderOptions,
@@ -33,7 +32,7 @@ import {
 import { useConversationReplayActions } from '../hooks/useConversationReplayActions';
 import { isDevUiEnabled } from '../utils/devUiFlag';
 import { applyStopQueryUiState } from '../utils/state/stopQueryState';
-import { useCurrentTurnPresentationState } from '../hooks/useCurrentTurnPresentationState';
+import { useChatSurfaceController } from '../hooks/useChatSurfaceController';
 import { isVmModeEnabled } from '../../../infrastructure/runtime/vmMode';
 import { useMainWindowControls } from '../../../hooks/useMainWindowControls';
 import {
@@ -197,18 +196,26 @@ function ChatInterface({ focusComposerToken = 0 }) {
     };
   }, [sessionInfo.conversationRef, startWorkspaceBoundNewChat]);
 
-  const speechModeEnabled = config?.speech_mode_enabled === true;
   const showToolLogs = config?.show_tool_logs === true;
-  const {
-    isBusy: composerBusy,
-    awaitingDotTargetMessageId,
-  } = useCurrentTurnPresentationState({
+  const chatSurface = useChatSurfaceController({
     phase: streamPhase,
     isSending,
     messages,
     allowedTypes: VISIBLE_ASSISTANT_REPLY_TYPE_SET,
+    sessionInfo,
+    setThinkingStatus,
+    setThinkingSourceEventType,
+    allowManualCompactionWhileBusy: true,
+    warningContext: 'ChatInterface',
   });
-  const canStop = composerBusy;
+  const {
+    currentTurnPresentationState: {
+      awaitingDotTargetMessageId,
+    },
+    isBusy: composerBusy,
+    canStop,
+    speechModeEnabled,
+  } = chatSurface;
   const renderedMessages = useMemo(() => buildThreadPresentationMessages(messages, {
     showToolLogs,
     isBusy: composerBusy,
@@ -381,13 +388,8 @@ function ChatInterface({ focusComposerToken = 0 }) {
   }, [startWorkspaceBoundNewChat]);
 
   const handleToggleSpeechMode = useCallback(() => {
-    if (typeof updateConfig !== 'function') {
-      return;
-    }
-    updateConfig({
-      speech_mode_enabled: !speechModeEnabled,
-    });
-  }, [speechModeEnabled, updateConfig]);
+    chatSurface.toggleSpeechMode();
+  }, [chatSurface]);
 
   const handleChangeWorkspace = useCallback(async () => {
     try {
@@ -402,15 +404,8 @@ function ChatInterface({ focusComposerToken = 0 }) {
   }, []);
 
   const handleRunAutoCompaction = useCallback(async () => {
-    await runManualCompaction({
-      config,
-      conversationRef: sessionInfo.conversationRef || null,
-      userId: sessionInfo.userId || null,
-      setThinkingStatus,
-      setThinkingSourceEventType,
-      warningContext: 'ChatInterface',
-    });
-  }, [config, sessionInfo.conversationRef, sessionInfo.userId, setThinkingSourceEventType, setThinkingStatus]);
+    await chatSurface.runManualCompaction();
+  }, [chatSurface]);
 
   const handleProviderSelect = useCallback((provider) => {
     setProviderMenuOpen(false);

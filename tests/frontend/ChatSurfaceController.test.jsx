@@ -1,0 +1,166 @@
+import React from 'react';
+import { act, renderHook } from '@testing-library/react';
+import { AppConfigContext } from '../../frontend/src/renderer/app/providers/AppConfigContext';
+import { useChatSurfaceController } from '../../frontend/src/renderer/features/chat/hooks/useChatSurfaceController';
+
+const mockCurrentTurnPresentationState = jest.fn();
+const mockRunManualCompaction = jest.fn();
+
+jest.mock('../../frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState', () => ({
+  useCurrentTurnPresentationState: (...args) => mockCurrentTurnPresentationState(...args),
+}));
+
+jest.mock('../../frontend/src/renderer/features/chat/utils/session/manualCompactionRuntime', () => ({
+  runManualCompaction: (...args) => mockRunManualCompaction(...args),
+}));
+
+function renderController({
+  config = {
+    speech_mode_enabled: false,
+    wakeword_stt_enabled: true,
+    include_query_screenshot: true,
+  },
+  updateConfig = jest.fn(),
+  presentationState = { isBusy: false, awaitingDotTargetMessageId: null },
+  props = {},
+} = {}) {
+  mockCurrentTurnPresentationState.mockReturnValue(presentationState);
+
+  const wrapper = ({ children }) => (
+    <AppConfigContext.Provider value={{ config, updateConfig }}>
+      {children}
+    </AppConfigContext.Provider>
+  );
+
+  const hook = renderHook(() => useChatSurfaceController({
+    phase: 'streaming',
+    isSending: false,
+    messages: [{ id: 'user-1', type: 'user', sender: 'user', text: 'hello' }],
+    sessionInfo: {
+      conversationRef: 'conv-1',
+      userId: 'user-1',
+    },
+    setThinkingStatus: jest.fn(),
+    setThinkingSourceEventType: jest.fn(),
+    warningContext: 'ControllerTest',
+    ...props,
+  }), { wrapper });
+
+  return {
+    ...hook,
+    updateConfig,
+  };
+}
+
+describe('useChatSurfaceController', () => {
+  beforeEach(() => {
+    mockCurrentTurnPresentationState.mockReset();
+    mockRunManualCompaction.mockReset();
+    mockRunManualCompaction.mockResolvedValue(undefined);
+  });
+
+  test('derives shared surface flags and current-turn state', () => {
+    const { result } = renderController({
+      config: {
+        speech_mode_enabled: true,
+        wakeword_stt_enabled: true,
+        include_query_screenshot: false,
+      },
+      presentationState: {
+        isBusy: true,
+        awaitingDotTargetMessageId: 'assistant-1',
+      },
+    });
+
+    expect(result.current.speechModeEnabled).toBe(true);
+    expect(result.current.wakewordSttEnabled).toBe(true);
+    expect(result.current.includeQueryScreenshot).toBe(false);
+    expect(result.current.isBusy).toBe(true);
+    expect(result.current.canStop).toBe(true);
+    expect(result.current.currentTurnPresentationState.awaitingDotTargetMessageId).toBe('assistant-1');
+    expect(mockCurrentTurnPresentationState).toHaveBeenCalledWith(expect.objectContaining({
+      phase: 'streaming',
+      isSending: false,
+    }));
+  });
+
+  test('runs pill and dashboard config toggles through one busy gate', () => {
+    const { result, updateConfig, rerender } = renderController();
+
+    act(() => {
+      expect(result.current.toggleSpeechMode()).toBe(true);
+      expect(result.current.toggleQueryScreenshot()).toBe(true);
+    });
+
+    expect(updateConfig).toHaveBeenCalledWith({ speech_mode_enabled: true });
+    expect(updateConfig).toHaveBeenCalledWith({ include_query_screenshot: false });
+
+    mockCurrentTurnPresentationState.mockReturnValue({ isBusy: true });
+    rerender();
+
+    act(() => {
+      expect(result.current.toggleSpeechMode()).toBe(false);
+      expect(result.current.toggleQueryScreenshot()).toBe(false);
+    });
+
+    expect(updateConfig).toHaveBeenCalledTimes(2);
+  });
+
+  test('runs manual compaction with active conversation context when idle', async () => {
+    const setThinkingStatus = jest.fn();
+    const setThinkingSourceEventType = jest.fn();
+    const { result } = renderController({
+      props: {
+        sessionInfo: {
+          conversationRef: 'conv-active',
+          userId: 'user-active',
+        },
+        setThinkingStatus,
+        setThinkingSourceEventType,
+      },
+    });
+
+    await act(async () => {
+      await expect(result.current.runManualCompaction()).resolves.toBe(true);
+    });
+
+    expect(mockRunManualCompaction).toHaveBeenCalledWith(expect.objectContaining({
+      conversationRef: 'conv-active',
+      userId: 'user-active',
+      setThinkingStatus,
+      setThinkingSourceEventType,
+      warningContext: 'ControllerTest',
+    }));
+  });
+
+  test('blocks manual compaction while the shared surface is busy', async () => {
+    const { result } = renderController({
+      presentationState: {
+        isBusy: true,
+      },
+    });
+
+    await act(async () => {
+      await expect(result.current.runManualCompaction()).resolves.toBe(false);
+    });
+
+    expect(mockRunManualCompaction).not.toHaveBeenCalled();
+  });
+
+  test('allows dashboard-style manual compaction during active turns when requested', async () => {
+    const { result } = renderController({
+      presentationState: {
+        isBusy: true,
+      },
+      props: {
+        allowManualCompactionWhileBusy: true,
+      },
+    });
+
+    await act(async () => {
+      await expect(result.current.runManualCompaction()).resolves.toBe(true);
+    });
+
+    expect(mockRunManualCompaction).toHaveBeenCalledTimes(1);
+  });
+});

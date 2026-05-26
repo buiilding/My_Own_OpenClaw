@@ -74,7 +74,7 @@ it adds the product-feature guardrails those plans need.
 
 ## Refactor Checklist
 
-- [ ] Create a shared chat-surface controller for pill and dashboard.
+- [x] Create a shared chat-surface controller for pill and dashboard.
 
   Issue: The minimal pill and dashboard intentionally share the same runtime,
   but their components still duplicate controls and policy checks. This makes
@@ -99,6 +99,12 @@ it adds the product-feature guardrails those plans need.
   Validation: `ChatBoxOverlayMouseIgnore`, `ChatBoxResponse.state`,
   `ChatInterfaceWiring`, `ResponseOverlayViewContract`, and a new shared
   chat-surface controller test.
+
+  Completed: `useChatSurfaceController` now owns the shared surface contract
+  for current-turn busy/stop state, speech and query-screenshot toggles, and
+  manual compaction dispatch. `ChatBox` and `ChatInterface` keep their separate
+  rendering and OS/window behavior but no longer duplicate those runtime
+  controls.
 
 - [ ] Split renderer send preparation from final live-turn dispatch.
 

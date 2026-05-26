@@ -2,7 +2,6 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { useChatStore } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import { useChatComposerDraft } from '../hooks/useChatComposerDraft';
-import { useCurrentTurnPresentationState } from '../hooks/useCurrentTurnPresentationState';
 import { useResponseOverlayPhase } from '../hooks/useResponseOverlayPhase';
 import { useRendererConversationSessionInfo } from '../session/useRendererConversationSessionInfo';
 import { IpcBridge, INVOKE_CHANNELS, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
@@ -14,7 +13,6 @@ import {
 } from '../hooks/useChatBoxBindings';
 import { useTextareaAutoResize } from '../hooks/useMessageInputUiBindings';
 import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
-import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { isDevUiEnabled } from '../utils/devUiFlag';
 import {
   createChatboxDragState,
@@ -23,7 +21,7 @@ import {
   startChatboxDrag,
   stopChatboxDrag,
 } from '../utils/chatbox/chatboxPillLayout';
-import { runManualCompaction } from '../utils/session/manualCompactionRuntime';
+import { useChatSurfaceController } from '../hooks/useChatSurfaceController';
 import {
   AttachmentIcon,
   CompactIcon,
@@ -36,19 +34,8 @@ import {
 import ChatBoxImagePreviewRow from './chatbox/ChatBoxImagePreviewRow';
 import { removePreviewAttachmentByIdOrIndex } from './chatbox/chatBoxPreviewRemoval';
 
-function applyBooleanConfigUpdate(updateConfig, key, nextValue) {
-  if (typeof updateConfig !== 'function') {
-    return false;
-  }
-  updateConfig({
-    [key]: nextValue,
-  });
-  return true;
-}
-
 function ChatBox() {
   const closeBumpHeight = getChatboxCloseBumpHeight();
-  const { config, updateConfig } = useAppConfigContext();
   const messages = useChatStore((state) => state.messages);
   const isSending = useChatStore((state) => state.isSending);
   const sessionInfo = useRendererConversationSessionInfo();
@@ -68,14 +55,21 @@ function ChatBox() {
   const loopInteractionLockedRef = useRef(false);
   const dragStateRef = useRef(createChatboxDragState());
   const chatboxHitTestActiveRef = useRef(null);
-  const wakewordSttEnabled = config?.wakeword_stt_enabled === true;
-  const speechModeEnabled = config?.speech_mode_enabled === true;
-  const includeQueryScreenshot = config?.include_query_screenshot ?? true;
-  const { isBusy: loopInteractionLocked } = useCurrentTurnPresentationState({
+  const chatSurface = useChatSurfaceController({
     phase: overlayPhase,
     isSending,
     messages,
+    sessionInfo,
+    setThinkingStatus,
+    setThinkingSourceEventType,
+    warningContext: 'ChatBox',
   });
+  const {
+    includeQueryScreenshot,
+    isBusy: loopInteractionLocked,
+    speechModeEnabled,
+    wakewordSttEnabled,
+  } = chatSurface;
   const devUiEnabled = isDevUiEnabled();
   const {
     attachmentInputRef,
@@ -289,49 +283,19 @@ function ChatBox() {
     }
   }, [inputValue, submitMessageValue]);
 
-  const handleConfigToggle = useCallback((key, nextValue, options = {}) => {
-    if (loopInteractionLocked) {
-      return;
-    }
-    const didUpdate = applyBooleanConfigUpdate(updateConfig, key, nextValue);
-    if (!didUpdate) {
-      return;
-    }
-    if (options.focusInputAfter) {
+  const handleToggleQueryScreenshot = useCallback(() => {
+    if (chatSurface.toggleQueryScreenshot()) {
       focusInput();
     }
-  }, [focusInput, loopInteractionLocked, updateConfig]);
-
-  const handleToggleQueryScreenshot = useCallback(() => {
-    handleConfigToggle('include_query_screenshot', !includeQueryScreenshot, {
-      focusInputAfter: true,
-    });
-  }, [handleConfigToggle, includeQueryScreenshot]);
+  }, [chatSurface, focusInput]);
 
   const handleToggleSpeechMode = useCallback(() => {
-    handleConfigToggle('speech_mode_enabled', !speechModeEnabled);
-  }, [handleConfigToggle, speechModeEnabled]);
+    chatSurface.toggleSpeechMode();
+  }, [chatSurface]);
 
   const handleDevAutoCompaction = useCallback(() => {
-    if (loopInteractionLocked) {
-      return;
-    }
-    void runManualCompaction({
-      config,
-      conversationRef: sessionInfo.conversationRef || null,
-      userId: sessionInfo.userId || null,
-      setThinkingStatus,
-      setThinkingSourceEventType,
-      warningContext: 'ChatBox',
-    });
-  }, [
-    config,
-    loopInteractionLocked,
-    sessionInfo.conversationRef,
-    sessionInfo.userId,
-    setThinkingSourceEventType,
-    setThinkingStatus,
-  ]);
+    void chatSurface.runManualCompaction();
+  }, [chatSurface]);
 
   const handleDragMove = useCallback((event) => {
     const nextTarget = getChatboxDragTarget(dragStateRef.current, event);
