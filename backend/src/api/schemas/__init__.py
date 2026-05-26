@@ -48,6 +48,8 @@ from backend.src.api.schemas.outgoing import (
     LlmThought,
     MemoryStoreMessage,
     MemoryStorePayload,
+    QueryAcceptedMessage,
+    QueryAcceptedPayload,
     StreamingComplete,
     StreamingResponse,
     SystemPromptMessage,
@@ -70,6 +72,8 @@ from backend.src.api.schemas.outgoing import (
     WakewordActivatedMessage,
     WakewordGreetingMessage,
     WakewordGreetingPayload,
+    WebSearchProgressMessage,
+    WebSearchProgressPayload,
 )
 
 __all__ = [
@@ -102,6 +106,8 @@ __all__ = [
     "LoadSettingsMessage",
     "MemoryStoreMessage",
     "MemoryStorePayload",
+    "QueryAcceptedMessage",
+    "QueryAcceptedPayload",
     "QueryMessage",
     "StopQueryMessage",
     "RehydrateConversationEntry",
@@ -136,4 +142,6 @@ __all__ = [
     "WakewordDetectedMessage",
     "WakewordGreetingMessage",
     "WakewordGreetingPayload",
+    "WebSearchProgressMessage",
+    "WebSearchProgressPayload",
 ]

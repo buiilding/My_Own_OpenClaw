@@ -22,10 +22,42 @@ from backend.src.api.schemas import (
     ContextCompactionFailedMessage,
     ContextCompactionStartedMessage,
     MemoryStoreMessage,
+    QueryAcceptedMessage,
+    QueryAcceptedPayload,
     SystemPromptMessage,
     TokenCountMessage,
     ToolSchemasMessage,
+    WebSearchProgressMessage,
+    WebSearchProgressPayload,
 )
+import backend.src.api.schemas as schemas
+
+
+def test_outgoing_public_package_exports_include_progress_schemas() -> None:
+    assert QueryAcceptedMessage.__name__ in schemas.__all__
+    assert QueryAcceptedPayload.__name__ in schemas.__all__
+    assert WebSearchProgressMessage.__name__ in schemas.__all__
+    assert WebSearchProgressPayload.__name__ in schemas.__all__
+
+    accepted = QueryAcceptedMessage.model_validate(
+        {
+            "type": "query-accepted",
+            "id": "msg_accepted",
+            "user_id": "user_1",
+            "payload": {"status": "accepted"},
+        }
+    )
+    progress = WebSearchProgressMessage.model_validate(
+        {
+            "type": "web-search-progress",
+            "id": "msg_search",
+            "user_id": "user_1",
+            "payload": {"text": "Searching", "request_id": "req_1"},
+        }
+    )
+
+    assert accepted.payload.status == "accepted"
+    assert progress.payload.request_id == "req_1"
 
 
 def test_tool_schemas_formatter_output_matches_schema() -> None:
