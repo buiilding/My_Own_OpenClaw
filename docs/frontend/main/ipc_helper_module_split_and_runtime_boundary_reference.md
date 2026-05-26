@@ -130,6 +130,32 @@ Owns persisted frontend-config disk I/O:
 - `loadFrontendConfigFromDisk`
 - `saveFrontendConfigToDisk` with tmp-write + rename replacement
 
+### `ipc_frontend_config_handlers.cjs`
+
+Owns frontend-config IPC handler registration:
+
+- `load-frontend-config`
+- `save-frontend-config`
+- shortcut fallback application while keeping the latest config cache in
+  `ipc.cjs` through injected getters/setters
+
+### `ipc_chat_query_handlers.cjs`
+
+Owns typed chat query IPC handler orchestration:
+
+- `send-chat-query`
+- `stop-chat-query`
+- backend connection gating, initial settings sync waiting, SDK query command
+  send, send-failure recovery, and stop-query phase completion
+
+### `ipc_response_overlay_handlers.cjs`
+
+Owns response-overlay preflight IPC handler registration:
+
+- `prime-response-overlay-awaiting`
+- active-loop phase guard before moving the response overlay into
+  `awaiting-first-chunk`
+
 ### `ipc_memory_store_persistence.cjs`
 
 Owns backend `memory-store` event side effect persistence:

@@ -26,6 +26,9 @@ const {
   saveFrontendConfigToDisk,
 } = require('./ipc/ipc_frontend_config.cjs');
 const {
+  registerFrontendConfigHandlers,
+} = require('./ipc/ipc_frontend_config_handlers.cjs');
+const {
   loadInstallAuthStateFromDisk,
   registerInstallWithBackend,
   saveInstallAuthStateToDisk,
@@ -73,9 +76,8 @@ const {
   loadPublicExtensionRegistry,
 } = require('./extension_manifest.cjs');
 const {
-  handleRendererQuerySendFailure,
-  prepareRendererQuerySend,
-} = require('./ipc/ipc_query_send_runtime.cjs');
+  createChatQueryHandlers,
+} = require('./ipc/ipc_chat_query_handlers.cjs');
 const {
   trackRendererWindow: trackRendererWindowRuntime,
   broadcastToRenderers: broadcastToRenderersRuntime,
@@ -87,6 +89,9 @@ const {
 const {
   createResponseOverlayPhaseState,
 } = require('./ipc/ipc_overlay_phase_state.cjs');
+const {
+  registerResponseOverlayHandlers,
+} = require('./ipc/ipc_response_overlay_handlers.cjs');
 const {
   createIpcEventReplayState,
 } = require('./ipc/ipc_event_replay_state.cjs');
@@ -737,15 +742,17 @@ function initializeIpc(win, options = {}) {
     );
   }
 
-  ipcMain.handle('load-frontend-config', async () => {
-    const config = await loadCachedFrontendConfigFromDisk();
-    if (isValidConfigPayload(config)) {
-      latestFrontendConfig = applyShortcutStatusFallbackToConfig({ ...config });
-      if (typeof setGlobalAgentStopShortcutAccelerator === 'function') {
-        setGlobalAgentStopShortcutAccelerator(latestFrontendConfig.global_agent_stop_shortcut);
-      }
-    }
-    return latestFrontendConfig;
+  registerFrontendConfigHandlers({
+    ipcMain,
+    loadCachedFrontendConfigFromDisk,
+    persistFrontendConfigToDisk,
+    isValidConfigPayload,
+    applyShortcutStatusFallbackToConfig,
+    getLatestFrontendConfig: () => latestFrontendConfig,
+    setLatestFrontendConfig: (config) => {
+      latestFrontendConfig = config;
+    },
+    setGlobalAgentStopShortcutAccelerator,
   });
 
   ipcMain.handle('list-agent-extensions', async () => loadPublicExtensionRegistry());
@@ -763,16 +770,10 @@ function initializeIpc(win, options = {}) {
     };
   });
 
-  ipcMain.handle('prime-response-overlay-awaiting', async () => {
-    const currentPhase = responseOverlayPhaseState.getPhase();
-    if (
-      currentPhase !== 'streaming'
-      && currentPhase !== 'tool-call'
-      && currentPhase !== 'tool-output'
-    ) {
-      setResponseOverlayPhase('awaiting-first-chunk', 'renderer-send-preflight');
-    }
-    return { success: true };
+  registerResponseOverlayHandlers({
+    ipcMain,
+    getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
+    setResponseOverlayPhase,
   });
 
   ipcMain.handle('upload-artifact', async (_event, payload) => {
@@ -797,13 +798,6 @@ function initializeIpc(win, options = {}) {
         error: String(error?.message || error || 'Failed to fetch artifact image.'),
       };
     }
-  });
-
-  ipcMain.handle('save-frontend-config', async (event, config) => {
-    if (isValidConfigPayload(config) && typeof setGlobalAgentStopShortcutAccelerator === 'function') {
-      setGlobalAgentStopShortcutAccelerator(config.global_agent_stop_shortcut);
-    }
-    return await persistFrontendConfigToDisk(config);
   });
 
   registerClipboardImageHandler({
@@ -881,142 +875,69 @@ function initializeIpc(win, options = {}) {
     handleRendererLog(payload);
   });
 
-  async function handleRendererChatQuery(event, payloadInput = {}) {
-    let payload = (
-      payloadInput
-      && typeof payloadInput === 'object'
-      && !Array.isArray(payloadInput)
-    ) ? { ...payloadInput } : {};
-    let queryMessageId = null;
-    let queryUsedInitialContext = false;
+  const {
+    handleRendererChatQuery,
+    handleRendererStopQuery,
+  } = createChatQueryHandlers({
+    getState: () => ({
+      currentConversationRef,
+      currentSessionId,
+      currentServerUserId,
+      currentUserId,
+      isFirstQuery,
+    }),
+    setCurrentConversationRef: (conversationRef) => {
+      currentConversationRef = conversationRef;
+    },
+    setActiveQueryContext: (queryContext) => {
+      activeQueryContext = queryContext;
+    },
+    setFirstQuery: (nextValue) => {
+      isFirstQuery = nextValue;
+    },
+    attachAgentDefinitionContext: (payload) => buildBackendQueryPayload(
+      attachAgentDefinitionContext(payload),
+    ),
+    ensureInstallAuthState,
+    isBackendRuntimeConnected,
+    ensureBackendConnection,
+    ensureInitialSettingsSync,
+    getPendingSettingsSyncPromise: () => settingsSyncRuntime.waitForPendingSync(),
+    sendSdkRuntimeCommand,
+    getWindieSdkRuntime,
+    sendStopQueryToBackend,
+    setResponseOverlayPhase,
+    resolvePreferredArtifactHttpUrl: () => resolvePreferredArtifactHttpUrl(
+      BACKEND_HTTP_URL,
+      BACKEND_ENDPOINT_CANDIDATES,
+    ),
+    deps: {
+      BrowserWindow,
+      screen,
+      runBeforeOverlayQueryCapture,
+      onBeforeOverlayQueryCapture,
+      log,
+      prepareRendererQueryPayload,
+      resolveConversationRefFromPayload,
+      uuidGenerator: uuidv4,
+      logChatPillMainTrace,
+      setResponseOverlayPhase,
+      getWindows,
+      setActiveDisplayAffinity,
+      resolveActiveSurfaceDisplayAffinity,
+      broadcastLocalUserMessageRuntime,
+      buildLocalUserMessage,
+      broadcastToRenderers,
+      ipcEventReplayState,
+      buildQueryPayload,
+      buildQueryPayloadContext,
+      getSystemState,
+      searchMemory,
+      broadcastQuerySendFailureRuntime,
+      buildQuerySendFailure,
+    },
+  });
 
-    if (!currentUserId) {
-      try {
-        await ensureInstallAuthState();
-      } catch (error) {
-        log(`Failed to resolve authenticated user before query: ${error?.message || error}`);
-      }
-    }
-
-    let preparedQuery = null;
-    try {
-      preparedQuery = await prepareRendererQuerySend({
-        event,
-        payload,
-        currentConversationRef,
-        currentSessionId,
-        currentServerUserId,
-        currentUserId,
-        backendHttpUrl: resolvePreferredArtifactHttpUrl(
-          BACKEND_HTTP_URL,
-          BACKEND_ENDPOINT_CANDIDATES,
-        ),
-        isFirstQuery,
-        deps: {
-          BrowserWindow,
-          screen,
-          runBeforeOverlayQueryCapture,
-          onBeforeOverlayQueryCapture,
-          log,
-          prepareRendererQueryPayload,
-          resolveConversationRefFromPayload,
-          uuidGenerator: uuidv4,
-          logChatPillMainTrace,
-          setResponseOverlayPhase,
-          getWindows,
-          setActiveDisplayAffinity,
-          resolveActiveSurfaceDisplayAffinity,
-          broadcastLocalUserMessageRuntime,
-          buildLocalUserMessage,
-          broadcastToRenderers,
-          ipcEventReplayState,
-          buildQueryPayload,
-          buildQueryPayloadContext,
-          getSystemState,
-          searchMemory,
-        },
-      });
-    } catch (error) {
-      log(`Rejected renderer query: ${error?.message || error}`);
-      setResponseOverlayPhase('error', 'query-missing-conversation-ref');
-      return { ok: false, error: error?.message || 'Rejected renderer query' };
-    }
-
-    payload = buildBackendQueryPayload(
-      attachAgentDefinitionContext(preparedQuery.payload),
-    );
-    currentConversationRef = preparedQuery.conversationRef;
-    queryMessageId = preparedQuery.queryMessageId;
-    queryUsedInitialContext = preparedQuery.queryUsedInitialContext;
-    activeQueryContext = {
-      queryMessageId,
-      conversationRef: currentConversationRef,
-      accepted: false,
-    };
-    log('Received query from renderer');
-    log('Complete user message built successfully');
-
-    let backendConnectionReady = true;
-    if (!isBackendRuntimeConnected()) {
-      try {
-        await ensureBackendConnection('query');
-      } catch (error) {
-        backendConnectionReady = false;
-        log(`Failed to connect backend for query: ${error?.message || error}`);
-      }
-    }
-
-    if (backendConnectionReady) {
-      await ensureInitialSettingsSync();
-      await settingsSyncRuntime.waitForPendingSync();
-    }
-
-    let messageId = null;
-    if (backendConnectionReady) {
-      messageId = sendSdkRuntimeCommand(getWindieSdkRuntime(), {
-        type: 'query',
-        payload,
-        messageId: queryMessageId,
-      });
-    }
-
-    if (!messageId) {
-      activeQueryContext = null;
-      handleRendererQuerySendFailure({
-        payload,
-        queryMessageId,
-        currentSessionId,
-        currentServerUserId,
-        currentUserId,
-        currentConversationRef,
-        deps: {
-          resolveConversationRefFromPayload,
-          ipcEventReplayState,
-          broadcastQuerySendFailureRuntime,
-          buildQuerySendFailure,
-          setResponseOverlayPhase,
-          broadcastToRenderers,
-        },
-      });
-      return { ok: false, error: 'Failed to send query to backend' };
-    }
-
-    if (queryUsedInitialContext) {
-      isFirstQuery = false;
-    }
-    return { ok: true, messageId, queryMessageId };
-  }
-
-  function handleRendererStopQuery(payloadInput = {}) {
-    const payload = (
-      payloadInput
-      && typeof payloadInput === 'object'
-      && !Array.isArray(payloadInput)
-    ) ? { ...payloadInput } : {};
-    const messageId = sendStopQueryToBackend(payload);
-    setResponseOverlayPhase('complete', 'stop-query');
-    return { ok: Boolean(messageId), messageId };
-  }
 
   ipcMain.handle('send-chat-query', async (event, payload = {}) => (
     handleRendererChatQuery(event, payload)

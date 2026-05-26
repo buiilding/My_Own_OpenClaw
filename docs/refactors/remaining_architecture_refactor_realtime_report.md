@@ -269,6 +269,70 @@ Skipped or failed validation:
 
 - None for this slice.
 
+## Shrink Electron Main IPC Into Focused Ownership Modules
+
+Status: in progress.
+
+Commit: included in the same commit as this report entry.
+
+Implementation:
+
+- Added `frontend/src/main/ipc/ipc_chat_query_handlers.cjs` as the focused
+  owner for typed renderer chat query send/stop handler orchestration.
+- Moved backend-connect gating, initial settings sync waiting, SDK query
+  command send, query failure recovery, and stop-query completion handling out
+  of `frontend/src/main/ipc.cjs`.
+- Kept query preparation, payload construction, local optimistic user-message
+  broadcast, and failure-event helpers in their existing focused query modules.
+- Added `ipc_frontend_config_handlers.cjs` as the focused owner for
+  `load-frontend-config` and `save-frontend-config` handler registration.
+- Added `ipc_response_overlay_handlers.cjs` as the focused owner for
+  `prime-response-overlay-awaiting` preflight policy.
+- Added focused tests for the new frontend-config and response-overlay handler
+  modules.
+- Left `ipc.cjs` responsible for handler registration and explicit state
+  getter/setter wiring.
+
+Previous behavior:
+
+- `ipc.cjs` defined the full `send-chat-query` and `stop-chat-query` handler
+  bodies inline, mixing typed IPC registration with query orchestration and
+  backend connection policy.
+- `ipc.cjs` also registered frontend-config load/save and response-overlay
+  preflight handlers inline.
+
+Current behavior:
+
+- `ipc.cjs` registers the typed channels and wires runtime dependencies.
+- `ipc_chat_query_handlers.cjs` owns the send/stop handler behavior for the
+  typed chat query IPC path.
+- Frontend-config and response-overlay preflight handler policy now live in
+  focused IPC modules.
+
+Success criteria:
+
+- Query dispatch is no longer inline in the IPC composition root: completed for
+  typed renderer chat query send/stop.
+- Frontend-config and response-overlay preflight handler registration are no
+  longer inline in the IPC composition root: completed.
+- Full IPC root shrink is not complete; remaining inline areas include generic
+  `to-backend` forwarding, config/bootstrap state, artifact/OAuth handlers,
+  and automated query dispatch.
+
+Validation:
+
+- `cd frontend && npm run test -- IpcMainBridge.query IpcMainBridge.lifecycle IpcQueryRuntime QueryPayloadBuilder IpcFrontendConfigHandlers IpcResponseOverlayHandlers --runInBand`
+- `node -e "console.log(typeof require('./frontend/src/main/ipc/ipc_chat_query_handlers.cjs').createChatQueryHandlers, typeof require('./frontend/src/main/ipc/ipc_frontend_config_handlers.cjs').registerFrontendConfigHandlers, typeof require('./frontend/src/main/ipc/ipc_response_overlay_handlers.cjs').registerResponseOverlayHandlers)"`
+- `cd frontend && npm run typecheck`
+- `cd frontend && npm run lint`
+- `./bin/docs-list`
+- `git diff --check`
+
+Skipped or failed validation:
+
+- Electron smoke launch was not run for this in-progress IPC shrink slice; the
+  focused main IPC/query tests covered the extracted typed chat query path.
+
 ## Remove Hand-Maintained SDK CommonJS Source Mirrors
 
 Status: completed.

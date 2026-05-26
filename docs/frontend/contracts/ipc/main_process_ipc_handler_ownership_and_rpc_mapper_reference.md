@@ -69,9 +69,14 @@ Main-process handler registration is split by responsibility:
 
 Notable behavior:
 
-- `send-chat-query` performs initial settings sync gate, local optimistic user event synthesis, payload enrichment, and websocket send
-- `stop-chat-query` sends the backend stop command without exposing generic renderer command routing
-- `save/load-frontend-config` call atomic file helpers in `ipc_frontend_config.cjs`
+- `send-chat-query` and `stop-chat-query` are registered by `ipc.cjs`, while
+  `ipc_chat_query_handlers.cjs` owns the typed query send/stop orchestration
+- `save/load-frontend-config` are registered by
+  `ipc_frontend_config_handlers.cjs` and call atomic file helpers in
+  `ipc_frontend_config.cjs`
+- `prime-response-overlay-awaiting` is registered by
+  `ipc_response_overlay_handlers.cjs` so overlay phase preflight policy stays
+  outside the IPC composition root
 - clipboard image copy and image context-menu copy share the same main-process
   fetch policy: bounded `data:image/*` URLs are decoded locally; HTTP(S) fetches
   are limited to trusted backend-origin `/api/artifacts/...` URLs, use manual
