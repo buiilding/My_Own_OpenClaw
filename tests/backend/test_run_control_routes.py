@@ -428,6 +428,58 @@ def test_runs_routes_require_matching_key_when_configured(
     assert read_response.json()["run_id"] == run_id
 
 
+def test_get_run_route_network_contract(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("WINDIE_RUNS_API_KEY", "runs-secret")
+    monkeypatch.delenv("WINDIE_DEMO_API_KEY", raising=False)
+    client = create_runs_test_client()
+    headers = {"x-windie-runs-key": "runs-secret"}
+
+    created_response = client.post(
+        "/api/runs/",
+        headers=headers,
+        json={
+            "workspace_id": "workspace-demo",
+            "query": "run this",
+            "requested_by": "tester",
+        },
+    )
+    run_id = created_response.json()["run"]["run_id"]
+
+    success_response = client.get(f"/api/runs/{run_id}", headers=headers)
+    missing_response = client.get("/api/runs/missing-run", headers=headers)
+    missing_key_response = client.get(f"/api/runs/{run_id}")
+    wrong_key_response = client.get(
+        f"/api/runs/{run_id}",
+        headers={"x-windie-runs-key": "wrong"},
+    )
+
+    assert success_response.status_code == 200
+    assert success_response.json() == {
+        "run_id": run_id,
+        "workspace_id": "workspace-demo",
+        "status": "awaiting_worker",
+        "control_mode": "agent_only",
+        "query": "run this",
+        "agent_id": None,
+        "requested_by": "tester",
+        "created_at": created_response.json()["run"]["created_at"],
+        "updated_at": created_response.json()["run"]["updated_at"],
+        "worker": None,
+        "conversation_ref": created_response.json()["run"]["conversation_ref"],
+        "query_message_id": None,
+        "files": [],
+        "metadata": {},
+        "last_event_seq": 1,
+        "last_heartbeat_at": None,
+    }
+    assert missing_response.status_code == 404
+    assert missing_response.json()["detail"] == "Run not found"
+    assert missing_key_response.status_code == 401
+    assert wrong_key_response.status_code == 401
+
+
 def test_worker_dispatched_route_requires_key_and_acknowledges_run(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
