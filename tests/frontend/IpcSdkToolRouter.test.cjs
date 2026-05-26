@@ -187,8 +187,11 @@ describe('ipc sdk tool router', () => {
     });
   });
 
-  test('does not claim tool calls without a request id wait', async () => {
-    const executeLocalTool = jest.fn();
+  test('uses event id as the request id fallback for tool calls', async () => {
+    const executeLocalTool = jest.fn(async () => ({
+      success: true,
+      data: { output: 'read ok' },
+    }));
     const sendToolResult = jest.fn();
 
     const claimed = routeSdkToolEventToLocalRuntime({
@@ -204,12 +207,25 @@ describe('ipc sdk tool router', () => {
       executeLocalTool,
       sendToolResult,
     });
-    await Promise.resolve();
-    await Promise.resolve();
+    await flushRoutedToolExecution();
 
-    expect(claimed).toBe(false);
-    expect(executeLocalTool).not.toHaveBeenCalled();
-    expect(sendToolResult).not.toHaveBeenCalled();
+    expect(claimed).toBe(true);
+    expect(executeLocalTool).toHaveBeenCalledWith({
+      toolName: 'read_file',
+      args: { path: '/tmp/a' },
+      requestId: 'event-only-id',
+      toolCallId: 'call-only',
+      correlationId: 'corr-only',
+    });
+    expect(sendToolResult).toHaveBeenCalledWith({
+      request_id: 'event-only-id',
+      success: true,
+      data: expect.objectContaining({
+        output: 'read ok',
+        llm_content: 'read ok',
+      }),
+      error: undefined,
+    });
   });
 
   test('adds llm_content fallback without adding schema-invalid metadata', async () => {
