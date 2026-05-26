@@ -746,6 +746,23 @@ async def test_sdk_vision_locate_all_returns_authenticated_best_match_list(
 
 
 @pytest.mark.asyncio
+async def test_sdk_vision_describe_uses_full_image_without_region(tmp_path) -> None:
+    container = _container(tmp_path)
+
+    response = await sdk_routes.sdk_vision_describe(
+        VisionDescribeRequest(
+            image=ImageSourceInput(image_base64=_png_base64(size=(300, 120))),
+        ),
+        container,
+    )
+
+    assert response.region is None
+    assert response.image.width == 300
+    assert response.image.height == 120
+    assert response.description == "region size 300x120"
+
+
+@pytest.mark.asyncio
 async def test_sdk_vision_describe_uses_cropped_region(tmp_path) -> None:
     container = _container(tmp_path)
 
