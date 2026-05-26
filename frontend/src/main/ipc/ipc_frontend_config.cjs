@@ -1,6 +1,7 @@
 const { app } = require('electron');
 const fs = require('fs');
 const path = require('path');
+const { enqueueAtomicWrite } = require('./queued_atomic_write.cjs');
 
 const FRONTEND_CONFIG_FILENAME = 'frontend-config.json';
 
@@ -33,10 +34,7 @@ async function saveFrontendConfigToDisk(config, log) {
       return { success: false, error: 'Invalid config payload' };
     }
     const filePath = getFrontendConfigPath();
-    await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
-    const tempPath = `${filePath}.tmp`;
-    await fs.promises.writeFile(tempPath, JSON.stringify(config, null, 2), 'utf-8');
-    await fs.promises.rename(tempPath, filePath);
+    await enqueueAtomicWrite(filePath, JSON.stringify(config, null, 2), 'utf-8');
     return { success: true };
   } catch (error) {
     log(`Failed to save frontend config to disk: ${error.message}`);

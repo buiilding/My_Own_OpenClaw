@@ -1,6 +1,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { enqueueAtomicWrite } = require('./queued_atomic_write.cjs');
 
 let electronApp = null;
 try {
@@ -90,14 +91,10 @@ async function saveInstallAuthStateToDisk(state, log) {
     }
     const filePath = getInstallAuthStatePath();
     await ensureInstallAuthStateDirectory(filePath);
-    const tempPath = `${filePath}.tmp`;
-    await fs.promises.rm(tempPath, { force: true });
-    await fs.promises.writeFile(tempPath, JSON.stringify(normalized, null, 2), {
+    await enqueueAtomicWrite(filePath, JSON.stringify(normalized, null, 2), {
       encoding: 'utf-8',
       mode: INSTALL_AUTH_FILE_MODE,
     });
-    await chmodIfSupported(tempPath, INSTALL_AUTH_FILE_MODE);
-    await fs.promises.rename(tempPath, filePath);
     await hardenInstallAuthStatePath(filePath);
     return { success: true, state: normalized };
   } catch (error) {
