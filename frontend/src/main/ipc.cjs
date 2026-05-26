@@ -398,6 +398,21 @@ function resetBackendSessionState() {
   currentConversationRef = null;
 }
 
+function resetIpcProcessStateForTests() {
+  isConnected = false;
+  isFirstQuery = true;
+  currentUserId = null;
+  currentInstallId = null;
+  currentInstallToken = null;
+  currentSessionId = null;
+  currentServerUserId = null;
+  currentConversationRef = null;
+  activeQueryContext = null;
+  latestFrontendConfig = null;
+  currentGlobalAgentStopShortcutStatus = null;
+  pendingInstallAuthStatePromise = null;
+}
+
 function isActiveBackendLoopPhase(phase) {
   return (
     phase === 'awaiting-first-chunk'
@@ -657,6 +672,7 @@ function getWindieSdkRuntime() {
 function shutdownIpcForTests() {
   resetSettingsSyncState();
   resetBackendSessionState();
+  resetIpcProcessStateForTests();
   modelListRequestRuntime.clear();
   rendererWindows = new Set();
   backendMessageObservers.clear();
@@ -664,9 +680,7 @@ function shutdownIpcForTests() {
   onBeforeOverlayQueryCapture = null;
   setAgentLoopStopShortcutEnabled = null;
   setGlobalAgentStopShortcutAccelerator = null;
-  pendingInstallAuthStatePromise = null;
   const runtime = windieSdkRuntime;
-  isConnected = false;
   windieSdkRuntime = null;
   runtime?.close?.('test-shutdown');
 }

@@ -84,6 +84,32 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     }));
   });
 
+  test('shutdown clears process-global client state for same-module reuse', async () => {
+    const bridge = initIpc();
+
+    bridge.ipc.updateGlobalAgentStopShortcutStatus({
+      requestedAccelerator: 'CommandOrControl+Alt+.',
+      resolvedAccelerator: 'CommandOrControl+Alt+.',
+      registrationFailed: true,
+    });
+    expect(await bridge.handlers['get-client-user-id']()).toEqual(expect.objectContaining({
+      globalAgentStopShortcutStatus: expect.objectContaining({
+        registrationFailed: true,
+      }),
+    }));
+
+    bridge.ipc.shutdownIpcForTests();
+
+    expect(await bridge.handlers['get-client-user-id']()).toEqual(expect.objectContaining({
+      userId: null,
+      sessionId: null,
+      conversationRef: null,
+      serverUserId: null,
+      isConnected: false,
+      globalAgentStopShortcutStatus: null,
+    }));
+  });
+
   test('sends handshake on websocket open with server-issued user_id', async () => {
     const { ws } = await setupOpenedIpc();
 
@@ -654,7 +680,6 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     const setGlobalAgentStopShortcutAccelerator = jest.fn();
     const { handlers, fs } = initIpc({ setGlobalAgentStopShortcutAccelerator });
     const appDataPath = path.join(path.sep, 'tmp', 'appdata');
-    const tempConfigPath = path.join(appDataPath, 'frontend-config.json.tmp');
     const configPath = path.join(appDataPath, 'frontend-config.json');
 
     const result = await handlers['save-frontend-config'](null, {
@@ -666,21 +691,16 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(fs.promises.mkdir.mock.calls).toEqual([
       [appDataPath, { recursive: true }],
     ]);
-    expect(fs.promises.writeFile.mock.calls).toEqual([
-      [
-        tempConfigPath,
-        JSON.stringify({
-          model_mode: 'online',
-          global_agent_stop_shortcut: 'CommandOrControl+Alt+.',
-        }, null, 2),
-        'utf-8',
-      ],
-    ]);
+    expect(fs.promises.writeFile).toHaveBeenCalledTimes(1);
+    const [tempConfigPath, serializedConfig, encoding] = fs.promises.writeFile.mock.calls[0];
+    expect(tempConfigPath).toMatch(/frontend-config\.json\.\d+\.\d+\.\d+\.tmp$/);
+    expect(serializedConfig).toBe(JSON.stringify({
+      model_mode: 'online',
+      global_agent_stop_shortcut: 'CommandOrControl+Alt+.',
+    }, null, 2));
+    expect(encoding).toBe('utf-8');
     expect(fs.promises.rename.mock.calls).toEqual([
-      [
-        tempConfigPath,
-        configPath,
-      ],
+      [tempConfigPath, configPath],
     ]);
     expect(setGlobalAgentStopShortcutAccelerator).toHaveBeenCalledWith('CommandOrControl+Alt+.');
   });
