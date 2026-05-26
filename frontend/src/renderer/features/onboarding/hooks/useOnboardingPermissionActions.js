@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { usePermissionStore } from '../../permissions/stores/permissionStore';
 import { applyPermissionGrantEffects } from '../../permissions/utils/permissionGrantEffects';
+import { isPermissionGrantedStatus } from '../../permissions/utils/permissionStatus';
 
 const MACOS_INTERVAL_RECHECK_PERMISSION_IDS = new Set([
   'screen_capture',
@@ -55,7 +56,7 @@ async function recheckWatchedPermission({
   const status = typeof runPermissionProbe === 'function'
     ? await runPermissionProbe(permissionId)
     : null;
-  if (status?.granted === true || Date.now() >= recheckDeadlineRef.current) {
+  if (isPermissionGrantedStatus(status) || Date.now() >= recheckDeadlineRef.current) {
     stopWatchingPermission({
       watchedPermissionIdRef,
       recheckIntervalRef,
@@ -156,7 +157,7 @@ export function useOnboardingPermissionActions() {
       applyPermissionGrantEffects({ permissionId, status, updateConfig });
       if (shouldWatchExternalGrantCompletion(permissionId, status)) {
         startWatchingPermission(permissionId);
-      } else if (status?.granted === true && watchedPermissionIdRef.current === permissionId) {
+      } else if (isPermissionGrantedStatus(status) && watchedPermissionIdRef.current === permissionId) {
         stopWatchingPermission({
           watchedPermissionIdRef,
           recheckIntervalRef,

@@ -1,5 +1,9 @@
 import { getPermissionGrantedLabel } from './permissionPresentation';
 
+function isPermissionGrantedStatus(status) {
+  return status?.granted === true || status?.status === 'granted';
+}
+
 function getPermissionPill(status, permission) {
   if (status === 'granted') {
     return { label: getPermissionGrantedLabel(permission), className: 'granted' };
@@ -13,4 +17,4 @@ function getPermissionPill(status, permission) {
   return { label: 'Not checked', className: '' };
 }
 
-export { getPermissionPill };
+export { getPermissionPill, isPermissionGrantedStatus };

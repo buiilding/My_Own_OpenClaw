@@ -94,6 +94,35 @@ describe('useOnboardingPermissionActions', () => {
     expect(mockRunPermissionProbe).toHaveBeenCalledTimes(2);
   });
 
+  test('stops polling when the external grant probe returns status-only granted', async () => {
+    mockRequestPermission.mockResolvedValue({
+      permission_id: 'screen_capture',
+      status: 'needs-action',
+      granted: false,
+    });
+    mockRunPermissionProbe.mockResolvedValue({
+      permission_id: 'screen_capture',
+      status: 'granted',
+    });
+
+    render(React.createElement(HookHarness, { permissionId: 'screen_capture' }));
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'grant' }));
+      await Promise.resolve();
+    });
+
+    expect(mockRunPermissionProbe).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('button', { name: 'grant' })).toBeInTheDocument();
+
+    await act(async () => {
+      jest.advanceTimersByTime(3000);
+      await Promise.resolve();
+    });
+
+    expect(mockRunPermissionProbe).toHaveBeenCalledTimes(1);
+  });
+
   test('forces a permission recheck when WindieOS regains focus after opening macOS settings', async () => {
     mockRequestPermission.mockResolvedValue({
       permission_id: 'screen_capture',

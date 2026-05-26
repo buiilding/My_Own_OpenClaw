@@ -4,6 +4,7 @@ import {
   getPermissionGrantedLabel,
   getPermissionKindLabel,
 } from '../../permissions/utils/permissionPresentation';
+import { isPermissionGrantedStatus } from '../../permissions/utils/permissionStatus';
 
 function PermissionOnboardingSlide({
   activePermission = null,
@@ -27,7 +28,7 @@ function PermissionOnboardingSlide({
   }
 
   const statusReason = typeof status?.reason === 'string' ? status.reason.trim() : '';
-  const isGranted = status?.granted === true || status?.status === 'granted';
+  const isGranted = isPermissionGrantedStatus(status);
   const isPending = pendingPermissionId === activePermission.permission_id;
   const isWaiting = waitingPermissionId === activePermission.permission_id;
   const actionLabel = getPermissionActionLabel(activePermission);
