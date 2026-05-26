@@ -850,6 +850,55 @@ async def test_sdk_debug_models_returns_catalog_and_effective_config(
 
 
 @pytest.mark.asyncio
+async def test_sdk_debug_models_applies_same_user_query_overrides(
+    tmp_path,
+    authenticated_install_identity,
+) -> None:
+    container = _container(
+        tmp_path,
+        config=AppConfig(
+            artifact_store_path=str(tmp_path),
+            artifact_max_bytes=1024 * 1024,
+            model_provider="openai",
+            selected_model_id="gpt-5.4@@gpt-5-4-none-thinking",
+            interaction_mode="agent",
+        ),
+    )
+    session_manager = _FakeSessionManager(
+        SimpleNamespace(
+            cfg=AppConfig(
+                artifact_store_path=str(tmp_path),
+                artifact_max_bytes=1024 * 1024,
+                model_provider="anthropic",
+                selected_model_id="claude-sonnet-4-20250514",
+                interaction_mode="chat",
+            )
+        )
+    )
+
+    response = await sdk_routes.sdk_debug_models(
+        container=container,
+        session_manager=session_manager,
+        user_id=authenticated_install_identity.user_id,
+        model_id="gpt-5.4@@gpt-5-4-none-thinking",
+        model_provider="openai",
+        interaction_mode="agent",
+    )
+
+    assert response.model_dump().keys() == {"config", "models"}
+    assert response.config.model_provider == "openai"
+    assert response.config.selected_model_id == "gpt-5.4@@gpt-5-4-none-thinking"
+    assert response.config.interaction_mode == "agent"
+    assert response.models == [
+        {
+            "id": "gpt-5.4@@gpt-5-4-none-thinking",
+            "provider": "openai",
+            "display_name": "GPT-5.4",
+        }
+    ]
+
+
+@pytest.mark.asyncio
 async def test_sdk_debug_models_requires_authenticated_identity(tmp_path) -> None:
     container = _container(tmp_path)
 
