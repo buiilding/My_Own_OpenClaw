@@ -8,6 +8,7 @@ const {
 const {
   COMPILED_RPC_HANDLER_DEFINITIONS,
   mapSearchMemoryPayload,
+  mapStoreMemoryPayload,
   registerMappedRpcHandlers,
 } = require('./local_backend_bridge_rpc_mappers.cjs');
 const {
@@ -22,8 +23,22 @@ const {
   createLocalBackendRequestTransport,
 } = require('./local_backend_bridge_request_transport.cjs');
 const {
+  createLocalBackendRpcTransport,
+} = require('./local_backend_bridge_rpc_transport.cjs');
+const {
   createLocalBackendExecuteToolRuntime,
 } = require('./local_backend_bridge_execute_tool_runtime.cjs');
+const {
+  createLocalBackendReadinessRuntime,
+} = require('./local_backend_readiness_runtime.cjs');
+const {
+  createLocalBackendStdoutTransport,
+} = require('./local_backend_stdout_transport.cjs');
+const {
+  broadcastSidecarEvent,
+  buildLocalBackendStatusPayload,
+  sendLocalBackendStatus,
+} = require('./local_backend_status_broadcaster.cjs');
 const {
   loadInstallAuthStateFromDisk,
 } = require('./ipc/ipc_install_auth_state.cjs');
@@ -32,16 +47,9 @@ const {
 } = require('./runtime_paths.cjs');
 const { createLocalBackendSupervisor } = require('./local_backend_supervisor.cjs');
 const { createSidecarDaemonManager } = require('./sidecar_daemon_manager.cjs');
-const { v4: uuidv4 } = require('uuid');
 
 let pythonProcess = null;
-let stdoutBuffer = '';
-let pendingStdoutLines = [];
-let isDrainingStdoutLines = false;
-let readinessCheckCallback = null;
-let readinessCheckToken = 0;
 
-const LARGE_JSON_PARSE_OFFLOAD_THRESHOLD_BYTES = 128 * 1024;
 const BROWSER_CONTROL_EXPLANATION = 'Manage the dedicated browser session from the chat header.';
 const isTestEnv = process.env.NODE_ENV === 'test';
 let runtimeScreenCaptureCapabilityVerifier = async () => ({
@@ -64,160 +72,36 @@ function isBackendReady() {
   return localBackendSupervisor.getSnapshot().ready;
 }
 
+const localBackendReadinessRuntime = createLocalBackendReadinessRuntime({
+  getProcess: () => pythonProcess,
+  supervisor: localBackendSupervisor,
+  sendStatus: sendLocalBackendStatus,
+  isTestEnv,
+});
+
 const localBackendRequestTransport = createLocalBackendRequestTransport({
   getProcess: () => pythonProcess,
   isBackendReady,
-  getReadinessCallback: () => readinessCheckCallback,
+  getReadinessCallback: () => localBackendReadinessRuntime.getCallback(),
 });
 
-function shouldOffloadJsonParse(line) {
-  return Buffer.byteLength(line, 'utf8') >= LARGE_JSON_PARSE_OFFLOAD_THRESHOLD_BYTES;
-}
-
-function parseJsonInWorker(line) {
-  let WorkerClass;
-  try {
-    ({ Worker: WorkerClass } = require('worker_threads'));
-  } catch (_error) {
-    return Promise.resolve(JSON.parse(line));
-  }
-
-  return new Promise((resolve, reject) => {
-    const worker = new WorkerClass(
-      `
-const { parentPort } = require('worker_threads');
-parentPort.on('message', (payload) => {
-  try {
-    parentPort.postMessage({ ok: true, value: JSON.parse(payload) });
-  } catch (error) {
-    parentPort.postMessage({
-      ok: false,
-      error: error instanceof Error ? error.message : String(error),
-    });
-  }
+const localBackendStdoutTransport = createLocalBackendStdoutTransport({
+  handleResponse: (response) => localBackendRequestTransport.handlePythonResponse(response),
+  isActiveProcessReference,
 });
-`,
-      { eval: true },
-    );
 
-    let settled = false;
-    const finish = (resolver, value) => {
-      if (settled) {
-        return;
-      }
-      settled = true;
-      Promise.resolve(worker.terminate())
-        .catch(() => {})
-        .finally(() => resolver(value));
-    };
-
-    worker.once('message', (message) => {
-      if (message && message.ok === true) {
-        finish(resolve, message.value);
-        return;
-      }
-      const errorMessage = (
-        message
-        && typeof message === 'object'
-        && typeof message.error === 'string'
-        && message.error.trim()
-      ) ? message.error : 'JSON parse worker failed';
-      finish(reject, new Error(errorMessage));
-    });
-
-    worker.once('error', (error) => {
-      finish(reject, error);
-    });
-
-    worker.once('exit', (code) => {
-      if (!settled && code !== 0) {
-        finish(reject, new Error(`JSON parse worker exited with code ${code}`));
-      }
-    });
-
-    worker.postMessage(line);
-  });
-}
-
-async function drainStdoutLines(processRef) {
-  if (isDrainingStdoutLines) {
-    return;
-  }
-  isDrainingStdoutLines = true;
-
-  try {
-    while (pendingStdoutLines.length > 0) {
-      if (!isActiveProcessReference(processRef)) {
-        pendingStdoutLines = [];
-        return;
-      }
-
-      const line = pendingStdoutLines.shift();
-      try {
-        const response = shouldOffloadJsonParse(line)
-          ? await parseJsonInWorker(line)
-          : JSON.parse(line);
-        localBackendRequestTransport.handlePythonResponse(response);
-      } catch (error) {
-        console.error('[LocalBackend] Error parsing response:', error, 'Line:', line);
-      }
-    }
-  } finally {
-    isDrainingStdoutLines = false;
-    if (pendingStdoutLines.length > 0 && isActiveProcessReference(processRef)) {
-      void drainStdoutLines(processRef);
-    }
-  }
-}
+const localBackendRpcTransport = createLocalBackendRpcTransport({
+  getDaemonManager: () => sidecarDaemonManager,
+  getDaemonLaunchOptions: () => sidecarDaemonRpcLaunchOptions,
+  legacyTransport: localBackendRequestTransport,
+});
 
 function isActiveProcessReference(processRef) {
   return localBackendSupervisor.isActiveProcess(processRef);
 }
 
-function getReadinessRetryDelay(attempt) {
-  return Math.min(50 * Math.pow(2, attempt - 1), 1000);
-}
-
-function scheduleReadinessRetry(mainWindow, attempt, maxAttempts, checkToken) {
-  if (attempt < maxAttempts) {
-    const delay = getReadinessRetryDelay(attempt);
-    setTimeout(() => {
-      if (typeof checkToken === 'number' && checkToken !== readinessCheckToken) {
-        return;
-      }
-      checkReadiness(mainWindow, attempt + 1, maxAttempts);
-    }, delay);
-    return true;
-  }
-  return false;
-}
-
 function markBackendReady(mainWindow) {
-  localBackendSupervisor.markReady();
-  mainWindow?.webContents.send('local-backend-status', { ready: true });
-}
-
-function markBackendReadinessFailed(mainWindow, error) {
-  const errorMessage = typeof error === 'string' && error.trim()
-    ? error.trim()
-    : 'Local backend readiness check failed';
-  readinessCheckCallback = null;
-  localBackendSupervisor.markError(errorMessage);
-  mainWindow?.webContents.send('local-backend-status', {
-    ready: false,
-    status: 'error',
-    error: errorMessage,
-  });
-}
-
-function buildLocalBackendStatusPayload() {
-  const snapshot = localBackendSupervisor.getSnapshot();
-  return {
-    ready: snapshot.ready === true,
-    status: typeof snapshot.status === 'string' ? snapshot.status : 'stopped',
-    error: typeof snapshot.lastError === 'string' ? snapshot.lastError : '',
-    sidecarDaemon: sidecarDaemonManager?.getSnapshot?.() || null,
-  };
+  localBackendReadinessRuntime.markReady(mainWindow);
 }
 
 function resetBackendProcessState({ reason, status = 'stopped' } = {}) {
@@ -226,12 +110,9 @@ function resetBackendProcessState({ reason, status = 'stopped' } = {}) {
     status,
     error: status === 'error' ? reason || '' : '',
   });
-  readinessCheckCallback = null;
-  readinessCheckToken = localBackendSupervisor.getSnapshot().generation;
+  localBackendReadinessRuntime.resetToGeneration();
   localBackendRequestTransport.rejectPendingRequests(reason);
-  stdoutBuffer = '';
-  pendingStdoutLines = [];
-  isDrainingStdoutLines = false;
+  localBackendStdoutTransport.reset();
 }
 
 function notifyBackendUnavailable(mainWindow, error) {
@@ -242,74 +123,6 @@ function notifyBackendUnavailable(mainWindow, error) {
     ready: false,
     error,
   });
-}
-
-function checkReadiness(mainWindow, attempt = 1, maxAttempts = 10) {
-  if (!pythonProcess) {
-    return;
-  }
-  const checkToken = ++readinessCheckToken;
-
-  const requestId = `__readiness_check_${attempt}__`;
-  const request = {
-    jsonrpc: '2.0',
-    id: requestId,
-    method: 'ping',
-    params: {},
-  };
-
-  try {
-    const jsonStr = JSON.stringify(request);
-    pythonProcess.stdin.write(jsonStr + '\n');
-  } catch (error) {
-    console.error('[LocalBackend] Failed to send ping:', error);
-    scheduleReadinessRetry(mainWindow, attempt, maxAttempts, checkToken);
-    return;
-  }
-
-  readinessCheckCallback = (response) => {
-    if (checkToken !== readinessCheckToken) {
-      return;
-    }
-    if (response.id === requestId) {
-      readinessCheckCallback = null;
-      
-      if (response.result && response.result.status === 'ok') {
-        if (process.env.NODE_ENV !== 'production') {
-          console.log('[LocalBackend] Python service ready (verified via ping)');
-        }
-        markBackendReady(mainWindow);
-      } else {
-        if (!scheduleReadinessRetry(mainWindow, attempt, maxAttempts, checkToken)) {
-          if (!isTestEnv) {
-            console.warn('[LocalBackend] Backend readiness check failed after max attempts');
-          }
-          markBackendReadinessFailed(
-            mainWindow,
-            'Local backend readiness check failed after max attempts',
-          );
-        }
-      }
-    }
-  };
-
-  setTimeout(() => {
-    if (checkToken !== readinessCheckToken) {
-      return;
-    }
-    if (readinessCheckCallback) {
-      readinessCheckCallback = null;
-      if (!scheduleReadinessRetry(mainWindow, attempt, maxAttempts, checkToken)) {
-        if (!isTestEnv) {
-          console.warn('[LocalBackend] Backend readiness check timed out after max attempts');
-        }
-        markBackendReadinessFailed(
-          mainWindow,
-          'Local backend readiness check timed out after max attempts',
-        );
-      }
-    }
-  }, 500);
 }
 
 function startLocalBackend(mainWindow, options = {}) {
@@ -405,52 +218,12 @@ function startLocalBackend(mainWindow, options = {}) {
     env: backendEnv,
   });
   const processRef = pythonProcess;
-  readinessCheckToken = localBackendSupervisor.attachProcess(processRef);
+  const generation = localBackendSupervisor.attachProcess(processRef);
+  localBackendReadinessRuntime.resetToGeneration(generation);
 
-  checkReadiness(mainWindow);
-
-  stdoutBuffer = '';
-
-  pythonProcess.stdout.on('data', (data) => {
-    if (!isActiveProcessReference(processRef)) {
-      return;
-    }
-    try {
-      stdoutBuffer += data.toString();
-      
-      const lines = stdoutBuffer.split('\n');
-      stdoutBuffer = lines.pop() || '';
-      for (const line of lines) {
-        if (!line.trim()) {
-          continue;
-        }
-
-        const queueLine = (
-          isDrainingStdoutLines
-          || pendingStdoutLines.length > 0
-          || shouldOffloadJsonParse(line)
-        );
-
-        if (queueLine) {
-          pendingStdoutLines.push(line);
-          continue;
-        }
-
-        try {
-          const response = JSON.parse(line);
-          localBackendRequestTransport.handlePythonResponse(response);
-        } catch (error) {
-          console.error('[LocalBackend] Error parsing response:', error, 'Line:', line);
-        }
-      }
-
-      if (pendingStdoutLines.length > 0) {
-        void drainStdoutLines(processRef);
-      }
-    } catch (error) {
-      console.error('[LocalBackend] Error processing stdout:', error);
-    }
-  });
+  localBackendReadinessRuntime.check(mainWindow);
+  localBackendStdoutTransport.reset();
+  localBackendStdoutTransport.attach(processRef);
 
   pythonProcess.stderr.on('data', (data) => {
     if (!isActiveProcessReference(processRef)) {
@@ -505,33 +278,11 @@ function startLocalBackend(mainWindow, options = {}) {
 }
 
 function sendRequest(method, params = {}, options = {}) {
-  if (sidecarDaemonManager && typeof sidecarDaemonManager.rpc === 'function') {
-    const requestId = uuidv4();
-    return sidecarDaemonManager
-      .rpc({
-        id: requestId,
-        method,
-        params,
-      }, sidecarDaemonRpcLaunchOptions || {})
-      .then((response) => {
-        if (response?.error) {
-          throw new Error(response.error.message || 'JSON-RPC error');
-        }
-        return response?.result;
-      });
-  }
-  return localBackendRequestTransport.sendRequest(method, params, options);
+  return localBackendRpcTransport.sendRequest(method, params, options);
 }
 
 async function sendRequestOrError(method, params = {}, options = {}) {
-  try {
-    return await sendRequest(method, params, options);
-  } catch (error) {
-    return {
-      success: false,
-      error: getErrorMessage(error),
-    };
-  }
+  return localBackendRpcTransport.sendRequestOrError(method, params, options);
 }
 
 async function getSystemStateFromBackend(fields) {
@@ -553,22 +304,6 @@ async function sendMemorySearchRequest(payload = {}) {
     'search_memory',
     mapSearchMemoryPayload(payload),
   );
-}
-
-function mapStoreMemoryPayload(payload = {}) {
-  const source = (
-    payload
-    && typeof payload === 'object'
-    && !Array.isArray(payload)
-  ) ? payload : {};
-
-  return {
-    user_query: source.user_query ?? source.userQuery,
-    assistant_response: source.assistant_response ?? source.assistantResponse,
-    memory_type: source.memory_type ?? source.memoryType,
-    user_id: source.user_id ?? source.userId,
-    session_id: source.session_id ?? source.sessionId,
-  };
 }
 
 async function storeMemory(payload = {}) {
@@ -614,7 +349,8 @@ function startDaemonBackedLocalBackend(mainWindow, launchOptions = {}) {
   }
   sidecarDaemonRpcLaunchOptions = launchOptions;
   daemonBackendProcessRef = { kind: 'sidecar-daemon' };
-  readinessCheckToken = localBackendSupervisor.attachProcess(daemonBackendProcessRef);
+  const generation = localBackendSupervisor.attachProcess(daemonBackendProcessRef);
+  localBackendReadinessRuntime.resetToGeneration(generation);
   void sidecarDaemonManager.ensureDaemon(launchOptions)
     .then(() => {
       if (daemonBackendProcessRef) {
@@ -671,12 +407,7 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
   );
   if (typeof sidecarDaemonManager?.subscribeEvents === 'function') {
     sidecarDaemonManager.subscribeEvents((payload) => {
-      for (const win of resolveWindows()) {
-        if (!win || win.isDestroyed?.()) {
-          continue;
-        }
-        win.webContents?.send?.('sidecar-event', payload);
-      }
+      broadcastSidecarEvent(resolveWindows, payload);
     });
   }
   const sidecarDaemonClient = options.sidecarDaemonClient || (
@@ -749,7 +480,10 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
       },
     });
   });
-  ipcMain.handle('get-local-backend-status', async () => buildLocalBackendStatusPayload());
+  ipcMain.handle('get-local-backend-status', async () => buildLocalBackendStatusPayload({
+    supervisor: localBackendSupervisor,
+    sidecarDaemonManager,
+  }));
 
   runtimeScreenCaptureCapabilityVerifier = executeToolRuntime.createScreenCaptureCapabilityVerifier();
   runtimeExecuteTool = async (payload = {}) => executeToolRuntime.executeTool(null, payload);

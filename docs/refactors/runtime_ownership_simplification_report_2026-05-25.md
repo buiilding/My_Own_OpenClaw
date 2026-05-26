@@ -232,12 +232,35 @@ Verification:
 - `cd packages/windie-sdk-js && ELECTRON_RUN_AS_NODE=1 ..\..\frontend\node_modules\electron\dist\electron.exe ..\..\frontend\node_modules\typescript\bin\tsc -p tsconfig.build.json` - pass
 - `git diff --check` - pass
 
+### Sidecar Bridge Ownership Split
+
+Status: completed and verified.
+
+Changes:
+
+- Moved legacy sidecar stdout buffering, stale-process checks, large JSON parse offload, and JSON-RPC response parsing from `local_backend_bridge.cjs` into `local_backend_stdout_transport.cjs`.
+- Moved readiness ping retry/callback ownership into `local_backend_readiness_runtime.cjs`, leaving the supervisor as the process state owner and the readiness runtime as the readiness probe owner.
+- Added `local_backend_bridge_rpc_transport.cjs` so sidecar daemon mode and legacy process fallback share one `sendRequest()` / `sendRequestOrError()` interface.
+- Moved local backend status payload construction and sidecar event fanout into `local_backend_status_broadcaster.cjs`.
+- Moved `store_memory` camelCase/snake_case alias mapping into `local_backend_bridge_rpc_mappers.cjs` and added a boundary test that fails if memory aliases are reintroduced inline in `local_backend_bridge.cjs`.
+
+Success criteria covered:
+
+- `local_backend_bridge.cjs` no longer owns stdout parsing loops, parse offload, readiness callback tokens, or memory field alias mapping inline.
+- Readiness retry/callback state has one owner in `local_backend_readiness_runtime.cjs`.
+- Sidecar daemon and legacy process fallback use the same request transport interface.
+- Mapper tests cover field aliases and guard against adding memory aliases outside the mapper registry.
+
+Verification:
+
+- `cd frontend && ELECTRON_RUN_AS_NODE=1 .\node_modules\electron\dist\electron.exe .\node_modules\jest\bin\jest.js LocalBackendReadinessRuntime LocalBackendStdoutTransport LocalBackendRpcTransport LocalBackendBridgeRpcMappers LocalBackendStatusBroadcaster LocalBackendBridge.lifecycle LocalBackendBridge.rpc SidecarDaemonManager --runInBand` - pass
+- `rg -n "stdout\.on\('data'|readinessCheck|stdoutBuffer|pendingStdoutLines|isDrainingStdoutLines|shouldOffloadJsonParse|parseJsonInWorker|source\.userQuery|source\.assistantResponse|source\.memoryType|source\.userId|source\.sessionId|sidecarDaemonManager\s*&&\s*typeof sidecarDaemonManager\.rpc" frontend/src/main/local_backend_bridge.cjs -S` - pass, no matches
+
 ## Pending
 
 - `frontend/src/main/ipc.cjs` composition-root split.
   - In progress: model-list request queueing moved to `frontend/src/main/ipc/ipc_model_list_runtime.cjs` with focused unit tests.
   - In progress: renderer diagnostic log routing moved to `frontend/src/main/ipc/ipc_diagnostics_runtime.cjs` with focused unit tests.
-- Sidecar bridge split.
 - Frontend/backend websocket contract tests for all message families.
 - Diagnostics runtime and redaction boundary.
 - Architecture docs current/target/debt updates for remaining duplicate paths.
