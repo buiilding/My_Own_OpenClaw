@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs: document Python SDK websocket payload normalization for attachment
+  query context, backend settings patches, and tool-result capture metadata.
 - docs: sync backend websocket schema references with generated incoming
   contract keys for query, rehydrate, compact-history, tool-result, and
   tool-bundle-result payloads.

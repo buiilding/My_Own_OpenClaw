@@ -380,6 +380,11 @@ Electron uses the SDK `SidecarConversationStore` through a desktop store factory
 - the Python SDK websocket session also forwards request, provider, correlation,
   and bundle identities into local runtime `execute_tool(...)` calls so sidecar
   execution can preserve SDK-owned tool routing state.
+- the Python SDK websocket session sends attachment bodies through backend-owned
+  `query_context.attachment_context`, keeps attachment filenames out of backend
+  query payloads, filters `update-settings` patches to backend-accepted keys, and
+  drops incomplete screenshot `capture_meta` from sidecar tool results before
+  returning them to backend history.
 
 Skipped compaction is represented as `compaction_skipped`. It is runtime/debug
 state and should not render as assistant output or a full compacted-history panel

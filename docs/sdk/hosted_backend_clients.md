@@ -49,6 +49,17 @@ tool manifest in `agent_definition`, and route backend `tool-call` /
 The Python runtime also exposes `status()`, `list_tools()`, and
 `shutdown_local_runtime()` for the resolved local daemon.
 
+Python websocket agent sessions normalize backend-bound payloads before send:
+
+- attachment file bodies are sent as `query_context.attachment_context`;
+  attachment filenames remain client/display metadata and are not sent to the
+  backend websocket query payload
+- `update_settings(...)` filters patches to backend-owned `update-settings`
+  keys, including the supported provider API-key and OAuth nested shapes
+- sidecar tool-result data keeps complete screenshot `capture_meta` only; partial
+  or malformed capture metadata is dropped before the result is returned to the
+  backend
+
 ## Auth and Endpoints
 
 - Hosted requests use the active backend base URL.
