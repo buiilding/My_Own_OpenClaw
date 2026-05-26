@@ -1,3 +1,5 @@
+const INSTALLATION_URL = 'https://github.com/buiilding/WindieOS/blob/main/README.md#quick-start';
+
 const AvailableTodaySection = () => {
   const features = [
     {
@@ -87,7 +89,7 @@ const AvailableTodaySection = () => {
             </div>          
           </div>
           
-          <a href="#download" className="btn btn-primary btn-large">
+          <a href={INSTALLATION_URL} className="btn btn-primary btn-large">
             View Installation Guide
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M5 12h14M12 5l7 7-7 7"/>

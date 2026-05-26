@@ -106,10 +106,13 @@ describe('AvailableTodaySection', () => {
   });
 
   it('renders CTA box', () => {
-    render(<AvailableTodaySection />);
+    const { container } = render(<AvailableTodaySection />);
     
     expect(screen.getByText('Start using WindieOS today')).toBeInTheDocument();
     expect(screen.getByText('View Installation Guide')).toBeInTheDocument();
+    expect(
+      container.querySelector('a[href="https://github.com/buiilding/WindieOS/blob/main/README.md#quick-start"]'),
+    ).toHaveTextContent('View Installation Guide');
   });
 });
 
