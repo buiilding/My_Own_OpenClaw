@@ -15,6 +15,7 @@ title: "Memory Section Data Normalization and Delete Contract Reference"
 - `frontend/src/renderer/features/dashboard/components/sections/memorySectionData.js`
 - `frontend/src/renderer/features/dashboard/hooks/useTranscriptSessionInfo.js`
 - `frontend/src/renderer/features/dashboard/utils/episodicMemoryUtils.js`
+- `frontend/src/renderer/app/runtime/desktopMemoryRuntimeClient.ts`
 - `tests/frontend/MemorySection.test.jsx`
 
 ## MemorySection Runtime Ownership
@@ -44,8 +45,8 @@ User id for memory calls is derived from transcript session:
 
 Initial load runs both calls in parallel:
 
-- `LIST_EPISODIC_MEMORIES` with `{ userId, limit: 200 }`
-- `LIST_SEMANTIC_MEMORIES` with `{ userId, limit: 200 }`
+- `DesktopMemoryRuntimeClient.listEpisodicMemories(userId, 200)`
+- `DesktopMemoryRuntimeClient.listSemanticMemories(userId, 200)`
 
 Normalization modules:
 
@@ -82,10 +83,13 @@ Match behavior:
 Add/edit controls are intentionally not exposed in `MemorySection`. The panel is backed by sidecar episodic and semantic stores, and local-only draft mutations would disappear on reload. Until a real create/update memory IPC contract exists for this dashboard shape, delete is the only row mutation.
 
 - no confirmation prompt; delete is single-click
-- rows with `backendMemoryId` and backend type:
-  - `semantic` -> `DELETE_SEMANTIC_MEMORY`
-  - `episodic` -> `DELETE_EPISODIC_MEMORY`
+- rows with `backendMemoryId` and backend type call
+  `DesktopMemoryRuntimeClient.deleteMemoryItem({ userId, memoryId, kind })`
 - rows without backend id are removed from local list only
+
+`DesktopMemoryRuntimeClient` contains the sidecar-shaped IPC channel names and
+result normalization. `MemorySection` must stay UI-scoped and call the facade
+instead of importing memory IPC constants.
 
 After delete:
 
@@ -109,8 +113,8 @@ After delete:
 - load path calls episodic + semantic list channels (not conversation list APIs)
 - semantic tab render + procedural empty state
 - left close button delegates `onClose`
-- semantic delete uses `delete-semantic-memory` with expected payload
-- episodic delete uses `delete-episodic-memory` with expected payload
+- semantic delete uses the memory runtime client with expected payload
+- episodic delete uses the memory runtime client with expected payload
 - unsupported local add/edit actions are not rendered
 - semantic delete path does not use `window.confirm`
 
