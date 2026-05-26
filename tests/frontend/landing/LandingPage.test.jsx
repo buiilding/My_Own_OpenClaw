@@ -172,6 +172,20 @@ describe('CTAFooter', () => {
     expect(screen.getByText('Legal')).toBeInTheDocument();
   });
 
+  it('uses real targets for resource and legal links', () => {
+    const { container } = render(<CTAFooter />);
+    const links = Array.from(container.querySelectorAll('a'));
+    const hrefsByText = new Map(links.map(link => [link.textContent.trim(), link.getAttribute('href')]));
+
+    expect(links.map(link => link.getAttribute('href'))).not.toContain('#');
+    expect(hrefsByText.get('Read Documentation')).toBe('https://github.com/buiilding/WindieOS/blob/main/docs/README.md');
+    expect(hrefsByText.get('Documentation')).toBe('https://github.com/buiilding/WindieOS/blob/main/docs/README.md');
+    expect(hrefsByText.get('Installation')).toBe('https://github.com/buiilding/WindieOS/blob/main/README.md#quick-start');
+    expect(hrefsByText.get('Changelog')).toBe('https://github.com/buiilding/WindieOS/blob/main/CHANGELOG.md');
+    expect(hrefsByText.get('License')).toBe('https://github.com/buiilding/WindieOS/blob/main/LICENSE');
+    expect(screen.queryByText('Terms')).not.toBeInTheDocument();
+  });
+
   it('renders copyright', () => {
     render(<CTAFooter />);
     

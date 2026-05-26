@@ -1,5 +1,11 @@
 import ProviderStackIcon from './icons/ProviderStackIcon';
 
+const REPO_URL = 'https://github.com/buiilding/WindieOS';
+const DOCS_URL = `${REPO_URL}/blob/main/docs/README.md`;
+const INSTALLATION_URL = `${REPO_URL}/blob/main/README.md#quick-start`;
+const CHANGELOG_URL = `${REPO_URL}/blob/main/CHANGELOG.md`;
+const LICENSE_URL = `${REPO_URL}/blob/main/LICENSE`;
+
 const CTAFooter = () => {
   const currentYear = new Date().getFullYear();
 
@@ -24,7 +30,7 @@ const CTAFooter = () => {
               
               <div className="cta-actions">
                 <a 
-                  href="https://github.com/buiilding/WindieOS" 
+                  href={REPO_URL}
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="btn btn-primary btn-large"
@@ -35,7 +41,7 @@ const CTAFooter = () => {
                   View on GitHub
                 </a>
                 
-                <a href="#" className="btn btn-secondary btn-large">
+                <a href={DOCS_URL} className="btn btn-secondary btn-large">
                   Read Documentation
                 </a>
               </div>
@@ -88,19 +94,18 @@ const CTAFooter = () => {
               <div className="footer-column">
                 <h4>Resources</h4>
                 <ul>
-                  <li><a href="https://github.com/buiilding/WindieOS">GitHub</a></li>
-                  <li><a href="#">Documentation</a></li>
-                  <li><a href="#">Installation</a></li>
-                  <li><a href="#">Changelog</a></li>
+                  <li><a href={REPO_URL}>GitHub</a></li>
+                  <li><a href={DOCS_URL}>Documentation</a></li>
+                  <li><a href={INSTALLATION_URL}>Installation</a></li>
+                  <li><a href={CHANGELOG_URL}>Changelog</a></li>
                 </ul>
               </div>
               
               <div className="footer-column">
                 <h4>Legal</h4>
                 <ul>
-                  <li><a href="#">License</a></li>
+                  <li><a href={LICENSE_URL}>License</a></li>
                   <li><a href="#privacy">Privacy</a></li>
-                  <li><a href="#">Terms</a></li>
                 </ul>
               </div>
             </div>
