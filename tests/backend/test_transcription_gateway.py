@@ -13,6 +13,7 @@ from backend.src.api.routes.transcription import router as transcription_router
 from backend.src.api.services.transcription.audio_frames import (
     build_gateway_audio_frame,
     parse_gateway_audio_frame,
+    resample_pcm16_mono,
 )
 from backend.src.core.config.models import AppConfig
 
@@ -113,6 +114,11 @@ def test_parse_gateway_audio_frame_round_trips_metadata_and_payload():
 
     assert sample_rate == 16000
     assert decoded_payload == payload
+
+
+def test_resample_pcm16_mono_rejects_odd_length_input_before_numpy():
+    with pytest.raises(ValueError, match="PCM16 audio byte length must be even"):
+        resample_pcm16_mono(b"\x00", 16000, 24000)
 
 
 def test_transcription_route_forwards_control_and_audio(monkeypatch):

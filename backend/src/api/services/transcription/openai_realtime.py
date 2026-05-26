@@ -74,11 +74,15 @@ class OpenAIRealtimeTranscriptionSession(TranscriptionProviderSession):
             await self._send_json({"type": "input_audio_buffer.clear"})
 
     async def handle_audio_chunk(self, audio_bytes: bytes, sample_rate: int) -> None:
-        normalized_audio = resample_pcm16_mono(
-            audio_bytes,
-            src_rate=sample_rate,
-            dst_rate=OPENAI_INPUT_SAMPLE_RATE,
-        )
+        try:
+            normalized_audio = resample_pcm16_mono(
+                audio_bytes,
+                src_rate=sample_rate,
+                dst_rate=OPENAI_INPUT_SAMPLE_RATE,
+            )
+        except ValueError as exc:
+            logger.warning("Dropping malformed transcription audio chunk: %s", exc)
+            return
         if not normalized_audio:
             return
         await self._send_json(

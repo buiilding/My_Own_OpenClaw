@@ -43,6 +43,8 @@ def resample_pcm16_mono(audio_bytes: bytes, src_rate: int, dst_rate: int) -> byt
     """Resample signed PCM16 mono audio with linear interpolation."""
     if not audio_bytes or src_rate <= 0 or dst_rate <= 0 or src_rate == dst_rate:
         return audio_bytes
+    if len(audio_bytes) % 2 != 0:
+        raise ValueError("PCM16 audio byte length must be even")
 
     source = np.frombuffer(audio_bytes, dtype=np.int16)
     if source.size == 0:

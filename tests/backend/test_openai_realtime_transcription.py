@@ -158,3 +158,15 @@ async def test_openai_realtime_failed_transcription_clears_partial_transcript():
         {"type": "error", "message": "{'message': 'decode failed'}"},
     ]
     assert dict(session._partial_transcripts) == {}
+
+
+@pytest.mark.asyncio
+async def test_openai_realtime_drops_malformed_pcm16_chunk(caplog):
+    session = OpenAIRealtimeTranscriptionSession(AppConfig(stt_provider="openai"))
+    fake_connection = _FakeRealtimeConnection()
+    session._connection = fake_connection
+
+    await session.handle_audio_chunk(b"\x00", 16000)
+
+    assert fake_connection.sent_messages == []
+    assert "Dropping malformed transcription audio chunk" in caplog.text
