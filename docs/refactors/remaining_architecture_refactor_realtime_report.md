@@ -271,7 +271,7 @@ Skipped or failed validation:
 
 ## Shrink Electron Main IPC Into Focused Ownership Modules
 
-Status: in progress.
+Status: completed for the planned extraction scope.
 
 Commit: included in the same commit as this report entry.
 
@@ -332,6 +332,9 @@ Current behavior:
 - `ipc_settings_sync_runtime.cjs` owns settings ACK state, initial settings-sync
   attempt gating, renderer/update-settings backend sends, backend settings
   payload filtering, and queued list-models request flush after backend open.
+- `ipc_backend_endpoint_state.cjs` owns backend endpoint candidates, active
+  endpoint selection, fallback advancement, and current HTTP/WebSocket URL
+  reads for SDK runtime, IPC status, artifacts, and trusted image origins.
 
 Success criteria:
 
@@ -353,13 +356,17 @@ Success criteria:
   longer inline in the IPC composition root: completed.
 - Settings ACK state, initial settings sync, and queued list-models request
   state are no longer inline in the IPC composition root: completed.
-- Full IPC root shrink is not complete; remaining inline state still includes
-  endpoint/session globals, connection status snapshots, and handler
-  composition.
+- Backend endpoint candidate and active endpoint state are no longer inline in
+  the IPC composition root: completed.
+- The planned extraction targets are complete. `ipc.cjs` still keeps session,
+  identity, and registration composition state because those values
+  are shared by multiple extracted modules and are not independent owner modules
+  yet.
 
 Validation:
 
 - `cd frontend && npm run test -- IpcSettingsSyncRuntime IpcSettingsSync IpcMainBridge.lifecycle IpcSdkCommandForwarding IpcFrontendConfigHandlers --runInBand`
+- `cd frontend && npm run test -- IpcBackendEndpointState IpcMainBridge.lifecycle IpcArtifactHandlers IpcClipboardImageHandler IpcImageContextMenuHandler --runInBand`
 - `cd frontend && npm run test -- IpcSdkRuntimeLifecycle IpcMainBridge.lifecycle --runInBand`
 - `cd frontend && npm run test -- IpcMainBridge.lifecycle IpcStartupState IpcFrontendConfigHandlers MainWindowRuntime MainProcessBootstrapRuntime --runInBand`
 - `cd frontend && npm run test -- IpcAutomatedQueryDispatcher IpcQueryRuntime VmWorkerRuntime MainProcessBootstrapRuntime --runInBand`
@@ -376,12 +383,15 @@ Validation:
 - `cd frontend && npm run lint`
 - `./bin/docs-list`
 - `git diff --check`
+- `cd frontend && npm run electron:dev`
 
 Skipped or failed validation:
 
-- Electron smoke launch was not run for this in-progress IPC shrink slice; the
-  focused main IPC/query tests covered the extracted typed chat query path and
-  the remaining non-chat SDK command forwarding path.
+- Electron smoke launch reached main startup, chat visibility, hosted backend
+  SDK connection, and authenticated handshake, then the local Python sidecar
+  daemon failed to start because the active environment did not provide
+  `aiohttp` (`ModuleNotFoundError: No module named 'aiohttp'`). The dev process
+  was stopped after the smoke check.
 
 ## Remove Hand-Maintained SDK CommonJS Source Mirrors
 

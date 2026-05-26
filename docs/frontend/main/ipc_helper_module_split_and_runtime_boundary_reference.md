@@ -16,6 +16,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc/ipc_automated_query_dispatcher.cjs`
 - `frontend/src/main/ipc/ipc_startup_state.cjs`
 - `frontend/src/main/ipc/ipc_sdk_runtime_lifecycle.cjs`
+- `frontend/src/main/ipc/ipc_backend_endpoint_state.cjs`
 - `frontend/src/main/ipc/ipc_transcript_session_sync.cjs`
 - `frontend/src/main/ipc/ipc_event_replay_state.cjs`
 - `frontend/src/main/ipc/ipc_overlay_phase_events.cjs`
@@ -98,6 +99,16 @@ Owns Windie SDK runtime lifecycle construction:
   settings ACK resolution, memory-store persistence, renderer fan-out, and
   response-overlay phase mapping
 - emits interrupted active-query events when the backend closes during an active loop phase
+
+### `ipc_backend_endpoint_state.cjs`
+
+Owns backend endpoint candidate state:
+
+- initializes from the default endpoint resolver
+- refreshes dev/customer/packaged endpoint candidates
+- tracks the active endpoint index
+- advances to fallback candidates
+- exposes current websocket/http URLs for IPC status, artifact helpers, and SDK runtime construction
 
 ### `ipc_transcript_session_sync.cjs`
 
@@ -266,15 +277,17 @@ This isolates persistence to main process once per backend event before renderer
 7. startup install-auth/config/shortcut hydration delegates to `ipc_startup_state.cjs`.
 8. SDK websocket runtime construction and backend event lifecycle delegate to
    `ipc_sdk_runtime_lifecycle.cjs`.
-9. settings ACK, initial sync, and queued list-models state delegate to
+9. backend endpoint candidate and active endpoint state delegates to
+   `ipc_backend_endpoint_state.cjs`.
+10. settings ACK, initial sync, and queued list-models state delegate to
    `ipc_settings_sync_runtime.cjs`.
-10. transcript-session-sync normalization and state updates delegate to `ipc_transcript_session_sync.cjs`.
-11. frontend config load/save handlers delegate to `ipc_frontend_config.cjs`.
-12. remaining non-chat `to-backend` command forwarding delegates to
+11. transcript-session-sync normalization and state updates delegate to `ipc_transcript_session_sync.cjs`.
+12. frontend config load/save handlers delegate to `ipc_frontend_config.cjs`.
+13. remaining non-chat `to-backend` command forwarding delegates to
    `ipc_sdk_command_forwarding.cjs`.
-13. artifact upload/fetch handler registration delegates to
+14. artifact upload/fetch handler registration delegates to
    `ipc_artifact_handlers.cjs`.
-14. OpenAI Codex OAuth login/logout handler registration delegates to
+15. OpenAI Codex OAuth login/logout handler registration delegates to
     `ipc_openai_codex_oauth_handlers.cjs`.
 
 ## Drift Hotspots

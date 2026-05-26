@@ -21,6 +21,9 @@ const {
   resolvePreferredArtifactHttpUrl,
 } = require('./backend_endpoints.cjs');
 const {
+  createBackendEndpointState,
+} = require('./ipc/ipc_backend_endpoint_state.cjs');
+const {
   loadFrontendConfigFromDisk,
   redactProviderSecretsFromFrontendConfig,
   saveFrontendConfigToDisk,
@@ -150,11 +153,11 @@ const {
 } = require('./ipc_conversation_event_broadcast.cjs');
 const { logChatPillMainTrace } = require('./chat_pill_trace_runtime.cjs');
 
-let BACKEND_ENDPOINTS = resolveBackendEndpoints();
-let BACKEND_URL = BACKEND_ENDPOINTS.wsUrl;
-let BACKEND_HTTP_URL = BACKEND_ENDPOINTS.httpUrl;
-let BACKEND_ENDPOINT_CANDIDATES = [BACKEND_ENDPOINTS];
-let activeBackendEndpointIndex = 0;
+const backendEndpointState = createBackendEndpointState({
+  resolveBackendEndpointCandidates,
+  resolveBackendEndpoints,
+  env: process.env,
+});
 const SETTINGS_SYNC_TIMEOUT_MS = 2500;
 const BACKEND_RECONNECT_INTERVAL_MS = 1000;
 const BACKEND_CONNECT_TIMEOUT_MS = 10000;
@@ -246,8 +249,9 @@ async function ensureInstallAuthState() {
     }
 
     let lastError = null;
-    for (let index = 0; index < BACKEND_ENDPOINT_CANDIDATES.length; index += 1) {
-      const candidate = BACKEND_ENDPOINT_CANDIDATES[index];
+    const endpointCandidates = backendEndpointState.getCandidates();
+    for (let index = 0; index < endpointCandidates.length; index += 1) {
+      const candidate = endpointCandidates[index];
       try {
         const registeredState = await registerInstallWithBackend({
           backendHttpUrl: candidate.httpUrl,
@@ -339,27 +343,15 @@ function applyShortcutStatusFallbackToConfig(config) {
 }
 
 function refreshBackendEndpoints(options = {}) {
-  BACKEND_ENDPOINT_CANDIDATES = resolveBackendEndpointCandidates(process.env, options);
-  activeBackendEndpointIndex = 0;
-  BACKEND_ENDPOINTS = BACKEND_ENDPOINT_CANDIDATES[0] || resolveBackendEndpoints(process.env, options);
-  BACKEND_URL = BACKEND_ENDPOINTS.wsUrl;
-  BACKEND_HTTP_URL = BACKEND_ENDPOINTS.httpUrl;
+  backendEndpointState.refresh(options);
 }
 
 function setActiveBackendEndpoint(index) {
-  const candidate = BACKEND_ENDPOINT_CANDIDATES[index];
-  if (!candidate) {
-    return false;
-  }
-  activeBackendEndpointIndex = index;
-  BACKEND_ENDPOINTS = candidate;
-  BACKEND_URL = candidate.wsUrl;
-  BACKEND_HTTP_URL = candidate.httpUrl;
-  return true;
+  return backendEndpointState.setActive(index);
 }
 
 function advanceToNextBackendEndpoint() {
-  return setActiveBackendEndpoint(activeBackendEndpointIndex + 1);
+  return backendEndpointState.advance();
 }
 
 function log(message) {
@@ -467,8 +459,8 @@ function buildIpcStatusPayload(connected) {
   return {
     isConnected: connected,
     userId: currentUserId,
-    backendWsUrl: BACKEND_URL,
-    backendHttpUrl: BACKEND_HTTP_URL,
+    backendWsUrl: backendEndpointState.getWsUrl(),
+    backendHttpUrl: backendEndpointState.getHttpUrl(),
     globalAgentStopShortcutStatus: currentGlobalAgentStopShortcutStatus,
   };
 }
@@ -563,7 +555,7 @@ const sdkRuntimeLifecycle = createSdkRuntimeLifecycle({
   normalizeBackendPayload,
   executeToolForBackend,
   storeMemory,
-  getEndpoint: () => BACKEND_ENDPOINTS,
+  getEndpoint: () => backendEndpointState.getEndpoint(),
   getHeaders: buildInstallAuthHeaders,
   beforeConnect: () => ensureInstallAuthState(),
   getOperatingSystem: () => resolveFrontendOperatingSystem(process.platform),
@@ -702,8 +694,8 @@ function initializeIpc(win, options = {}) {
       serverUserId: currentServerUserId,
       sessionId: currentSessionId,
       isConnected,
-      backendWsUrl: BACKEND_URL,
-      backendHttpUrl: BACKEND_HTTP_URL,
+      backendWsUrl: backendEndpointState.getWsUrl(),
+      backendHttpUrl: backendEndpointState.getHttpUrl(),
       globalAgentStopShortcutStatus: currentGlobalAgentStopShortcutStatus,
     };
   });
@@ -719,7 +711,7 @@ function initializeIpc(win, options = {}) {
     uploadArtifact,
     fetchArtifactImage,
     ensureInstallAuthState,
-    getBackendHttpUrl: () => BACKEND_HTTP_URL,
+    getBackendHttpUrl: () => backendEndpointState.getHttpUrl(),
     buildInstallAuthHeaders,
   });
 
@@ -728,8 +720,8 @@ function initializeIpc(win, options = {}) {
     clipboard,
     nativeImage,
     getTrustedImageOrigins: () => [
-      BACKEND_HTTP_URL,
-      ...BACKEND_ENDPOINT_CANDIDATES.map((candidate) => candidate.httpUrl),
+      backendEndpointState.getHttpUrl(),
+      ...backendEndpointState.getCandidates().map((candidate) => candidate.httpUrl),
     ],
   });
   registerImageContextMenuHandler({
@@ -739,8 +731,8 @@ function initializeIpc(win, options = {}) {
     clipboard,
     nativeImage,
     getTrustedImageOrigins: () => [
-      BACKEND_HTTP_URL,
-      ...BACKEND_ENDPOINT_CANDIDATES.map((candidate) => candidate.httpUrl),
+      backendEndpointState.getHttpUrl(),
+      ...backendEndpointState.getCandidates().map((candidate) => candidate.httpUrl),
     ],
   });
 
@@ -804,8 +796,8 @@ function initializeIpc(win, options = {}) {
     sendStopQueryToBackend,
     setResponseOverlayPhase,
     resolvePreferredArtifactHttpUrl: () => resolvePreferredArtifactHttpUrl(
-      BACKEND_HTTP_URL,
-      BACKEND_ENDPOINT_CANDIDATES,
+      backendEndpointState.getHttpUrl(),
+      backendEndpointState.getCandidates(),
     ),
     deps: {
       BrowserWindow,
@@ -914,8 +906,8 @@ function getBackendConnectionState() {
     sessionId: currentSessionId,
     serverUserId: currentServerUserId,
     conversationRef: currentConversationRef,
-    backendWsUrl: BACKEND_URL,
-    backendHttpUrl: BACKEND_HTTP_URL,
+    backendWsUrl: backendEndpointState.getWsUrl(),
+    backendHttpUrl: backendEndpointState.getHttpUrl(),
     globalAgentStopShortcutStatus: currentGlobalAgentStopShortcutStatus,
   };
 }

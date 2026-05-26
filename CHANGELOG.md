@@ -15,6 +15,7 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/main: move IPC startup state hydration for install auth, cached frontend config, and initial stop-shortcut state into a focused startup-state module.
 - frontend/main: move Windie SDK runtime websocket lifecycle construction, event handling, and close/open checks out of the main IPC composition root.
 - frontend/main: move settings ACK, initial settings sync, and queued list-models state into a focused settings sync runtime module.
+- frontend/main: move backend endpoint candidate and active endpoint state out of the main IPC composition root.
 - frontend/main: move typed chat query send/stop, frontend-config, and response-overlay preflight handler orchestration out of the main IPC composition root into focused handler modules.
 - frontend/dashboard: route memory list, delete, and destructive clear actions through a desktop memory runtime client instead of dashboard feature IPC channel calls.
 - sdk/frontend: replace hand-maintained SDK CommonJS source mirrors with generated `packages/windie-sdk-js/cjs` output consumed by Electron main.

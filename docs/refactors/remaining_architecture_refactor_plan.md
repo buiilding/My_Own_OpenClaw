@@ -199,7 +199,7 @@ layers unless a verified external dependency requires one.
   Validation: Sidecar/backend tool parity tests, backend provider projection
   tests, SDK tool execution tests, and docs updates for tool schema policy.
 
-- [ ] Shrink Electron main IPC into focused ownership modules.
+- [x] Shrink Electron main IPC into focused ownership modules.
 
   Issue: The main IPC composition root still mixes runtime construction, query
   send, overlay state, settings sync, config persistence, generic backend
