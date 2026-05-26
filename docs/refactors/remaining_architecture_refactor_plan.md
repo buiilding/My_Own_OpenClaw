@@ -86,7 +86,7 @@ layers unless a verified external dependency requires one.
   Validation: Runtime boundary import tests, SDK event normalizer tests,
   renderer projection tests, and frontend lint.
 
-- [ ] Remove hand-maintained SDK CommonJS source mirrors.
+- [x] Remove hand-maintained SDK CommonJS source mirrors.
 
   Issue: Electron main imports CommonJS copies of SDK transport, projection,
   and tool-coordination modules from `packages/windie-sdk-js/src`. The package

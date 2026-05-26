@@ -1,0 +1,66 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.windieBuiltins = void 0;
+exports.shouldIncludeBuiltinTool = shouldIncludeBuiltinTool;
+exports.windieBuiltins = {
+    none() {
+        return {
+            builtins: 'none',
+        };
+    },
+    default() {
+        return {
+            builtins: 'default',
+        };
+    },
+    desktop() {
+        return {
+            builtins: 'default',
+        };
+    },
+    filesystem() {
+        return {
+            builtins: ['filesystem'],
+        };
+    },
+    shell() {
+        return {
+            builtins: ['shell'],
+        };
+    },
+    browser() {
+        return {
+            builtins: ['browser'],
+        };
+    },
+    computer() {
+        return {
+            builtins: ['computer'],
+        };
+    },
+    memory() {
+        return {
+            builtins: ['memory'],
+        };
+    },
+};
+const BUILTIN_PREFIXES = {
+    desktop: [],
+    filesystem: ['read_file', 'replace', 'list_files', 'search_files'],
+    shell: ['run_shell_command', 'run_command', 'shell'],
+    browser: ['browser', 'open_url', 'click', 'type'],
+    'browser-use': ['browser', 'open_url', 'click', 'type'],
+    computer: ['computer', 'screenshot', 'click', 'type', 'scroll'],
+    'computer-use': ['computer', 'screenshot', 'click', 'type', 'scroll'],
+    memory: ['memory', 'search_memory', 'store_memory'],
+};
+function shouldIncludeBuiltinTool(toolName, selected = []) {
+    if (selected.length === 0) {
+        return false;
+    }
+    if (selected.includes('desktop')) {
+        return true;
+    }
+    const normalizedName = toolName.trim().toLowerCase();
+    return selected.some(setName => BUILTIN_PREFIXES[setName].some(prefix => (normalizedName === prefix || normalizedName.startsWith(`${prefix}_`))));
+}

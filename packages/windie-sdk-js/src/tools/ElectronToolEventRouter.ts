@@ -616,7 +616,7 @@ async function routeToolBundleToLocalRuntime(event, deps) {
   return true;
 }
 
-function routeSdkToolEventToLocalRuntime(event, deps = {}) {
+function routeSdkToolEventToLocalRuntime(event, deps: any = {}) {
   if (
     !isPlainObject(event)
     || typeof deps.executeLocalTool !== 'function'
@@ -652,7 +652,7 @@ function routeSdkToolEventToLocalRuntime(event, deps = {}) {
   return false;
 }
 
-module.exports = {
+export {
   buildRendererToolOutputEvent,
   buildRendererToolBundleOutputEvent,
   markRendererToolEventDisplayOnly,

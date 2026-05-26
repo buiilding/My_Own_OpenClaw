@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/frontend: replace hand-maintained SDK CommonJS source mirrors with generated `packages/windie-sdk-js/cjs` output consumed by Electron main.
 - frontend/chat: delete the renderer-owned raw backend event contract and keep display-only stream labels/tool-schema types in renderer-owned modules.
 - docs/agents: clarify client-owned tool schema assembly, backend validation
   responsibility, computer-use screenshot output contracts, SDK-first UI

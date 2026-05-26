@@ -248,7 +248,7 @@ function updateCurrentTurnProjectionFromConversationEvent(currentProjection, eve
   return null;
 }
 
-function updateCurrentTurnProjectionFromBackendEvent(currentProjection, event, options = {}) {
+function updateCurrentTurnProjectionFromBackendEvent(currentProjection, event, options: any = {}) {
   const eventRecord = asRecord(event);
   const payload = asRecord(eventRecord.payload);
   const conversationRef = conversationRefFrom(eventRecord, options.fallbackConversationRef);
@@ -326,7 +326,7 @@ function updateCurrentTurnProjectionFromBackendEvent(currentProjection, event, o
 function createCurrentTurnProjector() {
   const projections = new Map();
   return {
-    applyBackendEvent(event, options = {}) {
+    applyBackendEvent(event, options: any = {}) {
       const conversationRef = conversationRefFrom(event, options.fallbackConversationRef);
       if (!conversationRef) {
         return null;
@@ -388,7 +388,7 @@ function createConversationEventCurrentTurnProjector() {
   };
 }
 
-module.exports = {
+export {
   createConversationEventCurrentTurnProjector,
   createCurrentTurnProjector,
   createEmptyCurrentTurnProjection,

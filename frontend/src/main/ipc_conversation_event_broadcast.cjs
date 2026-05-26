@@ -1,6 +1,6 @@
 const {
   normalizeBackendEventToConversationEvent,
-} = require('../../../packages/windie-sdk-js/src/transport/backendEventNormalizer.cjs');
+} = require('../../../packages/windie-sdk-js/cjs/transport/backendEventNormalizer.js');
 
 function buildConversationEventFromBackendEvent(event, options = {}) {
   if (!event || typeof event !== 'object' || Array.isArray(event)) {

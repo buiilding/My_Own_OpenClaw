@@ -1,0 +1,132 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.InMemoryConversationStore = void 0;
+const metadata_js_1 = require("../conversation/metadata.js");
+const conversationProjections_js_1 = require("../projections/conversationProjections.js");
+function lastTextEvent(events) {
+    return [...events].reverse().find(event => {
+        if (event.type === 'user_message' || event.type === 'assistant_message') {
+            return typeof event.payload.text === 'string' || typeof event.payload.content === 'string';
+        }
+        return false;
+    });
+}
+function eventText(event) {
+    if (!event) {
+        return null;
+    }
+    if (typeof event.payload.text === 'string') {
+        return event.payload.text;
+    }
+    if (typeof event.payload.content === 'string') {
+        return event.payload.content;
+    }
+    return null;
+}
+class InMemoryConversationStore {
+    constructor() {
+        this.eventsByConversation = new Map();
+        this.eventIdsByConversation = new Map();
+        this.revisionsByConversation = new Map();
+        this.replayByConversation = new Map();
+    }
+    async appendEvent(event) {
+        await this.appendEvents([event]);
+    }
+    async appendEvents(events) {
+        for (const event of events) {
+            const knownIds = this.eventIdsByConversation.get(event.conversationRef) ?? new Set();
+            if (knownIds.has(event.eventId)) {
+                continue;
+            }
+            knownIds.add(event.eventId);
+            this.eventIdsByConversation.set(event.conversationRef, knownIds);
+            const existing = this.eventsByConversation.get(event.conversationRef) ?? [];
+            existing.push(event);
+            this.eventsByConversation.set(event.conversationRef, existing);
+            this.revisionsByConversation.set(event.conversationRef, {
+                conversationRef: event.conversationRef,
+                revisionId: event.revisionId,
+                updatedAt: event.timestamp,
+            });
+        }
+    }
+    async rewriteConversation(plan) {
+        const rewritten = [...plan.preservedEvents];
+        this.eventsByConversation.set(plan.conversationRef, rewritten);
+        this.eventIdsByConversation.set(plan.conversationRef, new Set(rewritten.map(event => event.eventId)));
+        this.revisionsByConversation.set(plan.conversationRef, {
+            conversationRef: plan.conversationRef,
+            revisionId: plan.newRevisionId,
+            updatedAt: new Date().toISOString(),
+        });
+    }
+    async replaceCompactedReplay(snapshot) {
+        if (!snapshot.complete || snapshot.entryCount !== snapshot.entries.length) {
+            return;
+        }
+        this.replayByConversation.set(snapshot.conversationRef, {
+            ...snapshot,
+            active: true,
+        });
+    }
+    async loadEvents(conversationRef) {
+        return [...(this.eventsByConversation.get(conversationRef) ?? [])];
+    }
+    async loadForDisplay(conversationRef) {
+        return (0, conversationProjections_js_1.buildDisplayConversation)(await this.loadEvents(conversationRef));
+    }
+    async loadForRehydrate(conversationRef) {
+        const compactedReplay = await this.loadCompactedReplay(conversationRef);
+        if (compactedReplay?.complete
+            && compactedReplay.active !== false
+            && compactedReplay.entryCount === compactedReplay.entries.length) {
+            return {
+                conversationRef,
+                revisionId: compactedReplay.sourceRevisionId,
+                messages: compactedReplay.entries,
+                replayGenerationId: compactedReplay.generationId,
+            };
+        }
+        return (0, conversationProjections_js_1.buildRehydrateSnapshot)(await this.loadEvents(conversationRef));
+    }
+    async listMetadata(options = {}) {
+        const metadata = Array.from(this.eventsByConversation.entries()).map(([conversationRef, events]) => {
+            const revision = this.revisionsByConversation.get(conversationRef);
+            const lastEvent = [...events].sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp))[0];
+            return {
+                conversationRef,
+                revisionId: revision?.revisionId ?? lastEvent?.revisionId ?? 'rev-missing',
+                title: eventText(events.find(event => event.type === 'user_message')) ?? conversationRef,
+                lastMessage: eventText(lastTextEvent(events)),
+                updatedAt: revision?.updatedAt ?? lastEvent?.timestamp ?? new Date(0).toISOString(),
+                eventCount: events.length,
+            };
+        }).sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
+        return (0, metadata_js_1.applyConversationMetadataPagination)(metadata, options);
+    }
+    async searchMetadata(options) {
+        return (0, metadata_js_1.searchConversationMetadata)(await this.listMetadata(), options);
+    }
+    async deleteConversation(conversationRef) {
+        this.eventsByConversation.delete(conversationRef);
+        this.eventIdsByConversation.delete(conversationRef);
+        this.revisionsByConversation.delete(conversationRef);
+        this.replayByConversation.delete(conversationRef);
+    }
+    async getRevision(conversationRef) {
+        const revision = this.revisionsByConversation.get(conversationRef);
+        if (revision) {
+            return revision;
+        }
+        return {
+            conversationRef,
+            revisionId: 'rev-empty',
+            updatedAt: new Date(0).toISOString(),
+        };
+    }
+    async loadCompactedReplay(conversationRef) {
+        return this.replayByConversation.get(conversationRef) ?? null;
+    }
+}
+exports.InMemoryConversationStore = InMemoryConversationStore;

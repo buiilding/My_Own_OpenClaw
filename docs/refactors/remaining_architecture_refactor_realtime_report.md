@@ -73,6 +73,63 @@ Skipped or failed validation:
 
 - None for this slice.
 
+## Remove Hand-Maintained SDK CommonJS Source Mirrors
+
+Status: completed.
+
+Commit: included in the same commit as this report entry.
+
+Implementation:
+
+- Added a package-owned CommonJS build output under
+  `packages/windie-sdk-js/cjs` with its own `package.json` declaring
+  `type: commonjs`.
+- Added `tsconfig.cjs.json` and `scripts/write-cjs-package.mjs` so the CJS
+  output is generated from TypeScript source instead of hand-maintained.
+- Added TypeScript source for the current-turn backend-event projector so it can
+  participate in both ESM and CJS builds.
+- Updated Electron main SDK imports to consume generated
+  `packages/windie-sdk-js/cjs/**` modules.
+- Deleted the old hand-maintained SDK source `.cjs` modules from
+  `packages/windie-sdk-js/src`.
+- Updated boundary tests to assert Electron main consumes generated CJS output.
+
+Previous behavior:
+
+- Electron main imported SDK internals from `.cjs` files under
+  `packages/windie-sdk-js/src`.
+- Several SDK runtime, transport, tool, and projection modules had TypeScript
+  source plus manually maintained CommonJS source copies.
+- One projection helper existed only as CommonJS, which blocked a pure generated
+  CJS strategy.
+
+Current behavior:
+
+- SDK TypeScript source is the source of truth for ESM and CommonJS consumers.
+- Electron main still runs as CommonJS, but it imports package-generated CJS
+  output rather than source mirrors.
+- The package build command now builds both ESM and CJS outputs.
+
+Success criteria:
+
+- One SDK source of truth produces consumed module formats: completed.
+- Main process imports come from generated build output: completed.
+- Hand-maintained `.cjs` SDK mirrors are deleted from source: completed.
+
+Validation:
+
+- `npm --prefix packages/windie-sdk-js run build`
+- `cd frontend && npm run test -- WindieSdkMainRuntime IpcSdkToolRouter IpcMainSdkRuntimeBoundary ModularRefactorCompletionBoundary WindieSdkConversationRuntime --runInBand`
+- `node -e "const router=require('./packages/windie-sdk-js/cjs/tools/ElectronToolEventRouter.js'); const sdk=require('./packages/windie-sdk-js/cjs'); const projector=require('./packages/windie-sdk-js/cjs/projections/currentTurnProjection.js'); console.log(Boolean(router.routeSdkToolEventToLocalRuntime), Boolean(router.markRendererToolEventDisplayOnly), Boolean(sdk.createConversationRuntime), Boolean(projector.createCurrentTurnProjector));"`
+- `cd frontend && npm run typecheck`
+- `cd frontend && npm run lint`
+- `./bin/docs-list`
+- `git diff --check`
+
+Skipped or failed validation:
+
+- None for this slice.
+
 ## Delete The Renderer-Owned Backend Event Contract
 
 Status: completed.
@@ -126,6 +183,63 @@ Validation:
 - `cd frontend && npm run typecheck`
 - `cd frontend && npm run lint`
 - `./bin/docs-list`
+- `git diff --check`
+
+Skipped or failed validation:
+
+- None for this slice.
+
+## Remove Hand-Maintained SDK CommonJS Source Mirrors
+
+Status: completed.
+
+Commit: included in the same commit as this report entry.
+
+Implementation:
+
+- Added an SDK CommonJS build target with `tsconfig.cjs.json` and
+  `npm run build:cjs`.
+- Added `packages/windie-sdk-js/cjs/package.json` generation so generated
+  `.js` files are loaded as CommonJS despite the package root using
+  `"type": "module"`.
+- Updated `@windie/sdk` package exports to expose `require` through generated
+  `cjs/index.js`.
+- Moved the Electron tool-event router helper surface and current-turn
+  projection surface into TypeScript SDK source so generated CJS is produced
+  from SDK source instead of hand-maintained `.cjs` mirrors.
+- Updated Electron main SDK imports to consume generated
+  `packages/windie-sdk-js/cjs/**` output.
+- Deleted the old hand-maintained SDK source `.cjs` files.
+- Updated main-runtime boundary tests and affected docs to point at generated
+  CJS output.
+
+Previous behavior:
+
+- Electron main imported hand-maintained CommonJS mirrors from
+  `packages/windie-sdk-js/src/**/*.cjs`.
+- Several reusable SDK runtime surfaces had separate TypeScript and CommonJS
+  source files that could drift.
+
+Current behavior:
+
+- TypeScript SDK source is the source of truth.
+- `npm run build:cjs` generates the CommonJS package output consumed by
+  Electron main.
+- No `.cjs` files remain under `packages/windie-sdk-js/src`.
+
+Success criteria:
+
+- One SDK source tree produces the consumed CommonJS runtime modules:
+  completed.
+- Electron main imports generated SDK package output instead of `src/*.cjs`:
+  completed.
+- Hand-maintained SDK source `.cjs` files are deleted: completed.
+
+Validation:
+
+- `cd packages/windie-sdk-js && npm run build`
+- `cd frontend && npm run test -- WindieSdkMainRuntime IpcMainSdkRuntimeBoundary ModularRefactorCompletionBoundary IpcSdkToolRouter WindieSdkConversationRuntime --runInBand`
+- `node -e "const rt=require('./frontend/src/main/windie_sdk_runtime.cjs'); const tool=require('./frontend/src/main/ipc/ipc_sdk_tool_router.cjs'); console.log(typeof rt.createWindieSdkMainRuntime, typeof tool.markRendererToolEventDisplayOnly)"`
 - `git diff --check`
 
 Skipped or failed validation:

@@ -20,14 +20,18 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./cjs/index.js"
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "cjs"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "npm run build:esm && npm run build:cjs",
+    "build:esm": "tsc -p tsconfig.build.json",
+    "build:cjs": "tsc -p tsconfig.cjs.json && node scripts/write-cjs-package.mjs",
     "prepack": "npm run build"
   },
   "dependencies": {

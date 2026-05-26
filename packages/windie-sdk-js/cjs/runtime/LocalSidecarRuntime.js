@@ -1,0 +1,389 @@
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SidecarDaemonHttpClient = void 0;
+exports.moduleTool = moduleTool;
+exports.createWindieLocalRuntimeProvider = createWindieLocalRuntimeProvider;
+function resolveFetchImplementation(fetchImpl) {
+    if (fetchImpl) {
+        return fetchImpl;
+    }
+    if (typeof globalThis.fetch === 'function') {
+        return globalThis.fetch.bind(globalThis);
+    }
+    throw new Error('WindieSdkClient requires a fetch implementation');
+}
+function normalizeHttpBaseUrl(httpBaseUrl) {
+    return httpBaseUrl.replace(/\/+$/, '');
+}
+function buildEventWebSocketUrl(baseUrl) {
+    const normalized = normalizeHttpBaseUrl(baseUrl);
+    if (normalized.startsWith('https://')) {
+        return `wss://${normalized.slice('https://'.length)}/events`;
+    }
+    if (normalized.startsWith('http://')) {
+        return `ws://${normalized.slice('http://'.length)}/events`;
+    }
+    return `${normalized}/events`;
+}
+function buildErrorMessage(status, statusText, bodyText) {
+    const trimmedBody = bodyText.trim();
+    if (!trimmedBody) {
+        return `Windie SDK request failed (${status} ${statusText})`;
+    }
+    return `Windie SDK request failed (${status} ${statusText}): ${trimmedBody}`;
+}
+function moduleTool(tool) {
+    return {
+        ...tool,
+        execution_target: 'sidecar',
+        argument_resolution: tool.argument_resolution ?? 'passthrough',
+    };
+}
+class SidecarDaemonHttpClient {
+    constructor(options) {
+        this.eventSocket = null;
+        this.eventListeners = new Set();
+        this.baseUrl = normalizeHttpBaseUrl(options.baseUrl);
+        this.token = options.token;
+        this.fetchImpl = resolveFetchImplementation(options.fetchImpl);
+        this.WebSocketImpl = options.WebSocketImpl;
+    }
+    async status() {
+        return this.request('/status', { method: 'GET' });
+    }
+    async listTools() {
+        return this.request('/tools', { method: 'GET' });
+    }
+    async registerModuleTool(tool, context) {
+        return this.post('/tools/register-module', {
+            name: tool.name,
+            description: tool.description,
+            module: tool.module,
+            schema: tool.schema,
+            workspace_path: tool.workspacePath ?? context.workspacePath,
+        });
+    }
+    async registerPlugin(plugin) {
+        return this.post('/plugins/register', plugin);
+    }
+    async registerMcp(mcp) {
+        return this.post('/mcps/register', mcp);
+    }
+    async executeTool(payload) {
+        return this.post('/execute-tool', {
+            tool_name: payload.toolName,
+            args: payload.args,
+        });
+    }
+    async rpc(payload) {
+        return this.post('/rpc', {
+            jsonrpc: '2.0',
+            id: payload.id ?? `sdk-${Date.now()}`,
+            method: payload.method,
+            params: payload.params ?? {},
+        });
+    }
+    async shutdown() {
+        this.closeEventSocket();
+        await this.post('/shutdown', {});
+    }
+    subscribeEvents(listener) {
+        this.eventListeners.add(listener);
+        void this.ensureEventSocket();
+        return () => {
+            this.eventListeners.delete(listener);
+            if (this.eventListeners.size === 0) {
+                this.closeEventSocket();
+            }
+        };
+    }
+    async ensureEventSocket() {
+        if (this.eventSocket || this.eventListeners.size === 0) {
+            return;
+        }
+        const WebSocketImpl = await this.resolveWebSocketImpl();
+        if (!WebSocketImpl || this.eventSocket || this.eventListeners.size === 0) {
+            return;
+        }
+        const socket = new WebSocketImpl(buildEventWebSocketUrl(this.baseUrl), {
+            headers: {
+                'x-windie-sidecar-token': this.token,
+            },
+        });
+        this.eventSocket = socket;
+        const onMessage = (raw) => {
+            const event = this.parseEventPayload(raw);
+            if (!event) {
+                return;
+            }
+            for (const eventListener of this.eventListeners) {
+                eventListener(event);
+            }
+        };
+        const onClose = () => {
+            if (this.eventSocket === socket) {
+                this.eventSocket = null;
+            }
+        };
+        socket.addEventListener?.('message', onMessage);
+        socket.addEventListener?.('close', onClose);
+        socket.on?.('message', onMessage);
+        socket.on?.('close', onClose);
+        socket.on?.('error', () => { });
+    }
+    closeEventSocket() {
+        const socket = this.eventSocket;
+        this.eventSocket = null;
+        socket?.close?.();
+    }
+    async resolveWebSocketImpl() {
+        if (this.WebSocketImpl) {
+            return this.WebSocketImpl;
+        }
+        const globalWebSocket = globalThis.WebSocket;
+        if (globalWebSocket) {
+            return globalWebSocket;
+        }
+        try {
+            const module = await importNodeModule('ws');
+            return module.default ?? module;
+        }
+        catch {
+            return null;
+        }
+    }
+    parseEventPayload(raw) {
+        try {
+            const text = typeof raw === 'string'
+                ? raw
+                : typeof raw?.data === 'string'
+                    ? String(raw.data)
+                    : raw instanceof Uint8Array
+                        ? new TextDecoder().decode(raw)
+                        : String(raw ?? '');
+            const payload = JSON.parse(text);
+            if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+                return null;
+            }
+            const type = payload.type;
+            if (typeof type !== 'string' || !type.trim()) {
+                return null;
+            }
+            return payload;
+        }
+        catch {
+            return null;
+        }
+    }
+    async post(path, body) {
+        return this.request(path, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+        });
+    }
+    async request(path, init) {
+        const headers = new Headers(init.headers);
+        headers.set('x-windie-sidecar-token', this.token);
+        const response = await this.fetchImpl(`${this.baseUrl}${path}`, {
+            ...init,
+            headers,
+        });
+        if (!response.ok) {
+            throw new Error(buildErrorMessage(response.status, response.statusText, await response.text()));
+        }
+        return response.json();
+    }
+}
+exports.SidecarDaemonHttpClient = SidecarDaemonHttpClient;
+async function importNodeModule(specifier) {
+    return Promise.resolve(`${specifier}`).then(s => __importStar(require(s)));
+}
+async function loadNodeSidecarModules() {
+    const [fs, os, path, childProcess] = await Promise.all([
+        importNodeModule('node:fs'),
+        importNodeModule('node:os'),
+        importNodeModule('node:path'),
+        importNodeModule('node:child_process'),
+    ]);
+    return { fs, os, path, childProcess };
+}
+function normalizeDiscovery(raw) {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+        return null;
+    }
+    const payload = raw;
+    const baseUrl = typeof payload.base_url === 'string'
+        ? payload.base_url.trim()
+        : (typeof payload.baseUrl === 'string' ? payload.baseUrl.trim() : '');
+    const token = typeof payload.token === 'string' ? payload.token.trim() : '';
+    if (!baseUrl || !token) {
+        return null;
+    }
+    return { baseUrl, token };
+}
+function readDaemonDiscovery(fs, discoveryFile) {
+    try {
+        if (!fs.existsSync(discoveryFile)) {
+            return null;
+        }
+        return normalizeDiscovery(JSON.parse(fs.readFileSync(discoveryFile, 'utf8')));
+    }
+    catch {
+        return null;
+    }
+}
+async function sleep(ms) {
+    await new Promise(resolve => setTimeout(resolve, ms));
+}
+async function probeDaemon(discovery, fetchImpl, WebSocketImpl) {
+    if (!discovery) {
+        return null;
+    }
+    const client = new SidecarDaemonHttpClient({
+        ...discovery,
+        fetchImpl,
+        WebSocketImpl,
+    });
+    try {
+        await client.status();
+        return client;
+    }
+    catch {
+        return null;
+    }
+}
+function resolveDaemonScript(options, fs, path) {
+    const processLike = globalThis.process;
+    const explicit = options.daemonScript
+        ?? processLike?.env?.WINDIE_SIDECAR_DAEMON_SCRIPT;
+    if (explicit) {
+        return path.resolve(explicit);
+    }
+    const cwd = typeof processLike?.cwd === 'function'
+        ? processLike.cwd()
+        : '.';
+    const candidates = [
+        path.resolve(cwd, 'frontend/src/main/python/sidecar_daemon.py'),
+        path.resolve(cwd, 'src/main/python/sidecar_daemon.py'),
+    ];
+    const found = candidates.find(candidate => fs.existsSync(candidate));
+    if (found) {
+        return found;
+    }
+    throw new Error('WindieClient could not locate sidecar_daemon.py. Set WINDIE_SIDECAR_DAEMON_SCRIPT or pass autoSidecar.daemonScript.');
+}
+function createWindieLocalRuntimeProvider(options = {}) {
+    let cachedRuntime;
+    let ownedProcess = null;
+    return async () => {
+        if (cachedRuntime) {
+            return cachedRuntime;
+        }
+        let modules;
+        try {
+            modules = await loadNodeSidecarModules();
+        }
+        catch (error) {
+            throw new Error(`WindieClient local tools require a Node sidecar runtime provider: ${error instanceof Error ? error.message : String(error)}`);
+        }
+        const { fs, os, path, childProcess } = modules;
+        const processLike = globalThis.process;
+        const discoveryFile = path.resolve(options.discoveryFile
+            ?? processLike?.env?.WINDIE_SIDECAR_DAEMON_DISCOVERY_FILE
+            ?? path.join(os.tmpdir(), 'windieos', 'sidecar-daemon.json'));
+        const fetchImpl = options.fetchImpl;
+        const existing = await probeDaemon(readDaemonDiscovery(fs, discoveryFile), fetchImpl, options.WebSocketImpl);
+        if (existing) {
+            cachedRuntime = existing;
+            return cachedRuntime;
+        }
+        const daemonScript = resolveDaemonScript(options, fs, path);
+        fs.mkdirSync(path.dirname(discoveryFile), { recursive: true });
+        const pythonCommand = options.pythonCommand
+            ?? processLike?.env?.WINDIE_PYTHON
+            ?? 'python3';
+        const args = [
+            ...(options.pythonArgs ?? []),
+            daemonScript,
+            '--discovery-file',
+            discoveryFile,
+        ];
+        if (options.host) {
+            args.push('--host', options.host);
+        }
+        if (typeof options.port === 'number') {
+            args.push('--port', String(options.port));
+        }
+        ownedProcess = childProcess.spawn(pythonCommand, args, {
+            stdio: 'ignore',
+            detached: true,
+        });
+        ownedProcess.unref?.();
+        const deadline = Date.now() + (options.startTimeoutMs ?? 10000);
+        const pollIntervalMs = options.pollIntervalMs ?? 100;
+        while (Date.now() < deadline) {
+            const started = await probeDaemon(readDaemonDiscovery(fs, discoveryFile), fetchImpl, options.WebSocketImpl);
+            if (started) {
+                cachedRuntime = {
+                    status: () => started.status(),
+                    listTools: () => started.listTools(),
+                    registerModuleTool: (tool, context) => started.registerModuleTool(tool, context),
+                    registerPlugin: plugin => started.registerPlugin(plugin),
+                    registerMcp: mcp => started.registerMcp(mcp),
+                    executeTool: payload => started.executeTool(payload),
+                    rpc: payload => started.rpc(payload),
+                    subscribeEvents: listener => started.subscribeEvents(listener),
+                    shutdown: async () => {
+                        try {
+                            await started.shutdown();
+                        }
+                        finally {
+                            ownedProcess?.kill?.('SIGTERM');
+                            ownedProcess = null;
+                            cachedRuntime = undefined;
+                        }
+                    },
+                };
+                return cachedRuntime;
+            }
+            await sleep(pollIntervalMs);
+        }
+        ownedProcess?.kill?.('SIGTERM');
+        ownedProcess = null;
+        throw new Error(`Timed out waiting for Windie sidecar daemon discovery at ${discoveryFile}`);
+    };
+}

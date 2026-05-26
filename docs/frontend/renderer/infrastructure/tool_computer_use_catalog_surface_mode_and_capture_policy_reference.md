@@ -13,7 +13,7 @@ title: "Tool Computer-Use Catalog, Surface Mode, and Capture Policy Reference"
 - `frontend/src/renderer/infrastructure/services/ToolComputerUseCatalog.ts`
 - `frontend/src/renderer/infrastructure/services/surfaceOrchestrator/mode.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
-- `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.cjs`
+- `packages/windie-sdk-js/cjs/tools/ToolExecutionCoordinator.js`
 - `tests/frontend/ToolComputerUseCatalog.test.ts`
 - `tests/frontend/LocalBackendBridgeExtensionRuntime.test.cjs`
 - `tests/frontend/IpcSdkToolRouter.test.cjs`

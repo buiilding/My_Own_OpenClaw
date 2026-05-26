@@ -1,1 +1,1 @@
-module.exports = require('../../../../packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.cjs');
+module.exports = require('../../../../packages/windie-sdk-js/cjs/tools/ElectronToolEventRouter.js');

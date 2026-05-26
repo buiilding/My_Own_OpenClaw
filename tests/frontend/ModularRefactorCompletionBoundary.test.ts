@@ -11,7 +11,7 @@ describe('modular sdk refactor completion boundary', () => {
   test('main runtime does not expose raw backend envelope sends', async () => {
     const source = await read('frontend/src/main/windie_sdk_runtime.cjs');
 
-    expect(source).toContain("packages/windie-sdk-js/src/transport/ManagedBackendSession.cjs");
+    expect(source).toContain("packages/windie-sdk-js/cjs/transport/ManagedBackendSession.js");
     expect(source).not.toContain('sendBackendMessage,');
     expect(source).not.toContain('sendEnvelope,');
     expect(source).not.toContain('connectWaiters');
@@ -34,7 +34,7 @@ describe('modular sdk refactor completion boundary', () => {
   test('main tool router delegates local tool routing to the sdk package', async () => {
     const source = await read('frontend/src/main/ipc/ipc_sdk_tool_router.cjs');
 
-    expect(source).toContain('packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.cjs');
+    expect(source).toContain('packages/windie-sdk-js/cjs/tools/ElectronToolEventRouter.js');
     expect(source).not.toContain('async function routeToolCallToLocalRuntime');
     expect(source).not.toContain('async function routeToolBundleToLocalRuntime');
   });

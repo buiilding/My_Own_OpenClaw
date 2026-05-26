@@ -10,16 +10,16 @@ const {
 } = require('./ipc/ipc_sdk_tool_router.cjs');
 const {
   createWindieSdkBackendSocket,
-} = require('../../../packages/windie-sdk-js/src/transport/BackendSocketFactory.cjs');
+} = require('../../../packages/windie-sdk-js/cjs/transport/BackendSocketFactory.js');
 const {
   createManagedBackendSession,
-} = require('../../../packages/windie-sdk-js/src/transport/ManagedBackendSession.cjs');
+} = require('../../../packages/windie-sdk-js/cjs/transport/ManagedBackendSession.js');
 const {
   createConversationEventCurrentTurnProjector,
-} = require('../../../packages/windie-sdk-js/src/projections/currentTurnProjection.cjs');
+} = require('../../../packages/windie-sdk-js/cjs/projections/currentTurnProjection.js');
 const {
   normalizeBackendEventToConversationEvent,
-} = require('../../../packages/windie-sdk-js/src/transport/backendEventNormalizer.cjs');
+} = require('../../../packages/windie-sdk-js/cjs/transport/backendEventNormalizer.js');
 
 const DEFAULT_RECONNECT_INTERVAL_MS = 1000;
 const DEFAULT_CONNECT_TIMEOUT_MS = 10000;

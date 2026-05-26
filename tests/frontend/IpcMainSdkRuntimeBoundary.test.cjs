@@ -21,6 +21,6 @@ describe('main ipc sdk runtime boundary', () => {
     );
 
     expect(source).not.toContain('new WebSocketImpl');
-    expect(source).toContain('packages/windie-sdk-js/src/transport/BackendSocketFactory.cjs');
+    expect(source).toContain('packages/windie-sdk-js/cjs/transport/BackendSocketFactory.js');
   });
 });
