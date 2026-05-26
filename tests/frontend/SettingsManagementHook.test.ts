@@ -23,6 +23,21 @@ describe('useSettingsManagement', () => {
     });
   });
 
+  test('handleModelsListed ignores missing or invalid model payloads', () => {
+    const setAvailableModels = jest.fn();
+    const { result } = renderHook(() => useSettingsManagement(setAvailableModels));
+
+    act(() => {
+      result.current.handleModelsListed({});
+      result.current.handleModelsListed({ payload: undefined });
+      result.current.handleModelsListed({ payload: { local_models: ['local-a'] } });
+      result.current.handleModelsListed({ payload: { local: ['local-a'], online: null } });
+      result.current.handleModelsListed({ payload: 'not-a-model-list' });
+    });
+
+    expect(setAvailableModels).not.toHaveBeenCalled();
+  });
+
   test('returns memoized handlers when dependencies stay the same', () => {
     const setAvailableModels = jest.fn();
     const { result, rerender } = renderHook(() => useSettingsManagement(setAvailableModels));
