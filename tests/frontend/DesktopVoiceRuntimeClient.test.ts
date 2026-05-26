@@ -19,12 +19,22 @@ describe('DesktopVoiceRuntimeClient', () => {
     mockSend.mockReset();
   });
 
-  test('sends wakeword notifications through the desktop backend transport', () => {
-    DesktopVoiceRuntimeClient.wakewordDetected();
+  test('sends wakeword notifications through the desktop backend transport', async () => {
+    await expect(DesktopVoiceRuntimeClient.wakewordDetected()).resolves.toBeUndefined();
 
     expect(mockSend).toHaveBeenCalledWith(SEND_CHANNELS.TO_BACKEND, {
       type: 'wakeword-detected',
       payload: {},
     });
+  });
+
+  test('returns backend transport failures to the caller', async () => {
+    mockSend.mockImplementationOnce(() => {
+      throw new Error('backend unavailable');
+    });
+
+    await expect(DesktopVoiceRuntimeClient.wakewordDetected()).rejects.toThrow(
+      'backend unavailable',
+    );
   });
 });
