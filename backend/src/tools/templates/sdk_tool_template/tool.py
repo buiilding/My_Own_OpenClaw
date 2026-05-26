@@ -134,7 +134,7 @@ class ExampleTool(Tool[ExampleToolArgs]):
         """
         # Your processing logic here
         result = f"Processed {required}"
-        if optional:
+        if optional is not None:
             result += f" with option {optional}"
         return result
     
