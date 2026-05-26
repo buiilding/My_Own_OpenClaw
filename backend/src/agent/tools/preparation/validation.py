@@ -244,6 +244,8 @@ def sanitize_and_validate_resolved_tool_call(
 def _strip_grounding_only_fields(resolved_call: ResolvedToolCall) -> None:
     if resolved_call.tool_name not in {"mouse_control", "scroll_control"}:
         return
+    if not isinstance(resolved_call.parameters, dict):
+        return
 
     for field_name in _GROUNDED_SOURCE_FIELDS:
         resolved_call.parameters.pop(field_name, None)

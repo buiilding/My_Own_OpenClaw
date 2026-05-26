@@ -146,6 +146,27 @@ def _sanitize_resolved_call_for_executor(resolved_call: ResolvedToolCall) -> Non
     assert validation_error is None
 
 
+def test_sanitize_resolved_call_reports_validation_error_when_parameters_missing():
+    tool_call = ParsedToolCall(
+        tool_name="mouse_control",
+        parameters={},
+        raw_call="{}",
+    )
+    resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
+    resolved_call.parameters = None  # type: ignore[assignment]
+
+    validation_error = sanitize_and_validate_resolved_tool_call(
+        resolved_call,
+        enabled=True,
+    )
+
+    assert validation_error is not None
+    assert validation_error.startswith(
+        "mouse_control call is invalid and was rejected before frontend execution."
+    )
+    assert "action: Field required" in validation_error
+
+
 @pytest.mark.asyncio
 async def test_resolve_tool_with_coordinates_scales_using_capture_meta(monkeypatch):
     session, screenshot_manager = _create_session_and_manager(
