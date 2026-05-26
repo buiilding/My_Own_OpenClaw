@@ -10,13 +10,86 @@ local authority, and a Python FastAPI backend for hosted or self-hosted agent
 orchestration. Frontend and sidecar code must not import backend code at
 runtime. Use public transport contracts, manifests, docs, and tests for parity.
 
-Project structure:
+## Project Structure
 
-- Backend Python: `backend/src/`
-- Frontend Electron and React: `frontend/src/`
-- Frontend Python sidecar: `frontend/src/main/python/`
-- Tests: `tests/backend`, `tests/sidecar`, `tests/frontend`, `tests/sdk`
-- Docs: `docs/`
+File counts and generated artifacts change often. Treat the filesystem as
+canonical; the map below names the source roots and load-bearing files agents
+usually need to edit.
+
+```text
+WindieOS/
+├── backend/                       # Python FastAPI backend and agent runtime
+│   └── src/
+│       ├── main.py                # backend app entrypoint
+│       ├── api/                   # FastAPI app assembly, routes, websocket handlers
+│       ├── agent/                 # AgentSession, AgentExecutor, InteractionLoop, history
+│       ├── llm/                   # prompt construction, provider adapters, model routing
+│       ├── tools/                 # model-visible schema registry, policy, projection
+│       ├── services/              # OCR, vision, artifacts, token, TTS, VM run services
+│       ├── sdk/                   # backend SDK route/tool context helpers
+│       └── core/                  # config, validation, logging, events, interfaces
+├── frontend/                      # Electron desktop app, React renderer, Python sidecar
+│   └── src/
+│       ├── main/                  # Electron main, IPC, SDK host adapter, sidecar bridge
+│       ├── main/python/           # local Python sidecar: tools, memory, browser, system
+│       ├── preload.js             # context-isolated IPC allowlist bridge
+│       ├── renderer/              # React app, chat, dashboard, settings, voice surfaces
+│       └── shared/                # shared IPC constants/contracts
+├── packages/
+│   ├── windie-sdk-js/             # TypeScript SDK runtime used by Electron and clients
+│   └── windie-sdk-python/         # Python SDK client package
+├── tests/
+│   ├── backend/                   # backend route, agent, provider, tool, service tests
+│   ├── sidecar/                   # Python sidecar and local tool tests
+│   ├── frontend/                  # Electron/main/renderer contract tests
+│   └── sdk/                       # SDK runtime, transport, projection, store tests
+├── docs/                          # agent-facing docs, runtime maps, workflows, references
+├── scripts/                       # test wrappers, environment launchers, commit helper
+├── bin/                           # generated or wrapper commands such as docs-list
+├── plugins/                       # WindieOS extension/plugin examples and contracts
+├── skills/                        # WindieOS skill prompt layers
+├── mcps/                          # MCP server docs/config examples
+└── examples/                      # SDK/client/tool integration examples
+```
+
+## File Dependency Chain
+
+Keep these chains in mind before moving code. They are ownership chains, not
+permission to import across runtime boundaries.
+
+```text
+Renderer feature code
+  -> renderer app runtime facades
+  -> preload allowlisted IPC
+  -> Electron main IPC/runtime modules
+  -> Windie SDK runtime host adapter
+  -> hosted/self-hosted backend HTTP/WebSocket
+  -> backend agent loop and provider/tool policy
+```
+
+```text
+Backend tool catalog/policy
+  -> model-visible provider projection
+  -> backend tool-call events
+  -> SDK tool coordination
+  -> Electron main local execution callback
+  -> Python sidecar executable manifest/registry
+  -> local tool result
+  -> SDK tool-result return
+  -> backend history
+```
+
+```text
+Python sidecar tool files
+  -> frontend/src/main/python/tools/registry.py
+  -> frontend/src/main/python/tools/manifest.py
+  -> SDK/local runtime executable tool manifest
+  -> backend manifest validation and policy projection
+```
+
+Frontend and sidecar must not import backend code for parity. Backend should use
+schemas, manifests, transport contracts, and tests to understand client-local
+capability.
 
 ## Runtime Ownership
 
@@ -31,6 +104,69 @@ Start every change by identifying the owning runtime before editing code.
 | Preload | Narrow allowlisted bridge between renderer and main | Business logic or policy decisions |
 | Python sidecar | Local machine authority, local tools, local memory/storage, browser mechanics, filesystem/shell/process/system execution | Backend orchestration, prompt policy, provider routing, or backend package imports |
 | Docs and tests | Durable contracts, routing maps, parity checks, and regression evidence | Runtime behavior |
+
+## Backend Agent Runtime
+
+WindieOS does not have a single Hermes-style `AIAgent` class. The equivalent
+backend agent surface is deliberately split:
+
+- `backend/src/agent/session/session.py::AgentSession` owns per-user/session
+  identity, conversation history, runtime state, compaction engine, current
+  screenshot/system state, LLM client config, and the executor instance.
+- `backend/src/agent/execution/executor.py::AgentExecutor` owns the per-query
+  pipeline setup: prompt formatting, user-history append, screenshot/OCR setup,
+  tool preparation/sending/result processing components, completion side
+  effects, and delegation into the interaction loop.
+- `backend/src/agent/execution/interaction_loop.py::InteractionLoop` owns the
+  model/tool iteration loop: build prompt/tool schemas, call the provider,
+  parse stream/tool calls, branch between final answer and tool execution, emit
+  streaming events, and stop on completion or hard limits.
+
+Usual backend call path:
+
+```text
+websocket query
+  -> QueryMessageHandler
+  -> QueryExecutionService.execute(...)
+  -> SessionManager get/create AgentSession
+  -> AgentSession.process_query(...)
+  -> AgentExecutor.process_query(...)
+  -> InteractionLoop.run_loop(...)
+  -> LLM provider stream
+  -> final response or tool calls
+```
+
+Agent classes are backend-owned. Do not mirror their state machines in Electron,
+renderer, SDK clients, or the sidecar. Those runtimes may transport events,
+render projections, execute local tools, or return tool results, but backend
+keeps prompt policy, provider routing, history compaction, and model-facing loop
+control.
+
+### Agent Loop Shape
+
+The real loop is async and event-streaming, not a synchronous `chat()` helper.
+Conceptually:
+
+```text
+for each user query:
+  build final user content and append it to backend history
+  maybe compact before sampling
+  while iteration budget remains:
+    build current prompt and model-visible tool schemas
+    stream provider response
+    if provider yields final assistant text:
+      emit completion and stop
+    if provider yields tool calls:
+      prepare executable arguments and emit tool-call events
+      wait for local SDK/main/sidecar results or run backend-owned tools
+      commit tool outputs to backend history
+      continue the loop
+  emit deterministic limit/error completion on hard stop
+```
+
+Tool results must flow back through the backend history path. Renderer transcript
+rows are display/storage projections, not replacements for backend inference
+history during a live turn.
 
 ## Required Orientation
 
@@ -77,6 +213,95 @@ For deeper source maps, start with `docs/getting-started/docs_hub.md`,
 `docs/reference/code_change_surface_index.md`,
 `docs/architecture/runtime_boundary_matrix.md`, and the subsystem docs listed by
 `docs-list`.
+
+## SDK Architecture
+
+The Windie SDK runtime is the reusable agent/client boundary. Electron is the
+first first-party SDK host, not a separate agent implementation.
+
+Key TypeScript SDK surfaces:
+
+- `packages/windie-sdk-js/src/runtime/WindieClient.ts`: public wake-up
+  orchestration, backend websocket/session creation, local runtime setup, and
+  tool/plugin/MCP manifest assembly.
+- `packages/windie-sdk-js/src/runtime/WindieAgent.ts`: high-level agent helpers
+  such as `ask`, `run`, `stream`, model updates, conversation management,
+  memory/title commands, system prompt/tool schema commands, and artifact
+  helpers.
+- `packages/windie-sdk-js/src/runtime/WindieChatSession.ts`: chat-style session
+  helper for an existing conversation.
+- `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`: reusable
+  conversation command/runtime surface over a store and backend transport.
+- `packages/windie-sdk-js/src/transport/ManagedBackendSession.ts`: hosted
+  backend websocket lifecycle, typed query/stop/rehydrate/settings/model sends,
+  backend event fan-out, and tool-result return.
+- `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`: client-local
+  tool claim, execution callback, result correlation, and backend result return.
+- `packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts`: local sidecar
+  daemon discovery/start/reuse, sidecar-backed storage, builtin tool selection,
+  local memory/title RPCs, and module-tool registration helpers.
+
+SDK ownership rules:
+
+- Put reusable chat/session/tool/result/projection behavior in the SDK when it
+  should work for Electron, CLI, custom UI, plugins, or tests.
+- Keep Electron-specific window, IPC, screenshot, permissions, and app lifecycle
+  code in Electron main or renderer facades behind SDK interfaces.
+- Keep sidecar execution and local storage mechanics in the Python sidecar; the
+  SDK coordinates and normalizes them.
+- Keep backend model/provider/prompt/tool-policy decisions in the backend; the
+  SDK reports local capability but does not grant backend capability.
+
+## Frontend Architecture
+
+WindieOS frontend has four live runtimes:
+
+- React renderer owns UX state and display: chat, dashboard, settings, voice,
+  active transcript projection, and display-only tool rows.
+- Preload owns the narrow allowlisted IPC bridge exposed to the renderer.
+- Electron main owns desktop shell policy: windows, overlays, menus, lifecycle,
+  IPC handlers, endpoint selection, permission prompts, SDK host adapters,
+  sidecar supervision, wakeword supervision, screenshots, and platform policy.
+- Python sidecar owns local authority: filesystem, shell/process, computer use,
+  browser mechanics, local memory, system state, and wakeword subprocess code.
+
+Frontend query flow:
+
+```text
+MessageInput / chat hook
+  -> renderer desktop runtime facade
+  -> SDK ConversationRuntime command
+  -> typed send-chat-query IPC
+  -> Electron main query payload builder and SDK host adapter
+  -> ManagedBackendSession websocket query
+  -> backend agent loop
+```
+
+Frontend stream flow:
+
+```text
+backend websocket event
+  -> SDK main runtime normalization/projection
+  -> Electron main broadcasts conversation-runtime-updated + conversation-event
+  -> renderer projection listener updates live rows
+  -> renderer stream side effects persist transcript metadata/events
+```
+
+Frontend tool flow:
+
+```text
+backend model-visible tool call
+  -> SDK tool coordinator
+  -> Electron main local execution callback
+  -> Python sidecar executable tool
+  -> SDK tool result return
+  -> backend history
+```
+
+Do not rebuild the chat transcript, websocket loop, tool runner, model sync,
+rehydrate, compaction, or replay semantics directly in renderer feature code.
+Add or adjust renderer facades when UI needs a boundary, and move reusable
+runtime behavior into the SDK instead of adding another Electron-only bridge.
 
 ## Runtime Flow Cheatsheet
 
