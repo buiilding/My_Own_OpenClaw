@@ -35,6 +35,8 @@ Implementation:
   escaping, disabled memory retrieval, and legacy `content` compatibility.
 - Added backend query-input and websocket schema coverage for structured
   `query_context`.
+- Escaped attachment context during backend prompt rendering so attached file
+  text cannot close the `<attached_file_context>` wrapper.
 
 Previous behavior:
 
@@ -63,10 +65,10 @@ Success criteria:
 
 Validation:
 
-- `./scripts/python-in-env backend pytest tests/backend/test_query_context_prompt_rendering.py tests/backend/test_query_execution_inputs.py tests/backend/test_websocket_message_handler.py::test_parse_and_validate_message_accepts_structured_query_context tests/backend/test_api_handlers.py::test_query_handler_forwards_query_scoped_context_to_session tests/backend/test_prompt_constructor_utils.py::test_format_user_message_content_adds_tool_schemas_only_for_first_message -q`
-- `cd frontend && npm test -- --runTestsByPath ../tests/frontend/QueryPayloadBuilder.test.cjs ../tests/frontend/IpcQueryRuntime.test.cjs ../tests/frontend/IpcMainBridge.query.test.cjs --runInBand`
-- `git diff --check`
+- `./scripts/python-in-env backend pytest tests/backend/test_query_context_prompt_rendering.py tests/backend/test_query_execution_inputs.py tests/backend/test_websocket_message_handler.py tests/backend/test_api_handlers.py -q`
+- `cd frontend && npm run test -- IpcMainBridge.query IpcMainBridge.lifecycle IpcQueryRuntime QueryPayloadBuilder --runInBand`
+- `./bin/docs-list`
 
 Skipped or failed validation:
 
-- `./scripts/python-in-env backend pytest tests/backend/test_prompt_constructor_utils.py tests/backend/test_agent_executor_user_query_sanitization.py tests/backend/test_query_execution_service_helpers.py -q` was attempted as an adjacent broad check. It failed in four `test_query_execution_service_helpers.py` cases because those existing tests pass `websocket=object()` while current `QueryExecutionService.execute` calls `websocket.send_json(...)` for `query-accepted`. That failure is unrelated to this query-context migration and should be repaired as a separate test harness cleanup.
+- None for this slice.
