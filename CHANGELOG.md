@@ -8,6 +8,7 @@ All notable changes to WindieOS will be documented in this file.
 
 - frontend/config: redact provider API keys and OAuth tokens from renderer localStorage, Electron frontend-config disk saves, disk loads, and cached main-process config state while still syncing live credential updates to backend settings.
 - backend/tools: keep canonical backend catalog specs as the provider-visible schema source for built-in sidecar tools while sidecar manifests separate backend-validation schemas from executable sidecar schemas.
+- frontend/main: move artifact upload and protected artifact-image fetch IPC handlers out of the main IPC composition root into a focused artifact handler module.
 - frontend/main: move the remaining non-chat `to-backend` SDK command forwarding policy out of the main IPC composition root into a focused handler module.
 - frontend/main: move typed chat query send/stop, frontend-config, and response-overlay preflight handler orchestration out of the main IPC composition root into focused handler modules.
 - frontend/dashboard: route memory list, delete, and destructive clear actions through a desktop memory runtime client instead of dashboard feature IPC channel calls.

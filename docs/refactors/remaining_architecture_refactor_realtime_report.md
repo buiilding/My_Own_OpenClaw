@@ -312,6 +312,9 @@ Current behavior:
   SDK command forwarding policy, including settings update routing,
   list-models connection queuing, rehydrate context attachment, and the guard
   that rejects chat query/stop-query payloads on the generic channel.
+- `ipc_artifact_handlers.cjs` owns artifact upload and protected artifact-image
+  fetch handler registration while reusing the existing shared upload/fetch
+  helpers and install-auth header plumbing.
 
 Success criteria:
 
@@ -321,12 +324,15 @@ Success criteria:
   longer inline in the IPC composition root: completed.
 - Generic non-chat SDK command forwarding is no longer inline in the IPC
   composition root: completed.
+- Artifact upload/fetch IPC handler registration is no longer inline in the IPC
+  composition root: completed.
 - Full IPC root shrink is not complete; remaining inline areas include generic
-  config/bootstrap state, artifact/OAuth handlers, and automated query
-  dispatch.
+  config/bootstrap state, OAuth handlers, and automated query dispatch.
 
 Validation:
 
+- `cd frontend && npm run test -- IpcArtifactHandlers IpcArtifactFetch IpcMainBridge.lifecycle --runInBand`
+- `node -e "const m=require('./frontend/src/main/ipc/ipc_artifact_handlers.cjs'); console.log(typeof m.registerArtifactHandlers)"`
 - `cd frontend && npm run test -- IpcSdkCommandForwarding IpcSdkCommandRouter IpcMainBridge.query IpcMainBridge.lifecycle --runInBand`
 - `cd frontend && npm run test -- IpcMainBridge.query IpcMainBridge.lifecycle IpcQueryRuntime QueryPayloadBuilder IpcFrontendConfigHandlers IpcResponseOverlayHandlers --runInBand`
 - `node -e "console.log(typeof require('./frontend/src/main/ipc/ipc_chat_query_handlers.cjs').createChatQueryHandlers, typeof require('./frontend/src/main/ipc/ipc_frontend_config_handlers.cjs').registerFrontendConfigHandlers, typeof require('./frontend/src/main/ipc/ipc_response_overlay_handlers.cjs').registerResponseOverlayHandlers)"`

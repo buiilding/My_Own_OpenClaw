@@ -48,6 +48,9 @@ const {
 const {
   fetchArtifactImage,
 } = require('./ipc/ipc_artifact_fetch.cjs');
+const {
+  registerArtifactHandlers,
+} = require('./ipc/ipc_artifact_handlers.cjs');
 const { persistMemoryStoreEvent } = require('./ipc/ipc_memory_store_persistence.cjs');
 const { buildQueryPayloadContext } = require('./query_payload_builder.cjs');
 const {
@@ -779,28 +782,13 @@ function initializeIpc(win, options = {}) {
     setResponseOverlayPhase,
   });
 
-  ipcMain.handle('upload-artifact', async (_event, payload) => {
-    return uploadArtifact({
-      ...(payload || {}),
-      backendHttpUrl: BACKEND_HTTP_URL,
-      headers: buildInstallAuthHeaders(),
-    });
-  });
-
-  ipcMain.handle('fetch-artifact-image', async (_event, payload) => {
-    try {
-      await ensureInstallAuthState();
-      return await fetchArtifactImage({
-        ...(payload || {}),
-        backendHttpUrl: BACKEND_HTTP_URL,
-        headers: buildInstallAuthHeaders(),
-      });
-    } catch (error) {
-      return {
-        success: false,
-        error: String(error?.message || error || 'Failed to fetch artifact image.'),
-      };
-    }
+  registerArtifactHandlers({
+    ipcMain,
+    uploadArtifact,
+    fetchArtifactImage,
+    ensureInstallAuthState,
+    getBackendHttpUrl: () => BACKEND_HTTP_URL,
+    buildInstallAuthHeaders,
   });
 
   registerClipboardImageHandler({

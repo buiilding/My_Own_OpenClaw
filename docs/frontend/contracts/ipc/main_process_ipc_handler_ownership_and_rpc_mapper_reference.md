@@ -17,6 +17,8 @@ title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 - `frontend/src/main/ipc/ipc_query_broadcast.cjs`
 - `frontend/src/main/ipc/ipc_query_events.cjs`
 - `frontend/src/main/ipc/ipc_memory_store_persistence.cjs`
+- `frontend/src/main/ipc/ipc_artifact_handlers.cjs`
+- `frontend/src/main/ipc/ipc_artifact_fetch.cjs`
 - `frontend/src/main/index.cjs`
 - `frontend/src/main/overlay_phase_ipc_runtime.cjs`
 - `frontend/src/main/window_controls_ipc_runtime.cjs`
@@ -81,6 +83,10 @@ Notable behavior:
 - `prime-response-overlay-awaiting` is registered by
   `ipc_response_overlay_handlers.cjs` so overlay phase preflight policy stays
   outside the IPC composition root
+- `upload-artifact` and `fetch-artifact-image` are registered by
+  `ipc_artifact_handlers.cjs`; upload delegates to the shared artifact uploader,
+  and protected image fetch ensures install auth before calling
+  `ipc_artifact_fetch.cjs`
 - clipboard image copy and image context-menu copy share the same main-process
   fetch policy: bounded `data:image/*` URLs are decoded locally; HTTP(S) fetches
   are limited to trusted backend-origin `/api/artifacts/...` URLs, use manual

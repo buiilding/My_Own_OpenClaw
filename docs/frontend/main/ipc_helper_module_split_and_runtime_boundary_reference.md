@@ -22,6 +22,8 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc/ipc_query_events.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - `frontend/src/main/ipc/ipc_frontend_config.cjs`
+- `frontend/src/main/ipc/ipc_artifact_handlers.cjs`
+- `frontend/src/main/ipc/ipc_artifact_fetch.cjs`
 - `frontend/src/main/ipc/ipc_sdk_command_forwarding.cjs`
 - `frontend/src/main/ipc/ipc_memory_store_persistence.cjs`
 
@@ -157,6 +159,25 @@ Owns response-overlay preflight IPC handler registration:
 - active-loop phase guard before moving the response overlay into
   `awaiting-first-chunk`
 
+### `ipc_artifact_handlers.cjs`
+
+Owns artifact IPC handler registration:
+
+- `upload-artifact`
+- `fetch-artifact-image`
+- upload requests receive the current backend HTTP URL and install-auth headers
+- protected image fetches refresh install auth before calling
+  `ipc_artifact_fetch.cjs`
+- fetch errors are returned as structured `{ success: false, error }` payloads
+
+### `ipc_artifact_fetch.cjs`
+
+Owns protected artifact image fetch helpers:
+
+- artifact id inference from canonical artifact URLs
+- backend artifact URL construction
+- authenticated artifact byte fetch and `data:image/...;base64,...` conversion
+
 ### `ipc_sdk_command_forwarding.cjs`
 
 Owns remaining generic `to-backend` command forwarding:
@@ -189,7 +210,8 @@ This isolates persistence to main process once per backend event before renderer
 7. frontend config load/save handlers delegate to `ipc_frontend_config.cjs`.
 8. remaining non-chat `to-backend` command forwarding delegates to
    `ipc_sdk_command_forwarding.cjs`.
-9. artifact upload handler delegates to `uploadArtifact`.
+9. artifact upload/fetch handler registration delegates to
+   `ipc_artifact_handlers.cjs`.
 
 ## Drift Hotspots
 
