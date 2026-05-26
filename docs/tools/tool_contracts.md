@@ -29,7 +29,7 @@ with the arguments emitted for that tool.
 | Contract family | Model can see it? | Executed by | Producer | Backend responsibility | Drift check |
 | --- | --- | --- | --- | --- | --- |
 | backend remote tool | yes | backend service or remote route | backend tool catalog | schema, policy, parser, result/history conversion | No sidecar parity is needed, but provider projection and policy still apply. |
-| client-local manifest tool | yes, after validation | sidecar or declared backend target for reserved tools | frontend/sidecar `client_tool_manifest` | validation, accept/reject transparency, policy, provider projection | Built-ins are generated from sidecar-owned contracts; dynamic tools must match executable sidecar behavior or an explicit grounding mode. |
+| client-local manifest tool | yes, after validation | sidecar or declared backend target for reserved tools | frontend/sidecar `client_tool_manifest` | validation, accept/reject transparency, policy, provider projection | Built-in tool names use backend catalog specs for provider-visible schemas; the sidecar manifest only proves executable capability and argument-resolution metadata. Dynamic tools use their client manifest schema. |
 | provider-native declaration | yes, provider-specific | provider/runtime adapter | backend provider projection | provider dialect, parser compatibility, policy pruning | Projection may change dialect, not semantics. |
 | sidecar-only helper | no until exposed | sidecar | Python sidecar registry | none unless promoted | Do not add prompt/schema visibility just because helper code exists. |
 | renderer display projection | no | renderer UI | stream/transcript consumers | none unless backend emits event contract | Display rows must not become the source of model-facing truth. |
@@ -45,12 +45,13 @@ Accepted tool entries normalize to:
 | `name` | string matching `[a-zA-Z][a-zA-Z0-9_-]{0,95}` | unique within the manifest; reserved backend names are rejected unless explicitly overridable |
 | `description` | non-empty string, capped length | becomes the model-facing function description when the schema does not already provide one |
 | `execution_target` | `sidecar` or `backend` | arbitrary client manifests cannot add new backend tools |
-| `schema` | supported JSON Schema subset or full function tool spec | converted into a canonical flat function schema for prompt construction |
+| `schema` | supported JSON Schema subset or full function tool spec | backend-validation schema; dynamic tools convert it into a canonical flat function schema for prompt construction |
+| `executable_schema` | optional supported JSON Schema subset | executable sidecar argument schema after backend preparation; preserved for transparency and diagnostics, not provider projection |
 | `argument_resolution` | `passthrough` or `backend_grounding` | tells reviewers whether backend preparation may transform model args before execution |
 
 Rejected entries return `{name, reason}`. Treat rejection reasons as developer diagnostics, not model-facing prompt content.
 
-Client-local schemas are merged with backend registry schemas before policy filtering. If a client schema has the same tool name as an accepted built-in override, the client schema wins for that name; otherwise duplicate names are rejected. After merging, `ToolPolicy` and provider projection still decide the final model-visible shape.
+Client-local schemas are merged with backend registry schemas before policy filtering. Built-in local tool names use backend catalog specs for the final provider-visible schema, while their manifest entries prove executable capability and argument-resolution metadata. Dynamic client-local tools use their manifest `schema` as the accepted function schema. After merging, `ToolPolicy` and provider projection still decide the final model-visible shape.
 
 ## Contract Flow
 
@@ -60,7 +61,7 @@ Client-local schemas are merged with backend registry schemas before policy filt
 3. Client sends `client_tool_manifest` during websocket handshake.
 4. Backend validates accepted/rejected manifest entries.
 5. Backend builds backend remote tool schemas from `backend/src/tools/tool_catalog.py` and remote tool classes.
-6. Prompt construction merges accepted client-local schemas with backend remote schemas.
+6. Prompt construction merges accepted dynamic client-local schemas with backend remote schemas; accepted built-in sidecar names keep backend catalog specs.
 7. Tool policy and provider/capability health narrow the exposed schema for the current session.
 8. Backend emits transparency for accepted/rejected manifest entries, final tool schemas, and active `client_prompt_layers`.
 9. The model emits a tool call.
@@ -73,8 +74,14 @@ Client-local schemas are merged with backend registry schemas before policy filt
 
 ## Shape Separation Rules
 
-- `client_tool_manifest` is model-facing input to backend validation; sidecar `entrypoint` is executable implementation.
+- `client_tool_manifest` is capability input to backend validation; sidecar `entrypoint` is executable implementation.
 - `schema` is the developer-authored extension schema field; `function_tool_schema` is the backend-normalized model-facing shape.
+- For built-in sidecar tool names, backend validation accepts the manifest but
+  provider-visible schemas come from the backend tool catalog. The sidecar
+  manifest schema is used for capability validation and dispatch metadata, not
+  final provider description authority.
+- Built-in manifests may include `executable_schema` to make the sidecar
+  argument boundary explicit when `schema` contains backend grounding metadata.
 - `argument_resolution=passthrough` means model args should already be executable; `backend_grounding` means backend preparation may resolve higher-level intent first.
 - `request_id`, `bundle_id`, `tool_call_id`, and renderer `correlation_id` join different stages. Do not collapse them unless the producer and consumer really share the same domain.
 - Single-tool output events use `display_content` as the durable UI text and

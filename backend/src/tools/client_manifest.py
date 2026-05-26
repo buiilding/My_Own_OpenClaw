@@ -8,7 +8,10 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
-from backend.src.tools.tool_catalog import get_model_visible_tool_names
+from backend.src.tools.tool_catalog import (
+    get_built_tool_catalog_entry,
+    get_model_visible_tool_names,
+)
 from backend.src.tools.tool_specs import build_function_tool_spec, is_function_tool_spec
 
 MAX_CLIENT_TOOLS = 64
@@ -77,10 +80,15 @@ class ClientToolManifestEntry:
     execution_target: Literal["sidecar", "backend"]
     schema: dict[str, Any]
     argument_resolution: Literal["passthrough", "backend_grounding"]
+    executable_schema: dict[str, Any] | None = None
 
     @property
     def function_tool_schema(self) -> dict[str, Any]:
         """Return canonical flat model-facing function schema."""
+        if self.name in OVERRIDABLE_CLIENT_BUILTINS:
+            built_entry = get_built_tool_catalog_entry(self.name)
+            if built_entry is not None:
+                return copy.deepcopy(built_entry.tool_spec)
         schema = copy.deepcopy(self.schema)
         if is_function_tool_spec(schema):
             schema["name"] = self.name
@@ -94,13 +102,16 @@ class ClientToolManifestEntry:
         )
 
     def to_public_dict(self) -> dict[str, Any]:
-        return {
+        public = {
             "name": self.name,
             "description": self.description,
             "execution_target": self.execution_target,
             "schema": copy.deepcopy(self.schema),
             "argument_resolution": self.argument_resolution,
         }
+        if self.executable_schema is not None:
+            public["executable_schema"] = copy.deepcopy(self.executable_schema)
+        return public
 
 
 @dataclass(frozen=True, slots=True)
@@ -230,6 +241,20 @@ def _validate_tool_entry(
     if schema_error:
         return None, {"name": name, "reason": f"invalid schema: {schema_error}"}
 
+    executable_schema = raw_tool.get("executable_schema")
+    if executable_schema is not None:
+        if not isinstance(executable_schema, dict):
+            return None, {
+                "name": name,
+                "reason": "executable_schema must be an object",
+            }
+        executable_schema_error = _validate_json_schema_subset(executable_schema)
+        if executable_schema_error:
+            return None, {
+                "name": name,
+                "reason": f"invalid executable_schema: {executable_schema_error}",
+            }
+
     return (
         ClientToolManifestEntry(
             name=name,
@@ -237,6 +262,11 @@ def _validate_tool_entry(
             execution_target=execution_target,
             schema=copy.deepcopy(schema),
             argument_resolution=argument_resolution,
+            executable_schema=(
+                copy.deepcopy(executable_schema)
+                if executable_schema is not None
+                else None
+            ),
         ),
         None,
     )

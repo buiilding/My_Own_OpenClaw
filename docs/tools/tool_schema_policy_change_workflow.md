@@ -30,7 +30,9 @@ The core rule is: backend owns backend remote tools and validation; Windie Agent
 
 ## Boundary Rules
 
-- Backend owns backend remote-tool schemas, client-manifest validation, visibility policy, provider projection, parser validation, tool-result ingestion, and history conversion.
+- Backend owns backend remote-tool schemas, built-in provider-visible schemas,
+  client-manifest validation, visibility policy, provider projection, parser
+  validation, tool-result ingestion, and history conversion.
 - Windie Agent owns client-local schemas and sidecar tool implementations.
 - SDK/main owns streamed tool-call consumption for execution, single/bundle local orchestration, and backend result envelope submission.
 - Renderer owns streamed tool-call/tool-output display projection and transcript rendering.
@@ -202,6 +204,9 @@ Provider projection should happen after canonical schema filtering. Do not make 
 
 - Tool name is consistent across backend catalog, remote tool class, sidecar exposed set, sidecar registry, renderer tests, docs, and prompt transparency expectations.
 - Client manifest entries are accepted or rejected for explicit reasons, and rejected entries do not silently disappear from diagnostics.
+- Built-in client-local tool names must not use sidecar manifest descriptions
+  as final provider-visible descriptions; backend catalog specs remain
+  canonical after manifest validation.
 - Backend model-facing args and sidecar executable args are either exact-parity tested or intentionally different with preparation coverage.
 - Policy gates are centralized in `ToolPolicy` or agent capability policy, not scattered through prompt construction, provider code, or renderer UI.
 - Provider projection cannot resurrect tools or coordinate methods that policy already hid.

@@ -112,6 +112,19 @@ Implication:
 
 If missing, sidecar logs warnings and tools may fail at runtime when backend emits calls.
 
+Built-in manifest entries intentionally separate schema roles:
+
+- `schema` is the backend-validation client-manifest schema. For grounded tools,
+  it can include backend-preparation fields such as OCR or prediction targets.
+- `executable_schema` is the sidecar executable argument schema. It describes
+  what the Python tool implementation can run after backend preparation.
+- `argument_resolution` explains whether those two schemas are expected to be
+  identical (`passthrough`) or transformed by backend grounding
+  (`backend_grounding`).
+
+Do not treat `schema` in the generated built-in manifest as proof that the
+sidecar directly accepts every field in that schema.
+
 ## Result Normalization Rules
 
 Registry output normalization handles:

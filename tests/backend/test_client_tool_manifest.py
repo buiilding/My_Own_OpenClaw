@@ -7,6 +7,7 @@ from backend.src.tools.client_manifest import (
     MAX_SCHEMA_BYTES,
     validate_client_tool_manifest,
 )
+from backend.src.tools.tool_catalog import get_built_tool_catalog_entry
 from backend.src.tools.remote_tool_catalog import build_remote_tool_catalog
 from backend.src.tools.registry import ToolRegistry
 
@@ -284,6 +285,81 @@ def test_client_tool_manifest_accepts_backend_grounding_mode_for_sidecar_tools()
     assert (
         result.to_public_dict()["accepted"][0]["argument_resolution"]
         == "backend_grounding"
+    )
+
+
+def test_client_tool_manifest_preserves_executable_schema_metadata():
+    executable_schema = {
+        "type": "object",
+        "properties": {"x": {"type": "integer"}},
+        "required": ["x"],
+    }
+    result = validate_client_tool_manifest(
+        {
+            "tools": [
+                {
+                    "name": "grounded_click",
+                    "description": "A grounded local tool.",
+                    "execution_target": "sidecar",
+                    "schema": _schema(),
+                    "executable_schema": executable_schema,
+                    "argument_resolution": "backend_grounding",
+                }
+            ]
+        }
+    )
+
+    assert result.rejected == []
+    assert result.accepted[0].executable_schema == executable_schema
+    assert result.to_public_dict()["accepted"][0]["executable_schema"] == executable_schema
+
+
+def test_client_tool_manifest_rejects_invalid_executable_schema_metadata():
+    result = validate_client_tool_manifest(
+        {
+            "tools": [
+                {
+                    "name": "bad_executable_schema",
+                    "description": "A malformed local tool.",
+                    "execution_target": "sidecar",
+                    "schema": _schema(),
+                    "executable_schema": {"type": "object", "x-unsupported": True},
+                    "argument_resolution": "passthrough",
+                }
+            ]
+        }
+    )
+
+    assert result.accepted == []
+    assert result.rejected == [
+        {
+            "name": "bad_executable_schema",
+            "reason": "invalid executable_schema: unsupported schema key 'x-unsupported'",
+        }
+    ]
+
+
+def test_client_tool_manifest_uses_backend_catalog_schema_for_builtin_tools():
+    result = validate_client_tool_manifest(
+        {
+            "tools": [
+                {
+                    "name": "read_file",
+                    "description": "Client-owned read file schema.",
+                    "execution_target": "sidecar",
+                    "schema": _schema(),
+                    "argument_resolution": "passthrough",
+                }
+            ]
+        }
+    )
+    backend_entry = get_built_tool_catalog_entry("read_file")
+
+    assert result.rejected == []
+    assert backend_entry is not None
+    assert result.accepted_tool_schemas == [backend_entry.tool_spec]
+    assert result.to_public_dict()["accepted"][0]["description"] == (
+        "Client-owned read file schema."
     )
 
 

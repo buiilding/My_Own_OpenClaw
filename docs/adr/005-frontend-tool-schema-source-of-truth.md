@@ -32,6 +32,9 @@ Current rules:
 - frontend/sidecar owns built-in local tool schemas and executable tool implementation
 - Electron consumes `frontend/src/main/generated/builtin_tool_manifest.json`
 - the generated manifest is produced from `frontend/src/main/python/tools/manifest.py`
+- built-in manifest entries keep `schema` for backend validation/capability
+  reporting and `executable_schema` for direct sidecar arguments when grounded
+  tools need backend preparation before execution
 - backend owns validation, model-facing policy gates, provider adaptation, capability narrowing, and backend-native tools
 - frontend/sidecar do not import backend code
 - drift prevention uses explicit parity tests and generated/shared contracts

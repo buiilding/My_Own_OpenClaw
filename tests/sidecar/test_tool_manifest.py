@@ -3,7 +3,11 @@ import json
 from pathlib import Path
 
 from tools.exposed_tool_names import EXPOSED_TO_BACKEND_TOOL_NAMES
-from tools.manifest import build_sidecar_tool_manifest, build_tool_schema
+from tools.manifest import (
+    build_sidecar_capability_schema,
+    build_sidecar_executable_schema,
+    build_sidecar_tool_manifest,
+)
 from tools.registry import ToolRegistry
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -12,16 +16,16 @@ GENERATED_MANIFEST_PATH = (
 )
 
 
-def test_build_tool_schema_exports_registered_tool_schema():
-    schema = build_tool_schema("read_file")
+def test_build_sidecar_capability_schema_exports_registered_tool_schema():
+    schema = build_sidecar_capability_schema("read_file")
 
     assert schema["type"] == "object"
     assert "file_path" in schema["properties"]
     assert "explanation" in schema["required"]
 
 
-def test_build_tool_schema_exports_rich_browser_contract():
-    schema = build_tool_schema("browser")
+def test_build_sidecar_capability_schema_exports_rich_browser_contract():
+    schema = build_sidecar_capability_schema("browser")
 
     assert schema["required"] == ["action", "explanation"]
     assert schema["additionalProperties"] is False
@@ -32,9 +36,9 @@ def test_build_tool_schema_exports_rich_browser_contract():
     assert "text" in schema["properties"]
 
 
-def test_build_tool_schema_exports_grounding_fields_for_desktop_tools():
-    mouse_schema = build_tool_schema("mouse_control")
-    scroll_schema = build_tool_schema("scroll_control")
+def test_build_sidecar_capability_schema_exports_backend_grounding_metadata_for_desktop_tools():
+    mouse_schema = build_sidecar_capability_schema("mouse_control")
+    scroll_schema = build_sidecar_capability_schema("scroll_control")
 
     assert mouse_schema["required"] == ["action", "explanation"]
     assert mouse_schema["properties"]["find_coordinates_by"]["enum"] == [
@@ -45,6 +49,22 @@ def test_build_tool_schema_exports_grounding_fields_for_desktop_tools():
     assert "drag_to_find_coordinates_by" in mouse_schema["properties"]
     assert scroll_schema["required"] == ["action", "explanation"]
     assert scroll_schema["properties"]["source_description"]["type"] == "string"
+
+
+def test_grounded_tool_manifest_separates_backend_validation_and_executable_schema():
+    manifest = build_sidecar_tool_manifest({"mouse_control", "scroll_control"})
+    mouse_tool = next(tool for tool in manifest["tools"] if tool["name"] == "mouse_control")
+    executable_mouse_schema = build_sidecar_executable_schema("mouse_control")
+
+    assert mouse_tool["schema_role"] == "backend_validation"
+    assert mouse_tool["schema"]["properties"]["find_coordinates_by"]["enum"] == [
+        "manual",
+        "ocr",
+        "prediction",
+    ]
+    assert "find_coordinates_by" not in mouse_tool["executable_schema"]["properties"]
+    assert {"x", "y"} <= set(mouse_tool["executable_schema"]["properties"])
+    assert mouse_tool["executable_schema"] == executable_mouse_schema
 
 
 def test_registry_tool_manifest_contains_builtin_schemas():
@@ -58,6 +78,8 @@ def test_registry_tool_manifest_contains_builtin_schemas():
     assert all("description" in tool for tool in manifest["tools"])
     assert all(tool.get("execution_target") == "sidecar" for tool in manifest["tools"])
     assert all("schema" in tool for tool in manifest["tools"])
+    assert all(tool.get("schema_role") == "backend_validation" for tool in manifest["tools"])
+    assert all("executable_schema" in tool for tool in manifest["tools"])
 
 
 def test_build_sidecar_tool_manifest_omits_unknown_schema_names():

@@ -197,6 +197,78 @@ Skipped or failed validation:
 
 - None for this slice.
 
+## Split Sidecar Capability Manifests From Final Model-Facing Tool Projection
+
+Status: completed.
+
+Commit: included in the same commit as this report entry.
+
+Implementation:
+
+- Renamed the sidecar manifest schema builder from generic/model-facing terms
+  to `build_sidecar_capability_schema(...)`.
+- Renamed the grounding helper so sidecar source now describes backend
+  grounding capability metadata rather than final provider-facing overrides.
+- Added explicit `schema_role: "backend_validation"` and `executable_schema`
+  metadata to generated built-in sidecar manifest entries.
+- Updated backend client-manifest validation to validate and preserve optional
+  `executable_schema` metadata for diagnostics.
+- Updated backend client-manifest normalization so built-in sidecar tool names
+  validate client capability but return canonical backend catalog tool specs as
+  `accepted_tool_schemas`.
+- Kept dynamic/plugin client tools on the existing path where their manifest
+  schema and description become the backend-normalized function schema.
+- Regenerated the built-in sidecar manifest after the source/schema drift check
+  exposed a stale generated `process.action` enum.
+- Updated tool-contract docs to state that built-in sidecar manifests prove
+  executable capability while backend catalog specs remain provider-visible
+  authority.
+
+Previous behavior:
+
+- Sidecar manifest source used `model_facing` naming and exported schemas that
+  backend accepted as final prompt/tool schemas for built-in tool names.
+- Accepted client manifests could replace backend catalog descriptions for
+  built-in tools, blurring local capability reporting with provider-visible
+  tool authority.
+- Grounded tools had one built-in manifest `schema` field that mixed backend
+  grounding inputs with direct sidecar executable arguments.
+
+Current behavior:
+
+- Sidecar built-in manifests are capability and argument-resolution input.
+- Backend validation still accepts/rejects the client manifest, but built-in
+  provider-visible schemas come from the backend tool catalog.
+- Built-in manifest entries expose backend-validation `schema` separately from
+  direct sidecar `executable_schema`.
+- Dynamic client tools still use their manifest schema because no backend
+  catalog entry exists for them.
+
+Success criteria:
+
+- Sidecar source no longer uses ambiguous `model_facing` naming for manifest
+  schema construction: completed.
+- Built-in provider-visible tool schemas are backend catalog owned after client
+  manifest validation: completed.
+- The sidecar generated manifest matches sidecar source and remains capability
+  input for Electron handshakes: completed.
+- Manifest fields now distinguish backend validation metadata from executable
+  sidecar arguments: completed.
+
+Validation:
+
+- `./scripts/python-in-env sidecar pytest tests/sidecar/test_tool_manifest.py tests/sidecar/test_shared_tool_schema_parity.py tests/sidecar/test_tool_registry.py -q`
+- `./scripts/python-in-env backend pytest tests/backend/test_client_tool_manifest.py tests/backend/test_remote_tool_contract.py tests/backend/test_tool_registry_schema.py -q`
+- `./scripts/python-in-env backend pytest tests/backend/test_prompt_constructor_utils.py::test_build_prompt_openai_projection_filters_grounded_tools_after_projection tests/backend/test_computer_use_schema_contract.py::test_provider_projection_is_noop_for_openai_computer_tools tests/backend/test_computer_use_schema_contract.py::test_provider_projection_keeps_direct_computer_tools_even_with_prompt_images tests/backend/test_computer_use_schema_contract.py::test_provider_projection_applies_config_disabled_tools tests/backend/test_computer_use_schema_contract.py::test_provider_projection_applies_available_tools_allowlist -q`
+- `cd frontend && npm run test -- AgentCapabilityHandshake WindieSdkMainRuntime WindieSdkClient McpRuntime --runInBand`
+- `cd frontend && npm run lint`
+- `./bin/docs-list`
+- `git diff --check`
+
+Skipped or failed validation:
+
+- None for this slice.
+
 ## Remove Hand-Maintained SDK CommonJS Source Mirrors
 
 Status: completed.

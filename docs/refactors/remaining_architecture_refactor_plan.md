@@ -170,7 +170,7 @@ layers unless a verified external dependency requires one.
   settings redaction tests, and a manual check of the written config file with
   throwaway credentials.
 
-- [ ] Split sidecar capability manifests from final model-facing tool
+- [x] Split sidecar capability manifests from final model-facing tool
   projection.
 
   Issue: Sidecar manifest code exports executable tool capability and applies

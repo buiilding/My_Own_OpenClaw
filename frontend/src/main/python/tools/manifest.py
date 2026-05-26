@@ -255,7 +255,7 @@ def _clean_schema(schema: Any) -> Any:
     return cleaned
 
 
-def _apply_model_facing_overrides(
+def _apply_backend_grounding_capability_metadata(
     tool_name: str, schema: dict[str, Any]
 ) -> dict[str, Any]:
     updated = copy.deepcopy(schema)
@@ -273,7 +273,7 @@ def _apply_model_facing_overrides(
     return updated
 
 
-def build_tool_schema(tool_name: str) -> dict[str, Any] | None:
+def build_sidecar_executable_schema(tool_name: str) -> dict[str, Any] | None:
     if tool_name == "browser":
         return build_browser_tool_parameters_schema()
     model = TOOL_SCHEMA_MODELS.get(tool_name)
@@ -281,7 +281,15 @@ def build_tool_schema(tool_name: str) -> dict[str, Any] | None:
         return None
     schema = _clean_schema(model.model_json_schema())
     schema.setdefault("type", "object")
-    return _apply_model_facing_overrides(tool_name, schema)
+    return schema
+
+
+def build_sidecar_capability_schema(tool_name: str) -> dict[str, Any] | None:
+    """Return the backend-validation schema advertised in the client manifest."""
+    schema = build_sidecar_executable_schema(tool_name)
+    if schema is None:
+        return None
+    return _apply_backend_grounding_capability_metadata(tool_name, schema)
 
 
 def build_sidecar_tool_manifest(
@@ -298,8 +306,9 @@ def build_sidecar_tool_manifest(
         *sorted(requested_names - set(BUILTIN_TOOL_ORDER)),
     ]
     for tool_name in ordered_tool_names:
-        schema = build_tool_schema(tool_name)
-        if schema is None:
+        executable_schema = build_sidecar_executable_schema(tool_name)
+        schema = build_sidecar_capability_schema(tool_name)
+        if executable_schema is None or schema is None:
             continue
         tools.append(
             {
@@ -307,6 +316,8 @@ def build_sidecar_tool_manifest(
                 "description": TOOL_DESCRIPTIONS.get(tool_name, ""),
                 "execution_target": "sidecar",
                 "schema": schema,
+                "schema_role": "backend_validation",
+                "executable_schema": executable_schema,
                 "argument_resolution": (
                     "backend_grounding"
                     if tool_name in GROUNDING_ARGUMENT_RESOLUTION_TOOLS

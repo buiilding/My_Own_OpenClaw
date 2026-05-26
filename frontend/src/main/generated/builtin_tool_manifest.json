@@ -3,6 +3,72 @@
     {
       "argument_resolution": "backend_grounding",
       "description": "Control mouse actions with schema-guided coordinate targeting.",
+      "executable_schema": {
+        "additionalProperties": false,
+        "description": "Arguments for mouse control tool.",
+        "properties": {
+          "action": {
+            "description": "Mouse action to perform",
+            "enum": [
+              "click",
+              "double_click",
+              "right_click",
+              "move",
+              "drag"
+            ],
+            "type": "string"
+          },
+          "button": {
+            "default": "left",
+            "description": "Mouse button for click, double_click, and drag actions",
+            "enum": [
+              "left",
+              "right",
+              "middle"
+            ],
+            "type": "string"
+          },
+          "drag_to_x": {
+            "default": null,
+            "description": "Destination X coordinate for drag actions",
+            "type": "integer"
+          },
+          "drag_to_y": {
+            "default": null,
+            "description": "Destination Y coordinate for drag actions",
+            "type": "integer"
+          },
+          "duration": {
+            "default": 0.5,
+            "description": "Duration in seconds for drag operations",
+            "type": "number"
+          },
+          "explanation": {
+            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+            "type": "string"
+          },
+          "wait": {
+            "default": 0.0,
+            "description": "Delay in seconds before taking a screenshot after tool execution.",
+            "type": "number"
+          },
+          "x": {
+            "default": null,
+            "description": "X coordinate",
+            "type": "integer"
+          },
+          "y": {
+            "default": null,
+            "description": "Y coordinate",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "action",
+          "explanation"
+        ],
+        "type": "object"
+      },
       "execution_target": "sidecar",
       "name": "mouse_control",
       "schema": {
@@ -118,11 +184,74 @@
           "explanation"
         ],
         "type": "object"
-      }
+      },
+      "schema_role": "backend_validation"
     },
     {
       "argument_resolution": "passthrough",
       "description": "Control keyboard input including typing text, clipboard paste, pressing keys, and shortcuts. After input, verify text appears in the latest captured screen image; do not assume tool success means input landed. If text is missing, refocus the field and retry. Use deterministic action sequences for predictable flows (for example, input text then press Enter only when submit is intended). Prefer this tool over mouse clicks when a shortcut or key-driven path exists.",
+      "executable_schema": {
+        "additionalProperties": false,
+        "description": "Arguments for keyboard control tool.",
+        "properties": {
+          "action": {
+            "description": "Keyboard action to perform",
+            "enum": [
+              "type",
+              "paste",
+              "press",
+              "hotkey"
+            ],
+            "type": "string"
+          },
+          "explanation": {
+            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+            "type": "string"
+          },
+          "interval_ms": {
+            "default": 0,
+            "description": "Delay between repeats in milliseconds.",
+            "maximum": 2000,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "key": {
+            "default": null,
+            "description": "Single key to press (required for 'press' action)",
+            "type": "string"
+          },
+          "keys": {
+            "default": null,
+            "description": "List of keys for hotkey (required for 'hotkey' action)",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "repeat": {
+            "default": 1,
+            "description": "Repeat count for press or hotkey actions.",
+            "maximum": 50,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "text": {
+            "default": null,
+            "description": "Text to input (required for 'type' and 'paste' actions)",
+            "type": "string"
+          },
+          "wait": {
+            "default": 0.0,
+            "description": "Delay in seconds before taking a screenshot after tool execution.",
+            "type": "number"
+          }
+        },
+        "required": [
+          "action",
+          "explanation"
+        ],
+        "type": "object"
+      },
       "execution_target": "sidecar",
       "name": "keyboard_control",
       "schema": {
@@ -186,11 +315,35 @@
           "explanation"
         ],
         "type": "object"
-      }
+      },
+      "schema_role": "backend_validation"
     },
     {
       "argument_resolution": "passthrough",
       "description": "Capture a screenshot of the current computer screen.",
+      "executable_schema": {
+        "additionalProperties": false,
+        "description": "Arguments for screenshot tool.",
+        "properties": {
+          "display_bounds": {
+            "default": null,
+            "description": "(OPTIONAL) Display bounds to capture instead of the full desktop."
+          },
+          "explanation": {
+            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+            "type": "string"
+          },
+          "wait": {
+            "default": null,
+            "description": "(OPTIONAL) Delay in seconds before capturing a screenshot. If provided, waits this duration before capture.",
+            "type": "number"
+          }
+        },
+        "required": [
+          "explanation"
+        ],
+        "type": "object"
+      },
       "execution_target": "sidecar",
       "name": "screenshot",
       "schema": {
@@ -215,11 +368,67 @@
           "explanation"
         ],
         "type": "object"
-      }
+      },
+      "schema_role": "backend_validation"
     },
     {
       "argument_resolution": "backend_grounding",
       "description": "Control desktop scrolling actions. Target the scroll region using the currently enabled grounding fields exposed by this schema. Prefer 'manual' as it's less compute-heavy. Omit `clicks` on the first vertical scroll attempt so the executor uses its default click amount; use `clicks` only for follow-up fine tuning.",
+      "executable_schema": {
+        "additionalProperties": false,
+        "description": "Arguments for scroll control tool. Vertical: up/down (vscroll). Horizontal: left/right (hscroll).\n\nVertical scroll defaults are executor-owned OS-default literal click counts.\nOptional `clicks` remains available as a literal override.",
+        "properties": {
+          "action": {
+            "description": "Scroll action to perform",
+            "enum": [
+              "scroll",
+              "scroll_up",
+              "scroll_down"
+            ],
+            "type": "string"
+          },
+          "clicks": {
+            "default": null,
+            "description": "Optional explicit literal OS wheel click override. Fallback-only for follow-up fine tuning. Omit it on the first vertical scroll attempt so the executor chooses the default click amount (8 on macOS, 5 on Windows/Linux). Provide it only when a smaller or larger manual adjustment is needed.",
+            "type": "integer"
+          },
+          "direction": {
+            "default": null,
+            "description": "Direction for scroll action: vertical 'up'|'down', or horizontal 'left'|'right'. Required when action is 'scroll'.",
+            "enum": [
+              "up",
+              "down",
+              "left",
+              "right"
+            ],
+            "type": "string"
+          },
+          "explanation": {
+            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+            "type": "string"
+          },
+          "wait": {
+            "default": 0.0,
+            "description": "Delay in seconds before taking a screenshot after tool execution.",
+            "type": "number"
+          },
+          "x": {
+            "description": "X coordinate to move to before scrolling (manual coordinates only)",
+            "type": "integer"
+          },
+          "y": {
+            "description": "Y coordinate to move to before scrolling (manual coordinates only)",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "action",
+          "x",
+          "y",
+          "explanation"
+        ],
+        "type": "object"
+      },
       "execution_target": "sidecar",
       "name": "scroll_control",
       "schema": {
@@ -300,11 +509,46 @@
           "explanation"
         ],
         "type": "object"
-      }
+      },
+      "schema_role": "backend_validation"
     },
     {
       "argument_resolution": "passthrough",
       "description": "Switch focus to a specific window by exact title. Use an exact known window title rather than blind OS-level cycling.",
+      "executable_schema": {
+        "additionalProperties": false,
+        "description": "Arguments for switch tab tool.",
+        "properties": {
+          "explanation": {
+            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+            "type": "string"
+          },
+          "match_mode": {
+            "default": "exact",
+            "description": "Window title match mode.",
+            "enum": [
+              "exact",
+              "contains",
+              "regex"
+            ],
+            "type": "string"
+          },
+          "tab_name": {
+            "description": "Name of the tab/window to switch to",
+            "type": "string"
+          },
+          "wait": {
+            "default": 0.0,
+            "description": "Delay in seconds before taking a screenshot after tool execution.",
+            "type": "number"
+          }
+        },
+        "required": [
+          "tab_name",
+          "explanation"
+        ],
+        "type": "object"
+      },
       "execution_target": "sidecar",
       "name": "switch_window",
       "schema": {
@@ -340,11 +584,31 @@
           "explanation"
         ],
         "type": "object"
-      }
+      },
+      "schema_role": "backend_validation"
     },
     {
       "argument_resolution": "passthrough",
       "description": "Wait for a specified number of seconds, then capture a fresh image of the current screen state. Useful for waiting for UI changes, animations, page loads, or async operations to complete. After execution, returns a status message and the captured image.",
+      "executable_schema": {
+        "additionalProperties": false,
+        "description": "Arguments for wait tool.",
+        "properties": {
+          "explanation": {
+            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+            "type": "string"
+          },
+          "seconds": {
+            "description": "Number of seconds to wait before capturing a screenshot.",
+            "type": "number"
+          }
+        },
+        "required": [
+          "seconds",
+          "explanation"
+        ],
+        "type": "object"
+      },
       "execution_target": "sidecar",
       "name": "wait",
       "schema": {
@@ -365,11 +629,31 @@
           "explanation"
         ],
         "type": "object"
-      }
+      },
+      "schema_role": "backend_validation"
     },
     {
       "argument_resolution": "passthrough",
       "description": "Lists currently open windows that exist on the desktop and can be focused. Use it to discover candidate windows before assuming shortcuts, clicking, or typing will land in the intended place.",
+      "executable_schema": {
+        "additionalProperties": false,
+        "description": "Arguments for get open windows tool.",
+        "properties": {
+          "explanation": {
+            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+            "type": "string"
+          },
+          "filter_text": {
+            "default": "",
+            "description": "Optional filter text to search window titles",
+            "type": "string"
+          }
+        },
+        "required": [
+          "explanation"
+        ],
+        "type": "object"
+      },
       "execution_target": "sidecar",
       "name": "get_open_windows",
       "schema": {
@@ -390,11 +674,26 @@
           "explanation"
         ],
         "type": "object"
-      }
+      },
+      "schema_role": "backend_validation"
     },
     {
       "argument_resolution": "passthrough",
       "description": "Returns current system resource usage (CPU %, Memory %, Battery). Use this to check system performance before running resource-intensive operations.",
+      "executable_schema": {
+        "additionalProperties": false,
+        "description": "Arguments for get system stats tool.",
+        "properties": {
+          "explanation": {
+            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "explanation"
+        ],
+        "type": "object"
+      },
       "execution_target": "sidecar",
       "name": "get_system_stats",
       "schema": {
@@ -410,11 +709,65 @@
           "explanation"
         ],
         "type": "object"
-      }
+      },
+      "schema_role": "backend_validation"
     },
     {
       "argument_resolution": "passthrough",
       "description": "Launch a GUI app detached from sidecar/agent lifecycle so the app remains running even if the current agent turn or sidecar process ends.\n\nVerification modes:\n- window (default): polls open windows for expected title.\n- screenshot: captures visual proof after launch and returns capture artifact fields.\n- none: fastest acknowledgment without verification.\n\nUse this for open-and-leave-running app workflows.",
+      "executable_schema": {
+        "additionalProperties": false,
+        "description": "Arguments for detached app launch tool.",
+        "properties": {
+          "args": {
+            "default": null,
+            "description": "(OPTIONAL) Positional arguments for the app launch command.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "command": {
+            "description": "Executable or app command to launch",
+            "type": "string"
+          },
+          "directory": {
+            "default": null,
+            "description": "(OPTIONAL) Working directory (must be absolute path).",
+            "type": "string"
+          },
+          "explanation": {
+            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+            "type": "string"
+          },
+          "verify": {
+            "default": "window",
+            "description": "(OPTIONAL) Post-launch verification mode: none (no verification), window (poll open windows), screenshot (capture screenshot evidence).",
+            "enum": [
+              "none",
+              "window",
+              "screenshot"
+            ],
+            "type": "string"
+          },
+          "verify_timeout_seconds": {
+            "default": 6.0,
+            "description": "(OPTIONAL) Max seconds to wait for verification.",
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "verify_window_title": {
+            "default": null,
+            "description": "(OPTIONAL) Window title substring to verify after launch.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "command",
+          "explanation"
+        ],
+        "type": "object"
+      },
       "execution_target": "sidecar",
       "name": "open_app",
       "schema": {
@@ -469,11 +822,75 @@
           "explanation"
         ],
         "type": "object"
-      }
+      },
+      "schema_role": "backend_validation"
     },
     {
       "argument_resolution": "passthrough",
       "description": "This tool executes shell commands on the local system. Commands are executed in the specified directory (or the user-selected WindieOS workspace folder when configured, otherwise the OS user home directory if not specified).\n\nExecution Modes:\n- Foreground (run_in_background=False): Blocks until command completion and returns output. Use terminate_after_seconds to set a timeout (default 120 seconds). If timeout is reached, the command is terminated and current output is returned. Foreground llm_content is truncated by default to about 10,000 tokens; override with max_output_tokens.\n- Background (run_in_background=True): Starts the command and returns immediately with execution confirmation. Does not block for output or completion.\n- Yield (yield_after_seconds): Returns early if the command runs longer than the yield time; the command continues in the background and can be managed through the returned session.\n\nOperational Guidance:\n- Prefer short commands focused on one step per tool call.\n- Do not embed large inline file content (HTML/JSON/source blobs) directly in shell command arguments.\n- For creating or updating file contents, prefer dedicated file-edit capabilities before running shell commands.\n- Split large workflows into multiple tool calls rather than one giant command payload.\n- For detached GUI app launches, prefer the dedicated app-launch capability when appropriate.\n- For shell jobs you need to poll or terminate, keep run_in_background=True and manage through the returned session.\n- After launch, capture a delayed screen image when visual verification matters.\n- Use exact known window titles and deterministic focus checks when window targeting matters.\n\nOptional post-execution delay: when provided, the tool pauses for that many seconds and captures a screen image after execution. This is useful when the command opens a GUI application or makes visual changes that need to be captured.\n\nReturns: Command output, exit code, execution time, and any errors.",
+      "executable_schema": {
+        "additionalProperties": false,
+        "description": "Arguments for shell command tool.",
+        "properties": {
+          "command": {
+            "description": "Command to execute. For repository or log search, prefer fast targeted commands such as rg instead of broad recursive grep, and exclude generated directories like node_modules, frontend/release, frontend/python-runtime, and .git unless the user explicitly needs them.",
+            "type": "string"
+          },
+          "directory": {
+            "default": null,
+            "description": "Working directory. Absolute paths are allowed, and relative paths resolve from the user-selected workspace folder when configured, otherwise from the OS user home directory. If omitted, WindieOS uses that default base directory directly.",
+            "type": "string"
+          },
+          "env": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "default": null,
+            "description": "(OPTIONAL) Environment variable overrides for the command.",
+            "type": "object"
+          },
+          "explanation": {
+            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+            "type": "string"
+          },
+          "max_output_tokens": {
+            "default": null,
+            "description": "(OPTIONAL) Maximum number of output tokens to include in llm_content for foreground responses. Defaults to 10000 when omitted.",
+            "exclusiveMinimum": 0,
+            "type": "integer"
+          },
+          "pty": {
+            "default": null,
+            "description": "(OPTIONAL) Request a pseudo-terminal (best-effort).",
+            "type": "boolean"
+          },
+          "run_in_background": {
+            "description": "Run command in background",
+            "type": "boolean"
+          },
+          "terminate_after_seconds": {
+            "default": 120.0,
+            "description": "Timeout in seconds (for foreground execution)",
+            "type": "number"
+          },
+          "wait": {
+            "default": null,
+            "description": "(OPTIONAL) Delay in seconds before taking a screenshot after tool execution. If provided, the tool will wait and capture a screenshot like computer-use tools.",
+            "type": "number"
+          },
+          "yield_after_seconds": {
+            "default": null,
+            "description": "(OPTIONAL) Return early if command runs longer than this (seconds). The command continues in the background.",
+            "type": "number"
+          }
+        },
+        "required": [
+          "command",
+          "run_in_background",
+          "explanation"
+        ],
+        "type": "object"
+      },
       "execution_target": "sidecar",
       "name": "run_shell_command",
       "schema": {
@@ -538,19 +955,30 @@
           "explanation"
         ],
         "type": "object"
-      }
+      },
+      "schema_role": "backend_validation"
     },
     {
       "argument_resolution": "passthrough",
       "description": "Manage background shell command sessions: list, poll, log, write, send-keys, submit, paste, kill, clear, remove.",
-      "execution_target": "sidecar",
-      "name": "process",
-      "schema": {
+      "executable_schema": {
         "additionalProperties": false,
         "description": "Arguments for process tool (manage background shell sessions).",
         "properties": {
           "action": {
             "description": "Action to perform: list, poll, log, write, send-keys, submit, paste, kill, clear, remove.",
+            "enum": [
+              "list",
+              "poll",
+              "log",
+              "write",
+              "send-keys",
+              "submit",
+              "paste",
+              "kill",
+              "clear",
+              "remove"
+            ],
             "type": "string"
           },
           "bracketed": {
@@ -614,11 +1042,127 @@
           "action"
         ],
         "type": "object"
-      }
+      },
+      "execution_target": "sidecar",
+      "name": "process",
+      "schema": {
+        "additionalProperties": false,
+        "description": "Arguments for process tool (manage background shell sessions).",
+        "properties": {
+          "action": {
+            "description": "Action to perform: list, poll, log, write, send-keys, submit, paste, kill, clear, remove.",
+            "enum": [
+              "list",
+              "poll",
+              "log",
+              "write",
+              "send-keys",
+              "submit",
+              "paste",
+              "kill",
+              "clear",
+              "remove"
+            ],
+            "type": "string"
+          },
+          "bracketed": {
+            "default": null,
+            "description": "Wrap paste in bracketed mode",
+            "type": "boolean"
+          },
+          "data": {
+            "default": null,
+            "description": "Data to write for write action",
+            "type": "string"
+          },
+          "eof": {
+            "default": null,
+            "description": "Close stdin after write action",
+            "type": "boolean"
+          },
+          "hex": {
+            "default": null,
+            "description": "Hex bytes for send-keys action",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "keys": {
+            "default": null,
+            "description": "Key tokens for send-keys action",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "limit": {
+            "default": null,
+            "description": "Log line limit",
+            "type": "integer"
+          },
+          "literal": {
+            "default": null,
+            "description": "Literal text for send-keys action",
+            "type": "string"
+          },
+          "offset": {
+            "default": null,
+            "description": "Log line offset",
+            "type": "integer"
+          },
+          "session_id": {
+            "default": null,
+            "description": "Session id for actions other than list/clear",
+            "type": "string"
+          },
+          "text": {
+            "default": null,
+            "description": "Text for paste action",
+            "type": "string"
+          }
+        },
+        "required": [
+          "action"
+        ],
+        "type": "object"
+      },
+      "schema_role": "backend_validation"
     },
     {
       "argument_resolution": "passthrough",
       "description": "Read file contents. Use this tool to examine existing files.",
+      "executable_schema": {
+        "additionalProperties": false,
+        "description": "Arguments for read file tool.",
+        "properties": {
+          "explanation": {
+            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+            "type": "string"
+          },
+          "file_path": {
+            "description": "Path to the file to read. Absolute paths are allowed, and relative paths resolve from the selected workspace folder when available; otherwise they resolve from the OS user home directory.",
+            "type": "string"
+          },
+          "limit": {
+            "default": null,
+            "description": "Maximum amount to read (defaults to 2000 when omitted). For text files this is max lines; for PDF files this is max pages considered before size-aware selection.",
+            "exclusiveMinimum": 0,
+            "type": "integer"
+          },
+          "offset": {
+            "default": null,
+            "description": "0-based offset to start reading from (defaults to 0). For text files this is a line offset; for PDF files this is a page offset.",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "file_path",
+          "explanation"
+        ],
+        "type": "object"
+      },
       "execution_target": "sidecar",
       "name": "read_file",
       "schema": {
@@ -651,11 +1195,88 @@
           "explanation"
         ],
         "type": "object"
-      }
+      },
+      "schema_role": "backend_validation"
     },
     {
       "argument_resolution": "passthrough",
       "description": "Replace text in a file using exact or context-anchored matching. Supports single edits and batched replacements.\n\nOperational Guidance:\n- Prefer focused edits per tool call.\n- Do not send giant new_string payloads in one call.\n- For large changes, split them into multiple focused edit calls section-by-section.",
+      "executable_schema": {
+        "additionalProperties": false,
+        "description": "Arguments for replace tool.",
+        "properties": {
+          "after_context": {
+            "default": null,
+            "description": "Optional exact text that must appear immediately after old_string",
+            "type": "string"
+          },
+          "before_context": {
+            "default": null,
+            "description": "Optional exact text that must appear immediately before old_string",
+            "type": "string"
+          },
+          "explanation": {
+            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+            "type": "string"
+          },
+          "file_path": {
+            "description": "Path to the file to modify. Absolute paths are allowed, and relative paths resolve from the selected workspace folder when available; otherwise they resolve from the OS user home directory.",
+            "type": "string"
+          },
+          "match_mode": {
+            "default": "lenient",
+            "description": "Matching mode for single operation and default for replacements[]",
+            "enum": [
+              "strict",
+              "lenient"
+            ],
+            "type": "string"
+          },
+          "new_string": {
+            "default": null,
+            "description": "Single-operation replacement string. Do not send giant payloads in one call; chunk large edits across multiple calls.",
+            "type": "string"
+          },
+          "occurrence_index": {
+            "default": null,
+            "description": "Optional 1-based match index to replace when multiple matches exist",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "old_string": {
+            "default": null,
+            "description": "Single-operation string to search for and replace",
+            "type": "string"
+          },
+          "patch_chunks": {
+            "default": null,
+            "description": "Optional apply_patch-style ordered update chunks. Cannot be combined with old_string/new_string/replacements. Prefer multiple focused chunks/calls over one oversized payload.",
+            "items": {},
+            "type": "array"
+          },
+          "replace_all": {
+            "default": false,
+            "description": "If true, replace all occurrences; if false, replace only the first occurrence",
+            "type": "boolean"
+          },
+          "replacements": {
+            "default": null,
+            "description": "Optional batched replacement operations applied atomically",
+            "items": {},
+            "type": "array"
+          },
+          "require_eof": {
+            "default": false,
+            "description": "If true, match must end at file EOF (allowing trailing newline)",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "file_path",
+          "explanation"
+        ],
+        "type": "object"
+      },
       "execution_target": "sidecar",
       "name": "replace",
       "schema": {
@@ -733,11 +1354,346 @@
           "explanation"
         ],
         "type": "object"
-      }
+      },
+      "schema_role": "backend_validation"
     },
     {
       "argument_resolution": "passthrough",
       "description": "Control the WindieOS browser instance for navigation, extraction, page interaction, tab management, and screenshots.",
+      "executable_schema": {
+        "additionalProperties": false,
+        "description": "Canonical grouped browser action payload. Provide a top-level explanation and the fields for the selected action only. Action-specific field requirements are enforced by runtime validation.",
+        "properties": {
+          "action": {
+            "description": "Canonical browser action to perform.",
+            "enum": [
+              "connect",
+              "status",
+              "profiles",
+              "navigate",
+              "snapshot",
+              "extract",
+              "click",
+              "input",
+              "send_keys",
+              "scroll",
+              "screenshot",
+              "wait",
+              "get_tabs",
+              "switch",
+              "evaluate",
+              "done",
+              "search",
+              "go_back",
+              "search_page",
+              "find_elements",
+              "find_text",
+              "close_tab",
+              "dropdown_options",
+              "select_dropdown",
+              "upload_file",
+              "write_file",
+              "replace_file",
+              "read_file",
+              "read_long_content",
+              "close"
+            ],
+            "type": "string"
+          },
+          "activate": {
+            "default": true,
+            "description": "Bring the selected browser tab to the foreground. Set to false to switch the agent's internal control target without changing the user-visible active tab.",
+            "type": "boolean"
+          },
+          "amount": {
+            "default": 500,
+            "description": "Scroll amount in pixels.",
+            "maximum": 5000,
+            "minimum": 100,
+            "type": "integer"
+          },
+          "append": {
+            "default": false,
+            "description": "Append instead of overwriting.",
+            "type": "boolean"
+          },
+          "attributes": {
+            "description": "Attributes to include in the results.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "button": {
+            "default": "left",
+            "description": "Mouse button to use.",
+            "enum": [
+              "left",
+              "right",
+              "middle"
+            ],
+            "type": "string"
+          },
+          "case_sensitive": {
+            "default": false,
+            "description": "Use case-sensitive matching.",
+            "type": "boolean"
+          },
+          "clear": {
+            "default": true,
+            "description": "Clear the field before typing.",
+            "type": "boolean"
+          },
+          "code": {
+            "description": "JavaScript code to execute.",
+            "maxLength": 5000,
+            "type": "string"
+          },
+          "content": {
+            "description": "Content to write.",
+            "type": "string"
+          },
+          "context": {
+            "description": "Optional context hint.",
+            "type": "string"
+          },
+          "context_chars": {
+            "description": "Context characters to include around each match.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "coordinate_x": {
+            "description": "Coordinate-click X position.",
+            "type": "integer"
+          },
+          "coordinate_y": {
+            "description": "Coordinate-click Y position.",
+            "type": "integer"
+          },
+          "css_scope": {
+            "description": "Optional CSS scope for the search.",
+            "type": "string"
+          },
+          "description": {
+            "description": "Optional note about the navigation step.",
+            "type": "string"
+          },
+          "direction": {
+            "default": "down",
+            "description": "Scroll direction.",
+            "enum": [
+              "up",
+              "down",
+              "left",
+              "right"
+            ],
+            "type": "string"
+          },
+          "double_click": {
+            "default": false,
+            "description": "Perform a double click.",
+            "type": "boolean"
+          },
+          "engine": {
+            "description": "Optional search engine override.",
+            "type": "string"
+          },
+          "explanation": {
+            "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
+            "type": "string"
+          },
+          "extract_links": {
+            "default": false,
+            "description": "Include page links in extracted source text before filtering.",
+            "type": "boolean"
+          },
+          "file_name": {
+            "anyOf": [
+              {
+                "description": "Optional output filename for the screenshot.",
+                "type": "string"
+              },
+              {
+                "description": "Browser-side file name.",
+                "minLength": 1,
+                "type": "string"
+              }
+            ],
+            "description": "Optional output filename for the screenshot. / Browser-side file name. / Browser-side file name. / Browser-side file name."
+          },
+          "files_to_display": {
+            "description": "Optional attachment paths to surface with the completion result.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "goal": {
+            "description": "Reading goal or question.",
+            "minLength": 1,
+            "type": "string"
+          },
+          "include_screenshot": {
+            "default": false,
+            "description": "Include a screenshot with the snapshot result when available.",
+            "type": "boolean"
+          },
+          "include_text": {
+            "default": false,
+            "description": "Include element text in the results.",
+            "type": "boolean"
+          },
+          "index": {
+            "description": "Browser Use element index. / Optional Browser Use element index. / Browser Use element index. / Browser Use element index. / Browser Use element index.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "keys": {
+            "description": "Key sequence to send.",
+            "minLength": 1,
+            "type": "string"
+          },
+          "leading_newline": {
+            "default": false,
+            "description": "Insert a leading newline before the written content.",
+            "type": "boolean"
+          },
+          "limit": {
+            "default": 4000,
+            "description": "Maximum number of snapshot characters to return.",
+            "maximum": 120000,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "max_results": {
+            "description": "Maximum number of matches to return. / Maximum number of results to return. / Maximum number of matches to return.",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "new_str": {
+            "description": "Replacement text.",
+            "type": "string"
+          },
+          "new_tab": {
+            "default": false,
+            "description": "Open the URL in a new tab.",
+            "type": "boolean"
+          },
+          "offset": {
+            "default": 0,
+            "description": "Character offset into the snapshot text for paginated reads.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "old_str": {
+            "description": "Text to replace.",
+            "type": "string"
+          },
+          "output_schema": {
+            "additionalProperties": true,
+            "description": "Optional JSON schema hint for structured extraction output.",
+            "type": "object"
+          },
+          "pages": {
+            "description": "Optional page-count override for Browser Use scrolling.",
+            "exclusiveMinimum": 0,
+            "type": "number"
+          },
+          "path": {
+            "description": "Path to the file to upload.",
+            "minLength": 1,
+            "type": "string"
+          },
+          "pattern": {
+            "description": "Pattern to find on the page.",
+            "minLength": 1,
+            "type": "string"
+          },
+          "query": {
+            "description": "Extraction goal or question. / Search query.",
+            "maxLength": 2000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "ref": {
+            "description": "Element ref from the latest snapshot.",
+            "type": "string"
+          },
+          "regex": {
+            "default": false,
+            "description": "Interpret the pattern as a regex.",
+            "type": "boolean"
+          },
+          "seconds": {
+            "description": "Seconds to wait. Omit to use the runtime default wait.",
+            "maximum": 60,
+            "minimum": 0,
+            "type": "number"
+          },
+          "selector": {
+            "description": "CSS selector to match.",
+            "minLength": 1,
+            "type": "string"
+          },
+          "source": {
+            "description": "Optional source hint.",
+            "type": "string"
+          },
+          "start_from_char": {
+            "default": 0,
+            "description": "Character offset into extracted page content for long pages.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "submit": {
+            "default": false,
+            "description": "Submit after typing.",
+            "type": "boolean"
+          },
+          "success": {
+            "description": "Optional success flag.",
+            "type": "boolean"
+          },
+          "tab_id": {
+            "description": "Tab ID from get_tabs.",
+            "type": "string"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "description": "Text to type.",
+                "maxLength": 10000,
+                "type": "string"
+              },
+              {
+                "default": "Done.",
+                "description": "Completion text to return.",
+                "type": "string"
+              },
+              {
+                "description": "Text to find.",
+                "minLength": 1,
+                "type": "string"
+              }
+            ],
+            "description": "Text to type. / Completion text to return. / Text to find. / Visible option text to select."
+          },
+          "trailing_newline": {
+            "default": false,
+            "description": "Append a trailing newline after the written content.",
+            "type": "boolean"
+          },
+          "url": {
+            "description": "URL to navigate to.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "action",
+          "explanation"
+        ],
+        "type": "object"
+      },
       "execution_target": "sidecar",
       "name": "browser",
       "schema": {
@@ -1073,7 +2029,8 @@
           "explanation"
         ],
         "type": "object"
-      }
+      },
+      "schema_role": "backend_validation"
     }
   ],
   "version": 1
