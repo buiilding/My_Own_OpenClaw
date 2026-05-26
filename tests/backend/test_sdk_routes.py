@@ -1242,6 +1242,73 @@ async def test_sdk_debug_tool_schemas_uses_prompt_constructor_surface(
 
 
 @pytest.mark.asyncio
+async def test_sdk_debug_tool_schemas_applies_query_overrides_to_response_shape(
+    tmp_path,
+    monkeypatch,
+    authenticated_install_identity,
+) -> None:
+    base_config = AppConfig(
+        artifact_store_path=str(tmp_path),
+        artifact_max_bytes=1024 * 1024,
+        model_provider="anthropic",
+        selected_model_id="claude-base",
+        interaction_mode="chat",
+    )
+    session_config = base_config.model_copy(
+        update={
+            "model_provider": "openai",
+            "selected_model_id": "gpt-session",
+            "interaction_mode": "chat",
+        }
+    )
+    container = _container(tmp_path, config=base_config)
+
+    def fake_build_debug_tool_schemas(**kwargs):
+        config = kwargs["config"]
+        assert config.model_provider == "openai"
+        assert config.selected_model_id == "gpt-override"
+        assert config.interaction_mode == "agent"
+        return (
+            [{"type": "function", "name": "canonical_only"}],
+            [{"type": "function", "function": {"name": "provider_only"}}],
+        )
+
+    monkeypatch.setitem(
+        sdk_routes.sdk_debug_tool_schemas.__globals__,
+        "build_debug_tool_schemas",
+        fake_build_debug_tool_schemas,
+    )
+
+    response = await sdk_routes.sdk_debug_tool_schemas(
+        container=container,
+        session_manager=_FakeSessionManager(SimpleNamespace(cfg=session_config)),
+        user_id=authenticated_install_identity.user_id,
+        model_id="gpt-override",
+        model_provider="openai",
+        interaction_mode="agent",
+    )
+
+    payload = response.model_dump(mode="json")
+    assert set(payload) == {
+        "config",
+        "canonical_tool_schemas",
+        "provider_tool_schemas",
+    }
+    assert payload["config"] == {
+        "model_mode": base_config.model_mode,
+        "model_provider": "openai",
+        "selected_model_id": "gpt-override",
+        "interaction_mode": "agent",
+    }
+    assert payload["canonical_tool_schemas"] == [
+        {"type": "function", "name": "canonical_only"}
+    ]
+    assert payload["provider_tool_schemas"] == [
+        {"type": "function", "function": {"name": "provider_only"}}
+    ]
+
+
+@pytest.mark.asyncio
 async def test_sdk_debug_tool_capabilities_returns_schema_details(
     tmp_path,
     authenticated_install_identity,
