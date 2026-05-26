@@ -17,8 +17,52 @@ class FakeEmbeddingProvider:
         return [[float(index), float(index + 1)] for index, _text in enumerate(texts)]
 
 
+class BrokenHealthEmbeddingProvider(FakeEmbeddingProvider):
+    @property
+    def model_id(self) -> str:
+        raise RuntimeError("model metadata unavailable")
+
+
 def _auth_headers(token: str = "test-embedding-key") -> dict[str, str]:
     return {service_app.EMBEDDING_SERVICE_API_KEY_HEADER: token}
+
+
+def test_health_returns_provider_metadata() -> None:
+    service_app.app.state.embedding_provider = FakeEmbeddingProvider()
+    client = TestClient(service_app.app)
+
+    response = client.get("/health")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "status": "healthy",
+        "provider_id": "fake-embedding",
+        "model_id": "fake-model",
+        "model_name": "Fake Model",
+        "dimension": 2,
+        "embedding_space_version": "fake-embedding:fake-model:2",
+    }
+
+
+def test_health_returns_503_when_provider_is_missing() -> None:
+    if hasattr(service_app.app.state, "embedding_provider"):
+        delattr(service_app.app.state, "embedding_provider")
+    client = TestClient(service_app.app)
+
+    response = client.get("/health")
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Embedding provider not available"}
+
+
+def test_health_returns_503_when_provider_metadata_fails() -> None:
+    service_app.app.state.embedding_provider = BrokenHealthEmbeddingProvider()
+    client = TestClient(service_app.app, raise_server_exceptions=False)
+
+    response = client.get("/health")
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Embedding service unhealthy"}
 
 
 def test_embed_requires_configured_service_api_key(monkeypatch) -> None:
