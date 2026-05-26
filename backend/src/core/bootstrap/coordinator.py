@@ -92,20 +92,26 @@ class InitializationCoordinator:
                 )
             self._is_initializing = True
 
+        current_phase = "unknown"
+
         try:
             # Phase 1: Configuration
+            current_phase = "configuration"
             await self._initialize_configuration(config_manager)
             self._initialized_phases.append("configuration")
 
             # Phase 2: Container
+            current_phase = "container"
             await self._initialize_container()
             self._initialized_phases.append("container")
 
             # Phase 3: Services (SessionManager, Handlers)
+            current_phase = "services"
             await self._initialize_services()
             self._initialized_phases.append("services")
 
             # Validate final state
+            current_phase = "validation"
             self._validate_final_state()
 
             with self._state_lock:
@@ -119,11 +125,12 @@ class InitializationCoordinator:
                 original_error = e
             else:
                 original_error = InitializationError(
-                    f"Initialization failed at phase '{self._initialized_phases[-1] if self._initialized_phases else 'unknown'}': {str(e)}"
+                    f"Initialization failed at phase '{current_phase}': {str(e)}"
                 )
 
             logger.error(
-                f"Initialization failed at phase: {self._initialized_phases[-1] if self._initialized_phases else 'unknown'}",
+                "Initialization failed at phase: %s",
+                current_phase,
                 exc_info=True,
             )
             # Attempt cleanup of initialized phases
