@@ -27,15 +27,18 @@ class ErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) {
-      // You can render any custom fallback UI
+      const showErrorDetails = process.env.NODE_ENV === 'development';
       return (
         <div className="error-boundary">
           <h2>Something went wrong.</h2>
-          <details>
-            {this.state.error && this.state.error.toString()}
-            <br />
-            {this.state.error?.stack}
-          </details>
+          <p>Please restart the app or try the action again. Diagnostic details were written to the application logs.</p>
+          {showErrorDetails ? (
+            <details>
+              {this.state.error && this.state.error.toString()}
+              <br />
+              {this.state.error?.stack}
+            </details>
+          ) : null}
         </div>
       );
     }
