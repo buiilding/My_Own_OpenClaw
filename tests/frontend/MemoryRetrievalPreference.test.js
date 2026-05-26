@@ -25,4 +25,26 @@ describe('memoryRetrievalPreference', () => {
     expect(getMemoryRetrievalInjectionEnabled()).toBe(true);
     expect(window.localStorage.getItem(MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY)).toBe('true');
   });
+
+  test('defaults to enabled when storage read fails', () => {
+    const throwingStorage = {
+      getItem: jest.fn(() => {
+        throw new Error('storage blocked');
+      }),
+    };
+
+    expect(getMemoryRetrievalInjectionEnabled(throwingStorage)).toBe(true);
+  });
+
+  test('returns normalized preference when storage write fails', () => {
+    const throwingStorage = {
+      setItem: jest.fn(() => {
+        throw new Error('quota exceeded');
+      }),
+    };
+
+    expect(() => setMemoryRetrievalInjectionEnabled(false, throwingStorage)).not.toThrow();
+    expect(setMemoryRetrievalInjectionEnabled(false, throwingStorage)).toBe(false);
+    expect(setMemoryRetrievalInjectionEnabled('yes', throwingStorage)).toBe(true);
+  });
 });

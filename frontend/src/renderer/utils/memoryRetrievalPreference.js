@@ -19,7 +19,12 @@ export function getMemoryRetrievalInjectionEnabled(storage = null) {
   if (!targetStorage) {
     return true;
   }
-  const storedValue = targetStorage.getItem(MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY);
+  let storedValue;
+  try {
+    storedValue = targetStorage.getItem(MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY);
+  } catch (_error) {
+    return true;
+  }
   if (storedValue === null) {
     return true;
   }
@@ -36,10 +41,14 @@ export function setMemoryRetrievalInjectionEnabled(enabled, storage = null) {
   const normalizedEnabled = normalizePreferenceValue(enabled);
   const targetStorage = resolveStorage(storage);
   if (targetStorage) {
-    targetStorage.setItem(
-      MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY,
-      normalizedEnabled ? 'true' : 'false',
-    );
+    try {
+      targetStorage.setItem(
+        MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY,
+        normalizedEnabled ? 'true' : 'false',
+      );
+    } catch (_error) {
+      return normalizedEnabled;
+    }
   }
   return normalizedEnabled;
 }
