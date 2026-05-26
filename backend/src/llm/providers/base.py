@@ -253,12 +253,29 @@ class LLMProvider(ProviderPayloadHelpersMixin, ABC):
             yield ErrorEvent(content="Rate limit exceeded. Please try again later.")
         except litellm_exceptions.APIError as e:
             logger.error(f"API error in {self.__class__.__name__}: {e}")
-            yield ErrorEvent(content=f"External API error: {str(e)}")
+            status_code = self._extract_status_code(e)
+            yield ErrorEvent(
+                content=self._build_api_error_message(
+                    self.__class__.__name__,
+                    status_code,
+                )
+            )
         except Exception as e:
             logger.error(
                 f"Unexpected error in {self.__class__.__name__}: {e}", exc_info=True
             )
-            yield ErrorEvent(content=f"Unexpected system error: {str(e)}")
+            status_code = self._extract_status_code(e)
+            if status_code is not None:
+                yield ErrorEvent(
+                    content=self._build_api_error_message(
+                        self.__class__.__name__,
+                        status_code,
+                    )
+                )
+                return
+            yield ErrorEvent(
+                content=f"An unexpected error occurred with {self.__class__.__name__}"
+            )
 
     def clear_last_stream_usage(self) -> None:
         """Reset stored usage payload for the next streaming request."""

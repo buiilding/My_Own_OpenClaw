@@ -1017,7 +1017,7 @@ class TestGetCompletionStream:
                 ),
                 "API error",
             ),
-            (lambda: ValueError("Generic error"), "Unexpected system error"),
+            (lambda: ValueError("Generic error"), "An unexpected error occurred"),
         ],
         ids=["rate_limit", "api_error", "generic_error"],
     )
@@ -1030,6 +1030,37 @@ class TestGetCompletionStream:
         assert len(events) == 1
         assert isinstance(events[0], ErrorEvent)
         assert expected_message in events[0].content
+
+    @pytest.mark.asyncio
+    async def test_stream_api_error_event_omits_raw_provider_details(self):
+        provider = _provider_with_stream_error(
+            lambda: litellm.APIError(
+                message="upstream body contained secret-token-123",
+                llm_provider="test",
+                model="model",
+                status_code=502,
+            )
+        )
+
+        events = await _collect_stream_events(provider)
+
+        assert len(events) == 1
+        assert isinstance(events[0], ErrorEvent)
+        assert events[0].content == "ErrorProvider API error (HTTP 502)"
+        assert "secret-token-123" not in events[0].content
+
+    @pytest.mark.asyncio
+    async def test_stream_unexpected_error_event_omits_raw_exception_details(self):
+        provider = _provider_with_stream_error(
+            lambda: RuntimeError("internal deployment secret-token-456 failed")
+        )
+
+        events = await _collect_stream_events(provider)
+
+        assert len(events) == 1
+        assert isinstance(events[0], ErrorEvent)
+        assert events[0].content == "An unexpected error occurred with ErrorProvider"
+        assert "secret-token-456" not in events[0].content
 
 
 class TestStandardCompletionHelper:
