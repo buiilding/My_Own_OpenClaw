@@ -14,38 +14,29 @@ describe('messageSendUiPolicy', () => {
     }).returnToChatboxPolicy).toBe('never');
   });
 
-  test('return-to-chatbox resolution matrix is stable', () => {
-    expect(resolveMessageSendUiBehavior({
-      senderSurface: 'main-window',
-      includeQueryScreenshot: true,
-      returnToChatboxPolicy: 'never',
-    }).shouldReturnToChatboxOnSend).toBe(false);
-    expect(resolveMessageSendUiBehavior({
-      senderSurface: 'main-window',
-      includeQueryScreenshot: false,
-      returnToChatboxPolicy: 'never',
-    }).shouldReturnToChatboxOnSend).toBe(false);
-    expect(resolveMessageSendUiBehavior({
-      senderSurface: 'main-window',
-      includeQueryScreenshot: true,
-      returnToChatboxPolicy: 'auto',
-    }).shouldReturnToChatboxOnSend).toBe(true);
-    expect(resolveMessageSendUiBehavior({
-      senderSurface: 'main-window',
-      includeQueryScreenshot: false,
-      returnToChatboxPolicy: 'auto',
-    }).shouldReturnToChatboxOnSend).toBe(false);
-    expect(resolveMessageSendUiBehavior({
-      senderSurface: 'main-window',
-      includeQueryScreenshot: true,
-      returnToChatboxPolicy: 'always',
-    }).shouldReturnToChatboxOnSend).toBe(true);
-    expect(resolveMessageSendUiBehavior({
-      senderSurface: 'main-window',
-      includeQueryScreenshot: false,
-      returnToChatboxPolicy: 'always',
-    }).shouldReturnToChatboxOnSend).toBe(true);
-  });
+  test.each([
+    ['main-window', 'never', false, false],
+    ['main-window', 'never', true, false],
+    ['main-window', 'auto', false, false],
+    ['main-window', 'auto', true, true],
+    ['main-window', 'always', false, true],
+    ['main-window', 'always', true, true],
+    ['overlay-chatbox', 'never', false, false],
+    ['overlay-chatbox', 'never', true, false],
+    ['overlay-chatbox', 'auto', false, false],
+    ['overlay-chatbox', 'auto', true, true],
+    ['overlay-chatbox', 'always', false, true],
+    ['overlay-chatbox', 'always', true, true],
+  ])(
+    'return-to-chatbox matrix: surface=%s policy=%s screenshot=%s',
+    (senderSurface, returnToChatboxPolicy, includeQueryScreenshot, expected) => {
+      expect(resolveMessageSendUiBehavior({
+        senderSurface,
+        includeQueryScreenshot,
+        returnToChatboxPolicy,
+      }).shouldReturnToChatboxOnSend).toBe(expected);
+    },
+  );
 
   test('behavior resolver applies default policy when override is missing', () => {
     expect(resolveMessageSendUiBehavior({
