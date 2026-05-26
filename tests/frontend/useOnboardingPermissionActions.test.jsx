@@ -141,4 +141,71 @@ describe('useOnboardingPermissionActions', () => {
     expect(mockRunPermissionProbe).not.toHaveBeenCalled();
   });
 
+  test('stops polling when the external grant watcher reaches its timeout', async () => {
+    mockRequestPermission.mockResolvedValue({
+      permission_id: 'screen_capture',
+      status: 'needs-action',
+      granted: false,
+    });
+    mockRunPermissionProbe.mockResolvedValue({
+      permission_id: 'screen_capture',
+      status: 'needs-action',
+      granted: false,
+    });
+
+    render(React.createElement(HookHarness, { permissionId: 'screen_capture' }));
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'grant' }));
+      await Promise.resolve();
+    });
+
+    expect(screen.getByRole('button', { name: 'screen_capture' })).toBeInTheDocument();
+
+    await act(async () => {
+      jest.advanceTimersByTime(2 * 60 * 1000);
+      await Promise.resolve();
+    });
+
+    expect(screen.getByRole('button', { name: 'grant' })).toBeInTheDocument();
+    const callsAfterTimeout = mockRunPermissionProbe.mock.calls.length;
+
+    await act(async () => {
+      jest.advanceTimersByTime(3000);
+      await Promise.resolve();
+    });
+
+    expect(mockRunPermissionProbe).toHaveBeenCalledTimes(callsAfterTimeout);
+  });
+
+  test('cleans up the external grant watcher on unmount', async () => {
+    mockRequestPermission.mockResolvedValue({
+      permission_id: 'screen_capture',
+      status: 'needs-action',
+      granted: false,
+    });
+    mockRunPermissionProbe.mockResolvedValue({
+      permission_id: 'screen_capture',
+      status: 'needs-action',
+      granted: false,
+    });
+
+    const { unmount } = render(React.createElement(HookHarness, { permissionId: 'screen_capture' }));
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'grant' }));
+      await Promise.resolve();
+    });
+
+    expect(mockRunPermissionProbe).toHaveBeenCalledTimes(1);
+    unmount();
+
+    await act(async () => {
+      jest.advanceTimersByTime(5000);
+      await Promise.resolve();
+    });
+
+    expect(mockRunPermissionProbe).toHaveBeenCalledTimes(1);
+  });
+
 });

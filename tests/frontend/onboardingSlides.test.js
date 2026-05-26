@@ -31,4 +31,28 @@ describe('buildOnboardingSlideState', () => {
     expect(slideState.activePermission).toBeNull();
     expect(slideState.activeSlideTitle).toBe('Stop the agent during loops');
   });
+
+  test('uses a placeholder permission slide when permission manifest is empty', () => {
+    const slideState = buildOnboardingSlideState({
+      permissions: [],
+      activeSlideIndex: 0,
+    });
+
+    expect(slideState.permissionSlides).toEqual([]);
+    expect(slideState.permissionSlideCount).toBe(1);
+    expect(slideState.totalSlides).toBe(2);
+    expect(slideState.isPermissionSlide).toBe(true);
+    expect(slideState.activePermission).toBeNull();
+  });
+
+  test('clamps negative indices to the first slide', () => {
+    const slideState = buildOnboardingSlideState({
+      permissions: [{ permission_id: 'microphone', label: 'Microphone' }],
+      activeSlideIndex: -4,
+    });
+
+    expect(slideState.activeSlideIndex).toBe(0);
+    expect(slideState.isPermissionSlide).toBe(true);
+    expect(slideState.activePermission).toEqual({ permission_id: 'microphone', label: 'Microphone' });
+  });
 });
