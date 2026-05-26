@@ -663,6 +663,141 @@ async def test_sdk_ocr_overlay_writes_artifact(
 
 
 @pytest.mark.asyncio
+async def test_sdk_ocr_overlay_filters_text_matches_and_forwards_labels(
+    tmp_path,
+    authenticated_install_identity,
+    monkeypatch,
+) -> None:
+    _ = authenticated_install_identity
+    container = _container(
+        tmp_path,
+        ocr_results=[
+            {
+                "id": "row-1",
+                "text": "Search Amazon",
+                "confidence": 0.99,
+                "bbox": {"x": 500, "y": 216, "width": 174, "height": 36},
+            },
+            {
+                "id": "row-2",
+                "text": "Search Archive",
+                "confidence": 0.70,
+                "bbox": {"x": 700, "y": 216, "width": 174, "height": 36},
+            },
+        ],
+    )
+    calls = []
+
+    def fake_render(**kwargs):
+        calls.append(kwargs)
+        return SimpleNamespace(annotation_count=len(kwargs["rows"]))
+
+    monkeypatch.setitem(
+        sdk_routes.sdk_ocr_overlay.__globals__,
+        "render_ocr_overlay_response",
+        fake_render,
+    )
+
+    response = await sdk_routes.sdk_ocr_overlay(
+        _sdk_request("/api/sdk/ocr/overlay"),
+        OcrOverlayRequest(
+            image=ImageSourceInput(image_base64=_png_base64()),
+            text="Search Amazon",
+            threshold=0.8,
+            max_results=1,
+            show_labels=False,
+        ),
+        container,
+    )
+
+    assert response.annotation_count == 1
+    assert [row.text for row in calls[0]["rows"]] == ["Search Amazon"]
+    assert calls[0]["show_labels"] is False
+
+
+@pytest.mark.asyncio
+async def test_sdk_ocr_overlay_uses_default_rows_when_no_filter_is_requested(
+    tmp_path,
+    authenticated_install_identity,
+    monkeypatch,
+) -> None:
+    _ = authenticated_install_identity
+    container = _container(
+        tmp_path,
+        ocr_results=[
+            {
+                "id": "row-1",
+                "text": "Search Amazon",
+                "confidence": 0.99,
+                "bbox": {"x": 500, "y": 216, "width": 174, "height": 36},
+            },
+            {
+                "id": "row-2",
+                "text": "Open Settings",
+                "confidence": 0.98,
+                "bbox": {"x": 700, "y": 216, "width": 174, "height": 36},
+            },
+        ],
+    )
+    calls = []
+
+    def fake_render(**kwargs):
+        calls.append(kwargs)
+        return SimpleNamespace(annotation_count=len(kwargs["rows"]))
+
+    monkeypatch.setitem(
+        sdk_routes.sdk_ocr_overlay.__globals__,
+        "render_ocr_overlay_response",
+        fake_render,
+    )
+
+    response = await sdk_routes.sdk_ocr_overlay(
+        _sdk_request("/api/sdk/ocr/overlay"),
+        OcrOverlayRequest(
+            image=ImageSourceInput(image_base64=_png_base64()),
+            max_results=1,
+        ),
+        container,
+    )
+
+    assert response.annotation_count == 1
+    assert [row.text for row in calls[0]["rows"]] == ["Search Amazon"]
+    assert calls[0]["show_labels"] is True
+
+
+@pytest.mark.asyncio
+async def test_sdk_ocr_overlay_returns_404_for_unknown_candidate(
+    tmp_path,
+    authenticated_install_identity,
+) -> None:
+    _ = authenticated_install_identity
+    container = _container(
+        tmp_path,
+        ocr_results=[
+            {
+                "id": "row-1",
+                "text": "Search Amazon",
+                "confidence": 0.99,
+                "bbox": {"x": 500, "y": 216, "width": 174, "height": 36},
+            },
+        ],
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        await sdk_routes.sdk_ocr_overlay(
+            _sdk_request("/api/sdk/ocr/overlay"),
+            OcrOverlayRequest(
+                image=ImageSourceInput(image_base64=_png_base64()),
+                candidate_id="missing-candidate",
+            ),
+            container,
+        )
+
+    assert exc_info.value.status_code == 404
+    assert exc_info.value.detail == "OCR candidate not found for overlay"
+
+
+@pytest.mark.asyncio
 async def test_sdk_vision_locate_requires_authenticated_identity_before_vision(
     tmp_path,
 ) -> None:
