@@ -1083,7 +1083,9 @@ Send a user query with optional screenshot.
 - `tool-schemas`: Tool schemas for transparency
 - `token-count`: Token usage information
 
-**Note**: The Electron main process enriches `query` payloads by adding `content` (memory sections, optional attachment context, and `<user_query>`).
+**Note**: The Electron main process sends structured `query_context` for memory
+sections and optional attachment context while preserving legacy `content`
+compatibility for other clients.
 `conversation_ref` is required and identifies the active transcript/session thread.
 `system_state_internal` is backend-only runtime state and is not model-facing prompt/tool-output content.
 
@@ -1127,7 +1129,9 @@ Used when switching or resuming conversations from episodic memory.
       "timestamp": "2026-02-02T20:00:01Z"
     }
   ],
-  "rehydrate_mode": "replace"
+  "rehydrate_mode": "replace",
+  "workspace_path": "/Users/example/project",
+  "repo_instruction_messages": []
 }
 ```
 
@@ -1140,6 +1144,8 @@ Used when switching or resuming conversations from episodic memory.
 - `timestamp`: optional timestamp
 - `screenshot_ref`: optional artifact id
 - `screenshot`: optional inline base64 screenshot fallback
+- `workspace_path`: optional workspace binding for resumed conversation context
+- `repo_instruction_messages`: optional contextual repo-instruction messages
 
 **Behavior**:
 - Backend replaces session history for `conversation_ref` with provided message list.
@@ -1336,6 +1342,7 @@ Send tool execution result from frontend.
     "llm_content": "Preformatted tool output text",
     "screenshot_ref": "uuid.jpg", // Optional, computer-use tools only
     "screenshot": "base64-encoded-screenshot", // Optional legacy fallback, computer-use tools only
+    "capture_meta": { "frame_id": "frame-1" },
     "system_state": { "active_window": "...", "mouse_position": "..." },
     "system_state_internal": { "active_window": "...", "mouse_position": "...", "screen_resolution": "..." } // Optional backend-only runtime state
   },
@@ -1346,6 +1353,7 @@ Send tool execution result from frontend.
 `request_id` must echo the `tool-call` payload `request_id` value for correlation.
 `data.system_state` is optional in schema; when present it should include `active_window` and `mouse_position`.
 `data.system_state_internal` is optional backend-only runtime state and is not model-facing tool-output content.
+`data.capture_meta` is optional screenshot/capture frame metadata.
 For non-computer tools, omit `data.screenshot_ref` and `data.screenshot`.
 
 **Response**: Acknowledgment (no specific response type)
@@ -1385,6 +1393,7 @@ Result of an atomic tool bundle executed on the frontend.
   "status": "success", // success | partial_failure | failure
   "screenshot_ref": "1f2c3a4b5d6e7f8a.jpg", // Optional, computer-use bundles only
   "screenshot": "base64-encoded-screenshot", // Optional legacy fallback, computer-use bundles only
+  "capture_meta": { "frame_id": "frame-1" },
   "system_state": { "active_window": "...", "mouse_position": "..." },
   "step_results": [
     {

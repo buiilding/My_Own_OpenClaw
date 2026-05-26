@@ -69,10 +69,12 @@ Role:
 
 ## Outbound Backend Payload Normalization
 
-`normalizeBackendPayload(type, payload)` in `ipc.cjs`:
+`normalizeBackendPayload(type, payload)` in `ipc_runtime_helpers.cjs`:
 
 - non-object payload -> `{}`.
-- strips `screenshot_url` for:
+- filters known command payloads through `BACKEND_PAYLOAD_KEYS_BY_TYPE` from
+  `ipc_backend_payload_contract.cjs`.
+- additionally strips display-only `screenshot_url` for:
   - `query`
   - `tool-bundle-result`
 
@@ -142,7 +144,7 @@ High-risk drift points to monitor:
 |---|---|---|
 | preload channel allowlist gate | `frontend/src/preload.js` | unallowlisted channels never cross renderer->main boundary |
 | renderer development-time channel assertions | `frontend/src/renderer/infrastructure/ipc/bridge.ts` | fail-fast on typos/drift in dev while production defers to preload policy |
-| outbound websocket payload normalization | `frontend/src/main/ipc.cjs` | strips unsupported fields (`screenshot_url`) before backend schema enforcement |
+| outbound websocket payload normalization | `frontend/src/main/ipc/ipc_backend_payload_contract.cjs`, `frontend/src/main/ipc/ipc_runtime_helpers.cjs` | filters known backend command payloads through contract-backed allowlists before backend schema enforcement |
 | handshake user-id sanitization | `frontend/src/main/ipc/ipc_runtime_helpers.cjs` (`generateUserId`) | avoids backend handshake rejects from invalid/unsafe user-id values |
 | query XML/context sanitization fallback | `frontend/src/main/query_payload_builder.cjs` | escapes XML-sensitive content and guarantees structured fallback blocks |
 | local-backend mapper compatibility transforms | `frontend/src/main/local_backend_bridge_rpc_mappers.cjs` | camelCase/snake_case fallback compatibility and safe default object coercion |

@@ -27,6 +27,7 @@ Supported incoming message types:
 - `list-models`
 - `update-settings`
 - `wakeword-detected`
+- `compact-history`
 - `tool-result`
 - `tool-bundle-result`
 
@@ -36,7 +37,10 @@ Fields:
 
 - `text`
 - `conversation_ref`
-- optional: `content`, `screenshot`, `screenshot_ref`, `system_state_internal`
+- optional: `content`, `query_context`, `screenshot`, `screenshot_ref`,
+  `screenshot_refs`, `capture_meta`, `system_state_internal`,
+  `workspace_path`, `repo_instruction_messages`, `client_prompt_layers`,
+  `agent_definition`
 
 ### `stop-query` payload
 
@@ -58,13 +62,21 @@ Optional frontend-owned fields:
 - `include_query_screenshot`
 - `provider_api_keys`, `provider_oauth`
 
+### `compact-history` payload
+
+Fields:
+
+- optional `force`
+- optional `conversation_ref`
+
 ### `tool-result` payload
 
 Fields:
 
 - `request_id`
 - `success`
-- optional `data` (includes `llm_content`, optional `system_state`, optional screenshot fields)
+- optional `data` (includes `llm_content`, optional `system_state`, optional
+  screenshot fields, optional `capture_meta`)
 - optional `error`
 
 ### `tool-bundle-result` payload
@@ -74,7 +86,7 @@ Fields:
 - `bundle_id`
 - `status`: `success | partial_failure | failure`
 - `step_results[]`
-- optional screenshot/system-state fields
+- optional screenshot/capture/system-state fields
 - optional `error`
 
 ## Outgoing Messages

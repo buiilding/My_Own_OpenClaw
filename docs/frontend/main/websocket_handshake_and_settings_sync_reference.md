@@ -184,9 +184,10 @@ SDK runtime backend send helpers:
 - expose a typed `sendStopQueryToBackend(...)` adapter for VM/bootstrap stop
   controls instead of a generic backend-message escape hatch
 
-`normalizeBackendPayload(...)` strips unsupported/transient fields:
-
-- removes `screenshot_url` for `query` and `tool-bundle-result`
+`normalizeBackendPayload(...)` filters every known backend command payload
+through the generated-contract allowlist in `ipc_backend_payload_contract.cjs`.
+It also removes display-only `screenshot_url` fields for `query` and
+`tool-bundle-result`.
 
 ## Query Send Failure Synthesis
 

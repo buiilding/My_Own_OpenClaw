@@ -162,10 +162,9 @@ State flow:
 
 ## Outbound Payload Normalization Contract
 
-`normalizeBackendPayload(...)` strips `screenshot_url` from:
-
-- `query`
-- `tool-bundle-result`
+`normalizeBackendPayload(...)` filters known command payloads through
+contract-backed allowlists, then strips display-only `screenshot_url` from
+`query` and `tool-bundle-result`.
 
 Purpose: keep websocket payload aligned to backend schema-supported fields.
 

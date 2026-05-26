@@ -6,8 +6,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs: sync backend websocket schema references with generated incoming
+  contract keys for query, rehydrate, compact-history, tool-result, and
+  tool-bundle-result payloads.
 - frontend/main: stop adding query-only agent definitions to conversation rehydrate commands so edit/resend replay payloads match the backend websocket schema.
 - backend/api: include structured `query_context` in the incoming websocket contract fixture and point frontend contract tests at the generated SDK transport artifact.
+- frontend/main: filter all Electron-hosted websocket command payloads through a contract-backed allowlist so renderer-only settings, stale provider config fields, partial capture metadata, wakeword, list-model, stop, compact, and rehydrate fields cannot reach strict backend schemas.
 - docs: align websocket, prompt-context, and IPC references with structured
   `query_context` query payloads and query-only Electron agent-definition
   enrichment.

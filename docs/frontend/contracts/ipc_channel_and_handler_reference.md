@@ -199,7 +199,8 @@ Owner: `ipc.cjs` (with helper-module delegation to `ipc_runtime_helpers.cjs`, `i
 
 `ipc.cjs` normalizes outbound payloads before websocket send:
 
-- for `query` and `tool-bundle-result`, strips `screenshot_url`.
+- filters known backend command payloads through contract-backed allowlists and
+  strips display-only `screenshot_url` for `query` and `tool-bundle-result`.
 - backend message envelope always includes `{id,type,payload,user_id,timestamp}`.
 
 Incoming websocket messages are normalized by `processBackendMessageData` (`ipc_runtime_helpers.cjs`) and rebroadcast to all tracked renderer windows via `ipc_renderer_windows.cjs`, excluding optional source sender where applicable.

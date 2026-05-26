@@ -110,7 +110,8 @@ This yields dual-layer safety:
 - handles `update-settings` as a dedicated path with ACK tracking/timeouts
 - `query` and `wakeword-detected` are gated through initial settings sync logic
 - normalizes outbound payloads:
-  - strips `screenshot_url` for `query` and `tool-bundle-result`
+  - filters known backend command payloads through contract-backed allowlists
+  - strips display-only `screenshot_url` for `query` and `tool-bundle-result`
 - rebroadcasts backend websocket payloads to renderer over `from-backend`
 
 ## Drift Boundaries to Watch

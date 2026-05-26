@@ -127,7 +127,8 @@ Notes:
 Protocol behaviors:
 
 - Handshake is sent once per ws open: `{ type: "handshake", user_id }`.
-- `query` and `tool-bundle-result` payloads strip `screenshot_url` before send.
+- known backend command payloads are filtered to contract-backed allowlists
+  before send; `query` and `tool-bundle-result` also strip `screenshot_url`.
 - First query path gates on `update-settings` ACK (`settings-updated`/`error`) with timeout (`2500ms`).
 - Main emits synthetic `from-backend` events:
   - `local-user-message` before query send.

@@ -55,7 +55,7 @@ Primary protocol tests:
 | renderer-side channel guard policy | `IpcBridge` (`bridge.ts`) | `IpcBridgeValidation.test.ts` | invalid channels throw in development; production skips guard checks and passes through to preload API |
 | query-send orchestration + fallback eventing | `ipcMain.handle('send-chat-query')` + helpers (`ipc.cjs`) | `IpcMainBridge.query.test.cjs` | overlay pre-capture hook runs only for chatbox-origin sends; disconnected send synthesizes renderer-visible `error` event |
 | settings ACK gate before query | settings sync logic (`ipc.cjs`) | settings-gate tests in `IpcMainBridge.query.test.cjs` | first query waits for initial `update-settings` ACK when cached config exists; pending renderer settings ACK blocks query send |
-| outbound payload normalization | `normalizeBackendPayload` (`ipc.cjs`) | screenshot-strip test in `IpcMainBridge.query.test.cjs` | client-supplied `screenshot_url` removed from outbound `query` payload while keeping `screenshot_ref` |
+| outbound payload normalization | `normalizeBackendPayload` + `ipc_backend_payload_contract.cjs` | backend websocket contract tests and screenshot-strip tests | known command payloads are filtered to backend contract keys; client-supplied `screenshot_url` is removed from outbound `query` payload while keeping `screenshot_ref` |
 | query-context enrichment + escaping | `buildQueryPayloadContent` (`query_payload_builder.cjs`) | `QueryPayloadBuilder.test.cjs` + xml/escape tests in `IpcMainBridge.query.test.cjs` | system context + memories merged into XML-like content; XML-sensitive values escaped; fallback context/memory blocks used on upstream failure |
 | conversation-ref fallback lifecycle | `currentConversationRef` handling (`ipc.cjs`) | conversation-ref tests in `IpcMainBridge.query.test.cjs` | backend-streamed `conversation_ref` backfills local echo + outbound query; reconnect clears stale fallback before next turn |
 | local backend process lifecycle safety | process state/reset + readiness tokening (`local_backend_bridge.cjs`) | `LocalBackendBridge.lifecycle.test.cjs` | in-flight RPCs resolve with standardized errors on exit/error; stale readiness timers from old process generations do not clobber new process state |
@@ -110,6 +110,7 @@ This reflects current intent: runtime safety in preload, fast-fail ergonomics in
 - local echo event (`local-user-message`) uses same resolved conversation ref as outbound message
 - query body includes system context + memory sections + user query block
 - XML-sensitive strings in query/system/memory fields are escaped
+- backend command payloads filtered to contract-backed allowlists before send
 - `screenshot_url` stripped before backend send
 - system-state and memory failures degrade to deterministic fallback context blocks
 - initial settings sync and pending update-settings ACK both gate query send
@@ -221,7 +222,8 @@ This reflects current intent: runtime safety in preload, fast-fail ergonomics in
 Useful expansions if protocol surface changes:
 
 - direct assertion for `SETTINGS_SYNC_TIMEOUT_MS` timeout fallback path in `ipc.cjs`
-- explicit tests for `normalizeBackendPayload('tool-bundle-result')` screenshot stripping parity
+- explicit tests for new backend command types in the
+  `BACKEND_PAYLOAD_KEYS_BY_TYPE` parity fixture
 - explicit tests for wakeword error payload mapping on spawn `ENOENT` and non-zero exit codes in this suite
 
 ## Recompute Protocol Test Surface Commands

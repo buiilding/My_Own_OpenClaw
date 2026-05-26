@@ -46,9 +46,16 @@ Payload (`QueryPayload`):
   correlation belongs in the websocket envelope `id`, which becomes the
   canonical `turn_ref` echoed on backend stream events.
 - `content: Optional[str]`
+- `query_context: Optional[QueryContext]`
 - `screenshot: Optional[str]`
 - `screenshot_ref: Optional[str]`
+- `screenshot_refs: Optional[List[str]]`
+- `capture_meta: Optional[Dict[str, Any]]`
 - `system_state_internal: Optional[Dict[str, Any]]`
+- `workspace_path: Optional[str]`
+- `repo_instruction_messages: Optional[List[RepoInstructionMessage]]`
+- `client_prompt_layers: Optional[List[ClientPromptLayer]]`
+- `agent_definition: Optional[AgentDefinition]`
 
 Model config: `extra="forbid"`.
 
@@ -71,6 +78,8 @@ Payload:
 - `conversation_ref: str`
 - `messages: List[RehydrateConversationEntry]`
 - `rehydrate_mode: Literal["replace"]`
+- `workspace_path: Optional[str]`
+- `repo_instruction_messages: Optional[List[RepoInstructionMessage]]`
 
 Entry fields:
 
@@ -116,7 +125,7 @@ Payload:
 
 - `llm_content: str` (required)
 - optional `system_state` (`active_window`, `mouse_position`)
-- optional `screenshot`, `screenshot_ref`
+- optional `screenshot`, `screenshot_ref`, `capture_meta`
 - tool-specific keys allowed (`extra="allow"`)
 
 ### `tool-bundle-result`
@@ -125,7 +134,7 @@ Payload:
 
 - `bundle_id: str`
 - `status: Literal["success", "partial_failure", "failure"]`
-- optional `screenshot`, `screenshot_ref`, `system_state`
+- optional `screenshot`, `screenshot_ref`, `capture_meta`, `system_state`
 - `step_results: List[ToolBundleStepResult]` (`tool`, `status`, optional `output`, extras allowed)
 - optional `error`
 
