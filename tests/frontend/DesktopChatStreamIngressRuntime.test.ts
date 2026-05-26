@@ -58,4 +58,27 @@ describe('desktopChatStreamIngressRuntime', () => {
       'conv-late',
     );
   });
+
+  test('reports rejected or unhandled ingress events as not accepted', () => {
+    const rejectedDeps = createDeps({
+      dispatchConversationEvent: jest.fn(() => false),
+    });
+    const missingConversationDeps = createDeps();
+
+    expect(handleConversationEventIngress({
+      type: 'assistant_message',
+      conversationRef: 'conv-rejected',
+      payload: {},
+    } as any, rejectedDeps)).toBe(false);
+    expect(handleConversationEventIngress({
+      type: 'assistant_message',
+      payload: {},
+    } as any, missingConversationDeps)).toBe(false);
+
+    expect(rejectedDeps.dispatchConversationEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ conversationRef: 'conv-rejected' }),
+      'conv-rejected',
+    );
+    expect(missingConversationDeps.dispatchConversationEvent).not.toHaveBeenCalled();
+  });
 });
