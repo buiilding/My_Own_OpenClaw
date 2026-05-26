@@ -104,6 +104,36 @@ export function sanitizeFrontendProviderConfig(config) {
   return sanitized;
 }
 
+export function buildFrontendConfigPersistencePayload(config) {
+  const sanitized = sanitizeFrontendProviderConfig(config);
+  if (isPlainObject(sanitized.provider_api_keys)) {
+    const providerApiKeys = {};
+    for (const [provider, entry] of Object.entries(sanitized.provider_api_keys)) {
+      providerApiKeys[provider] = isPlainObject(entry)
+        ? {
+          ...entry,
+          api_key: '',
+        }
+        : entry;
+    }
+    sanitized.provider_api_keys = providerApiKeys;
+  }
+  if (isPlainObject(sanitized.provider_oauth)) {
+    const providerOauth = {};
+    for (const [provider, entry] of Object.entries(sanitized.provider_oauth)) {
+      providerOauth[provider] = isPlainObject(entry)
+        ? {
+          ...entry,
+          access_token: '',
+          refresh_token: '',
+        }
+        : entry;
+    }
+    sanitized.provider_oauth = providerOauth;
+  }
+  return sanitized;
+}
+
 export function mergeFrontendProviderConfig(baseConfig, patchConfig) {
   const mergedConfig = {
     ...sanitizeFrontendProviderConfig(baseConfig),

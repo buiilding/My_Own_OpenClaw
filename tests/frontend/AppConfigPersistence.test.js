@@ -1,5 +1,6 @@
 import {
   applyConfigIfChanged,
+  buildFrontendConfigPersistencePayload,
   mergeFrontendProviderConfig,
   sanitizeFrontendProviderConfig,
 } from '../../frontend/src/renderer/app/providers/appConfigPersistence';
@@ -153,6 +154,38 @@ describe('appConfigPersistence', () => {
     ).toEqual({
       provider_oauth: {
         openai_codex: { connected: false, access_token: '', profile_id: 'openai-codex:default' },
+      },
+    });
+  });
+
+  test('buildFrontendConfigPersistencePayload redacts provider secrets', () => {
+    expect(
+      buildFrontendConfigPersistencePayload({
+        provider_api_keys: {
+          openai: { enabled: true, api_key: 'sk-openai' },
+        },
+        provider_oauth: {
+          openai_codex: {
+            connected: true,
+            access_token: 'access-token',
+            refresh_token: 'refresh-token',
+            expires_at: 12345,
+            profile_id: 'openai-codex:default',
+          },
+        },
+      }),
+    ).toEqual({
+      provider_api_keys: {
+        openai: { enabled: true, api_key: '' },
+      },
+      provider_oauth: {
+        openai_codex: {
+          connected: true,
+          access_token: '',
+          refresh_token: '',
+          expires_at: 12345,
+          profile_id: 'openai-codex:default',
+        },
       },
     });
   });

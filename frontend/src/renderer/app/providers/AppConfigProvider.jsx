@@ -10,6 +10,7 @@ import { setBackendHttpUrl } from '../../infrastructure/services/BackendEndpoint
 import { useLatestRef } from '../../infrastructure/hooks/useLatestRef';
 import {
   applyConfigIfChanged,
+  buildFrontendConfigPersistencePayload,
   mergeFrontendProviderConfig,
   sanitizeFrontendProviderConfig,
 } from './appConfigPersistence';
@@ -98,11 +99,13 @@ export function AppConfigProvider({ children }) {
       saveStatusCallbackRef.current();
     }
 
+    const persistenceConfig = buildFrontendConfigPersistencePayload(nextConfig);
+
     if (persistToStorage) {
-      saveConfigToStorage(nextConfig, Date.now());
+      saveConfigToStorage(persistenceConfig, Date.now());
     }
     if (persistToDisk) {
-      IpcBridge.invoke(INVOKE_CHANNELS.SAVE_FRONTEND_CONFIG, nextConfig).catch((error) => {
+      IpcBridge.invoke(INVOKE_CHANNELS.SAVE_FRONTEND_CONFIG, persistenceConfig).catch((error) => {
         console.warn('[Settings Update] Failed to save config to disk:', error?.message || error);
       });
     }

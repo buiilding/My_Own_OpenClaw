@@ -112,9 +112,10 @@ One-time model-list request guard:
 1. merge/filter/sanitize
 2. shallow-change gate
 3. invoke save-status callback if registered
-4. persist localStorage
-5. async save to disk via IPC invoke
-6. send backend `update-settings` via `DesktopSettingsRuntimeClient.updateSettings` for non-model settings
+4. build a redacted persistence payload for renderer localStorage and Electron disk config
+5. persist localStorage
+6. invoke `save-frontend-config` with provider API keys and OAuth tokens scrubbed
+7. sync the live, unredacted provider credential patch to backend settings when backend-owned settings changed
 
 Shared commit path:
 

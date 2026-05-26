@@ -141,7 +141,7 @@ layers unless a verified external dependency requires one.
   Validation: Renderer unit tests for memory actions, IPC boundary import tests,
   sidecar memory tests, and frontend lint.
 
-- [ ] Move provider secret persistence out of renderer-shaped config.
+- [x] Move provider secret persistence out of renderer-shaped config.
 
   Issue: Renderer config types still include provider API keys and OAuth token
   fields. Local storage redaction exists, but the main-process frontend config

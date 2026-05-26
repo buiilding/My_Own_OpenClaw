@@ -91,6 +91,15 @@ Save semantics (`saveConfigToStorage`):
 - strips provider `api_key`, OAuth `access_token`, and OAuth `refresh_token` before serializing to localStorage
 - returns boolean success/failure
 
+Disk persistence uses the same redaction rule. `AppConfigProvider` builds a
+redacted persistence payload before invoking `SAVE_FRONTEND_CONFIG`, and
+Electron main defensively redacts provider secrets again on both
+`save-frontend-config` and legacy disk `load-frontend-config` paths.
+
+Live provider credential edits still flow to backend settings through
+`DesktopSettingsRuntimeClient.updateSettings(...)`; only renderer-local and
+Electron frontend-config persistence are scrubbed.
+
 ## Provider Merge/Apply Guards (`appConfigPersistence`)
 
 `sanitizeFrontendProviderConfig`:
@@ -125,7 +134,7 @@ This is the central dedupe guard preventing redundant writes and backend updates
 2. `applyConfigIfChanged` gate
 3. optional save-status callback fire
 4. persist localStorage (`saveConfigToStorage`)
-5. async disk save (`SAVE_FRONTEND_CONFIG`)
+5. async disk save (`SAVE_FRONTEND_CONFIG`) with redacted provider credential fields
 6. backend sync (`DesktopSettingsRuntimeClient.updateSettings`) for non-model settings only
 
 Deferred backend fields:

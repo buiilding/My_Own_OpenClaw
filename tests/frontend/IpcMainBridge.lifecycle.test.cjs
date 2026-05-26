@@ -649,6 +649,39 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(result).toEqual({ model_mode: 'offline' });
   });
 
+  test('load-frontend-config redacts provider secrets from legacy disk config', async () => {
+    const { handlers, fs } = initIpc();
+    mockFrontendConfigFile(fs, JSON.stringify({
+      provider_api_keys: {
+        openai: { enabled: true, api_key: 'sk-disk-openai' },
+      },
+      provider_oauth: {
+        openai_codex: {
+          connected: true,
+          access_token: 'disk-access',
+          refresh_token: 'disk-refresh',
+          profile_id: 'openai-codex:default',
+        },
+      },
+    }));
+
+    const result = await invokeLoadFrontendConfig(handlers);
+
+    expect(result).toEqual({
+      provider_api_keys: {
+        openai: { enabled: true, api_key: '' },
+      },
+      provider_oauth: {
+        openai_codex: {
+          connected: true,
+          access_token: '',
+          refresh_token: '',
+          profile_id: 'openai-codex:default',
+        },
+      },
+    });
+  });
+
   test('load-frontend-config returns null for invalid JSON', async () => {
     const { handlers, fs } = initIpc();
     mockFrontendConfigFile(fs, '{bad json');
@@ -703,5 +736,51 @@ describe('ipc.cjs bridge lifecycle/config', () => {
       [tempConfigPath, configPath],
     ]);
     expect(setGlobalAgentStopShortcutAccelerator).toHaveBeenCalledWith('CommandOrControl+Alt+.');
+  });
+
+  test('save-frontend-config redacts provider secrets before writing disk config', async () => {
+    const { handlers, fs } = initIpc();
+    const appDataPath = path.join(path.sep, 'tmp', 'appdata');
+    const tempConfigPath = path.join(appDataPath, 'frontend-config.json.tmp');
+    const configPath = path.join(appDataPath, 'frontend-config.json');
+
+    const result = await handlers['save-frontend-config'](null, {
+      provider_api_keys: {
+        openai: { enabled: true, api_key: 'sk-write-openai' },
+      },
+      provider_oauth: {
+        openai_codex: {
+          connected: true,
+          access_token: 'write-access',
+          refresh_token: 'write-refresh',
+          profile_id: 'openai-codex:default',
+        },
+      },
+    });
+
+    expect(result).toEqual({ success: true });
+    const written = fs.promises.writeFile.mock.calls[0][1];
+    expect(written).toBe(JSON.stringify({
+      provider_api_keys: {
+        openai: { enabled: true, api_key: '' },
+      },
+      provider_oauth: {
+        openai_codex: {
+          connected: true,
+          access_token: '',
+          refresh_token: '',
+          profile_id: 'openai-codex:default',
+        },
+      },
+    }, null, 2));
+    expect(written).not.toContain('sk-write-openai');
+    expect(written).not.toContain('write-access');
+    expect(written).not.toContain('write-refresh');
+    expect(fs.promises.rename.mock.calls).toEqual([
+      [
+        tempConfigPath,
+        configPath,
+      ],
+    ]);
   });
 });

@@ -85,7 +85,7 @@ Behavior:
 - `send-chat-query` -> prepares the renderer query payload, runs the settings ACK gate, emits local optimistic events, enriches system/memory context, and sends backend websocket `query` through the SDK runtime
 - `stop-chat-query` -> sends backend websocket `stop-query` through the SDK runtime for live chat cancellation
 - `load-frontend-config` -> loads persisted config JSON from userData
-- `save-frontend-config` -> atomic temp-write + rename persistence
+- `save-frontend-config` -> redacted frontend-config atomic temp-write + rename persistence
 - `get-client-user-id` -> returns websocket user/session endpoint metadata
 - `upload-artifact` -> multipart upload to backend HTTP `/api/artifacts/`
 

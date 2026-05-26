@@ -138,12 +138,14 @@ Returned launch target object:
 Write behavior (`saveFrontendConfigToDisk`):
 
 - validates config is object
+- redacts provider API keys and OAuth access/refresh tokens before writing
 - ensures parent directory exists
 - writes temp file (`.tmp`) then renames atomically
 
 Read behavior (`loadFrontendConfigFromDisk`):
 
 - returns `null` when file missing or invalid/non-object JSON
+- redacts provider API keys and OAuth access/refresh tokens from legacy disk config before returning it
 - logs load failures but does not crash startup
 
 ## Where These Values Are Used

@@ -101,6 +101,8 @@ Behavior:
 
 - load returns `null` when missing/invalid
 - save validates object payload
+- save redacts provider API keys and OAuth access/refresh tokens before writing
+- load redacts provider API keys and OAuth access/refresh tokens from legacy files before returning
 - atomic write (`.tmp` then rename)
 
 Renderer invokes:

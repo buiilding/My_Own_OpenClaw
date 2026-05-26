@@ -22,6 +22,7 @@ const {
 } = require('./backend_endpoints.cjs');
 const {
   loadFrontendConfigFromDisk,
+  redactProviderSecretsFromFrontendConfig,
   saveFrontendConfigToDisk,
 } = require('./ipc/ipc_frontend_config.cjs');
 const {
@@ -368,9 +369,15 @@ async function loadCachedFrontendConfigFromDisk() {
 }
 
 async function persistFrontendConfigToDisk(config) {
-  const result = await saveFrontendConfigToDisk(config, log);
-  if (result?.success && config && typeof config === 'object' && !Array.isArray(config)) {
-    latestFrontendConfig = { ...config };
+  const persistableConfig = redactProviderSecretsFromFrontendConfig(config);
+  const result = await saveFrontendConfigToDisk(persistableConfig, log);
+  if (
+    result?.success
+    && persistableConfig
+    && typeof persistableConfig === 'object'
+    && !Array.isArray(persistableConfig)
+  ) {
+    latestFrontendConfig = { ...persistableConfig };
   }
   return result;
 }

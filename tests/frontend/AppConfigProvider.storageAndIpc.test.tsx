@@ -474,7 +474,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
     warnSpy.mockRestore();
   });
 
-  test('persists provider_api_keys updates to local storage and disk', async () => {
+  test('persists redacted provider credential status to local storage and disk', async () => {
     const { result } = renderAppConfigContext();
 
     act(() => {
@@ -492,11 +492,11 @@ describe('AppConfigProvider storage + IPC status handling', () => {
         provider_api_keys: expect.objectContaining({
           openai: expect.objectContaining({
             enabled: true,
-            api_key: 'sk-persist-openai',
+            api_key: '',
           }),
           google: expect.objectContaining({
             enabled: true,
-            api_key: 'google-persist',
+            api_key: '',
           }),
         }),
       }),
@@ -505,6 +505,18 @@ describe('AppConfigProvider storage + IPC status handling', () => {
 
     expect(IpcBridge.invoke).toHaveBeenCalledWith(
       INVOKE_CHANNELS.SAVE_FRONTEND_CONFIG,
+      expect.objectContaining({
+        provider_api_keys: expect.objectContaining({
+          openai: expect.objectContaining({
+            enabled: true,
+            api_key: '',
+          }),
+        }),
+      }),
+    );
+    expect(JSON.stringify(mockSaveConfigToStorage.mock.calls)).not.toContain('sk-persist-openai');
+    expect(JSON.stringify((IpcBridge.invoke as jest.Mock).mock.calls)).not.toContain('google-persist');
+    expect(DesktopSettingsRuntimeClient.updateSettings).toHaveBeenCalledWith(
       expect.objectContaining({
         provider_api_keys: expect.objectContaining({
           openai: expect.objectContaining({

@@ -71,7 +71,11 @@ Validation:
 
 Skipped or failed validation:
 
-- None for this slice.
+- Initial backend focused command used a stale test id,
+  `tests/backend/test_validation_utils.py::test_validate_frontend_config_patch_accepts_provider_credentials`,
+  which failed collection. I reran the backend settings payload,
+  load-settings redaction, and full frontend config validation tests
+  successfully with the command listed above.
 
 ## Put Dashboard Memory Actions Behind A Runtime Client
 
@@ -131,6 +135,67 @@ Skipped or failed validation:
 
 - Sidecar memory tests were not run because this slice did not change sidecar
   storage or sidecar RPC behavior.
+
+## Move Provider Secret Persistence Out Of Renderer-Shaped Config
+
+Status: completed.
+
+Commit: included in the same commit as this report entry.
+
+Implementation:
+
+- Added a renderer persistence payload builder that redacts provider API keys
+  and OAuth access/refresh tokens before localStorage or Electron disk saves.
+- Updated `AppConfigProvider` so renderer persistence receives the redacted
+  payload while live backend settings sync still receives the unredacted
+  provider credential update.
+- Added Electron main redaction on `save-frontend-config` and
+  `load-frontend-config` so legacy disk config and defensive save handling do
+  not expose raw provider secrets.
+- Updated frontend config persistence docs and runtime-path docs to state the
+  persistence boundary and backend live-sync boundary explicitly.
+- Added renderer and main-process IPC tests for redacted persistence, redacted
+  legacy load, defensive disk-save redaction, and continued backend settings
+  sync with live credential updates.
+
+Previous behavior:
+
+- Renderer config state with `provider_api_keys` or `provider_oauth` could be
+  passed directly to the Electron `save-frontend-config` IPC handler.
+- Electron main wrote whatever renderer config payload it received into
+  `frontend-config.json`, so raw provider credentials could persist to disk
+  even though localStorage redaction existed.
+
+Current behavior:
+
+- Renderer localStorage and Electron disk config persistence both receive a
+  redacted provider credential payload.
+- Electron main also redacts provider secrets on load and save, protecting
+  legacy files and any accidental raw renderer payload.
+- Backend settings sync remains the live credential delivery path for provider
+  updates.
+
+Success criteria:
+
+- Renderer persisted config payloads do not contain raw provider API keys or
+  OAuth access/refresh tokens: completed.
+- Electron frontend-config disk writes and legacy disk loads are redacted:
+  completed.
+- Provider settings UI can still send live credential updates to backend
+  settings: completed.
+
+Validation:
+
+- `cd frontend && npm run test -- AppConfigPersistence AppConfigProvider.storageAndIpc IpcMainBridge.lifecycle configStorage configFilter ModelsSection --runInBand`
+- `./scripts/python-in-env backend pytest tests/backend/test_settings_payload_builder.py tests/backend/test_api_handlers.py::test_load_settings_handler_redacts_provider_api_keys tests/backend/test_validation_utils.py -q`
+- `cd frontend && npm run typecheck`
+- `cd frontend && npm run lint`
+- `./bin/docs-list`
+- `git diff --check`
+
+Skipped or failed validation:
+
+- None for this slice.
 
 ## Remove Hand-Maintained SDK CommonJS Source Mirrors
 

@@ -223,7 +223,7 @@ function buildFrontendConfig(overrides = {}) {
   };
 }
 
-function stripProviderSecretsForRendererStorage(config) {
+export function stripProviderSecretsForConfigPersistence(config) {
   const normalized = buildFrontendConfig(config);
   const providerApiKeys = {};
   for (const [provider, entry] of Object.entries(normalized.provider_api_keys)) {
@@ -283,7 +283,7 @@ export function loadConfigFromStorage() {
       return buildFrontendConfig();
     }
     
-    return stripProviderSecretsForRendererStorage(config);
+    return stripProviderSecretsForConfigPersistence(config);
   } catch (error) {
     console.error('[ConfigStorage] Failed to load config from localStorage:', error);
     // Clear corrupted data
@@ -305,7 +305,7 @@ export function saveConfigToStorage(config, version = null) {
       return false;
     }
 
-    const normalizedConfig = stripProviderSecretsForRendererStorage(config);
+    const normalizedConfig = stripProviderSecretsForConfigPersistence(config);
     const configVersion = version !== null ? version : Date.now();
 
     localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(normalizedConfig));
