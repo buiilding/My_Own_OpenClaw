@@ -16,6 +16,9 @@ Use this folder for focused refactor plans, migration notes, and deletion milest
   focused medium-width plan for converging composer send, retry, and edit/resend
   onto one desktop live-turn query dispatch path while keeping replay rewrite
   and backend rehydrate preparation separate.
+- [Chat Replay Send Convergence Report](chat_replay_send_convergence_report.md):
+  real-time implementation and validation report for the replay send
+  convergence plan.
 - [Remaining Architecture Refactor Plan](remaining_architecture_refactor_plan.md):
   current-state deletion checklist for query prompt assembly, backend event
   contracts, SDK source duplication, memory/config IPC, tool manifests, and

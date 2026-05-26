@@ -14,6 +14,7 @@ import {
   markConversationInferenceSessionLocalOnly,
 } from '../session/conversationInferenceSessionRuntime';
 import { DesktopConversationContinuityService } from '../../../app/runtime/desktopConversationContinuityService';
+import { DesktopLiveTurnRuntimeClient } from '../../../app/runtime/desktopLiveTurnRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 import {
   applyRendererConversationSelection,
@@ -26,6 +27,9 @@ import {
   resolveTranscriptRole,
 } from '../utils/session/transcriptMessagePayload';
 import { buildReplayContextMessages } from '../utils/conversationReplayToolMessages';
+
+const REPLAY_PREPARATION_FAILURE_MESSAGE = 'Your message was not resent because WindieOS could not prepare the conversation replay. Try reopening the chat and sending again.';
+const REPLAY_SEND_FAILURE_MESSAGE = "Your message wasn't sent because WindieOS isn't connected right now. Try again when the backend reconnects.";
 
 function buildTranscriptProjectionEntries(messages) {
   return messages.map((message) => ({
@@ -121,10 +125,26 @@ async function executeReplayAction({
       model: deferredQueryModelSelection || null,
       workspacePath: workspaceBinding.workspacePath || null,
     };
-    if (action === 'edit_resend') {
-      await DesktopConversationContinuityService.editAndResend(rewritePayload);
-    } else {
-      await DesktopConversationContinuityService.retryTurn(rewritePayload);
+    const preparedReplayTurn = action === 'edit_resend'
+      ? await DesktopConversationContinuityService.prepareEditAndResend(rewritePayload)
+      : await DesktopConversationContinuityService.prepareRetryTurn(rewritePayload);
+    try {
+      await DesktopLiveTurnRuntimeClient.sendQuery({
+        text: preparedReplayTurn.text,
+        conversationRef: preparedReplayTurn.conversationRef || conversationRef,
+        screenshotRef: preparedReplayTurn.payload?.screenshot_ref ?? screenshotRef ?? null,
+        screenshotUrl: preparedReplayTurn.payload?.screenshot_url ?? screenshotUrl ?? null,
+        screenshotRefs: preparedReplayTurn.payload?.screenshot_refs ?? null,
+        screenshot: preparedReplayTurn.payload?.screenshot ?? screenshot ?? null,
+        workspacePath: preparedReplayTurn.workspacePath ?? workspaceBinding.workspacePath ?? null,
+        model: preparedReplayTurn.model ?? deferredQueryModelSelection ?? null,
+        turnRef: preparedReplayTurn.turnRef ?? null,
+      });
+    } catch (sendError) {
+      if (sendError && typeof sendError === 'object') {
+        sendError.__windieReplayStep = 'send';
+      }
+      throw sendError;
     }
     return true;
   } catch (error) {
@@ -132,9 +152,10 @@ async function executeReplayAction({
     setMessages(sourceMessages, conversationRef);
     setIsSending(false, conversationRef);
     if (typeof addMessage === 'function') {
+      const replayStep = error?.__windieReplayStep === 'send' ? 'send' : 'prepare';
       addMessage({
         id: crypto.randomUUID(),
-        text: "Your message wasn't sent because WindieOS isn't connected right now. Try again when the backend reconnects.",
+        text: replayStep === 'send' ? REPLAY_SEND_FAILURE_MESSAGE : REPLAY_PREPARATION_FAILURE_MESSAGE,
         sender: 'assistant',
         type: 'error',
         sourceEventType: 'renderer-replay',

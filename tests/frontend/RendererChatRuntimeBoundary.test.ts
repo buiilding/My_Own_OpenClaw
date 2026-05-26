@@ -360,15 +360,16 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('payload.bundleId');
   });
 
-  test('conversation replay rewrites use the continuity runtime facade', async () => {
+  test('conversation replay prepares with continuity and dispatches with live-turn send', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'hooks/useConversationReplayActions.js'),
       'utf8',
     );
 
     expect(source).not.toContain('DesktopConversationStoreAdapter');
-    expect(source).toContain('DesktopConversationContinuityService.editAndResend');
-    expect(source).toContain('DesktopConversationContinuityService.retryTurn');
+    expect(source).toContain('DesktopConversationContinuityService.prepareEditAndResend');
+    expect(source).toContain('DesktopConversationContinuityService.prepareRetryTurn');
+    expect(source).toContain('DesktopLiveTurnRuntimeClient.sendQuery');
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.editAndResend');
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.retryTurn');
   });

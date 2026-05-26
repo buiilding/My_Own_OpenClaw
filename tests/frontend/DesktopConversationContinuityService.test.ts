@@ -83,7 +83,7 @@ describe('DesktopConversationContinuityService', () => {
     }
   });
 
-  test('editAndResend seeds replay rows through the projection runtime before sending', async () => {
+  test('prepareEditAndResend seeds replay rows and rehydrates without sending', async () => {
     const send = jest.fn();
     const invoke = jest.fn(async () => ({ ok: true, messageId: 'query-1' }));
     const originalIpc = window.ipc;
@@ -112,7 +112,7 @@ describe('DesktopConversationContinuityService', () => {
     );
 
     try {
-      await DesktopConversationContinuityService.editAndResend({
+      const prepared = await DesktopConversationContinuityService.prepareEditAndResend({
         conversationRef: 'conv-replay',
         userId: 'user-1',
         messageId: 'user-1',
@@ -138,18 +138,24 @@ describe('DesktopConversationContinuityService', () => {
         reason: 'edit_resend',
         replacementUserMessage: { text: 'edited question' },
       }));
-      expect(invoke).toHaveBeenCalledWith('send-chat-query', expect.objectContaining({
+      expect(send).toHaveBeenCalledWith('to-backend', expect.objectContaining({
+        type: 'rehydrate',
+      }));
+      expect(invoke).not.toHaveBeenCalledWith('send-chat-query', expect.anything());
+      expect(prepared).toEqual(expect.objectContaining({
+        conversationRef: 'conv-replay',
         text: 'edited question',
-        conversation_ref: 'conv-replay',
-        screenshot_ref: 'artifact-1',
-        workspace_path: '/repo',
+        payload: expect.objectContaining({
+          screenshot_ref: 'artifact-1',
+        }),
+        workspacePath: '/repo',
       }));
     } finally {
       window.ipc = originalIpc;
     }
   });
 
-  test('retryTurn seeds replay rows through the projection runtime before resending the previous user text', async () => {
+  test('prepareRetryTurn seeds replay rows and rehydrates without sending', async () => {
     const send = jest.fn();
     const invoke = jest.fn(async () => ({ ok: true, messageId: 'query-1' }));
     const originalIpc = window.ipc;
@@ -189,7 +195,7 @@ describe('DesktopConversationContinuityService', () => {
     );
 
     try {
-      await DesktopConversationContinuityService.retryTurn({
+      const prepared = await DesktopConversationContinuityService.prepareRetryTurn({
         conversationRef: 'conv-retry',
         userId: 'user-1',
         messageId: 'assistant-1',
@@ -216,10 +222,17 @@ describe('DesktopConversationContinuityService', () => {
         reason: 'retry',
         replacementUserMessage: { text: 'retry question' },
       }));
-      expect(invoke).toHaveBeenCalledWith('send-chat-query', expect.objectContaining({
+      expect(send).toHaveBeenCalledWith('to-backend', expect.objectContaining({
+        type: 'rehydrate',
+      }));
+      expect(invoke).not.toHaveBeenCalledWith('send-chat-query', expect.anything());
+      expect(prepared).toEqual(expect.objectContaining({
+        conversationRef: 'conv-retry',
         text: 'retry question',
-        conversation_ref: 'conv-retry',
-        workspace_path: '/repo',
+        payload: expect.objectContaining({
+          screenshot_ref: null,
+        }),
+        workspacePath: '/repo',
       }));
     } finally {
       window.ipc = originalIpc;

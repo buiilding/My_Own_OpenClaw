@@ -39,8 +39,8 @@ const mockSendRehydrateConversation = jest.fn();
 const mockSetModel = jest.fn();
 const mockUpdateSettings = jest.fn();
 const mockRewriteTranscriptProjection = jest.fn(async () => ({ entries: [], messages: [] }));
-const mockEditAndResend = jest.fn();
-const mockRetryTurn = jest.fn();
+const mockPrepareEditAndResend = jest.fn();
+const mockPrepareRetryTurn = jest.fn();
 const mockEnsureConversationInferenceSessionHydrated = jest.fn();
 const mockRehydrateConversationInferenceSession = jest.fn();
 const mockIsDevUiEnabled = jest.fn(() => false);
@@ -143,8 +143,8 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient'
 jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuityService', () => ({
   DesktopConversationContinuityService: {
     compactHistory: (...args) => mockCompactHistory(...args),
-    editAndResend: (...args) => mockEditAndResend(...args),
-    retryTurn: (...args) => mockRetryTurn(...args),
+    prepareEditAndResend: (...args) => mockPrepareEditAndResend(...args),
+    prepareRetryTurn: (...args) => mockPrepareRetryTurn(...args),
   },
 }));
 
@@ -224,10 +224,24 @@ describe('ChatInterface wiring', () => {
     mockUpdateSettings.mockClear();
     mockRewriteTranscriptProjection.mockClear();
     mockRewriteTranscriptProjection.mockResolvedValue({ entries: [], messages: [] });
-    mockEditAndResend.mockClear();
-    mockEditAndResend.mockResolvedValue(undefined);
-    mockRetryTurn.mockClear();
-    mockRetryTurn.mockResolvedValue(undefined);
+    mockPrepareEditAndResend.mockClear();
+    mockPrepareEditAndResend.mockImplementation(async (input) => ({
+      conversationRef: input.conversationRef,
+      text: input.text,
+      payload: input.payload,
+      model: input.model,
+      workspacePath: input.workspacePath,
+      turnRef: null,
+    }));
+    mockPrepareRetryTurn.mockClear();
+    mockPrepareRetryTurn.mockImplementation(async (input) => ({
+      conversationRef: input.conversationRef,
+      text: input.text,
+      payload: input.payload,
+      model: input.model,
+      workspacePath: input.workspacePath,
+      turnRef: null,
+    }));
     mockEnsureConversationInferenceSessionHydrated.mockReset();
     mockEnsureConversationInferenceSessionHydrated.mockResolvedValue(undefined);
     mockRehydrateConversationInferenceSession.mockReset();
@@ -1466,7 +1480,7 @@ describe('ChatInterface wiring', () => {
     expect(mockSetThinkingStatus).toHaveBeenCalledWith(null, 'conv_existing');
     expect(mockSetIsSending).toHaveBeenCalledWith(true, 'conv_existing');
 
-    const retryPayload = mockRetryTurn.mock.calls[0]?.[0];
+    const retryPayload = mockPrepareRetryTurn.mock.calls[0]?.[0];
     expect(retryPayload).toEqual(expect.objectContaining({
       conversationRef: 'conv_existing',
       userId: 'default_user',
@@ -1479,7 +1493,10 @@ describe('ChatInterface wiring', () => {
         }),
       ]),
     }));
-    expect(mockSendQuery).not.toHaveBeenCalled();
+    expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
+      conversationRef: 'conv_existing',
+      text: 'create a dashboard for this',
+    }));
   });
 
   test('user edit rewinds assistant output and re-queries with edited text', async () => {
@@ -1501,7 +1518,7 @@ describe('ChatInterface wiring', () => {
     expect(mockSetThinkingStatus).toHaveBeenCalledWith(null, 'conv_existing');
     expect(mockSetIsSending).toHaveBeenCalledWith(true, 'conv_existing');
 
-    const editPayload = mockEditAndResend.mock.calls[0]?.[0];
+    const editPayload = mockPrepareEditAndResend.mock.calls[0]?.[0];
     expect(editPayload).toEqual(expect.objectContaining({
       conversationRef: 'conv_existing',
       userId: 'default_user',
@@ -1515,7 +1532,10 @@ describe('ChatInterface wiring', () => {
         }),
       ]),
     }));
-    expect(mockSendQuery).not.toHaveBeenCalled();
+    expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
+      conversationRef: 'conv_existing',
+      text: 'new prompt',
+    }));
   });
 
   test('command+f opens the find bar and focuses the search input', async () => {

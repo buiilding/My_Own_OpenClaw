@@ -1,6 +1,7 @@
 import {
   InMemoryConversationStore,
   createConversationRuntime,
+  type WindieModelSelection,
 } from '../../infrastructure/api/windieSdkClient';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { createDesktopBackendTransport } from './desktopBackendTransport';
@@ -17,6 +18,8 @@ type SendConversationQueryInput = {
   attachmentFilenames?: string[] | null;
   screenshot?: string | null;
   workspacePath?: string | null;
+  model?: WindieModelSelection | null;
+  turnRef?: string | null;
 };
 
 function optionalString(value: unknown): string | null {
@@ -38,6 +41,8 @@ export const DesktopLiveTurnRuntimeClient = {
     });
     await runtime.send({
       text: input.text,
+      turnRef: optionalString(input.turnRef) ?? undefined,
+      model: input.model ?? undefined,
       payload: {
         screenshot_ref: input.screenshotRef ?? null,
         screenshot_url: input.screenshotUrl ?? null,

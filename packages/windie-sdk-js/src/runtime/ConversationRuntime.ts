@@ -62,6 +62,13 @@ export type RetryTurnInput = {
   model?: WindieModelSelection;
 };
 
+export type PreparedReplayTurn = {
+  text: string;
+  turnRef?: string;
+  payload: JsonRecord;
+  model?: WindieModelSelection;
+};
+
 export type CompactHistoryInput = {
   force?: boolean;
   payload?: JsonRecord;
@@ -284,6 +291,11 @@ export class SdkConversationRuntime {
   }
 
   async editAndResend(input: EditAndResendInput): Promise<TurnResult> {
+    const prepared = await this.prepareEditAndResend(input);
+    return this.send(prepared);
+  }
+
+  async prepareEditAndResend(input: EditAndResendInput): Promise<PreparedReplayTurn> {
     const normalizedText = input.text.trim();
     if (!normalizedText) {
       throw new Error('editAndResend requires non-empty text');
@@ -303,7 +315,7 @@ export class SdkConversationRuntime {
       replacementText: normalizedText,
     });
     await this.rehydrate();
-    return this.send({
+    return {
       text: normalizedText,
       turnRef: input.turnRef,
       model: input.model,
@@ -311,10 +323,15 @@ export class SdkConversationRuntime {
         ...events[userIndex].payload,
         ...(input.payload ?? {}),
       },
-    });
+    };
   }
 
   async retryTurn(input: RetryTurnInput = {}): Promise<TurnResult> {
+    const prepared = await this.prepareRetryTurn(input);
+    return this.send(prepared);
+  }
+
+  async prepareRetryTurn(input: RetryTurnInput = {}): Promise<PreparedReplayTurn> {
     const events = await this.options.store.loadEvents(this.options.conversationRef);
     const targetIndex = input.messageId
       ? events.findIndex(event => eventMatchesId(event, input.messageId))
@@ -342,7 +359,7 @@ export class SdkConversationRuntime {
       replacementText: retryText,
     });
     await this.rehydrate();
-    return this.send({
+    return {
       text: retryText,
       turnRef: input.turnRef,
       model: input.model,
@@ -350,7 +367,7 @@ export class SdkConversationRuntime {
         ...events[userIndex].payload,
         ...(input.payload ?? {}),
       },
-    });
+    };
   }
 
   async stop(turnRef: string | null = this.state.activeTurnRef ?? null): Promise<void> {

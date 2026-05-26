@@ -63,7 +63,7 @@ the replay path.
 
 ## Refactor Checklist
 
-- [ ] Split replay preparation from replay dispatch.
+- [x] Split replay preparation from replay dispatch.
 
   Issue: `DesktopConversationContinuityService.editAndResend(...)` and
   `retryTurn(...)` currently perform three jobs: seed/rewrite local transcript
@@ -92,7 +92,7 @@ the replay path.
   sending a query, and a failed final send is observable as a live-turn send
   failure rather than a continuity failure.
 
-- [ ] Route retry and edit/resend through the same live-turn send primitive as
+- [x] Route retry and edit/resend through the same live-turn send primitive as
   composer sends.
 
   Issue: Normal sends call `DesktopLiveTurnRuntimeClient.sendQuery(...)`, while
@@ -120,7 +120,7 @@ the replay path.
   typed `send-chat-query` IPC path, and Electron main logs/handles them through
   the same query lifecycle.
 
-- [ ] Make transcript persistence idempotent across prepared replay and live
+- [x] Make transcript persistence idempotent across prepared replay and live
   send.
 
   Issue: Composer send records a user transcript projection before final send.
@@ -148,7 +148,7 @@ the replay path.
   row at the correct cut point, not both the stale and edited message as active
   replay context.
 
-- [ ] Preserve backend rehydrate before the final send without making rehydrate
+- [x] Preserve backend rehydrate before the final send without making rehydrate
   a transport fallback.
 
   Issue: Existing-chat actions need backend inference state rebuilt from local
@@ -172,7 +172,7 @@ the replay path.
   Success criteria: Tests can force rewrite failure, rehydrate failure, and
   final send failure separately and assert different error handling.
 
-- [ ] Replace the generic replay "backend disconnected" catch-all with
+- [x] Replace the generic replay "backend disconnected" catch-all with
   step-specific errors.
 
   Issue: `useConversationReplayActions.js` maps every replay exception to the
@@ -196,7 +196,7 @@ the replay path.
   "Received query from renderer" log is expected and the UI names replay
   preparation. If final send fails, main's typed query failure path handles it.
 
-- [ ] Tighten conversation/session identity handling around replay sends.
+- [x] Tighten conversation/session identity handling around replay sends.
 
   Issue: Replay actions resolve conversation identity through transcript
   session state plus chat-store active ref, while composer sends use the send
@@ -222,7 +222,7 @@ the replay path.
   Success criteria: Switching chats during a pending retry/edit cannot send the
   prepared query into the newly selected chat.
 
-- [ ] Update SDK public semantics without weakening desktop ownership.
+- [x] Update SDK public semantics without weakening desktop ownership.
 
   Issue: SDK `ConversationRuntime.editAndResend(...)` and `retryTurn(...)`
   currently rewrite, rehydrate, and send as one public operation. That is useful
@@ -246,7 +246,7 @@ the replay path.
   Success criteria: SDK tests still prove public retry/edit sends work, while
   desktop tests can call preparation separately from live-turn dispatch.
 
-- [ ] Rewrite boundary tests to enforce the new ownership.
+- [x] Rewrite boundary tests to enforce the new ownership.
 
   Issue: Current tests correctly captured the previous migration boundary, but
   some now assert the wrong future shape: replay hooks call continuity methods

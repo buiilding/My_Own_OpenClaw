@@ -2028,6 +2028,103 @@ describe('Windie SDK conversation runtime core', () => {
     expect(sentQueries[0]).not.toHaveProperty('turn_ref');
   });
 
+  test('prepareEditAndResend rewrites and rehydrates without sending a query', async () => {
+    const sendQuery = jest.fn(async () => 'query-should-not-send');
+    const sentRehydrates: Record<string, unknown>[] = [];
+    const store = new InMemoryConversationStore();
+    await store.appendEvents([
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        eventId: 'user-edit',
+        payload: { text: 'old text', screenshot_ref: 'artifact-old' },
+      }),
+      createConversationEvent({
+        type: 'assistant_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        eventId: 'assistant-stale',
+        payload: { text: 'stale answer' },
+      }),
+    ]);
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport: createMockBackendTransport({
+        sendQuery,
+        rehydrateConversation: jest.fn(async payload => {
+          sentRehydrates.push(payload);
+        }),
+      }),
+    });
+
+    await runtime.load();
+    const prepared = await runtime.prepareEditAndResend({
+      messageId: 'user-edit',
+      text: 'new text',
+      payload: { screenshot_ref: 'artifact-new' },
+      turnRef: 'turn-prepared',
+    });
+
+    expect(sendQuery).not.toHaveBeenCalled();
+    expect(sentRehydrates).toHaveLength(1);
+    expect(prepared).toEqual(expect.objectContaining({
+      text: 'new text',
+      turnRef: 'turn-prepared',
+      payload: expect.objectContaining({
+        screenshot_ref: 'artifact-new',
+      }),
+    }));
+    const events = await store.loadEvents('conv-sdk-runtime');
+    expect(events.map(storedEvent => storedEvent.eventId)).not.toContain('assistant-stale');
+    expect(events.map(storedEvent => storedEvent.type)).toEqual([
+      'conversation_rewritten',
+    ]);
+  });
+
+  test('prepareRetryTurn rewrites and rehydrates without sending a query', async () => {
+    const sendQuery = jest.fn(async () => 'query-should-not-send');
+    const store = new InMemoryConversationStore();
+    await store.appendEvents([
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        eventId: 'user-retry',
+        payload: { text: 'try this again' },
+      }),
+      createConversationEvent({
+        type: 'assistant_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        eventId: 'assistant-retry',
+        payload: { text: 'bad answer' },
+      }),
+    ]);
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport: createMockBackendTransport({
+        sendQuery,
+      }),
+    });
+
+    await runtime.load();
+    const prepared = await runtime.prepareRetryTurn({
+      messageId: 'assistant-retry',
+      turnRef: 'turn-retry',
+    });
+
+    expect(sendQuery).not.toHaveBeenCalled();
+    expect(prepared).toEqual(expect.objectContaining({
+      text: 'try this again',
+      turnRef: 'turn-retry',
+    }));
+    const events = await store.loadEvents('conv-sdk-runtime');
+    expect(events.map(storedEvent => storedEvent.eventId)).not.toContain('assistant-retry');
+  });
+
   test('rehydrate uses the active complete compacted replay generation when present', async () => {
     const sentRehydrates: Record<string, unknown>[] = [];
     const store = new InMemoryConversationStore();

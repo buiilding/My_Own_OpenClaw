@@ -4,6 +4,7 @@ import { useConversationReplayActions } from '../../frontend/src/renderer/featur
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import { DesktopConversationContinuityService } from '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService';
+import { DesktopLiveTurnRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
 import {
   markConversationInferenceSessionLocalOnly,
@@ -27,8 +28,28 @@ jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferen
 let mockConversationRef = 'conv-existing';
 jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationContinuityService', () => ({
   DesktopConversationContinuityService: {
-    editAndResend: jest.fn(async () => undefined),
-    retryTurn: jest.fn(async () => undefined),
+    prepareEditAndResend: jest.fn(async (input) => ({
+      conversationRef: input.conversationRef,
+      text: input.text,
+      payload: input.payload,
+      model: input.model,
+      workspacePath: input.workspacePath,
+      turnRef: null,
+    })),
+    prepareRetryTurn: jest.fn(async (input) => ({
+      conversationRef: input.conversationRef,
+      text: input.text,
+      payload: input.payload,
+      model: input.model,
+      workspacePath: input.workspacePath,
+      turnRef: null,
+    })),
+  },
+}));
+
+jest.mock('../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient', () => ({
+  DesktopLiveTurnRuntimeClient: {
+    sendQuery: jest.fn(async () => undefined),
   },
 }));
 
@@ -43,8 +64,9 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRunti
   },
 }));
 
-const mockEditAndResend = DesktopConversationContinuityService.editAndResend;
-const mockRetryTurn = DesktopConversationContinuityService.retryTurn;
+const mockPrepareEditAndResend = DesktopConversationContinuityService.prepareEditAndResend;
+const mockPrepareRetryTurn = DesktopConversationContinuityService.prepareRetryTurn;
+const mockSendQuery = DesktopLiveTurnRuntimeClient.sendQuery;
 const mockGetActiveConversationRef = DesktopTranscriptSessionRuntimeClient.getActiveConversationRef;
 const mockGetTranscriptSessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo;
 const mockUpdateTranscriptSession = DesktopTranscriptSessionRuntimeClient.updateTranscriptSession;
@@ -65,8 +87,23 @@ describe('useConversationReplayActions', () => {
       return null;
     });
     mockMarkConversationInferenceSessionLocalOnly.mockReset();
-    mockEditAndResend.mockResolvedValue(undefined);
-    mockRetryTurn.mockResolvedValue(undefined);
+    mockPrepareEditAndResend.mockImplementation(async (input) => ({
+      conversationRef: input.conversationRef,
+      text: input.text,
+      payload: input.payload,
+      model: input.model,
+      workspacePath: input.workspacePath,
+      turnRef: null,
+    }));
+    mockPrepareRetryTurn.mockImplementation(async (input) => ({
+      conversationRef: input.conversationRef,
+      text: input.text,
+      payload: input.payload,
+      model: input.model,
+      workspacePath: input.workspacePath,
+      turnRef: null,
+    }));
+    mockSendQuery.mockResolvedValue(undefined);
     useChatStore.setState({ activeConversationRef: null });
   });
 
@@ -74,7 +111,7 @@ describe('useConversationReplayActions', () => {
     jest.restoreAllMocks();
   });
 
-  test('delegates retry revision operation to the desktop SDK runtime client', async () => {
+  test('prepares retry through continuity and dispatches through live-turn send', async () => {
     const messages = [
       {
         id: 'user-1',
@@ -109,7 +146,7 @@ describe('useConversationReplayActions', () => {
     expect(mockGetActiveConversationRef).toHaveBeenCalled();
     expect(mockGetTranscriptSessionInfo).toHaveBeenCalled();
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-existing', 'user-1');
-    expect(mockRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mockPrepareRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
       conversationRef: 'conv-existing',
       userId: 'user-1',
       messageId: 'assistant-1',
@@ -129,7 +166,15 @@ describe('useConversationReplayActions', () => {
         modelId: 'claude-sonnet-4-5',
       },
     }));
-    expect(mockEditAndResend).not.toHaveBeenCalled();
+    expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
+      conversationRef: 'conv-existing',
+      text: 'first question',
+      model: {
+        modelProvider: 'anthropic',
+        modelId: 'claude-sonnet-4-5',
+      },
+    }));
+    expect(mockPrepareEditAndResend).not.toHaveBeenCalled();
   });
 
   test('retry replay preserves inline screenshots in transcript rewrite and query send', async () => {
@@ -162,7 +207,7 @@ describe('useConversationReplayActions', () => {
       await result.current.handleTryAgainFromAssistant('assistant-inline');
     });
 
-    expect(mockRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mockPrepareRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
       projectionEntries: expect.arrayContaining([
         expect.objectContaining({
           content: 'question with inline screenshot',
@@ -175,6 +220,9 @@ describe('useConversationReplayActions', () => {
         screenshot_refs: null,
         screenshot: inlineScreenshot,
       }),
+    }));
+    expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
+      screenshot: inlineScreenshot,
     }));
   });
 
@@ -206,7 +254,7 @@ describe('useConversationReplayActions', () => {
       await result.current.handleTryAgainFromAssistant('assistant-url');
     });
 
-    expect(mockRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mockPrepareRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
       projectionEntries: expect.arrayContaining([
         expect.objectContaining({
           content: 'question with url screenshot',
@@ -219,6 +267,10 @@ describe('useConversationReplayActions', () => {
         screenshot_refs: null,
         screenshot: null,
       }),
+    }));
+    expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
+      screenshotRef: 'artifact-99',
+      screenshotUrl: 'http://127.0.0.1:8765/api/artifacts/artifact-99',
     }));
   });
 
@@ -256,7 +308,8 @@ describe('useConversationReplayActions', () => {
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv_replay-ref', undefined);
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv_replay-ref', 'user-1');
     expect(mockMarkConversationInferenceSessionLocalOnly).toHaveBeenCalledWith('conv_replay-ref');
-    expect(mockRetryTurn.mock.calls[0][0].conversationRef).toBe('conv_replay-ref');
+    expect(mockPrepareRetryTurn.mock.calls[0][0].conversationRef).toBe('conv_replay-ref');
+    expect(mockSendQuery.mock.calls[0][0].conversationRef).toBe('conv_replay-ref');
   });
 
   test('retry replay reuses projected chat-store conversation ref when transcript session is empty', async () => {
@@ -292,12 +345,13 @@ describe('useConversationReplayActions', () => {
 
     expect(mockUpdateTranscriptSession).toHaveBeenCalledWith('conv-store-active', 'user-1');
     expect(mockMarkConversationInferenceSessionLocalOnly).not.toHaveBeenCalled();
-    expect(mockRetryTurn.mock.calls[0][0].conversationRef).toBe('conv-store-active');
+    expect(mockPrepareRetryTurn.mock.calls[0][0].conversationRef).toBe('conv-store-active');
+    expect(mockSendQuery.mock.calls[0][0].conversationRef).toBe('conv-store-active');
   });
 
-  test('retry replay restores original messages when continuity service rejects', async () => {
+  test('retry replay restores original messages when preparation rejects', async () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
-    mockRetryTurn.mockRejectedValue(new Error('retry rejected'));
+    mockPrepareRetryTurn.mockRejectedValue(new Error('retry rejected'));
     const messages = [
       {
         id: 'user-1',
@@ -342,9 +396,54 @@ describe('useConversationReplayActions', () => {
     errorSpy.mockRestore();
   });
 
-  test('retry replay appends a visible local error when continuity service rejects', async () => {
+  test('retry replay appends a preparation error when continuity service rejects', async () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
-    mockRetryTurn.mockRejectedValue(new Error('retry rejected'));
+    mockPrepareRetryTurn.mockRejectedValue(new Error('retry rejected'));
+    const messages = [
+      {
+        id: 'user-1',
+        sender: 'user',
+        text: 'first question',
+        screenshotRef: null,
+        screenshotUrl: null,
+      },
+      {
+        id: 'assistant-1',
+        sender: 'assistant',
+        text: 'first answer',
+      },
+    ];
+    useChatStore.getState().setActiveConversationRef('conv-existing');
+    useChatStore.getState().clearMessages('conv-existing');
+    useChatStore.getState().setMessages(messages, 'conv-existing');
+
+    const { result } = renderHook(() => useConversationReplayActions({
+      messages,
+      setMessages: useChatStore.getState().setMessages,
+      setThinkingStatus: jest.fn(),
+      setThinkingSourceEventType: jest.fn(),
+      setIsSending: useChatStore.getState().setIsSending,
+    }));
+
+    await act(async () => {
+      await result.current.handleTryAgainFromAssistant('assistant-1');
+    });
+
+    expect(useChatStore.getState().messages).toEqual([
+      ...messages,
+      expect.objectContaining({
+        sender: 'assistant',
+        type: 'error',
+        sourceEventType: 'renderer-replay',
+        text: expect.stringContaining('could not prepare the conversation replay'),
+      }),
+    ]);
+    errorSpy.mockRestore();
+  });
+
+  test('retry replay appends the send failure error when live-turn dispatch rejects', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    mockSendQuery.mockRejectedValue(new Error('send rejected'));
     const messages = [
       {
         id: 'user-1',

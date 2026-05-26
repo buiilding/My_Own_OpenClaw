@@ -73,6 +73,15 @@ type RewriteAndResendInput = {
   workspacePath?: string | null;
 };
 
+type PreparedReplayTurn = {
+  conversationRef: string;
+  text: string;
+  payload: JsonRecord;
+  model?: WindieModelSelection | null;
+  workspacePath?: string | null;
+  turnRef?: string | null;
+};
+
 type SearchConversationsInput = {
   userId: string;
   query: string;
@@ -172,23 +181,39 @@ export const DesktopConversationContinuityService = {
     await runtime.rehydrate();
   },
 
-  async editAndResend(input: RewriteAndResendInput): Promise<void> {
+  async prepareEditAndResend(input: RewriteAndResendInput): Promise<PreparedReplayTurn> {
     const runtime = await createSeededConversationRuntime(input);
-    await runtime.editAndResend({
+    const prepared = await runtime.prepareEditAndResend({
       messageId: input.messageId,
       text: input.text ?? '',
       payload: input.payload,
       model: input.model ?? undefined,
     });
+    return {
+      conversationRef: input.conversationRef,
+      text: prepared.text,
+      payload: prepared.payload,
+      model: prepared.model ?? null,
+      workspacePath: input.workspacePath ?? null,
+      turnRef: prepared.turnRef ?? null,
+    };
   },
 
-  async retryTurn(input: RewriteAndResendInput): Promise<void> {
+  async prepareRetryTurn(input: RewriteAndResendInput): Promise<PreparedReplayTurn> {
     const runtime = await createSeededConversationRuntime(input);
-    await runtime.retryTurn({
+    const prepared = await runtime.prepareRetryTurn({
       messageId: input.messageId,
       payload: input.payload,
       model: input.model ?? undefined,
     });
+    return {
+      conversationRef: input.conversationRef,
+      text: prepared.text,
+      payload: prepared.payload,
+      model: prepared.model ?? null,
+      workspacePath: input.workspacePath ?? null,
+      turnRef: prepared.turnRef ?? null,
+    };
   },
 
   async compactHistory(force: boolean = true, conversationRef: string | null = null): Promise<void> {
