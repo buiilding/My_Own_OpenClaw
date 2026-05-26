@@ -37,14 +37,17 @@ export function useMemorySettingsActions() {
         throw new Error(result?.error || 'Failed to complete destructive action');
       }
 
-      if (typeof onSuccess === 'function') {
-        await onSuccess(result?.data);
-      }
-
       setStatus({
         tone: 'success',
         message: successMessage,
       });
+      if (typeof onSuccess === 'function') {
+        try {
+          await onSuccess(result?.data);
+        } catch (callbackError) {
+          console.warn('Destructive action succeeded, but refresh callback failed.', callbackError);
+        }
+      }
       return true;
     } catch (error) {
       setStatus({

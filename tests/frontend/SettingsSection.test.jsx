@@ -568,4 +568,29 @@ describe('SettingsSection', () => {
       expect(screen.getByText('Past chats deleted.')).toBeInTheDocument();
     });
   });
+
+  test('nuke chats still reports delete success when parent refresh fails', async () => {
+    const onChatsCleared = jest.fn(async () => {
+      throw new Error('refresh failed');
+    });
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    renderSettingsSection({
+      initialTab: 'memory',
+      onChatsCleared,
+    });
+
+    fireEvent.click(screen.getByTestId('settings-tab-memory'));
+    fireEvent.click(screen.getByRole('button', { name: 'Nuke chats' }));
+
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith('clear-chat-history', { userId: 'default_user' });
+      expect(onChatsCleared).toHaveBeenCalled();
+      expect(screen.getByText('Past chats deleted.')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('refresh failed')).not.toBeInTheDocument();
+    expect(warnSpy).toHaveBeenCalledWith(
+      'Destructive action succeeded, but refresh callback failed.',
+      expect.any(Error),
+    );
+  });
 });
