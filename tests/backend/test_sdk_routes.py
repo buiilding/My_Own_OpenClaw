@@ -462,6 +462,38 @@ async def test_sdk_ocr_resolve_text_returns_structured_ambiguity_error(
 
 
 @pytest.mark.asyncio
+async def test_sdk_ocr_resolve_text_rejects_unmapped_resolved_point(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    container = _container(
+        tmp_path,
+        ocr_results=[
+            {
+                "id": "row-1",
+                "text": "Search Amazon",
+                "confidence": 0.99,
+                "bbox": {"x": 500, "y": 216, "width": 174, "height": 36},
+            },
+        ],
+    )
+    resolver = sdk_routes.sdk_ocr_resolve_text.__globals__["OcrCoordinateResolver"]
+    monkeypatch.setattr(resolver, "resolve", staticmethod(lambda *_args, **_kwargs: (1, 2)))
+
+    with pytest.raises(HTTPException) as exc_info:
+        await sdk_routes.sdk_ocr_resolve_text(
+            OcrTextQueryRequest(
+                image=ImageSourceInput(image_base64=_png_base64()),
+                text="Search Amazon",
+            ),
+            container,
+        )
+
+    assert exc_info.value.status_code == 500
+    assert exc_info.value.detail == "Resolved OCR point did not map back to a candidate"
+
+
+@pytest.mark.asyncio
 async def test_sdk_ocr_inspect_includes_structured_resolution_error(tmp_path) -> None:
     container = _container(
         tmp_path,
