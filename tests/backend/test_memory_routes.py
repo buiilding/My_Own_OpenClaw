@@ -190,6 +190,18 @@ async def test_embeddings_health_check_unhealthy_on_failure() -> None:
 
 
 @pytest.mark.asyncio
+async def test_embeddings_health_check_unhealthy_without_provider() -> None:
+    container = _container_with_embedding_provider()
+
+    result = await embeddings_health_check(container)
+
+    assert result == {
+        "status": "unhealthy",
+        "message": "Embedding provider not available",
+    }
+
+
+@pytest.mark.asyncio
 async def test_embeddings_health_check_reports_embedder_model_name() -> None:
     container = _container_with_embedding_provider(FakeEmbedder())
 
