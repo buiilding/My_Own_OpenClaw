@@ -10,6 +10,7 @@ from backend.src.llm.models.models_config import supports_model_capability
 from backend.src.tools.agent_capability_policy import disabled_capabilities_from_config
 
 WebSearchExecutionMode = Literal["native-openai", "native-gemini", "backend-brave"]
+DEFAULT_BRAVE_SEARCH_API_KEY_ENV = "BRAVE_SEARCH_API_KEY"
 
 
 def _normalize_provider_name(provider_name: str | None) -> str:
@@ -48,13 +49,19 @@ def supports_gemini_native_web_search(
 
 
 def has_brave_search_api_key(cfg: AppConfig) -> bool:
+    return resolve_brave_search_api_key(cfg) is not None
+
+
+def resolve_brave_search_api_key(cfg: AppConfig) -> Optional[str]:
     env_var = str(
         getattr(getattr(cfg, "brave_search", None), "api_key_env", "") or ""
     ).strip()
     if not env_var:
-        return False
+        env_var = DEFAULT_BRAVE_SEARCH_API_KEY_ENV
     value = os.getenv(env_var)
-    return isinstance(value, str) and bool(value.strip())
+    if isinstance(value, str) and value.strip():
+        return value.strip()
+    return None
 
 
 def is_web_search_disabled_by_policy(cfg: AppConfig) -> bool:

@@ -1,6 +1,6 @@
 import pytest
 
-from backend.src.core.config.models import AppConfig
+from backend.src.core.config.models import AppConfig, BraveSearchConfig
 from backend.src.tools.web_search.capabilities import (
     resolve_web_search_execution_mode,
     should_enable_native_web_search,
@@ -45,6 +45,20 @@ def test_web_search_capabilities_fall_back_to_brave_for_other_providers(monkeypa
     assert resolve_web_search_execution_mode(config) == "backend-brave"
     assert should_enable_openai_native_web_search_main_request(config) is False
     assert should_enable_native_web_search(config) is False
+    assert should_expose_backend_web_search_tool(config) is True
+
+
+def test_web_search_capabilities_use_default_brave_env_when_config_env_is_empty(
+    monkeypatch,
+):
+    monkeypatch.setenv("BRAVE_SEARCH_API_KEY", "test-brave-key")
+    config = AppConfig(
+        model_provider="anthropic",
+        selected_model_id="claude-sonnet-4-20250514",
+        brave_search=BraveSearchConfig(api_key_env=""),
+    )
+
+    assert resolve_web_search_execution_mode(config) == "backend-brave"
     assert should_expose_backend_web_search_tool(config) is True
 
 

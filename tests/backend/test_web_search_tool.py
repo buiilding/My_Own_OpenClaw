@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from backend.src.core.config.models import AppConfig
+from backend.src.core.config.models import AppConfig, BraveSearchConfig
 from backend.src.core.events.streaming_events import WebSearchProgressEvent
 from backend.src.tools.web_search.schemas import WebSearchArgs
 from backend.src.tools.web_search.tool import WebSearchTool
@@ -29,6 +29,13 @@ def test_web_search_tool_build_request_params_sanitizes_domains_and_bounds_count
     assert params["q"] == "windieos latest (site:example.com OR site:sub.example.org)"
     assert params["count"] == 10
     assert params["freshness"] == "pw"
+
+
+def test_web_search_tool_uses_default_brave_env_when_config_env_is_empty(monkeypatch):
+    monkeypatch.setenv("BRAVE_SEARCH_API_KEY", "test-brave-key")
+    config = AppConfig(brave_search=BraveSearchConfig(api_key_env=""))
+
+    assert WebSearchTool._resolve_api_key(_build_tool_context(config=config)) == "test-brave-key"
 
 
 @pytest.mark.asyncio

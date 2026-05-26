@@ -5,7 +5,6 @@ from __future__ import annotations
 import asyncio
 import inspect
 import logging
-import os
 import re
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlsplit
@@ -19,6 +18,7 @@ from backend.src.sdk.tool import Tool
 from backend.src.tools.categorization import ToolDomain
 from backend.src.tools.web_search.capabilities import (
     is_web_search_disabled_by_policy,
+    resolve_brave_search_api_key,
     resolve_web_search_execution_mode,
 )
 from backend.src.tools.web_search.schemas import WebSearchArgs
@@ -440,13 +440,7 @@ class WebSearchTool(Tool[WebSearchArgs]):
     @staticmethod
     def _resolve_api_key(ctx: ToolContext) -> Optional[str]:
         config = WebSearchTool._resolve_runtime_config(ctx)
-        env_var = str(getattr(getattr(config, "brave_search", None), "api_key_env", "") or "").strip()
-        if not env_var:
-            env_var = "BRAVE_SEARCH_API_KEY"
-        value = os.getenv(env_var)
-        if isinstance(value, str) and value.strip():
-            return value.strip()
-        return None
+        return resolve_brave_search_api_key(config) if config is not None else None
 
     @staticmethod
     def _build_request_params(args: WebSearchArgs) -> Dict[str, Any]:
