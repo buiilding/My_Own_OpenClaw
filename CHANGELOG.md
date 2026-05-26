@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/agents: condense `AGENTS.md` into a runtime ownership and change-routing guide while preserving operational rules and moving the minimal chat pill regression contract to the dedicated desktop docs.
 - tooling: require `scripts/committer` commits to include a body describing the issue, fix, previous behavior, and behavior after the fix.
 - docs/agents: add implementation-oriented WindieOS entry points, runtime flow maps, SDK boundaries, and common change routes to `AGENTS.md`, then tighten the guide against live backend, frontend, SDK, and sidecar code paths.
 - docs/refactors: add a runtime ownership simplification plan for deleting duplicated renderer, main, SDK, sidecar, and backend responsibilities.

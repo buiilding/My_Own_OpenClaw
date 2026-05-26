@@ -39,9 +39,20 @@ For Linux screenshot capture:
 
 - use hide-only collapse via `hide-chatbox`
 - do not pre-hide with `show-chatbox`
-- latch awaiting state through transient `idle`
-- clear latch on streaming, complete, error, or visible response content
+- latch awaiting state from shared `response-overlay-phase` values:
+  `tool-call`, `tool-output`, and `awaiting-first-chunk`
+- keep the awaiting latch through transient `idle`
+- clear the latch on `streaming`, `complete`, `error`, or visible response
+  content
+- mount the typing indicator in a stable awaiting shell
 - do not animate awaiting-to-response transitions in the minimal pill loop
+- Linux is the only OS that should hide WindieOS overlay surfaces for screenshot
+  capture and restore them after capture
+- Windows and macOS must not add capture-time hide/show for the minimal chat
+  pill or response overlay
+- Windows and macOS should enable overlay `setContentProtection(true)` only
+  during active loop phases (`awaiting-first-chunk`, `streaming`, `tool-call`,
+  `tool-output`) and disable it again for idle and terminal phases
 
 ## Deep Docs
 
