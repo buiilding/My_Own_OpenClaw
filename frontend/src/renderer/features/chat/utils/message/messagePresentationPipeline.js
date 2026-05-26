@@ -161,6 +161,12 @@ export function hasCurrentTurnLiveProgressMessages(messages) {
     ) {
       return true;
     }
+    if (
+      message?.type === 'tool-call'
+      && collectToolExplanationTexts(message).length > 0
+    ) {
+      return true;
+    }
   }
 
   return false;

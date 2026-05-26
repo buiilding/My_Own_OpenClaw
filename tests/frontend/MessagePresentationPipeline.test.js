@@ -46,7 +46,7 @@ describe('messagePresentationPipeline', () => {
   });
 
   test('buildCurrentTurnResponseOverlayEntries includes live tool explanations only for tool calls', () => {
-    const entries = buildCurrentTurnResponseOverlayEntries([
+    const messages = [
       { id: 'user-1', sender: 'user', text: 'Find OCR code' },
       {
         id: 'tool-call-1',
@@ -60,7 +60,8 @@ describe('messagePresentationPipeline', () => {
           },
         },
       },
-    ]);
+    ];
+    const entries = buildCurrentTurnResponseOverlayEntries(messages);
 
     expect(entries).toEqual([
       expect.objectContaining({
@@ -69,6 +70,7 @@ describe('messagePresentationPipeline', () => {
         text: 'Search Python files for OCR-related code.',
       }),
     ]);
+    expect(hasCurrentTurnLiveProgressMessages(messages)).toBe(true);
   });
 
   test('keeps live search-source rows visible in overlay and hidden-thread presentation', () => {
