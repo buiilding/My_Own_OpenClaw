@@ -485,21 +485,6 @@ async function ensureInitialSettingsSync() {
   return settingsSyncRuntime.ensureInitialSettingsSync();
 }
 
-const settingsSyncRuntime = createIpcSettingsSyncRuntime({
-  getLatestFrontendConfig: () => latestFrontendConfig,
-  setLatestFrontendConfig: (config) => {
-    latestFrontendConfig = config;
-  },
-  loadCachedFrontendConfig: () => loadCachedFrontendConfigFromDisk(),
-  isConnected: () => isConnected,
-  isBackendRuntimeConnected,
-  ensureBackendConnection,
-  getRuntime: getWindieSdkRuntime,
-  sendSdkRuntimeCommand,
-  log,
-  timeoutMs: SETTINGS_SYNC_TIMEOUT_MS,
-});
-
 function trackRendererWindow(win) {
   trackRendererWindowRuntime({
     win,
@@ -854,7 +839,6 @@ function initializeIpc(win, options = {}) {
     log,
   });
 
-  });
 }
 
 function sendStopQueryToBackend(payload = {}, messageId = null) {
@@ -1029,8 +1013,6 @@ const automatedQueryDispatcher = createAutomatedQueryDispatcher({
 
 async function sendAutomatedQuery(options = {}) {
   return automatedQueryDispatcher.sendAutomatedQuery(options);
-}
-
 }
 
 module.exports = {

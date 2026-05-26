@@ -104,7 +104,8 @@ class SdkConversationRuntime {
             ...(input.payload ?? {}),
             text: input.text,
             conversation_ref: this.options.conversationRef,
-            turn_ref: turnRef,
+        }, {
+            messageId: turnRef,
         }) ?? turnRef;
         return { turnRef, queryMessageId };
     }
@@ -308,6 +309,7 @@ class SdkConversationRuntime {
         this.detachTransport?.();
         this.detachTransport = undefined;
         this.listeners.clear();
+        this.eventListeners.clear();
     }
     async rewriteToRevision({ events, preservedEvents, removedEvents, reason, replacementText, }) {
         const baseRevisionId = events[events.length - 1]?.revisionId ?? this.state.revisionId;

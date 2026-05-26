@@ -233,13 +233,13 @@ function createWindieAgentBackendTransport(session, conversationRef, agentDefini
     return {
         connect: async () => session.waitForOpen(),
         handshake: async () => undefined,
-        sendQuery: async (payload) => session.query({
+        sendQuery: async (payload, options = {}) => session.query({
             text: typeof payload.text === 'string' ? payload.text : '',
             conversationRef: typeof payload.conversation_ref === 'string'
                 ? payload.conversation_ref
                 : conversationRef,
             agentDefinition,
-            turnRef: typeof payload.turn_ref === 'string' ? payload.turn_ref : null,
+            turnRef: options.messageId ?? null,
             content: typeof payload.content === 'string' ? payload.content : null,
             screenshot: typeof payload.screenshot === 'string' ? payload.screenshot : null,
             screenshotRef: typeof payload.screenshot_ref === 'string' ? payload.screenshot_ref : null,

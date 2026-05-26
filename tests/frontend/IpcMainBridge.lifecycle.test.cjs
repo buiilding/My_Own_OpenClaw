@@ -741,7 +741,6 @@ describe('ipc.cjs bridge lifecycle/config', () => {
   test('save-frontend-config redacts provider secrets before writing disk config', async () => {
     const { handlers, fs } = initIpc();
     const appDataPath = path.join(path.sep, 'tmp', 'appdata');
-    const tempConfigPath = path.join(appDataPath, 'frontend-config.json.tmp');
     const configPath = path.join(appDataPath, 'frontend-config.json');
 
     const result = await handlers['save-frontend-config'](null, {
@@ -776,6 +775,8 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(written).not.toContain('sk-write-openai');
     expect(written).not.toContain('write-access');
     expect(written).not.toContain('write-refresh');
+    const tempConfigPath = fs.promises.writeFile.mock.calls[0][0];
+    expect(tempConfigPath).toMatch(/frontend-config\.json\.\d+\.\d+\.\d+\.tmp$/);
     expect(fs.promises.rename.mock.calls).toEqual([
       [
         tempConfigPath,

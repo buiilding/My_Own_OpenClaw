@@ -1,7 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.createConversationEventCurrentTurnProjector = createConversationEventCurrentTurnProjector;
 exports.createCurrentTurnProjector = createCurrentTurnProjector;
 exports.createEmptyCurrentTurnProjection = createEmptyCurrentTurnProjection;
+exports.updateCurrentTurnProjectionFromConversationEvent = updateCurrentTurnProjectionFromConversationEvent;
 exports.updateCurrentTurnProjectionFromBackendEvent = updateCurrentTurnProjectionFromBackendEvent;
 function asRecord(value) {
     return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
@@ -131,6 +133,121 @@ function toolEventFromBackendEvent(event, payload) {
     }
     return null;
 }
+function toolEventFromConversationEvent(event, payload) {
+    if (event.type === 'tool_call' || event.type === 'tool_bundle_call') {
+        const fallbackName = event.type === 'tool_bundle_call' ? 'tool_bundle' : null;
+        return {
+            id: event.eventId || payload.requestId || payload.bundleId || `${event.type}:${Date.now()}`,
+            kind: 'tool_call',
+            toolName: toolNameFromPayload(payload, fallbackName),
+            text: textFromPayload(payload) || undefined,
+            status: statusFromPayload(payload),
+            payload,
+        };
+    }
+    if (event.type === 'tool_progress') {
+        return {
+            id: event.eventId || payload.requestId || `tool_progress:${Date.now()}`,
+            kind: 'tool_progress',
+            toolName: toolNameFromPayload(payload, 'web_search'),
+            text: textFromPayload(payload) || undefined,
+            status: statusFromPayload(payload),
+            payload,
+        };
+    }
+    if (event.type === 'tool_output' || event.type === 'tool_bundle_output') {
+        const fallbackName = event.type === 'tool_bundle_output' ? 'tool_bundle' : null;
+        return {
+            id: event.eventId || payload.requestId || payload.bundleId || `${event.type}:${Date.now()}`,
+            kind: 'tool_output',
+            toolName: toolNameFromPayload(payload, fallbackName),
+            text: textFromPayload(payload) || undefined,
+            status: statusFromPayload(payload),
+            payload,
+        };
+    }
+    return null;
+}
+function updateCurrentTurnProjectionFromConversationEvent(currentProjection, event) {
+    const eventRecord = asRecord(event);
+    const payload = asRecord(eventRecord.payload);
+    const conversationRef = typeof eventRecord.conversationRef === 'string' && eventRecord.conversationRef.trim()
+        ? eventRecord.conversationRef.trim()
+        : null;
+    if (!conversationRef) {
+        return null;
+    }
+    const turnRef = typeof eventRecord.turnRef === 'string' && eventRecord.turnRef.trim()
+        ? eventRecord.turnRef.trim()
+        : null;
+    let projection = currentProjection && currentProjection.conversationRef === conversationRef
+        ? currentProjection
+        : createEmptyCurrentTurnProjection(conversationRef, turnRef);
+    if (turnRef && projection.turnRef !== turnRef) {
+        projection = createEmptyCurrentTurnProjection(conversationRef, turnRef);
+    }
+    else if (!projection.turnRef && turnRef) {
+        projection = { ...projection, turnRef };
+    }
+    if (eventRecord.type === 'turn_started' || eventRecord.type === 'user_message') {
+        return { ...projection, phase: 'awaiting', lastError: null };
+    }
+    if (eventRecord.type === 'reasoning_delta') {
+        return {
+            ...projection,
+            phase: projection.phase === 'idle' ? 'awaiting' : projection.phase,
+            reasoningText: appendText(projection.reasoningText, textFromPayload(payload)) || null,
+        };
+    }
+    if (eventRecord.type === 'assistant_delta') {
+        return {
+            ...projection,
+            phase: 'streaming',
+            assistantText: appendText(projection.assistantText, textFromPayload(payload)),
+            lastError: null,
+        };
+    }
+    if (eventRecord.type === 'assistant_message') {
+        const text = textFromPayload(payload);
+        return {
+            ...projection,
+            phase: text ? 'streaming' : projection.phase,
+            assistantText: text || projection.assistantText,
+            lastError: null,
+        };
+    }
+    const toolEvent = toolEventFromConversationEvent(eventRecord, payload);
+    if (toolEvent) {
+        return {
+            ...projection,
+            phase: toolEvent.kind === 'tool_output' ? 'tool_output' : 'tool_call',
+            toolEvents: [...projection.toolEvents, toolEvent],
+            lastError: null,
+        };
+    }
+    if (eventRecord.type === 'turn_completed') {
+        const finalResponse = textFromPayload(payload);
+        return {
+            ...projection,
+            phase: 'complete',
+            assistantText: projection.assistantText || finalResponse,
+            lastError: null,
+        };
+    }
+    if (eventRecord.type === 'turn_error'
+        || eventRecord.type === 'runtime_error'
+        || eventRecord.type === 'compaction_failed') {
+        if (eventRecord.type === 'turn_error' && shouldIgnoreCurrentTurnError(payload)) {
+            return null;
+        }
+        return {
+            ...projection,
+            phase: 'error',
+            lastError: textFromPayload(payload) || 'Unknown runtime error',
+        };
+    }
+    return null;
+}
 function updateCurrentTurnProjectionFromBackendEvent(currentProjection, event, options = {}) {
     const eventRecord = asRecord(event);
     const payload = asRecord(eventRecord.payload);
@@ -214,6 +331,36 @@ function createCurrentTurnProjector() {
                 return null;
             }
             const next = updateCurrentTurnProjectionFromBackendEvent(projections.get(conversationRef), event, options);
+            if (!next) {
+                return null;
+            }
+            projections.set(next.conversationRef, next);
+            return next;
+        },
+        get(conversationRef) {
+            return projections.get(conversationRef) || null;
+        },
+        reset(conversationRef) {
+            if (conversationRef) {
+                projections.delete(conversationRef);
+            }
+            else {
+                projections.clear();
+            }
+        },
+    };
+}
+function createConversationEventCurrentTurnProjector() {
+    const projections = new Map();
+    return {
+        applyConversationEvent(event) {
+            const conversationRef = typeof event?.conversationRef === 'string' && event.conversationRef.trim()
+                ? event.conversationRef.trim()
+                : null;
+            if (!conversationRef) {
+                return null;
+            }
+            const next = updateCurrentTurnProjectionFromConversationEvent(projections.get(conversationRef), event);
             if (!next) {
                 return null;
             }

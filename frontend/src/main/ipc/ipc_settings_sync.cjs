@@ -33,6 +33,7 @@ function waitForSettingsAck(
       log(`Settings sync timeout (${source}) for message ${msgId}`);
       resolve(false);
     }, timeoutMs);
+    timer.unref?.();
     pendingSettingsSyncs.set(msgId, { resolve, timer });
   });
 }

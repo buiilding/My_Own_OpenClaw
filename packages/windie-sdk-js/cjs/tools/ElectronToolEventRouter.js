@@ -24,6 +24,9 @@ function resolveToolCallRequestId(payload, fallbackId = null) {
             return value.trim();
         }
     }
+    if (typeof fallbackId === 'string' && fallbackId.trim()) {
+        return fallbackId.trim();
+    }
     return '';
 }
 function resolveStringField(payload, keys) {
@@ -577,7 +580,7 @@ function routeSdkToolEventToLocalRuntime(event, deps = {}) {
         if (shouldSkipLocalToolRouting(event)
             || !isPlainObject(event.payload)
             || !resolveStringField(event.payload, ['toolName', 'tool_name'])
-            || !resolveToolCallRequestId(event.payload)) {
+            || !resolveToolCallRequestId(event.payload, event.id)) {
             return false;
         }
         void routeToolCallToLocalRuntime(event, deps).catch((error) => {
