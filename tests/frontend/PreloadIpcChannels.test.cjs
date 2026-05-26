@@ -39,7 +39,9 @@ describe('preload IPC channel registry', () => {
         FETCH_ARTIFACT_IMAGE: 'fetch-artifact-image',
         SHOW_IMAGE_CONTEXT_MENU: 'show-image-context-menu',
       },
-      ON_CHANNELS: {},
+      ON_CHANNELS: {
+        SETTINGS_UPDATED: 'settings-updated',
+      },
     };
     process.argv = [
       '/path/to/electron',
@@ -100,6 +102,24 @@ describe('preload IPC channel registry', () => {
       'Invalid send channel: missing-channel',
     );
     expect(ipcRendererMock.send).not.toHaveBeenCalledWith('missing-channel', {});
+  });
+
+  test('returns cleanup for one-time listeners before they fire', () => {
+    const handler = jest.fn();
+
+    const cleanup = exposedIpc.once('settings-updated', handler);
+
+    expect(ipcRendererMock.once).toHaveBeenCalledTimes(1);
+    const [channel, subscription] = ipcRendererMock.once.mock.calls[0];
+    expect(channel).toBe('settings-updated');
+    expect(typeof subscription).toBe('function');
+
+    cleanup();
+
+    expect(ipcRendererMock.removeListener).toHaveBeenCalledWith(
+      'settings-updated',
+      subscription,
+    );
   });
 
   test('loads channel data from the injected preload argument', () => {

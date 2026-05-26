@@ -57,7 +57,12 @@ contextBridge.exposeInMainWorld('ipc', {
   // One-time listener
   once: (channel, func) => {
     if (VALID_ON_CHANNELS.has(channel)) {
-      ipcRenderer.once(channel, (event, ...args) => func(...args));
+      // Deliberately strip event as it includes `sender`
+      const subscription = (event, ...args) => func(...args);
+      ipcRenderer.once(channel, subscription);
+
+      // Return a cleanup function
+      return () => ipcRenderer.removeListener(channel, subscription);
     }
   },
 });
