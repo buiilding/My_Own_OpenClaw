@@ -22,6 +22,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc/ipc_query_events.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - `frontend/src/main/ipc/ipc_frontend_config.cjs`
+- `frontend/src/main/ipc/ipc_sdk_command_forwarding.cjs`
 - `frontend/src/main/ipc/ipc_memory_store_persistence.cjs`
 
 ## Split Ownership Model
@@ -156,6 +157,17 @@ Owns response-overlay preflight IPC handler registration:
 - active-loop phase guard before moving the response overlay into
   `awaiting-first-chunk`
 
+### `ipc_sdk_command_forwarding.cjs`
+
+Owns remaining generic `to-backend` command forwarding:
+
+- rejects chat `query` and `stop-query` payloads so live turns use typed IPC
+- routes `update-settings` through the settings sync sender
+- queues `list-models` until the managed backend session is connected
+- attaches agent-definition context for `rehydrate`
+- waits for initial settings sync before commands that require backend settings
+- forwards accepted SDK runtime commands through `sendSdkRuntimeCommand`
+
 ### `ipc_memory_store_persistence.cjs`
 
 Owns backend `memory-store` event side effect persistence:
@@ -175,7 +187,9 @@ This isolates persistence to main process once per backend event before renderer
 5. query payload shaping and automated-query normalization delegate to `ipc_query_runtime.cjs`.
 6. transcript-session-sync normalization and state updates delegate to `ipc_transcript_session_sync.cjs`.
 7. frontend config load/save handlers delegate to `ipc_frontend_config.cjs`.
-8. artifact upload handler delegates to `uploadArtifact`.
+8. remaining non-chat `to-backend` command forwarding delegates to
+   `ipc_sdk_command_forwarding.cjs`.
+9. artifact upload handler delegates to `uploadArtifact`.
 
 ## Drift Hotspots
 

@@ -308,6 +308,10 @@ Current behavior:
   typed chat query IPC path.
 - Frontend-config and response-overlay preflight handler policy now live in
   focused IPC modules.
+- `ipc_sdk_command_forwarding.cjs` owns the remaining non-chat `to-backend`
+  SDK command forwarding policy, including settings update routing,
+  list-models connection queuing, rehydrate context attachment, and the guard
+  that rejects chat query/stop-query payloads on the generic channel.
 
 Success criteria:
 
@@ -315,12 +319,15 @@ Success criteria:
   typed renderer chat query send/stop.
 - Frontend-config and response-overlay preflight handler registration are no
   longer inline in the IPC composition root: completed.
+- Generic non-chat SDK command forwarding is no longer inline in the IPC
+  composition root: completed.
 - Full IPC root shrink is not complete; remaining inline areas include generic
-  `to-backend` forwarding, config/bootstrap state, artifact/OAuth handlers,
-  and automated query dispatch.
+  config/bootstrap state, artifact/OAuth handlers, and automated query
+  dispatch.
 
 Validation:
 
+- `cd frontend && npm run test -- IpcSdkCommandForwarding IpcSdkCommandRouter IpcMainBridge.query IpcMainBridge.lifecycle --runInBand`
 - `cd frontend && npm run test -- IpcMainBridge.query IpcMainBridge.lifecycle IpcQueryRuntime QueryPayloadBuilder IpcFrontendConfigHandlers IpcResponseOverlayHandlers --runInBand`
 - `node -e "console.log(typeof require('./frontend/src/main/ipc/ipc_chat_query_handlers.cjs').createChatQueryHandlers, typeof require('./frontend/src/main/ipc/ipc_frontend_config_handlers.cjs').registerFrontendConfigHandlers, typeof require('./frontend/src/main/ipc/ipc_response_overlay_handlers.cjs').registerResponseOverlayHandlers)"`
 - `cd frontend && npm run typecheck`
@@ -331,7 +338,8 @@ Validation:
 Skipped or failed validation:
 
 - Electron smoke launch was not run for this in-progress IPC shrink slice; the
-  focused main IPC/query tests covered the extracted typed chat query path.
+  focused main IPC/query tests covered the extracted typed chat query path and
+  the remaining non-chat SDK command forwarding path.
 
 ## Remove Hand-Maintained SDK CommonJS Source Mirrors
 

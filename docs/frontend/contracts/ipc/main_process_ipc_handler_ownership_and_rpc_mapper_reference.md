@@ -31,6 +31,7 @@ title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 - `frontend/src/main/wakeword_bridge.cjs`
 - `frontend/src/main/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/ipc/ipc_frontend_config.cjs`
+- `frontend/src/main/ipc/ipc_sdk_command_forwarding.cjs`
 - `frontend/src/main/permission_service.cjs`
 
 ## Registration Topology
@@ -71,6 +72,9 @@ Notable behavior:
 
 - `send-chat-query` and `stop-chat-query` are registered by `ipc.cjs`, while
   `ipc_chat_query_handlers.cjs` owns the typed query send/stop orchestration
+- `to-backend` is registered by `ipc_sdk_command_forwarding.cjs` for remaining
+  non-chat SDK runtime commands; generic chat query and stop-query payloads are
+  rejected so live chat sends stay on typed IPC
 - `save/load-frontend-config` are registered by
   `ipc_frontend_config_handlers.cjs` and call atomic file helpers in
   `ipc_frontend_config.cjs`

@@ -121,6 +121,9 @@ const {
   sendSdkRuntimeCommand,
 } = require('./ipc/ipc_sdk_command_router.cjs');
 const {
+  registerSdkCommandForwardingHandler,
+} = require('./ipc/ipc_sdk_command_forwarding.cjs');
+const {
   isAgentLoopStopShortcutPhase,
 } = require('./agent_stop_shortcut_runtime.cjs');
 const {
@@ -947,71 +950,25 @@ function initializeIpc(win, options = {}) {
     handleRendererStopQuery(payload)
   ));
 
-  ipcMain.on('to-backend', async (_event, message = {}) => {
-    const normalizedCommand = normalizeSdkRuntimeCommand(message);
-    const type = normalizedCommand.type;
-    let payload = normalizedCommand.payload;
+  registerSdkCommandForwardingHandler({
+    ipcMain,
+    normalizeSdkRuntimeCommand,
+    shouldQueueUntilConnected,
+    shouldLogRendererSdkRuntimeCommand,
+    shouldConnectForSdkRuntimeCommand,
+    shouldSyncSettingsBeforeSdkRuntimeCommand,
+    isBackendRuntimeConnected,
+    queueListModelsRequest: () => modelListRequestRuntime.queue(),
+    ensureBackendConnection,
+    ensureInitialSettingsSync,
+    getPendingSettingsSyncPromise: () => settingsSyncRuntime.waitForPendingSync(),
+    attachAgentDefinitionContext,
+    sendSettingsUpdate,
+    sendSdkRuntimeCommand,
+    getWindieSdkRuntime,
+    log,
+  });
 
-    if (!type) {
-      log('Ignoring malformed to-backend message: missing string "type"');
-      return;
-    }
-
-    if (type === 'query' || type === 'stop-query') {
-      log(`Ignoring ${type} on generic to-backend IPC; use the typed chat IPC channel.`);
-      return;
-    }
-
-    if (type === 'update-settings') {
-      void sendSettingsUpdate(payload, 'renderer-update');
-      return;
-    }
-
-    if (shouldQueueUntilConnected(type) && !isBackendRuntimeConnected()) {
-      modelListRequestRuntime.queue();
-      log('Queued list-models request until backend websocket is connected.');
-      try {
-        await ensureBackendConnection('list-models');
-      } catch (error) {
-        log(`Failed to connect backend for list-models: ${error?.message || error}`);
-      }
-      return;
-    }
-
-    // Only log important message types
-    if (shouldLogRendererSdkRuntimeCommand(type)) {
-      log(`Received ${type} from renderer`);
-    }
-
-    if (type === 'rehydrate') {
-      payload = attachAgentDefinitionContext(payload);
-    }
-
-    let backendConnectionReady = true;
-    if (shouldConnectForSdkRuntimeCommand(type) && !isBackendRuntimeConnected()) {
-      try {
-        await ensureBackendConnection(type);
-      } catch (error) {
-        backendConnectionReady = false;
-        log(`Failed to connect backend for ${type}: ${error?.message || error}`);
-      }
-    }
-
-    if (backendConnectionReady && shouldSyncSettingsBeforeSdkRuntimeCommand(type)) {
-      await ensureInitialSettingsSync();
-      await settingsSyncRuntime.waitForPendingSync();
-    }
-
-    // System context is now pre-formatted in llm_content by ChatContext.jsx
-    // No need to extract or add system_context here - backend expects pre-formatted messages
-    
-    if (backendConnectionReady) {
-      const runtime = getWindieSdkRuntime();
-      sendSdkRuntimeCommand(runtime, {
-        type,
-        payload,
-      });
-    }
   });
 }
 
