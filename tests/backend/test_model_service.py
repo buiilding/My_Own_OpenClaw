@@ -46,17 +46,20 @@ class FakeLocalProvider:
 
 
 class DuplicateLocalProvider:
+    def __init__(self, provider_name: str) -> None:
+        self.provider_name = provider_name
+
     async def list_models(self):
         return [
             {
                 "id": "dup-model",
-                "provider": "ollama",
-                "display_name": "ollama/dup-model",
+                "provider": self.provider_name,
+                "display_name": f"{self.provider_name}/dup-model",
             },
             {
                 "id": "dup-model",
-                "provider": "ollama",
-                "display_name": "ollama/dup-model",
+                "provider": self.provider_name,
+                "display_name": f"{self.provider_name}/dup-model",
             },
         ]
 
@@ -143,14 +146,15 @@ async def test_get_local_models_tolerates_partial_provider_failure(monkeypatch):
 @pytest.mark.asyncio
 async def test_get_local_models_deduplicates_provider_model_pairs(monkeypatch):
     factory = {
-        "ollama": DuplicateLocalProvider(),
-        "lmstudio": DuplicateLocalProvider(),
+        "ollama": DuplicateLocalProvider("ollama"),
+        "lmstudio": DuplicateLocalProvider("lmstudio"),
     }
     models = await _get_local_models_with_factory(monkeypatch, factory)
 
-    assert len(models) == 1
-    assert models[0]["provider"] == "ollama"
-    assert models[0]["id"] == "dup-model"
+    assert [(model["provider"], model["id"]) for model in models] == [
+        ("ollama", "dup-model"),
+        ("lmstudio", "dup-model"),
+    ]
 
 
 @pytest.mark.asyncio
