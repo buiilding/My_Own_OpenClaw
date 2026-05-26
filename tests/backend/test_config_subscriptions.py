@@ -81,6 +81,32 @@ class TestConfigSubscriptionManager:
         
         assert result is False
 
+    def test_unsubscribe_callback_success(self, manager):
+        callback = MagicMock()
+        manager.subscribe_callback(callback)
+
+        result = manager.unsubscribe_callback(callback)
+
+        assert result is True
+        assert callback not in manager._callbacks
+
+    def test_unsubscribe_callback_not_found(self, manager):
+        callback = MagicMock()
+
+        result = manager.unsubscribe_callback(callback)
+
+        assert result is False
+
+    @pytest.mark.asyncio
+    async def test_unsubscribed_callback_is_not_notified(self, manager):
+        callback = MagicMock()
+        manager.subscribe_callback(callback)
+        manager.unsubscribe_callback(callback)
+
+        await manager.notify_subscribers(AppConfig(), AppConfig())
+
+        callback.assert_not_called()
+
     @pytest.mark.asyncio
     async def test_notify_subscribers(self, manager):
         subscriber1 = MockSubscriber()

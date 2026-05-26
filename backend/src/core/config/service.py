@@ -138,6 +138,23 @@ class ConfigurationService:
         """
         return self._subscription_manager.unsubscribe(subscriber)
 
+    def unsubscribe_callback(
+        self,
+        callback: Callable[[AppConfig, AppConfig], None],
+    ) -> bool:
+        """
+        Unsubscribe a callback function from configuration changes.
+
+        Delegates to ConfigSubscriptionManager.
+
+        Args:
+            callback: Callback function to remove
+
+        Returns:
+            True if callback was found and removed, False otherwise
+        """
+        return self._subscription_manager.unsubscribe_callback(callback)
+
     async def update_config(self, new_config: AppConfig) -> AppConfig:
         """
         Update configuration and notify subscribers.

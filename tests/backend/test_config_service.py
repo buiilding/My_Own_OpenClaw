@@ -111,6 +111,15 @@ class TestConfigurationService:
 
         assert result is False
 
+    def test_unsubscribe_callback(self, service):
+        mock_callback = MagicMock()
+        service.subscribe_callback(mock_callback)
+
+        result = service.unsubscribe_callback(mock_callback)
+
+        assert result is True
+        assert mock_callback not in service._subscription_manager._callbacks
+
     @pytest.mark.asyncio
     async def test_update_config_success(
         self, service, mock_config_manager, mock_event_bus

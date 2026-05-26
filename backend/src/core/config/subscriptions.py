@@ -95,6 +95,27 @@ class ConfigSubscriptionManager:
                 return True
             return False
 
+    def unsubscribe_callback(
+        self, callback: Callable[[AppConfig, AppConfig], None]
+    ) -> bool:
+        """
+        Unsubscribe a callback function from configuration changes.
+
+        Thread-safe: Uses lock to prevent race conditions.
+
+        Args:
+            callback: Callback function to remove
+
+        Returns:
+            True if callback was found and removed, False otherwise
+        """
+        with self._lock:
+            if callback in self._callbacks:
+                self._callbacks.remove(callback)
+                logger.debug("Unsubscribed callback from config changes")
+                return True
+            return False
+
     async def notify_subscribers(
         self, old_config: AppConfig, new_config: AppConfig
     ) -> None:
