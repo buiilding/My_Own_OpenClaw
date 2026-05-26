@@ -11,9 +11,10 @@ title: "Chat Replay Send Convergence Report"
 Source plan: [Chat Replay Send Convergence Plan](chat_replay_send_convergence_plan.md)
 
 Status: implementation complete for the current checklist. Focused replay,
-continuity, SDK, typecheck, lint, docs, and diff validation passed. The IPC
-bridge validation command listed in the plan still fails during test bootstrap
-before replay code is involved; this refactor did not edit Electron main IPC.
+continuity, SDK, IPC bridge, typecheck, lint, docs, and diff validation passed.
+The follow-up query-context refactor moved Electron main prompt assembly to the
+backend and refreshed the IPC bridge harness, so the IPC validation command now
+passes too.
 
 ## Completed Changes
 
@@ -95,16 +96,12 @@ before replay code is involved; this refactor did not edit Electron main IPC.
 - Passed: `cd frontend && npm run lint`
 - Passed: `./bin/docs-list`
 - Passed: `git diff --check`
-- Failed: `cd frontend && npm run test -- IpcMainBridge.query IpcMainBridge.lifecycle --runInBand`
-  - Result: 2 suites failed before creating mock backend websocket instances.
-  - Failure class: IPC bridge test bootstrap, not replay send convergence. The
-    failing helpers cannot create the mock websocket used to open the bridge, so
-    they fail before any retry/edit resend code path is exercised.
-  - Follow-up: refresh `IpcMainBridge.query` and `IpcMainBridge.lifecycle`
-    harness setup in a separate IPC test-maintenance change if these suites are
-    required as release gates.
+- Passed: `cd frontend && npm run test -- IpcMainBridge.query IpcMainBridge.lifecycle --runInBand`
+  - Result: 2 suites passed, 60 tests passed.
+  - Follow-up completed in the remaining-architecture refactor slice: refreshed
+    the IPC bridge harness and query payload expectations so Electron main sends
+    structured context while backend prompt code renders model-visible content.
 
 ## Remaining Debt
 
-- IPC bridge tests named in the original validation list need separate harness
-  modernization. This refactor did not edit Electron main IPC behavior.
+- None for the replay send convergence checklist.

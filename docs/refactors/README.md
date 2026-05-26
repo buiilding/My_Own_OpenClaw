@@ -23,6 +23,9 @@ Use this folder for focused refactor plans, migration notes, and deletion milest
   current-state deletion checklist for query prompt assembly, backend event
   contracts, SDK source duplication, memory/config IPC, tool manifests, and
   Electron bridge ownership.
+- [Remaining Architecture Refactor Real-Time Report](remaining_architecture_refactor_realtime_report.md):
+  real-time implementation and validation report for the remaining architecture
+  refactor checklist.
 - [Runtime Ownership Simplification Plan](runtime_ownership_simplification_plan.md):
   broader ownership migration plan for renderer, main, SDK, sidecar, and backend
   responsibilities.

@@ -121,8 +121,11 @@ Success criteria:
 
 Validation:
 
-- `cd frontend && npm run test -- RendererChatRuntimeBoundary WindieSdkConversationRuntime ChatStreamMetadataHandlers --runInBand`
+- `cd frontend && npm run test -- RendererChatRuntimeBoundary ChatStreamMetadataHandlers DesktopChatStreamTrackingRuntime DesktopChatStreamEventRuntime ChatStreamMessageUpdates ToolSchemaShape --runInBand`
+- `cd frontend && npm run test -- WindieSdkConversationRuntime --runInBand`
+- `cd frontend && npm run typecheck`
 - `cd frontend && npm run lint`
+- `./bin/docs-list`
 - `git diff --check`
 
 Skipped or failed validation:
