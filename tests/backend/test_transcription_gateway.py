@@ -2,9 +2,11 @@ import asyncio
 import json
 from contextlib import asynccontextmanager
 import importlib
+from types import SimpleNamespace
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+import pytest
 
 from backend.src.api.deps import get_session_manager
 from backend.src.api.routes.transcription import router as transcription_router
@@ -47,6 +49,49 @@ class FakeProviderSession:
     async def close(self) -> None:
         self.closed = True
         self._stop.set()
+
+
+class CompletingProviderSession:
+    def __init__(self):
+        self.closed = False
+
+    async def connect(self) -> None:
+        return None
+
+    async def stream_events(self, _send_event) -> None:
+        return None
+
+    async def close(self) -> None:
+        self.closed = True
+
+
+class PendingReceiveWebSocket:
+    def __init__(self):
+        self.accepted = False
+        self.closed = False
+        self.sent_events = []
+        self.receive_started = asyncio.Event()
+        self.receive_cancelled = False
+        self.receive_finished = False
+
+    async def accept(self):
+        self.accepted = True
+
+    async def send_json(self, payload):
+        self.sent_events.append(payload)
+
+    async def receive(self):
+        self.receive_started.set()
+        try:
+            await asyncio.Future()
+        except asyncio.CancelledError:
+            self.receive_cancelled = True
+            raise
+        finally:
+            self.receive_finished = True
+
+    async def close(self):
+        self.closed = True
 
 
 @asynccontextmanager
@@ -99,4 +144,27 @@ def test_transcription_route_forwards_control_and_audio(monkeypatch):
 
     assert fake_provider.control_messages == [{"type": "set_langs", "source_language": "en"}]
     assert fake_provider.audio_chunks == [(16000, b"\x10\x11")]
+    assert fake_provider.closed is True
+
+
+@pytest.mark.asyncio
+async def test_transcription_route_awaits_cancelled_receive_task(monkeypatch):
+    fake_provider = CompletingProviderSession()
+    fake_websocket = PendingReceiveWebSocket()
+    monkeypatch.setattr(
+        transcription_router_module,
+        "create_transcription_provider_session",
+        lambda _config: fake_provider,
+    )
+
+    await transcription_router_module.transcription_websocket_endpoint(
+        fake_websocket,
+        SimpleNamespace(config=AppConfig()),
+    )
+
+    assert fake_websocket.accepted is True
+    assert fake_websocket.receive_started.is_set()
+    assert fake_websocket.receive_cancelled is True
+    assert fake_websocket.receive_finished is True
+    assert fake_websocket.closed is True
     assert fake_provider.closed is True

@@ -90,8 +90,11 @@ async def transcription_websocket_endpoint(
         except Exception:
             logger.debug("Failed to send transcription error event", exc_info=True)
     finally:
-        if receive_task is not None and not receive_task.done():
-            receive_task.cancel()
+        if receive_task is not None:
+            if not receive_task.done():
+                receive_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError, Exception):
+                await receive_task
         if provider_stream_task is not None and not provider_stream_task.done():
             provider_stream_task.cancel()
             with contextlib.suppress(asyncio.CancelledError):
