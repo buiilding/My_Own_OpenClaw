@@ -122,18 +122,10 @@ async def generate_embedding(
     try:
         embedding_provider = _resolve_embedding_provider(container)
         if not embedding_provider:
-            error = HTTPException(
+            raise HTTPException(
                 status_code=503,
                 detail="Embedding service not available",
             )
-            _log_embedding_route_failure(
-                started_at=route_started_at,
-                text=request.text,
-                model_name=request.model_name,
-                error=error,
-                status_code=error.status_code,
-            )
-            raise error
         response = await generate_embedding_response(
             request_text=request.text,
             request_model_name=request.model_name,

@@ -173,6 +173,11 @@ async def test_generate_embedding_returns_503_when_embedder_missing(caplog) -> N
         "[MemoryRoute] /api/embeddings failure chars=5 model=default status=503"
         in caplog.text
     )
+    failure_records = [
+        record for record in caplog.records
+        if "[MemoryRoute] /api/embeddings failure" in record.message
+    ]
+    assert len(failure_records) == 1
 
 
 @pytest.mark.asyncio
