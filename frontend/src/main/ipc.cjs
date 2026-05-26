@@ -30,11 +30,11 @@ const {
   saveInstallAuthStateToDisk,
 } = require('./ipc/ipc_install_auth_state.cjs');
 const {
-  clearPendingSettingsSyncs,
   isValidConfigPayload,
-  resolveSettingsSync,
-  waitForSettingsAck,
 } = require('./ipc/ipc_settings_sync.cjs');
+const {
+  createIpcSettingsSyncRuntime,
+} = require('./ipc/ipc_settings_sync_runtime.cjs');
 const {
   createModelListRequestRuntime,
 } = require('./ipc/ipc_model_list_runtime.cjs');
@@ -149,9 +149,6 @@ let currentServerUserId = null;
 let currentConversationRef = null;
 let activeQueryContext = null;
 let latestFrontendConfig = null;
-let hasAttemptedInitialSettingsSync = false;
-let pendingSettingsSyncPromise = null;
-const pendingSettingsSyncs = new Map();
 const modelListRequestRuntime = createModelListRequestRuntime();
 const backendMessageObservers = new Set();
 let applyResponseOverlayPhase = null;
@@ -163,6 +160,20 @@ let pendingInstallAuthStatePromise = null;
 let windieSdkRuntime = null;
 const responseOverlayPhaseState = createResponseOverlayPhaseState();
 const ipcEventReplayState = createIpcEventReplayState();
+const settingsSyncRuntime = createIpcSettingsSyncRuntime({
+  getLatestFrontendConfig: () => latestFrontendConfig,
+  setLatestFrontendConfig: (config) => {
+    latestFrontendConfig = config;
+  },
+  loadCachedFrontendConfig: () => loadCachedFrontendConfigFromDisk(),
+  isConnected: () => isConnected,
+  isBackendRuntimeConnected,
+  ensureBackendConnection,
+  getRuntime: getWindieSdkRuntime,
+  sendSdkRuntimeCommand,
+  log,
+  timeoutMs: SETTINGS_SYNC_TIMEOUT_MS,
+});
 
 function applyInstallAuthState(state) {
   if (!state || typeof state !== 'object') {
@@ -378,9 +389,7 @@ function updateGlobalAgentStopShortcutStatus(status) {
 }
 
 function resetSettingsSyncState() {
-  hasAttemptedInitialSettingsSync = false;
-  pendingSettingsSyncPromise = null;
-  clearPendingSettingsSyncs(pendingSettingsSyncs);
+  settingsSyncRuntime.reset();
 }
 
 function resetBackendSessionState() {
@@ -424,15 +433,6 @@ function buildIpcStatusPayload(connected) {
   };
 }
 
-function buildBackendSettingsPayload(config) {
-  if (!isValidConfigPayload(config)) {
-    return null;
-  }
-  const backendConfig = { ...config };
-  delete backendConfig.global_agent_stop_shortcut;
-  return backendConfig;
-}
-
 function broadcastConnectionStatus(connected) {
   broadcastToRenderers('ipc-status', buildIpcStatusPayload(connected));
 }
@@ -445,67 +445,11 @@ function flushPendingListModelsRequest() {
 }
 
 async function sendSettingsUpdate(config, source = 'renderer') {
-  const backendConfig = buildBackendSettingsPayload(config);
-  if (!backendConfig) {
-    return Promise.resolve(false);
-  }
-  latestFrontendConfig = { ...config };
-  if (!isBackendRuntimeConnected()) {
-    try {
-      await ensureBackendConnection(`update-settings:${source}`);
-    } catch (error) {
-      log(`Failed to connect backend for update-settings: ${error?.message || error}`);
-      return false;
-    }
-  }
-  const msgId = sendSdkRuntimeCommand(getWindieSdkRuntime(), {
-    type: 'update-settings',
-    payload: backendConfig,
-  });
-  if (!msgId) {
-    return Promise.resolve(false);
-  }
-  const ackPromise = waitForSettingsAck(
-    pendingSettingsSyncs,
-    msgId,
-    source,
-    log,
-    SETTINGS_SYNC_TIMEOUT_MS,
-  );
-  pendingSettingsSyncPromise = ackPromise.finally(() => {
-    if (pendingSettingsSyncPromise === ackPromise) {
-      pendingSettingsSyncPromise = null;
-    }
-  });
-  return pendingSettingsSyncPromise;
+  return settingsSyncRuntime.sendSettingsUpdate(config, source);
 }
 
 async function ensureInitialSettingsSync() {
-  if (!isConnected) {
-    return;
-  }
-
-  if (hasAttemptedInitialSettingsSync) {
-    if (pendingSettingsSyncPromise) {
-      await pendingSettingsSyncPromise;
-    }
-    return;
-  }
-
-  hasAttemptedInitialSettingsSync = true;
-
-  if (pendingSettingsSyncPromise) {
-    await pendingSettingsSyncPromise;
-    return;
-  }
-
-  if (!isValidConfigPayload(latestFrontendConfig)) {
-    latestFrontendConfig = await loadCachedFrontendConfigFromDisk();
-  }
-
-  if (isValidConfigPayload(latestFrontendConfig)) {
-    await sendSettingsUpdate(latestFrontendConfig, 'initial-query-gate');
-  }
+  return settingsSyncRuntime.ensureInitialSettingsSync();
 }
 
 function trackRendererWindow(win) {
@@ -586,9 +530,10 @@ function handleSdkRuntimeEvent(rendererData) {
     setCurrentConversationRef: (value) => {
       currentConversationRef = value;
     },
-    resolveSettingsSync: (msgId, wasSuccessful) => {
-      resolveSettingsSync(pendingSettingsSyncs, msgId, wasSuccessful);
-    },
+    resolveSettingsSync: (msgId, wasSuccessful) => settingsSyncRuntime.resolveAck(
+      msgId,
+      wasSuccessful,
+    ),
     setResponseOverlayPhase,
     getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
     onMemoryStoreEvent: (eventData) => {
@@ -1002,9 +947,7 @@ function initializeIpc(win, options = {}) {
 
     if (backendConnectionReady) {
       await ensureInitialSettingsSync();
-      if (pendingSettingsSyncPromise) {
-        await pendingSettingsSyncPromise;
-      }
+      await settingsSyncRuntime.waitForPendingSync();
     }
 
     let messageId = null;
@@ -1114,9 +1057,7 @@ function initializeIpc(win, options = {}) {
 
     if (backendConnectionReady && shouldSyncSettingsBeforeSdkRuntimeCommand(type)) {
       await ensureInitialSettingsSync();
-      if (pendingSettingsSyncPromise) {
-        await pendingSettingsSyncPromise;
-      }
+      await settingsSyncRuntime.waitForPendingSync();
     }
 
     // System context is now pre-formatted in llm_content by ChatContext.jsx
@@ -1290,9 +1231,7 @@ async function sendAutomatedQuery(options = {}) {
   }
 
   await ensureInitialSettingsSync();
-  if (pendingSettingsSyncPromise) {
-    await pendingSettingsSyncPromise;
-  }
+  await settingsSyncRuntime.waitForPendingSync();
 
   const conversationRef = preparedQuery.conversationRef || `vm-run-${uuidv4()}`;
   const builtQuery = await buildQueryPayload({

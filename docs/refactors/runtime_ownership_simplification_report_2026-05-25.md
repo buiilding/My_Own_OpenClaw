@@ -310,9 +310,29 @@ Verification:
 - `ELECTRON_RUN_AS_NODE=1 .\frontend\node_modules\electron\dist\electron.exe .\scripts\docs-list.js` - pass
 - `git diff --check` - pass
 
+### IPC Composition Root Split
+
+Status: completed and verified.
+
+Changes:
+
+- Moved settings ACK gate ownership out of `ipc.cjs` into `frontend/src/main/ipc/ipc_settings_sync_runtime.cjs`.
+- The new settings runtime owns pending ACK state, initial-query-gate once-per-session behavior, cached config loading, renderer-only shortcut field stripping, backend connection before update-settings, and pending-sync waits.
+- `ipc.cjs` now delegates settings reset, explicit settings updates, initial query settings sync, and settings ACK resolution to the runtime.
+- Previous increments moved query payload construction, model-list request queueing, renderer diagnostic log routing, backend side-channel classification, event replay state, and overlay phase state out of inline `ipc.cjs` logic.
+
+Success criteria covered:
+
+- `ipc.cjs` no longer contains query payload construction functions, backend event payload semantic classifiers, settings ACK state, settings sync policy, renderer diagnostics handling, or model-list queue state inline.
+- Focused modules own their state machines: query runtime/send runtime, backend event side-channel classifier, model-list runtime, diagnostics runtime, event replay state, overlay phase state, and settings sync runtime.
+- The composition root still wires dependencies and delegates to runtime modules, while tests cover each extracted state machine.
+
+Verification:
+
+- `cd frontend && ELECTRON_RUN_AS_NODE=1 .\node_modules\electron\dist\electron.exe .\node_modules\jest\bin\jest.js IpcSettingsSyncRuntime IpcSettingsSync IpcMainBridge.query IpcMainBridge.lifecycle IpcSdkCommandRouter --runInBand` - pass
+- `rg -n "hasAttemptedInitialSettingsSync|pendingSettingsSyncPromise|pendingSettingsSyncs|waitForSettingsAck|clearPendingSettingsSyncs|resolveSettingsSync\(|function buildBackendSettingsPayload|modelListRequestRuntime\.request\(|modelListRequestRuntime\.flush\(" frontend/src/main/ipc.cjs -S` - pass, only the composition-root model-list flush call remains
+- `rg -n "BACKEND_QUERY_PAYLOAD_KEYS|function buildBackendQueryPayload|function processBackendMessageData|function handleRendererLog|function buildBackendSettingsPayload" frontend/src/main/ipc.cjs -S` - pass, no matches
+
 ## Pending
 
-- `frontend/src/main/ipc.cjs` composition-root split.
-  - In progress: model-list request queueing moved to `frontend/src/main/ipc/ipc_model_list_runtime.cjs` with focused unit tests.
-  - In progress: renderer diagnostic log routing moved to `frontend/src/main/ipc/ipc_diagnostics_runtime.cjs` with focused unit tests.
 - Architecture docs current/target/debt updates for remaining duplicate paths.
