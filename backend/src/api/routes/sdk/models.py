@@ -262,6 +262,7 @@ class OverlayRegionModel(BaseModel):
 class VisionOverlayPayload(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
+    image: ImageMetadataModel
     points: list[OverlayPointModel] = Field(default_factory=list)
     regions: list[OverlayRegionModel] = Field(default_factory=list)
 

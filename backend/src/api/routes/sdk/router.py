@@ -108,6 +108,19 @@ def reject_untrusted_query_plan_workspace(workspace_path: Optional[str]) -> None
         )
 
 
+def validate_vision_overlay_source(payload: VisionOverlayRequest, source) -> None:
+    result_image = payload.result.image
+    if (
+        result_image.source_id != source.source_id
+        or result_image.width != source.width
+        or result_image.height != source.height
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Vision overlay result does not match the provided image",
+        )
+
+
 @router.post("/ocr/run", response_model=OcrRunResponse)
 async def sdk_ocr_run(
     request: OcrRunRequest,
@@ -390,6 +403,7 @@ async def sdk_vision_overlay(
 ) -> OverlayArtifactResponse:
     require_authenticated_sdk_identity()
     source = resolve_image_source(payload.image, container)
+    validate_vision_overlay_source(payload, source)
     return render_vision_overlay_response(
         request=request,
         container=container,

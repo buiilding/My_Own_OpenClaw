@@ -26,8 +26,13 @@ _original_deps = install_route_deps_shim()
 
 try:
     from backend.src.api.routes import sdk as sdk_routes
+    from backend.src.api.routes.sdk.service import (
+        build_image_metadata,
+        resolve_image_source,
+    )
     from backend.src.api.routes.sdk.models import (
         BoundingBoxModel,
+        ImageMetadataModel,
         ImageSourceInput,
         OcrCandidateRequest,
         OcrInspectRequest,
@@ -964,6 +969,12 @@ async def test_sdk_vision_overlay_requires_authenticated_identity_before_write(
             VisionOverlayRequest(
                 image=ImageSourceInput(image_base64=_png_base64()),
                 result=VisionOverlayPayload(
+                    image=ImageMetadataModel(
+                        source_id="inline_test",
+                        content_type="image/png",
+                        width=800,
+                        height=400,
+                    ),
                     points=[OverlayPointModel(x=120, y=90, label="target")],
                     regions=[
                         OverlayRegionModel(
@@ -987,12 +998,15 @@ async def test_sdk_vision_overlay_writes_authenticated_artifact(
 ) -> None:
     _ = authenticated_install_identity
     container = _container(tmp_path)
+    image = ImageSourceInput(image_base64=_png_base64())
+    result_image = build_image_metadata(resolve_image_source(image, container))
 
     response = await sdk_routes.sdk_vision_overlay(
         _sdk_request("/api/sdk/vision/overlay"),
         VisionOverlayRequest(
-            image=ImageSourceInput(image_base64=_png_base64()),
+            image=image,
             result=VisionOverlayPayload(
+                image=result_image,
                 points=[OverlayPointModel(x=120, y=90, label="target")],
                 regions=[
                     OverlayRegionModel(x=80, y=40, width=100, height=60, label="region")
@@ -1004,6 +1018,40 @@ async def test_sdk_vision_overlay_writes_authenticated_artifact(
 
     assert response.annotation_count == 2
     assert (tmp_path / response.artifact_id).is_file()
+
+
+@pytest.mark.asyncio
+async def test_sdk_vision_overlay_rejects_result_from_different_image(
+    tmp_path,
+    authenticated_install_identity,
+) -> None:
+    _ = authenticated_install_identity
+    container = _container(tmp_path)
+    image = ImageSourceInput(image_base64=_png_base64(size=(800, 400)))
+
+    with pytest.raises(HTTPException) as exc_info:
+        await sdk_routes.sdk_vision_overlay(
+            _sdk_request("/api/sdk/vision/overlay"),
+            VisionOverlayRequest(
+                image=image,
+                result=VisionOverlayPayload(
+                    image=ImageMetadataModel(
+                        source_id="inline_stale",
+                        content_type="image/png",
+                        width=800,
+                        height=400,
+                    ),
+                    points=[OverlayPointModel(x=120, y=90, label="target")],
+                ),
+            ),
+            container,
+        )
+
+    assert exc_info.value.status_code == 400
+    assert exc_info.value.detail == (
+        "Vision overlay result does not match the provided image"
+    )
+    assert not any(tmp_path.iterdir())
 
 
 @pytest.mark.asyncio
