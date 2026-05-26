@@ -461,20 +461,11 @@ describe('WindieSdkClient', () => {
     }));
     expect(JSON.parse(socket.sent.at(-2) ?? '{}')).toMatchObject({
       type: 'update-settings',
-      payload: {
-        system_prompt: {
-          mode: 'replace',
-          content: 'New prompt',
-        },
-      },
+      payload: {},
     });
     expect(JSON.parse(socket.sent.at(-1) ?? '{}')).toMatchObject({
       type: 'update-settings',
-      payload: {
-        tools: {
-          mode: 'replace_client_manifest',
-        },
-      },
+      payload: {},
     });
   });
 
@@ -543,6 +534,7 @@ describe('WindieSdkClient', () => {
     await transport.compactHistory({
       conversation_ref: 'conv-commands',
       force: true,
+      turn_ref: 'renderer-only-turn',
     });
     await transport.wakewordDetected({
       source: 'voice',
@@ -558,10 +550,81 @@ describe('WindieSdkClient', () => {
     });
     expect(JSON.parse(FakeWebSocket.instances[0].sent[1])).toMatchObject({
       type: 'wakeword-detected',
-      payload: {
-        source: 'voice',
-      },
+      payload: {},
       user_id: 'transport-user',
+    });
+  });
+
+  test('SDK backend transport filters strict websocket command payloads', async () => {
+    const session = createWindieAgentSession({
+      backendUrl: 'https://api.windieos.com',
+      WebSocketImpl: FakeWebSocket as any,
+      userId: 'transport-user',
+    });
+
+    const openPromise = session.waitForOpen();
+    FakeWebSocket.instances[0].emit('open', {});
+    await openPromise;
+    FakeWebSocket.instances[0].clearSent();
+
+    await session.updateSettings({
+      selected_model_id: 'gpt-test',
+      appearance_theme: 'graphite',
+      provider_api_keys: {
+        openai: {
+          enabled: true,
+          api_key: 'sk-test',
+          renderer_only: true,
+        },
+        future_provider: {
+          enabled: true,
+          api_key: 'future',
+        },
+      },
+    });
+    await session.rehydrateConversation({
+      conversation_ref: 'conv-1',
+      messages: [],
+      agent_definition: { query_only: true },
+    });
+    await session.sendToolResultPayload({
+      request_id: 'req-1',
+      success: true,
+      data: {
+        llm_content: 'done',
+        capture_meta: { capture_backend: 'partial' },
+      },
+    });
+
+    expect(JSON.parse(FakeWebSocket.instances[0].sent[0])).toMatchObject({
+      type: 'update-settings',
+      payload: {
+        selected_model_id: 'gpt-test',
+        provider_api_keys: {
+          openai: {
+            enabled: true,
+            api_key: 'sk-test',
+          },
+        },
+      },
+    });
+    expect(JSON.parse(FakeWebSocket.instances[0].sent[1])).toMatchObject({
+      type: 'rehydrate-conversation',
+      payload: {
+        conversation_ref: 'conv-1',
+        messages: [],
+        rehydrate_mode: 'replace',
+      },
+    });
+    expect(JSON.parse(FakeWebSocket.instances[0].sent[2])).toMatchObject({
+      type: 'tool-result',
+      payload: {
+        request_id: 'req-1',
+        success: true,
+        data: {
+          llm_content: 'done',
+        },
+      },
     });
   });
 
@@ -671,6 +734,45 @@ describe('WindieSdkClient', () => {
         conversation_ref: 'conv-model-ask',
       },
     });
+  });
+
+  test('agent.ask sends attachment bodies through query_context', async () => {
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+    });
+
+    const wakePromise = client.wakeUp({
+      agentId: 'attachment-agent',
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const socket = FakeWebSocket.instances[0];
+    socket.emit('open', {});
+    const agent = await wakePromise;
+    socket.clearSent();
+
+    await agent.ask('Summarize this file.', {
+      conversationRef: 'conv-attachment',
+      attachmentContext: 'file body',
+      attachmentFilenames: ['notes.txt'],
+    });
+
+    const sent = JSON.parse(socket.sent[0]);
+    expect(sent).toMatchObject({
+      type: 'query',
+      payload: {
+        text: 'Summarize this file.',
+        conversation_ref: 'conv-attachment',
+        query_context: {
+          memory_retrieval_enabled: true,
+          attachment_context: 'file body',
+        },
+      },
+    });
+    expect(sent.payload).not.toHaveProperty('attachment_context');
+    expect(sent.payload).not.toHaveProperty('attachment_filenames');
   });
 
   test('agent.chat sends the SDK agent definition with each backend query', async () => {

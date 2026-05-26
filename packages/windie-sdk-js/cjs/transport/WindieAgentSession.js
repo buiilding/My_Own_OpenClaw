@@ -8,6 +8,7 @@ exports.createMessageId = createMessageId;
 exports.createWindieAgentSession = createWindieAgentSession;
 exports.createWindieAgentBackendTransport = createWindieAgentBackendTransport;
 const backendEvents_js_1 = require("../events/backendEvents.js");
+const backendPayloadContract_js_1 = require("./backendPayloadContract.js");
 function resolveWebSocketImplementation(WebSocketImpl) {
     if (WebSocketImpl) {
         return WebSocketImpl;
@@ -158,6 +159,12 @@ class WindieAgentSession {
         };
     }
     async query(payload) {
+        const queryContext = typeof payload.attachmentContext === 'string' && payload.attachmentContext.trim()
+            ? {
+                memory_retrieval_enabled: true,
+                attachment_context: payload.attachmentContext.trim(),
+            }
+            : undefined;
         return this.sendBackendMessage('query', {
             text: payload.text,
             conversation_ref: payload.conversationRef,
@@ -166,8 +173,7 @@ class WindieAgentSession {
             screenshot: payload.screenshot ?? undefined,
             screenshot_ref: payload.screenshotRef ?? undefined,
             screenshot_refs: payload.screenshotRefs ?? undefined,
-            attachment_context: payload.attachmentContext ?? undefined,
-            attachment_filenames: payload.attachmentFilenames ?? undefined,
+            query_context: queryContext,
             system_state_internal: payload.systemStateInternal ?? undefined,
             workspace_path: payload.workspacePath ?? undefined,
         }, payload.turnRef ?? undefined);
@@ -210,9 +216,7 @@ class WindieAgentSession {
         this.socket.send(JSON.stringify({
             id,
             type,
-            payload: {
-                ...payload,
-            },
+            payload: (0, backendPayloadContract_js_1.filterBackendPayload)(type, payload),
             user_id: this.handshake.user_id,
             timestamp: new Date().toISOString(),
         }));

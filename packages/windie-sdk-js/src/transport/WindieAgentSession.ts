@@ -7,6 +7,7 @@ import type {
   BackendTransport,
   JsonRecord,
 } from '../conversation/types.js';
+import { filterBackendPayload } from './backendPayloadContract.js';
 
 export type WebSocketLike = {
   send(data: string): void;
@@ -237,6 +238,12 @@ export class WindieAgentSession {
   }
 
   async query(payload: WindieAgentQueryInput): Promise<string> {
+    const queryContext = typeof payload.attachmentContext === 'string' && payload.attachmentContext.trim()
+      ? {
+        memory_retrieval_enabled: true,
+        attachment_context: payload.attachmentContext.trim(),
+      }
+      : undefined;
     return this.sendBackendMessage('query', {
       text: payload.text,
       conversation_ref: payload.conversationRef,
@@ -245,8 +252,7 @@ export class WindieAgentSession {
       screenshot: payload.screenshot ?? undefined,
       screenshot_ref: payload.screenshotRef ?? undefined,
       screenshot_refs: payload.screenshotRefs ?? undefined,
-      attachment_context: payload.attachmentContext ?? undefined,
-      attachment_filenames: payload.attachmentFilenames ?? undefined,
+      query_context: queryContext,
       system_state_internal: payload.systemStateInternal ?? undefined,
       workspace_path: payload.workspacePath ?? undefined,
     }, payload.turnRef ?? undefined);
@@ -299,9 +305,7 @@ export class WindieAgentSession {
     this.socket.send(JSON.stringify({
       id,
       type,
-      payload: {
-        ...payload,
-      },
+      payload: filterBackendPayload(type, payload),
       user_id: this.handshake.user_id,
       timestamp: new Date().toISOString(),
     }));

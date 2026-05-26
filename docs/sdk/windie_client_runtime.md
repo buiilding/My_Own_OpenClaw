@@ -385,6 +385,11 @@ Electron uses the SDK `SidecarConversationStore` through a desktop store factory
   query payloads, filters `update-settings` patches to backend-accepted keys, and
   drops incomplete screenshot `capture_meta` from sidecar tool results before
   returning them to backend history.
+- direct TypeScript SDK websocket sessions use the same backend payload
+  normalization before `query`, `update-settings`, `rehydrate-conversation`,
+  `compact-history`, `wakeword-detected`, `tool-result`, and
+  `tool-bundle-result` sends, so standalone clients do not rely on Electron main
+  to strip renderer-only or stale fields.
 
 Skipped compaction is represented as `compaction_skipped`. It is runtime/debug
 state and should not render as assistant output or a full compacted-history panel
