@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 ### Changed
 
 - tooling: require `scripts/committer` commits to include a body describing the issue, fix, previous behavior, and behavior after the fix.
+- docs/agents: add implementation-oriented WindieOS entry points, runtime flow maps, SDK boundaries, and common change routes to `AGENTS.md`.
 - docs/refactors: add a runtime ownership simplification plan for deleting duplicated renderer, main, SDK, sidecar, and backend responsibilities.
 - backend/api: accept desktop query payload `turn_ref` values as the canonical stream turn id while leaving websocket envelope ids transport-scoped.
 - backend/api: allow explicit `null` tool-output payloads through websocket formatter and schema validation.

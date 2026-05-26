@@ -36,6 +36,146 @@ WindieOS is a desktop AI operator with persistent memory, terminal access, and c
   - `tests/sdk`
 - Docs: `docs/`
 
+## Codebase Operating Guide
+
+Use this section to orient before editing. The filesystem and the docs remain
+canonical, but these are the load-bearing entry points and dependency chains
+agents should understand first.
+
+### Runtime Dependency Chain
+
+```text
+React renderer
+  -> Electron preload allowlist
+  -> Electron main IPC/runtime facades
+  -> Windie SDK runtime
+  -> hosted/self-hosted backend websocket + HTTP APIs
+  -> LLM providers and backend-owned remote services
+
+Electron main
+  -> Python sidecar JSON-RPC or SDK sidecar daemon
+  -> local tools, local memory, browser runtime, system state
+
+Backend agent loop
+  -> prompt construction + provider policy
+  -> model-visible tool schemas
+  -> SDK/main local-tool dispatch
+  -> sidecar executable tools
+  -> tool results back into backend history
+```
+
+### Backend Entry Points
+
+- App entry: `backend/src/main.py`
+- FastAPI assembly and route registration: `backend/src/api/`
+- Websocket query path: `backend/src/api/routes/websocket/`
+- Query orchestration service: `backend/src/api/services/query_execution.py` and `backend/src/api/services/query_execution_support/`
+- Agent session lifecycle: `backend/src/agent/session/`
+- Agent executor and interaction loop: `backend/src/agent/execution/executor.py`, `backend/src/agent/execution/interaction_loop.py`
+- Prompt construction and repo instruction loading: `backend/src/llm/prompts/`
+- Provider adapters and OpenAI Responses handling: `backend/src/llm/providers/`
+- Backend model-visible tool catalog and policy: `backend/src/tools/tool_catalog.py`, `backend/src/tools/tool_policy.py`, `backend/src/tools/provider_projection.py`
+- SDK HTTP routes: `backend/src/api/routes/sdk/`
+- Artifacts routes: `backend/src/api/routes/artifacts/`
+- VM run-control routes: `backend/src/api/routes/runs/`
+
+Backend owns the model-facing prompt, provider routing, hosted APIs, OCR/vision
+services, artifacts, compaction decisions, and final tool-schema projection. It
+does not own local mouse, keyboard, browser, filesystem, shell, or OS permission
+execution.
+
+### SDK Runtime Entry Points
+
+- TypeScript SDK package: `packages/windie-sdk-js/src/`
+- Primary client: `packages/windie-sdk-js/src/runtime/WindieClient.ts`
+- Agent/session runtime: `WindieAgent.ts`, `WindieChatSession.ts`, `ConversationRuntime.ts`
+- Conversation stores: `InMemoryConversationStore.ts`, `FileConversationStore.ts`, `SidecarConversationStore.ts`
+- Local sidecar runtime: `LocalSidecarRuntime.ts`
+- Tool coordination: `tools/ToolExecutionCoordinator.ts`, `tools/toolCorrelationIds.ts`
+- Backend transport: `transport/ManagedBackendSession.ts`, `transport/BackendSocketFactory.ts`
+- Event normalization and projections: `transport/backendEventNormalizer.ts`, `projections/currentTurnProjection.cjs`
+- Python SDK package: `packages/windie-sdk-python/`
+- Sidecar Python re-export: `frontend/src/main/python/core/windie_sdk_client.py`
+
+Use `WindieClient.wakeUp(...)` for new agent sessions. The SDK owns hosted
+backend websocket lifecycle, normalized conversation events, local-tool result
+return, conversation stores, replay/rehydrate helpers, and projections that
+Electron and future clients should share.
+
+### Electron Main Entry Points
+
+- Composition root: `frontend/src/main/index.cjs`
+- Renderer IPC bridge and event fan-out: `frontend/src/main/ipc.cjs`
+- SDK runtime host adapter: `frontend/src/main/windie_sdk_runtime.cjs`
+- SDK tool router bridge: `frontend/src/main/ipc/ipc_sdk_tool_router.cjs`
+- Window ownership and overlay state: `frontend/src/main/surface_runtime.cjs`
+- Window visibility and platform policy: `window_visibility_runtime.cjs`, `window_platform_policy.cjs`
+- Sidecar process bridge: `local_backend_bridge.cjs`, `local_backend_supervisor.cjs`
+- Sidecar request transport: `local_backend_bridge_request_transport.cjs`
+- Sidecar local tool execution adapter: `local_backend_bridge_execute_tool_runtime.cjs`
+- Permission service: `permission_service.cjs` plus focused `permission_service_*` modules
+- Wakeword subprocess bridge: `wakeword_bridge.cjs`, `wakeword_supervisor.cjs`
+- VM worker mode: `runtime_mode.cjs`, `vm_worker_runtime.cjs`
+
+Electron main owns desktop shell behavior: windows, IPC, menus, app lifecycle,
+native permissions, sidecar and wakeword supervision, endpoint selection, and
+host adapters. It should not become a second agent loop, prompt compiler,
+conversation store, or tool-routing authority.
+
+### Renderer Entry Points
+
+- App composition: `frontend/src/renderer/app/`
+- Chat UI and stream presentation: `frontend/src/renderer/features/chat/`
+- Dashboard, settings, models, memory, search: `frontend/src/renderer/features/dashboard/`
+- Voice and wakeword UI: `frontend/src/renderer/features/voice/`
+- Renderer API/client boundary: `frontend/src/renderer/infrastructure/api/`
+- SDK client wrapper: `frontend/src/renderer/infrastructure/api/windieSdkClient.ts`
+- Desktop runtime facades: `frontend/src/renderer/app/runtime/`
+
+Renderer owns user-facing state and display. Feature code should call desktop
+runtime facades or SDK projections instead of rebuilding backend websocket
+loops, transcript replay, compaction, model sync, or tool-routing semantics.
+
+### Python Sidecar Entry Points
+
+- JSON-RPC sidecar entry: `frontend/src/main/python/local_backend.py`
+- SDK sidecar daemon: `frontend/src/main/python/sidecar_daemon.py`
+- JSON line writer and IPC protocol: `core/stdout_json.py`, `core/ipc_protocol.py`
+- Hosted SDK transport client: `core/windie_sdk_client.py`
+- Tool registry: `frontend/src/main/python/tools/registry.py`
+- Executable tool manifest: `frontend/src/main/python/tools/manifest.py`
+- Exposed tool-name parity: `frontend/src/main/python/tools/exposed_tool_names.py`
+- Browser runtime: `frontend/src/main/python/tools/browser/`
+- Computer tools: `frontend/src/main/python/tools/computer/`
+- Filesystem tools: `frontend/src/main/python/tools/filesystem/`
+- Shell/process/system tools: `frontend/src/main/python/tools/system/`
+- Local memory store: `frontend/src/main/python/memory/`
+- Wakeword service: `frontend/src/main/python/wakeword_service.py`
+
+The sidecar owns local machine authority and local storage. It may call hosted
+backend services through transport clients, but it must not import backend
+Python packages for runtime behavior.
+
+### Common Change Routes
+
+- New backend API route: start in `docs/backend/api/api_route_change_workflow.md`, then update route schema, service code, tests, docs, and changelog.
+- New SDK route or SDK client method: start in `docs/sdk/sdk_route_change_workflow.md`, then update backend route models, TypeScript/Python clients, examples or tests, docs, and changelog.
+- New model-visible tool: start in `docs/tools/tool_schema_policy_change_workflow.md`, then update backend catalog/policy, sidecar executable contract if local, SDK/main dispatch, tests, docs, and changelog.
+- Local filesystem/shell behavior: start in `docs/tools/filesystem_shell_change_workflow.md`, then route through backend schema/policy, SDK/main dispatch, Electron argument shaping, sidecar execution, result formatting, and tests.
+- Browser automation behavior: start in `docs/browser/browser_change_workflow.md`, then keep backend schema, shared browser contract, sidecar runtime, Electron bridge, renderer controls, and tests aligned.
+- Renderer/main/sidecar ownership bug: start in `docs/architecture/frontend_architecture.md` and `docs/architecture/runtime_boundary_matrix.md`, then identify the producer before editing the consumer.
+- Storage or transcript change: start in `docs/architecture/storage_persistence_change_workflow.md`, then state the migration or no-migration reason explicitly.
+- Permission or local authority change: start in `docs/security/permissions_and_local_authority_workflow.md`, then verify trust-boundary and platform behavior.
+
+### Runtime Flow Cheatsheet
+
+- Query send: renderer message sender -> desktop live-turn runtime facade -> SDK conversation runtime -> typed Electron IPC -> main query payload builder -> backend websocket.
+- Stream receive: backend websocket event -> SDK runtime projection in main -> `conversation-runtime-updated` and SDK-normalized `conversation-event` -> renderer projection/transcript side effects.
+- Tool turn: backend model-visible tool call -> SDK tool coordinator -> Electron local execution callback -> sidecar executable tool -> SDK result return -> backend history.
+- Conversation history: renderer-visible transcript and sidecar-backed SDK store are the durable local authority; backend sessions are inference state that can be rebuilt from local transcript.
+- Memory: local memory lives in the sidecar store; hosted backend provides embeddings, semantic summarization, title generation, and policy.
+- Browser: sidecar owns browser mechanics and dedicated session state; renderer controls are display/control surfaces, not independent browser runtimes.
+
 ## Tooling and Architecture Notes
 
 - Tools execute on the frontend Python sidecar unless they are explicit backend remote tools such as `web_search`
