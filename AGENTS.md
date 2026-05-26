@@ -341,6 +341,12 @@ runtime behavior into the SDK instead of adding another Electron-only bridge.
 
 - Prefer deletion-first cleanup over compatibility layers that keep duplicate
   authorities alive.
+- Prefer the smallest coherent refactor that fixes the ownership problem, but
+  do not pretend a narrow patch is sufficient when the actual architecture
+  requires a wider rewrite. If converging duplicated runtimes, stores, bridges,
+  or transport paths realistically needs cross-module or cross-runtime work,
+  state that scope plainly, name the boundaries that must move, and explain why
+  a smaller patch would preserve the wrong source of truth.
 - Fix root causes, not symptoms, and do not layer workarounds on top of messy
   local design when a small refactor can remove the problem.
 - New chat/runtime behavior should move into the SDK runtime first when useful
