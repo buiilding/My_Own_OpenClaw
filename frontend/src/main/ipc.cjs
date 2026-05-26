@@ -832,7 +832,6 @@ function initializeIpc(win, options = {}) {
     ensureBackendConnection,
     ensureInitialSettingsSync,
     getPendingSettingsSyncPromise: () => settingsSyncRuntime.getPendingSettingsSyncPromise(),
-    attachAgentDefinitionContext,
     sendSettingsUpdate,
     sendSdkRuntimeCommand,
     getWindieSdkRuntime,

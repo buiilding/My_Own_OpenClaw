@@ -98,7 +98,10 @@ These are diagnostic UI events. They should reflect what the backend prepared, n
 
 ## Repo Instruction Rule
 
-Hosted backend processes cannot assume they can read the user's local workspace. Electron main may forward pre-resolved repo instruction messages on query/rehydrate payloads. Backend prompt construction can also discover `AGENTS.md` when it has filesystem access to the workspace.
+Hosted backend processes cannot assume they can read the user's local workspace.
+Electron main may forward pre-resolved repo instruction messages on query
+payloads through `agent_definition.agents_md`. Backend prompt construction can
+also discover `AGENTS.md` when it has filesystem access to the workspace.
 
 Keep ordering broad-to-specific so nested repo instructions can override parent guidance.
 

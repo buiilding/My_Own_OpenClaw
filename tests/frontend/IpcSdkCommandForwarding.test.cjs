@@ -16,10 +16,6 @@ function createHarness(overrides = {}) {
     ensureBackendConnection: jest.fn(async () => undefined),
     ensureInitialSettingsSync: jest.fn(async () => undefined),
     getPendingSettingsSyncPromise: jest.fn(() => null),
-    attachAgentDefinitionContext: jest.fn((payload) => ({
-      ...payload,
-      agent_definition: { version: 1 },
-    })),
     sendSettingsUpdate: jest.fn(),
     sendSdkRuntimeCommand: jest.fn(),
     getWindieSdkRuntime: jest.fn(() => runtime),
@@ -104,7 +100,7 @@ describe('ipc_sdk_command_forwarding', () => {
     expect(deps.sendSdkRuntimeCommand).not.toHaveBeenCalled();
   });
 
-  test('attaches agent definition context and waits for settings before rehydrate', async () => {
+  test('forwards rehydrate payload unchanged after connection setup', async () => {
     const pendingSettings = Promise.resolve();
     const { deps, handlers, runtime } = createHarness({
       getPendingSettingsSyncPromise: jest.fn(() => pendingSettings),
@@ -112,7 +108,11 @@ describe('ipc_sdk_command_forwarding', () => {
 
     await handlers['to-backend'](null, {
       type: 'rehydrate',
-      payload: { conversation_ref: 'conv-1' },
+      payload: {
+        conversation_ref: 'conv-1',
+        messages: [],
+        rehydrate_mode: 'replace',
+      },
     });
 
     expect(deps.ensureInitialSettingsSync).toHaveBeenCalledTimes(1);
@@ -120,7 +120,8 @@ describe('ipc_sdk_command_forwarding', () => {
       type: 'rehydrate',
       payload: {
         conversation_ref: 'conv-1',
-        agent_definition: { version: 1 },
+        messages: [],
+        rehydrate_mode: 'replace',
       },
     });
   });

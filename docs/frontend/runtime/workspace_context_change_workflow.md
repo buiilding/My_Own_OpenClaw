@@ -142,8 +142,9 @@ Forwarding rules:
   into `agent_definition.agents_md` before forwarding to the backend.
 - Backend query execution normalizes `workspace_path` and `agent_definition`
   before calling `agent_instance.process_query`.
-- Rehydrate should apply workspace path and client-defined agent context to the
-  active backend session when resuming conversation context.
+- Rehydrate forwards the prepared transcript snapshot without adding fresh
+  Electron main agent-definition context; resumed context must come from the
+  stored/replayed transcript state or the next query payload.
 
 ### 5. Inspect AGENTS.md instruction lookup
 

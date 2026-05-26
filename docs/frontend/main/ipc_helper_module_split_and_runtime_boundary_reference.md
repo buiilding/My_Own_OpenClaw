@@ -252,7 +252,8 @@ Owns remaining generic `to-backend` command forwarding:
 - rejects chat `query` and `stop-query` payloads so live turns use typed IPC
 - routes `update-settings` through the settings sync sender
 - queues `list-models` until the managed backend session is connected
-- attaches agent-definition context for `rehydrate`
+- forwards `rehydrate` payloads unchanged after connection/settings gates; query
+  and automated-query paths own agent-definition enrichment
 - waits for initial settings sync before commands that require backend settings
 - forwards accepted SDK runtime commands through `sendSdkRuntimeCommand`
 

@@ -63,7 +63,7 @@ Runtime flow for each frame after handshake:
 
 | Incoming `type` | Schema model | Key payload fields | Route `handler_key` |
 |---|---|---|---|
-| `query` | `QueryMessage` | `text`, `conversation_ref`, optional `content`, `screenshot`, `screenshot_ref`, `system_state_internal` | `query_handler` |
+| `query` | `QueryMessage` | `text`, `conversation_ref`, optional `content`, `query_context`, screenshots/refs, `system_state_internal`, `workspace_path`, `agent_definition` | `query_handler` |
 | `stop-query` | `StopQueryMessage` | Optional `conversation_ref` | `stop_query_handler` |
 | `rehydrate-conversation` | `RehydrateConversationMessage` | `conversation_ref`, `messages[]`, `rehydrate_mode="replace"` | `rehydrate_conversation_handler` |
 | `load-settings` | `LoadSettingsMessage` | Optional `client_version` | `load_settings_handler` |

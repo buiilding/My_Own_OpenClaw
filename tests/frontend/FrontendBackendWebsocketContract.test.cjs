@@ -6,7 +6,7 @@ const path = require('path');
 const incomingContract = require('../../backend/src/api/contracts/incoming_message_contract.json');
 const {
   createManagedBackendSession,
-} = require('../../packages/windie-sdk-js/src/transport/ManagedBackendSession.cjs');
+} = require('../../packages/windie-sdk-js/cjs/transport/ManagedBackendSession.js');
 const {
   buildBackendQueryPayload,
 } = require('../../frontend/src/main/ipc/ipc_query_runtime.cjs');

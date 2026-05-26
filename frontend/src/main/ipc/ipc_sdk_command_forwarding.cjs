@@ -13,7 +13,6 @@ function registerSdkCommandForwardingHandler({
   getPendingSettingsSyncPromise,
   queueListModelsRequest,
   sendSettingsUpdate,
-  attachAgentDefinitionContext,
   log,
 }) {
   ipcMain.on('to-backend', async (_event, message = {}) => {
@@ -49,10 +48,6 @@ function registerSdkCommandForwardingHandler({
 
     if (shouldLogRendererSdkRuntimeCommand(type)) {
       log(`Received ${type} from renderer`);
-    }
-
-    if (type === 'rehydrate') {
-      payload = attachAgentDefinitionContext(payload);
     }
 
     let backendConnectionReady = true;

@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: stop adding query-only agent definitions to conversation rehydrate commands so edit/resend replay payloads match the backend websocket schema.
+- backend/api: include structured `query_context` in the incoming websocket contract fixture and point frontend contract tests at the generated SDK transport artifact.
+- docs: align websocket, prompt-context, and IPC references with structured
+  `query_context` query payloads and query-only Electron agent-definition
+  enrichment.
 - docs: repair broken local cross-links in backend formatter and renderer response-overlay references so docs navigation and focused link checks agree.
 - frontend/config: redact provider API keys and OAuth tokens from renderer localStorage, Electron frontend-config disk saves, disk loads, and cached main-process config state while still syncing live credential updates to backend settings.
 - backend/tools: keep canonical backend catalog specs as the provider-visible schema source for built-in sidecar tools while sidecar manifests separate backend-validation schemas from executable sidecar schemas.
