@@ -10,6 +10,16 @@ title: "Refactors Hub"
 
 Use this folder for focused refactor plans, migration notes, and deletion milestones.
 
+## Plans
+
+- [Remaining Architecture Refactor Plan](remaining_architecture_refactor_plan.md):
+  current-state deletion checklist for query prompt assembly, backend event
+  contracts, SDK source duplication, memory/config IPC, tool manifests, and
+  Electron bridge ownership.
+- [Runtime Ownership Simplification Plan](runtime_ownership_simplification_plan.md):
+  broader ownership migration plan for renderer, main, SDK, sidecar, and backend
+  responsibilities.
+
 Refactor notes should make ownership explicit:
 
 - what layer owns the behavior
