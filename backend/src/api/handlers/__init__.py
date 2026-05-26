@@ -35,6 +35,8 @@ from backend.src.api.handlers.query import QueryMessageHandler
 from backend.src.api.handlers.rehydrate import RehydrateConversationHandler
 from backend.src.api.handlers.settings import (
     ListModelsHandler,
+    LoadSettingsHandler,
+    UpdateSettingsHandler,
 )
 from backend.src.api.handlers.stop_query import StopQueryHandler
 from backend.src.api.handlers.wakeword import WakewordHandler
@@ -49,6 +51,8 @@ __all__ = [
     "StopQueryHandler",
     "RehydrateConversationHandler",
     "ListModelsHandler",
+    "LoadSettingsHandler",
+    "UpdateSettingsHandler",
     "WakewordHandler",
     "ToolResultHandler",
 ]
