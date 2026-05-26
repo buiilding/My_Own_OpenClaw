@@ -40,9 +40,6 @@ const {
   createIpcSettingsSyncRuntime,
 } = require('./ipc/ipc_settings_sync_runtime.cjs');
 const {
-  createModelListRequestRuntime,
-} = require('./ipc/ipc_model_list_runtime.cjs');
-const {
   handleRendererLog,
 } = require('./ipc/ipc_diagnostics_runtime.cjs');
 const {
@@ -173,7 +170,6 @@ let currentServerUserId = null;
 let currentConversationRef = null;
 let activeQueryContext = null;
 let latestFrontendConfig = null;
-const modelListRequestRuntime = createModelListRequestRuntime();
 const backendMessageObservers = new Set();
 let applyResponseOverlayPhase = null;
 let onBeforeOverlayQueryCapture = null;
@@ -481,11 +477,12 @@ function broadcastConnectionStatus(connected) {
   broadcastToRenderers('ipc-status', buildIpcStatusPayload(connected));
 }
 
+function queueListModelsRequest() {
+  settingsSyncRuntime.queueListModelsRequest();
+}
+
 function flushPendingListModelsRequest() {
-  modelListRequestRuntime.flush({
-    runtime: getWindieSdkRuntime(),
-    sendSdkRuntimeCommand,
-  });
+  settingsSyncRuntime.flushPendingListModelsRequest();
 }
 
 async function sendSettingsUpdate(config, source = 'renderer') {
@@ -495,6 +492,21 @@ async function sendSettingsUpdate(config, source = 'renderer') {
 async function ensureInitialSettingsSync() {
   return settingsSyncRuntime.ensureInitialSettingsSync();
 }
+
+const settingsSyncRuntime = createIpcSettingsSyncRuntime({
+  getLatestFrontendConfig: () => latestFrontendConfig,
+  setLatestFrontendConfig: (config) => {
+    latestFrontendConfig = config;
+  },
+  loadCachedFrontendConfig: () => loadCachedFrontendConfigFromDisk(),
+  isConnected: () => isConnected,
+  isBackendRuntimeConnected,
+  ensureBackendConnection,
+  getRuntime: getWindieSdkRuntime,
+  sendSdkRuntimeCommand,
+  log,
+  timeoutMs: SETTINGS_SYNC_TIMEOUT_MS,
+});
 
 function trackRendererWindow(win) {
   trackRendererWindowRuntime({
@@ -616,7 +628,7 @@ function shutdownIpcForTests() {
   resetSettingsSyncState();
   resetBackendSessionState();
   resetIpcProcessStateForTests();
-  modelListRequestRuntime.clear();
+  settingsSyncRuntime.clearPendingListModelsRequest();
   rendererWindows = new Set();
   backendMessageObservers.clear();
   applyResponseOverlayPhase = null;
@@ -786,7 +798,7 @@ function initializeIpc(win, options = {}) {
     isBackendRuntimeConnected,
     ensureBackendConnection,
     ensureInitialSettingsSync,
-    getPendingSettingsSyncPromise: () => settingsSyncRuntime.waitForPendingSync(),
+    getPendingSettingsSyncPromise: () => settingsSyncRuntime.getPendingSettingsSyncPromise(),
     sendSdkRuntimeCommand,
     getWindieSdkRuntime,
     sendStopQueryToBackend,
@@ -839,10 +851,10 @@ function initializeIpc(win, options = {}) {
     shouldConnectForSdkRuntimeCommand,
     shouldSyncSettingsBeforeSdkRuntimeCommand,
     isBackendRuntimeConnected,
-    queueListModelsRequest: () => modelListRequestRuntime.queue(),
+    queueListModelsRequest,
     ensureBackendConnection,
     ensureInitialSettingsSync,
-    getPendingSettingsSyncPromise: () => settingsSyncRuntime.waitForPendingSync(),
+    getPendingSettingsSyncPromise: () => settingsSyncRuntime.getPendingSettingsSyncPromise(),
     attachAgentDefinitionContext,
     sendSettingsUpdate,
     sendSdkRuntimeCommand,
@@ -999,7 +1011,7 @@ const automatedQueryDispatcher = createAutomatedQueryDispatcher({
   prepareAutomatedQueryPayload,
   ensureBackendConnection,
   ensureInitialSettingsSync,
-  getPendingSettingsSyncPromise: () => settingsSyncRuntime.waitForPendingSync(),
+  getPendingSettingsSyncPromise: () => settingsSyncRuntime.getPendingSettingsSyncPromise(),
   buildQueryPayload,
   buildQueryPayloadContext,
   getSystemState,

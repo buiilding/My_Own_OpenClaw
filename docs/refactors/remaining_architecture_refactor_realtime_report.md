@@ -329,6 +329,9 @@ Current behavior:
   handshake building, backend event processing callbacks, open/close checks,
   reconnect/fallback logging, active-query interruption on close, and
   conversation-event fan-out hooks.
+- `ipc_settings_sync_runtime.cjs` owns settings ACK state, initial settings-sync
+  attempt gating, renderer/update-settings backend sends, backend settings
+  payload filtering, and queued list-models request flush after backend open.
 
 Success criteria:
 
@@ -348,12 +351,15 @@ Success criteria:
   composition root: completed.
 - SDK runtime websocket lifecycle construction and backend event handling are no
   longer inline in the IPC composition root: completed.
+- Settings ACK state, initial settings sync, and queued list-models request
+  state are no longer inline in the IPC composition root: completed.
 - Full IPC root shrink is not complete; remaining inline state still includes
-  settings ACK state, endpoint/session globals, connection status snapshots,
-  and handler composition.
+  endpoint/session globals, connection status snapshots, and handler
+  composition.
 
 Validation:
 
+- `cd frontend && npm run test -- IpcSettingsSyncRuntime IpcSettingsSync IpcMainBridge.lifecycle IpcSdkCommandForwarding IpcFrontendConfigHandlers --runInBand`
 - `cd frontend && npm run test -- IpcSdkRuntimeLifecycle IpcMainBridge.lifecycle --runInBand`
 - `cd frontend && npm run test -- IpcMainBridge.lifecycle IpcStartupState IpcFrontendConfigHandlers MainWindowRuntime MainProcessBootstrapRuntime --runInBand`
 - `cd frontend && npm run test -- IpcAutomatedQueryDispatcher IpcQueryRuntime VmWorkerRuntime MainProcessBootstrapRuntime --runInBand`

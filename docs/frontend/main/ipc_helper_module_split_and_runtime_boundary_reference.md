@@ -24,6 +24,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc/ipc_query_broadcast.cjs`
 - `frontend/src/main/ipc/ipc_query_events.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`
+- `frontend/src/main/ipc/ipc_settings_sync_runtime.cjs`
 - `frontend/src/main/ipc/ipc_frontend_config.cjs`
 - `frontend/src/main/ipc/ipc_artifact_handlers.cjs`
 - `frontend/src/main/ipc/ipc_artifact_fetch.cjs`
@@ -35,7 +36,6 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 
 `ipc.cjs` remains relay composition wiring for:
 
-- settings ACK gate (`ensureInitialSettingsSync`, pending-ack map)
 - query relay wiring and overlay phase transition application
 - handler registration (`ipcMain.handle/on`)
 - shared connection/session state until the remaining relay root is split
@@ -163,6 +163,16 @@ Owns settings ACK gate primitives used by `ipc.cjs`:
 - `resolveSettingsSync`
 - `clearPendingSettingsSyncs`
 
+### `ipc_settings_sync_runtime.cjs`
+
+Owns settings-sync state and command orchestration:
+
+- pending settings ACK map lifecycle
+- initial settings sync attempt gating
+- renderer/update-settings backend command send
+- queued list-models request state and flush after backend open
+- backend settings payload filtering for local-only config keys
+
 ### `ipc_frontend_config.cjs`
 
 Owns persisted frontend-config disk I/O:
@@ -256,13 +266,15 @@ This isolates persistence to main process once per backend event before renderer
 7. startup install-auth/config/shortcut hydration delegates to `ipc_startup_state.cjs`.
 8. SDK websocket runtime construction and backend event lifecycle delegate to
    `ipc_sdk_runtime_lifecycle.cjs`.
-9. transcript-session-sync normalization and state updates delegate to `ipc_transcript_session_sync.cjs`.
-10. frontend config load/save handlers delegate to `ipc_frontend_config.cjs`.
-11. remaining non-chat `to-backend` command forwarding delegates to
+9. settings ACK, initial sync, and queued list-models state delegate to
+   `ipc_settings_sync_runtime.cjs`.
+10. transcript-session-sync normalization and state updates delegate to `ipc_transcript_session_sync.cjs`.
+11. frontend config load/save handlers delegate to `ipc_frontend_config.cjs`.
+12. remaining non-chat `to-backend` command forwarding delegates to
    `ipc_sdk_command_forwarding.cjs`.
-12. artifact upload/fetch handler registration delegates to
+13. artifact upload/fetch handler registration delegates to
    `ipc_artifact_handlers.cjs`.
-13. OpenAI Codex OAuth login/logout handler registration delegates to
+14. OpenAI Codex OAuth login/logout handler registration delegates to
     `ipc_openai_codex_oauth_handlers.cjs`.
 
 ## Drift Hotspots

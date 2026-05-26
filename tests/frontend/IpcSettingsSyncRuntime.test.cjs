@@ -3,6 +3,7 @@
 const {
   buildBackendSettingsPayload,
   createIpcSettingsSyncRuntime,
+  createSettingsSyncRuntime,
 } = require('../../frontend/src/main/ipc/ipc_settings_sync_runtime.cjs');
 
 describe('ipc_settings_sync_runtime', () => {
@@ -76,5 +77,51 @@ describe('ipc_settings_sync_runtime', () => {
 
     await runtime.ensureInitialSettingsSync();
     expect(sendSdkRuntimeCommand).toHaveBeenCalledTimes(1);
+  });
+
+  test('queues and flushes list-models once backend send succeeds', () => {
+    const runtimeObject = { runtime: true };
+    const sendSdkRuntimeCommand = jest.fn(() => 'list-models-msg-1');
+    const runtime = createIpcSettingsSyncRuntime({
+      getRuntime: () => runtimeObject,
+      sendSdkRuntimeCommand,
+    });
+
+    runtime.queueListModelsRequest();
+    runtime.flushPendingListModelsRequest();
+    runtime.flushPendingListModelsRequest();
+
+    expect(sendSdkRuntimeCommand).toHaveBeenCalledTimes(1);
+    expect(sendSdkRuntimeCommand).toHaveBeenCalledWith(runtimeObject, {
+      type: 'list-models',
+      payload: {},
+    });
+  });
+
+  test('createSettingsSyncRuntime preserves legacy dependency shape', async () => {
+    const runtimeObject = { runtime: true };
+    const sendSdkRuntimeCommand = jest.fn(() => 'settings-msg-1');
+    const runtime = createSettingsSyncRuntime({
+      getConnected: () => true,
+      getLatestFrontendConfig: () => ({ selected_model_id: 'gpt-5' }),
+      setLatestFrontendConfig: jest.fn(),
+      loadCachedFrontendConfigFromDisk: jest.fn(),
+      isBackendRuntimeConnected: () => true,
+      ensureBackendConnection: jest.fn(),
+      sendSdkRuntimeCommand,
+      getWindieSdkRuntime: () => runtimeObject,
+      timeoutMs: 1000,
+      log: jest.fn(),
+    });
+
+    const promise = runtime.sendSettingsUpdate({ selected_model_id: 'gpt-5' });
+    await Promise.resolve();
+    runtime.resolveAck('settings-msg-1', true);
+
+    await expect(promise).resolves.toBe(true);
+    expect(sendSdkRuntimeCommand).toHaveBeenCalledWith(runtimeObject, {
+      type: 'update-settings',
+      payload: { selected_model_id: 'gpt-5' },
+    });
   });
 });

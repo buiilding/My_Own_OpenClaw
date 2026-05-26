@@ -28,12 +28,38 @@ function createIpcSettingsSyncRuntime({
 } = {}) {
   let hasAttemptedInitialSettingsSync = false;
   let pendingSettingsSyncPromise = null;
+  let hasPendingListModelsRequest = false;
   const pendingSettingsSyncs = new Map();
 
   function reset() {
     hasAttemptedInitialSettingsSync = false;
     pendingSettingsSyncPromise = null;
     clearPendingSettingsSyncs(pendingSettingsSyncs);
+  }
+
+  function queueListModelsRequest() {
+    hasPendingListModelsRequest = true;
+  }
+
+  function clearPendingListModelsRequest() {
+    hasPendingListModelsRequest = false;
+  }
+
+  function flushPendingListModelsRequest() {
+    if (!hasPendingListModelsRequest) {
+      return;
+    }
+    const msgId = sendSdkRuntimeCommand?.(getRuntime?.(), {
+      type: 'list-models',
+      payload: {},
+    });
+    if (msgId) {
+      hasPendingListModelsRequest = false;
+    }
+  }
+
+  function getPendingSettingsSyncPromise() {
+    return pendingSettingsSyncPromise;
   }
 
   function resolveAck(msgId, wasSuccessful) {
@@ -98,23 +124,30 @@ function createIpcSettingsSyncRuntime({
     }
     hasAttemptedInitialSettingsSync = true;
 
-    let latestFrontendConfig = getLatestFrontendConfig?.() || null;
-    if (!isValidConfigPayload(latestFrontendConfig)) {
-      latestFrontendConfig = await loadCachedFrontendConfig?.();
-      if (isValidConfigPayload(latestFrontendConfig)) {
-        setLatestFrontendConfig?.(latestFrontendConfig);
+    let config = getLatestFrontendConfig?.();
+    if (!config) {
+      try {
+        config = await loadCachedFrontendConfig?.();
+        if (config) {
+          setLatestFrontendConfig?.({ ...config });
+        }
+      } catch (error) {
+        log(`Failed to load cached frontend config for initial settings sync: ${error?.message || error}`);
       }
     }
-
-    await waitForPendingSync();
-    if (isValidConfigPayload(latestFrontendConfig)) {
-      await sendSettingsUpdate(latestFrontendConfig, 'initial-query-gate');
+    if (!config) {
+      return;
     }
+    await sendSettingsUpdate(config, 'initial-sync');
   }
 
   return {
     buildBackendSettingsPayload,
+    clearPendingListModelsRequest,
     ensureInitialSettingsSync,
+    flushPendingListModelsRequest,
+    getPendingSettingsSyncPromise,
+    queueListModelsRequest,
     reset,
     resolveAck,
     sendSettingsUpdate,
@@ -122,7 +155,34 @@ function createIpcSettingsSyncRuntime({
   };
 }
 
+function createSettingsSyncRuntime({
+  getConnected,
+  getLatestFrontendConfig,
+  setLatestFrontendConfig,
+  loadCachedFrontendConfigFromDisk,
+  isBackendRuntimeConnected,
+  ensureBackendConnection,
+  sendSdkRuntimeCommand,
+  getWindieSdkRuntime,
+  timeoutMs,
+  log,
+} = {}) {
+  return createIpcSettingsSyncRuntime({
+    getLatestFrontendConfig,
+    setLatestFrontendConfig,
+    loadCachedFrontendConfig: loadCachedFrontendConfigFromDisk,
+    isConnected: getConnected,
+    isBackendRuntimeConnected,
+    ensureBackendConnection,
+    getRuntime: getWindieSdkRuntime,
+    sendSdkRuntimeCommand,
+    timeoutMs,
+    log,
+  });
+}
+
 module.exports = {
   buildBackendSettingsPayload,
   createIpcSettingsSyncRuntime,
+  createSettingsSyncRuntime,
 };
