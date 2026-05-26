@@ -113,6 +113,11 @@ class ContainerConfigUpdater:
             )
         )
         embedding_provider = memory_embedder_provider()
+        if hasattr(self.container.embedding_router, "configure_circuit_breaker"):
+            self.container.embedding_router.configure_circuit_breaker(
+                failure_threshold=config.provider_circuit_breaker_failure_threshold,
+                cooldown_seconds=config.provider_circuit_breaker_cooldown_seconds,
+            )
         self.container.embedding_router.set_provider(embedding_provider)
         self.container.embedding_provider = embedding_provider
 

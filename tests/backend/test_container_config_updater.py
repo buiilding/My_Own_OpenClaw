@@ -11,7 +11,10 @@ from backend.src.core.container.facade import Container
 
 
 def test_reinitialize_embedder_rebinds_embedding_router(monkeypatch) -> None:
-    config = AppConfig()
+    config = AppConfig(
+        provider_circuit_breaker_failure_threshold=7,
+        provider_circuit_breaker_cooldown_seconds=42.0,
+    )
     new_provider = object()
     captured: dict[str, object] = {}
 
@@ -28,7 +31,12 @@ def test_reinitialize_embedder_rebinds_embedding_router(monkeypatch) -> None:
             embedder=providers.Singleton(lambda: "old-provider"),
             core=SimpleNamespace(cache_manager=lambda: "cache-manager"),
         ),
-        embedding_router=SimpleNamespace(set_provider=set_provider),
+        embedding_router=SimpleNamespace(
+            configure_circuit_breaker=lambda **kwargs: captured.setdefault(
+                "circuit_breaker", kwargs
+            ),
+            set_provider=set_provider,
+        ),
         embedding_provider=None,
     )
     updater = ContainerConfigUpdater(container)
@@ -36,6 +44,10 @@ def test_reinitialize_embedder_rebinds_embedding_router(monkeypatch) -> None:
     updater._reinitialize_embedder(config)
 
     assert captured["provider"] is new_provider
+    assert captured["circuit_breaker"] == {
+        "failure_threshold": 7,
+        "cooldown_seconds": 42.0,
+    }
     assert container.embedding_provider is new_provider
 
 
