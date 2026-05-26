@@ -27,9 +27,11 @@ class BuiltToolCatalogEntry:
 
 _CATALOG: tuple[ToolCatalogEntry, ...] = (
     ToolCatalogEntry("mouse_control", "backend.src.tools.remote_tools.computer", "RemoteMouseTool"),
+    ToolCatalogEntry("grounded_mouse_action", "backend.src.tools.remote_tools.computer", "RemoteGroundedMouseTool"),
     ToolCatalogEntry("keyboard_control", "backend.src.tools.remote_tools.computer", "RemoteKeyboardTool"),
     ToolCatalogEntry("screenshot", "backend.src.tools.remote_tools.computer", "RemoteScreenshotTool"),
     ToolCatalogEntry("scroll_control", "backend.src.tools.remote_tools.computer", "RemoteScrollTool"),
+    ToolCatalogEntry("grounded_scroll_action", "backend.src.tools.remote_tools.computer", "RemoteGroundedScrollTool"),
     ToolCatalogEntry("switch_window", "backend.src.tools.remote_tools.computer", "RemoteSwitchTabTool"),
     ToolCatalogEntry("wait", "backend.src.tools.remote_tools.computer", "RemoteWaitTool"),
     ToolCatalogEntry("get_open_windows", "backend.src.tools.remote_tools.computer", "RemoteGetOpenWindowsTool"),

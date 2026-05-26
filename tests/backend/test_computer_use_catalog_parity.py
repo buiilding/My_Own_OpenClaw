@@ -1,4 +1,17 @@
-from backend.src.tools.remote_tools.computer import _COMPUTER_USE_MODEL_BY_TOOL
+import backend.src.tools.remote as remote_exports
+import backend.src.tools.remote_tools as remote_tools_exports
+from backend.src.tools.remote_tools.computer import (
+    RemoteGetOpenWindowsTool,
+    RemoteGroundedMouseTool,
+    RemoteGroundedScrollTool,
+    RemoteKeyboardTool,
+    RemoteMouseTool,
+    RemoteScreenshotTool,
+    RemoteScrollTool,
+    RemoteSwitchTabTool,
+    RemoteWaitTool,
+    _COMPUTER_USE_MODEL_BY_TOOL,
+)
 from backend.src.tools.tool_catalog import get_tool_catalog
 
 
@@ -10,3 +23,24 @@ def test_computer_tool_catalog_matches_remote_computer_mapping():
     }
 
     assert catalog_names == set(_COMPUTER_USE_MODEL_BY_TOOL.keys())
+
+
+def test_grounded_computer_tools_are_exported_and_mapped():
+    expected_computer_tool_classes = {
+        RemoteMouseTool,
+        RemoteGroundedMouseTool,
+        RemoteKeyboardTool,
+        RemoteScreenshotTool,
+        RemoteScrollTool,
+        RemoteGroundedScrollTool,
+        RemoteSwitchTabTool,
+        RemoteWaitTool,
+        RemoteGetOpenWindowsTool,
+    }
+
+    for tool_class in expected_computer_tool_classes:
+        assert getattr(remote_exports, tool_class.__name__) is tool_class
+        assert getattr(remote_tools_exports, tool_class.__name__) is tool_class
+
+    for tool_class in expected_computer_tool_classes - {RemoteGetOpenWindowsTool}:
+        assert _COMPUTER_USE_MODEL_BY_TOOL[tool_class.name] is tool_class.args_model

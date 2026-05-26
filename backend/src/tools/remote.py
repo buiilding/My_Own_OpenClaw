@@ -4,6 +4,8 @@ from backend.src.tools.remote_tools.base import RemoteToolBase, RemoteToolResult
 from backend.src.tools.remote_tools.browser import RemoteBrowserTool
 from backend.src.tools.remote_tools.computer import (
     RemoteGetOpenWindowsTool,
+    RemoteGroundedMouseTool,
+    RemoteGroundedScrollTool,
     RemoteKeyboardTool,
     RemoteMouseTool,
     RemoteScreenshotTool,
@@ -35,6 +37,8 @@ __all__ = [
     "RemoteToolBase",
     "RemoteToolResult",
     "RemoteMouseTool",
+    "RemoteGroundedMouseTool",
+    "RemoteGroundedScrollTool",
     "RemoteKeyboardTool",
     "RemoteScreenshotTool",
     "RemoteScrollTool",

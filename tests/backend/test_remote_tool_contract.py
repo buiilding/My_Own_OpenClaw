@@ -4,6 +4,11 @@ import sys
 
 from backend.src.tools.remote import get_all_remote_tools
 
+DERIVED_BACKEND_GROUNDING_TOOLS = {
+    "grounded_mouse_action",
+    "grounded_scroll_action",
+}
+
 
 def _snapshot_tools_modules() -> dict[str, object]:
     return {
@@ -51,11 +56,12 @@ def _load_frontend_exposed_tool_names() -> set[str]:
 def test_backend_remote_tools_match_frontend_exposed_tools():
     backend_remote_tools = set(get_all_remote_tools().keys())
     frontend_exposed_tools = _load_frontend_exposed_tool_names()
+    backend_executable_tools = backend_remote_tools - DERIVED_BACKEND_GROUNDING_TOOLS
 
-    missing_in_backend = sorted(frontend_exposed_tools - backend_remote_tools)
-    missing_in_frontend = sorted(backend_remote_tools - frontend_exposed_tools)
+    missing_in_backend = sorted(frontend_exposed_tools - backend_executable_tools)
+    missing_in_frontend = sorted(backend_executable_tools - frontend_exposed_tools)
 
-    assert backend_remote_tools == frontend_exposed_tools, (
+    assert backend_executable_tools == frontend_exposed_tools, (
         "Remote tool contract drift detected.\n"
         f"Missing in backend remote schemas: {missing_in_backend}\n"
         f"Missing in frontend exposed tool set: {missing_in_frontend}"
