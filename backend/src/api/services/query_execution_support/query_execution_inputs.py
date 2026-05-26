@@ -10,6 +10,7 @@ from backend.src.api.services.query_execution_support.query_execution_runtime im
     resolve_query_screenshot_metadata,
     resolve_screenshots,
 )
+from backend.src.llm.prompts.query_context import format_query_context_content
 from backend.src.services.artifacts import ArtifactStore
 
 if TYPE_CHECKING:
@@ -86,7 +87,11 @@ def resolve_query_execution_inputs(
     return QueryExecutionInputs(
         image_data=build_query_image_data(resolved_screenshots),
         capture_meta=resolve_query_screenshot_metadata(message),
-        message_content=getattr(message.payload, "content", None),
+        message_content=format_query_context_content(
+            query=getattr(message.payload, "text", ""),
+            query_context=getattr(message.payload, "query_context", None),
+            fallback_content=getattr(message.payload, "content", None),
+        ),
         conversation_ref=getattr(message.payload, "conversation_ref", None),
         workspace_path=getattr(message.payload, "workspace_path", None),
         repo_instruction_messages=repo_instruction_messages,

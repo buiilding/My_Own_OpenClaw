@@ -28,6 +28,7 @@ from typing import Any, Dict, List, Optional, Union
 from backend.src.core.config import AppConfig
 from backend.src.core.infrastructure.error_types import InputSizeLimitError
 from backend.src.core.messages.converters import content_to_message_content
+from backend.src.llm.prompts.query_context import format_query_context_content
 from backend.src.core.messages.structures import StoredMessage
 from backend.src.core.observability.trust_boundary_metrics import MetricsService
 from backend.src.core.types.enums import MessageRole, MessageType
@@ -548,7 +549,7 @@ class PromptConstructor:
         - Fallback formatting when message_content is not provided
 
         Args:
-            message_content: Complete message content from frontend (system state + memories + query)
+            message_content: Backend-rendered model-visible user message content
             query: The user's raw query text (for fallback formatting)
             is_first_message: Whether this is the first user message in the conversation
 
@@ -557,12 +558,16 @@ class PromptConstructor:
         """
         # Build base content
         if message_content:
-            # Use frontend-provided content
+            # Use already-rendered content from backend query input shaping or
+            # legacy clients.
             final_content = message_content
         else:
             # Fallback: just the query (shouldn't happen in normal flow)
             logger.warning("No message content provided by frontend, using query only")
-            final_content = f"<user_query>\n{query}\n</user_query>"
+            final_content = format_query_context_content(
+                query=query,
+                query_context=None,
+            )
 
         # Tool schemas are passed via native API params, not embedded in user content.
         _ = is_first_message

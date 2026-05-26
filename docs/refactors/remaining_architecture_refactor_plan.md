@@ -31,7 +31,7 @@ layers unless a verified external dependency requires one.
 
 ## Refactor Checklist
 
-- [ ] Move final query prompt assembly to the backend.
+- [x] Move final query prompt assembly to the backend.
 
   Issue: Electron main currently assembles model-visible XML/text for local
   memory, attached-file context, user query wrapping, and prompt fragments

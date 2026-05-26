@@ -128,6 +128,39 @@ async def test_parse_and_validate_message_rejects_query_payload_turn_ref() -> No
 
 
 @pytest.mark.asyncio
+async def test_parse_and_validate_message_accepts_structured_query_context() -> None:
+    payload = json.dumps(
+        {
+            "id": "transport_1",
+            "type": "query",
+            "payload": {
+                "text": "hello",
+                "conversation_ref": "conv_test",
+                "query_context": {
+                    "memory_retrieval_enabled": True,
+                    "memories": {
+                        "episodic": ["remember"],
+                        "semantic": [],
+                    },
+                    "attachment_context": "file body",
+                },
+            },
+        }
+    )
+
+    message, error = await mh.parse_and_validate_message(
+        payload, user_id="user_1", max_message_size=1024
+    )
+
+    assert error is None
+    assert isinstance(message, QueryMessage)
+    assert message.payload.query_context is not None
+    assert message.payload.query_context.memories is not None
+    assert message.payload.query_context.memories.episodic == ["remember"]
+    assert message.payload.query_context.attachment_context == "file body"
+
+
+@pytest.mark.asyncio
 async def test_parse_and_validate_message_overrides_client_user_id_with_connection_user_id() -> None:
     payload = json.dumps(
         {

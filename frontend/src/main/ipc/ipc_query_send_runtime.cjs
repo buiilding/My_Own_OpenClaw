@@ -28,7 +28,7 @@ async function prepareRendererQuerySend({
     broadcastToRenderers,
     ipcEventReplayState,
     buildQueryPayload,
-    buildQueryPayloadContent,
+    buildQueryPayloadContext,
     getSystemState,
     searchMemory,
   } = deps;
@@ -92,7 +92,7 @@ async function prepareRendererQuerySend({
     memoryRetrievalEnabled,
     currentUserId,
     isFirstQuery,
-    buildQueryPayloadContent,
+    buildQueryPayloadContext,
     getSystemState,
     searchMemory,
     log,

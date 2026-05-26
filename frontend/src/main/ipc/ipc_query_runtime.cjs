@@ -99,7 +99,7 @@ async function buildQueryPayload({
   isFirstQuery,
   attachmentContext = null,
   memoryRetrievalEnabled = true,
-  buildQueryPayloadContent,
+  buildQueryPayloadContext,
   getSystemState,
   searchMemory,
   log,
@@ -110,9 +110,9 @@ async function buildQueryPayload({
     throw new Error('buildQueryPayload requires an authenticated user id');
   }
   const {
-    content,
+    queryContext,
     runtimeSystemState,
-  } = await buildQueryPayloadContent({
+  } = await buildQueryPayloadContext({
     text,
     conversationRef,
     userId,
@@ -124,7 +124,7 @@ async function buildQueryPayload({
     log,
   });
 
-  const payload = { ...basePayload, content };
+  const payload = { ...basePayload, query_context: queryContext };
   if (runtimeSystemState) {
     payload.system_state_internal = runtimeSystemState;
   } else {

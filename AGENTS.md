@@ -247,12 +247,21 @@ SDK ownership rules:
 
 - Put reusable chat/session/tool/result/projection behavior in the SDK when it
   should work for Electron, CLI, custom UI, plugins, or tests.
+- Treat the Electron UI as the reference SDK host: it should demonstrate how to
+  build a WindieOS UI on top of the SDK, not as a privileged separate agent
+  runtime. The same SDK primitives must be usable for custom GUI, TUI, CLI,
+  plugin, and hosted-client experiences; interaction style is a client choice.
 - Keep Electron-specific window, IPC, screenshot, permissions, and app lifecycle
   code in Electron main or renderer facades behind SDK interfaces.
 - Keep sidecar execution and local storage mechanics in the Python sidecar; the
   SDK coordinates and normalizes them.
 - Keep backend model/provider/prompt/tool-policy decisions in the backend; the
   SDK reports local capability but does not grant backend capability.
+- For SDK-authored agents, the client defines the active tool surface from
+  requested built-ins, custom tools, plugins, MCPs, and skills. The backend may
+  provide a default built-in schema set, but client-provided schemas can replace
+  it entirely; backend responsibility is validation, policy filtering, provider
+  projection, backend-native tool exposure, and prompt compilation.
 
 ## Frontend Architecture
 
@@ -304,6 +313,9 @@ Do not rebuild the chat transcript, websocket loop, tool runner, model sync,
 rehydrate, compaction, or replay semantics directly in renderer feature code.
 Add or adjust renderer facades when UI needs a boundary, and move reusable
 runtime behavior into the SDK instead of adding another Electron-only bridge.
+The minimal chat pill must project the same current-turn progress as the main
+dashboard, and the response overlay must project the same assistant response
+portion as the dashboard instead of maintaining a divergent response model.
 
 ## Runtime Flow Cheatsheet
 
@@ -382,12 +394,23 @@ runtime behavior into the SDK instead of adding another Electron-only bridge.
 
 - Tools execute on the Python sidecar unless they are explicit backend remote
   tools such as `web_search`.
-- Backend validates client-provided tool manifests, applies policy/provider
-  projection, owns backend remote tools, and owns final prompt compilation.
+- Local tool schemas are client-side: the SDK/Electron/sidecar manifest is
+  assembled from selected built-ins plus added tools, plugins, MCPs, and related
+  extension contributions. Backend default built-in schemas exist as a fallback
+  and hosted default, but the client manifest may overwrite the active local
+  tool surface.
+- Backend validates client-provided tool manifests, enforces schema limits and
+  trust boundaries, applies policy/provider projection, owns backend remote
+  tools, and owns final prompt compilation.
 - Frontend/sidecar own local tool implementations and executable manifests for
   client-local tools; they must not import backend code for schema parity.
 - Tool changes must update the client tool manifest, docs, and focused tests in
   the same change.
+- Computer-use tools must return automatic post-action screenshot context in
+  their tool outputs. Tool bundles that include any computer-use action must
+  also return screenshot context for the bundle output; capture once after the
+  bundle unless an explicit successful screenshot step already provides the
+  needed image.
 - Built-in grounded tools must preserve the model-schema vs prepared-argument
   distinction. Use `backend_grounding` only when OCR/vision/prediction prepares
   executable sidecar arguments; otherwise use `passthrough`.

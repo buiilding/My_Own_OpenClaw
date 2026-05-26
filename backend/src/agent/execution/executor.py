@@ -168,7 +168,7 @@ class AgentExecutor:
             query: The user's query text (for reference)
             screenshot: Optional base64 screenshot payload(s) for multimodal queries
             capture_meta: Optional capture metadata for the primary screenshot
-            message_content: Complete message content from frontend (system state + memories + query)
+            message_content: Backend-rendered model-visible user message content
         """
         # 1. Format user message content (delegated to PromptConstructor)
         is_first_message = self._is_first_user_message()

@@ -1,11 +1,11 @@
 /** @jest-environment node */
 
 const {
-  buildQueryPayloadContent,
+  buildQueryPayloadContext,
 } = require('../../frontend/src/main/query_payload_builder.cjs');
 
 describe('query_payload_builder', () => {
-  test('builds enriched query content for initial context', async () => {
+  test('builds structured query context for initial context', async () => {
     const getSystemState = jest.fn().mockResolvedValue({
       active_window: 'Editor <main>',
       mouse_position: '100,200',
@@ -22,7 +22,7 @@ describe('query_payload_builder', () => {
       },
     });
 
-    const result = await buildQueryPayloadContent({
+    const result = await buildQueryPayloadContext({
       text: 'hello <world>',
       conversationRef: 'conv-1',
       userId: 'user-1',
@@ -49,16 +49,17 @@ describe('query_payload_builder', () => {
         semantic_min_score: 0.2,
       },
     );
-    expect(result.content).not.toContain('<system_context>');
-    expect(result.content).toContain('<episodic_memory>');
-    expect(result.content).toContain('- remember &amp; review');
-    expect(result.content).toContain('<semantic_memory>');
-    expect(result.content).toContain('- facts');
-    expect(result.content).toContain('<user_query>\nhello &lt;world&gt;\n</user_query>');
+    expect(result.queryContext).toEqual({
+      memory_retrieval_enabled: true,
+      memories: {
+        episodic: ['remember & review'],
+        semantic: ['facts'],
+      },
+    });
     expect(result.runtimeSystemState).toEqual({ screen_resolution: '1920x1080' });
   });
 
-  test('uses fallback system context when system state retrieval fails', async () => {
+  test('keeps query context when system state retrieval fails', async () => {
     const getSystemState = jest.fn().mockRejectedValue(new Error('boom'));
     const searchMemory = jest.fn().mockResolvedValue({
       success: true,
@@ -70,7 +71,7 @@ describe('query_payload_builder', () => {
       },
     });
 
-    const result = await buildQueryPayloadContent({
+    const result = await buildQueryPayloadContext({
       text: 'fallback',
       conversationRef: null,
       userId: 'user-2',
@@ -85,10 +86,13 @@ describe('query_payload_builder', () => {
       'mouse_position',
       'screen_resolution',
     ]);
-    expect(result.content).not.toContain('<system_context>');
-    expect(result.content).toContain('<episodic_memory>\nNone\n</episodic_memory>');
-    expect(result.content).toContain('<semantic_memory>\nNone\n</semantic_memory>');
-    expect(result.content).toContain('<user_query>\nfallback\n</user_query>');
+    expect(result.queryContext).toEqual({
+      memory_retrieval_enabled: true,
+      memories: {
+        episodic: [],
+        semantic: [],
+      },
+    });
     expect(result.runtimeSystemState).toBeNull();
   });
 
@@ -101,7 +105,7 @@ describe('query_payload_builder', () => {
     });
     const searchMemory = jest.fn().mockRejectedValue(new Error('memory backend unavailable'));
 
-    const result = await buildQueryPayloadContent({
+    const result = await buildQueryPayloadContext({
       text: 'memory fallback',
       conversationRef: 'conv-mem',
       userId: 'user-3',
@@ -111,13 +115,14 @@ describe('query_payload_builder', () => {
       log: jest.fn(),
     });
 
-    expect(result.content).not.toContain('<system_context>');
-    expect(result.content).toContain('<episodic_memory>\nNone\n</episodic_memory>');
-    expect(result.content).toContain('<semantic_memory>\nNone\n</semantic_memory>');
+    expect(result.queryContext).toEqual({
+      memory_retrieval_enabled: true,
+      memories: null,
+    });
     expect(result.runtimeSystemState).toEqual({ screen_resolution: '2560x1440' });
   });
 
-  test('uses fallback system context when system state payload is null', async () => {
+  test('keeps local memory context when system state payload is null', async () => {
     const getSystemState = jest.fn().mockResolvedValue(null);
     const searchMemory = jest.fn().mockResolvedValue({
       success: true,
@@ -129,7 +134,7 @@ describe('query_payload_builder', () => {
       },
     });
 
-    const result = await buildQueryPayloadContent({
+    const result = await buildQueryPayloadContext({
       text: 'null state',
       conversationRef: 'conv-null',
       userId: 'user-4',
@@ -139,12 +144,17 @@ describe('query_payload_builder', () => {
       log: jest.fn(),
     });
 
-    expect(result.content).not.toContain('<system_context>');
-    expect(result.content).toContain('<episodic_memory>\n- entry\n</episodic_memory>');
+    expect(result.queryContext).toEqual({
+      memory_retrieval_enabled: true,
+      memories: {
+        episodic: ['entry'],
+        semantic: [],
+      },
+    });
     expect(result.runtimeSystemState).toBeNull();
   });
 
-  test('skips memory search and memory tags when memory retrieval injection is disabled', async () => {
+  test('skips memory search when memory retrieval injection is disabled', async () => {
     const getSystemState = jest.fn().mockResolvedValue({
       active_window: 'Editor',
       mouse_position: '0,0',
@@ -161,7 +171,7 @@ describe('query_payload_builder', () => {
       },
     });
 
-    const result = await buildQueryPayloadContent({
+    const result = await buildQueryPayloadContext({
       text: 'no memory injection',
       conversationRef: 'conv-no-memory',
       userId: 'user-5',
@@ -173,9 +183,8 @@ describe('query_payload_builder', () => {
     });
 
     expect(searchMemory).not.toHaveBeenCalled();
-    expect(result.content).not.toContain('<system_context>');
-    expect(result.content).not.toContain('<episodic_memory>');
-    expect(result.content).not.toContain('<semantic_memory>');
-    expect(result.content).toContain('<user_query>\nno memory injection\n</user_query>');
+    expect(result.queryContext).toEqual({
+      memory_retrieval_enabled: false,
+    });
   });
 });

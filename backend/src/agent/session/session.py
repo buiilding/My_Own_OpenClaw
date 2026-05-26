@@ -549,7 +549,7 @@ class AgentSession:
             query: The user's query text (for reference)
             image_data: Optional base64 image payload(s) for multimodal queries
             capture_meta: Optional capture metadata for image_data[0]
-            message_content: Complete message content from frontend (system state + memories + query)
+            message_content: Backend-rendered model-visible user message content.
             conversation_ref: Active conversation identity from frontend.
         """
         async with self._lock:

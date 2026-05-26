@@ -45,7 +45,7 @@ const {
   fetchArtifactImage,
 } = require('./ipc/ipc_artifact_fetch.cjs');
 const { persistMemoryStoreEvent } = require('./ipc/ipc_memory_store_persistence.cjs');
-const { buildQueryPayloadContent } = require('./query_payload_builder.cjs');
+const { buildQueryPayloadContext } = require('./query_payload_builder.cjs');
 const {
   resolveConversationRef: resolveConversationRefFromPayload,
   buildLocalUserMessage,
@@ -924,7 +924,7 @@ function initializeIpc(win, options = {}) {
           broadcastToRenderers,
           ipcEventReplayState,
           buildQueryPayload,
-          buildQueryPayloadContent,
+          buildQueryPayloadContext,
           getSystemState,
           searchMemory,
         },
@@ -1256,7 +1256,7 @@ async function sendAutomatedQuery(options = {}) {
     memoryRetrievalEnabled: preparedQuery.memoryRetrievalEnabled,
     currentUserId,
     isFirstQuery,
-    buildQueryPayloadContent,
+    buildQueryPayloadContext,
     getSystemState,
     searchMemory,
     log,

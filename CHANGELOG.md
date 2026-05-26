@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/agents: clarify client-owned tool schema assembly, backend validation
+  responsibility, computer-use screenshot output contracts, SDK-first UI
+  expectations, and dashboard/pill/response-overlay progress parity.
+- backend/frontend: move desktop query memory and attachment prompt assembly behind a structured `query_context` payload rendered by backend prompt code.
 - docs/refactors: add a current-state remaining architecture refactor plan for query prompt assembly, backend event contracts, SDK source duplication, memory/config IPC, tool manifest boundaries, and Electron bridge cleanup.
 - docs/refactors: add a chat replay send convergence plan for splitting retry/edit resend preparation from final live-turn query dispatch.
 - frontend/chat: split retry/edit resend replay preparation from final query dispatch so composer send, retry, and edit/resend share the live-turn send path while continuity keeps rewrite and rehydrate ownership.

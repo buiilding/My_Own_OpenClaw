@@ -1,30 +1,9 @@
 /**
  * Query payload builder utilities for IPC -> backend query messages.
  *
- * Keeps XML/content enrichment logic separate from transport/event handling.
+ * Electron main collects local context. Backend owns final model-visible prompt
+ * formatting.
  */
-
-function escapeXml(value) {
-  return String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
-}
-
-function formatMemorySection(tagName, entries) {
-  if (!Array.isArray(entries) || entries.length === 0) {
-    return `<${tagName}>\nNone\n</${tagName}>`;
-  }
-  const sectionText = entries.map((entry) => `- ${escapeXml(entry)}`).join('\n');
-  return `<${tagName}>\n${sectionText}\n</${tagName}>`;
-}
-
-function appendMemorySections(parts, memories = null) {
-  parts.push(formatMemorySection('episodic_memory', memories?.episodic));
-  parts.push(formatMemorySection('semantic_memory', memories?.semantic));
-}
 
 const PROMPT_MEMORY_RETRIEVAL = Object.freeze({
   combinedLimit: 6,
@@ -130,7 +109,7 @@ async function resolveMemoryEnrichment({
   }
 }
 
-async function buildQueryPayloadContent({
+async function buildQueryPayloadContext({
   text,
   conversationRef,
   userId,
@@ -145,7 +124,7 @@ async function buildQueryPayloadContent({
   const shouldInjectMemories = memoryRetrievalEnabled !== false;
 
   try {
-    logger('Building complete user message with memories...');
+    logger('Building structured query context...');
 
     const [stateEnrichment, memories] = await Promise.all([
       resolveSystemStateEnrichment({
@@ -164,38 +143,44 @@ async function buildQueryPayloadContent({
         : Promise.resolve(null),
     ]);
 
-    const parts = [];
     const runtimeSystemState = stateEnrichment.runtimeSystemState || null;
+    const queryContext = {
+      memory_retrieval_enabled: shouldInjectMemories,
+    };
 
     if (shouldInjectMemories) {
       if (memories) {
-        appendMemorySections(parts, memories);
+        queryContext.memories = {
+          episodic: Array.isArray(memories.episodic) ? memories.episodic : [],
+          semantic: Array.isArray(memories.semantic) ? memories.semantic : [],
+        };
       } else {
-        appendMemorySections(parts);
+        queryContext.memories = null;
       }
     } else {
-      logger('Memory retrieval injection disabled; skipping memory search and prompt tags');
+      logger('Memory retrieval injection disabled; backend will skip memory prompt tags');
     }
 
     if (typeof attachmentContext === 'string' && attachmentContext.trim().length > 0) {
-      parts.push(`<attached_file_context>\n${attachmentContext}\n</attached_file_context>`);
+      queryContext.attachment_context = attachmentContext;
     }
 
-    parts.push(`<user_query>\n${escapeXml(text)}\n</user_query>`);
-
     return {
-      content: parts.join('\n\n'),
+      queryContext,
       runtimeSystemState,
     };
   } catch (error) {
-    logger(`ERROR: Failed to build user message: ${error.message}`);
+    logger(`ERROR: Failed to build query context: ${error.message}`);
     return {
-      content: `<user_query>\n${escapeXml(text)}\n</user_query>`,
+      queryContext: {
+        memory_retrieval_enabled: shouldInjectMemories,
+        memories: shouldInjectMemories ? null : undefined,
+      },
       runtimeSystemState: null,
     };
   }
 }
 
 module.exports = {
-  buildQueryPayloadContent,
+  buildQueryPayloadContext,
 };

@@ -104,8 +104,11 @@ describe('ipc_query_runtime', () => {
   });
 
   test('buildQueryPayload enriches the payload and reports initial-context usage', async () => {
-    const buildQueryPayloadContent = jest.fn().mockResolvedValue({
-      content: '<user_query>\nhello\n</user_query>',
+    const buildQueryPayloadContext = jest.fn().mockResolvedValue({
+      queryContext: {
+        memory_retrieval_enabled: true,
+        memories: null,
+      },
       runtimeSystemState: { screen_resolution: '1920x1080' },
     });
 
@@ -117,7 +120,7 @@ describe('ipc_query_runtime', () => {
       isFirstQuery: true,
       attachmentContext: 'notes',
       memoryRetrievalEnabled: true,
-      buildQueryPayloadContent,
+      buildQueryPayloadContext,
       getSystemState: jest.fn(),
       searchMemory: jest.fn(),
       log: jest.fn(),
@@ -125,7 +128,10 @@ describe('ipc_query_runtime', () => {
       payload: {
         text: 'hello',
         conversation_ref: 'conv-1',
-        content: '<user_query>\nhello\n</user_query>',
+        query_context: {
+          memory_retrieval_enabled: true,
+          memories: null,
+        },
         system_state_internal: { screen_resolution: '1920x1080' },
       },
       userId: 'user-1',
@@ -133,7 +139,7 @@ describe('ipc_query_runtime', () => {
       queryUsedInitialContext: true,
     });
 
-    expect(buildQueryPayloadContent).toHaveBeenCalledWith(expect.objectContaining({
+    expect(buildQueryPayloadContext).toHaveBeenCalledWith(expect.objectContaining({
       text: 'hello',
       conversationRef: 'conv-1',
       userId: 'user-1',
