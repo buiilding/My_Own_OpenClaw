@@ -42,6 +42,7 @@ class ApiRuntimeBinder:
         return self._api_container
 
     def _sync_api_container_overrides(self, api_container: Any) -> None:
+        self._reset_api_container_dependency_overrides(api_container)
         api_container.config.override(providers.Object(self._container.config))
         api_container.config_service.override(
             providers.Object(self._container.config_service)
@@ -52,6 +53,19 @@ class ApiRuntimeBinder:
         api_container.session_manager.override(
             providers.Object(self._container.session_manager)
         )
+
+    @staticmethod
+    def _reset_api_container_dependency_overrides(api_container: Any) -> None:
+        for provider_name in (
+            "config",
+            "config_service",
+            "model_service",
+            "session_manager",
+        ):
+            provider = getattr(api_container, provider_name, None)
+            reset_override = getattr(provider, "reset_override", None)
+            if callable(reset_override):
+                reset_override()
 
     @staticmethod
     def _reset_api_container_singletons(api_container: Any) -> None:

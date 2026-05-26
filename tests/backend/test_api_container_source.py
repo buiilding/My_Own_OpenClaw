@@ -123,6 +123,16 @@ def test_api_runtime_refresh_rebuilds_materialized_singleton_handlers() -> None:
     binder = ApiRuntimeBinder(parent)
 
     first_registry = binder.get_handler_registry()
+    api_container = binder._api_container
+    dependency_provider_names = (
+        "config",
+        "config_service",
+        "model_service",
+        "session_manager",
+    )
+    for provider_name in dependency_provider_names:
+        assert len(getattr(api_container, provider_name).overridden) == 1
+
     assert first_registry._handlers["list-models"].model_service is first_model_service
     assert (
         first_registry._handlers["load-settings"].session_manager
@@ -136,6 +146,9 @@ def test_api_runtime_refresh_rebuilds_materialized_singleton_handlers() -> None:
 
     binder.refresh_overrides()
     second_registry = binder.get_handler_registry()
+
+    for provider_name in dependency_provider_names:
+        assert len(getattr(api_container, provider_name).overridden) == 1
 
     assert second_registry is not first_registry
     assert (
