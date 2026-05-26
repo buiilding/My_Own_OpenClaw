@@ -11,6 +11,7 @@ title: "Message Send Surface Policy and Screenshot Capture Reference"
 ## Canonical Modules
 
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
+- `frontend/src/renderer/features/chat/utils/messageSender/desktopChatSendPreparation.ts`
 - `frontend/src/renderer/features/chat/utils/messageSender/chatMessageSenderUtils.ts`
 - `frontend/src/renderer/features/chat/utils/messageSender/chatMessageSenderPayloads.ts`
 - `frontend/src/renderer/features/chat/utils/messageSender/queryScreenshotPipeline.ts`
@@ -29,6 +30,11 @@ title: "Message Send Surface Policy and Screenshot Capture Reference"
 - `tests/frontend/MessageInput.test.jsx`
 
 ## Sender Surface Ownership
+
+`useChatMessageSender` is now the React adapter for chat-store actions,
+playback cleanup, app config, and sender options. It delegates preparation and
+final live-turn dispatch to `desktopChatSendPreparation.ts`, which returns a
+`PreparedDesktopChatTurn` before calling the backend-facing live-turn runtime.
 
 `useChatMessageSender` accepts:
 
@@ -114,6 +120,10 @@ When attachment(s) exist:
   - `screenshot_refs` (all uploaded refs for multi-image queries)
   - optional `attachment_context` (hidden read_file output for selected non-image files)
   - optional `attachment_filenames` (visible filename chips for optimistic/local echo user rows)
+
+Steps 1-11 produce a `PreparedDesktopChatTurn`. The final dispatch helper
+applies deferred model selection, records the user transcript row, and sends
+that prepared payload through `DesktopLiveTurnRuntimeClient.sendQuery`.
 
 Readable file injection path:
 

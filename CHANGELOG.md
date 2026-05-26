@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: split composer send preparation from final live-turn dispatch
+  behind a reusable prepared-turn helper while preserving screenshot,
+  attachment, transcript, model-sync, and chat-pill handoff behavior.
 - frontend/chat: share pill and dashboard chat-surface controls for busy/stop
   state, speech mode, query screenshots, and manual compaction through a common
   controller hook.

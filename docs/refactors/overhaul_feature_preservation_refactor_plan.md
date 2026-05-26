@@ -106,7 +106,7 @@ it adds the product-feature guardrails those plans need.
   rendering and OS/window behavior but no longer duplicate those runtime
   controls.
 
-- [ ] Split renderer send preparation from final live-turn dispatch.
+- [x] Split renderer send preparation from final live-turn dispatch.
 
   Issue: `useChatMessageSender.ts` owns too many steps for a hook. It is still
   the place where conversation identity, workspace binding, attachments,
@@ -131,6 +131,14 @@ it adds the product-feature guardrails those plans need.
   `QueryScreenshotPipeline`, `ReadableFileAttachmentContext`,
   `UserTranscriptPersistence`, replay-send tests, and typed query contract
   tests.
+
+  Completed: `desktopChatSendPreparation.ts` now owns composer send
+  preparation and returns a `PreparedDesktopChatTurn` for final dispatch. The
+  hook remains the React adapter for chat-store actions and playback cleanup,
+  while the helper owns conversation/session resolution, workspace binding,
+  readable attachment context, optimistic user rows, screenshot artifact
+  resolution, transcript-write inputs, deferred model selection, and the final
+  live-turn dispatch payload.
 
 - [ ] Collapse replay send and normal send onto one prepared-turn contract.
 
