@@ -78,7 +78,13 @@ For changed docs with relative links, run a focused link check or manually verif
 Include `CHANGELOG.md` for repo-visible docs coverage changes:
 
 ```bash
-./scripts/committer "docs(scope): concise subject" -- CHANGELOG.md docs/...
+./scripts/committer "docs(scope): concise subject" --body "Issue: describe why the docs changed.
+
+Fix: describe what guidance was added or corrected.
+
+Previous behavior: describe what agents or users saw before.
+
+Behavior after fix: describe what they can rely on now." -- CHANGELOG.md docs/...
 ```
 
 ## Related Docs

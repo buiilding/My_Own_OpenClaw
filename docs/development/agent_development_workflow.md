@@ -115,13 +115,25 @@ Preferred doc targets:
 Use the repo helper:
 
 ```bash
-./scripts/committer "docs(scope): concise subject" -- path/to/file.md CHANGELOG.md
+./scripts/committer "docs(scope): concise subject" --body "Issue: describe why the docs changed.
+
+Fix: describe what guidance was added or corrected.
+
+Previous behavior: describe what agents or users saw before.
+
+Behavior after fix: describe what they can rely on now." -- path/to/file.md CHANGELOG.md
 ```
 
 For code:
 
 ```bash
-./scripts/committer "fix(scope): concise subject" --body "- explain important behavior" -- changed/files
+./scripts/committer "fix(scope): concise subject" --body "Issue: describe the bug.
+
+Fix: describe the implementation and improvement.
+
+Previous behavior: describe what happened before.
+
+Behavior after fix: describe what happens now." -- changed/files
 ```
 
 The helper stages only listed paths. Include `CHANGELOG.md` in the same commit when the change updates it.

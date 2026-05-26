@@ -45,13 +45,32 @@ Keep the entry concise:
 Use:
 
 ```bash
-./scripts/committer "docs(scope): concise subject" -- CHANGELOG.md docs/...
+./scripts/committer "docs(scope): concise subject" --body "Issue: documentation was missing the new behavior.
+
+Fix: added the missing docs and changelog entry.
+
+Previous behavior: agents had no repo-local guidance for this workflow.
+
+Behavior after fix: agents can find and follow the documented workflow." -- CHANGELOG.md docs/...
 ```
 
-With body:
+The helper requires at least one non-empty `--body` value. The body must describe:
+
+- the issue being fixed or changed
+- the fix and what improvements it makes
+- the previous behavior
+- the behavior after the fix
+
+For code:
 
 ```bash
-./scripts/committer "fix(scope): concise subject" --body "- explain key behavior\n- mention validation or contract" -- changed/files
+./scripts/committer "fix(scope): concise subject" --body "Issue: describe the bug.
+
+Fix: describe the implementation and improvement.
+
+Previous behavior: describe what happened before.
+
+Behavior after fix: describe what happens now." -- changed/files
 ```
 
 The helper stages only listed paths. Check `git status --short --branch` before and after committing.

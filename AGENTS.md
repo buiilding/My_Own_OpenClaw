@@ -351,22 +351,32 @@ If requirements conflict or timing semantics are ambiguous, resolve the spec con
 - Preferred helper: `committer`
 - This repo includes `./scripts/committer`
 - Use either the PATH version or the script directly
+- `--body` is required for every commit
+- The commit body must describe:
+  - the issue being fixed or changed
+  - the fix and what improvements it makes
+  - the previous behavior
+  - the behavior after the fix
 - On Windows PowerShell, do not invoke `./scripts/committer` directly
 - On PowerShell, use Git Bash or fall back to plain `git add` and `git commit`
 
 ### Commit Message Format
 
-Use Conventional Commits. Add a short body when it helps review.
+Use Conventional Commits with a body section.
 
 Example:
 
 ```text
 feat(frontend-dashboard): delete semantic memory entries
 
-- remove unused dashboard action
-- wire updated flow
-- add regression tests
-````
+Issue: semantic memory rows could not be deleted from the dashboard.
+
+Fix: removed the stale action path, wired the delete flow through the owning dashboard runtime, and added regression coverage.
+
+Previous behavior: users could see semantic memory rows but deletion did not complete reliably.
+
+Behavior after fix: deleting a semantic memory row updates the backend, refreshes the dashboard state, and is covered by focused tests.
+```
 
 ### Additional Git Notes
 

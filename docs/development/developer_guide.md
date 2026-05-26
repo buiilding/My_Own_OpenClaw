@@ -139,7 +139,7 @@ frontend/src/
 
 - `bin/docs-list` (or `node scripts/docs-list.js`): Lists docs and front-matter metadata.
 - `scripts/test`: Runs backend + sidecar tests, then frontend tests when `frontend/node_modules` exists.
-- `scripts/committer "<msg>" <files...>`: Scoped commits using the shared `committer` helper.
+- `scripts/committer "<subject>" --body "<body>" -- <files...>`: Scoped commits using the shared `committer` helper. The body is required and must describe the issue, fix, previous behavior, and behavior after the fix.
 - Frontend checks auto-skip when `frontend/node_modules` is missing.
 - `cd frontend && npm run typecheck`: Runs TS gate (`tsc --noEmit -p tsconfig.eslint.json`).
 - `cd frontend && npm run lint`: Lints `js/jsx/cjs/ts/tsx`.

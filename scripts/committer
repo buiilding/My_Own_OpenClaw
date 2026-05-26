@@ -5,10 +5,10 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 Usage:
-  scripts/committer "<subject>" <files...>
-  scripts/committer "<subject>" [--body "<text>"]... [--no-verify] -- <files...>
+  scripts/committer "<subject>" --body "<text>" [--body "<text>"]... [--no-verify] -- <files...>
 
 Stages only the listed paths before creating the commit.
+Commit bodies are required and must describe the issue, fix, previous behavior, and behavior after the fix.
 EOF
 }
 
@@ -65,6 +65,19 @@ if [[ ${#files[@]} -eq 0 ]]; then
   usage
   exit 1
 fi
+
+if [[ ${#bodies[@]} -eq 0 ]]; then
+  echo "error: at least one --body value is required" >&2
+  usage
+  exit 1
+fi
+
+for body in "${bodies[@]}"; do
+  if [[ -z "${body//[[:space:]]/}" ]]; then
+    echo "error: --body value must not be empty" >&2
+    exit 1
+  fi
+done
 
 git rev-parse --show-toplevel >/dev/null
 

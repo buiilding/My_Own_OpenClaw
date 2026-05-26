@@ -22,7 +22,7 @@ WindieOS does not yet ship a first-class user CLI. Current command-line entrypoi
 | `./scripts/test-sidecar` | Run sidecar tests. |
 | `./scripts/test` | Run broader test wrapper. |
 | `./scripts/build-sidecar-runtime` | Build bundled Python sidecar runtime for packaging. |
-| `./scripts/committer` | Stage listed files and create a scoped commit. |
+| `./scripts/committer` | Stage listed files and create a scoped commit. Requires a body describing the issue, fix, previous behavior, and behavior after the fix. |
 | `./bin/docs-list` or `node scripts/docs-list.js` | List docs with front matter and read hints. |
 
 ## Frontend Package Scripts

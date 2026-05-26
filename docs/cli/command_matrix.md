@@ -24,7 +24,7 @@ Run from the repo root unless noted.
 | `./scripts/test-sidecar [pytest args...]` | `scripts/test-sidecar` | Runs sidecar pytest under `tests/sidecar`. |
 | `./scripts/test` | `scripts/test` | Runs backend tests, sidecar tests, and frontend `test:ci` when `frontend/node_modules` exists. |
 | `./scripts/build-sidecar-runtime` | `scripts/build-sidecar-runtime` | Builds the bundled Python sidecar runtime used by packaged app builds. |
-| `./scripts/committer "<subject>" -- <paths...>` | `scripts/committer` | Stages only listed paths and commits them. Supports repeated `--body` and `--no-verify`. |
+| `./scripts/committer "<subject>" --body "<body>" -- <paths...>` | `scripts/committer` | Stages only listed paths and commits them. Requires at least one body describing the issue, fix, previous behavior, and behavior after the fix. Supports repeated `--body` and `--no-verify`. |
 | `./bin/docs-list` | generated binary when present | Lists docs front matter and `read_when` hints. |
 | `node scripts/docs-list.js` | `scripts/docs-list.js` | Fallback docs-list implementation. |
 
