@@ -74,6 +74,143 @@ def _clean_string(value: Optional[str]) -> Optional[str]:
     return None
 
 
+_BACKEND_UPDATE_SETTINGS_KEYS = {
+    "model_mode",
+    "model_provider",
+    "selected_model_id",
+    "interaction_mode",
+    "speech_mode_enabled",
+    "wakeword_enabled",
+    "wakeword_stt_enabled",
+    "agent_full_sudo_enabled",
+    "browser_automation_enabled",
+    "include_query_screenshot",
+    "provider_api_keys",
+    "provider_oauth",
+}
+
+_PROVIDER_API_KEY_KEYS = {
+    "openai",
+    "anthropic",
+    "google",
+    "openrouter",
+    "mistral",
+    "kimi_coding",
+}
+
+_PROVIDER_API_KEY_ENTRY_KEYS = {"enabled", "api_key"}
+_PROVIDER_OAUTH_KEYS = {"openai_codex"}
+_PROVIDER_OAUTH_ENTRY_KEYS = {
+    "connected",
+    "access_token",
+    "refresh_token",
+    "expires_at",
+    "profile_id",
+}
+
+_CAPTURE_META_REQUIRED_NUMBER_KEYS = {
+    "source_w",
+    "source_h",
+    "crop_x",
+    "crop_y",
+    "crop_w",
+    "crop_h",
+    "timestamp",
+}
+
+_CAPTURE_META_KEYS = _CAPTURE_META_REQUIRED_NUMBER_KEYS | {
+    "desktop_virtual_bounds",
+    "monitor_id",
+    "capture_backend",
+}
+
+_CAPTURE_BOUNDS_KEYS = {"x", "y", "width", "height"}
+
+
+def _filter_keys(payload: Any, allowed_keys: set[str]) -> dict[str, Any]:
+    if not isinstance(payload, dict):
+        return {}
+    return {
+        key: payload[key]
+        for key in allowed_keys
+        if key in payload and payload[key] is not None
+    }
+
+
+def _filter_nested_map(
+    payload: Any,
+    allowed_map_keys: set[str],
+    allowed_entry_keys: set[str],
+) -> dict[str, Any]:
+    if not isinstance(payload, dict):
+        return {}
+    filtered: dict[str, Any] = {}
+    for key in allowed_map_keys:
+        entry = _filter_keys(payload.get(key), allowed_entry_keys)
+        if entry:
+            filtered[key] = entry
+    return filtered
+
+
+def _normalize_backend_settings_payload(config: dict[str, Any]) -> dict[str, Any]:
+    payload = _filter_keys(config, _BACKEND_UPDATE_SETTINGS_KEYS)
+    provider_api_keys = _filter_nested_map(
+        payload.get("provider_api_keys"),
+        _PROVIDER_API_KEY_KEYS,
+        _PROVIDER_API_KEY_ENTRY_KEYS,
+    )
+    if provider_api_keys:
+        payload["provider_api_keys"] = provider_api_keys
+    else:
+        payload.pop("provider_api_keys", None)
+    provider_oauth = _filter_nested_map(
+        payload.get("provider_oauth"),
+        _PROVIDER_OAUTH_KEYS,
+        _PROVIDER_OAUTH_ENTRY_KEYS,
+    )
+    if provider_oauth:
+        payload["provider_oauth"] = provider_oauth
+    else:
+        payload.pop("provider_oauth", None)
+    return payload
+
+
+def _normalize_capture_bounds(value: Any) -> Optional[dict[str, Any]]:
+    bounds = _filter_keys(value, _CAPTURE_BOUNDS_KEYS)
+    if not all(
+        isinstance(bounds.get(key), (int, float)) for key in _CAPTURE_BOUNDS_KEYS
+    ):
+        return None
+    return bounds
+
+
+def _normalize_capture_meta(value: Any) -> Optional[dict[str, Any]]:
+    capture_meta = _filter_keys(value, _CAPTURE_META_KEYS)
+    if not all(
+        isinstance(capture_meta.get(key), (int, float))
+        for key in _CAPTURE_META_REQUIRED_NUMBER_KEYS
+    ):
+        return None
+    if "desktop_virtual_bounds" in capture_meta:
+        bounds = _normalize_capture_bounds(capture_meta["desktop_virtual_bounds"])
+        if bounds:
+            capture_meta["desktop_virtual_bounds"] = bounds
+        else:
+            capture_meta.pop("desktop_virtual_bounds", None)
+    return capture_meta
+
+
+def _normalize_backend_tool_result_data(data: dict[str, Any]) -> dict[str, Any]:
+    payload = dict(data)
+    if "capture_meta" in payload:
+        capture_meta = _normalize_capture_meta(payload["capture_meta"])
+        if capture_meta:
+            payload["capture_meta"] = capture_meta
+        else:
+            payload.pop("capture_meta", None)
+    return payload
+
+
 def _build_manifest_tool(tool: dict[str, Any]) -> dict[str, Any]:
     return {
         "name": tool.get("name"),
@@ -135,14 +272,15 @@ def _build_python_wake_up_agent_definition(
 
 def _normalize_tool_result_data(data: Any) -> dict[str, Any]:
     if isinstance(data, dict):
+        normalized_data = _normalize_backend_tool_result_data(data)
         if isinstance(data.get("llm_content"), str) and data["llm_content"].strip():
-            return data
+            return normalized_data
         fallback_content = (
             data.get("output")
             if isinstance(data.get("output"), str)
             else json.dumps(data, separators=(",", ":"))
         )
-        return {**data, "llm_content": fallback_content}
+        return {**normalized_data, "llm_content": fallback_content}
     if isinstance(data, str):
         return {"output": data, "llm_content": data}
     if data is None:
@@ -389,13 +527,10 @@ class WindieSdkAgentSession:
                 if isinstance(value, str) and value.strip()
             ]
         if isinstance(attachment_context, str) and attachment_context.strip():
-            payload["attachment_context"] = attachment_context
-        if attachment_filenames:
-            payload["attachment_filenames"] = [
-                value
-                for value in attachment_filenames
-                if isinstance(value, str) and value.strip()
-            ]
+            payload["query_context"] = {
+                "memory_retrieval_enabled": True,
+                "attachment_context": attachment_context.strip(),
+            }
         if isinstance(system_state_internal, dict) and system_state_internal:
             payload["system_state_internal"] = system_state_internal
         if isinstance(workspace_path, str) and workspace_path.strip():
@@ -552,7 +687,9 @@ class WindieSdkAgentSession:
             {
                 "id": message_id,
                 "type": "update-settings",
-                "payload": sanitize_surrogates(config),
+                "payload": sanitize_surrogates(
+                    _normalize_backend_settings_payload(config)
+                ),
             }
         )
         return message_id

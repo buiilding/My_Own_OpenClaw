@@ -13,6 +13,9 @@ const {
 const {
   normalizeBackendPayload,
 } = require('../../frontend/src/main/ipc/ipc_runtime_helpers.cjs');
+const {
+  BACKEND_PAYLOAD_KEYS_BY_TYPE,
+} = require('../../frontend/src/main/ipc/ipc_backend_payload_contract.cjs');
 
 class FakeSocket extends EventEmitter {
   constructor() {
@@ -111,6 +114,17 @@ describe('frontend/backend websocket incoming contract', () => {
     ))).toBe('incoming_message_contract.json');
   });
 
+  test('frontend outbound payload allowlist matches backend incoming contract keys', () => {
+    const expected = Object.fromEntries(
+      Object.entries(incomingContract.payloads).map(([type, payloadContract]) => [
+        type,
+        payloadContract.keys,
+      ]),
+    );
+
+    expect(BACKEND_PAYLOAD_KEYS_BY_TYPE).toEqual(expected);
+  });
+
   test('query builder output is exact backend payload contract and excludes envelope context', () => {
     const payload = buildBackendQueryPayload({
       text: 'hello',
@@ -168,6 +182,93 @@ describe('frontend/backend websocket incoming contract', () => {
     });
   });
 
+  test('managed backend session strips extra top-level fields before websocket send', async () => {
+    const { session, socket } = await createOpenSession();
+
+    session.sendStopQuery({
+      conversation_ref: 'conv-1',
+      turn_ref: 'payload-extra',
+    });
+    session.sendRehydrateConversation({
+      conversation_ref: 'conv-1',
+      messages: [],
+      rehydrate_mode: 'replace',
+      agent_definition: { query_only: true },
+      turn_ref: 'payload-extra',
+    });
+    session.sendUpdateSettings({
+      selected_model_id: 'gpt-test',
+      provider_api_keys: {
+        openai: {
+          enabled: true,
+          api_key: 'sk-test',
+          renderer_only: true,
+        },
+        future_provider: {
+          enabled: true,
+          api_key: 'future',
+        },
+      },
+      provider_oauth: {
+        openai_codex: {
+          connected: true,
+          access_token: 'access',
+          refresh_token: 'refresh',
+          renderer_only: true,
+        },
+        future_oauth: {
+          connected: true,
+        },
+      },
+      global_agent_stop_shortcut: { resolvedAccelerator: 'Ctrl+Alt+.' },
+      appearance_theme: 'graphite',
+    });
+    session.sendListModels({
+      client_version: 'renderer-extra',
+    });
+    session.sendWakewordDetected({
+      turn_ref: 'payload-extra',
+    });
+    session.sendCompactHistory({
+      force: false,
+      conversation_ref: 'conv-1',
+      turn_ref: 'payload-extra',
+    });
+
+    socket.sent.forEach((message) => {
+      const parsed = JSON.parse(message);
+      assertPayloadMatchesContract(parsed.type, parsed.payload);
+    });
+    expect(sentPayload(socket, 0)).toEqual({ conversation_ref: 'conv-1' });
+    expect(sentPayload(socket, 1)).toEqual({
+      conversation_ref: 'conv-1',
+      messages: [],
+      rehydrate_mode: 'replace',
+    });
+    expect(sentPayload(socket, 2)).toEqual({
+      selected_model_id: 'gpt-test',
+      provider_api_keys: {
+        openai: {
+          enabled: true,
+          api_key: 'sk-test',
+        },
+      },
+      provider_oauth: {
+        openai_codex: {
+          connected: true,
+          access_token: 'access',
+          refresh_token: 'refresh',
+        },
+      },
+    });
+    expect(sentPayload(socket, 3)).toEqual({});
+    expect(sentPayload(socket, 4)).toEqual({});
+    expect(sentPayload(socket, 5)).toEqual({
+      force: false,
+      conversation_ref: 'conv-1',
+    });
+  });
+
   test('managed backend session sends exact tool-result and bundle-result top-level payloads', async () => {
     const { session, socket } = await createOpenSession();
 
@@ -197,6 +298,75 @@ describe('frontend/backend websocket incoming contract', () => {
     assertPayloadMatchesContract('tool-result', toolResultPayload);
     assertPayloadMatchesContract('tool-bundle-result', bundleResultPayload);
     expect(bundleResultPayload).not.toHaveProperty('screenshot_url');
+  });
+
+  test('managed backend session strips invalid strict capture metadata', async () => {
+    const { session, socket } = await createOpenSession();
+
+    session.sendToolResult({
+      request_id: 'req-1',
+      success: true,
+      data: {
+        llm_content: 'done',
+        capture_meta: {
+          capture_backend: 'partial-only',
+        },
+        screenshot_content_type: 'image/jpeg',
+      },
+    });
+    session.sendToolBundleResult({
+      bundle_id: 'bundle-1',
+      status: 'success',
+      capture_meta: {
+        source_w: 100,
+        source_h: 80,
+        crop_x: 0,
+        crop_y: 0,
+        crop_w: 100,
+        crop_h: 80,
+        timestamp: 123,
+        capture_backend: 'test',
+        desktop_virtual_bounds: {
+          x: 0,
+          y: 0,
+          width: 100,
+          height: 80,
+          ignored: true,
+        },
+        ignored: true,
+      },
+      step_results: [{
+        tool: 'screenshot',
+        status: 'success',
+        output: 'ok',
+      }],
+    });
+
+    const toolResultPayload = sentPayload(socket, 0);
+    const bundleResultPayload = sentPayload(socket, 1);
+
+    assertPayloadMatchesContract('tool-result', toolResultPayload);
+    assertPayloadMatchesContract('tool-bundle-result', bundleResultPayload);
+    expect(toolResultPayload.data).toEqual({
+      llm_content: 'done',
+      screenshot_content_type: 'image/jpeg',
+    });
+    expect(bundleResultPayload.capture_meta).toEqual({
+      source_w: 100,
+      source_h: 80,
+      crop_x: 0,
+      crop_y: 0,
+      crop_w: 100,
+      crop_h: 80,
+      timestamp: 123,
+      capture_backend: 'test',
+      desktop_virtual_bounds: {
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 80,
+      },
+    });
   });
 
   test('contract validator catches extra top-level backend payload keys', () => {

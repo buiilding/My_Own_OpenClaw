@@ -295,6 +295,92 @@ async def test_wake_up_builds_agent_definition_and_sends_query(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_python_agent_query_uses_backend_query_context_for_attachments():
+    websocket = FakeWebSocket()
+    client = WindieSdkClient(
+        backend_url="https://api.windieos.com",
+        default_user_id="dev-user",
+    )
+    client._session = DummyWsSession(websocket)
+    agent = await client.wake_up(agent_id="python-agent")
+
+    await agent.query(
+        text="Summarize the attachment",
+        conversation_ref="conv-attachments",
+        attachment_context="file body",
+        attachment_filenames=["notes.txt"],
+    )
+
+    assert websocket.sent[1]["payload"] == {
+        "text": "Summarize the attachment",
+        "conversation_ref": "conv-attachments",
+        "query_context": {
+            "memory_retrieval_enabled": True,
+            "attachment_context": "file body",
+        },
+    }
+    assert "attachment_context" not in websocket.sent[1]["payload"]
+    assert "attachment_filenames" not in websocket.sent[1]["payload"]
+
+
+@pytest.mark.asyncio
+async def test_python_agent_update_settings_filters_backend_payload():
+    websocket = FakeWebSocket()
+    client = WindieSdkClient(
+        backend_url="https://api.windieos.com",
+        default_user_id="dev-user",
+    )
+    client._session = DummyWsSession(websocket)
+    agent = await client.wake_up(agent_id="python-agent")
+
+    await agent.update_settings(
+        {
+            "selected_model_id": "gpt-test",
+            "appearance_theme": "graphite",
+            "global_agent_stop_shortcut": "CommandOrControl+Alt+.",
+            "provider_api_keys": {
+                "openai": {
+                    "enabled": True,
+                    "api_key": "sk-test",
+                    "renderer_only": True,
+                },
+                "future_provider": {
+                    "enabled": True,
+                    "api_key": "future",
+                },
+            },
+            "provider_oauth": {
+                "openai_codex": {
+                    "connected": True,
+                    "access_token": "access",
+                    "refresh_token": "refresh",
+                    "renderer_only": True,
+                },
+                "future_oauth": {"connected": True},
+            },
+        }
+    )
+
+    assert websocket.sent[1]["type"] == "update-settings"
+    assert websocket.sent[1]["payload"] == {
+        "selected_model_id": "gpt-test",
+        "provider_api_keys": {
+            "openai": {
+                "enabled": True,
+                "api_key": "sk-test",
+            }
+        },
+        "provider_oauth": {
+            "openai_codex": {
+                "connected": True,
+                "access_token": "access",
+                "refresh_token": "refresh",
+            }
+        },
+    }
+
+
+@pytest.mark.asyncio
 async def test_wake_up_requires_user_id_when_no_default_is_configured():
     client = WindieSdkClient(backend_url="https://api.windieos.com")
     client._session = DummyWsSession(FakeWebSocket())
@@ -411,6 +497,55 @@ async def test_python_agent_session_routes_tool_call_to_sidecar():
         "data": {"llm_content": "save_note:hello"},
         "error": None,
     }
+
+
+@pytest.mark.asyncio
+async def test_python_agent_tool_result_strips_invalid_capture_meta():
+    class PartialCaptureSidecar(FakeSidecarRuntime):
+        async def execute_tool(self, *, tool_name, args, **metadata):
+            await super().execute_tool(tool_name=tool_name, args=args, **metadata)
+            return {
+                "success": True,
+                "data": {
+                    "llm_content": "done",
+                    "capture_meta": {"capture_backend": "partial"},
+                },
+            }
+
+    websocket = FakeWebSocket(
+        messages=[
+            {
+                "type": "tool-call",
+                "payload": {
+                    "request_id": "req-1",
+                    "tool_name": "save_note",
+                    "parameters": {"text": "hello"},
+                },
+            }
+        ]
+    )
+    sidecar = PartialCaptureSidecar()
+    client = WindieSdkClient(
+        backend_url="https://api.windieos.com",
+        default_user_id="dev-user",
+        sidecar=sidecar,
+    )
+    client._session = DummyWsSession(websocket)
+    agent = await client.wake_up(
+        agent_id="python-agent",
+        tools=[
+            {
+                "name": "save_note",
+                "module": "my_project.tools:save_note",
+                "schema": {"type": "object", "properties": {}},
+            }
+        ],
+    )
+
+    await agent.receive_json()
+
+    assert websocket.sent[-1]["type"] == "tool-result"
+    assert websocket.sent[-1]["payload"]["data"] == {"llm_content": "done"}
 
 
 @pytest.mark.asyncio

@@ -4,14 +4,15 @@ const {
   resolveSettingsSync,
   waitForSettingsAck,
 } = require('./ipc_settings_sync.cjs');
+const {
+  filterBackendPayload,
+} = require('./ipc_backend_payload_contract.cjs');
 
 function buildBackendSettingsPayload(config) {
   if (!isValidConfigPayload(config)) {
     return null;
   }
-  const backendConfig = { ...config };
-  delete backendConfig.global_agent_stop_shortcut;
-  return backendConfig;
+  return filterBackendPayload('update-settings', config);
 }
 
 function createIpcSettingsSyncRuntime({

@@ -4,6 +4,9 @@ const {
 const {
   broadcastTypedBackendEvent,
 } = require('./ipc_backend_event_channels.cjs');
+const {
+  filterBackendPayload,
+} = require('./ipc_backend_payload_contract.cjs');
 
 function isDebugStreamTraceEnabled() {
   return process.env.WINDIE_DEBUG_STREAM_EVENTS === '1';
@@ -110,11 +113,7 @@ function generateUserId({
  * Normalize outbound payloads to backend-supported schema fields.
  */
 function normalizeBackendPayload(type, payload) {
-  if (!payload || typeof payload !== 'object') {
-    return {};
-  }
-
-  const normalized = { ...payload };
+  const normalized = filterBackendPayload(type, payload);
 
   if (type === 'query' || type === 'tool-bundle-result') {
     delete normalized.screenshot_url;

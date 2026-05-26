@@ -7,12 +7,22 @@ const {
 } = require('../../frontend/src/main/ipc/ipc_settings_sync_runtime.cjs');
 
 describe('ipc_settings_sync_runtime', () => {
-  test('buildBackendSettingsPayload strips renderer-only shortcut state', () => {
+  test('buildBackendSettingsPayload strips renderer-only config fields', () => {
     expect(buildBackendSettingsPayload({
       selected_model_id: 'model-1',
+      provider_api_keys: {
+        openai: { enabled: true, api_key: 'sk-test', renderer_only: true },
+        future_provider: { enabled: true, api_key: 'future' },
+      },
       global_agent_stop_shortcut: { resolvedAccelerator: 'Ctrl+Alt+.' },
+      show_tool_logs: true,
+      agent_custom_instructions: 'local prompt layer',
+      appearance_theme: 'graphite',
     })).toEqual({
       selected_model_id: 'model-1',
+      provider_api_keys: {
+        openai: { enabled: true, api_key: 'sk-test' },
+      },
     });
     expect(buildBackendSettingsPayload(null)).toBeNull();
   });
