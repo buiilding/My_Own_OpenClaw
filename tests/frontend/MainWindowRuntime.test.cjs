@@ -608,12 +608,13 @@ describe('main_window_runtime createMainWindow', () => {
     expect(deps.initializeLocalBackendBridge).toHaveBeenCalledTimes(1);
     const [getWindows, bridgeOptions] = deps.initializeLocalBackendBridge.mock.calls[0];
     expect(typeof getWindows).toBe('function');
-    expect(bridgeOptions).toEqual({
+    expect(bridgeOptions).toEqual(expect.objectContaining({
       getFrontendConfig: deps.getLatestFrontendConfig,
       isPackaged: false,
       permissionStatePath: '/tmp/windieos-permission-state.json',
-      authStatePath: expect.stringContaining('/windieos/install-auth.json'),
-    });
+      authStatePath: expect.stringContaining(`${require('path').sep}windieos${require('path').sep}install-auth.json`),
+      prepareComputerUseSurface: expect.any(Function),
+    }));
   });
 
   test('syncs main window display affinity on show and move events', () => {
@@ -749,6 +750,72 @@ describe('main_window_runtime collapseMainWindowToChatPill', () => {
 
     expect(mainWindow.hide).toHaveBeenCalledTimes(1);
     expect(showChatWindow).toHaveBeenCalledWith({ focus: true, reason: 'dashboard-close' });
+  });
+
+  test('falls back when macOS never reports leaving fullscreen', () => {
+    jest.useFakeTimers();
+    try {
+      const mainWindow = {
+        isDestroyed: jest.fn(() => false),
+        hide: jest.fn(),
+        isFullScreen: jest.fn(() => true),
+        setFullScreen: jest.fn(),
+        once: jest.fn(),
+      };
+      const showChatWindow = jest.fn();
+
+      collapseMainWindowToChatPill({
+        mainWindow,
+        showChatWindow,
+        platform: 'darwin',
+        leaveFullScreenTimeoutMs: 25,
+      });
+
+      expect(mainWindow.setFullScreen).toHaveBeenCalledWith(false);
+      expect(mainWindow.hide).not.toHaveBeenCalled();
+      expect(mainWindow.__windiePendingCollapseToChatPill).toBe(true);
+
+      jest.advanceTimersByTime(25);
+
+      expect(mainWindow.hide).toHaveBeenCalledTimes(1);
+      expect(showChatWindow).toHaveBeenCalledWith({ focus: true, reason: 'dashboard-close' });
+      expect(mainWindow.__windiePendingCollapseToChatPill).toBe(false);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  test('clears the fullscreen fallback when the leave event arrives', () => {
+    jest.useFakeTimers();
+    try {
+      let leaveFullScreenHandler = null;
+      const mainWindow = {
+        isDestroyed: jest.fn(() => false),
+        hide: jest.fn(),
+        isFullScreen: jest.fn(() => true),
+        setFullScreen: jest.fn(),
+        once: jest.fn((_eventName, handler) => {
+          leaveFullScreenHandler = handler;
+        }),
+      };
+      const showChatWindow = jest.fn();
+
+      collapseMainWindowToChatPill({
+        mainWindow,
+        showChatWindow,
+        platform: 'darwin',
+        leaveFullScreenTimeoutMs: 25,
+      });
+
+      leaveFullScreenHandler();
+      jest.advanceTimersByTime(25);
+
+      expect(mainWindow.hide).toHaveBeenCalledTimes(1);
+      expect(showChatWindow).toHaveBeenCalledTimes(1);
+      expect(mainWindow.__windiePendingCollapseToChatPill).toBe(false);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });
 

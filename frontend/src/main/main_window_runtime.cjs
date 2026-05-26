@@ -102,6 +102,7 @@ function collapseMainWindowToChatPill({
   mainWindow,
   showChatWindow,
   platform = process.platform,
+  leaveFullScreenTimeoutMs = 1500,
 }) {
   const finishCollapse = () => {
     if (!mainWindow || mainWindow.isDestroyed()) {
@@ -129,11 +130,27 @@ function collapseMainWindowToChatPill({
   }
 
   mainWindow.__windiePendingCollapseToChatPill = true;
-  mainWindow.once('leave-full-screen', () => {
+  let settled = false;
+  let timeoutId = null;
+  const finishPendingCollapse = () => {
+    if (settled) {
+      return;
+    }
+    settled = true;
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      timeoutId = null;
+    }
     mainWindow.__windiePendingCollapseToChatPill = false;
     finishCollapse();
-  });
-  mainWindow.setFullScreen(false);
+  };
+  try {
+    timeoutId = setTimeout(finishPendingCollapse, leaveFullScreenTimeoutMs);
+    mainWindow.once('leave-full-screen', finishPendingCollapse);
+    mainWindow.setFullScreen(false);
+  } catch (_error) {
+    finishPendingCollapse();
+  }
 }
 
 function hideMainWindowWithoutChatPill({
