@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/frontend: update renderer chat runtime boundary guards for the shared
+  prepared-turn replay dispatch contract.
 - frontend/chat: route retry and edit/resend replay sends through the shared
   prepared-turn dispatch helper while preserving replay transcript rewrite and
   rehydrate ownership.

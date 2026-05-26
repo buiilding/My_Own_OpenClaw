@@ -41,14 +41,20 @@ describe('renderer chat runtime boundary', () => {
   });
 
   test('message sender keeps user transcript persistence behind its helper', async () => {
-    const source = await fs.readFile(
+    const hookSource = await fs.readFile(
       path.join(chatRoot, 'hooks/useChatMessageSender.ts'),
       'utf8',
     );
+    const helperSource = await fs.readFile(
+      path.join(chatRoot, 'utils/messageSender/desktopChatSendPreparation.ts'),
+      'utf8',
+    );
 
-    expect(source).not.toContain('recordUserMessage');
-    expect(source).not.toContain('DesktopTranscriptProjectionRuntimeClient');
-    expect(source).toContain('recordUserTranscriptMessage');
+    expect(hookSource).not.toContain('recordUserTranscriptMessage');
+    expect(hookSource).not.toContain('recordUserMessage');
+    expect(hookSource).not.toContain('DesktopTranscriptProjectionRuntimeClient');
+    expect(helperSource).not.toContain('DesktopTranscriptProjectionRuntimeClient');
+    expect(helperSource).toContain('recordUserTranscriptMessage');
   });
 
   test('app live-turn runtime facade does not own transcript projection writes', async () => {
@@ -416,7 +422,9 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('DesktopConversationStoreAdapter');
     expect(source).toContain('DesktopConversationContinuityService.prepareEditAndResend');
     expect(source).toContain('DesktopConversationContinuityService.prepareRetryTurn');
-    expect(source).toContain('DesktopLiveTurnRuntimeClient.sendQuery');
+    expect(source).toContain('dispatchPreparedDesktopChatTurn');
+    expect(source).toContain('recordTranscriptUserMessage: false');
+    expect(source).not.toContain('DesktopLiveTurnRuntimeClient.sendQuery');
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.editAndResend');
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.retryTurn');
   });
