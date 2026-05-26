@@ -14,11 +14,23 @@ from backend.src.api.deps import (
 from backend.src.core.config.models import AppConfig
 from backend.src.core.container.api_runtime import ApiRuntimeBinder
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+
 
 def test_api_container_uses_core_owned_routing_spec() -> None:
-    source = Path("backend/src/core/container/api_container.py").read_text(
+    source = (REPO_ROOT / "backend/src/core/container/api_container.py").read_text(
         encoding="utf-8"
     )
+    assert "build_handler_bindings(" in source
+
+
+def test_api_container_source_check_is_independent_of_cwd(tmp_path, monkeypatch) -> None:
+    monkeypatch.chdir(tmp_path)
+
+    source = (REPO_ROOT / "backend/src/core/container/api_container.py").read_text(
+        encoding="utf-8"
+    )
+
     assert "build_handler_bindings(" in source
 
 
