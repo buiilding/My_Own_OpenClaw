@@ -1,6 +1,8 @@
 import { IpcBridge, SEND_CHANNELS } from '../ipc/bridge';
 
 const MAX_LABEL_LENGTH = 120;
+const MESSAGE_TEXT_REDACTION = '[redacted]';
+const INTERACTION_SCHEMA_VERSION = 1;
 
 let installedCleanup = null;
 
@@ -127,13 +129,61 @@ export function describeInteractionTarget(target) {
   };
 }
 
-export function logFrontendInteraction(action, details = {}) {
-  const payload = {
+function isExplicitMessageTextDiagnosticEnabled() {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+  if (window.__WINDIE_ENABLE_INTERACTION_MESSAGE_TEXT_LOGS__ === true) {
+    return true;
+  }
+  const params = new URLSearchParams(window.location?.search || '');
+  return (
+    params.get('debug_interaction_message_text') === '1'
+    || params.get('debug_message_text') === '1'
+  );
+}
+
+function normalizeInteractionDetails(details = {}, {
+  includeMessageText = isExplicitMessageTextDiagnosticEnabled(),
+} = {}) {
+  const source = (
+    details
+    && typeof details === 'object'
+    && !Array.isArray(details)
+  ) ? details : {};
+  const normalized = { ...source };
+
+  if (Object.prototype.hasOwnProperty.call(normalized, 'messageText')) {
+    const rawMessageText = typeof normalized.messageText === 'string'
+      ? normalized.messageText
+      : '';
+    normalized.messageTextLength = typeof normalized.textLength === 'number'
+      ? normalized.textLength
+      : rawMessageText.length;
+    if (!includeMessageText) {
+      normalized.messageText = MESSAGE_TEXT_REDACTION;
+      normalized.messageTextRedacted = true;
+    } else {
+      normalized.messageTextRedacted = false;
+    }
+  }
+
+  return normalized;
+}
+
+export function createFrontendInteractionEntry(action, details = {}, options = {}) {
+  return {
+    schemaVersion: INTERACTION_SCHEMA_VERSION,
+    source: 'frontend-interaction',
     action,
     view: getRendererView(),
     timestamp: new Date().toISOString(),
-    ...details,
+    ...normalizeInteractionDetails(details, options),
   };
+}
+
+export function logFrontendInteraction(action, details = {}) {
+  const payload = createFrontendInteractionEntry(action, details);
   console.log('[FrontendInteraction]', payload);
   try {
     IpcBridge.send(SEND_CHANNELS.RENDERER_LOG, {

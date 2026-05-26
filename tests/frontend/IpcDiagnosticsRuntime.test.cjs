@@ -2,6 +2,8 @@
 
 const {
   handleRendererLog,
+  normalizeFrontendInteractionEntry,
+  shouldIncludeMessageText,
 } = require('../../frontend/src/main/ipc/ipc_diagnostics_runtime.cjs');
 
 describe('ipc_diagnostics_runtime', () => {
@@ -13,18 +15,24 @@ describe('ipc_diagnostics_runtime', () => {
     expect(log).not.toHaveBeenCalled();
   });
 
-  test('routes frontend interaction logs through the interaction label', () => {
+  test('routes frontend interaction logs through the interaction label with production redaction', () => {
     const log = jest.fn();
 
     expect(handleRendererLog({
       source: 'frontend-interaction',
-      entry: { event: 'send', messageText: '[redacted]' },
+      entry: { event: 'send', messageText: 'secret user text', messageTextLength: 16 },
     }, { log })).toBe(true);
 
-    expect(log).toHaveBeenCalledWith('[FrontendInteraction][renderer]', {
+    expect(log).toHaveBeenCalledWith('[FrontendInteraction][renderer]', expect.objectContaining({
+      schemaVersion: 1,
+      source: 'frontend-interaction',
+      action: 'unknown',
       event: 'send',
       messageText: '[redacted]',
-    });
+      messageTextRedacted: true,
+      messageTextLength: 16,
+    }));
+    expect(JSON.stringify(log.mock.calls[0])).not.toContain('secret user text');
   });
 
   test('routes generic renderer logs through the renderer label', () => {
@@ -34,5 +42,23 @@ describe('ipc_diagnostics_runtime', () => {
     expect(handleRendererLog(payload, { log })).toBe(true);
 
     expect(log).toHaveBeenCalledWith('[RendererLog]', payload);
+  });
+
+  test('allows message text only when diagnostics opt in and build is non-production', () => {
+    expect(shouldIncludeMessageText({ allowMessageText: true, isDev: true })).toBe(true);
+    expect(shouldIncludeMessageText({ allowMessageText: true, isDev: false })).toBe(false);
+    expect(shouldIncludeMessageText({ allowMessageText: false, isDev: true })).toBe(false);
+
+    expect(normalizeFrontendInteractionEntry({
+      action: 'message_sent',
+      event: 'send-message',
+      messageText: 'diagnostic text',
+    }, {
+      allowMessageText: true,
+      isDev: true,
+    })).toEqual(expect.objectContaining({
+      messageText: 'diagnostic text',
+      messageTextRedacted: false,
+    }));
   });
 });

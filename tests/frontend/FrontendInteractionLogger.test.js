@@ -7,8 +7,11 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
 }));
 
+import fs from 'fs';
+import path from 'path';
 import { IpcBridge } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import {
+  createFrontendInteractionEntry,
   describeInteractionTarget,
   installFrontendInteractionLogger,
   logUserSentMessage,
@@ -27,6 +30,7 @@ describe('frontendInteractionLogger', () => {
   afterEach(() => {
     cleanup?.();
     cleanup = null;
+    delete window.__WINDIE_ENABLE_INTERACTION_MESSAGE_TEXT_LOGS__;
     consoleSpy?.mockRestore();
   });
 
@@ -109,7 +113,7 @@ describe('frontendInteractionLogger', () => {
     expect(consoleSpy.mock.calls[0][1]).not.toHaveProperty('value');
   });
 
-  test('logs message sends with message text', () => {
+  test('redacts message text by default when logging message sends', () => {
     logUserSentMessage({
       conversationRef: 'conv-1',
       senderSurface: 'main-window',
@@ -125,7 +129,9 @@ describe('frontendInteractionLogger', () => {
       event: 'send-message',
       conversationRef: 'conv-1',
       senderSurface: 'main-window',
-      messageText: 'show this message in logs',
+      messageText: '[redacted]',
+      messageTextRedacted: true,
+      messageTextLength: 27,
       textLength: 27,
       attachmentCount: 2,
       imageCount: 1,
@@ -137,8 +143,56 @@ describe('frontendInteractionLogger', () => {
         action: 'message_sent',
         event: 'send-message',
         conversationRef: 'conv-1',
-        messageText: 'show this message in logs',
+        messageText: '[redacted]',
+        messageTextRedacted: true,
+        messageTextLength: 27,
       }),
     }));
+  });
+
+  test('includes message text only when explicit diagnostic flag is enabled', () => {
+    window.__WINDIE_ENABLE_INTERACTION_MESSAGE_TEXT_LOGS__ = true;
+
+    expect(createFrontendInteractionEntry('message_sent', {
+      event: 'send-message',
+      messageText: 'show this message in logs',
+      textLength: 27,
+    })).toEqual(expect.objectContaining({
+      schemaVersion: 1,
+      source: 'frontend-interaction',
+      action: 'message_sent',
+      event: 'send-message',
+      messageText: 'show this message in logs',
+      messageTextRedacted: false,
+      messageTextLength: 27,
+    }));
+  });
+
+  test('feature code does not write ad hoc frontend interaction logs', () => {
+    const featureRoot = path.resolve(__dirname, '../../frontend/src/renderer/features');
+    const sources = [];
+    const visit = (dir) => {
+      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        const absolute = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+          visit(absolute);
+          continue;
+        }
+        if (/\.(js|jsx|ts|tsx)$/.test(entry.name)) {
+          sources.push([absolute, fs.readFileSync(absolute, 'utf8')]);
+        }
+      }
+    };
+    visit(featureRoot);
+
+    const offenders = sources
+      .filter(([, source]) => (
+        source.includes('[FrontendInteraction]')
+        || source.includes("source: 'frontend-interaction'")
+        || source.includes('source: "frontend-interaction"')
+      ))
+      .map(([absolute]) => path.relative(featureRoot, absolute));
+
+    expect(offenders).toEqual([]);
   });
 });

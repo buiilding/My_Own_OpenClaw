@@ -284,10 +284,35 @@ Verification:
 - `git diff --check -- backend/src/api/contracts/incoming_message_contract.json docs/frontend/contracts/backend_websocket_command_contract.md docs/refactors/runtime_ownership_simplification_report_2026-05-25.md tests/backend/test_incoming_message_contract.py tests/frontend/FrontendBackendWebsocketContract.test.cjs` - pass
 - Repo-wide `git diff --check` was not used for this commit because unrelated dirty landing-page files currently contain trailing whitespace.
 
+### Diagnostics Runtime And Redaction Boundary
+
+Status: completed and verified.
+
+Changes:
+
+- Added schema version `1` frontend interaction entries with a single `createFrontendInteractionEntry()` builder used by the renderer interaction logger.
+- Redacted `messageText` by default in renderer interaction logs while preserving `messageTextLength` and explicit `messageTextRedacted` metadata.
+- Added explicit diagnostic opt-in support for renderer message text logging through `debug_interaction_message_text=1`, `debug_message_text=1`, or `window.__WINDIE_ENABLE_INTERACTION_MESSAGE_TEXT_LOGS__`.
+- Updated Electron main diagnostics runtime to normalize frontend interaction entries and redact message text again before printing unless diagnostics explicitly opt in on a non-production build.
+- Updated renderer structure docs to state that message text is redacted by default and normalized/redacted again in main.
+
+Success criteria covered:
+
+- Frontend interaction logs use one schema and one renderer interaction logger.
+- `messageText` is controlled by an explicit diagnostic flag and is redacted by default.
+- Main-process diagnostics redaction is tested so production-style logs do not include raw message text.
+- A boundary test fails if feature code writes ad hoc `[FrontendInteraction]` or `frontend-interaction` logs directly.
+
+Verification:
+
+- `cd frontend && ELECTRON_RUN_AS_NODE=1 .\node_modules\electron\dist\electron.exe .\node_modules\jest\bin\jest.js IpcDiagnosticsRuntime FrontendInteractionLogger PreloadIpcChannels --runInBand` - pass
+- `cd packages/windie-sdk-js && ELECTRON_RUN_AS_NODE=1 ..\..\frontend\node_modules\electron\dist\electron.exe ..\..\frontend\node_modules\typescript\bin\tsc -p tsconfig.build.json` - pass
+- `ELECTRON_RUN_AS_NODE=1 .\frontend\node_modules\electron\dist\electron.exe .\scripts\docs-list.js` - pass
+- `git diff --check` - pass
+
 ## Pending
 
 - `frontend/src/main/ipc.cjs` composition-root split.
   - In progress: model-list request queueing moved to `frontend/src/main/ipc/ipc_model_list_runtime.cjs` with focused unit tests.
   - In progress: renderer diagnostic log routing moved to `frontend/src/main/ipc/ipc_diagnostics_runtime.cjs` with focused unit tests.
-- Diagnostics runtime and redaction boundary.
 - Architecture docs current/target/debt updates for remaining duplicate paths.
