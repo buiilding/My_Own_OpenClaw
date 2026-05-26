@@ -1,9 +1,9 @@
+from backend.src.agent.tools.processing import tool_output_projection as projection
 from backend.src.agent.tools.processing.tool_output_projection import (
     DEFAULT_TOOL_OUTPUT_TOKEN_LIMIT,
     canonicalize_tool_result_for_model,
 )
 from backend.src.core.interfaces.tool import ToolResult
-import litellm
 
 
 def test_canonical_tool_output_keeps_display_and_truncates_model_content():
@@ -41,8 +41,36 @@ def test_format_for_history_prefers_model_llm_content_over_display_fields():
     assert result.format_for_history("shell") == "bounded model output"
 
 
-def test_canonical_tool_output_uses_litellm_tokenizer_when_model_is_available():
+def test_canonical_tool_output_uses_model_token_service_when_model_is_available(
+    monkeypatch,
+):
+    class FakeTokenService:
+        def __init__(self):
+            self.calls = []
+
+        def truncate_text(self, text, *, model, token_limit, marker):
+            self.calls.append(
+                {
+                    "model": model,
+                    "token_limit": token_limit,
+                    "marker": marker,
+                }
+            )
+            return (
+                f"bounded content{marker}tail",
+                len(text.split()),
+                True,
+                "fake-tokenizer",
+            )
+
+    fake_token_service = FakeTokenService()
+    monkeypatch.setattr(
+        projection,
+        "get_token_service",
+        lambda: fake_token_service,
+    )
     long_output = "hello world " * 200
+
     result = canonicalize_tool_result_for_model(
         ToolResult(
             success=True,
@@ -55,10 +83,26 @@ def test_canonical_tool_output_uses_litellm_tokenizer_when_model_is_available():
         model_id="gpt-4o",
     )
 
-    encoded = litellm.encode(model="gpt-4o", text=result.data["model_llm_content"])
-    assert len(encoded) <= 40
     assert result.data["llm_content_truncated"] is True
-    assert result.data["llm_content_token_source"] == "litellm"
-    assert result.data["llm_content_original_tokens"] == len(
-        litellm.encode(model="gpt-4o", text=long_output)
-    )
+    assert result.data["llm_content_token_source"] == "fake-tokenizer"
+    assert result.data["llm_content_original_tokens"] == len(long_output.split())
+    assert result.data["model_llm_content"] == result.llm_content
+    assert "original 400 tokens, limit 40 tokens" in result.llm_content
+    assert fake_token_service.calls == [
+        {
+            "model": "gpt-4o",
+            "token_limit": 40,
+            "marker": (
+                "\n\n...[tool output truncated: original token count calculated below, "
+                "limit 40 tokens]...\n\n"
+            ),
+        },
+        {
+            "model": "gpt-4o",
+            "token_limit": 40,
+            "marker": (
+                "\n\n...[tool output truncated: original 400 tokens, "
+                "limit 40 tokens]...\n\n"
+            ),
+        },
+    ]
