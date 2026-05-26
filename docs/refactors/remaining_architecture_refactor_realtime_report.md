@@ -343,6 +343,8 @@ Success criteria:
 Validation:
 
 - `cd frontend && npm run test -- IpcAutomatedQueryDispatcher IpcQueryRuntime VmWorkerRuntime MainProcessBootstrapRuntime --runInBand`
+- `cd frontend && npm run test -- IpcAutomatedQueryDispatcher VmWorkerRuntime IpcMainBridge.lifecycle --runInBand`
+- `node -e "const m=require('./frontend/src/main/ipc/ipc_automated_query_dispatcher.cjs'); console.log(typeof m.createAutomatedQueryDispatcher)"`
 - `cd frontend && npm run test -- IpcArtifactHandlers IpcOpenAICodexOAuthHandlers IpcMainBridge.lifecycle IpcArtifactFetch OpenAICodexOAuth --runInBand`
 - `node -e "const m=require('./frontend/src/main/ipc/ipc_openai_codex_oauth_handlers.cjs'); console.log(typeof m.registerOpenAICodexOAuthHandlers)"`
 - `cd frontend && npm run test -- IpcArtifactHandlers IpcArtifactFetch IpcMainBridge.lifecycle --runInBand`

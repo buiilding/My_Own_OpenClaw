@@ -16,6 +16,7 @@ title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 - `frontend/src/main/ipc/ipc_renderer_windows.cjs`
 - `frontend/src/main/ipc/ipc_query_broadcast.cjs`
 - `frontend/src/main/ipc/ipc_query_events.cjs`
+- `frontend/src/main/ipc/ipc_automated_query_dispatcher.cjs`
 - `frontend/src/main/ipc/ipc_memory_store_persistence.cjs`
 - `frontend/src/main/ipc/ipc_artifact_handlers.cjs`
 - `frontend/src/main/ipc/ipc_artifact_fetch.cjs`
@@ -35,8 +36,6 @@ title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 - `frontend/src/main/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/ipc/ipc_frontend_config.cjs`
 - `frontend/src/main/ipc/ipc_sdk_command_forwarding.cjs`
-- `frontend/src/main/ipc/ipc_openai_codex_oauth_handlers.cjs`
-- `frontend/src/main/ipc/ipc_automated_query_dispatcher.cjs`
 - `frontend/src/main/permission_service.cjs`
 
 ## Registration Topology
@@ -77,6 +76,10 @@ Notable behavior:
 
 - `send-chat-query` and `stop-chat-query` are registered by `ipc.cjs`, while
   `ipc_chat_query_handlers.cjs` owns the typed query send/stop orchestration
+- exported VM `sendAutomatedQuery(...)` delegates to
+  `ipc_automated_query_dispatcher.cjs`, which owns automated-query backend
+  connection/settings gates, shared query payload building, SDK send, and
+  successful state mutation
 - `to-backend` is registered by `ipc_sdk_command_forwarding.cjs` for remaining
   non-chat SDK runtime commands; generic chat query and stop-query payloads are
   rejected so live chat sends stay on typed IPC
