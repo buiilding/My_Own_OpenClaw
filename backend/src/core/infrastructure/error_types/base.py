@@ -19,8 +19,12 @@ def _metadata_with_optional_field(
     field_name: str,
     field_value: Any,
 ) -> Optional[Dict[str, Any]]:
-    """Attach one optional metadata field using existing truthy semantics."""
-    return _merge_metadata_if(metadata, bool(field_value), **{field_name: field_value})
+    """Attach one optional metadata field when the value is present."""
+    return _merge_metadata_if(
+        metadata,
+        field_value is not None,
+        **{field_name: field_value},
+    )
 
 
 def _merge_trust_boundary_metadata(
@@ -28,10 +32,10 @@ def _merge_trust_boundary_metadata(
     boundary_name: Optional[str],
     **fields: Any,
 ) -> Optional[Dict[str, Any]]:
-    """Attach trust-boundary metadata with existing include rules."""
+    """Attach trust-boundary metadata when any context value is present."""
     return _merge_metadata_if(
         metadata,
-        bool(boundary_name or any(fields.values())),
+        boundary_name is not None or any(value is not None for value in fields.values()),
         boundary_name=boundary_name,
         **fields,
     )
