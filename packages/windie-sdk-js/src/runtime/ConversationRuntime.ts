@@ -413,6 +413,7 @@ export class SdkConversationRuntime {
     this.detachTransport?.();
     this.detachTransport = undefined;
     this.listeners.clear();
+    this.eventListeners.clear();
   }
 
   private async rewriteToRevision({

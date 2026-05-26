@@ -1540,6 +1540,26 @@ describe('Windie SDK conversation runtime core', () => {
     expect(sendQuery).not.toHaveBeenCalled();
   });
 
+  test('conversation runtime close clears snapshot and event listeners', async () => {
+    const snapshotListener = jest.fn();
+    const eventListener = jest.fn();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store: new InMemoryConversationStore(),
+      transport: createMockBackendTransport(),
+    });
+    runtime.subscribe(snapshotListener);
+    runtime.subscribeEvents(eventListener);
+    await tick();
+    snapshotListener.mockClear();
+
+    runtime.close();
+    await runtime.stop('turn-after-close');
+
+    expect(snapshotListener).not.toHaveBeenCalled();
+    expect(eventListener).not.toHaveBeenCalled();
+  });
+
   test('conversation runtime stream yields normalized events until backend completion', async () => {
     const sentQueries: Record<string, unknown>[] = [];
     let backendListener: ((event: unknown) => void) | null = null;
