@@ -1,6 +1,7 @@
 import importlib
 import logging
 from types import SimpleNamespace
+from unittest.mock import Mock
 
 import pytest
 from fastapi import HTTPException
@@ -594,12 +595,39 @@ async def test_generate_conversation_title_trims_to_short_concise_shape(
 
 
 @pytest.mark.asyncio
-async def test_semantic_health_check_reports_status() -> None:
-    healthy = await semantic_routes.health_check(SimpleNamespace(llm_client=object()))
-    unhealthy = await semantic_routes.health_check(SimpleNamespace(llm_client=None))
+async def test_semantic_health_check_reports_status(monkeypatch) -> None:
+    monkeypatch.setattr(semantic_routes, "get_llm_client", lambda cfg: object())
+    healthy = await semantic_routes.health_check(
+        SimpleNamespace(config=AppConfig(model_mode="local"))
+    )
+    monkeypatch.setattr(semantic_routes, "get_llm_client", lambda cfg: None)
+    unhealthy = await semantic_routes.health_check(
+        SimpleNamespace(config=AppConfig(model_mode="local"))
+    )
 
     assert healthy["status"] == "healthy"
+    assert healthy["model_provider"] == "openai"
     assert unhealthy["status"] == "unhealthy"
+
+
+@pytest.mark.asyncio
+async def test_semantic_health_check_requires_online_provider_api_key(
+    monkeypatch,
+) -> None:
+    config = AppConfig(model_mode="online", api_key=None)
+    load_api_key = Mock(return_value=config)
+    get_llm_client = Mock(return_value=object())
+    monkeypatch.setattr(semantic_routes, "load_api_key_for_provider", load_api_key)
+    monkeypatch.setattr(semantic_routes, "get_llm_client", get_llm_client)
+
+    result = await semantic_routes.health_check(SimpleNamespace(config=config))
+
+    assert result == {
+        "status": "unhealthy",
+        "message": "Semantic provider API key not available",
+    }
+    load_api_key.assert_called_once_with(config)
+    get_llm_client.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -674,7 +702,7 @@ async def test_dependency_health_check_supports_sync_and_async_callbacks() -> No
 async def test_semantic_health_check_unhealthy_on_exception() -> None:
     class RaisingContainer:
         @property
-        def llm_client(self):
+        def config(self):
             raise RuntimeError("container read failure")
 
     result = await semantic_routes.health_check(RaisingContainer())

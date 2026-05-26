@@ -11,8 +11,9 @@ from fastapi import APIRouter, HTTPException
 from backend.src.api.auth.context import get_current_authenticated_install_identity
 from backend.src.api.deps import ContainerDep, SessionManagerDep
 from backend.src.api.routes.memory.health import (
-    dependency_health_check,
     healthy_payload,
+    safe_health_check,
+    unhealthy_payload,
 )
 from .models import (
     GenerateTitleRequest,
@@ -90,6 +91,24 @@ def _build_semantic_service() -> SemanticSummarizationService:
         load_api_key_fn=load_api_key_for_provider,
         parse_response_fn=parse_summarization_response,
         fallback_facts_fn=extract_fallback_facts,
+    )
+
+
+def _resolve_semantic_health_payload(container: Any) -> Dict[str, Any]:
+    config = container.config
+    if config.model_mode != "local" and not config.api_key:
+        config = load_api_key_for_provider(config)
+        if not config.api_key:
+            return unhealthy_payload("Semantic provider API key not available")
+
+    llm_client = get_llm_client(config)
+    if not llm_client:
+        return unhealthy_payload("LLM client not available")
+
+    return healthy_payload(
+        message="Semantic summarization service ready",
+        model_provider=config.model_provider,
+        model_id=config.selected_model_id,
     )
 
 
@@ -198,13 +217,11 @@ async def generate_conversation_title(
 @router.get("/health")
 async def health_check(container: ContainerDep) -> Dict[str, Any]:
     """Health check for semantic summarization service."""
-    return await dependency_health_check(
-        dependency=None,
-        get_dependency=lambda: container.llm_client,
-        missing_message="LLM client not available",
-        on_healthy=lambda _client: healthy_payload(
-            message="Semantic summarization service ready"
-        ),
+    async def check() -> Dict[str, Any]:
+        return _resolve_semantic_health_payload(container)
+
+    return await safe_health_check(
+        check,
         logger=logger,
         error_log_prefix="Semantic health check failed",
     )
