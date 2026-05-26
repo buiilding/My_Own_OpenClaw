@@ -8,11 +8,16 @@ import {
 
 describe('agent stop shortcut helper', () => {
   const originalNavigatorPlatform = window.navigator.platform;
+  const originalUserAgentData = window.navigator.userAgentData;
 
   afterEach(() => {
     Object.defineProperty(window.navigator, 'platform', {
       configurable: true,
       value: originalNavigatorPlatform,
+    });
+    Object.defineProperty(window.navigator, 'userAgentData', {
+      configurable: true,
+      value: originalUserAgentData,
     });
   });
 
@@ -55,6 +60,19 @@ describe('agent stop shortcut helper', () => {
     expect(getGlobalAgentStopShortcutLabel()).toBe('Ctrl + Shift + Esc');
   });
 
+  test('prefers userAgentData platform when resolving shortcut options', () => {
+    Object.defineProperty(window.navigator, 'platform', {
+      configurable: true,
+      value: 'Linux x86_64',
+    });
+    Object.defineProperty(window.navigator, 'userAgentData', {
+      configurable: true,
+      value: { platform: 'macOS' },
+    });
+
+    expect(getGlobalAgentStopShortcutLabel()).toBe('Command + Shift + Esc');
+  });
+
   test('renders override labels for supported accelerators', () => {
     Object.defineProperty(window.navigator, 'platform', {
       configurable: true,
@@ -62,6 +80,18 @@ describe('agent stop shortcut helper', () => {
     });
 
     expect(getGlobalAgentStopShortcutLabel('CommandOrControl+Shift+.')).toBe('Ctrl + Shift + .');
+  });
+
+  test('trims supported accelerators before matching', () => {
+    Object.defineProperty(window.navigator, 'platform', {
+      configurable: true,
+      value: 'Win32',
+    });
+
+    expect(normalizeGlobalAgentStopShortcutAccelerator(' CommandOrControl+Alt+/ ')).toBe(
+      'CommandOrControl+Alt+/',
+    );
+    expect(getGlobalAgentStopShortcutLabel(' CommandOrControl+Alt+/ ')).toBe('Ctrl + Alt + /');
   });
 
   test('normalizes unsupported accelerators back to the platform default', () => {
@@ -97,5 +127,11 @@ describe('agent stop shortcut helper', () => {
     });
 
     expect(isAgentStopShortcutEvent(modifiedEvent)).toBe(false);
+  });
+
+  test('accepts Esc alias and rejects repeat or non-event inputs', () => {
+    expect(isAgentStopShortcutEvent({ key: 'Esc', repeat: false })).toBe(true);
+    expect(isAgentStopShortcutEvent({ key: 'Escape', repeat: true })).toBe(false);
+    expect(isAgentStopShortcutEvent(null)).toBe(false);
   });
 });
