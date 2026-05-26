@@ -55,24 +55,29 @@ class Cache:
         Thread-safe: Uses lock to prevent race conditions.
         Updates LRU order on access.
         """
+        found, value = self._get_cached_value(key)
+        return value if found else None
+
+    def _get_cached_value(self, key: str) -> tuple[bool, Any]:
+        """Return cache presence separately from the stored value."""
         with self._lock:
             entry = self._cache.get(key)
 
             if entry is None:
                 self._misses += 1
-                return None
+                return False, None
 
             if time.time() > entry.expires_at:
                 del self._cache[key]
                 self._misses += 1
-                return None
+                return False, None
 
             self._cache.move_to_end(key)
 
             self._hits += 1
             if entry.is_error:
                 raise entry.value
-            return entry.value
+            return True, entry.value
 
     def set(self, key: str, value: Any, ttl: Optional[float] = None) -> None:
         """Set a value in the cache."""
@@ -160,8 +165,8 @@ class Cache:
         Get value from cache or compute it if not found.
         """
         while True:
-            value = self.get(key)
-            if value is not None:
+            found, value = self._get_cached_value(key)
+            if found:
                 return value
 
             with self._lock:
@@ -199,8 +204,8 @@ class Cache:
         loop = asyncio.get_running_loop()
         coordination_key = (key, id(loop))
         while True:
-            value = self.get(key)
-            if value is not None:
+            found, value = self._get_cached_value(key)
+            if found:
                 return value
 
             with self._lock:

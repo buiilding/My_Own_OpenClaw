@@ -35,6 +35,19 @@ def test_cache_get_or_compute_called_once():
     assert calls["count"] == 1
 
 
+def test_cache_get_or_compute_caches_none_results():
+    cache = Cache(default_ttl=10.0)
+    calls = {"count": 0}
+
+    def compute():
+        calls["count"] += 1
+        return None
+
+    assert cache.get_or_compute("key", compute) is None
+    assert cache.get_or_compute("key", compute) is None
+    assert calls["count"] == 1
+
+
 def test_cache_get_or_compute_waiters_complete():
     cache = Cache(default_ttl=10.0)
     started = threading.Event()
@@ -91,6 +104,22 @@ def test_cache_get_or_compute_async_waiters_complete():
         proceed.set()
         results = await asyncio.gather(task1, task2)
         assert results == ["value", "value"]
+        assert compute_calls["count"] == 1
+
+    asyncio.run(run())
+
+
+def test_cache_get_or_compute_async_caches_none_results():
+    cache = Cache(default_ttl=10.0)
+    compute_calls = {"count": 0}
+
+    async def compute():
+        compute_calls["count"] += 1
+        return None
+
+    async def run():
+        assert await cache.get_or_compute_async("key", compute) is None
+        assert await cache.get_or_compute_async("key", compute) is None
         assert compute_calls["count"] == 1
 
     asyncio.run(run())
