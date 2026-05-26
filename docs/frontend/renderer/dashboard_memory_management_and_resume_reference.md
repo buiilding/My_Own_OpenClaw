@@ -20,8 +20,7 @@ title: "Dashboard Memory Management and Resume Reference"
 - `frontend/src/renderer/features/dashboard/components/sections/memorySectionData.js`
 - `frontend/src/renderer/features/dashboard/hooks/useTranscriptSessionInfo.js`
 - `frontend/src/renderer/features/dashboard/utils/episodicMemoryUtils.js`
-- `frontend/src/renderer/infrastructure/ipc/channels.ts`
-- `frontend/src/renderer/infrastructure/ipc/bridge.ts`
+- `frontend/src/renderer/app/runtime/desktopMemoryRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`
@@ -51,12 +50,14 @@ title: "Dashboard Memory Management and Resume Reference"
 - local search filter over loaded rows
 - edit/delete interactions for rendered memory rows
 
-IPC methods used by this surface:
+Runtime methods used by this surface:
 
-- `LIST_EPISODIC_MEMORIES`
-- `LIST_SEMANTIC_MEMORIES`
-- `DELETE_EPISODIC_MEMORY`
-- `DELETE_SEMANTIC_MEMORY`
+- `DesktopMemoryRuntimeClient.listEpisodicMemories(userId, 200)`
+- `DesktopMemoryRuntimeClient.listSemanticMemories(userId, 200)`
+- `DesktopMemoryRuntimeClient.deleteMemoryItem({ userId, memoryId, kind })`
+
+The runtime client owns the sidecar-shaped IPC channel names and result
+normalization. Dashboard feature code must not import memory IPC constants.
 
 Toggle behavior contract:
 
@@ -99,7 +100,7 @@ Identity is used by:
 
 ### Episodic list
 
-`LIST_EPISODIC_MEMORIES` payload:
+`DesktopMemoryRuntimeClient.listEpisodicMemories(...)` payload:
 
 - `userId`
 - `limit: 200`
@@ -113,7 +114,7 @@ Normalization:
 
 ### Semantic list
 
-`LIST_SEMANTIC_MEMORIES` payload:
+`DesktopMemoryRuntimeClient.listSemanticMemories(...)` payload:
 
 - `userId`
 - `limit: 200`
@@ -129,9 +130,8 @@ Normalization:
 
 ### Delete behavior
 
-- rows with backend IDs route delete through memory IPC:
-  - semantic -> `DELETE_SEMANTIC_MEMORY`
-  - episodic -> `DELETE_EPISODIC_MEMORY`
+- rows with backend IDs route delete through
+  `DesktopMemoryRuntimeClient.deleteMemoryItem(...)`
 - rows without backend IDs remain UI-local removals.
 
 ## Conversation Resume Flow (Sidebar/Search)
