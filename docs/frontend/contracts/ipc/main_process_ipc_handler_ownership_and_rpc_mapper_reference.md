@@ -35,6 +35,7 @@ title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 - `frontend/src/main/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/ipc/ipc_frontend_config.cjs`
 - `frontend/src/main/ipc/ipc_sdk_command_forwarding.cjs`
+- `frontend/src/main/ipc/ipc_openai_codex_oauth_handlers.cjs`
 - `frontend/src/main/permission_service.cjs`
 
 ## Registration Topology

@@ -153,7 +153,8 @@ This makes worker stop idempotent and prevents stale run mappings across app lif
 
 ## OpenAI Codex OAuth Runtime
 
-Main process exposes IPC handlers in `ipc.cjs`:
+Main process wires OpenAI Codex OAuth IPC handlers through
+`ipc_openai_codex_oauth_handlers.cjs`:
 
 - `openai-codex-oauth-login`
 - `openai-codex-oauth-logout`
@@ -214,4 +215,5 @@ Callback server behaviors:
 
 - VM worker runtime tests: `tests/frontend/VmWorkerRuntime.test.cjs`
 - Runtime mode env tests: `tests/frontend/RuntimeMode.test.cjs`
+- OAuth IPC handler envelope tests: `tests/frontend/IpcOpenAICodexOAuthHandlers.test.cjs`
 - OpenAI Codex OAuth flow test: `tests/frontend/OpenAICodexOAuth.test.cjs`

@@ -336,7 +336,7 @@ Success criteria:
 
 Validation:
 
-- `cd frontend && npm run test -- IpcOpenAICodexOAuthHandlers OpenAICodexOAuth IpcMainBridge.lifecycle --runInBand`
+- `cd frontend && npm run test -- IpcArtifactHandlers IpcOpenAICodexOAuthHandlers IpcMainBridge.lifecycle IpcArtifactFetch OpenAICodexOAuth --runInBand`
 - `node -e "const m=require('./frontend/src/main/ipc/ipc_openai_codex_oauth_handlers.cjs'); console.log(typeof m.registerOpenAICodexOAuthHandlers)"`
 - `cd frontend && npm run test -- IpcArtifactHandlers IpcArtifactFetch IpcMainBridge.lifecycle --runInBand`
 - `node -e "const m=require('./frontend/src/main/ipc/ipc_artifact_handlers.cjs'); console.log(typeof m.registerArtifactHandlers)"`
