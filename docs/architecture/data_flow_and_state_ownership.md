@@ -61,6 +61,18 @@ fall back to the active chat, because `conversationRef` owns chat identity.
 | permission UI says granted without OS capability | permission services must probe real capability before setting granted |
 | packaged app works differently than source | validate installed resource paths and bundled runtime separately |
 
+## Migration Debt Rules
+
+Runtime ownership cleanup is tracked in [Runtime Ownership Simplification Plan](../refactors/runtime_ownership_simplification_plan.md). Current docs should not imply migration debt is gone until the owning search/test proves it.
+
+| Duplicate path | Current owner | Deletion condition | Test target |
+| --- | --- | --- | --- |
+| Raw backend chat packets vs SDK conversation events | SDK conversation runtime owns chat meaning; raw packets are compatibility/diagnostics or typed side-channel input only | No renderer chat live-state code subscribes to `ON_CHANNELS.FROM_BACKEND`; every remaining subscription has a typed owner | `RendererChatRuntimeBoundary`, `IpcBackendEventChannels` |
+| Renderer active conversation cache vs transcript session authority | Transcript/session helpers own foreground conversation selection; `chatStore.activeConversationRef` is a routing/display cache | Feature code routes active selection through session helpers and does not directly mutate the active ref | `ConversationSessionRuntime`, `DesktopChatStreamIngressRuntime`, renderer boundary tests |
+| Query command fields across renderer, main, SDK, backend | SDK/main query runtime owns backend-safe payload mapping; backend schema fixture owns allowed keys | Adding a backend query field changes one mapper plus contract tests; UI-only fields never reach backend payload | `IpcQueryRuntime`, `FrontendBackendWebsocketContract`, backend incoming contract parity |
+| Settings/model startup effects in providers vs settings runtime | `DesktopSettingsRuntimeClient` and main settings/model runtimes own startup requests and ACK queues | Providers remain dumb stores over runtime state; startup model list is not a mount-side effect in `AppConfigProvider` | `DesktopSettingsRuntimeClient`, `AppConfigProvider.models`, `IpcSettingsSyncRuntime` |
+| Renderer replay/display state vs SDK persistence projections | SDK stores/projection builders own display and rehydrate interpretation; renderer adapts display rows | No new renderer event-to-history tables outside SDK projection adapters | SDK store/projection tests and dashboard replay tests |
+
 ## Related Docs
 
 - [Session and Transcript Reference](../reference/session_and_transcript_reference.md)

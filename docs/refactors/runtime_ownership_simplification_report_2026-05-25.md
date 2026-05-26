@@ -333,6 +333,26 @@ Verification:
 - `rg -n "hasAttemptedInitialSettingsSync|pendingSettingsSyncPromise|pendingSettingsSyncs|waitForSettingsAck|clearPendingSettingsSyncs|resolveSettingsSync\(|function buildBackendSettingsPayload|modelListRequestRuntime\.request\(|modelListRequestRuntime\.flush\(" frontend/src/main/ipc.cjs -S` - pass, only the composition-root model-list flush call remains
 - `rg -n "BACKEND_QUERY_PAYLOAD_KEYS|function buildBackendQueryPayload|function processBackendMessageData|function handleRendererLog|function buildBackendSettingsPayload" frontend/src/main/ipc.cjs -S` - pass, no matches
 
-## Pending
+### Architecture Current/Target/Debt Documentation
 
-- Architecture docs current/target/debt updates for remaining duplicate paths.
+Status: completed and verified.
+
+Changes:
+
+- Added a runtime ownership migration matrix to `docs/architecture/frontend_architecture.md` covering current behavior, target behavior, remaining debt/deletion condition, and test targets for query send, live turn projection, raw backend events, settings/model sync, conversation storage, and Electron main composition.
+- Added migration-debt rules to `docs/architecture/data_flow_and_state_ownership.md` so duplicate paths name their owner, deletion condition, and test target.
+
+Success criteria covered:
+
+- Architecture docs distinguish current behavior, target behavior, and known migration debt instead of implying raw backend interpretation or duplicate paths are fully gone.
+- Remaining duplicate paths have an owner, deletion condition, and test target.
+- The refactor plan and report remain the deletion checklist.
+
+Verification:
+
+- `ELECTRON_RUN_AS_NODE=1 .\frontend\node_modules\electron\dist\electron.exe .\scripts\docs-list.js` - pass
+- `git diff --check` - pass
+
+## Complete
+
+All success criteria in `docs/refactors/runtime_ownership_simplification_plan.md` are completed and verified as of this report update.
