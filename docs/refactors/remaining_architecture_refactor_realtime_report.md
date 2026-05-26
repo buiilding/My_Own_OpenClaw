@@ -73,6 +73,63 @@ Skipped or failed validation:
 
 - None for this slice.
 
+## Put Dashboard Memory Actions Behind A Runtime Client
+
+Status: completed.
+
+Commit: included in the same commit as this report entry.
+
+Implementation:
+
+- Added `DesktopMemoryRuntimeClient` under the renderer app runtime boundary
+  with typed methods for listing episodic memory, listing semantic memory,
+  deleting episodic or semantic memory items, clearing local memory, and
+  clearing chat history.
+- Updated `MemorySection` to load and delete memory through the runtime client
+  instead of importing IPC bridge channels directly.
+- Updated dashboard memory settings actions to run destructive memory and chat
+  clear operations through the same runtime client.
+- Added runtime-client unit coverage for list, delete, clear, and IPC error
+  handling.
+- Added a dashboard boundary test that fails if memory-specific IPC channel
+  names return to dashboard feature code.
+
+Previous behavior:
+
+- Dashboard memory components and hooks invoked sidecar-shaped memory IPC
+  channels directly.
+- Feature code knew about list, delete, clear-memory, and clear-chat channel
+  names, so renderer UI code owned transport details that should sit below a
+  runtime facade.
+
+Current behavior:
+
+- Dashboard feature code calls `DesktopMemoryRuntimeClient` methods.
+- IPC channel names and sidecar result normalization are contained in the
+  renderer app runtime client.
+- Memory UI still uses the same sidecar-backed behavior, but the feature
+  boundary no longer imports memory IPC constants.
+
+Success criteria:
+
+- Renderer memory UI imports no IPC channel constants for sidecar memory
+  behavior: completed.
+- Sidecar RPC details are contained below the facade: completed.
+- Memory list, delete, clear, and error handling are covered by focused tests:
+  completed.
+
+Validation:
+
+- `cd frontend && npm run test -- DesktopMemoryRuntimeClient MemorySection SettingsSection RendererChatRuntimeBoundary RendererDashboardRuntimeBoundary --runInBand`
+- `cd frontend && npm run lint`
+- `./bin/docs-list`
+- `git diff --check`
+
+Skipped or failed validation:
+
+- Sidecar memory tests were not run because this slice did not change sidecar
+  storage or sidecar RPC behavior.
+
 ## Remove Hand-Maintained SDK CommonJS Source Mirrors
 
 Status: completed.

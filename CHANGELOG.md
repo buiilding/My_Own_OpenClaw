@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/dashboard: route memory list, delete, and destructive clear actions through a desktop memory runtime client instead of dashboard feature IPC channel calls.
 - sdk/frontend: replace hand-maintained SDK CommonJS source mirrors with generated `packages/windie-sdk-js/cjs` output consumed by Electron main.
 - frontend/chat: delete the renderer-owned raw backend event contract and keep display-only stream labels/tool-schema types in renderer-owned modules.
 - docs/agents: clarify client-owned tool schema assembly, backend validation

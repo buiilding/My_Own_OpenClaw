@@ -219,6 +219,31 @@ describe('renderer chat runtime boundary', () => {
     expect(offenders).toEqual([]);
   });
 
+  test('dashboard memory feature code routes through the desktop memory runtime client', async () => {
+    const dashboardRoot = path.resolve(
+      __dirname,
+      '../../frontend/src/renderer/features/dashboard',
+    );
+    const files = await listSourceFiles(dashboardRoot);
+    const offenders: string[] = [];
+
+    for (const file of files) {
+      const source = await fs.readFile(file, 'utf8');
+      if (
+        source.includes('LIST_EPISODIC_MEMORIES')
+        || source.includes('LIST_SEMANTIC_MEMORIES')
+        || source.includes('DELETE_EPISODIC_MEMORY')
+        || source.includes('DELETE_SEMANTIC_MEMORY')
+        || source.includes('CLEAR_LOCAL_MEMORY')
+        || source.includes('CLEAR_CHAT_HISTORY')
+      ) {
+        offenders.push(path.relative(dashboardRoot, file));
+      }
+    }
+
+    expect(offenders).toEqual([]);
+  });
+
   test('chat stream event routing and stale-turn guards stay behind app runtime helpers', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'hooks/useChatStream.ts'),

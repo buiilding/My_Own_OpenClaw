@@ -10,6 +10,8 @@ import {
 import SettingsSection from '../../frontend/src/renderer/features/dashboard/components/sections/SettingsSection';
 
 const mockInvoke = jest.fn();
+const mockClearLocalMemory = jest.fn();
+const mockClearChatHistory = jest.fn();
 const mockRestartOnboarding = jest.fn();
 const mockRequestPermission = jest.fn();
 const mockRunPermissionProbe = jest.fn();
@@ -48,6 +50,13 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
   ON_CHANNELS: {
     WORKSPACE_ACCESS_UPDATED: 'workspace-access-updated',
+  },
+}));
+
+jest.mock('../../frontend/src/renderer/app/runtime/desktopMemoryRuntimeClient', () => ({
+  DesktopMemoryRuntimeClient: {
+    clearLocalMemory: (...args) => mockClearLocalMemory(...args),
+    clearChatHistory: (...args) => mockClearChatHistory(...args),
   },
 }));
 
@@ -114,6 +123,10 @@ describe('SettingsSection', () => {
 
   beforeEach(() => {
     mockInvoke.mockReset();
+    mockClearLocalMemory.mockReset();
+    mockClearChatHistory.mockReset();
+    mockClearLocalMemory.mockResolvedValue({});
+    mockClearChatHistory.mockResolvedValue({});
     mockRestartOnboarding.mockReset();
     mockRequestPermission.mockReset();
     mockRunPermissionProbe.mockReset();
@@ -530,7 +543,7 @@ describe('SettingsSection', () => {
     expect(mockRestartOnboarding).toHaveBeenCalledTimes(1);
   });
 
-  test('nuke memory invokes clear-local-memory for the resolved user id', async () => {
+  test('nuke memory invokes the memory runtime client for the resolved user id', async () => {
     mockTranscriptSessionInfo = {
       conversationRef: 'conv-memory',
       userId: 'user-memory',
@@ -544,12 +557,12 @@ describe('SettingsSection', () => {
       expect(window.confirm).toHaveBeenCalledWith(
         'Delete all local episodic and semantic memory? Past chats will be kept.',
       );
-      expect(mockInvoke).toHaveBeenCalledWith('clear-local-memory', { userId: 'user-memory' });
+      expect(mockClearLocalMemory).toHaveBeenCalledWith('user-memory');
       expect(screen.getByText('Local episodic and semantic memory deleted.')).toBeInTheDocument();
     });
   });
 
-  test('nuke chats invokes clear-chat-history and notifies the parent on success', async () => {
+  test('nuke chats invokes the memory runtime client and notifies the parent on success', async () => {
     const onChatsCleared = jest.fn();
     renderSettingsSection({
       initialTab: 'memory',
@@ -563,7 +576,7 @@ describe('SettingsSection', () => {
       expect(window.confirm).toHaveBeenCalledWith(
         'Delete all past chats? Local episodic and semantic memory will be kept.',
       );
-      expect(mockInvoke).toHaveBeenCalledWith('clear-chat-history', { userId: 'default_user' });
+      expect(mockClearChatHistory).toHaveBeenCalledWith('default_user');
       expect(onChatsCleared).toHaveBeenCalled();
       expect(screen.getByText('Past chats deleted.')).toBeInTheDocument();
     });

@@ -5,7 +5,7 @@ import {
   Search,
   X,
 } from 'lucide-react';
-import { IpcBridge, INVOKE_CHANNELS } from '../../../../infrastructure/ipc/bridge';
+import { DesktopMemoryRuntimeClient } from '../../../../app/runtime/desktopMemoryRuntimeClient';
 import { useTranscriptSessionInfo } from '../../hooks/useTranscriptSessionInfo';
 import { DEFAULT_USER_ID } from '../../utils/episodicMemoryUtils';
 import {
@@ -47,27 +47,14 @@ function MemorySection({ onClose = () => {} }) {
     setLoadError('');
 
     try {
-      const [episodicResult, semanticResult] = await Promise.all([
-        IpcBridge.invoke(INVOKE_CHANNELS.LIST_EPISODIC_MEMORIES, {
-          userId,
-          limit: 200,
-        }),
-        IpcBridge.invoke(INVOKE_CHANNELS.LIST_SEMANTIC_MEMORIES, {
-          userId,
-          limit: 200,
-        }),
+      const [episodicMemories, semanticMemories] = await Promise.all([
+        DesktopMemoryRuntimeClient.listEpisodicMemories(userId, 200),
+        DesktopMemoryRuntimeClient.listSemanticMemories(userId, 200),
       ]);
 
-      if (!episodicResult || episodicResult.success === false) {
-        throw new Error(episodicResult?.error || 'Failed to load episodic memories');
-      }
-      if (!semanticResult || semanticResult.success === false) {
-        throw new Error(semanticResult?.error || 'Failed to load semantic memories');
-      }
-
       setMemoriesByType({
-        episodic: normalizeEpisodicMemories(episodicResult?.data?.memories ?? []),
-        semantic: normalizeSemanticMemories(semanticResult?.data?.memories ?? []),
+        episodic: normalizeEpisodicMemories(episodicMemories),
+        semantic: normalizeSemanticMemories(semanticMemories),
         procedural: buildProceduralMemories(),
       });
     } catch (error) {
@@ -99,19 +86,11 @@ function MemorySection({ onClose = () => {} }) {
 
     if (backendMemoryId && (backendType === 'semantic' || backendType === 'episodic')) {
       try {
-        const deleteChannel = backendType === 'semantic'
-          ? INVOKE_CHANNELS.DELETE_SEMANTIC_MEMORY
-          : INVOKE_CHANNELS.DELETE_EPISODIC_MEMORY;
-        const result = await IpcBridge.invoke(deleteChannel, {
+        await DesktopMemoryRuntimeClient.deleteMemoryItem({
           userId,
           memoryId: backendMemoryId,
+          kind: backendType,
         });
-        if (!result || result.success === false) {
-          throw new Error(result?.error || `Failed to delete ${backendType} memory`);
-        }
-        if (result?.data?.deleted === false) {
-          throw new Error(`${backendType} memory was not deleted`);
-        }
       } catch (error) {
         setLoadError(error?.message || `Failed to delete ${backendType} memory`);
         return;

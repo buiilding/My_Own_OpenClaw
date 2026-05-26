@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { IpcBridge, INVOKE_CHANNELS } from '../../../../../infrastructure/ipc/bridge';
+import { DesktopMemoryRuntimeClient } from '../../../../../app/runtime/desktopMemoryRuntimeClient';
 import { useTranscriptSessionInfo } from '../../../hooks/useTranscriptSessionInfo';
 import { DEFAULT_USER_ID } from '../../../utils/episodicMemoryUtils';
 
@@ -15,7 +15,7 @@ export function useMemorySettingsActions() {
   const runDestructiveAction = async ({
     actionId,
     confirmMessage,
-    channel,
+    run,
     successMessage,
     onSuccess,
   }) => {
@@ -32,10 +32,7 @@ export function useMemorySettingsActions() {
     setStatus({ tone: 'idle', message: '' });
 
     try {
-      const result = await IpcBridge.invoke(channel, { userId });
-      if (!result || result.success === false) {
-        throw new Error(result?.error || 'Failed to complete destructive action');
-      }
+      const data = await run(userId);
 
       setStatus({
         tone: 'success',
@@ -43,7 +40,7 @@ export function useMemorySettingsActions() {
       });
       if (typeof onSuccess === 'function') {
         try {
-          await onSuccess(result?.data);
+          await onSuccess(data);
         } catch (callbackError) {
           console.warn('Destructive action succeeded, but refresh callback failed.', callbackError);
         }
@@ -63,14 +60,14 @@ export function useMemorySettingsActions() {
   const clearLocalMemory = async () => runDestructiveAction({
     actionId: 'memory',
     confirmMessage: 'Delete all local episodic and semantic memory? Past chats will be kept.',
-    channel: INVOKE_CHANNELS.CLEAR_LOCAL_MEMORY,
+    run: DesktopMemoryRuntimeClient.clearLocalMemory,
     successMessage: 'Local episodic and semantic memory deleted.',
   });
 
   const clearChatHistory = async (onSuccess) => runDestructiveAction({
     actionId: 'chats',
     confirmMessage: 'Delete all past chats? Local episodic and semantic memory will be kept.',
-    channel: INVOKE_CHANNELS.CLEAR_CHAT_HISTORY,
+    run: DesktopMemoryRuntimeClient.clearChatHistory,
     successMessage: 'Past chats deleted.',
     onSuccess,
   });

@@ -94,4 +94,33 @@ describe('renderer dashboard runtime boundary', () => {
 
     expect(offenders).toEqual([]);
   });
+
+  test('dashboard memory feature code uses the memory runtime facade instead of sidecar IPC channels', async () => {
+    const files = await listSourceFiles(dashboardRoot);
+    const offenders: string[] = [];
+    const forbidden = [
+      'LIST_EPISODIC_MEMORIES',
+      'LIST_SEMANTIC_MEMORIES',
+      'DELETE_EPISODIC_MEMORY',
+      'DELETE_SEMANTIC_MEMORY',
+      'CLEAR_LOCAL_MEMORY',
+      'CLEAR_CHAT_HISTORY',
+      'list-episodic-memories',
+      'list-semantic-memories',
+      'delete-episodic-memory',
+      'delete-semantic-memory',
+      'clear-local-memory',
+      'clear-chat-history',
+    ];
+
+    for (const file of files) {
+      const relativePath = path.relative(dashboardRoot, file);
+      const source = await fs.readFile(file, 'utf8');
+      if (forbidden.some((needle) => source.includes(needle))) {
+        offenders.push(relativePath);
+      }
+    }
+
+    expect(offenders).toEqual([]);
+  });
 });

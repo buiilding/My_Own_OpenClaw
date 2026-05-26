@@ -114,7 +114,7 @@ layers unless a verified external dependency requires one.
   Validation: SDK tests, Electron main IPC tests, package build, and frontend CI
   tests.
 
-- [ ] Put dashboard memory actions behind a runtime client.
+- [x] Put dashboard memory actions behind a runtime client.
 
   Issue: Dashboard memory UI still invokes IPC memory and destructive local
   state channels directly. That keeps feature components aware of sidecar-shaped

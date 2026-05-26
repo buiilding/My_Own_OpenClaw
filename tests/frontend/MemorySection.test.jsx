@@ -2,18 +2,16 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 const MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY = 'desktop-assistant-memory-retrieval-injection-enabled';
 
-const mockInvoke = jest.fn();
+const mockListEpisodicMemories = jest.fn();
+const mockListSemanticMemories = jest.fn();
+const mockDeleteMemoryItem = jest.fn();
 let mockSessionInfo = { conversationRef: null, userId: 'default_user' };
 
-jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
-  IpcBridge: {
-    invoke: (...args) => mockInvoke(...args),
-  },
-  INVOKE_CHANNELS: {
-    LIST_EPISODIC_MEMORIES: 'list-episodic-memories',
-    LIST_SEMANTIC_MEMORIES: 'list-semantic-memories',
-    DELETE_EPISODIC_MEMORY: 'delete-episodic-memory',
-    DELETE_SEMANTIC_MEMORY: 'delete-semantic-memory',
+jest.mock('../../frontend/src/renderer/app/runtime/desktopMemoryRuntimeClient', () => ({
+  DesktopMemoryRuntimeClient: {
+    listEpisodicMemories: (...args) => mockListEpisodicMemories(...args),
+    listSemanticMemories: (...args) => mockListSemanticMemories(...args),
+    deleteMemoryItem: (...args) => mockDeleteMemoryItem(...args),
   },
 }));
 
@@ -25,47 +23,33 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRunti
 
 describe('MemorySection', () => {
   beforeEach(() => {
-    mockInvoke.mockReset();
+    mockListEpisodicMemories.mockReset();
+    mockListSemanticMemories.mockReset();
+    mockDeleteMemoryItem.mockReset();
+    mockListEpisodicMemories.mockResolvedValue([]);
+    mockListSemanticMemories.mockResolvedValue([]);
+    mockDeleteMemoryItem.mockResolvedValue(undefined);
     mockSessionInfo = { conversationRef: null, userId: 'default_user' };
     window.localStorage.removeItem(MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY);
   });
 
   test('loads episodic and semantic memories without using conversation list', async () => {
-    mockInvoke.mockImplementation(async (channel) => {
-      if (channel === 'list-episodic-memories') {
-        return {
-          success: true,
-          data: {
-            memories: [
-              {
-                id: 'ep-1',
-                content: 'User: discuss quarterly roadmap\nAssistant: drafted milestones',
-                timestamp: '2026-02-25T08:00:00Z',
-                metadata: { source: 'interaction_completed' },
-              },
-            ],
-          },
-        };
-      }
-
-      if (channel === 'list-semantic-memories') {
-        return {
-          success: true,
-          data: {
-            memories: [
-              {
-                id: 'sem-1',
-                content: 'Summary: Prefers concise answers\nFacts:\n- Likes bullet points',
-                timestamp: '2026-02-25T08:10:00Z',
-                metadata: { source: 'semantic_summary' },
-              },
-            ],
-          },
-        };
-      }
-
-      return { success: true, data: {} };
-    });
+    mockListEpisodicMemories.mockResolvedValue([
+      {
+        id: 'ep-1',
+        content: 'User: discuss quarterly roadmap\nAssistant: drafted milestones',
+        timestamp: '2026-02-25T08:00:00Z',
+        metadata: { source: 'interaction_completed' },
+      },
+    ]);
+    mockListSemanticMemories.mockResolvedValue([
+      {
+        id: 'sem-1',
+        content: 'Summary: Prefers concise answers\nFacts:\n- Likes bullet points',
+        timestamp: '2026-02-25T08:10:00Z',
+        metadata: { source: 'semantic_summary' },
+      },
+    ]);
 
     const { default: MemorySection } = await import(
       '../../frontend/src/renderer/features/dashboard/components/sections/MemorySection'
@@ -75,14 +59,8 @@ describe('MemorySection', () => {
 
     await screen.findByText('Interaction memories and short-lived context snapshots');
 
-    expect(mockInvoke).toHaveBeenCalledWith('list-episodic-memories', {
-      userId: 'default_user',
-      limit: 200,
-    });
-    expect(mockInvoke).toHaveBeenCalledWith('list-semantic-memories', {
-      userId: 'default_user',
-      limit: 200,
-    });
+    expect(mockListEpisodicMemories).toHaveBeenCalledWith('default_user', 200);
+    expect(mockListSemanticMemories).toHaveBeenCalledWith('default_user', 200);
 
     await screen.findByText(/discuss quarterly roadmap/i);
     expect(screen.queryByText('Conversation 1')).not.toBeInTheDocument();
@@ -95,13 +73,6 @@ describe('MemorySection', () => {
   });
 
   test('left close button calls onClose', async () => {
-    mockInvoke.mockImplementation(async (channel) => {
-      if (channel === 'list-episodic-memories' || channel === 'list-semantic-memories') {
-        return { success: true, data: { memories: [] } };
-      }
-      return { success: true, data: {} };
-    });
-
     const { default: MemorySection } = await import(
       '../../frontend/src/renderer/features/dashboard/components/sections/MemorySection'
     );
@@ -114,34 +85,15 @@ describe('MemorySection', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  test('semantic delete routes through delete-semantic-memory', async () => {
-    mockInvoke.mockImplementation(async (channel) => {
-      if (channel === 'list-episodic-memories') {
-        return { success: true, data: { memories: [] } };
-      }
-
-      if (channel === 'list-semantic-memories') {
-        return {
-          success: true,
-          data: {
-            memories: [
-              {
-                id: 'sem-del-1',
-                content: 'Summary: Uses markdown\nFacts:\n- Prefers concise replies',
-                timestamp: '2026-02-25T08:10:00Z',
-                metadata: { source: 'semantic_summary' },
-              },
-            ],
-          },
-        };
-      }
-
-      if (channel === 'delete-semantic-memory') {
-        return { success: true, data: { deleted: true } };
-      }
-
-      return { success: true, data: {} };
-    });
+  test('semantic delete routes through the memory runtime client', async () => {
+    mockListSemanticMemories.mockResolvedValue([
+      {
+        id: 'sem-del-1',
+        content: 'Summary: Uses markdown\nFacts:\n- Prefers concise replies',
+        timestamp: '2026-02-25T08:10:00Z',
+        metadata: { source: 'semantic_summary' },
+      },
+    ]);
 
     const { default: MemorySection } = await import(
       '../../frontend/src/renderer/features/dashboard/components/sections/MemorySection'
@@ -154,38 +106,23 @@ describe('MemorySection', () => {
     fireEvent.click(deleteButton);
 
     await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith('delete-semantic-memory', {
+      expect(mockDeleteMemoryItem).toHaveBeenCalledWith({
         userId: 'default_user',
         memoryId: 'sem-del-1',
+        kind: 'semantic',
       });
     });
   });
 
-  test('episodic delete routes through delete-episodic-memory', async () => {
-    mockInvoke.mockImplementation(async (channel) => {
-      if (channel === 'list-episodic-memories') {
-        return {
-          success: true,
-          data: {
-            memories: [
-              {
-                id: 'ep-del-1',
-                content: 'User: remove this memory',
-                timestamp: '2026-02-25T08:00:00Z',
-                metadata: { source: 'interaction_completed' },
-              },
-            ],
-          },
-        };
-      }
-      if (channel === 'list-semantic-memories') {
-        return { success: true, data: { memories: [] } };
-      }
-      if (channel === 'delete-episodic-memory') {
-        return { success: true, data: { deleted: true } };
-      }
-      return { success: true, data: {} };
-    });
+  test('episodic delete routes through the memory runtime client', async () => {
+    mockListEpisodicMemories.mockResolvedValue([
+      {
+        id: 'ep-del-1',
+        content: 'User: remove this memory',
+        timestamp: '2026-02-25T08:00:00Z',
+        metadata: { source: 'interaction_completed' },
+      },
+    ]);
 
     const { default: MemorySection } = await import(
       '../../frontend/src/renderer/features/dashboard/components/sections/MemorySection'
@@ -197,35 +134,23 @@ describe('MemorySection', () => {
     fireEvent.click(deleteButton);
 
     await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith('delete-episodic-memory', {
+      expect(mockDeleteMemoryItem).toHaveBeenCalledWith({
         userId: 'default_user',
         memoryId: 'ep-del-1',
+        kind: 'episodic',
       });
     });
   });
 
   test('does not expose unsupported local add or edit actions', async () => {
-    mockInvoke.mockImplementation(async (channel) => {
-      if (channel === 'list-episodic-memories') {
-        return {
-          success: true,
-          data: {
-            memories: [
-              {
-                id: 'ep-readonly-1',
-                content: 'User: remember this\nAssistant: persisted detail',
-                timestamp: '2026-02-25T08:00:00Z',
-                metadata: { source: 'interaction_completed' },
-              },
-            ],
-          },
-        };
-      }
-      if (channel === 'list-semantic-memories') {
-        return { success: true, data: { memories: [] } };
-      }
-      return { success: true, data: {} };
-    });
+    mockListEpisodicMemories.mockResolvedValue([
+      {
+        id: 'ep-readonly-1',
+        content: 'User: remember this\nAssistant: persisted detail',
+        timestamp: '2026-02-25T08:00:00Z',
+        metadata: { source: 'interaction_completed' },
+      },
+    ]);
 
     const { default: MemorySection } = await import(
       '../../frontend/src/renderer/features/dashboard/components/sections/MemorySection'
@@ -240,30 +165,14 @@ describe('MemorySection', () => {
   });
 
   test('deletes semantic memory with one click and does not show confirmation dialog', async () => {
-    mockInvoke.mockImplementation(async (channel) => {
-      if (channel === 'list-episodic-memories') {
-        return { success: true, data: { memories: [] } };
-      }
-      if (channel === 'list-semantic-memories') {
-        return {
-          success: true,
-          data: {
-            memories: [
-              {
-                id: 'sem-del-no-confirm-1',
-                content: 'Summary: Prefers no confirmation modals',
-                timestamp: '2026-02-25T08:10:00Z',
-                metadata: { source: 'semantic_summary' },
-              },
-            ],
-          },
-        };
-      }
-      if (channel === 'delete-semantic-memory') {
-        return { success: true, data: { deleted: true } };
-      }
-      return { success: true, data: {} };
-    });
+    mockListSemanticMemories.mockResolvedValue([
+      {
+        id: 'sem-del-no-confirm-1',
+        content: 'Summary: Prefers no confirmation modals',
+        timestamp: '2026-02-25T08:10:00Z',
+        metadata: { source: 'semantic_summary' },
+      },
+    ]);
 
     const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(false);
     const { default: MemorySection } = await import(
@@ -276,9 +185,10 @@ describe('MemorySection', () => {
       fireEvent.click(await screen.findByRole('button', { name: 'Delete' }));
 
       await waitFor(() => {
-        expect(mockInvoke).toHaveBeenCalledWith('delete-semantic-memory', {
+        expect(mockDeleteMemoryItem).toHaveBeenCalledWith({
           userId: 'default_user',
           memoryId: 'sem-del-no-confirm-1',
+          kind: 'semantic',
         });
       });
       expect(confirmSpy).not.toHaveBeenCalled();
@@ -288,13 +198,6 @@ describe('MemorySection', () => {
   });
 
   test('persists memory retrieval injection toggle state in localStorage', async () => {
-    mockInvoke.mockImplementation(async (channel) => {
-      if (channel === 'list-episodic-memories' || channel === 'list-semantic-memories') {
-        return { success: true, data: { memories: [] } };
-      }
-      return { success: true, data: {} };
-    });
-
     const { default: MemorySection } = await import(
       '../../frontend/src/renderer/features/dashboard/components/sections/MemorySection'
     );
@@ -312,27 +215,14 @@ describe('MemorySection', () => {
   });
 
   test('episodic search matches assistant responses', async () => {
-    mockInvoke.mockImplementation(async (channel) => {
-      if (channel === 'list-episodic-memories') {
-        return {
-          success: true,
-          data: {
-            memories: [
-              {
-                id: 'ep-assistant-search-1',
-                content: 'User: what should I pack?\nAssistant: Bring a waterproof jacket and trail shoes.',
-                timestamp: '2026-02-25T08:00:00Z',
-                metadata: { source: 'interaction_completed' },
-              },
-            ],
-          },
-        };
-      }
-      if (channel === 'list-semantic-memories') {
-        return { success: true, data: { memories: [] } };
-      }
-      return { success: true, data: {} };
-    });
+    mockListEpisodicMemories.mockResolvedValue([
+      {
+        id: 'ep-assistant-search-1',
+        content: 'User: what should I pack?\nAssistant: Bring a waterproof jacket and trail shoes.',
+        timestamp: '2026-02-25T08:00:00Z',
+        metadata: { source: 'interaction_completed' },
+      },
+    ]);
 
     const { default: MemorySection } = await import(
       '../../frontend/src/renderer/features/dashboard/components/sections/MemorySection'
