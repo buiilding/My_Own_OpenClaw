@@ -8,16 +8,10 @@ import {
 import { createAudioCaptureProcessorNode } from '../utils/audioProcessorNode';
 import { useAudioCaptureRefs } from './useAudioCaptureRefs';
 import { useLatestRef } from '../../../infrastructure/hooks/useLatestRef';
-import { buildTranscriptionWebSocketUrl } from '../../../infrastructure/services/BackendEndpointStore';
+import { DesktopVoiceRuntimeClient } from '../../../app/runtime/desktopVoiceRuntimeClient';
 
 const MAX_RECONNECT_ATTEMPTS = 5;
 const RECONNECT_DELAY_BASE_MS = 1000;
-const SET_LANGUAGE_PAYLOAD = JSON.stringify({
-  type: 'set_langs',
-  source_language: 'en',
-  target_language: 'en',
-});
-const START_OVER_PAYLOAD = JSON.stringify({ type: 'start_over' });
 
 function getReconnectDelayMs(attempt: number): number {
   return RECONNECT_DELAY_BASE_MS * Math.pow(2, attempt - 1);
@@ -34,7 +28,12 @@ function getReconnectDelayMs(attempt: number): number {
  * @param {string} gatewayUrl - Backend transcription WebSocket URL
  * @returns {Object} - Voice mode state and controls
  */
-export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: string, isFinal: boolean) => void, onUtteranceEnd?: () => void, gatewayUrl: string = buildTranscriptionWebSocketUrl()) {
+export function useVoiceMode(
+  enabled: boolean,
+  onTranscriptionUpdate?: (text: string, isFinal: boolean) => void,
+  onUtteranceEnd?: () => void,
+  gatewayUrl: string = DesktopVoiceRuntimeClient.getTranscriptionGatewayUrl(),
+) {
   const [isConnected, setIsConnected] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -86,7 +85,7 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
     }
 
     try {
-      const ws = new WebSocket(gatewayUrl);
+      const ws = DesktopVoiceRuntimeClient.createTranscriptionWebSocket(gatewayUrl);
       websocketRef.current = ws;
 
       ws.onopen = () => {
@@ -96,34 +95,28 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
         clearReconnectTimeout();
         reconnectAttemptsRef.current = 0;
 
-        // Send language settings (no translation needed)
-        ws.send(SET_LANGUAGE_PAYLOAD);
+        DesktopVoiceRuntimeClient.sendDefaultTranscriptionLanguage(ws);
       };
 
       ws.onmessage = (event) => {
         try {
-          // Handle binary messages (shouldn't receive these, but handle gracefully)
-          if (event.data instanceof ArrayBuffer || event.data instanceof Blob) {
+          const data = DesktopVoiceRuntimeClient.normalizeTranscriptionGatewayMessage(event.data);
+          if (!data) {
             console.warn('[VoiceMode] Received unexpected binary message');
             return;
           }
 
-          const data = JSON.parse(event.data as string);
-
           switch (data.type) {
             case 'status':
-              // Connection established, store client_id
-              if (data.client_id) {
-                setClientId(data.client_id);
-                console.log('[VoiceMode] Client ID:', data.client_id);
+              if (data.clientId) {
+                setClientId(data.clientId);
+                console.log('[VoiceMode] Client ID:', data.clientId);
               }
               break;
 
             case 'realtime': {
-              // Transcription result
-              const transcriptionText = data.translation || data.text || '';
-              if (transcriptionText && onTranscriptionUpdateRef.current) {
-                onTranscriptionUpdateRef.current(transcriptionText, data.is_final === true || data.is_final === 'true');
+              if (data.text && onTranscriptionUpdateRef.current) {
+                onTranscriptionUpdateRef.current(data.text, data.isFinal);
               }
               break;
             }
@@ -136,12 +129,12 @@ export function useVoiceMode(enabled: boolean, onTranscriptionUpdate?: (text: st
               }
               // Send start_over to reset Gateway session
               if (ws.readyState === WebSocket.OPEN) {
-                ws.send(START_OVER_PAYLOAD);
+                DesktopVoiceRuntimeClient.sendTranscriptionStartOver(ws);
               }
               break;
 
             default:
-              console.log('[VoiceMode] Unknown message type:', data.type);
+              console.log('[VoiceMode] Unknown message type:', data.messageType);
           }
         } catch (err) {
           console.error('[VoiceMode] Error parsing message:', err);

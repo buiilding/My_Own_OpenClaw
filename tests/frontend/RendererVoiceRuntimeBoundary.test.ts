@@ -13,4 +13,20 @@ describe('renderer voice runtime boundary', () => {
     expect(source).not.toContain('ApiClient.');
     expect(source).toContain('DesktopVoiceRuntimeClient.wakewordDetected');
   });
+
+  test('voice mode hook delegates transcription protocol details to the desktop voice runtime', async () => {
+    const voiceModeHookPath = path.resolve(
+      __dirname,
+      '../../frontend/src/renderer/features/voice/hooks/useVoiceMode.ts',
+    );
+    const source = await fs.readFile(voiceModeHookPath, 'utf8');
+
+    expect(source).toContain('DesktopVoiceRuntimeClient.createTranscriptionWebSocket');
+    expect(source).toContain('DesktopVoiceRuntimeClient.normalizeTranscriptionGatewayMessage');
+    expect(source).toContain('DesktopVoiceRuntimeClient.sendDefaultTranscriptionLanguage');
+    expect(source).toContain('DesktopVoiceRuntimeClient.sendTranscriptionStartOver');
+    expect(source).not.toContain('buildTranscriptionWebSocketUrl');
+    expect(source).not.toContain('new WebSocket');
+    expect(source).not.toContain('JSON.parse');
+  });
 });

@@ -223,6 +223,12 @@ it adds the product-feature guardrails those plans need.
   Validation: voice hook tests, wakeword bridge tests, backend transcription
   route/service tests, TTS playback cleanup tests, and permission-state tests.
 
+  Progress: `DesktopVoiceRuntimeClient` now owns STT gateway URL resolution,
+  websocket construction, language/start-over protocol messages, and
+  transcription message normalization. `useVoiceMode` still owns the React
+  session lifecycle, reconnect policy, and audio capture until the full desktop
+  voice runtime state surface is introduced.
+
 - [ ] Split `LocalMemoryStore` into storage, vector, retrieval, chat-event, and
   title/semanticization services.
 

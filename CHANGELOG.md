@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/voice: move STT gateway URL, websocket construction, setup packets,
+  start-over packets, and transcription message normalization into the desktop
+  voice runtime client while preserving the existing voice-mode hook lifecycle.
 - backend/sdk: add schema coverage for settings-loaded, settings-updated, and
   models-listed websocket events so live backend settings messages stay inside
   the outgoing event contract consumed by the SDK.
