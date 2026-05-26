@@ -67,14 +67,20 @@ Backend agent loop
 ### Backend Entry Points
 
 - App entry: `backend/src/main.py`
-- FastAPI assembly and route registration: `backend/src/api/`
+- FastAPI assembly: `backend/src/api/app_assembly.py`
+- Canonical route registration: `backend/src/api/routes/__init__.py::API_ROUTERS`
 - Websocket query path: `backend/src/api/routes/websocket/`
-- Query orchestration service: `backend/src/api/services/query_execution.py` and `backend/src/api/services/query_execution_support/`
+- Incoming websocket handlers: `backend/src/api/handlers/`
+- Query handler: `backend/src/api/handlers/query.py`
+- Query orchestration service: `backend/src/api/services/query_execution.py`
+- Query support helpers: `backend/src/api/services/query_execution_support/`
 - Agent session lifecycle: `backend/src/agent/session/`
 - Agent executor and interaction loop: `backend/src/agent/execution/executor.py`, `backend/src/agent/execution/interaction_loop.py`
 - Prompt construction and repo instruction loading: `backend/src/llm/prompts/`
 - Provider adapters and OpenAI Responses handling: `backend/src/llm/providers/`
-- Backend model-visible tool catalog and policy: `backend/src/tools/tool_catalog.py`, `backend/src/tools/tool_policy.py`, `backend/src/tools/provider_projection.py`
+- Backend tool registry and model-visible schema source: `backend/src/tools/registry.py`
+- Static remote-tool catalog: `backend/src/tools/tool_catalog.py`
+- Tool policy and provider projection: `backend/src/tools/tool_policy.py`, `backend/src/tools/provider_projection.py`
 - SDK HTTP routes: `backend/src/api/routes/sdk/`
 - Artifacts routes: `backend/src/api/routes/artifacts/`
 - VM run-control routes: `backend/src/api/routes/runs/`
@@ -84,15 +90,29 @@ services, artifacts, compaction decisions, and final tool-schema projection. It
 does not own local mouse, keyboard, browser, filesystem, shell, or OS permission
 execution.
 
+Backend startup is `main.py` -> `create_api_app(...)` -> `API_ROUTERS` plus the
+lifespan `InitializationCoordinator`, which builds the dependency container and
+`SessionManager`. A websocket `query` message flows through `QueryMessageHandler`
+into `QueryExecutionService`, then into `AgentSession.process_query(...)`,
+`AgentExecutor.process_query(...)`, and `InteractionLoop.run_loop(...)`.
+
+Backend tool registration is not only the static remote catalog. `ToolRegistry`
+registers remote stubs from `tool_catalog.py`, then backend-owned tools such as
+`web_search`, `RemoteGroundedMouseTool`, and `RemoteGroundedScrollTool`. When
+changing tool visibility, inspect the registry, policy, provider projection, and
+the sidecar manifest/parity path together.
+
 ### SDK Runtime Entry Points
 
 - TypeScript SDK package: `packages/windie-sdk-js/src/`
+- Public exports: `packages/windie-sdk-js/src/index.ts`
 - Primary client: `packages/windie-sdk-js/src/runtime/WindieClient.ts`
 - Agent/session runtime: `WindieAgent.ts`, `WindieChatSession.ts`, `ConversationRuntime.ts`
 - Conversation stores: `InMemoryConversationStore.ts`, `FileConversationStore.ts`, `SidecarConversationStore.ts`
 - Local sidecar runtime: `LocalSidecarRuntime.ts`
 - Tool coordination: `tools/ToolExecutionCoordinator.ts`, `tools/toolCorrelationIds.ts`
 - Backend transport: `transport/ManagedBackendSession.ts`, `transport/BackendSocketFactory.ts`
+- Standalone websocket session: `transport/WindieAgentSession.ts`
 - Event normalization and projections: `transport/backendEventNormalizer.ts`, `projections/currentTurnProjection.cjs`
 - Python SDK package: `packages/windie-sdk-python/`
 - Sidecar Python re-export: `frontend/src/main/python/core/windie_sdk_client.py`
@@ -102,17 +122,27 @@ backend websocket lifecycle, normalized conversation events, local-tool result
 return, conversation stores, replay/rehydrate helpers, and projections that
 Electron and future clients should share.
 
+For source edits, prefer `packages/windie-sdk-js/src/`; `dist/` is build output.
+Electron main currently imports the SDK CJS source shims directly from
+`packages/windie-sdk-js/src/.../*.cjs`, so changes to those runtime shims can
+affect the desktop app before a package build. `WindieClient.wakeUp(...)` is the
+external SDK path; Electron main uses `createWindieSdkMainRuntime(...)` around
+`ManagedBackendSession`, while renderer feature code goes through desktop
+facades rather than instantiating `WindieClient`.
+
 ### Electron Main Entry Points
 
 - Composition root: `frontend/src/main/index.cjs`
 - Renderer IPC bridge and event fan-out: `frontend/src/main/ipc.cjs`
 - SDK runtime host adapter: `frontend/src/main/windie_sdk_runtime.cjs`
+- SDK command router: `frontend/src/main/ipc/ipc_sdk_command_router.cjs`
 - SDK tool router bridge: `frontend/src/main/ipc/ipc_sdk_tool_router.cjs`
 - Window ownership and overlay state: `frontend/src/main/surface_runtime.cjs`
 - Window visibility and platform policy: `window_visibility_runtime.cjs`, `window_platform_policy.cjs`
 - Sidecar process bridge: `local_backend_bridge.cjs`, `local_backend_supervisor.cjs`
 - Sidecar request transport: `local_backend_bridge_request_transport.cjs`
 - Sidecar local tool execution adapter: `local_backend_bridge_execute_tool_runtime.cjs`
+- Sidecar daemon manager: `sidecar_daemon_manager.cjs`
 - Permission service: `permission_service.cjs` plus focused `permission_service_*` modules
 - Wakeword subprocess bridge: `wakeword_bridge.cjs`, `wakeword_supervisor.cjs`
 - VM worker mode: `runtime_mode.cjs`, `vm_worker_runtime.cjs`
@@ -121,6 +151,15 @@ Electron main owns desktop shell behavior: windows, IPC, menus, app lifecycle,
 native permissions, sidecar and wakeword supervision, endpoint selection, and
 host adapters. It should not become a second agent loop, prompt compiler,
 conversation store, or tool-routing authority.
+
+Renderer chat sends enter main through the typed `send-chat-query` IPC handler,
+not the generic `to-backend` channel. Main prepares screenshots, local user echo,
+system state, memory context, workspace `AGENTS.md` prompt layers, settings sync,
+and install auth before sending through the SDK main runtime. Backend events are
+routed through `windie_sdk_runtime.cjs`, where tool events are first offered to
+the SDK tool router for local execution, then projected as
+`conversation-runtime-updated`, `conversation-event`, and compatibility renderer
+events.
 
 ### Renderer Entry Points
 
@@ -131,10 +170,22 @@ conversation store, or tool-routing authority.
 - Renderer API/client boundary: `frontend/src/renderer/infrastructure/api/`
 - SDK client wrapper: `frontend/src/renderer/infrastructure/api/windieSdkClient.ts`
 - Desktop runtime facades: `frontend/src/renderer/app/runtime/`
+- Chat provider composition: `frontend/src/renderer/app/providers/ChatProvider.jsx`
+- Message send hook: `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
+- SDK projection listener: `frontend/src/renderer/features/chat/hooks/useConversationRuntimeProjectionStream.ts`
+- Transcript/metadata stream side effects: `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 
 Renderer owns user-facing state and display. Feature code should call desktop
 runtime facades or SDK projections instead of rebuilding backend websocket
 loops, transcript replay, compaction, model sync, or tool-routing semantics.
+
+`DesktopLiveTurnRuntimeClient.sendQuery(...)` creates a short-lived
+`SdkConversationRuntime` with an `InMemoryConversationStore` and
+`createDesktopBackendTransport(...)` to submit one live turn through typed IPC.
+It is a renderer command facade, not the durable conversation store. Durable
+history browsing, transcript projection, rehydrate, retry, edit/resend, and
+manual compaction live in the focused desktop continuity/transcript runtime
+facades under `frontend/src/renderer/app/runtime/`.
 
 ### Python Sidecar Entry Points
 
@@ -156,6 +207,16 @@ The sidecar owns local machine authority and local storage. It may call hosted
 backend services through transport clients, but it must not import backend
 Python packages for runtime behavior.
 
+`local_backend.py` registers JSON-RPC methods for `execute_tool`, system state,
+memory, chat history, browser install helpers, and diagnostics over
+stdin/stdout. `sidecar_daemon.py` wraps the same `LocalBackend` in token-gated
+HTTP/WebSocket routes: `/tools`, `/tools/register-module`, `/plugins/register`,
+`/mcps/register`, `/execute-tool`, `/rpc`, `/events`, and `/shutdown`.
+Dynamic module, plugin, and MCP tools are registered into the same sidecar
+`ToolRegistry` and then appear in the executable manifest returned to the SDK.
+Built-in sidecar schemas come from `tools/manifest.py`; backend-expected names
+are checked through `tools/exposed_tool_names.py`.
+
 ### Common Change Routes
 
 - New backend API route: start in `docs/backend/api/api_route_change_workflow.md`, then update route schema, service code, tests, docs, and changelog.
@@ -169,9 +230,10 @@ Python packages for runtime behavior.
 
 ### Runtime Flow Cheatsheet
 
-- Query send: renderer message sender -> desktop live-turn runtime facade -> SDK conversation runtime -> typed Electron IPC -> main query payload builder -> backend websocket.
-- Stream receive: backend websocket event -> SDK runtime projection in main -> `conversation-runtime-updated` and SDK-normalized `conversation-event` -> renderer projection/transcript side effects.
-- Tool turn: backend model-visible tool call -> SDK tool coordinator -> Electron local execution callback -> sidecar executable tool -> SDK result return -> backend history.
+- Query send: `useChatMessageSender` -> `DesktopLiveTurnRuntimeClient` -> short-lived `SdkConversationRuntime` -> `createDesktopBackendTransport` -> `send-chat-query` IPC -> main query payload builder -> SDK main runtime -> backend websocket.
+- Backend loop: websocket `query` -> `QueryMessageHandler` -> `QueryExecutionService` -> `AgentSession` -> `AgentExecutor` -> `InteractionLoop` -> provider call -> final answer or tool calls.
+- Stream receive: backend websocket event -> SDK main runtime projection -> `conversation-runtime-updated` and SDK-normalized `conversation-event` -> renderer projection/transcript side effects.
+- Tool turn: backend model-visible tool call -> SDK main tool router -> Electron local execution callback -> sidecar executable tool -> SDK result return -> backend history.
 - Conversation history: renderer-visible transcript and sidecar-backed SDK store are the durable local authority; backend sessions are inference state that can be rebuilt from local transcript.
 - Memory: local memory lives in the sidecar store; hosted backend provides embeddings, semantic summarization, title generation, and policy.
 - Browser: sidecar owns browser mechanics and dedicated session state; renderer controls are display/control surfaces, not independent browser runtimes.
