@@ -388,6 +388,31 @@ describe('renderer chat runtime boundary', () => {
     expect(offenders).toEqual([]);
   });
 
+  test('renderer feature code does not expose local tool execution IPC paths', async () => {
+    const files = await listSourceFiles(path.resolve(__dirname, '../../frontend/src/renderer/features'));
+    const offenders: string[] = [];
+    const forbidden = [
+      'sendToolResult',
+      'sendToolBundleResult',
+      'executeLocalTool',
+      'executeTool(',
+      "IpcBridge.send('tool-result'",
+      "IpcBridge.send('tool-bundle-result'",
+      'IpcBridge.send(SEND_CHANNELS.TOOL_RESULT',
+      'IpcBridge.send(SEND_CHANNELS.TOOL_BUNDLE_RESULT',
+    ];
+
+    for (const file of files) {
+      const relativePath = path.relative(rendererRoot, file);
+      const source = await fs.readFile(file, 'utf8');
+      if (forbidden.some(pattern => source.includes(pattern))) {
+        offenders.push(relativePath);
+      }
+    }
+
+    expect(offenders).toEqual([]);
+  });
+
   test('conversation inference rehydrate snapshots use the continuity runtime facade', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'session/conversationInferenceSessionRuntime.ts'),

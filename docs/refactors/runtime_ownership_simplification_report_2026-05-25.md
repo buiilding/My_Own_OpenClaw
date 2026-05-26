@@ -209,12 +209,34 @@ Verification:
 - `cd packages/windie-sdk-js && ELECTRON_RUN_AS_NODE=1 ..\..\frontend\node_modules\electron\dist\electron.exe ..\..\frontend\node_modules\typescript\bin\tsc -p tsconfig.build.json` - pass
 - `git diff --check` - pass
 
+### Tool Execution Routing Ownership
+
+Status: completed and verified.
+
+Changes:
+
+- Added SDK runtime coverage for malformed `tool_bundle_call` events missing `bundle_id`, proving they become explicit `runtime_error` events and do not invoke the local sidecar runtime.
+- Added a renderer boundary test that blocks feature code from reintroducing local tool execution IPC or direct tool-result sends.
+- Existing SDK/main tests continue to cover single tool execution, bundle execution, local execution failure, backend delivery failure, post-action screenshots, and main-process SDK tool routing through host callbacks.
+
+Success criteria covered:
+
+- Renderer feature code has no local tool execution IPC path.
+- Missing `request_id` or `bundle_id` creates an SDK runtime error and does not invoke sidecar execution.
+- Tool execution remains owned by SDK runtime coordination with Electron main providing host callbacks.
+
+Verification:
+
+- `cd frontend && ELECTRON_RUN_AS_NODE=1 .\node_modules\electron\dist\electron.exe .\node_modules\jest\bin\jest.js WindieSdkConversationRuntime WindieSdkMainRuntime WindieSdkClient WindieSdkMockBackendE2E RendererChatRuntimeBoundary --runInBand` - pass
+- `rg -n "sendToolResult|sendToolBundleResult|executeLocalTool|executeTool\(|IpcBridge\.send\('tool-result'|IpcBridge\.send\('tool-bundle-result'|IpcBridge\.send\(SEND_CHANNELS\.TOOL_RESULT|IpcBridge\.send\(SEND_CHANNELS\.TOOL_BUNDLE_RESULT" frontend/src/renderer/features -S` - pass, no matches
+- `cd packages/windie-sdk-js && ELECTRON_RUN_AS_NODE=1 ..\..\frontend\node_modules\electron\dist\electron.exe ..\..\frontend\node_modules\typescript\bin\tsc -p tsconfig.build.json` - pass
+- `git diff --check` - pass
+
 ## Pending
 
 - `frontend/src/main/ipc.cjs` composition-root split.
   - In progress: model-list request queueing moved to `frontend/src/main/ipc/ipc_model_list_runtime.cjs` with focused unit tests.
   - In progress: renderer diagnostic log routing moved to `frontend/src/main/ipc/ipc_diagnostics_runtime.cjs` with focused unit tests.
-- Tool execution routing ownership hardening.
 - Sidecar bridge split.
 - Frontend/backend websocket contract tests for all message families.
 - Diagnostics runtime and redaction boundary.

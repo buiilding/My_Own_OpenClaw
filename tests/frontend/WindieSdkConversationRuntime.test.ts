@@ -1836,6 +1836,61 @@ describe('Windie SDK conversation runtime core', () => {
     expect((await runtime.load()).state.phase).toBe('error');
   });
 
+  test('conversation runtime records malformed bundle events without invoking sidecar', async () => {
+    let backendListener: ((event: unknown) => void) | null = null;
+    const store = new InMemoryConversationStore();
+    const executeTool = jest.fn(async () => ({
+      success: true,
+      data: {
+        return_display: 'should not run',
+      },
+    }));
+    const sendToolBundleResult = jest.fn(async () => undefined);
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      localRuntime: {
+        executeTool,
+      },
+      transport: createMockBackendTransport({
+        sendToolBundleResult,
+        subscribe: jest.fn(listener => {
+          backendListener = listener;
+          return () => {
+            backendListener = null;
+          };
+        }),
+      }),
+    });
+    runtime.attachTransport();
+
+    backendListener?.({
+      type: 'tool-bundle',
+      conversation_ref: 'conv-sdk-runtime',
+      turn_ref: 'turn-tool',
+      payload: {
+        tools: [
+          { name: 'read_file', args: { path: 'README.md' } },
+        ],
+      },
+    } satisfies BackendEvent);
+    await tick();
+    await tick();
+
+    expect(executeTool).not.toHaveBeenCalled();
+    expect(sendToolBundleResult).not.toHaveBeenCalled();
+    const events = await store.loadEvents('conv-sdk-runtime');
+    expect(events.map(storedEvent => storedEvent.type)).toEqual([
+      'tool_bundle_call',
+      'runtime_error',
+    ]);
+    expect(events[1].payload).toMatchObject({
+      reason: 'malformed_tool_event',
+      claimReason: 'missing-bundle-id-or-tools',
+    });
+    expect((await runtime.load()).state.phase).toBe('error');
+  });
+
   test('editAndResend rewrites from the edited user message and sends a new revision turn', async () => {
     const sentQueries: Record<string, unknown>[] = [];
     const transport = createMockBackendTransport({
