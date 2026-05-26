@@ -32,6 +32,7 @@ function AssistantMessageActions({
       return undefined;
     }
 
+    setIsRevealed(false);
     revealTimerRef.current = window.setTimeout(() => {
       setIsRevealed(true);
       revealTimerRef.current = null;
