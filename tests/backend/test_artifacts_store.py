@@ -200,4 +200,4 @@ async def test_upload_artifact_builds_url(tmp_path) -> None:
     finally:
         reset_current_authenticated_install_identity(token)
 
-    assert response.url.startswith("http://testserver/api/artifacts/")
+    assert response.url.startswith("/api/artifacts/")

@@ -43,8 +43,7 @@ async def upload_artifact(
         file,
         owner_user_id=identity.user_id,
     )
-    base_url = str(request.base_url).rstrip("/")
-    url = f"{base_url}/api/artifacts/{meta.artifact_id}"
+    url = f"/api/artifacts/{meta.artifact_id}"
     return ArtifactUploadResponse(
         artifact_id=meta.artifact_id,
         content_type=meta.content_type,

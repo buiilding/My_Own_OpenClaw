@@ -51,14 +51,14 @@ def _container(tmp_path, *, artifact_max_bytes: int = 1024) -> SimpleNamespace:
     )
 
 
-def _artifact_request() -> Request:
+def _artifact_request(*, host: str = "testserver") -> Request:
     return Request(
         {
             "type": "http",
             "scheme": "http",
             "server": ("testserver", 80),
             "path": "/api/artifacts/",
-            "headers": [],
+            "headers": [(b"host", host.encode("ascii"))],
         }
     )
 
@@ -178,8 +178,23 @@ async def test_upload_artifact_returns_metadata_and_url(
     assert response.content_type == "image/png"
     assert response.size_bytes == len(b"png-bytes")
     assert response.artifact_id.endswith(".png")
-    assert response.url == f"http://testserver/api/artifacts/{response.artifact_id}"
+    assert response.url == f"/api/artifacts/{response.artifact_id}"
     assert len(response.sha256) == 64
+
+
+@pytest.mark.asyncio
+async def test_upload_artifact_returns_relative_url_for_forged_host(
+    tmp_path,
+    authenticated_install_identity,
+) -> None:
+    container = _container(tmp_path)
+    upload = _upload_file(b"png-bytes", "shot.png", "image/png")
+    request = _artifact_request(host="attacker.example")
+
+    response = await artifacts_routes.upload_artifact(request, container, file=upload)
+
+    assert response.url == f"/api/artifacts/{response.artifact_id}"
+    assert "attacker.example" not in response.url
 
 
 @pytest.mark.asyncio
