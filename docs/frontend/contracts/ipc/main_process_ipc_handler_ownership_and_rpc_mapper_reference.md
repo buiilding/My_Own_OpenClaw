@@ -17,6 +17,8 @@ title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 - `frontend/src/main/ipc/ipc_query_broadcast.cjs`
 - `frontend/src/main/ipc/ipc_query_events.cjs`
 - `frontend/src/main/ipc/ipc_automated_query_dispatcher.cjs`
+- `frontend/src/main/ipc/ipc_startup_state.cjs`
+- `frontend/src/main/ipc/ipc_sdk_runtime_lifecycle.cjs`
 - `frontend/src/main/ipc/ipc_memory_store_persistence.cjs`
 - `frontend/src/main/ipc/ipc_artifact_handlers.cjs`
 - `frontend/src/main/ipc/ipc_artifact_fetch.cjs`

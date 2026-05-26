@@ -12,6 +12,8 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/main: move OpenAI Codex OAuth login/logout IPC handlers out of the main IPC composition root into a focused OAuth handler module.
 - frontend/main: move the remaining non-chat `to-backend` SDK command forwarding policy out of the main IPC composition root into a focused handler module.
 - frontend/main: move VM automated-query dispatch out of the main IPC composition root into a focused dispatcher module.
+- frontend/main: move IPC startup state hydration for install auth, cached frontend config, and initial stop-shortcut state into a focused startup-state module.
+- frontend/main: move Windie SDK runtime websocket lifecycle construction, event handling, and close/open checks out of the main IPC composition root.
 - frontend/main: move typed chat query send/stop, frontend-config, and response-overlay preflight handler orchestration out of the main IPC composition root into focused handler modules.
 - frontend/dashboard: route memory list, delete, and destructive clear actions through a desktop memory runtime client instead of dashboard feature IPC channel calls.
 - sdk/frontend: replace hand-maintained SDK CommonJS source mirrors with generated `packages/windie-sdk-js/cjs` output consumed by Electron main.

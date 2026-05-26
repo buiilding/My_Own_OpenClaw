@@ -14,6 +14,8 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
 - `frontend/src/main/ipc/ipc_query_runtime.cjs`
 - `frontend/src/main/ipc/ipc_automated_query_dispatcher.cjs`
+- `frontend/src/main/ipc/ipc_startup_state.cjs`
+- `frontend/src/main/ipc/ipc_sdk_runtime_lifecycle.cjs`
 - `frontend/src/main/ipc/ipc_transcript_session_sync.cjs`
 - `frontend/src/main/ipc/ipc_event_replay_state.cjs`
 - `frontend/src/main/ipc/ipc_overlay_phase_events.cjs`
@@ -31,12 +33,12 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 
 ## Split Ownership Model
 
-`ipc.cjs` remains relay orchestrator for:
+`ipc.cjs` remains relay composition wiring for:
 
-- websocket connection lifecycle (`connect`, reconnect, handshake)
 - settings ACK gate (`ensureInitialSettingsSync`, pending-ack map)
 - query relay wiring and overlay phase transition application
 - handler registration (`ipcMain.handle/on`)
+- shared connection/session state until the remaining relay root is split
 
 Helper modules hold isolated runtime responsibilities.
 
@@ -74,6 +76,28 @@ Owns VM automated-query dispatch orchestration:
 - builds the enriched query payload through `buildQueryPayload`
 - attaches agent-definition context
 - sends the SDK runtime `query` command and advances conversation/first-query state through injected setters
+
+### `ipc_startup_state.cjs`
+
+Owns IPC startup state hydration:
+
+- loads cached install auth and applies it to main-process install/user state
+- loads cached frontend config and applies shortcut fallback defaults
+- updates the global agent stop shortcut accelerator from cached config
+- initializes global stop-shortcut enabled state from the current response-overlay phase
+- treats disk-hydration failures as fail-open startup conditions
+
+### `ipc_sdk_runtime_lifecycle.cjs`
+
+Owns Windie SDK runtime lifecycle construction:
+
+- builds the authenticated SDK handshake from current user/config/OS state
+- constructs the managed backend runtime once and exposes cached open/close helpers
+- handles SDK open/close/error/fallback lifecycle callbacks
+- routes backend events through replay buffering, observer notification,
+  settings ACK resolution, memory-store persistence, renderer fan-out, and
+  response-overlay phase mapping
+- emits interrupted active-query events when the backend closes during an active loop phase
 
 ### `ipc_transcript_session_sync.cjs`
 
@@ -229,13 +253,16 @@ This isolates persistence to main process once per backend event before renderer
 4. query optimistic/synthetic events delegate to `ipc_query_broadcast.cjs` with builders from `ipc_query_events.cjs` and seed replay state for late-window hydration.
 5. query payload shaping delegates to `ipc_query_runtime.cjs`.
 6. automated VM query dispatch delegates to `ipc_automated_query_dispatcher.cjs`.
-7. transcript-session-sync normalization and state updates delegate to `ipc_transcript_session_sync.cjs`.
-8. frontend config load/save handlers delegate to `ipc_frontend_config.cjs`.
-9. remaining non-chat `to-backend` command forwarding delegates to
+7. startup install-auth/config/shortcut hydration delegates to `ipc_startup_state.cjs`.
+8. SDK websocket runtime construction and backend event lifecycle delegate to
+   `ipc_sdk_runtime_lifecycle.cjs`.
+9. transcript-session-sync normalization and state updates delegate to `ipc_transcript_session_sync.cjs`.
+10. frontend config load/save handlers delegate to `ipc_frontend_config.cjs`.
+11. remaining non-chat `to-backend` command forwarding delegates to
    `ipc_sdk_command_forwarding.cjs`.
-10. artifact upload/fetch handler registration delegates to
+12. artifact upload/fetch handler registration delegates to
    `ipc_artifact_handlers.cjs`.
-11. OpenAI Codex OAuth login/logout handler registration delegates to
+13. OpenAI Codex OAuth login/logout handler registration delegates to
     `ipc_openai_codex_oauth_handlers.cjs`.
 
 ## Drift Hotspots

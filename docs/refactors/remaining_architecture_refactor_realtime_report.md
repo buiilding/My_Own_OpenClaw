@@ -322,6 +322,13 @@ Current behavior:
   orchestration: validation, backend connection, settings-sync wait,
   query-payload build, agent-definition attachment, SDK query send, and
   conversation/first-query state advancement through injected setters.
+- `ipc_startup_state.cjs` owns IPC startup state hydration for cached install
+  auth, cached frontend config, shortcut fallback application, global shortcut
+  accelerator restoration, and initial stop-shortcut enablement.
+- `ipc_sdk_runtime_lifecycle.cjs` owns SDK runtime construction, authenticated
+  handshake building, backend event processing callbacks, open/close checks,
+  reconnect/fallback logging, active-query interruption on close, and
+  conversation-event fan-out hooks.
 
 Success criteria:
 
@@ -337,11 +344,18 @@ Success criteria:
   composition root: completed.
 - Automated VM query dispatch is no longer inline in the IPC composition root:
   completed.
-- Full IPC root shrink is not complete; remaining inline areas include generic
-  config/bootstrap state.
+- Startup install-auth/config/shortcut hydration is no longer inline in the IPC
+  composition root: completed.
+- SDK runtime websocket lifecycle construction and backend event handling are no
+  longer inline in the IPC composition root: completed.
+- Full IPC root shrink is not complete; remaining inline state still includes
+  settings ACK state, endpoint/session globals, connection status snapshots,
+  and handler composition.
 
 Validation:
 
+- `cd frontend && npm run test -- IpcSdkRuntimeLifecycle IpcMainBridge.lifecycle --runInBand`
+- `cd frontend && npm run test -- IpcMainBridge.lifecycle IpcStartupState IpcFrontendConfigHandlers MainWindowRuntime MainProcessBootstrapRuntime --runInBand`
 - `cd frontend && npm run test -- IpcAutomatedQueryDispatcher IpcQueryRuntime VmWorkerRuntime MainProcessBootstrapRuntime --runInBand`
 - `cd frontend && npm run test -- IpcAutomatedQueryDispatcher VmWorkerRuntime IpcMainBridge.lifecycle --runInBand`
 - `node -e "const m=require('./frontend/src/main/ipc/ipc_automated_query_dispatcher.cjs'); console.log(typeof m.createAutomatedQueryDispatcher)"`
