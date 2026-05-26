@@ -103,6 +103,9 @@ const {
   logoutOpenAICodexOAuth,
 } = require('./openai_codex_oauth.cjs');
 const {
+  registerOpenAICodexOAuthHandlers,
+} = require('./ipc/ipc_openai_codex_oauth_handlers.cjs');
+const {
   registerClipboardImageHandler,
 } = require('./ipc/ipc_clipboard_image.cjs');
 const {
@@ -812,38 +815,11 @@ function initializeIpc(win, options = {}) {
     ],
   });
 
-  ipcMain.handle('openai-codex-oauth-login', async () => {
-    try {
-      const result = await loginOpenAICodexOAuth({
-        openExternal: (url) => shell.openExternal(url),
-      });
-      return {
-        success: true,
-        token: result.token,
-        auth_path: result.authPath,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: String(error?.message || error || 'OpenAI Codex OAuth login failed.'),
-      };
-    }
-  });
-
-  ipcMain.handle('openai-codex-oauth-logout', async () => {
-    try {
-      const result = await logoutOpenAICodexOAuth();
-      return {
-        success: true,
-        removed: result.removed,
-        auth_path: result.authPath,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: String(error?.message || error || 'OpenAI Codex OAuth sign-out failed.'),
-      };
-    }
+  registerOpenAICodexOAuthHandlers({
+    ipcMain,
+    loginOpenAICodexOAuth,
+    logoutOpenAICodexOAuth,
+    openExternal: (url) => shell.openExternal(url),
   });
 
   ipcMain.on('transcript-session-sync', (event, payload = {}) => {

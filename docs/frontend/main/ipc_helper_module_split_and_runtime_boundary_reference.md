@@ -24,6 +24,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc/ipc_frontend_config.cjs`
 - `frontend/src/main/ipc/ipc_artifact_handlers.cjs`
 - `frontend/src/main/ipc/ipc_artifact_fetch.cjs`
+- `frontend/src/main/ipc/ipc_openai_codex_oauth_handlers.cjs`
 - `frontend/src/main/ipc/ipc_sdk_command_forwarding.cjs`
 - `frontend/src/main/ipc/ipc_memory_store_persistence.cjs`
 
@@ -178,6 +179,15 @@ Owns protected artifact image fetch helpers:
 - backend artifact URL construction
 - authenticated artifact byte fetch and `data:image/...;base64,...` conversion
 
+### `ipc_openai_codex_oauth_handlers.cjs`
+
+Owns OpenAI Codex OAuth IPC handler registration:
+
+- `openai-codex-oauth-login`
+- `openai-codex-oauth-logout`
+- browser-launch dependency injection into `loginOpenAICodexOAuth`
+- normalized success/failure payloads for renderer settings surfaces
+
 ### `ipc_sdk_command_forwarding.cjs`
 
 Owns remaining generic `to-backend` command forwarding:
@@ -212,6 +222,8 @@ This isolates persistence to main process once per backend event before renderer
    `ipc_sdk_command_forwarding.cjs`.
 9. artifact upload/fetch handler registration delegates to
    `ipc_artifact_handlers.cjs`.
+10. OpenAI Codex OAuth login/logout handler registration delegates to
+    `ipc_openai_codex_oauth_handlers.cjs`.
 
 ## Drift Hotspots
 

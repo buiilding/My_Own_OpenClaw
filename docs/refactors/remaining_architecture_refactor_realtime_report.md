@@ -315,6 +315,9 @@ Current behavior:
 - `ipc_artifact_handlers.cjs` owns artifact upload and protected artifact-image
   fetch handler registration while reusing the existing shared upload/fetch
   helpers and install-auth header plumbing.
+- `ipc_openai_codex_oauth_handlers.cjs` owns OpenAI Codex OAuth login/logout
+  handler registration and normalized success/failure payload shaping while the
+  OAuth callback/token flow stays in `openai_codex_oauth.cjs`.
 
 Success criteria:
 
@@ -326,11 +329,15 @@ Success criteria:
   composition root: completed.
 - Artifact upload/fetch IPC handler registration is no longer inline in the IPC
   composition root: completed.
+- OpenAI Codex OAuth IPC handler registration is no longer inline in the IPC
+  composition root: completed.
 - Full IPC root shrink is not complete; remaining inline areas include generic
-  config/bootstrap state, OAuth handlers, and automated query dispatch.
+  config/bootstrap state and automated query dispatch.
 
 Validation:
 
+- `cd frontend && npm run test -- IpcOpenAICodexOAuthHandlers OpenAICodexOAuth IpcMainBridge.lifecycle --runInBand`
+- `node -e "const m=require('./frontend/src/main/ipc/ipc_openai_codex_oauth_handlers.cjs'); console.log(typeof m.registerOpenAICodexOAuthHandlers)"`
 - `cd frontend && npm run test -- IpcArtifactHandlers IpcArtifactFetch IpcMainBridge.lifecycle --runInBand`
 - `node -e "const m=require('./frontend/src/main/ipc/ipc_artifact_handlers.cjs'); console.log(typeof m.registerArtifactHandlers)"`
 - `cd frontend && npm run test -- IpcSdkCommandForwarding IpcSdkCommandRouter IpcMainBridge.query IpcMainBridge.lifecycle --runInBand`
