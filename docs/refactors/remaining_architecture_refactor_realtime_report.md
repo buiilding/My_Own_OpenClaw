@@ -120,7 +120,9 @@ Success criteria:
 
 Validation:
 
-- `cd frontend && npm run test -- DesktopMemoryRuntimeClient MemorySection SettingsSection RendererChatRuntimeBoundary RendererDashboardRuntimeBoundary --runInBand`
+- `cd frontend && npm run test -- DesktopMemoryRuntimeClient MemorySection SettingsSection RendererDashboardRuntimeBoundary --runInBand`
+- `cd frontend && npm run test -- RendererChatRuntimeBoundary --runInBand`
+- `cd frontend && npm run typecheck`
 - `cd frontend && npm run lint`
 - `./bin/docs-list`
 - `git diff --check`
