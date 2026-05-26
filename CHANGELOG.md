@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs: repair broken local cross-links in backend formatter and renderer response-overlay references so docs navigation and focused link checks agree.
 - frontend/config: redact provider API keys and OAuth tokens from renderer localStorage, Electron frontend-config disk saves, disk loads, and cached main-process config state while still syncing live credential updates to backend settings.
 - backend/tools: keep canonical backend catalog specs as the provider-visible schema source for built-in sidecar tools while sidecar manifests separate backend-validation schemas from executable sidecar schemas.
 - frontend/main: move artifact upload and protected artifact-image fetch IPC handlers out of the main IPC composition root into a focused artifact handler module.

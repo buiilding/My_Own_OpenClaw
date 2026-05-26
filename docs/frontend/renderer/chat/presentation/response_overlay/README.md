@@ -17,9 +17,9 @@ title: "Renderer Chat Response-Overlay Presentation Docs Hub"
 ## Related Pages
 
 - [Renderer Chat Presentation Docs Hub](../README.md)
-- [Renderer Overlay Tool Ghost Docs Hub](../../../../overlays/tool_ghost/README.md)
-- [Tool Ghost Track Style Variable and CSS Animation Contract Reference](../../../../overlays/tool_ghost/lifecycle/tool_ghost_track_style_variable_and_css_animation_contract_reference.md)
-- [Response Overlay Phase and Tool-Ghost Runtime Reference](../../../../overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md)
+- [Renderer Overlay Tool Ghost Docs Hub](../../../overlays/tool_ghost/README.md)
+- [Tool Ghost Track Style Variable and CSS Animation Contract Reference](../../../overlays/tool_ghost/lifecycle/tool_ghost_track_style_variable_and_css_animation_contract_reference.md)
+- [Response Overlay Phase and Tool-Ghost Runtime Reference](../../../overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md)
 
 ## Code Scope
 

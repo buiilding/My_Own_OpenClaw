@@ -73,4 +73,4 @@ Closest adjacent coverage:
 
 - [Renderer Chat Response-Overlay Presentation Docs Hub](README.md)
 - [Fixed Response-Pill Height, Scroll Anchor, and Overlay Visibility Re-Report Contract Reference](fixed_response_pill_height_scroll_and_visibility_rereport_contract_reference.md)
-- [Tool Ghost Track Style Variable and CSS Animation Contract Reference](../../../../overlays/tool_ghost/lifecycle/tool_ghost_track_style_variable_and_css_animation_contract_reference.md)
+- [Tool Ghost Track Style Variable and CSS Animation Contract Reference](../../../overlays/tool_ghost/lifecycle/tool_ghost_track_style_variable_and_css_animation_contract_reference.md)

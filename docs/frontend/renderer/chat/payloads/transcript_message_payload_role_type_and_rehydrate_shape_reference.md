@@ -131,5 +131,5 @@ Do not change replay to drop all tool rows; that removes useful context and is o
 ## Related Pages
 
 - [Renderer Chat Payload Docs Hub](README.md)
-- [Transcript Session and Rehydrate Reference](../../../transcript_session_and_rehydrate_reference.md)
+- [Transcript Session and Rehydrate Reference](../../transcript_session_and_rehydrate_reference.md)
 - [Tool Call/Output and Transparency Section Rendering Reference](tool_call_output_and_transparency_section_rendering_reference.md)

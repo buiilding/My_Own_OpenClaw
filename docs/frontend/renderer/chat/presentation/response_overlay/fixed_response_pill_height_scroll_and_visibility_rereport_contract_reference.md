@@ -96,5 +96,5 @@ This keeps response HTML sanitation and error rendering behavior deterministic u
 
 - [Renderer Chat Response-Overlay Presentation Docs Hub](README.md)
 - [Chatbox Component Split and Overlay Pill Runtime Reference](../chatbox_component_split_and_overlay_pill_runtime_reference.md)
-- [Response Overlay Phase Runtime Reference](../../../../overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md)
-- [Response Overlay Utility Contract Reference](../../../../overlays/response_overlay_phase_contract_payload_layout_and_frame_utilities_reference.md)
+- [Response Overlay Phase Runtime Reference](../../../overlays/response_overlay_phase_and_tool_ghost_runtime_reference.md)
+- [Response Overlay Utility Contract Reference](../../../overlays/response_overlay_phase_contract_payload_layout_and_frame_utilities_reference.md)

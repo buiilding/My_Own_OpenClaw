@@ -87,4 +87,4 @@ Coverage note:
 
 - [Backend API Formatter Action Docs Hub](README.md)
 - [Tool Call and Tool Output Formatter Validation and Metadata-Passthrough Reference](tool_call_and_tool_output_formatter_validation_and_metadata_passthrough_reference.md)
-- [Tool Result Orchestrator Bundle Detection and Wait Path Reference](../../../../../tools/execution/tool_result_orchestrator_bundle_detection_and_wait_path_reference.md)
+- [Tool Result Orchestrator Bundle Detection and Wait Path Reference](../../../../tools/execution/tool_result_orchestrator_bundle_detection_and_wait_path_reference.md)
