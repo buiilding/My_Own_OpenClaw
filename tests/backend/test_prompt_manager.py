@@ -265,6 +265,11 @@ def test_repo_system_prompt_includes_tool_strategy_rules():
         in content
     )
     assert "## Personality" in content
+    assert "## Documentation" in content
+    assert "docs/docs.json" in content
+    assert "docs/getting-started/docs_directory.md" in content
+    assert "docs/getting-started/docs_hub.md" in content
+    assert "./bin/docs-list" in content
     assert "# AGENTS.md spec" in content
     assert "## Responsiveness" in content
     assert "### Preamble messages" in content

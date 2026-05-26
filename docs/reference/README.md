@@ -21,6 +21,8 @@ Use this section for stable lookup material: route maps, event vocabularies, con
 | User/session/conversation/transcript identifiers | [Session and Transcript Reference](session_and_transcript_reference.md) |
 | Model-visible data versus transport/execution/replay payloads | [Agent-Visible Data Pipeline](../architecture/agent_visible_data_pipeline.md) |
 | Concrete feature request to source roots, tests, and docs | [Code Change Surface Index](code_change_surface_index.md) |
+| Canonical docs navigation | [`docs/docs.json`](../docs.json) |
+| Compact docs directory | [Docs Directory](../getting-started/docs_directory.md) |
 | OpenClaw docs structure benchmark | [OpenClaw Docs Structure Reference](openclaw_docs_structure_reference.md) |
 
 ## Reference Rules
@@ -29,6 +31,8 @@ Use this section for stable lookup material: route maps, event vocabularies, con
 - Prefer linking to a canonical deep reference instead of duplicating implementation internals.
 - Mark planned or future behavior explicitly; do not present future API families as active routes.
 - Update the main docs hub and `docs/README.md` when adding a new top-level reference page.
+- Update `docs/docs.json` when a page belongs in canonical navigation.
+- Update [Docs Directory](../getting-started/docs_directory.md) when a page should be easy to discover without scanning the full index.
 - Keep examples credential-free and machine-path-free.
 
 ## Related Hubs

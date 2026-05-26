@@ -11,6 +11,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 ## 📚 Documentation Index
 
 ### Documentation Hubs
+- [**Docs Directory**](getting-started/docs_directory.md) - Compact route map to the most-used local docs
 - [**Documentation Hub**](getting-started/docs_hub.md) - Agent-facing routing map for choosing the right subsystem, code roots, docs, and validation path before development
 - [**Concepts Hub**](concepts/README.md) - Runtime model, sessions, streaming, prompt/tool context, providers, usage, memory, and safety mental models
 - [**Desktop Surfaces**](desktop/README.md) - Dashboard, chat pill, response overlay, onboarding, permissions, voice, and artifacts
@@ -64,6 +65,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Reference Hub**](reference/README.md) - Stable API, websocket event, configuration, session/transcript, and docs-organization lookup maps
 - [**Code Change Surface Index**](reference/code_change_surface_index.md) - Feature-request to source-root, test, docs, and validation routing map
 - [**OpenClaw Docs Structure Reference**](reference/openclaw_docs_structure_reference.md) - Structure benchmark and WindieOS mapping
+- [**Canonical Docs Navigation**](docs.json) - Machine-readable local docs navigation map validated by `./bin/docs-list`
 - [**Backend Bootstrap/API/Contracts Hubs**](backend/README.md) - Subfolder-level backend navigation mirroring OpenClaw-style layered docs
 - [**Frontend Main/Renderer/Contracts/Sidecar Hubs**](frontend/README.md) - Subfolder-level frontend navigation for process/runtime boundaries
 - [**IPC Change Workflow**](frontend/ipc_change_workflow.md) - Safe IPC change flow across shared registry, preload, renderer bridge, main handlers, and local backend bridge

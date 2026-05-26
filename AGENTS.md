@@ -172,6 +172,8 @@ history during a live turn.
 
 Before coding or answering implementation questions:
 
+- Check canonical docs navigation in `docs/docs.json` and the compact route map
+  in `docs/getting-started/docs_directory.md` when choosing docs.
 - Run docs listing when available: prefer `./bin/docs-list`, fall back to
   `node scripts/docs-list.js`, ignore only if neither exists.
 - Read the nearest `read_when` docs until the domain and behavior are clear.

@@ -21,14 +21,17 @@ Frontend and sidecar code must not import backend code for parity. Keep parity i
 
 ## Agent Workflow
 
-1. Run the docs index first: `./bin/docs-list` from the repo root.
-2. Pick the closest change path below before searching broadly.
-3. Read the domain hub, the capability-to-file matrix, and the focused reference for the behavior you are changing.
-4. Edit the owner subsystem first. Do not patch a consumer layer to hide malformed producer behavior.
-5. Update tests and docs in the same pass when behavior, API, IPC, schema, or runtime contracts change.
+1. Check `docs/docs.json` for canonical docs navigation.
+2. Use [Docs Directory](docs_directory.md) for the compact route map.
+3. Run the docs index first: `./bin/docs-list` from the repo root.
+4. Pick the closest change path below before searching broadly.
+5. Read the domain hub, the capability-to-file matrix, and the focused reference for the behavior you are changing.
+6. Edit the owner subsystem first. Do not patch a consumer layer to hide malformed producer behavior.
+7. Update tests and docs in the same pass when behavior, API, IPC, schema, or runtime contracts change.
 
 ## Start Here
 
+- [Docs Directory](docs_directory.md) for the compact route map to the most-used docs.
 - [Product Overview](product_overview.md) for the non-technical product shape.
 - [Quick Start](quick_start.md) for the local run path.
 - [Platform Setup: Backend + Frontend](platform_setup_backend_frontend.md) for environment setup.

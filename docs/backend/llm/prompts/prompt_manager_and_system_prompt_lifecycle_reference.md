@@ -102,8 +102,8 @@ This enables persona-specific agents while keeping shared parent resources.
 
 Current prompt template defines:
 
-- runtime assistant identity string: `You are windieos, an AI Operating System Layer.`
-- main-window context instruction: `NOTE: Your main window is named "windieos".`
+- runtime assistant identity string: `You are WindieOS, an assistant that has access to the desktop operating system.`
+- documentation section that points model behavior toward local docs first: `docs/docs.json`, `docs/getting-started/docs_directory.md`, `docs/getting-started/docs_hub.md`, and `./bin/docs-list`
 - OS-aware command/keybind requirement (`{os}` substitution)
 - autonomous loop policy (continue until task complete)
 - context-awareness policy around `<system_context>`

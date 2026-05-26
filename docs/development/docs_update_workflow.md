@@ -28,6 +28,8 @@ node scripts/docs-list.js
 | Need | Doc target |
 | --- | --- |
 | route agents to a subsystem | domain hub or `docs/getting-started/docs_hub.md` |
+| expose a page in canonical navigation | `docs/docs.json` |
+| expose a page in the compact route map | `docs/getting-started/docs_directory.md` |
 | explain current behavior | stable domain doc under `docs/<domain>` |
 | capture exact API/event/config fields | `docs/reference` or owner-specific contracts |
 | explain operational/debug procedure | `docs/operations`, `docs/debug`, `docs/help`, or `docs/install` |
@@ -54,6 +56,8 @@ Use `read_when` hints to route agents before code edits.
 
 When adding a page, consider:
 
+- `docs/docs.json` when the page belongs in canonical navigation
+- `docs/getting-started/docs_directory.md` when the page should be easy to find from the compact directory
 - owner domain hub
 - `docs/README.md`
 - `docs/getting-started/docs_hub.md`

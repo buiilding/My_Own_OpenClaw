@@ -73,6 +73,8 @@ Current WindieOS major sections:
 
 Added/expanded in WindieOS:
 
+- `docs/docs.json`: canonical machine-readable local docs navigation map, validated by `./bin/docs-list`.
+- `getting-started/docs_directory.md`: compact route map for the most-used local docs, separate from the exhaustive generated index.
 - `getting-started/docs_hub.md`: central agent-facing docs entrypoint with subsystem ownership, code-root routing, and change-path playbooks.
 - `architecture/`: architecture hub plus runtime-boundary, data-flow/state ownership, storage/persistence change routing, ownership-decision, and failure-domain maps.
 - `concepts/`: OpenClaw-style conceptual docs for runtime model, sessions/conversations, agent loop, streaming/events, context/memory, prompt/tool context, model-provider selection, usage/token accounting, and safety boundaries.
@@ -144,5 +146,7 @@ Added/expanded in WindieOS:
 - Keep overview pages as hubs, with deep technical pages linked below.
 - Keep module/file references precise and current.
 - Prefer task-oriented routing over giant exhaustive link dumps on top-level hubs.
+- Update `docs/docs.json` when adding pages that belong in canonical navigation.
+- Update `getting-started/docs_directory.md` when adding pages that should be easy to discover from the compact directory.
 - Update hub/index pages when adding subsystem docs.
 - Keep behavior docs synchronized with backend/frontend runtime changes.

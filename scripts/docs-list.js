@@ -24,6 +24,7 @@ if (!fs.statSync(docsDir).isDirectory()) {
 }
 
 const excludedDirs = new Set(["archive", "research"]);
+const canonicalNavPath = path.join(docsDir, "docs.json");
 
 function compactStrings(values) {
   const result = [];
@@ -139,9 +140,81 @@ function extractMetadata(fullPath) {
   return { summary: normalized, readWhen };
 }
 
+function collectNavPages(value, pages = []) {
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      collectNavPages(item, pages);
+    }
+    return pages;
+  }
+  if (!value || typeof value !== "object") {
+    return pages;
+  }
+  if (Array.isArray(value.pages)) {
+    for (const page of value.pages) {
+      if (typeof page === "string" && page.trim()) {
+        pages.push(page.trim());
+      }
+    }
+  }
+  for (const child of Object.values(value)) {
+    collectNavPages(child, pages);
+  }
+  return pages;
+}
+
+function normalizeNavPagePath(page) {
+  const normalized = page.replace(/\\/g, "/").replace(/^\/+/, "");
+  if (normalized.endsWith(".md")) {
+    return normalized;
+  }
+  return `${normalized}.md`;
+}
+
+function validateCanonicalNavigation(markdownFiles) {
+  if (!fs.existsSync(canonicalNavPath)) {
+    console.error("docs:list: missing canonical docs navigation docs/docs.json.");
+    process.exitCode = 1;
+    return;
+  }
+
+  let nav;
+  try {
+    nav = JSON.parse(fs.readFileSync(canonicalNavPath, "utf8"));
+  } catch (error) {
+    console.error(`docs:list: invalid docs/docs.json: ${error.message}`);
+    process.exitCode = 1;
+    return;
+  }
+
+  const knownMarkdownFiles = new Set(markdownFiles);
+  const pages = collectNavPages(nav.navigation ?? nav);
+  const missingPages = [];
+  for (const page of pages) {
+    const markdownPath = normalizeNavPagePath(page);
+    if (!knownMarkdownFiles.has(markdownPath)) {
+      missingPages.push(`${page} -> ${markdownPath}`);
+    }
+  }
+
+  if (missingPages.length > 0) {
+    console.error("docs:list: docs/docs.json references missing pages:");
+    for (const missing of missingPages) {
+      console.error(`  - ${missing}`);
+    }
+    process.exitCode = 1;
+    return;
+  }
+
+  console.log(
+    `Canonical navigation: docs/docs.json (${pages.length} page references validated)`,
+  );
+}
+
 console.log("Listing all markdown files in docs folder:");
 
 const markdownFiles = walkMarkdownFiles(docsDir);
+validateCanonicalNavigation(markdownFiles);
 for (const relativePath of markdownFiles) {
   const fullPath = path.join(docsDir, relativePath);
   const { summary, readWhen, error } = extractMetadata(fullPath);

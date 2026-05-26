@@ -1,0 +1,74 @@
+---
+summary: "Compact WindieOS docs directory for quickly finding the most-used local docs without scanning the full generated index."
+read_when:
+  - When you want a short route map to the most common WindieOS docs.
+  - When choosing between setup, architecture, debugging, SDK, tool, frontend, backend, operations, and reference docs.
+title: "Docs Directory"
+---
+
+# Docs Directory
+
+This is the compact local docs directory. For the complete canonical navigation map, use `docs/docs.json`. For agent-facing implementation routing, use [Documentation Hub](docs_hub.md). For searchable front matter and `read_when` hints, run `./bin/docs-list` from the repo root.
+
+## Start Here
+
+- [Documentation Hub](docs_hub.md) - agent-facing subsystem, code-root, and validation routing.
+- [Quick Start](quick_start.md) - fastest local run path.
+- [Platform Setup: Backend + Frontend](platform_setup_backend_frontend.md) - source environment setup.
+- [Product Overview](product_overview.md) - non-technical product shape.
+- [Code Change Surface Index](../reference/code_change_surface_index.md) - feature request to source roots, tests, docs, and validation.
+
+## Architecture
+
+- [Runtime Model](../concepts/runtime_model.md) - backend, Electron main, renderer, preload, and sidecar boundaries.
+- [Runtime Boundary Matrix](../architecture/runtime_boundary_matrix.md) - owner selection by runtime and trust boundary.
+- [Data Flow and State Ownership](../architecture/data_flow_and_state_ownership.md) - query, stream, tool result, settings, transcript, memory, artifact, permission, provider, and VM-run state.
+- [Agent-Visible Data Pipeline](../architecture/agent_visible_data_pipeline.md) - what the model sees, what transports carry, what sidecar executes, and what transcript/history preserve.
+- [Change Ownership Decision Tree](../architecture/change_ownership_decision_tree.md) - routing ambiguous implementation work.
+
+## Backend and Prompting
+
+- [Backend Hub](../backend/README.md) - backend source maps and sub-hubs.
+- [Backend Runtime Hub](../backend/runtime/README.md) - query, session, compaction, and event runtime.
+- [Query Lifecycle Change Workflow](../backend/runtime/query_lifecycle_change_workflow.md) - backend query and stream changes.
+- [Backend API Hub](../backend/api/README.md) - HTTP/websocket route ownership.
+- [Backend LLM Prompt Hub](../backend/llm/prompts/README.md) - prompt constructor, prompt manager, and transparency metadata.
+- [Prompt Manager and System Prompt Lifecycle](../backend/llm/prompts/prompt_manager_and_system_prompt_lifecycle_reference.md) - system prompt loading, rendering, and history wiring.
+
+## Frontend and Desktop
+
+- [Frontend Hub](../frontend/README.md) - renderer, main, preload, contracts, and sidecar maps.
+- [Frontend Architecture](../architecture/frontend_architecture.md) - current Electron/React/sidecar topology.
+- [Main Process Change Workflow](../frontend/main/main_process_change_workflow.md) - Electron main ownership.
+- [Renderer State Change Workflow](../frontend/renderer/renderer_state_change_workflow.md) - chat/dashboard/settings renderer state.
+- [IPC Change Workflow](../frontend/ipc_change_workflow.md) - preload/main/renderer IPC changes.
+- [Workspace Context Change Workflow](../frontend/runtime/workspace_context_change_workflow.md) - workspace path and AGENTS.md prompt context.
+
+## Tools, Browser, SDK, and Providers
+
+- [Tools Hub](../tools/README.md) - model-facing and sidecar-executable tool contracts.
+- [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md) - tool visibility, schemas, policy, provider projection, and parity.
+- [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) - backend call to SDK/main/sidecar execution to backend history.
+- [Browser Change Workflow](../browser/browser_change_workflow.md) - dedicated browser schema, runtime, bridge, UI, and tests.
+- [SDK Hub](../sdk/README.md) - hosted clients, query planning, OCR/vision, and tool authoring.
+- [WindieClient Runtime Contract](../sdk/windie_client_runtime.md) - SDK runtime ownership and public API.
+- [Providers Hub](../providers/README.md) - LLM, inference, credential, STT, TTS, and search providers.
+
+## Debug, Install, and Operations
+
+- [Debug Hub](../debug/README.md) - logs, flags, process health, traces, symptom playbooks, and test selection.
+- [Process Health Checklist](../debug/process_health_checklist.md) - prove which process is dead, stuck, disconnected, or healthy.
+- [Triage Routes](../help/triage_routes.md) - symptom to owner before code edits.
+- [Install Hub](../install/README.md) - local development, packaged builds, endpoint setup, and reset loops.
+- [Local Development](../install/local_development.md) - source setup, run commands, tests, and environment launcher.
+- [Operations Hub](../operations/README.md) - runtime config, hosted auth, packaging, release, deployment, and troubleshooting.
+- [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md) - config ownership, defaults, propagation, and validation.
+
+## Security and Reference
+
+- [Security Hub](../security/README.md) - hosted auth, IPC isolation, validation, credentials, tools, and sidecar boundaries.
+- [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md) - screen/input/microphone/browser/workspace/sudo authority changes.
+- [Reference Hub](../reference/README.md) - stable API, websocket event, configuration, and identifier maps.
+- [HTTP and WebSocket API Surface](../reference/http_api_surface.md) - route-level hosted API map.
+- [WebSocket Event Reference](../reference/websocket_event_reference.md) - backend event families and renderer consumers.
+- [OpenClaw Docs Structure Reference](../reference/openclaw_docs_structure_reference.md) - docs organization benchmark.
