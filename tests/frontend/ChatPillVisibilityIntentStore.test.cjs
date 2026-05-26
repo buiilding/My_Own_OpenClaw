@@ -1,5 +1,7 @@
 /** @jest-environment node */
 
+const path = require('path');
+
 const {
   readChatPillVisibilityIntent,
   resolveChatPillVisibilityIntentPath,
@@ -12,6 +14,7 @@ function createFsMock({ exists = false, contents = '' } = {}) {
     readFileSync: jest.fn(() => contents),
     mkdirSync: jest.fn(),
     writeFileSync: jest.fn(),
+    renameSync: jest.fn(),
   };
 }
 
@@ -19,7 +22,7 @@ describe('chat_pill_visibility_intent_store', () => {
   test('resolves the state file under userData', () => {
     expect(resolveChatPillVisibilityIntentPath({
       userDataPath: '/tmp/windie-user-data',
-    })).toBe('/tmp/windie-user-data/chat-pill-visibility-intent.json');
+    })).toBe(path.join('/tmp/windie-user-data', 'chat-pill-visibility-intent.json'));
   });
 
   test('defaults to visible intent when no state file exists', () => {
@@ -54,10 +57,23 @@ describe('chat_pill_visibility_intent_store', () => {
     })).toBe(true);
 
     expect(fs.mkdirSync).toHaveBeenCalledWith('/tmp', { recursive: true });
-    expect(fs.writeFileSync).toHaveBeenCalledWith(
-      '/tmp/state.json',
-      '{\n  "userHidden": true\n}\n',
-      'utf8',
-    );
+    expect(fs.writeFileSync).toHaveBeenCalledTimes(1);
+    const [tempPath, contents, encoding] = fs.writeFileSync.mock.calls[0];
+    expect(tempPath).toMatch(/\/tmp\/state\.json\.\d+\.\d+\.\d+\.tmp$/);
+    expect(contents).toBe('{\n  "userHidden": true\n}\n');
+    expect(encoding).toBe('utf8');
+    expect(fs.renameSync).toHaveBeenCalledWith(tempPath, '/tmp/state.json');
+  });
+
+  test('treats corrupt persisted state as hidden instead of silently showing the pill', () => {
+    const fs = createFsMock({
+      exists: true,
+      contents: '{"userHidden": tru',
+    });
+
+    expect(readChatPillVisibilityIntent({
+      statePath: '/tmp/state.json',
+      fs,
+    })).toEqual({ userHidden: true });
   });
 });

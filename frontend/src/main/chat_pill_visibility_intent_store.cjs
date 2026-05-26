@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const CHAT_PILL_VISIBILITY_INTENT_FILENAME = 'chat-pill-visibility-intent.json';
+let tempFileCounter = 0;
 
 function resolveChatPillVisibilityIntentPath({ userDataPath, statePath } = {}) {
   if (typeof statePath === 'string' && statePath.trim()) {
@@ -27,7 +28,7 @@ function readChatPillVisibilityIntent(deps = {}) {
     const parsed = JSON.parse(raw);
     return { userHidden: parsed?.userHidden === true };
   } catch (_error) {
-    return { userHidden: false };
+    return { userHidden: true };
   }
 }
 
@@ -39,11 +40,14 @@ function writeChatPillVisibilityIntent(intent = {}, deps = {}) {
   }
   try {
     fsModule.mkdirSync(path.dirname(statePath), { recursive: true });
+    tempFileCounter += 1;
+    const tempPath = `${statePath}.${process.pid}.${Date.now()}.${tempFileCounter}.tmp`;
     fsModule.writeFileSync(
-      statePath,
+      tempPath,
       `${JSON.stringify({ userHidden: intent?.userHidden === true }, null, 2)}\n`,
       'utf8',
     );
+    fsModule.renameSync(tempPath, statePath);
     return true;
   } catch (_error) {
     return false;
