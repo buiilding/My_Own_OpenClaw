@@ -740,6 +740,35 @@ describe('WindieSdkClient', () => {
     });
   });
 
+  test('SDK backend event guard includes schema-backed control websocket events', async () => {
+    const { isBackendEvent } = await import('../../packages/windie-sdk-js/src/events/backendEvents');
+
+    expect(isBackendEvent({
+      type: 'audio-chunk',
+      payload: { audio: 'base64', sample_rate: 24000 },
+    })).toBe(true);
+    expect(isBackendEvent({
+      type: 'wakeword-activated',
+      payload: { greeting: 'Hello', activated: true },
+    })).toBe(true);
+    expect(isBackendEvent({
+      type: 'wakeword-greeting',
+      payload: { text: 'Hello' },
+    })).toBe(true);
+    expect(isBackendEvent({
+      type: 'settings-loaded',
+      payload: { config: { model_provider: 'openai' } },
+    })).toBe(true);
+    expect(isBackendEvent({
+      type: 'settings-updated',
+      payload: { updated_keys: ['model_provider'] },
+    })).toBe(true);
+    expect(isBackendEvent({
+      type: 'models-listed',
+      payload: [{ id: 'gpt-5.4@@gpt-5-4-none-thinking' }],
+    })).toBe(true);
+  });
+
   test('wakeUp applies an initial model selection after handshake', async () => {
     const client = new WindieClient({
       backendUrl: 'https://api.windieos.com',

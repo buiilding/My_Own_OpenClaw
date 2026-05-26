@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/sdk: add schema coverage for settings-loaded, settings-updated, and
+  models-listed websocket events so live backend settings messages stay inside
+  the outgoing event contract consumed by the SDK.
 - frontend/chat: delegate transcript-session active conversation projection to
   a session runtime hook so the chat provider no longer mutates active
   conversation store state directly.

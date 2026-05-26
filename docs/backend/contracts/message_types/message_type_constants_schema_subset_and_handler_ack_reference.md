@@ -65,26 +65,24 @@ Includes stream/runtime types such as:
 - `memory-store`
 - `user-message-full`
 - `assistant-message-full`
-
-### Non-schema ACK/control constants
-
-Defined in `OutgoingMessageType` but intentionally excluded from `OUTGOING_SCHEMA_MESSAGE_TYPES`:
-
 - `settings-loaded`
 - `settings-updated`
 - `models-listed`
 
-These are emitted by non-query settings/model handlers via `send_success_response(...)`.
+The settings/model ACK messages are emitted by non-query settings/model handlers
+via `send_success_response(...)`, but they are still part of the outgoing schema
+contract because renderer and SDK settings listeners consume them directly.
 
 ## Why the Outgoing Set Is Split
 
-`send_success_response(...)` and `build_transport_message(...)` accept arbitrary `response_type: str`; they do not enforce Pydantic outgoing schema models.
+`send_success_response(...)` and `build_transport_message(...)` accept arbitrary `response_type: str`; tests therefore keep ACK/control messages in the outgoing schema registry so emitted first-party backend websocket types remain contract-covered.
 
 Result:
 
-- settings/model ACK messages are valid transport envelopes and tested, but not part of stream-schema contract tables.
+- settings/model ACK messages are valid transport envelopes and part of the outgoing schema contract table.
 
-This split is intentional and verified by registry tests.
+Any truly ad hoc helper response type should either become a schema-backed
+outgoing contract or stay out of first-party renderer/SDK event consumers.
 
 ## Registry Alignment Semantics
 
@@ -94,7 +92,9 @@ This split is intentional and verified by registry tests.
 - incoming contract table vs `INCOMING_MESSAGE_TYPES`
 - outgoing schema contract table vs `OUTGOING_SCHEMA_MESSAGE_TYPES`
 
-It does not require every `OutgoingMessageType` constant to exist in outgoing schema contracts.
+First-party outgoing constants that are emitted over the backend websocket
+should exist in outgoing schema contracts unless they are explicitly documented
+as local-only helper sentinels.
 
 ## Handler Emitters for ACK/control Types
 
@@ -114,14 +114,13 @@ Responses still use canonical envelope shape:
 
 `tests/backend/test_transport_envelope.py` and `tests/backend/test_api_errors.py` verify:
 
-- ACK/control types like `settings-updated` and `settings-loaded` are supported by transport helpers
+- ACK/control types like `settings-updated` and `settings-loaded` are supported by transport helpers and schema contracts
 - context fields attach only when truthy
 - helper send paths swallow expected closed-connection/runtime send failures
 
 ## Drift Hotspots
 
-1. adding a new outgoing constant but forgetting category decision:
-   - schema subset vs ACK/control-only
+1. adding a new outgoing constant but forgetting to decide whether it is a first-party websocket event contract
 2. adding schema model for new outgoing type but not adding to `OUTGOING_SCHEMA_MESSAGE_TYPES`
 3. updating settings/model handler response type string without updating `OutgoingMessageType`
 4. hardcoding literal strings in handlers instead of constants

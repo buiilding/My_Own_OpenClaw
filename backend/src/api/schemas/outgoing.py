@@ -160,6 +160,33 @@ class WakewordGreetingMessage(BaseMessage):
     payload: WakewordGreetingPayload
 
 
+class SettingsLoadedPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    config: Dict[str, Any]
+
+
+class SettingsLoadedMessage(BaseMessage):
+    type: Literal["settings-loaded"]
+    payload: SettingsLoadedPayload
+
+
+class SettingsUpdatedPayload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    updated_keys: List[str]
+
+
+class SettingsUpdatedMessage(BaseMessage):
+    type: Literal["settings-updated"]
+    payload: SettingsUpdatedPayload
+
+
+class ModelsListedMessage(BaseMessage):
+    type: Literal["models-listed"]
+    payload: List[Dict[str, Any]]
+
+
 class ToolSchemaPayload(BaseModel):
     model_config = ConfigDict(extra="allow")
 

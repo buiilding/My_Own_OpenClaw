@@ -22,8 +22,11 @@ from backend.src.api.schemas import (
     ContextCompactionFailedMessage,
     ContextCompactionStartedMessage,
     MemoryStoreMessage,
+    ModelsListedMessage,
     QueryAcceptedMessage,
     QueryAcceptedPayload,
+    SettingsLoadedMessage,
+    SettingsUpdatedMessage,
     SystemPromptMessage,
     TokenCountMessage,
     ToolSchemasMessage,
@@ -58,6 +61,47 @@ def test_outgoing_public_package_exports_include_progress_schemas() -> None:
 
     assert accepted.payload.status == "accepted"
     assert progress.payload.request_id == "req_1"
+
+
+def test_settings_and_model_events_match_outgoing_schema_contracts() -> None:
+    loaded = SettingsLoadedMessage.model_validate(
+        {
+            "type": "settings-loaded",
+            "id": "msg_settings_loaded",
+            "user_id": "user_1",
+            "payload": {
+                "config": {
+                    "model_provider": "openai",
+                    "selected_model_id": "gpt-5.4@@gpt-5-4-none-thinking",
+                }
+            },
+        }
+    )
+    updated = SettingsUpdatedMessage.model_validate(
+        {
+            "type": "settings-updated",
+            "id": "msg_settings_updated",
+            "user_id": "user_1",
+            "payload": {"updated_keys": ["model_provider"]},
+        }
+    )
+    models = ModelsListedMessage.model_validate(
+        {
+            "type": "models-listed",
+            "id": "msg_models",
+            "user_id": "user_1",
+            "payload": [
+                {
+                    "id": "gpt-5.4@@gpt-5-4-none-thinking",
+                    "provider": "openai",
+                }
+            ],
+        }
+    )
+
+    assert loaded.payload.config["model_provider"] == "openai"
+    assert updated.payload.updated_keys == ["model_provider"]
+    assert models.payload[0]["provider"] == "openai"
 
 
 def test_tool_schemas_formatter_output_matches_schema() -> None:

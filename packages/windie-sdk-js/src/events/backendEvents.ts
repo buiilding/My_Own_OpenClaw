@@ -10,6 +10,12 @@ export type BackendEventType =
   | 'tool-output'
   | 'tool-bundle'
   | 'web-search-progress'
+  | 'audio-chunk'
+  | 'wakeword-activated'
+  | 'wakeword-greeting'
+  | 'settings-loaded'
+  | 'settings-updated'
+  | 'models-listed'
   | 'local-user-message'
   | 'system-prompt'
   | 'user-message-full'
@@ -74,6 +80,12 @@ export type BackendEvent =
     metadata?: Record<string, unknown>;
   }>
   | BackendEventBase<'web-search-progress', Record<string, unknown>>
+  | BackendEventBase<'audio-chunk', { audio?: string; sample_rate?: number }>
+  | BackendEventBase<'wakeword-activated', Record<string, unknown>>
+  | BackendEventBase<'wakeword-greeting', { text?: string }>
+  | BackendEventBase<'settings-loaded', { config?: Record<string, unknown> }>
+  | BackendEventBase<'settings-updated', { updated_keys?: string[] }>
+  | BackendEventBase<'models-listed', Record<string, unknown>[]>
   | BackendEventBase<'local-user-message', Record<string, unknown>>
   | BackendEventBase<'system-prompt', { content?: string; tool_schemas?: ToolSchema[] }>
   | BackendEventBase<'user-message-full', Record<string, unknown>>
@@ -95,6 +107,12 @@ const BACKEND_EVENT_TYPES = new Set<BackendEventType>([
   'tool-output',
   'tool-bundle',
   'web-search-progress',
+  'audio-chunk',
+  'wakeword-activated',
+  'wakeword-greeting',
+  'settings-loaded',
+  'settings-updated',
+  'models-listed',
   'local-user-message',
   'system-prompt',
   'user-message-full',
