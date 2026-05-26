@@ -49,6 +49,95 @@ def test_client_tool_manifest_accepts_passthrough_sidecar_tool():
     assert result.accepted_tool_schemas[0]["parameters"]["required"] == ["value"]
 
 
+def test_client_tool_manifest_accepts_flat_function_tool_schema():
+    function_schema = {
+        "type": "function",
+        "name": "client_name",
+        "description": "Client function description.",
+        "strict": True,
+        "parameters": _schema(required=["value"]),
+    }
+
+    result = validate_client_tool_manifest(
+        {
+            "tools": [
+                {
+                    "name": "manifest_name",
+                    "description": "Manifest description wins when schema is silent.",
+                    "execution_target": "sidecar",
+                    "schema": function_schema,
+                    "argument_resolution": "passthrough",
+                }
+            ]
+        }
+    )
+
+    assert result.rejected == []
+    assert result.accepted_tool_names == ["manifest_name"]
+    assert result.to_public_dict()["accepted"][0]["schema"] == function_schema
+    assert result.accepted_tool_schemas == [
+        {
+            "type": "function",
+            "name": "manifest_name",
+            "description": "Client function description.",
+            "strict": True,
+            "parameters": _schema(required=["value"]),
+        }
+    ]
+
+
+def test_client_tool_manifest_rejects_bad_flat_function_tool_schema():
+    missing_parameters = validate_client_tool_manifest(
+        {
+            "tools": [
+                {
+                    "name": "broken_function",
+                    "description": "Missing parameter schema.",
+                    "execution_target": "sidecar",
+                    "schema": {
+                        "type": "function",
+                        "name": "broken_function",
+                    },
+                    "argument_resolution": "passthrough",
+                }
+            ]
+        }
+    )
+    bad_parameters = validate_client_tool_manifest(
+        {
+            "tools": [
+                {
+                    "name": "bad_function",
+                    "description": "Unsupported nested parameter key.",
+                    "execution_target": "sidecar",
+                    "schema": {
+                        "type": "function",
+                        "name": "bad_function",
+                        "parameters": {
+                            "type": "object",
+                            "x-unsupported": True,
+                        },
+                    },
+                    "argument_resolution": "passthrough",
+                }
+            ]
+        }
+    )
+
+    assert missing_parameters.rejected == [
+        {
+            "name": "broken_function",
+            "reason": "invalid schema: function schema must include a non-empty name and parameters object",
+        }
+    ]
+    assert bad_parameters.rejected == [
+        {
+            "name": "bad_function",
+            "reason": "invalid schema: unsupported schema key 'x-unsupported'",
+        }
+    ]
+
+
 def test_client_tool_manifest_rejects_reserved_backend_tool_collision():
     result = validate_client_tool_manifest(
         {

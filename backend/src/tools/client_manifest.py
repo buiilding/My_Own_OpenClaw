@@ -57,6 +57,15 @@ ALLOWED_SCHEMA_KEYS = frozenset(
         "type",
     }
 )
+ALLOWED_FUNCTION_SCHEMA_KEYS = frozenset(
+    {
+        "description",
+        "name",
+        "parameters",
+        "strict",
+        "type",
+    }
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -217,7 +226,7 @@ def _validate_tool_entry(
     schema = raw_tool.get("schema")
     if not isinstance(schema, dict):
         return None, {"name": name, "reason": "schema must be an object"}
-    schema_error = _validate_json_schema_subset(schema)
+    schema_error = _validate_client_tool_schema(schema)
     if schema_error:
         return None, {"name": name, "reason": f"invalid schema: {schema_error}"}
 
@@ -231,6 +240,17 @@ def _validate_tool_entry(
         ),
         None,
     )
+
+
+def _validate_client_tool_schema(schema: dict[str, Any]) -> str | None:
+    if schema.get("type") != "function":
+        return _validate_json_schema_subset(schema)
+    unsupported_keys = sorted(set(schema) - ALLOWED_FUNCTION_SCHEMA_KEYS)
+    if unsupported_keys:
+        return f"unsupported function schema key {unsupported_keys[0]!r}"
+    if not is_function_tool_spec(schema):
+        return "function schema must include a non-empty name and parameters object"
+    return _validate_json_schema_subset(schema["parameters"])
 
 
 def _validate_json_schema_subset(schema: dict[str, Any]) -> str | None:
