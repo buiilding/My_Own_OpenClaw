@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/refactors: add an overhaul feature-preservation refactor plan covering
+  pill/dashboard parity, multi-chat, replay, memory, voice, tools, providers,
+  permissions, SDK extensibility, artifacts, and VM runs.
 - docs: document Python SDK websocket payload normalization for attachment
   query context, backend settings patches, and tool-result capture metadata.
 - docs: sync backend websocket schema references with generated incoming
