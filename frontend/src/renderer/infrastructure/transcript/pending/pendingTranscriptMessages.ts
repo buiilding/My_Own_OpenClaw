@@ -1,7 +1,7 @@
 import { createPendingAssistantQueue } from './pendingAssistantQueue';
 import { createPendingToolQueue } from './pendingToolQueue';
 import { createPendingUserQueue } from './pendingUserQueue';
-import { flushPendingEntries, requeuePending } from './transcriptPendingFlush';
+import { flushPendingEntries } from './transcriptPendingFlush';
 import type {
   PendingAssistantMessage,
   PendingToolMessage,
@@ -100,7 +100,7 @@ export function createPendingTranscriptMessages({
         screenshotRef: message.screenshotRef,
         transparency: message.transparency,
       }),
-      requeue: (messages) => requeuePending(messages, pendingUserQueue.enqueue),
+      requeue: (messages) => pendingUserQueue.prepend(messages),
       category: 'user',
       storeTranscriptEntry,
       warn,
@@ -123,7 +123,7 @@ export function createPendingTranscriptMessages({
         transparency: message.transparency,
         structuredPayload: message.structuredPayload,
       }),
-      requeue: (messages) => requeuePending(messages, pendingAssistantQueue.enqueue),
+      requeue: (messages) => pendingAssistantQueue.prepend(messages),
       category: 'assistant',
       storeTranscriptEntry,
       warn,
@@ -148,7 +148,7 @@ export function createPendingTranscriptMessages({
         transparency: message.transparency,
         structuredPayload: message.structuredPayload,
       }),
-      requeue: (messages) => requeuePending(messages, pendingToolQueue.enqueue),
+      requeue: (messages) => pendingToolQueue.prepend(messages),
       category: 'tool',
       storeTranscriptEntry,
       warn,

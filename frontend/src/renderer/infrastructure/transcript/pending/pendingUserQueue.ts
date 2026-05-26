@@ -3,6 +3,7 @@ import type { PendingUserMessage } from '../types';
 type PendingUserQueue = {
   size: () => number;
   enqueue: (message: PendingUserMessage) => void;
+  prepend: (messages: PendingUserMessage[]) => void;
   drain: () => PendingUserMessage[];
 };
 
@@ -13,6 +14,9 @@ export function createPendingUserQueue(): PendingUserQueue {
     size: () => pendingUserMessages.length,
     enqueue: (message: PendingUserMessage) => {
       pendingUserMessages.push(message);
+    },
+    prepend: (messages: PendingUserMessage[]) => {
+      pendingUserMessages.unshift(...messages);
     },
     drain: () => {
       if (pendingUserMessages.length === 0) {

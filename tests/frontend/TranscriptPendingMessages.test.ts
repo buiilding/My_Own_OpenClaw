@@ -78,6 +78,47 @@ describe('pendingTranscriptMessages', () => {
     expect(manager.hasPendingEntries()).toBe(false);
   });
 
+  test('requeues failed older messages ahead of messages enqueued during an in-flight flush', async () => {
+    let rejectSecondWrite: (error: Error) => void = () => undefined;
+    let secondWriteStarted: () => void = () => undefined;
+    const secondWriteStartedPromise = new Promise<void>((resolve) => {
+      secondWriteStarted = resolve;
+    });
+    const stored: string[] = [];
+    let failSecondWriteOnce = true;
+    const manager = createPendingTranscriptMessages({
+      storeTranscriptEntry: async (entry: TranscriptEntry) => {
+        if (entry.content === 'u2' && failSecondWriteOnce) {
+          secondWriteStarted();
+          try {
+            await new Promise((_resolve, reject) => {
+              rejectSecondWrite = reject;
+            });
+          } finally {
+            failSecondWriteOnce = false;
+          }
+        }
+        stored.push(String(entry.content));
+      },
+      warn: jest.fn(),
+    });
+
+    manager.queueUserMessageForRetry('u1');
+    manager.queueUserMessageForRetry('u2');
+
+    const firstFlush = manager.flushPendingMessages(readySession);
+    await secondWriteStartedPromise;
+    manager.queueUserMessageForRetry('u3');
+    rejectSecondWrite(new Error('u2 write failed'));
+    await firstFlush;
+
+    expect(stored).toEqual(['u1']);
+
+    await manager.flushPendingMessages(readySession);
+
+    expect(stored).toEqual(['u1', 'u2', 'u3']);
+  });
+
   test('preserves assistant retry structured payload through flush', async () => {
     const storedEntries: TranscriptEntry[] = [];
     const manager = createPendingTranscriptMessages({
