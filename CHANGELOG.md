@@ -7,6 +7,7 @@ All notable changes to WindieOS will be documented in this file.
 ### Changed
 
 - docs/refactors: add a current-state remaining architecture refactor plan for query prompt assembly, backend event contracts, SDK source duplication, memory/config IPC, tool manifest boundaries, and Electron bridge cleanup.
+- docs/refactors: add a chat replay send convergence plan for splitting retry/edit resend preparation from final live-turn query dispatch.
 - docs/agents: clarify that narrow refactors are the default, but agents must explicitly call out wider cross-boundary refactors when a small patch would preserve the wrong architectural owner.
 - docs/navigation: add `docs/docs.json` as validated canonical local docs navigation, add a compact docs directory, and teach the backend system prompt to route WindieOS work through local docs first.
 - docs/agents: expand `AGENTS.md` with Hermes-style project structure, dependency chains, backend agent-loop ownership, SDK architecture, and frontend runtime maps.
