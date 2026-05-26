@@ -61,7 +61,7 @@ async def register_install(
         )
 
     install_auth_service = getattr(http_request.app.state, "install_auth_service", None)
-    if install_auth_service is None:
+    if not isinstance(install_auth_service, InstallAuthService):
         raise HTTPException(status_code=503, detail="Install auth service not available")
     registered = install_auth_service.register_install(
         operating_system=request.operating_system,

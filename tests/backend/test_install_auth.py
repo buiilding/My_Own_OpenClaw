@@ -19,7 +19,7 @@ class _RegisteredInstallStub:
     install_token: str = "wnd_install_test"
 
 
-class _InstallAuthServiceStub:
+class _InstallAuthServiceStub(InstallAuthService):
     def __init__(self) -> None:
         self.calls: list[dict[str, str | None]] = []
 
@@ -28,7 +28,10 @@ class _InstallAuthServiceStub:
         return _RegisteredInstallStub()
 
 
-class _FailingInstallAuthServiceStub:
+class _FailingInstallAuthServiceStub(InstallAuthService):
+    def __init__(self) -> None:
+        pass
+
     def register_install(self, *, operating_system: str | None = None):  # noqa: ARG002
         raise RuntimeError("registration failed")
 
@@ -128,6 +131,19 @@ def test_register_install_returns_token_and_protected_route_uses_authenticated_i
 
 def test_register_install_returns_503_when_service_is_unavailable() -> None:
     app = _build_register_only_app()
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/install/register",
+            json={"operating_system": "Linux"},
+        )
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Install auth service not available"}
+
+
+def test_register_install_returns_503_when_service_is_miswired() -> None:
+    app = _build_register_only_app(object())
 
     with TestClient(app) as client:
         response = client.post(
