@@ -135,11 +135,17 @@ describe('WindieSdkClient', () => {
       token_count_error: null,
     }));
 
-    const payload: SdkPromptPreviewRequest = {
+    const payload = {
       user_query_raw: 'open file',
+      renderer_only: true,
       agent_definition: {
         id: 'custom-agent',
+        query_context: { should_not_reach_backend: true },
         system_prompt: { mode: 'replace', content: 'Custom prompt.' },
+        runtime: {
+          operating_system: 'macOS',
+          unsupported: true,
+        },
       },
       messages: [
         {
@@ -147,7 +153,7 @@ describe('WindieSdkClient', () => {
           content: '<user_query>open file</user_query>',
         },
       ],
-    };
+    } as unknown as SdkPromptPreviewRequest;
 
     const client = new WindieSdkClient({
       httpBaseUrl: 'https://api.windieos.com',
@@ -157,11 +163,25 @@ describe('WindieSdkClient', () => {
     const response = await client.promptPreview(payload);
 
     expect(response.prompt_token_count).toBe(42);
+    const promptPreviewInit = mockFetch.mock.calls[0]?.[1] as RequestInit;
+    expect(JSON.parse(String(promptPreviewInit.body))).toEqual({
+      user_query_raw: 'open file',
+      agent_definition: {
+        id: 'custom-agent',
+        system_prompt: { mode: 'replace', content: 'Custom prompt.' },
+        runtime: { operating_system: 'macOS' },
+      },
+      messages: [
+        {
+          role: 'user',
+          content: '<user_query>open file</user_query>',
+        },
+      ],
+    });
     expect(mockFetch).toHaveBeenCalledWith(
       'https://api.windieos.com/api/sdk/prompt-preview',
       expect.objectContaining({
         method: 'POST',
-        body: JSON.stringify(payload),
       }),
     );
   });
@@ -194,15 +214,22 @@ describe('WindieSdkClient', () => {
       token_count_error: null,
     }));
 
-    const payload: SdkQueryPlanRequest = {
+    const payload = {
       user_query_raw: 'open file',
       conversation_ref: 'conv-sdk',
+      turn_ref: 'turn-ui-only',
       agent_definition: {
         id: 'tui-agent',
+        tool_manifest: { should_not_reach_backend: true },
         system_prompt: { mode: 'replace', content: 'TUI prompt.' },
+        tools: {
+          mode: 'default_plus_client',
+          client_manifest: { version: 1, tools: [] },
+          client_tools: ['bad'],
+        },
       },
       messages: [],
-    };
+    } as unknown as SdkQueryPlanRequest;
 
     const client = new WindieSdkClient({
       httpBaseUrl: 'https://api.windieos.com',
@@ -218,11 +245,96 @@ describe('WindieSdkClient', () => {
         conversation_ref: 'conv-sdk',
       },
     });
+    const queryPlanInit = mockFetch.mock.calls[0]?.[1] as RequestInit;
+    expect(JSON.parse(String(queryPlanInit.body))).toEqual({
+      user_query_raw: 'open file',
+      conversation_ref: 'conv-sdk',
+      agent_definition: {
+        id: 'tui-agent',
+        system_prompt: { mode: 'replace', content: 'TUI prompt.' },
+        tools: {
+          mode: 'default_plus_client',
+          client_manifest: { version: 1, tools: [] },
+        },
+      },
+      messages: [],
+    });
     expect(mockFetch).toHaveBeenCalledWith(
       'https://api.windieos.com/api/sdk/query-plan',
       expect.objectContaining({
         method: 'POST',
-        body: JSON.stringify(payload),
+      }),
+    );
+  });
+
+  test('filters SDK HTTP route payloads before posting to strict backend models', async () => {
+    mockFetch
+      .mockResolvedValueOnce(jsonResponse({ image: {}, results: [] }) as any)
+      .mockResolvedValueOnce(jsonResponse({ image: {}, description: 'button', matches: [] }) as any)
+      .mockResolvedValueOnce(jsonResponse({ success: true, title: 'Filtered title' }) as any);
+
+    const client = new WindieSdkClient({
+      httpBaseUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+    });
+
+    await client.ocr.inspect({
+      image: {
+        artifact_id: 'artifact-1',
+        source: 'renderer-cache',
+      },
+      text: 'Submit',
+      include_overlay: true,
+      uiOnly: true,
+    } as unknown as SdkOcrInspectRequest);
+    await client.vision.locateAll({
+      image: {
+        image_base64: 'abc',
+        mime_type: 'image/png',
+      },
+      description: 'button',
+      max_results: 3,
+      trace_id: 'trace-ui-only',
+    } as unknown as SdkVisionLocateAllRequest);
+    await client.generateConversationTitle({
+      user_message: 'Hello',
+      assistant_message: 'Hi',
+      localRevisionId: 'rev-1',
+    } as unknown as SdkGenerateTitleRequest);
+
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      1,
+      'https://api.windieos.com/api/sdk/ocr/inspect',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          image: { artifact_id: 'artifact-1' },
+          text: 'Submit',
+          include_overlay: true,
+        }),
+      }),
+    );
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      2,
+      'https://api.windieos.com/api/sdk/vision/locate-all',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          image: { image_base64: 'abc' },
+          description: 'button',
+          max_results: 3,
+        }),
+      }),
+    );
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      3,
+      'https://api.windieos.com/api/semantic/title',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          user_message: 'Hello',
+          assistant_message: 'Hi',
+        }),
       }),
     );
   });

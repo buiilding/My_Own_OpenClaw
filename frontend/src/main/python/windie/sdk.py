@@ -211,6 +211,197 @@ def _normalize_backend_tool_result_data(data: dict[str, Any]) -> dict[str, Any]:
     return payload
 
 
+def _filter_image_source(value: Any) -> dict[str, Any]:
+    return _filter_keys(value, {"artifact_id", "image_base64"})
+
+
+def _filter_bounding_box(value: Any) -> dict[str, Any]:
+    return _filter_keys(value, {"x", "y", "width", "height"})
+
+
+def _filter_overlay_point(value: Any) -> dict[str, Any]:
+    return _filter_keys(value, {"x", "y", "label", "color"})
+
+
+def _filter_overlay_region(value: Any) -> dict[str, Any]:
+    return _filter_keys(value, {"x", "y", "width", "height", "label", "color"})
+
+
+def _filter_prompt_contribution(value: Any) -> dict[str, Any]:
+    return _filter_keys(value, {"id", "type", "priority", "content", "source_path"})
+
+
+def _filter_prompt_contributions(value: Any) -> list[dict[str, Any]]:
+    if not isinstance(value, list):
+        return []
+    return [_filter_prompt_contribution(item) for item in value]
+
+
+def _filter_agent_definition(value: Any) -> Optional[dict[str, Any]]:
+    if not isinstance(value, dict):
+        return None
+    filtered = _filter_keys(
+        value,
+        {
+            "version",
+            "id",
+            "name",
+            "mode",
+            "system_prompt",
+            "tools",
+            "prompt_layers",
+            "skills",
+            "agents_md",
+            "plugins",
+            "runtime",
+            "metadata",
+        },
+    )
+    if "system_prompt" in filtered:
+        filtered["system_prompt"] = _filter_keys(
+            filtered["system_prompt"], {"mode", "content"}
+        )
+    if "tools" in filtered:
+        filtered["tools"] = _filter_keys(
+            filtered["tools"],
+            {
+                "mode",
+                "client_manifest",
+                "available_tools",
+                "enabled_remote_tools",
+                "disabled_tools",
+                "disabled_capabilities",
+            },
+        )
+    if "runtime" in filtered:
+        filtered["runtime"] = _filter_keys(
+            filtered["runtime"],
+            {"operating_system", "workspace_path", "coordinate_methods"},
+        )
+    for key in ("prompt_layers", "skills", "agents_md"):
+        if key in filtered:
+            filtered[key] = _filter_prompt_contributions(filtered[key])
+    if isinstance(filtered.get("plugins"), list):
+        plugins: list[dict[str, Any]] = []
+        for plugin in filtered["plugins"]:
+            next_plugin = _filter_keys(
+                plugin, {"id", "name", "version", "prompt_layers", "metadata"}
+            )
+            if "prompt_layers" in next_plugin:
+                next_plugin["prompt_layers"] = _filter_prompt_contributions(
+                    next_plugin["prompt_layers"]
+                )
+            plugins.append(next_plugin)
+        filtered["plugins"] = plugins
+    return filtered
+
+
+def _filter_prompt_debug_payload(
+    payload: Any, *, include_conversation_ref: bool
+) -> dict[str, Any]:
+    allowed_keys = {
+        "user_id",
+        "model_id",
+        "model_provider",
+        "interaction_mode",
+        "include_tools",
+        "workspace_path",
+        "agent_definition",
+        "user_query_raw",
+        "messages",
+    }
+    if include_conversation_ref:
+        allowed_keys.add("conversation_ref")
+    filtered = _filter_keys(payload, allowed_keys)
+    if "agent_definition" in filtered:
+        agent_definition = _filter_agent_definition(filtered["agent_definition"])
+        if agent_definition is not None:
+            filtered["agent_definition"] = agent_definition
+        else:
+            filtered.pop("agent_definition", None)
+    return filtered
+
+
+def _filter_sdk_http_payload(path: str, payload: Any) -> Any:
+    def with_image(allowed_keys: set[str]) -> dict[str, Any]:
+        filtered = _filter_keys(payload, allowed_keys)
+        if "image" in filtered:
+            filtered["image"] = _filter_image_source(filtered["image"])
+        return filtered
+
+    if path.startswith("/api/sdk/ocr/"):
+        if path == "/api/sdk/ocr/run":
+            return with_image({"image"})
+        if path == "/api/sdk/ocr/resolve-candidate":
+            return with_image({"image", "candidate_id"})
+        if path == "/api/sdk/ocr/overlay":
+            return with_image(
+                {
+                    "image",
+                    "text",
+                    "candidate_id",
+                    "threshold",
+                    "max_results",
+                    "show_labels",
+                }
+            )
+        if path == "/api/sdk/ocr/inspect":
+            return with_image(
+                {
+                    "image",
+                    "text",
+                    "threshold",
+                    "max_results",
+                    "include_overlay",
+                    "show_labels",
+                }
+            )
+        return with_image({"image", "text", "threshold", "max_results"})
+    if path == "/api/sdk/vision/locate":
+        return with_image({"image", "description"})
+    if path == "/api/sdk/vision/locate-all":
+        return with_image({"image", "description", "max_results"})
+    if path == "/api/sdk/vision/describe":
+        filtered = with_image({"image", "region"})
+        if "region" in filtered:
+            filtered["region"] = _filter_bounding_box(filtered["region"])
+        return filtered
+    if path == "/api/sdk/vision/overlay":
+        filtered = with_image({"image", "result", "show_labels"})
+        result = _filter_keys(filtered.get("result"), {"image", "points", "regions"})
+        if "image" in result:
+            result["image"] = _filter_keys(
+                result["image"],
+                {"source_id", "artifact_id", "content_type", "width", "height"},
+            )
+        if isinstance(result.get("points"), list):
+            result["points"] = [
+                _filter_overlay_point(item) for item in result["points"]
+            ]
+        if isinstance(result.get("regions"), list):
+            result["regions"] = [
+                _filter_overlay_region(item) for item in result["regions"]
+            ]
+        filtered["result"] = result
+        return filtered
+    if path == "/api/sdk/prompt-preview":
+        return _filter_prompt_debug_payload(payload, include_conversation_ref=False)
+    if path == "/api/sdk/query-plan":
+        return _filter_prompt_debug_payload(payload, include_conversation_ref=True)
+    if path == "/api/semantic/title":
+        return _filter_keys(
+            payload,
+            {
+                "user_id",
+                "user_message",
+                "assistant_message",
+                "model_id",
+                "model_provider",
+            },
+        )
+    return payload
+
+
 def _build_manifest_tool(tool: dict[str, Any]) -> dict[str, Any]:
     return {
         "name": tool.get("name"),
@@ -940,11 +1131,18 @@ class WindieSdkClient(RemoteApiClientBase):
         if not self._session:
             await self.initialize()
 
-        sanitized_payload = (
-            sanitize_surrogates(payload) if isinstance(payload, dict) else None
-        )
         last_network_error: Optional[Exception] = None
         method_name = method.lower().strip()
+        normalized_payload = (
+            _filter_sdk_http_payload(path, payload)
+            if method_name == "post"
+            else payload
+        )
+        sanitized_payload = (
+            sanitize_surrogates(normalized_payload)
+            if isinstance(normalized_payload, dict)
+            else None
+        )
         for index, backend_url in enumerate(self.backend_urls):
             try:
                 request_url = f"{backend_url}{path}"

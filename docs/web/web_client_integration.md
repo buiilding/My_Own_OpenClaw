@@ -25,9 +25,11 @@ WindieOS hosted clients talk directly to the backend. They do not use Electron I
 2. Confirm auth model: install token, runs API key, or unauthenticated registration.
 3. Confirm endpoint base URL and websocket URL.
 4. Add typed request/response handling in the client.
-5. Update [HTTP and WebSocket API Surface](../reference/http_api_surface.md) when routes change.
-6. Add backend route/schema tests and client tests.
-7. Document whether the client can run outside Electron.
+5. Filter hosted client POST payloads to the route-owned request model before
+   JSON serialization when the backend Pydantic model forbids extras.
+6. Update [HTTP and WebSocket API Surface](../reference/http_api_surface.md) when routes change.
+7. Add backend route/schema tests and client tests.
+8. Document whether the client can run outside Electron.
 
 ## Boundary Rules
 

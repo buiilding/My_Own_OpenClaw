@@ -193,6 +193,116 @@ async def test_get_query_plan_posts_payload_and_returns_json():
 
 
 @pytest.mark.asyncio
+async def test_sdk_http_requests_filter_strict_backend_payloads():
+    response = DummyResponse(
+        200,
+        json_data={
+            "query_message": {"type": "query", "payload": {"text": "open file"}},
+            "transparency_events": [],
+        },
+    )
+    session = DummySession(response=response)
+    client = WindieSdkClient(backend_url="http://localhost:8765")
+    client._session = session
+
+    payload = {
+        "user_query_raw": "open file",
+        "conversation_ref": "conv-sdk",
+        "turn_ref": "turn-ui-only",
+        "messages": [],
+        "agent_definition": {
+            "id": "python-agent",
+            "query_context": {"should_not_reach_backend": True},
+            "system_prompt": {
+                "mode": "replace",
+                "content": "Python prompt.",
+                "source": "ui",
+            },
+            "tools": {
+                "mode": "default_plus_client",
+                "client_manifest": {"version": 1, "tools": []},
+                "client_tools": ["bad"],
+            },
+            "runtime": {
+                "operating_system": "macOS",
+                "unsupported": True,
+            },
+        },
+    }
+
+    await client.get_query_plan(payload)
+
+    _, posted_payload, _, _, _ = session.last_post
+    assert posted_payload == {
+        "user_query_raw": "open file",
+        "conversation_ref": "conv-sdk",
+        "messages": [],
+        "agent_definition": {
+            "id": "python-agent",
+            "system_prompt": {
+                "mode": "replace",
+                "content": "Python prompt.",
+            },
+            "tools": {
+                "mode": "default_plus_client",
+                "client_manifest": {"version": 1, "tools": []},
+            },
+            "runtime": {"operating_system": "macOS"},
+        },
+    }
+
+
+@pytest.mark.asyncio
+async def test_sdk_http_ocr_vision_and_title_payloads_drop_unknown_fields():
+    response = DummyResponse(200, json_data={"success": True})
+    session = DummySession(response=response)
+    client = WindieSdkClient(backend_url="http://localhost:8765")
+    client._session = session
+
+    await client.ocr_inspect(
+        {
+            "image": {"artifact_id": "artifact-1", "source": "renderer-cache"},
+            "text": "Submit",
+            "include_overlay": True,
+            "ui_only": True,
+        }
+    )
+    assert session.last_post[1] == {
+        "image": {"artifact_id": "artifact-1"},
+        "text": "Submit",
+        "include_overlay": True,
+    }
+
+    await client.vision_locate_all(
+        {
+            "image": {"image_base64": "abc", "mime_type": "image/png"},
+            "description": "button",
+            "max_results": 3,
+            "trace_id": "trace-ui-only",
+        }
+    )
+    assert session.last_post[1] == {
+        "image": {"image_base64": "abc"},
+        "description": "button",
+        "max_results": 3,
+    }
+
+    await client.request_json(
+        method="post",
+        path="/api/semantic/title",
+        payload={
+            "user_message": "Hello",
+            "assistant_message": "Hi",
+            "local_revision_id": "rev-1",
+        },
+    )
+    assert session.last_post[1] == {
+        "user_message": "Hello",
+        "assistant_message": "Hi",
+    }
+
+
+@pytest.mark.asyncio
 async def test_upload_artifact_uses_artifact_endpoint(monkeypatch):
     monkeypatch.setattr(windie_sdk_client_module.aiohttp, "FormData", FakeFormData)
     session = DummyArtifactSession(

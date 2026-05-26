@@ -23,6 +23,9 @@ All notable changes to WindieOS will be documented in this file.
 - sdk/js: normalize direct TypeScript SDK websocket payloads so standalone agent
   sessions use `query_context`, drop unsupported command fields, and sanitize
   strict settings and tool-result metadata like the Electron-hosted runtime.
+- sdk/clients: filter TypeScript and Python hosted SDK HTTP request payloads
+  against route-owned backend contracts before posting OCR, vision,
+  prompt-preview, query-plan, and title requests.
 - docs: sync backend websocket schema references with generated incoming
   contract keys for query, rehydrate, compact-history, tool-result, and
   tool-bundle-result payloads.

@@ -41,7 +41,10 @@ Ownership rules:
   claimed backend tool event.
 - the SDK hosted HTTP transport owns model listing, prompt/query-plan
   introspection, artifact upload URLs, OCR routes, and vision routes exposed to
-  public SDK callers.
+  public SDK callers. TypeScript and Python hosted clients filter POST payloads
+  to the backend route models before JSON serialization so caller-local UI,
+  replay, tracing, and compatibility fields do not reach strict Pydantic
+  request contracts.
 - the SDK local-runtime module owns sidecar daemon HTTP calls, daemon discovery,
   auto-start/reuse, sidecar event subscriptions, sidecar-backed conversation
   storage, builtin desktop tool selection, memory/title RPC helpers, and
