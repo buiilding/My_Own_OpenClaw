@@ -233,6 +233,23 @@ const COMPILED_RPC_HANDLER_DEFINITIONS = [
     }),
   },
   {
+    channel: 'rewrite-chat-conversation-after-event',
+    method: 'rewrite_chat_conversation_after_event',
+    mapParams: createPayloadMapper({
+      user_id: 'userId',
+      conversation_id: ({ conversationId }) => conversationId ?? null,
+      record_kind: 'recordKind',
+      cut_after_event_id: ({ cutAfterEventId }) => cutAfterEventId ?? null,
+      revision_id: 'revisionId',
+      revision_updated_at: 'revisionUpdatedAt',
+      event: ({ event }) => (
+        event && typeof event === 'object' && !Array.isArray(event)
+          ? mapChatEventWritePayload(event)
+          : null
+      ),
+    }),
+  },
+  {
     channel: 'list-chat-conversations',
     method: 'list_chat_conversations',
     mapParams: createPayloadMapper({

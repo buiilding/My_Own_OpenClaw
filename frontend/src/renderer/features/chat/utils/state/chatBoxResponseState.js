@@ -314,10 +314,16 @@ export function replaceCurrentTurnMessagesWithProjection(messages, currentTurnPr
     return projectedAssistantMessages;
   }
   const turnRef = currentTurnProjection?.turnRef;
-  const nextTail = sourceMessages.slice(anchorIndex + 1).filter((message) => (
-    message?.sender !== 'assistant'
-    || (turnRef && message.turnRef && message.turnRef !== turnRef)
-  ));
+  const projectedIds = new Set(projectedAssistantMessages.map((message) => message.id).filter(Boolean));
+  const nextTail = sourceMessages.slice(anchorIndex + 1).filter((message) => {
+    if (projectedIds.has(message?.id)) {
+      return false;
+    }
+    return (
+      message?.sender !== 'assistant'
+      || (turnRef && message.turnRef && message.turnRef !== turnRef)
+    );
+  });
   return [
     ...sourceMessages.slice(0, anchorIndex + 1),
     ...projectedAssistantMessages,

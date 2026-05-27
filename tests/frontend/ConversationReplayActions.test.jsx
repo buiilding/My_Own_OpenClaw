@@ -151,21 +151,12 @@ describe('useConversationReplayActions', () => {
       userId: 'user-1',
       messageId: 'assistant-1',
       text: 'first question',
-      projectionEntries: expect.arrayContaining([
-        expect.objectContaining({
-          messageId: 'user-1',
-          content: 'first question',
-        }),
-        expect.objectContaining({
-          messageId: 'assistant-1',
-          content: 'first answer',
-        }),
-      ]),
       model: {
         modelProvider: 'anthropic',
         modelId: 'claude-sonnet-4-5',
       },
     }));
+    expect(mockPrepareRetryTurn.mock.calls[0][0]).not.toHaveProperty('projectionEntries');
     expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
       conversationRef: 'conv-existing',
       text: 'first question',
@@ -208,12 +199,6 @@ describe('useConversationReplayActions', () => {
     });
 
     expect(mockPrepareRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
-      projectionEntries: expect.arrayContaining([
-        expect.objectContaining({
-          content: 'question with inline screenshot',
-          screenshot: inlineScreenshot,
-        }),
-      ]),
       payload: expect.objectContaining({
         screenshot_ref: null,
         screenshot_url: null,
@@ -221,6 +206,7 @@ describe('useConversationReplayActions', () => {
         screenshot: inlineScreenshot,
       }),
     }));
+    expect(mockPrepareRetryTurn.mock.calls[0][0]).not.toHaveProperty('projectionEntries');
     expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
       screenshot: inlineScreenshot,
     }));
@@ -255,12 +241,6 @@ describe('useConversationReplayActions', () => {
     });
 
     expect(mockPrepareRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
-      projectionEntries: expect.arrayContaining([
-        expect.objectContaining({
-          content: 'question with url screenshot',
-          screenshot: 'artifact-99',
-        }),
-      ]),
       payload: expect.objectContaining({
         screenshot_ref: 'artifact-99',
         screenshot_url: 'http://127.0.0.1:8765/api/artifacts/artifact-99',
@@ -268,6 +248,7 @@ describe('useConversationReplayActions', () => {
         screenshot: null,
       }),
     }));
+    expect(mockPrepareRetryTurn.mock.calls[0][0]).not.toHaveProperty('projectionEntries');
     expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
       screenshotRef: 'artifact-99',
       screenshotUrl: 'http://127.0.0.1:8765/api/artifacts/artifact-99',

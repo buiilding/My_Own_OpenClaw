@@ -604,6 +604,59 @@ class LocalBackendMemoryHandlersMixin:
             return {"success": False, "error": str(e)}
 
     @requires_memory_store
+    async def _handle_rewrite_chat_conversation_after_event(
+        self,
+        user_id: str = "default_user",
+        conversation_id: Optional[str] = None,
+        cut_after_event_id: Optional[str] = None,
+        event: Optional[Dict[str, Any]] = None,
+        revision_id: Optional[str] = None,
+        revision_updated_at: Optional[str] = None,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        if not conversation_id:
+            return {"success": False, "error": "conversation_id is required"}
+        if not isinstance(event, dict):
+            return {"success": False, "error": "event is required"}
+        normalized_event = self._normalize_chat_event_write(event)
+        if normalized_event is None or not normalized_event["event_type"]:
+            return {
+                "success": False,
+                "error": "event requires event_type and event_payload",
+            }
+
+        try:
+            result = await self.memory_store.rewrite_chat_conversation_after_event(
+                user_id=sanitize_surrogates_in_text(user_id),
+                conversation_id=sanitize_surrogates_in_text(conversation_id),
+                cut_after_event_id=(
+                    sanitize_surrogates_in_text(cut_after_event_id)
+                    if cut_after_event_id
+                    else None
+                ),
+                event=normalized_event,
+                revision_id=(
+                    sanitize_surrogates_in_text(revision_id) if revision_id else None
+                ),
+                revision_updated_at=(
+                    sanitize_surrogates_in_text(revision_updated_at)
+                    if revision_updated_at
+                    else None
+                ),
+            )
+            return {
+                "success": True,
+                "data": {
+                    **result,
+                    "conversation_id": conversation_id,
+                    "record_kind": "chat_event",
+                },
+            }
+        except Exception as e:
+            logger.error(f"Chat conversation cutoff rewrite failed: {e}", exc_info=True)
+            return {"success": False, "error": str(e)}
+
+    @requires_memory_store
     async def _handle_get_chat_conversation_revision(
         self,
         user_id: str = "default_user",

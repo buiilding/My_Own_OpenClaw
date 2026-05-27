@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: move retry and edit/resend transcript cuts to a compact
+  sidecar-owned rewrite RPC so large chats no longer resend a copied shortened
+  transcript through one renderer-to-sidecar payload, and dedupe same-turn
+  assistant projections to avoid duplicate React message keys.
 - backend/tools: mark grounded mouse and scroll helpers as backend-only
   model-visible tools so client manifests cannot claim non-executable helper
   names and sidecar parity checks compare only sidecar-executable built-ins.

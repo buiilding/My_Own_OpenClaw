@@ -83,9 +83,32 @@ describe('DesktopConversationContinuityService', () => {
     }
   });
 
-  test('prepareEditAndResend seeds replay rows and rehydrates without sending', async () => {
+  test('prepareEditAndResend cuts canonical sidecar rows and rehydrates without sending', async () => {
     const send = jest.fn();
-    const invoke = jest.fn(async () => ({ ok: true, messageId: 'query-1' }));
+    const invoke = jest.fn(async (channel) => {
+      if (channel === 'get-chat-events') {
+        return {
+          success: true,
+          data: {
+            events: [{
+              event_payload: {
+                type: 'user_message',
+                eventId: 'user-1',
+                conversationRef: 'conv-replay',
+                revisionId: 'rev-1',
+                timestamp: '2026-05-17T12:00:00.000Z',
+                source: 'ui',
+                payload: {
+                  id: 'user-1',
+                  text: 'old question',
+                },
+              },
+            }],
+          },
+        };
+      }
+      return { success: true, data: { message_index: 1 } };
+    });
     const originalIpc = window.ipc;
     window.ipc = {
       send,
@@ -93,20 +116,6 @@ describe('DesktopConversationContinuityService', () => {
       on: jest.fn(),
       once: jest.fn(),
     };
-    const store = createSeededStore([
-      {
-        type: 'user_message',
-        eventId: 'user-1',
-        conversationRef: 'conv-replay',
-        revisionId: 'rev-1',
-        source: 'ui',
-        payload: {
-          id: 'user-1',
-          text: 'old question',
-        },
-      },
-    ]);
-    mockCreateSeededConversationStore.mockResolvedValueOnce(store);
     const { DesktopConversationContinuityService } = require(
       '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService',
     );
@@ -117,26 +126,18 @@ describe('DesktopConversationContinuityService', () => {
         userId: 'user-1',
         messageId: 'user-1',
         text: 'edited question',
-        projectionEntries: [
-          { messageId: 'user-1', role: 'user', content: 'old question' },
-        ],
         payload: {
           screenshot_ref: 'artifact-1',
         },
         workspacePath: '/repo',
       });
 
-      expect(mockCreateSeededConversationStore).toHaveBeenCalledWith({
-        conversationRef: 'conv-replay',
-        userId: 'user-1',
-        projectionEntries: [
-          { messageId: 'user-1', role: 'user', content: 'old question' },
-        ],
-      });
-      expect(store.rewriteConversation).toHaveBeenCalledWith(expect.objectContaining({
-        conversationRef: 'conv-replay',
-        reason: 'edit_resend',
-        replacementUserMessage: { text: 'edited question' },
+      expect(invoke).toHaveBeenCalledWith('rewrite-chat-conversation-after-event', expect.objectContaining({
+        conversationId: 'conv-replay',
+        cutAfterEventId: null,
+        event: expect.objectContaining({
+          eventType: 'conversation_rewritten',
+        }),
       }));
       expect(send).toHaveBeenCalledWith('to-backend', expect.objectContaining({
         type: 'rehydrate',
@@ -155,9 +156,48 @@ describe('DesktopConversationContinuityService', () => {
     }
   });
 
-  test('prepareRetryTurn seeds replay rows and rehydrates without sending', async () => {
+  test('prepareRetryTurn cuts canonical sidecar rows and rehydrates without sending', async () => {
     const send = jest.fn();
-    const invoke = jest.fn(async () => ({ ok: true, messageId: 'query-1' }));
+    const invoke = jest.fn(async (channel) => {
+      if (channel === 'get-chat-events') {
+        return {
+          success: true,
+          data: {
+            events: [
+              {
+                event_payload: {
+                  type: 'user_message',
+                  eventId: 'user-1',
+                  conversationRef: 'conv-retry',
+                  revisionId: 'rev-1',
+                  timestamp: '2026-05-17T12:00:00.000Z',
+                  source: 'ui',
+                  payload: {
+                    id: 'user-1',
+                    text: 'retry question',
+                  },
+                },
+              },
+              {
+                event_payload: {
+                  type: 'assistant_message',
+                  eventId: 'assistant-1',
+                  conversationRef: 'conv-retry',
+                  revisionId: 'rev-1',
+                  timestamp: '2026-05-17T12:01:00.000Z',
+                  source: 'backend',
+                  payload: {
+                    id: 'assistant-1',
+                    text: 'old answer',
+                  },
+                },
+              },
+            ],
+          },
+        };
+      }
+      return { success: true, data: { message_index: 1 } };
+    });
     const originalIpc = window.ipc;
     window.ipc = {
       send,
@@ -165,31 +205,6 @@ describe('DesktopConversationContinuityService', () => {
       on: jest.fn(),
       once: jest.fn(),
     };
-    const store = createSeededStore([
-      {
-        type: 'user_message',
-        eventId: 'user-1',
-        conversationRef: 'conv-retry',
-        revisionId: 'rev-1',
-        source: 'ui',
-        payload: {
-          id: 'user-1',
-          text: 'retry question',
-        },
-      },
-      {
-        type: 'assistant_message',
-        eventId: 'assistant-1',
-        conversationRef: 'conv-retry',
-        revisionId: 'rev-1',
-        source: 'backend',
-        payload: {
-          id: 'assistant-1',
-          text: 'old answer',
-        },
-      },
-    ]);
-    mockCreateSeededConversationStore.mockResolvedValueOnce(store);
     const { DesktopConversationContinuityService } = require(
       '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService',
     );
@@ -199,28 +214,18 @@ describe('DesktopConversationContinuityService', () => {
         conversationRef: 'conv-retry',
         userId: 'user-1',
         messageId: 'assistant-1',
-        projectionEntries: [
-          { messageId: 'user-1', role: 'user', content: 'retry question' },
-          { messageId: 'assistant-1', role: 'assistant', content: 'old answer' },
-        ],
         payload: {
           screenshot_ref: null,
         },
         workspacePath: '/repo',
       });
 
-      expect(mockCreateSeededConversationStore).toHaveBeenCalledWith({
-        conversationRef: 'conv-retry',
-        userId: 'user-1',
-        projectionEntries: [
-          { messageId: 'user-1', role: 'user', content: 'retry question' },
-          { messageId: 'assistant-1', role: 'assistant', content: 'old answer' },
-        ],
-      });
-      expect(store.rewriteConversation).toHaveBeenCalledWith(expect.objectContaining({
-        conversationRef: 'conv-retry',
-        reason: 'retry',
-        replacementUserMessage: { text: 'retry question' },
+      expect(invoke).toHaveBeenCalledWith('rewrite-chat-conversation-after-event', expect.objectContaining({
+        conversationId: 'conv-retry',
+        cutAfterEventId: null,
+        event: expect.objectContaining({
+          eventType: 'conversation_rewritten',
+        }),
       }));
       expect(send).toHaveBeenCalledWith('to-backend', expect.objectContaining({
         type: 'rehydrate',

@@ -1485,14 +1485,8 @@ describe('ChatInterface wiring', () => {
       conversationRef: 'conv_existing',
       userId: 'default_user',
       text: 'create a dashboard for this',
-      projectionEntries: expect.arrayContaining([
-        expect.objectContaining({
-          content: 'create a dashboard for this',
-          role: 'user',
-          messageType: 'user',
-        }),
-      ]),
     }));
+    expect(retryPayload).not.toHaveProperty('projectionEntries');
     expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
       conversationRef: 'conv_existing',
       text: 'create a dashboard for this',
@@ -1524,14 +1518,8 @@ describe('ChatInterface wiring', () => {
       userId: 'default_user',
       messageId: 'user-1',
       text: 'new prompt',
-      projectionEntries: expect.arrayContaining([
-        expect.objectContaining({
-          content: 'old prompt',
-          role: 'user',
-          messageType: 'user',
-        }),
-      ]),
     }));
+    expect(editPayload).not.toHaveProperty('projectionEntries');
     expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
       conversationRef: 'conv_existing',
       text: 'new prompt',

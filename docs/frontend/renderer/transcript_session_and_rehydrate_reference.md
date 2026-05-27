@@ -247,9 +247,11 @@ Dashboard startup and open-chat loading also use the SDK store adapter:
   `DesktopConversationContinuityService.editAndResend(...)` and
   `DesktopConversationContinuityService.retryTurn(...)`. The hook identifies the
   clicked message and sets the optimistic display projection, while the desktop
-  continuity runtime seeds current display rows into the desktop conversation
-  store factory and delegates revision cutting, rehydrate generation, model
-  sync, and query send to `SdkConversationRuntime`.
+  continuity runtime loads canonical sidecar chat events through the desktop
+  conversation store factory and delegates revision cutting, rehydrate
+  generation, model sync, and query send to `SdkConversationRuntime`. Retry and
+  edit/resend rewrites use a compact sidecar cutoff RPC instead of sending a
+  copied shortened transcript back to the sidecar.
 - compacted replay replacement appends a new generation with
   `replay_generation_entry_count` and `replay_generation_complete` metadata.
   Loaders select the newest complete generation and ignore partial writes, so a

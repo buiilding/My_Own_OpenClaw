@@ -21,10 +21,6 @@ import { createDesktopBackendTransport } from './desktopBackendTransport';
 import { DesktopLocalRuntimeEventSource } from './desktopLocalRuntimeEventSource';
 import { createIpcSidecarConversationStore } from '../../infrastructure/transcript/sdkSidecarConversationStore';
 import type { LocalConversationSnapshot } from '../../infrastructure/transcript/conversationLocalSnapshotLoader';
-import {
-  DesktopTranscriptProjectionRuntimeClient,
-  type TranscriptProjectionRewriteEntry,
-} from './desktopTranscriptProjectionRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 
 export type { RehydrateConversationEntry };
@@ -67,7 +63,6 @@ type RewriteAndResendInput = {
   userId: string;
   messageId: string;
   text?: string;
-  projectionEntries: TranscriptProjectionRewriteEntry[];
   payload?: JsonRecord;
   model?: WindieModelSelection | null;
   workspacePath?: string | null;
@@ -112,14 +107,9 @@ class StaticRehydrateConversationStore extends InMemoryConversationStore {
 async function createSeededConversationRuntime({
   conversationRef,
   userId,
-  projectionEntries,
   workspacePath,
-}: Pick<RewriteAndResendInput, 'conversationRef' | 'userId' | 'projectionEntries' | 'workspacePath'>) {
-  const store = await DesktopTranscriptProjectionRuntimeClient.createSeededConversationStore({
-    conversationRef,
-    userId,
-    projectionEntries,
-  });
+}: Pick<RewriteAndResendInput, 'conversationRef' | 'userId' | 'workspacePath'>) {
+  const store = createDesktopConversationStore(userId);
   const runtime = createConversationRuntime({
     conversationRef,
     store,

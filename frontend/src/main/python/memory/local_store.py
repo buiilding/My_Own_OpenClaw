@@ -47,6 +47,7 @@ from memory.chat_event_store import (
     init_chat_event_schema,
     list_chat_conversations,
     replace_chat_conversation,
+    rewrite_chat_conversation_after_event,
     search_chat_conversations,
 )
 from memory.conversation_semanticization_runtime import (
@@ -1640,6 +1641,44 @@ class LocalMemoryStore:
                     else {}
                 ),
             )
+        return result
+
+    async def rewrite_chat_conversation_after_event(
+        self,
+        *,
+        user_id: str,
+        conversation_id: Optional[str],
+        cut_after_event_id: Optional[str],
+        event: Dict[str, Any],
+        revision_id: Optional[str] = None,
+        revision_updated_at: Optional[str] = None,
+    ) -> Dict[str, int]:
+        result = await rewrite_chat_conversation_after_event(
+            db_path=self.episodic_db_path,
+            user_id=user_id,
+            conversation_id=conversation_id,
+            cut_after_event_id=cut_after_event_id,
+            event=event,
+            revision_id=revision_id,
+            revision_updated_at=revision_updated_at,
+        )
+        self._schedule_conversation_title_generation(
+            user_id=user_id,
+            conversation_id=conversation_id,
+            role=event.get("role"),
+            event_type=str(event.get("event_type") or ""),
+            content=str(event.get("content") or ""),
+            metadata=(
+                event.get("metadata")
+                if isinstance(event.get("metadata"), dict)
+                else {}
+            ),
+            event_payload=(
+                event.get("event_payload")
+                if isinstance(event.get("event_payload"), dict)
+                else {}
+            ),
+        )
         return result
 
     async def get_chat_conversation_revision(

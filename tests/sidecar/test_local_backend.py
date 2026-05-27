@@ -113,6 +113,27 @@ class DummyMemoryStore:
         )
         return {"deleted_count": 2, "inserted_count": len(events)}
 
+    async def rewrite_chat_conversation_after_event(
+        self,
+        user_id,
+        conversation_id,
+        cut_after_event_id,
+        event,
+        revision_id=None,
+        revision_updated_at=None,
+    ):
+        self.replaced_chat_conversation_calls.append(
+            (
+                user_id,
+                conversation_id,
+                cut_after_event_id,
+                event,
+                revision_id,
+                revision_updated_at,
+            )
+        )
+        return {"deleted_count": 1, "inserted_count": 1}
+
     async def get_chat_conversation_revision(self, user_id, conversation_id):
         return {
             "conversation_id": conversation_id,
@@ -1339,6 +1360,52 @@ async def test_handle_replace_chat_conversation_uses_atomic_store_replace():
             "2026-05-17T12:00:01+00:00",
         )
     ]
+
+
+@pytest.mark.asyncio
+async def test_handle_rewrite_chat_conversation_after_event_uses_cutoff_store_rewrite():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStore()
+
+    result = await backend._handle_rewrite_chat_conversation_after_event(
+        user_id="user-1",
+        conversation_id="conv-chat",
+        cut_after_event_id="evt-user",
+        revision_id="rev-next",
+        revision_updated_at="2026-05-17T12:00:01+00:00",
+        event={
+            "event_type": "conversation_rewritten",
+            "role": "assistant",
+            "content": "[sdk event: conversation_rewritten]",
+            "timestamp": "2026-05-17T12:00:01+00:00",
+            "revision_id": "rev-next",
+            "event_payload": {
+                "eventId": "evt-rewrite",
+                "type": "conversation_rewritten",
+                "conversationRef": "conv-chat",
+                "revisionId": "rev-next",
+                "timestamp": "2026-05-17T12:00:01+00:00",
+                "source": "sdk",
+                "payload": {"reason": "edit_resend"},
+            },
+        },
+    )
+
+    assert result == {
+        "success": True,
+        "data": {
+            "deleted_count": 1,
+            "inserted_count": 1,
+            "conversation_id": "conv-chat",
+            "record_kind": "chat_event",
+        },
+    }
+    call = backend.memory_store.replaced_chat_conversation_calls[0]
+    assert call[0] == "user-1"
+    assert call[1] == "conv-chat"
+    assert call[2] == "evt-user"
+    assert call[3]["event_type"] == "conversation_rewritten"
+    assert call[4] == "rev-next"
 
 
 @pytest.mark.asyncio

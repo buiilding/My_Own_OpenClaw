@@ -8,6 +8,7 @@ import { IpcBridge, INVOKE_CHANNELS } from '../ipc/bridge';
 const RPC_METHOD_CHANNELS = {
   store_chat_event: INVOKE_CHANNELS.STORE_CHAT_EVENT,
   replace_chat_conversation: INVOKE_CHANNELS.REPLACE_CHAT_CONVERSATION,
+  rewrite_chat_conversation_after_event: INVOKE_CHANNELS.REWRITE_CHAT_CONVERSATION_AFTER_EVENT,
   list_chat_conversations: INVOKE_CHANNELS.LIST_CHAT_CONVERSATIONS,
   search_chat_conversations: INVOKE_CHANNELS.SEARCH_CHAT_CONVERSATIONS,
   get_chat_events: INVOKE_CHANNELS.GET_CHAT_EVENTS,
@@ -69,6 +70,18 @@ function toIpcPayload(method: SupportedRpcMethod, params: JsonRecord = {}): Json
             ))
             .map(event => chatEventWriteToIpcPayload(event))
           : [],
+      };
+    case 'rewrite_chat_conversation_after_event':
+      return {
+        userId: params.user_id,
+        conversationId: params.conversation_id,
+        recordKind: params.record_kind,
+        cutAfterEventId: params.cut_after_event_id,
+        revisionId: params.revision_id,
+        revisionUpdatedAt: params.revision_updated_at,
+        event: params.event && typeof params.event === 'object' && !Array.isArray(params.event)
+          ? chatEventWriteToIpcPayload(params.event as JsonRecord)
+          : null,
       };
     case 'list_chat_conversations':
       return {

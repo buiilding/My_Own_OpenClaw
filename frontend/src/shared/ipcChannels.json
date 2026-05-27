@@ -27,6 +27,7 @@
     "CLEAR_CHAT_HISTORY": "clear-chat-history",
     "STORE_CHAT_EVENT": "store-chat-event",
     "REPLACE_CHAT_CONVERSATION": "replace-chat-conversation",
+    "REWRITE_CHAT_CONVERSATION_AFTER_EVENT": "rewrite-chat-conversation-after-event",
     "LIST_CHAT_CONVERSATIONS": "list-chat-conversations",
     "SEARCH_CHAT_CONVERSATIONS": "search-chat-conversations",
     "GET_CHAT_EVENTS": "get-chat-events",

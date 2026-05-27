@@ -3,6 +3,7 @@ import {
   buildCurrentTurnResponseOverlayEntries,
   isResponseCloseable,
   normalizeThinkingText,
+  replaceCurrentTurnMessagesWithProjection,
   resolveSourceTagForResponse,
   shouldRenderResponseMarkdown,
 } from '../../frontend/src/renderer/features/chat/utils/state/chatBoxResponseState';
@@ -70,7 +71,10 @@ describe('chatBoxResponseState', () => {
         toolName: 'read_file',
         text: 'Reading README.md',
         status: null,
-        payload: { toolName: 'read_file' },
+        payload: {
+          toolName: 'read_file',
+          args: { explanation: 'Reading README.md' },
+        },
       }],
     });
 
@@ -80,5 +84,31 @@ describe('chatBoxResponseState', () => {
         text: 'Reading README.md',
       }),
     ]);
+  });
+
+  test('replaceCurrentTurnMessagesWithProjection removes stale same-id assistant rows', () => {
+    const messages = replaceCurrentTurnMessagesWithProjection([
+      { id: 'user-1', sender: 'user', text: 'hello', turnRef: 'turn-1' },
+      {
+        id: 'conv-1:turn-1:assistant',
+        sender: 'assistant',
+        text: 'old partial',
+        type: 'llm-text',
+      },
+    ], {
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'streaming',
+      assistantText: 'new partial',
+      reasoningText: null,
+      lastError: null,
+      toolEvents: [],
+    });
+
+    expect(messages.filter((message) => message.id === 'conv-1:turn-1:assistant')).toHaveLength(1);
+    expect(messages[1]).toEqual(expect.objectContaining({
+      id: 'conv-1:turn-1:assistant',
+      text: 'new partial',
+    }));
   });
 });

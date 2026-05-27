@@ -20,6 +20,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     GET_CHAT_CONVERSATION_REVISION: 'get-chat-conversation-revision',
     LIST_CHAT_CONVERSATIONS: 'list-chat-conversations',
     REPLACE_CHAT_CONVERSATION: 'replace-chat-conversation',
+    REWRITE_CHAT_CONVERSATION_AFTER_EVENT: 'rewrite-chat-conversation-after-event',
     SEARCH_CHAT_CONVERSATIONS: 'search-chat-conversations',
     STORE_CHAT_EVENT: 'store-chat-event',
   },
@@ -445,40 +446,46 @@ describe('desktop conversation store factory', () => {
     }));
   });
 
-  test('rewrite replaces canonical event rows through one durable store operation', async () => {
+  test('edit rewrite cuts stored rows without resending preserved history', async () => {
     const store = createDesktopConversationStore('user-1');
-    const preserved = createConversationEvent({
-      eventId: 'evt-preserved',
+    const prior = createConversationEvent({
+      eventId: 'evt-prior',
       type: 'user_message',
       conversationRef: 'conv-edit',
+      revisionId: 'rev-old',
+      payload: { text: 'previous' },
+    });
+    const preserved = createConversationEvent({
+      eventId: 'evt-rewrite',
+      type: 'conversation_rewritten',
+      conversationRef: 'conv-edit',
       revisionId: 'rev-next',
-      payload: { text: 'edited' },
+      payload: { reason: 'edit_resend' },
     });
 
     await store.rewriteConversation({
       conversationRef: 'conv-edit',
       baseRevisionId: 'rev-old',
       newRevisionId: 'rev-next',
-      preservedEvents: [preserved],
+      cutAfterEventId: 'evt-prior',
+      preservedEvents: [prior, preserved],
       removedEventIds: ['evt-old'],
       reason: 'edit_resend',
       replacementUserMessage: { text: 'edited' },
     });
 
     expect(mockInvoke).toHaveBeenCalledTimes(1);
-    expect(mockInvoke).toHaveBeenCalledWith('replace-chat-conversation', expect.objectContaining({
+    expect(mockInvoke).toHaveBeenCalledWith('rewrite-chat-conversation-after-event', expect.objectContaining({
       userId: 'user-1',
       conversationId: 'conv-edit',
       recordKind: CHAT_EVENT_RECORD_KIND,
+      cutAfterEventId: 'evt-prior',
       revisionId: 'rev-next',
       revisionUpdatedAt: expect.any(String),
-      events: [
-        expect.objectContaining({
-          conversationId: 'conv-edit',
-          eventPayload: preserved,
-          messageIndex: 1,
-        }),
-      ],
+      event: expect.objectContaining({
+        conversationId: 'conv-edit',
+        eventPayload: preserved,
+      }),
     }));
   });
 

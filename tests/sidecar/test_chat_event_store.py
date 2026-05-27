@@ -12,6 +12,7 @@ from memory.chat_event_store import (  # noqa: E402
     init_chat_event_schema,
     list_chat_conversations,
     replace_chat_conversation,
+    rewrite_chat_conversation_after_event,
 )
 from memory.sqlite_store import init_episodic_schema  # noqa: E402
 
@@ -305,3 +306,86 @@ async def test_replace_chat_conversation_preserves_empty_rewrite_revision(
     assert conversations[0]["conversation_id"] == "conv-empty"
     assert conversations[0]["revision_id"] == "rev-empty"
     assert conversations[0]["entry_count"] == 0
+
+
+@pytest.mark.asyncio
+async def test_rewrite_chat_conversation_after_event_deletes_tail_only(tmp_path: Path):
+    db_path = str(tmp_path / "memory.db")
+    await init_episodic_schema(db_path)
+    await init_chat_event_schema(db_path)
+
+    for index, (event_id, content) in enumerate(
+        [("evt-user", "hello"), ("evt-assistant", "old answer"), ("evt-tail", "tail")],
+        start=1,
+    ):
+        await append_chat_event(
+            db_path=db_path,
+            user_id="user-1",
+            conversation_id="conv-1",
+            event_type="user_message" if index == 1 else "assistant_message",
+            role="user" if index == 1 else "assistant",
+            content=content,
+            timestamp=f"2026-05-17T12:0{index}:00+00:00",
+            message_index=index,
+            revision_id="rev-old",
+            turn_ref=None,
+            tool_name=None,
+            correlation_id=None,
+            workspace_path=None,
+            workspace_name=None,
+            metadata={},
+            attachments=[],
+            event_payload={
+                "eventId": event_id,
+                "type": "user_message" if index == 1 else "assistant_message",
+                "conversationRef": "conv-1",
+                "revisionId": "rev-old",
+                "timestamp": f"2026-05-17T12:0{index}:00+00:00",
+                "source": "sdk",
+                "payload": {"text": content},
+            },
+        )
+
+    result = await rewrite_chat_conversation_after_event(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+        cut_after_event_id="evt-user",
+        revision_id="rev-new",
+        revision_updated_at="2026-05-17T12:05:00+00:00",
+        event={
+            "event_type": "conversation_rewritten",
+            "role": "assistant",
+            "content": "[sdk event: conversation_rewritten]",
+            "timestamp": "2026-05-17T12:05:00+00:00",
+            "revision_id": "rev-new",
+            "metadata": {},
+            "attachments": [],
+            "event_payload": {
+                "eventId": "evt-rewrite",
+                "type": "conversation_rewritten",
+                "conversationRef": "conv-1",
+                "revisionId": "rev-new",
+                "timestamp": "2026-05-17T12:05:00+00:00",
+                "source": "sdk",
+                "payload": {"reason": "edit_resend"},
+            },
+        },
+    )
+
+    rows = await get_chat_events(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+        limit=10,
+    )
+    revision = await get_chat_conversation_revision(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+    )
+
+    assert result == {"deleted_count": 2, "inserted_count": 1}
+    assert [row["id"] for row in rows] == ["evt-user", "evt-rewrite"]
+    assert [row["message_index"] for row in rows] == [1, 2]
+    assert revision["revision_id"] == "rev-new"

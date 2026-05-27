@@ -728,6 +728,136 @@ async def replace_chat_conversation(
     return {"deleted_count": int(deleted), "inserted_count": inserted}
 
 
+async def rewrite_chat_conversation_after_event(
+    *,
+    db_path: str,
+    user_id: str,
+    conversation_id: Optional[str],
+    cut_after_event_id: Optional[str],
+    event: Dict[str, Any],
+    revision_id: Optional[str] = None,
+    revision_updated_at: Optional[str] = None,
+) -> Dict[str, int]:
+    event_payload = event.get("event_payload")
+    if not isinstance(event_payload, dict):
+        raise ValueError("event_payload is required")
+
+    clause, params = _conversation_clause(conversation_id)
+    async with aiosqlite.connect(db_path) as conn:
+        cursor = await conn.cursor()
+        await conn.execute("BEGIN")
+        try:
+            cutoff_index = 0
+            if isinstance(cut_after_event_id, str) and cut_after_event_id.strip():
+                await cursor.execute(
+                    f"""
+                    SELECT message_index FROM chat_events
+                    WHERE user_id = ? AND {clause} AND id = ?
+                    """,
+                    (user_id, *params, cut_after_event_id),
+                )
+                row = await cursor.fetchone()
+                if row is None:
+                    raise ValueError("cut_after_event_id was not found")
+                cutoff_index = int(row[0] or 0)
+
+            await cursor.execute(
+                f"""
+                DELETE FROM chat_events
+                WHERE user_id = ? AND {clause} AND message_index > ?
+                """,
+                (user_id, *params, cutoff_index),
+            )
+            deleted = cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
+
+            event_id = str(
+                event_payload.get("eventId")
+                or event_payload.get("event_id")
+                or uuid.uuid4()
+            )
+            normalized_index = cutoff_index + 1
+            await conn.execute(
+                """
+                INSERT OR REPLACE INTO chat_events
+                (id, user_id, conversation_id, event_type, role, content, timestamp,
+                 message_index, revision_id, turn_ref, tool_name, correlation_id,
+                 workspace_path, workspace_name, metadata, attachments, event_payload,
+                 compaction_checkpoint)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    event_id,
+                    user_id,
+                    conversation_id,
+                    event.get("event_type"),
+                    event.get("role"),
+                    event.get("content") or "",
+                    _normalize_timestamp(event.get("timestamp")),
+                    normalized_index,
+                    event.get("revision_id"),
+                    event.get("turn_ref"),
+                    event.get("tool_name"),
+                    event.get("correlation_id"),
+                    event.get("workspace_path"),
+                    event.get("workspace_name"),
+                    _json_dumps(event.get("metadata")),
+                    _json_dumps_value(
+                        event.get("attachments")
+                        if isinstance(event.get("attachments"), list)
+                        else []
+                    ),
+                    _json_dumps(event_payload) or "{}",
+                    _json_dumps(event.get("compaction_checkpoint")),
+                ),
+            )
+
+            if isinstance(conversation_id, str) and conversation_id.strip():
+                stored_revision_id = (
+                    revision_id
+                    if isinstance(revision_id, str) and revision_id.strip()
+                    else (
+                        event.get("revision_id")
+                        if isinstance(event.get("revision_id"), str)
+                        and event.get("revision_id").strip()
+                        else None
+                    )
+                )
+                if stored_revision_id:
+                    stored_updated_at = _normalize_timestamp(
+                        revision_updated_at
+                        if isinstance(revision_updated_at, str)
+                        and revision_updated_at.strip()
+                        else (
+                            event.get("timestamp")
+                            if isinstance(event.get("timestamp"), str)
+                            else None
+                        )
+                    )
+                    await conn.execute(
+                        """
+                        INSERT INTO chat_conversation_revisions
+                        (user_id, conversation_id, revision_id, updated_at)
+                        VALUES (?, ?, ?, ?)
+                        ON CONFLICT(user_id, conversation_id)
+                        DO UPDATE SET
+                            revision_id = excluded.revision_id,
+                            updated_at = excluded.updated_at
+                        """,
+                        (
+                            user_id,
+                            conversation_id,
+                            stored_revision_id,
+                            stored_updated_at,
+                        ),
+                    )
+
+            await conn.commit()
+        except Exception:
+            await conn.rollback()
+            raise
+    return {"deleted_count": int(deleted), "inserted_count": 1}
+
+
 async def clear_chat_events(*, db_path: str, user_id: str) -> int:
     async with aiosqlite.connect(db_path) as conn:
         cursor = await conn.cursor()

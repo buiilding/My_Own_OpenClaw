@@ -1050,6 +1050,51 @@ describe('local_backend_bridge RPC handlers', () => {
     await expectResolvedSuccess(stdoutHandler, promise, { inserted_count: 1 });
   });
 
+  test('rewrite-chat-conversation-after-event maps compact cutoff rewrite payload', async () => {
+    const { handlers, stdoutHandler } = initBridge();
+    markReady();
+
+    const promise = handlers['rewrite-chat-conversation-after-event'](null, {
+      userId: 'u-1',
+      conversationId: 'conv-1',
+      cutAfterEventId: 'evt-user',
+      revisionId: 'rev-next',
+      revisionUpdatedAt: '2026-05-17T12:00:01+00:00',
+      event: {
+        conversationId: 'conv-1',
+        eventType: 'conversation_rewritten',
+        role: 'assistant',
+        content: '[sdk event: conversation_rewritten]',
+        revisionId: 'rev-next',
+        eventPayload: {
+          eventId: 'evt-rewrite',
+          type: 'conversation_rewritten',
+        },
+      },
+    });
+
+    expectLastRequestWith('rewrite_chat_conversation_after_event', {
+      user_id: 'u-1',
+      conversation_id: 'conv-1',
+      cut_after_event_id: 'evt-user',
+      revision_id: 'rev-next',
+      revision_updated_at: '2026-05-17T12:00:01+00:00',
+      event: expect.objectContaining({
+        conversation_id: 'conv-1',
+        event_type: 'conversation_rewritten',
+        role: 'assistant',
+        content: '[sdk event: conversation_rewritten]',
+        revision_id: 'rev-next',
+        event_payload: {
+          eventId: 'evt-rewrite',
+          type: 'conversation_rewritten',
+        },
+      }),
+    });
+
+    await expectResolvedSuccess(stdoutHandler, promise, { inserted_count: 1 });
+  });
+
   test('get-chat-conversation-revision maps to sidecar RPC', async () => {
     const { handlers, stdoutHandler } = initBridge();
     markReady();

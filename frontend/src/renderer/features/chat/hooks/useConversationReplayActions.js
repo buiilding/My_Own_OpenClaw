@@ -2,7 +2,6 @@ import { useCallback } from 'react';
 import { useChatStore } from '../stores/chatStore';
 import {
   resolveReplayScreenshotState,
-  resolveStoredTranscriptScreenshotValue,
 } from '../../../infrastructure/services/screenshotMessageState';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { buildDeferredQueryModelSelection } from '../../../app/providers/appConfigBackendSync';
@@ -21,33 +20,11 @@ import {
   resolveRendererConversationSessionSnapshot,
 } from '../session/conversationSessionRuntime';
 import { createConversationRef } from '../utils/session/conversationRef';
-import {
-  resolveTranscriptMessageType,
-  resolveTranscriptRole,
-} from '../utils/session/transcriptMessagePayload';
 import { buildReplayContextMessages } from '../utils/conversationReplayToolMessages';
 import { dispatchPreparedDesktopChatTurn } from '../utils/messageSender/desktopChatSendPreparation';
 
 const REPLAY_PREPARATION_FAILURE_MESSAGE = 'Your message was not resent because WindieOS could not prepare the conversation replay. Try reopening the chat and sending again.';
 const REPLAY_SEND_FAILURE_MESSAGE = "Your message wasn't sent because WindieOS isn't connected right now. Try again when the backend reconnects.";
-
-function buildTranscriptProjectionEntries(messages) {
-  return messages.map((message) => ({
-    messageId: message.id,
-    content: message.text,
-    role: resolveTranscriptRole(message),
-    messageType: resolveTranscriptMessageType(message),
-    toolName: message.toolName || null,
-    correlationId: message.correlationId || null,
-    screenshot: resolveStoredTranscriptScreenshotValue({
-      screenshot: message.screenshot || null,
-      screenshotRef: message.screenshotRef || null,
-      screenshotUrl: message.screenshotUrl || null,
-      screenshotContentType: message.screenshotContentType || null,
-    }),
-    timestamp: message.timestamp || null,
-  }));
-}
 
 function ensureConversationRef(sessionConversationRef, storeConversationRef) {
   let conversationRef = resolveRendererConversationSessionSnapshot({
@@ -155,7 +132,6 @@ async function executeReplayAction({
       userId: sessionInfo.userId,
       messageId,
       text: queryText,
-      projectionEntries: buildTranscriptProjectionEntries(sourceMessages),
       payload: {
         screenshot_ref: screenshotRef || null,
         screenshot_url: screenshotUrl || null,
