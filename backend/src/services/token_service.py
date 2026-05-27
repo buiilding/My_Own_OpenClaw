@@ -20,6 +20,7 @@ from backend.src.llm.models.models_config import (
     get_model_catalog_metadata,
     resolve_runtime_model_id,
 )
+from backend.src.tools.tool_specs import is_function_tool_spec, to_litellm_function_tool
 
 logger = logging.getLogger(__name__)
 
@@ -202,6 +203,43 @@ def _fallback_token_estimate(messages: Iterable[Any]) -> int:
     return total_chars // 4
 
 
+def _fallback_tool_token_estimate(
+    tools: Optional[Iterable[Any]],
+    tool_choice: Any = None,
+) -> int:
+    """Estimate provider tool-schema tokens when tokenizer support is unavailable."""
+    if tools is None and tool_choice is None:
+        return 0
+    payload: Dict[str, Any] = {}
+    if tools is not None:
+        payload["tools"] = list(tools)
+    if tool_choice is not None:
+        payload["tool_choice"] = tool_choice
+    try:
+        serialized = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+    except (TypeError, ValueError):
+        serialized = str(payload)
+    return len(serialized) // 4
+
+
+def _normalize_tools_for_litellm_token_counter(
+    tools: Optional[Iterable[Any]],
+) -> Optional[list[Dict[str, Any]]]:
+    """Normalize WindieOS flat tool specs to LiteLLM/OpenAI tool shape."""
+    if tools is None:
+        return None
+    normalized: list[Dict[str, Any]] = []
+    for tool in tools:
+        if is_function_tool_spec(tool):
+            normalized.append(to_litellm_function_tool(tool))
+            continue
+        if isinstance(tool, dict):
+            normalized.append(dict(tool))
+            continue
+        normalized.append({"type": "function", "function": {"name": str(tool)}})
+    return normalized
+
+
 def _fallback_truncate_text(
     text: str,
     *,
@@ -235,20 +273,28 @@ class TokenService:
     """
 
     @staticmethod
-    def count_tokens(messages, model: str = "gpt-3.5-turbo") -> int:
+    def count_tokens(
+        messages,
+        model: str = "gpt-3.5-turbo",
+        *,
+        tools: Optional[Iterable[Any]] = None,
+        tool_choice: Any = None,
+    ) -> int:
         """
         Count the total tokens in a list of messages, including image tokens.
 
         Args:
             messages: List of LLMMessage objects (can be dict or TypedDict)
             model: Model name to use for token counting
+            tools: Optional provider-bound tool schemas to include in the count
+            tool_choice: Optional provider-bound tool-choice payload
 
         Returns:
-            Total token count including image tokens
+            Total token count including image tokens and tool schemas
         """
         # Materialize once so we can reuse the same input in both normal and fallback paths.
         message_list = list(messages)
-        if not message_list:
+        if not message_list and tools is None and tool_choice is None:
             return 0
 
         try:
@@ -264,6 +310,8 @@ class TokenService:
             token_count = litellm.token_counter(
                 model=normalized_model,
                 messages=litellm_messages,
+                tools=_normalize_tools_for_litellm_token_counter(tools),
+                tool_choice=tool_choice,
                 use_default_image_token_count=True,  # Enable image token counting
             )
             return token_count
@@ -272,7 +320,12 @@ class TokenService:
                 "Failed to count tokens via litellm; using fallback estimation"
             )
             # Roughly 4 characters per token for English text.
-            return _fallback_token_estimate(message_list)
+            return _fallback_token_estimate(
+                message_list
+            ) + _fallback_tool_token_estimate(
+                tools,
+                tool_choice,
+            )
 
     @staticmethod
     def count_message_tokens(message, model: str = "gpt-3.5-turbo") -> int:

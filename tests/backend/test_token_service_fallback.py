@@ -24,10 +24,19 @@ def _patch_token_counter_to_raise(monkeypatch) -> None:
 def _patch_token_counter_capture(monkeypatch, *, return_value: int) -> dict:
     captured: dict = {}
 
-    def fake_counter(*, model, messages, use_default_image_token_count):
+    def fake_counter(
+        *,
+        model,
+        messages,
+        use_default_image_token_count,
+        tools=None,
+        tool_choice=None,
+    ):
         captured["model"] = model
         captured["messages"] = messages
         captured["use_default_image_token_count"] = use_default_image_token_count
+        captured["tools"] = tools
+        captured["tool_choice"] = tool_choice
         return return_value
 
     monkeypatch.setattr(litellm, "token_counter", fake_counter)
@@ -163,6 +172,43 @@ def test_count_tokens_normalizes_object_message_for_litellm(monkeypatch):
     assert captured["model"] == "gpt-4o"
     assert captured["use_default_image_token_count"] is True
     assert captured["messages"] == [{"role": "assistant", "content": "hello world"}]
+
+
+def test_count_tokens_includes_flat_tool_schemas_for_litellm(monkeypatch):
+    captured = _patch_token_counter_capture(monkeypatch, return_value=9)
+    tool = {
+        "type": "function",
+        "name": "read_file",
+        "description": "Read a file",
+        "parameters": {"type": "object"},
+    }
+
+    token_count = TokenService.count_tokens(
+        [{"role": "system", "content": "system"}, {"role": "user", "content": "hi"}],
+        model="gpt-4o",
+        tools=[tool],
+        tool_choice={"type": "function", "function": {"name": "read_file"}},
+    )
+
+    assert token_count == 9
+    assert captured["messages"] == [
+        {"role": "system", "content": "system"},
+        {"role": "user", "content": "hi"},
+    ]
+    assert captured["tools"] == [
+        {
+            "type": "function",
+            "function": {
+                "name": "read_file",
+                "description": "Read a file",
+                "parameters": {"type": "object"},
+            },
+        }
+    ]
+    assert captured["tool_choice"] == {
+        "type": "function",
+        "function": {"name": "read_file"},
+    }
 
 
 def test_count_tokens_normalizes_k2p5_model_name_for_litellm(monkeypatch):

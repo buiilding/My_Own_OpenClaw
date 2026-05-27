@@ -1,14 +1,13 @@
 import pytest
 
+from backend.src.core.config.models import AppConfig, SecurityLimits
 from backend.src.core.infrastructure.cache_manager import CacheManager
-from backend.src.core.config.models import AppConfig
-from backend.src.core.config.models import SecurityLimits
 from backend.src.core.infrastructure.error_types import InputSizeLimitError
 from backend.src.core.observability.trust_boundary_metrics import MetricsService
 from backend.src.core.types.enums import MessageRole, MessageType
 from backend.src.llm.prompts.prompt_constructor import PromptConstructor
-from backend.src.tools.remote import RemoteMouseTool
 from backend.src.tools.registry import ToolRegistry
+from backend.src.tools.remote import RemoteMouseTool
 
 
 class DummyRegistry:
@@ -304,9 +303,10 @@ def test_get_prompt_token_count_uses_contextual_agents_messages(monkeypatch, tmp
     captured = {}
 
     class _FakeTokenService:
-        def count_tokens(self, messages, model):
+        def count_tokens(self, messages, model, *, tools=None):
             captured["messages"] = messages
             captured["model"] = model
+            captured["tools"] = tools
             return len(messages) * 10
 
     monkeypatch.setattr(
@@ -322,6 +322,53 @@ def test_get_prompt_token_count_uses_contextual_agents_messages(monkeypatch, tmp
         "# AGENTS.md instructions for "
     )
     assert captured["messages"][1] == history.get_history()[0]
+    assert captured["tools"] == []
+
+
+def test_get_prompt_token_count_includes_tool_schemas(monkeypatch):
+    tool_schemas = [
+        {
+            "type": "function",
+            "name": "read_file",
+            "parameters": {"type": "object"},
+        }
+    ]
+    constructor = _make_constructor(tool_schemas)
+    history = DummyHistory(
+        history=[
+            {
+                "role": MessageRole.SYSTEM.value,
+                "content": "system",
+            },
+            {
+                "role": MessageRole.USER.value,
+                "content": "<user_query>open file</user_query>",
+            },
+        ],
+        user_query_raw="open file",
+        message_types=[MessageType.USER_QUERY],
+    )
+
+    captured = {}
+
+    class _FakeTokenService:
+        def count_tokens(self, messages, model, *, tools=None):
+            captured["messages"] = messages
+            captured["model"] = model
+            captured["tools"] = tools
+            return len(messages) * 10 + len(tools or []) * 100
+
+    monkeypatch.setattr(
+        "backend.src.services.token_service.get_token_service",
+        lambda: _FakeTokenService(),
+    )
+
+    count = constructor.get_prompt_token_count(history, model_id="model-a")
+
+    assert count == 120
+    assert captured["model"] == "model-a"
+    assert captured["messages"] == history.get_history()
+    assert captured["tools"] == tool_schemas
 
 
 def test_build_prompt_prefers_injected_repo_instruction_messages_over_workspace_lookup(

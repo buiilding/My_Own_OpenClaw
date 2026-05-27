@@ -132,11 +132,16 @@ class LLMStreamProcessor:
         )
         self._last_response_payload = None
         full_text = ""
+        preflight_prompt_tokens = self._count_provider_prompt_tokens_before_request(
+            prompt,
+            tools=tools,
+        )
         logger.info(
-            "[Timing] LLM request started (session=%s, turn=%s, model=%s)",
+            "[Timing] LLM request started (session=%s, turn=%s, model=%s, preflight_prompt_tokens=%s)",
             self.session.session_id,
             turn,
             model_id,
+            preflight_prompt_tokens,
         )
 
         try:
@@ -185,7 +190,7 @@ class LLMStreamProcessor:
 
             yield FullResponseEvent(content=full_text)
 
-            token_counts = await self._count_tokens(prompt, full_text)
+            token_counts = await self._count_tokens(prompt, full_text, tools=tools)
             self._record_provider_prompt_tokens_for_compaction(token_counts)
             yield TokenCountEvent(
                 prompt_tokens=token_counts.prompt_tokens,
@@ -430,7 +435,11 @@ class LLMStreamProcessor:
         return compact_for_fingerprint(value)
 
     async def _count_tokens(
-        self, prompt: List[LLMMessage], full_text: str
+        self,
+        prompt: List[LLMMessage],
+        full_text: str,
+        *,
+        tools: Optional[List[Dict[str, Any]]] = None,
     ) -> TokenCounts:
         """
         Counts tokens for input, output, and total conversation.
@@ -460,6 +469,21 @@ class LLMStreamProcessor:
             model_id=self.session.cfg.selected_model_id,
             prompt=prompt,
             full_text=full_text,
+            tools=tools,
+        )
+
+    def _count_provider_prompt_tokens_before_request(
+        self,
+        prompt: List[LLMMessage],
+        *,
+        tools: Optional[List[Dict[str, Any]]] = None,
+    ) -> int:
+        """Count the provider-bound prompt and tool schemas before inference."""
+        token_service = get_token_service()
+        return token_service.count_tokens(
+            prompt,
+            self.session.cfg.selected_model_id,
+            tools=tools,
         )
 
     def _resolve_prompt_cache_key(self) -> Optional[str]:

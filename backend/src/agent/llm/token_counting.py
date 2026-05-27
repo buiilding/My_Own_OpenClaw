@@ -30,13 +30,18 @@ def count_tokens(
     model_id: str,
     prompt: list[LLMMessage],
     full_text: str,
+    tools: Any = None,
 ) -> TokenCounts:
     """
     Count prompt/output/conversation tokens for one LLM response payload.
 
     Returns provider-reported counts when available, then falls back to local estimates.
     """
-    estimated_prompt_tokens = token_service.count_tokens(prompt, model_id)
+    estimated_prompt_tokens = token_service.count_tokens(
+        prompt,
+        model_id,
+        tools=tools,
+    )
 
     output_message: LLMMessage = {
         "role": "assistant",
@@ -121,4 +126,3 @@ def _safe_bool(value: Any) -> Optional[bool]:
         if lowered == "false":
             return False
     return None
-

@@ -22,11 +22,13 @@ title: "Token Count Event and Usage Diagnostics Reference"
 
 ## End-to-End Event Path
 
-1. `LLMStreamProcessor.get_response(...)` aggregates full assistant text.
-2. `_count_tokens(...)` delegates to `agent.llm.token_counting.count_tokens(...)`.
-3. Returned `TokenCounts` is emitted as `TokenCountEvent`.
-4. `TokenCountEventFormatter` maps event -> websocket payload type `token-count`.
-5. Outgoing schema validation (`TokenCountPayload`) enforces payload contract.
+1. `PromptConstructor.build_prompt(...)` returns provider-bound prompt messages and active tool schemas.
+2. `LLMStreamProcessor.get_response(...)` runs a pre-inference input count over those messages plus the tool schemas.
+3. `LLMStreamProcessor.get_response(...)` aggregates full assistant text.
+4. `_count_tokens(...)` delegates to `agent.llm.token_counting.count_tokens(...)`.
+5. Returned `TokenCounts` is emitted as `TokenCountEvent`.
+6. `TokenCountEventFormatter` maps event -> websocket payload type `token-count`.
+7. Outgoing schema validation (`TokenCountPayload`) enforces payload contract.
 
 ## TokenCounts Field Contract
 
@@ -51,7 +53,7 @@ Wire payload mirrors same fields under `payload`.
 
 ## Local estimates
 
-- prompt estimate from `TokenService.count_tokens(prompt, model)`
+- prompt estimate from `TokenService.count_tokens(prompt, model, tools=tools)`
 - visible output estimate from `TokenService.count_tokens([assistant_msg], model)`
 - conversation total from `ConversationHistory.get_token_count(model)`
 
@@ -75,12 +77,13 @@ Precedence:
 
 1. normalize each message to LiteLLM-compatible dict shape
 2. preserve assistant `tool_calls` by converting internal shape to OpenAI function-call shape
-3. call `litellm.token_counter(..., use_default_image_token_count=True)`
+3. normalize WindieOS flat function-tool schemas to LiteLLM/OpenAI function-tool shape when `tools` are provided
+4. call `litellm.token_counter(..., tools=tools, use_default_image_token_count=True)`
 
 If counting fails:
 
 - logs exception
-- falls back to coarse estimate `total_chars // 4`
+- falls back to coarse estimate `total_chars // 4` plus serialized tool-schema size
 - multimodal fallback counts only text-bearing parts (`text`/`input_text`)
 
 ## Provider Usage Diagnostics Normalization
@@ -135,6 +138,7 @@ This catches formatter/event drift before websocket emission.
 `LLMStreamProcessor` logs:
 
 - prompt continuity cache hints (`cold_start`, `append_only`, `prefix_mutated`, etc.)
+- preflight prompt token count for the request about to be sent to the provider
 - provider cache diagnostics (`status`, `cache_hit`, token counts)
 - total response timing with token totals
 

@@ -20,11 +20,13 @@ Keep these concepts separate:
 
 ## Current Token Event Path
 
-1. Backend LLM stream processor completes or aggregates assistant output.
-2. Backend token-count helper combines provider diagnostics with local estimates.
-3. Backend emits `TokenCountEvent`.
-4. Formatter maps it to websocket `token-count`.
-5. Renderer chat stream consumes it and updates token display state.
+1. Backend prompt construction builds provider-bound prompt messages and tool schemas.
+2. Before inference, the backend token service counts the input side using the same prompt messages plus the active provider-bound tool schemas.
+3. Backend LLM stream processor completes or aggregates assistant output.
+4. Backend token-count helper combines provider diagnostics with local estimates.
+5. Backend emits `TokenCountEvent`.
+6. Formatter maps it to websocket `token-count`.
+7. Renderer chat stream consumes it and updates token display state.
 
 ## Token Count Fields
 
@@ -47,7 +49,8 @@ The websocket payload mirrors backend token-count fields:
 
 Provider counts win when the provider supplies prompt, completion, and total usage diagnostics. Otherwise WindieOS uses local estimates:
 
-- prompt and output estimates from token service,
+- prompt estimates from token service over the system prompt, contextual prompt/history messages, and active tool schemas,
+- output estimates from token service,
 - conversation total from backend conversation history cache,
 - coarse character-based fallback if tokenizer counting fails.
 

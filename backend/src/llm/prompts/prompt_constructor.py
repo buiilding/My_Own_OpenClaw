@@ -28,13 +28,13 @@ from typing import Any, Dict, List, Optional, Union
 from backend.src.core.config import AppConfig
 from backend.src.core.infrastructure.error_types import InputSizeLimitError
 from backend.src.core.messages.converters import content_to_message_content
-from backend.src.llm.prompts.query_context import format_query_context_content
 from backend.src.core.messages.structures import StoredMessage
 from backend.src.core.observability.trust_boundary_metrics import MetricsService
 from backend.src.core.types.enums import MessageRole, MessageType
 from backend.src.core.types.schemas import LLMMessage
 from backend.src.llm.prompts.prompt_metadata import PromptMetadata, UserMessageMetadata
 from backend.src.llm.prompts.prompts import PromptManager
+from backend.src.llm.prompts.query_context import format_query_context_content
 from backend.src.llm.prompts.repo_instructions import (
     resolve_workspace_repo_instruction_messages,
 )
@@ -360,13 +360,23 @@ class PromptConstructor:
         stored_messages: Optional[Union[List[StoredMessage], Any]],
         *,
         model_id: str,
+        include_tools: bool = True,
     ) -> int:
         """Count tokens for the actual prompt shape sent to the model."""
         from backend.src.services.token_service import get_token_service
 
         token_service = get_token_service()
         prompt_messages = self._build_prompt_messages(stored_messages)
-        return token_service.count_tokens(prompt_messages, model_id)
+        tool_schemas = (
+            self._get_filtered_tool_schemas(prompt_messages=prompt_messages)
+            if include_tools
+            else None
+        )
+        return token_service.count_tokens(
+            prompt_messages,
+            model_id,
+            tools=tool_schemas,
+        )
 
     def _build_user_message_metadata(
         self,

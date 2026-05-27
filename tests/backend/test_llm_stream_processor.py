@@ -18,9 +18,19 @@ from backend.src.core.infrastructure.error_types import LLMAPIError
 
 
 class _FakeTokenService:
-    def count_tokens(self, messages, model):
+    def __init__(self):
+        self.calls = []
+
+    def count_tokens(self, messages, model, *, tools=None):
         # Keep deterministic and cheap for tests.
-        return len(list(messages))
+        self.calls.append(
+            {
+                "messages": list(messages),
+                "model": model,
+                "tools": tools,
+            }
+        )
+        return len(self.calls[-1]["messages"]) + len(tools or [])
 
 
 class _FakeHistory:
@@ -261,6 +271,29 @@ class _RecordingCompactionEngine:
 
 
 class _MissingUsageLLMClient:
+    async def get_completion_response(
+        self,
+        model,
+        messages,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+        prompt_cache_key=None,
+        native_web_search_enabled=None,
+        previous_response_id=None,
+    ):
+        _ = (
+            model,
+            messages,
+            tools,
+            tool_choice,
+            parallel_tool_calls,
+            prompt_cache_key,
+            native_web_search_enabled,
+            previous_response_id,
+        )
+        return {"content": "visible"}
+
     async def get_completion_stream(
         self,
         model,
@@ -273,6 +306,10 @@ class _MissingUsageLLMClient:
 
     def get_last_stream_cache_diagnostics(self):
         return None
+
+    def supports_streaming_tool_turns(self, model):
+        _ = model
+        return False
 
 
 class _OpenAINativeWebSearchLLMClient:
@@ -445,10 +482,12 @@ class _GeminiStreamingToolTurnLLMClient:
 
 
 def _patch_fake_token_service(monkeypatch):
+    token_service = _FakeTokenService()
     monkeypatch.setattr(
         "backend.src.agent.llm.llm_stream_processor.get_token_service",
-        lambda: _FakeTokenService(),
+        lambda: token_service,
     )
+    return token_service
 
 
 def _hello_prompt():
@@ -634,16 +673,19 @@ async def test_preserves_llm_api_error_metadata_on_error_event(monkeypatch):
     assert len(events) == 1
     assert isinstance(events[0], ErrorEvent)
     assert events[0].metadata is not None
-    assert events[0].metadata.items() >= {
-        "llm_tool_call_id": "tool_bad",
-        "llm_tool_name": "replace",
-        "llm_tool_call_raw_tool_call_preview": (
-            '{"id":"tool_bad","name":"replace","arguments":"{\\"file_path\\":\\"/tmp/demo.txt\\"}"}'
-        ),
-        "llm_tool_call_raw_arguments_preview": '{"file_path":"/tmp/demo.txt"}',
-        "llm_tool_call_parse_error": "invalid tool arguments json",
-        "model": "gpt-test",
-    }.items()
+    assert (
+        events[0].metadata.items()
+        >= {
+            "llm_tool_call_id": "tool_bad",
+            "llm_tool_name": "replace",
+            "llm_tool_call_raw_tool_call_preview": (
+                '{"id":"tool_bad","name":"replace","arguments":"{\\"file_path\\":\\"/tmp/demo.txt\\"}"}'
+            ),
+            "llm_tool_call_raw_arguments_preview": '{"file_path":"/tmp/demo.txt"}',
+            "llm_tool_call_parse_error": "invalid tool arguments json",
+            "model": "gpt-test",
+        }.items()
+    )
 
 
 @pytest.mark.asyncio
@@ -705,6 +747,32 @@ async def test_token_count_falls_back_to_estimate_when_provider_usage_missing(
     assert token_event.cached_tokens is None
     assert token_event.cache_hit is None
     assert token_event.cache_status is None
+
+
+@pytest.mark.asyncio
+async def test_preflight_and_estimated_prompt_count_include_tool_schemas(monkeypatch):
+    token_service = _patch_fake_token_service(monkeypatch)
+    processor = LLMStreamProcessor(
+        llm_client=_MissingUsageLLMClient(),
+        session=_FakeSession(),
+    )
+    tools = _single_function_tool("read_file")
+
+    events = await _collect_response_events(processor, tools=tools)
+
+    token_event = next(event for event in events if isinstance(event, TokenCountEvent))
+    assert token_event.prompt_tokens == 2
+    assert token_event.usage_source == "estimated"
+    assert token_service.calls[0] == {
+        "messages": _hello_prompt(),
+        "model": "gpt-test",
+        "tools": tools,
+    }
+    assert token_service.calls[1] == {
+        "messages": _hello_prompt(),
+        "model": "gpt-test",
+        "tools": tools,
+    }
 
 
 @pytest.mark.asyncio
