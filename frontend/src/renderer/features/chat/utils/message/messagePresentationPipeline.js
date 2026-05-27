@@ -240,19 +240,14 @@ export function buildThreadPresentationMessages(
     }
 
     if (message?.type === 'tool-call') {
-      const explanations = collectToolExplanationTexts(message);
-      if (explanations.length === 0) {
-        if (isActiveSegmentMessage(index, activeSegmentLowerBound, keepActiveSegmentExpanded)) {
-          flushPendingSummary();
-          renderedMessages.push(message);
-        }
+      if (isActiveSegmentMessage(index, activeSegmentLowerBound, keepActiveSegmentExpanded)) {
+        flushPendingSummary();
+        renderedMessages.push(message);
         return;
       }
 
-      if (isActiveSegmentMessage(index, activeSegmentLowerBound, keepActiveSegmentExpanded)) {
-        explanations.forEach((explanation, explanationIndex) => {
-          renderedMessages.push(buildToolExplanationMessage(message, explanation, explanationIndex));
-        });
+      const explanations = collectToolExplanationTexts(message);
+      if (explanations.length === 0) {
         return;
       }
 

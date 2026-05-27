@@ -364,7 +364,7 @@ describe('ChatInterface wiring', () => {
     ]);
   });
 
-  test('shows live tool explanation rows while the active loop is still running', () => {
+  test('shows raw tool-call rows while the active loop is still running', () => {
     mockChatState.isSending = true;
     mockChatState.streamTracking.phase = 'tool-output';
     mockChatState.messages = [
@@ -390,9 +390,9 @@ describe('ChatInterface wiring', () => {
     expect(lastCall.awaitingDotTargetMessageId).toBeNull();
     expect(lastCall.messages.map((message) => message.type || 'llm-text')).toEqual([
       'llm-text',
-      'tool-explanation',
+      'tool-call',
     ]);
-    expect(lastCall.messages[1].text).toBe('Check the selected workspace before reading files.');
+    expect(lastCall.messages[1].text).toBe('raw tool call');
   });
 
   test('hides awaiting dot while live web-search progress is visible', () => {
@@ -441,7 +441,7 @@ describe('ChatInterface wiring', () => {
     expect(lastCall.awaitingDotTargetMessageId).toBe('user-2');
   });
 
-  test('keeps live tool explanation rows visible until the assistant reply is complete', () => {
+  test('keeps raw tool-call rows visible until the assistant reply is complete', () => {
     mockChatState.streamTracking.phase = 'complete';
     mockChatState.messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace' },
@@ -472,10 +472,10 @@ describe('ChatInterface wiring', () => {
     const renderedMessages = mockMessageList.mock.calls.at(-1)[0].messages;
     expect(renderedMessages.map((message) => message.type || 'llm-text')).toEqual([
       'llm-text',
-      'tool-explanation',
+      'tool-call',
       'llm-text',
     ]);
-    expect(renderedMessages[1].text).toBe('Read the selected workspace entry before summarizing it.');
+    expect(renderedMessages[1].text).toBe('raw tool call');
   });
 
   test('passes raw tool rows through when tool logs are enabled', () => {
