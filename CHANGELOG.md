@@ -9,6 +9,8 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/chat: route SDK `tool_bundle_output` events through the renderer
   stream handler and keep active tool-output rows visible while collapsed tool
   logs still hide completed output rows.
+- frontend/chat: keep active raw tool-call rows visible in collapsed-tool mode
+  when they have no explanation text so live call/output ordering stays paired.
 - frontend/chat: persist replay replacement user turns before dispatch and
   suppress orphan empty-chat greeting rows during SDK display/rehydrate
   projection so compact rewrites cannot reopen as assistant-only chats.

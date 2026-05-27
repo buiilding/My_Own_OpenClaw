@@ -1354,7 +1354,7 @@ describe('ChatInterface wiring', () => {
     expect(lastMessageListProps.awaitingDotTargetMessageId).toBe('user-1');
   });
 
-  test('keeps awaiting dot visible during a later turn when only tool rows exist after the latest user message', () => {
+  test('hides awaiting dot during a later turn when visible tool rows exist after the latest user message', () => {
     mockChatState.messages = [
       { id: 'user-1', sender: 'user', text: 'first task', type: 'user' },
       { id: 'assistant-1', sender: 'assistant', text: 'done', type: 'llm-text' },
@@ -1368,7 +1368,7 @@ describe('ChatInterface wiring', () => {
     render(<ChatInterface />);
 
     const lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
-    expect(lastMessageListProps.awaitingDotTargetMessageId).toBe('user-2');
+    expect(lastMessageListProps.awaitingDotTargetMessageId).toBeNull();
   });
 
   test('keeps awaiting dot visible during a later turn while send latch is active over a terminal previous phase', () => {

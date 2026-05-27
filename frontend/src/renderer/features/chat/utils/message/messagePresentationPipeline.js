@@ -160,14 +160,11 @@ export function hasCurrentTurnLiveProgressMessages(messages) {
   for (let index = lowerBound; index < messages.length; index += 1) {
     const message = messages[index];
     if (
-      message?.type === 'tool-explanation'
+      message?.type === 'tool-output'
+      || message?.type === 'tool-call'
+      || message?.type === 'tool-bundle'
+      || message?.type === 'tool-explanation'
       || message?.type === 'search-source'
-    ) {
-      return true;
-    }
-    if (
-      message?.type === 'tool-call'
-      && collectToolExplanationTexts(message).length > 0
     ) {
       return true;
     }
@@ -245,6 +242,10 @@ export function buildThreadPresentationMessages(
     if (message?.type === 'tool-call') {
       const explanations = collectToolExplanationTexts(message);
       if (explanations.length === 0) {
+        if (isActiveSegmentMessage(index, activeSegmentLowerBound, keepActiveSegmentExpanded)) {
+          flushPendingSummary();
+          renderedMessages.push(message);
+        }
         return;
       }
 

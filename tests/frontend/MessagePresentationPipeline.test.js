@@ -103,6 +103,13 @@ describe('messagePresentationPipeline', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Read files' },
       {
+        id: 'tool-call-1',
+        sender: 'assistant',
+        type: 'tool-call',
+        text: 'raw tool call',
+        sourceEventType: 'tool-call',
+      },
+      {
         id: 'tool-output-1',
         sender: 'assistant',
         type: 'tool-output',
@@ -115,6 +122,41 @@ describe('messagePresentationPipeline', () => {
       showToolLogs: false,
       isBusy: true,
     })).toEqual(messages);
+  });
+
+  test('hides completed raw tool-call rows without explanations while tool logs are collapsed', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Read files' },
+      {
+        id: 'tool-call-1',
+        sender: 'assistant',
+        type: 'tool-call',
+        text: 'raw tool call',
+        sourceEventType: 'tool-call',
+      },
+      {
+        id: 'tool-output-1',
+        sender: 'assistant',
+        type: 'tool-output',
+        text: 'README contents',
+        sourceEventType: 'tool-output',
+      },
+      {
+        id: 'assistant-1',
+        sender: 'assistant',
+        type: 'llm-text',
+        text: 'I read the file.',
+        isComplete: true,
+      },
+    ];
+
+    expect(buildThreadPresentationMessages(messages, {
+      showToolLogs: false,
+      isBusy: false,
+    })).toEqual([
+      messages[0],
+      messages[3],
+    ]);
   });
 
   test('hides completed tool-output rows while tool logs are collapsed', () => {
