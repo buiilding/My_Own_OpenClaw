@@ -11,10 +11,12 @@ import type {
   JsonRecord,
   LocalRuntime,
   RehydrateSnapshot,
+  SdkDisplayRow,
 } from '../conversation/types.js';
 import {
   buildCurrentTurnProjection,
   buildDisplayConversation,
+  buildDisplayRows,
   buildRehydrateSnapshot,
 } from '../projections/conversationProjections.js';
 import { normalizeBackendEventToConversationEvent } from '../transport/backendEventNormalizer.js';
@@ -31,6 +33,7 @@ export type ConversationEventListener = (event: ConversationEvent, snapshot: Con
 export type ConversationSnapshot = {
   state: ConversationRuntimeState;
   display: DisplayConversation;
+  displayRows: SdkDisplayRow[];
   rehydrate: RehydrateSnapshot;
   currentTurn: CurrentTurnProjection;
 };
@@ -596,6 +599,7 @@ export class SdkConversationRuntime {
     return {
       state: this.state,
       display: buildDisplayConversation(events),
+      displayRows: buildDisplayRows(events),
       rehydrate: buildRehydrateSnapshot(events),
       currentTurn: buildCurrentTurnProjection(events),
     };

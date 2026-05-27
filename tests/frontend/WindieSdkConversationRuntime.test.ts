@@ -1531,8 +1531,18 @@ describe('Windie SDK conversation runtime core', () => {
     });
 
     await runtime.send({ text: 'hello', turnRef: 'turn-send' });
+    const snapshot = await runtime.load();
     const rehydrate = await runtime.rehydrate();
 
+    expect(snapshot.displayRows).toEqual([
+      expect.objectContaining({
+        role: 'user',
+        type: 'user_message',
+        content: 'hello',
+        conversationRef: 'conv-sdk-runtime',
+        turnRef: 'turn-send',
+      }),
+    ]);
     expect(sentQueries[0]).toMatchObject({
       text: 'hello',
       conversation_ref: 'conv-sdk-runtime',

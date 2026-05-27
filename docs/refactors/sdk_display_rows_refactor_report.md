@@ -49,9 +49,35 @@ Validation:
 - Passed: `cd frontend && npm run test -- WindieSdkConversationRuntime --runInBand`
   - Result: 1 suite passed, 63 tests passed.
 
+### 2. SDK conversation snapshots expose display rows
+
+Status: complete.
+
+Implementation:
+
+- Added `displayRows` to `ConversationSnapshot`.
+- `SdkConversationRuntime` now projects `displayRows` from the same normalized
+  event list used for `display`, `rehydrate`, and `currentTurn`.
+- Added a runtime test showing a UI can read `snapshot.displayRows` directly
+  after `runtime.load()`.
+
+Previous behavior:
+
+- SDK runtime snapshots exposed `display.messages`, `rehydrate`, and
+  `currentTurn`, but did not expose the new simple ordered display-row contract.
+
+Current behavior:
+
+- SDK clients can render `snapshot.displayRows` without Electron renderer
+  helper imports.
+
+Validation:
+
+- Passed: `cd frontend && npm run test -- WindieSdkConversationRuntime --runInBand`
+  - Result: 1 suite passed, 63 tests passed.
+
 ## Remaining Success Criteria
 
-- Expose display rows from the SDK conversation snapshot.
 - Make Electron renderer consume SDK display rows directly.
 - Keep transcript persistence as event storage, not display authority.
 - Remove active tool reconstruction from `chatBoxResponseState`.
