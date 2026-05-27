@@ -20,33 +20,6 @@ function normalizeText(value) {
   return trimmed.length > 0 ? value : null;
 }
 
-function hasIncompleteAssistantReplyAfterIndex(messages, lowerBound) {
-  if (!Array.isArray(messages)) {
-    return false;
-  }
-  for (let index = lowerBound; index < messages.length; index += 1) {
-    const message = messages[index];
-    if (message?.sender !== 'assistant') {
-      continue;
-    }
-    if (message?.type === 'tool-call' || message?.type === 'tool-output') {
-      continue;
-    }
-    if (!normalizeText(message?.text)) {
-      continue;
-    }
-    if (message.isComplete === true) {
-      continue;
-    }
-    return true;
-  }
-  return false;
-}
-
-function isActiveSegmentMessage(index, activeSegmentLowerBound, keepActiveSegmentExpanded) {
-  return keepActiveSegmentExpanded && index >= activeSegmentLowerBound;
-}
-
 function buildToolExplanationMessage(message, explanation, explanationIndex) {
   return {
     id: `${message.id}:tool-explanation:${explanationIndex}`,
@@ -58,25 +31,6 @@ function buildToolExplanationMessage(message, explanation, explanationIndex) {
     turnRef: message.turnRef,
     modelId: message.modelId || null,
     modelProvider: message.modelProvider || null,
-  };
-}
-
-function buildToolActionsSummaryMessage(pendingSummary, summaryIndex) {
-  if (!pendingSummary || pendingSummary.explanations.length === 0) {
-    return null;
-  }
-  const totalActions = pendingSummary.explanations.length;
-  return {
-    id: `${pendingSummary.anchorId || 'tool-actions'}:summary:${summaryIndex}`,
-    text: `${totalActions} action${totalActions === 1 ? '' : 's'}`,
-    sender: 'assistant',
-    type: 'tool-actions-summary',
-    sourceEventType: pendingSummary.sourceEventType || 'tool-call',
-    sourceChannel: pendingSummary.sourceChannel || 'derived',
-    turnRef: pendingSummary.turnRef,
-    modelId: pendingSummary.modelId || null,
-    modelProvider: pendingSummary.modelProvider || null,
-    actionExplanations: [...pendingSummary.explanations],
   };
 }
 
@@ -175,92 +129,7 @@ export function hasCurrentTurnLiveProgressMessages(messages) {
 
 export function buildThreadPresentationMessages(
   messages,
-  { showToolLogs = true, isBusy = false } = {},
+  _options = {},
 ) {
-  if (!Array.isArray(messages) || messages.length === 0 || showToolLogs) {
-    return Array.isArray(messages) ? messages : [];
-  }
-
-  const renderedMessages = [];
-  const activeSegmentLowerBound = (() => {
-    const lastUserIndex = findLastUserIndex(messages);
-    return lastUserIndex >= 0 ? lastUserIndex + 1 : 0;
-  })();
-  const keepActiveSegmentExpanded = (
-    isBusy
-    || hasIncompleteAssistantReplyAfterIndex(messages, activeSegmentLowerBound)
-  );
-  let pendingSummary = null;
-  let summaryIndex = 0;
-
-  const flushPendingSummary = () => {
-    const summaryMessage = buildToolActionsSummaryMessage(pendingSummary, summaryIndex);
-    pendingSummary = null;
-    if (!summaryMessage) {
-      return;
-    }
-    summaryIndex += 1;
-    renderedMessages.push(summaryMessage);
-  };
-
-  const queueCompletedExplanation = (message, explanation) => {
-    if (!pendingSummary) {
-      pendingSummary = {
-        anchorId: message.id,
-        sourceEventType: message.sourceEventType || null,
-        sourceChannel: message.sourceChannel || null,
-        turnRef: message.turnRef,
-        modelId: message.modelId || null,
-        modelProvider: message.modelProvider || null,
-        explanations: [],
-      };
-    }
-    pendingSummary.explanations.push(explanation);
-  };
-
-  messages.forEach((message, index) => {
-    if (message?.sender === 'user') {
-      flushPendingSummary();
-      renderedMessages.push(message);
-      return;
-    }
-
-    if (message?.type === 'tool-output') {
-      if (isActiveSegmentMessage(index, activeSegmentLowerBound, keepActiveSegmentExpanded)) {
-        flushPendingSummary();
-        renderedMessages.push(message);
-      }
-      return;
-    }
-
-    if (message?.type === 'search-source') {
-      flushPendingSummary();
-      renderedMessages.push(message);
-      return;
-    }
-
-    if (message?.type === 'tool-call') {
-      if (isActiveSegmentMessage(index, activeSegmentLowerBound, keepActiveSegmentExpanded)) {
-        flushPendingSummary();
-        renderedMessages.push(message);
-        return;
-      }
-
-      const explanations = collectToolExplanationTexts(message);
-      if (explanations.length === 0) {
-        return;
-      }
-
-      explanations.forEach((explanation) => {
-        queueCompletedExplanation(message, explanation);
-      });
-      return;
-    }
-
-    flushPendingSummary();
-    renderedMessages.push(message);
-  });
-
-  flushPendingSummary();
-  return renderedMessages;
+  return Array.isArray(messages) ? messages : [];
 }

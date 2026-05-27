@@ -5,7 +5,7 @@ import {
 } from '../../frontend/src/renderer/features/chat/utils/message/messagePresentationPipeline';
 
 describe('messagePresentationPipeline', () => {
-  test('buildThreadPresentationMessages collapses completed hidden tool rows into a summary before assistant text', () => {
+  test('buildThreadPresentationMessages keeps SDK row order even when tool logs are hidden', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace' },
       {
@@ -35,14 +35,7 @@ describe('messagePresentationPipeline', () => {
       isBusy: false,
     });
 
-    expect(rendered.map((message) => message.type || 'llm-text')).toEqual([
-      'llm-text',
-      'tool-actions-summary',
-      'llm-text',
-    ]);
-    expect(rendered[1].actionExplanations).toEqual([
-      'List the active workspace contents.',
-    ]);
+    expect(rendered).toBe(messages);
   });
 
   test('buildCurrentTurnResponseOverlayEntries includes live tool explanations only for tool calls', () => {
@@ -124,7 +117,7 @@ describe('messagePresentationPipeline', () => {
     })).toEqual(messages);
   });
 
-  test('hides completed raw tool-call rows without explanations while tool logs are collapsed', () => {
+  test('keeps completed raw tool-call rows while tool logs are collapsed', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Read files' },
       {
@@ -153,13 +146,10 @@ describe('messagePresentationPipeline', () => {
     expect(buildThreadPresentationMessages(messages, {
       showToolLogs: false,
       isBusy: false,
-    })).toEqual([
-      messages[0],
-      messages[3],
-    ]);
+    })).toBe(messages);
   });
 
-  test('hides completed tool-output rows while tool logs are collapsed', () => {
+  test('keeps completed tool-output rows while tool logs are collapsed', () => {
     const messages = [
       { id: 'user-1', sender: 'user', text: 'Read files' },
       {
@@ -181,10 +171,7 @@ describe('messagePresentationPipeline', () => {
     expect(buildThreadPresentationMessages(messages, {
       showToolLogs: false,
       isBusy: false,
-    })).toEqual([
-      messages[0],
-      messages[2],
-    ]);
+    })).toBe(messages);
   });
 
   test('current-turn live progress ignores progress rows before the latest user', () => {

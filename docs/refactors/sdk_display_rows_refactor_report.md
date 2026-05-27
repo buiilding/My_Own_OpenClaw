@@ -113,11 +113,68 @@ Validation:
 - Passed: `cd frontend && npm run test -- ChatSelectors ChatStreamToolHandlers SdkDisplayChatMessageProjection --runInBand`
   - Result: 3 suites passed, 16 tests passed.
 
+### 4. Active current-turn reconstruction removed from dashboard path
+
+Status: complete.
+
+Implementation:
+
+- Deleted `replaceCurrentTurnMessagesWithProjection(...)`.
+- Left current-turn projection available for response-overlay presentation, but
+  removed the helper that spliced current-turn rows into dashboard transcript
+  messages.
+- Verified source search no longer finds dashboard selector, completion, or
+  terminal handlers calling current-turn transcript replacement.
+
+Previous behavior:
+
+- Completion/error paths and the dashboard selector could rewrite visible
+  messages from `currentTurnProjection`.
+
+Current behavior:
+
+- Dashboard transcript rows are no longer rebuilt from `currentTurnProjection`.
+- Current-turn projection is scoped to status/overlay behavior.
+
+Validation:
+
+- Passed: `cd frontend && npm run test -- ChatBoxResponseState MessagePresentationPipeline ChatSelectors ChatStreamToolHandlers --runInBand`
+  - Result: 4 suites passed, 28 tests passed.
+- Passed source check: `rg -n "replaceCurrentTurnMessagesWithProjection|dedupeMessagesById" frontend/src/renderer/features/chat tests/frontend`
+  - Result: no remaining production or test references.
+
+### 5. Presentation pipeline no longer hides or summarizes tool rows
+
+Status: complete.
+
+Implementation:
+
+- Simplified `buildThreadPresentationMessages(...)` to return messages in the
+  received order.
+- Removed completed-tool summarization and hide/drop behavior from the
+  foundational path.
+- Updated tests to assert that tool rows remain visible even when
+  `showToolLogs` is false.
+
+Previous behavior:
+
+- The presentation pipeline could hide completed tool outputs, hide raw
+  tool-call rows, or replace tool-call explanations with
+  `tool-actions-summary` rows.
+
+Current behavior:
+
+- The dashboard presentation pipeline is visual-only for transcript ordering:
+  it does not remove, reorder, merge, or synthesize tool rows.
+
+Validation:
+
+- Passed: `cd frontend && npm run test -- ChatBoxResponseState MessagePresentationPipeline ChatSelectors ChatStreamToolHandlers --runInBand`
+  - Result: 4 suites passed, 28 tests passed.
+
 ## Remaining Success Criteria
 
 - Keep transcript persistence as event storage, not display authority.
-- Remove active tool reconstruction from `chatBoxResponseState`.
-- Simplify `messagePresentationPipeline` to visual-only behavior.
 - Keep row rendering dumb.
 - Move tests to the SDK boundary first and remove renderer expectations for
   active reconstruction behavior.
