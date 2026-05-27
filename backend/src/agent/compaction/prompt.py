@@ -33,14 +33,6 @@ DEFAULT_COMPACTION_INSTRUCTION = (
     "- Do not claim a task was completed unless the transcript confirms it."
 )
 
-_XML_BLOCK_TAGS = (
-    "system_context",
-    "os_state",
-    "episodic_memory",
-    "semantic_memory",
-    "available_tools",
-    "tool_schemas",
-)
 _WHITESPACE_PATTERN = re.compile(r"\s+")
 _TAG_PATTERN = re.compile(r"</?[^>]+>")
 
@@ -370,14 +362,6 @@ def _clean_text_for_compaction(text: str) -> str:
     cleaned = (text or "").strip()
     if not cleaned:
         return ""
-
-    for tag_name in _XML_BLOCK_TAGS:
-        cleaned = re.sub(
-            rf"<{tag_name}(?:\s+[^>]*)?>.*?</{tag_name}>",
-            " ",
-            cleaned,
-            flags=re.DOTALL,
-        )
 
     cleaned = cleaned.replace(CONTEXT_COMPACTION_PREFIX, " ")
     cleaned = re.sub(r"<user_query>\s*(.*?)\s*</user_query>", r" \1 ", cleaned, flags=re.DOTALL)

@@ -149,7 +149,7 @@ Prompt rendering path:
 - `render_messages_for_compaction_prompt(...)`
   - max transcript chars: `24000`
   - message-type aware rendering instead of raw `Role: content`
-  - strips bulky XML wrapper blocks (`system_context`, `os_state`, memory tags) before summarization
+  - strips XML tag markup before summarization while preserving the text inside those tags
   - prefers structured fields when available (`user_query_raw`, assistant `tool_calls`, tool `tool_name`, `tool_call_id`, `compaction_facts`)
   - when history exceeds budget, preserves both early context and most recent compacted context with a sampled middle section instead of truncating strictly from the front
 - `build_compaction_prompt_messages(...)`

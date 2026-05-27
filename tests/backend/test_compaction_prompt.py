@@ -3,7 +3,7 @@ from backend.src.core.messages.structures import StoredMessage
 from backend.src.core.types.enums import MessageRole, MessageType
 
 
-def test_compaction_prompt_uses_structured_fields_and_strips_xml():
+def test_compaction_prompt_uses_structured_fields_and_preserves_xml_content():
     messages = [
         StoredMessage(
             role=MessageRole.USER,
@@ -44,6 +44,15 @@ def test_compaction_prompt_uses_structured_fields_and_strips_xml():
             content="[[CONTEXT COMPACTION SUMMARY]]\nOlder summary",
             message_type=MessageType.CONTEXT_COMPACTION,
         ),
+        StoredMessage(
+            role=MessageRole.ASSISTANT,
+            content=(
+                "<system_context><active_window>Terminal</active_window>"
+                "<note>preserve tagged context</note></system_context>"
+                "done"
+            ),
+            message_type=MessageType.ASSISTANT_RESPONSE,
+        ),
     ]
 
     rendered = render_messages_for_compaction_prompt(messages, max_chars=6000)
@@ -53,7 +62,9 @@ def test_compaction_prompt_uses_structured_fields_and_strips_xml():
     assert "tool: browser" in rendered
     assert "facts: action=click; ref=42293" in rendered
     assert "summary: Older summary" in rendered
+    assert "preserve tagged context" in rendered
     assert "<system_context>" not in rendered
+    assert "<note>" not in rendered
 
 
 def test_compaction_prompt_keeps_recent_context_when_history_exceeds_budget():
