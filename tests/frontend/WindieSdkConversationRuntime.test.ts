@@ -2,6 +2,7 @@ import {
   type BackendEvent,
   buildCurrentTurnProjection,
   buildDisplayConversation,
+  buildDisplayRows,
   buildRehydrateSnapshot,
   createConversationEvent,
   createInitialConversationRuntimeState,
@@ -73,6 +74,70 @@ describe('Windie SDK conversation runtime core', () => {
       'user_message',
       'tool_call',
     ]);
+  });
+
+  test('SDK display rows preserve append order for tool call and output rows', () => {
+    const events = [
+      event('user_message', { text: 'inspect files' }),
+      event('tool_call', {
+        toolName: 'read_file',
+        requestId: 'req-readme',
+        toolCallId: 'call-readme',
+        args: { path: 'README.md' },
+      }),
+      event('tool_output', {
+        toolName: 'read_file',
+        requestId: 'req-readme',
+        toolCallId: 'call-readme',
+        result: { display_content: 'README contents' },
+        success: true,
+      }),
+      event('tool_call', {
+        toolName: 'read_file',
+        requestId: 'req-package',
+        toolCallId: 'call-package',
+        args: { path: 'package.json' },
+      }),
+      event('tool_output', {
+        toolName: 'read_file',
+        requestId: 'req-package',
+        toolCallId: 'call-package',
+        result: { display_content: 'package contents' },
+        success: true,
+      }),
+      event('assistant_message', { text: 'Both files were inspected.' }),
+    ];
+
+    const rows = buildDisplayRows(events);
+
+    expect(rows.map(row => row.type)).toEqual([
+      'user_message',
+      'tool_call',
+      'tool_output',
+      'tool_call',
+      'tool_output',
+      'assistant_message',
+    ]);
+    expect(rows.map(row => row.index)).toEqual([0, 1, 2, 3, 4, 5]);
+    expect(rows[1]).toMatchObject({
+      role: 'assistant',
+      type: 'tool_call',
+      metadata: {
+        toolName: 'read_file',
+        requestId: 'req-readme',
+        toolCallId: 'call-readme',
+      },
+    });
+    expect(rows[2]).toMatchObject({
+      role: 'tool',
+      type: 'tool_output',
+      content: 'README contents',
+      metadata: {
+        toolName: 'read_file',
+        requestId: 'req-readme',
+        toolCallId: 'call-readme',
+      },
+    });
   });
 
   test('orphan empty-chat greeting is not display or rehydrate history', () => {

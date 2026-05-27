@@ -16,6 +16,9 @@ Use this folder for focused refactor plans, migration notes, and deletion milest
   focused plan for making the SDK expose one ordered display row list so
   Electron and future UIs only wrap rows visually instead of reconstructing,
   merging, deduping, or transforming active tool messages.
+- [SDK Display Rows Refactor Report](sdk_display_rows_refactor_report.md):
+  real-time implementation and validation report for the SDK display row
+  ownership refactor.
 - [Chat Replay Send Convergence Plan](chat_replay_send_convergence_plan.md):
   focused medium-width plan for converging composer send, retry, and edit/resend
   onto one desktop live-turn query dispatch path while keeping replay rewrite

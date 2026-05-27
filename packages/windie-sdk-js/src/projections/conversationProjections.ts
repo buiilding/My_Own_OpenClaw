@@ -9,6 +9,8 @@ import type {
   DisplayMessage,
   JsonRecord,
   RehydrateSnapshot,
+  SdkDisplayRow,
+  SdkDisplayRowMetadata,
   ToolTrace,
 } from '../conversation/types.js';
 import {
@@ -110,6 +112,122 @@ function toolNameFromPayload(payload: JsonRecord): string | null {
     return payload.tool_name;
   }
   return null;
+}
+
+function displayRowMetadata(event: ConversationEvent): SdkDisplayRowMetadata {
+  return {
+    eventId: event.eventId,
+    source: event.source,
+    revisionId: event.revisionId,
+    timestamp: event.timestamp,
+    toolName: toolNameFromPayload(event.payload),
+    requestId: stringField(event.payload, 'requestId', 'request_id'),
+    correlationId: stringField(event.payload, 'correlationId', 'correlation_id'),
+    bundleId: stringField(event.payload, 'bundleId', 'bundle_id'),
+    toolCallId: stringField(event.payload, 'toolCallId', 'tool_call_id'),
+    screenshotRef: stringField(event.payload, 'screenshotRef', 'screenshot_ref'),
+    screenshotUrl: stringField(event.payload, 'screenshotUrl', 'screenshot_url'),
+    modelId: stringField(event.payload, 'modelId', 'model_id'),
+    modelProvider: stringField(event.payload, 'modelProvider', 'model_provider'),
+    raw: event.payload,
+  };
+}
+
+function displayRowBase(event: ConversationEvent, index: number) {
+  return {
+    id: event.eventId,
+    conversationRef: event.conversationRef,
+    turnRef: event.turnRef,
+    index,
+    metadata: displayRowMetadata(event),
+  };
+}
+
+function displayRowFromEvent(event: ConversationEvent, index: number): SdkDisplayRow | null {
+  if (event.type === 'user_message') {
+    return {
+      ...displayRowBase(event, index),
+      role: 'user',
+      type: 'user_message',
+      content: textFromPayload(event.payload),
+    };
+  }
+  if (event.type === 'assistant_delta') {
+    return {
+      ...displayRowBase(event, index),
+      role: 'assistant',
+      type: 'assistant_message',
+      content: textFromPayload(event.payload),
+      isStreaming: true,
+    };
+  }
+  if (event.type === 'assistant_message') {
+    return {
+      ...displayRowBase(event, index),
+      role: 'assistant',
+      type: 'assistant_message',
+      content: textFromPayload(event.payload),
+    };
+  }
+  if (event.type === 'reasoning_delta') {
+    return {
+      ...displayRowBase(event, index),
+      role: 'assistant',
+      type: 'reasoning',
+      content: textFromPayload(event.payload),
+    };
+  }
+  if (event.type === 'tool_call' || event.type === 'tool_bundle_call') {
+    return {
+      ...displayRowBase(event, index),
+      role: 'assistant',
+      type: 'tool_call',
+      content: event.payload,
+      metadata: {
+        ...displayRowMetadata(event),
+        toolName: toolNameFromPayload(event.payload)
+          ?? (event.type === 'tool_bundle_call' ? 'tool_bundle' : null),
+      },
+    };
+  }
+  if (event.type === 'tool_output' || event.type === 'tool_bundle_output') {
+    return {
+      ...displayRowBase(event, index),
+      role: 'tool',
+      type: 'tool_output',
+      content: event.type === 'tool_bundle_output'
+        ? bundleDisplayTextFromPayload(event.payload)
+        : displayTextFromPayload(event.payload),
+      metadata: {
+        ...displayRowMetadata(event),
+        toolName: toolNameFromPayload(event.payload)
+          ?? (event.type === 'tool_bundle_output' ? 'tool_bundle' : null),
+      },
+    };
+  }
+  if (event.type === 'turn_error' || event.type === 'runtime_error') {
+    if (event.type === 'turn_error' && shouldIgnoreCurrentTurnError(event.payload)) {
+      return null;
+    }
+    return {
+      ...displayRowBase(event, index),
+      role: 'system',
+      type: 'error',
+      content: textFromPayload(event.payload) || 'Unknown runtime error',
+    };
+  }
+  return null;
+}
+
+export function buildDisplayRows(events: ConversationEvent[]): SdkDisplayRow[] {
+  const rows: SdkDisplayRow[] = [];
+  for (const event of events) {
+    const row = displayRowFromEvent(event, rows.length);
+    if (row) {
+      rows.push(row);
+    }
+  }
+  return rows;
 }
 
 function statusFromToolPayload(payload: JsonRecord): string | null {

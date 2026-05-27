@@ -131,6 +131,86 @@ export type DisplayConversation = {
   compaction: CompactionState;
 };
 
+export type SdkDisplayRowMetadata = {
+  eventId?: string | null;
+  source?: ConversationEventSource | string | null;
+  revisionId?: string | null;
+  timestamp?: string | null;
+  toolName?: string | null;
+  requestId?: string | null;
+  correlationId?: string | null;
+  bundleId?: string | null;
+  toolCallId?: string | null;
+  screenshotRef?: string | null;
+  screenshotUrl?: string | null;
+  modelId?: string | null;
+  modelProvider?: string | null;
+  raw?: JsonRecord | null;
+};
+
+export type SdkDisplayRow =
+  | {
+      id: string;
+      conversationRef: string;
+      turnRef?: string | null;
+      index: number;
+      role: 'user';
+      type: 'user_message';
+      content: string;
+      metadata?: SdkDisplayRowMetadata;
+    }
+  | {
+      id: string;
+      conversationRef: string;
+      turnRef?: string | null;
+      index: number;
+      role: 'assistant';
+      type: 'assistant_message';
+      content: string;
+      isStreaming?: boolean;
+      metadata?: SdkDisplayRowMetadata;
+    }
+  | {
+      id: string;
+      conversationRef: string;
+      turnRef?: string | null;
+      index: number;
+      role: 'assistant';
+      type: 'tool_call';
+      content: JsonRecord;
+      metadata?: SdkDisplayRowMetadata;
+    }
+  | {
+      id: string;
+      conversationRef: string;
+      turnRef?: string | null;
+      index: number;
+      role: 'tool';
+      type: 'tool_output';
+      content: string;
+      metadata?: SdkDisplayRowMetadata;
+    }
+  | {
+      id: string;
+      conversationRef: string;
+      turnRef?: string | null;
+      index: number;
+      role: 'assistant';
+      type: 'reasoning';
+      content: string;
+      metadata?: SdkDisplayRowMetadata;
+    }
+  | {
+      id: string;
+      conversationRef: string;
+      turnRef?: string | null;
+      index: number;
+      role: 'system';
+      type: 'error';
+      content: string;
+      metadata?: SdkDisplayRowMetadata;
+    };
+
 export type CurrentTurnProjectionPhase =
   | 'idle'
   | 'awaiting'
