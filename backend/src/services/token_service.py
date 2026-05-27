@@ -298,7 +298,9 @@ class TokenService:
             return 0
 
         try:
-            normalized_model = _normalize_model_for_litellm(model)
+            normalized_model = _normalize_model_for_litellm(
+                resolve_runtime_model_id(model)
+            )
             # Convert messages to the format expected by litellm.
             litellm_messages = [_to_litellm_message(msg) for msg in message_list]
 

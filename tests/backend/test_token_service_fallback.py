@@ -174,6 +174,18 @@ def test_count_tokens_normalizes_object_message_for_litellm(monkeypatch):
     assert captured["messages"] == [{"role": "assistant", "content": "hello world"}]
 
 
+def test_count_tokens_resolves_windieos_model_preset_for_litellm(monkeypatch):
+    captured = _patch_token_counter_capture(monkeypatch, return_value=5)
+
+    token_count = TokenService.count_tokens(
+        [MessageObj(role="assistant", content="hello world")],
+        model="gpt-5.4@@gpt-5-4-none-thinking",
+    )
+
+    assert token_count == 5
+    assert captured["model"] == "gpt-5.4"
+
+
 def test_count_tokens_includes_flat_tool_schemas_for_litellm(monkeypatch):
     captured = _patch_token_counter_capture(monkeypatch, return_value=9)
     tool = {
