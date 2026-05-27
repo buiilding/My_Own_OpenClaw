@@ -38,6 +38,10 @@ function readString(value: unknown): string | null {
   return typeof value === 'string' ? value : null;
 }
 
+function readNonEmptyString(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 ? value : null;
+}
+
 function sdkToolBundleDetails(payload: JsonObject): JsonObject {
   const structuredPayload = asJsonObject(payload.structuredPayload);
   if (structuredPayload) {
@@ -50,17 +54,57 @@ function sdkToolBundleDetails(payload: JsonObject): JsonObject {
   };
 }
 
+function toolOutputTextFromRecord(payload: JsonObject | null): string | null {
+  return (
+    readNonEmptyString(payload?.display_content)
+    ?? readNonEmptyString(payload?.output)
+    ?? readNonEmptyString(payload?.llm_content)
+    ?? readNonEmptyString(payload?.content)
+    ?? readNonEmptyString(payload?.message)
+    ?? (payload?.error ? `Error: ${payload.error}` : null)
+  );
+}
+
+function bundleStepResultsFromPayload(payload: JsonObject | null): JsonObject[] {
+  const structuredPayload = asJsonObject(payload?.structuredPayload);
+  const candidates = [
+    payload?.stepResults,
+    payload?.step_results,
+    structuredPayload?.stepResults,
+    structuredPayload?.step_results,
+    structuredPayload?.results,
+  ];
+  for (const candidate of candidates) {
+    if (!Array.isArray(candidate)) {
+      continue;
+    }
+    return candidate
+      .map(step => asJsonObject(step))
+      .filter((step): step is JsonObject => Boolean(step));
+  }
+  return [];
+}
+
+function formatBundleStepOutputText(step: JsonObject, stepIndex: number): string {
+  const output = asJsonObject(step.output) ?? asJsonObject(step.result);
+  const outputText = toolOutputTextFromRecord(output)
+    ?? readNonEmptyString(step.output)
+    ?? readNonEmptyString(step.result)
+    ?? toolOutputTextFromRecord(step)
+    ?? JSON.stringify(step, null, 2);
+  const toolName = readString(step.toolName) ?? readString(step.tool_name) ?? readString(step.tool);
+  const label = toolName ? `${toolName} #${stepIndex + 1}` : `step #${stepIndex + 1}`;
+  return `${label}\n${outputText}`;
+}
+
 function formatSdkToolOutputText(payload: JsonObject | null): string {
-  if (typeof payload?.display_content === 'string' && payload.display_content.length > 0) {
-    return payload.display_content;
+  const bundleSteps = bundleStepResultsFromPayload(payload);
+  if (bundleSteps.length > 0) {
+    return bundleSteps
+      .map((step, stepIndex) => formatBundleStepOutputText(step, stepIndex))
+      .join('\n\n');
   }
-  if (typeof payload?.output === 'string' && payload.output.length > 0) {
-    return payload.output;
-  }
-  if (payload?.error) {
-    return `Error: ${payload.error}`;
-  }
-  return 'No output';
+  return toolOutputTextFromRecord(payload) ?? 'No output';
 }
 
 export function useChatStreamToolHandlers({
@@ -130,17 +174,21 @@ export function useChatStreamToolHandlers({
   ]);
 
   const handleToolOutput = useCallback((event: ConversationEvent, _conversationRef?: string | null) => {
-    if (event.type !== 'tool_output') {
+    if (event.type !== 'tool_output' && event.type !== 'tool_bundle_output') {
       return;
     }
     const toolOutputDetails = asJsonObject(event.payload?.structuredPayload) ?? asJsonObject(event.payload);
     const outputText = formatSdkToolOutputText(toolOutputDetails);
-    const toolName = readString(event.payload?.toolName) ?? readString(toolOutputDetails?.tool_name);
-    const requestId = readString(event.payload?.requestId) ?? readString(toolOutputDetails?.request_id);
+    const fallbackToolName = event.type === 'tool_bundle_output' ? 'tool_bundle' : null;
+    const toolName = readString(event.payload?.toolName) ?? readString(toolOutputDetails?.tool_name) ?? fallbackToolName;
+    const requestId = readString(event.payload?.requestId)
+      ?? readString(event.payload?.bundleId)
+      ?? readString(toolOutputDetails?.request_id)
+      ?? readString(toolOutputDetails?.bundle_id);
     const correlationId = (
       readString(event.payload?.correlationId)
-      ?? resolveToolOutputCorrelationId(toolOutputDetails, event.eventId)
       ?? requestId
+      ?? resolveToolOutputCorrelationId(toolOutputDetails, event.eventId)
       ?? undefined
     );
     const screenshotRefValue = readString(event.payload?.screenshotRef) ?? readString(toolOutputDetails?.screenshot_ref);

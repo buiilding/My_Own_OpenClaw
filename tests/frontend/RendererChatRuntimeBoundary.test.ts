@@ -410,6 +410,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('ToolBundleEvent');
     expect(source).not.toContain('unwrapToolBackendEvent');
     expect(source).toContain("event.type !== 'tool_bundle_call'");
+    expect(source).toContain("event.type !== 'tool_bundle_output'");
     expect(source).toContain('payload.bundleId');
   });
 
@@ -423,7 +424,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('DesktopConversationContinuityService.prepareEditAndResend');
     expect(source).toContain('DesktopConversationContinuityService.prepareRetryTurn');
     expect(source).toContain('dispatchPreparedDesktopChatTurn');
-    expect(source).toContain('recordTranscriptUserMessage: false');
+    expect(source).toContain('recordTranscriptUserMessage: true');
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.sendQuery');
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.editAndResend');
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.retryTurn');

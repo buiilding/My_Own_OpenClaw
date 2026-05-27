@@ -86,6 +86,42 @@ describe('chatBoxResponseState', () => {
     ]);
   });
 
+  test('buildCurrentTurnMessagesFromProjection renders tool-bundle-output step content', () => {
+    const messages = buildCurrentTurnMessagesFromProjection({
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      phase: 'tool_output',
+      assistantText: '',
+      reasoningText: null,
+      lastError: null,
+      toolEvents: [{
+        id: 'bundle-output-1',
+        kind: 'tool_output',
+        toolName: 'tool_bundle',
+        status: 'success',
+        payload: {
+          bundleId: 'bundle-read',
+          stepResults: [{
+            tool: 'read_file',
+            status: 'ok',
+            output: {
+              display_content: 'README contents',
+              llm_content: 'README model contents',
+            },
+          }],
+        },
+      }],
+    });
+
+    expect(messages).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        type: 'tool-output',
+        text: expect.stringContaining('README contents'),
+        modelFacingToolOutput: expect.stringContaining('README contents'),
+      }),
+    ]));
+  });
+
   test('replaceCurrentTurnMessagesWithProjection removes stale same-id assistant rows', () => {
     const messages = replaceCurrentTurnMessagesWithProjection([
       { id: 'user-1', sender: 'user', text: 'hello', turnRef: 'turn-1' },

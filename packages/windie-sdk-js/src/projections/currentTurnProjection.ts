@@ -2,7 +2,61 @@ function asRecord(value) {
   return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
 }
 
+function recordFromUnknown(value) {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value : null;
+}
+
+function nonEmptyString(value) {
+  return typeof value === 'string' && value.length > 0 ? value : null;
+}
+
+function outputTextFromRecord(payload) {
+  if (!payload) return null;
+  return nonEmptyString(payload.display_content)
+    ?? nonEmptyString(payload.output)
+    ?? nonEmptyString(payload.llm_content)
+    ?? nonEmptyString(payload.content)
+    ?? nonEmptyString(payload.message)
+    ?? (payload.error ? `Error: ${payload.error}` : null);
+}
+
+function bundleStepResultsFromPayload(payload) {
+  const structuredPayload = recordFromUnknown(payload.structuredPayload);
+  const candidates = [
+    payload.stepResults,
+    payload.step_results,
+    structuredPayload?.stepResults,
+    structuredPayload?.step_results,
+    structuredPayload?.results,
+  ];
+  for (const candidate of candidates) {
+    if (!Array.isArray(candidate)) continue;
+    return candidate
+      .map(step => recordFromUnknown(step))
+      .filter(Boolean);
+  }
+  return [];
+}
+
+function bundleOutputTextFromPayload(payload) {
+  const steps = bundleStepResultsFromPayload(payload);
+  if (steps.length === 0) return null;
+  return steps.map((step, index) => {
+    const outputRecord = recordFromUnknown(step.output) ?? recordFromUnknown(step.result);
+    const outputText = outputTextFromRecord(outputRecord)
+      ?? nonEmptyString(step.output)
+      ?? nonEmptyString(step.result)
+      ?? outputTextFromRecord(step)
+      ?? JSON.stringify(step);
+    const toolName = nonEmptyString(step.toolName) ?? nonEmptyString(step.tool_name) ?? nonEmptyString(step.tool);
+    const label = toolName ? `${toolName} #${index + 1}` : `step #${index + 1}`;
+    return `${label}\n${outputText}`;
+  }).join('\n\n');
+}
+
 function textFromPayload(payload) {
+  const bundleOutputText = bundleOutputTextFromPayload(payload);
+  if (bundleOutputText) return bundleOutputText;
   if (typeof payload.text === 'string') return payload.text;
   if (typeof payload.content === 'string') return payload.content;
   if (typeof payload.status === 'string') return payload.status;

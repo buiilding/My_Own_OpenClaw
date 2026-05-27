@@ -43,6 +43,10 @@ function hasIncompleteAssistantReplyAfterIndex(messages, lowerBound) {
   return false;
 }
 
+function isActiveSegmentMessage(index, activeSegmentLowerBound, keepActiveSegmentExpanded) {
+  return keepActiveSegmentExpanded && index >= activeSegmentLowerBound;
+}
+
 function buildToolExplanationMessage(message, explanation, explanationIndex) {
   return {
     id: `${message.id}:tool-explanation:${explanationIndex}`,
@@ -225,6 +229,10 @@ export function buildThreadPresentationMessages(
     }
 
     if (message?.type === 'tool-output') {
+      if (isActiveSegmentMessage(index, activeSegmentLowerBound, keepActiveSegmentExpanded)) {
+        flushPendingSummary();
+        renderedMessages.push(message);
+      }
       return;
     }
 
@@ -240,8 +248,7 @@ export function buildThreadPresentationMessages(
         return;
       }
 
-      const isActiveSegmentMessage = keepActiveSegmentExpanded && index >= activeSegmentLowerBound;
-      if (isActiveSegmentMessage) {
+      if (isActiveSegmentMessage(index, activeSegmentLowerBound, keepActiveSegmentExpanded)) {
         explanations.forEach((explanation, explanationIndex) => {
           renderedMessages.push(buildToolExplanationMessage(message, explanation, explanationIndex));
         });

@@ -172,6 +172,48 @@ describe('Windie SDK conversation runtime core', () => {
     });
   });
 
+  test('current-turn projection renders tool-bundle-output step content', () => {
+    const events = [
+      event('turn_started', {}),
+      event('user_message', { text: 'inspect files' }),
+      event('tool_bundle_output', {
+        bundleId: 'bundle-read',
+        status: 'success',
+        stepResults: [
+          {
+            tool: 'read_file',
+            toolCallId: 'call-readme',
+            status: 'ok',
+            output: {
+              display_content: 'README contents',
+              llm_content: 'README model contents',
+            },
+          },
+          {
+            tool: 'read_file',
+            toolCallId: 'call-package',
+            status: 'ok',
+            output: {
+              content: 'package contents',
+            },
+          },
+        ],
+      }),
+    ];
+
+    const projection = buildCurrentTurnProjection(events);
+
+    expect(projection.toolEvents).toEqual([
+      expect.objectContaining({
+        kind: 'tool_output',
+        toolName: 'tool_bundle',
+        text: expect.stringContaining('README contents'),
+        status: 'success',
+      }),
+    ]);
+    expect(projection.toolEvents[0].text).toContain('package contents');
+  });
+
   test('current-turn projection ignores recoverable display-only backend errors', () => {
     const events = [
       event('turn_started', {}),

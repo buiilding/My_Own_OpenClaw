@@ -207,6 +207,67 @@ describe('useChatStreamToolHandlers', () => {
     );
   });
 
+  test('persists tool-bundle-output events with rendered step output text', () => {
+    const { result } = renderToolHandlers('model-bundle-output', 'provider-bundle-output');
+
+    act(() => {
+      result.current.handleToolOutput({
+        eventId: 'event-tool-bundle-output-1',
+        type: 'tool_bundle_output',
+        conversationRef: 'conversation-bundle-output-1',
+        turnRef: 'turn-bundle-output-1',
+        revisionId: 'rev-bundle-output-1',
+        timestamp: '2026-05-24T00:00:00.000Z',
+        source: 'sidecar',
+        payload: {
+          bundleId: 'bundle-read',
+          status: 'success',
+          userId: 'user-bundle-output-1',
+          stepResults: [
+            {
+              tool: 'read_file',
+              toolCallId: 'call-readme',
+              status: 'ok',
+              output: {
+                display_content: 'README contents',
+                llm_content: 'README model contents',
+              },
+            },
+            {
+              tool: 'read_file',
+              toolCallId: 'call-package',
+              status: 'ok',
+              output: {
+                content: 'package contents',
+              },
+            },
+          ],
+        },
+      } as any, 'conversation-bundle-output-1');
+    });
+
+    expect(mockRecordToolMessage).toHaveBeenCalledWith(
+      expect.stringContaining('README contents'),
+      expect.objectContaining({
+        messageType: 'tool-output',
+        toolName: 'tool_bundle',
+        correlationId: 'bundle-read',
+        conversationRef: 'conversation-bundle-output-1',
+        userId: 'user-bundle-output-1',
+        modelId: 'model-bundle-output',
+        modelProvider: 'provider-bundle-output',
+        structuredPayload: {
+          kind: 'tool-output',
+          toolCallDetails: expect.objectContaining({
+            bundleId: 'bundle-read',
+            stepResults: expect.any(Array),
+          }),
+        },
+      }),
+    );
+    expect(mockRecordToolMessage.mock.calls[0][0]).toContain('package contents');
+  });
+
   test('persists backend-owned tool calls that skip frontend execution without owning active UI state', () => {
     const { result } = renderToolHandlers('model-web-search', 'gemini');
 

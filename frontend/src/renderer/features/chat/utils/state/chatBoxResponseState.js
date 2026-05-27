@@ -88,6 +88,33 @@ function buildProjectedToolCallMessage({
 }
 
 function formatProjectedToolOutputText(payload) {
+  const structuredPayload = asObject(payload.structuredPayload);
+  const bundleSteps = [
+    payload.stepResults,
+    payload.step_results,
+    structuredPayload?.stepResults,
+    structuredPayload?.step_results,
+    structuredPayload?.results,
+  ].find(Array.isArray);
+  if (Array.isArray(bundleSteps) && bundleSteps.length > 0) {
+    return bundleSteps
+      .map((step, index) => {
+        const stepRecord = asObject(step) || {};
+        const outputRecord = asObject(stepRecord.output) || asObject(stepRecord.result) || {};
+        const outputText = readString(outputRecord.display_content)
+          || readString(outputRecord.output)
+          || readString(outputRecord.llm_content)
+          || readString(outputRecord.content)
+          || readString(outputRecord.message)
+          || readString(stepRecord.output)
+          || readString(stepRecord.result)
+          || readString(stepRecord.error)
+          || JSON.stringify(stepRecord, null, 2);
+        const toolName = readString(stepRecord.toolName) || readString(stepRecord.tool_name) || readString(stepRecord.tool);
+        return `${toolName || 'step'} #${index + 1}\n${outputText}`;
+      })
+      .join('\n\n');
+  }
   if (typeof payload.display_content === 'string' && payload.display_content.length > 0) {
     return payload.display_content;
   }

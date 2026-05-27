@@ -48,6 +48,21 @@ function shouldIgnoreCurrentTurnError(payload) {
 function displayTextFromPayload(payload) {
     return (0, toolOutputContent_js_1.readToolOutputContent)(payload).displayContent;
 }
+function bundleDisplayTextFromPayload(payload) {
+    const steps = bundleStepResultsFromPayload(payload);
+    if (steps.length === 0) {
+        return displayTextFromPayload(payload);
+    }
+    return steps.map((step, index) => {
+        const toolName = (0, toolOutputContent_js_1.stringField)(step, 'toolName', 'tool_name', 'tool');
+        const label = toolName ? `${toolName} #${index + 1}` : `step #${index + 1}`;
+        const outputRecord = (0, toolOutputContent_js_1.recordFromUnknown)(step.output) ?? (0, toolOutputContent_js_1.recordFromUnknown)(step.result);
+        const outputText = outputRecord
+            ? (0, toolOutputContent_js_1.readToolOutputContent)(outputRecord).displayContent
+            : (0, toolOutputContent_js_1.readBundleStepModelContent)(step);
+        return `${label}\n${outputText}`;
+    }).join('\n\n');
+}
 function modelTextFromPayload(payload) {
     return (0, toolOutputContent_js_1.readToolOutputContent)(payload).modelContent;
 }
@@ -97,7 +112,7 @@ function currentTurnToolEventFrom(event) {
     const toolName = toolNameFromPayload(event.payload)
         ?? (event.type === 'tool_bundle_call' || event.type === 'tool_bundle_output' ? 'tool_bundle' : null);
     const outputText = event.type === 'tool_output' || event.type === 'tool_bundle_output'
-        ? displayTextFromPayload(event.payload)
+        ? (event.type === 'tool_bundle_output' ? bundleDisplayTextFromPayload(event.payload) : displayTextFromPayload(event.payload))
         : textFromPayload(event.payload);
     return {
         id: event.eventId,

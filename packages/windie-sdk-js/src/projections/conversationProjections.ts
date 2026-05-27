@@ -70,6 +70,22 @@ function displayTextFromPayload(payload: JsonRecord): string {
   return readToolOutputContent(payload).displayContent;
 }
 
+function bundleDisplayTextFromPayload(payload: JsonRecord): string {
+  const steps = bundleStepResultsFromPayload(payload);
+  if (steps.length === 0) {
+    return displayTextFromPayload(payload);
+  }
+  return steps.map((step, index) => {
+    const toolName = stringField(step, 'toolName', 'tool_name', 'tool');
+    const label = toolName ? `${toolName} #${index + 1}` : `step #${index + 1}`;
+    const outputRecord = recordFromUnknown(step.output) ?? recordFromUnknown(step.result);
+    const outputText = outputRecord
+      ? readToolOutputContent(outputRecord).displayContent
+      : readBundleStepModelContent(step);
+    return `${label}\n${outputText}`;
+  }).join('\n\n');
+}
+
 function modelTextFromPayload(payload: JsonRecord): string {
   return readToolOutputContent(payload).modelContent;
 }
@@ -123,7 +139,7 @@ function currentTurnToolEventFrom(event: ConversationEvent): CurrentTurnToolEven
   const toolName = toolNameFromPayload(event.payload)
     ?? (event.type === 'tool_bundle_call' || event.type === 'tool_bundle_output' ? 'tool_bundle' : null);
   const outputText = event.type === 'tool_output' || event.type === 'tool_bundle_output'
-    ? displayTextFromPayload(event.payload)
+    ? (event.type === 'tool_bundle_output' ? bundleDisplayTextFromPayload(event.payload) : displayTextFromPayload(event.payload))
     : textFromPayload(event.payload);
   return {
     id: event.eventId,

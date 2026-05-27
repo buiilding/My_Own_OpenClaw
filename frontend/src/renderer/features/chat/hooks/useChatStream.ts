@@ -153,6 +153,7 @@ export function useChatStream(enableTranscript: boolean = true) {
       && event.type !== 'tool_call'
       && event.type !== 'tool_output'
       && event.type !== 'tool_bundle_call'
+      && event.type !== 'tool_bundle_output'
       && event.type !== 'compaction_started'
       && event.type !== 'compaction_applied'
       && event.type !== 'compaction_skipped'
@@ -178,7 +179,7 @@ export function useChatStream(enableTranscript: boolean = true) {
       handleToolCall(event, event.conversationRef);
       return true;
     }
-    if (event.type === 'tool_output') {
+    if (event.type === 'tool_output' || event.type === 'tool_bundle_output') {
       handleToolOutput(event, event.conversationRef);
       return true;
     }

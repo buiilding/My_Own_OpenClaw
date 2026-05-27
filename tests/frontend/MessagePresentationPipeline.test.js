@@ -99,6 +99,52 @@ describe('messagePresentationPipeline', () => {
     })).toEqual(messages);
   });
 
+  test('keeps active tool-output rows visible while tool logs are collapsed', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Read files' },
+      {
+        id: 'tool-output-1',
+        sender: 'assistant',
+        type: 'tool-output',
+        text: 'README contents',
+        sourceEventType: 'tool-output',
+      },
+    ];
+
+    expect(buildThreadPresentationMessages(messages, {
+      showToolLogs: false,
+      isBusy: true,
+    })).toEqual(messages);
+  });
+
+  test('hides completed tool-output rows while tool logs are collapsed', () => {
+    const messages = [
+      { id: 'user-1', sender: 'user', text: 'Read files' },
+      {
+        id: 'tool-output-1',
+        sender: 'assistant',
+        type: 'tool-output',
+        text: 'README contents',
+        sourceEventType: 'tool-output',
+      },
+      {
+        id: 'assistant-1',
+        sender: 'assistant',
+        type: 'llm-text',
+        text: 'I read the file.',
+        isComplete: true,
+      },
+    ];
+
+    expect(buildThreadPresentationMessages(messages, {
+      showToolLogs: false,
+      isBusy: false,
+    })).toEqual([
+      messages[0],
+      messages[2],
+    ]);
+  });
+
   test('current-turn live progress ignores progress rows before the latest user', () => {
     expect(hasCurrentTurnLiveProgressMessages([
       { id: 'user-1', sender: 'user', text: 'Search the web' },
