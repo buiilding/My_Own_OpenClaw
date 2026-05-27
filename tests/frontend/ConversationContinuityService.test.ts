@@ -13,6 +13,7 @@ function createStore(overrides: Partial<ConversationStore> = {}) {
     replaceCompactedReplay: jest.fn(),
     loadEvents: jest.fn(),
     loadForDisplay: jest.fn(),
+    loadDisplayRows: jest.fn(),
     loadForRehydrate: jest.fn(),
     listMetadata: jest.fn(),
     getRevision: jest.fn(),
@@ -57,6 +58,35 @@ describe('ConversationContinuityService', () => {
       limit: 5,
     });
     expect(store.listMetadata).not.toHaveBeenCalled();
+  });
+
+  test('loadDisplayRows delegates to the SDK store row projection', async () => {
+    const store = createStore({
+      loadDisplayRows: jest.fn().mockResolvedValue([
+        {
+          id: 'row-user',
+          conversationRef: 'conv-display',
+          index: 0,
+          role: 'user',
+          type: 'user_message',
+          content: 'hello',
+        },
+      ]),
+    });
+    const service = new ConversationContinuityService({
+      storeFactory: () => store,
+    });
+
+    await expect(service.loadDisplayRows({
+      userId: 'user-1',
+      conversationRef: 'conv-display',
+    })).resolves.toEqual([
+      expect.objectContaining({
+        id: 'row-user',
+        type: 'user_message',
+      }),
+    ]);
+    expect(store.loadDisplayRows).toHaveBeenCalledWith('conv-display');
   });
 
   test('searchMetadata filters listMetadata when store adapter has no native search', async () => {

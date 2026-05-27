@@ -26,6 +26,7 @@ function createSeededStore(events: Array<Record<string, unknown>>) {
     replaceCompactedReplay: jest.fn(),
     loadEvents: jest.fn(async () => currentEvents),
     loadForDisplay: jest.fn(),
+    loadDisplayRows: jest.fn(async () => []),
     loadForRehydrate: jest.fn(async () => ({
       conversationRef: 'conv-replay',
       revisionId: 'rev-replay',

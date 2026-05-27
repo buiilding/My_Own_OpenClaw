@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { buildChatMessagesFromDisplayConversation } from '../../../infrastructure/transcript/sdkDisplayChatMessageProjection';
+import { buildChatMessagesFromSdkDisplayRows } from '../../../infrastructure/transcript/sdkDisplayChatMessageProjection';
 import { DesktopConversationLibraryClient } from '../../../app/runtime/desktopConversationLibraryClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../app/runtime/desktopTranscriptSessionRuntimeClient';
 import {
@@ -177,11 +177,11 @@ function useDashboardConversations({
         conversationRef,
         conversation,
       });
-      const displayConversation = await DesktopConversationLibraryClient.loadForDisplay(
+      const displayRows = await DesktopConversationLibraryClient.loadDisplayRows(
         resolvedUserId,
         conversationRef,
       );
-      const projectedMessages = buildChatMessagesFromDisplayConversation(displayConversation);
+      const projectedMessages = buildChatMessagesFromSdkDisplayRows(displayRows);
       setConversationWorkspaceBinding(conversationRef, snapshot.workspaceBinding);
       try {
         await setActiveWorkspaceSelection(snapshot.workspaceBinding.workspacePath || null);

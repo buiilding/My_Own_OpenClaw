@@ -9,6 +9,7 @@ import type {
   JsonRecord,
   ListConversationOptions,
   RehydrateSnapshot,
+  SdkDisplayRow,
   SearchConversationOptions,
 } from '../conversation/types.js';
 import {
@@ -17,6 +18,7 @@ import {
 } from '../conversation/metadata.js';
 import {
   buildDisplayConversation,
+  buildDisplayRows,
   buildRehydrateSnapshot,
 } from '../projections/conversationProjections.js';
 import type { WindieLocalRuntimeClient } from '../runtime/LocalSidecarRuntime.js';
@@ -264,6 +266,10 @@ export class SidecarConversationStore implements ConversationStore {
 
   async loadForDisplay(conversationRef: string): Promise<DisplayConversation> {
     return buildDisplayConversation(await this.loadEvents(conversationRef));
+  }
+
+  async loadDisplayRows(conversationRef: string): Promise<SdkDisplayRow[]> {
+    return buildDisplayRows(await this.loadEvents(conversationRef));
   }
 
   async loadForRehydrate(conversationRef: string): Promise<RehydrateSnapshot> {

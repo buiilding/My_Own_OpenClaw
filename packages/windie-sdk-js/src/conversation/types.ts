@@ -378,6 +378,7 @@ export interface ConversationStore {
   replaceCompactedReplay(snapshot: CompactedReplaySnapshot): Promise<void>;
   loadEvents(conversationRef: string): Promise<ConversationEvent[]>;
   loadForDisplay(conversationRef: string): Promise<DisplayConversation>;
+  loadDisplayRows(conversationRef: string): Promise<SdkDisplayRow[]>;
   loadForRehydrate(conversationRef: string): Promise<RehydrateSnapshot>;
   listMetadata(options?: ListConversationOptions): Promise<ConversationMetadata[]>;
   searchMetadata?(options: SearchConversationOptions): Promise<ConversationMetadata[]>;

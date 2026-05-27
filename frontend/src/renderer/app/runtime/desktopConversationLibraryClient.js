@@ -11,6 +11,10 @@ export const DesktopConversationLibraryClient = {
     return DesktopConversationContinuityService.loadForDisplay(userId, conversationRef);
   },
 
+  async loadDisplayRows(userId, conversationRef) {
+    return DesktopConversationContinuityService.loadDisplayRows(userId, conversationRef);
+  },
+
   async deleteConversation(userId, conversationRef) {
     await DesktopConversationContinuityService.deleteConversation(userId, conversationRef);
   },

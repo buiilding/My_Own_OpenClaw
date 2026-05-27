@@ -682,6 +682,13 @@ describe('Windie SDK conversation runtime core', () => {
         }),
       ],
     });
+    await expect(store.loadDisplayRows('conv-sdk-runtime')).resolves.toEqual([
+      expect.objectContaining({
+        type: 'user_message',
+        role: 'user',
+        content: 'hello',
+      }),
+    ]);
     await expect(store.loadForRehydrate('conv-sdk-runtime')).resolves.toMatchObject({
       conversationRef: 'conv-sdk-runtime',
       replayGenerationId: 'gen-complete',

@@ -172,9 +172,42 @@ Validation:
 - Passed: `cd frontend && npm run test -- ChatBoxResponseState MessagePresentationPipeline ChatSelectors ChatStreamToolHandlers --runInBand`
   - Result: 4 suites passed, 28 tests passed.
 
+### 6. Stored conversations and live rows share the SDK display-row path
+
+Status: complete.
+
+Implementation:
+
+- Added `loadDisplayRows(conversationRef)` to the SDK `ConversationStore`
+  contract.
+- Implemented `loadDisplayRows(...)` for in-memory, file, and sidecar-backed
+  SDK stores.
+- Added `ConversationContinuityService.loadDisplayRows(...)`.
+- Routed dashboard conversation opening through `loadDisplayRows(...)` plus
+  `buildChatMessagesFromSdkDisplayRows(...)`.
+- Changed local snapshot parsed-message loading to derive from SDK display rows
+  instead of the older display-message projection.
+
+Previous behavior:
+
+- Opening an old chat used `loadForDisplay(...)` and mapped SDK
+  `DisplayMessage` rows, while live tool rows used separate active-turn
+  renderer behavior.
+
+Current behavior:
+
+- Opening old chats and rendering live tool rows both use SDK display rows as
+  the display projection boundary.
+- Transcript persistence still stores normalized events; display rows are
+  projected from those events on demand.
+
+Validation:
+
+- Passed: `cd frontend && npm run test -- WindieSdkConversationRuntime ConversationContinuityService ConversationLocalSnapshotLoader ChatStreamToolHandlers ChatSelectors SdkDisplayChatMessageProjection --runInBand`
+  - Result: 7 suites passed, 97 tests passed.
+
 ## Remaining Success Criteria
 
-- Keep transcript persistence as event storage, not display authority.
 - Keep row rendering dumb.
 - Move tests to the SDK boundary first and remove renderer expectations for
   active reconstruction behavior.

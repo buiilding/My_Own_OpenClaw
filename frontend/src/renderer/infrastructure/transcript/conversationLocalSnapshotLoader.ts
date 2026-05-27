@@ -42,8 +42,8 @@ export async function loadLocalConversationSnapshot({
     recordKind,
   });
   const store = createDesktopConversationStore(userId);
-  const [displayConversation, rehydrateSnapshot] = await Promise.all([
-    includeParsedMessages ? store.loadForDisplay(conversationRef) : Promise.resolve(null),
+  const [displayRows, rehydrateSnapshot] = await Promise.all([
+    includeParsedMessages ? store.loadDisplayRows(conversationRef) : Promise.resolve(null),
     store.loadForRehydrate(conversationRef),
   ]);
 
@@ -54,14 +54,14 @@ export async function loadLocalConversationSnapshot({
       conversation,
       memories: transcriptEntries,
     }),
-    parsedMessages: displayConversation
-      ? displayConversation.messages.map((message) => ({
-        id: message.id,
-        text: message.text,
-        sender: message.sender,
-        role: message.sender,
-        message_type: message.messageType,
-        timestamp: message.timestamp,
+    parsedMessages: displayRows
+      ? displayRows.map((row) => ({
+        id: row.id,
+        text: typeof row.content === 'string' ? row.content : JSON.stringify(row.content),
+        sender: row.role,
+        role: row.role,
+        message_type: row.type,
+        timestamp: row.metadata?.timestamp ?? null,
       }))
       : [],
     rehydrateMessages: rehydrateSnapshot.messages,

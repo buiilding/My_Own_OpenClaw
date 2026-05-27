@@ -6,6 +6,7 @@ import {
   type ListConversationOptions,
   type RehydrateSnapshot,
   type DisplayConversation,
+  type SdkDisplayRow,
   type ConversationMetadata,
   type ConversationMetadataInvalidationListener,
   type CompactedReplaySnapshot,
@@ -153,6 +154,10 @@ export const DesktopConversationContinuityService = {
 
   loadForDisplay(userId: string, conversationRef: string): Promise<DisplayConversation> {
     return desktopConversationContinuityService.loadForDisplay({ userId, conversationRef });
+  },
+
+  loadDisplayRows(userId: string, conversationRef: string): Promise<SdkDisplayRow[]> {
+    return desktopConversationContinuityService.loadDisplayRows({ userId, conversationRef });
   },
 
   loadRehydrateSnapshot(input: LoadRehydrateSnapshotInput): Promise<RehydrateSnapshot> {

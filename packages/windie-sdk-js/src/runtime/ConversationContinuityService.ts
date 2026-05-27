@@ -8,6 +8,7 @@ import type {
   ListConversationOptions,
   RehydratePayload,
   RehydrateSnapshot,
+  SdkDisplayRow,
   SearchConversationOptions,
 } from '../conversation/types.js';
 import { searchConversationMetadata } from '../conversation/metadata.js';
@@ -154,6 +155,10 @@ export class ConversationContinuityService {
 
   async loadForDisplay(input: ConversationRefInput): Promise<DisplayConversation> {
     return this.storeFor(input).loadForDisplay(input.conversationRef);
+  }
+
+  async loadDisplayRows(input: ConversationRefInput): Promise<SdkDisplayRow[]> {
+    return this.storeFor(input).loadDisplayRows(input.conversationRef);
   }
 
   async loadRehydrateSnapshot(input: ConversationRefInput): Promise<RehydrateSnapshot> {
