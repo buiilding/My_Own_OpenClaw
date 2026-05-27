@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: enforce unique dashboard message ids at the selector boundary
+  so stale projected assistant rows cannot reach `MessageList` with duplicate
+  React keys.
 - frontend/chat: move retry and edit/resend transcript cuts to a compact
   sidecar-owned rewrite RPC so large chats no longer resend a copied shortened
   transcript through one renderer-to-sidecar payload, and dedupe same-turn

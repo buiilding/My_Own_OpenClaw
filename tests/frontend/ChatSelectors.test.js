@@ -131,6 +131,39 @@ describe('chatSelectors', () => {
     expect(first.messages).toBe(second.messages);
   });
 
+  test('dedupes stale projected assistant rows before rendering dashboard messages', () => {
+    const messages = [
+      { id: 'user-1', text: 'question', sender: 'user', turnRef: 'turn-1' },
+      {
+        id: 'conv-1:turn-1:assistant',
+        text: 'older projected answer',
+        sender: 'assistant',
+        type: 'llm-text',
+        turnRef: 'turn-1',
+      },
+      {
+        id: 'conv-1:turn-1:assistant',
+        text: 'newer projected answer',
+        sender: 'assistant',
+        type: 'llm-text',
+        turnRef: 'turn-1',
+      },
+    ];
+    const selected = selectChatInterfaceState({
+      messages,
+      isSending: false,
+      thinkingStatus: null,
+      currentTurnProjection: null,
+      tokenCounts: null,
+      streamTracking: { phase: 'complete' },
+    });
+
+    expect(selected.messages).toEqual([
+      messages[0],
+      messages[2],
+    ]);
+  });
+
   test('defaults optional active-workspace fields when not present', () => {
     const selected = selectChatInterfaceState({
       messages: [],

@@ -5,6 +5,46 @@ let lastDashboardMessagesInput = null;
 let lastDashboardProjectionInput = null;
 let lastDashboardMessagesOutput = null;
 
+function dedupeMessagesById(messages) {
+  if (!Array.isArray(messages) || messages.length < 2) {
+    return messages;
+  }
+
+  const duplicateIds = new Set();
+  const seenIds = new Set();
+  messages.forEach((message) => {
+    const messageId = message?.id;
+    if (!messageId) {
+      return;
+    }
+    if (seenIds.has(messageId)) {
+      duplicateIds.add(messageId);
+      return;
+    }
+    seenIds.add(messageId);
+  });
+
+  if (duplicateIds.size === 0) {
+    return messages;
+  }
+
+  const keptDuplicateIds = new Set();
+  const nextMessages = [];
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index];
+    const messageId = message?.id;
+    if (messageId && duplicateIds.has(messageId)) {
+      if (keptDuplicateIds.has(messageId)) {
+        continue;
+      }
+      keptDuplicateIds.add(messageId);
+    }
+    nextMessages.push(message);
+  }
+  nextMessages.reverse();
+  return nextMessages;
+}
+
 function projectDashboardMessages(activeWorkspace) {
   if (
     lastDashboardMessagesInput === activeWorkspace.messages
@@ -14,9 +54,11 @@ function projectDashboardMessages(activeWorkspace) {
     return lastDashboardMessagesOutput;
   }
 
-  const projectedMessages = replaceCurrentTurnMessagesWithProjection(
-    activeWorkspace.messages,
-    activeWorkspace.currentTurnProjection,
+  const projectedMessages = dedupeMessagesById(
+    replaceCurrentTurnMessagesWithProjection(
+      activeWorkspace.messages,
+      activeWorkspace.currentTurnProjection,
+    ),
   );
   lastDashboardMessagesInput = activeWorkspace.messages;
   lastDashboardProjectionInput = activeWorkspace.currentTurnProjection;
