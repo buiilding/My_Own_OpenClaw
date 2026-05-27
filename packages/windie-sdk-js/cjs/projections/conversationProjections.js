@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.buildDisplayRows = buildDisplayRows;
 exports.buildCurrentTurnProjection = buildCurrentTurnProjection;
 exports.buildCompactionState = buildCompactionState;
 exports.buildDisplayConversation = buildDisplayConversation;
@@ -85,6 +86,118 @@ function toolNameFromPayload(payload) {
         return payload.tool_name;
     }
     return null;
+}
+function displayRowMetadata(event) {
+    return {
+        eventId: event.eventId,
+        source: event.source,
+        revisionId: event.revisionId,
+        timestamp: event.timestamp,
+        toolName: toolNameFromPayload(event.payload),
+        requestId: (0, toolOutputContent_js_1.stringField)(event.payload, 'requestId', 'request_id'),
+        correlationId: (0, toolOutputContent_js_1.stringField)(event.payload, 'correlationId', 'correlation_id'),
+        bundleId: (0, toolOutputContent_js_1.stringField)(event.payload, 'bundleId', 'bundle_id'),
+        toolCallId: (0, toolOutputContent_js_1.stringField)(event.payload, 'toolCallId', 'tool_call_id'),
+        screenshotRef: (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshotRef', 'screenshot_ref'),
+        screenshotUrl: (0, toolOutputContent_js_1.stringField)(event.payload, 'screenshotUrl', 'screenshot_url'),
+        modelId: (0, toolOutputContent_js_1.stringField)(event.payload, 'modelId', 'model_id'),
+        modelProvider: (0, toolOutputContent_js_1.stringField)(event.payload, 'modelProvider', 'model_provider'),
+        raw: event.payload,
+    };
+}
+function displayRowBase(event, index) {
+    return {
+        id: event.eventId,
+        conversationRef: event.conversationRef,
+        turnRef: event.turnRef,
+        index,
+        metadata: displayRowMetadata(event),
+    };
+}
+function displayRowFromEvent(event, index) {
+    if (event.type === 'user_message') {
+        return {
+            ...displayRowBase(event, index),
+            role: 'user',
+            type: 'user_message',
+            content: textFromPayload(event.payload),
+        };
+    }
+    if (event.type === 'assistant_delta') {
+        return {
+            ...displayRowBase(event, index),
+            role: 'assistant',
+            type: 'assistant_message',
+            content: textFromPayload(event.payload),
+            isStreaming: true,
+        };
+    }
+    if (event.type === 'assistant_message') {
+        return {
+            ...displayRowBase(event, index),
+            role: 'assistant',
+            type: 'assistant_message',
+            content: textFromPayload(event.payload),
+        };
+    }
+    if (event.type === 'reasoning_delta') {
+        return {
+            ...displayRowBase(event, index),
+            role: 'assistant',
+            type: 'reasoning',
+            content: textFromPayload(event.payload),
+        };
+    }
+    if (event.type === 'tool_call' || event.type === 'tool_bundle_call') {
+        return {
+            ...displayRowBase(event, index),
+            role: 'assistant',
+            type: 'tool_call',
+            content: event.payload,
+            metadata: {
+                ...displayRowMetadata(event),
+                toolName: toolNameFromPayload(event.payload)
+                    ?? (event.type === 'tool_bundle_call' ? 'tool_bundle' : null),
+            },
+        };
+    }
+    if (event.type === 'tool_output' || event.type === 'tool_bundle_output') {
+        return {
+            ...displayRowBase(event, index),
+            role: 'tool',
+            type: 'tool_output',
+            content: event.type === 'tool_bundle_output'
+                ? bundleDisplayTextFromPayload(event.payload)
+                : displayTextFromPayload(event.payload),
+            metadata: {
+                ...displayRowMetadata(event),
+                toolName: toolNameFromPayload(event.payload)
+                    ?? (event.type === 'tool_bundle_output' ? 'tool_bundle' : null),
+            },
+        };
+    }
+    if (event.type === 'turn_error' || event.type === 'runtime_error') {
+        if (event.type === 'turn_error' && shouldIgnoreCurrentTurnError(event.payload)) {
+            return null;
+        }
+        return {
+            ...displayRowBase(event, index),
+            role: 'system',
+            type: 'error',
+            content: textFromPayload(event.payload) || 'Unknown runtime error',
+        };
+    }
+    return null;
+}
+function buildDisplayRows(events) {
+    const rows = [];
+    for (const event of events) {
+        const row = displayRowFromEvent(event, rows.length);
+        if (row) {
+            rows.push(row);
+        }
+    }
+    return rows;
 }
 function statusFromToolPayload(payload) {
     if (typeof payload.status === 'string') {

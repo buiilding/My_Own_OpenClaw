@@ -320,7 +320,7 @@ describe('ChatInterface wiring', () => {
     expect(mockSetChatActiveConversationRef).not.toHaveBeenCalledWith(null);
   });
 
-  test('replaces tool call and output rows with a collapsed actions summary when tool logs are hidden', () => {
+  test('keeps tool call and output rows when tool logs are hidden', () => {
     mockChatState.messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace' },
       {
@@ -356,11 +356,9 @@ describe('ChatInterface wiring', () => {
     const renderedMessages = mockMessageList.mock.calls.at(-1)[0].messages;
     expect(renderedMessages.map((message) => message.type || 'llm-text')).toEqual([
       'llm-text',
-      'tool-actions-summary',
+      'tool-call',
+      'tool-output',
       'llm-text',
-    ]);
-    expect(renderedMessages[1].actionExplanations).toEqual([
-      'List the active workspace contents.',
     ]);
   });
 
@@ -499,7 +497,7 @@ describe('ChatInterface wiring', () => {
     ]);
   });
 
-  test('reapplies the hidden-tool presentation when the toggle flips on and off for existing transcript rows', () => {
+  test('keeps existing transcript row order when the tool-log toggle flips', () => {
     mockChatState.messages = [
       { id: 'user-1', sender: 'user', text: 'Inspect workspace' },
       {
@@ -535,7 +533,8 @@ describe('ChatInterface wiring', () => {
     let renderedMessages = mockMessageList.mock.calls.at(-1)[0].messages;
     expect(renderedMessages.map((message) => message.type || 'llm-text')).toEqual([
       'llm-text',
-      'tool-actions-summary',
+      'tool-call',
+      'tool-output',
       'llm-text',
     ]);
 
@@ -562,11 +561,9 @@ describe('ChatInterface wiring', () => {
     renderedMessages = mockMessageList.mock.calls.at(-1)[0].messages;
     expect(renderedMessages.map((message) => message.type || 'llm-text')).toEqual([
       'llm-text',
-      'tool-actions-summary',
+      'tool-call',
+      'tool-output',
       'llm-text',
-    ]);
-    expect(renderedMessages[1].actionExplanations).toEqual([
-      'List the active workspace contents.',
     ]);
   });
 

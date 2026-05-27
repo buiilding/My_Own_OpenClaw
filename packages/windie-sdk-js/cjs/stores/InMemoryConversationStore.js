@@ -76,6 +76,9 @@ class InMemoryConversationStore {
     async loadForDisplay(conversationRef) {
         return (0, conversationProjections_js_1.buildDisplayConversation)(await this.loadEvents(conversationRef));
     }
+    async loadDisplayRows(conversationRef) {
+        return (0, conversationProjections_js_1.buildDisplayRows)(await this.loadEvents(conversationRef));
+    }
     async loadForRehydrate(conversationRef) {
         const compactedReplay = await this.loadCompactedReplay(conversationRef);
         if (compactedReplay?.complete

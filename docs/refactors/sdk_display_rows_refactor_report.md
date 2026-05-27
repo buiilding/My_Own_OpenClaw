@@ -10,7 +10,9 @@ title: "SDK Display Rows Refactor Report"
 
 Source plan: [SDK Display Rows Refactor Plan](sdk_display_rows_refactor_plan.md)
 
-Status: in progress.
+Status: implementation complete for the current checklist. Focused SDK,
+renderer, dashboard, typecheck, lint, docs, SDK build, and diff validation
+passed.
 
 ## Completed Success Criteria
 
@@ -206,12 +208,80 @@ Validation:
 - Passed: `cd frontend && npm run test -- WindieSdkConversationRuntime ConversationContinuityService ConversationLocalSnapshotLoader ChatStreamToolHandlers ChatSelectors SdkDisplayChatMessageProjection --runInBand`
   - Result: 7 suites passed, 97 tests passed.
 
+### 7. Row rendering remains a visual wrapper
+
+Status: complete.
+
+Implementation:
+
+- Kept the renderer row adapter as a direct mapper from one `SdkDisplayRow` to
+  one existing `ChatMessage` shape.
+- Did not add replay, rehydrate, backend alias, or current-turn interpretation
+  to `MessageList` or message content components.
+- Preserved existing visual components for rendering `ChatMessage` types.
+
+Previous behavior:
+
+- Tool ordering was partly decided before `MessageList` by selector and
+  presentation pipeline reconstruction.
+
+Current behavior:
+
+- Message components receive already-ordered messages and switch only on the
+  visual message type.
+
+Validation:
+
+- Passed: `cd frontend && npm run test -- ChatBoxResponseState MessagePresentationPipeline ChatSelectors ChatStreamToolHandlers --runInBand`
+  - Result: 4 suites passed, 28 tests passed.
+
+### 8. Tests moved to the SDK/display-row boundary
+
+Status: complete.
+
+Implementation:
+
+- Added SDK tests for ordered `buildDisplayRows(...)` output.
+- Added SDK runtime snapshot tests for `snapshot.displayRows`.
+- Added store and continuity tests for `loadDisplayRows(...)`.
+- Updated renderer tests so they no longer expect dashboard selector
+  current-turn reconstruction, dedupe, or hidden-tool summaries.
+
+Previous behavior:
+
+- Renderer tests encoded current-turn projection replacement and completed-tool
+  hiding as expected behavior.
+
+Current behavior:
+
+- Tests assert SDK row order, SDK snapshot access, SDK store loading, renderer
+  row adaptation, and selector non-interference.
+
+Validation:
+
+- Passed: `cd frontend && npm run test -- WindieSdkConversationRuntime ConversationContinuityService ConversationLocalSnapshotLoader ChatStreamToolHandlers ChatSelectors SdkDisplayChatMessageProjection --runInBand`
+  - Result: 7 suites passed, 97 tests passed.
+
+## Final Validation
+
+- Passed: `cd packages/windie-sdk-js && npm run build`
+- Passed: `cd frontend && npm run test -- WindieSdkConversationRuntime ConversationContinuityService ConversationLocalSnapshotLoader ChatStreamToolHandlers ChatSelectors SdkDisplayChatMessageProjection ChatBoxResponseState MessagePresentationPipeline ChatInterfaceWiring UseDashboardConversations --runInBand`
+  - Result: 11 suites passed, 170 tests passed.
+  - Note: `ChatInterfaceWiring` still logs its pre-existing
+    `mockIpcListeners` initialization warning.
+- Passed: `cd frontend && npm run typecheck`
+- Passed: `cd frontend && npm run lint`
+- Passed: `./bin/docs-list`
+- Passed: `git diff --check`
+
 ## Remaining Success Criteria
 
-- Keep row rendering dumb.
-- Move tests to the SDK boundary first and remove renderer expectations for
-  active reconstruction behavior.
+- None for the current checklist.
 
 ## Open Debt
 
-- None recorded yet beyond the remaining planned success criteria.
+- The response overlay still derives compact overlay entries from
+  `currentTurnProjection`. That is intentionally outside dashboard transcript
+  ordering and remains status/overlay behavior.
+- The legacy `DisplayConversation` projection remains for compatibility with
+  existing SDK consumers, but dashboard chat opening now uses `displayRows`.

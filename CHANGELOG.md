@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/frontend/chat: add SDK-owned display rows, expose them through runtime
+  snapshots and store loaders, and route dashboard tool rows through the row
+  adapter so tool-call/tool-output ordering is no longer rebuilt, deduped, or
+  hidden by renderer current-turn projection code.
 - backend/compaction: preserve XML-tagged history content, including tag
   markup, when rendering conversation history for compaction summaries.
 - frontend/chat: route SDK `tool_bundle_output` events through the renderer

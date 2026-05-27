@@ -205,6 +205,9 @@ class SidecarConversationStore {
     async loadForDisplay(conversationRef) {
         return (0, conversationProjections_js_1.buildDisplayConversation)(await this.loadEvents(conversationRef));
     }
+    async loadDisplayRows(conversationRef) {
+        return (0, conversationProjections_js_1.buildDisplayRows)(await this.loadEvents(conversationRef));
+    }
     async loadForRehydrate(conversationRef) {
         const events = await this.loadEvents(conversationRef);
         const replay = [...events].reverse().map(compactedReplayFromEvent).find(Boolean);

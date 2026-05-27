@@ -445,6 +445,7 @@ class SdkConversationRuntime {
         return {
             state: this.state,
             display: (0, conversationProjections_js_1.buildDisplayConversation)(events),
+            displayRows: (0, conversationProjections_js_1.buildDisplayRows)(events),
             rehydrate: (0, conversationProjections_js_1.buildRehydrateSnapshot)(events),
             currentTurn: (0, conversationProjections_js_1.buildCurrentTurnProjection)(events),
         };

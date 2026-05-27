@@ -71,6 +71,9 @@ class ConversationContinuityService {
     async loadForDisplay(input) {
         return this.storeFor(input).loadForDisplay(input.conversationRef);
     }
+    async loadDisplayRows(input) {
+        return this.storeFor(input).loadDisplayRows(input.conversationRef);
+    }
     async loadRehydrateSnapshot(input) {
         return this.storeFor(input).loadForRehydrate(input.conversationRef);
     }

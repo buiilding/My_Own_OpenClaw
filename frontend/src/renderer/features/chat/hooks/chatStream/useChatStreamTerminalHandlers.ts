@@ -63,7 +63,7 @@ export function useChatStreamTerminalHandlers({
     recordTrackingEvent,
   ]);
 
-  const handleError = useCallback((event: ConversationEvent, conversationRef?: string | null) => {
+  const handleError = useCallback((event: ConversationEvent, _conversationRef?: string | null) => {
     const errorPayload = terminalPayloadWithoutRawEvent(event);
     if (shouldIgnoreStreamError(errorPayload)) {
       return;
