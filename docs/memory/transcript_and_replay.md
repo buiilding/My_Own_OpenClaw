@@ -79,6 +79,12 @@ contract existed, the renderer also sends the clicked user-message ordinal so
 the SDK can cut the matching canonical user event without depending on a
 renderer-only UUID.
 
+After a compact edit/resend or retry cut, the replay dispatch must persist the
+replacement user turn before sending the query. Otherwise the next assistant
+completion would be stored as an assistant-only conversation. SDK display and
+rehydrate projection also suppress orphan empty-chat greeting rows when no user
+turn exists, so older corrupted replay rows do not become model or UI history.
+
 Full replacement remains available for projection bootstraps and explicit
 transcript projection rewrites. A failed replacement or cutoff rewrite leaves
 the previous transcript intact.

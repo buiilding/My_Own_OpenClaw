@@ -59,6 +59,7 @@ function buildPreparedReplayDesktopChatTurn({
   sessionInfo,
   workspacePath,
 }) {
+  const replayTurnRef = preparedReplayTurn.turnRef || crypto.randomUUID();
   return {
     attachmentContext: null,
     attachmentFilenames: null,
@@ -66,7 +67,7 @@ function buildPreparedReplayDesktopChatTurn({
     conversationRef: preparedReplayTurn.conversationRef || conversationRef,
     deferredQueryModelSelection: null,
     model: preparedReplayTurn.model ?? deferredQueryModelSelection ?? null,
-    recordTranscriptUserMessage: false,
+    recordTranscriptUserMessage: true,
     screenshot: preparedReplayTurn.payload?.screenshot ?? screenshot ?? null,
     screenshotRef: preparedReplayTurn.payload?.screenshot_ref ?? screenshotRef ?? null,
     screenshotRefs: preparedReplayTurn.payload?.screenshot_refs ?? null,
@@ -79,14 +80,10 @@ function buildPreparedReplayDesktopChatTurn({
     sessionInfo,
     text: preparedReplayTurn.text,
     timestamp: new Date().toISOString(),
-    turnId: preparedReplayTurn.turnRef || messageIdForReplay(preparedReplayTurn, conversationRef),
-    turnRef: preparedReplayTurn.turnRef ?? null,
+    turnId: replayTurnRef,
+    turnRef: replayTurnRef,
     workspacePath: preparedReplayTurn.workspacePath ?? workspacePath ?? null,
   };
-}
-
-function messageIdForReplay(preparedReplayTurn, conversationRef) {
-  return `${preparedReplayTurn.conversationRef || conversationRef}:replay`;
 }
 
 function userMessageOrdinalAt(messages, targetIndex) {

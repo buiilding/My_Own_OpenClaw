@@ -45,6 +45,7 @@ function textFromPayload(payload: JsonRecord): string {
 }
 
 const SETTINGS_UPDATE_ERROR_TEXT = 'Failed to update settings';
+const EMPTY_CHAT_GREETING_TEXT = 'Hi! What can I help you with?';
 const RECOVERABLE_TOOL_PARSE_ERROR_MARKERS = [
   'failed to parse streamed tool-call arguments',
   'raw arguments preview:',
@@ -457,6 +458,17 @@ function withoutDanglingToolPairs(events: ConversationEvent[]): ConversationEven
   });
 }
 
+function withoutOrphanEmptyChatGreeting(events: ConversationEvent[]): ConversationEvent[] {
+  const hasUserMessage = events.some(event => event.type === 'user_message');
+  if (hasUserMessage) {
+    return events;
+  }
+  return events.filter(event => (
+    event.type !== 'assistant_message'
+    || textFromPayload(event.payload).trim() !== EMPTY_CHAT_GREETING_TEXT
+  ));
+}
+
 function toDisplayMessage(event: ConversationEvent): DisplayMessage | null {
   if (event.type === 'assistant_delta') {
     return null;
@@ -554,7 +566,7 @@ export function buildCompactionState(events: ConversationEvent[]): CompactionSta
 export function buildDisplayConversation(events: ConversationEvent[]): DisplayConversation {
   const first = events[0];
   const last = events[events.length - 1];
-  const displayEvents = withoutDuplicateToolOutputs(events);
+  const displayEvents = withoutOrphanEmptyChatGreeting(withoutDuplicateToolOutputs(events));
   return {
     conversationRef: first?.conversationRef ?? '',
     revisionId: last?.revisionId ?? first?.revisionId ?? '',
@@ -641,7 +653,9 @@ function toRehydrateMessages(event: ConversationEvent): JsonRecord[] {
 
 export function buildRehydrateSnapshot(events: ConversationEvent[]): RehydrateSnapshot {
   const display = buildDisplayConversation(events);
-  const rehydrateEvents = withoutDanglingToolPairs(withoutDuplicateToolOutputs(events));
+  const rehydrateEvents = withoutOrphanEmptyChatGreeting(
+    withoutDanglingToolPairs(withoutDuplicateToolOutputs(events)),
+  );
   return {
     conversationRef: display.conversationRef,
     revisionId: display.revisionId,

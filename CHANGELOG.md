@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: persist replay replacement user turns before dispatch and
+  suppress orphan empty-chat greeting rows during SDK display/rehydrate
+  projection so compact rewrites cannot reopen as assistant-only chats.
 - frontend/chat: align live user-message ids across renderer rows, transcript
   projection writes, and SDK replay matching, with an ordinal fallback so
   edit/resend still works for older renderer-only message ids.

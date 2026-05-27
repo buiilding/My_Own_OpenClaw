@@ -254,7 +254,9 @@ Dashboard startup and open-chat loading also use the SDK store adapter:
   copied shortened transcript back to the sidecar. New live sends align the
   renderer user-row id, transcript projection `messageId`, and SDK turn ref;
   replay also passes the clicked user-message ordinal so older renderer-only ids
-  can still resolve to the canonical sidecar event.
+  can still resolve to the canonical sidecar event. Replay dispatch records the
+  replacement user turn before sending the query, and SDK projection suppresses
+  orphan empty-chat greeting rows when no user turn exists.
 - compacted replay replacement appends a new generation with
   `replay_generation_entry_count` and `replay_generation_complete` metadata.
   Loaders select the newest complete generation and ignore partial writes, so a

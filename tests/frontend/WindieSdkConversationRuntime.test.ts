@@ -75,6 +75,32 @@ describe('Windie SDK conversation runtime core', () => {
     ]);
   });
 
+  test('orphan empty-chat greeting is not display or rehydrate history', () => {
+    const events = [
+      event('conversation_rewritten', { reason: 'retry' }),
+      event('assistant_message', { text: 'Hi! What can I help you with?' }),
+    ];
+
+    expect(buildDisplayConversation(events).messages).toEqual([]);
+    expect(buildRehydrateSnapshot(events).messages).toEqual([]);
+  });
+
+  test('assistant greeting remains display history after a user turn exists', () => {
+    const events = [
+      event('user_message', { text: 'hello' }),
+      event('assistant_message', { text: 'Hi! What can I help you with?' }),
+    ];
+
+    expect(buildDisplayConversation(events).messages.map(message => message.text)).toEqual([
+      'hello',
+      'Hi! What can I help you with?',
+    ]);
+    expect(buildRehydrateSnapshot(events).messages.map(message => message.content)).toEqual([
+      'hello',
+      'Hi! What can I help you with?',
+    ]);
+  });
+
   test('runtime reducer does not let skipped compaction replace active tool phase', () => {
     const initial = createInitialConversationRuntimeState('conv-sdk-runtime', 'rev-1');
     const afterTool = reduceConversationRuntimeState(

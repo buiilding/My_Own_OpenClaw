@@ -30,6 +30,7 @@ function textFromPayload(payload) {
     return '';
 }
 const SETTINGS_UPDATE_ERROR_TEXT = 'Failed to update settings';
+const EMPTY_CHAT_GREETING_TEXT = 'Hi! What can I help you with?';
 const RECOVERABLE_TOOL_PARSE_ERROR_MARKERS = [
     'failed to parse streamed tool-call arguments',
     'raw arguments preview:',
@@ -402,6 +403,14 @@ function withoutDanglingToolPairs(events) {
         return true;
     });
 }
+function withoutOrphanEmptyChatGreeting(events) {
+    const hasUserMessage = events.some(event => event.type === 'user_message');
+    if (hasUserMessage) {
+        return events;
+    }
+    return events.filter(event => (event.type !== 'assistant_message'
+        || textFromPayload(event.payload).trim() !== EMPTY_CHAT_GREETING_TEXT));
+}
 function toDisplayMessage(event) {
     if (event.type === 'assistant_delta') {
         return null;
@@ -493,7 +502,7 @@ function buildCompactionState(events) {
 function buildDisplayConversation(events) {
     const first = events[0];
     const last = events[events.length - 1];
-    const displayEvents = withoutDuplicateToolOutputs(events);
+    const displayEvents = withoutOrphanEmptyChatGreeting(withoutDuplicateToolOutputs(events));
     return {
         conversationRef: first?.conversationRef ?? '',
         revisionId: last?.revisionId ?? first?.revisionId ?? '',
@@ -572,7 +581,7 @@ function toRehydrateMessages(event) {
 }
 function buildRehydrateSnapshot(events) {
     const display = buildDisplayConversation(events);
-    const rehydrateEvents = withoutDanglingToolPairs(withoutDuplicateToolOutputs(events));
+    const rehydrateEvents = withoutOrphanEmptyChatGreeting(withoutDanglingToolPairs(withoutDuplicateToolOutputs(events)));
     return {
         conversationRef: display.conversationRef,
         revisionId: display.revisionId,

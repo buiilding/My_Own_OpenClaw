@@ -9,6 +9,7 @@ import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/render
 import {
   markConversationInferenceSessionLocalOnly,
 } from '../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime';
+import { recordUserTranscriptMessage } from '../../frontend/src/renderer/features/chat/utils/messageSender/userTranscriptPersistence';
 
 let mockFrontendConfig = {
   model_provider: 'anthropic',
@@ -64,9 +65,14 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRunti
   },
 }));
 
+jest.mock('../../frontend/src/renderer/features/chat/utils/messageSender/userTranscriptPersistence', () => ({
+  recordUserTranscriptMessage: jest.fn(),
+}));
+
 const mockPrepareEditAndResend = DesktopConversationContinuityService.prepareEditAndResend;
 const mockPrepareRetryTurn = DesktopConversationContinuityService.prepareRetryTurn;
 const mockSendQuery = DesktopLiveTurnRuntimeClient.sendQuery;
+const mockRecordUserTranscriptMessage = recordUserTranscriptMessage;
 const mockGetActiveConversationRef = DesktopTranscriptSessionRuntimeClient.getActiveConversationRef;
 const mockGetTranscriptSessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo;
 const mockUpdateTranscriptSession = DesktopTranscriptSessionRuntimeClient.updateTranscriptSession;
@@ -104,6 +110,7 @@ describe('useConversationReplayActions', () => {
       turnRef: null,
     }));
     mockSendQuery.mockResolvedValue(undefined);
+    mockRecordUserTranscriptMessage.mockReset();
     useChatStore.setState({ activeConversationRef: null });
   });
 
@@ -161,10 +168,16 @@ describe('useConversationReplayActions', () => {
     expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
       conversationRef: 'conv-existing',
       text: 'first question',
+      turnRef: expect.any(String),
       model: {
         modelProvider: 'anthropic',
         modelId: 'claude-sonnet-4-5',
       },
+    }));
+    expect(mockRecordUserTranscriptMessage).toHaveBeenCalledWith(expect.objectContaining({
+      messageId: mockSendQuery.mock.calls[0][0].turnRef,
+      text: 'first question',
+      conversationRef: 'conv-existing',
     }));
     expect(mockPrepareEditAndResend).not.toHaveBeenCalled();
   });
