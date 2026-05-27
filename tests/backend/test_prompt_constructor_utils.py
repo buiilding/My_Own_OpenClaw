@@ -196,7 +196,10 @@ def test_build_prompt_populates_user_message_metadata_from_history():
         history, include_tools=True
     )
 
-    assert prompt_messages == history.get_history()
+    assert prompt_messages == [
+        {"role": MessageRole.SYSTEM.value, "content": "system"},
+        *history.get_history(),
+    ]
     assert tool_schemas == [
         {
             "type": "function",
@@ -209,6 +212,34 @@ def test_build_prompt_populates_user_message_metadata_from_history():
     assert metadata.user_message_metadata.context_type == "initial"
     assert metadata.user_message_metadata.active_window == "Unknown"
     assert metadata.user_message_metadata.injected_context == ""
+
+
+def test_build_provider_prompt_returns_aligned_provider_payload():
+    constructor = _make_constructor()
+    history = DummyHistory(
+        history=[
+            {"role": MessageRole.SYSTEM.value, "content": "rehydrated system"},
+            {
+                "role": MessageRole.USER.value,
+                "content": "<user_query>open file</user_query>",
+            },
+        ],
+        user_query_raw="open file",
+        message_types=[MessageType.USER_QUERY],
+    )
+
+    provider_prompt = constructor.build_provider_prompt(history, include_tools=False)
+
+    assert provider_prompt.messages[0] == {
+        "role": MessageRole.SYSTEM.value,
+        "content": "rehydrated system",
+    }
+    assert provider_prompt.messages[1] == {
+        "role": MessageRole.USER.value,
+        "content": "<user_query>open file</user_query>",
+    }
+    assert provider_prompt.tool_schemas == []
+    assert provider_prompt.metadata.system_prompt == "rehydrated system"
 
 
 def test_build_prompt_sets_sequential_context_when_multiple_user_queries():
@@ -238,7 +269,7 @@ def test_build_prompt_returns_empty_history_and_no_user_metadata_without_store()
         None, include_tools=False
     )
 
-    assert prompt_messages == []
+    assert prompt_messages == [{"role": MessageRole.SYSTEM.value, "content": "system"}]
     assert tool_schemas == []
     assert metadata.user_message_metadata is None
 
@@ -269,16 +300,20 @@ def test_build_prompt_prepends_applicable_agents_md_context(tmp_path):
         include_tools=False,
     )
 
-    assert [message["role"] for message in prompt_messages[:2]] == ["user", "user"]
-    assert prompt_messages[0]["content"] == (
+    assert [message["role"] for message in prompt_messages[:3]] == [
+        "system",
+        "user",
+        "user",
+    ]
+    assert prompt_messages[1]["content"] == (
         f"# AGENTS.md instructions for {repo_root}\n\n"
         "<INSTRUCTIONS>\nroot instructions\n</INSTRUCTIONS>"
     )
-    assert prompt_messages[1]["content"] == (
+    assert prompt_messages[2]["content"] == (
         f"# AGENTS.md instructions for {repo_root / 'apps'}\n\n"
         "<INSTRUCTIONS>\napps instructions\n</INSTRUCTIONS>"
     )
-    assert prompt_messages[2] == history.get_history()[0]
+    assert prompt_messages[3] == history.get_history()[0]
 
 
 def test_get_prompt_token_count_uses_contextual_agents_messages(monkeypatch, tmp_path):
@@ -316,12 +351,16 @@ def test_get_prompt_token_count_uses_contextual_agents_messages(monkeypatch, tmp
 
     count = constructor.get_prompt_token_count(history, model_id="model-a")
 
-    assert count == 20
+    assert count == 30
     assert captured["model"] == "model-a"
-    assert captured["messages"][0]["content"].startswith(
+    assert captured["messages"][0] == {
+        "role": MessageRole.SYSTEM.value,
+        "content": "system",
+    }
+    assert captured["messages"][1]["content"].startswith(
         "# AGENTS.md instructions for "
     )
-    assert captured["messages"][1] == history.get_history()[0]
+    assert captured["messages"][2] == history.get_history()[0]
     assert captured["tools"] == []
 
 
@@ -405,8 +444,9 @@ def test_build_prompt_prefers_injected_repo_instruction_messages_over_workspace_
         include_tools=False,
     )
 
-    assert prompt_messages[0] == constructor.repo_instruction_messages[0]
-    assert prompt_messages[1] == history.get_history()[0]
+    assert prompt_messages[0] == {"role": MessageRole.SYSTEM.value, "content": "system"}
+    assert prompt_messages[1] == constructor.repo_instruction_messages[0]
+    assert prompt_messages[2] == history.get_history()[0]
 
 
 def test_build_prompt_rejects_oversized_stored_message_content():
@@ -482,7 +522,7 @@ def test_build_prompt_rejects_too_many_prompt_messages():
     with pytest.raises(InputSizeLimitError) as exc_info:
         constructor.build_prompt(history, include_tools=False)
 
-    assert exc_info.value.actual_size == 2
+    assert exc_info.value.actual_size == 3
     assert exc_info.value.max_size == 1
 
 

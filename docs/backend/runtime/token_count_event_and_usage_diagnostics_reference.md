@@ -22,7 +22,7 @@ title: "Token Count Event and Usage Diagnostics Reference"
 
 ## End-to-End Event Path
 
-1. `PromptConstructor.build_prompt(...)` returns provider-bound prompt messages and active tool schemas.
+1. `PromptConstructor.build_provider_prompt(...)` returns provider-bound prompt messages and active tool schemas.
 2. `LLMStreamProcessor.get_response(...)` runs a pre-inference input count over those messages plus the tool schemas.
 3. `LLMStreamProcessor.get_response(...)` aggregates full assistant text.
 4. `_count_tokens(...)` delegates to `agent.llm.token_counting.count_tokens(...)`.

@@ -19,10 +19,13 @@ title: "Prompt Constructor and Transparency Metadata Reference"
 
 ## Core Prompt Build Contract
 
-`PromptConstructor.build_prompt(stored_messages, include_tools)` returns:
+`PromptConstructor.build_provider_prompt(stored_messages, include_tools)` returns
+one `ProviderPrompt` object:
 
-1. `prompt_messages`: list of LLM messages consisting of:
+1. `messages`: list of LLM messages consisting of:
+   - the effective `system` message
    - optional contextual `user` messages from applicable `AGENTS.md` files
+   - optional client prompt layer `user` messages
    - history (`stored_messages.get_history()` when available)
 2. `tool_schemas`: filtered canonical tool schema list (or `[]`)
 3. `PromptMetadata`:
@@ -30,7 +33,9 @@ title: "Prompt Constructor and Transparency Metadata Reference"
   - `tool_schemas`
   - optional `user_message_metadata`
 
-`PromptMetadata` is a typed dataclass, replacing dict-shaped metadata plumbing.
+`PromptConstructor.build_prompt(...)` remains a tuple-returning compatibility
+wrapper around the same provider prompt path. `PromptMetadata` and
+`ProviderPrompt` are typed dataclasses, replacing dict-shaped metadata plumbing.
 
 Session-scoped system prompt context:
 
@@ -127,11 +132,11 @@ Frontend memory/context block handling:
 `ConversationContext.get_prompt(iteration)` behavior:
 
 - iteration `1`:
-  - calls `build_prompt(...)`
+  - calls `build_provider_prompt(...)`
   - caches tool schemas + metadata
 - later iterations:
+  - rebuilds messages through `build_prompt_messages(...)`
   - returns cached metadata/schemas
-  - prompt messages from history directly
 
 `InteractionLoop` behavior:
 

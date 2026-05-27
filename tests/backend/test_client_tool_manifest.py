@@ -494,8 +494,9 @@ def test_prompt_constructor_adds_client_prompt_layers_in_priority_order():
         [], include_tools=False
     )
 
-    assert messages[0]["content"].startswith("# Client prompt layer: first")
-    assert messages[1]["content"].startswith("# Client prompt layer: later")
+    assert messages[0] == {"role": "system", "content": "base"}
+    assert messages[1]["content"].startswith("# Client prompt layer: first")
+    assert messages[2]["content"].startswith("# Client prompt layer: later")
     assert metadata.client_prompt_layers == [
         {
             "id": "first",

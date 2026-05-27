@@ -32,7 +32,11 @@ from backend.src.core.messages.structures import StoredMessage
 from backend.src.core.observability.trust_boundary_metrics import MetricsService
 from backend.src.core.types.enums import MessageRole, MessageType
 from backend.src.core.types.schemas import LLMMessage
-from backend.src.llm.prompts.prompt_metadata import PromptMetadata, UserMessageMetadata
+from backend.src.llm.prompts.prompt_metadata import (
+    PromptMetadata,
+    ProviderPrompt,
+    UserMessageMetadata,
+)
 from backend.src.llm.prompts.prompts import PromptManager
 from backend.src.llm.prompts.query_context import format_query_context_content
 from backend.src.llm.prompts.repo_instructions import (
@@ -176,35 +180,34 @@ class PromptConstructor:
             if isinstance(schema, dict)
         ]
 
-    def build_prompt(
+    def build_provider_prompt(
         self,
         stored_messages: Optional[Union[List[StoredMessage], Any]] = None,
         include_tools: bool = True,
-    ) -> tuple[List[LLMMessage], List[Dict[str, Any]], PromptMetadata]:
+    ) -> ProviderPrompt:
         """
-        Constructs the full prompt from stored history.
+        Constructs the provider-bound prompt from stored history.
 
         SECURITY: This is a trust boundary. All inputs are validated with:
         - History size limits (max_message_history_size)
         - Message content size limits (max_message_content_size)
         - Total prompt size limits (max_prompt_size)
 
-        Gets conversation history and returns tool schemas for transparency.
-        Tool schemas are returned separately so callers can pass them through
-        native LLM API tool-calling parameters.
+        The returned object is the full provider input: prompt messages,
+        native tool schemas, and transparency metadata derived from the same
+        prompt shape.
 
         Args:
             stored_messages: ConversationHistory instance - provides conversation history
             include_tools: Whether to include tool schemas in metadata + API params
 
         Returns:
-            Tuple of (List of LLMMessage dicts ready to send to LLM,
-            List of tool schemas for transparency, PromptMetadata object)
+            ProviderPrompt ready for model invocation.
 
         Raises:
             InputSizeLimitError: If any size limit is exceeded
         """
-        prompt_messages = self._build_prompt_messages(stored_messages)
+        prompt_messages = self.build_prompt_messages(stored_messages)
         tool_schemas = []
         if include_tools:
             tool_schemas = self._get_filtered_tool_schemas(
@@ -216,13 +219,35 @@ class PromptConstructor:
         )
 
         metadata = PromptMetadata(
-            system_prompt=self.system_prompt,
+            system_prompt=self._get_effective_system_prompt(prompt_messages),
             tool_schemas=tool_schemas,
             client_prompt_layers=self._get_client_prompt_layer_metadata(),
             user_message_metadata=user_message_metadata,
         )
 
-        return prompt_messages, tool_schemas, metadata
+        return ProviderPrompt(
+            messages=prompt_messages,
+            tool_schemas=tool_schemas,
+            metadata=metadata,
+        )
+
+    def build_prompt(
+        self,
+        stored_messages: Optional[Union[List[StoredMessage], Any]] = None,
+        include_tools: bool = True,
+    ) -> tuple[List[LLMMessage], List[Dict[str, Any]], PromptMetadata]:
+        """
+        Compatibility wrapper for callers that still expect prompt tuple output.
+        """
+        provider_prompt = self.build_provider_prompt(
+            stored_messages=stored_messages,
+            include_tools=include_tools,
+        )
+        return (
+            provider_prompt.messages,
+            provider_prompt.tool_schemas,
+            provider_prompt.metadata,
+        )
 
     def _get_prompt_messages(
         self,
@@ -233,17 +258,61 @@ class PromptConstructor:
             return stored_messages.get_history()
         return []
 
+    def build_prompt_messages(
+        self,
+        stored_messages: Optional[Union[List[StoredMessage], Any]],
+    ) -> List[LLMMessage]:
+        """Build model-visible prompt messages without provider tool parameters."""
+        return self._build_prompt_messages(stored_messages)
+
     def _build_prompt_messages(
         self,
         stored_messages: Optional[Union[List[StoredMessage], Any]],
     ) -> List[LLMMessage]:
-        """Build model-visible prompt messages, including contextual repo instructions."""
+        """Build model-visible prompt messages, including static prompt context."""
+        history_messages = self._get_prompt_messages(stored_messages)
+        system_messages, conversation_messages = self._split_system_messages(
+            history_messages
+        )
         prompt_messages: List[LLMMessage] = []
+        if system_messages:
+            prompt_messages.extend(system_messages)
+        elif self.system_prompt:
+            prompt_messages.append(
+                {"role": MessageRole.SYSTEM.value, "content": self.system_prompt}
+            )
         prompt_messages.extend(self._get_repo_instruction_messages())
         prompt_messages.extend(self._get_client_prompt_layer_messages())
-        prompt_messages.extend(self._get_prompt_messages(stored_messages))
+        prompt_messages.extend(conversation_messages)
         self._validate_prompt_messages(prompt_messages)
         return prompt_messages
+
+    def _split_system_messages(
+        self,
+        prompt_messages: List[LLMMessage],
+    ) -> tuple[List[LLMMessage], List[LLMMessage]]:
+        system_messages: List[LLMMessage] = []
+        conversation_messages: List[LLMMessage] = []
+        for message in prompt_messages:
+            if (
+                isinstance(message, dict)
+                and message.get("role") == MessageRole.SYSTEM.value
+            ):
+                system_messages.append(message)
+            else:
+                conversation_messages.append(message)
+        return system_messages, conversation_messages
+
+    def _get_effective_system_prompt(self, prompt_messages: List[LLMMessage]) -> str:
+        for message in prompt_messages:
+            if (
+                isinstance(message, dict)
+                and message.get("role") == MessageRole.SYSTEM.value
+            ):
+                content = message.get("content")
+                if isinstance(content, str):
+                    return content
+        return self.system_prompt
 
     def _validate_prompt_messages(self, prompt_messages: List[LLMMessage]) -> None:
         """Enforce prompt-size limits after every model-visible layer is assembled."""
@@ -366,16 +435,14 @@ class PromptConstructor:
         from backend.src.services.token_service import get_token_service
 
         token_service = get_token_service()
-        prompt_messages = self._build_prompt_messages(stored_messages)
-        tool_schemas = (
-            self._get_filtered_tool_schemas(prompt_messages=prompt_messages)
-            if include_tools
-            else None
+        provider_prompt = self.build_provider_prompt(
+            stored_messages=stored_messages,
+            include_tools=include_tools,
         )
         return token_service.count_tokens(
-            prompt_messages,
+            provider_prompt.messages,
             model_id,
-            tools=tool_schemas,
+            tools=provider_prompt.tool_schemas if include_tools else None,
         )
 
     def _build_user_message_metadata(

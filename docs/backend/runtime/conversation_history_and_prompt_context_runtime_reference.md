@@ -60,16 +60,17 @@ Session initialization sets system prompt source of truth:
 
 Iteration 1:
 
-1. call `PromptConstructor.build_prompt(stored_messages=self.history, include_tools=True)`
-2. receive `(prompt_messages, tool_schemas, prompt_metadata)`
+1. call `PromptConstructor.build_provider_prompt(stored_messages=self.history, include_tools=True)`
+2. receive one provider prompt object containing messages, tool schemas, and metadata
 3. cache `tool_schemas` and `prompt_metadata`
 
 Iteration > 1:
 
-- skip prompt reconstruction
-- return `history.get_history()` plus cached tool schemas/metadata
+- rebuild provider messages through `PromptConstructor.build_prompt_messages(self.history)`
+- return the rebuilt messages plus cached tool schemas/metadata
 
-This makes later iterations cheap and preserves identical tool schema surface across loop turns.
+This keeps every provider call on the same prompt-construction path while
+preserving a stable tool schema surface across loop turns.
 
 ## Prompt Metadata Transparency Path
 

@@ -27,15 +27,20 @@ Use this page with [Agent-Visible Data Pipeline](../architecture/agent_visible_d
 
 ## Model-Visible Assembly Order
 
-`PromptConstructor.build_prompt()` returns three values that should stay aligned: prompt messages, model-visible tool schemas, and prompt metadata for transparency events.
+`PromptConstructor.build_provider_prompt()` returns one provider prompt object
+whose messages, model-visible tool schemas, and prompt metadata stay aligned.
+`build_prompt()` is a tuple-returning compatibility wrapper over that same path.
 
 The model-visible message list is assembled in this order:
 
-1. client-defined `agent_definition.agents_md` / prompt layers, sorted by numeric `priority`
-2. legacy injected repo instruction messages or backend workspace discovery when no client-defined layer is present
-3. stored backend conversation history, including the current user query content and prior provider-safe tool rows
+1. effective system prompt
+2. legacy injected repo instruction messages or backend workspace discovery
+3. client-defined prompt layers, sorted by numeric `priority`
+4. stored backend conversation history, including the current user query content and prior provider-safe tool rows
 
-The backend system prompt is stored separately as `PromptMetadata.system_prompt` and included by the provider request path. Do not assume renderer message rows are the prompt. Renderer rows are display projections; backend history and prompt constructor output are what the model can actually see.
+Do not assume renderer message rows are the prompt. Renderer rows are display
+projections; backend history plus prompt constructor output are what the model
+can actually see.
 
 | Stage | Model-visible shape | Owner files | Drift check |
 | --- | --- | --- | --- |
@@ -88,7 +93,11 @@ On the first interaction-loop iteration, backend prompt metadata can be streamed
 
 These are diagnostic UI events. They should reflect what the backend prepared, not a renderer reconstruction.
 
-`ConversationContext` caches tool schemas and prompt metadata from the first iteration. Later loop iterations use history directly but still carry the cached metadata for diagnostics. If transparency appears stale, first check whether the behavior is a first-iteration contract issue or a later history-update issue.
+`ConversationContext` caches tool schemas and prompt metadata from the first
+iteration. Later loop iterations rebuild prompt messages through
+`PromptConstructor.build_prompt_messages(...)` and reuse the cached schema and
+metadata objects, so system/repo/client prompt layers remain present after tool
+calls while the tool surface stays stable for the turn.
 
 | Transparency event | Source metadata | Must match |
 | --- | --- | --- |

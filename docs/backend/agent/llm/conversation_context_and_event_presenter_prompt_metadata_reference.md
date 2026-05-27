@@ -21,8 +21,10 @@ title: "Conversation Context and Event Presenter Prompt-Metadata Reference"
 
 `ConversationContext`:
 
-- builds and caches prompt inputs for interaction-loop iterations
+- builds provider prompt inputs for interaction-loop iterations
 - returns prompt messages + tool schemas + prompt metadata tuple
+- rebuilds messages through `PromptConstructor` every iteration so static prompt
+  layers stay present after tool calls
 - no event emission
 
 `EventPresenter`:
@@ -36,17 +38,17 @@ title: "Conversation Context and Event Presenter Prompt-Metadata Reference"
 `ConversationContext.get_prompt(iteration)` behavior:
 
 - iteration 1:
-- calls `prompt_builder.build_prompt(stored_messages=history, include_tools=True)`
+- calls `prompt_builder.build_provider_prompt(stored_messages=history, include_tools=True)`
 - caches `tool_schemas` and `PromptMetadata`
 - returns freshly built prompt + metadata
 - iteration > 1:
-- returns `history.get_history()` (cached conversation retrieval path)
+- calls `prompt_builder.build_prompt_messages(history)`
 - reuses cached tool schemas and metadata from first iteration
 
 Timing logging:
 
 - prompt build time always logged on iteration 1
-- subsequent history retrieval time logged only when > 1ms
+- subsequent prompt message rebuild time logged only when > 1ms
 
 ## Prompt Size Enforcement
 

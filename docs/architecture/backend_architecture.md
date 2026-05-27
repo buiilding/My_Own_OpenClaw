@@ -337,11 +337,12 @@ Constructs prompts for LLM interactions.
 **Responsibilities**:
 - Load system prompts
 - Enforce security limits at the prompt boundary
-- Build message history and embed tool schema payloads in the initial user message
+- Build provider-bound prompt messages and native tool-schema request params
 - Emit prompt metadata for transparency events
 
 **Key Methods**:
-- `build_prompt()`: Build LLM messages + tool schema metadata (schemas live in first user message)
+- `build_provider_prompt()`: Build LLM messages + tool schemas + prompt metadata
+- `build_prompt()`: Compatibility wrapper for tuple-returning call sites
 - `_calculate_message_size()`: Enforce size limits
 
 ### Observability
