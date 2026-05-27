@@ -1,5 +1,6 @@
 import type { ChatMessage } from '../../features/chat/stores/chatStore';
 import {
+  type SdkDisplayRow,
   type DisplayConversation,
   type DisplayMessage,
 } from '../api/windieSdkClient';
@@ -25,6 +26,13 @@ function stringField(record: Record<string, unknown> | null | undefined, ...keys
 function recordPayload(message: DisplayMessage): Record<string, unknown> {
   return message.metadata && typeof message.metadata === 'object'
     ? message.metadata
+    : {};
+}
+
+function recordPayloadFromRow(row: SdkDisplayRow): Record<string, unknown> {
+  const raw = row.metadata?.raw;
+  return raw && typeof raw === 'object' && !Array.isArray(raw)
+    ? raw as Record<string, unknown>
     : {};
 }
 
@@ -169,5 +177,97 @@ export function buildChatMessagesFromDisplayConversation(
       return [buildAssistantChatMessage(message)];
     }
     return [];
+  });
+}
+
+function hasBundlePayload(payload: Record<string, unknown>, row: SdkDisplayRow): boolean {
+  return row.metadata?.toolName === 'tool_bundle'
+    || typeof row.metadata?.bundleId === 'string'
+    || Array.isArray(payload.tools)
+    || Array.isArray(payload.stepResults)
+    || Array.isArray(payload.step_results);
+}
+
+function displayMessageFromSdkDisplayRow(row: SdkDisplayRow): DisplayMessage | null {
+  const payload = recordPayloadFromRow(row);
+  const revisionId = typeof row.metadata?.revisionId === 'string' ? row.metadata.revisionId : '';
+  const timestamp = typeof row.metadata?.timestamp === 'string' ? row.metadata.timestamp : '';
+  if (row.type === 'reasoning') {
+    return null;
+  }
+  if (row.type === 'error') {
+    return {
+      id: row.id,
+      conversationRef: row.conversationRef,
+      turnRef: row.turnRef,
+      revisionId,
+      timestamp,
+      sender: 'system',
+      text: row.content,
+      messageType: 'runtime_error',
+      metadata: payload,
+    };
+  }
+  if (row.type === 'tool_call') {
+    return {
+      id: row.id,
+      conversationRef: row.conversationRef,
+      turnRef: row.turnRef,
+      revisionId,
+      timestamp,
+      sender: 'tool',
+      text: typeof row.metadata?.toolName === 'string' ? row.metadata.toolName : '',
+      messageType: hasBundlePayload(payload, row) ? 'tool_bundle_call' : 'tool_call',
+      toolName: row.metadata?.toolName ?? null,
+      requestId: row.metadata?.requestId ?? null,
+      bundleId: row.metadata?.bundleId ?? null,
+      toolCallId: row.metadata?.toolCallId ?? null,
+      correlationId: row.metadata?.correlationId ?? null,
+      metadata: payload,
+    };
+  }
+  if (row.type === 'tool_output') {
+    return {
+      id: row.id,
+      conversationRef: row.conversationRef,
+      turnRef: row.turnRef,
+      revisionId,
+      timestamp,
+      sender: 'tool',
+      text: row.content,
+      messageType: hasBundlePayload(payload, row) ? 'tool_bundle_output' : 'tool_output',
+      toolName: row.metadata?.toolName ?? null,
+      requestId: row.metadata?.requestId ?? null,
+      bundleId: row.metadata?.bundleId ?? null,
+      toolCallId: row.metadata?.toolCallId ?? null,
+      correlationId: row.metadata?.correlationId ?? null,
+      metadata: payload,
+    };
+  }
+  return {
+    id: row.id,
+    conversationRef: row.conversationRef,
+    turnRef: row.turnRef,
+    revisionId,
+    timestamp,
+    sender: row.role,
+    text: row.content,
+    messageType: row.type === 'assistant_message' && row.isStreaming ? 'assistant_delta' : row.type,
+    metadata: payload,
+  };
+}
+
+export function buildChatMessagesFromSdkDisplayRows(rows: SdkDisplayRow[]): ChatMessage[] {
+  return rows.flatMap((row) => {
+    const message = displayMessageFromSdkDisplayRow(row);
+    if (!message) {
+      return [];
+    }
+    return buildChatMessagesFromDisplayConversation({
+      conversationRef: row.conversationRef,
+      revisionId: typeof row.metadata?.revisionId === 'string' ? row.metadata.revisionId : '',
+      compaction: { status: 'idle' },
+      messages: [message],
+    });
   });
 }

@@ -76,9 +76,45 @@ Validation:
 - Passed: `cd frontend && npm run test -- WindieSdkConversationRuntime --runInBand`
   - Result: 1 suite passed, 63 tests passed.
 
+### 3. Electron renderer consumes SDK display rows for tool rows
+
+Status: complete.
+
+Implementation:
+
+- Added `buildChatMessagesFromSdkDisplayRows(...)`, a plain adapter from SDK
+  display rows to the existing `ChatMessage` visual shape.
+- Routed normalized tool-call, tool-bundle-call, tool-output, and
+  tool-bundle-output events through `buildDisplayRows([event])` before adding
+  live UI rows.
+- Removed dashboard selector use of
+  `replaceCurrentTurnMessagesWithProjection(...)`.
+- Removed dashboard selector dedupe/reorder behavior.
+- Removed terminal/completion attempts to splice current-turn projection rows
+  into stored renderer messages.
+
+Previous behavior:
+
+- `selectChatInterfaceState(...)` rebuilt dashboard messages from
+  `currentTurnProjection`, spliced them after a guessed user anchor, and
+  deduped duplicate ids from the end of the list.
+- Tool handlers persisted transcript rows but did not append live UI rows from
+  the SDK display-row contract.
+
+Current behavior:
+
+- Tool event rows added to the live dashboard are produced by the SDK
+  `buildDisplayRows(...)` projection, then wrapped visually by the renderer.
+- The dashboard selector returns active workspace messages in store order and
+  does not rebuild, dedupe, reorder, or drop tool rows.
+
+Validation:
+
+- Passed: `cd frontend && npm run test -- ChatSelectors ChatStreamToolHandlers SdkDisplayChatMessageProjection --runInBand`
+  - Result: 3 suites passed, 16 tests passed.
+
 ## Remaining Success Criteria
 
-- Make Electron renderer consume SDK display rows directly.
 - Keep transcript persistence as event storage, not display authority.
 - Remove active tool reconstruction from `chatBoxResponseState`.
 - Simplify `messagePresentationPipeline` to visual-only behavior.

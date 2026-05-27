@@ -65,7 +65,7 @@ describe('chatSelectors', () => {
     expect(chatBox.messages).toBe(messages);
   });
 
-  test('projects active dashboard turn from SDK current-turn state', () => {
+  test('does not rebuild active dashboard rows from SDK current-turn state', () => {
     const messages = [
       { id: 'user-1', text: 'old question', sender: 'user', turnRef: 'turn-old' },
       { id: 'assistant-1', text: 'old answer', sender: 'assistant', type: 'llm-text', turnRef: 'turn-old' },
@@ -89,20 +89,10 @@ describe('chatSelectors', () => {
       streamTracking: { phase: 'streaming' },
     });
 
-    expect(selected.messages).toEqual([
-      messages[0],
-      messages[1],
-      messages[2],
-      expect.objectContaining({
-        id: 'conv-1:turn-new:assistant',
-        text: 'projected answer',
-        type: 'llm-text',
-        sourceChannel: 'conversation-runtime-updated',
-      }),
-    ]);
+    expect(selected.messages).toBe(messages);
   });
 
-  test('keeps projected dashboard messages stable for unchanged current-turn inputs', () => {
+  test('keeps dashboard message references stable without projection cloning', () => {
     const messages = [
       { id: 'user-1', text: 'question', sender: 'user', turnRef: 'turn-1' },
       { id: 'assistant-1', text: 'stale partial', sender: 'assistant', type: 'llm-text', turnRef: 'turn-1' },
@@ -131,7 +121,7 @@ describe('chatSelectors', () => {
     expect(first.messages).toBe(second.messages);
   });
 
-  test('dedupes stale projected assistant rows before rendering dashboard messages', () => {
+  test('does not dedupe dashboard rows in the selector', () => {
     const messages = [
       { id: 'user-1', text: 'question', sender: 'user', turnRef: 'turn-1' },
       {
@@ -158,10 +148,7 @@ describe('chatSelectors', () => {
       streamTracking: { phase: 'complete' },
     });
 
-    expect(selected.messages).toEqual([
-      messages[0],
-      messages[2],
-    ]);
+    expect(selected.messages).toBe(messages);
   });
 
   test('defaults optional active-workspace fields when not present', () => {

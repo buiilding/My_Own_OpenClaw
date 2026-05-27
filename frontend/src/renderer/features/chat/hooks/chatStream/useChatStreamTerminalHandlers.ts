@@ -11,7 +11,6 @@ import type { TrackEventFn } from './chatStreamHandlerTypes';
 import { findLastAssistantLlmTextMessageId } from '../../utils/chatStream/chatStreamMessageUpdates';
 import type { ConversationEvent } from '../../../../infrastructure/api/windieSdkClient';
 import { recordAssistantTranscriptMessage } from '../../utils/chatStream/chatStreamTranscriptPersistence';
-import { replaceCurrentTurnMessagesWithProjection } from '../../utils/state/chatBoxResponseState';
 import type { TranscriptModelContext } from '../../utils/chatStream/chatStreamTypes';
 
 type UseChatStreamTerminalHandlersDeps = {
@@ -71,14 +70,6 @@ export function useChatStreamTerminalHandlers({
     }
     const errorText = resolveErrorText(errorPayload);
     const modelContext = modelContextRef.current;
-    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
-    const nextMessages = replaceCurrentTurnMessagesWithProjection(
-      workspace.messages,
-      workspace.currentTurnProjection,
-    );
-    if (nextMessages !== workspace.messages) {
-      useChatStore.getState().setMessages(nextMessages, conversationRef);
-    }
 
     if (enableTranscript) {
       recordAssistantTranscriptMessage({

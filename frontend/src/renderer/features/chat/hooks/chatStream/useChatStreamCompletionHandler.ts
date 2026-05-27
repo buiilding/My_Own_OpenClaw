@@ -7,7 +7,6 @@ import { buildAssistantTranscriptTransparency } from '../../utils/chatStream/cha
 import type { TranscriptModelContext } from '../../utils/chatStream/chatStreamTypes';
 import { normalizeIncomingText } from '../../../../infrastructure/text/incomingTextNormalization';
 import { recordAssistantTranscriptMessage } from '../../utils/chatStream/chatStreamTranscriptPersistence';
-import { replaceCurrentTurnMessagesWithProjection } from '../../utils/state/chatBoxResponseState';
 
 type UseChatStreamCompletionHandlerOptions = {
   enableTranscript: boolean;
@@ -43,13 +42,6 @@ export const useChatStreamCompletionHandler = ({
       ? buildAssistantTranscriptTransparency(currentMessages, lastMessage, event.turnRef || undefined)
       : undefined;
 
-    const nextMessages = replaceCurrentTurnMessagesWithProjection(
-      currentMessages,
-      currentTurnProjection,
-    );
-    if (nextMessages !== currentMessages) {
-      useChatStore.getState().setMessages(nextMessages, conversationRef);
-    }
     if (transcriptText && enableTranscript && !alreadyCompleted) {
       recordAssistantTranscriptMessage({
         text: transcriptText,
