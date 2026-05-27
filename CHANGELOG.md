@@ -6,9 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
-- backend/compaction: preserve text inside XML-tagged history content when
-  rendering conversation history for compaction summaries while still removing
-  the tag markup.
+- backend/compaction: preserve XML-tagged history content, including tag
+  markup, when rendering conversation history for compaction summaries.
 - frontend/chat: route SDK `tool_bundle_output` events through the renderer
   stream handler and keep active tool-output rows visible while collapsed tool
   logs still hide completed output rows.

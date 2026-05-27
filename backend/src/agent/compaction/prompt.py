@@ -34,7 +34,6 @@ DEFAULT_COMPACTION_INSTRUCTION = (
 )
 
 _WHITESPACE_PATTERN = re.compile(r"\s+")
-_TAG_PATTERN = re.compile(r"</?[^>]+>")
 
 
 def render_messages_for_compaction_prompt(
@@ -364,8 +363,6 @@ def _clean_text_for_compaction(text: str) -> str:
         return ""
 
     cleaned = cleaned.replace(CONTEXT_COMPACTION_PREFIX, " ")
-    cleaned = re.sub(r"<user_query>\s*(.*?)\s*</user_query>", r" \1 ", cleaned, flags=re.DOTALL)
-    cleaned = _TAG_PATTERN.sub(" ", cleaned)
     cleaned = _WHITESPACE_PATTERN.sub(" ", cleaned).strip()
     if len(cleaned) > 420:
         return cleaned[:417] + "..."

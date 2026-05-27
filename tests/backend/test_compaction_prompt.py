@@ -3,7 +3,7 @@ from backend.src.core.messages.structures import StoredMessage
 from backend.src.core.types.enums import MessageRole, MessageType
 
 
-def test_compaction_prompt_uses_structured_fields_and_preserves_xml_content():
+def test_compaction_prompt_uses_structured_fields_and_preserves_xml_markup():
     messages = [
         StoredMessage(
             role=MessageRole.USER,
@@ -63,8 +63,8 @@ def test_compaction_prompt_uses_structured_fields_and_preserves_xml_content():
     assert "facts: action=click; ref=42293" in rendered
     assert "summary: Older summary" in rendered
     assert "preserve tagged context" in rendered
-    assert "<system_context>" not in rendered
-    assert "<note>" not in rendered
+    assert "<system_context>" in rendered
+    assert "<note>preserve tagged context</note>" in rendered
 
 
 def test_compaction_prompt_keeps_recent_context_when_history_exceeds_budget():
