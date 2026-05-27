@@ -246,9 +246,39 @@ function displayRowMetadata(event: ConversationEvent): SdkDisplayRowMetadata {
   };
 }
 
+function toolRowIdentity(event: ConversationEvent, index: number): string {
+  if (event.type === 'tool_call') {
+    const toolCall = modelFacingToolCallFromPayload(event.payload);
+    return stringField(toolCall, 'id')
+      ?? stringField(event.payload, 'toolCallId', 'tool_call_id', 'requestId', 'request_id', 'correlationId', 'correlation_id')
+      ?? String(index);
+  }
+  if (event.type === 'tool_output') {
+    return stringField(event.payload, 'toolCallId', 'tool_call_id', 'requestId', 'request_id', 'correlationId', 'correlation_id')
+      ?? String(index);
+  }
+  if (event.type === 'tool_bundle_call' || event.type === 'tool_bundle_output') {
+    return stringField(event.payload, 'bundleId', 'bundle_id', 'correlationId', 'correlation_id')
+      ?? String(index);
+  }
+  return String(index);
+}
+
+function displayRowId(event: ConversationEvent, index: number): string {
+  if (
+    event.type === 'tool_call'
+    || event.type === 'tool_output'
+    || event.type === 'tool_bundle_call'
+    || event.type === 'tool_bundle_output'
+  ) {
+    return `${event.eventId}:${event.type}:${toolRowIdentity(event, index)}`;
+  }
+  return event.eventId;
+}
+
 function displayRowBase(event: ConversationEvent, index: number) {
   return {
-    id: event.eventId,
+    id: displayRowId(event, index),
     conversationRef: event.conversationRef,
     turnRef: event.turnRef,
     index,

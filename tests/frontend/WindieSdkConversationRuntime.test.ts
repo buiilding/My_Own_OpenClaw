@@ -142,10 +142,50 @@ describe('Windie SDK conversation runtime core', () => {
         requestId: 'req-readme',
         toolCallId: 'call-readme',
       },
-	    });
-	  });
+		    });
+		  });
 
-	  test('SDK display rows prefer raw model-facing tool output candidate', () => {
+  test('SDK display rows keep distinct tool-call rows when transport event ids collide', () => {
+    const firstToolCall = createConversationEvent({
+      type: 'tool_call',
+      eventId: 'shared-tool-event',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-1',
+      turnRef: 'turn-1',
+      source: 'backend',
+      payload: {
+        toolName: 'read_file',
+        requestId: 'req-readme',
+        toolCallId: 'call-readme',
+        args: { path: 'README.md' },
+      },
+    });
+    const secondToolCall = createConversationEvent({
+      type: 'tool_call',
+      eventId: 'shared-tool-event',
+      conversationRef: 'conv-sdk-runtime',
+      revisionId: 'rev-1',
+      turnRef: 'turn-1',
+      source: 'backend',
+      payload: {
+        toolName: 'read_file',
+        requestId: 'req-package',
+        toolCallId: 'call-package',
+        args: { path: 'package.json' },
+      },
+    });
+
+    const rows = buildDisplayRows([firstToolCall, secondToolCall]);
+
+    expect(rows).toHaveLength(2);
+    expect(rows.map(row => row.id)).toEqual([
+      'shared-tool-event:tool_call:call-readme',
+      'shared-tool-event:tool_call:call-package',
+    ]);
+    expect(new Set(rows.map(row => row.id)).size).toBe(2);
+  });
+
+		  test('SDK display rows prefer raw model-facing tool output candidate', () => {
 	    const rows = buildDisplayRows([
 	      event('tool_output', {
 	        toolName: 'run_shell_command',

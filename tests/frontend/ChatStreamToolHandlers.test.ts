@@ -366,12 +366,12 @@ describe('useChatStreamToolHandlers', () => {
 
     expect(addMessage.mock.calls.map(call => call[0])).toEqual([
       expect.objectContaining({
-        id: 'event-tool-call-order',
+        id: 'event-tool-call-order:tool_call:request-order',
         type: 'tool-call',
         correlationId: 'request-order',
       }),
       expect.objectContaining({
-        id: 'event-tool-output-order',
+        id: 'event-tool-output-order:tool_output:request-order',
         type: 'tool-output',
         text: 'README contents',
         correlationId: 'request-order',
