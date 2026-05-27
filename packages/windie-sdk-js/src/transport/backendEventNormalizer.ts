@@ -277,6 +277,30 @@ export function normalizeBackendEventToConversationEvent(
       },
     });
   }
+  if (event.type === 'tool-bundle-output') {
+    return createConversationEvent({
+      ...base,
+      type: 'tool_bundle_output',
+      source: 'sidecar',
+      payload: {
+        ...payload,
+        bundleId: typeof payload.bundle_id === 'string' ? payload.bundle_id : (
+          typeof payload.bundleId === 'string' ? payload.bundleId : null
+        ),
+        correlationId: typeof payload.bundle_id === 'string' ? payload.bundle_id : (
+          typeof payload.bundleId === 'string' ? payload.bundleId : null
+        ),
+        userId: typeof event.user_id === 'string' ? event.user_id : null,
+        stepResults: Array.isArray(payload.step_results) ? payload.step_results : (
+          Array.isArray(payload.stepResults) ? payload.stepResults : []
+        ),
+        screenshotRef: typeof payload.screenshot_ref === 'string' ? payload.screenshot_ref : null,
+        screenshot: typeof payload.screenshot === 'string' ? payload.screenshot : null,
+        structuredPayload: payload,
+        rawEvent: event,
+      },
+    });
+  }
   if (event.type === 'context-compaction-started') {
     return createConversationEvent({
       ...base,

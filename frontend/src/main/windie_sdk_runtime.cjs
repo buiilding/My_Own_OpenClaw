@@ -98,12 +98,23 @@ function createWindieSdkMainRuntime(options = {}) {
     });
   }
 
+  function emitLocalToolOutput(data) {
+    if (data && typeof data === 'object' && data.type === 'tool-bundle-output') {
+      const conversationEvent = normalizeBackendEventToConversationEvent(data, {
+        fallbackConversationRef: options.getCurrentConversationRef?.(),
+      });
+      emitConversationRuntimeUpdate(conversationEvent);
+      emitConversationEvent(conversationEvent);
+    }
+    emitRendererEvent(data);
+  }
+
   function handleBackendEvent(data) {
     routeSdkToolEventToLocalRuntime(data, {
       executeLocalTool: options.executeLocalTool,
       sendToolResult: (payload, messageId) => session.sendToolResult(payload, messageId),
       sendToolBundleResult: (payload, messageId) => session.sendToolBundleResult(payload, messageId),
-      onToolOutput: emitRendererEvent,
+      onToolOutput: emitLocalToolOutput,
       log: options.log,
     });
     const rendererData = markRendererToolEventDisplayOnly(data);

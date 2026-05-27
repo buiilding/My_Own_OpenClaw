@@ -395,14 +395,14 @@ function buildRendererToolBundleOutputEvent(event, payload, startedAt) {
     const bundleId = resolveStringField(sourcePayload, ['bundleId', 'bundle_id'])
         ?? resolveStringField(payload, ['bundleId', 'bundle_id']);
     return {
-        id: bundleId ? `${bundleId}:tool-output` : undefined,
-        type: 'tool-output',
+        id: bundleId ? `${bundleId}:tool-bundle-output` : undefined,
+        type: 'tool-bundle-output',
         session_id: event?.session_id,
         user_id: event?.user_id,
         conversation_ref: event?.conversation_ref,
         turn_ref: event?.turn_ref,
         payload: {
-            tool_name: 'tool-bundle',
+            tool_name: 'tool_bundle',
             success: payload?.status === 'success',
             execution_time: (Date.now() - startedAt) / 1000,
             output: resolveBundleOutputDisplayText(stepResults),

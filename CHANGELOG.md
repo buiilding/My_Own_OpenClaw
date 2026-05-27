@@ -8,6 +8,9 @@ All notable changes to WindieOS will be documented in this file.
 
 - backend/tokens: count provider-bound prompt tokens before inference using the
   system prompt, contextual conversation messages, and active tool schemas.
+- sdk/frontend/chat: emit local bundled tool results as
+  `tool_bundle_output` conversation events and replace duplicate same-id chat
+  rows so bundle outputs render as their own UI block.
 - sdk/frontend/chat: make SDK display rows preserve explicit
   `tool_bundle_call`/`tool_bundle_output` rows, render model-facing tool-call
   payloads instead of tool names, and show raw tool-output content before

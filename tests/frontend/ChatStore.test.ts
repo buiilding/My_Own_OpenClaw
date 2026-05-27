@@ -32,6 +32,35 @@ describe('chatStore', () => {
     );
   });
 
+  test('addMessage replaces an existing message with the same id', () => {
+    useChatStore.getState().addMessage({
+      id: 'bundle-output-1',
+      text: 'first projection',
+      sender: 'tool',
+      type: 'tool-output',
+      sourceEventType: 'tool_output',
+    });
+
+    useChatStore.getState().addMessage({
+      id: 'bundle-output-1',
+      text: 'updated projection',
+      sender: 'tool',
+      type: 'tool-output',
+      sourceEventType: 'tool_bundle_output',
+    });
+
+    const messages = useChatStore.getState().messages;
+    expect(messages).toHaveLength(2);
+    expect(messages[1]).toEqual(
+      expect.objectContaining({
+        id: 'bundle-output-1',
+        text: 'updated projection',
+        sender: 'tool',
+        sourceEventType: 'tool_bundle_output',
+      }),
+    );
+  });
+
   test('updateMessage merges updates for matching id', () => {
     useChatStore.getState().addMessage({
       id: 'assistant-2',

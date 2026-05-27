@@ -279,6 +279,8 @@ describe('Windie SDK main runtime', () => {
 
   test('projects SDK-owned bundled tool results back to the renderer', async () => {
     const onEvent = jest.fn();
+    const onConversationEvent = jest.fn();
+    const onConversationRuntimeUpdated = jest.fn();
     const executeLocalTool = jest
       .fn()
       .mockResolvedValueOnce({ success: true, data: { output: 'docs listed', llm_content: 'docs listed' } })
@@ -291,6 +293,8 @@ describe('Windie SDK main runtime', () => {
       buildHandshake: async () => ({ type: 'handshake', user_id: 'dev-user' }),
       executeLocalTool,
       onEvent,
+      onConversationEvent,
+      onConversationRuntimeUpdated,
     });
 
     runtime.connect();
@@ -325,12 +329,12 @@ describe('Windie SDK main runtime', () => {
       user_id: 'dev-user',
     });
     expect(onEvent).toHaveBeenCalledWith(expect.objectContaining({
-      id: 'bundle-docs:tool-output',
-      type: 'tool-output',
+      id: 'bundle-docs:tool-bundle-output',
+      type: 'tool-bundle-output',
       conversation_ref: 'conv-1',
       turn_ref: 'turn-1',
       payload: expect.objectContaining({
-        tool_name: 'tool-bundle',
+        tool_name: 'tool_bundle',
         bundle_id: 'bundle-docs',
         success: true,
         output: expect.stringContaining('docs listed'),
@@ -338,6 +342,32 @@ describe('Windie SDK main runtime', () => {
           execution_owner: 'sdk-runtime',
           display_projection: 'local-tool-bundle-result',
         }),
+      }),
+    }));
+    expect(onConversationEvent).toHaveBeenCalledWith(expect.objectContaining({
+      conversationEvent: expect.objectContaining({
+        eventId: 'bundle-docs:tool-bundle-output',
+        type: 'tool_bundle_output',
+        conversationRef: 'conv-1',
+        turnRef: 'turn-1',
+        payload: expect.objectContaining({
+          bundleId: 'bundle-docs',
+          stepResults: expect.any(Array),
+        }),
+      }),
+    }));
+    expect(onConversationRuntimeUpdated).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'conversation-runtime-updated',
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      currentTurn: expect.objectContaining({
+        toolEvents: expect.arrayContaining([
+          expect.objectContaining({
+            id: 'bundle-docs:tool-bundle-output',
+            kind: 'tool_output',
+            toolName: 'tool_bundle',
+          }),
+        ]),
       }),
     }));
   });

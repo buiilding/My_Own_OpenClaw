@@ -12,6 +12,7 @@ const BACKEND_EVENT_TYPES = new Set([
     'tool-call',
     'tool-output',
     'tool-bundle',
+    'tool-bundle-output',
     'web-search-progress',
     'audio-chunk',
     'wakeword-activated',

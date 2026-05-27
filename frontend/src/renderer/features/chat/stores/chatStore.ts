@@ -367,9 +367,19 @@ export const useChatStore = create<ChatState>((set, get) => ({
         workspaceRef,
         workspace: currentWorkspace,
       } = resolveWorkspaceMutationTarget(state, conversationRef);
+      const existingMessageIndex = currentWorkspace.messages.findIndex(
+        (existingMessage) => existingMessage.id === message.id,
+      );
+      const nextMessages = existingMessageIndex === -1
+        ? [...currentWorkspace.messages, message]
+        : currentWorkspace.messages.map((existingMessage, index) => (
+          index === existingMessageIndex
+            ? { ...existingMessage, ...message }
+            : existingMessage
+        ));
       const nextWorkspace = {
         ...currentWorkspace,
-        messages: [...currentWorkspace.messages, message],
+        messages: nextMessages,
       };
       const nextTurnConversationRefs = mergeTurnConversationRefs(
         state.turnConversationRefs,

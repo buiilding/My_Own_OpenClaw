@@ -300,12 +300,12 @@ describe('ipc sdk tool router', () => {
       }),
     );
     expect(onToolOutput).toHaveBeenCalledWith(expect.objectContaining({
-      id: 'bundle-1:tool-output',
-      type: 'tool-output',
+      id: 'bundle-1:tool-bundle-output',
+      type: 'tool-bundle-output',
       conversation_ref: 'conv-1',
       turn_ref: 'turn-1',
       payload: expect.objectContaining({
-        tool_name: 'tool-bundle',
+        tool_name: 'tool_bundle',
         bundle_id: 'bundle-1',
         success: false,
         output: expect.stringContaining('one'),
@@ -382,7 +382,7 @@ describe('ipc sdk tool router', () => {
     }));
     expect(onToolOutput).toHaveBeenCalledWith(expect.objectContaining({
       payload: expect.objectContaining({
-        tool_name: 'tool-bundle',
+        tool_name: 'tool_bundle',
         screenshot_ref: 'after-bundle.jpg',
       }),
     }));
