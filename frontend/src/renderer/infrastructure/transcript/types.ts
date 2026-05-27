@@ -26,6 +26,7 @@ export type TranscriptStructuredToolPayload = {
 
 export type PendingUserMessage = {
   text: string;
+  messageId?: string | null;
   screenshotRef?: string | null;
   timestamp?: string;
   modelId?: string | null;
@@ -58,6 +59,7 @@ export type PendingAssistantMessage = {
 };
 
 export type TranscriptEntry = {
+  messageId?: string | null;
   content: string;
   role?: string | null;
   messageType?: string | null;

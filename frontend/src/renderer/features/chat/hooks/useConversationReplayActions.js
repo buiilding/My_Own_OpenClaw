@@ -89,6 +89,19 @@ function messageIdForReplay(preparedReplayTurn, conversationRef) {
   return `${preparedReplayTurn.conversationRef || conversationRef}:replay`;
 }
 
+function userMessageOrdinalAt(messages, targetIndex) {
+  if (!Array.isArray(messages) || targetIndex < 0) {
+    return null;
+  }
+  let ordinal = -1;
+  for (let index = 0; index <= targetIndex; index += 1) {
+    if (messages[index]?.sender === 'user') {
+      ordinal += 1;
+    }
+  }
+  return ordinal >= 0 ? ordinal : null;
+}
+
 async function executeReplayAction({
   sessionInfo,
   activeConversationRef,
@@ -106,6 +119,7 @@ async function executeReplayAction({
   deferredQueryModelSelection,
   action,
   messageId,
+  userMessageOrdinal,
   addMessage,
 }) {
   const conversationRef = ensureConversationRef(
@@ -131,6 +145,7 @@ async function executeReplayAction({
       conversationRef,
       userId: sessionInfo.userId,
       messageId,
+      userMessageOrdinal,
       text: queryText,
       payload: {
         screenshot_ref: screenshotRef || null,
@@ -240,6 +255,7 @@ export function useConversationReplayActions({
       deferredQueryModelSelection,
       action: 'edit_resend',
       messageId: userMessageId,
+      userMessageOrdinal: userMessageOrdinalAt(messages, userIndex),
       addMessage,
     });
   }, [
@@ -299,6 +315,7 @@ export function useConversationReplayActions({
       deferredQueryModelSelection,
       action: 'retry',
       messageId: assistantMessageId,
+      userMessageOrdinal: userMessageOrdinalAt(messages, userIndex),
       addMessage,
     });
   }, [

@@ -34,6 +34,7 @@ function optionalString(value: unknown): string | null {
  */
 export const DesktopLiveTurnRuntimeClient = {
   async sendQuery(input: SendConversationQueryInput): Promise<void> {
+    const turnRef = optionalString(input.turnRef) ?? undefined;
     const runtime = createConversationRuntime({
       conversationRef: input.conversationRef,
       store: new InMemoryConversationStore(),
@@ -41,9 +42,12 @@ export const DesktopLiveTurnRuntimeClient = {
     });
     await runtime.send({
       text: input.text,
-      turnRef: optionalString(input.turnRef) ?? undefined,
+      turnRef,
       model: input.model ?? undefined,
       payload: {
+        id: turnRef ?? null,
+        messageId: turnRef ?? null,
+        message_id: turnRef ?? null,
         screenshot_ref: input.screenshotRef ?? null,
         screenshot_url: input.screenshotUrl ?? null,
         screenshot_refs: input.screenshotRefs ?? null,

@@ -1,6 +1,7 @@
 import { DesktopTranscriptProjectionRuntimeClient } from '../../../../app/runtime/desktopTranscriptProjectionRuntimeClient';
 
 type RecordUserTranscriptMessageOptions = {
+  messageId?: string | null;
   text: string;
   conversationRef: string;
   userId?: string | null;
@@ -9,6 +10,7 @@ type RecordUserTranscriptMessageOptions = {
 };
 
 export function recordUserTranscriptMessage({
+  messageId = null,
   text,
   conversationRef,
   userId = null,
@@ -16,6 +18,7 @@ export function recordUserTranscriptMessage({
   screenshotRef = null,
 }: RecordUserTranscriptMessageOptions): void {
   DesktopTranscriptProjectionRuntimeClient.recordUserMessage(text, {
+    messageId,
     conversationRef,
     userId,
     timestamp: timestamp ?? undefined,

@@ -251,7 +251,10 @@ Dashboard startup and open-chat loading also use the SDK store adapter:
   conversation store factory and delegates revision cutting, rehydrate
   generation, model sync, and query send to `SdkConversationRuntime`. Retry and
   edit/resend rewrites use a compact sidecar cutoff RPC instead of sending a
-  copied shortened transcript back to the sidecar.
+  copied shortened transcript back to the sidecar. New live sends align the
+  renderer user-row id, transcript projection `messageId`, and SDK turn ref;
+  replay also passes the clicked user-message ordinal so older renderer-only ids
+  can still resolve to the canonical sidecar event.
 - compacted replay replacement appends a new generation with
   `replay_generation_entry_count` and `replay_generation_complete` metadata.
   Loaders select the newest complete generation and ignore partial writes, so a

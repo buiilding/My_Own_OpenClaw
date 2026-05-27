@@ -150,6 +150,7 @@ describe('useConversationReplayActions', () => {
       conversationRef: 'conv-existing',
       userId: 'user-1',
       messageId: 'assistant-1',
+      userMessageOrdinal: 0,
       text: 'first question',
       model: {
         modelProvider: 'anthropic',
@@ -199,6 +200,7 @@ describe('useConversationReplayActions', () => {
     });
 
     expect(mockPrepareRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
+      userMessageOrdinal: 0,
       payload: expect.objectContaining({
         screenshot_ref: null,
         screenshot_url: null,
@@ -209,6 +211,52 @@ describe('useConversationReplayActions', () => {
     expect(mockPrepareRetryTurn.mock.calls[0][0]).not.toHaveProperty('projectionEntries');
     expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
       screenshot: inlineScreenshot,
+    }));
+  });
+
+  test('edit replay passes user ordinal for renderer-only message ids', async () => {
+    const messages = [
+      {
+        id: 'renderer-user-1',
+        sender: 'user',
+        text: 'first question',
+      },
+      {
+        id: 'assistant-1',
+        sender: 'assistant',
+        text: 'first answer',
+      },
+      {
+        id: 'renderer-user-2',
+        sender: 'user',
+        text: 'second question',
+      },
+      {
+        id: 'assistant-2',
+        sender: 'assistant',
+        text: 'second answer',
+      },
+    ];
+
+    const { result } = renderHook(() => useConversationReplayActions({
+      messages,
+      setMessages: jest.fn(),
+      setThinkingStatus: jest.fn(),
+      setThinkingSourceEventType: jest.fn(),
+      setIsSending: jest.fn(),
+    }));
+
+    await act(async () => {
+      await result.current.handleEditFromUser('renderer-user-2', 'edited second question');
+    });
+
+    expect(mockPrepareEditAndResend).toHaveBeenCalledWith(expect.objectContaining({
+      messageId: 'renderer-user-2',
+      userMessageOrdinal: 1,
+      text: 'edited second question',
+    }));
+    expect(mockSendQuery).toHaveBeenCalledWith(expect.objectContaining({
+      text: 'edited second question',
     }));
   });
 
@@ -241,6 +289,7 @@ describe('useConversationReplayActions', () => {
     });
 
     expect(mockPrepareRetryTurn).toHaveBeenCalledWith(expect.objectContaining({
+      userMessageOrdinal: 0,
       payload: expect.objectContaining({
         screenshot_ref: 'artifact-99',
         screenshot_url: 'http://127.0.0.1:8765/api/artifacts/artifact-99',

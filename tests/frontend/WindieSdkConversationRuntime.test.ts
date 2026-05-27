@@ -2083,6 +2083,57 @@ describe('Windie SDK conversation runtime core', () => {
     ]);
   });
 
+  test('prepareEditAndResend can locate legacy renderer messages by user ordinal', async () => {
+    const store = new InMemoryConversationStore();
+    await store.appendEvents([
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        eventId: 'stored-user-1',
+        payload: { text: 'first text' },
+      }),
+      createConversationEvent({
+        type: 'assistant_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        eventId: 'stored-assistant-1',
+        payload: { text: 'first answer' },
+      }),
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        eventId: 'stored-user-2',
+        payload: { text: 'second text' },
+      }),
+      createConversationEvent({
+        type: 'assistant_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        eventId: 'stored-assistant-2',
+        payload: { text: 'second answer' },
+      }),
+    ]);
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport: createMockBackendTransport(),
+    });
+
+    await runtime.load();
+    const prepared = await runtime.prepareEditAndResend({
+      messageId: 'renderer-only-user-id',
+      userMessageOrdinal: 1,
+      text: 'edited second text',
+    });
+
+    expect(prepared.text).toBe('edited second text');
+    const events = await store.loadEvents('conv-sdk-runtime');
+    expect(events.map(storedEvent => storedEvent.eventId)).not.toContain('stored-user-2');
+    expect(events.map(storedEvent => storedEvent.eventId)).not.toContain('stored-assistant-2');
+  });
+
   test('prepareRetryTurn rewrites and rehydrates without sending a query', async () => {
     const sendQuery = jest.fn(async () => 'query-should-not-send');
     const store = new InMemoryConversationStore();
@@ -2123,6 +2174,56 @@ describe('Windie SDK conversation runtime core', () => {
     }));
     const events = await store.loadEvents('conv-sdk-runtime');
     expect(events.map(storedEvent => storedEvent.eventId)).not.toContain('assistant-retry');
+  });
+
+  test('prepareRetryTurn can locate legacy renderer messages by user ordinal', async () => {
+    const store = new InMemoryConversationStore();
+    await store.appendEvents([
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        eventId: 'stored-user-1',
+        payload: { text: 'first retry' },
+      }),
+      createConversationEvent({
+        type: 'assistant_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        eventId: 'stored-assistant-1',
+        payload: { text: 'first bad answer' },
+      }),
+      createConversationEvent({
+        type: 'user_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        eventId: 'stored-user-2',
+        payload: { text: 'second retry' },
+      }),
+      createConversationEvent({
+        type: 'assistant_message',
+        conversationRef: 'conv-sdk-runtime',
+        revisionId: 'rev-old',
+        eventId: 'stored-assistant-2',
+        payload: { text: 'second bad answer' },
+      }),
+    ]);
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport: createMockBackendTransport(),
+    });
+
+    await runtime.load();
+    const prepared = await runtime.prepareRetryTurn({
+      messageId: 'renderer-only-assistant-id',
+      userMessageOrdinal: 1,
+    });
+
+    expect(prepared.text).toBe('second retry');
+    const events = await store.loadEvents('conv-sdk-runtime');
+    expect(events.map(storedEvent => storedEvent.eventId)).not.toContain('stored-user-2');
+    expect(events.map(storedEvent => storedEvent.eventId)).not.toContain('stored-assistant-2');
   });
 
   test('rehydrate uses the active complete compacted replay generation when present', async () => {

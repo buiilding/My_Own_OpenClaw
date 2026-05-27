@@ -20,6 +20,15 @@ function readStringArray(value: unknown): string[] {
     : [];
 }
 
+function resolveUserMessageId(event: ConversationEvent): string {
+  return readString(event.payload?.messageId)
+    ?? readString(event.payload?.message_id)
+    ?? readString(event.payload?.id)
+    ?? event.turnRef
+    ?? event.eventId
+    ?? crypto.randomUUID();
+}
+
 export function useChatStreamLocalUserHandler({
   addMessage,
   modelContextRef,
@@ -49,7 +58,7 @@ export function useChatStreamLocalUserHandler({
       readString(event.payload?.screenshotUrl),
     );
     const newMessage: ChatMessage = {
-      id: crypto.randomUUID(),
+      id: resolveUserMessageId(event),
       text,
       sender: 'user',
       sourceEventType: 'local-user-message',

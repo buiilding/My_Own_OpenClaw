@@ -36,6 +36,7 @@ export async function storeTranscriptEntry(
   }
 
   await deps.appendTranscriptProjectionEntry(info.userId, {
+    messageId: entry.messageId,
     conversationRef: info.conversationRef,
     content: entry.content,
     role: entry.role,

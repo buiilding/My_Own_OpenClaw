@@ -62,6 +62,7 @@ type RewriteAndResendInput = {
   conversationRef: string;
   userId: string;
   messageId: string;
+  userMessageOrdinal?: number;
   text?: string;
   payload?: JsonRecord;
   model?: WindieModelSelection | null;
@@ -175,6 +176,7 @@ export const DesktopConversationContinuityService = {
     const runtime = await createSeededConversationRuntime(input);
     const prepared = await runtime.prepareEditAndResend({
       messageId: input.messageId,
+      userMessageOrdinal: input.userMessageOrdinal,
       text: input.text ?? '',
       payload: input.payload,
       model: input.model ?? undefined,
@@ -193,6 +195,7 @@ export const DesktopConversationContinuityService = {
     const runtime = await createSeededConversationRuntime(input);
     const prepared = await runtime.prepareRetryTurn({
       messageId: input.messageId,
+      userMessageOrdinal: input.userMessageOrdinal,
       payload: input.payload,
       model: input.model ?? undefined,
     });

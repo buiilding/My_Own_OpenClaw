@@ -49,6 +49,7 @@ type SeededConversationStoreInput = {
 };
 
 type TranscriptProjectionRecordOptions = {
+  messageId?: string | null;
   conversationRef?: string | null;
   userId?: string | null;
   timestamp?: string;
@@ -157,6 +158,7 @@ export const DesktopTranscriptProjectionRuntimeClient = {
       }, queueForRetry),
       queueForRetry,
       buildEntry: (info) => ({
+        messageId: options.messageId ?? null,
         content: text,
         role: 'user',
         messageType: 'user',

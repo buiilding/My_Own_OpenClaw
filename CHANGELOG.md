@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: align live user-message ids across renderer rows, transcript
+  projection writes, and SDK replay matching, with an ordinal fallback so
+  edit/resend still works for older renderer-only message ids.
 - frontend/chat: enforce unique dashboard message ids at the selector boundary
   so stale projected assistant rows cannot reach `MessageList` with duplicate
   React keys.

@@ -150,6 +150,7 @@ describe('useChatMessageSender', () => {
     const call = mockSendQuery.mock.calls[0][0];
     expect(call.text).toBe(text);
     expect(call.conversationRef).toBe(conversationRef);
+    expect(call.turnRef).toBe('msg-1');
     expect(call.screenshotRef).toBe(screenshotRef);
     expect(call.screenshotUrl).toBe(screenshotUrl);
     expect(call.screenshotRefs).toEqual(screenshotRefs);
@@ -512,6 +513,7 @@ describe('useChatMessageSender', () => {
     );
     expect(mockSendQuery.mock.calls[0][0].transcript).toBeUndefined();
     expect(mockRecordUserTranscriptMessage).toHaveBeenCalledWith(expect.objectContaining({
+      messageId: 'msg-1',
       text: 'hello',
       conversationRef: 'conv_msg-1',
       screenshotRef: 'artifact-1',

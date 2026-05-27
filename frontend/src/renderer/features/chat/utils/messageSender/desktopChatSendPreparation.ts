@@ -248,6 +248,7 @@ export async function prepareDesktopChatSend({
 
   dependencies.addMessage({
     ...buildPendingUserMessage(turnId, text),
+    turnRef: turnId,
     sourceEventType: 'renderer-compose',
     sourceChannel: 'renderer-local',
     screenshot: firstClipboardImage?.base64 || null,
@@ -314,7 +315,7 @@ export async function prepareDesktopChatSend({
     text,
     timestamp,
     turnId,
-    turnRef: null,
+    turnRef: turnId,
     workspacePath: workspaceBinding.workspacePath || null,
   };
 }
@@ -327,6 +328,7 @@ export async function dispatchPreparedDesktopChatTurn(
   }
   if (preparedTurn.recordTranscriptUserMessage) {
     recordUserTranscriptMessage({
+      messageId: preparedTurn.turnId,
       text: preparedTurn.text,
       conversationRef: preparedTurn.conversationRef,
       userId: preparedTurn.sessionInfo.userId,
