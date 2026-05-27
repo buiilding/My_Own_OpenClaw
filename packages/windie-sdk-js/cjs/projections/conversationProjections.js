@@ -49,18 +49,64 @@ function shouldIgnoreCurrentTurnError(payload) {
 function displayTextFromPayload(payload) {
     return (0, toolOutputContent_js_1.readToolOutputContent)(payload).displayContent;
 }
-function bundleDisplayTextFromPayload(payload) {
+function rawToolOutputTextFromPayload(payload) {
+    const result = (0, toolOutputContent_js_1.recordFromUnknown)(payload.result);
+    return (0, toolOutputContent_js_1.stringField)(result, 'llm_content')
+        ?? (0, toolOutputContent_js_1.stringField)(payload, 'llm_content')
+        ?? (0, toolOutputContent_js_1.stringField)(result, 'output')
+        ?? (0, toolOutputContent_js_1.stringField)(payload, 'output')
+        ?? (0, toolOutputContent_js_1.stringField)(result, 'model_llm_content')
+        ?? (0, toolOutputContent_js_1.stringField)(payload, 'model_llm_content')
+        ?? (0, toolOutputContent_js_1.stringField)(result, 'message')
+        ?? (0, toolOutputContent_js_1.stringField)(payload, 'message')
+        ?? (0, toolOutputContent_js_1.stringField)(result, 'display_content')
+        ?? (0, toolOutputContent_js_1.stringField)(payload, 'display_content', 'return_display')
+        ?? (0, toolOutputContent_js_1.stringField)(payload, 'text', 'content', 'error')
+        ?? JSON.stringify(payload);
+}
+function bundleOutputContentFromPayload(payload) {
+    const bundleId = (0, toolOutputContent_js_1.stringField)(payload, 'bundleId', 'bundle_id');
     const steps = bundleStepResultsFromPayload(payload);
     if (steps.length === 0) {
-        return displayTextFromPayload(payload);
+        return {
+            ...(bundleId ? { bundleId } : {}),
+            step_results: [],
+            output: rawToolOutputTextFromPayload(payload),
+        };
+    }
+    return {
+        ...(bundleId ? { bundleId } : {}),
+        step_results: steps.map((step) => {
+            const toolName = (0, toolOutputContent_js_1.stringField)(step, 'toolName', 'tool_name', 'tool');
+            const toolCallId = (0, toolOutputContent_js_1.stringField)(step, 'toolCallId', 'tool_call_id', 'id');
+            const status = (0, toolOutputContent_js_1.stringField)(step, 'status');
+            const error = (0, toolOutputContent_js_1.stringField)(step, 'error');
+            const rawOutput = (0, toolOutputContent_js_1.recordFromUnknown)(step.output) ?? (0, toolOutputContent_js_1.recordFromUnknown)(step.result);
+            return {
+                ...(toolName ? { tool: toolName } : {}),
+                ...(toolCallId ? { toolCallId } : {}),
+                ...(status ? { status } : {}),
+                output: rawOutput
+                    ? rawToolOutputTextFromPayload(rawOutput)
+                    : ((0, toolOutputContent_js_1.stringField)(step, 'output', 'result', 'llm_content', 'message')
+                        ?? (error ? `Error: ${error}` : JSON.stringify(step))),
+            };
+        }),
+    };
+}
+function bundleDisplayTextFromPayload(payload) {
+    const content = bundleOutputContentFromPayload(payload);
+    const steps = Array.isArray(content.step_results) ? content.step_results : [];
+    if (steps.length === 0) {
+        return typeof content.output === 'string' ? content.output : displayTextFromPayload(payload);
     }
     return steps.map((step, index) => {
-        const toolName = (0, toolOutputContent_js_1.stringField)(step, 'toolName', 'tool_name', 'tool');
+        const stepRecord = (0, toolOutputContent_js_1.recordFromUnknown)(step);
+        const toolName = (0, toolOutputContent_js_1.stringField)(stepRecord, 'tool');
         const label = toolName ? `${toolName} #${index + 1}` : `step #${index + 1}`;
-        const outputRecord = (0, toolOutputContent_js_1.recordFromUnknown)(step.output) ?? (0, toolOutputContent_js_1.recordFromUnknown)(step.result);
-        const outputText = outputRecord
-            ? (0, toolOutputContent_js_1.readToolOutputContent)(outputRecord).displayContent
-            : (0, toolOutputContent_js_1.readBundleStepModelContent)(step);
+        const outputRecord = (0, toolOutputContent_js_1.recordFromUnknown)(stepRecord?.output) ?? (0, toolOutputContent_js_1.recordFromUnknown)(stepRecord?.result);
+        const outputText = (0, toolOutputContent_js_1.stringField)(stepRecord, 'output')
+            ?? (outputRecord ? (0, toolOutputContent_js_1.readToolOutputContent)(outputRecord).displayContent : (0, toolOutputContent_js_1.readBundleStepModelContent)(stepRecord ?? {}));
         return `${label}\n${outputText}`;
     }).join('\n\n');
 }
@@ -86,6 +132,66 @@ function toolNameFromPayload(payload) {
         return payload.tool_name;
     }
     return null;
+}
+function modelFacingToolCallFromRecord(record) {
+    const metadata = (0, toolOutputContent_js_1.recordFromUnknown)(record?.metadata);
+    const modelFacing = (0, toolOutputContent_js_1.recordFromUnknown)(metadata?.model_facing_tool_call)
+        ?? (0, toolOutputContent_js_1.recordFromUnknown)(record?.model_facing_tool_call);
+    if (modelFacing) {
+        return modelFacing;
+    }
+    const toolCalls = Array.isArray(record?.tool_calls)
+        ? record?.tool_calls
+        : (Array.isArray(record?.toolCalls) ? record?.toolCalls : null);
+    if (toolCalls) {
+        const first = (0, toolOutputContent_js_1.recordFromUnknown)(toolCalls[0]);
+        if (first) {
+            return first;
+        }
+    }
+    const toolName = (0, toolOutputContent_js_1.stringField)(record, 'toolName', 'tool_name', 'name');
+    if (!toolName) {
+        return null;
+    }
+    const args = (0, toolOutputContent_js_1.recordFromUnknown)(record?.args)
+        ?? (0, toolOutputContent_js_1.recordFromUnknown)(record?.parameters)
+        ?? (0, toolOutputContent_js_1.recordFromUnknown)(record?.arguments)
+        ?? {};
+    const toolCallId = (0, toolOutputContent_js_1.stringField)(record, 'toolCallId', 'tool_call_id', 'id');
+    return {
+        ...(toolCallId ? { id: toolCallId } : {}),
+        name: toolName,
+        arguments: args,
+    };
+}
+function modelFacingToolCallFromPayload(payload) {
+    const structuredPayload = (0, toolOutputContent_js_1.recordFromUnknown)(payload.structuredPayload);
+    return modelFacingToolCallFromRecord(payload)
+        ?? modelFacingToolCallFromRecord(structuredPayload)
+        ?? {
+            name: toolNameFromPayload(payload) ?? 'tool',
+            arguments: (0, toolOutputContent_js_1.recordFromUnknown)(payload.args) ?? {},
+        };
+}
+function bundleToolCallContentFromPayload(payload) {
+    const bundleId = (0, toolOutputContent_js_1.stringField)(payload, 'bundleId', 'bundle_id');
+    const structuredPayload = (0, toolOutputContent_js_1.recordFromUnknown)(payload.structuredPayload);
+    const tools = Array.isArray(payload.tools)
+        ? payload.tools
+        : (Array.isArray(structuredPayload?.tools) ? structuredPayload.tools : []);
+    const toolCalls = tools
+        .map((tool) => modelFacingToolCallFromRecord((0, toolOutputContent_js_1.recordFromUnknown)(tool)))
+        .filter((toolCall) => Boolean(toolCall));
+    if (toolCalls.length > 0) {
+        return {
+            ...(bundleId ? { bundleId } : {}),
+            tool_calls: toolCalls,
+        };
+    }
+    return {
+        ...(bundleId ? { bundleId } : {}),
+        tool_calls: toolCallsFromPayload(payload) ?? [],
+    };
 }
 function displayRowMetadata(event) {
     return {
@@ -148,31 +254,51 @@ function displayRowFromEvent(event, index) {
             content: textFromPayload(event.payload),
         };
     }
-    if (event.type === 'tool_call' || event.type === 'tool_bundle_call') {
+    if (event.type === 'tool_call') {
         return {
             ...displayRowBase(event, index),
             role: 'assistant',
             type: 'tool_call',
-            content: event.payload,
+            content: modelFacingToolCallFromPayload(event.payload),
             metadata: {
                 ...displayRowMetadata(event),
-                toolName: toolNameFromPayload(event.payload)
-                    ?? (event.type === 'tool_bundle_call' ? 'tool_bundle' : null),
+                toolName: toolNameFromPayload(event.payload),
             },
         };
     }
-    if (event.type === 'tool_output' || event.type === 'tool_bundle_output') {
+    if (event.type === 'tool_bundle_call') {
+        return {
+            ...displayRowBase(event, index),
+            role: 'assistant',
+            type: 'tool_bundle_call',
+            content: bundleToolCallContentFromPayload(event.payload),
+            metadata: {
+                ...displayRowMetadata(event),
+                toolName: 'tool_bundle',
+            },
+        };
+    }
+    if (event.type === 'tool_output') {
         return {
             ...displayRowBase(event, index),
             role: 'tool',
             type: 'tool_output',
-            content: event.type === 'tool_bundle_output'
-                ? bundleDisplayTextFromPayload(event.payload)
-                : displayTextFromPayload(event.payload),
+            content: rawToolOutputTextFromPayload(event.payload),
             metadata: {
                 ...displayRowMetadata(event),
-                toolName: toolNameFromPayload(event.payload)
-                    ?? (event.type === 'tool_bundle_output' ? 'tool_bundle' : null),
+                toolName: toolNameFromPayload(event.payload),
+            },
+        };
+    }
+    if (event.type === 'tool_bundle_output') {
+        return {
+            ...displayRowBase(event, index),
+            role: 'tool',
+            type: 'tool_bundle_output',
+            content: bundleOutputContentFromPayload(event.payload),
+            metadata: {
+                ...displayRowMetadata(event),
+                toolName: 'tool_bundle',
             },
         };
     }

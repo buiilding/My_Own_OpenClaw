@@ -36,6 +36,10 @@ function recordPayloadFromRow(row: SdkDisplayRow): Record<string, unknown> {
     : {};
 }
 
+function displayTextFromRowContent(content: unknown): string {
+  return typeof content === 'string' ? content : JSON.stringify(content, null, 2);
+}
+
 function structuredPayload(message: DisplayMessage): Record<string, unknown> {
   const payload = recordPayload(message).structuredPayload;
   return payload && typeof payload === 'object' && !Array.isArray(payload)
@@ -111,7 +115,10 @@ function buildToolCallMessage(message: DisplayMessage): ChatMessage {
   const payload = recordPayload(message);
   const toolCall = firstToolCall(message);
   const args = recordFromPayloadValue(recordField(payload, 'args'));
-  const fallbackToolCall = toolCall ?? (
+  const bundleToolCallPayload = message.messageType === 'tool_bundle_call'
+    ? recordPayload(message)
+    : null;
+  const fallbackToolCall = bundleToolCallPayload ?? toolCall ?? (
     message.toolName
       ? {
         id: message.toolCallId ?? message.correlationId ?? undefined,
@@ -180,14 +187,6 @@ export function buildChatMessagesFromDisplayConversation(
   });
 }
 
-function hasBundlePayload(payload: Record<string, unknown>, row: SdkDisplayRow): boolean {
-  return row.metadata?.toolName === 'tool_bundle'
-    || typeof row.metadata?.bundleId === 'string'
-    || Array.isArray(payload.tools)
-    || Array.isArray(payload.stepResults)
-    || Array.isArray(payload.step_results);
-}
-
 function displayMessageFromSdkDisplayRow(row: SdkDisplayRow): DisplayMessage | null {
   const payload = recordPayloadFromRow(row);
   const revisionId = typeof row.metadata?.revisionId === 'string' ? row.metadata.revisionId : '';
@@ -209,6 +208,7 @@ function displayMessageFromSdkDisplayRow(row: SdkDisplayRow): DisplayMessage | n
     };
   }
   if (row.type === 'tool_call') {
+    const content = row.content;
     return {
       id: row.id,
       conversationRef: row.conversationRef,
@@ -216,14 +216,40 @@ function displayMessageFromSdkDisplayRow(row: SdkDisplayRow): DisplayMessage | n
       revisionId,
       timestamp,
       sender: 'tool',
-      text: typeof row.metadata?.toolName === 'string' ? row.metadata.toolName : '',
-      messageType: hasBundlePayload(payload, row) ? 'tool_bundle_call' : 'tool_call',
+      text: displayTextFromRowContent(content),
+      messageType: 'tool_call',
       toolName: row.metadata?.toolName ?? null,
       requestId: row.metadata?.requestId ?? null,
       bundleId: row.metadata?.bundleId ?? null,
       toolCallId: row.metadata?.toolCallId ?? null,
       correlationId: row.metadata?.correlationId ?? null,
-      metadata: payload,
+      metadata: {
+        ...payload,
+        model_facing_tool_call: content,
+        tool_calls: [content],
+      },
+    };
+  }
+  if (row.type === 'tool_bundle_call') {
+    const content = row.content;
+    return {
+      id: row.id,
+      conversationRef: row.conversationRef,
+      turnRef: row.turnRef,
+      revisionId,
+      timestamp,
+      sender: 'tool',
+      text: displayTextFromRowContent(content),
+      messageType: 'tool_bundle_call',
+      toolName: row.metadata?.toolName ?? null,
+      requestId: row.metadata?.requestId ?? null,
+      bundleId: row.metadata?.bundleId ?? null,
+      toolCallId: row.metadata?.toolCallId ?? null,
+      correlationId: row.metadata?.correlationId ?? null,
+      metadata: {
+        ...payload,
+        ...content,
+      },
     };
   }
   if (row.type === 'tool_output') {
@@ -235,13 +261,35 @@ function displayMessageFromSdkDisplayRow(row: SdkDisplayRow): DisplayMessage | n
       timestamp,
       sender: 'tool',
       text: row.content,
-      messageType: hasBundlePayload(payload, row) ? 'tool_bundle_output' : 'tool_output',
+      messageType: 'tool_output',
       toolName: row.metadata?.toolName ?? null,
       requestId: row.metadata?.requestId ?? null,
       bundleId: row.metadata?.bundleId ?? null,
       toolCallId: row.metadata?.toolCallId ?? null,
       correlationId: row.metadata?.correlationId ?? null,
       metadata: payload,
+    };
+  }
+  if (row.type === 'tool_bundle_output') {
+    const content = row.content;
+    return {
+      id: row.id,
+      conversationRef: row.conversationRef,
+      turnRef: row.turnRef,
+      revisionId,
+      timestamp,
+      sender: 'tool',
+      text: displayTextFromRowContent(content),
+      messageType: 'tool_bundle_output',
+      toolName: row.metadata?.toolName ?? null,
+      requestId: row.metadata?.requestId ?? null,
+      bundleId: row.metadata?.bundleId ?? null,
+      toolCallId: row.metadata?.toolCallId ?? null,
+      correlationId: row.metadata?.correlationId ?? null,
+      metadata: {
+        ...payload,
+        ...content,
+      },
     };
   }
   return {
@@ -251,7 +299,7 @@ function displayMessageFromSdkDisplayRow(row: SdkDisplayRow): DisplayMessage | n
     revisionId,
     timestamp,
     sender: row.role,
-    text: row.content,
+    text: displayTextFromRowContent(row.content),
     messageType: row.type === 'assistant_message' && row.isStreaming ? 'assistant_delta' : row.type,
     metadata: payload,
   };

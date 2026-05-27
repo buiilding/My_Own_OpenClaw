@@ -12,11 +12,13 @@ function nonEmptyString(value) {
 
 function outputTextFromRecord(payload) {
   if (!payload) return null;
-  return nonEmptyString(payload.display_content)
+  return nonEmptyString(payload.llm_content)
     ?? nonEmptyString(payload.output)
-    ?? nonEmptyString(payload.llm_content)
+    ?? nonEmptyString(payload.model_llm_content)
     ?? nonEmptyString(payload.content)
     ?? nonEmptyString(payload.message)
+    ?? nonEmptyString(payload.display_content)
+    ?? nonEmptyString(payload.return_display)
     ?? (payload.error ? `Error: ${payload.error}` : null);
 }
 

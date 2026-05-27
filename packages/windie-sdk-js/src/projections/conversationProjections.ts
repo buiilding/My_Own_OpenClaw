@@ -72,18 +72,68 @@ function displayTextFromPayload(payload: JsonRecord): string {
   return readToolOutputContent(payload).displayContent;
 }
 
-function bundleDisplayTextFromPayload(payload: JsonRecord): string {
+function rawToolOutputTextFromPayload(payload: JsonRecord): string {
+  const result = recordFromUnknown(payload.result);
+  return stringField(result, 'llm_content')
+    ?? stringField(payload, 'llm_content')
+    ?? stringField(result, 'output')
+    ?? stringField(payload, 'output')
+    ?? stringField(result, 'model_llm_content')
+    ?? stringField(payload, 'model_llm_content')
+    ?? stringField(result, 'message')
+    ?? stringField(payload, 'message')
+    ?? stringField(result, 'display_content')
+    ?? stringField(payload, 'display_content', 'return_display')
+    ?? stringField(payload, 'text', 'content', 'error')
+    ?? JSON.stringify(payload);
+}
+
+function bundleOutputContentFromPayload(payload: JsonRecord): JsonRecord {
+  const bundleId = stringField(payload, 'bundleId', 'bundle_id');
   const steps = bundleStepResultsFromPayload(payload);
   if (steps.length === 0) {
-    return displayTextFromPayload(payload);
+    return {
+      ...(bundleId ? { bundleId } : {}),
+      step_results: [],
+      output: rawToolOutputTextFromPayload(payload),
+    };
+  }
+  return {
+    ...(bundleId ? { bundleId } : {}),
+    step_results: steps.map((step) => {
+      const toolName = stringField(step, 'toolName', 'tool_name', 'tool');
+      const toolCallId = stringField(step, 'toolCallId', 'tool_call_id', 'id');
+      const status = stringField(step, 'status');
+      const error = stringField(step, 'error');
+      const rawOutput = recordFromUnknown(step.output) ?? recordFromUnknown(step.result);
+      return {
+        ...(toolName ? { tool: toolName } : {}),
+        ...(toolCallId ? { toolCallId } : {}),
+        ...(status ? { status } : {}),
+        output: rawOutput
+          ? rawToolOutputTextFromPayload(rawOutput)
+          : (
+            stringField(step, 'output', 'result', 'llm_content', 'message')
+            ?? (error ? `Error: ${error}` : JSON.stringify(step))
+          ),
+      };
+    }),
+  };
+}
+
+function bundleDisplayTextFromPayload(payload: JsonRecord): string {
+  const content = bundleOutputContentFromPayload(payload);
+  const steps = Array.isArray(content.step_results) ? content.step_results : [];
+  if (steps.length === 0) {
+    return typeof content.output === 'string' ? content.output : displayTextFromPayload(payload);
   }
   return steps.map((step, index) => {
-    const toolName = stringField(step, 'toolName', 'tool_name', 'tool');
+    const stepRecord = recordFromUnknown(step);
+    const toolName = stringField(stepRecord, 'tool');
     const label = toolName ? `${toolName} #${index + 1}` : `step #${index + 1}`;
-    const outputRecord = recordFromUnknown(step.output) ?? recordFromUnknown(step.result);
-    const outputText = outputRecord
-      ? readToolOutputContent(outputRecord).displayContent
-      : readBundleStepModelContent(step);
+    const outputRecord = recordFromUnknown(stepRecord?.output) ?? recordFromUnknown(stepRecord?.result);
+    const outputText = stringField(stepRecord, 'output')
+      ?? (outputRecord ? readToolOutputContent(outputRecord).displayContent : readBundleStepModelContent(stepRecord ?? {}));
     return `${label}\n${outputText}`;
   }).join('\n\n');
 }
@@ -112,6 +162,69 @@ function toolNameFromPayload(payload: JsonRecord): string | null {
     return payload.tool_name;
   }
   return null;
+}
+
+function modelFacingToolCallFromRecord(record: JsonRecord | null): JsonRecord | null {
+  const metadata = recordFromUnknown(record?.metadata);
+  const modelFacing = recordFromUnknown(metadata?.model_facing_tool_call)
+    ?? recordFromUnknown(record?.model_facing_tool_call);
+  if (modelFacing) {
+    return modelFacing;
+  }
+  const toolCalls = Array.isArray(record?.tool_calls)
+    ? record?.tool_calls
+    : (Array.isArray(record?.toolCalls) ? record?.toolCalls : null);
+  if (toolCalls) {
+    const first = recordFromUnknown(toolCalls[0]);
+    if (first) {
+      return first;
+    }
+  }
+  const toolName = stringField(record, 'toolName', 'tool_name', 'name');
+  if (!toolName) {
+    return null;
+  }
+  const args = recordFromUnknown(record?.args)
+    ?? recordFromUnknown(record?.parameters)
+    ?? recordFromUnknown(record?.arguments)
+    ?? {};
+  const toolCallId = stringField(record, 'toolCallId', 'tool_call_id', 'id');
+  return {
+    ...(toolCallId ? { id: toolCallId } : {}),
+    name: toolName,
+    arguments: args,
+  };
+}
+
+function modelFacingToolCallFromPayload(payload: JsonRecord): JsonRecord {
+  const structuredPayload = recordFromUnknown(payload.structuredPayload);
+  return modelFacingToolCallFromRecord(payload)
+    ?? modelFacingToolCallFromRecord(structuredPayload)
+    ?? {
+      name: toolNameFromPayload(payload) ?? 'tool',
+      arguments: recordFromUnknown(payload.args) ?? {},
+    };
+}
+
+function bundleToolCallContentFromPayload(payload: JsonRecord): JsonRecord {
+  const bundleId = stringField(payload, 'bundleId', 'bundle_id');
+  const structuredPayload = recordFromUnknown(payload.structuredPayload);
+  const tools = Array.isArray(payload.tools)
+    ? payload.tools
+    : (Array.isArray(structuredPayload?.tools) ? structuredPayload.tools : []);
+  const toolCalls = tools
+    .map((tool) => modelFacingToolCallFromRecord(recordFromUnknown(tool)))
+    .filter((toolCall): toolCall is JsonRecord => Boolean(toolCall));
+  if (toolCalls.length > 0) {
+    return {
+      ...(bundleId ? { bundleId } : {}),
+      tool_calls: toolCalls,
+    };
+  }
+  return {
+    ...(bundleId ? { bundleId } : {}),
+    tool_calls: toolCallsFromPayload(payload) ?? [],
+  };
 }
 
 function displayRowMetadata(event: ConversationEvent): SdkDisplayRowMetadata {
@@ -177,31 +290,51 @@ function displayRowFromEvent(event: ConversationEvent, index: number): SdkDispla
       content: textFromPayload(event.payload),
     };
   }
-  if (event.type === 'tool_call' || event.type === 'tool_bundle_call') {
+  if (event.type === 'tool_call') {
     return {
       ...displayRowBase(event, index),
       role: 'assistant',
       type: 'tool_call',
-      content: event.payload,
+      content: modelFacingToolCallFromPayload(event.payload),
       metadata: {
         ...displayRowMetadata(event),
-        toolName: toolNameFromPayload(event.payload)
-          ?? (event.type === 'tool_bundle_call' ? 'tool_bundle' : null),
+        toolName: toolNameFromPayload(event.payload),
       },
     };
   }
-  if (event.type === 'tool_output' || event.type === 'tool_bundle_output') {
+  if (event.type === 'tool_bundle_call') {
+    return {
+      ...displayRowBase(event, index),
+      role: 'assistant',
+      type: 'tool_bundle_call',
+      content: bundleToolCallContentFromPayload(event.payload),
+      metadata: {
+        ...displayRowMetadata(event),
+        toolName: 'tool_bundle',
+      },
+    };
+  }
+  if (event.type === 'tool_output') {
     return {
       ...displayRowBase(event, index),
       role: 'tool',
       type: 'tool_output',
-      content: event.type === 'tool_bundle_output'
-        ? bundleDisplayTextFromPayload(event.payload)
-        : displayTextFromPayload(event.payload),
+      content: rawToolOutputTextFromPayload(event.payload),
       metadata: {
         ...displayRowMetadata(event),
-        toolName: toolNameFromPayload(event.payload)
-          ?? (event.type === 'tool_bundle_output' ? 'tool_bundle' : null),
+        toolName: toolNameFromPayload(event.payload),
+      },
+    };
+  }
+  if (event.type === 'tool_bundle_output') {
+    return {
+      ...displayRowBase(event, index),
+      role: 'tool',
+      type: 'tool_bundle_output',
+      content: bundleOutputContentFromPayload(event.payload),
+      metadata: {
+        ...displayRowMetadata(event),
+        toolName: 'tool_bundle',
       },
     };
   }

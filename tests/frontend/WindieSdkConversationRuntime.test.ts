@@ -119,26 +119,53 @@ describe('Windie SDK conversation runtime core', () => {
       'assistant_message',
     ]);
     expect(rows.map(row => row.index)).toEqual([0, 1, 2, 3, 4, 5]);
-    expect(rows[1]).toMatchObject({
-      role: 'assistant',
-      type: 'tool_call',
+	    expect(rows[1]).toMatchObject({
+	      role: 'assistant',
+	      type: 'tool_call',
+	      content: {
+	        id: 'call-readme',
+	        name: 'read_file',
+	        arguments: { path: 'README.md' },
+	      },
+	      metadata: {
+	        toolName: 'read_file',
+	        requestId: 'req-readme',
+        toolCallId: 'call-readme',
+      },
+    });
+	    expect(rows[2]).toMatchObject({
+	      role: 'tool',
+	      type: 'tool_output',
+	      content: 'README contents',
       metadata: {
         toolName: 'read_file',
         requestId: 'req-readme',
         toolCallId: 'call-readme',
       },
-    });
-    expect(rows[2]).toMatchObject({
-      role: 'tool',
-      type: 'tool_output',
-      content: 'README contents',
-      metadata: {
-        toolName: 'read_file',
-        requestId: 'req-readme',
-        toolCallId: 'call-readme',
-      },
-    });
-  });
+	    });
+	  });
+
+	  test('SDK display rows prefer raw model-facing tool output candidate', () => {
+	    const rows = buildDisplayRows([
+	      event('tool_output', {
+	        toolName: 'run_shell_command',
+	        requestId: 'req-shell',
+	        result: {
+	          llm_content: 'raw model output',
+	          output: 'full stdout',
+	          model_llm_content: 'backend truncated output',
+	          display_content: 'display output',
+	        },
+	        success: true,
+	      }),
+	    ]);
+
+	    expect(rows).toHaveLength(1);
+	    expect(rows[0]).toMatchObject({
+	      type: 'tool_output',
+	      content: 'raw model output',
+	    });
+	  });
 
   test('orphan empty-chat greeting is not display or rehydrate history', () => {
     const events = [
@@ -268,14 +295,14 @@ describe('Windie SDK conversation runtime core', () => {
 
     const projection = buildCurrentTurnProjection(events);
 
-    expect(projection.toolEvents).toEqual([
-      expect.objectContaining({
-        kind: 'tool_output',
-        toolName: 'tool_bundle',
-        text: expect.stringContaining('README contents'),
-        status: 'success',
-      }),
-    ]);
+	    expect(projection.toolEvents).toEqual([
+	      expect.objectContaining({
+	        kind: 'tool_output',
+	        toolName: 'tool_bundle',
+	        text: expect.stringContaining('README model contents'),
+	        status: 'success',
+	      }),
+	    ]);
     expect(projection.toolEvents[0].text).toContain('package contents');
   });
 
@@ -328,9 +355,9 @@ describe('Windie SDK conversation runtime core', () => {
       }),
     ];
 
-    const snapshot = buildRehydrateSnapshot(events);
+	    const snapshot = buildRehydrateSnapshot(events);
 
-    expect(snapshot.messages).toEqual([
+	    expect(snapshot.messages).toEqual([
       expect.objectContaining({ role: 'user', content: 'inspect file' }),
       expect.objectContaining({
         role: 'assistant',
@@ -397,9 +424,31 @@ describe('Windie SDK conversation runtime core', () => {
       }),
     ];
 
-    const snapshot = buildRehydrateSnapshot(events);
+	    const snapshot = buildRehydrateSnapshot(events);
+	    const rows = buildDisplayRows(events);
 
-    expect(snapshot.messages).toEqual([
+	    expect(rows[1]).toMatchObject({
+	      type: 'tool_bundle_call',
+	      content: {
+	        bundleId: 'bundle-read',
+	        tool_calls: [
+	          expect.objectContaining({ id: 'call-readme' }),
+	          expect.objectContaining({ id: 'call-package' }),
+	        ],
+	      },
+	    });
+	    expect(rows[2]).toMatchObject({
+	      type: 'tool_bundle_output',
+	      content: {
+	        bundleId: 'bundle-read',
+	        step_results: [
+	          expect.objectContaining({ toolCallId: 'call-readme', output: 'README contents' }),
+	          expect.objectContaining({ toolCallId: 'call-package', output: 'package contents' }),
+	        ],
+	      },
+	    });
+
+	    expect(snapshot.messages).toEqual([
       expect.objectContaining({ role: 'user', content: 'inspect files' }),
       expect.objectContaining({
         role: 'assistant',

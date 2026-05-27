@@ -185,9 +185,29 @@ export type SdkDisplayRow =
       conversationRef: string;
       turnRef?: string | null;
       index: number;
+      role: 'assistant';
+      type: 'tool_bundle_call';
+      content: JsonRecord;
+      metadata?: SdkDisplayRowMetadata;
+    }
+  | {
+      id: string;
+      conversationRef: string;
+      turnRef?: string | null;
+      index: number;
       role: 'tool';
       type: 'tool_output';
       content: string;
+      metadata?: SdkDisplayRowMetadata;
+    }
+  | {
+      id: string;
+      conversationRef: string;
+      turnRef?: string | null;
+      index: number;
+      role: 'tool';
+      type: 'tool_bundle_output';
+      content: JsonRecord;
       metadata?: SdkDisplayRowMetadata;
     }
   | {

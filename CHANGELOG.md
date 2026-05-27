@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/frontend/chat: make SDK display rows preserve explicit
+  `tool_bundle_call`/`tool_bundle_output` rows, render model-facing tool-call
+  payloads instead of tool names, and show raw tool-output content before
+  backend history truncation.
 - sdk/frontend/chat: add SDK-owned display rows, expose them through runtime
   snapshots and store loaders, and route dashboard tool rows through the row
   adapter so tool-call/tool-output ordering is no longer rebuilt, deduped, or
