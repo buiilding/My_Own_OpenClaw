@@ -34,5 +34,18 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).not.toContain('WebSocketImpl:');
     expect(source).not.toContain('sidecar:');
     expect(source).not.toContain('executeLocalTool:');
+    const startupCall = source.match(/WindieAgent\.startDesktop\(\{[\s\S]*?\n  \}\);/)?.[0] || '';
+    expect(startupCall).toContain('apiKey: currentInstallToken');
+    expect(startupCall).toContain("appName: 'WindieOS'");
+    expect(startupCall).toContain('workspace: workspacePath || resolveWorkspacePathForAgent() || undefined');
+    expect(startupCall).not.toContain('userId:');
+    expect(startupCall).not.toContain('installId:');
+    expect(startupCall).not.toContain('conversationRef:');
+    expect(startupCall).not.toContain('endpointCandidates:');
+    expect(startupCall).not.toContain('reconnectIntervalMs:');
+    expect(startupCall).not.toContain('connectTimeoutMs:');
+    expect(startupCall).not.toContain('idleDisconnectTimeoutMs:');
+    expect(startupCall).not.toContain('onBackendOpen:');
+    expect(startupCall).not.toContain('onBackendClose:');
   });
 });

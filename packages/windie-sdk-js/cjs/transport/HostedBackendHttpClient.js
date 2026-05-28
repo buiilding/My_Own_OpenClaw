@@ -235,12 +235,18 @@ class WindieSdkClient {
         this.titles = {
             generate: async (payload) => this.postJson('/api/semantic/title', payload),
         };
+        this.install = {
+            identity: async () => this.getJson('/api/install/me'),
+        };
         this.httpBaseUrl = normalizeHttpBaseUrl(options.httpBaseUrl);
         this.fetchImpl = resolveFetchImplementation(options.fetchImpl);
         this.authToken = options.authToken?.trim() || undefined;
     }
     async models(options) {
         return this.introspection.models(options);
+    }
+    async installIdentity() {
+        return this.install.identity();
     }
     async toolSchemas(options) {
         return this.introspection.toolSchemas(options);

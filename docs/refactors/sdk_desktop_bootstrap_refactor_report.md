@@ -8,7 +8,7 @@ read_when:
 
 # SDK Desktop Bootstrap Refactor Report
 
-Last updated: 2026-05-27
+Last updated: 2026-05-28
 
 ## Goal
 
@@ -17,9 +17,6 @@ Make Electron main a thin SDK customer:
 ```js
 const agent = await WindieAgent.startDesktop({
   apiKey,
-  userId,
-  installId,
-  endpoint,
   workspace,
   appName: "WindieOS",
 });
@@ -33,14 +30,23 @@ projection, or current-turn projection.
 ## Completed Changes
 
 - `WindieAgent.startDesktop(...)` now accepts the public desktop bootstrap
-  contract: `apiKey`, `userId`, `installId`, `endpoint`, `endpointCandidates`,
-  `workspace`, and `appName`.
+  contract: `apiKey`, `workspace`, and `appName`.
+- Advanced/debug startup inputs are grouped under `endpoint`, `debug`,
+  `connection`, and `testing` instead of being mixed into the normal Electron
+  startup call.
+- The SDK resolves install identity from `apiKey` through authenticated
+  `GET /api/install/me`; Electron main no longer passes `userId` or
+  `installId` during normal startup.
+- Conversation selection moved out of startup. Electron sends
+  `conversation_ref` through agent command payloads such as `run`, `rehydrate`,
+  and `compactHistory`.
 - The SDK now supplies the Node WebSocket implementation from its own `ws`
   dependency in Node runtimes, so Electron main does not pass `WebSocketImpl`
   during normal startup.
 - Electron main imports `WindieAgent` directly, lazily starts the desktop agent,
-  subscribes to `rows`, `status`, `conversationEvent`, `currentTurn`, and raw
-  backend events, then broadcasts renderer-safe `windie:*` outputs.
+  subscribes to `rows`, `status`, `conversationEvent`, `currentTurn`,
+  connection, traffic, fallback, and raw backend events, then broadcasts
+  renderer-safe `windie:*` outputs.
 - Renderer IPC handlers now call the direct SDK agent methods:
   `run`, `stop`, `updateSettings`, `requestModelList`, `rehydrateMessages`,
   `compactHistory`, and `wakewordDetected`.
@@ -59,11 +65,13 @@ consumer.
 
 ## Current Behavior
 
-Electron main starts a `WindieAgent` directly with public app/auth/endpoint
-options. The SDK owns desktop runtime bootstrap and reusable conversation/tool
-semantics. Electron main keeps true desktop-shell duties: windows, renderer IPC,
-settings gate, endpoint selection state, overlay side effects, and renderer
-broadcasting.
+Electron main starts a `WindieAgent` directly with only the normal public
+startup inputs: install token as `apiKey`, selected `workspace`, and
+`appName`. The SDK owns desktop runtime bootstrap, install-token identity
+lookup, endpoint defaults, connection lifecycle events, and reusable
+conversation/tool semantics. Electron main keeps true desktop-shell duties:
+windows, renderer IPC, settings gate, endpoint diagnostics, overlay side
+effects, and renderer broadcasting.
 
 ## Validation
 
@@ -74,6 +82,11 @@ broadcasting.
 - `npm run lint` in `frontend`
 - `./bin/docs-list`
 - `git diff --check`
+
+The follow-up clean-startup slice also validated:
+
+- `./scripts/python-in-env backend pytest tests/backend/test_install_auth.py -q`
+- focused frontend SDK/runtime test suite with 118 passing tests
 
 ## Remaining Debt
 

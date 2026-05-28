@@ -11,7 +11,6 @@ title: "Query Payload and Relay Reference"
 ## Canonical Modules
 
 - `frontend/src/main/ipc.cjs`
-- `frontend/src/main/windie_agent_host.cjs`
 - `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
 - `frontend/src/main/ipc/ipc_query_runtime.cjs`
 - `frontend/src/main/ipc/ipc_query_send_runtime.cjs`
@@ -42,13 +41,15 @@ Common input normalization:
 
 Endpoint context for SDK agent calls:
 
-- websocket send target and origin come from `resolveBackendEndpoints(...)` state in `ipc.cjs`
+- websocket send target, origin, hosted defaults, and endpoint environment
+  overrides are owned by `WindieAgent.startDesktop(...)`
 - socket construction, sidecar/tool runtime bootstrap, envelope sends,
   current-turn projection, and display-row projection are owned by
   `WindieAgent.startDesktop(...)`; `ipc.cjs` imports `WindieAgent` directly and
   only forwards SDK outputs to renderer windows
-- `initializeIpc(..., { isPackaged })` refreshes endpoint resolution at startup to select dev or packaged fallback policy
-- `get-client-user-id` snapshot includes resolved `backendWsUrl` and `backendHttpUrl` values for renderer diagnostics
+- `get-client-user-id` snapshot includes resolved diagnostic `backendWsUrl` and
+  `backendHttpUrl` values for renderer display, while SDK connection events
+  own actual socket lifecycle
 
 Special handling paths:
 

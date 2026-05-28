@@ -128,6 +128,20 @@ def test_register_install_returns_token_and_protected_route_uses_authenticated_i
             "request_install_id": register_payload["install_id"],
         }
 
+        identity_response = client.get(
+            "/api/install/me",
+            headers={
+                "Authorization": f"Bearer {register_payload['install_token']}",
+            },
+        )
+
+        assert identity_response.status_code == 200
+        assert identity_response.json() == {
+            "success": True,
+            "user_id": register_payload["user_id"],
+            "install_id": register_payload["install_id"],
+        }
+
 
 def test_register_install_returns_503_when_service_is_unavailable() -> None:
     app = _build_register_only_app()
@@ -269,6 +283,12 @@ def test_protected_route_rejects_missing_or_invalid_install_token(tmp_path) -> N
         assert invalid_token_response.status_code == 401
         assert invalid_token_response.json() == {
             "detail": "Invalid install bearer token",
+        }
+
+        missing_identity_response = client.get("/api/install/me")
+        assert missing_identity_response.status_code == 401
+        assert missing_identity_response.json() == {
+            "detail": "Missing install bearer token",
         }
 
 

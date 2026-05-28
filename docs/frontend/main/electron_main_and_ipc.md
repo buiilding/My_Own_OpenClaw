@@ -72,9 +72,9 @@ Responsibilities:
 Split boundary:
 
 - `ipc.cjs` is the SDK customer: it imports `WindieAgent`, starts the desktop
-  agent with public app/auth/endpoint/workspace options, subscribes to SDK
-  rows/status/events/current-turn outputs, and exposes thin `windie:*` IPC
-  handlers that call SDK agent methods.
+  agent with only normal public startup inputs (`apiKey`, `workspace`,
+  `appName`), subscribes to SDK rows/status/events/current-turn/connection
+  outputs, and exposes thin `windie:*` IPC handlers that call SDK agent methods.
 - `ipc.cjs` owns renderer-facing lifecycle orchestration and IPC handler registration.
 - `ipc_settings_sync.cjs` owns settings ACK wait/resolve/timeout primitives for first-query gating.
 - helper modules own event processing, renderer-window fan-out, and synthetic query event broadcast paths.

@@ -265,10 +265,11 @@ export class WindieClient {
     )?.trim();
     const configuredUserId = options.userId ?? configured.userId ?? this.defaultOptions.defaultUserId;
     if (installToken) {
+      const identity = await this.resolveInstallTokenIdentity(backendUrl, installToken);
       return {
         installToken,
-        installId: configured.installId,
-        userId: configuredUserId ?? 'local-sdk-user',
+        installId: configured.installId ?? identity?.installId,
+        userId: configuredUserId ?? identity?.userId ?? 'local-sdk-user',
       };
     }
     if (configured.autoRegister !== true) {
@@ -300,6 +301,36 @@ export class WindieClient {
       installId: registeredInstallId || undefined,
       installToken: registeredInstallToken,
     };
+  }
+
+  private async resolveInstallTokenIdentity(
+    backendUrl: string,
+    installToken: string,
+  ): Promise<Pick<WindieInstallAuthState, 'userId' | 'installId'> | null> {
+    try {
+      const identity = await new WindieSdkClient({
+        httpBaseUrl: backendUrl,
+        fetchImpl: this.defaultOptions.fetchImpl,
+        authToken: installToken,
+      }).installIdentity();
+      const userId = typeof identity.user_id === 'string' ? identity.user_id.trim() : '';
+      const installId = typeof identity.install_id === 'string' ? identity.install_id.trim() : '';
+      if (!userId || !installId) {
+        throw new Error('Install identity response is missing user_id or install_id');
+      }
+      return {
+        userId,
+        installId,
+      };
+    } catch (error) {
+      if (this.defaultOptions.defaultUserId) {
+        this.defaultOptions.log?.(
+          `Windie install identity lookup failed; falling back to configured user id: ${error instanceof Error ? error.message : String(error)}`,
+        );
+        return null;
+      }
+      throw error;
+    }
   }
 
   private resolveConfiguredLocalRuntime(): WindieLocalRuntimeClient | undefined {

@@ -8,6 +8,7 @@ from typing import Optional
 from fastapi import APIRouter, Header, HTTPException, Request
 from pydantic import BaseModel, ConfigDict
 
+from backend.src.api.auth.context import get_current_authenticated_install_identity
 from backend.src.api.auth.service import InstallAuthService
 
 router = APIRouter(prefix="/api/install", tags=["install-auth"])
@@ -26,6 +27,12 @@ class RegisterInstallResponse(BaseModel):
     user_id: str
     install_id: str
     install_token: str
+
+
+class InstallIdentityResponse(BaseModel):
+    success: bool = True
+    user_id: str
+    install_id: str
 
 
 def _install_registration_policy(http_request: Request) -> tuple[bool, Optional[str]]:
@@ -70,4 +77,19 @@ async def register_install(
         user_id=registered.user_id,
         install_id=registered.install_id,
         install_token=registered.install_token,
+    )
+
+
+@router.get("/me", response_model=InstallIdentityResponse)
+async def get_install_identity() -> InstallIdentityResponse:
+    """Return the authenticated install identity for the bearer token."""
+    identity = get_current_authenticated_install_identity()
+    if identity is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Authenticated install identity required",
+        )
+    return InstallIdentityResponse(
+        user_id=identity.user_id,
+        install_id=identity.install_id,
     )

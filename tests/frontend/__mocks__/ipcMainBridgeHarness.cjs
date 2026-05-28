@@ -177,6 +177,21 @@ function initIpc(options = {}) {
         },
       };
     }
+    if (typeof url === 'string' && url.includes('/api/install/me')) {
+      return {
+        ok: true,
+        status: 200,
+        async json() {
+          return {
+            user_id: 'registered-user-1',
+            install_id: 'install-1',
+          };
+        },
+        async text() {
+          return '';
+        },
+      };
+    }
     throw new Error(`Unexpected fetch call in ipc harness: ${url}`);
   });
 

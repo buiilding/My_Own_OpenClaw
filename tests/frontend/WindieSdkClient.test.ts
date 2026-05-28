@@ -801,13 +801,19 @@ describe('WindieSdkClient', () => {
   });
 
   test('WindieAgent.startDesktop uses the managed desktop backend session by default', async () => {
+    mockFetch.mockResolvedValueOnce(jsonResponse({
+      user_id: 'desktop-user',
+      install_id: 'desktop-install',
+    }));
     const agentPromise = WindieAgent.startDesktop({
-      backendUrl: 'https://api.windieos.com',
-      fetchImpl: mockFetch,
-      WebSocketImpl: FakeWebSocket as any,
-      defaultUserId: 'desktop-user',
+      apiKey: 'desktop-token',
+      endpoint: 'https://api.windieos.com',
       builtins: 'none',
-      autoStartLocalRuntime: false,
+      testing: {
+        fetchImpl: mockFetch,
+        WebSocketImpl: FakeWebSocket as any,
+        autoStartLocalRuntime: false,
+      },
     });
     await new Promise(resolve => setTimeout(resolve, 0));
     const socket = FakeWebSocket.instances[0];
@@ -830,6 +836,10 @@ describe('WindieSdkClient', () => {
   });
 
   test('WindieAgent.startDesktop accepts the public desktop bootstrap contract', async () => {
+    mockFetch.mockResolvedValueOnce(jsonResponse({
+      user_id: 'desktop-user',
+      install_id: 'desktop-install',
+    }));
     const localRuntime: WindieLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),
       listTools: jest.fn(async () => ({
@@ -841,17 +851,17 @@ describe('WindieSdkClient', () => {
     };
     const agentPromise = WindieAgent.startDesktop({
       apiKey: 'desktop-install-token',
-      userId: 'desktop-user',
-      installId: 'desktop-install',
       appName: 'WindieOS',
       endpoint: {
         httpUrl: 'https://desktop.windie.test',
         wsUrl: 'wss://desktop.windie.test/ws',
       },
       workspace: '/Users/example/project',
-      fetchImpl: mockFetch,
-      WebSocketImpl: FakeWebSocket as any,
-      sidecar: localRuntime,
+      testing: {
+        fetchImpl: mockFetch,
+        WebSocketImpl: FakeWebSocket as any,
+        sidecar: localRuntime,
+      },
     });
 
     await new Promise(resolve => setTimeout(resolve, 0));
@@ -860,6 +870,10 @@ describe('WindieSdkClient', () => {
     expect((socket.options as { headers?: Record<string, string> })?.headers).toEqual(expect.objectContaining({
       Authorization: 'Bearer desktop-install-token',
     }));
+    const [identityUrl, identityInit] = mockFetch.mock.calls[0];
+    expect(identityUrl).toBe('https://desktop.windie.test/api/install/me');
+    expect(identityInit?.method).toBe('GET');
+    expect((identityInit?.headers as Headers).get('Authorization')).toBe('Bearer desktop-install-token');
     socket.emit('open', {});
     const desktopAgent = await agentPromise;
 
@@ -883,6 +897,54 @@ describe('WindieSdkClient', () => {
       },
     });
     expect(localRuntime.listTools).toHaveBeenCalledTimes(1);
+    desktopAgent.close();
+  });
+
+  test('WindieAgent.startDesktop accepts advanced debug, connection, endpoint, and testing buckets', async () => {
+    mockFetch.mockResolvedValueOnce(jsonResponse({
+      user_id: 'advanced-user',
+      install_id: 'advanced-install',
+    }));
+    const log = jest.fn();
+    const agentPromise = WindieAgent.startDesktop({
+      apiKey: 'advanced-token',
+      appName: 'WindieOS',
+      workspace: '/tmp/windie-workspace',
+      endpoint: {
+        primary: 'https://advanced.windie.test',
+        fallbacks: ['https://advanced-fallback.windie.test'],
+      },
+      debug: { log },
+      connection: {
+        reconnectIntervalMs: 10,
+        connectTimeoutMs: 50,
+        idleDisconnectTimeoutMs: 100,
+      },
+      testing: {
+        fetchImpl: mockFetch,
+        WebSocketImpl: FakeWebSocket as any,
+        autoStartLocalRuntime: false,
+      },
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const socket = FakeWebSocket.instances[0];
+    expect(socket.url).toBe('wss://advanced.windie.test/ws');
+    socket.emit('open', {});
+    const desktopAgent = await agentPromise;
+    const connectionEvents: unknown[] = [];
+    const trafficEvents: unknown[] = [];
+    desktopAgent.onConnection(event => connectionEvents.push(event));
+    desktopAgent.onTraffic(event => trafficEvents.push(event));
+
+    expect(connectionEvents).toEqual([
+      expect.objectContaining({ type: 'open' }),
+    ]);
+
+    socket.clearSent();
+    await desktopAgent.requestModelList();
+    expect(trafficEvents).toEqual([
+      expect.objectContaining({ type: 'list-models' }),
+    ]);
     desktopAgent.close();
   });
 

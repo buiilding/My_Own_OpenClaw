@@ -85,6 +85,9 @@ function normalizeDesktopEndpoint(endpoint) {
             wsOrigin: httpBaseUrl,
         };
     }
+    if (endpoint.primary) {
+        return normalizeDesktopEndpoint(endpoint.primary);
+    }
     const backendUrl = normalizeHttpUrl(endpoint.backendUrl)
         ?? normalizeHttpUrl(endpoint.httpBaseUrl)
         ?? normalizeHttpUrl(endpoint.httpUrl);
@@ -101,8 +104,12 @@ function normalizeDesktopEndpoint(endpoint) {
     };
 }
 function normalizeDesktopEndpointCandidates(endpoint, candidates) {
+    const nestedCandidates = endpoint && typeof endpoint === 'object' && Array.isArray(endpoint.fallbacks)
+        ? endpoint.fallbacks
+        : [];
     const all = [
         normalizeDesktopEndpoint(endpoint),
+        ...nestedCandidates.map(normalizeDesktopEndpoint),
         ...(Array.isArray(candidates) ? candidates.map(normalizeDesktopEndpoint) : []),
     ].filter((item) => Boolean(item));
     const seen = new Set();
@@ -117,19 +124,47 @@ function normalizeDesktopEndpointCandidates(endpoint, candidates) {
     }
     return normalized.length > 0 ? normalized : undefined;
 }
+function resolveProcessEnv() {
+    return globalThis.process?.env ?? {};
+}
+function resolveEnvDesktopEndpointCandidates() {
+    const env = resolveProcessEnv();
+    const explicitHttpUrl = normalizeHttpUrl(env.BACKEND_HTTP_URL);
+    const explicitWsUrl = normalizeWsUrl(env.BACKEND_WS_URL);
+    if (explicitHttpUrl || explicitWsUrl) {
+        return [{
+                httpUrl: explicitHttpUrl,
+                wsUrl: explicitWsUrl,
+            }];
+    }
+    if (typeof env.BACKEND_HOST === 'string' || typeof env.BACKEND_PORT === 'string') {
+        const host = env.BACKEND_HOST || '127.0.0.1';
+        const port = env.BACKEND_PORT || '8765';
+        return [{
+                httpUrl: `http://${host}:${port}`,
+                wsUrl: `ws://${host}:${port}/ws`,
+            }];
+    }
+    const defaultHttpUrl = normalizeHttpUrl(env.WINDIE_DEFAULT_BACKEND_HTTP_URL);
+    const defaultWsUrl = normalizeWsUrl(env.WINDIE_DEFAULT_BACKEND_WS_URL);
+    if (defaultHttpUrl || defaultWsUrl) {
+        return [{
+                httpUrl: defaultHttpUrl,
+                wsUrl: defaultWsUrl,
+            }];
+    }
+    return undefined;
+}
 function buildDesktopInstallAuth(options) {
     if (options.installAuth) {
         return options.installAuth;
     }
     const installToken = options.installToken ?? options.apiKey;
-    const userId = options.userId ?? options.defaultUserId;
-    if (!installToken && !userId && !options.installId) {
+    if (!installToken) {
         return undefined;
     }
     return {
         installToken,
-        userId,
-        installId: options.installId,
         autoRegister: false,
     };
 }
@@ -171,6 +206,12 @@ class WindieDesktopAgent {
         this.eventListeners = new Set();
         this.currentTurnListeners = new Set();
         this.statusListeners = new Set();
+        this.connectionListeners = new Set();
+        this.fallbackListeners = new Set();
+        this.trafficListeners = new Set();
+        this.lastConnectionEvent = null;
+        this.lastFallbackEvent = null;
+        this.lastTrafficEvent = null;
         this.closed = false;
         this.runtime = options.runtime;
         this.conversationRef = options.conversationRef;
@@ -180,6 +221,15 @@ class WindieDesktopAgent {
             workspacePath: options.workspacePath ?? null,
         };
         this.detachEvents = this.attachRuntime(this.runtime);
+        for (const event of options.initialConnectionEvents ?? []) {
+            this.recordConnectionEvent(event);
+        }
+        for (const event of options.initialFallbackEvents ?? []) {
+            this.recordFallbackEvent(event);
+        }
+        for (const event of options.initialTrafficEvents ?? []) {
+            this.recordTrafficEvent(event);
+        }
     }
     attachRuntime(runtime) {
         return runtime.subscribeEvents((event, snapshot) => {
@@ -225,60 +275,139 @@ class WindieDesktopAgent {
         });
         return this.runtime;
     }
+    recordConnectionEvent(event) {
+        this.lastConnectionEvent = event;
+        this.connectionListeners.forEach(listener => listener(event));
+    }
+    recordFallbackEvent(event) {
+        this.lastFallbackEvent = event;
+        this.fallbackListeners.forEach(listener => listener(event));
+    }
+    recordTrafficEvent(event) {
+        this.lastTrafficEvent = event;
+        this.trafficListeners.forEach(listener => listener(event));
+    }
     static async start(options) {
-        const { apiKey, appName, endpoint, endpointCandidates, installId, userId, workspace, workspacePath: explicitWorkspacePath, store, ...clientAndWakeOptions } = options;
+        const { apiKey, appName, connection, debug, endpoint, testing, workspace, workspacePath: explicitWorkspacePath, store, ...clientAndWakeOptions } = options;
+        const legacyClientOptions = clientAndWakeOptions;
+        const initialConnectionEvents = [];
+        const initialFallbackEvents = [];
+        const initialTrafficEvents = [];
+        let desktopAgent = null;
+        const emitConnection = (event) => {
+            if (desktopAgent) {
+                desktopAgent.recordConnectionEvent(event);
+            }
+            else {
+                initialConnectionEvents.push(event);
+            }
+        };
+        const emitFallback = (event) => {
+            if (desktopAgent) {
+                desktopAgent.recordFallbackEvent(event);
+            }
+            else {
+                initialFallbackEvents.push(event);
+            }
+        };
+        const emitTraffic = (event) => {
+            if (desktopAgent) {
+                desktopAgent.recordTrafficEvent(event);
+            }
+            else {
+                initialTrafficEvents.push(event);
+            }
+        };
         const workspacePath = explicitWorkspacePath ?? workspace;
-        const normalizedEndpoint = normalizeDesktopEndpoint(endpoint);
-        const normalizedEndpoints = normalizeDesktopEndpointCandidates(endpoint, endpointCandidates);
-        const backendUrl = clientAndWakeOptions.backendUrl
-            ?? clientAndWakeOptions.httpBaseUrl
+        const envEndpointCandidates = endpoint ? undefined : resolveEnvDesktopEndpointCandidates();
+        const envPrimaryEndpoint = envEndpointCandidates?.[0];
+        const normalizedEndpoint = normalizeDesktopEndpoint(endpoint ?? envPrimaryEndpoint);
+        const normalizedEndpoints = normalizeDesktopEndpointCandidates(endpoint ?? envPrimaryEndpoint, envEndpointCandidates?.slice(1));
+        const backendUrl = legacyClientOptions.backendUrl
+            ?? legacyClientOptions.httpBaseUrl
             ?? normalizedEndpoint?.backendUrl
-            ?? normalizedEndpoint?.httpBaseUrl;
-        const installToken = clientAndWakeOptions.installToken ?? apiKey;
+            ?? normalizedEndpoint?.httpBaseUrl
+            ?? 'https://api.windieos.com';
+        const installToken = legacyClientOptions.installToken ?? apiKey;
         const installAuth = buildDesktopInstallAuth({
             apiKey,
-            installId,
-            installToken: clientAndWakeOptions.installToken,
-            installAuth: clientAndWakeOptions.installAuth,
-            userId,
-            defaultUserId: clientAndWakeOptions.defaultUserId,
+            installToken: legacyClientOptions.installToken,
+            installAuth: legacyClientOptions.installAuth,
         });
         const client = new WindieClient_js_1.WindieClient({
             ...clientAndWakeOptions,
             backendUrl,
-            httpBaseUrl: clientAndWakeOptions.httpBaseUrl ?? normalizedEndpoint?.httpBaseUrl ?? backendUrl,
-            wsUrl: clientAndWakeOptions.wsUrl ?? normalizedEndpoint?.wsUrl,
-            wsOrigin: clientAndWakeOptions.wsOrigin ?? normalizedEndpoint?.wsOrigin,
-            backendEndpoints: clientAndWakeOptions.backendEndpoints ?? normalizedEndpoints,
-            backendSession: clientAndWakeOptions.backendSession ?? 'managed',
-            defaultUserId: clientAndWakeOptions.defaultUserId ?? userId,
+            httpBaseUrl: legacyClientOptions.httpBaseUrl ?? normalizedEndpoint?.httpBaseUrl ?? backendUrl,
+            wsUrl: legacyClientOptions.wsUrl ?? normalizedEndpoint?.wsUrl,
+            wsOrigin: legacyClientOptions.wsOrigin ?? normalizedEndpoint?.wsOrigin ?? backendUrl,
+            backendEndpoints: legacyClientOptions.backendEndpoints ?? normalizedEndpoints,
+            backendSession: legacyClientOptions.backendSession ?? 'managed',
+            reconnectIntervalMs: connection?.reconnectIntervalMs ?? legacyClientOptions.reconnectIntervalMs,
+            connectTimeoutMs: connection?.connectTimeoutMs ?? legacyClientOptions.connectTimeoutMs,
+            idleDisconnectTimeoutMs: connection?.idleDisconnectTimeoutMs ?? legacyClientOptions.idleDisconnectTimeoutMs,
+            log: debug?.log ?? legacyClientOptions.log,
+            fetchImpl: testing?.fetchImpl ?? legacyClientOptions.fetchImpl,
+            WebSocketImpl: testing?.WebSocketImpl ?? legacyClientOptions.WebSocketImpl,
+            sidecar: testing?.sidecar ?? legacyClientOptions.sidecar,
+            localRuntime: testing?.localRuntime ?? legacyClientOptions.localRuntime,
             installToken,
             installAuth,
-            autoStartLocalRuntime: clientAndWakeOptions.autoStartLocalRuntime ?? true,
+            autoStartLocalRuntime: testing?.autoStartLocalRuntime ?? legacyClientOptions.autoStartLocalRuntime ?? true,
+            onBackendOpen: payload => {
+                emitConnection({ type: 'open', ...payload });
+                legacyClientOptions.onBackendOpen?.(payload);
+            },
+            onBackendClose: payload => {
+                emitConnection({ type: 'close', ...payload });
+                legacyClientOptions.onBackendClose?.(payload);
+            },
+            onBackendError: payload => {
+                emitConnection({ type: 'error', ...payload });
+                legacyClientOptions.onBackendError?.(payload);
+            },
+            onBackendHandshakeError: error => {
+                emitConnection({ type: 'handshake-error', error });
+                legacyClientOptions.onBackendHandshakeError?.(error);
+            },
+            onBackendMessageError: error => {
+                emitConnection({ type: 'message-error', error });
+                legacyClientOptions.onBackendMessageError?.(error);
+            },
+            onBackendSend: type => {
+                emitTraffic({ type });
+                legacyClientOptions.onBackendSend?.(type);
+            },
+            onBackendFallback: endpoint => {
+                emitFallback(endpoint);
+                legacyClientOptions.onBackendFallback?.(endpoint);
+            },
         });
         const agent = await client.wakeUp({
             ...clientAndWakeOptions,
             backendUrl,
-            userId: userId ?? clientAndWakeOptions.defaultUserId,
             installToken,
             installAuth,
             name: appName ?? 'Windie Desktop Agent',
             workspacePath,
             builtins: clientAndWakeOptions.builtins ?? 'default',
         });
-        const conversationRef = clientAndWakeOptions.conversationRef ?? `conv-${agent.id}`;
+        const conversationRef = `conv-${agent.id}`;
         const conversationStore = store ?? new InMemoryConversationStore_js_1.InMemoryConversationStore();
         const runtime = agent.conversation({
             conversationRef,
             store: conversationStore,
         });
-        return new WindieDesktopAgent({
+        desktopAgent = new WindieDesktopAgent({
             agent,
             runtime,
             store: conversationStore,
             conversationRef,
             workspacePath,
+            initialConnectionEvents,
+            initialFallbackEvents,
+            initialTrafficEvents,
         });
+        return desktopAgent;
     }
     onRows(listener) {
         this.rowsListeners.add(listener);
@@ -303,6 +432,33 @@ class WindieDesktopAgent {
         listener(this.currentStatus);
         return () => {
             this.statusListeners.delete(listener);
+        };
+    }
+    onConnection(listener) {
+        this.connectionListeners.add(listener);
+        if (this.lastConnectionEvent) {
+            listener(this.lastConnectionEvent);
+        }
+        return () => {
+            this.connectionListeners.delete(listener);
+        };
+    }
+    onBackendFallback(listener) {
+        this.fallbackListeners.add(listener);
+        if (this.lastFallbackEvent) {
+            listener(this.lastFallbackEvent);
+        }
+        return () => {
+            this.fallbackListeners.delete(listener);
+        };
+    }
+    onTraffic(listener) {
+        this.trafficListeners.add(listener);
+        if (this.lastTrafficEvent) {
+            listener(this.lastTrafficEvent);
+        }
+        return () => {
+            this.trafficListeners.delete(listener);
         };
     }
     onBackendEvent(listener) {

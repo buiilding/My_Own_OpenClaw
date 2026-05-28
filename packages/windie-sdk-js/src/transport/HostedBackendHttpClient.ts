@@ -67,6 +67,12 @@ export type SdkModelsResponse = {
   models: JsonRecord[];
 };
 
+export type WindieInstallIdentityResponse = {
+  success?: boolean;
+  user_id: string;
+  install_id: string;
+};
+
 export type SdkToolSchemasResponse = {
   config: SdkConfigSnapshot;
   canonical_tool_schemas: JsonRecord[];
@@ -557,6 +563,10 @@ export class WindieSdkClient {
     generate: async (payload: SdkGenerateTitleRequest): Promise<SdkGenerateTitleResponse> => this.postJson('/api/semantic/title', payload),
   };
 
+  readonly install = {
+    identity: async (): Promise<WindieInstallIdentityResponse> => this.getJson('/api/install/me'),
+  };
+
   constructor(options: WindieSdkClientOptions) {
     this.httpBaseUrl = normalizeHttpBaseUrl(options.httpBaseUrl);
     this.fetchImpl = resolveFetchImplementation(options.fetchImpl);
@@ -565,6 +575,10 @@ export class WindieSdkClient {
 
   async models(options?: WindieSdkQueryOptions): Promise<SdkModelsResponse> {
     return this.introspection.models(options);
+  }
+
+  async installIdentity(): Promise<WindieInstallIdentityResponse> {
+    return this.install.identity();
   }
 
   async toolSchemas(options?: WindieSdkQueryOptions): Promise<SdkToolSchemasResponse> {

@@ -26,6 +26,19 @@ describe('modular sdk refactor completion boundary', () => {
     expect(ipcSource).not.toContain('WebSocketImpl:');
     expect(ipcSource).not.toContain('sidecar:');
     expect(ipcSource).not.toContain('executeLocalTool:');
+    const startupCall = ipcSource.match(/WindieAgent\.startDesktop\(\{[\s\S]*?\n  \}\);/)?.[0] ?? '';
+    expect(startupCall).toContain('apiKey: currentInstallToken');
+    expect(startupCall).toContain("appName: 'WindieOS'");
+    expect(startupCall).toContain('workspace: workspacePath || resolveWorkspacePathForAgent() || undefined');
+    expect(startupCall).not.toContain('userId:');
+    expect(startupCall).not.toContain('installId:');
+    expect(startupCall).not.toContain('conversationRef:');
+    expect(startupCall).not.toContain('endpointCandidates:');
+    expect(startupCall).not.toContain('reconnectIntervalMs:');
+    expect(startupCall).not.toContain('connectTimeoutMs:');
+    expect(startupCall).not.toContain('idleDisconnectTimeoutMs:');
+    expect(startupCall).not.toContain('onBackendOpen:');
+    expect(startupCall).not.toContain('onBackendClose:');
   });
 
   test('renderer live-turn runtime stays on sdk command dispatch', async () => {

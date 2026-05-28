@@ -7,10 +7,12 @@ All notable changes to WindieOS will be documented in this file.
 ### Changed
 
 - frontend/sdk: make Electron main import `WindieAgent` directly, start the
-  desktop SDK with the public `apiKey`/`userId`/`endpoint`/`workspace` contract,
-  and delete `frontend/src/main/windie_agent_host.cjs` so normal app startup no
-  longer passes Electron-owned WebSocket, sidecar, or local-tool adapters into
-  the SDK.
+  desktop SDK with only `apiKey`, `workspace`, and `appName` during normal app
+  startup, move endpoint/debug/connection/test knobs behind SDK-owned advanced
+  option buckets, and delete `frontend/src/main/windie_agent_host.cjs`.
+- backend/sdk: add authenticated `GET /api/install/me` install identity lookup
+  so the desktop SDK can resolve user/install identity from the install token
+  instead of requiring Electron main to pass `userId` and `installId`.
 - frontend/sdk: replace Electron main's `createWindieSdkMainRuntime` path with
   a direct `WindieAgent.startDesktop(...)` host, route query/stop/settings/model
   commands through SDK agent methods, and delete the old SDK runtime lifecycle,
