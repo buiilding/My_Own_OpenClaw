@@ -19,6 +19,8 @@ import {
 import { resolveChatPillViewIntent } from '../utils/chatPill/chatPillSessionFlow';
 
 export function useResponseOverlayViewModel({
+  messages = [],
+  isSending = false,
   thinkingStatus,
   currentTurnProjection = null,
 }) {
@@ -28,10 +30,24 @@ export function useResponseOverlayViewModel({
     () => buildCurrentTurnMessagesFromProjection(currentTurnProjection),
     [currentTurnProjection],
   );
-  const currentTurnMessages = projectionMessages;
-  const currentTurnPhase = mapCurrentTurnProjectionPhase(currentTurnProjection?.phase)
+  const projectedPhase = mapCurrentTurnProjectionPhase(currentTurnProjection?.phase)
     || RESPONSE_OVERLAY_PHASE.IDLE;
-  const currentTurnIsSending = isCurrentTurnProjectionBusy(currentTurnProjection?.phase);
+  const useLocalSendLatch = (
+    isSending === true
+    && (
+      !currentTurnProjection
+      || currentTurnProjection.phase === 'complete'
+      || currentTurnProjection.phase === 'error'
+      || currentTurnProjection.phase === 'idle'
+    )
+  );
+  const currentTurnMessages = useLocalSendLatch ? messages : projectionMessages;
+  const currentTurnPhase = useLocalSendLatch
+    ? RESPONSE_OVERLAY_PHASE.AWAITING_FIRST_CHUNK
+    : projectedPhase;
+  const currentTurnIsSending = useLocalSendLatch
+    ? true
+    : isCurrentTurnProjectionBusy(currentTurnProjection?.phase);
 
   const currentTurnPresentationState = useCurrentTurnPresentationState({
     phase: currentTurnPhase,

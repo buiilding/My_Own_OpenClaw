@@ -60,6 +60,8 @@ function ChatBoxResponse() {
     isVisible,
     turnId: currentTurnId,
   } = useResponseOverlayViewModel({
+    messages,
+    isSending,
     thinkingStatus,
     currentTurnProjection,
   });

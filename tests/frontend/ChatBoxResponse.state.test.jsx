@@ -561,6 +561,89 @@ describe('ChatBoxResponse state behavior', () => {
     });
   });
 
+  test('new local send hides the previous response and shows awaiting until SDK streaming starts', async () => {
+    setChatState([
+      { id: 'user-1', text: 'hello', sender: 'user', type: 'user', turnRef: 'turn-1' },
+      {
+        id: 'assistant-1',
+        text: 'previous complete response',
+        sender: 'assistant',
+        type: 'llm-text',
+        isComplete: true,
+        turnRef: 'turn-1',
+      },
+    ]);
+    useChatStore.setState({
+      currentTurnProjection: {
+        conversationRef: 'conv-test',
+        turnRef: 'turn-1',
+        phase: 'complete',
+        assistantText: 'previous complete response',
+        reasoningText: null,
+        toolEvents: [],
+        lastError: null,
+      },
+    });
+
+    render(<ChatBoxResponse />);
+
+    await waitFor(() => {
+      expect(screen.getByText('previous complete response')).toBeInTheDocument();
+    });
+
+    act(() => {
+      useChatStore.setState({
+        isSending: true,
+        messages: [
+          { id: 'user-1', text: 'hello', sender: 'user', type: 'user', turnRef: 'turn-1' },
+          {
+            id: 'assistant-1',
+            text: 'previous complete response',
+            sender: 'assistant',
+            type: 'llm-text',
+            isComplete: true,
+            turnRef: 'turn-1',
+          },
+          { id: 'user-2', text: 'again', sender: 'user', type: 'user', turnRef: 'turn-2' },
+        ],
+        currentTurnProjection: {
+          conversationRef: 'conv-test',
+          turnRef: 'turn-1',
+          phase: 'complete',
+          assistantText: 'previous complete response',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+        },
+      });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Assistant is awaiting reply')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('previous complete response')).not.toBeInTheDocument();
+
+    act(() => {
+      useChatStore.setState({
+        isSending: false,
+        currentTurnProjection: {
+          conversationRef: 'conv-test',
+          turnRef: 'turn-2',
+          phase: 'streaming',
+          assistantText: 'new streaming response',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+        },
+      });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('new streaming response')).toBeInTheDocument();
+    });
+    expect(screen.queryByLabelText('Assistant is awaiting reply')).not.toBeInTheDocument();
+  });
+
   test('sends hide size update when visible response overlay unmounts', async () => {
     setChatState([
       { id: 'user-1', text: 'run command', sender: 'user' },
