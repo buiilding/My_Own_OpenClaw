@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sdk: replace Electron main's `createWindieSdkMainRuntime` path with
+  a direct `WindieAgent.startDesktop(...)` host, route query/stop/settings/model
+  commands through SDK agent methods, and delete the old SDK runtime lifecycle,
+  command router, tool router, and model-list queue modules.
 - sdk: add a desktop agent facade with `WindieAgent.startDesktop(...)`,
   display-row/current-turn subscriptions, and SDK-owned local tool execution
   result projection as the replacement surface for Electron main's manual

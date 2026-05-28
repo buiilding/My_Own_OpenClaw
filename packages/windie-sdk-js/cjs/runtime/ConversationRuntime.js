@@ -82,7 +82,7 @@ class SdkConversationRuntime {
             }
             const event = (0, backendEventNormalizer_js_1.normalizeBackendEventToConversationEvent)(rawEvent, {
                 fallbackRevisionId: this.state.revisionId,
-                fallbackConversationRef: rawEvent.type === 'error' ? this.options.conversationRef : undefined,
+                fallbackConversationRef: this.options.conversationRef,
             });
             if (event && this.shouldAcceptBackendEvent(event)) {
                 void this.applyEvent(event);

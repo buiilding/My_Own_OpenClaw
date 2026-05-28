@@ -163,7 +163,7 @@ class ManagedBackendSession {
                 this.connect({ force: true });
                 return;
             }
-            if (!opened && !this.shouldMaintainConnection) {
+            if (!opened) {
                 this.rejectConnectWaiters(error);
             }
         }));

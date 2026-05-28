@@ -59,6 +59,7 @@ export type WindieWakeUpOptions = {
   agentId?: string;
   name?: string;
   model?: WindieModelSelection;
+  operatingSystem?: string;
 };
 
 export type WindieClientOptions = {
@@ -89,6 +90,7 @@ export type WindieClientOptions = {
   log?: (message: string) => void;
   fetchImpl?: FetchLike;
   WebSocketImpl?: WebSocketConstructor;
+  operatingSystem?: string;
   defaultUserId?: string;
   installToken?: string;
   installAuth?: WindieInstallAuthOptions;
@@ -125,7 +127,7 @@ export class WindieClient {
       ? buildModelSettingsPatch(options.model, 'WindieClient.wakeUp')
       : null;
     const backendUrl = this.resolveBackendUrl(options.backendUrl);
-    const operatingSystem = detectOperatingSystem();
+    const operatingSystem = options.operatingSystem ?? this.defaultOptions.operatingSystem ?? detectOperatingSystem();
     const installAuth = await this.resolveInstallAuthState(backendUrl, operatingSystem, options);
     const userId = installAuth?.userId
       ?? options.userId
@@ -418,7 +420,7 @@ function buildWakeUpAgentDefinition(options: WindieWakeUpOptions, tools: JsonRec
     plugins: options.plugins ?? [],
     runtime: {
       workspace_path: options.workspacePath,
-      operating_system: detectOperatingSystem(),
+      operating_system: options.operatingSystem ?? detectOperatingSystem(),
     },
   };
 }

@@ -691,9 +691,7 @@ describe('ipc.cjs bridge query handling', () => {
       payload: { interaction_mode: 'agent' },
     });
 
-    const updateSettingsMessage = ws.sent
-      .map((entry) => JSON.parse(entry))
-      .findLast((entry) => entry.type === 'update-settings');
+    const updateSettingsMessage = await waitForSentMessageType(ws, 'update-settings');
     expect(updateSettingsMessage.type).toBe('update-settings');
 
     const queryPromise = sendQuery(handlers, { text: 'after settings update', conversation_ref: 'conv-6' });

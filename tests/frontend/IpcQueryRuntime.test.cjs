@@ -22,6 +22,7 @@ describe('ipc_query_runtime', () => {
       'screenshot_refs',
       'capture_meta',
       'system_state_internal',
+      'query_context',
       'workspace_path',
       'repo_instruction_messages',
       'client_prompt_layers',

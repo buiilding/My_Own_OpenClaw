@@ -27,8 +27,8 @@ The WindieOS agent loop is backend-owned, but it depends on frontend and sidecar
 - Prompt and LLM stream processing: `backend/src/llm/*`, `backend/src/agent/llm/*`
 - Tool orchestration: `backend/src/agent/tools/*`, `backend/src/tools/*`
 - Renderer stream consumption: `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
-- SDK/main tool dispatch: `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `frontend/src/main/windie_sdk_runtime.cjs`
-- Main relay and websocket lifecycle: `frontend/src/main/windie_sdk_runtime.cjs`
+- SDK/main tool dispatch: `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `frontend/src/main/windie_agent_host.cjs`
+- Main relay and websocket lifecycle: `frontend/src/main/windie_agent_host.cjs`
 
 ## Failure Modes to Route Correctly
 

@@ -14,13 +14,15 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source.match(directRuntimeSendPattern) || []).toEqual([]);
   });
 
-  test('main SDK runtime delegates websocket construction to the package backend transport module', async () => {
+  test('main SDK host starts the high-level desktop agent instead of the old runtime wrapper', async () => {
     const source = await fs.readFile(
-      path.resolve(__dirname, '../../frontend/src/main/windie_sdk_runtime.cjs'),
+      path.resolve(__dirname, '../../frontend/src/main/windie_agent_host.cjs'),
       'utf8',
     );
 
-    expect(source).not.toContain('new WebSocketImpl');
-    expect(source).toContain('packages/windie-sdk-js/cjs/transport/BackendSocketFactory.js');
+    expect(source).toContain('WindieAgent.startDesktop');
+    expect(source).not.toContain('createWindieSdkMainRuntime');
+    expect(source).not.toContain('createManagedBackendSession');
+    expect(source).not.toContain('sendSdkRuntimeCommand');
   });
 });

@@ -326,7 +326,7 @@ frontend/src/renderer/
        └─> SDK main runtime receives event
            ↓
 2. SDK LOCAL EXECUTION
-   └─> frontend/src/main/windie_sdk_runtime.cjs
+   └─> frontend/src/main/windie_agent_host.cjs
        ├─> Route single tool or bundle to local runtime adapter
        ├─> Preserve request_id / bundle_id / tool_call_id
        └─> Send tool-result or tool-bundle-result back to backend

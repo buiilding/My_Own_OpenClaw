@@ -22,9 +22,8 @@ function createChatQueryHandlers({
   ensureBackendConnection,
   ensureInitialSettingsSync,
   getPendingSettingsSyncPromise,
-  sendSdkRuntimeCommand,
-  getWindieSdkRuntime,
-  sendStopQueryToBackend,
+  sendQueryToBackend,
+  stopQuery,
   setResponseOverlayPhase,
   resolvePreferredArtifactHttpUrl,
   deps,
@@ -95,8 +94,7 @@ function createChatQueryHandlers({
 
     let messageId = null;
     if (backendConnectionReady) {
-      messageId = sendSdkRuntimeCommand(getWindieSdkRuntime(), {
-        type: 'query',
+      messageId = await sendQueryToBackend({
         payload,
         messageId: queryMessageId,
       });
@@ -123,9 +121,9 @@ function createChatQueryHandlers({
     return { ok: true, messageId, queryMessageId };
   }
 
-  function handleRendererStopQuery(payloadInput = {}) {
+  async function handleRendererStopQuery(payloadInput = {}) {
     const payload = normalizePayload(payloadInput);
-    const messageId = sendStopQueryToBackend(payload);
+    const messageId = await stopQuery(payload);
     setResponseOverlayPhase('complete', 'stop-query');
     return { ok: Boolean(messageId), messageId };
   }

@@ -1,7 +1,7 @@
 ---
-summary: "Electron main query relay reference: typed renderer chat IPC handling, SDK runtime sends, initial settings ACK gating, system/memory context payload assembly, and local-user-message/failure event synthesis."
+summary: "Electron main query relay reference: typed renderer chat IPC handling, SDK desktop-agent sends, initial settings ACK gating, system/memory context payload assembly, and local-user-message/failure event synthesis."
 read_when:
-  - When changing query transport from renderer to the SDK runtime/backend websocket, including helper payload shaping in `ipc_query_runtime.cjs`.
+  - When changing query transport from renderer to the SDK desktop agent/backend websocket, including helper payload shaping in `ipc_query_runtime.cjs`.
   - When debugging first-query context assembly, settings-sync gate timing, or local-user-message/error event behavior.
 title: "Query Payload and Relay Reference"
 ---
@@ -11,7 +11,7 @@ title: "Query Payload and Relay Reference"
 ## Canonical Modules
 
 - `frontend/src/main/ipc.cjs`
-- `frontend/src/main/windie_sdk_runtime.cjs`
+- `frontend/src/main/windie_agent_host.cjs`
 - `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
 - `frontend/src/main/ipc/ipc_query_runtime.cjs`
 - `frontend/src/main/ipc/ipc_query_send_runtime.cjs`
@@ -39,18 +39,18 @@ Common input normalization:
 - shallow-copies object payload only
 - drops malformed payloads early through query preparation validation
 
-Endpoint context for SDK runtime calls:
+Endpoint context for SDK agent calls:
 
 - websocket send target and origin come from `resolveBackendEndpoints(...)` state in `ipc.cjs`
-- socket construction and envelope sends are delegated to `windie_sdk_runtime.cjs`
+- socket construction, envelope sends, current-turn projection, and display-row projection are owned by `WindieAgent.startDesktop(...)` through `windie_agent_host.cjs`
 - `initializeIpc(..., { isPackaged })` refreshes endpoint resolution at startup to select dev or packaged fallback policy
 - `get-client-user-id` snapshot includes resolved `backendWsUrl` and `backendHttpUrl` values for renderer diagnostics
 
 Special handling paths:
 
 - `send-chat-query`: prepares the renderer query, runs the initial settings gate,
-  and sends the backend websocket `query` through the SDK runtime
-- `stop-chat-query`: sends backend websocket `stop-query` through the SDK runtime
+  and sends the backend websocket `query` through the SDK desktop agent
+- `stop-chat-query`: sends backend websocket `stop-query` through the SDK desktop agent
 - `update-settings`: delegated to settings ACK pipeline on the generic
   `to-backend` channel, no generic relay path
 - live chat query and `wakeword-detected`: pass through initial settings sync gate before backend send
@@ -77,9 +77,9 @@ Goal:
 
 - prevent first query from using stale backend session settings.
 
-## Query-Specific SDK Runtime Pipeline
+## Query-Specific SDK Agent Pipeline
 
-When `type === 'query'`, main performs extra steps before sending through the SDK runtime.
+When the typed `send-chat-query` channel is invoked, main performs extra steps before sending through the SDK desktop agent.
 
 ### 1) Overlay pre-capture hook
 
@@ -128,9 +128,9 @@ Output from `buildQueryPayload(...)`:
 - optional `system_state_internal` (runtime-only state for backend normalization)
 - resolved `userId` used by automated query return path
 
-### 5) SDK runtime send + failure fallback
+### 5) SDK agent send + failure fallback
 
-- sends the backend websocket message through the SDK runtime with stable message id
+- sends the backend websocket message through the SDK desktop agent with stable message id
 - on send failure, emits synthetic renderer error event via `buildQuerySendFailure(...)`
 - on send failure, clears replay buffer so stale optimistic events are not replayed after reconnect
 

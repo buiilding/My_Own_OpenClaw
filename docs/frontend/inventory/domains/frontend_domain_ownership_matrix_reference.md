@@ -14,7 +14,7 @@ title: "Frontend Domain Ownership Matrix Reference"
 | --- | --- | --- | --- |
 | Electron window/runtime orchestration | `frontend/src/main/index.cjs`, `frontend/src/main/main_window_runtime.cjs`, `main/main_process_lifecycle_runtime.cjs`, overlay handlers | `main/response_overlay_phase_handler.cjs`, `main/window_visibility_runtime.cjs` | renderer feature hooks |
 | Main overlay/window IPC + visibility runtime | `main/{overlay_phase_ipc_runtime,window_controls_ipc_runtime,permission_ipc_runtime}.cjs`, `main/window_visibility_runtime.cjs` | overlay/window handler modules + permission/visibility delegates | renderer feature hooks |
-| Main SDK runtime adapter + settings gate | `frontend/src/main/ipc.cjs`, `main/windie_sdk_runtime.cjs`, `main/ipc_runtime_helpers.cjs`, `main/ipc_renderer_windows.cjs`, `main/ipc_query_broadcast.cjs` | `main/backend_endpoints.cjs`, `main/ipc_query_events.cjs`, `main/query_payload_builder.cjs` | sidecar tool modules |
+| Main SDK desktop-agent host + settings gate | `frontend/src/main/ipc.cjs`, `main/windie_agent_host.cjs`, `main/ipc_runtime_helpers.cjs`, `main/ipc_renderer_windows.cjs`, `main/ipc_query_broadcast.cjs` | `main/backend_endpoints.cjs`, `main/ipc_query_events.cjs`, `main/query_payload_builder.cjs` | sidecar tool modules |
 | Local sidecar subprocess bridge | `frontend/src/main/local_backend_bridge*.cjs` | `main/runtime_paths.cjs`, mapper/util modules | renderer store logic |
 | Preload boundary | `frontend/src/preload.js` | renderer IPC bridge wrapper | main business logic edits |
 | Renderer app/provider composition | `renderer/app/**`, `renderer/components/**` | `renderer/infrastructure/ipc/*` | sidecar protocol files |
@@ -46,7 +46,7 @@ title: "Frontend Domain Ownership Matrix Reference"
 
 - Query not reaching backend: start `main/ipc.cjs` + renderer API client.
 - Event visible in main but not UI: start `renderer/app/runtime/desktopChatStreamIngressRuntime.ts` + `renderer/types/backendEvents.ts`.
-- Tool call issued but no result: start `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` + `main/ipc/ipc_sdk_tool_router.cjs` + `main/python/tools/registry.py`.
+- Tool call issued but no result: start `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` + `main/windie_agent_host.cjs` + `main/python/tools/registry.py`.
 - Wakeword detected inconsistently: start `renderer/useWakewordDetection.ts` + `main/wakeword_bridge.cjs` + `main/python/wakeword_service.py`.
 - Memory search/summary drift: start `main/python/memory/local_store.py` + remote memory clients + dashboard memory hooks.
 

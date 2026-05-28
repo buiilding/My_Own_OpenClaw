@@ -16,7 +16,7 @@ title: "Tool Computer-Use Catalog, Surface Mode, and Capture Policy Reference"
 - `packages/windie-sdk-js/cjs/tools/ToolExecutionCoordinator.js`
 - `tests/frontend/ToolComputerUseCatalog.test.ts`
 - `tests/frontend/LocalBackendBridgeExtensionRuntime.test.cjs`
-- `tests/frontend/IpcSdkToolRouter.test.cjs`
+- `tests/frontend/WindieAgentHost.test.cjs`
 
 ## Catalog Ownership Contract
 

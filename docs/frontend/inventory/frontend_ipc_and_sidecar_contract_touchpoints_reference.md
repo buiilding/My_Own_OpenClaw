@@ -42,7 +42,7 @@ This reference maps frontend-owned contract boundaries and their paired modules.
 
 | Frontend owner | Sidecar owner | Contract files | Contract note |
 | --- | --- | --- | --- |
-| SDK tool router | Tool registry | `main/ipc/ipc_sdk_tool_router.cjs`, `main/python/tools/registry.py`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` | Tool names and correlation ids must match exactly |
+| SDK desktop agent host | Tool registry | `main/windie_agent_host.cjs`, `main/python/tools/registry.py`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` | Tool names and correlation ids must match exactly |
 | Tool payload shaping | Tool result envelope | `ToolExecutionPayloads.ts`, `main/python/tools/result.py` | `success/error/output` key stability |
 | Tool arg models | Tool schema models | SDK/main payload builders, `main/python/tools/schemas.py` | Arg validation fails on sidecar |
 | Browser tool payloads | Browser adapter/runtime | SDK tool router + `tools/browser/{browser_tool,browser_adapter,browser_runtime}.py` | Browser action unavailable or malformed |

@@ -168,15 +168,19 @@ class WindieAgentSession {
                 attachment_context: payload.attachmentContext.trim(),
             }
             : undefined;
+        const rawPayload = payload.rawPayload && typeof payload.rawPayload === 'object' && !Array.isArray(payload.rawPayload)
+            ? payload.rawPayload
+            : {};
         return this.sendBackendMessage('query', {
+            ...rawPayload,
             text: payload.text,
             conversation_ref: payload.conversationRef,
-            agent_definition: payload.agentDefinition,
+            agent_definition: payload.agentDefinition ?? rawPayload.agent_definition,
             content: payload.content ?? undefined,
             screenshot: payload.screenshot ?? undefined,
             screenshot_ref: payload.screenshotRef ?? undefined,
             screenshot_refs: payload.screenshotRefs ?? undefined,
-            query_context: queryContext,
+            query_context: rawPayload.query_context ?? queryContext,
             system_state_internal: payload.systemStateInternal ?? undefined,
             workspace_path: payload.workspacePath ?? undefined,
         }, payload.turnRef ?? undefined);
@@ -245,7 +249,10 @@ function createWindieAgentBackendTransport(session, conversationRef, agentDefini
             conversationRef: typeof payload.conversation_ref === 'string'
                 ? payload.conversation_ref
                 : conversationRef,
-            agentDefinition,
+            agentDefinition: payload.agent_definition && typeof payload.agent_definition === 'object'
+                ? payload.agent_definition
+                : agentDefinition,
+            rawPayload: payload,
             turnRef: options.messageId ?? null,
             content: typeof payload.content === 'string' ? payload.content : null,
             screenshot: typeof payload.screenshot === 'string' ? payload.screenshot : null,

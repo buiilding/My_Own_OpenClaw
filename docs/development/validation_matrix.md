@@ -68,8 +68,8 @@ Sidecar:
 
 Frontend:
 
-- `tests/frontend/IpcSdkToolRouter.test.cjs`
-- `tests/frontend/WindieSdkMainRuntime.test.cjs`
+- `tests/frontend/WindieAgentHost.test.cjs`
+- `tests/frontend/WindieSdkDesktopAgent.test.ts`
 - `tests/frontend/WindieSdkConversationRuntime.test.ts`
 - `tests/frontend/TranscriptSessionState.test.ts`
 - `tests/frontend/LocalBackendBridge.test.cjs`

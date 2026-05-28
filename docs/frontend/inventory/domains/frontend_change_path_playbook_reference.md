@@ -42,7 +42,7 @@ Validation:
 ### 3) Change tool execution payload/behavior
 
 1. Update SDK tool coordination in `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`.
-2. Update the Electron local-runtime adapter in `main/ipc/ipc_sdk_tool_router.cjs`.
+2. Update the Electron local-runtime adapter in `main/windie_agent_host.cjs`.
 3. Sync sidecar tool schema/registry.
 4. Sync backend `tool-result` contract if needed.
 5. Update renderer display handlers only when the visible tool card changes.

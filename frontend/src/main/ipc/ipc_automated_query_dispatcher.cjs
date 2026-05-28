@@ -8,8 +8,7 @@ function createAutomatedQueryDispatcher({
   getSystemState,
   searchMemory,
   attachAgentDefinitionContext,
-  sendSdkRuntimeCommand,
-  getWindieSdkRuntime,
+  sendQueryToBackend,
   getState,
   setCurrentConversationRef,
   setFirstQuery,
@@ -64,8 +63,7 @@ function createAutomatedQueryDispatcher({
     const payloadWithAgentDefinition = attachAgentDefinitionContext(payload);
 
     const queryMessageId = uuidGenerator();
-    const messageId = sendSdkRuntimeCommand(getWindieSdkRuntime(), {
-      type: 'query',
+    const messageId = await sendQueryToBackend({
       payload: payloadWithAgentDefinition,
       messageId: queryMessageId,
     });

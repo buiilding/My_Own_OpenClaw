@@ -18,7 +18,7 @@ Use this page for symptom-to-owner routing. After identifying the owner, switch 
 | Tool schema missing fields | backend schema owner or provider projection | `backend/src/tools/**/schemas.py`, `backend/src/tools/provider_projection.py` |
 | Model calls disabled coordinate method | backend method validation | `ToolPolicy.get_method_validation_errors()` |
 | Backend logs tool call but frontend never runs it | websocket formatter/outgoing event or SDK main-runtime tool router | backend formatter tests, SDK/main runtime tests |
-| SDK/main says unknown tool | sidecar registry parity or SDK dispatch map | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/ipc/ipc_sdk_tool_router.cjs` |
+| SDK/main says unknown tool | sidecar registry parity or SDK dispatch map | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/windie_agent_host.cjs`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` |
 | Sidecar returns `Tool not found` | sidecar registration/import failure | sidecar registry logs and `tests/sidecar/test_tool_registry.py` |
 | Tool succeeds but no model continuation | backend waiting storage/result receiver | `backend/src/agent/tools/waiting/**` |
 | Tool result visible but future replay breaks | SDK projection, transcript adapter, or backend history shape | SDK conversation runtime docs, transcript adapter docs, and backend history docs |

@@ -131,6 +131,12 @@ class WindieAgent {
     isConnected() {
         return this.session.isOpen();
     }
+    noteBackendTraffic(reason = 'traffic') {
+        this.session.noteTraffic?.(reason);
+    }
+    syncBackendIdleTimer(reason = 'idle-sync') {
+        this.session.syncIdleTimer?.(reason);
+    }
     conversation(options = {}) {
         const conversationRef = options.conversationRef ?? `conv-${this.id}`;
         const runtime = new ConversationRuntime_js_1.SdkConversationRuntime({

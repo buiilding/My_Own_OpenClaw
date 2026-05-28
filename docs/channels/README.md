@@ -112,7 +112,7 @@ Read:
 Likely code:
 
 - backend model-facing schema under `backend/src/tools`
-- SDK runtime tool router under `frontend/src/main/ipc/ipc_sdk_tool_router.cjs`
+- SDK desktop-agent host under `frontend/src/main/windie_agent_host.cjs`
 - sidecar executable tool under `frontend/src/main/python/tools`
 - IPC bridge only when a new local bridge channel is required
 

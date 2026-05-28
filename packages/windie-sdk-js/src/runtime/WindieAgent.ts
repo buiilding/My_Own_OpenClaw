@@ -193,6 +193,14 @@ export class WindieAgent {
     return this.session.isOpen();
   }
 
+  noteBackendTraffic(reason = 'traffic'): void {
+    this.session.noteTraffic?.(reason);
+  }
+
+  syncBackendIdleTimer(reason = 'idle-sync'): void {
+    this.session.syncIdleTimer?.(reason);
+  }
+
   conversation(options: {
     conversationRef?: string;
     revisionId?: string;

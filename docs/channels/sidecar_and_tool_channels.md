@@ -15,7 +15,7 @@ Local tools cross every WindieOS runtime boundary. The backend decides what the 
 ```mermaid
 sequenceDiagram
     participant Backend as Backend agent loop
-    participant SDK as SDK main runtime
+    participant SDK as SDK desktop agent
     participant Main as Electron main
     participant Renderer as Renderer display surfaces
     participant Sidecar as Python sidecar daemon
@@ -24,10 +24,8 @@ sequenceDiagram
     SDK->>Sidecar: HTTP /execute-tool
     Sidecar-->>SDK: tool result
     SDK->>Backend: /ws tool-result
-    SDK->>Main: current-turn projection update
-    Main->>Renderer: conversation-runtime-updated
-    SDK->>Main: local tool-output display projection
-    Main->>Renderer: conversation-runtime-updated
+    SDK->>Main: current-turn and display-row projections
+    Main->>Renderer: conversation-runtime-updated + conversation-display-rows
 ```
 
 ## Ownership Split
@@ -35,9 +33,9 @@ sequenceDiagram
 | Layer | Owns | Code roots |
 | --- | --- | --- |
 | Backend | model-facing tool schema, policy filtering, parser validation, tool-call events, result waiting, history commit | `backend/src/tools`, `backend/src/agent/tools`, `backend/src/api/processing/formatters/actions`, `backend/src/api/handlers/tool_results.py` |
-| SDK main runtime | backend websocket ownership, local tool-call routing, `tool-result` / `tool-bundle-result` return | `frontend/src/main/windie_sdk_runtime.cjs`, `frontend/src/main/windie_sdk_backend_socket.cjs`, `frontend/src/main/ipc/ipc_sdk_tool_router.cjs` |
+| SDK desktop agent | backend websocket ownership, local tool-call routing, display-row projection, `tool-result` / `tool-bundle-result` return | `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `frontend/src/main/windie_agent_host.cjs` |
 | Renderer | projected tool-call display, transcript/chat state, and stale-turn display guards; no local execution for backend tool events | `frontend/src/renderer/features/chat/hooks/useConversationRuntimeProjectionStream.ts`, `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts`, `frontend/src/renderer/features/chat/utils/state/chatBoxResponseState.js`, `frontend/src/renderer/infrastructure/transcript/*` |
-| Electron main | renderer IPC, sidecar daemon bridge, screenshot artifact upload, system-state bridge, display-only backend event fan-out | `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/sidecar_daemon_manager.cjs`, `frontend/src/main/ipc.cjs` |
+| Electron main | renderer IPC, SDK desktop-agent host startup, sidecar daemon bridge, screenshot artifact upload, system-state bridge, display-only backend event fan-out | `frontend/src/main/windie_agent_host.cjs`, `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/sidecar_daemon_manager.cjs`, `frontend/src/main/ipc.cjs` |
 | Python sidecar daemon | executable tool implementations and dynamic tool registry | `frontend/src/main/python/sidecar_daemon.py`, `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/tools/**`, `frontend/src/main/python/memory/**` |
 
 ## Main IPC Channels
@@ -81,10 +79,10 @@ Read next:
 
 ## Tool Result Return Path
 
-After sidecar execution, the SDK main runtime returns results to the backend using the normal `/ws` tool-result path. The renderer receives display-only tool-call events for chat/transcript/overlay state and display-only tool-output projections for local results. It does not execute backend tool events.
+After sidecar execution, the SDK desktop agent returns results to the backend using the normal `/ws` tool-result path. The renderer receives SDK display rows for chat/transcript/overlay state. It does not execute backend tool events.
 
 The desktop `ChatProvider` is a display consumer. Backend tool-call execution
-belongs to the SDK main runtime and sidecar daemon.
+belongs to the SDK desktop agent and sidecar daemon.
 
 Result path rules:
 
@@ -104,7 +102,7 @@ Read next:
 | Symptom | Owner to inspect |
 | --- | --- |
 | model never sees tool | backend tool schema/policy |
-| backend emits tool-call but no local action happens | SDK tool router or sidecar daemon bridge |
+| backend emits tool-call but no local action happens | SDK desktop agent host or sidecar daemon bridge |
 | tool card appears twice or looks duplicated | SDK display projection or renderer card rendering |
 | sidecar returns error before action | sidecar tool validation/runtime |
 | action succeeds but model does not continue | tool-result ingress, request id, or history commit path |
@@ -115,7 +113,7 @@ Read next:
 Use the narrowest test set for the changed boundary:
 
 - backend schema/policy/formatter/tool-result tests for model-facing changes
-- SDK/IPC tool-router tests for backend tool-call routing/result projection changes
+- SDK desktop-agent and host tests for backend tool-call routing/result projection changes
 - renderer chat-stream tests for display-only event behavior
 - main-process IPC/local-backend bridge tests for channel mapping changes
 - sidecar pytest tests for executable tool behavior

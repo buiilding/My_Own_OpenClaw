@@ -188,14 +188,15 @@ export class ManagedWindieAgentSession implements WindieAgentSessionRuntime {
 
   async query(payload: WindieAgentQueryInput): Promise<string> {
     return this.sendBackendMessage('query', {
+      ...(payload.rawPayload ?? {}),
       text: payload.text,
       conversation_ref: payload.conversationRef,
-      agent_definition: payload.agentDefinition,
+      agent_definition: payload.agentDefinition ?? payload.rawPayload?.agent_definition,
       content: payload.content ?? undefined,
       screenshot: payload.screenshot ?? undefined,
       screenshot_ref: payload.screenshotRef ?? undefined,
       screenshot_refs: payload.screenshotRefs ?? undefined,
-      query_context: buildQueryContext(payload),
+      query_context: payload.rawPayload?.query_context ?? buildQueryContext(payload),
       system_state_internal: payload.systemStateInternal ?? undefined,
       workspace_path: payload.workspacePath ?? undefined,
     }, payload.turnRef ?? undefined);

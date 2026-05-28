@@ -320,7 +320,7 @@ Likely code:
 - `backend/src/agent/tools/**`
 - `backend/src/api/processing/formatters/actions/*`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
-- `frontend/src/main/ipc/ipc_sdk_tool_router.cjs`
+- `frontend/src/main/windie_agent_host.cjs`
 - `frontend/src/main/python/tools/**`
 
 Validate backend schema/parser/formatter tests, SDK/main tool-router tests, and sidecar registry/tool tests. Keep backend model-facing schemas and sidecar runtime argument handling aligned deliberately.

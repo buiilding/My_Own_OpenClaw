@@ -36,7 +36,7 @@ WindieOS tools run through a distributed pipeline. The backend owns model-facing
 | Provider call normalization | Backend | `backend/src/agent/execution/tool_call_bridge.py`, provider modules under `backend/src/llm/providers` |
 | Preparation and coordinate resolution | Backend | `backend/src/agent/tools/preparation/**`, `backend/src/services/screen_grounding/**` |
 | Frontend dispatch event | Backend API | `backend/src/api/processing/formatters/actions/*`, `backend/src/api/schemas/outgoing.py` |
-| SDK runtime execution | SDK runtime and Electron main host | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `frontend/src/main/windie_sdk_runtime.cjs`, `frontend/src/main/ipc/ipc_sdk_command_router.cjs`, `frontend/src/main/ipc/ipc_sdk_tool_router.cjs` |
+| SDK runtime execution | SDK runtime and Electron main host | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`, `frontend/src/main/windie_agent_host.cjs` |
 | Electron-sidecar bridge | Electron main | `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/sidecar_daemon_manager.cjs` |
 | Local execution | Sidecar | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools/**` |
 | Result ingress | Backend API | `backend/src/api/handlers/tool_result.py`, `backend/src/agent/tools/waiting/**` |
@@ -48,7 +48,7 @@ Single-tool path:
 
 - backend assigns or preserves a `request_id`
 - SDK runtime returns `tool-result` with the same `request_id`
-- Electron main's SDK tool router must not synthesize a backend wait id from
+- The SDK desktop agent host must not synthesize a backend wait id from
   `correlation_id`, `tool_call_id`, or the websocket event id. If `request_id`
   is missing, the event is malformed for result delivery and local execution is
   not claimed.
@@ -70,9 +70,8 @@ Bundle path:
 - backend sends one `tool-bundle` event with a `bundle_id`
 - SDK runtime executes bundle steps through the local runtime adapter and returns
   `tool-bundle-result`
-- Electron main also emits one display-only renderer `tool-output` projection
-  for the bundle result so users can inspect local output while the backend loop
-  continues
+- SDK display projections emit one display row for the bundle result so users
+  can inspect local output while the backend loop continues
 - SDK bundle step statuses use `ok` and `error`; the top-level status is `success`, `partial_failure`, or `failure`
 - backend treats atomic bundle success differently from individual fallback output
 - partial failure must preserve enough per-step output for debugging and model recovery
@@ -113,7 +112,7 @@ Do not put large inline base64 payloads on hot JSON-RPC paths when a file ref or
 | --- | --- | --- |
 | Tool never appears in prompt | backend policy/profile/provider health | [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md) |
 | Model emits invalid args | backend schema, provider projection, parser recovery | [Tool Contracts](tool_contracts.md), [Backend Tools Docs Hub](../backend/tools/README.md) |
-| Backend emits `tool-call`, local execution does nothing | SDK runtime event normalization, tool coordinator, or Electron main runtime host | [Windie Client Runtime](../sdk/windie_client_runtime.md) |
+| Backend emits `tool-call`, local execution does nothing | SDK runtime event normalization, tool coordinator, or Electron main `windie_agent_host.cjs` local-runtime adapter | [Windie Client Runtime](../sdk/windie_client_runtime.md) |
 | Backend tool event is missing request or bundle ids | SDK runtime malformed-event handling | SDK should store `runtime_error` with `reason: "malformed_tool_event"` and avoid invoking the sidecar without a result id |
 | SDK runtime invokes tool but sidecar says missing tool | sidecar registry/exposed-name parity | [Tool Catalog Matrix](tool_catalog_matrix.md), [Sidecar Registry](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_normalization_reference.md) |
 | Sidecar succeeds but model never sees result | result envelope/request id/waiting storage | [Backend Tool Result Ingress](../backend/tools/tool_result_ingress_and_storage_reference.md) |

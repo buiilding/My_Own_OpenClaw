@@ -5,7 +5,6 @@ const {
 function createHarness(overrides = {}) {
   let currentConversationRef = null;
   let isFirstQuery = true;
-  const runtime = {};
   const deps = {
     prepareAutomatedQueryPayload: jest.fn((options) => ({
       text: String(options.text || '').trim(),
@@ -34,8 +33,7 @@ function createHarness(overrides = {}) {
       ...payload,
       agent_definition: { mode: 'test' },
     })),
-    sendSdkRuntimeCommand: jest.fn(() => 'sdk-message-1'),
-    getWindieSdkRuntime: jest.fn(() => runtime),
+    sendQueryToBackend: jest.fn(async () => 'sdk-message-1'),
     getState: jest.fn(() => ({
       currentUserId: 'user-1',
       isFirstQuery,
@@ -61,7 +59,6 @@ function createHarness(overrides = {}) {
       currentConversationRef,
       isFirstQuery,
     }),
-    runtime,
   };
 }
 
@@ -89,7 +86,7 @@ describe('ipc_automated_query_dispatcher', () => {
       ok: false,
       error: 'closed',
     });
-    expect(deps.sendSdkRuntimeCommand).not.toHaveBeenCalled();
+    expect(deps.sendQueryToBackend).not.toHaveBeenCalled();
   });
 
   test('builds and dispatches automated queries through the SDK runtime', async () => {
@@ -98,7 +95,6 @@ describe('ipc_automated_query_dispatcher', () => {
       deps,
       dispatcher,
       getState,
-      runtime,
     } = createHarness({
       getPendingSettingsSyncPromise: jest.fn(() => pendingSettings),
     });
@@ -117,8 +113,7 @@ describe('ipc_automated_query_dispatcher', () => {
       currentUserId: 'user-1',
       isFirstQuery: true,
     }));
-    expect(deps.sendSdkRuntimeCommand).toHaveBeenCalledWith(runtime, {
-      type: 'query',
+    expect(deps.sendQueryToBackend).toHaveBeenCalledWith({
       messageId: 'query-message-1',
       payload: {
         text: 'inspect app',

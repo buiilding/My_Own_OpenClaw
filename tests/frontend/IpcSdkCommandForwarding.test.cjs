@@ -4,21 +4,17 @@ const {
 
 function createHarness(overrides = {}) {
   const handlers = {};
-  const runtime = { send: jest.fn() };
   const deps = {
-    normalizeSdkRuntimeCommand: jest.fn((message) => message || {}),
-    shouldQueueUntilConnected: jest.fn((type) => type === 'list-models'),
-    shouldLogRendererSdkRuntimeCommand: jest.fn(() => false),
-    shouldConnectForSdkRuntimeCommand: jest.fn((type) => type !== 'update-settings'),
-    shouldSyncSettingsBeforeSdkRuntimeCommand: jest.fn((type) => type === 'rehydrate'),
     isBackendRuntimeConnected: jest.fn(() => true),
     queueListModelsRequest: jest.fn(),
     ensureBackendConnection: jest.fn(async () => undefined),
     ensureInitialSettingsSync: jest.fn(async () => undefined),
     getPendingSettingsSyncPromise: jest.fn(() => null),
     sendSettingsUpdate: jest.fn(),
-    sendSdkRuntimeCommand: jest.fn(),
-    getWindieSdkRuntime: jest.fn(() => runtime),
+    requestModelList: jest.fn(async () => 'models-message-1'),
+    rehydrate: jest.fn(async () => 'rehydrate-message-1'),
+    compactHistory: jest.fn(async () => 'compact-message-1'),
+    wakewordDetected: jest.fn(async () => 'wakeword-message-1'),
     log: jest.fn(),
     ...overrides,
   };
@@ -36,7 +32,6 @@ function createHarness(overrides = {}) {
   return {
     deps,
     handlers,
-    runtime,
   };
 }
 
@@ -55,7 +50,9 @@ describe('ipc_sdk_command_forwarding', () => {
     expect(deps.log).toHaveBeenCalledWith(
       'Ignoring malformed to-backend message: missing string "type"',
     );
-    expect(deps.sendSdkRuntimeCommand).not.toHaveBeenCalled();
+    expect(deps.rehydrate).not.toHaveBeenCalled();
+    expect(deps.compactHistory).not.toHaveBeenCalled();
+    expect(deps.wakewordDetected).not.toHaveBeenCalled();
   });
 
   test('routes settings updates through the settings sync path', async () => {
@@ -70,7 +67,7 @@ describe('ipc_sdk_command_forwarding', () => {
       { speech_mode_enabled: true },
       'renderer-update',
     );
-    expect(deps.sendSdkRuntimeCommand).not.toHaveBeenCalled();
+    expect(deps.rehydrate).not.toHaveBeenCalled();
   });
 
   test('rejects generic query and stop-query messages', async () => {
@@ -85,7 +82,7 @@ describe('ipc_sdk_command_forwarding', () => {
     expect(deps.log).toHaveBeenCalledWith(
       'Ignoring stop-query on generic to-backend IPC; use the typed chat IPC channel.',
     );
-    expect(deps.sendSdkRuntimeCommand).not.toHaveBeenCalled();
+    expect(deps.wakewordDetected).not.toHaveBeenCalled();
   });
 
   test('queues list-models until backend connection is ready', async () => {
@@ -97,14 +94,11 @@ describe('ipc_sdk_command_forwarding', () => {
 
     expect(deps.queueListModelsRequest).toHaveBeenCalledTimes(1);
     expect(deps.ensureBackendConnection).toHaveBeenCalledWith('list-models');
-    expect(deps.sendSdkRuntimeCommand).not.toHaveBeenCalled();
+    expect(deps.requestModelList).not.toHaveBeenCalled();
   });
 
   test('forwards rehydrate payload unchanged after connection setup', async () => {
-    const pendingSettings = Promise.resolve();
-    const { deps, handlers, runtime } = createHarness({
-      getPendingSettingsSyncPromise: jest.fn(() => pendingSettings),
-    });
+    const { deps, handlers } = createHarness();
 
     await handlers['to-backend'](null, {
       type: 'rehydrate',
@@ -115,14 +109,10 @@ describe('ipc_sdk_command_forwarding', () => {
       },
     });
 
-    expect(deps.ensureInitialSettingsSync).toHaveBeenCalledTimes(1);
-    expect(deps.sendSdkRuntimeCommand).toHaveBeenCalledWith(runtime, {
-      type: 'rehydrate',
-      payload: {
-        conversation_ref: 'conv-1',
-        messages: [],
-        rehydrate_mode: 'replace',
-      },
+    expect(deps.rehydrate).toHaveBeenCalledWith({
+      conversation_ref: 'conv-1',
+      messages: [],
+      rehydrate_mode: 'replace',
     });
   });
 });

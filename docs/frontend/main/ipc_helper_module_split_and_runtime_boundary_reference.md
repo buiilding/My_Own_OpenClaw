@@ -15,7 +15,7 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc/ipc_query_runtime.cjs`
 - `frontend/src/main/ipc/ipc_automated_query_dispatcher.cjs`
 - `frontend/src/main/ipc/ipc_startup_state.cjs`
-- `frontend/src/main/ipc/ipc_sdk_runtime_lifecycle.cjs`
+- `frontend/src/main/windie_agent_host.cjs`
 - `frontend/src/main/ipc/ipc_backend_endpoint_state.cjs`
 - `frontend/src/main/ipc/ipc_transcript_session_sync.cjs`
 - `frontend/src/main/ipc/ipc_event_replay_state.cjs`
@@ -90,7 +90,7 @@ Owns IPC startup state hydration:
 - initializes global stop-shortcut enabled state from the current response-overlay phase
 - treats disk-hydration failures as fail-open startup conditions
 
-### `ipc_sdk_runtime_lifecycle.cjs`
+### `windie_agent_host.cjs`
 
 Owns Windie SDK runtime lifecycle construction:
 
@@ -257,7 +257,7 @@ Owns remaining generic `to-backend` command forwarding:
 - forwards `rehydrate` payloads unchanged after connection/settings gates; query
   and automated-query paths own agent-definition enrichment
 - waits for initial settings sync before commands that require backend settings
-- forwards accepted SDK runtime commands through `sendSdkRuntimeCommand`
+- forwards accepted SDK runtime commands through explicit SDK desktop-agent host methods
 
 ### `ipc_memory_store_persistence.cjs`
 
@@ -279,7 +279,7 @@ This isolates persistence to main process once per backend event before renderer
 6. automated VM query dispatch delegates to `ipc_automated_query_dispatcher.cjs`.
 7. startup install-auth/config/shortcut hydration delegates to `ipc_startup_state.cjs`.
 8. SDK websocket runtime construction and backend event lifecycle delegate to
-   `ipc_sdk_runtime_lifecycle.cjs`.
+   `windie_agent_host.cjs`.
 9. backend endpoint candidate and active endpoint state delegates to
    `ipc_backend_endpoint_state.cjs`.
 10. settings ACK, initial sync, and queued list-models state delegate to

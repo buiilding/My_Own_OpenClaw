@@ -51,6 +51,31 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     ws.handlers.message(JSON.stringify(payload));
   }
 
+  async function waitForMockCall(mockFn, attempts = 100) {
+    for (let attempt = 0; attempt < attempts; attempt += 1) {
+      if (mockFn.mock.calls.length > 0) {
+        return mockFn.mock.calls[mockFn.mock.calls.length - 1];
+      }
+      await Promise.resolve();
+      await Promise.resolve();
+    }
+    return null;
+  }
+
+  async function waitForSentMessageType(ws, type, attempts = 100) {
+    for (let attempt = 0; attempt < attempts; attempt += 1) {
+      const message = ws.sent
+        .map((entry) => JSON.parse(entry))
+        .find((entry) => entry.type === type);
+      if (message) {
+        return message;
+      }
+      await Promise.resolve();
+      await Promise.resolve();
+    }
+    return null;
+  }
+
   async function expectClientEndpoints(handlers, backendWsUrl, backendHttpUrl) {
     const clientInfo = await handlers['get-client-user-id']();
     expect(clientInfo).toEqual(expect.objectContaining({
@@ -116,10 +141,11 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     const handshake = JSON.parse(ws.sent[0]);
     expect(handshake.type).toBe('handshake');
     expect(handshake.user_id).toBe('registered-user-1');
-    expect(handshake.available_tools).toEqual(expect.arrayContaining([
+    const manifestToolNames = handshake.agent_definition?.tools?.client_manifest?.tools
+      ?.map((tool) => tool.name);
+    expect(manifestToolNames).toEqual(expect.arrayContaining([
       'mouse_control',
       'read_file',
-      'web_search',
     ]));
     expect(handshake.available_coordinate_methods).toBeUndefined();
     expect(handshake.agent_definition?.runtime?.coordinate_methods).toBeUndefined();
@@ -273,9 +299,8 @@ describe('ipc.cjs bridge lifecycle/config', () => {
         parameters: { text: 'hello' },
       },
     });
-    await Promise.resolve();
-    await Promise.resolve();
 
+    await waitForMockCall(backendBridge.executeToolForBackend);
     expect(backendBridge.executeToolForBackend).toHaveBeenCalledWith(expect.objectContaining({
       toolName: 'save_note',
       args: { text: 'hello' },
@@ -283,8 +308,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
       correlationId: null,
       toolCallId: null,
     }));
-    const toolResult = ws.sent.map((entry) => JSON.parse(entry))
-      .find((entry) => entry.type === 'tool-result');
+    const toolResult = await waitForSentMessageType(ws, 'tool-result');
     expect(toolResult).toMatchObject({
       type: 'tool-result',
       payload: {
@@ -504,7 +528,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
       conversation_ref: 'conv-global-stop',
     });
 
-    const stopTriggered = ipc.triggerStopQueryFromMain();
+    const stopTriggered = await ipc.triggerStopQueryFromMain();
     expect(stopTriggered).toBe(true);
 
     const sentStopQuery = JSON.parse(ws.sent[ws.sent.length - 1]);

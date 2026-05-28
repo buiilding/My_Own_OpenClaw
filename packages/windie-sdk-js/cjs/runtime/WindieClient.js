@@ -18,7 +18,7 @@ class WindieClient {
             ? (0, modelSelection_js_1.buildModelSettingsPatch)(options.model, 'WindieClient.wakeUp')
             : null;
         const backendUrl = this.resolveBackendUrl(options.backendUrl);
-        const operatingSystem = detectOperatingSystem();
+        const operatingSystem = options.operatingSystem ?? this.defaultOptions.operatingSystem ?? detectOperatingSystem();
         const installAuth = await this.resolveInstallAuthState(backendUrl, operatingSystem, options);
         const userId = installAuth?.userId
             ?? options.userId
@@ -271,7 +271,7 @@ function buildWakeUpAgentDefinition(options, tools) {
         plugins: options.plugins ?? [],
         runtime: {
             workspace_path: options.workspacePath,
-            operating_system: detectOperatingSystem(),
+            operating_system: options.operatingSystem ?? detectOperatingSystem(),
         },
     };
 }

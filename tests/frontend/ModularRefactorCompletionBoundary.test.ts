@@ -8,35 +8,17 @@ async function read(relativePath: string): Promise<string> {
 }
 
 describe('modular sdk refactor completion boundary', () => {
-  test('main runtime does not expose raw backend envelope sends', async () => {
-    const source = await read('frontend/src/main/windie_sdk_runtime.cjs');
+  test('electron main uses the high-level SDK agent host instead of the deleted main runtime', async () => {
+    const ipcSource = await read('frontend/src/main/ipc.cjs');
+    const hostSource = await read('frontend/src/main/windie_agent_host.cjs');
 
-    expect(source).toContain("packages/windie-sdk-js/cjs/transport/ManagedBackendSession.js");
-    expect(source).not.toContain('sendBackendMessage,');
-    expect(source).not.toContain('sendEnvelope,');
-    expect(source).not.toContain('connectWaiters');
-    expect(source).not.toContain('idleDisconnectTimer');
-    expect(source).not.toContain('reconnectTimer');
-    expect(source).not.toContain('shouldMaintainConnection');
-    expect(source).toContain('sendCompactHistory');
-    expect(source).toContain('rehydrateConversation');
-    expect(source).not.toContain('sendRehydrate:');
-    expect(source).toContain('sendToolBundleResult: (payload, messageId) => session.sendToolBundleResult(payload, messageId)');
-    expect(source).toContain('sendToolResult: (payload, messageId) => session.sendToolResult(payload, messageId)');
-
-    const returnBlockStart = source.indexOf('  return {\n    close:');
-    const returnBlockEnd = source.indexOf('\n  };\n}', returnBlockStart);
-    const runtimeReturnBlock = source.slice(returnBlockStart, returnBlockEnd);
-    expect(runtimeReturnBlock).not.toContain('sendToolBundleResult');
-    expect(runtimeReturnBlock).not.toContain('sendToolResult');
-  });
-
-  test('main tool router delegates local tool routing to the sdk package', async () => {
-    const source = await read('frontend/src/main/ipc/ipc_sdk_tool_router.cjs');
-
-    expect(source).toContain('packages/windie-sdk-js/cjs/tools/ElectronToolEventRouter.js');
-    expect(source).not.toContain('async function routeToolCallToLocalRuntime');
-    expect(source).not.toContain('async function routeToolBundleToLocalRuntime');
+    expect(ipcSource).toContain("require('./windie_agent_host.cjs')");
+    expect(ipcSource).not.toContain('createWindieSdkMainRuntime');
+    expect(ipcSource).not.toContain('sendSdkRuntimeCommand');
+    expect(ipcSource).not.toContain('getWindieSdkRuntime');
+    expect(hostSource).toContain('WindieAgent.startDesktop');
+    expect(hostSource).not.toContain('createManagedBackendSession');
+    expect(hostSource).not.toContain('routeSdkToolEventToLocalRuntime');
   });
 
   test('renderer live-turn runtime stays on sdk command dispatch', async () => {

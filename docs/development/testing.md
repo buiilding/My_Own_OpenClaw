@@ -62,7 +62,7 @@ npm run audit:knip
 - Wakeword bridge stale-buffer/stale-process restart behavior is covered by `tests/frontend/WakewordBridge.test.cjs`.
 - For CI parity: `cd frontend && npm run test:ci`.
 - Frontend tests use Jest + React Testing Library.
-- SDK/main tool routing behavior is covered by `tests/frontend/IpcSdkToolRouter.test.cjs`, `tests/frontend/WindieSdkMainRuntime.test.cjs`, and SDK conversation runtime tests.
+- SDK/main tool routing behavior is covered by `tests/frontend/WindieAgentHost.test.cjs`, `tests/frontend/WindieSdkDesktopAgent.test.ts`, and SDK conversation runtime tests.
 - Transcript/session persistence behavior is covered through SDK projection and transcript-session tests such as `tests/frontend/WindieSdkConversationRuntime.test.ts` and `tests/frontend/TranscriptSessionState.test.ts`.
 - Transcript storage/event and queue primitives are covered directly by `tests/frontend/TranscriptStorage.test.ts` and `tests/frontend/TranscriptPendingQueue.test.ts`.
 - Audio playback lifecycle behavior is covered directly by `tests/frontend/PlayerService.test.ts`.

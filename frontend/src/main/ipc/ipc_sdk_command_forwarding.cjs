@@ -1,22 +1,29 @@
 function registerSdkCommandForwardingHandler({
   ipcMain,
-  normalizeSdkRuntimeCommand,
-  shouldConnectForSdkRuntimeCommand,
-  shouldLogRendererSdkRuntimeCommand,
-  shouldQueueUntilConnected,
-  shouldSyncSettingsBeforeSdkRuntimeCommand,
-  sendSdkRuntimeCommand,
-  getWindieSdkRuntime,
   isBackendRuntimeConnected,
   ensureBackendConnection,
   ensureInitialSettingsSync,
   getPendingSettingsSyncPromise,
   queueListModelsRequest,
   sendSettingsUpdate,
+  requestModelList,
+  rehydrate,
+  compactHistory,
+  wakewordDetected,
   log,
 }) {
+  function normalizeCommand(message = {}) {
+    const type = typeof message?.type === 'string' ? message.type : null;
+    const payload = (
+      message?.payload
+      && typeof message.payload === 'object'
+      && !Array.isArray(message.payload)
+    ) ? { ...message.payload } : {};
+    return { type, payload };
+  }
+
   ipcMain.on('to-backend', async (_event, message = {}) => {
-    const normalizedCommand = normalizeSdkRuntimeCommand(message);
+    const normalizedCommand = normalizeCommand(message);
     const type = normalizedCommand.type;
     let payload = normalizedCommand.payload;
 
@@ -35,23 +42,27 @@ function registerSdkCommandForwardingHandler({
       return;
     }
 
-    if (shouldQueueUntilConnected(type) && !isBackendRuntimeConnected()) {
+    if (type === 'list-models' && !isBackendRuntimeConnected()) {
       queueListModelsRequest();
       log('Queued list-models request until backend websocket is connected.');
       try {
         await ensureBackendConnection('list-models');
-      } catch (error) {
-        log(`Failed to connect backend for list-models: ${error?.message || error}`);
+      } catch (_error) {
+        // Queued model-list requests are best-effort; startup/shutdown may close
+        // the SDK session before a socket opens.
       }
       return;
     }
 
-    if (shouldLogRendererSdkRuntimeCommand(type)) {
+    if (type === 'wakeword-detected') {
       log(`Received ${type} from renderer`);
     }
 
     let backendConnectionReady = true;
-    if (shouldConnectForSdkRuntimeCommand(type) && !isBackendRuntimeConnected()) {
+    if (
+      (type === 'wakeword-detected' || type === 'compact-history' || type === 'rehydrate')
+      && !isBackendRuntimeConnected()
+    ) {
       try {
         await ensureBackendConnection(type);
       } catch (error) {
@@ -60,7 +71,7 @@ function registerSdkCommandForwardingHandler({
       }
     }
 
-    if (backendConnectionReady && shouldSyncSettingsBeforeSdkRuntimeCommand(type)) {
+    if (backendConnectionReady && type === 'wakeword-detected') {
       await ensureInitialSettingsSync();
       const pendingSettingsSyncPromise = getPendingSettingsSyncPromise();
       if (pendingSettingsSyncPromise) {
@@ -69,10 +80,15 @@ function registerSdkCommandForwardingHandler({
     }
 
     if (backendConnectionReady) {
-      sendSdkRuntimeCommand(getWindieSdkRuntime(), {
-        type,
-        payload,
-      });
+      if (type === 'list-models') {
+        await requestModelList();
+      } else if (type === 'wakeword-detected') {
+        await wakewordDetected(payload);
+      } else if (type === 'compact-history') {
+        await compactHistory(payload);
+      } else if (type === 'rehydrate') {
+        await rehydrate(payload);
+      }
     }
   });
 }

@@ -43,7 +43,7 @@ chat component until the producer and relay contracts are identified.
 | --- | --- | --- |
 | Message button or keyboard submit behavior changes | `frontend/src/renderer/features/chat/components/MessageInput.jsx`, `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`, `frontend/src/renderer/features/chat/policies/messageSendUiPolicy.ts` | `tests/frontend/MessageInput.test.jsx`, `tests/frontend/MessageSendUiPolicy.test.ts`, `tests/frontend/ChatMessageSender.test.tsx` |
 | Query payload fields, screenshot refs, attachment names, workspace path, or memory toggle changes | `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`, `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`, `frontend/src/renderer/features/chat/utils/messageSender/*`, `frontend/src/main/ipc/ipc_query_runtime.cjs`, `frontend/src/main/ipc/ipc_query_send_runtime.cjs` | `tests/frontend/DesktopLiveTurnRuntimeClient.test.ts`, `tests/frontend/ChatMessageSenderPayloads.test.ts`, `tests/frontend/QueryPayloadBuilder.test.cjs`, `tests/frontend/IpcMainBridge.query.test.cjs` |
-| Stop/cancel routing changes | `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`, `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`, `frontend/src/main/ipc/ipc_sdk_command_router.cjs` | `tests/frontend/DesktopLiveTurnRuntimeClient.test.ts`, `tests/frontend/ChatInterfaceWiring.test.jsx`, `tests/frontend/IpcMainBridge.lifecycle.test.cjs` |
+| Stop/cancel routing changes | `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`, `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`, `frontend/src/main/windie_agent_host.cjs` | `tests/frontend/DesktopLiveTurnRuntimeClient.test.ts`, `tests/frontend/ChatInterfaceWiring.test.jsx`, `tests/frontend/IpcMainBridge.lifecycle.test.cjs`, `tests/frontend/WindieAgentHost.test.cjs` |
 | Main-process content enrichment or memory/system-state context changes | `frontend/src/main/query_payload_builder.cjs`, `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`, `frontend/src/main/python/core/system_state.py`, `frontend/src/main/python/memory/*` | `tests/frontend/QueryPayloadBuilder.test.cjs`, `tests/frontend/IpcMainBridge.query.test.cjs`, `tests/sidecar/test_conversation_search_runtime.py`, `tests/sidecar/test_conversation_semanticization_runtime.py` |
 | First query settings are stale or not ACKed | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs`, `frontend/src/renderer/app/providers/appConfigBackendSync.ts` | `tests/frontend/IpcSettingsSync.test.cjs`, `tests/frontend/IpcMainBridge.query.test.cjs`, backend settings handler tests |
 | Optimistic user message appears twice, missing, or has wrong metadata | `frontend/src/main/ipc/ipc_query_broadcast.cjs`, `frontend/src/main/ipc/ipc_query_events.cjs`, `frontend/src/main/ipc/ipc_event_replay_state.cjs`, `frontend/src/renderer/features/chat/hooks/useChatStream.ts` | `tests/frontend/IpcQueryRuntime.test.cjs`, `tests/frontend/IpcMainBridge.query.test.cjs`, `tests/frontend/DesktopChatStreamEventRuntime.test.ts` |
@@ -148,7 +148,7 @@ Renderer invariants:
 Read these files when changing SDK runtime relay behavior:
 
 - `frontend/src/main/ipc.cjs`
-- `frontend/src/main/windie_sdk_runtime.cjs`
+- `frontend/src/main/windie_agent_host.cjs`
 - `frontend/src/main/ipc/ipc_query_send_runtime.cjs`
 - `frontend/src/main/ipc/ipc_query_runtime.cjs`
 - `frontend/src/main/query_payload_builder.cjs`

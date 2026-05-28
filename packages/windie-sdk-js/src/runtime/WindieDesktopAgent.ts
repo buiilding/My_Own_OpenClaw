@@ -52,18 +52,24 @@ export type WindieDesktopAgentOptions = {
   agent?: Pick<
     WindieAgent,
     | 'compactHistory'
+    | 'conversation'
     | 'ensureConnected'
     | 'isConnected'
     | 'listModels'
+    | 'noteBackendTraffic'
     | 'requestModelList'
     | 'rehydrateConversation'
     | 'shutdownLocalRuntime'
     | 'sleep'
+    | 'stop'
     | 'status'
+    | 'subscribeRawBackendEvents'
+    | 'syncBackendIdleTimer'
     | 'updateSettings'
     | 'wakewordDetected'
   > | null;
   runtime: SdkConversationRuntime;
+  store?: ConversationStore;
   conversationRef: string;
   workspacePath?: string | null;
 };
@@ -72,6 +78,7 @@ type RowsListener = (rows: SdkDisplayRow[]) => void;
 type EventListener = (event: ConversationEvent, snapshot: ConversationSnapshot) => void;
 type CurrentTurnListener = (currentTurn: CurrentTurnProjection, snapshot: ConversationSnapshot) => void;
 type StatusListener = (status: WindieDesktopAgentStatus) => void;
+type BackendEventListener = Parameters<WindieAgent['subscribeRawBackendEvents']>[0];
 
 function normalizeSendInput(input: string | SendInput): SendInput {
   return typeof input === 'string' ? { text: input } : input;
@@ -117,25 +124,68 @@ export class WindieDesktopAgent {
   private readonly eventListeners = new Set<EventListener>();
   private readonly currentTurnListeners = new Set<CurrentTurnListener>();
   private readonly statusListeners = new Set<StatusListener>();
-  private readonly detachEvents: () => void;
+  private detachEvents: () => void;
+  private runtime: SdkConversationRuntime;
+  private conversationRef: string;
   private currentStatus: WindieDesktopAgentStatus;
   private closed = false;
 
   constructor(private readonly options: WindieDesktopAgentOptions) {
+    this.runtime = options.runtime;
+    this.conversationRef = options.conversationRef;
     this.currentStatus = {
       phase: 'ready',
-      conversationRef: options.conversationRef,
+      conversationRef: this.conversationRef,
       workspacePath: options.workspacePath ?? null,
     };
-    this.detachEvents = options.runtime.subscribeEvents((event, snapshot) => {
+    this.detachEvents = this.attachRuntime(this.runtime);
+  }
+
+  private attachRuntime(runtime: SdkConversationRuntime): () => void {
+    return runtime.subscribeEvents((event, snapshot) => {
       this.emitConversationEvent(event, snapshot);
       this.emitRows(buildDisplayRows([event]));
       this.emitCurrentTurn(snapshot.currentTurn, snapshot);
-      const terminalStatus = statusFromTerminalEvent(event, options.workspacePath);
+      const terminalStatus = statusFromTerminalEvent(event, this.options.workspacePath);
       if (terminalStatus) {
         this.setStatus(terminalStatus);
       }
     });
+  }
+
+  private resolveInputConversationRef(input: (Partial<SendInput> & { conversation_ref?: unknown }) | undefined): string {
+    const payload = input && 'payload' in input ? input.payload : undefined;
+    const fromPayload = payload && typeof payload === 'object' && !Array.isArray(payload)
+      ? payload.conversation_ref
+      : undefined;
+    const direct = (input as { conversation_ref?: unknown } | undefined)?.conversation_ref;
+    const value = typeof fromPayload === 'string' && fromPayload.trim()
+      ? fromPayload.trim()
+      : (typeof direct === 'string' && direct.trim() ? direct.trim() : '');
+    return value || this.conversationRef;
+  }
+
+  private useConversation(conversationRef: string): SdkConversationRuntime {
+    if (conversationRef === this.conversationRef) {
+      return this.runtime;
+    }
+    if (!this.options.agent?.conversation) {
+      throw new Error('WindieDesktopAgent cannot switch conversations without a started WindieAgent');
+    }
+    this.detachEvents();
+    this.runtime.close();
+    this.conversationRef = conversationRef;
+    this.runtime = this.options.agent.conversation({
+      conversationRef,
+      store: this.options.store,
+    });
+    this.detachEvents = this.attachRuntime(this.runtime);
+    this.setStatus({
+      phase: 'ready',
+      conversationRef,
+      workspacePath: this.options.workspacePath ?? null,
+    });
+    return this.runtime;
   }
 
   static async start(options: WindieDesktopAgentStartOptions): Promise<WindieDesktopAgent> {
@@ -162,13 +212,15 @@ export class WindieDesktopAgent {
       builtins: clientAndWakeOptions.builtins ?? 'default',
     });
     const conversationRef = clientAndWakeOptions.conversationRef ?? `conv-${agent.id}`;
+    const conversationStore = store ?? new InMemoryConversationStore();
     const runtime = agent.conversation({
       conversationRef,
-      store: store ?? new InMemoryConversationStore(),
+      store: conversationStore,
     });
     return new WindieDesktopAgent({
       agent,
       runtime,
+      store: conversationStore,
       conversationRef,
       workspacePath,
     });
@@ -203,30 +255,46 @@ export class WindieDesktopAgent {
     };
   }
 
+  onBackendEvent(listener: BackendEventListener): () => void {
+    return this.options.agent?.subscribeRawBackendEvents?.(listener) ?? (() => {});
+  }
+
   async run(input: string | SendInput): Promise<TurnResult> {
     const sendInput = normalizeSendInput(input);
+    const runtime = this.useConversation(this.resolveInputConversationRef(sendInput));
     this.setStatus({
       phase: 'running',
-      conversationRef: this.options.conversationRef,
+      conversationRef: this.conversationRef,
       turnRef: sendInput.turnRef ?? null,
       workspacePath: this.options.workspacePath ?? null,
     });
-    const result = await this.options.runtime.send(sendInput);
+    const result = await runtime.send(sendInput);
     this.setStatus({
       phase: 'running',
-      conversationRef: this.options.conversationRef,
+      conversationRef: this.conversationRef,
       turnRef: result.turnRef,
       workspacePath: this.options.workspacePath ?? null,
     });
     return result;
   }
 
-  async stop(turnRef?: string | null): Promise<void> {
-    await this.options.runtime.stop(turnRef ?? null);
+  async stop(input?: string | null | { conversation_ref?: string | null; turn_ref?: string | null }): Promise<string | void> {
+    const conversationRef = typeof input === 'object' && input?.conversation_ref
+      ? input.conversation_ref
+      : this.conversationRef;
+    const turnRef = typeof input === 'string'
+      ? input
+      : (typeof input === 'object' ? input?.turn_ref : null);
+    const runtime = this.useConversation(conversationRef || this.conversationRef);
+    if (this.options.agent?.stop) {
+      return this.options.agent.stop(conversationRef || this.conversationRef);
+    }
+    await runtime.stop(turnRef ?? null);
+    return undefined;
   }
 
   async load(): Promise<ConversationSnapshot> {
-    return this.options.runtime.load();
+    return this.runtime.load();
   }
 
   async ensureConnected(): Promise<void> {
@@ -234,7 +302,7 @@ export class WindieDesktopAgent {
       await this.options.agent.ensureConnected();
       return;
     }
-    await this.options.runtime.ensureConnected();
+    await this.runtime.ensureConnected();
   }
 
   isConnected(): boolean {
@@ -245,7 +313,7 @@ export class WindieDesktopAgent {
     if (this.options.agent?.updateSettings) {
       return this.options.agent.updateSettings(payload);
     }
-    return this.options.runtime.updateSettings(payload);
+    return this.runtime.updateSettings(payload);
   }
 
   async listModels(): Promise<SdkModelsResponse> {
@@ -259,23 +327,26 @@ export class WindieDesktopAgent {
     if (this.options.agent?.requestModelList) {
       return this.options.agent.requestModelList();
     }
-    return this.options.runtime.requestModelList();
+    return this.runtime.requestModelList();
   }
 
   async rehydrate(payload?: RehydratePayload): Promise<ConversationSnapshot['rehydrate'] | void> {
     if (payload) {
-      await this.options.runtime.rehydrateMessages(payload);
+      this.useConversation(this.resolveInputConversationRef(payload));
+      await this.runtime.rehydrateMessages(payload);
       return undefined;
     }
-    return this.options.runtime.rehydrate();
+    return this.runtime.rehydrate();
   }
 
   async rehydrateMessages(payload: RehydratePayload): Promise<void> {
-    await this.options.runtime.rehydrateMessages(payload);
+    this.useConversation(this.resolveInputConversationRef(payload));
+    await this.runtime.rehydrateMessages(payload);
   }
 
   async compactHistory(input: CompactHistoryPayload = {}): Promise<string | void> {
-    return this.options.runtime.compactHistory({
+    this.useConversation(this.resolveInputConversationRef(input));
+    return this.runtime.compactHistory({
       force: input.force,
       payload: input,
     });
@@ -285,7 +356,15 @@ export class WindieDesktopAgent {
     if (this.options.agent?.wakewordDetected) {
       return this.options.agent.wakewordDetected(payload);
     }
-    return this.options.runtime.wakewordDetected(payload);
+    return this.runtime.wakewordDetected(payload);
+  }
+
+  noteBackendTraffic(reason = 'traffic'): void {
+    this.options.agent?.noteBackendTraffic?.(reason);
+  }
+
+  syncBackendIdleTimer(reason = 'idle-sync'): void {
+    this.options.agent?.syncBackendIdleTimer?.(reason);
   }
 
   async localStatus(): Promise<JsonRecord | null> {
@@ -298,11 +377,11 @@ export class WindieDesktopAgent {
     }
     this.closed = true;
     this.detachEvents();
-    this.options.runtime.close();
+    this.runtime.close();
     this.options.agent?.sleep();
     this.setStatus({
       phase: 'closed',
-      conversationRef: this.options.conversationRef,
+      conversationRef: this.conversationRef,
       workspacePath: this.options.workspacePath ?? null,
     });
   }

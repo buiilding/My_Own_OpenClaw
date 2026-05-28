@@ -29,15 +29,14 @@ describe('ipc_settings_sync_runtime', () => {
 
   test('sendSettingsUpdate connects, sends update-settings, and resolves on ack', async () => {
     const ensureBackendConnection = jest.fn(async () => {});
-    const sendSdkRuntimeCommand = jest.fn(() => 'settings-msg-1');
+    const updateSettings = jest.fn(async () => 'settings-msg-1');
     const setLatestFrontendConfig = jest.fn();
     const runtime = createIpcSettingsSyncRuntime({
       getLatestFrontendConfig: () => ({ selected_model_id: 'model-1' }),
       setLatestFrontendConfig,
       isBackendRuntimeConnected: () => false,
       ensureBackendConnection,
-      getRuntime: () => ({ runtime: true }),
-      sendSdkRuntimeCommand,
+      updateSettings,
       log: jest.fn(),
       timeoutMs: 1000,
     });
@@ -47,7 +46,11 @@ describe('ipc_settings_sync_runtime', () => {
       global_agent_stop_shortcut: { resolvedAccelerator: 'Ctrl+Alt+.' },
     }, 'renderer');
 
-    await Promise.resolve();
+    await (async () => {
+      while (updateSettings.mock.calls.length === 0) {
+        await Promise.resolve();
+      }
+    })();
     runtime.resolveAck('settings-msg-1', true);
 
     await expect(promise).resolves.toBe(true);
@@ -55,14 +58,11 @@ describe('ipc_settings_sync_runtime', () => {
     expect(setLatestFrontendConfig).toHaveBeenCalledWith(expect.objectContaining({
       selected_model_id: 'model-2',
     }));
-    expect(sendSdkRuntimeCommand).toHaveBeenCalledWith({ runtime: true }, {
-      type: 'update-settings',
-      payload: { selected_model_id: 'model-2' },
-    });
+    expect(updateSettings).toHaveBeenCalledWith({ selected_model_id: 'model-2' });
   });
 
   test('ensureInitialSettingsSync loads cached config once and waits for pending ack', async () => {
-    const sendSdkRuntimeCommand = jest.fn(() => 'settings-msg-1');
+    const updateSettings = jest.fn(async () => 'settings-msg-1');
     const setLatestFrontendConfig = jest.fn();
     const runtime = createIpcSettingsSyncRuntime({
       getLatestFrontendConfig: () => null,
@@ -71,8 +71,7 @@ describe('ipc_settings_sync_runtime', () => {
       isConnected: () => true,
       isBackendRuntimeConnected: () => true,
       ensureBackendConnection: jest.fn(),
-      getRuntime: () => ({ runtime: true }),
-      sendSdkRuntimeCommand,
+      updateSettings,
       log: jest.fn(),
       timeoutMs: 1000,
     });
@@ -83,34 +82,27 @@ describe('ipc_settings_sync_runtime', () => {
 
     await expect(promise).resolves.toBeUndefined();
     expect(setLatestFrontendConfig).toHaveBeenCalledWith({ model_provider: 'openai' });
-    expect(sendSdkRuntimeCommand).toHaveBeenCalledTimes(1);
+    expect(updateSettings).toHaveBeenCalledTimes(1);
 
     await runtime.ensureInitialSettingsSync();
-    expect(sendSdkRuntimeCommand).toHaveBeenCalledTimes(1);
+    expect(updateSettings).toHaveBeenCalledTimes(1);
   });
 
   test('queues and flushes list-models once backend send succeeds', () => {
-    const runtimeObject = { runtime: true };
-    const sendSdkRuntimeCommand = jest.fn(() => 'list-models-msg-1');
+    const requestModelList = jest.fn(() => 'list-models-msg-1');
     const runtime = createIpcSettingsSyncRuntime({
-      getRuntime: () => runtimeObject,
-      sendSdkRuntimeCommand,
+      requestModelList,
     });
 
     runtime.queueListModelsRequest();
     runtime.flushPendingListModelsRequest();
     runtime.flushPendingListModelsRequest();
 
-    expect(sendSdkRuntimeCommand).toHaveBeenCalledTimes(1);
-    expect(sendSdkRuntimeCommand).toHaveBeenCalledWith(runtimeObject, {
-      type: 'list-models',
-      payload: {},
-    });
+    expect(requestModelList).toHaveBeenCalledTimes(1);
   });
 
-  test('createSettingsSyncRuntime preserves legacy dependency shape', async () => {
-    const runtimeObject = { runtime: true };
-    const sendSdkRuntimeCommand = jest.fn(() => 'settings-msg-1');
+  test('createSettingsSyncRuntime uses explicit SDK agent methods', async () => {
+    const updateSettings = jest.fn(async () => 'settings-msg-1');
     const runtime = createSettingsSyncRuntime({
       getConnected: () => true,
       getLatestFrontendConfig: () => ({ selected_model_id: 'gpt-5' }),
@@ -118,8 +110,7 @@ describe('ipc_settings_sync_runtime', () => {
       loadCachedFrontendConfigFromDisk: jest.fn(),
       isBackendRuntimeConnected: () => true,
       ensureBackendConnection: jest.fn(),
-      sendSdkRuntimeCommand,
-      getWindieSdkRuntime: () => runtimeObject,
+      updateSettings,
       timeoutMs: 1000,
       log: jest.fn(),
     });
@@ -129,9 +120,6 @@ describe('ipc_settings_sync_runtime', () => {
     runtime.resolveAck('settings-msg-1', true);
 
     await expect(promise).resolves.toBe(true);
-    expect(sendSdkRuntimeCommand).toHaveBeenCalledWith(runtimeObject, {
-      type: 'update-settings',
-      payload: { selected_model_id: 'gpt-5' },
-    });
+    expect(updateSettings).toHaveBeenCalledWith({ selected_model_id: 'gpt-5' });
   });
 });

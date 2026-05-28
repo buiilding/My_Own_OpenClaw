@@ -52,7 +52,7 @@ Responsibilities:
 Main modules:
 
 - `frontend/src/main/ipc.cjs`
-- `frontend/src/main/windie_sdk_runtime.cjs`
+- `frontend/src/main/windie_agent_host.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
 - `frontend/src/main/ipc/ipc_renderer_windows.cjs`
@@ -62,7 +62,7 @@ Main modules:
 Responsibilities:
 
 - Adapts renderer IPC to the SDK main runtime.
-- Delegates backend websocket construction, envelope sends, close, and reconnect primitives to `windie_sdk_runtime.cjs`.
+- Delegates backend websocket construction, envelope sends, close, reconnect primitives, display rows, and current-turn projection to `WindieAgent.startDesktop(...)` through `windie_agent_host.cjs`.
 - Tracks backend session context (`userId`, `sessionId`, `conversation_ref`).
 - Gates first query on settings synchronization ACK.
 - Broadcasts connection status to all renderer windows.
@@ -70,7 +70,7 @@ Responsibilities:
 
 Split boundary:
 
-- `windie_sdk_runtime.cjs` owns the hosted backend websocket primitive for Electron.
+- `windie_agent_host.cjs` starts the SDK desktop agent and supplies Electron's local-runtime adapter.
 - `ipc.cjs` owns renderer-facing lifecycle orchestration and IPC handler registration.
 - `ipc_settings_sync.cjs` owns settings ACK wait/resolve/timeout primitives for first-query gating.
 - helper modules own event processing, renderer-window fan-out, and synthetic query event broadcast paths.

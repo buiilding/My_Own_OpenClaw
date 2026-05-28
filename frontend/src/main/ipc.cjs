@@ -60,7 +60,6 @@ const {
   buildQuerySendFailure,
 } = require('./ipc/ipc_query_events.cjs');
 const {
-  normalizeBackendPayload,
   processBackendMessageData,
   runBeforeOverlayQueryCapture,
   uploadArtifact,
@@ -125,19 +124,8 @@ const {
   applyTranscriptSessionSync,
 } = require('./ipc/ipc_transcript_session_sync.cjs');
 const {
-  normalizeSdkRuntimeCommand,
-  shouldConnectForSdkRuntimeCommand,
-  shouldLogRendererSdkRuntimeCommand,
-  shouldQueueUntilConnected,
-  shouldSyncSettingsBeforeSdkRuntimeCommand,
-  sendSdkRuntimeCommand,
-} = require('./ipc/ipc_sdk_command_router.cjs');
-const {
   registerSdkCommandForwardingHandler,
 } = require('./ipc/ipc_sdk_command_forwarding.cjs');
-const {
-  createSdkRuntimeLifecycle,
-} = require('./ipc/ipc_sdk_runtime_lifecycle.cjs');
 const {
   isAgentLoopStopShortcutPhase,
 } = require('./agent_stop_shortcut_runtime.cjs');
@@ -145,9 +133,8 @@ const {
   buildAgentDefinition,
 } = require('./agent_definition.cjs');
 const {
-  buildWindieSdkMainHandshake,
-  createWindieSdkMainRuntime,
-} = require('./windie_sdk_runtime.cjs');
+  createWindieAgentHost,
+} = require('./windie_agent_host.cjs');
 const {
   buildConversationEventFromBackendEvent,
 } = require('./ipc_conversation_event_broadcast.cjs');
@@ -180,6 +167,7 @@ let setAgentLoopStopShortcutEnabled = null;
 let setGlobalAgentStopShortcutAccelerator = null;
 let currentGlobalAgentStopShortcutStatus = null;
 let pendingInstallAuthStatePromise = null;
+let windieAgentHost = null;
 const responseOverlayPhaseState = createResponseOverlayPhaseState();
 const ipcEventReplayState = createIpcEventReplayState();
 const settingsSyncRuntime = createIpcSettingsSyncRuntime({
@@ -191,8 +179,8 @@ const settingsSyncRuntime = createIpcSettingsSyncRuntime({
   isConnected: () => isConnected,
   isBackendRuntimeConnected,
   ensureBackendConnection,
-  getRuntime: getWindieSdkRuntime,
-  sendSdkRuntimeCommand,
+  requestModelList: () => requestModelListFromBackend(),
+  updateSettings: (payload) => updateSettingsOnBackend(payload),
   log,
   timeoutMs: SETTINGS_SYNC_TIMEOUT_MS,
 });
@@ -440,19 +428,23 @@ function isActiveBackendLoopPhase(phase) {
 }
 
 function syncBackendIdleDisconnectTimer(reason = 'idle-sync') {
-  getWindieSdkRuntime().syncIdleTimer(reason);
+  windieAgentHost?.syncIdleTimer(reason);
 }
 
 function noteBackendTraffic(reason = 'traffic') {
-  getWindieSdkRuntime().noteTraffic(reason);
+  windieAgentHost?.noteTraffic(reason);
 }
 
 function isBackendRuntimeConnected() {
-  return isConnected && sdkRuntimeLifecycle.isRuntimeOpen();
+  return isConnected && Boolean(windieAgentHost?.isConnected());
 }
 
 async function ensureBackendConnection(reason = 'request', timeoutMs = BACKEND_CONNECT_TIMEOUT_MS) {
-  return getWindieSdkRuntime().ensureConnected({ reason, timeoutMs });
+  return windieAgentHost?.ensureConnected({
+    reason,
+    timeoutMs,
+    conversationRef: currentConversationRef,
+  });
 }
 
 function buildIpcStatusPayload(connected) {
@@ -529,77 +521,206 @@ function setResponseOverlayPhase(phase, source = 'ipc', metadata = null) {
   syncBackendIdleDisconnectTimer(`phase:${phase}`);
 }
 
-const sdkRuntimeLifecycle = createSdkRuntimeLifecycle({
+function markSdkToolEventDisplayOnly(rendererData) {
+  if (
+    !rendererData
+    || typeof rendererData !== 'object'
+    || (rendererData.type !== 'tool-call' && rendererData.type !== 'tool-bundle')
+    || !rendererData.payload
+    || typeof rendererData.payload !== 'object'
+    || Array.isArray(rendererData.payload)
+  ) {
+    return rendererData;
+  }
+  const metadata = (
+    rendererData.payload.metadata
+    && typeof rendererData.payload.metadata === 'object'
+    && !Array.isArray(rendererData.payload.metadata)
+  ) ? rendererData.payload.metadata : {};
+  return {
+    ...rendererData,
+    payload: {
+      ...rendererData.payload,
+      metadata: {
+        ...metadata,
+        skip_frontend_execution: true,
+        execution_owner: 'sdk-runtime',
+      },
+    },
+  };
+}
+
+function handleAgentBackendEvent(rendererData) {
+  rendererData = markSdkToolEventDisplayOnly(rendererData);
+  const activeContext = activeQueryContext;
+  if (
+    rendererData
+    && typeof rendererData === 'object'
+    && rendererData.type === 'query-accepted'
+    && activeContext
+    && typeof rendererData.turn_ref === 'string'
+    && rendererData.turn_ref === activeContext.queryMessageId
+  ) {
+    activeContext.accepted = true;
+  }
+  ipcEventReplayState.appendForActiveTurn(rendererData);
+  noteBackendTraffic(`message:${rendererData?.type || 'unknown'}`);
+  notifyBackendMessageObservers(rendererData);
+  processBackendMessageData(rendererData, {
+    setCurrentSessionId: (value) => {
+      currentSessionId = value;
+    },
+    setCurrentServerUserId: (value) => {
+      currentServerUserId = value;
+    },
+    setCurrentConversationRef: (value) => {
+      currentConversationRef = value;
+    },
+    resolveSettingsSync: (msgId, wasSuccessful) => settingsSyncRuntime.resolveAck(
+      msgId,
+      wasSuccessful,
+    ),
+    setResponseOverlayPhase,
+    getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
+    onMemoryStoreEvent: (eventData) => {
+      persistMemoryStoreEvent(eventData, { storeMemory, log });
+    },
+    broadcastToRenderers,
+    log,
+  });
+
+  if (
+    activeQueryContext
+    && rendererData
+    && typeof rendererData === 'object'
+    && typeof rendererData.turn_ref === 'string'
+    && rendererData.turn_ref === activeQueryContext.queryMessageId
+    && (rendererData.type === 'streaming-complete' || rendererData.type === 'error')
+  ) {
+    activeQueryContext = null;
+    ipcEventReplayState.clear();
+  }
+}
+
+function handleAgentBackendClose({ closeReason, shouldReconnect } = {}) {
+  isConnected = false;
+  resetSettingsSyncState();
+  const activePhase = responseOverlayPhaseState.getPhase();
+  const hadInterruptedQuery = Boolean(
+    activeQueryContext
+    && (
+      activePhase === 'awaiting-first-chunk'
+      || activePhase === 'streaming'
+      || activePhase === 'tool-call'
+      || activePhase === 'tool-output'
+    ),
+  );
+  if (hadInterruptedQuery) {
+    const interruptedEvent = buildQueryInterrupted({
+      queryMessageId: activeQueryContext.queryMessageId,
+      conversationRef: activeQueryContext.conversationRef,
+      currentSessionId,
+      currentServerUserId,
+      currentUserId,
+      accepted: activeQueryContext.accepted,
+    });
+    log(
+      `Active query interrupted by backend disconnect `
+      + `(turn_ref=${activeQueryContext.queryMessageId}, `
+      + `accepted=${activeQueryContext.accepted ? 'true' : 'false'}).`,
+    );
+    handleAgentBackendEvent(interruptedEvent);
+    activeQueryContext = null;
+  } else {
+    setResponseOverlayPhase('idle', 'ws-close');
+  }
+  resetBackendSessionState();
+  ipcEventReplayState.clear();
+  if (shouldReconnect) {
+    log('Disconnected from Python backend. Attempting to reconnect...');
+  } else {
+    log(`Disconnected from Python backend (${closeReason || 'idle'}).`);
+  }
+  broadcastConnectionStatus(false);
+}
+
+windieAgentHost = createWindieAgentHost({
   WebSocketImpl: WebSocket,
-  createMessageId: uuidv4,
-  createWindieSdkMainRuntime,
-  buildWindieSdkMainHandshake,
-  buildQueryInterrupted,
-  persistMemoryStoreEvent,
-  processBackendMessageData,
-  normalizeBackendPayload,
-  executeToolForBackend,
-  storeMemory,
+  appName: 'WindieOS',
   getEndpoint: () => backendEndpointState.getEndpoint(),
-  getHeaders: buildInstallAuthHeaders,
+  getEndpointCandidates: () => backendEndpointState.getCandidates(),
   beforeConnect: () => ensureInstallAuthState(),
   getOperatingSystem: () => resolveFrontendOperatingSystem(process.platform),
   getFrontendConfig: () => latestFrontendConfig,
   getUserId: () => currentUserId,
-  getCurrentConversationRef: () => currentConversationRef,
-  getCurrentSessionId: () => currentSessionId,
-  getCurrentServerUserId: () => currentServerUserId,
-  getActiveQueryContext: () => activeQueryContext,
-  setActiveQueryContext: (queryContext) => {
-    activeQueryContext = queryContext;
-  },
-  markActiveQueryAccepted: () => {
-    if (activeQueryContext) {
-      activeQueryContext.accepted = true;
-    }
-  },
-  setConnected: (nextValue) => {
-    isConnected = nextValue;
-  },
-  setFirstQuery: (nextValue) => {
-    isFirstQuery = nextValue;
-  },
-  resetSettingsSyncState,
-  resetBackendSessionState,
-  getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
-  setResponseOverlayPhase,
+  getInstallAuthState: () => ({
+    installToken: currentInstallToken,
+    installId: currentInstallId,
+    userId: currentUserId,
+  }),
+  executeLocalTool: executeToolForBackend,
   shouldHoldOpen: () => isActiveBackendLoopPhase(responseOverlayPhaseState.getPhase()),
-  advanceEndpoint: advanceToNextBackendEndpoint,
-  appendReplayEvent: (event) => ipcEventReplayState.appendForActiveTurn(event),
-  clearReplayEvents: () => ipcEventReplayState.clear(),
-  noteBackendTraffic,
-  notifyBackendMessageObservers,
-  resolveSettingsSync: (msgId, wasSuccessful) => settingsSyncRuntime.resolveAck(
-    msgId,
-    wasSuccessful,
-  ),
-  setCurrentSessionId: (value) => {
-    currentSessionId = value;
-  },
-  setCurrentServerUserId: (value) => {
-    currentServerUserId = value;
-  },
-  setCurrentConversationRef: (value) => {
-    currentConversationRef = value;
-  },
-  broadcastToRenderers,
-  broadcastConnectionStatus,
-  flushPendingListModelsRequest,
-  connectTimeoutMs: BACKEND_CONNECT_TIMEOUT_MS,
   reconnectIntervalMs: BACKEND_RECONNECT_INTERVAL_MS,
+  connectTimeoutMs: BACKEND_CONNECT_TIMEOUT_MS,
   idleDisconnectTimeoutMs: BACKEND_IDLE_DISCONNECT_TIMEOUT_MS,
+  onOpen: () => {
+    isConnected = true;
+    isFirstQuery = true;
+    resetSettingsSyncState();
+    setResponseOverlayPhase('idle', 'ws-open');
+    ipcEventReplayState.clear();
+    log('Successfully connected to Python backend through Windie SDK runtime.');
+    log(`Handshake sent with authenticated user_id: ${currentUserId}`);
+    broadcastConnectionStatus(true);
+    flushPendingListModelsRequest();
+  },
+  onClose: handleAgentBackendClose,
+  onError: ({ error }) => {
+    log(`WebSocket error: ${error?.message || error}`);
+  },
+  onHandshakeError: (error) => {
+    log(`Error sending handshake: ${error}`);
+  },
+  onMessageError: (error) => {
+    log(`Error parsing message from backend: ${error}`);
+  },
+  onSend: (type) => {
+    noteBackendTraffic(`send:${type}`);
+  },
+  onFallback: (endpointPayload = {}) => {
+    const candidates = backendEndpointState.getCandidates();
+    const fallbackIndex = candidates.findIndex(candidate => (
+      candidate.wsUrl === endpointPayload.wsUrl
+      || candidate.httpUrl === endpointPayload.httpBaseUrl
+      || candidate.httpUrl === endpointPayload.httpUrl
+    ));
+    if (fallbackIndex >= 0) {
+      setActiveBackendEndpoint(fallbackIndex);
+    } else {
+      advanceToNextBackendEndpoint();
+    }
+    log(`Primary backend unavailable. Falling back to ${backendEndpointState.getEndpoint().wsUrl}.`);
+  },
+  onRawBackendEvent: handleAgentBackendEvent,
+  onRows: (rows) => {
+    broadcastToRenderers('conversation-display-rows', rows);
+  },
+  onConversationEvent: (conversationEvent) => {
+    broadcastToRenderers('conversation-event', conversationEvent);
+  },
+  onCurrentTurn: (currentTurn) => {
+    broadcastToRenderers('conversation-runtime-updated', {
+      type: 'conversation-runtime-updated',
+      conversationRef: currentTurn.conversationRef,
+      turnRef: currentTurn.turnRef,
+      currentTurn,
+    });
+  },
+  onStatus: (status) => {
+    broadcastToRenderers('windie-status', status);
+  },
   log,
 });
-
-
-function getWindieSdkRuntime() {
-  return sdkRuntimeLifecycle.getRuntime();
-}
 
 function shutdownIpcForTests() {
   resetSettingsSyncState();
@@ -614,7 +735,7 @@ function shutdownIpcForTests() {
   setGlobalAgentStopShortcutAccelerator = null;
   pendingInstallAuthStatePromise = null;
   isConnected = false;
-  sdkRuntimeLifecycle.closeRuntime('test-shutdown');
+  windieAgentHost?.close('test-shutdown');
 
 }
 
@@ -776,9 +897,8 @@ function initializeIpc(win, options = {}) {
     ensureBackendConnection,
     ensureInitialSettingsSync,
     getPendingSettingsSyncPromise: () => settingsSyncRuntime.getPendingSettingsSyncPromise(),
-    sendSdkRuntimeCommand,
-    getWindieSdkRuntime,
-    sendStopQueryToBackend,
+    sendQueryToBackend,
+    stopQuery: sendStopQueryToBackend,
     setResponseOverlayPhase,
     resolvePreferredArtifactHttpUrl: () => resolvePreferredArtifactHttpUrl(
       backendEndpointState.getHttpUrl(),
@@ -822,34 +942,60 @@ function initializeIpc(win, options = {}) {
 
   registerSdkCommandForwardingHandler({
     ipcMain,
-    normalizeSdkRuntimeCommand,
-    shouldQueueUntilConnected,
-    shouldLogRendererSdkRuntimeCommand,
-    shouldConnectForSdkRuntimeCommand,
-    shouldSyncSettingsBeforeSdkRuntimeCommand,
     isBackendRuntimeConnected,
     queueListModelsRequest,
     ensureBackendConnection,
     ensureInitialSettingsSync,
     getPendingSettingsSyncPromise: () => settingsSyncRuntime.getPendingSettingsSyncPromise(),
     sendSettingsUpdate,
-    sendSdkRuntimeCommand,
-    getWindieSdkRuntime,
+    requestModelList: requestModelListFromBackend,
+    rehydrate: rehydrateBackendConversation,
+    compactHistory: compactBackendHistory,
+    wakewordDetected: sendWakewordDetectedToBackend,
     log,
   });
 
 }
 
-function sendStopQueryToBackend(payload = {}, messageId = null) {
-  return sendSdkRuntimeCommand(getWindieSdkRuntime(), {
-    type: 'stop-query',
-    payload,
-    messageId,
-  });
+async function sendQueryToBackend({ payload = {}, messageId = null } = {}) {
+  try {
+    const result = await windieAgentHost.run({
+      payload,
+      messageId,
+    });
+    return result?.queryMessageId || result?.turnRef || null;
+  } catch (error) {
+    log(`Failed to send query through WindieAgent: ${error?.message || error}`);
+    return null;
+  }
 }
 
-function triggerStopQueryFromMain() {
-  const messageId = sendStopQueryToBackend(
+async function sendStopQueryToBackend(payload = {}) {
+  return windieAgentHost.stop(payload);
+}
+
+async function updateSettingsOnBackend(payload = {}) {
+  return windieAgentHost.updateSettings(payload);
+}
+
+async function requestModelListFromBackend() {
+  return windieAgentHost.requestModelList();
+}
+
+async function rehydrateBackendConversation(payload = {}) {
+  return windieAgentHost.rehydrate(payload);
+}
+
+async function compactBackendHistory(payload = {}) {
+  return windieAgentHost.compactHistory(payload);
+}
+
+async function sendWakewordDetectedToBackend(payload = {}) {
+  return windieAgentHost.wakewordDetected(payload);
+}
+
+async function triggerStopQueryFromMain() {
+  const messageId = await sendStopQueryToBackend(
     currentConversationRef
       ? { conversation_ref: currentConversationRef }
       : {},
@@ -994,8 +1140,7 @@ const automatedQueryDispatcher = createAutomatedQueryDispatcher({
   attachAgentDefinitionContext: (payload) => buildBackendQueryPayload(
     attachAgentDefinitionContext(payload),
   ),
-  sendSdkRuntimeCommand,
-  getWindieSdkRuntime,
+  sendQueryToBackend,
   getState: () => ({
     currentUserId,
     isFirstQuery,

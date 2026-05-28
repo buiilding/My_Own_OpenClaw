@@ -22,8 +22,8 @@ function createIpcSettingsSyncRuntime({
   isConnected,
   isBackendRuntimeConnected,
   ensureBackendConnection,
-  getRuntime,
-  sendSdkRuntimeCommand,
+  requestModelList,
+  updateSettings,
   log = () => {},
   timeoutMs = 2500,
 } = {}) {
@@ -50,11 +50,8 @@ function createIpcSettingsSyncRuntime({
     if (!hasPendingListModelsRequest) {
       return;
     }
-    const msgId = sendSdkRuntimeCommand?.(getRuntime?.(), {
-      type: 'list-models',
-      payload: {},
-    });
-    if (msgId) {
+    const result = requestModelList?.();
+    if (result) {
       hasPendingListModelsRequest = false;
     }
   }
@@ -91,10 +88,7 @@ function createIpcSettingsSyncRuntime({
       }
     }
 
-    const msgId = sendSdkRuntimeCommand?.(getRuntime?.(), {
-      type: 'update-settings',
-      payload: backendConfig,
-    });
+    const msgId = await updateSettings?.(backendConfig);
     if (!msgId) {
       return Promise.resolve(false);
     }
@@ -163,8 +157,8 @@ function createSettingsSyncRuntime({
   loadCachedFrontendConfigFromDisk,
   isBackendRuntimeConnected,
   ensureBackendConnection,
-  sendSdkRuntimeCommand,
-  getWindieSdkRuntime,
+  requestModelList,
+  updateSettings,
   timeoutMs,
   log,
 } = {}) {
@@ -175,8 +169,8 @@ function createSettingsSyncRuntime({
     isConnected: getConnected,
     isBackendRuntimeConnected,
     ensureBackendConnection,
-    getRuntime: getWindieSdkRuntime,
-    sendSdkRuntimeCommand,
+    requestModelList,
+    updateSettings,
     timeoutMs,
     log,
   });
