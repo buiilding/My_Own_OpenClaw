@@ -113,6 +113,24 @@ class WindieAgent {
     async stop(conversationRef) {
         return this.session.stopQuery(conversationRef);
     }
+    async wakewordDetected(payload = {}) {
+        return this.session.wakewordDetected(payload);
+    }
+    async requestModelList() {
+        return this.session.listModels();
+    }
+    async rehydrateConversation(payload) {
+        return this.session.rehydrateConversation(payload);
+    }
+    async compactHistory(payload) {
+        return this.session.compactHistory(payload);
+    }
+    async ensureConnected() {
+        await this.session.waitForOpen();
+    }
+    isConnected() {
+        return this.session.isOpen();
+    }
     conversation(options = {}) {
         const conversationRef = options.conversationRef ?? `conv-${this.id}`;
         const runtime = new ConversationRuntime_js_1.SdkConversationRuntime({

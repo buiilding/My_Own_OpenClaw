@@ -10,6 +10,10 @@ All notable changes to WindieOS will be documented in this file.
   display-row/current-turn subscriptions, and SDK-owned local tool execution
   result projection as the replacement surface for Electron main's manual
   websocket/event wiring.
+- sdk: expand the desktop agent facade with connection, settings, model-list,
+  rehydrate, compact-history, wakeword, and local-status methods so desktop
+  hosts can call product-level SDK methods instead of Electron-specific command
+  router helpers.
 - frontend/chat: commit SDK current-turn assistant and error projections back
   into visible dashboard message history when turns complete, while leaving
   tool rows on the SDK display-row path.

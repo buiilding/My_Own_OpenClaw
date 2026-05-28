@@ -222,6 +222,10 @@ export class WindieAgentSession {
     await this.readyPromise;
   }
 
+  isOpen(): boolean {
+    return this.isReady;
+  }
+
   on<TEvent extends WindieAgentEventName>(
     event: TEvent,
     listener: WindieAgentListener<WindieAgentEventMap[TEvent]>,

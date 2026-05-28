@@ -169,6 +169,30 @@ export class WindieAgent {
     return this.session.stopQuery(conversationRef);
   }
 
+  async wakewordDetected(payload: JsonRecord = {}): Promise<string> {
+    return this.session.wakewordDetected(payload);
+  }
+
+  async requestModelList(): Promise<string> {
+    return this.session.listModels();
+  }
+
+  async rehydrateConversation(payload: JsonRecord): Promise<string> {
+    return this.session.rehydrateConversation(payload);
+  }
+
+  async compactHistory(payload: JsonRecord): Promise<string> {
+    return this.session.compactHistory(payload);
+  }
+
+  async ensureConnected(): Promise<void> {
+    await this.session.waitForOpen();
+  }
+
+  isConnected(): boolean {
+    return this.session.isOpen();
+  }
+
   conversation(options: {
     conversationRef?: string;
     revisionId?: string;

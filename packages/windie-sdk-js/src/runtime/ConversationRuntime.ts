@@ -10,8 +10,11 @@ import type {
   DisplayConversation,
   JsonRecord,
   LocalRuntime,
+  RehydratePayload,
   RehydrateSnapshot,
   SdkDisplayRow,
+  SettingsPayload,
+  WakewordPayload,
 } from '../conversation/types.js';
 import {
   buildCurrentTurnProjection,
@@ -426,6 +429,14 @@ export class SdkConversationRuntime {
     return snapshot;
   }
 
+  async rehydrateMessages(payload: RehydratePayload): Promise<void> {
+    await this.options.transport?.rehydrateConversation({
+      ...payload,
+      conversation_ref: payload.conversation_ref || this.options.conversationRef,
+      rehydrate_mode: 'replace',
+    });
+  }
+
   async compactHistory(input: CompactHistoryInput = {}): Promise<string | void> {
     const payload: CompactHistoryPayload = {
       ...(input.payload ?? {}),
@@ -433,6 +444,22 @@ export class SdkConversationRuntime {
       conversation_ref: this.options.conversationRef,
     };
     return this.options.transport?.compactHistory(payload);
+  }
+
+  async wakewordDetected(payload: WakewordPayload = {}): Promise<string | void> {
+    return this.options.transport?.wakewordDetected(payload);
+  }
+
+  async updateSettings(payload: SettingsPayload): Promise<string | void> {
+    return this.options.transport?.updateSettings(payload);
+  }
+
+  async requestModelList(): Promise<string | void> {
+    return this.options.transport?.listModels();
+  }
+
+  async ensureConnected(): Promise<void> {
+    await this.options.transport?.connect();
   }
 
   async setModel(selection: WindieModelSelection): Promise<string | void> {

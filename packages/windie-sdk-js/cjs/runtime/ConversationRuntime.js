@@ -298,6 +298,13 @@ class SdkConversationRuntime {
         });
         return snapshot;
     }
+    async rehydrateMessages(payload) {
+        await this.options.transport?.rehydrateConversation({
+            ...payload,
+            conversation_ref: payload.conversation_ref || this.options.conversationRef,
+            rehydrate_mode: 'replace',
+        });
+    }
     async compactHistory(input = {}) {
         const payload = {
             ...(input.payload ?? {}),
@@ -305,6 +312,18 @@ class SdkConversationRuntime {
             conversation_ref: this.options.conversationRef,
         };
         return this.options.transport?.compactHistory(payload);
+    }
+    async wakewordDetected(payload = {}) {
+        return this.options.transport?.wakewordDetected(payload);
+    }
+    async updateSettings(payload) {
+        return this.options.transport?.updateSettings(payload);
+    }
+    async requestModelList() {
+        return this.options.transport?.listModels();
+    }
+    async ensureConnected() {
+        await this.options.transport?.connect();
     }
     async setModel(selection) {
         if (!this.options.transport) {

@@ -147,6 +147,9 @@ class WindieAgentSession {
     async waitForOpen() {
         await this.readyPromise;
     }
+    isOpen() {
+        return this.isReady;
+    }
     on(event, listener) {
         const bucket = this.listeners.get(event) ?? new Set();
         bucket.add(listener);

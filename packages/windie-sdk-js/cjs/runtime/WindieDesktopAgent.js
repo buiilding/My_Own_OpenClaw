@@ -136,6 +136,59 @@ class WindieDesktopAgent {
     async load() {
         return this.options.runtime.load();
     }
+    async ensureConnected() {
+        if (this.options.agent?.ensureConnected) {
+            await this.options.agent.ensureConnected();
+            return;
+        }
+        await this.options.runtime.ensureConnected();
+    }
+    isConnected() {
+        return this.options.agent?.isConnected?.() ?? false;
+    }
+    async updateSettings(payload) {
+        if (this.options.agent?.updateSettings) {
+            return this.options.agent.updateSettings(payload);
+        }
+        return this.options.runtime.updateSettings(payload);
+    }
+    async listModels() {
+        if (!this.options.agent?.listModels) {
+            throw new Error('WindieDesktopAgent.listModels requires a started WindieAgent');
+        }
+        return this.options.agent.listModels();
+    }
+    async requestModelList() {
+        if (this.options.agent?.requestModelList) {
+            return this.options.agent.requestModelList();
+        }
+        return this.options.runtime.requestModelList();
+    }
+    async rehydrate(payload) {
+        if (payload) {
+            await this.options.runtime.rehydrateMessages(payload);
+            return undefined;
+        }
+        return this.options.runtime.rehydrate();
+    }
+    async rehydrateMessages(payload) {
+        await this.options.runtime.rehydrateMessages(payload);
+    }
+    async compactHistory(input = {}) {
+        return this.options.runtime.compactHistory({
+            force: input.force,
+            payload: input,
+        });
+    }
+    async wakewordDetected(payload = {}) {
+        if (this.options.agent?.wakewordDetected) {
+            return this.options.agent.wakewordDetected(payload);
+        }
+        return this.options.runtime.wakewordDetected(payload);
+    }
+    async localStatus() {
+        return this.options.agent?.status ? this.options.agent.status() : null;
+    }
     close() {
         if (this.closed) {
             return;

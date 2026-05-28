@@ -68,13 +68,15 @@ Local runtime facts must not unlock backend capabilities. In particular, coordin
 
 There are two SDK consumption levels. External clients use the high-level
 `WindieClient.wakeUp(...)` surface because it hides agent definition,
-websocket/session, local-runtime, and store details. The built-in Electron
-desktop is a first-party SDK host: it may use lower-level SDK runtime modules
-such as `ManagedBackendSession`, typed backend sends, `ToolExecutionCoordinator`,
-and conversation-runtime factories through desktop runtime facades. Electron
-must not reimplement SDK behavior separately, and Electron-only adapters such
-as the sidecar-backed conversation store and desktop backend transport stay
-behind SDK interfaces like `ConversationStore` and `BackendTransport`.
+websocket/session, local-runtime, and store details. Desktop-style clients use
+`WindieAgent.startDesktop(...)` when they want one SDK object to start local
+runtime tools, send user intent, emit display rows/status, execute local tool
+calls, return tool results, and expose desktop controls such as settings sync,
+model-list requests, rehydrate, compaction, wakeword, and stop. The built-in
+Electron desktop is a first-party SDK host, not a separate agent runtime.
+Electron-specific adapters such as the sidecar-backed conversation store may
+implement SDK interfaces like `ConversationStore` and `BackendTransport`, but
+Electron must not reimplement SDK behavior separately.
 
 ## Public API
 

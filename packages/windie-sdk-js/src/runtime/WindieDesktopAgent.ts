@@ -1,9 +1,15 @@
 import type {
+  CompactHistoryPayload,
   ConversationEvent,
   ConversationStore,
   CurrentTurnProjection,
+  JsonRecord,
+  RehydratePayload,
   SdkDisplayRow,
+  SettingsPayload,
+  WakewordPayload,
 } from '../conversation/types.js';
+import type { SdkModelsResponse } from '../transport/HostedBackendHttpClient.js';
 import { InMemoryConversationStore } from '../stores/InMemoryConversationStore.js';
 import { buildDisplayRows } from '../projections/conversationProjections.js';
 import type {
@@ -43,7 +49,20 @@ export type WindieDesktopAgentStartOptions = WindieClientOptions & Omit<WindieWa
 };
 
 export type WindieDesktopAgentOptions = {
-  agent?: Pick<WindieAgent, 'sleep' | 'shutdownLocalRuntime'> | null;
+  agent?: Pick<
+    WindieAgent,
+    | 'compactHistory'
+    | 'ensureConnected'
+    | 'isConnected'
+    | 'listModels'
+    | 'requestModelList'
+    | 'rehydrateConversation'
+    | 'shutdownLocalRuntime'
+    | 'sleep'
+    | 'status'
+    | 'updateSettings'
+    | 'wakewordDetected'
+  > | null;
   runtime: SdkConversationRuntime;
   conversationRef: string;
   workspacePath?: string | null;
@@ -207,6 +226,69 @@ export class WindieDesktopAgent {
 
   async load(): Promise<ConversationSnapshot> {
     return this.options.runtime.load();
+  }
+
+  async ensureConnected(): Promise<void> {
+    if (this.options.agent?.ensureConnected) {
+      await this.options.agent.ensureConnected();
+      return;
+    }
+    await this.options.runtime.ensureConnected();
+  }
+
+  isConnected(): boolean {
+    return this.options.agent?.isConnected?.() ?? false;
+  }
+
+  async updateSettings(payload: SettingsPayload): Promise<string | void> {
+    if (this.options.agent?.updateSettings) {
+      return this.options.agent.updateSettings(payload);
+    }
+    return this.options.runtime.updateSettings(payload);
+  }
+
+  async listModels(): Promise<SdkModelsResponse> {
+    if (!this.options.agent?.listModels) {
+      throw new Error('WindieDesktopAgent.listModels requires a started WindieAgent');
+    }
+    return this.options.agent.listModels();
+  }
+
+  async requestModelList(): Promise<string | void> {
+    if (this.options.agent?.requestModelList) {
+      return this.options.agent.requestModelList();
+    }
+    return this.options.runtime.requestModelList();
+  }
+
+  async rehydrate(payload?: RehydratePayload): Promise<ConversationSnapshot['rehydrate'] | void> {
+    if (payload) {
+      await this.options.runtime.rehydrateMessages(payload);
+      return undefined;
+    }
+    return this.options.runtime.rehydrate();
+  }
+
+  async rehydrateMessages(payload: RehydratePayload): Promise<void> {
+    await this.options.runtime.rehydrateMessages(payload);
+  }
+
+  async compactHistory(input: CompactHistoryPayload = {}): Promise<string | void> {
+    return this.options.runtime.compactHistory({
+      force: input.force,
+      payload: input,
+    });
+  }
+
+  async wakewordDetected(payload: WakewordPayload = {}): Promise<string | void> {
+    if (this.options.agent?.wakewordDetected) {
+      return this.options.agent.wakewordDetected(payload);
+    }
+    return this.options.runtime.wakewordDetected(payload);
+  }
+
+  async localStatus(): Promise<JsonRecord | null> {
+    return this.options.agent?.status ? this.options.agent.status() : null;
   }
 
   close(): void {
