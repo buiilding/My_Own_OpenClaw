@@ -53,6 +53,7 @@ const { persistMemoryStoreEvent } = require('./ipc/ipc_memory_store_persistence.
 const { buildQueryPayloadContext } = require('./query_payload_builder.cjs');
 const {
   resolveConversationRef: resolveConversationRefFromPayload,
+  buildLocalUserMessage,
   buildQueryInterrupted,
   buildQuerySendFailure,
 } = require('./ipc/ipc_query_events.cjs');
@@ -941,6 +942,12 @@ function initializeIpc(win, options = {}) {
       uuidGenerator: uuidv4,
       logChatPillMainTrace,
       setResponseOverlayPhase,
+      buildConversationEventFromBackendEvent,
+      buildLocalUserMessage,
+      resolvePreferredArtifactHttpUrl: () => resolvePreferredArtifactHttpUrl(
+        backendEndpointState.getHttpUrl(),
+        backendEndpointState.getCandidates(),
+      ),
       getWindows,
       setActiveDisplayAffinity,
       resolveActiveSurfaceDisplayAffinity,

@@ -1429,6 +1429,109 @@ describe('useChatStream state + stream handling', () => {
     );
   });
 
+  test('accepts next-turn awaiting SDK projection before local user event reaches overlay renderer', () => {
+    const { emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
+
+    act(() => {
+      useChatStore.setState({
+        messages: [
+          {
+            id: 'user-old',
+            text: 'hello',
+            sender: 'user',
+            turnRef: 'turn-old',
+          },
+          {
+            id: 'assistant-old',
+            text: 'old final answer',
+            sender: 'assistant',
+            type: 'llm-text',
+            isComplete: true,
+            turnRef: 'turn-old',
+          },
+        ],
+        isSending: false,
+        currentTurnProjection: {
+          conversationRef: 'conv-test',
+          turnRef: 'turn-old',
+          phase: 'complete',
+          assistantText: 'old final answer',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+        },
+        streamTracking: {
+          activeTurnRef: 'turn-old',
+          phase: 'complete',
+          startedAt: '2026-03-05T00:00:00.000Z',
+          firstChunkAt: '2026-03-05T00:00:01.000Z',
+          completedAt: '2026-03-05T00:00:03.000Z',
+          lastEventAt: '2026-03-05T00:00:03.000Z',
+          lastEventType: 'streaming-complete',
+          eventCount: 3,
+          chunkCount: 1,
+          toolCallCount: 0,
+          toolOutputCount: 0,
+          lastChunkSize: 14,
+          lastError: null,
+        },
+      });
+
+      emitConversationRuntimeUpdated({
+        conversationRef: 'conv-test',
+        currentTurn: {
+          conversationRef: 'conv-test',
+          turnRef: 'turn-new',
+          phase: 'awaiting',
+          assistantText: '',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+        },
+      });
+    });
+
+    let state = useChatStore.getState();
+    expect(state.currentTurnProjection).toEqual(expect.objectContaining({
+      turnRef: 'turn-new',
+      phase: 'awaiting',
+    }));
+    expect(state.isSending).toBe(true);
+    expect(state.streamTracking).toEqual(expect.objectContaining({
+      activeTurnRef: 'turn-new',
+      phase: 'awaiting-first-chunk',
+      lastEventType: 'query-accepted',
+    }));
+
+    act(() => {
+      emitConversationRuntimeUpdated({
+        conversationRef: 'conv-test',
+        currentTurn: {
+          conversationRef: 'conv-test',
+          turnRef: 'turn-new',
+          phase: 'streaming',
+          assistantText: 'new answer',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+        },
+      });
+    });
+
+    state = useChatStore.getState();
+    expect(state.isSending).toBe(false);
+    expect(state.currentTurnProjection).toEqual(expect.objectContaining({
+      turnRef: 'turn-new',
+      phase: 'streaming',
+      assistantText: 'new answer',
+    }));
+    expect(state.streamTracking).toEqual(expect.objectContaining({
+      activeTurnRef: 'turn-new',
+      phase: 'streaming',
+      lastEventType: 'streaming-response',
+    }));
+  });
+
   test('ignores benign settings update errors', () => {
     const { emitBackendEvent } = registerBackendListener();
     act(() => {

@@ -59,6 +59,10 @@ function isSkipFrontendExecutionToolEvent(toolEvent: CurrentTurnToolEvent): bool
   return metadata?.skip_frontend_execution === true;
 }
 
+function shouldAcceptCurrentTurnBeforeLocalSend(currentTurn: SdkCurrentTurnProjection): boolean {
+  return currentTurn.phase === 'awaiting';
+}
+
 export function useConversationRuntimeProjectionStream(): void {
   const projectionCursorsRef = useRef(new Map<string, ProjectionCursor>());
   const setCurrentTurnProjection = useChatStore((state) => state.setCurrentTurnProjection);
@@ -85,11 +89,14 @@ export function useConversationRuntimeProjectionStream(): void {
         ? payloadRecord.conversationRef
         : currentTurn.conversationRef;
 
-      if (shouldIgnoreConversationEventForStaleTurn({
-        turnRef: currentTurn.turnRef,
-      }, conversationRef, {
-        getWorkspaceState: useChatStore.getState().getWorkspaceState,
-      })) {
+      if (
+        !shouldAcceptCurrentTurnBeforeLocalSend(currentTurn)
+        && shouldIgnoreConversationEventForStaleTurn({
+          turnRef: currentTurn.turnRef,
+        }, conversationRef, {
+          getWorkspaceState: useChatStore.getState().getWorkspaceState,
+        })
+      ) {
         return;
       }
 
@@ -117,6 +124,22 @@ export function useConversationRuntimeProjectionStream(): void {
         reasoningText,
         previousCursor.reasoningLength,
       );
+
+      if (currentTurn.phase === 'awaiting' && previousCursor.phase !== 'awaiting') {
+        setIsSending(true, conversationRef);
+        setThinkingStatus(null, conversationRef);
+        setThinkingSourceEventType(null, conversationRef);
+        recordTrackingEventRuntime(
+          updateStreamTracking,
+          'query-accepted',
+          currentTurn.turnRef,
+          {
+            phase: 'awaiting-first-chunk',
+            resetForTurn: true,
+          },
+          conversationRef,
+        );
+      }
 
       if (reasoningDelta) {
         const workspace = useChatStore.getState().getWorkspaceState(conversationRef);

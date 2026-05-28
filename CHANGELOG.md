@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: broadcast accepted local user sends to every renderer before
+  query context assembly and let SDK `awaiting` current-turn projections reopen
+  terminal turn state so the minimal pill/response overlay shows typing again
+  on consecutive sends.
 - sdk/runtime: emit live current-turn projections from in-memory SDK events
   before sidecar transcript persistence completes so dashboard, response
   overlay, and minimal chat pill can leave awaiting/typing state as soon as
