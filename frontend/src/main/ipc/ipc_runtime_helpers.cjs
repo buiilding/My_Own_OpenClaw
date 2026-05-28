@@ -7,6 +7,9 @@ const {
 const {
   filterBackendPayload,
 } = require('./ipc_backend_payload_contract.cjs');
+const {
+  traceAssistantBackendEvent,
+} = require('./ipc_assistant_trace.cjs');
 
 function isDebugStreamTraceEnabled() {
   return process.env.WINDIE_DEBUG_STREAM_EVENTS === '1';
@@ -200,6 +203,7 @@ function processBackendMessageData(data, {
   if (isDebugStreamTraceEnabled()) {
     log(`[StreamTrace][main][recv] ${buildBackendEventTraceSummary(data)}`);
   }
+  traceAssistantBackendEvent(data, { log });
   if (data && typeof data === 'object') {
     if (data.session_id) {
       setCurrentSessionId(data.session_id);

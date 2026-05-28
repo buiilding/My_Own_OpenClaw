@@ -62,6 +62,9 @@ const {
   uploadArtifact,
 } = require('./ipc/ipc_runtime_helpers.cjs');
 const {
+  createCurrentTurnTraceLogger,
+} = require('./ipc/ipc_assistant_trace.cjs');
+const {
   buildBackendQueryPayload,
   buildQueryPayload,
   prepareAutomatedQueryPayload,
@@ -164,6 +167,7 @@ let windieAgent = null;
 let pendingWindieAgentStartPromise = null;
 let detachWindieAgentListeners = [];
 let latestCurrentTurnProjection = null;
+const currentTurnTraceLogger = createCurrentTurnTraceLogger({ log });
 const responseOverlayPhaseState = createResponseOverlayPhaseState();
 const ipcEventReplayState = createIpcEventReplayState();
 const settingsSyncRuntime = createIpcSettingsSyncRuntime({
@@ -397,6 +401,7 @@ function resetBackendSessionState() {
   currentServerUserId = null;
   currentConversationRef = null;
   latestCurrentTurnProjection = null;
+  currentTurnTraceLogger.reset();
 }
 
 function resetIpcProcessStateForTests() {
@@ -413,6 +418,7 @@ function resetIpcProcessStateForTests() {
   currentGlobalAgentStopShortcutStatus = null;
   pendingInstallAuthStatePromise = null;
   latestCurrentTurnProjection = null;
+  currentTurnTraceLogger.reset();
 }
 
 function normalizeOptionalString(value) {
@@ -453,6 +459,7 @@ function attachWindieAgentListeners(agent) {
     }),
     agent.onCurrentTurn((currentTurn) => {
       latestCurrentTurnProjection = currentTurn || null;
+      currentTurnTraceLogger.trace(currentTurn);
       broadcastToRenderers('windie:current-turn', currentTurn);
     }),
     agent.onStatus((status) => {

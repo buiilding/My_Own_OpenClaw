@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/ipc: add default assistant runtime trace logs for backend assistant
+  event receipt and SDK current-turn progress/completion so desktop dev logs
+  show when assistant responses start, advance, and finish.
 - frontend/chat: derive dashboard and minimal chat pill busy/typing/stop state
   from SDK current-turn projection before renderer stream tracking, and replay
   the latest `windie:current-turn` to newly tracked renderer windows so stale
