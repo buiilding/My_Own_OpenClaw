@@ -100,6 +100,11 @@ allowed to lag behind a streamed chunk, but it must not block the active
 assistant text, phase, tool events, or completion state used by dashboard,
 response overlay, and minimal chat pill surfaces.
 
+Renderer surfaces must not fall back from `currentTurn` to renderer
+`streamTracking` or `response-overlay-phase` for active turn state.
+`streamTracking` remains telemetry/transcript bookkeeping, and
+`response-overlay-phase` remains an Electron window/layout signal only.
+
 ## Store Rule
 
 Stores expose first-class projection loaders, but they should stay dumb:

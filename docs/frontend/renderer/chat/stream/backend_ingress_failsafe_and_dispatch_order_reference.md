@@ -86,13 +86,14 @@ When transcript sync is disabled:
 
 Listener flow:
 
-1. receive `ON_CHANNELS.FROM_BACKEND`
+1. receive SDK-normalized `windie:conversation-event`
 2. call `handleBackendStreamIngress(...)` with store and handler callbacks
-3. app runtime validates, resolves, normalizes, traces, and runs ingress bookkeeping
+3. app runtime validates, resolves, traces, and runs ingress bookkeeping
 4. ingress callback dispatches the SDK-normalized conversation event for the
-   resolved backend event
+   resolved conversation/turn
 
-This keeps listener-level pre-dispatch behavior deterministic and shared across all backend event types while keeping backend event contracts out of chat hook modules.
+This keeps listener-level pre-dispatch behavior deterministic while keeping raw
+backend event contracts out of chat hook modules.
 
 ## Test-Backed Invariants
 

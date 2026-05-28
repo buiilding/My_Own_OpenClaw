@@ -23,7 +23,6 @@ describe('chatSelectors', () => {
       compactionDebugInfo: null,
       tokenCounts: { total_tokens: 42 },
       streamTracking: state.streamTracking,
-      streamPhase: 'streaming',
       currentTurnProjection: null,
     });
   });
@@ -43,7 +42,6 @@ describe('chatSelectors', () => {
       isSending: false,
       thinkingStatus: null,
       thinkingSourceEventType: null,
-      streamTracking: state.streamTracking,
       currentTurnProjection: null,
     });
   });
@@ -168,7 +166,6 @@ describe('chatSelectors', () => {
       thinkingSourceEventType: null,
       compactionDebugInfo: null,
       tokenCounts: null,
-      streamPhase: 'idle',
       currentTurnProjection: null,
     }));
     expect(selected.streamTracking).toEqual(expect.objectContaining({

@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useChatStore } from '../stores/chatStore';
-import { useResponseOverlayPhase } from '../hooks/useResponseOverlayPhase';
 import { useResponseOverlayViewModel } from '../hooks/useResponseOverlayViewModel';
 import { useResponseOverlayWindowSync } from '../hooks/useResponseOverlayWindowSync';
 import { useResponseOverlayScrollState } from '../hooks/useResponseOverlayScrollState';
@@ -44,7 +43,6 @@ function ChatBoxResponse() {
     thinkingStatus,
     currentTurnProjection,
   } = useChatStore(useShallow(selectChatBoxState));
-  const overlayPhase = useResponseOverlayPhase();
   const shellRef = useRef(null);
   const {
     responseOverlayEntries,
@@ -62,10 +60,7 @@ function ChatBoxResponse() {
     isVisible,
     turnId: currentTurnId,
   } = useResponseOverlayViewModel({
-    messages,
-    isSending,
     thinkingStatus,
-    overlayPhase,
     currentTurnProjection,
   });
   const {
@@ -88,7 +83,7 @@ function ChatBoxResponse() {
 
   useEffect(() => {
     logRendererResponseSurfaceTrace({
-      overlayPhase,
+      overlayPhase: currentTurnProjection?.phase || 'idle',
       isSending,
       messageCount: messages.length,
       activeResponseTextLength: typeof latestSourceTaggedResponseEntry?.text === 'string'
@@ -105,19 +100,19 @@ function ChatBoxResponse() {
       source: 'renderer-response-surface',
       action: 'render',
       turn_id: currentTurnId,
-      phase: overlayPhase,
+      phase: currentTurnProjection?.phase || 'idle',
       response_layout_mode: overlayLayoutMode,
       show_response: showResponse,
       show_awaiting_reply: showAwaitingReply,
     });
   }, [
     currentTurnId,
+    currentTurnProjection?.phase,
     isSending,
     latestResponseOverlayEntryId,
     latestSourceTaggedResponseEntry?.text,
     latestSourceTaggedResponseEntry?.type,
     messages.length,
-    overlayPhase,
     responseOverlayEntries.length,
     showAwaitingReply,
     showResponse,

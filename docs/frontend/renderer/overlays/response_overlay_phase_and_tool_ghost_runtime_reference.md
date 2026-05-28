@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for response overlay renderer behavior: phase-driven visibility, awaiting vs response states, closeability rules, and deterministic fixed-frame sizing IPC updates."
+summary: "Deep reference for response overlay renderer behavior: SDK current-turn visibility, awaiting vs response states, closeability rules, and deterministic fixed-frame sizing IPC updates."
 read_when:
   - When changing `ChatBoxResponse.jsx` rendering logic, overlay utility contracts, or response overlay UX states.
   - When debugging missing response panes, stale awaiting indicators, or incorrect response overlay resize behavior.
@@ -19,9 +19,8 @@ title: "Response Overlay Phase Runtime Reference"
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/utils/chatPill/chatPillSessionFlow.ts`
 - `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
+- `frontend/src/renderer/features/chat/utils/state/liveTurnSurfaceState.js`
 - `frontend/src/renderer/features/chat/utils/chatSelectors.js`
-- `frontend/src/renderer/features/chat/hooks/useResponseOverlayPhase.js`
-- `frontend/src/renderer/features/chat/utils/overlay/overlayPhaseListener.js`
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhaseContract.js`
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhasePayload.js`
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayLayoutMode.js`
@@ -30,8 +29,7 @@ title: "Response Overlay Phase Runtime Reference"
 - `frontend/src/renderer/features/chat/utils/chatStream/chatStreamDebugTrace.ts`
 - `frontend/src/renderer/infrastructure/markdown.ts`
 - `tests/frontend/ChatBoxResponse.state.test.jsx`
-- `tests/frontend/OverlayPhaseListener.test.js`
-- `tests/frontend/UseResponseOverlayPhase.test.jsx`
+- `tests/frontend/LiveTurnSurfaceState.test.js`
 - `tests/frontend/OverlayFrameSize.test.js`
 
 ## Input State and Message Selection
@@ -64,15 +62,16 @@ Closeability:
 - `error` rows are closeable immediately.
 - `llm-text` rows are closeable only when `isComplete === true`.
 
-## Phase-Driven View Modes
+## SDK-Driven View Modes
 
-Overlay phase channel: `response-overlay-phase`.
+SDK current-turn channel: `windie:current-turn`.
 
 Payload normalization boundary:
 
 - `responseOverlayPhasePayload.parseResponseOverlayPhasePayload(...)` is the canonical parser for phase + recovery metadata (`correlation_id`, `attempt`, `max_attempts`, `recovery_stage`, `failure_reason`).
-- `overlayPhaseListener` forwards only parsed payloads; invalid phase strings are dropped.
-- `useResponseOverlayPhase` consumes overlay phase via `useSyncExternalStore` against `overlayPhaseListener` snapshot/store subscription helpers, removing component-local `useEffect` wiring for this external event source.
+- React chat surfaces do not subscribe to `response-overlay-phase` for runtime
+  state. The main-process phase channel remains for native window/layout
+  policy and diagnostics.
 
 Modes:
 
@@ -91,8 +90,8 @@ Contract ownership:
 - renderer owns only presentation mapping from `currentTurn` into compact overlay
   rows; it must not execute tools, write transcripts, or reinterpret backend
   stream semantics for the overlay.
-- renderer raw backend stream handlers are fallback/history side-effect paths.
-  When the SDK projection for the same turn exists, they suppress duplicate live
+- renderer raw backend stream handlers are transcript/history side-effect paths.
+  They must not suppress, replace, or duplicate live
   assistant/tool row construction and commit the projected turn into message
   history on terminal events.
 - `resolveResponseOverlayViewContract(...)` is the canonical pure helper for:

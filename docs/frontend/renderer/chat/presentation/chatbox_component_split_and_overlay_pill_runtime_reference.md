@@ -45,8 +45,9 @@ Current-turn presentation ownership moved to shared chat hooks/state:
 for SDK current-turn busy state, stop availability, speech mode toggles,
 query-screenshot toggles, wakeword-STT enablement, and manual compaction
 dispatch. It resolves live-turn state from SDK `currentTurnProjection` first,
-then renderer stream tracking, then the send latch. `response-overlay-phase`
-is a window/layout hint and must not be used as chat runtime truth.
+with only the local send latch covering the pre-SDK-open gap.
+`response-overlay-phase` is a window/layout hint and must not be used as chat
+runtime truth.
 `ChatBox.jsx` and `ChatInterface.jsx` should keep layout, focus, window,
 workspace, and model-menu behavior local to their surfaces. The dashboard may
 opt into active-turn manual compaction; the minimal pill keeps manual
@@ -57,7 +58,10 @@ compaction behind its loop lock.
 ### Send and Loop Locking
 
 - uses `useChatMessageSender(undefined, { senderSurface: "overlay-chatbox" })`
-- derives loop lock via `useChatSurfaceController({ currentTurnProjection, streamTracking, isSending, messages })`
+- derives loop lock via
+  `useChatSurfaceController({ currentTurnProjection, isSending, messages })`
+- `currentTurnProjection` is the only active agent-turn source; `isSending` is
+  only the local submit latch before the SDK turn opens
 - loop lock disables:
   - dashboard-open button
   - screenshot capture button
@@ -105,8 +109,9 @@ Main-process chat window height now tracks the compact-vs-preview visual-anchor 
 
 ### Response Selection and Visibility
 
+- response overlay entries are built from SDK `currentTurnProjection`
 - candidate response types are restricted to `llm-text` and `error`
-- latest assistant response is selected only from messages after the latest user message
+- latest assistant response is selected from the projected current-turn messages
   through `useCurrentTurnPresentationState(...)`
 - dismissed response ids are tracked in `closedResponseId`
 
@@ -117,10 +122,12 @@ Closeability:
 
 ### Awaiting vs Response Surface
 
-- phase input from `useResponseOverlayPhase()`
+- phase input comes from SDK `currentTurnProjection.phase`
 - surface state is derived through `useCurrentTurnPresentationState(...)`
 - `ChatBoxResponse.jsx` now delegates current-turn/view-intent composition to `useResponseOverlayViewModel(...)`, response-window sizing IPC to `useResponseOverlayWindowSync(...)`, and fixed-height transcript scroll behavior to `useResponseOverlayScrollState(...)`
 - awaiting indicator and response pill are mutually controlled by that state projection
+- `response-overlay-phase` is not a runtime truth source for typing, response
+  content, closeability, or stop/busy state
 
 ### Response Render and Formatting
 

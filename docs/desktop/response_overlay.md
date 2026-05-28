@@ -1,8 +1,8 @@
 ---
-summary: "Response overlay guide covering phase state, streamed output, awaiting shell, tool ghost preview, close behavior, and window synchronization."
+summary: "Response overlay guide covering SDK current-turn display, awaiting shell, tool ghost preview, close behavior, and window synchronization."
 read_when:
-  - When changing response overlay rendering, phase transitions, tool ghost previews, or close/visibility policy.
-  - When debugging overlay phase desynchronization.
+  - When changing response overlay rendering, SDK current-turn projection, tool ghost previews, or close/visibility policy.
+  - When debugging dashboard/pill/response overlay state drift.
 title: "Response Overlay"
 ---
 
@@ -14,26 +14,23 @@ The response overlay displays live assistant output and transient tool/progress 
 
 - Renderer app: `frontend/src/renderer/app/ChatBoxResponseApp.jsx`
 - Component: `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
-- Phase hook: `frontend/src/renderer/features/chat/hooks/useResponseOverlayPhase.js`
 - View model: `frontend/src/renderer/features/chat/hooks/useResponseOverlayViewModel.js`
 - Window sync: `frontend/src/renderer/features/chat/hooks/useResponseOverlayWindowSync.js`
 - Scroll state: `frontend/src/renderer/features/chat/hooks/useResponseOverlayScrollState.js`
 - Phase contracts: `frontend/src/shared/response_overlay_phase_contract.json`, `frontend/src/renderer/features/chat/utils/overlay/*`
 - Main handler: `frontend/src/main/response_overlay_phase_handler.cjs`
 
-## Phase Model
+## Runtime Model
 
-Important phases include:
+The renderer displays SDK `currentTurnProjection`:
 
-- `awaiting-first-chunk`
-- `streaming`
-- `tool-call`
-- `tool-output`
-- `complete`
-- `error`
-- `idle`
+- `phase` decides awaiting/streaming/tool/terminal presentation
+- `assistantText` and `toolEvents` decide response content
+- `reasoningText` decides thinking copy
 
-The renderer should derive display from phase plus current messages, not from ad hoc timers. Main process phase updates control overlay visibility and content protection.
+Main process phase updates still control native window visibility,
+click-through/focusability, and content protection. They do not decide renderer
+typing state, response content, closeability, or stop/busy state.
 
 ## Tool Ghost
 

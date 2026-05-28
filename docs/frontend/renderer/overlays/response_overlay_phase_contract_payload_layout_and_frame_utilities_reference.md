@@ -1,5 +1,5 @@
 ---
-summary: "Deep reference for renderer response-overlay utility modules: shared phase-contract JSON parity, payload normalization rules, external-store listener integration, layout-mode resolution, and frame-size measurement semantics."
+summary: "Deep reference for renderer response-overlay utility modules: shared phase-contract JSON parity, payload normalization rules, layout-mode resolution, and frame-size measurement semantics."
 read_when:
   - When changing files under `frontend/src/renderer/features/chat/utils/overlay/*`.
   - When debugging overlay phase payload drops, renderer/main phase-contract drift, or response overlay sizing regressions.
@@ -17,16 +17,12 @@ title: "Response Overlay Utility Contract Reference"
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayLayoutContract.js`
 - `frontend/src/renderer/features/chat/utils/overlay/overlayTurnLifecycleContract.js`
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhasePayload.js`
-- `frontend/src/renderer/features/chat/utils/overlay/overlayPhaseListener.js`
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayLayoutMode.js`
 - `frontend/src/renderer/features/chat/utils/overlay/overlayFrameSize.js`
-- `frontend/src/renderer/features/chat/hooks/useResponseOverlayPhase.js`
 - `frontend/src/main/ipc/ipc_overlay_phase_contract.cjs`
 - `tests/frontend/ResponseOverlayPhaseContract.test.js`
 - `tests/frontend/OverlayPhaseContractParity.test.js`
 - `tests/frontend/ResponseOverlayPhasePayload.test.js`
-- `tests/frontend/OverlayPhaseListener.test.js`
-- `tests/frontend/UseResponseOverlayPhase.test.jsx`
 - `tests/frontend/ResponseOverlayLayoutMode.test.js`
 - `tests/frontend/OverlayFrameSize.test.js`
 
@@ -60,22 +56,11 @@ Main-process parity:
   - numeric fields (`attempt`, `max_attempts`) -> finite number or `undefined`
 5. return normalized payload object or `null`
 
-Result: listener/hook subscribers only observe validated phase transitions.
-
-## Listener + Hook Integration Contract
-
-`overlayPhaseListener.js` owns:
-
-- phase snapshot state (`currentOverlayPhase`, initialized to `idle`)
-- lazy IPC listener lifecycle
-- store subscriber set for `useSyncExternalStore`
-
-Important behavior:
-
-- invalid payloads from IPC are ignored (no snapshot mutation, no notification)
-- when last subscriber unsubscribes, listener cleanup resets snapshot back to `idle`
-
-`useResponseOverlayPhase()` exposes this state via `useSyncExternalStore`, so both `ChatBox` and `ChatBoxResponse` share one transport subscription surface.
+Result: renderer utilities can validate phase payload shape for parity, but
+React chat surfaces do not subscribe to phase IPC for active runtime state.
+Dashboard, minimal pill, and response overlay render from SDK
+`currentTurnProjection`; main-process overlay phase remains a native
+window/layout signal.
 
 ## Turn Lifecycle Contract
 
@@ -102,7 +87,9 @@ Important behavior:
 
 Purpose:
 
-- keep `useCurrentTurnPresentationState`, `ChatBox`, `ChatInterface`, and `ChatBoxResponse` on one shared turn-lifecycle contract instead of each reducing `phase + isSending` independently
+- keep `useCurrentTurnPresentationState`, `ChatBox`, `ChatInterface`, and
+  `ChatBoxResponse` on one shared turn-lifecycle contract derived from SDK
+  current-turn projection instead of each reducing overlay phase independently
 
 ## Layout-Mode Resolver Contract
 

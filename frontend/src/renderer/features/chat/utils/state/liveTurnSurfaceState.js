@@ -75,8 +75,6 @@ function shouldUseSendLatchOverTerminalProjection({
 
 export function resolveLiveTurnPresentationInput({
   currentTurnProjection = null,
-  streamTracking = null,
-  phase = null,
   isSending = false,
   messages = [],
 } = {}) {
@@ -100,9 +98,17 @@ export function resolveLiveTurnPresentationInput({
     };
   }
 
+  if (isSending === true) {
+    return {
+      phase: RESPONSE_OVERLAY_PHASE.AWAITING_FIRST_CHUNK,
+      isSending: true,
+      source: 'send-latch',
+    };
+  }
+
   return {
-    phase: normalizePhase(streamTracking?.phase) || normalizePhase(phase) || RESPONSE_OVERLAY_PHASE.IDLE,
-    isSending: isSending === true,
-    source: 'fallback',
+    phase: RESPONSE_OVERLAY_PHASE.IDLE,
+    isSending: false,
+    source: 'idle',
   };
 }

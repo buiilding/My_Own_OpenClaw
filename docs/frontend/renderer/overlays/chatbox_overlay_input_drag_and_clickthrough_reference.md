@@ -16,15 +16,13 @@ title: "Chatbox Overlay Input, Drag, and Click-Through Reference"
 - `frontend/src/renderer/features/chat/components/chatbox/ChatBoxIcons.jsx`
 - `frontend/src/renderer/features/chat/components/chatbox/ChatBoxImagePreviewRow.jsx`
 - `frontend/src/renderer/features/chat/components/chatbox/chatBoxPreviewRemoval.js`
-- `frontend/src/renderer/features/chat/hooks/useResponseOverlayPhase.js`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/policies/messageSendUiPolicy.ts`
 - `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/utils/clipboardImageUtils.js`
-- `frontend/src/renderer/features/chat/utils/overlay/overlayPhaseListener.js`
 - `frontend/src/renderer/features/chat/utils/state/stopQueryState.js`
-- `frontend/src/renderer/features/chat/utils/state/streamPhaseState.js`
+- `frontend/src/renderer/features/chat/utils/state/liveTurnSurfaceState.js`
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/infrastructure/ipc/channels.ts`
 
@@ -47,7 +45,8 @@ This keeps overlay window lightweight:
 `ChatBox` calls:
 
 - `useChatMessageSender(undefined, { senderSurface: "overlay-chatbox" })`
-- `useResponseOverlayPhase()` so the overlay chat pill reads one shared main-process phase channel instead of carrying duplicated local phase listeners in each component.
+- `useChatSurfaceController(...)`, which derives loop lock from SDK
+  `currentTurnProjection` plus the local pre-SDK send latch.
 
 `useChatBoxBindings` encapsulates chatbox runtime effect bindings:
 
@@ -209,13 +208,13 @@ Loop watchdog behavior:
 
 `loop-active` CSS class is enabled when `useChatLoopUiState(...).isBusy` reports an active loop:
 
-- `isSending === true` before the first phase event lands
-- active overlay phases: `awaiting-first-chunk`, `streaming`, `tool-call`, `tool-output`
+- SDK `currentTurnProjection.phase` is active
+- `isSending === true` before the SDK current-turn projection opens
 
 ## Related Tests
 
 - `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`
-- `tests/frontend/OverlayPhaseListener.test.js`
+- `tests/frontend/LiveTurnSurfaceState.test.js`
 
 `ChatBoxOverlayMouseIgnore` now includes explicit anti-regression coverage for:
 

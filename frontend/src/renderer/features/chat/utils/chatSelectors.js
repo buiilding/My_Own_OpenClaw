@@ -10,7 +10,6 @@ export function selectChatInterfaceState(state) {
     compactionDebugInfo: activeWorkspace.compactionDebugInfo,
     tokenCounts: activeWorkspace.tokenCounts,
     streamTracking: activeWorkspace.streamTracking,
-    streamPhase: activeWorkspace.streamTracking?.phase ?? 'idle',
     currentTurnProjection: activeWorkspace.currentTurnProjection,
   };
 }
@@ -22,7 +21,6 @@ export function selectChatBoxState(state) {
     isSending: activeWorkspace.isSending,
     thinkingStatus: activeWorkspace.thinkingStatus,
     thinkingSourceEventType: activeWorkspace.thinkingSourceEventType,
-    streamTracking: activeWorkspace.streamTracking,
     currentTurnProjection: activeWorkspace.currentTurnProjection,
   };
 }

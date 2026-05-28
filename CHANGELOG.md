@@ -10,11 +10,15 @@ All notable changes to WindieOS will be documented in this file.
   before sidecar transcript persistence completes so dashboard, response
   overlay, and minimal chat pill can leave awaiting/typing state as soon as
   backend assistant chunks or completion arrive.
+- frontend/chat: remove renderer stream-tracking and response-overlay-phase
+  fallbacks from dashboard, minimal pill, and response overlay runtime state so
+  busy/typing/stop/response content derive from SDK current-turn projection
+  only, apart from the local pre-SDK send latch.
 - frontend/ipc: add default assistant runtime trace logs for backend assistant
   event receipt and SDK current-turn progress/completion so desktop dev logs
   show when assistant responses start, advance, and finish.
 - frontend/chat: derive dashboard and minimal chat pill busy/typing/stop state
-  from SDK current-turn projection before renderer stream tracking, and replay
+  from SDK current-turn projection instead of overlay phase, and replay
   the latest `windie:current-turn` to newly tracked renderer windows so stale
   overlay window phase cannot keep the pill in a typing state after completion.
 - backend/sdk/sidecar: simplify local tool-result transport around raw

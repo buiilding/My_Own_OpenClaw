@@ -15,10 +15,8 @@ function applyBooleanConfigUpdate(updateConfig, key, nextValue) {
 }
 
 export function useChatSurfaceController({
-  phase,
   isSending,
   messages,
-  streamTracking = null,
   currentTurnProjection = null,
   allowedTypes,
   sessionInfo,
@@ -30,8 +28,6 @@ export function useChatSurfaceController({
   const { config, updateConfig } = useAppConfigContext();
   const liveTurnPresentationInput = resolveLiveTurnPresentationInput({
     currentTurnProjection,
-    streamTracking,
-    phase,
     isSending,
     messages,
   });

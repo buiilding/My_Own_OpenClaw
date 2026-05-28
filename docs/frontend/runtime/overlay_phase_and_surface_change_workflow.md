@@ -32,9 +32,8 @@ component that happens to render the symptom.
   pill or response overlay; they rely on content protection during active phases.
 - macOS and Windows content protection must be disabled again for idle,
   `complete`, and `error`.
-- Minimal chat pill awaiting state must survive transient `idle` during
-  cross-window timing, then clear on `streaming`, `complete`, `error`, or visible
-  response content.
+- Minimal chat pill awaiting state comes from SDK `currentTurnProjection`;
+  overlay phase must not decide typing, busy, stop, or response content state.
 - Avoid focus-recovery hacks in renderer chat-pill code. If focus changes are
   needed, route them through Electron main/window policy.
 
@@ -43,10 +42,10 @@ component that happens to render the symptom.
 | Change or symptom | Primary owner files | Tests to inspect or add |
 | --- | --- | --- |
 | Add, remove, or rename an overlay phase | `frontend/src/shared/response_overlay_phase_contract.json`, `frontend/src/main/ipc/ipc_overlay_phase_contract.cjs`, `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhaseContract.js` | `tests/frontend/OverlayPhaseContractParity.test.js`, `tests/frontend/IpcOverlayPhaseContract.test.cjs`, `tests/frontend/ResponseOverlayPhaseContract.test.js` |
-| Phase event is ignored, malformed, or loses metadata | `frontend/src/main/ipc/ipc_overlay_phase_state.cjs`, `frontend/src/main/ipc/ipc_overlay_phase_events.cjs`, `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhasePayload.js`, `frontend/src/renderer/features/chat/utils/overlay/overlayPhaseListener.js` | `tests/frontend/IpcOverlayPhaseState.test.cjs`, `tests/frontend/IpcOverlayPhaseEvents.test.cjs`, `tests/frontend/ResponseOverlayPhasePayload.test.js`, `tests/frontend/OverlayPhaseListener.test.js` |
+| Phase event is ignored, malformed, or loses metadata | `frontend/src/main/ipc/ipc_overlay_phase_state.cjs`, `frontend/src/main/ipc/ipc_overlay_phase_events.cjs`, `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhasePayload.js` | `tests/frontend/IpcOverlayPhaseState.test.cjs`, `tests/frontend/IpcOverlayPhaseEvents.test.cjs`, `tests/frontend/ResponseOverlayPhasePayload.test.js` |
 | Response overlay window shows/hides at wrong time | `frontend/src/main/response_overlay_phase_handler.cjs`, `frontend/src/main/response_overlay_visibility_policy.cjs`, `frontend/src/main/overlay_responsebox_handler.cjs` | `tests/frontend/ResponseOverlayPhaseHandler.test.cjs`, `tests/frontend/ResponseOverlayVisibilityPolicy.test.cjs`, `tests/frontend/OverlayResponseboxHandler.test.cjs` |
 | Chat pill click-through or focusability is wrong | `frontend/src/main/response_overlay_phase_handler.cjs`, `frontend/src/main/overlay_chatbox_handler.cjs`, `frontend/src/main/surface_runtime.cjs`, `frontend/src/renderer/features/chat/components/ChatBox.jsx` | `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`, `tests/frontend/OverlayChatboxHandler.test.cjs`, `tests/frontend/SurfaceRuntime.test.cjs` |
-| Awaiting indicator flickers or sticks | `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`, `frontend/src/renderer/features/chat/hooks/useResponseOverlayViewModel.js`, `frontend/src/renderer/features/chat/utils/overlay/responseOverlayLayoutMode.js`, `frontend/src/renderer/features/chat/utils/state/streamPhaseState.js` | `tests/frontend/ChatBoxResponse.state.test.jsx`, `tests/frontend/ResponseOverlayLayoutMode.test.js`, `tests/frontend/StreamPhaseState.test.js` |
+| Awaiting indicator flickers or sticks | `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`, `frontend/src/renderer/features/chat/hooks/useResponseOverlayViewModel.js`, `frontend/src/renderer/features/chat/utils/state/liveTurnSurfaceState.js`, `frontend/src/renderer/features/chat/utils/overlay/responseOverlayLayoutMode.js` | `tests/frontend/WindieSdkDesktopAgent.test.ts`, `tests/frontend/ChatBoxResponse.state.test.jsx`, `tests/frontend/LiveTurnSurfaceState.test.js`, `tests/frontend/ResponseOverlayLayoutMode.test.js` |
 | Screenshot captures WindieOS UI or hides surfaces on the wrong OS | `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`, `frontend/src/main/local_backend_bridge_window_visibility.cjs`, `frontend/src/main/platform/screenshot_window_visibility/*`, `frontend/src/main/platform/content_protection/*`, renderer capture services for user-initiated attachments | `tests/frontend/LocalBackendBridgeExtensionRuntime.test.cjs`, `tests/frontend/SurfaceOrchestratorCaptureLifecycle.test.ts`, platform policy tests |
 | Tool execution handoff leaves dashboard/pill in wrong state | `frontend/src/main/main_window_runtime.cjs`, `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`, `frontend/src/main/window_visibility_runtime.cjs`, `frontend/src/main/overlay_visibility_handler.cjs`, `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts` | `tests/frontend/LocalBackendBridgeExtensionRuntime.test.cjs`, `tests/frontend/OverlayVisibilityHandler.test.cjs`, `tests/frontend/ResponseOverlayPhaseHandler.test.cjs`, `tests/frontend/WindieSdkDesktopAgent.test.ts` |
 | Window bounds, frame size, or drag anchor jumps | `frontend/src/main/overlay_bounds.cjs`, `frontend/src/main/overlay_chatbox_visual_anchor_handler.cjs`, `frontend/src/renderer/features/chat/utils/overlay/overlayFrameSize.js`, `frontend/src/renderer/features/chat/utils/chatbox/chatboxPillLayout.js` | `tests/frontend/OverlayBounds.test.cjs`, `tests/frontend/OverlayFrameSize.test.js`, `tests/frontend/ChatBoxPillLayout.test.js` |
@@ -62,12 +61,12 @@ sequenceDiagram
     participant Renderer as Overlay renderer
 
     Producer->>MainState: setResponseOverlayPhase(phase, source, metadata)
-    MainState->>Renderer: response-overlay-phase IPC
+    MainState->>Renderer: response-overlay-phase IPC for diagnostics/layout only
     MainState->>MainHandler: onPhaseChange(payload)
     MainHandler->>Windows: click-through + focusable policy
     MainHandler->>Windows: content protection policy
     MainHandler->>Windows: response overlay visibility mode
-    Renderer->>Renderer: parse phase payload and derive layout
+    Renderer->>Renderer: render from SDK currentTurnProjection
 ```
 
 ## Change Sequence
@@ -153,19 +152,17 @@ Read these files before changing what the user sees:
 - `frontend/src/renderer/app/ChatBoxResponseApp.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
-- `frontend/src/renderer/features/chat/hooks/useResponseOverlayPhase.js`
 - `frontend/src/renderer/features/chat/hooks/useResponseOverlayViewModel.js`
 - `frontend/src/renderer/features/chat/hooks/useResponseOverlayWindowSync.js`
+- `frontend/src/renderer/features/chat/utils/state/liveTurnSurfaceState.js`
 - `frontend/src/renderer/features/chat/utils/overlay/*`
 - `frontend/src/renderer/styles/ChatBox.css`
 - `frontend/src/renderer/styles/ChatBoxResponseOverlay.css`
 
 Renderer rules:
 
-- Parse phase IPC through `parseResponseOverlayPhasePayload(...)` and
-  `overlayPhaseListener.js`.
-- Derive visible layout from phase plus current message state. Do not add timers
-  that compete with stream state.
+- Derive visible layout from SDK `currentTurnProjection`. Do not add timers or
+  renderer phase listeners that compete with SDK current-turn state.
 - Keep `awaiting-typing` and `response` frame sizes stable. Avoid per-token
   resize churn.
 - Keep awaiting-to-response transitions non-animated in the minimal pill loop.
@@ -223,7 +220,6 @@ Phase contract or payload change:
 - `cd frontend && npm run test -- OverlayPhaseContractParity`
 - `cd frontend && npm run test -- IpcOverlayPhaseContract`
 - `cd frontend && npm run test -- ResponseOverlayPhasePayload`
-- `cd frontend && npm run test -- OverlayPhaseListener`
 
 Main-process phase/window policy change:
 

@@ -17,7 +17,7 @@ title: "Overlay and Wakeword Control Channel Reference"
 - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
 - `frontend/src/renderer/app/providers/AppConfigProvider.jsx`
-- `frontend/src/renderer/features/chat/utils/overlay/overlayPhaseListener.js`
+- `frontend/src/renderer/features/chat/hooks/useResponseOverlayWindowSync.js`
 
 ## Channel Set
 
@@ -28,7 +28,9 @@ Primary main->renderer control channels:
 - `response-overlay-visibility`
 - `chatbox-focus`
 
-All are allowlisted in preload and exposed via renderer `IpcBridge.on(...)`.
+All are allowlisted in preload. `response-overlay-phase` is now a
+main-process/native-window signal; renderer chat surfaces use SDK
+`currentTurnProjection` for typing, response content, busy, and stop state.
 
 ## Wakeword Toggle Contract
 

@@ -10,8 +10,6 @@ describe('liveTurnSurfaceState', () => {
         conversationRef: 'conv-1',
         turnRef: 'turn-1',
       },
-      streamTracking: { phase: 'tool-output' },
-      phase: 'tool-output',
       isSending: false,
     });
 
@@ -29,7 +27,6 @@ describe('liveTurnSurfaceState', () => {
         conversationRef: 'conv-1',
         turnRef: 'turn-1',
       },
-      streamTracking: { phase: 'complete' },
       isSending: true,
       messages: [
         { id: 'user-1', sender: 'user', text: 'first', turnRef: 'turn-1' },
@@ -45,18 +42,31 @@ describe('liveTurnSurfaceState', () => {
     });
   });
 
-  test('falls back to stream tracking before direct phase', () => {
+  test('uses only the local send latch when SDK current turn is not open yet', () => {
+    const state = resolveLiveTurnPresentationInput({
+      currentTurnProjection: null,
+      isSending: true,
+    });
+
+    expect(state).toEqual({
+      phase: 'awaiting-first-chunk',
+      isSending: true,
+      source: 'send-latch',
+    });
+  });
+
+  test('ignores legacy stream phase inputs when SDK current turn is absent', () => {
     const state = resolveLiveTurnPresentationInput({
       currentTurnProjection: null,
       streamTracking: { phase: 'streaming' },
-      phase: 'idle',
+      phase: 'tool-call',
       isSending: false,
     });
 
     expect(state).toEqual({
-      phase: 'streaming',
+      phase: 'idle',
       isSending: false,
-      source: 'fallback',
+      source: 'idle',
     });
   });
 });

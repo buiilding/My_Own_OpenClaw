@@ -128,7 +128,8 @@ Inspect:
 - `frontend/src/main/response_overlay_phase_handler.cjs`
 - `frontend/src/main/surface_runtime.cjs`
 - `frontend/src/main/window_visibility_runtime.cjs`
-- `frontend/src/renderer/features/chat/hooks/useResponseOverlayPhase.js`
+- `frontend/src/renderer/features/chat/hooks/useResponseOverlayViewModel.js`
+- `frontend/src/renderer/features/chat/utils/state/liveTurnSurfaceState.js`
 - `frontend/src/renderer/features/chat/hooks/useResponseOverlayViewModel.js`
 - `frontend/src/renderer/features/chat/components/ChatBox.jsx`
 - `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
@@ -142,7 +143,7 @@ Docs:
 Validate:
 
 ```bash
-cd frontend && npm run test:ci -- OverlayPhaseContractParity.test.js ResponseOverlayPhaseContract.test.js UseResponseOverlayPhase.test.jsx ChatBoxPillLayout.test.js SurfaceOrchestratorPhases.test.ts
+cd frontend && npm run test:ci -- OverlayPhaseContractParity.test.js ResponseOverlayPhaseContract.test.js ChatBoxResponse.state.test.jsx LiveTurnSurfaceState.test.js ChatBoxPillLayout.test.js SurfaceOrchestratorPhases.test.ts
 ```
 
 ## Permissions Gate Does Not Match OS State

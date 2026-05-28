@@ -32,10 +32,18 @@ function renderController({
     </AppConfigContext.Provider>
   );
 
-  const hook = renderHook(() => useChatSurfaceController({
-    phase: 'streaming',
+    const hook = renderHook(() => useChatSurfaceController({
     isSending: false,
     messages: [{ id: 'user-1', type: 'user', sender: 'user', text: 'hello' }],
+    currentTurnProjection: {
+      phase: 'streaming',
+      conversationRef: 'conv-1',
+      turnRef: 'turn-1',
+      assistantText: '',
+      reasoningText: null,
+      toolEvents: [],
+      lastError: null,
+    },
     sessionInfo: {
       conversationRef: 'conv-1',
       userId: 'user-1',
@@ -80,7 +88,7 @@ describe('useChatSurfaceController', () => {
     expect(result.current.currentTurnPresentationState.awaitingDotTargetMessageId).toBe('assistant-1');
     expect(mockCurrentTurnPresentationState).toHaveBeenCalledWith(expect.objectContaining({
       phase: 'streaming',
-      isSending: false,
+      isSending: true,
     }));
   });
 

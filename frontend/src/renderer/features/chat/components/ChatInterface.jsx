@@ -71,8 +71,6 @@ function ChatInterface({ focusComposerToken = 0 }) {
     thinkingStatus,
     thinkingSourceEventType,
     compactionDebugInfo,
-    streamTracking,
-    streamPhase,
     currentTurnProjection,
   } = useChatStore(
     useShallow(selectChatInterfaceState),
@@ -200,10 +198,8 @@ function ChatInterface({ focusComposerToken = 0 }) {
 
   const showToolLogs = config?.show_tool_logs === true;
   const chatSurface = useChatSurfaceController({
-    phase: streamPhase,
     isSending,
     messages,
-    streamTracking,
     currentTurnProjection,
     allowedTypes: VISIBLE_ASSISTANT_REPLY_TYPE_SET,
     sessionInfo,

@@ -32,19 +32,142 @@ jest.mock('../../frontend/src/renderer/infrastructure/markdown', () => {
 import ChatBoxResponse from '../../frontend/src/renderer/features/chat/components/ChatBoxResponse';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 
+const originalSetChatStoreState = useChatStore.setState.bind(useChatStore);
+
+useChatStore.setState = (partial, replace) => {
+  if (
+    partial
+    && typeof partial === 'object'
+    && !Array.isArray(partial)
+    && Array.isArray(partial.messages)
+    && !Object.prototype.hasOwnProperty.call(partial, 'currentTurnProjection')
+  ) {
+    const currentPhase = useChatStore.getState()?.currentTurnProjection?.phase || null;
+    return originalSetChatStoreState({
+      ...partial,
+      currentTurnProjection: partial.messages.length > 0
+        ? buildCurrentTurnProjection(partial.messages, currentPhase)
+        : null,
+    }, replace);
+  }
+  return originalSetChatStoreState(partial, replace);
+};
+
+function normalizeProjectionPhase(phase, messages) {
+  if (phase === 'awaiting-first-chunk') {
+    return 'awaiting';
+  }
+  if (phase === 'tool-call') {
+    return 'tool_call';
+  }
+  if (phase === 'tool-output') {
+    return 'tool_output';
+  }
+  if (phase === 'streaming' || phase === 'complete' || phase === 'error' || phase === 'idle') {
+    return phase;
+  }
+  const latestAssistant = [...messages].reverse().find((message) => message?.sender === 'assistant');
+  if (!latestAssistant) {
+    return messages.length > 0 ? 'awaiting' : 'idle';
+  }
+  if (latestAssistant.type === 'error') {
+    return 'error';
+  }
+  if (latestAssistant.type === 'tool-output') {
+    return 'tool_output';
+  }
+  if (latestAssistant.type === 'tool-call' || latestAssistant.type === 'tool-explanation') {
+    return 'tool_call';
+  }
+  return latestAssistant.isComplete === true ? 'complete' : 'streaming';
+}
+
+function buildToolEventsFromMessages(messages) {
+  return messages
+    .filter((message) => message?.sender === 'assistant')
+    .map((message, index) => {
+      if (message.type === 'tool-output') {
+        return {
+          id: message.id || `tool-output-${index}`,
+          kind: 'tool_output',
+          toolName: message.toolName || 'tool',
+          status: message.status || 'success',
+          text: message.text || '',
+          payload: {
+            output: message.text || '',
+          },
+        };
+      }
+      if (message.type === 'search-source') {
+        return {
+          id: message.id || `tool-progress-${index}`,
+          kind: 'tool_progress',
+          toolName: message.toolName || 'web_search',
+          status: message.status || 'success',
+          text: message.text || '',
+          payload: {},
+        };
+      }
+      if (message.type === 'tool-call' || message.type === 'tool-explanation') {
+        const modelFacingArgs = message.modelFacingToolCall?.arguments;
+        const toolCallArgs = message.toolCallDetails?.parameters;
+        const args = modelFacingArgs || toolCallArgs || {
+          explanation: message.text || '',
+        };
+        return {
+          id: message.id || `tool-call-${index}`,
+          kind: 'tool_call',
+          toolName: message.modelFacingToolCall?.name || message.toolCallDetails?.tool_name || message.toolName || 'tool',
+          text: message.text || '',
+          payload: {
+            toolName: message.modelFacingToolCall?.name || message.toolCallDetails?.tool_name || message.toolName || 'tool',
+            args,
+            metadata: {
+              model_facing_tool_call: message.modelFacingToolCall || {
+                name: message.toolCallDetails?.tool_name || message.toolName || 'tool',
+                arguments: args,
+              },
+            },
+          },
+        };
+      }
+      return null;
+    })
+    .filter(Boolean);
+}
+
+function buildCurrentTurnProjection(messages, phase = null) {
+  const assistantMessages = messages.filter((message) => message?.sender === 'assistant');
+  const latestTextMessage = [...assistantMessages].reverse().find((message) => (
+    message.type === 'llm-text' || (!message.type && typeof message.text === 'string')
+  ));
+  const latestError = [...assistantMessages].reverse().find((message) => message.type === 'error');
+  return {
+    conversationRef: 'conv-test',
+    turnRef: 'turn-test',
+    phase: normalizeProjectionPhase(phase, messages),
+    assistantText: latestTextMessage?.text || '',
+    reasoningText: latestTextMessage?.thinkingText || null,
+    toolEvents: buildToolEventsFromMessages(messages),
+    lastError: latestError?.text || null,
+  };
+}
+
 export function setChatState(messages) {
   useChatStore.setState({
     messages,
     isSending: false,
     thinkingStatus: null,
+    currentTurnProjection: messages.length > 0 ? buildCurrentTurnProjection(messages) : null,
   });
 }
 
 export function emitOverlayPhase(phase) {
-  const onPhase = mockListeners.get('response-overlay-phase');
-  expect(onPhase).toEqual(expect.any(Function));
   act(() => {
-    onPhase({ phase });
+    const state = useChatStore.getState();
+    useChatStore.setState({
+      currentTurnProjection: buildCurrentTurnProjection(state.messages || [], phase),
+    });
   });
 }
 

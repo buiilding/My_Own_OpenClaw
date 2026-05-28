@@ -49,7 +49,7 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 | Renderer runtime call | `renderer/app/runtime/desktopLiveTurnRuntimeClient.ts` |
 | Main relay and gating | `main/ipc.cjs`, `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts` |
 | Backend websocket send | SDK managed backend session -> backend `/ws` |
-| Stream event return | backend `/ws` -> `main/ipc.cjs` -> renderer `ON_CHANNELS.FROM_BACKEND` |
+| Stream event return | backend `/ws` -> SDK desktop agent -> renderer `windie:conversation-event` + `windie:current-turn` |
 | Renderer stream integration | `renderer/features/chat/hooks/useChatStream.ts` + `chatStore.ts` |
 
 ### Tool Execution Path

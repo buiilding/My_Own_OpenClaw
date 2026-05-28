@@ -86,6 +86,24 @@ const mockChatState = {
   setActiveConversationRef: (...args) => mockSetChatActiveConversationRef(...args),
 };
 
+function setMockCurrentTurnProjection(phase, overrides = {}) {
+  const normalizedPhase = {
+    'awaiting-first-chunk': 'awaiting',
+    'tool-call': 'tool_call',
+    'tool-output': 'tool_output',
+  }[phase] || phase;
+  mockChatState.currentTurnProjection = {
+    conversationRef: 'conv_existing',
+    turnRef: 'turn_test',
+    phase: normalizedPhase,
+    assistantText: '',
+    reasoningText: null,
+    toolEvents: [],
+    lastError: null,
+    ...overrides,
+  };
+}
+
 jest.mock('../../frontend/src/renderer/features/chat/hooks/useChatMessageSender', () => ({
   useChatMessageSender: (...args) => mockUseChatMessageSender(...args),
 }));
@@ -1192,6 +1210,7 @@ describe('ChatInterface wiring', () => {
 
   test('stop response handler sends stop-query while stream is active', () => {
     mockChatState.streamTracking.phase = 'streaming';
+    setMockCurrentTurnProjection('streaming');
 
     render(<ChatInterface />);
 
@@ -1206,6 +1225,7 @@ describe('ChatInterface wiring', () => {
 
   test('stop shortcut sends stop-query while stream is active', () => {
     mockChatState.streamTracking.phase = 'streaming';
+    setMockCurrentTurnProjection('streaming');
 
     render(<ChatInterface />);
 
@@ -1262,6 +1282,14 @@ describe('ChatInterface wiring', () => {
   test('keeps composer in stop state during tool loop even when isSending is false', () => {
     mockChatState.streamTracking.phase = 'tool-call';
     mockChatState.isSending = false;
+    setMockCurrentTurnProjection('tool-call', {
+      toolEvents: [{
+        id: 'tool-call-1',
+        kind: 'tool_call',
+        toolName: 'run_shell_command',
+        text: 'run_shell_command',
+      }],
+    });
     mockChatState.messages = [
       { id: 'user-1', sender: 'user', text: 'build a dashboard' },
       { id: 'assistant-1', sender: 'assistant', text: '{"tool":"run_shell_command"}', type: 'tool-call' },
@@ -1279,12 +1307,16 @@ describe('ChatInterface wiring', () => {
       { id: 'user-1', sender: 'user', text: 'hello', type: 'user' },
     ];
     mockChatState.streamTracking.phase = 'awaiting-first-chunk';
+    setMockCurrentTurnProjection('awaiting-first-chunk');
     const { rerender } = render(<ChatInterface />);
 
     let lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
     expect(lastMessageListProps.awaitingDotTargetMessageId).toBe('user-1');
 
     mockChatState.streamTracking.phase = 'streaming';
+    setMockCurrentTurnProjection('streaming', {
+      assistantText: 'first chunk',
+    });
     mockChatState.messages = [
       { id: 'user-1', sender: 'user', text: 'hello', type: 'user' },
       { id: 'assistant-1', sender: 'assistant', text: 'first chunk', type: 'llm-text' },
@@ -1346,6 +1378,7 @@ describe('ChatInterface wiring', () => {
     ];
     mockChatState.streamTracking.phase = 'streaming';
     mockChatState.isSending = false;
+    setMockCurrentTurnProjection('streaming');
 
     render(<ChatInterface />);
 

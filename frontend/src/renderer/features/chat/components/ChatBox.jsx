@@ -37,7 +37,6 @@ function ChatBox() {
   const closeBumpHeight = getChatboxCloseBumpHeight();
   const messages = useChatStore((state) => state.messages);
   const isSending = useChatStore((state) => state.isSending);
-  const streamTracking = useChatStore((state) => state.streamTracking);
   const currentTurnProjection = useChatStore((state) => state.currentTurnProjection);
   const sessionInfo = useRendererConversationSessionInfo();
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
@@ -58,7 +57,6 @@ function ChatBox() {
   const chatSurface = useChatSurfaceController({
     isSending,
     messages,
-    streamTracking,
     currentTurnProjection,
     sessionInfo,
     setThinkingStatus,

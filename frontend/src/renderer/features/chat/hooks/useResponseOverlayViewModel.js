@@ -19,10 +19,7 @@ import {
 import { resolveChatPillViewIntent } from '../utils/chatPill/chatPillSessionFlow';
 
 export function useResponseOverlayViewModel({
-  messages,
-  isSending,
   thinkingStatus,
-  overlayPhase,
   currentTurnProjection = null,
 }) {
   const [closedResponseId, setClosedResponseId] = useState(null);
@@ -31,14 +28,10 @@ export function useResponseOverlayViewModel({
     () => buildCurrentTurnMessagesFromProjection(currentTurnProjection),
     [currentTurnProjection],
   );
-  const usesCurrentTurnProjection = projectionMessages.length > 0;
-  const currentTurnMessages = usesCurrentTurnProjection ? projectionMessages : messages;
-  const currentTurnPhase = usesCurrentTurnProjection
-    ? (mapCurrentTurnProjectionPhase(currentTurnProjection?.phase) || RESPONSE_OVERLAY_PHASE.IDLE)
-    : overlayPhase;
-  const currentTurnIsSending = usesCurrentTurnProjection
-    ? isCurrentTurnProjectionBusy(currentTurnProjection?.phase)
-    : isSending;
+  const currentTurnMessages = projectionMessages;
+  const currentTurnPhase = mapCurrentTurnProjectionPhase(currentTurnProjection?.phase)
+    || RESPONSE_OVERLAY_PHASE.IDLE;
+  const currentTurnIsSending = isCurrentTurnProjectionBusy(currentTurnProjection?.phase);
 
   const currentTurnPresentationState = useCurrentTurnPresentationState({
     phase: currentTurnPhase,
@@ -121,11 +114,9 @@ export function useResponseOverlayViewModel({
 
   const thinkingText = useMemo(
     () => normalizeThinkingText(
-      usesCurrentTurnProjection
-        ? (currentTurnProjection?.reasoningText ?? thinkingStatus)
-        : thinkingStatus,
+      currentTurnProjection?.reasoningText ?? thinkingStatus,
     ),
-    [currentTurnProjection?.reasoningText, thinkingStatus, usesCurrentTurnProjection],
+    [currentTurnProjection?.reasoningText, thinkingStatus],
   );
 
   const sourceTagForResponse = useMemo(() => {
@@ -137,10 +128,10 @@ export function useResponseOverlayViewModel({
   }, [latestSourceTaggedResponseEntry, viewIntent.showResponse]);
 
   useEffect(() => {
-    if (overlayPhase === RESPONSE_OVERLAY_PHASE.AWAITING_FIRST_CHUNK) {
+    if (currentTurnPhase === RESPONSE_OVERLAY_PHASE.AWAITING_FIRST_CHUNK) {
       setClosedResponseId(null);
     }
-  }, [overlayPhase]);
+  }, [currentTurnPhase, currentTurnProjection?.turnRef]);
 
   const handleCloseResponse = useCallback(() => {
     if (!viewIntent.latestResponseOverlayEntryId || !responseIsCloseable) {
