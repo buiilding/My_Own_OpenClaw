@@ -9,6 +9,9 @@ All notable changes to WindieOS will be documented in this file.
 - backend/sdk/sidecar: simplify local tool-result transport around raw
   `data.output`, remove SDK/sidecar-owned model-output duplication, and keep
   tool-output truncation in the backend history projection path.
+- backend/tools: stop echoing local SDK/sidecar `tool-result` ingress back to
+  clients as `tool-output`, keeping backend `tool-output` events reserved for
+  backend-owned remote tool execution.
 - tests/sdk: add a scenario-style conversation runtime test that sends a real
   turn, routes a local tool call/output, observes compaction, performs
   edit/resend, and verifies display and rehydrate tool call/output pairs stay

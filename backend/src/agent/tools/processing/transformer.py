@@ -23,7 +23,7 @@ from typing import Any, Dict, Optional
 
 from backend.src.core.interfaces.tool import ToolResult
 from backend.src.agent.tools.processing.tool_output_projection import (
-    canonicalize_tool_result_for_model,
+    truncate_tool_output_for_model,
 )
 
 logger = logging.getLogger(__name__)
@@ -92,24 +92,24 @@ class ResultTransformer:
         Side Effects: None (pure function contract)
         """
         transform_start = time.perf_counter()
-        canonical_result = canonicalize_tool_result_for_model(
-            replace(
-                tool_result,
-                data=(
-                    dict(tool_result.data)
-                    if isinstance(tool_result.data, dict)
-                    else tool_result.data
-                ),
+        raw_result = replace(
+            tool_result,
+            data=(
+                dict(tool_result.data)
+                if isinstance(tool_result.data, dict)
+                else tool_result.data
             ),
-            model_id=model_id,
         )
-        artifacts = dict(canonical_result.artifacts or {})
+        artifacts = dict(raw_result.artifacts or {})
 
         # Extract screenshot data (helper method to avoid nested checks)
-        screenshot_data = self._extract_screenshot_data(canonical_result, artifacts)
+        screenshot_data = self._extract_screenshot_data(raw_result, artifacts)
 
-        # 2. Get backend-canonical model-facing message for history.
-        formatted_message = canonical_result.format_for_history(tool_name=tool_name)
+        # 2. Get bounded raw tool output for model history.
+        formatted_message = truncate_tool_output_for_model(
+            raw_result,
+            model_id=model_id,
+        )
 
         transform_time = time.perf_counter() - transform_start
         logger.info(
@@ -119,12 +119,12 @@ class ResultTransformer:
             tool_name=tool_name,
             formatted_message=formatted_message,
             screenshot_data=screenshot_data,
-            success=canonical_result.success,
-            error=canonical_result.error or "",
+            success=raw_result.success,
+            error=raw_result.error or "",
             artifacts=artifacts,
             compaction_facts=self._extract_compaction_facts(
                 tool_name=tool_name,
-                tool_result=canonical_result,
+                tool_result=raw_result,
                 artifacts=artifacts,
             ),
         )

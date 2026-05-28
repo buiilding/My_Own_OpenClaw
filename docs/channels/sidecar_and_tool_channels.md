@@ -79,7 +79,11 @@ Read next:
 
 ## Tool Result Return Path
 
-After sidecar execution, the SDK desktop agent returns results to the backend using the normal `/ws` tool-result path. The renderer receives SDK display rows for chat/transcript/overlay state. It does not execute backend tool events.
+After sidecar execution, the SDK desktop agent returns results to the backend
+using the normal `/ws` tool-result path. The renderer receives SDK display rows
+for chat/transcript/overlay state from that local execution path. Backend
+ingests local results for model/history continuation only; it does not echo
+local `tool-result` messages back to the UI as `tool-output` events.
 
 The desktop `ChatProvider` is a display consumer. Backend tool-call execution
 belongs to the SDK desktop agent and sidecar daemon.
@@ -90,7 +94,10 @@ Result path rules:
 - use `tool-bundle-result` for bundled/atomic tool execution.
 - preserve request ids and tool-call ids expected by backend waiting/history code.
 - preserve screenshot/artifact refs when tool output includes images.
-- normalize local failures into model-visible tool outputs rather than silently dropping the call.
+- preserve raw `data.output` for local tool results; backend may truncate that
+  raw output for model history but must not rewrite it into display/model
+  duplicate fields.
+- normalize local failures into raw output/error payloads rather than silently dropping the call.
 
 Read next:
 

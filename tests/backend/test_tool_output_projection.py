@@ -1,108 +1,76 @@
 from backend.src.agent.tools.processing import tool_output_projection as projection
 from backend.src.agent.tools.processing.tool_output_projection import (
-    DEFAULT_TOOL_OUTPUT_TOKEN_LIMIT,
-    canonicalize_tool_result_for_model,
+    raw_tool_output_text,
+    truncate_tool_output_for_model,
 )
 from backend.src.core.interfaces.tool import ToolResult
 
 
-def test_canonical_tool_output_keeps_display_and_truncates_model_content():
-    long_output = "a" * ((DEFAULT_TOOL_OUTPUT_TOKEN_LIMIT * 4) + 500)
-    result = canonicalize_tool_result_for_model(
-        ToolResult(
-            success=True,
-            data={
-                "return_display": long_output,
-                "llm_content": long_output,
+def test_raw_tool_output_prefers_output_even_when_empty() -> None:
+    result = ToolResult.from_payload(
+        {
+            "success": True,
+            "data": {
+                "output": "",
+                "status": "connected",
             },
-        )
+        }
     )
 
-    assert result.return_display == long_output
-    assert result.data["display_content"] == long_output
-    assert result.data["llm_content_truncated"] is True
-    assert result.data["llm_content_original_tokens"] > DEFAULT_TOOL_OUTPUT_TOKEN_LIMIT
-    assert result.data["model_llm_content"] == result.llm_content
-    assert "tool output truncated" in result.llm_content
-    assert result.format_for_history("read_file") == result.data["model_llm_content"]
+    assert raw_tool_output_text(result) == ""
 
 
-def test_format_for_history_prefers_model_llm_content_over_display_fields():
-    result = ToolResult(
-        success=True,
-        data={
-            "display_content": "full visible output",
-            "model_llm_content": "bounded model output",
-            "llm_content": "legacy model output",
-        },
-        llm_content="legacy top-level output",
-    )
+def test_truncate_tool_output_for_model_does_not_mutate_result_data() -> None:
+    data = {
+        "output": "abcdefghi" * 20,
+        "screenshot_ref": "artifact-1",
+        "capture_meta": {"source_w": 100},
+    }
+    result = ToolResult(success=True, data=dict(data))
 
-    assert result.format_for_history("shell") == "bounded model output"
+    model_text = truncate_tool_output_for_model(result, token_limit=4)
+
+    assert model_text == data["output"][:16]
+    assert result.data == data
+    assert "display_content" not in result.data
+    assert "model_llm_content" not in result.data
+    assert "llm_content" not in result.data
+    assert "llm_content_truncated" not in result.data
 
 
-def test_canonical_tool_output_uses_model_token_service_when_model_is_available(
+def test_truncate_tool_output_for_model_uses_token_service_without_mutating_data(
     monkeypatch,
-):
-    class FakeTokenService:
-        def __init__(self):
-            self.calls = []
+) -> None:
+    calls = []
 
+    class FakeTokenService:
         def truncate_text(self, text, *, model, token_limit, marker):
-            self.calls.append(
+            calls.append(
                 {
+                    "text": text,
                     "model": model,
                     "token_limit": token_limit,
                     "marker": marker,
                 }
             )
-            return (
-                f"bounded content{marker}tail",
-                len(text.split()),
-                True,
-                "fake-tokenizer",
-            )
+            return ("bounded raw output", 50, True, "fake-tokenizer")
 
-    fake_token_service = FakeTokenService()
-    monkeypatch.setattr(
-        projection,
-        "get_token_service",
-        lambda: fake_token_service,
-    )
-    long_output = "hello world " * 200
+    monkeypatch.setattr(projection, "get_token_service", lambda: FakeTokenService())
+    data = {
+        "output": "raw output from sidecar",
+        "display_content": "old display field ignored",
+        "model_llm_content": "old model field ignored",
+    }
+    result = ToolResult(success=True, data=dict(data))
 
-    result = canonicalize_tool_result_for_model(
-        ToolResult(
-            success=True,
-            data={
-                "display_content": long_output,
-                "llm_content": long_output,
-            },
-        ),
-        token_limit=40,
-        model_id="gpt-4o",
+    model_text = truncate_tool_output_for_model(
+        result,
+        token_limit=8,
+        model_id="gpt-test",
     )
 
-    assert result.data["llm_content_truncated"] is True
-    assert result.data["llm_content_token_source"] == "fake-tokenizer"
-    assert result.data["llm_content_original_tokens"] == len(long_output.split())
-    assert result.data["model_llm_content"] == result.llm_content
-    assert "original 400 tokens, limit 40 tokens" in result.llm_content
-    assert fake_token_service.calls == [
-        {
-            "model": "gpt-4o",
-            "token_limit": 40,
-            "marker": (
-                "\n\n...[tool output truncated: original token count calculated below, "
-                "limit 40 tokens]...\n\n"
-            ),
-        },
-        {
-            "model": "gpt-4o",
-            "token_limit": 40,
-            "marker": (
-                "\n\n...[tool output truncated: original 400 tokens, "
-                "limit 40 tokens]...\n\n"
-            ),
-        },
-    ]
+    assert model_text == "bounded raw output"
+    assert result.data == data
+    assert calls[0]["text"] == "raw output from sidecar"
+    assert calls[0]["model"] == "gpt-test"
+    assert calls[0]["token_limit"] == 8

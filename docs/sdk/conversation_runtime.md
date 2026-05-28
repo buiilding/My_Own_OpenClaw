@@ -378,13 +378,12 @@ the turn as failed instead of treating an undelivered local result as a
 completed tool wait.
 
 Projection builders collapse duplicate tool outputs that share the same
-`requestId`, `bundleId`, `correlationId`, or `toolCallId`. This handles the
-common local-runtime flow where the SDK appends the local sidecar result and the
-backend later emits an acknowledgement `tool-output` for the same tool wait.
-When duplicate outputs disagree, the projection keeps the output with
-model-visible content first so rehydrate history does not lose provider context;
-backend acknowledgements are preferred only when both candidates have the same
-model-content availability.
+`requestId`, `bundleId`, `correlationId`, or `toolCallId` as a defensive guard
+for stored legacy rows. The live local-runtime flow should not produce backend
+acknowledgement `tool-output` events for sidecar results: the SDK appends the
+local raw output row, sends `tool-result` or `tool-bundle-result` to backend,
+and backend ingests that result for model/history continuation without echoing a
+second UI row.
 
 Rehydrate projections preserve provider-safe tool history for both single calls
 and bundles. A `tool_call` projection must carry the original `tool_calls` and

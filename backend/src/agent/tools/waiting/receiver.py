@@ -8,9 +8,6 @@ import logging
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 from backend.src.core.interfaces.tool import ToolResult
-from backend.src.agent.tools.processing.tool_output_projection import (
-    canonicalize_tool_result_for_model,
-)
 
 if TYPE_CHECKING:
     from backend.src.agent.session.session import AgentSession
@@ -34,14 +31,6 @@ class ToolResultReceiver:
             session: Agent session for state access
         """
         self.session = session
-
-    def _selected_model_id(self) -> Optional[str]:
-        cfg = getattr(self.session, "cfg", None)
-        model_id = getattr(cfg, "selected_model_id", None)
-        if isinstance(model_id, str) and model_id.strip():
-            return model_id
-        llm_model = getattr(cfg, "llm_model", None)
-        return llm_model if isinstance(llm_model, str) and llm_model.strip() else None
 
     @staticmethod
     def _normalize_step_result(step: Any) -> Dict[str, Any]:
@@ -74,17 +63,12 @@ class ToolResultReceiver:
         Returns:
             ToolResult object
         """
-        tool_result = ToolResult.from_payload(
+        return ToolResult.from_payload(
             {
                 "success": success,
                 "data": result_data,
                 "error": error,
             }
-        )
-
-        return canonicalize_tool_result_for_model(
-            tool_result,
-            model_id=self._selected_model_id(),
         )
 
     def receive_bundle_result(
@@ -143,7 +127,4 @@ class ToolResultReceiver:
             }
         )
 
-        return canonicalize_tool_result_for_model(
-            bundle_result,
-            model_id=self._selected_model_id(),
-        )
+        return bundle_result

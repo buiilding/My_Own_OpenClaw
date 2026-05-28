@@ -519,7 +519,7 @@ class DummySession:
         self.bundle_calls.append(kwargs)
 
 
-class CanonicalToolOutputSession(DummySession):
+class ToolOutputReturningSession(DummySession):
     def __init__(self):
         super().__init__()
         self.session_id = "session_authoritative"
@@ -1680,10 +1680,10 @@ async def test_tool_result_handler_routes_without_system_state_for_non_computer_
 
 
 @pytest.mark.asyncio
-async def test_tool_result_handler_echoes_backend_canonical_tool_output():
+async def test_tool_result_handler_does_not_echo_local_tool_output():
     websocket = FakeWebSocket()
     session_manager = DummySessionManager()
-    session_manager.session_instance = CanonicalToolOutputSession()
+    session_manager.session_instance = ToolOutputReturningSession()
     handler = ToolResultHandler(session_manager)
 
     message = ToolResultMessage(
@@ -1704,33 +1704,8 @@ async def test_tool_result_handler_echoes_backend_canonical_tool_output():
 
     await handler.handle(message, websocket, "user_1")
 
-    assert websocket.sent == [
-        {
-            "id": "msg_canonical_tool_result_canonical",
-            "type": "tool-output",
-            "user_id": "user_1",
-            "session_id": "session_authoritative",
-            "conversation_ref": "conv_authoritative",
-            "turn_ref": "turn_authoritative",
-            "payload": {
-                "request_id": "req_canonical",
-                "tool_call_id": "call_read_file",
-                "tool_name": "read_file",
-                "success": True,
-                "output": "full visible output",
-                "display_content": "full visible output",
-                "model_llm_content": "bounded model output",
-                "llm_content_original_tokens": 50_000,
-                "llm_content_token_limit": 10_000,
-                "llm_content_truncated": True,
-                "llm_content_token_source": "litellm",
-                "metadata": {
-                    "canonical_model_output": True,
-                    "source": "backend",
-                },
-            },
-        }
-    ]
+    assert session_manager.session_instance.tool_calls
+    assert websocket.sent == []
 
 
 @pytest.mark.asyncio

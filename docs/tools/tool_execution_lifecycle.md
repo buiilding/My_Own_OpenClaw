@@ -24,7 +24,9 @@ WindieOS tools run through a distributed pipeline. The backend owns model-facing
 10. Sidecar executes the local action and returns a normalized `ToolResult`.
 11. SDK runtime sends `tool-result` or `tool-bundle-result` back to backend, appends a normalized `tool_output` or `tool_bundle_output` event with display content, and projects a display-only renderer `tool-output` event for both single calls and bundles. If backend delivery fails after local execution, the SDK stores that output as `success: false` with `deliveryFailed: true` and marks the turn failed.
 12. Backend result receiver resolves the pending future.
-13. Backend canonicalizes model-facing tool output into bounded `model_llm_content` while preserving full `display_content`, echoes the accepted canonical output as a backend `tool-output` event for storage, and commits the bounded model content to history.
+13. Backend reads raw `data.output`, truncates that raw text only as needed for
+    model history, and does not echo accepted local results as backend
+    `tool-output` UI events.
 14. Backend history committer writes tool rows and the interaction loop continues.
 
 ## Owner Map
@@ -52,16 +54,15 @@ Single-tool path:
   `correlation_id`, `tool_call_id`, or the websocket event id. If `request_id`
   is missing, the event is malformed for result delivery and local execution is
   not claimed.
-- failed SDK tool results keep `success: false`, include `error`, and still carry a model-facing `data.llm_content` string when available
-- backend emits the accepted single-tool result back as `tool-output` with
-  `display_content` for UI replay and `model_llm_content` for future model
-  rehydrate. The legacy `output` field remains display-oriented for existing
-  stream consumers. SDK projections prefer this backend event over the earlier
-  local display event when both share the same request/tool-call identity.
-- backend includes `llm_content_original_tokens`, `llm_content_token_limit`,
-  `llm_content_truncated`, and `llm_content_token_source` on canonical
-  single-tool outputs so debugging can distinguish LiteLLM-tokenizer truncation
-  from fallback character estimates.
+- failed SDK tool results keep `success: false`, include `error`, and carry raw
+  failure text in `data.output` when available.
+- backend does not emit accepted local SDK results back as `tool-output`.
+  The SDK local execution path owns the UI row for sidecar results; backend
+  result ingress consumes `data.output` for waiting/history only.
+- backend history projection may truncate raw `data.output` before the next
+  model call, but it must not rewrite local result data into display/model
+  duplicate fields such as `display_content`, `model_llm_content`, or
+  `llm_content`.
 - backend waiting storage resolves the pending future for that request
 - processing cleanup removes resolved-call state for the request
 
