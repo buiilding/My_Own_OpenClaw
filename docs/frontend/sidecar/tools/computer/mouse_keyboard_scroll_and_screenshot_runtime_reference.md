@@ -159,20 +159,20 @@ Capture backend strategy:
 - if region + `desktop_virtual_bounds` are provided, sidecar captures the full virtual desktop first and crops to target monitor region safely (bounds-checked)
 - macOS exception: when monitor bounds are provided, sidecar uses direct bounded capture instead of full-desktop crop because Pillow's macOS region path already returns correctly scaled logical-space images and avoids Retina upper-left clipping
 
-Encoding/storage behavior:
+Encoding behavior:
 
 - image forced to RGB for JPEG compatibility
-- returned screenshot files are written into `${tempfile.gettempdir()}/windieos-screenshots`
-- returned screenshot filenames use the `windie-shot-` prefix so Electron main can validate ownership before reading or cleanup
 - JPEG settings:
   - `quality=85`
   - `optimize=False`
   - `progressive=False`
-- writes JPEG bytes to a temporary file and returns path metadata (not inline base64 at sidecar boundary)
+- returns JPEG bytes as inline base64 in the sidecar `ToolResult.data.screenshot`
+  field so the SDK local tool-output projection can display the screenshot
+  without relying on an Electron-only materialization path
 
 Payload shape:
 
-- `screenshot_path` (temporary local file path)
+- `screenshot` (base64 JPEG payload)
 - `screenshot_content_type: "image/jpeg"`
 - `compression: "jpeg"`
 - `size` is real JPEG byte length
@@ -181,13 +181,17 @@ Payload shape:
   - `crop_x`, `crop_y`, `crop_w`, `crop_h`
   - `desktop_virtual_bounds` (`x`, `y`, `width`, `height`)
   - `monitor_id`
-  - `timestamp` (ms)
-  - `capture_backend` (backend label chain such as `pyautogui_fallback+linux_xfixes_cursor`)
-- `llm_content` and `return_display` are short success text
+- `timestamp` (ms)
+- `capture_backend` (backend label chain such as `pyautogui_fallback+linux_xfixes_cursor`)
+- `output` is short raw success text for SDK display and backend model-history ingestion
 
 Cross-layer note:
 
-- Electron main materializes owned screenshot-tool `screenshot_path` values into artifact refs (`screenshot_ref`/`screenshot_url`) when upload succeeds, with inline base64 fallback when upload fails; accepted temporary files are deleted in both paths. Unowned paths are stripped without read or deletion.
+- The SDK local tool coordinator owns the local `tool_output` event. It hoists
+  screenshot fields from result data onto the event payload so SDK display rows
+  and renderer messages can render the image. Backend local `tool-result`
+  ingress consumes `data.output` for model/history continuation and does not
+  echo local results as backend `tool-output` UI events.
 
 ## Schema Notes vs Runtime Enforcement
 

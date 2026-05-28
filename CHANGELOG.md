@@ -12,6 +12,9 @@ All notable changes to WindieOS will be documented in this file.
 - backend/tools: stop echoing local SDK/sidecar `tool-result` ingress back to
   clients as `tool-output`, keeping backend `tool-output` events reserved for
   backend-owned remote tool execution.
+- sidecar/sdk: return screenshot tool images in `data.screenshot` and hoist
+  screenshot fields onto SDK-owned local `tool_output` events for renderer
+  display.
 - tests/sdk: add a scenario-style conversation runtime test that sends a real
   turn, routes a local tool call/output, observes compaction, performs
   edit/resend, and verifies display and rehydrate tool call/output pairs stay

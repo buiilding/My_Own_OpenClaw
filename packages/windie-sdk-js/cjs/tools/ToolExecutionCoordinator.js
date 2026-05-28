@@ -88,12 +88,16 @@ function extractScreenshotDataFromData(data) {
     const screenshotRef = typeof data.screenshot_ref === 'string' && data.screenshot_ref.trim()
         ? data.screenshot_ref
         : (typeof data.screenshotRef === 'string' && data.screenshotRef.trim() ? data.screenshotRef : null);
-    if (!screenshot && !screenshotRef) {
+    const screenshotUrl = typeof data.screenshot_url === 'string' && data.screenshot_url.trim()
+        ? data.screenshot_url
+        : (typeof data.screenshotUrl === 'string' && data.screenshotUrl.trim() ? data.screenshotUrl : null);
+    if (!screenshot && !screenshotRef && !screenshotUrl) {
         return null;
     }
     return {
         ...(screenshot ? { screenshot } : {}),
         ...(screenshotRef ? { screenshot_ref: screenshotRef } : {}),
+        ...(screenshotUrl ? { screenshot_url: screenshotUrl } : {}),
         ...(typeof data.screenshot_content_type === 'string' ? { screenshot_content_type: data.screenshot_content_type } : {}),
         ...(isJsonRecord(data.capture_meta) ? { capture_meta: data.capture_meta } : {}),
     };
@@ -295,6 +299,7 @@ class ToolExecutionCoordinator {
             success,
             data,
         };
+        const screenshotData = extractScreenshotDataFromData(payload.data);
         let deliveryError = null;
         try {
             await this.options.sendToolResult(payload);
@@ -319,6 +324,7 @@ class ToolExecutionCoordinator {
                     toolName: call.toolName,
                     success: deliveryError ? false : success,
                     result: payload.data,
+                    ...(screenshotData ?? {}),
                     error: deliveryErrorMessage ?? (success ? null : result.error || 'Tool execution failed'),
                     deliveryFailed: Boolean(deliveryError),
                     elapsedMs: Date.now() - startedAt,

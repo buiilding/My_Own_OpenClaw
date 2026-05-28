@@ -1433,6 +1433,77 @@ describe('Windie SDK conversation runtime core', () => {
     ]);
   });
 
+  test('tool coordinator exposes screenshot data on local tool output events', async () => {
+    const store = new InMemoryConversationStore();
+    const sendToolResult = jest.fn(async () => undefined);
+    const coordinator = new ToolExecutionCoordinator({
+      store,
+      localRuntime: {
+        executeTool: jest.fn(async () => ({
+          success: true,
+          data: {
+            output: 'Screenshot captured successfully.',
+            screenshot: 'inline-shot-b64',
+            screenshot_content_type: 'image/jpeg',
+            capture_meta: {
+              source_w: 100,
+              source_h: 100,
+              crop_x: 0,
+              crop_y: 0,
+              crop_w: 100,
+              crop_h: 100,
+              timestamp: 123,
+            },
+          },
+        })),
+      },
+      sendToolResult,
+      sendToolBundleResult: jest.fn(async () => undefined),
+    });
+
+    const claim = await coordinator.execute(event('tool_call', {
+      toolName: 'screenshot',
+      requestId: 'req-shot',
+      toolCallId: 'call-shot',
+      args: { explanation: 'Capture screen' },
+    }));
+
+    expect(claim.claimed).toBe(true);
+    expect(sendToolResult).toHaveBeenCalledWith(expect.objectContaining({
+      request_id: 'req-shot',
+      success: true,
+      data: expect.objectContaining({
+        output: 'Screenshot captured successfully.',
+        screenshot: 'inline-shot-b64',
+        screenshot_content_type: 'image/jpeg',
+      }),
+    }));
+    const events = await store.loadEvents('conv-sdk-runtime');
+    expect(events).toEqual([
+      expect.objectContaining({
+        type: 'tool_output',
+        payload: expect.objectContaining({
+          requestId: 'req-shot',
+          toolCallId: 'call-shot',
+          toolName: 'screenshot',
+          screenshot: 'inline-shot-b64',
+          screenshot_content_type: 'image/jpeg',
+          capture_meta: expect.objectContaining({ source_w: 100 }),
+        }),
+      }),
+    ]);
+    expect(buildDisplayRows(events)).toEqual([
+      expect.objectContaining({
+        type: 'tool_output',
+        metadata: expect.objectContaining({
+          raw: expect.objectContaining({
+            screenshot: 'inline-shot-b64',
+          }),
+        }),
+      }),
+    ]);
+  });
+
   test('tool coordinator preserves provider-safe ids on local tool outputs', async () => {
     const store = new InMemoryConversationStore();
     const executeTool = jest.fn(async () => ({

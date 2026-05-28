@@ -1,5 +1,4 @@
 import sys
-from pathlib import Path
 from types import ModuleType, SimpleNamespace
 
 import pytest
@@ -64,14 +63,8 @@ async def test_capture_screenshot_success_with_display_bounds(monkeypatch):
     assert payload["compression"] == "jpeg"
     assert payload["output"] == "Screenshot captured successfully."
     assert payload["screenshot_content_type"] == "image/jpeg"
-    screenshot_path = payload["screenshot_path"]
-    screenshot_file = Path(screenshot_path)
-    try:
-        assert screenshot_file.parent.name == "windieos-screenshots"
-        assert screenshot_file.name.startswith("windie-shot-")
-        assert screenshot_file.read_bytes() == b"fake-jpeg-bytes"
-    finally:
-        screenshot_file.unlink(missing_ok=True)
+    assert payload["screenshot"] == "ZmFrZS1qcGVnLWJ5dGVz"
+    assert "screenshot_path" not in payload
     assert payload["size"] == len(b"fake-jpeg-bytes")
     assert payload["capture_meta"] == {
       "source_w": 300,
