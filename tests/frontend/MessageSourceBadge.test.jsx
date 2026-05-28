@@ -19,7 +19,7 @@ describe('MessageSourceBadge', () => {
         message={{
           sender: 'user',
           sourceEventType: 'local-user-message',
-          sourceChannel: 'from-backend',
+          sourceChannel: 'windie:conversation-event',
           text: 'short',
           fullUserMessage: { content: '12345678' },
           screenshotRef: 'shot-1',
@@ -28,7 +28,7 @@ describe('MessageSourceBadge', () => {
     );
 
     expect(screen.getByText(
-      'local-user-message API · from-backend · tokens~ txt:2 img(est):85 total:87',
+      'local-user-message API · windie:conversation-event · tokens~ txt:2 img(est):85 total:87',
     )).toBeInTheDocument();
   });
 
@@ -57,7 +57,7 @@ describe('MessageSourceBadge', () => {
           sender: 'assistant',
           type: 'llm-text',
           sourceEventType: 'streaming-complete',
-          sourceChannel: 'from-backend',
+          sourceChannel: 'windie:conversation-event',
           text: 'final answer',
           tokenCounts: {
             visible_output_tokens: 3,
@@ -71,7 +71,7 @@ describe('MessageSourceBadge', () => {
     );
 
     expect(
-      screen.getByText('streaming-complete API · from-backend · tokens(provider) out:5 vis:3 think:2 turn:17'),
+      screen.getByText('streaming-complete API · windie:conversation-event · tokens(provider) out:5 vis:3 think:2 turn:17'),
     ).toBeInTheDocument();
   });
 
@@ -82,7 +82,7 @@ describe('MessageSourceBadge', () => {
         message={{
           sender: 'user',
           sourceEventType: 'local-user-message',
-          sourceChannel: 'from-backend',
+          sourceChannel: 'windie:conversation-event',
           text: 'hello',
         }}
       />,

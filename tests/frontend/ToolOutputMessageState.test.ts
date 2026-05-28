@@ -7,7 +7,7 @@ describe('toolOutputChatMessageState', () => {
     const message = buildToolOutputChatMessageState({
       outputText: 'clicked',
       sourceEventType: 'tool-output',
-      sourceChannel: 'from-backend',
+      sourceChannel: 'windie:conversation-event',
       screenshot: 'inline-shot',
       screenshotRef: 'artifact-shot-1',
       screenshotUrl: null,
@@ -28,7 +28,7 @@ describe('toolOutputChatMessageState', () => {
       sender: 'assistant',
       type: 'tool-output',
       sourceEventType: 'tool-output',
-      sourceChannel: 'from-backend',
+      sourceChannel: 'windie:conversation-event',
       screenshot: null,
       screenshotRef: 'artifact-shot-1',
       screenshotUrl: expect.stringContaining('/api/artifacts/artifact-shot-1'),

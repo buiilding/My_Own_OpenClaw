@@ -1,5 +1,5 @@
 ---
-summary: "Electron main query relay reference: typed renderer chat IPC handling, SDK desktop-agent sends, initial settings ACK gating, system/memory context payload assembly, and local-user-message/failure event synthesis."
+summary: "Electron main query relay reference: windie renderer IPC handling, SDK desktop-agent sends, initial settings ACK gating, system/memory context payload assembly, and query failure event synthesis."
 read_when:
   - When changing query transport from renderer to the SDK desktop agent/backend websocket, including helper payload shaping in `ipc_query_runtime.cjs`.
   - When debugging first-query context assembly, settings-sync gate timing, or local-user-message/error event behavior.
@@ -27,12 +27,13 @@ title: "Query Payload and Relay Reference"
 - `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`
 
-## Relay Entry: `ipcMain.handle('send-chat-query', ...)`
+## Relay Entry: `ipcMain.handle('windie:send', ...)`
 
-Main receives live chat query invokes on the typed `send-chat-query` channel.
-The older generic `to-backend` channel remains for non-chat backend commands
-such as settings updates, model list requests, wakeword activation, rehydrate,
-and compaction; it does not accept live chat `query` or `stop-query` commands.
+Main receives live chat query invokes on the explicit `windie:send` channel.
+Electron main is the desktop host and SDK customer: it prepares host-only query
+context, calls the SDK agent, and forwards SDK projections back to renderer
+windows. There is no generic renderer `to-backend` compatibility relay for SDK
+runtime commands.
 
 Common input normalization:
 
@@ -48,12 +49,14 @@ Endpoint context for SDK agent calls:
 
 Special handling paths:
 
-- `send-chat-query`: prepares the renderer query, runs the initial settings gate,
+- `windie:send`: prepares the renderer query, runs the initial settings gate,
   and sends the backend websocket `query` through the SDK desktop agent
-- `stop-chat-query`: sends backend websocket `stop-query` through the SDK desktop agent
-- `update-settings`: delegated to settings ACK pipeline on the generic
-  `to-backend` channel, no generic relay path
-- live chat query and `wakeword-detected`: pass through initial settings sync gate before backend send
+- `windie:stop`: sends backend websocket `stop-query` through the SDK desktop agent
+- `windie:update-settings`: delegates to the settings ACK pipeline through the SDK agent
+- `windie:list-models`: requests model list through the SDK agent once connected
+- `windie:rehydrate`: rehydrates backend inference history through the SDK agent
+- `windie:compact-history`: asks backend to compact the active conversation through the SDK agent
+- `windie:wakeword-detected`: passes through the initial settings sync gate before backend send
 
 ## Initial Settings ACK Gate Before Query
 
@@ -79,7 +82,7 @@ Goal:
 
 ## Query-Specific SDK Agent Pipeline
 
-When the typed `send-chat-query` channel is invoked, main performs extra steps before sending through the SDK desktop agent.
+When the typed `windie:send` channel is invoked, main performs extra steps before sending through the SDK desktop agent.
 
 ### 1) Overlay pre-capture hook
 
@@ -93,22 +96,12 @@ When the typed `send-chat-query` channel is invoked, main performs extra steps b
   - strips relay-only fields (`attachment_context`, `memory_retrieval_enabled`) from outbound payload
   - normalizes `attachment_filenames` for local optimistic message metadata
 
-### 3) Local optimistic user event
+### 3) SDK-owned user row/event projection
 
-Main broadcasts synthetic `local-user-message` to renderer via `from-backend` channel:
-
-- includes `turn_ref` (query message id)
-- includes screenshot refs/urls when present
-- when renderer only provides `screenshot_ref`, main derives `screenshot_url` from the preferred artifact HTTP base:
-  - prefer loopback/local artifact base only when an explicit loopback backend candidate exists
-  - otherwise use the active backend HTTP URL
-- includes `attachment_filenames` when renderer supplied picker/clipboard attachment names
-- includes session/user/conversation context fields
-- uses `broadcastLocalUserMessage` in `ipc_query_broadcast.cjs` with shape builder from `ipc_query_events.cjs`
-
-Replay tie-in:
-
-- query path seeds `ipcEventReplayState.startTurn(queryMessageId, localUserMessage)` so late-mounted renderer windows can rehydrate the in-flight turn.
+Main no longer broadcasts a synthetic `local-user-message` over a raw backend
+relay. The query path starts the turn replay buffer with the query message id,
+then the SDK emits the user row/conversation event that renderer surfaces use
+for display and transcript side effects.
 
 ### 4) Context-enriched payload assembly
 
@@ -131,7 +124,7 @@ Output from `buildQueryPayload(...)`:
 ### 5) SDK agent send + failure fallback
 
 - sends the backend websocket message through the SDK desktop agent with stable message id
-- on send failure, emits synthetic renderer error event via `buildQuerySendFailure(...)`
+- on send failure, emits a normalized SDK conversation error event via `buildQuerySendFailure(...)`
 - on send failure, clears replay buffer so stale optimistic events are not replayed after reconnect
 
 ## Query Payload Builder Internals

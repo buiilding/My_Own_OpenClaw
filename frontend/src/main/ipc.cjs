@@ -55,7 +55,6 @@ const { persistMemoryStoreEvent } = require('./ipc/ipc_memory_store_persistence.
 const { buildQueryPayloadContext } = require('./query_payload_builder.cjs');
 const {
   resolveConversationRef: resolveConversationRefFromPayload,
-  buildLocalUserMessage,
   buildQueryInterrupted,
   buildQuerySendFailure,
 } = require('./ipc/ipc_query_events.cjs');
@@ -91,7 +90,6 @@ const {
   broadcastToRenderers: broadcastToRenderersRuntime,
 } = require('./ipc/ipc_renderer_windows.cjs');
 const {
-  broadcastLocalUserMessage: broadcastLocalUserMessageRuntime,
   broadcastQuerySendFailure: broadcastQuerySendFailureRuntime,
 } = require('./ipc/ipc_query_broadcast.cjs');
 const {
@@ -123,9 +121,6 @@ const {
 const {
   applyTranscriptSessionSync,
 } = require('./ipc/ipc_transcript_session_sync.cjs');
-const {
-  registerSdkCommandForwardingHandler,
-} = require('./ipc/ipc_sdk_command_forwarding.cjs');
 const {
   isAgentLoopStopShortcutPhase,
 } = require('./agent_stop_shortcut_runtime.cjs');
@@ -179,7 +174,6 @@ const settingsSyncRuntime = createIpcSettingsSyncRuntime({
   isConnected: () => isConnected,
   isBackendRuntimeConnected,
   ensureBackendConnection,
-  requestModelList: () => requestModelListFromBackend(),
   updateSettings: (payload) => updateSettingsOnBackend(payload),
   log,
   timeoutMs: SETTINGS_SYNC_TIMEOUT_MS,
@@ -461,14 +455,6 @@ function broadcastConnectionStatus(connected) {
   broadcastToRenderers('ipc-status', buildIpcStatusPayload(connected));
 }
 
-function queueListModelsRequest() {
-  settingsSyncRuntime.queueListModelsRequest();
-}
-
-function flushPendingListModelsRequest() {
-  settingsSyncRuntime.flushPendingListModelsRequest();
-}
-
 async function sendSettingsUpdate(config, source = 'renderer') {
   return settingsSyncRuntime.sendSettingsUpdate(config, source);
 }
@@ -521,37 +507,7 @@ function setResponseOverlayPhase(phase, source = 'ipc', metadata = null) {
   syncBackendIdleDisconnectTimer(`phase:${phase}`);
 }
 
-function markSdkToolEventDisplayOnly(rendererData) {
-  if (
-    !rendererData
-    || typeof rendererData !== 'object'
-    || (rendererData.type !== 'tool-call' && rendererData.type !== 'tool-bundle')
-    || !rendererData.payload
-    || typeof rendererData.payload !== 'object'
-    || Array.isArray(rendererData.payload)
-  ) {
-    return rendererData;
-  }
-  const metadata = (
-    rendererData.payload.metadata
-    && typeof rendererData.payload.metadata === 'object'
-    && !Array.isArray(rendererData.payload.metadata)
-  ) ? rendererData.payload.metadata : {};
-  return {
-    ...rendererData,
-    payload: {
-      ...rendererData.payload,
-      metadata: {
-        ...metadata,
-        skip_frontend_execution: true,
-        execution_owner: 'sdk-runtime',
-      },
-    },
-  };
-}
-
 function handleAgentBackendEvent(rendererData) {
-  rendererData = markSdkToolEventDisplayOnly(rendererData);
   const activeContext = activeQueryContext;
   if (
     rendererData
@@ -672,7 +628,6 @@ windieAgentHost = createWindieAgentHost({
     log('Successfully connected to Python backend through Windie SDK runtime.');
     log(`Handshake sent with authenticated user_id: ${currentUserId}`);
     broadcastConnectionStatus(true);
-    flushPendingListModelsRequest();
   },
   onClose: handleAgentBackendClose,
   onError: ({ error }) => {
@@ -703,21 +658,16 @@ windieAgentHost = createWindieAgentHost({
   },
   onRawBackendEvent: handleAgentBackendEvent,
   onRows: (rows) => {
-    broadcastToRenderers('conversation-display-rows', rows);
+    broadcastToRenderers('windie:rows', rows);
   },
   onConversationEvent: (conversationEvent) => {
-    broadcastToRenderers('conversation-event', conversationEvent);
+    broadcastToRenderers('windie:conversation-event', conversationEvent);
   },
   onCurrentTurn: (currentTurn) => {
-    broadcastToRenderers('conversation-runtime-updated', {
-      type: 'conversation-runtime-updated',
-      conversationRef: currentTurn.conversationRef,
-      turnRef: currentTurn.turnRef,
-      currentTurn,
-    });
+    broadcastToRenderers('windie:current-turn', currentTurn);
   },
   onStatus: (status) => {
-    broadcastToRenderers('windie-status', status);
+    broadcastToRenderers('windie:status', status);
   },
   log,
 });
@@ -726,7 +676,6 @@ function shutdownIpcForTests() {
   resetSettingsSyncState();
   resetBackendSessionState();
   resetIpcProcessStateForTests();
-  settingsSyncRuntime.clearPendingListModelsRequest();
   rendererWindows = new Set();
   backendMessageObservers.clear();
   applyResponseOverlayPhase = null;
@@ -918,8 +867,6 @@ function initializeIpc(win, options = {}) {
       getWindows,
       setActiveDisplayAffinity,
       resolveActiveSurfaceDisplayAffinity,
-      broadcastLocalUserMessageRuntime,
-      buildLocalUserMessage,
       broadcastToRenderers,
       ipcEventReplayState,
       buildQueryPayload,
@@ -932,27 +879,43 @@ function initializeIpc(win, options = {}) {
   });
 
 
-  ipcMain.handle('send-chat-query', async (event, payload = {}) => (
+  ipcMain.handle('windie:send', async (event, payload = {}) => (
     handleRendererChatQuery(event, payload)
   ));
 
-  ipcMain.handle('stop-chat-query', async (_event, payload = {}) => (
+  ipcMain.handle('windie:stop', async (_event, payload = {}) => (
     handleRendererStopQuery(payload)
   ));
 
-  registerSdkCommandForwardingHandler({
-    ipcMain,
-    isBackendRuntimeConnected,
-    queueListModelsRequest,
-    ensureBackendConnection,
-    ensureInitialSettingsSync,
-    getPendingSettingsSyncPromise: () => settingsSyncRuntime.getPendingSettingsSyncPromise(),
-    sendSettingsUpdate,
-    requestModelList: requestModelListFromBackend,
-    rehydrate: rehydrateBackendConversation,
-    compactHistory: compactBackendHistory,
-    wakewordDetected: sendWakewordDetectedToBackend,
-    log,
+  ipcMain.handle('windie:update-settings', async (_event, payload = {}) => (
+    sendSettingsUpdate(payload, 'renderer-update')
+  ));
+
+  ipcMain.handle('windie:list-models', async () => {
+    if (!isBackendRuntimeConnected()) {
+      await ensureBackendConnection('list-models');
+    }
+    return requestModelListFromBackend();
+  });
+
+  ipcMain.handle('windie:rehydrate', async (_event, payload = {}) => (
+    rehydrateBackendConversation(payload)
+  ));
+
+  ipcMain.handle('windie:compact-history', async (_event, payload = {}) => (
+    compactBackendHistory(payload)
+  ));
+
+  ipcMain.handle('windie:wakeword-detected', async (_event, payload = {}) => {
+    if (!isBackendRuntimeConnected()) {
+      await ensureBackendConnection('wakeword-detected');
+    }
+    await ensureInitialSettingsSync();
+    const pendingSettingsSyncPromise = settingsSyncRuntime.getPendingSettingsSyncPromise();
+    if (pendingSettingsSyncPromise) {
+      await pendingSettingsSyncPromise;
+    }
+    return sendWakewordDetectedToBackend(payload);
   });
 
 }

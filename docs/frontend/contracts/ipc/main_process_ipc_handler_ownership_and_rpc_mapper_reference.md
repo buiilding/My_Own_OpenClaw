@@ -38,7 +38,6 @@ title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 - `frontend/src/main/wakeword_bridge.cjs`
 - `frontend/src/main/wakeword_bridge_runtime.cjs`
 - `frontend/src/main/ipc/ipc_frontend_config.cjs`
-- `frontend/src/main/ipc/ipc_sdk_command_forwarding.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync_runtime.cjs`
 - `frontend/src/main/permission_service.cjs`
 
@@ -63,8 +62,13 @@ Main-process handler registration is split by responsibility:
 
 `ipcMain.handle`:
 
-- `send-chat-query`
-- `stop-chat-query`
+- `windie:send`
+- `windie:stop`
+- `windie:update-settings`
+- `windie:list-models`
+- `windie:rehydrate`
+- `windie:compact-history`
+- `windie:wakeword-detected`
 - `copy-image-to-clipboard`
 - `show-image-context-menu`
 - `load-frontend-config`
@@ -72,21 +76,16 @@ Main-process handler registration is split by responsibility:
 - `upload-artifact`
 - `save-frontend-config`
 
-`ipcMain.on`:
-
-- `to-backend`
-
 Notable behavior:
 
-- `send-chat-query` and `stop-chat-query` are registered by `ipc.cjs`, while
-  `ipc_chat_query_handlers.cjs` owns the typed query send/stop orchestration
+- `windie:send` and `windie:stop` are registered by `ipc.cjs`, while focused
+  query helpers own payload preparation, settings gates, and stop orchestration
 - exported VM `sendAutomatedQuery(...)` delegates to
   `ipc_automated_query_dispatcher.cjs`, which owns automated-query backend
   connection/settings gates, shared query payload building, SDK send, and
   successful state mutation
-- `to-backend` is registered by `ipc_sdk_command_forwarding.cjs` for remaining
-  non-chat SDK runtime commands; generic chat query and stop-query payloads are
-  rejected so live chat sends stay on typed IPC
+- SDK runtime commands use explicit `windie:*` invokes. Electron main does not
+  expose a generic renderer `to-backend` compatibility command router.
 - `save/load-frontend-config` are registered by
   `ipc_frontend_config_handlers.cjs` and call atomic file helpers in
   `ipc_frontend_config.cjs`

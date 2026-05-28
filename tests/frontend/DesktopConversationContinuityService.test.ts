@@ -46,10 +46,11 @@ describe('DesktopConversationContinuityService', () => {
 
   test('rehydrateMessages routes replace-mode history through the SDK transport', async () => {
     const send = jest.fn();
+    const invoke = jest.fn();
     const originalIpc = window.ipc;
     window.ipc = {
       send,
-      invoke: jest.fn(),
+      invoke,
       on: jest.fn(),
       once: jest.fn(),
     };
@@ -67,17 +68,14 @@ describe('DesktopConversationContinuityService', () => {
         workspacePath: ' /workspace/WindieOS ',
       });
 
-      expect(send).toHaveBeenCalledWith('to-backend', {
-        type: 'rehydrate',
-        payload: {
-          conversation_ref: 'conv-rehydrate',
-          messages: [
-            { role: 'user', content: 'hello' },
-            { role: 'assistant', content: 'hi', message_type: 'assistant' },
-          ],
-          rehydrate_mode: 'replace',
-          workspace_path: '/workspace/WindieOS',
-        },
+      expect(invoke).toHaveBeenCalledWith('windie:rehydrate', {
+        conversation_ref: 'conv-rehydrate',
+        messages: [
+          { role: 'user', content: 'hello' },
+          { role: 'assistant', content: 'hi', message_type: 'assistant' },
+        ],
+        rehydrate_mode: 'replace',
+        workspace_path: '/workspace/WindieOS',
       });
     } finally {
       window.ipc = originalIpc;
@@ -140,10 +138,8 @@ describe('DesktopConversationContinuityService', () => {
           eventType: 'conversation_rewritten',
         }),
       }));
-      expect(send).toHaveBeenCalledWith('to-backend', expect.objectContaining({
-        type: 'rehydrate',
-      }));
-      expect(invoke).not.toHaveBeenCalledWith('send-chat-query', expect.anything());
+      expect(invoke).toHaveBeenCalledWith('windie:rehydrate', expect.anything());
+      expect(invoke).not.toHaveBeenCalledWith('windie:send', expect.anything());
       expect(prepared).toEqual(expect.objectContaining({
         conversationRef: 'conv-replay',
         text: 'edited question',
@@ -228,10 +224,8 @@ describe('DesktopConversationContinuityService', () => {
           eventType: 'conversation_rewritten',
         }),
       }));
-      expect(send).toHaveBeenCalledWith('to-backend', expect.objectContaining({
-        type: 'rehydrate',
-      }));
-      expect(invoke).not.toHaveBeenCalledWith('send-chat-query', expect.anything());
+      expect(invoke).toHaveBeenCalledWith('windie:rehydrate', expect.anything());
+      expect(invoke).not.toHaveBeenCalledWith('windie:send', expect.anything());
       expect(prepared).toEqual(expect.objectContaining({
         conversationRef: 'conv-retry',
         text: 'retry question',
@@ -261,12 +255,9 @@ describe('DesktopConversationContinuityService', () => {
     try {
       await DesktopConversationContinuityService.compactHistory(false, 'conv-compact');
 
-      expect(send).toHaveBeenCalledWith('to-backend', {
-        type: 'compact-history',
-        payload: {
-          force: false,
-          conversation_ref: 'conv-compact',
-        },
+      expect(window.ipc.invoke).toHaveBeenCalledWith('windie:compact-history', {
+        force: false,
+        conversation_ref: 'conv-compact',
       });
     } finally {
       window.ipc = originalIpc;
@@ -290,12 +281,9 @@ describe('DesktopConversationContinuityService', () => {
     try {
       await DesktopConversationContinuityService.compactHistory();
 
-      expect(send).toHaveBeenCalledWith('to-backend', {
-        type: 'compact-history',
-        payload: {
-          force: true,
-          conversation_ref: 'conv-active',
-        },
+      expect(window.ipc.invoke).toHaveBeenCalledWith('windie:compact-history', {
+        force: true,
+        conversation_ref: 'conv-active',
       });
     } finally {
       window.ipc = originalIpc;

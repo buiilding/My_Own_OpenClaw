@@ -80,7 +80,7 @@ export function setMockActiveConversationRef(conversationRef: string | null) {
 
 function createEmitBackendEvent(handlers: Record<string, (data: unknown) => void>) {
   return (event: unknown, options: { injectConversationRef?: boolean } = {}) => {
-    const conversationEventHandler = handlers[ON_CHANNELS.CONVERSATION_EVENT];
+    const conversationEventHandler = handlers[ON_CHANNELS.WINDIE_CONVERSATION_EVENT];
     expect(conversationEventHandler).toEqual(expect.any(Function));
     if (options.injectConversationRef !== false && event && typeof event === 'object' && !Array.isArray(event)) {
       const eventRecord = event as Record<string, unknown>;
@@ -102,19 +102,25 @@ function createEmitBackendEvent(handlers: Record<string, (data: unknown) => void
 
 function createEmitRawBackendEvent(handlers: Record<string, (data: unknown) => void>) {
   return (event: unknown, options: { injectConversationRef?: boolean } = {}) => {
-    const backendHandler = handlers[ON_CHANNELS.FROM_BACKEND];
+    const backendHandler = handlers[ON_CHANNELS.WINDIE_CONVERSATION_EVENT];
     if (!backendHandler) {
       return;
     }
     if (options.injectConversationRef !== false && event && typeof event === 'object' && !Array.isArray(event)) {
       const eventRecord = event as Record<string, unknown>;
-      backendHandler({
+      const conversationEvent = normalizeBackendEventToConversationEvent({
         conversation_ref: eventRecord.conversation_ref ?? mockActiveConversationRef,
         ...eventRecord,
-      });
+      } as any);
+      if (conversationEvent) {
+        backendHandler(conversationEvent);
+      }
       return;
     }
-    backendHandler(event);
+    const conversationEvent = normalizeBackendEventToConversationEvent(event as any);
+    if (conversationEvent) {
+      backendHandler(conversationEvent);
+    }
   };
 }
 
@@ -157,7 +163,7 @@ export function registerBackendAndProjectionListeners(enableTranscript = true) {
       { injectConversationRef: false },
     ),
     emitConversationRuntimeUpdated: (payload: unknown) => {
-      const projectionHandler = handlers[ON_CHANNELS.CONVERSATION_RUNTIME_UPDATED];
+      const projectionHandler = handlers[ON_CHANNELS.WINDIE_CURRENT_TURN];
       expect(projectionHandler).toEqual(expect.any(Function));
       projectionHandler(payload);
     },

@@ -68,14 +68,16 @@ export function useConversationRuntimeProjectionStream(): void {
   const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
 
   useEffect(() => {
-    if (!ON_CHANNELS.CONVERSATION_RUNTIME_UPDATED) {
+    if (!ON_CHANNELS.WINDIE_CURRENT_TURN) {
       return undefined;
     }
-    const removeListener = IpcBridge.on(ON_CHANNELS.CONVERSATION_RUNTIME_UPDATED, (payload: unknown) => {
+    const removeListener = IpcBridge.on(ON_CHANNELS.WINDIE_CURRENT_TURN, (payload: unknown) => {
       const payloadRecord = payload && typeof payload === 'object'
         ? payload as Record<string, unknown>
         : {};
-      const currentTurn = payloadRecord.currentTurn;
+      const currentTurn = isCurrentTurnProjection(payload)
+        ? payload
+        : payloadRecord.currentTurn;
       if (!isCurrentTurnProjection(currentTurn)) {
         return;
       }

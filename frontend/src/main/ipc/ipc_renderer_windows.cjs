@@ -41,11 +41,10 @@ function trackRendererWindow({
       return;
     }
     for (const replayEvent of replayEvents) {
-      webContents.send('from-backend', replayEvent);
       if (typeof buildConversationEvent === 'function') {
         const conversationEvent = buildConversationEvent(replayEvent);
         if (conversationEvent) {
-          webContents.send('conversation-event', conversationEvent);
+          webContents.send('windie:conversation-event', conversationEvent);
         }
       }
     }
@@ -85,7 +84,7 @@ function broadcastToRenderers({
     win.webContents.send(channel, payload);
     deliveredCount += 1;
   }
-  if (isDebugStreamTraceEnabled() && channel === 'from-backend' && payload && typeof payload === 'object') {
+  if (isDebugStreamTraceEnabled() && channel === 'windie:conversation-event' && payload && typeof payload === 'object') {
     const eventType = typeof payload.type === 'string' ? payload.type : 'unknown';
     const turnRef = typeof payload.turn_ref === 'string' ? payload.turn_ref : '-';
     const conversationRef = typeof payload.conversation_ref === 'string' ? payload.conversation_ref : '-';

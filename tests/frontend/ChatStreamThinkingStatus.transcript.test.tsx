@@ -139,7 +139,7 @@ describe('useChatStream transcript + event filtering', () => {
         id: 'conv-1:turn-1:assistant',
         text: 'answer',
         isComplete: true,
-        sourceChannel: 'conversation-runtime-updated',
+        sourceChannel: 'windie:current-turn',
       }),
     );
     expect(transcriptSpies.recordAssistantMessage).toHaveBeenCalledWith(

@@ -91,7 +91,7 @@ export function buildMaterializedCurrentTurnMessage({
     sender: 'assistant',
     type,
     sourceEventType: type === 'error' ? 'runtime_error' : 'assistant_delta',
-    sourceChannel: 'conversation-runtime-updated',
+    sourceChannel: 'windie:current-turn',
     turnRef: resolvedTurnRef,
     isComplete: true,
     modelId: previousMessage?.modelId ?? modelContext.modelId ?? null,

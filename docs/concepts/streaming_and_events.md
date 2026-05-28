@@ -8,7 +8,7 @@ title: "Streaming and Events"
 
 # Streaming and Events
 
-WindieOS streaming is the live contract between the hosted backend, SDK runtime, and renderer surfaces. Backend events are normalized by the SDK runtime; Electron main rebroadcasts display events on `from-backend`; renderer listeners decide whether the event updates chat text, display-only tool state, settings status, audio playback, or transparency panels.
+WindieOS streaming is the live contract between the hosted backend, SDK runtime, and renderer surfaces. Backend events are normalized by the SDK runtime; Electron main is a thin SDK customer that forwards SDK rows, status, normalized conversation events, and current-turn projections on `windie:*` channels. Renderer listeners render those SDK outputs instead of interpreting raw backend websocket packets.
 
 ## Main Event Families
 
@@ -27,9 +27,9 @@ WindieOS streaming is the live contract between the hosted backend, SDK runtime,
 1. Backend agent/services emit typed internal events.
 2. Backend formatter layer maps events to outgoing websocket payloads.
 3. Outgoing schema validation checks payload shape.
-4. Electron main receives backend websocket messages and rebroadcasts them to renderer windows.
-5. Renderer event guards and consumer-specific parsers accept or ignore each event.
-6. SDK tool coordination handles local execution and result delivery, while chat stream state updates UI, transcript queues, overlay phase, and token/usage display.
+4. The SDK desktop agent receives backend websocket messages, normalizes them into conversation events, updates display rows/current-turn state, and coordinates any local tool execution.
+5. Electron main forwards SDK events to renderer windows on `windie:conversation-event`, `windie:rows`, `windie:current-turn`, and `windie:status`.
+6. Renderer consumers accept or ignore SDK events by conversation/turn identity and update UI, transcript queues, overlay phase, and token/usage display.
 
 ## Correlation Fields
 
@@ -45,12 +45,13 @@ Renderer filtering depends on these fields. Missing or renamed correlation field
 
 ## Tool Event Rule
 
-`tool-call` and `tool-bundle` are both display events and execution requests. The SDK runtime must:
+Backend tool-call events are both display events and execution requests. The SDK runtime must:
 
 1. normalize the backend event into a conversation event,
 2. execute claimed local tools through the local-runtime adapter and sidecar,
 3. append normalized tool output events,
-4. send `tool-result` or `tool-bundle-result` back to the backend.
+4. emit SDK display rows/current-turn updates for the renderer,
+5. send `tool-result` or `tool-bundle-result` back to the backend.
 
 The renderer renders display-only tool state and transcript projections. Do not reintroduce renderer-side backend tool-result delivery.
 

@@ -57,7 +57,7 @@ function ThinkingDisplay({ status, sourceEventType = null }) {
   }
 
   const sourceTag = isDevUiEnabled()
-    ? resolveSourceTag(sourceEventType || 'llm-thought', 'from-backend')
+    ? resolveSourceTag(sourceEventType || 'llm-thought', 'windie:conversation-event')
     : null;
 
   return (

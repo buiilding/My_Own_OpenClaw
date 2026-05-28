@@ -250,7 +250,7 @@ export function useChatStream(enableTranscript: boolean = true) {
   ]);
 
   useEffect(() => {
-    const removeListener = IpcBridge.on(ON_CHANNELS.CONVERSATION_EVENT, (data: unknown) => {
+    const removeListener = IpcBridge.on(ON_CHANNELS.WINDIE_CONVERSATION_EVENT, (data: unknown) => {
       handleConversationEventIngress(data as ConversationEvent, {
         getActiveConversationRef: () => useChatStore.getState().activeConversationRef,
         setActiveConversationRef,

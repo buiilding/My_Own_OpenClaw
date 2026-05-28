@@ -1,5 +1,5 @@
 ---
-summary: "Renderer-main IPC contract and backend event contract used by chat stream, tool runner, settings lifecycle, and permission onboarding channels."
+summary: "Renderer-main IPC contract and SDK conversation event contract used by chat stream, tool runner, settings lifecycle, and permission onboarding channels."
 read_when:
   - When adding/changing IPC channels.
   - When debugging renderer/main/backend event mismatches.
@@ -21,7 +21,6 @@ Primary files:
 
 Allowlisted examples:
 
-- `to-backend`
 - `move-chatbox-to`
 - `wakeword-audio-chunk`
 - `wakeword-enable`
@@ -35,6 +34,13 @@ Key examples:
 - `read-attachment-file`
 - `run-browser-action`
 - `upload-artifact`
+- `windie:send`
+- `windie:stop`
+- `windie:update-settings`
+- `windie:list-models`
+- `windie:rehydrate`
+- `windie:compact-history`
+- `windie:wakeword-detected`
 - `get-system-state`
 - `search-memory`, `search-chat-conversations`, `store-memory`, list/get/delete memory records
 - config load/save
@@ -52,40 +58,48 @@ Key examples:
 
 Inbound event streams:
 
-- `from-backend`
+- `windie:rows`
+- `windie:status`
+- `windie:conversation-event`
+- `windie:current-turn`
 - `ipc-status`
 - `wakeword-status`
 - `wakeword-detected`
 - `wakeword-toggle`
 - `main-window-open-target`
 - `response-overlay-phase`
-- `conversation-runtime-updated`
 
-## Backend Event Contract in Renderer
+## SDK Conversation Event Contract in Renderer
 
-`useChatStream` handles core backend event types:
+`useChatStream` consumes SDK-normalized conversation events from
+`windie:conversation-event`. Live display rows and current-turn state come from
+`windie:rows` and `windie:current-turn`; renderer chat code should not subscribe
+to raw backend websocket packets.
 
-- `llm-thought`
-- `streaming-response`
-- `streaming-complete`
+Key normalized event families include:
+
+- `reasoning_delta`
+- `assistant_delta`
+- `turn_completed`
 - `context-compaction-started`
 - `context-compaction-completed`
 - `context-compaction-failed`
-- `tool-call`
-- `tool-bundle`
-- `tool-output`
-- `system-prompt`
-- `tool-schemas`
-- `user-message-full`
-- `assistant-message-full`
-- `memory-store`
-- `token-count`
-- `error`
-- local helper events (for optimistic/session handling)
+- `tool_call`
+- `tool_bundle_call`
+- `tool_output`
+- `tool_bundle_output`
+- `system_prompt`
+- `tool_schemas`
+- `user_message`
+- `assistant_message`
+- `memory_stored`
+- `usage_updated`
+- `turn_error`
 
 Type guards:
 
-- `isBackendEvent` and event-specific payload typings in `backendEvents.ts`
+- SDK conversation event types and display row projections from
+  `renderer/infrastructure/api/windieSdkClient.ts`
 
 ## Overlay Phase Contract
 
@@ -103,8 +117,8 @@ These phases gate UI behavior and stale-turn protection in tool execution.
 
 ## Conversation Runtime Projection Contract
 
-Main process emits `conversation-runtime-updated` after SDK runtime projection
-updates. The payload contains:
+Main process emits `windie:current-turn` from SDK runtime projection updates.
+The payload is the SDK current-turn object. It contains:
 
 - `conversationRef`
 - `turnRef`
@@ -122,7 +136,7 @@ Main process (`ipc.cjs`) enforces initial settings synchronization ACK before fi
 
 Behavioral contract:
 
-- renderer pushes frontend-owned config via `update-settings`
+- renderer pushes frontend-owned config via `windie:update-settings`
 - main tracks pending ACK timeout
 - first query waits for initial update-settings attempt path
 

@@ -30,8 +30,8 @@ function getDashboardModelListWindow(): DashboardModelListWindow | null {
  * reaching for low-level backend IPC methods directly.
  */
 export const DesktopSettingsRuntimeClient = {
-  listModels(): void {
-    void createDesktopBackendTransport(null).listModels();
+  listModels(): Promise<void> {
+    return createDesktopBackendTransport(null).listModels().then(() => undefined);
   },
 
   requestDashboardStartupModelList(): boolean {
@@ -44,14 +44,11 @@ export const DesktopSettingsRuntimeClient = {
     }
 
     runtimeWindow[DASHBOARD_MODEL_LIST_REQUEST_GUARD_KEY] = true;
-    try {
-      this.listModels();
-      return true;
-    } catch (error) {
+    void this.listModels().catch((error) => {
       const message = error instanceof Error ? error.message : error;
       console.warn('[SettingsRuntime] Failed to request startup model list:', message);
-      return false;
-    }
+    });
+    return true;
   },
 
   updateSettings(config: RuntimeSettingsPatch): void {

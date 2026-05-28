@@ -33,7 +33,9 @@ describe('ipc.cjs bridge lifecycle/config', () => {
   });
 
   async function beginBackendConnection(bridge, message = { type: 'list-models' }) {
-    const pending = bridge.handlers['to-backend']({ sender: null }, message);
+    const pending = Promise.resolve(
+      bridge.handlers['windie:list-models']({ sender: null }, message),
+    ).catch((error) => error);
     const ws = await waitForSocket(() => bridge.getWs());
     expect(ws).not.toBeNull();
     return { pending, ws };
@@ -151,10 +153,10 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(handshake.agent_definition?.runtime?.coordinate_methods).toBeUndefined();
   });
 
-  test('queues list-models requests made before websocket open and flushes them after connect', async () => {
+  test('connects before sending windie:list-models through the SDK runtime', async () => {
     const bridge = initIpc();
 
-    const pendingRequest = bridge.handlers['to-backend']({ sender: null }, { type: 'list-models' });
+    const pendingRequest = bridge.handlers['windie:list-models']({ sender: null }, { type: 'list-models' });
     const pendingSocket = await waitForSocket(() => bridge.getWs());
     expect(pendingSocket.sent).toHaveLength(0);
 
@@ -258,7 +260,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
 
     // Dashboard closes; chat pill sends query with explicit conversation_ref from
     // its synchronized SDK conversation session.
-    await handlers['send-chat-query']({ sender: chatPillWindow.webContents }, {
+    await handlers['windie:send']({ sender: chatPillWindow.webContents }, {
       text: 'follow-up with explicit conversation ref',
       conversation_ref: 'conv-dashboard-selected',
     });
@@ -280,8 +282,8 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     });
   });
 
-  test('routes backend tool-call through SDK local runtime and marks renderer event display-only', async () => {
-    const { ws, mainWindow, backendBridge } = await setupOpenedIpc();
+  test('routes backend tool-call through SDK local runtime', async () => {
+    const { ws, backendBridge } = await setupOpenedIpc();
     backendBridge.executeToolForBackend.mockResolvedValueOnce({
       success: true,
       data: {
@@ -321,16 +323,6 @@ describe('ipc.cjs bridge lifecycle/config', () => {
       },
       user_id: 'registered-user-1',
     });
-    const rendererToolCall = mainWindow.webContents.send.mock.calls
-      .find(([channel, payload]) => (
-        channel === 'from-backend'
-        && payload?.type === 'tool-call'
-        && payload?.payload?.request_id === 'req-save-note'
-      ));
-    expect(rendererToolCall?.[1].payload.metadata).toEqual(expect.objectContaining({
-      skip_frontend_execution: true,
-      execution_owner: 'sdk-runtime',
-    }));
   });
 
   test('does not execute backend-owned tool-call events already marked skip_frontend_execution', async () => {
@@ -441,38 +433,10 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     });
   });
 
-  test('ignores malformed to-backend event payloads without crashing', async () => {
-    const { handlers, ws } = initIpc();
-
-    await handlers['to-backend']({ sender: null });
-
-    expect(ws).toBeNull();
-  });
-
-  test('ignores generic to-backend query events without throwing', async () => {
-    const { handlers, ws, backendBridge } = await setupOpenedIpc();
-    primeQueryContext(backendBridge);
-
-    await handlers['to-backend']({ sender: null }, { type: 'query' });
-
-    expect(ws.sent.map((entry) => JSON.parse(entry).type)).not.toContain('query');
-  });
-
-  test('ignores generic to-backend stop-query events without throwing', async () => {
+  test('sends typed windie:stop through the SDK runtime', async () => {
     const { handlers, ws } = await setupOpenedIpc();
 
-    await handlers['to-backend']({ sender: null }, {
-      type: 'stop-query',
-      payload: { conversation_ref: 'conv-generic-stop' },
-    });
-
-    expect(ws.sent.map((entry) => JSON.parse(entry).type)).not.toContain('stop-query');
-  });
-
-  test('sends typed stop-chat-query through the SDK runtime', async () => {
-    const { handlers, ws } = await setupOpenedIpc();
-
-    await handlers['stop-chat-query']({ sender: null }, {
+    await handlers['windie:stop']({ sender: null }, {
       conversation_ref: 'conv-typed-stop',
     });
 
@@ -487,7 +451,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     const { handlers, ws, backendBridge } = await setupOpenedIpc();
     primeQueryContext(backendBridge);
 
-    await handlers['send-chat-query']({ sender: null });
+    await handlers['windie:send']({ sender: null });
 
     expect(ws.sent.map((entry) => JSON.parse(entry).type)).not.toContain('query');
   });
@@ -499,7 +463,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     });
     primeQueryContext(backendBridge);
 
-    await handlers['send-chat-query']({ sender: mainWindow.webContents }, {
+    await handlers['windie:send']({ sender: mainWindow.webContents }, {
       text: 'stop shortcut lifecycle',
       conversation_ref: 'conv-stop-shortcut',
     });
@@ -523,7 +487,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     });
     primeQueryContext(backendBridge);
 
-    await handlers['send-chat-query']({ sender: mainWindow.webContents }, {
+    await handlers['windie:send']({ sender: mainWindow.webContents }, {
       text: 'query before global stop',
       conversation_ref: 'conv-global-stop',
     });

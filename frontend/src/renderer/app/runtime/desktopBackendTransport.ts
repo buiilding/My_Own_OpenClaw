@@ -1,5 +1,5 @@
 import type { BackendTransport } from '../../infrastructure/api/windieSdkClient';
-import { IpcBridge, INVOKE_CHANNELS, SEND_CHANNELS } from '../../infrastructure/ipc/bridge';
+import { IpcBridge, INVOKE_CHANNELS } from '../../infrastructure/ipc/bridge';
 import { getMemoryRetrievalInjectionEnabled } from '../../utils/memoryRetrievalPreference';
 import { normalizeNonEmptyString } from '../../utils/normalizeNonEmptyString';
 
@@ -18,7 +18,7 @@ function optionalStringArray(value: unknown): string[] | null {
 }
 
 async function sendStopQuery(conversationRef: string | null): Promise<void> {
-  await IpcBridge.invoke(INVOKE_CHANNELS.STOP_CHAT_QUERY, {
+  await IpcBridge.invoke(INVOKE_CHANNELS.WINDIE_STOP, {
     conversation_ref: conversationRef,
   });
 }
@@ -28,7 +28,7 @@ async function sendQuery(
   workspacePath: string | null,
   messageId: string | null,
 ): Promise<string | null> {
-  const result = await IpcBridge.invoke(INVOKE_CHANNELS.SEND_CHAT_QUERY, {
+  const result = await IpcBridge.invoke(INVOKE_CHANNELS.WINDIE_SEND, {
     text: optionalString(payload.text) ?? '',
     conversation_ref: optionalString(payload.conversation_ref)
       ?? optionalString(payload.conversationRef)
@@ -81,53 +81,39 @@ function optionalRecordArray(value: unknown): Record<string, unknown>[] {
     : [];
 }
 
-function sendRehydrateConversation(payload: Record<string, unknown>, workspacePath: string | null): void {
-  IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
-    type: 'rehydrate',
-    payload: {
-      conversation_ref: optionalString(payload.conversation_ref)
-        ?? optionalString(payload.conversationRef)
-        ?? '',
-      messages: optionalRecordArray(payload.messages),
-      rehydrate_mode: 'replace',
-      workspace_path: optionalString(payload.workspace_path)
-        ?? optionalString(payload.workspacePath)
-        ?? workspacePath
-        ?? null,
-    },
+async function sendRehydrateConversation(payload: Record<string, unknown>, workspacePath: string | null): Promise<void> {
+  await IpcBridge.invoke(INVOKE_CHANNELS.WINDIE_REHYDRATE, {
+    conversation_ref: optionalString(payload.conversation_ref)
+      ?? optionalString(payload.conversationRef)
+      ?? '',
+    messages: optionalRecordArray(payload.messages),
+    rehydrate_mode: 'replace',
+    workspace_path: optionalString(payload.workspace_path)
+      ?? optionalString(payload.workspacePath)
+      ?? workspacePath
+      ?? null,
   });
 }
 
-function sendCompactHistory(payload: Record<string, unknown>): void {
-  IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
-    type: 'compact-history',
-    payload: {
-      force: payload.force !== false,
-      conversation_ref: optionalString(payload.conversation_ref)
-        ?? optionalString(payload.conversationRef)
-        ?? null,
-    },
+async function sendCompactHistory(payload: Record<string, unknown>): Promise<void> {
+  await IpcBridge.invoke(INVOKE_CHANNELS.WINDIE_COMPACT_HISTORY, {
+    force: payload.force !== false,
+    conversation_ref: optionalString(payload.conversation_ref)
+      ?? optionalString(payload.conversationRef)
+      ?? null,
   });
 }
 
-function sendWakewordDetected(payload: Record<string, unknown>): void {
-  IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
-    type: 'wakeword-detected',
-    payload,
-  });
+async function sendWakewordDetected(payload: Record<string, unknown>): Promise<void> {
+  await IpcBridge.invoke(INVOKE_CHANNELS.WINDIE_WAKEWORD_DETECTED, payload);
 }
 
-function sendUpdateSettings(payload: Record<string, unknown>): void {
-  IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
-    type: 'update-settings',
-    payload,
-  });
+async function sendUpdateSettings(payload: Record<string, unknown>): Promise<void> {
+  await IpcBridge.invoke(INVOKE_CHANNELS.WINDIE_UPDATE_SETTINGS, payload);
 }
 
-function sendListModels(): void {
-  IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {
-    type: 'list-models',
-  });
+async function sendListModels(): Promise<void> {
+  await IpcBridge.invoke(INVOKE_CHANNELS.WINDIE_LIST_MODELS);
 }
 
 export function createDesktopBackendTransport(workspacePath: string | null = null): BackendTransport {
@@ -142,22 +128,22 @@ export function createDesktopBackendTransport(workspacePath: string | null = nul
     sendToolResult: async () => undefined,
     sendToolBundleResult: async () => undefined,
     rehydrateConversation: async (payload) => {
-      sendRehydrateConversation(payload, normalizedWorkspacePath);
+      await sendRehydrateConversation(payload, normalizedWorkspacePath);
     },
     compactHistory: async (payload) => {
-      sendCompactHistory(payload);
+      await sendCompactHistory(payload);
       return optionalString(payload.turn_ref) ?? optionalString(payload.turnRef) ?? undefined;
     },
     wakewordDetected: async (payload) => {
-      sendWakewordDetected(payload);
+      await sendWakewordDetected(payload);
       return optionalString(payload.turn_ref) ?? optionalString(payload.turnRef) ?? undefined;
     },
     updateSettings: async (payload) => {
-      sendUpdateSettings(payload);
+      await sendUpdateSettings(payload);
       return optionalString(payload.turn_ref) ?? optionalString(payload.turnRef) ?? undefined;
     },
     listModels: async () => {
-      sendListModels();
+      await sendListModels();
       return undefined;
     },
     stop: async (payload) => {

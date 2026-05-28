@@ -22,38 +22,18 @@ function createIpcSettingsSyncRuntime({
   isConnected,
   isBackendRuntimeConnected,
   ensureBackendConnection,
-  requestModelList,
   updateSettings,
   log = () => {},
   timeoutMs = 2500,
 } = {}) {
   let hasAttemptedInitialSettingsSync = false;
   let pendingSettingsSyncPromise = null;
-  let hasPendingListModelsRequest = false;
   const pendingSettingsSyncs = new Map();
 
   function reset() {
     hasAttemptedInitialSettingsSync = false;
     pendingSettingsSyncPromise = null;
     clearPendingSettingsSyncs(pendingSettingsSyncs);
-  }
-
-  function queueListModelsRequest() {
-    hasPendingListModelsRequest = true;
-  }
-
-  function clearPendingListModelsRequest() {
-    hasPendingListModelsRequest = false;
-  }
-
-  function flushPendingListModelsRequest() {
-    if (!hasPendingListModelsRequest) {
-      return;
-    }
-    const result = requestModelList?.();
-    if (result) {
-      hasPendingListModelsRequest = false;
-    }
   }
 
   function getPendingSettingsSyncPromise() {
@@ -138,11 +118,8 @@ function createIpcSettingsSyncRuntime({
 
   return {
     buildBackendSettingsPayload,
-    clearPendingListModelsRequest,
     ensureInitialSettingsSync,
-    flushPendingListModelsRequest,
     getPendingSettingsSyncPromise,
-    queueListModelsRequest,
     reset,
     resolveAck,
     sendSettingsUpdate,
@@ -157,7 +134,6 @@ function createSettingsSyncRuntime({
   loadCachedFrontendConfigFromDisk,
   isBackendRuntimeConnected,
   ensureBackendConnection,
-  requestModelList,
   updateSettings,
   timeoutMs,
   log,
@@ -169,7 +145,6 @@ function createSettingsSyncRuntime({
     isConnected: getConnected,
     isBackendRuntimeConnected,
     ensureBackendConnection,
-    requestModelList,
     updateSettings,
     timeoutMs,
     log,

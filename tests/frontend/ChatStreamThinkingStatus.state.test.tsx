@@ -286,7 +286,7 @@ describe('useChatStream state + stream handling', () => {
         id: 'conv-test:turn-live:assistant',
         text: 'Projected answer',
         thinkingText: 'Projected thought',
-        sourceChannel: 'conversation-runtime-updated',
+        sourceChannel: 'windie:current-turn',
         type: 'llm-text',
       }),
     ]);
@@ -1076,7 +1076,7 @@ describe('useChatStream state + stream handling', () => {
             isComplete: true,
             turnRef: 'turn-provider',
             sourceEventType: 'streaming-complete',
-            sourceChannel: 'from-backend',
+            sourceChannel: 'windie:conversation-event',
           },
         ],
       });
@@ -1446,7 +1446,7 @@ describe('useChatStream state + stream handling', () => {
     expect(state.messages.at(-1)).toEqual(expect.objectContaining({
       text: 'Gateway request failed',
       type: 'error',
-      sourceChannel: 'conversation-runtime-updated',
+      sourceChannel: 'windie:current-turn',
     }));
   });
 

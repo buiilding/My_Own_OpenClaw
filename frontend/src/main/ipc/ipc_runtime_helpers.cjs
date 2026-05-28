@@ -236,7 +236,6 @@ function processBackendMessageData(data, {
     }
   }
   broadcastTypedBackendEvent(data, broadcastToRenderers);
-  broadcastToRenderers('from-backend', data);
 }
 
 module.exports = {

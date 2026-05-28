@@ -42,16 +42,6 @@ Result: unknown channel usage is rejected before Electron main dispatch.
 
 ## Renderer -> Main One-way Channels (`send`)
 
-### `to-backend`
-
-Owner: `ipc.cjs`
-
-Behavior:
-
-- generic relay channel into the SDK runtime adapter for non-chat backend commands.
-- supports message types like `update-settings`, `list-models`, `rehydrate`, `compact-history`, and `wakeword-detected`.
-- live chat `query` and `stop-query` are intentionally not accepted on this channel; use the typed invoke channels below.
-
 ### `move-chatbox-to`
 
 Owner: `overlay_phase_ipc_runtime.cjs` (registered via `index.cjs`)
@@ -82,8 +72,13 @@ Behavior:
 
 ## IPC bridge channels (`ipc.cjs`)
 
-- `send-chat-query` -> prepares the renderer query payload, runs the settings ACK gate, emits local optimistic events, enriches system/memory context, and sends backend websocket `query` through the SDK runtime
-- `stop-chat-query` -> sends backend websocket `stop-query` through the SDK runtime for live chat cancellation
+- `windie:send` -> prepares the renderer query payload, runs the settings ACK gate, enriches system/memory context, and sends backend websocket `query` through the SDK desktop agent
+- `windie:stop` -> sends backend websocket `stop-query` through the SDK desktop agent for live chat cancellation
+- `windie:update-settings` -> sends backend settings through the SDK desktop agent while preserving main-owned ACK gating
+- `windie:list-models` -> requests backend model list through the SDK desktop agent
+- `windie:rehydrate` -> rebuilds backend inference history from SDK/local conversation store projections
+- `windie:compact-history` -> asks backend to compact the active conversation through the SDK desktop agent
+- `windie:wakeword-detected` -> sends wakeword activation through the SDK desktop agent after the settings gate
 - `load-frontend-config` -> loads persisted config JSON from userData
 - `save-frontend-config` -> redacted frontend-config atomic temp-write + rename persistence
 - `get-client-user-id` -> returns websocket user/session endpoint metadata
@@ -156,7 +151,10 @@ Local tool runtime nuances:
 
 ### Backend relay/events
 
-- `from-backend`: canonical stream/tool/error payload relay from backend websocket
+- `windie:rows`: SDK display rows for renderer chat UI
+- `windie:status`: SDK desktop agent status snapshots
+- `windie:conversation-event`: SDK-normalized conversation events for transcript/session side effects
+- `windie:current-turn`: SDK current-turn projection for live assistant/tool UI
 - `ipc-status`: websocket connection + endpoint status payload
 - `response-overlay-phase`: phase transitions (`idle`, `awaiting-first-chunk`, `streaming`, `tool-call`, `tool-output`, `complete`, `error`)
 
@@ -182,18 +180,18 @@ Permission onboarding and settings data-controls use invoke-only channels:
 
 These channels are registered in `permission_ipc_runtime.cjs` and delegated to `permission_service.cjs`.
 
-## `send-chat-query` Relay Lifecycle (main process)
+## `windie:send` Relay Lifecycle (main process)
 
 Owner: `ipc.cjs` (with helper-module delegation to `ipc_runtime_helpers.cjs`, `ipc_query_broadcast.cjs`, and `ipc_query_events.cjs`).
 
 1. validates and normalizes the chat payload.
 2. for first query after connect, enforces one-time settings sync gate (`update-settings` ACK/timeout handling).
 3. runs overlay pre-capture hook for chatbox sender.
-4. generates local optimistic user event (`local-user-message`) to render instantly.
+4. starts the SDK replay buffer with the query message id; the SDK emits the renderer-visible user row/event.
 5. enriches payload `content` with XML system context + episodic/semantic memory snippets (`query_payload_builder.cjs`).
 6. stores active sender display affinity in main process for follow-on screenshot tool fallback routing.
 7. injects runtime-only `system_state_internal` (screen resolution) when available.
-8. sends normalized backend message over websocket.
+8. calls the SDK desktop agent to send the normalized backend message over websocket.
 
 ## Backend Relay Normalization
 
@@ -203,7 +201,7 @@ Owner: `ipc.cjs` (with helper-module delegation to `ipc_runtime_helpers.cjs`, `i
   strips display-only `screenshot_url` for `query` and `tool-bundle-result`.
 - backend message envelope always includes `{id,type,payload,user_id,timestamp}`.
 
-Incoming websocket messages are normalized by `processBackendMessageData` (`ipc_runtime_helpers.cjs`) and rebroadcast to all tracked renderer windows via `ipc_renderer_windows.cjs`, excluding optional source sender where applicable.
+Incoming websocket messages are owned by the SDK desktop agent. Electron main forwards SDK-normalized rows, status, conversation events, and current-turn projections to all tracked renderer windows via `ipc_renderer_windows.cjs`, excluding optional source sender where applicable.
 
 ## Drift Hotspots
 

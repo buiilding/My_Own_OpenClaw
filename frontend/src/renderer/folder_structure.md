@@ -284,7 +284,7 @@ frontend/src/renderer/
            ↓
 3. SDK RUNTIME TRANSPORT
    └─> app/runtime/desktopBackendTransport.ts
-       └─> IpcBridge.invoke(INVOKE_CHANNELS.SEND_CHAT_QUERY, payload)
+       └─> IpcBridge.invoke(INVOKE_CHANNELS.WINDIE_SEND, payload)
            └─> Main process (`src/main/ipc.cjs`) hands query context to the SDK runtime, which owns the hosted backend WebSocket
 ```
 
@@ -294,8 +294,8 @@ frontend/src/renderer/
 1. BACKEND EVENT
    └─> Main process receives WebSocket event
        ├─> SDK runtime reduces event into currentTurn projection
-       ├─> IPC to renderer: ON_CHANNELS.CONVERSATION_RUNTIME_UPDATED
-       └─> IPC to renderer: ON_CHANNELS.CONVERSATION_EVENT
+       ├─> IPC to renderer: ON_CHANNELS.WINDIE_CURRENT_TURN
+       └─> IPC to renderer: ON_CHANNELS.WINDIE_CONVERSATION_EVENT
            ↓
 2. CURRENT-TURN PROJECTION HOOK
    └─> features/chat/hooks/useConversationRuntimeProjectionStream.ts
@@ -518,7 +518,7 @@ App
 ## IPC Channel Usage
 
 ### Send Channels (Renderer → Main)
-- `TO_BACKEND` - Send query/settings messages to the SDK runtime adapter in main
+- `WINDIE_UPDATE_SETTINGS` - Invoke SDK agent settings updates through Electron main
 - `WAKEWORD_AUDIO_CHUNK` - Send audio chunks for wakeword detection
 - `WAKEWORD_ENABLE` - Enable wakeword detection
 - `WAKEWORD_DISABLE` - Disable wakeword detection
@@ -530,12 +530,11 @@ App
 - `SEARCH_MEMORY` - Search memory via Python sidecar
 
 ### On Channels (Main → Renderer, events)
-- `CONVERSATION_RUNTIME_UPDATED` - SDK current-turn projection updates for live dashboard/overlay rendering
-- `CONVERSATION_EVENT` - SDK-normalized chat side-effect events for transcript/session/metadata handlers
+- `WINDIE_CURRENT_TURN` - SDK current-turn projection updates for live dashboard/overlay rendering
+- `WINDIE_CONVERSATION_EVENT` - SDK-normalized chat side-effect events for transcript/session/metadata handlers
 - `BACKEND_SETTINGS_EVENT` - Typed settings/model ACK and error control events
 - `AGENT_CAPABILITY_EVENT` - Typed tool manifest and remote tool catalog updates
 - `AUDIO_CHUNK` - Typed text-to-speech audio chunk side-channel
-- `FROM_BACKEND` - Legacy backend WebSocket event channel retained for compatibility diagnostics
 - `IPC_STATUS` - IPC connection status
 - `LOG` - Log messages from main process
 - `WAKEWORD_DETECTED` - Wakeword detection event

@@ -11,8 +11,8 @@ describe('IpcBridge', () => {
   });
 
   test('send forwards to window.ipc', () => {
-    IpcBridge.send(SEND_CHANNELS.TO_BACKEND, { hello: 'world' });
-    expect((window as any).ipc.send).toHaveBeenCalledWith('to-backend', { hello: 'world' });
+    IpcBridge.send(SEND_CHANNELS.RENDERER_LOG, { hello: 'world' });
+    expect((window as any).ipc.send).toHaveBeenCalledWith('renderer-log', { hello: 'world' });
   });
 
   test('invoke forwards to window.ipc and returns result', async () => {
@@ -47,7 +47,7 @@ describe('IpcBridge', () => {
 
   test('send throws when window.ipc is missing', () => {
     clearMockIpc();
-    expect(() => IpcBridge.send(SEND_CHANNELS.TO_BACKEND, {})).toThrow(
+    expect(() => IpcBridge.send(SEND_CHANNELS.RENDERER_LOG, {})).toThrow(
       'window.ipc is not available',
     );
   });

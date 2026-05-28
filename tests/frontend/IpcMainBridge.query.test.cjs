@@ -41,7 +41,7 @@ describe('ipc.cjs bridge query handling', () => {
   }
 
   async function beginBackendConnection(bridge, message = { type: 'list-models' }) {
-    const pending = bridge.handlers['to-backend']({ sender: null }, message);
+    const pending = bridge.handlers['windie:list-models']({ sender: null }, message);
     const ws = await waitForSocket(() => bridge.getWs());
     expect(ws).not.toBeNull();
     return { pending, ws };
@@ -57,7 +57,7 @@ describe('ipc.cjs bridge query handling', () => {
   }
 
   function sendQuery(handlers, payload, sender = null) {
-    return handlers['send-chat-query']({ sender }, payload);
+    return handlers['windie:send']({ sender }, payload);
   }
 
   async function beginQuerySend(bridge, payload, sender = null) {
@@ -73,21 +73,21 @@ describe('ipc.cjs bridge query handling', () => {
     return JSON.parse(ws.sent[ws.sent.length - 1]);
   }
 
-  function getLatestLocalUserMessage(mainWindow) {
-    const localUserMessages = mainWindow.webContents.send.mock.calls
-      .filter(([channel, payload]) => channel === 'from-backend' && payload?.type === 'local-user-message');
-    return localUserMessages[localUserMessages.length - 1]?.[1];
+  function getLatestSdkUserMessage(mainWindow) {
+    const sdkUserMessages = mainWindow.webContents.send.mock.calls
+      .filter(([channel, payload]) => channel === 'windie:conversation-event' && payload?.type === 'user_message');
+    return sdkUserMessages[sdkUserMessages.length - 1]?.[1];
   }
 
   function getLatestConversationEvent(mainWindow, type) {
     const conversationEvents = mainWindow.webContents.send.mock.calls
-      .filter(([channel, payload]) => channel === 'conversation-event' && payload?.type === type);
+      .filter(([channel, payload]) => channel === 'windie:conversation-event' && payload?.type === type);
     return conversationEvents[conversationEvents.length - 1]?.[1] || null;
   }
 
   function getLatestErrorEvent(mainWindow) {
     const errorEvents = mainWindow.webContents.send.mock.calls
-      .filter(([channel, payload]) => channel === 'from-backend' && payload?.type === 'error');
+      .filter(([channel, payload]) => channel === 'windie:conversation-event' && payload?.type === 'turn_error');
     return errorEvents[errorEvents.length - 1]?.[1] || null;
   }
 
@@ -150,8 +150,8 @@ describe('ipc.cjs bridge query handling', () => {
 
     const messageTypes = ws.sent.map((entry) => JSON.parse(entry).type);
     expect(messageTypes).toEqual(expect.arrayContaining(['handshake', 'query']));
-    const localUserMessage = getLatestLocalUserMessage(mainWindow);
-    expect(localUserMessage.payload.conversation_ref).toBe('conv-lazy-connect');
+    const sdkUserMessage = getLatestSdkUserMessage(mainWindow);
+    expect(sdkUserMessage.payload.conversation_ref).toBe('conv-lazy-connect');
     expect(getLatestConversationEvent(mainWindow, 'user_message')).toMatchObject({
       type: 'user_message',
       conversationRef: 'conv-lazy-connect',
@@ -248,8 +248,8 @@ describe('ipc.cjs bridge query handling', () => {
     }
   });
 
-  test('injects attachment context into backend query content and keeps filenames in local echo only', async () => {
-    const { handlers, ws, mainWindow } = await setupQueryBridge({}, {
+  test('injects attachment context into backend query content without leaking relay-only fields', async () => {
+    const { handlers, ws } = await setupQueryBridge({}, {
       systemState: {
         active_window: 'App',
         mouse_position: '0,0',
@@ -272,8 +272,6 @@ describe('ipc.cjs bridge query handling', () => {
     expect(outgoingQuery.payload).not.toHaveProperty('attachment_context');
     expect(outgoingQuery.payload).not.toHaveProperty('attachment_filenames');
 
-    const localUserMessage = getLatestLocalUserMessage(mainWindow);
-    expect(localUserMessage.payload.attachment_filenames).toEqual(['notes.txt']);
   });
 
   test('rejects renderer queries without explicit conversation_ref', async () => {
@@ -294,7 +292,7 @@ describe('ipc.cjs bridge query handling', () => {
     await sendQuery(handlers, { text: 'follow up without explicit conversation ref' });
 
     expect(ws.sent.map((entry) => JSON.parse(entry).type)).not.toContain('query');
-    expect(getLatestLocalUserMessage(mainWindow)).toBeUndefined();
+    expect(getLatestSdkUserMessage(mainWindow)).toBeUndefined();
   });
 
   test('seeds active display affinity from visible chat surface instead of hidden sender window', async () => {
@@ -413,28 +411,10 @@ describe('ipc.cjs bridge query handling', () => {
     };
     ipc.registerRendererWindow(lateWindow);
 
-    const replayEvents = lateWindow.webContents.send.mock.calls
-      .filter(([channel]) => channel === 'from-backend')
-      .map(([, payload]) => payload);
-    expect(replayEvents).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        type: 'local-user-message',
-        turn_ref: 'uuid-1',
-      }),
-      expect.objectContaining({
-        type: 'streaming-response',
-        turn_ref: 'uuid-1',
-      }),
-    ]));
     const replayConversationEvents = lateWindow.webContents.send.mock.calls
-      .filter(([channel]) => channel === 'conversation-event')
+      .filter(([channel]) => channel === 'windie:conversation-event')
       .map(([, payload]) => payload);
     expect(replayConversationEvents).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        type: 'user_message',
-        conversationRef: 'conv-replay',
-        turnRef: 'uuid-1',
-      }),
       expect.objectContaining({
         type: 'assistant_delta',
         conversationRef: 'conv-replay',
@@ -480,7 +460,7 @@ describe('ipc.cjs bridge query handling', () => {
   });
 
   test('strips query screenshot_url before sending to backend', async () => {
-    const { handlers, ws, mainWindow } = await setupQueryBridge({}, {
+    const { handlers, ws } = await setupQueryBridge({}, {
       systemState: {
         active_window: 'App',
         mouse_position: '0,0',
@@ -501,14 +481,10 @@ describe('ipc.cjs bridge query handling', () => {
     expect(lastMessage.payload.conversation_ref).toBe('conv-2');
     expect(lastMessage.payload.screenshot_ref).toBe('art_123');
     expect(lastMessage.payload).not.toHaveProperty('screenshot_url');
-
-    const localUserMessage = getLatestLocalUserMessage(mainWindow);
-    expect(localUserMessage.payload.screenshot_ref).toBe('art_123');
-    expect(localUserMessage.payload.screenshot_url).toBe('http://localhost:8765/api/artifacts/art_123');
   });
 
-  test('hydrates local-user-message screenshot_url from screenshot_ref when renderer payload omits url', async () => {
-    const { handlers, ws, mainWindow } = await setupQueryBridge({}, {
+  test('keeps hydrated screenshot_url out of backend payload when renderer omits url', async () => {
+    const { handlers, ws } = await setupQueryBridge({}, {
       systemState: {
         active_window: 'App',
         mouse_position: '0,0',
@@ -528,27 +504,6 @@ describe('ipc.cjs bridge query handling', () => {
     expect(lastMessage.payload.screenshot_ref).toBe('art_999');
     expect(lastMessage.payload).not.toHaveProperty('screenshot_url');
 
-    const localUserMessage = getLatestLocalUserMessage(mainWindow);
-    expect(localUserMessage.payload.screenshot_ref).toBe('art_999');
-    expect(localUserMessage.payload.screenshot_url).toBe('https://api.windieos.com/api/artifacts/art_999');
-  });
-
-  test('ignores renderer tool-bundle-result sends because SDK runtime owns tool result delivery', async () => {
-    const { handlers, ws } = await setupQueryBridge();
-
-    await handlers['to-backend']({ sender: null }, {
-      type: 'tool-bundle-result',
-      payload: {
-        bundle_id: 'bundle-1',
-        status: 'success',
-        step_results: [],
-        screenshot_ref: 'artifact_ref_1',
-        screenshot_url: 'http://localhost:8765/api/artifacts/shot.png',
-        screenshot_urls: ['http://localhost:8765/api/artifacts/shot2.png'],
-      },
-    });
-
-    expect(await waitForSentMessageType(ws, 'tool-bundle-result')).toBeNull();
   });
 
   test('builds query with fallback system context on system state error', async () => {
@@ -618,8 +573,8 @@ describe('ipc.cjs bridge query handling', () => {
     expect(backendBridge.searchMemory).not.toHaveBeenCalled();
   });
 
-  test('persists memory-store backend events once in main process before renderer fanout', async () => {
-    const { ws, backendBridge, mainWindow } = await setupQueryBridge();
+  test('persists memory-store backend events once in main process', async () => {
+    const { ws, backendBridge } = await setupQueryBridge();
 
     ws.handlers.message(JSON.stringify({
       type: 'memory-store',
@@ -642,9 +597,6 @@ describe('ipc.cjs bridge query handling', () => {
       user_id: 'user-main',
       session_id: 'session-main',
     });
-    expect(mainWindow.webContents.send).toHaveBeenCalledWith('from-backend', expect.objectContaining({
-      type: 'memory-store',
-    }));
   });
 
   test('gates first query behind settings-updated ack when frontend config exists', async () => {
@@ -686,10 +638,7 @@ describe('ipc.cjs bridge query handling', () => {
   test('waits for pending renderer update-settings ack before sending query', async () => {
     const { handlers, ws } = await setupQueryBridge();
 
-    await handlers['to-backend']({ sender: null }, {
-      type: 'update-settings',
-      payload: { interaction_mode: 'agent' },
-    });
+    const settingsPromise = handlers['windie:update-settings']({ sender: null }, { interaction_mode: 'agent' });
 
     const updateSettingsMessage = await waitForSentMessageType(ws, 'update-settings');
     expect(updateSettingsMessage.type).toBe('update-settings');
@@ -700,6 +649,7 @@ describe('ipc.cjs bridge query handling', () => {
     expect(JSON.parse(ws.sent[ws.sent.length - 1]).type).toBe('update-settings');
 
     emitSettingsUpdatedAck(ws, updateSettingsMessage.id);
+    await settingsPromise;
 
     await queryPromise;
 
@@ -712,10 +662,7 @@ describe('ipc.cjs bridge query handling', () => {
   test('connects before sending renderer update-settings', async () => {
     const bridge = initIpc();
 
-    await bridge.handlers['to-backend']({ sender: null }, {
-      type: 'update-settings',
-      payload: { interaction_mode: 'agent' },
-    });
+    const settingsPromise = bridge.handlers['windie:update-settings']({ sender: null }, { interaction_mode: 'agent' });
     const ws = await waitForSocket(() => bridge.getWs());
     expect(ws).not.toBeNull();
     expect(ws.sent).toHaveLength(0);
@@ -729,6 +676,7 @@ describe('ipc.cjs bridge query handling', () => {
     }));
 
     emitSettingsUpdatedAck(ws, updateSettingsMessage.id);
+    await settingsPromise;
   });
 
   test('sends first query after initial settings sync timeout fallback', async () => {
@@ -789,9 +737,9 @@ describe('ipc.cjs bridge query handling', () => {
     await sendQuery(handlers, { text: 'second query', conversation_ref: 'conv-a' });
 
     expect(getLatestErrorEvent(mainWindow)).toEqual(expect.objectContaining({
-      payload: {
+      payload: expect.objectContaining({
         message: "Your message wasn't sent because WindieOS isn't connected right now. Try again when the backend reconnects.",
-      },
+      }),
     }));
 
     expect(backendBridge.getSystemState).toHaveBeenCalledTimes(2);
@@ -828,7 +776,7 @@ describe('ipc.cjs bridge query handling', () => {
       await sendQuery(handlers, { text: 'fresh query after reconnect' });
 
       expect(reconnectedSocket.sent.map((entry) => JSON.parse(entry).type)).not.toContain('query');
-      expect(getLatestLocalUserMessage(mainWindow)).toBeUndefined();
+      expect(getLatestSdkUserMessage(mainWindow)).toBeUndefined();
     } finally {
       jest.useRealTimers();
     }

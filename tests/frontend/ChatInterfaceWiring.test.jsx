@@ -579,7 +579,7 @@ describe('ChatInterface wiring', () => {
     render(<ChatInterface />);
 
     expect(mockIpcListeners.has('audio-chunk')).toBe(true);
-    expect(mockIpcListeners.has('from-backend')).toBe(false);
+    expect(mockIpcListeners.has('windie:conversation-event')).toBe(false);
 
     act(() => {
       mockIpcListeners.get('audio-chunk')?.({

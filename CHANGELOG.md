@@ -10,6 +10,10 @@ All notable changes to WindieOS will be documented in this file.
   a direct `WindieAgent.startDesktop(...)` host, route query/stop/settings/model
   commands through SDK agent methods, and delete the old SDK runtime lifecycle,
   command router, tool router, and model-list queue modules.
+- frontend/ipc: break the renderer-main SDK runtime contract onto explicit
+  `windie:*` channels, remove the generic `to-backend`/`from-backend` runtime
+  relay, and let Electron main act as a direct Windie SDK customer that
+  forwards SDK rows, status, conversation events, and current-turn projections.
 - sdk: add a desktop agent facade with `WindieAgent.startDesktop(...)`,
   display-row/current-turn subscriptions, and SDK-owned local tool execution
   result projection as the replacement surface for Electron main's manual

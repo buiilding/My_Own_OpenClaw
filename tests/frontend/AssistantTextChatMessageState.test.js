@@ -9,7 +9,7 @@ describe('assistantTextChatMessageState', () => {
     expect(buildAssistantTextChatMessageState({
       text: 'reply',
       sourceEventType: 'streaming-response',
-      sourceChannel: 'from-backend',
+      sourceChannel: 'windie:conversation-event',
       turnRef: 'turn-1',
       modelId: 'model-1',
       modelProvider: 'provider-1',
@@ -22,7 +22,7 @@ describe('assistantTextChatMessageState', () => {
       sender: 'assistant',
       type: 'llm-text',
       sourceEventType: 'streaming-response',
-      sourceChannel: 'from-backend',
+      sourceChannel: 'windie:conversation-event',
       turnRef: 'turn-1',
       modelId: 'model-1',
       modelProvider: 'provider-1',

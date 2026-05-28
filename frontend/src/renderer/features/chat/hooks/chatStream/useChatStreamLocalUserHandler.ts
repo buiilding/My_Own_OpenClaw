@@ -62,7 +62,7 @@ export function useChatStreamLocalUserHandler({
       text,
       sender: 'user',
       sourceEventType: 'local-user-message',
-      sourceChannel: 'conversation-event',
+      sourceChannel: 'windie:conversation-event',
       attachmentFilenames: attachmentFilenames.length > 0 ? attachmentFilenames : null,
       screenshotRef: firstScreenshotAttachment.screenshotRef,
       screenshotUrl: firstScreenshotAttachment.screenshotUrl,

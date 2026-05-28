@@ -20,17 +20,17 @@ describe('renderer IPC channel registry', () => {
       ...EXPECTED_SHARED_CHANNEL_REGISTRY,
       INVOKE_CHANNELS: {
         ...EXPECTED_SHARED_CHANNEL_REGISTRY.INVOKE_CHANNELS,
-        SEND_CHAT_QUERY: undefined,
+        WINDIE_SEND: undefined,
       },
-    })).toThrow(/INVOKE_CHANNELS\.SEND_CHAT_QUERY/);
+    })).toThrow(/INVOKE_CHANNELS\.WINDIE_SEND/);
 
     expect(() => validateSharedChannelRegistry({
       ...EXPECTED_SHARED_CHANNEL_REGISTRY,
       SEND_CHANNELS: {
         ...EXPECTED_SHARED_CHANNEL_REGISTRY.SEND_CHANNELS,
-        TO_BACKEND: 'renamed-to-backend',
+        RENDERER_LOG: 'renamed-renderer-log',
       },
-    })).toThrow(/SEND_CHANNELS\.TO_BACKEND/);
+    })).toThrow(/SEND_CHANNELS\.RENDERER_LOG/);
 
     expect(() => validateSharedChannelRegistry({
       ...EXPECTED_SHARED_CHANNEL_REGISTRY,

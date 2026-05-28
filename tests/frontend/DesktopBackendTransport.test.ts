@@ -26,7 +26,7 @@ describe('desktopBackendTransport', () => {
       text: 'retry this',
       conversation_ref: 'conv-1',
     })).rejects.toThrow('Failed to send query to backend');
-    expect(invoke).toHaveBeenCalledWith('send-chat-query', expect.objectContaining({
+    expect(invoke).toHaveBeenCalledWith('windie:send', expect.objectContaining({
       text: 'retry this',
       conversation_ref: 'conv-1',
       workspace_path: '/repo',
@@ -53,7 +53,7 @@ describe('desktopBackendTransport', () => {
     }, {
       messageId: 'turn-1',
     })).resolves.toBe('msg-1');
-    expect(invoke).toHaveBeenCalledWith('send-chat-query', expect.objectContaining({
+    expect(invoke).toHaveBeenCalledWith('windie:send', expect.objectContaining({
       text: 'hello',
       conversation_ref: 'conv-1',
       query_message_id: 'turn-1',

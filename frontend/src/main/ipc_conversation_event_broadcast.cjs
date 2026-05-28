@@ -27,7 +27,7 @@ function broadcastConversationEvent({
   if (!conversationEvent) {
     return null;
   }
-  broadcastToRenderers('conversation-event', conversationEvent, sourceWebContents);
+  broadcastToRenderers('windie:conversation-event', conversationEvent, sourceWebContents);
   return conversationEvent;
 }
 

@@ -59,7 +59,7 @@ function buildProjectedToolCallMessage({
       toolCallDetails: bundleState.toolCallDetails ?? null,
       correlationId: bundleState.correlationId ?? null,
       sourceEventType: toolEvent.kind,
-      sourceChannel: 'conversation-runtime-updated',
+      sourceChannel: 'windie:current-turn',
       turnRef: turnRef || undefined,
     });
   }
@@ -82,7 +82,7 @@ function buildProjectedToolCallMessage({
     toolCallDetails: toolCallState.toolCallDetails ?? null,
     correlationId: toolCallState.correlationId ?? null,
     sourceEventType: toolEvent.kind,
-    sourceChannel: 'conversation-runtime-updated',
+    sourceChannel: 'windie:current-turn',
     turnRef: turnRef || undefined,
   });
 }
@@ -150,7 +150,7 @@ function buildProjectedToolOutputMessage({
     ...buildToolOutputEnvelopeMessage({
       outputText: toolEvent.text || formatProjectedToolOutputText(toolOutputDetails),
       sourceEventType: toolEvent.kind,
-      sourceChannel: 'conversation-runtime-updated',
+      sourceChannel: 'windie:current-turn',
       screenshot: screenshotRef ? null : screenshot,
       screenshotRef,
       screenshotUrl,
@@ -184,7 +184,7 @@ function buildProjectedToolProgressMessage({
     sender: 'assistant',
     type: 'search-source',
     sourceEventType: toolEvent.kind,
-    sourceChannel: 'conversation-runtime-updated',
+    sourceChannel: 'windie:current-turn',
     turnRef: turnRef || undefined,
     toolName: toolEvent.toolName || undefined,
     success: toolEvent.status === 'success' ? true : undefined,
@@ -231,7 +231,7 @@ export function buildCurrentTurnMessagesFromProjection(currentTurnProjection) {
     sender: 'user',
     turnRef: turnRef || undefined,
     sourceEventType: 'sdk-current-turn',
-    sourceChannel: 'conversation-runtime-updated',
+    sourceChannel: 'windie:current-turn',
   }];
 
   if (hasReasoning && !hasText) {
@@ -242,7 +242,7 @@ export function buildCurrentTurnMessagesFromProjection(currentTurnProjection) {
       type: 'llm-text',
       thinkingText: reasoningText,
       sourceEventType: 'reasoning_delta',
-      sourceChannel: 'conversation-runtime-updated',
+      sourceChannel: 'windie:current-turn',
       turnRef: turnRef || undefined,
       isComplete: false,
     });
@@ -269,7 +269,7 @@ export function buildCurrentTurnMessagesFromProjection(currentTurnProjection) {
       type: 'llm-text',
       thinkingText: hasReasoning ? reasoningText : null,
       sourceEventType: 'assistant_delta',
-      sourceChannel: 'conversation-runtime-updated',
+      sourceChannel: 'windie:current-turn',
       turnRef: turnRef || undefined,
       isComplete: phase === 'complete',
     });
@@ -282,7 +282,7 @@ export function buildCurrentTurnMessagesFromProjection(currentTurnProjection) {
       sender: 'assistant',
       type: 'error',
       sourceEventType: 'runtime_error',
-      sourceChannel: 'conversation-runtime-updated',
+      sourceChannel: 'windie:current-turn',
       turnRef: turnRef || undefined,
       isComplete: true,
     });

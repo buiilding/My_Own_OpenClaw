@@ -1,5 +1,5 @@
 import { DesktopVoiceRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopVoiceRuntimeClient';
-import { IpcBridge, SEND_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
+import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => {
   const actual = jest.requireActual('../../frontend/src/renderer/infrastructure/ipc/bridge');
@@ -7,31 +7,27 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => {
     ...actual,
     IpcBridge: {
       ...actual.IpcBridge,
-      send: jest.fn(),
+      invoke: jest.fn(async () => undefined),
     },
   };
 });
 
 describe('DesktopVoiceRuntimeClient', () => {
-  const mockSend = IpcBridge.send as jest.MockedFunction<typeof IpcBridge.send>;
+  const mockInvoke = IpcBridge.invoke as jest.MockedFunction<typeof IpcBridge.invoke>;
 
   beforeEach(() => {
-    mockSend.mockReset();
+    mockInvoke.mockReset();
+    mockInvoke.mockResolvedValue(undefined);
   });
 
   test('sends wakeword notifications through the desktop backend transport', async () => {
     await expect(DesktopVoiceRuntimeClient.wakewordDetected()).resolves.toBeUndefined();
 
-    expect(mockSend).toHaveBeenCalledWith(SEND_CHANNELS.TO_BACKEND, {
-      type: 'wakeword-detected',
-      payload: {},
-    });
+    expect(mockInvoke).toHaveBeenCalledWith(INVOKE_CHANNELS.WINDIE_WAKEWORD_DETECTED, {});
   });
 
   test('returns backend transport failures to the caller', async () => {
-    mockSend.mockImplementationOnce(() => {
-      throw new Error('backend unavailable');
-    });
+    mockInvoke.mockRejectedValueOnce(new Error('backend unavailable'));
 
     await expect(DesktopVoiceRuntimeClient.wakewordDetected()).rejects.toThrow(
       'backend unavailable',

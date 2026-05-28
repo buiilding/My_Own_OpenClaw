@@ -1,6 +1,5 @@
 {
   "SEND_CHANNELS": {
-    "TO_BACKEND": "to-backend",
     "RENDERER_LOG": "renderer-log",
     "TRANSCRIPT_SESSION_SYNC": "transcript-session-sync",
     "MOVE_CHATBOX_TO": "move-chatbox-to",
@@ -9,8 +8,13 @@
     "WAKEWORD_DISABLE": "wakeword-disable"
   },
   "INVOKE_CHANNELS": {
-    "SEND_CHAT_QUERY": "send-chat-query",
-    "STOP_CHAT_QUERY": "stop-chat-query",
+    "WINDIE_SEND": "windie:send",
+    "WINDIE_STOP": "windie:stop",
+    "WINDIE_UPDATE_SETTINGS": "windie:update-settings",
+    "WINDIE_LIST_MODELS": "windie:list-models",
+    "WINDIE_REHYDRATE": "windie:rehydrate",
+    "WINDIE_COMPACT_HISTORY": "windie:compact-history",
+    "WINDIE_WAKEWORD_DETECTED": "windie:wakeword-detected",
     "CAPTURE_SCREENSHOT_ATTACHMENT": "capture-screenshot-attachment",
     "READ_ATTACHMENT_FILE": "read-attachment-file",
     "RUN_BROWSER_ACTION": "run-browser-action",
@@ -66,7 +70,10 @@
     "GET_LOCAL_BACKEND_STATUS": "get-local-backend-status"
   },
   "ON_CHANNELS": {
-    "FROM_BACKEND": "from-backend",
+    "WINDIE_ROWS": "windie:rows",
+    "WINDIE_STATUS": "windie:status",
+    "WINDIE_CONVERSATION_EVENT": "windie:conversation-event",
+    "WINDIE_CURRENT_TURN": "windie:current-turn",
     "TRANSCRIPT_SESSION_SYNC": "transcript-session-sync",
     "SIDECAR_EVENT": "sidecar-event",
     "IPC_STATUS": "ipc-status",
@@ -80,8 +87,6 @@
     "WORKSPACE_ACCESS_UPDATED": "workspace-access-updated",
     "MAIN_WINDOW_OPEN_TARGET": "main-window-open-target",
     "RESPONSE_OVERLAY_PHASE": "response-overlay-phase",
-    "CONVERSATION_RUNTIME_UPDATED": "conversation-runtime-updated",
-    "CONVERSATION_EVENT": "conversation-event",
     "BACKEND_SETTINGS_EVENT": "backend-settings-event",
     "AGENT_CAPABILITY_EVENT": "agent-capability-event",
     "AUDIO_CHUNK": "audio-chunk",

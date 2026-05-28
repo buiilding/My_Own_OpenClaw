@@ -108,9 +108,9 @@ This section distinguishes current behavior from target behavior and known migra
 | Area | Current behavior | Target behavior | Remaining debt / deletion condition | Test target |
 | --- | --- | --- | --- | --- |
 | Query send | Renderer sends user intent to `DesktopLiveTurnRuntimeClient`; SDK runtime creates the turn; Electron main enriches host-only context and maps through `ipc_query_runtime.cjs`; backend websocket payload keys are checked against the backend-owned incoming contract fixture. | Renderer owns UI intent only; SDK/Electron facades own query command mapping; backend envelope id is the transport turn id. | Keep `turn_ref`, attachment UI fields, and unknown keys out of `query.payload`; delete only historical plan references when no longer useful. | `IpcQueryRuntime`, `IpcMainBridge.query`, `FrontendBackendWebsocketContract`, backend incoming contract parity tests. |
-| Live turn projection | Main reduces backend packets through SDK-normalized conversation events and forwards SDK `conversation-runtime-updated` snapshots. Renderer live assistant/tool rows render from SDK `currentTurn`; `useChatStream` remains for transcript, metadata, telemetry, and persistence side effects. | SDK conversation runtime is the only live-turn reducer; renderer display adapters only project SDK state. | Raw backend traffic must not become a live-row fallback again; remaining renderer side effects must stay scoped to normalized conversation events. | `WindieSdkConversationRuntime`, `RendererChatRuntimeBoundary`, `ChatStreamThinkingStatus`, `ChatBoxResponse.state`, stream event runtime tests. |
-| Raw backend events | `from-backend` remains compatibility/diagnostics traffic and non-chat side-channel fallback; settings/model, agent capability, and audio families use typed channels. Chat live state does not subscribe to `ON_CHANNELS.FROM_BACKEND`. | Raw backend event interpretation is removed from normal renderer chat state and retained only for explicit diagnostics or typed side channels. | If a new renderer `FROM_BACKEND` subscription appears, it needs a named owner, payload test, and deletion condition. | `IpcBackendEventChannels`, `RendererChatRuntimeBoundary`, app config/status/agent/audio routing tests. |
-| Settings/model sync | `DesktopSettingsRuntimeClient` owns dashboard startup model-list requests. Main owns backend settings ACK gates in `ipc_settings_sync_runtime.cjs`; queued model-list sends call the SDK agent host directly instead of a separate model-list runtime. `AppConfigProvider` is a React store/facade consumer, not the startup policy owner. | One desktop settings/model runtime exposes explicit config-loaded, backend-connected, synced, requested, received, and error states. | Collapse remaining provider-local status derivation only after settings runtime exposes those explicit states without losing UI affordances. | `DesktopSettingsRuntimeClient`, `IpcSettingsSyncRuntime`, `IpcSettingsSync`, `AppConfigProvider.models`, `ModelsSection`. |
+| Live turn projection | SDK desktop agent normalizes backend packets and forwards SDK `windie:current-turn` snapshots through Electron main. Renderer live assistant/tool rows render from SDK `currentTurn`; `useChatStream` remains for transcript, metadata, telemetry, and persistence side effects. | SDK conversation runtime is the only live-turn reducer; renderer display adapters only project SDK state. | Raw backend traffic must not become a live-row fallback again; remaining renderer side effects must stay scoped to normalized conversation events. | `WindieSdkConversationRuntime`, `RendererChatRuntimeBoundary`, `ChatStreamThinkingStatus`, `ChatBoxResponse.state`, stream event runtime tests. |
+| SDK event fan-out | Electron main forwards SDK rows/status/conversation events/current-turn on `windie:rows`, `windie:status`, `windie:conversation-event`, and `windie:current-turn`. | Electron main is a thin SDK customer and does not expose a generic runtime compatibility relay. | New renderer SDK runtime commands must be explicit `windie:*` invokes or SDK/client methods, not a revived generic backend bridge. | `IpcMainSdkRuntimeBoundary`, `IpcChannels`, `RendererChatRuntimeBoundary`. |
+| Settings/model sync | `DesktopSettingsRuntimeClient` owns dashboard startup model-list requests and calls explicit `windie:update-settings` / `windie:list-models` invokes. Main owns backend settings ACK gates in `ipc_settings_sync_runtime.cjs` and sends through the SDK agent host. `AppConfigProvider` is a React store/facade consumer, not the startup policy owner. | One desktop settings/model runtime exposes explicit config-loaded, backend-connected, synced, requested, received, and error states. | Collapse remaining provider-local status derivation only after settings runtime exposes those explicit states without losing UI affordances. | `DesktopSettingsRuntimeClient`, `IpcSettingsSyncRuntime`, `IpcSettingsSync`, `AppConfigProvider.models`, `ModelsSection`. |
 | Conversation storage | SDK stores and projection builders own display/rehydrate events; sidecar-backed `SidecarConversationStore` is the canonical local persistent store. Renderer dashboard replay adapts SDK display rows to UI state, and continuity services perform backend rehydrate before backend-dependent actions. | SDK projection and store adapters are the only event interpretation tables for display, replay, edit/resend, retry, compaction, and backend rehydrate. | Renderer transcript state remains a cache/projection for visible workspaces; it must not add new event-to-history interpretation tables. | `WindieSdkConversationRuntime`, `WindieSdkFileConversationStore`, `SdkDisplayChatMessageProjection`, dashboard replay/continuity tests. |
 | Electron main composition | `ipc.cjs` still wires many dependencies, but query payload construction, backend side-channel classification, model-list queueing, diagnostics, settings ACK state, overlay phase state, event replay state, and transcript sync helpers live in focused modules. | `ipc.cjs` is a composition root with handler registration and dependency wiring only. | Future extraction should move remaining endpoint/install-auth/session lifecycle wiring when it can be done without changing runtime behavior. | `IpcMainBridge.lifecycle`, `IpcMainBridge.query`, `IpcSettingsSyncRuntime`, `IpcBackendEventChannels`, `IpcDiagnosticsRuntime`. |
 
@@ -121,22 +121,23 @@ This section distinguishes current behavior from target behavior and known migra
 1. User enters message in `renderer/features/chat/components/MessageInput.jsx`.
 2. `useChatMessageSender` builds payload and optional screenshot metadata.
 3. The message sender records the user projection through a focused transcript helper, then `DesktopLiveTurnRuntimeClient.sendQuery()` creates an SDK conversation runtime and calls `runtime.send(...)`.
-4. The desktop backend transport maps the SDK query payload to the typed `send-chat-query` IPC invoke.
+4. The desktop backend transport maps the SDK query payload to the typed `windie:send` IPC invoke.
 5. Main `ipc.cjs`:
    - Ensures one-time initial settings sync ACK gate.
    - Runs blur-only overlay pre-capture prep for chatbox-surface sends.
    - Resolves sender-window display affinity in main (including virtual desktop bounds) and stores it for follow-on tool screenshots when the dashboard renderer is hidden.
-   - Emits local synthetic `local-user-message` event to renderer immediately.
+   - Starts the turn replay buffer with the query message id; the SDK emits the renderer-visible user row/event.
    - Calls `buildQueryPayloadContent()` to inject system-context + memory sections.
    - Resolves applicable local `AGENTS.md` files from the active workspace and forwards them as contextual prompt messages, which is required when the backend is hosted remotely and cannot read local repo paths.
    - Sends normalized `query` through the SDK runtime, which owns the hosted backend WebSocket.
 
 ### Stream Receive Flow
 
-1. Backend WebSocket events arrive in main `ipc.cjs`.
-2. Main updates response-overlay phase (`awaiting-first-chunk`/`streaming`/`tool-call`/`complete`/`error`), applies backend events to the SDK conversation runtime projection, broadcasts `conversation-runtime-updated`, and broadcasts SDK-normalized `conversation-event` payloads to renderer windows. The legacy `from-backend` broadcast may still exist for non-chat consumers and compatibility, but chat no longer subscribes to it for stream semantics.
-3. Renderer dashboard and response-overlay live assistant/tool rows render from the SDK `currentTurn` projection. Renderer `useConversationRuntimeProjectionStream` also derives live thinking text, first assistant chunk tracking, tool phase tracking, terminal complete/error phase tracking, and send-latch clears from that projection. Renderer `useChatStream` consumes SDK-normalized `conversation-event` payloads for scoped transcript/session side effects and metadata; production live row shaping and active assistant/reasoning/tool/terminal phase state do not fall back to raw backend events.
-4. Renderer `useChatStream`:
+1. Backend WebSocket events arrive in the SDK desktop agent.
+2. The SDK normalizes backend events, updates display rows/current-turn projection, and coordinates any local tool execution.
+3. Main updates response-overlay phase (`awaiting-first-chunk`/`streaming`/`tool-call`/`complete`/`error`) and forwards SDK outputs on `windie:rows`, `windie:conversation-event`, `windie:current-turn`, and `windie:status`.
+4. Renderer dashboard and response-overlay live assistant/tool rows render from the SDK `currentTurn` projection. Renderer `useConversationRuntimeProjectionStream` also derives live thinking text, first assistant chunk tracking, tool phase tracking, terminal complete/error phase tracking, and send-latch clears from that projection. Renderer `useChatStream` consumes SDK-normalized `windie:conversation-event` payloads for scoped transcript/session side effects and metadata; production live row shaping and active assistant/reasoning/tool/terminal phase state do not fall back to raw backend events.
+5. Renderer `useChatStream`:
    - Filters by active conversation/turn tracking.
    - Keeps transcript/session side effects for SDK `turn_completed`, `tool_call`, `tool_output`, and `tool_bundle_call` events.
    - Dispatches compaction display and compacted replay persistence from SDK compaction events.
@@ -184,7 +185,7 @@ tool results to the backend.
    revision metadata, not by editing preserved event payloads, so list metadata
    and `getRevision()` stay consistent with file and in-memory stores.
 7. Opening a past chat replaces in-memory renderer chat state immediately, but backend conversation history is rehydrated lazily only before the first backend-dependent action for that chat. Chat session helpers call `DesktopConversationContinuityService.loadLocalConversationSnapshot(...)`, `DesktopConversationContinuityService.rehydrateFromStore(...)`, or `DesktopConversationContinuityService.rehydrateMessages(...)`; the continuity runtime loads SDK rehydrate projections and sends backend rehydrate commands through the SDK conversation runtime transport so feature code does not shape provider history or IPC envelopes.
-8. Send and stop pass through the desktop live-turn runtime facade. Edit/resend, retry, rehydrate, manual compaction, and compaction replay persistence pass through the continuity runtime. These facades call the SDK conversation runtime boundary before the Electron transport adapter maps commands to IPC. Electron-only store and transport adapters stay isolated behind the SDK interfaces instead of becoming normal feature-code dependencies.
+8. Send and stop pass through the desktop live-turn runtime facade. Edit/resend, retry, rehydrate, manual compaction, and compaction replay persistence pass through the continuity runtime. These facades call the SDK conversation runtime boundary before the Electron transport adapter maps commands to explicit `windie:*` IPC. Electron-only store and transport adapters stay isolated behind the SDK interfaces instead of becoming normal feature-code dependencies.
 9. Compaction replay persistence also goes through the desktop continuity runtime. Chat stream handlers may update visible thinking/debug state, but the continuity runtime owns active compacted replay persistence.
 
 Current ownership boundary:
@@ -259,12 +260,12 @@ Primary modules:
 - `main/ipc.cjs`:
   - Renderer-facing composition root for backend-bound work.
   - Delegates backend websocket lifecycle, reconnect, endpoint fallback, idle disconnect, typed sends, local tool coordination, display rows, and current-turn projection to `WindieAgent.startDesktop(...)` through `main/windie_agent_host.cjs`.
-  - Keeps Electron-only side effects in main: install auth, backend endpoint selection, settings ACK gates, overlay phase changes, raw diagnostic `from-backend` fan-out, local-user-message synthesis, and native window/screenshot policy.
+  - Keeps Electron-only side effects in main: install auth, backend endpoint selection, settings ACK gates, overlay phase changes, and native window/screenshot policy.
   - Opens the SDK agent connection on demand for backend-bound work instead of at app startup.
   - Handshake/user/session/conversation context propagation.
   - Settings sync ACK tracking (`settings-updated`/timeout handling).
   - Applies the renderer-owned `global_agent_stop_shortcut` preference locally in main while filtering that key out of backend `update-settings` payloads.
-  - Query preprocessing + local-user-message synthesis.
+  - Query preprocessing before `windie:send`.
   - Artifact upload HTTP helper.
 - `renderer/infrastructure/transcript/localConversationStore.ts`:
   - Renderer-owned read boundary for locally stored SDK conversation events.
@@ -321,7 +322,7 @@ Primary modules:
 - `features/chat/utils/message/messagePresentationPipeline.js`: pure presentation pipeline that derives visible dashboard and overlay message rows from raw transcript state, including hidden-tool explanation rows and collapsed action summaries.
 - `features/chat/hooks/useChatStream.ts`:
   - SDK-normalized conversation-event routing for transcript/session side effects, metadata, terminal materialization, and token-count handling.
-  - Dashboard/response-overlay live assistant and tool rows come from SDK `conversation-runtime-updated` current-turn projection state instead of raw `from-backend` stream interpretation.
+  - Dashboard/response-overlay live assistant and tool rows come from SDK `windie:current-turn` projection state instead of raw backend stream interpretation.
   - Conversation gating and turn tracking.
   - Dev transparency source tagging: in `electron:dev` (`dev_ui=1`), message/thinking/response surfaces show source badges mapped to stream/event origin (`streaming-response`, `tool-call`, `tool-output`, `llm-thought`, etc.).
   - Stream trace logging is separately gated by `WINDIE_DEBUG_STREAM_EVENTS=1`, which main process fans out as `?debug_stream=1` so renderer consoles stay quiet during normal `electron:dev` runs.

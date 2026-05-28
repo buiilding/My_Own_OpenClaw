@@ -22,7 +22,7 @@ const SOURCE_EVENT_LABELS = {
 };
 
 const SOURCE_CHANNEL_LABELS = {
-  'from-backend': 'from-backend',
+  'windie:conversation-event': 'windie:conversation-event',
   'renderer-local': 'renderer-local',
   'sdk-local-runtime': 'sdk-local-runtime',
   transcript: 'transcript',

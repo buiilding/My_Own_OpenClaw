@@ -88,19 +88,6 @@ describe('ipc_settings_sync_runtime', () => {
     expect(updateSettings).toHaveBeenCalledTimes(1);
   });
 
-  test('queues and flushes list-models once backend send succeeds', () => {
-    const requestModelList = jest.fn(() => 'list-models-msg-1');
-    const runtime = createIpcSettingsSyncRuntime({
-      requestModelList,
-    });
-
-    runtime.queueListModelsRequest();
-    runtime.flushPendingListModelsRequest();
-    runtime.flushPendingListModelsRequest();
-
-    expect(requestModelList).toHaveBeenCalledTimes(1);
-  });
-
   test('createSettingsSyncRuntime uses explicit SDK agent methods', async () => {
     const updateSettings = jest.fn(async () => 'settings-msg-1');
     const runtime = createSettingsSyncRuntime({

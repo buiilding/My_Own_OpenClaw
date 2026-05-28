@@ -31,13 +31,13 @@ describe('chatBoxResponseState', () => {
 
   test('resolveSourceTagForResponse respects dev/show toggles and defaults unknown metadata', () => {
     expect(resolveSourceTagForResponse({
-      visibleResponse: { sourceEventType: 'streaming-response', sourceChannel: 'from-backend' },
+      visibleResponse: { sourceEventType: 'streaming-response', sourceChannel: 'windie:conversation-event' },
       showResponse: false,
       devUiEnabled: true,
     })).toBeNull();
 
     expect(resolveSourceTagForResponse({
-      visibleResponse: { sourceEventType: 'streaming-response', sourceChannel: 'from-backend' },
+      visibleResponse: { sourceEventType: 'streaming-response', sourceChannel: 'windie:conversation-event' },
       showResponse: true,
       devUiEnabled: false,
     })).toBeNull();

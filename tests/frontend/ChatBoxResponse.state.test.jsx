@@ -225,7 +225,7 @@ describe('ChatBoxResponse state behavior', () => {
         sender: 'assistant',
         type: 'search-source',
         sourceEventType: 'web-search-progress',
-        sourceChannel: 'from-backend',
+        sourceChannel: 'windie:conversation-event',
       },
       {
         id: 'search-2',
@@ -233,7 +233,7 @@ describe('ChatBoxResponse state behavior', () => {
         sender: 'assistant',
         type: 'search-source',
         sourceEventType: 'web-search-progress',
-        sourceChannel: 'from-backend',
+        sourceChannel: 'windie:conversation-event',
       },
     ]);
 

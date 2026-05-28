@@ -2,10 +2,7 @@ async function prepareRendererQuerySend({
   event,
   payload,
   currentConversationRef,
-  currentSessionId,
-  currentServerUserId,
   currentUserId,
-  backendHttpUrl,
   isFirstQuery,
   deps,
 }) {
@@ -23,9 +20,6 @@ async function prepareRendererQuerySend({
     getWindows,
     setActiveDisplayAffinity,
     resolveActiveSurfaceDisplayAffinity,
-    broadcastLocalUserMessageRuntime,
-    buildLocalUserMessage,
-    broadcastToRenderers,
     ipcEventReplayState,
     buildQueryPayload,
     buildQueryPayloadContext,
@@ -68,21 +62,7 @@ async function prepareRendererQuerySend({
     mainWindow,
   }));
 
-  const localUserMessage = broadcastLocalUserMessageRuntime({
-    sourceWebContents: event.sender,
-    payload: preparedPayload,
-    queryMessageId,
-    conversationRef,
-    currentSessionId,
-    currentServerUserId,
-    currentUserId,
-    backendHttpUrl,
-    buildLocalUserMessage,
-    broadcastToRenderers: ({ channel, payload: messagePayload, sourceWebContents }) => {
-      broadcastToRenderers(channel, messagePayload, sourceWebContents);
-    },
-  });
-  ipcEventReplayState.startTurn(queryMessageId, localUserMessage);
+  ipcEventReplayState.startTurn(queryMessageId);
 
   const preparedContent = await buildQueryPayload({
     basePayload: preparedPayload,

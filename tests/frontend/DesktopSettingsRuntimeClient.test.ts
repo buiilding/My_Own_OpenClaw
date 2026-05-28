@@ -1,5 +1,5 @@
 import { DesktopSettingsRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopSettingsRuntimeClient';
-import { IpcBridge, SEND_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
+import { IpcBridge, INVOKE_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => {
   const actual = jest.requireActual('../../frontend/src/renderer/infrastructure/ipc/bridge');
@@ -7,16 +7,17 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => {
     ...actual,
     IpcBridge: {
       ...actual.IpcBridge,
-      send: jest.fn(),
+      invoke: jest.fn(async () => undefined),
     },
   };
 });
 
 describe('DesktopSettingsRuntimeClient', () => {
-  const mockSend = IpcBridge.send as jest.MockedFunction<typeof IpcBridge.send>;
+  const mockInvoke = IpcBridge.invoke as jest.MockedFunction<typeof IpcBridge.invoke>;
 
   beforeEach(() => {
-    mockSend.mockReset();
+    mockInvoke.mockReset();
+    mockInvoke.mockResolvedValue(undefined);
     window.history.replaceState({}, '', '/');
     DesktopSettingsRuntimeClient.resetDashboardStartupModelListForTests();
   });
@@ -24,19 +25,15 @@ describe('DesktopSettingsRuntimeClient', () => {
   test('requests model lists through the desktop backend transport', () => {
     DesktopSettingsRuntimeClient.listModels();
 
-    expect(mockSend).toHaveBeenCalledWith(SEND_CHANNELS.TO_BACKEND, {
-      type: 'list-models',
-    });
+    expect(mockInvoke).toHaveBeenCalledWith(INVOKE_CHANNELS.WINDIE_LIST_MODELS);
   });
 
   test('requests dashboard startup model list only once per renderer session', () => {
     expect(DesktopSettingsRuntimeClient.requestDashboardStartupModelList()).toBe(true);
     expect(DesktopSettingsRuntimeClient.requestDashboardStartupModelList()).toBe(false);
 
-    expect(mockSend).toHaveBeenCalledTimes(1);
-    expect(mockSend).toHaveBeenCalledWith(SEND_CHANNELS.TO_BACKEND, {
-      type: 'list-models',
-    });
+    expect(mockInvoke).toHaveBeenCalledTimes(1);
+    expect(mockInvoke).toHaveBeenCalledWith(INVOKE_CHANNELS.WINDIE_LIST_MODELS);
   });
 
   test('skips dashboard startup model list from secondary renderer views', () => {
@@ -44,21 +41,20 @@ describe('DesktopSettingsRuntimeClient', () => {
 
     expect(DesktopSettingsRuntimeClient.requestDashboardStartupModelList()).toBe(false);
 
-    expect(mockSend).not.toHaveBeenCalled();
+    expect(mockInvoke).not.toHaveBeenCalled();
   });
 
-  test('does not throw when startup model list request fails', () => {
+  test('does not throw when startup model list request fails', async () => {
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
-    mockSend.mockImplementationOnce(() => {
-      throw new Error('ipc unavailable');
-    });
+    mockInvoke.mockRejectedValueOnce(new Error('ipc unavailable'));
 
-    expect(DesktopSettingsRuntimeClient.requestDashboardStartupModelList()).toBe(false);
-
+    expect(DesktopSettingsRuntimeClient.requestDashboardStartupModelList()).toBe(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
     expect(warnSpy).toHaveBeenCalledWith(
       '[SettingsRuntime] Failed to request startup model list:',
       'ipc unavailable',
     );
+
     warnSpy.mockRestore();
   });
 
@@ -67,11 +63,8 @@ describe('DesktopSettingsRuntimeClient', () => {
       speech_mode_enabled: true,
     });
 
-    expect(mockSend).toHaveBeenCalledWith(SEND_CHANNELS.TO_BACKEND, {
-      type: 'update-settings',
-      payload: {
-        speech_mode_enabled: true,
-      },
+    expect(mockInvoke).toHaveBeenCalledWith(INVOKE_CHANNELS.WINDIE_UPDATE_SETTINGS, {
+      speech_mode_enabled: true,
     });
   });
 
@@ -81,12 +74,9 @@ describe('DesktopSettingsRuntimeClient', () => {
       modelProvider: ' openai ',
     });
 
-    expect(mockSend).toHaveBeenCalledWith(SEND_CHANNELS.TO_BACKEND, {
-      type: 'update-settings',
-      payload: {
-        selected_model_id: 'gpt-5.4@@gpt-5-4-high-thinking',
-        model_provider: 'openai',
-      },
+    expect(mockInvoke).toHaveBeenCalledWith(INVOKE_CHANNELS.WINDIE_UPDATE_SETTINGS, {
+      selected_model_id: 'gpt-5.4@@gpt-5-4-high-thinking',
+      model_provider: 'openai',
     });
   });
 });

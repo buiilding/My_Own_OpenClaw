@@ -48,7 +48,7 @@ describe('DesktopLiveTurnRuntimeClient', () => {
       });
 
       expect(send).not.toHaveBeenCalled();
-      expect(invoke).toHaveBeenCalledWith('send-chat-query', {
+      expect(invoke).toHaveBeenCalledWith('windie:send', {
         text: 'hello',
         conversation_ref: 'conv-send',
         screenshot_ref: 'artifact-main',
@@ -86,7 +86,7 @@ describe('DesktopLiveTurnRuntimeClient', () => {
       await DesktopLiveTurnRuntimeClient.stop('conv-stop');
 
       expect(send).not.toHaveBeenCalled();
-      expect(invoke).toHaveBeenCalledWith('stop-chat-query', {
+      expect(invoke).toHaveBeenCalledWith('windie:stop', {
         conversation_ref: 'conv-stop',
       });
     } finally {
