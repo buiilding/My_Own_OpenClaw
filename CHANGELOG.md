@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- repo: track the WindieOS source icon asset under `artifacts/WindieOSicon.png`.
 - frontend/chat: add default transition logs for minimal pill busy state,
   response overlay renderer state, renderer responsebox size requests, and
   main-process response window show/hide decisions.
