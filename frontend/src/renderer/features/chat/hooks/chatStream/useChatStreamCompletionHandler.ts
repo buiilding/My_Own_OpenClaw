@@ -15,17 +15,52 @@ import {
 type UseChatStreamCompletionHandlerOptions = {
   enableTranscript: boolean;
   modelContextRef: { current: TranscriptModelContext };
+  recordTrackingEvent: (
+    eventType: string,
+    turnRef: string | null | undefined,
+    options?: { phase?: 'complete' },
+    conversationRef?: string | null,
+  ) => void;
+  setIsSending: (isSending: boolean, conversationRef?: string | null) => void;
+  setThinkingStatus: (status: string | null, conversationRef?: string | null) => void;
+  setThinkingSourceEventType: (
+    sourceEventType: string | null,
+    conversationRef?: string | null,
+  ) => void;
 };
 
 export const useChatStreamCompletionHandler = ({
   enableTranscript,
   modelContextRef,
+  recordTrackingEvent,
+  setIsSending,
+  setThinkingStatus,
+  setThinkingSourceEventType,
 }: UseChatStreamCompletionHandlerOptions) => {
   return useCallback((event: ConversationEvent, conversationRef: string | null) => {
+    if (event.type !== 'turn_completed') {
+      return;
+    }
+    const resolvedConversationRef = conversationRef ?? event.conversationRef;
+    const workspace = useChatStore.getState().getWorkspaceState(resolvedConversationRef);
+    const shouldRecordTerminalTracking = (
+      workspace.streamTracking?.phase !== 'complete'
+      || workspace.isSending === true
+      || workspace.thinkingStatus !== null
+      || workspace.thinkingSourceEventType !== null
+    );
+    setIsSending(false, resolvedConversationRef);
+    setThinkingStatus(null, resolvedConversationRef);
+    setThinkingSourceEventType(null, resolvedConversationRef);
+    if (shouldRecordTerminalTracking) {
+      recordTrackingEvent('streaming-complete', event.turnRef, {
+        phase: 'complete',
+      }, resolvedConversationRef);
+    }
+
     const userId = typeof event.payload?.userId === 'string'
       ? event.payload.userId
       : undefined;
-    const workspace = useChatStore.getState().getWorkspaceState(conversationRef);
     const currentMessages = workspace.messages;
     const lastMessage = findStreamingCompleteAssistantMessage(
       currentMessages,
@@ -61,7 +96,7 @@ export const useChatStreamCompletionHandler = ({
         replaceMessageId: lastMessage?.id,
       });
       if (nextMessages !== currentMessages) {
-        useChatStore.getState().setMessages(nextMessages, conversationRef);
+        useChatStore.getState().setMessages(nextMessages, resolvedConversationRef);
       }
     }
 
@@ -79,5 +114,9 @@ export const useChatStreamCompletionHandler = ({
   }, [
     enableTranscript,
     modelContextRef,
+    recordTrackingEvent,
+    setIsSending,
+    setThinkingSourceEventType,
+    setThinkingStatus,
   ]);
 };

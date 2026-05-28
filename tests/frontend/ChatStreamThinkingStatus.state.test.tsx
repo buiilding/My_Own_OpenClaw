@@ -761,6 +761,81 @@ describe('useChatStream state + stream handling', () => {
     }));
   });
 
+  test('streaming-complete clears busy state without a terminal current-turn projection', () => {
+    const { emitBackendEvent } = registerBackendListener();
+
+    act(() => {
+      useChatStore.setState({
+        messages: [
+          {
+            id: 'user-turn-complete',
+            text: 'hello',
+            sender: 'user',
+            turnRef: 'turn-complete',
+          },
+          {
+            id: 'assistant-turn-complete',
+            text: 'done',
+            sender: 'assistant',
+            type: 'llm-text',
+            isComplete: false,
+            turnRef: 'turn-complete',
+          },
+        ],
+        isSending: true,
+        thinkingStatus: 'thinking',
+        thinkingSourceEventType: 'llm-thought',
+        streamTracking: {
+          activeTurnRef: 'turn-complete',
+          phase: 'streaming',
+          startedAt: '2026-03-05T00:00:00.000Z',
+          firstChunkAt: '2026-03-05T00:00:01.000Z',
+          completedAt: null,
+          lastEventAt: '2026-03-05T00:00:01.000Z',
+          lastEventType: 'streaming-response',
+          eventCount: 2,
+          chunkCount: 1,
+          toolCallCount: 0,
+          toolOutputCount: 0,
+          lastChunkSize: 4,
+          lastError: null,
+        },
+        currentTurnProjection: {
+          conversationRef: 'conv-test',
+          turnRef: 'turn-complete',
+          phase: 'streaming',
+          assistantText: 'done',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+        },
+      });
+
+      emitBackendEvent({
+        type: 'streaming-complete',
+        conversation_ref: 'conv-test',
+        turn_ref: 'turn-complete',
+        payload: {
+          final_response: 'done',
+        },
+      });
+    });
+
+    const state = useChatStore.getState();
+    expect(state.isSending).toBe(false);
+    expect(state.thinkingStatus).toBeNull();
+    expect(state.thinkingSourceEventType).toBeNull();
+    expect(state.streamTracking).toEqual(expect.objectContaining({
+      activeTurnRef: 'turn-complete',
+      phase: 'complete',
+      lastEventType: 'streaming-complete',
+    }));
+    expect(state.messages.at(-1)).toEqual(expect.objectContaining({
+      isComplete: true,
+      text: 'done',
+    }));
+  });
+
   test('ignores stale streaming-complete turn when a newer active turn is in progress', () => {
     const { emitBackendEvent } = registerBackendListener();
 
