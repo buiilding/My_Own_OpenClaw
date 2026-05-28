@@ -84,6 +84,29 @@ describe('useChatSurfaceController', () => {
     }));
   });
 
+  test('prefers SDK current-turn completion over stale stream phases', () => {
+    renderController({
+      props: {
+        phase: 'tool-output',
+        streamTracking: { phase: 'tool-output' },
+        currentTurnProjection: {
+          phase: 'complete',
+          conversationRef: 'conv-1',
+          turnRef: 'turn-1',
+          assistantText: 'done',
+          reasoningText: null,
+          toolEvents: [],
+          lastError: null,
+        },
+      },
+    });
+
+    expect(mockCurrentTurnPresentationState).toHaveBeenCalledWith(expect.objectContaining({
+      phase: 'complete',
+      isSending: false,
+    }));
+  });
+
   test('runs pill and dashboard config toggles through one busy gate', () => {
     const { result, updateConfig, rerender } = renderController();
 

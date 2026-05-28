@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: derive dashboard and minimal chat pill busy/typing/stop state
+  from SDK current-turn projection before renderer stream tracking, and replay
+  the latest `windie:current-turn` to newly tracked renderer windows so stale
+  overlay window phase cannot keep the pill in a typing state after completion.
 - backend/sdk/sidecar: simplify local tool-result transport around raw
   `data.output`, remove SDK/sidecar-owned model-output duplication, and keep
   tool-output truncation in the backend history projection path.

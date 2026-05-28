@@ -42,19 +42,22 @@ Current-turn presentation ownership moved to shared chat hooks/state:
 - `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
 
 `useChatSurfaceController(...)` is the shared pill/dashboard control contract
-for current-turn busy state, stop availability, speech mode toggles,
+for SDK current-turn busy state, stop availability, speech mode toggles,
 query-screenshot toggles, wakeword-STT enablement, and manual compaction
-dispatch. `ChatBox.jsx` and `ChatInterface.jsx` should keep layout, focus,
-window, workspace, and model-menu behavior local to their surfaces. The
-dashboard may opt into active-turn manual compaction; the minimal pill keeps
-manual compaction behind its loop lock.
+dispatch. It resolves live-turn state from SDK `currentTurnProjection` first,
+then renderer stream tracking, then the send latch. `response-overlay-phase`
+is a window/layout hint and must not be used as chat runtime truth.
+`ChatBox.jsx` and `ChatInterface.jsx` should keep layout, focus, window,
+workspace, and model-menu behavior local to their surfaces. The dashboard may
+opt into active-turn manual compaction; the minimal pill keeps manual
+compaction behind its loop lock.
 
 ## `ChatBox` Runtime Contract
 
 ### Send and Loop Locking
 
 - uses `useChatMessageSender(undefined, { senderSurface: "overlay-chatbox" })`
-- derives loop lock via `useChatSurfaceController({ phase, isSending, messages })`
+- derives loop lock via `useChatSurfaceController({ currentTurnProjection, streamTracking, isSending, messages })`
 - loop lock disables:
   - dashboard-open button
   - screenshot capture button

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { useChatStore } from '../stores/chatStore';
 import { useChatMessageSender } from '../hooks/useChatMessageSender';
 import { useChatComposerDraft } from '../hooks/useChatComposerDraft';
-import { useResponseOverlayPhase } from '../hooks/useResponseOverlayPhase';
 import { useRendererConversationSessionInfo } from '../session/useRendererConversationSessionInfo';
 import { IpcBridge, INVOKE_CHANNELS, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import {
@@ -38,13 +37,14 @@ function ChatBox() {
   const closeBumpHeight = getChatboxCloseBumpHeight();
   const messages = useChatStore((state) => state.messages);
   const isSending = useChatStore((state) => state.isSending);
+  const streamTracking = useChatStore((state) => state.streamTracking);
+  const currentTurnProjection = useChatStore((state) => state.currentTurnProjection);
   const sessionInfo = useRendererConversationSessionInfo();
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);
   const { sendMessage } = useChatMessageSender(undefined, {
     senderSurface: 'overlay-chatbox',
   });
-  const overlayPhase = useResponseOverlayPhase();
   const [wakewordSttSessionActive, setWakewordSttSessionActive] = useState(false);
   const inputRef = useRef(null);
   const pillRef = useRef(null);
@@ -56,9 +56,10 @@ function ChatBox() {
   const dragStateRef = useRef(createChatboxDragState());
   const chatboxHitTestActiveRef = useRef(null);
   const chatSurface = useChatSurfaceController({
-    phase: overlayPhase,
     isSending,
     messages,
+    streamTracking,
+    currentTurnProjection,
     sessionInfo,
     setThinkingStatus,
     setThinkingSourceEventType,

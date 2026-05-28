@@ -6,6 +6,7 @@ function trackRendererWindow({
   win,
   rendererWindows,
   getResponseOverlayPhase,
+  getLatestCurrentTurn = null,
   getReplayEvents = null,
   buildConversationEvent = null,
 }) {
@@ -33,6 +34,12 @@ function trackRendererWindow({
       phase: getResponseOverlayPhase(),
       source: 'sync',
     });
+    if (typeof getLatestCurrentTurn === 'function') {
+      const latestCurrentTurn = getLatestCurrentTurn();
+      if (latestCurrentTurn && typeof latestCurrentTurn === 'object') {
+        webContents.send('windie:current-turn', latestCurrentTurn);
+      }
+    }
     if (typeof getReplayEvents !== 'function') {
       return;
     }

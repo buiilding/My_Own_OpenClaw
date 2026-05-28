@@ -71,7 +71,9 @@ function ChatInterface({ focusComposerToken = 0 }) {
     thinkingStatus,
     thinkingSourceEventType,
     compactionDebugInfo,
+    streamTracking,
     streamPhase,
+    currentTurnProjection,
   } = useChatStore(
     useShallow(selectChatInterfaceState),
   );
@@ -201,6 +203,8 @@ function ChatInterface({ focusComposerToken = 0 }) {
     phase: streamPhase,
     isSending,
     messages,
+    streamTracking,
+    currentTurnProjection,
     allowedTypes: VISIBLE_ASSISTANT_REPLY_TYPE_SET,
     sessionInfo,
     setThinkingStatus,

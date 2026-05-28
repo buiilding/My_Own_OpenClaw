@@ -74,6 +74,7 @@ const mockChatState = {
   thinkingSourceEventType: null,
   tokenCounts: null,
   streamTracking: { phase: 'idle' },
+  currentTurnProjection: null,
   clearMessages: (...args) => mockClearMessages(...args),
   setMessages: (...args) => mockSetMessages(...args),
   updateMessage: (...args) => mockUpdateMessage(...args),
@@ -294,6 +295,7 @@ describe('ChatInterface wiring', () => {
       userId: 'default_user',
     };
     mockChatState.streamTracking.phase = 'idle';
+    mockChatState.currentTurnProjection = null;
     mockChatState.messages = [];
     mockChatState.isSending = false;
     mockChatState.thinkingStatus = null;
@@ -1392,6 +1394,31 @@ describe('ChatInterface wiring', () => {
     const lastInputProps = mockMessageInput.mock.calls.at(-1)?.[0];
     lastInputProps.onStopResponse();
     expect(mockStopQuery).not.toHaveBeenCalled();
+  });
+
+  test('SDK current-turn completion clears dashboard busy state over stale stream tracking', () => {
+    mockChatState.streamTracking.phase = 'tool-output';
+    mockChatState.isSending = false;
+    mockChatState.currentTurnProjection = {
+      conversationRef: 'conv_existing',
+      turnRef: 'turn-complete',
+      phase: 'complete',
+      assistantText: 'done',
+      reasoningText: null,
+      toolEvents: [],
+      lastError: null,
+    };
+    mockChatState.messages = [
+      { id: 'user-1', sender: 'user', text: 'task', type: 'user', turnRef: 'turn-complete' },
+      { id: 'assistant-1', sender: 'assistant', text: 'done', type: 'llm-text', turnRef: 'turn-complete' },
+    ];
+
+    render(<ChatInterface />);
+
+    const lastInputProps = mockMessageInput.mock.calls.at(-1)?.[0];
+    expect(lastInputProps.isSending).toBe(false);
+    const lastMessageListProps = mockMessageList.mock.calls.at(-1)?.[0];
+    expect(lastMessageListProps.awaitingDotTargetMessageId).toBeNull();
   });
 
   test('dashboard new-chat event clears local conversation state', () => {

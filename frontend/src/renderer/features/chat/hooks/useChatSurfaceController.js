@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
 import { runManualCompaction as runManualCompactionCommand } from '../utils/session/manualCompactionRuntime';
 import { useCurrentTurnPresentationState } from './useCurrentTurnPresentationState';
+import { resolveLiveTurnPresentationInput } from '../utils/state/liveTurnSurfaceState';
 
 function applyBooleanConfigUpdate(updateConfig, key, nextValue) {
   if (typeof updateConfig !== 'function') {
@@ -17,6 +18,8 @@ export function useChatSurfaceController({
   phase,
   isSending,
   messages,
+  streamTracking = null,
+  currentTurnProjection = null,
   allowedTypes,
   sessionInfo,
   setThinkingStatus,
@@ -25,9 +28,16 @@ export function useChatSurfaceController({
   warningContext = 'ChatSurface',
 }) {
   const { config, updateConfig } = useAppConfigContext();
-  const currentTurnPresentationState = useCurrentTurnPresentationState({
+  const liveTurnPresentationInput = resolveLiveTurnPresentationInput({
+    currentTurnProjection,
+    streamTracking,
     phase,
     isSending,
+    messages,
+  });
+  const currentTurnPresentationState = useCurrentTurnPresentationState({
+    phase: liveTurnPresentationInput.phase,
+    isSending: liveTurnPresentationInput.isSending,
     messages,
     allowedTypes,
   });
@@ -81,6 +91,8 @@ export function useChatSurfaceController({
     includeQueryScreenshot,
     isBusy,
     canStop: isBusy,
+    liveTurnPhase: liveTurnPresentationInput.phase,
+    liveTurnSource: liveTurnPresentationInput.source,
     speechModeEnabled,
     toggleBooleanConfig,
     toggleQueryScreenshot,

@@ -116,6 +116,7 @@ const mockChatState = {
   setIsSending: (...args) => mockSetIsSending(...args),
   updateStreamTracking: (...args) => mockUpdateStreamTracking(...args),
   streamTracking: { phase: 'idle' },
+  currentTurnProjection: null,
 };
 
 let mockConfig = {
@@ -216,6 +217,7 @@ describe('ChatBox overlay mouse ignore', () => {
     mockChatState.isSending = false;
     mockChatState.messages = [];
     mockChatState.streamTracking.phase = 'idle';
+    mockChatState.currentTurnProjection = null;
     resizeObserverInstances.length = 0;
     requestAnimationFrameCallbacks.clear();
     nextAnimationFrameId = 1;
@@ -306,6 +308,7 @@ describe('ChatBox overlay mouse ignore', () => {
       ([channel, payload]) => channel === 'set-overlay-ignore-mouse' && payload?.ignore === true,
     );
     expect(enabledClickThrough).toBe(false);
+    expect(screen.getByRole('button', { name: 'Open config' })).toBeEnabled();
   });
 
   test('reports pill hover state to main-owned hit-testing runtime', async () => {
@@ -424,8 +427,8 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('locks pill controls during active loop phases and leaves send disabled', () => {
+    mockChatState.currentTurnProjection = { phase: 'streaming', turnRef: 'turn-active' };
     render(<ChatBox />);
-    emitOverlayPhase('streaming');
 
     expect(screen.getByRole('button', { name: 'Open config' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Hide chat pill' })).toBeDisabled();
@@ -538,8 +541,8 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('does not focus input from chatbox-focus while loop interaction is locked', async () => {
+    mockChatState.currentTurnProjection = { phase: 'tool_call', turnRef: 'turn-active' };
     const { container } = render(<ChatBox />);
-    emitOverlayPhase('tool-call');
     const input = screen.getByPlaceholderText('Ask me to do anything...');
     await waitFor(() => {
       const shellWrap = container.querySelector('.chatbox-shell-wrap');
@@ -560,14 +563,15 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('adds ambient loop glow class while active overlay phases are running', () => {
-    const { container } = render(<ChatBox />);
+    mockChatState.currentTurnProjection = { phase: 'tool_call', turnRef: 'turn-active' };
+    const { container, rerender } = render(<ChatBox />);
     const shellWrap = container.querySelector('.chatbox-shell-wrap');
     expect(shellWrap).toBeTruthy();
 
-    emitOverlayPhase('tool-call');
     expect(shellWrap.classList.contains('loop-active')).toBe(true);
 
-    emitOverlayPhase('idle');
+    mockChatState.currentTurnProjection = { phase: 'complete', turnRef: 'turn-active' };
+    rerender(<ChatBox />);
     expect(shellWrap.classList.contains('loop-active')).toBe(false);
   });
 
@@ -678,8 +682,8 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('keeps send button rendered but disabled during active stream', () => {
+    mockChatState.currentTurnProjection = { phase: 'streaming', turnRef: 'turn-active' };
     render(<ChatBox />);
-    emitOverlayPhase('streaming');
 
     expect(screen.getByRole('button', { name: 'Send message' })).toBeDisabled();
     expect(screen.queryByRole('button', { name: 'Stop response' })).not.toBeInTheDocument();

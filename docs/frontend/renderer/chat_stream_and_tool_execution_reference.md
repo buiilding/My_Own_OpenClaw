@@ -188,6 +188,10 @@ SDK dispatch behavior:
   - raw backend `streaming-response` and normalized SDK `assistant_delta` are not live-row fallbacks in renderer chat code.
 - SDK `currentTurn.phase` from the conversation runtime projection: records terminal `streaming-complete`/`error` tracking and clears transient send/thinking state for `complete` and `error`
   - benign settings-update errors and recoverable streamed tool-call parse errors are filtered before they become SDK current-turn terminal errors.
+  - dashboard and minimal chat pill busy/typing/stop state resolve from SDK
+    current-turn projection first, then renderer stream tracking, then the send
+    latch. `response-overlay-phase` is retained only as Electron overlay
+    window/layout state, not chat runtime authority.
 - SDK `compaction_started` from backend `context-compaction-started`: sets thinking text to `Compacting conversation history...` while backend compaction runs
 - SDK `compaction_applied` from backend `context-compaction-completed`: replaces in-progress compaction thinking with a terminal `Conversation history compacted.` status and marks source as `context-compaction-completed`
   - in dev UI, also stores compaction debug payload including the full summary text plus the replacement-history preview (summary message + kept tail messages)

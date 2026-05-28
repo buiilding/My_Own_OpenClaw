@@ -163,6 +163,7 @@ let pendingInstallAuthStatePromise = null;
 let windieAgent = null;
 let pendingWindieAgentStartPromise = null;
 let detachWindieAgentListeners = [];
+let latestCurrentTurnProjection = null;
 const responseOverlayPhaseState = createResponseOverlayPhaseState();
 const ipcEventReplayState = createIpcEventReplayState();
 const settingsSyncRuntime = createIpcSettingsSyncRuntime({
@@ -395,6 +396,7 @@ function resetBackendSessionState() {
   currentSessionId = null;
   currentServerUserId = null;
   currentConversationRef = null;
+  latestCurrentTurnProjection = null;
 }
 
 function resetIpcProcessStateForTests() {
@@ -410,6 +412,7 @@ function resetIpcProcessStateForTests() {
   latestFrontendConfig = null;
   currentGlobalAgentStopShortcutStatus = null;
   pendingInstallAuthStatePromise = null;
+  latestCurrentTurnProjection = null;
 }
 
 function normalizeOptionalString(value) {
@@ -449,6 +452,7 @@ function attachWindieAgentListeners(agent) {
       broadcastToRenderers('windie:conversation-event', conversationEvent);
     }),
     agent.onCurrentTurn((currentTurn) => {
+      latestCurrentTurnProjection = currentTurn || null;
       broadcastToRenderers('windie:current-turn', currentTurn);
     }),
     agent.onStatus((status) => {
@@ -603,6 +607,7 @@ function trackRendererWindow(win) {
     win,
     rendererWindows,
     getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
+    getLatestCurrentTurn: () => latestCurrentTurnProjection,
     getReplayEvents: () => ipcEventReplayState.snapshot(),
     buildConversationEvent: (event) => buildConversationEventFromBackendEvent(event, {
       fallbackConversationRef: currentConversationRef,

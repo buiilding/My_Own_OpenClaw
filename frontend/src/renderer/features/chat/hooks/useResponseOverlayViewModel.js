@@ -5,6 +5,10 @@ import { toSanitizedMarkdownHtml } from '../../../infrastructure/markdown';
 import { isDevUiEnabled } from '../utils/devUiFlag';
 import { RESPONSE_OVERLAY_PHASE } from '../utils/overlay/responseOverlayPhaseContract';
 import {
+  isCurrentTurnProjectionBusy,
+  mapCurrentTurnProjectionPhase,
+} from '../utils/state/liveTurnSurfaceState';
+import {
   buildCurrentTurnMessagesFromProjection,
   buildCurrentTurnResponseOverlayEntries,
   isResponseCloseable,
@@ -30,7 +34,7 @@ export function useResponseOverlayViewModel({
   const usesCurrentTurnProjection = projectionMessages.length > 0;
   const currentTurnMessages = usesCurrentTurnProjection ? projectionMessages : messages;
   const currentTurnPhase = usesCurrentTurnProjection
-    ? mapCurrentTurnProjectionPhase(currentTurnProjection?.phase)
+    ? (mapCurrentTurnProjectionPhase(currentTurnProjection?.phase) || RESPONSE_OVERLAY_PHASE.IDLE)
     : overlayPhase;
   const currentTurnIsSending = usesCurrentTurnProjection
     ? isCurrentTurnProjectionBusy(currentTurnProjection?.phase)
@@ -157,33 +161,4 @@ export function useResponseOverlayViewModel({
     handleCloseResponse,
     ...viewIntent,
   };
-}
-
-function mapCurrentTurnProjectionPhase(phase) {
-  if (phase === 'awaiting') {
-    return RESPONSE_OVERLAY_PHASE.AWAITING_FIRST_CHUNK;
-  }
-  if (phase === 'streaming') {
-    return RESPONSE_OVERLAY_PHASE.STREAMING;
-  }
-  if (phase === 'tool_call') {
-    return RESPONSE_OVERLAY_PHASE.TOOL_CALL;
-  }
-  if (phase === 'tool_output') {
-    return RESPONSE_OVERLAY_PHASE.TOOL_OUTPUT;
-  }
-  if (phase === 'complete') {
-    return RESPONSE_OVERLAY_PHASE.COMPLETE;
-  }
-  if (phase === 'error') {
-    return RESPONSE_OVERLAY_PHASE.ERROR;
-  }
-  return RESPONSE_OVERLAY_PHASE.IDLE;
-}
-
-function isCurrentTurnProjectionBusy(phase) {
-  return phase === 'awaiting'
-    || phase === 'streaming'
-    || phase === 'tool_call'
-    || phase === 'tool_output';
 }
