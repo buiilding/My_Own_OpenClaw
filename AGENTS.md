@@ -177,6 +177,14 @@ Before coding or answering implementation questions:
 - Run docs listing when available: prefer `./bin/docs-list`, fall back to
   `node scripts/docs-list.js`, ignore only if neither exists.
 - Read the nearest `read_when` docs until the domain and behavior are clear.
+- Before fixing a bug or adding behavior, inspect recent related commits for
+  the files, symbols, or subsystem you are touching. Use `git log`, `git show`,
+  and `git blame` to understand what changed recently, why the current behavior
+  exists, and whether the bug is a regression from a refactor, deletion, or
+  ownership move.
+- Do not treat recent commits as automatically correct. Use them as context:
+  compare the commit intent, current code, tests, docs, and live behavior before
+  deciding whether to restore, revise, or continue the current direction.
 - Use `rg` and live files over memory or assumptions.
 - Use the repo-local docs and code as canonical; this file is a routing guide,
   not an exhaustive source map.
@@ -624,6 +632,14 @@ Release flow:
 - Preserve unrelated dirty worktree changes.
 - Report only files and behavior you changed.
 - Stop and ask only if unexpected changes affect files you are actively editing.
+- For fixes, first reconstruct the recent change history around the failing
+  path: identify the producer, consumer, deleted path, and intended replacement.
+  Prefer fixes that preserve the latest architecture direction instead of
+  reverting to an older duplicated path.
+- For new development, read recent related commits and adjacent implementation
+  patterns before adding code. New code should fit the current ownership model,
+  naming, tests, and architecture direction unless there is a clear reason to
+  change that direction explicitly.
 - For larger refactors or multi-turn changes, maintain a scratch log of
   decisions, tradeoffs, validation commands, blockers, and assumptions.
 
