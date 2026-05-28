@@ -3,6 +3,13 @@ const {
 } = require('./display_affinity_runtime.cjs');
 const { logChatPillMainTrace } = require('./chat_pill_trace_runtime.cjs');
 
+function safeWindowVisible(win) {
+  if (!win || typeof win !== 'object' || typeof win.isDestroyed !== 'function' || win.isDestroyed()) {
+    return null;
+  }
+  return typeof win.isVisible === 'function' ? Boolean(win.isVisible()) : null;
+}
+
 function resolveFullscreenBounds({
   BrowserWindow,
   screen,
@@ -63,6 +70,13 @@ async function handleSetResponseboxSize(
     if (responseWindow.isVisible()) {
       responseWindow.hide();
     }
+    console.log('[ResponseOverlayWindow][main]', {
+      action: 'hide-from-size',
+      phase: getResponseOverlayPhase(),
+      requested_visible: false,
+      response_window_visible: safeWindowVisible(responseWindow),
+      response_overlay_visible_flag: getResponseOverlayVisible(),
+    });
     logChatPillMainTrace({
       source: 'responsebox-size',
       action: 'hide',
@@ -86,6 +100,15 @@ async function handleSetResponseboxSize(
       responseWindow.setBounds(nextBounds, false);
       setResponseOverlayVisibilityState(true);
       showResponseWindowWhenChatVisible();
+      console.log('[ResponseOverlayWindow][main]', {
+        action: 'show-fullscreen-from-size',
+        phase: getResponseOverlayPhase(),
+        requested_visible: true,
+        response_window_visible: safeWindowVisible(responseWindow),
+        response_overlay_visible_flag: getResponseOverlayVisible(),
+        width: nextBounds.width,
+        height: nextBounds.height,
+      });
       logChatPillMainTrace({
         source: 'responsebox-size',
         action: 'set-bounds',
@@ -114,6 +137,16 @@ async function handleSetResponseboxSize(
     responseWindow.setBounds(bounds, false);
     setResponseOverlayVisibilityState(true);
     showResponseWindowWhenChatVisible();
+    console.log('[ResponseOverlayWindow][main]', {
+      action: 'show-or-resize-from-size',
+      phase: getResponseOverlayPhase(),
+      requested_visible: true,
+      response_window_visible: safeWindowVisible(responseWindow),
+      response_overlay_visible_flag: getResponseOverlayVisible(),
+      response_layout_mode: compactHover ? 'awaiting-typing' : 'response',
+      width: nextWidth,
+      height: nextHeight,
+    });
     logChatPillMainTrace({
       source: 'responsebox-size',
       action: 'set-bounds',

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: add default transition logs for minimal pill busy state,
+  response overlay renderer state, renderer responsebox size requests, and
+  main-process response window show/hide decisions.
 - frontend/chat: broadcast accepted local user sends to every renderer before
   query context assembly and let SDK `awaiting` current-turn projections reopen
   terminal turn state so the minimal pill/response overlay shows typing again

@@ -40,6 +40,13 @@ export function useResponseOverlayWindowSync({
       }
       lastFrameRef.current = createHiddenFrameState();
       try {
+        console.log('[ResponseOverlayWindowSync][renderer]', {
+          action: 'hide-requested',
+          visible: false,
+          layout_mode: RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
+          width: 0,
+          height: 0,
+        });
         await IpcBridge.invoke(INVOKE_CHANNELS.SET_RESPONSEBOX_SIZE, {
           visible: false,
           width: 0,
@@ -84,6 +91,16 @@ export function useResponseOverlayWindowSync({
     };
 
     try {
+      console.log('[ResponseOverlayWindowSync][renderer]', {
+        action: 'show-or-resize-requested',
+        visible: true,
+        layout_mode: layoutMode,
+        show_response: showResponse,
+        thinking_text_length: typeof thinkingText === 'string' ? thinkingText.length : 0,
+        compact_hover: Boolean(compactHover),
+        width,
+        height,
+      });
       await IpcBridge.invoke(INVOKE_CHANNELS.SET_RESPONSEBOX_SIZE, {
         visible: true,
         width,
@@ -93,7 +110,7 @@ export function useResponseOverlayWindowSync({
     } catch (error) {
       console.warn('[ChatBoxResponse] Failed to resize response overlay:', error);
     }
-  }, [shellRef]);
+  }, [shellRef, showResponse, thinkingText]);
 
   useEffect(() => {
     const removeListener = IpcBridge.on(ON_CHANNELS.RESPONSE_OVERLAY_VISIBILITY, (payload = {}) => {

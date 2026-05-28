@@ -44,6 +44,7 @@ function ChatBoxResponse() {
     currentTurnProjection,
   } = useChatStore(useShallow(selectChatBoxState));
   const shellRef = useRef(null);
+  const lastLoggedSurfaceStateRef = useRef('');
   const {
     responseOverlayEntries,
     latestSourceTaggedResponseEntry,
@@ -84,13 +85,42 @@ function ChatBoxResponse() {
   });
 
   useEffect(() => {
+    const activeResponseTextLength = typeof latestSourceTaggedResponseEntry?.text === 'string'
+      ? latestSourceTaggedResponseEntry.text.length
+      : 0;
+    const nextSurfaceStateSignature = JSON.stringify({
+      isVisible,
+      showAwaitingReply,
+      showResponse,
+      overlayLayoutMode,
+      phase: currentTurnProjection?.phase || 'idle',
+      turnId: currentTurnId || null,
+      visibleResponseId: latestResponseOverlayEntryId || null,
+      activeResponseTextLength,
+    });
+    if (lastLoggedSurfaceStateRef.current !== nextSurfaceStateSignature) {
+      lastLoggedSurfaceStateRef.current = nextSurfaceStateSignature;
+      console.log('[ResponseOverlayState][renderer]', {
+        action: 'state-changed',
+        turn_id: currentTurnId || null,
+        phase: currentTurnProjection?.phase || 'idle',
+        is_visible: isVisible,
+        show_awaiting_reply: showAwaitingReply,
+        show_response: showResponse,
+        response_layout_mode: overlayLayoutMode,
+        visible_response_id: latestResponseOverlayEntryId || null,
+        response_entry_count: responseOverlayEntries.length,
+        active_response_text_length: activeResponseTextLength,
+        thinking_text_length: typeof thinkingText === 'string' ? thinkingText.length : 0,
+        is_sending: isSending,
+        message_count: messages.length,
+      });
+    }
     logRendererResponseSurfaceTrace({
       overlayPhase: currentTurnProjection?.phase || 'idle',
       isSending,
       messageCount: messages.length,
-      activeResponseTextLength: typeof latestSourceTaggedResponseEntry?.text === 'string'
-        ? latestSourceTaggedResponseEntry.text.length
-        : 0,
+      activeResponseTextLength,
       activeResponseType: latestSourceTaggedResponseEntry?.type || null,
       visibleResponseId: latestResponseOverlayEntryId,
       responseOverlayEntryCount: responseOverlayEntries.length,
@@ -110,6 +140,7 @@ function ChatBoxResponse() {
   }, [
     currentTurnId,
     currentTurnProjection?.phase,
+    isVisible,
     isSending,
     latestResponseOverlayEntryId,
     latestSourceTaggedResponseEntry?.text,

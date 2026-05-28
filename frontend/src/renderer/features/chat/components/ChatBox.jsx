@@ -52,6 +52,7 @@ function ChatBox() {
   const closeButtonAnchorFrameRef = useRef(null);
   const closeButtonAnchorSnapshotRef = useRef({ centerX: null });
   const loopInteractionLockedRef = useRef(false);
+  const lastLoggedPillStateRef = useRef('');
   const dragStateRef = useRef(createChatboxDragState());
   const chatboxHitTestActiveRef = useRef(null);
   const chatSurface = useChatSurfaceController({
@@ -66,6 +67,8 @@ function ChatBox() {
   const {
     includeQueryScreenshot,
     isBusy: loopInteractionLocked,
+    liveTurnPhase,
+    liveTurnSource,
     speechModeEnabled,
     wakewordSttEnabled,
   } = chatSurface;
@@ -121,6 +124,42 @@ function ChatBox() {
   useEffect(() => {
     loopInteractionLockedRef.current = loopInteractionLocked;
   }, [loopInteractionLocked]);
+
+  useEffect(() => {
+    const nextPillStateSignature = JSON.stringify({
+      isSending,
+      loopInteractionLocked,
+      liveTurnPhase,
+      liveTurnSource,
+      currentTurnPhase: currentTurnProjection?.phase || null,
+      currentTurnRef: currentTurnProjection?.turnRef || null,
+    });
+    if (lastLoggedPillStateRef.current === nextPillStateSignature) {
+      return;
+    }
+    lastLoggedPillStateRef.current = nextPillStateSignature;
+    console.log('[ChatPillState][renderer]', {
+      action: 'state-changed',
+      conversation_ref: sessionInfo?.conversationRef || null,
+      turn_id: currentTurnProjection?.turnRef || null,
+      current_turn_phase: currentTurnProjection?.phase || null,
+      live_turn_phase: liveTurnPhase,
+      live_turn_source: liveTurnSource,
+      is_sending: isSending,
+      busy: loopInteractionLocked,
+      stop_available: loopInteractionLocked,
+      message_count: messages.length,
+    });
+  }, [
+    currentTurnProjection?.phase,
+    currentTurnProjection?.turnRef,
+    isSending,
+    liveTurnPhase,
+    liveTurnSource,
+    loopInteractionLocked,
+    messages.length,
+    sessionInfo?.conversationRef,
+  ]);
 
   useEffect(() => {
     if (!loopInteractionLocked) {

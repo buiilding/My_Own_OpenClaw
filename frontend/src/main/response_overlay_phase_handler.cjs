@@ -82,6 +82,13 @@ function syncOverlayContentProtection(enabled, deps = {}) {
   }
 }
 
+function safeWindowVisible(win) {
+  if (!win || typeof win !== 'object' || typeof win.isDestroyed !== 'function' || win.isDestroyed()) {
+    return null;
+  }
+  return typeof win.isVisible === 'function' ? Boolean(win.isVisible()) : null;
+}
+
 function applyResponseOverlayWindowMode(mode, deps = {}) {
   const {
     setResponseOverlayVisibilityState = () => {},
@@ -98,6 +105,12 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
     if (responseWindow && !responseWindow.isDestroyed() && responseWindow.isVisible()) {
       responseWindow.hide();
     }
+    console.log('[ResponseOverlayWindow][main]', {
+      action: 'hide-from-phase',
+      mode,
+      phase,
+      response_window_visible: safeWindowVisible(responseWindow),
+    });
     logChatPillMainTrace({
       source: 'phase-handler',
       action: 'hide-response-window',
@@ -114,6 +127,12 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
     }
     ensureResponseOverlayFallbackBounds();
     showResponseWindowWhenChatVisible();
+    console.log('[ResponseOverlayWindow][main]', {
+      action: 'show-from-phase',
+      mode,
+      phase,
+      response_window_visible: safeWindowVisible(responseWindow),
+    });
     logChatPillMainTrace({
       source: 'phase-handler',
       action: 'show-response-window',
@@ -126,6 +145,12 @@ function applyResponseOverlayWindowMode(mode, deps = {}) {
   if (mode === RESPONSE_OVERLAY_WINDOW_MODE.TERMINAL) {
     if (shouldRestoreTerminalResponseWindow(deps)) {
       showResponseWindowInactive();
+      console.log('[ResponseOverlayWindow][main]', {
+        action: 'restore-terminal-from-phase',
+        mode,
+        phase,
+        response_window_visible: safeWindowVisible(responseWindow),
+      });
       logChatPillMainTrace({
         source: 'phase-handler',
         action: 'restore-terminal-response-window',
