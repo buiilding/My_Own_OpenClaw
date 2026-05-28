@@ -1,5 +1,5 @@
 ---
-summary: "End-to-end browser tool runtime in sidecar: IPC/JSON-RPC path, shared browser contract validation, WindieBrowserRuntime dispatch, BrowserController + CDP orchestration, and browser file/snapshot boundaries."
+summary: "End-to-end browser tool runtime in sidecar: IPC/JSON-RPC path, shared browser contract validation, Browser Use engine dispatch, and browser file/snapshot boundaries."
 read_when:
   - When changing sidecar browser tool behavior, action routing, or CDP launch policy.
   - When debugging browser connect/snapshot/action failures across SDK main runtime, Electron main, and Python sidecar.
@@ -8,7 +8,10 @@ title: "Browser Automation Stack"
 
 # Browser Automation Stack
 
-WindieOS currently uses a first-party Windie browser runtime. Older Browser Use adapter/provider layers are not the current action dispatch path for the canonical `browser` tool.
+WindieOS currently routes the canonical `browser` tool through a sidecar-owned
+Browser Use engine adapter. The old first-party `WindieBrowserRuntime` and
+vendored `browser_use.browser` session runtime were removed from source; do not
+add new browser behavior to those retired paths.
 
 ## End-to-End Call Path
 
@@ -18,8 +21,8 @@ Request path for browser actions:
 2. Electron main `local_backend_bridge.cjs` sends JSON-RPC `execute_tool`.
 3. Python sidecar `local_backend.py` routes to `ToolRegistry.execute_tool("browser", args)`.
 4. `tools/browser/browser_tool.py:execute_browser(...)` validates `BrowserControlArgs`.
-5. `WindieBrowserRuntime.execute(...)` maps the canonical action to a runtime handler.
-6. Runtime handlers talk to `BrowserController`, content extraction helpers, or browser file helpers and return normalized action result data.
+5. `BrowserUseEngineRuntime.execute(...)` maps the canonical action to a Browser Use CLI command or adapter-owned helper.
+6. Browser Use performs browser/session mechanics while the adapter normalizes action result data.
 
 Main-process timeout behavior:
 
@@ -41,28 +44,25 @@ Main-process timeout behavior:
 `browser_tool.py`:
 
 - validates `args` object and `action`
-- resolves `get_browser_controller` lazily at execution time to avoid import-time Playwright dependency
-- instantiates `WindieBrowserRuntime`
-- converts runtime success/failure into canonical `ToolResult`
+- instantiates `BrowserUseEngineRuntime`
+- converts engine success/failure into canonical `ToolResult`
 
-### Layer 2: Windie runtime
+### Layer 2: Browser Use engine adapter
 
-`windie_runtime.py`:
+`browser_use_engine.py`:
 
-- declares `_RUNTIME_HANDLER_BINDINGS`
-- exposes `WindieBrowserRuntime.supported_actions()`
+- exposes `BrowserUseEngineRuntime.supported_actions()`
+- maps canonical actions to Browser Use CLI commands or adapter-owned helpers
 - rejects unsupported actions with `ACTION_UNSUPPORTED`
-- enforces connection preconditions with `BROWSER_NOT_CONNECTED`
-- routes page actions through `BrowserController` and `BrowserActionExecutor`
-- routes extraction through `content_extraction.py`
+- ensures a WindieOS-owned Browser Use session is connected when required
+- routes deterministic extraction through `content_extraction.py`
 - routes browser-local file actions through `file_store.py`
 
 Important runtime constants:
 
-- `BROWSER_RUNTIME_ACTIONS`
 - `DEFAULT_SNAPSHOT_PAGE_LIMIT`
 - `MAX_SNAPSHOT_WINDOW_CHARS`
-- `RUNTIME_SOURCE = "windie.browser"`
+- `RUNTIME_SOURCE = "browser_use.cli"`
 
 ## Shared Contract and Runtime Parity
 
@@ -142,14 +142,14 @@ Do not route browser-owned file actions through general filesystem tools unless 
 Frequent failure points:
 
 - sidecar bridge timeout in Electron (`execute-tool` call timeout)
-- browser runtime provider import/path errors (vendored package missing/misaligned)
+- Browser Use CLI/package import or command failures
 - CDP endpoint unavailable and Chrome auto-launch failure
 - schema validation errors for malformed action payloads
 - connection-required action invoked before `connect`
 
 Where errors are normalized:
 
-- `WindieBrowserRuntime` raises `BrowserActionError` with stable error codes
+- `BrowserUseEngineRuntime` raises `BrowserActionError` with stable error codes
 - browser tool converts failures into `ToolResult` failures with `error_code`
 - local backend bridge maps JSON-RPC failures to `{ success: false, error }`
 

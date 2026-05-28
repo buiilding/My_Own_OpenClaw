@@ -35,7 +35,7 @@ WindieOS currently adapts its canonical browser tool contract to the maintained 
 | Snapshot text, refs, ARIA/DOM extraction | Sidecar controller and snapshot pipeline | `controller.py`, `enhanced_cdp_pipeline.py`, `role_snapshot.py`, `ref_registry.py`, `observation_store.py` | `tests/sidecar/tools/test_browser_enhanced_cdp_pipeline.py`, `test_browser_ref_registry.py`, `test_browser_observation_store.py` | [Browser Action Surface](browser_action_surface.md) |
 | Browser session header/status UI | Renderer browser session store and chat control | `frontend/src/renderer/infrastructure/runtime/browserSessionStore.js`, `useBrowserSessionControl.js`, `frontend/src/renderer/features/chat/components/ChatBrowserSessionControl.jsx` | `tests/frontend/ChatBrowserSessionControl.test.jsx` | [Renderer State Change Workflow](../frontend/renderer/renderer_state_change_workflow.md) |
 | Browser permission/readiness/onboarding | Electron permission service and settings UI | `frontend/src/main/permission_service_browser.cjs`, `frontend/src/main/permission_ipc_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/sections/settings/BrowserSettingsTab.jsx` | frontend permission/settings tests | [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md) |
-| Browser file or download behavior | Sidecar browser file store/runtime | `frontend/src/main/python/tools/browser/file_store.py`, `windie_runtime.py`, browser-use download helpers if still involved | sidecar browser tool/action tests | [Browser Troubleshooting](browser_troubleshooting.md) |
+| Browser file or download behavior | Sidecar browser file store and Browser Use engine adapter | `frontend/src/main/python/tools/browser/file_store.py`, `browser_use_engine.py` | sidecar browser tool/action tests | [Browser Troubleshooting](browser_troubleshooting.md) |
 | Browser execution bridge timeout/result shape | SDK/main local backend bridge and sidecar browser execution | `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`, `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`, `frontend/src/main/local_backend_bridge_timeout_policy.cjs` | `tests/frontend/WindieSdkDesktopAgent.test.ts`, `tests/frontend/WindieSdkDesktopAgent.test.ts`, browser/session tests | [Tool Execution Lifecycle](../tools/tool_execution_lifecycle.md) |
 
 ## End-to-End Action Flow
@@ -71,7 +71,7 @@ Edit:
 - `frontend/src/main/python/windie_shared/browser_contract_catalog.py` for action contract registration, model-visible status, and connection requirements.
 - `frontend/src/main/python/windie_shared/browser_contract_schema.py` if grouped schema emission needs new field handling.
 - `backend/src/tools/browser/**` wrappers only if backend-specific adaptation changes.
-- `frontend/src/main/python/tools/browser/windie_runtime.py` for runtime handler registration and implementation.
+- `frontend/src/main/python/tools/browser/browser_use_engine.py` for runtime action mapping and WindieOS result normalization.
 - `frontend/src/main/python/tools/browser/browser_tool.py` only if validation or error mapping changes.
 - renderer browser session controls only if users need a visible control for the action.
 
@@ -164,7 +164,7 @@ Read:
 Edit:
 
 - `frontend/src/main/python/tools/browser/content_extraction.py` for HTML capture, markdown conversion, scoped extraction, offsets, and max chars.
-- `frontend/src/main/python/tools/browser/windie_runtime.py` for action-level result fields and bounds.
+- `frontend/src/main/python/tools/browser/browser_use_engine.py` for action-level result fields and bounds.
 - provider/config docs only if extraction starts depending on an LLM provider.
 
 Validate:
@@ -184,7 +184,7 @@ Read:
 Edit:
 
 - `frontend/src/main/python/tools/browser/file_store.py` for browser-owned root resolution.
-- `frontend/src/main/python/tools/browser/windie_runtime.py` for `write_file`, `replace_file`, `read_file`, `read_long_content`, `upload_file`, and screenshot/file result fields.
+- `frontend/src/main/python/tools/browser/browser_use_engine.py` for `write_file`, `replace_file`, `read_file`, `read_long_content`, `upload_file`, and screenshot/file result fields.
 - browser-use download helpers only when a current code path still owns the behavior.
 
 Validate:

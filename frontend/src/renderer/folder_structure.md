@@ -40,7 +40,6 @@ frontend/src/renderer/
 │       └── configComparison.ts          # configComparison - Shallow config change detection helpers
 │
 ├── components/                           # Shared UI components
-│   ├── WindieGlyph.jsx                  # WindieGlyph - Shared Windie glyph used in chat/sidebar affordances
 │   └── ErrorBoundary.jsx                # ErrorBoundary - Catches React errors and displays fallback UI
 │
 ├── features/                             # Feature modules (organized by domain)

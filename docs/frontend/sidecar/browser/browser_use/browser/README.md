@@ -30,7 +30,7 @@ title: "Frontend Sidecar Browser Use Browser Docs Hub"
 - `frontend/src/main/python/tools/browser/browser_use/browser/views.py`
 - `frontend/src/main/python/tools/browser/browser_use/browser/profile.py`
 - `frontend/src/main/python/tools/browser/browser_use/browser/session_manager.py`
-- `frontend/src/main/python/tools/browser/browser_use/browser/session.py`
+- Retired local path: `frontend/src/main/python/tools/browser/browser_use/browser/session.py`
 - `frontend/src/main/python/tools/browser/browser_use/browser/demo_mode.py`
 - `frontend/src/main/python/tools/browser/browser_use/browser/video_recorder.py`
 - `frontend/src/main/python/tools/browser/browser_use/browser/watchdog_base.py`

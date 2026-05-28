@@ -5,16 +5,8 @@ import sys
 import types
 from pathlib import Path
 
-import pytest
-
-
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FRONTEND_PYTHON = REPO_ROOT / "frontend" / "src" / "main" / "python"
-
-
-class _Logger:
-    def debug(self, *_args, **_kwargs):
-        pass
 
 
 def _class_stub(name: str):
@@ -117,60 +109,6 @@ def _install_controller_dependency_stubs(monkeypatch):
         monkeypatch.setitem(sys.modules, name, module)
 
 
-def _event_class(name: str):
-    class Event:
-        def __init__(self, **kwargs):
-            for key, value in kwargs.items():
-                setattr(self, key, value)
-
-    Event.__name__ = name
-    return Event
-
-
-def _load_navigation_runtime(monkeypatch):
-    events = _module(
-        "browser_use.browser.events",
-        AgentFocusChangedEvent=_event_class("AgentFocusChangedEvent"),
-        FileDownloadedEvent=_event_class("FileDownloadedEvent"),
-        NavigateToUrlEvent=_event_class("NavigateToUrlEvent"),
-        NavigationCompleteEvent=_event_class("NavigationCompleteEvent"),
-        NavigationStartedEvent=_event_class("NavigationStartedEvent"),
-        SwitchTabEvent=_event_class("SwitchTabEvent"),
-        TabCreatedEvent=_event_class("TabCreatedEvent"),
-        TabClosedEvent=_event_class("TabClosedEvent"),
-    )
-    stubs = {
-        "browser_use": _module("browser_use"),
-        "browser_use.browser": _module("browser_use.browser"),
-        "browser_use.browser.events": events,
-        "browser_use.utils": _module(
-            "browser_use.utils",
-            is_new_tab_page=lambda url: url == "about:blank",
-        ),
-        "cdp_use": _module("cdp_use"),
-        "cdp_use.cdp": _module("cdp_use.cdp"),
-        "cdp_use.cdp.target": _module("cdp_use.cdp.target", TargetID=str),
-    }
-    for name, module in stubs.items():
-        monkeypatch.setitem(sys.modules, name, module)
-
-    module_name = "browser_use.browser.navigation_runtime"
-    sys.modules.pop(module_name, None)
-    spec = importlib.util.spec_from_file_location(
-        module_name,
-        FRONTEND_PYTHON
-        / "tools"
-        / "browser"
-        / "browser_use"
-        / "browser"
-        / "navigation_runtime.py",
-    )
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[module_name] = module
-    spec.loader.exec_module(module)
-    return module
-
-
 def test_browser_controller_installs_action_executor_runtime_owner(monkeypatch):
     _prepend_frontend_python(monkeypatch)
     _install_controller_dependency_stubs(monkeypatch)
@@ -194,39 +132,3 @@ def test_browser_controller_installs_action_executor_runtime_owner(monkeypatch):
         controller._runtime,
         sys.modules["tools.browser.session_runtime"].BrowserSessionRuntime,
     )
-
-
-@pytest.mark.asyncio
-async def test_navigation_runtime_dispatches_focus_tab_closure(monkeypatch):
-    navigation_module = _load_navigation_runtime(monkeypatch)
-
-    class EventBus:
-        def __init__(self):
-            self.dispatched = []
-
-        async def dispatch(self, event):
-            self.dispatched.append(event)
-
-    session = types.SimpleNamespace(
-        agent_focus_target_id="tab-active",
-        event_bus=EventBus(),
-        logger=_Logger(),
-    )
-    runtime = navigation_module.BrowserSessionNavigationRuntime(session)
-
-    await runtime.on_TabClosedEvent(types.SimpleNamespace(target_id="tab-active"))
-
-    assert len(session.event_bus.dispatched) == 1
-    event = session.event_bus.dispatched[0]
-    assert event.__class__.__name__ == "SwitchTabEvent"
-    assert event.target_id is None
-
-
-def test_watchdog_supervisor_does_not_store_global_browser_state():
-    watchdog_source = (
-        REPO_ROOT
-        / "frontend/src/main/python/tools/browser/browser_use/browser/watchdog_supervisor.py"
-    ).read_text(encoding="utf-8", errors="ignore")
-
-    assert "agent_focus_target_id" not in watchdog_source
-    assert "session_manager" not in watchdog_source

@@ -17,7 +17,7 @@ Inspect:
 - `frontend/src/main/python/tools/browser/chrome_detection.py`
 - `frontend/src/main/python/tools/browser/chrome_launcher.py`
 - `frontend/src/main/python/tools/browser/controller.py`
-- `frontend/src/main/python/tools/browser/windie_runtime.py`
+- `frontend/src/main/python/tools/browser/browser_use_engine.py`
 - `frontend/src/main/permission_service_browser.cjs`
 
 Checks:
@@ -115,8 +115,7 @@ npm run test:ci -- ChatBrowserSessionControl.test.jsx
 Inspect:
 
 - `frontend/src/main/python/tools/browser/file_store.py`
-- `frontend/src/main/python/tools/browser/windie_runtime.py`
-- browser-use download watchdog files under `frontend/src/main/python/tools/browser/browser_use`
+- `frontend/src/main/python/tools/browser/browser_use_engine.py`
 
 Checks:
 
@@ -139,7 +138,7 @@ Inspect in order:
 3. `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`
 4. `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`
 5. `frontend/src/main/python/tools/browser/browser_tool.py`
-6. `frontend/src/main/python/tools/browser/windie_runtime.py`
+6. `frontend/src/main/python/tools/browser/browser_use_engine.py`
 
 Focused tests:
 

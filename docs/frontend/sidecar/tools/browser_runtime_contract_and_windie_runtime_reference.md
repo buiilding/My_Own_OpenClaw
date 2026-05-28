@@ -1,28 +1,31 @@
 ---
-summary: "Deep reference for the Windie-owned sidecar browser runtime: canonical action registry, validation boundary, controller/runtime ownership split, and feature-pack readiness contract."
+summary: "Deep reference for the sidecar Browser Use engine adapter: canonical action registry, validation boundary, engine ownership split, and feature-pack readiness contract."
 read_when:
   - When changing `frontend/src/main/python/tools/browser/*` runtime dispatch, browser action coverage, or browser tool error mapping.
   - When tightening or extending the canonical `browser` tool contract and needing runtime/schema parity across sidecar and backend.
-title: "Browser Runtime Contract And Windie Runtime Reference"
+title: "Browser Runtime Contract And Browser Use Engine Reference"
 ---
 
-# Browser Runtime Contract And Windie Runtime Reference
+# Browser Runtime Contract And Browser Use Engine Reference
 
 ## Purpose
 
-The sidecar `browser` tool is now a Windie-owned runtime, not a vendored Browser Use wrapper.
+The sidecar `browser` tool now uses a Windie-owned adapter over the maintained
+Browser Use CLI package. WindieOS owns schema validation, policy, local tool
+transport, browser-local file helpers, and result normalization. Browser Use
+owns browser session mechanics.
 
 The runtime boundary is:
 
-- `browser_tool.py`: instantiate canonical args, execute runtime, normalize failures into `ToolResult`
+- `browser_tool.py`: instantiate canonical args, execute the engine adapter, normalize failures into `ToolResult`
 - `schemas.py`: authoritative runtime validation for canonical browser payloads
-- `windie_runtime.py`: action dispatch and behavior grouped by browser domain
-- `controller.py`: browser/session/page primitives and Playwright-facing operations
-- `content_extraction.py` / `file_store.py`: browser-specific helpers that do not belong in the generic controller
+- `browser_use_engine.py`: action mapping, Browser Use CLI invocation, deterministic extraction helpers, browser-local file helpers, and result normalization
+- `chrome_launcher.py` / `chrome_detection.py`: dedicated WindieOS Chrome/CDP startup policy
 
 ## Canonical Action Registry
 
-The runtime declares one explicit supported-action set in `windie_runtime.py`.
+The engine adapter declares one explicit supported-action set in
+`browser_use_engine.py`.
 
 That registry should stay in parity with:
 
@@ -40,27 +43,28 @@ The parity rule is:
 Use this split when refactoring:
 
 - `schemas.py` owns what arguments are allowed
-- `windie_runtime.py` owns what each canonical action means
-- `controller.py` owns Playwright/browser/session primitives
+- `browser_use_engine.py` owns how each canonical action maps to Browser Use CLI behavior or adapter-owned helpers
+- Browser Use owns Playwright/browser/session primitives
 
-Avoid pushing policy back into the controller when the behavior is really tool-level orchestration.
-Avoid pushing browser/session primitives up into the runtime when they should remain reusable controller methods.
+Avoid adding WindieOS policy to Browser Use internals. Keep WindieOS-specific
+normalization and fallback behavior in `browser_use_engine.py`.
 
 ## Error Contract
 
-Runtime failures should normalize into deterministic sidecar error codes:
+Engine failures should normalize into deterministic sidecar error codes:
 
 - `INVALID_ARGUMENT`
 - `BROWSER_NOT_CONNECTED`
 - `ACTION_UNSUPPORTED`
 - `BROWSER_RUNTIME_ERROR`
 
-The runtime should raise `BrowserActionError` for expected browser/tool failures.
+The engine adapter should raise `BrowserActionError` for expected browser/tool failures.
 `browser_tool.py` is the boundary that maps those failures into serialized sidecar tool results.
 
 ## Feature-Pack Readiness
 
-The browser feature-pack readiness contract should track the Windie-owned runtime’s actual import needs, not deleted vendor architecture.
+The browser feature-pack readiness contract should track the Browser Use engine
+adapter's actual import needs, not deleted vendored runtime architecture.
 
 Current browser feature-pack markers:
 
@@ -76,6 +80,6 @@ If the runtime starts requiring additional optional modules, update:
 
 ## Maintainer Notes
 
-- Do not reintroduce Browser Use/OpenClaw compatibility aliases.
-- Prefer adding small runtime helpers over growing one monolithic handler.
-- Keep runtime/schema parity covered by tests so canonical action drift fails loudly.
+- Do not reintroduce retired `WindieBrowserRuntime` or vendored `browser_use.browser` session files.
+- Prefer adding small adapter helpers over growing one monolithic handler.
+- Keep engine/schema parity covered by tests so canonical action drift fails loudly.

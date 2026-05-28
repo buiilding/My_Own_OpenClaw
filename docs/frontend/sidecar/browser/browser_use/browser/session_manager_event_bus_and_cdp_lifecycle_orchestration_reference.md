@@ -14,7 +14,7 @@ This page documents:
 - `frontend/src/main/python/tools/browser/browser_use/browser/events.py`
 - `frontend/src/main/python/tools/browser/browser_use/browser/views.py`
 - `frontend/src/main/python/tools/browser/browser_use/browser/session_manager.py`
-- `frontend/src/main/python/tools/browser/browser_use/browser/session.py`
+- Retired local path: `frontend/src/main/python/tools/browser/browser_use/browser/session.py`
 
 ## Runtime Surface and Import Boundary
 

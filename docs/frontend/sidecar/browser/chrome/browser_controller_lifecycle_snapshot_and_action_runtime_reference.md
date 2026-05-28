@@ -14,8 +14,6 @@ title: "Browser Controller Lifecycle, Snapshot, and Action Runtime Reference"
 - `frontend/src/main/python/tools/browser/action_executor.py`
 - `frontend/src/main/python/tools/browser/observation_store.py`
 - `frontend/src/main/python/tools/browser/session_runtime.py`
-- `frontend/src/main/python/tools/browser/browser_use/browser/navigation_runtime.py`
-- `frontend/src/main/python/tools/browser/browser_use/browser/watchdog_supervisor.py`
 - `frontend/src/main/python/tools/browser/chrome_launcher.py`
 - `frontend/src/main/python/tools/browser/chrome_detection.py`
 - `tests/sidecar/tools/test_browser_controller.py`
