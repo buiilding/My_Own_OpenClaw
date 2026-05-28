@@ -1213,6 +1213,45 @@ def test_build_openai_responses_input_accepts_normalized_assistant_tool_calls():
     ]
 
 
+def test_build_openai_responses_input_preserves_tool_output_images():
+    messages = [
+        {
+            "role": "assistant",
+            "content": "Capturing screen.",
+            "tool_calls": [
+                {
+                    "id": "call-shot",
+                    "name": "screenshot",
+                    "arguments": {"explanation": "Inspect screen"},
+                }
+            ],
+        },
+        {
+            "role": "tool",
+            "tool_call_id": "call-shot",
+            "content": [
+                {"type": "text", "text": "Screenshot captured successfully."},
+                {
+                    "type": "image_url",
+                    "image_url": {"url": "data:image/jpeg;base64,jpeg-b64"},
+                },
+            ],
+        },
+    ]
+
+    input_items = build_openai_responses_input(messages)
+
+    assert input_items[-1] == {
+        "type": "function_call_output",
+        "call_id": "call-shot",
+        "output": [
+            {"type": "input_text", "text": "Screenshot captured successfully."},
+            {"type": "input_image", "image_url": "data:image/jpeg;base64,jpeg-b64"},
+        ],
+        "status": "completed",
+    }
+
+
 def test_build_openai_responses_input_normalizes_assistant_history_to_output_text():
     messages = [
         {"role": "system", "content": "You are helpful."},

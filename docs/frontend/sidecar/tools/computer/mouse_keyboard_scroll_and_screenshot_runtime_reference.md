@@ -189,9 +189,11 @@ Cross-layer note:
 
 - The SDK local tool coordinator owns the local `tool_output` event. It hoists
   screenshot fields from result data onto the event payload so SDK display rows
-  and renderer messages can render the image. Backend local `tool-result`
-  ingress consumes `data.output` for model/history continuation and does not
-  echo local results as backend `tool-output` UI events.
+  and renderer messages can render the image. The same SDK `tool-result` sends
+  `data.screenshot` and `data.screenshot_content_type` to backend, where result
+  processing attaches the screenshot to the canonical tool history row for the
+  next model call. Backend does not echo local results as backend `tool-output`
+  UI events; UI display remains SDK-owned.
 
 ## Schema Notes vs Runtime Enforcement
 

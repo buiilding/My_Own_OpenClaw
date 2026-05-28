@@ -29,6 +29,22 @@ from backend.src.agent.tools.processing.tool_output_projection import (
 logger = logging.getLogger(__name__)
 
 
+def _normalize_screenshot_payload(
+    screenshot_data: str,
+    *,
+    content_type: Optional[Any] = None,
+) -> str:
+    """Return a provider-ready image payload while preserving known MIME type."""
+    if screenshot_data.startswith("data:image/"):
+        return screenshot_data
+    mime_type = (
+        content_type
+        if isinstance(content_type, str) and content_type.startswith("image/")
+        else "image/png"
+    )
+    return f"data:{mime_type};base64,{screenshot_data}"
+
+
 @dataclass
 class ProcessedToolResult:
     """Processed tool result ready for history commit."""
@@ -149,7 +165,16 @@ class ResultTransformer:
         # Check tool result artifacts
         if "screenshot" in artifacts:
             logger.debug("Found screenshot in tool result artifacts")
-            return artifacts["screenshot"]
+            screenshot_data = artifacts["screenshot"]
+            if isinstance(screenshot_data, str) and screenshot_data:
+                return _normalize_screenshot_payload(
+                    screenshot_data,
+                    content_type=artifacts.get("screenshot_content_type"),
+                )
+            logger.warning(
+                f"Screenshot artifact found but invalid type: {type(screenshot_data)}"
+            )
+            return None
 
         # Check tool result data dict (SDK/local-runtime tools often return it here)
         if isinstance(tool_result.data, dict):
@@ -157,7 +182,10 @@ class ResultTransformer:
                 screenshot_data = tool_result.data["screenshot"]
                 if screenshot_data and isinstance(screenshot_data, str):
                     logger.debug("Found screenshot in tool result data")
-                    return screenshot_data
+                    return _normalize_screenshot_payload(
+                        screenshot_data,
+                        content_type=tool_result.data.get("screenshot_content_type"),
+                    )
                 else:
                     logger.warning(
                         f"Screenshot data found but invalid type: {type(screenshot_data)}"

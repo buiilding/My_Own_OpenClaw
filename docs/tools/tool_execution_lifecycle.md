@@ -25,9 +25,11 @@ WindieOS tools run through a distributed pipeline. The backend owns model-facing
 11. SDK runtime sends `tool-result` or `tool-bundle-result` back to backend, appends a normalized `tool_output` or `tool_bundle_output` event with display content, and projects a display-only renderer `tool-output` event for both single calls and bundles. If backend delivery fails after local execution, the SDK stores that output as `success: false` with `deliveryFailed: true` and marks the turn failed.
 12. Backend result receiver resolves the pending future.
 13. Backend reads raw `data.output`, truncates that raw text only as needed for
-    model history, and does not echo accepted local results as backend
-    `tool-output` UI events.
-14. Backend history committer writes tool rows and the interaction loop continues.
+    model history, preserves screenshot fields as multimodal history image
+    context, and does not echo accepted local results as backend `tool-output`
+    UI events.
+14. Backend history committer writes tool rows containing the text output and
+    screenshot image context, then the interaction loop continues.
 
 ## Owner Map
 
@@ -58,7 +60,8 @@ Single-tool path:
   failure text in `data.output` when available.
 - backend does not emit accepted local SDK results back as `tool-output`.
   The SDK local execution path owns the UI row for sidecar results; backend
-  result ingress consumes `data.output` for waiting/history only.
+  result ingress consumes `data.output` plus screenshot fields for
+  waiting/model-history only.
 - backend history projection may truncate raw `data.output` before the next
   model call, but it must not rewrite local result data into display/model
   duplicate fields such as `display_content`, `model_llm_content`, or
@@ -107,6 +110,10 @@ Tool execution can produce image context in several ways:
 - The sidecar screenshot tool returns inline JPEG base64 in `data.screenshot`;
   the SDK local tool-output event hoists screenshot fields from `data` onto the
   event payload for display rows.
+- The same SDK `tool-result` payload sends `data.screenshot` and
+  `data.screenshot_content_type` to backend. Backend result processing attaches
+  that screenshot to the canonical tool history row as model-visible multimodal
+  image context while keeping UI display owned by the SDK local output event.
 
 Prefer file or artifact refs for large binary payloads when the runtime has a
 stable materialization path. The sidecar screenshot tool is the current explicit

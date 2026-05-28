@@ -60,6 +60,33 @@ def test_preserves_all_images_in_history():
     assert isinstance(llm_messages[2]["content"], list)
 
 
+def test_tool_output_history_preserves_jpeg_data_url_for_llm():
+    history = ConversationHistory()
+    history.stage_tool_call_ids(["call-shot"])
+
+    history.add_tool_output(
+        "Screenshot captured successfully.",
+        image_data="data:image/jpeg;base64,jpeg-b64",
+        tool_name="screenshot",
+    )
+
+    llm_messages = history.get_history()
+    assert llm_messages == [
+        {
+            "role": "tool",
+            "content": [
+                {"type": "text", "text": "Screenshot captured successfully."},
+                {
+                    "type": "image_url",
+                    "image_url": {"url": "data:image/jpeg;base64,jpeg-b64"},
+                },
+            ],
+            "tool_call_id": "call-shot",
+            "name": "screenshot",
+        }
+    ]
+
+
 def test_get_history_mutable_isolated_from_internal_cache():
     history = ConversationHistory()
     history.add_user_message("alpha")

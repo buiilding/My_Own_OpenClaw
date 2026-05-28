@@ -87,6 +87,11 @@ Design intent:
 2. `tool_result.data["screenshot"]` when data is dict and screenshot is a non-empty string
 3. `None` otherwise
 
+If `screenshot_content_type` is available next to the screenshot payload, the
+transformer wraps bare base64 as a `data:<content-type>;base64,...` URL before
+history commit. Existing `data:image/...` URLs pass through unchanged. When no
+content type is present, the legacy default is `image/png`.
+
 Type guard:
 
 - if `data["screenshot"]` exists but is not valid string payload, it is ignored and warning-logged
