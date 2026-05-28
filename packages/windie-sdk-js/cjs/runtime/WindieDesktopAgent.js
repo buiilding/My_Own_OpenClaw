@@ -7,6 +7,132 @@ const WindieClient_js_1 = require("./WindieClient.js");
 function normalizeSendInput(input) {
     return typeof input === 'string' ? { text: input } : input;
 }
+function trimTrailingSlash(value) {
+    return value.endsWith('/') ? value.slice(0, -1) : value;
+}
+function normalizeHttpUrl(value) {
+    if (typeof value !== 'string' || !value.trim()) {
+        return undefined;
+    }
+    try {
+        const url = new URL(value.trim());
+        if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+            return undefined;
+        }
+        url.search = '';
+        url.hash = '';
+        if (!url.pathname || url.pathname === '/') {
+            url.pathname = '/';
+            return trimTrailingSlash(url.toString());
+        }
+        url.pathname = trimTrailingSlash(url.pathname);
+        return url.toString();
+    }
+    catch {
+        return undefined;
+    }
+}
+function normalizeWsUrl(value) {
+    if (typeof value !== 'string' || !value.trim()) {
+        return undefined;
+    }
+    try {
+        const url = new URL(value.trim());
+        if (url.protocol !== 'ws:' && url.protocol !== 'wss:') {
+            return undefined;
+        }
+        url.search = '';
+        url.hash = '';
+        url.pathname = trimTrailingSlash(url.pathname || '/');
+        return url.toString();
+    }
+    catch {
+        return undefined;
+    }
+}
+function deriveWsFromHttp(httpUrl) {
+    const url = new URL(httpUrl);
+    url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+    url.pathname = '/ws';
+    url.search = '';
+    url.hash = '';
+    return trimTrailingSlash(url.toString());
+}
+function deriveHttpFromWs(wsUrl) {
+    const url = new URL(wsUrl);
+    url.protocol = url.protocol === 'wss:' ? 'https:' : 'http:';
+    url.search = '';
+    url.hash = '';
+    const path = trimTrailingSlash(url.pathname || '/');
+    url.pathname = path === '/ws' ? '/' : path;
+    return trimTrailingSlash(url.toString());
+}
+function normalizeDesktopEndpoint(endpoint) {
+    if (!endpoint) {
+        return undefined;
+    }
+    if (typeof endpoint === 'string') {
+        const backendUrl = normalizeHttpUrl(endpoint);
+        const wsUrl = normalizeWsUrl(endpoint);
+        if (!backendUrl && !wsUrl) {
+            return undefined;
+        }
+        const httpBaseUrl = backendUrl ?? deriveHttpFromWs(wsUrl);
+        return {
+            backendUrl: httpBaseUrl,
+            httpBaseUrl,
+            wsUrl: wsUrl ?? deriveWsFromHttp(httpBaseUrl),
+            wsOrigin: httpBaseUrl,
+        };
+    }
+    const backendUrl = normalizeHttpUrl(endpoint.backendUrl)
+        ?? normalizeHttpUrl(endpoint.httpBaseUrl)
+        ?? normalizeHttpUrl(endpoint.httpUrl);
+    const wsUrl = normalizeWsUrl(endpoint.wsUrl);
+    if (!backendUrl && !wsUrl) {
+        return undefined;
+    }
+    const httpBaseUrl = backendUrl ?? deriveHttpFromWs(wsUrl);
+    return {
+        backendUrl: httpBaseUrl,
+        httpBaseUrl,
+        wsUrl: wsUrl ?? deriveWsFromHttp(httpBaseUrl),
+        wsOrigin: normalizeHttpUrl(endpoint.wsOrigin) ?? httpBaseUrl,
+    };
+}
+function normalizeDesktopEndpointCandidates(endpoint, candidates) {
+    const all = [
+        normalizeDesktopEndpoint(endpoint),
+        ...(Array.isArray(candidates) ? candidates.map(normalizeDesktopEndpoint) : []),
+    ].filter((item) => Boolean(item));
+    const seen = new Set();
+    const normalized = [];
+    for (const item of all) {
+        const key = `${item.backendUrl ?? item.httpBaseUrl ?? ''}::${item.wsUrl ?? ''}`;
+        if (seen.has(key)) {
+            continue;
+        }
+        seen.add(key);
+        normalized.push(item);
+    }
+    return normalized.length > 0 ? normalized : undefined;
+}
+function buildDesktopInstallAuth(options) {
+    if (options.installAuth) {
+        return options.installAuth;
+    }
+    const installToken = options.installToken ?? options.apiKey;
+    const userId = options.userId ?? options.defaultUserId;
+    if (!installToken && !userId && !options.installId) {
+        return undefined;
+    }
+    return {
+        installToken,
+        userId,
+        installId: options.installId,
+        autoRegister: false,
+    };
+}
 function statusFromTerminalEvent(event, workspacePath) {
     if (event.type === 'turn_completed') {
         return {
@@ -100,17 +226,42 @@ class WindieDesktopAgent {
         return this.runtime;
     }
     static async start(options) {
-        const { apiKey, appName, workspace, workspacePath: explicitWorkspacePath, store, ...clientAndWakeOptions } = options;
+        const { apiKey, appName, endpoint, endpointCandidates, installId, userId, workspace, workspacePath: explicitWorkspacePath, store, ...clientAndWakeOptions } = options;
         const workspacePath = explicitWorkspacePath ?? workspace;
+        const normalizedEndpoint = normalizeDesktopEndpoint(endpoint);
+        const normalizedEndpoints = normalizeDesktopEndpointCandidates(endpoint, endpointCandidates);
+        const backendUrl = clientAndWakeOptions.backendUrl
+            ?? clientAndWakeOptions.httpBaseUrl
+            ?? normalizedEndpoint?.backendUrl
+            ?? normalizedEndpoint?.httpBaseUrl;
+        const installToken = clientAndWakeOptions.installToken ?? apiKey;
+        const installAuth = buildDesktopInstallAuth({
+            apiKey,
+            installId,
+            installToken: clientAndWakeOptions.installToken,
+            installAuth: clientAndWakeOptions.installAuth,
+            userId,
+            defaultUserId: clientAndWakeOptions.defaultUserId,
+        });
         const client = new WindieClient_js_1.WindieClient({
             ...clientAndWakeOptions,
+            backendUrl,
+            httpBaseUrl: clientAndWakeOptions.httpBaseUrl ?? normalizedEndpoint?.httpBaseUrl ?? backendUrl,
+            wsUrl: clientAndWakeOptions.wsUrl ?? normalizedEndpoint?.wsUrl,
+            wsOrigin: clientAndWakeOptions.wsOrigin ?? normalizedEndpoint?.wsOrigin,
+            backendEndpoints: clientAndWakeOptions.backendEndpoints ?? normalizedEndpoints,
             backendSession: clientAndWakeOptions.backendSession ?? 'managed',
-            installToken: clientAndWakeOptions.installToken ?? apiKey,
+            defaultUserId: clientAndWakeOptions.defaultUserId ?? userId,
+            installToken,
+            installAuth,
             autoStartLocalRuntime: clientAndWakeOptions.autoStartLocalRuntime ?? true,
         });
         const agent = await client.wakeUp({
             ...clientAndWakeOptions,
-            installToken: clientAndWakeOptions.installToken ?? apiKey,
+            backendUrl,
+            userId: userId ?? clientAndWakeOptions.defaultUserId,
+            installToken,
+            installAuth,
             name: appName ?? 'Windie Desktop Agent',
             workspacePath,
             builtins: clientAndWakeOptions.builtins ?? 'default',

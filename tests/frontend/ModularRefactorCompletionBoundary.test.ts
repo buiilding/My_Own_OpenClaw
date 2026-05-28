@@ -10,15 +10,22 @@ async function read(relativePath: string): Promise<string> {
 describe('modular sdk refactor completion boundary', () => {
   test('electron main uses the high-level SDK agent host instead of the deleted main runtime', async () => {
     const ipcSource = await read('frontend/src/main/ipc.cjs');
-    const hostSource = await read('frontend/src/main/windie_agent_host.cjs');
+    const hostExists = await fs.access(path.join(repoRoot, 'frontend/src/main/windie_agent_host.cjs'))
+      .then(() => true, () => false);
 
-    expect(ipcSource).toContain("require('./windie_agent_host.cjs')");
+    expect(hostExists).toBe(false);
+    expect(ipcSource).toContain('WindieAgent.startDesktop');
+    expect(ipcSource).toContain("require('../../../packages/windie-sdk-js/cjs/index.js')");
+    expect(ipcSource).not.toContain("require('./windie_agent_host.cjs')");
+    expect(ipcSource).not.toContain('createWindieAgentHost');
     expect(ipcSource).not.toContain('createWindieSdkMainRuntime');
     expect(ipcSource).not.toContain('sendSdkRuntimeCommand');
     expect(ipcSource).not.toContain('getWindieSdkRuntime');
-    expect(hostSource).toContain('WindieAgent.startDesktop');
-    expect(hostSource).not.toContain('createManagedBackendSession');
-    expect(hostSource).not.toContain('routeSdkToolEventToLocalRuntime');
+    expect(ipcSource).not.toContain('createManagedBackendSession');
+    expect(ipcSource).not.toContain('routeSdkToolEventToLocalRuntime');
+    expect(ipcSource).not.toContain('WebSocketImpl:');
+    expect(ipcSource).not.toContain('sidecar:');
+    expect(ipcSource).not.toContain('executeLocalTool:');
   });
 
   test('renderer live-turn runtime stays on sdk command dispatch', async () => {

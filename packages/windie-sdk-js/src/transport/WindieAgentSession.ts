@@ -84,10 +84,16 @@ export function resolveWebSocketImplementation(WebSocketImpl?: WebSocketConstruc
   if (WebSocketImpl) {
     return WebSocketImpl;
   }
+  const nodeLikeProcess = (globalThis as unknown as {
+    process?: { versions?: { node?: string } };
+  }).process;
+  if (typeof nodeLikeProcess?.versions?.node === 'string') {
+    return NodeWebSocket as unknown as WebSocketConstructor;
+  }
   if (typeof globalThis.WebSocket === 'function') {
     return globalThis.WebSocket as unknown as WebSocketConstructor;
   }
-  throw new Error('WindieSdkClient requires a WebSocket implementation');
+  return NodeWebSocket as unknown as WebSocketConstructor;
 }
 
 export function normalizeWsUrl(wsUrl: string): string {
@@ -419,3 +425,4 @@ export function createWindieAgentBackendTransport(
     close: async () => session.close(1000, 'conversation-runtime-close'),
   };
 }
+import NodeWebSocket from 'ws';

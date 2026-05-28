@@ -75,10 +75,15 @@ calls, return tool results, and expose desktop controls such as settings sync,
 model-list requests, rehydrate, compaction, wakeword, and stop. Desktop agents
 use the SDK managed backend session by default, including reconnect, endpoint
 fallback, idle-disconnect, connection hooks, and strict backend payload
-filtering. The built-in Electron desktop is a first-party SDK host, not a
-separate agent runtime. Electron-specific adapters such as the sidecar-backed
-conversation store may implement SDK interfaces like `ConversationStore` and
-`BackendTransport`, but Electron must not reimplement SDK behavior separately.
+filtering. `WindieAgent.startDesktop(...)` accepts the small public desktop
+bootstrap contract (`apiKey`, `userId`, `installId`, `endpoint`, `workspace`,
+and `appName`) while SDK-owned defaults handle WebSocket construction, sidecar
+reuse/startup, tool discovery, local tool execution, backend result return, and
+display/current-turn projections. The built-in Electron desktop is a first-party
+SDK customer, not a separate agent runtime. Electron-specific adapters such as
+the sidecar-backed conversation store may implement SDK interfaces like
+`ConversationStore` and `BackendTransport`, but Electron must not reimplement
+SDK behavior separately.
 
 ## Public API
 

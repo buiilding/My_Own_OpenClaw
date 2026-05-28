@@ -43,7 +43,10 @@ Common input normalization:
 Endpoint context for SDK agent calls:
 
 - websocket send target and origin come from `resolveBackendEndpoints(...)` state in `ipc.cjs`
-- socket construction, envelope sends, current-turn projection, and display-row projection are owned by `WindieAgent.startDesktop(...)` through `windie_agent_host.cjs`
+- socket construction, sidecar/tool runtime bootstrap, envelope sends,
+  current-turn projection, and display-row projection are owned by
+  `WindieAgent.startDesktop(...)`; `ipc.cjs` imports `WindieAgent` directly and
+  only forwards SDK outputs to renderer windows
 - `initializeIpc(..., { isPackaged })` refreshes endpoint resolution at startup to select dev or packaged fallback policy
 - `get-client-user-id` snapshot includes resolved `backendWsUrl` and `backendHttpUrl` values for renderer diagnostics
 

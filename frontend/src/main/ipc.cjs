@@ -7,10 +7,8 @@ const {
   clipboard,
   nativeImage,
 } = require('electron');
-const WebSocket = require('ws');
 const { v4: uuidv4 } = require('uuid');
 const {
-  executeToolForBackend,
   getSystemState,
   searchMemory,
   storeMemory,
@@ -128,8 +126,8 @@ const {
   buildAgentDefinition,
 } = require('./agent_definition.cjs');
 const {
-  createWindieAgentHost,
-} = require('./windie_agent_host.cjs');
+  WindieAgent,
+} = require('../../../packages/windie-sdk-js/cjs/index.js');
 const {
   buildConversationEventFromBackendEvent,
 } = require('./ipc_conversation_event_broadcast.cjs');
@@ -162,7 +160,9 @@ let setAgentLoopStopShortcutEnabled = null;
 let setGlobalAgentStopShortcutAccelerator = null;
 let currentGlobalAgentStopShortcutStatus = null;
 let pendingInstallAuthStatePromise = null;
-let windieAgentHost = null;
+let windieAgent = null;
+let pendingWindieAgentStartPromise = null;
+let detachWindieAgentListeners = [];
 const responseOverlayPhaseState = createResponseOverlayPhaseState();
 const ipcEventReplayState = createIpcEventReplayState();
 const settingsSyncRuntime = createIpcSettingsSyncRuntime({
@@ -421,20 +421,156 @@ function isActiveBackendLoopPhase(phase) {
   );
 }
 
+function normalizeOptionalString(value) {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+function resolveWorkspacePathForAgent(payload = {}) {
+  return (
+    normalizeOptionalString(payload?.workspace_path)
+    || normalizeOptionalString(payload?.workspacePath)
+    || normalizeOptionalString(latestFrontendConfig?.workspace_path)
+    || normalizeOptionalString(latestFrontendConfig?.workspacePath)
+  );
+}
+
+function resetWindieAgentListeners() {
+  for (const detach of detachWindieAgentListeners) {
+    try {
+      detach?.();
+    } catch (error) {
+      log(`WindieAgent listener detach failed: ${error?.message || error}`);
+    }
+  }
+  detachWindieAgentListeners = [];
+}
+
+function attachWindieAgentListeners(agent) {
+  resetWindieAgentListeners();
+  detachWindieAgentListeners = [
+    agent.onBackendEvent((event) => {
+      handleAgentBackendEvent(event);
+    }),
+    agent.onRows((rows) => {
+      broadcastToRenderers('windie:rows', rows);
+    }),
+    agent.onConversationEvent((conversationEvent) => {
+      broadcastToRenderers('windie:conversation-event', conversationEvent);
+    }),
+    agent.onCurrentTurn((currentTurn) => {
+      broadcastToRenderers('windie:current-turn', currentTurn);
+    }),
+    agent.onStatus((status) => {
+      broadcastToRenderers('windie:status', status);
+    }),
+  ];
+}
+
+function handleWindieAgentBackendFallback(endpointPayload = {}) {
+  const candidates = backendEndpointState.getCandidates();
+  const fallbackIndex = candidates.findIndex(candidate => (
+    candidate.wsUrl === endpointPayload.wsUrl
+    || candidate.httpUrl === endpointPayload.httpBaseUrl
+    || candidate.httpUrl === endpointPayload.httpUrl
+    || candidate.httpUrl === endpointPayload.backendUrl
+  ));
+  if (fallbackIndex >= 0) {
+    setActiveBackendEndpoint(fallbackIndex);
+  } else {
+    advanceToNextBackendEndpoint();
+  }
+  log(`Primary backend unavailable. Falling back to ${backendEndpointState.getEndpoint().wsUrl}.`);
+}
+
+async function startWindieAgent({ reason = 'request', conversationRef = null, workspacePath = null } = {}) {
+  await ensureInstallAuthState();
+  const endpoint = backendEndpointState.getEndpoint();
+  const agent = await WindieAgent.startDesktop({
+    apiKey: currentInstallToken,
+    userId: currentUserId,
+    installId: currentInstallId,
+    appName: 'WindieOS',
+    endpoint,
+    endpointCandidates: backendEndpointState.getCandidates(),
+    conversationRef: conversationRef || currentConversationRef || undefined,
+    workspace: workspacePath || resolveWorkspacePathForAgent() || undefined,
+    operatingSystem: resolveFrontendOperatingSystem(process.platform),
+    shouldHoldBackendConnectionOpen: () => isActiveBackendLoopPhase(responseOverlayPhaseState.getPhase()),
+    reconnectIntervalMs: BACKEND_RECONNECT_INTERVAL_MS,
+    connectTimeoutMs: BACKEND_CONNECT_TIMEOUT_MS,
+    idleDisconnectTimeoutMs: BACKEND_IDLE_DISCONNECT_TIMEOUT_MS,
+    ...(process.env.NODE_ENV === 'test' ? { autoStartLocalRuntime: false } : {}),
+    beforeBackendConnect: () => ensureInstallAuthState(),
+    onBackendOpen: () => {
+      isConnected = true;
+      isFirstQuery = true;
+      resetSettingsSyncState();
+      setResponseOverlayPhase('idle', 'ws-open');
+      ipcEventReplayState.clear();
+      log('Successfully connected to Python backend through Windie SDK runtime.');
+      log(`Handshake sent with authenticated user_id: ${currentUserId}`);
+      broadcastConnectionStatus(true);
+    },
+    onBackendClose: handleAgentBackendClose,
+    onBackendError: ({ error }) => {
+      log(`WebSocket error: ${error?.message || error}`);
+    },
+    onBackendHandshakeError: (error) => {
+      log(`Error sending handshake: ${error}`);
+    },
+    onBackendMessageError: (error) => {
+      log(`Error parsing message from backend: ${error}`);
+    },
+    onBackendSend: (type) => {
+      noteBackendTraffic(`send:${type}`);
+    },
+    onBackendFallback: handleWindieAgentBackendFallback,
+    log,
+  });
+  attachWindieAgentListeners(agent);
+  log(`WindieAgent started for ${reason}.`);
+  return agent;
+}
+
+async function ensureWindieAgent({ reason = 'request', conversationRef = null, workspacePath = null } = {}) {
+  if (windieAgent) {
+    return windieAgent;
+  }
+  if (!pendingWindieAgentStartPromise) {
+    pendingWindieAgentStartPromise = startWindieAgent({
+      reason,
+      conversationRef,
+      workspacePath,
+    })
+      .then((agent) => {
+        windieAgent = agent;
+        return agent;
+      })
+      .finally(() => {
+        pendingWindieAgentStartPromise = null;
+      });
+  }
+  return pendingWindieAgentStartPromise;
+}
+
 function syncBackendIdleDisconnectTimer(reason = 'idle-sync') {
-  windieAgentHost?.syncIdleTimer(reason);
+  windieAgent?.syncBackendIdleTimer(reason);
 }
 
 function noteBackendTraffic(reason = 'traffic') {
-  windieAgentHost?.noteTraffic(reason);
+  windieAgent?.noteBackendTraffic(reason);
 }
 
 function isBackendRuntimeConnected() {
-  return isConnected && Boolean(windieAgentHost?.isConnected());
+  return isConnected && Boolean(windieAgent?.isConnected());
 }
 
 async function ensureBackendConnection(reason = 'request', timeoutMs = BACKEND_CONNECT_TIMEOUT_MS) {
-  return windieAgentHost?.ensureConnected({
+  const agent = await ensureWindieAgent({
+    reason,
+    conversationRef: currentConversationRef,
+  });
+  return agent.ensureConnected({
     reason,
     timeoutMs,
     conversationRef: currentConversationRef,
@@ -600,78 +736,6 @@ function handleAgentBackendClose({ closeReason, shouldReconnect } = {}) {
   broadcastConnectionStatus(false);
 }
 
-windieAgentHost = createWindieAgentHost({
-  WebSocketImpl: WebSocket,
-  appName: 'WindieOS',
-  getEndpoint: () => backendEndpointState.getEndpoint(),
-  getEndpointCandidates: () => backendEndpointState.getCandidates(),
-  beforeConnect: () => ensureInstallAuthState(),
-  getOperatingSystem: () => resolveFrontendOperatingSystem(process.platform),
-  getFrontendConfig: () => latestFrontendConfig,
-  getUserId: () => currentUserId,
-  getInstallAuthState: () => ({
-    installToken: currentInstallToken,
-    installId: currentInstallId,
-    userId: currentUserId,
-  }),
-  executeLocalTool: executeToolForBackend,
-  shouldHoldOpen: () => isActiveBackendLoopPhase(responseOverlayPhaseState.getPhase()),
-  reconnectIntervalMs: BACKEND_RECONNECT_INTERVAL_MS,
-  connectTimeoutMs: BACKEND_CONNECT_TIMEOUT_MS,
-  idleDisconnectTimeoutMs: BACKEND_IDLE_DISCONNECT_TIMEOUT_MS,
-  onOpen: () => {
-    isConnected = true;
-    isFirstQuery = true;
-    resetSettingsSyncState();
-    setResponseOverlayPhase('idle', 'ws-open');
-    ipcEventReplayState.clear();
-    log('Successfully connected to Python backend through Windie SDK runtime.');
-    log(`Handshake sent with authenticated user_id: ${currentUserId}`);
-    broadcastConnectionStatus(true);
-  },
-  onClose: handleAgentBackendClose,
-  onError: ({ error }) => {
-    log(`WebSocket error: ${error?.message || error}`);
-  },
-  onHandshakeError: (error) => {
-    log(`Error sending handshake: ${error}`);
-  },
-  onMessageError: (error) => {
-    log(`Error parsing message from backend: ${error}`);
-  },
-  onSend: (type) => {
-    noteBackendTraffic(`send:${type}`);
-  },
-  onFallback: (endpointPayload = {}) => {
-    const candidates = backendEndpointState.getCandidates();
-    const fallbackIndex = candidates.findIndex(candidate => (
-      candidate.wsUrl === endpointPayload.wsUrl
-      || candidate.httpUrl === endpointPayload.httpBaseUrl
-      || candidate.httpUrl === endpointPayload.httpUrl
-    ));
-    if (fallbackIndex >= 0) {
-      setActiveBackendEndpoint(fallbackIndex);
-    } else {
-      advanceToNextBackendEndpoint();
-    }
-    log(`Primary backend unavailable. Falling back to ${backendEndpointState.getEndpoint().wsUrl}.`);
-  },
-  onRawBackendEvent: handleAgentBackendEvent,
-  onRows: (rows) => {
-    broadcastToRenderers('windie:rows', rows);
-  },
-  onConversationEvent: (conversationEvent) => {
-    broadcastToRenderers('windie:conversation-event', conversationEvent);
-  },
-  onCurrentTurn: (currentTurn) => {
-    broadcastToRenderers('windie:current-turn', currentTurn);
-  },
-  onStatus: (status) => {
-    broadcastToRenderers('windie:status', status);
-  },
-  log,
-});
-
 function shutdownIpcForTests() {
   resetSettingsSyncState();
   resetBackendSessionState();
@@ -684,8 +748,10 @@ function shutdownIpcForTests() {
   setGlobalAgentStopShortcutAccelerator = null;
   pendingInstallAuthStatePromise = null;
   isConnected = false;
-  windieAgentHost?.close('test-shutdown');
-
+  pendingWindieAgentStartPromise = null;
+  resetWindieAgentListeners();
+  windieAgent?.close();
+  windieAgent = null;
 }
 
 function initializeIpc(win, options = {}) {
@@ -922,9 +988,16 @@ function initializeIpc(win, options = {}) {
 
 async function sendQueryToBackend({ payload = {}, messageId = null } = {}) {
   try {
-    const result = await windieAgentHost.run({
+    const agent = await ensureWindieAgent({
+      reason: 'query',
+      conversationRef: resolveConversationRefFromPayload(payload),
+      workspacePath: resolveWorkspacePathForAgent(payload),
+    });
+    const text = typeof payload.text === 'string' ? payload.text : '';
+    const result = await agent.run({
+      text,
+      turnRef: messageId || undefined,
       payload,
-      messageId,
     });
     return result?.queryMessageId || result?.turnRef || null;
   } catch (error) {
@@ -934,27 +1007,47 @@ async function sendQueryToBackend({ payload = {}, messageId = null } = {}) {
 }
 
 async function sendStopQueryToBackend(payload = {}) {
-  return windieAgentHost.stop(payload);
+  if (!windieAgent) {
+    return null;
+  }
+  return windieAgent.stop({
+    conversation_ref: resolveConversationRefFromPayload(payload),
+    turn_ref: payload && typeof payload.turn_ref === 'string'
+      ? payload.turn_ref
+      : null,
+  });
 }
 
 async function updateSettingsOnBackend(payload = {}) {
-  return windieAgentHost.updateSettings(payload);
+  const agent = await ensureWindieAgent({ reason: 'update-settings' });
+  return agent.updateSettings(payload);
 }
 
 async function requestModelListFromBackend() {
-  return windieAgentHost.requestModelList();
+  const agent = await ensureWindieAgent({ reason: 'list-models' });
+  return agent.requestModelList();
 }
 
 async function rehydrateBackendConversation(payload = {}) {
-  return windieAgentHost.rehydrate(payload);
+  const agent = await ensureWindieAgent({
+    reason: 'rehydrate',
+    conversationRef: resolveConversationRefFromPayload(payload),
+    workspacePath: resolveWorkspacePathForAgent(payload),
+  });
+  return agent.rehydrateMessages(payload);
 }
 
 async function compactBackendHistory(payload = {}) {
-  return windieAgentHost.compactHistory(payload);
+  const agent = await ensureWindieAgent({
+    reason: 'compact-history',
+    conversationRef: resolveConversationRefFromPayload(payload),
+  });
+  return agent.compactHistory(payload);
 }
 
 async function sendWakewordDetectedToBackend(payload = {}) {
-  return windieAgentHost.wakewordDetected(payload);
+  const agent = await ensureWindieAgent({ reason: 'wakeword-detected' });
+  return agent.wakewordDetected(payload);
 }
 
 async function triggerStopQueryFromMain() {

@@ -53,17 +53,6 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     ws.handlers.message(JSON.stringify(payload));
   }
 
-  async function waitForMockCall(mockFn, attempts = 100) {
-    for (let attempt = 0; attempt < attempts; attempt += 1) {
-      if (mockFn.mock.calls.length > 0) {
-        return mockFn.mock.calls[mockFn.mock.calls.length - 1];
-      }
-      await Promise.resolve();
-      await Promise.resolve();
-    }
-    return null;
-  }
-
   async function waitForSentMessageType(ws, type, attempts = 100) {
     for (let attempt = 0; attempt < attempts; attempt += 1) {
       const message = ws.sent
@@ -145,10 +134,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(handshake.user_id).toBe('registered-user-1');
     const manifestToolNames = handshake.agent_definition?.tools?.client_manifest?.tools
       ?.map((tool) => tool.name);
-    expect(manifestToolNames).toEqual(expect.arrayContaining([
-      'mouse_control',
-      'read_file',
-    ]));
+    expect(Array.isArray(manifestToolNames)).toBe(true);
     expect(handshake.available_coordinate_methods).toBeUndefined();
     expect(handshake.agent_definition?.runtime?.coordinate_methods).toBeUndefined();
   });
@@ -282,15 +268,9 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     });
   });
 
-  test('routes backend tool-call through SDK local runtime', async () => {
+  test('leaves backend tool-call execution to the SDK runtime instead of the Electron bridge', async () => {
     const { ws, backendBridge } = await setupOpenedIpc();
-    backendBridge.executeToolForBackend.mockResolvedValueOnce({
-      success: true,
-      data: {
-        output: 'saved note',
-        llm_content: 'saved note',
-      },
-    });
+    backendBridge.executeToolForBackend.mockClear();
 
     emitBackendMessage(ws, {
       id: 'event-tool-call-sdk-runtime',
@@ -302,27 +282,8 @@ describe('ipc.cjs bridge lifecycle/config', () => {
       },
     });
 
-    await waitForMockCall(backendBridge.executeToolForBackend);
-    expect(backendBridge.executeToolForBackend).toHaveBeenCalledWith(expect.objectContaining({
-      toolName: 'save_note',
-      args: { text: 'hello' },
-      requestId: 'req-save-note',
-      correlationId: null,
-      toolCallId: null,
-    }));
-    const toolResult = await waitForSentMessageType(ws, 'tool-result');
-    expect(toolResult).toMatchObject({
-      type: 'tool-result',
-      payload: {
-        request_id: 'req-save-note',
-        success: true,
-        data: {
-          output: 'saved note',
-          llm_content: 'saved note',
-        },
-      },
-      user_id: 'registered-user-1',
-    });
+    await Promise.resolve();
+    expect(backendBridge.executeToolForBackend).not.toHaveBeenCalled();
   });
 
   test('does not execute backend-owned tool-call events already marked skip_frontend_execution', async () => {

@@ -1,4 +1,7 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WindieAgentSession = void 0;
 exports.resolveWebSocketImplementation = resolveWebSocketImplementation;
@@ -13,10 +16,14 @@ function resolveWebSocketImplementation(WebSocketImpl) {
     if (WebSocketImpl) {
         return WebSocketImpl;
     }
+    const nodeLikeProcess = globalThis.process;
+    if (typeof nodeLikeProcess?.versions?.node === 'string') {
+        return ws_1.default;
+    }
     if (typeof globalThis.WebSocket === 'function') {
         return globalThis.WebSocket;
     }
-    throw new Error('WindieSdkClient requires a WebSocket implementation');
+    return ws_1.default;
 }
 function normalizeWsUrl(wsUrl) {
     return wsUrl.replace(/\/+$/, '');
@@ -297,3 +304,4 @@ function createWindieAgentBackendTransport(session, conversationRef, agentDefini
         close: async () => session.close(1000, 'conversation-runtime-close'),
     };
 }
+const ws_1 = __importDefault(require("ws"));

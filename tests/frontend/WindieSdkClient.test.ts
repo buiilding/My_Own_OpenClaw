@@ -829,6 +829,63 @@ describe('WindieSdkClient', () => {
     expect(socket.closed).toBe(true);
   });
 
+  test('WindieAgent.startDesktop accepts the public desktop bootstrap contract', async () => {
+    const localRuntime: WindieLocalRuntimeClient = {
+      status: jest.fn(async () => ({ status: 'ok' })),
+      listTools: jest.fn(async () => ({
+        version: 1,
+        tools: [
+          { name: 'read_file', schema: { type: 'object' } },
+        ],
+      })),
+    };
+    const agentPromise = WindieAgent.startDesktop({
+      apiKey: 'desktop-install-token',
+      userId: 'desktop-user',
+      installId: 'desktop-install',
+      appName: 'WindieOS',
+      endpoint: {
+        httpUrl: 'https://desktop.windie.test',
+        wsUrl: 'wss://desktop.windie.test/ws',
+      },
+      workspace: '/Users/example/project',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      sidecar: localRuntime,
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const socket = FakeWebSocket.instances[0];
+    expect(socket.url).toBe('wss://desktop.windie.test/ws');
+    expect((socket.options as { headers?: Record<string, string> })?.headers).toEqual(expect.objectContaining({
+      Authorization: 'Bearer desktop-install-token',
+    }));
+    socket.emit('open', {});
+    const desktopAgent = await agentPromise;
+
+    const handshake = JSON.parse(socket.sent[0]);
+    expect(handshake).toMatchObject({
+      type: 'handshake',
+      user_id: 'desktop-user',
+      operating_system: expect.any(String),
+      agent_definition: {
+        name: 'WindieOS',
+        runtime: expect.objectContaining({
+          workspace_path: '/Users/example/project',
+        }),
+        tools: {
+          client_manifest: {
+            tools: [
+              expect.objectContaining({ name: 'read_file' }),
+            ],
+          },
+        },
+      },
+    });
+    expect(localRuntime.listTools).toHaveBeenCalledTimes(1);
+    desktopAgent.close();
+  });
+
   test('SDK backend event guard includes schema-backed control websocket events', async () => {
     const { isBackendEvent } = await import('../../packages/windie-sdk-js/src/events/backendEvents');
 
