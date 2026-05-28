@@ -7,6 +7,19 @@ exports.normalizeLocalToolResultData = normalizeLocalToolResultData;
 exports.readBundleStepModelContent = readBundleStepModelContent;
 const DISPLAY_FALLBACK_KEYS = ['return_display', 'output', 'message'];
 const MODEL_FALLBACK_KEYS = ['llm_content', 'output', 'message'];
+const FRONTEND_DERIVED_OUTPUT_KEYS = new Set([
+    'display_content',
+    'return_display',
+    'llm_content',
+    'model_llm_content',
+    'llm_content_original_tokens',
+    'llm_content_token_limit',
+    'llm_content_truncated',
+    'llm_content_token_source',
+    'output_token_limit',
+    'output_truncated',
+    'original_output_tokens',
+]);
 function recordFromUnknown(value) {
     return value && typeof value === 'object' && !Array.isArray(value)
         ? value
@@ -54,20 +67,28 @@ function readToolOutputContent(payload) {
         hasModelContent: Boolean(canonicalModel ?? fallbackModel),
     };
 }
-function normalizeLocalToolResultData(data) {
+function normalizeLocalToolResultData(data, fallbackOutput = '') {
     if (!data || typeof data !== 'object' || Array.isArray(data)) {
-        return {};
+        return { output: fallbackOutput };
     }
-    const displayContent = stringField(data, 'display_content')
-        ?? stringField(data, ...DISPLAY_FALLBACK_KEYS)
-        ?? stringField(data, 'llm_content')
-        ?? JSON.stringify(data);
-    const llmContent = stringField(data, 'llm_content') ?? displayContent;
-    return {
-        ...data,
-        display_content: displayContent,
-        llm_content: llmContent,
-    };
+    const explicitOutput = data.output;
+    const output = (explicitOutput === '' && fallbackOutput !== '' ? undefined : explicitOutput)
+        ?? data.message
+        ?? data.error
+        ?? data.llm_content
+        ?? data.return_display
+        ?? data.display_content
+        ?? data.model_llm_content
+        ?? data.content
+        ?? fallbackOutput;
+    const normalized = {};
+    for (const [key, value] of Object.entries(data)) {
+        if (!FRONTEND_DERIVED_OUTPUT_KEYS.has(key)) {
+            normalized[key] = value;
+        }
+    }
+    normalized.output = output;
+    return normalized;
 }
 function readBundleStepModelContent(step) {
     const output = step.output ?? step.result;

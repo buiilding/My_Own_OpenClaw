@@ -43,8 +43,8 @@ async def test_read_file_uses_default_limit_when_not_provided(tmp_path: Path):
     assert result.data["is_truncated"] is True
     assert result.data["content"].splitlines()[0] == "line-0001"
     assert result.data["content"].splitlines()[-1] == "line-2000"
-    assert f"File path: {target}" in result.data["llm_content"]
-    assert "offset: 2000" in result.data["llm_content"]
+    assert f"File path: {target}" in result.data["output"]
+    assert "offset: 2000" in result.data["output"]
 
 
 @pytest.mark.asyncio
@@ -77,7 +77,7 @@ async def test_read_file_resolves_relative_path_from_selected_workspace(
     assert result.success is True
     assert result.data["file_path"] == str(target)
     assert result.data["content"] == "console.log('workspace');\n"
-    assert f"File path: {target}" in result.data["llm_content"]
+    assert f"File path: {target}" in result.data["output"]
 
 
 @pytest.mark.asyncio
@@ -97,7 +97,7 @@ async def test_read_file_resolves_relative_path_from_home_when_workspace_missing
     assert result.success is True
     assert result.data["file_path"] == str(target)
     assert result.data["content"] == "hello from home\n"
-    assert f"File path: {target}" in result.data["llm_content"]
+    assert f"File path: {target}" in result.data["output"]
 
 
 @pytest.mark.asyncio
@@ -149,7 +149,7 @@ async def test_read_file_respects_offset_and_limit_window(tmp_path: Path):
     assert result.data["read_lines"] == 2
     assert result.data["is_truncated"] is True
     assert result.data["content"] == "beta\ngamma\n"
-    assert f"File path: {target}" in result.data["llm_content"]
+    assert f"File path: {target}" in result.data["output"]
 
 
 @pytest.mark.asyncio
@@ -165,8 +165,8 @@ async def test_read_file_truncates_very_long_lines(tmp_path: Path):
     assert lines[1] == "short"
     assert result.data["truncated_line_count"] == 1
     assert result.data["line_truncation_limit"] == 500
-    assert f"File path: {target}" in result.data["llm_content"]
-    assert "truncated to 500 characters" in result.data["llm_content"]
+    assert f"File path: {target}" in result.data["output"]
+    assert "truncated to 500 characters" in result.data["output"]
 
 
 @pytest.mark.asyncio
@@ -187,8 +187,8 @@ async def test_read_file_offset_past_eof_returns_empty_window(tmp_path: Path):
     assert result.data["total_lines"] == 2
     assert result.data["read_lines"] == 0
     assert result.data["is_truncated"] is True
-    assert f"File path: {target}" in result.data["llm_content"]
-    assert "Showing 0 lines" in result.data["llm_content"]
+    assert f"File path: {target}" in result.data["output"]
+    assert "Showing 0 lines" in result.data["output"]
 
 
 @pytest.mark.asyncio
@@ -203,7 +203,7 @@ async def test_read_file_empty_file_returns_empty_message(tmp_path: Path):
     assert result.data["total_lines"] == 0
     assert result.data["read_lines"] == 0
     assert result.data["is_truncated"] is False
-    assert result.data["llm_content"] == f"File path: {target}\n\nFile is empty."
+    assert result.data["output"] == f"File path: {target}\n\nFile is empty."
 
 
 @pytest.mark.asyncio
@@ -217,7 +217,7 @@ async def test_read_file_allows_large_files_with_paging(tmp_path: Path):
     assert result.data["total_lines"] == 11000
     assert result.data["read_lines"] == 1
     assert result.data["is_truncated"] is True
-    assert f"File path: {target}" in result.data["llm_content"]
+    assert f"File path: {target}" in result.data["output"]
 
 
 @pytest.mark.asyncio
@@ -240,7 +240,7 @@ async def test_read_file_pdf_extracts_text_via_pypdf(tmp_path: Path, monkeypatch
     assert result.data["is_truncated"] is False
     assert "--- Page 1 ---" in result.data["content"]
     assert "Executive summary page" in result.data["content"]
-    assert "PDF extracted text across 2 page(s)." in result.data["llm_content"]
+    assert "PDF extracted text across 2 page(s)." in result.data["output"]
 
 
 @pytest.mark.asyncio
@@ -271,8 +271,8 @@ async def test_read_file_pdf_uses_relevance_selection_when_large(
     assert result.data["is_truncated"] is True
     assert 1 in result.data["pdf_pages_included"]
     assert 3 in result.data["pdf_pages_included"]
-    assert "size-aware page selection" in result.data["llm_content"]
-    assert "Relevance terms used for page selection" in result.data["llm_content"]
+    assert "size-aware page selection" in result.data["output"]
+    assert "Relevance terms used for page selection" in result.data["output"]
 
 
 @pytest.mark.asyncio
@@ -300,7 +300,7 @@ async def test_read_file_pdf_respects_offset_and_limit_as_page_window(
     assert "--- Page 2 ---" in result.data["content"]
     assert "--- Page 3 ---" in result.data["content"]
     assert "--- Page 1 ---" not in result.data["content"]
-    assert "offset: 3" in result.data["llm_content"]
+    assert "offset: 3" in result.data["output"]
 
 
 @pytest.mark.asyncio
@@ -322,7 +322,7 @@ async def test_read_file_image_returns_attachment_payload_without_ocr(tmp_path: 
     assert result.data["read_lines"] == 0
     assert result.data["total_lines"] == 0
     assert result.data["is_truncated"] is False
-    assert "OCR/text extraction is not performed" in result.data["llm_content"]
+    assert "OCR/text extraction is not performed" in result.data["output"]
 
 
 @pytest.mark.asyncio

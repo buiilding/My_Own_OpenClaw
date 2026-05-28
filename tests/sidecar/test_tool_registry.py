@@ -80,7 +80,7 @@ async def test_execute_tool_handles_dict_results_and_errors():
     registry.tools["read_file"] = lambda _args: {"success": True, "data": {"ok": True}}
     result = await registry.execute_tool("read_file", {"file_path": "/tmp/a"})
     assert result.success is True
-    assert result.data == {"ok": True}
+    assert result.data == {"ok": True, "output": ""}
 
     registry.tools["read_file"] = lambda _args: {"success": False, "error": "bad"}
     result = await registry.execute_tool("read_file", {"file_path": "/tmp/a"})
@@ -141,7 +141,7 @@ async def test_register_module_tool_loads_without_restart(
                 "from tools.result import ToolResult",
                 "",
                 "async def save_note(text: str):",
-                "    return ToolResult.success_result({'llm_content': f'saved:{text}'})",
+                "    return ToolResult.success_result({'output': f'saved:{text}'})",
             ]
         ),
         encoding="utf-8",
@@ -165,5 +165,5 @@ async def test_register_module_tool_loads_without_restart(
 
     assert tool["name"] == "save_note"
     assert result.success is True
-    assert result.data == {"llm_content": "saved:hello"}
+    assert result.data == {"output": "saved:hello"}
     assert any(item["name"] == "save_note" for item in manifest["tools"])

@@ -164,7 +164,7 @@ async def process_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
             "data": {
                 "running": running,
                 "finished": finished,
-                "return_display": f"{len(running)} running, {len(finished)} finished session(s).",
+                "message": f"{len(running)} running, {len(finished)} finished session(s).",
             },
         }
 
@@ -174,7 +174,7 @@ async def process_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
             "success": True,
             "data": {
                 "cleared": cleared,
-                "return_display": f"Cleared {cleared} finished session(s).",
+                "message": f"Cleared {cleared} finished session(s).",
             },
         }
 
@@ -200,7 +200,7 @@ async def process_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
                     "stderr": finished.stderr,
                     "exit_code": finished.exit_code,
                     "aggregated": finished.aggregated,
-                    "return_display": f"Session {session_id} finished ({finished.status}).",
+                    "message": f"Session {session_id} finished ({finished.status}).",
                 },
             }
         if not session.backgrounded:
@@ -221,7 +221,7 @@ async def process_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
                 "stderr": stderr,
                 "exit_code": session.exit_code,
                 "aggregated": session.aggregated,
-                "return_display": f"Session {session_id} is {status}.",
+                "message": f"Session {session_id} is {status}.",
             },
         }
 
@@ -246,7 +246,7 @@ async def process_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
                 "output": sliced["slice"] or "(no output yet)",
                 "total_lines": sliced["total_lines"],
                 "truncated": target.truncated,
-                "return_display": f"Log slice for session {session_id}.",
+                "message": f"Log slice for session {session_id}.",
             },
         }
 
@@ -263,7 +263,7 @@ async def process_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
                 "status": "running",
                 "session_id": session_id,
                 "bytes_written": len(data),
-                "return_display": f"Wrote {len(data)} bytes to session {session_id}.",
+                "message": f"Wrote {len(data)} bytes to session {session_id}.",
             },
         }
 
@@ -283,7 +283,7 @@ async def process_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
                 "session_id": session_id,
                 "bytes_written": len(payload),
                 "warnings": warnings,
-                "return_display": f"Sent {len(payload)} bytes to session {session_id}.",
+                "message": f"Sent {len(payload)} bytes to session {session_id}.",
             },
         }
 
@@ -298,7 +298,7 @@ async def process_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
             "data": {
                 "status": "running",
                 "session_id": session_id,
-                "return_display": f"Submitted session {session_id}.",
+                "message": f"Submitted session {session_id}.",
             },
         }
 
@@ -316,7 +316,7 @@ async def process_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
                 "status": "running",
                 "session_id": session_id,
                 "bytes_written": len(payload),
-                "return_display": f"Pasted {len(payload)} bytes to session {session_id}.",
+                "message": f"Pasted {len(payload)} bytes to session {session_id}.",
             },
         }
 
@@ -329,7 +329,7 @@ async def process_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
                 "data": {
                     "status": "completed",
                     "session_id": session_id,
-                    "return_display": f"Session {session_id} already exited.",
+                    "message": f"Session {session_id} already exited.",
                 },
             }
         session.process.kill()
@@ -349,7 +349,7 @@ async def process_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
             "data": {
                 "status": "killed",
                 "session_id": session_id,
-                "return_display": f"Killed session {session_id}.",
+                "message": f"Killed session {session_id}.",
             },
         }
 
@@ -374,7 +374,7 @@ async def process_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
             "data": {
                 "status": "removed",
                 "session_id": session_id,
-                "return_display": f"Removed session {session_id}.",
+                "message": f"Removed session {session_id}.",
             },
         }
 

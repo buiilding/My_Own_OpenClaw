@@ -25,5 +25,5 @@ async def test_repo_agent_example_extension_executes():
     )
 
     assert tool_result.success is True
-    assert "Repo snapshot for" in tool_result.data["llm_content"]
+    assert "Repo snapshot for" in tool_result.data["output"]
     assert tool_result.data["files"]

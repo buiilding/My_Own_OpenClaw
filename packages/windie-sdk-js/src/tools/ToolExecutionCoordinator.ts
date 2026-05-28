@@ -49,7 +49,7 @@ function failureResult(error: unknown): LocalToolResult {
     success: false,
     error: message,
     data: {
-      llm_content: message,
+      output: message,
     },
   };
 }
@@ -359,12 +359,11 @@ export class ToolExecutionCoordinator {
     const success = result.success !== false;
     const data = success
       ? await this.attachSinglePostActionScreenshot(call, result)
-      : normalizeLocalToolResultData(result.data);
+      : normalizeLocalToolResultData(result.data, result.error || 'Tool execution failed');
     const payload: ToolResultPayload = {
       request_id: call.requestId,
       success,
       data,
-      error: success ? undefined : result.error || 'Tool execution failed',
     };
     let deliveryError: unknown = null;
     try {
@@ -388,7 +387,7 @@ export class ToolExecutionCoordinator {
           toolName: call.toolName,
           success: deliveryError ? false : success,
           result: payload.data,
-          error: deliveryErrorMessage ?? payload.error ?? null,
+          error: deliveryErrorMessage ?? (success ? null : result.error || 'Tool execution failed'),
           deliveryFailed: Boolean(deliveryError),
           elapsedMs: Date.now() - startedAt,
         },
@@ -443,7 +442,7 @@ export class ToolExecutionCoordinator {
         status: success ? 'ok' : 'error',
         output: success
           ? normalizeLocalToolResultData(result.data)
-          : { error: result.error || 'Tool execution failed' },
+          : normalizeLocalToolResultData(result.data || { output: result.error || 'Tool execution failed' }),
       };
       stepResults.push(stepResult);
       executedSteps.push({

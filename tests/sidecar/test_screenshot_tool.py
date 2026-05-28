@@ -62,7 +62,7 @@ async def test_capture_screenshot_success_with_display_bounds(monkeypatch):
     assert calls == [(10, 20, 300, 200)]
     payload = result["data"]
     assert payload["compression"] == "jpeg"
-    assert payload["return_display"] == "Screenshot captured"
+    assert payload["output"] == "Screenshot captured successfully."
     assert payload["screenshot_content_type"] == "image/jpeg"
     screenshot_path = payload["screenshot_path"]
     screenshot_file = Path(screenshot_path)

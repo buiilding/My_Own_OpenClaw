@@ -103,9 +103,8 @@ async def open_app(args: Dict[str, Any]) -> Dict[str, Any]:
             else:
                 response_data["verify_status"] = "screenshot_failed"
 
-    llm_content = _build_llm_content(response_data)
-    response_data["llm_content"] = llm_content
-    response_data["return_display"] = llm_content
+    output = _build_output(response_data)
+    response_data["output"] = output
 
     return {
         "success": True,
@@ -361,7 +360,7 @@ async def _capture_verification_screenshot(timeout_seconds: float) -> Dict[str, 
     return screenshot_payload
 
 
-def _build_llm_content(data: Dict[str, Any]) -> str:
+def _build_output(data: Dict[str, Any]) -> str:
     verify_status = data.get("verify_status")
     command = data.get("command")
     if verify_status == "verified":

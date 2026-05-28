@@ -1608,7 +1608,6 @@ async def test_tool_result_handler_routes_to_session():
             "request_id": "req_1",
             "success": True,
             "data": {
-                "llm_content": "ok",
                 "system_state": {
                     "active_window": "Terminal",
                     "mouse_position": "(845, 512)",
@@ -1642,7 +1641,6 @@ async def test_tool_result_handler_trims_request_id_before_session_routing():
             "request_id": "  req_trimmed  ",
             "success": True,
             "data": {
-                "llm_content": "ok",
                 "output": "ok",
             },
         },
@@ -1669,7 +1667,6 @@ async def test_tool_result_handler_routes_without_system_state_for_non_computer_
             "request_id": "req_1b",
             "success": True,
             "data": {
-                "llm_content": "ok",
                 "output": "ok",
             },
         },
@@ -1700,8 +1697,7 @@ async def test_tool_result_handler_echoes_backend_canonical_tool_output():
             "request_id": "req_canonical",
             "success": True,
             "data": {
-                "llm_content": "raw local model output",
-                "return_display": "full visible output",
+                "output": "full visible output",
             },
         },
     )
@@ -1752,7 +1748,7 @@ async def test_tool_result_handler_accepts_capture_backend_in_capture_meta():
             "request_id": "req_capture_backend_1",
             "success": True,
             "data": {
-                "llm_content": "ok",
+                "output": "ok",
                 "capture_meta": {
                     "source_w": 1920,
                     "source_h": 1080,
@@ -1911,7 +1907,7 @@ def test_tool_result_handler_serializes_tool_result_data_model():
 
     serialized = handler._serialize_tool_result_data(
         ToolResultData(
-            llm_content="done",
+            output="done",
             system_state=ToolResultSystemState(
                 active_window="Terminal",
                 mouse_position="(1, 1)",
@@ -1921,7 +1917,7 @@ def test_tool_result_handler_serializes_tool_result_data_model():
     )
 
     assert serialized == {
-        "llm_content": "done",
+        "output": "done",
         "system_state": {
             "active_window": "Terminal",
             "mouse_position": "(1, 1)",
@@ -1979,7 +1975,7 @@ async def test_tool_result_handler_missing_session_is_noop():
             "request_id": "req_2",
             "success": True,
             "data": {
-                "llm_content": "ok",
+                "output": "ok",
                 "system_state": {
                     "active_window": "Unknown",
                     "mouse_position": "Unknown",

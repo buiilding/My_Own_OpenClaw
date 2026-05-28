@@ -43,8 +43,8 @@ async def test_replace_resolves_relative_path_from_selected_workspace(
 
     assert result.success is True
     assert target.read_text(encoding="utf-8") == "console.log('after');\n"
-    assert "Successfully modified file:" in result.data["llm_content"]
-    assert str(target) in result.data["llm_content"]
+    assert "Successfully modified file:" in result.data["output"]
+    assert str(target) in result.data["output"]
 
 
 @pytest.mark.asyncio

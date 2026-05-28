@@ -276,7 +276,7 @@ describe('frontend/backend websocket incoming contract', () => {
       request_id: 'req-1',
       success: true,
       data: {
-        llm_content: 'done',
+        output: 'done',
         output: 'tool-specific extra field is allowed in data',
       },
     });
@@ -307,7 +307,7 @@ describe('frontend/backend websocket incoming contract', () => {
       request_id: 'req-1',
       success: true,
       data: {
-        llm_content: 'done',
+        output: 'done',
         capture_meta: {
           capture_backend: 'partial-only',
         },
@@ -348,7 +348,7 @@ describe('frontend/backend websocket incoming contract', () => {
     assertPayloadMatchesContract('tool-result', toolResultPayload);
     assertPayloadMatchesContract('tool-bundle-result', bundleResultPayload);
     expect(toolResultPayload.data).toEqual({
-      llm_content: 'done',
+      output: 'done',
       screenshot_content_type: 'image/jpeg',
     });
     expect(bundleResultPayload.capture_meta).toEqual({

@@ -595,8 +595,8 @@ async def capture_screenshot(args: Dict[str, Any]) -> Dict[str, Any]:
             "success": True,
             "data": {
                 **capture_payload,
-                "llm_content": "Screenshot captured successfully.",
-                "return_display": "Screenshot captured",
+                "output": "Screenshot captured successfully.",
+                "message": "Screenshot captured",
             },
         }
     except ImportError as e:

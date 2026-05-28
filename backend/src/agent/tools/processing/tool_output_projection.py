@@ -94,7 +94,7 @@ def _string_field(payload: Dict[str, Any], *keys: str) -> Optional[str]:
 
 def _display_text(tool_result: ToolResult, data: Dict[str, Any]) -> str:
     return (
-        _string_field(data, "display_content", "return_display", "output", "message")
+        _string_field(data, "output", "message", "display_content", "return_display")
         or tool_result.return_display
         or tool_result.llm_content
         or tool_result.error
@@ -104,7 +104,7 @@ def _display_text(tool_result: ToolResult, data: Dict[str, Any]) -> str:
 
 def _model_text(tool_result: ToolResult, data: Dict[str, Any], display: str) -> str:
     return (
-        _string_field(data, "model_llm_content", "llm_content", "output", "message")
+        _string_field(data, "output", "message", "model_llm_content", "llm_content")
         or tool_result.llm_content
         or (f"Error: {tool_result.error}" if tool_result.error else None)
         or display

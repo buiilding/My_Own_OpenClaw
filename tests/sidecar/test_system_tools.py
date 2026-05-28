@@ -68,7 +68,7 @@ async def test_switch_to_window_success(monkeypatch):
     assert result["success"] is True
     assert manager.switch_calls == ["Terminal"]
     assert result["data"]["tab_name"] == "Terminal"
-    assert "Successfully switched" in result["data"]["llm_content"]
+    assert "Successfully switched" in result["data"]["output"]
 
 
 @pytest.mark.asyncio
@@ -207,7 +207,7 @@ async def test_get_open_windows_prefers_app_names_and_includes_titles(monkeypatc
         "Terminal",
         "Editor",
     ]
-    assert result["data"]["llm_content"] == (
+    assert result["data"]["output"] == (
         "- Google Chrome: my prompts - Google Docs\n"
         "- Google Chrome: u reverse - Google Search\n"
         "- Terminal\n"
@@ -229,7 +229,7 @@ async def test_get_open_windows_filters_display_names_case_insensitively(monkeyp
 
     assert result["success"] is True
     assert result["data"]["windows"] == ["Google Chrome: my prompts - Google Docs"]
-    assert result["data"]["llm_content"] == "- Google Chrome: my prompts - Google Docs"
+    assert result["data"]["output"] == "- Google Chrome: my prompts - Google Docs"
 
 
 @pytest.mark.asyncio
@@ -249,7 +249,7 @@ async def test_get_open_windows_preserves_duplicate_display_names(monkeypatch):
         "Google Chrome: New Tab - Google Chrome (1)",
         "Google Chrome: New Tab - Google Chrome (2)",
     ]
-    assert result["data"]["llm_content"] == (
+    assert result["data"]["output"] == (
         "- Google Chrome: New Tab - Google Chrome (1)\n"
         "- Google Chrome: New Tab - Google Chrome (2)"
     )
@@ -275,7 +275,7 @@ async def test_get_open_windows_returns_empty_state_message(monkeypatch):
 
     assert result["success"] is True
     assert result["data"]["windows"] == []
-    assert result["data"]["llm_content"] == "No open windows found."
+    assert result["data"]["output"] == "No open windows found."
 
 
 @pytest.mark.asyncio
@@ -297,7 +297,7 @@ async def test_get_system_stats_success_with_battery(monkeypatch):
         "battery_percent": 78,
         "battery_charging": True,
     }
-    assert '"cpu_percent": 12.5' in result["data"]["llm_content"]
+    assert '"cpu_percent": 12.5' in result["data"]["output"]
 
 
 @pytest.mark.asyncio
@@ -396,8 +396,7 @@ async def test_wait_tool_formats_zero_and_integer_one_second_consistently():
     assert zero_result["success"] is True
     assert zero_result["data"]["seconds_waited"] == 0.0
     assert zero_result["data"]["status"] == "Waited for 0.0 seconds"
-    assert zero_result["data"]["llm_content"] == "status: Waited for 0.0 seconds"
-    assert zero_result["data"]["return_display"] == "Waited for 0.0 seconds"
+    assert zero_result["data"]["output"] == "status: Waited for 0.0 seconds"
 
     one_result = await wait_tool.wait({"seconds": 1})
     assert one_result["success"] is True

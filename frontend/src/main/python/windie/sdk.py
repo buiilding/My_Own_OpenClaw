@@ -464,18 +464,20 @@ def _build_python_wake_up_agent_definition(
 def _normalize_tool_result_data(data: Any) -> dict[str, Any]:
     if isinstance(data, dict):
         normalized_data = _normalize_backend_tool_result_data(data)
-        if isinstance(data.get("llm_content"), str) and data["llm_content"].strip():
-            return normalized_data
-        fallback_content = (
-            data.get("output")
-            if isinstance(data.get("output"), str)
-            else json.dumps(data, separators=(",", ":"))
-        )
-        return {**normalized_data, "llm_content": fallback_content}
+        output: Any = ""
+        for key in ("output", "message", "llm_content", "return_display", "content"):
+            if key in data and data[key] not in ("", None):
+                output = data[key]
+                break
+        normalized_data.pop("llm_content", None)
+        normalized_data.pop("return_display", None)
+        normalized_data.pop("display_content", None)
+        normalized_data.pop("model_llm_content", None)
+        return {**normalized_data, "output": output}
     if isinstance(data, str):
-        return {"output": data, "llm_content": data}
+        return {"output": data}
     if data is None:
-        return {}
+        return {"output": ""}
     return {"output": data}
 
 
@@ -492,7 +494,6 @@ def _build_tool_result_payload(
             if success
             else _normalize_tool_result_data(result.get("data") or {"output": error})
         ),
-        "error": None if success else error,
     }
 
 
@@ -980,7 +981,6 @@ class WindieSdkAgentSession:
                 "request_id": request_id,
                 "success": False,
                 "data": _normalize_tool_result_data({"output": error}),
-                "error": error,
             }
         await self._send_json(
             {

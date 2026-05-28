@@ -89,7 +89,7 @@ async def test_sidecar_daemon_tools_endpoint_lists_builtin_and_dynamic_tools():
     daemon = SidecarDaemon(token="test-token")
 
     async def save_note(args):
-        return {"success": True, "data": {"llm_content": args["text"]}}
+        return {"success": True, "data": {"output": args["text"]}}
 
     daemon.backend.tool_registry.register_runtime_tool(
         name="sdk_note",
@@ -127,7 +127,7 @@ async def test_sidecar_daemon_execute_tool_endpoint_normalizes_missing_tool_erro
     payload = json.loads(response.text)
 
     assert response.status == 200
-    assert payload == {"success": False, "error": "Tool not found: missing_tool"}
+    assert payload == {"success": False, "data": {"output": "Tool not found: missing_tool"}, "error": "Tool not found: missing_tool"}
     assert ws.sent == [
         {
             "type": "tool-executed",
@@ -196,7 +196,7 @@ async def test_sidecar_daemon_registers_module_tool_without_restart(
                 "from tools.result import ToolResult",
                 "",
                 "def save_note(args):",
-                "    return ToolResult.success_result({'llm_content': 'saved:' + args['text']})",
+                "    return ToolResult.success_result({'output': 'saved:' + args['text']})",
             ]
         ),
         encoding="utf-8",
@@ -225,7 +225,7 @@ async def test_sidecar_daemon_registers_module_tool_without_restart(
     assert registration.status == 200
     assert json.loads(execution.text) == {
         "success": True,
-        "data": {"llm_content": "saved:hello"},
+        "data": {"output": "saved:hello"},
     }
 
 
@@ -258,7 +258,7 @@ async def test_sidecar_daemon_registers_plugin_tools_without_restart(tmp_path: P
         "\n".join(
             [
                 "def save(text: str):",
-                "    return {'success': True, 'data': {'llm_content': 'plugin:' + text}}",
+                "    return {'success': True, 'data': {'output': 'plugin:' + text}}",
             ]
         ),
         encoding="utf-8",
@@ -278,7 +278,7 @@ async def test_sidecar_daemon_registers_plugin_tools_without_restart(tmp_path: P
     assert registration_payload["registered_tools"][0]["name"] == "plugin_note"
     assert json.loads(execution.text) == {
         "success": True,
-        "data": {"llm_content": "plugin:hello"},
+        "data": {"output": "plugin:hello"},
     }
 
 
@@ -318,8 +318,7 @@ async def test_sidecar_daemon_registers_mcp_tools_without_restart():
     assert json.loads(execution.text) == {
         "success": True,
         "data": {
-            "llm_content": "remember:hello",
-            "return_display": "remember:hello",
+            "output": "remember:hello",
             "mcp_result": {"content": [{"type": "text", "text": "remember:hello"}]},
         },
     }

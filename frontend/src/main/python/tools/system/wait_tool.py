@@ -47,8 +47,8 @@ async def wait(args: Dict[str, Any]) -> Dict[str, Any]:
             "data": {
                 "seconds_waited": seconds_float,
                 "status": status_msg,
-                "llm_content": f"status: {status_msg}",
-                "return_display": status_msg,
+                "output": f"status: {status_msg}",
+                "message": status_msg,
             },
         }
     except Exception as e:

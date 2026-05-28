@@ -175,8 +175,8 @@ async def switch_to_window(args: Dict[str, Any]) -> Dict[str, Any]:
             "success": True,
             "data": {
                 "tab_name": resolved_title,
-                "llm_content": f"Successfully switched to window '{resolved_title}'",
-                "return_display": f"Successfully switched to window '{resolved_title}'",
+                "output": f"Successfully switched to window '{resolved_title}'",
+                "message": f"Successfully switched to window '{resolved_title}'",
             },
         }
     except Exception as e:
@@ -211,7 +211,7 @@ async def get_open_windows(args: Dict[str, Any]) -> Dict[str, Any]:
             "success": True,
             "data": {
                 "windows": window_titles,
-                "llm_content": content,
+                "output": content,
             },
         }
     except Exception as e:

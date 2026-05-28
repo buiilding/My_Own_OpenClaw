@@ -284,14 +284,6 @@ class RunShellCommandArgs(BaseModel):
         None,
         description="(OPTIONAL) Return early if command runs longer than this (seconds). The command continues in the background.",
     )
-    max_output_tokens: Optional[int] = Field(
-        None,
-        gt=0,
-        description=(
-            "(OPTIONAL) Maximum number of output tokens to include in llm_content for foreground responses. "
-            "Defaults to 10000 when omitted."
-        ),
-    )
     env: Optional[dict[str, str]] = Field(
         None,
         description="(OPTIONAL) Environment variable overrides for the command.",

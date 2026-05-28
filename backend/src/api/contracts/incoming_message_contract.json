@@ -86,7 +86,7 @@
         "data": {
           "extra": "allow",
           "keys": [
-            "llm_content",
+            "output",
             "system_state",
             "screenshot",
             "screenshot_ref",

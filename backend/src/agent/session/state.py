@@ -98,7 +98,8 @@ class ConversationHistory:
         in conversation history. Screenshots are automatically converted to multimodal
         format when history is retrieved for LLM consumption.
 
-        Frontend pre-formats the model-facing tool message text in `llm_content`.
+        Frontend sends raw tool output in `data.output`. Backend projection owns
+        model-facing formatting/truncation before the result reaches history.
         Structured runtime state and screenshots travel separately in tool-result payloads.
 
         Args:

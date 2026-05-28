@@ -84,13 +84,13 @@ const coordinator = new ToolExecutionCoordinator({
       if (call.bundleId) {
         return {
           success: true,
-          data: { llm_content: `bundle result for ${call.toolCallId}` },
+          data: { output: `bundle result for ${call.toolCallId}` },
         };
       }
       return {
         success: true,
         data: {
-          llm_content: 'single tool result',
+          output: 'single tool result',
           tool_specific_metric: 42,
         },
       };
@@ -186,13 +186,13 @@ const rehydrate = buildRehydrateSnapshot([
         tool: 'read_file',
         toolCallId: 'call-bundle-readme',
         status: 'ok',
-        output: { llm_content: 'README contents' },
+        output: { output: 'README contents' },
       },
       {
         tool: 'read_file',
         toolCallId: 'call-bundle-package',
         status: 'ok',
-        output: { llm_content: 'package contents' },
+        output: { output: 'package contents' },
       },
     ],
   }),
@@ -226,7 +226,7 @@ def test_sdk_tool_result_payload_matches_backend_ingress_schema():
     assert payload.request_id == "req-sdk-compat"
     assert payload.success is True
     assert payload.data is not None
-    assert payload.data.llm_content == "single tool result"
+    assert payload.data.output == "single tool result"
     assert payload.data.model_dump()["tool_specific_metric"] == 42
 
 

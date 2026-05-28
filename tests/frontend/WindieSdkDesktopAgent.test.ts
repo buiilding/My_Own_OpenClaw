@@ -126,7 +126,7 @@ describe('Windie desktop agent SDK facade', () => {
         executeTool: jest.fn(async call => ({
           success: true,
           data: {
-            llm_content: `read ${String(call.args.file_path)}`,
+            output: `read ${String(call.args.file_path)}`,
           },
         })),
       },
@@ -157,7 +157,7 @@ describe('Windie desktop agent SDK facade', () => {
       request_id: 'req-read',
       success: true,
       data: {
-        llm_content: 'read README.md',
+        output: 'read README.md',
       },
     });
     expect(rows.map(row => row.type)).toEqual(['tool_call', 'tool_output']);
@@ -178,7 +178,7 @@ describe('Windie desktop agent SDK facade', () => {
         executeTool: jest.fn(async call => ({
           success: true,
           data: {
-            llm_content: `output for ${String(call.toolName)}`,
+            output: `output for ${String(call.toolName)}`,
           },
         })),
       },

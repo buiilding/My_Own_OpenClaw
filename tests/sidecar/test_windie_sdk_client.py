@@ -129,7 +129,7 @@ class FakeSidecarRuntime:
         self.executions.append((tool_name, args, metadata))
         return {
             "success": True,
-            "data": {"llm_content": f"{tool_name}:{args.get('text', '')}"},
+            "data": {"output": f"{tool_name}:{args.get('text', '')}"},
         }
 
     async def shutdown(self):
@@ -604,8 +604,7 @@ async def test_python_agent_session_routes_tool_call_to_sidecar():
     assert websocket.sent[-1]["payload"] == {
         "request_id": "req-1",
         "success": True,
-        "data": {"llm_content": "save_note:hello"},
-        "error": None,
+        "data": {"output": "save_note:hello"},
     }
 
 
@@ -617,7 +616,7 @@ async def test_python_agent_tool_result_strips_invalid_capture_meta():
             return {
                 "success": True,
                 "data": {
-                    "llm_content": "done",
+                    "output": "done",
                     "capture_meta": {"capture_backend": "partial"},
                 },
             }
@@ -655,7 +654,7 @@ async def test_python_agent_tool_result_strips_invalid_capture_meta():
     await agent.receive_json()
 
     assert websocket.sent[-1]["type"] == "tool-result"
-    assert websocket.sent[-1]["payload"]["data"] == {"llm_content": "done"}
+    assert websocket.sent[-1]["payload"]["data"] == {"output": "done"}
 
 
 @pytest.mark.asyncio
@@ -792,7 +791,7 @@ async def test_python_agent_session_routes_tool_bundle_to_sidecar():
     )
     assert websocket.sent[-1]["payload"]["step_results"][0]["status"] == "ok"
     assert websocket.sent[-1]["payload"]["step_results"][0]["output"] == {
-        "llm_content": "save_note:first"
+        "output": "save_note:first"
     }
 
 

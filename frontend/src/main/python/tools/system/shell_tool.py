@@ -16,10 +16,6 @@ except ImportError:  # pragma: no cover - Windows fallback
 from pathlib import Path
 from typing import Dict, Any, Optional, Tuple, List
 
-from tools.system.shell_output_formatting import (
-    DEFAULT_MAX_OUTPUT_TOKENS,
-    resolve_max_output_tokens,
-)
 from tools.system.shell_process_registry import (
     ProcessSession,
     add_session,
@@ -117,12 +113,9 @@ async def run_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
     yield_after_seconds = args.get("yield_after_seconds")
     env_overrides = args.get("env")
     pty_requested = bool(args.get("pty", False))
-    max_output_tokens, max_output_error = resolve_max_output_tokens(args.get("max_output_tokens"))
     
     if not command:
         return {"success": False, "error": "Command cannot be empty"}
-    if max_output_error:
-        return {"success": False, "error": max_output_error}
     
     try:
         working_dir, directory_error = _resolve_shell_working_directory(directory)
@@ -171,7 +164,6 @@ async def run_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
                 working_dir,
                 result,
                 warnings,
-                max_output_tokens=max_output_tokens or DEFAULT_MAX_OUTPUT_TOKENS,
             )
 
         timeout = terminate_after_seconds if terminate_after_seconds is not None else DEFAULT_SHELL_TIMEOUT
@@ -206,7 +198,6 @@ async def run_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
             working_dir,
             result,
             warnings,
-            max_output_tokens=max_output_tokens or DEFAULT_MAX_OUTPUT_TOKENS,
         )
     except Exception as e:
         logger.error(f"Error executing shell command: {e}", exc_info=True)

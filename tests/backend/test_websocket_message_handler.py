@@ -506,7 +506,7 @@ async def test_parse_and_validate_message_accepts_tool_result_contract_payload()
                 "request_id": "req-tool-1",
                 "success": True,
                 "data": {
-                    "llm_content": "ok",
+                    "output": "ok",
                     "system_state": {
                         "active_window": "Terminal",
                         "mouse_position": "(10, 20)",
@@ -556,7 +556,7 @@ async def test_parse_and_validate_message_accepts_sdk_failed_tool_result_payload
                 "request_id": "req-sdk-failed-1",
                 "success": False,
                 "data": {
-                    "llm_content": "Tool execution failed: denied by local policy",
+                    "output": "Tool execution failed: denied by local policy",
                 },
                 "error": "denied by local policy",
             },
@@ -572,7 +572,7 @@ async def test_parse_and_validate_message_accepts_sdk_failed_tool_result_payload
     assert message.payload.request_id == "req-sdk-failed-1"
     assert message.payload.success is False
     assert message.payload.error == "denied by local policy"
-    assert message.payload.data.llm_content == (
+    assert message.payload.data.output == (
         "Tool execution failed: denied by local policy"
     )
 
@@ -590,7 +590,7 @@ async def test_parse_and_validate_message_accepts_sdk_bundle_result_payload() ->
                     {
                         "tool": "read_file",
                         "status": "ok",
-                        "output": {"llm_content": "read ok"},
+                        "output": {"output": "read ok"},
                     },
                     {
                         "tool": "run_shell_command",
@@ -626,7 +626,7 @@ async def test_parse_and_validate_message_trims_tool_result_request_id() -> None
                 "request_id": "  req-tool-trimmed  ",
                 "success": True,
                 "data": {
-                    "llm_content": "ok",
+                    "output": "ok",
                 },
             },
         }
@@ -674,7 +674,7 @@ async def test_parse_and_validate_message_rejects_tool_result_system_state_witho
                 "request_id": "req-tool-2",
                 "success": True,
                 "data": {
-                    "llm_content": "ok",
+                    "output": "ok",
                     "system_state": {
                         "active_window": "Terminal",
                     },
@@ -703,7 +703,7 @@ async def test_parse_and_validate_message_rejects_tool_result_system_state_witho
                 "payload": {
                     "request_id": " \t ",
                     "success": True,
-                    "data": {"llm_content": "ok"},
+                    "data": {"output": "ok"},
                 },
             },
             "payload.request_id",
@@ -749,7 +749,7 @@ async def test_parse_and_validate_message_rejects_whitespace_tool_result_correla
                 "payload": {
                     "request_id": 123,
                     "success": True,
-                    "data": {"llm_content": "ok"},
+                    "data": {"output": "ok"},
                 },
             },
             "payload.request_id",

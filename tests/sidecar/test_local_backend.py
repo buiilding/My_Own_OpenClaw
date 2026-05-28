@@ -273,7 +273,7 @@ async def test_handle_execute_tool_success():
     backend = LocalBackend()
     backend.tool_registry = DummyRegistry(ToolResult.success_result({"ok": True}))
     result = await backend._handle_execute_tool("read_file", {"file_path": "/tmp/a"})
-    assert result == {"success": True, "data": {"ok": True}}
+    assert result == {"success": True, "data": {"ok": True, "output": ""}}
 
 
 @pytest.mark.asyncio
@@ -281,7 +281,7 @@ async def test_handle_execute_tool_error():
     backend = LocalBackend()
     backend.tool_registry = DummyRegistry(ToolResult.error_result("bad"))
     result = await backend._handle_execute_tool("read_file", {"file_path": "/tmp/a"})
-    assert result == {"success": False, "error": "bad"}
+    assert result == {"success": False, "data": {"output": "bad"}, "error": "bad"}
 
 
 @pytest.mark.asyncio
@@ -291,7 +291,7 @@ async def test_handle_execute_tool_preserves_empty_data_payload():
 
     result = await backend._handle_execute_tool("read_file", {"file_path": "/tmp/a"})
 
-    assert result == {"success": True, "data": {}}
+    assert result == {"success": True, "data": {"output": ""}}
 
 
 @pytest.mark.asyncio
@@ -300,7 +300,7 @@ async def test_handle_execute_tool_preserves_contract_fields_for_backend_boundar
     backend.tool_registry = DummyRegistry(
         ToolResult.success_result(
             {
-                "llm_content": "ok",
+                "output": "ok",
                 "screenshot_ref": "artifact-1.png",
                 "capture_meta": {
                     "source_w": 1920,
@@ -327,7 +327,7 @@ async def test_handle_execute_tool_preserves_contract_fields_for_backend_boundar
     assert result == {
         "success": True,
         "data": {
-            "llm_content": "ok",
+            "output": "ok",
             "screenshot_ref": "artifact-1.png",
             "capture_meta": {
                 "source_w": 1920,
@@ -358,7 +358,7 @@ async def test_handle_execute_tool_preserves_direct_tool_fields():
 
     result = await backend._handle_execute_tool("mouse_control", args)
 
-    assert result == {"success": True, "data": {"ok": True}}
+    assert result == {"success": True, "data": {"ok": True, "output": ""}}
     assert backend.tool_registry.execute_calls == [("mouse_control", args)]
 
 
@@ -382,7 +382,7 @@ async def test_handle_execute_tool_routes_direct_tool_with_real_registry():
 
     result = await backend._handle_execute_tool("mouse_control", args)
 
-    assert result == {"success": True, "data": {"ok": True}}
+    assert result == {"success": True, "data": {"ok": True, "output": ""}}
     assert captured["args"] == {"action": "click", "x": 10, "y": 20}
 
 
@@ -414,7 +414,7 @@ async def test_handle_execute_tool_prevents_argument_mutation_leak():
 
     result = await backend._handle_execute_tool("mouse_control", args)
 
-    assert result == {"success": True, "data": {"ok": True}}
+    assert result == {"success": True, "data": {"ok": True, "output": ""}}
     assert captured["before"] == {
         "action": "click",
         "x": 10,
@@ -487,7 +487,7 @@ async def test_handle_execute_tool_browser_feature_pack_install_success(monkeypa
 
     result = await backend._handle_execute_tool("browser", {"action": "snapshot"})
 
-    assert result == {"success": True, "data": {"ok": True}}
+    assert result == {"success": True, "data": {"ok": True, "output": ""}}
     assert backend.tool_registry.reload_calls == 1
     assert backend.tool_registry.execute_calls == [("browser", {"action": "snapshot"})]
 

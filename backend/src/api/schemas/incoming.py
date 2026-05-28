@@ -347,7 +347,7 @@ class ToolResultData(BaseModel):
     # Keep open for tool-specific data fields while freezing shared contract keys.
     model_config = ConfigDict(extra="allow")
 
-    llm_content: str
+    output: Any
     system_state: Optional[ToolResultSystemState] = None
     screenshot: Optional[str] = None
     screenshot_ref: Optional[str] = None
@@ -361,7 +361,7 @@ class ToolResultPayload(BaseModel):
 
     request_id: str
     success: bool
-    data: Optional[ToolResultData] = None
+    data: ToolResultData
     error: Optional[str] = None
 
     @field_validator("request_id")

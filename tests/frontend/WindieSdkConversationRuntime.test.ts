@@ -1415,7 +1415,9 @@ describe('Windie SDK conversation runtime core', () => {
     expect(sendToolResult).toHaveBeenCalledWith(expect.objectContaining({
       request_id: 'req-read',
       success: false,
-      error: 'sidecar unavailable',
+      data: {
+        output: 'sidecar unavailable',
+      },
     }));
     expect(await store.loadEvents('conv-sdk-runtime')).toEqual([
       expect.objectContaining({
@@ -1561,11 +1563,11 @@ describe('Windie SDK conversation runtime core', () => {
     expect(bundlePayload.bundle_id).toBe('bundle-read');
     expect(bundlePayload.status).toBe('partial_failure');
     expect(bundlePayload.step_results[0].status).toBe('ok');
-    expect(bundlePayload.step_results[0].output.llm_content).toBe('one');
+    expect(bundlePayload.step_results[0].output.output).toBe('one');
     expect(bundlePayload.step_results[1]).toEqual({
       tool: 'read_file',
       status: 'error',
-      output: { error: 'failed-two' },
+      output: { output: 'failed-two' },
     });
   });
 
@@ -2286,7 +2288,7 @@ describe('Windie SDK conversation runtime core', () => {
       request_id: 'req-read',
       success: true,
       data: {
-        llm_content: 'read README.md',
+        output: 'read README.md',
       },
     });
     expect((await store.loadEvents('conv-sdk-runtime')).map(storedEvent => storedEvent.type)).toEqual([

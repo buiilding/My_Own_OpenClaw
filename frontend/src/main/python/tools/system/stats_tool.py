@@ -30,7 +30,7 @@ async def get_system_stats(args: Dict[str, Any]) -> Dict[str, Any]:
             "success": True,
             "data": {
                 "stats": stats,
-                "llm_content": content,
+                "output": content,
             },
         }
     except ImportError:

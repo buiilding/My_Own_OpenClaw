@@ -123,8 +123,8 @@ def test_registry_loads_plugin_entrypoint_and_manifest(
                 "",
                 "async def run(note: str, urgent: bool = False):",
                 "    return ToolResult.success_result({",
-                "        'llm_content': f'saved:{note}',",
-                "        'return_display': f'urgent:{urgent}',",
+                "        'output': f'saved:{note}',",
+                "        'message': f'urgent:{urgent}',",
                 "    })",
             ]
         ),
@@ -156,5 +156,4 @@ def test_registry_loads_plugin_entrypoint_and_manifest(
 
     assert registry.has_tool("save_note")
     assert result.success is True
-    assert result.data["llm_content"] == "saved:hello"
-    assert result.data["return_display"] == "urgent:True"
+    assert result.data["output"] == "saved:hello"

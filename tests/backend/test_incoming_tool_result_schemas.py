@@ -12,7 +12,7 @@ def test_tool_result_payload_trims_request_id():
         {
             "request_id": "  req-1  ",
             "success": True,
-            "data": {"llm_content": "ok"},
+            "data": {"output": "ok"},
         }
     )
 
@@ -25,7 +25,7 @@ def test_tool_result_payload_rejects_whitespace_only_request_id():
             {
                 "request_id": " \t ",
                 "success": True,
-                "data": {"llm_content": "ok"},
+                "data": {"output": "ok"},
             }
         )
 
@@ -36,7 +36,7 @@ def test_tool_result_payload_rejects_non_string_request_id():
             {
                 "request_id": 123,
                 "success": True,
-                "data": {"llm_content": "ok"},
+                "data": {"output": "ok"},
             }
         )
 
@@ -47,7 +47,7 @@ def test_tool_result_payload_allows_extra_tool_specific_data_fields():
             "request_id": "req-with-extra",
             "success": True,
             "data": {
-                "llm_content": "ok",
+                "output": "ok",
                 "tool_specific_metric": 42,
             },
         }
@@ -64,7 +64,7 @@ def test_tool_result_payload_rejects_unknown_capture_meta_fields():
                 "request_id": "req-capture-extra",
                 "success": True,
                 "data": {
-                    "llm_content": "ok",
+                    "output": "ok",
                     "capture_meta": {
                         "source_w": 1920,
                         "source_h": 1080,
