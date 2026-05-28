@@ -4,6 +4,10 @@ import {
   WindieDesktopAgent,
   type BackendEvent,
   type BackendTransport,
+  type ConversationEvent,
+  type ConversationRevision,
+  type ConversationStore,
+  type RehydrateSnapshot,
   type SdkDisplayRow,
 } from '../../frontend/src/renderer/infrastructure/api/windieSdkClient';
 
@@ -73,6 +77,78 @@ async function tick(): Promise<void> {
   await new Promise(resolve => setTimeout(resolve, 0));
 }
 
+class BlockingAppendConversationStore implements ConversationStore {
+  events: ConversationEvent[] = [];
+  appendCalls = 0;
+  private releaseAppend: (() => void) | null = null;
+  readonly appendStarted = new Promise<void>(resolve => {
+    this.releaseAppend = resolve;
+  });
+
+  async appendEvent(event: ConversationEvent): Promise<void> {
+    this.appendCalls += 1;
+    await this.appendStarted;
+    this.events.push(event);
+  }
+
+  async appendEvents(events: ConversationEvent[]): Promise<void> {
+    for (const event of events) {
+      await this.appendEvent(event);
+    }
+  }
+
+  async rewriteConversation(): Promise<void> {
+    this.events = [];
+  }
+
+  async replaceCompactedReplay(): Promise<void> {
+    return undefined;
+  }
+
+  async loadForDisplay() {
+    return {
+      conversationRef: 'conv-desktop-agent',
+      revisionId: 'rev-blocking',
+      messages: [],
+      compaction: {
+        status: 'idle',
+      },
+    };
+  }
+
+  async loadDisplayRows(): Promise<SdkDisplayRow[]> {
+    return [];
+  }
+
+  async loadForRehydrate(conversationRef: string): Promise<RehydrateSnapshot> {
+    return {
+      conversationRef,
+      revisionId: 'rev-blocking',
+      messages: [],
+    };
+  }
+
+  async getRevision(conversationRef: string): Promise<ConversationRevision> {
+    return {
+      conversationRef,
+      revisionId: 'rev-blocking',
+      updatedAt: new Date(0).toISOString(),
+    };
+  }
+
+  async loadEvents(): Promise<ConversationEvent[]> {
+    return this.events;
+  }
+
+  async listMetadata() {
+    return [];
+  }
+
+  release(): void {
+    this.releaseAppend?.();
+  }
+}
+
 describe('Windie desktop agent SDK facade', () => {
   test('emits SDK display rows from normalized backend events', async () => {
     const { desktopAgent, emitBackendEvent } = createDesktopAgentHarness();
@@ -117,6 +193,46 @@ describe('Windie desktop agent SDK facade', () => {
         },
       }),
     ]);
+  });
+
+  test('emits current-turn updates before durable transcript append finishes', () => {
+    let backendListener: ((event: unknown) => void) | null = null;
+    const store = new BlockingAppendConversationStore();
+    const transport = createMockBackendTransport({
+      subscribe: jest.fn(listener => {
+        backendListener = listener;
+        return () => {
+          backendListener = null;
+        };
+      }),
+    });
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-desktop-agent',
+      store,
+      transport,
+    });
+    runtime.attachTransport();
+    const desktopAgent = new WindieDesktopAgent({
+      runtime,
+      conversationRef: 'conv-desktop-agent',
+      workspacePath: '/workspace',
+    });
+    const currentTurns: string[] = [];
+    desktopAgent.onCurrentTurn(currentTurn => currentTurns.push(currentTurn.phase));
+
+    backendListener?.({
+      type: 'streaming-response',
+      conversation_ref: 'conv-desktop-agent',
+      turn_ref: 'turn-live',
+      payload: {
+        text: 'hello',
+      },
+    });
+
+    expect(store.appendCalls).toBe(1);
+    expect(store.events).toEqual([]);
+    expect(currentTurns).toEqual(['streaming']);
+    store.release();
   });
 
   test('executes single local tool calls and emits paired output rows', async () => {

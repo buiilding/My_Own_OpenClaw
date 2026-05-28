@@ -94,6 +94,12 @@ normalization. Raw backend events may remain as compatibility traffic for
 non-chat consumers, diagnostics, or legacy hosts that do not emit the SDK
 projection.
 
+Live current-turn projection is emitted from the runtime's in-memory event
+sequence before durable store append completes. Sidecar-backed persistence is
+allowed to lag behind a streamed chunk, but it must not block the active
+assistant text, phase, tool events, or completion state used by dashboard,
+response overlay, and minimal chat pill surfaces.
+
 ## Store Rule
 
 Stores expose first-class projection loaders, but they should stay dumb:

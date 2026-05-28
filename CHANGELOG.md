@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/runtime: emit live current-turn projections from in-memory SDK events
+  before sidecar transcript persistence completes so dashboard, response
+  overlay, and minimal chat pill can leave awaiting/typing state as soon as
+  backend assistant chunks or completion arrive.
 - frontend/ipc: add default assistant runtime trace logs for backend assistant
   event receipt and SDK current-turn progress/completion so desktop dev logs
   show when assistant responses start, advance, and finish.

@@ -154,6 +154,7 @@ function isTerminalConversationEvent(event: ConversationEvent): boolean {
 
 export class SdkConversationRuntime {
   private state: ConversationRuntimeState;
+  private events: ConversationEvent[] = [];
   private readonly listeners = new Set<ConversationListener>();
   private readonly eventListeners = new Set<ConversationEventListener>();
   private detachTransport?: () => void;
@@ -169,6 +170,7 @@ export class SdkConversationRuntime {
 
   async load(): Promise<ConversationSnapshot> {
     const events = await this.options.store.loadEvents(this.options.conversationRef);
+    this.events = events;
     this.state = events.reduce(
       (state, event) => reduceConversationRuntimeState(state, event),
       createInitialConversationRuntimeState(
@@ -176,7 +178,7 @@ export class SdkConversationRuntime {
         events[events.length - 1]?.revisionId ?? this.state.revisionId,
       ),
     );
-    return this.snapshot(events);
+    return this.snapshot(this.events);
   }
 
   subscribe(listener: ConversationListener): () => void {
@@ -520,6 +522,7 @@ export class SdkConversationRuntime {
       },
     });
     const nextEvents = [...preservedEvents, rewriteEvent];
+    this.events = nextEvents;
     await this.options.store.rewriteConversation({
       conversationRef: this.options.conversationRef,
       baseRevisionId,
@@ -534,16 +537,17 @@ export class SdkConversationRuntime {
       (state, event) => reduceConversationRuntimeState(state, event),
       createInitialConversationRuntimeState(this.options.conversationRef, newRevisionId),
     );
-    const snapshot = this.snapshot(await this.options.store.loadEvents(this.options.conversationRef));
+    this.events = await this.options.store.loadEvents(this.options.conversationRef);
+    const snapshot = this.snapshot(this.events);
     this.notify(snapshot, rewriteEvent);
   }
 
   private async applyEvent(event: ConversationEvent): Promise<void> {
-    await this.options.store.appendEvent(event);
+    this.events = [...this.events, event];
     this.state = reduceConversationRuntimeState(this.state, event);
-    const events = await this.options.store.loadEvents(this.options.conversationRef);
-    const snapshot = this.snapshot(events);
+    const snapshot = this.snapshot(this.events);
     this.notify(snapshot, event);
+    await this.options.store.appendEvent(event);
     await this.maybeExecuteTool(event);
   }
 
