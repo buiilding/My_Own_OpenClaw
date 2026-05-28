@@ -30,7 +30,7 @@ WindieOS/
 │       └── core/                  # config, validation, logging, events, interfaces
 ├── frontend/                      # Electron desktop app, React renderer, Python sidecar
 │   └── src/
-│       ├── main/                  # Electron main, IPC, SDK host adapter, sidecar bridge
+│       ├── main/                  # Electron main, IPC, direct SDK customer wiring, sidecar bridge
 │       ├── main/python/           # local Python sidecar: tools, memory, browser, system
 │       ├── preload.js             # context-isolated IPC allowlist bridge
 │       ├── renderer/              # React app, chat, dashboard, settings, voice surfaces
@@ -62,7 +62,7 @@ Renderer feature code
   -> renderer app runtime facades
   -> preload allowlisted IPC
   -> Electron main IPC/runtime modules
-  -> Windie SDK runtime host adapter
+  -> WindieAgent.startDesktop(...) SDK runtime
   -> hosted/self-hosted backend HTTP/WebSocket
   -> backend agent loop and provider/tool policy
 ```
@@ -72,7 +72,7 @@ Backend tool catalog/policy
   -> model-visible provider projection
   -> backend tool-call events
   -> SDK tool coordination
-  -> Electron main local execution callback
+  -> SDK local runtime client
   -> Python sidecar executable manifest/registry
   -> local tool result
   -> SDK tool-result return
@@ -98,8 +98,8 @@ Start every change by identifying the owning runtime before editing code.
 | Runtime | Owns | Must not own |
 | --- | --- | --- |
 | Backend | Prompt construction, provider routing, hosted APIs, OCR/vision services, artifacts, compaction decisions, backend remote tools, final model-facing tool-schema projection | Local mouse, keyboard, browser, filesystem, shell, OS permissions, or desktop window behavior |
-| SDK runtime | Hosted backend websocket lifecycle, normalized conversation events, local-tool result return, conversation stores, replay/rehydrate helpers, projections reusable by Electron, CLI, plugins, and tests | Electron-only shell policy or sidecar tool implementation details |
-| Electron main | BrowserWindow lifecycle, IPC transport, menus, app lifecycle, native permissions, platform window policy, sidecar and wakeword supervision, endpoint selection, host adapters | Agent loop, prompt compiler, durable conversation store, or duplicate tool-routing authority |
+| SDK runtime | Hosted backend websocket lifecycle, install-token identity resolution, local sidecar startup/reuse, local-tool result return, normalized conversation events, conversation stores, replay/rehydrate helpers, projections reusable by Electron, CLI, plugins, and tests | Electron-only shell policy or sidecar tool implementation details |
+| Electron main | BrowserWindow lifecycle, IPC transport, menus, app lifecycle, native permissions, platform window policy, sidecar and wakeword supervision, endpoint diagnostics, direct `WindieAgent.startDesktop(...)` customer wiring | Agent loop, prompt compiler, durable conversation store, websocket lifecycle, local-tool routing authority, or duplicate SDK runtime behavior |
 | Renderer | User-facing state and display, dashboard/chat/settings/voice surfaces, transcript projection display, display-only tool state | Backend websocket loops, durable transcript storage, tool execution, model sync, or local authority |
 | Preload | Narrow allowlisted bridge between renderer and main | Business logic or policy decisions |
 | Python sidecar | Local machine authority, local tools, local memory/storage, browser mechanics, filesystem/shell/process/system execution | Backend orchestration, prompt policy, provider routing, or backend package imports |
@@ -200,13 +200,14 @@ Key entry points:
   `backend/src/llm/providers/`, `backend/src/tools/registry.py`.
 - SDK: `packages/windie-sdk-js/src/index.ts`,
   `packages/windie-sdk-js/src/runtime/WindieClient.ts`,
+  `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`,
   `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`,
   `packages/windie-sdk-js/src/transport/ManagedBackendSession.ts`,
   `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`.
 - Electron main: `frontend/src/main/index.cjs`, `frontend/src/main/ipc.cjs`,
-  `frontend/src/main/windie_sdk_runtime.cjs`,
-  `frontend/src/main/ipc/ipc_sdk_command_router.cjs`,
-  `frontend/src/main/ipc/ipc_sdk_tool_router.cjs`,
+  `frontend/src/main/ipc/ipc_query_runtime.cjs`,
+  `frontend/src/main/query_payload_builder.cjs`,
+  `frontend/src/main/local_backend_bridge.cjs`,
   `frontend/src/main/surface_runtime.cjs`.
 - Renderer: `frontend/src/renderer/app/`,
   `frontend/src/renderer/features/chat/`,
@@ -238,6 +239,12 @@ Key TypeScript SDK surfaces:
   such as `ask`, `run`, `stream`, model updates, conversation management,
   memory/title commands, system prompt/tool schema commands, and artifact
   helpers.
+- `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`: desktop-style
+  agent bootstrap used by Electron main and future desktop hosts. It starts or
+  reuses the local sidecar runtime, discovers tools, owns the managed backend
+  session, resolves install identity from the install token, emits display rows
+  / current-turn / status / connection events, coordinates local tool
+  execution, and returns tool results to the backend.
 - `packages/windie-sdk-js/src/runtime/WindieChatSession.ts`: chat-style session
   helper for an existing conversation.
 - `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`: reusable
@@ -279,8 +286,9 @@ WindieOS frontend has four live runtimes:
   active transcript projection, and display-only tool rows.
 - Preload owns the narrow allowlisted IPC bridge exposed to the renderer.
 - Electron main owns desktop shell policy: windows, overlays, menus, lifecycle,
-  IPC handlers, endpoint selection, permission prompts, SDK host adapters,
-  sidecar supervision, wakeword supervision, screenshots, and platform policy.
+  IPC handlers, endpoint diagnostics, permission prompts, direct SDK agent
+  startup, sidecar supervision, wakeword supervision, screenshots, and platform
+  policy.
 - Python sidecar owns local authority: filesystem, shell/process, computer use,
   browser mechanics, local memory, system state, and wakeword subprocess code.
 
@@ -290,9 +298,9 @@ Frontend query flow:
 MessageInput / chat hook
   -> renderer desktop runtime facade
   -> SDK ConversationRuntime command
-  -> typed send-chat-query IPC
-  -> Electron main query payload builder and SDK host adapter
-  -> ManagedBackendSession websocket query
+  -> typed windie:send IPC
+  -> Electron main query payload builder
+  -> WindieAgent.startDesktop(...) managed backend session
   -> backend agent loop
 ```
 
@@ -300,8 +308,8 @@ Frontend stream flow:
 
 ```text
 backend websocket event
-  -> SDK main runtime normalization/projection
-  -> Electron main broadcasts conversation-runtime-updated + conversation-event
+  -> SDK desktop agent normalization/projection
+  -> Electron main forwards windie:rows + windie:conversation-event + windie:current-turn
   -> renderer projection listener updates live rows
   -> renderer stream side effects persist transcript metadata/events
 ```
@@ -311,7 +319,6 @@ Frontend tool flow:
 ```text
 backend model-visible tool call
   -> SDK tool coordinator
-  -> Electron main local execution callback
   -> Python sidecar executable tool
   -> SDK tool result return
   -> backend history
@@ -328,16 +335,15 @@ portion as the dashboard instead of maintaining a divergent response model.
 ## Runtime Flow Cheatsheet
 
 - Query send: renderer chat sender -> desktop live-turn runtime facade -> typed
-  `send-chat-query` IPC -> Electron main query payload builder -> SDK main
-  runtime -> backend websocket.
+  `windie:send` IPC -> Electron main query payload builder -> SDK desktop
+  agent -> backend websocket.
 - Backend loop: websocket `query` -> query handler/service -> agent session ->
   executor -> interaction loop -> provider call -> final answer or tool calls.
-- Stream receive: backend websocket event -> SDK main runtime projection ->
-  `conversation-runtime-updated` and SDK-normalized `conversation-event` ->
-  renderer projection and transcript side effects.
-- Tool turn: backend model-visible tool call -> SDK main tool router -> Electron
-  local execution callback -> sidecar executable tool -> SDK result return ->
-  backend history.
+- Stream receive: backend websocket event -> SDK desktop-agent projection ->
+  `windie:rows`, `windie:conversation-event`, `windie:current-turn`, and
+  `windie:status` -> renderer projection and transcript side effects.
+- Tool turn: backend model-visible tool call -> SDK desktop-agent tool router ->
+  sidecar executable tool -> SDK result return -> backend history.
 - Conversation history: renderer-visible transcript and sidecar-backed SDK store
   are durable local authority; backend sessions are inference state that can be
   rebuilt from local transcript.

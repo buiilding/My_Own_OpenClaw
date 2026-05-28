@@ -90,6 +90,68 @@ adapters such as the sidecar-backed conversation store may implement SDK
 interfaces like `ConversationStore` and `BackendTransport`, but Electron must
 not reimplement SDK behavior separately.
 
+## Desktop Agent Startup
+
+Normal desktop hosts should start one SDK-owned runtime with the small public
+contract:
+
+```ts
+import { WindieAgent } from "@windie/sdk";
+
+const agent = await WindieAgent.startDesktop({
+  apiKey: process.env.WINDIE_API_KEY,
+  workspace: "/Users/me/project",
+  appName: "WindieOS"
+});
+
+agent.onRows((rows) => renderRows(rows));
+agent.onStatus((status) => renderStatus(status));
+agent.onConversationEvent((event) => recordEvent(event));
+agent.onCurrentTurn((turn) => renderTurn(turn));
+
+await agent.run({ text: "Find the longest line of code in this repo" });
+await agent.stop();
+```
+
+Electron main uses the same product API and remains a shell customer:
+
+```js
+const agent = await WindieAgent.startDesktop({
+  apiKey: currentInstallToken,
+  workspace: activeWorkspacePath,
+  appName: 'WindieOS',
+});
+
+agent.onRows((rows) => broadcastToRenderers('windie:rows', rows));
+agent.onStatus((status) => broadcastToRenderers('windie:status', status));
+agent.onConversationEvent((event) => broadcastToRenderers('windie:conversation-event', event));
+agent.onCurrentTurn((turn) => broadcastToRenderers('windie:current-turn', turn));
+
+ipcMain.handle('windie:send', (_event, payload) => agent.run(payload));
+ipcMain.handle('windie:stop', (_event, payload) => agent.stop(payload));
+```
+
+Optional advanced buckets exist for explicit self-hosting, debugging, connection
+tuning, and tests:
+
+```ts
+await WindieAgent.startDesktop({
+  apiKey,
+  workspace,
+  appName: "WindieOS",
+  endpoint: { primary: "https://self-hosted.example.com", fallbacks: [] },
+  debug: { log },
+  connection: { connectTimeoutMs: 10_000 },
+  testing: { autoStartLocalRuntime: false }
+});
+```
+
+Normal app startup should not pass `userId`, `installId`,
+`conversationRef`, endpoint candidate arrays, raw websocket constructors, or
+backend lifecycle callbacks. The SDK resolves identity from `apiKey`, owns
+endpoint/default websocket behavior, and exposes lifecycle through events after
+construction.
+
 ## Public API
 
 ```ts

@@ -12,12 +12,12 @@ Use these playbooks to avoid editing the wrong layer.
 
 ## No Backend Response
 
-Likely boundary: SDK desktop-agent host, Electron main query preparation, or hosted backend websocket.
+Likely boundary: SDK desktop agent, Electron main query preparation, or hosted backend websocket.
 
 Inspect:
 
 - `frontend/src/main/ipc.cjs`
-- `frontend/src/main/windie_agent_host.cjs`
+- `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`
 - `frontend/src/main/ipc/ipc_runtime_helpers.cjs`
 - `backend/src/api/routes/websocket/router.py`
 - `backend/src/api/routes/websocket/task_manager.py`
@@ -63,14 +63,14 @@ cd frontend && npm run test:ci -- ModelSelectionUtils.test.js ModelsSection.test
 
 ## Tool Call Appears But Does Not Execute
 
-Likely boundary: backend tool event, SDK desktop-agent host, Electron main bridge, or sidecar registry.
+Likely boundary: backend tool event, SDK desktop agent, Electron main bridge, or sidecar registry.
 
 Inspect:
 
 - `backend/src/tools/tool_catalog.py`
 - `backend/src/agent/tools`
 - `packages/windie-sdk-js/src/runtime`
-- `frontend/src/main/windie_agent_host.cjs`
+- `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
 - `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`
 - `frontend/src/main/python/tools/registry.py`
@@ -85,7 +85,7 @@ Validate:
 
 ```bash
 ./scripts/test-backend tests/backend/test_remote_tool_contract.py tests/backend/test_tool_result_handler.py -q
-cd frontend && npm run test:ci -- WindieSdkConversationRuntime.test.ts WindieAgentHost.test.cjs WindieSdkDesktopAgent.test.ts RendererToolResultBoundary.test.ts
+cd frontend && npm run test:ci -- WindieSdkConversationRuntime.test.ts WindieSdkDesktopAgent.test.ts WindieSdkDesktopAgent.test.ts RendererToolResultBoundary.test.ts
 ./scripts/test-sidecar tests/sidecar/test_tool_registry.py tests/sidecar/test_tool_result.py -q
 ```
 

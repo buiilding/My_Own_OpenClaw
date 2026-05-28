@@ -53,7 +53,7 @@ Primary protocol tests:
 | Contract Area | Runtime Owner | Key Tests | Verified Guarantees |
 |---|---|---|---|
 | renderer-side channel guard policy | `IpcBridge` (`bridge.ts`) | `IpcBridgeValidation.test.ts` | invalid channels throw in development; production skips guard checks and passes through to preload API |
-| query-send orchestration + fallback eventing | `ipcMain.handle('send-chat-query')` + helpers (`ipc.cjs`) | `IpcMainBridge.query.test.cjs` | overlay pre-capture hook runs only for chatbox-origin sends; disconnected send synthesizes renderer-visible `error` event |
+| query-send orchestration + fallback eventing | `ipcMain.handle('windie:send')` + helpers (`ipc.cjs`) | `IpcMainBridge.query.test.cjs` | overlay pre-capture hook runs only for chatbox-origin sends; disconnected send synthesizes renderer-visible `error` event |
 | settings ACK gate before query | settings sync logic (`ipc.cjs`) | settings-gate tests in `IpcMainBridge.query.test.cjs` | first query waits for initial `update-settings` ACK when cached config exists; pending renderer settings ACK blocks query send |
 | outbound payload normalization | `normalizeBackendPayload` + `ipc_backend_payload_contract.cjs` | backend websocket contract tests and screenshot-strip tests | known command payloads are filtered to backend contract keys; client-supplied `screenshot_url` is removed from outbound `query` payload while keeping `screenshot_ref` |
 | query-context enrichment + escaping | `buildQueryPayloadContent` (`query_payload_builder.cjs`) | `QueryPayloadBuilder.test.cjs` + xml/escape tests in `IpcMainBridge.query.test.cjs` | system context + memories merged into XML-like content; XML-sensitive values escaped; fallback context/memory blocks used on upstream failure |

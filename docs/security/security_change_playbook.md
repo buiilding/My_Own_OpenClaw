@@ -141,7 +141,7 @@ Likely code:
 - `backend/src/tools/**`
 - `backend/src/agent/tools/**`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
-- `frontend/src/main/windie_agent_host.cjs`
+- `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/python/tools/**`
 

@@ -112,7 +112,7 @@ Read:
 Likely code:
 
 - backend model-facing schema under `backend/src/tools`
-- SDK desktop-agent host under `frontend/src/main/windie_agent_host.cjs`
+- SDK desktop agent under `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`
 - sidecar executable tool under `frontend/src/main/python/tools`
 - IPC bridge only when a new local bridge channel is required
 

@@ -120,7 +120,8 @@ The default product topology is remote-first: the app and SDK talk to the hosted
 **Main Process** (`src/main/ipc.cjs`):
 - Handles IPC message routing
 - Adapts renderer messages to the SDK runtime
-- Delegates hosted backend WebSocket transport to `src/main/windie_agent_host.cjs`
+- Starts `WindieAgent.startDesktop(...)` directly and delegates hosted backend
+  WebSocket transport to `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`
 - Builds complete user messages with system state and memories
 
 ## WebSocket Communication
@@ -435,7 +436,7 @@ The Python sidecar uses REST endpoints on the same FastAPI server for memory ope
    ↓
 4. If captured/pasted, screenshot artifact(s) uploaded via HTTP `/api/artifacts` → returns `screenshot_ref`/`screenshot_refs`
    ↓
-5. IpcBridge.invoke('send-chat-query', { screenshot_ref, screenshot_refs?, ... })
+5. IpcBridge.invoke('windie:send', { screenshot_ref, screenshot_refs?, ... })
    ↓
 6. Main process receives IPC message
    ↓
@@ -475,7 +476,7 @@ The Python sidecar uses REST endpoints on the same FastAPI server for memory ope
    ↓
 4. SDK runtime normalizes the tool event and routes executable work to the local runtime adapter
    ↓
-5. Electron main local-runtime adapter calls the sidecar daemon/tool bridge
+5. Electron main SDK local-runtime client calls the sidecar daemon/tool bridge
    ↓
 6. Python sidecar executes the tool
    ↓

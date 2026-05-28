@@ -281,7 +281,7 @@ When changing this lifecycle, keep synchronized:
 
 | Lifecycle control path | Runtime owner | Lifecycle contract |
 |---|---|---|
-| websocket open/close transition | `frontend/src/main/windie_agent_host.cjs`, `frontend/src/main/ipc.cjs` | SDK desktop agent owns socket construction, handshake send, connect waiters, reconnect scheduling, and idle close policy; IPC owns UI/session state callbacks |
+| websocket open/close transition | `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`, `frontend/src/main/ipc.cjs` | SDK desktop agent owns socket construction, handshake send, connect waiters, reconnect scheduling, and idle close policy; IPC owns UI/session state callbacks |
 | first-query settings ACK gate | `frontend/src/main/ipc.cjs` | first query/wakeword send waits for settings sync outcome, with bounded timeout fallback |
 | query send bootstrap + optimistic local echo | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_query_events.cjs` | outbound query uses resolved conversation context and emits synthetic local-user-message before backend response |
 | split IPC registrar bootstrap | `frontend/src/main/index.cjs`, `frontend/src/main/overlay_phase_ipc_runtime.cjs`, `frontend/src/main/window_controls_ipc_runtime.cjs`, `frontend/src/main/permission_ipc_runtime.cjs` | invoke/event registration is one-shot and split by runtime ownership instead of monolithic main handler registration |

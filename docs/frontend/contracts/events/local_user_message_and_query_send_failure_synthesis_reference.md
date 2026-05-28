@@ -78,7 +78,7 @@ This keeps synthetic event context shape deterministic for renderer filters.
 
 ## Main Query Lifecycle Integration
 
-In the `ipc.cjs` `ipcMain.handle("send-chat-query")` query path:
+In the `ipc.cjs` `ipcMain.handle("windie:send")` query path:
 
 1. generate `queryMessageId`
 2. resolve/fill `conversation_ref`

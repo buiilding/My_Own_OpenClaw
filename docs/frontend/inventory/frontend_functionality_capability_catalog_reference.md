@@ -172,7 +172,7 @@ Capabilities:
 - Message send pipeline supports typed payload normalization and optional screenshot artifact upload.
 - Streaming pipeline handles thought/chunk/complete/error/tool/context-compaction event families.
 - Shared turn-scoped stream guards reject stale reply, metadata, compaction, terminal, and tool packets per workspace; SDK runtime owns stale local tool waits.
-- SDK runtime executes single and bundle tool requests through the sidecar local-runtime adapter and posts structured result payloads back to backend.
+- SDK runtime executes single and bundle tool requests through the sidecar SDK local-runtime client and posts structured result payloads back to backend.
 - Desktop transcript projection runtime persists user/assistant/tool entries with pending-queue retry semantics.
 - Tool execution service includes capture, artifact upload, formatting, and backend callback fanout.
 - Tool-runner safety flow no longer exposes separate overlay-prep IPC; renderer surface orchestration plus main-process overlay phase handling own the loop guard behavior.

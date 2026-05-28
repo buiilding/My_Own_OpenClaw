@@ -48,7 +48,7 @@ Renderer filtering depends on these fields. Missing or renamed correlation field
 Backend tool-call events are both display events and execution requests. The SDK runtime must:
 
 1. normalize the backend event into a conversation event,
-2. execute claimed local tools through the local-runtime adapter and sidecar,
+2. execute claimed local tools through the SDK local-runtime client and sidecar,
 3. append normalized tool output events,
 4. emit SDK display rows/current-turn updates for the renderer,
 5. send `tool-result` or `tool-bundle-result` back to the backend.
@@ -71,7 +71,7 @@ The renderer renders display-only tool state and transcript projections. Do not 
 | event is visible in DevTools but ignored | renderer `backendEvents.ts` guard and consumer matrix |
 | event never reaches renderer | backend formatter/schema path or Electron main websocket rebroadcast |
 | text streams into the wrong chat | `conversation_ref` filtering and transcript session sync |
-| tool call renders but does not execute | SDK tool coordinator, Electron main local-runtime adapter, and sidecar bridge |
+| tool call renders but does not execute | SDK tool coordinator, Electron main SDK local-runtime client, and sidecar bridge |
 | audio text exists but no sound plays | `audio-chunk` side-channel parser and playback queue |
 | token count absent | backend token event emission and renderer token-count consumer |
 

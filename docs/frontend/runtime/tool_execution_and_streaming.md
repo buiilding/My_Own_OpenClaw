@@ -32,7 +32,7 @@ The renderer displays tool events. It does not execute backend tool events.
 Current execution modules:
 
 - `packages/windie-sdk-js/src/index.ts`
-- `frontend/src/main/windie_agent_host.cjs`
+- `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
 - `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`
 - `frontend/src/main/python/tools/**`

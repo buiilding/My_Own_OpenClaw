@@ -15,7 +15,7 @@ See also: [Frontend Functionality Map](../frontend/README.md) and [Frontend Full
 WindieOS frontend is a multi-runtime desktop stack:
 
 1. Renderer (React): UX state, chat/dashboard surfaces, tool-stream rendering.
-2. Main process (Electron/Node): window lifecycle, SDK-runtime bridge, sidecar process bridge, wakeword subprocess bridge.
+2. Main process (Electron/Node): window lifecycle, thin SDK customer wiring, sidecar process bridge, wakeword subprocess bridge.
 3. Preload boundary: allowlisted IPC bridge (`window.ipc`) between renderer and main.
 4. Sidecar (Python): local tool execution, local transcript/memory store, system-state capture, browser/file/system tool adapters.
 
@@ -36,7 +36,7 @@ frontend/src/
 ├── main/
 │   ├── index.cjs                          # Electron main composition root (wires runtime modules)
 │   ├── app_menu_runtime.cjs               # Native application menu wiring (File -> Set active workspace and standard roles)
-│   ├── ipc.cjs                            # Renderer <-> SDK-runtime bridge and event fan-out
+│   ├── ipc.cjs                            # Renderer <-> direct WindieAgent bridge and event fan-out
 │   ├── ipc_runtime_helpers.cjs            # IPC runtime helper set (user-id, payload normalization, upload, backend message processing)
 │   ├── ipc_renderer_windows.cjs           # Renderer-window tracking + broadcast helpers for IPC bridge
 │   ├── ipc_query_broadcast.cjs            # Local user-message/query-failure bridge helpers
@@ -82,7 +82,7 @@ frontend/src/
 Current runtime behavior also relies on these explicit seams:
 
 - **Main-process composition is split by role**: `frontend/src/main/index.cjs` composes `main_process_bootstrap_runtime.cjs` (window creation/bootstrap), `main_process_lifecycle_runtime.cjs` (ready/activate/quit), and `surface_runtime.cjs` (window ownership + overlay phase state).
-- **Local sidecar bridge is now split by ownership**: `local_backend_bridge.cjs` keeps process lifecycle, scoped host IPC registration, and SDK/main local-runtime adapter exports, `local_backend_bridge_request_transport.cjs` owns JSON-RPC request correlation/timeouts, and `local_backend_bridge_execute_tool_runtime.cjs` owns local tool routing plus screenshot-specific attachment handling.
+- **Local sidecar bridge is now split by ownership**: `local_backend_bridge.cjs` keeps process lifecycle, scoped host IPC registration, and the local execution surface consumed by the SDK local runtime, `local_backend_bridge_request_transport.cjs` owns JSON-RPC request correlation/timeouts, and `local_backend_bridge_execute_tool_runtime.cjs` owns sidecar routing plus screenshot-specific attachment handling.
 - **Renderer browser-session control is now runtime-backed**: renderer-side browser session UX should read local-backend readiness from the shared IPC status surface and consume shared browser-session/local-backend runtime stores rather than issuing ad hoc per-component browser polling directly from UI components. `localBackendStatusStore` owns the initial `get-local-backend-status` bootstrap plus `local-backend-status` event subscription, while `browserSessionStore` owns browser status sync, tab normalization, and shared polling cadence for all subscribers.
 - **Renderer now has two distinct API clients by boundary**: `renderer/infrastructure/api/client.ts` remains the app-internal Electron IPC bridge for settings and model listing commands that have not moved to SDK transport calls, while `renderer/infrastructure/api/windieSdkClient.ts` exposes the SDK runtime surface used by CLI/custom UI clients and first-party Electron facades. Feature code should reach the Electron bridge through app runtime facades such as `app/runtime/desktopLiveTurnRuntimeClient.ts`, `app/runtime/desktopSettingsRuntimeClient.ts`, and `app/runtime/desktopTranscriptProjectionRuntimeClient.ts`; `renderer/infrastructure/api/index.ts` is the stable barrel export for low-level client modules. Desktop-specific adapters are allowed behind SDK interfaces such as `ConversationStore` and `BackendTransport`; the app facades may use lower-level SDK modules, but renderer feature code should not reimplement SDK conversation, tool-routing, rehydrate, compaction, or projection semantics.
 - **Tool identity normalization is SDK-owned**: renderer chat display helpers may
@@ -160,17 +160,18 @@ New-chat behavior:
 ### Tool Turn Flow
 
 1. Backend emits `tool-call` or `tool-bundle`.
-2. SDK runtime validates and routes executable calls through Electron main to the sidecar daemon/local executor.
+2. SDK runtime validates and routes executable calls through its local runtime client to the sidecar daemon/local executor.
 3. SDK runtime sends `tool-result`/`tool-bundle-result` back to backend.
 4. Renderer receives display-only tool events, renders assistant tool rows, and persists transcript queue state.
 
 Electron main does not own the local tool-routing algorithm.
-`main/windie_agent_host.cjs` starts `WindieAgent.startDesktop(...)` and supplies
-only the Electron-local runtime adapter: executable tool manifest discovery
-through the existing sidecar/MCP bridge and `executeToolForBackend(...)` as the
-local execution callback. The SDK conversation runtime coordinates single and
-bundled tool calls, emits display rows/current-turn projections, and returns
-tool results to the backend.
+`ipc.cjs` starts `WindieAgent.startDesktop(...)` directly with the normal
+desktop bootstrap inputs (`apiKey`, `workspace`, and `appName`). The SDK owns
+sidecar startup/reuse, executable tool manifest discovery, local tool
+execution, single and bundled tool-call coordination, display rows/current-turn
+projections, and backend tool-result return. Electron main only forwards SDK
+outputs to renderer windows and keeps desktop-only query context, overlay,
+permission, and window behavior.
 
 ### Conversation/Transcript Flow
 
@@ -259,8 +260,15 @@ Primary modules:
   - Keeps macOS/Windows/Linux window rules in one place so composition/runtime modules do not duplicate Electron platform conditionals.
 - `main/ipc.cjs`:
   - Renderer-facing composition root for backend-bound work.
-  - Delegates backend websocket lifecycle, reconnect, endpoint fallback, idle disconnect, typed sends, local tool coordination, display rows, and current-turn projection to `WindieAgent.startDesktop(...)` through `main/windie_agent_host.cjs`.
-  - Keeps Electron-only side effects in main: install auth, backend endpoint selection, settings ACK gates, overlay phase changes, and native window/screenshot policy.
+  - Imports `WindieAgent` directly and starts `WindieAgent.startDesktop(...)`
+    with the normal desktop startup contract: install token as `apiKey`, active
+    `workspace`, and `appName`.
+  - Delegates backend websocket lifecycle, reconnect, endpoint fallback, idle
+    disconnect, typed sends, local tool coordination, sidecar startup/reuse,
+    display rows, and current-turn projection to the SDK desktop agent.
+  - Keeps Electron-only side effects in main: install-auth persistence,
+    endpoint diagnostics, settings ACK gates, overlay phase changes, renderer
+    IPC registration, and native window/screenshot policy.
   - Opens the SDK agent connection on demand for backend-bound work instead of at app startup.
   - Handshake/user/session/conversation context propagation.
   - Settings sync ACK tracking (`settings-updated`/timeout handling).

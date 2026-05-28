@@ -19,8 +19,8 @@ WindieOS tools run through a distributed pipeline. The backend owns model-facing
 5. Backend parser/tool bridge normalizes provider-native calls into WindieOS tool-call shapes.
 6. Backend preparation resolves any high-level or grounded fields into executable payloads.
 7. Backend sends `tool-call` or `tool-bundle` websocket events to the frontend.
-8. SDK runtime normalizes the tool event and routes the call through the local runtime adapter to the sidecar daemon/local executor.
-9. Electron main invokes the Python sidecar daemon or JSON-RPC tool registry as the local executor.
+8. SDK runtime normalizes the tool event and routes the call through its local runtime client to the sidecar daemon/local executor.
+9. The local runtime invokes the Python sidecar daemon or JSON-RPC tool registry as the local executor.
 10. Sidecar executes the local action and returns a normalized `ToolResult`.
 11. SDK runtime sends `tool-result` or `tool-bundle-result` back to backend, appends a normalized `tool_output` or `tool_bundle_output` event with display content, and projects a display-only renderer `tool-output` event for both single calls and bundles. If backend delivery fails after local execution, the SDK stores that output as `success: false` with `deliveryFailed: true` and marks the turn failed.
 12. Backend result receiver resolves the pending future.
@@ -36,7 +36,7 @@ WindieOS tools run through a distributed pipeline. The backend owns model-facing
 | Provider call normalization | Backend | `backend/src/agent/execution/tool_call_bridge.py`, provider modules under `backend/src/llm/providers` |
 | Preparation and coordinate resolution | Backend | `backend/src/agent/tools/preparation/**`, `backend/src/services/screen_grounding/**` |
 | Frontend dispatch event | Backend API | `backend/src/api/processing/formatters/actions/*`, `backend/src/api/schemas/outgoing.py` |
-| SDK runtime execution | SDK runtime and Electron main host | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`, `frontend/src/main/windie_agent_host.cjs` |
+| SDK runtime execution | SDK runtime | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`, `packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts` |
 | Electron-sidecar bridge | Electron main | `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/sidecar_daemon_manager.cjs` |
 | Local execution | Sidecar | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools/**` |
 | Result ingress | Backend API | `backend/src/api/handlers/tool_result.py`, `backend/src/agent/tools/waiting/**` |
@@ -48,7 +48,7 @@ Single-tool path:
 
 - backend assigns or preserves a `request_id`
 - SDK runtime returns `tool-result` with the same `request_id`
-- The SDK desktop agent host must not synthesize a backend wait id from
+- The SDK desktop agent must not synthesize a backend wait id from
   `correlation_id`, `tool_call_id`, or the websocket event id. If `request_id`
   is missing, the event is malformed for result delivery and local execution is
   not claimed.
@@ -112,7 +112,7 @@ Do not put large inline base64 payloads on hot JSON-RPC paths when a file ref or
 | --- | --- | --- |
 | Tool never appears in prompt | backend policy/profile/provider health | [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md) |
 | Model emits invalid args | backend schema, provider projection, parser recovery | [Tool Contracts](tool_contracts.md), [Backend Tools Docs Hub](../backend/tools/README.md) |
-| Backend emits `tool-call`, local execution does nothing | SDK runtime event normalization, tool coordinator, or Electron main `windie_agent_host.cjs` local-runtime adapter | [Windie Client Runtime](../sdk/windie_client_runtime.md) |
+| Backend emits `tool-call`, local execution does nothing | SDK runtime event normalization, tool coordinator, or SDK local-runtime client | [Windie Client Runtime](../sdk/windie_client_runtime.md) |
 | Backend tool event is missing request or bundle ids | SDK runtime malformed-event handling | SDK should store `runtime_error` with `reason: "malformed_tool_event"` and avoid invoking the sidecar without a result id |
 | SDK runtime invokes tool but sidecar says missing tool | sidecar registry/exposed-name parity | [Tool Catalog Matrix](tool_catalog_matrix.md), [Sidecar Registry](../frontend/sidecar/tools/registry/tool_registry_exposed_schema_and_result_normalization_reference.md) |
 | Sidecar succeeds but model never sees result | result envelope/request id/waiting storage | [Backend Tool Result Ingress](../backend/tools/tool_result_ingress_and_storage_reference.md) |

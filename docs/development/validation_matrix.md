@@ -68,7 +68,7 @@ Sidecar:
 
 Frontend:
 
-- `tests/frontend/WindieAgentHost.test.cjs`
+- `tests/frontend/WindieSdkDesktopAgent.test.ts`
 - `tests/frontend/WindieSdkDesktopAgent.test.ts`
 - `tests/frontend/WindieSdkConversationRuntime.test.ts`
 - `tests/frontend/TranscriptSessionState.test.ts`

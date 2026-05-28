@@ -18,7 +18,7 @@ title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 - `frontend/src/main/ipc/ipc_query_events.cjs`
 - `frontend/src/main/ipc/ipc_automated_query_dispatcher.cjs`
 - `frontend/src/main/ipc/ipc_startup_state.cjs`
-- `frontend/src/main/windie_agent_host.cjs`
+- `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`
 - `frontend/src/main/ipc/ipc_backend_endpoint_state.cjs`
 - `frontend/src/main/ipc/ipc_memory_store_persistence.cjs`
 - `frontend/src/main/ipc/ipc_artifact_handlers.cjs`

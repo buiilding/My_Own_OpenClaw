@@ -191,7 +191,7 @@ This is not the primary open-source SDK contract. The default client contract is
     ↓
 14. SDK runtime receives and normalizes tool-call/tool-bundle events
     ↓
-15. ToolExecutionCoordinator routes execution through the Electron local-runtime adapter
+15. ToolExecutionCoordinator routes execution through the SDK local-runtime client
     ↓
 16. Python sidecar executes local tools and captures local state when required
     ↓
@@ -269,7 +269,7 @@ Screenshots are captured strategically at key points to provide visual context f
    ↓
 8. SDK runtime receives and normalizes the tool-call event
    ↓
-9. ToolExecutionCoordinator routes execution to the Electron local-runtime adapter
+9. ToolExecutionCoordinator routes execution to the SDK local-runtime client
    ↓
 10. Tool dispatched to Python sidecar through the sidecar daemon bridge
     ↓
