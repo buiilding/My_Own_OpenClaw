@@ -204,7 +204,6 @@ export class SdkConversationRuntime {
       }
       const event = normalizeBackendEventToConversationEvent(rawEvent, {
         fallbackRevisionId: this.state.revisionId,
-        fallbackConversationRef: this.options.conversationRef,
       });
       if (event && this.shouldAcceptBackendEvent(event)) {
         void this.applyEvent(event);

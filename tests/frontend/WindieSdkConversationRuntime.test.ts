@@ -36,6 +36,20 @@ async function tick(): Promise<void> {
   await new Promise(resolve => setTimeout(resolve, 0));
 }
 
+async function waitForExpect(assertion: () => void | Promise<void>, attempts = 25): Promise<void> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try {
+      await assertion();
+      return;
+    } catch (error) {
+      lastError = error;
+      await tick();
+    }
+  }
+  throw lastError;
+}
+
 function createMockBackendTransport(
   overrides: Partial<BackendTransport> = {},
 ): BackendTransport {
@@ -54,6 +68,38 @@ function createMockBackendTransport(
     close: jest.fn(async () => undefined),
     ...overrides,
   };
+}
+
+function createControllableBackendTransport(
+  overrides: Partial<BackendTransport> = {},
+): BackendTransport & { emit(event: BackendEvent): void } {
+  const listeners = new Set<(event: unknown) => void>();
+  const transport = createMockBackendTransport({
+    ...overrides,
+    subscribe: jest.fn((listener: (event: unknown) => void) => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    }),
+  }) as BackendTransport & { emit(event: BackendEvent): void };
+  transport.emit = (event: BackendEvent) => {
+    listeners.forEach(listener => listener(event));
+  };
+  return transport;
+}
+
+function backendEvent(
+  type: BackendEvent['type'],
+  payload: Record<string, unknown>,
+  options: { eventId: string; turnRef: string },
+): BackendEvent {
+  return {
+    id: options.eventId,
+    type,
+    conversation_ref: 'conv-sdk-runtime',
+    turn_ref: options.turnRef,
+    user_id: 'user-sdk-runtime',
+    payload,
+  } as BackendEvent;
 }
 
 describe('Windie SDK conversation runtime core', () => {
@@ -1757,6 +1803,275 @@ describe('Windie SDK conversation runtime core', () => {
         content: 'use the selected model',
       }),
     ]);
+  });
+
+  test('scenario: tool turn, compaction, edit resend, and reload keep tool call/output pairs adjacent', async () => {
+    const sentQueries: Record<string, unknown>[] = [];
+    const sentRehydrates: Record<string, unknown>[] = [];
+    const sentToolResults: Record<string, unknown>[] = [];
+    const transport = createControllableBackendTransport({
+      sendQuery: jest.fn(async payload => {
+        sentQueries.push(payload);
+        return `query-${sentQueries.length}`;
+      }),
+      rehydrateConversation: jest.fn(async payload => {
+        sentRehydrates.push(payload);
+      }),
+      sendToolResult: jest.fn(async payload => {
+        sentToolResults.push(payload);
+      }),
+    });
+    const executeTool = jest.fn(async call => ({
+      success: true,
+      data: {
+        display_content: `local display for ${call.args.path}`,
+        llm_content: `local model content for ${call.args.path}`,
+      },
+    }));
+    const store = new InMemoryConversationStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport,
+      localRuntime: { executeTool },
+    });
+    runtime.attachTransport();
+
+    await runtime.send({
+      text: 'Read README.md and summarize it.',
+      turnRef: 'turn-original',
+    });
+    transport.emit(backendEvent('tool-call', {
+      tool_name: 'read_file',
+      request_id: 'req-original',
+      parameters: { path: 'README.md' },
+      metadata: {
+        model_facing_tool_call: {
+          id: 'call-original',
+          type: 'function',
+          function: {
+            name: 'read_file',
+            arguments: '{"path":"README.md"}',
+          },
+        },
+      },
+    }, { eventId: 'backend-tool-call-original', turnRef: 'turn-original' }));
+
+    await waitForExpect(() => {
+      expect(sentToolResults).toHaveLength(1);
+    });
+    transport.emit(backendEvent('tool-output', {
+      tool_name: 'read_file',
+      request_id: 'req-original',
+      tool_call_id: 'call-original',
+      display_content: 'backend accepted README contents',
+      model_llm_content: 'bounded README contents',
+    }, { eventId: 'backend-tool-output-original', turnRef: 'turn-original' }));
+    transport.emit(backendEvent('context-compaction-started', {
+      reason: 'auto-pre-query',
+      before_tokens: 360000,
+    }, { eventId: 'compaction-start-original', turnRef: 'turn-original' }));
+    transport.emit(backendEvent('context-compaction-completed', {
+      generation_id: 'gen-original',
+      reason: 'auto-pre-query',
+      strategy: 'inline',
+      before_tokens: 360000,
+      after_tokens: 48000,
+      summary_preview: 'Earlier README summary.',
+      replacement_history_entries: [
+        {
+          role: 'assistant',
+          content: 'Earlier README summary.',
+          message_type: 'context_compaction',
+        },
+      ],
+      skipped_reason: null,
+    }, { eventId: 'compaction-complete-original', turnRef: 'turn-original' }));
+    transport.emit(backendEvent('assistant-message-full', {
+      content: 'README summary done.',
+    }, { eventId: 'assistant-original', turnRef: 'turn-original' }));
+    transport.emit(backendEvent('streaming-complete', {
+      final_response: 'README summary done.',
+    }, { eventId: 'complete-original', turnRef: 'turn-original' }));
+
+    await waitForExpect(async () => {
+      const snapshot = await runtime.load();
+      expect(snapshot.state.phase).toBe('completed');
+    });
+
+    const originalSnapshot = await runtime.load();
+    expect(originalSnapshot.display.compaction).toMatchObject({
+      status: 'applied',
+      generationId: 'gen-original',
+    });
+    expect(originalSnapshot.display.messages.map(message => message.messageType)).toEqual([
+      'user_message',
+      'tool_call',
+      'tool_output',
+      'assistant_message',
+    ]);
+    expect(originalSnapshot.display.messages.slice(1, 3)).toEqual([
+      expect.objectContaining({
+        messageType: 'tool_call',
+        requestId: 'req-original',
+        toolCallId: 'call-original',
+      }),
+      expect.objectContaining({
+        messageType: 'tool_output',
+        requestId: 'req-original',
+        toolCallId: 'call-original',
+        text: 'backend accepted README contents',
+      }),
+    ]);
+    expect(originalSnapshot.rehydrate.messages.slice(1, 3)).toEqual([
+      expect.objectContaining({
+        role: 'assistant',
+        tool_call_id: 'call-original',
+      }),
+      expect.objectContaining({
+        role: 'tool',
+        content: 'bounded README contents',
+        tool_call_id: 'call-original',
+      }),
+    ]);
+
+    const originalUser = (await store.loadEvents('conv-sdk-runtime'))
+      .find(storedEvent => storedEvent.type === 'user_message');
+    expect(originalUser).toBeDefined();
+
+    await runtime.editAndResend({
+      messageId: originalUser!.eventId,
+      text: 'Read package.json and summarize it in bullets.',
+      turnRef: 'turn-edited',
+    });
+
+    expect(sentQueries).toEqual([
+      expect.objectContaining({
+        text: 'Read README.md and summarize it.',
+        conversation_ref: 'conv-sdk-runtime',
+      }),
+      expect.objectContaining({
+        text: 'Read package.json and summarize it in bullets.',
+        conversation_ref: 'conv-sdk-runtime',
+      }),
+    ]);
+    expect(sentRehydrates).toEqual([
+      expect.objectContaining({
+        conversation_ref: 'conv-sdk-runtime',
+        rehydrate_mode: 'replace',
+        messages: [],
+      }),
+    ]);
+    let rewrittenEvents = await store.loadEvents('conv-sdk-runtime');
+    expect(rewrittenEvents.map(storedEvent => storedEvent.eventId)).not.toEqual(
+      expect.arrayContaining([
+        'backend-tool-call-original',
+        'backend-tool-output-original',
+        'assistant-original',
+        'compaction-complete-original',
+      ]),
+    );
+
+    transport.emit(backendEvent('tool-call', {
+      tool_name: 'read_file',
+      request_id: 'req-edited',
+      parameters: { path: 'package.json' },
+      metadata: {
+        model_facing_tool_call: {
+          id: 'call-edited',
+          type: 'function',
+          function: {
+            name: 'read_file',
+            arguments: '{"path":"package.json"}',
+          },
+        },
+      },
+    }, { eventId: 'backend-tool-call-edited', turnRef: 'turn-edited' }));
+
+    await waitForExpect(() => {
+      expect(sentToolResults).toHaveLength(2);
+    });
+    transport.emit(backendEvent('tool-output', {
+      tool_name: 'read_file',
+      request_id: 'req-edited',
+      tool_call_id: 'call-edited',
+      display_content: 'backend accepted package contents',
+      model_llm_content: 'bounded package contents',
+    }, { eventId: 'backend-tool-output-edited', turnRef: 'turn-edited' }));
+    transport.emit(backendEvent('assistant-message-full', {
+      content: '- package summary',
+    }, { eventId: 'assistant-edited', turnRef: 'turn-edited' }));
+    transport.emit(backendEvent('streaming-complete', {
+      final_response: '- package summary',
+    }, { eventId: 'complete-edited', turnRef: 'turn-edited' }));
+
+    await waitForExpect(async () => {
+      const snapshot = await runtime.load();
+      expect(snapshot.state.phase).toBe('completed');
+    });
+
+    const finalSnapshot = await runtime.load();
+    expect(executeTool.mock.calls.map(([call]) => call.args.path)).toEqual([
+      'README.md',
+      'package.json',
+    ]);
+    expect(finalSnapshot.display.compaction.status).toBe('idle');
+    expect(finalSnapshot.display.messages.map(message => message.messageType)).toEqual([
+      'user_message',
+      'tool_call',
+      'tool_output',
+      'assistant_message',
+    ]);
+    expect(finalSnapshot.display.messages[0]).toEqual(expect.objectContaining({
+      text: 'Read package.json and summarize it in bullets.',
+    }));
+    expect(finalSnapshot.display.messages.slice(1, 3)).toEqual([
+      expect.objectContaining({
+        messageType: 'tool_call',
+        requestId: 'req-edited',
+        toolCallId: 'call-edited',
+      }),
+      expect.objectContaining({
+        messageType: 'tool_output',
+        requestId: 'req-edited',
+        toolCallId: 'call-edited',
+        text: 'backend accepted package contents',
+      }),
+    ]);
+    expect(finalSnapshot.display.messages).toEqual(
+      expect.not.arrayContaining([
+        expect.objectContaining({ text: 'Read README.md and summarize it.' }),
+        expect.objectContaining({ toolCallId: 'call-original' }),
+      ]),
+    );
+    expect(finalSnapshot.rehydrate.messages).toEqual([
+      expect.objectContaining({
+        role: 'user',
+        content: 'Read package.json and summarize it in bullets.',
+      }),
+      expect.objectContaining({
+        role: 'assistant',
+        tool_call_id: 'call-edited',
+      }),
+      expect.objectContaining({
+        role: 'tool',
+        content: 'bounded package contents',
+        tool_call_id: 'call-edited',
+        tool_name: 'read_file',
+      }),
+      expect.objectContaining({
+        role: 'assistant',
+        content: '- package summary',
+      }),
+    ]);
+    expect((await store.loadForDisplay('conv-sdk-runtime')).messages).toEqual(
+      finalSnapshot.display.messages,
+    );
+    expect((await store.loadForRehydrate('conv-sdk-runtime')).messages).toEqual(
+      finalSnapshot.rehydrate.messages,
+    );
+    rewrittenEvents = await store.loadEvents('conv-sdk-runtime');
+    expect(rewrittenEvents.some(storedEvent => storedEvent.type === 'compaction_applied')).toBe(false);
   });
 
   test('conversation runtime validates model selections before sending a turn', async () => {
