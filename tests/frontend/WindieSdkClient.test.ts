@@ -9,6 +9,7 @@ import {
   moduleTool,
   SidecarDaemonHttpClient,
   SidecarConversationStore,
+  WindieAgent,
   WindieClient,
   WindieSdkClient,
   windieBuiltins,
@@ -24,6 +25,7 @@ class FakeWebSocket {
   readonly sent: string[] = [];
   readonly url: string;
   readonly options?: unknown;
+  readyState = 0;
   closed = false;
 
   constructor(url: string, options?: unknown) {
@@ -47,11 +49,18 @@ class FakeWebSocket {
   }
 
   close(_code?: number, _reason?: string): void {
+    this.readyState = 3;
     this.closed = true;
     this.emit('close', { code: 1000, reason: 'closed', wasClean: true });
   }
 
   emit(event: string, payload: unknown): void {
+    if (event === 'open') {
+      this.readyState = 1;
+    }
+    if (event === 'close') {
+      this.readyState = 3;
+    }
     this.listeners.get(event)?.forEach(listener => listener(payload));
   }
 
@@ -738,6 +747,86 @@ describe('WindieSdkClient', () => {
         },
       },
     });
+  });
+
+  test('managed SDK agent sessions own reconnect fallback and command sends', async () => {
+    const onFallback = jest.fn();
+    const client = new WindieClient({
+      backendSession: 'managed',
+      backendUrl: 'https://primary.windie.test',
+      fetchImpl: mockFetch,
+      backendEndpoints: [
+        { backendUrl: 'https://primary.windie.test' },
+        { backendUrl: 'https://fallback.windie.test' },
+      ],
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'managed-user',
+      reconnectIntervalMs: 1,
+      connectTimeoutMs: 100,
+      onBackendFallback: onFallback,
+    });
+
+    const wakePromise = client.wakeUp({
+      agentId: 'managed-agent',
+      builtins: 'none',
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(FakeWebSocket.instances[0].url).toBe('wss://primary.windie.test/ws');
+
+    FakeWebSocket.instances[0].emit('error', new Error('primary unavailable'));
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(FakeWebSocket.instances[1].url).toBe('wss://fallback.windie.test/ws');
+    expect(onFallback).toHaveBeenCalledWith(expect.objectContaining({
+      backendUrl: 'https://fallback.windie.test',
+    }));
+
+    FakeWebSocket.instances[1].emit('open', {});
+    const agent = await wakePromise;
+
+    expect(JSON.parse(FakeWebSocket.instances[1].sent[0])).toMatchObject({
+      type: 'handshake',
+      user_id: 'managed-user',
+      agent_definition: expect.objectContaining({
+        id: 'managed-agent',
+      }),
+    });
+
+    FakeWebSocket.instances[1].clearSent();
+    await agent.requestModelList();
+    expect(JSON.parse(FakeWebSocket.instances[1].sent[0])).toMatchObject({
+      type: 'list-models',
+      payload: {},
+      user_id: 'managed-user',
+    });
+  });
+
+  test('WindieAgent.startDesktop uses the managed desktop backend session by default', async () => {
+    const agentPromise = WindieAgent.startDesktop({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'desktop-user',
+      builtins: 'none',
+      autoStartLocalRuntime: false,
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const socket = FakeWebSocket.instances[0];
+    socket.emit('open', {});
+    const desktopAgent = await agentPromise;
+
+    expect(JSON.parse(socket.sent[0])).toMatchObject({
+      type: 'handshake',
+      user_id: 'desktop-user',
+    });
+
+    socket.clearSent();
+    await desktopAgent.requestModelList();
+    expect(JSON.parse(socket.sent[0])).toMatchObject({
+      type: 'list-models',
+      user_id: 'desktop-user',
+    });
+    desktopAgent.close();
+    expect(socket.closed).toBe(true);
   });
 
   test('SDK backend event guard includes schema-backed control websocket events', async () => {

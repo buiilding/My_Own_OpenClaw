@@ -12,7 +12,13 @@ import {
   createWindieAgentSession,
   createMessageId,
   type WebSocketConstructor,
+  type WebSocketLike,
+  type WindieAgentSessionRuntime,
 } from '../transport/WindieAgentSession.js';
+import {
+  createManagedWindieAgentSession,
+  type WindieManagedBackendEndpoint,
+} from '../transport/ManagedWindieAgentSession.js';
 import {
   WindieSdkClient,
   type FetchLike,
@@ -59,6 +65,28 @@ export type WindieClientOptions = {
   backendUrl?: string;
   httpBaseUrl?: string;
   wsUrl?: string;
+  wsOrigin?: string;
+  backendSession?: 'direct' | 'managed';
+  backendEndpoints?: WindieManagedBackendEndpoint[];
+  reconnectIntervalMs?: number;
+  connectTimeoutMs?: number;
+  idleDisconnectTimeoutMs?: number;
+  shouldHoldBackendConnectionOpen?: () => boolean;
+  beforeBackendConnect?: (payload: { reason: string }) => Promise<void> | void;
+  onBackendOpen?: (payload: { socket: WebSocketLike; handshake: JsonRecord }) => void;
+  onBackendSocketChange?: (socket: WebSocketLike | null) => void;
+  onBackendClose?: (payload: {
+    opened: boolean;
+    closeReason: string | null;
+    shouldReconnect: boolean;
+    fallbackScheduled: boolean;
+  }) => void;
+  onBackendError?: (payload: { error: unknown; opened: boolean; socket: WebSocketLike }) => void;
+  onBackendHandshakeError?: (error: unknown) => void;
+  onBackendMessageError?: (error: unknown) => void;
+  onBackendSend?: (type: string) => void;
+  onBackendFallback?: (endpoint: WindieManagedBackendEndpoint) => void;
+  log?: (message: string) => void;
   fetchImpl?: FetchLike;
   WebSocketImpl?: WebSocketConstructor;
   defaultUserId?: string;
@@ -108,14 +136,12 @@ export class WindieClient {
 
     const localTools = await this.prepareLocalRuntime(options, localRuntime);
     const agentDefinition = buildWakeUpAgentDefinition(options, localTools);
-    const session = createWindieAgentSession({
+    const session = this.createAgentSession({
       backendUrl,
-      wsUrl: this.defaultOptions.wsUrl,
-      WebSocketImpl: this.defaultOptions.WebSocketImpl,
-      headers: installAuth?.installToken ? { Authorization: `Bearer ${installAuth.installToken}` } : undefined,
+      installToken: installAuth?.installToken,
       userId,
       operatingSystem,
-      agentDefinition: agentDefinition,
+      agentDefinition,
     });
     await session.waitForOpen();
     if (initialModelSettings) {
@@ -169,6 +195,58 @@ export class WindieClient {
       httpBaseUrl: backendUrl,
       fetchImpl: this.defaultOptions.fetchImpl,
       authToken,
+    });
+  }
+
+  private createAgentSession({
+    backendUrl,
+    installToken,
+    userId,
+    operatingSystem,
+    agentDefinition,
+  }: {
+    backendUrl: string;
+    installToken?: string;
+    userId: string;
+    operatingSystem: string;
+    agentDefinition: JsonRecord;
+  }): WindieAgentSessionRuntime {
+    const headers = installToken ? { Authorization: `Bearer ${installToken}` } : undefined;
+    if (this.defaultOptions.backendSession === 'managed') {
+      return createManagedWindieAgentSession({
+        backendUrl,
+        wsUrl: this.defaultOptions.wsUrl,
+        wsOrigin: this.defaultOptions.wsOrigin,
+        endpoints: this.defaultOptions.backendEndpoints,
+        WebSocketImpl: this.defaultOptions.WebSocketImpl,
+        headers,
+        userId,
+        operatingSystem,
+        agentDefinition,
+        reconnectIntervalMs: this.defaultOptions.reconnectIntervalMs,
+        connectTimeoutMs: this.defaultOptions.connectTimeoutMs,
+        idleDisconnectTimeoutMs: this.defaultOptions.idleDisconnectTimeoutMs,
+        shouldHoldOpen: this.defaultOptions.shouldHoldBackendConnectionOpen,
+        beforeConnect: this.defaultOptions.beforeBackendConnect,
+        onOpen: this.defaultOptions.onBackendOpen,
+        onSocketChange: this.defaultOptions.onBackendSocketChange,
+        onClose: this.defaultOptions.onBackendClose,
+        onError: this.defaultOptions.onBackendError,
+        onHandshakeError: this.defaultOptions.onBackendHandshakeError,
+        onMessageError: this.defaultOptions.onBackendMessageError,
+        onSend: this.defaultOptions.onBackendSend,
+        onFallback: this.defaultOptions.onBackendFallback,
+        log: this.defaultOptions.log,
+      });
+    }
+    return createWindieAgentSession({
+      backendUrl,
+      wsUrl: this.defaultOptions.wsUrl,
+      WebSocketImpl: this.defaultOptions.WebSocketImpl,
+      headers,
+      userId,
+      operatingSystem,
+      agentDefinition,
     });
   }
 

@@ -57,8 +57,8 @@ await agent.run('Inspect this workspace and summarize it');
 That desktop facade still uses the same `WindieClient.wakeUp(...)` and
 `SdkConversationRuntime` internals, but it exposes the app-builder contract:
 send user intent, receive SDK display rows, and let the SDK own websocket
-normalization, local tool execution, tool-result return, and current-turn
-projection.
+normalization, reconnect/fallback/idle lifecycle, local tool execution,
+tool-result return, and current-turn projection.
 
 Desktop hosts should use the same facade for the control commands that the
 WindieOS app needs during normal operation:
@@ -76,6 +76,23 @@ await agent.stop();
 The important boundary is that a host renders rows and forwards user commands.
 It should not own a separate backend websocket command router, tool-result loop,
 or display-row projection.
+
+`WindieAgent.startDesktop(...)` defaults to the SDK managed backend session. A
+host may pass backend endpoints and lifecycle hooks when it needs fallback,
+connection status, or idle-close policy:
+
+```ts
+const agent = await WindieAgent.startDesktop({
+  apiKey,
+  backendEndpoints: [
+    { backendUrl: 'https://api.windieos.com' },
+    { backendUrl: 'http://127.0.0.1:8000' },
+  ],
+  onBackendClose(close) {
+    renderConnection(close.shouldReconnect ? 'reconnecting' : 'offline');
+  },
+});
+```
 
 ## Python Client
 

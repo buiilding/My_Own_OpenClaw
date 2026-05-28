@@ -35,6 +35,7 @@ __exportStar(require("./transport/backendEventNormalizer.js"), exports);
 __exportStar(require("./transport/BackendSocketFactory.js"), exports);
 __exportStar(require("./transport/HostedBackendHttpClient.js"), exports);
 __exportStar(require("./transport/ManagedBackendSession.js"), exports);
+__exportStar(require("./transport/ManagedWindieAgentSession.js"), exports);
 __exportStar(require("./tools/ToolExecutionCoordinator.js"), exports);
 __exportStar(require("./tools/toolCorrelationIds.js"), exports);
 __exportStar(require("./tools/builtins.js"), exports);

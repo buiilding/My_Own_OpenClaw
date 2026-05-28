@@ -58,6 +58,25 @@ type WindieAgentEventMap = {
 type WindieAgentEventName = keyof WindieAgentEventMap;
 type WindieAgentListener<T> = (payload: T) => void;
 
+export type WindieAgentSessionRuntime = {
+  waitForOpen(): Promise<void>;
+  isOpen(): boolean;
+  on<TEvent extends WindieAgentEventName>(
+    event: TEvent,
+    listener: WindieAgentListener<WindieAgentEventMap[TEvent]>,
+  ): () => void;
+  query(payload: WindieAgentQueryInput): Promise<string>;
+  stopQuery(conversationRef?: string | null): Promise<string>;
+  updateSettings(config: JsonRecord): Promise<string>;
+  listModels(): Promise<string>;
+  rehydrateConversation(payload: JsonRecord): Promise<string>;
+  compactHistory(payload: JsonRecord): Promise<string>;
+  wakewordDetected(payload?: JsonRecord): Promise<string>;
+  sendToolResultPayload(payload: JsonRecord): Promise<string>;
+  sendToolBundleResultPayload(payload: JsonRecord): Promise<string>;
+  close(code?: number, reason?: string): void;
+};
+
 export function resolveWebSocketImplementation(WebSocketImpl?: WebSocketConstructor): WebSocketConstructor {
   if (WebSocketImpl) {
     return WebSocketImpl;
@@ -331,7 +350,7 @@ export class WindieAgentSession {
 }
 
 export function createWindieAgentBackendTransport(
-  session: WindieAgentSession,
+  session: WindieAgentSessionRuntime,
   conversationRef: string,
   agentDefinition?: JsonRecord,
 ): BackendTransport {

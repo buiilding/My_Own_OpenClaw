@@ -11,7 +11,7 @@ import { searchConversationMetadata } from '../conversation/metadata.js';
 import {
   createWindieAgentBackendTransport,
   type WindieAgentQueryInput,
-  type WindieAgentSession,
+  type WindieAgentSessionRuntime,
 } from '../transport/WindieAgentSession.js';
 import {
   WindieSdkClient,
@@ -96,7 +96,7 @@ export class WindieAgent {
 
   constructor(
     readonly id: string,
-    readonly session: WindieAgentSession,
+    readonly session: WindieAgentSessionRuntime,
     readonly agentDefinition: JsonRecord,
     private readonly sdkClient: WindieSdkClient,
     private readonly owner: WindieAgentOwner,

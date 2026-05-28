@@ -150,6 +150,7 @@ export class WindieDesktopAgent {
     const workspacePath = explicitWorkspacePath ?? workspace;
     const client = new WindieClient({
       ...clientAndWakeOptions,
+      backendSession: clientAndWakeOptions.backendSession ?? 'managed',
       installToken: clientAndWakeOptions.installToken ?? apiKey,
       autoStartLocalRuntime: clientAndWakeOptions.autoStartLocalRuntime ?? true,
     });

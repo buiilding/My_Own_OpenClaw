@@ -14,6 +14,9 @@ All notable changes to WindieOS will be documented in this file.
   rehydrate, compact-history, wakeword, and local-status methods so desktop
   hosts can call product-level SDK methods instead of Electron-specific command
   router helpers.
+- sdk: add a managed `WindieAgent` backend session with reconnect, endpoint
+  fallback, idle-disconnect, connection hooks, and strict payload filtering, and
+  make `WindieAgent.startDesktop(...)` use that managed lifecycle by default.
 - frontend/chat: commit SDK current-turn assistant and error projections back
   into visible dashboard message history when turns complete, while leaving
   tool rows on the SDK display-row path.

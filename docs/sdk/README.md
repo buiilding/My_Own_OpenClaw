@@ -81,11 +81,11 @@ execute model-requested local tools, return tool results, and emit display rows.
 The same object also exposes desktop control methods for connection checks,
 settings sync, model-list requests, conversation rehydrate, manual compaction,
 wakeword notification, stop, and local runtime status. The SDK runtime owns the
-hosted backend websocket, conversation runtime state, normalized projections,
-and local tool result return. It delegates local execution to the sidecar
-daemon. The backend remains the owner of model lists, provider policy,
-OCR/vision availability, prompt construction, compaction decisions, and paid
-capability gates.
+hosted backend websocket, managed reconnect/fallback/idle lifecycle,
+conversation runtime state, normalized projections, and local tool result
+return. It delegates local execution to the sidecar daemon. The backend remains
+the owner of model lists, provider policy, OCR/vision availability, prompt
+construction, compaction decisions, and paid capability gates.
 
 Python callers should use `WindieSdkClient.wake_up(...)` followed by
 `agent.run(...)` or `agent.stream(...)` for the same high-level query shape. The

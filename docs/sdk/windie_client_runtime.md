@@ -72,11 +72,13 @@ websocket/session, local-runtime, and store details. Desktop-style clients use
 `WindieAgent.startDesktop(...)` when they want one SDK object to start local
 runtime tools, send user intent, emit display rows/status, execute local tool
 calls, return tool results, and expose desktop controls such as settings sync,
-model-list requests, rehydrate, compaction, wakeword, and stop. The built-in
-Electron desktop is a first-party SDK host, not a separate agent runtime.
-Electron-specific adapters such as the sidecar-backed conversation store may
-implement SDK interfaces like `ConversationStore` and `BackendTransport`, but
-Electron must not reimplement SDK behavior separately.
+model-list requests, rehydrate, compaction, wakeword, and stop. Desktop agents
+use the SDK managed backend session by default, including reconnect, endpoint
+fallback, idle-disconnect, connection hooks, and strict backend payload
+filtering. The built-in Electron desktop is a first-party SDK host, not a
+separate agent runtime. Electron-specific adapters such as the sidecar-backed
+conversation store may implement SDK interfaces like `ConversationStore` and
+`BackendTransport`, but Electron must not reimplement SDK behavior separately.
 
 ## Public API
 

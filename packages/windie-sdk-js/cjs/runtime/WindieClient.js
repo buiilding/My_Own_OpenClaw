@@ -4,6 +4,7 @@ exports.WindieClient = void 0;
 const modelSelection_js_1 = require("../settings/modelSelection.js");
 const builtins_js_1 = require("../tools/builtins.js");
 const WindieAgentSession_js_1 = require("../transport/WindieAgentSession.js");
+const ManagedWindieAgentSession_js_1 = require("../transport/ManagedWindieAgentSession.js");
 const HostedBackendHttpClient_js_1 = require("../transport/HostedBackendHttpClient.js");
 const WindieAgent_js_1 = require("./WindieAgent.js");
 const LocalSidecarRuntime_js_1 = require("./LocalSidecarRuntime.js");
@@ -27,14 +28,12 @@ class WindieClient {
         const sdkClient = this.createSdkClient(backendUrl, installAuth?.installToken);
         const localTools = await this.prepareLocalRuntime(options, localRuntime);
         const agentDefinition = buildWakeUpAgentDefinition(options, localTools);
-        const session = (0, WindieAgentSession_js_1.createWindieAgentSession)({
+        const session = this.createAgentSession({
             backendUrl,
-            wsUrl: this.defaultOptions.wsUrl,
-            WebSocketImpl: this.defaultOptions.WebSocketImpl,
-            headers: installAuth?.installToken ? { Authorization: `Bearer ${installAuth.installToken}` } : undefined,
+            installToken: installAuth?.installToken,
             userId,
             operatingSystem,
-            agentDefinition: agentDefinition,
+            agentDefinition,
         });
         await session.waitForOpen();
         if (initialModelSettings) {
@@ -81,6 +80,45 @@ class WindieClient {
             httpBaseUrl: backendUrl,
             fetchImpl: this.defaultOptions.fetchImpl,
             authToken,
+        });
+    }
+    createAgentSession({ backendUrl, installToken, userId, operatingSystem, agentDefinition, }) {
+        const headers = installToken ? { Authorization: `Bearer ${installToken}` } : undefined;
+        if (this.defaultOptions.backendSession === 'managed') {
+            return (0, ManagedWindieAgentSession_js_1.createManagedWindieAgentSession)({
+                backendUrl,
+                wsUrl: this.defaultOptions.wsUrl,
+                wsOrigin: this.defaultOptions.wsOrigin,
+                endpoints: this.defaultOptions.backendEndpoints,
+                WebSocketImpl: this.defaultOptions.WebSocketImpl,
+                headers,
+                userId,
+                operatingSystem,
+                agentDefinition,
+                reconnectIntervalMs: this.defaultOptions.reconnectIntervalMs,
+                connectTimeoutMs: this.defaultOptions.connectTimeoutMs,
+                idleDisconnectTimeoutMs: this.defaultOptions.idleDisconnectTimeoutMs,
+                shouldHoldOpen: this.defaultOptions.shouldHoldBackendConnectionOpen,
+                beforeConnect: this.defaultOptions.beforeBackendConnect,
+                onOpen: this.defaultOptions.onBackendOpen,
+                onSocketChange: this.defaultOptions.onBackendSocketChange,
+                onClose: this.defaultOptions.onBackendClose,
+                onError: this.defaultOptions.onBackendError,
+                onHandshakeError: this.defaultOptions.onBackendHandshakeError,
+                onMessageError: this.defaultOptions.onBackendMessageError,
+                onSend: this.defaultOptions.onBackendSend,
+                onFallback: this.defaultOptions.onBackendFallback,
+                log: this.defaultOptions.log,
+            });
+        }
+        return (0, WindieAgentSession_js_1.createWindieAgentSession)({
+            backendUrl,
+            wsUrl: this.defaultOptions.wsUrl,
+            WebSocketImpl: this.defaultOptions.WebSocketImpl,
+            headers,
+            userId,
+            operatingSystem,
+            agentDefinition,
         });
     }
     async resolveInstallAuthState(backendUrl, operatingSystem, options) {
