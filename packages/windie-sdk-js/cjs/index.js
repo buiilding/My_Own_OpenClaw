@@ -28,6 +28,7 @@ __exportStar(require("./runtime/ConversationContinuityService.js"), exports);
 __exportStar(require("./runtime/AgentStreamEvents.js"), exports);
 __exportStar(require("./runtime/WindieChatSession.js"), exports);
 __exportStar(require("./runtime/WindieAgent.js"), exports);
+__exportStar(require("./runtime/WindieDesktopAgent.js"), exports);
 __exportStar(require("./runtime/WindieClient.js"), exports);
 __exportStar(require("./runtime/LocalSidecarRuntime.js"), exports);
 __exportStar(require("./transport/backendEventNormalizer.js"), exports);

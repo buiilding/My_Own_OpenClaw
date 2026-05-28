@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk: add a desktop agent facade with `WindieAgent.startDesktop(...)`,
+  display-row/current-turn subscriptions, and SDK-owned local tool execution
+  result projection as the replacement surface for Electron main's manual
+  websocket/event wiring.
 - frontend/chat: commit SDK current-turn assistant and error projections back
   into visible dashboard message history when turns complete, while leaving
   tool rows on the SDK display-row path.

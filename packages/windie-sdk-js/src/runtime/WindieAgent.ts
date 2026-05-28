@@ -37,6 +37,10 @@ import {
   SdkConversationRuntime,
   type SendInput,
 } from './ConversationRuntime.js';
+import type {
+  WindieDesktopAgent,
+  WindieDesktopAgentStartOptions,
+} from './WindieDesktopAgent.js';
 import { WindieChatSession } from './WindieChatSession.js';
 import {
   toAgentStreamEvent,
@@ -84,6 +88,11 @@ export type WindieStoreMemoryInput = {
 
 export class WindieAgent {
   private readonly defaultConversationStore = new InMemoryConversationStore();
+
+  static async startDesktop(options: WindieDesktopAgentStartOptions): Promise<WindieDesktopAgent> {
+    const { WindieDesktopAgent } = await import('./WindieDesktopAgent.js');
+    return WindieDesktopAgent.start(options);
+  }
 
   constructor(
     readonly id: string,

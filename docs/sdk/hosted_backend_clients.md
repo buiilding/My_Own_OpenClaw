@@ -27,6 +27,31 @@ The normal TypeScript agent surface is `WindieClient.wakeUp(...)`. It builds the
 low-level `agent_definition`, owns the hosted backend websocket, and routes local
 tool calls through the sidecar daemon.
 
+Desktop-style clients that want the SDK to act as the complete local agent
+runtime can use `WindieAgent.startDesktop(...)`:
+
+```ts
+import { WindieAgent } from '@windie/sdk';
+
+const agent = await WindieAgent.startDesktop({
+  apiKey: process.env.WINDIE_API_KEY,
+  workspace: '/path/to/workspace',
+  appName: 'My Windie App',
+});
+
+agent.onRows(rows => {
+  renderRows(rows);
+});
+
+await agent.run('Inspect this workspace and summarize it');
+```
+
+That desktop facade still uses the same `WindieClient.wakeUp(...)` and
+`SdkConversationRuntime` internals, but it exposes the app-builder contract:
+send user intent, receive SDK display rows, and let the SDK own websocket
+normalization, local tool execution, tool-result return, and current-turn
+projection.
+
 ## Python Client
 
 Package boundary: `packages/windie-sdk-python`
