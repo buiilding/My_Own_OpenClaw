@@ -68,7 +68,15 @@ describe('useChatStream transcript + event filtering', () => {
       });
     });
 
-    expect(useChatStore.getState().getWorkspaceState('conv-1').messages).toEqual([]);
+    expect(useChatStore.getState().getWorkspaceState('conv-1').messages).toEqual([
+      expect.objectContaining({
+        sender: 'assistant',
+        text: 'done',
+        type: 'tool-output',
+        sourceEventType: 'tool_output',
+        toolName: 'read_file',
+      }),
+    ]);
     expect(transcriptSpies.recordToolMessage).toHaveBeenCalledWith(
       expect.any(String),
       expect.objectContaining({
@@ -358,7 +366,14 @@ describe('useChatStream transcript + event filtering', () => {
       });
     });
 
-    expect(useChatStore.getState().getWorkspaceState('conv-1').messages).toEqual([]);
+    expect(useChatStore.getState().getWorkspaceState('conv-1').messages).toEqual([
+      expect.objectContaining({
+        sender: 'assistant',
+        type: 'tool-call',
+        sourceEventType: 'tool_bundle_call',
+        correlationId: 'bundle-1',
+      }),
+    ]);
     expect(transcriptSpies.recordToolMessage).toHaveBeenCalledWith(
       expect.any(String),
       expect.objectContaining({

@@ -7,6 +7,10 @@ import { buildAssistantTranscriptTransparency } from '../../utils/chatStream/cha
 import type { TranscriptModelContext } from '../../utils/chatStream/chatStreamTypes';
 import { normalizeIncomingText } from '../../../../infrastructure/text/incomingTextNormalization';
 import { recordAssistantTranscriptMessage } from '../../utils/chatStream/chatStreamTranscriptPersistence';
+import {
+  buildMaterializedCurrentTurnMessage,
+  upsertMaterializedCurrentTurnMessage,
+} from '../../utils/chatStream/currentTurnMessageMaterialization';
 
 type UseChatStreamCompletionHandlerOptions = {
   enableTranscript: boolean;
@@ -41,6 +45,25 @@ export const useChatStreamCompletionHandler = ({
     const transparency: TranscriptTransparencyData | undefined = lastMessage
       ? buildAssistantTranscriptTransparency(currentMessages, lastMessage, event.turnRef || undefined)
       : undefined;
+    const materializedMessage = buildMaterializedCurrentTurnMessage({
+      conversationRef: conversationRef ?? event.conversationRef,
+      turnRef: event.turnRef,
+      currentTurnProjection,
+      fallbackText: transcriptText,
+      previousMessage: lastMessage,
+      modelContext,
+    });
+
+    if (materializedMessage && !alreadyCompleted) {
+      const nextMessages = upsertMaterializedCurrentTurnMessage({
+        messages: currentMessages,
+        message: materializedMessage,
+        replaceMessageId: lastMessage?.id,
+      });
+      if (nextMessages !== currentMessages) {
+        useChatStore.getState().setMessages(nextMessages, conversationRef);
+      }
+    }
 
     if (transcriptText && enableTranscript && !alreadyCompleted) {
       recordAssistantTranscriptMessage({

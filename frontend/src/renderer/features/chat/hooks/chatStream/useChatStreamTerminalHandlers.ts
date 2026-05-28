@@ -12,6 +12,10 @@ import { findLastAssistantLlmTextMessageId } from '../../utils/chatStream/chatSt
 import type { ConversationEvent } from '../../../../infrastructure/api/windieSdkClient';
 import { recordAssistantTranscriptMessage } from '../../utils/chatStream/chatStreamTranscriptPersistence';
 import type { TranscriptModelContext } from '../../utils/chatStream/chatStreamTypes';
+import {
+  buildMaterializedCurrentTurnMessage,
+  upsertMaterializedCurrentTurnMessage,
+} from '../../utils/chatStream/currentTurnMessageMaterialization';
 
 type UseChatStreamTerminalHandlersDeps = {
   enableTranscript: boolean;
@@ -70,6 +74,27 @@ export function useChatStreamTerminalHandlers({
     }
     const errorText = resolveErrorText(errorPayload);
     const modelContext = modelContextRef.current;
+    const workspace = useChatStore.getState().getWorkspaceState(event.conversationRef);
+    const currentMessages = workspace.messages;
+    const currentTurnProjection = workspace.currentTurnProjection;
+    const materializedMessage = buildMaterializedCurrentTurnMessage({
+      conversationRef: event.conversationRef,
+      turnRef: event.turnRef,
+      currentTurnProjection,
+      fallbackText: errorText,
+      modelContext,
+      type: 'error',
+    });
+
+    if (materializedMessage) {
+      const nextMessages = upsertMaterializedCurrentTurnMessage({
+        messages: currentMessages,
+        message: materializedMessage,
+      });
+      if (nextMessages !== currentMessages) {
+        useChatStore.getState().setMessages(nextMessages, event.conversationRef);
+      }
+    }
 
     if (enableTranscript) {
       recordAssistantTranscriptMessage({

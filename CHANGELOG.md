@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: commit SDK current-turn assistant and error projections back
+  into visible dashboard message history when turns complete, while leaving
+  tool rows on the SDK display-row path.
 - backend/prompts: route provider prompt assembly through a `ProviderPrompt`
   object and rebuild static prompt layers on later tool-loop iterations.
 - backend/tokens: count provider-bound prompt tokens before inference using the
