@@ -13,9 +13,6 @@ All notable changes to WindieOS will be documented in this file.
 - sdk/runtime: reject subscribed backend events that omit `conversation_ref`
   instead of assigning ambiguous stream events to the active SDK conversation
   runtime.
-- docs: update AGENTS and architecture routing docs for the direct
-  `WindieAgent.startDesktop(...)` desktop runtime, removing stale references to
-  the deleted Electron SDK host wrapper and legacy query IPC names.
 - frontend/sdk: make Electron main import `WindieAgent` directly, start the
   desktop SDK with only `apiKey`, `workspace`, and `appName` during normal app
   startup, move endpoint/debug/connection/test knobs behind SDK-owned advanced
