@@ -6,6 +6,13 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- tests/sdk: add a scenario-style conversation runtime test that sends a real
+  turn, routes a local tool call/output, observes compaction, performs
+  edit/resend, and verifies display and rehydrate tool call/output pairs stay
+  adjacent after reload.
+- sdk/runtime: reject subscribed backend events that omit `conversation_ref`
+  instead of assigning ambiguous stream events to the active SDK conversation
+  runtime.
 - frontend/sdk: make Electron main import `WindieAgent` directly, start the
   desktop SDK with only `apiKey`, `workspace`, and `appName` during normal app
   startup, move endpoint/debug/connection/test knobs behind SDK-owned advanced
