@@ -13,6 +13,8 @@ All notable changes to WindieOS will be documented in this file.
 - examples/sdk: update the simple chat CLI to use normalized
   `chat.stream(...)` events, including state, reasoning, assistant, tool-call,
   tool-output, and error rendering.
+- examples/sdk: omit large image/base64-like fields from simple chat CLI
+  terminal tool-output rendering while preserving the underlying SDK payload.
 - sdk/runtime: auto-register a temporary install identity for hosted
   `WindieClient.wakeUp(...)` calls when no install token or caller-provided
   user identity is configured, so CLI callers can pass only `backendUrl` and
