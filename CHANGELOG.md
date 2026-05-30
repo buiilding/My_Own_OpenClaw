@@ -17,6 +17,9 @@ All notable changes to WindieOS will be documented in this file.
   terminal tool-output rendering while preserving the underlying SDK payload.
 - examples/sdk: switch the simple chat CLI example to the computer builtin group
   and local friend prompt used for hosted desktop-tool smoke testing.
+- examples/sdk: start the simple chat CLI sidecar daemon through the repo
+  `scripts/python-in-env sidecar python` launcher so computer built-ins use the
+  expected sidecar Python environment.
 - sidecar/sdk/backend: rename screenshot `capture_meta.capture_backend` to
   `capture_engine` so capture metadata refers to the local capture path instead
   of sounding like the hosted Windie backend.

@@ -28,6 +28,14 @@ export function buildLocalWindieSdk(repoRoot) {
   }
 }
 
+export function repoAutoSidecarOptions(repoRoot) {
+  return {
+    pythonCommand: path.join(repoRoot, 'scripts/python-in-env'),
+    pythonArgs: ['sidecar', 'python'],
+    startTimeoutMs: 15000,
+  };
+}
+
 export async function loadLocalWindieSdk(repoRoot) {
   buildLocalWindieSdk(repoRoot);
   return import(pathToFileURL(path.join(sdkDir(repoRoot), 'dist/index.js')).href);

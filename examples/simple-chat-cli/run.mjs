@@ -3,7 +3,10 @@ import readline from "node:readline/promises";
 import { exit, stderr, stdin, stdout } from "node:process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { loadLocalWindieSdk } from "../_shared/local_sdk_loader.mjs";
+import {
+  loadLocalWindieSdk,
+  repoAutoSidecarOptions,
+} from "../_shared/local_sdk_loader.mjs";
 
 const exampleDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(exampleDir, "../..");
@@ -19,6 +22,7 @@ const { WindieClient } = await loadExampleSdk();
 const client = new WindieClient({
   backendUrl,
   installToken: process.env.WINDIE_API_KEY,
+  autoSidecar: repoAutoSidecarOptions(repoRoot),
 });
 
 const agent = await client.wakeUp({

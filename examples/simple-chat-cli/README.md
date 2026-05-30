@@ -9,12 +9,13 @@ Run from the repo root:
 WINDIE_BACKEND_URL=https://api.windieos.com node examples/simple-chat-cli/run.mjs
 ```
 
-The script builds `packages/windie-sdk-js`, wakes an agent with filesystem and
-shell built-ins, creates `agent.chat(...)`, and renders state changes,
-reasoning deltas, assistant deltas, tool-call payloads, tool-output payloads,
-and errors from the SDK stream. Final assistant message events are received as
-the canonical completed message, but the example does not print them when
-assistant deltas have already streamed.
+The script builds `packages/windie-sdk-js`, wakes an agent with the computer
+built-in group, starts the local sidecar through the repo `frontend_jarvis`
+launcher, creates `agent.chat(...)`, and renders state changes, reasoning
+deltas, assistant deltas, tool-call payloads, tool-output payloads, and errors
+from the SDK stream. Final assistant message events are received as the
+canonical completed message, but the example does not print them when assistant
+deltas have already streamed.
 
 For the hosted backend, the SDK registers a temporary install identity through
 `/api/install/register` when `WINDIE_API_KEY` is not set. To reuse an existing
