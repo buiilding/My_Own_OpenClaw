@@ -13,6 +13,10 @@ All notable changes to WindieOS will be documented in this file.
 - examples/sdk: update the simple chat CLI to use normalized
   `chat.stream(...)` events, including state, reasoning, assistant, tool-call,
   tool-output, and error rendering.
+- sdk/runtime: auto-register a temporary install identity for hosted
+  `WindieClient.wakeUp(...)` calls when no install token or caller-provided
+  user identity is configured, so CLI callers can pass only `backendUrl` and
+  `installToken`.
 - frontend/sidecar: delete obsolete browser runtime code now that the sidecar
   browser tool routes through `BrowserUseEngineRuntime`, and remove the unused
   renderer `WindieGlyph` component.

@@ -135,7 +135,8 @@ class WindieClient {
                 userId: configuredUserId ?? identity?.userId ?? 'local-sdk-user',
             };
         }
-        if (configured.autoRegister !== true) {
+        const shouldAutoRegister = configured.autoRegister ?? (!configuredUserId && isHostedWindieBackendUrl(backendUrl));
+        if (!shouldAutoRegister) {
             return null;
         }
         const fetchImpl = this.defaultOptions.fetchImpl ?? globalThis.fetch?.bind(globalThis);
@@ -300,6 +301,15 @@ function buildWakeUpAgentDefinition(options, tools) {
             operating_system: options.operatingSystem ?? detectOperatingSystem(),
         },
     };
+}
+function isHostedWindieBackendUrl(backendUrl) {
+    try {
+        const hostname = new URL(backendUrl).hostname.toLowerCase();
+        return hostname === 'api.windieos.com';
+    }
+    catch {
+        return false;
+    }
 }
 function normalizeBuiltins(options) {
     const selected = options.builtins;

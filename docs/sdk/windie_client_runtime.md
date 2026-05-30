@@ -290,15 +290,18 @@ const artifactUrl = agent.artifactUrl(uploaded.artifact_id);
 `wakeUp` performs this sequence:
 
 1. Resolve the hosted backend URL.
-2. Ensure a sidecar runtime client is available when local execution is needed.
-3. Register module/plugin/MCP tools with the sidecar daemon.
-4. Read the sidecar tool manifest.
-5. Build the low-level backend `agent_definition`.
-6. Connect to the backend websocket.
-7. Send the websocket handshake with `agent_definition`.
-8. Normalize backend events into SDK conversation events.
-9. Route backend events to callers and route local `tool-call` events to the sidecar daemon.
-10. Project display transcript and rehydrate snapshots from normalized events.
+2. Resolve install auth from `installToken`; when the backend is the hosted
+   WindieOS endpoint and no caller-provided user identity is configured, the SDK
+   registers a temporary install identity automatically.
+3. Ensure a sidecar runtime client is available when local execution is needed.
+4. Register module/plugin/MCP tools with the sidecar daemon.
+5. Read the sidecar tool manifest.
+6. Build the low-level backend `agent_definition`.
+7. Connect to the backend websocket.
+8. Send the websocket handshake with `agent_definition`.
+9. Normalize backend events into SDK conversation events.
+10. Route backend events to callers and route local `tool-call` events to the sidecar daemon.
+11. Project display transcript and rehydrate snapshots from normalized events.
 
 When a local runtime supports events, callers can subscribe through the SDK
 runtime instead of connecting to the sidecar daemon directly:

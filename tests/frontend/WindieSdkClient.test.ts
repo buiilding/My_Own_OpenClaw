@@ -442,7 +442,7 @@ describe('WindieSdkClient', () => {
     }
   });
 
-  test('WindieClient can register hosted install auth and attach bearer headers', async () => {
+  test('WindieClient auto-registers hosted install auth and attaches bearer headers', async () => {
     mockFetch.mockResolvedValueOnce(jsonResponse({
       user_id: 'registered-user',
       install_id: 'install-1',
@@ -452,7 +452,6 @@ describe('WindieSdkClient', () => {
       backendUrl: 'https://api.windieos.com',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
-      installAuth: { autoRegister: true },
     });
 
     const wakePromise = client.wakeUp({ agentId: 'auth-agent' });
@@ -539,6 +538,7 @@ describe('WindieSdkClient', () => {
       backendUrl: 'https://api.windieos.com',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
       sidecar: localRuntime,
     });
 
@@ -1272,6 +1272,7 @@ describe('WindieSdkClient', () => {
       backendUrl: 'https://api.windieos.com',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
       sidecar: localRuntime,
     });
 
@@ -1314,6 +1315,7 @@ describe('WindieSdkClient', () => {
       backendUrl: 'https://api.windieos.com',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
       sidecar: localRuntime,
     });
 
@@ -1353,6 +1355,7 @@ describe('WindieSdkClient', () => {
       backendUrl: 'https://api.windieos.com',
       fetchImpl: mockFetch,
       WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
       sidecar: localRuntime,
     });
 

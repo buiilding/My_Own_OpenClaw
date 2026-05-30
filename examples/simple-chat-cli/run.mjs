@@ -16,16 +16,19 @@ import {
 const exampleDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(exampleDir, '../..');
 const backendUrl = process.env.WINDIE_BACKEND_URL ?? 'https://api.windieos.com';
-const installToken = process.env.WINDIE_API_KEY ?? process.env.WINDIE_INSTALL_TOKEN;
 
-const { WebSocketImpl } = loadSdkWebSocket(repoRoot);
-const { WindieClient } = await loadLocalWindieSdk(repoRoot);
+async function loadExampleSdk() {
+  const { WebSocketImpl } = loadSdkWebSocket(repoRoot);
+  const { WindieClient } = await loadLocalWindieSdk(repoRoot);
+  return { WindieClient, WebSocketImpl };
+}
+
+const { WindieClient, WebSocketImpl } = await loadExampleSdk();
 
 const client = new WindieClient({
   backendUrl,
-  installToken,
+  installToken: process.env.WINDIE_API_KEY,
   WebSocketImpl,
-  ...(!installToken ? { installAuth: { autoRegister: true } } : {}),
 });
 
 const agent = await client.wakeUp({
