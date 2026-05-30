@@ -1,18 +1,13 @@
 #!/usr/bin/env node
-import readline from 'node:readline/promises';
-import {
-  exit,
-  stderr,
-  stdin,
-  stdout,
-} from 'node:process';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { loadLocalWindieSdk } from '../_shared/local_sdk_loader.mjs';
+import readline from "node:readline/promises";
+import { exit, stderr, stdin, stdout } from "node:process";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { loadLocalWindieSdk } from "../_shared/local_sdk_loader.mjs";
 
 const exampleDir = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.resolve(exampleDir, '../..');
-const backendUrl = process.env.WINDIE_BACKEND_URL ?? 'https://api.windieos.com';
+const repoRoot = path.resolve(exampleDir, "../..");
+const backendUrl = process.env.WINDIE_BACKEND_URL ?? "https://api.windieos.com";
 
 async function loadExampleSdk() {
   const { WindieClient } = await loadLocalWindieSdk(repoRoot);
@@ -27,13 +22,13 @@ const client = new WindieClient({
 });
 
 const agent = await client.wakeUp({
-  systemPrompt: 'You are a concise CLI coding assistant.',
+  systemPrompt: "Your name is Peter, you are Peter Bui virtual friend.",
   workspacePath: process.cwd(),
-  builtins: ['filesystem', 'shell'],
+  builtins: ["computer"],
 });
 
 const chat = agent.chat({
-  conversationRef: 'cli-chat',
+  conversationRef: "cli-chat",
 });
 
 const rl = readline.createInterface({
@@ -41,15 +36,17 @@ const rl = readline.createInterface({
   output: stdout,
 });
 
-stdout.write('Windie CLI. Type /exit to quit.\n\n');
+stdout.write("Windie CLI. Type /exit to quit.\n\n");
 
 function isReadlineClosedError(error) {
-  return error && typeof error === 'object' && error.code === 'ERR_USE_AFTER_CLOSE';
+  return (
+    error && typeof error === "object" && error.code === "ERR_USE_AFTER_CLOSE"
+  );
 }
 
 async function readPrompt() {
   try {
-    return await rl.question('you> ');
+    return await rl.question("you> ");
   } catch (error) {
     if (isReadlineClosedError(error)) {
       return null;
@@ -60,7 +57,7 @@ async function readPrompt() {
 
 function isLargeBinaryDisplayField(key, value) {
   return (
-    typeof value === 'string' &&
+    typeof value === "string" &&
     value.length > 500 &&
     /screenshot|image|base64|bytes|data_url/i.test(key)
   );
@@ -68,12 +65,12 @@ function isLargeBinaryDisplayField(key, value) {
 
 function summarizeBinaryDisplayField(key, value, parent) {
   const contentType =
-    typeof parent?.[`${key}_content_type`] === 'string'
+    typeof parent?.[`${key}_content_type`] === "string"
       ? parent[`${key}_content_type`]
-      : typeof parent?.content_type === 'string'
+      : typeof parent?.content_type === "string"
         ? parent.content_type
         : null;
-  const kind = contentType ? ` ${contentType}` : '';
+  const kind = contentType ? ` ${contentType}` : "";
   return `[omitted${kind} ${key}, ${value.length} chars]`;
 }
 
@@ -82,12 +79,14 @@ function sanitizeToolResultForTerminal(value, parent = null) {
     return value.map((item) => sanitizeToolResultForTerminal(item, parent));
   }
 
-  if (value && typeof value === 'object') {
+  if (value && typeof value === "object") {
     const sanitized = {};
     for (const [key, nested] of Object.entries(value)) {
-      sanitized[key] = isLargeBinaryDisplayField(key, nested)
-        ? summarizeBinaryDisplayField(key, nested, value)
-        : sanitizeToolResultForTerminal(nested, value);
+      if (isLargeBinaryDisplayField(key, nested)) {
+        sanitized[key] = summarizeBinaryDisplayField(key, nested, value);
+      } else {
+        sanitized[key] = sanitizeToolResultForTerminal(nested, value);
+      }
     }
     return sanitized;
   }
@@ -101,60 +100,66 @@ try {
 
     if (text === null) break;
     if (!text.trim()) continue;
-    if (text.trim() === '/exit') break;
+    if (text.trim() === "/exit") break;
 
-    stdout.write('\n');
+    stdout.write("\n");
     let lastState = null;
 
     for await (const event of chat.stream(text)) {
       switch (event.type) {
-        case 'state':
+        case "state":
           if (event.state !== lastState) {
             lastState = event.state;
-            if (event.state !== 'streaming') {
+            if (event.state !== "streaming") {
               stdout.write(`\n[state] ${event.state}\n`);
             }
           }
           break;
 
-        case 'reasoning_delta':
+        case "reasoning_delta":
           stdout.write(`\x1b[2m[thinking] ${event.text}\x1b[0m`);
           break;
 
-        case 'assistant_delta':
+        case "assistant_delta":
           stdout.write(event.text);
           break;
 
-        case 'assistant_message':
+        case "assistant_message":
           break;
 
-        case 'tool_calls':
+        case "tool_calls":
           for (const call of event.calls) {
             stdout.write(`\n\n[tool call] ${call.toolName}\n`);
             stdout.write(JSON.stringify(call.args, null, 2));
-            stdout.write('\n');
+            stdout.write("\n");
           }
           break;
 
-        case 'tool_outputs':
+        case "tool_outputs":
           for (const output of event.outputs) {
             stdout.write(`\n[tool output] ${output.toolName}\n`);
-            stdout.write(JSON.stringify({
-              success: output.success,
-              error: output.error,
-              result: sanitizeToolResultForTerminal(output.result),
-            }, null, 2));
-            stdout.write('\n');
+            stdout.write(
+              JSON.stringify(
+                {
+                  success: output.success,
+                  error: output.error,
+                  result: sanitizeToolResultForTerminal(output.result),
+                },
+                null,
+                2,
+              ),
+            );
+            stdout.write("\n");
           }
           break;
 
-        case 'error':
+        case "error":
           stderr.write(`\n[error] ${event.message}\n`);
           break;
       }
     }
 
-    stdout.write('\n');
+    stdout.write("\n");
   }
 } finally {
   rl.close();

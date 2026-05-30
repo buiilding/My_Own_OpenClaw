@@ -15,6 +15,8 @@ All notable changes to WindieOS will be documented in this file.
   tool-output, and error rendering.
 - examples/sdk: omit large image/base64-like fields from simple chat CLI
   terminal tool-output rendering while preserving the underlying SDK payload.
+- examples/sdk: switch the simple chat CLI example to the computer builtin group
+  and local friend prompt used for hosted desktop-tool smoke testing.
 - sidecar/sdk/backend: rename screenshot `capture_meta.capture_backend` to
   `capture_engine` so capture metadata refers to the local capture path instead
   of sounding like the hosted Windie backend.
