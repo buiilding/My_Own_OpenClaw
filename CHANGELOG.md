@@ -27,6 +27,8 @@ All notable changes to WindieOS will be documented in this file.
   through SDK host methods such as `agent.searchMemory(...)`.
 - sdk/runtime: include `mouse_control`, `keyboard_control`, and `wait` in the
   `computer` builtin group.
+- sdk/runtime: include `switch_window` and `get_open_windows` in the `computer`
+  builtin group.
 - frontend/sidecar: delete obsolete browser runtime code now that the sidecar
   browser tool routes through `BrowserUseEngineRuntime`, and remove the unused
   renderer `WindieGlyph` component.

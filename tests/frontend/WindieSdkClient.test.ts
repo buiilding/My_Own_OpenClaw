@@ -1357,7 +1357,9 @@ describe('WindieSdkClient', () => {
           { name: 'keyboard_control', schema: { type: 'object' } },
           { name: 'screenshot', schema: { type: 'object' } },
           { name: 'scroll_control', schema: { type: 'object' } },
+          { name: 'switch_window', schema: { type: 'object' } },
           { name: 'wait', schema: { type: 'object' } },
+          { name: 'get_open_windows', schema: { type: 'object' } },
           { name: 'read_file', schema: { type: 'object' } },
         ],
       })),
@@ -1385,7 +1387,9 @@ describe('WindieSdkClient', () => {
       expect.objectContaining({ name: 'keyboard_control' }),
       expect.objectContaining({ name: 'screenshot' }),
       expect.objectContaining({ name: 'scroll_control' }),
+      expect.objectContaining({ name: 'switch_window' }),
       expect.objectContaining({ name: 'wait' }),
+      expect.objectContaining({ name: 'get_open_windows' }),
     ]));
     expect(tools).not.toEqual(expect.arrayContaining([
       expect.objectContaining({ name: 'read_file' }),

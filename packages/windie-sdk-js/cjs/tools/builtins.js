@@ -44,7 +44,16 @@ const BUILTIN_PREFIXES = {
     filesystem: ['read_file', 'replace', 'list_files', 'search_files'],
     shell: ['run_shell_command', 'run_command', 'shell', 'process'],
     browser: ['browser', 'open_url', 'click', 'type'],
-    computer: ['computer', 'mouse_control', 'keyboard_control', 'screenshot', 'scroll', 'wait'],
+    computer: [
+        'computer',
+        'mouse_control',
+        'keyboard_control',
+        'screenshot',
+        'scroll',
+        'switch_window',
+        'wait',
+        'get_open_windows',
+    ],
 };
 function shouldIncludeBuiltinTool(toolName, selected = []) {
     if (selected.length === 0) {
