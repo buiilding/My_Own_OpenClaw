@@ -4,7 +4,7 @@ import type {
   RehydrateSnapshot,
 } from '../conversation/types.js';
 import {
-  toAgentStreamEvent,
+  toAgentStreamEvents,
   toolOutputStreamKeys,
   type WindieAgentStreamEvent,
 } from './AgentStreamEvents.js';
@@ -53,8 +53,8 @@ export class WindieChatSession {
   async *stream(input: WindieChatSendInput): AsyncIterableIterator<WindieAgentStreamEvent> {
     const seenToolOutputs = new Set<string>();
     for await (const runtimeEvent of this.runtime.stream(normalizeSendInput(input))) {
-      const streamEvent = toAgentStreamEvent(runtimeEvent);
-      if (!streamEvent) {
+      const streamEvents = toAgentStreamEvents(runtimeEvent);
+      if (streamEvents.length === 0) {
         continue;
       }
       if (runtimeEvent.type === 'conversation_event') {
@@ -64,7 +64,9 @@ export class WindieChatSession {
         }
         keys.forEach(key => seenToolOutputs.add(key));
       }
-      yield streamEvent;
+      for (const streamEvent of streamEvents) {
+        yield streamEvent;
+      }
     }
   }
 

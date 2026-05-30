@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/runtime: make public `agent.stream(...)` and `agent.chat(...).stream(...)`
+  emit normalized chat events with explicit state, reasoning, assistant,
+  `tool_calls`, and `tool_outputs` records, while keeping bundled tool results
+  aggregated for backend delivery.
 - frontend/sidecar: delete obsolete browser runtime code now that the sidecar
   browser tool routes through `BrowserUseEngineRuntime`, and remove the unused
   renderer `WindieGlyph` component.

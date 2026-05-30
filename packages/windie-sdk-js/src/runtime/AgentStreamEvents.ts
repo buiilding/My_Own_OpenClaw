@@ -1,7 +1,3 @@
-import {
-  isBackendEvent,
-  type BackendEvent,
-} from '../events/backendEvents.js';
 import type {
   ConversationEvent,
   JsonRecord,
@@ -9,46 +5,81 @@ import type {
 import { resolveToolOutputCorrelationKeys } from '../tools/toolCorrelationIds.js';
 import type { WindieRuntimeEvent } from './ConversationRuntime.js';
 
+export type WindieAgentStreamState =
+  | 'idle'
+  | 'sending'
+  | 'thinking'
+  | 'streaming'
+  | 'tool_call'
+  | 'tool_output'
+  | 'error';
+
+export type WindieAgentToolCall = {
+  toolName: string;
+  args: unknown;
+  requestId: string | null;
+  toolCallId: string | null;
+  index: number;
+};
+
+export type WindieAgentToolOutput = {
+  toolName: string;
+  result: unknown;
+  success: boolean | null;
+  error: string | null;
+  requestId: string | null;
+  toolCallId: string | null;
+  index: number;
+};
+
 export type WindieAgentStreamEvent =
   | {
-      type: 'start';
-      queryMessageId: string;
+      type: 'state';
+      state: WindieAgentStreamState;
       conversationRef: string;
+      turnRef: string | null;
     }
   | {
-      type: 'text';
+      type: 'reasoning_delta';
       text: string;
-      event: Extract<BackendEvent, { type: 'streaming-response' }>;
+      conversationRef: string;
+      turnRef: string | null;
     }
   | {
-      type: 'tool_call';
-      toolName?: string;
-      event: Extract<BackendEvent, { type: 'tool-call' }>;
+      type: 'assistant_delta';
+      text: string;
+      conversationRef: string;
+      turnRef: string | null;
     }
   | {
-      type: 'tool_output';
-      event: Extract<BackendEvent, { type: 'tool-output' }>;
+      type: 'assistant_message';
+      text: string;
+      conversationRef: string;
+      turnRef: string | null;
     }
   | {
-      type: 'complete';
-      finalResponse?: string;
-      event: Extract<BackendEvent, { type: 'streaming-complete' }>;
+      type: 'tool_calls';
+      calls: WindieAgentToolCall[];
+      conversationRef: string;
+      turnRef: string | null;
+    }
+  | {
+      type: 'tool_outputs';
+      outputs: WindieAgentToolOutput[];
+      conversationRef: string;
+      turnRef: string | null;
     }
   | {
       type: 'error';
       message: string;
-      event?: Extract<BackendEvent, { type: 'error' }>;
-      error?: unknown;
-    }
-  | {
-      type: 'event';
-      event: BackendEvent;
+      conversationRef: string;
+      turnRef: string | null;
     };
 
-function rawBackendEventFromConversationEvent(event: ConversationEvent): BackendEvent | null {
-  const rawEvent = event.payload.rawEvent;
-  return isBackendEvent(rawEvent) ? rawEvent : null;
-}
+type ConversationLocator = {
+  conversationRef: string;
+  turnRef: string | null;
+};
 
 export function toolOutputStreamKey(event: ConversationEvent): string | null {
   return toolOutputStreamKeys(event)[0] ?? null;
@@ -61,148 +92,295 @@ export function toolOutputStreamKeys(event: ConversationEvent): string[] {
   return resolveToolOutputCorrelationKeys(event.payload);
 }
 
-function syntheticToolOutputEvent(event: ConversationEvent): Extract<BackendEvent, { type: 'tool-output' }> {
-  return {
-    id: event.eventId,
-    type: 'tool-output',
-    conversation_ref: event.conversationRef,
-    turn_ref: event.turnRef ?? undefined,
-    payload: event.payload,
-  };
-}
-
-function syntheticStreamingResponseEvent(event: ConversationEvent): Extract<BackendEvent, { type: 'streaming-response' }> {
-  return {
-    id: event.eventId,
-    type: 'streaming-response',
-    conversation_ref: event.conversationRef,
-    turn_ref: event.turnRef ?? undefined,
-    payload: {
-      text: typeof event.payload.text === 'string' ? event.payload.text : '',
-    },
-  };
-}
-
-function syntheticStreamingCompleteEvent(event: ConversationEvent): Extract<BackendEvent, { type: 'streaming-complete' }> {
-  return {
-    id: event.eventId,
-    type: 'streaming-complete',
-    conversation_ref: event.conversationRef,
-    turn_ref: event.turnRef ?? undefined,
-    payload: {
-      final_response: typeof event.payload.finalResponse === 'string'
-        ? event.payload.finalResponse
-        : undefined,
-    },
-  };
-}
-
-function syntheticToolCallEvent(event: ConversationEvent): Extract<BackendEvent, { type: 'tool-call' }> {
-  return {
-    id: event.eventId,
-    type: 'tool-call',
-    conversation_ref: event.conversationRef,
-    turn_ref: event.turnRef ?? undefined,
-    payload: {
-      tool_name: typeof event.payload.toolName === 'string' ? event.payload.toolName : undefined,
-      parameters: event.payload.args && typeof event.payload.args === 'object' && !Array.isArray(event.payload.args)
-        ? event.payload.args as JsonRecord
-        : undefined,
-      request_id: typeof event.payload.requestId === 'string' ? event.payload.requestId : undefined,
-      tool_call_id: typeof event.payload.toolCallId === 'string' ? event.payload.toolCallId : undefined,
-      correlation_id: typeof event.payload.correlationId === 'string' ? event.payload.correlationId : undefined,
-    },
-  };
-}
-
-function syntheticErrorEvent(event: ConversationEvent): Extract<BackendEvent, { type: 'error' }> {
-  const message = typeof event.payload.message === 'string'
-    ? event.payload.message
-    : (typeof event.payload.error === 'string' ? event.payload.error : 'Windie stream failed');
-  return {
-    id: event.eventId,
-    type: 'error',
-    conversation_ref: event.conversationRef,
-    turn_ref: event.turnRef ?? undefined,
-    payload: {
-      message,
-    },
-  };
-}
-
-export function toAgentStreamEvent(runtimeEvent: WindieRuntimeEvent): WindieAgentStreamEvent | null {
+export function toAgentStreamEvents(runtimeEvent: WindieRuntimeEvent): WindieAgentStreamEvent[] {
   if (runtimeEvent.type === 'turn_started') {
-    return {
-      type: 'start',
-      queryMessageId: runtimeEvent.result.queryMessageId,
-      conversationRef: runtimeEvent.snapshot.state.conversationRef,
-    };
+    return [];
   }
   if (runtimeEvent.type === 'error') {
-    return {
-      type: 'error',
-      message: runtimeEvent.error instanceof Error ? runtimeEvent.error.message : String(runtimeEvent.error),
-      error: runtimeEvent.error,
-    };
+    const locator = locatorFromSnapshot(runtimeEvent.snapshot);
+    return [
+      stateEvent('error', locator),
+      {
+        type: 'error',
+        message: runtimeEvent.error instanceof Error ? runtimeEvent.error.message : String(runtimeEvent.error),
+        ...locator,
+      },
+    ];
   }
+
   const event = runtimeEvent.event;
-  const rawEvent = rawBackendEventFromConversationEvent(event);
-  if (event.type === 'assistant_delta') {
-    const backendEvent = rawEvent?.type === 'streaming-response'
-      ? rawEvent
-      : syntheticStreamingResponseEvent(event);
-    return {
-      type: 'text',
-      text: typeof event.payload.text === 'string' ? event.payload.text : '',
-      event: backendEvent,
-    };
+  const locator = locatorFromConversationEvent(event);
+
+  if (event.type === 'user_message') {
+    return [
+      stateEvent('sending', locator),
+      stateEvent('thinking', locator),
+    ];
   }
-  if (event.type === 'turn_completed') {
-    const backendEvent = rawEvent?.type === 'streaming-complete'
-      ? rawEvent
-      : syntheticStreamingCompleteEvent(event);
-    return {
-      type: 'complete',
-      finalResponse: typeof event.payload.finalResponse === 'string'
-        ? event.payload.finalResponse
-        : undefined,
-      event: backendEvent,
-    };
+  if (event.type === 'reasoning_delta') {
+    return [
+      stateEvent('thinking', locator),
+      {
+        type: 'reasoning_delta',
+        text: stringField(event.payload, 'text', 'content', 'status') ?? '',
+        ...locator,
+      },
+    ];
+  }
+  if (event.type === 'assistant_delta') {
+    return [
+      stateEvent('streaming', locator),
+      {
+        type: 'assistant_delta',
+        text: stringField(event.payload, 'text', 'content', 'delta') ?? '',
+        ...locator,
+      },
+    ];
+  }
+  if (event.type === 'assistant_message') {
+    return [
+      {
+        type: 'assistant_message',
+        text: stringField(event.payload, 'text', 'content') ?? '',
+        ...locator,
+      },
+    ];
   }
   if (event.type === 'tool_call') {
-    const backendEvent = rawEvent?.type === 'tool-call'
-      ? rawEvent
-      : syntheticToolCallEvent(event);
-    return {
-      type: 'tool_call',
-      toolName: typeof event.payload.toolName === 'string' ? event.payload.toolName : undefined,
-      event: backendEvent,
-    };
+    return [
+      stateEvent('tool_call', locator),
+      {
+        type: 'tool_calls',
+        calls: [toolCallFromPayload(event.payload, 0)],
+        ...locator,
+      },
+    ];
   }
-  if (event.type === 'tool_output' || event.type === 'tool_bundle_output') {
-    const backendEvent = rawEvent?.type === 'tool-output'
-      ? rawEvent
-      : syntheticToolOutputEvent(event);
-    return {
-      type: 'tool_output',
-      event: backendEvent,
-    };
+  if (event.type === 'tool_bundle_call') {
+    const calls = bundleToolCallsFromPayload(event.payload);
+    if (calls.length === 0) {
+      return [stateEvent('tool_call', locator)];
+    }
+    return [
+      stateEvent('tool_call', locator),
+      {
+        type: 'tool_calls',
+        calls,
+        ...locator,
+      },
+    ];
+  }
+  if (event.type === 'tool_output') {
+    return [
+      stateEvent('tool_output', locator),
+      {
+        type: 'tool_outputs',
+        outputs: [toolOutputFromPayload(event.payload, 0)],
+        ...locator,
+      },
+    ];
+  }
+  if (event.type === 'tool_bundle_output') {
+    const outputs = bundleToolOutputsFromPayload(event.payload);
+    if (outputs.length === 0) {
+      return [stateEvent('tool_output', locator)];
+    }
+    return [
+      stateEvent('tool_output', locator),
+      {
+        type: 'tool_outputs',
+        outputs,
+        ...locator,
+      },
+    ];
+  }
+  if (event.type === 'turn_completed' || event.type === 'turn_stopped') {
+    const finalResponse = stringField(event.payload, 'finalResponse', 'final_response');
+    return [
+      ...(finalResponse ? [{
+        type: 'assistant_message' as const,
+        text: finalResponse,
+        ...locator,
+      }] : []),
+      stateEvent('idle', locator),
+    ];
   }
   if (event.type === 'turn_error' || event.type === 'runtime_error') {
-    const backendEvent = rawEvent?.type === 'error'
-      ? rawEvent
-      : syntheticErrorEvent(event);
-    return {
-      type: 'error',
-      message: backendEvent.payload?.message || backendEvent.payload?.content || 'Windie stream failed',
-      event: backendEvent,
-    };
+    return [
+      stateEvent('error', locator),
+      {
+        type: 'error',
+        message: stringField(event.payload, 'message', 'content', 'error') ?? 'Windie stream failed',
+        ...locator,
+      },
+    ];
   }
-  if (rawEvent) {
-    return {
-      type: 'event',
-      event: rawEvent,
-    };
+  return [];
+}
+
+function locatorFromSnapshot(snapshot: WindieRuntimeEvent['snapshot']): ConversationLocator {
+  return {
+    conversationRef: snapshot?.state.conversationRef ?? '',
+    turnRef: snapshot?.state.activeTurnRef ?? null,
+  };
+}
+
+function locatorFromConversationEvent(event: ConversationEvent): ConversationLocator {
+  return {
+    conversationRef: event.conversationRef,
+    turnRef: event.turnRef ?? null,
+  };
+}
+
+function stateEvent(state: WindieAgentStreamState, locator: ConversationLocator): WindieAgentStreamEvent {
+  return {
+    type: 'state',
+    state,
+    ...locator,
+  };
+}
+
+function stringField(record: JsonRecord, ...keys: string[]): string | null {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === 'string' && value.trim()) {
+      return value;
+    }
   }
   return null;
+}
+
+function recordField(record: JsonRecord, ...keys: string[]): JsonRecord | null {
+  for (const key of keys) {
+    const value = record[key];
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      return value as JsonRecord;
+    }
+  }
+  return null;
+}
+
+function arrayField(record: JsonRecord, ...keys: string[]): unknown[] {
+  for (const key of keys) {
+    const value = record[key];
+    if (Array.isArray(value)) {
+      return value;
+    }
+  }
+  return [];
+}
+
+function recordFromUnknown(value: unknown): JsonRecord | null {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as JsonRecord
+    : null;
+}
+
+function modelFacingCallFromRecord(record: JsonRecord): JsonRecord | null {
+  const metadata = recordField(record, 'metadata');
+  const modelFacing = recordFromUnknown(metadata?.model_facing_tool_call)
+    ?? recordFromUnknown(record.model_facing_tool_call);
+  if (modelFacing) {
+    return modelFacing;
+  }
+  const toolCalls = arrayField(record, 'tool_calls', 'toolCalls');
+  return recordFromUnknown(toolCalls[0]);
+}
+
+function toolNameFromModelCall(call: JsonRecord | null): string | null {
+  const fn = recordFromUnknown(call?.function);
+  return stringField(call ?? {}, 'name', 'toolName', 'tool_name')
+    ?? stringField(fn ?? {}, 'name');
+}
+
+function toolArgsFromModelCall(call: JsonRecord | null): unknown {
+  const fn = recordFromUnknown(call?.function);
+  const args = call?.arguments ?? fn?.arguments;
+  if (typeof args === 'string') {
+    try {
+      return JSON.parse(args) as unknown;
+    } catch {
+      return args;
+    }
+  }
+  return args ?? null;
+}
+
+function toolCallIdFromModelCall(call: JsonRecord | null): string | null {
+  return stringField(call ?? {}, 'id', 'toolCallId', 'tool_call_id');
+}
+
+function toolCallFromPayload(payload: JsonRecord, index: number): WindieAgentToolCall {
+  const modelFacing = modelFacingCallFromRecord(payload);
+  return {
+    toolName: toolNameFromModelCall(modelFacing)
+      ?? stringField(payload, 'toolName', 'tool_name', 'name')
+      ?? 'unknown_tool',
+    args: toolArgsFromModelCall(modelFacing)
+      ?? recordField(payload, 'args', 'parameters', 'arguments')
+      ?? {},
+    requestId: stringField(payload, 'requestId', 'request_id'),
+    toolCallId: toolCallIdFromModelCall(modelFacing)
+      ?? stringField(payload, 'toolCallId', 'tool_call_id'),
+    index,
+  };
+}
+
+function bundleToolCallsFromPayload(payload: JsonRecord): WindieAgentToolCall[] {
+  const structuredPayload = recordField(payload, 'structuredPayload');
+  const tools = arrayField(payload, 'tools');
+  const structuredTools = structuredPayload ? arrayField(structuredPayload, 'tools') : [];
+  return (tools.length > 0 ? tools : structuredTools)
+    .map(recordFromUnknown)
+    .filter((tool): tool is JsonRecord => Boolean(tool))
+    .map((tool, index) => toolCallFromPayload(tool, index));
+}
+
+function resultFromPayload(payload: JsonRecord): unknown {
+  if ('result' in payload) return payload.result;
+  if ('data' in payload) return payload.data;
+  if ('output' in payload) return payload.output;
+  const structuredPayload = recordField(payload, 'structuredPayload');
+  return structuredPayload ?? payload;
+}
+
+function successFromPayload(payload: JsonRecord): boolean | null {
+  if (typeof payload.success === 'boolean') {
+    return payload.success;
+  }
+  const status = stringField(payload, 'status');
+  if (!status) {
+    return null;
+  }
+  if (status === 'ok' || status === 'success') {
+    return true;
+  }
+  if (status === 'error' || status === 'failure' || status === 'failed') {
+    return false;
+  }
+  return null;
+}
+
+function toolOutputFromPayload(payload: JsonRecord, index: number): WindieAgentToolOutput {
+  return {
+    toolName: stringField(payload, 'toolName', 'tool_name', 'tool', 'name') ?? 'unknown_tool',
+    result: resultFromPayload(payload),
+    success: successFromPayload(payload),
+    error: stringField(payload, 'error'),
+    requestId: stringField(payload, 'requestId', 'request_id'),
+    toolCallId: stringField(payload, 'toolCallId', 'tool_call_id'),
+    index,
+  };
+}
+
+function bundleToolOutputsFromPayload(payload: JsonRecord): WindieAgentToolOutput[] {
+  const structuredPayload = recordField(payload, 'structuredPayload');
+  const steps = arrayField(payload, 'stepResults', 'step_results');
+  const structuredSteps = structuredPayload
+    ? arrayField(structuredPayload, 'stepResults', 'step_results', 'results')
+    : [];
+  return (steps.length > 0 ? steps : structuredSteps)
+    .map(recordFromUnknown)
+    .filter((step): step is JsonRecord => Boolean(step))
+    .map((step, index) => toolOutputFromPayload(step, index));
 }

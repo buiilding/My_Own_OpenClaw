@@ -2064,7 +2064,16 @@ describe('WindieSdkClient', () => {
     await expect(iterator.next()).resolves.toMatchObject({
       done: false,
       value: {
-        type: 'start',
+        type: 'state',
+        state: 'sending',
+        conversationRef: 'conv-stream',
+      },
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      done: false,
+      value: {
+        type: 'state',
+        state: 'thinking',
         conversationRef: 'conv-stream',
       },
     });
@@ -2078,6 +2087,28 @@ describe('WindieSdkClient', () => {
 
     socket.emit('message', {
       data: JSON.stringify({
+        type: 'llm-thought',
+        conversation_ref: 'conv-stream',
+        payload: { status: 'checking notes' },
+      }),
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      done: false,
+      value: {
+        type: 'state',
+        state: 'thinking',
+      },
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      done: false,
+      value: {
+        type: 'reasoning_delta',
+        text: 'checking notes',
+      },
+    });
+
+    socket.emit('message', {
+      data: JSON.stringify({
         type: 'streaming-response',
         conversation_ref: 'conv-stream',
         payload: { text: 'partial' },
@@ -2086,7 +2117,14 @@ describe('WindieSdkClient', () => {
     await expect(iterator.next()).resolves.toMatchObject({
       done: false,
       value: {
-        type: 'text',
+        type: 'state',
+        state: 'streaming',
+      },
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      done: false,
+      value: {
+        type: 'assistant_delta',
         text: 'partial',
       },
     });
@@ -2106,8 +2144,21 @@ describe('WindieSdkClient', () => {
     expect(toolEvent).toMatchObject({
       done: false,
       value: {
-        type: 'tool_call',
-        toolName: 'save_note',
+        type: 'state',
+        state: 'tool_call',
+      },
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      done: false,
+      value: {
+        type: 'tool_calls',
+        calls: [
+          expect.objectContaining({
+            toolName: 'save_note',
+            args: { text: 'hello' },
+            requestId: 'req-stream-save',
+          }),
+        ],
       },
     });
     expect(JSON.parse(socket.sent[2])).toMatchObject({
@@ -2115,7 +2166,27 @@ describe('WindieSdkClient', () => {
       payload: {
         request_id: 'req-stream-save',
         success: true,
-        data: { llm_content: 'saved:hello' },
+        data: { output: 'saved:hello' },
+      },
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      done: false,
+      value: {
+        type: 'state',
+        state: 'tool_output',
+      },
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      done: false,
+      value: {
+        type: 'tool_outputs',
+        outputs: [
+          expect.objectContaining({
+            toolName: 'save_note',
+            success: true,
+            result: { output: 'saved:hello' },
+          }),
+        ],
       },
     });
 
@@ -2129,8 +2200,15 @@ describe('WindieSdkClient', () => {
     await expect(iterator.next()).resolves.toMatchObject({
       done: false,
       value: {
-        type: 'complete',
-        finalResponse: 'done',
+        type: 'assistant_message',
+        text: 'done',
+      },
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      done: false,
+      value: {
+        type: 'state',
+        state: 'idle',
       },
     });
     await expect(iterator.next()).resolves.toEqual({
@@ -2139,7 +2217,159 @@ describe('WindieSdkClient', () => {
     });
   });
 
-  test('agent.stream surfaces backend errors without conversation routing fields', async () => {
+  test('chat.stream exposes bundled tools as plural calls and outputs', async () => {
+    const localRuntime: WindieLocalRuntimeClient = {
+      status: jest.fn(async () => ({ status: 'ok' })),
+      listTools: jest.fn(async () => ({ version: 1, tools: [] })),
+      executeTool: jest.fn(async (call) => ({
+        success: true,
+        data: { output: `${call.toolName}:${String(call.args.path ?? '')}` },
+      })),
+    };
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+      sidecar: localRuntime,
+    });
+
+    const wakePromise = client.wakeUp({
+      agentId: 'bundle-stream-agent',
+      builtins: ['filesystem'],
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const socket = FakeWebSocket.instances[0];
+    socket.emit('open', {});
+    const agent = await wakePromise;
+    const chat = agent.chat({ conversationRef: 'conv-bundle-stream' });
+    const iterator = chat.stream('read files');
+
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: { type: 'state', state: 'sending' },
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: { type: 'state', state: 'thinking' },
+    });
+
+    socket.emit('message', {
+      data: JSON.stringify({
+        type: 'tool-bundle',
+        conversation_ref: 'conv-bundle-stream',
+        payload: {
+          bundle_id: 'bundle-read',
+          tools: [
+            {
+              name: 'read_file',
+              args: { path: 'README.md' },
+              metadata: {
+                model_facing_tool_call: {
+                  id: 'call-readme',
+                  type: 'function',
+                  function: {
+                    name: 'read_file',
+                    arguments: '{"path":"README.md"}',
+                  },
+                },
+              },
+            },
+            {
+              name: 'read_file',
+              args: { path: 'package.json' },
+              metadata: {
+                model_facing_tool_call: {
+                  id: 'call-package',
+                  type: 'function',
+                  function: {
+                    name: 'read_file',
+                    arguments: '{"path":"package.json"}',
+                  },
+                },
+              },
+            },
+          ],
+        },
+      }),
+    });
+
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: { type: 'state', state: 'tool_call' },
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: {
+        type: 'tool_calls',
+        calls: [
+          expect.objectContaining({
+            toolName: 'read_file',
+            args: { path: 'README.md' },
+            toolCallId: 'call-readme',
+            index: 0,
+          }),
+          expect.objectContaining({
+            toolName: 'read_file',
+            args: { path: 'package.json' },
+            toolCallId: 'call-package',
+            index: 1,
+          }),
+        ],
+      },
+    });
+    expect(JSON.parse(socket.sent[2])).toMatchObject({
+      type: 'tool-bundle-result',
+      payload: {
+        bundle_id: 'bundle-read',
+        status: 'success',
+        step_results: [
+          expect.objectContaining({ tool: 'read_file', status: 'ok' }),
+          expect.objectContaining({ tool: 'read_file', status: 'ok' }),
+        ],
+      },
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: { type: 'state', state: 'tool_output' },
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: {
+        type: 'tool_outputs',
+        outputs: [
+          expect.objectContaining({
+            toolName: 'read_file',
+            result: { output: 'read_file:README.md' },
+            success: true,
+            toolCallId: 'call-readme',
+            index: 0,
+          }),
+          expect.objectContaining({
+            toolName: 'read_file',
+            result: { output: 'read_file:package.json' },
+            success: true,
+            toolCallId: 'call-package',
+            index: 1,
+          }),
+        ],
+      },
+    });
+
+    socket.emit('message', {
+      data: JSON.stringify({
+        type: 'streaming-complete',
+        conversation_ref: 'conv-bundle-stream',
+        payload: { final_response: 'bundle done' },
+      }),
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: { type: 'assistant_message', text: 'bundle done' },
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: { type: 'state', state: 'idle' },
+    });
+    await expect(iterator.next()).resolves.toEqual({
+      done: true,
+      value: undefined,
+    });
+  });
+
+  test('agent.stream surfaces backend errors with conversation routing fields', async () => {
     const client = new WindieClient({
       backendUrl: 'https://api.windieos.com',
       fetchImpl: mockFetch,
@@ -2156,16 +2386,34 @@ describe('WindieSdkClient', () => {
     const iterator = agent.stream('bad payload', { conversationRef: 'conv-stream-error' });
     await expect(iterator.next()).resolves.toMatchObject({
       done: false,
-      value: { type: 'start' },
+      value: {
+        type: 'state',
+        state: 'sending',
+      },
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      done: false,
+      value: {
+        type: 'state',
+        state: 'thinking',
+      },
     });
     socket.emit('message', {
       data: JSON.stringify({
         type: 'error',
         id: null,
+        conversation_ref: 'conv-stream-error',
         payload: { message: 'Invalid message format' },
       }),
     });
 
+    await expect(iterator.next()).resolves.toMatchObject({
+      done: false,
+      value: {
+        type: 'state',
+        state: 'error',
+      },
+    });
     await expect(iterator.next()).resolves.toMatchObject({
       done: false,
       value: {
@@ -2359,7 +2607,15 @@ describe('WindieSdkClient', () => {
     const iterator = chat.stream('hello chat');
     await expect(iterator.next()).resolves.toMatchObject({
       value: {
-        type: 'start',
+        type: 'state',
+        state: 'sending',
+        conversationRef: 'conv-chat-session',
+      },
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: {
+        type: 'state',
+        state: 'thinking',
         conversationRef: 'conv-chat-session',
       },
     });
@@ -2372,8 +2628,14 @@ describe('WindieSdkClient', () => {
     });
     await expect(iterator.next()).resolves.toMatchObject({
       value: {
-        type: 'complete',
-        finalResponse: 'done',
+        type: 'assistant_message',
+        text: 'done',
+      },
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: {
+        type: 'state',
+        state: 'idle',
       },
     });
 

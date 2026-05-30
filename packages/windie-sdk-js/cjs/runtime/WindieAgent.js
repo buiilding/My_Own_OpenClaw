@@ -97,8 +97,8 @@ class WindieAgent {
             payload,
             model,
         })) {
-            const streamEvent = (0, AgentStreamEvents_js_1.toAgentStreamEvent)(runtimeEvent);
-            if (streamEvent) {
+            const streamEvents = (0, AgentStreamEvents_js_1.toAgentStreamEvents)(runtimeEvent);
+            if (streamEvents.length > 0) {
                 if (runtimeEvent.type === 'conversation_event') {
                     const keys = (0, AgentStreamEvents_js_1.toolOutputStreamKeys)(runtimeEvent.event);
                     if (keys.some(key => seenToolOutputs.has(key))) {
@@ -106,7 +106,9 @@ class WindieAgent {
                     }
                     keys.forEach(key => seenToolOutputs.add(key));
                 }
-                yield streamEvent;
+                for (const streamEvent of streamEvents) {
+                    yield streamEvent;
+                }
             }
         }
     }

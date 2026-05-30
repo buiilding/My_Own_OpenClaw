@@ -10,7 +10,7 @@ import {
   normalizeBackendEventToConversationEvent,
   reduceConversationRuntimeState,
   SdkConversationRuntime,
-  toAgentStreamEvent,
+  toAgentStreamEvents,
   ToolExecutionCoordinator,
   toolOutputStreamKey,
   toolOutputStreamKeys,
@@ -747,20 +747,20 @@ describe('Windie SDK conversation runtime core', () => {
       correlationId: 'corr-read',
       args: { path: 'README.md' },
     });
-    const streamEvent = toAgentStreamEvent({
+    const streamEvents = toAgentStreamEvents({
       type: 'conversation_event',
       event: toolCall,
     } as any);
+    const streamEvent = streamEvents.find(event => event.type === 'tool_calls');
 
     expect(streamEvent).toMatchObject({
-      type: 'tool_call',
-      event: {
-        payload: {
-          request_id: 'req-read',
-          tool_call_id: 'call-read',
-          correlation_id: 'corr-read',
-        },
-      },
+      type: 'tool_calls',
+      calls: [
+        expect.objectContaining({
+          requestId: 'req-read',
+          toolCallId: 'call-read',
+        }),
+      ],
     });
 
     const toolOutput = event('tool_output', {

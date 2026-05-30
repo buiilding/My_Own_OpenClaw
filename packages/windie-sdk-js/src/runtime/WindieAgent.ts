@@ -43,7 +43,7 @@ import type {
 } from './WindieDesktopAgent.js';
 import { WindieChatSession } from './WindieChatSession.js';
 import {
-  toAgentStreamEvent,
+  toAgentStreamEvents,
   toolOutputStreamKeys,
   type WindieAgentStreamEvent,
 } from './AgentStreamEvents.js';
@@ -151,8 +151,8 @@ export class WindieAgent {
       payload,
       model,
     })) {
-      const streamEvent = toAgentStreamEvent(runtimeEvent);
-      if (streamEvent) {
+      const streamEvents = toAgentStreamEvents(runtimeEvent);
+      if (streamEvents.length > 0) {
         if (runtimeEvent.type === 'conversation_event') {
           const keys = toolOutputStreamKeys(runtimeEvent.event);
           if (keys.some(key => seenToolOutputs.has(key))) {
@@ -160,7 +160,9 @@ export class WindieAgent {
           }
           keys.forEach(key => seenToolOutputs.add(key));
         }
-        yield streamEvent;
+        for (const streamEvent of streamEvents) {
+          yield streamEvent;
+        }
       }
     }
   }

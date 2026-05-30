@@ -352,6 +352,11 @@ UI clients that want one high-level chat object should use
 `agent.chat({ conversationRef })`. The chat session wraps
 `SdkConversationRuntime` with UI-oriented methods: `stream`, `send`, `stop`,
 `retry`, `editAndResend`, `load`, `display`, `onEvent`, and `subscribe`.
+`chat.stream(...)` emits normalized public chat events by default:
+`state`, `reasoning_delta`, `assistant_delta`, `assistant_message`,
+`tool_calls`, `tool_outputs`, and `error`. Bundled tool calls and outputs are
+presented as the same plural arrays used for single tools; callers should render
+the array length and not branch on bundle-specific event names.
 
 Backend events must carry `conversation_ref` or `turn_ref` to enter a
 conversation runtime. The runtime drops ambiguous packets and ignores packets
@@ -366,7 +371,8 @@ When the SDK claims a local tool call or bundle:
 1. execute through the local runtime adapter
 2. send `tool-result` or `tool-bundle-result` to backend
 3. append normalized `tool_output` or `tool_bundle_output`
-4. notify UI subscribers through projections
+4. notify UI subscribers through projections and notify public stream callers
+   through `tool_calls` / `tool_outputs` arrays
 
 Malformed or unclaimable tool events should remain unclaimed or become explicit
 failures; they should not be marked display-only without a backend result path.

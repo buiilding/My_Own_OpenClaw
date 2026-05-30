@@ -91,11 +91,11 @@ describe('Windie SDK mock backend end to end', () => {
     }
 
     expect(events).toEqual(expect.arrayContaining([
-      'start',
-      'text',
-      'tool_call',
-      'tool_output',
-      'complete',
+      'state',
+      'assistant_delta',
+      'tool_calls',
+      'tool_outputs',
+      'assistant_message',
     ]));
     expect((localRuntime.registerModuleTool as jest.Mock).mock.calls[0][0]).toMatchObject({
       name: 'save_note',

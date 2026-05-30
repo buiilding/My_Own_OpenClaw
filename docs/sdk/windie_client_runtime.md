@@ -228,14 +228,18 @@ for await (const event of conversation.stream({
 }
 
 for await (const event of agent.stream("Run the test command and report progress.")) {
-  if (event.type === "text") {
+  if (event.type === "assistant_delta") {
     process.stdout.write(event.text);
   }
-  if (event.type === "tool_call") {
-    console.log(`using ${event.toolName}`);
+  if (event.type === "tool_calls") {
+    for (const call of event.calls) {
+      console.log(`using ${call.toolName}`);
+    }
   }
-  if (event.type === "complete") {
-    console.log(event.finalResponse);
+  if (event.type === "tool_outputs") {
+    for (const output of event.outputs) {
+      console.log(`${output.toolName}: ${JSON.stringify(output.result)}`);
+    }
   }
 }
 
@@ -257,7 +261,7 @@ await agent.deleteConversation(matchingConversations[0].conversationRef);
 
 const chat = agent.chat({ conversationRef: "repo-checks" });
 for await (const event of chat.stream("Continue from the last result.")) {
-  if (event.type === "text") {
+  if (event.type === "assistant_delta") {
     process.stdout.write(event.text);
   }
 }
@@ -630,9 +634,13 @@ live-turn facade, or call the backend API adapter directly.
 `stream(input, options)` returns an `AsyncIterableIterator<WindieAgentStreamEvent>`.
 It is a high-level projection over `SdkConversationRuntime.stream()`: it
 stores normalized events, preserves `conversationRef`/`turnRef`, routes local
-tool calls through the SDK coordinator, and maps runtime events into `start`,
-`text`, `tool_call`, `tool_output`, `complete`, `error`, or generic `event`
-items for callers that use the older agent-stream shape.
+tool calls through the SDK coordinator, and maps runtime events into
+consumer-ready `state`, `reasoning_delta`, `assistant_delta`,
+`assistant_message`, `tool_calls`, `tool_outputs`, and `error` items. Bundled
+tool calls and bundled tool outputs stay bundled on the backend transport and
+conversation history path, but the public stream exposes them as plural tool
+call/output arrays so CLI and custom UI callers do not need bundle-specific
+rendering branches.
 
 `conversation(options)` returns an SDK conversation runtime backed by the agent
 session transport. It is the migration path for clients that need local event

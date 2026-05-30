@@ -28,8 +28,8 @@ class WindieChatSession {
     async *stream(input) {
         const seenToolOutputs = new Set();
         for await (const runtimeEvent of this.runtime.stream(normalizeSendInput(input))) {
-            const streamEvent = (0, AgentStreamEvents_js_1.toAgentStreamEvent)(runtimeEvent);
-            if (!streamEvent) {
+            const streamEvents = (0, AgentStreamEvents_js_1.toAgentStreamEvents)(runtimeEvent);
+            if (streamEvents.length === 0) {
                 continue;
             }
             if (runtimeEvent.type === 'conversation_event') {
@@ -39,7 +39,9 @@ class WindieChatSession {
                 }
                 keys.forEach(key => seenToolOutputs.add(key));
             }
-            yield streamEvent;
+            for (const streamEvent of streamEvents) {
+                yield streamEvent;
+            }
         }
     }
     async editAndResend(input) {

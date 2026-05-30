@@ -54,14 +54,18 @@ for await (const event of conversation.stream({
 await conversation.retryTurn();
 
 for await (const event of agent.stream('Run the repo checks and report progress.')) {
-  if (event.type === 'text') {
+  if (event.type === 'assistant_delta') {
     process.stdout.write(event.text);
   }
-  if (event.type === 'tool_call') {
-    console.log(`\nusing ${event.toolName}`);
+  if (event.type === 'tool_calls') {
+    for (const call of event.calls) {
+      console.log(`\nusing ${call.toolName}`);
+    }
   }
-  if (event.type === 'complete') {
-    console.log(`\n${event.finalResponse ?? ''}`);
+  if (event.type === 'tool_outputs') {
+    for (const output of event.outputs) {
+      console.log(`\n${output.toolName}: ${JSON.stringify(output.result)}`);
+    }
   }
 }
 ```
