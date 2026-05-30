@@ -1347,6 +1347,51 @@ describe('WindieSdkClient', () => {
       .not.toEqual(expect.arrayContaining([expect.objectContaining({ name: 'screenshot' })]));
   });
 
+  test('wakeUp can expose computer builtin tools from the sidecar manifest', async () => {
+    const localRuntime: WindieLocalRuntimeClient = {
+      status: jest.fn(async () => ({ status: 'ok' })),
+      listTools: jest.fn(async () => ({
+        version: 1,
+        tools: [
+          { name: 'mouse_control', schema: { type: 'object' } },
+          { name: 'keyboard_control', schema: { type: 'object' } },
+          { name: 'screenshot', schema: { type: 'object' } },
+          { name: 'scroll_control', schema: { type: 'object' } },
+          { name: 'wait', schema: { type: 'object' } },
+          { name: 'read_file', schema: { type: 'object' } },
+        ],
+      })),
+    };
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+      sidecar: localRuntime,
+    });
+
+    const wakePromise = client.wakeUp({
+      agentId: 'computer-builtins-agent',
+      builtins: ['computer'],
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    FakeWebSocket.instances[0].emit('open', {});
+    await wakePromise;
+
+    const tools = JSON.parse(FakeWebSocket.instances[0].sent[0])
+      .agent_definition.tools.client_manifest.tools;
+    expect(tools).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: 'mouse_control' }),
+      expect.objectContaining({ name: 'keyboard_control' }),
+      expect.objectContaining({ name: 'screenshot' }),
+      expect.objectContaining({ name: 'scroll_control' }),
+      expect.objectContaining({ name: 'wait' }),
+    ]));
+    expect(tools).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: 'read_file' }),
+    ]));
+  });
+
   test('wakeUp keeps MCP definitions local instead of sending unsupported handshake fields', async () => {
     const localRuntime: WindieLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),

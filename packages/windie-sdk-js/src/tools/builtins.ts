@@ -58,7 +58,7 @@ const BUILTIN_PREFIXES: Record<WindieBuiltinToolSet, string[]> = {
   filesystem: ['read_file', 'replace', 'list_files', 'search_files'],
   shell: ['run_shell_command', 'run_command', 'shell', 'process'],
   browser: ['browser', 'open_url', 'click', 'type'],
-  computer: ['computer', 'screenshot', 'click', 'type', 'scroll'],
+  computer: ['computer', 'mouse_control', 'keyboard_control', 'screenshot', 'scroll', 'wait'],
 };
 
 export function shouldIncludeBuiltinTool(toolName: string, selected: WindieBuiltinToolSet[] = []): boolean {
