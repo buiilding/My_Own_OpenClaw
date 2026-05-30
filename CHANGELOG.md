@@ -17,6 +17,8 @@ All notable changes to WindieOS will be documented in this file.
   `WindieClient.wakeUp(...)` calls when no install token or caller-provided
   user identity is configured, so CLI callers can pass only `backendUrl` and
   `installToken`.
+- examples/sdk: let the simple chat CLI rely on the SDK's Node websocket
+  default instead of passing a repo-local `WebSocketImpl`.
 - frontend/sidecar: delete obsolete browser runtime code now that the sidecar
   browser tool routes through `BrowserUseEngineRuntime`, and remove the unused
   renderer `WindieGlyph` component.

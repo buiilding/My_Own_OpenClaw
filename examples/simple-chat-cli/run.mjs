@@ -8,27 +8,22 @@ import {
 } from 'node:process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import {
-  loadLocalWindieSdk,
-  loadSdkWebSocket,
-} from '../_shared/local_sdk_loader.mjs';
+import { loadLocalWindieSdk } from '../_shared/local_sdk_loader.mjs';
 
 const exampleDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(exampleDir, '../..');
 const backendUrl = process.env.WINDIE_BACKEND_URL ?? 'https://api.windieos.com';
 
 async function loadExampleSdk() {
-  const { WebSocketImpl } = loadSdkWebSocket(repoRoot);
   const { WindieClient } = await loadLocalWindieSdk(repoRoot);
-  return { WindieClient, WebSocketImpl };
+  return { WindieClient };
 }
 
-const { WindieClient, WebSocketImpl } = await loadExampleSdk();
+const { WindieClient } = await loadExampleSdk();
 
 const client = new WindieClient({
   backendUrl,
   installToken: process.env.WINDIE_API_KEY,
-  WebSocketImpl,
 });
 
 const agent = await client.wakeUp({
