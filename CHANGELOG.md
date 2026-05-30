@@ -10,6 +10,9 @@ All notable changes to WindieOS will be documented in this file.
   emit normalized chat events with explicit state, reasoning, assistant,
   `tool_calls`, and `tool_outputs` records, while keeping bundled tool results
   aggregated for backend delivery.
+- examples/sdk: update the simple chat CLI to use normalized
+  `chat.stream(...)` events, including state, reasoning, assistant, tool-call,
+  tool-output, and error rendering.
 - frontend/sidecar: delete obsolete browser runtime code now that the sidecar
   browser tool routes through `BrowserUseEngineRuntime`, and remove the unused
   renderer `WindieGlyph` component.
