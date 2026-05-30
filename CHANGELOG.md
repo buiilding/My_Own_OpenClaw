@@ -19,6 +19,8 @@ All notable changes to WindieOS will be documented in this file.
   `installToken`.
 - examples/sdk: let the simple chat CLI rely on the SDK's Node websocket
   default instead of passing a repo-local `WebSocketImpl`.
+- sdk/runtime: include the sidecar `process` session-management tool when
+  callers request the `shell` builtin group.
 - frontend/sidecar: delete obsolete browser runtime code now that the sidecar
   browser tool routes through `BrowserUseEngineRuntime`, and remove the unused
   renderer `WindieGlyph` component.

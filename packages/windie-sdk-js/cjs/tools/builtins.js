@@ -47,7 +47,7 @@ exports.windieBuiltins = {
 const BUILTIN_PREFIXES = {
     desktop: [],
     filesystem: ['read_file', 'replace', 'list_files', 'search_files'],
-    shell: ['run_shell_command', 'run_command', 'shell'],
+    shell: ['run_shell_command', 'run_command', 'shell', 'process'],
     browser: ['browser', 'open_url', 'click', 'type'],
     'browser-use': ['browser', 'open_url', 'click', 'type'],
     computer: ['computer', 'screenshot', 'click', 'type', 'scroll'],

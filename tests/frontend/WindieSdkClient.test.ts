@@ -1307,6 +1307,7 @@ describe('WindieSdkClient', () => {
         tools: [
           { name: 'read_file', schema: { type: 'object' } },
           { name: 'run_shell_command', schema: { type: 'object' } },
+          { name: 'process', schema: { type: 'object' } },
           { name: 'screenshot', schema: { type: 'object' } },
         ],
       })),
@@ -1336,6 +1337,7 @@ describe('WindieSdkClient', () => {
             tools: [
               expect.objectContaining({ name: 'read_file' }),
               expect.objectContaining({ name: 'run_shell_command' }),
+              expect.objectContaining({ name: 'process' }),
             ],
           },
         },
