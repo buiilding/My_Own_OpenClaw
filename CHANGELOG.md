@@ -23,6 +23,8 @@ All notable changes to WindieOS will be documented in this file.
   callers request the `shell` builtin group.
 - sdk/runtime: remove the `browser-use` and `computer-use` builtin group aliases;
   callers should use `browser` and `computer`.
+- sdk/runtime: remove the dead `memory` builtin group; memory remains available
+  through SDK host methods such as `agent.searchMemory(...)`.
 - frontend/sidecar: delete obsolete browser runtime code now that the sidecar
   browser tool routes through `BrowserUseEngineRuntime`, and remove the unused
   renderer `WindieGlyph` component.

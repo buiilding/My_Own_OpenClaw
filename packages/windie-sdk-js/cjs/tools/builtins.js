@@ -38,11 +38,6 @@ exports.windieBuiltins = {
             builtins: ['computer'],
         };
     },
-    memory() {
-        return {
-            builtins: ['memory'],
-        };
-    },
 };
 const BUILTIN_PREFIXES = {
     desktop: [],
@@ -50,7 +45,6 @@ const BUILTIN_PREFIXES = {
     shell: ['run_shell_command', 'run_command', 'shell', 'process'],
     browser: ['browser', 'open_url', 'click', 'type'],
     computer: ['computer', 'screenshot', 'click', 'type', 'scroll'],
-    memory: ['memory', 'search_memory', 'store_memory'],
 };
 function shouldIncludeBuiltinTool(toolName, selected = []) {
     if (selected.length === 0) {

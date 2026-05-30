@@ -3,8 +3,7 @@ export type WindieBuiltinToolSet =
   | 'filesystem'
   | 'shell'
   | 'browser'
-  | 'computer'
-  | 'memory';
+  | 'computer';
 
 export type WindieBuiltinSelection = 'none' | 'default' | WindieBuiltinToolSet[];
 
@@ -52,11 +51,6 @@ export const windieBuiltins = {
       builtins: ['computer'],
     };
   },
-  memory(): WindieBuiltinToolSelection {
-    return {
-      builtins: ['memory'],
-    };
-  },
 };
 
 const BUILTIN_PREFIXES: Record<WindieBuiltinToolSet, string[]> = {
@@ -65,7 +59,6 @@ const BUILTIN_PREFIXES: Record<WindieBuiltinToolSet, string[]> = {
   shell: ['run_shell_command', 'run_command', 'shell', 'process'],
   browser: ['browser', 'open_url', 'click', 'type'],
   computer: ['computer', 'screenshot', 'click', 'type', 'scroll'],
-  memory: ['memory', 'search_memory', 'store_memory'],
 };
 
 export function shouldIncludeBuiltinTool(toolName: string, selected: WindieBuiltinToolSet[] = []): boolean {
