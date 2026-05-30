@@ -67,11 +67,17 @@ try {
     if (text.trim() === '/exit') break;
 
     stdout.write('\n');
+    let lastState = null;
 
     for await (const event of chat.stream(text)) {
       switch (event.type) {
         case 'state':
-          stdout.write(`\n[state] ${event.state}\n`);
+          if (event.state !== lastState) {
+            lastState = event.state;
+            if (event.state !== 'streaming') {
+              stdout.write(`\n[state] ${event.state}\n`);
+            }
+          }
           break;
 
         case 'reasoning_delta':
