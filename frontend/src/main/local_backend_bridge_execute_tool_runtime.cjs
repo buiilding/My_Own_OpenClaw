@@ -236,7 +236,7 @@ function createLocalBackendExecuteToolRuntime({
             granted: true,
             reason: 'Real screenshot capture succeeded.',
             details: {
-              capture_backend: result?.data?.capture_meta?.capture_backend || null,
+              capture_engine: result?.data?.capture_meta?.capture_engine || null,
               capture_meta: result?.data?.capture_meta || null,
             },
           };

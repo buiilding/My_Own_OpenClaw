@@ -519,7 +519,7 @@ async def test_parse_and_validate_message_accepts_tool_result_contract_payload()
                         "crop_w": 1920,
                         "crop_h": 1080,
                         "timestamp": 1700000000000,
-                        "capture_backend": "linux_gnome_screenshot_include_pointer",
+                        "capture_engine": "linux_gnome_screenshot_include_pointer",
                     },
                     "screenshot_ref": "artifact-1.png",
                     "output": "ok",
@@ -539,7 +539,7 @@ async def test_parse_and_validate_message_accepts_tool_result_contract_payload()
         "active_window": "Terminal",
         "mouse_position": "(10, 20)",
     }
-    assert serialized["capture_meta"]["capture_backend"] == (
+    assert serialized["capture_meta"]["capture_engine"] == (
         "linux_gnome_screenshot_include_pointer"
     )
     assert serialized["screenshot_ref"] == "artifact-1.png"

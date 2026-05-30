@@ -106,7 +106,7 @@ Backend transport strips defaults/`None`; sidecar receives sparse payload and ma
 
 ## Debug Procedure
 
-1. capture backend serialized payload (`RemoteToolResult.args`)
+1. record serialized backend payload (`RemoteToolResult.args`)
 2. verify backend gate decision (removed alias block vs pass-through)
 3. verify sidecar schema/action registry coverage
 4. inspect adapter param normalization path

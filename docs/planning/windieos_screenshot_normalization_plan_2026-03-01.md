@@ -128,7 +128,7 @@ E2E:
 ## Out of Scope
 
 - Replacing existing coordinate normalization math.
-- Changing capture backend selection logic.
+- Changing capture engine selection logic.
 - Reworking OCR engine/model in this plan.
 
 ## Success Criteria

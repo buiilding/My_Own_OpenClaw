@@ -37,7 +37,7 @@ export type CaptureMeta = {
   } | null;
   monitor_id?: string | null;
   timestamp?: number;
-  capture_backend?: string | null;
+  capture_engine?: string | null;
 };
 
 export type ScreenshotAttachment = {

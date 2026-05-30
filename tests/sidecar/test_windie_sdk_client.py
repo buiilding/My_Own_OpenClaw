@@ -617,7 +617,7 @@ async def test_python_agent_tool_result_strips_invalid_capture_meta():
                 "success": True,
                 "data": {
                     "output": "done",
-                    "capture_meta": {"capture_backend": "partial"},
+                    "capture_meta": {"capture_engine": "partial"},
                 },
             }
 

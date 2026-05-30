@@ -713,7 +713,7 @@ describe('WindieSdkClient', () => {
       success: true,
       data: {
         llm_content: 'done',
-        capture_meta: { capture_backend: 'partial' },
+        capture_meta: { capture_engine: 'partial' },
       },
     });
 

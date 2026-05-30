@@ -100,7 +100,7 @@ describe('permission_service', () => {
     const verifyScreenCaptureCapability = jest.fn(async () => ({
       granted: true,
       details: {
-        capture_backend: 'pyautogui_fallback+macos_builtin_cursor',
+        capture_engine: 'pyautogui_fallback+macos_builtin_cursor',
       },
     }));
 
@@ -122,7 +122,7 @@ describe('permission_service', () => {
     expect(verifyScreenCaptureCapability).toHaveBeenCalledTimes(1);
     expect(status.status).toBe('granted');
     expect(status.granted).toBe(true);
-    expect(status.details.capability_check.details.capture_backend).toBe('pyautogui_fallback+macos_builtin_cursor');
+    expect(status.details.capability_check.details.capture_engine).toBe('pyautogui_fallback+macos_builtin_cursor');
   });
 
   test('screen capture request on macOS triggers only the native capture prompt before verification when access is missing', async () => {

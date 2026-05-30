@@ -81,7 +81,7 @@ async def test_capture_screenshot_success_with_display_bounds(monkeypatch):
       },
       "monitor_id": None,
       "timestamp": payload["capture_meta"]["timestamp"],
-      "capture_backend": "pyautogui_fallback",
+      "capture_engine": "pyautogui_fallback",
     }
     assert isinstance(payload["capture_meta"]["timestamp"], int)
 
@@ -133,7 +133,7 @@ async def test_capture_screenshot_crops_full_virtual_desktop_to_target_monitor(m
         },
         "monitor_id": "2",
         "timestamp": payload["capture_meta"]["timestamp"],
-        "capture_backend": "pyautogui_fallback",
+        "capture_engine": "pyautogui_fallback",
     }
     assert isinstance(payload["capture_meta"]["timestamp"], int)
 
@@ -187,7 +187,7 @@ async def test_capture_screenshot_on_macos_uses_direct_region_for_monitor_bounds
         },
         "monitor_id": "2",
         "timestamp": payload["capture_meta"]["timestamp"],
-        "capture_backend": "pyautogui_fallback",
+        "capture_engine": "pyautogui_fallback",
     }
     assert isinstance(payload["capture_meta"]["timestamp"], int)
 

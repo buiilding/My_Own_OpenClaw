@@ -121,7 +121,7 @@ _CAPTURE_META_REQUIRED_NUMBER_KEYS = {
 _CAPTURE_META_KEYS = _CAPTURE_META_REQUIRED_NUMBER_KEYS | {
     "desktop_virtual_bounds",
     "monitor_id",
-    "capture_backend",
+    "capture_engine",
 }
 
 _CAPTURE_BOUNDS_KEYS = {"x", "y", "width", "height"}

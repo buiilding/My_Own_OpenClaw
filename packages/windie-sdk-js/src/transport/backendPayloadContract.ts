@@ -82,7 +82,7 @@ const CAPTURE_META_KEYS = Object.freeze([
   'desktop_virtual_bounds',
   'monitor_id',
   'timestamp',
-  'capture_backend',
+  'capture_engine',
 ]);
 const CAPTURE_META_REQUIRED_NUMBER_KEYS = Object.freeze([
   'source_w',

@@ -147,7 +147,7 @@ Capture behavior:
   - optional `desktop_virtual_bounds` (`x`, `y`, `width`, `height`) for multi-monitor virtual desktop crop normalization
 - numeric bounds accept ints/floats and are cast to ints (invalid/non-positive bounds are ignored)
 
-Capture backend strategy:
+Capture engine strategy:
 
   - preferred native/system cursor-aware backend per OS when available
   - Windows: Win32 GDI + `DrawIconEx` cursor rendering
@@ -182,7 +182,7 @@ Payload shape:
   - `desktop_virtual_bounds` (`x`, `y`, `width`, `height`)
   - `monitor_id`
 - `timestamp` (ms)
-- `capture_backend` (backend label chain such as `pyautogui_fallback+linux_xfixes_cursor`)
+- `capture_engine` (local capture engine label chain such as `pyautogui_fallback+linux_xfixes_cursor`)
 - `output` is short raw success text for SDK display and backend model-history ingestion
 
 Cross-layer note:

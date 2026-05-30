@@ -510,9 +510,9 @@ async def capture_screenshot(args: Dict[str, Any]) -> Dict[str, Any]:
             )
             capture_region = None if capture_full_virtual_desktop else region
             system_capture = _capture_with_system_cursor(region=capture_region)
-            capture_backend = "pyautogui_fallback"
+            capture_engine = "pyautogui_fallback"
             if system_capture is not None:
-                screenshot, capture_backend = system_capture
+                screenshot, capture_engine = system_capture
             else:
                 screenshot = pyautogui.screenshot(region=capture_region) if capture_region else pyautogui.screenshot()
 
@@ -525,9 +525,9 @@ async def capture_screenshot(args: Dict[str, Any]) -> Dict[str, Any]:
 
             # Linux X11 fallback: overlay real cursor bitmap from XFixes.
             if _overlay_linux_xfixes_cursor(screenshot, region=region):
-                capture_backend = f"{capture_backend}+linux_xfixes_cursor"
+                capture_engine = f"{capture_engine}+linux_xfixes_cursor"
             if _overlay_macos_builtin_cursor(screenshot, region=region):
-                capture_backend = f"{capture_backend}+macos_builtin_cursor"
+                capture_engine = f"{capture_engine}+macos_builtin_cursor"
 
             source_w, source_h = screenshot.size
             virtual_size = _coerce_virtual_size(pyautogui.size())
@@ -576,7 +576,7 @@ async def capture_screenshot(args: Dict[str, Any]) -> Dict[str, Any]:
                     },
                     "monitor_id": monitor_id,
                     "timestamp": timestamp_ms,
-                    "capture_backend": capture_backend,
+                    "capture_engine": capture_engine,
                 },
             }
 

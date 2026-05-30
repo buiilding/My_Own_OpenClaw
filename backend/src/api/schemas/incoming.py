@@ -338,7 +338,7 @@ class ToolCaptureMeta(BaseModel):
     desktop_virtual_bounds: Optional[ToolCaptureBounds] = None
     monitor_id: Optional[str] = None
     timestamp: int
-    capture_backend: Optional[str] = None
+    capture_engine: Optional[str] = None
 
 
 class ToolResultData(BaseModel):

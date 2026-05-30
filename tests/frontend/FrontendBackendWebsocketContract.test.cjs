@@ -309,7 +309,7 @@ describe('frontend/backend websocket incoming contract', () => {
       data: {
         output: 'done',
         capture_meta: {
-          capture_backend: 'partial-only',
+          capture_engine: 'partial-only',
         },
         screenshot_content_type: 'image/jpeg',
       },
@@ -325,7 +325,7 @@ describe('frontend/backend websocket incoming contract', () => {
         crop_w: 100,
         crop_h: 80,
         timestamp: 123,
-        capture_backend: 'test',
+        capture_engine: 'test',
         desktop_virtual_bounds: {
           x: 0,
           y: 0,
@@ -359,7 +359,7 @@ describe('frontend/backend websocket incoming contract', () => {
       crop_w: 100,
       crop_h: 80,
       timestamp: 123,
-      capture_backend: 'test',
+      capture_engine: 'test',
       desktop_virtual_bounds: {
         x: 0,
         y: 0,

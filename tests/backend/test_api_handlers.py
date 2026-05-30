@@ -1709,7 +1709,7 @@ async def test_tool_result_handler_does_not_echo_local_tool_output():
 
 
 @pytest.mark.asyncio
-async def test_tool_result_handler_accepts_capture_backend_in_capture_meta():
+async def test_tool_result_handler_accepts_capture_engine_in_capture_meta():
     websocket = FakeWebSocket()
     session_manager = DummySessionManager()
     session_manager.session_instance = DummySession()
@@ -1720,7 +1720,7 @@ async def test_tool_result_handler_accepts_capture_backend_in_capture_meta():
         type="tool-result",
         user_id="user_1",
         payload={
-            "request_id": "req_capture_backend_1",
+            "request_id": "req_capture_engine_1",
             "success": True,
             "data": {
                 "output": "ok",
@@ -1732,7 +1732,7 @@ async def test_tool_result_handler_accepts_capture_backend_in_capture_meta():
                     "crop_w": 1920,
                     "crop_h": 1080,
                     "timestamp": 1700000000000,
-                    "capture_backend": "linux_gnome_screenshot_include_pointer",
+                    "capture_engine": "linux_gnome_screenshot_include_pointer",
                 },
                 "output": "ok",
             },
@@ -1742,8 +1742,8 @@ async def test_tool_result_handler_accepts_capture_backend_in_capture_meta():
     await handler.handle(message, websocket, "user_1")
     assert session_manager.session_instance.tool_calls
     routed_call = session_manager.session_instance.tool_calls[0]
-    assert routed_call["request_id"] == "req_capture_backend_1"
-    assert routed_call["result_data"]["capture_meta"]["capture_backend"] == (
+    assert routed_call["request_id"] == "req_capture_engine_1"
+    assert routed_call["result_data"]["capture_meta"]["capture_engine"] == (
         "linux_gnome_screenshot_include_pointer"
     )
 
