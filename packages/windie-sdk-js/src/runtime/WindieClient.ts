@@ -486,24 +486,13 @@ function dedupeBuiltinToolSets(values: WindieBuiltinToolSet[]): WindieBuiltinToo
   const normalized: WindieBuiltinToolSet[] = [];
   const seen = new Set<string>();
   for (const value of values) {
-    const canonical = canonicalBuiltinToolSet(value);
-    if (seen.has(canonical)) {
+    if (seen.has(value)) {
       continue;
     }
-    seen.add(canonical);
-    normalized.push(canonical);
+    seen.add(value);
+    normalized.push(value);
   }
   return normalized;
-}
-
-function canonicalBuiltinToolSet(value: WindieBuiltinToolSet): WindieBuiltinToolSet {
-  if (value === 'computer-use') {
-    return 'computer';
-  }
-  if (value === 'browser-use') {
-    return 'browser';
-  }
-  return value;
 }
 
 function buildManifestTool(tool: WindieToolDefinition): JsonRecord {

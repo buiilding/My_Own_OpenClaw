@@ -21,6 +21,8 @@ All notable changes to WindieOS will be documented in this file.
   default instead of passing a repo-local `WebSocketImpl`.
 - sdk/runtime: include the sidecar `process` session-management tool when
   callers request the `shell` builtin group.
+- sdk/runtime: remove the `browser-use` and `computer-use` builtin group aliases;
+  callers should use `browser` and `computer`.
 - frontend/sidecar: delete obsolete browser runtime code now that the sidecar
   browser tool routes through `BrowserUseEngineRuntime`, and remove the unused
   renderer `WindieGlyph` component.
