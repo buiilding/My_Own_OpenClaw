@@ -14,6 +14,9 @@ All notable changes to WindieOS will be documented in this file.
   emit normalized chat events with explicit state, reasoning, assistant,
   `tool_calls`, and `tool_outputs` records, while keeping bundled tool results
   aggregated for backend delivery.
+- sdk/runtime: extract large image/base64 tool-output fields into public stream
+  `attachments` and keep `tool_outputs[].result` display-safe without changing
+  backend tool-result transport.
 - examples/sdk: update the simple chat CLI to use normalized
   `chat.stream(...)` events, including state, reasoning, assistant, tool-call,
   tool-output, and error rendering.

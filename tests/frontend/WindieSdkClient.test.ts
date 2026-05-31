@@ -2423,6 +2423,149 @@ describe('WindieSdkClient', () => {
     });
   });
 
+  test('chat.stream extracts large binary tool-output fields into attachments without changing backend transport', async () => {
+    const screenshotPayload = 'a'.repeat(600);
+    const nestedImagePayload = 'b'.repeat(650);
+    const localRuntime: WindieLocalRuntimeClient = {
+      status: jest.fn(async () => ({ status: 'ok' })),
+      listTools: jest.fn(async () => ({ version: 1, tools: [] })),
+      executeTool: jest.fn(async () => ({
+        success: true,
+        data: {
+          output: 'captured',
+          screenshot: screenshotPayload,
+          screenshot_content_type: 'image/jpeg',
+          nested: {
+            image_base64: nestedImagePayload,
+            content_type: 'image/png',
+          },
+        },
+      })),
+    };
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+      sidecar: localRuntime,
+    });
+
+    const wakePromise = client.wakeUp({
+      agentId: 'tool-output-attachments-agent',
+      builtins: ['filesystem'],
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const socket = FakeWebSocket.instances[0];
+    socket.emit('open', {});
+    const agent = await wakePromise;
+    const chat = agent.chat({ conversationRef: 'conv-tool-output-attachments' });
+    const iterator = chat.stream('capture screen');
+
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: { type: 'state', state: 'sending' },
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: { type: 'state', state: 'thinking' },
+    });
+
+    socket.emit('message', {
+      data: JSON.stringify({
+        type: 'tool-call',
+        conversation_ref: 'conv-tool-output-attachments',
+        payload: {
+          tool_name: 'screenshot',
+          parameters: {},
+          request_id: 'req-capture',
+        },
+      }),
+    });
+
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: { type: 'state', state: 'tool_call' },
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: { type: 'tool_calls' },
+    });
+
+    expect(JSON.parse(socket.sent[2])).toMatchObject({
+      type: 'tool-result',
+      payload: {
+        request_id: 'req-capture',
+        success: true,
+        data: {
+          output: 'captured',
+          screenshot: screenshotPayload,
+          screenshot_content_type: 'image/jpeg',
+          nested: {
+            image_base64: nestedImagePayload,
+            content_type: 'image/png',
+          },
+        },
+      },
+    });
+
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: { type: 'state', state: 'tool_output' },
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: {
+        type: 'tool_outputs',
+        outputs: [
+          {
+            toolName: 'screenshot',
+            success: true,
+            result: {
+              output: 'captured',
+              screenshot_content_type: 'image/jpeg',
+              nested: {
+                content_type: 'image/png',
+              },
+            },
+            attachments: [
+              {
+                kind: 'image',
+                fieldPath: 'screenshot',
+                key: 'screenshot',
+                contentType: 'image/jpeg',
+                value: screenshotPayload,
+                charLength: 600,
+              },
+              {
+                kind: 'image',
+                fieldPath: 'nested.image_base64',
+                key: 'image_base64',
+                contentType: 'image/png',
+                value: nestedImagePayload,
+                charLength: 650,
+              },
+            ],
+            requestId: 'req-capture',
+            toolCallId: null,
+            index: 0,
+          },
+        ],
+      },
+    });
+
+    socket.emit('message', {
+      data: JSON.stringify({
+        type: 'streaming-complete',
+        conversation_ref: 'conv-tool-output-attachments',
+        payload: { final_response: 'done' },
+      }),
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: { type: 'assistant_message', text: 'done' },
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: { type: 'state', state: 'idle' },
+    });
+    await expect(iterator.next()).resolves.toEqual({
+      done: true,
+      value: undefined,
+    });
+  });
+
   test('agent.stream surfaces backend errors with conversation routing fields', async () => {
     const client = new WindieClient({
       backendUrl: 'https://api.windieos.com',

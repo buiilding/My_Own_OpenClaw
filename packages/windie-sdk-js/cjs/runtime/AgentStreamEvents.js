@@ -252,6 +252,79 @@ function resultFromPayload(payload) {
     const structuredPayload = recordField(payload, 'structuredPayload');
     return structuredPayload ?? payload;
 }
+function isLargeBinaryDisplayField(key, value) {
+    return (typeof value === 'string'
+        && value.length > 500
+        && /screenshot|image|base64|bytes|data_url|dataUrl/i.test(key));
+}
+function dataUrlContentType(value) {
+    const match = /^data:([^;,]+)[;,]/i.exec(value);
+    return match?.[1]?.toLowerCase() ?? null;
+}
+function stringRecordField(record, ...keys) {
+    if (!record) {
+        return null;
+    }
+    for (const key of keys) {
+        const value = record[key];
+        if (typeof value === 'string' && value.trim()) {
+            return value;
+        }
+    }
+    return null;
+}
+function contentTypeForAttachment(key, value, parent) {
+    return dataUrlContentType(value)
+        ?? stringRecordField(parent, `${key}_content_type`, `${key}ContentType`, 'content_type', 'contentType', 'mime_type', 'mimeType');
+}
+function attachmentKind(key, contentType) {
+    if (contentType?.toLowerCase().startsWith('image/')) {
+        return 'image';
+    }
+    return /screenshot|image|data_url|dataUrl/i.test(key) ? 'image' : 'binary';
+}
+function appendPath(parentPath, key) {
+    return parentPath ? `${parentPath}.${key}` : key;
+}
+function appendArrayPath(parentPath, index) {
+    return `${parentPath}[${index}]`;
+}
+function extractToolResultAttachments(value, parent = null, path = '') {
+    if (Array.isArray(value)) {
+        const attachments = [];
+        const result = value.map((item, index) => {
+            const extracted = extractToolResultAttachments(item, null, appendArrayPath(path, index));
+            attachments.push(...extracted.attachments);
+            return extracted.result;
+        });
+        return { result, attachments };
+    }
+    if (value && typeof value === 'object') {
+        const record = value;
+        const attachments = [];
+        const result = {};
+        for (const [key, nested] of Object.entries(record)) {
+            const fieldPath = appendPath(path, key);
+            if (isLargeBinaryDisplayField(key, nested)) {
+                const contentType = contentTypeForAttachment(key, nested, record);
+                attachments.push({
+                    kind: attachmentKind(key, contentType),
+                    fieldPath,
+                    key,
+                    contentType,
+                    value: nested,
+                    charLength: nested.length,
+                });
+                continue;
+            }
+            const extracted = extractToolResultAttachments(nested, record, fieldPath);
+            result[key] = extracted.result;
+            attachments.push(...extracted.attachments);
+        }
+        return { result, attachments };
+    }
+    return { result: value, attachments: [] };
+}
 function successFromPayload(payload) {
     if (typeof payload.success === 'boolean') {
         return payload.success;
@@ -269,9 +342,11 @@ function successFromPayload(payload) {
     return null;
 }
 function toolOutputFromPayload(payload, index) {
+    const extractedResult = extractToolResultAttachments(resultFromPayload(payload));
     return {
         toolName: stringField(payload, 'toolName', 'tool_name', 'tool', 'name') ?? 'unknown_tool',
-        result: resultFromPayload(payload),
+        result: extractedResult.result,
+        attachments: extractedResult.attachments,
         success: successFromPayload(payload),
         error: stringField(payload, 'error'),
         requestId: stringField(payload, 'requestId', 'request_id'),

@@ -54,45 +54,6 @@ async function readPrompt() {
   }
 }
 
-function isLargeBinaryDisplayField(key, value) {
-  return (
-    typeof value === "string" &&
-    value.length > 500 &&
-    /screenshot|image|base64|bytes|data_url/i.test(key)
-  );
-}
-
-function summarizeBinaryDisplayField(key, value, parent) {
-  const contentType =
-    typeof parent?.[`${key}_content_type`] === "string"
-      ? parent[`${key}_content_type`]
-      : typeof parent?.content_type === "string"
-        ? parent.content_type
-        : null;
-  const kind = contentType ? ` ${contentType}` : "";
-  return `[omitted${kind} ${key}, ${value.length} chars]`;
-}
-
-function sanitizeToolResultForTerminal(value, parent = null) {
-  if (Array.isArray(value)) {
-    return value.map((item) => sanitizeToolResultForTerminal(item, parent));
-  }
-
-  if (value && typeof value === "object") {
-    const sanitized = {};
-    for (const [key, nested] of Object.entries(value)) {
-      if (isLargeBinaryDisplayField(key, nested)) {
-        sanitized[key] = summarizeBinaryDisplayField(key, nested, value);
-      } else {
-        sanitized[key] = sanitizeToolResultForTerminal(nested, value);
-      }
-    }
-    return sanitized;
-  }
-
-  return value;
-}
-
 try {
   for (;;) {
     const text = await readPrompt();
@@ -142,7 +103,7 @@ try {
                 {
                   success: output.success,
                   error: output.error,
-                  result: sanitizeToolResultForTerminal(output.result),
+                  result: output.result,
                 },
                 null,
                 2,
