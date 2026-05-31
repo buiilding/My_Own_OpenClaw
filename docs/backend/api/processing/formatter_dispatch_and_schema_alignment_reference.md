@@ -182,13 +182,6 @@ No context field gets attached when value is falsy.
   - `before_tokens`
 - validation failure: warning + `None`
 
-### `memory-store` -> `memory-store`
-
-- formatter: `MemoryStoreEventFormatter`
-- rejects missing/invalid `user_id`
-- explicitly rejects `user_id == "default_user"` per policy
-- invalid user id: warning + `None`
-
 ## Contract Alignment Guards
 
 Alignment happens in `api/contracts/registry.py`:

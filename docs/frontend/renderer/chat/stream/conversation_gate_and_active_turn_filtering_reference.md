@@ -37,7 +37,7 @@ It does not:
 This keeps first-class identity strict:
 
 - local-user-message payloads that carry conversation identity inside payload fields
-- memory-store events that only include session identity are unresolved and are quarantined
+- events without explicit conversation identity or a registered turn mapping are unresolved and quarantined
 
 ## Routing Decision Matrix
 

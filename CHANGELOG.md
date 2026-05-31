@@ -23,6 +23,9 @@ All notable changes to WindieOS will be documented in this file.
   SDK-owned feature flags that default on, use sidecar-backed chat storage by
   default, and allow stateless clients to skip sidecar startup when both are
   disabled and no local tools are requested.
+- docs/tests/sdk: add regression coverage for SDK-owned default memory and
+  persistence behavior, and remove stale active-contract docs for the retired
+  backend `memory-store` websocket event.
 - frontend/sidecar/browser: avoid passing Browser Use startup config during
   `connect` when a compatible Windie-owned CDP session is already running.
 - ops/deploy: add a GitHub Actions push-to-backend deployment workflow plus a

@@ -106,7 +106,6 @@ Runtime flow for each frame after handshake:
 | `system-prompt` | `SystemPromptMessage` | `content`, optional `tool_schemas[]` |
 | `tool-schemas` | `ToolSchemasMessage` | `tool_schemas[]` |
 | `token-count` | `TokenCountMessage` | token counters + usage source + cache metadata |
-| `memory-store` | `MemoryStoreMessage` | normalized memory persistence payload |
 | `user-message-full` | `UserMessageFullMessage` | `content`, metadata bundle |
 | `assistant-message-full` | `AssistantMessageFullMessage` | `content` |
 | `context-compaction-started` | `ContextCompactionStartedMessage` | `reason`, `strategy`, `before_tokens`, `projected_tokens` |
@@ -141,7 +140,6 @@ These constants are declared in `OutgoingMessageType` and emitted by settings ha
 | `context-compaction-started` | `ContextCompactionStartedEventFormatter` | `context-compaction-started` |
 | `context-compaction-completed` | `ContextCompactionCompletedEventFormatter` | `context-compaction-completed` |
 | `context-compaction-failed` | `ContextCompactionFailedEventFormatter` | `context-compaction-failed` |
-| `memory-store` | `MemoryStoreEventFormatter` | `memory-store` |
 | `tool-bundle` | `ToolBundleEventFormatter` | `tool-bundle` |
 
 ## Transport Envelope Context Fields

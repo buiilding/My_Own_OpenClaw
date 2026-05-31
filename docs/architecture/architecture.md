@@ -332,7 +332,6 @@ Screenshots are captured strategically at key points to provide visual context f
 - `system-prompt`: Model-facing prompt transparency event
 - `tool-schemas`: Active tool schema transparency event
 - `token-count`: Token usage metrics
-- `memory-store`: Sidecar memory persistence request
 - `user-message-full`: Full user message transparency event
 - `assistant-message-full`: Full assistant message transparency event
 - `error`: Error response

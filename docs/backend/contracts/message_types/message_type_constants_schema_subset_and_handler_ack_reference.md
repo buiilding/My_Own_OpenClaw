@@ -62,7 +62,6 @@ Includes stream/runtime types such as:
 - `system-prompt`
 - `tool-schemas`
 - `token-count`
-- `memory-store`
 - `user-message-full`
 - `assistant-message-full`
 - `settings-loaded`

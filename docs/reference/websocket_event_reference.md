@@ -18,7 +18,7 @@ WindieOS uses one canonical streamed-event vocabulary for backend formatter outp
 | tool turns | `tool-call`, `tool-bundle`, `tool-output` | backend tool orchestration, formatter specs, outgoing schemas | `useChatStream.ts`, SDK main runtime display projection, transcript tool persistence |
 | transparency | `system-prompt`, `user-message-full`, `assistant-message-full`, `tool-schemas` | prompt metadata/event presenter and formatter specs | message transparency sections |
 | compaction | `context-compaction-started`, `context-compaction-completed`, `context-compaction-failed` | backend history compaction events and formatter specs | chat stream compaction/thinking state |
-| memory and usage | `memory-store`, `token-count` | backend memory event and token-count event formatter | memory side effects and token display |
+| usage | `token-count` | backend token-count event formatter | token display |
 | model/settings status | `models-listed`, `settings-updated` | backend model/settings handlers | app config/status providers |
 | audio side-channel | `audio-chunk` | backend TTS/audio stream path | dedicated audio parser/player, outside typed chat-event union |
 | local synthetic | `local-user-message` | Electron main local optimistic event builder | chat stream and transcript writer |

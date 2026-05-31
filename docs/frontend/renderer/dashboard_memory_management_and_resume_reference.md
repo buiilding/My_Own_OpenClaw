@@ -63,7 +63,7 @@ Toggle behavior contract:
 
 - toggle `ON` (default): query payload builder performs sidecar memory search and injects `<episodic_memory>` / `<semantic_memory>` tags.
 - toggle `OFF`: query payload builder skips memory search and omits memory tags from prompt content.
-- memory persistence and semanticization are unchanged (interaction `memory-store` writes and summarizer pipeline continue).
+- completed-turn memory persistence is SDK-owned and writes to the local sidecar memory index when memory is enabled.
 
 ### Conversation resume surface
 

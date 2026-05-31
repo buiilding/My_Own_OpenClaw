@@ -1075,7 +1075,6 @@ Send a user query with optional screenshot.
 - `tool-bundle`: Atomic bundle of tools (single message)
 - `llm-thought`: Thinking tokens (Gemini)
 - `streaming-complete`: End of stream
-- `memory-store`: Request to store memory
 - `wakeword-greeting`: Wakeword detection greeting
 - `system-prompt`: System prompt for transparency
 - `user-message-full`: Full user message for transparency
@@ -1904,39 +1903,6 @@ Atomic bundle of tools to execute together (replaces bundle_start + N tool-calls
         "args": { "text": "Hello", "action": "type" }
       }
     ]
-  },
-  "timestamp": "2025-01-20T10:00:00Z"
-}
-```
-
-### Memory Store Message
-
-Request to store memory in the local memory system.
-
-**Type**: `memory-store`
-
-**Payload**:
-```json
-{
-  "user_query": "User's query text",
-  "assistant_response": "Assistant's response",
-  "memory_type": "episodic", // or "semantic"
-  "user_id": "default_user",
-  "session_id": "session-123" // Optional
-}
-```
-
-**Example**:
-```json
-{
-  "id": "123e4567-e89b-12d3-a456-426614174017",
-  "type": "memory-store",
-  "payload": {
-    "user_query": "What's the weather?",
-    "assistant_response": "It's sunny today.",
-    "memory_type": "episodic",
-    "user_id": "default_user",
-    "session_id": "session-123"
   },
   "timestamp": "2025-01-20T10:00:00Z"
 }

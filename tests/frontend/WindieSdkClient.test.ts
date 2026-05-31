@@ -581,6 +581,36 @@ describe('WindieSdkClient', () => {
     expect(ensureLocalRuntime).not.toHaveBeenCalled();
   });
 
+  test('wakeUp still resolves local runtime for builtins none when memory and persistence stay enabled', async () => {
+    const localRuntime: WindieLocalRuntimeClient = {
+      rpc: jest.fn(async () => ({ success: true, data: {} })),
+    };
+    const ensureLocalRuntime = jest.fn(async () => localRuntime);
+    const client = new WindieClientClass({
+      backendUrl: 'https://sdk.windie.test',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+      ensureLocalRuntime,
+    });
+
+    const wakePromise = client.wakeUp({
+      agentId: 'builtin-none-memory-agent',
+      builtins: 'none',
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    FakeWebSocket.instances[0].emit('open', {});
+    await wakePromise;
+
+    expect(ensureLocalRuntime).toHaveBeenCalledWith({
+      wakeUp: expect.objectContaining({
+        agentId: 'builtin-none-memory-agent',
+        builtins: 'none',
+      }),
+      needsLocalRuntime: true,
+    });
+  });
+
   test('agent.chat uses sidecar-backed persistence by default', async () => {
     const localRuntime: WindieLocalRuntimeClient = {
       rpc: jest.fn(async () => ({ success: true, data: {} })),
@@ -621,6 +651,173 @@ describe('WindieSdkClient', () => {
         conversation_ref: 'conv-durable-chat',
       },
     });
+  });
+
+  test('agent.chat searches memory before sending and stores completed-turn memory by default', async () => {
+    mockFetch.mockResolvedValueOnce(jsonResponse({
+      embedding: [0.1, 0.2, 0.3],
+      provider_id: 'test-provider',
+      model_id: 'test-model',
+      model_name: 'default',
+      dimension: 3,
+      embedding_space_version: 'test-space',
+    }));
+    const localRuntime: WindieLocalRuntimeClient = {
+      rpc: jest.fn(async ({ method }) => {
+        if (method === 'search_memory_by_embedding') {
+          return {
+            success: true,
+            data: {
+              memories: {
+                episodic: ['remember this'],
+                semantic: ['stable fact'],
+              },
+            },
+          };
+        }
+        return { success: true, data: {} };
+      }),
+    };
+    const client = new WindieClientClass({
+      backendUrl: 'https://sdk.windie.test',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+      sidecar: localRuntime,
+    });
+
+    const wakePromise = client.wakeUp({ agentId: 'memory-chat-agent' });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const socket = FakeWebSocket.instances[0];
+    socket.emit('open', {});
+    const agent = await wakePromise;
+    const chat = agent.chat({ conversationRef: 'conv-memory-chat' });
+    const turn = await chat.send('use memory');
+
+    const rpc = localRuntime.rpc as jest.Mock;
+    const searchCallIndex = rpc.mock.calls.findIndex(([call]) => call.method === 'search_memory_by_embedding');
+    const firstStoreChatIndex = rpc.mock.calls.findIndex(([call]) => call.method === 'store_chat_event');
+    const queryMessage = socket.sent
+      .map(frame => JSON.parse(frame))
+      .find(message => message.type === 'query');
+    expect(searchCallIndex).toBeGreaterThanOrEqual(0);
+    expect(firstStoreChatIndex).toBeGreaterThan(searchCallIndex);
+    expect(queryMessage).toMatchObject({
+      type: 'query',
+      payload: {
+        text: 'use memory',
+        conversation_ref: 'conv-memory-chat',
+        content: expect.stringContaining('- remember this'),
+      },
+    });
+
+    socket.emit('message', {
+      data: JSON.stringify({
+        type: 'streaming-complete',
+        conversation_ref: 'conv-memory-chat',
+        turn_ref: turn.turnRef,
+        payload: { final_response: 'stored answer' },
+      }),
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(localRuntime.rpc).toHaveBeenCalledWith(expect.objectContaining({
+      method: 'store_memory',
+      params: expect.objectContaining({
+        user_id: 'dev-user',
+        user_query: 'use memory',
+        assistant_response: 'stored answer',
+        memory_type: 'episodic',
+        session_id: 'conv-memory-chat',
+      }),
+    }));
+  });
+
+  test('persistence disabled keeps chat events out of the sidecar conversation store', async () => {
+    mockFetch.mockResolvedValueOnce(jsonResponse({
+      embedding: [0.4, 0.5, 0.6],
+      provider_id: 'test-provider',
+      model_id: 'test-model',
+      model_name: 'default',
+      dimension: 3,
+      embedding_space_version: 'test-space',
+    }));
+    const localRuntime: WindieLocalRuntimeClient = {
+      rpc: jest.fn(async () => ({ success: true, data: { memories: {} } })),
+    };
+    const client = new WindieClientClass({
+      backendUrl: 'https://sdk.windie.test',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+      sidecar: localRuntime,
+    });
+
+    const wakePromise = client.wakeUp({
+      agentId: 'memory-only-agent',
+      persistence: false,
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    FakeWebSocket.instances[0].emit('open', {});
+    const agent = await wakePromise;
+
+    await agent.chat({ conversationRef: 'conv-memory-only' }).send('no chat storage');
+
+    expect(localRuntime.rpc).toHaveBeenCalledWith(expect.objectContaining({
+      method: 'search_memory_by_embedding',
+    }));
+    expect(localRuntime.rpc).not.toHaveBeenCalledWith(expect.objectContaining({
+      method: 'store_chat_event',
+    }));
+  });
+
+  test('explicit custom conversation store overrides the default sidecar store', async () => {
+    const localRuntime: WindieLocalRuntimeClient = {
+      rpc: jest.fn(async () => ({ success: true, data: {} })),
+    };
+    const customStore = {
+      appendEvent: jest.fn(async () => undefined),
+      appendEvents: jest.fn(async () => undefined),
+      loadEvents: jest.fn(async () => []),
+      loadForDisplay: jest.fn(async () => ({
+        conversationRef: 'conv-custom-store',
+        messages: [],
+      })),
+      loadForRehydrate: jest.fn(async () => ({
+        conversationRef: 'conv-custom-store',
+        messages: [],
+      })),
+      listMetadata: jest.fn(async () => []),
+      rewriteConversation: jest.fn(async () => undefined),
+    };
+    const client = new WindieClientClass({
+      backendUrl: 'https://sdk.windie.test',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+      sidecar: localRuntime,
+    });
+
+    const wakePromise = client.wakeUp({
+      agentId: 'custom-store-agent',
+      memory: false,
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    FakeWebSocket.instances[0].emit('open', {});
+    const agent = await wakePromise;
+
+    await agent.chat({
+      conversationRef: 'conv-custom-store',
+      store: customStore as never,
+    }).send('custom store');
+
+    expect(customStore.appendEvent).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'user_message',
+      conversationRef: 'conv-custom-store',
+    }));
+    expect(localRuntime.rpc).not.toHaveBeenCalledWith(expect.objectContaining({
+      method: 'store_chat_event',
+    }));
   });
 
   test('agent.setModel sends a backend settings update with provider-safe model fields', async () => {

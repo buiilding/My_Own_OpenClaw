@@ -129,9 +129,8 @@ Loop gate semantics:
 - `streaming-complete` marks terminal, resolves completion text, emits backfill completion path, and skips direct pipeline forwarding of the original event
 - `error` marks terminal and is still forwarded once through `_process_pipeline_event(...)`
 
-Current post-terminal allowlist:
-
-- `memory-store`
+Current post-terminal allowlist is empty. Completed-turn memory writes are
+SDK-owned local side effects, not backend post-terminal websocket events.
 
 ### Event extraction helpers
 
@@ -187,7 +186,7 @@ Within `async with TTSSession(...)`:
 - per-ref artifact failure handling that preserves successful refs
 - direct helper passthrough for event extraction primitives
 - completion backfill ordering (`ChunkEvent` before `StreamingCompleteEvent`) and stream-context reuse in helper forwarding
-- `memory-store` remains the only allowed post-terminal event after `streaming-complete`
+- post-terminal backend events are ignored after `streaming-complete`
 
 `tests/backend/test_query_event_extraction.py` validates resolver precedence and empty-chunk fallback behavior.
 

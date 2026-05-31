@@ -35,8 +35,6 @@ Notable per-event defaults:
 - `ToolCallEvent.request_id` defaults to `None`
 - `ToolCallEvent.metadata` defaults to `None`
 - `ToolOutputEvent` optional fields default to `None`
-- `MemoryStoreEvent.user_id` defaults to `"default_user"`
-- `MemoryStoreEvent.session_id` defaults to `None`
 
 Special serialization override:
 
@@ -49,7 +47,7 @@ All other event classes use base `to_dict()` behavior.
 Enum values are mixed-format by design:
 
 - snake case: `tool_call`, `tool_output`, `token_count`, `user_message_full`
-- kebab case: `streaming-complete`, `memory-store`, `tool-bundle`
+- kebab case: `streaming-complete`, `tool-bundle`
 - plain: `chunk`, `thinking`, `error`, `content`
 
 Important literals:
@@ -67,14 +65,12 @@ Consumers must not assume one global separator style.
 - `to_dict()` includes expected required fields
 - `StreamingCompleteEvent` conditional `final_response` serialization
 - nested dict/list preservation in `to_dict()`
-- `MemoryStoreEvent` default user/session behavior
 
 ## Drift Hotspots
 
 1. changing enum literal strings without updating formatter specs and event guards
 2. removing `StreamingCompleteEvent.to_dict()` override and emitting unexpected `final_response: null`
-3. changing `MemoryStoreEvent.user_id` default without handling formatter policy rejection
-4. adding event fields assuming formatter/schema will accept them automatically
+3. adding event fields assuming formatter/schema will accept them automatically
 
 ## Debug Checklist
 

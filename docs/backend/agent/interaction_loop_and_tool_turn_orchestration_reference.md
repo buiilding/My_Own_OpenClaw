@@ -56,7 +56,7 @@ This structure centralizes orchestration in `executor.py` while preserving singl
 6. finalization block (even on client disconnect):
   - delegate completed-turn side effects to `completion_side_effects.py`
   - publish `InteractionCompleted`
-  - emit/publish `MemoryStoreEvent` fallback (uses resolved raw user query, not full enriched content envelope)
+  - no backend memory-store websocket event is emitted; SDK hosts own completed-turn local memory writes
 
 ### Auto-Compaction Integration
 

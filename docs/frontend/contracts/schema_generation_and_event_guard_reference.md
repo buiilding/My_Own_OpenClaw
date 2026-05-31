@@ -64,7 +64,6 @@ Implication:
 - `system-prompt`
 - `user-message-full`
 - `assistant-message-full`
-- `memory-store`
 - `token-count`
 - `tool-schemas`
 - `error`

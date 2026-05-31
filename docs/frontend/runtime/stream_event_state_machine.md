@@ -47,7 +47,6 @@ Handled backend event types:
 - `user-message-full`
 - `assistant-message-full`
 - `tool-schemas`
-- `memory-store`
 - `token-count`
 - `error`
 
@@ -180,7 +179,6 @@ Metadata/transparency events (`system-prompt`, `user-message-full`, `assistant-m
 Terminal/diagnostic events:
 
 - `token-count`: update token counts
-- `memory-store`: tracking-only side effect in renderer stream handler path
 - `streaming-complete`: runs through the shared turn-scoped handler wrapper, then materializes the projected final assistant row and optionally writes assistant transcript row
 - `error`: materializes the projected assistant error row and optionally records transcript error row
 

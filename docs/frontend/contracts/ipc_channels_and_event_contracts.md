@@ -92,7 +92,6 @@ Key normalized event families include:
 - `tool_schemas`
 - `user_message`
 - `assistant_message`
-- `memory_stored`
 - `usage_updated`
 - `turn_error`
 

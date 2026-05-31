@@ -52,7 +52,6 @@ Skip-based formatters include:
 - `AssistantMessageFullEventFormatter` (`content` required)
 - `ToolCallEventFormatter` (`tool_name` + dict `parameters` required)
 - `ToolOutputEventFormatter` (`tool_name`, `success`, `output` must be non-`None`)
-- `MemoryStoreEventFormatter` (valid non-default `user_id` required)
 
 ## Raise Semantics (Hard Validation)
 
@@ -103,7 +102,6 @@ Typical warnings:
 
 - `"missing required field"` from `_get_required_field`
 - `"missing required fields"` from `_log_missing_fields`
-- `MemoryStoreEvent` warning on missing/default user id
 
 These warnings are primary signal for silently skipped formatter output.
 

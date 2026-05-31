@@ -105,7 +105,7 @@ Owns the explicit post-terminal allowlist for query streams.
 
 Current rule:
 
-- `memory-store` is the only event allowed after a terminal stream event
+- no backend events are allowed after a terminal stream event
 
 This keeps `QueryExecutionService.execute(...)` orchestration-only while making the
 post-terminal side-effect contract testable in one place.

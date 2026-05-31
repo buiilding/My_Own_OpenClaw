@@ -64,7 +64,6 @@ Additional dedicated matrix:
 
 - `ToolSchemasEventFormatter` output parses as `ToolSchemasMessage`
 - `TokenCountEventFormatter` output parses as `TokenCountMessage`
-- `MemoryStoreEventFormatter` output parses as `MemoryStoreMessage`
 
 Strict guard test:
 

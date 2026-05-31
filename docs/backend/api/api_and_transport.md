@@ -132,7 +132,7 @@ Typed outgoing schemas in `api/schemas/outgoing.py` include:
 - Stream events: `llm-thought`, `streaming-response`, `streaming-complete`
 - Tool events: `tool-call`, `tool-bundle`, `tool-output`
 - Transparency events: `system-prompt`, `tool-schemas`, `user-message-full`, `assistant-message-full`
-- Runtime events: `token-count`, `memory-store`, `audio-chunk`, errors
+- Runtime events: `token-count`, `audio-chunk`, errors
 
 Formatting flow:
 

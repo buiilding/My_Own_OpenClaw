@@ -130,7 +130,7 @@ Context envelope fields (`user_id`, `session_id`, `conversation_ref`, `turn_ref`
 4. run `InteractionLoop.run_loop()` and yield events upstream
 5. in finalization block:
 - publish `InteractionCompleted` event
-- emit/publish `MemoryStoreEvent` fallback even on generator closure
+- do not emit local-memory persistence events; SDK hosts own completed-turn local memory writes
 
 `InteractionLoop.run_loop()` governs:
 

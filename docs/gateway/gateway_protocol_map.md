@@ -91,7 +91,7 @@ Outgoing message families:
 - streamed text/thinking/completion
 - tool-call/tool-bundle/tool-output
 - transparency events
-- token-count and memory-store events
+- token-count events
 - audio chunks
 - errors
 

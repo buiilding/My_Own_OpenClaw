@@ -37,7 +37,6 @@ title: "Backend Event Payload Field Contract and Consumer Ownership Reference"
 - `system-prompt`
 - `user-message-full`
 - `assistant-message-full`
-- `memory-store`
 - `token-count`
 - `tool-schemas`
 - `error`
@@ -132,19 +131,6 @@ Used by:
 
 - stream phase/status UI transitions around manual/auto compaction
 - chat timeline system-state messaging for compaction lifecycle
-
-### `memory-store`
-
-- `payload.user_query?: string`
-- `payload.assistant_response?: string`
-- `payload.memory_type?: string`
-- `payload.user_id?: string`
-- `payload.session_id?: string`
-
-Used by:
-
-- renderer/store paths that persist interaction memory rows
-- session/conversation correlation filtering for memory-write fanout
 
 ### `error`
 

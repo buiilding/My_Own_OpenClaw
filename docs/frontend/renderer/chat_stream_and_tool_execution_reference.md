@@ -134,7 +134,6 @@ Pre-routing and workspace resolution:
   in `desktopChatStreamIngressRuntime.ts`; the desktop live-turn runtime facade does
   not expose raw backend stream helpers
 - event conversation resolved from `conversation_ref`, then a registered turn map fallback
-- `memory-store` events without `conversation_ref` are quarantined instead of using `session_id` as chat identity
 - explicit `conversation_ref` events promote chat-store `activeConversationRef` when no active workspace exists; `local-user-message` also rebinds active workspace to the explicit conversation so overlay-only surfaces (`enableTranscript=false`) project the current turn
 - backend events without explicit conversation identity or a registered turn mapping are quarantined before UI projection, transcript sync, or handler dispatch
 - `turn_ref -> conversation_ref` map is updated opportunistically so later events without `conversation_ref` route correctly
@@ -171,8 +170,6 @@ Pre-routing and workspace resolution:
   remains for transcript/error materialization
 - token usage events dispatch from SDK-normalized conversation events:
   backend `token-count` -> SDK `usage_updated`
-- memory-store telemetry events dispatch from SDK-normalized conversation events:
-  backend `memory-store` -> SDK `memory_stored`
 - thinking/reasoning events dispatch from SDK-normalized conversation events:
   backend `llm-thought` -> SDK `reasoning_delta`; the renderer does not handle the normalized event directly for live text, because live thinking state comes from the SDK `currentTurn` projection emitted on `conversation-runtime-updated`
 - tool progress events are projected into `currentTurn.toolEvents`; renderer chat code does not dispatch SDK `tool_progress` as a separate live-state path
@@ -219,12 +216,10 @@ SDK dispatch behavior:
 - turn-scoped metadata annotations are strict: when `event.turnRef` is present,
   user/system/tool-schema metadata updates only a same-turn user row; missing
   same-turn rows are no-ops rather than sender-only fallbacks
-- SDK `memory_stored` from backend `memory-store`: renderer chat stream path records tracking only; no direct local-memory write side effect is executed in `useChatStreamTerminalHandlers`
 - SDK `tool_schemas_metadata` from backend `tool-schemas`: annotate the selected user message with tool schema list
 - SDK `usage_updated` from backend `token-count`: update token counters
-- terminal handlers consume SDK `turn_error`, `usage_updated`, and
-  `memory_stored` payloads directly. They do not unwrap `payload.rawEvent`
-  back into backend terminal events.
+- terminal handlers consume SDK `turn_error` and `usage_updated` payloads
+  directly. They do not unwrap `payload.rawEvent` back into backend terminal events.
 - SDK `turn_completed` from backend `streaming-complete`: materialize the SDK-projected same-turn assistant `llm-text` message and write the assistant transcript when needed. Active terminal phase tracking comes from `currentTurn.phase='complete'`.
   - completion transcript writes read identity from SDK event fields:
     `event.conversationRef` and `payload.userId`. They do not unwrap
@@ -241,14 +236,14 @@ Handler composition boundary:
 - SDK current-turn `reasoningText`, `assistantText`, and terminal `phase` active-turn side effects are delegated to `useConversationRuntimeProjectionStream`
 - SDK `system_prompt`/`user_message_metadata`/`assistant_message`/`tool_schemas_metadata`
   transparency projection is delegated to `useChatStreamMetadataHandlers`.
-- SDK `turn_error` transcript/error materialization plus SDK `usage_updated` and SDK `memory_stored` terminal behaviors are delegated to `useChatStreamTerminalHandlers`
+- SDK `turn_error` transcript/error materialization plus SDK `usage_updated` terminal behavior is delegated to `useChatStreamTerminalHandlers`
 - SDK current-turn `toolEvents` active-turn display and phase tracking is delegated to `useConversationRuntimeProjectionStream`.
 - SDK `tool_call`/`tool_output`/`tool_bundle_call` transcript persistence is delegated to `useChatStreamToolHandlers`; local tool execution remains owned by the main-process SDK runtime and sidecar.
 - SDK `compaction_started`/`compaction_applied`/`compaction_skipped`/`compaction_failed`
   display and replay persistence is delegated to `useChatStreamCompactionHandlers`.
 - SDK `turn_completed` finalization and transcript write side effects are delegated to `useChatStreamCompletionHandler`
 - SDK user messages, assistant text, tool display, compaction, metadata, error,
-  usage, memory-store, reasoning, and tool-progress events run the same
+  usage, reasoning, and tool-progress events run the same
   stale-turn gate before dispatch.
 
 Turn guard + error suppression matrix:

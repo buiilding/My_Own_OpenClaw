@@ -45,7 +45,6 @@ Renderer typed union currently includes:
 - `system-prompt`
 - `user-message-full`
 - `assistant-message-full`
-- `memory-store`
 - `token-count`
 - `tool-schemas`
 - `error`
@@ -65,7 +64,6 @@ Core effects:
 - thought/chunk/complete -> assistant stream lifecycle
 - context-compaction lifecycle events -> compaction status/thinking UI state
 - tool-call/tool-output/tool-bundle -> chat message rendering + transcript rows
-- memory-store -> sidecar memory persistence side-effect routing
 - system-prompt/tool-schemas/user-message-full/assistant-message-full -> transparency annotations
 - token-count -> token display state
 - error -> assistant error row (with settings-update error suppression)

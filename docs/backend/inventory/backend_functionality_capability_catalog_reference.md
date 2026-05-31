@@ -110,7 +110,7 @@ Capabilities:
 - Emits fallback `streaming-complete` when upstream stream ends without terminal event.
 - On cancel, reconciles pending staged tool calls into synthetic cancelled tool outputs for history integrity.
 - Runs TTS lifecycle around stream pipeline with flush/wait semantics.
-- Persists `memory-store` stream events through formatter/transport contract while keeping payload/user-id guardrails at formatter boundary.
+- Leaves local completed-turn memory persistence to SDK hosts; backend exposes embedding and semantic routes but does not emit memory persistence websocket events.
 
 ## 5) Session Lifecycle + Runtime State
 

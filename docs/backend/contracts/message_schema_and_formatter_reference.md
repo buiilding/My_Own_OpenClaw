@@ -171,7 +171,6 @@ Key types emitted to renderer:
 - `system-prompt` -> `{ content, tool_schemas? }`
 - `tool-schemas` -> `{ tool_schemas[] }`
 - `token-count` -> token accounting payload
-- `memory-store` -> memory persistence telemetry payload
 - `user-message-full` -> `{ content, metadata{ original_query, context_type, injected_context, active_window } }`
 - `assistant-message-full` -> `{ content }`
 
@@ -190,7 +189,6 @@ Key types emitted to renderer:
 - `UserMessageFullEvent` -> `UserMessageFullEventFormatter` -> `user-message-full`
 - `AssistantMessageFullEvent` -> `AssistantMessageFullEventFormatter` -> `assistant-message-full`
 - `TokenCountEvent` -> `TokenCountEventFormatter` -> `token-count`
-- `MemoryStoreEvent` -> `MemoryStoreEventFormatter` -> `memory-store`
 - `ToolBundleEvent` -> `ToolBundleEventFormatter` -> `tool-bundle`
 
 ## Drift Guards

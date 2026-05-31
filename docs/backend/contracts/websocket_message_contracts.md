@@ -96,7 +96,7 @@ Core stream/control families:
 - Stream progression: `llm-thought`, `streaming-response`, `streaming-complete`
 - Tool progression: `tool-call`, `tool-bundle`, `tool-output`
 - Transparency: `system-prompt`, `tool-schemas`, `user-message-full`, `assistant-message-full`
-- Runtime extras: `token-count`, `memory-store`, `audio-chunk`, `error`, wakeword events
+- Runtime extras: `token-count`, `audio-chunk`, `error`, wakeword events
 - Settings/model ACKs: `settings-loaded`, `settings-updated`, `models-listed`
 
 ## Handler Routing Contract

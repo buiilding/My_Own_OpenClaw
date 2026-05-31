@@ -144,7 +144,6 @@ This section distinguishes current behavior from target behavior and known migra
    - Dispatches message metadata/transparency projection from SDK metadata events.
    - Dispatches backend error transcript/materialization from SDK `turn_error` events.
    - Dispatches token usage telemetry from SDK `usage_updated` events.
-   - Dispatches memory-store telemetry from SDK `memory_stored` events without owning memory persistence.
    - Updates Zustand store for metadata, completion materialization, error materialization, token usage, and non-text stream tracking.
    - Persists transcript rows (`recordUserMessage`, `recordAssistantMessage`, `recordToolMessage`).
 

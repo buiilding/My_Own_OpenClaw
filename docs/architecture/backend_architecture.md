@@ -498,7 +498,7 @@ Central event bus for internal component communication.
 
 **Streaming Events** (`core/events/streaming_events.py`):
 - `ThinkingEvent`, `ChunkEvent`, `ToolCallEvent`, `ToolOutputEvent`
-- `MemoryStoreEvent`, `StreamingCompleteEvent`, `ErrorEvent`, etc.
+- `StreamingCompleteEvent`, `ErrorEvent`, etc.
 
 **Usage**:
 ```python

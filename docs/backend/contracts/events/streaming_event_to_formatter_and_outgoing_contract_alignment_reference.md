@@ -49,7 +49,6 @@ The intended contract is now one vocabulary for streamed backend events and webs
 - `ContextCompactionStartedEvent` -> `context-compaction-started` -> `ContextCompactionStartedEventFormatter` -> `ContextCompactionStartedMessage`
 - `ContextCompactionCompletedEvent` -> `context-compaction-completed` -> `ContextCompactionCompletedEventFormatter` -> `ContextCompactionCompletedMessage`
 - `ContextCompactionFailedEvent` -> `context-compaction-failed` -> `ContextCompactionFailedEventFormatter` -> `ContextCompactionFailedMessage`
-- `MemoryStoreEvent` -> `memory-store` -> `MemoryStoreEventFormatter` -> `MemoryStoreMessage`
 - `ToolBundleEvent` -> `tool-bundle` -> `ToolBundleEventFormatter` -> `ToolBundleMessage`
 
 ## Legacy Alias Handling

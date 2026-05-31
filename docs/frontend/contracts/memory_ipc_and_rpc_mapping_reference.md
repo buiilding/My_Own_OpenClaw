@@ -152,12 +152,11 @@ If chats do not reload:
 
 If memory injection is empty:
 
-1. verify backend emitted a `memory-store` event after assistant completion
-2. verify `store-memory` wrote an `interaction` row
+1. verify the SDK context enrichment pipeline called backend embeddings before query send
+2. verify the SDK completed-turn handler called `store-memory` after assistant completion
 3. verify embedding service health and FAISS/SQLite vector mappings
 
 ## Related Pages
 
 - [Local Backend JSON-RPC Reference](../sidecar/local_backend_jsonrpc_reference.md)
-- [IPC Memory-Store Event Persistence Payload Fallback and Fail-Open Logging Contract Reference](../main/ipc_memory_store_event_persistence_payload_fallback_and_fail_open_logging_contract_reference.md)
 - [Transcript Session and Rehydrate Reference](../renderer/transcript_session_and_rehydrate_reference.md)

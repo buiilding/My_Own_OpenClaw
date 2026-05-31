@@ -36,7 +36,7 @@ Assistant thinking, assistant text, live tool rows, active tool phase tracking,
 and terminal complete/error phase tracking come from the SDK `currentTurn`
 projection. Completion transcript persistence/materialization, compaction,
 transparency metadata, error transcript persistence/materialization, token
-usage, memory-store telemetry, and transcript tool persistence still dispatch
+usage, and transcript tool persistence still dispatch
 from SDK-normalized conversation events.
 Benign/recoverable error suppression runs in the SDK current-turn projection and
 inside `useChatStreamTerminalHandlers` before transcript/error materialization.
@@ -74,7 +74,6 @@ Guarded events:
 - `user-message-full`
 - `assistant-message-full`
 - `tool-schemas`
-- `memory-store`
 - `token-count`
 - `error`
 
@@ -95,7 +94,6 @@ Reason: local-user-message establishes turn/workspace state and seeds optimistic
 - `useChatStreamToolHandlers`: persists tool-call/tool-output/tool-bundle transcript rows only, and routes `tool-output` transcript rows through the shared `toolOutputTranscriptPersistence.ts` helper
 - `useChatStreamTerminalHandlers`:
   - SDK `usage_updated`: workspace token counter update
-  - SDK `memory_stored`: stream tracking only (no direct memory write side effect)
   - SDK `turn_error`: materialized assistant error row + transcript error row unless suppressed
 - `useConversationRuntimeProjectionStream`:
   - SDK `currentTurn.reasoningText`: live thinking text and `llm-thought` stream tracking
@@ -112,7 +110,7 @@ Reason: local-user-message establishes turn/workspace state and seeds optimistic
    fallback handling silently drops the event.
 2. Removing stale-turn guard from a mutable handler can leak old-turn output into the active workspace.
 3. Removing ignored-error filtering from either SDK current-turn projection or terminal transcript handling can reintroduce benign settings/recoverable parser errors.
-4. Adding transcript writes to SDK `memory_stored` handling would duplicate side effects already owned by backend-driven memory pipeline.
+4. Adding renderer-side local memory writes would duplicate the SDK-owned completed-turn memory pipeline.
 
 ## Related Pages
 
