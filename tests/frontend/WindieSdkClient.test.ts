@@ -2849,4 +2849,72 @@ describe('WindieSdkClient', () => {
     unsubscribe();
     chat.close();
   });
+
+  test('agent.chat defaults to the agent conversation ref', async () => {
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+    });
+
+    const wakePromise = client.wakeUp({
+      agentId: 'default-chat-agent',
+      systemPrompt: 'Use default chat sessions.',
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const socket = FakeWebSocket.instances[0];
+    socket.emit('open', {});
+    const agent = await wakePromise;
+    const chat = agent.chat();
+
+    expect(chat.conversationRef).toBe('conv-default-chat-agent');
+
+    const iterator = chat.stream('hello default chat');
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: {
+        type: 'state',
+        state: 'sending',
+        conversationRef: 'conv-default-chat-agent',
+      },
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: {
+        type: 'state',
+        state: 'thinking',
+        conversationRef: 'conv-default-chat-agent',
+      },
+    });
+    expect(JSON.parse(socket.sent[1])).toMatchObject({
+      type: 'query',
+      payload: {
+        text: 'hello default chat',
+        conversation_ref: 'conv-default-chat-agent',
+      },
+    });
+
+    socket.emit('message', {
+      data: JSON.stringify({
+        type: 'streaming-complete',
+        conversation_ref: 'conv-default-chat-agent',
+        payload: { final_response: 'done' },
+      }),
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: {
+        type: 'assistant_message',
+        text: 'done',
+      },
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: {
+        type: 'state',
+        state: 'idle',
+      },
+    });
+    await expect(iterator.next()).resolves.toEqual({
+      done: true,
+      value: undefined,
+    });
+  });
 });

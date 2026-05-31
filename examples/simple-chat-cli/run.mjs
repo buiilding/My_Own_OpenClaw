@@ -26,9 +26,7 @@ const agent = await client.wakeUp({
   builtins: ["browser"],
 });
 
-const chat = agent.chat({
-  conversationRef: "cli-chat",
-});
+const chat = agent.chat();
 
 const rl = readline.createInterface({
   input: stdin,
