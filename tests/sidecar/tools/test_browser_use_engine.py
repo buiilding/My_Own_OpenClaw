@@ -141,6 +141,35 @@ async def test_connect_starts_headed_browser_use_session(tmp_path: Path) -> None
 
 
 @pytest.mark.asyncio
+async def test_connect_reuses_running_windie_cdp_session_without_config_check(tmp_path: Path) -> None:
+    runtime = BrowserUseEngineRuntime()
+    runtime._home = str(tmp_path)
+    cdp_url = "http://127.0.0.1:9333"
+    state_path = tmp_path / "windieos.state.json"
+    state_path.write_text(
+        f'{{"phase": "running", "pid": {os.getpid()}, "config": {{"headed": false, "cdp_url": "{cdp_url}"}}}}'
+    )
+
+    with (
+        mock.patch.object(
+            runtime,
+            "_ensure_windie_cdp_target",
+            new=mock.AsyncMock(return_value=cdp_url),
+        ),
+        mock.patch.object(
+            runtime,
+            "_run_cli",
+            new=mock.AsyncMock(return_value={"_raw_text": "[0]<button>Go</button>"}),
+        ) as run_cli,
+    ):
+        result = await runtime.execute(_args({"action": "connect"}))
+
+    run_cli.assert_awaited_once_with("state")
+    assert result["connected"] is True
+    assert result["cdp_url"] == cdp_url
+
+
+@pytest.mark.asyncio
 async def test_connect_closes_incompatible_session_before_starting_windie_cdp(tmp_path: Path) -> None:
     runtime = BrowserUseEngineRuntime()
     runtime._home = str(tmp_path)

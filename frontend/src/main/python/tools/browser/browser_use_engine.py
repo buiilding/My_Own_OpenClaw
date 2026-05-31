@@ -478,7 +478,10 @@ class BrowserUseEngineRuntime:
 
     async def _handle_connect(self, _args: Any) -> dict[str, Any]:
         cdp_url = await self._ensure_windie_cdp_target()
-        data = await self._run_cli("state", headed=True, cdp_url=cdp_url)
+        if self._has_running_windie_cdp_session():
+            data = await self._run_cli("state")
+        else:
+            data = await self._run_cli("state", headed=True, cdp_url=cdp_url)
         return {
             "status": "connected",
             "connected": True,

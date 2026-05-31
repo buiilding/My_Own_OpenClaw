@@ -10,6 +10,8 @@ All notable changes to WindieOS will be documented in this file.
   down the local sidecar, close the Browser Use session, and terminate only the
   Windie-owned Chrome CDP process while preserving the persistent browser
   profile and login state.
+- frontend/sidecar/browser: avoid passing Browser Use startup config during
+  `connect` when a compatible Windie-owned CDP session is already running.
 - ops/deploy: add a GitHub Actions push-to-backend deployment workflow plus a
   remote checkout update script that fetches `main`, restarts
   `windieos-backend.service`, and verifies service health over SSH.
