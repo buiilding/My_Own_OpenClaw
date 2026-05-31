@@ -53,7 +53,6 @@ The runtime records normalized events:
 - `tool_bundle_call`
 - `tool_bundle_output`
 - `usage_updated`
-- `memory_stored`
 - `compaction_started`
 - `compaction_skipped`
 - `compaction_applied`
@@ -145,6 +144,11 @@ The SDK ships two reusable store adapters:
   from preserved event rows so `getRevision()` and metadata listing advance even
   when the rewrite keeps only old events or no events.
 
+`WindieClient.wakeUp(...)` enables persistence by default. When a sidecar
+runtime is available, the agent default store is `SidecarConversationStore`;
+callers only need to pass `store` when they intentionally want a non-default
+adapter. Set `persistence: false` for an in-memory session.
+
 Electron's sidecar-backed store is a first-party adapter. It is allowed to know
 about transcript storage IPC, but it must stay behind the SDK store interface.
 Desktop chat code should call public conversation commands through the desktop
@@ -169,10 +173,9 @@ payloads directly. Renderer handlers should read SDK `system_prompt`,
 instead of unwrapping backend `payload.rawEvent` metadata events.
 
 Desktop terminal projection follows the same rule. Renderer terminal handlers
-read SDK `turn_error`, `usage_updated`, and `memory_stored` payloads directly;
-they should not reconstruct backend `error`, `token-count`, or `memory-store`
-events from `payload.rawEvent`. `usage_updated` and `memory_stored` are
-telemetry/session side effects only; they should not clear live send state or
+read SDK `turn_error` and `usage_updated` payloads directly; they should not
+reconstruct backend `error` or `token-count` events from `payload.rawEvent`.
+`usage_updated` is telemetry only; it should not clear live send state or
 advance the response phase. Completion and error phase ownership stays with
 `snapshot.currentTurn`.
 

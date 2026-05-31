@@ -237,7 +237,9 @@ These actions are user-scoped (`user_id`) and run through the frontend sidecar m
 Prompt-time memory injection is not a raw database dump.
 
 - The dashboard Semantic tab reads direct rows from `semantic.db`.
-- Query-time prompt enrichment uses `search_memory`, which retrieves only query-relevant results.
+- Query-time prompt enrichment is SDK-owned: the SDK requests a backend
+  embedding for the user query, asks the sidecar memory index to search by that
+  embedding, and injects only query-relevant results.
 - The prompt path now uses a split retrieval budget:
   - episodic limit `4`
   - semantic limit `2`
@@ -251,8 +253,10 @@ Prompt-time memory injection is not a raw database dump.
 - A completed `user -> assistant` turn should persist two different artifacts:
   - chat-event rows in `chat_events` for visible chat history
   - one completed-turn interaction memory row (`record_kind='interaction'`) for the Episodic Memory view and semantic summarizer input
-- The interaction row is triggered by the backend `memory-store` stream event after terminal assistant completion.
-- Electron main must persist that `memory-store` event even though it arrives after `streaming-complete`.
+- The interaction row is triggered by the SDK after terminal assistant
+  completion. Backend inference no longer emits or owns a `memory-store` event.
+- SDK memory writes are best-effort local side effects and must not fail the
+  completed turn.
 - If chats appear in `Your chats` but `Episodic` stays empty after a successful turn, first verify that a `record_kind='interaction'` row was written to `episodic.db`.
 
 ## Usage (LocalMemoryStore)

@@ -379,10 +379,6 @@ Identity notes:
 - Purpose: Token usage metrics for the current turn/conversation.
 - Payload: `{ prompt_tokens, visible_output_tokens, thinking_tokens, output_tokens_total, total_tokens, conversation_tokens, usage_source, cached_tokens?, cache_hit?, cache_status? }`
 
-**`memory-store`**
-- Purpose: Request sidecar memory persistence.
-- Payload: `{ user_query?, assistant_response?, memory_type?, user_id, session_id? }`
-
 **`user-message-full`**
 - Purpose: Full model-facing user message payload for transparency.
 - Payload: `{ content, metadata }`

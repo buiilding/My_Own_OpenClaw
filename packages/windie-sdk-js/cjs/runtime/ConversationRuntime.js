@@ -425,6 +425,7 @@ class SdkConversationRuntime {
                 conversationRef: event.conversationRef,
                 userQuery,
                 assistantResponse,
+                memoryEnabled: this.options.memoryEnabled,
             });
         }
         catch {

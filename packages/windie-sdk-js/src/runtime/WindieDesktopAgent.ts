@@ -10,7 +10,6 @@ import type {
   WakewordPayload,
 } from '../conversation/types.js';
 import type { SdkModelsResponse } from '../transport/HostedBackendHttpClient.js';
-import { InMemoryConversationStore } from '../stores/InMemoryConversationStore.js';
 import { buildDisplayRows } from '../projections/conversationProjections.js';
 import type {
   ConversationSnapshot,
@@ -85,7 +84,9 @@ export type WindieDesktopAgentStartOptions = Pick<
   | 'builtins'
   | 'mcps'
   | 'model'
+  | 'memory'
   | 'operatingSystem'
+  | 'persistence'
   | 'plugins'
   | 'skills'
   | 'systemPrompt'
@@ -108,6 +109,7 @@ export type WindieDesktopAgentOptions = {
     | 'compactHistory'
     | 'conversation'
     | 'ensureConnected'
+    | 'getDefaultConversationStore'
     | 'isConnected'
     | 'listModels'
     | 'noteBackendTraffic'
@@ -590,7 +592,7 @@ export class WindieDesktopAgent {
       builtins: clientAndWakeOptions.builtins ?? 'default',
     });
     const conversationRef = `conv-${agent.id}`;
-    const conversationStore = store ?? new InMemoryConversationStore();
+    const conversationStore = store ?? agent.getDefaultConversationStore();
     const runtime = agent.conversation({
       conversationRef,
       store: conversationStore,

@@ -10,13 +10,23 @@ import {
   SidecarDaemonHttpClient,
   SidecarConversationStore,
   WindieAgent,
-  WindieClient,
+  WindieClient as WindieClientClass,
   WindieSdkClient,
   windieBuiltins,
   type SdkPromptPreviewRequest,
   type SdkQueryPlanRequest,
   type WindieLocalRuntimeClient,
 } from '../../frontend/src/renderer/infrastructure/api/windieSdkClient';
+
+const WindieClient = function WindieClient(
+  options: ConstructorParameters<typeof WindieClientClass>[0] = {},
+) {
+  return new WindieClientClass({
+    memory: false,
+    persistence: false,
+    ...options,
+  });
+} as unknown as typeof WindieClientClass;
 
 class FakeWebSocket {
   static instances: FakeWebSocket[] = [];
@@ -524,6 +534,95 @@ describe('WindieSdkClient', () => {
     }
   });
 
+  test('wakeUp enables memory and persistence by default and resolves the local runtime', async () => {
+    const localRuntime: WindieLocalRuntimeClient = {
+      rpc: jest.fn(async () => ({ success: true, data: {} })),
+    };
+    const ensureLocalRuntime = jest.fn(async () => localRuntime);
+    const client = new WindieClientClass({
+      backendUrl: 'https://sdk.windie.test',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+      ensureLocalRuntime,
+    });
+
+    const wakePromise = client.wakeUp({ agentId: 'default-local-agent' });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    FakeWebSocket.instances[0].emit('open', {});
+    await wakePromise;
+
+    expect(ensureLocalRuntime).toHaveBeenCalledWith({
+      wakeUp: expect.objectContaining({ agentId: 'default-local-agent' }),
+      needsLocalRuntime: true,
+    });
+  });
+
+  test('wakeUp skips local runtime when memory, persistence, and local tools are disabled', async () => {
+    const ensureLocalRuntime = jest.fn();
+    const client = new WindieClientClass({
+      backendUrl: 'https://sdk.windie.test',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+      ensureLocalRuntime,
+    });
+
+    const wakePromise = client.wakeUp({
+      agentId: 'stateless-agent',
+      builtins: 'none',
+      memory: false,
+      persistence: false,
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    FakeWebSocket.instances[0].emit('open', {});
+    await wakePromise;
+
+    expect(ensureLocalRuntime).not.toHaveBeenCalled();
+  });
+
+  test('agent.chat uses sidecar-backed persistence by default', async () => {
+    const localRuntime: WindieLocalRuntimeClient = {
+      rpc: jest.fn(async () => ({ success: true, data: {} })),
+    };
+    const client = new WindieClientClass({
+      backendUrl: 'https://sdk.windie.test',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+      sidecar: localRuntime,
+    });
+
+    const wakePromise = client.wakeUp({
+      agentId: 'durable-chat-agent',
+      memory: false,
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const socket = FakeWebSocket.instances[0];
+    socket.emit('open', {});
+    const agent = await wakePromise;
+
+    await agent.chat({ conversationRef: 'conv-durable-chat' }).send('persist me');
+
+    expect(localRuntime.rpc).toHaveBeenCalledWith(expect.objectContaining({
+      method: 'store_chat_event',
+      params: expect.objectContaining({
+        user_id: 'dev-user',
+        conversation_id: 'conv-durable-chat',
+        event_type: 'user_message',
+        content: 'persist me',
+        record_kind: 'chat_event',
+      }),
+    }));
+    expect(JSON.parse(socket.sent[1])).toMatchObject({
+      type: 'query',
+      payload: {
+        text: 'persist me',
+        conversation_ref: 'conv-durable-chat',
+      },
+    });
+  });
+
   test('agent.setModel sends a backend settings update with provider-safe model fields', async () => {
     const client = new WindieClient({
       backendUrl: 'https://api.windieos.com',
@@ -858,6 +957,8 @@ describe('WindieSdkClient', () => {
       apiKey: 'desktop-token',
       endpoint: 'https://api.windieos.com',
       builtins: 'none',
+      memory: false,
+      persistence: false,
       testing: {
         fetchImpl: mockFetch,
         WebSocketImpl: FakeWebSocket as any,
@@ -890,6 +991,7 @@ describe('WindieSdkClient', () => {
       install_id: 'desktop-install',
     }));
     const localRuntime: WindieLocalRuntimeClient = {
+      rpc: jest.fn(async () => ({ success: true, data: {} })),
       status: jest.fn(async () => ({ status: 'ok' })),
       listTools: jest.fn(async () => ({
         version: 1,
@@ -958,12 +1060,15 @@ describe('WindieSdkClient', () => {
     const agentPromise = WindieAgent.startDesktop({
       apiKey: 'advanced-token',
       appName: 'WindieOS',
+      builtins: 'none',
       workspace: '/tmp/windie-workspace',
       endpoint: {
         primary: 'https://advanced.windie.test',
         fallbacks: ['https://advanced-fallback.windie.test'],
       },
       debug: { log },
+      memory: false,
+      persistence: false,
       connection: {
         reconnectIntervalMs: 10,
         connectTimeoutMs: 50,

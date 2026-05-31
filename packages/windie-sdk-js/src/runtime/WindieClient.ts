@@ -2,7 +2,12 @@ import {
   buildModelSettingsPatch,
   type WindieModelSelection,
 } from '../settings/modelSelection.js';
-import type { JsonRecord } from '../conversation/types.js';
+import type {
+  ConversationStore,
+  JsonRecord,
+} from '../conversation/types.js';
+import { InMemoryConversationStore } from '../stores/InMemoryConversationStore.js';
+import { SidecarConversationStore } from '../stores/SidecarConversationStore.js';
 import {
   shouldIncludeBuiltinTool,
   type WindieBuiltinSelection,
@@ -60,6 +65,8 @@ export type WindieWakeUpOptions = {
   name?: string;
   model?: WindieModelSelection;
   operatingSystem?: string;
+  memory?: WindieRuntimeFeatureOption;
+  persistence?: WindieRuntimeFeatureOption;
 };
 
 export type WindieClientOptions = {
@@ -100,6 +107,17 @@ export type WindieClientOptions = {
   ensureLocalRuntime?: WindieLocalRuntimeProvider<WindieWakeUpOptions>;
   autoStartLocalRuntime?: boolean;
   autoSidecar?: WindieAutoSidecarOptions;
+  memory?: WindieRuntimeFeatureOption;
+  persistence?: WindieRuntimeFeatureOption;
+};
+
+export type WindieRuntimeFeatureOption = boolean | {
+  enabled?: boolean;
+};
+
+type NormalizedWindieRuntimeFeatures = {
+  memory: boolean;
+  persistence: boolean;
 };
 
 export type WindieInstallAuthState = {
@@ -122,7 +140,8 @@ export class WindieClient {
     this.defaultOptions = options;
   }
 
-  async wakeUp(options: WindieWakeUpOptions): Promise<WindieAgent> {
+  async wakeUp(options: WindieWakeUpOptions = {}): Promise<WindieAgent> {
+    const runtimeFeatures = normalizeRuntimeFeatures(options, this.defaultOptions);
     const initialModelSettings = options.model
       ? buildModelSettingsPatch(options.model, 'WindieClient.wakeUp')
       : null;
@@ -139,8 +158,14 @@ export class WindieClient {
       ?? wakeUpOptions.userId
       ?? this.defaultOptions.defaultUserId
       ?? 'local-sdk-user';
-    const localRuntime = await this.resolveLocalRuntimeForWakeUp(wakeUpOptions);
+    const localRuntime = await this.resolveLocalRuntimeForWakeUp(wakeUpOptions, runtimeFeatures);
+    validateLocalRuntimeFeatures(localRuntime, runtimeFeatures);
     const sdkClient = this.createSdkClient(backendUrl, installAuth?.installToken);
+    const conversationStore = createDefaultConversationStore({
+      localRuntime,
+      persistenceEnabled: runtimeFeatures.persistence,
+      userId,
+    });
 
     const localTools = await this.prepareLocalRuntime(wakeUpOptions, localRuntime);
     const agentDefinition = buildWakeUpAgentDefinition(wakeUpOptions, localTools);
@@ -156,7 +181,17 @@ export class WindieClient {
       await session.updateSettings(initialModelSettings);
     }
     const id = typeof agentDefinition.id === 'string' ? agentDefinition.id : createMessageId();
-    const agent = new WindieAgent(id, session, agentDefinition, sdkClient, this, localRuntime, userId);
+    const agent = new WindieAgent(
+      id,
+      session,
+      agentDefinition,
+      sdkClient,
+      this,
+      localRuntime,
+      userId,
+      conversationStore,
+      runtimeFeatures.memory,
+    );
     this.activeAgents.set(id, agent);
     session.on('close', () => {
       this.activeAgents.delete(id);
@@ -365,13 +400,16 @@ export class WindieClient {
     return this.activeLocalRuntime ?? this.resolveConfiguredLocalRuntime();
   }
 
-  private async resolveLocalRuntimeForWakeUp(options: WindieWakeUpOptions): Promise<WindieLocalRuntimeClient | undefined> {
+  private async resolveLocalRuntimeForWakeUp(
+    options: WindieWakeUpOptions,
+    runtimeFeatures: NormalizedWindieRuntimeFeatures,
+  ): Promise<WindieLocalRuntimeClient | undefined> {
     const configuredRuntime = this.resolveConfiguredLocalRuntime();
     if (configuredRuntime) {
       this.activeLocalRuntime = configuredRuntime;
       return configuredRuntime;
     }
-    if (!this.needsLocalRuntime(options)) {
+    if (!this.needsLocalRuntime(options, runtimeFeatures)) {
       return undefined;
     }
     const context = {
@@ -380,11 +418,14 @@ export class WindieClient {
     };
     if (this.defaultOptions.ensureLocalRuntime) {
       const runtime = await this.defaultOptions.ensureLocalRuntime(context);
+      if (!runtime) {
+        throw new Error('WindieClient local runtime provider did not return a runtime for required local features.');
+      }
       this.activeLocalRuntime = runtime;
       return runtime;
     }
     if (this.defaultOptions.autoStartLocalRuntime === false) {
-      return undefined;
+      throw new Error('WindieClient local runtime is required for memory, persistence, tools, plugins, MCPs, or builtins, but autoStartLocalRuntime is false.');
     }
     if (!this.autoLocalRuntimeProvider) {
       this.autoLocalRuntimeProvider = createWindieLocalRuntimeProvider<WindieWakeUpOptions>({
@@ -393,14 +434,22 @@ export class WindieClient {
       });
     }
     const runtime = await this.autoLocalRuntimeProvider(context);
+    if (!runtime) {
+      throw new Error('WindieClient local runtime provider did not return a runtime for required local features.');
+    }
     this.activeLocalRuntime = runtime;
     return runtime;
   }
 
-  private needsLocalRuntime(options: WindieWakeUpOptions): boolean {
+  private needsLocalRuntime(
+    options: WindieWakeUpOptions,
+    runtimeFeatures: NormalizedWindieRuntimeFeatures,
+  ): boolean {
     const builtins = normalizeBuiltins(options);
     return Boolean(
-      (options.tools ?? []).some(tool => Boolean(tool.module))
+      runtimeFeatures.memory
+      || runtimeFeatures.persistence
+      || (options.tools ?? []).some(tool => Boolean(tool.module))
       || (options.plugins ?? []).length > 0
       || (options.mcps ?? []).length > 0
       || builtins.length > 0,
@@ -443,6 +492,59 @@ export class WindieClient {
       .filter(tool => !tool.module)
       .map(tool => buildManifestTool(tool));
     return dedupeManifestTools([...registeredRuntimeTools, ...builtinTools, ...explicitTools]);
+  }
+}
+
+function featureEnabled(value: WindieRuntimeFeatureOption | undefined, fallback: boolean): boolean {
+  if (typeof value === 'boolean') {
+    return value;
+  }
+  if (value && typeof value === 'object' && typeof value.enabled === 'boolean') {
+    return value.enabled;
+  }
+  return fallback;
+}
+
+function normalizeRuntimeFeatures(
+  options: WindieWakeUpOptions,
+  defaults: WindieClientOptions,
+): NormalizedWindieRuntimeFeatures {
+  return {
+    memory: featureEnabled(options.memory ?? defaults.memory, true),
+    persistence: featureEnabled(options.persistence ?? defaults.persistence, true),
+  };
+}
+
+function createDefaultConversationStore({
+  localRuntime,
+  persistenceEnabled,
+  userId,
+}: {
+  localRuntime?: WindieLocalRuntimeClient;
+  persistenceEnabled: boolean;
+  userId: string;
+}): ConversationStore {
+  if (!persistenceEnabled) {
+    return new InMemoryConversationStore();
+  }
+  if (!localRuntime?.rpc) {
+    throw new Error('WindieClient persistence requires a local runtime with RPC support.');
+  }
+  return new SidecarConversationStore({
+    userId,
+    runtime: localRuntime,
+  });
+}
+
+function validateLocalRuntimeFeatures(
+  localRuntime: WindieLocalRuntimeClient | undefined,
+  runtimeFeatures: NormalizedWindieRuntimeFeatures,
+): void {
+  if (runtimeFeatures.memory && !localRuntime?.rpc) {
+    throw new Error('WindieClient memory requires a local runtime with RPC support.');
+  }
+  if (runtimeFeatures.persistence && !localRuntime?.rpc) {
+    throw new Error('WindieClient persistence requires a local runtime with RPC support.');
   }
 }
 

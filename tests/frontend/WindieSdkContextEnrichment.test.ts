@@ -102,6 +102,37 @@ describe('SDK context enrichment pipeline', () => {
     expect(enriched.payload.content).toContain('<user_query>\nno lookup\n</user_query>');
   });
 
+  test('disabling memory removes prompt memory sections and skips embedding search', async () => {
+    const sdkClient = {
+      embeddings: {
+        create: jest.fn(),
+      },
+    };
+    const localRuntime = {
+      rpc: jest.fn(),
+    };
+
+    const enriched = await enrichQueryPayload({
+      text: 'plain query',
+      conversationRef: 'conv-1',
+      userId: 'user-1',
+      payload: {
+        attachment_context: 'file body',
+        memory_retrieval_enabled: true,
+      },
+      sdkClient: sdkClient as never,
+      localRuntime: localRuntime as never,
+      memoryEnabled: false,
+    });
+
+    expect(sdkClient.embeddings.create).not.toHaveBeenCalled();
+    expect(localRuntime.rpc).not.toHaveBeenCalled();
+    expect(enriched.payload.content).not.toContain('<episodic_memory>');
+    expect(enriched.payload.content).not.toContain('<semantic_memory>');
+    expect(enriched.payload.content).toContain('<attached_file_context>\nfile body\n</attached_file_context>');
+    expect(enriched.payload.content).toContain('<user_query>\nplain query\n</user_query>');
+  });
+
   test('stores completed turn memory through the sidecar RPC', async () => {
     const localRuntime = {
       rpc: jest.fn(async () => ({ success: true })),
@@ -125,5 +156,22 @@ describe('SDK context enrichment pipeline', () => {
         session_id: 'conv-1',
       },
     });
+  });
+
+  test('disabling memory skips completed-turn memory writes', async () => {
+    const localRuntime = {
+      rpc: jest.fn(async () => ({ success: true })),
+    };
+
+    await storeCompletedTurnMemory({
+      localRuntime: localRuntime as never,
+      userId: 'user-1',
+      conversationRef: 'conv-1',
+      userQuery: 'hello',
+      assistantResponse: 'world',
+      memoryEnabled: false,
+    });
+
+    expect(localRuntime.rpc).not.toHaveBeenCalled();
   });
 });

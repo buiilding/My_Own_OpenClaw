@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.renderModelFacingUserContent = renderModelFacingUserContent;
+exports.renderPlainModelFacingUserContent = renderPlainModelFacingUserContent;
 exports.enrichQueryPayload = enrichQueryPayload;
 exports.storeCompletedTurnMemory = storeCompletedTurnMemory;
 const PROMPT_MEMORY_RETRIEVAL = Object.freeze({
@@ -40,6 +41,14 @@ function renderModelFacingUserContent(input) {
     parts.push(`<user_query>\n${escapeXml(input.text)}\n</user_query>`);
     return parts.join('\n\n');
 }
+function renderPlainModelFacingUserContent(input) {
+    const parts = [];
+    if (typeof input.attachmentContext === 'string' && input.attachmentContext.trim()) {
+        parts.push(`<attached_file_context>\n${escapeXml(input.attachmentContext.trim())}\n</attached_file_context>`);
+    }
+    parts.push(`<user_query>\n${escapeXml(input.text)}\n</user_query>`);
+    return parts.join('\n\n');
+}
 function normalizeMemories(response) {
     const record = response && typeof response === 'object' && !Array.isArray(response)
         ? response
@@ -70,6 +79,18 @@ async function enrichQueryPayload(input) {
     delete sourcePayload.attachmentContext;
     delete sourcePayload.memory_retrieval_enabled;
     let memories = { episodic: [], semantic: [] };
+    if (input.memoryEnabled === false) {
+        return {
+            payload: {
+                ...sourcePayload,
+                content: renderPlainModelFacingUserContent({
+                    text: input.text,
+                    attachmentContext,
+                }),
+            },
+            memories,
+        };
+    }
     if (shouldRetrieveMemories(input.payload ?? {}) && input.localRuntime?.rpc) {
         try {
             const embedding = await input.sdkClient.embeddings.create({ text: input.text });
@@ -105,7 +126,10 @@ async function enrichQueryPayload(input) {
     };
 }
 async function storeCompletedTurnMemory(input) {
-    if (!input.localRuntime?.rpc || !input.userQuery.trim() || !input.assistantResponse.trim()) {
+    if (input.memoryEnabled === false
+        || !input.localRuntime?.rpc
+        || !input.userQuery.trim()
+        || !input.assistantResponse.trim()) {
         return;
     }
     await input.localRuntime.rpc({

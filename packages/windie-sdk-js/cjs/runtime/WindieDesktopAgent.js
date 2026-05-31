@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WindieDesktopAgent = void 0;
-const InMemoryConversationStore_js_1 = require("../stores/InMemoryConversationStore.js");
 const conversationProjections_js_1 = require("../projections/conversationProjections.js");
 const WindieClient_js_1 = require("./WindieClient.js");
 function normalizeSendInput(input) {
@@ -392,7 +391,7 @@ class WindieDesktopAgent {
             builtins: clientAndWakeOptions.builtins ?? 'default',
         });
         const conversationRef = `conv-${agent.id}`;
-        const conversationStore = store ?? new InMemoryConversationStore_js_1.InMemoryConversationStore();
+        const conversationStore = store ?? agent.getDefaultConversationStore();
         const runtime = agent.conversation({
             conversationRef,
             store: conversationStore,

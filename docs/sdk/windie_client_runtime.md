@@ -164,7 +164,7 @@ const client = new WindieClient();
 
 const simpleAgent = await client.wakeUp({
   systemPrompt: "You are a helpful assistant. Be concise. This text-only client has no callable tools.",
-  // builtins defaults to "none", so no tool schemas are exposed.
+  // Memory and persistence default on. Set both false for a stateless backend-only client.
 });
 
 const agent = await client.wakeUp({
@@ -294,15 +294,24 @@ const artifactUrl = agent.artifactUrl(uploaded.artifact_id);
 2. Resolve install auth from `installToken`; when the backend is the hosted
    WindieOS endpoint and no caller-provided user identity is configured, the SDK
    registers a temporary install identity automatically.
-3. Ensure a sidecar runtime client is available when local execution is needed.
-4. Register module/plugin/MCP tools with the sidecar daemon.
-5. Read the sidecar tool manifest.
-6. Build the low-level backend `agent_definition`.
-7. Connect to the backend websocket.
-8. Send the websocket handshake with `agent_definition`.
-9. Normalize backend events into SDK conversation events.
-10. Route backend events to callers and route local `tool-call` events to the sidecar daemon.
-11. Project display transcript and rehydrate snapshots from normalized events.
+3. Normalize feature flags. `memory` and `persistence` both default to enabled.
+4. Ensure a sidecar runtime client is available when memory, persistence,
+   builtins, module tools, plugins, or MCPs need local runtime support.
+5. Select the default conversation store: `SidecarConversationStore` when
+   persistence is enabled, otherwise `InMemoryConversationStore`.
+6. Register module/plugin/MCP tools with the sidecar daemon.
+7. Read the sidecar tool manifest.
+8. Build the low-level backend `agent_definition`.
+9. Connect to the backend websocket.
+10. Send the websocket handshake with `agent_definition`.
+11. Normalize backend events into SDK conversation events.
+12. Route backend events to callers and route local `tool-call` events to the sidecar daemon.
+13. Project display transcript and rehydrate snapshots from normalized events.
+
+Set both `memory: false` and `persistence: false` when a client wants a
+stateless backend-only session and does not request local builtins, module
+tools, plugins, or MCPs. In that case `wakeUp` does not require or start a
+sidecar runtime.
 
 When a local runtime supports events, callers can subscribe through the SDK
 runtime instead of connecting to the sidecar daemon directly:
@@ -543,6 +552,12 @@ Non-Electron SDK hosts can override that behavior with:
 - `sidecarDaemon`: daemon `baseUrl` and per-process `token`; `WindieClient`
   creates a `SidecarDaemonHttpClient` and uses `/status`, registration endpoints,
   `/tools`, and `/execute-tool`.
+- `memory`: enabled by default. When enabled, the SDK obtains backend embeddings,
+  asks the sidecar memory index for relevant local memories, injects them into
+  model-facing user content, and stores completed turns as episodic memory.
+- `persistence`: enabled by default. When enabled, `agent.chat()` and
+  `agent.conversation()` use the sidecar-backed default conversation store so
+  chat event history survives process restart.
 
 The default auto provider is Node-only. Browser-hosted SDK consumers should pass
 `sidecar`, `localRuntime`, `sidecarDaemon`, or `ensureLocalRuntime` explicitly

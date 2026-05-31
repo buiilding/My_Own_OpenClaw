@@ -16,6 +16,7 @@ export type ContextEnrichmentInput = {
   payload?: JsonRecord | null;
   sdkClient: WindieSdkClient;
   localRuntime?: WindieLocalRuntimeClient | null;
+  memoryEnabled?: boolean;
 };
 
 export type ContextEnrichmentResult = {
@@ -65,6 +66,18 @@ export function renderModelFacingUserContent(input: {
   return parts.join('\n\n');
 }
 
+export function renderPlainModelFacingUserContent(input: {
+  text: string;
+  attachmentContext?: string | null;
+}): string {
+  const parts = [];
+  if (typeof input.attachmentContext === 'string' && input.attachmentContext.trim()) {
+    parts.push(`<attached_file_context>\n${escapeXml(input.attachmentContext.trim())}\n</attached_file_context>`);
+  }
+  parts.push(`<user_query>\n${escapeXml(input.text)}\n</user_query>`);
+  return parts.join('\n\n');
+}
+
 function normalizeMemories(response: unknown): { episodic: string[]; semantic: string[] } {
   const record = response && typeof response === 'object' && !Array.isArray(response)
     ? response as JsonRecord
@@ -99,6 +112,19 @@ export async function enrichQueryPayload(input: ContextEnrichmentInput): Promise
   delete sourcePayload.memory_retrieval_enabled;
 
   let memories = { episodic: [] as string[], semantic: [] as string[] };
+  if (input.memoryEnabled === false) {
+    return {
+      payload: {
+        ...sourcePayload,
+        content: renderPlainModelFacingUserContent({
+          text: input.text,
+          attachmentContext,
+        }),
+      },
+      memories,
+    };
+  }
+
   if (shouldRetrieveMemories(input.payload ?? {}) && input.localRuntime?.rpc) {
     try {
       const embedding = await input.sdkClient.embeddings.create({ text: input.text });
@@ -140,8 +166,14 @@ export async function storeCompletedTurnMemory(input: {
   conversationRef: string;
   userQuery: string;
   assistantResponse: string;
+  memoryEnabled?: boolean;
 }): Promise<void> {
-  if (!input.localRuntime?.rpc || !input.userQuery.trim() || !input.assistantResponse.trim()) {
+  if (
+    input.memoryEnabled === false
+    || !input.localRuntime?.rpc
+    || !input.userQuery.trim()
+    || !input.assistantResponse.trim()
+  ) {
     return;
   }
   await input.localRuntime.rpc({

@@ -92,7 +92,6 @@ export type WindieStoreMemoryInput = {
 };
 
 export class WindieAgent {
-  private readonly defaultConversationStore = new InMemoryConversationStore();
   private readonly pendingDirectQueries = new Map<string, {
     conversationRef: string;
     userQuery: string;
@@ -111,10 +110,16 @@ export class WindieAgent {
     private readonly owner: WindieAgentOwner,
     private readonly localRuntime?: WindieLocalRuntimeClient,
     private readonly userId = 'local-sdk-user',
+    private readonly defaultConversationStore: ConversationStore = new InMemoryConversationStore(),
+    private readonly memoryEnabled = true,
   ) {
     this.session.on('streaming-complete', event => {
       void this.maybeStoreDirectTurnMemory(event);
     });
+  }
+
+  getDefaultConversationStore(): ConversationStore {
+    return this.defaultConversationStore;
   }
 
   async ask(text: string, options: WindieAgentQueryOptions = {}): Promise<string> {
@@ -237,6 +242,7 @@ export class WindieAgent {
       transport: createWindieAgentBackendTransport(this.session, conversationRef, this.agentDefinition),
       localRuntime: options.localRuntime === undefined ? this.localRuntime : options.localRuntime,
       userId: this.userId,
+      memoryEnabled: this.memoryEnabled,
       enrichQuery: async input => {
         const enriched = await enrichQueryPayload({
           text: input.text,
@@ -245,6 +251,7 @@ export class WindieAgent {
           payload: input.payload ?? {},
           sdkClient: this.sdkClient,
           localRuntime: options.localRuntime === undefined ? this.localRuntime : options.localRuntime,
+          memoryEnabled: this.memoryEnabled,
         });
         return enriched.payload;
       },
@@ -487,6 +494,7 @@ export class WindieAgent {
       },
       sdkClient: this.sdkClient,
       localRuntime: this.localRuntime,
+      memoryEnabled: this.memoryEnabled,
     });
     return {
       ...input,
@@ -517,6 +525,7 @@ export class WindieAgent {
         conversationRef: pending.conversationRef,
         userQuery: pending.userQuery,
         assistantResponse,
+        memoryEnabled: this.memoryEnabled,
       });
     } catch {
       // Local memory persistence is best-effort and must not fail direct queries.

@@ -19,6 +19,10 @@ All notable changes to WindieOS will be documented in this file.
   down the local sidecar, close the Browser Use session, and terminate only the
   Windie-owned Chrome CDP process while preserving the persistent browser
   profile and login state.
+- sdk/runtime: make memory injection and durable chat persistence explicit
+  SDK-owned feature flags that default on, use sidecar-backed chat storage by
+  default, and allow stateless clients to skip sidecar startup when both are
+  disabled and no local tools are requested.
 - frontend/sidecar/browser: avoid passing Browser Use startup config during
   `connect` when a compatible Windie-owned CDP session is already running.
 - ops/deploy: add a GitHub Actions push-to-backend deployment workflow plus a

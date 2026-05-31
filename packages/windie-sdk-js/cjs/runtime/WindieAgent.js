@@ -47,7 +47,7 @@ class WindieAgent {
         const { WindieDesktopAgent } = await Promise.resolve().then(() => __importStar(require('./WindieDesktopAgent.js')));
         return WindieDesktopAgent.start(options);
     }
-    constructor(id, session, agentDefinition, sdkClient, owner, localRuntime, userId = 'local-sdk-user') {
+    constructor(id, session, agentDefinition, sdkClient, owner, localRuntime, userId = 'local-sdk-user', defaultConversationStore = new InMemoryConversationStore_js_1.InMemoryConversationStore(), memoryEnabled = true) {
         this.id = id;
         this.session = session;
         this.agentDefinition = agentDefinition;
@@ -55,11 +55,15 @@ class WindieAgent {
         this.owner = owner;
         this.localRuntime = localRuntime;
         this.userId = userId;
-        this.defaultConversationStore = new InMemoryConversationStore_js_1.InMemoryConversationStore();
+        this.defaultConversationStore = defaultConversationStore;
+        this.memoryEnabled = memoryEnabled;
         this.pendingDirectQueries = new Map();
         this.session.on('streaming-complete', event => {
             void this.maybeStoreDirectTurnMemory(event);
         });
+    }
+    getDefaultConversationStore() {
+        return this.defaultConversationStore;
     }
     async ask(text, options = {}) {
         if (options.model) {
@@ -160,6 +164,7 @@ class WindieAgent {
             transport: (0, WindieAgentSession_js_1.createWindieAgentBackendTransport)(this.session, conversationRef, this.agentDefinition),
             localRuntime: options.localRuntime === undefined ? this.localRuntime : options.localRuntime,
             userId: this.userId,
+            memoryEnabled: this.memoryEnabled,
             enrichQuery: async (input) => {
                 const enriched = await (0, ContextEnrichmentPipeline_js_1.enrichQueryPayload)({
                     text: input.text,
@@ -168,6 +173,7 @@ class WindieAgent {
                     payload: input.payload ?? {},
                     sdkClient: this.sdkClient,
                     localRuntime: options.localRuntime === undefined ? this.localRuntime : options.localRuntime,
+                    memoryEnabled: this.memoryEnabled,
                 });
                 return enriched.payload;
             },
@@ -356,6 +362,7 @@ class WindieAgent {
             },
             sdkClient: this.sdkClient,
             localRuntime: this.localRuntime,
+            memoryEnabled: this.memoryEnabled,
         });
         return {
             ...input,
@@ -385,6 +392,7 @@ class WindieAgent {
                 conversationRef: pending.conversationRef,
                 userQuery: pending.userQuery,
                 assistantResponse,
+                memoryEnabled: this.memoryEnabled,
             });
         }
         catch {

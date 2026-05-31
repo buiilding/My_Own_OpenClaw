@@ -107,6 +107,7 @@ export type ConversationRuntimeOptions = {
   transport?: BackendTransport;
   localRuntime?: Partial<Pick<LocalRuntime, 'executeTool' | 'rpc'>> | null;
   userId?: string;
+  memoryEnabled?: boolean;
   enrichQuery?: (input: {
     text: string;
     conversationRef: string;
@@ -589,6 +590,7 @@ export class SdkConversationRuntime {
         conversationRef: event.conversationRef,
         userQuery,
         assistantResponse,
+        memoryEnabled: this.options.memoryEnabled,
       });
     } catch {
       // Memory persistence is an automatic local side effect; it must not fail the turn.
