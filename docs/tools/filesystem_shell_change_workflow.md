@@ -39,7 +39,7 @@ flowchart LR
 - Sidecar runtime argument models live in `frontend/src/main/python/tools/schemas.py`. Sidecar executable implementations live in `frontend/src/main/python/tools/filesystem` and `frontend/src/main/python/tools/system`.
 - `read_file` may read text, selected binary-safe formats, and paginated windows, but it must keep OCR/text extraction boundaries explicit. OCR belongs to screenshot/vision/OCR flows, not normal file reads.
 - `replace` must preserve the atomic edit contract: validate input first, read existing content, compute all matches/replacements, write through a temporary file, then `os.replace`. Failed matches must not partially mutate the target.
-- `run_shell_command` must keep output predictable for user display and model-facing `llm_content`. Truncation metadata must remain visible when output is shortened.
+- `run_shell_command` must keep output predictable for user display and model-facing `output`. Truncation metadata must remain visible when output is shortened.
 - `process` owns ongoing shell sessions after foreground execution yields or a command starts in the background. Do not create parallel session state in renderer or backend code.
 - Linux sudo prompting depends on the frontend bridge injecting `sudo_auth_mode=os_prompt` unless full sudo is explicitly enabled. Sidecar shell code owns the final `native` versus OS-prompt execution behavior.
 - File/shell default-directory behavior is tied to selected workspace context. If defaults feel wrong, inspect workspace selection and permission/runtime context before changing shell or filesystem code.
@@ -111,7 +111,7 @@ flowchart LR
 7. Preserve result shape.
    - Sidecar tools should return `ToolResult` objects or normalized compatible payloads.
    - Electron bridge should return `{ success: true, data }` or `{ success: false, error }`.
-   - SDK/main payload builders should preserve `llm_content` and avoid leaking raw screenshot fields for non-computer tools.
+   - SDK/main payload builders should preserve `output` and avoid leaking raw screenshot fields for non-computer tools.
    - Backend result ingress should still receive a correlation-aware `tool-result` or `tool-bundle-result` payload.
 
 8. Update docs next to behavior.

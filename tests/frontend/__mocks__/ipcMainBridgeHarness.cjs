@@ -127,7 +127,7 @@ function primeQueryContext(backendBridge, options = {}) {
     success: true,
     data: {
       output: 'tool ok',
-      llm_content: 'tool ok',
+      output: 'tool ok',
     },
   });
 
@@ -156,7 +156,7 @@ function initIpc(options = {}) {
     success: true,
     data: {
       output: 'tool ok',
-      llm_content: 'tool ok',
+      output: 'tool ok',
     },
   });
 

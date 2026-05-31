@@ -74,8 +74,7 @@ class ExampleTool(Tool[ExampleToolArgs]):
         Returns:
             Dictionary with execution results. Must include:
                 - success: bool
-                - llm_content: str (required)
-                - return_display: str (optional, for UI display)
+                - output: str (required)
                 - error: str (if failed)
                 - artifacts: dict (optional, for screenshots, files, etc.)
                 - episodic_memories: list (optional)
@@ -100,8 +99,7 @@ class ExampleTool(Tool[ExampleToolArgs]):
             # Return success result
             return {
                 "success": True,
-                "llm_content": f"Successfully processed '{args.required_param}'. Result: {result}",
-                "return_display": f"✓ Processed: {result}",
+                "output": f"Successfully processed '{args.required_param}'. Result: {result}",
                 # Optional: Add artifacts if needed
                 # "artifacts": {"data": result},
             }
@@ -113,7 +111,7 @@ class ExampleTool(Tool[ExampleToolArgs]):
             return {
                 "success": False,
                 "error": error_msg,
-                "llm_content": f"Error: {error_msg}"
+                "output": f"Error: {error_msg}"
             }
         
         except Exception as e:
@@ -123,7 +121,7 @@ class ExampleTool(Tool[ExampleToolArgs]):
             return {
                 "success": False,
                 "error": error_msg,
-                "llm_content": f"Error executing {self.name}: {error_msg}"
+                "output": f"Error executing {self.name}: {error_msg}"
             }
     
     def _process_input(self, required: str, optional: Optional[int]) -> str:
@@ -155,4 +153,3 @@ class ExampleTool(Tool[ExampleToolArgs]):
             "network_access": False,
             "timeout": 30.0
         }
-

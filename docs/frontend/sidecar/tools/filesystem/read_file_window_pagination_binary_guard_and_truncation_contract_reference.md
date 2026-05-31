@@ -75,7 +75,7 @@ For supported image files, `read_file`:
 
 - reads raw bytes and returns base64 attachment fields (`screenshot`, `image_data`)
 - includes MIME metadata (`screenshot_content_type`, `image_content_type`) and `image_size_bytes`
-- returns a deterministic `llm_content` note that OCR/text extraction is not performed
+- returns a deterministic `output` note that OCR/text extraction is not performed
 
 ## Encoding Path
 
@@ -123,7 +123,7 @@ Implementation details:
 
 Response messaging includes line-truncation note when any line was shortened.
 
-## LLM Content Formatting
+## Output Formatting
 
 Every response starts with:
 

@@ -49,7 +49,7 @@ Execution semantics:
 Output semantics:
 
 - returns `ToolResult.success_result(...)` directly
-- payload includes `message`, `llm_content`, and `return_display`
+- payload includes `message`, `output`, and `output`
 
 ## Keyboard Tool (`keyboard_control`)
 

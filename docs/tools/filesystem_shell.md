@@ -31,7 +31,7 @@ For code changes or debugging, start with [Filesystem and Shell Change Workflow]
   `old_string`/`new_string`, batched `replacements`, or `patch_chunks`.
   Ambiguous combinations are rejected at the backend schema boundary before
   reaching local execution.
-- Keep shell output formatting predictable for both user display and model-facing `llm_content`.
+- Keep shell output formatting predictable for both user display and model-facing `output`.
 - Use background sessions only when command output needs polling or the process must outlive the immediate request.
 - Keep token-budget truncation visible in returned metadata.
 

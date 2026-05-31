@@ -182,7 +182,7 @@ async def test_parse_and_validate_message_runtime_rejects_tool_result_missing_re
             "type": "tool-result",
             "payload": {
                 "success": True,
-                "data": {"llm_content": "ok"},
+                "data": {"output": "ok"},
             },
         }
     )

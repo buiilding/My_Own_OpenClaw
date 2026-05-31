@@ -101,9 +101,7 @@ function formatProjectedToolOutputText(payload) {
       .map((step, index) => {
         const stepRecord = asObject(step) || {};
         const outputRecord = asObject(stepRecord.output) || asObject(stepRecord.result) || {};
-        const outputText = readString(outputRecord.display_content)
-          || readString(outputRecord.output)
-          || readString(outputRecord.llm_content)
+        const outputText = readString(outputRecord.output)
           || readString(outputRecord.content)
           || readString(outputRecord.message)
           || readString(stepRecord.output)
@@ -114,9 +112,6 @@ function formatProjectedToolOutputText(payload) {
         return `${toolName || 'step'} #${index + 1}\n${outputText}`;
       })
       .join('\n\n');
-  }
-  if (typeof payload.display_content === 'string' && payload.display_content.length > 0) {
-    return payload.display_content;
   }
   if (typeof payload.output === 'string' && payload.output.length > 0) {
     return payload.output;

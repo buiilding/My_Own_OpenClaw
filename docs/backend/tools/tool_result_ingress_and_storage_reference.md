@@ -41,7 +41,7 @@ API handler responsibilities:
 Incoming schema nuance (`api/schemas/incoming.py`):
 
 - `tool-result.payload.data` uses `ToolResultData` with `extra="allow"`:
-  - shared typed keys (`llm_content`, `system_state`, `screenshot`, `screenshot_ref`, `capture_meta`) are first-class
+  - shared typed keys (`output`, `system_state`, `screenshot`, `screenshot_ref`, `capture_meta`) are first-class
   - additional keys (for example renderer `system_state_internal`) are accepted and forwarded
 - `tool-bundle-result.payload.error` is nullable and may be `null` in non-failure bundle paths
 

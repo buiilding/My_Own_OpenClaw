@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for sidecar shell output formatting and response payload builders: token-budget truncation rules, display/LLM content shaping, and foreground/background response envelopes."
 read_when:
-  - When changing `run_shell_command` output shaping (`llm_content`, `return_display`, truncation metadata).
+  - When changing `run_shell_command` output shaping (`output`, `output`, truncation metadata).
   - When changing shell response payload fields returned to ToolRegistry/backend (`output_token_limit`, `output_truncated`, session-running metadata).
 title: "Shell Output Formatting and Response Payload Contract Reference"
 ---
@@ -46,7 +46,7 @@ This keeps process execution/session lifecycle logic separate from payload-shapi
   - keeps head + tail slices
   - inserts marker `…<n> tokens truncated…`
   - prefixes `Total output lines: <count>`
-  - reports `Original output token count: <count>` in final `llm_content`
+  - reports `Original output token count: <count>` in final `output`
 
 Status lines appended to model-facing content:
 
@@ -65,7 +65,7 @@ Status lines appended to model-facing content:
 - includes formatted stdout/stderr blocks when present
 - fallback `No output` when both streams empty
 
-Used for `return_display` field in foreground responses.
+Used for `output` field in foreground responses.
 
 ## Response Payload Builder Contract
 
@@ -77,8 +77,8 @@ Returns:
 - `data.status: "running"`
 - session/runtime fields: `session_id`, `pid`, `pty`, `tail`
 - warnings list passthrough
-- `llm_content` guidance to use process tool for polling
-- concise `return_display`
+- `output` guidance to use process tool for polling
+- concise `output`
 
 ### `build_foreground_response(...)`
 
@@ -92,17 +92,17 @@ Returns:
   - `output_token_limit`
   - `original_output_tokens`
   - `output_truncated`
-  - `llm_content`
-  - `return_display`
+  - `output`
+  - `output`
 
-Warnings append to `return_display` suffix while preserving base status text.
+Warnings append to `output` suffix while preserving base status text.
 
 ## ToolRegistry/Backend Contract Impact
 
 These fields are consumed downstream as standard tool result payload keys:
 
-- model-facing: `llm_content`
-- UI-facing short text: `return_display`
+- model-facing: `output`
+- UI-facing short text: `output`
 - truncation diagnostics: `output_token_limit`, `original_output_tokens`, `output_truncated`
 
 Maintaining field names is required for backward-compatible result transformer behavior.
@@ -121,7 +121,7 @@ Maintaining field names is required for backward-compatible result transformer b
 
 1. Changing truncation marker text can break log scanning and snapshot expectations.
 2. Renaming `output_token_limit` / `output_truncated` / `original_output_tokens` breaks downstream diagnostics.
-3. Diverging `llm_content` vs `return_display` status semantics can confuse model history vs user status views.
+3. Diverging `output` vs `output` status semantics can confuse model history vs user status views.
 
 ## Related Pages
 

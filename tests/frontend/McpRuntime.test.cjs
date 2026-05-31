@@ -89,8 +89,8 @@ describe('MCP runtime', () => {
     expect(result).toEqual({
       success: true,
       data: {
-        llm_content: 'search:windie',
-        return_display: 'search:windie',
+        output: 'search:windie',
+        output: 'search:windie',
         mcp_result: {
           content: [{ type: 'text', text: 'search:windie' }],
         },

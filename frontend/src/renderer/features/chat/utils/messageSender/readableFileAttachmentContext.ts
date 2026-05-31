@@ -29,16 +29,16 @@ function resolveReadableAttachmentText(result: ReadFileToolResult): string | nul
     && typeof result.data === 'object'
     && !Array.isArray(result.data)
   ) ? result.data : null;
-  const llmContent = (
-    typeof resultData?.llm_content === 'string' && resultData.llm_content.trim().length > 0
+  const output = (
+    typeof resultData?.output === 'string' && resultData.output.trim().length > 0
   )
-    ? resultData.llm_content
+    ? resultData.output
     : (
       typeof resultData?.content === 'string' && resultData.content.trim().length > 0
         ? resultData.content
         : null
     );
-  return llmContent;
+  return output;
 }
 
 function buildAttachmentFailure(
@@ -62,8 +62,8 @@ async function readAttachmentSection(
     const result = await IpcBridge.invoke(INVOKE_CHANNELS.READ_ATTACHMENT_FILE, {
       filePath: readableFile.filePath,
     }) as ReadFileToolResult;
-    const llmContent = resolveReadableAttachmentText(result);
-    if (!result?.success || !llmContent) {
+    const output = resolveReadableAttachmentText(result);
+    if (!result?.success || !output) {
       const errorMessage = (
         typeof result?.error === 'string' && result.error.trim().length > 0
       )
@@ -80,7 +80,7 @@ async function readAttachmentSection(
       };
     }
     return {
-      section: `--- Attached File: ${readableFile.filename} ---\n${llmContent}`,
+      section: `--- Attached File: ${readableFile.filename} ---\n${output}`,
       failure: null,
     };
   } catch (error) {

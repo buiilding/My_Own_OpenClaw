@@ -37,7 +37,6 @@ type ToolBundlePayloadLike = {
 };
 
 type ToolOutputPayloadLike = {
-  display_content?: string;
   output?: string;
   error?: string | null;
 };
@@ -65,9 +64,6 @@ export function formatToolBundlePayload(payload?: ToolBundlePayloadLike): string
 }
 
 export function formatToolOutputText(payload?: ToolOutputPayloadLike): string {
-  if (typeof payload?.display_content === 'string' && payload.display_content.length > 0) {
-    return payload.display_content;
-  }
   if (typeof payload?.output === 'string' && payload.output.length > 0) {
     return payload.output;
   }

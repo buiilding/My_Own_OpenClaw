@@ -2,7 +2,7 @@
 summary: "Capture and payload reference: user screenshot/system-state capture pathways, SDK/main post-action capture, artifact upload URL handling, tool payload field filtering, and content-type normalization contracts."
 read_when:
   - When changing screenshot/system-state capture timing, display-bounds injection, or sidecar screenshot data handling.
-  - When changing `tool-result`/`tool-bundle-result` payload shaping (`system_state`, `screenshot_ref`, `llm_content`) before backend relay.
+  - When changing `tool-result`/`tool-bundle-result` payload shaping (`system_state`, `screenshot_ref`, `output`) before backend relay.
 title: "Capture, Artifact Upload, and Payload Normalization Reference"
 ---
 
@@ -123,7 +123,7 @@ Failure policy:
   - `screenshot`, `image_data`
 - strips inbound transport fields before rebuild:
   - `screenshot_ref`, `system_state`
-- always injects canonical `llm_content` (formatted tool output)
+- always injects canonical `output` (formatted tool output)
 
 Optional inclusion gates:
 
@@ -174,7 +174,7 @@ Correlation contract is inherited from `ToolResultEnvelope`:
 - append lightweight XML system context block when enabled
 - append screen-state hint line when screenshot data is present
 
-Output string from formatter is the source of truth written into `llm_content`.
+Output string from formatter is the source of truth written into `output`.
 
 ## Logging Gate
 

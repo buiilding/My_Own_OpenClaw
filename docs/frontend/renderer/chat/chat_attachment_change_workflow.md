@@ -127,7 +127,7 @@ Clipboard image IPC trust boundary:
 
 1. Confirm selected file is in `readableFiles[]`, not `clipboardImages[]`.
 2. Confirm `readableFileAttachmentContext.ts` called sidecar `read_file`.
-3. Confirm successful `llm_content` was added to `attachment_context`.
+3. Confirm successful `output` was added to `attachment_context`.
 4. Confirm Electron main query payload builder appends hidden context to backend-bound query content.
 5. Confirm the visible transcript row only stores filename metadata.
 

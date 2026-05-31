@@ -94,7 +94,7 @@ async def execute_bundle(
                 bundle_result = ToolResult(
                     success=False,
                     error="Timed out waiting for bundle execution in the local runtime.",
-                    llm_content="Error: Bundle execution timed out in the local runtime.",
+                    output="Error: Bundle execution timed out in the local runtime.",
                 )
     finally:
         result_storage.remove_bundle_future(bundle_id)
@@ -115,7 +115,7 @@ async def execute_bundle(
         if step_result is not None and _step_field(step_result, "status") == "ok":
             tool_result = ToolResult(
                 success=True,
-                llm_content=_step_field(step_result, "output", ""),
+                output=_step_field(step_result, "output", ""),
                 data=bundle_result.data,  # Include screenshot, system_state from bundle
             )
         else:
@@ -124,7 +124,7 @@ async def execute_bundle(
             )
             error_msg = step_error or bundle_result.error or "Bundle execution failed"
             tool_result = ToolResult(
-                success=False, error=error_msg, llm_content=f"Error: {error_msg}"
+                success=False, error=error_msg, output=f"Error: {error_msg}"
             )
 
         results.append(

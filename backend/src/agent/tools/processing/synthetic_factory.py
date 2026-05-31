@@ -47,7 +47,7 @@ class SyntheticResultFactory:
         return ToolResult(
             success=False,
             error=error_msg,
-            llm_content=f"Error: {error_msg}",
+            output=f"Error: {error_msg}",
             data=data,
         )
 

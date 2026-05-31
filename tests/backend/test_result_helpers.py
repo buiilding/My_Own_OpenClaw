@@ -21,13 +21,13 @@ def mock_tool_call():
 @pytest.fixture
 def success_tool_result():
     """Create a successful tool result for testing."""
-    return ToolResult(success=True, data="test output", llm_content="test output")
+    return ToolResult(success=True, data="test output", output="test output")
 
 
 @pytest.fixture
 def failed_tool_result():
     """Create a failed tool result for testing."""
-    return ToolResult(success=False, error="failed", llm_content="Error: failed")
+    return ToolResult(success=False, error="failed", output="Error: failed")
 from backend.src.llm.parser import ParsedToolCall
 
 

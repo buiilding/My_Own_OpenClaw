@@ -71,7 +71,7 @@ Image behavior:
 
 - reads image bytes and returns attachment payload fields (`screenshot`, `image_data`, content type, byte size)
 - intentionally does not run OCR or extract text from pixels
-- returns deterministic `llm_content` note stating OCR is not performed
+- returns deterministic `output` note stating OCR is not performed
 
 LLM content shape:
 

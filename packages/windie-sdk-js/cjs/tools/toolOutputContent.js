@@ -5,21 +5,7 @@ exports.stringField = stringField;
 exports.readToolOutputContent = readToolOutputContent;
 exports.normalizeLocalToolResultData = normalizeLocalToolResultData;
 exports.readBundleStepModelContent = readBundleStepModelContent;
-const DISPLAY_FALLBACK_KEYS = ['return_display', 'output', 'message'];
-const MODEL_FALLBACK_KEYS = ['llm_content', 'output', 'message'];
-const FRONTEND_DERIVED_OUTPUT_KEYS = new Set([
-    'display_content',
-    'return_display',
-    'llm_content',
-    'model_llm_content',
-    'llm_content_original_tokens',
-    'llm_content_token_limit',
-    'llm_content_truncated',
-    'llm_content_token_source',
-    'output_token_limit',
-    'output_truncated',
-    'original_output_tokens',
-]);
+const OUTPUT_FALLBACK_KEYS = ['output', 'message', 'error'];
 function recordFromUnknown(value) {
     return value && typeof value === 'object' && !Array.isArray(value)
         ? value
@@ -48,23 +34,14 @@ function jsonFallback(payload) {
 }
 function readToolOutputContent(payload) {
     const result = resultRecord(payload);
-    const canonicalDisplay = stringField(payload, 'display_content')
-        ?? stringField(result, 'display_content');
-    const canonicalModel = stringField(payload, 'model_llm_content')
-        ?? stringField(result, 'model_llm_content');
-    const fallbackDisplay = stringField(payload, ...DISPLAY_FALLBACK_KEYS)
-        ?? stringField(result, ...DISPLAY_FALLBACK_KEYS)
-        ?? stringField(payload, 'llm_content')
-        ?? stringField(result, 'llm_content')
+    const output = stringField(payload, ...OUTPUT_FALLBACK_KEYS)
+        ?? stringField(result, ...OUTPUT_FALLBACK_KEYS)
         ?? fallbackText(payload);
-    const fallbackModel = stringField(payload, ...MODEL_FALLBACK_KEYS)
-        ?? stringField(result, ...MODEL_FALLBACK_KEYS)
-        ?? fallbackText(payload);
-    const modelContent = canonicalModel ?? fallbackModel ?? jsonFallback(payload);
+    const modelContent = output ?? jsonFallback(payload);
     return {
-        displayContent: canonicalDisplay ?? fallbackDisplay ?? modelContent,
+        displayContent: modelContent,
         modelContent,
-        hasModelContent: Boolean(canonicalModel ?? fallbackModel),
+        hasModelContent: Boolean(output),
     };
 }
 function normalizeLocalToolResultData(data, fallbackOutput = '') {
@@ -76,12 +53,7 @@ function normalizeLocalToolResultData(data, fallbackOutput = '') {
         ?? data.message
         ?? data.error
         ?? fallbackOutput;
-    const normalized = {};
-    for (const [key, value] of Object.entries(data)) {
-        if (!FRONTEND_DERIVED_OUTPUT_KEYS.has(key)) {
-            normalized[key] = value;
-        }
-    }
+    const normalized = { ...data };
     normalized.output = output;
     return normalized;
 }

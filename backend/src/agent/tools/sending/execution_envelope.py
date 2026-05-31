@@ -20,8 +20,7 @@ def emit_tool_execution_envelope(
     envelope: ToolExecutionEnvelope,
 ) -> list[AgentStreamingEvent]:
     output_text = (
-        envelope.result.return_display
-        or envelope.result.llm_content
+        envelope.result.output
         or envelope.result.format_for_history(envelope.tool_name)
     )
     return [
@@ -41,4 +40,3 @@ def emit_tool_execution_envelope(
             metadata=envelope.metadata,
         ),
     ]
-

@@ -32,10 +32,8 @@ def test_truncate_tool_output_for_model_does_not_mutate_result_data() -> None:
 
     assert model_text == data["output"][:16]
     assert result.data == data
-    assert "display_content" not in result.data
-    assert "model_llm_content" not in result.data
-    assert "llm_content" not in result.data
-    assert "llm_content_truncated" not in result.data
+    assert "output_token_limit" not in result.data
+    assert "output_truncated" not in result.data
 
 
 def test_truncate_tool_output_for_model_uses_token_service_without_mutating_data(
@@ -58,8 +56,7 @@ def test_truncate_tool_output_for_model_uses_token_service_without_mutating_data
     monkeypatch.setattr(projection, "get_token_service", lambda: FakeTokenService())
     data = {
         "output": "raw output from sidecar",
-        "display_content": "old display field ignored",
-        "model_llm_content": "old model field ignored",
+        "status": "ok",
     }
     result = ToolResult(success=True, data=dict(data))
 

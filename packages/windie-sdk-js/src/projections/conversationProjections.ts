@@ -74,16 +74,10 @@ function displayTextFromPayload(payload: JsonRecord): string {
 
 function rawToolOutputTextFromPayload(payload: JsonRecord): string {
   const result = recordFromUnknown(payload.result);
-  return stringField(result, 'llm_content')
-    ?? stringField(payload, 'llm_content')
-    ?? stringField(result, 'output')
+  return stringField(result, 'output')
     ?? stringField(payload, 'output')
-    ?? stringField(result, 'model_llm_content')
-    ?? stringField(payload, 'model_llm_content')
     ?? stringField(result, 'message')
     ?? stringField(payload, 'message')
-    ?? stringField(result, 'display_content')
-    ?? stringField(payload, 'display_content', 'return_display')
     ?? stringField(payload, 'text', 'content', 'error')
     ?? JSON.stringify(payload);
 }
@@ -113,7 +107,7 @@ function bundleOutputContentFromPayload(payload: JsonRecord): JsonRecord {
         output: rawOutput
           ? rawToolOutputTextFromPayload(rawOutput)
           : (
-            stringField(step, 'output', 'result', 'llm_content', 'message')
+            stringField(step, 'output', 'result', 'message')
             ?? (error ? `Error: ${error}` : JSON.stringify(step))
           ),
       };

@@ -62,9 +62,7 @@ function sdkToolBundleDetails(payload: JsonObject): JsonObject {
 
 function toolOutputTextFromRecord(payload: JsonObject | null): string | null {
   return (
-    readNonEmptyString(payload?.display_content)
-    ?? readNonEmptyString(payload?.output)
-    ?? readNonEmptyString(payload?.llm_content)
+    readNonEmptyString(payload?.output)
     ?? readNonEmptyString(payload?.content)
     ?? readNonEmptyString(payload?.message)
     ?? (payload?.error ? `Error: ${payload.error}` : null)

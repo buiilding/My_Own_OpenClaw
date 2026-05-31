@@ -250,7 +250,6 @@ async def test_run_shell_command_returns_raw_output_without_frontend_truncation(
     data = result["data"]
     assert "token token token" in data["output"]
     assert "tokens truncated" not in data["output"]
-    assert "llm_content" not in data
     assert "output_token_limit" not in data
 
 
@@ -270,7 +269,6 @@ async def test_run_shell_command_ignores_legacy_max_output_tokens():
     data = result["data"]
     assert "token token token" in data["output"]
     assert "tokens truncated" not in data["output"]
-    assert "llm_content" not in data
 
 
 @pytest.mark.asyncio

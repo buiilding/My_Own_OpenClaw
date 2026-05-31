@@ -76,7 +76,7 @@ async def execute_single_tool(
         # Fallback to placeholder if no request_id (shouldn't happen with ToolResolver)
         placeholder_result = ToolResult(
             success=True,
-            llm_content=f"Tool {tool_call.tool_name} executing in the local runtime...",
+            output=f"Tool {tool_call.tool_name} executing in the local runtime...",
             data={"status": "pending_local_runtime_execution"}
         )
         return create_tool_result_object(tool_call, placeholder_result, execution_time=0)
@@ -118,7 +118,7 @@ async def execute_single_tool(
                     "frame changed, re-ground required: "
                     "screen changed before tool execution and coordinates are no longer valid."
                 ),
-                llm_content=(
+                output=(
                     "Error: frame changed, re-ground required. "
                     "The screen state changed after coordinate resolution."
                 ),
@@ -178,7 +178,7 @@ async def execute_single_tool(
             tool_result = ToolResult(
                 success=False,
                 error=f"Timed out waiting for tool {tool_call.tool_name} execution in the local runtime.",
-                llm_content=f"Error: Tool {tool_call.tool_name} timed out in the local runtime."
+                output=f"Error: Tool {tool_call.tool_name} timed out in the local runtime."
             )
         finally:
             _cleanup_future()

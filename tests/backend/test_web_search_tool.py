@@ -97,7 +97,7 @@ async def test_web_search_tool_returns_normalized_brave_results(monkeypatch):
             },
         ],
     }
-    assert 'Web search results for "windieos latest":' in result.llm_content
+    assert 'Web search results for "windieos latest":' in result.output
 
 
 @pytest.mark.asyncio
@@ -233,7 +233,7 @@ async def test_web_search_tool_routes_to_openai_native_search(monkeypatch):
             },
         ],
     }
-    assert result.llm_content == "Native summary from OpenAI"
+    assert result.output == "Native summary from OpenAI"
     assert emitted_progress[0] == "stream-started"
     assert emitted_progress[1].text == "Searched example.com"
     assert emitted_progress[1].request_id == "req-openai-web-search-1"
@@ -279,7 +279,7 @@ async def test_web_search_tool_routes_to_gemini_native_search(monkeypatch):
             "query": "windieos latest",
         }
     ]
-    assert 'Web search results for "windieos latest":' in result.llm_content
+    assert 'Web search results for "windieos latest":' in result.output
 
 
 @pytest.mark.asyncio
@@ -329,7 +329,7 @@ async def test_web_search_tool_extracts_native_sources_from_content_when_metadat
             },
         ],
     }
-    assert "https://en.wikipedia.org/wiki/Rachel_Green" in result.llm_content
+    assert "https://en.wikipedia.org/wiki/Rachel_Green" in result.output
 
 
 @pytest.mark.asyncio

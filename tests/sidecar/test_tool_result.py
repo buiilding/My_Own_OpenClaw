@@ -16,7 +16,7 @@ def test_tool_result_to_dict_uses_only_canonical_output_for_model_text():
         {
             "snapshot": "visible browser text",
             "extracted_content": "extracted browser text",
-            "llm_content": "legacy model text",
+            "output": "model text",
         }
     ).to_dict()
 
@@ -25,8 +25,7 @@ def test_tool_result_to_dict_uses_only_canonical_output_for_model_text():
         "data": {
             "snapshot": "visible browser text",
             "extracted_content": "extracted browser text",
-            "llm_content": "legacy model text",
-            "output": "",
+            "output": "model text",
         },
     }
 

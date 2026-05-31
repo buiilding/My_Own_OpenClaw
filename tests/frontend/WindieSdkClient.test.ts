@@ -761,7 +761,7 @@ describe('WindieSdkClient', () => {
       request_id: 'req-1',
       success: true,
       data: {
-        llm_content: 'done',
+        output: 'done',
         capture_meta: { capture_engine: 'partial' },
       },
     });
@@ -792,7 +792,7 @@ describe('WindieSdkClient', () => {
         request_id: 'req-1',
         success: true,
         data: {
-          llm_content: 'done',
+          output: 'done',
         },
       },
     });
@@ -2047,7 +2047,7 @@ describe('WindieSdkClient', () => {
       })),
       executeTool: jest.fn(async () => ({
         success: true,
-        data: { llm_content: 'saved:hello' },
+        data: { output: 'saved:hello' },
       })),
     };
     const client = new WindieClient({
@@ -2130,7 +2130,7 @@ describe('WindieSdkClient', () => {
       })),
       executeTool: jest.fn(async () => ({
         success: true,
-        data: { llm_content: 'saved:hello' },
+        data: { output: 'saved:hello' },
       })),
     };
     const client = new WindieClient({

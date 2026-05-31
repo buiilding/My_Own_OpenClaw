@@ -49,8 +49,8 @@ Return shape:
 - success payload includes:
   - `seconds_waited`
   - `status`
-  - `llm_content`
-  - `return_display`
+  - `output`
+  - `output`
 
 Test-backed semantics:
 
@@ -96,7 +96,7 @@ Semantics:
 - formats entries as `app_name: title` when both exist and differ; otherwise uses whichever one is available
 - removes empty entries while preserving one row per underlying window; duplicate final display strings are suffixed as ` (1)`, ` (2)`, and so on
 - optional filter is case-insensitive substring match against the displayed app/window name and its raw app/title parts
-- `llm_content` is bullet list (`- <name>`) or `No open windows found.`
+- `output` is bullet list (`- <name>`) or `No open windows found.`
 
 ## Platform Window Manager Semantics
 
@@ -199,7 +199,7 @@ Battery fallback semantics:
 
 Output shape:
 
-- returns `stats` object and pretty-printed JSON `llm_content`
+- returns `stats` object and pretty-printed JSON `output`
 
 Error semantics:
 

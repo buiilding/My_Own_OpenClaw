@@ -56,7 +56,7 @@ describe('Windie SDK mock backend end to end', () => {
       registerModuleTool: jest.fn(async () => ({ ok: true })),
       executeTool: jest.fn(async () => ({
         success: true,
-        data: { llm_content: 'saved by fake daemon' },
+        data: { output: 'saved by fake daemon' },
       })),
     };
 

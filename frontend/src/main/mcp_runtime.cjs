@@ -421,8 +421,7 @@ async function executeMcpTool(toolName, args = {}, context = {}, options = {}) {
     return {
       success: true,
       data: {
-        llm_content: text || JSON.stringify(result || {}),
-        return_display: text || `MCP tool ${registration.originalToolName} completed.`,
+        output: text || JSON.stringify(result || {}),
         mcp_result: result || null,
       },
     };

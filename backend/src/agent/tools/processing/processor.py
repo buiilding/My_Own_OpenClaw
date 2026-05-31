@@ -115,7 +115,7 @@ class ToolResultProcessor:
 
                         formatted_bundle_result = ToolResult(
                             success=bundled_result.success,
-                            llm_content=formatted_message,
+                            output=formatted_message,
                             data=bundled_result.data,
                             error=bundled_result.error,
                             artifacts=bundled_result.artifacts,

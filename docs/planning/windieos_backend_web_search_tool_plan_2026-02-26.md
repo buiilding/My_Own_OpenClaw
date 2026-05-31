@@ -101,7 +101,7 @@ Add `web_search` backend tool:
   - `domains: list[str] | None`
 - Output:
   - structured results array (`title`, `url`, `snippet`, optional `age`/`source`)
-  - concise `llm_content` summary for model consumption
+  - concise `output` summary for model consumption
 
 Provider v1:
 - Brave Search API (`https://api.search.brave.com/res/v1/web/search`)

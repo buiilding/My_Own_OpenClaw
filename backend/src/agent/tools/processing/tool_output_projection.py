@@ -96,7 +96,7 @@ def raw_tool_output_text(tool_result: ToolResult) -> str:
     if message is not None:
         return message
     return (
-        tool_result.llm_content
+        tool_result.output
         or (f"Error: {tool_result.error}" if tool_result.error else None)
         or (str(tool_result.data) if tool_result.data is not None else None)
         or "Tool executed successfully"

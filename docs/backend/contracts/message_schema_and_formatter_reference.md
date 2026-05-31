@@ -123,7 +123,7 @@ Payload:
 
 `ToolResultData` shared keys:
 
-- `llm_content: str` (required)
+- `output: str` (required)
 - optional `system_state` (`active_window`, `mouse_position`)
 - optional `screenshot`, `screenshot_ref`, `capture_meta`
 - tool-specific keys allowed (`extra="allow"`)

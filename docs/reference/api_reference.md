@@ -1339,7 +1339,7 @@ Send tool execution result from frontend.
   "request_id": "opaque-request-id-from-tool-call",
   "success": true,
   "data": {
-    "llm_content": "Preformatted tool output text",
+    "output": "Preformatted tool output text",
     "screenshot_ref": "uuid.jpg", // Optional, computer-use tools only
     "screenshot": "base64-encoded-screenshot", // Optional legacy fallback, computer-use tools only
     "capture_meta": { "frame_id": "frame-1" },
@@ -1367,7 +1367,7 @@ For non-computer tools, omit `data.screenshot_ref` and `data.screenshot`.
     "request_id": "req-123",
     "success": true,
     "data": {
-      "llm_content": "Clicked submit button",
+      "output": "Clicked submit button",
       "screenshot_ref": "1f2c3a4b5d6e7f8a.jpg",
       "system_state": {
         "active_window": "Browser",

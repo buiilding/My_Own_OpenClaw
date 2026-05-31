@@ -75,7 +75,7 @@ Fields:
 
 - `request_id`
 - `success`
-- optional `data` (includes `llm_content`, optional `system_state`, optional
+- optional `data` (includes `output`, optional `system_state`, optional
   screenshot fields, optional `capture_meta`)
 - optional `error`
 

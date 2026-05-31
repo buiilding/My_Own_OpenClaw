@@ -60,7 +60,7 @@ class RunShellCommandArgs(BaseModel):
         None,
         gt=0,
         description=(
-            "(OPTIONAL) Maximum number of output tokens to include in llm_content for foreground responses. "
+            "(OPTIONAL) Maximum number of output tokens to include in output for foreground responses. "
             "Defaults to 10000 when omitted. Excess output is truncated with a marker."
         ),
     )

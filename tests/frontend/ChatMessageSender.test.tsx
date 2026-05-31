@@ -679,7 +679,7 @@ describe('useChatMessageSender', () => {
         return Promise.resolve({
           success: true,
           data: {
-            llm_content: 'File path: /tmp/notes.txt\n\nImportant notes',
+            output: 'File path: /tmp/notes.txt\n\nImportant notes',
           },
         });
       }

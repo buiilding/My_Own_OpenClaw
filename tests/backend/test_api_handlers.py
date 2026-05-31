@@ -540,16 +540,12 @@ class ToolOutputReturningSession(DummySession):
         return ToolResult(
             success=True,
             data={
-                "display_content": "full visible output",
-                "model_llm_content": "bounded model output",
-                "llm_content": "bounded model output",
-                "llm_content_original_tokens": 50_000,
-                "llm_content_token_limit": 10_000,
-                "llm_content_truncated": True,
-                "llm_content_token_source": "litellm",
+                "output": "bounded model output",
+                "output_token_limit": 10_000,
+                "output_truncated": True,
+                "output_token_source": "litellm",
             },
-            llm_content="bounded model output",
-            return_display="full visible output",
+            output="bounded model output",
         )
 
 

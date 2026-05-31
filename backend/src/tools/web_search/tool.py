@@ -105,7 +105,7 @@ def _normalize_result(result: Dict[str, Any], rank: int) -> Optional[Dict[str, A
     return normalized
 
 
-def _build_llm_content(query: str, results: List[Dict[str, Any]]) -> str:
+def _build_output(query: str, results: List[Dict[str, Any]]) -> str:
     if not results:
         return f'No web results found for query "{query}".'
     lines = [f'Web search results for "{query}":']
@@ -285,8 +285,7 @@ class WebSearchTool(Tool[WebSearchArgs]):
             return ToolResult(
                 success=False,
                 error=error_msg,
-                llm_content=f"Error: {error_msg}",
-                return_display=error_msg,
+                output=f"Error: {error_msg}",
             )
 
         stream_error_text: Optional[str] = None
@@ -309,8 +308,7 @@ class WebSearchTool(Tool[WebSearchArgs]):
             return ToolResult(
                 success=False,
                 error=error_msg,
-                llm_content=f"Error: {error_msg}",
-                return_display=error_msg,
+                output=f"Error: {error_msg}",
             )
 
         if stream_error_text:
@@ -318,8 +316,7 @@ class WebSearchTool(Tool[WebSearchArgs]):
             return ToolResult(
                 success=False,
                 error=error_msg,
-                llm_content=f"Error: {error_msg}",
-                return_display=error_msg,
+                output=f"Error: {error_msg}",
             )
 
         response = llm_client.get_last_stream_response_payload()
@@ -328,8 +325,7 @@ class WebSearchTool(Tool[WebSearchArgs]):
             return ToolResult(
                 success=False,
                 error=error_msg,
-                llm_content=f"Error: {error_msg}",
-                return_display=error_msg,
+                output=f"Error: {error_msg}",
             )
 
         results = _normalize_native_search_results(
@@ -352,7 +348,7 @@ class WebSearchTool(Tool[WebSearchArgs]):
             query=args.query,
             results=results,
         )
-        llm_content = content or _build_llm_content(args.query, results)
+        output = content or _build_output(args.query, results)
         return ToolResult(
             success=True,
             data={
@@ -360,8 +356,7 @@ class WebSearchTool(Tool[WebSearchArgs]):
                 "provider": "openai",
                 "results": results,
             },
-            llm_content=llm_content,
-            return_display=llm_content,
+            output=output,
         )
 
     @classmethod
@@ -384,8 +379,7 @@ class WebSearchTool(Tool[WebSearchArgs]):
             return ToolResult(
                 success=False,
                 error=error_msg,
-                llm_content=f"Error: {error_msg}",
-                return_display=error_msg,
+                output=f"Error: {error_msg}",
             )
 
         try:
@@ -401,8 +395,7 @@ class WebSearchTool(Tool[WebSearchArgs]):
             return ToolResult(
                 success=False,
                 error=error_msg,
-                llm_content=f"Error: {error_msg}",
-                return_display=error_msg,
+                output=f"Error: {error_msg}",
             )
 
         results = _normalize_native_search_results(
@@ -425,7 +418,7 @@ class WebSearchTool(Tool[WebSearchArgs]):
             query=args.query,
             results=results,
         )
-        llm_content = content or _build_llm_content(args.query, results)
+        output = content or _build_output(args.query, results)
         return ToolResult(
             success=True,
             data={
@@ -433,8 +426,7 @@ class WebSearchTool(Tool[WebSearchArgs]):
                 "provider": provider_name,
                 "results": results,
             },
-            llm_content=llm_content,
-            return_display=llm_content,
+            output=output,
         )
 
     @staticmethod
@@ -540,8 +532,7 @@ class WebSearchTool(Tool[WebSearchArgs]):
             return ToolResult(
                 success=False,
                 error="web_search is disabled by the current tool policy.",
-                llm_content="Error: web_search is disabled by the current tool policy.",
-                return_display="web_search is disabled by the current tool policy.",
+                output="Error: web_search is disabled by the current tool policy.",
             )
 
         api_key = self._resolve_api_key(ctx)
@@ -549,8 +540,7 @@ class WebSearchTool(Tool[WebSearchArgs]):
             return ToolResult(
                 success=False,
                 error="Brave Search is not configured on the backend.",
-                llm_content="Error: Brave Search is not configured on the backend.",
-                return_display="Brave Search is not configured on the backend.",
+                output="Error: Brave Search is not configured on the backend.",
             )
 
         params = self._build_request_params(args)
@@ -561,8 +551,7 @@ class WebSearchTool(Tool[WebSearchArgs]):
             return ToolResult(
                 success=False,
                 error=str(exc),
-                llm_content=f"Error: {exc}",
-                return_display=str(exc),
+                output=f"Error: {exc}",
             )
 
         results: List[Dict[str, Any]] = []
@@ -577,7 +566,7 @@ class WebSearchTool(Tool[WebSearchArgs]):
             query=args.query,
             results=results,
         )
-        llm_content = _build_llm_content(args.query, results)
+        output = _build_output(args.query, results)
         return ToolResult(
             success=True,
             data={
@@ -585,6 +574,5 @@ class WebSearchTool(Tool[WebSearchArgs]):
                 "provider": "brave",
                 "results": results,
             },
-            llm_content=llm_content,
-            return_display=llm_content,
+            output=output,
         )

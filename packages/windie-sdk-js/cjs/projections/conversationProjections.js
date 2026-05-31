@@ -51,16 +51,10 @@ function displayTextFromPayload(payload) {
 }
 function rawToolOutputTextFromPayload(payload) {
     const result = (0, toolOutputContent_js_1.recordFromUnknown)(payload.result);
-    return (0, toolOutputContent_js_1.stringField)(result, 'llm_content')
-        ?? (0, toolOutputContent_js_1.stringField)(payload, 'llm_content')
-        ?? (0, toolOutputContent_js_1.stringField)(result, 'output')
+    return (0, toolOutputContent_js_1.stringField)(result, 'output')
         ?? (0, toolOutputContent_js_1.stringField)(payload, 'output')
-        ?? (0, toolOutputContent_js_1.stringField)(result, 'model_llm_content')
-        ?? (0, toolOutputContent_js_1.stringField)(payload, 'model_llm_content')
         ?? (0, toolOutputContent_js_1.stringField)(result, 'message')
         ?? (0, toolOutputContent_js_1.stringField)(payload, 'message')
-        ?? (0, toolOutputContent_js_1.stringField)(result, 'display_content')
-        ?? (0, toolOutputContent_js_1.stringField)(payload, 'display_content', 'return_display')
         ?? (0, toolOutputContent_js_1.stringField)(payload, 'text', 'content', 'error')
         ?? JSON.stringify(payload);
 }
@@ -88,7 +82,7 @@ function bundleOutputContentFromPayload(payload) {
                 ...(status ? { status } : {}),
                 output: rawOutput
                     ? rawToolOutputTextFromPayload(rawOutput)
-                    : ((0, toolOutputContent_js_1.stringField)(step, 'output', 'result', 'llm_content', 'message')
+                    : ((0, toolOutputContent_js_1.stringField)(step, 'output', 'result', 'message')
                         ?? (error ? `Error: ${error}` : JSON.stringify(step))),
             };
         }),

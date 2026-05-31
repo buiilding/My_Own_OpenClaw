@@ -23,7 +23,6 @@ export interface ToolResult {
   success: boolean;
   error?: string | null;
   data?: {
-    llm_content?: string;
     output?: string;
     result?: string;
     message?: string;
@@ -121,7 +120,7 @@ function extractToolContent(data: ToolResult['data']): string {
     return snapshotSections.join('\n\n');
   }
 
-  for (const key of ['llm_content', 'output', 'message', 'result']) {
+  for (const key of ['output', 'message', 'result']) {
     const value = objectData[key];
     if (typeof value === 'string' && value.length > 0) {
       return value;

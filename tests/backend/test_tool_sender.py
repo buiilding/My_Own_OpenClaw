@@ -27,7 +27,7 @@ class _DummyPreparer:
 class _DummySyntheticResultFactory:
     @staticmethod
     def create(_tool_call: ParsedToolCall, error_msg: str) -> ToolResult:
-        return ToolResult(success=False, error=error_msg, llm_content=error_msg)
+        return ToolResult(success=False, error=error_msg, output=error_msg)
 
 
 class _DummyContextFactory:
@@ -431,8 +431,7 @@ class _BackendSearchTool(Tool[_BackendSearchArgs]):
                     },
                 ],
             },
-            llm_content="search results",
-            return_display="search results",
+            output="search results",
         )
 
 
@@ -469,8 +468,7 @@ class _BackendSearchToolWithDuplicateResults(Tool[_BackendSearchArgs]):
                     },
                 ],
             },
-            llm_content="search results",
-            return_display="search results",
+            output="search results",
         )
 
 
@@ -495,8 +493,7 @@ class _BackendStreamingSearchTool(Tool[_BackendSearchArgs]):
         return ToolResult(
             success=True,
             data={"provider": "openai", "query": args.query, "results": []},
-            llm_content="search results",
-            return_display="search results",
+            output="search results",
         )
 
 

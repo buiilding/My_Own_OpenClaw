@@ -49,8 +49,7 @@ async def run(self, args: MyToolArgs, ctx: ToolContext) -> dict:
     # Your logic here
     return {
         "success": True,
-        "llm_content": "Result description",
-        "return_display": "User-friendly result"
+        "output": "Result description",
     }
 ```
 
@@ -87,7 +86,7 @@ async def test_my_tool():
     result = await tool.run(args, ctx)
     
     assert result["success"] is True
-    assert "llm_content" in result
+    assert "output" in result
 ```
 
 ## Best Practices

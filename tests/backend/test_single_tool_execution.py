@@ -60,7 +60,7 @@ async def test_execute_single_tool_missing_request_id_returns_placeholder():
 
     assert result_obj.success is True
     assert result_obj.result.data["status"] == "pending_local_runtime_execution"
-    assert "executing in the local runtime" in (result_obj.result.llm_content or "")
+    assert "executing in the local runtime" in (result_obj.result.output or "")
 
 
 @pytest.mark.asyncio

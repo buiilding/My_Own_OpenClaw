@@ -58,7 +58,7 @@ class StoredMessage:
         if self.role == MessageRole.ASSISTANT and self.tool_calls:
             assistant_message: Dict[str, Any] = {
                 "role": self.role.value,
-                "content": self._llm_content(),
+                "content": self._provider_content(),
                 "tool_calls": self._normalize_tool_calls(self.tool_calls),
             }
             if self.tool_name:
@@ -68,20 +68,20 @@ class StoredMessage:
         if self.role == MessageRole.TOOL:
             tool_message: Dict[str, Any] = {
                 "role": self.role.value,
-                "content": self._llm_content(),
+                "content": self._provider_content(),
                 "tool_call_id": self.tool_call_id or "unknown_tool_call",
             }
             if self.tool_name:
                 tool_message["name"] = self.tool_name
             return tool_message
 
-        message_content = self._llm_content()
+        message_content = self._provider_content()
         return {
             "role": self.role.value,
             "content": message_content,
         }
 
-    def _llm_content(self) -> Union[str, MultimodalContent]:
+    def _provider_content(self) -> Union[str, MultimodalContent]:
         """Return provider-facing content while preserving optional structured history."""
         if self.image_data:
             return self._build_multimodal_content(self.content, self.image_data)

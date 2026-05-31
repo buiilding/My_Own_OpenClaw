@@ -28,7 +28,7 @@ describe('local backend bridge extension runtime', () => {
     const sendRequest = jest.fn(async (_method, payload) => ({
       success: true,
       data: {
-        llm_content: `${payload.tool_name}:${payload.args.note}`,
+        output: `${payload.tool_name}:${payload.args.note}`,
       },
     }));
 
@@ -59,7 +59,7 @@ describe('local backend bridge extension runtime', () => {
     expect(result).toEqual({
       success: true,
       data: {
-        llm_content: 'summarize_note:hello',
+        output: 'summarize_note:hello',
       },
     });
   });
@@ -69,7 +69,7 @@ describe('local backend bridge extension runtime', () => {
     const executeLocalMcpTool = jest.fn(async (toolName, args) => ({
       success: true,
       data: {
-        llm_content: `${toolName}:${args.query}`,
+        output: `${toolName}:${args.query}`,
       },
     }));
 
@@ -100,7 +100,7 @@ describe('local backend bridge extension runtime', () => {
     expect(result).toEqual({
       success: true,
       data: {
-        llm_content: 'mcp_memory__search:windie',
+        output: 'mcp_memory__search:windie',
       },
     });
   });
@@ -117,7 +117,7 @@ describe('local backend bridge extension runtime', () => {
       success: true,
       data: {
         screenshot_path: untrustedPath,
-        llm_content: 'mcp result',
+        output: 'mcp result',
       },
     }));
 
@@ -144,7 +144,7 @@ describe('local backend bridge extension runtime', () => {
       expect(result).toEqual({
         success: true,
         data: {
-          llm_content: 'mcp result',
+          output: 'mcp result',
         },
       });
       await expect(fsPromises.readFile(untrustedPath, 'utf8')).resolves.toBe('do-not-read-or-delete');
@@ -158,7 +158,7 @@ describe('local backend bridge extension runtime', () => {
     const sendRequest = jest.fn(async () => ({
       success: true,
       data: {
-        llm_content: 'typed',
+        output: 'typed',
       },
     }));
     const prepareComputerUseSurface = jest.fn(async () => ({ success: true }));
@@ -195,7 +195,7 @@ describe('local backend bridge extension runtime', () => {
     expect(result).toEqual({
       success: true,
       data: {
-        llm_content: 'typed',
+        output: 'typed',
       },
     });
   });

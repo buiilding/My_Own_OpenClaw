@@ -12,13 +12,13 @@ describe('MessageFormatter', () => {
     expect(output).not.toContain('<system_context>');
   });
 
-  test('formatToolOutputMessage formats success with llm_content and screenshot indicator', () => {
+  test('formatToolOutputMessage formats success with output and screenshot indicator', () => {
     const output = formatToolOutputMessage(
       'read_file',
       {
         success: true,
         data: {
-          llm_content: 'hello',
+          output: 'hello',
           screenshot: 'shot',
         },
       },
@@ -37,7 +37,7 @@ describe('MessageFormatter', () => {
       {
         success: true,
         data: {
-          llm_content: 'clicked',
+          output: 'clicked',
           screenshot_ref: 'artifact:shot-xyz',
           screenshot_id: 'legacy-shot-id',
         },

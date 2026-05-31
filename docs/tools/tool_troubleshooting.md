@@ -81,7 +81,7 @@ Questions to answer:
 1. Does the returned result include the same `request_id` or `bundle_id`?
 2. Did SDK/main send `tool-result` or `tool-bundle-result` back to backend?
 3. Did waiting storage resolve the pending future?
-4. Did result processing format both display output and model-facing `llm_content`?
+4. Did result processing format both display output and model-facing `output`?
 5. Did history commit preserve tool-call/tool-output linkage?
 6. Did transcript persistence preserve structured payload fields needed for replay?
 

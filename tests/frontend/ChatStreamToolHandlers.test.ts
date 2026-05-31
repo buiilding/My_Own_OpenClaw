@@ -232,8 +232,7 @@ describe('useChatStreamToolHandlers', () => {
               toolCallId: 'call-readme',
               status: 'ok',
               output: {
-                display_content: 'README contents',
-                llm_content: 'README model contents',
+                output: 'README contents',
               },
             },
             {
@@ -359,7 +358,7 @@ describe('useChatStreamToolHandlers', () => {
         payload: {
           toolName: 'read_file',
           requestId: 'request-order',
-          result: { display_content: 'README contents' },
+          result: { output: 'README contents' },
         },
       } as any, 'conversation-order');
     });

@@ -41,8 +41,7 @@ function resolveStringField(payload, keys) {
     }
     return null;
 }
-const DISPLAY_FALLBACK_KEYS = ['return_display', 'output', 'message'];
-const MODEL_FALLBACK_KEYS = ['llm_content', 'output', 'message'];
+const OUTPUT_FALLBACK_KEYS = ['output', 'message', 'error'];
 const COMPUTER_USE_CAPTURE_TOOL_NAMES = new Set([
     'mouse_control',
     'keyboard_control',
@@ -59,21 +58,14 @@ function normalizeLocalToolResultData(data) {
         if (typeof data === 'string') {
             return {
                 output: data,
-                display_content: data,
-                llm_content: data,
             };
         }
-        return data === null || typeof data === 'undefined' ? {} : { output: data };
+        return data === null || typeof data === 'undefined' ? { output: '' } : { output: data };
     }
-    const displayContent = resolveStringField(data, ['display_content'])
-        ?? resolveStringField(data, DISPLAY_FALLBACK_KEYS)
-        ?? resolveStringField(data, ['llm_content'])
-        ?? JSON.stringify(data);
-    const llmContent = resolveStringField(data, ['llm_content']) ?? displayContent;
+    const output = resolveStringField(data, OUTPUT_FALLBACK_KEYS) ?? '';
     return {
         ...data,
-        display_content: displayContent,
-        llm_content: llmContent,
+        output,
     };
 }
 function readToolOutputDisplayText(data) {
@@ -83,9 +75,7 @@ function readToolOutputDisplayText(data) {
         }
         return data !== null && typeof data !== 'undefined' ? JSON.stringify(data) : null;
     }
-    return resolveStringField(data, ['display_content'])
-        ?? resolveStringField(data, DISPLAY_FALLBACK_KEYS)
-        ?? resolveStringField(data, MODEL_FALLBACK_KEYS)
+    return resolveStringField(data, OUTPUT_FALLBACK_KEYS)
         ?? JSON.stringify(data);
 }
 function normalizeToolName(value) {

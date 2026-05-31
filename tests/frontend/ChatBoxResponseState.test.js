@@ -104,8 +104,7 @@ describe('chatBoxResponseState', () => {
             tool: 'read_file',
             status: 'ok',
             output: {
-              display_content: 'README contents',
-              llm_content: 'README model contents',
+              output: 'README contents',
             },
           }],
         },

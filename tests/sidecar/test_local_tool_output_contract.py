@@ -16,13 +16,17 @@ def _repo_root() -> Path:
 def _iter_contract_sources() -> list[Path]:
     root = _repo_root()
     source_roots = [
+        root / "backend" / "src" / "tools",
         root / "frontend" / "src" / "main" / "python" / "tools",
+        root / "packages" / "windie-sdk-js" / "src" / "tools",
         root / "examples" / "local-tool-extension",
         root / "examples" / "repo-agent-extension",
     ]
     source_files = [
+        root / "frontend" / "src" / "main" / "mcp_runtime.cjs",
         root / "frontend" / "src" / "main" / "python" / "sidecar_daemon.py",
         root / "frontend" / "src" / "main" / "python" / "windie" / "sdk.py",
+        root / "scripts" / "create-windie-extension.cjs",
     ]
 
     files: list[Path] = []
@@ -37,7 +41,7 @@ def _iter_contract_sources() -> list[Path]:
     return sorted(path for path in files if path.exists())
 
 
-def test_first_party_local_tool_producers_do_not_emit_legacy_model_text_fields():
+def test_first_party_tool_producers_do_not_emit_legacy_model_text_fields():
     offenders: list[str] = []
     for path in _iter_contract_sources():
         text = path.read_text(encoding="utf-8")
@@ -46,7 +50,7 @@ def test_first_party_local_tool_producers_do_not_emit_legacy_model_text_fields()
             offenders.append(f"{path.relative_to(_repo_root())}:{line}")
 
     assert offenders == [], (
-        "Local sidecar tool producers must write model-facing text to data.output. "
+        "Tool producers must write model-facing text to data.output. "
         "Do not reintroduce legacy model text fields: "
         + ", ".join(offenders)
     )

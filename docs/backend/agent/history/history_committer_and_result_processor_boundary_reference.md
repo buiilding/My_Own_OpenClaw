@@ -92,7 +92,7 @@ Bundle special case:
 
 ## History Payload Expectations
 
-`ResultTransformer` assumes frontend-preformatted `llm_content` and extracts screenshot from:
+`ResultTransformer` assumes frontend-preformatted `output` and extracts screenshot from:
 
 1. `tool_result.artifacts['screenshot']`
 2. `tool_result.data['screenshot']` (dict payload path)
@@ -103,7 +103,7 @@ Compaction-specific payload preservation:
 
 - `ResultTransformer` also produces bounded structured `compaction_facts`
 - `HistoryCommitter` forwards those facts unchanged into `ConversationHistory.add_tool_output(...)`
-- this keeps tool-level identifiers (for example refs, urls, actions, ticket numbers, extraction status) available to the compaction renderer without forcing the summary model to recover them from free-text `llm_content`
+- this keeps tool-level identifiers (for example refs, urls, actions, ticket numbers, extraction status) available to the compaction renderer without forcing the summary model to recover them from free-text `output`
 
 Design intent:
 

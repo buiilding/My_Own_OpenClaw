@@ -206,8 +206,7 @@ class ToolSender:
             result = ToolResult(
                 success=False,
                 error=error_msg,
-                llm_content=f"Error: {error_msg}",
-                return_display=error_msg,
+                output=f"Error: {error_msg}",
             )
         else:
             progress_queue: asyncio.Queue[AgentStreamingEvent] = asyncio.Queue()
@@ -277,8 +276,7 @@ class ToolSender:
             return ToolResult(
                 success=False,
                 error=error_msg,
-                llm_content=f"Error: {error_msg}",
-                return_display=error_msg,
+                output=f"Error: {error_msg}",
             )
 
         try:
@@ -301,8 +299,7 @@ class ToolSender:
             return ToolResult(
                 success=False,
                 error=error_msg,
-                llm_content=f"Error: {error_msg}",
-                return_display=error_msg,
+                output=f"Error: {error_msg}",
             )
 
         if isinstance(raw_result, ToolResult):
@@ -312,12 +309,10 @@ class ToolSender:
         if raw_result is None:
             return ToolResult(
                 success=True,
-                llm_content=f"{resolved_call.tool_name} completed.",
-                return_display=f"{resolved_call.tool_name} completed.",
+                output=f"{resolved_call.tool_name} completed.",
             )
         return ToolResult(
             success=True,
             data=raw_result,
-            llm_content=str(raw_result),
-            return_display=str(raw_result),
+            output=str(raw_result),
         )

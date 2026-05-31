@@ -216,7 +216,7 @@ def store_failed_bundle_result(
     bundle_result = ToolResult(
         success=False,
         error=first_error,
-        llm_content=f"Error: {first_error}",
+        output=f"Error: {first_error}",
         data={
             "bundle_id": bundle_id,
             "status": "failure",

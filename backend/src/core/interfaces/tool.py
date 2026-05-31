@@ -36,8 +36,7 @@ class ToolResult:
     data: Any = None
     error: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
-    llm_content: Optional[str] = None
-    return_display: Optional[str] = None
+    output: Optional[str] = None
     episodic_memories: Optional[List[Dict[str, Any]]] = None
     semantic_facts: Optional[List[str]] = None
     artifacts: Optional[Dict[str, Any]] = None
@@ -64,8 +63,7 @@ class ToolResult:
             "error",
             "data",
             "metadata",
-            "llm_content",
-            "return_display",
+            "output",
             "episodic_memories",
             "semantic_facts",
             "artifacts",
@@ -86,10 +84,10 @@ class ToolResult:
             data = {k: v for k, v in result_payload.items() if k not in standard_fields}
             kwargs["data"] = data if data else None
 
-        # Auto-generate llm_content if missing
-        if not kwargs.get("llm_content"):
+        # Auto-generate output if missing.
+        if not kwargs.get("output"):
             if kwargs.get("error"):
-                kwargs["llm_content"] = f"Error: {kwargs['error']}"
+                kwargs["output"] = f"Error: {kwargs['error']}"
             elif kwargs.get("data"):
                 data = kwargs["data"]
                 if isinstance(data, dict):
@@ -98,24 +96,17 @@ class ToolResult:
                     output_content = (
                         data.get("output")
                         or data.get("message")
-                        or data.get("llm_content")
                     )
                     if output_content:
-                        kwargs["llm_content"] = str(output_content)
+                        kwargs["output"] = str(output_content)
                     elif "screenshot" not in data:
                         # Only use data dict if it doesn't contain screenshot
-                        kwargs["llm_content"] = str(data)
+                        kwargs["output"] = str(data)
                     else:
                         # If only screenshot is present, use a generic message
-                        kwargs["llm_content"] = "Tool executed successfully"
+                        kwargs["output"] = "Tool executed successfully"
                 else:
-                    kwargs["llm_content"] = str(data)
-
-        # Auto-generate return_display if missing
-        if not kwargs.get("return_display"):
-            kwargs["return_display"] = (
-                kwargs.get("llm_content") or "Tool executed successfully"
-            )
+                    kwargs["output"] = str(data)
 
         return cls(**kwargs)
 
@@ -126,8 +117,7 @@ class ToolResult:
         """
         Get pre-formatted message for conversation history.
 
-        Frontend tools may provide display text and raw model text, but backend
-        processing should canonicalize model_llm_content before history commit.
+        Tools must provide model-facing text through ``output``.
 
         Args:
             tool_name: Name of the tool that produced this result (for error messages only)
@@ -135,13 +125,8 @@ class ToolResult:
         Returns:
             Message string for history.
         """
-        if isinstance(self.data, dict):
-            model_content = self.data.get("model_llm_content")
-            if model_content:
-                return str(model_content)
-
-        if self.llm_content:
-            return self.llm_content
+        if self.output:
+            return self.output
 
         if self.error:
             return f"Error: {self.error}"
@@ -150,8 +135,7 @@ class ToolResult:
         if self.data:
             if isinstance(self.data, dict):
                 output = (
-                    self.data.get("llm_content")
-                    or self.data.get("output")
+                    self.data.get("output")
                     or self.data.get("message")
                 )
                 return str(output) if output is not None else str(self.data)

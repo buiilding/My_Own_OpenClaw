@@ -23,7 +23,7 @@ title: "Synthetic Result Factory and Coordinate-Resolution Failure Tool-Output R
 
 - `success=False`
 - `error=error_msg`
-- `llm_content=f"Error: {error_msg}"`
+- `output=f"Error: {error_msg}"`
 - `data={"error": error_msg, "tool_name": tool_call.tool_name}`
 
 No side effects:
@@ -73,7 +73,7 @@ This keeps atomic-bundle semantics: all-or-nothing frontend dispatch.
 
 ## Tool-Output Text Shape Coupling
 
-Synthetic result `llm_content` is plain `Error: ...`.
+Synthetic result `output` is plain `Error: ...`.
 
 Downstream processing path:
 

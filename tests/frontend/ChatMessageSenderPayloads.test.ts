@@ -57,7 +57,7 @@ describe('chatMessageSenderPayloads', () => {
   test('builds readable file attachment context from successful read_file calls', async () => {
     const invokeSpy = jest.spyOn(IpcBridge, 'invoke').mockResolvedValue({
       success: true,
-      data: { llm_content: 'File body text' },
+      data: { output: 'File body text' },
     });
 
     const result = await buildReadableFileAttachmentContext([
@@ -100,7 +100,7 @@ describe('chatMessageSenderPayloads', () => {
       if (payload.filePath === '/tmp/a') {
         return {
           success: true,
-          data: { llm_content: 'Readable A' },
+          data: { output: 'Readable A' },
         };
       }
       return {

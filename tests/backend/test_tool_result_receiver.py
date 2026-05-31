@@ -12,7 +12,7 @@ def test_receive_individual_result_preserves_required_system_state_without_metad
         request_id="req-1",
         success=True,
         result_data={
-            "llm_content": "ok",
+            "output": "ok",
             "system_state": {
                 "active_window": "Terminal",
                 "mouse_position": "(845, 512)",

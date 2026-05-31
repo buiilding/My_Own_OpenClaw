@@ -104,16 +104,16 @@ Implication:
 
 Text precedence:
 
-1. `llm_content` (trusted pass-through)
+1. `output` (trusted pass-through)
 2. `error` -> `Error: ...`
 3. `data` fallback:
-- dict uses `output`, then `message`, then nested `llm_content`, else stringified dict
+- dict uses `output`, then `message`, then nested `output`, else stringified dict
 - non-dict stringified
 4. final fallback: `Tool {tool_name} executed`
 
 Design intent:
 
-- backend does not validate or rewrite preformatted frontend `llm_content`
+- backend does not validate or rewrite preformatted frontend `output`
 - synthetic and payload-only tool results still produce deterministic history text
 
 ## `ToolResult.from_payload` Normalization Rules
@@ -124,13 +124,13 @@ For mapping-shaped tool-result payloads:
 - standard keys are extracted directly
 - non-standard keys become `data` when `data` missing
 - screenshot-only data avoids leaking base64 into text and falls back to generic success string
-- `return_display` mirrors generated/preserved `llm_content` when missing
+- `output` mirrors generated/preserved `output` when missing
 
 ## Test-Backed Invariants
 
 `tests/backend/test_tool_result_formatting.py` covers:
 
-- `llm_content` pass-through in `format_for_history`
+- `output` pass-through in `format_for_history`
 - error/data/default fallback ordering
 - `from_payload` success/error defaulting
 - screenshot-only generic message behavior

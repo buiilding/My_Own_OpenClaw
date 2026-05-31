@@ -16,11 +16,14 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sidecar/tools: make `data.output` the only model-facing local tool
   text channel, require sidecar results to include it, and move browser
   snapshot/extract/search readable content into `output`.
+- backend/sdk/tools: make `output` the only model-facing tool text field across
+  backend remote tools, SDK projections, MCP/local tool adapters, extension
+  scaffolds, and tool docs; remove the legacy split display/model text contract.
 - frontend/sidecar/browser: delete the sidecar browser schema/action re-export
   wrappers and import the shared browser contract directly at validation sites.
 - tests/sidecar/sdk: add regression coverage preventing local tool producers
-  and SDK normalization from reviving legacy model-text fields such as
-  `llm_content`, `return_display`, `snapshot`, or `extracted_content`.
+  and SDK normalization from reviving legacy model-text fields or browser-only
+  structured text as model output.
 - tests/sidecar: narrow backend-sidecar exact schema parity coverage to shared
   contracts so frontend-owned local tool schemas are validated through the
   sidecar manifest boundary instead of backend model equality.

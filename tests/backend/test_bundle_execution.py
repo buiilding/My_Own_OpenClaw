@@ -60,7 +60,7 @@ async def test_execute_bundle_uses_existing_result():
     assert len(result.tool_results) == 2
     assert session.get_result_storage().get_bundle_future("bundle") is None
     assert result.tool_results[0].result.success is True
-    assert "done" in (result.tool_results[0].result.llm_content or "")
+    assert "done" in (result.tool_results[0].result.output or "")
     assert result.tool_results[1].result.success is True
 
 
@@ -192,7 +192,7 @@ async def test_execute_bundle_handles_pydantic_step_results():
 
     assert len(result.tool_results) == 2
     assert result.tool_results[0].result.success is True
-    assert "done" in (result.tool_results[0].result.llm_content or "")
+    assert "done" in (result.tool_results[0].result.output or "")
 
 
 @pytest.mark.asyncio

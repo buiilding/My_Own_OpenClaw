@@ -135,7 +135,7 @@ describe('Windie SDK conversation runtime core', () => {
         toolName: 'read_file',
         requestId: 'req-readme',
         toolCallId: 'call-readme',
-        result: { display_content: 'README contents' },
+        result: { output: 'README contents' },
         success: true,
       }),
       event('tool_call', {
@@ -148,7 +148,7 @@ describe('Windie SDK conversation runtime core', () => {
         toolName: 'read_file',
         requestId: 'req-package',
         toolCallId: 'call-package',
-        result: { display_content: 'package contents' },
+        result: { output: 'package contents' },
         success: true,
       }),
       event('assistant_message', { text: 'Both files were inspected.' }),
@@ -231,27 +231,24 @@ describe('Windie SDK conversation runtime core', () => {
     expect(new Set(rows.map(row => row.id)).size).toBe(2);
   });
 
-		  test('SDK display rows prefer raw model-facing tool output candidate', () => {
-	    const rows = buildDisplayRows([
-	      event('tool_output', {
-	        toolName: 'run_shell_command',
-	        requestId: 'req-shell',
-	        result: {
-	          llm_content: 'raw model output',
-	          output: 'full stdout',
-	          model_llm_content: 'backend truncated output',
-	          display_content: 'display output',
-	        },
-	        success: true,
-	      }),
-	    ]);
+  test('SDK display rows use output as tool text', () => {
+    const rows = buildDisplayRows([
+      event('tool_output', {
+        toolName: 'run_shell_command',
+        requestId: 'req-shell',
+        result: {
+          output: 'raw tool output',
+        },
+        success: true,
+      }),
+    ]);
 
-	    expect(rows).toHaveLength(1);
-	    expect(rows[0]).toMatchObject({
-	      type: 'tool_output',
-	      content: 'raw model output',
-	    });
-	  });
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      type: 'tool_output',
+      content: 'raw tool output',
+    });
+  });
 
   test('orphan empty-chat greeting is not display or rehydrate history', () => {
     const events = [
@@ -363,8 +360,8 @@ describe('Windie SDK conversation runtime core', () => {
             toolCallId: 'call-readme',
             status: 'ok',
             output: {
-              display_content: 'README contents',
-              llm_content: 'README model contents',
+              output: 'README contents',
+              output: 'README model contents',
             },
           },
           {
@@ -588,8 +585,7 @@ describe('Windie SDK conversation runtime core', () => {
           toolCallId: 'call-read',
           toolName: 'read_file',
           result: {
-            display_content: 'full visible output',
-            llm_content: 'local model output',
+            output: 'local tool output',
           },
         },
       }),
@@ -600,8 +596,7 @@ describe('Windie SDK conversation runtime core', () => {
         turnRef: 'turn-1',
         source: 'backend',
         payload: {
-          display_content: 'full visible output',
-          model_llm_content: 'bounded backend model output',
+          output: 'backend tool output',
           tool_name: 'read_file',
           request_id: 'req-read',
           tool_call_id: 'call-read',
@@ -611,20 +606,17 @@ describe('Windie SDK conversation runtime core', () => {
 
     expect(buildDisplayConversation(events).messages.filter(message => message.messageType === 'tool_output')).toEqual([
       expect.objectContaining({
-        text: 'full visible output',
-        metadata: expect.objectContaining({
-          model_llm_content: 'bounded backend model output',
-        }),
+        text: 'backend tool output',
       }),
     ]);
     expect(buildRehydrateSnapshot(events).messages.filter(message => message.role === 'tool')).toEqual([
       expect.objectContaining({
-        content: 'bounded backend model output',
+        content: 'backend tool output',
       }),
     ]);
   });
 
-  test('deduplicated tool outputs prefer model-visible content over backend source', () => {
+  test('deduplicated tool outputs prefer backend output over local source', () => {
     const events = [
       event('tool_call', {
         toolName: 'read_file',
@@ -638,7 +630,7 @@ describe('Windie SDK conversation runtime core', () => {
         turnRef: 'turn-1',
         source: 'backend',
         payload: {
-          display_content: 'backend display only',
+          output: 'backend display only',
           tool_name: 'read_file',
           request_id: 'req-read',
           tool_call_id: 'call-read',
@@ -649,20 +641,19 @@ describe('Windie SDK conversation runtime core', () => {
         requestId: 'req-read',
         toolCallId: 'call-read',
         result: {
-          display_content: 'local visible output',
-          llm_content: 'local model-visible output',
+          output: 'local model-visible output',
         },
       }),
     ];
 
     expect(buildDisplayConversation(events).messages.filter(message => message.messageType === 'tool_output')).toEqual([
       expect.objectContaining({
-        text: 'local visible output',
+        text: 'backend display only',
       }),
     ]);
     expect(buildRehydrateSnapshot(events).messages.filter(message => message.role === 'tool')).toEqual([
       expect.objectContaining({
-        content: 'local model-visible output',
+        content: 'backend display only',
       }),
     ]);
   });
@@ -1947,8 +1938,8 @@ describe('Windie SDK conversation runtime core', () => {
     const executeTool = jest.fn(async call => ({
       success: true,
       data: {
-        display_content: `local display for ${call.args.path}`,
-        llm_content: `local model content for ${call.args.path}`,
+        output: `local display for ${call.args.path}`,
+        output: `local model content for ${call.args.path}`,
       },
     }));
     const store = new InMemoryConversationStore();
@@ -1987,8 +1978,7 @@ describe('Windie SDK conversation runtime core', () => {
       tool_name: 'read_file',
       request_id: 'req-original',
       tool_call_id: 'call-original',
-      display_content: 'backend accepted README contents',
-      model_llm_content: 'bounded README contents',
+      output: 'backend accepted README contents',
     }, { eventId: 'backend-tool-output-original', turnRef: 'turn-original' }));
     transport.emit(backendEvent('context-compaction-started', {
       reason: 'auto-pre-query',
@@ -2053,7 +2043,7 @@ describe('Windie SDK conversation runtime core', () => {
       }),
       expect.objectContaining({
         role: 'tool',
-        content: 'bounded README contents',
+        content: 'backend accepted README contents',
         tool_call_id: 'call-original',
       }),
     ]);
@@ -2118,8 +2108,7 @@ describe('Windie SDK conversation runtime core', () => {
       tool_name: 'read_file',
       request_id: 'req-edited',
       tool_call_id: 'call-edited',
-      display_content: 'backend accepted package contents',
-      model_llm_content: 'bounded package contents',
+      output: 'backend accepted package contents',
     }, { eventId: 'backend-tool-output-edited', turnRef: 'turn-edited' }));
     transport.emit(backendEvent('assistant-message-full', {
       content: '- package summary',
@@ -2178,7 +2167,7 @@ describe('Windie SDK conversation runtime core', () => {
       }),
       expect.objectContaining({
         role: 'tool',
-        content: 'bounded package contents',
+        content: 'backend accepted package contents',
         tool_call_id: 'call-edited',
         tool_name: 'read_file',
       }),
@@ -2485,7 +2474,7 @@ describe('Windie SDK conversation runtime core', () => {
     const executeTool = jest.fn(async () => ({
       success: true,
       data: {
-        return_display: 'should not run',
+        output: 'should not run',
       },
     }));
     const sendToolResult = jest.fn(async () => undefined);
@@ -2539,7 +2528,7 @@ describe('Windie SDK conversation runtime core', () => {
     const executeTool = jest.fn(async () => ({
       success: true,
       data: {
-        return_display: 'should not run',
+        output: 'should not run',
       },
     }));
     const sendToolBundleResult = jest.fn(async () => undefined);

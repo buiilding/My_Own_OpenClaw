@@ -90,8 +90,8 @@ class ExampleTool(Tool[ExampleArgs]):
     async def run(self, args: ExampleArgs, ctx: ToolContext) -> dict[str, Any]:
         return {
             "success": True,
-            "llm_content": f"Processed: {args.query}",
-            "return_display": "Success",
+            "output": f"Processed: {args.query}",
+            "output": "Success",
         }
 ```
 
@@ -161,8 +161,8 @@ async def execute_my_remote_tool(args: dict[str, Any]) -> dict[str, Any]:
         return {
             "success": True,
             "data": {
-                "llm_content": f"Handled query: {value}",
-                "return_display": "Handled",
+                "output": f"Handled query: {value}",
+                "output": "Handled",
             },
         }
     except Exception as exc:
@@ -222,8 +222,8 @@ Success:
 {
   "success": True,
   "data": {
-    "llm_content": "Model-facing summary",
-    "return_display": "UI summary",
+    "output": "Model-facing summary",
+    "output": "UI summary",
     "result": {"...": "..."}
   }
 }

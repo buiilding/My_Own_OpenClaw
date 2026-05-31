@@ -101,8 +101,7 @@ async function testOpenChromeBackground() {
       logSuccess('Chrome command executed successfully');
       logInfo(`Command: ${result.data.command}`);
       logInfo(`Working Directory: ${result.data.working_directory}`);
-      logInfo(`LLM Content: ${result.data.llm_content}`);
-      logInfo(`Return Display: ${result.data.return_display}`);
+      logInfo(`Output: ${result.data.output}`);
       return true;
     } else {
       logError(`Failed to execute command: ${result.error}`);

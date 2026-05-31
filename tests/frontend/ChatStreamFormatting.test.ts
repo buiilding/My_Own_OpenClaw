@@ -276,10 +276,8 @@ describe('chatStreamFormatting utils', () => {
 
   test('formats tool output error and success payloads', () => {
     expect(formatToolOutputText({
-      display_content: 'full display output',
-      output: 'legacy display output',
-      model_llm_content: 'bounded model output',
-    })).toBe('full display output');
+      output: 'full tool output',
+    })).toBe('full tool output');
     expect(formatToolOutputText({ error: 'boom', output: 'model-facing output' })).toBe('model-facing output');
     expect(formatToolOutputText({ output: 'all good' })).toBe('all good');
     expect(formatToolOutputText({ error: 'boom' })).toBe('Error: boom');

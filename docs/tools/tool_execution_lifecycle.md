@@ -63,9 +63,8 @@ Single-tool path:
   result ingress consumes `data.output` plus screenshot fields for
   waiting/model-history only.
 - backend history projection may truncate raw `data.output` before the next
-  model call, but it must not rewrite local result data into display/model
-  duplicate fields such as `display_content`, `model_llm_content`, or
-  `llm_content`.
+  model call, but it must not rewrite local result data into duplicate
+  display/model text fields.
 - backend waiting storage resolves the pending future for that request
 - processing cleanup removes resolved-call state for the request
 

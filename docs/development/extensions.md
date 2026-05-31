@@ -111,8 +111,8 @@ from tools.result import ToolResult
 async def run(root: str, max_files: int = 20):
     return ToolResult.success_result(
         {
-            "llm_content": f"Inspected {root} with limit {max_files}",
-            "return_display": "Repository snapshot ready",
+            "output": f"Inspected {root} with limit {max_files}",
+            "output": "Repository snapshot ready",
         }
     )
 ```

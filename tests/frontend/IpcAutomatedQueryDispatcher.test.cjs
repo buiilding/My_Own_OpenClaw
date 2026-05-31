@@ -18,7 +18,7 @@ function createHarness(overrides = {}) {
     getPendingSettingsSyncPromise: jest.fn(() => null),
     buildQueryPayload: jest.fn(async ({ text, conversationRef, currentUserId, isFirstQuery: firstQuery }) => ({
       payload: {
-        llm_content: `built:${text}`,
+        output: `built:${text}`,
         current_user_id: currentUserId,
         first_query: firstQuery,
       },
@@ -118,7 +118,7 @@ describe('ipc_automated_query_dispatcher', () => {
       payload: {
         text: 'inspect app',
         conversation_ref: 'vm-run-generated-conv',
-        llm_content: 'built:inspect app',
+        output: 'built:inspect app',
         current_user_id: 'user-1',
         first_query: true,
         attachment_filenames: ['screenshot.png'],

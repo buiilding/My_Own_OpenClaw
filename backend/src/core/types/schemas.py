@@ -200,8 +200,7 @@ class ToolResultDict(TypedDict, total=False):
 
     success: bool
     error: NotRequired[Optional[str]]
-    llm_content: NotRequired[Optional[str]]
-    return_display: NotRequired[Optional[str]]
+    output: NotRequired[Optional[str]]
     data: NotRequired[Any]
     metadata: NotRequired[Optional[Dict[str, Any]]]
     episodic_memories: NotRequired[Optional[List[Dict[str, Any]]]]

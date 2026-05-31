@@ -9,7 +9,7 @@ async def test_result_transformer_preserves_explicit_compaction_facts():
     transformer = ResultTransformer()
     result = ToolResult(
         success=True,
-        llm_content="clicked email row",
+        output="clicked email row",
         compaction_facts={"action": "click", "ref": 42293},
     )
 
@@ -29,7 +29,7 @@ async def test_result_transformer_builds_bounded_compaction_facts_from_tool_payl
     result = ToolResult(
         success=False,
         error="captured Outlook UI chrome instead of email body",
-        llm_content="browser read failed",
+        output="browser read failed",
         data={
             "action": "read_long_content",
             "url": "https://outlook.office.com/mail/",

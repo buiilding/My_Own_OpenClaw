@@ -5,17 +5,15 @@ def test_from_payload_defaults_success_and_data():
     result = ToolResult.from_payload({"output": "ok"})
 
     assert result.success is True
-    assert result.data == {"output": "ok"}
-    assert result.llm_content == "ok"
-    assert result.return_display == "ok"
+    assert result.data is None
+    assert result.output == "ok"
 
 
-def test_from_payload_error_sets_success_false_and_llm_content():
+def test_from_payload_error_sets_success_false_and_output():
     result = ToolResult.from_payload({"error": "boom"})
 
     assert result.success is False
-    assert result.llm_content == "Error: boom"
-    assert result.return_display == "Error: boom"
+    assert result.output == "Error: boom"
 
 
 def test_from_payload_null_error_defaults_success_true():
@@ -23,27 +21,22 @@ def test_from_payload_null_error_defaults_success_true():
 
     assert result.success is True
     assert result.error is None
-    assert result.llm_content == "ok"
-    assert result.return_display == "ok"
+    assert result.output == "ok"
 
 
 def test_from_payload_screenshot_only_generates_generic_message():
     result = ToolResult.from_payload({"data": {"screenshot": "shot"}})
 
-    assert result.llm_content == "Tool executed successfully"
-    assert result.return_display == "Tool executed successfully"
+    assert result.output == "Tool executed successfully"
 
 
-def test_format_for_history_prefers_llm_content_without_preformatted_flags():
-    result = ToolResult(
-        success=True,
-        llm_content="<xml />",
-    )
+def test_format_for_history_prefers_output():
+    result = ToolResult(success=True, output="<xml />")
 
     assert result.format_for_history("click") == "<xml />"
 
 
-def test_format_for_history_non_preformatted_uses_data_and_error():
+def test_format_for_history_uses_data_and_error_fallbacks():
     result = ToolResult(success=False, error="bad")
     assert result.format_for_history("click") == "Error: bad"
 
@@ -58,50 +51,37 @@ def test_from_payload_respects_explicit_success_flag_even_with_error():
     result = ToolResult.from_payload({"success": True, "error": "boom"})
 
     assert result.success is True
-    assert result.llm_content == "Error: boom"
-    assert result.return_display == "Error: boom"
+    assert result.output == "Error: boom"
 
 
-def test_from_payload_preserves_explicit_llm_content_and_return_display():
+def test_from_payload_preserves_explicit_output():
     result = ToolResult.from_payload(
         {
             "success": True,
-            "llm_content": "preformatted",
-            "return_display": "display text",
-            "data": {"output": "ignored for llm content"},
+            "output": "preformatted",
+            "data": {"output": "ignored"},
         }
     )
 
-    assert result.llm_content == "preformatted"
-    assert result.return_display == "display text"
+    assert result.output == "preformatted"
 
 
 def test_from_payload_uses_message_field_when_output_missing():
     result = ToolResult.from_payload({"data": {"message": "hello"}})
 
-    assert result.llm_content == "hello"
-    assert result.return_display == "hello"
-
-
-def test_from_payload_uses_nested_llm_content_when_output_and_message_missing():
-    result = ToolResult.from_payload({"data": {"llm_content": "nested"}})
-
-    assert result.llm_content == "nested"
-    assert result.return_display == "nested"
+    assert result.output == "hello"
 
 
 def test_from_payload_dict_data_without_known_output_fields_stringifies():
     result = ToolResult.from_payload({"data": {"foo": "bar"}})
 
-    assert result.llm_content == "{'foo': 'bar'}"
-    assert result.return_display == "{'foo': 'bar'}"
+    assert result.output == "{'foo': 'bar'}"
 
 
 def test_from_payload_non_dict_data_stringifies():
     result = ToolResult.from_payload({"data": 123})
 
-    assert result.llm_content == "123"
-    assert result.return_display == "123"
+    assert result.output == "123"
 
 
 def test_from_payload_with_only_standard_fields_keeps_data_none():
@@ -109,7 +89,7 @@ def test_from_payload_with_only_standard_fields_keeps_data_none():
 
     assert result.success is True
     assert result.data is None
-    assert result.return_display == "Tool executed successfully"
+    assert result.output is None
 
 
 def test_format_for_history_dict_without_output_fields_returns_dict_string():

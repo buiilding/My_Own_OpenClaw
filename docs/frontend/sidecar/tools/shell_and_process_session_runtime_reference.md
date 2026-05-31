@@ -35,7 +35,7 @@ Model-facing wording note:
 The design separates:
 
 - execution path + stream capture (`shell_tool.py`)
-- output/token formatting + `llm_content`/`return_display` shaping (`shell_output_formatting.py`)
+- output/token formatting + `output`/`output` shaping (`shell_output_formatting.py`)
 - foreground/background response envelope assembly (`shell_response_payloads.py`)
 - session state store + retention policy (`shell_process_registry.py`)
 - user-facing session operations (`process_tool.py`)
@@ -83,8 +83,8 @@ Output shaping:
   - `output_token_limit`
   - `original_output_tokens`
   - `output_truncated`
-  - `llm_content`
-  - human-readable `return_display`
+  - `output`
+  - human-readable `output`
 
 ## Session Registry Model
 
@@ -172,8 +172,8 @@ Termination and cleanup:
 `tests/sidecar/test_shell_output_formatting.py` covers:
 
 - `max_output_tokens` default/validation behavior
-- truncation marker and token-count metadata in `llm_content`
-- status-specific `return_display` formatting
+- truncation marker and token-count metadata in `output`
+- status-specific `output` formatting
 
 ## Drift Hotspots
 

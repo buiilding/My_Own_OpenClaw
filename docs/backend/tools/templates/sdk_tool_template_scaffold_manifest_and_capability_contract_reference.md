@@ -33,7 +33,7 @@ Key template patterns:
 
 - args model uses `ConfigDict(extra='forbid')`
 - tool class defines `name`, `description`, `args_model`
-- `run(...)` returns dict with expected keys (`success`, `llm_content`, optional `error`, `artifacts`, memory fields)
+- `run(...)` returns dict with expected keys (`success`, `output`, optional `error`, `artifacts`, memory fields)
 - helper method extraction pattern (`_process_input`) encourages smaller methods
 - `get_capabilities()` returns capability flags and timeout
 
@@ -41,9 +41,9 @@ Key template patterns:
 
 Template documents canonical result-shape expectations:
 
-- success path should include `success: True` + `llm_content`
-- failure path should include `success: False`, `error`, and `llm_content`
-- optional fields (`return_display`, `artifacts`, episodic/semantic memory arrays) are explicitly called out
+- success path should include `success: True` + `output`
+- failure path should include `success: False`, `error`, and `output`
+- optional fields (`output`, `artifacts`, episodic/semantic memory arrays) are explicitly called out
 
 This keeps new tools aligned with backend result transformer/history formatter assumptions.
 
