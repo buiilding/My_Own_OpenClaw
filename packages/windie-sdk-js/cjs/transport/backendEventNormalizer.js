@@ -200,6 +200,9 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
                 args: payload.parameters && typeof payload.parameters === 'object' ? payload.parameters : {},
                 requestId: typeof payload.request_id === 'string' ? payload.request_id : null,
                 correlationId: typeof payload.correlation_id === 'string' ? payload.correlation_id : null,
+                metadata: payload.metadata && typeof payload.metadata === 'object' && !Array.isArray(payload.metadata)
+                    ? payload.metadata
+                    : null,
                 toolCallId: typeof payload.tool_call_id === 'string'
                     ? payload.tool_call_id
                     : (0, toolCorrelationIds_js_1.resolveModelFacingToolCallId)(payload),

@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/sdk/tools: make frontend/sidecar-owned local tools a breaking
+  ownership boundary by using accepted client schemas for built-in local tools,
+  removing backend argument validation for sidecar payloads, and teaching the
+  SDK tool coordinator to honor backend-marked synthetic skip events.
 - sdk/runtime: make public `agent.stream(...)` and `agent.chat(...).stream(...)`
   emit normalized chat events with explicit state, reasoning, assistant,
   `tool_calls`, and `tool_outputs` records, while keeping bundled tool results

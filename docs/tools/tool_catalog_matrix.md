@@ -10,14 +10,17 @@ title: "Tool Catalog Matrix"
 
 WindieOS tools are registered in two places by design:
 
-- Backend catalog: model-facing schema and tool policy owner.
+- Frontend/sidecar manifest: source of truth for client-local model-facing
+  schemas and executable local actions.
+- Backend catalog: backend-owned tools plus fallback/default model-facing
+  entries and tool policy owner.
 - Sidecar registry: executable local action owner.
 
 Do not import backend tool code into the sidecar to force parity. Keep parity explicit through shared contracts, exposed-name sets, and tests.
 
 ## Canonical Catalog
 
-| Tool | Domain | Backend schema owner | Sidecar executor | Use for | Key docs and tests |
+| Tool | Domain | Backend fallback/policy owner | Sidecar executor | Use for | Key docs and tests |
 | --- | --- | --- | --- | --- | --- |
 | `mouse_control` | computer | `backend/src/tools/remote_tools/computer.py`, `backend/src/tools/computer/schemas.py` | `frontend/src/main/python/tools/computer/mouse_tool.py` | Click, move, drag, and coordinate-targeted mouse actions | [Computer Tools](computer.md), `tests/backend/test_tool_policy.py`, `tests/sidecar/test_mouse_tool.py` |
 | `keyboard_control` | computer | `backend/src/tools/remote_tools/computer.py`, `backend/src/tools/computer/schemas.py` | `frontend/src/main/python/tools/computer/keyboard_tool.py` | Type text, paste, press keys, and shortcuts | [Computer Tools](computer.md), `tests/sidecar/test_keyboard_tool.py` |
@@ -46,7 +49,7 @@ Some capabilities are model-visible but are not sidecar local actions:
 
 ## Parity Rules
 
-Backend catalog owner:
+Backend fallback and policy owner:
 
 - `backend/src/tools/tool_catalog.py`
 - `backend/src/tools/registry.py`
@@ -61,17 +64,18 @@ Sidecar executable owner:
 
 Parity tests should prove:
 
-- every backend-exposed local tool expected by the sidecar exists in the sidecar registry
-- backend schemas stay canonical and model-facing
+- every accepted local tool expected by the sidecar exists in the sidecar registry
+- accepted client-local schemas remain model-facing when a client manifest supplies them
 - sidecar results normalize into `ToolResult`
 - browser shared-contract schema stays aligned across backend and sidecar
 
 ## Add-a-Tool Checklist
 
 1. Decide whether the tool is backend-only, frontend/sidecar-executed, or provider-native.
-2. Add backend schema/catalog registration if the model should call it.
+2. Add or update the frontend/sidecar manifest for local model-visible tools.
 3. Add sidecar executable registration only when local execution is required.
 4. Add SDK/main tool-router handling only when payload/result envelopes, artifacts, screenshots, or UI display behavior change.
 5. Add policy/profile entries if the tool should appear in `chat`, `coding`, `browser`, `computer`, or `full` profiles.
-6. Add tests for backend schema, policy filtering, sidecar execution, SDK/main result relay, and cross-layer parity.
-7. Update [Tools Hub](README.md), this matrix, and feature-specific docs.
+6. Add backend schema/catalog registration only for backend-executed tools or fallback/default local exposure.
+7. Add tests for accepted client schemas, backend policy filtering, sidecar execution, SDK/main result relay, and cross-layer parity.
+8. Update [Tools Hub](README.md), this matrix, and feature-specific docs.

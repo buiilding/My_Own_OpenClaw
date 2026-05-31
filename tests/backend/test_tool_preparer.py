@@ -19,6 +19,7 @@ from backend.src.tools.computer.schemas import (
     MouseControlArgs,
 )
 from backend.src.tools.system.schemas import GetOpenWindowsArgs
+from backend.src.tools.web_search.schemas import WebSearchArgs
 
 
 class DummySession:
@@ -53,8 +54,9 @@ class DummySession:
 
 
 class _ArgsModelTool:
-    def __init__(self, args_model):
+    def __init__(self, args_model, execution_target="frontend"):
         self.args_model = args_model
+        self.execution_target = execution_target
 
 
 class DummyToolRegistry:
@@ -144,6 +146,52 @@ async def test_prepare_single_tool_assigns_request_id():
         result.resolved_calls[0].metadata["request_id"]
         == tool_call.metadata["request_id"]
     )
+
+
+@pytest.mark.asyncio
+async def test_prepare_frontend_tool_skips_backend_arg_validation():
+    preparer = ToolPreparer(
+        object(),
+        object(),
+        object(),
+        tool_registry=DummyToolRegistry(
+            {"browser": _ArgsModelTool(BrowserControlArgs, execution_target="frontend")}
+        ),
+    )
+    tool_call = ParsedToolCall(
+        tool_name="browser",
+        parameters={"action": "click", "text": "Sign in"},
+        raw_call="{}",
+    )
+
+    _events, result = await _collect_preparation(preparer, [tool_call])
+
+    assert result.errors == []
+    assert len(result.resolved_calls) == 1
+    assert result.resolved_calls[0].parameters == {"action": "click", "text": "Sign in"}
+
+
+@pytest.mark.asyncio
+async def test_prepare_backend_tool_keeps_backend_arg_validation():
+    preparer = ToolPreparer(
+        object(),
+        object(),
+        object(),
+        tool_registry=DummyToolRegistry(
+            {"web_search": _ArgsModelTool(WebSearchArgs, execution_target="backend")}
+        ),
+    )
+    tool_call = ParsedToolCall(
+        tool_name="web_search",
+        parameters={},
+        raw_call="{}",
+    )
+
+    _events, result = await _collect_preparation(preparer, [tool_call])
+
+    assert len(result.errors) == 1
+    assert "web_search call is invalid" in result.errors[0][1]
+    assert "before backend execution" in result.errors[0][1]
 
 
 @pytest.mark.asyncio
@@ -339,7 +387,7 @@ async def test_prepare_mouse_control_manual_without_screenshot_id_uses_current_f
 
 
 @pytest.mark.asyncio
-async def test_prepare_single_invalid_mouse_control_tool_returns_preparation_error():
+async def test_prepare_single_frontend_mouse_control_shape_is_left_to_sidecar():
     preparer = ToolPreparer(
         object(),
         object(),
@@ -366,12 +414,9 @@ async def test_prepare_single_invalid_mouse_control_tool_returns_preparation_err
 
     assert result is not None
     assert result.bundle_id is None
-    assert result.resolved_calls == []
-    assert len(result.errors) == 1
-    failed_call, error_message = result.errors[0]
-    assert failed_call is tool_call
-    assert "mouse_control call is invalid" in error_message
-    assert "action: Field required" in error_message
+    assert result.errors == []
+    assert len(result.resolved_calls) == 1
+    assert result.resolved_calls[0].parameters == {"x": 1, "y": 2}
     assert "request_id" in tool_call.metadata
 
 
@@ -383,7 +428,10 @@ async def test_prepare_invalid_grounded_mouse_tool_returns_preparation_error():
         object(),
         tool_registry=DummyToolRegistry(
             {
-                "grounded_mouse_action": _ArgsModelTool(GroundedMouseActionArgs),
+                "grounded_mouse_action": _ArgsModelTool(
+                    GroundedMouseActionArgs,
+                    execution_target="backend",
+                ),
             }
         ),
     )
@@ -411,7 +459,10 @@ async def test_prepare_invalid_grounded_scroll_tool_returns_preparation_error():
         object(),
         tool_registry=DummyToolRegistry(
             {
-                "grounded_scroll_action": _ArgsModelTool(GroundedScrollActionArgs),
+                "grounded_scroll_action": _ArgsModelTool(
+                    GroundedScrollActionArgs,
+                    execution_target="backend",
+                ),
             }
         ),
     )
@@ -432,7 +483,7 @@ async def test_prepare_invalid_grounded_scroll_tool_returns_preparation_error():
 
 
 @pytest.mark.asyncio
-async def test_prepare_bundle_invalid_mouse_control_tool_returns_bundle_error_without_resolved_calls():
+async def test_prepare_bundle_frontend_mouse_control_shape_is_left_to_sidecar():
     preparer = ToolPreparer(
         object(),
         object(),
@@ -458,11 +509,9 @@ async def test_prepare_bundle_invalid_mouse_control_tool_returns_bundle_error_wi
 
     assert result is not None
     assert result.bundle_id is not None
-    assert result.resolved_calls == []
-    assert len(result.errors) == 1
-    failed_call, error_message = result.errors[0]
-    assert failed_call is first_call
-    assert "mouse_control call is invalid" in error_message
+    assert result.errors == []
+    assert len(result.resolved_calls) == 2
+    assert result.resolved_calls[0].parameters == {"x": 10, "y": 20}
     assert first_call.metadata["bundle_id"] == result.bundle_id
     assert second_call.metadata["bundle_id"] == result.bundle_id
 
@@ -603,7 +652,7 @@ def test_tool_call_has_manual_coordinates_rejects_bool_coordinates():
 
 
 @pytest.mark.asyncio
-async def test_prepare_rejects_invalid_keyboard_tool_call_before_frontend_dispatch():
+async def test_prepare_allows_frontend_keyboard_tool_shape_for_sidecar_validation():
     preparer = ToolPreparer(
         object(),
         object(),
@@ -623,16 +672,13 @@ async def test_prepare_rejects_invalid_keyboard_tool_call_before_frontend_dispat
     _events, result = await _collect_preparation(preparer, [tool_call])
 
     assert result is not None
-    assert result.resolved_calls == []
-    assert len(result.errors) == 1
-    failed_call, error_message = result.errors[0]
-    assert failed_call is tool_call
-    assert "rejected before frontend execution" in error_message
-    assert "action" in error_message.lower()
+    assert result.errors == []
+    assert len(result.resolved_calls) == 1
+    assert result.resolved_calls[0].parameters == {}
 
 
 @pytest.mark.asyncio
-async def test_prepare_rejects_direct_system_tool_missing_required_explanation():
+async def test_prepare_allows_frontend_system_tool_shape_for_sidecar_validation():
     preparer = ToolPreparer(
         object(),
         object(),
@@ -654,16 +700,13 @@ async def test_prepare_rejects_direct_system_tool_missing_required_explanation()
     _events, result = await _collect_preparation(preparer, [tool_call])
 
     assert result is not None
-    assert result.resolved_calls == []
-    assert len(result.errors) == 1
-    failed_call, error_message = result.errors[0]
-    assert failed_call is tool_call
-    assert "Details: explanation: Field required." in error_message
-    assert "get_open_windows call is invalid" in error_message
+    assert result.errors == []
+    assert len(result.resolved_calls) == 1
+    assert result.resolved_calls[0].parameters == {"filter_text": "Settings"}
 
 
 @pytest.mark.asyncio
-async def test_prepare_rejects_browser_call_missing_action_with_repair_guidance():
+async def test_prepare_allows_frontend_browser_tool_shape_for_sidecar_validation():
     preparer = ToolPreparer(
         object(),
         object(),
@@ -683,13 +726,9 @@ async def test_prepare_rejects_browser_call_missing_action_with_repair_guidance(
     _events, result = await _collect_preparation(preparer, [tool_call])
 
     assert result is not None
-    assert result.resolved_calls == []
-    assert len(result.errors) == 1
-    failed_call, error_message = result.errors[0]
-    assert failed_call is tool_call
-    assert "Details: action: Field required." in error_message
-    assert "top-level `action` and the fields required for that action" in error_message
-    assert '`{"action":"connect"}`' in error_message
+    assert result.errors == []
+    assert len(result.resolved_calls) == 1
+    assert result.resolved_calls[0].parameters == {}
 
 
 @pytest.mark.asyncio

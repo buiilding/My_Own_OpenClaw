@@ -7,7 +7,6 @@ from backend.src.tools.client_manifest import (
     MAX_SCHEMA_BYTES,
     validate_client_tool_manifest,
 )
-from backend.src.tools.tool_catalog import get_built_tool_catalog_entry
 from backend.src.tools.remote_tool_catalog import build_remote_tool_catalog
 from backend.src.tools.registry import ToolRegistry
 
@@ -365,7 +364,7 @@ def test_client_tool_manifest_rejects_invalid_executable_schema_metadata():
     ]
 
 
-def test_client_tool_manifest_uses_backend_catalog_schema_for_builtin_tools():
+def test_client_tool_manifest_uses_client_schema_for_builtin_tools():
     result = validate_client_tool_manifest(
         {
             "tools": [
@@ -379,11 +378,16 @@ def test_client_tool_manifest_uses_backend_catalog_schema_for_builtin_tools():
             ]
         }
     )
-    backend_entry = get_built_tool_catalog_entry("read_file")
-
     assert result.rejected == []
-    assert backend_entry is not None
-    assert result.accepted_tool_schemas == [backend_entry.tool_spec]
+    assert result.accepted_tool_schemas == [
+        {
+            "type": "function",
+            "name": "read_file",
+            "description": "Client-owned read file schema.",
+            "strict": False,
+            "parameters": _schema(),
+        }
+    ]
     assert result.to_public_dict()["accepted"][0]["description"] == (
         "Client-owned read file schema."
     )

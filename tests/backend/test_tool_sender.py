@@ -148,65 +148,16 @@ async def test_send_tools_marks_failed_coordinate_resolution_as_non_executable()
 
 
 @pytest.mark.asyncio
-async def test_send_tools_marks_invalid_direct_tool_preparation_failure_as_validation_error():
-    request_id = "req-invalid-mouse-1"
+async def test_send_tools_marks_invalid_backend_tool_preparation_failure_as_validation_error():
+    request_id = "req-invalid-web-search-1"
     failed_call = ParsedToolCall(
-        tool_name="mouse_control",
-        parameters={"x": 10, "y": 20},
-        metadata={
-            "request_id": request_id,
-            "model_facing_tool_call": {
-                "id": "tool_llm_invalid_mouse_1",
-                "name": "mouse_control",
-                "arguments": {"x": 10, "y": 20},
-            },
-        },
-    )
-
-    sender = _build_sender(
-        PreparationResult(
-            resolved_calls=[],
-            errors=[(
-                failed_call,
-                "mouse_control call is invalid and was rejected before frontend execution. Details: action: Field required.",
-            )],
-            bundle_id=None,
-        )
-    )
-    session = _DummySession()
-    emitted = await _collect_emitted_events(sender, [failed_call], session)
-
-    assert len(emitted) == 2
-    assert isinstance(emitted[0], ToolCallEvent)
-    assert emitted[0].metadata["skip_frontend_execution"] is True
-    assert emitted[0].metadata["llm_tool_call_validation_failed"] is True
-    assert "coordinate_resolution_failed" not in emitted[0].metadata
-    assert emitted[0].metadata["model_facing_tool_call"] == {
-        "id": "tool_llm_invalid_mouse_1",
-        "name": "mouse_control",
-        "arguments": {"x": 10, "y": 20},
-    }
-
-    assert isinstance(emitted[1], ToolOutputEvent)
-    assert emitted[1].metadata["skip_frontend_execution"] is True
-    assert emitted[1].metadata["llm_tool_call_validation_failed"] is True
-    assert "coordinate_resolution_failed" not in emitted[1].metadata
-
-    assert request_id in session.pending_results
-    assert "mouse_control call is invalid" in (session.pending_results[request_id].error or "")
-
-
-@pytest.mark.asyncio
-async def test_send_tools_marks_invalid_browser_preparation_failure_as_validation_error():
-    request_id = "req-invalid-browser-1"
-    failed_call = ParsedToolCall(
-        tool_name="browser",
+        tool_name="web_search",
         parameters={},
         metadata={
             "request_id": request_id,
             "model_facing_tool_call": {
-                "id": "tool_llm_invalid_browser_1",
-                "name": "browser",
+                "id": "tool_llm_invalid_web_search_1",
+                "name": "web_search",
                 "arguments": {},
             },
         },
@@ -217,7 +168,7 @@ async def test_send_tools_marks_invalid_browser_preparation_failure_as_validatio
             resolved_calls=[],
             errors=[(
                 failed_call,
-                "browser call is invalid and was rejected before frontend execution. Details: action: Field required.",
+                "web_search call is invalid and was rejected before backend execution. Details: query: Field required.",
             )],
             bundle_id=None,
         )
@@ -231,8 +182,8 @@ async def test_send_tools_marks_invalid_browser_preparation_failure_as_validatio
     assert emitted[0].metadata["llm_tool_call_validation_failed"] is True
     assert "coordinate_resolution_failed" not in emitted[0].metadata
     assert emitted[0].metadata["model_facing_tool_call"] == {
-        "id": "tool_llm_invalid_browser_1",
-        "name": "browser",
+        "id": "tool_llm_invalid_web_search_1",
+        "name": "web_search",
         "arguments": {},
     }
 
@@ -242,7 +193,56 @@ async def test_send_tools_marks_invalid_browser_preparation_failure_as_validatio
     assert "coordinate_resolution_failed" not in emitted[1].metadata
 
     assert request_id in session.pending_results
-    assert "browser call is invalid" in (session.pending_results[request_id].error or "")
+    assert "web_search call is invalid" in (session.pending_results[request_id].error or "")
+
+
+@pytest.mark.asyncio
+async def test_send_tools_marks_invalid_grounded_backend_preparation_failure_as_validation_error():
+    request_id = "req-invalid-grounded-mouse-1"
+    failed_call = ParsedToolCall(
+        tool_name="grounded_mouse_action",
+        parameters={},
+        metadata={
+            "request_id": request_id,
+            "model_facing_tool_call": {
+                "id": "tool_llm_invalid_grounded_mouse_1",
+                "name": "grounded_mouse_action",
+                "arguments": {},
+            },
+        },
+    )
+
+    sender = _build_sender(
+        PreparationResult(
+            resolved_calls=[],
+            errors=[(
+                failed_call,
+                "grounded_mouse_action call is invalid and was rejected before backend execution. Details: target_description: Field required.",
+            )],
+            bundle_id=None,
+        )
+    )
+    session = _DummySession()
+    emitted = await _collect_emitted_events(sender, [failed_call], session)
+
+    assert len(emitted) == 2
+    assert isinstance(emitted[0], ToolCallEvent)
+    assert emitted[0].metadata["skip_frontend_execution"] is True
+    assert emitted[0].metadata["llm_tool_call_validation_failed"] is True
+    assert "coordinate_resolution_failed" not in emitted[0].metadata
+    assert emitted[0].metadata["model_facing_tool_call"] == {
+        "id": "tool_llm_invalid_grounded_mouse_1",
+        "name": "grounded_mouse_action",
+        "arguments": {},
+    }
+
+    assert isinstance(emitted[1], ToolOutputEvent)
+    assert emitted[1].metadata["skip_frontend_execution"] is True
+    assert emitted[1].metadata["llm_tool_call_validation_failed"] is True
+    assert "coordinate_resolution_failed" not in emitted[1].metadata
+
+    assert request_id in session.pending_results
+    assert "grounded_mouse_action call is invalid" in (session.pending_results[request_id].error or "")
 
 
 @pytest.mark.asyncio

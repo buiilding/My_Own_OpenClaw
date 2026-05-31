@@ -182,6 +182,11 @@ function localToolCallFromEvent(event: ConversationEvent): LocalToolCall | null 
   };
 }
 
+function shouldSkipFrontendExecution(event: ConversationEvent): boolean {
+  const metadata = isJsonRecord(event.payload.metadata) ? event.payload.metadata : null;
+  return metadata?.skip_frontend_execution === true;
+}
+
 export class ToolExecutionCoordinator {
   constructor(private readonly options: ToolExecutionCoordinatorOptions) {}
 
@@ -336,6 +341,9 @@ export class ToolExecutionCoordinator {
   }
 
   async execute(event: ConversationEvent): Promise<ToolClaimResult> {
+    if (shouldSkipFrontendExecution(event)) {
+      return { claimed: true, reason: 'skip_frontend_execution' };
+    }
     const claim = this.canClaim(event);
     if (!claim.claimed) {
       return claim;

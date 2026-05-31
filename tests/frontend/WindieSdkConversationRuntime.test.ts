@@ -1279,8 +1279,34 @@ describe('Windie SDK conversation runtime core', () => {
       type: 'tool_call',
       payload: expect.objectContaining({
         requestId: 'req-read',
+        metadata: expect.objectContaining({
+          model_facing_tool_call: expect.any(Object),
+        }),
         toolCallId: 'call-read',
         userId: 'user-sdk-runtime',
+      }),
+    });
+  });
+
+  test('backend tool-call normalization preserves skip execution metadata', () => {
+    const normalized = normalizeBackendEventToConversationEvent({
+      type: 'tool-call',
+      conversation_ref: 'conv-sdk-runtime',
+      turn_ref: 'turn-1',
+      payload: {
+        tool_name: 'browser',
+        request_id: 'req-invalid-browser',
+        parameters: { action: 'click', text: 'Sign in' },
+        metadata: { skip_frontend_execution: true },
+      },
+    });
+
+    expect(normalized).toMatchObject({
+      type: 'tool_call',
+      payload: expect.objectContaining({
+        toolName: 'browser',
+        requestId: 'req-invalid-browser',
+        metadata: { skip_frontend_execution: true },
       }),
     });
   });
@@ -1431,6 +1457,30 @@ describe('Windie SDK conversation runtime core', () => {
         }),
       }),
     ]);
+  });
+
+  test('tool coordinator skips backend-marked synthetic validation calls', async () => {
+    const store = new InMemoryConversationStore();
+    const executeTool = jest.fn(async () => ({ success: true, data: { output: 'ran' } }));
+    const sendToolResult = jest.fn(async () => undefined);
+    const coordinator = new ToolExecutionCoordinator({
+      store,
+      localRuntime: { executeTool },
+      sendToolResult,
+      sendToolBundleResult: jest.fn(async () => undefined),
+    });
+
+    const claim = await coordinator.execute(event('tool_call', {
+      toolName: 'browser',
+      requestId: 'req-invalid-browser',
+      args: { action: 'click', text: 'Sign in' },
+      metadata: { skip_frontend_execution: true },
+    }));
+
+    expect(claim).toEqual({ claimed: true, reason: 'skip_frontend_execution' });
+    expect(executeTool).not.toHaveBeenCalled();
+    expect(sendToolResult).not.toHaveBeenCalled();
+    expect(await store.loadEvents('conv-sdk-runtime')).toEqual([]);
   });
 
   test('tool coordinator exposes screenshot data on local tool output events', async () => {

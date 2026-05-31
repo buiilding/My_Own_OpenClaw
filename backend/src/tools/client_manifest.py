@@ -8,10 +8,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
-from backend.src.tools.tool_catalog import (
-    get_built_tool_catalog_entry,
-    get_client_executable_tool_names,
-)
+from backend.src.tools.tool_catalog import get_client_executable_tool_names
 from backend.src.tools.tool_specs import build_function_tool_spec, is_function_tool_spec
 
 MAX_CLIENT_TOOLS = 64
@@ -85,10 +82,6 @@ class ClientToolManifestEntry:
     @property
     def function_tool_schema(self) -> dict[str, Any]:
         """Return canonical flat model-facing function schema."""
-        if self.name in OVERRIDABLE_CLIENT_BUILTINS:
-            built_entry = get_built_tool_catalog_entry(self.name)
-            if built_entry is not None:
-                return copy.deepcopy(built_entry.tool_spec)
         schema = copy.deepcopy(self.schema)
         if is_function_tool_spec(schema):
             schema["name"] = self.name

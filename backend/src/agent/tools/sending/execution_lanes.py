@@ -11,8 +11,8 @@ if TYPE_CHECKING:
     from backend.src.llm.parser_types import ParsedToolCall
 
 
-_PRE_DISPATCH_VALIDATION_FAILURE_MARKER = (
-    "call is invalid and was rejected before frontend execution"
+_BACKEND_VALIDATION_FAILURE_MARKER = (
+    "call is invalid and was rejected before backend execution"
 )
 
 
@@ -85,7 +85,7 @@ def build_preparation_failure_metadata(
         "skip_frontend_execution": True,
         "request_id": request_id,
     }
-    if _PRE_DISPATCH_VALIDATION_FAILURE_MARKER in error_msg:
+    if _BACKEND_VALIDATION_FAILURE_MARKER in error_msg:
         metadata["llm_tool_call_validation_failed"] = True
     else:
         metadata["coordinate_resolution_failed"] = True

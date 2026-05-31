@@ -8,13 +8,13 @@ title: "Tools Hub"
 
 # Tools Hub
 
-WindieOS tools are split between backend model-facing definitions, SDK/main-process dispatch, and sidecar executable implementations.
+WindieOS tools are split between frontend/sidecar-owned local schemas and executable implementations, backend-owned remote tools and policy/projection, and SDK/main-process dispatch.
 
 ## Tool Families
 
-- [Tool Contracts](tool_contracts.md) explains backend schema, sidecar execution, request ids, bundle results, and parity tests.
+- [Tool Contracts](tool_contracts.md) explains local manifest schemas, backend remote schemas, sidecar execution, request ids, bundle results, and parity tests.
 - [Tool Schema and Policy Change Workflow](tool_schema_policy_change_workflow.md) routes model-visible schema, policy, provider projection, sidecar parity, SDK/main dispatch, and result-contract changes.
-- [Tool Catalog Matrix](tool_catalog_matrix.md) maps every model-visible tool to backend schema owners, sidecar executors, use cases, policy gates, and tests.
+- [Tool Catalog Matrix](tool_catalog_matrix.md) maps every model-visible tool to schema owners, sidecar executors, use cases, policy gates, and tests.
 - [Tool Execution Lifecycle](tool_execution_lifecycle.md) follows a tool call from prompt exposure through SDK/main dispatch, sidecar execution, result ingress, history, and loop continuation.
 - [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md) explains profiles, available/disabled tools, disabled capabilities, coordinate method gates, browser gating, and web-search exposure.
 - [Tool Troubleshooting](tool_troubleshooting.md) routes visibility, schema, dispatch, sidecar, result, artifact, and replay failures to the right owner.
@@ -26,7 +26,7 @@ WindieOS tools are split between backend model-facing definitions, SDK/main-proc
 
 ## Current Tool Catalogs
 
-Backend model-visible tools are defined in `backend/src/tools/tool_catalog.py`:
+Client-local model-visible tools are supplied by the accepted client manifest. The backend catalog keeps backend-owned tools plus fallback/default entries:
 
 - `mouse_control`
 - `keyboard_control`
@@ -43,7 +43,7 @@ Backend model-visible tools are defined in `backend/src/tools/tool_catalog.py`:
 - `replace`
 - `browser`
 
-Sidecar executable tools are registered in `frontend/src/main/python/tools/registry.py`. The sidecar registry intentionally mirrors only the executable local actions expected by backend schemas.
+Sidecar executable tools are registered in `frontend/src/main/python/tools/registry.py`. The sidecar registry intentionally mirrors only the executable local actions expected by accepted client-local schemas.
 
 ## Change Path
 
@@ -52,7 +52,7 @@ Sidecar executable tools are registered in `frontend/src/main/python/tools/regis
 3. Use [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md) to identify any visibility gate.
 4. Use [Browser Change Workflow](../browser/browser_change_workflow.md) for browser-specific schema, CDP, snapshot, ref, file, or renderer-session changes.
 5. Use [Filesystem and Shell Change Workflow](filesystem_shell_change_workflow.md) for file read/edit, shell command, background process, sudo, working-directory, and local output-shaping changes.
-6. Update the backend catalog/schema owner first.
+6. Update the owning schema source first: frontend/sidecar manifest for local tools, backend catalog/schema for backend-executed tools.
 7. Update sidecar runtime argument handling if the local payload changes.
 8. Update SDK/main tool routing and Electron bridge payload shaping if correlation, artifacts, screenshots, or bundle behavior changes.
 9. Update formatter/outgoing schemas if the visible stream event changes.

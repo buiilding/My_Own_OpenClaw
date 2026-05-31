@@ -139,6 +139,10 @@ function localToolCallFromEvent(event) {
         conversationRef: event.conversationRef,
     };
 }
+function shouldSkipFrontendExecution(event) {
+    const metadata = isJsonRecord(event.payload.metadata) ? event.payload.metadata : null;
+    return metadata?.skip_frontend_execution === true;
+}
 class ToolExecutionCoordinator {
     constructor(options) {
         this.options = options;
@@ -266,6 +270,9 @@ class ToolExecutionCoordinator {
         return { claimed: true };
     }
     async execute(event) {
+        if (shouldSkipFrontendExecution(event)) {
+            return { claimed: true, reason: 'skip_frontend_execution' };
+        }
         const claim = this.canClaim(event);
         if (!claim.claimed) {
             return claim;

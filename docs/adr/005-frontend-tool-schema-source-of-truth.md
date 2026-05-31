@@ -10,7 +10,7 @@ title: "ADR 005: Frontend Tool Schema Source of Truth"
 
 ## Status
 
-Accepted. Current implementation uses a frontend/sidecar-owned generated built-in client tool manifest for local tools, with backend-owned validation, policy filtering, provider projection, and backend-native tools.
+Accepted. Current implementation uses a frontend/sidecar-owned generated built-in client tool manifest for local tools, with backend-owned manifest trust checks, policy filtering, provider projection, and backend-native tools.
 
 ## Context
 
@@ -35,7 +35,10 @@ Current rules:
 - built-in manifest entries keep `schema` for backend validation/capability
   reporting and `executable_schema` for direct sidecar arguments when grounded
   tools need backend preparation before execution
-- backend owns validation, model-facing policy gates, provider adaptation, capability narrowing, and backend-native tools
+- backend owns client-manifest envelope/trust checks, model-facing policy gates,
+  provider adaptation, capability narrowing, and backend-native tools
+- backend validates tool arguments only for backend-executed tools; sidecar/local
+  tool payload validation belongs to the frontend/sidecar execution path
 - frontend/sidecar do not import backend code
 - drift prevention uses explicit parity tests and generated/shared contracts
 

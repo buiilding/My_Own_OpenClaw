@@ -14,7 +14,7 @@ from backend.src.agent.tools.preparation.types.resolved_tool_call import (
     ResolvedToolCall,
 )
 from backend.src.agent.tools.preparation.validation import (
-    sanitize_and_validate_resolved_tool_call,
+    sanitize_resolved_tool_call,
 )
 from backend.src.core.types.enums import CoordinateFindingMethod
 from backend.src.llm.parser import ParsedToolCall
@@ -139,32 +139,32 @@ async def _resolve_with_stubs(
 
 
 def _sanitize_resolved_call_for_executor(resolved_call: ResolvedToolCall) -> None:
-    validation_error = sanitize_and_validate_resolved_tool_call(
+    sanitize_resolved_tool_call(
         resolved_call,
         enabled=True,
     )
-    assert validation_error is None
 
 
-def test_sanitize_resolved_call_reports_validation_error_when_parameters_missing():
+def test_sanitize_resolved_call_only_strips_backend_grounding_fields():
     tool_call = ParsedToolCall(
         tool_name="mouse_control",
-        parameters={},
+        parameters={
+            "action": "click",
+            "find_coordinates_by": CoordinateFindingMethod.OCR,
+            "ocr_text": "Submit",
+            "x": 10,
+            "y": 20,
+        },
         raw_call="{}",
     )
     resolved_call = ResolvedToolCall.from_parsed_call(tool_call)
-    resolved_call.parameters = None  # type: ignore[assignment]
 
-    validation_error = sanitize_and_validate_resolved_tool_call(
+    sanitize_resolved_tool_call(
         resolved_call,
         enabled=True,
     )
 
-    assert validation_error is not None
-    assert validation_error.startswith(
-        "mouse_control call is invalid and was rejected before frontend execution."
-    )
-    assert "action: Field required" in validation_error
+    assert resolved_call.parameters == {"action": "click", "x": 10, "y": 20}
 
 
 @pytest.mark.asyncio

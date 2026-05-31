@@ -11,18 +11,18 @@ title: "Tool Schema and Policy Change Workflow"
 
 Use this workflow before changing anything that affects what tools the model can see or call. WindieOS tool behavior is split across client-provided local tool manifests, backend remote-tool schemas, backend policy gates, provider projection, SDK/main local execution orchestration, Electron IPC, and sidecar local execution.
 
-The core rule is: backend owns backend remote tools and validation; Windie Agent owns client-local tool schemas and sidecar tool implementations. Do not make the frontend or sidecar import backend schemas to avoid drift. Keep parity explicit in tests and docs.
+The core rule is: backend owns backend remote tools, backend-tool argument validation, manifest envelope/trust checks, policy, and provider projection. Windie Agent owns client-local tool schemas and sidecar tool implementations. Do not make the frontend or sidecar import backend schemas to avoid drift. Keep parity explicit in tests and docs.
 
 ## Fast Owner Map
 
 | Change or symptom | First owner | Code roots | Start docs | Focused tests |
 | --- | --- | --- | --- | --- |
-| add or change a client-local sidecar tool schema | Windie Agent manifest, then backend validation policy | public `frontend/src/main/tool_manifest.cjs`; backend `backend/src/tools/client_manifest.py` | [Tool Contracts](tool_contracts.md) | manifest builder tests, backend manifest validation tests |
+| add or change a client-local sidecar tool schema | Windie Agent manifest, then backend manifest envelope/policy checks | public `frontend/src/main/tool_manifest.cjs`; backend `backend/src/tools/client_manifest.py` | [Tool Contracts](tool_contracts.md) | manifest builder tests, backend manifest validation tests |
 | add, remove, or rename a model-visible remote tool | backend tool catalog | `backend/src/tools/tool_catalog.py`, `backend/src/tools/remote.py`, `backend/src/tools/remote_tools/*` | [Tool Catalog Matrix](tool_catalog_matrix.md), [Remote Tool Registry, Schema Cache, and Cross-Layer Parity Reference](../backend/tools/registry/remote_tool_registry_schema_cache_and_cross_layer_parity_reference.md) | `tests/backend/test_remote_tool_contract.py`, `tests/backend/test_tool_registry_schema.py` |
 | change a tool argument schema or description | backend schema model and remote stub | `backend/src/tools/{computer,system,filesystem,browser}/schemas.py`, `backend/src/tools/remote_tools/*`, `backend/src/tools/schema_fields.py` | [Tool Contracts](tool_contracts.md), [Backend Tools Contracts Hub](../backend/tools/contracts/README.md) | backend schema tests plus `tests/sidecar/test_shared_tool_schema_parity.py` when executable fields should match |
 | hide or expose tools by profile, interaction mode, disabled tools, capabilities, provider health, or browser toggle | backend policy | `backend/src/tools/tool_policy.py`, `backend/src/tools/agent_capability_policy.py`, `backend/src/tools/provider_health.py`, `backend/src/tools/tool_selection.py` | [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md), [Tool Policy and Dev Tool Selection Runtime Reference](../backend/tools/policy/tool_policy_and_dev_tool_selection_runtime_reference.md) | `tests/backend/test_tool_policy.py`, `tests/backend/test_dev_tool_selection.py`, `tests/backend/test_provider_health_policy.py` |
 | change OCR, vision, manual coordinate method availability or validation | backend tool policy and preparation | `backend/src/tools/tool_policy.py`, `backend/src/tools/computer/schemas.py`, `backend/src/agent/tools/preparation/*` | [Computer Tools](computer.md), [Tool Preparation and Coordinate Resolution Reference](../backend/tools/tool_preparation_and_coordinate_resolution_reference.md) | `tests/backend/test_tool_policy.py`, `tests/backend/test_tool_preparer.py`, `tests/backend/test_computer_use_schema_contract.py` |
-| backend rejects a model tool call before frontend execution | backend parser/preparation validation | `backend/src/agent/tools/preparation/validation.py`, tool `args_model`, parser tests | [Tool Turn Change Workflow](../backend/agent/tool_turn_change_workflow.md), [Tool Troubleshooting](tool_troubleshooting.md) | `tests/backend/test_interaction_tool_call_bridge.py`, tool-specific validation tests |
+| backend rejects a backend-executed tool call before execution | backend parser/preparation validation | `backend/src/agent/tools/preparation/validation.py`, backend tool `args_model`, parser tests | [Tool Turn Change Workflow](../backend/agent/tool_turn_change_workflow.md), [Tool Troubleshooting](tool_troubleshooting.md) | `tests/backend/test_interaction_tool_call_bridge.py`, backend-tool validation tests |
 | sidecar says tool not found or rejects executable args | sidecar registry/schema/runtime | `frontend/src/main/python/tools/registry.py`, `frontend/src/main/python/tools/exposed_tool_names.py`, `frontend/src/main/python/tools/**` | [Sidecar Tool Change Workflow](../frontend/sidecar_tool_change_workflow.md), [Sidecar Tool Catalog and Execution Model](../frontend/sidecar/tool_catalog_and_execution_model.md) | `tests/sidecar/test_tool_registry.py`, `tests/sidecar/test_tool_schemas.py`, tool-specific sidecar tests |
 | SDK/main drops fields, result ids, artifacts, screenshots, or bundle metadata | SDK desktop agent and SDK local-runtime bridge | `packages/windie-sdk-js/src/index.ts`, `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`, `packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts` | [Tool Execution Lifecycle](tool_execution_lifecycle.md), [Sidecar and Tool Channels](../channels/sidecar_and_tool_channels.md) | SDK desktop-agent tests and backend tool-result tests |
 | provider-specific tool payload differs from canonical function schemas | backend provider projection/provider adapter | `backend/src/tools/provider_projection.py`, `backend/src/llm/providers/*`, `backend/src/llm/prompts/*` | [Provider Change Workflow](../providers/provider_change_workflow.md), [Prompt Context Change Workflow](../backend/llm/prompts/prompt_context_change_workflow.md) | provider tests plus prompt/schema tests |
@@ -30,9 +30,10 @@ The core rule is: backend owns backend remote tools and validation; Windie Agent
 
 ## Boundary Rules
 
-- Backend owns backend remote-tool schemas, built-in provider-visible schemas,
-  client-manifest validation, visibility policy, provider projection, parser
-  validation, tool-result ingestion, and history conversion.
+- Backend owns backend remote-tool schemas, fallback provider-visible catalog
+  entries, client-manifest envelope/trust validation, visibility policy,
+  provider projection, backend-executed tool argument validation, tool-result
+  ingestion, and history conversion.
 - Windie Agent owns client-local schemas and sidecar tool implementations.
 - SDK/main owns streamed tool-call consumption for execution, single/bundle local orchestration, and backend result envelope submission.
 - Renderer owns streamed tool-call/tool-output display projection and transcript rendering.
@@ -42,10 +43,10 @@ The core rule is: backend owns backend remote tools and validation; Windie Agent
 - Python sidecar owns local executable tool registry entries and actual local machine actions.
 - Backend-only tools such as `web_search` do not need sidecar parity, but they still need policy and provider capability tests.
 - Sidecar-only helper behavior must not be model-visible until the backend catalog and policy deliberately expose it.
-- Exact schema parity is required only where the backend model-facing args are also the sidecar executable args. Grounded tools can intentionally differ when backend preparation resolves them into simpler executable payloads.
+- Exact schema parity is required only where accepted client-local model-facing args are also the sidecar executable args. Grounded tools can intentionally differ when backend preparation resolves them into simpler executable payloads.
 - Provider-native declarations may be added after canonical filtering, but policy must still prevent disabled grounded function schemas from leaking to the model.
-- Client manifest validation is partial: accepted entries can be exposed while rejected entries are reported as diagnostics. Do not turn one rejected extension tool into a whole-session failure unless the websocket contract intentionally changes.
-- Client schemas may override only explicitly overridable built-in local tools. They must not add arbitrary backend execution targets.
+- Client manifest validation is partial and structural: accepted entries can be exposed while rejected entries are reported as diagnostics. Do not turn one rejected extension tool into a whole-session failure unless the websocket contract intentionally changes.
+- Client schemas own explicitly overridable built-in local tools. They must not add arbitrary backend execution targets.
 
 ## Model-Facing Tool Schema Path
 
@@ -53,7 +54,7 @@ The core rule is: backend owns backend remote tools and validation; Windie Agent
 2. Each remote tool class exposes a class-level `build_tool_spec()` through its SDK `Tool` base.
 3. `ToolRegistry` registers catalog entries, stores prebuilt canonical tool specs, and registers backend-only tools such as `web_search`.
 4. `SchemaRegistry` validates and caches canonical function tool schemas.
-5. `client_tool_manifest` entries are validated into accepted client-local function schemas or rejected diagnostics.
+5. `client_tool_manifest` entries are structurally validated into accepted client-local function schemas or rejected diagnostics; accepted local tool schemas are not replaced by backend catalog schemas.
 6. Prompt construction merges accepted client schemas with backend registry schemas while avoiding unsupported duplicate names.
 7. `ToolPolicy` filters names and schemas by config, profile, available tools, disabled tools/capabilities, provider health, browser toggle, web-search availability, and dev tool selection.
 8. Provider projection can adapt the filtered schema set for provider-specific transports.
@@ -72,9 +73,9 @@ The core rule is: backend owns backend remote tools and validation; Windie Agent
 
 ## Executable Tool Path
 
-1. Model emits a tool call using the model-facing backend schema.
-2. Backend parser validates the call against the registered tool `args_model`.
-3. Preparation resolves backend-only or grounded fields such as OCR text, prediction targets, candidate ids, and screenshots.
+1. Model emits a tool call using the final model-facing schema.
+2. Backend parser validates the call against the registered tool `args_model` only when the backend owns execution.
+3. Preparation resolves backend-only or grounded fields such as OCR text, prediction targets, candidate ids, and screenshots; passthrough sidecar payload shape is left to frontend/sidecar validation.
 4. Backend sends `tool-call` or `tool-bundle` events to the SDK runtime with executable payloads and request ids.
 5. SDK main runtime dispatches local execution through Electron main.
 6. Electron main forwards the executable request to the sidecar daemon/JSON-RPC runtime.
@@ -85,10 +86,10 @@ The core rule is: backend owns backend remote tools and validation; Windie Agent
 ## Add a New Sidecar-Executed Tool
 
 1. Decide whether the tool should be model-visible, internal-only, or future-only.
-2. Add the backend remote tool class under `backend/src/tools/remote_tools/*` and schema model under the correct backend tool domain.
-3. Add a `ToolCatalogEntry` in `backend/src/tools/tool_catalog.py` only when the model should see the tool.
+2. Add or update the Windie Agent manifest entry that defines the model-facing local schema.
+3. Add a fallback `ToolCatalogEntry` in `backend/src/tools/tool_catalog.py` only when hosted/default backend exposure still needs one.
 4. Add policy gates when the tool depends on permissions, browser runtime, provider health, workspace state, local authority, or a capability family.
-5. Add or update parser/preparation validation if model-facing fields differ from executable sidecar fields.
+5. Add or update backend preparation only if model-facing fields must be grounded or translated before sidecar execution.
 6. Add the sidecar implementation and register it in `frontend/src/main/python/tools/registry.py`.
 7. Add the tool name to `frontend/src/main/python/tools/exposed_tool_names.py` only if backend parity should require it.
 8. Update SDK/main local execution code only if the tool needs special handling for screenshots, artifacts, display context, bundle behavior, or result shaping.
@@ -102,10 +103,10 @@ The core rule is: backend owns backend remote tools and validation; Windie Agent
 ## Change an Existing Tool Schema
 
 1. Find the model-facing owner from [Tool Catalog Matrix](tool_catalog_matrix.md).
-2. Edit the backend Pydantic args model and remote tool stub first.
+2. For client-local tools, edit the frontend/sidecar manifest source first. For backend-executed tools, edit the backend Pydantic args model and remote tool first.
 3. Decide whether the sidecar runtime arguments must match:
-   - exact parity tools: update backend and sidecar schema models together
-   - grounded tools: update backend preparation and executor validation so model-facing fields are stripped or resolved before dispatch
+   - exact parity local tools: update the client manifest and sidecar schema together
+   - grounded tools: update backend preparation so model-facing fields are stripped or resolved before dispatch
    - backend-only tools: update backend parser/provider tests only
 4. Update shared field factories in `backend/src/tools/schema_fields.py` when multiple tools need the same wording or validation field.
 5. Update `tests/sidecar/test_shared_tool_schema_parity.py` for exact-parity coverage or intentional exceptions.
@@ -163,19 +164,19 @@ Provider projection should happen after canonical schema filtering. Do not make 
 - Confirm SDK/main tool dispatch recognizes the tool and preserves request ids.
 - Confirm Electron main can reach the sidecar process.
 
-### Tool Args Are Rejected Before Dispatch
+### Tool Args Are Rejected
 
-- Confirm backend `args_model` matches the model-facing schema.
-- Confirm parser/preparation validation is not stripping required fields too early.
+- For backend-executed tools, confirm backend `args_model` matches the model-facing schema.
+- For sidecar-executed tools, inspect the frontend/sidecar validation error and the accepted client manifest schema.
 - Confirm method-level policy allows the requested coordinate method.
-- Confirm browser action discriminators and repair guidance match the current browser schema.
+- Confirm backend preparation is not stripping grounded-only fields too early.
 
 ### Sidecar Rejects a Payload
 
 - Confirm backend preparation converts model-facing fields into sidecar executable fields.
 - Confirm the manifest `schema` and sidecar `entrypoint` agree on executable arg names.
 - Confirm `argument_resolution` matches the actual backend preparation path.
-- Confirm exact-parity sidecar schema matches backend schema where expected.
+- Confirm exact-parity sidecar schema matches the accepted client schema where expected.
 - Confirm intentional exceptions are documented in parity tests.
 - Confirm renderer/Electron did not mutate or omit fields during transport.
 
@@ -194,7 +195,7 @@ Provider projection should happen after canonical schema filtering. Do not make 
 | client manifest validation | `./scripts/python-in-env backend pytest tests/backend/test_client_tool_manifest.py` plus frontend manifest builder tests when client payload generation changes |
 | backend tool schema fields | tool-specific backend schema tests plus `./scripts/python-in-env sidecar pytest tests/sidecar/test_shared_tool_schema_parity.py` when parity applies |
 | policy/profile/capability visibility | `./scripts/python-in-env backend pytest tests/backend/test_tool_policy.py tests/backend/test_dev_tool_selection.py tests/backend/test_provider_health_policy.py` |
-| parser/preparation validation | `./scripts/python-in-env backend pytest tests/backend/test_tool_preparer.py tests/backend/test_interaction_tool_call_bridge.py` plus tool-specific validation tests |
+| parser/preparation validation | `./scripts/python-in-env backend pytest tests/backend/test_tool_preparer.py tests/backend/test_interaction_tool_call_bridge.py` plus backend-tool validation tests |
 | sidecar executable tool | `./scripts/python-in-env sidecar pytest tests/sidecar/test_tool_registry.py tests/sidecar/test_tool_schemas.py` plus tool-specific sidecar tests |
 | SDK/main dispatch/result envelope | focused `cd frontend && npm run test -- WindieSdkDesktopAgent ToolResult` tests |
 | bundle/result/history | backend result/bundle/history tests plus frontend bundle runner tests |
@@ -204,9 +205,9 @@ Provider projection should happen after canonical schema filtering. Do not make 
 
 - Tool name is consistent across backend catalog, remote tool class, sidecar exposed set, sidecar registry, renderer tests, docs, and prompt transparency expectations.
 - Client manifest entries are accepted or rejected for explicit reasons, and rejected entries do not silently disappear from diagnostics.
-- Built-in client-local tool names must not use sidecar manifest descriptions
-  as final provider-visible descriptions; backend catalog specs remain
-  canonical after manifest validation.
+- Built-in client-local tool names use accepted client schemas as the final
+  provider-visible local schema. Backend catalog specs are fallback/default
+  entries, not replacements for accepted client manifests.
 - Backend model-facing args and sidecar executable args are either exact-parity tested or intentionally different with preparation coverage.
 - Policy gates are centralized in `ToolPolicy` or agent capability policy, not scattered through prompt construction, provider code, or renderer UI.
 - Provider projection cannot resurrect tools or coordinate methods that policy already hid.

@@ -32,7 +32,7 @@ from backend.src.agent.tools.preparation.types.resolved_tool_call import (
     ResolvedToolCall,
 )
 from backend.src.agent.tools.preparation.validation import (
-    sanitize_and_validate_resolved_tool_call,
+    sanitize_resolved_tool_call,
     validate_parsed_tool_call,
 )
 from backend.src.agent.tools.shared.logging_utils import short_id
@@ -215,10 +215,7 @@ class ToolPreparer:
                     errors.append((tool_call, str(exc)))
                     break
 
-            resolved_validation_error = self._validate_resolved_call(resolved_call)
-            if resolved_validation_error:
-                errors.append((tool_call, resolved_validation_error))
-                break
+            self._sanitize_resolved_call(resolved_call)
 
             resolved_calls.append(resolved_call)
 
@@ -307,12 +304,7 @@ class ToolPreparer:
                     errors=[(tool_call, str(exc))],
                 )
 
-        resolved_validation_error = self._validate_resolved_call(resolved_call)
-        if resolved_validation_error:
-            return PreparationResult(
-                resolved_calls=[],
-                errors=[(tool_call, resolved_validation_error)],
-            )
+        self._sanitize_resolved_call(resolved_call)
 
         self._register_resolved_call(session, request_id, resolved_call)
         return PreparationResult(
@@ -349,11 +341,11 @@ class ToolPreparer:
     ) -> str | None:
         return validate_parsed_tool_call(tool_call, self.tool_registry)
 
-    def _validate_resolved_call(
+    def _sanitize_resolved_call(
         self,
         resolved_call: ResolvedToolCall,
-    ) -> str | None:
-        return sanitize_and_validate_resolved_tool_call(
+    ) -> None:
+        sanitize_resolved_tool_call(
             resolved_call,
             enabled=self.tool_registry is not None,
         )

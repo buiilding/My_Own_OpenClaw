@@ -178,13 +178,14 @@ LLM returns structured tool calls from the API response object (native tool-call
 4. **Tool Call Preparation**: Adds metadata and coordinates
 
 Pre-dispatch model-shape validation notes:
-- backend validation rejects malformed direct-tool payloads before frontend execution and returns repair guidance to the model on the next iteration
-- `browser` validation now comes directly from the canonical backend args model, rejects removed legacy alias actions during validation, and keeps only canonical browser fields in the model-facing schema
+- backend argument validation applies to backend-executed tools only
+- sidecar-executed payload shape is validated by the frontend/sidecar execution path
+- backend preparation may still strip backend-only grounded fields before local dispatch
 
 Schema pairing rule:
 
-- backend tool schemas and sidecar tool schemas are paired contracts, not shared runtime ownership
-- when a tool contract changes, backend and sidecar schemas must both be updated and parity-tested before release
+- backend fallback/tool-policy schemas and sidecar tool schemas are paired contracts, not shared runtime ownership
+- when a local tool contract changes, the client manifest and sidecar schema must both be updated and parity-tested before release
 - parity tests are the safety mechanism that catches drift without breaking the frontend/backend code boundary
 
 Execution identity provenance:
@@ -195,7 +196,7 @@ Direct tool contract before execution:
 
 - model-facing tool names are already the execution-facing tool names
 - no wrapper-envelope normalization happens in parser, registry, or sidecar routing
-- each direct tool validates its own arguments through its Pydantic schema and sidecar runtime
+- each backend-executed direct tool validates through its backend schema; each sidecar-executed direct tool validates in the frontend/sidecar runtime
 - unified `computer_use` and `system_use` wrapper names remain repo-local reference artifacts, not registered runtime tool names
 
 ### 3. Tool Execution
