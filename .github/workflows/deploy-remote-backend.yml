@@ -1,0 +1,89 @@
+name: Deploy Remote Backend
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: windieos-remote-backend-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      SSH_HOST: ${{ secrets.WINDIE_BACKEND_SSH_HOST }}
+      SSH_USER: ${{ secrets.WINDIE_BACKEND_SSH_USER }}
+      SSH_PORT: ${{ secrets.WINDIE_BACKEND_SSH_PORT || '22' }}
+      SSH_PRIVATE_KEY: ${{ secrets.WINDIE_BACKEND_SSH_PRIVATE_KEY }}
+      SSH_KNOWN_HOSTS: ${{ secrets.WINDIE_BACKEND_SSH_KNOWN_HOSTS }}
+      DEPLOY_REPO_ROOT: ${{ vars.WINDIE_BACKEND_REPO_ROOT || '/opt/windieos-live' }}
+      DEPLOY_BRANCH: ${{ vars.WINDIE_BACKEND_DEPLOY_BRANCH || 'main' }}
+      DEPLOY_REMOTE: ${{ vars.WINDIE_BACKEND_GIT_REMOTE || 'origin' }}
+      DEPLOY_SERVICE: ${{ vars.WINDIE_BACKEND_SERVICE || 'windieos-backend.service' }}
+      DEPLOY_SYSTEMD_SCOPE: ${{ vars.WINDIE_BACKEND_SYSTEMD_SCOPE || 'system' }}
+      DEPLOY_UPDATE_STRATEGY: ${{ vars.WINDIE_BACKEND_UPDATE_STRATEGY || 'rebase' }}
+      DEPLOY_RESTART_WHEN: ${{ vars.WINDIE_BACKEND_RESTART_WHEN || 'changed' }}
+      DEPLOY_HEALTH_URL: ${{ vars.WINDIE_BACKEND_HEALTH_URL || 'http://127.0.0.1:8765/api/embeddings/health' }}
+      DEPLOY_HEALTH_TIMEOUT: ${{ vars.WINDIE_BACKEND_HEALTH_TIMEOUT || '60' }}
+      DEPLOY_SUCCESS_STATUSES: ${{ vars.WINDIE_BACKEND_SUCCESS_STATUSES || '200 204 401 403' }}
+      DEPLOY_SKIP_HEALTH_CHECK: ${{ vars.WINDIE_BACKEND_SKIP_HEALTH_CHECK || '0' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate deployment configuration
+        run: |
+          missing=()
+          [[ -n "$SSH_HOST" ]] || missing+=(WINDIE_BACKEND_SSH_HOST)
+          [[ -n "$SSH_USER" ]] || missing+=(WINDIE_BACKEND_SSH_USER)
+          [[ -n "$SSH_PRIVATE_KEY" ]] || missing+=(WINDIE_BACKEND_SSH_PRIVATE_KEY)
+          if (( ${#missing[@]} > 0 )); then
+            printf 'Missing required GitHub secrets: %s\n' "${missing[*]}" >&2
+            exit 1
+          fi
+
+      - name: Configure SSH
+        run: |
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/windie_backend_deploy"
+          chmod 600 "$HOME/.ssh/windie_backend_deploy"
+
+          if [[ -n "$SSH_KNOWN_HOSTS" ]]; then
+            printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          else
+            ssh-keyscan -p "$SSH_PORT" "$SSH_HOST" > "$HOME/.ssh/known_hosts"
+          fi
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Deploy backend checkout and restart service
+        run: |
+          deploy_args=(
+            --repo-root "$DEPLOY_REPO_ROOT"
+            --branch "$DEPLOY_BRANCH"
+            --remote "$DEPLOY_REMOTE"
+            --strategy "$DEPLOY_UPDATE_STRATEGY"
+            --service "$DEPLOY_SERVICE"
+            --scope "$DEPLOY_SYSTEMD_SCOPE"
+            --restart-when "$DEPLOY_RESTART_WHEN"
+            --health-url "$DEPLOY_HEALTH_URL"
+            --health-timeout "$DEPLOY_HEALTH_TIMEOUT"
+            --success-statuses "$DEPLOY_SUCCESS_STATUSES"
+          )
+
+          if [[ "$DEPLOY_SKIP_HEALTH_CHECK" == "1" ]]; then
+            deploy_args+=(--skip-health-check)
+          fi
+
+          printf -v quoted_args '%q ' "${deploy_args[@]}"
+          ssh -i "$HOME/.ssh/windie_backend_deploy" \
+            -p "$SSH_PORT" \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            "$SSH_USER@$SSH_HOST" \
+            "bash -s -- $quoted_args" < scripts/deploy/update-remote-backend

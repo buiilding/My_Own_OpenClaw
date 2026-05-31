@@ -119,6 +119,11 @@ DigitalOcean droplet and supports `--scope user` for the user-service runbook
 setup. Do not expose live backend logs through a
 WindieOS HTTP or WebSocket route.
 
+Automatic deploys from GitHub pushes are covered by
+`docs/operations/remote_backend_auto_deploy.md`. That workflow updates the
+remote checkout over SSH and restarts the same `windieos-backend.service`
+described here.
+
 If hosted clients still see intermittent `502` errors, compare tunnel logs with the backend memory-route ingress logs for `/api/embeddings`, `/api/semantic/summarize`, and `/api/semantic/title`:
 - no matching backend route log usually means the request never reached FastAPI
 - matching route start/failure logs mean the origin app received the request and failed it

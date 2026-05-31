@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- ops/deploy: add a GitHub Actions push-to-backend deployment workflow plus a
+  remote checkout update script that fetches `main`, restarts
+  `windieos-backend.service`, and verifies service health over SSH.
 - backend/sdk/tools: make frontend/sidecar-owned local tools a breaking
   ownership boundary by using accepted client schemas for built-in local tools,
   removing backend argument validation for sidecar payloads, and teaching the
@@ -17,6 +20,8 @@ All notable changes to WindieOS will be documented in this file.
 - sdk/runtime: extract large image/base64 tool-output fields into public stream
   `attachments` and keep `tool_outputs[].result` display-safe without changing
   backend tool-result transport.
+- examples/sdk: rely on the SDK default conversation reference in the simple
+  chat CLI so agent setup can use `agent.chat()` directly.
 - examples/sdk: update the simple chat CLI to use normalized
   `chat.stream(...)` events, including state, reasoning, assistant, tool-call,
   tool-output, and error rendering.

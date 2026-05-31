@@ -63,6 +63,7 @@ This is the compact local docs directory. For the complete canonical navigation 
 - [Local Development](../install/local_development.md) - source setup, run commands, tests, and environment launcher.
 - [Operations Hub](../operations/README.md) - runtime config, hosted auth, packaging, release, deployment, and troubleshooting.
 - [Runtime Configuration Matrix](../operations/runtime_configuration_matrix.md) - config ownership, defaults, propagation, and validation.
+- [Remote Backend Auto Deploy](../operations/remote_backend_auto_deploy.md) - GitHub push-to-host checkout updates, systemd restarts, and deploy health checks.
 
 ## Security and Reference
 

@@ -52,6 +52,12 @@ Supporting scripts in this repo:
 - `scripts/cloudflared/install-backend-user-service`
 - `scripts/cloudflared/setup-windieos-tunnel`
 - `scripts/cloudflared/bootstrap-windieos-host`
+- `scripts/deploy/update-remote-backend`
+
+For automatic backend refresh after pushes to `main`, use the GitHub Actions
+runbook:
+
+- `docs/operations/remote_backend_auto_deploy.md`
 
 ## Desktop Packaging Plan
 

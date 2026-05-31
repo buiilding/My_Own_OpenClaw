@@ -154,7 +154,8 @@
               "install/local_backend_and_endpoint_setup",
               "install/packaged_desktop",
               "operations/README",
-              "operations/runtime_configuration_matrix"
+              "operations/runtime_configuration_matrix",
+              "operations/remote_backend_auto_deploy"
             ]
           },
           {
