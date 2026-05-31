@@ -135,6 +135,8 @@ async def test_connect_starts_headed_browser_use_session(tmp_path: Path) -> None
     assert result["cdp_url"] == cdp_url
     assert result["mode"] == "browser_use"
     assert result["native_source"] == "browser_use.cli"
+    assert result["output"] == "Connected to the browser."
+    assert "snapshot" not in result
 
 
 @pytest.mark.asyncio
@@ -319,6 +321,29 @@ async def test_snapshot_paginates_browser_use_state_text() -> None:
 
 
 @pytest.mark.asyncio
+async def test_extract_returns_model_text_only_in_output() -> None:
+    runtime = BrowserUseEngineRuntime()
+
+    with mock.patch.object(
+        runtime,
+        "_read_markdown",
+        new=mock.AsyncMock(
+            return_value=(
+                "# Stripe Atlas\n\n"
+                "Incorporate your startup in Delaware and get ready to bank, fundraise, and accept payments."
+            )
+        ),
+    ):
+        result = await runtime.execute(
+            _args({"action": "extract", "query": "What does this page say?"})
+        )
+
+    assert "Stripe Atlas" in result["output"]
+    assert "extracted_content" not in result
+    assert result["metadata"]["query"] == "What does this page say?"
+
+
+@pytest.mark.asyncio
 async def test_snapshot_include_screenshot_uses_default_screenshot_name() -> None:
     runtime = BrowserUseEngineRuntime()
 
@@ -393,3 +418,46 @@ async def test_find_text_uses_browser_use_html_and_local_result_shape() -> None:
     assert result["match_count"] == 1
     assert result["matches"][0]["match"] == "browser"
     assert "Found 1 match for 'browser'" in result["output"]
+
+
+@pytest.mark.asyncio
+async def test_find_elements_returns_readable_output_and_structured_metadata() -> None:
+    runtime = BrowserUseEngineRuntime()
+
+    with mock.patch.object(
+        runtime,
+        "_run_cli",
+        new=mock.AsyncMock(
+            return_value={
+                "result": [
+                    {
+                        "index": 0,
+                        "text": "Sign in",
+                        "attributes": {"href": "https://dashboard.stripe.com/login"},
+                    }
+                ]
+            }
+        ),
+    ) as run_cli:
+        result = await runtime.execute(
+            _args(
+                {
+                    "action": "find_elements",
+                    "selector": "a",
+                    "include_text": True,
+                    "attributes": ["href"],
+                    "max_results": 10,
+                }
+            )
+        )
+
+    assert run_cli.await_args.args[0] == "eval"
+    assert result["elements"] == [
+        {
+            "index": 0,
+            "text": "Sign in",
+            "attributes": {"href": "https://dashboard.stripe.com/login"},
+        }
+    ]
+    assert "Found 1 element for selector 'a'" in result["output"]
+    assert "Sign in" in result["output"]
