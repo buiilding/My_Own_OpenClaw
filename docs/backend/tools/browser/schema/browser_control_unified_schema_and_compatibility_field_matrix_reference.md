@@ -38,7 +38,7 @@ Examples:
 - `BrowserSnapshotArgs`: `offset`, `limit`, `include_screenshot`
 - `BrowserExtractArgs`: `query`, `extract_links`, `start_from_char`, `output_schema`
 - `BrowserInputArgs`: `ref/index`, `text`, `clear`, `submit`
-- `BrowserSwitchArgs`: `tab_id`
+- `BrowserSwitchArgs`: `tab_index`
 - `BrowserEvaluateArgs`: `code`
 
 There are no compatibility-only browser fields left in any action model.

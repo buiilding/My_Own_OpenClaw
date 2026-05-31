@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sidecar/browser: reconcile the flat Windie browser schema with
+  Browser Use native and CLI surfaces by removing unsupported
+  `dropdown_options`, requiring actionable snapshot indexes for interaction
+  helpers, renaming tab tool inputs to numeric `tab_index`, and adding bounded
+  `save_as_pdf`, `hover`, and deterministic `get_*` browser helpers.
 - sdk/backend/sidecar: move pre-inference memory and attachment enrichment into
   the SDK context pipeline, add backend embedding client support plus sidecar
   embedding-search RPC, remove backend `query_context` prompt rendering and

@@ -25,6 +25,46 @@ from windie_shared.browser_contract import (
 )
 
 EXPLANATION = "Advance the active user task."
+NATIVE_BROWSER_USE_AGENT_ACTIONS = {
+    "done",
+    "search",
+    "navigate",
+    "go_back",
+    "wait",
+    "click",
+    "input",
+    "upload_file",
+    "switch",
+    "close",
+    "extract",
+    "search_page",
+    "find_elements",
+    "scroll",
+    "send_keys",
+    "find_text",
+    "save_as_pdf",
+    "dropdown_options",
+    "select_dropdown",
+    "write_file",
+    "replace_file",
+    "read_file",
+    "evaluate",
+}
+WINDIE_BROWSER_LIFECYCLE_ACTIONS = {
+    "connect",
+    "status",
+    "profiles",
+    "snapshot",
+    "get_tabs",
+    "close_tab",
+    "screenshot",
+    "read_long_content",
+    "hover",
+    "get_text",
+    "get_value",
+    "get_attributes",
+    "get_bbox",
+}
 
 
 def test_sidecar_browser_control_args_reuses_backend_model() -> None:
@@ -43,9 +83,22 @@ def test_sidecar_action_contract_is_canonical_only() -> None:
     assert "open" not in BROWSER_CANONICAL_ACTIONS
     assert "type" not in BROWSER_CANONICAL_ACTIONS
     assert "switch_tab" not in BROWSER_CANONICAL_ACTIONS
+    assert "dropdown_options" not in BROWSER_CANONICAL_ACTIONS
+    assert "save_as_pdf" in BROWSER_CANONICAL_ACTIONS
+    assert "hover" in BROWSER_CANONICAL_ACTIONS
+    assert "get_text" in BROWSER_CANONICAL_ACTIONS
     assert BROWSER_RUNTIME_ACTIONS["close_tab"] == "close"
     assert "snapshot" in BROWSER_ACTIONS_REQUIRING_CONNECTION
     assert "connect" not in BROWSER_ACTIONS_REQUIRING_CONNECTION
+
+
+def test_windie_browser_schema_reconciles_native_browser_use_surface() -> None:
+    windie_actions = set(BROWSER_CANONICAL_ACTIONS)
+
+    assert NATIVE_BROWSER_USE_AGENT_ACTIONS - windie_actions == {"dropdown_options"}
+    assert WINDIE_BROWSER_LIFECYCLE_ACTIONS.issubset(windie_actions)
+    assert "save_as_pdf" in windie_actions
+    assert "dropdown_options" not in windie_actions
 
 
 def test_snapshot_schema_is_strict() -> None:
@@ -75,13 +128,13 @@ def test_input_find_text_and_switch_use_canonical_fields_only() -> None:
     assert find_text_args.css_scope == "#search"
     assert find_text_args.max_results == 5
 
-    switch_args = BrowserSwitchArgs(action="switch", tab_id="abcd", explanation=EXPLANATION)
-    assert switch_args.tab_id == "abcd"
+    switch_args = BrowserSwitchArgs(action="switch", tab_index=1, explanation=EXPLANATION)
+    assert switch_args.tab_index == 1
     assert switch_args.activate is True
 
     silent_switch_args = BrowserSwitchArgs(
         action="switch",
-        tab_id="abcd",
+        tab_index=1,
         activate=False,
         explanation=EXPLANATION,
     )
@@ -99,10 +152,22 @@ def test_input_find_text_and_switch_use_canonical_fields_only() -> None:
     with pytest.raises(ValidationError):
         BrowserSwitchArgs(action="switch", target_id="abcd", explanation=EXPLANATION)
 
+    with pytest.raises(ValidationError):
+        BrowserSwitchArgs(action="switch", tab_id="abcd", explanation=EXPLANATION)
+
+    with pytest.raises(ValidationError):
+        BrowserSwitchArgs(action="switch", tab_index=-1, explanation=EXPLANATION)
+
 
 def test_click_requires_target() -> None:
     with pytest.raises(ValidationError):
         BrowserClickArgs(action="click", explanation=EXPLANATION)
+
+    with pytest.raises(ValidationError):
+        BrowserClickArgs(action="click", index=0, explanation=EXPLANATION)
+
+    args = BrowserClickArgs(action="click", index=1, explanation=EXPLANATION)
+    assert args.index == 1
 
 
 def test_schema_registry_and_validation_reject_removed_aliases() -> None:

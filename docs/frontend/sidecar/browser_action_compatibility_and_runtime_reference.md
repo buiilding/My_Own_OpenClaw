@@ -47,7 +47,8 @@ Browser Use CLI-backed actions:
 
 - `snapshot`, `navigate`, `click`, `input`, `send_keys`, `scroll`, `screenshot`, `wait`, `evaluate`
 - `done`, `search`, `go_back`, `get_tabs`, `switch`, `close`, `close_tab`
-- `select_dropdown`, `upload_file`
+- `select_dropdown`, `upload_file`, `hover`, `save_as_pdf`
+- `get_text`, `get_value`, `get_attributes`, `get_bbox`
 
 ## Parameter Rules
 
@@ -62,10 +63,12 @@ Browser Use CLI-backed actions:
 - requires non-empty `query`
 - supports `extract_links`, `start_from_char`, and `output_schema`
 
-### `click`, `input`, `upload_file`, `select_dropdown`
+### `click`, `input`, `hover`, `upload_file`, `select_dropdown`, `get_*`
 
 - accepts Browser Use numeric `index` or numeric `ref`
 - Windie role refs such as `e12` are rejected by validation/engine mapping
+- indexes must come from the latest `snapshot.output`; `find_elements` returns
+  non-actionable CSS-query `ordinal` values
 
 ## Error and Timeout Surface
 

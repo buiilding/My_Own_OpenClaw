@@ -177,6 +177,16 @@ def _normalize_index(args: Any, *, action: str) -> int:
     )
 
 
+def _normalize_tab_index(args: Any, *, action: str) -> int:
+    raw_tab_index = getattr(args, "tab_index", None)
+    if isinstance(raw_tab_index, int) and raw_tab_index >= 0:
+        return raw_tab_index
+    raise BrowserActionError(
+        code="INVALID_ARGUMENT",
+        message=f"{action} requires numeric 'tab_index' from get_tabs.",
+    )
+
+
 def _search_url(query: str, engine: str | None) -> str:
     normalized_engine = (engine or "google").strip().lower()
     encoded = quote_plus(query)
@@ -306,14 +316,29 @@ def _format_elements_output(selector: str, elements: list[dict[str, Any]]) -> st
         f"Found {len(elements)} element{'s' if len(elements) != 1 else ''} for selector {selector!r}:"
     ]
     for element in elements:
-        index = element.get("index")
+        ordinal = element.get("ordinal")
         text = re.sub(r"\s+", " ", str(element.get("text") or "")).strip()
         attrs = element.get("attributes")
         attrs_text = f" attrs={attrs}" if isinstance(attrs, dict) and attrs else ""
         if len(text) > 180:
             text = f"{text[:177]}..."
-        lines.append(f"- [{index}] {text}{attrs_text}".rstrip())
+        lines.append(f"- result {ordinal}: {text}{attrs_text}".rstrip())
     return "\n".join(lines)
+
+
+def _format_get_output(label: str, index: int, value: Any) -> str:
+    if isinstance(value, dict):
+        rendered = json.dumps(value, sort_keys=True)
+    else:
+        rendered = str(value or "")
+    return f"{label} for element index {index}: {rendered}"
+
+
+def _pdf_file_name(file_name: str | None) -> str:
+    candidate = str(file_name or "page.pdf").strip() or "page.pdf"
+    if not candidate.lower().endswith(".pdf"):
+        candidate = f"{candidate}.pdf"
+    return candidate
 
 
 class BrowserUseEngineRuntime:
@@ -668,21 +693,28 @@ class BrowserUseEngineRuntime:
             if not stripped:
                 continue
             parts = stripped.split(maxsplit=1)
-            tab_id = parts[0]
-            tabs.append({"target_id": tab_id, "title": "", "url": parts[1] if len(parts) > 1 else ""})
+            tab_index = int(parts[0]) if parts[0].isdigit() else parts[0]
+            tabs.append(
+                {
+                    "tab_index": tab_index,
+                    "target_id": str(tab_index),
+                    "title": "",
+                    "url": parts[1] if len(parts) > 1 else "",
+                }
+            )
         output = "Open browser tabs:\n" + "\n".join(
-            f"- {tab['target_id']}: {tab['url']}" for tab in tabs
+            f"- {tab['tab_index']}: {tab['url']}" for tab in tabs
         ) if tabs else "No open browser tabs found."
         return {"tabs": tabs, "tab_count": len(tabs), "output": output}
 
     async def _handle_switch(self, args: Any) -> dict[str, Any]:
-        if not str(args.tab_id).strip().isdigit():
-            raise BrowserActionError(code="INVALID_ARGUMENT", message="switch requires a Browser Use numeric tab index.")
-        data = await self._run_cli("tab", "switch", str(args.tab_id))
+        tab_index = _normalize_tab_index(args, action="switch")
+        data = await self._run_cli("tab", "switch", str(tab_index))
         return {
-            "target_id": str(args.tab_id),
+            "tab_index": tab_index,
+            "target_id": str(tab_index),
             "activated": bool(args.activate),
-            **_with_output(data, _browser_output(data, f"Switched to tab {args.tab_id}."))
+            **_with_output(data, _browser_output(data, f"Switched to tab {tab_index}."))
         }
 
     async def _handle_evaluate(self, args: Any) -> dict[str, Any]:
@@ -731,8 +763,8 @@ class BrowserUseEngineRuntime:
         script = (
             "(function(){"
             f"const els=Array.from(document.querySelectorAll({json.dumps(args.selector)}));"
-            f"return els.slice(0,{int(args.max_results or 20)}).map((el,index)=>({{"
-            "index,"
+            f"return els.slice(0,{int(args.max_results or 20)}).map((el,ordinal)=>({{"
+            "ordinal,"
             "text: el.innerText || el.textContent || '',"
             "attributes: Object.fromEntries(Array.from(el.attributes || []).map(a=>[a.name,a.value]))"
             "}));})()"
@@ -741,7 +773,7 @@ class BrowserUseEngineRuntime:
         elements = data.get("result") if isinstance(data.get("result"), list) else []
         filtered = []
         for element in elements:
-            entry = {"index": element.get("index", len(filtered))}
+            entry = {"ordinal": element.get("ordinal", len(filtered))}
             if args.include_text:
                 entry["text"] = element.get("text", "")
             if args.attributes:
@@ -773,20 +805,13 @@ class BrowserUseEngineRuntime:
         }
 
     async def _handle_close_tab(self, args: Any) -> dict[str, Any]:
-        if not str(args.tab_id).strip().isdigit():
-            raise BrowserActionError(code="INVALID_ARGUMENT", message="close_tab requires a Browser Use numeric tab index.")
-        data = await self._run_cli("tab", "close", str(args.tab_id))
+        tab_index = _normalize_tab_index(args, action="close_tab")
+        data = await self._run_cli("tab", "close", str(tab_index))
         return {
-            "closed_target_id": str(args.tab_id),
-            **_with_output(data, _browser_output(data, f"Closed tab {args.tab_id}."))
+            "closed_tab_index": tab_index,
+            "closed_target_id": str(tab_index),
+            **_with_output(data, _browser_output(data, f"Closed tab {tab_index}."))
         }
-
-    async def _handle_dropdown_options(self, args: Any) -> dict[str, Any]:
-        index = _normalize_index(args, action="dropdown_options")
-        raise BrowserActionError(
-            code="ACTION_UNSUPPORTED",
-            message=f"Browser Use CLI does not expose dropdown option enumeration for index {index}; use select_dropdown with the desired option text.",
-        )
 
     async def _handle_select_dropdown(self, args: Any) -> dict[str, Any]:
         index = _normalize_index(args, action="select_dropdown")
@@ -803,6 +828,96 @@ class BrowserUseEngineRuntime:
             raise BrowserActionError(code="INVALID_ARGUMENT", message="upload_file requires non-empty 'path'.")
         data = await self._run_cli("upload", str(index), str(args.path))
         return _with_output(data, _browser_output(data, f"Uploaded {args.path} to element index {index}."))
+
+    async def _handle_hover(self, args: Any) -> dict[str, Any]:
+        index = _normalize_index(args, action="hover")
+        data = await self._run_cli("hover", str(index))
+        return _with_output(data, _browser_output(data, f"Hovered over element index {index}."))
+
+    async def _handle_save_as_pdf(self, args: Any) -> dict[str, Any]:
+        output_path = resolve_browser_path(_pdf_file_name(args.file_name), ensure_parent=True)
+        params = {
+            "printBackground": bool(args.print_background),
+            "landscape": bool(args.landscape),
+            "scale": float(args.scale),
+            "paperWidth": {
+                "Letter": 8.5,
+                "Legal": 8.5,
+                "A4": 8.27,
+                "A3": 11.69,
+                "Tabloid": 11.0,
+            }.get(args.paper_format, 8.5),
+            "paperHeight": {
+                "Letter": 11.0,
+                "Legal": 14.0,
+                "A4": 11.69,
+                "A3": 16.54,
+                "Tabloid": 17.0,
+            }.get(args.paper_format, 11.0),
+            "preferCSSPageSize": True,
+        }
+        script = "\n".join(
+            [
+                "import base64, json",
+                f"output_path = Path({json.dumps(str(output_path))})",
+                f"params = {json.dumps(params)}",
+                "async def _windie_save_pdf():",
+                "    cdp_session = await browser._session.get_or_create_cdp_session(focus=True)",
+                "    result = await cdp_session.cdp_client.send.Page.printToPDF(params=params, session_id=cdp_session.session_id)",
+                "    data = result.get('data') or ''",
+                "    pdf_bytes = base64.b64decode(data)",
+                "    output_path.parent.mkdir(parents=True, exist_ok=True)",
+                "    output_path.write_bytes(pdf_bytes)",
+                "    return {'path': str(output_path), 'bytes': len(pdf_bytes), 'file_name': output_path.name}",
+                "print(json.dumps(browser._run(_windie_save_pdf())))",
+            ]
+        )
+        data = await self._run_cli("python", script)
+        raw_text = str(data.get("_raw_text", "") or "").strip()
+        result: dict[str, Any] = {}
+        if raw_text:
+            try:
+                parsed = json.loads(raw_text.splitlines()[-1])
+                if isinstance(parsed, dict):
+                    result = parsed
+            except json.JSONDecodeError:
+                result = {}
+        path = str(result.get("path") or output_path)
+        byte_count = int(result.get("bytes", 0) or 0)
+        return {
+            "path": path,
+            "file_name": str(result.get("file_name") or output_path.name),
+            "bytes": byte_count,
+            "output": f"Saved current page as PDF to {path}.",
+        }
+
+    async def _handle_get_text(self, args: Any) -> dict[str, Any]:
+        index = _normalize_index(args, action="get_text")
+        data = await self._run_cli("get", "text", str(index))
+        text = str(data.get("text") or "")
+        return {"index": index, "text": text, "output": _format_get_output("Text", index, text)}
+
+    async def _handle_get_value(self, args: Any) -> dict[str, Any]:
+        index = _normalize_index(args, action="get_value")
+        data = await self._run_cli("get", "value", str(index))
+        value = str(data.get("value") or "")
+        return {"index": index, "value": value, "output": _format_get_output("Value", index, value)}
+
+    async def _handle_get_attributes(self, args: Any) -> dict[str, Any]:
+        index = _normalize_index(args, action="get_attributes")
+        data = await self._run_cli("get", "attributes", str(index))
+        attributes = data.get("attributes") if isinstance(data.get("attributes"), dict) else {}
+        return {
+            "index": index,
+            "attributes": attributes,
+            "output": _format_get_output("Attributes", index, attributes),
+        }
+
+    async def _handle_get_bbox(self, args: Any) -> dict[str, Any]:
+        index = _normalize_index(args, action="get_bbox")
+        data = await self._run_cli("get", "bbox", str(index))
+        bbox = data.get("bbox") if isinstance(data.get("bbox"), dict) else {}
+        return {"index": index, "bbox": bbox, "output": _format_get_output("Bounding box", index, bbox)}
 
     async def _handle_write_file(self, args: Any) -> dict[str, Any]:
         resolved, written_chars = write_text(

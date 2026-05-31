@@ -485,7 +485,7 @@ async def test_find_elements_returns_readable_output_and_structured_metadata() -
             return_value={
                 "result": [
                     {
-                        "index": 0,
+                        "ordinal": 0,
                         "text": "Sign in",
                         "attributes": {"href": "https://dashboard.stripe.com/login"},
                     }
@@ -508,10 +508,122 @@ async def test_find_elements_returns_readable_output_and_structured_metadata() -
     assert run_cli.await_args.args[0] == "eval"
     assert result["elements"] == [
         {
-            "index": 0,
+            "ordinal": 0,
             "text": "Sign in",
             "attributes": {"href": "https://dashboard.stripe.com/login"},
         }
     ]
     assert "Found 1 element for selector 'a'" in result["output"]
     assert "Sign in" in result["output"]
+    assert "index" not in result["elements"][0]
+
+
+@pytest.mark.asyncio
+async def test_switch_and_close_tab_use_numeric_tab_index() -> None:
+    runtime = BrowserUseEngineRuntime()
+
+    with mock.patch.object(
+        runtime,
+        "_run_cli",
+        new=mock.AsyncMock(return_value={}),
+    ) as run_cli:
+        switch_result = await runtime.execute(
+            _args({"action": "switch", "tab_index": 1})
+        )
+        close_result = await runtime.execute(
+            _args({"action": "close_tab", "tab_index": 1})
+        )
+
+    assert run_cli.await_args_list == [
+        mock.call("tab", "switch", "1"),
+        mock.call("tab", "close", "1"),
+    ]
+    assert switch_result["tab_index"] == 1
+    assert close_result["closed_tab_index"] == 1
+
+
+@pytest.mark.asyncio
+async def test_hover_uses_browser_use_hover_command() -> None:
+    runtime = BrowserUseEngineRuntime()
+
+    with mock.patch.object(
+        runtime,
+        "_run_cli",
+        new=mock.AsyncMock(return_value={"hovered": 17}),
+    ) as run_cli:
+        result = await runtime.execute(_args({"action": "hover", "index": 17}))
+
+    run_cli.assert_awaited_once_with("hover", "17")
+    assert result["hovered"] == 17
+    assert result["output"] == "Hovered over element index 17."
+
+
+@pytest.mark.asyncio
+async def test_get_helpers_use_browser_use_get_commands() -> None:
+    runtime = BrowserUseEngineRuntime()
+
+    with mock.patch.object(
+        runtime,
+        "_run_cli",
+        new=mock.AsyncMock(
+            side_effect=[
+                {"text": "Submit"},
+                {"value": "Rocket Rides"},
+                {"attributes": {"href": "https://example.com"}},
+                {"bbox": {"x": 1, "y": 2, "width": 3, "height": 4}},
+            ]
+        ),
+    ) as run_cli:
+        text_result = await runtime.execute(_args({"action": "get_text", "index": 7}))
+        value_result = await runtime.execute(_args({"action": "get_value", "index": 7}))
+        attrs_result = await runtime.execute(_args({"action": "get_attributes", "index": 7}))
+        bbox_result = await runtime.execute(_args({"action": "get_bbox", "index": 7}))
+
+    assert run_cli.await_args_list == [
+        mock.call("get", "text", "7"),
+        mock.call("get", "value", "7"),
+        mock.call("get", "attributes", "7"),
+        mock.call("get", "bbox", "7"),
+    ]
+    assert text_result["output"] == "Text for element index 7: Submit"
+    assert value_result["value"] == "Rocket Rides"
+    assert attrs_result["attributes"] == {"href": "https://example.com"}
+    assert bbox_result["bbox"] == {"x": 1, "y": 2, "width": 3, "height": 4}
+
+
+@pytest.mark.asyncio
+async def test_save_as_pdf_uses_browser_use_python_cdp_bridge() -> None:
+    runtime = BrowserUseEngineRuntime()
+
+    with (
+        mock.patch.object(
+            runtime,
+            "_run_cli",
+            new=mock.AsyncMock(
+                return_value={
+                    "_raw_text": (
+                        '{"path": "/tmp/page.pdf", "bytes": 12, "file_name": "page.pdf"}\n'
+                    )
+                }
+            ),
+        ) as run_cli,
+        mock.patch(
+            "tools.browser.browser_use_engine.resolve_browser_path",
+            return_value=Path("/tmp/page.pdf"),
+        ),
+    ):
+        result = await runtime.execute(
+            _args({"action": "save_as_pdf", "file_name": "page"})
+        )
+
+    assert run_cli.await_args.args[0] == "python"
+    assert "Page.printToPDF" in run_cli.await_args.args[1]
+    assert result == {
+        "path": "/tmp/page.pdf",
+        "file_name": "page.pdf",
+        "bytes": 12,
+        "output": "Saved current page as PDF to /tmp/page.pdf.",
+        "success": True,
+        "action": "save_as_pdf",
+        "native_source": "browser_use.cli",
+    }

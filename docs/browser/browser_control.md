@@ -66,27 +66,27 @@ CDP connections are restricted to localhost for security. The agent can only con
 
 ### Browser Use Action Surface
 
-In addition to WindieOS compatibility actions (`connect`, `navigate`, `snapshot`, `click`, `type`, etc.), `browser` now exposes Browser Use-style action names directly:
+In addition to WindieOS lifecycle actions (`connect`, `status`, `profiles`, `snapshot`, `get_tabs`, etc.), `browser` exposes a flat Windie schema over Browser Use-backed actions:
 
 - `navigate`, `click`, `extract`, `scroll`, `screenshot`, `wait`, `evaluate`, `close`
 - `search`, `go_back`, `done`
 - `search_page`, `find_elements`, `find_text`
 - `input`, `send_keys`, `switch`, `close_tab`
-- `dropdown_options`, `select_dropdown`, `upload_file`
+- `select_dropdown`, `upload_file`, `hover`, `save_as_pdf`
+- `get_text`, `get_value`, `get_attributes`, `get_bbox`
 - `write_file`, `replace_file`, `read_file`, `read_long_content`
 
 Notes:
-- `close_tab` maps to Browser Use tab-close semantics.
-- `close` uses Browser Use close semantics when `tab_id`/`target_id` is provided; otherwise it closes the WindieOS browser session.
+- `switch` and `close_tab` use numeric `tab_index` values from `get_tabs`.
+- `close` closes the WindieOS browser session.
 - `done` is exposed for parity with Browser Use completion tooling.
-- Browser Use tab IDs are short IDs; when `target_id` is supplied, WindieOS derives a tab ID suffix.
 - Browser Use actions are also supported via `act.request.kind` using the same names.
 - `switch` defaults to visible tab activation, but supports `activate=false` for internal-only target changes so WindieOS can control a different tab without bringing it to the foreground in the user-visible browser window.
 - `find_text` supports optional `css_scope` and `max_results`, matching the scoped page-search behavior used by `search_page`.
+- `find_elements` returns non-actionable `ordinal` values for CSS query results. Use `snapshot.output` indexes for `click`, `input`, `hover`, `upload_file`, `select_dropdown`, and `get_*` actions.
 - Browser-internal navigation targets such as `chrome://settings/syncSetup` are routed through Browser Use's Python `browser.goto(...)` action wrapper so the Browser Use CLI `open` command cannot rewrite them into `https://...` URLs.
 - Overlapping actions now run Browser Use-only semantics at runtime (`snapshot`, `navigate`, `extract`, `click`, `type`, `press`, `scroll`, `screenshot`, `wait`, `evaluate`): compatibility-only fields are rejected (for example `snapshot.format`, `snapshot.snapshotFormat`, `snapshot.wait_until`, `snapshot.mode`, `snapshot.max_chars`, `snapshot.refs`, `snapshot.interactive`, `snapshot.compact`, `snapshot.depth`, `snapshot.selector`, `snapshot.frame`, `extract.mode`, `extract.selector`, `extract.frame`, `wait.state`, `screenshot.full_page`, `screenshot.ref`, `screenshot.element`, `screenshot.type`, `screenshot.quality`).
-- For `click`, `input`, `upload_file`, and `select_dropdown`, the Browser Use engine requires numeric Browser Use element indexes. WindieOS role refs such as `e12` are rejected by validation/engine mapping instead of being routed through the retired controller locator path.
-- `dropdown_options` remains in the model-visible schema but is not supported by the Browser Use CLI daemon; use `select_dropdown` with the desired visible option text.
+- For `click`, `input`, `hover`, `upload_file`, `select_dropdown`, and `get_*`, the Browser Use engine requires numeric Browser Use element indexes. WindieOS role refs such as `e12` are rejected by validation/engine mapping instead of being routed through the retired controller locator path.
 
 ### 1. Connect
 
@@ -187,7 +187,7 @@ Click an element by reference/index or Browser Use coordinate pair.
 }
 ```
 
-`ref` can be numeric (`"12"`) or role-based (`"e12"`).
+`ref` must be numeric (`"12"`), or use `index` from the latest `snapshot.output`. Role refs such as `"e12"` are not supported by the Browser Use engine.
 Browser Use-style alternatives:
 - `index`: element index from Browser Use snapshot state.
 - `coordinate_x` + `coordinate_y`: viewport coordinate click pair.
@@ -203,26 +203,13 @@ Type text into an input.
 ```json
 {
   "action": "input",
-  "ref": "e3",
+  "index": 3,
   "text": "windieos",
   "submit": true
 }
 ```
 
-`ref` can be numeric (`"12"`) or role-based (`"e12"`).
-
-### 6a. Dropdown Options
-
-Inspect a dropdown/select element by ref.
-
-```json
-{
-  "action": "dropdown_options",
-  "ref": "e9"
-}
-```
-
-`ref` can be numeric (`"12"`) or role-based (`"e12"`).
+`ref` must be numeric (`"12"`), or use `index` from the latest `snapshot.output`. Role refs such as `"e12"` are not supported by the Browser Use engine.
 
 ### 6b. Select Dropdown
 
@@ -231,26 +218,26 @@ Select a dropdown option by visible text or exact value match.
 ```json
 {
   "action": "select_dropdown",
-  "ref": "e9",
+  "index": 9,
   "text": "Price: Low to High"
 }
 ```
 
-`ref` can be numeric (`"12"`) or role-based (`"e12"`).
+Use an actionable numeric element index from the latest `snapshot.output`.
 
 ### 6c. Upload File
 
-Populate a file input by ref.
+Populate a file input by actionable snapshot index.
 
 ```json
 {
   "action": "upload_file",
-  "input_ref": "e5",
-  "paths": ["/tmp/example.txt"]
+  "index": 5,
+  "path": "/tmp/example.txt"
 }
 ```
 
-`ref`, `input_ref`, and `inputRef` all accept numeric (`"12"`) or role-based (`"e12"`) refs.
+Use an actionable numeric element index from the latest `snapshot.output`.
 
 ### 7. Press
 
@@ -338,7 +325,7 @@ Switch to a specific tab.
 ```json
 {
   "action": "switch",
-  "tab_id": "abc123"
+  "tab_index": 1
 }
 ```
 
@@ -377,19 +364,15 @@ Close browser connection.
 }
 ```
 
-## Compatibility Aliases
+## Removed Aliases
 
-Supported aliases that map to Browser Use-native execution:
+Legacy aliases such as `type`, `press`, `open`, and `switch_tab` are not part
+of the model-visible browser schema. Use `input`, `send_keys`, `navigate`, and
+`switch` instead.
 
-- `type` -> Browser Use `input`
-- `press` -> Browser Use `send_keys`
-- `open` -> Browser Use `navigate` with `new_tab=true`
-- `switch_tab` -> Browser Use `switch`
-- `get_tabs` / `status` -> Browser Use state summary bridge
-
-Legacy non-Browser Use actions were removed from runtime routing and now return
-`Unhandled action` if called (for example: `console`, `errors`, `requests`,
-`trace_start`, `trace_stop`, `pdf`, `dialog`, `cookies*`, `storage*`, `set_*`, `upload`).
+Unsupported browser-controller actions remain removed from runtime routing
+(`console`, `errors`, `requests`, `trace_start`, `trace_stop`, `dialog`,
+`cookies*`, `storage*`, `set_*`, and legacy upload shapes).
 
 ## Example Workflows
 
@@ -462,14 +445,14 @@ Legacy non-Browser Use actions were removed from runtime routing and now return
 // {
 //   "tab_count": 3,
 //   "tabs": [
-//     {"target_id": "id1", "title": "GitHub", "url": "https://github.com"},
-//     {"target_id": "id2", "title": "Documentation", "url": "https://docs.example.com"},
-//     {"target_id": "id3", "title": "Settings", "url": "https://settings.example.com"}
+//     {"tab_index": 0, "title": "GitHub", "url": "https://github.com"},
+//     {"tab_index": 1, "title": "Documentation", "url": "https://docs.example.com"},
+//     {"tab_index": 2, "title": "Settings", "url": "https://settings.example.com"}
 //   ]
 // }
 
 // Switch to documentation tab
-{"action": "switch_tab", "target_id": "id2"}
+{"action": "switch", "tab_index": 1}
 
 // Get snapshot of that tab
 {"action": "snapshot"}

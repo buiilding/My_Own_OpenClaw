@@ -40,6 +40,8 @@ class TestRemoteBrowserTool:
         assert parameters["required"] == ["action", "explanation"]
         assert parameters["additionalProperties"] is False
         assert parameters["properties"]["action"]["enum"] == list(BROWSER_CANONICAL_ACTIONS)
+        assert "dropdown_options" not in parameters["properties"]["action"]["enum"]
+        assert "save_as_pdf" in parameters["properties"]["action"]["enum"]
         assert parameters["properties"]["explanation"]["type"] == "string"
         assert "oneOf" not in parameters
         assert "url" in parameters["properties"]
@@ -66,6 +68,8 @@ class TestRemoteBrowserTool:
             "inputRef",
             "clear_first",
             "script",
+            "tab_id",
+            "dropdown_options",
         }
         props = set(schema.get("properties", {}).keys())
         assert props.isdisjoint(banned_fields)
@@ -165,6 +169,9 @@ class TestBrowserControlArgs:
         with pytest.raises(ValidationError):
             BrowserControlArgs.model_validate({"action": "switch_tab", "tab_id": "tab-1", "explanation": EXPLANATION})
 
+        with pytest.raises(ValidationError):
+            BrowserControlArgs.model_validate({"action": "dropdown_options", "index": 1, "explanation": EXPLANATION})
+
     def test_click_requires_ref_index_or_coordinates(self) -> None:
         with pytest.raises(
             ValidationError,
@@ -180,8 +187,11 @@ class TestBrowserControlArgs:
         with pytest.raises(ValidationError):
             BrowserInputArgs(action="input", text="hello", explanation=EXPLANATION)
 
-        switch_args = BrowserSwitchArgs(action="switch", tab_id="abcd", explanation=EXPLANATION)
-        assert switch_args.tab_id == "abcd"
+        switch_args = BrowserSwitchArgs(action="switch", tab_index=1, explanation=EXPLANATION)
+        assert switch_args.tab_index == 1
+
+        with pytest.raises(ValidationError):
+            BrowserSwitchArgs(action="switch", tab_id="abcd", explanation=EXPLANATION)
 
     def test_evaluate_requires_code_only(self) -> None:
         with pytest.raises(ValidationError):

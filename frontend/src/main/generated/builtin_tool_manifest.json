@@ -1377,9 +1377,14 @@
               "find_elements",
               "find_text",
               "close_tab",
-              "dropdown_options",
               "select_dropdown",
               "upload_file",
+              "hover",
+              "save_as_pdf",
+              "get_text",
+              "get_value",
+              "get_attributes",
+              "get_bbox",
               "write_file",
               "replace_file",
               "read_file",
@@ -1498,7 +1503,7 @@
           "file_name": {
             "anyOf": [
               {
-                "description": "Optional output filename for the screenshot.",
+                "description": "Optional output filename for the screenshot. / Optional output PDF file name under the browser file store.",
                 "type": "string"
               },
               {
@@ -1507,7 +1512,7 @@
                 "type": "string"
               }
             ],
-            "description": "Optional output filename for the screenshot. / Browser-side file name. / Browser-side file name. / Browser-side file name."
+            "description": "Optional output filename for the screenshot. / Optional output PDF file name under the browser file store. / Browser-side file name. / Browser-side file name. / Browser-side file name."
           },
           "files_to_display": {
             "description": "Optional attachment paths to surface with the completion result.",
@@ -1532,14 +1537,29 @@
             "type": "boolean"
           },
           "index": {
-            "description": "Browser Use element index. / Optional Browser Use element index. / Browser Use element index. / Browser Use element index. / Browser Use element index.",
-            "minimum": 0,
-            "type": "integer"
+            "anyOf": [
+              {
+                "description": "Actionable Browser Use element index from the latest snapshot output.",
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "description": "Actionable Browser Use element index from the latest snapshot output.",
+                "minimum": 0,
+                "type": "integer"
+              }
+            ],
+            "description": "Actionable Browser Use element index from the latest snapshot output. / Optional Browser Use element index. / Actionable Browser Use element index from the latest snapshot output. / Actionable Browser Use element index from the latest snapshot output. / Actionable Browser Use element index from the latest snapshot output. / Actionable Browser Use element index from the latest snapshot output. / Actionable Browser Use element index from the latest snapshot output. / Actionable Browser Use element index from the latest snapshot output. / Actionable Browser Use element index from the latest snapshot output."
           },
           "keys": {
             "description": "Key sequence to send.",
             "minLength": 1,
             "type": "string"
+          },
+          "landscape": {
+            "default": false,
+            "description": "Use landscape page orientation.",
+            "type": "boolean"
           },
           "leading_newline": {
             "default": false,
@@ -1587,6 +1607,18 @@
             "exclusiveMinimum": 0,
             "type": "number"
           },
+          "paper_format": {
+            "default": "Letter",
+            "description": "PDF paper size.",
+            "enum": [
+              "Letter",
+              "Legal",
+              "A4",
+              "A3",
+              "Tabloid"
+            ],
+            "type": "string"
+          },
           "path": {
             "description": "Path to the file to upload.",
             "minLength": 1,
@@ -1596,6 +1628,11 @@
             "description": "Pattern to find on the page.",
             "minLength": 1,
             "type": "string"
+          },
+          "print_background": {
+            "default": true,
+            "description": "Include page background graphics.",
+            "type": "boolean"
           },
           "query": {
             "description": "Extraction goal or question. / Search query.",
@@ -1611,6 +1648,13 @@
             "default": false,
             "description": "Interpret the pattern as a regex.",
             "type": "boolean"
+          },
+          "scale": {
+            "default": 1.0,
+            "description": "PDF rendering scale.",
+            "maximum": 2.0,
+            "minimum": 0.1,
+            "type": "number"
           },
           "seconds": {
             "description": "Seconds to wait. Omit to use the runtime default wait.",
@@ -1642,9 +1686,10 @@
             "description": "Optional success flag.",
             "type": "boolean"
           },
-          "tab_id": {
-            "description": "Tab ID from get_tabs.",
-            "type": "string"
+          "tab_index": {
+            "description": "Numeric tab index from get_tabs.",
+            "minimum": 0,
+            "type": "integer"
           },
           "text": {
             "anyOf": [
@@ -1713,9 +1758,14 @@
               "find_elements",
               "find_text",
               "close_tab",
-              "dropdown_options",
               "select_dropdown",
               "upload_file",
+              "hover",
+              "save_as_pdf",
+              "get_text",
+              "get_value",
+              "get_attributes",
+              "get_bbox",
               "write_file",
               "replace_file",
               "read_file",
@@ -1834,7 +1884,7 @@
           "file_name": {
             "anyOf": [
               {
-                "description": "Optional output filename for the screenshot.",
+                "description": "Optional output filename for the screenshot. / Optional output PDF file name under the browser file store.",
                 "type": "string"
               },
               {
@@ -1843,7 +1893,7 @@
                 "type": "string"
               }
             ],
-            "description": "Optional output filename for the screenshot. / Browser-side file name. / Browser-side file name. / Browser-side file name."
+            "description": "Optional output filename for the screenshot. / Optional output PDF file name under the browser file store. / Browser-side file name. / Browser-side file name. / Browser-side file name."
           },
           "files_to_display": {
             "description": "Optional attachment paths to surface with the completion result.",
@@ -1868,14 +1918,29 @@
             "type": "boolean"
           },
           "index": {
-            "description": "Browser Use element index. / Optional Browser Use element index. / Browser Use element index. / Browser Use element index. / Browser Use element index.",
-            "minimum": 0,
-            "type": "integer"
+            "anyOf": [
+              {
+                "description": "Actionable Browser Use element index from the latest snapshot output.",
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "description": "Actionable Browser Use element index from the latest snapshot output.",
+                "minimum": 0,
+                "type": "integer"
+              }
+            ],
+            "description": "Actionable Browser Use element index from the latest snapshot output. / Optional Browser Use element index. / Actionable Browser Use element index from the latest snapshot output. / Actionable Browser Use element index from the latest snapshot output. / Actionable Browser Use element index from the latest snapshot output. / Actionable Browser Use element index from the latest snapshot output. / Actionable Browser Use element index from the latest snapshot output. / Actionable Browser Use element index from the latest snapshot output. / Actionable Browser Use element index from the latest snapshot output."
           },
           "keys": {
             "description": "Key sequence to send.",
             "minLength": 1,
             "type": "string"
+          },
+          "landscape": {
+            "default": false,
+            "description": "Use landscape page orientation.",
+            "type": "boolean"
           },
           "leading_newline": {
             "default": false,
@@ -1923,6 +1988,18 @@
             "exclusiveMinimum": 0,
             "type": "number"
           },
+          "paper_format": {
+            "default": "Letter",
+            "description": "PDF paper size.",
+            "enum": [
+              "Letter",
+              "Legal",
+              "A4",
+              "A3",
+              "Tabloid"
+            ],
+            "type": "string"
+          },
           "path": {
             "description": "Path to the file to upload.",
             "minLength": 1,
@@ -1932,6 +2009,11 @@
             "description": "Pattern to find on the page.",
             "minLength": 1,
             "type": "string"
+          },
+          "print_background": {
+            "default": true,
+            "description": "Include page background graphics.",
+            "type": "boolean"
           },
           "query": {
             "description": "Extraction goal or question. / Search query.",
@@ -1947,6 +2029,13 @@
             "default": false,
             "description": "Interpret the pattern as a regex.",
             "type": "boolean"
+          },
+          "scale": {
+            "default": 1.0,
+            "description": "PDF rendering scale.",
+            "maximum": 2.0,
+            "minimum": 0.1,
+            "type": "number"
           },
           "seconds": {
             "description": "Seconds to wait. Omit to use the runtime default wait.",
@@ -1978,9 +2067,10 @@
             "description": "Optional success flag.",
             "type": "boolean"
           },
-          "tab_id": {
-            "description": "Tab ID from get_tabs.",
-            "type": "string"
+          "tab_index": {
+            "description": "Numeric tab index from get_tabs.",
+            "minimum": 0,
+            "type": "integer"
           },
           "text": {
             "anyOf": [

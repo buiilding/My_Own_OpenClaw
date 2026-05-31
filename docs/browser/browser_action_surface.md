@@ -33,7 +33,8 @@ The sidecar validates `BrowserControlArgs` before dispatch. Unsupported actions 
 - `get_tabs`, `switch`, `close_tab`, `close`
 - `evaluate`, `done`, `search`, `go_back`
 - `search_page`, `find_elements`, `find_text`
-- `dropdown_options`, `select_dropdown`, `upload_file`
+- `select_dropdown`, `upload_file`, `hover`, `save_as_pdf`
+- `get_text`, `get_value`, `get_attributes`, `get_bbox`
 - `write_file`, `replace_file`, `read_file`, `read_long_content`
 
 When adding an action, update all contract surfaces and tests together.
@@ -51,9 +52,13 @@ Important limits:
 Refs can be:
 
 - numeric Browser Use indexes,
-- target ids for tab/session actions.
+- numeric tab indexes for tab/session actions.
 
 Role refs such as `e12` are Windie-owned legacy refs and are rejected by the Browser Use engine adapter. Use numeric Browser Use indexes from the latest `snapshot` `output`.
+
+`find_elements` returns CSS-query `ordinal` values only. These ordinals are
+not Browser Use interaction indexes and must not be fed into `click`, `input`,
+`hover`, `upload_file`, `select_dropdown`, or `get_*` actions.
 
 ## Extraction And Long Content
 

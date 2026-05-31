@@ -138,7 +138,7 @@ describe('local_backend_bridge RPC handlers', () => {
 
     const browserPromise = handlers['run-browser-action'](null, {
       action: 'switch',
-      tab_id: 'tab-2',
+      tab_index: 2,
       activate: false,
     });
     expectLastRequestWith('execute_tool', {
@@ -146,11 +146,11 @@ describe('local_backend_bridge RPC handlers', () => {
       args: {
         action: 'switch',
         explanation: 'Manage the dedicated browser session from the chat header.',
-        tab_id: 'tab-2',
+        tab_index: 2,
         activate: false,
       },
     });
-    await expectResolvedSuccess(stdoutHandler, browserPromise, { target_id: 'tab-2' });
+    await expectResolvedSuccess(stdoutHandler, browserPromise, { target_id: '2' });
 
     const screenshotPromise = handlers['capture-screenshot-attachment'](null, {
       args: { explanation: 'Attach current screen' },

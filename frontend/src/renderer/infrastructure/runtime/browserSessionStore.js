@@ -32,11 +32,13 @@ function formatBrowserTabLabel(tab) {
 }
 
 function normalizeTab(tab) {
-  const targetId = normalizeString(tab?.target_id || tab?.targetId);
+  const tabIndex = Number.isInteger(tab?.tab_index) ? tab.tab_index : null;
+  const targetId = normalizeString(tab?.target_id || tab?.targetId || (tabIndex !== null ? String(tabIndex) : ''));
   const url = normalizeString(tab?.url);
   const title = normalizeString(tab?.title);
   return {
     targetId,
+    tabIndex,
     title,
     url,
     label: formatBrowserTabLabel({ title, url }),
@@ -388,11 +390,18 @@ export async function switchBrowserSessionTab(targetId) {
   }
 
   const nextTab = currentSnapshot.tabs.find((tab) => tab.targetId === nextTargetId) || null;
+  const nextTabIndex = Number.isInteger(nextTab?.tabIndex) ? nextTab.tabIndex : Number(nextTargetId);
+  if (!Number.isInteger(nextTabIndex) || nextTabIndex < 0) {
+    updateSnapshot({
+      error: 'Browser tab switch requires a numeric tab index.',
+    });
+    return;
+  }
   updateSnapshot({ busyAction: 'switch' });
 
   try {
     const result = await runBrowserAction('switch', {
-      tab_id: nextTargetId,
+      tab_index: nextTabIndex,
       activate: false,
     });
     updateSnapshot({

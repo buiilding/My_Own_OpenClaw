@@ -29,7 +29,7 @@ Purpose of lazy export:
 
 `schema_types.py` defines the canonical grouped browser actions:
 
-- `connect`, `status`, `profiles`, `navigate`, `snapshot`, `extract`, `click`, `input`, `send_keys`, `scroll`, `screenshot`, `wait`, `get_tabs`, `switch`, `evaluate`, `done`, `search`, `go_back`, `search_page`, `find_elements`, `find_text`, `close_tab`, `dropdown_options`, `select_dropdown`, `upload_file`, `write_file`, `replace_file`, `read_file`, `read_long_content`, `close`
+- `connect`, `status`, `profiles`, `navigate`, `snapshot`, `extract`, `click`, `input`, `send_keys`, `scroll`, `screenshot`, `wait`, `get_tabs`, `switch`, `evaluate`, `done`, `search`, `go_back`, `search_page`, `find_elements`, `find_text`, `close_tab`, `select_dropdown`, `upload_file`, `hover`, `save_as_pdf`, `get_text`, `get_value`, `get_attributes`, `get_bbox`, `write_file`, `replace_file`, `read_file`, `read_long_content`, `close`
 
 There are no removed-alias actions or compatibility-only browser fields in the backend contract anymore.
 

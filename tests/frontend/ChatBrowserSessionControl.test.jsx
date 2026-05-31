@@ -95,7 +95,9 @@ function createBrowserToolHandler(session) {
     }
 
     if (action === 'switch') {
-      session.currentTargetId = payload?.tab_id || session.currentTargetId;
+      session.currentTargetId = Number.isInteger(payload?.tab_index)
+        ? String(payload.tab_index)
+        : session.currentTargetId;
       const nextTab = session.tabs.find((tab) => tab.targetId === session.currentTargetId) || null;
       return {
         success: true,
@@ -138,8 +140,8 @@ describe('ChatBrowserSessionControl', () => {
       localBackendReady: true,
       currentTargetId: '',
       tabs: [
-        { targetId: 'tab-1', title: 'Docs', url: 'https://docs.windieos.com' },
-        { targetId: 'tab-2', title: 'GitHub', url: 'https://github.com/windieos' },
+        { targetId: '0', title: 'Docs', url: 'https://docs.windieos.com' },
+        { targetId: '1', title: 'GitHub', url: 'https://github.com/windieos' },
       ],
     };
     mockInvoke.mockImplementation(createBrowserToolHandler(session));
@@ -166,10 +168,10 @@ describe('ChatBrowserSessionControl', () => {
     const session = {
       connected: true,
       localBackendReady: true,
-      currentTargetId: 'tab-1',
+      currentTargetId: '0',
       tabs: [
-        { targetId: 'tab-1', title: 'Docs', url: 'https://docs.windieos.com' },
-        { targetId: 'tab-2', title: 'GitHub', url: 'https://github.com/windieos' },
+        { targetId: '0', title: 'Docs', url: 'https://docs.windieos.com' },
+        { targetId: '1', title: 'GitHub', url: 'https://github.com/windieos' },
       ],
     };
     mockInvoke.mockImplementation(createBrowserToolHandler(session));
@@ -186,7 +188,7 @@ describe('ChatBrowserSessionControl', () => {
     await waitFor(() => {
       expect(mockInvoke).toHaveBeenCalledWith('run-browser-action', expect.objectContaining({
         action: 'switch',
-        tab_id: 'tab-2',
+        tab_index: 1,
         activate: false,
       }));
     });
@@ -212,9 +214,9 @@ describe('ChatBrowserSessionControl', () => {
     const session = {
       connected: true,
       localBackendReady: true,
-      currentTargetId: 'tab-1',
+      currentTargetId: '0',
       tabs: [
-        { targetId: 'tab-1', title: 'Docs', url: 'https://docs.windieos.com' },
+        { targetId: '0', title: 'Docs', url: 'https://docs.windieos.com' },
       ],
     };
     mockInvoke.mockImplementation(createBrowserToolHandler(session));
@@ -224,11 +226,11 @@ describe('ChatBrowserSessionControl', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Browser Tab: Docs' }));
 
     session.tabs.push({
-      targetId: 'tab-2',
+      targetId: '1',
       title: 'New pricing tab',
       url: 'https://windieos.com/pricing',
     });
-    session.currentTargetId = 'tab-2';
+    session.currentTargetId = '1';
 
     await act(async () => {
       jest.advanceTimersByTime(1000);
@@ -243,9 +245,9 @@ describe('ChatBrowserSessionControl', () => {
     const session = {
       connected: true,
       localBackendReady: false,
-      currentTargetId: 'tab-1',
+      currentTargetId: '0',
       tabs: [
-        { targetId: 'tab-1', title: 'Docs', url: 'https://docs.windieos.com' },
+        { targetId: '0', title: 'Docs', url: 'https://docs.windieos.com' },
       ],
     };
     mockInvoke.mockImplementation(createBrowserToolHandler(session));

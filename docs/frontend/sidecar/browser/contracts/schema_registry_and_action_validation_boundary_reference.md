@@ -54,7 +54,8 @@ Removed aliases and compatibility-only fields are absent from the schema registr
 - requires `ref/index` or both coordinates
 - rejects single-coordinate payloads
 
-`BrowserInputArgs`, `BrowserDropdownOptionsArgs`, `BrowserSelectDropdownArgs`, `BrowserUploadFileArgs`:
+`BrowserInputArgs`, `BrowserSelectDropdownArgs`, `BrowserUploadFileArgs`,
+`BrowserHoverArgs`, and deterministic `BrowserGet*Args`:
 
 - require `ref` or `index`
 
