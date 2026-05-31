@@ -55,6 +55,7 @@ export type WindieAgentQueryOptions = Partial<Omit<WindieAgentQueryInput, 'text'
 
 export type WindieAgentOwner = {
   listAgents(): Array<{ id: string; agentDefinition: JsonRecord }>;
+  shutdownLocalRuntime?(): Promise<void>;
 };
 
 export type LoadConversationOptions = {
@@ -235,6 +236,11 @@ export class WindieAgent {
     this.session.close(1000, 'sleep');
   }
 
+  async shutdown(): Promise<void> {
+    this.sleep();
+    await this.shutdownLocalRuntime();
+  }
+
   async updateSettings(config: JsonRecord): Promise<string> {
     return this.session.updateSettings(config);
   }
@@ -349,6 +355,10 @@ export class WindieAgent {
   }
 
   async shutdownLocalRuntime(): Promise<void> {
+    if (this.owner.shutdownLocalRuntime) {
+      await this.owner.shutdownLocalRuntime();
+      return;
+    }
     await this.localRuntime?.shutdown?.();
   }
 

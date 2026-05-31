@@ -524,8 +524,10 @@ one.
 Electron uses `sidecar_daemon_manager.cjs` to start or reuse the daemon and then
 passes the daemon client into the SDK runtime. Node/CLI SDK hosts use the default
 auto sidecar provider: when `wakeUp` sees module tools, plugins, or MCP servers,
-it reads the daemon discovery file, reuses a healthy daemon when present, or
-starts `sidecar_daemon.py` and waits for fresh discovery metadata.
+it reads the daemon discovery file, shuts down a healthy discovered daemon by
+default, starts `sidecar_daemon.py`, and waits for fresh discovery metadata. Set
+`autoSidecar.reuseExisting = true` only for hosts that intentionally want to
+attach to a separately managed daemon.
 
 Non-Electron SDK hosts can override that behavior with:
 
@@ -552,6 +554,9 @@ that known runtime. The returned `WindieAgent` exposes the same local-runtime
 status/tool-list/shutdown helpers, so SDK hosts can keep using the agent object
 after wake-up instead of retaining the root client. These helpers do not
 auto-start a daemon just to inspect status.
+Use `agent.shutdown()` for CLI and custom SDK host teardown; it closes the
+backend websocket and then shuts down the known local runtime. `agent.sleep()`
+only closes the backend session.
 
 The SDK does not accept raw JavaScript/Python closures as durable tools.
 Module tools must be registered by import path, plugin tools by package path, and
@@ -599,6 +604,7 @@ Current canonical surface:
 - `query`
 - `stop`
 - `sleep`
+- `shutdown`
 - `updateSettings`
 - `setModel`
 - `run`

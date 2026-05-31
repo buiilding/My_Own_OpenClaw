@@ -14,7 +14,11 @@ from urllib.parse import quote_plus
 
 from platformdirs import user_data_dir
 
-from tools.browser.chrome_launcher import DEFAULT_WINDIE_CDP_PORT, ensure_chrome_with_cdp
+from tools.browser.chrome_launcher import (
+    DEFAULT_WINDIE_CDP_PORT,
+    ensure_chrome_with_cdp,
+    terminate_windie_chrome_with_cdp,
+)
 from tools.browser.content_extraction import (
     DEFAULT_EXTRACT_CHARS,
     DEFAULT_LONG_CONTENT_CHARS,
@@ -35,6 +39,7 @@ MAX_SNAPSHOT_WINDOW_CHARS = 120_000
 RUNTIME_SOURCE = "browser_use.cli"
 BROWSER_USE_ENGINE_ACTIONS = frozenset(BROWSER_CANONICAL_ACTIONS)
 HEADLESS_RECOVERY_TIMEOUT_SECONDS = 5.0
+BROWSER_RUNTIME_SHUTDOWN_TIMEOUT_SECONDS = 8.0
 BROWSER_INTERNAL_URL_PREFIXES = (
     "about:",
     "chrome://",
@@ -835,3 +840,35 @@ class BrowserUseEngineRuntime:
     async def _handle_close(self, _args: Any) -> dict[str, Any]:
         data = await self._run_cli("close", headed=False)
         return _with_output(data, _browser_output(data, "Closed the browser session."))
+
+
+async def shutdown_browser_runtime() -> dict[str, Any]:
+    """Close the live Browser Use session and Windie-owned Chrome process.
+
+    This intentionally leaves the dedicated Chrome profile directory in place so
+    cookies and login state persist across SDK/sidecar restarts.
+    """
+
+    errors: list[str] = []
+    browser_use_closed = False
+    runtime = BrowserUseEngineRuntime()
+    runtime._timeout = min(runtime._timeout, BROWSER_RUNTIME_SHUTDOWN_TIMEOUT_SECONDS)
+    try:
+        await runtime._handle_close(None)
+        browser_use_closed = True
+    except Exception as exc:  # pragma: no cover - best-effort shutdown guard
+        errors.append(f"browser_use_close: {exc}")
+
+    terminated_chrome_processes = 0
+    try:
+        terminated_chrome_processes = await terminate_windie_chrome_with_cdp(
+            DEFAULT_WINDIE_CDP_PORT
+        )
+    except Exception as exc:  # pragma: no cover - best-effort shutdown guard
+        errors.append(f"chrome_terminate: {exc}")
+
+    return {
+        "browser_use_closed": browser_use_closed,
+        "terminated_chrome_processes": terminated_chrome_processes,
+        "errors": errors,
+    }

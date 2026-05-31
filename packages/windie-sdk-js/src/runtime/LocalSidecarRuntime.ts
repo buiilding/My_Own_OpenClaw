@@ -81,6 +81,7 @@ export type WindieAutoSidecarOptions = {
   pythonArgs?: string[];
   host?: string;
   port?: number;
+  reuseExisting?: boolean;
   startTimeoutMs?: number;
   pollIntervalMs?: number;
   fetchImpl?: FetchLike;
@@ -398,6 +399,24 @@ async function probeDaemon(
   }
 }
 
+async function waitForDaemonStop(
+  discovery: SidecarDaemonClientOptions | null,
+  fetchImpl?: FetchLike,
+  WebSocketImpl?: EventWebSocketConstructor,
+  timeoutMs = 2000,
+  pollIntervalMs = 100,
+): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const running = await probeDaemon(discovery, fetchImpl, WebSocketImpl);
+    if (!running) {
+      return;
+    }
+    await sleep(pollIntervalMs);
+  }
+  throw new Error('Timed out waiting for existing Windie sidecar daemon to stop');
+}
+
 function resolveDaemonScript(options: WindieAutoSidecarOptions, fs: NodeFsLike, path: NodePathLike): string {
   const processLike = (globalThis as unknown as {
     process?: { cwd?: () => string; env?: Record<string, string | undefined> };
@@ -450,14 +469,25 @@ export function createWindieLocalRuntimeProvider<TWakeUpOptions = unknown>(
         ?? path.join(os.tmpdir(), 'windieos', 'sidecar-daemon.json'),
     );
     const fetchImpl = options.fetchImpl;
+    const initialDiscovery = readDaemonDiscovery(fs, discoveryFile);
     const existing = await probeDaemon(
-      readDaemonDiscovery(fs, discoveryFile),
+      initialDiscovery,
       fetchImpl,
       options.WebSocketImpl,
     );
     if (existing) {
-      cachedRuntime = existing;
-      return cachedRuntime;
+      if (options.reuseExisting === true) {
+        cachedRuntime = existing;
+        return cachedRuntime;
+      }
+      await existing.shutdown();
+      await waitForDaemonStop(
+        initialDiscovery,
+        fetchImpl,
+        options.WebSocketImpl,
+        options.startTimeoutMs ?? 10000,
+        options.pollIntervalMs ?? 100,
+      );
     }
 
     const daemonScript = resolveDaemonScript(options, fs, path);

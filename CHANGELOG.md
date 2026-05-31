@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/sidecar/browser: make SDK agent shutdown close the backend socket, shut
+  down the local sidecar, close the Browser Use session, and terminate only the
+  Windie-owned Chrome CDP process while preserving the persistent browser
+  profile and login state.
 - ops/deploy: add a GitHub Actions push-to-backend deployment workflow plus a
   remote checkout update script that fetches `main`, restarts
   `windieos-backend.service`, and verifies service health over SSH.

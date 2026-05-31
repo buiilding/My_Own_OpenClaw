@@ -179,7 +179,6 @@ try {
   }
   await agent.stop('local-tool-extension-example');
 } finally {
-  agent?.sleep();
-  await client.shutdownLocalRuntime().catch(() => {});
+  await agent?.shutdown?.();
   await backend.close();
 }

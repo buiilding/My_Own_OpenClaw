@@ -172,6 +172,6 @@ try {
   console.log(JSON.stringify(metadata, null, 2));
   console.log(`Model updates sent through SDK settings: ${backend.modelUpdates.length}`);
 } finally {
-  agent?.sleep();
+  await agent?.shutdown?.();
   await backend.close();
 }

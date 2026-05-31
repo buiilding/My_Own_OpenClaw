@@ -46,6 +46,17 @@ class FakeBackendWithEventSink:
     def set_event_sink(self, event_sink):
         self.event_sink = event_sink
 
+    async def shutdown(self):
+        return None
+
+
+class FakeBackendWithShutdown:
+    def __init__(self):
+        self.shutdown_calls = 0
+
+    async def shutdown(self):
+        self.shutdown_calls += 1
+
 
 @pytest.mark.asyncio
 async def test_sidecar_daemon_rejects_missing_or_invalid_token():
@@ -362,3 +373,31 @@ async def test_sidecar_daemon_shutdown_endpoint_signals_daemon_loop():
 
     assert response.status == 200
     await asyncio.wait_for(shutdown_event.wait(), timeout=0.2)
+
+
+@pytest.mark.asyncio
+async def test_sidecar_daemon_close_shuts_down_browser_runtime(monkeypatch):
+    backend = FakeBackendWithShutdown()
+    shutdown_calls = []
+
+    async def fake_shutdown_browser_runtime():
+        shutdown_calls.append(True)
+        return {
+            "browser_use_closed": True,
+            "terminated_chrome_processes": 1,
+            "errors": [],
+        }
+
+    import tools.browser.browser_use_engine as browser_use_engine
+
+    monkeypatch.setattr(
+        browser_use_engine,
+        "shutdown_browser_runtime",
+        fake_shutdown_browser_runtime,
+    )
+    daemon = SidecarDaemon(backend=backend, token="test-token")
+
+    await daemon.close()
+
+    assert shutdown_calls == [True]
+    assert backend.shutdown_calls == 1

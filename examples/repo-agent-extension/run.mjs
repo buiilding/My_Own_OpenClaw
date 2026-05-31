@@ -165,7 +165,6 @@ try {
   }
   await agent.stop('repo-agent-example');
 } finally {
-  agent?.sleep();
-  await client.shutdownLocalRuntime().catch(() => {});
+  await agent?.shutdown?.();
   await backend.close();
 }

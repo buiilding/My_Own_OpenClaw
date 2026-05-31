@@ -1529,10 +1529,47 @@ describe('WindieSdkClient', () => {
     await agent.shutdownLocalRuntime();
     expect(localRuntime.shutdown).toHaveBeenCalledTimes(1);
     await client.shutdownLocalRuntime();
-    expect(localRuntime.shutdown).toHaveBeenCalledTimes(2);
+    expect(localRuntime.shutdown).toHaveBeenCalledTimes(1);
   });
 
-  test('wakeUp automatically reuses a discovered sidecar daemon for local tools', async () => {
+  test('agent.shutdown closes backend session and local runtime together', async () => {
+    const localRuntime: WindieLocalRuntimeClient = {
+      status: jest.fn(async () => ({ status: 'ok' })),
+      registerModuleTool: jest.fn(async () => ({ success: true })),
+      listTools: jest.fn(async () => ({
+        version: 1,
+        tools: [{ name: 'save_note', schema: { type: 'object', properties: {} } }],
+      })),
+      shutdown: jest.fn(async () => undefined),
+    };
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+      defaultUserId: 'dev-user',
+      sidecar: localRuntime,
+    });
+
+    const wakePromise = client.wakeUp({
+      tools: [
+        moduleTool({
+          name: 'save_note',
+          module: 'my_project.tools:save_note',
+          schema: { type: 'object', properties: {} },
+        }),
+      ],
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    FakeWebSocket.instances[0].emit('open', {});
+    const agent = await wakePromise;
+
+    await agent.shutdown();
+
+    expect(FakeWebSocket.instances[0].closed).toBe(true);
+    expect(localRuntime.shutdown).toHaveBeenCalledTimes(1);
+  });
+
+  test('wakeUp can explicitly reuse a discovered sidecar daemon for local tools', async () => {
     const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-daemon-'));
     const discoveryFile = path.join(tempDir, 'sidecar-daemon.json');
     await fsPromises.writeFile(
@@ -1566,6 +1603,7 @@ describe('WindieSdkClient', () => {
       defaultUserId: 'dev-user',
       autoSidecar: {
         discoveryFile,
+        reuseExisting: true,
         startTimeoutMs: 50,
       },
     });
@@ -1612,6 +1650,7 @@ describe('WindieSdkClient', () => {
     const provider = createWindieLocalRuntimeProvider({
       discoveryFile,
       fetchImpl: mockFetch,
+      reuseExisting: true,
     });
     const runtime = await provider({
       wakeUp: { tools: [] },
@@ -1627,6 +1666,81 @@ describe('WindieSdkClient', () => {
     );
     const headers = mockFetch.mock.calls[0][1]?.headers as Headers;
     expect(headers.get('x-windie-sidecar-token')).toBe('provider-token');
+  });
+
+  test('createWindieLocalRuntimeProvider restarts a discovered daemon by default', async () => {
+    const tempDir = await fsPromises.mkdtemp(path.join(os.tmpdir(), 'windie-sdk-provider-restart-'));
+    const discoveryFile = path.join(tempDir, 'sidecar-daemon.json');
+    const daemonScript = path.join(tempDir, 'sidecar_daemon.py');
+    const launcherScript = path.join(tempDir, 'python-in-env');
+    await fsPromises.writeFile(daemonScript, 'print("daemon")\n', 'utf8');
+    await fsPromises.writeFile(
+      discoveryFile,
+      JSON.stringify({
+        base_url: 'http://127.0.0.1:43124',
+        token: 'old-token',
+      }),
+      'utf8',
+    );
+    await fsPromises.writeFile(
+      launcherScript,
+      [
+        '#!/usr/bin/env node',
+        "const fs = require('node:fs');",
+        "const discoveryIndex = process.argv.indexOf('--discovery-file');",
+        'if (discoveryIndex < 0) process.exit(3);',
+        "fs.writeFileSync(process.argv[discoveryIndex + 1], JSON.stringify({ base_url: 'http://127.0.0.1:43125', token: 'fresh-token' }));",
+        'setTimeout(() => {}, 30000);',
+      ].join('\n'),
+      'utf8',
+    );
+    await fsPromises.chmod(launcherScript, 0o755);
+
+    let oldStatusCalls = 0;
+    mockFetch.mockImplementation(async (input) => {
+      const url = String(input);
+      if (url === 'http://127.0.0.1:43124/status') {
+        oldStatusCalls += 1;
+        return oldStatusCalls === 1
+          ? jsonResponse({ status: 'ok' }) as any
+          : jsonResponse({ error: 'stopped' }, { status: 503, statusText: 'Service Unavailable' }) as any;
+      }
+      if (url === 'http://127.0.0.1:43124/shutdown') {
+        return jsonResponse({ success: true }) as any;
+      }
+      if (url === 'http://127.0.0.1:43125/status') {
+        return jsonResponse({ status: 'ok' }) as any;
+      }
+      if (url === 'http://127.0.0.1:43125/shutdown') {
+        return jsonResponse({ success: true }) as any;
+      }
+      return jsonResponse({ ok: true }) as any;
+    });
+
+    const provider = createWindieLocalRuntimeProvider({
+      discoveryFile,
+      daemonScript,
+      pythonCommand: launcherScript,
+      pollIntervalMs: 1,
+      startTimeoutMs: 2000,
+      fetchImpl: mockFetch,
+    });
+    const runtime = await provider({
+      wakeUp: { tools: [] },
+      needsLocalRuntime: true,
+    });
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      'http://127.0.0.1:43124/shutdown',
+      expect.any(Object),
+    );
+    expect(mockFetch).toHaveBeenCalledWith(
+      'http://127.0.0.1:43125/status',
+      expect.objectContaining({
+        headers: expect.any(Headers),
+      }),
+    );
+    await runtime?.shutdown?.();
   });
 
   test('SidecarDaemonHttpClient subscribes to sidecar runtime events', async () => {

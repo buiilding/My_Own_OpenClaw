@@ -158,6 +158,10 @@ class WindieAgent {
     sleep() {
         this.session.close(1000, 'sleep');
     }
+    async shutdown() {
+        this.sleep();
+        await this.shutdownLocalRuntime();
+    }
     async updateSettings(config) {
         return this.session.updateSettings(config);
     }
@@ -249,6 +253,10 @@ class WindieAgent {
         return this.localRuntime?.status ? this.localRuntime.status() : null;
     }
     async shutdownLocalRuntime() {
+        if (this.owner.shutdownLocalRuntime) {
+            await this.owner.shutdownLocalRuntime();
+            return;
+        }
         await this.localRuntime?.shutdown?.();
     }
     async uploadArtifact(file, filename) {

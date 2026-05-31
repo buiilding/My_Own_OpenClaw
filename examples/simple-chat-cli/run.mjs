@@ -29,6 +29,27 @@ const rl = readline.createInterface({
   output: stdout,
 });
 
+let shutdownStarted = false;
+
+async function shutdownAgent() {
+  if (shutdownStarted) return;
+  shutdownStarted = true;
+  rl.close();
+  await agent.shutdown?.();
+}
+
+rl.on("SIGINT", () => {
+  void shutdownAgent().finally(() => exit(130));
+});
+
+process.once("SIGINT", () => {
+  void shutdownAgent().finally(() => exit(130));
+});
+
+process.once("SIGTERM", () => {
+  void shutdownAgent().finally(() => exit(143));
+});
+
 stdout.write("Windie CLI. Type /exit to quit.\n\n");
 
 function isReadlineClosedError(error) {
@@ -116,7 +137,6 @@ try {
     stdout.write("\n");
   }
 } finally {
-  rl.close();
-  await agent.sleep?.();
+  await shutdownAgent();
 }
 exit(0);

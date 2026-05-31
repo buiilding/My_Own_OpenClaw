@@ -286,6 +286,17 @@ async function probeDaemon(discovery, fetchImpl, WebSocketImpl) {
         return null;
     }
 }
+async function waitForDaemonStop(discovery, fetchImpl, WebSocketImpl, timeoutMs = 2000, pollIntervalMs = 100) {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+        const running = await probeDaemon(discovery, fetchImpl, WebSocketImpl);
+        if (!running) {
+            return;
+        }
+        await sleep(pollIntervalMs);
+    }
+    throw new Error('Timed out waiting for existing Windie sidecar daemon to stop');
+}
 function resolveDaemonScript(options, fs, path) {
     const processLike = globalThis.process;
     const explicit = options.daemonScript
@@ -326,10 +337,15 @@ function createWindieLocalRuntimeProvider(options = {}) {
             ?? processLike?.env?.WINDIE_SIDECAR_DAEMON_DISCOVERY_FILE
             ?? path.join(os.tmpdir(), 'windieos', 'sidecar-daemon.json'));
         const fetchImpl = options.fetchImpl;
-        const existing = await probeDaemon(readDaemonDiscovery(fs, discoveryFile), fetchImpl, options.WebSocketImpl);
+        const initialDiscovery = readDaemonDiscovery(fs, discoveryFile);
+        const existing = await probeDaemon(initialDiscovery, fetchImpl, options.WebSocketImpl);
         if (existing) {
-            cachedRuntime = existing;
-            return cachedRuntime;
+            if (options.reuseExisting === true) {
+                cachedRuntime = existing;
+                return cachedRuntime;
+            }
+            await existing.shutdown();
+            await waitForDaemonStop(initialDiscovery, fetchImpl, options.WebSocketImpl, options.startTimeoutMs ?? 10000, options.pollIntervalMs ?? 100);
         }
         const daemonScript = resolveDaemonScript(options, fs, path);
         fs.mkdirSync(path.dirname(discoveryFile), { recursive: true });

@@ -12,6 +12,7 @@ from tools.browser.browser_use_engine import (
     BrowserActionError,
     BrowserUseEngineRuntime,
     _parse_cli_json,
+    shutdown_browser_runtime,
 )
 from windie_shared.browser_contract import BrowserControlArgs
 
@@ -388,6 +389,30 @@ async def test_close_uses_config_neutral_browser_use_shutdown() -> None:
 
     run_cli.assert_awaited_once_with("close", headed=False)
     assert result["shutdown"] is True
+
+
+@pytest.mark.asyncio
+async def test_shutdown_browser_runtime_closes_browser_use_and_windie_chrome() -> None:
+    with (
+        mock.patch.object(
+            BrowserUseEngineRuntime,
+            "_handle_close",
+            new=mock.AsyncMock(return_value={"shutdown": True}),
+        ) as close_session,
+        mock.patch(
+            "tools.browser.browser_use_engine.terminate_windie_chrome_with_cdp",
+            new=mock.AsyncMock(return_value=2),
+        ) as terminate_chrome,
+    ):
+        result = await shutdown_browser_runtime()
+
+    close_session.assert_awaited_once_with(None)
+    terminate_chrome.assert_awaited_once()
+    assert result == {
+        "browser_use_closed": True,
+        "terminated_chrome_processes": 2,
+        "errors": [],
+    }
 
 
 @pytest.mark.asyncio

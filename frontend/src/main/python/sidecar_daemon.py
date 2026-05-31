@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import logging
 import os
 import secrets
 import tempfile
@@ -17,6 +18,8 @@ from typing import Any
 from aiohttp import web
 
 from local_backend import LocalBackend
+
+logger = logging.getLogger(__name__)
 
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_DISCOVERY_FILE = (
@@ -554,9 +557,23 @@ class SidecarDaemon:
         await ws.send_json(response)
 
     async def close(self) -> None:
+        await self.close_local_runtime_resources()
         for client in self.mcp_clients.values():
             await client.close()
         await self.backend.shutdown()
+
+    async def close_local_runtime_resources(self) -> None:
+        try:
+            from tools.browser.browser_use_engine import shutdown_browser_runtime
+
+            result = await shutdown_browser_runtime()
+        except Exception as exc:
+            logger.warning("Failed to shut down browser runtime: %s", exc)
+            return
+
+        errors = result.get("errors") if isinstance(result, dict) else None
+        if errors:
+            logger.warning("Browser runtime shutdown completed with errors: %s", errors)
 
 
 async def write_discovery_file(path: Path, *, host: str, port: int, token: str) -> None:
