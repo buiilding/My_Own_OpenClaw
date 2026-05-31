@@ -70,7 +70,7 @@ function createMockBackend() {
       }
 
       if (message.type === 'tool-result') {
-        const content = message.payload?.data?.llm_content || 'No tool content returned.';
+        const content = message.payload?.data?.output || 'No tool content returned.';
         const requestId = message.payload?.request_id;
         send(
           socket,

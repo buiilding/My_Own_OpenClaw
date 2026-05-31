@@ -1630,7 +1630,7 @@ describe('Windie SDK conversation runtime core', () => {
       localRuntime: {
         executeTool: jest.fn(async () => ({
           success: true,
-          data: { return_display: 'local output' },
+          data: { output: 'local output' },
         })),
       },
       sendToolResult: jest.fn(async () => {
@@ -2375,7 +2375,7 @@ describe('Windie SDK conversation runtime core', () => {
         executeTool: jest.fn(async call => ({
           success: true,
           data: {
-            return_display: `read ${String(call.args.path)}`,
+            output: `read ${String(call.args.path)}`,
           },
         })),
       },
@@ -2429,7 +2429,7 @@ describe('Windie SDK conversation runtime core', () => {
         executeTool: jest.fn(async () => ({
           success: true,
           data: {
-            return_display: 'read README.md',
+            output: 'read README.md',
           },
         })),
       },

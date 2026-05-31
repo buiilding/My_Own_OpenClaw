@@ -133,7 +133,7 @@ Snapshot options:
 - `include_screenshot`: optional boolean to include Browser Use base64 screenshot in response
 
 Defaults:
-- Snapshot output returns Browser Use state text plus metadata (`ref_count`, `offset`, `limit`, `returned_chars`, `total_chars`, `has_more`, `next_offset`).
+- Snapshot returns Browser Use state text in `output` plus metadata (`ref_count`, `offset`, `limit`, `returned_chars`, `total_chars`, `has_more`, `next_offset`).
 - `offset + limit` must be `<= 120000`.
 - Compatibility snapshot fields are rejected at runtime (`format`, `snapshotFormat`, `wait_until`, `state`, `mode`, `max_chars`, `refs`, `interactive`, `compact`, `depth`, `selector`, `frame`).
 
@@ -172,7 +172,7 @@ Extract options (Browser Use semantics):
 - `start_from_char`: continue extraction from a character offset for long pages (`0` default).
 - `output_schema`: optional structured-output hint passed to Browser Use extract.
 
-Extract output mirrors Browser Use action results (`extracted_content`, metadata, and optional schema-structured content when supported by Browser Use).  
+Extract returns focused page text in `output` plus extraction metadata.
 Runtime requirement: configure extraction LLM via Windie provider/model (`WINDIE_BROWSER_USE_EXTRACTION_PROVIDER` + `WINDIE_BROWSER_USE_EXTRACTION_MODEL_ID`) or set explicit Browser Use model-name override (`WINDIE_BROWSER_USE_EXTRACTION_MODEL`, for example `openai_gpt_4o_mini`).
 
 ### 5. Click

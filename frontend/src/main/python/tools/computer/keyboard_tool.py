@@ -175,8 +175,7 @@ async def execute_keyboard_control(args: Dict[str, Any]) -> Dict[str, Any]:
                     "action": "type",
                     "input": text[:50] + "..." if len(text) > 50 else text,
                     "message": f"Typed text: '{text}'",
-                    "llm_content": f"Typed text: '{text}'",
-                    "return_display": f"Typed text: '{text}'",
+                    "output": f"Typed text: '{text}'",
                     "metadata": metadata,
                 }
 
@@ -187,8 +186,7 @@ async def execute_keyboard_control(args: Dict[str, Any]) -> Dict[str, Any]:
                     "action": "paste",
                     "input": text[:50] + "..." if len(text) > 50 else text,
                     "message": f"Pasted text: '{text}'",
-                    "llm_content": f"Pasted text: '{text}'",
-                    "return_display": f"Pasted text: '{text}'",
+                    "output": f"Pasted text: '{text}'",
                     "metadata": {
                         "action": "paste",
                         "input_type": "text",
@@ -209,8 +207,7 @@ async def execute_keyboard_control(args: Dict[str, Any]) -> Dict[str, Any]:
                     "action": "press",
                     "input": key,
                     "message": f"Pressed key: {key}",
-                    "llm_content": f"Pressed key: {key}",
-                    "return_display": f"Pressed key: {key}",
+                    "output": f"Pressed key: {key}",
                     "metadata": {
                         "action": "press",
                         "input_type": "key",
@@ -246,8 +243,7 @@ async def execute_keyboard_control(args: Dict[str, Any]) -> Dict[str, Any]:
                     "action": "hotkey",
                     "input": " + ".join(keys),
                     "message": f"Pressed hotkey: {' + '.join(keys)}",
-                    "llm_content": f"Pressed hotkey: {' + '.join(keys)}",
-                    "return_display": f"Pressed hotkey: {' + '.join(keys)}",
+                    "output": f"Pressed hotkey: {' + '.join(keys)}",
                     "metadata": {
                         "action": "hotkey",
                         "input_type": "keys",

@@ -311,7 +311,8 @@ async def test_snapshot_paginates_browser_use_state_text() -> None:
             _args({"action": "snapshot", "offset": 2, "limit": 3})
         )
 
-    assert result["snapshot"] == "cde"
+    assert result["output"] == "cde"
+    assert "snapshot" not in result
     assert result["returned_chars"] == 3
     assert result["has_more"] is True
     assert result["next_offset"] == 5
@@ -391,3 +392,4 @@ async def test_find_text_uses_browser_use_html_and_local_result_shape() -> None:
     run_cli.assert_awaited_once_with("get", "html")
     assert result["match_count"] == 1
     assert result["matches"][0]["match"] == "browser"
+    assert "Found 1 match for 'browser'" in result["output"]

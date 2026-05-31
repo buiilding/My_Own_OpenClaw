@@ -129,7 +129,7 @@ async def _read_image_file(path: Path) -> ToolResult:
 
     image_base64 = base64.b64encode(image_bytes).decode("ascii")
     image_content_type = _resolve_image_content_type(path)
-    llm_content = (
+    output = (
         f"File path: {path}\n\n"
         f"Image file loaded ({image_content_type}, {len(image_bytes)} bytes).\n"
         "Note: OCR/text extraction is not performed by read_file."
@@ -143,7 +143,7 @@ async def _read_image_file(path: Path) -> ToolResult:
             "is_truncated": False,
             "line_truncation_limit": MAX_LINE_LENGTH,
             "truncated_line_count": 0,
-            "llm_content": llm_content,
+            "output": output,
             "screenshot": image_base64,
             "image_data": image_base64,
             "screenshot_content_type": image_content_type,
@@ -351,7 +351,7 @@ async def _read_pdf_file(
             preview_terms = ", ".join(search_terms[:5])
             search_hint = f"Relevance terms used for page selection: {preview_terms}.\n"
 
-        llm_content = (
+        output_text = (
             f"{llm_header}"
             "IMPORTANT: The PDF text has been truncated using size-aware page selection.\n"
             f"{status_line}"
@@ -363,13 +363,13 @@ async def _read_pdf_file(
         )
     else:
         if content_text:
-            llm_content = (
+            output_text = (
                 f"{llm_header}"
                 f"PDF extracted text across {total_pages_all} page(s).\n\n"
                 f"{content_text}"
             )
         else:
-            llm_content = (
+            output_text = (
                 f"{llm_header}"
                 "PDF contains no extractable text."
             )
@@ -385,7 +385,7 @@ async def _read_pdf_file(
         "is_truncated": is_truncated,
         "line_truncation_limit": MAX_LINE_LENGTH,
         "truncated_line_count": 0,
-        "llm_content": llm_content,
+        "output": output_text,
         "pdf_total_pages": total_pages_all,
         "pdf_pages_included": included_pages,
         "pdf_search_terms": search_terms,
@@ -481,7 +481,7 @@ async def read_file(args: Dict[str, Any]) -> ToolResult:
 
         llm_header = f"File path: {path}\n\n"
 
-        # Build llm_content with exact SDK format if truncated
+        # Build output with exact SDK format if truncated.
         if is_truncated:
             lines_shown = len(content_lines)
             next_offset = end
@@ -502,7 +502,7 @@ async def read_file(args: Dict[str, Any]) -> ToolResult:
                     f"Note: {truncated_line_count} line(s) were truncated to {MAX_LINE_LENGTH} characters.\n"
                 )
             
-            llm_content = (
+            output_text = (
                 f"{llm_header}"
                 "IMPORTANT: The file content has been truncated.\n"
                 f"{status_line}"
@@ -514,16 +514,16 @@ async def read_file(args: Dict[str, Any]) -> ToolResult:
             )
         else:
             if truncated_line_count > 0:
-                llm_content = (
+                output_text = (
                     f"{llm_header}"
                     f"Note: {truncated_line_count} line(s) were truncated to {MAX_LINE_LENGTH} characters.\n\n"
                     f"{content_text}"
                 )
             else:
                 if content_text:
-                    llm_content = f"{llm_header}{content_text}"
+                    output_text = f"{llm_header}{content_text}"
                 else:
-                    llm_content = f"{llm_header}File is empty."
+                    output_text = f"{llm_header}File is empty."
         
         return ToolResult.success_result({
             "content": content_text,
@@ -533,7 +533,7 @@ async def read_file(args: Dict[str, Any]) -> ToolResult:
             "is_truncated": is_truncated,
             "line_truncation_limit": MAX_LINE_LENGTH,
             "truncated_line_count": truncated_line_count,
-            "llm_content": llm_content,
+            "output": output_text,
         })
     except Exception as e:
         logger.error(f"Error reading file: {e}", exc_info=True)

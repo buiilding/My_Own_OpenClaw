@@ -46,8 +46,7 @@ async def execute_mouse_control(args: Dict[str, Any]) -> ToolResult:
                     "coordinates": [x, y],
                     "button": button,
                     "message": f"Clicked at ({x}, {y})",
-                    "llm_content": f"Clicked at ({x}, {y})",
-                    "return_display": f"Clicked at ({x}, {y})",
+                    "output": f"Clicked at ({x}, {y})",
                 }
             
             elif action == "double_click":
@@ -59,8 +58,7 @@ async def execute_mouse_control(args: Dict[str, Any]) -> ToolResult:
                     "coordinates": [x, y],
                     "button": button,
                     "message": f"Double-clicked at ({x}, {y})",
-                    "llm_content": f"Double-clicked at ({x}, {y})",
-                    "return_display": f"Double-clicked at ({x}, {y})",
+                    "output": f"Double-clicked at ({x}, {y})",
                 }
             
             elif action == "right_click":
@@ -71,8 +69,7 @@ async def execute_mouse_control(args: Dict[str, Any]) -> ToolResult:
                     "action": "right_click",
                     "coordinates": [x, y],
                     "message": f"Right-clicked at ({x}, {y})",
-                    "llm_content": f"Right-clicked at ({x}, {y})",
-                    "return_display": f"Right-clicked at ({x}, {y})",
+                    "output": f"Right-clicked at ({x}, {y})",
                 }
             
             elif action == "move":
@@ -83,8 +80,7 @@ async def execute_mouse_control(args: Dict[str, Any]) -> ToolResult:
                     "action": "move",
                     "coordinates": [x, y],
                     "message": f"Moved cursor to ({x}, {y})",
-                    "llm_content": f"Moved cursor to ({x}, {y})",
-                    "return_display": f"Moved cursor to ({x}, {y})",
+                    "output": f"Moved cursor to ({x}, {y})",
                 }
             
             elif action == "drag":
@@ -110,8 +106,7 @@ async def execute_mouse_control(args: Dict[str, Any]) -> ToolResult:
                     "button": button,
                     "duration": drag_duration,
                     "message": f"Dragged from ({x}, {y}) to ({drag_to_x}, {drag_to_y})",
-                    "llm_content": f"Dragged from ({x}, {y}) to ({drag_to_x}, {drag_to_y})",
-                    "return_display": f"Dragged from ({x}, {y}) to ({drag_to_x}, {drag_to_y})",
+                    "output": f"Dragged from ({x}, {y}) to ({drag_to_x}, {drag_to_y})",
                 }
             
             else:

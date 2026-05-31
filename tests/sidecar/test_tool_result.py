@@ -8,7 +8,27 @@ from tools.result import ToolResult  # noqa: E402
 def test_tool_result_to_dict_preserves_empty_data_dict():
     result = ToolResult.success_result({}).to_dict()
 
-    assert result == {"success": True, "data": {}}
+    assert result == {"success": True, "data": {"output": ""}}
+
+
+def test_tool_result_to_dict_uses_only_canonical_output_for_model_text():
+    result = ToolResult.success_result(
+        {
+            "snapshot": "visible browser text",
+            "extracted_content": "extracted browser text",
+            "llm_content": "legacy model text",
+        }
+    ).to_dict()
+
+    assert result == {
+        "success": True,
+        "data": {
+            "snapshot": "visible browser text",
+            "extracted_content": "extracted browser text",
+            "llm_content": "legacy model text",
+            "output": "",
+        },
+    }
 
 
 def test_tool_result_to_dict_preserves_empty_error_string():

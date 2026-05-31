@@ -118,8 +118,7 @@ class MemoryTool(FrontendTool):
                     "content": content,
                     "memory_type": memory_type,
                     "message": f"Added {memory_type} memory: {content[:50]}{'...' if len(content) > 50 else ''}",
-                    "llm_content": f"Stored in {memory_type} memory",
-                    "return_display": f"Memory added ({memory_type})"
+                    "output": f"Stored in {memory_type} memory",
                 }
             }
 
@@ -165,8 +164,7 @@ class MemoryTool(FrontendTool):
                     "query": query,
                     "results": formatted_results,
                     "count": len(results),
-                    "llm_content": summary,
-                    "return_display": f"Memory search results: {len(results)} matches",
+                    "output": summary,
                     "formatted_results": "\n".join([
                         f"- {r['type'].title()}: {(r.get('text') or r.get('content', ''))[:100]}{'...' if len(r.get('text') or r.get('content', '')) > 100 else ''} (score: {r['score']:.3f})"
                         for r in results[:5]  # Show first 5 results
@@ -188,8 +186,7 @@ class MemoryTool(FrontendTool):
                 "success": True,
                 "data": {
                     "stats": stats,
-                    "llm_content": f"Memory contains {stats['total_count']} total memories ({stats['by_type']['episodic']} episodic, {stats['by_type']['semantic']} semantic)",
-                    "return_display": f"Memory stats: {stats['total_count']} memories"
+                    "output": f"Memory contains {stats['total_count']} total memories ({stats['by_type']['episodic']} episodic, {stats['by_type']['semantic']} semantic)",
                 }
             }
 

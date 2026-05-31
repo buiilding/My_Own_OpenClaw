@@ -80,14 +80,9 @@ export function normalizeLocalToolResultData(data: JsonRecord | undefined, fallb
     return { output: fallbackOutput };
   }
   const explicitOutput = data.output;
-  const output = (explicitOutput === '' && fallbackOutput !== '' ? undefined : explicitOutput)
+  const output = explicitOutput
     ?? data.message
     ?? data.error
-    ?? data.llm_content
-    ?? data.return_display
-    ?? data.display_content
-    ?? data.model_llm_content
-    ?? data.content
     ?? fallbackOutput;
   const normalized: JsonRecord = {};
   for (const [key, value] of Object.entries(data)) {

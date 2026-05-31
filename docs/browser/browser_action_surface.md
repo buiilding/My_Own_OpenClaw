@@ -41,7 +41,7 @@ When adding an action, update all contract surfaces and tests together.
 
 ## Snapshot And Ref Semantics
 
-`snapshot` returns Browser Use state text from the Browser Use daemon.
+`snapshot` returns Browser Use state text in the canonical `output` field.
 
 Important limits:
 
@@ -54,7 +54,7 @@ Refs can be:
 - numeric Browser Use indexes,
 - target ids for tab/session actions.
 
-Role refs such as `e12` are Windie-owned legacy refs and are rejected by the Browser Use engine adapter. Use numeric Browser Use indexes from the latest `snapshot` output.
+Role refs such as `e12` are Windie-owned legacy refs and are rejected by the Browser Use engine adapter. Use numeric Browser Use indexes from the latest `snapshot` `output`.
 
 ## Extraction And Long Content
 

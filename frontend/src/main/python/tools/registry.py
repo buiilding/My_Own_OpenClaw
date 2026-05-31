@@ -329,7 +329,7 @@ class ToolRegistry:
             return data.strip(), payload_data
 
         if payload_data:
-            for key in ("error", "return_display", "llm_content", "output", "message"):
+            for key in ("error", "output", "message"):
                 value = payload_data.get(key)
                 if isinstance(value, str) and value.strip():
                     return value.strip(), payload_data

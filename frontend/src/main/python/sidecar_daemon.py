@@ -452,9 +452,8 @@ class SidecarDaemon:
                 return {
                     "success": True,
                     "data": {
-                        "llm_content": text
+                        "output": text
                         or json.dumps(result, separators=(",", ":")),
-                        "return_display": text or f"MCP tool {tool_name} completed.",
                         "mcp_result": result,
                     },
                 }

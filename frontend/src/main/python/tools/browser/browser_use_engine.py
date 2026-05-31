@@ -258,6 +258,59 @@ def _build_search_matches(
     return matches
 
 
+def _clean_result_data(data: dict[str, Any]) -> dict[str, Any]:
+    return {key: value for key, value in data.items() if key != "_raw_text"}
+
+
+def _browser_output(data: dict[str, Any], fallback: str) -> str:
+    output = data.get("output")
+    if output not in (None, ""):
+        return str(output)
+    message = data.get("message")
+    if message not in (None, ""):
+        return str(message)
+    return fallback
+
+
+def _with_output(data: dict[str, Any], output: str) -> dict[str, Any]:
+    result = _clean_result_data(data)
+    result["output"] = output
+    return result
+
+
+def _format_matches_output(label: str, matches: list[dict[str, Any]]) -> str:
+    if not matches:
+        return f"No matches found for {label}."
+    lines = [f"Found {len(matches)} match{'es' if len(matches) != 1 else ''} for {label}:"]
+    for index, match in enumerate(matches, start=1):
+        snippet = str(match.get("snippet") or match.get("match") or "").strip()
+        snippet = re.sub(r"\s+", " ", snippet)
+        if len(snippet) > 240:
+            snippet = f"{snippet[:237]}..."
+        lines.append(
+            f"{index}. {match.get('match', '')} "
+            f"(chars {match.get('start', '?')}-{match.get('end', '?')}): {snippet}"
+        )
+    return "\n".join(lines)
+
+
+def _format_elements_output(selector: str, elements: list[dict[str, Any]]) -> str:
+    if not elements:
+        return f"No elements found for selector {selector!r}."
+    lines = [
+        f"Found {len(elements)} element{'s' if len(elements) != 1 else ''} for selector {selector!r}:"
+    ]
+    for element in elements:
+        index = element.get("index")
+        text = re.sub(r"\s+", " ", str(element.get("text") or "")).strip()
+        attrs = element.get("attributes")
+        attrs_text = f" attrs={attrs}" if isinstance(attrs, dict) and attrs else ""
+        if len(text) > 180:
+            text = f"{text[:177]}..."
+        lines.append(f"- [{index}] {text}{attrs_text}".rstrip())
+    return "\n".join(lines)
+
+
 class BrowserUseEngineRuntime:
     """Execute WindieOS browser actions through the maintained Browser Use CLI daemon."""
 
@@ -427,29 +480,38 @@ class BrowserUseEngineRuntime:
             "mode": "browser_use",
             "scope": "windie_dedicated_browser",
             "cdp_url": cdp_url,
-            "snapshot": data.get("_raw_text", ""),
+            "output": "Connected to the browser.",
         }
 
     async def _handle_status(self, _args: Any) -> dict[str, Any]:
         state = self._read_session_state()
         if not state:
-            return {"connected": False, "mode": "browser_use", "scope": "windie_dedicated_browser"}
+            return {
+                "connected": False,
+                "mode": "browser_use",
+                "scope": "windie_dedicated_browser",
+                "output": "Browser is not connected.",
+            }
         if state.get("phase") not in {"ready", "running"} or not self._is_windie_cdp_session_state(state):
             return {
                 "connected": False,
                 "mode": "browser_use",
                 "phase": state.get("phase", "unknown"),
                 "scope": "windie_dedicated_browser",
+                "output": f"Browser is not connected; session phase is {state.get('phase', 'unknown')}.",
             }
         title = await self._run_cli("get", "title")
         url = await self._run_cli("eval", "window.location.href")
+        url_text = str(url.get("result", "") or "")
+        title_text = str(title.get("title", "") or "")
         return {
             "connected": True,
             "mode": "browser_use",
             "phase": state.get("phase"),
-            "url": str(url.get("result", "") or ""),
-            "title": str(title.get("title", "") or ""),
+            "url": url_text,
+            "title": title_text,
             "scope": "windie_dedicated_browser",
+            "output": f"Browser is connected to {url_text or 'an unknown URL'}" + (f" ({title_text})." if title_text else "."),
         }
 
     async def _handle_profiles(self, _args: Any) -> dict[str, Any]:
@@ -462,6 +524,7 @@ class BrowserUseEngineRuntime:
                 }
             ],
             "default_profile": self._session,
+            "output": f"Available browser profile: {self._session}.",
         }
 
     async def _handle_navigate(self, args: Any) -> dict[str, Any]:
@@ -470,13 +533,17 @@ class BrowserUseEngineRuntime:
                 "python",
                 f"browser.goto({json.dumps(args.url)})",
             )
-            return {"url": args.url, "browser_internal": True, **data}
+            return {
+                "url": args.url,
+                "browser_internal": True,
+                **_with_output(data, _browser_output(data, f"Opened {args.url}.")),
+            }
         data = (
             await self._run_cli("tab", "new", args.url)
             if args.new_tab
             else await self._run_cli("open", args.url)
         )
-        return {"url": args.url, **data}
+        return {"url": args.url, **_with_output(data, _browser_output(data, f"Opened {args.url}."))}
 
     async def _handle_snapshot(self, args: Any) -> dict[str, Any]:
         data = await self._run_cli("state")
@@ -493,7 +560,7 @@ class BrowserUseEngineRuntime:
         window_end = min(total_chars, window_start + limit)
         payload = {
             "format": "browser_use_state",
-            "snapshot": snapshot_text[window_start:window_end],
+            "output": snapshot_text[window_start:window_end],
             "ref_count": len(re.findall(r"(^|\n)\s*\\[\\d+\\]", snapshot_text)),
             "offset": window_start,
             "limit": limit,
@@ -515,7 +582,7 @@ class BrowserUseEngineRuntime:
         max_chars = _bounded_limit(DEFAULT_EXTRACT_CHARS, default=DEFAULT_EXTRACT_CHARS, maximum=MAX_EXTRACT_CHARS)
         extracted = _focused_excerpt(working_content, query=args.query, max_chars=max_chars)
         return {
-            "extracted_content": extracted,
+            "output": extracted,
             "metadata": {
                 "query": args.query,
                 "extract_links": bool(args.extract_links),
@@ -534,20 +601,24 @@ class BrowserUseEngineRuntime:
     async def _handle_click(self, args: Any) -> dict[str, Any]:
         if args.coordinate_x is not None and args.coordinate_y is not None:
             data = await self._run_cli("click", str(args.coordinate_x), str(args.coordinate_y))
+            return _with_output(
+                data,
+                _browser_output(data, f"Clicked coordinates ({args.coordinate_x}, {args.coordinate_y})."),
+            )
         else:
             index = _normalize_index(args, action="click")
             command = "dblclick" if args.double_click else "rightclick" if args.button == "right" else "click"
             data = await self._run_cli(command, str(index))
-        return data
+            return _with_output(data, _browser_output(data, f"Clicked element index {index}."))
 
     async def _handle_input(self, args: Any) -> dict[str, Any]:
         index = _normalize_index(args, action="input")
         data = await self._run_cli("input", str(index), args.text)
-        return {"action": "input", **data}
+        return {"action": "input", **_with_output(data, _browser_output(data, f"Entered text into element index {index}."))}
 
     async def _handle_send_keys(self, args: Any) -> dict[str, Any]:
         data = await self._run_cli("keys", args.keys)
-        return {"keys": args.keys, **data}
+        return {"keys": args.keys, **_with_output(data, _browser_output(data, f"Sent keys: {args.keys}."))}
 
     async def _handle_scroll(self, args: Any) -> dict[str, Any]:
         amount = args.amount
@@ -557,7 +628,11 @@ class BrowserUseEngineRuntime:
         if getattr(args, "down", None) is not None:
             direction = "down" if args.down else "up"
         data = await self._run_cli("scroll", direction, "--amount", str(amount))
-        return {"amount": amount, "direction": direction, **data}
+        return {
+            "amount": amount,
+            "direction": direction,
+            **_with_output(data, _browser_output(data, f"Scrolled {direction} by {amount}."))
+        }
 
     async def _handle_screenshot(self, args: Any) -> dict[str, Any]:
         requested_name = getattr(args, "file_name", None) or "browser-screenshot.png"
@@ -568,12 +643,13 @@ class BrowserUseEngineRuntime:
             "file_name": output_path.name,
             "image_type": "png",
             "bytes": int(data.get("size", 0) or 0),
+            "output": f"Saved browser screenshot to {output_path}.",
         }
 
     async def _handle_wait(self, args: Any) -> dict[str, Any]:
         seconds = float(args.seconds) if args.seconds is not None else 0.5
         await asyncio.sleep(max(0.0, seconds))
-        return {"seconds": seconds}
+        return {"seconds": seconds, "output": f"Waited for {seconds} seconds."}
 
     async def _handle_get_tabs(self, _args: Any) -> dict[str, Any]:
         data = await self._run_cli("tab", "list")
@@ -586,30 +662,45 @@ class BrowserUseEngineRuntime:
             parts = stripped.split(maxsplit=1)
             tab_id = parts[0]
             tabs.append({"target_id": tab_id, "title": "", "url": parts[1] if len(parts) > 1 else ""})
-        return {"tabs": tabs, "tab_count": len(tabs)}
+        output = "Open browser tabs:\n" + "\n".join(
+            f"- {tab['target_id']}: {tab['url']}" for tab in tabs
+        ) if tabs else "No open browser tabs found."
+        return {"tabs": tabs, "tab_count": len(tabs), "output": output}
 
     async def _handle_switch(self, args: Any) -> dict[str, Any]:
         if not str(args.tab_id).strip().isdigit():
             raise BrowserActionError(code="INVALID_ARGUMENT", message="switch requires a Browser Use numeric tab index.")
         data = await self._run_cli("tab", "switch", str(args.tab_id))
-        return {"target_id": str(args.tab_id), "activated": bool(args.activate), **data}
+        return {
+            "target_id": str(args.tab_id),
+            "activated": bool(args.activate),
+            **_with_output(data, _browser_output(data, f"Switched to tab {args.tab_id}."))
+        }
 
     async def _handle_evaluate(self, args: Any) -> dict[str, Any]:
-        return await self._run_cli("eval", args.code)
+        data = await self._run_cli("eval", args.code)
+        return _with_output(data, _browser_output(data, str(data.get("result", "") or "Evaluation completed.")))
 
     async def _handle_done(self, args: Any) -> dict[str, Any]:
         files = []
         if isinstance(args.files_to_display, list):
             files = [str(path).strip() for path in args.files_to_display if isinstance(path, str) and path.strip()]
-        return {"text": args.text or "Done.", "done_success": args.success, "files_to_display": files}
+        output = args.text or "Done."
+        return {"output": output, "done_success": args.success, "files_to_display": files}
 
     async def _handle_search(self, args: Any) -> dict[str, Any]:
         url = _search_url(args.query, args.engine)
         data = await self._run_cli("open", url)
-        return {"query": args.query, "engine": args.engine or "google", **data}
+        engine = args.engine or "google"
+        return {
+            "query": args.query,
+            "engine": engine,
+            **_with_output(data, _browser_output(data, f"Searched {engine} for {args.query}."))
+        }
 
     async def _handle_go_back(self, _args: Any) -> dict[str, Any]:
-        return await self._run_cli("back")
+        data = await self._run_cli("back")
+        return _with_output(data, _browser_output(data, "Went back one page."))
 
     async def _handle_search_page(self, args: Any) -> dict[str, Any]:
         markdown = await self._read_markdown(selector=args.css_scope)
@@ -621,7 +712,12 @@ class BrowserUseEngineRuntime:
             context_chars=args.context_chars or 80,
             max_results=args.max_results or 20,
         )
-        return {"pattern": args.pattern, "match_count": len(matches), "matches": matches}
+        return {
+            "pattern": args.pattern,
+            "match_count": len(matches),
+            "matches": matches,
+            "output": _format_matches_output(repr(args.pattern), matches),
+        }
 
     async def _handle_find_elements(self, args: Any) -> dict[str, Any]:
         script = (
@@ -644,7 +740,12 @@ class BrowserUseEngineRuntime:
                 attrs = element.get("attributes", {}) or {}
                 entry["attributes"] = {name: attrs.get(name) for name in args.attributes}
             filtered.append(entry)
-        return {"selector": args.selector, "count": len(elements), "elements": filtered}
+        return {
+            "selector": args.selector,
+            "count": len(elements),
+            "elements": filtered,
+            "output": _format_elements_output(args.selector, filtered),
+        }
 
     async def _handle_find_text(self, args: Any) -> dict[str, Any]:
         markdown = await self._read_markdown(selector=args.css_scope)
@@ -656,13 +757,21 @@ class BrowserUseEngineRuntime:
             context_chars=80,
             max_results=args.max_results or 20,
         )
-        return {"text": args.text, "match_count": len(matches), "matches": matches}
+        return {
+            "text": args.text,
+            "match_count": len(matches),
+            "matches": matches,
+            "output": _format_matches_output(repr(args.text), matches),
+        }
 
     async def _handle_close_tab(self, args: Any) -> dict[str, Any]:
         if not str(args.tab_id).strip().isdigit():
             raise BrowserActionError(code="INVALID_ARGUMENT", message="close_tab requires a Browser Use numeric tab index.")
         data = await self._run_cli("tab", "close", str(args.tab_id))
-        return {"closed_target_id": str(args.tab_id), **data}
+        return {
+            "closed_target_id": str(args.tab_id),
+            **_with_output(data, _browser_output(data, f"Closed tab {args.tab_id}."))
+        }
 
     async def _handle_dropdown_options(self, args: Any) -> dict[str, Any]:
         index = _normalize_index(args, action="dropdown_options")
@@ -674,14 +783,18 @@ class BrowserUseEngineRuntime:
     async def _handle_select_dropdown(self, args: Any) -> dict[str, Any]:
         index = _normalize_index(args, action="select_dropdown")
         data = await self._run_cli("select", str(index), args.text)
-        return {"selected": args.text, "element": index, **data}
+        return {
+            "selected": args.text,
+            "element": index,
+            **_with_output(data, _browser_output(data, f"Selected {args.text} in dropdown index {index}."))
+        }
 
     async def _handle_upload_file(self, args: Any) -> dict[str, Any]:
         index = _normalize_index(args, action="upload_file")
         if not args.path:
             raise BrowserActionError(code="INVALID_ARGUMENT", message="upload_file requires non-empty 'path'.")
         data = await self._run_cli("upload", str(index), str(args.path))
-        return data
+        return _with_output(data, _browser_output(data, f"Uploaded {args.path} to element index {index}."))
 
     async def _handle_write_file(self, args: Any) -> dict[str, Any]:
         resolved, written_chars = write_text(
@@ -691,22 +804,22 @@ class BrowserUseEngineRuntime:
             leading_newline=bool(args.leading_newline),
             trailing_newline=bool(args.trailing_newline),
         )
-        return {"path": str(resolved), "written_chars": written_chars}
+        return {"path": str(resolved), "written_chars": written_chars, "output": f"Wrote {written_chars} characters to {resolved}."}
 
     async def _handle_replace_file(self, args: Any) -> dict[str, Any]:
         resolved, replacements = replace_text(args.file_name, args.old_str, args.new_str)
-        return {"path": str(resolved), "replacements": replacements}
+        return {"path": str(resolved), "replacements": replacements, "output": f"Replaced {replacements} occurrence(s) in {resolved}."}
 
     async def _handle_read_file(self, args: Any) -> dict[str, Any]:
         resolved, content = read_text(args.file_name)
-        return {"path": str(resolved), "content": content, "chars": len(content)}
+        return {"path": str(resolved), "output": content, "chars": len(content)}
 
     async def _handle_read_long_content(self, args: Any) -> dict[str, Any]:
         markdown = await self._read_markdown(extract_links=True)
         query = " ".join(part for part in (args.goal, args.source, args.context) if isinstance(part, str) and part.strip())
         extracted = _focused_excerpt(markdown, query=query, max_chars=DEFAULT_LONG_CONTENT_CHARS)
         return {
-            "extracted_content": extracted,
+            "output": extracted,
             "metadata": {
                 "goal": args.goal,
                 "source": args.source,
@@ -720,4 +833,5 @@ class BrowserUseEngineRuntime:
         }
 
     async def _handle_close(self, _args: Any) -> dict[str, Any]:
-        return await self._run_cli("close", headed=False)
+        data = await self._run_cli("close", headed=False)
+        return _with_output(data, _browser_output(data, "Closed the browser session."))

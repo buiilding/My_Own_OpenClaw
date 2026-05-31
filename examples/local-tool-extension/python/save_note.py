@@ -14,8 +14,7 @@ def save_local_note(text: str, filename: str = "windie-note.txt"):
 
     return ToolResult.success_result(
         {
-            "llm_content": f"Saved local note to {note_path}",
-            "return_display": f"Saved {safe_name}",
+            "output": f"Saved local note to {note_path}",
             "path": str(note_path),
             "bytes": note_path.stat().st_size,
         }

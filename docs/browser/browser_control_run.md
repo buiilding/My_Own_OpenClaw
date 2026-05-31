@@ -170,7 +170,7 @@ async def test():
         'action': 'snapshot',
         'explanation': 'Read Browser Use state during a smoke test.'
     }))
-    print(f'Snapshot: {snapshot["snapshot"][:200]}...')
+    print(f'Snapshot: {snapshot["output"][:200]}...')
     
     await runtime.execute(BrowserControlArgs.model_validate({
         'action': 'close',

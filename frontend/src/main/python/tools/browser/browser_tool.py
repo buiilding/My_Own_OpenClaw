@@ -21,7 +21,10 @@ async def execute_browser(raw_args: Dict[str, Any]) -> ToolResult:
         return ToolResult(
             success=False,
             error="Arguments must be an object",
-            data={"error_code": "INVALID_ARGUMENT"},
+            data={
+                "error_code": "INVALID_ARGUMENT",
+                "output": "Arguments must be an object",
+            },
         )
 
     try:
@@ -30,13 +33,19 @@ async def execute_browser(raw_args: Dict[str, Any]) -> ToolResult:
         return ToolResult(
             success=False,
             error=str(exc),
-            data={"error_code": "INVALID_ARGUMENT"},
+            data={
+                "error_code": "INVALID_ARGUMENT",
+                "output": str(exc),
+            },
         )
     except Exception as exc:
         return ToolResult(
             success=False,
             error=str(exc),
-            data={"error_code": "INVALID_ARGUMENT"},
+            data={
+                "error_code": "INVALID_ARGUMENT",
+                "output": str(exc),
+            },
         )
 
     runtime = BrowserUseEngineRuntime()
@@ -47,12 +56,20 @@ async def execute_browser(raw_args: Dict[str, Any]) -> ToolResult:
         return ToolResult(
             success=False,
             error=exc.message,
-            data={"error_code": exc.code, "action": args.action},
+            data={
+                "error_code": exc.code,
+                "action": args.action,
+                "output": exc.message,
+            },
         )
     except Exception as exc:
         logger.exception("Browser action '%s' failed", args.action)
         return ToolResult(
             success=False,
             error=f"Action failed: {str(exc)}",
-            data={"error_code": "BROWSER_RUNTIME_ERROR", "action": args.action},
+            data={
+                "error_code": "BROWSER_RUNTIME_ERROR",
+                "action": args.action,
+                "output": f"Action failed: {str(exc)}",
+            },
         )

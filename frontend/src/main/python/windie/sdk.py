@@ -465,14 +465,10 @@ def _normalize_tool_result_data(data: Any) -> dict[str, Any]:
     if isinstance(data, dict):
         normalized_data = _normalize_backend_tool_result_data(data)
         output: Any = ""
-        for key in ("output", "message", "llm_content", "return_display", "content"):
+        for key in ("output", "message", "error"):
             if key in data and data[key] not in ("", None):
                 output = data[key]
                 break
-        normalized_data.pop("llm_content", None)
-        normalized_data.pop("return_display", None)
-        normalized_data.pop("display_content", None)
-        normalized_data.pop("model_llm_content", None)
         return {**normalized_data, "output": output}
     if isinstance(data, str):
         return {"output": data}

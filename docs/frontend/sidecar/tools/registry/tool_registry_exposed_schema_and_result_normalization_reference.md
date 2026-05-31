@@ -79,19 +79,20 @@ Exception behavior:
 When dict result has `success != False`:
 
 - registry wraps `result.get("data", result)` into `ToolResult.success_result(...)`
+- `ToolResult.success_result(...)` preserves structured data and ensures
+  `data.output` exists. It only falls back from `message` or `error`; individual
+  tools own any richer model-facing text and must write it to `output`.
 
 ### Legacy dict failure path
 
 When dict result has `success is False`, registry uses `_extract_failure_payload(...)`.
 
-Error-message extraction precedence:
+Error-message extraction precedence for legacy failure dictionaries:
 
 1. top-level `error` string
 2. top-level `data` string
 3. nested dict fields in order:
    - `error`
-   - `return_display`
-   - `llm_content`
    - `output`
    - `message`
 4. nested `exit_code` integer -> `Tool execution failed with exit code <n>`

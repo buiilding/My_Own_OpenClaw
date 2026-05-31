@@ -45,8 +45,7 @@ async def run(root: str, max_files: int = 20):
     )
     return ToolResult.success_result(
         {
-            "llm_content": content,
-            "return_display": f"Read {len(files)} repo files",
+            "output": content,
             "files": files,
             "root": str(repo_root),
         }

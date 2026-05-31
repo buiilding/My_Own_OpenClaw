@@ -122,11 +122,10 @@ async def execute_scroll_control(args: Dict[str, Any]) -> Dict[str, Any]:
                     "message": (
                         f"Scrolled {direction} with {scroll_meta['scroll_mode']}"
                     ),
-                    "llm_content": (
+                    "output": (
                         f"Scrolled {direction} using {scroll_meta['scroll_mode']} "
                         f"({clicks} OS clicks)"
                     ),
-                    "return_display": f"Scrolled {direction}",
                     **scroll_meta,
                 }
 
@@ -138,11 +137,10 @@ async def execute_scroll_control(args: Dict[str, Any]) -> Dict[str, Any]:
                     "os_clicks": clicks,
                     "coordinates": [x, y],
                     "message": f"Scrolled up with {scroll_meta['scroll_mode']}",
-                    "llm_content": (
+                    "output": (
                         f"Scrolled up using {scroll_meta['scroll_mode']} "
                         f"({clicks} OS clicks)"
                     ),
-                    "return_display": "Scrolled up",
                     **scroll_meta,
                 }
 
@@ -154,11 +152,10 @@ async def execute_scroll_control(args: Dict[str, Any]) -> Dict[str, Any]:
                     "os_clicks": clicks,
                     "coordinates": [x, y],
                     "message": f"Scrolled down with {scroll_meta['scroll_mode']}",
-                    "llm_content": (
+                    "output": (
                         f"Scrolled down using {scroll_meta['scroll_mode']} "
                         f"({clicks} OS clicks)"
                     ),
-                    "return_display": "Scrolled down",
                     **scroll_meta,
                 }
 

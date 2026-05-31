@@ -133,7 +133,7 @@ async def replace(args: Dict[str, Any]) -> ToolResult:
                         {
                             'replacements': 1,
                             'is_new_file': True,
-                            'llm_content': f'Created new file: {path} with provided content.',
+                            'output': f'Created new file: {path} with provided content.',
                             'matched_spans': [],
                             'operations': [],
                             'unified_diff': build_unified_diff('', operations[0].new_string, str(path)),
@@ -185,7 +185,7 @@ async def replace(args: Dict[str, Any]) -> ToolResult:
                 'matched_spans': all_spans,
                 'operations': operation_payloads,
                 'unified_diff': unified_diff,
-                'llm_content': (
+                'output': (
                     f'Successfully modified file: {path} '
                     f'({total_replacements} replacement(s)).'
                 ),

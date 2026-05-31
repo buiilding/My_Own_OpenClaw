@@ -42,9 +42,9 @@ Input behavior:
 
 Output behavior:
 
-- includes `content` and `extracted_content`
+- includes focused page text in canonical `output`
 - includes deterministic metadata:
-  - `extraction_backend="sidecar_deterministic"`
+  - `extraction_backend="browser_use.cli"`
   - `total_chars`
   - `returned_chars`
   - `has_more`
@@ -60,9 +60,9 @@ Input behavior:
 
 Output behavior:
 
-- includes `extracted_content`
+- includes focused page text in canonical `output`
 - includes deterministic metadata:
-  - `extraction_backend="sidecar_deterministic"`
+  - `extraction_backend="browser_use.cli"`
   - `offset`
   - `total_chars`
   - `returned_chars`
