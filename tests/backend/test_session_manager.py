@@ -206,7 +206,7 @@ async def test_agent_definition_updates_prompt_layers_and_custom_system_prompt()
 
     definition = AgentDefinition(
         system_prompt={"mode": "replace", "content": "Custom agent prompt."},
-        runtime={"workspace_path": "/work/project"},
+        runtime={"workspace_path": "/work/project", "operating_system": "macOS"},
         agents_md=[
             {
                 "id": "repo",
@@ -227,8 +227,12 @@ async def test_agent_definition_updates_prompt_layers_and_custom_system_prompt()
 
     manager.set_agent_definition("user-1", definition)
 
-    assert session.prompt_builder.system_prompt == "Custom agent prompt."
-    assert session.history.system_prompt == "Custom agent prompt."
+    assert session.prompt_builder.system_prompt == (
+        "Provided operating system: macOS\n"
+        "Provided workspace: /work/project\n\n"
+        "Custom agent prompt."
+    )
+    assert session.history.system_prompt == session.prompt_builder.system_prompt
     assert session.prompt_builder.workspace_path == "/work/project"
     assert session.prompt_builder.client_prompt_layers == [
         {

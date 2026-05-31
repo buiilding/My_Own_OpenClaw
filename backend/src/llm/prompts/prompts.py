@@ -16,6 +16,45 @@ from backend.src.tools.tool_selection import load_tool_selection
 _METHOD_SECTION_TAGS: tuple[str, ...] = ("ocr", "prediction")
 
 
+def _resolve_operating_system(operating_system: Optional[str] = None) -> str:
+    resolved_operating_system = platform.system()
+    if isinstance(operating_system, str):
+        normalized = operating_system.strip()
+        if normalized:
+            resolved_operating_system = normalized
+    return resolved_operating_system
+
+
+def _resolve_workspace_path(workspace_path: Optional[str] = None) -> str:
+    if isinstance(workspace_path, str):
+        normalized_workspace_path = workspace_path.strip()
+        if normalized_workspace_path:
+            return normalized_workspace_path
+    return "None"
+
+
+def render_runtime_context(
+    operating_system: Optional[str] = None,
+    workspace_path: Optional[str] = None,
+) -> str:
+    return (
+        f"Provided operating system: {_resolve_operating_system(operating_system)}\n"
+        f"Provided workspace: {_resolve_workspace_path(workspace_path)}"
+    )
+
+
+def render_contextual_system_prompt(
+    prompt_text: str,
+    operating_system: Optional[str] = None,
+    workspace_path: Optional[str] = None,
+) -> str:
+    normalized_prompt = prompt_text.strip()
+    context = render_runtime_context(operating_system, workspace_path)
+    if not normalized_prompt:
+        return context
+    return f"{context}\n\n{normalized_prompt}"
+
+
 def _filter_prompt_method_sections(
     prompt_text: str,
     allowed_coordinate_methods: Optional[Iterable[str]] = None,
@@ -150,22 +189,17 @@ class PromptManager:
             raise RuntimeError(
                 "PromptManager not initialized. Call initialize() at app startup."
             )
-        resolved_operating_system = platform.system()
-        if isinstance(operating_system, str):
-            normalized = operating_system.strip()
-            if normalized:
-                resolved_operating_system = normalized
-        resolved_workspace_path = "None"
-        if isinstance(workspace_path, str):
-            normalized_workspace_path = workspace_path.strip()
-            if normalized_workspace_path:
-                resolved_workspace_path = normalized_workspace_path
         rendered_prompt = self._system_prompt_template.replace(
-            "{os}", resolved_operating_system
-        ).replace("{workspace_path}", resolved_workspace_path)
-        return _filter_prompt_method_sections(
+            "{os}", _resolve_operating_system(operating_system)
+        ).replace("{workspace_path}", _resolve_workspace_path(workspace_path))
+        filtered_prompt = _filter_prompt_method_sections(
             rendered_prompt,
             allowed_coordinate_methods=allowed_coordinate_methods,
+        )
+        return render_contextual_system_prompt(
+            filtered_prompt,
+            operating_system=operating_system,
+            workspace_path=workspace_path,
         )
 
 

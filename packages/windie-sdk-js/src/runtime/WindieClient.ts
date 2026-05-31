@@ -128,16 +128,22 @@ export class WindieClient {
       : null;
     const backendUrl = this.resolveBackendUrl(options.backendUrl);
     const operatingSystem = options.operatingSystem ?? this.defaultOptions.operatingSystem ?? detectOperatingSystem();
-    const installAuth = await this.resolveInstallAuthState(backendUrl, operatingSystem, options);
+    const workspacePath = normalizeRuntimePath(options.workspacePath) ?? detectWorkspacePath();
+    const wakeUpOptions = {
+      ...options,
+      operatingSystem,
+      workspacePath,
+    };
+    const installAuth = await this.resolveInstallAuthState(backendUrl, operatingSystem, wakeUpOptions);
     const userId = installAuth?.userId
-      ?? options.userId
+      ?? wakeUpOptions.userId
       ?? this.defaultOptions.defaultUserId
       ?? 'local-sdk-user';
-    const localRuntime = await this.resolveLocalRuntimeForWakeUp(options);
+    const localRuntime = await this.resolveLocalRuntimeForWakeUp(wakeUpOptions);
     const sdkClient = this.createSdkClient(backendUrl, installAuth?.installToken);
 
-    const localTools = await this.prepareLocalRuntime(options, localRuntime);
-    const agentDefinition = buildWakeUpAgentDefinition(options, localTools);
+    const localTools = await this.prepareLocalRuntime(wakeUpOptions, localRuntime);
+    const agentDefinition = buildWakeUpAgentDefinition(wakeUpOptions, localTools);
     const session = this.createAgentSession({
       backendUrl,
       installToken: installAuth?.installToken,
@@ -531,4 +537,35 @@ function detectOperatingSystem(): string {
     return 'Linux';
   }
   return 'unknown';
+}
+
+function normalizeRuntimePath(path: unknown): string | undefined {
+  return typeof path === 'string' && path.trim() ? path.trim() : undefined;
+}
+
+function detectWorkspacePath(): string | undefined {
+  const processLike = (globalThis as unknown as {
+    process?: {
+      cwd?: () => string;
+      env?: Record<string, string | undefined>;
+    };
+  }).process;
+  try {
+    const cwd = typeof processLike?.cwd === 'function' ? processLike.cwd() : undefined;
+    const normalizedCwd = normalizeRuntimePath(cwd);
+    if (normalizedCwd) {
+      return normalizedCwd;
+    }
+  } catch {
+    // Fall through to the best home-directory signal exposed by the runtime.
+  }
+  const env = processLike?.env ?? {};
+  const homeDrivePath = env.HOMEDRIVE && env.HOMEPATH
+    ? `${env.HOMEDRIVE}${env.HOMEPATH}`
+    : undefined;
+  return [
+    env.HOME,
+    env.USERPROFILE,
+    homeDrivePath,
+  ].map(normalizeRuntimePath).find(Boolean);
 }

@@ -26,7 +26,11 @@ def test_initialize_loads_and_formats_prompt(tmp_path, monkeypatch):
     manager = PromptManager()
     manager.initialize(prompt_file)
 
-    assert manager.system_prompt == "running on TestOS in None"
+    assert manager.system_prompt == (
+        "Provided operating system: TestOS\n"
+        "Provided workspace: None\n\n"
+        "running on TestOS in None"
+    )
 
 
 def test_initialize_concurrent_calls_read_prompt_once(tmp_path, monkeypatch):
@@ -57,7 +61,11 @@ def test_initialize_concurrent_calls_read_prompt_once(tmp_path, monkeypatch):
             future.result(timeout=5)
 
     assert call_count["value"] == 1
-    assert manager.system_prompt == "hello TestOS"
+    assert manager.system_prompt == (
+        "Provided operating system: TestOS\n"
+        "Provided workspace: None\n\n"
+        "hello TestOS"
+    )
 
 
 def test_system_prompt_raises_before_initialization():
@@ -82,7 +90,9 @@ def test_initialize_accepts_string_path(tmp_path, monkeypatch):
     manager = PromptManager()
     manager.initialize(str(prompt_file))
 
-    assert manager.system_prompt == "os=Linux"
+    assert manager.system_prompt == (
+        "Provided operating system: Linux\n" "Provided workspace: None\n\n" "os=Linux"
+    )
 
 
 def test_initialize_raises_for_non_file_path(tmp_path):
@@ -144,7 +154,11 @@ def test_initialize_is_noop_after_first_success(tmp_path, monkeypatch):
     manager.initialize(first)
     manager.initialize(second)
 
-    assert manager.system_prompt == "first TestOS"
+    assert manager.system_prompt == (
+        "Provided operating system: TestOS\n"
+        "Provided workspace: None\n\n"
+        "first TestOS"
+    )
 
 
 def test_render_system_prompt_uses_default_runtime_context(tmp_path, monkeypatch):
@@ -157,12 +171,14 @@ def test_render_system_prompt_uses_default_runtime_context(tmp_path, monkeypatch
     manager = PromptManager()
     manager.initialize(prompt_file)
 
-    assert manager.render_system_prompt() == "global TestOS None"
+    assert manager.render_system_prompt() == (
+        "Provided operating system: TestOS\n"
+        "Provided workspace: None\n\n"
+        "global TestOS None"
+    )
 
 
-def test_render_system_prompt_accepts_explicit_operating_system(
-    tmp_path, monkeypatch
-):
+def test_render_system_prompt_accepts_explicit_operating_system(tmp_path, monkeypatch):
     prompt_file = tmp_path / "system_prompt.txt"
     prompt_file.write_text("global {os} {workspace_path}", encoding="utf-8")
     monkeypatch.setattr(
@@ -172,12 +188,22 @@ def test_render_system_prompt_accepts_explicit_operating_system(
     manager = PromptManager()
     manager.initialize(prompt_file)
 
-    assert manager.render_system_prompt("macOS") == "global macOS None"
+    assert manager.render_system_prompt("macOS") == (
+        "Provided operating system: macOS\n"
+        "Provided workspace: None\n\n"
+        "global macOS None"
+    )
     assert (
         manager.render_system_prompt("macOS", "/work/WindieOS")
-        == "global macOS /work/WindieOS"
+        == "Provided operating system: macOS\n"
+        "Provided workspace: /work/WindieOS\n\n"
+        "global macOS /work/WindieOS"
     )
-    assert manager.system_prompt == "global BackendOS None"
+    assert manager.system_prompt == (
+        "Provided operating system: BackendOS\n"
+        "Provided workspace: None\n\n"
+        "global BackendOS None"
+    )
 
 
 def test_render_system_prompt_filters_method_gated_sections_from_dev_tool_selection(
@@ -271,6 +297,8 @@ def test_repo_system_prompt_includes_tool_strategy_rules():
     assert "docs/getting-started/docs_hub.md" in content
     assert "./bin/docs-list" in content
     assert "# AGENTS.md spec" in content
+    assert "Provided operating system:" not in content
+    assert "Provided workspace:" not in content
     assert "## Responsiveness" in content
     assert "### Preamble messages" in content
     assert "## Task execution" in content

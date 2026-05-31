@@ -52,6 +52,9 @@ Ownership rules:
 - the SDK `WindieClient` runtime module owns wake-up orchestration, websocket
   session creation, initial model selection, local-runtime startup/reuse, and
   conversion of local tool/plugin/MCP definitions into the client manifest.
+  TypeScript callers that omit `workspacePath` get a runtime-derived workspace:
+  `process.cwd()` first, then the best available home-directory environment
+  path.
 - the SDK agent stream-event module owns the public event projection from
   normalized conversation events to high-level `agent.stream(...)` events,
   including duplicate tool-output suppression for local/backend acknowledgements.
@@ -513,7 +516,10 @@ The SDK builds:
 }
 ```
 
-`runtime.operating_system` is detected by the SDK runtime. It is not a public wake-up parameter.
+`runtime.operating_system` is detected by the SDK runtime. If callers omit
+`workspacePath`, the TypeScript SDK detects `runtime.workspace_path` from the
+current process path, falling back to the user home path when the runtime exposes
+one.
 
 ## Local Runtime Options
 

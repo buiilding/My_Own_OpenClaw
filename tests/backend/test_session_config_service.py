@@ -18,7 +18,9 @@ class _DummySession:
 
 
 class _AgentDefinitionWithPromptContext:
-    runtime = SimpleNamespace(workspace_path="/agent-workspace", operating_system=None)
+    runtime = SimpleNamespace(
+        workspace_path="/agent-workspace", operating_system="TestOS"
+    )
 
     def system_prompt_override(self) -> str:
         return "Agent prompt"
@@ -101,8 +103,12 @@ def test_apply_agent_definition_preserves_existing_repo_instruction_messages():
 
     assert session.runtime.agent_definition is not None
     assert session.runtime.workspace_path == "/agent-workspace"
-    assert session.prompt_builder.system_prompt == "Agent prompt"
-    assert session.history.system_prompt == "Agent prompt"
+    assert session.prompt_builder.system_prompt == (
+        "Provided operating system: TestOS\n"
+        "Provided workspace: /agent-workspace\n\n"
+        "Agent prompt"
+    )
+    assert session.history.system_prompt == session.prompt_builder.system_prompt
     assert session.runtime.repo_instruction_messages == [
         {"role": "user", "content": "Use repo instructions."},
     ]

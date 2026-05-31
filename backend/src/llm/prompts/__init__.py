@@ -1,6 +1,10 @@
 """Prompt management for LLM interactions."""
 
-from backend.src.llm.prompts.prompts import PromptManager
+from backend.src.llm.prompts.prompts import (
+    PromptManager,
+    render_contextual_system_prompt,
+    render_runtime_context,
+)
 from backend.src.llm.prompts.prompt_constructor import PromptConstructor
 from backend.src.llm.prompts.prompt_metadata import (
     PromptMetadata,
@@ -14,6 +18,8 @@ from backend.src.llm.prompts.repo_instructions import (
 
 __all__ = [
     "PromptManager",
+    "render_contextual_system_prompt",
+    "render_runtime_context",
     "PromptConstructor",
     "PromptMetadata",
     "ProviderPrompt",

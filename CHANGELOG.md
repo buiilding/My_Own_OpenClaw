@@ -28,6 +28,9 @@ All notable changes to WindieOS will be documented in this file.
   `WindieClient.wakeUp(...)` calls when no install token or caller-provided
   user identity is configured, so CLI callers can pass only `backendUrl` and
   `installToken`.
+- sdk/backend: infer a default SDK workspace from the runtime path when callers
+  omit `workspacePath`, and prepend OS/workspace context to both default and
+  custom system prompts.
 - examples/sdk: let the simple chat CLI rely on the SDK's Node websocket
   default instead of passing a repo-local `WebSocketImpl`.
 - sdk/runtime: include the sidecar `process` session-management tool when

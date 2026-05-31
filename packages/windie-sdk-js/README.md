@@ -23,7 +23,6 @@ import { WindieClient } from '@windie/sdk';
 const windie = new WindieClient({ backendUrl: 'https://api.windieos.com' });
 const catalog = await windie.listModels();
 const agent = await windie.wakeUp({
-  workspacePath: '/Users/me/project',
   plugins: [{ path: './plugins/repo-agent' }],
   model: {
     modelProvider: 'openai',
@@ -82,6 +81,9 @@ const windie = new WindieClient({
   },
 });
 ```
+
+When `workspacePath` is omitted in a Node runtime, `WindieClient` uses
+`process.cwd()` and falls back to the user home path exposed by the environment.
 
 For custom clients that need durable local state, use the conversation runtime
 pieces exported from this package:

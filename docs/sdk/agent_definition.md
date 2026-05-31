@@ -62,14 +62,14 @@ accepted during handshake.
 
 | Field | Purpose |
 | --- | --- |
-| `system_prompt` | Uses backend default prompt with `mode: "default"` or replaces it with client text using `mode: "replace"`. |
+| `system_prompt` | Uses backend default prompt with `mode: "default"` or replaces it with client text using `mode: "replace"`. Backend still prepends runtime OS/workspace context to both default and replaced prompts. |
 | `tools.client_manifest` | Client-owned local tool schemas. The backend validates shape and limits, then exposes accepted tools. |
 | `tools.mode` | Backend wire-policy detail. SDK clients normally author `builtins`, custom `tools`, `mcps`, `plugins`, and `skills` instead of setting this directly. |
 | `prompt_layers` | General client instructions compiled after the system prompt. |
 | `skills` | Skill instruction packs already resolved by the client into content. Skills are not executable tools. |
 | `agents_md` | AGENTS.md or repo instruction content already resolved by the client. Hosted backend must not assume local filesystem access. |
 | `plugins` | Plugin metadata and plugin prompt layers. Plugin executable tools still belong in `tools.client_manifest`. |
-| `runtime` | OS and workspace facts that affect prompt rendering and tool policy. Backend provider health and policy own OCR, vision, prediction, web search, and paid capability availability. |
+| `runtime` | OS and workspace facts that affect prompt rendering and tool policy. The TypeScript SDK infers `workspace_path` from the caller runtime when omitted. Backend provider health and policy own OCR, vision, prediction, web search, and paid capability availability. |
 
 ## Tool Modes
 
