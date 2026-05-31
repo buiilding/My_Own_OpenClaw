@@ -163,13 +163,11 @@ import { WindieClient, moduleTool, windieBuiltins } from "@windie/sdk";
 const client = new WindieClient();
 
 const simpleAgent = await client.wakeUp({
-  backendUrl: "https://api.windieos.com",
   systemPrompt: "You are a helpful assistant. Be concise. This text-only client has no callable tools.",
   // builtins defaults to "none", so no tool schemas are exposed.
 });
 
 const agent = await client.wakeUp({
-  backendUrl: "https://api.windieos.com",
   systemPrompt: "You are a concise coding agent.",
   workspacePath: "/Users/me/project",
   builtins: ["filesystem", "shell"],

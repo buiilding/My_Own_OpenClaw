@@ -475,6 +475,55 @@ describe('WindieSdkClient', () => {
     });
   });
 
+  test('WindieClient uses env backend URL and install token when constructor options omit them', async () => {
+    const previousBackendUrl = process.env.WINDIE_BACKEND_URL;
+    const previousApiKey = process.env.WINDIE_API_KEY;
+    process.env.WINDIE_BACKEND_URL = 'https://env.windie.test';
+    process.env.WINDIE_API_KEY = 'env-install-token';
+    try {
+      mockFetch.mockResolvedValueOnce(jsonResponse({
+        user_id: 'env-user',
+        install_id: 'env-install',
+      }));
+      const client = new WindieClient({
+        fetchImpl: mockFetch,
+        WebSocketImpl: FakeWebSocket as any,
+      });
+
+      const wakePromise = client.wakeUp({ agentId: 'env-agent' });
+      await new Promise(resolve => setTimeout(resolve, 0));
+      const socket = FakeWebSocket.instances[0];
+      expect(socket.url).toBe('wss://env.windie.test/ws');
+      expect(socket.options).toMatchObject({
+        headers: {
+          Authorization: 'Bearer env-install-token',
+        },
+      });
+      socket.emit('open', {});
+      await wakePromise;
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://env.windie.test/api/install/me',
+        expect.objectContaining({ method: 'GET' }),
+      );
+      expect(JSON.parse(socket.sent[0])).toMatchObject({
+        type: 'handshake',
+        user_id: 'env-user',
+      });
+    } finally {
+      if (previousBackendUrl === undefined) {
+        delete process.env.WINDIE_BACKEND_URL;
+      } else {
+        process.env.WINDIE_BACKEND_URL = previousBackendUrl;
+      }
+      if (previousApiKey === undefined) {
+        delete process.env.WINDIE_API_KEY;
+      } else {
+        process.env.WINDIE_API_KEY = previousApiKey;
+      }
+    }
+  });
+
   test('agent.setModel sends a backend settings update with provider-safe model fields', async () => {
     const client = new WindieClient({
       backendUrl: 'https://api.windieos.com',

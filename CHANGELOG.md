@@ -20,6 +20,8 @@ All notable changes to WindieOS will be documented in this file.
 - sdk/runtime: extract large image/base64 tool-output fields into public stream
   `attachments` and keep `tool_outputs[].result` display-safe without changing
   backend tool-result transport.
+- sdk/runtime: let `new WindieClient()` default to `WINDIE_BACKEND_URL` or the
+  hosted backend and use `WINDIE_API_KEY` as the install token when set.
 - examples/sdk: rely on the SDK default conversation reference in the simple
   chat CLI so agent setup can use `agent.chat()` directly.
 - examples/sdk: update the simple chat CLI to use normalized

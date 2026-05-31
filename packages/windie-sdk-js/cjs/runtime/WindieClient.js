@@ -79,7 +79,11 @@ class WindieClient {
         }
     }
     resolveBackendUrl(backendUrl) {
-        return backendUrl ?? this.defaultOptions.backendUrl ?? this.defaultOptions.httpBaseUrl ?? 'https://api.windieos.com';
+        return backendUrl
+            ?? this.defaultOptions.backendUrl
+            ?? this.defaultOptions.httpBaseUrl
+            ?? readRuntimeEnv('WINDIE_BACKEND_URL')
+            ?? 'https://api.windieos.com';
     }
     createSdkClient(backendUrl, authToken) {
         return new HostedBackendHttpClient_js_1.WindieSdkClient({
@@ -131,7 +135,8 @@ class WindieClient {
         const configured = options.installAuth ?? this.defaultOptions.installAuth ?? {};
         const installToken = (options.installToken
             ?? configured.installToken
-            ?? this.defaultOptions.installToken)?.trim();
+            ?? this.defaultOptions.installToken
+            ?? readRuntimeEnv('WINDIE_API_KEY'))?.trim();
         const configuredUserId = options.userId ?? configured.userId ?? this.defaultOptions.defaultUserId;
         if (installToken) {
             const identity = await this.resolveInstallTokenIdentity(backendUrl, installToken);
@@ -379,6 +384,10 @@ function detectOperatingSystem() {
 }
 function normalizeRuntimePath(path) {
     return typeof path === 'string' && path.trim() ? path.trim() : undefined;
+}
+function readRuntimeEnv(key) {
+    const value = globalThis.process?.env?.[key];
+    return typeof value === 'string' && value.trim() ? value.trim() : undefined;
 }
 function detectWorkspacePath() {
     const processLike = globalThis.process;

@@ -7,7 +7,6 @@ import { loadLocalWindieSdk } from "../_shared/local_sdk_loader.mjs";
 
 const exampleDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(exampleDir, "../..");
-const backendUrl = process.env.WINDIE_BACKEND_URL ?? "https://api.windieos.com";
 
 async function loadExampleSdk() {
   const { WindieClient } = await loadLocalWindieSdk(repoRoot);
@@ -16,10 +15,7 @@ async function loadExampleSdk() {
 
 const { WindieClient } = await loadExampleSdk();
 
-const client = new WindieClient({
-  backendUrl,
-  installToken: process.env.WINDIE_API_KEY,
-});
+const client = new WindieClient();
 
 const agent = await client.wakeUp({
   systemPrompt: "Your name is Peter, you are Peter Bui virtual friend.",
