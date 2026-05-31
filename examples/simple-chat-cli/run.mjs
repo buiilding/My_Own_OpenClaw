@@ -23,8 +23,7 @@ const client = new WindieClient({
 
 const agent = await client.wakeUp({
   systemPrompt: "Your name is Peter, you are Peter Bui virtual friend.",
-  workspacePath: process.cwd(),
-  builtins: ["computer"],
+  builtins: ["browser"],
 });
 
 const chat = agent.chat({
