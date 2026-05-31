@@ -25,7 +25,7 @@ Do not make the sidecar import backend schemas. Keep parity in explicit tests an
 | Backend schema and policy | `backend/src/tools`, `backend/src/agent/tools`, `backend/src/tools/tool_selection.py` | Model-visible tool names, descriptions, JSON schema, policy/profile filtering, tool-call history. |
 | SDK runtime dispatch | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts` | Tool-call event consumption, bundle/single orchestration, backend result envelope, normalized tool-output events. |
 | Electron main bridge | `frontend/src/main/ipc.cjs`, `frontend/src/main/local_backend_bridge*.cjs`, `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts` | SDK local runtime host, sidecar request transport, payload mapping, timeouts, display/window context. |
-| Python sidecar | `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/tools` | JSON-RPC handlers, local tool registry, filesystem/shell/computer/browser/system/memory execution. |
+| Python sidecar | `frontend/src/main/python/local_backend.py`, `frontend/src/main/python/tools` | JSON-RPC handlers, local tool registry, filesystem/shell/computer/browser/system execution, and local memory RPCs. |
 | Tests | `tests/backend`, `tests/frontend`, `tests/sidecar` | Contract, dispatch, execution, and result parity. |
 
 ## Add or Change a Tool
@@ -46,7 +46,7 @@ Do not make the sidecar import backend schemas. Keep parity in explicit tests an
 | Computer/mouse/keyboard/screenshot/window | `backend/src/tools/computer`, `backend/src/tools/remote_tools` | `frontend/src/main/python/tools/computer`, platform adapters | `tests/backend/test_computer_use_schema_contract.py`, `tests/sidecar/test_mouse_tool.py`, `tests/sidecar/test_keyboard_tool.py`, `tests/sidecar/test_screenshot_tool.py` |
 | Browser | `backend/src/tools/browser` | `frontend/src/main/python/tools/browser` | `tests/backend/test_browser_remote_tool.py`, `tests/sidecar/tools/test_browser_tool.py`, browser schema/runtime tests |
 | Filesystem and shell | `backend/src/tools/filesystem`, `backend/src/tools/system` | `frontend/src/main/python/tools/filesystem`, `frontend/src/main/python/tools/system` | Start with [Filesystem and Shell Change Workflow](../tools/filesystem_shell_change_workflow.md); then inspect `tests/sidecar/test_read_file_tool.py`, `tests/sidecar/test_replace_tool.py`, `tests/sidecar/test_shell_process_tool.py`, bridge tests, and renderer tool-execution tests. |
-| Memory | Backend memory routes and prompt context | `frontend/src/main/python/tools/memory`, `frontend/src/main/python/memory` | `tests/sidecar/test_memory_tool.py`, memory route and transcript tests |
+| Memory | Backend memory routes and prompt context | `frontend/src/main/python/memory`, `frontend/src/main/python/local_backend_memory_handlers.py` | `tests/sidecar/test_memory_*.py`, memory route and transcript tests |
 | System state and app/window helpers | `backend/src/tools/system`, prompt/tool context | `frontend/src/main/python/tools/system`, Electron window/display bridge | `tests/sidecar/test_system_tools.py`, frontend display/window tests |
 
 ## Result Contract

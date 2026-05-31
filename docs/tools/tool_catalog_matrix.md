@@ -45,7 +45,7 @@ Some capabilities are model-visible but are not sidecar local actions:
 | --- | --- | --- |
 | `web_search` | Backend provider policy and provider/native search adapters | OpenAI native web search, Gemini native Google Search grounding, or backend Brave Search fallback when `BRAVE_SEARCH_API_KEY` is set |
 
-`web_search` should not be added to `frontend/src/main/python/tools/exposed_tool_names.py` unless it becomes a local sidecar executable tool. Today it is backend/provider-owned capability routing.
+`web_search` should not be added to `frontend/src/main/python/tools/manifest.py` unless it becomes a local sidecar executable tool. Today it is backend/provider-owned capability routing.
 
 ## Parity Rules
 
@@ -59,7 +59,7 @@ Backend fallback and policy owner:
 Sidecar executable owner:
 
 - `frontend/src/main/python/tools/registry.py`
-- `frontend/src/main/python/tools/exposed_tool_names.py`
+- `frontend/src/main/python/tools/manifest.py`
 - implementation modules under `frontend/src/main/python/tools`
 
 Parity tests should prove:

@@ -63,7 +63,7 @@ Start with these files when local execution changes:
 
 - `frontend/src/main/python/local_backend.py`: JSON-RPC entrypoint and request dispatch.
 - `frontend/src/main/python/tools/registry.py`: tool registration and exposed tool lookup.
-- `frontend/src/main/python/tools/exposed_tool_names.py`: direct-tool exposure contract used for parity.
+- `frontend/src/main/python/tools/manifest.py`: direct-tool exposure contract used for parity.
 - `frontend/src/main/python/tools/computer/**`: mouse, keyboard, screenshot, scroll.
 - `frontend/src/main/python/tools/browser/**`: dedicated browser automation runtime.
 - `frontend/src/main/python/tools/filesystem/**`: file read/replace helpers.

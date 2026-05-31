@@ -83,7 +83,7 @@ flowchart LR
 
 4. Verify sidecar executable registration and schema.
    - Registry: `frontend/src/main/python/tools/registry.py`.
-   - Exposed names: `frontend/src/main/python/tools/exposed_tool_names.py`.
+   - Exposed names: `frontend/src/main/python/tools/manifest.py`.
    - Executable args: `frontend/src/main/python/tools/schemas.py`.
    - JSON-RPC execution: `frontend/src/main/python/local_backend.py`.
 

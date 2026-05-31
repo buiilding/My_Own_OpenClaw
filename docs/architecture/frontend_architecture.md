@@ -64,7 +64,7 @@ frontend/src/
 │   ├── permission_service.cjs             # Permission runtime orchestrator (public probe/request/list API)
 │   ├── permission_service_runtime.cjs     # Shared permission manifest/runtime helpers, persistence, and command wrappers
 │   ├── permission_service_*.cjs           # Focused permission domains (screen, accessibility, microphone, automation, workspace, browser)
-│   └── python/                            # Sidecar runtime (tools/memory/system/browser)
+│   └── python/                            # Sidecar runtime (tools, memory, system, browser)
 ├── preload.js                             # Context-isolated channel allowlist bridge
 ├── renderer/
 │   ├── app/                               # App/provider composition + wakeword controller
@@ -98,7 +98,7 @@ Current runtime behavior also relies on these explicit seams:
 - **Global stop shortcut is a dedicated runtime**: `frontend/src/main/agent_stop_shortcut_runtime.cjs` owns per-platform accelerator normalization, fallback registration, and phase gating; `ipc.cjs` projects runtime status back to renderer config/status flows.
 - **VM worker mode is runtime-flagged and run-API backed**: `runtime_mode.cjs` controls `WINDIE_VM_MODE` / `WINDIE_VM_WORKER_MODE` behavior, while `vm_worker_runtime.cjs` polls and relays `/api/runs/*` assignments/events over backend HTTP + existing websocket event observer hooks.
 - **Sidecar browser runtime is feature-pack aware**: `frontend/src/main/python/local_backend.py` and `core/feature_pack_installer.py` support on-demand sidecar runtime dependency install into user-writable site-packages with packaged-app specific failure messaging.
-- **Sidecar tool contract is direct-name based**: `frontend/src/main/python/tools/registry.py` exposes concrete tool names from its local `TOOL_CATALOG` plus `switch_window` and `get_open_windows`; parity with backend remote schemas is tracked through `frontend/src/main/python/tools/exposed_tool_names.py`.
+- **Sidecar tool contract is direct-name based**: `frontend/src/main/python/tools/registry.py` exposes concrete tool names from its local `TOOL_CATALOG` plus `switch_window` and `get_open_windows`; parity with backend remote schemas is tracked through `frontend/src/main/python/tools/manifest.py`.
 - **Wrapper artifacts are not live sidecar tool names**: repo-local `model-facing/tool_schema.txt` still contains unified `computer_use` and `system_use` schemas, but the current sidecar runtime does not register or dispatch those names.
 
 ## Runtime Ownership Migration Status

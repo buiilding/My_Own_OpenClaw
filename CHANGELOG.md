@@ -19,6 +19,9 @@ All notable changes to WindieOS will be documented in this file.
 - backend/sdk/tools: make `output` the only model-facing tool text field across
   backend remote tools, SDK projections, MCP/local tool adapters, extension
   scaffolds, and tool docs; remove the legacy split display/model text contract.
+- frontend/sidecar/tools: delete the retired memory sidecar tool and old
+  `FrontendTool`/`SimpleToolResult` base contract, and make the built-in
+  manifest the single source of truth for exposed local tool names.
 - frontend/sidecar/browser: delete the sidecar browser schema/action re-export
   wrappers and import the shared browser contract directly at validation sites.
 - tests/sidecar/sdk: add regression coverage preventing local tool producers

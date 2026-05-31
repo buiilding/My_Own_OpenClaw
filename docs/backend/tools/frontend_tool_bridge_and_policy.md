@@ -78,7 +78,7 @@ Tool names expected by backend schemas and sidecar runtime must remain synchroni
 
 Sidecar explicitly tracks backend client-executable tool names in:
 
-- `frontend/src/main/python/tools/exposed_tool_names.py:EXPOSED_TO_BACKEND_TOOL_NAMES`
+- `frontend/src/main/python/tools/manifest.py:EXPOSED_TO_BACKEND_TOOL_NAMES`
 
 Mismatch symptoms:
 

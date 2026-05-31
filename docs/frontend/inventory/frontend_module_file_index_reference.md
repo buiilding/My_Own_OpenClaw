@@ -146,7 +146,7 @@ Tool runtime:
 - Computer tools: `frontend/src/main/python/tools/computer/*`
 - Filesystem tools: `frontend/src/main/python/tools/filesystem/*`
 - System/process tools: `frontend/src/main/python/tools/system/*`
-- Memory tool: `frontend/src/main/python/tools/memory/memory_tool.py`
+- Memory RPC handlers: `frontend/src/main/python/local_backend_memory_handlers.py`
 - Browser tools:
 - `frontend/src/main/python/tools/browser/{browser_tool,browser_use_engine,chrome_detection,chrome_launcher,content_extraction,file_store}.py`
 - `frontend/src/main/python/windie_shared/browser_contract*.py`

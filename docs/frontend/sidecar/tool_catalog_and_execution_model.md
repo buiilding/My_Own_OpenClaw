@@ -108,7 +108,7 @@ Implication:
 
 ## Backend Compatibility Constraint
 
-`EXPOSED_TO_BACKEND_TOOL_NAMES` in `frontend/src/main/python/tools/exposed_tool_names.py` defines expected parity with backend remote tool schemas.
+`EXPOSED_TO_BACKEND_TOOL_NAMES` in `frontend/src/main/python/tools/manifest.py` defines expected parity with backend remote tool schemas.
 
 If missing, sidecar logs warnings and tools may fail at runtime when backend emits calls.
 

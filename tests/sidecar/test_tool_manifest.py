@@ -2,8 +2,8 @@ import asyncio
 import json
 from pathlib import Path
 
-from tools.exposed_tool_names import EXPOSED_TO_BACKEND_TOOL_NAMES
 from tools.manifest import (
+    EXPOSED_TO_BACKEND_TOOL_NAMES,
     build_sidecar_capability_schema,
     build_sidecar_executable_schema,
     build_sidecar_tool_manifest,

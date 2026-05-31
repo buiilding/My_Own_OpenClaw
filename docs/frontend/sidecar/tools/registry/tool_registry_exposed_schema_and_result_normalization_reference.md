@@ -28,7 +28,7 @@ Implication:
 - one failed import does not block other tool registrations
 - failed imports are warning-level logs
 
-Tool names expected by backend schemas are tracked in `EXPOSED_TO_BACKEND_TOOL_NAMES`.
+Tool names expected by backend schemas are tracked in `frontend/src/main/python/tools/manifest.py` as `EXPOSED_TO_BACKEND_TOOL_NAMES`.
 
 Current exposed set includes:
 

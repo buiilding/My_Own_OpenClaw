@@ -56,10 +56,6 @@ frontend/src/main/python/
     │   ├── replace_tool.py            # replace() - Find-and-replace with line ending normalization
     │   └── ...                        # Removed legacy filesystem tool implementations
     │
-    ├── memory/                         # Memory management tools
-    │   ├── __init__.py                # Package initialization
-    │   └── memory_tool.py              # MemoryTool - Memory operations (add, search, stats) using LocalMemoryStore
-    │
     └── system/                         # System tools
         ├── __init__.py                # Package initialization
         ├── shell_tool.py              # run_shell_command() - Shell command execution with background sessions
@@ -123,8 +119,7 @@ frontend/src/main/python/
 3. TOOL IMPLEMENTATION
    ├─> tools/computer/*.py - Computer control (mouse, keyboard, screenshot, scroll)
    ├─> tools/filesystem/*.py - Filesystem operations (read, replace)
-   ├─> tools/system/*.py - System operations (shell, stats, wait, windows)
-   └─> tools/memory/memory_tool.py - Memory operations
+   └─> tools/system/*.py - System operations (shell, stats, wait, windows)
        ↓
 4. TOOL RESULT
    └─> tools/result.py

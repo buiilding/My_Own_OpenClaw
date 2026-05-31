@@ -223,6 +223,8 @@ BUILTIN_TOOL_ORDER = (
     "browser",
 )
 
+EXPOSED_TO_BACKEND_TOOL_NAMES = frozenset(BUILTIN_TOOL_ORDER)
+
 
 def _clean_schema(schema: Any) -> Any:
     if isinstance(schema, list):

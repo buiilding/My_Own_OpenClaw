@@ -217,8 +217,7 @@ Key entry points:
 - Sidecar: `frontend/src/main/python/local_backend.py`,
   `frontend/src/main/python/sidecar_daemon.py`,
   `frontend/src/main/python/tools/manifest.py`,
-  `frontend/src/main/python/tools/registry.py`,
-  `frontend/src/main/python/tools/exposed_tool_names.py`.
+  `frontend/src/main/python/tools/registry.py`.
 
 For deeper source maps, start with `docs/getting-started/docs_hub.md`,
 `docs/reference/code_change_surface_index.md`,

@@ -13,13 +13,12 @@ import sys
 from pathlib import Path
 from typing import Any, Callable, Dict
 
-from tools.exposed_tool_names import EXPOSED_TO_BACKEND_TOOL_NAMES
 from tools.extension_loader import (
     TOOL_NAME_PATTERN,
     load_sidecar_plugin_path,
     load_sidecar_plugin_tools,
 )
-from tools.manifest import build_sidecar_tool_manifest
+from tools.manifest import EXPOSED_TO_BACKEND_TOOL_NAMES, build_sidecar_tool_manifest
 from tools.result import ToolResult
 
 logger = logging.getLogger(__name__)

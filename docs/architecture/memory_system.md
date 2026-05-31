@@ -24,7 +24,7 @@ Memory is implemented in the **frontend Python sidecar**, not the backend. The s
 │ Frontend Python Sidecar                       │
 │  ├─ LocalMemoryStore (SQLite + FAISS)         │
 │  ├─ MemorySummarizer (semantic rollups)       │
-│  └─ MemoryTool (tool access)                  │
+│  └─ LocalBackend memory RPC handlers          │
 └───────────────────────────────────────────────┘
                 │                 ▲
                 │ HTTP            │ JSON-RPC
@@ -181,11 +181,11 @@ $mem = Join-Path $env:APPDATA "desktop-assistant\\memory"; Remove-Item -Force `
 - Summarization can run for both high-volume and idle low-volume backlogs.
 - With current defaults, aged single-turn conversations are eligible once the summarizer is idle and the memory-age checks pass.
 
-### MemoryTool
+### Memory RPC Handlers
 
-`frontend/src/main/python/tools/memory/memory_tool.py`
-- Tool-access to memory (store/search/stats)
-- Wraps `LocalMemoryStore` for tool execution
+`frontend/src/main/python/local_backend_memory_handlers.py`
+- JSON-RPC access to memory and transcript storage operations
+- Wraps local memory runtime modules without exposing memory as a model-visible sidecar tool
 
 ## Dashboard Read APIs
 
@@ -275,21 +275,6 @@ results = await store.search(
     filters={"type": "episodic"},
     limit=5
 )
-```
-
-## Usage (MemoryTool)
-
-```python
-from tools.memory.memory_tool import MemoryTool
-
-memory_tool = MemoryTool()
-await memory_tool.initialize()
-
-await memory_tool.execute({
-    "operation": "add",
-    "content": "Remember this",
-    "memory_type": "episodic",
-})
 ```
 
 ## Dependencies

@@ -23,7 +23,7 @@ WindieOS has multiple memory systems. Treating them as one store causes wrong-la
 | Semantic memory is stale or noisy | Sidecar semanticization and backend semantic routes | `frontend/src/main/python/memory/conversation_semanticization_runtime.py`, `summarizer.py`, `backend/src/api/routes/memory/semantic` | `tests/sidecar/test_memory_summarizer.py`, `test_conversation_semanticization_runtime.py`, `tests/backend/test_memory_routes.py` |
 | Embedding/search fails but transcript should still save | Sidecar local store and remote embedding client | `local_store.py`, `faiss_index.py`, `remote_embedding_client.py` | `tests/sidecar/test_local_store_*.py`, `test_remote_embedding_client.py` |
 | Backend model context is too long or compaction output is wrong | Backend active history/compaction | `backend/src/agent/compaction`, `backend/src/agent/history`, executor/interaction loop | `tests/backend/test_history_compaction_engine.py`, `test_compaction_prompt.py`, `test_interaction_loop_compaction.py` |
-| Memory tool result is wrong | Sidecar memory tool | `frontend/src/main/python/tools/memory/memory_tool.py` | `tests/sidecar/test_memory_tool.py` |
+| Memory RPC result is wrong | Sidecar memory handlers and local memory store | `frontend/src/main/python/local_backend_memory_handlers.py`, `frontend/src/main/python/memory/*` | `tests/sidecar/test_memory_*.py`, `tests/sidecar/test_memory_operations.py` |
 
 ## Layer Contracts
 

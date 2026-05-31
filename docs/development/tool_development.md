@@ -46,7 +46,7 @@ SDK path below for backend-owned remote tools or built-in WindieOS tools.
   `frontend/src/main/extension_manifest.cjs`
 - Tool implementations: `frontend/src/main/python/tools/`
 - Exposed direct-tool set for backend parity:
-  `frontend/src/main/python/tools/exposed_tool_names.py` (`EXPOSED_TO_BACKEND_TOOL_NAMES`)
+  `frontend/src/main/python/tools/manifest.py` (`EXPOSED_TO_BACKEND_TOOL_NAMES`)
 
 Current runtime note:
 
@@ -176,7 +176,7 @@ async def execute_my_remote_tool(args: dict[str, Any]) -> dict[str, Any]:
 
 For built-ins, update `frontend/src/main/python/tools/registry.py`:
 - Add the tool to `TOOL_CATALOG` (or the explicit `switch_window` / `get_open_windows` registration path when appropriate).
-- Add tool name to `frontend/src/main/python/tools/exposed_tool_names.py` if it should be LLM-callable from the backend.
+- Add tool name to `frontend/src/main/python/tools/manifest.py` if it should be LLM-callable from the backend.
 
 For plugin tools, do not edit built-in registry files. Add `schema` and the
 Python `entrypoint` to `plugins/<id>/plugin.json`; Electron main
@@ -259,7 +259,7 @@ If you add backend-only tools, document the wiring point in the same PR.
 1. For backend-owned tools, confirm backend stub is present in
    `backend/src/tools/tool_catalog.py` and `backend/src/tools/remote.py` exports.
 2. For built-in sidecar tools, confirm the tool is listed in
-   `frontend/src/main/python/tools/exposed_tool_names.py`.
+   `frontend/src/main/python/tools/manifest.py`.
 3. For sidecar plugin tools, confirm `plugin.json` has `schema` and
    `entrypoint`.
 4. Confirm handler is registered in sidecar `ToolRegistry`.

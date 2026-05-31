@@ -16,7 +16,6 @@ This page documents:
 - `frontend/src/main/python/tools/browser/__init__.py`
 - `frontend/src/main/python/tools/computer/__init__.py`
 - `frontend/src/main/python/tools/filesystem/__init__.py`
-- `frontend/src/main/python/tools/memory/__init__.py`
 - `frontend/src/main/python/tools/system/__init__.py`
 
 ## Sidecar Topology Source Map Contract
@@ -40,9 +39,7 @@ Minimal package markers:
 
 - `core/__init__.py`, `tools/__init__.py`, `tools/computer/__init__.py`, `tools/filesystem/__init__.py`, and `tools/system/__init__.py` are mostly package markers with short domain descriptions
 
-Explicit tool export:
-
-- `tools/memory/__init__.py` exports `MemoryTool` through `__all__`
+The retired `tools/memory` package no longer defines a sidecar tool export; local memory is handled through sidecar JSON-RPC methods and memory runtime modules.
 
 ## Browser Package Export
 
