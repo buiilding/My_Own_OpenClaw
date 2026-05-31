@@ -167,6 +167,44 @@ def normalize_search_memory_payload(
     }, None
 
 
+def normalize_search_memory_embedding_payload(
+    embedding: Any,
+    memory_type: Any,
+    embedding_space_version: Any = None,
+) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
+    """Validate and normalize embedding-owned memory search fields."""
+    if not isinstance(embedding, list) or not embedding:
+        return None, "embedding must be a non-empty list"
+
+    normalized_embedding: List[float] = []
+    for value in embedding:
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            return None, "embedding entries must be numbers"
+        normalized_embedding.append(float(value))
+
+    normalized_memory_type: Optional[str] = None
+    if memory_type is not None:
+        if not isinstance(memory_type, str):
+            return None, "memory_type must be a string"
+        normalized_memory_type = memory_type.strip().lower()
+        if normalized_memory_type == "":
+            normalized_memory_type = None
+        elif normalized_memory_type not in {"episodic", "semantic"}:
+            return None, f"Invalid memory_type: {normalized_memory_type}"
+
+    normalized_space_version: Optional[str] = None
+    if embedding_space_version is not None:
+        if not isinstance(embedding_space_version, str):
+            return None, "embedding_space_version must be a string"
+        normalized_space_version = embedding_space_version.strip() or None
+
+    return {
+        "embedding": normalized_embedding,
+        "memory_type": normalized_memory_type,
+        "embedding_space_version": normalized_space_version,
+    }, None
+
+
 def _normalize_optional_positive_int(
     value: Any,
     *,

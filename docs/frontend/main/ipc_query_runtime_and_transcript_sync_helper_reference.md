@@ -14,7 +14,7 @@ title: "IPC Query Runtime and Transcript Sync Helper Reference"
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_query_runtime.cjs`
 - `frontend/src/main/ipc/ipc_transcript_session_sync.cjs`
-- `frontend/src/main/query_payload_builder.cjs`
+- `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts`
 - `tests/frontend/IpcMainBridge.query.test.cjs`
 - `tests/frontend/IpcMainBridge.lifecycle.test.cjs`
 - `tests/frontend/IpcTranscriptSessionSync.test.cjs`

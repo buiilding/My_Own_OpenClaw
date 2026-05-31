@@ -270,12 +270,6 @@ export class WindieAgentSession {
   }
 
   async query(payload: WindieAgentQueryInput): Promise<string> {
-    const queryContext = typeof payload.attachmentContext === 'string' && payload.attachmentContext.trim()
-      ? {
-        memory_retrieval_enabled: true,
-        attachment_context: payload.attachmentContext.trim(),
-      }
-      : undefined;
     const rawPayload = payload.rawPayload && typeof payload.rawPayload === 'object' && !Array.isArray(payload.rawPayload)
       ? payload.rawPayload
       : {};
@@ -288,7 +282,6 @@ export class WindieAgentSession {
       screenshot: payload.screenshot ?? undefined,
       screenshot_ref: payload.screenshotRef ?? undefined,
       screenshot_refs: payload.screenshotRefs ?? undefined,
-      query_context: rawPayload.query_context ?? queryContext,
       system_state_internal: payload.systemStateInternal ?? undefined,
       workspace_path: payload.workspacePath ?? undefined,
     }, payload.turnRef ?? undefined);

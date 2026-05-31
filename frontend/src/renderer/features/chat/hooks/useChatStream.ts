@@ -137,7 +137,6 @@ export function useChatStream(enableTranscript: boolean = true) {
 
   const {
     handleError,
-    handleMemoryStore,
     handleTokenCount,
   } = useChatStreamTerminalHandlers({
     enableTranscript,
@@ -169,7 +168,6 @@ export function useChatStream(enableTranscript: boolean = true) {
       && event.type !== 'tool_schemas_metadata'
       && event.type !== 'turn_error'
       && event.type !== 'usage_updated'
-      && event.type !== 'memory_stored'
     ) {
       return false;
     }
@@ -228,10 +226,6 @@ export function useChatStream(enableTranscript: boolean = true) {
       handleTokenCount(event, event.conversationRef);
       return true;
     }
-    if (event.type === 'memory_stored') {
-      handleMemoryStore(event, event.conversationRef);
-      return true;
-    }
     processStreamingComplete(event, event.conversationRef);
     return true;
   }, [
@@ -241,7 +235,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleContextCompactionStarted,
     handleError,
     handleLocalUserMessage,
-    handleMemoryStore,
     handleSystemPrompt,
     handleTokenCount,
     handleToolBundle,

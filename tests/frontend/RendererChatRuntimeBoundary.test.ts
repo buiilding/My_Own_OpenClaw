@@ -341,7 +341,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('setThinkingStatus(');
     expect(source).not.toContain('setThinkingSourceEventType(');
     expect(source).toContain("recordTrackingEvent('token-count'");
-    expect(source).toContain("recordTrackingEvent('memory-store'");
+    expect(source).not.toContain("recordTrackingEvent('memory-store'");
   });
 
   test('chat stream local-user display consumes SDK user-message events directly', async () => {

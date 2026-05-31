@@ -18,7 +18,7 @@ title: "Query Payload and Relay Reference"
 - `frontend/src/main/ipc/ipc_event_replay_state.cjs`
 - `frontend/src/main/ipc/ipc_query_broadcast.cjs`
 - `frontend/src/main/ipc/ipc_renderer_windows.cjs`
-- `frontend/src/main/query_payload_builder.cjs`
+- `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts`
 - `frontend/src/main/ipc/ipc_query_events.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
 - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
@@ -139,7 +139,7 @@ Output from `buildQueryPayload(...)`:
 2. optional `<attached_file_context>` section (hidden non-image file context from renderer-side `read_file`)
 3. `<user_query>` XML block
 
-Memory section formatting contract (`query_payload_builder.cjs`):
+Memory section formatting contract (`ContextEnrichmentPipeline.ts`):
 
 - `searchMemory(query, user_id, limit=6, memory_type=null, exclude_conversation_id=conversationRef, retrievalOptions)` is called when retrieval injection is enabled.
 - prompt injection requests a balanced retrieval budget:

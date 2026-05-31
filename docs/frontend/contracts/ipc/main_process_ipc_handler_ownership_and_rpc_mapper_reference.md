@@ -20,7 +20,6 @@ title: "Main-Process IPC Handler Ownership and RPC Mapper Reference"
 - `frontend/src/main/ipc/ipc_startup_state.cjs`
 - `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`
 - `frontend/src/main/ipc/ipc_backend_endpoint_state.cjs`
-- `frontend/src/main/ipc/ipc_memory_store_persistence.cjs`
 - `frontend/src/main/ipc/ipc_artifact_handlers.cjs`
 - `frontend/src/main/ipc/ipc_artifact_fetch.cjs`
 - `frontend/src/main/ipc/ipc_openai_codex_oauth_handlers.cjs`
@@ -107,7 +106,6 @@ Notable behavior:
   - inbound backend message normalization/state/phase fan-out: `ipc_runtime_helpers.cjs`
   - renderer-window registration and broadcast fan-out: `ipc_renderer_windows.cjs`
   - synthetic local user/failure query event broadcast: `ipc_query_broadcast.cjs` with envelope builders from `ipc_query_events.cjs`
-  - main-process `memory-store` event persistence side effect: `ipc_memory_store_persistence.cjs`
 
 ### `overlay_phase_ipc_runtime.cjs` (invoked from `index.cjs`)
 

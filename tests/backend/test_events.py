@@ -18,7 +18,6 @@ from backend.src.core.events.streaming_events import (
     ToolOutputEvent,
     AssistantMessageFullEvent,
     TokenCountEvent,
-    MemoryStoreEvent,
     SystemPromptEvent,
     ToolSchemasEvent,
 )
@@ -324,47 +323,6 @@ class TestTokenCountEvent:
         assert result["cached_tokens"] is None
         assert result["cache_hit"] is None
         assert result["cache_status"] == "unknown"
-
-
-class TestMemoryStoreEvent:
-    """Tests for MemoryStoreEvent."""
-
-    def test_init_required_fields(self):
-        event = MemoryStoreEvent(
-            user_query="What is Python?",
-            assistant_response="Python is a programming language.",
-            memory_type="episodic"
-        )
-        
-        assert event.user_query == "What is Python?"
-        assert event.assistant_response == "Python is a programming language."
-        assert event.memory_type == "episodic"
-        assert event.user_id == "default_user"
-        assert event.session_id is None
-
-    def test_init_with_optional_fields(self):
-        event = MemoryStoreEvent(
-            user_query="Hello",
-            assistant_response="Hi!",
-            memory_type="semantic",
-            user_id="user-123",
-            session_id="session-456"
-        )
-        
-        assert event.user_id == "user-123"
-        assert event.session_id == "session-456"
-
-    def test_to_dict(self):
-        event = MemoryStoreEvent(
-            user_query="Hello",
-            assistant_response="Hi!",
-            memory_type="episodic"
-        )
-        result = event.to_dict()
-        
-        assert result["type"] == "memory-store"
-        assert result["user_query"] == "Hello"
-        assert result["assistant_response"] == "Hi!"
 
 
 class TestContextCompactionEvents:

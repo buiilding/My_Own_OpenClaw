@@ -41,7 +41,6 @@ from backend.src.api.schemas.outgoing import (
     ContextCompactionStartedMessage,
     ErrorResponse,
     LlmThought,
-    MemoryStoreMessage,
     ModelsListedMessage,
     QueryAcceptedMessage,
     SettingsLoadedMessage,
@@ -104,7 +103,6 @@ OUTGOING_SCHEMA_CONTRACTS: tuple[MessageContract, ...] = (
     MessageContract(OutgoingMessageType.SYSTEM_PROMPT, SystemPromptMessage),
     MessageContract(OutgoingMessageType.TOOL_SCHEMAS, ToolSchemasMessage),
     MessageContract(OutgoingMessageType.TOKEN_COUNT, TokenCountMessage),
-    MessageContract(OutgoingMessageType.MEMORY_STORE, MemoryStoreMessage),
     MessageContract(OutgoingMessageType.USER_MESSAGE_FULL, UserMessageFullMessage),
     MessageContract(
         OutgoingMessageType.ASSISTANT_MESSAGE_FULL, AssistantMessageFullMessage

@@ -241,21 +241,6 @@ class TokenCountMessage(BaseMessage):
     payload: TokenCountPayload
 
 
-class MemoryStorePayload(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
-    user_query: Optional[str] = None
-    assistant_response: Optional[str] = None
-    memory_type: Optional[str] = None
-    user_id: str
-    session_id: Optional[str] = None
-
-
-class MemoryStoreMessage(BaseMessage):
-    type: Literal["memory-store"]
-    payload: MemoryStorePayload
-
-
 class UserMessageFullMetadata(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

@@ -149,7 +149,7 @@ describe('WindieSdkClient', () => {
       renderer_only: true,
       agent_definition: {
         id: 'custom-agent',
-        query_context: { should_not_reach_backend: true },
+        legacy_context: { should_not_reach_backend: true },
         system_prompt: { mode: 'replace', content: 'Custom prompt.' },
         runtime: {
           operating_system: 'macOS',
@@ -1134,7 +1134,7 @@ describe('WindieSdkClient', () => {
     });
   });
 
-  test('agent.ask sends attachment bodies through query_context', async () => {
+  test('agent.ask renders attachment bodies into SDK-prepared content', async () => {
     const client = new WindieClient({
       backendUrl: 'https://api.windieos.com',
       fetchImpl: mockFetch,
@@ -1163,12 +1163,11 @@ describe('WindieSdkClient', () => {
       payload: {
         text: 'Summarize this file.',
         conversation_ref: 'conv-attachment',
-        query_context: {
-          memory_retrieval_enabled: true,
-          attachment_context: 'file body',
-        },
+        content: expect.stringContaining('<attached_file_context>\nfile body\n</attached_file_context>'),
       },
     });
+    expect(sent.payload.content).toContain('<user_query>\nSummarize this file.\n</user_query>');
+    expect(sent.payload).not.toHaveProperty('query_context');
     expect(sent.payload).not.toHaveProperty('attachment_context');
     expect(sent.payload).not.toHaveProperty('attachment_filenames');
   });

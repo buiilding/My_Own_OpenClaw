@@ -15,6 +15,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple
 
+import numpy as np
+
 try:
     import aiosqlite
 except ImportError:
@@ -1066,6 +1068,83 @@ class LocalMemoryStore:
         faiss.normalize_L2(query_embedding)
 
         # Search both databases in parallel
+        search_tasks = [
+            self._search_database(
+                query_embedding=query_embedding,
+                user_id=user_id,
+                db_path=db_path,
+                index=index,
+                vector_id_to_memory_id=vector_id_to_memory_id,
+                memory_type=memory_type,
+                filters=filters,
+                limit=limit,
+            )
+            for memory_type, db_path, index, vector_id_to_memory_id in search_targets
+        ]
+        all_results = await self._collect_search_results(search_tasks)
+        return self._finalize_search_results(all_results, limit)
+
+    async def search_by_embedding(
+        self,
+        embedding: List[float],
+        user_id: str,
+        filters: Optional[Dict[str, Any]] = None,
+        limit: int = 10,
+        embedding_space_version: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """Search memories using a caller-provided query embedding."""
+        search_episodic = True
+        search_semantic = True
+
+        if filters:
+            memory_type_filter = filters.get("metadata.type") or filters.get("type")
+            normalized_type = self._maybe_normalize_memory_type(memory_type_filter)
+            if normalized_type == "episodic":
+                search_semantic = False
+            elif normalized_type == "semantic":
+                search_episodic = False
+
+        search_targets = self._build_search_targets(search_episodic, search_semantic)
+        if not search_targets:
+            logger.debug("Skipping memory search: no searchable indices")
+            return []
+
+        query_embedding = np.asarray(embedding, dtype=np.float32)
+        if query_embedding.ndim != 1 or query_embedding.size == 0:
+            raise ValueError("embedding must be a non-empty float array")
+
+        persisted_embedding_space = (
+            getattr(self, "_embedding_space_metadata", None)
+            or self._load_embedding_space_metadata()
+        )
+        if (
+            embedding_space_version
+            and persisted_embedding_space is not None
+            and persisted_embedding_space.embedding_space_version
+            != embedding_space_version
+        ):
+            logger.info(
+                "External embedding space changed from %s to %s; refreshing local indices",
+                persisted_embedding_space.embedding_space_version,
+                embedding_space_version,
+            )
+            await self.embedder.refresh_embedding_space()
+            await self._ensure_runtime_embedding_space_alignment()
+
+        for memory_type, _, index, _ in search_targets:
+            index_dimension = self._index_dimension(index)
+            if index_dimension is not None and index_dimension != query_embedding.size:
+                logger.warning(
+                    "Skipping %s memory search: query embedding dimension %s does not match index dimension %s",
+                    memory_type,
+                    query_embedding.size,
+                    index_dimension,
+                )
+                return []
+
+        query_embedding = query_embedding.reshape(1, -1)
+        faiss.normalize_L2(query_embedding)
+
         search_tasks = [
             self._search_database(
                 query_embedding=query_embedding,

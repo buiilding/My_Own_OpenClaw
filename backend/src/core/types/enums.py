@@ -43,7 +43,6 @@ class StreamingEventType(str, Enum):
     CONTEXT_COMPACTION_COMPLETED = "context-compaction-completed"
     CONTEXT_COMPACTION_FAILED = "context-compaction-failed"
     CONTENT = "content"  # Used internally by LLM client
-    MEMORY_STORE = "memory-store"
     TOOL_BUNDLE = "tool-bundle"
     WEB_SEARCH_PROGRESS = "web-search-progress"
 

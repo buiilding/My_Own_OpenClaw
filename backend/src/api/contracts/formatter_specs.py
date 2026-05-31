@@ -26,7 +26,6 @@ def get_formatter_specs() -> tuple[FormatterSpec, ...]:
         ContextCompactionFailedEvent,
         ContextCompactionStartedEvent,
         ErrorEvent,
-        MemoryStoreEvent,
         StreamingCompleteEvent,
         SystemPromptEvent,
         ThinkingEvent,
@@ -114,11 +113,6 @@ def get_formatter_specs() -> tuple[FormatterSpec, ...]:
             ContextCompactionFailedEvent,
             StreamingEventType.CONTEXT_COMPACTION_FAILED.value,
             formatter_module.ContextCompactionFailedEventFormatter,
-        ),
-        (
-            MemoryStoreEvent,
-            StreamingEventType.MEMORY_STORE.value,
-            formatter_module.MemoryStoreEventFormatter,
         ),
         (
             ToolBundleEvent,

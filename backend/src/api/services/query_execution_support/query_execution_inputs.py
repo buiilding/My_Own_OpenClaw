@@ -10,7 +10,6 @@ from backend.src.api.services.query_execution_support.query_execution_runtime im
     resolve_query_screenshot_metadata,
     resolve_screenshots,
 )
-from backend.src.llm.prompts.query_context import format_query_context_content
 from backend.src.services.artifacts import ArtifactStore
 
 if TYPE_CHECKING:
@@ -41,6 +40,13 @@ def build_query_image_data(
     if len(resolved_screenshots) == 1:
         return resolved_screenshots[0]
     return resolved_screenshots
+
+
+def format_plain_user_query_content(query: str) -> str:
+    """Fallback wrapper for clients that do not send SDK-prepared content."""
+    from xml.sax.saxutils import escape
+
+    return f"<user_query>\n{escape(str(query or ''))}\n</user_query>"
 
 
 def resolve_query_execution_inputs(
@@ -87,11 +93,11 @@ def resolve_query_execution_inputs(
     return QueryExecutionInputs(
         image_data=build_query_image_data(resolved_screenshots),
         capture_meta=resolve_query_screenshot_metadata(message),
-        message_content=format_query_context_content(
-            query=getattr(message.payload, "text", ""),
-            query_context=getattr(message.payload, "query_context", None),
-            fallback_content=getattr(message.payload, "content", None),
-        ),
+        message_content=format_plain_user_query_content(
+            getattr(message.payload, "text", ""),
+        )
+        if getattr(message.payload, "content", None) is None
+        else getattr(message.payload, "content", None),
         conversation_ref=getattr(message.payload, "conversation_ref", None),
         workspace_path=getattr(message.payload, "workspace_path", None),
         repo_instruction_messages=repo_instruction_messages,

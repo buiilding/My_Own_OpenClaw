@@ -166,6 +166,9 @@ class LocalBackend(LocalBackendMemoryHandlersMixin):
 
         # Memory methods
         self.protocol.register_method("search_memory", self._handle_search_memory)
+        self.protocol.register_method(
+            "search_memory_by_embedding", self._handle_search_memory_by_embedding
+        )
         self.protocol.register_method("store_memory", self._handle_store_memory)
         self.protocol.register_method(
             "list_episodic_memories", self._handle_list_episodic_memories

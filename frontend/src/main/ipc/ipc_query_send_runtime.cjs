@@ -28,9 +28,6 @@ async function prepareRendererQuerySend({
     resolveActiveSurfaceDisplayAffinity,
     ipcEventReplayState,
     buildQueryPayload,
-    buildQueryPayloadContext,
-    getSystemState,
-    searchMemory,
   } = deps;
 
   await runBeforeOverlayQueryCapture({
@@ -46,9 +43,7 @@ async function prepareRendererQuerySend({
   );
   const {
     payload: preparedPayload,
-    attachmentContext,
     conversationRef,
-    memoryRetrievalEnabled,
   } = preparedQuery;
 
   const queryMessageId = preparedQuery.queryMessageId || uuidGenerator();
@@ -96,16 +91,9 @@ async function prepareRendererQuerySend({
 
   const preparedContent = await buildQueryPayload({
     basePayload: preparedPayload,
-    text: preparedPayload.text,
     conversationRef,
-    attachmentContext,
-    memoryRetrievalEnabled,
     currentUserId,
     isFirstQuery,
-    buildQueryPayloadContext,
-    getSystemState,
-    searchMemory,
-    log,
   });
 
   return {

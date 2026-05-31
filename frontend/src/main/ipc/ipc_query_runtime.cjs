@@ -28,7 +28,9 @@ const BACKEND_QUERY_PAYLOAD_KEYS = Object.freeze([
   'screenshot_refs',
   'capture_meta',
   'system_state_internal',
-  'query_context',
+  'attachment_context',
+  'attachment_filenames',
+  'memory_retrieval_enabled',
   'workspace_path',
   'repo_instruction_messages',
   'client_prompt_layers',
@@ -71,9 +73,13 @@ function prepareRendererQueryPayload(payload, currentConversationRef, resolveCon
     delete nextPayload.attachment_filenames;
   }
 
-  delete nextPayload.attachment_context;
+  if (attachmentContext) {
+    nextPayload.attachment_context = attachmentContext;
+  } else {
+    delete nextPayload.attachment_context;
+  }
   const memoryRetrievalEnabled = nextPayload.memory_retrieval_enabled !== false;
-  delete nextPayload.memory_retrieval_enabled;
+  nextPayload.memory_retrieval_enabled = memoryRetrievalEnabled;
 
   const conversationRef = resolveConversationRef(nextPayload, currentConversationRef);
   if (!conversationRef) {
@@ -94,46 +100,18 @@ function prepareRendererQueryPayload(payload, currentConversationRef, resolveCon
 
 async function buildQueryPayload({
   basePayload,
-  text,
   conversationRef,
   currentUserId,
   isFirstQuery,
-  attachmentContext = null,
-  memoryRetrievalEnabled = true,
-  buildQueryPayloadContext,
-  getSystemState,
-  searchMemory,
-  log,
 }) {
   const contextType = isFirstQuery ? 'initial' : 'sequential';
   const userId = typeof currentUserId === 'string' ? currentUserId.trim() : '';
   if (!userId) {
     throw new Error('buildQueryPayload requires an authenticated user id');
   }
-  const {
-    queryContext,
-    runtimeSystemState,
-  } = await buildQueryPayloadContext({
-    text,
-    conversationRef,
-    userId,
-    contextType,
-    attachmentContext,
-    getSystemState,
-    searchMemory,
-    memoryRetrievalEnabled,
-    log,
-  });
-
-  const payload = { ...basePayload, query_context: queryContext };
-  if (runtimeSystemState) {
-    payload.system_state_internal = runtimeSystemState;
-  } else {
-    delete payload.system_state_internal;
-  }
 
   return {
-    payload: buildBackendQueryPayload(payload),
+    payload: buildBackendQueryPayload(basePayload),
     userId,
     conversationRef,
     queryUsedInitialContext: contextType === 'initial',

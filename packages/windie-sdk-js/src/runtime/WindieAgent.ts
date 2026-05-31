@@ -37,6 +37,10 @@ import {
   SdkConversationRuntime,
   type SendInput,
 } from './ConversationRuntime.js';
+import {
+  enrichQueryPayload,
+  storeCompletedTurnMemory,
+} from './ContextEnrichmentPipeline.js';
 import type {
   WindieDesktopAgent,
   WindieDesktopAgentStartOptions,
@@ -89,6 +93,10 @@ export type WindieStoreMemoryInput = {
 
 export class WindieAgent {
   private readonly defaultConversationStore = new InMemoryConversationStore();
+  private readonly pendingDirectQueries = new Map<string, {
+    conversationRef: string;
+    userQuery: string;
+  }>();
 
   static async startDesktop(options: WindieDesktopAgentStartOptions): Promise<WindieDesktopAgent> {
     const { WindieDesktopAgent } = await import('./WindieDesktopAgent.js');
@@ -102,17 +110,28 @@ export class WindieAgent {
     private readonly sdkClient: WindieSdkClient,
     private readonly owner: WindieAgentOwner,
     private readonly localRuntime?: WindieLocalRuntimeClient,
-  ) {}
+    private readonly userId = 'local-sdk-user',
+  ) {
+    this.session.on('streaming-complete', event => {
+      void this.maybeStoreDirectTurnMemory(event);
+    });
+  }
 
   async ask(text: string, options: WindieAgentQueryOptions = {}): Promise<string> {
     if (options.model) {
       await this.setModel(options.model);
     }
-    return this.session.query(this.buildQueryInput(text, options));
+    return this.query(this.buildQueryInput(text, options));
   }
 
   async query(payload: WindieAgentQueryInput): Promise<string> {
-    return this.session.query(payload);
+    const enriched = await this.enrichAgentQueryInput(payload);
+    const messageId = await this.session.query(enriched);
+    this.pendingDirectQueries.set(messageId, {
+      conversationRef: enriched.conversationRef,
+      userQuery: enriched.text,
+    });
+    return messageId;
   }
 
   async run(input: string | WindieAgentQueryInput, options: WindieAgentQueryOptions = {}): Promise<string> {
@@ -217,6 +236,18 @@ export class WindieAgent {
       store: options.store ?? this.defaultConversationStore,
       transport: createWindieAgentBackendTransport(this.session, conversationRef, this.agentDefinition),
       localRuntime: options.localRuntime === undefined ? this.localRuntime : options.localRuntime,
+      userId: this.userId,
+      enrichQuery: async input => {
+        const enriched = await enrichQueryPayload({
+          text: input.text,
+          conversationRef: input.conversationRef,
+          userId: this.userId,
+          payload: input.payload ?? {},
+          sdkClient: this.sdkClient,
+          localRuntime: options.localRuntime === undefined ? this.localRuntime : options.localRuntime,
+        });
+        return enriched.payload;
+      },
     });
     runtime.attachTransport();
     return runtime;
@@ -441,5 +472,54 @@ export class WindieAgent {
       text,
       conversationRef: queryOptions.conversationRef ?? `conv-${this.id}`,
     };
+  }
+
+  private async enrichAgentQueryInput(input: WindieAgentQueryInput): Promise<WindieAgentQueryInput> {
+    const enriched = await enrichQueryPayload({
+      text: input.text,
+      conversationRef: input.conversationRef,
+      userId: this.userId,
+      payload: {
+        ...(input.rawPayload ?? {}),
+        content: input.content ?? undefined,
+        attachment_context: input.attachmentContext ?? undefined,
+        attachment_filenames: input.attachmentFilenames ?? undefined,
+      },
+      sdkClient: this.sdkClient,
+      localRuntime: this.localRuntime,
+    });
+    return {
+      ...input,
+      rawPayload: enriched.payload,
+      content: typeof enriched.payload.content === 'string' ? enriched.payload.content : input.content,
+      attachmentContext: null,
+      attachmentFilenames: null,
+    };
+  }
+
+  private async maybeStoreDirectTurnMemory(event: Extract<BackendEvent, { type: 'streaming-complete' }>): Promise<void> {
+    const turnRef = typeof event.turn_ref === 'string' ? event.turn_ref : null;
+    const assistantResponse = typeof event.payload.final_response === 'string'
+      ? event.payload.final_response
+      : '';
+    if (!turnRef || !assistantResponse.trim()) {
+      return;
+    }
+    const pending = this.pendingDirectQueries.get(turnRef);
+    if (!pending) {
+      return;
+    }
+    this.pendingDirectQueries.delete(turnRef);
+    try {
+      await storeCompletedTurnMemory({
+        localRuntime: this.localRuntime,
+        userId: this.userId,
+        conversationRef: pending.conversationRef,
+        userQuery: pending.userQuery,
+        assistantResponse,
+      });
+    } catch {
+      // Local memory persistence is best-effort and must not fail direct queries.
+    }
   }
 }

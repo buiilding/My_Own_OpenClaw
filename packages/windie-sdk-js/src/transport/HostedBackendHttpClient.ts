@@ -177,6 +177,20 @@ export type SdkGenerateTitleResponse = {
   success?: boolean;
 };
 
+export type SdkEmbeddingRequest = {
+  text: string;
+  model_name?: string;
+};
+
+export type SdkEmbeddingResponse = {
+  embedding: number[];
+  provider_id: string;
+  model_id: string;
+  model_name: string;
+  dimension: number;
+  embedding_space_version: string;
+};
+
 export type SdkOcrRunRequest = {
   image: SdkImageSource;
 };
@@ -519,6 +533,9 @@ function filterSdkHttpPayload(path: string, body: unknown): unknown {
   if (path === '/api/semantic/title') {
     return filterKeys(body, ['user_id', 'user_message', 'assistant_message', 'model_id', 'model_provider']);
   }
+  if (path === '/api/embeddings/') {
+    return filterKeys(body, ['text', 'model_name']);
+  }
   return body;
 }
 
@@ -561,6 +578,13 @@ export class WindieSdkClient {
 
   readonly titles = {
     generate: async (payload: SdkGenerateTitleRequest): Promise<SdkGenerateTitleResponse> => this.postJson('/api/semantic/title', payload),
+  };
+
+  readonly embeddings = {
+    create: async (payload: SdkEmbeddingRequest): Promise<SdkEmbeddingResponse> => this.postJson('/api/embeddings/', {
+      model_name: 'default',
+      ...payload,
+    }),
   };
 
   readonly install = {

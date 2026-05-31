@@ -123,8 +123,7 @@ function normalizeBackendPayload(type, payload) {
     delete normalized.screenshot_urls;
   }
   if (type === 'query') {
-    delete normalized.attachment_context;
-    delete normalized.attachment_filenames;
+    delete normalized.memory_retrieval_enabled;
   }
 
   return normalized;
@@ -196,7 +195,6 @@ function processBackendMessageData(data, {
   resolveSettingsSync,
   setResponseOverlayPhase,
   getResponseOverlayPhase,
-  onMemoryStoreEvent,
   broadcastToRenderers,
   log,
 }) {
@@ -231,13 +229,6 @@ function processBackendMessageData(data, {
       'backend',
       overlayTransition.metadata,
     );
-  }
-  if (data.type === 'memory-store' && typeof onMemoryStoreEvent === 'function') {
-    try {
-      onMemoryStoreEvent(data);
-    } catch (error) {
-      log(`Memory-store side effect failed: ${error.message}`);
-    }
   }
   broadcastTypedBackendEvent(data, broadcastToRenderers);
 }

@@ -9,11 +9,6 @@ const {
 } = require('electron');
 const { v4: uuidv4 } = require('uuid');
 const {
-  getSystemState,
-  searchMemory,
-  storeMemory,
-} = require('./local_backend_bridge.cjs');
-const {
   resolveBackendEndpointCandidates,
   resolveBackendEndpoints,
   resolvePreferredArtifactHttpUrl,
@@ -49,8 +44,6 @@ const {
 const {
   registerArtifactHandlers,
 } = require('./ipc/ipc_artifact_handlers.cjs');
-const { persistMemoryStoreEvent } = require('./ipc/ipc_memory_store_persistence.cjs');
-const { buildQueryPayloadContext } = require('./query_payload_builder.cjs');
 const {
   resolveConversationRef: resolveConversationRefFromPayload,
   buildLocalUserMessage,
@@ -686,9 +679,6 @@ function handleAgentBackendEvent(rendererData) {
     ),
     setResponseOverlayPhase,
     getResponseOverlayPhase: () => responseOverlayPhaseState.getPhase(),
-    onMemoryStoreEvent: (eventData) => {
-      persistMemoryStoreEvent(eventData, { storeMemory, log });
-    },
     broadcastToRenderers,
     log,
   });
@@ -954,9 +944,6 @@ function initializeIpc(win, options = {}) {
       broadcastToRenderers,
       ipcEventReplayState,
       buildQueryPayload,
-      buildQueryPayloadContext,
-      getSystemState,
-      searchMemory,
       broadcastQuerySendFailureRuntime,
       buildQuerySendFailure,
     },
@@ -1208,9 +1195,6 @@ const automatedQueryDispatcher = createAutomatedQueryDispatcher({
   ensureInitialSettingsSync,
   getPendingSettingsSyncPromise: () => settingsSyncRuntime.getPendingSettingsSyncPromise(),
   buildQueryPayload,
-  buildQueryPayloadContext,
-  getSystemState,
-  searchMemory,
   attachAgentDefinitionContext: (payload) => buildBackendQueryPayload(
     attachAgentDefinitionContext(payload),
   ),

@@ -22,7 +22,9 @@ describe('ipc_query_runtime', () => {
       'screenshot_refs',
       'capture_meta',
       'system_state_internal',
-      'query_context',
+      'attachment_context',
+      'attachment_filenames',
+      'memory_retrieval_enabled',
       'workspace_path',
       'repo_instruction_messages',
       'client_prompt_layers',
@@ -49,6 +51,9 @@ describe('ipc_query_runtime', () => {
       content: '<user_query>hello</user_query>',
       screenshot_ref: 'artifact-1',
       system_state_internal: { screen_resolution: '1920x1080' },
+      attachment_context: 'local only',
+      attachment_filenames: ['notes.txt'],
+      memory_retrieval_enabled: false,
       agent_definition: { mode: 'custom' },
     });
   });
@@ -70,7 +75,9 @@ describe('ipc_query_runtime', () => {
     expect(result).toEqual({
       payload: {
         text: 'hello',
+        attachment_context: 'file context',
         attachment_filenames: ['notes.txt', 'todo.md'],
+        memory_retrieval_enabled: false,
         conversation_ref: 'conv-resolved',
       },
       attachmentContext: 'file context',
@@ -104,50 +111,28 @@ describe('ipc_query_runtime', () => {
     });
   });
 
-  test('buildQueryPayload enriches the payload and reports initial-context usage', async () => {
-    const buildQueryPayloadContext = jest.fn().mockResolvedValue({
-      queryContext: {
-        memory_retrieval_enabled: true,
-        memories: null,
-      },
-      runtimeSystemState: { screen_resolution: '1920x1080' },
-    });
-
+  test('buildQueryPayload preserves SDK-bound payload and reports initial-context usage', async () => {
     await expect(buildQueryPayload({
-      basePayload: { text: 'hello', conversation_ref: 'conv-1' },
-      text: 'hello',
+      basePayload: {
+        text: 'hello',
+        conversation_ref: 'conv-1',
+        attachment_context: 'notes',
+        memory_retrieval_enabled: true,
+      },
       conversationRef: 'conv-1',
       currentUserId: 'user-1',
       isFirstQuery: true,
-      attachmentContext: 'notes',
-      memoryRetrievalEnabled: true,
-      buildQueryPayloadContext,
-      getSystemState: jest.fn(),
-      searchMemory: jest.fn(),
-      log: jest.fn(),
     })).resolves.toEqual({
       payload: {
         text: 'hello',
         conversation_ref: 'conv-1',
-        query_context: {
-          memory_retrieval_enabled: true,
-          memories: null,
-        },
-        system_state_internal: { screen_resolution: '1920x1080' },
+        attachment_context: 'notes',
+        memory_retrieval_enabled: true,
       },
       userId: 'user-1',
       conversationRef: 'conv-1',
       queryUsedInitialContext: true,
     });
-
-    expect(buildQueryPayloadContext).toHaveBeenCalledWith(expect.objectContaining({
-      text: 'hello',
-      conversationRef: 'conv-1',
-      userId: 'user-1',
-      contextType: 'initial',
-      attachmentContext: 'notes',
-      memoryRetrievalEnabled: true,
-    }));
   });
 
   test('buildQueryInterrupted marks active accepted turns as retryable errors', () => {

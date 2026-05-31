@@ -17,15 +17,6 @@ function resolveEndpointWsUrl(endpoint) {
     }
     return (0, WindieAgentSession_js_1.deriveWsUrl)(backendUrl);
 }
-function buildQueryContext(payload) {
-    if (typeof payload.attachmentContext !== 'string' || !payload.attachmentContext.trim()) {
-        return undefined;
-    }
-    return {
-        memory_retrieval_enabled: true,
-        attachment_context: payload.attachmentContext.trim(),
-    };
-}
 class ManagedWindieAgentSession {
     constructor(options) {
         this.options = options;
@@ -119,7 +110,6 @@ class ManagedWindieAgentSession {
             screenshot: payload.screenshot ?? undefined,
             screenshot_ref: payload.screenshotRef ?? undefined,
             screenshot_refs: payload.screenshotRefs ?? undefined,
-            query_context: payload.rawPayload?.query_context ?? buildQueryContext(payload),
             system_state_internal: payload.systemStateInternal ?? undefined,
             workspace_path: payload.workspacePath ?? undefined,
         }, payload.turnRef ?? undefined);

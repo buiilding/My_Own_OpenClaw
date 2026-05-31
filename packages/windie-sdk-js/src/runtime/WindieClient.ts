@@ -156,7 +156,7 @@ export class WindieClient {
       await session.updateSettings(initialModelSettings);
     }
     const id = typeof agentDefinition.id === 'string' ? agentDefinition.id : createMessageId();
-    const agent = new WindieAgent(id, session, agentDefinition, sdkClient, this, localRuntime);
+    const agent = new WindieAgent(id, session, agentDefinition, sdkClient, this, localRuntime, userId);
     this.activeAgents.set(id, agent);
     session.on('close', () => {
       this.activeAgents.delete(id);

@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-POST_TERMINAL_ALLOWED_EVENT_TYPES = frozenset({
-    "memory-store",
-})
+POST_TERMINAL_ALLOWED_EVENT_TYPES = frozenset()
 
 
 def is_post_terminal_event_allowed(event_type: str | None) -> bool:

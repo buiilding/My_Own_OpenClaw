@@ -420,30 +420,6 @@ describe('useChatStream transcript + event filtering', () => {
     ))).toBe(true);
   });
 
-  test('tracks memory-store events without renderer-side persistence side effects', async () => {
-    const { emitBackendEvent } = registerBackendListener();
-
-    await act(async () => {
-      emitBackendEvent({
-        type: 'memory-store',
-        conversation_ref: 'conv-9',
-        user_id: 'user-9',
-        session_id: 'session-9',
-        payload: {
-          user_query: 'hi',
-          assistant_response: 'hello',
-          memory_type: 'episodic',
-          user_id: 'user-9',
-          session_id: 'session-9',
-        },
-      });
-      await Promise.resolve();
-    });
-
-    const tracking = useChatStore.getState().getWorkspaceState('conv-9').streamTracking;
-    expect(tracking.lastEventType).toBe('memory-store');
-  });
-
   test('routes non-active conversation events into their own workspace', () => {
     setMockActiveConversationRef('conv-active');
     const { emitBackendEvent, emitConversationRuntimeUpdated } = registerBackendAndProjectionListeners();
@@ -485,29 +461,6 @@ describe('useChatStream transcript + event filtering', () => {
       phase: 'streaming',
     }));
     expect(transcriptSpies.updateTranscriptSession).toHaveBeenCalledWith('conv-active', undefined);
-  });
-
-  test('quarantines memory-store events without conversation_ref', async () => {
-    setMockActiveConversationRef('conv-active');
-    const { emitRawBackendEvent } = registerBackendListener();
-
-    await act(async () => {
-      emitRawBackendEvent({
-        type: 'memory-store',
-        payload: {
-          user_query: 'hi',
-          assistant_response: 'hello',
-          memory_type: 'episodic',
-          session_id: 'conv-stale',
-          user_id: 'user-1',
-        },
-      });
-      await Promise.resolve();
-    });
-
-    const staleTracking = useChatStore.getState().getWorkspaceState('conv-stale').streamTracking;
-    expect(staleTracking.lastEventType).not.toBe('memory-store');
-    expect(transcriptSpies.updateTranscriptSession).not.toHaveBeenCalled();
   });
 
   test('quarantines events that omit conversation_ref', () => {

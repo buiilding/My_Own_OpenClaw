@@ -38,7 +38,6 @@ from backend.src.llm.prompts.prompt_metadata import (
     UserMessageMetadata,
 )
 from backend.src.llm.prompts.prompts import PromptManager
-from backend.src.llm.prompts.query_context import format_query_context_content
 from backend.src.llm.prompts.repo_instructions import (
     resolve_workspace_repo_instruction_messages,
 )
@@ -641,10 +640,9 @@ class PromptConstructor:
         else:
             # Fallback: just the query (shouldn't happen in normal flow)
             logger.warning("No message content provided by frontend, using query only")
-            final_content = format_query_context_content(
-                query=query,
-                query_context=None,
-            )
+            from xml.sax.saxutils import escape
+
+            final_content = f"<user_query>\n{escape(str(query or ''))}\n</user_query>"
 
         # Tool schemas are passed via native API params, not embedded in user content.
         _ = is_first_message

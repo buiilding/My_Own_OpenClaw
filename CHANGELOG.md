@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/backend/sidecar: move pre-inference memory and attachment enrichment into
+  the SDK context pipeline, add backend embedding client support plus sidecar
+  embedding-search RPC, remove backend `query_context` prompt rendering and
+  `memory-store` events, and delete the standalone memory service path.
 - sdk/sidecar/browser: make SDK agent shutdown close the backend socket, shut
   down the local sidecar, close the Browser Use session, and terminate only the
   Windie-owned Chrome CDP process while preserving the persistent browser

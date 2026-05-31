@@ -84,7 +84,7 @@ Split boundary:
 
 Module:
 
-- `frontend/src/main/query_payload_builder.cjs`
+- `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts`
 
 Adds backend-facing context before query send:
 

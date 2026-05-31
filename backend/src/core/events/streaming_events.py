@@ -270,20 +270,6 @@ class ContextCompactionFailedEvent(StreamingEvent):
 
 
 @dataclass
-class MemoryStoreEvent(StreamingEvent):
-    """Event emitted to trigger frontend memory storage after interaction completes."""
-
-    user_query: str
-    assistant_response: str
-    memory_type: str  # "episodic" or "semantic"
-    user_id: str = "default_user"
-    session_id: Optional[str] = None  # Session/conversation identifier for grouping
-
-    def __post_init__(self):
-        self.type = StreamingEventType.MEMORY_STORE
-
-
-@dataclass
 class ToolBundleEvent(StreamingEvent):
     """Event emitted when a bundle of tools is ready for execution."""
 
@@ -312,6 +298,5 @@ AgentStreamingEvent = Union[
     ContextCompactionStartedEvent,
     ContextCompactionCompletedEvent,
     ContextCompactionFailedEvent,
-    MemoryStoreEvent,
     ToolBundleEvent,
 ]

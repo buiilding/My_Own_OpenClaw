@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-import asyncio
 import html
 import logging
 import re
-from typing import AsyncGenerator
 
-from backend.src.core.events import InteractionCompleted, MemoryStoreEvent
+from backend.src.core.events import InteractionCompleted
 
 logger = logging.getLogger(__name__)
 
@@ -25,8 +23,8 @@ async def publish_and_emit_completion_side_effects(
     event_bus,
     raw_user_query: str,
     final_response: str,
-) -> AsyncGenerator[MemoryStoreEvent, None]:
-    """Publish completion bookkeeping and emit one interaction-memory event."""
+) -> None:
+    """Publish backend completion bookkeeping."""
     completion_event = InteractionCompleted(
         session_id=session.session_id,
         user_id=session.user_id,
@@ -34,28 +32,6 @@ async def publish_and_emit_completion_side_effects(
         assistant_response=final_response,
     )
     await event_bus.publish(completion_event)
-
-    memory_event = MemoryStoreEvent(
-        user_query=raw_user_query,
-        assistant_response=final_response,
-        memory_type="episodic",
-        user_id=session.user_id,
-        session_id=(
-            session.runtime.active_conversation_ref
-            or session.session_id
-        ),
-    )
-
-    try:
-        yield memory_event
-    except GeneratorExit:
-        logger.warning(
-            "Client disconnected before MemoryStoreEvent could be yielded. "
-            "Publishing to event bus as fallback."
-        )
-        session.register_background_task(
-            asyncio.create_task(event_bus.publish(memory_event))
-        )
 
 
 def resolve_raw_user_query(query: str, final_content: str) -> str:

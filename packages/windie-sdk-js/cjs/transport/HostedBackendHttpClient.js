@@ -200,6 +200,9 @@ function filterSdkHttpPayload(path, body) {
     if (path === '/api/semantic/title') {
         return filterKeys(body, ['user_id', 'user_message', 'assistant_message', 'model_id', 'model_provider']);
     }
+    if (path === '/api/embeddings/') {
+        return filterKeys(body, ['text', 'model_name']);
+    }
     return body;
 }
 class WindieSdkClient {
@@ -234,6 +237,12 @@ class WindieSdkClient {
         };
         this.titles = {
             generate: async (payload) => this.postJson('/api/semantic/title', payload),
+        };
+        this.embeddings = {
+            create: async (payload) => this.postJson('/api/embeddings/', {
+                model_name: 'default',
+                ...payload,
+            }),
         };
         this.install = {
             identity: async () => this.getJson('/api/install/me'),

@@ -226,10 +226,6 @@ describe('ipc_overlay_phase_events', () => {
         correlation_id: 'corr-token-1',
       },
     });
-    expect(resolveBackendOverlayPhaseTransition({ type: 'memory-store' }, 'tool-output')).toEqual({
-      phase: 'complete',
-      metadata: null,
-    });
     expect(resolveBackendOverlayPhaseTransition({ type: 'assistant-message-full' }, 'awaiting-first-chunk')).toEqual({
       phase: 'complete',
       metadata: null,

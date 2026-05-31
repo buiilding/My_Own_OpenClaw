@@ -269,15 +269,12 @@ class AgentExecutor:
             # even if the generator is closed early (GeneratorExit)
             if final_response:
                 try:
-                    async for (
-                        completion_event
-                    ) in publish_and_emit_completion_side_effects(
+                    await publish_and_emit_completion_side_effects(
                         session=self.session,
                         event_bus=self.event_bus,
                         raw_user_query=raw_user_query,
                         final_response=final_response,
-                    ):
-                        yield completion_event
+                    )
                 except Exception as e:
                     # Log but don't re-raise - we're in finally block
                     logger.error(

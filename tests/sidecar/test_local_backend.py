@@ -176,9 +176,28 @@ class DummyMemoryStoreCapturing(DummyMemoryStore):
         super().__init__()
         self.results = results
         self.search_calls = []
+        self.search_by_embedding_calls = []
 
     async def search(self, query, user_id, filters, limit):
         self.search_calls.append((query, user_id, filters, limit))
+        if isinstance(self.results, dict):
+            normalized_type = None
+            if isinstance(filters, dict):
+                normalized_type = filters.get("type")
+            return self.results.get(normalized_type, [])
+        return self.results
+
+    async def search_by_embedding(
+        self,
+        embedding,
+        user_id,
+        filters,
+        limit,
+        embedding_space_version=None,
+    ):
+        self.search_by_embedding_calls.append(
+            (embedding, user_id, filters, limit, embedding_space_version)
+        )
         if isinstance(self.results, dict):
             normalized_type = None
             if isinstance(filters, dict):
@@ -867,6 +886,44 @@ async def test_handle_search_memory_applies_filters():
     assert backend.memory_store.search_calls == [
         ("query", "user-1", {"type": "semantic"}, 3)
     ]
+
+
+@pytest.mark.asyncio
+async def test_handle_search_memory_by_embedding_applies_filters():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStoreCapturing(
+        [{"type": "semantic", "text": "fact"}]
+    )
+
+    result = await backend._handle_search_memory_by_embedding(
+        embedding=[0.1, 0.2, 0.3],
+        user_id="user-1",
+        limit=3,
+        memory_type="semantic",
+        embedding_space_version="v1",
+    )
+
+    assert result["success"] is True
+    assert result["data"]["memories"]["semantic"] == ["fact"]
+    assert backend.memory_store.search_calls == []
+    assert backend.memory_store.search_by_embedding_calls == [
+        ([0.1, 0.2, 0.3], "user-1", {"type": "semantic"}, 3, "v1")
+    ]
+
+
+@pytest.mark.asyncio
+async def test_handle_search_memory_by_embedding_rejects_missing_embedding():
+    backend = LocalBackend()
+    backend.memory_store = DummyMemoryStoreCapturing([])
+
+    result = await backend._handle_search_memory_by_embedding(
+        embedding=[],
+        user_id="user-1",
+    )
+
+    assert result["success"] is False
+    assert result["error"] == "embedding must be a non-empty list"
+    assert backend.memory_store.search_by_embedding_calls == []
 
 
 @pytest.mark.asyncio

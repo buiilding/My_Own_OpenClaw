@@ -45,7 +45,6 @@ class QueryPayload(BaseModel):
     text: str
     conversation_ref: str
     content: Optional[str] = None
-    query_context: Optional["QueryContext"] = None
     screenshot: Optional[str] = None
     screenshot_ref: Optional[str] = None
     screenshot_refs: Optional[List[str]] = None
@@ -70,25 +69,6 @@ class QueryPayload(BaseModel):
 class QueryMessage(BaseMessage):
     type: Literal["query"]
     payload: QueryPayload
-
-
-class QueryMemoryContext(BaseModel):
-    """Local memory snippets retrieved by the desktop runtime for one query."""
-
-    model_config = ConfigDict(extra="forbid")
-
-    episodic: Optional[List[str]] = None
-    semantic: Optional[List[str]] = None
-
-
-class QueryContext(BaseModel):
-    """Structured desktop query context rendered by backend prompt code."""
-
-    model_config = ConfigDict(extra="forbid")
-
-    memory_retrieval_enabled: bool = True
-    memories: Optional[QueryMemoryContext] = None
-    attachment_context: Optional[str] = None
 
 
 class RepoInstructionMessage(BaseModel):

@@ -212,7 +212,7 @@ async def test_sdk_http_requests_filter_strict_backend_payloads():
         "messages": [],
         "agent_definition": {
             "id": "python-agent",
-            "query_context": {"should_not_reach_backend": True},
+            "legacy_context": {"should_not_reach_backend": True},
             "system_prompt": {
                 "mode": "replace",
                 "content": "Python prompt.",
@@ -405,7 +405,7 @@ async def test_wake_up_builds_agent_definition_and_sends_query(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_python_agent_query_uses_backend_query_context_for_attachments():
+async def test_python_agent_query_renders_attachment_content_without_query_context():
     websocket = FakeWebSocket()
     client = WindieSdkClient(
         backend_url="https://api.windieos.com",
@@ -424,11 +424,12 @@ async def test_python_agent_query_uses_backend_query_context_for_attachments():
     assert websocket.sent[1]["payload"] == {
         "text": "Summarize the attachment",
         "conversation_ref": "conv-attachments",
-        "query_context": {
-            "memory_retrieval_enabled": True,
-            "attachment_context": "file body",
-        },
+        "content": (
+            "<attached_file_context>\nfile body\n</attached_file_context>\n\n"
+            "<user_query>\nSummarize the attachment\n</user_query>"
+        ),
     }
+    assert "query_context" not in websocket.sent[1]["payload"]
     assert "attachment_context" not in websocket.sent[1]["payload"]
     assert "attachment_filenames" not in websocket.sent[1]["payload"]
 

@@ -41,7 +41,7 @@ Python commands use `scripts/python-in-env`, so do not manually activate conda e
 | Sidecar protocol/tools | `./scripts/test-sidecar tests/sidecar/test_json_rpc_protocol.py tests/sidecar/test_tool_registry.py tests/sidecar/test_tool_result.py -q` |
 | Sidecar filesystem/shell | `./scripts/test-sidecar tests/sidecar/test_read_file_tool.py tests/sidecar/test_replace_tool.py tests/sidecar/test_shell_process_tool.py -q` |
 | Sidecar browser | `./scripts/test-sidecar tests/sidecar/test_browser_registry.py tests/sidecar/test_browser_runtime_architecture.py -q` |
-| Sidecar memory | `./scripts/test-sidecar tests/sidecar/test_memory_service.py tests/sidecar/test_memory_operations.py tests/sidecar/test_conversation_search.py -q` |
+| Sidecar memory | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/test_local_backend.py tests/sidecar/test_memory_operations.py tests/sidecar/test_conversation_search.py -q` |
 
 ## Contract Changes
 

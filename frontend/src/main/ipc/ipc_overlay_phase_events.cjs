@@ -36,7 +36,6 @@ const BACKEND_OVERLAY_PHASE_TRANSITIONS = Object.freeze({
 
 const TERMINAL_FALLBACK_OVERLAY_EVENT_TYPES = new Set([
   'token-count',
-  'memory-store',
   'assistant-message-full',
 ]);
 

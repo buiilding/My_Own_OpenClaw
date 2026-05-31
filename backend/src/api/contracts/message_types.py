@@ -58,7 +58,6 @@ class OutgoingMessageType:
     SYSTEM_PROMPT: Final[str] = StreamingEventType.SYSTEM_PROMPT.value
     TOOL_SCHEMAS: Final[str] = StreamingEventType.TOOL_SCHEMAS.value
     TOKEN_COUNT: Final[str] = StreamingEventType.TOKEN_COUNT.value
-    MEMORY_STORE: Final[str] = StreamingEventType.MEMORY_STORE.value
     USER_MESSAGE_FULL: Final[str] = StreamingEventType.USER_MESSAGE_FULL.value
     ASSISTANT_MESSAGE_FULL: Final[str] = StreamingEventType.ASSISTANT_MESSAGE_FULL.value
     CONTEXT_COMPACTION_STARTED: Final[str] = (
@@ -94,7 +93,6 @@ OUTGOING_SCHEMA_MESSAGE_TYPES: Final[tuple[str, ...]] = (
     OutgoingMessageType.SYSTEM_PROMPT,
     OutgoingMessageType.TOOL_SCHEMAS,
     OutgoingMessageType.TOKEN_COUNT,
-    OutgoingMessageType.MEMORY_STORE,
     OutgoingMessageType.USER_MESSAGE_FULL,
     OutgoingMessageType.ASSISTANT_MESSAGE_FULL,
     OutgoingMessageType.CONTEXT_COMPACTION_STARTED,

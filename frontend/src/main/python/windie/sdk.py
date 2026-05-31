@@ -5,6 +5,7 @@ Transport-only Python client for the hosted Windie SDK surface.
 from __future__ import annotations
 
 import asyncio
+import html
 import json
 import os
 import platform
@@ -44,6 +45,17 @@ def _build_query_string(params: dict[str, Any]) -> str:
     if not filtered:
         return ""
     return f"?{urlencode(filtered)}"
+
+
+def _render_user_content_with_attachment(text: str, attachment_context: str) -> str:
+    return (
+        "<attached_file_context>\n"
+        f"{html.escape(attachment_context.strip(), quote=True)}\n"
+        "</attached_file_context>\n\n"
+        "<user_query>\n"
+        f"{html.escape(text, quote=True)}\n"
+        "</user_query>"
+    )
 
 
 def _derive_ws_url(http_url: str) -> str:
@@ -714,11 +726,12 @@ class WindieSdkAgentSession:
                 for value in screenshot_refs
                 if isinstance(value, str) and value.strip()
             ]
-        if isinstance(attachment_context, str) and attachment_context.strip():
-            payload["query_context"] = {
-                "memory_retrieval_enabled": True,
-                "attachment_context": attachment_context.strip(),
-            }
+        if (
+            "content" not in payload
+            and isinstance(attachment_context, str)
+            and attachment_context.strip()
+        ):
+            payload["content"] = _render_user_content_with_attachment(text, attachment_context)
         if isinstance(system_state_internal, dict) and system_state_internal:
             payload["system_state_internal"] = system_state_internal
         if isinstance(workspace_path, str) and workspace_path.strip():

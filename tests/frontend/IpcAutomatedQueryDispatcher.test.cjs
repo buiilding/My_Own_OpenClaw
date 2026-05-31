@@ -16,9 +16,10 @@ function createHarness(overrides = {}) {
     ensureBackendConnection: jest.fn(async () => undefined),
     ensureInitialSettingsSync: jest.fn(async () => undefined),
     getPendingSettingsSyncPromise: jest.fn(() => null),
-    buildQueryPayload: jest.fn(async ({ text, conversationRef, currentUserId, isFirstQuery: firstQuery }) => ({
+    buildQueryPayload: jest.fn(async ({ basePayload, conversationRef, currentUserId, isFirstQuery: firstQuery }) => ({
       payload: {
-        output: `built:${text}`,
+        ...basePayload,
+        output: `built:${basePayload.text}`,
         current_user_id: currentUserId,
         first_query: firstQuery,
       },
@@ -107,8 +108,12 @@ describe('ipc_automated_query_dispatcher', () => {
     expect(deps.ensureBackendConnection).toHaveBeenCalledWith('automated-query');
     expect(deps.ensureInitialSettingsSync).toHaveBeenCalledTimes(1);
     expect(deps.buildQueryPayload).toHaveBeenCalledWith(expect.objectContaining({
-      basePayload: {},
-      text: 'inspect app',
+      basePayload: {
+        text: 'inspect app',
+        conversation_ref: 'vm-run-generated-conv',
+        memory_retrieval_enabled: true,
+        attachment_filenames: ['screenshot.png'],
+      },
       conversationRef: 'vm-run-generated-conv',
       currentUserId: 'user-1',
       isFirstQuery: true,
@@ -121,6 +126,7 @@ describe('ipc_automated_query_dispatcher', () => {
         output: 'built:inspect app',
         current_user_id: 'user-1',
         first_query: true,
+        memory_retrieval_enabled: true,
         attachment_filenames: ['screenshot.png'],
         agent_definition: { mode: 'test' },
       },

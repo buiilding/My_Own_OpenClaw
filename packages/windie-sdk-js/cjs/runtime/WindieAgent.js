@@ -39,6 +39,7 @@ const metadata_js_1 = require("../conversation/metadata.js");
 const WindieAgentSession_js_1 = require("../transport/WindieAgentSession.js");
 const modelSelection_js_1 = require("../settings/modelSelection.js");
 const ConversationRuntime_js_1 = require("./ConversationRuntime.js");
+const ContextEnrichmentPipeline_js_1 = require("./ContextEnrichmentPipeline.js");
 const WindieChatSession_js_1 = require("./WindieChatSession.js");
 const AgentStreamEvents_js_1 = require("./AgentStreamEvents.js");
 class WindieAgent {
@@ -46,23 +47,34 @@ class WindieAgent {
         const { WindieDesktopAgent } = await Promise.resolve().then(() => __importStar(require('./WindieDesktopAgent.js')));
         return WindieDesktopAgent.start(options);
     }
-    constructor(id, session, agentDefinition, sdkClient, owner, localRuntime) {
+    constructor(id, session, agentDefinition, sdkClient, owner, localRuntime, userId = 'local-sdk-user') {
         this.id = id;
         this.session = session;
         this.agentDefinition = agentDefinition;
         this.sdkClient = sdkClient;
         this.owner = owner;
         this.localRuntime = localRuntime;
+        this.userId = userId;
         this.defaultConversationStore = new InMemoryConversationStore_js_1.InMemoryConversationStore();
+        this.pendingDirectQueries = new Map();
+        this.session.on('streaming-complete', event => {
+            void this.maybeStoreDirectTurnMemory(event);
+        });
     }
     async ask(text, options = {}) {
         if (options.model) {
             await this.setModel(options.model);
         }
-        return this.session.query(this.buildQueryInput(text, options));
+        return this.query(this.buildQueryInput(text, options));
     }
     async query(payload) {
-        return this.session.query(payload);
+        const enriched = await this.enrichAgentQueryInput(payload);
+        const messageId = await this.session.query(enriched);
+        this.pendingDirectQueries.set(messageId, {
+            conversationRef: enriched.conversationRef,
+            userQuery: enriched.text,
+        });
+        return messageId;
     }
     async run(input, options = {}) {
         if (typeof input === 'string') {
@@ -147,6 +159,18 @@ class WindieAgent {
             store: options.store ?? this.defaultConversationStore,
             transport: (0, WindieAgentSession_js_1.createWindieAgentBackendTransport)(this.session, conversationRef, this.agentDefinition),
             localRuntime: options.localRuntime === undefined ? this.localRuntime : options.localRuntime,
+            userId: this.userId,
+            enrichQuery: async (input) => {
+                const enriched = await (0, ContextEnrichmentPipeline_js_1.enrichQueryPayload)({
+                    text: input.text,
+                    conversationRef: input.conversationRef,
+                    userId: this.userId,
+                    payload: input.payload ?? {},
+                    sdkClient: this.sdkClient,
+                    localRuntime: options.localRuntime === undefined ? this.localRuntime : options.localRuntime,
+                });
+                return enriched.payload;
+            },
         });
         runtime.attachTransport();
         return runtime;
@@ -318,6 +342,54 @@ class WindieAgent {
             text,
             conversationRef: queryOptions.conversationRef ?? `conv-${this.id}`,
         };
+    }
+    async enrichAgentQueryInput(input) {
+        const enriched = await (0, ContextEnrichmentPipeline_js_1.enrichQueryPayload)({
+            text: input.text,
+            conversationRef: input.conversationRef,
+            userId: this.userId,
+            payload: {
+                ...(input.rawPayload ?? {}),
+                content: input.content ?? undefined,
+                attachment_context: input.attachmentContext ?? undefined,
+                attachment_filenames: input.attachmentFilenames ?? undefined,
+            },
+            sdkClient: this.sdkClient,
+            localRuntime: this.localRuntime,
+        });
+        return {
+            ...input,
+            rawPayload: enriched.payload,
+            content: typeof enriched.payload.content === 'string' ? enriched.payload.content : input.content,
+            attachmentContext: null,
+            attachmentFilenames: null,
+        };
+    }
+    async maybeStoreDirectTurnMemory(event) {
+        const turnRef = typeof event.turn_ref === 'string' ? event.turn_ref : null;
+        const assistantResponse = typeof event.payload.final_response === 'string'
+            ? event.payload.final_response
+            : '';
+        if (!turnRef || !assistantResponse.trim()) {
+            return;
+        }
+        const pending = this.pendingDirectQueries.get(turnRef);
+        if (!pending) {
+            return;
+        }
+        this.pendingDirectQueries.delete(turnRef);
+        try {
+            await (0, ContextEnrichmentPipeline_js_1.storeCompletedTurnMemory)({
+                localRuntime: this.localRuntime,
+                userId: this.userId,
+                conversationRef: pending.conversationRef,
+                userQuery: pending.userQuery,
+                assistantResponse,
+            });
+        }
+        catch {
+            // Local memory persistence is best-effort and must not fail direct queries.
+        }
     }
 }
 exports.WindieAgent = WindieAgent;

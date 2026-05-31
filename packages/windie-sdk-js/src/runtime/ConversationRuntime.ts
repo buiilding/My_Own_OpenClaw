@@ -28,6 +28,7 @@ import {
   buildModelSettingsPatch,
   type WindieModelSelection,
 } from '../settings/modelSelection.js';
+import { storeCompletedTurnMemory } from './ContextEnrichmentPipeline.js';
 import { reduceConversationRuntimeState, createInitialConversationRuntimeState } from './conversationReducer.js';
 
 export type ConversationListener = (snapshot: ConversationSnapshot) => void;
@@ -104,7 +105,13 @@ export type ConversationRuntimeOptions = {
   revisionId?: string;
   store: ConversationStore;
   transport?: BackendTransport;
-  localRuntime?: Partial<Pick<LocalRuntime, 'executeTool'>> | null;
+  localRuntime?: Partial<Pick<LocalRuntime, 'executeTool' | 'rpc'>> | null;
+  userId?: string;
+  enrichQuery?: (input: {
+    text: string;
+    conversationRef: string;
+    payload?: JsonRecord | null;
+  }) => Promise<JsonRecord>;
 };
 
 function eventText(event: ConversationEvent): string {
@@ -217,6 +224,13 @@ export class SdkConversationRuntime {
     if (input.model) {
       await this.setModel(input.model);
     }
+    const enrichedPayload = this.options.enrichQuery
+      ? await this.options.enrichQuery({
+        text: input.text,
+        conversationRef: this.options.conversationRef,
+        payload: input.payload ?? {},
+      })
+      : (input.payload ?? {});
     const turnRef = input.turnRef ?? createRuntimeId('turn');
     const revisionId = this.state.revisionId === 'rev-empty'
       ? createRuntimeId('rev')
@@ -236,12 +250,12 @@ export class SdkConversationRuntime {
       turnRef,
       source: 'ui',
       payload: {
-        ...(input.payload ?? {}),
+        ...enrichedPayload,
         text: input.text,
       },
     }));
     const queryMessageId = await this.options.transport?.sendQuery({
-      ...(input.payload ?? {}),
+      ...enrichedPayload,
       text: input.text,
       conversation_ref: this.options.conversationRef,
     }, {
@@ -548,7 +562,37 @@ export class SdkConversationRuntime {
     const snapshot = this.snapshot(this.events);
     this.notify(snapshot, event);
     await this.options.store.appendEvent(event);
+    await this.maybeStoreCompletedTurnMemory(event);
     await this.maybeExecuteTool(event);
+  }
+
+  private async maybeStoreCompletedTurnMemory(event: ConversationEvent): Promise<void> {
+    if (event.source !== 'backend' || event.type !== 'turn_completed') {
+      return;
+    }
+    const assistantResponse = typeof event.payload.finalResponse === 'string'
+      ? event.payload.finalResponse
+      : '';
+    if (!assistantResponse.trim()) {
+      return;
+    }
+    const userEvent = [...this.events].reverse().find(candidate => (
+      candidate.type === 'user_message'
+      && candidate.conversationRef === event.conversationRef
+      && (!event.turnRef || candidate.turnRef === event.turnRef)
+    ));
+    const userQuery = userEvent ? eventText(userEvent) : '';
+    try {
+      await storeCompletedTurnMemory({
+        localRuntime: this.options.localRuntime,
+        userId: this.options.userId ?? 'local-sdk-user',
+        conversationRef: event.conversationRef,
+        userQuery,
+        assistantResponse,
+      });
+    } catch {
+      // Memory persistence is an automatic local side effect; it must not fail the turn.
+    }
   }
 
   private shouldAcceptBackendEvent(event: ConversationEvent): boolean {

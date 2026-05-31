@@ -8,6 +8,7 @@ const conversationProjections_js_1 = require("../projections/conversationProject
 const backendEventNormalizer_js_1 = require("../transport/backendEventNormalizer.js");
 const ToolExecutionCoordinator_js_1 = require("../tools/ToolExecutionCoordinator.js");
 const modelSelection_js_1 = require("../settings/modelSelection.js");
+const ContextEnrichmentPipeline_js_1 = require("./ContextEnrichmentPipeline.js");
 const conversationReducer_js_1 = require("./conversationReducer.js");
 function eventText(event) {
     if (typeof event.payload.text === 'string') {
@@ -94,6 +95,13 @@ class SdkConversationRuntime {
         if (input.model) {
             await this.setModel(input.model);
         }
+        const enrichedPayload = this.options.enrichQuery
+            ? await this.options.enrichQuery({
+                text: input.text,
+                conversationRef: this.options.conversationRef,
+                payload: input.payload ?? {},
+            })
+            : (input.payload ?? {});
         const turnRef = input.turnRef ?? (0, events_js_1.createRuntimeId)('turn');
         const revisionId = this.state.revisionId === 'rev-empty'
             ? (0, events_js_1.createRuntimeId)('rev')
@@ -113,12 +121,12 @@ class SdkConversationRuntime {
             turnRef,
             source: 'ui',
             payload: {
-                ...(input.payload ?? {}),
+                ...enrichedPayload,
                 text: input.text,
             },
         }));
         const queryMessageId = await this.options.transport?.sendQuery({
-            ...(input.payload ?? {}),
+            ...enrichedPayload,
             text: input.text,
             conversation_ref: this.options.conversationRef,
         }, {
@@ -393,7 +401,35 @@ class SdkConversationRuntime {
         const snapshot = this.snapshot(this.events);
         this.notify(snapshot, event);
         await this.options.store.appendEvent(event);
+        await this.maybeStoreCompletedTurnMemory(event);
         await this.maybeExecuteTool(event);
+    }
+    async maybeStoreCompletedTurnMemory(event) {
+        if (event.source !== 'backend' || event.type !== 'turn_completed') {
+            return;
+        }
+        const assistantResponse = typeof event.payload.finalResponse === 'string'
+            ? event.payload.finalResponse
+            : '';
+        if (!assistantResponse.trim()) {
+            return;
+        }
+        const userEvent = [...this.events].reverse().find(candidate => (candidate.type === 'user_message'
+            && candidate.conversationRef === event.conversationRef
+            && (!event.turnRef || candidate.turnRef === event.turnRef)));
+        const userQuery = userEvent ? eventText(userEvent) : '';
+        try {
+            await (0, ContextEnrichmentPipeline_js_1.storeCompletedTurnMemory)({
+                localRuntime: this.options.localRuntime,
+                userId: this.options.userId ?? 'local-sdk-user',
+                conversationRef: event.conversationRef,
+                userQuery,
+                assistantResponse,
+            });
+        }
+        catch {
+            // Memory persistence is an automatic local side effect; it must not fail the turn.
+        }
     }
     shouldAcceptBackendEvent(event) {
         if (event.source !== 'backend') {

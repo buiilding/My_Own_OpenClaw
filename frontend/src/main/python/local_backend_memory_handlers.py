@@ -17,6 +17,7 @@ from memory.operations import (
     filter_results_by_min_score,
     group_memory_texts,
     normalize_and_store_completed_turn_memory,
+    normalize_search_memory_embedding_payload,
     normalize_search_memory_payload,
     normalize_search_memory_selection,
 )
@@ -163,6 +164,55 @@ class LocalBackendMemoryHandlersMixin:
             logger.error(f"Memory search failed: {e}", exc_info=True)
             return {"success": False, "error": str(e)}
 
+    @requires_memory_store
+    async def _handle_search_memory_by_embedding(
+        self,
+        embedding,
+        user_id: str = "default_user",
+        limit: int = 5,
+        memory_type: str = None,
+        exclude_conversation_id: Optional[str] = None,
+        embedding_space_version: Optional[str] = None,
+        **kwargs,
+    ) -> Dict[str, Any]:
+        """Search memory using an SDK-provided query embedding."""
+        normalized, error = normalize_search_memory_embedding_payload(
+            embedding=embedding,
+            memory_type=memory_type,
+            embedding_space_version=embedding_space_version,
+        )
+        if error:
+            return {
+                "success": False,
+                "error": error,
+            }
+
+        selection, error = normalize_search_memory_selection(
+            limit=limit,
+            episodic_limit=kwargs.get("episodic_limit"),
+            semantic_limit=kwargs.get("semantic_limit"),
+            semantic_min_score=kwargs.get("semantic_min_score"),
+        )
+        if error:
+            return {
+                "success": False,
+                "error": error,
+            }
+
+        try:
+            memories = await self._retrieve_grouped_memories_by_embedding(
+                embedding=normalized["embedding"],
+                embedding_space_version=normalized["embedding_space_version"],
+                user_id=user_id,
+                memory_type=normalized["memory_type"],
+                exclude_conversation_id=exclude_conversation_id,
+                selection=selection,
+            )
+            return {"success": True, "data": {"memories": memories}}
+        except Exception as e:
+            logger.error(f"Embedding memory search failed: {e}", exc_info=True)
+            return {"success": False, "error": str(e)}
+
     async def _retrieve_grouped_memories(
         self,
         *,
@@ -205,6 +255,67 @@ class LocalBackendMemoryHandlersMixin:
                 user_id,
                 build_memory_filters("semantic"),
                 semantic_limit,
+            ),
+        )
+
+        filtered_episodic_results = exclude_conversation_results(
+            episodic_results,
+            exclude_conversation_id,
+        )
+        filtered_semantic_results = filter_results_by_min_score(
+            semantic_results,
+            selection["semantic_min_score"],
+        )
+        return group_memory_texts(
+            [*filtered_episodic_results, *filtered_semantic_results]
+        )
+
+    async def _retrieve_grouped_memories_by_embedding(
+        self,
+        *,
+        embedding,
+        embedding_space_version: Optional[str],
+        user_id: str,
+        memory_type: Optional[str],
+        exclude_conversation_id: Optional[str],
+        selection: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        if memory_type is not None or not selection["use_balanced_limits"]:
+            filters = build_memory_filters(memory_type)
+            results = await self.memory_store.search_by_embedding(
+                embedding,
+                user_id,
+                filters,
+                selection["limit"],
+                embedding_space_version=embedding_space_version,
+            )
+            filtered_results = exclude_conversation_results(
+                results,
+                exclude_conversation_id,
+            )
+            if memory_type == "semantic":
+                filtered_results = filter_results_by_min_score(
+                    filtered_results,
+                    selection["semantic_min_score"],
+                )
+            return group_memory_texts(filtered_results)
+
+        episodic_limit = selection["episodic_limit"] or selection["limit"]
+        semantic_limit = selection["semantic_limit"] or selection["limit"]
+        episodic_results, semantic_results = await asyncio.gather(
+            self.memory_store.search_by_embedding(
+                embedding,
+                user_id,
+                build_memory_filters("episodic"),
+                episodic_limit,
+                embedding_space_version=embedding_space_version,
+            ),
+            self.memory_store.search_by_embedding(
+                embedding,
+                user_id,
+                build_memory_filters("semantic"),
+                semantic_limit,
+                embedding_space_version=embedding_space_version,
             ),
         )
 

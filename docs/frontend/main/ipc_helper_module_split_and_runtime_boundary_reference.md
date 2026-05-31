@@ -31,7 +31,6 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc/ipc_artifact_fetch.cjs`
 - `frontend/src/main/ipc/ipc_openai_codex_oauth_handlers.cjs`
 - `frontend/src/main/ipc/ipc_sdk_command_forwarding.cjs`
-- `frontend/src/main/ipc/ipc_memory_store_persistence.cjs`
 
 ## Split Ownership Model
 
@@ -259,16 +258,6 @@ Owns remaining generic `to-backend` command forwarding:
   and automated-query paths own agent-definition enrichment
 - waits for initial settings sync before commands that require backend settings
 - forwards accepted SDK runtime commands through explicit SDK desktop agent methods
-
-### `ipc_memory_store_persistence.cjs`
-
-Owns backend `memory-store` event side effect persistence:
-
-- payload-first mapping into `storeMemory(...)` shape
-- identity/session fallback (`payload` -> envelope `session_id` -> `conversation_ref`)
-- fail-open async write (`void ...catch`) with debug log on rejection
-
-This isolates persistence to main process once per backend event before renderer fan-out.
 
 ## Delegation Flow in `ipc.cjs`
 

@@ -363,17 +363,5 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
             },
         });
     }
-    if (event.type === 'memory-store') {
-        return (0, events_js_1.createConversationEvent)({
-            ...base,
-            type: 'memory_stored',
-            source: 'backend',
-            payload: {
-                ...payload,
-                userId: typeof event.user_id === 'string' ? event.user_id : null,
-                rawEvent: event,
-            },
-        });
-    }
     return null;
 }

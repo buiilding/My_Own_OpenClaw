@@ -4,16 +4,12 @@ function createAutomatedQueryDispatcher({
   ensureInitialSettingsSync,
   getPendingSettingsSyncPromise,
   buildQueryPayload,
-  buildQueryPayloadContext,
-  getSystemState,
-  searchMemory,
   attachAgentDefinitionContext,
   sendQueryToBackend,
   getState,
   setCurrentConversationRef,
   setFirstQuery,
   uuidGenerator,
-  log,
 }) {
   async function sendAutomatedQuery(options = {}) {
     const preparedQuery = prepareAutomatedQueryPayload(options);
@@ -38,28 +34,27 @@ function createAutomatedQueryDispatcher({
 
     const state = getState();
     const conversationRef = preparedQuery.conversationRef || `vm-run-${uuidGenerator()}`;
-    const builtQuery = await buildQueryPayload({
-      basePayload: {},
+    const basePayload = {
       text: preparedQuery.text,
+      conversation_ref: conversationRef,
+      memory_retrieval_enabled: preparedQuery.memoryRetrievalEnabled,
+    };
+    if (preparedQuery.attachmentContext) {
+      basePayload.attachment_context = preparedQuery.attachmentContext;
+    }
+    if (preparedQuery.attachmentFilenames.length > 0) {
+      basePayload.attachment_filenames = preparedQuery.attachmentFilenames;
+    }
+    const builtQuery = await buildQueryPayload({
+      basePayload,
       conversationRef,
-      attachmentContext: preparedQuery.attachmentContext,
-      memoryRetrievalEnabled: preparedQuery.memoryRetrievalEnabled,
       currentUserId: state.currentUserId,
       isFirstQuery: state.isFirstQuery,
-      buildQueryPayloadContext,
-      getSystemState,
-      searchMemory,
-      log,
     });
 
     const payload = {
-      text: preparedQuery.text,
-      conversation_ref: conversationRef,
       ...builtQuery.payload,
     };
-    if (preparedQuery.attachmentFilenames.length > 0) {
-      payload.attachment_filenames = preparedQuery.attachmentFilenames;
-    }
     const payloadWithAgentDefinition = attachAgentDefinitionContext(payload);
 
     const queryMessageId = uuidGenerator();

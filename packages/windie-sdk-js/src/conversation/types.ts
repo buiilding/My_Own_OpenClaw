@@ -18,7 +18,6 @@ export type ConversationEventType =
   | 'user_message_metadata'
   | 'tool_schemas_metadata'
   | 'usage_updated'
-  | 'memory_stored'
   | 'tool_call'
   | 'tool_progress'
   | 'tool_output'
@@ -444,6 +443,7 @@ export type LocalRuntime = {
   status(): Promise<LocalRuntimeStatus>;
   listTools(): Promise<LocalToolManifest>;
   executeTool(call: LocalToolCall): Promise<LocalToolResult>;
+  rpc?(payload: { method: string; params?: JsonRecord; id?: string | number }): Promise<JsonRecord>;
   registerTools?(tools: ToolRegistration[]): Promise<void>;
   shutdown?(): Promise<void>;
 };

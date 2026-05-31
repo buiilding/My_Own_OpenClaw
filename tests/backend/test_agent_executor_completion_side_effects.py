@@ -3,7 +3,7 @@ from types import SimpleNamespace
 import pytest
 
 from backend.src.agent.execution.executor import AgentExecutor
-from backend.src.core.events import InteractionCompleted, MemoryStoreEvent, StreamingCompleteEvent
+from backend.src.core.events import InteractionCompleted, StreamingCompleteEvent
 
 
 class _History:
@@ -41,7 +41,7 @@ class _EventBus:
 
 
 @pytest.mark.asyncio
-async def test_process_query_emits_interaction_memory_after_completed_turn():
+async def test_process_query_publishes_interaction_completed_without_memory_event():
     executor = AgentExecutor.__new__(AgentExecutor)
     history = _History()
     event_bus = _EventBus()
@@ -68,12 +68,8 @@ async def test_process_query_emits_interaction_memory_after_completed_turn():
     ]
 
     assert history.added_messages[0]["user_query_raw"] == "hello"
-    assert len(events) == 2
+    assert len(events) == 1
     assert isinstance(events[0], StreamingCompleteEvent)
-    assert isinstance(events[1], MemoryStoreEvent)
-    assert events[1].user_query == "hello"
-    assert events[1].assistant_response == "assistant done"
-    assert events[1].session_id == "conv-1"
     assert len(event_bus.published) == 1
     assert isinstance(event_bus.published[0], InteractionCompleted)
     assert event_bus.published[0].assistant_response == "assistant done"

@@ -992,29 +992,6 @@ describe('Windie SDK conversation runtime core', () => {
     });
   });
 
-  test('backend memory store normalizes to memory_stored', () => {
-    const normalized = normalizeBackendEventToConversationEvent({
-      type: 'memory-store',
-      conversation_ref: 'conv-sdk-runtime',
-      turn_ref: 'turn-memory',
-      payload: {
-        status: 'stored',
-        memory_type: 'episodic',
-      },
-    });
-
-    expect(normalized).toMatchObject({
-      type: 'memory_stored',
-      conversationRef: 'conv-sdk-runtime',
-      turnRef: 'turn-memory',
-      payload: expect.objectContaining({
-        status: 'stored',
-        memory_type: 'episodic',
-        rawEvent: expect.objectContaining({ type: 'memory-store' }),
-      }),
-    });
-  });
-
   test('backend llm thought normalizes to reasoning_delta', () => {
     const normalized = normalizeBackendEventToConversationEvent({
       type: 'llm-thought',

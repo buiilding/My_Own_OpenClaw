@@ -20,7 +20,6 @@ title: "Frontend Sidecar Memory Docs Hub"
 ## Related Pages
 
 - [Sidecar Memory Pipeline and Summarization](../memory_pipeline_and_summarization.md)
-- [Memory Service JSON Protocol and Store Lifecycle Reference](../services/memory_service_json_protocol_and_store_lifecycle_reference.md)
 
 ## Code Scope
 

@@ -1338,19 +1338,16 @@ async def test_query_handler_forwards_query_scoped_context_to_session(monkeypatc
     monkeypatch.setattr("backend.src.api.handlers.query.StreamPipeline", DummyPipeline)
 
     message = QueryMessage(
-        id="msg_query_context_1",
+        id="msg_sdk_content_1",
         type="query",
         user_id="user_1",
         payload={
             "text": "contextful query",
             "conversation_ref": "conv_test",
-            "query_context": {
-                "memory_retrieval_enabled": True,
-                "memories": {
-                    "episodic": ["opened repo"],
-                    "semantic": [],
-                },
-            },
+            "content": (
+                "<episodic_memory>\n- opened repo\n</episodic_memory>\n\n"
+                "<user_query>\ncontextful query\n</user_query>"
+            ),
             "workspace_path": "/work/WindieOS",
             "repo_instruction_messages": [
                 {"role": "user", "content": "Respect AGENTS.md"},
@@ -1374,7 +1371,6 @@ async def test_query_handler_forwards_query_scoped_context_to_session(monkeypatc
     }
     assert session_manager.session.calls[0]["message_content"] == (
         "<episodic_memory>\n- opened repo\n</episodic_memory>\n\n"
-        "<semantic_memory>\nNone\n</semantic_memory>\n\n"
         "<user_query>\ncontextful query\n</user_query>"
     )
 

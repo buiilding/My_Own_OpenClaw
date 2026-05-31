@@ -21,7 +21,6 @@ def test_formatter_package_import_exports_public_classes():
         "ContextCompactionFailedEventFormatter",
         "ContextCompactionStartedEventFormatter",
         "TokenCountEventFormatter",
-        "MemoryStoreEventFormatter",
         "ToolBundleEventFormatter",
     }
 

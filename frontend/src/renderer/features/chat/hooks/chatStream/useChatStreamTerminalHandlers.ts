@@ -20,7 +20,7 @@ import {
 type UseChatStreamTerminalHandlersDeps = {
   enableTranscript: boolean;
   modelContextRef: { current: TranscriptModelContext };
-  recordTrackingEvent: TrackEventFn<'token-count' | 'memory-store' | 'error'>;
+  recordTrackingEvent: TrackEventFn<'token-count' | 'error'>;
 };
 
 function terminalPayloadWithoutRawEvent(event: ConversationEvent): Record<string, unknown> {
@@ -58,12 +58,6 @@ export function useChatStreamTerminalHandlers({
   }, [
     setTokenCounts,
     updateMessage,
-    recordTrackingEvent,
-  ]);
-
-  const handleMemoryStore = useCallback((event: ConversationEvent, conversationRef?: string | null) => {
-    recordTrackingEvent('memory-store', event.turnRef, undefined, conversationRef);
-  }, [
     recordTrackingEvent,
   ]);
 
@@ -112,7 +106,6 @@ export function useChatStreamTerminalHandlers({
 
   return {
     handleError,
-    handleMemoryStore,
     handleTokenCount,
   };
 }

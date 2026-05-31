@@ -84,16 +84,6 @@ function resolveEndpointWsUrl(endpoint: WindieManagedBackendEndpoint): string {
   return deriveWsUrl(backendUrl);
 }
 
-function buildQueryContext(payload: WindieAgentQueryInput): JsonRecord | undefined {
-  if (typeof payload.attachmentContext !== 'string' || !payload.attachmentContext.trim()) {
-    return undefined;
-  }
-  return {
-    memory_retrieval_enabled: true,
-    attachment_context: payload.attachmentContext.trim(),
-  };
-}
-
 export class ManagedWindieAgentSession implements WindieAgentSessionRuntime {
   private readonly listeners = new Map<WindieAgentEventName, Set<WindieAgentListener<unknown>>>();
   private readonly endpoints: WindieManagedBackendEndpoint[];
@@ -196,7 +186,6 @@ export class ManagedWindieAgentSession implements WindieAgentSessionRuntime {
       screenshot: payload.screenshot ?? undefined,
       screenshot_ref: payload.screenshotRef ?? undefined,
       screenshot_refs: payload.screenshotRefs ?? undefined,
-      query_context: payload.rawPayload?.query_context ?? buildQueryContext(payload),
       system_state_internal: payload.systemStateInternal ?? undefined,
       workspace_path: payload.workspacePath ?? undefined,
     }, payload.turnRef ?? undefined);

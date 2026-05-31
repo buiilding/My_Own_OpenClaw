@@ -11,7 +11,6 @@ The frontend Python sidecar provides local tool execution, memory management, sy
 ```
 frontend/src/main/python/
 ├── local_backend.py                    # Main local backend service - JSON-RPC 2.0 protocol handler, tool execution, memory operations, system state
-├── memory_service.py                   # Minimal memory service - FAISS/memory operations only, simple JSON protocol
 ├── wakeword_service.py                # Wakeword detection service - openWakeWord integration, binary protocol over stdin/stdout
 ├── requirements.txt                    # Python dependencies (faiss-cpu, aiosqlite, aiohttp, pyautogui, pynput, psutil, etc.)
 │
@@ -125,28 +124,6 @@ frontend/src/main/python/
    └─> tools/result.py
        └─> ToolResult.to_dict() - Convert to JSON-RPC response format
            └─> Return to Electron main process
-```
-
-### Memory Service Flow (Standalone)
-
-```
-1. ELECTRON MAIN PROCESS
-   └─> Spawns Python subprocess (memory_service.py)
-       └─> stdin/stdout for simple JSON protocol
-           ↓
-2. INITIALIZATION
-   └─> memory_service.py
-       └─> MemoryService.initialize()
-           └─> LocalMemoryStore.initialize()
-           ↓
-3. MAIN LOOP
-   └─> MemoryService.run()
-       ├─> Read JSON request from stdin
-       ├─> Parse request (type: "search" | "store")
-       ├─> Route to handler
-       │   ├─> handle_search() - LocalMemoryStore.search()
-       │   └─> handle_store() - LocalMemoryStore.add()
-       └─> Send JSON response to stdout
 ```
 
 ### Memory Storage Flow

@@ -20,7 +20,6 @@ title: "Frontend Sidecar Memory Storage Docs Hub"
 - [Frontend Sidecar Memory Docs Hub](../README.md)
 - [Memory Pipeline and Summarization](../../memory_pipeline_and_summarization.md)
 - [Summarizer Watermark and Conversation Batch Reference](../summarizer_watermark_and_conversation_batch_reference.md)
-- [Memory Service JSON Protocol and Store Lifecycle Reference](../../services/memory_service_json_protocol_and_store_lifecycle_reference.md)
 
 ## Code Scope
 
@@ -50,4 +49,4 @@ title: "Frontend Sidecar Memory Storage Docs Hub"
 - `tests/sidecar/test_conversation_window_runtime.py`
 - `tests/sidecar/test_remote_title_client.py`
 - `tests/sidecar/test_memory_summarizer.py`
-- `tests/sidecar/test_memory_service.py`
+- `tests/sidecar/test_local_backend.py`

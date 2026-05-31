@@ -25,7 +25,6 @@ from backend.src.api.processing.formatters.context_compaction_started import (
     ContextCompactionStartedEventFormatter,
 )
 from backend.src.api.processing.formatters.token_count import TokenCountEventFormatter
-from backend.src.api.processing.formatters.memory_store import MemoryStoreEventFormatter
 from backend.src.api.processing.formatters.tool_bundle import ToolBundleEventFormatter
 
 __all__ = [
@@ -45,6 +44,5 @@ __all__ = [
     "ContextCompactionFailedEventFormatter",
     "ContextCompactionStartedEventFormatter",
     "TokenCountEventFormatter",
-    "MemoryStoreEventFormatter",
     "ToolBundleEventFormatter",
 ]

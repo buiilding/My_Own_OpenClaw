@@ -765,7 +765,7 @@ async def test_execute_ignores_post_error_events_and_skips_fallback_completion()
 
 
 @pytest.mark.asyncio
-async def test_execute_preserves_memory_store_after_terminal_completion():
+async def test_execute_drops_events_after_terminal_completion():
     observed_events = []
 
     class _Pipeline:
@@ -804,12 +804,8 @@ async def test_execute_preserves_memory_store_after_terminal_completion():
                         "payload": {"final_response": "hello"},
                     }
                     yield {
-                        "type": "memory-store",
-                        "payload": {
-                            "user_query": "hi",
-                            "assistant_response": "hello",
-                            "memory_type": "episodic",
-                        },
+                        "type": "streaming-response",
+                        "payload": {"text": "late"},
                     }
 
             return _Agent()
@@ -830,8 +826,7 @@ async def test_execute_preserves_memory_store_after_terminal_completion():
     assert observed_events[0][0]["type"] == "streaming-response"
     assert isinstance(observed_events[1][0], StreamingCompleteEvent)
     assert observed_events[1][0].final_response == "hello"
-    assert observed_events[2][0]["type"] == "memory-store"
-    assert observed_events[2][0]["payload"]["assistant_response"] == "hello"
+    assert len(observed_events) == 2
 
 
 @pytest.mark.asyncio

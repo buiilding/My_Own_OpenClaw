@@ -75,7 +75,6 @@ backend/src/api/
     │   ├── user_message.py             # UserMessageFullEventFormatter - Formats full user message events
     │   ├── assistant_message.py       # AssistantMessageFullEventFormatter - Formats full assistant message events
     │   ├── token_count.py             # TokenCountEventFormatter - Formats token usage statistics
-    │   ├── memory_store.py            # MemoryStoreEventFormatter - Formats memory storage events
     │   └── tool_bundle.py             # ToolBundleEventFormatter - Formats tool bundle events
     │
     └── tts/                            # Text-to-Speech processing
