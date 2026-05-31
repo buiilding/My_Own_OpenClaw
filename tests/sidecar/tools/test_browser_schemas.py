@@ -9,13 +9,10 @@ from pydantic import ValidationError
 
 from backend.src.tools.browser.schemas import BrowserControlArgs as BackendBrowserControlArgs
 from backend.src.tools.browser.schemas import build_browser_tool_parameters_schema
-from tools.browser.browser_action_contract import (
+from windie_shared.browser_contract import (
     BROWSER_ACTIONS_REQUIRING_CONNECTION,
-    BROWSER_ALL_ACTIONS,
     BROWSER_CANONICAL_ACTIONS,
     BROWSER_RUNTIME_ACTIONS,
-)
-from tools.browser.schemas import (
     BrowserClickArgs,
     BrowserControlArgs,
     BrowserFindTextArgs,
@@ -43,10 +40,9 @@ def test_sidecar_browser_control_args_reuses_backend_model() -> None:
 
 
 def test_sidecar_action_contract_is_canonical_only() -> None:
-    assert set(BROWSER_ALL_ACTIONS) == set(BROWSER_CANONICAL_ACTIONS)
-    assert "open" not in BROWSER_ALL_ACTIONS
-    assert "type" not in BROWSER_ALL_ACTIONS
-    assert "switch_tab" not in BROWSER_ALL_ACTIONS
+    assert "open" not in BROWSER_CANONICAL_ACTIONS
+    assert "type" not in BROWSER_CANONICAL_ACTIONS
+    assert "switch_tab" not in BROWSER_CANONICAL_ACTIONS
     assert BROWSER_RUNTIME_ACTIONS["close_tab"] == "close"
     assert "snapshot" in BROWSER_ACTIONS_REQUIRING_CONNECTION
     assert "connect" not in BROWSER_ACTIONS_REQUIRING_CONNECTION
@@ -126,8 +122,8 @@ def test_schema_registry_and_validation_reject_removed_aliases() -> None:
     assert error == "Unknown browser action: switch_tab"
 
 
-def test_sidecar_browser_modules_do_not_import_backend_package() -> None:
+def test_sidecar_browser_runtime_modules_do_not_import_backend_package() -> None:
     browser_dir = Path(__file__).resolve().parents[3] / "frontend" / "src" / "main" / "python" / "tools" / "browser"
-    for module_name in ("browser_action_contract.py", "schemas.py"):
+    for module_name in ("browser_tool.py", "browser_use_engine.py"):
         source = (browser_dir / module_name).read_text(encoding="utf-8")
         assert "backend.src" not in source

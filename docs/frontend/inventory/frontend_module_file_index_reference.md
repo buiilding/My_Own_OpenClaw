@@ -148,7 +148,7 @@ Tool runtime:
 - System/process tools: `frontend/src/main/python/tools/system/*`
 - Memory tool: `frontend/src/main/python/tools/memory/memory_tool.py`
 - Browser tools:
-- `frontend/src/main/python/tools/browser/{browser_tool,browser_use_engine,browser_action_contract,chrome_detection,chrome_launcher,content_extraction,file_store,schemas}.py`
+- `frontend/src/main/python/tools/browser/{browser_tool,browser_use_engine,chrome_detection,chrome_launcher,content_extraction,file_store}.py`
 - `frontend/src/main/python/windie_shared/browser_contract*.py`
 
 Browser Use CLI ownership:

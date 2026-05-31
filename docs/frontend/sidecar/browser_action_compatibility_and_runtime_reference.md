@@ -14,8 +14,6 @@ title: "Browser Action Compatibility and Runtime Reference"
 - `frontend/src/main/python/local_backend.py`
 - `frontend/src/main/python/tools/browser/browser_tool.py`
 - `frontend/src/main/python/tools/browser/browser_use_engine.py`
-- `frontend/src/main/python/tools/browser/browser_action_contract.py`
-- `frontend/src/main/python/tools/browser/schemas.py`
 - `frontend/src/main/python/windie_shared/browser_contract*.py`
 
 ## Runtime Invariants

@@ -10,14 +10,14 @@ title: "Schema Registry and Action Validation Boundary Reference"
 
 ## Canonical Modules
 
-- `frontend/src/main/python/tools/browser/schemas.py`
-- `frontend/src/main/python/tools/browser/browser_action_contract.py`
+- `frontend/src/main/python/windie_shared/browser_contract*.py`
 - `frontend/src/main/python/tools/browser/browser_tool.py`
 - `tests/sidecar/tools/test_browser_schemas.py`
 
 ## Schema Model Topology
 
-`schemas.py` re-exports the shared browser contract module and exposes:
+`frontend/src/main/python/windie_shared/browser_contract.py` exposes the browser
+contract consumed directly by the sidecar and backend wrappers:
 
 - `BrowserControlArgs` discriminated grouped union
 - `BROWSER_SCHEMAS` registry
@@ -89,7 +89,8 @@ There is no browser-specific backend/sidecar schema split anymore.
 Practical rule:
 
 - frontend/sidecar code must never import backend code or rely on `backend.src.*`
-- browser schema parity is maintained by keeping backend and sidecar wrappers aligned around the same contract shape without violating that boundary
+- browser schema parity is maintained by keeping backend wrappers and sidecar
+  validation aligned around the shared contract without violating that boundary
 - the production safeguard against drift is backend-vs-sidecar schema parity testing before release, not direct frontend imports of backend modules
 
 ## Test-Backed Coverage
@@ -99,7 +100,7 @@ Practical rule:
 - strict grouped contract parity with backend wrappers
 - canonical-only action set
 - strict field validation and helper lookup behavior
-- sidecar browser schema modules do not import the backend package
+- sidecar browser runtime modules do not import the backend package
 
 Operational expectation:
 

@@ -11,7 +11,7 @@ from tools.schemas import (  # noqa: E402
     ScreenshotToolArgs as SidecarScreenshotToolArgs,
     ScrollControlArgs as SidecarScrollControlArgs,
 )
-from tools.browser.schemas import BrowserControlArgs as SidecarBrowserControlArgs  # noqa: E402
+from windie_shared.browser_contract import BrowserControlArgs as SidecarBrowserControlArgs  # noqa: E402
 
 from backend.src.tools.computer.schemas import (
     MouseControlArgs as BackendMouseControlArgs,

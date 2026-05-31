@@ -13,7 +13,7 @@ from tools.browser.browser_use_engine import (
     BrowserUseEngineRuntime,
     _parse_cli_json,
 )
-from tools.browser.schemas import BrowserControlArgs
+from windie_shared.browser_contract import BrowserControlArgs
 
 EXPLANATION = "Advance the active user task."
 

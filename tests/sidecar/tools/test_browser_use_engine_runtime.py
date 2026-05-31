@@ -7,14 +7,13 @@ from unittest import mock
 
 import pytest
 
-from tools.browser.browser_action_contract import BROWSER_CANONICAL_ACTIONS
 from tools.browser.browser_use_engine import (
     BROWSER_USE_ENGINE_ACTIONS,
     BrowserActionError,
     BrowserUseEngineRuntime,
     RUNTIME_SOURCE,
 )
-from tools.browser.schemas import BrowserControlArgs
+from windie_shared.browser_contract import BROWSER_CANONICAL_ACTIONS, BrowserControlArgs
 
 EXPLANATION = "Advance the active user task."
 

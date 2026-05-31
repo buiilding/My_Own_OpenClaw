@@ -149,7 +149,7 @@ cd WindieOS/frontend/src/main/python
 python -c "
 import asyncio
 from tools.browser.browser_use_engine import BrowserUseEngineRuntime
-from tools.browser.schemas import BrowserControlArgs
+from windie_shared.browser_contract import BrowserControlArgs
 
 async def test():
     runtime = BrowserUseEngineRuntime()

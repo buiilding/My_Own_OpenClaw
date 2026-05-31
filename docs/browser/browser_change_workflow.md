@@ -29,7 +29,7 @@ WindieOS currently adapts its canonical browser tool contract to the maintained 
 | Change shape | First owner | Code roots | Tests to inspect or add | Start docs |
 | --- | --- | --- | --- | --- |
 | Browser tool visible/missing from model | Backend tool catalog/policy | `backend/src/tools/tool_catalog.py`, `backend/src/tools/remote_tools/browser.py`, `backend/src/tools/tool_policy.py`, `backend/src/tools/browser/**` | `tests/backend/test_browser_remote_tool.py`, tool policy/schema tests | [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md) |
-| Browser action schema, fields, or action literals | Shared browser contract plus backend wrappers | `frontend/src/main/python/windie_shared/browser_contract*.py`, `backend/src/tools/browser/**`, `frontend/src/main/python/tools/browser/schemas.py` | `tests/backend/test_browser_remote_tool.py`, `tests/sidecar/tools/test_browser_schemas.py`, Browser Use engine tests | [Browser Action Surface](browser_action_surface.md) |
+| Browser action schema, fields, or action literals | Shared browser contract plus backend wrappers | `frontend/src/main/python/windie_shared/browser_contract*.py`, `backend/src/tools/browser/**`, `frontend/src/main/python/tools/browser/browser_tool.py` | `tests/backend/test_browser_remote_tool.py`, `tests/sidecar/tools/test_browser_schemas.py`, Browser Use engine tests | [Browser Action Surface](browser_action_surface.md) |
 | Browser action runtime behavior | Sidecar Browser Use engine adapter | `frontend/src/main/python/tools/browser/browser_use_engine.py`, `browser_tool.py` | `tests/sidecar/tools/test_browser_tool.py`, `test_browser_use_engine.py` | [Browser Control](browser_control.md) |
 | CDP launch, executable detection, or profile path | Sidecar Chrome launcher/detection | `frontend/src/main/python/tools/browser/chrome_launcher.py`, `chrome_detection.py`, `browser_use_engine.py` | `tests/sidecar/tools/test_chrome_launcher.py`, `test_chrome_detection.py`, `test_browser_use_engine.py` | [Dedicated Browser Runtime](dedicated_browser_runtime.md) |
 | Snapshot text and Browser Use element indexes | Sidecar Browser Use engine adapter | `frontend/src/main/python/tools/browser/browser_use_engine.py` | `tests/sidecar/tools/test_browser_use_engine.py` | [Browser Action Surface](browser_action_surface.md) |
@@ -53,7 +53,7 @@ WindieOS currently adapts its canonical browser tool contract to the maintained 
 10. Browser Use performs CDP/Playwright work and the sidecar normalizes the result into a `ToolResult`.
 11. SDK/main relays the result back to the backend tool-result path and renderer receives display projections.
 
-If a payload parses in the backend but fails in the sidecar, compare the shared contract import path, backend schema wrapper, sidecar schema re-export, and sidecar runtime supported-action registry before changing renderer code.
+If a payload parses in the backend but fails in the sidecar, compare the shared contract import path, backend schema wrapper, sidecar validation entrypoint, and sidecar runtime supported-action registry before changing renderer code.
 
 ## Change Paths
 
@@ -243,7 +243,7 @@ Validate:
 | --- | --- | --- |
 | Model never sees `browser` | tool policy/profile, model-visible schema, provider projection | backend tool catalog/policy |
 | Backend rejects browser payload | action literal, grouped schema, removed fields, model-facing parameters | shared contract/backend schema wrapper |
-| Backend accepts payload but sidecar rejects it | shared contract import drift, sidecar schema re-export, runtime supported actions | shared contract or sidecar schema |
+| Backend accepts payload but sidecar rejects it | shared contract import drift, sidecar validation entrypoint, runtime supported actions | shared contract or sidecar validation |
 | `connect` launches wrong profile | CDP URL/port, profile path, Chrome launch args, extension-mode assumptions | sidecar Chrome launcher |
 | `connect` times out | executable detection, port already in use, `/json/version`, feature-pack deps | sidecar Chrome launcher/controller |
 | `status` works but renderer shows disconnected | renderer polling snapshot, stale request id, result normalization | renderer browser session store |
@@ -257,7 +257,7 @@ Validate:
 | Changed boundary | Minimum focused validation |
 | --- | --- |
 | Backend browser schema/tool exposure | `./scripts/python-in-env backend pytest tests/backend/test_browser_remote_tool.py` |
-| Shared browser contract or sidecar schema | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_schemas.py tests/sidecar/test_browser_runtime_architecture.py` |
+| Shared browser contract or sidecar validation | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_schemas.py tests/sidecar/tools/test_browser_use_engine_runtime.py` |
 | Sidecar runtime action | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine.py` |
 | CDP launch/session lifecycle | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_chrome_launcher.py tests/sidecar/tools/test_chrome_detection.py tests/sidecar/tools/test_browser_use_engine.py` |
 | Snapshot/index behavior | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_use_engine.py` |

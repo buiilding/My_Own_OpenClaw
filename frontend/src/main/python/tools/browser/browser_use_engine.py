@@ -14,7 +14,6 @@ from urllib.parse import quote_plus
 
 from platformdirs import user_data_dir
 
-from tools.browser.browser_action_contract import BROWSER_CANONICAL_ACTIONS
 from tools.browser.chrome_launcher import DEFAULT_WINDIE_CDP_PORT, ensure_chrome_with_cdp
 from tools.browser.content_extraction import (
     DEFAULT_EXTRACT_CHARS,
@@ -28,6 +27,7 @@ from tools.browser.file_store import (
     resolve_browser_path,
     write_text,
 )
+from windie_shared.browser_contract import BROWSER_CANONICAL_ACTIONS
 
 DEFAULT_SESSION_NAME = "windieos"
 DEFAULT_SNAPSHOT_PAGE_LIMIT = 4_000

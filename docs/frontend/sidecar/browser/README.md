@@ -32,7 +32,7 @@ Current browser tool execution routes through `frontend/src/main/python/tools/br
 - `frontend/src/main/python/tools/browser/chrome_launcher.py`
 - `frontend/src/main/python/tools/browser/content_extraction.py`
 - `frontend/src/main/python/tools/browser/file_store.py`
-- `frontend/src/main/python/tools/browser/schemas.py`
+- `frontend/src/main/python/windie_shared/browser_contract*.py`
 - `frontend/src/main/python/tools/registry.py`
 - `frontend/src/main/python/local_backend.py`
 - `tests/sidecar/tools/test_chrome_detection.py`

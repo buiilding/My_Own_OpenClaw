@@ -17,7 +17,6 @@ The browser action surface starts at the backend model-facing `browser` tool and
 | Backend tool catalog | `backend/src/tools/tool_catalog.py` |
 | Backend remote browser tool | `backend/src/tools/remote_tools/browser.py` |
 | Shared browser contract | `frontend/src/main/python/windie_shared/browser_contract.py` |
-| Sidecar schema re-export | `frontend/src/main/python/tools/browser/schemas.py` |
 | Sidecar entrypoint | `frontend/src/main/python/tools/browser/browser_tool.py` |
 | Runtime dispatch | `frontend/src/main/python/tools/browser/browser_use_engine.py` |
 | Browser engine | installed `browser-use[cli]` package |

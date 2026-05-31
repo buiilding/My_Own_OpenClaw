@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for backend-sidecar browser schema parity checks, action-coverage guarantees, and the strict shared browser validation boundary."
 read_when:
-  - When adding/removing browser actions and verifying backend schema, sidecar schema, Browser Use engine dispatch, and runtime handler coverage stay aligned.
+  - When adding/removing browser actions and verifying backend schema, sidecar validation, Browser Use engine dispatch, and runtime handler coverage stay aligned.
   - When investigating payloads that parse in backend but fail in sidecar runtime enforcement.
 title: "Backend-Sidecar Browser Schema Parity and Validation Boundary Reference"
 ---
@@ -13,8 +13,7 @@ title: "Backend-Sidecar Browser Schema Parity and Validation Boundary Reference"
 - `backend/src/tools/browser/browser_control_args_schema.py`
 - `backend/src/tools/browser/schemas.py`
 - `backend/src/tools/remote_tools/browser.py`
-- `frontend/src/main/python/tools/browser/schemas.py`
-- `frontend/src/main/python/tools/browser/browser_action_contract.py`
+- `frontend/src/main/python/windie_shared/browser_contract*.py`
 - `frontend/src/main/python/tools/browser/browser_tool.py`
 - `frontend/src/main/python/tools/browser/browser_use_engine.py`
 - `tests/backend/test_browser_remote_tool.py`
@@ -44,7 +43,7 @@ Backend runtime gate in `RemoteBrowserTool`:
 
 Sidecar enforcement is action-aware and runtime-focused:
 
-- action schema routing (`BROWSER_SCHEMAS`) validates sidecar action models
+- shared action schema routing (`BROWSER_SCHEMAS`) validates sidecar action models
 - `browser_tool` validates grouped args before execution
 - `browser_use_engine.py` maps canonical actions to Browser Use CLI calls or Windie-owned helpers
 - Browser Use numeric indexes remain the runtime element-reference model
@@ -59,7 +58,7 @@ Result:
 When changing browser actions, verify four layers:
 
 1. backend action literals (`schema_types.py`)
-2. sidecar schema registry keys (`schemas.py`, `BROWSER_SCHEMAS`)
+2. shared browser contract registry keys (`BROWSER_SCHEMAS`)
 3. sidecar tool validation and engine mapping (`browser_tool.py`, `browser_use_engine.py`)
 4. Browser Use runtime handler coverage
 
@@ -67,8 +66,8 @@ When changing browser actions, verify four layers:
 
 `tests/sidecar/tools/test_browser_schemas.py` and the Browser Use engine tests enforce:
 
-- sidecar `BROWSER_SCHEMAS` exports the shared strict action contract
-- backend and sidecar wrappers stay aligned around the same action surface
+- `BROWSER_SCHEMAS` exports the shared strict action contract
+- backend wrappers and sidecar validation stay aligned around the same action surface
 - `BrowserUseEngineRuntime` covers the supported Browser Use action set
 
 `tests/backend/test_browser_remote_tool.py` additionally checks backend schema/tool registration and strict payload projection behavior.
@@ -105,7 +104,7 @@ Backend transport strips defaults/`None`; sidecar receives sparse payload and ma
 
 1. record serialized backend payload (`RemoteToolResult.args`)
 2. verify backend validation decision
-3. verify sidecar schema/action registry coverage
+3. verify shared contract/action registry coverage
 4. inspect Browser Use engine parameter mapping
 5. inspect runtime handler dispatch and error code
 
@@ -113,7 +112,7 @@ Backend transport strips defaults/`None`; sidecar receives sparse payload and ma
 
 - update backend action literals
 - update backend runtime docs/tests (`RemoteBrowserTool`)
-- update sidecar schema/action mappings
+- update shared contract/action mappings
 - update Browser Use engine dispatch/normalization
 - run parity + engine + backend schema tests
 - update backend + frontend browser docs in same change

@@ -72,10 +72,9 @@ Canonical schema and runtime action coverage are shared through:
 - `frontend/src/main/python/windie_shared/browser_contract_catalog.py`
 - `frontend/src/main/python/windie_shared/browser_contract_schema.py`
 - `frontend/src/main/python/windie_shared/browser_contract.py`
-- `frontend/src/main/python/tools/browser/schemas.py`
 - `backend/src/tools/browser/**`
 
-When adding/removing actions, update the shared contract, backend schema wrappers, sidecar schema re-export, runtime handler bindings, and parity tests together.
+When adding/removing actions, update the shared contract, backend schema wrappers, sidecar validation entrypoint, runtime handler bindings, and parity tests together.
 
 Use [Browser Change Workflow](../../browser/browser_change_workflow.md) for the full owner map and validation matrix.
 
@@ -100,7 +99,7 @@ Connect behavior:
 
 ## Schema Validation and Safety
 
-`tools/browser/schemas.py` provides pydantic models per action.
+`windie_shared/browser_contract.py` provides pydantic models per action.
 
 Safety constraints include:
 

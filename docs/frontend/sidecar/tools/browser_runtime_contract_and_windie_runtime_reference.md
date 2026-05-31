@@ -18,7 +18,7 @@ owns browser session mechanics.
 The runtime boundary is:
 
 - `browser_tool.py`: instantiate canonical args, execute the engine adapter, normalize failures into `ToolResult`
-- `schemas.py`: authoritative runtime validation for canonical browser payloads
+- `windie_shared/browser_contract.py`: authoritative runtime validation for canonical browser payloads
 - `browser_use_engine.py`: action mapping, Browser Use CLI invocation, deterministic extraction helpers, browser-local file helpers, and result normalization
 - `chrome_launcher.py` / `chrome_detection.py`: dedicated WindieOS Chrome/CDP startup policy
 
@@ -29,7 +29,7 @@ The engine adapter declares one explicit supported-action set in
 
 That registry should stay in parity with:
 
-- the sidecar canonical browser action contract in `schemas.py`
+- the shared canonical browser action contract in `windie_shared/browser_contract.py`
 - the backend remote browser tool schema
 
 The parity rule is:
@@ -42,7 +42,7 @@ The parity rule is:
 
 Use this split when refactoring:
 
-- `schemas.py` owns what arguments are allowed
+- `windie_shared/browser_contract.py` owns what arguments are allowed
 - `browser_use_engine.py` owns how each canonical action maps to Browser Use CLI behavior or adapter-owned helpers
 - Browser Use owns Playwright/browser/session primitives
 

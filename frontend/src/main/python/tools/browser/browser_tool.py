@@ -7,9 +7,9 @@ from typing import Any, Dict
 
 from pydantic import ValidationError
 
-from tools.browser.schemas import BrowserControlArgs
 from tools.browser.browser_use_engine import BrowserActionError, BrowserUseEngineRuntime
 from tools.result import ToolResult
+from windie_shared.browser_contract import BrowserControlArgs
 
 logger = logging.getLogger(__name__)
 
