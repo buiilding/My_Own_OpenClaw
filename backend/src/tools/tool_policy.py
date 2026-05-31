@@ -267,15 +267,7 @@ class ToolPolicy:
         return selection
 
     def _get_config_disabled_tools(self) -> set[str]:
-        disabled: set[str] = set()
-        browser_enabled = self._get_config_value(
-            "browser_automation_enabled",
-            default=False,
-        )
-        if browser_enabled is not True:
-            disabled.add("browser")
-        disabled.update(disabled_tools_from_config(self.config))
-        return disabled
+        return disabled_tools_from_config(self.config)
 
     def _get_interaction_allowlist(self) -> Optional[set[str]]:
         try:

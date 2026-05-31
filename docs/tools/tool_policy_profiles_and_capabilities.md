@@ -1,5 +1,5 @@
 ---
-summary: "WindieOS tool policy guide covering interaction allowlists, agent tool profiles, disabled tools/capabilities, coordinate methods, web-search exposure, browser gates, and validation."
+summary: "WindieOS tool policy guide covering interaction allowlists, agent tool profiles, disabled tools/capabilities, coordinate methods, web-search exposure, browser capability policy, and validation."
 read_when:
   - When a tool is unexpectedly hidden from the model or visible when it should be disabled.
   - When changing agent tool profiles, coordinate method gates, browser automation policy, web-search capability routing, or dev tool selection.
@@ -56,11 +56,10 @@ treated as unavailable.
 
 ### Browser
 
-`browser` is hidden when browser automation is disabled or the `browser` capability is disabled/unavailable.
+`browser` follows the same model-visible policy path as other client-local tools: it must be present in the accepted client manifest or backend catalog, and it can be narrowed by profiles, available tools, disabled tools, disabled capabilities, provider-unavailable capabilities, or dev selection.
 
 Check:
 
-- `browser_automation_enabled`
 - `agent_disabled_capabilities`
 - `agent_provider_unavailable_capabilities`
 - client `agent_available_tools`

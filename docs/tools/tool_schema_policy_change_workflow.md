@@ -127,7 +127,7 @@ The core rule is: backend owns backend remote tools and validation; Windie Agent
    - provider projection
 2. Update `ToolPolicy` or `agent_capability_policy.py` rather than hiding tools in prompt construction ad hoc.
 3. Update method-level validation if the policy controls allowed coordinate methods.
-4. Keep browser gating tied to `browser_automation_enabled` and browser capability state.
+4. Keep browser visibility tied to the accepted client/backend tool surface plus browser capability state, not the frontend `browser_automation_enabled` UI setting.
 5. Keep web-search exposure tied to native provider support or Brave fallback availability.
 6. Add tests for visible, hidden, disabled, unavailable, and client capability intersection cases.
 7. Update [Tool Policy Profiles and Capabilities](tool_policy_profiles_and_capabilities.md).

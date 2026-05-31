@@ -98,7 +98,7 @@ Execution/event semantics for these fields (decision skip reasons, trigger fallb
 | `stt_vad_prefix_padding_ms` | `int` | `300` | Backend-owned VAD prefix padding for realtime transcription sessions. |
 | `stt_vad_silence_duration_ms` | `int` | `500` | Backend-owned silence duration for end-of-turn detection in realtime transcription sessions. |
 | `agent_full_sudo_enabled` | `bool` | `false` | Frontend policy flag controlling agent-level elevated-action allowance. |
-| `browser_automation_enabled` | `bool` | `false` | Frontend feature toggle controlling whether browser tool schemas are exposed to the agent. |
+| `browser_automation_enabled` | `bool` | `false` | Frontend browser automation UI/permission toggle; model-visible browser tool exposure follows the accepted tool manifest and tool policy. |
 | `include_query_screenshot` | `bool` | `true` | Controls screenshot attachment behavior for queries. |
 | `wakeword_enabled` | `bool` | `true` | Wakeword runtime toggle. |
 | `wakeword_phrase` | `str` | `"hey jarvis"` | Trigger phrase. |

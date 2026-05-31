@@ -153,7 +153,7 @@ def test_filter_tool_names_keeps_direct_tool_names():
     assert filtered == ["read_file", "mouse_control", "keyboard_control", "browser"]
 
 
-def test_filter_tool_names_disables_browser_when_browser_automation_not_enabled():
+def test_filter_tool_names_keeps_browser_when_browser_automation_not_enabled():
     policy = ToolPolicy(
         config=AppConfig(interaction_mode="agent", browser_automation_enabled=False),
         selection=None,
@@ -161,7 +161,7 @@ def test_filter_tool_names_disables_browser_when_browser_automation_not_enabled(
 
     filtered = policy.filter_tool_names(["browser", "mouse_control", "read_file"])
 
-    assert filtered == ["mouse_control", "read_file"]
+    assert filtered == ["browser", "mouse_control", "read_file"]
 
 
 def test_filter_tool_names_hides_backend_web_search_for_openai_native_search():
@@ -347,7 +347,7 @@ def test_filter_tool_schemas_removes_prediction_drag_rules_when_prediction_disab
     assert "prediction" not in rule_methods
 
 
-def test_filter_tool_schemas_disables_browser_when_browser_automation_not_enabled():
+def test_filter_tool_schemas_keeps_browser_when_browser_automation_not_enabled():
     policy = ToolPolicy(
         config=AppConfig(interaction_mode="agent", browser_automation_enabled=False),
         selection=None,
@@ -366,7 +366,7 @@ def test_filter_tool_schemas_disables_browser_when_browser_automation_not_enable
 
     filtered = policy.filter_tool_schemas([browser_schema, system_schema])
 
-    assert [schema["name"] for schema in filtered] == ["read_file"]
+    assert [schema["name"] for schema in filtered] == ["browser", "read_file"]
 
 
 def test_filter_tool_schemas_hides_backend_web_search_for_openai_native_search():

@@ -45,7 +45,6 @@ Practical effect:
 
 Current config hard-disable:
 
-- `browser_automation_enabled != true` removes `browser` from both available-tool names and prompt-injected schemas.
 - `agent_disabled_tools` removes matching direct tool names.
 - `agent_disabled_capabilities=["browser"]` removes `browser`.
 - `agent_disabled_capabilities=["web_search"]` removes backend logical `web_search`.

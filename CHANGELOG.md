@@ -20,6 +20,10 @@ All notable changes to WindieOS will be documented in this file.
 - sidecar/sdk/backend: rename screenshot `capture_meta.capture_backend` to
   `capture_engine` so capture metadata refers to the local capture path instead
   of sounding like the hosted Windie backend.
+- backend/tools: stop hiding the model-visible `browser` tool behind the
+  frontend `browser_automation_enabled` setting so SDK-authored browser agents
+  follow the same accepted-manifest policy path as filesystem and computer
+  tools.
 - sdk/runtime: auto-register a temporary install identity for hosted
   `WindieClient.wakeUp(...)` calls when no install token or caller-provided
   user identity is configured, so CLI callers can pass only `backendUrl` and
