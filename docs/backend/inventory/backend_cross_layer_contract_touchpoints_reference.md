@@ -43,8 +43,8 @@ This reference lists backend-owned contracts that have direct frontend or sideca
 | Backend owner | Contract files | Sidecar owners | Contract note |
 | --- | --- | --- | --- |
 | Browser unified args | `backend/src/tools/browser/browser_control_args_schema.py` | `frontend/src/main/python/tools/browser/schemas.py` | Action names + optional fields must stay aligned |
-| Compatibility fields | `backend/src/tools/browser/shared_compat_fields.py` | `openclaw_compat_schema.py` and adapter | Legacy aliases maintained for compatibility |
-| Remote browser stub payload | `backend/src/tools/remote_tools/browser.py` | Sidecar `browser_tool.py`, `browser_adapter.py` | Payload transport keys must preserve action/args shape |
+| Browser shared contract wrapper | `backend/src/tools/browser/browser_control_args_schema.py` | Sidecar `browser_action_contract.py`, `schemas.py`, and `browser_tool.py` | Action names and strict fields must stay aligned |
+| Remote browser stub payload | `backend/src/tools/remote_tools/browser.py` | Sidecar `browser_tool.py`, `browser_use_engine.py` | Payload transport keys must preserve action/args shape |
 
 ## Memory + Artifact Contract Touchpoints
 

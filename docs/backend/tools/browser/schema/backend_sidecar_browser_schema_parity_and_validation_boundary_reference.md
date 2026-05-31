@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for backend-sidecar browser schema parity checks, action-coverage guarantees, and validation-boundary split across canonical actions and removed aliases."
+summary: "Deep reference for backend-sidecar browser schema parity checks, action-coverage guarantees, and the strict shared browser validation boundary."
 read_when:
-  - When adding/removing browser actions and verifying backend schema, sidecar schema, adapter dispatch, and runtime handler coverage stay aligned.
-  - When investigating payloads that parse in backend but fail in backend removed-alias gates or sidecar runtime enforcement.
+  - When adding/removing browser actions and verifying backend schema, sidecar schema, Browser Use engine dispatch, and runtime handler coverage stay aligned.
+  - When investigating payloads that parse in backend but fail in sidecar runtime enforcement.
 title: "Backend-Sidecar Browser Schema Parity and Validation Boundary Reference"
 ---
 
@@ -14,67 +14,64 @@ title: "Backend-Sidecar Browser Schema Parity and Validation Boundary Reference"
 - `backend/src/tools/browser/schemas.py`
 - `backend/src/tools/remote_tools/browser.py`
 - `frontend/src/main/python/tools/browser/schemas.py`
-- `frontend/src/main/python/tools/browser/openclaw_compat_schema.py`
+- `frontend/src/main/python/tools/browser/browser_action_contract.py`
 - `frontend/src/main/python/tools/browser/browser_tool.py`
-- `frontend/src/main/python/tools/browser/browser_adapter.py`
+- `frontend/src/main/python/tools/browser/browser_use_engine.py`
 - `tests/backend/test_browser_remote_tool.py`
-- `tests/sidecar/tools/test_browser_use_tool_parity.py`
-- `tests/sidecar/tools/test_browser_use_adapter.py`
+- `tests/sidecar/tools/test_browser_schemas.py`
+- `tests/sidecar/tools/test_browser_use_engine.py`
+- `tests/sidecar/tools/test_browser_use_engine_runtime.py`
 
 ## Validation Boundary Model
 
 ### Backend boundary
 
-Backend browser parse boundary is broad:
+Backend browser parse boundary is strict:
 
-- `BrowserControlArgs` accepts canonical + removed alias action families
-- unknown extras are ignored
-- removed aliases remain parseable for explicit migration errors
+- `BrowserControlArgs` accepts only canonical grouped browser actions
+- unknown extras are rejected by the selected action model
 
 Backend model-facing declaration boundary is narrower:
 
 - `RemoteBrowserTool.get_json_schema(...)` projects a canonical action enum for model/tool-calling output
-- projection excludes removed aliases and browser file-edit actions (`write_file`, `replace_file`, `read_file`)
-- projection hides selected compatibility/camelCase fields (`timeoutMs`, `promptText`, `colorScheme`, `targetId`, `targetUrl`, `inputRef`, `snapshotFormat`, generic storage-only `value`, plus legacy edit payload keys)
+- projection emits the strict root-object schema derived from the shared action catalog
 
 Backend runtime gate in `RemoteBrowserTool`:
 
-- removed aliases (`type`, `open`, `switch_tab`, `press`, `act`) are blocked immediately
+- payloads that pass backend validation are serialized directly to the sidecar tool path
 
 ### Sidecar boundary
 
 Sidecar enforcement is action-aware and runtime-focused:
 
 - action schema routing (`BROWSER_SCHEMAS`) validates sidecar action models
-- `browser_tool` applies removed-alias policy gates
-- adapter/runtime normalize and validate action-specific params
-- role refs (`e12`) for `click`, `input`, `upload_file`, `dropdown_options`, and `select_dropdown` now bypass Browser Use index normalization and route through controller-backed locator resolution; numeric refs / `index` remain Browser Use-native
+- `browser_tool` validates grouped args before execution
+- `browser_use_engine.py` maps canonical actions to Browser Use CLI calls or Windie-owned helpers
+- Browser Use numeric indexes remain the runtime element-reference model
 
 Result:
 
 - backend parse success does not guarantee end-to-end execution success
-- model-facing schema omission does not imply runtime parser rejection for manually supplied payloads
+- runtime errors after validation are browser/session/engine operational failures, not schema compatibility failures
 
 ## Parity Axes That Must Stay Aligned
 
 When changing browser actions, verify four layers:
 
-1. backend action literals and alias categories (`schema_types.py`)
+1. backend action literals (`schema_types.py`)
 2. sidecar schema registry keys (`schemas.py`, `BROWSER_SCHEMAS`)
-3. sidecar tool/adapter alias-gate policy (`browser_tool.py`, `browser_adapter.py`)
+3. sidecar tool validation and engine mapping (`browser_tool.py`, `browser_use_engine.py`)
 4. Browser Use runtime handler coverage
 
 ## Existing Parity Guards
 
-`tests/sidecar/tools/test_browser_use_tool_parity.py` enforces:
+`tests/sidecar/tools/test_browser_schemas.py` and the Browser Use engine tests enforce:
 
-- vendored Browser Use import origin
-- `browser-use` pip dependency absence in sidecar requirements
-- sidecar `BROWSER_SCHEMAS` covers Browser Use runtime registry actions
-- backend `BrowserControlArgs` action literals cover Browser Use actions
-- native runtime handler registry covers Browser Use actions
+- sidecar `BROWSER_SCHEMAS` exports the shared strict action contract
+- backend and sidecar wrappers stay aligned around the same action surface
+- `BrowserUseEngineRuntime` covers the supported Browser Use action set
 
-`tests/backend/test_browser_remote_tool.py` additionally checks backend schema/tool registration and alias policy behavior.
+`tests/backend/test_browser_remote_tool.py` additionally checks backend schema/tool registration and strict payload projection behavior.
 It now also checks model-facing action/property projection boundaries.
 
 ## Typical Drift Failure Patterns
@@ -86,19 +83,19 @@ Symptoms:
 - backend accepts action but sidecar rejects as unsupported
 - sidecar supports action but backend literal parse fails upstream
 
-### Pattern 2: Alias category drift
+### Pattern 2: Runtime coverage drift
 
 Symptoms:
 
-- alias documented as canonical but implemented as removed (or inverse)
-- backend and sidecar removed-alias sets diverge
+- action is schema-valid but has no Browser Use engine handler
+- action is implemented but missing from the schema contract
 
 ### Pattern 3: Backend acceptance vs sidecar rejection
 
 Symptoms:
 
 - payload parses in backend model
-- sidecar returns `INVALID_ARGUMENT` after normalization/compat rejection
+- sidecar returns `INVALID_ARGUMENT` because shared wrappers drifted or executable args are malformed
 
 ### Pattern 4: Default stripping side effects
 
@@ -107,18 +104,18 @@ Backend transport strips defaults/`None`; sidecar receives sparse payload and ma
 ## Debug Procedure
 
 1. record serialized backend payload (`RemoteToolResult.args`)
-2. verify backend gate decision (removed alias block vs pass-through)
+2. verify backend validation decision
 3. verify sidecar schema/action registry coverage
-4. inspect adapter param normalization path
+4. inspect Browser Use engine parameter mapping
 5. inspect runtime handler dispatch and error code
 
 ## Change Checklist
 
-- update backend action literals and alias maps
-- update backend runtime gate docs/tests (`RemoteBrowserTool`)
-- update sidecar schema/action mappings and removed-alias gates
-- update adapter dispatch/normalization
-- run parity + adapter + backend schema tests
+- update backend action literals
+- update backend runtime docs/tests (`RemoteBrowserTool`)
+- update sidecar schema/action mappings
+- update Browser Use engine dispatch/normalization
+- run parity + engine + backend schema tests
 - update backend + frontend browser docs in same change
 
 ## Related Pages

@@ -1,5 +1,5 @@
 ---
-summary: "Backend browser-tools docs sub-hub for remote browser stub behavior, unified schema surface, and OpenClaw compatibility field modeling boundaries."
+summary: "Backend browser-tools docs sub-hub for remote browser stub behavior and the shared strict browser schema surface."
 read_when:
   - When changing backend browser tool argument schemas or remote browser stub payload behavior.
   - When debugging browser action schema acceptance drift between backend validation and sidecar runtime enforcement.
@@ -24,13 +24,10 @@ title: "Backend Browser Tools Docs Hub"
 
 - `backend/src/tools/browser/__init__.py`
 - `backend/src/tools/browser/schema_types.py`
-- `backend/src/tools/browser/shared_compat_fields.py`
-- `backend/src/tools/browser/snapshot_scope_fields.py`
 - `backend/src/tools/browser/browser_control_args_schema.py`
 - `backend/src/tools/browser/schemas.py`
-- `backend/src/tools/browser/openclaw_compat_schema.py`
-- `backend/src/tools/browser/shared_compat_fields.py`
-- `backend/src/tools/browser/snapshot_scope_fields.py`
+- `backend/src/tools/browser/schema_types.py`
+- `backend/src/tools/browser/shared_contract_loader.py`
 - `backend/src/tools/remote_tools/browser.py`
 - `tests/backend/test_browser_remote_tool.py`
-- `tests/sidecar/tools/test_browser_use_tool_parity.py`
+- `tests/backend/test_browser_shared_contract_loader.py`

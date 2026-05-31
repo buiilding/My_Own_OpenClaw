@@ -16,7 +16,6 @@ Inspect:
 
 - `frontend/src/main/python/tools/browser/chrome_detection.py`
 - `frontend/src/main/python/tools/browser/chrome_launcher.py`
-- `frontend/src/main/python/tools/browser/controller.py`
 - `frontend/src/main/python/tools/browser/browser_use_engine.py`
 - `frontend/src/main/permission_service_browser.cjs`
 
@@ -39,7 +38,7 @@ port; if another process owns the port, stop it manually or choose a different
 Focused tests:
 
 ```bash
-./scripts/python-in-env sidecar python -m pytest tests/sidecar/test_browser_registry.py tests/sidecar/tools/test_browser_controller.py -q
+./scripts/python-in-env sidecar python -m pytest tests/sidecar/test_browser_registry.py tests/sidecar/tools/test_browser_use_engine.py -q
 cd frontend && npm run test:ci -- PermissionService.test.cjs
 ```
 
@@ -47,44 +46,39 @@ cd frontend && npm run test:ci -- PermissionService.test.cjs
 
 Inspect:
 
-- `frontend/src/main/python/tools/browser/enhanced_cdp_pipeline.py`
-- `frontend/src/main/python/tools/browser/role_snapshot.py`
-- `frontend/src/main/python/tools/browser/ref_registry.py`
-- `frontend/src/main/python/tools/browser/observation_store.py`
-- `frontend/src/main/python/tools/browser/controller.py`
+- `frontend/src/main/python/tools/browser/browser_use_engine.py`
+- Browser Use CLI `state` command output
 
 Checks:
 
 - Waited for page load before snapshot.
 - Snapshot limit is not too small for the current page.
 - Page did not navigate between paginated snapshot reads.
-- CDP DOMSnapshot/AX tree collection did not time out.
+- Browser Use returned non-empty state text.
 
 Focused tests:
 
 ```bash
-./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_enhanced_cdp_pipeline.py tests/sidecar/tools/test_browser_ref_registry.py tests/sidecar/tools/test_browser_observation_store.py -q
+./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_use_engine.py -q
 ```
 
 ## Click Or Input Hits The Wrong Element
 
 Inspect:
 
-- `frontend/src/main/python/tools/browser/action_executor.py`
-- `frontend/src/main/python/tools/browser/role_snapshot.py`
-- `frontend/src/main/python/tools/browser/ref_registry.py`
+- `frontend/src/main/python/tools/browser/browser_use_engine.py`
+- Browser Use CLI state text from the latest `snapshot`
 
 Checks:
 
 - Use a fresh snapshot after navigation, scroll, or DOM mutation.
-- Confirm whether the ref is numeric or role-based.
-- Confirm the action executor resolves role refs against the current observed page.
-- Avoid adding renderer-side element mapping; this is sidecar/controller ownership.
+- Confirm the ref/index is a numeric Browser Use element index.
+- Avoid adding renderer-side element mapping; Browser Use owns element indexing.
 
 Focused tests:
 
 ```bash
-./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_action_executor.py tests/sidecar/tools/test_browser_ref_registry.py -q
+./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_use_engine.py -q
 ```
 
 ## Browser Session UI Is Stale
@@ -126,7 +120,7 @@ Checks:
 Focused tests:
 
 ```bash
-./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_action_executor.py -q
+./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine.py -q
 ```
 
 ## Backend Emits Browser Tool But Sidecar Does Nothing

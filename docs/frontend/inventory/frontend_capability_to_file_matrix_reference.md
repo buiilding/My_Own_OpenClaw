@@ -99,7 +99,7 @@ This matrix maps frontend capabilities to implementation files.
 | Memory persistence and semantic pipeline | `frontend/src/main/python/memory/{local_store,sqlite_store,faiss_index,summarizer,operations,watermark_state,conversation_titles}.py` | Transcript store/search and semantic indexing/summarization. |
 | Tool registry and schemas | `frontend/src/main/python/tools/{registry,schemas,result,base}.py` | Sidecar tool catalog and standardized result structures. |
 | Computer/filesystem/system/memory tools | `frontend/src/main/python/tools/{computer,filesystem,system,memory}/*` | Direct machine control, file operations, shell/process, memory actions. |
-| Browser runtime + compatibility + browser_use | `frontend/src/main/python/tools/browser/*`, `frontend/src/main/python/tools/browser/browser_use/**` | Browser action schemas, native runtime adapters, vendored Browser Use stack. |
+| Browser runtime + Browser Use CLI adapter | `frontend/src/main/python/tools/browser/*`, `frontend/src/main/python/windie_shared/browser_contract*.py` | Browser action schemas, Chrome/CDP launch policy, Browser Use CLI dispatch, and result normalization. |
 
 ## 8) Landing Runtime
 

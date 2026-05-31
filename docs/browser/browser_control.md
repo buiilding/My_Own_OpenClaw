@@ -85,7 +85,7 @@ Notes:
 - `find_text` supports optional `css_scope` and `max_results`, matching the scoped page-search behavior used by `search_page`.
 - Browser-internal navigation targets such as `chrome://settings/syncSetup` are routed through Browser Use's Python `browser.goto(...)` action wrapper so the Browser Use CLI `open` command cannot rewrite them into `https://...` URLs.
 - Overlapping actions now run Browser Use-only semantics at runtime (`snapshot`, `navigate`, `extract`, `click`, `type`, `press`, `scroll`, `screenshot`, `wait`, `evaluate`): compatibility-only fields are rejected (for example `snapshot.format`, `snapshot.snapshotFormat`, `snapshot.wait_until`, `snapshot.mode`, `snapshot.max_chars`, `snapshot.refs`, `snapshot.interactive`, `snapshot.compact`, `snapshot.depth`, `snapshot.selector`, `snapshot.frame`, `extract.mode`, `extract.selector`, `extract.frame`, `wait.state`, `screenshot.full_page`, `screenshot.ref`, `screenshot.element`, `screenshot.type`, `screenshot.quality`).
-- For `click`, `input`, `upload_file`, and `select_dropdown`, the Browser Use engine requires numeric Browser Use element indexes. WindieOS role refs such as `e12` are rejected at the adapter boundary instead of being routed through the retired controller locator path.
+- For `click`, `input`, `upload_file`, and `select_dropdown`, the Browser Use engine requires numeric Browser Use element indexes. WindieOS role refs such as `e12` are rejected by validation/engine mapping instead of being routed through the retired controller locator path.
 - `dropdown_options` remains in the model-visible schema but is not supported by the Browser Use CLI daemon; use `select_dropdown` with the desired visible option text.
 
 ### 1. Connect

@@ -62,7 +62,6 @@ Built-in local tool schemas are owned by the frontend sidecar. `frontend/src/mai
 - `frontend/src/main/python/tools/browser/browser_use_engine.py`
 - `frontend/src/main/python/tools/browser/content_extraction.py`
 - `frontend/src/main/python/tools/browser/file_store.py`
-- `frontend/src/main/python/tools/browser/controller.py`
 - `frontend/src/main/python/tools/browser/schemas.py`
 - `frontend/src/main/python/tools/filesystem/replace_engine.py`
 - `frontend/src/main/python/tools/filesystem/file_utils.py`

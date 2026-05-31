@@ -79,22 +79,6 @@ When adding/removing actions, update the shared contract, backend schema wrapper
 
 Use [Browser Change Workflow](../../browser/browser_change_workflow.md) for the full owner map and validation matrix.
 
-## BrowserController Runtime Capabilities
-
-`tools/browser/controller.py` responsibilities:
-
-- Playwright browser/context/page lifecycle
-- tab tracking and ref registry management
-- page snapshot generation (AI or aria modes)
-- click/type/scroll/navigation/evaluate actions
-- screenshot capture (full page/element)
-- console/dialog/network/page-error observation buffers
-
-Enhanced snapshot stack:
-
-- `EnhancedCdpDomPipeline` merges DOM snapshot + AX tree + computed style hints
-- marks interactive nodes and emits LLM-oriented textual snapshot with stable refs
-
 ## CDP and Chrome Launch Policy
 
 Core launcher modules:
@@ -158,5 +142,3 @@ Where errors are normalized:
 - [Sidecar Browser Docs Hub](browser/README.md)
 - [Browser Change Workflow](../../browser/browser_change_workflow.md)
 - [Sidecar Browser Chrome Docs Hub](browser/chrome/README.md)
-- [Browser Runtime Provider, Vendoring, and Native Handler Bridge Reference](browser/browser_runtime_provider_vendoring_and_native_handler_bridge_reference.md)
-- [Browser Adapter Action Routing and Compatibility Semantics Reference](browser/browser_adapter_action_routing_and_compatibility_semantics_reference.md)

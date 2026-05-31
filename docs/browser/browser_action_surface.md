@@ -66,7 +66,7 @@ Long-content reads should preserve offsets and limits so the agent can continue 
 
 ## Tab Control
 
-Tab state comes from the controller context and renderer polling.
+Tab state comes from Browser Use state/status results and renderer polling.
 
 Relevant renderer files:
 
@@ -82,7 +82,6 @@ code should not invoke the generic `execute-tool` bridge directly.
 
 ```bash
 ./scripts/test-backend tests/backend/test_browser_remote_tool.py -q
-./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_schemas.py tests/sidecar/tools/test_browser_tool.py -q
-./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_action_executor.py tests/sidecar/tools/test_browser_ref_registry.py tests/sidecar/tools/test_browser_observation_store.py -q
+./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_schemas.py tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine.py -q
 cd frontend && npm run test:ci -- ChatBrowserSessionControl.test.jsx
 ```

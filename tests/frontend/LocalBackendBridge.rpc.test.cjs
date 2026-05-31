@@ -816,7 +816,7 @@ describe('local_backend_bridge RPC handlers', () => {
         [
           '(node:71611) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized',
           '(Use `node --trace-deprecation ...` to show where the warning was created)',
-          '2026-02-16 16:24:39,551 - tools.browser.controller - INFO - Connected to Chrome: chrome://new-tab-page/',
+          '2026-02-16 16:24:39,551 - tools.browser.browser_use_engine - INFO - Connected to Chrome: chrome://new-tab-page/',
           '2026-02-16 16:24:39,552 - local_backend - WARNING - Slow request',
         ].join('\n'),
       ),
@@ -844,7 +844,7 @@ describe('local_backend_bridge RPC handlers', () => {
 
     stderrHandler()(
       Buffer.from(
-        '2026-02-16 16:24:39,551 - tools.browser.controller - INFO - Connected to Chrome: chrome://new-tab-page/\n',
+        '2026-02-16 16:24:39,551 - tools.browser.browser_use_engine - INFO - Connected to Chrome: chrome://new-tab-page/\n',
       ),
     );
 

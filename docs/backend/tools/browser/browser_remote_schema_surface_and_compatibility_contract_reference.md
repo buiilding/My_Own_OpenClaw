@@ -102,5 +102,4 @@ Practical rule:
 - [Browser Schema Docs Hub](schema/README.md)
 - [Browser Control Unified Schema and Compatibility Field Matrix Reference](schema/browser_control_unified_schema_and_compatibility_field_matrix_reference.md)
 - [Backend-Sidecar Browser Schema Parity and Validation Boundary Reference](schema/backend_sidecar_browser_schema_parity_and_validation_boundary_reference.md)
-- [Sidecar Browser Runtime Provider, Vendoring, and Native Handler Bridge Reference](../../../frontend/sidecar/browser/browser_runtime_provider_vendoring_and_native_handler_bridge_reference.md)
-- [Sidecar Browser Adapter Action Routing Reference](../../../frontend/sidecar/browser/browser_adapter_action_routing_and_compatibility_semantics_reference.md)
+- [Sidecar Browser Action Compatibility and Runtime Reference](../../../frontend/sidecar/browser_action_compatibility_and_runtime_reference.md)

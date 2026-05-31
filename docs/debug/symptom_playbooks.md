@@ -202,13 +202,13 @@ cd frontend && npm run test:ci -- WakewordBridge.test.cjs WakewordSupervisor.tes
 
 ## Browser Automation Fails
 
-Likely boundary: backend schema, sidecar browser controller, Chromium runtime availability, page/session state, or permission probe.
+Likely boundary: backend schema, sidecar Browser Use CLI adapter, Chromium runtime availability, Browser Use session state, or permission probe.
 
 Inspect:
 
 - `backend/src/tools/tool_catalog.py`
 - `backend/src/tools/remote.py`
-- `frontend/src/main/python/tools/browser/controller.py`
+- `frontend/src/main/python/tools/browser/browser_use_engine.py`
 - `frontend/src/main/python/tools/browser/chrome_launcher.py`
 - `frontend/src/main/permission_service_browser.cjs`
 

@@ -2,7 +2,7 @@
 summary: "Deep reference for sidecar-native deterministic extraction for Browser Use `extract` and `read_long_content`: markdown pipeline, focused excerpt behavior, pagination metadata, and error/debug boundaries."
 read_when:
   - When changing deterministic extraction behavior in `browser_use_engine.py`.
-  - When debugging `extract`/`read_long_content` failures, content-window issues, or markdown extraction import/runtime errors.
+  - When debugging `extract`/`read_long_content` failures or content-window issues.
 title: "Browser Runtime Deterministic Extraction Contract Reference"
 ---
 
@@ -25,8 +25,8 @@ Deterministic extraction keeps sidecar browser actions lightweight and removes s
 
 For both extraction actions:
 
-1. ensure Browser Use runtime modules/session are available
-2. call `browser_use.dom.markdown_extractor.extract_clean_markdown(...)`
+1. call the Browser Use CLI to read page HTML
+2. convert HTML to markdown through `content_extraction.py`
 3. produce focused excerpt from markdown text
 4. return action payload with deterministic metadata
 
@@ -82,21 +82,19 @@ All other Browser Use actions still route to Browser Use registry execution.
 
 - browser session is not connected/available
 - required action input (`query` or `goal`) is blank
-- markdown extractor import/function contract is unavailable
+- Browser Use CLI HTML retrieval fails
 
 Errors are surfaced as action failure payloads in the same shape used by other Browser Use actions.
 
 ## Debug Checklist
 
-1. Verify controller/browser connection status before extraction action dispatch.
+1. Verify Browser Use session status before extraction action dispatch.
 2. Verify action input includes non-empty `query` or `goal`.
-3. Verify `browser_use.dom.markdown_extractor.extract_clean_markdown` resolves from vendored Browser Use tree.
+3. Verify Browser Use CLI `get html` returns page HTML.
 4. Verify clamped `offset/max_chars` values when truncation behavior looks incorrect.
 5. Check metadata (`returned_chars`, `total_chars`, `has_more`, `next_offset`) to confirm pagination windowing path.
 
 ## Related Pages
 
 - [Frontend Sidecar Browser Docs Hub](README.md)
-- [Browser Runtime Provider, Vendoring, and Native Handler Bridge Reference](browser_runtime_provider_vendoring_and_native_handler_bridge_reference.md)
-- [Browser Adapter Action Routing and Compatibility Semantics Reference](browser_adapter_action_routing_and_compatibility_semantics_reference.md)
 - [Browser Action Compatibility and Runtime Reference](../browser_action_compatibility_and_runtime_reference.md)

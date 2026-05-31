@@ -71,13 +71,13 @@ Additional bounds:
 
 ## Runtime Boundary with `browser_tool.py`
 
-`browser_tool.execute_browser(...)` validates through `BrowserControlArgs` before adapter dispatch.
+`browser_tool.execute_browser(...)` validates through `BrowserControlArgs` before Browser Use engine dispatch.
 
 Runtime boundary layers:
 
 1. action allowlist in `browser_tool.py`
 2. strict grouped schema validation in `browser_tool.py`
-3. adapter parameter mapping in `browser_adapter.py`
+3. Browser Use engine parameter mapping in `browser_use_engine.py`
 4. runtime provider execution constraints
 
 So schema acceptance means "canonical grouped browser payload"; execution can still fail for runtime reasons.
@@ -109,4 +109,4 @@ Operational expectation:
 ## Related Pages
 
 - [Frontend Sidecar Browser Contracts Docs Hub](README.md)
-- [Browser Adapter Action Routing and Compatibility Semantics Reference](../browser_adapter_action_routing_and_compatibility_semantics_reference.md)
+- [Browser Action Compatibility and Runtime Reference](../../browser_action_compatibility_and_runtime_reference.md)

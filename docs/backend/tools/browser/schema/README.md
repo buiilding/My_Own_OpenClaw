@@ -1,5 +1,5 @@
 ---
-summary: "Backend browser schema docs sub-hub for unified BrowserControlArgs design, shared compatibility-field mixins, and backend-to-sidecar schema parity boundaries."
+summary: "Backend browser schema docs sub-hub for unified BrowserControlArgs design and backend-to-sidecar schema parity boundaries."
 read_when:
   - When changing backend browser schema literals/fields or splitting/merging browser schema models.
   - When debugging backend-accepted browser payloads that sidecar adapter/runtime later rejects.
@@ -22,10 +22,8 @@ title: "Backend Browser Schema Docs Hub"
 ## Code Scope
 
 - `backend/src/tools/browser/schema_types.py`
-- `backend/src/tools/browser/snapshot_scope_fields.py`
-- `backend/src/tools/browser/shared_compat_fields.py`
 - `backend/src/tools/browser/browser_control_args_schema.py`
-- `backend/src/tools/browser/openclaw_compat_schema.py`
+- `backend/src/tools/browser/shared_contract_loader.py`
 - `backend/src/tools/browser/schemas.py`
 - `tests/backend/test_browser_remote_tool.py`
-- `tests/sidecar/tools/test_browser_use_tool_parity.py`
+- `tests/backend/test_browser_shared_contract_loader.py`

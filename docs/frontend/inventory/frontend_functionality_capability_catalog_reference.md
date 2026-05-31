@@ -213,7 +213,7 @@ Capabilities:
 - Memory runtime uses SQLite + FAISS with transcript search/list/get/delete and semantic summarization workflow.
 - Sidecar core remote clients call backend semantic/title/embedding routes with shared retry/error policy wrappers.
 - Tool runtime exposes computer/filesystem/system/browser/memory tool suites with normalized result envelopes.
-- Browser stack includes native chrome controller contracts and vendored Browser Use runtime modules.
+- Browser stack uses Windie-owned schema/result adapters over the official Browser Use CLI package.
 
 ## 9) Landing Surface Catalog
 

@@ -29,10 +29,10 @@ WindieOS currently adapts its canonical browser tool contract to the maintained 
 | Change shape | First owner | Code roots | Tests to inspect or add | Start docs |
 | --- | --- | --- | --- | --- |
 | Browser tool visible/missing from model | Backend tool catalog/policy | `backend/src/tools/tool_catalog.py`, `backend/src/tools/remote_tools/browser.py`, `backend/src/tools/tool_policy.py`, `backend/src/tools/browser/**` | `tests/backend/test_browser_remote_tool.py`, tool policy/schema tests | [Tool Schema and Policy Change Workflow](../tools/tool_schema_policy_change_workflow.md) |
-| Browser action schema, fields, or action literals | Shared browser contract plus backend wrappers | `frontend/src/main/python/windie_shared/browser_contract*.py`, `backend/src/tools/browser/**`, `frontend/src/main/python/tools/browser/schemas.py` | `tests/backend/test_browser_remote_tool.py`, `tests/sidecar/tools/test_browser_schemas.py`, `tests/sidecar/test_browser_runtime_architecture.py` | [Browser Action Surface](browser_action_surface.md) |
+| Browser action schema, fields, or action literals | Shared browser contract plus backend wrappers | `frontend/src/main/python/windie_shared/browser_contract*.py`, `backend/src/tools/browser/**`, `frontend/src/main/python/tools/browser/schemas.py` | `tests/backend/test_browser_remote_tool.py`, `tests/sidecar/tools/test_browser_schemas.py`, Browser Use engine tests | [Browser Action Surface](browser_action_surface.md) |
 | Browser action runtime behavior | Sidecar Browser Use engine adapter | `frontend/src/main/python/tools/browser/browser_use_engine.py`, `browser_tool.py` | `tests/sidecar/tools/test_browser_tool.py`, `test_browser_use_engine.py` | [Browser Control](browser_control.md) |
-| CDP launch, executable detection, or profile path | Sidecar Chrome launcher/detection | `frontend/src/main/python/tools/browser/chrome_launcher.py`, `chrome_detection.py`, `session_runtime.py` | `tests/sidecar/tools/test_chrome_launcher.py`, `test_chrome_detection.py`, `test_browser_session_runtime.py` | [Dedicated Browser Runtime](dedicated_browser_runtime.md) |
-| Snapshot text, refs, ARIA/DOM extraction | Sidecar controller and snapshot pipeline | `controller.py`, `enhanced_cdp_pipeline.py`, `role_snapshot.py`, `ref_registry.py`, `observation_store.py` | `tests/sidecar/tools/test_browser_enhanced_cdp_pipeline.py`, `test_browser_ref_registry.py`, `test_browser_observation_store.py` | [Browser Action Surface](browser_action_surface.md) |
+| CDP launch, executable detection, or profile path | Sidecar Chrome launcher/detection | `frontend/src/main/python/tools/browser/chrome_launcher.py`, `chrome_detection.py`, `browser_use_engine.py` | `tests/sidecar/tools/test_chrome_launcher.py`, `test_chrome_detection.py`, `test_browser_use_engine.py` | [Dedicated Browser Runtime](dedicated_browser_runtime.md) |
+| Snapshot text and Browser Use element indexes | Sidecar Browser Use engine adapter | `frontend/src/main/python/tools/browser/browser_use_engine.py` | `tests/sidecar/tools/test_browser_use_engine.py` | [Browser Action Surface](browser_action_surface.md) |
 | Browser session header/status UI | Renderer browser session store and chat control | `frontend/src/renderer/infrastructure/runtime/browserSessionStore.js`, `useBrowserSessionControl.js`, `frontend/src/renderer/features/chat/components/ChatBrowserSessionControl.jsx` | `tests/frontend/ChatBrowserSessionControl.test.jsx` | [Renderer State Change Workflow](../frontend/renderer/renderer_state_change_workflow.md) |
 | Browser permission/readiness/onboarding | Electron permission service and settings UI | `frontend/src/main/permission_service_browser.cjs`, `frontend/src/main/permission_ipc_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/sections/settings/BrowserSettingsTab.jsx` | frontend permission/settings tests | [Permissions and Local Authority Workflow](../security/permissions_and_local_authority_workflow.md) |
 | Browser file or download behavior | Sidecar browser file store and Browser Use engine adapter | `frontend/src/main/python/tools/browser/file_store.py`, `browser_use_engine.py` | sidecar browser tool/action tests | [Browser Troubleshooting](browser_troubleshooting.md) |
@@ -119,8 +119,7 @@ Edit:
 
 - `frontend/src/main/python/tools/browser/chrome_detection.py` for executable search order.
 - `frontend/src/main/python/tools/browser/chrome_launcher.py` for CDP URL/port, process args, startup probes, and profile directory.
-- `frontend/src/main/python/tools/browser/controller.py` for connection lifecycle behavior.
-- `frontend/src/main/python/tools/browser/session_runtime.py` for stored Playwright/CDP session fields.
+- `frontend/src/main/python/tools/browser/browser_use_engine.py` for Browser Use session attachment and status payloads.
 - permission/readiness UI only if the user-visible setup flow changes.
 
 Validate:
@@ -131,28 +130,25 @@ Validate:
 - failed launch tears down partial processes cleanly.
 - status/connect payloads still include enough data for renderer session controls.
 
-### Change browser snapshots or refs
+### Change browser snapshots or element indexes
 
 Read:
 
 - [Browser Action Surface](browser_action_surface.md)
 - [Browser Troubleshooting](browser_troubleshooting.md)
-- [Sidecar BrowserController Lifecycle + Snapshot + Actions](../frontend/sidecar/browser/chrome/browser_controller_lifecycle_snapshot_and_action_runtime_reference.md)
 
 Edit:
 
-- `frontend/src/main/python/tools/browser/controller.py` for public snapshot/action facade behavior.
-- `frontend/src/main/python/tools/browser/enhanced_cdp_pipeline.py` for DOM/AX/style capture and interactive-node selection.
-- `frontend/src/main/python/tools/browser/role_snapshot.py` for role-ref parsing/rendering.
-- `frontend/src/main/python/tools/browser/ref_registry.py` and `observation_store.py` for ref lifecycle and tab-scoped state.
-- `frontend/src/main/python/tools/browser/action_executor.py` if click/input resolution changes.
+- `frontend/src/main/python/tools/browser/browser_use_engine.py` for snapshot pagination, result fields, and numeric index validation.
+- shared browser schemas only if accepted action fields change.
 
 Validate:
 
-- refs remain stable for a single observation and reset after navigation or page mutation where intended.
-- ambiguous role refs produce actionable errors.
+- Browser Use state text is preserved in the model-visible result output.
+- numeric indexes from the latest snapshot are accepted where Browser Use actions require them.
+- non-numeric role refs produce actionable errors.
 - snapshot limits protect output size but preserve useful interactive elements.
-- click/input tests cover numeric refs and role refs.
+- click/input tests cover numeric refs and reject legacy role refs.
 
 ### Change browser extraction or long-content behavior
 
@@ -262,9 +258,9 @@ Validate:
 | --- | --- |
 | Backend browser schema/tool exposure | `./scripts/python-in-env backend pytest tests/backend/test_browser_remote_tool.py` |
 | Shared browser contract or sidecar schema | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_schemas.py tests/sidecar/test_browser_runtime_architecture.py` |
-| Sidecar runtime action | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_action_executor.py` |
-| CDP launch/session lifecycle | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_chrome_launcher.py tests/sidecar/tools/test_chrome_detection.py tests/sidecar/tools/test_browser_controller.py tests/sidecar/tools/test_browser_session_runtime.py` |
-| Snapshot/ref behavior | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_enhanced_cdp_pipeline.py tests/sidecar/tools/test_browser_ref_registry.py tests/sidecar/tools/test_browser_observation_store.py` |
+| Sidecar runtime action | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_tool.py tests/sidecar/tools/test_browser_use_engine.py` |
+| CDP launch/session lifecycle | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_chrome_launcher.py tests/sidecar/tools/test_chrome_detection.py tests/sidecar/tools/test_browser_use_engine.py` |
+| Snapshot/index behavior | `./scripts/python-in-env sidecar python -m pytest tests/sidecar/tools/test_browser_use_engine.py` |
 | Renderer browser session UI | `cd frontend && npm run test:ci -- ChatBrowserSessionControl.test.jsx` |
 | Browser permission/readiness UI | focused frontend permission/settings tests plus sidecar import/readiness smoke where dependencies changed |
 | Docs-only browser changes | `./bin/docs-list`, `git diff --check`, and a focused Markdown link check over touched docs |

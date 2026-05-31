@@ -19,7 +19,7 @@ playwright install chromium
 
 `browser-use[cli]` is installed from the sidecar requirements and is the maintained browser automation engine.
 
-To verify the WindieOS adapter boundary:
+To verify the WindieOS browser runtime boundary:
 
 ```bash
 cd WindieOS

@@ -15,6 +15,7 @@ from tools.browser.chrome_launcher import (
     is_cdp_available,
     launch_chrome_with_cdp,
 )
+from tools.browser.browser_tool import execute_browser
 from tools.browser.schemas import (
     BrowserClickArgs,
     BrowserCloseArgs,
@@ -48,14 +49,6 @@ from tools.browser.schemas import (
     BrowserWaitArgs,
     BrowserWriteFileArgs,
 )
-
-try:
-    from tools.browser.controller import BrowserController, get_browser_controller
-    from tools.browser.browser_tool import execute_browser
-except ImportError:
-    BrowserController = None  # type: ignore
-    get_browser_controller = None  # type: ignore
-    execute_browser = None  # type: ignore
 
 __all__ = [
     "ChromeExecutable",
@@ -100,7 +93,5 @@ __all__ = [
     "BrowserCloseArgs",
     "BrowserProfilesArgs",
     "BrowserStatusArgs",
-    "BrowserController",
-    "get_browser_controller",
     "execute_browser",
 ]

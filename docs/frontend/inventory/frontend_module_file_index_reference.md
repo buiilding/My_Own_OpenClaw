@@ -148,16 +148,13 @@ Tool runtime:
 - System/process tools: `frontend/src/main/python/tools/system/*`
 - Memory tool: `frontend/src/main/python/tools/memory/memory_tool.py`
 - Browser tools:
-- `frontend/src/main/python/tools/browser/{controller,browser_tool,browser_runtime,browser_adapter,enhanced_cdp_pipeline,chrome_detection,chrome_launcher,schemas,role_snapshot,ref_registry,openclaw_compat_schema}.py`
-- Browser Use vendored stack:
-- `frontend/src/main/python/tools/browser/browser_use/**`
+- `frontend/src/main/python/tools/browser/{browser_tool,browser_use_engine,browser_action_contract,chrome_detection,chrome_launcher,content_extraction,file_store,schemas}.py`
+- `frontend/src/main/python/windie_shared/browser_contract*.py`
 
-Browser Use ownership clusters:
+Browser Use CLI ownership:
 
-- `actor/*`, `agent/*`, `browser/*`, `browser/watchdogs/*`
-- `dom/*`, `dom/serializer/*`
-- `tools/*`, `tools/registry/*`, `tools/extraction/*`
-- `llm/*`, `tokens/*`, `filesystem/*`
+- WindieOS owns schema validation, local transport, Chrome/CDP launch policy, browser-local files, and result normalization.
+- The official `browser-use[cli]` dependency owns browser/session mechanics.
 
 ## Landing + Preload Index
 

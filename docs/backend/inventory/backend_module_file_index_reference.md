@@ -120,7 +120,7 @@ Backend tool surface:
 - `backend/src/tools/bundle_execution.py`
 - `backend/src/tools/remote_tools/*.py`
 - `backend/src/tools/{computer,filesystem,system,browser}/schemas*.py`
-- `backend/src/tools/browser/{shared_compat_fields,snapshot_scope_fields}.py`
+- `backend/src/tools/browser/{browser_control_args_schema,schema_types,shared_contract_loader}.py`
 
 Services domain:
 
