@@ -6,113 +6,28 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 
 ensure_frontend_python_path()
 
-from tools.registry import ToolRegistry  # noqa: E402
 from tools.schemas import (  # noqa: E402
-    GetOpenWindowsArgs as SidecarGetOpenWindowsArgs,
-    GetSystemStatsArgs as SidecarGetSystemStatsArgs,
-    KeyboardControlArgs as SidecarKeyboardControlArgs,
     MouseControlArgs as SidecarMouseControlArgs,
-    OpenAppArgs as SidecarOpenAppArgs,
-    ProcessShellCommandArgs as SidecarProcessShellCommandArgs,
-    ReadFileArgs as SidecarReadFileArgs,
-    ReplaceArgs as SidecarReplaceArgs,
-    ReplaceOperationArgs as SidecarReplaceOperationArgs,
-    ReplacePatchChunkArgs as SidecarReplacePatchChunkArgs,
-    RunShellCommandArgs as SidecarRunShellCommandArgs,
     ScreenshotToolArgs as SidecarScreenshotToolArgs,
     ScrollControlArgs as SidecarScrollControlArgs,
-    SwitchTabArgs as SidecarSwitchTabArgs,
-    WaitToolArgs as SidecarWaitToolArgs,
 )
 from tools.browser.schemas import BrowserControlArgs as SidecarBrowserControlArgs  # noqa: E402
 
-from backend.src.tools.filesystem.schemas import (
-    ReadFileArgs as BackendReadFileArgs,
-    ReplaceArgs as BackendReplaceArgs,
-    ReplaceOperationArgs as BackendReplaceOperationArgs,
-    ReplacePatchChunkArgs as BackendReplacePatchChunkArgs,
-)
 from backend.src.tools.computer.schemas import (
-    KeyboardControlArgs as BackendKeyboardControlArgs,
     MouseControlArgs as BackendMouseControlArgs,
     ScreenshotToolArgs as BackendScreenshotToolArgs,
     ScrollControlArgs as BackendScrollControlArgs,
-    SwitchTabArgs as BackendSwitchTabArgs,
-    WaitToolArgs as BackendWaitToolArgs,
-)
-from backend.src.tools.system.schemas import (
-    GetOpenWindowsArgs as BackendGetOpenWindowsArgs,
-    GetSystemStatsArgs as BackendGetSystemStatsArgs,
-    OpenAppArgs as BackendOpenAppArgs,
-    ProcessShellCommandArgs as BackendProcessShellCommandArgs,
-    RunShellCommandArgs as BackendRunShellCommandArgs,
 )
 from backend.src.tools.browser.schemas import BrowserControlArgs as BackendBrowserControlArgs
 
 
-INTENTIONAL_EXCEPTIONS = frozenset(
-    {
-        "mouse_control",
-        "screenshot",
-        "scroll_control",
-    }
-)
-
-EXACT_PARITY_TOOLS = {
+# Exact parity is only valid for models backed by a shared/generated contract.
+# Frontend-owned local executable schemas may intentionally differ from backend
+# model-facing defaults; manifest tests cover those local tool surfaces.
+SHARED_CONTRACT_MODELS = {
     "browser": (
         BackendBrowserControlArgs,
         SidecarBrowserControlArgs,
-    ),
-    "keyboard_control": (
-        BackendKeyboardControlArgs,
-        SidecarKeyboardControlArgs,
-    ),
-    "switch_window": (
-        BackendSwitchTabArgs,
-        SidecarSwitchTabArgs,
-    ),
-    "wait": (
-        BackendWaitToolArgs,
-        SidecarWaitToolArgs,
-    ),
-    "get_open_windows": (
-        BackendGetOpenWindowsArgs,
-        SidecarGetOpenWindowsArgs,
-    ),
-    "get_system_stats": (
-        BackendGetSystemStatsArgs,
-        SidecarGetSystemStatsArgs,
-    ),
-    "open_app": (
-        BackendOpenAppArgs,
-        SidecarOpenAppArgs,
-    ),
-    "run_shell_command": (
-        BackendRunShellCommandArgs,
-        SidecarRunShellCommandArgs,
-    ),
-    "process": (
-        BackendProcessShellCommandArgs,
-        SidecarProcessShellCommandArgs,
-    ),
-    "read_file": (
-        BackendReadFileArgs,
-        SidecarReadFileArgs,
-    ),
-    "replace": (
-        BackendReplaceArgs,
-        SidecarReplaceArgs,
-    ),
-}
-
-EXACT_PARITY_SUPPORT_MODELS = {
-    "replace_operation": (
-        BackendReplaceOperationArgs,
-        SidecarReplaceOperationArgs,
-    ),
-    "replace_patch_chunk": (
-        BackendReplacePatchChunkArgs,
-        SidecarReplacePatchChunkArgs,
     ),
 }
 
@@ -213,23 +128,10 @@ def _normalized_model_schema(model: type[Any]) -> dict[str, Any]:
     return _normalize_schema_fragment(_resolve_local_refs(raw_schema))
 
 
-def test_shared_non_browser_schema_parity_coverage_matches_exposed_tool_set():
-    exposed_tools = ToolRegistry.get_exposed_tool_names()
-    covered_tools = set(EXACT_PARITY_TOOLS.keys()) | INTENTIONAL_EXCEPTIONS
-    assert covered_tools == (set(exposed_tools) - {"replace_operation", "replace_patch_chunk"}), (
-        "Shared non-browser schema parity coverage drift detected.\n"
-        f"Covered tools: {sorted(covered_tools)}\n"
-        f"Exposed tools: {sorted(exposed_tools)}"
-    )
-
-
-def test_exact_parity_models_match_backend_contract():
-    for tool_name, (backend_model, sidecar_model) in {
-        **EXACT_PARITY_TOOLS,
-        **EXACT_PARITY_SUPPORT_MODELS,
-    }.items():
+def test_shared_contract_models_match_backend_contract():
+    for tool_name, (backend_model, sidecar_model) in SHARED_CONTRACT_MODELS.items():
         assert _normalized_model_schema(sidecar_model) == _normalized_model_schema(backend_model), (
-            f"Backend/sidecar schema drift detected for {tool_name}.\n"
+            f"Shared backend/sidecar schema drift detected for {tool_name}.\n"
             f"Backend: {_normalized_model_schema(backend_model)}\n"
             f"Sidecar: {_normalized_model_schema(sidecar_model)}"
         )

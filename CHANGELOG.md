@@ -13,6 +13,9 @@ All notable changes to WindieOS will be documented in this file.
   ownership boundary by using accepted client schemas for built-in local tools,
   removing backend argument validation for sidecar payloads, and teaching the
   SDK tool coordinator to honor backend-marked synthetic skip events.
+- tests/sidecar: narrow backend-sidecar exact schema parity coverage to shared
+  contracts so frontend-owned local tool schemas are validated through the
+  sidecar manifest boundary instead of backend model equality.
 - sdk/runtime: make public `agent.stream(...)` and `agent.chat(...).stream(...)`
   emit normalized chat events with explicit state, reasoning, assistant,
   `tool_calls`, and `tool_outputs` records, while keeping bundled tool results
