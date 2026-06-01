@@ -7,7 +7,7 @@ import {
   createConversationEvent,
   createInitialConversationRuntimeState,
   InMemoryConversationStore,
-  normalizeBackendEventToConversationEvent,
+  normalizeBackendEventToConversationEvent as normalizeBackendEventToConversationEventRaw,
   reduceConversationRuntimeState,
   SdkConversationRuntime,
   toAgentStreamEvents,
@@ -82,7 +82,7 @@ function createControllableBackendTransport(
     }),
   }) as BackendTransport & { emit(event: BackendEvent): void };
   transport.emit = (event: BackendEvent) => {
-    listeners.forEach(listener => listener(event));
+    listeners.forEach(listener => listener(stampBackendEvent(event)));
   };
   return transport;
 }
@@ -90,10 +90,12 @@ function createControllableBackendTransport(
 function backendEvent(
   type: BackendEvent['type'],
   payload: Record<string, unknown>,
-  options: { eventId: string; turnRef: string },
+  options: { eventId: string; turnRef: string; sequence?: number },
 ): BackendEvent {
   return {
-    id: options.eventId,
+    id: options.turnRef,
+    event_id: options.eventId,
+    ...(typeof options.sequence === 'number' ? { sequence: options.sequence } : {}),
     type,
     conversation_ref: 'conv-sdk-runtime',
     turn_ref: options.turnRef,
@@ -102,7 +104,38 @@ function backendEvent(
   } as BackendEvent;
 }
 
+const testBackendEventSequences = new Map<string, number>();
+
+function stampBackendEvent(event: BackendEvent): BackendEvent {
+  const turnRef = typeof event.turn_ref === 'string' && event.turn_ref.trim()
+    ? event.turn_ref.trim()
+    : 'turn-test';
+  const sequence = typeof event.sequence === 'number'
+    ? event.sequence
+    : ((testBackendEventSequences.get(turnRef) ?? 0) + 1);
+  testBackendEventSequences.set(turnRef, sequence);
+  return {
+    ...event,
+    id: typeof event.id === 'string' ? event.id : turnRef,
+    event_id: typeof event.event_id === 'string'
+      ? event.event_id
+      : `${turnRef}-evt-${sequence.toString().padStart(6, '0')}-${event.type}`,
+    sequence,
+  } as BackendEvent;
+}
+
+function normalizeBackendEventToConversationEvent(
+  event: BackendEvent,
+  options?: Parameters<typeof normalizeBackendEventToConversationEventRaw>[1],
+): ConversationEvent | null {
+  return normalizeBackendEventToConversationEventRaw(stampBackendEvent(event), options);
+}
+
 describe('Windie SDK conversation runtime core', () => {
+  beforeEach(() => {
+    testBackendEventSequences.clear();
+  });
+
   test('skipped compaction is runtime state, not display output', () => {
     const events = [
       event('user_message', { text: 'run the tool' }),
@@ -1070,20 +1103,45 @@ describe('Windie SDK conversation runtime core', () => {
   });
 
   test('backend query-accepted normalizes to turn_started', () => {
-    const normalized = normalizeBackendEventToConversationEvent({
-      type: 'query-accepted',
-      conversation_ref: 'conv-sdk-runtime',
-      turn_ref: 'turn-accepted',
-      payload: { status: 'accepted' },
-    });
+    const normalized = normalizeBackendEventToConversationEvent(backendEvent(
+      'query-accepted',
+      { status: 'accepted' },
+      {
+        eventId: 'turn-accepted-evt-000001-query-accepted',
+        turnRef: 'turn-accepted',
+        sequence: 1,
+      },
+    ));
 
     expect(normalized).toMatchObject({
+      eventId: 'turn-accepted-evt-000001-query-accepted',
       type: 'turn_started',
       conversationRef: 'conv-sdk-runtime',
       turnRef: 'turn-accepted',
       source: 'backend',
       payload: expect.objectContaining({
         status: 'accepted',
+        backendSequence: 1,
+      }),
+    });
+  });
+
+  test('backend event without stream identity normalizes to runtime_error', () => {
+    const normalized = normalizeBackendEventToConversationEventRaw({
+      id: 'turn-missing',
+      type: 'streaming-response',
+      conversation_ref: 'conv-sdk-runtime',
+      turn_ref: 'turn-missing',
+      payload: { text: 'orphan chunk' },
+    } satisfies BackendEvent);
+
+    expect(normalized).toMatchObject({
+      type: 'runtime_error',
+      source: 'sdk',
+      conversationRef: 'conv-sdk-runtime',
+      payload: expect.objectContaining({
+        reason: 'missing_backend_event_identity',
+        sourceEventType: 'streaming-response',
       }),
     });
   });
@@ -2248,24 +2306,24 @@ describe('Windie SDK conversation runtime core', () => {
       { messageId: 'turn-stream' },
     );
     expect(backendListener).toBeTruthy();
-    backendListener?.({
+    backendListener?.(stampBackendEvent({
       type: 'streaming-response',
       conversation_ref: 'conv-sdk-runtime',
       turn_ref: 'turn-stream',
       payload: { text: 'partial' },
-    } satisfies BackendEvent);
-    backendListener?.({
+    } satisfies BackendEvent));
+    backendListener?.(stampBackendEvent({
       type: 'assistant-message-full',
       conversation_ref: 'conv-sdk-runtime',
       turn_ref: 'turn-stream',
       payload: { content: 'done' },
-    } satisfies BackendEvent);
-    backendListener?.({
+    } satisfies BackendEvent));
+    backendListener?.(stampBackendEvent({
       type: 'streaming-complete',
       conversation_ref: 'conv-sdk-runtime',
       turn_ref: 'turn-stream',
       payload: { final_response: 'done' },
-    } satisfies BackendEvent);
+    } satisfies BackendEvent));
 
     await consume;
 
@@ -2308,18 +2366,18 @@ describe('Windie SDK conversation runtime core', () => {
 
     await first.send({ text: 'first', turnRef: 'turn-first' });
     await second.send({ text: 'second', turnRef: 'turn-second' });
-    backendListeners.forEach(listener => listener({
+    backendListeners.forEach(listener => listener(stampBackendEvent({
       type: 'streaming-response',
       conversation_ref: 'conv-first',
       turn_ref: 'turn-first',
       payload: { text: 'first chunk' },
-    } satisfies BackendEvent));
-    backendListeners.forEach(listener => listener({
+    } satisfies BackendEvent)));
+    backendListeners.forEach(listener => listener(stampBackendEvent({
       type: 'streaming-response',
       conversation_ref: 'conv-first',
       turn_ref: 'turn-old',
       payload: { text: 'stale chunk' },
-    } satisfies BackendEvent));
+    } satisfies BackendEvent)));
     backendListeners.forEach(listener => listener({
       type: 'streaming-response',
       payload: { text: 'ambiguous chunk' },
@@ -2328,6 +2386,80 @@ describe('Windie SDK conversation runtime core', () => {
 
     expect((await store.loadEvents('conv-first')).filter(storedEvent => storedEvent.type === 'assistant_delta')).toHaveLength(1);
     expect((await store.loadEvents('conv-second')).filter(storedEvent => storedEvent.type === 'assistant_delta')).toHaveLength(0);
+  });
+
+  test('conversation runtime ignores duplicate backend event ids', async () => {
+    let backendListener: ((event: unknown) => void) | null = null;
+    const store = new InMemoryConversationStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport: createMockBackendTransport({
+        subscribe: jest.fn(listener => {
+          backendListener = listener;
+          return () => {
+            backendListener = null;
+          };
+        }),
+      }),
+    });
+    runtime.attachTransport();
+
+    const eventPayload = backendEvent(
+      'streaming-response',
+      { text: 'one chunk' },
+      {
+        eventId: 'turn-dupe-evt-000001-streaming-response',
+        turnRef: 'turn-dupe',
+        sequence: 1,
+      },
+    );
+    backendListener?.(eventPayload);
+    backendListener?.(eventPayload);
+    await tick();
+
+    const events = await store.loadEvents('conv-sdk-runtime');
+    expect(events.filter(storedEvent => storedEvent.type === 'assistant_delta')).toHaveLength(1);
+  });
+
+  test('conversation runtime records backend sequence gaps before accepting later event', async () => {
+    let backendListener: ((event: unknown) => void) | null = null;
+    const store = new InMemoryConversationStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport: createMockBackendTransport({
+        subscribe: jest.fn(listener => {
+          backendListener = listener;
+          return () => {
+            backendListener = null;
+          };
+        }),
+      }),
+    });
+    runtime.attachTransport();
+
+    backendListener?.(backendEvent(
+      'streaming-response',
+      { text: 'late chunk' },
+      {
+        eventId: 'turn-gap-evt-000003-streaming-response',
+        turnRef: 'turn-gap',
+        sequence: 3,
+      },
+    ));
+    await tick();
+
+    const events = await store.loadEvents('conv-sdk-runtime');
+    expect(events.map(storedEvent => storedEvent.type)).toEqual([
+      'runtime_error',
+      'assistant_delta',
+    ]);
+    expect(events[0].payload).toMatchObject({
+      reason: 'backend_sequence_gap',
+      missing_sequence_start: 1,
+      missing_sequence_end: 2,
+    });
   });
 
   test('conversation runtime can route backend tool calls through a local runtime coordinator', async () => {
@@ -2360,6 +2492,9 @@ describe('Windie SDK conversation runtime core', () => {
     runtime.attachTransport();
 
     backendListener?.({
+      id: 'turn-tool',
+      event_id: 'turn-tool-evt-000001-tool-call',
+      sequence: 1,
       type: 'tool-call',
       conversation_ref: 'conv-sdk-runtime',
       turn_ref: 'turn-tool',
@@ -2413,7 +2548,7 @@ describe('Windie SDK conversation runtime core', () => {
     });
     runtime.attachTransport();
 
-    backendListener?.({
+    backendListener?.(stampBackendEvent({
       type: 'tool-call',
       conversation_ref: 'conv-sdk-runtime',
       turn_ref: 'turn-tool',
@@ -2422,7 +2557,7 @@ describe('Windie SDK conversation runtime core', () => {
         request_id: 'req-read',
         parameters: { path: 'README.md' },
       },
-    } satisfies BackendEvent);
+    } satisfies BackendEvent));
     await tick();
     await tick();
 
@@ -2473,7 +2608,7 @@ describe('Windie SDK conversation runtime core', () => {
     });
     runtime.attachTransport();
 
-    backendListener?.({
+    backendListener?.(stampBackendEvent({
       type: 'tool-call',
       conversation_ref: 'conv-sdk-runtime',
       turn_ref: 'turn-tool',
@@ -2481,7 +2616,7 @@ describe('Windie SDK conversation runtime core', () => {
         tool_name: 'read_file',
         parameters: { path: 'README.md' },
       },
-    } satisfies BackendEvent);
+    } satisfies BackendEvent));
     await tick();
     await tick();
 
@@ -2527,7 +2662,7 @@ describe('Windie SDK conversation runtime core', () => {
     });
     runtime.attachTransport();
 
-    backendListener?.({
+    backendListener?.(stampBackendEvent({
       type: 'tool-bundle',
       conversation_ref: 'conv-sdk-runtime',
       turn_ref: 'turn-tool',
@@ -2536,7 +2671,7 @@ describe('Windie SDK conversation runtime core', () => {
           { name: 'read_file', args: { path: 'README.md' } },
         ],
       },
-    } satisfies BackendEvent);
+    } satisfies BackendEvent));
     await tick();
     await tick();
 

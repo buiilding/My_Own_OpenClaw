@@ -50,20 +50,59 @@ function eventBase(event, fallbackRevisionId, fallbackConversationRef) {
     if (!conversationRef) {
         return null;
     }
+    if (typeof event.event_id !== 'string' || !event.event_id.trim()) {
+        return {
+            conversationRef,
+            revisionId: revisionIdFor(event, fallbackRevisionId),
+            turnRef: typeof event.turn_ref === 'string' ? event.turn_ref : null,
+            eventId: (0, events_js_1.createRuntimeId)('evt'),
+            timestamp: new Date().toISOString(),
+        };
+    }
     return {
         conversationRef,
         revisionId: revisionIdFor(event, fallbackRevisionId),
         turnRef: typeof event.turn_ref === 'string' ? event.turn_ref : null,
-        eventId: typeof event.id === 'string' ? event.id : (0, events_js_1.createRuntimeId)('evt'),
+        eventId: event.event_id.trim(),
         timestamp: new Date().toISOString(),
     };
+}
+function backendSequenceOf(event) {
+    return Number.isInteger(event.sequence) && (event.sequence ?? 0) > 0
+        ? event.sequence
+        : null;
+}
+function backendEventMetadata(event) {
+    return {
+        backendSequence: backendSequenceOf(event),
+        rawEvent: event,
+    };
+}
+function missingBackendIdentityEvent(event, base) {
+    return (0, events_js_1.createConversationEvent)({
+        ...base,
+        type: 'runtime_error',
+        source: 'sdk',
+        payload: {
+            error: 'Backend stream event missing event_id or sequence',
+            reason: 'missing_backend_event_identity',
+            sourceEventType: event.type,
+            backendEventId: typeof event.event_id === 'string' ? event.event_id : null,
+            backendSequence: backendSequenceOf(event),
+            rawEvent: event,
+        },
+    });
 }
 function normalizeBackendEventToConversationEvent(event, options = {}) {
     const base = eventBase(event, options.fallbackRevisionId, options.fallbackConversationRef);
     if (!base) {
         return null;
     }
+    if (typeof event.event_id !== 'string' || !event.event_id.trim() || backendSequenceOf(event) === null) {
+        return missingBackendIdentityEvent(event, base);
+    }
     const payload = payloadOf(event);
+    const backendMetadata = backendEventMetadata(event);
     if (event.type === 'query-accepted') {
         return (0, events_js_1.createConversationEvent)({
             ...base,
@@ -71,7 +110,7 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
             source: 'backend',
             payload: {
                 status: typeof payload.status === 'string' ? payload.status : 'accepted',
-                rawEvent: event,
+                ...backendMetadata,
             },
         });
     }
@@ -84,7 +123,7 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
                 text: typeof payload.status === 'string'
                     ? payload.status
                     : (typeof payload.content === 'string' ? payload.content : ''),
-                rawEvent: event,
+                ...backendMetadata,
             },
         });
     }
@@ -95,7 +134,7 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
             source: 'backend',
             payload: {
                 text: typeof payload.text === 'string' ? payload.text : '',
-                rawEvent: event,
+                ...backendMetadata,
             },
         });
     }
@@ -107,7 +146,7 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
             payload: {
                 finalResponse: typeof payload.final_response === 'string' ? payload.final_response : null,
                 userId: typeof event.user_id === 'string' ? event.user_id : null,
-                rawEvent: event,
+                ...backendMetadata,
             },
         });
     }
@@ -127,7 +166,7 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
                 userId: typeof event.user_id === 'string' ? event.user_id : null,
                 sourceEventType: 'local-user-message',
                 structuredPayload: payload,
-                rawEvent: event,
+                ...backendMetadata,
             },
         });
     }
@@ -142,7 +181,7 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
                 content: typeof payload.content === 'string' ? payload.content : '',
                 toolSchemas,
                 structuredPayload: payload,
-                rawEvent: event,
+                ...backendMetadata,
             },
         });
     }
@@ -158,7 +197,7 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
                     ? payload.metadata
                     : null,
                 structuredPayload: payload,
-                rawEvent: event,
+                ...backendMetadata,
             },
         });
     }
@@ -172,7 +211,7 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
                 text: content ?? '',
                 content: content ?? '',
                 structuredPayload: payload,
-                rawEvent: event,
+                ...backendMetadata,
             },
         });
     }
@@ -186,7 +225,7 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
                 ...payload,
                 toolSchemas,
                 structuredPayload: payload,
-                rawEvent: event,
+                ...backendMetadata,
             },
         });
     }
@@ -208,7 +247,7 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
                     : (0, toolCorrelationIds_js_1.resolveModelFacingToolCallId)(payload),
                 userId: typeof event.user_id === 'string' ? event.user_id : null,
                 structuredPayload: payload,
-                rawEvent: event,
+                ...backendMetadata,
             },
         });
     }
@@ -224,7 +263,7 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
                 requestId: typeof payload.request_id === 'string' ? payload.request_id : null,
                 correlationId: toolCorrelationIdFromPayload(payload),
                 structuredPayload: payload,
-                rawEvent: event,
+                ...backendMetadata,
             },
         });
     }
@@ -242,7 +281,7 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
                 screenshot: typeof payload.screenshot === 'string' ? payload.screenshot : null,
                 userId: typeof event.user_id === 'string' ? event.user_id : null,
                 structuredPayload: payload,
-                rawEvent: event,
+                ...backendMetadata,
             },
         });
     }
@@ -257,7 +296,7 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
                 userId: typeof event.user_id === 'string' ? event.user_id : null,
                 tools: Array.isArray(payload.tools) ? payload.tools : [],
                 structuredPayload: payload,
-                rawEvent: event,
+                ...backendMetadata,
             },
         });
     }
@@ -275,7 +314,7 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
                 screenshotRef: typeof payload.screenshot_ref === 'string' ? payload.screenshot_ref : null,
                 screenshot: typeof payload.screenshot === 'string' ? payload.screenshot : null,
                 structuredPayload: payload,
-                rawEvent: event,
+                ...backendMetadata,
             },
         });
     }
@@ -287,7 +326,7 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
             payload: {
                 ...payload,
                 reason: typeof payload.reason === 'string' ? payload.reason : null,
-                rawEvent: event,
+                ...backendMetadata,
             },
         });
     }
@@ -319,7 +358,7 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
                     : [],
                 replacementHistoryEntries,
                 userId: typeof event.user_id === 'string' ? event.user_id : null,
-                rawEvent: event,
+                ...backendMetadata,
             },
         });
     }
@@ -331,7 +370,7 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
             payload: {
                 ...payload,
                 error: typeof payload.error === 'string' ? payload.error : null,
-                rawEvent: event,
+                ...backendMetadata,
             },
         });
     }
@@ -347,7 +386,7 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
                 message,
                 content: typeof payload.content === 'string' ? payload.content : message,
                 userId: typeof event.user_id === 'string' ? event.user_id : null,
-                rawEvent: event,
+                ...backendMetadata,
             },
         });
     }
@@ -359,7 +398,7 @@ function normalizeBackendEventToConversationEvent(event, options = {}) {
             payload: {
                 ...payload,
                 userId: typeof event.user_id === 'string' ? event.user_id : null,
-                rawEvent: event,
+                ...backendMetadata,
             },
         });
     }

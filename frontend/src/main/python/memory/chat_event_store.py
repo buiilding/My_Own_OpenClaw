@@ -83,6 +83,40 @@ def _normalize_sql_limit(limit: Optional[int]) -> int:
     return parsed if parsed > 0 else -1
 
 
+def _normalize_producer(producer: Optional[str]) -> str:
+    if isinstance(producer, str) and producer.strip():
+        return producer.strip()
+    return "sdk"
+
+
+def _normalize_producer_sequence(sequence: Any) -> Optional[int]:
+    if isinstance(sequence, bool):
+        return None
+    try:
+        parsed = int(sequence)
+    except (TypeError, ValueError):
+        return None
+    return parsed if parsed > 0 else None
+
+
+def _resolve_producer_fields(
+    *,
+    event_id: str,
+    event: Dict[str, Any],
+) -> Tuple[str, Optional[str], Optional[int]]:
+    producer = _normalize_producer(event.get("producer"))
+    producer_event_id = event.get("producer_event_id", event.get("producerEventId"))
+    normalized_producer_event_id = (
+        producer_event_id
+        if isinstance(producer_event_id, str) and producer_event_id.strip()
+        else (event_id if producer == "backend" else None)
+    )
+    producer_sequence = _normalize_producer_sequence(
+        event.get("producer_sequence", event.get("producerSequence"))
+    )
+    return producer, normalized_producer_event_id, producer_sequence
+
+
 async def init_chat_event_schema(db_path: str) -> None:
     if aiosqlite is None:
         raise ImportError(
@@ -107,6 +141,9 @@ async def init_chat_event_schema(db_path: str) -> None:
                 correlation_id TEXT,
                 workspace_path TEXT,
                 workspace_name TEXT,
+                producer TEXT NOT NULL DEFAULT 'sdk',
+                producer_event_id TEXT,
+                producer_sequence INTEGER,
                 metadata TEXT,
                 attachments TEXT,
                 event_payload TEXT NOT NULL,
@@ -114,6 +151,11 @@ async def init_chat_event_schema(db_path: str) -> None:
             )
             """)
         await _ensure_chat_event_column(cursor, "attachments", "TEXT")
+        await _ensure_chat_event_column(
+            cursor, "producer", "TEXT NOT NULL DEFAULT 'sdk'"
+        )
+        await _ensure_chat_event_column(cursor, "producer_event_id", "TEXT")
+        await _ensure_chat_event_column(cursor, "producer_sequence", "INTEGER")
         await cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_chat_events_conversation_order
             ON chat_events(user_id, conversation_id, message_index, timestamp)
@@ -125,6 +167,10 @@ async def init_chat_event_schema(db_path: str) -> None:
         await cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_chat_events_type
             ON chat_events(user_id, conversation_id, event_type)
+            """)
+        await cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_chat_events_producer_order
+            ON chat_events(user_id, conversation_id, turn_ref, producer, producer_sequence)
             """)
         await cursor.execute("""
             CREATE TABLE IF NOT EXISTS chat_conversation_revisions (
@@ -195,6 +241,9 @@ async def append_chat_event(
     attachments: Optional[List[Any]],
     event_payload: Dict[str, Any],
     compaction_checkpoint: Optional[Dict[str, Any]] = None,
+    producer: Optional[str] = None,
+    producer_event_id: Optional[str] = None,
+    producer_sequence: Optional[int] = None,
 ) -> Dict[str, Any]:
     normalized_timestamp = _normalize_timestamp(timestamp)
     normalized_index = (
@@ -209,6 +258,13 @@ async def append_chat_event(
     event_id = str(
         event_payload.get("eventId") or event_payload.get("event_id") or uuid.uuid4()
     )
+    normalized_producer = _normalize_producer(producer)
+    normalized_producer_event_id = (
+        producer_event_id
+        if isinstance(producer_event_id, str) and producer_event_id.strip()
+        else (event_id if normalized_producer == "backend" else None)
+    )
+    normalized_producer_sequence = _normalize_producer_sequence(producer_sequence)
 
     async with aiosqlite.connect(db_path) as conn:
         await conn.execute(
@@ -216,9 +272,10 @@ async def append_chat_event(
             INSERT OR REPLACE INTO chat_events
             (id, user_id, conversation_id, event_type, role, content, timestamp,
              message_index, revision_id, turn_ref, tool_name, correlation_id,
-             workspace_path, workspace_name, metadata, attachments, event_payload,
+             workspace_path, workspace_name, producer, producer_event_id,
+             producer_sequence, metadata, attachments, event_payload,
              compaction_checkpoint)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 event_id,
@@ -235,6 +292,9 @@ async def append_chat_event(
                 correlation_id,
                 workspace_path,
                 workspace_name,
+                normalized_producer,
+                normalized_producer_event_id,
+                normalized_producer_sequence,
                 _json_dumps(metadata),
                 _json_dumps_value(attachments if isinstance(attachments, list) else []),
                 _json_dumps(event_payload) or "{}",
@@ -259,6 +319,9 @@ async def append_chat_event(
     return {
         "event_id": event_id,
         "message_index": normalized_index,
+        "producer": normalized_producer,
+        "producer_event_id": normalized_producer_event_id,
+        "producer_sequence": normalized_producer_sequence,
     }
 
 
@@ -282,6 +345,9 @@ def _row_to_dict(row: Any) -> Dict[str, Any]:
         "correlation_id": row["correlation_id"],
         "workspace_path": row["workspace_path"],
         "workspace_name": row["workspace_name"],
+        "producer": row["producer"],
+        "producer_event_id": row["producer_event_id"],
+        "producer_sequence": row["producer_sequence"],
         "metadata": metadata,
         "attachments": attachments,
         "event_payload": event_payload,
@@ -630,6 +696,11 @@ async def replace_chat_conversation(
                     or event_payload.get("event_id")
                     or uuid.uuid4()
                 )
+                (
+                    producer,
+                    producer_event_id,
+                    producer_sequence,
+                ) = _resolve_producer_fields(event_id=event_id, event=event)
                 message_index = event.get("message_index")
                 normalized_index = (
                     int(message_index)
@@ -641,9 +712,10 @@ async def replace_chat_conversation(
                     INSERT OR REPLACE INTO chat_events
                     (id, user_id, conversation_id, event_type, role, content, timestamp,
                      message_index, revision_id, turn_ref, tool_name, correlation_id,
-                     workspace_path, workspace_name, metadata, attachments, event_payload,
+                     workspace_path, workspace_name, producer, producer_event_id,
+                     producer_sequence, metadata, attachments, event_payload,
                      compaction_checkpoint)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         event_id,
@@ -660,6 +732,9 @@ async def replace_chat_conversation(
                         event.get("correlation_id"),
                         event.get("workspace_path"),
                         event.get("workspace_name"),
+                        producer,
+                        producer_event_id,
+                        producer_sequence,
                         _json_dumps(event.get("metadata")),
                         _json_dumps_value(
                             event.get("attachments")
@@ -775,15 +850,20 @@ async def rewrite_chat_conversation_after_event(
                 or event_payload.get("event_id")
                 or uuid.uuid4()
             )
+            producer, producer_event_id, producer_sequence = _resolve_producer_fields(
+                event_id=event_id,
+                event=event,
+            )
             normalized_index = cutoff_index + 1
             await conn.execute(
                 """
                 INSERT OR REPLACE INTO chat_events
                 (id, user_id, conversation_id, event_type, role, content, timestamp,
                  message_index, revision_id, turn_ref, tool_name, correlation_id,
-                 workspace_path, workspace_name, metadata, attachments, event_payload,
+                 workspace_path, workspace_name, producer, producer_event_id,
+                 producer_sequence, metadata, attachments, event_payload,
                  compaction_checkpoint)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     event_id,
@@ -800,6 +880,9 @@ async def rewrite_chat_conversation_after_event(
                     event.get("correlation_id"),
                     event.get("workspace_path"),
                     event.get("workspace_name"),
+                    producer,
+                    producer_event_id,
+                    producer_sequence,
                     _json_dumps(event.get("metadata")),
                     _json_dumps_value(
                         event.get("attachments")

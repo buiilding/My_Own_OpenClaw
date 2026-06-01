@@ -36,7 +36,7 @@ async def complete_query_stream(
     pipeline: StreamPipeline,
     tts_service: Any,
     msg_id: str,
-    stream_context: dict[str, Optional[str]],
+    stream_context: dict[str, Any],
     stream_state: QueryExecutionStreamState,
     event: Any,
     event_type: Optional[str],

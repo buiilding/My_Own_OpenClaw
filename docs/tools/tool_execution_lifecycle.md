@@ -56,6 +56,11 @@ Single-tool path:
   `correlation_id`, `tool_call_id`, or the websocket event id. If `request_id`
   is missing, the event is malformed for result delivery and local execution is
   not claimed.
+- Backend stream `event_id` identifies the transport event row only. It is not
+  the tool-call correlation id. SDK sidecar outputs use SDK-owned local event
+  ids such as `{turnRef}-sidecar-tool-output-{requestId}` and link back to the
+  backend call through `request_id`, provider `tool_call_id`, `correlation_id`,
+  or `bundle_id`.
 - failed SDK tool results keep `success: false`, include `error`, and carry raw
   failure text in `data.output` when available.
 - backend does not emit accepted local SDK results back as `tool-output`.

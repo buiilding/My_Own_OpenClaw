@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/sdk/sidecar: make backend stream `event_id` and per-turn `sequence`
+  the source of truth for backend event identity/order, persist producer
+  metadata in sidecar chat storage, and have the SDK reject missing, duplicate,
+  or out-of-order backend stream events deterministically.
 - frontend/sidecar/browser: reconcile the flat Windie browser schema with
   Browser Use native and CLI surfaces by removing unsupported
   `dropdown_options`, requiring actionable snapshot indexes for interaction

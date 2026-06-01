@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 from backend.src.api.processing.pipeline import StreamPipeline
 from backend.src.core.events.streaming_events import ChunkEvent, StreamingCompleteEvent
@@ -14,7 +14,7 @@ async def process_pipeline_event(
     event: Any,
     tts_service: Any,
     msg_id: str,
-    stream_context: dict[str, Optional[str]],
+    stream_context: dict[str, Any],
 ) -> None:
     """Forward one event through pipeline with prebuilt stream context."""
     await pipeline.process(
@@ -30,7 +30,7 @@ async def emit_completion_events(
     pipeline: StreamPipeline,
     tts_service: Any,
     msg_id: str,
-    stream_context: dict[str, Optional[str]],
+    stream_context: dict[str, Any],
     completion_text: str,
     saw_text_chunk: bool,
 ) -> bool:

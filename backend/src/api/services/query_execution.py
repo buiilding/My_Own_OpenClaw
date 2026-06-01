@@ -329,7 +329,7 @@ class QueryExecutionService:
         event: Any,
         tts_service: Any,
         msg_id: str,
-        stream_context: dict[str, Optional[str]],
+        stream_context: dict[str, Any],
     ) -> None:
         await process_pipeline_event(
             pipeline=pipeline,
@@ -345,7 +345,7 @@ class QueryExecutionService:
         pipeline: StreamPipeline,
         tts_service: Any,
         msg_id: str,
-        stream_context: dict[str, Optional[str]],
+        stream_context: dict[str, Any],
         completion_text: str,
         saw_text_chunk: bool,
     ) -> bool:

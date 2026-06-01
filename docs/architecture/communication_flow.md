@@ -218,11 +218,21 @@ Authorization: Bearer <install_token>
 **Incoming (Server → Client)**:
 ```json
 {
-  "id": "uuid-v4",
+  "id": "turn_123",
+  "turn_ref": "turn_123",
+  "event_id": "turn_123-evt-000017-tool-call",
+  "sequence": 17,
   "type": "query-accepted|streaming-response|web-search-progress|tool-call|tool-output|error|...",
   "payload": { ... }
 }
 ```
+
+For backend query streams, `id` and `turn_ref` are turn correlation fields.
+They are intentionally the same for every event in one turn. `event_id` is the
+unique backend-produced event identity, and `sequence` is the backend-produced
+ordering number within that turn. SDK conversation stores use backend
+`event_id` as the durable event row id for backend events, while the sidecar
+assigns `message_index` as local append order for display and replay.
 
 ### Message Types
 
@@ -312,6 +322,9 @@ Authorization: Bearer <install_token>
 Identity notes:
 - `request_id` is backend-generated and used to correlate the later `tool-result`.
 - `metadata.tool_call_id` is provider-origin when available (LLM/provider tool-call `id`); backend falls back to `tool_call_<index>` if absent.
+- `event_id` identifies the stream event row. Tool call/output linkage uses
+  `request_id`, provider `tool_call_id`, `correlation_id`, or `bundle_id`, not
+  the stream event id.
 
 **`tool-bundle`**
 - Purpose: Atomic bundle of tools (single message)

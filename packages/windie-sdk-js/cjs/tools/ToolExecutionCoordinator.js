@@ -319,6 +319,7 @@ class ToolExecutionCoordinator {
                 ? `Tool result delivery failed: ${errorMessage(deliveryError)}`
                 : null;
             await this.options.store?.appendEvent((0, events_js_1.createConversationEvent)({
+                eventId: `${event.turnRef ?? event.conversationRef}-sidecar-tool-output-${call.requestId}`,
                 type: 'tool_output',
                 conversationRef: event.conversationRef,
                 revisionId: event.revisionId,
@@ -423,7 +424,7 @@ class ToolExecutionCoordinator {
                 ? `Tool bundle result delivery failed: ${errorMessage(deliveryError)}`
                 : null;
             await this.options.store?.appendEvent((0, events_js_1.createConversationEvent)({
-                eventId: (0, events_js_1.createRuntimeId)('bundle_output'),
+                eventId: `${event.turnRef ?? event.conversationRef}-sidecar-tool-bundle-output-${bundleId}`,
                 type: 'tool_bundle_output',
                 conversationRef: event.conversationRef,
                 revisionId: event.revisionId,

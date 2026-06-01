@@ -1644,6 +1644,9 @@ class LocalMemoryStore:
         attachments: Optional[List[Any]],
         event_payload: Dict[str, Any],
         compaction_checkpoint: Optional[Dict[str, Any]] = None,
+        producer: Optional[str] = None,
+        producer_event_id: Optional[str] = None,
+        producer_sequence: Optional[int] = None,
     ) -> Dict[str, Any]:
         stored = await append_chat_event(
             db_path=self.episodic_db_path,
@@ -1664,6 +1667,9 @@ class LocalMemoryStore:
             attachments=attachments,
             event_payload=event_payload,
             compaction_checkpoint=compaction_checkpoint,
+            producer=producer,
+            producer_event_id=producer_event_id,
+            producer_sequence=producer_sequence,
         )
         self._schedule_conversation_title_generation(
             user_id=user_id,

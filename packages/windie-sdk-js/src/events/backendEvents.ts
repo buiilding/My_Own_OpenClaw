@@ -29,6 +29,8 @@ export type BackendEventBase<TType extends BackendEventType, TPayload = undefine
   type: TType;
   payload?: TPayload;
   id?: string;
+  event_id?: string;
+  sequence?: number;
   session_id?: string;
   user_id?: string;
   conversation_ref?: string;

@@ -31,6 +31,8 @@ class BaseMessage(BaseModel):
     session_id: Optional[str] = None
     conversation_ref: Optional[str] = None
     turn_ref: Optional[str] = None
+    event_id: Optional[str] = None
+    sequence: Optional[int] = None
     timestamp: Optional[str] = None
 
     @field_validator("id")

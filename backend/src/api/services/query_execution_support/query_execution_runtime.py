@@ -6,6 +6,7 @@ import logging
 from typing import Any, List, Optional, Type
 
 from backend.src.api.schemas import QueryMessage
+from backend.src.api.transport.envelope import StreamEventSequencer
 from backend.src.services.artifacts import ArtifactStore
 
 logger = logging.getLogger(__name__)
@@ -132,11 +133,12 @@ def build_stream_context(
     agent_instance: Any,
     msg_id: str,
     conversation_ref: Optional[str],
-) -> dict[str, Optional[str]]:
+) -> dict[str, Any]:
     """Build immutable-per-query stream context once and reuse it across events."""
     return {
         "user_id": agent_instance.user_id,
         "session_id": agent_instance.session_id,
         "conversation_ref": conversation_ref,
         "turn_ref": msg_id,
+        "stream_event_sequencer": StreamEventSequencer(turn_ref=msg_id),
     }

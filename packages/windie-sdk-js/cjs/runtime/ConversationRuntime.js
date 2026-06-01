@@ -54,6 +54,8 @@ class SdkConversationRuntime {
         this.events = [];
         this.listeners = new Set();
         this.eventListeners = new Set();
+        this.localEventCounters = new Map();
+        this.backendTurnSequences = new Map();
         this.state = (0, conversationReducer_js_1.createInitialConversationRuntimeState)(options.conversationRef, options.revisionId);
     }
     async load() {
@@ -86,8 +88,8 @@ class SdkConversationRuntime {
             const event = (0, backendEventNormalizer_js_1.normalizeBackendEventToConversationEvent)(rawEvent, {
                 fallbackRevisionId: this.state.revisionId,
             });
-            if (event && this.shouldAcceptBackendEvent(event)) {
-                void this.applyEvent(event);
+            if (event) {
+                void this.processNormalizedBackendEvent(event);
             }
         });
     }
@@ -107,6 +109,7 @@ class SdkConversationRuntime {
             ? (0, events_js_1.createRuntimeId)('rev')
             : this.state.revisionId;
         await this.applyEvent((0, events_js_1.createConversationEvent)({
+            eventId: this.nextLocalEventId(turnRef, 'turn_started'),
             type: 'turn_started',
             conversationRef: this.options.conversationRef,
             revisionId,
@@ -115,6 +118,7 @@ class SdkConversationRuntime {
             payload: {},
         }));
         await this.applyEvent((0, events_js_1.createConversationEvent)({
+            eventId: this.nextLocalEventId(turnRef, 'user_message'),
             type: 'user_message',
             conversationRef: this.options.conversationRef,
             revisionId,
@@ -290,6 +294,7 @@ class SdkConversationRuntime {
             turn_ref: turnRef,
         });
         await this.applyEvent((0, events_js_1.createConversationEvent)({
+            eventId: this.nextLocalEventId(turnRef, 'turn_stopped'),
             type: 'turn_stopped',
             conversationRef: this.options.conversationRef,
             revisionId: this.state.revisionId,
@@ -344,6 +349,7 @@ class SdkConversationRuntime {
             ? (0, events_js_1.createRuntimeId)('rev')
             : this.state.revisionId;
         await this.applyEvent((0, events_js_1.createConversationEvent)({
+            eventId: this.nextLocalEventId(null, 'settings_updated'),
             type: 'settings_updated',
             conversationRef: this.options.conversationRef,
             revisionId,
@@ -365,6 +371,7 @@ class SdkConversationRuntime {
         const baseRevisionId = events[events.length - 1]?.revisionId ?? this.state.revisionId;
         const newRevisionId = (0, events_js_1.createRuntimeId)('rev');
         const rewriteEvent = (0, events_js_1.createConversationEvent)({
+            eventId: this.nextLocalEventId(null, 'conversation_rewritten'),
             type: 'conversation_rewritten',
             conversationRef: this.options.conversationRef,
             revisionId: newRevisionId,
@@ -432,6 +439,80 @@ class SdkConversationRuntime {
             // Memory persistence is an automatic local side effect; it must not fail the turn.
         }
     }
+    nextLocalEventId(turnRef, type) {
+        const scope = turnRef && turnRef.trim() ? turnRef.trim() : this.options.conversationRef;
+        const next = (this.localEventCounters.get(scope) ?? 0) + 1;
+        this.localEventCounters.set(scope, next);
+        return `${scope}-sdk-evt-${next.toString().padStart(6, '0')}-${type}`;
+    }
+    backendSequenceKey(event) {
+        return event.turnRef ?? `conversation:${event.conversationRef}`;
+    }
+    async processNormalizedBackendEvent(event) {
+        if (event.source !== 'backend') {
+            await this.applyEvent(event);
+            return;
+        }
+        if (!this.shouldAcceptBackendEvent(event)) {
+            return;
+        }
+        const sequence = typeof event.payload.backendSequence === 'number'
+            ? event.payload.backendSequence
+            : null;
+        if (!Number.isInteger(sequence) || (sequence ?? 0) <= 0) {
+            await this.applyBackendSequenceError(event, {
+                reason: 'missing_backend_sequence',
+                error: 'Backend stream event missing producer sequence',
+            });
+            return;
+        }
+        const key = this.backendSequenceKey(event);
+        const state = this.backendTurnSequences.get(key) ?? {
+            lastSequence: 0,
+            eventIds: new Set(),
+        };
+        if (state.eventIds.has(event.eventId)) {
+            return;
+        }
+        if (sequence <= state.lastSequence) {
+            await this.applyBackendSequenceError(event, {
+                reason: 'backend_sequence_regressed',
+                error: `Backend stream sequence regressed from ${state.lastSequence} to ${sequence}`,
+                lastSequence: state.lastSequence,
+                receivedSequence: sequence,
+            });
+            return;
+        }
+        if (sequence > state.lastSequence + 1) {
+            await this.applyBackendSequenceError(event, {
+                reason: 'backend_sequence_gap',
+                error: `Backend stream sequence gap before ${sequence}`,
+                missing_sequence_start: state.lastSequence + 1,
+                missing_sequence_end: sequence - 1,
+                lastSequence: state.lastSequence,
+                receivedSequence: sequence,
+            });
+        }
+        state.eventIds.add(event.eventId);
+        state.lastSequence = sequence;
+        this.backendTurnSequences.set(key, state);
+        await this.applyEvent(event);
+    }
+    async applyBackendSequenceError(event, payload) {
+        await this.applyEvent((0, events_js_1.createConversationEvent)({
+            eventId: this.nextLocalEventId(event.turnRef, 'runtime_error'),
+            type: 'runtime_error',
+            conversationRef: event.conversationRef,
+            revisionId: event.revisionId,
+            turnRef: event.turnRef,
+            source: 'sdk',
+            payload: {
+                ...payload,
+                sourceEventId: event.eventId,
+                sourceEventType: event.type,
+            },
+        }));
+    }
     shouldAcceptBackendEvent(event) {
         if (event.source !== 'backend') {
             return true;
@@ -473,6 +554,7 @@ class SdkConversationRuntime {
             const claim = await coordinator.execute(event);
             if (!claim.claimed) {
                 await this.applyEvent((0, events_js_1.createConversationEvent)({
+                    eventId: this.nextLocalEventId(event.turnRef, 'runtime_error'),
                     type: 'runtime_error',
                     conversationRef: event.conversationRef,
                     revisionId: event.revisionId,
@@ -488,6 +570,7 @@ class SdkConversationRuntime {
         }
         catch (error) {
             await this.applyEvent((0, events_js_1.createConversationEvent)({
+                eventId: this.nextLocalEventId(event.turnRef, 'turn_error'),
                 type: 'turn_error',
                 conversationRef: event.conversationRef,
                 revisionId: event.revisionId,

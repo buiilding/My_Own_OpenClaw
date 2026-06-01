@@ -3,7 +3,25 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from dataclasses import dataclass
 from typing import Any, Dict, Optional
+
+
+@dataclass
+class StreamEventSequencer:
+    """Per-turn backend stream event identity generator."""
+
+    turn_ref: str
+    next_sequence: int = 1
+
+    def next(self, message_type: str) -> Dict[str, Any]:
+        sequence = self.next_sequence
+        self.next_sequence += 1
+        return {
+            "turn_ref": self.turn_ref,
+            "event_id": f"{self.turn_ref}-evt-{sequence:06d}-{message_type}",
+            "sequence": sequence,
+        }
 
 
 def attach_context_fields(
@@ -28,6 +46,12 @@ def attach_context_fields(
         message["conversation_ref"] = conversation_ref
     if turn_ref:
         message["turn_ref"] = turn_ref
+    sequencer = context.get("stream_event_sequencer")
+    if isinstance(sequencer, StreamEventSequencer):
+        identity = sequencer.next(str(message.get("type") or "event"))
+        message["turn_ref"] = identity["turn_ref"]
+        message["event_id"] = identity["event_id"]
+        message["sequence"] = identity["sequence"]
     return message
 
 

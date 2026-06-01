@@ -1,10 +1,12 @@
 from backend.src.api.transport.envelope import (
+    StreamEventSequencer,
     attach_context_fields,
     build_transport_message,
 )
 
 
 def test_build_transport_message_includes_context_fields() -> None:
+    sequencer = StreamEventSequencer(turn_ref="turn_1")
     message = build_transport_message(
         "settings-updated",
         "msg_1",
@@ -14,18 +16,78 @@ def test_build_transport_message_includes_context_fields() -> None:
             "user_id": "user_1",
             "conversation_ref": "conv_1",
             "turn_ref": "turn_1",
+            "stream_event_sequencer": sequencer,
         },
     )
 
     assert message == {
         "type": "settings-updated",
         "id": "msg_1",
+        "event_id": "turn_1-evt-000001-settings-updated",
+        "sequence": 1,
         "payload": {"updated_keys": ["model_provider"]},
         "session_id": "session_1",
         "user_id": "user_1",
         "conversation_ref": "conv_1",
         "turn_ref": "turn_1",
     }
+
+
+def test_stream_event_sequencer_assigns_unique_ids_in_send_order() -> None:
+    sequencer = StreamEventSequencer(turn_ref="turn_abc")
+
+    first = build_transport_message(
+        "query-accepted",
+        "turn_abc",
+        {"status": "accepted"},
+        context={"turn_ref": "turn_abc", "stream_event_sequencer": sequencer},
+    )
+    second = build_transport_message(
+        "streaming-response",
+        "turn_abc",
+        {"text": "hello"},
+        context={"turn_ref": "turn_abc", "stream_event_sequencer": sequencer},
+    )
+    third = build_transport_message(
+        "tool-call",
+        "turn_abc",
+        {"tool_name": "browser", "parameters": {}, "request_id": "req-1"},
+        context={"turn_ref": "turn_abc", "stream_event_sequencer": sequencer},
+    )
+    fourth = build_transport_message(
+        "tool-output",
+        "turn_abc",
+        {"tool_name": "web_search", "success": True, "output": "done"},
+        context={"turn_ref": "turn_abc", "stream_event_sequencer": sequencer},
+    )
+    fifth = build_transport_message(
+        "streaming-complete",
+        "turn_abc",
+        {"final_response": "done"},
+        context={"turn_ref": "turn_abc", "stream_event_sequencer": sequencer},
+    )
+
+    assert [event["id"] for event in [first, second, third, fourth, fifth]] == [
+        "turn_abc",
+        "turn_abc",
+        "turn_abc",
+        "turn_abc",
+        "turn_abc",
+    ]
+    assert [event["sequence"] for event in [first, second, third, fourth, fifth]] == [
+        1,
+        2,
+        3,
+        4,
+        5,
+    ]
+    assert [event["event_id"] for event in [first, second, third, fourth, fifth]] == [
+        "turn_abc-evt-000001-query-accepted",
+        "turn_abc-evt-000002-streaming-response",
+        "turn_abc-evt-000003-tool-call",
+        "turn_abc-evt-000004-tool-output",
+        "turn_abc-evt-000005-streaming-complete",
+    ]
 
 
 def test_attach_context_fields_no_context_is_noop() -> None:

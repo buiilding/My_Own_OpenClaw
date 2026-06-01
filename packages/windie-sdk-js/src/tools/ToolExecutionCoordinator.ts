@@ -1,4 +1,4 @@
-import { createConversationEvent, createRuntimeId } from '../conversation/events.js';
+import { createConversationEvent } from '../conversation/events.js';
 import type {
   ConversationEvent,
   ConversationStore,
@@ -388,6 +388,7 @@ export class ToolExecutionCoordinator {
         ? `Tool result delivery failed: ${errorMessage(deliveryError)}`
         : null;
       await this.options.store?.appendEvent(createConversationEvent({
+        eventId: `${event.turnRef ?? event.conversationRef}-sidecar-tool-output-${call.requestId}`,
         type: 'tool_output',
         conversationRef: event.conversationRef,
         revisionId: event.revisionId,
@@ -490,7 +491,7 @@ export class ToolExecutionCoordinator {
         ? `Tool bundle result delivery failed: ${errorMessage(deliveryError)}`
         : null;
       await this.options.store?.appendEvent(createConversationEvent({
-        eventId: createRuntimeId('bundle_output'),
+        eventId: `${event.turnRef ?? event.conversationRef}-sidecar-tool-bundle-output-${bundleId}`,
         type: 'tool_bundle_output',
         conversationRef: event.conversationRef,
         revisionId: event.revisionId,

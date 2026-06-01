@@ -377,6 +377,13 @@ export class SidecarConversationStore implements ConversationStore {
       timestamp: event.timestamp,
       revision_id: event.revisionId,
       turn_ref: event.turnRef ?? null,
+      producer: event.source === 'backend'
+        ? 'backend'
+        : (event.source === 'sidecar' ? 'sidecar' : 'sdk'),
+      producer_event_id: event.source === 'backend' ? event.eventId : null,
+      producer_sequence: event.source === 'backend' && typeof event.payload.backendSequence === 'number'
+        ? event.payload.backendSequence
+        : null,
       event_payload: event,
       record_kind: CHAT_EVENT_RECORD_KIND,
       ...(messageIndex ? { message_index: messageIndex } : {}),

@@ -75,6 +75,92 @@ async def test_chat_event_store_round_trips_image_attachments(tmp_path: Path):
 
 
 @pytest.mark.asyncio
+async def test_chat_event_store_persists_backend_producer_order(tmp_path: Path):
+    db_path = str(tmp_path / "memory.db")
+    await init_chat_event_schema(db_path)
+
+    await append_chat_event(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+        event_type="tool_call",
+        role="assistant",
+        content="[sdk event: tool_call]",
+        timestamp="2026-05-17T12:00:00+00:00",
+        message_index=None,
+        revision_id="rev-1",
+        turn_ref="turn-1",
+        tool_name="browser",
+        correlation_id="req-browser",
+        workspace_path=None,
+        workspace_name=None,
+        metadata={},
+        attachments=[],
+        event_payload={
+            "eventId": "turn-1-evt-000003-tool-call",
+            "type": "tool_call",
+            "conversationRef": "conv-1",
+            "revisionId": "rev-1",
+            "timestamp": "2026-05-17T12:00:00+00:00",
+            "source": "backend",
+            "payload": {
+                "backendSequence": 3,
+                "requestId": "req-browser",
+            },
+        },
+        producer="backend",
+        producer_event_id="turn-1-evt-000003-tool-call",
+        producer_sequence=3,
+    )
+    await append_chat_event(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+        event_type="turn_completed",
+        role="assistant",
+        content="[sdk event: turn_completed]",
+        timestamp="2026-05-17T12:00:01+00:00",
+        message_index=None,
+        revision_id="rev-1",
+        turn_ref="turn-1",
+        tool_name=None,
+        correlation_id=None,
+        workspace_path=None,
+        workspace_name=None,
+        metadata={},
+        attachments=[],
+        event_payload={
+            "eventId": "turn-1-evt-000004-streaming-complete",
+            "type": "turn_completed",
+            "conversationRef": "conv-1",
+            "revisionId": "rev-1",
+            "timestamp": "2026-05-17T12:00:01+00:00",
+            "source": "backend",
+            "payload": {"backendSequence": 4},
+        },
+        producer="backend",
+        producer_event_id="turn-1-evt-000004-streaming-complete",
+        producer_sequence=4,
+    )
+
+    rows = await get_chat_events(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-1",
+        limit=10,
+    )
+
+    assert [row["event_type"] for row in rows] == ["tool_call", "turn_completed"]
+    assert [row["message_index"] for row in rows] == [1, 2]
+    assert [row["producer"] for row in rows] == ["backend", "backend"]
+    assert [row["producer_sequence"] for row in rows] == [3, 4]
+    assert [row["producer_event_id"] for row in rows] == [
+        "turn-1-evt-000003-tool-call",
+        "turn-1-evt-000004-streaming-complete",
+    ]
+
+
+@pytest.mark.asyncio
 async def test_list_chat_conversations_prefers_stored_conversation_title(
     tmp_path: Path,
 ):

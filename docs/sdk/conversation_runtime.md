@@ -63,6 +63,13 @@ The runtime records normalized events:
 Every event carries `eventId`, `conversationRef`, `revisionId`, `timestamp`,
 `source`, and optional `turnRef`.
 
+Backend-origin events must use backend `event_id` as `eventId` and copy backend
+`sequence` into `payload.backendSequence`. Backend `id` remains turn
+correlation, not event identity. The SDK rejects backend stream events missing
+`event_id` or `sequence` into `runtime_error`, ignores duplicate `event_id`
+values, and records `runtime_error` when a turn's backend `sequence` regresses
+or jumps forward.
+
 `settings_updated` is the conversation-runtime record for SDK-owned settings
 changes such as model/provider selection. `conversation.setModel(...)` and
 per-turn `model` options write this event only after the backend settings update
@@ -148,6 +155,13 @@ The SDK ships two reusable store adapters:
 runtime is available, the agent default store is `SidecarConversationStore`;
 callers only need to pass `store` when they intentionally want a non-default
 adapter. Set `persistence: false` for an in-memory session.
+
+`SidecarConversationStore` stores backend producer metadata separately from
+local order. Backend events write `producer = "backend"`,
+`producer_event_id = eventId`, and `producer_sequence =
+payload.backendSequence`. SDK/sidecar-created events keep SDK-owned event ids.
+The sidecar still assigns `message_index` locally, and display/replay loading
+orders by `message_index` rather than backend sequence.
 
 Electron's sidecar-backed store is a first-party adapter. It is allowed to know
 about transcript storage IPC, but it must stay behind the SDK store interface.

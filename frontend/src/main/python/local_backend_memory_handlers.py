@@ -524,6 +524,9 @@ class LocalBackendMemoryHandlersMixin:
         attachments: Optional[List[Any]] = None,
         event_payload: Optional[Dict[str, Any]] = None,
         compaction_checkpoint: Optional[Dict[str, Any]] = None,
+        producer: Optional[str] = None,
+        producer_event_id: Optional[str] = None,
+        producer_sequence: Optional[int] = None,
         **kwargs,
     ) -> Dict[str, Any]:
         """Store one first-class chat event outside memory/vector storage."""
@@ -577,6 +580,13 @@ class LocalBackendMemoryHandlersMixin:
                 attachments=normalized_attachments,
                 event_payload=normalized_event_payload,
                 compaction_checkpoint=normalized_checkpoint,
+                producer=sanitize_surrogates_in_text(producer) if producer else None,
+                producer_event_id=(
+                    sanitize_surrogates_in_text(producer_event_id)
+                    if producer_event_id
+                    else None
+                ),
+                producer_sequence=producer_sequence,
             )
             return {
                 "success": True,
@@ -655,6 +665,22 @@ class LocalBackendMemoryHandlersMixin:
                 )
                 if event.get("workspace_name", event.get("workspaceName"))
                 else None
+            ),
+            "producer": (
+                sanitize_surrogates_in_text(event.get("producer"))
+                if event.get("producer")
+                else None
+            ),
+            "producer_event_id": (
+                sanitize_surrogates_in_text(
+                    event.get("producer_event_id", event.get("producerEventId"))
+                )
+                if event.get("producer_event_id", event.get("producerEventId"))
+                else None
+            ),
+            "producer_sequence": event.get(
+                "producer_sequence",
+                event.get("producerSequence"),
             ),
             "metadata": metadata,
             "attachments": self._normalize_attachment_payload(event.get("attachments")),

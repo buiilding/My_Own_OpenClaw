@@ -60,13 +60,54 @@ function eventBase(
   if (!conversationRef) {
     return null;
   }
+  if (typeof event.event_id !== 'string' || !event.event_id.trim()) {
+    return {
+      conversationRef,
+      revisionId: revisionIdFor(event, fallbackRevisionId),
+      turnRef: typeof event.turn_ref === 'string' ? event.turn_ref : null,
+      eventId: createRuntimeId('evt'),
+      timestamp: new Date().toISOString(),
+    };
+  }
   return {
     conversationRef,
     revisionId: revisionIdFor(event, fallbackRevisionId),
     turnRef: typeof event.turn_ref === 'string' ? event.turn_ref : null,
-    eventId: typeof event.id === 'string' ? event.id : createRuntimeId('evt'),
+    eventId: event.event_id.trim(),
     timestamp: new Date().toISOString(),
   };
+}
+
+function backendSequenceOf(event: BackendEvent): number | null {
+  return Number.isInteger(event.sequence) && (event.sequence ?? 0) > 0
+    ? event.sequence as number
+    : null;
+}
+
+function backendEventMetadata(event: BackendEvent): JsonRecord {
+  return {
+    backendSequence: backendSequenceOf(event),
+    rawEvent: event as unknown as JsonRecord,
+  };
+}
+
+function missingBackendIdentityEvent(
+  event: BackendEvent,
+  base: { conversationRef: string; revisionId: string; turnRef: string | null; eventId: string; timestamp: string },
+): ConversationEvent {
+  return createConversationEvent({
+    ...base,
+    type: 'runtime_error',
+    source: 'sdk',
+    payload: {
+      error: 'Backend stream event missing event_id or sequence',
+      reason: 'missing_backend_event_identity',
+      sourceEventType: event.type,
+      backendEventId: typeof event.event_id === 'string' ? event.event_id : null,
+      backendSequence: backendSequenceOf(event),
+      rawEvent: event as unknown as JsonRecord,
+    },
+  });
 }
 
 export type NormalizeBackendEventOptions = {
@@ -82,7 +123,11 @@ export function normalizeBackendEventToConversationEvent(
   if (!base) {
     return null;
   }
+  if (typeof event.event_id !== 'string' || !event.event_id.trim() || backendSequenceOf(event) === null) {
+    return missingBackendIdentityEvent(event, base);
+  }
   const payload = payloadOf(event);
+  const backendMetadata = backendEventMetadata(event);
   if (event.type === 'query-accepted') {
     return createConversationEvent({
       ...base,
@@ -90,7 +135,7 @@ export function normalizeBackendEventToConversationEvent(
       source: 'backend',
       payload: {
         status: typeof payload.status === 'string' ? payload.status : 'accepted',
-        rawEvent: event,
+        ...backendMetadata,
       },
     });
   }
@@ -103,7 +148,7 @@ export function normalizeBackendEventToConversationEvent(
         text: typeof payload.status === 'string'
           ? payload.status
           : (typeof payload.content === 'string' ? payload.content : ''),
-        rawEvent: event,
+        ...backendMetadata,
       },
     });
   }
@@ -114,7 +159,7 @@ export function normalizeBackendEventToConversationEvent(
       source: 'backend',
       payload: {
         text: typeof payload.text === 'string' ? payload.text : '',
-        rawEvent: event,
+        ...backendMetadata,
       },
     });
   }
@@ -126,7 +171,7 @@ export function normalizeBackendEventToConversationEvent(
       payload: {
         finalResponse: typeof payload.final_response === 'string' ? payload.final_response : null,
         userId: typeof event.user_id === 'string' ? event.user_id : null,
-        rawEvent: event,
+        ...backendMetadata,
       },
     });
   }
@@ -146,7 +191,7 @@ export function normalizeBackendEventToConversationEvent(
         userId: typeof event.user_id === 'string' ? event.user_id : null,
         sourceEventType: 'local-user-message',
         structuredPayload: payload,
-        rawEvent: event,
+        ...backendMetadata,
       },
     });
   }
@@ -161,7 +206,7 @@ export function normalizeBackendEventToConversationEvent(
         content: typeof payload.content === 'string' ? payload.content : '',
         toolSchemas,
         structuredPayload: payload,
-        rawEvent: event,
+        ...backendMetadata,
       },
     });
   }
@@ -177,7 +222,7 @@ export function normalizeBackendEventToConversationEvent(
           ? payload.metadata
           : null,
         structuredPayload: payload,
-        rawEvent: event,
+        ...backendMetadata,
       },
     });
   }
@@ -191,7 +236,7 @@ export function normalizeBackendEventToConversationEvent(
         text: content ?? '',
         content: content ?? '',
         structuredPayload: payload,
-        rawEvent: event,
+        ...backendMetadata,
       },
     });
   }
@@ -205,7 +250,7 @@ export function normalizeBackendEventToConversationEvent(
         ...payload,
         toolSchemas,
         structuredPayload: payload,
-        rawEvent: event,
+        ...backendMetadata,
       },
     });
   }
@@ -227,7 +272,7 @@ export function normalizeBackendEventToConversationEvent(
           : resolveModelFacingToolCallId(payload),
         userId: typeof event.user_id === 'string' ? event.user_id : null,
         structuredPayload: payload,
-        rawEvent: event,
+        ...backendMetadata,
       },
     });
   }
@@ -243,7 +288,7 @@ export function normalizeBackendEventToConversationEvent(
         requestId: typeof payload.request_id === 'string' ? payload.request_id : null,
         correlationId: toolCorrelationIdFromPayload(payload),
         structuredPayload: payload,
-        rawEvent: event,
+        ...backendMetadata,
       },
     });
   }
@@ -261,7 +306,7 @@ export function normalizeBackendEventToConversationEvent(
         screenshot: typeof payload.screenshot === 'string' ? payload.screenshot : null,
         userId: typeof event.user_id === 'string' ? event.user_id : null,
         structuredPayload: payload,
-        rawEvent: event,
+        ...backendMetadata,
       },
     });
   }
@@ -276,7 +321,7 @@ export function normalizeBackendEventToConversationEvent(
         userId: typeof event.user_id === 'string' ? event.user_id : null,
         tools: Array.isArray(payload.tools) ? payload.tools : [],
         structuredPayload: payload,
-        rawEvent: event,
+        ...backendMetadata,
       },
     });
   }
@@ -300,7 +345,7 @@ export function normalizeBackendEventToConversationEvent(
         screenshotRef: typeof payload.screenshot_ref === 'string' ? payload.screenshot_ref : null,
         screenshot: typeof payload.screenshot === 'string' ? payload.screenshot : null,
         structuredPayload: payload,
-        rawEvent: event,
+        ...backendMetadata,
       },
     });
   }
@@ -312,7 +357,7 @@ export function normalizeBackendEventToConversationEvent(
       payload: {
         ...payload,
         reason: typeof payload.reason === 'string' ? payload.reason : null,
-        rawEvent: event,
+        ...backendMetadata,
       },
     });
   }
@@ -344,7 +389,7 @@ export function normalizeBackendEventToConversationEvent(
           : [],
         replacementHistoryEntries,
         userId: typeof event.user_id === 'string' ? event.user_id : null,
-        rawEvent: event,
+        ...backendMetadata,
       },
     });
   }
@@ -356,7 +401,7 @@ export function normalizeBackendEventToConversationEvent(
       payload: {
         ...payload,
         error: typeof payload.error === 'string' ? payload.error : null,
-        rawEvent: event,
+        ...backendMetadata,
       },
     });
   }
@@ -372,7 +417,7 @@ export function normalizeBackendEventToConversationEvent(
         message,
         content: typeof payload.content === 'string' ? payload.content : message,
         userId: typeof event.user_id === 'string' ? event.user_id : null,
-        rawEvent: event,
+        ...backendMetadata,
       },
     });
   }
@@ -384,7 +429,7 @@ export function normalizeBackendEventToConversationEvent(
       payload: {
         ...payload,
         userId: typeof event.user_id === 'string' ? event.user_id : null,
-        rawEvent: event,
+        ...backendMetadata,
       },
     });
   }
