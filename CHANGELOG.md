@@ -20,6 +20,8 @@ All notable changes to WindieOS will be documented in this file.
 - sdk/memory: emit SDK memory retrieval diagnostics for missing local runtime,
   backend embedding failures, sidecar search failures, and empty memory search
   results instead of silently returning empty prompt memory.
+- examples/sdk: pin the simple chat CLI to the stable local SDK user id `peter`
+  so memory retrieval and storage survive CLI restarts.
 - docs/agents: make question-style implementation requests explicitly
   report-first so agents inspect code before modifying files.
 - examples/sdk: shorten the simple chat CLI setup and rendering helpers without

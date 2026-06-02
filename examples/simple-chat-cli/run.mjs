@@ -10,6 +10,7 @@ const repoRoot = path.resolve(exampleDir, "../..");
 
 const { WindieClient } = await loadLocalWindieSdk(repoRoot);
 const agent = await new WindieClient().wakeUp({
+  userId: "peter",
   systemPrompt: "Your name is Peter, you are Peter Bui virtual friend.",
   builtins: ["browser"],
 });
