@@ -32,6 +32,7 @@ import {
 import {
   storeCompletedTurnMemory,
   type MemoryRetrievalDiagnostic,
+  type MemoryPersistenceDiagnostic,
 } from './ContextEnrichmentPipeline.js';
 import { reduceConversationRuntimeState, createInitialConversationRuntimeState } from './conversationReducer.js';
 
@@ -591,6 +592,13 @@ export class SdkConversationRuntime {
   private async applyEvent(event: ConversationEvent): Promise<void> {
     this.events = [...this.events, event];
     this.state = reduceConversationRuntimeState(this.state, event);
+    if (event.source === 'backend' && event.type === 'turn_completed') {
+      await this.options.store.appendEvent(event);
+      await this.maybeStoreCompletedTurnMemory(event);
+      const snapshot = this.snapshot(this.events);
+      this.notify(snapshot, event);
+      return;
+    }
     const snapshot = this.snapshot(this.events);
     this.notify(snapshot, event);
     await this.options.store.appendEvent(event);
@@ -602,10 +610,31 @@ export class SdkConversationRuntime {
     if (event.source !== 'backend' || event.type !== 'turn_completed') {
       return;
     }
+    const emitPersistenceDiagnostic = async (diagnostic: MemoryPersistenceDiagnostic): Promise<void> => {
+      await this.applyEvent(createConversationEvent({
+        eventId: this.nextLocalEventId(event.turnRef, 'memory_persistence_diagnostic'),
+        type: 'memory_persistence_diagnostic',
+        conversationRef: event.conversationRef,
+        revisionId: event.revisionId,
+        turnRef: event.turnRef,
+        source: 'sdk',
+        payload: {
+          ...diagnostic,
+        },
+      }));
+    };
     const assistantResponse = typeof event.payload.finalResponse === 'string'
       ? event.payload.finalResponse
       : '';
-    if (!assistantResponse.trim() || !this.options.sdkClient) {
+    if (!this.options.sdkClient) {
+      await emitPersistenceDiagnostic({
+        stage: 'local_runtime_missing',
+        conversationRef: event.conversationRef,
+        userId: this.options.userId ?? 'local-sdk-user',
+        userQueryLength: 0,
+        assistantResponseLength: assistantResponse.trim().length,
+        message: 'Completed-turn memory storage skipped because no SDK client is available.',
+      });
       return;
     }
     const userEvent = [...this.events].reverse().find(candidate => (
@@ -623,6 +652,7 @@ export class SdkConversationRuntime {
         userQuery,
         assistantResponse,
         memoryEnabled: this.options.memoryEnabled,
+        emitDiagnostic: emitPersistenceDiagnostic,
       });
     } catch (error) {
       console.warn(

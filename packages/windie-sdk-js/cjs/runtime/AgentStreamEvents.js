@@ -130,6 +130,22 @@ function toAgentStreamEvents(runtimeEvent) {
                 ...locator,
             }];
     }
+    if (event.type === 'memory_persistence_diagnostic') {
+        return [{
+                type: 'memory_diagnostic',
+                stage: stringField(event.payload, 'stage') ?? 'unknown',
+                message: stringField(event.payload, 'message') ?? 'Memory persistence diagnostic',
+                error: stringField(event.payload, 'error'),
+                episodicCount: null,
+                semanticCount: null,
+                memoryType: stringField(event.payload, 'memoryType'),
+                memoryId: stringField(event.payload, 'memoryId'),
+                contentLength: numberField(event.payload, 'contentLength'),
+                userQueryLength: numberField(event.payload, 'userQueryLength'),
+                assistantResponseLength: numberField(event.payload, 'assistantResponseLength'),
+                ...locator,
+            }];
+    }
     if (event.type === 'turn_completed' || event.type === 'turn_stopped') {
         const finalResponse = stringField(event.payload, 'finalResponse', 'final_response');
         return [

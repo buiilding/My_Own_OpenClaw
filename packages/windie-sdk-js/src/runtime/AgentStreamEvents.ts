@@ -93,6 +93,11 @@ export type WindieAgentStreamEvent =
       error: string | null;
       episodicCount: number | null;
       semanticCount: number | null;
+      memoryType?: string | null;
+      memoryId?: string | null;
+      contentLength?: number | null;
+      userQueryLength?: number | null;
+      assistantResponseLength?: number | null;
       conversationRef: string;
       turnRef: string | null;
     }
@@ -235,6 +240,22 @@ export function toAgentStreamEvents(runtimeEvent: WindieRuntimeEvent): WindieAge
       error: stringField(event.payload, 'error'),
       episodicCount: numberField(event.payload, 'episodicCount'),
       semanticCount: numberField(event.payload, 'semanticCount'),
+      ...locator,
+    }];
+  }
+  if (event.type === 'memory_persistence_diagnostic') {
+    return [{
+      type: 'memory_diagnostic',
+      stage: stringField(event.payload, 'stage') ?? 'unknown',
+      message: stringField(event.payload, 'message') ?? 'Memory persistence diagnostic',
+      error: stringField(event.payload, 'error'),
+      episodicCount: null,
+      semanticCount: null,
+      memoryType: stringField(event.payload, 'memoryType'),
+      memoryId: stringField(event.payload, 'memoryId'),
+      contentLength: numberField(event.payload, 'contentLength'),
+      userQueryLength: numberField(event.payload, 'userQueryLength'),
+      assistantResponseLength: numberField(event.payload, 'assistantResponseLength'),
       ...locator,
     }];
   }

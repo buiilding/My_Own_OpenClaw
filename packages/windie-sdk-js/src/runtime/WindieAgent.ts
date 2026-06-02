@@ -41,6 +41,7 @@ import {
   enrichQueryPayload,
   formatCompletedTurnMemory,
   storeCompletedTurnMemory,
+  type MemoryPersistenceDiagnostic,
   type MemoryRetrievalDiagnostic,
 } from './ContextEnrichmentPipeline.js';
 import type {
@@ -74,6 +75,19 @@ function logMemoryRetrievalDiagnostic(diagnostic: MemoryRetrievalDiagnostic): vo
     diagnostic.error ? `error=${diagnostic.error}` : null,
   ].filter(Boolean).join(' ');
   console.warn(`[Windie SDK] memory retrieval diagnostic: ${details}`);
+}
+
+function logMemoryPersistenceDiagnostic(diagnostic: MemoryPersistenceDiagnostic): void {
+  const details = [
+    `stage=${diagnostic.stage}`,
+    `conversationRef=${diagnostic.conversationRef}`,
+    `userQueryLength=${diagnostic.userQueryLength}`,
+    `assistantResponseLength=${diagnostic.assistantResponseLength}`,
+    typeof diagnostic.contentLength === 'number' ? `contentLength=${diagnostic.contentLength}` : null,
+    diagnostic.memoryId ? `memoryId=${diagnostic.memoryId}` : null,
+    diagnostic.error ? `error=${diagnostic.error}` : null,
+  ].filter(Boolean).join(' ');
+  console.warn(`[Windie SDK] memory persistence diagnostic: ${details}`);
 }
 
 export type LoadConversationOptions = {
@@ -556,6 +570,7 @@ export class WindieAgent {
         userQuery: pending.userQuery,
         assistantResponse,
         memoryEnabled: this.memoryEnabled,
+        emitDiagnostic: logMemoryPersistenceDiagnostic,
       });
     } catch (error) {
       console.warn(

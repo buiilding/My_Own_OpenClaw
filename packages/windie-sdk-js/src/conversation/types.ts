@@ -24,6 +24,7 @@ export type ConversationEventType =
   | 'tool_bundle_call'
   | 'tool_bundle_output'
   | 'memory_retrieval_diagnostic'
+  | 'memory_persistence_diagnostic'
   | 'compaction_started'
   | 'compaction_skipped'
   | 'compaction_applied'

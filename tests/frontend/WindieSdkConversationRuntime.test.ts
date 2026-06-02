@@ -853,6 +853,33 @@ describe('Windie SDK conversation runtime core', () => {
     expect(streamEvents).not.toContainEqual(expect.objectContaining({ type: 'state', state: 'error' }));
   });
 
+  test('agent stream projection exposes memory persistence diagnostics without error state', () => {
+    const streamEvents = toAgentStreamEvents({
+      type: 'conversation_event',
+      event: event('memory_persistence_diagnostic', {
+        stage: 'store_succeeded',
+        message: 'Completed-turn memory storage succeeded.',
+        contentLength: 42,
+        memoryType: 'episodic',
+        memoryId: 'mem-1',
+      }),
+    } as any);
+
+    expect(streamEvents).toEqual([
+      expect.objectContaining({
+        type: 'memory_diagnostic',
+        stage: 'store_succeeded',
+        message: 'Completed-turn memory storage succeeded.',
+        contentLength: 42,
+        memoryType: 'episodic',
+        memoryId: 'mem-1',
+        conversationRef: 'conv-sdk-runtime',
+        turnRef: 'turn-1',
+      }),
+    ]);
+    expect(streamEvents).not.toContainEqual(expect.objectContaining({ type: 'state', state: 'error' }));
+  });
+
   test('in-memory store is idempotent and only activates complete compaction snapshots', async () => {
     const store = new InMemoryConversationStore();
     const userEvent = event('user_message', { text: 'hello' });
@@ -1945,6 +1972,63 @@ describe('Windie SDK conversation runtime core', () => {
       payload: expect.objectContaining({
         stage: 'embedding_request_failed',
         error: '503 Service Unavailable',
+      }),
+    });
+  });
+
+  test('conversation runtime emits memory persistence diagnostics before terminal turn notification', async () => {
+    const notifiedTypes: string[] = [];
+    const transport = createControllableBackendTransport();
+    const store = new InMemoryConversationStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport,
+      sdkClient: {
+        embeddings: {
+          create: jest.fn(async () => ({
+            embedding: [0.1],
+            embedding_space_version: 'embed-v1',
+          })),
+        },
+      } as any,
+      localRuntime: {
+        rpc: jest.fn(async () => ({
+          success: true,
+          data: { memory_id: 'mem-1' },
+        })),
+      },
+      userId: 'user-sdk-runtime',
+    });
+    runtime.subscribeEvents(event => {
+      notifiedTypes.push(event.type);
+    });
+    runtime.attachTransport();
+
+    await runtime.send({ text: 'hello', turnRef: 'turn-store-memory' });
+    transport.emit(backendEvent(
+      'streaming-complete',
+      { final_response: 'world' },
+      {
+        eventId: 'turn-store-memory-evt-000001-streaming-complete',
+        turnRef: 'turn-store-memory',
+        sequence: 1,
+      },
+    ));
+
+    await waitForExpect(() => {
+      expect(notifiedTypes).toContain('turn_completed');
+    });
+    expect(notifiedTypes.slice(-2)).toEqual([
+      'memory_persistence_diagnostic',
+      'turn_completed',
+    ]);
+    const events = await store.loadEvents('conv-sdk-runtime');
+    expect(events.map(storedEvent => storedEvent.type)).toContain('memory_persistence_diagnostic');
+    expect(events.find(storedEvent => storedEvent.type === 'memory_persistence_diagnostic')).toMatchObject({
+      payload: expect.objectContaining({
+        stage: 'store_succeeded',
+        memoryId: 'mem-1',
       }),
     });
   });

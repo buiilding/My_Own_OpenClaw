@@ -275,6 +275,7 @@ describe('SDK context enrichment pipeline', () => {
   });
 
   test('stores completed turn memory through the sidecar RPC', async () => {
+    const diagnostics: unknown[] = [];
     const sdkClient = {
       embeddings: {
         create: jest.fn(async () => ({
@@ -294,6 +295,9 @@ describe('SDK context enrichment pipeline', () => {
       conversationRef: 'conv-1',
       userQuery: 'hello',
       assistantResponse: 'world',
+      emitDiagnostic: diagnostic => {
+        diagnostics.push(diagnostic);
+      },
     });
 
     expect(sdkClient.embeddings.create).toHaveBeenCalledWith({
@@ -310,9 +314,91 @@ describe('SDK context enrichment pipeline', () => {
         conversation_id: 'conv-1',
       },
     });
+    expect(diagnostics).toEqual([
+      expect.objectContaining({
+        stage: 'store_succeeded',
+        conversationRef: 'conv-1',
+        userId: 'user-1',
+        userQueryLength: 5,
+        assistantResponseLength: 5,
+        contentLength: 'User: hello\nAssistant: world'.length,
+        memoryType: 'episodic',
+      }),
+    ]);
+  });
+
+  test('emits completed-turn memory embedding failure diagnostics', async () => {
+    const diagnostics: unknown[] = [];
+    const sdkClient = {
+      embeddings: {
+        create: jest.fn(async () => {
+          throw new Error('embedding denied');
+        }),
+      },
+    };
+    const localRuntime = {
+      rpc: jest.fn(),
+    };
+
+    await expect(storeCompletedTurnMemory({
+      localRuntime: localRuntime as never,
+      sdkClient: sdkClient as never,
+      userId: 'user-1',
+      conversationRef: 'conv-1',
+      userQuery: 'hello',
+      assistantResponse: 'world',
+      emitDiagnostic: diagnostic => {
+        diagnostics.push(diagnostic);
+      },
+    })).rejects.toThrow('embedding denied');
+
+    expect(localRuntime.rpc).not.toHaveBeenCalled();
+    expect(diagnostics).toEqual([
+      expect.objectContaining({
+        stage: 'embedding_request_failed',
+        error: 'embedding denied',
+        contentLength: 'User: hello\nAssistant: world'.length,
+      }),
+    ]);
+  });
+
+  test('emits completed-turn sidecar store failure diagnostics', async () => {
+    const diagnostics: unknown[] = [];
+    const sdkClient = {
+      embeddings: {
+        create: jest.fn(async () => ({
+          embedding: [0.1],
+          embedding_space_version: 'embed-v1',
+        })),
+      },
+    };
+    const localRuntime = {
+      rpc: jest.fn(async () => ({ success: false, error: 'store failed' })),
+    };
+
+    await expect(storeCompletedTurnMemory({
+      localRuntime: localRuntime as never,
+      sdkClient: sdkClient as never,
+      userId: 'user-1',
+      conversationRef: 'conv-1',
+      userQuery: 'hello',
+      assistantResponse: 'world',
+      emitDiagnostic: diagnostic => {
+        diagnostics.push(diagnostic);
+      },
+    })).rejects.toThrow('store failed');
+
+    expect(diagnostics).toEqual([
+      expect.objectContaining({
+        stage: 'sidecar_store_failed',
+        error: 'store failed',
+        memoryType: 'episodic',
+      }),
+    ]);
   });
 
   test('disabling memory skips completed-turn memory writes', async () => {
+    const diagnostics: unknown[] = [];
     const localRuntime = {
       rpc: jest.fn(async () => ({ success: true })),
     };
@@ -325,8 +411,16 @@ describe('SDK context enrichment pipeline', () => {
       userQuery: 'hello',
       assistantResponse: 'world',
       memoryEnabled: false,
+      emitDiagnostic: diagnostic => {
+        diagnostics.push(diagnostic);
+      },
     });
 
     expect(localRuntime.rpc).not.toHaveBeenCalled();
+    expect(diagnostics).toEqual([
+      expect.objectContaining({
+        stage: 'memory_disabled',
+      }),
+    ]);
   });
 });

@@ -20,6 +20,10 @@ All notable changes to WindieOS will be documented in this file.
 - sdk/memory: emit SDK memory retrieval diagnostics for missing local runtime,
   backend embedding failures, sidecar search failures, and empty memory search
   results instead of silently returning empty prompt memory.
+- sdk/memory: emit completed-turn memory persistence diagnostics for disabled
+  memory, missing local runtime, empty content, embedding failures, sidecar
+  store failures, and successful stores without adding diagnostic rows to the
+  transcript display.
 - examples/sdk: pin the simple chat CLI to the stable local SDK user id `peter`
   while forcing hosted install auto-registration so protected SDK HTTP routes
   still receive bearer auth.

@@ -37,6 +37,27 @@ export type MemoryRetrievalDiagnostic = {
   semanticCount?: number;
 };
 
+export type MemoryPersistenceDiagnosticStage =
+  | 'memory_disabled'
+  | 'local_runtime_missing'
+  | 'content_empty'
+  | 'embedding_request_failed'
+  | 'sidecar_store_failed'
+  | 'store_succeeded';
+
+export type MemoryPersistenceDiagnostic = {
+  stage: MemoryPersistenceDiagnosticStage;
+  conversationRef: string;
+  userId: string;
+  userQueryLength: number;
+  assistantResponseLength: number;
+  contentLength?: number;
+  memoryType?: 'episodic';
+  memoryId?: string | null;
+  message: string;
+  error?: string;
+};
+
 export type ContextEnrichmentResult = {
   payload: JsonRecord;
   memories: {
@@ -133,7 +154,7 @@ function errorMessage(error: unknown): string {
   return 'Unknown memory retrieval error';
 }
 
-function rpcFailureMessage(response: unknown): string | null {
+function rpcFailureMessage(response: unknown, fallback = 'Memory RPC failed'): string | null {
   const record = response && typeof response === 'object' && !Array.isArray(response)
     ? response as JsonRecord
     : null;
@@ -142,7 +163,7 @@ function rpcFailureMessage(response: unknown): string | null {
   }
   return typeof record.error === 'string' && record.error.trim()
     ? record.error
-    : 'Memory search RPC failed';
+    : fallback;
 }
 
 async function emitMemoryDiagnostic(
@@ -156,6 +177,25 @@ async function emitMemoryDiagnostic(
     conversationRef: input.conversationRef,
     userId: input.userId,
     queryLength: input.text.length,
+    ...diagnostic,
+  });
+}
+
+async function emitMemoryPersistenceDiagnostic(
+  input: StoreCompletedTurnMemoryInput,
+  diagnostic: Omit<
+    MemoryPersistenceDiagnostic,
+    'conversationRef' | 'userId' | 'userQueryLength' | 'assistantResponseLength'
+  >,
+): Promise<void> {
+  if (!input.emitDiagnostic) {
+    return;
+  }
+  await input.emitDiagnostic({
+    conversationRef: input.conversationRef,
+    userId: input.userId,
+    userQueryLength: input.userQuery.trim().length,
+    assistantResponseLength: input.assistantResponse.trim().length,
     ...diagnostic,
   });
 }
@@ -220,7 +260,7 @@ export async function enrichQueryPayload(input: ContextEnrichmentInput): Promise
               semantic_min_score: PROMPT_MEMORY_RETRIEVAL.semanticMinScore,
             },
           });
-          const rpcError = rpcFailureMessage(searchResult);
+          const rpcError = rpcFailureMessage(searchResult, 'Memory search RPC failed');
           if (rpcError) {
             await emitMemoryDiagnostic(input, {
               stage: 'sidecar_search_failed',
@@ -262,7 +302,7 @@ export async function enrichQueryPayload(input: ContextEnrichmentInput): Promise
   };
 }
 
-export async function storeCompletedTurnMemory(input: {
+export type StoreCompletedTurnMemoryInput = {
   localRuntime?: WindieLocalRuntimeClient | null;
   sdkClient: WindieSdkClient;
   userId: string;
@@ -270,20 +310,48 @@ export async function storeCompletedTurnMemory(input: {
   userQuery: string;
   assistantResponse: string;
   memoryEnabled?: boolean;
-}): Promise<void> {
-  if (
-    input.memoryEnabled === false
-    || !input.localRuntime?.rpc
-    || !input.userQuery.trim()
-    || !input.assistantResponse.trim()
-  ) {
+  emitDiagnostic?: (diagnostic: MemoryPersistenceDiagnostic) => void | Promise<void>;
+};
+
+export async function storeCompletedTurnMemory(input: StoreCompletedTurnMemoryInput): Promise<void> {
+  if (input.memoryEnabled === false) {
+    await emitMemoryPersistenceDiagnostic(input, {
+      stage: 'memory_disabled',
+      message: 'Completed-turn memory storage skipped because SDK memory is disabled.',
+    });
+    return;
+  }
+  if (!input.localRuntime?.rpc) {
+    await emitMemoryPersistenceDiagnostic(input, {
+      stage: 'local_runtime_missing',
+      message: 'Completed-turn memory storage skipped because no local runtime RPC is available.',
+    });
+    return;
+  }
+  if (!input.userQuery.trim() || !input.assistantResponse.trim()) {
+    await emitMemoryPersistenceDiagnostic(input, {
+      stage: 'content_empty',
+      message: 'Completed-turn memory storage skipped because the user query or assistant response is empty.',
+    });
     return;
   }
   const content = formatCompletedTurnMemory({
     userQuery: input.userQuery,
     assistantResponse: input.assistantResponse,
   });
-  const embedding = await input.sdkClient.embeddings.create({ text: content });
+  let embedding: Awaited<ReturnType<WindieSdkClient['embeddings']['create']>>;
+  try {
+    embedding = await input.sdkClient.embeddings.create({ text: content });
+  } catch (error) {
+    await emitMemoryPersistenceDiagnostic(input, {
+      stage: 'embedding_request_failed',
+      message: 'Completed-turn memory storage skipped because the backend embedding request failed.',
+      error: errorMessage(error),
+      contentLength: content.length,
+      memoryType: 'episodic',
+    });
+    throw error;
+  }
   const result = await input.localRuntime.rpc({
     method: 'store_memory_by_embedding',
     params: {
@@ -295,13 +363,28 @@ export async function storeCompletedTurnMemory(input: {
       conversation_id: input.conversationRef,
     },
   });
-  if (
-    result
-    && typeof result === 'object'
-    && !Array.isArray(result)
-    && (result as JsonRecord).success === false
-  ) {
-    const error = (result as JsonRecord).error;
-    throw new Error(typeof error === 'string' ? error : 'Memory store RPC failed');
+  const rpcError = rpcFailureMessage(result, 'Memory store RPC failed');
+  if (rpcError) {
+    await emitMemoryPersistenceDiagnostic(input, {
+      stage: 'sidecar_store_failed',
+      message: 'Completed-turn memory storage failed because sidecar memory store failed.',
+      error: rpcError,
+      contentLength: content.length,
+      memoryType: 'episodic',
+    });
+    throw new Error(rpcError);
   }
+  const resultRecord = result && typeof result === 'object' && !Array.isArray(result)
+    ? result as JsonRecord
+    : {};
+  const data = resultRecord.data && typeof resultRecord.data === 'object' && !Array.isArray(resultRecord.data)
+    ? resultRecord.data as JsonRecord
+    : {};
+  await emitMemoryPersistenceDiagnostic(input, {
+    stage: 'store_succeeded',
+    message: 'Completed-turn memory storage succeeded.',
+    contentLength: content.length,
+    memoryType: 'episodic',
+    memoryId: typeof data.memory_id === 'string' ? data.memory_id : null,
+  });
 }

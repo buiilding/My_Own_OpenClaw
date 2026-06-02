@@ -53,6 +53,18 @@ function logMemoryRetrievalDiagnostic(diagnostic) {
     ].filter(Boolean).join(' ');
     console.warn(`[Windie SDK] memory retrieval diagnostic: ${details}`);
 }
+function logMemoryPersistenceDiagnostic(diagnostic) {
+    const details = [
+        `stage=${diagnostic.stage}`,
+        `conversationRef=${diagnostic.conversationRef}`,
+        `userQueryLength=${diagnostic.userQueryLength}`,
+        `assistantResponseLength=${diagnostic.assistantResponseLength}`,
+        typeof diagnostic.contentLength === 'number' ? `contentLength=${diagnostic.contentLength}` : null,
+        diagnostic.memoryId ? `memoryId=${diagnostic.memoryId}` : null,
+        diagnostic.error ? `error=${diagnostic.error}` : null,
+    ].filter(Boolean).join(' ');
+    console.warn(`[Windie SDK] memory persistence diagnostic: ${details}`);
+}
 class WindieAgent {
     static async startDesktop(options) {
         const { WindieDesktopAgent } = await Promise.resolve().then(() => __importStar(require('./WindieDesktopAgent.js')));
@@ -420,6 +432,7 @@ class WindieAgent {
                 userQuery: pending.userQuery,
                 assistantResponse,
                 memoryEnabled: this.memoryEnabled,
+                emitDiagnostic: logMemoryPersistenceDiagnostic,
             });
         }
         catch (error) {
