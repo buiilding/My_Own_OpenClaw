@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.renderModelFacingUserContent = renderModelFacingUserContent;
 exports.renderPlainModelFacingUserContent = renderPlainModelFacingUserContent;
+exports.formatCompletedTurnMemory = formatCompletedTurnMemory;
 exports.enrichQueryPayload = enrichQueryPayload;
 exports.storeCompletedTurnMemory = storeCompletedTurnMemory;
 const PROMPT_MEMORY_RETRIEVAL = Object.freeze({
@@ -48,6 +49,9 @@ function renderPlainModelFacingUserContent(input) {
     }
     parts.push(`<user_query>\n${escapeXml(input.text)}\n</user_query>`);
     return parts.join('\n\n');
+}
+function formatCompletedTurnMemory(input) {
+    return `User: ${input.userQuery.trim()}\nAssistant: ${input.assistantResponse.trim()}`;
 }
 function normalizeMemories(response) {
     const record = response && typeof response === 'object' && !Array.isArray(response)
@@ -132,14 +136,27 @@ async function storeCompletedTurnMemory(input) {
         || !input.assistantResponse.trim()) {
         return;
     }
-    await input.localRuntime.rpc({
-        method: 'store_memory',
+    const content = formatCompletedTurnMemory({
+        userQuery: input.userQuery,
+        assistantResponse: input.assistantResponse,
+    });
+    const embedding = await input.sdkClient.embeddings.create({ text: content });
+    const result = await input.localRuntime.rpc({
+        method: 'store_memory_by_embedding',
         params: {
             user_id: input.userId,
-            user_query: input.userQuery,
-            assistant_response: input.assistantResponse,
+            content,
+            embedding: embedding.embedding,
+            embedding_space_version: embedding.embedding_space_version,
             memory_type: 'episodic',
-            session_id: input.conversationRef,
+            conversation_id: input.conversationRef,
         },
     });
+    if (result
+        && typeof result === 'object'
+        && !Array.isArray(result)
+        && result.success === false) {
+        const error = result.error;
+        throw new Error(typeof error === 'string' ? error : 'Memory store RPC failed');
+    }
 }

@@ -16,7 +16,7 @@ from memory.operations import (
     exclude_conversation_results,
     filter_results_by_min_score,
     group_memory_texts,
-    normalize_and_store_completed_turn_memory,
+    normalize_and_store_memory_by_embedding,
     normalize_search_memory_embedding_payload,
     normalize_search_memory_payload,
     normalize_search_memory_selection,
@@ -925,39 +925,40 @@ class LocalBackendMemoryHandlersMixin:
             return {"success": False, "error": str(e)}
 
     @requires_memory_store
-    async def _handle_store_memory(
+    async def _handle_store_memory_by_embedding(
         self,
-        user_query: str,
-        assistant_response: str,
+        content: str,
+        embedding,
+        embedding_space_version: Optional[str] = None,
         memory_type: str = "episodic",
         user_id: str = "default_user",
-        session_id: str = None,
+        conversation_id: str = None,
         **kwargs,
     ) -> Dict[str, Any]:
-        """Store memory."""
+        """Store SDK-formatted memory using an SDK-provided embedding."""
         try:
             surrogate_paths = find_surrogate_paths(
                 {
-                    "user_query": user_query,
-                    "assistant_response": assistant_response,
+                    "content": content,
                     "memory_type": memory_type,
                     "user_id": user_id,
-                    "session_id": session_id,
+                    "conversation_id": conversation_id,
                 },
-                root="store_memory",
+                root="store_memory_by_embedding",
             )
             if surrogate_paths:
                 logger.warning(
-                    "Lone surrogate detected in interaction-memory payload fields: %s",
+                    "Lone surrogate detected in memory payload fields: %s",
                     ", ".join(surrogate_paths),
                 )
-            stored, error = await normalize_and_store_completed_turn_memory(
+            stored, error = await normalize_and_store_memory_by_embedding(
                 self.memory_store,
-                user_query=user_query,
-                assistant_response=assistant_response,
+                content=content,
+                embedding=embedding,
+                embedding_space_version=embedding_space_version,
                 memory_type=memory_type,
                 user_id=user_id,
-                session_id=session_id,
+                conversation_id=conversation_id,
             )
             if error:
                 return {

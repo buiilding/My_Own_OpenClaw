@@ -17,7 +17,6 @@ frontend/src/main/python/
 ├── core/                               # Core infrastructure modules
 │   ├── __init__.py                    # Package initialization
 │   ├── ipc_protocol.py                # JSONRPCProtocol - JSON-RPC 2.0 protocol handler for stdin/stdout communication
-│   ├── remote_embedding_client.py     # RemoteEmbeddingClient - HTTP client for backend embedding API (replaces local embedder)
 │   ├── remote_semantic_client.py      # RemoteSemanticClient - HTTP client for backend semantic summarization API
 │   ├── system_state.py                # get_system_state() - Cross-platform system state collection (active window, mouse, clipboard, stats)
 │   ├── thread_pool.py                 # Global ThreadPoolExecutor - Shared thread pool for blocking operations
@@ -84,7 +83,6 @@ frontend/src/main/python/
        │
        └─> LocalBackend.initialize()
            └─> LocalMemoryStore.initialize()
-               ├─> RemoteEmbeddingClient.initialize() - HTTP session
                ├─> Load/create SQLite databases (episodic.db, semantic.db)
                ├─> Load/create FAISS indices (episodic.faiss.index, semantic.faiss.index)
                └─> Load vector ID mappings
@@ -96,8 +94,8 @@ frontend/src/main/python/
        ├─> Route to registered method handler
        │   ├─> execute_tool - ToolRegistry.execute_tool()
        │   ├─> get_system_state - core.system_state.get_system_state()
-       │   ├─> search_memory - LocalMemoryStore.search()
-       │   └─> store_memory - LocalMemoryStore.add()
+       │   ├─> search_memory_by_embedding - LocalMemoryStore.search_by_embedding()
+       │   └─> store_memory_by_embedding - LocalMemoryStore.add()
        └─> Send JSON-RPC response to stdout
 ```
 
@@ -133,11 +131,9 @@ frontend/src/main/python/
    └─> memory/local_store.py
        └─> LocalMemoryStore
            ↓
-2. EMBEDDING GENERATION
-   └─> core/remote_embedding_client.py
-       └─> RemoteEmbeddingClient.embed_text()
-           ├─> HTTP POST to backend /api/embeddings/
-           └─> Return numpy array embedding
+2. SDK-PROVIDED EMBEDDING
+   └─> SDK calls backend /api/embeddings/
+       └─> Sidecar receives content + embedding via store_memory_by_embedding
            ↓
 3. STORAGE
    ├─> Episodic Memory
@@ -156,8 +152,8 @@ frontend/src/main/python/
        └─> Mark episodic memories as semanticized
            ↓
 5. SEARCH
-   └─> LocalMemoryStore.search()
-       ├─> Generate query embedding (RemoteEmbeddingClient)
+   └─> LocalMemoryStore.search_by_embedding()
+       ├─> Receive query embedding from SDK
        ├─> Search FAISS indices (episodic + semantic)
        ├─> Retrieve metadata from SQLite
        └─> Return ranked results
@@ -242,7 +238,7 @@ frontend/src/main/python/
 
 5. **Standardized Results**: ToolResult dataclass ensures consistent response format
 
-6. **Remote Embeddings**: Frontend uses backend embedding API instead of local embedder
+6. **SDK-Owned Embeddings**: SDK uses backend embedding API and passes vectors to sidecar storage/search
 
 7. **Separate Memory Types**: Episodic and semantic memories stored in separate databases and FAISS indices
 
@@ -266,7 +262,7 @@ frontend/src/main/python/
 
 ### JSON-RPC 2.0 (Local Backend)
 - **Protocol**: JSON-RPC 2.0 over stdin/stdout (one line per message)
-- **Methods**: execute_tool, get_system_state, search_memory, store_memory, ping, get_status
+- **Methods**: execute_tool, get_system_state, search_memory_by_embedding, store_memory_by_embedding, ping, get_status
 - **Error Handling**: Standard JSON-RPC error codes
 
 ### Simple JSON (Memory Service)

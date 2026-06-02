@@ -139,14 +139,6 @@ const mapSearchMemoryPayload = createPayloadMapper({
   semantic_min_score: ['semanticMinScore', 'semantic_min_score'],
 });
 
-const mapStoreMemoryPayload = createPayloadMapper({
-  user_query: ['user_query', 'userQuery'],
-  assistant_response: ['assistant_response', 'assistantResponse'],
-  memory_type: ['memory_type', 'memoryType'],
-  user_id: ['user_id', 'userId'],
-  session_id: ['session_id', 'sessionId'],
-});
-
 const mapChatEventWritePayload = createPayloadMapper({
   user_id: 'userId',
   conversation_id: 'conversationId',
@@ -292,16 +284,10 @@ const COMPILED_RPC_HANDLER_DEFINITIONS = [
       conversation_id: ({ conversationId }) => conversationId ?? null,
     }),
   },
-  {
-    channel: 'store-memory',
-    method: 'store_memory',
-    mapParams: mapStoreMemoryPayload,
-  },
 ];
 
 module.exports = {
   COMPILED_RPC_HANDLER_DEFINITIONS,
   mapSearchMemoryPayload,
-  mapStoreMemoryPayload,
   registerMappedRpcHandlers,
 };

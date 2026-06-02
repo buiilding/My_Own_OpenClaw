@@ -33,8 +33,10 @@ deployment choices instead of cross-runtime rewrites.
   are hidden from model-visible capabilities before prompt construction.
 - SDK routes expose OCR/vision developer APIs, but do not own provider
   selection.
-- Sidecar remote clients may consume hosted embedding/semantic/title services,
-  but must not import backend provider or router code.
+- SDK clients consume hosted embedding/title services for memory and naming.
+  Sidecar remote clients may consume sidecar-owned hosted helper services such
+  as semantic summarization, but must not import backend provider or router
+  code.
 - Frontend settings can update allowed config fields, but must not duplicate
   provider factory rules.
 
@@ -50,7 +52,7 @@ deployment choices instead of cross-runtime rewrites.
 | Circuit breaker opens too eagerly or never opens | `backend/src/core/inference/circuit_breaker.py`, capability routers | `tests/backend/test_inference_routers.py`, provider-specific failure tests |
 | Runtime config update does not rebind providers | `backend/src/core/container/config_updater.py`, `backend/src/core/validation/settings_update_rules.py`, `backend/src/agent/session` config propagation | `tests/backend/test_container_config_updater.py`, `tests/backend/test_settings_update_rules.py`, `tests/backend/test_session_config_service.py` |
 | SDK OCR/vision behavior changes | `backend/src/api/routes/sdk/*`, OCR/vision routers and service helpers, `backend/src/sdk`, hosted clients | `tests/backend/test_sdk_routes.py`, `tests/backend/test_sdk_helpers.py`, `tests/frontend/WindieSdkClient.test.ts`, [SDK Route Change Workflow](../sdk/sdk_route_change_workflow.md) |
-| Sidecar memory remote embedding behavior changes | `frontend/src/main/python/core/remote_embedding_client.py`, sidecar memory store/search pipeline | `tests/sidecar/test_remote_embedding_client.py`, `tests/sidecar/test_local_store_search_pairing.py`, [Sidecar Core Docs Hub](../frontend/sidecar/core/README.md) |
+| SDK memory embedding behavior changes | `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts`, `packages/windie-sdk-js/src/runtime/WindieAgent.ts`, sidecar memory store/search pipeline | SDK memory tests, `tests/sidecar/test_local_store_*.py`, [Sidecar Core Docs Hub](../frontend/sidecar/core/README.md) |
 | STT provider or transcription websocket changes | `backend/src/api/routes/transcription/*`, backend transcription services, renderer voice capture | `tests/backend/test_transcription_gateway.py`, `tests/backend/test_openai_realtime_transcription.py`, frontend voice tests, [Voice Audio Change Workflow](../channels/voice_audio_change_workflow.md) |
 | TTS provider, chunking, suppression, or cleanup changes | `backend/src/api/processing/tts/*`, `backend/src/api/services/tts_session.py`, speech service factory/config | `tests/backend/test_tts_manager.py`, `tests/backend/test_tts_session.py`, `tests/backend/test_elevenlabs_tts_service.py`, [TTS and Wakeword Audio Runtime](../backend/services/tts_and_wakeword_audio_runtime_reference.md) |
 
@@ -261,7 +263,7 @@ provider health and tool policy together.
 | Vision provider behavior | `./scripts/python-in-env backend pytest tests/backend/test_vision_service.py tests/backend/test_vision_coordinates.py tests/backend/test_vision_provider_loader.py tests/backend/test_remote_ocr_vision_providers.py` |
 | Embedding provider behavior | `./scripts/python-in-env backend pytest tests/backend/test_embeddings_*.py tests/backend/test_remote_embedding_provider.py tests/backend/test_openai_embedding_provider.py` |
 | SDK OCR/vision exposure | `./scripts/python-in-env backend pytest tests/backend/test_sdk_routes.py tests/backend/test_sdk_helpers.py` and `cd frontend && npm run test -- WindieSdkClient` |
-| Sidecar remote embedding client | `./scripts/python-in-env sidecar pytest tests/sidecar/test_remote_embedding_client.py tests/sidecar/test_local_store_search_pairing.py` |
+| SDK memory embedding behavior | `cd frontend && npm run test -- --runTestsByPath ../tests/frontend/WindieSdkContextEnrichment.test.ts ../tests/frontend/WindieSdkClient.test.ts --runInBand -t memory` and sidecar local-store tests |
 | STT/TTS audio behavior | `./scripts/python-in-env backend pytest tests/backend/test_transcription_gateway.py tests/backend/test_openai_realtime_transcription.py tests/backend/test_tts_manager.py tests/backend/test_tts_session.py` |
 | Docs-only inference workflow updates | `./bin/docs-list`, `git diff --check`, focused Markdown link checks |
 

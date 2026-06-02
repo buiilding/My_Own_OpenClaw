@@ -654,14 +654,23 @@ describe('WindieSdkClient', () => {
   });
 
   test('agent.chat searches memory before sending and stores completed-turn memory by default', async () => {
-    mockFetch.mockResolvedValueOnce(jsonResponse({
-      embedding: [0.1, 0.2, 0.3],
-      provider_id: 'test-provider',
-      model_id: 'test-model',
-      model_name: 'default',
-      dimension: 3,
-      embedding_space_version: 'test-space',
-    }));
+    mockFetch
+      .mockResolvedValueOnce(jsonResponse({
+        embedding: [0.1, 0.2, 0.3],
+        provider_id: 'test-provider',
+        model_id: 'test-model',
+        model_name: 'default',
+        dimension: 3,
+        embedding_space_version: 'test-space',
+      }))
+      .mockResolvedValueOnce(jsonResponse({
+        embedding: [0.4, 0.5, 0.6],
+        provider_id: 'test-provider',
+        model_id: 'test-model',
+        model_name: 'default',
+        dimension: 3,
+        embedding_space_version: 'test-space',
+      }));
     const localRuntime: WindieLocalRuntimeClient = {
       rpc: jest.fn(async ({ method }) => {
         if (method === 'search_memory_by_embedding') {
@@ -716,19 +725,22 @@ describe('WindieSdkClient', () => {
         type: 'streaming-complete',
         conversation_ref: 'conv-memory-chat',
         turn_ref: turn.turnRef,
+        event_id: `${turn.turnRef}-evt-000001-streaming-complete`,
+        sequence: 1,
         payload: { final_response: 'stored answer' },
       }),
     });
     await new Promise(resolve => setTimeout(resolve, 0));
 
     expect(localRuntime.rpc).toHaveBeenCalledWith(expect.objectContaining({
-      method: 'store_memory',
+      method: 'store_memory_by_embedding',
       params: expect.objectContaining({
         user_id: 'dev-user',
-        user_query: 'use memory',
-        assistant_response: 'stored answer',
+        content: 'User: use memory\nAssistant: stored answer',
+        embedding: [0.4, 0.5, 0.6],
+        embedding_space_version: 'test-space',
         memory_type: 'episodic',
-        session_id: 'conv-memory-chat',
+        conversation_id: 'conv-memory-chat',
       }),
     }));
   });
@@ -878,6 +890,22 @@ describe('WindieSdkClient', () => {
         size_bytes: 4,
         sha256: 'abc',
         url: 'https://api.windieos.com/api/artifacts/artifact-1',
+      }) as any)
+      .mockResolvedValueOnce(jsonResponse({
+        embedding: [0.1, 0.2, 0.3],
+        provider_id: 'test-provider',
+        model_id: 'test-model',
+        model_name: 'default',
+        dimension: 3,
+        embedding_space_version: 'test-space',
+      }) as any)
+      .mockResolvedValueOnce(jsonResponse({
+        embedding: [0.4, 0.5, 0.6],
+        provider_id: 'test-provider',
+        model_id: 'test-model',
+        model_name: 'default',
+        dimension: 3,
+        embedding_space_version: 'test-space',
       }) as any);
     const client = new WindieClient({
       backendUrl: 'https://api.windieos.com',
@@ -914,10 +942,19 @@ describe('WindieSdkClient', () => {
     await agent.updateToolSchemas([{ name: 'read_file' }]);
 
     expect(localRuntime.rpc).toHaveBeenCalledWith(expect.objectContaining({
-      method: 'search_memory',
+      method: 'search_memory_by_embedding',
+      params: expect.objectContaining({
+        embedding: [0.1, 0.2, 0.3],
+        embedding_space_version: 'test-space',
+      }),
     }));
     expect(localRuntime.rpc).toHaveBeenCalledWith(expect.objectContaining({
-      method: 'store_memory',
+      method: 'store_memory_by_embedding',
+      params: expect.objectContaining({
+        content: 'User: hello\nAssistant: world',
+        embedding: [0.4, 0.5, 0.6],
+        embedding_space_version: 'test-space',
+      }),
     }));
     expect(localRuntime.rpc).toHaveBeenCalledWith(expect.objectContaining({
       method: 'delete_semantic_memory',

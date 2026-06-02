@@ -1,5 +1,5 @@
 ---
-summary: "Frontend sidecar memory docs sub-hub for transcript storage, async conversation-title generation, summarizer cadence, watermark progression, and unsemanticized conversation-window batching behavior."
+summary: "Frontend sidecar memory docs sub-hub for transcript storage, SDK-provided embeddings, summarizer cadence, watermark progression, and unsemanticized conversation-window batching behavior."
 read_when:
   - When changing sidecar transcript storage fields, semantic-candidate rules, or summarizer watermark progression logic.
   - When debugging why episodic transcript entries are or are not promoted to semantic memory, or why transcript windows remain untitled/pending.
@@ -37,13 +37,11 @@ title: "Frontend Sidecar Memory Docs Hub"
 - `frontend/src/main/python/local_backend_memory_handlers.py`
 - `frontend/src/main/local_backend_bridge_rpc_mappers.cjs`
 - `frontend/src/main/python/core/remote_semantic_client.py`
-- `frontend/src/main/python/core/remote_title_client.py`
 - `tests/sidecar/test_memory_summarizer.py`
 - `tests/sidecar/test_conversation_search.py`
 - `tests/sidecar/test_conversation_search_helpers.py`
 - `tests/sidecar/test_conversation_search_runtime.py`
 - `tests/sidecar/test_conversation_titles.py`
 - `tests/sidecar/test_conversation_title_helpers.py`
-- `tests/sidecar/test_remote_title_client.py`
 - `tests/sidecar/test_local_store_delete_cleanup.py`
 - `tests/sidecar/test_local_backend.py`

@@ -23,27 +23,6 @@ except ImportError:  # pragma: no cover
     faiss = None
 
 
-class _DummyEmbedder:
-    @property
-    def dimension(self) -> int:
-        return 8
-
-    async def embed_text(self, text: str):
-        value = float((len(text) % 9) + 1)
-        return np.full((self.dimension,), value, dtype=np.float32)
-
-
-class _FailOnEmbedder:
-    @property
-    def dimension(self) -> int:
-        return 8
-
-    async def embed_text(self, text: str):
-        raise AssertionError(
-            "search should not call embedder when no indices are searchable"
-        )
-
-
 class _WatermarkStoreStub:
     def __init__(self) -> None:
         self.updates = []
@@ -55,7 +34,6 @@ class _WatermarkStoreStub:
 def _build_store(tmp_path: Path) -> LocalMemoryStore:
     store = LocalMemoryStore.__new__(LocalMemoryStore)
 
-    store.embedder = _DummyEmbedder()
     store.episodic_db_path = tmp_path / "episodic.db"
     store.semantic_db_path = tmp_path / "semantic.db"
     store.episodic_index_path = tmp_path / "episodic.faiss.index"
@@ -70,6 +48,9 @@ def _build_store(tmp_path: Path) -> LocalMemoryStore:
     store.semantic_memory_id_to_vector_id = {}
     store.semantic_next_vector_id = 0
     store.semantic_index = None
+    store._default_embedding_dimension = 8
+    store._embedding_space_metadata = None
+    store.embedding_space_metadata_path = tmp_path / "embedding_space.json"
 
     return store
 
@@ -141,19 +122,6 @@ def _create_bulk_clear_episodic_memories_table(db_path: Path) -> None:
         conn.commit()
 
 
-def _create_rebuild_memories_table(db_path: Path) -> None:
-    with sqlite3.connect(db_path) as conn:
-        conn.execute("""
-            CREATE TABLE memories (
-                id TEXT PRIMARY KEY,
-                user_id TEXT,
-                content TEXT,
-                embedding_id INTEGER
-            )
-            """)
-        conn.commit()
-
-
 def _create_bulk_clear_semantic_memories_table(db_path: Path) -> None:
     with sqlite3.connect(db_path) as conn:
         conn.execute("""
@@ -192,7 +160,6 @@ async def test_search_short_circuits_without_embedding_when_no_searchable_indice
     tmp_path: Path,
 ):
     store = _build_store(tmp_path)
-    store.embedder = _FailOnEmbedder()
     store.episodic_index = None
     store.semantic_index = None
 
@@ -217,7 +184,7 @@ async def test_delete_semantic_memory_clears_faiss_artifacts_when_empty(tmp_path
     store.semantic_memory_id_to_vector_id = {"semantic-1": 0}
     store.semantic_vector_id_to_memory_id = {0: "semantic-1"}
     store.semantic_next_vector_id = 12
-    store.semantic_index = faiss.IndexFlatIP(store.embedder.dimension)
+    store.semantic_index = faiss.IndexFlatIP(store._default_embedding_dimension)
     store.semantic_index_path.write_bytes(b"stale-index")
 
     deleted = await store.delete_semantic_memory("user-1", "semantic-1")
@@ -315,7 +282,7 @@ async def test_delete_episodic_memory_clears_faiss_artifacts_when_empty(tmp_path
     store.episodic_memory_id_to_vector_id = {"episodic-1": 0}
     store.episodic_vector_id_to_memory_id = {0: "episodic-1"}
     store.episodic_next_vector_id = 7
-    store.episodic_index = faiss.IndexFlatIP(store.embedder.dimension)
+    store.episodic_index = faiss.IndexFlatIP(store._default_embedding_dimension)
     store.episodic_index_path.write_bytes(b"stale-index")
 
     deleted = await store.delete_episodic_memory("user-1", "episodic-1")
@@ -441,19 +408,19 @@ async def test_clear_local_memory_preserves_non_interaction_rows_and_rebuilds_in
         )
         conn.commit()
 
-    store.episodic_index = faiss.IndexFlatIP(store.embedder.dimension)
+    store.episodic_index = faiss.IndexFlatIP(store._default_embedding_dimension)
     store.episodic_index.add(
         np.stack(
             [
-                np.full((store.embedder.dimension,), 1.0, dtype=np.float32),
-                np.full((store.embedder.dimension,), 2.0, dtype=np.float32),
+                np.full((store._default_embedding_dimension,), 1.0, dtype=np.float32),
+                np.full((store._default_embedding_dimension,), 2.0, dtype=np.float32),
             ],
             axis=0,
         )
     )
-    store.semantic_index = faiss.IndexFlatIP(store.embedder.dimension)
+    store.semantic_index = faiss.IndexFlatIP(store._default_embedding_dimension)
     store.semantic_index.add(
-        np.full((1, store.embedder.dimension), 3.0, dtype=np.float32)
+        np.full((1, store._default_embedding_dimension), 3.0, dtype=np.float32)
     )
     store._watermark_store = _WatermarkStoreStub()
 
@@ -464,7 +431,7 @@ async def test_clear_local_memory_preserves_non_interaction_rows_and_rebuilds_in
         "semantic_deleted_count": 1,
     }
     assert store.episodic_index is not None
-    assert store.episodic_index.ntotal == 1
+    assert store.episodic_index.ntotal == 0
     assert store.semantic_index is not None
     assert store.semantic_index.ntotal == 0
     assert store.semantic_index_path.exists() is False
@@ -480,7 +447,7 @@ async def test_clear_local_memory_preserves_non_interaction_rows_and_rebuilds_in
             "SELECT id, record_kind, embedding_id FROM memories ORDER BY id"
         ).fetchall()
     assert remaining_rows == [
-        ("raw-memory-1", "memory", 0),
+        ("raw-memory-1", "memory", None),
     ]
 
     with sqlite3.connect(store.semantic_db_path) as conn:
@@ -564,12 +531,12 @@ async def test_clear_chat_history_preserves_memory_rows_and_titles_are_removed(
         },
     )
 
-    store.episodic_index = faiss.IndexFlatIP(store.embedder.dimension)
+    store.episodic_index = faiss.IndexFlatIP(store._default_embedding_dimension)
     store.episodic_index.add(
         np.stack(
             [
-                np.full((store.embedder.dimension,), 1.0, dtype=np.float32),
-                np.full((store.embedder.dimension,), 2.0, dtype=np.float32),
+                np.full((store._default_embedding_dimension,), 1.0, dtype=np.float32),
+                np.full((store._default_embedding_dimension,), 2.0, dtype=np.float32),
             ],
             axis=0,
         )
@@ -600,52 +567,6 @@ async def test_clear_chat_history_preserves_memory_rows_and_titles_are_removed(
         ).fetchone()[0]
     assert remaining_rows == [("interaction-1", "interaction", 0)]
     assert remaining_titles == 0
-
-
-@pytest.mark.asyncio
-@pytest.mark.skipif(faiss is None, reason="faiss is required")
-async def test_rebuild_index_rewrites_sparse_embedding_ids_to_contiguous_ids(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-):
-    store = _build_store(tmp_path)
-    _create_rebuild_memories_table(store.episodic_db_path)
-
-    with sqlite3.connect(store.episodic_db_path) as conn:
-        conn.execute(
-            "INSERT INTO memories (id, user_id, content, embedding_id) VALUES (?, ?, ?, ?)",
-            ("episodic-a", "user-1", "alpha", 11),
-        )
-        conn.execute(
-            "INSERT INTO memories (id, user_id, content, embedding_id) VALUES (?, ?, ?, ?)",
-            ("episodic-b", "user-1", "bravo", 4),
-        )
-        conn.commit()
-
-    store.episodic_memory_id_to_vector_id = {"episodic-a": 11, "episodic-b": 4}
-    store.episodic_vector_id_to_memory_id = {11: "episodic-a", 4: "episodic-b"}
-    store.episodic_next_vector_id = 12
-    store.episodic_index = faiss.IndexFlatIP(store.embedder.dimension)
-
-    async def _noop_save():
-        return None
-
-    monkeypatch.setattr(store, "_save_faiss_indices", _noop_save)
-
-    await store._rebuild_index("episodic")
-
-    assert store.episodic_index.ntotal == 2
-    assert store.episodic_next_vector_id == 2
-    assert set(store.episodic_vector_id_to_memory_id.keys()) == {0, 1}
-    assert set(store.episodic_memory_id_to_vector_id.values()) == {0, 1}
-
-    with sqlite3.connect(store.episodic_db_path) as conn:
-        rows = conn.execute(
-            "SELECT id, embedding_id FROM memories ORDER BY id ASC"
-        ).fetchall()
-    embedding_by_id = {row[0]: row[1] for row in rows}
-    assert embedding_by_id["episodic-b"] == 0
-    assert embedding_by_id["episodic-a"] == 1
 
 
 @pytest.mark.asyncio

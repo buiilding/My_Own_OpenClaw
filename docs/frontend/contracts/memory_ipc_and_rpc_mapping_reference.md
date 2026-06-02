@@ -33,7 +33,6 @@ Chat-event storage and continuity:
 
 Memory storage and retrieval:
 
-- `store-memory`
 - `search-memory`
 - `list-episodic-memories`
 - `list-semantic-memories`
@@ -56,7 +55,6 @@ Chat-event channels:
 
 Memory channels:
 
-- `store-memory` -> `store_memory`
 - `search-memory` -> `search_memory`
 - `list-episodic-memories` -> `list_episodic_memories`
 - `list-semantic-memories` -> `list_semantic_memories`
@@ -89,6 +87,12 @@ Renderer camelCase to sidecar snake_case conversions include:
 - `semantic.db` memory rows: extracted durable facts and summaries.
 
 Renderer transcript projection clients now route through the SDK conversation continuity service and the sidecar-backed chat-event store. The legacy transcript-row IPC/RPC path has been removed.
+
+Completed-turn memory storage is SDK-owned. The SDK formats the memory text,
+calls backend `/api/embeddings/`, and then calls sidecar
+`store_memory_by_embedding` with the content, embedding, embedding space
+version, user id, memory type, and conversation id. Electron/renderer IPC does
+not expose a direct memory-storage channel.
 
 ## Sidecar Response Envelope
 
@@ -130,11 +134,11 @@ The main-process bridge forwards mapped responses to the renderer unchanged.
 - deletes `chat_events` for one conversation
 - does not delete episodic or semantic memory rows
 
-### `store_memory`
+### `store_memory_by_embedding`
 
-- persists completed user+assistant interaction memory
+- persists SDK-formatted interaction memory with a caller-provided embedding
 - writes episodic rows with `record_kind='interaction'`
-- rejects non-string or blank user/assistant payloads
+- rejects non-string or blank content and invalid embedding payloads
 
 ### `search_memory`
 
@@ -153,8 +157,9 @@ If chats do not reload:
 If memory injection is empty:
 
 1. verify the SDK context enrichment pipeline called backend embeddings before query send
-2. verify the SDK completed-turn handler called `store-memory` after assistant completion
-3. verify embedding service health and FAISS/SQLite vector mappings
+2. verify the SDK completed-turn handler called backend embeddings after assistant completion
+3. verify the SDK then called sidecar `store_memory_by_embedding`
+4. verify embedding service health and FAISS/SQLite vector mappings
 
 ## Related Pages
 

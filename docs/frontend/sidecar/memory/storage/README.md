@@ -1,8 +1,8 @@
 ---
-summary: "Frontend sidecar memory storage docs sub-hub for LocalMemoryStore routing/search internals, transcript title-generation lifecycle, transcript-window queries, FAISS artifact cleanup, and schema/index/watermark persistence contracts."
+summary: "Frontend sidecar memory storage docs sub-hub for LocalMemoryStore routing/search internals, SDK-provided embeddings, transcript-window queries, FAISS artifact cleanup, and schema/index/watermark persistence contracts."
 read_when:
   - When changing `frontend/src/main/python/memory/local_store.py` behavior beyond summarizer-only logic.
-  - When debugging memory type routing, vector mapping/index drift, transcript conversation window ordering, title-generation drift, or watermark persistence issues.
+  - When debugging memory type routing, vector mapping/index drift, transcript conversation window ordering, title drift, or watermark persistence issues.
 title: "Frontend Sidecar Memory Storage Docs Hub"
 ---
 
@@ -36,7 +36,6 @@ title: "Frontend Sidecar Memory Storage Docs Hub"
 - `frontend/src/main/python/memory/faiss_index.py`
 - `frontend/src/main/python/memory/watermark_state.py`
 - `frontend/src/main/python/memory/operations.py`
-- `frontend/src/main/python/core/remote_title_client.py`
 - `tests/sidecar/test_local_store_delete_cleanup.py`
 - `tests/sidecar/test_conversation_list_runtime.py`
 - `tests/sidecar/test_conversation_search.py`
@@ -47,6 +46,5 @@ title: "Frontend Sidecar Memory Storage Docs Hub"
 - `tests/sidecar/test_conversation_title_helpers.py`
 - `tests/sidecar/test_conversation_title_runtime.py`
 - `tests/sidecar/test_conversation_window_runtime.py`
-- `tests/sidecar/test_remote_title_client.py`
 - `tests/sidecar/test_memory_summarizer.py`
 - `tests/sidecar/test_local_backend.py`

@@ -78,6 +78,13 @@ export function renderPlainModelFacingUserContent(input: {
   return parts.join('\n\n');
 }
 
+export function formatCompletedTurnMemory(input: {
+  userQuery: string;
+  assistantResponse: string;
+}): string {
+  return `User: ${input.userQuery.trim()}\nAssistant: ${input.assistantResponse.trim()}`;
+}
+
 function normalizeMemories(response: unknown): { episodic: string[]; semantic: string[] } {
   const record = response && typeof response === 'object' && !Array.isArray(response)
     ? response as JsonRecord
@@ -162,6 +169,7 @@ export async function enrichQueryPayload(input: ContextEnrichmentInput): Promise
 
 export async function storeCompletedTurnMemory(input: {
   localRuntime?: WindieLocalRuntimeClient | null;
+  sdkClient: WindieSdkClient;
   userId: string;
   conversationRef: string;
   userQuery: string;
@@ -176,14 +184,29 @@ export async function storeCompletedTurnMemory(input: {
   ) {
     return;
   }
-  await input.localRuntime.rpc({
-    method: 'store_memory',
+  const content = formatCompletedTurnMemory({
+    userQuery: input.userQuery,
+    assistantResponse: input.assistantResponse,
+  });
+  const embedding = await input.sdkClient.embeddings.create({ text: content });
+  const result = await input.localRuntime.rpc({
+    method: 'store_memory_by_embedding',
     params: {
       user_id: input.userId,
-      user_query: input.userQuery,
-      assistant_response: input.assistantResponse,
+      content,
+      embedding: embedding.embedding,
+      embedding_space_version: embedding.embedding_space_version,
       memory_type: 'episodic',
-      session_id: input.conversationRef,
+      conversation_id: input.conversationRef,
     },
   });
+  if (
+    result
+    && typeof result === 'object'
+    && !Array.isArray(result)
+    && (result as JsonRecord).success === false
+  ) {
+    const error = (result as JsonRecord).error;
+    throw new Error(typeof error === 'string' ? error : 'Memory store RPC failed');
+  }
 }

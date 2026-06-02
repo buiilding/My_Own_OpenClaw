@@ -525,7 +525,6 @@ App
 ### Invoke Channels (Renderer → Main, async)
 - SDK conversation commands - send, stop, retry, edit/resend, and projection loading through app runtime clients
 - `GET_SYSTEM_STATE` - Get system state (active window, mouse, clipboard, etc.)
-- `STORE_MEMORY` - Store memory via Python sidecar
 - `SEARCH_MEMORY` - Search memory via Python sidecar
 
 ### On Channels (Main → Renderer, events)

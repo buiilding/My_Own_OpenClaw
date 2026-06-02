@@ -21,7 +21,7 @@ WindieOS has multiple memory systems. Treating them as one store causes wrong-la
 | Backend forgets prior transcript after reopen | SDK rehydrate projection plus backend rehydrate path | `packages/windie-sdk-js/src/projections`, `backend/src/api/handlers/rehydrate.py`, `backend/src/api/services/rehydrate_*` | `tests/backend/test_rehydrate_*.py`, SDK rehydrate tests |
 | Tool-call/tool-output linkage breaks after replay | SDK tool projection plus backend rehydrate repair | SDK tool projection files, `rehydrate_tool_call_normalization.py`, `rehydrate_tool_linkage_repair.py` | SDK tool projection tests, backend rehydrate linkage tests |
 | Semantic memory is stale or noisy | Sidecar semanticization and backend semantic routes | `frontend/src/main/python/memory/conversation_semanticization_runtime.py`, `summarizer.py`, `backend/src/api/routes/memory/semantic` | `tests/sidecar/test_memory_summarizer.py`, `test_conversation_semanticization_runtime.py`, `tests/backend/test_memory_routes.py` |
-| Embedding/search fails but transcript should still save | Sidecar local store and remote embedding client | `local_store.py`, `faiss_index.py`, `remote_embedding_client.py` | `tests/sidecar/test_local_store_*.py`, `test_remote_embedding_client.py` |
+| Embedding/search fails but transcript should still save | SDK embedding orchestration plus sidecar local store | `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts`, `local_store.py`, `faiss_index.py` | SDK memory tests, `tests/sidecar/test_local_store_*.py` |
 | Backend model context is too long or compaction output is wrong | Backend active history/compaction | `backend/src/agent/compaction`, `backend/src/agent/history`, executor/interaction loop | `tests/backend/test_history_compaction_engine.py`, `test_compaction_prompt.py`, `test_interaction_loop_compaction.py` |
 | Memory RPC result is wrong | Sidecar memory handlers and local memory store | `frontend/src/main/python/local_backend_memory_handlers.py`, `frontend/src/main/python/memory/*` | `tests/sidecar/test_memory_*.py`, `tests/sidecar/test_memory_operations.py` |
 
@@ -32,7 +32,7 @@ WindieOS has multiple memory systems. Treating them as one store causes wrong-la
 | Renderer transcript | Visible chat persistence, pending flushes, session ids, local replay payloads | Semantic summaries, vector indexes, backend model history |
 | Sidecar local memory | SQLite transcript rows, episodic/semantic records, FAISS index, conversation list/search/title, semanticization | Backend active context window, prompt history mutation |
 | Backend active history | Model-facing message history for active sessions, compaction, tool linkage during the loop | Durable local transcript storage or dashboard conversation listing |
-| Backend memory routes | Embeddings, semantic summarize/title service endpoints, route health | Local sidecar DB schema or renderer replay state |
+| Backend memory routes | Embeddings, semantic summarize/title service endpoints, route health | Local sidecar DB schema, renderer replay state, or sidecar orchestration |
 | Dashboard UI | Listing/searching/deleting surfaced conversations and memories | Low-level storage schema, embedding provider behavior |
 
 ## Change Paths
@@ -106,7 +106,7 @@ Likely code:
 - `sqlite_store.py`
 - `operations.py`
 - `conversation_*_runtime.py`
-- remote embedding/semantic/title clients
+- SDK embedding orchestration and sidecar remote semantic client
 
 Validation:
 

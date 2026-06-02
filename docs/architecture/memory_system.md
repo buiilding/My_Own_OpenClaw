@@ -96,13 +96,13 @@ $mem = Join-Path $env:APPDATA "desktop-assistant\\memory"; Remove-Item -Force `
 - Supports search, add, update, delete
 - Delegates bulk destructive reset flows to `memory/admin.py`
 - Delegates empty-index artifact cleanup to `memory/index_artifact_cleanup.py`
-- Generates embeddings via `RemoteEmbeddingClient`
+- Stores caller-provided SDK embeddings and searches local FAISS/SQLite indexes
 - Chat history is not stored as memory rows. The sidecar stores visible chat replay in `chat_events`.
 - Episodic memory rows are durable memory facts/interaction pairs, not the visible chat log.
-- On startup, sidecar backfills missing embeddings for existing memory rows.
-- If the backend embedding provider is unavailable or times out, sidecar memory
-  degrades to SQLite-only behavior and omits memory context from prompts instead
-  of blocking the agent loop.
+- The SDK calls backend `/api/embeddings/` for retrieval and completed-turn
+  memory writes, then passes embeddings to the sidecar.
+- If backend embeddings fail, SDK memory retrieval/storage is skipped or logged
+  as a non-fatal side effect; chat continues.
 
 ### MemorySummarizer
 

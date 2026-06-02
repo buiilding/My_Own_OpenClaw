@@ -401,48 +401,49 @@ def group_memory_texts(results: Iterable[Dict[str, Any]]) -> Dict[str, List[str]
     return grouped
 
 
-def format_interaction_memory(user_query: str, assistant_response: str) -> str:
-    """Store user/assistant exchanges in the canonical memory text format."""
-    return (
-        f"User: {sanitize_surrogates_in_text(user_query)}\n"
-        f"Assistant: {sanitize_surrogates_in_text(assistant_response)}"
-    )
-
-
-def normalize_store_memory_payload(
-    user_query: Any,
-    assistant_response: Any,
+def normalize_store_memory_by_embedding_payload(
+    content: Any,
+    embedding: Any,
+    embedding_space_version: Any,
     memory_type: Any,
-) -> Tuple[Optional[Dict[str, str]], Optional[str]]:
+) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
     """
-    Validate and normalize store-memory payload fields.
+    Validate and normalize SDK-owned store_memory_by_embedding payload fields.
 
     Returns:
-        ({user_query, assistant_response, memory_type}, None) on success
+        ({content, embedding, embedding_space_version, memory_type}, None) on success
         (None, "<error message>") on validation failure
     """
-    if user_query is None or assistant_response is None:
-        return None, "Missing user_query or assistant_response"
+    if content is None:
+        return None, "Missing content"
 
-    if not isinstance(user_query, str) or not isinstance(assistant_response, str):
-        return None, "user_query and assistant_response must be strings"
+    if not isinstance(content, str):
+        return None, "content must be a string"
 
     if memory_type is not None and not isinstance(memory_type, str):
         return None, "memory_type must be a string"
 
-    normalized_query = sanitize_surrogates_in_text(user_query.strip())
-    normalized_response = sanitize_surrogates_in_text(assistant_response.strip())
+    normalized_content = sanitize_surrogates_in_text(content.strip())
     normalized_memory_type = (memory_type or "episodic").strip().lower()
 
-    if not normalized_query or not normalized_response:
-        return None, "Missing user_query or assistant_response"
+    if not normalized_content:
+        return None, "Missing content"
 
     if normalized_memory_type not in {"episodic", "semantic"}:
         return None, f"Invalid memory_type: {normalized_memory_type}"
 
+    normalized_embedding, embedding_error = normalize_search_memory_embedding_payload(
+        embedding=embedding,
+        memory_type=normalized_memory_type,
+        embedding_space_version=embedding_space_version,
+    )
+    if embedding_error:
+        return None, embedding_error
+
     return {
-        "user_query": normalized_query,
-        "assistant_response": normalized_response,
+        "content": normalized_content,
+        "embedding": normalized_embedding["embedding"],
+        "embedding_space_version": normalized_embedding["embedding_space_version"],
         "memory_type": normalized_memory_type,
     }, None
 
@@ -459,24 +460,26 @@ def build_completed_turn_memory_metadata(
     }
 
 
-async def store_completed_turn_memory(
+async def store_memory_by_embedding(
     memory_store: Any,
     *,
-    user_query: str,
-    assistant_response: str,
+    content: str,
+    embedding: List[float],
+    embedding_space_version: Optional[str],
     memory_type: str,
     user_id: str,
-    session_id: Optional[str],
+    conversation_id: Optional[str],
 ) -> Any:
-    """Persist one completed-turn interaction memory row."""
-    memory_content = format_interaction_memory(user_query, assistant_response)
-    metadata = build_completed_turn_memory_metadata(memory_type, session_id)
+    """Persist one SDK-formatted memory row with its SDK-provided embedding."""
+    metadata = build_completed_turn_memory_metadata(memory_type, conversation_id)
     return await memory_store.add(
-        memory_content,
+        content,
         user_id,
         metadata,
-        conversation_id=session_id,
+        conversation_id=conversation_id,
         record_kind=INTERACTION_RECORD_KIND,
+        embedding=embedding,
+        embedding_space_version=embedding_space_version,
     )
 
 
@@ -484,7 +487,7 @@ def build_store_memory_response_data(
     memory_id: str,
     memory_type: str,
 ) -> Dict[str, str]:
-    """Build common success payload for store-memory handlers."""
+    """Build common success payload for store_memory_by_embedding handlers."""
     return {
         "memory_id": memory_id,
         "memory_type": memory_type,
@@ -492,38 +495,41 @@ def build_store_memory_response_data(
     }
 
 
-async def normalize_and_store_completed_turn_memory(
+async def normalize_and_store_memory_by_embedding(
     memory_store: Any,
     *,
-    user_query: Any,
-    assistant_response: Any,
+    content: Any,
+    embedding: Any,
+    embedding_space_version: Any,
     memory_type: Any,
     user_id: str,
-    session_id: Optional[str],
+    conversation_id: Optional[str],
 ) -> Tuple[Optional[Dict[str, str]], Optional[str]]:
     """
-    Validate store-memory inputs and persist interaction row on success.
+    Validate store_memory_by_embedding inputs and persist row on success.
 
     Returns:
         ({"memory_id": str, "memory_type": str}, None) on success
         (None, "<error message>") on validation failure
     """
-    normalized, error = normalize_store_memory_payload(
-        user_query=user_query,
-        assistant_response=assistant_response,
+    normalized, error = normalize_store_memory_by_embedding_payload(
+        content=content,
+        embedding=embedding,
+        embedding_space_version=embedding_space_version,
         memory_type=memory_type,
     )
     if error:
         return None, error
 
     normalized_memory_type = normalized["memory_type"]
-    memory_id = await store_completed_turn_memory(
+    memory_id = await store_memory_by_embedding(
         memory_store,
-        user_query=normalized["user_query"],
-        assistant_response=normalized["assistant_response"],
+        content=normalized["content"],
+        embedding=normalized["embedding"],
+        embedding_space_version=normalized["embedding_space_version"],
         memory_type=normalized_memory_type,
         user_id=user_id,
-        session_id=session_id,
+        conversation_id=conversation_id,
     )
 
     return {

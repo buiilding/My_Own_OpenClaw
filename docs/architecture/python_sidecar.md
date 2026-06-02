@@ -14,7 +14,7 @@ The sidecar is the local execution runtime, not a replacement backend. Its role 
 
 - execute actions that must happen on the user's machine
 - expose local tool APIs to the UI and SDK
-- call the hosted backend when it needs backend-owned services such as embeddings, semantic summarization, OCR, or vision grounding
+- call the hosted backend only for sidecar-owned hosted helper services such as semantic summarization
 - call the hosted backend through transport-only clients instead of importing backend Python packages
 
 The intended open-source distribution is UI + sidecar + SDK. Users should not need to run backend services locally in order to use hosted OCR, prediction, or agent APIs.
@@ -69,8 +69,8 @@ Registered in `LocalBackend._initialize_methods()`:
 - `get_status`: diagnostics (registered tools, memory status)
 - `execute_tool`: execute a named tool with args
 - `get_system_state`: capture system state (optional field selection)
-- `search_memory`: query local memory
-- `store_memory`: store episodic/semantic memory
+- `search_memory_by_embedding`: query local memory using SDK-provided vectors
+- `store_memory_by_embedding`: store episodic/semantic memory using SDK-provided vectors
 
 Protocol output notes:
 - JSON-RPC responses are emitted as one JSON line per message.

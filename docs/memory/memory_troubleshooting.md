@@ -94,12 +94,11 @@ Inspect:
 
 - `frontend/src/main/python/memory/conversation_title_runtime.py`
 - `frontend/src/main/python/memory/conversation_title_helpers.py`
-- `frontend/src/main/python/core/remote_title_client.py`
 - backend semantic/title route tests under `tests/backend/test_memory_routes.py`
 
 Validate:
 
 ```bash
-./scripts/test-sidecar tests/sidecar/test_conversation_title_runtime.py tests/sidecar/test_conversation_title_helpers.py tests/sidecar/test_remote_title_client.py -q
+./scripts/test-sidecar tests/sidecar/test_conversation_title_runtime.py tests/sidecar/test_conversation_title_helpers.py -q
 ./scripts/test-backend tests/backend/test_memory_routes.py -q
 ```

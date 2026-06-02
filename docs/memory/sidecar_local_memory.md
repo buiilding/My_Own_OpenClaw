@@ -1,5 +1,5 @@
 ---
-summary: "Sidecar local memory guide covering LocalBackend memory handlers, LocalMemoryStore, SQLite/FAISS storage, semanticization, titles, and remote semantic clients."
+summary: "Sidecar local memory guide covering LocalBackend memory handlers, LocalMemoryStore, SQLite/FAISS storage, SDK-provided embeddings, semanticization, titles, and remote semantic clients."
 read_when:
   - When changing local memory JSON-RPC handlers, memory search/list/delete, semantic summarization, title generation, or sidecar memory storage.
   - When debugging local memory search, dashboard memory sections, conversation titles, or semantic memory generation.
@@ -20,7 +20,7 @@ The sidecar owns local memory persistence and search. Renderer and Electron main
 | Search/list/title runtime | `conversation_search_runtime.py`, `conversation_list_runtime.py`, `conversation_title_runtime.py` |
 | Semanticization | `conversation_semanticization_runtime.py`, `conversation_window_runtime.py`, `summarizer.py`, `watermark_state.py` |
 | Indexing | `faiss_index.py`, `transcript_embedding_policy.py` |
-| Remote helpers | `frontend/src/main/python/core/remote_embedding_client.py`, `remote_semantic_client.py`, `remote_title_client.py` |
+| Remote helpers | `frontend/src/main/python/core/remote_semantic_client.py` |
 
 ## Handler Contract
 
@@ -50,12 +50,12 @@ Do not use semanticization as the primary transcript persistence path. It is der
 
 ## Titles
 
-Conversation title generation belongs in sidecar memory title runtime and remote title client helpers. Title failures should not block transcript persistence or conversation listing.
+Conversation title storage and listing belong in sidecar memory title runtime. Hosted title generation belongs to the SDK/backend route path. Title failures should not block transcript persistence or conversation listing.
 
 ## Tests
 
 ```bash
 ./scripts/python-in-env sidecar python -m pytest tests/sidecar/test_local_backend.py tests/sidecar/test_memory_operations.py tests/sidecar/test_memory_summarizer.py -q
 ./scripts/test-sidecar tests/sidecar/test_conversation_search.py tests/sidecar/test_conversation_list_runtime.py tests/sidecar/test_conversation_title_runtime.py -q
-./scripts/test-sidecar tests/sidecar/test_remote_embedding_client.py tests/sidecar/test_remote_semantic_client.py tests/sidecar/test_remote_title_client.py -q
+./scripts/test-sidecar tests/sidecar/test_remote_semantic_client.py -q
 ```

@@ -55,7 +55,6 @@ Shared names from `ipcChannels.json`, consumed by preload + `INVOKE_CHANNELS`:
 - `upload-artifact`
 - `fetch-artifact-image`
 - `get-system-state`
-- `store-memory`
 - `search-memory`
 - `search-chat-conversations`
 - `list-chat-conversations`

@@ -70,8 +70,11 @@ These renderer-visible channels are registered by `registerMappedRpcHandlers(reg
 | `delete-semantic-memory` | `delete_semantic_memory` | `LocalBackendMemoryHandlersMixin` |
 | `clear-local-memory` | `clear_local_memory` | `LocalBackendMemoryHandlersMixin` |
 | `clear-chat-history` | `clear_chat_history` | `LocalBackendMemoryHandlersMixin` |
-| `store-memory` | `store_memory` | `LocalBackendMemoryHandlersMixin` |
 | `store-chat-event` | `store_chat_event` | `LocalBackendMemoryHandlersMixin` |
+
+Completed-turn memory writes are SDK-owned and call the sidecar directly through
+`store_memory_by_embedding`; there is no renderer-visible `store-memory` IPC
+channel.
 
 ## Add a Renderer-Visible JSON-RPC Method
 

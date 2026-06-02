@@ -191,7 +191,6 @@ Mapped `ipcMain.handle` registrations via `registerMappedRpcHandlers(...)`:
 - `delete-episodic-memory`
 - `delete-chat-conversation`
 - `delete-semantic-memory`
-- `store-memory`
 - `store-chat-event`
 
 Notable behavior:

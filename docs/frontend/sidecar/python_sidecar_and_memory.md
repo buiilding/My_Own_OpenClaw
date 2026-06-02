@@ -18,7 +18,7 @@ Primary Python entrypoints under `frontend/src/main/python`:
 - `memory_service.py`: minimal memory-only service variant
 - `wakeword_service.py`: binary-protocol wakeword inference service
 
-Only one process may own `LocalMemoryStore` for a running app session. The daemon is the preferred owner. Starting both `sidecar_daemon.py` and standalone `local_backend.py` against the same memory directory can race SQLite writes during remote embedding backfill and corrupt FAISS/SQLite mapping assumptions.
+Only one process may own `LocalMemoryStore` for a running app session. The daemon is the preferred owner. Starting both `sidecar_daemon.py` and standalone `local_backend.py` against the same memory directory can race SQLite writes and corrupt FAISS/SQLite mapping assumptions.
 
 ## Local Backend Protocol
 
@@ -34,7 +34,7 @@ Registered methods include:
 
 - `execute_tool`
 - `get_system_state`
-- memory APIs (`search_memory`, `store_memory`, list/get/delete conversation and semantic records)
+- memory APIs (`search_memory_by_embedding`, `store_memory_by_embedding`, list/get/delete conversation and semantic records)
 - health methods (`ping`, `get_status`)
 
 Operational behavior:
@@ -102,7 +102,7 @@ Key modules:
 Behavior:
 
 - stores episodic + semantic memory records with vector search support
-- uses remote embedding client (`core/remote_embedding_client.py`) against backend embeddings API
+- accepts SDK-provided embeddings for memory writes and searches; the sidecar does not call backend embeddings
 - optionally consolidates episodic memories into semantic summaries using backend semantic summarization endpoint
 
 Memory deep references:

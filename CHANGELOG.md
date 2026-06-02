@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/sidecar/memory: make SDK the only runtime that calls backend embeddings
+  for memory retrieval and completed-turn storage, replace sidecar
+  `store_memory` with `store_memory_by_embedding`, remove sidecar remote
+  embedding/title clients and direct Electron `store-memory` IPC, and log
+  best-effort memory persistence failures without failing chat turns.
 - docs/agents: make question-style implementation requests explicitly
   report-first so agents inspect code before modifying files.
 - examples/sdk: shorten the simple chat CLI setup and rendering helpers without

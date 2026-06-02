@@ -39,6 +39,7 @@ import {
 } from './ConversationRuntime.js';
 import {
   enrichQueryPayload,
+  formatCompletedTurnMemory,
   storeCompletedTurnMemory,
 } from './ContextEnrichmentPipeline.js';
 import type {
@@ -241,6 +242,7 @@ export class WindieAgent {
       store: options.store ?? this.defaultConversationStore,
       transport: createWindieAgentBackendTransport(this.session, conversationRef, this.agentDefinition),
       localRuntime: options.localRuntime === undefined ? this.localRuntime : options.localRuntime,
+      sdkClient: this.sdkClient,
       userId: this.userId,
       memoryEnabled: this.memoryEnabled,
       enrichQuery: async input => {
@@ -342,8 +344,11 @@ export class WindieAgent {
 
   async searchMemory(query: string | WindieMemoryQuery): Promise<JsonRecord> {
     const payload = typeof query === 'string' ? { query } : query;
-    return this.callLocalRuntimeRpc('search_memory', {
-      query: payload.query ?? '',
+    const text = payload.query ?? '';
+    const embedding = await this.sdkClient.embeddings.create({ text });
+    return this.callLocalRuntimeRpc('search_memory_by_embedding', {
+      embedding: embedding.embedding,
+      embedding_space_version: embedding.embedding_space_version,
       user_id: payload.userId,
       limit: payload.limit,
       memory_type: payload.memoryType,
@@ -365,12 +370,18 @@ export class WindieAgent {
   }
 
   async storeMemory(input: WindieStoreMemoryInput): Promise<JsonRecord> {
-    return this.callLocalRuntimeRpc('store_memory', {
+    const content = formatCompletedTurnMemory({
+      userQuery: input.userQuery,
+      assistantResponse: input.assistantResponse,
+    });
+    const embedding = await this.sdkClient.embeddings.create({ text: content });
+    return this.callLocalRuntimeRpc('store_memory_by_embedding', {
       user_id: input.userId,
-      user_query: input.userQuery,
-      assistant_response: input.assistantResponse,
+      content,
+      embedding: embedding.embedding,
+      embedding_space_version: embedding.embedding_space_version,
       memory_type: input.memoryType,
-      session_id: input.sessionId,
+      conversation_id: input.sessionId,
     });
   }
 
@@ -521,14 +532,18 @@ export class WindieAgent {
     try {
       await storeCompletedTurnMemory({
         localRuntime: this.localRuntime,
+        sdkClient: this.sdkClient,
         userId: this.userId,
         conversationRef: pending.conversationRef,
         userQuery: pending.userQuery,
         assistantResponse,
         memoryEnabled: this.memoryEnabled,
       });
-    } catch {
-      // Local memory persistence is best-effort and must not fail direct queries.
+    } catch (error) {
+      console.warn(
+        '[Windie SDK] Memory persistence failed:',
+        error instanceof Error ? error.message : String(error),
+      );
     }
   }
 }

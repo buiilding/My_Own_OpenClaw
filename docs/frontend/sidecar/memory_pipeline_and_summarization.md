@@ -1,5 +1,5 @@
 ---
-summary: "Detailed sidecar memory pipeline: local store internals, transcript title generation, remote embedding/semantic/title APIs, and periodic summarization workflow."
+summary: "Detailed sidecar memory pipeline: local store internals, SDK-provided embeddings, remote semantic summarization, and periodic summarization workflow."
 read_when:
   - When changing memory retrieval quality, summarization cadence, or memory persistence behavior.
   - When debugging missing semantic memories or vector-index drift.
@@ -34,18 +34,16 @@ State tracked:
 - watermark state for semanticization progress
 - persisted embedding-space metadata (`embedding_space.json`) used to detect backend embedding model/provider changes
 
-## Remote Embedding Dependency
+## Embedding Ownership
 
-Client:
+The SDK owns backend embedding calls for memory. It calls the backend
+`POST /api/embeddings/` route, then sends vectors into the sidecar through
+`search_memory_by_embedding` and `store_memory_by_embedding`.
 
-- `core/remote_embedding_client.py`
-
-Behavior:
-
-- calls backend `POST /api/embeddings/`
-- returns numpy vectors to sidecar memory store
-- exposes health check via backend embeddings health endpoint
-- caches `embedding_provider_id`, `embedding_model_id`, `embedding_dimension`, and `embedding_space_version`
+The sidecar owns local SQLite/FAISS storage only. It persists
+`embedding_space.json` to detect embedding-space version or dimension changes
+and clears local vector mappings when the caller-provided embedding space
+changes.
 
 ## Semantic Summarization Dependency
 
@@ -58,20 +56,11 @@ Behavior:
 - calls backend `POST /api/semantic/summarize`
 - receives `(summary, facts)` result for semantic memory write path
 
-## Conversation Title Dependency
+## Conversation Titles
 
-Client:
-
-- `core/remote_title_client.py`
-
-Behavior:
-
-- called by `LocalMemoryStore` async title-generation tasks after the first completed assistant `llm-text` transcript row for a conversation
-- calls backend `POST /api/semantic/title`
-- sends the first non-empty user message and first non-empty assistant reply, with model/provider metadata when the transcript row carries it
-- writes generated titles into `conversation_titles` with `source = model` and does not overwrite locked or manually sourced titles
-- emits a sidecar `conversation-title-updated` event after a generated title is stored so Electron can refresh dashboard metadata without waiting for transcript polling
-- dashboard conversation metadata prefers `conversation_titles.title`, then falls back to the first user message, latest content, or conversation id
+The sidecar stores and lists conversation titles, including manually updated
+titles. Hosted title generation belongs to the SDK/backend route path, not to a
+sidecar remote title client.
 
 ## Periodic Summarizer
 
@@ -98,17 +87,16 @@ Operational controls (from `SummarizerSettings`):
 ## Initialization and Runtime Sequence
 
 1. Sidecar initializes local memory store.
-2. Remote embedding client is initialized.
-3. SQLite schemas and FAISS indices are loaded/synced.
-4. Summarizer starts background task loop and triggers an immediate first pass.
-5. New memory writes update watermark and notify summarizer.
+2. SQLite schemas and FAISS indices are loaded/synced.
+3. Summarizer starts background task loop and triggers an immediate first pass.
+4. New SDK-embedded memory writes update watermark and notify summarizer.
 
 ## Failure Modes and Recovery
 
 Observed defensive behavior:
 
-- index/database mismatch triggers index rebuild flow
-- embedding-space metadata mismatch triggers explicit FAISS rebuild before mixed-space search/add flows continue
+- index/database mismatch clears stale vector mappings so future SDK-embedded writes rebuild local indices
+- embedding-space metadata mismatch clears local FAISS/vector mappings before mixed-space search/add flows continue
 - summarizer failures apply backoff and continue next cycle
 - empty semantic results are skipped without corrupting source data
 - remote API failures are logged and surfaced through exception paths

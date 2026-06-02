@@ -134,26 +134,39 @@ describe('SDK context enrichment pipeline', () => {
   });
 
   test('stores completed turn memory through the sidecar RPC', async () => {
+    const sdkClient = {
+      embeddings: {
+        create: jest.fn(async () => ({
+          embedding: [0.1, 0.2],
+          embedding_space_version: 'embed-v1',
+        })),
+      },
+    };
     const localRuntime = {
       rpc: jest.fn(async () => ({ success: true })),
     };
 
     await storeCompletedTurnMemory({
       localRuntime: localRuntime as never,
+      sdkClient: sdkClient as never,
       userId: 'user-1',
       conversationRef: 'conv-1',
       userQuery: 'hello',
       assistantResponse: 'world',
     });
 
+    expect(sdkClient.embeddings.create).toHaveBeenCalledWith({
+      text: 'User: hello\nAssistant: world',
+    });
     expect(localRuntime.rpc).toHaveBeenCalledWith({
-      method: 'store_memory',
+      method: 'store_memory_by_embedding',
       params: {
         user_id: 'user-1',
-        user_query: 'hello',
-        assistant_response: 'world',
+        content: 'User: hello\nAssistant: world',
+        embedding: [0.1, 0.2],
+        embedding_space_version: 'embed-v1',
         memory_type: 'episodic',
-        session_id: 'conv-1',
+        conversation_id: 'conv-1',
       },
     });
   });
@@ -165,6 +178,7 @@ describe('SDK context enrichment pipeline', () => {
 
     await storeCompletedTurnMemory({
       localRuntime: localRuntime as never,
+      sdkClient: { embeddings: { create: jest.fn() } } as never,
       userId: 'user-1',
       conversationRef: 'conv-1',
       userQuery: 'hello',

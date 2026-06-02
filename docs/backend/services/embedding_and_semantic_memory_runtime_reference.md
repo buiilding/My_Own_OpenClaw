@@ -21,7 +21,6 @@ title: "Embedding and Semantic Memory Runtime Reference"
 - `backend/src/core/container/initializer.py`
 - `backend/src/core/container/config_updater.py`
 - `backend/src/core/config/models.py`
-- `frontend/src/main/python/core/remote_embedding_client.py`
 - `frontend/src/main/python/core/remote_semantic_client.py`
 
 ## Config and DI Ownership
@@ -196,9 +195,9 @@ Used by both embeddings and semantic health routes.
 
 ## Frontend/Sidecar Consumption Path
 
-Frontend Python sidecar uses backend HTTP APIs directly:
+Frontend runtimes consume backend memory services through owned boundaries:
 
-- `RemoteEmbeddingClient` -> `POST /api/embeddings/`
+- SDK embedding client -> `POST /api/embeddings/`
 - `RemoteSemanticClient` -> `POST /api/semantic/summarize`
 
 Operational implications:

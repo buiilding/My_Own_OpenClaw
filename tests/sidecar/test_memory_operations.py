@@ -9,63 +9,69 @@ from memory.operations import (  # noqa: E402
     build_store_memory_response_data,
     classify_semantic_summarization_result,
     filter_results_by_min_score,
-    format_interaction_memory,
     group_memory_texts,
     is_durable_semantic_text,
-    normalize_and_store_completed_turn_memory,
+    normalize_and_store_memory_by_embedding,
     normalize_semantic_fact_list,
     normalize_semantic_summary,
     normalize_search_memory_payload,
     normalize_search_memory_selection,
-    normalize_store_memory_payload,
-    store_completed_turn_memory,
+    normalize_store_memory_by_embedding_payload,
+    store_memory_by_embedding,
 )
 
 
 @pytest.mark.parametrize(
-    ("user_query", "assistant_response", "memory_type", "expected_error"),
+    ("content", "embedding", "embedding_space_version", "memory_type", "expected_error"),
     [
-        (None, "hello", "episodic", "Missing user_query or assistant_response"),
-        ("hi", None, "episodic", "Missing user_query or assistant_response"),
-        (1, "hello", "episodic", "user_query and assistant_response must be strings"),
-        ("hi", "hello", 1, "memory_type must be a string"),
-        ("hi", "hello", "archive", "Invalid memory_type: archive"),
-        ("   ", "hello", "episodic", "Missing user_query or assistant_response"),
+        (None, [1.0], "space-1", "episodic", "Missing content"),
+        (1, [1.0], "space-1", "episodic", "content must be a string"),
+        ("hi", [1.0], "space-1", 1, "memory_type must be a string"),
+        ("hi", [1.0], "space-1", "archive", "Invalid memory_type: archive"),
+        ("   ", [1.0], "space-1", "episodic", "Missing content"),
+        ("hi", [], "space-1", "episodic", "embedding must be a non-empty list"),
+        ("hi", ["bad"], "space-1", "episodic", "embedding entries must be numbers"),
+        ("hi", [1.0], 7, "episodic", "embedding_space_version must be a string"),
     ],
 )
-def test_normalize_store_memory_payload_rejects_invalid_inputs(
-    user_query,
-    assistant_response,
+def test_normalize_store_memory_by_embedding_payload_rejects_invalid_inputs(
+    content,
+    embedding,
+    embedding_space_version,
     memory_type,
     expected_error,
 ):
-    normalized, error = normalize_store_memory_payload(
-        user_query=user_query,
-        assistant_response=assistant_response,
+    normalized, error = normalize_store_memory_by_embedding_payload(
+        content=content,
+        embedding=embedding,
+        embedding_space_version=embedding_space_version,
         memory_type=memory_type,
     )
     assert normalized is None
     assert error == expected_error
 
 
-def test_normalize_store_memory_payload_returns_normalized_values():
-    normalized, error = normalize_store_memory_payload(
-        user_query="  hi  ",
-        assistant_response="\nhello\t",
+def test_normalize_store_memory_by_embedding_payload_returns_normalized_values():
+    normalized, error = normalize_store_memory_by_embedding_payload(
+        content="  User: hi\nAssistant: hello  ",
+        embedding=[1, 2.5],
+        embedding_space_version="  space-1 ",
         memory_type="  SEMANTIC ",
     )
     assert error is None
     assert normalized == {
-        "user_query": "hi",
-        "assistant_response": "hello",
+        "content": "User: hi\nAssistant: hello",
+        "embedding": [1.0, 2.5],
+        "embedding_space_version": "space-1",
         "memory_type": "semantic",
     }
 
 
-def test_normalize_store_memory_payload_defaults_memory_type():
-    normalized, error = normalize_store_memory_payload(
-        user_query="hi",
-        assistant_response="hello",
+def test_normalize_store_memory_by_embedding_payload_defaults_memory_type():
+    normalized, error = normalize_store_memory_by_embedding_payload(
+        content="User: hi\nAssistant: hello",
+        embedding=[1.0],
+        embedding_space_version=None,
         memory_type=None,
     )
     assert error is None
@@ -270,59 +276,66 @@ class _DummyStore:
 
 
 @pytest.mark.asyncio
-async def test_store_completed_turn_memory_formats_and_persists_entry():
+async def test_store_memory_by_embedding_persists_entry_with_vector():
     store = _DummyStore()
 
-    memory_id = await store_completed_turn_memory(
+    memory_id = await store_memory_by_embedding(
         store,
-        user_query="hi",
-        assistant_response="hello",
+        content="User: hi\nAssistant: hello",
+        embedding=[0.1, 0.2],
+        embedding_space_version="space-1",
         memory_type="episodic",
         user_id="user-1",
-        session_id="session-1",
+        conversation_id="session-1",
     )
 
     assert memory_id == "mem-42"
     assert store.calls == [
         (
-            format_interaction_memory("hi", "hello"),
+            "User: hi\nAssistant: hello",
             "user-1",
             build_completed_turn_memory_metadata("episodic", "session-1"),
             "session-1",
-            {"record_kind": "interaction"},
+            {
+                "record_kind": "interaction",
+                "embedding": [0.1, 0.2],
+                "embedding_space_version": "space-1",
+            },
         )
     ]
 
 
 @pytest.mark.asyncio
-async def test_normalize_and_store_completed_turn_memory_returns_validation_error():
+async def test_normalize_and_store_memory_by_embedding_returns_validation_error():
     store = _DummyStore()
 
-    stored, error = await normalize_and_store_completed_turn_memory(
+    stored, error = await normalize_and_store_memory_by_embedding(
         store,
-        user_query="",
-        assistant_response="hello",
+        content="",
+        embedding=[0.1],
+        embedding_space_version="space-1",
         memory_type="episodic",
         user_id="user-1",
-        session_id="session-1",
+        conversation_id="session-1",
     )
 
     assert stored is None
-    assert error == "Missing user_query or assistant_response"
+    assert error == "Missing content"
     assert store.calls == []
 
 
 @pytest.mark.asyncio
-async def test_normalize_and_store_completed_turn_memory_persists_and_returns_metadata():
+async def test_normalize_and_store_memory_by_embedding_persists_and_returns_metadata():
     store = _DummyStore()
 
-    stored, error = await normalize_and_store_completed_turn_memory(
+    stored, error = await normalize_and_store_memory_by_embedding(
         store,
-        user_query="  hi  ",
-        assistant_response="\nhello\t",
+        content="  User: hi\nAssistant: hello  ",
+        embedding=[0.1, 0.2],
+        embedding_space_version="space-1",
         memory_type="  SEMANTIC ",
         user_id="user-1",
-        session_id="session-1",
+        conversation_id="session-1",
     )
 
     assert error is None
@@ -332,26 +345,31 @@ async def test_normalize_and_store_completed_turn_memory_persists_and_returns_me
     }
     assert store.calls == [
         (
-            format_interaction_memory("hi", "hello"),
+            "User: hi\nAssistant: hello",
             "user-1",
             build_completed_turn_memory_metadata("semantic", "session-1"),
             "session-1",
-            {"record_kind": "interaction"},
+            {
+                "record_kind": "interaction",
+                "embedding": [0.1, 0.2],
+                "embedding_space_version": "space-1",
+            },
         )
     ]
 
 
 @pytest.mark.asyncio
-async def test_normalize_and_store_completed_turn_memory_sanitizes_lone_surrogates():
+async def test_normalize_and_store_memory_by_embedding_sanitizes_lone_surrogates():
     store = _DummyStore()
 
-    stored, error = await normalize_and_store_completed_turn_memory(
+    stored, error = await normalize_and_store_memory_by_embedding(
         store,
-        user_query="hello\udc9duser",
-        assistant_response="hello\udc9dassistant",
+        content="User: hello\udc9duser\nAssistant: hello\udc9dassistant",
+        embedding=[0.1],
+        embedding_space_version="space-1",
         memory_type="episodic",
         user_id="user-1",
-        session_id="session-1",
+        conversation_id="session-1",
     )
 
     assert error is None

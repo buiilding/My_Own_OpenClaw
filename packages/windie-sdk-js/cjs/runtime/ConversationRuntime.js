@@ -418,7 +418,7 @@ class SdkConversationRuntime {
         const assistantResponse = typeof event.payload.finalResponse === 'string'
             ? event.payload.finalResponse
             : '';
-        if (!assistantResponse.trim()) {
+        if (!assistantResponse.trim() || !this.options.sdkClient) {
             return;
         }
         const userEvent = [...this.events].reverse().find(candidate => (candidate.type === 'user_message'
@@ -428,6 +428,7 @@ class SdkConversationRuntime {
         try {
             await (0, ContextEnrichmentPipeline_js_1.storeCompletedTurnMemory)({
                 localRuntime: this.options.localRuntime,
+                sdkClient: this.options.sdkClient,
                 userId: this.options.userId ?? 'local-sdk-user',
                 conversationRef: event.conversationRef,
                 userQuery,
@@ -435,8 +436,8 @@ class SdkConversationRuntime {
                 memoryEnabled: this.options.memoryEnabled,
             });
         }
-        catch {
-            // Memory persistence is an automatic local side effect; it must not fail the turn.
+        catch (error) {
+            console.warn('[Windie SDK] Memory persistence failed:', error instanceof Error ? error.message : String(error));
         }
     }
     nextLocalEventId(turnRef, type) {

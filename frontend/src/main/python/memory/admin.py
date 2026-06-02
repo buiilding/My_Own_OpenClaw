@@ -28,29 +28,13 @@ logger = logging.getLogger(__name__)
 
 async def _rebuild_and_sync_index(store: "LocalMemoryStore", memory_type: str) -> None:
     """
-    Rebuild an index from current DB rows, then backfill any embeddable NULL rows.
+    Clear vector mappings after bulk deletes.
 
-    Bulk delete flows use this to drop stale vectors while preserving surviving rows.
+    The SDK owns embedding generation, so admin flows cannot rebuild vectors from
+    text. Surviving rows remain local data and future SDK-provided embeddings can
+    index new writes.
     """
-    await store._rebuild_index(memory_type)
-    (
-        db_path,
-        index,
-        vector_id_to_memory_id,
-        memory_id_to_vector_id,
-        next_vector_id,
-    ) = store._get_memory_state(memory_type)
-    updated_next_vector_id, embedded_count = await store._sync_vector_mappings_for_db(
-        memory_type=memory_type,
-        db_path=db_path,
-        index=index,
-        vector_id_to_memory_id=vector_id_to_memory_id,
-        memory_id_to_vector_id=memory_id_to_vector_id,
-        next_vector_id=next_vector_id,
-    )
-    store._set_next_vector_id(memory_type, updated_next_vector_id)
-    if embedded_count > 0:
-        await store._save_faiss_indices()
+    await store._clear_vector_mappings(memory_type)
     await store._cleanup_index_artifacts_if_empty(memory_type)
 
 

@@ -60,7 +60,8 @@ Core/tool methods:
 Memory methods:
 
 - `search_memory`
-- `store_memory`
+- `search_memory_by_embedding`
+- `store_memory_by_embedding`
 - `list_episodic_memories`
 - `list_semantic_memories`
 - `delete_episodic_memory`
@@ -99,7 +100,6 @@ Mapped bridge handlers:
 - `delete-semantic-memory` -> `delete_semantic_memory`
 - `clear-local-memory` -> `clear_local_memory`
 - `clear-chat-history` -> `clear_chat_history`
-- `store-memory` -> `store_memory`
 
 ## Memory and Chat Semantics
 
@@ -111,9 +111,9 @@ with the replacement event rows, and `get_chat_conversation_revision` reads it
 before falling back to the latest event revision. This keeps edit/resend and
 retry rewrites from reporting an old preserved event revision.
 
-`store_memory` writes completed interaction memory rows with `record_kind='interaction'`. Those rows power Episodic Memory and semantic summarization. They are not the visible chat replay source.
+`store_memory_by_embedding` writes SDK-formatted interaction memory rows with `record_kind='interaction'` and a caller-provided embedding. Those rows power Episodic Memory and semantic summarization. They are not the visible chat replay source. The sidecar does not call backend embeddings for memory writes.
 
-`search_memory` queries episodic and semantic memory for prompt injection. It does not reconstruct chat replay from chat events.
+`search_memory_by_embedding` queries episodic and semantic memory for prompt injection using an SDK-provided embedding. `search_memory` remains a legacy text-query RPC but does not generate embeddings inside the sidecar. Neither path reconstructs chat replay from chat events.
 
 ## Failure Handling
 

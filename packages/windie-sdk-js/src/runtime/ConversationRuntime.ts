@@ -23,6 +23,7 @@ import {
   buildRehydrateSnapshot,
 } from '../projections/conversationProjections.js';
 import { normalizeBackendEventToConversationEvent } from '../transport/backendEventNormalizer.js';
+import type { WindieSdkClient } from '../transport/HostedBackendHttpClient.js';
 import { ToolExecutionCoordinator } from '../tools/ToolExecutionCoordinator.js';
 import {
   buildModelSettingsPatch,
@@ -106,6 +107,7 @@ export type ConversationRuntimeOptions = {
   store: ConversationStore;
   transport?: BackendTransport;
   localRuntime?: Partial<Pick<LocalRuntime, 'executeTool' | 'rpc'>> | null;
+  sdkClient?: WindieSdkClient;
   userId?: string;
   memoryEnabled?: boolean;
   enrichQuery?: (input: {
@@ -581,7 +583,7 @@ export class SdkConversationRuntime {
     const assistantResponse = typeof event.payload.finalResponse === 'string'
       ? event.payload.finalResponse
       : '';
-    if (!assistantResponse.trim()) {
+    if (!assistantResponse.trim() || !this.options.sdkClient) {
       return;
     }
     const userEvent = [...this.events].reverse().find(candidate => (
@@ -593,14 +595,18 @@ export class SdkConversationRuntime {
     try {
       await storeCompletedTurnMemory({
         localRuntime: this.options.localRuntime,
+        sdkClient: this.options.sdkClient,
         userId: this.options.userId ?? 'local-sdk-user',
         conversationRef: event.conversationRef,
         userQuery,
         assistantResponse,
         memoryEnabled: this.options.memoryEnabled,
       });
-    } catch {
-      // Memory persistence is an automatic local side effect; it must not fail the turn.
+    } catch (error) {
+      console.warn(
+        '[Windie SDK] Memory persistence failed:',
+        error instanceof Error ? error.message : String(error),
+      );
     }
   }
 

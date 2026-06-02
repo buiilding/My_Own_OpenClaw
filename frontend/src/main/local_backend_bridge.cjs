@@ -8,7 +8,6 @@ const {
 const {
   COMPILED_RPC_HANDLER_DEFINITIONS,
   mapSearchMemoryPayload,
-  mapStoreMemoryPayload,
   registerMappedRpcHandlers,
 } = require('./local_backend_bridge_rpc_mappers.cjs');
 const {
@@ -303,13 +302,6 @@ async function sendMemorySearchRequest(payload = {}) {
   return sendRequestOrError(
     'search_memory',
     mapSearchMemoryPayload(payload),
-  );
-}
-
-async function storeMemory(payload = {}) {
-  return sendRequestOrError(
-    'store_memory',
-    mapStoreMemoryPayload(payload),
   );
 }
 
@@ -618,5 +610,4 @@ module.exports = {
   determineMacOsSystemEventsAutomationPermission,
   warmBrowserAutomation,
   searchMemory,
-  storeMemory,
 };

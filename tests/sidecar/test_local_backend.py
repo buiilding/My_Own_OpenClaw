@@ -829,7 +829,7 @@ def test_initialize_methods_keeps_memory_handlers_registered():
 
     expected_methods = {
         "search_memory",
-        "store_memory",
+        "store_memory_by_embedding",
         "list_episodic_memories",
         "list_semantic_memories",
         "delete_episodic_memory",
@@ -1040,38 +1040,42 @@ async def test_handle_search_memory_balances_episodic_and_semantic_results():
 
 
 @pytest.mark.asyncio
-async def test_handle_store_memory_success_notifies_summarizer():
+async def test_handle_store_memory_by_embedding_success_notifies_summarizer():
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStore()
     backend._summarizer = DummySummarizer()
 
-    result = await backend._handle_store_memory(
-        user_query="hi",
-        assistant_response="hello",
+    result = await backend._handle_store_memory_by_embedding(
+        content="User: hi\nAssistant: hello",
+        embedding=[0.1, 0.2],
+        embedding_space_version="space-1",
         memory_type="episodic",
         user_id="user-1",
-        session_id="session-1",
+        conversation_id="session-1",
     )
     assert result["success"] is True
     _, _, _, conversation_id, kwargs = backend.memory_store.added[-1]
     assert conversation_id == "session-1"
     assert kwargs["record_kind"] == "interaction"
+    assert kwargs["embedding"] == [0.1, 0.2]
+    assert kwargs["embedding_space_version"] == "space-1"
     assert backend.memory_store.pending_count == 0
     assert backend._summarizer.notified == ["user-1"]
 
 
 @pytest.mark.asyncio
-async def test_handle_store_memory_semantic_does_not_notify():
+async def test_handle_store_memory_by_embedding_semantic_does_not_notify():
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStore()
     backend._summarizer = DummySummarizer()
 
-    result = await backend._handle_store_memory(
-        user_query="hi",
-        assistant_response="hello",
+    result = await backend._handle_store_memory_by_embedding(
+        content="User: hi\nAssistant: hello",
+        embedding=[0.1, 0.2],
+        embedding_space_version="space-1",
         memory_type="semantic",
         user_id="user-1",
-        session_id="session-1",
+        conversation_id="session-1",
     )
     assert result["success"] is True
     _, _, _, conversation_id, kwargs = backend.memory_store.added[-1]
@@ -1082,14 +1086,15 @@ async def test_handle_store_memory_semantic_does_not_notify():
 
 
 @pytest.mark.asyncio
-async def test_handle_store_memory_notify_failure_still_succeeds():
+async def test_handle_store_memory_by_embedding_notify_failure_still_succeeds():
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStore()
     backend._summarizer = DummySummarizerRaises()
 
-    result = await backend._handle_store_memory(
-        user_query="hi",
-        assistant_response="hello",
+    result = await backend._handle_store_memory_by_embedding(
+        content="User: hi\nAssistant: hello",
+        embedding=[0.1, 0.2],
+        embedding_space_version="space-1",
         memory_type="episodic",
         user_id="user-1",
     )
@@ -1098,13 +1103,14 @@ async def test_handle_store_memory_notify_failure_still_succeeds():
 
 
 @pytest.mark.asyncio
-async def test_handle_store_memory_add_failure():
+async def test_handle_store_memory_by_embedding_add_failure():
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStoreRaises(RuntimeError("fail"))
 
-    result = await backend._handle_store_memory(
-        user_query="hi",
-        assistant_response="hello",
+    result = await backend._handle_store_memory_by_embedding(
+        content="User: hi\nAssistant: hello",
+        embedding=[0.1, 0.2],
+        embedding_space_version="space-1",
         memory_type="episodic",
     )
     assert result["success"] is False
@@ -1112,71 +1118,71 @@ async def test_handle_store_memory_add_failure():
 
 
 @pytest.mark.asyncio
-async def test_handle_store_memory_fails_without_store():
+async def test_handle_store_memory_by_embedding_fails_without_store():
     backend = LocalBackend()
     backend.memory_store = None
-    result = await backend._handle_store_memory(
-        user_query="hi",
-        assistant_response="hello",
+    result = await backend._handle_store_memory_by_embedding(
+        content="User: hi\nAssistant: hello",
+        embedding=[0.1, 0.2],
     )
     assert result["success"] is False
     assert result["error"] == "Memory store not initialized"
 
 
 @pytest.mark.asyncio
-async def test_handle_store_memory_requires_query_and_response():
+async def test_handle_store_memory_by_embedding_requires_content():
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStore()
 
-    result = await backend._handle_store_memory(
-        user_query="",
-        assistant_response="hello",
+    result = await backend._handle_store_memory_by_embedding(
+        content="",
+        embedding=[0.1, 0.2],
     )
 
     assert result["success"] is False
-    assert result["error"] == "Missing user_query or assistant_response"
+    assert result["error"] == "Missing content"
     assert backend.memory_store.added == []
     assert backend.memory_store.pending_count == 0
 
 
 @pytest.mark.asyncio
-async def test_handle_store_memory_treats_none_fields_as_missing():
+async def test_handle_store_memory_by_embedding_treats_none_content_as_missing():
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStore()
 
-    result = await backend._handle_store_memory(
-        user_query=None,  # type: ignore[arg-type]
-        assistant_response="hello",
+    result = await backend._handle_store_memory_by_embedding(
+        content=None,  # type: ignore[arg-type]
+        embedding=[0.1, 0.2],
     )
 
     assert result["success"] is False
-    assert result["error"] == "Missing user_query or assistant_response"
+    assert result["error"] == "Missing content"
     assert backend.memory_store.added == []
 
 
 @pytest.mark.asyncio
-async def test_handle_store_memory_rejects_whitespace_only_fields():
+async def test_handle_store_memory_by_embedding_rejects_whitespace_only_content():
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStore()
 
-    result = await backend._handle_store_memory(
-        user_query="   ",
-        assistant_response="\n\t",
+    result = await backend._handle_store_memory_by_embedding(
+        content="   ",
+        embedding=[0.1, 0.2],
     )
 
     assert result["success"] is False
-    assert result["error"] == "Missing user_query or assistant_response"
+    assert result["error"] == "Missing content"
     assert backend.memory_store.added == []
 
 
 @pytest.mark.asyncio
-async def test_handle_store_memory_rejects_invalid_memory_type():
+async def test_handle_store_memory_by_embedding_rejects_invalid_memory_type():
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStore()
 
-    result = await backend._handle_store_memory(
-        user_query="hi",
-        assistant_response="hello",
+    result = await backend._handle_store_memory_by_embedding(
+        content="User: hi\nAssistant: hello",
+        embedding=[0.1, 0.2],
         memory_type="archive",
     )
 
@@ -1186,28 +1192,28 @@ async def test_handle_store_memory_rejects_invalid_memory_type():
 
 
 @pytest.mark.asyncio
-async def test_handle_store_memory_rejects_non_string_query_or_response():
+async def test_handle_store_memory_by_embedding_rejects_non_string_content():
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStore()
 
-    result = await backend._handle_store_memory(
-        user_query=123,  # type: ignore[arg-type]
-        assistant_response="hello",
+    result = await backend._handle_store_memory_by_embedding(
+        content=123,  # type: ignore[arg-type]
+        embedding=[0.1, 0.2],
     )
 
     assert result["success"] is False
-    assert result["error"] == "user_query and assistant_response must be strings"
+    assert result["error"] == "content must be a string"
     assert backend.memory_store.added == []
 
 
 @pytest.mark.asyncio
-async def test_handle_store_memory_rejects_non_string_memory_type():
+async def test_handle_store_memory_by_embedding_rejects_non_string_memory_type():
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStore()
 
-    result = await backend._handle_store_memory(
-        user_query="hi",
-        assistant_response="hello",
+    result = await backend._handle_store_memory_by_embedding(
+        content="User: hi\nAssistant: hello",
+        embedding=[0.1, 0.2],
         memory_type=7,  # type: ignore[arg-type]
     )
 
@@ -1396,10 +1402,13 @@ async def test_handle_replace_chat_conversation_uses_atomic_store_replace():
                     "revision_id": "rev-next",
                     "turn_ref": None,
                     "tool_name": None,
-                    "correlation_id": None,
-                    "workspace_path": None,
-                    "workspace_name": None,
-                    "metadata": {},
+                        "correlation_id": None,
+                        "workspace_path": None,
+                        "workspace_name": None,
+                        "producer": None,
+                        "producer_event_id": None,
+                        "producer_sequence": None,
+                        "metadata": {},
                     "attachments": [],
                     "event_payload": {
                         "eventId": "evt-edited",
@@ -1556,21 +1565,22 @@ async def test_handle_get_chat_events_reads_dedicated_chat_storage():
 
 
 @pytest.mark.asyncio
-async def test_handle_store_memory_logs_surrogate_field_paths(caplog):
+async def test_handle_store_memory_by_embedding_logs_surrogate_field_paths(caplog):
     backend = LocalBackend()
     backend.memory_store = DummyMemoryStore()
     caplog.set_level(logging.WARNING, logger="local_backend_memory_handlers")
 
-    result = await backend._handle_store_memory(
-        user_query="bad\udc9dquery",
-        assistant_response="ok",
+    result = await backend._handle_store_memory_by_embedding(
+        content="bad\udc9dquery",
+        embedding=[0.1, 0.2],
+        embedding_space_version="space-1",
         memory_type="episodic",
         user_id="user-1",
-        session_id="conv-1",
+        conversation_id="conv-1",
     )
 
     assert result["success"] is True
-    assert "store_memory.user_query" in caplog.text
+    assert "store_memory_by_embedding.content" in caplog.text
 
 
 def test_signal_handler_requests_shutdown(monkeypatch):

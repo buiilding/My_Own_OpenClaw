@@ -1,12 +1,11 @@
 """
 Frontend Local Memory Store - SQLite + FAISS implementation for local memory storage.
 
-This is a frontend version of the memory store that uses RemoteEmbeddingClient
-instead of local embedding providers.
+The SDK owns backend embedding/title calls. This store only persists local rows,
+FAISS indexes, and caller-provided vectors.
 """
 
 import asyncio
-import contextlib
 import json
 import logging
 import uuid
@@ -27,11 +26,6 @@ try:
 except ImportError:
     faiss = None
 
-from core.remote_embedding_client import (
-    EmbeddingServiceUnavailableError,
-    RemoteEmbeddingClient,
-)
-from core.remote_title_client import RemoteTitleClient
 from core.unicode_sanitizer import (
     find_surrogate_paths,
     sanitize_surrogates,
@@ -60,11 +54,6 @@ from memory.conversation_semanticization_runtime import (
 )
 from memory.conversation_semanticization_runtime import (
     semantic_summary_exists as check_semantic_summary_exists,
-)
-from memory.conversation_title_store import (
-    get_conversation_title_state,
-    get_first_title_exchange,
-    upsert_generated_conversation_title,
 )
 from memory.conversation_window_runtime import (
     conversation_where_clause,
@@ -161,7 +150,8 @@ class LocalMemoryStore:
     Each memory type has its own database and FAISS index for efficient storage and retrieval.
     All database operations are async using aiosqlite.
 
-    Frontend version: Uses RemoteEmbeddingClient for embedding generation.
+    SDK callers provide embeddings. This store never calls hosted embedding or
+    title services directly.
     """
 
     _MEMORY_ATTRS = {
@@ -191,7 +181,7 @@ class LocalMemoryStore:
         event_sink: Optional[Callable[[Dict[str, Any]], Awaitable[None]]] = None,
     ):
         """
-        Initialize the local memory store with remote embedding client.
+        Initialize the local memory store.
 
         Args:
             db_path: Base directory path for databases (defaults to user data directory)
@@ -244,11 +234,7 @@ class LocalMemoryStore:
             raise
 
         self.memory_dir = memory_dir
-        self.embedder = RemoteEmbeddingClient()
-        self.title_client = RemoteTitleClient()
         self._event_sink = event_sink
-        self._title_generation_tasks: Dict[Tuple[str, str], asyncio.Task[Any]] = {}
-        self._title_generation_semaphore = asyncio.Semaphore(2)
 
         # Watermark state file for tracking semanticization progress
         self.watermark_state_path = memory_dir / "watermark_state.json"
@@ -272,6 +258,7 @@ class LocalMemoryStore:
         self.semantic_vector_id_to_memory_id: Dict[int, str] = {}
         self.semantic_memory_id_to_vector_id: Dict[str, int] = {}
         self.semantic_next_vector_id = 0
+        self._default_embedding_dimension = 384
 
         if faiss is None:
             raise ImportError(
@@ -296,7 +283,7 @@ class LocalMemoryStore:
 
     async def initialize(self) -> None:
         """
-        Async initialization: create database schemas, initialize embedder, and load vector mappings.
+        Async initialization: create database schemas and load vector mappings.
         Call this after instantiation to complete setup.
         """
         # Load or create FAISS indices (blocking ops)
@@ -307,94 +294,28 @@ class LocalMemoryStore:
             self.semantic_index_path, faiss
         )
 
-        # Initialize the remote embedding client
-        await self.embedder.initialize()
-        await self.embedder.refresh_embedding_space()
-        await self.title_client.initialize()
-
         # Create database schemas and load vector mappings
         await self._init_databases()
         await self._load_vector_mappings()
 
-        current_embedding_space = self._get_current_embedding_space_metadata()
-        dimension = (
-            current_embedding_space.embedding_dimension
-            if current_embedding_space is not None
-            else self.embedder.dimension
-        )
         persisted_embedding_space = self._load_embedding_space_metadata()
+        dimension = (
+            persisted_embedding_space.embedding_dimension
+            if persisted_embedding_space is not None
+            else self._default_embedding_dimension
+        )
 
         if self.episodic_index is None:
             self.episodic_index = faiss.IndexFlatIP(dimension)
-        elif (
-            self.episodic_index.ntotal == 0
-            and len(self.episodic_vector_id_to_memory_id) > 0
-        ):
-            # Index is empty but we have memories - rebuild it
-            logger.warning(
-                "Episodic FAISS index is empty but memories exist. Rebuilding index..."
-            )
-            if self._embedding_service_unavailable():
-                logger.info(
-                    "Skipping episodic index rebuild because embedding service is unavailable"
-                )
-            else:
-                await self._rebuild_index("episodic")
 
         if self.semantic_index is None:
             self.semantic_index = faiss.IndexFlatIP(dimension)
-        elif (
-            self.semantic_index.ntotal == 0
-            and len(self.semantic_vector_id_to_memory_id) > 0
-        ):
-            # Index is empty but we have memories - rebuild it
-            logger.warning(
-                "Semantic FAISS index is empty but memories exist. Rebuilding index..."
-            )
-            if self._embedding_service_unavailable():
-                logger.info(
-                    "Skipping semantic index rebuild because embedding service is unavailable"
-                )
-            else:
-                await self._rebuild_index("semantic")
-
-        if self._embedding_space_rebuild_required(
-            persisted_embedding_space=persisted_embedding_space,
-            current_embedding_space=current_embedding_space,
-        ):
-            logger.warning(
-                "Embedding space changed from %s to %s. Rebuilding local memory indices.",
-                (
-                    persisted_embedding_space.to_dict()
-                    if persisted_embedding_space
-                    else None
-                ),
-                current_embedding_space.to_dict() if current_embedding_space else None,
-            )
-            self._embedding_space_rebuild_in_progress = True
-            try:
-                episodic_rebuilt = await self._rebuild_index("episodic")
-                semantic_rebuilt = await self._rebuild_index("semantic")
-            finally:
-                self._embedding_space_rebuild_in_progress = False
-            if (
-                current_embedding_space is not None
-                and episodic_rebuilt
-                and semantic_rebuilt
-            ):
-                self._save_embedding_space_metadata(current_embedding_space)
-        elif current_embedding_space is not None and persisted_embedding_space is None:
-            self._save_embedding_space_metadata(current_embedding_space)
 
         await self._repair_index_mapping_mismatch("episodic")
         await self._repair_index_mapping_mismatch("semantic")
-        await self._sync_vector_mappings()
 
     async def close(self) -> None:
-        """Close the embedding client and save indices."""
-        await self._cancel_title_generation_tasks()
-        await self.title_client.close()
-        await self.embedder.close()
+        """Save indices."""
         await self._save_faiss_indices()
 
     async def _init_databases(self) -> None:
@@ -418,31 +339,8 @@ class LocalMemoryStore:
             setattr(self, attrs.next_vector_id, next_vector_id)
 
     async def _sync_vector_mappings(self) -> None:
-        """Sync vector mappings: ensure all memories in both DBs have vector IDs."""
-        embedded_total = 0
-        for memory_type in self._MEMORY_ATTRS:
-            (
-                db_path,
-                index,
-                vector_id_to_memory_id,
-                memory_id_to_vector_id,
-                next_vector_id,
-            ) = self._get_memory_state(memory_type)
-            updated_next_vector_id, embedded_count = (
-                await self._sync_vector_mappings_for_db(
-                    memory_type=memory_type,
-                    db_path=db_path,
-                    index=index,
-                    vector_id_to_memory_id=vector_id_to_memory_id,
-                    memory_id_to_vector_id=memory_id_to_vector_id,
-                    next_vector_id=next_vector_id,
-                )
-            )
-            self._set_next_vector_id(memory_type, updated_next_vector_id)
-            embedded_total += embedded_count
-
-        if embedded_total > 0:
-            await self._save_faiss_indices()
+        """No-op retained for internal callers; SDK owns embedding backfill."""
+        return None
 
     async def _sync_vector_mappings_for_db(
         self,
@@ -453,48 +351,7 @@ class LocalMemoryStore:
         memory_id_to_vector_id: Dict[str, int],
         next_vector_id: int,
     ) -> Tuple[int, int]:
-        async with aiosqlite.connect(db_path) as conn:
-            conn.row_factory = aiosqlite.Row
-            cursor = await conn.cursor()
-            await cursor.execute(self._missing_embedding_rows_query(memory_type))
-
-            rows = await cursor.fetchall()
-            embedded_count = 0
-
-            for row in rows:
-                memory_id = row["id"]
-                content = row["content"]
-
-                if not content:
-                    continue
-
-                try:
-                    embedding = await self.embedder.embed_text(content)
-                except EmbeddingServiceUnavailableError:
-                    logger.info(
-                        "Skipping missing embedding backfill because embedding service is unavailable"
-                    )
-                    break
-                embedding = embedding.reshape(1, -1)
-                faiss.normalize_L2(embedding)
-
-                vector_id = next_vector_id
-                index.add(embedding)
-
-                await cursor.execute(
-                    """
-                    UPDATE memories SET embedding_id = ? WHERE id = ?
-                """,
-                    (vector_id, memory_id),
-                )
-
-                vector_id_to_memory_id[vector_id] = memory_id
-                memory_id_to_vector_id[memory_id] = vector_id
-                next_vector_id += 1
-                embedded_count += 1
-
-            await conn.commit()
-        return next_vector_id, embedded_count
+        return next_vector_id, 0
 
     @staticmethod
     def _missing_embedding_rows_query(memory_type: str) -> str:
@@ -509,14 +366,6 @@ class LocalMemoryStore:
             self.semantic_index_path,
             faiss,
         )
-
-    def _get_current_embedding_space_metadata(self) -> Optional[EmbeddingSpaceMetadata]:
-        metadata = getattr(self.embedder, "get_embedding_space_metadata", None)
-        payload = metadata() if callable(metadata) else None
-        return EmbeddingSpaceMetadata.from_dict(payload)
-
-    def _embedding_service_unavailable(self) -> bool:
-        return bool(getattr(self.embedder, "service_unavailable", False))
 
     def _load_embedding_space_metadata(self) -> Optional[EmbeddingSpaceMetadata]:
         path = getattr(self, "embedding_space_metadata_path", None)
@@ -555,73 +404,66 @@ class LocalMemoryStore:
         dimension = getattr(index, "d", None)
         return dimension if isinstance(dimension, int) and dimension > 0 else None
 
-    def _embedding_space_rebuild_required(
+    async def _ensure_external_embedding_space_alignment(
         self,
         *,
-        persisted_embedding_space: Optional[EmbeddingSpaceMetadata],
-        current_embedding_space: Optional[EmbeddingSpaceMetadata],
-    ) -> bool:
-        if current_embedding_space is None:
-            return False
-
-        persisted = persisted_embedding_space or self._embedding_space_metadata
-        if persisted is not None:
-            if (
-                persisted.embedding_space_version
-                != current_embedding_space.embedding_space_version
-            ):
-                return True
-            if (
-                persisted.embedding_dimension
-                != current_embedding_space.embedding_dimension
-            ):
-                return True
-        for index in (self.episodic_index, self.semantic_index):
-            index_dimension = self._index_dimension(index)
-            if (
-                index_dimension is not None
-                and index_dimension != current_embedding_space.embedding_dimension
-            ):
-                return True
-        return False
-
-    async def _ensure_runtime_embedding_space_alignment(self) -> None:
-        if getattr(self, "_embedding_space_rebuild_in_progress", False):
-            return
-
-        current_embedding_space = self._get_current_embedding_space_metadata()
+        embedding_space_version: Optional[str],
+        embedding_dimension: int,
+    ) -> None:
+        if embedding_dimension <= 0:
+            raise ValueError("embedding_dimension must be greater than 0")
+        space_version = (embedding_space_version or "unknown").strip() or "unknown"
+        current_embedding_space = EmbeddingSpaceMetadata(
+            embedding_provider_id="sdk",
+            embedding_model_id="sdk",
+            embedding_dimension=embedding_dimension,
+            embedding_space_version=space_version,
+        )
         persisted_embedding_space = (
             getattr(self, "_embedding_space_metadata", None)
             or self._load_embedding_space_metadata()
         )
-        if not self._embedding_space_rebuild_required(
-            persisted_embedding_space=persisted_embedding_space,
-            current_embedding_space=current_embedding_space,
+        if persisted_embedding_space is None:
+            await self._clear_all_vector_mappings(embedding_dimension)
+            self._save_embedding_space_metadata(current_embedding_space)
+            return
+
+        if (
+            persisted_embedding_space.embedding_space_version == space_version
+            and persisted_embedding_space.embedding_dimension == embedding_dimension
         ):
-            if (
-                current_embedding_space is not None
-                and persisted_embedding_space is None
-            ):
-                self._save_embedding_space_metadata(current_embedding_space)
             return
 
         logger.warning(
-            "Detected runtime embedding-space change from %s to %s. Rebuilding local indices.",
-            persisted_embedding_space.to_dict() if persisted_embedding_space else None,
-            current_embedding_space.to_dict() if current_embedding_space else None,
+            "SDK embedding space changed from %s to %s. Clearing local vector indices.",
+            persisted_embedding_space.to_dict(),
+            current_embedding_space.to_dict(),
         )
-        self._embedding_space_rebuild_in_progress = True
-        try:
-            episodic_rebuilt = await self._rebuild_index("episodic")
-            semantic_rebuilt = await self._rebuild_index("semantic")
-        finally:
-            self._embedding_space_rebuild_in_progress = False
-        if (
-            current_embedding_space is not None
-            and episodic_rebuilt
-            and semantic_rebuilt
-        ):
-            self._save_embedding_space_metadata(current_embedding_space)
+        await self._clear_all_vector_mappings(embedding_dimension)
+        self._save_embedding_space_metadata(current_embedding_space)
+
+    async def _clear_all_vector_mappings(self, embedding_dimension: int) -> None:
+        await self._reset_all_indices(embedding_dimension)
+        for memory_type in self._MEMORY_ATTRS:
+            db_path, _, vector_id_to_memory_id, memory_id_to_vector_id, _ = (
+                self._get_memory_state(memory_type)
+            )
+            vector_id_to_memory_id.clear()
+            memory_id_to_vector_id.clear()
+            self._set_next_vector_id(memory_type, 0)
+            async with aiosqlite.connect(db_path) as conn:
+                cursor = await conn.cursor()
+                await cursor.execute(
+                    "SELECT name FROM sqlite_master WHERE type='table' AND name='memories'"
+                )
+                if await cursor.fetchone():
+                    await conn.execute("UPDATE memories SET embedding_id = NULL")
+                await conn.commit()
+        await self._save_faiss_indices()
+
+    async def _reset_all_indices(self, embedding_dimension: int) -> None:
+        self.episodic_index = faiss.IndexFlatIP(embedding_dimension)
+        self.semantic_index = faiss.IndexFlatIP(embedding_dimension)
 
     def _get_memory_attrs(self, memory_type: str) -> _MemoryAttrNames:
         try:
@@ -687,96 +529,37 @@ class LocalMemoryStore:
 
         logger.warning(
             "%s FAISS index/vector mapping mismatch detected "
-            "(index vectors: %s, mapped rows: %s). Rebuilding index...",
+            "(index vectors: %s, mapped rows: %s). Clearing vector mappings.",
             memory_type.capitalize(),
             index_count,
             mapped_count,
         )
-        if self._embedding_service_unavailable():
-            logger.info(
-                "Skipping %s index mismatch repair because embedding service is unavailable",
-                memory_type,
+        await self._clear_vector_mappings(memory_type)
+
+    async def _clear_vector_mappings(self, memory_type: str) -> None:
+        """Clear vector mappings for one memory type without deleting rows."""
+        db_path, index, vector_id_to_memory_id, memory_id_to_vector_id, _ = (
+            self._get_memory_state(memory_type)
+        )
+        dimension = self._index_dimension(index)
+        if dimension is None:
+            metadata = (
+                getattr(self, "_embedding_space_metadata", None)
+                or self._load_embedding_space_metadata()
             )
-            return
-        await self._rebuild_index(memory_type)
-
-    async def _rebuild_index(self, memory_type: str) -> bool:
-        """Rebuild FAISS index from database for a given memory type."""
-        (
-            db_path,
-            _,
-            vector_id_to_memory_id,
-            memory_id_to_vector_id,
-            _,
-        ) = self._get_memory_state(memory_type)
-
-        previous_index = self._get_memory_state(memory_type)[1]
-        previous_vector_id_to_memory_id = dict(vector_id_to_memory_id)
-        previous_memory_id_to_vector_id = dict(memory_id_to_vector_id)
-        previous_next_vector_id = self._get_memory_state(memory_type)[4]
-
-        # Reset index and in-memory mappings so FAISS position IDs stay aligned.
-        dimension = self.embedder.dimension
-        index = faiss.IndexFlatIP(dimension)
-        self._set_memory_index(memory_type, index)
+            dimension = (
+                metadata.embedding_dimension
+                if metadata is not None
+                else self._default_embedding_dimension
+            )
+        self._set_memory_index(memory_type, faiss.IndexFlatIP(dimension))
         vector_id_to_memory_id.clear()
         memory_id_to_vector_id.clear()
-        next_vector_id = 0
-
-        # Rebuild from database
+        self._set_next_vector_id(memory_type, 0)
         async with aiosqlite.connect(db_path) as conn:
-            cursor = await conn.cursor()
-            await cursor.execute("""
-                SELECT id, content
-                FROM memories
-                WHERE embedding_id IS NOT NULL
-                ORDER BY embedding_id ASC, id ASC
-                """)
-            rows = await cursor.fetchall()
-
-            for memory_id, content in rows:
-                if not content:
-                    await cursor.execute(
-                        "UPDATE memories SET embedding_id = NULL WHERE id = ?",
-                        (memory_id,),
-                    )
-                    continue
-
-                # Generate embedding
-                try:
-                    embedding = await self.embedder.embed_text(content)
-                except EmbeddingServiceUnavailableError:
-                    logger.info(
-                        "Stopping index rebuild because embedding service is unavailable"
-                    )
-                    self._set_memory_index(memory_type, previous_index)
-                    vector_id_to_memory_id.clear()
-                    vector_id_to_memory_id.update(previous_vector_id_to_memory_id)
-                    memory_id_to_vector_id.clear()
-                    memory_id_to_vector_id.update(previous_memory_id_to_vector_id)
-                    self._set_next_vector_id(memory_type, previous_next_vector_id)
-                    return False
-                embedding = embedding.reshape(1, -1)
-                faiss.normalize_L2(embedding)
-
-                # Add embedding to index
-                index.add(embedding)
-
-                vector_id = next_vector_id
-                next_vector_id += 1
-                vector_id_to_memory_id[vector_id] = memory_id
-                memory_id_to_vector_id[memory_id] = vector_id
-
-                await cursor.execute(
-                    "UPDATE memories SET embedding_id = ? WHERE id = ?",
-                    (vector_id, memory_id),
-                )
+            await conn.execute("UPDATE memories SET embedding_id = NULL")
             await conn.commit()
-
-        self._set_next_vector_id(memory_type, next_vector_id)
-        logger.info(f"Rebuilt {memory_type} FAISS index with {index.ntotal} vectors")
         await self._save_faiss_indices()
-        return True
 
     async def add(
         self,
@@ -794,10 +577,12 @@ class LocalMemoryStore:
         model_provider: Optional[str] = None,
         screenshot: Optional[str] = None,
         skip_embedding: bool = False,
+        embedding: Optional[List[float]] = None,
+        embedding_space_version: Optional[str] = None,
         timestamp: Optional[str] = None,
     ) -> str:
         """
-        Store a memory entry with automatic embedding generation.
+        Store a memory entry and optionally index a caller-provided embedding.
         Routes to the appropriate database based on memory type.
 
         Args:
@@ -814,6 +599,8 @@ class LocalMemoryStore:
             model_provider: Optional model provider metadata
             screenshot: Optional screenshot metadata
             skip_embedding: Skip embedding/FAISS indexing
+            embedding: Caller-provided embedding for FAISS indexing
+            embedding_space_version: Version string for the provided embedding
             timestamp: Optional ISO timestamp to store (defaults to now)
 
         Returns:
@@ -892,24 +679,27 @@ class LocalMemoryStore:
         ) = self._get_memory_state(memory_type)
 
         vector_id = None
-        if not skip_embedding:
-            # Generate embedding using remote client
-            try:
-                embedding = await self.embedder.embed_text(text)
-                await self._ensure_runtime_embedding_space_alignment()
-                embedding = embedding.reshape(1, -1)
-                faiss.normalize_L2(embedding)
+        if not skip_embedding and embedding is not None:
+            vector = np.asarray(embedding, dtype=np.float32)
+            if vector.ndim != 1 or vector.size == 0:
+                raise ValueError("embedding must be a non-empty float array")
+            await self._ensure_external_embedding_space_alignment(
+                embedding_space_version=embedding_space_version,
+                embedding_dimension=int(vector.size),
+            )
+            (
+                db_path,
+                index,
+                vector_id_to_memory_id,
+                memory_id_to_vector_id,
+                next_vector_id,
+            ) = self._get_memory_state(memory_type)
+            vector = vector.reshape(1, -1)
+            faiss.normalize_L2(vector)
 
-                # Route to appropriate database and index
-                vector_id = next_vector_id
-                self._set_next_vector_id(memory_type, next_vector_id + 1)
-
-                # Add to FAISS index
-                index.add(embedding)
-            except EmbeddingServiceUnavailableError:
-                logger.info(
-                    "Storing memory without vector index because embedding service is unavailable"
-                )
+            vector_id = next_vector_id
+            self._set_next_vector_id(memory_type, next_vector_id + 1)
+            index.add(vector)
 
         # Store in SQLite
         metadata_json = json.dumps(metadata) if metadata else None
@@ -1055,34 +845,10 @@ class LocalMemoryStore:
             logger.debug("Skipping memory search embedding call: no searchable indices")
             return []
 
-        # Generate query embedding using remote client
-        try:
-            query_embedding = await self.embedder.embed_text(query)
-        except EmbeddingServiceUnavailableError:
-            logger.info(
-                "Skipping memory search because embedding service is unavailable"
-            )
-            return []
-        await self._ensure_runtime_embedding_space_alignment()
-        query_embedding = query_embedding.reshape(1, -1)
-        faiss.normalize_L2(query_embedding)
-
-        # Search both databases in parallel
-        search_tasks = [
-            self._search_database(
-                query_embedding=query_embedding,
-                user_id=user_id,
-                db_path=db_path,
-                index=index,
-                vector_id_to_memory_id=vector_id_to_memory_id,
-                memory_type=memory_type,
-                filters=filters,
-                limit=limit,
-            )
-            for memory_type, db_path, index, vector_id_to_memory_id in search_targets
-        ]
-        all_results = await self._collect_search_results(search_tasks)
-        return self._finalize_search_results(all_results, limit)
+        logger.info(
+            "Skipping text memory search because SDK-owned embeddings are required; use search_by_embedding"
+        )
+        return []
 
     async def search_by_embedding(
         self,
@@ -1124,12 +890,20 @@ class LocalMemoryStore:
             != embedding_space_version
         ):
             logger.info(
-                "External embedding space changed from %s to %s; refreshing local indices",
+                "External embedding space changed from %s to %s; clearing local vector indices",
                 persisted_embedding_space.embedding_space_version,
                 embedding_space_version,
             )
-            await self.embedder.refresh_embedding_space()
-            await self._ensure_runtime_embedding_space_alignment()
+            await self._clear_all_vector_mappings(int(query_embedding.size))
+            self._save_embedding_space_metadata(
+                EmbeddingSpaceMetadata(
+                    embedding_provider_id="sdk",
+                    embedding_model_id="sdk",
+                    embedding_dimension=int(query_embedding.size),
+                    embedding_space_version=embedding_space_version,
+                )
+            )
+            return []
 
         for memory_type, _, index, _ in search_targets:
             index_dimension = self._index_dimension(index)
@@ -1671,15 +1445,6 @@ class LocalMemoryStore:
             producer_event_id=producer_event_id,
             producer_sequence=producer_sequence,
         )
-        self._schedule_conversation_title_generation(
-            user_id=user_id,
-            conversation_id=conversation_id,
-            role=role,
-            event_type=event_type,
-            content=content,
-            metadata=metadata,
-            event_payload=event_payload,
-        )
         return stored
 
     async def list_chat_conversations(
@@ -1708,24 +1473,6 @@ class LocalMemoryStore:
             revision_id=revision_id,
             revision_updated_at=revision_updated_at,
         )
-        for event in events:
-            self._schedule_conversation_title_generation(
-                user_id=user_id,
-                conversation_id=conversation_id,
-                role=event.get("role"),
-                event_type=str(event.get("event_type") or ""),
-                content=str(event.get("content") or ""),
-                metadata=(
-                    event.get("metadata")
-                    if isinstance(event.get("metadata"), dict)
-                    else {}
-                ),
-                event_payload=(
-                    event.get("event_payload")
-                    if isinstance(event.get("event_payload"), dict)
-                    else {}
-                ),
-            )
         return result
 
     async def rewrite_chat_conversation_after_event(
@@ -1746,23 +1493,6 @@ class LocalMemoryStore:
             event=event,
             revision_id=revision_id,
             revision_updated_at=revision_updated_at,
-        )
-        self._schedule_conversation_title_generation(
-            user_id=user_id,
-            conversation_id=conversation_id,
-            role=event.get("role"),
-            event_type=str(event.get("event_type") or ""),
-            content=str(event.get("content") or ""),
-            metadata=(
-                event.get("metadata")
-                if isinstance(event.get("metadata"), dict)
-                else {}
-            ),
-            event_payload=(
-                event.get("event_payload")
-                if isinstance(event.get("event_payload"), dict)
-                else {}
-            ),
         )
         return result
 
@@ -1786,177 +1516,6 @@ class LocalMemoryStore:
             query=query,
             limit=limit,
         )
-
-    def _schedule_conversation_title_generation(
-        self,
-        *,
-        user_id: str,
-        conversation_id: Optional[str],
-        role: Optional[str],
-        event_type: str,
-        content: str,
-        metadata: Optional[Dict[str, Any]],
-        event_payload: Dict[str, Any],
-    ) -> None:
-        if not self._is_title_generation_trigger(
-            conversation_id=conversation_id,
-            role=role,
-            event_type=event_type,
-            content=content,
-            event_payload=event_payload,
-        ):
-            return
-
-        key = (user_id, conversation_id or "")
-        existing_task = self._title_generation_tasks.get(key)
-        if existing_task and not existing_task.done():
-            return
-
-        task = asyncio.create_task(
-            self._generate_conversation_title_for_exchange(
-                user_id=user_id,
-                conversation_id=conversation_id or "",
-                metadata=metadata or {},
-            )
-        )
-        self._title_generation_tasks[key] = task
-        task.add_done_callback(
-            lambda completed_task, task_key=key: self._title_generation_tasks.pop(
-                task_key, None
-            )
-        )
-
-    @staticmethod
-    def _is_title_generation_trigger(
-        *,
-        conversation_id: Optional[str],
-        role: Optional[str],
-        event_type: str,
-        content: str,
-        event_payload: Dict[str, Any],
-    ) -> bool:
-        if not conversation_id or not isinstance(content, str) or not content.strip():
-            return False
-        if (role or "").strip().lower() != "assistant":
-            return False
-        if (event_type or "").strip().lower() != "assistant_message":
-            return False
-        payload = (
-            event_payload.get("payload") if isinstance(event_payload, dict) else {}
-        )
-        message_type = (
-            payload.get("messageType")
-            or payload.get("message_type")
-            or event_payload.get("messageType")
-            or event_payload.get("message_type")
-        )
-        return str(message_type or "llm-text").strip().lower() == "llm-text"
-
-    async def _generate_conversation_title_for_exchange(
-        self,
-        *,
-        user_id: str,
-        conversation_id: str,
-        metadata: Dict[str, Any],
-    ) -> None:
-        try:
-            async with self._title_generation_semaphore:
-                title_state = await get_conversation_title_state(
-                    db_path=self.episodic_db_path,
-                    user_id=user_id,
-                    conversation_id=conversation_id,
-                )
-                if title_state.get("is_locked"):
-                    return
-                existing_source = str(title_state.get("source") or "").strip()
-                if title_state.get("title") and existing_source not in {
-                    "",
-                    "heuristic",
-                }:
-                    return
-
-                exchange = await get_first_title_exchange(
-                    db_path=self.episodic_db_path,
-                    user_id=user_id,
-                    conversation_id=conversation_id,
-                )
-                user_message = exchange.get("user_message", "")
-                assistant_message = exchange.get("assistant_message", "")
-                if not user_message or not assistant_message:
-                    return
-
-                title = await self.title_client.generate_title(
-                    user_id=user_id,
-                    user_message=user_message,
-                    assistant_message=assistant_message,
-                    model_id=self._extract_metadata_string(metadata, "model_id"),
-                    model_provider=self._extract_metadata_string(
-                        metadata, "model_provider"
-                    ),
-                )
-                if not title:
-                    return
-                await upsert_generated_conversation_title(
-                    db_path=self.episodic_db_path,
-                    user_id=user_id,
-                    conversation_id=conversation_id,
-                    title=title,
-                )
-                await self._emit_conversation_title_updated(
-                    user_id=user_id,
-                    conversation_id=conversation_id,
-                    title=title,
-                )
-        except Exception as exc:
-            logger.warning(
-                "Conversation title generation failed for user_id=%s conversation_id=%s: %s",
-                user_id,
-                conversation_id,
-                exc,
-            )
-
-    async def _emit_conversation_title_updated(
-        self, *, user_id: str, conversation_id: str, title: str
-    ) -> None:
-        if self._event_sink is None:
-            return
-        try:
-            await self._event_sink(
-                {
-                    "type": "conversation-title-updated",
-                    "payload": {
-                        "user_id": user_id,
-                        "conversation_id": conversation_id,
-                        "title": title,
-                        "source": "model",
-                    },
-                }
-            )
-        except Exception as exc:
-            logger.warning(
-                "Failed to emit conversation title update for user_id=%s conversation_id=%s: %s",
-                user_id,
-                conversation_id,
-                exc,
-            )
-
-    @staticmethod
-    def _extract_metadata_string(metadata: Dict[str, Any], key: str) -> Optional[str]:
-        value = metadata.get(key)
-        if isinstance(value, str) and value.strip():
-            return value.strip()
-        return None
-
-    async def _cancel_title_generation_tasks(self) -> None:
-        tasks = [
-            task for task in self._title_generation_tasks.values() if not task.done()
-        ]
-        self._title_generation_tasks.clear()
-        for task in tasks:
-            task.cancel()
-        for task in tasks:
-            with contextlib.suppress(asyncio.CancelledError):
-                await task
 
     async def list_semantic_memories(
         self, user_id: str, limit: int = 200
@@ -2159,7 +1718,7 @@ class LocalMemoryStore:
 
         This ensures "delete everything" workflows also remove persisted vector artifacts.
         """
-        db_path, _, vector_id_to_memory_id, memory_id_to_vector_id, _ = (
+        db_path, index, vector_id_to_memory_id, memory_id_to_vector_id, _ = (
             self._get_memory_state(memory_type)
         )
 
@@ -2169,11 +1728,23 @@ class LocalMemoryStore:
             else self.semantic_index_path
         )
 
+        metadata = (
+            getattr(self, "_embedding_space_metadata", None)
+            or self._load_embedding_space_metadata()
+        )
+        embedding_dimension = (
+            self._index_dimension(index)
+            or (
+                metadata.embedding_dimension
+                if metadata is not None
+                else self._default_embedding_dimension
+            )
+        )
         cleanup_result = await cleanup_index_artifacts_if_empty(
             memory_type=memory_type,
             db_path=db_path,
             index_path=index_path,
-            embedding_dimension=self.embedder.dimension,
+            embedding_dimension=embedding_dimension,
             faiss_module=faiss,
             vector_id_to_memory_id=vector_id_to_memory_id,
             memory_id_to_vector_id=memory_id_to_vector_id,

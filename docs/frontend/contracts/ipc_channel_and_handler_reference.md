@@ -136,7 +136,6 @@ Removed legacy renderer-callable channels:
 - `delete-episodic-memory`
 - `delete-chat-conversation`
 - `delete-semantic-memory`
-- `store-memory`
 - `store-chat-event`
 
 Local tool runtime nuances:

@@ -42,7 +42,7 @@ Key examples:
 - `windie:compact-history`
 - `windie:wakeword-detected`
 - `get-system-state`
-- `search-memory`, `search-chat-conversations`, `store-memory`, list/get/delete memory records
+- `search-memory`, `search-chat-conversations`, list/get/delete memory records
 - config load/save
 - window management and display queries
 - `get-displays` payload includes `{ id, label, isPrimary, bounds, scaleFactor }` from main-process display mapper

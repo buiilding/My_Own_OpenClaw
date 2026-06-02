@@ -44,7 +44,6 @@ Mapped handlers via `registerMappedRpcHandlers(registerRpcHandler, COMPILED_RPC_
 - `delete-semantic-memory`
 - `clear-local-memory`
 - `clear-chat-history`
-- `store-memory`
 - `store-chat-event`
 
 `registerRpcHandler` contract:
@@ -171,7 +170,6 @@ Guarantee:
 - `delete-semantic-memory` -> `delete_semantic_memory` with `{ memoryId } -> { memory_id }`
 - `clear-local-memory` -> `clear_local_memory` with `{ userId } -> { user_id }`
 - `clear-chat-history` -> `clear_chat_history` with `{ userId } -> { user_id }`
-- `store-memory` -> `store_memory` with camelCase-to-snake_case memory write fields
 - `store-chat-event` -> `store_chat_event` mapping transcript metadata (`conversation_ref`, `message_type`, `tool_name`, `correlation_id`, `message_index`, `model_id`, `model_provider`)
 
 ## Test-Backed Invariants
@@ -181,6 +179,7 @@ From `tests/frontend/LocalBackendBridge.rpc.test.cjs`:
 - mapped channels send expected JSON-RPC method names and param keys
 - non-object payloads do not crash mapper paths (`list-chat-conversations` sends `{}`)
 - `search-memory` accepts both camelCase and snake_case exclusion keys
+- completed-turn memory writes are SDK-owned and do not have a renderer-visible `store-memory` IPC channel
 - `get-chat-events` emits explicit `conversation_id: null` when `conversationId` absent
 - `store-chat-event` errors normalize to `{ success:false, error }`
 - `WINDIE_BACKEND_HTTP_URL` env and `NODE_OPTIONS --no-deprecation` propagation are validated at spawn

@@ -28,7 +28,6 @@ export const EXPECTED_SHARED_CHANNEL_REGISTRY = {
     UPLOAD_ARTIFACT: 'upload-artifact',
     FETCH_ARTIFACT_IMAGE: 'fetch-artifact-image',
     GET_SYSTEM_STATE: 'get-system-state',
-    STORE_MEMORY: 'store-memory',
     SEARCH_MEMORY: 'search-memory',
     LIST_EPISODIC_MEMORIES: 'list-episodic-memories',
     LIST_SEMANTIC_MEMORIES: 'list-semantic-memories',
