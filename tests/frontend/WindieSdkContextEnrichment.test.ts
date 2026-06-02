@@ -102,6 +102,147 @@ describe('SDK context enrichment pipeline', () => {
     expect(enriched.payload.content).toContain('<user_query>\nno lookup\n</user_query>');
   });
 
+  test('emits local runtime missing diagnostic when memory retrieval cannot search', async () => {
+    const diagnostics: unknown[] = [];
+    const sdkClient = {
+      embeddings: {
+        create: jest.fn(),
+      },
+    };
+
+    const enriched = await enrichQueryPayload({
+      text: 'lookup without runtime',
+      conversationRef: 'conv-1',
+      userId: 'user-1',
+      payload: { memory_retrieval_enabled: true },
+      sdkClient: sdkClient as never,
+      localRuntime: null,
+      emitDiagnostic: async diagnostic => {
+        diagnostics.push(diagnostic);
+      },
+    });
+
+    expect(sdkClient.embeddings.create).not.toHaveBeenCalled();
+    expect(diagnostics).toEqual([
+      expect.objectContaining({
+        stage: 'local_runtime_missing',
+        conversationRef: 'conv-1',
+        userId: 'user-1',
+        queryLength: 'lookup without runtime'.length,
+      }),
+    ]);
+    expect(enriched.payload.content).toContain('<episodic_memory>\nNone\n</episodic_memory>');
+  });
+
+  test('emits embedding request failure diagnostic before returning empty memory', async () => {
+    const diagnostics: unknown[] = [];
+    const sdkClient = {
+      embeddings: {
+        create: jest.fn(async () => {
+          throw new Error('embedding route down');
+        }),
+      },
+    };
+    const localRuntime = {
+      rpc: jest.fn(),
+    };
+
+    const enriched = await enrichQueryPayload({
+      text: 'lookup with failed embedding',
+      conversationRef: 'conv-1',
+      userId: 'user-1',
+      payload: { memory_retrieval_enabled: true },
+      sdkClient: sdkClient as never,
+      localRuntime: localRuntime as never,
+      emitDiagnostic: diagnostic => {
+        diagnostics.push(diagnostic);
+      },
+    });
+
+    expect(localRuntime.rpc).not.toHaveBeenCalled();
+    expect(diagnostics).toEqual([
+      expect.objectContaining({
+        stage: 'embedding_request_failed',
+        error: 'embedding route down',
+      }),
+    ]);
+    expect(enriched.payload.content).toContain('<semantic_memory>\nNone\n</semantic_memory>');
+  });
+
+  test('emits sidecar search failure diagnostic for failed memory RPC', async () => {
+    const diagnostics: unknown[] = [];
+    const sdkClient = {
+      embeddings: {
+        create: jest.fn(async () => ({
+          embedding: [0.1],
+          embedding_space_version: 'embed-v1',
+        })),
+      },
+    };
+    const localRuntime = {
+      rpc: jest.fn(async () => ({ success: false, error: 'sqlite busy' })),
+    };
+
+    const enriched = await enrichQueryPayload({
+      text: 'lookup with sidecar failure',
+      conversationRef: 'conv-1',
+      userId: 'user-1',
+      payload: { memory_retrieval_enabled: true },
+      sdkClient: sdkClient as never,
+      localRuntime: localRuntime as never,
+      emitDiagnostic: diagnostic => {
+        diagnostics.push(diagnostic);
+      },
+    });
+
+    expect(diagnostics).toEqual([
+      expect.objectContaining({
+        stage: 'sidecar_search_failed',
+        error: 'sqlite busy',
+      }),
+    ]);
+    expect(enriched.memories).toEqual({ episodic: [], semantic: [] });
+  });
+
+  test('emits search empty diagnostic when sidecar search finds no memories', async () => {
+    const diagnostics: unknown[] = [];
+    const sdkClient = {
+      embeddings: {
+        create: jest.fn(async () => ({
+          embedding: [0.1],
+          embedding_space_version: 'embed-v1',
+        })),
+      },
+    };
+    const localRuntime = {
+      rpc: jest.fn(async () => ({
+        success: true,
+        data: { memories: { episodic: [], semantic: [] } },
+      })),
+    };
+
+    const enriched = await enrichQueryPayload({
+      text: 'lookup with no hits',
+      conversationRef: 'conv-1',
+      userId: 'user-1',
+      payload: { memory_retrieval_enabled: true },
+      sdkClient: sdkClient as never,
+      localRuntime: localRuntime as never,
+      emitDiagnostic: diagnostic => {
+        diagnostics.push(diagnostic);
+      },
+    });
+
+    expect(diagnostics).toEqual([
+      expect.objectContaining({
+        stage: 'search_empty',
+        episodicCount: 0,
+        semanticCount: 0,
+      }),
+    ]);
+    expect(enriched.memories).toEqual({ episodic: [], semantic: [] });
+  });
+
   test('disabling memory removes prompt memory sections and skips embedding search', async () => {
     const sdkClient = {
       embeddings: {

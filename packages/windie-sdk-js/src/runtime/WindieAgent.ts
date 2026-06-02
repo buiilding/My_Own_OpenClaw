@@ -41,6 +41,7 @@ import {
   enrichQueryPayload,
   formatCompletedTurnMemory,
   storeCompletedTurnMemory,
+  type MemoryRetrievalDiagnostic,
 } from './ContextEnrichmentPipeline.js';
 import type {
   WindieDesktopAgent,
@@ -62,6 +63,18 @@ export type WindieAgentOwner = {
   listAgents(): Array<{ id: string; agentDefinition: JsonRecord }>;
   shutdownLocalRuntime?(): Promise<void>;
 };
+
+function logMemoryRetrievalDiagnostic(diagnostic: MemoryRetrievalDiagnostic): void {
+  const details = [
+    `stage=${diagnostic.stage}`,
+    `conversationRef=${diagnostic.conversationRef}`,
+    `queryLength=${diagnostic.queryLength}`,
+    typeof diagnostic.episodicCount === 'number' ? `episodic=${diagnostic.episodicCount}` : null,
+    typeof diagnostic.semanticCount === 'number' ? `semantic=${diagnostic.semanticCount}` : null,
+    diagnostic.error ? `error=${diagnostic.error}` : null,
+  ].filter(Boolean).join(' ');
+  console.warn(`[Windie SDK] memory retrieval diagnostic: ${details}`);
+}
 
 export type LoadConversationOptions = {
   conversationRef: string;
@@ -254,6 +267,10 @@ export class WindieAgent {
           sdkClient: this.sdkClient,
           localRuntime: options.localRuntime === undefined ? this.localRuntime : options.localRuntime,
           memoryEnabled: this.memoryEnabled,
+          emitDiagnostic: async diagnostic => {
+            logMemoryRetrievalDiagnostic(diagnostic);
+            await input.emitDiagnostic?.(diagnostic);
+          },
         });
         return enriched.payload;
       },
@@ -506,6 +523,7 @@ export class WindieAgent {
       sdkClient: this.sdkClient,
       localRuntime: this.localRuntime,
       memoryEnabled: this.memoryEnabled,
+      emitDiagnostic: logMemoryRetrievalDiagnostic,
     });
     return {
       ...input,

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: render live tool rows from the SDK current-turn projection
+  instead of appending visible chat rows from SDK conversation-event tool
+  side effects, keeping conversation events scoped to transcript persistence.
 - backend/embeddings: default backend embeddings to the OpenAI vendor provider
   with `text-embedding-3-small` so hosted deployments use remote embeddings
   from `OPENAI_API_KEY` instead of requiring local `sentence-transformers`.
@@ -14,6 +17,9 @@ All notable changes to WindieOS will be documented in this file.
   `store_memory` with `store_memory_by_embedding`, remove sidecar remote
   embedding/title clients and direct Electron `store-memory` IPC, and log
   best-effort memory persistence failures without failing chat turns.
+- sdk/memory: emit SDK memory retrieval diagnostics for missing local runtime,
+  backend embedding failures, sidecar search failures, and empty memory search
+  results instead of silently returning empty prompt memory.
 - docs/agents: make question-style implementation requests explicitly
   report-first so agents inspect code before modifying files.
 - examples/sdk: shorten the simple chat CLI setup and rendering helpers without

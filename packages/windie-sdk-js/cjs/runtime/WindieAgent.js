@@ -42,6 +42,17 @@ const ConversationRuntime_js_1 = require("./ConversationRuntime.js");
 const ContextEnrichmentPipeline_js_1 = require("./ContextEnrichmentPipeline.js");
 const WindieChatSession_js_1 = require("./WindieChatSession.js");
 const AgentStreamEvents_js_1 = require("./AgentStreamEvents.js");
+function logMemoryRetrievalDiagnostic(diagnostic) {
+    const details = [
+        `stage=${diagnostic.stage}`,
+        `conversationRef=${diagnostic.conversationRef}`,
+        `queryLength=${diagnostic.queryLength}`,
+        typeof diagnostic.episodicCount === 'number' ? `episodic=${diagnostic.episodicCount}` : null,
+        typeof diagnostic.semanticCount === 'number' ? `semantic=${diagnostic.semanticCount}` : null,
+        diagnostic.error ? `error=${diagnostic.error}` : null,
+    ].filter(Boolean).join(' ');
+    console.warn(`[Windie SDK] memory retrieval diagnostic: ${details}`);
+}
 class WindieAgent {
     static async startDesktop(options) {
         const { WindieDesktopAgent } = await Promise.resolve().then(() => __importStar(require('./WindieDesktopAgent.js')));
@@ -175,6 +186,10 @@ class WindieAgent {
                     sdkClient: this.sdkClient,
                     localRuntime: options.localRuntime === undefined ? this.localRuntime : options.localRuntime,
                     memoryEnabled: this.memoryEnabled,
+                    emitDiagnostic: async (diagnostic) => {
+                        logMemoryRetrievalDiagnostic(diagnostic);
+                        await input.emitDiagnostic?.(diagnostic);
+                    },
                 });
                 return enriched.payload;
             },
@@ -373,6 +388,7 @@ class WindieAgent {
             sdkClient: this.sdkClient,
             localRuntime: this.localRuntime,
             memoryEnabled: this.memoryEnabled,
+            emitDiagnostic: logMemoryRetrievalDiagnostic,
         });
         return {
             ...input,

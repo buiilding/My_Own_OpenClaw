@@ -29,7 +29,10 @@ import {
   buildModelSettingsPatch,
   type WindieModelSelection,
 } from '../settings/modelSelection.js';
-import { storeCompletedTurnMemory } from './ContextEnrichmentPipeline.js';
+import {
+  storeCompletedTurnMemory,
+  type MemoryRetrievalDiagnostic,
+} from './ContextEnrichmentPipeline.js';
 import { reduceConversationRuntimeState, createInitialConversationRuntimeState } from './conversationReducer.js';
 
 export type ConversationListener = (snapshot: ConversationSnapshot) => void;
@@ -114,6 +117,7 @@ export type ConversationRuntimeOptions = {
     text: string;
     conversationRef: string;
     payload?: JsonRecord | null;
+    emitDiagnostic?: (diagnostic: MemoryRetrievalDiagnostic) => void | Promise<void>;
   }) => Promise<JsonRecord>;
 };
 
@@ -229,17 +233,23 @@ export class SdkConversationRuntime {
     if (input.model) {
       await this.setModel(input.model);
     }
-    const enrichedPayload = this.options.enrichQuery
-      ? await this.options.enrichQuery({
-        text: input.text,
-        conversationRef: this.options.conversationRef,
-        payload: input.payload ?? {},
-      })
-      : (input.payload ?? {});
     const turnRef = input.turnRef ?? createRuntimeId('turn');
     const revisionId = this.state.revisionId === 'rev-empty'
       ? createRuntimeId('rev')
       : this.state.revisionId;
+    const emitMemoryDiagnostic = async (diagnostic: MemoryRetrievalDiagnostic): Promise<void> => {
+      await this.applyEvent(createConversationEvent({
+        eventId: this.nextLocalEventId(turnRef, 'memory_retrieval_diagnostic'),
+        type: 'memory_retrieval_diagnostic',
+        conversationRef: this.options.conversationRef,
+        revisionId,
+        turnRef,
+        source: 'sdk',
+        payload: {
+          ...diagnostic,
+        },
+      }));
+    };
     await this.applyEvent(createConversationEvent({
       eventId: this.nextLocalEventId(turnRef, 'turn_started'),
       type: 'turn_started',
@@ -249,6 +259,14 @@ export class SdkConversationRuntime {
       source: 'sdk',
       payload: {},
     }));
+    const enrichedPayload = this.options.enrichQuery
+      ? await this.options.enrichQuery({
+        text: input.text,
+        conversationRef: this.options.conversationRef,
+        payload: input.payload ?? {},
+        emitDiagnostic: emitMemoryDiagnostic,
+      })
+      : (input.payload ?? {});
     await this.applyEvent(createConversationEvent({
       eventId: this.nextLocalEventId(turnRef, 'user_message'),
       type: 'user_message',

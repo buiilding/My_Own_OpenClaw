@@ -97,17 +97,23 @@ class SdkConversationRuntime {
         if (input.model) {
             await this.setModel(input.model);
         }
-        const enrichedPayload = this.options.enrichQuery
-            ? await this.options.enrichQuery({
-                text: input.text,
-                conversationRef: this.options.conversationRef,
-                payload: input.payload ?? {},
-            })
-            : (input.payload ?? {});
         const turnRef = input.turnRef ?? (0, events_js_1.createRuntimeId)('turn');
         const revisionId = this.state.revisionId === 'rev-empty'
             ? (0, events_js_1.createRuntimeId)('rev')
             : this.state.revisionId;
+        const emitMemoryDiagnostic = async (diagnostic) => {
+            await this.applyEvent((0, events_js_1.createConversationEvent)({
+                eventId: this.nextLocalEventId(turnRef, 'memory_retrieval_diagnostic'),
+                type: 'memory_retrieval_diagnostic',
+                conversationRef: this.options.conversationRef,
+                revisionId,
+                turnRef,
+                source: 'sdk',
+                payload: {
+                    ...diagnostic,
+                },
+            }));
+        };
         await this.applyEvent((0, events_js_1.createConversationEvent)({
             eventId: this.nextLocalEventId(turnRef, 'turn_started'),
             type: 'turn_started',
@@ -117,6 +123,14 @@ class SdkConversationRuntime {
             source: 'sdk',
             payload: {},
         }));
+        const enrichedPayload = this.options.enrichQuery
+            ? await this.options.enrichQuery({
+                text: input.text,
+                conversationRef: this.options.conversationRef,
+                payload: input.payload ?? {},
+                emitDiagnostic: emitMemoryDiagnostic,
+            })
+            : (input.payload ?? {});
         await this.applyEvent((0, events_js_1.createConversationEvent)({
             eventId: this.nextLocalEventId(turnRef, 'user_message'),
             type: 'user_message',

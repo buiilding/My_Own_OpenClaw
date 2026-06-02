@@ -828,6 +828,31 @@ describe('Windie SDK conversation runtime core', () => {
     ]);
   });
 
+  test('agent stream projection exposes memory retrieval diagnostics without error state', () => {
+    const streamEvents = toAgentStreamEvents({
+      type: 'conversation_event',
+      event: event('memory_retrieval_diagnostic', {
+        stage: 'search_empty',
+        message: 'Memory retrieval completed with no matching memories.',
+        episodicCount: 0,
+        semanticCount: 0,
+      }),
+    } as any);
+
+    expect(streamEvents).toEqual([
+      expect.objectContaining({
+        type: 'memory_diagnostic',
+        stage: 'search_empty',
+        message: 'Memory retrieval completed with no matching memories.',
+        episodicCount: 0,
+        semanticCount: 0,
+        conversationRef: 'conv-sdk-runtime',
+        turnRef: 'turn-1',
+      }),
+    ]);
+    expect(streamEvents).not.toContainEqual(expect.objectContaining({ type: 'state', state: 'error' }));
+  });
+
   test('in-memory store is idempotent and only activates complete compaction snapshots', async () => {
     const store = new InMemoryConversationStore();
     const userEvent = event('user_message', { text: 'hello' });
@@ -1883,6 +1908,44 @@ describe('Windie SDK conversation runtime core', () => {
       messages: [
         expect.objectContaining({ role: 'user', content: 'hello' }),
       ],
+    });
+  });
+
+  test('conversation runtime records memory diagnostics emitted during query enrichment', async () => {
+    const store = new InMemoryConversationStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport: createMockBackendTransport(),
+      enrichQuery: async input => {
+        await input.emitDiagnostic?.({
+          stage: 'embedding_request_failed',
+          conversationRef: input.conversationRef,
+          userId: 'user-sdk-runtime',
+          queryLength: input.text.length,
+          message: 'Memory retrieval skipped because the backend embedding request failed.',
+          error: '503 Service Unavailable',
+        });
+        return { content: '<user_query>hello</user_query>' };
+      },
+    });
+
+    await runtime.send({ text: 'hello', turnRef: 'turn-memory-diag' });
+
+    const events = await store.loadEvents('conv-sdk-runtime');
+    expect(events.map(storedEvent => storedEvent.type)).toEqual([
+      'turn_started',
+      'memory_retrieval_diagnostic',
+      'user_message',
+    ]);
+    expect(events[1]).toMatchObject({
+      type: 'memory_retrieval_diagnostic',
+      source: 'sdk',
+      turnRef: 'turn-memory-diag',
+      payload: expect.objectContaining({
+        stage: 'embedding_request_failed',
+        error: '503 Service Unavailable',
+      }),
     });
   });
 

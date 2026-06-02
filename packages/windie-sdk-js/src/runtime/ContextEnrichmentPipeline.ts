@@ -17,6 +17,24 @@ export type ContextEnrichmentInput = {
   sdkClient: WindieSdkClient;
   localRuntime?: WindieLocalRuntimeClient | null;
   memoryEnabled?: boolean;
+  emitDiagnostic?: (diagnostic: MemoryRetrievalDiagnostic) => void | Promise<void>;
+};
+
+export type MemoryRetrievalDiagnosticStage =
+  | 'local_runtime_missing'
+  | 'embedding_request_failed'
+  | 'sidecar_search_failed'
+  | 'search_empty';
+
+export type MemoryRetrievalDiagnostic = {
+  stage: MemoryRetrievalDiagnosticStage;
+  conversationRef: string;
+  userId: string;
+  queryLength: number;
+  message: string;
+  error?: string;
+  episodicCount?: number;
+  semanticCount?: number;
 };
 
 export type ContextEnrichmentResult = {
@@ -105,6 +123,43 @@ function shouldRetrieveMemories(payload: JsonRecord): boolean {
   return payload.memory_retrieval_enabled !== false;
 }
 
+function errorMessage(error: unknown): string {
+  if (error instanceof Error && error.message.trim()) {
+    return error.message;
+  }
+  if (typeof error === 'string' && error.trim()) {
+    return error;
+  }
+  return 'Unknown memory retrieval error';
+}
+
+function rpcFailureMessage(response: unknown): string | null {
+  const record = response && typeof response === 'object' && !Array.isArray(response)
+    ? response as JsonRecord
+    : null;
+  if (!record || record.success !== false) {
+    return null;
+  }
+  return typeof record.error === 'string' && record.error.trim()
+    ? record.error
+    : 'Memory search RPC failed';
+}
+
+async function emitMemoryDiagnostic(
+  input: ContextEnrichmentInput,
+  diagnostic: Omit<MemoryRetrievalDiagnostic, 'conversationRef' | 'userId' | 'queryLength'>,
+): Promise<void> {
+  if (!input.emitDiagnostic) {
+    return;
+  }
+  await input.emitDiagnostic({
+    conversationRef: input.conversationRef,
+    userId: input.userId,
+    queryLength: input.text.length,
+    ...diagnostic,
+  });
+}
+
 export async function enrichQueryPayload(input: ContextEnrichmentInput): Promise<ContextEnrichmentResult> {
   const sourcePayload = input.payload && typeof input.payload === 'object' && !Array.isArray(input.payload)
     ? { ...input.payload }
@@ -132,25 +187,65 @@ export async function enrichQueryPayload(input: ContextEnrichmentInput): Promise
     };
   }
 
-  if (shouldRetrieveMemories(input.payload ?? {}) && input.localRuntime?.rpc) {
-    try {
-      const embedding = await input.sdkClient.embeddings.create({ text: input.text });
-      const searchResult = await input.localRuntime.rpc({
-        method: 'search_memory_by_embedding',
-        params: {
-          embedding: embedding.embedding,
-          embedding_space_version: embedding.embedding_space_version,
-          user_id: input.userId,
-          limit: PROMPT_MEMORY_RETRIEVAL.combinedLimit,
-          exclude_conversation_id: input.conversationRef,
-          episodic_limit: PROMPT_MEMORY_RETRIEVAL.episodicLimit,
-          semantic_limit: PROMPT_MEMORY_RETRIEVAL.semanticLimit,
-          semantic_min_score: PROMPT_MEMORY_RETRIEVAL.semanticMinScore,
-        },
+  if (shouldRetrieveMemories(input.payload ?? {})) {
+    if (!input.localRuntime?.rpc) {
+      await emitMemoryDiagnostic(input, {
+        stage: 'local_runtime_missing',
+        message: 'Memory retrieval skipped because no local runtime RPC is available.',
       });
-      memories = normalizeMemories(searchResult);
-    } catch {
-      memories = { episodic: [], semantic: [] };
+    } else {
+      let embedding: Awaited<ReturnType<WindieSdkClient['embeddings']['create']>> | null = null;
+      try {
+        embedding = await input.sdkClient.embeddings.create({ text: input.text });
+      } catch (error) {
+        await emitMemoryDiagnostic(input, {
+          stage: 'embedding_request_failed',
+          message: 'Memory retrieval skipped because the backend embedding request failed.',
+          error: errorMessage(error),
+        });
+      }
+
+      if (embedding) {
+        try {
+          const searchResult = await input.localRuntime.rpc({
+            method: 'search_memory_by_embedding',
+            params: {
+              embedding: embedding.embedding,
+              embedding_space_version: embedding.embedding_space_version,
+              user_id: input.userId,
+              limit: PROMPT_MEMORY_RETRIEVAL.combinedLimit,
+              exclude_conversation_id: input.conversationRef,
+              episodic_limit: PROMPT_MEMORY_RETRIEVAL.episodicLimit,
+              semantic_limit: PROMPT_MEMORY_RETRIEVAL.semanticLimit,
+              semantic_min_score: PROMPT_MEMORY_RETRIEVAL.semanticMinScore,
+            },
+          });
+          const rpcError = rpcFailureMessage(searchResult);
+          if (rpcError) {
+            await emitMemoryDiagnostic(input, {
+              stage: 'sidecar_search_failed',
+              message: 'Memory retrieval skipped because sidecar memory search failed.',
+              error: rpcError,
+            });
+          } else {
+            memories = normalizeMemories(searchResult);
+            if (memories.episodic.length === 0 && memories.semantic.length === 0) {
+              await emitMemoryDiagnostic(input, {
+                stage: 'search_empty',
+                message: 'Memory retrieval completed with no matching memories.',
+                episodicCount: 0,
+                semanticCount: 0,
+              });
+            }
+          }
+        } catch (error) {
+          await emitMemoryDiagnostic(input, {
+            stage: 'sidecar_search_failed',
+            message: 'Memory retrieval skipped because sidecar memory search failed.',
+            error: errorMessage(error),
+          });
+        }
+      }
     }
   }
 

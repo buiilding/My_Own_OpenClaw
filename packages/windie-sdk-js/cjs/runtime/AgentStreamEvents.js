@@ -119,6 +119,17 @@ function toAgentStreamEvents(runtimeEvent) {
             },
         ];
     }
+    if (event.type === 'memory_retrieval_diagnostic') {
+        return [{
+                type: 'memory_diagnostic',
+                stage: stringField(event.payload, 'stage') ?? 'unknown',
+                message: stringField(event.payload, 'message') ?? 'Memory retrieval diagnostic',
+                error: stringField(event.payload, 'error'),
+                episodicCount: numberField(event.payload, 'episodicCount'),
+                semanticCount: numberField(event.payload, 'semanticCount'),
+                ...locator,
+            }];
+    }
     if (event.type === 'turn_completed' || event.type === 'turn_stopped') {
         const finalResponse = stringField(event.payload, 'finalResponse', 'final_response');
         return [
@@ -165,6 +176,15 @@ function stringField(record, ...keys) {
     for (const key of keys) {
         const value = record[key];
         if (typeof value === 'string' && value.trim()) {
+            return value;
+        }
+    }
+    return null;
+}
+function numberField(record, ...keys) {
+    for (const key of keys) {
+        const value = record[key];
+        if (typeof value === 'number' && Number.isFinite(value)) {
             return value;
         }
     }

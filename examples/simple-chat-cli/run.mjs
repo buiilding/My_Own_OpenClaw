@@ -121,6 +121,14 @@ try {
           }
           break;
 
+        case "memory_diagnostic":
+          stdout.write(`\n[memory] ${event.stage}: ${event.message}`);
+          if (event.error) {
+            stdout.write(` (${event.error})`);
+          }
+          stdout.write("\n");
+          break;
+
         case "error":
           stderr.write(`\n[error] ${event.message}\n`);
           break;
