@@ -50,6 +50,13 @@ export type WindieAgentStreamEvent =
       turnRef: string | null;
     }
   | {
+      type: 'user_message';
+      text: string;
+      content: string;
+      conversationRef: string;
+      turnRef: string | null;
+    }
+  | {
       type: 'reasoning_delta';
       text: string;
       conversationRef: string;
@@ -124,6 +131,12 @@ export function toAgentStreamEvents(runtimeEvent: WindieRuntimeEvent): WindieAge
   if (event.type === 'user_message') {
     return [
       stateEvent('sending', locator),
+      {
+        type: 'user_message',
+        text: stringField(event.payload, 'text') ?? '',
+        content: stringField(event.payload, 'content') ?? '',
+        ...locator,
+      },
       stateEvent('thinking', locator),
     ];
   }

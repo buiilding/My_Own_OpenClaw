@@ -84,6 +84,14 @@ try {
           }
           break;
 
+        case "user_message":
+          if (event.content) {
+            stdout.write("\n[injected user message]\n");
+            stdout.write(event.content);
+            stdout.write("\n");
+          }
+          break;
+
         case "reasoning_delta":
           stdout.write(`\x1b[2m[thinking] ${event.text}\x1b[0m`);
           break;

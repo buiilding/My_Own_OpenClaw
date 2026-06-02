@@ -800,6 +800,34 @@ describe('Windie SDK conversation runtime core', () => {
     ]);
   });
 
+  test('agent stream projection exposes injected user message content', () => {
+    const streamEvents = toAgentStreamEvents({
+      type: 'conversation_event',
+      event: event('user_message', {
+        text: 'what do you remember?',
+        content: '<episodic_memory>\n- remembered preference\n</episodic_memory>\n\n<user_query>\nwhat do you remember?\n</user_query>',
+      }),
+    } as any);
+
+    expect(streamEvents).toEqual([
+      expect.objectContaining({
+        type: 'state',
+        state: 'sending',
+      }),
+      expect.objectContaining({
+        type: 'user_message',
+        text: 'what do you remember?',
+        content: '<episodic_memory>\n- remembered preference\n</episodic_memory>\n\n<user_query>\nwhat do you remember?\n</user_query>',
+        conversationRef: 'conv-sdk-runtime',
+        turnRef: 'turn-1',
+      }),
+      expect.objectContaining({
+        type: 'state',
+        state: 'thinking',
+      }),
+    ]);
+  });
+
   test('in-memory store is idempotent and only activates complete compaction snapshots', async () => {
     const store = new InMemoryConversationStore();
     const userEvent = event('user_message', { text: 'hello' });

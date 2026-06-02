@@ -10,6 +10,9 @@ All notable changes to WindieOS will be documented in this file.
   report-first so agents inspect code before modifying files.
 - examples/sdk: shorten the simple chat CLI setup and rendering helpers without
   changing its SDK loading, browser builtin, or stream output behavior.
+- sdk/examples: emit normalized `user_message` stream events with original text
+  and model-facing injected content, and print that injected content in the
+  simple chat CLI.
 - backend/sdk/sidecar: make backend stream `event_id` and per-turn `sequence`
   the source of truth for backend event identity/order, persist producer
   metadata in sidecar chat storage, and have the SDK reject missing, duplicate,

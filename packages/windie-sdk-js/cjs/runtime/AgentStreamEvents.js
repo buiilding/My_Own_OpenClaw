@@ -33,6 +33,12 @@ function toAgentStreamEvents(runtimeEvent) {
     if (event.type === 'user_message') {
         return [
             stateEvent('sending', locator),
+            {
+                type: 'user_message',
+                text: stringField(event.payload, 'text') ?? '',
+                content: stringField(event.payload, 'content') ?? '',
+                ...locator,
+            },
             stateEvent('thinking', locator),
         ];
     }
