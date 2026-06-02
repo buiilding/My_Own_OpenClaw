@@ -485,6 +485,45 @@ describe('WindieSdkClient', () => {
     });
   });
 
+  test('WindieClient auto-registers hosted install auth with an explicit install user id', async () => {
+    mockFetch.mockResolvedValueOnce(jsonResponse({
+      user_id: 'registered-user',
+      install_id: 'install-1',
+      install_token: 'install-token-1',
+    }));
+    const client = new WindieClient({
+      backendUrl: 'https://api.windieos.com',
+      fetchImpl: mockFetch,
+      WebSocketImpl: FakeWebSocket as any,
+    });
+
+    const wakePromise = client.wakeUp({
+      agentId: 'auth-agent',
+      installAuth: {
+        autoRegister: true,
+        userId: 'peter',
+      },
+    });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const socket = FakeWebSocket.instances[0];
+    socket.emit('open', {});
+    await wakePromise;
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      'https://api.windieos.com/api/install/register',
+      expect.objectContaining({ method: 'POST' }),
+    );
+    expect(socket.options).toMatchObject({
+      headers: {
+        Authorization: 'Bearer install-token-1',
+      },
+    });
+    expect(JSON.parse(socket.sent[0])).toMatchObject({
+      type: 'handshake',
+      user_id: 'peter',
+    });
+  });
+
   test('WindieClient uses env backend URL and install token when constructor options omit them', async () => {
     const previousBackendUrl = process.env.WINDIE_BACKEND_URL;
     const previousApiKey = process.env.WINDIE_API_KEY;

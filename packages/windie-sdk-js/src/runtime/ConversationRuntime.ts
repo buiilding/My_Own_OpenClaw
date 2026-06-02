@@ -237,7 +237,28 @@ export class SdkConversationRuntime {
     const revisionId = this.state.revisionId === 'rev-empty'
       ? createRuntimeId('rev')
       : this.state.revisionId;
-    const emitMemoryDiagnostic = async (diagnostic: MemoryRetrievalDiagnostic): Promise<void> => {
+    const memoryDiagnostics: MemoryRetrievalDiagnostic[] = [];
+    const emitMemoryDiagnostic = (diagnostic: MemoryRetrievalDiagnostic): void => {
+      memoryDiagnostics.push(diagnostic);
+    };
+    const enrichedPayload = this.options.enrichQuery
+      ? await this.options.enrichQuery({
+        text: input.text,
+        conversationRef: this.options.conversationRef,
+        payload: input.payload ?? {},
+        emitDiagnostic: emitMemoryDiagnostic,
+      })
+      : (input.payload ?? {});
+    await this.applyEvent(createConversationEvent({
+      eventId: this.nextLocalEventId(turnRef, 'turn_started'),
+      type: 'turn_started',
+      conversationRef: this.options.conversationRef,
+      revisionId,
+      turnRef,
+      source: 'sdk',
+      payload: {},
+    }));
+    for (const diagnostic of memoryDiagnostics) {
       await this.applyEvent(createConversationEvent({
         eventId: this.nextLocalEventId(turnRef, 'memory_retrieval_diagnostic'),
         type: 'memory_retrieval_diagnostic',
@@ -249,24 +270,7 @@ export class SdkConversationRuntime {
           ...diagnostic,
         },
       }));
-    };
-    await this.applyEvent(createConversationEvent({
-      eventId: this.nextLocalEventId(turnRef, 'turn_started'),
-      type: 'turn_started',
-      conversationRef: this.options.conversationRef,
-      revisionId,
-      turnRef,
-      source: 'sdk',
-      payload: {},
-    }));
-    const enrichedPayload = this.options.enrichQuery
-      ? await this.options.enrichQuery({
-        text: input.text,
-        conversationRef: this.options.conversationRef,
-        payload: input.payload ?? {},
-        emitDiagnostic: emitMemoryDiagnostic,
-      })
-      : (input.payload ?? {});
+    }
     await this.applyEvent(createConversationEvent({
       eventId: this.nextLocalEventId(turnRef, 'user_message'),
       type: 'user_message',

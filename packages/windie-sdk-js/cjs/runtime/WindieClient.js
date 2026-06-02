@@ -181,7 +181,7 @@ class WindieClient {
             throw new Error('Windie install registration returned an invalid auth payload');
         }
         return {
-            userId: registeredUserId,
+            userId: configuredUserId ?? registeredUserId,
             installId: registeredInstallId || undefined,
             installToken: registeredInstallToken,
         };

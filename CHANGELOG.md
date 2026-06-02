@@ -21,7 +21,11 @@ All notable changes to WindieOS will be documented in this file.
   backend embedding failures, sidecar search failures, and empty memory search
   results instead of silently returning empty prompt memory.
 - examples/sdk: pin the simple chat CLI to the stable local SDK user id `peter`
-  so memory retrieval and storage survive CLI restarts.
+  while forcing hosted install auto-registration so protected SDK HTTP routes
+  still receive bearer auth.
+- sdk/auth: allow forced hosted install auto-registration to preserve a
+  caller-provided install user id instead of replacing it with the backend
+  registration response user id.
 - docs/agents: make question-style implementation requests explicitly
   report-first so agents inspect code before modifying files.
 - examples/sdk: shorten the simple chat CLI setup and rendering helpers without
