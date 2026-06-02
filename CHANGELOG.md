@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/embeddings: default backend embeddings to the OpenAI vendor provider
+  with `text-embedding-3-small` so hosted deployments use remote embeddings
+  from `OPENAI_API_KEY` instead of requiring local `sentence-transformers`.
 - sdk/sidecar/memory: make SDK the only runtime that calls backend embeddings
   for memory retrieval and completed-turn storage, replace sidecar
   `store_memory` with `store_memory_by_embedding`, remove sidecar remote

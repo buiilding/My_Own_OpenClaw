@@ -261,8 +261,8 @@ class AppConfig(BaseModel):
 
     # Memory System Settings
     memory_enabled: bool = True
-    embedding_backend: InferenceBackend = "local"
-    embedding_model: str = "all-MiniLM-L6-v2"
+    embedding_backend: InferenceBackend = "vendor"
+    embedding_model: str = "text-embedding-3-small"
     embedding_api_key_env: str = "OPENAI_API_KEY"
     embedding_remote_service_url: Optional[str] = None
     embedding_request_timeout_seconds: float = Field(default=30.0, ge=0.1)

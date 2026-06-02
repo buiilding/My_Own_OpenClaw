@@ -197,7 +197,8 @@ class TestAppConfig:
         assert config.query_timeout == 600
         assert config.debug_litellm is False
         assert config.memory_enabled is True
-        assert config.embedding_model == "all-MiniLM-L6-v2"
+        assert config.embedding_backend == "vendor"
+        assert config.embedding_model == "text-embedding-3-small"
         assert config.interaction_mode == "agent"
         assert config.history_compaction_enabled is True
         assert config.history_compaction_manual_enabled is True

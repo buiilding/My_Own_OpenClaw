@@ -23,8 +23,8 @@ APP_CONFIG = AppConfig(
     llm_providers=LLMProviders(),
     # Memory System Settings
     memory_enabled=True,
-    embedding_backend="local",
-    embedding_model="all-MiniLM-L6-v2",
+    embedding_backend="vendor",
+    embedding_model="text-embedding-3-small",
     embedding_api_key_env="OPENAI_API_KEY",
     embedding_remote_service_url=None,
     embedding_request_timeout_seconds=30.0,

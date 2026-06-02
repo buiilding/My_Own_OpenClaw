@@ -56,8 +56,8 @@ Provider defaults in `LLMProviders`:
 | Field | Type | Default | Notes |
 | --- | --- | --- | --- |
 | `memory_enabled` | `bool` | `true` | Frontend-side memory services still consume backend config context. |
-| `embedding_backend` | `"local" \| "remote-http" \| "vendor"` | `"local"` | Selects the embedding provider backend; only `local` is implemented in-process today. |
-| `embedding_model` | `str` | `all-MiniLM-L6-v2` | Used by embedding provider wiring. |
+| `embedding_backend` | `"local" \| "remote-http" \| "vendor" \| "disabled"` | `"vendor"` | Selects the embedding provider backend. `vendor` uses OpenAI through `embedding_api_key_env`; `local` uses the in-process SentenceTransformer provider; `remote-http` calls an embedding service. |
+| `embedding_model` | `str` | `text-embedding-3-small` | Used by embedding provider wiring. |
 | `ocr_backend` | `"local" \| "remote-http" \| "vendor"` | `"local"` | Selects the OCR provider backend; only `local` is implemented in-process today. |
 | `ocr_model` | `str` | `rapidocr-ppocrv5-server` | OCR model identifier surfaced through provider metadata and future remote routing. |
 | `interaction_mode` | `"chat" \| "agent"` | `"agent"` | Controls tool allowlist behavior (`get_tool_allowlist`). |

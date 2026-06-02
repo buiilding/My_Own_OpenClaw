@@ -21,7 +21,7 @@ def test_create_embedder_returns_remote_http_provider() -> None:
 
     assert provider is not None
     assert isinstance(provider.provider, RemoteHttpEmbeddingProvider)
-    assert provider.model_id == "all-MiniLM-L6-v2"
+    assert provider.model_id == "text-embedding-3-small"
 
 
 def test_create_embedder_returns_vendor_openai_provider(monkeypatch) -> None:

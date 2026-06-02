@@ -28,8 +28,8 @@ title: "Embedding and Semantic Memory Runtime Reference"
 Memory-related config fields in `AppConfig`:
 
 - `memory_enabled` (default `true`)
-- `embedding_backend` (default `"local"`)
-- `embedding_model` (default `"all-MiniLM-L6-v2"`)
+- `embedding_backend` (default `"vendor"`)
+- `embedding_model` (default `"text-embedding-3-small"`)
 - `ocr_backend` (default `"local"`)
 - `ocr_model` (default `"rapidocr-ppocrv5-server"`)
 - `vision_backend` (default `"local"`)
@@ -40,8 +40,9 @@ DI ownership:
 - `MemoryContainer.embedder` is a singleton created by `_create_embedder(...)`
 - `ApplicationContainer.embedding_router` exposes the embedding capability boundary used by routes and sidecar-facing health probes
 - if `memory_enabled` is false, factory returns `None`
-- if `embedding_backend != "local"`, in-process provider creation is disabled until a remote/vendor adapter is implemented
-- device selection prefers `cuda`, then `mps`, then `cpu`
+- if `embedding_backend == "vendor"`, the backend creates an OpenAI embedding provider using `embedding_api_key_env`
+- if `embedding_backend == "remote-http"`, the backend calls `embedding_remote_service_url`
+- local provider device selection prefers `cuda`, then `mps`, then `cpu`
 
 Runtime startup:
 
