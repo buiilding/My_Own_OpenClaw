@@ -631,6 +631,9 @@ Release flow:
 
 - Be unbiased and logical first.
 - Verify in code and docs before answering implementation questions.
+- When the user asks a question, inspect the relevant code and report first;
+  do not modify files unless the user explicitly asks for implementation or
+  approves changes after the report.
 - Avoid guessing; if unsure, read more code first.
 - If still blocked, ask with short options.
 - Call out conflicts and choose the safer path.

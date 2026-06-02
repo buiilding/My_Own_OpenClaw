@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/agents: make question-style implementation requests explicitly
+  report-first so agents inspect code before modifying files.
 - backend/sdk/sidecar: make backend stream `event_id` and per-turn `sequence`
   the source of truth for backend event identity/order, persist producer
   metadata in sidecar chat storage, and have the SDK reject missing, duplicate,
