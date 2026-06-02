@@ -1,10 +1,7 @@
 import { useCallback } from 'react';
 import {
-  buildDisplayRows,
   type ConversationEvent,
 } from '../../../../infrastructure/api/windieSdkClient';
-import type { ChatMessage } from '../../stores/chatStore';
-import { buildChatMessagesFromSdkDisplayRows } from '../../../../infrastructure/transcript/sdkDisplayChatMessageProjection';
 import {
   buildToolBundleMessageState,
   buildToolCallMessageState,
@@ -31,7 +28,6 @@ type JsonObject = Record<string, unknown>;
 type UseChatStreamToolHandlersDeps = {
   enableTranscript: boolean;
   modelContextRef: { current: MinimalModelContext };
-  addMessage: (message: ChatMessage, conversationRef?: string | null) => void;
 };
 
 function asJsonObject(value: unknown): JsonObject | null {
@@ -112,17 +108,9 @@ function formatSdkToolOutputText(payload: JsonObject | null): string {
 }
 
 export function useChatStreamToolHandlers({
-  addMessage,
   enableTranscript,
   modelContextRef,
 }: UseChatStreamToolHandlersDeps) {
-  const appendSdkDisplayRows = useCallback((event: ConversationEvent) => {
-    const messages = buildChatMessagesFromSdkDisplayRows(buildDisplayRows([event]));
-    messages.forEach((message) => {
-      addMessage(message, event.conversationRef);
-    });
-  }, [addMessage]);
-
   const recordToolCallTranscript = useCallback((
     text: string,
     identity: { conversationRef: string; userId?: string | null },
@@ -150,7 +138,6 @@ export function useChatStreamToolHandlers({
     if (event.type !== 'tool_call') {
       return;
     }
-    appendSdkDisplayRows(event);
     const toolCallDetails = asJsonObject(event.payload?.structuredPayload) ?? asJsonObject(event.payload);
     const metadata = asJsonObject(toolCallDetails?.metadata);
     const args = asJsonObject(event.payload?.args) ?? asJsonObject(toolCallDetails?.parameters);
@@ -183,7 +170,6 @@ export function useChatStreamToolHandlers({
       }),
     );
   }, [
-    appendSdkDisplayRows,
     recordToolCallTranscript,
   ]);
 
@@ -191,7 +177,6 @@ export function useChatStreamToolHandlers({
     if (event.type !== 'tool_output' && event.type !== 'tool_bundle_output') {
       return;
     }
-    appendSdkDisplayRows(event);
     const toolOutputDetails = asJsonObject(event.payload?.structuredPayload) ?? asJsonObject(event.payload);
     const outputText = formatSdkToolOutputText(toolOutputDetails);
     const fallbackToolName = event.type === 'tool_bundle_output' ? 'tool_bundle' : null;
@@ -223,7 +208,6 @@ export function useChatStreamToolHandlers({
       });
     }
   }, [
-    appendSdkDisplayRows,
     enableTranscript,
     modelContextRef,
   ]);
@@ -232,7 +216,6 @@ export function useChatStreamToolHandlers({
     if (event.type !== 'tool_bundle_call') {
       return;
     }
-    appendSdkDisplayRows(event);
     const toolBundleDetails = sdkToolBundleDetails(event.payload);
     const toolBundleMessageState = buildToolBundleMessageState(toolBundleDetails);
     const modelContext = modelContextRef.current;
@@ -254,7 +237,6 @@ export function useChatStreamToolHandlers({
       });
     }
   }, [
-    appendSdkDisplayRows,
     enableTranscript,
     modelContextRef,
   ]);

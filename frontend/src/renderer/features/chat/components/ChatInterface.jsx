@@ -52,6 +52,9 @@ import {
   buildThreadPresentationMessages,
   hasCurrentTurnLiveProgressMessages,
 } from '../utils/message/messagePresentationPipeline';
+import {
+  buildCurrentTurnMessagesFromProjection,
+} from '../utils/state/chatBoxResponseState';
 import { buildThreadFindState } from '../utils/message/threadFindState';
 import '../../../styles/ChatInterface.css';
 
@@ -216,10 +219,15 @@ function ChatInterface({ focusComposerToken = 0 }) {
     canStop,
     speechModeEnabled,
   } = chatSurface;
+  const currentTurnMessages = useMemo(
+    () => buildCurrentTurnMessagesFromProjection(currentTurnProjection),
+    [currentTurnProjection],
+  );
   const renderedMessages = useMemo(() => buildThreadPresentationMessages(messages, {
     showToolLogs,
     isBusy: composerBusy,
-  }), [composerBusy, messages, showToolLogs]);
+    currentTurnMessages,
+  }), [composerBusy, currentTurnMessages, messages, showToolLogs]);
   const hasLiveProgressMessages = useMemo(
     () => hasCurrentTurnLiveProgressMessages(renderedMessages),
     [renderedMessages],

@@ -129,6 +129,38 @@ export function hasCurrentTurnLiveProgressMessages(messages) {
 
 export function buildThreadPresentationMessages(
   messages,
+  {
+    currentTurnMessages = [],
+  } = {},
 ) {
-  return Array.isArray(messages) ? messages : [];
+  const baseMessages = Array.isArray(messages) ? messages : [];
+  const projectedMessages = Array.isArray(currentTurnMessages)
+    ? currentTurnMessages.filter((message) => (
+      message
+      && message.sender !== 'user'
+      && message.sourceChannel === 'windie:current-turn'
+      && message.sourceEventType !== 'sdk-current-turn'
+    ))
+    : [];
+
+  if (projectedMessages.length === 0) {
+    return baseMessages;
+  }
+
+  const existingIds = new Set(baseMessages.map((message) => message?.id).filter(Boolean));
+  const uniqueProjectedMessages = projectedMessages.filter((message) => !existingIds.has(message.id));
+  if (uniqueProjectedMessages.length === 0) {
+    return baseMessages;
+  }
+
+  const latestUserIndex = findLastUserIndex(baseMessages);
+  if (latestUserIndex < 0) {
+    return [...baseMessages, ...uniqueProjectedMessages];
+  }
+
+  return [
+    ...baseMessages.slice(0, latestUserIndex + 1),
+    ...uniqueProjectedMessages,
+    ...baseMessages.slice(latestUserIndex + 1),
+  ];
 }

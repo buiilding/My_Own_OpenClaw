@@ -29,7 +29,12 @@ function terminalPayloadWithoutRawEvent(event: ConversationEvent): Record<string
 }
 
 function usagePayloadFromEvent(event: ConversationEvent): Record<string, unknown> {
-  const { rawEvent: _rawEvent, userId: _userId, ...payload } = event.payload ?? {};
+  const {
+    rawEvent: _rawEvent,
+    userId: _userId,
+    backendSequence: _backendSequence,
+    ...payload
+  } = event.payload ?? {};
   return payload;
 }
 

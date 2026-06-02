@@ -1302,6 +1302,49 @@ describe('ChatInterface wiring', () => {
     expect(typeof lastInputProps.onStopResponse).toBe('function');
   });
 
+  test('renders SDK current-turn tool rows without mutating chat messages from conversation events', () => {
+    mockChatState.streamTracking.phase = 'tool-call';
+    mockChatState.isSending = false;
+    mockChatState.messages = [
+      { id: 'user-1', sender: 'user', text: 'build a dashboard', type: 'user', turnRef: 'turn_test' },
+    ];
+    setMockCurrentTurnProjection('tool-call', {
+      toolEvents: [{
+        id: 'tool-call-1',
+        kind: 'tool_call',
+        toolName: 'run_shell_command',
+        payload: {
+          toolName: 'run_shell_command',
+          requestId: 'request-tool-1',
+          args: {
+            command: 'pwd',
+          },
+        },
+      }],
+    });
+
+    render(<ChatInterface />);
+
+    const renderedMessages = mockMessageList.mock.calls.at(-1)[0].messages;
+    expect(renderedMessages).toHaveLength(2);
+    expect(renderedMessages[0]).toEqual(expect.objectContaining({
+      id: 'user-1',
+      sender: 'user',
+    }));
+    expect(renderedMessages[1]).toEqual(expect.objectContaining({
+      id: 'conv_existing:turn_test:tool:tool-call-1',
+      sender: 'assistant',
+      type: 'tool-call',
+      sourceChannel: 'windie:current-turn',
+      correlationId: 'request-tool-1',
+      toolCallDetails: expect.objectContaining({
+        toolName: 'run_shell_command',
+      }),
+    }));
+    expect(mockSetMessages).not.toHaveBeenCalled();
+    expect(mockUpdateMessage).not.toHaveBeenCalled();
+  });
+
   test('shows awaiting dot until the first assistant row is visible', () => {
     mockChatState.messages = [
       { id: 'user-1', sender: 'user', text: 'hello', type: 'user' },

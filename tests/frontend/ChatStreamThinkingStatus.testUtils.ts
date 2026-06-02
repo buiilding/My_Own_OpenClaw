@@ -21,6 +21,7 @@ import {
 let mockConfig: TestAppConfig = createDefaultTestAppConfig();
 const DEFAULT_TEST_CONVERSATION_REF = 'conv-test';
 let mockActiveConversationRef: string | null = DEFAULT_TEST_CONVERSATION_REF;
+let mockBackendSequence = 1;
 const mockUseAppConfigContext = jest.fn(() => ({ config: mockConfig }));
 
 jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
@@ -58,12 +59,23 @@ export function resetChatStreamTestState() {
   jest.clearAllMocks();
   mockConfig = createDefaultTestAppConfig();
   mockActiveConversationRef = DEFAULT_TEST_CONVERSATION_REF;
+  mockBackendSequence = 1;
   setMockAppConfigContextValue(mockUseAppConfigContext, mockConfig);
 
   resetChatStoreForTests(createAssistantSeedMessage());
   useChatStore.setState({
     activeConversationRef: DEFAULT_TEST_CONVERSATION_REF,
   });
+}
+
+function withBackendEventIdentity(event: Record<string, unknown>): Record<string, unknown> {
+  const sequence = typeof event.sequence === 'number' ? event.sequence : mockBackendSequence;
+  mockBackendSequence = Math.max(mockBackendSequence + 1, sequence + 1);
+  return {
+    event_id: event.event_id ?? `test-event-${sequence}`,
+    sequence,
+    ...event,
+  };
 }
 
 export function setMockConfig(
@@ -86,14 +98,17 @@ function createEmitBackendEvent(handlers: Record<string, (data: unknown) => void
       const eventRecord = event as Record<string, unknown>;
       const conversationEvent = normalizeBackendEventToConversationEvent({
         conversation_ref: eventRecord.conversation_ref ?? mockActiveConversationRef,
-        ...eventRecord,
+        ...withBackendEventIdentity(eventRecord),
       } as any);
       if (conversationEvent) {
         conversationEventHandler(conversationEvent);
       }
       return;
     }
-    const conversationEvent = normalizeBackendEventToConversationEvent(event as any);
+    const eventRecord = event && typeof event === 'object' && !Array.isArray(event)
+      ? withBackendEventIdentity(event as Record<string, unknown>)
+      : event;
+    const conversationEvent = normalizeBackendEventToConversationEvent(eventRecord as any);
     if (conversationEvent) {
       conversationEventHandler(conversationEvent);
     }
@@ -110,14 +125,17 @@ function createEmitRawBackendEvent(handlers: Record<string, (data: unknown) => v
       const eventRecord = event as Record<string, unknown>;
       const conversationEvent = normalizeBackendEventToConversationEvent({
         conversation_ref: eventRecord.conversation_ref ?? mockActiveConversationRef,
-        ...eventRecord,
+        ...withBackendEventIdentity(eventRecord),
       } as any);
       if (conversationEvent) {
         backendHandler(conversationEvent);
       }
       return;
     }
-    const conversationEvent = normalizeBackendEventToConversationEvent(event as any);
+    const eventRecord = event && typeof event === 'object' && !Array.isArray(event)
+      ? withBackendEventIdentity(event as Record<string, unknown>)
+      : event;
+    const conversationEvent = normalizeBackendEventToConversationEvent(eventRecord as any);
     if (conversationEvent) {
       backendHandler(conversationEvent);
     }

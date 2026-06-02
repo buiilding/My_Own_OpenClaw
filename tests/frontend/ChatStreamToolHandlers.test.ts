@@ -13,9 +13,7 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptProjectionRu
 }));
 
 function renderToolHandlers(modelId = 'model-1', modelProvider = 'provider-1') {
-  const addMessage = jest.fn();
   const hook = renderHook(() => useChatStreamToolHandlers({
-    addMessage,
     enableTranscript: true,
     modelContextRef: {
       current: {
@@ -24,7 +22,7 @@ function renderToolHandlers(modelId = 'model-1', modelProvider = 'provider-1') {
       },
     },
   }));
-  return { ...hook, addMessage };
+  return hook;
 }
 
 describe('useChatStreamToolHandlers', () => {
@@ -329,52 +327,4 @@ describe('useChatStreamToolHandlers', () => {
     );
   });
 
-  test('appends SDK display-row tool messages in event order', () => {
-    const { result, addMessage } = renderToolHandlers('model-display-row', 'provider-display-row');
-
-    act(() => {
-      result.current.handleToolCall({
-        eventId: 'event-tool-call-order',
-        type: 'tool_call',
-        conversationRef: 'conversation-order',
-        turnRef: 'turn-order',
-        revisionId: 'rev-order',
-        timestamp: '2026-05-24T00:00:00.000Z',
-        source: 'backend',
-        payload: {
-          toolName: 'read_file',
-          requestId: 'request-order',
-          args: { path: 'README.md' },
-        },
-      } as any, 'conversation-order');
-      result.current.handleToolOutput({
-        eventId: 'event-tool-output-order',
-        type: 'tool_output',
-        conversationRef: 'conversation-order',
-        turnRef: 'turn-order',
-        revisionId: 'rev-order',
-        timestamp: '2026-05-24T00:00:01.000Z',
-        source: 'backend',
-        payload: {
-          toolName: 'read_file',
-          requestId: 'request-order',
-          result: { output: 'README contents' },
-        },
-      } as any, 'conversation-order');
-    });
-
-    expect(addMessage.mock.calls.map(call => call[0])).toEqual([
-      expect.objectContaining({
-        id: 'event-tool-call-order:tool_call:request-order',
-        type: 'tool-call',
-        correlationId: 'request-order',
-      }),
-      expect.objectContaining({
-        id: 'event-tool-output-order:tool_output:request-order',
-        type: 'tool-output',
-        text: 'README contents',
-        correlationId: 'request-order',
-      }),
-    ]);
-  });
 });

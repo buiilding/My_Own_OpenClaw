@@ -100,7 +100,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleToolOutput,
     handleToolBundle,
   } = useChatStreamToolHandlers({
-    addMessage,
     enableTranscript,
     modelContextRef,
   });
