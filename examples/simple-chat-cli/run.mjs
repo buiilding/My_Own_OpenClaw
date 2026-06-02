@@ -8,16 +8,8 @@ import { loadLocalWindieSdk } from "../_shared/local_sdk_loader.mjs";
 const exampleDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(exampleDir, "../..");
 
-async function loadExampleSdk() {
-  const { WindieClient } = await loadLocalWindieSdk(repoRoot);
-  return { WindieClient };
-}
-
-const { WindieClient } = await loadExampleSdk();
-
-const client = new WindieClient();
-
-const agent = await client.wakeUp({
+const { WindieClient } = await loadLocalWindieSdk(repoRoot);
+const agent = await new WindieClient().wakeUp({
   systemPrompt: "Your name is Peter, you are Peter Bui virtual friend.",
   builtins: ["browser"],
 });
@@ -38,17 +30,13 @@ async function shutdownAgent() {
   await agent.shutdown?.();
 }
 
-rl.on("SIGINT", () => {
-  void shutdownAgent().finally(() => exit(130));
-});
+function shutdown(code) {
+  void shutdownAgent().finally(() => exit(code));
+}
 
-process.once("SIGINT", () => {
-  void shutdownAgent().finally(() => exit(130));
-});
-
-process.once("SIGTERM", () => {
-  void shutdownAgent().finally(() => exit(143));
-});
+rl.on("SIGINT", () => shutdown(130));
+process.once("SIGINT", () => shutdown(130));
+process.once("SIGTERM", () => shutdown(143));
 
 stdout.write("Windie CLI. Type /exit to quit.\n\n");
 
@@ -67,6 +55,11 @@ async function readPrompt() {
     }
     throw error;
   }
+}
+
+function printJson(value) {
+  stdout.write(JSON.stringify(value, null, 2));
+  stdout.write("\n");
 }
 
 try {
@@ -105,26 +98,18 @@ try {
         case "tool_calls":
           for (const call of event.calls) {
             stdout.write(`\n\n[tool call] ${call.toolName}\n`);
-            stdout.write(JSON.stringify(call.args, null, 2));
-            stdout.write("\n");
+            printJson(call.args);
           }
           break;
 
         case "tool_outputs":
           for (const output of event.outputs) {
             stdout.write(`\n[tool output] ${output.toolName}\n`);
-            stdout.write(
-              JSON.stringify(
-                {
-                  success: output.success,
-                  error: output.error,
-                  result: output.result,
-                },
-                null,
-                2,
-              ),
-            );
-            stdout.write("\n");
+            printJson({
+              success: output.success,
+              error: output.error,
+              result: output.result,
+            });
           }
           break;
 
