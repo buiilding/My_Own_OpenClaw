@@ -10,10 +10,8 @@ from pydantic import Field
 from pydantic import RootModel
 from pydantic import model_validator
 
-BrowserNavigationState = Literal["load", "domcontentloaded", "networkidle", "commit"]
 BrowserMouseButton = Literal["left", "right", "middle"]
 BrowserScrollDirection = Literal["up", "down", "left", "right"]
-BrowserWaitState = Literal["load", "domcontentloaded", "networkidle"]
 BrowserCanonicalAction = Literal[
     "connect",
     "status",

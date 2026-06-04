@@ -46,8 +46,7 @@ BROWSER_SIMULATION_RESPONSES = [
                     "name": "browser",
                     "args": {
                         "action": "navigate",
-                        "url": "https://amazon.com",
-                        "wait_until": "domcontentloaded"
+                        "url": "https://amazon.com"
                     }
                 }
             }

@@ -11,9 +11,7 @@ __all__ = [
     "BrowserCanonicalAction",
     "BrowserCoreAction",
     "BrowserMouseButton",
-    "BrowserNavigationState",
     "BrowserScrollDirection",
-    "BrowserWaitState",
 ]
 
 _browser_contract = load_shared_browser_contract()

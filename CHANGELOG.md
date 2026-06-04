@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sidecar/browser: remove stale browser navigation/wait state type
+  exports and align browser samples/tests with the current `navigate` and
+  `wait.seconds` contracts.
 - frontend/sidecar/browser: remove no-op browser input `clear` and `submit`
   fields; use `input` for text and `send_keys` for explicit submission.
 - frontend/sidecar/browser: remove the unused scroll `index` contract field so

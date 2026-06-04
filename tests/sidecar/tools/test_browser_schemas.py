@@ -17,9 +17,11 @@ from windie_shared.browser_contract import (
     BrowserControlArgs,
     BrowserFindTextArgs,
     BrowserInputArgs,
+    BrowserNavigateArgs,
     BrowserScrollArgs,
     BrowserSnapshotArgs,
     BrowserSwitchArgs,
+    BrowserWaitArgs,
     build_browser_tool_parameters_schema as sidecar_build_browser_tool_parameters_schema,
     get_browser_schema,
     validate_browser_args,
@@ -112,6 +114,37 @@ def test_snapshot_schema_is_strict() -> None:
 
     with pytest.raises(ValidationError):
         BrowserSnapshotArgs(action="snapshot", format="aria", explanation=EXPLANATION)
+
+
+def test_navigate_and_wait_reject_removed_state_fields() -> None:
+    navigate_args = BrowserNavigateArgs(
+        action="navigate",
+        url="https://example.com",
+        explanation=EXPLANATION,
+    )
+    assert navigate_args.url == "https://example.com"
+
+    wait_args = BrowserWaitArgs(action="wait", seconds=0.5, explanation=EXPLANATION)
+    assert wait_args.seconds == 0.5
+
+    with pytest.raises(ValidationError):
+        BrowserNavigateArgs(
+            action="navigate",
+            url="https://example.com",
+            wait_until="domcontentloaded",
+            explanation=EXPLANATION,
+        )
+
+    with pytest.raises(ValidationError):
+        BrowserNavigateArgs(
+            action="navigate",
+            url="https://example.com",
+            waitUntil="domcontentloaded",
+            explanation=EXPLANATION,
+        )
+
+    with pytest.raises(ValidationError):
+        BrowserWaitArgs(action="wait", state="domcontentloaded", explanation=EXPLANATION)
 
 
 def test_input_find_text_and_switch_use_canonical_fields_only() -> None:
