@@ -33,6 +33,8 @@ The shared contract module defines:
 - one `BrowserActionContract` catalog with action name and args model
 - one discriminated `BrowserControlArgs` union for grouped validation
 - one `build_browser_tool_parameters_schema()` helper for model-facing schema emission
+- flat action model JSON schemas only; nullable `anyOf` cleanup is the sole
+  schema normalization step before property merging
 - implementation is split internally into action models, action catalog, and model-facing schema builder modules while keeping `windie_shared.browser_contract` as the stable import surface for backend and sidecar re-export wrappers
 
 Important boundary:
@@ -54,6 +56,8 @@ Model-facing declaration emission (`build_tool_spec(...)`):
 - emits one grouped `browser` tool
 - keeps top-level `action` enum for the full canonical action set
 - emits one root object containing only canonical browser fields gathered from the action catalog
+- rejects hidden local-ref/composition paths: action model schemas must not
+  introduce `$defs`, `$ref`, `allOf`, or `oneOf`
 - never advertises removed aliases or compatibility-only fields such as `mode`, `format`, `refs`, `interactive`, `compact`, `depth`, `frame`, `target_id`, `target_url`, `input_ref`, `clear_first`, or `script`
 - keeps action-specific required-field enforcement in runtime discriminated-union validation instead of a top-level schema combinator
 

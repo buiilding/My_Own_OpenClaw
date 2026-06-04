@@ -3,11 +3,9 @@
 from __future__ import annotations
 
 import copy
-from typing import Any, cast
+from typing import Any
 
-from windie_shared.browser_contract_catalog import (
-    BROWSER_ACTION_CONTRACTS,
-)
+from windie_shared.browser_contract_catalog import BROWSER_ACTION_CONTRACTS
 from windie_shared.browser_contract_models import (
     BROWSER_CANONICAL_ACTIONS,
     BrowserActionArgsBase,
@@ -22,8 +20,7 @@ def _clean_schema(schema: dict[str, Any]) -> dict[str, Any]:
 
     if "properties" in schema:
         cleaned["properties"] = {
-            key: _clean_schema(value)
-            for key, value in schema["properties"].items()
+            key: _clean_schema(value) for key, value in schema["properties"].items()
         }
 
     if "required" in schema:
@@ -39,11 +36,6 @@ def _clean_schema(schema: dict[str, Any]) -> dict[str, Any]:
             cleaned["anyOf"] = [_clean_schema(item) for item in any_of]
     elif "type" in schema:
         cleaned["type"] = schema["type"]
-
-    if "oneOf" in schema:
-        cleaned["oneOf"] = [_clean_schema(item) for item in schema["oneOf"]]
-    if "allOf" in schema:
-        cleaned["allOf"] = [_clean_schema(item) for item in schema["allOf"]]
 
     if "items" in schema:
         cleaned["items"] = _clean_schema(schema["items"])
@@ -75,62 +67,8 @@ def _clean_schema(schema: dict[str, Any]) -> dict[str, Any]:
     return cleaned
 
 
-def _resolve_local_defs(schema: dict[str, Any]) -> dict[str, Any]:
-    defs = schema.get("$defs")
-    if not isinstance(defs, dict):
-        return schema
-
-    def _resolve(node: Any) -> Any:
-        if isinstance(node, list):
-            return [_resolve(item) for item in node]
-
-        if not isinstance(node, dict):
-            return node
-
-        ref = node.get("$ref")
-        if isinstance(ref, str) and ref.startswith("#/$defs/"):
-            key = ref[len("#/$defs/"):]
-            target = defs.get(key)
-            if isinstance(target, dict):
-                resolved_target = _resolve(target)
-                extras = {
-                    nested_key: _resolve(nested_value)
-                    for nested_key, nested_value in node.items()
-                    if nested_key != "$ref"
-                }
-                if isinstance(resolved_target, dict):
-                    merged = dict(resolved_target)
-                    merged.update(extras)
-                    return merged
-                return extras or resolved_target
-
-        all_of = node.get("allOf")
-        if isinstance(all_of, list) and len(all_of) == 1:
-            resolved_base = _resolve(all_of[0])
-            extras = {
-                nested_key: _resolve(nested_value)
-                for nested_key, nested_value in node.items()
-                if nested_key != "allOf"
-            }
-            if isinstance(resolved_base, dict):
-                merged = dict(resolved_base)
-                merged.update(extras)
-                return merged
-            return extras or resolved_base
-
-        return {
-            nested_key: _resolve(nested_value)
-            for nested_key, nested_value in node.items()
-            if nested_key != "$defs"
-        }
-
-    return _resolve(schema)
-
-
 def _clean_action_schema(model: type[BrowserActionArgsBase]) -> dict[str, Any]:
-    raw_schema = model.model_json_schema()
-    resolved_schema = _resolve_local_defs(raw_schema)
-    cleaned_schema = _clean_schema(resolved_schema)
+    cleaned_schema = _clean_schema(model.model_json_schema())
     cleaned_schema.pop("title", None)
     return cleaned_schema
 
@@ -202,17 +140,19 @@ def build_browser_tool_parameters_schema() -> dict[str, Any]:
         }
     }
     for contract in BROWSER_ACTION_CONTRACTS:
-        action_schema = _clean_action_schema(
-            cast(type[BrowserActionArgsBase], contract.args_model)
-        )
-        for property_name, property_schema in action_schema.get("properties", {}).items():
+        action_schema = _clean_action_schema(contract.args_model)
+        for property_name, property_schema in action_schema.get(
+            "properties", {}
+        ).items():
             if property_name == "action" or not isinstance(property_schema, dict):
                 continue
             existing = properties.get(property_name)
             if not isinstance(existing, dict):
                 properties[property_name] = copy.deepcopy(property_schema)
                 continue
-            properties[property_name] = _merge_property_schema(existing, property_schema)
+            properties[property_name] = _merge_property_schema(
+                existing, property_schema
+            )
 
     return {
         "type": "object",

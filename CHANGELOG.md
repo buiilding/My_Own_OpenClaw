@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sidecar/browser: delete unused local-ref/composition cleanup from
+  browser schema generation so the grouped model-facing schema is built from
+  flat action models plus nullable-field normalization only.
 - frontend/sidecar/browser: remove legacy browser element `ref` aliases so
   element actions use Browser Use numeric `index` values as the only element
   identity path.

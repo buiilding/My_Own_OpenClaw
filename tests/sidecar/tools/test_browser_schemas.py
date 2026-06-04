@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 from windie_shared.browser_contract import (
+    BROWSER_ACTION_CONTRACTS,
     BROWSER_CANONICAL_ACTIONS,
     BrowserClickArgs,
     BrowserControlArgs,
@@ -68,6 +69,17 @@ WINDIE_BROWSER_LIFECYCLE_ACTIONS = {
     "get_attributes",
     "get_bbox",
 }
+UNSUPPORTED_ACTION_SCHEMA_KEYS = {"$defs", "$ref", "allOf", "oneOf"}
+
+
+def _contains_schema_key(node: object, key: str) -> bool:
+    if isinstance(node, dict):
+        return key in node or any(
+            _contains_schema_key(value, key) for value in node.values()
+        )
+    if isinstance(node, list):
+        return any(_contains_schema_key(value, key) for value in node)
+    return False
 
 
 def test_sidecar_browser_control_args_reuses_backend_model() -> None:
@@ -80,6 +92,20 @@ def test_sidecar_browser_control_args_reuses_backend_model() -> None:
     assert "oneOf" not in schema
     assert "url" in schema["properties"]
     assert "text" in schema["properties"]
+
+
+def test_action_model_schemas_stay_flat_for_grouped_schema_builder() -> None:
+    for contract in BROWSER_ACTION_CONTRACTS:
+        raw_schema = contract.args_model.model_json_schema()
+        for key in UNSUPPORTED_ACTION_SCHEMA_KEYS:
+            assert not _contains_schema_key(raw_schema, key), contract.name
+
+
+def test_grouped_schema_does_not_emit_unsupported_composition_keys() -> None:
+    schema = sidecar_build_browser_tool_parameters_schema()
+
+    for key in UNSUPPORTED_ACTION_SCHEMA_KEYS:
+        assert not _contains_schema_key(schema, key), key
 
 
 def test_sidecar_action_contract_is_canonical_only() -> None:
