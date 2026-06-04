@@ -267,7 +267,7 @@ Scroll the page.
 Directions: `up`, `down`, `left`, `right`
 Browser Use-style alternatives:
 - `pages`: fractional or whole page increments (`0.5`, `1`, `2`).
-- `down`: explicit Browser Use direction flag.
+- `direction`: explicit Browser Use direction flag.
 - `index`: scroll within a specific element index.
 
 ### 9. Screenshot

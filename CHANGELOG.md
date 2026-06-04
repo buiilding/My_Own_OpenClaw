@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sidecar/browser: remove the unreachable scroll `down` alias branch
+  from the Browser Use adapter and document the strict `direction` path.
 - frontend/sidecar/browser: stop promoting Browser Use `message` payloads to
   model-facing browser `output`; browser actions now use explicit `output` or
   the action-owned fallback string.

@@ -655,8 +655,6 @@ class BrowserUseEngineRuntime:
         if args.pages is not None:
             amount = max(100, int(round(float(args.pages) * 500)))
         direction = args.direction
-        if getattr(args, "down", None) is not None:
-            direction = "down" if args.down else "up"
         data = await self._run_cli("scroll", direction, "--amount", str(amount))
         return {
             "amount": amount,

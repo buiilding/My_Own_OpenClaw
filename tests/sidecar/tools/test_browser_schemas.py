@@ -17,6 +17,7 @@ from windie_shared.browser_contract import (
     BrowserControlArgs,
     BrowserFindTextArgs,
     BrowserInputArgs,
+    BrowserScrollArgs,
     BrowserSnapshotArgs,
     BrowserSwitchArgs,
     build_browser_tool_parameters_schema as sidecar_build_browser_tool_parameters_schema,
@@ -157,6 +158,14 @@ def test_input_find_text_and_switch_use_canonical_fields_only() -> None:
 
     with pytest.raises(ValidationError):
         BrowserSwitchArgs(action="switch", tab_index=-1, explanation=EXPLANATION)
+
+
+def test_scroll_rejects_removed_down_alias() -> None:
+    args = BrowserScrollArgs(action="scroll", direction="up", amount=500, explanation=EXPLANATION)
+    assert args.direction == "up"
+
+    with pytest.raises(ValidationError):
+        BrowserScrollArgs(action="scroll", down=True, explanation=EXPLANATION)
 
 
 def test_click_requires_target() -> None:
