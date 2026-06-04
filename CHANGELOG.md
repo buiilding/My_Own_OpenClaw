@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/rehydrate: inline structured-payload normalization at the row boundary
+  and delete the one-call adapter method from `RehydrateEntryNormalizer`.
 - backend/rehydrate: delete the wrapper normalization state so replay uses
   `RehydrateToolLinkageState` as the single known/pending tool-call owner.
 - backend/rehydrate: remove pass-through normalizer wrapper methods so

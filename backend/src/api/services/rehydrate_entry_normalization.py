@@ -39,14 +39,6 @@ _INTERNAL_BUNDLE_TOOL_NAMES = frozenset(
 class RehydrateEntryNormalizer:
     """Normalize one rehydrate transcript row into conversation-history entries."""
 
-    @staticmethod
-    def normalize_structured_payload(
-        structured_payload: Any,
-    ) -> Optional[Dict[str, Any]]:
-        if not isinstance(structured_payload, dict):
-            return None
-        return dict(structured_payload)
-
     def extract_structured_tool_calls(
         self,
         structured_payload: Optional[Dict[str, Any]],
@@ -81,8 +73,11 @@ class RehydrateEntryNormalizer:
         correlation_id = normalize_optional_string_helper(entry.correlation_id)
         explicit_tool_call_id = normalize_optional_string_helper(entry.tool_call_id)
         message_tool_call_id = explicit_tool_call_id or correlation_id
-        structured_payload = self.normalize_structured_payload(
-            getattr(entry, "structured_payload", None)
+        raw_structured_payload = getattr(entry, "structured_payload", None)
+        structured_payload = (
+            dict(raw_structured_payload)
+            if isinstance(raw_structured_payload, dict)
+            else None
         )
         raw_content = getattr(entry, "structured_content", None)
         if raw_content is None:
