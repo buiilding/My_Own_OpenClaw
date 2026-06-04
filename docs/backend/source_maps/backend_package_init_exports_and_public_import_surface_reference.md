@@ -8,15 +8,15 @@ title: "Backend Package `__init__` Exports and Public Import Surface Reference"
 
 # Backend Package `__init__` Exports and Public Import Surface Reference
 
-This page documents the backend package entrypoint surfaces and compatibility behavior for:
+This page documents backend package entrypoint surfaces that still publish
+curated import contracts. Package markers are intentionally not treated as
+public re-export surfaces.
 
 - `backend/src/__init__.py`
-- `backend/src/agent/__init__.py`
 - `backend/src/agent/execution/__init__.py`
 - `backend/src/agent/history/__init__.py`
 - `backend/src/agent/llm/__init__.py`
 - `backend/src/agent/session/__init__.py`
-- `backend/src/agent/tools/__init__.py`
 - `backend/src/agent/tools/preparation/__init__.py`
 - `backend/src/agent/tools/preparation/coordinate_resolution/__init__.py`
 - `backend/src/agent/tools/preparation/helpers/__init__.py`
@@ -63,7 +63,6 @@ This page documents the backend package entrypoint surfaces and compatibility be
 
 `__init__.py` modules in backend serve two roles:
 
-- package marker/documentation for domain boundaries
 - curated import surface (`from ... import ...`, `__all__`) for stable consumer paths
 
 Compatibility implication:
@@ -74,8 +73,6 @@ Compatibility implication:
 
 Major aggregator files:
 
-- `backend/src/agent/__init__.py`: top-level session/execution/llm/tool/history imports
-- `backend/src/agent/tools/__init__.py`: complete multi-phase tool lifecycle surface (prepare/send/wait/process/shared)
 - `backend/src/api/handlers/__init__.py`: handler base + concrete websocket handlers
 - `backend/src/api/transport/__init__.py`: protocol/sender/envelope/safe-websocket surface
 - `backend/src/api/processing/formatters/__init__.py`: formatter package
@@ -90,7 +87,9 @@ Major aggregator files:
 
 Some entrypoints intentionally expose little or nothing:
 
-- `backend/src/__init__.py`, `backend/src/core/__init__.py`, `backend/src/embeddings/__init__.py` are mostly package-level docs/markers
+- `backend/src/__init__.py`, `backend/src/agent/__init__.py`,
+  `backend/src/agent/tools/__init__.py`, `backend/src/core/__init__.py`, and
+  `backend/src/embeddings/__init__.py` are mostly package-level docs/markers
 - `backend/src/simulation/__init__.py` and `backend/src/core/utils/__init__.py` are effectively empty markers
 - `backend/src/api/contracts/__init__.py` is a migration seam marker (API-owned contract adapter note)
 
@@ -109,10 +108,13 @@ Change policy:
 
 When moving a class/function between modules:
 
-1. update old package `__init__.py` re-exports (or add compatibility alias)
-2. keep `__all__` synchronized with actual imports
-3. run tests that import package-level symbols
-4. update docs that reference package-level import paths
+1. prefer direct imports from the owning module
+2. update package `__init__.py` exports only when that package still has a
+   live public import contract
+3. keep `__all__` synchronized with actual imports where a package export
+   remains
+4. run tests that import package-level symbols
+5. update docs that reference package-level import paths
 
 ## Related Docs
 

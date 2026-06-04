@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/agent: remove unused root `backend.src.agent` and
+  `backend.src.agent.tools` package aggregators so agent/tool code imports from
+  owning submodules instead of broad lifecycle package roots.
 - backend/tools: remove the root package lazy export shim for `ToolRegistry`
   and `ToolResultOrchestrator`; callers now import from the owning registry and
   orchestrator modules directly.

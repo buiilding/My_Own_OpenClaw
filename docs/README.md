@@ -244,7 +244,7 @@ Welcome to the comprehensive documentation for the Desktop Assistant project. Th
 - [**Backend Config and Container Change Workflow**](backend/config/backend_config_and_container_change_workflow.md) - Change workflow for backend config fields, env-var resolution, DI provider rebinding, model service refresh, and stale session debugging
 - [**Backend Config Runtime Policy**](backend/config/config_fields_and_runtime_policy.md) - Exact config fields, runtime normalization, and frontend patch boundaries
 - [**Backend API/Core Topology Source Map Runtime**](backend/source_maps/api_core_folder_topology_and_data_flow_source_map_reference.md) - Source-owned API/core folder maps and layer/data-flow parity expectations
-- [**Backend Package `__init__` Export Surface Runtime**](backend/source_maps/backend_package_init_exports_and_public_import_surface_reference.md) - Compatibility contract for backend package-level re-export and `__all__` import surfaces
+- [**Backend Package `__init__` Export Surface Runtime**](backend/source_maps/backend_package_init_exports_and_public_import_surface_reference.md) - Contract map for backend package-level re-export and marker surfaces
 - [**Frontend Stream State Machine**](frontend/runtime/stream_event_state_machine.md) - Event-to-phase transitions and per-turn stream tracking behavior
 - [**Frontend Chat Stream + Tool Display Runtime**](frontend/renderer/chat_stream_and_tool_execution_reference.md) - Provider ownership, query-send flow, backend event routing, stale-turn cancellation, and SDK-projected tool display semantics
 - [**Frontend Renderer Chat Hub**](frontend/renderer/chat/README.md) - Sub-hub for chat send-path policy, screenshot attachment flow, and store/session rotation contracts
