@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for sidecar `RemoteApiClientBase`: backend URL normalization, shared aiohttp session lifecycle, timeout wiring, success-envelope enforcement, and standardized network/request error wrappers."
 read_when:
-  - When changing `core/remote_api_client_base.py` or remote clients that inherit from it (`remote_semantic_client`).
+  - When changing `windie/_remote_api_client_base.py` or remote clients that inherit from it (`remote_semantic_client`).
   - When debugging inconsistent HTTP error messages, success=false handling, or repeated session allocation in sidecar remote clients.
 title: "Remote API Client Base Session Lifecycle, Timeout, and Error-Wrapper Contract Reference"
 ---
@@ -10,11 +10,19 @@ title: "Remote API Client Base Session Lifecycle, Timeout, and Error-Wrapper Con
 
 ## Canonical Modules
 
+- `frontend/src/main/python/windie/_remote_api_client_base.py`
+- `frontend/src/main/python/windie/_backend_config.py`
+- `frontend/src/main/python/windie/_auth.py`
+- `frontend/src/main/python/windie/_unicode_sanitizer.py`
 - `frontend/src/main/python/core/remote_api_client_base.py`
 - `frontend/src/main/python/core/remote_semantic_client.py`
 - `frontend/src/main/python/core/backend_config.py`
 - `tests/sidecar/test_remote_semantic_client.py`
 - `tests/sidecar/remote_client_test_utils.py`
+
+`core/remote_api_client_base.py` is a compatibility export. Session,
+timeout, auth-header, backend URL, and JSON success-envelope behavior live in
+`windie/_remote_api_client_base.py`.
 
 ## Scope and Adoption Contract
 

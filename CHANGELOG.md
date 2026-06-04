@@ -8,6 +8,9 @@ All notable changes to WindieOS will be documented in this file.
 
 - examples/simple-chat-cli: keep the system prompt option visible while using
   the default WindieOS system prompt.
+- frontend/sidecar: collapse duplicated `core` backend config, auth,
+  unicode-sanitizer, and remote API base implementations into `windie` owners
+  while keeping `core` compatibility exports.
 - examples/simple-chat-cli: pin the startup model to OpenAI GPT-5.4 medium
   thinking instead of inheriting the backend default.
 - backend/artifacts: remove the non-standard `image/jpg` upload alias so

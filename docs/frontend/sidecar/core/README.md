@@ -24,11 +24,17 @@ title: "Frontend Sidecar Core Docs Hub"
 
 ## Code Scope
 
+- `frontend/src/main/python/windie/_backend_config.py`
+- `frontend/src/main/python/windie/_remote_api_client_base.py`
+- `frontend/src/main/python/windie/_auth.py`
+- `frontend/src/main/python/windie/_unicode_sanitizer.py`
 - `frontend/src/main/python/core/ipc_protocol.py`
 - `frontend/src/main/python/core/runtime_shutdown.py`
 - `frontend/src/main/python/core/stdout_json.py`
-- `frontend/src/main/python/core/backend_config.py`
-- `frontend/src/main/python/core/remote_api_client_base.py`
+- `frontend/src/main/python/core/backend_config.py` (compatibility export)
+- `frontend/src/main/python/core/remote_api_client_base.py` (compatibility export)
+- `frontend/src/main/python/core/install_auth_state.py` (compatibility export)
+- `frontend/src/main/python/core/unicode_sanitizer.py` (compatibility export)
 - `frontend/src/main/python/core/remote_semantic_client.py`
 - `frontend/src/main/python/core/thread_pool.py`
 - `tests/sidecar/test_json_rpc_protocol.py`
