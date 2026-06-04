@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/rehydrate: remove the legacy workspace-path setter signature fallback
+  so rehydrate prompt context always uses the current session-manager contract.
 - backend/rehydrate: remove test-only normalization wrapper methods from
   `RehydrateExecutionService`; row normalization tests now target the owning
   `RehydrateEntryNormalizer` and tool-call helper modules directly.

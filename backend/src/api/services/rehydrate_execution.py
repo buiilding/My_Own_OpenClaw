@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import inspect
 import logging
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type, Union
 
@@ -115,37 +114,11 @@ class RehydrateExecutionService:
         )
         if not callable(set_workspace_path):
             return
-        try:
-            signature = inspect.signature(set_workspace_path)
-        except (TypeError, ValueError):
-            signature = None
-
-        positional_params = [
-            parameter
-            for parameter in (signature.parameters.values() if signature else [])
-            if parameter.kind
-            in (
-                inspect.Parameter.POSITIONAL_ONLY,
-                inspect.Parameter.POSITIONAL_OR_KEYWORD,
-            )
-        ]
-        has_varargs = any(
-            parameter.kind == inspect.Parameter.VAR_POSITIONAL
-            for parameter in (signature.parameters.values() if signature else [])
-        )
-        if signature is None or has_varargs or len(positional_params) >= 4:
-            set_workspace_path(
-                user_id,
-                session,
-                workspace_path,
-                repo_instruction_messages,
-            )
-            return
-
         set_workspace_path(
             user_id,
             session,
             workspace_path,
+            repo_instruction_messages,
         )
 
     def _build_artifact_store(

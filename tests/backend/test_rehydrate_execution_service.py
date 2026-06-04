@@ -34,8 +34,16 @@ class _FakeSessionManager:
         self.requested_users.append((user_id, conversation_ref))
         return self.session
 
-    def set_session_workspace_path(self, user_id, session, workspace_path):
-        self.workspace_updates.append((user_id, session, workspace_path))
+    def set_session_workspace_path(
+        self,
+        user_id,
+        session,
+        workspace_path,
+        repo_instruction_messages=None,
+    ):
+        self.workspace_updates.append(
+            (user_id, session, workspace_path, repo_instruction_messages)
+        )
 
 
 class _TrackingArtifactStore:
@@ -70,7 +78,7 @@ class _LoadFailArtifactStore:
         raise RuntimeError("missing artifact")
 
 
-def _build_message(messages):
+def _build_message(messages, **payload_overrides):
     return RehydrateConversationMessage(
         id="msg_rehydrate_test",
         type="rehydrate-conversation",
@@ -79,6 +87,7 @@ def _build_message(messages):
             "conversation_ref": "conv-1",
             "messages": messages,
             "rehydrate_mode": "replace",
+            **payload_overrides,
         },
     )
 
@@ -130,6 +139,36 @@ async def test_execute_resolves_screenshot_ref_from_artifact_store():
     assert entries[0]["image_data"] == "resolved:shot-1"
     assert _TrackingArtifactStore.last_instance.loaded_refs == ["shot-1"]
     assert _TrackingArtifactStore.last_instance.owner_user_id == "user-1"
+
+
+@pytest.mark.asyncio
+async def test_execute_forwards_workspace_repo_instructions_to_session_manager():
+    manager = _FakeSessionManager()
+    service = RehydrateExecutionService(manager)
+    message = _build_message(
+        [
+            {
+                "role": "user",
+                "content": "hello",
+                "message_type": "user",
+            }
+        ],
+        workspace_path="/work/WindieOS",
+        repo_instruction_messages=[
+            {"role": "user", "content": "Respect AGENTS.md"},
+        ],
+    )
+
+    await service.execute(message, "user-1", artifact_store_cls=_TrackingArtifactStore)
+
+    assert manager.workspace_updates == [
+        (
+            "user-1",
+            manager.session,
+            "/work/WindieOS",
+            [{"role": "user", "content": "Respect AGENTS.md"}],
+        )
+    ]
 
 
 @pytest.mark.asyncio
