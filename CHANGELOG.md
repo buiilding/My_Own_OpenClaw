@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sidecar/browser: delete the unused Chrome executable version probe so
+  browser detection only owns executable discovery and priority selection.
 - frontend/sidecar/browser: remove the unused preferred-kind Chrome executable
   selection branch so dedicated browser launch always follows the single
   built-in Chrome/Brave/Edge/Chromium priority order.

@@ -16,7 +16,6 @@ from tools.browser.chrome_detection import (
     _find_windows_chrome,
     find_all_chrome_executables,
     find_chrome_executable,
-    get_chrome_version,
 )
 
 
@@ -165,38 +164,3 @@ class TestFindChromeExecutable:
         result = find_chrome_executable()
 
         assert result is None
-
-
-class TestGetChromeVersion:
-    """Test get_chrome_version."""
-
-    @mock.patch("subprocess.run")
-    def test_get_version_success(self, mock_run):
-        """Test getting Chrome version successfully."""
-        mock_run.return_value = mock.Mock(
-            returncode=0, stdout="Google Chrome 120.0.0.0\n"
-        )
-
-        version = get_chrome_version("/usr/bin/chrome")
-
-        assert version == "Google Chrome 120.0.0.0"
-
-    @mock.patch("subprocess.run")
-    def test_get_version_failure(self, mock_run):
-        """Test getting Chrome version when it fails."""
-        mock_run.return_value = mock.Mock(returncode=1)
-
-        version = get_chrome_version("/usr/bin/chrome")
-
-        assert version is None
-
-    @mock.patch("subprocess.run")
-    def test_get_version_timeout(self, mock_run):
-        """Test getting Chrome version with timeout."""
-        from subprocess import TimeoutExpired
-
-        mock_run.side_effect = TimeoutExpired("cmd", 10)
-
-        version = get_chrome_version("/usr/bin/chrome")
-
-        assert version is None

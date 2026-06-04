@@ -35,11 +35,6 @@ Selection behavior:
 - `find_chrome_executable()` uses one fixed priority order:
   - `chrome` > `brave` > `edge` > `chromium` > `chrome_canary`
 
-Version probe:
-
-- `get_chrome_version(exe_path)` runs `--version` with timeout
-- returns stripped stdout on success, `None` on failure/timeout/permission error
-
 ## Launcher Defaults and Env Overrides (`chrome_launcher.py`)
 
 Constants:
@@ -146,9 +141,8 @@ State fields:
 `tests/sidecar/tools/test_chrome_detection.py` covers:
 
 - per-platform discovery dispatch
-- prefer-kind and default priority ordering
+- default priority ordering
 - no-result behavior
-- version probe success/failure/timeout paths
 
 `tests/sidecar/tools/test_chrome_launcher.py` covers:
 

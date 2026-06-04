@@ -233,24 +233,3 @@ def find_chrome_executable() -> Optional[ChromeExecutable]:
     priority = {"chrome": 0, "brave": 1, "edge": 2, "chromium": 3, "chrome_canary": 4}
 
     return sorted(all_execs, key=lambda e: priority.get(e.kind, 99))[0]
-
-
-def get_chrome_version(exe_path: str) -> Optional[str]:
-    """
-    Get Chrome version from executable.
-
-    Args:
-        exe_path: Path to Chrome executable
-
-    Returns:
-        Version string or None
-    """
-    try:
-        result = subprocess.run(
-            [exe_path, "--version"], capture_output=True, text=True, timeout=10
-        )
-        if result.returncode == 0:
-            return result.stdout.strip()
-    except (subprocess.TimeoutExpired, FileNotFoundError, PermissionError):
-        pass
-    return None
