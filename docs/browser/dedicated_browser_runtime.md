@@ -76,7 +76,7 @@ Default file root:
 ~/.windieos/browser
 ```
 
-Browser actions `write_file`, `replace_file`, `read_file`, `upload_file`, and screenshots should resolve paths through this helper when the path is browser-owned. Do not let browser file actions write arbitrary paths without going through the resolver.
+Browser actions `write_file`, `replace_file`, `read_file`, `upload_file`, and screenshots should resolve paths through this helper when the path is browser-owned. Browser-owned file paths must be relative to the browser file root; absolute paths and `..` escapes are rejected instead of falling through to arbitrary filesystem locations.
 
 ## Tests
 

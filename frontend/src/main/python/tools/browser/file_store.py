@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 DEFAULT_BROWSER_FILES_DIR = Path.home() / ".windieos" / "browser"
@@ -9,14 +10,10 @@ ENV_BROWSER_FILES_DIR = "WINDIE_BROWSER_FILES_DIR"
 
 
 def browser_files_root() -> Path:
-    configured = Path.home()
-    raw = __import__("os").environ.get(ENV_BROWSER_FILES_DIR)
-    if isinstance(raw, str) and raw.strip():
-        configured = Path(raw.strip()).expanduser()
-    else:
-        configured = DEFAULT_BROWSER_FILES_DIR
-    configured.mkdir(parents=True, exist_ok=True)
-    return configured.resolve()
+    raw = os.getenv(ENV_BROWSER_FILES_DIR, "").strip()
+    root = Path(raw).expanduser() if raw else DEFAULT_BROWSER_FILES_DIR
+    root.mkdir(parents=True, exist_ok=True)
+    return root.resolve()
 
 
 def resolve_browser_path(raw_path: str, *, ensure_parent: bool = False) -> Path:
@@ -24,11 +21,18 @@ def resolve_browser_path(raw_path: str, *, ensure_parent: bool = False) -> Path:
     if not value:
         raise ValueError("Path must be non-empty.")
     candidate = Path(value).expanduser()
-    resolved = (
-        candidate.resolve()
-        if candidate.is_absolute()
-        else (browser_files_root() / candidate).resolve()
-    )
+    if candidate.is_absolute():
+        raise ValueError(
+            "Browser file paths must be relative to the browser file root."
+        )
+    root = browser_files_root()
+    resolved = (root / candidate).resolve()
+    try:
+        resolved.relative_to(root)
+    except ValueError as exc:
+        raise ValueError(
+            "Browser file paths must stay under the browser file root."
+        ) from exc
     if ensure_parent:
         resolved.parent.mkdir(parents=True, exist_ok=True)
     return resolved

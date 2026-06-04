@@ -117,6 +117,8 @@ Safety constraints include:
 ~/.windieos/browser
 ```
 
+Absolute browser file paths and `..` escapes are invalid. Browser file actions must stay under the browser file root instead of becoming general filesystem operations.
+
 Do not route browser-owned file actions through general filesystem tools unless the product behavior is intentionally changing.
 
 ## Failure Surfaces and Diagnostics

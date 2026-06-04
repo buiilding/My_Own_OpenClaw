@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sidecar/browser: reject absolute paths and parent-directory escapes
+  in the browser file store so browser file actions stay under one browser-owned
+  root.
 - frontend/sidecar/browser: delete legacy broad Chrome process helpers and the
   unused `ChromeLauncher` wrapper so browser startup uses the Windie-owned CDP
   ensure/launch/terminate path only.

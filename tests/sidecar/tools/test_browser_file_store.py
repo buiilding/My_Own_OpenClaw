@@ -1,0 +1,44 @@
+from pathlib import Path
+
+import pytest
+from tools.browser import file_store
+
+
+def test_resolve_browser_path_uses_browser_root(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv(file_store.ENV_BROWSER_FILES_DIR, str(tmp_path))
+
+    resolved = file_store.resolve_browser_path("notes/page.txt")
+
+    assert resolved == tmp_path / "notes" / "page.txt"
+
+
+def test_resolve_browser_path_rejects_absolute_path(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv(file_store.ENV_BROWSER_FILES_DIR, str(tmp_path))
+
+    with pytest.raises(ValueError, match="relative to the browser file root"):
+        file_store.resolve_browser_path("/tmp/outside.txt")
+
+
+def test_resolve_browser_path_rejects_parent_escape(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv(file_store.ENV_BROWSER_FILES_DIR, str(tmp_path))
+
+    with pytest.raises(ValueError, match="under the browser file root"):
+        file_store.resolve_browser_path("../outside.txt")
+
+
+def test_write_text_creates_browser_root_parent(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv(file_store.ENV_BROWSER_FILES_DIR, str(tmp_path))
+
+    resolved, written_chars = file_store.write_text("nested/file.txt", "hello")
+
+    assert resolved == tmp_path / "nested" / "file.txt"
+    assert written_chars == 5
+    assert resolved.read_text(encoding="utf-8") == "hello"

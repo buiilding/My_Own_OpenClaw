@@ -186,6 +186,7 @@ Edit:
 Validate:
 
 - relative paths resolve under the browser file root.
+- absolute paths and parent-directory escapes are rejected.
 - parent directories are created only through the file-store helper when intended.
 - file reads preserve offsets/limits where long reads are supported.
 - browser file actions do not silently become general filesystem tools.
