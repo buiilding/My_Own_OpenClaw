@@ -22,6 +22,7 @@ from windie_shared.browser_contract import (
 from windie_shared.browser_contract import (
     build_browser_tool_parameters_schema as sidecar_build_browser_tool_parameters_schema,
 )
+from windie_shared.browser_contract_schema import _clean_schema
 
 from backend.src.tools.browser.schemas import (
     BrowserControlArgs as BackendBrowserControlArgs,
@@ -82,6 +83,25 @@ def _contains_schema_key(node: object, key: str) -> bool:
     return False
 
 
+def _collect_any_of_shapes(node: object) -> list[list[str | None]]:
+    shapes: list[list[str | None]] = []
+    if isinstance(node, dict):
+        any_of = node.get("anyOf")
+        if isinstance(any_of, list):
+            shapes.append(
+                [
+                    item.get("type") if isinstance(item, dict) else None
+                    for item in any_of
+                ]
+            )
+        for value in node.values():
+            shapes.extend(_collect_any_of_shapes(value))
+    elif isinstance(node, list):
+        for value in node:
+            shapes.extend(_collect_any_of_shapes(value))
+    return shapes
+
+
 def test_sidecar_browser_control_args_reuses_backend_model() -> None:
     schema = sidecar_build_browser_tool_parameters_schema()
 
@@ -99,6 +119,25 @@ def test_action_model_schemas_stay_flat_for_grouped_schema_builder() -> None:
         raw_schema = contract.args_model.model_json_schema()
         for key in UNSUPPORTED_ACTION_SCHEMA_KEYS:
             assert not _contains_schema_key(raw_schema, key), contract.name
+
+
+def test_action_model_any_of_shapes_are_nullable_only() -> None:
+    for contract in BROWSER_ACTION_CONTRACTS:
+        for shape in _collect_any_of_shapes(contract.args_model.model_json_schema()):
+            assert len(shape) == 2, contract.name
+            assert shape.count("null") == 1, contract.name
+
+
+def test_schema_cleaner_rejects_non_nullable_any_of() -> None:
+    with pytest.raises(ValueError, match="nullable anyOf"):
+        _clean_schema(
+            {
+                "anyOf": [
+                    {"type": "string"},
+                    {"type": "integer"},
+                ]
+            }
+        )
 
 
 def test_grouped_schema_does_not_emit_unsupported_composition_keys() -> None:

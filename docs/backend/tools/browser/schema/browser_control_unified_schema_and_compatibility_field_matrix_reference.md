@@ -89,6 +89,8 @@ Consequences:
 - no hidden local-ref/composition cleanup path; action model schemas must stay
   flat and only nullable `anyOf` fields are normalized while building the grouped
   schema
+- non-nullable `anyOf` shapes fail schema generation instead of being emitted to
+  the model-facing browser tool
 
 The root object includes no removed alias fields or compatibility-only fields.
 

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sidecar/browser: make browser schema generation fail fast for
+  non-nullable `anyOf` action fields instead of passing unsupported union shapes
+  into the model-facing grouped browser schema.
 - frontend/sidecar/browser: delete unused local-ref/composition cleanup from
   browser schema generation so the grouped model-facing schema is built from
   flat action models plus nullable-field normalization only.

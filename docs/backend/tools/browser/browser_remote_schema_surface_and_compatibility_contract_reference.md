@@ -34,7 +34,8 @@ The shared contract module defines:
 - one discriminated `BrowserControlArgs` union for grouped validation
 - one `build_browser_tool_parameters_schema()` helper for model-facing schema emission
 - flat action model JSON schemas only; nullable `anyOf` cleanup is the sole
-  schema normalization step before property merging
+  schema normalization step before property merging, and non-nullable `anyOf`
+  shapes fail schema generation instead of being passed through
 - implementation is split internally into action models, action catalog, and model-facing schema builder modules while keeping `windie_shared.browser_contract` as the stable import surface for backend and sidecar re-export wrappers
 
 Important boundary:

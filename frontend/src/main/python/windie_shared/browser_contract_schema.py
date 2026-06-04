@@ -30,10 +30,9 @@ def _clean_schema(schema: dict[str, Any]) -> dict[str, Any]:
         any_of = schema["anyOf"]
         non_null_types = [item for item in any_of if item.get("type") != "null"]
 
-        if len(non_null_types) == 1:
-            cleaned.update(_clean_schema(non_null_types[0]))
-        else:
-            cleaned["anyOf"] = [_clean_schema(item) for item in any_of]
+        if len(non_null_types) != 1:
+            raise ValueError("browser action schemas only support nullable anyOf")
+        cleaned.update(_clean_schema(non_null_types[0]))
     elif "type" in schema:
         cleaned["type"] = schema["type"]
 
