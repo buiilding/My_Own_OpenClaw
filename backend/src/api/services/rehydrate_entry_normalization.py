@@ -155,7 +155,6 @@ class RehydrateEntryNormalizer:
         if self.is_internal_bundle_trace(
             normalized_message_type=normalized_message_type,
             normalized_tool_name=normalized_tool_name,
-            content=content,
         ):
             assistant_entry = self.build_assistant_context_entry(
                 content=content,
@@ -353,13 +352,11 @@ class RehydrateEntryNormalizer:
             fallback_tool_name=fallback_tool_name,
         )
 
-    @classmethod
+    @staticmethod
     def is_internal_bundle_trace(
-        cls,
         *,
         normalized_message_type: str,
         normalized_tool_name: Optional[str],
-        content: Any,
     ) -> bool:
         if normalized_message_type in _INTERNAL_BUNDLE_MESSAGE_TYPES:
             return True
