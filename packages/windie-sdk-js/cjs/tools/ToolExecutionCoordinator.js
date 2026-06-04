@@ -15,6 +15,7 @@ const COMPUTER_USE_CAPTURE_TOOL_NAMES = new Set([
     'scroll',
 ]);
 const DEFAULT_POST_ACTION_CAPTURE_WAIT_SECONDS = 2;
+const DEFAULT_SCREENSHOT_CONTENT_TYPE = 'image/jpeg';
 function failureResult(error) {
     const message = errorMessage(error);
     return {
@@ -28,6 +29,9 @@ function failureResult(error) {
 function errorMessage(error) {
     return error instanceof Error ? error.message : String(error);
 }
+function artifactUploadError(error) {
+    return new Error(`artifact_upload_failed: ${errorMessage(error)}`);
+}
 function stringPayloadField(payload, ...keys) {
     for (const key of keys) {
         const value = payload[key];
@@ -39,6 +43,53 @@ function stringPayloadField(payload, ...keys) {
 }
 function isJsonRecord(value) {
     return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+function stripDataUrlPrefix(input) {
+    const match = input.match(/^data:([^;,]+);base64,(.*)$/is);
+    if (!match) {
+        return { base64: input.trim() };
+    }
+    return {
+        contentType: match[1]?.trim(),
+        base64: match[2]?.trim() ?? '',
+    };
+}
+function normalizeScreenshotContentType(value) {
+    const normalized = typeof value === 'string'
+        ? value.split(';', 1)[0].trim().toLowerCase()
+        : '';
+    if (normalized === 'image/png') {
+        return normalized;
+    }
+    return DEFAULT_SCREENSHOT_CONTENT_TYPE;
+}
+function screenshotFilename(contentType) {
+    return contentType === 'image/png' ? 'tool-screenshot.png' : 'tool-screenshot.jpg';
+}
+function base64ToBytes(base64) {
+    const atobImpl = globalThis.atob;
+    if (typeof atobImpl === 'function') {
+        const binary = atobImpl(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let index = 0; index < binary.length; index += 1) {
+            bytes[index] = binary.charCodeAt(index);
+        }
+        return bytes;
+    }
+    const bufferCtor = globalThis.Buffer;
+    if (bufferCtor?.from) {
+        return bufferCtor.from(base64, 'base64');
+    }
+    throw new Error('base64 decoder is unavailable');
+}
+function blobFromBase64Screenshot(screenshot, contentType) {
+    const blobCtor = globalThis.Blob;
+    if (!blobCtor) {
+        throw new Error('Blob constructor is unavailable');
+    }
+    const bytes = base64ToBytes(screenshot);
+    const arrayBuffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+    return new blobCtor([arrayBuffer], { type: contentType });
 }
 function normalizeToolName(value) {
     return typeof value === 'string' ? value.trim().toLowerCase() : '';
@@ -146,6 +197,114 @@ function shouldSkipFrontendExecution(event) {
 class ToolExecutionCoordinator {
     constructor(options) {
         this.options = options;
+    }
+    async materializeScreenshotArtifact(data) {
+        const screenshot = typeof data.screenshot === 'string' && data.screenshot.trim()
+            ? data.screenshot.trim()
+            : null;
+        if (!screenshot) {
+            return data;
+        }
+        const screenshotRef = stringPayloadField(data, 'screenshot_ref', 'screenshotRef');
+        if (screenshotRef) {
+            const normalized = {
+                ...data,
+                screenshot_ref: screenshotRef,
+            };
+            if (!normalized.screenshot_url) {
+                const screenshotUrl = stringPayloadField(data, 'screenshot_url', 'screenshotUrl');
+                if (screenshotUrl) {
+                    normalized.screenshot_url = screenshotUrl;
+                }
+                else if (this.options.artifactUploader?.url) {
+                    normalized.screenshot_url = this.options.artifactUploader.url(screenshotRef);
+                }
+            }
+            delete normalized.screenshot;
+            delete normalized.screenshotRef;
+            delete normalized.screenshotUrl;
+            return normalized;
+        }
+        if (!this.options.artifactUploader?.upload) {
+            throw artifactUploadError(new Error('screenshot artifact uploader is unavailable'));
+        }
+        try {
+            const parsed = stripDataUrlPrefix(screenshot);
+            const contentType = normalizeScreenshotContentType(parsed.contentType ?? data.screenshot_content_type);
+            const uploaded = await this.options.artifactUploader.upload(blobFromBase64Screenshot(parsed.base64, contentType), screenshotFilename(contentType));
+            const artifactId = typeof uploaded.artifact_id === 'string' && uploaded.artifact_id.trim()
+                ? uploaded.artifact_id.trim()
+                : '';
+            if (!artifactId) {
+                throw new Error('artifact upload did not return artifact_id');
+            }
+            const normalized = {
+                ...data,
+                screenshot_ref: artifactId,
+                screenshot_url: typeof uploaded.url === 'string' && uploaded.url.trim()
+                    ? uploaded.url.trim()
+                    : this.options.artifactUploader.url?.(artifactId),
+                screenshot_content_type: typeof uploaded.content_type === 'string' && uploaded.content_type.trim()
+                    ? uploaded.content_type.trim()
+                    : contentType,
+            };
+            delete normalized.screenshot;
+            delete normalized.screenshotRef;
+            delete normalized.screenshotUrl;
+            return normalized;
+        }
+        catch (error) {
+            throw artifactUploadError(error);
+        }
+    }
+    async materializeBundleStepScreenshots(stepResult) {
+        if (!isJsonRecord(stepResult.output)) {
+            return stepResult;
+        }
+        const output = await this.materializeScreenshotArtifact(stepResult.output);
+        if (output === stepResult.output) {
+            return stepResult;
+        }
+        return {
+            ...stepResult,
+            output,
+        };
+    }
+    async materializeBundleScreenshots(payload) {
+        const materialized = {
+            ...payload,
+            step_results: await Promise.all(payload.step_results.map(step => this.materializeBundleStepScreenshots(step))),
+        };
+        const topLevel = await this.materializeScreenshotArtifact(materialized);
+        const nextPayload = {
+            ...materialized,
+            step_results: materialized.step_results,
+        };
+        if (typeof topLevel.screenshot === 'string') {
+            nextPayload.screenshot = topLevel.screenshot;
+        }
+        else {
+            delete nextPayload.screenshot;
+        }
+        if (typeof topLevel.screenshot_ref === 'string') {
+            nextPayload.screenshot_ref = topLevel.screenshot_ref;
+        }
+        if (typeof topLevel.screenshot_url === 'string') {
+            nextPayload.screenshot_url = topLevel.screenshot_url;
+        }
+        if (typeof topLevel.screenshot_content_type === 'string') {
+            nextPayload.screenshot_content_type = topLevel.screenshot_content_type;
+        }
+        if (isJsonRecord(topLevel.capture_meta)) {
+            nextPayload.capture_meta = topLevel.capture_meta;
+        }
+        if (isJsonRecord(topLevel.system_state)) {
+            nextPayload.system_state = topLevel.system_state;
+        }
+        if (typeof topLevel.error === 'string') {
+            nextPayload.error = topLevel.error;
+        }
+        return nextPayload;
     }
     async capturePostActionScreenshot({ waitSeconds, explanation, turnRef, conversationRef, }) {
         if (!this.options.localRuntime?.executeTool) {
@@ -298,17 +457,20 @@ class ToolExecutionCoordinator {
             result = failureResult(error);
         }
         const success = result.success !== false;
-        const data = success
-            ? await this.attachSinglePostActionScreenshot(call, result)
-            : (0, toolOutputContent_js_1.normalizeLocalToolResultData)(result.data, result.error || 'Tool execution failed');
-        const payload = {
-            request_id: call.requestId,
-            success,
-            data,
-        };
-        const screenshotData = extractScreenshotDataFromData(payload.data);
+        let payload = null;
+        let screenshotData = null;
         let deliveryError = null;
         try {
+            const data = success
+                ? await this.attachSinglePostActionScreenshot(call, result)
+                : (0, toolOutputContent_js_1.normalizeLocalToolResultData)(result.data, result.error || 'Tool execution failed');
+            const materializedData = await this.materializeScreenshotArtifact(data);
+            payload = {
+                request_id: call.requestId,
+                success,
+                data: materializedData,
+            };
+            screenshotData = extractScreenshotDataFromData(payload.data);
             await this.options.sendToolResult(payload);
         }
         catch (error) {
@@ -318,6 +480,7 @@ class ToolExecutionCoordinator {
             const deliveryErrorMessage = deliveryError
                 ? `Tool result delivery failed: ${errorMessage(deliveryError)}`
                 : null;
+            const eventResult = payload?.data ?? { output: deliveryErrorMessage ?? 'Tool result delivery failed' };
             await this.options.store?.appendEvent((0, events_js_1.createConversationEvent)({
                 eventId: `${event.turnRef ?? event.conversationRef}-sidecar-tool-output-${call.requestId}`,
                 type: 'tool_output',
@@ -331,7 +494,7 @@ class ToolExecutionCoordinator {
                     correlationId: call.correlationId ?? null,
                     toolName: call.toolName,
                     success: deliveryError ? false : success,
-                    result: payload.data,
+                    result: eventResult,
                     ...(screenshotData ?? {}),
                     error: deliveryErrorMessage ?? (success ? null : result.error || 'Tool execution failed'),
                     deliveryFailed: Boolean(deliveryError),
@@ -354,66 +517,72 @@ class ToolExecutionCoordinator {
         const tools = Array.isArray(payload.tools) ? payload.tools : [];
         const stepResults = [];
         const executedSteps = [];
-        for (const [sourceToolIndex, step] of tools.entries()) {
-            if (!step || typeof step !== 'object' || Array.isArray(step)) {
-                continue;
-            }
-            const record = step;
-            const toolName = typeof record.name === 'string' ? record.name : '';
-            if (!toolName) {
-                continue;
-            }
-            const toolCallId = stringPayloadField(record, 'toolCallId', 'tool_call_id')
-                ?? (0, toolCorrelationIds_js_1.resolveModelFacingToolCallId)(record);
-            let result;
-            try {
-                result = await this.options.localRuntime.executeTool({
-                    toolName,
-                    args: record.args && typeof record.args === 'object' && !Array.isArray(record.args)
-                        ? record.args
-                        : {},
-                    bundleId,
-                    toolCallId,
-                    turnRef: event.turnRef,
-                    conversationRef: event.conversationRef,
-                });
-            }
-            catch (error) {
-                result = failureResult(error);
-            }
-            const success = result.success !== false;
-            const stepResult = {
-                tool: toolName,
-                ...(toolCallId ? { toolCallId } : {}),
-                status: success ? 'ok' : 'error',
-                output: success
-                    ? (0, toolOutputContent_js_1.normalizeLocalToolResultData)(result.data)
-                    : (0, toolOutputContent_js_1.normalizeLocalToolResultData)(result.data || { output: result.error || 'Tool execution failed' }),
-            };
-            stepResults.push(stepResult);
-            executedSteps.push({
-                sourceTool: record,
-                sourceToolIndex,
-                result: stepResult,
-            });
-        }
-        const failures = stepResults.filter(step => step.status !== 'ok');
-        const status = failures.length === 0
-            ? 'success'
-            : (failures.length === stepResults.length ? 'failure' : 'partial_failure');
-        const resultPayload = await this.attachBundlePostActionScreenshot({
-            executedSteps,
-            resultPayload: {
-                bundle_id: bundleId,
-                status,
-                step_results: stepResults,
-                error: failures.length > 0 ? `${failures.length} bundled tool step(s) failed` : undefined,
-            },
-            turnRef: event.turnRef,
-            conversationRef: event.conversationRef,
-        });
+        let status = 'failure';
+        let resultPayload = {
+            bundle_id: bundleId,
+            status,
+            step_results: stepResults,
+        };
         let deliveryError = null;
         try {
+            for (const [sourceToolIndex, step] of tools.entries()) {
+                if (!step || typeof step !== 'object' || Array.isArray(step)) {
+                    continue;
+                }
+                const record = step;
+                const toolName = typeof record.name === 'string' ? record.name : '';
+                if (!toolName) {
+                    continue;
+                }
+                const toolCallId = stringPayloadField(record, 'toolCallId', 'tool_call_id')
+                    ?? (0, toolCorrelationIds_js_1.resolveModelFacingToolCallId)(record);
+                let result;
+                try {
+                    result = await this.options.localRuntime.executeTool({
+                        toolName,
+                        args: record.args && typeof record.args === 'object' && !Array.isArray(record.args)
+                            ? record.args
+                            : {},
+                        bundleId,
+                        toolCallId,
+                        turnRef: event.turnRef,
+                        conversationRef: event.conversationRef,
+                    });
+                }
+                catch (error) {
+                    result = failureResult(error);
+                }
+                const success = result.success !== false;
+                const stepResult = await this.materializeBundleStepScreenshots({
+                    tool: toolName,
+                    ...(toolCallId ? { toolCallId } : {}),
+                    status: success ? 'ok' : 'error',
+                    output: success
+                        ? (0, toolOutputContent_js_1.normalizeLocalToolResultData)(result.data)
+                        : (0, toolOutputContent_js_1.normalizeLocalToolResultData)(result.data || { output: result.error || 'Tool execution failed' }),
+                });
+                stepResults.push(stepResult);
+                executedSteps.push({
+                    sourceTool: record,
+                    sourceToolIndex,
+                    result: stepResult,
+                });
+            }
+            const failures = stepResults.filter(step => step.status !== 'ok');
+            status = failures.length === 0
+                ? 'success'
+                : (failures.length === stepResults.length ? 'failure' : 'partial_failure');
+            resultPayload = await this.materializeBundleScreenshots(await this.attachBundlePostActionScreenshot({
+                executedSteps,
+                resultPayload: {
+                    bundle_id: bundleId,
+                    status,
+                    step_results: stepResults,
+                    error: failures.length > 0 ? `${failures.length} bundled tool step(s) failed` : undefined,
+                },
+                turnRef: event.turnRef,
+                conversationRef: event.conversationRef,
+            }));
             await this.options.sendToolBundleResult(resultPayload);
         }
         catch (error) {
@@ -436,6 +605,7 @@ class ToolExecutionCoordinator {
                     stepResults,
                     screenshot: resultPayload.screenshot ?? null,
                     screenshotRef: resultPayload.screenshot_ref ?? null,
+                    screenshotUrl: resultPayload.screenshot_url ?? null,
                     captureMeta: resultPayload.capture_meta ?? null,
                     error: deliveryErrorMessage ?? resultPayload.error ?? null,
                     deliveryFailed: Boolean(deliveryError),

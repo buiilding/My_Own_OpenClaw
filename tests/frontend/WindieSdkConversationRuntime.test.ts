@@ -70,6 +70,26 @@ function createMockBackendTransport(
   };
 }
 
+const INLINE_JPEG_BASE64 = 'aW5saW5lLXNob3QtYjY0';
+
+function createMockArtifactUploader(
+  overrides: Partial<{
+    upload: jest.Mock;
+    url: jest.Mock;
+  }> = {},
+) {
+  return {
+    upload: overrides.upload ?? jest.fn(async () => ({
+      artifact_id: 'artifact-shot.jpg',
+      content_type: 'image/jpeg',
+      size_bytes: 15,
+      sha256: 'sha-shot',
+      url: '/api/artifacts/artifact-shot.jpg',
+    })),
+    url: overrides.url ?? jest.fn((artifactId: string) => `/api/artifacts/${artifactId}`),
+  };
+}
+
 function createControllableBackendTransport(
   overrides: Partial<BackendTransport> = {},
 ): BackendTransport & { emit(event: BackendEvent): void } {
@@ -1592,14 +1612,16 @@ describe('Windie SDK conversation runtime core', () => {
   test('tool coordinator exposes screenshot data on local tool output events', async () => {
     const store = new InMemoryConversationStore();
     const sendToolResult = jest.fn(async () => undefined);
+    const artifactUploader = createMockArtifactUploader();
     const coordinator = new ToolExecutionCoordinator({
       store,
+      artifactUploader,
       localRuntime: {
         executeTool: jest.fn(async () => ({
           success: true,
           data: {
             output: 'Screenshot captured successfully.',
-            screenshot: 'inline-shot-b64',
+            screenshot: INLINE_JPEG_BASE64,
             screenshot_content_type: 'image/jpeg',
             capture_meta: {
               source_w: 100,
@@ -1625,15 +1647,18 @@ describe('Windie SDK conversation runtime core', () => {
     }));
 
     expect(claim.claimed).toBe(true);
+    expect(artifactUploader.upload).toHaveBeenCalledTimes(1);
     expect(sendToolResult).toHaveBeenCalledWith(expect.objectContaining({
       request_id: 'req-shot',
       success: true,
       data: expect.objectContaining({
         output: 'Screenshot captured successfully.',
-        screenshot: 'inline-shot-b64',
+        screenshot_ref: 'artifact-shot.jpg',
+        screenshot_url: '/api/artifacts/artifact-shot.jpg',
         screenshot_content_type: 'image/jpeg',
       }),
     }));
+    expect(sendToolResult.mock.calls[0][0].data).not.toHaveProperty('screenshot');
     const events = await store.loadEvents('conv-sdk-runtime');
     expect(events).toEqual([
       expect.objectContaining({
@@ -1642,7 +1667,8 @@ describe('Windie SDK conversation runtime core', () => {
           requestId: 'req-shot',
           toolCallId: 'call-shot',
           toolName: 'screenshot',
-          screenshot: 'inline-shot-b64',
+          screenshot_ref: 'artifact-shot.jpg',
+          screenshot_url: '/api/artifacts/artifact-shot.jpg',
           screenshot_content_type: 'image/jpeg',
           capture_meta: expect.objectContaining({ source_w: 100 }),
         }),
@@ -1653,11 +1679,65 @@ describe('Windie SDK conversation runtime core', () => {
         type: 'tool_output',
         metadata: expect.objectContaining({
           raw: expect.objectContaining({
-            screenshot: 'inline-shot-b64',
+            screenshot_ref: 'artifact-shot.jpg',
           }),
         }),
       }),
     ]);
+  });
+
+  test('tool coordinator uploads post-action screenshots before backend delivery', async () => {
+    const sendToolResult = jest.fn(async () => undefined);
+    const artifactUploader = createMockArtifactUploader({
+      upload: jest.fn(async () => ({
+        artifact_id: 'mouse-after.jpg',
+        content_type: 'image/jpeg',
+        size_bytes: 42,
+        sha256: 'sha-mouse-after',
+        url: '/api/artifacts/mouse-after.jpg',
+      })),
+    });
+    const executeTool = jest
+      .fn()
+      .mockResolvedValueOnce({
+        success: true,
+        data: { output: 'Clicked at (46, 63)' },
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        data: {
+          screenshot: INLINE_JPEG_BASE64,
+          screenshot_content_type: 'image/jpeg',
+          capture_meta: { source_w: 100, source_h: 100 },
+        },
+      });
+    const coordinator = new ToolExecutionCoordinator({
+      artifactUploader,
+      localRuntime: { executeTool },
+      sendToolResult,
+      sendToolBundleResult: jest.fn(async () => undefined),
+    });
+
+    await coordinator.execute(event('tool_call', {
+      toolName: 'mouse_control',
+      requestId: 'req-click',
+      args: { action: 'click', x: 46, y: 63, wait: 0 },
+    }));
+
+    expect(executeTool).toHaveBeenCalledTimes(2);
+    expect(artifactUploader.upload).toHaveBeenCalledTimes(1);
+    expect(sendToolResult).toHaveBeenCalledWith(expect.objectContaining({
+      request_id: 'req-click',
+      success: true,
+      data: expect.objectContaining({
+        output: 'Clicked at (46, 63)',
+        screenshot_ref: 'mouse-after.jpg',
+        screenshot_url: '/api/artifacts/mouse-after.jpg',
+        post_action_screenshot: true,
+        post_action_screenshot_tool: 'mouse_control',
+      }),
+    }));
+    expect(sendToolResult.mock.calls[0][0].data).not.toHaveProperty('screenshot');
   });
 
   test('tool coordinator preserves provider-safe ids on local tool outputs', async () => {
@@ -1759,6 +1839,90 @@ describe('Windie SDK conversation runtime core', () => {
           success: false,
           deliveryFailed: true,
           error: 'Tool result delivery failed: websocket closed',
+        }),
+      }),
+    ]);
+  });
+
+  test('tool coordinator fails loudly when screenshot artifact uploader is missing', async () => {
+    const store = new InMemoryConversationStore();
+    const sendToolResult = jest.fn(async () => undefined);
+    const coordinator = new ToolExecutionCoordinator({
+      store,
+      localRuntime: {
+        executeTool: jest.fn(async () => ({
+          success: true,
+          data: {
+            output: 'Screenshot captured successfully.',
+            screenshot: INLINE_JPEG_BASE64,
+            screenshot_content_type: 'image/jpeg',
+          },
+        })),
+      },
+      sendToolResult,
+      sendToolBundleResult: jest.fn(async () => undefined),
+    });
+
+    await expect(coordinator.execute(event('tool_call', {
+      toolName: 'screenshot',
+      requestId: 'req-missing-uploader',
+      args: { explanation: 'Capture screen' },
+    }))).rejects.toThrow('artifact_upload_failed');
+
+    expect(sendToolResult).not.toHaveBeenCalled();
+    expect(await store.loadEvents('conv-sdk-runtime')).toEqual([
+      expect.objectContaining({
+        type: 'tool_output',
+        payload: expect.objectContaining({
+          requestId: 'req-missing-uploader',
+          success: false,
+          deliveryFailed: true,
+          error: expect.stringContaining('artifact_upload_failed'),
+        }),
+      }),
+    ]);
+  });
+
+  test('tool coordinator fails loudly when screenshot artifact upload fails', async () => {
+    const store = new InMemoryConversationStore();
+    const sendToolResult = jest.fn(async () => undefined);
+    const artifactUploader = createMockArtifactUploader({
+      upload: jest.fn(async () => {
+        throw new Error('artifact service unavailable');
+      }),
+    });
+    const coordinator = new ToolExecutionCoordinator({
+      store,
+      artifactUploader,
+      localRuntime: {
+        executeTool: jest.fn(async () => ({
+          success: true,
+          data: {
+            output: 'Screenshot captured successfully.',
+            screenshot: INLINE_JPEG_BASE64,
+            screenshot_content_type: 'image/jpeg',
+          },
+        })),
+      },
+      sendToolResult,
+      sendToolBundleResult: jest.fn(async () => undefined),
+    });
+
+    await expect(coordinator.execute(event('tool_call', {
+      toolName: 'screenshot',
+      requestId: 'req-upload-failed',
+      args: { explanation: 'Capture screen' },
+    }))).rejects.toThrow('artifact_upload_failed: artifact service unavailable');
+
+    expect(sendToolResult).not.toHaveBeenCalled();
+    expect(await store.loadEvents('conv-sdk-runtime')).toEqual([
+      expect.objectContaining({
+        type: 'tool_output',
+        payload: expect.objectContaining({
+          requestId: 'req-upload-failed',
+          success: false,
+          deliveryFailed: true,
+          error: expect.stringContaining('artifact_upload_failed: artifact service unavailable'),
         }),
       }),
     ]);
@@ -1880,6 +2044,62 @@ describe('Windie SDK conversation runtime core', () => {
         { tool: 'screenshot', status: 'ok', output: expect.objectContaining({ screenshot_ref: 'explicit-shifted.jpg' }) },
       ],
     }));
+  });
+
+  test('tool coordinator uploads explicit bundle screenshot outputs before backend delivery', async () => {
+    const artifactUploader = createMockArtifactUploader({
+      upload: jest.fn(async () => ({
+        artifact_id: 'bundle-explicit.jpg',
+        content_type: 'image/jpeg',
+        size_bytes: 42,
+        sha256: 'sha-bundle-explicit',
+        url: '/api/artifacts/bundle-explicit.jpg',
+      })),
+    });
+    const executeTool = jest
+      .fn()
+      .mockResolvedValueOnce({
+        success: true,
+        data: {
+          output: 'Screenshot captured',
+          screenshot: INLINE_JPEG_BASE64,
+          screenshot_content_type: 'image/jpeg',
+        },
+      });
+    const sendToolBundleResult = jest.fn(async () => undefined);
+    const coordinator = new ToolExecutionCoordinator({
+      artifactUploader,
+      localRuntime: { executeTool },
+      sendToolResult: jest.fn(async () => undefined),
+      sendToolBundleResult,
+    });
+
+    await coordinator.execute(event('tool_bundle_call', {
+      bundleId: 'bundle-inline-shot',
+      tools: [
+        { name: 'screenshot', args: { explanation: 'Checking Messages' } },
+      ],
+    }));
+
+    expect(artifactUploader.upload).toHaveBeenCalledTimes(1);
+    expect(sendToolBundleResult).toHaveBeenCalledWith(expect.objectContaining({
+      bundle_id: 'bundle-inline-shot',
+      screenshot_ref: 'bundle-explicit.jpg',
+      screenshot_url: '/api/artifacts/bundle-explicit.jpg',
+      step_results: [
+        {
+          tool: 'screenshot',
+          status: 'ok',
+          output: expect.objectContaining({
+            screenshot_ref: 'bundle-explicit.jpg',
+            screenshot_url: '/api/artifacts/bundle-explicit.jpg',
+          }),
+        },
+      ],
+    }));
+    const bundlePayload = sendToolBundleResult.mock.calls[0][0];
+    expect(bundlePayload).not.toHaveProperty('screenshot');
+    expect(bundlePayload.step_results[0].output).not.toHaveProperty('screenshot');
   });
 
   test('conversation runtime stores events and sends rehydrate from projection', async () => {
@@ -2891,6 +3111,76 @@ describe('Windie SDK conversation runtime core', () => {
       'tool_output',
     ]);
     expect((await runtime.load()).state.phase).toBe('tool_result_sent');
+  });
+
+  test('conversation runtime passes sdk artifact upload to local tool result delivery', async () => {
+    const sentToolResults: Record<string, unknown>[] = [];
+    let backendListener: ((event: unknown) => void) | null = null;
+    const artifactUploader = createMockArtifactUploader({
+      upload: jest.fn(async () => ({
+        artifact_id: 'runtime-shot.jpg',
+        content_type: 'image/jpeg',
+        size_bytes: 42,
+        sha256: 'sha-runtime-shot',
+        url: '/api/artifacts/runtime-shot.jpg',
+      })),
+    });
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store: new InMemoryConversationStore(),
+      sdkClient: {
+        artifacts: artifactUploader,
+      } as any,
+      localRuntime: {
+        executeTool: jest.fn(async () => ({
+          success: true,
+          data: {
+            output: 'Screenshot captured successfully.',
+            screenshot: INLINE_JPEG_BASE64,
+            screenshot_content_type: 'image/jpeg',
+          },
+        })),
+      },
+      transport: createMockBackendTransport({
+        sendToolResult: jest.fn(async payload => {
+          sentToolResults.push(payload);
+        }),
+        subscribe: jest.fn(listener => {
+          backendListener = listener;
+          return () => {
+            backendListener = null;
+          };
+        }),
+      }),
+    });
+    runtime.attachTransport();
+
+    backendListener?.(stampBackendEvent({
+      type: 'tool-call',
+      conversation_ref: 'conv-sdk-runtime',
+      turn_ref: 'turn-tool',
+      payload: {
+        tool_name: 'screenshot',
+        request_id: 'req-shot',
+        parameters: { explanation: 'Capture screen' },
+      },
+    } satisfies BackendEvent));
+    await waitForExpect(() => {
+      expect(sentToolResults).toHaveLength(1);
+    });
+
+    expect(artifactUploader.upload).toHaveBeenCalledTimes(1);
+    expect(sentToolResults[0]).toMatchObject({
+      request_id: 'req-shot',
+      success: true,
+      data: {
+        output: 'Screenshot captured successfully.',
+        screenshot_ref: 'runtime-shot.jpg',
+        screenshot_url: '/api/artifacts/runtime-shot.jpg',
+        screenshot_content_type: 'image/jpeg',
+      },
+    });
+    expect((sentToolResults[0] as any).data).not.toHaveProperty('screenshot');
   });
 
   test('conversation runtime marks the turn failed when local tool result delivery fails', async () => {

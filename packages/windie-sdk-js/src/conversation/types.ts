@@ -299,6 +299,8 @@ export type ToolBundleResultPayload = {
   step_results: ToolBundleStepResult[];
   screenshot?: string | null;
   screenshot_ref?: string | null;
+  screenshot_url?: string | null;
+  screenshot_content_type?: string | null;
   capture_meta?: JsonRecord | null;
   system_state?: JsonRecord | null;
   error?: string | null;

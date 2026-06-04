@@ -172,6 +172,10 @@ All notable changes to WindieOS will be documented in this file.
 - sdk/sidecar: unwrap sidecar daemon JSON-RPC envelopes in the SDK local runtime
   client so memory retrieval, conversation loads, and other RPC callers receive
   the actual sidecar result payload.
+- sdk/tools: upload inline local tool screenshots through the existing SDK
+  artifact client before backend delivery, replacing backend-bound screenshot
+  bytes with `screenshot_ref` metadata and failing loudly when upload is
+  unavailable.
 - examples/sdk: pin the simple chat CLI to the stable local SDK user id `peter`
   while forcing hosted install auto-registration so protected SDK HTTP routes
   still receive bearer auth.

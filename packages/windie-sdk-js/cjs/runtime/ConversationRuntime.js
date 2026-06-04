@@ -630,6 +630,7 @@ class SdkConversationRuntime {
                     await this.applyEvent(outputEvent);
                 },
             },
+            artifactUploader: this.options.sdkClient?.artifacts,
             sendToolResult: async (payload) => this.options.transport.sendToolResult(payload),
             sendToolBundleResult: async (payload) => this.options.transport.sendToolBundleResult(payload),
         });
