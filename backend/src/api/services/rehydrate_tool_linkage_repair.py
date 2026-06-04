@@ -13,16 +13,6 @@ class RehydrateToolLinkageState:
     known_tool_call_ids: set[str] = field(default_factory=set)
     pending_tool_call_ids: List[str] = field(default_factory=list)
 
-    @property
-    def pending_tool_call_id(self) -> Optional[str]:
-        if not self.pending_tool_call_ids:
-            return None
-        return self.pending_tool_call_ids[-1]
-
-    @pending_tool_call_id.setter
-    def pending_tool_call_id(self, value: Optional[str]) -> None:
-        self.pending_tool_call_ids = [value] if value else []
-
     def register_tool_call_ids(self, tool_call_ids: List[str]) -> None:
         for tool_call_id in tool_call_ids:
             if not isinstance(tool_call_id, str) or not tool_call_id:

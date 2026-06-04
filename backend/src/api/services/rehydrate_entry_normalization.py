@@ -65,23 +65,6 @@ class RehydrateNormalizationState:
             pending_tool_call_ids=list(self.pending_tool_call_ids),
         )
 
-    @property
-    def known_tool_call_ids_view(self) -> set[str]:
-        return self.tool_linkage.known_tool_call_ids
-
-    @property
-    def pending_tool_call_id(self) -> Optional[str]:
-        return self.tool_linkage.pending_tool_call_id
-
-    @pending_tool_call_id.setter
-    def pending_tool_call_id(self, value: Optional[str]) -> None:
-        self.tool_linkage.pending_tool_call_id = value
-        self.pending_tool_call_ids = self.tool_linkage.pending_tool_call_ids
-
-    @property
-    def pending_tool_call_ids_view(self) -> List[str]:
-        return self.tool_linkage.pending_tool_call_ids
-
     def add_pending_tool_call_ids(self, tool_call_ids: List[str]) -> None:
         self.tool_linkage.register_tool_call_ids(tool_call_ids)
         self.known_tool_call_ids = self.tool_linkage.known_tool_call_ids
@@ -226,14 +209,10 @@ class RehydrateEntryNormalizer:
             or normalized_message_type in _TOOL_OUTPUT_MESSAGE_TYPES
         ):
             call_id = message_tool_call_id
-            consumed_pending_tool_call_id: Optional[str] = None
             if call_id is not None:
-                consumed_pending_tool_call_id = state.consume_pending_tool_call_id(
-                    call_id
-                )
+                state.consume_pending_tool_call_id(call_id)
             elif state.pending_tool_call_ids:
-                consumed_pending_tool_call_id = state.consume_pending_tool_call_id()
-                call_id = consumed_pending_tool_call_id
+                call_id = state.consume_pending_tool_call_id()
             if call_id is None:
                 call_id = f"rehydrate_tool_call_{index}"
 
