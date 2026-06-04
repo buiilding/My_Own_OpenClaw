@@ -9,7 +9,7 @@ from tests.sidecar.remote_client_test_utils import (
 aiohttp = ensure_aiohttp_with_stubs()
 ensure_frontend_python_path()
 
-from core.remote_api_client_base import RemoteApiClientBase  # noqa: E402
+from windie._remote_api_client_base import RemoteApiClientBase  # noqa: E402
 
 
 class SequentialSession:

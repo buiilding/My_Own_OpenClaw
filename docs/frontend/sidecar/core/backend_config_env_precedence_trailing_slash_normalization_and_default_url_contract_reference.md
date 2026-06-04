@@ -11,13 +11,10 @@ title: "Backend Config Env-Precedence, Trailing-Slash Normalization, and Default
 ## Canonical Modules
 
 - `frontend/src/main/python/windie/_backend_config.py`
-- `frontend/src/main/python/core/backend_config.py`
 - `frontend/src/main/python/windie/_remote_api_client_base.py`
-- `frontend/src/main/python/core/remote_api_client_base.py`
 - `tests/sidecar/test_backend_config.py`
 
-`core/backend_config.py` is a compatibility export. Endpoint resolution logic
-lives in `windie/_backend_config.py`.
+Endpoint resolution logic lives in `windie/_backend_config.py`.
 
 ## Exposed Contract
 

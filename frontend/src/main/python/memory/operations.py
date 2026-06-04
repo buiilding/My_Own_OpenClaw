@@ -8,7 +8,7 @@ import re
 from datetime import datetime, timezone
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
-from core.unicode_sanitizer import sanitize_surrogates_in_text
+from windie._unicode_sanitizer import sanitize_surrogates_in_text
 from memory.record_kinds import (
     COMPLETED_TURN_MEMORY_SOURCE,
     INTERACTION_RECORD_KIND,

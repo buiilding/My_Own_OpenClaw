@@ -8,7 +8,7 @@ import json
 import sys
 from typing import Any
 
-from core.unicode_sanitizer import sanitize_surrogates
+from windie._unicode_sanitizer import sanitize_surrogates
 
 
 def write_json_line(payload: Any) -> None:

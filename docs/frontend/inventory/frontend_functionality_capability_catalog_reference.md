@@ -202,7 +202,7 @@ Capabilities:
 Primary files:
 
 - Entrypoints: `frontend/src/main/python/{local_backend,wakeword_service}.py`
-- Core: `frontend/src/main/python/core/*`, `frontend/src/main/python/core/remote_api_client_base.py`
+- Core: `frontend/src/main/python/core/*`, `frontend/src/main/python/windie/_remote_api_client_base.py`
 - Memory: `frontend/src/main/python/memory/*`
 - Tools: `frontend/src/main/python/tools/*`
 

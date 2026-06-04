@@ -44,8 +44,8 @@ The current OAuth config surface includes `openai_codex`. The main-process OAuth
 Hosted installs use install-token authentication when enabled. Relevant code lives in:
 
 - `backend/src/core/config/app_config.py`
-- `frontend/src/main/python/core/install_auth_state.py`
-- `frontend/src/main/python/core/remote_api_client_base.py`
+- `frontend/src/main/python/windie/_auth.py`
+- `frontend/src/main/python/windie/_remote_api_client_base.py`
 - Electron main websocket/API client paths
 
 ## Debugging

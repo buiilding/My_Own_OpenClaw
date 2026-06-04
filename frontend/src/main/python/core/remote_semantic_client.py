@@ -7,7 +7,7 @@ Client for calling the backend semantic summarization API from the frontend memo
 import aiohttp
 from typing import List, Optional, Tuple
 
-from core.remote_api_client_base import RemoteApiClientBase
+from windie._remote_api_client_base import RemoteApiClientBase
 
 
 class RemoteSemanticClient(RemoteApiClientBase):

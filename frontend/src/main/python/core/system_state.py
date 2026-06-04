@@ -16,7 +16,7 @@ from typing import Dict, Optional, Any
 
 from core.executors import get_interactive_executor
 from core.system_metrics import collect_system_stats
-from core.unicode_sanitizer import repair_common_mojibake, sanitize_surrogates_in_text
+from windie._unicode_sanitizer import repair_common_mojibake, sanitize_surrogates_in_text
 
 logger = logging.getLogger(__name__)
 

@@ -2,7 +2,7 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 
 ensure_frontend_python_path()
 
-from core.backend_config import get_backend_http_url, get_backend_http_urls  # noqa: E402
+from windie._backend_config import get_backend_http_url, get_backend_http_urls  # noqa: E402
 
 
 def test_get_backend_http_url_defaults_to_hosted_backend(monkeypatch):

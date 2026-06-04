@@ -16,7 +16,7 @@ Use this hub before editing scripts, build config, backend auth/config, endpoint
 
 | Area | Primary owner | Code and config roots | Start docs |
 | --- | --- | --- | --- |
-| Runtime configuration | Backend config, Electron main endpoint resolution, renderer settings persistence, and sidecar env propagation | `backend/src/core/config`, `frontend/src/main/backend_endpoints.cjs`, `frontend/src/main/ipc/*`, `frontend/src/renderer/utils/configStorage.js`, `frontend/src/main/python/core/backend_config.py` | [Configuration Change Workflow](configuration_change_workflow.md), [Configuration](configuration.md), [Runtime Configuration Matrix](runtime_configuration_matrix.md) |
+| Runtime configuration | Backend config, Electron main endpoint resolution, renderer settings persistence, and sidecar env propagation | `backend/src/core/config`, `frontend/src/main/backend_endpoints.cjs`, `frontend/src/main/ipc/*`, `frontend/src/renderer/utils/configStorage.js`, `frontend/src/main/python/windie/_backend_config.py` | [Configuration Change Workflow](configuration_change_workflow.md), [Configuration](configuration.md), [Runtime Configuration Matrix](runtime_configuration_matrix.md) |
 | Gateway ingress | Hosted FastAPI app assembly, route registration, auth middleware, health checks, and edge troubleshooting | `backend/src/main.py`, `backend/src/api/app_assembly.py`, `backend/src/api/routes`, `backend/src/api/auth`, `scripts/cloudflared` | [Gateway Hub](../gateway/README.md), [Gateway Auth and Health Runbook](../gateway/gateway_auth_and_health_runbook.md), [Gateway Troubleshooting](../gateway/gateway_troubleshooting.md) |
 | Runtime nodes | Hosted backend, desktop, sidecar, wakeword, VM worker, and Cloudflare/origin process ownership | `backend/src`, `frontend/src/main`, `frontend/src/renderer`, `frontend/src/main/python`, `scripts/cloudflared` | [Runtime Nodes Hub](../nodes/README.md), [Runtime Node Matrix](../nodes/runtime_node_matrix.md) |
 | Hosted backend auth | Backend install-token service plus frontend token propagation | `backend/src/api/auth`, `backend/src/api/routes/websocket`, `frontend/src/main`, `frontend/src/renderer/infrastructure` | [Hosted Backend Auth](hosted_backend_auth.md), [Multi-User Runtime Hardening](multi_user_runtime_hardening.md) |
@@ -42,7 +42,7 @@ Likely code:
 - `frontend/src/main/backend_endpoints.cjs`
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/local_backend_bridge.cjs`
-- `frontend/src/main/python/core/backend_config.py`
+- `frontend/src/main/python/windie/_backend_config.py`
 - endpoint-related frontend tests under `tests/new_frontend`
 
 Validation:

@@ -14,15 +14,12 @@ title: "Remote API Client Base Session Lifecycle, Timeout, and Error-Wrapper Con
 - `frontend/src/main/python/windie/_backend_config.py`
 - `frontend/src/main/python/windie/_auth.py`
 - `frontend/src/main/python/windie/_unicode_sanitizer.py`
-- `frontend/src/main/python/core/remote_api_client_base.py`
 - `frontend/src/main/python/core/remote_semantic_client.py`
-- `frontend/src/main/python/core/backend_config.py`
 - `tests/sidecar/test_remote_semantic_client.py`
 - `tests/sidecar/remote_client_test_utils.py`
 
-`core/remote_api_client_base.py` is a compatibility export. Session,
-timeout, auth-header, backend URL, and JSON success-envelope behavior live in
-`windie/_remote_api_client_base.py`.
+Session, timeout, auth-header, backend URL, and JSON success-envelope behavior
+live in `windie/_remote_api_client_base.py`.
 
 ## Scope and Adoption Contract
 

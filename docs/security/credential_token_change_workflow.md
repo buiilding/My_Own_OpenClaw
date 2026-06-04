@@ -20,7 +20,7 @@ Core rule: install auth identifies a desktop install to the hosted backend, runs
 | Hosted REST bearer auth | Backend auth middleware | `backend/src/api/auth/http_middleware.py`, `backend/src/api/auth/context.py`, `backend/src/main.py` | `tests/backend/test_install_auth.py`, route tests for affected APIs | [REST Route Auth Matrix](../gateway/rest_route_auth_matrix.md) |
 | Websocket bearer auth and identity override | Backend websocket connection lifecycle | `backend/src/api/routes/websocket/connection.py`, `backend/src/api/schemas/common.py` | `tests/backend/test_websocket_connection.py` | [WebSocket Connection Lifecycle](../gateway/websocket_connection_lifecycle.md) |
 | Electron install-token persistence | Electron main auth-state helper and IPC wiring | `frontend/src/main/ipc/ipc_install_auth_state.cjs`, `frontend/src/main/ipc.cjs` | frontend install-auth, backend-connection, or IPC tests | [Main Process Change Workflow](../frontend/main/main_process_change_workflow.md) |
-| Sidecar remote-client auth headers | Python sidecar remote client base | `frontend/src/main/python/core/install_auth_state.py`, `frontend/src/main/python/core/remote_api_client_base.py`, `frontend/src/main/python/core/remote_*_client.py` | sidecar remote client tests | [Sidecar Runtime Change Workflow](../frontend/sidecar/sidecar_runtime_change_workflow.md) |
+| Sidecar remote-client auth headers | Python sidecar remote client base | `frontend/src/main/python/windie/_auth.py`, `frontend/src/main/python/windie/_remote_api_client_base.py`, `frontend/src/main/python/core/remote_*_client.py` | sidecar remote client tests | [Sidecar Runtime Change Workflow](../frontend/sidecar/sidecar_runtime_change_workflow.md) |
 | Runs API key | Runs route dependency and VM worker runtime | `backend/src/api/routes/runs/support.py`, `backend/src/api/routes/runs/router.py`, `frontend/src/main/vm_worker_runtime.cjs` | `tests/backend/test_run_control_routes.py`, `tests/backend/test_run_control_route_helpers.py`, `tests/frontend/VmWorkerRuntime.test.cjs` | [Runs API Runbook](../automation/runs_api_runbook.md) |
 | Provider env keys | Backend config and provider constructors | `backend/src/core/config/models.py`, `backend/src/core/config/loader.py`, `backend/src/llm/providers/**` | `tests/backend/test_config_models.py`, `tests/backend/test_config_loader.py`, provider tests | [Provider Credentials](../providers/credentials.md) |
 | Frontend-managed provider key overrides | Renderer settings and backend frontend-config patch guard | `frontend/src/renderer/features/dashboard/components/sections/ApiKeysSection.jsx`, `frontend/src/renderer/features/dashboard/components/sections/providerApiKeys.js`, `frontend/src/renderer/app/providers/appConfigPersistence.js`, `backend/src/core/validation/**`, `backend/src/core/config/models.py` | `tests/frontend/ModelsSection.test.jsx`, `tests/frontend/AppConfigPersistence.test.js`, `tests/backend/test_validation_utils.py`, `tests/backend/test_api_handlers.py` | [Provider Change Workflow](../providers/provider_change_workflow.md) |
@@ -125,7 +125,7 @@ When a model is unavailable, check config resolution before editing provider cod
 
 1. Electron main writes the install-auth state file.
 2. Main process or sidecar launch environment points the sidecar at the state file.
-3. `core.install_auth_state.get_install_bearer_token()` loads and trims `installToken`.
+3. `windie._auth.get_install_bearer_token()` loads and trims `installToken`.
 4. `RemoteApiClientBase._build_auth_headers()` emits `Authorization: Bearer <token>` when present.
 5. Remote client requests fail at the hosted auth boundary if the token is missing or invalid.
 
@@ -287,8 +287,8 @@ Read:
 
 Edit:
 
-- `frontend/src/main/python/core/install_auth_state.py` for state-file env and token extraction.
-- `frontend/src/main/python/core/remote_api_client_base.py` for shared bearer-header construction.
+- `frontend/src/main/python/windie/_auth.py` for state-file env and token extraction.
+- `frontend/src/main/python/windie/_remote_api_client_base.py` for shared bearer-header construction.
 - concrete `remote_*_client.py` files only for request-specific behavior.
 - Electron sidecar launch environment if the auth-state path changes.
 

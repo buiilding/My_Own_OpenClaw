@@ -2,7 +2,7 @@ from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 
 ensure_frontend_python_path()
 
-from core.unicode_sanitizer import (  # noqa: E402
+from windie._unicode_sanitizer import (  # noqa: E402
     find_surrogate_paths,
     has_lone_surrogates,
     repair_common_mojibake,

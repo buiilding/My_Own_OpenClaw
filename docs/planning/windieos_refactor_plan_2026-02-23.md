@@ -480,7 +480,7 @@ read_when:
     - frontend+backend `jscpd` total clones reduced from `27` to `25`.
 - Sidecar remote-client dedupe:
   - added shared base:
-    - `frontend/src/main/python/core/remote_api_client_base.py`
+    - `frontend/src/main/python/windie/_remote_api_client_base.py`
   - rewired:
     - `frontend/src/main/python/core/remote_semantic_client.py`
     - `frontend/src/main/python/core/remote_title_client.py`

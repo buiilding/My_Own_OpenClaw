@@ -22,7 +22,7 @@ from memory.operations import (
     normalize_search_memory_selection,
 )
 from memory.conversation_title_store import upsert_generated_conversation_title
-from core.unicode_sanitizer import (
+from windie._unicode_sanitizer import (
     find_surrogate_paths,
     sanitize_surrogates,
     sanitize_surrogates_in_text,
