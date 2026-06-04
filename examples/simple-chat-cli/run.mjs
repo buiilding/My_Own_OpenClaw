@@ -14,7 +14,7 @@ const agent = await new WindieClient().wakeUp({
     autoRegister: true,
     userId: "peter",
   },
-  systemPrompt: "Your name is Peter, you are Peter Bui virtual friend.",
+  systemPrompt: undefined, // Use the default WindieOS system prompt.
   model: {
     modelProvider: "openai",
     modelId: "gpt-5.4@@gpt-5-4-medium-thinking",

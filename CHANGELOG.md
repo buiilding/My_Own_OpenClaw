@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- examples/simple-chat-cli: keep the system prompt option visible while using
+  the default WindieOS system prompt.
 - examples/simple-chat-cli: pin the startup model to OpenAI GPT-5.4 medium
   thinking instead of inheriting the backend default.
 - backend/artifacts: remove the non-standard `image/jpg` upload alias so
