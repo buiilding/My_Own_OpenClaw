@@ -2,7 +2,7 @@
 from typing import Optional
 
 from backend.src.agent.execution.executor import AgentExecutor
-from backend.src.agent.compaction import CompactionEngine
+from backend.src.agent.compaction.engine import CompactionEngine
 from backend.src.agent.session.runtime_state import SessionRuntimeState
 from backend.src.agent.session.state import ConversationHistory
 from backend.src.agent.tools.waiting import ToolResultHandler

@@ -13,9 +13,6 @@ curated import contracts. Package markers are intentionally not treated as
 public re-export surfaces.
 
 - `backend/src/__init__.py`
-- `backend/src/agent/execution/__init__.py`
-- `backend/src/agent/history/__init__.py`
-- `backend/src/agent/llm/__init__.py`
 - `backend/src/agent/session/__init__.py`
 - `backend/src/agent/tools/preparation/__init__.py`
 - `backend/src/agent/tools/preparation/coordinate_resolution/__init__.py`
@@ -88,8 +85,12 @@ Major aggregator files:
 Some entrypoints intentionally expose little or nothing:
 
 - `backend/src/__init__.py`, `backend/src/agent/__init__.py`,
-  `backend/src/agent/tools/__init__.py`, `backend/src/core/__init__.py`, and
-  `backend/src/embeddings/__init__.py` are mostly package-level docs/markers
+  `backend/src/agent/compaction/__init__.py`,
+  `backend/src/agent/execution/__init__.py`,
+  `backend/src/agent/history/__init__.py`,
+  `backend/src/agent/llm/__init__.py`, `backend/src/agent/tools/__init__.py`,
+  `backend/src/core/__init__.py`, and `backend/src/embeddings/__init__.py` are
+  mostly package-level docs/markers
 - `backend/src/simulation/__init__.py` and `backend/src/core/utils/__init__.py` are effectively empty markers
 - `backend/src/api/contracts/__init__.py` is a migration seam marker (API-owned contract adapter note)
 

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/agent: remove unused subpackage aggregators for compaction,
+  execution, history, and LLM modules; the one compaction consumer now imports
+  `CompactionEngine` from its owning engine module.
 - backend/agent: remove unused root `backend.src.agent` and
   `backend.src.agent.tools` package aggregators so agent/tool code imports from
   owning submodules instead of broad lifecycle package roots.
