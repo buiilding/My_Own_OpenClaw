@@ -9,7 +9,6 @@ from backend.src.tools.browser.shared_contract_loader import (
 __all__ = [
     "BROWSER_CANONICAL_ACTIONS",
     "BrowserCanonicalAction",
-    "BrowserCoreAction",
     "BrowserMouseButton",
     "BrowserScrollDirection",
 ]

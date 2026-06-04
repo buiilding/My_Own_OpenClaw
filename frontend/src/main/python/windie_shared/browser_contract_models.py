@@ -49,7 +49,6 @@ BrowserCanonicalAction = Literal[
     "read_long_content",
     "close",
 ]
-BrowserCoreAction = BrowserCanonicalAction
 
 BROWSER_CANONICAL_ACTIONS = cast(
     tuple[str, ...],

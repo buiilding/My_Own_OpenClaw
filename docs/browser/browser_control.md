@@ -239,14 +239,14 @@ Populate a file input by actionable snapshot index.
 
 Use an actionable numeric element index from the latest `snapshot.output`.
 
-### 7. Press
+### 7. Send Keys
 
-Press a keyboard key.
+Send a keyboard key sequence.
 
 ```json
 {
-  "action": "press",
-  "key": "Enter"
+  "action": "send_keys",
+  "keys": "Enter"
 }
 ```
 
@@ -349,7 +349,7 @@ Execute JavaScript.
 ```json
 {
   "action": "evaluate",
-  "script": "window.location.href"
+  "code": "window.location.href"
 }
 ```
 

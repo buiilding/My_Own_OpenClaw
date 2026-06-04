@@ -22,7 +22,6 @@ __all__ = [
     "BrowserCloseTabArgs",
     "BrowserConnectArgs",
     "BrowserControlArgs",
-    "BrowserCoreAction",
     "BrowserDoneArgs",
     "BrowserEvaluateArgs",
     "BrowserExtractArgs",

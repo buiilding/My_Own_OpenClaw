@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sidecar/browser: remove the unused `BrowserCoreAction` alias and
+  align browser docs with canonical `send_keys` and `evaluate.code` payloads.
 - frontend/sidecar/browser: remove stale browser navigation/wait state type
   exports and align browser samples/tests with the current `navigate` and
   `wait.seconds` contracts.
