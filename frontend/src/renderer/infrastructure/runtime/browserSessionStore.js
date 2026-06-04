@@ -33,11 +33,10 @@ function formatBrowserTabLabel(tab) {
 
 function normalizeTab(tab) {
   const tabIndex = Number.isInteger(tab?.tab_index) ? tab.tab_index : null;
-  const targetId = normalizeString(tab?.target_id || tab?.targetId || (tabIndex !== null ? String(tabIndex) : ''));
   const url = normalizeString(tab?.url);
   const title = normalizeString(tab?.title);
   return {
-    targetId,
+    targetId: tabIndex !== null ? String(tabIndex) : '',
     tabIndex,
     title,
     url,
@@ -210,12 +209,14 @@ async function syncBrowserSession() {
         .map((tab) => normalizeTab(tab))
         .filter((tab) => tab.targetId)
       : [];
-    const currentTargetId = normalizeString(status?.target_id || status?.targetId);
+    const statusUrl = normalizeString(status?.url);
+    const statusTitle = normalizeString(status?.title);
     const currentTab = (
-      tabs.find((tab) => tab.targetId === currentTargetId)
+      tabs.find((tab) => statusUrl && tab.url === statusUrl)
+      || tabs.find((tab) => statusTitle && tab.title === statusTitle)
       || tabs[0]
       || normalizeTab({
-        target_id: currentTargetId || 'active-tab',
+        tab_index: 0,
         title: status?.title,
         url: status?.url,
       })
@@ -294,8 +295,15 @@ function disposeRuntimeSubscriptionIfIdle() {
 function mergeCurrentTab(snapshot, nextTab, result = {}) {
   const resultTitle = normalizeString(result?.title);
   const resultUrl = normalizeString(result?.url);
+  const fallbackTabIndex = Number(snapshot.currentTargetId);
+  let tabIndex = 0;
+  if (Number.isInteger(nextTab?.tabIndex)) {
+    tabIndex = nextTab.tabIndex;
+  } else if (Number.isInteger(fallbackTabIndex)) {
+    tabIndex = fallbackTabIndex;
+  }
   const mergedCurrentTab = {
-    targetId: nextTab?.targetId || snapshot.currentTargetId,
+    tab_index: tabIndex,
     title: resultTitle || nextTab?.title || snapshot.currentTabTitle,
     url: resultUrl || nextTab?.url || snapshot.currentTabUrl,
   };

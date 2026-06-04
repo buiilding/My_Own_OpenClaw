@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sidecar/browser: stop emitting copied tab `target_id` values from
+  Browser Use tab actions and derive renderer tab identity from canonical
+  numeric `tab_index` payloads.
 - frontend/sidecar/browser: remove the regex markdown conversion fallback so
   browser content extraction uses the required `markdownify` runtime dependency
   or fails at the browser feature boundary.

@@ -79,7 +79,6 @@ describe('browserSessionStore', () => {
       success: true,
       data: {
         connected: true,
-        target_id: 'tab-1',
         title: 'Before disconnect',
         url: 'https://example.com/',
       },
@@ -100,7 +99,7 @@ describe('browserSessionStore', () => {
       data: {
         tabs: [
           {
-            target_id: 'tab-1',
+            tab_index: 1,
             title: 'Stale connected tab',
             url: 'https://example.com/',
           },

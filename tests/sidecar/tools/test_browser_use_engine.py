@@ -556,7 +556,26 @@ async def test_switch_and_close_tab_use_numeric_tab_index() -> None:
         mock.call("tab", "close", "1"),
     ]
     assert switch_result["tab_index"] == 1
+    assert "target_id" not in switch_result
     assert close_result["closed_tab_index"] == 1
+    assert "closed_target_id" not in close_result
+
+
+@pytest.mark.asyncio
+async def test_get_tabs_returns_canonical_tab_index_only() -> None:
+    runtime = BrowserUseEngineRuntime()
+
+    with mock.patch.object(
+        runtime,
+        "_run_cli",
+        new=mock.AsyncMock(return_value={"_raw_text": "Tabs:\n0 https://example.com\n1 about:blank"}),
+    ):
+        result = await runtime.execute(_args({"action": "get_tabs"}))
+
+    assert result["tabs"] == [
+        {"tab_index": 0, "title": "", "url": "https://example.com"},
+        {"tab_index": 1, "title": "", "url": "about:blank"},
+    ]
 
 
 @pytest.mark.asyncio

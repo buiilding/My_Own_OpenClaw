@@ -51,13 +51,11 @@ function createBrowserToolHandler(session) {
         success: true,
         data: session.connected ? {
           connected: true,
-          target_id: session.currentTargetId,
           title: currentTab?.title || '',
           url: currentTab?.url || 'about:blank',
           tab_count: session.tabs.length,
         } : {
           connected: false,
-          target_id: '',
           title: '',
           url: '',
           tab_count: 0,
@@ -70,8 +68,8 @@ function createBrowserToolHandler(session) {
         success: true,
         data: {
           tabs: session.connected
-            ? session.tabs.map((tab) => ({
-              target_id: tab.targetId,
+            ? session.tabs.map((tab, tabIndex) => ({
+              tab_index: tabIndex,
               title: tab.title,
               url: tab.url,
             }))
@@ -102,7 +100,7 @@ function createBrowserToolHandler(session) {
       return {
         success: true,
         data: {
-          target_id: session.currentTargetId,
+          tab_index: Number(session.currentTargetId),
           title: nextTab?.title || '',
           url: nextTab?.url || 'about:blank',
         },

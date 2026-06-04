@@ -150,7 +150,7 @@ describe('local_backend_bridge RPC handlers', () => {
         activate: false,
       },
     });
-    await expectResolvedSuccess(stdoutHandler, browserPromise, { target_id: '2' });
+    await expectResolvedSuccess(stdoutHandler, browserPromise, { tab_index: 2 });
 
     const screenshotPromise = handlers['capture-screenshot-attachment'](null, {
       args: { explanation: 'Attach current screen' },

@@ -692,7 +692,6 @@ class BrowserUseEngineRuntime:
             tabs.append(
                 {
                     "tab_index": tab_index,
-                    "target_id": str(tab_index),
                     "title": "",
                     "url": parts[1] if len(parts) > 1 else "",
                 }
@@ -707,7 +706,6 @@ class BrowserUseEngineRuntime:
         data = await self._run_cli("tab", "switch", str(tab_index))
         return {
             "tab_index": tab_index,
-            "target_id": str(tab_index),
             "activated": bool(args.activate),
             **_with_output(data, _browser_output(data, f"Switched to tab {tab_index}."))
         }
@@ -804,7 +802,6 @@ class BrowserUseEngineRuntime:
         data = await self._run_cli("tab", "close", str(tab_index))
         return {
             "closed_tab_index": tab_index,
-            "closed_target_id": str(tab_index),
             **_with_output(data, _browser_output(data, f"Closed tab {tab_index}."))
         }
 
