@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/browser: collapse the remaining browser schema re-export wrapper into
+  `backend.src.tools.browser.schemas` so backend browser schema imports have one
+  current entrypoint.
 - backend/browser: delete the duplicate `schema_types.py` browser literal
   wrapper and route canonical action imports through the grouped browser schema
   entrypoint.

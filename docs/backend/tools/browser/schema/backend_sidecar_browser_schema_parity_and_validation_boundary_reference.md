@@ -10,7 +10,6 @@ title: "Backend-Sidecar Browser Schema Parity and Validation Boundary Reference"
 
 ## Canonical Modules and Tests
 
-- `backend/src/tools/browser/browser_control_args_schema.py`
 - `backend/src/tools/browser/schemas.py`
 - `backend/src/tools/remote_tools/browser.py`
 - `frontend/src/main/python/windie_shared/browser_contract*.py`
@@ -57,7 +56,7 @@ Result:
 
 When changing browser actions, verify four layers:
 
-1. backend action literals (`browser_control_args_schema.py`)
+1. backend action literals (`schemas.py`)
 2. shared browser contract registry keys (`BROWSER_SCHEMAS`)
 3. sidecar tool validation and engine mapping (`browser_tool.py`, `browser_use_engine.py`)
 4. Browser Use runtime handler coverage

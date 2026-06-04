@@ -11,13 +11,12 @@ title: "Browser Control Unified Schema Reference"
 ## Canonical Modules
 
 - `frontend/src/main/python/windie_shared/browser_contract.py`
-- `backend/src/tools/browser/browser_control_args_schema.py`
 - `backend/src/tools/browser/schemas.py`
 
 ## Layer 1: Literal Type Surface
 
 The shared browser contract defines browser vocabulary and field enums, and
-`browser_control_args_schema.py` re-exports them for backend callers:
+`schemas.py` re-exports them for backend callers:
 
 - navigation state: `load | domcontentloaded | networkidle | commit`
 - mouse button: `left | right | middle`

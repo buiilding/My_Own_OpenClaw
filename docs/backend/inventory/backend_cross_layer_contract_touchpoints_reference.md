@@ -42,7 +42,7 @@ This reference lists backend-owned contracts that have direct frontend or sideca
 
 | Backend owner | Contract files | Sidecar owners | Contract note |
 | --- | --- | --- | --- |
-| Browser unified args | `backend/src/tools/browser/browser_control_args_schema.py` | `frontend/src/main/python/windie_shared/browser_contract*.py` and sidecar `browser_tool.py` | Action names + optional fields must stay aligned |
+| Browser unified args | `backend/src/tools/browser/schemas.py` | `frontend/src/main/python/windie_shared/browser_contract*.py` and sidecar `browser_tool.py` | Action names + optional fields must stay aligned |
 | Remote browser stub payload | `backend/src/tools/remote_tools/browser.py` | Sidecar `browser_tool.py`, `browser_use_engine.py` | Payload transport keys must preserve action/args shape |
 
 ## Memory + Artifact Contract Touchpoints

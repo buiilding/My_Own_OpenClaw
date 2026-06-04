@@ -21,7 +21,6 @@ title: "Backend Browser Schema Docs Hub"
 
 ## Code Scope
 
-- `backend/src/tools/browser/browser_control_args_schema.py`
 - `backend/src/tools/browser/shared_contract_loader.py`
 - `backend/src/tools/browser/schemas.py`
 - `tests/backend/test_browser_remote_tool.py`
