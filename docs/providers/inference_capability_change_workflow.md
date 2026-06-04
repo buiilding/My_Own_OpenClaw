@@ -80,7 +80,7 @@ Pick exactly one primary capability first:
 - Vision: coordinate prediction, image description, model loading/fallback,
   vision SDK routes, remote vision service health.
 - Embeddings: memory vector generation, embedding-space identity, embedding
-  route health, sidecar remote embedding client behavior.
+  route health, and SDK embedding client behavior.
 - STT: voice dictation websocket, transcription provider, transcript region
   updates.
 - TTS: response speech chunks, suppression of code/tool JSON, provider cleanup,

@@ -81,7 +81,7 @@ If changing OAuth fields, update all three boundaries:
 
 ### Sidecar remote-client auth
 
-The sidecar does not own install authentication. It reads persisted install auth state and forwards a bearer header when calling hosted backend-backed services, such as remote embedding, semantic, title, or other future sidecar clients. Missing local auth state should produce a clear hosted-auth failure, not silent local identity invention.
+The sidecar does not own install authentication. It reads persisted install auth state and forwards a bearer header when calling hosted backend-backed services, such as semantic summarization or other future sidecar clients. SDK-owned embedding calls use the SDK transport/auth path. Missing local auth state should produce a clear hosted-auth failure, not silent local identity invention.
 
 ## Runtime Flows
 

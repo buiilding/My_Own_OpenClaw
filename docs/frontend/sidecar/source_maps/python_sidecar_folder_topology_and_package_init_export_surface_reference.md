@@ -24,10 +24,10 @@ This page documents:
 
 It documents:
 
-- three service entrypoints (`local_backend.py`, `memory_service.py`, `wakeword_service.py`)
+- two sidecar service entrypoints (`local_backend.py`, `wakeword_service.py`)
 - `core/`, `memory/`, and `tools/` package roles
 - transport/protocol flow (JSON-RPC line protocol and wakeword binary framing)
-- memory storage pipeline (SQLite + FAISS + remote embedding/semantic APIs)
+- memory storage pipeline (SQLite + FAISS + SDK-provided embeddings and backend semantic APIs)
 
 Maintenance rule:
 

@@ -304,13 +304,11 @@ Functionality:
 Primary files:
 
 - `frontend/src/main/python/local_backend.py`
-- `frontend/src/main/python/memory_service.py`
 - `frontend/src/main/python/wakeword_service.py`
 
 Functionality:
 
 - Local backend JSON-RPC protocol host for tools/system/memory/transcript APIs.
-- Memory service specialization for memory-only flows.
 - Wakeword inference subprocess with binary frame protocol.
 
 ### 4.2 Tool Runtime
@@ -338,7 +336,7 @@ Primary files:
 Functionality:
 
 - SQLite + FAISS storage for episodic/semantic memory.
-- Embedding/title backend API client usage for vector/title generation.
+- SDK-provided embedding usage for vector search and backend semantic summarization for derived memory.
 - Transcript persistence/search/list/get/delete operations.
 - Summarizer watermark and semantic candidate handling.
 - Conversation title generation lifecycle.
@@ -347,7 +345,7 @@ Functionality:
 
 Primary files:
 
-- `frontend/src/main/python/core/{ipc_protocol,system_state,system_metrics,runtime_shutdown,stdout_json,thread_pool,remote_api_client_base,remote_embedding_client,remote_semantic_client,remote_title_client}.py`
+- `frontend/src/main/python/core/{ipc_protocol,system_state,system_metrics,runtime_shutdown,stdout_json,thread_pool,remote_api_client_base,remote_semantic_client}.py`
 - `frontend/src/main/python/core/platform/*`
 
 Functionality:
@@ -355,7 +353,7 @@ Functionality:
 - JSON-RPC request parsing/dispatch.
 - Graceful signal/shutdown flow.
 - OS-specific system-state probes.
-- Shared remote API client base and semantic/title/embedding clients for backend HTTP calls from sidecar workflows.
+- Shared remote API client base and semantic client for backend HTTP calls from sidecar workflows.
 - Runtime thread/worker helpers and JSON stdout helpers.
 
 ## 5) Landing Surface Inventory

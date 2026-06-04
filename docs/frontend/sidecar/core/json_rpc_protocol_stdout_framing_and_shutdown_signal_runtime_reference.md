@@ -153,5 +153,5 @@ Contract:
 ## Related Pages
 
 - [Frontend Sidecar Core Docs Hub](README.md)
-- [Backend URL Resolution, Remote Memory Clients, and Thread-Pool Runtime Reference](backend_url_resolution_remote_memory_clients_and_thread_pool_runtime_reference.md)
+- [Backend Config Env-Precedence Reference](backend_config_env_precedence_trailing_slash_normalization_and_default_url_contract_reference.md)
 - [Local Backend JSON-RPC Reference](../local_backend_jsonrpc_reference.md)

@@ -157,7 +157,6 @@ This reflects current intent: runtime safety in preload, fast-fail ergonomics in
   - `delete-episodic-memory`
   - `delete-semantic-memory`
   - `store-chat-event`
-  - `store-memory`
 - malformed/non-object IPC payloads normalize to safe empty param objects for mapped handlers
 - internal tool execution direct `run_shell_command` and nested `system_use -> run_shell_command` payloads inject `sudo_auth_mode` based on `agent_full_sudo_enabled` frontend config
 

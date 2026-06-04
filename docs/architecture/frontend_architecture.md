@@ -410,7 +410,7 @@ Primary modules:
 - `memory/local_store.py`:
   - SQLite + FAISS local storage.
   - Separate episodic/semantic stores and vector mapping sync.
-  - Remote embedding/title client integrations.
+  - SDK-provided embedding storage/search and backend semantic summarization integration.
 - `core/system_state.py` + `core/platform/*`:
   - OS-aware active-window/mouse/display/system-state probes.
 

@@ -15,7 +15,6 @@ Primary Python entrypoints under `frontend/src/main/python`:
 - `sidecar_daemon.py`: canonical local sidecar runtime; owns the app-session `LocalBackend`, tool registry, memory store, and daemon HTTP/WebSocket surface
 - `local_backend.py`: legacy stdin/stdout JSON-RPC sidecar runtime used when daemon mode is not active
 - `local_backend_memory_handlers.py`: extracted memory-search/store/transcript/delete RPC handlers used by `LocalBackend`
-- `memory_service.py`: minimal memory-only service variant
 - `wakeword_service.py`: binary-protocol wakeword inference service
 
 Only one process may own `LocalMemoryStore` for a running app session. The daemon is the preferred owner. Starting both `sidecar_daemon.py` and standalone `local_backend.py` against the same memory directory can race SQLite writes and corrupt FAISS/SQLite mapping assumptions.
@@ -152,7 +151,7 @@ Main process bridge responsibilities:
 
 - [Sidecar Core Docs Hub](core/README.md)
 - [Sidecar Services Docs Hub](services/README.md)
-- [Backend URL Resolution, Remote Memory Clients, and Thread-Pool Runtime Reference](core/backend_url_resolution_remote_memory_clients_and_thread_pool_runtime_reference.md)
+- [Backend Config Env-Precedence Reference](core/backend_config_env_precedence_trailing_slash_normalization_and_default_url_contract_reference.md)
+- [Remote Semantic Client Reference](core/remote_semantic_client_summarize_payload_timeout_and_error_surface_contract_reference.md)
 - [JSON-RPC Protocol, Stdout Framing, and Shutdown Signal Runtime Reference](core/json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md)
-- [Memory Service JSON Protocol and Store Lifecycle Reference](services/memory_service_json_protocol_and_store_lifecycle_reference.md)
 - [Wakeword Service Model Bootstrap and Binary Framing Reference](services/wakeword_service_model_bootstrap_and_binary_framing_reference.md)

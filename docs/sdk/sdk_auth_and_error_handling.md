@@ -62,7 +62,7 @@ Do not collapse all SDK failures into `Error: request failed`. Preserve status, 
 | TypeScript client request/error behavior | `tests/frontend/WindieSdkClient.test.ts` |
 | TypeScript export surface | `tests/frontend/WindieSdkClientExports.test.ts` |
 | Python client behavior | `tests/sidecar/test_windie_sdk_client.py` |
-| Remote client auth/error wrappers | `tests/sidecar/test_remote_api_client_base.py`, remote embedding/semantic/title client tests |
+| Remote client auth/error wrappers | `tests/sidecar/test_remote_api_client_base.py`, `tests/sidecar/test_remote_semantic_client.py` |
 
 ## Related Docs
 

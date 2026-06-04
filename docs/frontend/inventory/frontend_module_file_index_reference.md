@@ -126,14 +126,13 @@ Types and general utilities:
 Service entrypoints:
 
 - `frontend/src/main/python/local_backend.py`
-- `frontend/src/main/python/memory_service.py`
 - `frontend/src/main/python/wakeword_service.py`
 - `frontend/src/main/python/dev_seed_mock_memory.py` (developer seed utility)
 
 Core infrastructure:
 
-- `frontend/src/main/python/core/{ipc_protocol,backend_config,runtime_shutdown,stdout_json,thread_pool,system_state,system_metrics,remote_embedding_client,remote_semantic_client}.py`
-- Includes additional backend HTTP client modules: `remote_api_client_base.py`, `remote_title_client.py`
+- `frontend/src/main/python/core/{ipc_protocol,backend_config,runtime_shutdown,stdout_json,thread_pool,system_state,system_metrics,remote_semantic_client}.py`
+- Includes additional backend HTTP client module: `remote_api_client_base.py`
 - Platform adapters: `frontend/src/main/python/core/platform/{base,windows,macos,linux}.py`
 
 Memory subsystem:

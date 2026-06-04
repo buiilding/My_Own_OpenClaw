@@ -74,7 +74,7 @@ Registered in `LocalBackend._initialize_methods()`:
 
 Protocol output notes:
 - JSON-RPC responses are emitted as one JSON line per message.
-- `core/stdout_json.py::write_json_line()` is the shared writer used by both JSON-RPC (`local_backend.py`/`core/ipc_protocol.py`) and line-based memory service responses (`memory_service.py`) to keep UTF-8 encoding and flush behavior consistent.
+- `core/stdout_json.py::write_json_line()` is the shared writer used by JSON-RPC (`local_backend.py`/`core/ipc_protocol.py`) to keep UTF-8 encoding and flush behavior consistent.
 
 ## Sidecar Daemon HTTP Runtime
 
@@ -159,7 +159,6 @@ Wakeword detection runs as a separate Python subprocess:
 - Core coverage:
   - `tests/sidecar/test_local_backend.py` (JSON-RPC handlers, tool execution, memory wiring)
   - `tests/sidecar/test_sidecar_daemon.py` (daemon HTTP status, tool manifest, execution, dynamic module/plugin/MCP registration, event-control channel, shutdown)
-  - `tests/sidecar/test_memory_service.py` (search/store validation, error handling)
   - `tests/sidecar/test_bootstrap_paths.py` (source-run bootstrap for client-local sidecar imports)
   - `tests/sidecar/test_stdout_json.py` (shared JSON-line stdout writer behavior)
 - Bridge regression coverage:

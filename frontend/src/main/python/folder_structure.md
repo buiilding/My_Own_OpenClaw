@@ -30,7 +30,7 @@ frontend/src/main/python/
 │
 ├── memory/                             # Memory storage system
 │   ├── __init__.py                    # Package initialization
-│   ├── local_store.py                # LocalMemoryStore - SQLite + FAISS implementation with remote embeddings (separate DBs for episodic/semantic)
+│   ├── local_store.py                # LocalMemoryStore - SQLite + FAISS implementation with SDK-provided embeddings (separate DBs for episodic/semantic)
 │   └── summarizer.py                 # MemorySummarizer - Periodic episodic -> semantic consolidation
 │
 └── tools/                              # Tool implementations and registry
@@ -225,9 +225,8 @@ frontend/src/main/python/
 
 ## Key Design Principles
 
-1. **Protocol Separation**: Three distinct services with different protocols:
+1. **Protocol Separation**: Two distinct sidecar services with different protocols:
    - Local Backend: JSON-RPC 2.0 (full-featured)
-   - Memory Service: Simple JSON (memory-only)
    - Wakeword Service: Binary protocol (audio chunks)
 
 2. **Cross-Platform Support**: Platform abstraction layer for OS-specific operations (window management, system state)
@@ -265,11 +264,6 @@ frontend/src/main/python/
 - **Methods**: execute_tool, get_system_state, search_memory_by_embedding, store_memory_by_embedding, ping, get_status
 - **Error Handling**: Standard JSON-RPC error codes
 
-### Simple JSON (Memory Service)
-- **Protocol**: Simple JSON request/response over stdin/stdout (one line per message)
-- **Request Format**: `{"id": "...", "type": "search"|"store", "payload": {...}}`
-- **Response Format**: `{"id": "...", "success": true/false, "data": {...} | "error": "..."}`
-
 ### Binary Protocol (Wakeword Service)
 - **Protocol**: Binary length-prefixed messages
 - **Input**: 4-byte length (little-endian) + audio data (16-bit PCM)
@@ -281,7 +275,7 @@ frontend/src/main/python/
 ## Dependencies
 
 - **Vector Storage**: faiss-cpu, aiosqlite
-- **HTTP Client**: aiohttp (for remote embeddings)
+- **HTTP Client**: aiohttp (for semantic summarization/title helpers)
 - **Computer Control**: pyautogui, pynput
 - **System Info**: psutil, pyperclip
 - **Image Processing**: Pillow

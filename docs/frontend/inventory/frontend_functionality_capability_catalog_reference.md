@@ -201,8 +201,8 @@ Capabilities:
 
 Primary files:
 
-- Entrypoints: `frontend/src/main/python/{local_backend,memory_service,wakeword_service}.py`
-- Core: `frontend/src/main/python/core/*`, `frontend/src/main/python/core/{remote_api_client_base,remote_title_client}.py`
+- Entrypoints: `frontend/src/main/python/{local_backend,wakeword_service}.py`
+- Core: `frontend/src/main/python/core/*`, `frontend/src/main/python/core/remote_api_client_base.py`
 - Memory: `frontend/src/main/python/memory/*`
 - Tools: `frontend/src/main/python/tools/*`
 
@@ -211,7 +211,7 @@ Capabilities:
 - Local backend JSON-RPC host for tool execution, memory operations, and transcript persistence.
 - Core protocol runtime includes request framing, stdout JSON transport, shutdown handling, and platform adapters.
 - Memory runtime uses SQLite + FAISS with transcript search/list/get/delete and semantic summarization workflow.
-- Sidecar core remote clients call backend semantic/title/embedding routes with shared retry/error policy wrappers.
+- Sidecar core remote clients call backend semantic routes with shared retry/error policy wrappers; embedding generation is SDK-owned.
 - Tool runtime exposes computer/filesystem/system/browser/memory tool suites with normalized result envelopes.
 - Browser stack uses Windie-owned schema/result adapters over the official Browser Use CLI package.
 

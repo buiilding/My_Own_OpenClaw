@@ -49,7 +49,8 @@ title: "Frontend Sidecar Docs Hub"
 - [Local Backend Process Lifecycle Reference](local_backend_process_lifecycle_reference.md)
 - [Wakeword Bridge and Audio Framing Reference](wakeword_bridge_and_audio_framing_reference.md)
 - [JSON-RPC Protocol, Stdout Framing, and Shutdown Signal Runtime Reference](core/json_rpc_protocol_stdout_framing_and_shutdown_signal_runtime_reference.md)
-- [Backend URL Resolution, Remote Memory Clients, and Thread-Pool Runtime Reference](core/backend_url_resolution_remote_memory_clients_and_thread_pool_runtime_reference.md)
+- [Backend Config Env-Precedence Reference](core/backend_config_env_precedence_trailing_slash_normalization_and_default_url_contract_reference.md)
+- [Remote Semantic Client Reference](core/remote_semantic_client_summarize_payload_timeout_and_error_surface_contract_reference.md)
 - [Wakeword Service Model Bootstrap and Binary Framing Reference](services/wakeword_service_model_bootstrap_and_binary_framing_reference.md)
 - [Sidecar Service Protocol Docs Hub](services/protocols/README.md)
 

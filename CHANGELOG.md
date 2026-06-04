@@ -38,6 +38,8 @@ All notable changes to WindieOS will be documented in this file.
   report-first so agents inspect code before modifying files.
 - docs/agents: prefer deterministic code paths with boundary normalization,
   fail-fast invalid states, and fewer nested conditionals or fallback ladders.
+- docs/sidecar: remove stale memory-service, direct `store-memory`, and
+  sidecar remote embedding/title client references from active routing docs.
 - examples/sdk: shorten the simple chat CLI setup and rendering helpers without
   changing its SDK loading, browser builtin, or stream output behavior.
 - sdk/examples: emit normalized `user_message` stream events with original text

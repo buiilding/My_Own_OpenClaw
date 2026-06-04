@@ -44,7 +44,6 @@ frontend/src/
 │   ├── local_backend_bridge.cjs  # Local backend bridge
 │   └── python/        # Python sidecar
 │       ├── local_backend.py  # Local backend service
-│       ├── memory_service.py  # Memory service
 │       ├── core/      # Core utilities
 │       ├── tools/     # Tool implementations
 │       └── memory/    # Memory storage

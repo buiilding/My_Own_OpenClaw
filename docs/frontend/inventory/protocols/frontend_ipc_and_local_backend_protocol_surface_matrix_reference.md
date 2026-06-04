@@ -57,7 +57,6 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `delete-episodic-memory` | `main/local_backend_bridge.cjs` | Proxies to `delete_episodic_memory` |
 | `delete-chat-conversation` | `main/local_backend_bridge.cjs` | Proxies to `delete_chat_conversation` |
 | `delete-semantic-memory` | `main/local_backend_bridge.cjs` | Proxies to `delete_semantic_memory` |
-| `store-memory` | `main/local_backend_bridge.cjs` | Proxies to `store_memory` |
 | `store-chat-event` | `main/local_backend_bridge.cjs` | Proxies to `store_chat_event` |
 | `upload-artifact` | `main/ipc.cjs` | Uploads base64 artifact to backend HTTP `/api/artifacts/` |
 | `load-frontend-config` | `main/ipc.cjs` | Reads frontend config from disk |
@@ -157,7 +156,6 @@ Transport:
 | `delete-episodic-memory` | `delete_episodic_memory` | `memoryId -> memory_id` |
 | `delete-chat-conversation` | `delete_chat_conversation` | `conversationId -> conversation_id`, `recordKind -> record_kind` |
 | `delete-semantic-memory` | `delete_semantic_memory` | `memoryId -> memory_id` |
-| `store-memory` | `store_memory` | camelCase to snake_case for query/response/type/user/session keys |
 | `store-chat-event` | `store_chat_event` | transcript metadata pass-through map (`messageType -> message_type`, etc.) |
 | readiness probe (internal) | `ping` | Startup readiness checks |
 | diagnostics (registered in sidecar) | `get_status` | Not currently wired to renderer IPC |
@@ -167,7 +165,7 @@ Transport:
 Registered callable surface:
 
 - Tool/system: `execute_tool`, `get_system_state`
-- Memory/transcript: `search_memory`, `search_chat_conversations`, `store_memory`, `store_chat_event`, `list_chat_conversations`, `list_episodic_memories`, `get_chat_events`, `list_semantic_memories`, `delete_chat_conversation`, `delete_semantic_memory`
+- Memory/transcript: `search_memory`, `search_memory_by_embedding`, `store_memory_by_embedding`, `search_chat_conversations`, `store_chat_event`, `list_chat_conversations`, `list_episodic_memories`, `get_chat_events`, `list_semantic_memories`, `delete_chat_conversation`, `delete_semantic_memory`
 - Health/diagnostics: `ping`, `get_status`
 
 ### JSON-RPC Validation Semantics (`core/ipc_protocol.py`)

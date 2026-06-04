@@ -35,7 +35,6 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 | SDK tool runtime | `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`, `packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` | SDK local runtime + sidecar callback wiring | `tool-result` / `tool-bundle-result` send path |
 | Renderer voice runtime | `frontend/src/renderer/features/voice/hooks/*` | Wakeword capture + gateway audio stream | Transcription/voice status updates |
 | Sidecar local backend | `frontend/src/main/python/local_backend.py` | JSON-RPC method routing + tool registry | JSON-RPC result envelopes |
-| Sidecar memory-only service | `frontend/src/main/python/memory_service.py` | Search/store protocol loop | JSON line responses |
 | Sidecar wakeword service | `frontend/src/main/python/wakeword_service.py` | Wakeword model bootstrap + detection loop | Length-prefixed detection frames |
 | Landing app runtime | `frontend/src/landing/main.jsx` | Landing section composition | Static marketing UI |
 
@@ -80,7 +79,7 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 | Transcript buffering/session state | `renderer/infrastructure/transcript/*` |
 | Store/search invoke | `renderer/infrastructure/transcript/sdkSidecarConversationStore.ts` + IPC invoke |
 | Sidecar memory handlers | `main/python/{local_backend.py,local_backend_memory_handlers.py}` + `memory/local_store.py` |
-| Optional semantic summarization | `memory/summarizer.py` + `core/{remote_api_client_base,remote_semantic_client,remote_title_client}.py` |
+| Optional semantic summarization | `memory/summarizer.py` + `core/{remote_api_client_base,remote_semantic_client}.py` |
 
 ## High-Risk Cross-Boundary Contracts
 
