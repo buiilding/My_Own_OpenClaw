@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/agent: remove the unused compaction strategies package aggregator so
+  strategy imports point at their owning implementation modules.
 - backend/agent: remove unused subpackage aggregators for compaction,
   execution, history, and LLM modules; the one compaction consumer now imports
   `CompactionEngine` from its owning engine module.
