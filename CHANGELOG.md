@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/rehydrate: delete the structured tool-call extraction instance method
+  and align rehydrate tests/docs with the list-based pending tool-call state.
 - backend/rehydrate: call the session-manager workspace context contract
   directly instead of silently skipping managers without the current setter.
 - backend/rehydrate: inline structured-payload normalization at the row boundary

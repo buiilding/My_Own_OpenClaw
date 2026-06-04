@@ -50,7 +50,7 @@ For tool-call-like rows:
 - generate/fallback call id (`rehydrate_tool_call_<index>`) when missing
 - parse JSON content for `name` and `args/arguments`
 - emit assistant entry with `tool_calls=[{id,name,arguments}]`
-- update `known_tool_call_ids` and `pending_tool_call_id`
+- update `known_tool_call_ids` and `pending_tool_call_ids`
 
 ### Tool-output linkage repair
 

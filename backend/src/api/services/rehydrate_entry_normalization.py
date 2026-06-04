@@ -36,27 +36,25 @@ _INTERNAL_BUNDLE_TOOL_NAMES = frozenset(
 )
 
 
+def _extract_structured_tool_calls(
+    structured_payload: Optional[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    if not isinstance(structured_payload, dict):
+        return []
+
+    normalized_tool_calls = normalize_tool_calls(structured_payload.get("toolCalls"))
+    if normalized_tool_calls:
+        return normalized_tool_calls
+
+    raw_tool_call = structured_payload.get("toolCall")
+    if isinstance(raw_tool_call, dict):
+        return normalize_tool_calls([raw_tool_call])
+
+    return []
+
+
 class RehydrateEntryNormalizer:
     """Normalize one rehydrate transcript row into conversation-history entries."""
-
-    def extract_structured_tool_calls(
-        self,
-        structured_payload: Optional[Dict[str, Any]],
-    ) -> List[Dict[str, Any]]:
-        if not isinstance(structured_payload, dict):
-            return []
-
-        normalized_tool_calls = normalize_tool_calls(
-            structured_payload.get("toolCalls")
-        )
-        if normalized_tool_calls:
-            return normalized_tool_calls
-
-        raw_tool_call = structured_payload.get("toolCall")
-        if isinstance(raw_tool_call, dict):
-            return normalize_tool_calls([raw_tool_call])
-
-        return []
 
     def normalize_entry(
         self,
@@ -103,9 +101,7 @@ class RehydrateEntryNormalizer:
             return [assistant_entry], None
 
         if normalized_message_type in _TOOL_CALL_MESSAGE_TYPES:
-            structured_tool_calls = self.extract_structured_tool_calls(
-                structured_payload
-            )
+            structured_tool_calls = _extract_structured_tool_calls(structured_payload)
             if structured_tool_calls:
                 structured_tool_call = structured_tool_calls[0]
                 call_name = structured_tool_call["name"]
@@ -204,7 +200,7 @@ class RehydrateEntryNormalizer:
         )
         if structured_content is not None:
             hydrated_entry["structured_content"] = structured_content
-        normalized_tool_calls = self.extract_structured_tool_calls(structured_payload)
+        normalized_tool_calls = _extract_structured_tool_calls(structured_payload)
         if not normalized_tool_calls:
             normalized_tool_calls = normalize_tool_calls(entry.tool_calls)
         if entry.role == "assistant" and normalized_tool_calls:

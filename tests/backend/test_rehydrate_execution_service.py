@@ -95,7 +95,7 @@ def _normalize_entry(
     *,
     index,
     known_tool_call_ids=None,
-    pending_tool_call_id=None,
+    pending_tool_call_ids=None,
     image_data=None,
     transparency=None,
 ):
@@ -103,7 +103,7 @@ def _normalize_entry(
         known_tool_call_ids=(
             known_tool_call_ids if known_tool_call_ids is not None else set()
         ),
-        pending_tool_call_ids=[pending_tool_call_id] if pending_tool_call_id else [],
+        pending_tool_call_ids=list(pending_tool_call_ids or []),
     )
     return RehydrateEntryNormalizer().normalize_entry(
         entry=entry,
@@ -252,7 +252,6 @@ def test_normalize_rehydrated_tool_output_injects_synthetic_tool_call_entry():
         index=7,
         image_data=None,
         known_tool_call_ids=known_tool_call_ids,
-        pending_tool_call_id=None,
         transparency=None,
     )
 
@@ -294,7 +293,6 @@ def test_normalize_rehydrated_entry_prefers_structured_payload_for_tool_call_row
         index=8,
         image_data=None,
         known_tool_call_ids=known_tool_call_ids,
-        pending_tool_call_id=None,
         transparency=None,
     )
 
@@ -332,7 +330,6 @@ def test_normalize_rehydrated_entry_sanitizes_internal_tool_bundle_call_trace():
         index=11,
         image_data=None,
         known_tool_call_ids=known_tool_call_ids,
-        pending_tool_call_id=None,
         transparency=None,
     )
 
@@ -363,7 +360,6 @@ def test_normalize_rehydrated_entry_sanitizes_internal_bundled_output_trace():
         index=12,
         image_data=None,
         known_tool_call_ids=known_tool_call_ids,
-        pending_tool_call_id=None,
         transparency=None,
     )
 
@@ -394,7 +390,6 @@ def test_normalize_rehydrated_entry_does_not_infer_bundle_trace_from_json_conten
         index=13,
         image_data=None,
         known_tool_call_ids=known_tool_call_ids,
-        pending_tool_call_id=None,
         transparency=None,
     )
 
@@ -433,7 +428,6 @@ def test_normalize_rehydrated_entry_reuses_pending_tool_call_id_for_tool_output(
         index=0,
         image_data=None,
         known_tool_call_ids=known_tool_call_ids,
-        pending_tool_call_id=None,
         transparency=None,
     )
     assert entries[0]["tool_calls"][0]["id"] == "call-1"
@@ -454,7 +448,7 @@ def test_normalize_rehydrated_entry_reuses_pending_tool_call_id_for_tool_output(
         index=1,
         image_data=None,
         known_tool_call_ids=known_tool_call_ids,
-        pending_tool_call_id=pending,
+        pending_tool_call_ids=[pending],
         transparency=None,
     )
     assert len(entries) == 1
@@ -484,7 +478,6 @@ def test_normalize_rehydrated_entry_preserves_structured_assistant_text_content(
         index=21,
         image_data=None,
         known_tool_call_ids=known_tool_call_ids,
-        pending_tool_call_id=None,
         transparency=None,
     )
 
@@ -525,7 +518,6 @@ def test_normalize_rehydrated_entry_drops_assistant_rows_with_only_thinking_cont
         index=22,
         image_data=None,
         known_tool_call_ids=known_tool_call_ids,
-        pending_tool_call_id=None,
         transparency=None,
     )
 
@@ -557,7 +549,7 @@ def test_normalize_rehydrated_entry_preserves_structured_tool_content():
         index=23,
         image_data=None,
         known_tool_call_ids=known_tool_call_ids,
-        pending_tool_call_id="call-1",
+        pending_tool_call_ids=["call-1"],
         transparency=None,
     )
 
@@ -631,7 +623,6 @@ def test_normalize_rehydrated_tool_call_entry_uses_explicit_tool_call_id():
         index=2,
         image_data=None,
         known_tool_call_ids=known_tool_call_ids,
-        pending_tool_call_id=None,
         transparency=None,
     )
 
@@ -721,7 +712,6 @@ def test_normalize_rehydrated_tool_call_entry_preserves_thought_signature_from_c
         index=3,
         image_data=None,
         known_tool_call_ids=known_tool_call_ids,
-        pending_tool_call_id=None,
         transparency=None,
     )
 
