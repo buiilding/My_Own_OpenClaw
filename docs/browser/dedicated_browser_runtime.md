@@ -1,5 +1,5 @@
 ---
-summary: "Dedicated browser runtime guide covering the current Browser Use session boundary, retired Windie-owned CDP launcher path, feature packs, and browser file storage."
+summary: "Dedicated browser runtime guide covering the current Browser Use session boundary, Windie-owned Chrome profile launcher, feature packs, and browser file storage."
 read_when:
   - When changing Windie dedicated browser launch, CDP port behavior, browser profile paths, browser session state, or browser feature-pack setup.
   - When debugging connect/status failures or browser profile isolation.
@@ -18,7 +18,7 @@ The current runtime path is:
 2. `frontend/src/main/python/tools/browser/browser_use_engine.py` ensures the WindieOS-owned Chrome profile is available through CDP.
 3. Browser Use launches or reuses the named daemon session with `--cdp-url` and performs the browser action.
 
-The older direct controller path remains in the tree for compatibility cleanup work, but `chrome_launcher.py` still owns the WindieOS profile launch boundary used by the Browser Use adapter.
+WindieOS no longer keeps a direct browser-controller execution path in this stack. `chrome_launcher.py` only owns the WindieOS profile launch boundary used by the Browser Use adapter.
 
 | Runtime value | Current behavior |
 | --- | --- |

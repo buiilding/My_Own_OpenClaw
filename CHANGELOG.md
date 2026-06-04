@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sidecar/browser: remove the regex markdown conversion fallback so
+  browser content extraction uses the required `markdownify` runtime dependency
+  or fails at the browser feature boundary.
 - frontend/sidecar/browser: remove the unused `BrowserCoreAction` alias and
   align browser docs with canonical `send_keys` and `evaluate.code` payloads.
 - frontend/sidecar/browser: remove stale browser navigation/wait state type
