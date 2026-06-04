@@ -6,9 +6,6 @@ from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
-
-from backend.src.tools.browser.schemas import BrowserControlArgs as BackendBrowserControlArgs
-from backend.src.tools.browser.schemas import build_browser_tool_parameters_schema
 from windie_shared.browser_contract import (
     BROWSER_CANONICAL_ACTIONS,
     BrowserClickArgs,
@@ -20,10 +17,15 @@ from windie_shared.browser_contract import (
     BrowserSnapshotArgs,
     BrowserSwitchArgs,
     BrowserWaitArgs,
-    build_browser_tool_parameters_schema as sidecar_build_browser_tool_parameters_schema,
-    get_browser_schema,
-    validate_browser_args,
 )
+from windie_shared.browser_contract import (
+    build_browser_tool_parameters_schema as sidecar_build_browser_tool_parameters_schema,
+)
+
+from backend.src.tools.browser.schemas import (
+    BrowserControlArgs as BackendBrowserControlArgs,
+)
+from backend.src.tools.browser.schemas import build_browser_tool_parameters_schema
 
 EXPLANATION = "Advance the active user task."
 NATIVE_BROWSER_USE_AGENT_ACTIONS = {
@@ -105,7 +107,9 @@ def test_snapshot_schema_is_strict() -> None:
     assert args.limit == 4000
 
     with pytest.raises(ValidationError):
-        BrowserSnapshotArgs(action="snapshot", mode="efficient", explanation=EXPLANATION)
+        BrowserSnapshotArgs(
+            action="snapshot", mode="efficient", explanation=EXPLANATION
+        )
 
     with pytest.raises(ValidationError):
         BrowserSnapshotArgs(action="snapshot", format="aria", explanation=EXPLANATION)
@@ -139,11 +143,15 @@ def test_navigate_and_wait_reject_removed_state_fields() -> None:
         )
 
     with pytest.raises(ValidationError):
-        BrowserWaitArgs(action="wait", state="domcontentloaded", explanation=EXPLANATION)
+        BrowserWaitArgs(
+            action="wait", state="domcontentloaded", explanation=EXPLANATION
+        )
 
 
 def test_input_find_text_and_switch_use_canonical_fields_only() -> None:
-    input_args = BrowserInputArgs(action="input", ref="3", text="hello", explanation=EXPLANATION)
+    input_args = BrowserInputArgs(
+        action="input", ref="3", text="hello", explanation=EXPLANATION
+    )
     assert input_args.text == "hello"
 
     find_text_args = BrowserFindTextArgs(
@@ -157,7 +165,9 @@ def test_input_find_text_and_switch_use_canonical_fields_only() -> None:
     assert find_text_args.css_scope == "#search"
     assert find_text_args.max_results == 5
 
-    switch_args = BrowserSwitchArgs(action="switch", tab_index=1, explanation=EXPLANATION)
+    switch_args = BrowserSwitchArgs(
+        action="switch", tab_index=1, explanation=EXPLANATION
+    )
     assert switch_args.tab_index == 1
     assert switch_args.activate is True
 
@@ -170,26 +180,44 @@ def test_input_find_text_and_switch_use_canonical_fields_only() -> None:
     assert silent_switch_args.activate is False
 
     with pytest.raises(ValidationError):
-        BrowserInputArgs(action="input", ref="3", text="hello", clear_first=True, explanation=EXPLANATION)
+        BrowserInputArgs(
+            action="input",
+            ref="3",
+            text="hello",
+            clear_first=True,
+            explanation=EXPLANATION,
+        )
 
     with pytest.raises(ValidationError):
-        BrowserInputArgs(action="input", ref="3", text="hello", clear=True, explanation=EXPLANATION)
+        BrowserInputArgs(
+            action="input", ref="3", text="hello", clear=True, explanation=EXPLANATION
+        )
 
     with pytest.raises(ValidationError):
-        BrowserInputArgs(action="input", ref="3", text="hello", submit=True, explanation=EXPLANATION)
-
-    valid, error = validate_browser_args(
-        "input",
-        {"ref": "3", "text": "hello", "submit": True, "explanation": EXPLANATION},
-    )
-    assert valid is False
-    assert error is not None
+        BrowserInputArgs(
+            action="input", ref="3", text="hello", submit=True, explanation=EXPLANATION
+        )
 
     with pytest.raises(ValidationError):
-        BrowserFindTextArgs(action="find_text", pattern="pricing", explanation=EXPLANATION)
+        BrowserControlArgs.model_validate(
+            {
+                "action": "input",
+                "ref": "3",
+                "text": "hello",
+                "submit": True,
+                "explanation": EXPLANATION,
+            }
+        )
 
     with pytest.raises(ValidationError):
-        BrowserFindTextArgs(action="find_text", text="pricing", max_results=0, explanation=EXPLANATION)
+        BrowserFindTextArgs(
+            action="find_text", pattern="pricing", explanation=EXPLANATION
+        )
+
+    with pytest.raises(ValidationError):
+        BrowserFindTextArgs(
+            action="find_text", text="pricing", max_results=0, explanation=EXPLANATION
+        )
 
     with pytest.raises(ValidationError):
         BrowserSwitchArgs(action="switch", target_id="abcd", explanation=EXPLANATION)
@@ -202,7 +230,9 @@ def test_input_find_text_and_switch_use_canonical_fields_only() -> None:
 
 
 def test_scroll_uses_canonical_fields_only() -> None:
-    args = BrowserScrollArgs(action="scroll", direction="up", amount=500, explanation=EXPLANATION)
+    args = BrowserScrollArgs(
+        action="scroll", direction="up", amount=500, explanation=EXPLANATION
+    )
     assert args.direction == "up"
 
     with pytest.raises(ValidationError):
@@ -211,9 +241,10 @@ def test_scroll_uses_canonical_fields_only() -> None:
     with pytest.raises(ValidationError):
         BrowserScrollArgs(action="scroll", index=1, explanation=EXPLANATION)
 
-    valid, error = validate_browser_args("scroll", {"index": 1, "explanation": EXPLANATION})
-    assert valid is False
-    assert error is not None
+    with pytest.raises(ValidationError):
+        BrowserControlArgs.model_validate(
+            {"action": "scroll", "index": 1, "explanation": EXPLANATION}
+        )
 
 
 def test_click_requires_target() -> None:
@@ -228,24 +259,38 @@ def test_click_requires_target() -> None:
 
 
 def test_schema_registry_and_validation_reject_removed_aliases() -> None:
-    assert get_browser_schema("switch") is BrowserSwitchArgs
-    assert get_browser_schema("switch_tab") is None
+    args = BrowserControlArgs.model_validate(
+        {
+            "action": "snapshot",
+            "offset": 10,
+            "limit": 20,
+            "explanation": EXPLANATION,
+        }
+    )
+    assert args.action == "snapshot"
+    assert args.offset == 10
 
-    valid, error = validate_browser_args("snapshot", {"offset": 10, "limit": 20, "explanation": EXPLANATION})
-    assert valid is True
-    assert error is None
+    with pytest.raises(ValidationError):
+        BrowserControlArgs.model_validate(
+            {"action": "snapshot", "mode": "efficient", "explanation": EXPLANATION}
+        )
 
-    valid, error = validate_browser_args("snapshot", {"mode": "efficient", "explanation": EXPLANATION})
-    assert valid is False
-    assert error is not None
-
-    valid, error = validate_browser_args("switch_tab", {"tab_id": "abcd"})
-    assert valid is False
-    assert error == "Unknown browser action: switch_tab"
+    with pytest.raises(ValidationError):
+        BrowserControlArgs.model_validate(
+            {"action": "switch_tab", "tab_id": "abcd", "explanation": EXPLANATION}
+        )
 
 
 def test_sidecar_browser_runtime_modules_do_not_import_backend_package() -> None:
-    browser_dir = Path(__file__).resolve().parents[3] / "frontend" / "src" / "main" / "python" / "tools" / "browser"
+    browser_dir = (
+        Path(__file__).resolve().parents[3]
+        / "frontend"
+        / "src"
+        / "main"
+        / "python"
+        / "tools"
+        / "browser"
+    )
     for module_name in ("browser_tool.py", "browser_use_engine.py"):
         source = (browser_dir / module_name).read_text(encoding="utf-8")
         assert "backend.src" not in source

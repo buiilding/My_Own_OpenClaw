@@ -2,13 +2,11 @@
 
 from windie_shared.browser_contract_catalog import (
     BROWSER_ACTION_CONTRACTS,
-    BROWSER_SCHEMAS,
     BrowserActionContract,
-    get_browser_schema,
-    validate_browser_args,
 )
 from windie_shared.browser_contract_models import (
     BROWSER_CANONICAL_ACTIONS,
+    MAX_BROWSER_TEXT_CHARS,
     BrowserActionArgsBase,
     BrowserCanonicalAction,
     BrowserClickArgs,
@@ -49,14 +47,12 @@ from windie_shared.browser_contract_models import (
     BrowserUploadFileArgs,
     BrowserWaitArgs,
     BrowserWriteFileArgs,
-    MAX_BROWSER_TEXT_CHARS,
 )
 from windie_shared.browser_contract_schema import build_browser_tool_parameters_schema
 
 __all__ = [
     "BROWSER_ACTION_CONTRACTS",
     "BROWSER_CANONICAL_ACTIONS",
-    "BROWSER_SCHEMAS",
     "BrowserActionArgsBase",
     "BrowserActionContract",
     "BrowserCanonicalAction",
@@ -100,6 +96,4 @@ __all__ = [
     "BrowserWriteFileArgs",
     "MAX_BROWSER_TEXT_CHARS",
     "build_browser_tool_parameters_schema",
-    "get_browser_schema",
-    "validate_browser_args",
 ]

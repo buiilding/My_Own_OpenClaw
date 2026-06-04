@@ -1,12 +1,12 @@
 ---
-summary: "Deep reference for sidecar browser schema registry behavior under the shared strict browser contract module."
+summary: "Deep reference for sidecar browser grouped-schema validation behavior under the shared strict browser contract module."
 read_when:
   - When adding/removing browser actions or changing sidecar browser validation rules.
   - When debugging schema parse errors before adapter/runtime execution.
-title: "Schema Registry and Action Validation Boundary Reference"
+title: "Grouped Schema and Action Validation Boundary Reference"
 ---
 
-# Schema Registry and Action Validation Boundary Reference
+# Grouped Schema and Action Validation Boundary Reference
 
 ## Canonical Modules
 
@@ -20,32 +20,30 @@ title: "Schema Registry and Action Validation Boundary Reference"
 contract consumed directly by the sidecar and backend wrappers:
 
 - `BrowserControlArgs` discriminated grouped union
-- `BROWSER_SCHEMAS` registry
-- `get_browser_schema(action)` helper
-- `validate_browser_args(action, args)` helper
+- `BROWSER_ACTION_CONTRACTS` action catalog used for model-facing schema projection
 
 Model policy:
 
 - each action model uses `model_config.extra = "forbid"`
 - required fields and model validators enforce action-level constraints
 
-## Action Registry Contract (`BROWSER_SCHEMAS`)
+## Action Catalog Contract
 
-Registry includes explicit entries for:
+`BROWSER_ACTION_CONTRACTS` includes explicit entries for:
 
 - the full canonical grouped browser action set
 
-Removed aliases and compatibility-only fields are absent from the schema registry entirely.
+Removed aliases and compatibility-only fields are absent from the grouped union entirely.
 
 ## Validation Entry Point Behavior
 
-`validate_browser_args(action, args)` flow:
+`BrowserControlArgs.model_validate(args)` flow:
 
-1. resolve schema from `BROWSER_SCHEMAS`
-2. inject `action` into args
-3. instantiate model
-4. return `(True, None)` on success
-5. return `(False, message)` on unknown action or validation error
+1. read `args.action`
+2. select the discriminated action model
+3. instantiate the strict model
+4. return the grouped args object on success
+5. raise `ValidationError` on unknown action or validation error
 
 ## Important Validators
 
@@ -100,7 +98,7 @@ Practical rule:
 
 - strict grouped contract parity with backend wrappers
 - canonical-only action set
-- strict field validation and helper lookup behavior
+- strict field validation through `BrowserControlArgs`
 - sidecar browser runtime modules do not import the backend package
 
 Operational expectation:

@@ -3,9 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Optional
-
-from pydantic import ValidationError
 
 from windie_shared.browser_contract_models import (
     BrowserActionArgsBase,
@@ -91,23 +88,3 @@ BROWSER_ACTION_CONTRACTS: tuple[BrowserActionContract, ...] = (
     BrowserActionContract("read_long_content", BrowserReadLongContentArgs),
     BrowserActionContract("close", BrowserCloseArgs),
 )
-
-BROWSER_SCHEMAS = {
-    contract.name: contract.args_model for contract in BROWSER_ACTION_CONTRACTS
-}
-
-
-def get_browser_schema(action: str) -> type[BrowserActionArgsBase] | None:
-    return BROWSER_SCHEMAS.get(action)
-
-
-def validate_browser_args(action: str, args: dict[str, Any]) -> tuple[bool, Optional[str]]:
-    schema_class = get_browser_schema(action)
-    if schema_class is None:
-        return False, f"Unknown browser action: {action}"
-
-    try:
-        schema_class.model_validate({**args, "action": action})
-        return True, None
-    except ValidationError as exc:
-        return False, str(exc)

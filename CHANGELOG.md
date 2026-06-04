@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sidecar/browser: delete the duplicate browser schema lookup helpers
+  so backend and sidecar validation go through `BrowserControlArgs` only.
 - frontend/sidecar/browser: reject non-object Browser Use CLI `data` payloads
   instead of wrapping them in a synthetic `value` field.
 - frontend/sidecar/browser: reject absolute paths and parent-directory escapes

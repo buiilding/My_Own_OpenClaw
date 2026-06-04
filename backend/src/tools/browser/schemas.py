@@ -7,7 +7,6 @@ from backend.src.tools.browser.shared_contract_loader import (
 __all__ = [
     "BROWSER_ACTION_CONTRACTS",
     "BROWSER_CANONICAL_ACTIONS",
-    "BROWSER_SCHEMAS",
     "BrowserActionArgsBase",
     "BrowserActionContract",
     "BrowserCanonicalAction",
@@ -51,8 +50,6 @@ __all__ = [
     "BrowserWriteFileArgs",
     "MAX_BROWSER_TEXT_CHARS",
     "build_browser_tool_parameters_schema",
-    "get_browser_schema",
-    "validate_browser_args",
 ]
 
 _browser_contract = load_shared_browser_contract()

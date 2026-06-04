@@ -57,7 +57,6 @@ Port override:
 Derived endpoints:
 
 - `DEFAULT_WINDIE_CDP_URL = http://127.0.0.1:<port>`
-- legacy alias `DEFAULT_CDP_URL` points to same URL
 
 ## CDP Availability and Process Checks
 
@@ -67,15 +66,9 @@ Derived endpoints:
 - returns `True` only on HTTP `200`
 - catches all exceptions and returns `False`
 
-`find_chrome_process()`:
-
-- Windows: `tasklist` CSV parse (`chrome.exe` PID)
-- Linux/macOS: `pgrep -f chrome`, returns first PID
-
-`is_chrome_running_with_cdp(port)`:
-
-- raw TCP `connect_ex` probe to `127.0.0.1:<port>`
-- quick listener check, not CDP schema validation
+Windie-owned process matching is scoped to the dedicated profile directory and
+the configured CDP port; the launcher no longer exposes broad Chrome process
+discovery or generic listener checks.
 
 ## Dedicated Windie Profile Directory
 

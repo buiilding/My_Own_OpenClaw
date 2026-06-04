@@ -42,8 +42,7 @@ Backend runtime gate in `RemoteBrowserTool`:
 
 Sidecar enforcement is action-aware and runtime-focused:
 
-- shared action schema routing (`BROWSER_SCHEMAS`) validates sidecar action models
-- `browser_tool` validates grouped args before execution
+- `browser_tool` validates grouped `BrowserControlArgs` before execution
 - `browser_use_engine.py` maps canonical actions to Browser Use CLI calls or Windie-owned helpers
 - Browser Use numeric indexes remain the runtime element-reference model
 
@@ -57,7 +56,7 @@ Result:
 When changing browser actions, verify four layers:
 
 1. backend action literals (`schemas.py`)
-2. shared browser contract registry keys (`BROWSER_SCHEMAS`)
+2. shared browser action catalog order (`BROWSER_ACTION_CONTRACTS`)
 3. sidecar tool validation and engine mapping (`browser_tool.py`, `browser_use_engine.py`)
 4. Browser Use runtime handler coverage
 
@@ -65,7 +64,7 @@ When changing browser actions, verify four layers:
 
 `tests/sidecar/tools/test_browser_schemas.py` and the Browser Use engine tests enforce:
 
-- `BROWSER_SCHEMAS` exports the shared strict action contract
+- `BrowserControlArgs` enforces the shared strict grouped action contract
 - backend wrappers and sidecar validation stay aligned around the same action surface
 - `BrowserUseEngineRuntime` covers the supported Browser Use action set
 

@@ -61,9 +61,9 @@ Each catalog entry defines:
 - action name
 - strict args model
 
-Derived helpers include:
+Derived schema projection uses:
 
-- `BROWSER_SCHEMAS`
+- `BROWSER_ACTION_CONTRACTS`
 - `build_browser_tool_parameters_schema()`
 
 ## Remote Payload Implication

@@ -17,7 +17,6 @@ from backend.src.tools.browser.schemas import (
     BrowserSnapshotArgs,
     BrowserSwitchArgs,
     build_browser_tool_parameters_schema,
-    get_browser_schema,
 )
 from backend.src.tools.remote_tools.browser import RemoteBrowserTool
 
@@ -39,7 +38,9 @@ class TestRemoteBrowserTool:
         assert parameters["type"] == "object"
         assert parameters["required"] == ["action", "explanation"]
         assert parameters["additionalProperties"] is False
-        assert parameters["properties"]["action"]["enum"] == list(BROWSER_CANONICAL_ACTIONS)
+        assert parameters["properties"]["action"]["enum"] == list(
+            BROWSER_CANONICAL_ACTIONS
+        )
         assert "dropdown_options" not in parameters["properties"]["action"]["enum"]
         assert "save_as_pdf" in parameters["properties"]["action"]["enum"]
         assert parameters["properties"]["explanation"]["type"] == "string"
@@ -79,7 +80,9 @@ class TestRemoteBrowserTool:
         props = set(schema.get("properties", {}).keys())
         assert props.isdisjoint(banned_fields)
 
-    def test_model_facing_schema_merges_shared_property_variants_without_root_union(self) -> None:
+    def test_model_facing_schema_merges_shared_property_variants_without_root_union(
+        self,
+    ) -> None:
         schema = RemoteBrowserTool().get_json_schema()["parameters"]
 
         text_schema = schema["properties"]["text"]
@@ -117,7 +120,9 @@ class TestRemoteBrowserTool:
 
 class TestBrowserControlArgs:
     def test_snapshot_defaults_and_window_bounds(self) -> None:
-        args = BrowserControlArgs.model_validate({"action": "snapshot", "explanation": EXPLANATION})
+        args = BrowserControlArgs.model_validate(
+            {"action": "snapshot", "explanation": EXPLANATION}
+        )
 
         assert args.action == "snapshot"
         assert args.explanation == EXPLANATION
@@ -148,34 +153,63 @@ class TestBrowserControlArgs:
 
     def test_removed_compatibility_fields_fail_validation(self) -> None:
         with pytest.raises(ValidationError):
-            BrowserControlArgs.model_validate({"action": "snapshot", "mode": "efficient", "explanation": EXPLANATION})
-
-        with pytest.raises(ValidationError):
-            BrowserControlArgs.model_validate({"action": "snapshot", "format": "aria", "explanation": EXPLANATION})
-
-        with pytest.raises(ValidationError):
-            BrowserControlArgs.model_validate({"action": "extract", "selector": "table", "explanation": EXPLANATION})
+            BrowserControlArgs.model_validate(
+                {"action": "snapshot", "mode": "efficient", "explanation": EXPLANATION}
+            )
 
         with pytest.raises(ValidationError):
             BrowserControlArgs.model_validate(
-                {"action": "extract", "wait_until": "networkidle", "explanation": EXPLANATION}
+                {"action": "snapshot", "format": "aria", "explanation": EXPLANATION}
+            )
+
+        with pytest.raises(ValidationError):
+            BrowserControlArgs.model_validate(
+                {"action": "extract", "selector": "table", "explanation": EXPLANATION}
+            )
+
+        with pytest.raises(ValidationError):
+            BrowserControlArgs.model_validate(
+                {
+                    "action": "extract",
+                    "wait_until": "networkidle",
+                    "explanation": EXPLANATION,
+                }
             )
 
     def test_removed_alias_actions_are_not_valid(self) -> None:
         with pytest.raises(ValidationError):
-            BrowserControlArgs.model_validate({"action": "open", "url": "https://example.com", "explanation": EXPLANATION})
+            BrowserControlArgs.model_validate(
+                {
+                    "action": "open",
+                    "url": "https://example.com",
+                    "explanation": EXPLANATION,
+                }
+            )
 
         with pytest.raises(ValidationError):
-            BrowserControlArgs.model_validate({"action": "type", "ref": "1", "text": "hello", "explanation": EXPLANATION})
+            BrowserControlArgs.model_validate(
+                {
+                    "action": "type",
+                    "ref": "1",
+                    "text": "hello",
+                    "explanation": EXPLANATION,
+                }
+            )
 
         with pytest.raises(ValidationError):
-            BrowserControlArgs.model_validate({"action": "press", "keys": "Enter", "explanation": EXPLANATION})
+            BrowserControlArgs.model_validate(
+                {"action": "press", "keys": "Enter", "explanation": EXPLANATION}
+            )
 
         with pytest.raises(ValidationError):
-            BrowserControlArgs.model_validate({"action": "switch_tab", "tab_id": "tab-1", "explanation": EXPLANATION})
+            BrowserControlArgs.model_validate(
+                {"action": "switch_tab", "tab_id": "tab-1", "explanation": EXPLANATION}
+            )
 
         with pytest.raises(ValidationError):
-            BrowserControlArgs.model_validate({"action": "dropdown_options", "index": 1, "explanation": EXPLANATION})
+            BrowserControlArgs.model_validate(
+                {"action": "dropdown_options", "index": 1, "explanation": EXPLANATION}
+            )
 
     def test_click_requires_ref_index_or_coordinates(self) -> None:
         with pytest.raises(
@@ -185,19 +219,35 @@ class TestBrowserControlArgs:
             BrowserClickArgs(action="click", explanation=EXPLANATION)
 
     def test_input_and_switch_are_strict(self) -> None:
-        args = BrowserInputArgs(action="input", ref="5", text="hello", explanation=EXPLANATION)
+        args = BrowserInputArgs(
+            action="input", ref="5", text="hello", explanation=EXPLANATION
+        )
         assert args.text == "hello"
 
         with pytest.raises(ValidationError):
             BrowserInputArgs(action="input", text="hello", explanation=EXPLANATION)
 
         with pytest.raises(ValidationError):
-            BrowserInputArgs(action="input", ref="5", text="hello", clear=True, explanation=EXPLANATION)
+            BrowserInputArgs(
+                action="input",
+                ref="5",
+                text="hello",
+                clear=True,
+                explanation=EXPLANATION,
+            )
 
         with pytest.raises(ValidationError):
-            BrowserInputArgs(action="input", ref="5", text="hello", submit=True, explanation=EXPLANATION)
+            BrowserInputArgs(
+                action="input",
+                ref="5",
+                text="hello",
+                submit=True,
+                explanation=EXPLANATION,
+            )
 
-        switch_args = BrowserSwitchArgs(action="switch", tab_index=1, explanation=EXPLANATION)
+        switch_args = BrowserSwitchArgs(
+            action="switch", tab_index=1, explanation=EXPLANATION
+        )
         assert switch_args.tab_index == 1
 
         with pytest.raises(ValidationError):
@@ -208,13 +258,36 @@ class TestBrowserControlArgs:
             BrowserEvaluateArgs(action="evaluate", explanation=EXPLANATION)
 
         with pytest.raises(ValidationError):
-            BrowserControlArgs.model_validate({"action": "evaluate", "script": "1 + 1", "explanation": EXPLANATION})
+            BrowserControlArgs.model_validate(
+                {"action": "evaluate", "script": "1 + 1", "explanation": EXPLANATION}
+            )
 
-        args = BrowserEvaluateArgs(action="evaluate", code="1 + 1", explanation=EXPLANATION)
+        args = BrowserEvaluateArgs(
+            action="evaluate", code="1 + 1", explanation=EXPLANATION
+        )
         assert args.code == "1 + 1"
 
-    def test_schema_registry_only_knows_canonical_actions(self) -> None:
-        assert get_browser_schema("snapshot") is BrowserSnapshotArgs
-        assert get_browser_schema("extract") is BrowserExtractArgs
-        assert get_browser_schema("switch") is BrowserSwitchArgs
-        assert get_browser_schema("switch_tab") is None
+    def test_grouped_schema_only_knows_canonical_actions(self) -> None:
+        assert (
+            BrowserControlArgs.model_validate(
+                {"action": "snapshot", "explanation": EXPLANATION}
+            ).action
+            == "snapshot"
+        )
+        assert (
+            BrowserControlArgs.model_validate(
+                {"action": "extract", "query": "pricing", "explanation": EXPLANATION}
+            ).action
+            == "extract"
+        )
+        assert (
+            BrowserControlArgs.model_validate(
+                {"action": "switch", "tab_index": 0, "explanation": EXPLANATION}
+            ).action
+            == "switch"
+        )
+
+        with pytest.raises(ValidationError):
+            BrowserControlArgs.model_validate(
+                {"action": "switch_tab", "tab_id": "tab-1", "explanation": EXPLANATION}
+            )
