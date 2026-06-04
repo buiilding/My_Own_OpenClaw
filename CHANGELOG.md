@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/rehydrate: remove pass-through normalizer wrapper methods so
+  transparency and tool-call parsing use their owning helper modules directly.
 - backend/rehydrate: move tool-call parsing assertions out of the rehydrate
   execution service test so helper behavior is covered only by its owning test
   module.

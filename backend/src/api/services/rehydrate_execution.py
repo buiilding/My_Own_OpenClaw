@@ -10,6 +10,10 @@ from backend.src.api.services.rehydrate_entry_normalization import (
     RehydrateEntryNormalizer,
     RehydrateNormalizationState,
 )
+from backend.src.api.services.rehydrate_transparency_resolution import (
+    extract_system_prompt_from_transparency,
+    normalize_transparency,
+)
 from backend.src.services.artifacts import ArtifactStore
 
 if TYPE_CHECKING:
@@ -58,14 +62,10 @@ class RehydrateExecutionService:
 
         for index, entry in enumerate(payload.messages):
             last_timestamp = getattr(entry, "timestamp", None)
-            transparency = self._entry_normalizer.normalize_transparency(
-                getattr(entry, "transparency", None)
-            )
+            transparency = normalize_transparency(getattr(entry, "transparency", None))
             if rehydrated_system_prompt is None:
-                rehydrated_system_prompt = (
-                    self._entry_normalizer.extract_system_prompt_from_transparency(
-                        transparency
-                    )
+                rehydrated_system_prompt = extract_system_prompt_from_transparency(
+                    transparency
                 )
 
             image_data = self._resolve_image_data(
