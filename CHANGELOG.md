@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sidecar/browser: delete unused page-object content extraction helpers
+  so Browser Use HTML capture plus `html_to_markdown` remains the browser
+  extraction path.
 - backend/rehydrate: delete the pending-tool-call finalizer wrapper from the
   row normalizer so missing-output repair is called directly on
   `RehydrateToolLinkageState`.
