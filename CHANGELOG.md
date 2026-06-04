@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/tools: remove the root package lazy export shim for `ToolRegistry`
+  and `ToolResultOrchestrator`; callers now import from the owning registry and
+  orchestrator modules directly.
 - backend/tools: remove the `remote_tools` package-level export mirror so
   remote tool classes import from their implementation modules and lookup stays
   owned by the canonical catalog/`backend.src.tools.remote` surface.

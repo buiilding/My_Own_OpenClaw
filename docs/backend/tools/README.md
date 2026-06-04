@@ -37,7 +37,6 @@ title: "Backend Tools Docs Hub"
 - [Schema Field Factory Explanation and Post-Action Wait Contract Reference](contracts/schema_field_factory_explanation_and_post_action_wait_contract_reference.md)
 - [Tool Execution Result and Batch Dataclass Contract Reference](contracts/tool_execution_result_and_batch_dataclass_contract_reference.md)
 - [Tool Result Helper Object Creation and Default Timing Contract Reference](contracts/tool_result_helper_object_creation_and_default_timing_contract_reference.md)
-- [Tools Package Lazy Export and Runtime Import Contract Reference](contracts/tools_package_lazy_export_and_runtime_import_contract_reference.md)
 - [SDK Tool Template Scaffold, Manifest, and Capability Contract Reference](templates/sdk_tool_template_scaffold_manifest_and_capability_contract_reference.md)
 - [Tools Security Docs Hub](security/README.md)
 - [Tool Security Policy and Executor Reference](tool_security_policy_and_executor_reference.md)
