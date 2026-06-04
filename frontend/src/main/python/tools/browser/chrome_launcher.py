@@ -15,11 +15,9 @@ import subprocess
 import time
 from pathlib import Path
 from typing import List, Optional, Tuple
-from urllib.parse import urlparse
 
 import aiohttp
 import psutil
-
 from tools.browser.chrome_detection import find_chrome_executable
 
 logger = logging.getLogger(__name__)
@@ -49,7 +47,6 @@ def _resolve_default_cdp_port() -> int:
 
 DEFAULT_WINDIE_CDP_PORT = _resolve_default_cdp_port()
 DEFAULT_WINDIE_CDP_URL = f"http://127.0.0.1:{DEFAULT_WINDIE_CDP_PORT}"
-DEFAULT_CDP_URL = DEFAULT_WINDIE_CDP_URL
 
 
 class ChromeLauncherError(Exception):
@@ -182,67 +179,6 @@ async def terminate_windie_chrome_with_cdp(cdp_port: int) -> int:
     return len(processes)
 
 
-def find_chrome_process() -> Optional[int]:
-    """
-    Find Chrome process ID if running.
-
-    Returns:
-        Process ID if found, None otherwise
-    """
-    system = platform.system()
-
-    try:
-        if system == "Windows":
-            result = subprocess.run(
-                ["tasklist", "/FI", "IMAGENAME eq chrome.exe", "/FO", "CSV"],
-                capture_output=True,
-                text=True,
-                timeout=5,
-            )
-            if "chrome.exe" in result.stdout:
-                # Parse PID from CSV output
-                lines = result.stdout.strip().split("\n")
-                if len(lines) > 1:
-                    parts = lines[1].split('","')
-                    if len(parts) > 1:
-                        return int(parts[1].replace('"', ""))
-        else:
-            # Linux/macOS
-            result = subprocess.run(
-                ["pgrep", "-f", "chrome"], capture_output=True, text=True, timeout=5
-            )
-            if result.returncode == 0 and result.stdout.strip():
-                pids = [int(p) for p in result.stdout.strip().split("\n") if p.strip()]
-                return pids[0] if pids else None
-    except Exception as e:
-        logger.debug(f"Error finding Chrome process: {e}")
-
-    return None
-
-
-def is_chrome_running_with_cdp(port: int = DEFAULT_CDP_PORT) -> bool:
-    """
-    Check if Chrome is running with CDP on specific port.
-
-    Args:
-        port: CDP port to check
-
-    Returns:
-        True if Chrome is running with CDP on that port
-    """
-    # Quick check: is anything listening on the port?
-    try:
-        import socket
-
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(1)
-        result = sock.connect_ex(("127.0.0.1", port))
-        sock.close()
-        return result == 0
-    except Exception:
-        return False
-
-
 def get_chrome_user_data_dir() -> Path:
     """
     Get WindieOS-owned Chrome profile directory.
@@ -354,42 +290,6 @@ async def launch_chrome_with_cdp(
     )
 
 
-async def kill_existing_chrome(graceful: bool = True) -> bool:
-    """
-    Kill existing Chrome process.
-
-    Args:
-        graceful: Try graceful termination first
-
-    Returns:
-        True if Chrome was killed, False if not running
-    """
-    system = platform.system()
-
-    try:
-        if find_chrome_process() is None:
-            return False
-        if system == "Windows":
-            if graceful:
-                subprocess.run(["taskkill", "/IM", "chrome.exe"], capture_output=True)
-            else:
-                subprocess.run(
-                    ["taskkill", "/F", "/IM", "chrome.exe"], capture_output=True
-                )
-        else:
-            if graceful:
-                subprocess.run(["pkill", "-f", "chrome"], capture_output=True)
-            else:
-                subprocess.run(["pkill", "-9", "-f", "chrome"], capture_output=True)
-
-        # Wait for process to die
-        await asyncio.sleep(2)
-        return find_chrome_process() is None
-    except Exception as e:
-        logger.warning(f"Error killing Chrome: {e}")
-        return False
-
-
 async def ensure_chrome_with_cdp(
     cdp_port: int = DEFAULT_WINDIE_CDP_PORT,
     auto_launch: bool = True,
@@ -451,70 +351,3 @@ async def ensure_chrome_with_cdp(
         "WindieOS browser is not running and auto_launch is disabled. "
         f"Start a WindieOS browser instance with --remote-debugging-port={cdp_port}."
     )
-
-
-class ChromeLauncher:
-    """
-    High-level Chrome launcher with lifecycle management.
-
-    Example:
-        launcher = ChromeLauncher()
-        cdp_url = await launcher.launch()
-        # ... use browser ...
-        await launcher.shutdown()
-    """
-
-    def __init__(
-        self,
-        cdp_port: int = DEFAULT_WINDIE_CDP_PORT,
-        auto_launch: bool = True,
-        headless: bool = False,
-    ):
-        self.cdp_port = cdp_port
-        self.cdp_url = f"http://127.0.0.1:{cdp_port}"
-        self.auto_launch = auto_launch
-        self.headless = headless
-        self.process: Optional[subprocess.Popen] = None
-        self._launched_by_us = False
-
-    async def launch(self) -> str:
-        """
-        Launch or connect to Chrome.
-
-        Returns:
-            CDP URL
-        """
-        # Check if already available
-        if await is_cdp_available(self.cdp_url):
-            logger.info(f"Using existing Chrome with CDP at {self.cdp_url}")
-            return self.cdp_url
-
-        # Launch new Chrome
-        if self.auto_launch:
-            self.process, self.cdp_url = await launch_chrome_with_cdp(
-                cdp_port=self.cdp_port,
-                headless=self.headless,
-            )
-            self._launched_by_us = True
-            return self.cdp_url
-
-        raise ChromeLauncherError("CDP not available and auto_launch disabled")
-
-    async def shutdown(self, kill: bool = False):
-        """
-        Shutdown Chrome if we launched it.
-
-        Args:
-            kill: Force kill even if we didn't launch it
-        """
-        if self.process and self._launched_by_us:
-            logger.info("Shutting down Chrome we launched")
-            try:
-                self.process.terminate()
-                await asyncio.sleep(1)
-                if self.process.poll() is None:
-                    self.process.kill()
-            except Exception as e:
-                logger.warning(f"Error shutting down Chrome: {e}")
-        elif kill:
-            await kill_existing_chrome(graceful=False)

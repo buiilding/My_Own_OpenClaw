@@ -2,27 +2,20 @@
 Tests for Chrome launcher module.
 """
 
-import asyncio
-import subprocess
 from pathlib import Path
 from unittest import mock
 
 import pytest
-
 from tools.browser.chrome_launcher import (
-    is_cdp_available,
-    find_chrome_process,
-    is_chrome_running_with_cdp,
-    get_chrome_user_data_dir,
-    launch_chrome_with_cdp,
-    kill_existing_chrome,
-    ensure_chrome_with_cdp,
-    is_cdp_download_behavior_supported,
-    terminate_windie_chrome_with_cdp,
-    ChromeLauncher,
-    ChromeNotFoundError,
+    DEFAULT_WINDIE_CDP_URL,
     ChromeLaunchTimeoutError,
-    DEFAULT_CDP_URL,
+    ChromeNotFoundError,
+    ensure_chrome_with_cdp,
+    get_chrome_user_data_dir,
+    is_cdp_available,
+    is_cdp_download_behavior_supported,
+    launch_chrome_with_cdp,
+    terminate_windie_chrome_with_cdp,
 )
 
 
@@ -55,7 +48,7 @@ class TestIsCdpAvailable:
         ) as mock_session_class:
             self._patch_client_session(mock_session_class, mock_get_cm)
 
-            result = await is_cdp_available(DEFAULT_CDP_URL)
+            result = await is_cdp_available(DEFAULT_WINDIE_CDP_URL)
 
             assert result is True
 
@@ -73,7 +66,7 @@ class TestIsCdpAvailable:
         ) as mock_session_class:
             self._patch_client_session(mock_session_class, mock_get_cm)
 
-            result = await is_cdp_available(DEFAULT_CDP_URL)
+            result = await is_cdp_available(DEFAULT_WINDIE_CDP_URL)
 
             assert result is False
 
@@ -111,7 +104,7 @@ class TestCdpDownloadBehaviorSupport:
         )
         mock_session_class.return_value.__aexit__ = mock.AsyncMock(return_value=False)
 
-        assert await is_cdp_download_behavior_supported(DEFAULT_CDP_URL) is True
+        assert await is_cdp_download_behavior_supported(DEFAULT_WINDIE_CDP_URL) is True
         mock_ws.send_json.assert_awaited_once_with(
             {
                 "id": 1,
@@ -153,73 +146,7 @@ class TestCdpDownloadBehaviorSupport:
         )
         mock_session_class.return_value.__aexit__ = mock.AsyncMock(return_value=False)
 
-        assert await is_cdp_download_behavior_supported(DEFAULT_CDP_URL) is False
-
-
-class TestFindChromeProcess:
-    """Test find_chrome_process function."""
-
-    @mock.patch("platform.system")
-    @mock.patch("subprocess.run")
-    def test_find_chrome_windows(self, mock_run, mock_system):
-        """Test finding Chrome on Windows."""
-        mock_system.return_value = "Windows"
-        mock_run.return_value = mock.Mock(
-            stdout='"Image Name","PID","Session Name","Session#","Mem Usage"\n"chrome.exe","12345","Console","1","123,456 K"',
-            returncode=0,
-        )
-
-        result = find_chrome_process()
-
-        assert result == 12345
-
-    @mock.patch("platform.system")
-    @mock.patch("subprocess.run")
-    def test_find_chrome_linux(self, mock_run, mock_system):
-        """Test finding Chrome on Linux."""
-        mock_system.return_value = "Linux"
-        mock_run.return_value = mock.Mock(stdout="12345\n12346\n", returncode=0)
-
-        result = find_chrome_process()
-
-        assert result == 12345
-
-    @mock.patch("platform.system")
-    @mock.patch("subprocess.run")
-    def test_no_chrome_running(self, mock_run, mock_system):
-        """Test when Chrome is not running."""
-        mock_system.return_value = "Linux"
-        mock_run.return_value = mock.Mock(stdout="", returncode=1)
-
-        result = find_chrome_process()
-
-        assert result is None
-
-
-class TestIsChromeRunningWithCdp:
-    """Test is_chrome_running_with_cdp function."""
-
-    @mock.patch("socket.socket")
-    def test_port_open(self, mock_socket_class):
-        """Test when port is open."""
-        mock_sock = mock.Mock()
-        mock_sock.connect_ex.return_value = 0
-        mock_socket_class.return_value = mock_sock
-
-        result = is_chrome_running_with_cdp(9222)
-
-        assert result is True
-
-    @mock.patch("socket.socket")
-    def test_port_closed(self, mock_socket_class):
-        """Test when port is closed."""
-        mock_sock = mock.Mock()
-        mock_sock.connect_ex.return_value = 61  # Connection refused
-        mock_socket_class.return_value = mock_sock
-
-        result = is_chrome_running_with_cdp(9222)
-
-        assert result is False
+        assert await is_cdp_download_behavior_supported(DEFAULT_WINDIE_CDP_URL) is False
 
 
 class TestGetChromeUserDataDir:
@@ -288,7 +215,7 @@ class TestLaunchChromeWithCdp:
         process, cdp_url = await launch_chrome_with_cdp()
 
         assert process is mock_process
-        assert cdp_url == DEFAULT_CDP_URL
+        assert cdp_url == DEFAULT_WINDIE_CDP_URL
         mock_popen.assert_called_once()
         launch_args = mock_popen.call_args.args[0]
         assert "--user-data-dir=/tmp/test-google-chrome-cdp" in launch_args
@@ -331,40 +258,6 @@ class TestLaunchChromeWithCdp:
 
         # Should have tried to kill the process
         mock_process.terminate.assert_called_once()
-
-
-class TestKillExistingChrome:
-    """Test kill_existing_chrome function."""
-
-    @pytest.mark.asyncio
-    @mock.patch("platform.system")
-    @mock.patch("subprocess.run")
-    @mock.patch("tools.browser.chrome_launcher.find_chrome_process")
-    async def test_kill_success(self, mock_find, mock_run, mock_system):
-        """Test successful kill."""
-        mock_system.return_value = "Linux"
-        mock_run.return_value = mock.Mock(returncode=0)
-        mock_find.side_effect = [12345, None]  # Running, then killed
-
-        with mock.patch(
-            "tools.browser.chrome_launcher.asyncio.sleep", new=mock.AsyncMock()
-        ):
-            result = await kill_existing_chrome()
-
-        assert result is True
-        mock_run.assert_called_with(["pkill", "-f", "chrome"], capture_output=True)
-
-    @pytest.mark.asyncio
-    @mock.patch("platform.system")
-    @mock.patch("subprocess.run")
-    async def test_kill_error(self, mock_run, mock_system):
-        """Test kill with error."""
-        mock_system.return_value = "Linux"
-        mock_run.side_effect = Exception("pkill failed")
-
-        result = await kill_existing_chrome()
-
-        assert result is False
 
 
 class TestTerminateWindieChromeWithCdp:
@@ -422,7 +315,7 @@ class TestEnsureChromeWithCdp:
 
         result = await ensure_chrome_with_cdp()
 
-        assert result == DEFAULT_CDP_URL
+        assert result == DEFAULT_WINDIE_CDP_URL
 
     @pytest.mark.asyncio
     @mock.patch("tools.browser.chrome_launcher.is_cdp_download_behavior_supported")
@@ -464,12 +357,10 @@ class TestEnsureChromeWithCdp:
 
     @pytest.mark.asyncio
     @mock.patch("tools.browser.chrome_launcher.is_cdp_available")
-    @mock.patch("tools.browser.chrome_launcher.find_chrome_process")
     @mock.patch("tools.browser.chrome_launcher.launch_chrome_with_cdp")
-    async def test_auto_launch(self, mock_launch, mock_find, mock_available):
+    async def test_auto_launch(self, mock_launch, mock_available):
         """Test auto-launching Chrome when not running."""
         mock_available.return_value = False
-        mock_find.return_value = None  # Chrome not running
         mock_process = mock.Mock()
         mock_launch.return_value = (mock_process, "http://127.0.0.1:9222")
 
@@ -480,62 +371,11 @@ class TestEnsureChromeWithCdp:
 
     @pytest.mark.asyncio
     @mock.patch("tools.browser.chrome_launcher.is_cdp_available")
-    @mock.patch("tools.browser.chrome_launcher.find_chrome_process")
-    async def test_no_auto_launch(self, mock_find, mock_available):
+    async def test_no_auto_launch(self, mock_available):
         """Test error when auto_launch disabled."""
         mock_available.return_value = False
-        mock_find.return_value = None
 
         with pytest.raises(Exception) as exc_info:
             await ensure_chrome_with_cdp(auto_launch=False)
 
         assert "auto_launch is disabled" in str(exc_info.value)
-
-
-class TestChromeLauncher:
-    """Test ChromeLauncher class."""
-
-    @pytest.mark.asyncio
-    @mock.patch("tools.browser.chrome_launcher.is_cdp_available")
-    async def test_use_existing(self, mock_available):
-        """Test using existing Chrome."""
-        mock_available.return_value = True
-
-        launcher = ChromeLauncher()
-        result = await launcher.launch()
-
-        assert result == DEFAULT_CDP_URL
-        assert not launcher._launched_by_us
-
-    @pytest.mark.asyncio
-    @mock.patch("tools.browser.chrome_launcher.is_cdp_available")
-    @mock.patch("tools.browser.chrome_launcher.launch_chrome_with_cdp")
-    async def test_launch_new(self, mock_launch, mock_available):
-        """Test launching new Chrome."""
-        mock_available.return_value = False
-        mock_process = mock.Mock()
-        mock_launch.return_value = (mock_process, "http://127.0.0.1:9222")
-
-        launcher = ChromeLauncher()
-        result = await launcher.launch()
-
-        assert result == "http://127.0.0.1:9222"
-        assert launcher._launched_by_us
-        mock_launch.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_shutdown(self):
-        """Test shutdown functionality."""
-        mock_process = mock.Mock()
-        mock_process.poll.return_value = 0  # Already terminated
-
-        launcher = ChromeLauncher()
-        launcher.process = mock_process
-        launcher._launched_by_us = True
-
-        with mock.patch(
-            "tools.browser.chrome_launcher.asyncio.sleep", new=mock.AsyncMock()
-        ):
-            await launcher.shutdown()
-
-        mock_process.terminate.assert_called_once()

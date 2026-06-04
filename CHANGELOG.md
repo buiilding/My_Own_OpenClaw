@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sidecar/browser: delete legacy broad Chrome process helpers and the
+  unused `ChromeLauncher` wrapper so browser startup uses the Windie-owned CDP
+  ensure/launch/terminate path only.
 - frontend/sidecar/browser: delete unused page-object content extraction helpers
   so Browser Use HTML capture plus `html_to_markdown` remains the browser
   extraction path.
