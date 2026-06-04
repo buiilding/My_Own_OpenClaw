@@ -8,6 +8,9 @@ All notable changes to WindieOS will be documented in this file.
 
 - examples/simple-chat-cli: keep the system prompt option visible while using
   the default WindieOS system prompt.
+- tools/shell: remove the stale `max_output_tokens` argument from the backend
+  shell schema and docs so shell output limits are owned by the sidecar process
+  session model instead of a silent ignored field.
 - frontend/sidecar: remove the duplicated `core` backend config, auth,
   unicode-sanitizer, and remote API base shims so sidecar callers use the
   `windie` owner modules directly.

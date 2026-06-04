@@ -2,7 +2,6 @@ from backend.src.core.config import AppConfig
 from backend.src.core.infrastructure.cache_manager import CacheManager
 from backend.src.tools.registry import ToolRegistry
 
-
 _SYSTEM_TOOL_NAMES = [
     "get_open_windows",
     "get_system_stats",
@@ -31,20 +30,33 @@ def test_run_shell_command_schema_is_direct_and_requires_explanation():
     assert parameters["required"] == ["command", "run_in_background", "explanation"]
     assert "tool" not in parameters["properties"]
     assert "arguments" not in parameters["properties"]
-    assert "prefer fast targeted commands such as rg" in parameters["properties"]["command"]["description"]
-    assert "relative paths resolve from the user-selected WindieOS workspace folder" in parameters["properties"]["directory"]["description"]
+    assert "max_output_tokens" not in parameters["properties"]
+    assert (
+        "prefer fast targeted commands such as rg"
+        in parameters["properties"]["command"]["description"]
+    )
+    assert (
+        "relative paths resolve from the user-selected WindieOS workspace folder"
+        in parameters["properties"]["directory"]["description"]
+    )
 
 
 def test_filesystem_tool_schemas_describe_workspace_relative_paths():
     registry = ToolRegistry(config=AppConfig(), cache_manager=CacheManager())
     declarations = registry.get_function_declarations_filtered(["read_file", "replace"])
-    declarations_by_name = {declaration["name"]: declaration for declaration in declarations}
+    declarations_by_name = {
+        declaration["name"]: declaration for declaration in declarations
+    }
 
     assert "relative paths resolve from the selected workspace folder" in (
-        declarations_by_name["read_file"]["parameters"]["properties"]["file_path"]["description"]
+        declarations_by_name["read_file"]["parameters"]["properties"]["file_path"][
+            "description"
+        ]
     )
     assert "relative paths resolve from the selected workspace folder" in (
-        declarations_by_name["replace"]["parameters"]["properties"]["file_path"]["description"]
+        declarations_by_name["replace"]["parameters"]["properties"]["file_path"][
+            "description"
+        ]
     )
 
 

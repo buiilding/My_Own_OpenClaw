@@ -18,7 +18,7 @@ For code changes or debugging, start with [Filesystem and Shell Change Workflow]
 | --- | --- | --- |
 | `read_file` | Read text files with pagination, binary guards, and truncation behavior | `frontend/src/main/python/tools/filesystem/read_file_tool.py` |
 | `replace` | Apply strict/lenient replacements and patch chunks atomically | `frontend/src/main/python/tools/filesystem/replace_tool.py`, `replace_engine.py` |
-| `run_shell_command` | Run foreground/background shell commands with output limits | `frontend/src/main/python/tools/system/shell_tool.py` |
+| `run_shell_command` | Run foreground/background shell commands | `frontend/src/main/python/tools/system/shell_tool.py` |
 | `process` | Interact with ongoing process sessions | `frontend/src/main/python/tools/system/process_tool.py` |
 | `open_app` | Open local apps | `frontend/src/main/python/tools/system/open_app_tool.py` |
 | `wait` | Non-blocking wait helper | `frontend/src/main/python/tools/system/wait_tool.py` |
@@ -33,7 +33,7 @@ For code changes or debugging, start with [Filesystem and Shell Change Workflow]
   reaching local execution.
 - Keep shell output formatting predictable for both user display and model-facing `output`.
 - Use background sessions only when command output needs polling or the process must outlive the immediate request.
-- Keep token-budget truncation visible in returned metadata.
+- Use `process` for high-volume or long-running command output.
 
 ## Deep Docs
 

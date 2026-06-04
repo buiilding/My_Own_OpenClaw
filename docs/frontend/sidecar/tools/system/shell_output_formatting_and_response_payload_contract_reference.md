@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for sidecar shell output formatting and response payload builders: token-budget truncation rules, display/LLM content shaping, and foreground/background response envelopes."
+summary: "Deep reference for sidecar shell output formatting and response payload builders: foreground display text, raw captured output, and foreground/background response envelopes."
 read_when:
-  - When changing `run_shell_command` output shaping (`output`, `output`, truncation metadata).
-  - When changing shell response payload fields returned to ToolRegistry/backend (`output_token_limit`, `output_truncated`, session-running metadata).
+  - When changing `run_shell_command` output shaping (`output`, `error`, `message`).
+  - When changing shell response payload fields returned to ToolRegistry/backend or session-running metadata.
 title: "Shell Output Formatting and Response Payload Contract Reference"
 ---
 
@@ -20,40 +20,21 @@ title: "Shell Output Formatting and Response Payload Contract Reference"
 
 `shell_tool.py` delegates shell output shaping to focused helpers:
 
-- token-budget + content formatting: `shell_output_formatting.py`
+- user-facing status text formatting: `shell_output_formatting.py`
 - foreground/background response envelope assembly: `shell_response_payloads.py`
 
 This keeps process execution/session lifecycle logic separate from payload-shaping contracts.
 
-## Max Output Token Contract
+## Raw Output Contract
 
-`resolve_max_output_tokens(raw_value)` behavior:
+`run_shell_command` does not accept a caller-provided output token limit. The
+foreground response exposes the captured `stdout` as `data.output` and captured
+`stderr` as `data.error`.
 
-- `None` -> defaults to `DEFAULT_MAX_OUTPUT_TOKENS` (`10000`)
-- non-int or bool -> validation error (`max_output_tokens must be an integer`)
-- `<= 0` -> validation error (`max_output_tokens must be greater than zero`)
-- positive int -> accepted limit
-
-## Approximate Token Truncation Policy
-
-`format_llm_output(...)` uses approximate budget:
-
-- `APPROX_BYTES_PER_TOKEN = 4`
-- output block built from:
-  - stdout section (`Output:`)
-  - stderr section (`Error:`)
-- if output exceeds budget:
-  - keeps head + tail slices
-  - inserts marker `…<n> tokens truncated…`
-  - prefixes `Total output lines: <count>`
-  - reports `Original output token count: <count>` in final `output`
-
-Status lines appended to model-facing content:
-
-- success (`exit_code == 0`)
-- failed non-zero exit
-- timed out
-- execution time (seconds)
+For long-running or high-volume commands, use `run_in_background=true` or
+`yield_after_seconds`, then inspect output through the `process` tool. Background
+session storage is capped by `shell_process_registry.py` using character limits
+instead of per-call model token limits.
 
 ## Display Output Contract
 
@@ -89,39 +70,33 @@ Returns:
   - `command`, `working_directory`
   - `output`, `error`, `exit_code`, `execution_time`, `timed_out`
   - `warnings`
-  - `output_token_limit`
-  - `original_output_tokens`
-  - `output_truncated`
-  - `output`
-  - `output`
+  - raw `output`
+  - user-facing `message`
 
-Warnings append to `output` suffix while preserving base status text.
+Warnings append to `message` while preserving base status text.
 
 ## ToolRegistry/Backend Contract Impact
 
 These fields are consumed downstream as standard tool result payload keys:
 
-- model-facing: `output`
-- UI-facing short text: `output`
-- truncation diagnostics: `output_token_limit`, `original_output_tokens`, `output_truncated`
+- model-facing captured stdout: `output`
+- captured stderr: `error`
+- UI-facing short text: `message`
 
 Maintaining field names is required for backward-compatible result transformer behavior.
 
 ## Test-Backed Signals
 
-`tests/sidecar/test_shell_output_formatting.py` verifies:
-
-- default + validation behavior of `max_output_tokens`
-- truncation marker and original-token metadata emission
-- display status text for success/failure/timeout
+`tests/sidecar/test_shell_output_formatting.py` verifies display status text for
+success/failure/timeout.
 
 `tests/sidecar/test_shell_process_tool.py` continues to validate integration behavior through `run_shell_command` end-to-end paths.
 
 ## Drift Hotspots
 
-1. Changing truncation marker text can break log scanning and snapshot expectations.
-2. Renaming `output_token_limit` / `output_truncated` / `original_output_tokens` breaks downstream diagnostics.
-3. Diverging `output` vs `output` status semantics can confuse model history vs user status views.
+1. Renaming `output`, `error`, or `message` breaks downstream result handling.
+2. Adding caller-controlled output truncation in shell execution can hide command output that users expect to inspect directly.
+3. Diverging raw captured output from user-facing status text can confuse model history vs user status views.
 
 ## Related Pages
 

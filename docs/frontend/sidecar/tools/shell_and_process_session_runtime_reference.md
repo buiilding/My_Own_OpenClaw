@@ -48,7 +48,6 @@ Validation and defaults:
 
 - `command` must be non-empty
 - `directory` may be omitted, absolute, or relative; omitted and relative values resolve from the selected workspace folder from `filesystem_workspace_access` when available, then `Path.home()`
-- `max_output_tokens` defaults to `10000`; must be positive int
 - `terminate_after_seconds` defaults to `120.0`
 - optional `pty=true` is best-effort (disabled on Windows or missing `pty` module)
 - repository/log search guidance remains model-facing rather than executor-enforced: prefer `rg` and exclude generated directories such as `node_modules`, `frontend/release`, `frontend/python-runtime`, and `.git` unless the user explicitly needs them
@@ -77,14 +76,14 @@ Foreground vs background:
 
 Output shaping:
 
-- LLM output uses approximate token budgeting (`4 chars ~= 1 token`)
-- oversized output is head+tail truncated with marker `... tokens truncated ...`
+- foreground responses return the sidecar-captured stdout/stderr directly
+- `run_shell_command` does not accept a caller-provided output token limit
+- background sessions keep aggregate and pending-output caps in the process
+  registry; use `process` actions to poll or inspect long-running output
 - response includes:
-  - `output_token_limit`
-  - `original_output_tokens`
-  - `output_truncated`
-  - `output`
-  - human-readable `output`
+  - raw `output`
+  - raw `error`
+  - human-readable `message`
 
 ## Session Registry Model
 
@@ -158,7 +157,7 @@ Termination and cleanup:
 - default cwd fallback to selected workspace folder, then user home
 - environment override support
 - PTY warning behavior when unavailable
-- default/custom output token truncation
+- raw foreground output without frontend token-limit truncation
 - session list/poll/log/write/send-keys/remove/clear paths
 
 `tests/sidecar/test_shell_process_registry.py` covers:
@@ -171,8 +170,6 @@ Termination and cleanup:
 
 `tests/sidecar/test_shell_output_formatting.py` covers:
 
-- `max_output_tokens` default/validation behavior
-- truncation marker and token-count metadata in `output`
 - status-specific `output` formatting
 
 ## Drift Hotspots

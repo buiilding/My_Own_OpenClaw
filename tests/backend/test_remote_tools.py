@@ -318,3 +318,4 @@ def test_direct_remote_tool_schema_uses_flat_internal_shape():
     assert schema["type"] == "function"
     assert schema["name"] == "run_shell_command"
     assert "parameters" in schema
+    assert "max_output_tokens" not in schema["parameters"]["properties"]

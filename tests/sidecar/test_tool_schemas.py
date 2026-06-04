@@ -242,6 +242,16 @@ def test_shared_direct_tool_schemas_require_explanation():
         GetSystemStatsArgs()
 
 
+def test_run_shell_command_rejects_legacy_output_token_limit():
+    with pytest.raises(ValidationError):
+        RunShellCommandArgs(
+            command="pwd",
+            run_in_background=False,
+            explanation=EXPLANATION,
+            max_output_tokens=10,
+        )
+
+
 def test_wait_tool_schema_requires_seconds():
     with pytest.raises(ValidationError):
         WaitToolArgs(explanation=EXPLANATION)

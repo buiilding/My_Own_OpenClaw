@@ -39,7 +39,7 @@ flowchart LR
 - Sidecar runtime argument models live in `frontend/src/main/python/tools/schemas.py`. Sidecar executable implementations live in `frontend/src/main/python/tools/filesystem` and `frontend/src/main/python/tools/system`.
 - `read_file` may read text, selected binary-safe formats, and paginated windows, but it must keep OCR/text extraction boundaries explicit. OCR belongs to screenshot/vision/OCR flows, not normal file reads.
 - `replace` must preserve the atomic edit contract: validate input first, read existing content, compute all matches/replacements, write through a temporary file, then `os.replace`. Failed matches must not partially mutate the target.
-- `run_shell_command` must keep output predictable for user display and model-facing `output`. Truncation metadata must remain visible when output is shortened.
+- `run_shell_command` must keep output predictable for user display and model-facing `output`. Foreground execution returns captured stdout/stderr directly; long-running or high-volume output should use background sessions and `process`.
 - `process` owns ongoing shell sessions after foreground execution yields or a command starts in the background. Do not create parallel session state in renderer or backend code.
 - Linux sudo prompting depends on the frontend bridge injecting `sudo_auth_mode=os_prompt` unless full sudo is explicitly enabled. Sidecar shell code owns the final `native` versus OS-prompt execution behavior.
 - File/shell default-directory behavior is tied to selected workspace context. If defaults feel wrong, inspect workspace selection and permission/runtime context before changing shell or filesystem code.
@@ -100,12 +100,12 @@ flowchart LR
    - No failed replacement mode should leave a partially edited file.
 
 6. Preserve shell/process contracts.
-   - `run_shell_command` must reject empty commands and invalid token limits.
+   - `run_shell_command` must reject empty commands and fields outside the current schema.
    - Relative or omitted directories should resolve consistently with selected workspace behavior.
    - Foreground commands should honor timeout/yield behavior and clean registry entries when done.
    - Background commands should return a `session_id` and be manageable through `process`.
    - PTY behavior is best-effort and platform-aware; Windows fallback behavior must stay explicit.
-   - Output truncation should retain enough head and tail context plus clear truncation metadata.
+   - Background-session output caps should retain enough recent context for polling and logs.
    - `process` actions should keep action-specific validation: `list`, `poll`, `log`, `write`, `send-keys`, `submit`, `paste`, `kill`, `clear`, `remove`.
 
 7. Preserve result shape.

@@ -1,17 +1,17 @@
+import asyncio
 import os
 import sys
 from pathlib import Path
 
-import asyncio
 import pytest
 from tests.sidecar.remote_client_test_utils import ensure_frontend_python_path
 
 ensure_frontend_python_path()
 
-from tools.system.shell_tool import run_shell_command  # noqa: E402
-from tools.system.process_tool import process_shell_command  # noqa: E402
-from tools.system import shell_tool  # noqa: E402
 from tools.system import shell_process_registry as registry  # noqa: E402
+from tools.system import shell_tool  # noqa: E402
+from tools.system.process_tool import process_shell_command  # noqa: E402
+from tools.system.shell_tool import run_shell_command  # noqa: E402
 
 
 async def _wait_for_finish(session_id: str, timeout: float = 2.0):
@@ -251,40 +251,6 @@ async def test_run_shell_command_returns_raw_output_without_frontend_truncation(
     assert "token token token" in data["output"]
     assert "tokens truncated" not in data["output"]
     assert "output_token_limit" not in data
-
-
-@pytest.mark.asyncio
-async def test_run_shell_command_ignores_legacy_max_output_tokens():
-    cmd = f'{sys.executable} -c "print(\'token \' * 500)"'
-    result = await run_shell_command(
-        {
-            "command": cmd,
-            "run_in_background": False,
-            "terminate_after_seconds": 5,
-            "max_output_tokens": 6,
-        }
-    )
-
-    assert result["success"] is True
-    data = result["data"]
-    assert "token token token" in data["output"]
-    assert "tokens truncated" not in data["output"]
-
-
-@pytest.mark.asyncio
-async def test_run_shell_command_ignores_invalid_legacy_max_output_tokens():
-    cmd = f'{sys.executable} -c "print(\'ok\')"'
-    result = await run_shell_command(
-        {
-            "command": cmd,
-            "run_in_background": False,
-            "terminate_after_seconds": 5,
-            "max_output_tokens": "bad",
-        }
-    )
-
-    assert result["success"] is True
-    assert result["data"]["output"].strip() == "ok"
 
 
 @pytest.mark.asyncio
