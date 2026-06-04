@@ -4,6 +4,7 @@ Artifact storage service.
 Stores large binary artifacts (screenshots, snapshots) on disk and returns
 stable artifact IDs for WS payloads.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -23,7 +24,6 @@ _SAFE_ID_RE = re.compile(r"^[a-zA-Z0-9_-]+\.(png|jpg|jpeg)$")
 _CONTENT_TYPE_TO_EXT = {
     "image/png": "png",
     "image/jpeg": "jpg",
-    "image/jpg": "jpg",
 }
 
 _EXT_TO_CONTENT_TYPE = {
@@ -77,7 +77,9 @@ class ArtifactStore:
             owner_user_id,
         ):
             raise HTTPException(status_code=404, detail="Artifact not found")
-        content_type = _EXT_TO_CONTENT_TYPE.get(path.suffix.lstrip("."), "application/octet-stream")
+        content_type = _EXT_TO_CONTENT_TYPE.get(
+            path.suffix.lstrip("."), "application/octet-stream"
+        )
         return path, content_type
 
     def _resolve_upload_extension(self, upload: UploadFile) -> str:
@@ -99,12 +101,16 @@ class ArtifactStore:
     def _metadata_path(self, artifact_id: str) -> Path:
         return self.base_dir / f"{artifact_id}.meta.json"
 
-    def _write_metadata(self, artifact_id: str, *, owner_user_id: Optional[str]) -> None:
+    def _write_metadata(
+        self, artifact_id: str, *, owner_user_id: Optional[str]
+    ) -> None:
         metadata_path = self._metadata_path(artifact_id)
         payload = {}
         if isinstance(owner_user_id, str) and owner_user_id.strip():
             payload["owner_user_id"] = owner_user_id.strip()
-        metadata_path.write_text(json.dumps(payload, separators=(",", ":")), encoding="utf-8")
+        metadata_path.write_text(
+            json.dumps(payload, separators=(",", ":")), encoding="utf-8"
+        )
 
     def _artifact_belongs_to_user(self, artifact_id: str, owner_user_id: str) -> bool:
         metadata_path = self._metadata_path(artifact_id)
@@ -140,7 +146,9 @@ class ArtifactStore:
                         break
                     size += len(chunk)
                     if size > self.max_bytes:
-                        raise HTTPException(status_code=413, detail="Artifact too large")
+                        raise HTTPException(
+                            status_code=413, detail="Artifact too large"
+                        )
                     hasher.update(chunk)
                     handle.write(chunk)
         except HTTPException:
@@ -148,13 +156,17 @@ class ArtifactStore:
             raise
         except Exception as exc:
             self._cleanup_partial_upload(path)
-            raise HTTPException(status_code=500, detail="Artifact upload failed") from exc
+            raise HTTPException(
+                status_code=500, detail="Artifact upload failed"
+            ) from exc
 
         try:
             self._write_metadata(artifact_id, owner_user_id=owner_user_id)
         except Exception as exc:
             self._cleanup_partial_upload(path)
-            raise HTTPException(status_code=500, detail="Artifact upload failed") from exc
+            raise HTTPException(
+                status_code=500, detail="Artifact upload failed"
+            ) from exc
 
         return ArtifactMeta(
             artifact_id=artifact_id,
@@ -188,7 +200,9 @@ class ArtifactStore:
             self._write_metadata(artifact_id, owner_user_id=owner_user_id)
         except Exception as exc:
             self._cleanup_partial_upload(path)
-            raise HTTPException(status_code=500, detail="Artifact upload failed") from exc
+            raise HTTPException(
+                status_code=500, detail="Artifact upload failed"
+            ) from exc
 
         return ArtifactMeta(
             artifact_id=artifact_id,

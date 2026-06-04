@@ -8,6 +8,8 @@ All notable changes to WindieOS will be documented in this file.
 
 - examples/simple-chat-cli: pin the startup model to OpenAI GPT-5.4 medium
   thinking instead of inheriting the backend default.
+- backend/artifacts: remove the non-standard `image/jpg` upload alias so
+  artifact writes accept only canonical `image/jpeg` for JPEG data.
 - backend/api: require an explicit FastAPI app when binding the API container
   and remove no-op global container binding from the initialization coordinator.
 - sdk/runtime: remove the deprecated `builtinTools` wake-up option so built-in

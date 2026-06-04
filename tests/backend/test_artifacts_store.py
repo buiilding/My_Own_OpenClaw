@@ -66,17 +66,15 @@ async def test_artifact_store_normalizes_content_type_with_parameters(tmp_path) 
 
 
 @pytest.mark.asyncio
-async def test_artifact_store_accepts_image_jpg_alias(tmp_path) -> None:
+async def test_artifact_store_rejects_image_jpg_alias(tmp_path) -> None:
     store = ArtifactStore(tmp_path, max_bytes=1024)
     upload = _upload_file(b"jpg-data", "shot.jpg", "image/jpg")
 
-    meta = await store.save_upload(upload)
-    path, content_type = store.resolve_path(meta.artifact_id)
+    with pytest.raises(HTTPException) as exc_info:
+        await store.save_upload(upload)
 
-    assert meta.content_type == "image/jpeg"
-    assert content_type == "image/jpeg"
-    assert meta.artifact_id.endswith(".jpg")
-    assert path.exists()
+    assert exc_info.value.status_code == 415
+    assert list(tmp_path.iterdir()) == []
 
 
 @pytest.mark.asyncio
@@ -154,7 +152,9 @@ def test_artifact_store_load_base64_enforces_max_bytes(tmp_path) -> None:
 
 
 @pytest.mark.asyncio
-async def test_artifact_store_cleans_up_partial_file_on_read_failure(tmp_path, monkeypatch) -> None:
+async def test_artifact_store_cleans_up_partial_file_on_read_failure(
+    tmp_path, monkeypatch
+) -> None:
     store = ArtifactStore(tmp_path, max_bytes=1024)
     monkeypatch.setattr(
         "backend.src.services.artifacts.store.uuid4",

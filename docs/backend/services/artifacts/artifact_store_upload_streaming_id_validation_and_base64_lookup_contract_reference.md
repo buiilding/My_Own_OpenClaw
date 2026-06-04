@@ -25,7 +25,6 @@ Content-type to extension mapping:
 
 - `image/png` -> `png`
 - `image/jpeg` -> `jpg`
-- `image/jpg` -> `jpg`
 
 Normalized resolved response type mapping:
 
@@ -93,7 +92,7 @@ No partial artifact should remain after failed upload.
 
 - save + resolve happy path
 - content-type normalization with parameters (`IMAGE/PNG; charset=binary`)
-- `image/jpg` alias acceptance with normalized jpeg output type
+- non-canonical `image/jpg` rejection
 - upload max-byte enforcement and empty directory after rejection
 - missing/unsupported content-type rejection
 - invalid ID (400) and missing file (404)
