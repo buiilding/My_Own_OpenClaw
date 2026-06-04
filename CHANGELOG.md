@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/browser: remove the shared-contract loader path helper so the loader
+  exposes one runtime entrypoint and tests assert the `sys.path` invariant
+  directly.
 - backend/browser: remove the package-level lazy `RemoteBrowserTool` and
   `BrowserControlArgs` re-export so browser schemas and remote tool classes
   import from their owning modules.

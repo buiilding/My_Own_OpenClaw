@@ -1,7 +1,6 @@
 import sys
 
 from backend.src.tools.browser.shared_contract_loader import (
-    get_frontend_python_path,
     load_shared_browser_contract,
 )
 
@@ -17,7 +16,3 @@ def test_browser_shared_contract_loader_does_not_mutate_sys_path(monkeypatch):
 
     assert contract.BROWSER_CANONICAL_ACTIONS
     assert sys.path == before_sys_path
-    if get_frontend_python_path() in before_sys_path:
-        assert sys.path.index(get_frontend_python_path()) == before_sys_path.index(
-            get_frontend_python_path()
-        )
