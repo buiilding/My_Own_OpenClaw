@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/rehydrate: remove test-only normalization wrapper methods from
+  `RehydrateExecutionService`; row normalization tests now target the owning
+  `RehydrateEntryNormalizer` and tool-call helper modules directly.
 - backend/sidecar/filesystem: remove legacy top-level `replace` edit fields so
   filesystem edits use `replacements[]` or `patch_chunks[]` only.
 - backend/simulation: replace legacy JSON-text mock response adaptation with

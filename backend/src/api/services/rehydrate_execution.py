@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import logging
 import inspect
+import logging
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type, Union
 
 from backend.src.api.schemas import RehydrateConversationMessage
@@ -63,8 +63,10 @@ class RehydrateExecutionService:
                 getattr(entry, "transparency", None)
             )
             if rehydrated_system_prompt is None:
-                rehydrated_system_prompt = self._entry_normalizer.extract_system_prompt_from_transparency(
-                    transparency
+                rehydrated_system_prompt = (
+                    self._entry_normalizer.extract_system_prompt_from_transparency(
+                        transparency
+                    )
                 )
 
             image_data = self._resolve_image_data(
@@ -121,7 +123,8 @@ class RehydrateExecutionService:
         positional_params = [
             parameter
             for parameter in (signature.parameters.values() if signature else [])
-            if parameter.kind in (
+            if parameter.kind
+            in (
                 inspect.Parameter.POSITIONAL_ONLY,
                 inspect.Parameter.POSITIONAL_OR_KEYWORD,
             )
@@ -144,51 +147,6 @@ class RehydrateExecutionService:
             session,
             workspace_path,
         )
-
-    def _normalize_rehydrated_entry(
-        self,
-        *,
-        entry: Any,
-        index: int,
-        image_data: Optional[Union[str, List[str]]],
-        known_tool_call_ids: set[str],
-        pending_tool_call_id: Optional[str],
-        transparency: Optional[Dict[str, Any]],
-    ) -> tuple[List[Dict[str, Any]], Optional[str]]:
-        """
-        Compatibility wrapper for tests that assert per-entry normalization behavior.
-        """
-        state = RehydrateNormalizationState(
-            known_tool_call_ids=known_tool_call_ids,
-            pending_tool_call_ids=[pending_tool_call_id] if pending_tool_call_id else [],
-        )
-        return self._entry_normalizer.normalize_entry(
-            entry=entry,
-            index=index,
-            image_data=image_data,
-            transparency=transparency,
-            state=state,
-        )
-
-    def _extract_tool_call_details(
-        self,
-        *,
-        content: str,
-        fallback_tool_name: Optional[str],
-    ) -> tuple[str, Dict[str, Any], Optional[str], Optional[str]]:
-        return self._entry_normalizer.extract_tool_call_details(
-            content=content,
-            fallback_tool_name=fallback_tool_name,
-        )
-
-    @classmethod
-    def _normalize_stored_message_type(cls, message_type: Optional[str]) -> Optional[str]:
-        return RehydrateEntryNormalizer.normalize_stored_message_type(message_type)
-
-    @staticmethod
-    def _normalize_tool_calls(raw_tool_calls: Any) -> List[Dict[str, Any]]:
-        normalizer = RehydrateEntryNormalizer()
-        return normalizer.normalize_tool_calls(raw_tool_calls)
 
     def _build_artifact_store(
         self,
@@ -215,9 +173,7 @@ class RehydrateExecutionService:
             return direct_image_data
         if isinstance(direct_image_data, list):
             normalized_images = [
-                image
-                for image in direct_image_data
-                if isinstance(image, str) and image
+                image for image in direct_image_data if isinstance(image, str) and image
             ]
             if normalized_images:
                 return normalized_images
