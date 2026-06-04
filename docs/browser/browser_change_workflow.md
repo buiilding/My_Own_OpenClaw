@@ -68,10 +68,10 @@ Read:
 Edit:
 
 - `frontend/src/main/python/windie_shared/browser_contract_models.py` for action literals and pydantic argument model shape.
-- `frontend/src/main/python/windie_shared/browser_contract_catalog.py` for action contract registration, model-visible status, and connection requirements.
+- `frontend/src/main/python/windie_shared/browser_contract_catalog.py` for action contract registration.
 - `frontend/src/main/python/windie_shared/browser_contract_schema.py` if grouped schema emission needs new field handling.
 - `backend/src/tools/browser/**` wrappers only if backend-specific adaptation changes.
-- `frontend/src/main/python/tools/browser/browser_use_engine.py` for runtime action mapping and WindieOS result normalization.
+- `frontend/src/main/python/tools/browser/browser_use_engine.py` for runtime handlers and WindieOS result normalization.
 - `frontend/src/main/python/tools/browser/browser_tool.py` only if validation or error mapping changes.
 - renderer browser session controls only if users need a visible control for the action.
 

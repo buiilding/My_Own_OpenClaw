@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sidecar/browser: remove unused browser action alias, visibility, and
+  connection helper exports so the shared catalog only owns canonical
+  action-to-schema routing.
 - frontend/sidecar/browser: stop emitting copied tab `target_id` values from
   Browser Use tab actions and derive renderer tab identity from canonical
   numeric `tab_index` payloads.

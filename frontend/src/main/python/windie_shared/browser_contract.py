@@ -2,10 +2,6 @@
 
 from windie_shared.browser_contract_catalog import (
     BROWSER_ACTION_CONTRACTS,
-    BROWSER_ACTION_CONTRACTS_BY_NAME,
-    BROWSER_ACTIONS_REQUIRING_CONNECTION,
-    BROWSER_MODEL_VISIBLE_ACTIONS,
-    BROWSER_RUNTIME_ACTIONS,
     BROWSER_SCHEMAS,
     BrowserActionContract,
     get_browser_schema,
@@ -59,11 +55,7 @@ from windie_shared.browser_contract_schema import build_browser_tool_parameters_
 
 __all__ = [
     "BROWSER_ACTION_CONTRACTS",
-    "BROWSER_ACTION_CONTRACTS_BY_NAME",
-    "BROWSER_ACTIONS_REQUIRING_CONNECTION",
     "BROWSER_CANONICAL_ACTIONS",
-    "BROWSER_MODEL_VISIBLE_ACTIONS",
-    "BROWSER_RUNTIME_ACTIONS",
     "BROWSER_SCHEMAS",
     "BrowserActionArgsBase",
     "BrowserActionContract",

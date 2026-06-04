@@ -8,11 +8,7 @@ from backend.src.tools.browser.shared_contract_loader import (
 
 __all__ = [
     "BROWSER_ACTION_CONTRACTS",
-    "BROWSER_ACTION_CONTRACTS_BY_NAME",
-    "BROWSER_ACTIONS_REQUIRING_CONNECTION",
     "BROWSER_CANONICAL_ACTIONS",
-    "BROWSER_MODEL_VISIBLE_ACTIONS",
-    "BROWSER_RUNTIME_ACTIONS",
     "BROWSER_SCHEMAS",
     "BrowserActionArgsBase",
     "BrowserActionContract",

@@ -61,15 +61,10 @@ Each catalog entry defines:
 
 - action name
 - strict args model
-- Browser Use runtime action name
-- whether the action requires an active browser connection
-- whether the action is model-visible
 
 Derived helpers include:
 
 - `BROWSER_SCHEMAS`
-- `BROWSER_RUNTIME_ACTIONS`
-- `BROWSER_ACTIONS_REQUIRING_CONNECTION`
 - `build_browser_tool_parameters_schema()`
 
 ## Remote Payload Implication

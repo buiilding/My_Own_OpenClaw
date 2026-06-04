@@ -40,7 +40,7 @@ There are no removed-alias actions or compatibility-only browser fields in the b
 The shared contract module defines:
 
 - one strict Pydantic model per action (`extra="forbid"`)
-- one `BrowserActionContract` catalog with action name, args model, runtime action, and connection requirement
+- one `BrowserActionContract` catalog with action name and args model
 - one discriminated `BrowserControlArgs` union for grouped validation
 - one `build_browser_tool_parameters_schema()` helper for model-facing schema emission
 - implementation is split internally into action models, action catalog, and model-facing schema builder modules while keeping `windie_shared.browser_contract` as the stable import surface for backend and sidecar re-export wrappers

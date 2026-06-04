@@ -52,76 +52,49 @@ from windie_shared.browser_contract_models import (
 class BrowserActionContract:
     name: str
     args_model: type[BrowserActionArgsBase]
-    runtime_action: str | None
-    requires_connection: bool
-    model_visible: bool = True
 
 
 BROWSER_ACTION_CONTRACTS: tuple[BrowserActionContract, ...] = (
-    BrowserActionContract("connect", BrowserConnectArgs, None, False),
-    BrowserActionContract("status", BrowserStatusArgs, "status", False),
-    BrowserActionContract("profiles", BrowserProfilesArgs, None, False),
-    BrowserActionContract("navigate", BrowserNavigateArgs, "navigate", True),
-    BrowserActionContract("snapshot", BrowserSnapshotArgs, "snapshot", True),
-    BrowserActionContract("extract", BrowserExtractArgs, "extract", True),
-    BrowserActionContract("click", BrowserClickArgs, "click", True),
-    BrowserActionContract("input", BrowserInputArgs, "input", True),
-    BrowserActionContract("send_keys", BrowserSendKeysArgs, "send_keys", True),
-    BrowserActionContract("scroll", BrowserScrollArgs, "scroll", True),
-    BrowserActionContract("screenshot", BrowserScreenshotArgs, "screenshot", True),
-    BrowserActionContract("wait", BrowserWaitArgs, "wait", True),
-    BrowserActionContract("get_tabs", BrowserGetTabsArgs, "get_tabs", True),
-    BrowserActionContract("switch", BrowserSwitchArgs, "switch", True),
-    BrowserActionContract("evaluate", BrowserEvaluateArgs, "evaluate", True),
-    BrowserActionContract("done", BrowserDoneArgs, "done", False),
-    BrowserActionContract("search", BrowserSearchArgs, "search", True),
-    BrowserActionContract("go_back", BrowserGoBackArgs, "go_back", True),
-    BrowserActionContract("search_page", BrowserSearchPageArgs, "search_page", True),
-    BrowserActionContract("find_elements", BrowserFindElementsArgs, "find_elements", True),
-    BrowserActionContract("find_text", BrowserFindTextArgs, "find_text", True),
-    BrowserActionContract("close_tab", BrowserCloseTabArgs, "close", True),
-    BrowserActionContract(
-        "select_dropdown",
-        BrowserSelectDropdownArgs,
-        "select_dropdown",
-        True,
-    ),
-    BrowserActionContract("upload_file", BrowserUploadFileArgs, "upload_file", True),
-    BrowserActionContract("hover", BrowserHoverArgs, "hover", True),
-    BrowserActionContract("save_as_pdf", BrowserSaveAsPdfArgs, "save_as_pdf", True),
-    BrowserActionContract("get_text", BrowserGetTextArgs, "get_text", True),
-    BrowserActionContract("get_value", BrowserGetValueArgs, "get_value", True),
-    BrowserActionContract("get_attributes", BrowserGetAttributesArgs, "get_attributes", True),
-    BrowserActionContract("get_bbox", BrowserGetBboxArgs, "get_bbox", True),
-    BrowserActionContract("write_file", BrowserWriteFileArgs, "write_file", True),
-    BrowserActionContract("replace_file", BrowserReplaceFileArgs, "replace_file", True),
-    BrowserActionContract("read_file", BrowserReadFileArgs, "read_file", True),
-    BrowserActionContract(
-        "read_long_content",
-        BrowserReadLongContentArgs,
-        "read_long_content",
-        True,
-    ),
-    BrowserActionContract("close", BrowserCloseArgs, None, False),
+    BrowserActionContract("connect", BrowserConnectArgs),
+    BrowserActionContract("status", BrowserStatusArgs),
+    BrowserActionContract("profiles", BrowserProfilesArgs),
+    BrowserActionContract("navigate", BrowserNavigateArgs),
+    BrowserActionContract("snapshot", BrowserSnapshotArgs),
+    BrowserActionContract("extract", BrowserExtractArgs),
+    BrowserActionContract("click", BrowserClickArgs),
+    BrowserActionContract("input", BrowserInputArgs),
+    BrowserActionContract("send_keys", BrowserSendKeysArgs),
+    BrowserActionContract("scroll", BrowserScrollArgs),
+    BrowserActionContract("screenshot", BrowserScreenshotArgs),
+    BrowserActionContract("wait", BrowserWaitArgs),
+    BrowserActionContract("get_tabs", BrowserGetTabsArgs),
+    BrowserActionContract("switch", BrowserSwitchArgs),
+    BrowserActionContract("evaluate", BrowserEvaluateArgs),
+    BrowserActionContract("done", BrowserDoneArgs),
+    BrowserActionContract("search", BrowserSearchArgs),
+    BrowserActionContract("go_back", BrowserGoBackArgs),
+    BrowserActionContract("search_page", BrowserSearchPageArgs),
+    BrowserActionContract("find_elements", BrowserFindElementsArgs),
+    BrowserActionContract("find_text", BrowserFindTextArgs),
+    BrowserActionContract("close_tab", BrowserCloseTabArgs),
+    BrowserActionContract("select_dropdown", BrowserSelectDropdownArgs),
+    BrowserActionContract("upload_file", BrowserUploadFileArgs),
+    BrowserActionContract("hover", BrowserHoverArgs),
+    BrowserActionContract("save_as_pdf", BrowserSaveAsPdfArgs),
+    BrowserActionContract("get_text", BrowserGetTextArgs),
+    BrowserActionContract("get_value", BrowserGetValueArgs),
+    BrowserActionContract("get_attributes", BrowserGetAttributesArgs),
+    BrowserActionContract("get_bbox", BrowserGetBboxArgs),
+    BrowserActionContract("write_file", BrowserWriteFileArgs),
+    BrowserActionContract("replace_file", BrowserReplaceFileArgs),
+    BrowserActionContract("read_file", BrowserReadFileArgs),
+    BrowserActionContract("read_long_content", BrowserReadLongContentArgs),
+    BrowserActionContract("close", BrowserCloseArgs),
 )
 
-BROWSER_ACTION_CONTRACTS_BY_NAME = {
-    contract.name: contract for contract in BROWSER_ACTION_CONTRACTS
-}
 BROWSER_SCHEMAS = {
     contract.name: contract.args_model for contract in BROWSER_ACTION_CONTRACTS
 }
-BROWSER_MODEL_VISIBLE_ACTIONS = tuple(
-    contract.name for contract in BROWSER_ACTION_CONTRACTS if contract.model_visible
-)
-BROWSER_RUNTIME_ACTIONS = {
-    contract.name: contract.runtime_action
-    for contract in BROWSER_ACTION_CONTRACTS
-    if contract.runtime_action is not None
-}
-BROWSER_ACTIONS_REQUIRING_CONNECTION = frozenset(
-    contract.name for contract in BROWSER_ACTION_CONTRACTS if contract.requires_connection
-)
 
 
 def get_browser_schema(action: str) -> type[BrowserActionArgsBase] | None:

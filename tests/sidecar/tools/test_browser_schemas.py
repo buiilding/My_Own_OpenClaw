@@ -10,9 +10,7 @@ from pydantic import ValidationError
 from backend.src.tools.browser.schemas import BrowserControlArgs as BackendBrowserControlArgs
 from backend.src.tools.browser.schemas import build_browser_tool_parameters_schema
 from windie_shared.browser_contract import (
-    BROWSER_ACTIONS_REQUIRING_CONNECTION,
     BROWSER_CANONICAL_ACTIONS,
-    BROWSER_RUNTIME_ACTIONS,
     BrowserClickArgs,
     BrowserControlArgs,
     BrowserFindTextArgs,
@@ -90,9 +88,6 @@ def test_sidecar_action_contract_is_canonical_only() -> None:
     assert "save_as_pdf" in BROWSER_CANONICAL_ACTIONS
     assert "hover" in BROWSER_CANONICAL_ACTIONS
     assert "get_text" in BROWSER_CANONICAL_ACTIONS
-    assert BROWSER_RUNTIME_ACTIONS["close_tab"] == "close"
-    assert "snapshot" in BROWSER_ACTIONS_REQUIRING_CONNECTION
-    assert "connect" not in BROWSER_ACTIONS_REQUIRING_CONNECTION
 
 
 def test_windie_browser_schema_reconciles_native_browser_use_surface() -> None:

@@ -7,7 +7,6 @@ from typing import Any, cast
 
 from windie_shared.browser_contract_catalog import (
     BROWSER_ACTION_CONTRACTS,
-    BROWSER_MODEL_VISIBLE_ACTIONS,
 )
 from windie_shared.browser_contract_models import (
     BROWSER_CANONICAL_ACTIONS,
@@ -198,14 +197,11 @@ def build_browser_tool_parameters_schema() -> dict[str, Any]:
     properties: dict[str, Any] = {
         "action": {
             "type": "string",
-            "enum": list(BROWSER_MODEL_VISIBLE_ACTIONS),
+            "enum": list(BROWSER_CANONICAL_ACTIONS),
             "description": "Canonical browser action to perform.",
         }
     }
     for contract in BROWSER_ACTION_CONTRACTS:
-        if not contract.model_visible:
-            continue
-
         action_schema = _clean_action_schema(
             cast(type[BrowserActionArgsBase], contract.args_model)
         )
@@ -231,4 +227,6 @@ def build_browser_tool_parameters_schema() -> dict[str, Any]:
     }
 
 
-assert tuple(BROWSER_MODEL_VISIBLE_ACTIONS) == tuple(BROWSER_CANONICAL_ACTIONS)
+assert tuple(contract.name for contract in BROWSER_ACTION_CONTRACTS) == tuple(
+    BROWSER_CANONICAL_ACTIONS
+)
