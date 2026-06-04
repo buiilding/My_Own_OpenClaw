@@ -103,7 +103,9 @@ def _normalize_entry(
         known_tool_call_ids=(
             known_tool_call_ids if known_tool_call_ids is not None else set()
         ),
-        pending_tool_call_ids=list(pending_tool_call_ids or []),
+        pending_tool_call_ids=(
+            pending_tool_call_ids if pending_tool_call_ids is not None else []
+        ),
     )
     return RehydrateEntryNormalizer().normalize_entry(
         entry=entry,
@@ -247,7 +249,7 @@ def test_normalize_rehydrated_tool_output_injects_synthetic_tool_call_entry():
         tool_calls=None,
     )
 
-    entries, pending = _normalize_entry(
+    entries = _normalize_entry(
         entry=entry,
         index=7,
         image_data=None,
@@ -262,7 +264,6 @@ def test_normalize_rehydrated_tool_output_injects_synthetic_tool_call_entry():
     assert synthetic_call["tool_calls"][0]["name"] == "replace"
     assert tool_output["role"] == "tool"
     assert tool_output["tool_call_id"] == "rehydrate_tool_call_7"
-    assert pending is None
     assert known_tool_call_ids == {"rehydrate_tool_call_7"}
 
 
@@ -288,11 +289,13 @@ def test_normalize_rehydrated_entry_prefers_structured_payload_for_tool_call_row
         },
     )
 
-    entries, pending = _normalize_entry(
+    pending_tool_call_ids = []
+    entries = _normalize_entry(
         entry=entry,
         index=8,
         image_data=None,
         known_tool_call_ids=known_tool_call_ids,
+        pending_tool_call_ids=pending_tool_call_ids,
         transparency=None,
     )
 
@@ -308,7 +311,7 @@ def test_normalize_rehydrated_entry_prefers_structured_payload_for_tool_call_row
         }
     ]
     assert normalized_entry["correlation_id"] == "call-structured-1"
-    assert pending == "call-structured-1"
+    assert pending_tool_call_ids == ["call-structured-1"]
     assert known_tool_call_ids == {"call-structured-1"}
 
 
@@ -325,7 +328,7 @@ def test_normalize_rehydrated_entry_sanitizes_internal_tool_bundle_call_trace():
         tool_calls=None,
     )
 
-    entries, pending = _normalize_entry(
+    entries = _normalize_entry(
         entry=entry,
         index=11,
         image_data=None,
@@ -338,7 +341,6 @@ def test_normalize_rehydrated_entry_sanitizes_internal_tool_bundle_call_trace():
     assert normalized_entry["role"] == "assistant"
     assert normalized_entry["message_type"] == "llm-text"
     assert "tool_calls" not in normalized_entry
-    assert pending is None
     assert known_tool_call_ids == set()
 
 
@@ -355,7 +357,7 @@ def test_normalize_rehydrated_entry_sanitizes_internal_bundled_output_trace():
         tool_calls=None,
     )
 
-    entries, pending = _normalize_entry(
+    entries = _normalize_entry(
         entry=entry,
         index=12,
         image_data=None,
@@ -368,7 +370,6 @@ def test_normalize_rehydrated_entry_sanitizes_internal_bundled_output_trace():
     assert normalized_entry["role"] == "assistant"
     assert normalized_entry["message_type"] == "llm-text"
     assert "tool_calls" not in normalized_entry
-    assert pending is None
     assert known_tool_call_ids == set()
 
 
@@ -385,7 +386,7 @@ def test_normalize_rehydrated_entry_does_not_infer_bundle_trace_from_json_conten
         tool_calls=None,
     )
 
-    entries, pending = _normalize_entry(
+    entries = _normalize_entry(
         entry=entry,
         index=13,
         image_data=None,
@@ -404,7 +405,6 @@ def test_normalize_rehydrated_entry_does_not_infer_bundle_trace_from_json_conten
             "image_data": None,
         }
     ]
-    assert pending is None
     assert known_tool_call_ids == set()
 
 
@@ -423,15 +423,17 @@ def test_normalize_rehydrated_entry_reuses_pending_tool_call_id_for_tool_output(
             {"id": "call-1", "name": "read_file", "arguments": {"path": "/tmp/a.txt"}}
         ],
     )
-    entries, pending = _normalize_entry(
+    pending_tool_call_ids = []
+    entries = _normalize_entry(
         entry=assistant_entry,
         index=0,
         image_data=None,
         known_tool_call_ids=known_tool_call_ids,
+        pending_tool_call_ids=pending_tool_call_ids,
         transparency=None,
     )
     assert entries[0]["tool_calls"][0]["id"] == "call-1"
-    assert pending == "call-1"
+    assert pending_tool_call_ids == ["call-1"]
 
     tool_output_entry = SimpleNamespace(
         role="tool",
@@ -443,18 +445,18 @@ def test_normalize_rehydrated_entry_reuses_pending_tool_call_id_for_tool_output(
         timestamp="2026-02-26T00:00:01Z",
         tool_calls=None,
     )
-    entries, pending = _normalize_entry(
+    entries = _normalize_entry(
         entry=tool_output_entry,
         index=1,
         image_data=None,
         known_tool_call_ids=known_tool_call_ids,
-        pending_tool_call_ids=[pending],
+        pending_tool_call_ids=pending_tool_call_ids,
         transparency=None,
     )
     assert len(entries) == 1
     assert entries[0]["role"] == "tool"
     assert entries[0]["tool_call_id"] == "call-1"
-    assert pending is None
+    assert pending_tool_call_ids == []
 
 
 def test_normalize_rehydrated_entry_preserves_structured_assistant_text_content():
@@ -473,7 +475,7 @@ def test_normalize_rehydrated_entry_preserves_structured_assistant_text_content(
         tool_calls=None,
     )
 
-    entries, pending = _normalize_entry(
+    entries = _normalize_entry(
         entry=entry,
         index=21,
         image_data=None,
@@ -495,7 +497,6 @@ def test_normalize_rehydrated_entry_preserves_structured_assistant_text_content(
             "image_data": None,
         }
     ]
-    assert pending is None
 
 
 def test_normalize_rehydrated_entry_drops_assistant_rows_with_only_thinking_content():
@@ -513,7 +514,7 @@ def test_normalize_rehydrated_entry_drops_assistant_rows_with_only_thinking_cont
         tool_calls=None,
     )
 
-    entries, pending = _normalize_entry(
+    entries = _normalize_entry(
         entry=entry,
         index=22,
         image_data=None,
@@ -522,7 +523,6 @@ def test_normalize_rehydrated_entry_drops_assistant_rows_with_only_thinking_cont
     )
 
     assert entries == []
-    assert pending is None
 
 
 def test_normalize_rehydrated_entry_preserves_structured_tool_content():
@@ -544,12 +544,13 @@ def test_normalize_rehydrated_entry_preserves_structured_tool_content():
         tool_calls=None,
     )
 
-    entries, pending = _normalize_entry(
+    pending_tool_call_ids = ["call-1"]
+    entries = _normalize_entry(
         entry=entry,
         index=23,
         image_data=None,
         known_tool_call_ids=known_tool_call_ids,
-        pending_tool_call_ids=["call-1"],
+        pending_tool_call_ids=pending_tool_call_ids,
         transparency=None,
     )
 
@@ -571,7 +572,7 @@ def test_normalize_rehydrated_entry_preserves_structured_tool_content():
             "tool_call_id": "call-1",
         }
     ]
-    assert pending is None
+    assert pending_tool_call_ids == []
 
 
 def test_normalize_rehydrated_entry_consumes_matching_pending_tool_call_id():
@@ -591,7 +592,7 @@ def test_normalize_rehydrated_entry_consumes_matching_pending_tool_call_id():
         tool_calls=None,
     )
 
-    entries, pending = RehydrateEntryNormalizer().normalize_entry(
+    entries = RehydrateEntryNormalizer().normalize_entry(
         entry=entry,
         index=1,
         image_data=None,
@@ -601,7 +602,6 @@ def test_normalize_rehydrated_entry_consumes_matching_pending_tool_call_id():
 
     assert len(entries) == 1
     assert entries[0]["tool_call_id"] == "call-2"
-    assert pending is None
     assert state.pending_tool_call_ids == ["call-1"]
 
 
@@ -618,11 +618,13 @@ def test_normalize_rehydrated_tool_call_entry_uses_explicit_tool_call_id():
         tool_calls=None,
     )
 
-    entries, pending = _normalize_entry(
+    pending_tool_call_ids = []
+    entries = _normalize_entry(
         entry=entry,
         index=2,
         image_data=None,
         known_tool_call_ids=known_tool_call_ids,
+        pending_tool_call_ids=pending_tool_call_ids,
         transparency=None,
     )
 
@@ -635,7 +637,7 @@ def test_normalize_rehydrated_tool_call_entry_uses_explicit_tool_call_id():
         "name": "read_file",
         "arguments": {"path": "/tmp/a.txt"},
     }
-    assert pending == "call-explicit"
+    assert pending_tool_call_ids == ["call-explicit"]
     assert known_tool_call_ids == {"call-explicit"}
 
 
@@ -707,11 +709,13 @@ def test_normalize_rehydrated_tool_call_entry_preserves_thought_signature_from_c
         tool_calls=None,
     )
 
-    entries, pending = _normalize_entry(
+    pending_tool_call_ids = []
+    entries = _normalize_entry(
         entry=entry,
         index=3,
         image_data=None,
         known_tool_call_ids=known_tool_call_ids,
+        pending_tool_call_ids=pending_tool_call_ids,
         transparency=None,
     )
 
@@ -723,7 +727,7 @@ def test_normalize_rehydrated_tool_call_entry_preserves_thought_signature_from_c
         "arguments": {"action": "snapshot"},
         "thought_signature": "sig-123",
     }
-    assert pending == "call-1"
+    assert pending_tool_call_ids == ["call-1"]
     assert known_tool_call_ids == {"call-1"}
 
 

@@ -64,7 +64,7 @@ class RehydrateEntryNormalizer:
         image_data: Optional[Union[str, List[str]]],
         transparency: Optional[Dict[str, Any]],
         state: RehydrateToolLinkageState,
-    ) -> tuple[List[Dict[str, Any]], Optional[str]]:
+    ) -> List[Dict[str, Any]]:
         normalized_message_type = self.normalize_message_type(entry.message_type)
         stored_message_type = self.normalize_stored_message_type(entry.message_type)
         normalized_tool_name = normalize_optional_string_helper(entry.tool_name)
@@ -97,8 +97,8 @@ class RehydrateEntryNormalizer:
                 image_data=image_data,
             )
             if assistant_entry is None:
-                return [], None
-            return [assistant_entry], None
+                return []
+            return [assistant_entry]
 
         if normalized_message_type in _TOOL_CALL_MESSAGE_TYPES:
             structured_tool_calls = _extract_structured_tool_calls(structured_payload)
@@ -119,21 +119,18 @@ class RehydrateEntryNormalizer:
                 message_tool_call_id or parsed_call_id or f"rehydrate_tool_call_{index}"
             )
             state.register_tool_call_ids([call_id])
-            return (
-                [
-                    self.build_assistant_tool_call_entry(
-                        content=content,
-                        call_id=call_id,
-                        call_name=call_name,
-                        call_arguments=call_arguments,
-                        thought_signature=thought_signature,
-                        message_type=stored_message_type,
-                        timestamp=entry.timestamp,
-                        image_data=image_data,
-                    )
-                ],
-                call_id,
-            )
+            return [
+                self.build_assistant_tool_call_entry(
+                    content=content,
+                    call_id=call_id,
+                    call_name=call_name,
+                    call_arguments=call_arguments,
+                    thought_signature=thought_signature,
+                    message_type=stored_message_type,
+                    timestamp=entry.timestamp,
+                    image_data=image_data,
+                )
+            ]
 
         if (
             entry.role == "tool"
@@ -181,7 +178,7 @@ class RehydrateEntryNormalizer:
                     "tool_call_id": call_id,
                 }
             )
-            return entries, None
+            return entries
 
         hydrated_entry: Dict[str, Any] = {
             "role": entry.role,
@@ -208,15 +205,15 @@ class RehydrateEntryNormalizer:
             state.register_tool_call_ids(
                 [tool_call["id"] for tool_call in normalized_tool_calls]
             )
-            return [hydrated_entry], normalized_tool_calls[-1]["id"]
+            return [hydrated_entry]
 
         if entry.role == "assistant" and not should_store_assistant_history_message(
             hydrated_entry["content"],
             tool_calls=normalized_tool_calls,
         ):
-            return [], None
+            return []
 
-        return [hydrated_entry], None
+        return [hydrated_entry]
 
     @staticmethod
     def finalize_pending_tool_call_entries(

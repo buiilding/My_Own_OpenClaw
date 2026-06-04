@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/rehydrate: remove the pending-tool-call id return from row
+  normalization so `RehydrateToolLinkageState` is the only pending-linkage
+  owner.
 - backend/rehydrate: delete the structured tool-call extraction instance method
   and align rehydrate tests/docs with the list-based pending tool-call state.
 - backend/rehydrate: call the session-manager workspace context contract

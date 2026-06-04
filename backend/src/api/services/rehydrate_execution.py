@@ -79,7 +79,7 @@ class RehydrateExecutionService:
                 index=index,
             )
 
-            normalized_entries, _ = self._entry_normalizer.normalize_entry(
+            normalized_entries = self._entry_normalizer.normalize_entry(
                 entry=entry,
                 index=index,
                 image_data=image_data,
