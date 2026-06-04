@@ -6,7 +6,6 @@ import logging
 from typing import Any, Dict
 
 from pydantic import ValidationError
-
 from tools.browser.browser_use_engine import BrowserActionError, BrowserUseEngineRuntime
 from tools.result import ToolResult
 from windie_shared.browser_contract import BrowserControlArgs
@@ -30,15 +29,6 @@ async def execute_browser(raw_args: Dict[str, Any]) -> ToolResult:
     try:
         args = BrowserControlArgs.model_validate(raw_args)
     except ValidationError as exc:
-        return ToolResult(
-            success=False,
-            error=str(exc),
-            data={
-                "error_code": "INVALID_ARGUMENT",
-                "output": str(exc),
-            },
-        )
-    except Exception as exc:
         return ToolResult(
             success=False,
             error=str(exc),

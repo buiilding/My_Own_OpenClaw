@@ -17,6 +17,7 @@ from windie_shared.browser_contract import (
     BrowserScrollArgs,
     BrowserSnapshotArgs,
     BrowserSwitchArgs,
+    BrowserUploadFileArgs,
     BrowserWaitArgs,
 )
 from windie_shared.browser_contract import (
@@ -179,6 +180,14 @@ def test_snapshot_schema_is_strict() -> None:
     with pytest.raises(ValidationError):
         BrowserSnapshotArgs(action="snapshot", format="aria", explanation=EXPLANATION)
 
+    with pytest.raises(ValidationError):
+        BrowserSnapshotArgs(
+            action="snapshot",
+            offset=119_999,
+            limit=2,
+            explanation=EXPLANATION,
+        )
+
 
 def test_navigate_and_wait_reject_removed_state_fields() -> None:
     navigate_args = BrowserNavigateArgs(
@@ -339,6 +348,16 @@ def test_click_requires_target() -> None:
 
     args = BrowserClickArgs(action="click", index=1, explanation=EXPLANATION)
     assert args.index == 1
+
+
+def test_upload_file_requires_path_at_schema_boundary() -> None:
+    with pytest.raises(ValidationError):
+        BrowserUploadFileArgs(
+            action="upload_file",
+            index=1,
+            path="",
+            explanation=EXPLANATION,
+        )
 
 
 def test_schema_registry_and_validation_reject_removed_aliases() -> None:

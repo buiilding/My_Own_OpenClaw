@@ -21,7 +21,6 @@ from tools.browser.chrome_launcher import (
 from tools.browser.content_extraction import (
     DEFAULT_EXTRACT_CHARS,
     DEFAULT_LONG_CONTENT_CHARS,
-    MAX_EXTRACT_CHARS,
     html_to_markdown,
 )
 from tools.browser.file_store import (
@@ -32,7 +31,6 @@ from tools.browser.file_store import (
 )
 
 DEFAULT_SESSION_NAME = "windieos"
-DEFAULT_SNAPSHOT_PAGE_LIMIT = 4_000
 MAX_SNAPSHOT_WINDOW_CHARS = 120_000
 RUNTIME_SOURCE = "browser_use.cli"
 HEADLESS_RECOVERY_TIMEOUT_SECONDS = 5.0
@@ -194,12 +192,6 @@ def _search_url(query: str, engine: str | None) -> str:
     if normalized_engine == "bing":
         return f"https://www.bing.com/search?q={encoded}"
     return f"https://www.google.com/search?q={encoded}"
-
-
-def _bounded_limit(value: int | None, *, default: int, maximum: int) -> int:
-    if not isinstance(value, int):
-        return default
-    return max(1, min(value, maximum))
 
 
 def _focused_excerpt(content: str, *, query: str, max_chars: int) -> str:
@@ -618,17 +610,8 @@ class BrowserUseEngineRuntime:
     async def _handle_snapshot(self, args: Any) -> dict[str, Any]:
         data = await self._run_cli("state")
         snapshot_text = str(data.get("_raw_text", "") or "")
-        offset = args.offset or 0
-        limit = _bounded_limit(
-            args.limit,
-            default=DEFAULT_SNAPSHOT_PAGE_LIMIT,
-            maximum=MAX_SNAPSHOT_WINDOW_CHARS,
-        )
-        if offset + limit > MAX_SNAPSHOT_WINDOW_CHARS:
-            raise BrowserActionError(
-                code="INVALID_ARGUMENT",
-                message="snapshot offset + limit exceeds maximum window (120000).",
-            )
+        offset = args.offset
+        limit = args.limit
         total_chars = len(snapshot_text)
         window_start = min(offset, total_chars)
         window_end = min(total_chars, window_start + limit)
@@ -653,11 +636,7 @@ class BrowserUseEngineRuntime:
         markdown = await self._read_markdown(extract_links=bool(args.extract_links))
         bounded_start = max(0, min(args.start_from_char, len(markdown)))
         working_content = markdown[bounded_start:]
-        max_chars = _bounded_limit(
-            DEFAULT_EXTRACT_CHARS,
-            default=DEFAULT_EXTRACT_CHARS,
-            maximum=MAX_EXTRACT_CHARS,
-        )
+        max_chars = DEFAULT_EXTRACT_CHARS
         extracted = _focused_excerpt(
             working_content, query=args.query, max_chars=max_chars
         )
@@ -914,11 +893,6 @@ class BrowserUseEngineRuntime:
 
     async def _handle_upload_file(self, args: Any) -> dict[str, Any]:
         index = _normalize_index(args, action="upload_file")
-        if not args.path:
-            raise BrowserActionError(
-                code="INVALID_ARGUMENT",
-                message="upload_file requires non-empty 'path'.",
-            )
         data = await self._run_cli("upload", str(index), str(args.path))
         return _with_output(
             data,

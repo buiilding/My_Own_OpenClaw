@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sidecar/browser: delete duplicate Browser Use adapter validation for
+  snapshot windows, upload paths, and validation fallback errors now owned by the
+  shared `BrowserControlArgs` boundary.
 - backend/simulation: update the mock browser LLM sequence to emit canonical
   Browser Use-backed `browser` tool payloads and validate the fixture against
   the live `BrowserControlArgs` schema.
