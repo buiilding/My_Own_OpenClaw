@@ -29,20 +29,6 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-async def _close_connection_on_timeout(
-    safe_ws: SafeWebSocket,
-    user_id: str,
-    websocket_receive_timeout: float,
-) -> None:
-    """Compatibility wrapper retained for package-level monkeypatch tests."""
-    await close_connection_on_timeout(
-        safe_ws=safe_ws,
-        user_id=user_id,
-        websocket_receive_timeout=websocket_receive_timeout,
-        logger=logger,
-    )
-
-
 @router.websocket("/ws")
 async def websocket_endpoint(
     websocket: WebSocket,

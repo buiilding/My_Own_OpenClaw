@@ -1,12 +1,12 @@
 ---
-summary: "Deep reference for WebSocket route package split: `router.py` runtime endpoint ownership, package-level compatibility wrappers in `__init__.py`, and monkeypatch test seam behavior."
+summary: "Deep reference for WebSocket route package split: `router.py` runtime endpoint ownership, loop-runtime helpers, and package-level router export behavior."
 read_when:
   - When changing `backend/src/api/routes/websocket/router.py` receive-loop logic or timeout/cleanup semantics.
-  - When changing package exports in `backend/src/api/routes/websocket/__init__.py` used by route monkeypatch tests.
-title: "WebSocket Route Package Split and Monkeypatch-Compatibility Reference"
+  - When changing the package router export in `backend/src/api/routes/websocket/__init__.py`.
+title: "WebSocket Route Package Split Reference"
 ---
 
-# WebSocket Route Package Split and Monkeypatch-Compatibility Reference
+# WebSocket Route Package Split Reference
 
 ## Canonical Modules
 
@@ -23,8 +23,9 @@ title: "WebSocket Route Package Split and Monkeypatch-Compatibility Reference"
 
 `router.py` now owns the concrete FastAPI `@router.websocket("/ws")` runtime path.
 
-Package `__init__.py` preserves import compatibility for existing callers/tests that import from
-`backend.src.api.routes.websocket` and monkeypatch module-level symbols.
+Package `__init__.py` exports only the package router used by API router registration.
+Endpoint tests patch `backend.src.api.routes.websocket.router` directly so there is one
+runtime module for route dependencies.
 
 ## Runtime Endpoint Ownership (`router.py`)
 
@@ -32,7 +33,6 @@ Package `__init__.py` preserves import compatibility for existing callers/tests 
 
 - APIRouter construction and route decoration
 - WebSocket accept/receive loop
-- timeout-close compatibility wrapper (`_close_connection_on_timeout`)
 - parse/validate/send-error loop control
 - task-manager fanout and limit handling
 - final close + connection cleanup sequencing
@@ -49,28 +49,19 @@ Config values read from `session_manager.config`:
 - `websocket_receive_timeout`
 - `websocket_task_cancellation_timeout`
 
-## Compatibility Wrapper Surface (`__init__.py`)
+## Package Export Surface (`__init__.py`)
 
 `__init__.py` exports:
 
-- `router` (from `router_module.router`)
-- `websocket_endpoint(...)` wrapper
-- `_close_connection_on_timeout(...)` wrapper
-- helper symbols (`TaskManager`, `perform_handshake`, `cleanup_connection`,
-  `parse_and_validate_message`, `handle_message`, `send_error`, `SafeWebSocket`)
+- `router` (from `.router`)
 
-Wrapper behavior in `websocket_endpoint(...)`:
-
-1. rebinds helper symbols onto `router_module` before dispatch
-2. calls `router_module.websocket_endpoint(...)`
-
-This keeps monkeypatch tests stable even though route implementation moved into `router.py`.
+The route endpoint, dependency symbols, and test monkeypatch seam live in `router.py`.
 
 ## Timeout and Close Semantics
 
 On receive timeout:
 
-- `_close_connection_on_timeout(...)` attempts close with code `1008` and policy-violation reason
+- `close_connection_on_timeout(...)` attempts close with code `1008` and policy-violation reason
 - close failures are swallowed (socket may already be closed)
 - endpoint sets `close_requested=True` so finally block does not attempt second close
 
@@ -110,12 +101,11 @@ Unexpected loop exceptions are logged and re-raised after cleanup.
 
 ## Drift Hotspots
 
-1. Removing `__init__.py` wrapper rebinding can break monkeypatch tests that patch
-   `backend.src.api.routes.websocket.*` symbols.
+1. Route tests should patch `backend.src.api.routes.websocket.router` symbols directly.
 2. Changing `close_requested` gate can double-close sockets on timeout path.
 3. Moving cleanup before close without matching error handling can leave task cleanup skipped when
    close raises.
-4. Dropping package `__all__` compatibility exports can break imports from test/support modules.
+4. Adding package-root helper exports can reintroduce a second route dependency surface.
 
 ## Related Docs
 

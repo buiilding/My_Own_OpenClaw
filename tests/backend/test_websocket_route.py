@@ -1,4 +1,5 @@
 import asyncio
+import importlib
 
 import pytest
 from tests.backend.websocket_route_test_utils import (
@@ -8,7 +9,7 @@ from tests.backend.websocket_route_test_utils import (
 
 _original_deps = install_route_deps_shim()
 
-import backend.src.api.routes.websocket as websocket_route_module
+websocket_route_module = importlib.import_module("backend.src.api.routes.websocket.router")
 
 restore_route_deps_shim(_original_deps)
 
@@ -627,17 +628,6 @@ async def test_websocket_endpoint_sends_limit_exceeded_error_with_message_id(
         ("msg_limit_1", "Too many concurrent requests. Please wait."),
     ]
     assert cleanup_calls == ["user_limited"]
-
-
-@pytest.mark.asyncio
-async def test_close_connection_on_timeout_swallows_close_failures() -> None:
-    safe_ws = ExplodingCloseSafeWebSocket(websocket=object())
-
-    await websocket_route_module._close_connection_on_timeout(
-        safe_ws=safe_ws,
-        user_id="user_timeout_close_fail",
-        websocket_receive_timeout=0.5,
-    )
 
 
 @pytest.mark.asyncio
