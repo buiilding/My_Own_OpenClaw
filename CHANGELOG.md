@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/llm: remove the Kimi Coding provider-local `litellm` monkeypatch
+  shim so streaming tests patch the shared stream pipeline owner directly.
 - sdk/runtime: stop repairing explicit `rehydrateMessages(...)`
   `conversation_ref` values from runtime state so the typed rehydrate payload
   owns conversation identity.

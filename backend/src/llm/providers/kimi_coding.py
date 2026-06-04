@@ -1,13 +1,9 @@
 from typing import Any, Dict, Optional
 
-import litellm  # compatibility import for existing monkeypatch paths in tests
-
 from backend.src.llm.providers.online import OnlineLLMProvider
 from backend.src.llm.providers.streaming_tool_call_aggregation import (
     StreamingToolCallAggregationMixin,
 )
-
-_LITELLM_COMPAT_IMPORT = litellm
 
 
 class KimiCodingProvider(StreamingToolCallAggregationMixin, OnlineLLMProvider):

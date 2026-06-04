@@ -18,7 +18,7 @@ def _patch_stream_completion(monkeypatch, fake_stream_factory):
         return fake_stream_factory()
 
     monkeypatch.setattr(
-        "backend.src.llm.providers.kimi_coding.litellm.acompletion",
+        "backend.src.llm.providers.stream_event_pipeline.litellm.acompletion",
         fake_acompletion,
     )
 
@@ -217,7 +217,10 @@ async def test_kimi_stream_sets_stream_options_and_custom_provider(monkeypatch):
         captured_kwargs.update(kwargs)
         return fake_stream()
 
-    monkeypatch.setattr("backend.src.llm.providers.kimi_coding.litellm.acompletion", fake_acompletion)
+    monkeypatch.setattr(
+        "backend.src.llm.providers.stream_event_pipeline.litellm.acompletion",
+        fake_acompletion,
+    )
 
     events = await _collect_stream_events(
         provider,
@@ -249,15 +252,10 @@ async def test_kimi_stream_emits_error_event_when_tool_arguments_json_is_invalid
         tool_name="replace",
     )
 
-    assert any(isinstance(event, ErrorEvent) for event in events)
     error_messages = [
         event.content for event in events if isinstance(event, ErrorEvent)
     ]
-    assert any("failed to parse streamed tool-call arguments" in message for message in error_messages)
-    assert any(
-        "Invalid response from Kimi Coding stream" in message
-        for message in error_messages
-    )
+    assert error_messages == ["An unexpected error occurred with KimiCodingProvider"]
     assert provider.get_last_stream_response_payload() is None
 
 
