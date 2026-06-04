@@ -9,10 +9,6 @@ export type WindieBuiltinSelection = 'none' | 'default' | WindieBuiltinToolSet[]
 
 export type WindieBuiltinToolSelection = {
   builtins: WindieBuiltinSelection;
-  /**
-   * @deprecated Use builtins instead.
-   */
-  builtinTools?: WindieBuiltinToolSet[];
 };
 
 export const windieBuiltins = {

@@ -80,7 +80,6 @@ export type WindieDesktopTestingOptions = {
 export type WindieDesktopAgentStartOptions = Pick<
   WindieWakeUpOptions,
   | 'agentId'
-  | 'builtinTools'
   | 'builtins'
   | 'mcps'
   | 'model'

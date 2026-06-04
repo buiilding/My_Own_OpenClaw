@@ -56,10 +56,6 @@ export type WindieWakeUpOptions = {
   mcps?: WindieMcpDefinition[];
   plugins?: WindiePluginDefinition[];
   builtins?: WindieBuiltinSelection;
-  /**
-   * @deprecated Use builtins instead.
-   */
-  builtinTools?: WindieBuiltinToolSet[];
   conversationRef?: string;
   agentId?: string;
   name?: string;
@@ -141,6 +137,7 @@ export class WindieClient {
   }
 
   async wakeUp(options: WindieWakeUpOptions = {}): Promise<WindieAgent> {
+    assertNoLegacyBuiltinToolsOption(options);
     const runtimeFeatures = normalizeRuntimeFeatures(options, this.defaultOptions);
     const initialModelSettings = options.model
       ? buildModelSettingsPatch(options.model, 'WindieClient.wakeUp')
@@ -482,7 +479,7 @@ export class WindieClient {
       || (options.plugins ?? []).length > 0
       || (options.mcps ?? []).length > 0;
     const registeredRuntimeTools = hasRuntimeExtensions ? registeredTools : [];
-    const builtinTools = builtins.length > 0
+    const selectedBuiltinTools = builtins.length > 0
       ? registeredTools.filter(tool => (
         typeof tool.name === 'string'
         && shouldIncludeBuiltinTool(tool.name, builtins)
@@ -491,7 +488,13 @@ export class WindieClient {
     const explicitTools = (options.tools ?? [])
       .filter(tool => !tool.module)
       .map(tool => buildManifestTool(tool));
-    return dedupeManifestTools([...registeredRuntimeTools, ...builtinTools, ...explicitTools]);
+    return dedupeManifestTools([...registeredRuntimeTools, ...selectedBuiltinTools, ...explicitTools]);
+  }
+}
+
+function assertNoLegacyBuiltinToolsOption(options: WindieWakeUpOptions): void {
+  if (Object.prototype.hasOwnProperty.call(options, 'builtinTools')) {
+    throw new Error('WindieClient.wakeUp no longer accepts builtinTools; use builtins instead.');
   }
 }
 
@@ -592,7 +595,7 @@ function normalizeBuiltins(options: WindieWakeUpOptions): WindieBuiltinToolSet[]
   if (Array.isArray(selected)) {
     return dedupeBuiltinToolSets(selected);
   }
-  return dedupeBuiltinToolSets(options.builtinTools ?? []);
+  return [];
 }
 
 function dedupeBuiltinToolSets(values: WindieBuiltinToolSet[]): WindieBuiltinToolSet[] {
