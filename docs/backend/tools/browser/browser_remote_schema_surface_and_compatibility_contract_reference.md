@@ -14,17 +14,6 @@ This page documents the canonical backend browser contract in:
 - `backend/src/tools/remote_tools/browser.py`
 - `tests/backend/test_browser_remote_tool.py`
 
-## Module Export Boundary
-
-`backend/src/tools/browser/__init__.py` exports:
-
-- `BrowserControlArgs`
-- lazy `RemoteBrowserTool` via `__getattr__`
-
-Purpose of lazy export:
-
-- avoid eager remote-tool imports and circular import pressure
-
 ## Browser Action Surface
 
 `schemas.py` re-exports the canonical grouped browser actions from the shared

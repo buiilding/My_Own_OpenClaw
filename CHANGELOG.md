@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/browser: remove the package-level lazy `RemoteBrowserTool` and
+  `BrowserControlArgs` re-export so browser schemas and remote tool classes
+  import from their owning modules.
 - backend/browser: collapse the remaining browser schema re-export wrapper into
   `backend.src.tools.browser.schemas` so backend browser schema imports have one
   current entrypoint.

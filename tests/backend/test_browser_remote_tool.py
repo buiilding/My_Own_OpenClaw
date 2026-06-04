@@ -7,7 +7,6 @@ from unittest import mock
 import pytest
 from pydantic import ValidationError
 
-from backend.src.tools.browser import RemoteBrowserTool
 from backend.src.tools.browser.schemas import (
     BROWSER_CANONICAL_ACTIONS,
     BrowserClickArgs,
@@ -20,6 +19,7 @@ from backend.src.tools.browser.schemas import (
     build_browser_tool_parameters_schema,
     get_browser_schema,
 )
+from backend.src.tools.remote_tools.browser import RemoteBrowserTool
 
 EXPLANATION = "Advance the active user task."
 
