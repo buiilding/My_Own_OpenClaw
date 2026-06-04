@@ -374,6 +374,10 @@ portion as the dashboard instead of maintaining a divergent response model.
   a smaller patch would preserve the wrong source of truth.
 - Fix root causes, not symptoms, and do not layer workarounds on top of messy
   local design when a small refactor can remove the problem.
+- Prefer clear, deterministic execution paths over branch-heavy defensive code.
+  Normalize inputs at the runtime boundary, fail fast on invalid state, and
+  split distinct states into named handlers instead of stacking nested `if`,
+  fallback, and compatibility paths through one flow.
 - New chat/runtime behavior should move into the SDK runtime first when useful
   outside one Electron surface.
 - Avoid new Electron-only bridges for behavior that belongs to `WindieClient`,
@@ -481,6 +485,9 @@ Validation:
 - Keep modules focused and split large files when it improves clarity or
   testability.
 - Prefer simple, intuitive implementations.
+- Minimize conditionals by making ownership, state, and input shape explicit
+  before core logic runs. A small typed dispatcher, state table, or boundary
+  normalizer is better than repeated local checks spread through consumers.
 - Remove unused code in touched areas.
 - Backend code uses Python with type hints, async I/O where appropriate, and
   existing `backend/src` patterns. Use `black` and `isort` when touching related

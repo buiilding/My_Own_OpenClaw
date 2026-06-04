@@ -36,6 +36,8 @@ All notable changes to WindieOS will be documented in this file.
   registration response user id.
 - docs/agents: make question-style implementation requests explicitly
   report-first so agents inspect code before modifying files.
+- docs/agents: prefer deterministic code paths with boundary normalization,
+  fail-fast invalid states, and fewer nested conditionals or fallback ladders.
 - examples/sdk: shorten the simple chat CLI setup and rendering helpers without
   changing its SDK loading, browser builtin, or stream output behavior.
 - sdk/examples: emit normalized `user_message` stream events with original text
