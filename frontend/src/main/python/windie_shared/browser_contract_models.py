@@ -208,8 +208,6 @@ class BrowserInputArgs(BrowserActionArgsBase):
         ge=0,
     )
     text: str = Field(..., description="Text to type.", max_length=10000)
-    clear: bool = Field(True, description="Clear the field before typing.")
-    submit: bool = Field(False, description="Submit after typing.")
 
     @model_validator(mode="after")
     def validate_target(self) -> "BrowserInputArgs":

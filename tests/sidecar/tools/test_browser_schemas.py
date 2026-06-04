@@ -116,7 +116,7 @@ def test_snapshot_schema_is_strict() -> None:
 
 def test_input_find_text_and_switch_use_canonical_fields_only() -> None:
     input_args = BrowserInputArgs(action="input", ref="3", text="hello", explanation=EXPLANATION)
-    assert input_args.clear is True
+    assert input_args.text == "hello"
 
     find_text_args = BrowserFindTextArgs(
         action="find_text",
@@ -143,6 +143,19 @@ def test_input_find_text_and_switch_use_canonical_fields_only() -> None:
 
     with pytest.raises(ValidationError):
         BrowserInputArgs(action="input", ref="3", text="hello", clear_first=True, explanation=EXPLANATION)
+
+    with pytest.raises(ValidationError):
+        BrowserInputArgs(action="input", ref="3", text="hello", clear=True, explanation=EXPLANATION)
+
+    with pytest.raises(ValidationError):
+        BrowserInputArgs(action="input", ref="3", text="hello", submit=True, explanation=EXPLANATION)
+
+    valid, error = validate_browser_args(
+        "input",
+        {"ref": "3", "text": "hello", "submit": True, "explanation": EXPLANATION},
+    )
+    assert valid is False
+    assert error is not None
 
     with pytest.raises(ValidationError):
         BrowserFindTextArgs(action="find_text", pattern="pricing", explanation=EXPLANATION)

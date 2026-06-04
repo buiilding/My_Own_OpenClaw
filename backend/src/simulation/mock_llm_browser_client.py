@@ -73,29 +73,47 @@ BROWSER_SIMULATION_RESPONSES = [
             }
         })
     },
-    # Iteration 4: Type "shoes" in search box and submit
+    # Iteration 4: Type "shoes" in search box
     # (Assuming ref "11" is the search box from snapshot)
     {
         "response": json.dumps({
             "metadata": {
                 "description": "Page snapshot shows [11] searchbox 'Search Amazon'.",
-                "explanation": "Typing 'shoes' into the Amazon search box and submitting the search.",
-                "expectation": "Search results for shoes should load, sorted by relevance."
+                "explanation": "Typing 'shoes' into the Amazon search box.",
+                "expectation": "The search query should be entered into the search box."
             },
             "action": {
                 "functionCall": {
                     "name": "browser",
                     "args": {
-                        "action": "type",
+                        "action": "input",
                         "ref": "11",
-                        "text": "shoes",
-                        "submit": True
+                        "text": "shoes"
                     }
                 }
             }
         })
     },
-    # Iteration 5: Wait for search results to load
+    # Iteration 5: Submit the search explicitly
+    {
+        "response": json.dumps({
+            "metadata": {
+                "description": "Search query is entered in the Amazon search box.",
+                "explanation": "Pressing Enter to submit the search.",
+                "expectation": "The browser should start loading search results."
+            },
+            "action": {
+                "functionCall": {
+                    "name": "browser",
+                    "args": {
+                        "action": "send_keys",
+                        "keys": "Enter"
+                    }
+                }
+            }
+        })
+    },
+    # Iteration 6: Wait for search results to load
     {
         "response": json.dumps({
             "metadata": {
@@ -108,13 +126,13 @@ BROWSER_SIMULATION_RESPONSES = [
                     "name": "browser",
                     "args": {
                         "action": "wait",
-                        "state": "domcontentloaded"
+                        "seconds": 2
                     }
                 }
             }
         })
     },
-    # Iteration 6: Get snapshot of search results
+    # Iteration 7: Get snapshot of search results
     {
         "response": json.dumps({
             "metadata": {
@@ -185,7 +203,7 @@ BROWSER_SIMULATION_RESPONSES = [
                     "name": "browser",
                     "args": {
                         "action": "wait",
-                        "state": "domcontentloaded"
+                        "seconds": 2
                     }
                 }
             }
@@ -204,7 +222,7 @@ BROWSER_SIMULATION_RESPONSES = [
                     "name": "browser",
                     "args": {
                         "action": "wait",
-                        "state": "domcontentloaded"
+                        "seconds": 2
                     }
                 }
             }
@@ -262,7 +280,7 @@ BROWSER_SIMULATION_RESPONSES = [
                     "name": "browser",
                     "args": {
                         "action": "wait",
-                        "state": "domcontentloaded"
+                        "seconds": 2
                     }
                 }
             }

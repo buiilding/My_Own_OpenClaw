@@ -1432,11 +1432,6 @@
             "description": "Use case-sensitive matching.",
             "type": "boolean"
           },
-          "clear": {
-            "default": true,
-            "description": "Clear the field before typing.",
-            "type": "boolean"
-          },
           "code": {
             "description": "JavaScript code to execute.",
             "maxLength": 5000,
@@ -1676,11 +1671,6 @@
             "description": "Character offset into extracted page content for long pages.",
             "minimum": 0,
             "type": "integer"
-          },
-          "submit": {
-            "default": false,
-            "description": "Submit after typing.",
-            "type": "boolean"
           },
           "success": {
             "description": "Optional success flag.",
@@ -1813,11 +1803,6 @@
             "description": "Use case-sensitive matching.",
             "type": "boolean"
           },
-          "clear": {
-            "default": true,
-            "description": "Clear the field before typing.",
-            "type": "boolean"
-          },
           "code": {
             "description": "JavaScript code to execute.",
             "maxLength": 5000,
@@ -2057,11 +2042,6 @@
             "description": "Character offset into extracted page content for long pages.",
             "minimum": 0,
             "type": "integer"
-          },
-          "submit": {
-            "default": false,
-            "description": "Submit after typing.",
-            "type": "boolean"
           },
           "success": {
             "description": "Optional success flag.",

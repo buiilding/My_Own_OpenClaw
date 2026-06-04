@@ -204,12 +204,12 @@ Type text into an input.
 {
   "action": "input",
   "index": 3,
-  "text": "windieos",
-  "submit": true
+  "text": "windieos"
 }
 ```
 
 `ref` must be numeric (`"12"`), or use `index` from the latest `snapshot.output`. Role refs such as `"e12"` are not supported by the Browser Use engine.
+Use `send_keys` with `Enter` when submission is intended.
 
 ### 6b. Select Dropdown
 
@@ -388,8 +388,9 @@ Unsupported browser-controller actions remain removed from runtime routing
 {"action": "snapshot"}
 // Result shows: [3] searchbox "Search"
 
-// 4. Type search query
-{"action": "type", "ref": "3", "text": "python async tutorial", "submit": true}
+// 4. Type search query and submit explicitly
+{"action": "input", "ref": "3", "text": "python async tutorial"}
+{"action": "send_keys", "keys": "Enter"}
 
 // 5. Wait for results
 {"action": "wait", "seconds": 2}
@@ -419,9 +420,9 @@ Unsupported browser-controller actions remain removed from runtime routing
 // [4] button "Submit"
 
 // Fill form
-{"action": "type", "ref": "1", "text": "John Doe"}
-{"action": "type", "ref": "2", "text": "john@example.com"}
-{"action": "type", "ref": "3", "text": "Hello, this is a test message."}
+{"action": "input", "ref": "1", "text": "John Doe"}
+{"action": "input", "ref": "2", "text": "john@example.com"}
+{"action": "input", "ref": "3", "text": "Hello, this is a test message."}
 
 // Submit
 {"action": "click", "ref": "4"}

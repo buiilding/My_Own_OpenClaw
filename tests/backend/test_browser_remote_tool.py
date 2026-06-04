@@ -66,7 +66,9 @@ class TestRemoteBrowserTool:
             "targetUrl",
             "input_ref",
             "inputRef",
+            "clear",
             "clear_first",
+            "submit",
             "script",
             "tab_id",
             "dropdown_options",
@@ -181,11 +183,16 @@ class TestBrowserControlArgs:
 
     def test_input_and_switch_are_strict(self) -> None:
         args = BrowserInputArgs(action="input", ref="5", text="hello", explanation=EXPLANATION)
-        assert args.clear is True
-        assert args.submit is False
+        assert args.text == "hello"
 
         with pytest.raises(ValidationError):
             BrowserInputArgs(action="input", text="hello", explanation=EXPLANATION)
+
+        with pytest.raises(ValidationError):
+            BrowserInputArgs(action="input", ref="5", text="hello", clear=True, explanation=EXPLANATION)
+
+        with pytest.raises(ValidationError):
+            BrowserInputArgs(action="input", ref="5", text="hello", submit=True, explanation=EXPLANATION)
 
         switch_args = BrowserSwitchArgs(action="switch", tab_index=1, explanation=EXPLANATION)
         assert switch_args.tab_index == 1
