@@ -36,7 +36,7 @@ Examples:
 
 - `BrowserSnapshotArgs`: `offset`, `limit`, `include_screenshot`
 - `BrowserExtractArgs`: `query`, `extract_links`, `start_from_char`, `output_schema`
-- `BrowserInputArgs`: `ref/index`, `text`, `clear`, `submit`
+- `BrowserInputArgs`: `index`, `text`
 - `BrowserSwitchArgs`: `tab_index`
 - `BrowserEvaluateArgs`: `code`
 

@@ -4,11 +4,7 @@ from __future__ import annotations
 
 from typing import Annotated, Any, Literal, Optional, cast, get_args
 
-from pydantic import BaseModel
-from pydantic import ConfigDict
-from pydantic import Field
-from pydantic import RootModel
-from pydantic import model_validator
+from pydantic import BaseModel, ConfigDict, Field, RootModel, model_validator
 
 BrowserMouseButton = Literal["left", "right", "middle"]
 BrowserScrollDirection = Literal["up", "down", "left", "right"]
@@ -53,9 +49,7 @@ BrowserCanonicalAction = Literal[
 BROWSER_CANONICAL_ACTIONS = cast(
     tuple[str, ...],
     tuple(
-        action
-        for action in get_args(BrowserCanonicalAction)
-        if isinstance(action, str)
+        action for action in get_args(BrowserCanonicalAction) if isinstance(action, str)
     ),
 )
 
@@ -74,16 +68,15 @@ class BrowserActionArgsBase(BaseModel):
 
 
 def _ensure_click_target(
-    ref: Optional[str],
     index: Optional[int],
     coordinate_x: Optional[int],
     coordinate_y: Optional[int],
 ) -> None:
-    has_ref_or_index = ref is not None or index is not None
+    has_index = index is not None
     has_coordinates = coordinate_x is not None and coordinate_y is not None
-    if not has_ref_or_index and not has_coordinates:
+    if not has_index and not has_coordinates:
         raise ValueError(
-            "click requires either 'ref'/'index' or both 'coordinate_x' and 'coordinate_y'"
+            "click requires either 'index' or both 'coordinate_x' and 'coordinate_y'"
         )
     if (coordinate_x is None) != (coordinate_y is None):
         raise ValueError(
@@ -91,17 +84,21 @@ def _ensure_click_target(
         )
 
 
-def _ensure_index_or_ref(action: str, ref: Optional[str], index: Optional[int]) -> None:
-    if ref is None and index is None:
-        raise ValueError(f"{action} requires either 'ref' or 'index'")
+def _ensure_index(action: str, index: Optional[int]) -> None:
+    if index is None:
+        raise ValueError(f"{action} requires 'index'")
 
 
 class BrowserConnectArgs(BrowserActionArgsBase):
-    action: Literal["connect"] = Field(..., description="Connect to the Windie browser.")
+    action: Literal["connect"] = Field(
+        ..., description="Connect to the Windie browser."
+    )
 
 
 class BrowserStatusArgs(BrowserActionArgsBase):
-    action: Literal["status"] = Field(..., description="Get current browser connection state.")
+    action: Literal["status"] = Field(
+        ..., description="Get current browser connection state."
+    )
 
 
 class BrowserProfilesArgs(BrowserActionArgsBase):
@@ -117,7 +114,9 @@ class BrowserNavigateArgs(BrowserActionArgsBase):
 
 
 class BrowserSnapshotArgs(BrowserActionArgsBase):
-    action: Literal["snapshot"] = Field(..., description="Read the current page snapshot.")
+    action: Literal["snapshot"] = Field(
+        ..., description="Read the current page snapshot."
+    )
     offset: int = Field(
         0,
         description="Character offset into the snapshot text for paginated reads.",
@@ -170,7 +169,6 @@ class BrowserExtractArgs(BrowserActionArgsBase):
 
 class BrowserClickArgs(BrowserActionArgsBase):
     action: Literal["click"] = Field(..., description="Click a page element.")
-    ref: Optional[str] = Field(None, description="Element ref from the latest snapshot.")
     index: Optional[int] = Field(
         None,
         description="Actionable Browser Use element index from the latest snapshot output.",
@@ -188,7 +186,6 @@ class BrowserClickArgs(BrowserActionArgsBase):
     @model_validator(mode="after")
     def validate_target(self) -> "BrowserClickArgs":
         _ensure_click_target(
-            ref=self.ref,
             index=self.index,
             coordinate_x=self.coordinate_x,
             coordinate_y=self.coordinate_y,
@@ -198,7 +195,6 @@ class BrowserClickArgs(BrowserActionArgsBase):
 
 class BrowserInputArgs(BrowserActionArgsBase):
     action: Literal["input"] = Field(..., description="Type text into an element.")
-    ref: Optional[str] = Field(None, description="Element ref from the latest snapshot.")
     index: Optional[int] = Field(
         None,
         description="Actionable Browser Use element index from the latest snapshot output.",
@@ -208,7 +204,7 @@ class BrowserInputArgs(BrowserActionArgsBase):
 
     @model_validator(mode="after")
     def validate_target(self) -> "BrowserInputArgs":
-        _ensure_index_or_ref("input", ref=self.ref, index=self.index)
+        _ensure_index("input", index=self.index)
         return self
 
 
@@ -267,7 +263,9 @@ class BrowserEvaluateArgs(BrowserActionArgsBase):
 
 
 class BrowserDoneArgs(BrowserActionArgsBase):
-    action: Literal["done"] = Field(..., description="Mark the browser task as complete.")
+    action: Literal["done"] = Field(
+        ..., description="Mark the browser task as complete."
+    )
     text: str = Field("Done.", description="Completion text to return.")
     success: Optional[bool] = Field(None, description="Optional success flag.")
     files_to_display: Optional[list[str]] = Field(
@@ -277,7 +275,9 @@ class BrowserDoneArgs(BrowserActionArgsBase):
 
 
 class BrowserSearchArgs(BrowserActionArgsBase):
-    action: Literal["search"] = Field(..., description="Search the web from the browser.")
+    action: Literal["search"] = Field(
+        ..., description="Search the web from the browser."
+    )
     query: str = Field(..., description="Search query.", min_length=1, max_length=2000)
     engine: Optional[str] = Field(None, description="Optional search engine override.")
 
@@ -290,14 +290,18 @@ class BrowserGoBackArgs(BrowserActionArgsBase):
 
 
 class BrowserSearchPageArgs(BrowserActionArgsBase):
-    action: Literal["search_page"] = Field(..., description="Search within the current page.")
+    action: Literal["search_page"] = Field(
+        ..., description="Search within the current page."
+    )
     pattern: str = Field(..., description="Pattern to find on the page.", min_length=1)
     regex: bool = Field(False, description="Interpret the pattern as a regex.")
     case_sensitive: bool = Field(False, description="Use case-sensitive matching.")
     context_chars: Optional[int] = Field(
         None, description="Context characters to include around each match.", ge=0
     )
-    css_scope: Optional[str] = Field(None, description="Optional CSS scope for the search.")
+    css_scope: Optional[str] = Field(
+        None, description="Optional CSS scope for the search."
+    )
     max_results: Optional[int] = Field(
         None, description="Maximum number of matches to return.", ge=1
     )
@@ -314,13 +318,19 @@ class BrowserFindElementsArgs(BrowserActionArgsBase):
     max_results: Optional[int] = Field(
         None, description="Maximum number of results to return.", ge=1
     )
-    include_text: bool = Field(False, description="Include element text in the results.")
+    include_text: bool = Field(
+        False, description="Include element text in the results."
+    )
 
 
 class BrowserFindTextArgs(BrowserActionArgsBase):
-    action: Literal["find_text"] = Field(..., description="Find text on the current page.")
+    action: Literal["find_text"] = Field(
+        ..., description="Find text on the current page."
+    )
     text: str = Field(..., description="Text to find.", min_length=1)
-    css_scope: Optional[str] = Field(None, description="Optional CSS scope for the search.")
+    css_scope: Optional[str] = Field(
+        None, description="Optional CSS scope for the search."
+    )
     max_results: Optional[int] = Field(
         None, description="Maximum number of matches to return.", ge=1
     )
@@ -335,7 +345,6 @@ class BrowserSelectDropdownArgs(BrowserActionArgsBase):
     action: Literal["select_dropdown"] = Field(
         ..., description="Select an option in a dropdown element."
     )
-    ref: Optional[str] = Field(None, description="Element ref from the latest snapshot.")
     index: Optional[int] = Field(
         None,
         description="Actionable Browser Use element index from the latest snapshot output.",
@@ -345,13 +354,14 @@ class BrowserSelectDropdownArgs(BrowserActionArgsBase):
 
     @model_validator(mode="after")
     def validate_target(self) -> "BrowserSelectDropdownArgs":
-        _ensure_index_or_ref("select_dropdown", ref=self.ref, index=self.index)
+        _ensure_index("select_dropdown", index=self.index)
         return self
 
 
 class BrowserUploadFileArgs(BrowserActionArgsBase):
-    action: Literal["upload_file"] = Field(..., description="Upload a file with an input.")
-    ref: Optional[str] = Field(None, description="Element ref from the latest snapshot.")
+    action: Literal["upload_file"] = Field(
+        ..., description="Upload a file with an input."
+    )
     index: Optional[int] = Field(
         None,
         description="Actionable Browser Use element index from the latest snapshot output.",
@@ -361,13 +371,12 @@ class BrowserUploadFileArgs(BrowserActionArgsBase):
 
     @model_validator(mode="after")
     def validate_target(self) -> "BrowserUploadFileArgs":
-        _ensure_index_or_ref("upload_file", ref=self.ref, index=self.index)
+        _ensure_index("upload_file", index=self.index)
         return self
 
 
 class BrowserHoverArgs(BrowserActionArgsBase):
     action: Literal["hover"] = Field(..., description="Hover over a page element.")
-    ref: Optional[str] = Field(None, description="Element ref from the latest snapshot.")
     index: Optional[int] = Field(
         None,
         description="Actionable Browser Use element index from the latest snapshot output.",
@@ -376,16 +385,20 @@ class BrowserHoverArgs(BrowserActionArgsBase):
 
     @model_validator(mode="after")
     def validate_target(self) -> "BrowserHoverArgs":
-        _ensure_index_or_ref("hover", ref=self.ref, index=self.index)
+        _ensure_index("hover", index=self.index)
         return self
 
 
 class BrowserSaveAsPdfArgs(BrowserActionArgsBase):
-    action: Literal["save_as_pdf"] = Field(..., description="Save the current page as a PDF.")
+    action: Literal["save_as_pdf"] = Field(
+        ..., description="Save the current page as a PDF."
+    )
     file_name: Optional[str] = Field(
         None, description="Optional output PDF file name under the browser file store."
     )
-    print_background: bool = Field(True, description="Include page background graphics.")
+    print_background: bool = Field(
+        True, description="Include page background graphics."
+    )
     landscape: bool = Field(False, description="Use landscape page orientation.")
     scale: float = Field(
         1.0,
@@ -400,7 +413,6 @@ class BrowserSaveAsPdfArgs(BrowserActionArgsBase):
 
 class BrowserGetTextArgs(BrowserActionArgsBase):
     action: Literal["get_text"] = Field(..., description="Read text from an element.")
-    ref: Optional[str] = Field(None, description="Element ref from the latest snapshot.")
     index: Optional[int] = Field(
         None,
         description="Actionable Browser Use element index from the latest snapshot output.",
@@ -409,13 +421,14 @@ class BrowserGetTextArgs(BrowserActionArgsBase):
 
     @model_validator(mode="after")
     def validate_target(self) -> "BrowserGetTextArgs":
-        _ensure_index_or_ref("get_text", ref=self.ref, index=self.index)
+        _ensure_index("get_text", index=self.index)
         return self
 
 
 class BrowserGetValueArgs(BrowserActionArgsBase):
-    action: Literal["get_value"] = Field(..., description="Read value from an input element.")
-    ref: Optional[str] = Field(None, description="Element ref from the latest snapshot.")
+    action: Literal["get_value"] = Field(
+        ..., description="Read value from an input element."
+    )
     index: Optional[int] = Field(
         None,
         description="Actionable Browser Use element index from the latest snapshot output.",
@@ -424,7 +437,7 @@ class BrowserGetValueArgs(BrowserActionArgsBase):
 
     @model_validator(mode="after")
     def validate_target(self) -> "BrowserGetValueArgs":
-        _ensure_index_or_ref("get_value", ref=self.ref, index=self.index)
+        _ensure_index("get_value", index=self.index)
         return self
 
 
@@ -432,7 +445,6 @@ class BrowserGetAttributesArgs(BrowserActionArgsBase):
     action: Literal["get_attributes"] = Field(
         ..., description="Read attributes from an element."
     )
-    ref: Optional[str] = Field(None, description="Element ref from the latest snapshot.")
     index: Optional[int] = Field(
         None,
         description="Actionable Browser Use element index from the latest snapshot output.",
@@ -441,7 +453,7 @@ class BrowserGetAttributesArgs(BrowserActionArgsBase):
 
     @model_validator(mode="after")
     def validate_target(self) -> "BrowserGetAttributesArgs":
-        _ensure_index_or_ref("get_attributes", ref=self.ref, index=self.index)
+        _ensure_index("get_attributes", index=self.index)
         return self
 
 
@@ -449,7 +461,6 @@ class BrowserGetBboxArgs(BrowserActionArgsBase):
     action: Literal["get_bbox"] = Field(
         ..., description="Read an element bounding box."
     )
-    ref: Optional[str] = Field(None, description="Element ref from the latest snapshot.")
     index: Optional[int] = Field(
         None,
         description="Actionable Browser Use element index from the latest snapshot output.",
@@ -458,7 +469,7 @@ class BrowserGetBboxArgs(BrowserActionArgsBase):
 
     @model_validator(mode="after")
     def validate_target(self) -> "BrowserGetBboxArgs":
-        _ensure_index_or_ref("get_bbox", ref=self.ref, index=self.index)
+        _ensure_index("get_bbox", index=self.index)
         return self
 
 

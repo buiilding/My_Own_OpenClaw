@@ -65,8 +65,8 @@ Browser Use CLI-backed actions:
 
 ### `click`, `input`, `hover`, `upload_file`, `select_dropdown`, `get_*`
 
-- accepts Browser Use numeric `index` or numeric `ref`
-- Windie role refs such as `e12` are rejected by validation/engine mapping
+- accepts Browser Use numeric `index`
+- `ref` aliases and Windie role refs such as `e12` are rejected by validation
 - indexes must come from the latest `snapshot.output`; `find_elements` returns
   non-actionable CSS-query `ordinal` values
 

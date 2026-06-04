@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from types import SimpleNamespace
 from unittest import mock
 
 import pytest
@@ -493,14 +494,22 @@ async def test_shutdown_browser_runtime_closes_browser_use_and_windie_chrome() -
 
 
 @pytest.mark.asyncio
-async def test_click_rejects_windie_role_refs_at_browser_use_boundary() -> None:
+async def test_click_requires_numeric_index_at_browser_use_boundary() -> None:
     runtime = BrowserUseEngineRuntime()
+    args = SimpleNamespace(
+        action="click",
+        index=None,
+        coordinate_x=None,
+        coordinate_y=None,
+        double_click=False,
+        button="left",
+    )
 
     with pytest.raises(BrowserActionError) as exc_info:
-        await runtime.execute(_args({"action": "click", "ref": "e12"}))
+        await runtime.execute(args)
 
     assert exc_info.value.code == "INVALID_ARGUMENT"
-    assert "numeric element index" in exc_info.value.message
+    assert "numeric 'index'" in exc_info.value.message
 
 
 @pytest.mark.asyncio

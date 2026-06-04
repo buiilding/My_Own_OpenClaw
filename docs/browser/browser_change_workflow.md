@@ -17,7 +17,7 @@ WindieOS currently adapts its canonical browser tool contract to the maintained 
 - The backend owns model-facing browser tool exposure and validation.
 - The shared Python browser contract is the schema source used by backend wrappers and sidecar runtime validation.
 - The sidecar owns Browser Use invocation, browser-local file helpers, and WindieOS result normalization.
-- Browser Use owns Playwright/CDP objects, browser sessions, tabs, numeric refs/indexes, snapshots, and browser action mechanics.
+- Browser Use owns Playwright/CDP objects, browser sessions, tabs, numeric element indexes, snapshots, and browser action mechanics.
 - Electron main relays `execute_tool` requests and does not inspect Playwright objects.
 - Renderer browser controls call the scoped `RUN_BROWSER_ACTION` IPC channel;
   Electron main maps that to the local browser tool.
@@ -146,9 +146,9 @@ Validate:
 
 - Browser Use state text is preserved in the model-visible result output.
 - numeric indexes from the latest snapshot are accepted where Browser Use actions require them.
-- non-numeric role refs produce actionable errors.
+- `ref` aliases and role refs produce validation errors.
 - snapshot limits protect output size but preserve useful interactive elements.
-- click/input tests cover numeric refs and reject legacy role refs.
+- click/input tests cover numeric indexes and reject legacy refs.
 
 ### Change browser extraction or long-content behavior
 

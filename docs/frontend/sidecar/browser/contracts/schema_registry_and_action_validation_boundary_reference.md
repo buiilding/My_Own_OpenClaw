@@ -49,13 +49,13 @@ Removed aliases and compatibility-only fields are absent from the grouped union 
 
 `BrowserClickArgs`:
 
-- requires `ref/index` or both coordinates
+- requires `index` or both coordinates
 - rejects single-coordinate payloads
 
 `BrowserInputArgs`, `BrowserSelectDropdownArgs`, `BrowserUploadFileArgs`,
 `BrowserHoverArgs`, and deterministic `BrowserGet*Args`:
 
-- require `ref` or `index`
+- require `index`
 
 `BrowserEvaluateArgs`:
 

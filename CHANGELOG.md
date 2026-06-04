@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sidecar/browser: remove legacy browser element `ref` aliases so
+  element actions use Browser Use numeric `index` values as the only element
+  identity path.
 - frontend/sidecar/browser: delete the duplicate browser schema lookup helpers
   so backend and sidecar validation go through `BrowserControlArgs` only.
 - frontend/sidecar/browser: reject non-object Browser Use CLI `data` payloads

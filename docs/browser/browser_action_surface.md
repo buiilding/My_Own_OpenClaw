@@ -39,7 +39,7 @@ The sidecar validates `BrowserControlArgs` before dispatch. Unsupported actions 
 
 When adding an action, update all contract surfaces and tests together.
 
-## Snapshot And Ref Semantics
+## Snapshot And Index Semantics
 
 `snapshot` returns Browser Use state text in the canonical `output` field.
 
@@ -49,12 +49,11 @@ Important limits:
 - max snapshot window: `120000` chars,
 - page-changing actions should restart snapshot pagination at `offset=0`.
 
-Refs can be:
+Element actions use numeric Browser Use indexes from the latest `snapshot`
+`output`. Tab actions use numeric tab indexes from `get_tabs`.
 
-- numeric Browser Use indexes,
-- numeric tab indexes for tab/session actions.
-
-Role refs such as `e12` are Windie-owned legacy refs and are rejected by the Browser Use engine adapter. Use numeric Browser Use indexes from the latest `snapshot` `output`.
+`ref` aliases and role refs such as `e12` are Windie-owned legacy identities and
+are rejected by the schema before Browser Use dispatch.
 
 `find_elements` returns CSS-query `ordinal` values only. These ordinals are
 not Browser Use interaction indexes and must not be fed into `click`, `input`,

@@ -55,6 +55,7 @@ class TestRemoteBrowserTool:
         banned_fields = {
             "mode",
             "format",
+            "ref",
             "snapshotFormat",
             "refs",
             "interactive",
@@ -214,13 +215,13 @@ class TestBrowserControlArgs:
     def test_click_requires_ref_index_or_coordinates(self) -> None:
         with pytest.raises(
             ValidationError,
-            match="click requires either 'ref'/'index' or both 'coordinate_x' and 'coordinate_y'",
+            match="click requires either 'index' or both 'coordinate_x' and 'coordinate_y'",
         ):
             BrowserClickArgs(action="click", explanation=EXPLANATION)
 
     def test_input_and_switch_are_strict(self) -> None:
         args = BrowserInputArgs(
-            action="input", ref="5", text="hello", explanation=EXPLANATION
+            action="input", index=5, text="hello", explanation=EXPLANATION
         )
         assert args.text == "hello"
 
@@ -230,7 +231,7 @@ class TestBrowserControlArgs:
         with pytest.raises(ValidationError):
             BrowserInputArgs(
                 action="input",
-                ref="5",
+                index=5,
                 text="hello",
                 clear=True,
                 explanation=EXPLANATION,
@@ -239,10 +240,15 @@ class TestBrowserControlArgs:
         with pytest.raises(ValidationError):
             BrowserInputArgs(
                 action="input",
-                ref="5",
+                index=5,
                 text="hello",
                 submit=True,
                 explanation=EXPLANATION,
+            )
+
+        with pytest.raises(ValidationError):
+            BrowserInputArgs(
+                action="input", ref="5", text="hello", explanation=EXPLANATION
             )
 
         switch_args = BrowserSwitchArgs(

@@ -290,7 +290,7 @@ Click on the Sign in button
 
 Agent executes:
 ```json
-{"action": "click", "ref": "3"}
+{"action": "click", "index": 3}
 ```
 
 ### Example Session

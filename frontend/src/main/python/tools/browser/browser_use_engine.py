@@ -167,18 +167,12 @@ def _is_pid_alive(pid: int) -> bool:
 
 
 def _normalize_index(args: Any, *, action: str) -> int:
-    raw_ref = getattr(args, "ref", None)
     raw_index = getattr(args, "index", None)
     if isinstance(raw_index, int) and raw_index >= 0:
         return raw_index
-    if isinstance(raw_ref, str) and raw_ref.strip().isdigit():
-        return int(raw_ref.strip())
     raise BrowserActionError(
         code="INVALID_ARGUMENT",
-        message=(
-            f"{action} requires a Browser Use numeric element index. "
-            "Role refs are Windie-specific and are not supported by the Browser Use engine."
-        ),
+        message=(f"{action} requires numeric 'index' from the latest snapshot output."),
     )
 
 

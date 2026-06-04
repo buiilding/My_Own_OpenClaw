@@ -150,7 +150,7 @@ def test_navigate_and_wait_reject_removed_state_fields() -> None:
 
 def test_input_find_text_and_switch_use_canonical_fields_only() -> None:
     input_args = BrowserInputArgs(
-        action="input", ref="3", text="hello", explanation=EXPLANATION
+        action="input", index=3, text="hello", explanation=EXPLANATION
     )
     assert input_args.text == "hello"
 
@@ -182,7 +182,7 @@ def test_input_find_text_and_switch_use_canonical_fields_only() -> None:
     with pytest.raises(ValidationError):
         BrowserInputArgs(
             action="input",
-            ref="3",
+            index=3,
             text="hello",
             clear_first=True,
             explanation=EXPLANATION,
@@ -190,19 +190,19 @@ def test_input_find_text_and_switch_use_canonical_fields_only() -> None:
 
     with pytest.raises(ValidationError):
         BrowserInputArgs(
-            action="input", ref="3", text="hello", clear=True, explanation=EXPLANATION
+            action="input", index=3, text="hello", clear=True, explanation=EXPLANATION
         )
 
     with pytest.raises(ValidationError):
         BrowserInputArgs(
-            action="input", ref="3", text="hello", submit=True, explanation=EXPLANATION
+            action="input", index=3, text="hello", submit=True, explanation=EXPLANATION
         )
 
     with pytest.raises(ValidationError):
         BrowserControlArgs.model_validate(
             {
                 "action": "input",
-                "ref": "3",
+                "index": 3,
                 "text": "hello",
                 "submit": True,
                 "explanation": EXPLANATION,
@@ -227,6 +227,24 @@ def test_input_find_text_and_switch_use_canonical_fields_only() -> None:
 
     with pytest.raises(ValidationError):
         BrowserSwitchArgs(action="switch", tab_index=-1, explanation=EXPLANATION)
+
+
+def test_element_actions_reject_legacy_ref_alias() -> None:
+    with pytest.raises(ValidationError):
+        BrowserInputArgs(action="input", ref="3", text="hello", explanation=EXPLANATION)
+
+    with pytest.raises(ValidationError):
+        BrowserClickArgs(action="click", ref="3", explanation=EXPLANATION)
+
+    with pytest.raises(ValidationError):
+        BrowserControlArgs.model_validate(
+            {
+                "action": "input",
+                "ref": "3",
+                "text": "hello",
+                "explanation": EXPLANATION,
+            }
+        )
 
 
 def test_scroll_uses_canonical_fields_only() -> None:

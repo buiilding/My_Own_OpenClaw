@@ -86,7 +86,7 @@ Notes:
 - `find_elements` returns non-actionable `ordinal` values for CSS query results. Use `snapshot.output` indexes for `click`, `input`, `hover`, `upload_file`, `select_dropdown`, and `get_*` actions.
 - Browser-internal navigation targets such as `chrome://settings/syncSetup` are routed through Browser Use's Python `browser.goto(...)` action wrapper so the Browser Use CLI `open` command cannot rewrite them into `https://...` URLs.
 - Overlapping actions now run Browser Use-only semantics at runtime (`snapshot`, `navigate`, `extract`, `click`, `input`, `send_keys`, `scroll`, `screenshot`, `wait`, `evaluate`): compatibility-only fields are rejected (for example `snapshot.format`, `snapshot.snapshotFormat`, `snapshot.wait_until`, `snapshot.mode`, `snapshot.max_chars`, `snapshot.refs`, `snapshot.interactive`, `snapshot.compact`, `snapshot.depth`, `snapshot.selector`, `snapshot.frame`, `extract.mode`, `extract.selector`, `extract.frame`, `wait.state`, `screenshot.full_page`, `screenshot.ref`, `screenshot.element`, `screenshot.type`, `screenshot.quality`).
-- For `click`, `input`, `hover`, `upload_file`, `select_dropdown`, and `get_*`, the Browser Use engine requires numeric Browser Use element indexes. WindieOS role refs such as `e12` are rejected by validation/engine mapping instead of being routed through the retired controller locator path.
+- For `click`, `input`, `hover`, `upload_file`, `select_dropdown`, and `get_*`, the Browser Use engine requires numeric Browser Use element indexes. WindieOS role refs such as `e12` and `ref` aliases are rejected by validation instead of being routed through the retired controller locator path.
 
 ### 1. Connect
 
@@ -177,17 +177,16 @@ Runtime requirement: configure extraction LLM via Windie provider/model (`WINDIE
 
 ### 5. Click
 
-Click an element by reference/index or Browser Use coordinate pair.
+Click an element by Browser Use index or coordinate pair.
 
 ```json
 {
   "action": "click",
-  "ref": "1",
+  "index": 1,
   "button": "left"
 }
 ```
 
-`ref` must be numeric (`"12"`), or use `index` from the latest `snapshot.output`. Role refs such as `"e12"` are not supported by the Browser Use engine.
 Browser Use-style alternatives:
 - `index`: element index from Browser Use snapshot state.
 - `coordinate_x` + `coordinate_y`: viewport coordinate click pair.
@@ -208,7 +207,7 @@ Type text into an input.
 }
 ```
 
-`ref` must be numeric (`"12"`), or use `index` from the latest `snapshot.output`. Role refs such as `"e12"` are not supported by the Browser Use engine.
+Use `index` from the latest `snapshot.output`. Role refs such as `"e12"` are rejected by validation.
 Use `send_keys` with `Enter` when submission is intended.
 
 ### 6b. Select Dropdown
@@ -276,15 +275,7 @@ Capture screenshot.
 ```json
 {
   "action": "screenshot",
-  "full_page": true
-}
-```
-
-Or screenshot specific element:
-```json
-{
-  "action": "screenshot",
-  "ref": "5"
+  "file_name": "page.png"
 }
 ```
 
@@ -389,7 +380,7 @@ Unsupported browser-controller actions remain removed from runtime routing
 // Result shows: [3] searchbox "Search"
 
 // 4. Type search query and submit explicitly
-{"action": "input", "ref": "3", "text": "python async tutorial"}
+{"action": "input", "index": 3, "text": "python async tutorial"}
 {"action": "send_keys", "keys": "Enter"}
 
 // 5. Wait for results
@@ -399,7 +390,7 @@ Unsupported browser-controller actions remain removed from runtime routing
 {"action": "snapshot"}
 
 // 7. Click first result
-{"action": "click", "ref": "5"}
+{"action": "click", "index": 5}
 
 // 8. Close when done
 {"action": "close"}
@@ -420,12 +411,12 @@ Unsupported browser-controller actions remain removed from runtime routing
 // [4] button "Submit"
 
 // Fill form
-{"action": "input", "ref": "1", "text": "John Doe"}
-{"action": "input", "ref": "2", "text": "john@example.com"}
-{"action": "input", "ref": "3", "text": "Hello, this is a test message."}
+{"action": "input", "index": 1, "text": "John Doe"}
+{"action": "input", "index": 2, "text": "john@example.com"}
+{"action": "input", "index": 3, "text": "Hello, this is a test message."}
 
 // Submit
-{"action": "click", "ref": "4"}
+{"action": "click", "index": 4}
 
 // Take screenshot
 {"action": "screenshot", "file_name": "contact-form.png"}

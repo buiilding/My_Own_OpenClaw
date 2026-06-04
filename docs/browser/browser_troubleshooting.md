@@ -72,7 +72,7 @@ Inspect:
 Checks:
 
 - Use a fresh snapshot after navigation, scroll, or DOM mutation.
-- Confirm the ref/index is a numeric Browser Use element index.
+- Confirm the element target is a numeric Browser Use `index`.
 - Avoid adding renderer-side element mapping; Browser Use owns element indexing.
 
 Focused tests:
