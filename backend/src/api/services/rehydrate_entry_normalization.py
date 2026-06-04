@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Union
 
 from backend.src.agent.history.history_admission import (
@@ -35,37 +34,6 @@ _INTERNAL_BUNDLE_MESSAGE_TYPES = frozenset({"tool-bundle", "tool_bundle"})
 _INTERNAL_BUNDLE_TOOL_NAMES = frozenset(
     {"tool-bundle", "tool_bundle", "bundled_tools", "bundled-tools"}
 )
-
-
-@dataclass(slots=True)
-class RehydrateNormalizationState:
-    """Mutable state while replaying transcript rows."""
-
-    known_tool_call_ids: set[str] = field(default_factory=set)
-    pending_tool_call_ids: List[str] = field(default_factory=list)
-    tool_linkage: RehydrateToolLinkageState = field(init=False)
-
-    def __post_init__(self) -> None:
-        self.tool_linkage = RehydrateToolLinkageState(
-            known_tool_call_ids=self.known_tool_call_ids,
-            pending_tool_call_ids=list(self.pending_tool_call_ids),
-        )
-
-    def add_pending_tool_call_ids(self, tool_call_ids: List[str]) -> None:
-        self.tool_linkage.register_tool_call_ids(tool_call_ids)
-        self.known_tool_call_ids = self.tool_linkage.known_tool_call_ids
-        self.pending_tool_call_ids = self.tool_linkage.pending_tool_call_ids
-
-    def consume_pending_tool_call_id(
-        self,
-        preferred_tool_call_id: Optional[str] = None,
-    ) -> Optional[str]:
-        tool_call_id = self.tool_linkage.consume_tool_output_tool_call_id(
-            preferred_tool_call_id
-        )
-        self.known_tool_call_ids = self.tool_linkage.known_tool_call_ids
-        self.pending_tool_call_ids = self.tool_linkage.pending_tool_call_ids
-        return tool_call_id
 
 
 class RehydrateEntryNormalizer:
@@ -105,7 +73,7 @@ class RehydrateEntryNormalizer:
         index: int,
         image_data: Optional[Union[str, List[str]]],
         transparency: Optional[Dict[str, Any]],
-        state: RehydrateNormalizationState,
+        state: RehydrateToolLinkageState,
     ) -> tuple[List[Dict[str, Any]], Optional[str]]:
         normalized_message_type = self.normalize_message_type(entry.message_type)
         stored_message_type = self.normalize_stored_message_type(entry.message_type)
@@ -159,7 +127,7 @@ class RehydrateEntryNormalizer:
             call_id = (
                 message_tool_call_id or parsed_call_id or f"rehydrate_tool_call_{index}"
             )
-            state.add_pending_tool_call_ids([call_id])
+            state.register_tool_call_ids([call_id])
             return (
                 [
                     self.build_assistant_tool_call_entry(
@@ -182,9 +150,9 @@ class RehydrateEntryNormalizer:
         ):
             call_id = message_tool_call_id
             if call_id is not None:
-                state.consume_pending_tool_call_id(call_id)
+                state.consume_tool_output_tool_call_id(call_id)
             elif state.pending_tool_call_ids:
-                call_id = state.consume_pending_tool_call_id()
+                call_id = state.consume_tool_output_tool_call_id()
             if call_id is None:
                 call_id = f"rehydrate_tool_call_{index}"
 
@@ -208,8 +176,7 @@ class RehydrateEntryNormalizer:
                         image_data=None,
                     )
                 )
-                state.tool_linkage.known_tool_call_ids.add(call_id)
-                state.known_tool_call_ids = state.tool_linkage.known_tool_call_ids
+                state.known_tool_call_ids.add(call_id)
 
             entries.append(
                 {
@@ -247,7 +214,7 @@ class RehydrateEntryNormalizer:
             normalized_tool_calls = normalize_tool_calls(entry.tool_calls)
         if entry.role == "assistant" and normalized_tool_calls:
             hydrated_entry["tool_calls"] = normalized_tool_calls
-            state.add_pending_tool_call_ids(
+            state.register_tool_call_ids(
                 [tool_call["id"] for tool_call in normalized_tool_calls]
             )
             return [hydrated_entry], normalized_tool_calls[-1]["id"]
@@ -263,14 +230,10 @@ class RehydrateEntryNormalizer:
     @staticmethod
     def finalize_pending_tool_call_entries(
         *,
-        state: RehydrateNormalizationState,
+        state: RehydrateToolLinkageState,
         timestamp: Optional[str],
     ) -> List[Dict[str, Any]]:
-        repaired_entries = state.tool_linkage.build_missing_tool_output_entries(
-            timestamp=timestamp
-        )
-        state.pending_tool_call_ids = state.tool_linkage.pending_tool_call_ids
-        return repaired_entries
+        return state.build_missing_tool_output_entries(timestamp=timestamp)
 
     @staticmethod
     def build_assistant_context_entry(

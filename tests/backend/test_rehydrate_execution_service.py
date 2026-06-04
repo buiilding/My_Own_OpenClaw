@@ -5,9 +5,11 @@ import pytest
 from backend.src.api.schemas import RehydrateConversationMessage
 from backend.src.api.services.rehydrate_entry_normalization import (
     RehydrateEntryNormalizer,
-    RehydrateNormalizationState,
 )
 from backend.src.api.services.rehydrate_execution import RehydrateExecutionService
+from backend.src.api.services.rehydrate_tool_linkage_repair import (
+    RehydrateToolLinkageState,
+)
 
 
 class _FakeSession:
@@ -97,7 +99,7 @@ def _normalize_entry(
     image_data=None,
     transparency=None,
 ):
-    state = RehydrateNormalizationState(
+    state = RehydrateToolLinkageState(
         known_tool_call_ids=(
             known_tool_call_ids if known_tool_call_ids is not None else set()
         ),
@@ -582,7 +584,7 @@ def test_normalize_rehydrated_entry_preserves_structured_tool_content():
 
 def test_normalize_rehydrated_entry_consumes_matching_pending_tool_call_id():
     known_tool_call_ids = {"call-1", "call-2"}
-    state = RehydrateNormalizationState(
+    state = RehydrateToolLinkageState(
         known_tool_call_ids=known_tool_call_ids,
         pending_tool_call_ids=["call-1", "call-2"],
     )
@@ -647,7 +649,7 @@ def test_normalize_rehydrated_tool_call_entry_uses_explicit_tool_call_id():
 
 
 def test_finalize_pending_tool_call_entries_synthesizes_missing_tool_outputs():
-    state = RehydrateNormalizationState(
+    state = RehydrateToolLinkageState(
         known_tool_call_ids={"call-1", "call-2"},
         pending_tool_call_ids=["call-1", "call-2"],
     )

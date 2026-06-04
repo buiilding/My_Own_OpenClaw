@@ -8,7 +8,9 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type, Union
 from backend.src.api.schemas import RehydrateConversationMessage
 from backend.src.api.services.rehydrate_entry_normalization import (
     RehydrateEntryNormalizer,
-    RehydrateNormalizationState,
+)
+from backend.src.api.services.rehydrate_tool_linkage_repair import (
+    RehydrateToolLinkageState,
 )
 from backend.src.api.services.rehydrate_transparency_resolution import (
     extract_system_prompt_from_transparency,
@@ -55,7 +57,7 @@ class RehydrateExecutionService:
         )
         artifact_store = self._build_artifact_store(artifact_store_cls)
 
-        state = RehydrateNormalizationState()
+        state = RehydrateToolLinkageState()
         hydrated_entries: List[Dict[str, Any]] = []
         rehydrated_system_prompt: Optional[str] = None
         last_timestamp: Optional[str] = None
