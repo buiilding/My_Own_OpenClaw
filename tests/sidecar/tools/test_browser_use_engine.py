@@ -310,6 +310,23 @@ async def test_navigate_uses_browser_use_open_command() -> None:
 
 
 @pytest.mark.asyncio
+async def test_navigate_does_not_promote_browser_use_message_to_output() -> None:
+    runtime = BrowserUseEngineRuntime()
+
+    with mock.patch.object(
+        runtime,
+        "_run_cli",
+        new=mock.AsyncMock(return_value={"message": "Browser Use legacy text"}),
+    ):
+        result = await runtime.execute(
+            _args({"action": "navigate", "url": "https://example.com"})
+        )
+
+    assert result["message"] == "Browser Use legacy text"
+    assert result["output"] == "Opened https://example.com."
+
+
+@pytest.mark.asyncio
 async def test_navigate_browser_internal_url_uses_python_goto_to_preserve_scheme() -> None:
     runtime = BrowserUseEngineRuntime()
 

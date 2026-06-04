@@ -281,9 +281,6 @@ def _browser_output(data: dict[str, Any], fallback: str) -> str:
     output = data.get("output")
     if output not in (None, ""):
         return str(output)
-    message = data.get("message")
-    if message not in (None, ""):
-        return str(message)
     return fallback
 
 

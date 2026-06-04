@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sidecar/browser: stop promoting Browser Use `message` payloads to
+  model-facing browser `output`; browser actions now use explicit `output` or
+  the action-owned fallback string.
 - frontend/chat: render live tool rows from the SDK current-turn projection
   instead of appending visible chat rows from SDK conversation-event tool
   side effects, keeping conversation events scoped to transcript persistence.
