@@ -32,7 +32,7 @@ Selection behavior:
 
 - `find_all_chrome_executables()` dispatches by `platform.system()`
 - unsupported OS returns empty list
-- `find_chrome_executable(prefer_kind=...)` checks explicit kind first, otherwise priority order:
+- `find_chrome_executable()` uses one fixed priority order:
   - `chrome` > `brave` > `edge` > `chromium` > `chrome_canary`
 
 Version probe:

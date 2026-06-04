@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sidecar/browser: remove the unused preferred-kind Chrome executable
+  selection branch so dedicated browser launch always follows the single
+  built-in Chrome/Brave/Edge/Chromium priority order.
 - frontend/sidecar/browser: make browser schema generation fail fast for
   non-nullable `anyOf` action fields instead of passing unsupported union shapes
   into the model-facing grouped browser schema.
