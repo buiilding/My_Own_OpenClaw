@@ -350,11 +350,35 @@ def test_rewrite_sudo_command_for_os_prompt_bypasses_pkexec_for_native_mode(monk
     assert error is None
 
 
-def test_resolve_sudo_auth_mode_accepts_native_aliases():
-    assert shell_tool._resolve_sudo_auth_mode("native") == "native"
-    assert shell_tool._resolve_sudo_auth_mode("direct") == "native"
-    assert shell_tool._resolve_sudo_auth_mode("sudo") == "native"
-    assert shell_tool._resolve_sudo_auth_mode("something-else") == "os_prompt"
+def test_resolve_sudo_auth_mode_accepts_canonical_modes_only():
+    assert shell_tool._resolve_sudo_auth_mode(None) == ("os_prompt", None)
+    assert shell_tool._resolve_sudo_auth_mode("native") == ("native", None)
+    assert shell_tool._resolve_sudo_auth_mode("os_prompt") == ("os_prompt", None)
+    assert shell_tool._resolve_sudo_auth_mode("os-prompt") == ("os_prompt", None)
+    assert shell_tool._resolve_sudo_auth_mode("direct") == (
+        None,
+        "sudo_auth_mode must be 'native' or 'os_prompt'",
+    )
+    assert shell_tool._resolve_sudo_auth_mode("sudo") == (
+        None,
+        "sudo_auth_mode must be 'native' or 'os_prompt'",
+    )
+
+
+@pytest.mark.asyncio
+async def test_run_shell_command_rejects_invalid_sudo_auth_mode():
+    result = await run_shell_command(
+        {
+            "command": "echo should-not-run",
+            "run_in_background": False,
+            "sudo_auth_mode": "direct",
+        }
+    )
+
+    assert result == {
+        "success": False,
+        "error": "sudo_auth_mode must be 'native' or 'os_prompt'",
+    }
 
 
 def test_normalize_sudo_auth_result_rewrites_canceled_prompt_error():

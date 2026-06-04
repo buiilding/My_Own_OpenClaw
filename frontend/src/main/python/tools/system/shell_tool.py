@@ -126,7 +126,11 @@ async def run_shell_command(args: Dict[str, Any]) -> Dict[str, Any]:
         if pty_requested and (IS_WINDOWS or pty is None):
             warnings.append("PTY requested but not supported in this sidecar; running without PTY.")
 
-        sudo_auth_mode = _resolve_sudo_auth_mode(args.get("sudo_auth_mode"))
+        sudo_auth_mode, sudo_auth_error = _resolve_sudo_auth_mode(
+            args.get("sudo_auth_mode")
+        )
+        if sudo_auth_error:
+            return {"success": False, "error": sudo_auth_error}
         route_sudo_via_os_prompt = sudo_auth_mode != _SUDO_AUTH_MODE_NATIVE
         exec_command, sudo_auth_routed, sudo_error = _rewrite_sudo_command_for_os_prompt(
             command,
@@ -270,14 +274,17 @@ async def _start_shell_session(
     return session, wait_task
 
 
-def _resolve_sudo_auth_mode(raw_value: Any) -> str:
-    if isinstance(raw_value, str):
-        normalized = raw_value.strip().lower().replace("-", "_")
-        if normalized in {"native", "direct", "sudo"}:
-            return _SUDO_AUTH_MODE_NATIVE
-        if normalized in {"os_prompt", "prompt", "pkexec"}:
-            return _SUDO_AUTH_MODE_OS_PROMPT
-    return _SUDO_AUTH_MODE_OS_PROMPT
+def _resolve_sudo_auth_mode(raw_value: Any) -> Tuple[Optional[str], Optional[str]]:
+    if raw_value is None:
+        return _SUDO_AUTH_MODE_OS_PROMPT, None
+    if not isinstance(raw_value, str):
+        return None, "sudo_auth_mode must be 'native' or 'os_prompt'"
+    normalized = raw_value.strip().lower().replace("-", "_")
+    if normalized == _SUDO_AUTH_MODE_NATIVE:
+        return _SUDO_AUTH_MODE_NATIVE, None
+    if normalized == _SUDO_AUTH_MODE_OS_PROMPT:
+        return _SUDO_AUTH_MODE_OS_PROMPT, None
+    return None, "sudo_auth_mode must be 'native' or 'os_prompt'"
 
 
 def _rewrite_sudo_command_for_os_prompt(
