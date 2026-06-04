@@ -6,13 +6,14 @@ from typing import Any, Dict, List, Optional
 
 import pytest
 
-from backend.src.api.handlers.query import QueryMessageHandler
 from backend.src.agent.session.active_query_tracker import (
     ACTIVE_QUERY_GLOBAL_LIMIT,
     ACTIVE_QUERY_REGISTERED,
     ACTIVE_QUERY_STOP_CONSUMED,
     ACTIVE_QUERY_USER_LIMIT,
 )
+from backend.src.api.handlers import query as query_handler_module
+from backend.src.api.handlers.query import QueryMessageHandler
 from backend.src.api.handlers.rehydrate import RehydrateConversationHandler
 from backend.src.api.handlers.settings import (
     ListModelsHandler,
@@ -22,17 +23,7 @@ from backend.src.api.handlers.settings import (
 from backend.src.api.handlers.stop_query import StopQueryHandler
 from backend.src.api.handlers.tool_result import ToolResultHandler
 from backend.src.api.handlers.wakeword import WakewordHandler
-from backend.src.core.infrastructure.user_facing_errors import (
-    INTERNAL_SERVER_ERROR_MESSAGE,
-)
-from backend.src.api.handlers import query as query_handler_module
-from backend.src.api.services import query_execution as query_execution_module
-from backend.src.api.services import rehydrate_execution as rehydrate_execution_module
-from backend.src.api.schemas.incoming import (
-    ToolBundleStepResult,
-    ToolResultData,
-    ToolResultSystemState,
-)
+from backend.src.api.processing.formatter import ResponseFormatter
 from backend.src.api.schemas import (
     ListModelsMessage,
     LoadSettingsMessage,
@@ -44,15 +35,24 @@ from backend.src.api.schemas import (
     UpdateSettingsMessage,
     WakewordDetectedMessage,
 )
-from backend.src.api.processing.formatter import ResponseFormatter
+from backend.src.api.schemas.incoming import (
+    ToolBundleStepResult,
+    ToolResultData,
+    ToolResultSystemState,
+)
+from backend.src.api.services import query_execution as query_execution_module
+from backend.src.api.services import rehydrate_execution as rehydrate_execution_module
 from backend.src.core.config.models import AppConfig
-from backend.src.core.interfaces.tool import ToolResult
 from backend.src.core.events.streaming_events import (
     AssistantMessageFullEvent,
     ChunkEvent,
     ErrorEvent,
     StreamingCompleteEvent,
 )
+from backend.src.core.infrastructure.user_facing_errors import (
+    INTERNAL_SERVER_ERROR_MESSAGE,
+)
+from backend.src.core.interfaces.tool import ToolResult
 
 
 class FakeWebSocket:
@@ -328,6 +328,7 @@ class DummySessionManager:
         self.register_calls = []
         self.clear_calls = []
         self.cancel_calls = []
+        self.workspace_updates = []
         self.frontend_operating_system = None
         self.config = AppConfig()
 
@@ -354,6 +355,22 @@ class DummySessionManager:
     def get_session_for_bundle_id(self, user_id: str, bundle_id: str):
         _ = (user_id, bundle_id)
         return getattr(self, "session_instance", None)
+
+    def set_session_workspace_path(
+        self,
+        user_id: str,
+        session,
+        workspace_path: Optional[str],
+        repo_instruction_messages: Optional[list[dict[str, str]]] = None,
+    ) -> None:
+        self.workspace_updates.append(
+            {
+                "user_id": user_id,
+                "session": session,
+                "workspace_path": workspace_path,
+                "repo_instruction_messages": repo_instruction_messages,
+            }
+        )
 
     def register_active_query_task(
         self,

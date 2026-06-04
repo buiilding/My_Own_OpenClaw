@@ -109,14 +109,7 @@ class RehydrateExecutionService:
         workspace_path: Optional[str],
         repo_instruction_messages: Optional[list[dict[str, str]]] = None,
     ) -> None:
-        set_workspace_path = getattr(
-            self._session_manager,
-            "set_session_workspace_path",
-            None,
-        )
-        if not callable(set_workspace_path):
-            return
-        set_workspace_path(
+        self._session_manager.set_session_workspace_path(
             user_id,
             session,
             workspace_path,
