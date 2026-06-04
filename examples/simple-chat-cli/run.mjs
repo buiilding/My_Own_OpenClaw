@@ -15,6 +15,12 @@ const agent = await new WindieClient().wakeUp({
     userId: "peter",
   },
   systemPrompt: "Your name is Peter, you are Peter Bui virtual friend.",
+  model: {
+    modelProvider: "openai",
+    modelId: "gpt-5.4@@gpt-5-4-medium-thinking",
+    modelMode: "online",
+    interactionMode: "agent",
+  },
   builtins: ["browser"],
 });
 
