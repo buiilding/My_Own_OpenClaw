@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/tools: remove the `remote_tools` package-level export mirror so
+  remote tool classes import from their implementation modules and lookup stays
+  owned by the canonical catalog/`backend.src.tools.remote` surface.
 - backend/browser: remove the shared-contract loader path helper so the loader
   exposes one runtime entrypoint and tests assert the `sys.path` invariant
   directly.

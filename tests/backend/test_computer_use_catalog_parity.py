@@ -1,5 +1,4 @@
 import backend.src.tools.remote as remote_exports
-import backend.src.tools.remote_tools as remote_tools_exports
 from backend.src.tools.remote_tools.computer import (
     RemoteGetOpenWindowsTool,
     RemoteGroundedMouseTool,
@@ -40,7 +39,6 @@ def test_grounded_computer_tools_are_exported_and_mapped():
 
     for tool_class in expected_computer_tool_classes:
         assert getattr(remote_exports, tool_class.__name__) is tool_class
-        assert getattr(remote_tools_exports, tool_class.__name__) is tool_class
 
     for tool_class in expected_computer_tool_classes - {RemoteGetOpenWindowsTool}:
         assert _COMPUTER_USE_MODEL_BY_TOOL[tool_class.name] is tool_class.args_model
