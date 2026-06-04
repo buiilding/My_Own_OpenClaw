@@ -89,10 +89,7 @@ class RehydrateExecutionService:
             hydrated_entries.extend(normalized_entries)
 
         hydrated_entries.extend(
-            self._entry_normalizer.finalize_pending_tool_call_entries(
-                state=state,
-                timestamp=last_timestamp,
-            )
+            state.build_missing_tool_output_entries(timestamp=last_timestamp)
         )
 
         self._apply_rehydrated_system_prompt(

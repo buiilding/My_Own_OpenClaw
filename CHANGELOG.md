@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/rehydrate: delete the pending-tool-call finalizer wrapper from the
+  row normalizer so missing-output repair is called directly on
+  `RehydrateToolLinkageState`.
 - backend/rehydrate: remove the pending-tool-call id return from row
   normalization so `RehydrateToolLinkageState` is the only pending-linkage
   owner.

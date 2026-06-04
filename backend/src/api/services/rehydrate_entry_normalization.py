@@ -216,14 +216,6 @@ class RehydrateEntryNormalizer:
         return [hydrated_entry]
 
     @staticmethod
-    def finalize_pending_tool_call_entries(
-        *,
-        state: RehydrateToolLinkageState,
-        timestamp: Optional[str],
-    ) -> List[Dict[str, Any]]:
-        return state.build_missing_tool_output_entries(timestamp=timestamp)
-
-    @staticmethod
     def build_assistant_context_entry(
         *,
         content: Any,

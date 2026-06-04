@@ -641,15 +641,14 @@ def test_normalize_rehydrated_tool_call_entry_uses_explicit_tool_call_id():
     assert known_tool_call_ids == {"call-explicit"}
 
 
-def test_finalize_pending_tool_call_entries_synthesizes_missing_tool_outputs():
+def test_linkage_state_synthesizes_missing_tool_outputs():
     state = RehydrateToolLinkageState(
         known_tool_call_ids={"call-1", "call-2"},
         pending_tool_call_ids=["call-1", "call-2"],
     )
 
-    repaired_entries = RehydrateEntryNormalizer.finalize_pending_tool_call_entries(
-        state=state,
-        timestamp="2026-02-26T00:00:05Z",
+    repaired_entries = state.build_missing_tool_output_entries(
+        timestamp="2026-02-26T00:00:05Z"
     )
 
     assert [entry["tool_call_id"] for entry in repaired_entries] == ["call-1", "call-2"]

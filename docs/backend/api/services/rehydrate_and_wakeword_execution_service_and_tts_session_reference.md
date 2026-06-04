@@ -29,8 +29,9 @@ Flow:
 1. get/create session
 2. optionally build artifact store from backend config
 3. normalize each frontend transcript entry (shared normalizer)
-4. rebuild tool linkage when needed
-5. synthesize fallback tool outputs for any unanswered pending tool calls
+4. rebuild tool linkage with `RehydrateToolLinkageState`
+5. ask `RehydrateToolLinkageState` to synthesize fallback tool outputs for any
+   unanswered pending tool calls
 6. call `session.rehydrate_conversation(conversation_ref, hydrated_entries)`
 
 ## Entry Normalization Model
