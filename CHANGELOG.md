@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/rehydrate: stop inferring internal bundle traces from raw JSON content;
+  rehydrate now uses explicit message type/tool name metadata for bundle trace
+  sanitization.
 - backend/rehydrate: remove unused pending-tool-call state accessor shims so
   rehydrate linkage uses the list-based repair state directly.
 - backend/rehydrate: remove the legacy workspace-path setter signature fallback

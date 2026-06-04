@@ -40,6 +40,8 @@ Per-entry fields normalized:
 - message type (`tool-call`, `tool-output`, aliases)
 - tool name / correlation / tool_call_id string normalization
 - screenshot resolution via inline `screenshot` or `screenshot_ref`
+- internal bundle trace rows are recognized only from explicit message type or
+  tool name metadata, not by guessing from JSON-looking message content
 
 ### Tool-call reconstruction
 

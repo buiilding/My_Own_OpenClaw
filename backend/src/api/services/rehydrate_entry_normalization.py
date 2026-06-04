@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Union
 
@@ -370,17 +369,7 @@ class RehydrateEntryNormalizer:
             if normalized in _INTERNAL_BUNDLE_TOOL_NAMES:
                 return True
 
-        if not isinstance(content, str) or not content.strip():
-            return False
-        try:
-            payload = json.loads(content)
-        except (TypeError, ValueError):
-            return False
-        return (
-            isinstance(payload, dict)
-            and isinstance(payload.get("bundle_id"), str)
-            and isinstance(payload.get("tools"), list)
-        )
+        return False
 
     @staticmethod
     def extract_thought_signature(*sources: Optional[Dict[str, Any]]) -> Optional[str]:

@@ -378,6 +378,43 @@ def test_normalize_rehydrated_entry_sanitizes_internal_bundled_output_trace():
     assert known_tool_call_ids == set()
 
 
+def test_normalize_rehydrated_entry_does_not_infer_bundle_trace_from_json_content():
+    known_tool_call_ids = set()
+    entry = SimpleNamespace(
+        role="assistant",
+        content='{"bundle_id":"bundle-1","tools":[{"name":"mouse_control"}]}',
+        message_type="assistant-message",
+        tool_name=None,
+        correlation_id=None,
+        tool_call_id=None,
+        timestamp="2026-02-26T00:00:00Z",
+        tool_calls=None,
+    )
+
+    entries, pending = _normalize_entry(
+        entry=entry,
+        index=13,
+        image_data=None,
+        known_tool_call_ids=known_tool_call_ids,
+        pending_tool_call_id=None,
+        transparency=None,
+    )
+
+    assert entries == [
+        {
+            "role": "assistant",
+            "content": '{"bundle_id":"bundle-1","tools":[{"name":"mouse_control"}]}',
+            "message_type": "assistant-message",
+            "tool_name": None,
+            "correlation_id": None,
+            "timestamp": "2026-02-26T00:00:00Z",
+            "image_data": None,
+        }
+    ]
+    assert pending is None
+    assert known_tool_call_ids == set()
+
+
 def test_normalize_tool_calls_parses_function_payload_and_skips_invalid_entries():
     normalized = normalize_tool_calls(
         [
