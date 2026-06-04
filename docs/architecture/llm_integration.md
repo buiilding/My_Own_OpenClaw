@@ -109,7 +109,7 @@ export ANTHROPIC_API_KEY="your-api-key"
 export GOOGLE_API_KEY="your-api-key"  # Gemini
 export OPENROUTER_API_KEY="your-api-key"
 export MISTRAL_API_KEY="your-api-key"
-export KIMI_API_KEY="your-api-key"  # or KIMICODE_API_KEY
+export KIMI_API_KEY="your-api-key"
 ```
 
 ## Usage

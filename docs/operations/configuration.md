@@ -89,7 +89,6 @@ API keys are loaded from environment variables defined in `backend/src/core/conf
 - `OPENROUTER_API_KEY`
 - `MISTRAL_API_KEY`
 - `KIMI_API_KEY` (Kimi Coding)
-- `KIMICODE_API_KEY` (legacy fallback for Kimi Coding)
 - `BRAVE_SEARCH_API_KEY` (backend fallback for logical `web_search` when the active provider lacks native web retrieval)
 - `ELEVENLABS_API_KEY` (default speech provider authentication)
 

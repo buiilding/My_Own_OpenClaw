@@ -164,7 +164,7 @@ From `load_api_key_for_provider(...)`:
 - In `model_mode="local"`, backend sets `api_key=None`.
 - For online mode, provider config drives env var lookup.
 - For `model_provider="openai"` with Codex-capable model ids, backend can use frontend-managed `provider_oauth.openai_codex.access_token` when connected and non-expired.
-- Kimi compatibility fallback: if `KIMI_API_KEY` missing, checks `KIMICODE_API_KEY`.
+- Kimi Coding reads the configured `KIMI_API_KEY` env var only.
 
 ## Frontend-Owned Update Scope (`update-settings`)
 

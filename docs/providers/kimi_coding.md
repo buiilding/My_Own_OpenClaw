@@ -46,7 +46,6 @@ Credential loading checks:
 
 1. Frontend-managed API key override in `provider_api_keys.kimi_coding`.
 2. Environment variable from `KimiCodingConfig.api_key_env`, default `KIMI_API_KEY`.
-3. Fallback environment variable `KIMICODE_API_KEY`.
 
 ## Change Path
 
@@ -72,4 +71,3 @@ Focused frontend tests:
 cd frontend
 npm run test:ci -- ModelCardData.test.js ApiClient.test.ts AppConfigProvider.models.test.tsx
 ```
-

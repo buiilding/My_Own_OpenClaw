@@ -155,11 +155,6 @@ def load_api_key_for_provider(cfg: AppConfig) -> AppConfig:
     if api_key_env_var:
         api_key_source = api_key_env_var
         api_key = os.getenv(api_key_env_var)
-        if not api_key and normalized_provider == "kimi_coding":
-            fallback_key = os.getenv("KIMICODE_API_KEY")
-            if fallback_key:
-                api_key = fallback_key
-                api_key_source = "KIMICODE_API_KEY"
         if not api_key:
             logger.warning(
                 f"[API Key Load] Environment variable '{api_key_env_var}' for provider '{provider_name}' is not set."

@@ -113,12 +113,12 @@ def test_load_api_key_google_override_applies_to_gemini_provider(monkeypatch):
     assert result.api_key == "sk-user-google"
 
 
-def test_load_api_key_kimi_fallback(monkeypatch):
+def test_load_api_key_for_kimi_uses_only_configured_env(monkeypatch):
     monkeypatch.delenv("KIMI_API_KEY", raising=False)
-    monkeypatch.setenv("KIMICODE_API_KEY", "fallback-key")
+    monkeypatch.setenv("KIMICODE_API_KEY", "legacy-key")
     cfg = AppConfig(model_provider="kimi_coding")
     result = load_api_key_for_provider(cfg)
-    assert result.api_key == "fallback-key"
+    assert result.api_key is None
 
 
 def test_load_settings_forces_tts_enabled(monkeypatch):

@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/config: remove the legacy `KIMICODE_API_KEY` fallback so Kimi Coding
+  credentials resolve through the configured `KIMI_API_KEY` path only.
 - backend/agent: remove the unused compaction strategies package aggregator so
   strategy imports point at their owning implementation modules.
 - backend/agent: remove unused subpackage aggregators for compaction,
