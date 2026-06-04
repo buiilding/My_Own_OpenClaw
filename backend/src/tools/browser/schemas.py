@@ -2,6 +2,7 @@
 
 from backend.src.tools.browser.browser_control_args_schema import (
     BROWSER_ACTION_CONTRACTS,
+    BROWSER_CANONICAL_ACTIONS,
     BROWSER_SCHEMAS,
     BrowserActionContract,
     BrowserClickArgs,
@@ -47,6 +48,7 @@ from backend.src.tools.browser.browser_control_args_schema import (
 
 __all__ = [
     "BROWSER_ACTION_CONTRACTS",
+    "BROWSER_CANONICAL_ACTIONS",
     "BROWSER_SCHEMAS",
     "BrowserActionContract",
     "BrowserClickArgs",

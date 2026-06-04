@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/browser: delete the duplicate `schema_types.py` browser literal
+  wrapper and route canonical action imports through the grouped browser schema
+  entrypoint.
 - frontend/sidecar/browser: remove the test-only Browser Use supported-action
   mirror so action validity stays owned by the shared `BrowserControlArgs`
   contract and runtime handlers.

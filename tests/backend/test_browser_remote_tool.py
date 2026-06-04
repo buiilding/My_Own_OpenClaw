@@ -8,8 +8,8 @@ import pytest
 from pydantic import ValidationError
 
 from backend.src.tools.browser import RemoteBrowserTool
-from backend.src.tools.browser.schema_types import BROWSER_CANONICAL_ACTIONS
 from backend.src.tools.browser.schemas import (
+    BROWSER_CANONICAL_ACTIONS,
     BrowserClickArgs,
     BrowserControlArgs,
     BrowserEvaluateArgs,

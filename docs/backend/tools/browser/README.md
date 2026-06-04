@@ -23,10 +23,8 @@ title: "Backend Browser Tools Docs Hub"
 ## Code Scope
 
 - `backend/src/tools/browser/__init__.py`
-- `backend/src/tools/browser/schema_types.py`
 - `backend/src/tools/browser/browser_control_args_schema.py`
 - `backend/src/tools/browser/schemas.py`
-- `backend/src/tools/browser/schema_types.py`
 - `backend/src/tools/browser/shared_contract_loader.py`
 - `backend/src/tools/remote_tools/browser.py`
 - `tests/backend/test_browser_remote_tool.py`
