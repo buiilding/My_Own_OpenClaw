@@ -231,9 +231,6 @@ class BrowserScrollArgs(BrowserActionArgsBase):
         description="Optional page-count override for Browser Use scrolling.",
         gt=0,
     )
-    index: Optional[int] = Field(
-        None, description="Optional Browser Use element index.", ge=0
-    )
 
 
 class BrowserScreenshotArgs(BrowserActionArgsBase):

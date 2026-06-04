@@ -1549,7 +1549,7 @@
                 "type": "integer"
               }
             ],
-            "description": "Actionable Browser Use element index from the latest snapshot output. / Optional Browser Use element index. / Actionable Browser Use element index from the latest snapshot output. / Actionable Browser Use element index from the latest snapshot output. / Actionable Browser Use element index from the latest snapshot output. / Actionable Browser Use element index from the latest snapshot output. / Actionable Browser Use element index from the latest snapshot output. / Actionable Browser Use element index from the latest snapshot output. / Actionable Browser Use element index from the latest snapshot output."
+            "description": "Actionable Browser Use element index from the latest snapshot output."
           },
           "keys": {
             "description": "Key sequence to send.",
@@ -1930,7 +1930,7 @@
                 "type": "integer"
               }
             ],
-            "description": "Actionable Browser Use element index from the latest snapshot output. / Optional Browser Use element index. / Actionable Browser Use element index from the latest snapshot output. / Actionable Browser Use element index from the latest snapshot output. / Actionable Browser Use element index from the latest snapshot output. / Actionable Browser Use element index from the latest snapshot output. / Actionable Browser Use element index from the latest snapshot output. / Actionable Browser Use element index from the latest snapshot output. / Actionable Browser Use element index from the latest snapshot output."
+            "description": "Actionable Browser Use element index from the latest snapshot output."
           },
           "keys": {
             "description": "Key sequence to send.",

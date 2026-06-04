@@ -160,12 +160,19 @@ def test_input_find_text_and_switch_use_canonical_fields_only() -> None:
         BrowserSwitchArgs(action="switch", tab_index=-1, explanation=EXPLANATION)
 
 
-def test_scroll_rejects_removed_down_alias() -> None:
+def test_scroll_uses_canonical_fields_only() -> None:
     args = BrowserScrollArgs(action="scroll", direction="up", amount=500, explanation=EXPLANATION)
     assert args.direction == "up"
 
     with pytest.raises(ValidationError):
         BrowserScrollArgs(action="scroll", down=True, explanation=EXPLANATION)
+
+    with pytest.raises(ValidationError):
+        BrowserScrollArgs(action="scroll", index=1, explanation=EXPLANATION)
+
+    valid, error = validate_browser_args("scroll", {"index": 1, "explanation": EXPLANATION})
+    assert valid is False
+    assert error is not None
 
 
 def test_click_requires_target() -> None:
