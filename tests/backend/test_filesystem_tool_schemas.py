@@ -3,20 +3,19 @@ from pydantic import ValidationError
 
 from backend.src.tools.filesystem.schemas import ReplaceArgs
 
-
 EXPLANATION = "Update the requested file content."
 
 
-def test_replace_args_accepts_legacy_single_operation_mode():
+def test_replace_args_accepts_single_replacement_operation():
     args = ReplaceArgs(
         file_path="/tmp/example.txt",
-        old_string="before",
-        new_string="after",
+        replacements=[{"old_string": "before", "new_string": "after"}],
         explanation=EXPLANATION,
     )
 
-    assert args.old_string == "before"
-    assert args.new_string == "after"
+    assert len(args.replacements or []) == 1
+    assert args.replacements[0].old_string == "before"
+    assert args.replacements[0].new_string == "after"
 
 
 def test_replace_args_accepts_batched_replacements_mode():
@@ -54,11 +53,11 @@ def test_replace_args_accepts_patch_chunks_mode():
     [
         (
             {"old_string": "before"},
-            "old_string and new_string are both required",
+            "Extra inputs are not permitted",
         ),
         (
             {"new_string": "after"},
-            "old_string and new_string are both required",
+            "Extra inputs are not permitted",
         ),
         (
             {
@@ -73,7 +72,7 @@ def test_replace_args_accepts_patch_chunks_mode():
                 "old_string": "before",
                 "new_string": "after",
             },
-            "exactly one edit mode",
+            "Extra inputs are not permitted",
         ),
         (
             {"replacements": []},
@@ -85,7 +84,7 @@ def test_replace_args_accepts_patch_chunks_mode():
         ),
         (
             {},
-            "exactly one edit mode",
+            "replace requires exactly one edit mode",
         ),
     ],
 )

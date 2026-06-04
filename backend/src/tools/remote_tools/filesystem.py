@@ -33,7 +33,7 @@ class RemoteReplaceTool(RemoteToolBase, Tool[ReplaceArgs]):
     name = "replace"
     description = (
         "Replace text in a file using exact or context-anchored matching. Supports "
-        "single edits and batched replacements.\n\n"
+        "one or more edits through replacements[].\n\n"
         "Operational Guidance:\n"
         "- Prefer focused edits per tool call.\n"
         "- Do not send giant new_string payloads in one call.\n"

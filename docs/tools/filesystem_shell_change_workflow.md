@@ -94,8 +94,8 @@ flowchart LR
 - Missing-file creation through `replace` should remain narrow: exactly one unconstrained operation with `old_string=''`.
 - Backend `ReplaceArgs` rejects ambiguous edit-mode combinations before the
   request reaches SDK/main or sidecar execution. A valid payload uses exactly
-  one mode: top-level `old_string`/`new_string`, batched `replacements`, or
-  `patch_chunks`.
+  one mode: `replacements` or `patch_chunks`; a single edit is a one-item
+  `replacements` list.
 - Multi-operation and patch-chunk edits must validate before writing.
    - No failed replacement mode should leave a partially edited file.
 

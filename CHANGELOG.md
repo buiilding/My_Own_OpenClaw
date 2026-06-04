@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/sidecar/filesystem: remove legacy top-level `replace` edit fields so
+  filesystem edits use `replacements[]` or `patch_chunks[]` only.
 - backend/simulation: replace legacy JSON-text mock response adaptation with
   native normalized tool-call fixtures and delete the simulation adapter.
 - backend/api: remove the websocket package-root monkeypatch wrapper and route

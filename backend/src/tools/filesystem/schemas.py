@@ -3,7 +3,8 @@ Pydantic schemas for filesystem tools.
 """
 
 from typing import List, Literal, Optional
-from pydantic import BaseModel, Field, ConfigDict, model_validator
+
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from backend.src.tools.schema_fields import explanation_field
 
@@ -116,46 +117,22 @@ class ReplaceArgs(BaseModel):
             "exactly one replacement operation has old_string=''."
         ),
     )
-    old_string: Optional[str] = Field(
-        None,
-        description="Single-operation old string. Use this with new_string for legacy single replace.",
-    )
-    new_string: Optional[str] = Field(
-        None,
-        description=(
-            "Single-operation replacement string. Required when old_string is used. "
-            "Do not send giant payloads in one call; chunk large edits across multiple calls."
-        ),
-    )
-    replace_all: bool = Field(
-        False, description="Single-operation flag: replace all matches of old_string."
-    )
-    before_context: Optional[str] = Field(
-        None, description="Single-operation optional context before old_string."
-    )
-    after_context: Optional[str] = Field(
-        None, description="Single-operation optional context after old_string."
-    )
-    occurrence_index: Optional[int] = Field(
-        None, ge=1, description="Single-operation 1-based match index to replace."
-    )
-    require_eof: bool = Field(False, description="Single-operation EOF constraint.")
     match_mode: Literal["strict", "lenient"] = Field(
         "lenient",
-        description="Matching mode for single operation and default for batch operations.",
+        description="Default matching mode for replacement operations.",
     )
     replacements: Optional[List[ReplaceOperationArgs]] = Field(
         None,
         description=(
             "Optional batched replacements applied atomically in order. "
-            "When provided, these operations are used instead of top-level old/new fields."
+            "Use a one-item list for a single edit."
         ),
     )
     patch_chunks: Optional[List[ReplacePatchChunkArgs]] = Field(
         None,
         description=(
             "Optional ordered update chunks for robust multi-region edits. "
-            "When provided, patch_chunks cannot be combined with old_string/new_string/replacements. "
+            "When provided, patch_chunks cannot be combined with replacements. "
             "Prefer multiple focused chunks/calls over one oversized payload."
         ),
     )
@@ -163,38 +140,15 @@ class ReplaceArgs(BaseModel):
 
     @model_validator(mode="after")
     def validate_single_edit_mode(self) -> "ReplaceArgs":
-        top_level_fields_used = (
-            self.old_string is not None
-            or self.new_string is not None
-            or self.replace_all is True
-            or self.before_context is not None
-            or self.after_context is not None
-            or self.occurrence_index is not None
-            or self.require_eof is True
-        )
         replacements_used = self.replacements is not None
         patch_chunks_used = self.patch_chunks is not None
 
-        mode_count = sum(
-            int(mode_used)
-            for mode_used in (
-                top_level_fields_used,
-                replacements_used,
-                patch_chunks_used,
-            )
-        )
+        mode_count = int(replacements_used) + int(patch_chunks_used)
         if mode_count != 1:
             raise ValueError(
-                "replace requires exactly one edit mode: old_string/new_string, "
-                "replacements, or patch_chunks"
+                "replace requires exactly one edit mode: replacements or patch_chunks"
             )
 
-        if top_level_fields_used and (
-            self.old_string is None or self.new_string is None
-        ):
-            raise ValueError(
-                "old_string and new_string are both required for top-level replace mode"
-            )
         if self.replacements is not None and len(self.replacements) == 0:
             raise ValueError("replacements must be a non-empty list when provided")
         if self.patch_chunks is not None and len(self.patch_chunks) == 0:

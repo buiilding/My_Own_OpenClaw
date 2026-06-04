@@ -189,15 +189,15 @@ def test_scroll_control_clicks_remains_optional():
 def test_replace_args_default_context_and_matching_fields():
     args = ReplaceArgs(
         file_path="/tmp/a.txt",
-        old_string="old",
-        new_string="new",
+        replacements=[{"old_string": "old", "new_string": "new"}],
         explanation="Update one string in the file.",
     )
 
-    assert args.before_context is None
-    assert args.after_context is None
-    assert args.occurrence_index is None
-    assert args.require_eof is False
+    operation = args.replacements[0]
+    assert operation.before_context is None
+    assert operation.after_context is None
+    assert operation.occurrence_index is None
+    assert operation.require_eof is False
     assert args.match_mode == "lenient"
 
 
@@ -224,7 +224,10 @@ def test_shared_direct_tool_schemas_require_explanation():
         ReadFileArgs(file_path="/tmp/a.txt")
 
     with pytest.raises(ValidationError):
-        ReplaceArgs(file_path="/tmp/a.txt", old_string="old", new_string="new")
+        ReplaceArgs(
+            file_path="/tmp/a.txt",
+            replacements=[{"old_string": "old", "new_string": "new"}],
+        )
 
     with pytest.raises(ValidationError):
         RunShellCommandArgs(command="pwd", run_in_background=False)
@@ -262,6 +265,32 @@ def test_switch_window_schema_supports_match_mode():
 def test_replace_operation_occurrence_index_must_be_positive():
     with pytest.raises(ValidationError):
         ReplaceOperationArgs(old_string="old", new_string="new", occurrence_index=0)
+
+
+def test_replace_args_reject_top_level_legacy_edit_fields():
+    with pytest.raises(ValidationError):
+        ReplaceArgs(
+            file_path="/tmp/a.txt",
+            old_string="old",
+            new_string="new",
+            explanation="Update one string in the file.",
+        )
+
+
+def test_replace_args_requires_exactly_one_edit_mode():
+    with pytest.raises(ValidationError, match="exactly one edit mode"):
+        ReplaceArgs(
+            file_path="/tmp/a.txt",
+            explanation="Update one string in the file.",
+        )
+
+    with pytest.raises(ValidationError, match="exactly one edit mode"):
+        ReplaceArgs(
+            file_path="/tmp/a.txt",
+            replacements=[{"old_string": "old", "new_string": "new"}],
+            patch_chunks=[{"old_lines": ["old"], "new_lines": ["new"]}],
+            explanation="Update one string in the file.",
+        )
 
 
 def test_open_app_args_validate_command_and_timeout():

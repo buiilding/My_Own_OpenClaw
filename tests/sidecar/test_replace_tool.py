@@ -8,6 +8,10 @@ ensure_frontend_python_path()
 from tools.filesystem.replace_tool import replace  # noqa: E402
 
 
+def _single_replace_payload(file_path: str, **operation):
+    return {"file_path": file_path, "replacements": [operation]}
+
+
 @pytest.mark.asyncio
 async def test_replace_resolves_relative_path_from_selected_workspace(
     monkeypatch: pytest.MonkeyPatch,
@@ -21,24 +25,25 @@ async def test_replace_resolves_relative_path_from_selected_workspace(
     permission_state_path = tmp_path / "permission-state.json"
     permission_state_path.write_text(
         (
-            '{'
+            "{"
             '"version":1,'
             '"permissions":{"filesystem_workspace_access":{'
             '"granted":true,'
             '"selected_paths":["%s"]'
-            '}}'
-            '}'
-        ) % str(workspace_dir),
+            "}}"
+            "}"
+        )
+        % str(workspace_dir),
         encoding="utf-8",
     )
     monkeypatch.setenv("WINDIE_PERMISSION_STATE_PATH", str(permission_state_path))
 
     result = await replace(
-        {
-            "file_path": "frontend/src/main/index.cjs",
-            "old_string": "before",
-            "new_string": "after",
-        }
+        _single_replace_payload(
+            "frontend/src/main/index.cjs",
+            old_string="before",
+            new_string="after",
+        )
     )
 
     assert result.success is True
@@ -57,24 +62,25 @@ async def test_replace_reports_original_relative_path_when_missing(
     permission_state_path = tmp_path / "permission-state.json"
     permission_state_path.write_text(
         (
-            '{'
+            "{"
             '"version":1,'
             '"permissions":{"filesystem_workspace_access":{'
             '"granted":true,'
             '"selected_paths":["%s"]'
-            '}}'
-            '}'
-        ) % str(workspace_dir),
+            "}}"
+            "}"
+        )
+        % str(workspace_dir),
         encoding="utf-8",
     )
     monkeypatch.setenv("WINDIE_PERMISSION_STATE_PATH", str(permission_state_path))
 
     result = await replace(
-        {
-            "file_path": "frontend/src/main/missing.cjs",
-            "old_string": "before",
-            "new_string": "after",
-        }
+        _single_replace_payload(
+            "frontend/src/main/missing.cjs",
+            old_string="before",
+            new_string="after",
+        )
     )
 
     assert result.success is False
@@ -91,12 +97,12 @@ async def test_replace_single_unique_match(tmp_path: Path):
     target.write_text("line1\nline2\nline3\n", encoding="utf-8")
 
     result = await replace(
-        {
-            "file_path": str(target),
-            "old_string": "line2",
-            "new_string": "changed",
-            "replace_all": False,
-        }
+        _single_replace_payload(
+            str(target),
+            old_string="line2",
+            new_string="changed",
+            replace_all=False,
+        )
     )
 
     assert result.success is True
@@ -112,11 +118,11 @@ async def test_replace_rejects_oversized_new_string_payload(tmp_path: Path):
     target.write_text("hello\n", encoding="utf-8")
 
     result = await replace(
-        {
-            "file_path": str(target),
-            "old_string": "hello",
-            "new_string": "x" * (16 * 1024 + 1),
-        }
+        _single_replace_payload(
+            str(target),
+            old_string="hello",
+            new_string="x" * (16 * 1024 + 1),
+        )
     )
 
     assert result.success is False
@@ -128,17 +134,38 @@ async def test_replace_rejects_oversized_new_string_payload(tmp_path: Path):
 
 
 @pytest.mark.asyncio
+async def test_replace_rejects_legacy_top_level_edit_fields(tmp_path: Path):
+    target = tmp_path / "legacy.txt"
+    target.write_text("hello\n", encoding="utf-8")
+
+    result = await replace(
+        {
+            "file_path": str(target),
+            "old_string": "hello",
+            "new_string": "goodbye",
+        }
+    )
+
+    assert result.success is False
+    assert result.error == (
+        "replace no longer accepts top-level edit fields; "
+        "use replacements[] for text edits"
+    )
+    assert target.read_text(encoding="utf-8") == "hello\n"
+
+
+@pytest.mark.asyncio
 async def test_replace_rejects_multiple_matches_without_replace_all(tmp_path: Path):
     target = tmp_path / "duplicate.txt"
     target.write_text("dup\nx\ndup\n", encoding="utf-8")
 
     result = await replace(
-        {
-            "file_path": str(target),
-            "old_string": "dup",
-            "new_string": "new",
-            "replace_all": False,
-        }
+        _single_replace_payload(
+            str(target),
+            old_string="dup",
+            new_string="new",
+            replace_all=False,
+        )
     )
 
     assert result.success is False
@@ -152,12 +179,12 @@ async def test_replace_all_replaces_all_matches(tmp_path: Path):
     target.write_text("dup\nx\ndup\n", encoding="utf-8")
 
     result = await replace(
-        {
-            "file_path": str(target),
-            "old_string": "dup",
-            "new_string": "new",
-            "replace_all": True,
-        }
+        _single_replace_payload(
+            str(target),
+            old_string="dup",
+            new_string="new",
+            replace_all=True,
+        )
     )
 
     assert result.success is True
@@ -166,17 +193,19 @@ async def test_replace_all_replaces_all_matches(tmp_path: Path):
 
 
 @pytest.mark.asyncio
-async def test_replace_uses_line_fallback_for_trailing_whitespace_mismatch(tmp_path: Path):
+async def test_replace_uses_line_fallback_for_trailing_whitespace_mismatch(
+    tmp_path: Path,
+):
     target = tmp_path / "whitespace.txt"
     target.write_text("alpha\ntarget value\nomega\n", encoding="utf-8")
 
     result = await replace(
-        {
-            "file_path": str(target),
-            "old_string": "target value   ",
-            "new_string": "updated",
-            "replace_all": False,
-        }
+        _single_replace_payload(
+            str(target),
+            old_string="target value   ",
+            new_string="updated",
+            replace_all=False,
+        )
     )
 
     assert result.success is True
@@ -192,9 +221,10 @@ async def test_replace_strict_mode_disables_lenient_line_fallback(tmp_path: Path
     result = await replace(
         {
             "file_path": str(target),
-            "old_string": "target value   ",
-            "new_string": "updated",
             "match_mode": "strict",
+            "replacements": [
+                {"old_string": "target value   ", "new_string": "updated"}
+            ],
         }
     )
 
@@ -212,12 +242,12 @@ async def test_replace_uses_line_fallback_for_unicode_dash_mismatch(tmp_path: Pa
     )
 
     result = await replace(
-        {
-            "file_path": str(target),
-            "old_string": "import asyncio  # local import - avoids top-level dep",
-            "new_string": "import asyncio  # HELLO",
-            "replace_all": False,
-        }
+        _single_replace_payload(
+            str(target),
+            old_string="import asyncio  # local import - avoids top-level dep",
+            new_string="import asyncio  # HELLO",
+            replace_all=False,
+        )
     )
 
     assert result.success is True
@@ -228,40 +258,52 @@ async def test_replace_uses_line_fallback_for_unicode_dash_mismatch(tmp_path: Pa
 @pytest.mark.asyncio
 async def test_replace_before_after_context_disambiguates_matches(tmp_path: Path):
     target = tmp_path / "context.txt"
-    target.write_text("before-A target after\nbefore-B target after\n", encoding="utf-8")
+    target.write_text(
+        "before-A target after\nbefore-B target after\n", encoding="utf-8"
+    )
 
     result = await replace(
-        {
-            "file_path": str(target),
-            "old_string": "target",
-            "new_string": "UPDATED",
-            "before_context": "before-B ",
-            "after_context": " after",
-        }
+        _single_replace_payload(
+            str(target),
+            old_string="target",
+            new_string="UPDATED",
+            before_context="before-B ",
+            after_context=" after",
+        )
     )
 
     assert result.success is True
     assert result.data["replacements"] == 1
-    assert target.read_text(encoding="utf-8") == "before-A target after\nbefore-B UPDATED after\n"
+    assert (
+        target.read_text(encoding="utf-8")
+        == "before-A target after\nbefore-B UPDATED after\n"
+    )
 
 
 @pytest.mark.asyncio
-async def test_replace_lenient_before_context_allows_whitespace_and_unicode_variants(tmp_path: Path):
+async def test_replace_lenient_before_context_allows_whitespace_and_unicode_variants(
+    tmp_path: Path,
+):
     target = tmp_path / "context-lenient-before.txt"
-    target.write_text("header \u2013 one\nheader two   \ntarget\ntail\n", encoding="utf-8")
+    target.write_text(
+        "header \u2013 one\nheader two   \ntarget\ntail\n", encoding="utf-8"
+    )
 
     result = await replace(
-        {
-            "file_path": str(target),
-            "old_string": "target\n",
-            "new_string": "TARGET\n",
-            "before_context": "header - one\nheader two\n",
-        }
+        _single_replace_payload(
+            str(target),
+            old_string="target\n",
+            new_string="TARGET\n",
+            before_context="header - one\nheader two\n",
+        )
     )
 
     assert result.success is True
     assert result.data["replacements"] == 1
-    assert target.read_text(encoding="utf-8") == "header \u2013 one\nheader two   \nTARGET\ntail\n"
+    assert (
+        target.read_text(encoding="utf-8")
+        == "header \u2013 one\nheader two   \nTARGET\ntail\n"
+    )
 
 
 @pytest.mark.asyncio
@@ -270,17 +312,19 @@ async def test_replace_lenient_after_context_allows_whitespace_variants(tmp_path
     target.write_text("start\ntarget\nafter line   \nfinish\n", encoding="utf-8")
 
     result = await replace(
-        {
-            "file_path": str(target),
-            "old_string": "target\n",
-            "new_string": "UPDATED\n",
-            "after_context": "after line\nfinish\n",
-        }
+        _single_replace_payload(
+            str(target),
+            old_string="target\n",
+            new_string="UPDATED\n",
+            after_context="after line\nfinish\n",
+        )
     )
 
     assert result.success is True
     assert result.data["replacements"] == 1
-    assert target.read_text(encoding="utf-8") == "start\nUPDATED\nafter line   \nfinish\n"
+    assert (
+        target.read_text(encoding="utf-8") == "start\nUPDATED\nafter line   \nfinish\n"
+    )
 
 
 @pytest.mark.asyncio
@@ -289,12 +333,12 @@ async def test_replace_occurrence_index_targets_specific_match(tmp_path: Path):
     target.write_text("x\ny\nx\n", encoding="utf-8")
 
     result = await replace(
-        {
-            "file_path": str(target),
-            "old_string": "x",
-            "new_string": "z",
-            "occurrence_index": 2,
-        }
+        _single_replace_payload(
+            str(target),
+            old_string="x",
+            new_string="z",
+            occurrence_index=2,
+        )
     )
 
     assert result.success is True
@@ -308,12 +352,12 @@ async def test_replace_require_eof_targets_tail_match_only(tmp_path: Path):
     target.write_text("tail\nmiddle\ntail\n", encoding="utf-8")
 
     result = await replace(
-        {
-            "file_path": str(target),
-            "old_string": "tail",
-            "new_string": "tail-updated",
-            "require_eof": True,
-        }
+        _single_replace_payload(
+            str(target),
+            old_string="tail",
+            new_string="tail-updated",
+            require_eof=True,
+        )
     )
 
     assert result.success is True
@@ -327,12 +371,12 @@ async def test_replace_disallows_empty_old_string_for_existing_file(tmp_path: Pa
     target.write_text("existing content\n", encoding="utf-8")
 
     result = await replace(
-        {
-            "file_path": str(target),
-            "old_string": "",
-            "new_string": "new content",
-            "replace_all": False,
-        }
+        _single_replace_payload(
+            str(target),
+            old_string="",
+            new_string="new content",
+            replace_all=False,
+        )
     )
 
     assert result.success is False
@@ -402,12 +446,12 @@ async def test_replace_creates_new_file_when_old_string_empty(tmp_path: Path):
     assert not target.exists()
 
     result = await replace(
-        {
-            "file_path": str(target),
-            "old_string": "",
-            "new_string": "fresh file",
-            "replace_all": False,
-        }
+        _single_replace_payload(
+            str(target),
+            old_string="",
+            new_string="fresh file",
+            replace_all=False,
+        )
     )
 
     assert result.success is True
@@ -438,7 +482,9 @@ async def test_replace_patch_chunks_update_file_hunk_modifies_content(tmp_path: 
 
 
 @pytest.mark.asyncio
-async def test_replace_patch_chunks_multiple_update_chunks_apply_to_single_file(tmp_path: Path):
+async def test_replace_patch_chunks_multiple_update_chunks_apply_to_single_file(
+    tmp_path: Path,
+):
     target = tmp_path / "multi.txt"
     target.write_text("foo\nbar\nbaz\nqux\n", encoding="utf-8")
 
@@ -517,7 +563,10 @@ async def test_replace_patch_chunks_pure_addition_followed_by_removal(tmp_path: 
 
     assert result.success is True
     assert result.data["replacements"] == 2
-    assert target.read_text(encoding="utf-8") == "line1\nline2-replacement\nafter-context\nsecond-line\n"
+    assert (
+        target.read_text(encoding="utf-8")
+        == "line1\nline2-replacement\nafter-context\nsecond-line\n"
+    )
 
 
 @pytest.mark.asyncio
@@ -533,7 +582,9 @@ async def test_replace_patch_chunks_unicode_dash_line_match(tmp_path: Path):
             "file_path": str(target),
             "patch_chunks": [
                 {
-                    "old_lines": ["import asyncio  # local import - avoids top-level dep"],
+                    "old_lines": [
+                        "import asyncio  # local import - avoids top-level dep"
+                    ],
                     "new_lines": ["import asyncio  # HELLO"],
                 }
             ],

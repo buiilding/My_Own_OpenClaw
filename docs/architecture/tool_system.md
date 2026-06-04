@@ -479,7 +479,7 @@ No dual-shape fallback is supported in provider transport.
 ### File System Tools
 
 - **read_file**: Read file contents
-- **replace**: Replace text in a file (single operation or batched operations)
+- **replace**: Replace text in a file through `replacements` or `patch_chunks`
 
 These tools are exposed to the LLM directly as individual function tools.
 Direct computer tools and selected system/filesystem tools carry their own

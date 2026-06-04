@@ -5,7 +5,8 @@ Provides type-safe argument validation for all tools.
 """
 
 from typing import List, Literal, Optional
-from pydantic import BaseModel, Field, ConfigDict, model_validator
+
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 EXPLANATION_FIELD_DESCRIPTION = (
     "One sentence explanation as to why this tool is being used, "
@@ -296,6 +297,7 @@ class RunShellCommandArgs(BaseModel):
         ...,
         description="One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
     )
+
     wait: Optional[float] = Field(
         None,
         description="(OPTIONAL) Delay in seconds before taking a screenshot after tool execution. If provided, the tool will wait and capture a screenshot like computer-use tools.",
@@ -536,38 +538,22 @@ class ReplaceArgs(BaseModel):
             "OS user home directory."
         ),
     )
-    old_string: Optional[str] = Field(
-        None,
-        description="Single-operation string to search for and replace",
-    )
-    new_string: Optional[str] = Field(
-        None,
-        description=(
-            "Single-operation replacement string. Do not send giant payloads in one call; "
-            "chunk large edits across multiple calls."
-        ),
-    )
-    replace_all: bool = Field(
-        False,
-        description="If true, replace all occurrences; if false, replace only the first occurrence",
-    )
-    before_context: Optional[str] = _before_context_field()
-    after_context: Optional[str] = _after_context_field()
-    occurrence_index: Optional[int] = _occurrence_index_field()
-    require_eof: bool = _require_eof_field()
     match_mode: Literal["strict", "lenient"] = Field(
         "lenient",
-        description="Matching mode for single operation and default for replacements[]",
+        description="Default matching mode for replacements[]",
     )
     replacements: Optional[List[ReplaceOperationArgs]] = Field(
         None,
-        description="Optional batched replacement operations applied atomically",
+        description=(
+            "Optional replacement operations applied atomically. "
+            "Use a one-item list for a single edit."
+        ),
     )
     patch_chunks: Optional[List[ReplacePatchChunkArgs]] = Field(
         None,
         description=(
             "Optional apply_patch-style ordered update chunks. "
-            "Cannot be combined with old_string/new_string/replacements. "
+            "Cannot be combined with replacements. "
             "Prefer multiple focused chunks/calls over one oversized payload."
         ),
     )
@@ -575,3 +561,17 @@ class ReplaceArgs(BaseModel):
         ...,
         description="One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
     )
+
+    @model_validator(mode="after")
+    def validate_single_edit_mode(self) -> "ReplaceArgs":
+        replacements_used = self.replacements is not None
+        patch_chunks_used = self.patch_chunks is not None
+        if int(replacements_used) + int(patch_chunks_used) != 1:
+            raise ValueError(
+                "replace requires exactly one edit mode: replacements or patch_chunks"
+            )
+        if self.replacements is not None and len(self.replacements) == 0:
+            raise ValueError("replacements must be a non-empty list when provided")
+        if self.patch_chunks is not None and len(self.patch_chunks) == 0:
+            raise ValueError("patch_chunks must be a non-empty list when provided")
+        return self

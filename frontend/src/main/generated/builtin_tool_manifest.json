@@ -1188,21 +1188,11 @@
     },
     {
       "argument_resolution": "passthrough",
-      "description": "Replace text in a file using exact or context-anchored matching. Supports single edits and batched replacements.\n\nOperational Guidance:\n- Prefer focused edits per tool call.\n- Do not send giant new_string payloads in one call.\n- For large changes, split them into multiple focused edit calls section-by-section.",
+      "description": "Replace text in a file using exact or context-anchored matching. Supports one or more edits through replacements[].\n\nOperational Guidance:\n- Prefer focused edits per tool call.\n- Do not send giant new_string payloads in one call.\n- For large changes, split them into multiple focused edit calls section-by-section.",
       "executable_schema": {
         "additionalProperties": false,
         "description": "Arguments for replace tool.",
         "properties": {
-          "after_context": {
-            "default": null,
-            "description": "Optional exact text that must appear immediately after old_string",
-            "type": "string"
-          },
-          "before_context": {
-            "default": null,
-            "description": "Optional exact text that must appear immediately before old_string",
-            "type": "string"
-          },
           "explanation": {
             "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
             "type": "string"
@@ -1213,50 +1203,24 @@
           },
           "match_mode": {
             "default": "lenient",
-            "description": "Matching mode for single operation and default for replacements[]",
+            "description": "Default matching mode for replacements[]",
             "enum": [
               "strict",
               "lenient"
             ],
             "type": "string"
           },
-          "new_string": {
-            "default": null,
-            "description": "Single-operation replacement string. Do not send giant payloads in one call; chunk large edits across multiple calls.",
-            "type": "string"
-          },
-          "occurrence_index": {
-            "default": null,
-            "description": "Optional 1-based match index to replace when multiple matches exist",
-            "minimum": 1,
-            "type": "integer"
-          },
-          "old_string": {
-            "default": null,
-            "description": "Single-operation string to search for and replace",
-            "type": "string"
-          },
           "patch_chunks": {
             "default": null,
-            "description": "Optional apply_patch-style ordered update chunks. Cannot be combined with old_string/new_string/replacements. Prefer multiple focused chunks/calls over one oversized payload.",
+            "description": "Optional apply_patch-style ordered update chunks. Cannot be combined with replacements. Prefer multiple focused chunks/calls over one oversized payload.",
             "items": {},
             "type": "array"
-          },
-          "replace_all": {
-            "default": false,
-            "description": "If true, replace all occurrences; if false, replace only the first occurrence",
-            "type": "boolean"
           },
           "replacements": {
             "default": null,
-            "description": "Optional batched replacement operations applied atomically",
+            "description": "Optional replacement operations applied atomically. Use a one-item list for a single edit.",
             "items": {},
             "type": "array"
-          },
-          "require_eof": {
-            "default": false,
-            "description": "If true, match must end at file EOF (allowing trailing newline)",
-            "type": "boolean"
           }
         },
         "required": [
@@ -1271,16 +1235,6 @@
         "additionalProperties": false,
         "description": "Arguments for replace tool.",
         "properties": {
-          "after_context": {
-            "default": null,
-            "description": "Optional exact text that must appear immediately after old_string",
-            "type": "string"
-          },
-          "before_context": {
-            "default": null,
-            "description": "Optional exact text that must appear immediately before old_string",
-            "type": "string"
-          },
           "explanation": {
             "description": "One sentence explanation as to why this tool is being used, and how it contributes to the goal.",
             "type": "string"
@@ -1291,50 +1245,24 @@
           },
           "match_mode": {
             "default": "lenient",
-            "description": "Matching mode for single operation and default for replacements[]",
+            "description": "Default matching mode for replacements[]",
             "enum": [
               "strict",
               "lenient"
             ],
             "type": "string"
           },
-          "new_string": {
-            "default": null,
-            "description": "Single-operation replacement string. Do not send giant payloads in one call; chunk large edits across multiple calls.",
-            "type": "string"
-          },
-          "occurrence_index": {
-            "default": null,
-            "description": "Optional 1-based match index to replace when multiple matches exist",
-            "minimum": 1,
-            "type": "integer"
-          },
-          "old_string": {
-            "default": null,
-            "description": "Single-operation string to search for and replace",
-            "type": "string"
-          },
           "patch_chunks": {
             "default": null,
-            "description": "Optional apply_patch-style ordered update chunks. Cannot be combined with old_string/new_string/replacements. Prefer multiple focused chunks/calls over one oversized payload.",
+            "description": "Optional apply_patch-style ordered update chunks. Cannot be combined with replacements. Prefer multiple focused chunks/calls over one oversized payload.",
             "items": {},
             "type": "array"
-          },
-          "replace_all": {
-            "default": false,
-            "description": "If true, replace all occurrences; if false, replace only the first occurrence",
-            "type": "boolean"
           },
           "replacements": {
             "default": null,
-            "description": "Optional batched replacement operations applied atomically",
+            "description": "Optional replacement operations applied atomically. Use a one-item list for a single edit.",
             "items": {},
             "type": "array"
-          },
-          "require_eof": {
-            "default": false,
-            "description": "If true, match must end at file EOF (allowing trailing newline)",
-            "type": "boolean"
           }
         },
         "required": [

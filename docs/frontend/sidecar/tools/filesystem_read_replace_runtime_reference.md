@@ -85,9 +85,10 @@ Entry: `replace(args: dict) -> ToolResult`.
 
 Modes:
 
-- single operation (`old_string` + `new_string`)
-- batched `replacements[]` (applied atomically in memory)
-- `patch_chunks[]` ordered line-based update mode (cannot be combined with operation mode fields)
+- `replacements[]` operation mode (applied atomically in memory; use a one-item
+  list for a single edit)
+- `patch_chunks[]` ordered line-based update mode (cannot be combined with
+  `replacements[]`)
 
 Path + creation policy:
 

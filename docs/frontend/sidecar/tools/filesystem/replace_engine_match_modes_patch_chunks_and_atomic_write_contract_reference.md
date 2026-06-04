@@ -23,14 +23,14 @@ title: "Replace Engine Match Modes, Patch Chunks, and Atomic Write Contract Refe
 `replace(args)` supports two exclusive flows:
 
 1. operation mode:
-   - single operation (`old_string`, `new_string`)
-   - or batch operations (`replacements[]`)
+   - one or more operations in `replacements[]`
+   - a single edit is represented as a one-item `replacements[]`
 2. patch mode:
    - `patch_chunks[]`
 
 Guard rule:
 
-- `patch_chunks` cannot be combined with `old_string/new_string/replacements`
+- `patch_chunks` cannot be combined with `replacements`
 
 ## Path and Creation Policy
 

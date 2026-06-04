@@ -27,8 +27,8 @@ For code changes or debugging, start with [Filesystem and Shell Change Workflow]
 
 - Resolve paths through sidecar path utilities instead of ad hoc string joins.
 - Preserve atomic writes for replace operations.
-- `replace` accepts exactly one edit mode per call: top-level
-  `old_string`/`new_string`, batched `replacements`, or `patch_chunks`.
+- `replace` accepts exactly one edit mode per call: `replacements` or
+  `patch_chunks`. Use a one-item `replacements` list for a single edit.
   Ambiguous combinations are rejected at the backend schema boundary before
   reaching local execution.
 - Keep shell output formatting predictable for both user display and model-facing `output`.
