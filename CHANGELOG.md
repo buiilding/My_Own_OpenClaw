@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/runtime: stop repairing explicit `rehydrateMessages(...)`
+  `conversation_ref` values from runtime state so the typed rehydrate payload
+  owns conversation identity.
 - frontend/sidecar/browser: delete duplicate Browser Use adapter validation for
   snapshot windows, upload paths, and validation fallback errors now owned by the
   shared `BrowserControlArgs` boundary.

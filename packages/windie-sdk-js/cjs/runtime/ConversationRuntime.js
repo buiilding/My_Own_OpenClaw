@@ -349,7 +349,6 @@ class SdkConversationRuntime {
     async rehydrateMessages(payload) {
         await this.options.transport?.rehydrateConversation({
             ...payload,
-            conversation_ref: payload.conversation_ref || this.options.conversationRef,
             rehydrate_mode: 'replace',
         });
     }

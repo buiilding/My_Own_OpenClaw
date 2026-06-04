@@ -1938,6 +1938,27 @@ describe('Windie SDK conversation runtime core', () => {
     });
   });
 
+  test('conversation runtime does not repair explicit rehydrate payload identity', async () => {
+    const rehydrateConversation = jest.fn(async () => undefined);
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store: new InMemoryConversationStore(),
+      transport: createMockBackendTransport({
+        rehydrateConversation,
+      }),
+    });
+
+    await runtime.rehydrateMessages({
+      messages: [],
+      rehydrate_mode: 'replace',
+    } as any);
+
+    expect(rehydrateConversation).toHaveBeenCalledWith({
+      messages: [],
+      rehydrate_mode: 'replace',
+    });
+  });
+
   test('conversation runtime records memory diagnostics emitted during query enrichment', async () => {
     const store = new InMemoryConversationStore();
     const runtime = new SdkConversationRuntime({

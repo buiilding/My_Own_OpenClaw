@@ -395,6 +395,10 @@ whose `conversationRef` or active `turnRef` does not match the runtime. This is
 what keeps two conversations on the same websocket from sharing streamed chunks
 or stale tool events.
 
+Explicit `rehydrateMessages(...)` payloads must carry their own
+`conversation_ref`. The runtime forwards that identity as supplied instead of
+repairing missing values from the active runtime conversation.
+
 ## Tool Rule
 
 When the SDK claims a local tool call or bundle:
