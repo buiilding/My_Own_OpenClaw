@@ -7,10 +7,10 @@ from pathlib import Path
 from unittest import mock
 
 import pytest
-
 from tools.browser.browser_use_engine import (
     BrowserActionError,
     BrowserUseEngineRuntime,
+    _extract_response_data,
     _parse_cli_json,
     shutdown_browser_runtime,
 )
@@ -29,6 +29,11 @@ def test_parse_cli_json_accepts_prefixed_close_output() -> None:
     assert parsed == {"success": True, "data": {"shutdown": True}}
 
 
+def test_extract_response_data_rejects_non_object_data() -> None:
+    with pytest.raises(BrowserActionError, match="non-object data"):
+        _extract_response_data({"success": True, "data": "done"})
+
+
 @pytest.mark.asyncio
 async def test_run_cli_requests_headed_when_starting_session(tmp_path: Path) -> None:
     runtime = BrowserUseEngineRuntime()
@@ -42,7 +47,9 @@ async def test_run_cli_requests_headed_when_starting_session(tmp_path: Path) -> 
         async def communicate(self) -> tuple[bytes, bytes]:
             return b'{"success": true, "data": {"title": "Example"}}', b""
 
-    async def fake_create_subprocess_exec(*command: str, **kwargs: object) -> FakeProcess:
+    async def fake_create_subprocess_exec(
+        *command: str, **kwargs: object
+    ) -> FakeProcess:
         captured["command"] = command
         captured["env"] = kwargs.get("env")
         return FakeProcess()
@@ -67,12 +74,16 @@ async def test_run_cli_requests_headed_when_starting_session(tmp_path: Path) -> 
     command = captured["command"]
     assert isinstance(command, tuple)
     assert "--headed" in command
-    assert ("--cdp-url", cdp_url) == command[command.index("--cdp-url") : command.index("--cdp-url") + 2]
+    assert ("--cdp-url", cdp_url) == command[
+        command.index("--cdp-url") : command.index("--cdp-url") + 2
+    ]
     assert command[-2:] == ("get", "title")
 
 
 @pytest.mark.asyncio
-async def test_run_cli_reuses_running_headed_session_without_config_check(tmp_path: Path) -> None:
+async def test_run_cli_reuses_running_headed_session_without_config_check(
+    tmp_path: Path,
+) -> None:
     runtime = BrowserUseEngineRuntime()
     runtime._home = str(tmp_path)
     state_path = tmp_path / "windieos.state.json"
@@ -87,7 +98,9 @@ async def test_run_cli_reuses_running_headed_session_without_config_check(tmp_pa
         async def communicate(self) -> tuple[bytes, bytes]:
             return b'{"success": true, "data": {"title": "Example"}}', b""
 
-    async def fake_create_subprocess_exec(*command: str, **kwargs: object) -> FakeProcess:
+    async def fake_create_subprocess_exec(
+        *command: str, **kwargs: object
+    ) -> FakeProcess:
         captured["command"] = command
         captured["env"] = kwargs.get("env")
         return FakeProcess()
@@ -141,7 +154,9 @@ async def test_connect_starts_headed_browser_use_session(tmp_path: Path) -> None
 
 
 @pytest.mark.asyncio
-async def test_connect_reuses_running_windie_cdp_session_without_config_check(tmp_path: Path) -> None:
+async def test_connect_reuses_running_windie_cdp_session_without_config_check(
+    tmp_path: Path,
+) -> None:
     runtime = BrowserUseEngineRuntime()
     runtime._home = str(tmp_path)
     cdp_url = "http://127.0.0.1:9333"
@@ -170,7 +185,9 @@ async def test_connect_reuses_running_windie_cdp_session_without_config_check(tm
 
 
 @pytest.mark.asyncio
-async def test_connect_closes_incompatible_session_before_starting_windie_cdp(tmp_path: Path) -> None:
+async def test_connect_closes_incompatible_session_before_starting_windie_cdp(
+    tmp_path: Path,
+) -> None:
     runtime = BrowserUseEngineRuntime()
     runtime._home = str(tmp_path)
     cdp_url = "http://127.0.0.1:9333"
@@ -192,17 +209,23 @@ async def test_connect_closes_incompatible_session_before_starting_windie_cdp(tm
             "tools.browser.browser_use_engine.ensure_chrome_with_cdp",
             new=mock.AsyncMock(return_value=cdp_url),
         ),
-        mock.patch.object(runtime, "_run_cli", new=mock.AsyncMock(side_effect=run_cli)) as run_cli_mock,
+        mock.patch.object(
+            runtime, "_run_cli", new=mock.AsyncMock(side_effect=run_cli)
+        ) as run_cli_mock,
     ):
         result = await runtime.execute(_args({"action": "connect"}))
 
     assert run_cli_mock.await_args_list[0] == mock.call("close", headed=False)
-    assert run_cli_mock.await_args_list[1] == mock.call("state", headed=True, cdp_url=cdp_url)
+    assert run_cli_mock.await_args_list[1] == mock.call(
+        "state", headed=True, cdp_url=cdp_url
+    )
     assert result["connected"] is True
 
 
 @pytest.mark.asyncio
-async def test_connect_errors_when_incompatible_session_survives_close(tmp_path: Path) -> None:
+async def test_connect_errors_when_incompatible_session_survives_close(
+    tmp_path: Path,
+) -> None:
     runtime = BrowserUseEngineRuntime()
     runtime._home = str(tmp_path)
     cdp_url = "http://127.0.0.1:9333"
@@ -234,7 +257,9 @@ async def test_connect_errors_when_incompatible_session_survives_close(tmp_path:
 
 
 @pytest.mark.asyncio
-async def test_status_does_not_claim_starting_session_is_connected(tmp_path: Path) -> None:
+async def test_status_does_not_claim_starting_session_is_connected(
+    tmp_path: Path,
+) -> None:
     runtime = BrowserUseEngineRuntime()
     runtime._home = str(tmp_path)
     state_path = tmp_path / "windieos.state.json"
@@ -249,7 +274,9 @@ async def test_status_does_not_claim_starting_session_is_connected(tmp_path: Pat
 
 
 @pytest.mark.asyncio
-async def test_status_does_not_claim_headless_session_is_connected(tmp_path: Path) -> None:
+async def test_status_does_not_claim_headless_session_is_connected(
+    tmp_path: Path,
+) -> None:
     runtime = BrowserUseEngineRuntime()
     runtime._home = str(tmp_path)
     state_path = tmp_path / "windieos.state.json"
@@ -264,7 +291,9 @@ async def test_status_does_not_claim_headless_session_is_connected(tmp_path: Pat
 
 
 @pytest.mark.asyncio
-async def test_status_accepts_windie_cdp_session_even_when_browser_use_headed_flag_is_false(tmp_path: Path) -> None:
+async def test_status_accepts_windie_cdp_session_even_when_browser_use_headed_flag_is_false(
+    tmp_path: Path,
+) -> None:
     runtime = BrowserUseEngineRuntime()
     runtime._home = str(tmp_path)
     state_path = tmp_path / "windieos.state.json"
@@ -327,7 +356,9 @@ async def test_navigate_does_not_promote_browser_use_message_to_output() -> None
 
 
 @pytest.mark.asyncio
-async def test_navigate_browser_internal_url_uses_python_goto_to_preserve_scheme() -> None:
+async def test_navigate_browser_internal_url_uses_python_goto_to_preserve_scheme() -> (
+    None
+):
     runtime = BrowserUseEngineRuntime()
 
     with mock.patch.object(
@@ -568,7 +599,9 @@ async def test_get_tabs_returns_canonical_tab_index_only() -> None:
     with mock.patch.object(
         runtime,
         "_run_cli",
-        new=mock.AsyncMock(return_value={"_raw_text": "Tabs:\n0 https://example.com\n1 about:blank"}),
+        new=mock.AsyncMock(
+            return_value={"_raw_text": "Tabs:\n0 https://example.com\n1 about:blank"}
+        ),
     ):
         result = await runtime.execute(_args({"action": "get_tabs"}))
 
@@ -612,7 +645,9 @@ async def test_get_helpers_use_browser_use_get_commands() -> None:
     ) as run_cli:
         text_result = await runtime.execute(_args({"action": "get_text", "index": 7}))
         value_result = await runtime.execute(_args({"action": "get_value", "index": 7}))
-        attrs_result = await runtime.execute(_args({"action": "get_attributes", "index": 7}))
+        attrs_result = await runtime.execute(
+            _args({"action": "get_attributes", "index": 7})
+        )
         bbox_result = await runtime.execute(_args({"action": "get_bbox", "index": 7}))
 
     assert run_cli.await_args_list == [

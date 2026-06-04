@@ -54,6 +54,7 @@ Main-process timeout behavior:
 - maps validated canonical actions to Browser Use CLI commands or adapter-owned helpers
 - rejects unsupported actions with `ACTION_UNSUPPORTED`
 - ensures a WindieOS-owned Browser Use session is connected when required
+- requires successful Browser Use CLI responses to carry object-shaped `data`
 - routes deterministic extraction through `content_extraction.py`
 - routes browser-local file actions through `file_store.py`
 
