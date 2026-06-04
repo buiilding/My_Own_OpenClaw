@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/rehydrate: move tool-call parsing assertions out of the rehydrate
+  execution service test so helper behavior is covered only by its owning test
+  module.
 - backend/rehydrate: remove the now-unused content argument from internal
   bundle trace detection so the helper only accepts explicit metadata.
 - backend/rehydrate: stop inferring internal bundle traces from raw JSON content;

@@ -8,10 +8,6 @@ from backend.src.api.services.rehydrate_entry_normalization import (
     RehydrateNormalizationState,
 )
 from backend.src.api.services.rehydrate_execution import RehydrateExecutionService
-from backend.src.api.services.rehydrate_tool_call_normalization import (
-    extract_tool_call_details,
-    normalize_tool_calls,
-)
 
 
 class _FakeSession:
@@ -415,29 +411,6 @@ def test_normalize_rehydrated_entry_does_not_infer_bundle_trace_from_json_conten
     assert known_tool_call_ids == set()
 
 
-def test_normalize_tool_calls_parses_function_payload_and_skips_invalid_entries():
-    normalized = normalize_tool_calls(
-        [
-            {
-                "id": " call-1 ",
-                "type": "function",
-                "function": {
-                    "name": "read_file",
-                    "arguments": '{"path":"/tmp/a.txt"}',
-                },
-            },
-            {"id": "call-2", "name": "replace", "arguments": {"path": "/tmp/b.txt"}},
-            {"id": "", "name": "invalid"},
-            "not-a-dict",
-        ]
-    )
-
-    assert normalized == [
-        {"id": "call-1", "name": "read_file", "arguments": {"path": "/tmp/a.txt"}},
-        {"id": "call-2", "name": "replace", "arguments": {"path": "/tmp/b.txt"}},
-    ]
-
-
 def test_normalize_rehydrated_entry_reuses_pending_tool_call_id_for_tool_output():
     known_tool_call_ids = set()
 
@@ -636,80 +609,6 @@ def test_normalize_rehydrated_entry_consumes_matching_pending_tool_call_id():
     assert entries[0]["tool_call_id"] == "call-2"
     assert pending is None
     assert state.pending_tool_call_ids == ["call-1"]
-
-
-def test_extract_tool_call_details_reads_arguments_alias_field():
-    tool_name, arguments, tool_call_id, thought_signature = extract_tool_call_details(
-        content='{"name":"replace","arguments":{"path":"/tmp/a.txt"}}',
-        fallback_tool_name="fallback_tool",
-    )
-
-    assert tool_name == "replace"
-    assert arguments == {"path": "/tmp/a.txt"}
-    assert tool_call_id is None
-    assert thought_signature is None
-
-
-def test_extract_tool_call_details_falls_back_for_invalid_payload_shapes():
-    tool_name, arguments, tool_call_id, thought_signature = extract_tool_call_details(
-        content='["not", "a", "dict"]',
-        fallback_tool_name="fallback_tool",
-    )
-    assert tool_name == "fallback_tool"
-    assert arguments == {}
-    assert tool_call_id is None
-    assert thought_signature is None
-
-    tool_name, arguments, tool_call_id, thought_signature = extract_tool_call_details(
-        content="not-json",
-        fallback_tool_name=None,
-    )
-    assert tool_name == "unknown_tool"
-    assert arguments == {}
-    assert tool_call_id is None
-    assert thought_signature is None
-
-
-def test_normalize_tool_calls_falls_back_for_missing_name_and_bad_json_arguments():
-    normalized = normalize_tool_calls(
-        [
-            {
-                "id": "call-1",
-                "type": "function",
-                "function": {
-                    "name": "  ",
-                    "arguments": "{bad-json",
-                },
-            }
-        ]
-    )
-
-    assert normalized == [{"id": "call-1", "name": "unknown_tool_0", "arguments": {}}]
-
-
-def test_normalize_tool_calls_preserves_thought_signature():
-    normalized = normalize_tool_calls(
-        [
-            {
-                "id": "call-1",
-                "type": "function",
-                "function": {
-                    "name": "browser",
-                    "arguments": '{"action":"snapshot"}',
-                    "thoughtSignature": "sig-123",
-                },
-            }
-        ]
-    )
-
-    assert normalized == [
-        {
-            "id": "call-1",
-            "name": "browser",
-            "arguments": {"action": "snapshot"},
-            "thought_signature": "sig-123",
-        }
-    ]
 
 
 def test_normalize_rehydrated_tool_call_entry_uses_explicit_tool_call_id():
