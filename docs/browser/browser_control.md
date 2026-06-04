@@ -485,7 +485,7 @@ Unsupported browser-controller actions remain removed from runtime routing
 **Solutions:**
 1. Check internet connection
 2. Try longer wait: `{"action": "wait", "seconds": 5}`
-3. Check if site blocks automation (use managed mode)
+3. If the site blocks automation, retry after a fresh `connect` or use a different site flow.
 
 ### Browser Runtime Dependency Not Found
 
@@ -501,10 +501,9 @@ playwright install chromium
 ## Best Practices
 
 1. **Snapshot before interacting** - Ensures refs are attached and the target still exists
-2. **Use managed mode for unknown sites** - Safer, no risk to your data
-3. **Use user_chrome for logged-in tasks** - Access your existing sessions
-4. **Close when done** - Frees resources
-5. **Handle failures gracefully** - Pages can change, elements may not exist
+2. **Use the WindieOS dedicated browser session** - Browser automation runs through the isolated Browser Use/CDP path.
+3. **Close when done** - Frees resources
+4. **Handle failures gracefully** - Pages can change, elements may not exist
 
 ## Architecture
 
@@ -518,17 +517,17 @@ playwright install chromium
        │                            │   Sidecar   │
        │                            │   (Python)  │
        │                            └──────┬──────┘
-       │                                   │ Playwright
+       │                                   │ Browser Use / CDP
        │                            ┌──────▼──────┐
        │                            │    Chrome   │
-       │                            │   (User or  │
-       │                            │   Managed)  │
+       │                            │  (WindieOS  │
+       │                            │  profile)   │
        │                            └─────────────┘
 ```
 
 - **Backend**: Exposes tool schema to LLM, orchestrates execution
-- **Sidecar**: Executes browser actions via Playwright
-- **Chrome**: Controlled via Chrome DevTools Protocol (CDP)
+- **Sidecar**: Adapts browser actions to Browser Use and the WindieOS CDP profile
+- **Chrome**: WindieOS-owned profile controlled through localhost CDP
 
 ## Browser Support
 
@@ -547,9 +546,6 @@ Supported platforms:
 ## Privacy & Security
 
 - **CDP connections** are localhost-only
-- **User Chrome** has full access to your browser data
-- **Managed mode** runs isolated with no access to your profile
+- **WindieOS browser profile** is separate from the user's default browser profile
 - **Screenshots** may contain sensitive data
 - **JavaScript evaluation** can execute arbitrary code
-
-Use managed mode when visiting untrusted sites.

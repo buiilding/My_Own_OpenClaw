@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/simulation: update the mock browser LLM sequence to emit canonical
+  Browser Use-backed `browser` tool payloads and validate the fixture against
+  the live `BrowserControlArgs` schema.
+- docs/browser: remove stale user/managed browser-mode and `script` examples so
+  browser runbooks describe the single WindieOS Browser Use/CDP profile path.
 - frontend/sidecar/browser: delete the unused Chrome executable version probe so
   browser detection only owns executable discovery and priority selection.
 - frontend/sidecar/browser: remove the unused preferred-kind Chrome executable

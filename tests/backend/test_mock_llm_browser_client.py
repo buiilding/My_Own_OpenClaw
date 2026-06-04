@@ -11,6 +11,7 @@ from backend.src.simulation.mock_llm_browser_client import (
     MockLLMBrowserClient,
     get_mock_llm_browser_client,
 )
+from backend.src.tools.browser.schemas import BrowserControlArgs
 
 
 class TestMockLLMBrowserClient:
@@ -135,6 +136,13 @@ class TestMockLLMBrowserClient:
 
 class TestBrowserSimulationResponses:
     """Test the simulation response sequence."""
+
+    def test_simulation_browser_arguments_match_current_schema(self):
+        """Every simulated browser call should validate against the live contract."""
+        for response in BROWSER_SIMULATION_RESPONSES:
+            for tool_call in response.get("tool_calls", []):
+                assert tool_call["name"] == "browser"
+                BrowserControlArgs.model_validate(tool_call["arguments"])
 
     def test_simulation_has_expected_steps(self):
         """Test that simulation has expected browser control steps."""

@@ -150,6 +150,7 @@ Platform-aware detail:
   - connect
   - navigate
   - snapshot/evaluate/type/wait/screenshot/close
+- emits canonical browser payloads that validate against `BrowserControlArgs`
 - includes a final close+text turn that exercises deferred final-text logic.
 
 ## Test-Backed Invariants

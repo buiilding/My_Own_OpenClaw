@@ -89,9 +89,7 @@ Use the mock LLM client to see browser control in action without spending API cr
 
 ### Option A: Mock Browser Client (Amazon Shoes Demo)
 
-**1. Start Chrome with CDP** (as shown above)
-
-**2. Modify backend to use mock client:**
+**1. Configure the backend to use the mock browser client:**
 
 Edit `backend/src/core/config/app_config.py`:
 ```python
@@ -104,14 +102,14 @@ Or set environment variable:
 export WINDIEOS_LLM_CLIENT="mock_browser"
 ```
 
-**3. Run backend:**
+**2. Run backend:**
 ```bash
 cd WindieOS
 ./scripts/run-backend
 ```
 
 The mock client will automatically:
-- Connect to your Chrome
+- Connect to the WindieOS Browser Use session
 - Navigate to Amazon
 - Search for "shoes"
 - Sort by price (low to high)
@@ -195,14 +193,15 @@ async def test():
     # Connect to browser
     result = await registry.execute_tool('browser', {
         'action': 'connect',
-        'mode': 'user_chrome'
+        'explanation': 'Open the Browser Use session for a smoke test.'
     })
     print(f'Connect: {result}')
     
     # Navigate
     result = await registry.execute_tool('browser', {
         'action': 'navigate',
-        'url': 'https://example.com'
+        'url': 'https://example.com',
+        'explanation': 'Navigate during a smoke test.'
     })
     print(f'Navigate: {result}')
 
@@ -398,7 +397,7 @@ Go to example.com and run alert("Hello")
 
 Agent executes:
 ```json
-{"action": "evaluate", "script": "alert('Hello')"}
+{"action": "evaluate", "code": "alert('Hello')"}
 ```
 
 ### Multi-Tab Operations
@@ -420,11 +419,8 @@ Agent:
 # Windie browser CDP port (default: 9333)
 export WINDIE_BROWSER_CDP_PORT=9333
 
-# Use mock LLM for testing
-export WINDIEOS_LLM_CLIENT="mock_browser"
-
-# Playwright browser path (optional)
-export PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH="/usr/bin/chromium"
+# Browser Use session name (default: windieos)
+export WINDIE_BROWSER_USE_SESSION=windieos
 ```
 
 ## Next Steps

@@ -17,9 +17,9 @@ Proposed. Current implementation remains dedicated WindieOS browser control thro
 WindieOS browser automation currently relies on a WindieOS-owned browser runtime:
 
 - dedicated browser profile
-- sidecar browser controller
-- CDP launch/connect flow
-- browser action schema compatibility handled in backend/sidecar docs
+- Browser Use sidecar adapter
+- WindieOS CDP launch/connect flow
+- strict backend/sidecar browser action schema
 - explicit browser availability/permission checks
 
 Some future product ideas involve a browser extension that could auto-attach to an existing user browser session. That would change the trust model because the extension would operate inside a user-managed browser profile with ambient cookies, extensions, and tabs.
@@ -31,9 +31,9 @@ Do not treat extension auto-attach as current browser behavior.
 Current behavior:
 
 - keep dedicated WindieOS browser runtime and profile ownership
-- use sidecar-controlled launch/connect paths
-- prefer installed Chrome/Chromium-family browsers before optional Chromium install
-- keep browser action execution in sidecar runtime
+- use Browser Use through the sidecar adapter
+- prefer installed Chrome/Chromium-family browsers through the fixed detection priority
+- keep browser action execution in the sidecar/browser runtime
 
 Future extension mode, if implemented, must be designed as a separate capability with its own:
 
