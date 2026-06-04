@@ -131,7 +131,7 @@ jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
     require('./storeSelectorTestUtils.cjs').selectMockStoreState(selector, mockChatState),
 }));
 
-jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
+jest.mock('../../frontend/src/renderer/app/providers/AppConfigContext', () => ({
   useAppConfigContext: () => ({
     config: mockConfig,
     updateConfig: (...args) => mockUpdateConfig(...args),

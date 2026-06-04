@@ -8,7 +8,7 @@ import { IpcBridge, INVOKE_CHANNELS } from '../infrastructure/ipc/bridge';
 import { isVmModeEnabled } from '../infrastructure/runtime/vmMode';
 import { selectStartupSurface } from './startupSurface';
 import { AppProvider } from './providers/AppProvider';
-import { useAppConfigContext } from './providers/AppContextHooks';
+import { useAppConfigContext } from './providers/AppConfigContext';
 import { ChatProvider } from './providers/ChatProvider';
 import WakewordController from './WakewordController';
 import '../styles/theme.css';

@@ -22,7 +22,7 @@ let mockFrontendConfig: Record<string, unknown> = {
   selected_model_id: 'gpt-5.4@@gpt-5-4-none-thinking',
 };
 
-jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
+jest.mock('../../frontend/src/renderer/app/providers/AppConfigContext', () => ({
   useAppConfigContext: jest.fn(() => ({
     config: mockFrontendConfig,
   })),

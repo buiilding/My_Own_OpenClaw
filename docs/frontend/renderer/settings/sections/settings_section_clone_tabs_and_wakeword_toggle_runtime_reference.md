@@ -15,7 +15,7 @@ title: "Settings Section General + Memory Tabs Runtime Reference"
 - `frontend/src/renderer/features/dashboard/components/sections/settings/MemorySettingsTab.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/settings/useMemorySettingsActions.js`
 - `frontend/src/renderer/features/permissions/components/PermissionControlCenter.jsx`
-- `frontend/src/renderer/app/providers/AppContextHooks.js`
+- `frontend/src/renderer/app/providers/AppConfigContext.jsx`
 - `tests/frontend/SettingsSection.test.jsx`
 
 ## Panel and Tab Surface

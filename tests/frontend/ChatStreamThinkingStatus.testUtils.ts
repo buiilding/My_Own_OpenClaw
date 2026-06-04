@@ -24,7 +24,7 @@ let mockActiveConversationRef: string | null = DEFAULT_TEST_CONVERSATION_REF;
 let mockBackendSequence = 1;
 const mockUseAppConfigContext = jest.fn(() => ({ config: mockConfig }));
 
-jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
+jest.mock('../../frontend/src/renderer/app/providers/AppConfigContext', () => ({
   useAppConfigContext: () => mockUseAppConfigContext(),
 }));
 

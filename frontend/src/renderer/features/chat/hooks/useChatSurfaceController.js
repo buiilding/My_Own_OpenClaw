@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
+import { useAppConfigContext } from '../../../app/providers/AppConfigContext';
 import { runManualCompaction as runManualCompactionCommand } from '../utils/session/manualCompactionRuntime';
 import { useCurrentTurnPresentationState } from './useCurrentTurnPresentationState';
 import { resolveLiveTurnPresentationInput } from '../utils/state/liveTurnSurfaceState';

@@ -1,1 +1,0 @@
-export { useAppConfigContext } from './AppConfigContext';

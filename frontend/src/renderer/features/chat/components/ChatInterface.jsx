@@ -13,7 +13,7 @@ import {
   useChatInterfaceNewChatEvent,
   useChatInterfaceStopShortcut,
 } from '../hooks/useChatInterfaceBindings';
-import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
+import { useAppConfigContext } from '../../../app/providers/AppConfigContext';
 import { PlayerService } from '../../../infrastructure/audio/PlayerService';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { selectChatInterfaceState } from '../utils/chatSelectors';

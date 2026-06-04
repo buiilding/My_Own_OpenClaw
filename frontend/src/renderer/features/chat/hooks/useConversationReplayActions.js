@@ -3,7 +3,7 @@ import { useChatStore } from '../stores/chatStore';
 import {
   resolveReplayScreenshotState,
 } from '../../../infrastructure/services/screenshotMessageState';
-import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
+import { useAppConfigContext } from '../../../app/providers/AppConfigContext';
 import { buildDeferredQueryModelSelection } from '../../../app/providers/appConfigBackendSync';
 import {
   getConversationWorkspaceBinding,

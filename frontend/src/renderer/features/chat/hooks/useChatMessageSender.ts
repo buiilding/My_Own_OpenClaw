@@ -5,7 +5,7 @@
 
 import { useCallback, useMemo } from 'react';
 import { useChatStore } from '../stores/chatStore';
-import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
+import { useAppConfigContext } from '../../../app/providers/AppConfigContext';
 import {
   type ChatSendSurface,
   type ReturnToChatboxPolicy,

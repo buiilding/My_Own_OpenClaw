@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
+import { useAppConfigContext } from '../../../app/providers/AppConfigContext';
 import { usePermissionStore } from '../../permissions/stores/permissionStore';
 import { applyPermissionGrantEffects } from '../../permissions/utils/permissionGrantEffects';
 import { isPermissionGrantedStatus } from '../../permissions/utils/permissionStatus';

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import PermissionStatusBadge from '../../../../permissions/components/PermissionStatusBadge';
 import { usePermissionStore } from '../../../../permissions/stores/permissionStore';
 import { applyPermissionGrantEffects } from '../../../../permissions/utils/permissionGrantEffects';
-import { useAppConfigContext } from '../../../../../app/providers/AppContextHooks';
+import { useAppConfigContext } from '../../../../../app/providers/AppConfigContext';
 
 const BROWSER_PERMISSION_ID = 'browser_automation';
 

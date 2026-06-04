@@ -60,7 +60,7 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopMemoryRuntimeClient', 
   },
 }));
 
-jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
+jest.mock('../../frontend/src/renderer/app/providers/AppConfigContext', () => ({
   useAppConfigContext: () => mockAppConfigContext,
 }));
 
@@ -596,7 +596,7 @@ describe('SettingsSection', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Nuke chats' }));
 
     await waitFor(() => {
-      expect(mockInvoke).toHaveBeenCalledWith('clear-chat-history', { userId: 'default_user' });
+      expect(mockClearChatHistory).toHaveBeenCalledWith('default_user');
       expect(onChatsCleared).toHaveBeenCalled();
       expect(screen.getByText('Past chats deleted.')).toBeInTheDocument();
     });

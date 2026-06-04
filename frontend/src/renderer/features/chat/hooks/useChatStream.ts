@@ -4,7 +4,7 @@ import type { ConversationEvent } from '../../../infrastructure/api/windieSdkCli
 import {
   useChatStore,
 } from '../stores/chatStore';
-import { useAppConfigContext } from '../../../app/providers/AppContextHooks';
+import { useAppConfigContext } from '../../../app/providers/AppConfigContext';
 import { resolveThinkingCapabilities } from '../utils/modelThinkingCapabilities';
 import { type TranscriptModelContext } from '../utils/chatStream/chatStreamTypes';
 import { useChatCommonActions } from './useChatCommonActions';

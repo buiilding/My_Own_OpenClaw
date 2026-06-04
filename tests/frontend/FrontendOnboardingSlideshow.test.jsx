@@ -81,7 +81,7 @@ jest.mock('../../frontend/src/renderer/features/permissions/stores/permissionSto
   usePermissionStore: (selector) => selector(mockPermissionState),
 }));
 
-jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
+jest.mock('../../frontend/src/renderer/app/providers/AppConfigContext', () => ({
   useAppConfigContext: () => ({
     updateConfig: (...args) => mockUpdateConfig(...args),
   }),

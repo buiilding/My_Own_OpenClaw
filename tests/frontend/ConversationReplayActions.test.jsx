@@ -16,7 +16,7 @@ let mockFrontendConfig = {
   selected_model_id: 'claude-sonnet-4-5',
 };
 
-jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
+jest.mock('../../frontend/src/renderer/app/providers/AppConfigContext', () => ({
   useAppConfigContext: jest.fn(() => ({
     config: mockFrontendConfig,
   })),

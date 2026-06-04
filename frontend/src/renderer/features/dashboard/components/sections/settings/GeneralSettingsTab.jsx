@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
-import { useAppConfigContext } from '../../../../../app/providers/AppContextHooks';
+import { useAppConfigContext } from '../../../../../app/providers/AppConfigContext';
 import { IpcBridge, INVOKE_CHANNELS } from '../../../../../infrastructure/ipc/bridge';
 import {
   getGlobalAgentStopShortcutLabel,

@@ -112,7 +112,7 @@ jest.mock('../../frontend/src/renderer/features/chat/stores/chatStore', () => ({
   useChatStore: (selector) => mockSelectStoreState(selector, mockChatState),
 }));
 
-jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
+jest.mock('../../frontend/src/renderer/app/providers/AppConfigContext', () => ({
   useAppConfigContext: () => ({
     config: mockConfig,
     availableModels: mockAvailableModels,

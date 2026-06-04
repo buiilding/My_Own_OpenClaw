@@ -48,7 +48,7 @@ jest.mock('../../frontend/src/renderer/app/providers/ChatProvider', () => ({
 
 jest.mock('../../frontend/src/renderer/app/WakewordController', () => (...args) => mockWakewordController(...args));
 
-jest.mock('../../frontend/src/renderer/app/providers/AppContextHooks', () => ({
+jest.mock('../../frontend/src/renderer/app/providers/AppConfigContext', () => ({
   useAppConfigContext: () => ({
     config: {},
     availableModels: { local: [], online: [] },

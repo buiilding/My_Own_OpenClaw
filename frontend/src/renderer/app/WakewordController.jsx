@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useWakewordDetection } from '../features/voice/hooks/useWakewordDetection';
 import { IpcBridge, INVOKE_CHANNELS } from '../infrastructure/ipc/bridge';
-import { useAppConfigContext } from './providers/AppContextHooks';
+import { useAppConfigContext } from './providers/AppConfigContext';
 import { DesktopVoiceRuntimeClient } from './runtime/desktopVoiceRuntimeClient';
 
 function WakewordController() {

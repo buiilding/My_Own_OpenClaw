@@ -11,6 +11,8 @@ All notable changes to WindieOS will be documented in this file.
 - tools/shell: remove the stale `max_output_tokens` argument from the backend
   shell schema and docs so shell output limits are owned by the sidecar process
   session model instead of a silent ignored field.
+- frontend/renderer: delete the `AppContextHooks` compatibility re-export so
+  config hook consumers import the owning `AppConfigContext` module directly.
 - frontend/sidecar: remove the duplicated `core` backend config, auth,
   unicode-sanitizer, and remote API base shims so sidecar callers use the
   `windie` owner modules directly.

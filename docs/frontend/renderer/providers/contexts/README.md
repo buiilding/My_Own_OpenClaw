@@ -1,5 +1,5 @@
 ---
-summary: "Renderer provider context docs sub-hub for AppConfig/AppStatus hook guard contracts, legacy AppContextHooks re-export boundary, and ChatProvider empty-context ownership semantics."
+summary: "Renderer provider context docs sub-hub for AppConfig/AppStatus hook guard contracts and ChatProvider empty-context ownership semantics."
 read_when:
   - When changing renderer context hook exports or provider guard error behavior.
   - When changing `ChatProvider` bootstrap flags, context value identity, or overlay/main provider ownership boundaries.
@@ -24,7 +24,6 @@ title: "Renderer Provider Contexts Docs Hub"
 
 - `frontend/src/renderer/app/providers/AppConfigContext.jsx`
 - `frontend/src/renderer/app/providers/AppStatusContext.jsx`
-- `frontend/src/renderer/app/providers/AppContextHooks.js`
 - `frontend/src/renderer/app/providers/ChatContext.jsx`
 - `frontend/src/renderer/app/providers/ChatProvider.jsx`
 - `tests/frontend/AppConfigContext.test.tsx`
