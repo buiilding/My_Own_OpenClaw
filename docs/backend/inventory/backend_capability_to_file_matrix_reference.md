@@ -12,8 +12,8 @@ This matrix maps backend capabilities to implementation files.
 
 ## Coverage Snapshot (2026-02-27)
 
-- Total backend python files: `322`
-- Domain counts: `agent=70`, `api=73`, `core=77`, `tools=31`, `llm=33`, `services=16`, `simulation=12`, `sdk=6`, `embeddings=2`
+- Total backend python files: `429`
+- Domain counts: `agent=83`, `api=119`, `core=93`, `tools=40`, `llm=39`, `services=29`, `simulation=10`, `sdk=6`, `embeddings=8`
 
 ## 1) API Ingress and Transport
 

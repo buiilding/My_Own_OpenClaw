@@ -1,8 +1,8 @@
 ---
-summary: "Backend simulation runtime reference: app entrypoints, lifespan container overrides, BaseSimulationLLMClient behavior, native tool-call adapter semantics, and test-backed sequence guarantees."
+summary: "Backend simulation runtime reference: app entrypoints, lifespan container overrides, BaseSimulationLLMClient behavior, native tool-call fixture semantics, and test-backed sequence guarantees."
 read_when:
   - When modifying simulation backend startup/lifespan or replacing mock-client injection strategy.
-  - When updating hardcoded simulation sequences, native tool-call normalization, or browser/computer simulation behavior.
+  - When updating hardcoded simulation sequences, native tool-call fixtures, or browser/computer simulation behavior.
 title: "Simulation Backend and Mock LLM Runtime Reference"
 ---
 
@@ -17,7 +17,6 @@ title: "Simulation Backend and Mock LLM Runtime Reference"
 - `backend/src/simulation/browser.py`
 - `backend/src/simulation/computer.py`
 - `backend/src/simulation/base_mock_llm_client.py`
-- `backend/src/simulation/native_tool_adapter.py`
 - `backend/src/simulation/mock_llm_client.py`
 - `backend/src/simulation/mock_llm_browser_client.py`
 
@@ -90,9 +89,9 @@ Key coupling:
 
 ## BaseSimulationLLMClient Runtime Semantics
 
-`BaseSimulationLLMClient` implements deterministic iteration over static responses:
+`BaseSimulationLLMClient` implements deterministic iteration over static normalized responses:
 
-- `_responses`: list of pre-authored turns
+- `_responses`: list of pre-authored `NormalizedLLMResponse` turns
 - `_iteration`: current response index
 - `_max_iterations`: response count
 - `_pending_final_response`: deferred plain text when a tool-turn includes both tool calls and text
@@ -100,7 +99,7 @@ Key coupling:
 ### `get_completion_response(...)` behavior
 
 - if `_pending_final_response` exists: emits plain text stop turn
-- otherwise parses current response through `build_normalized_response(...)`
+- otherwise returns a copy of the current normalized response
 - when both `tool_calls` and `content` exist in one turn:
   - returns tool turn with empty content
   - stores text in `_pending_final_response` for next call
@@ -109,32 +108,25 @@ This mimics native provider behavior where tool turns do not simultaneously emit
 
 ### Streaming behavior
 
-- `get_completion_stream(...)` yields character-by-character `ChunkEvent` from raw response text.
-- no separate structured tool stream path; tool semantics are encoded in response payload text and later normalized in non-stream completion path.
+- `get_completion_stream(...)` yields character-by-character `ChunkEvent` from a rendered form of the same normalized response fixture.
+- no separate structured tool stream path; native tool-call semantics stay owned by the normalized fixture used by non-stream completion.
 
-## Native Tool Adapter Semantics
+## Native Tool Fixture Semantics
 
-`native_tool_adapter.py` converts legacy simulation payload text to normalized tool-call response objects.
+Simulation sequences are authored directly as `NormalizedLLMResponse` objects.
 
-Accepted legacy formats:
+Tool turns include:
 
-- `{"functionCall": {...}}`
-- `{"metadata": {...}, "action": {"functionCall": {...}}}`
-- `{"response": "..."}`
-- multi-object newline-delimited combinations
+- `content`
+- `finish_reason`
+- `tool_calls`
 
-Normalization behavior:
+Fixture helper behavior:
 
-- parses line-delimited JSON objects first, fallback to single JSON object
-- extracts tool calls and assigns deterministic IDs: `{call_id_prefix}_{iteration}_{n}`
-- injects legacy metadata under `arguments["metadata"]` when present
-- sets `finish_reason`:
-  - `tool_calls` when calls extracted
-  - `stop` when plain content only
-
-If payload is not JSON-parsable:
-
-- returns plain text content unchanged (no tool_calls).
+- assigns deterministic IDs such as `simulation_call_{iteration}_{n}` and
+  `browser_simulation_call_{iteration}_{n}`
+- injects authored metadata under `arguments["metadata"]` when present
+- sets `finish_reason` to `tool_calls` for tool turns and `stop` for final text turns
 
 ## Simulation Sequences
 
@@ -185,9 +177,9 @@ Validated behaviors include:
 
 If simulation returns plain text instead of tool calls:
 
-1. inspect authored response JSON validity
-2. ensure payload includes `functionCall` shape expected by adapter
-3. verify newline-delimited objects are valid JSON per line
+1. inspect the authored `NormalizedLLMResponse`
+2. verify `tool_calls` is present and non-empty on the fixture turn
+3. verify `finish_reason` is `tool_calls`
 
 If sessions still use real provider:
 

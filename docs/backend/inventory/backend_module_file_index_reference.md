@@ -16,16 +16,16 @@ Based on current source tree under `backend/src`:
 
 | Domain | Python files |
 | --- | ---: |
-| `agent` | 70 |
-| `api` | 73 |
-| `core` | 77 |
-| `tools` | 31 |
-| `llm` | 33 |
-| `services` | 16 |
-| `simulation` | 12 |
+| `agent` | 83 |
+| `api` | 119 |
+| `core` | 93 |
+| `tools` | 40 |
+| `llm` | 39 |
+| `services` | 29 |
+| `simulation` | 10 |
 | `sdk` | 6 |
-| `embeddings` | 2 |
-| **Total** | **322** |
+| `embeddings` | 8 |
+| **Total** | **429** |
 
 Count includes package `__init__.py` modules.
 
@@ -140,7 +140,7 @@ SDK:
 
 Simulation:
 
-- `backend/src/simulation/{__main__,main,app_factory,lifespan_factory,mock_llm_client,mock_llm_browser_client,base_mock_llm_client,native_tool_adapter,browser,computer,coordinate_resolver}.py`
+- `backend/src/simulation/{__main__,main,app_factory,lifespan_factory,mock_llm_client,mock_llm_browser_client,base_mock_llm_client,browser,computer}.py`
 
 Embeddings:
 

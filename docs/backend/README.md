@@ -245,7 +245,7 @@ Primary folders under `backend/src`:
 - `sdk/`: SDK base classes/context contract and helper utilities for child sessions
 - `services/`: OCR, vision, artifacts, token counting
 - `embeddings/`: sentence-transformer embedding provider
-- `simulation/`: mock LLM entrypoints, simulation lifespan wiring, legacy payload adapters
+- `simulation/`: mock LLM entrypoints, simulation lifespan wiring, native tool-call fixtures
 
 ## End-to-End Query Path (Condensed)
 
