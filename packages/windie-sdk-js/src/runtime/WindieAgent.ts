@@ -40,8 +40,6 @@ import {
 import {
   enrichQueryPayload,
   formatCompletedTurnMemory,
-  storeCompletedTurnMemory,
-  type MemoryPersistenceDiagnostic,
   type MemoryRetrievalDiagnostic,
 } from './ContextEnrichmentPipeline.js';
 import type {
@@ -77,19 +75,6 @@ function logMemoryRetrievalDiagnostic(diagnostic: MemoryRetrievalDiagnostic): vo
   console.warn(`[Windie SDK] memory retrieval diagnostic: ${details}`);
 }
 
-function logMemoryPersistenceDiagnostic(diagnostic: MemoryPersistenceDiagnostic): void {
-  const details = [
-    `stage=${diagnostic.stage}`,
-    `conversationRef=${diagnostic.conversationRef}`,
-    `userQueryLength=${diagnostic.userQueryLength}`,
-    `assistantResponseLength=${diagnostic.assistantResponseLength}`,
-    typeof diagnostic.contentLength === 'number' ? `contentLength=${diagnostic.contentLength}` : null,
-    diagnostic.memoryId ? `memoryId=${diagnostic.memoryId}` : null,
-    diagnostic.error ? `error=${diagnostic.error}` : null,
-  ].filter(Boolean).join(' ');
-  console.warn(`[Windie SDK] memory persistence diagnostic: ${details}`);
-}
-
 export type LoadConversationOptions = {
   conversationRef: string;
   revisionId?: string;
@@ -120,11 +105,6 @@ export type WindieStoreMemoryInput = {
 };
 
 export class WindieAgent {
-  private readonly pendingDirectQueries = new Map<string, {
-    conversationRef: string;
-    userQuery: string;
-  }>();
-
   static async startDesktop(options: WindieDesktopAgentStartOptions): Promise<WindieDesktopAgent> {
     const { WindieDesktopAgent } = await import('./WindieDesktopAgent.js');
     return WindieDesktopAgent.start(options);
@@ -140,11 +120,7 @@ export class WindieAgent {
     private readonly userId = 'local-sdk-user',
     private readonly defaultConversationStore: ConversationStore = new InMemoryConversationStore(),
     private readonly memoryEnabled = true,
-  ) {
-    this.session.on('streaming-complete', event => {
-      void this.maybeStoreDirectTurnMemory(event);
-    });
-  }
+  ) {}
 
   getDefaultConversationStore(): ConversationStore {
     return this.defaultConversationStore;
@@ -159,12 +135,7 @@ export class WindieAgent {
 
   async query(payload: WindieAgentQueryInput): Promise<string> {
     const enriched = await this.enrichAgentQueryInput(payload);
-    const messageId = await this.session.query(enriched);
-    this.pendingDirectQueries.set(messageId, {
-      conversationRef: enriched.conversationRef,
-      userQuery: enriched.text,
-    });
-    return messageId;
+    return this.session.query(enriched);
   }
 
   async run(input: string | WindieAgentQueryInput, options: WindieAgentQueryOptions = {}): Promise<string> {
@@ -548,35 +519,4 @@ export class WindieAgent {
     };
   }
 
-  private async maybeStoreDirectTurnMemory(event: Extract<BackendEvent, { type: 'streaming-complete' }>): Promise<void> {
-    const turnRef = typeof event.turn_ref === 'string' ? event.turn_ref : null;
-    const assistantResponse = typeof event.payload.final_response === 'string'
-      ? event.payload.final_response
-      : '';
-    if (!turnRef || !assistantResponse.trim()) {
-      return;
-    }
-    const pending = this.pendingDirectQueries.get(turnRef);
-    if (!pending) {
-      return;
-    }
-    this.pendingDirectQueries.delete(turnRef);
-    try {
-      await storeCompletedTurnMemory({
-        localRuntime: this.localRuntime,
-        sdkClient: this.sdkClient,
-        userId: this.userId,
-        conversationRef: pending.conversationRef,
-        userQuery: pending.userQuery,
-        assistantResponse,
-        memoryEnabled: this.memoryEnabled,
-        emitDiagnostic: logMemoryPersistenceDiagnostic,
-      });
-    } catch (error) {
-      console.warn(
-        '[Windie SDK] Memory persistence failed:',
-        error instanceof Error ? error.message : String(error),
-      );
-    }
-  }
 }

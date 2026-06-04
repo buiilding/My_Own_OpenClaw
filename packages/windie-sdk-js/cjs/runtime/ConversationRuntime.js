@@ -56,6 +56,8 @@ class SdkConversationRuntime {
         this.eventListeners = new Set();
         this.localEventCounters = new Map();
         this.backendTurnSequences = new Map();
+        this.pendingTurns = new Map();
+        this.backendEventQueue = Promise.resolve();
         this.state = (0, conversationReducer_js_1.createInitialConversationRuntimeState)(options.conversationRef, options.revisionId);
     }
     async load() {
@@ -89,7 +91,7 @@ class SdkConversationRuntime {
                 fallbackRevisionId: this.state.revisionId,
             });
             if (event) {
-                void this.processNormalizedBackendEvent(event);
+                this.enqueueBackendEvent(event);
             }
         });
     }
@@ -113,47 +115,61 @@ class SdkConversationRuntime {
                 emitDiagnostic: emitMemoryDiagnostic,
             })
             : (input.payload ?? {});
-        await this.applyEvent((0, events_js_1.createConversationEvent)({
-            eventId: this.nextLocalEventId(turnRef, 'turn_started'),
-            type: 'turn_started',
+        const pendingTurn = {
+            turnRef,
             conversationRef: this.options.conversationRef,
             revisionId,
-            turnRef,
-            source: 'sdk',
-            payload: {},
-        }));
-        for (const diagnostic of memoryDiagnostics) {
+            userText: input.text,
+        };
+        this.pendingTurns.set(turnRef, pendingTurn);
+        let queryMessageId;
+        try {
             await this.applyEvent((0, events_js_1.createConversationEvent)({
-                eventId: this.nextLocalEventId(turnRef, 'memory_retrieval_diagnostic'),
-                type: 'memory_retrieval_diagnostic',
+                eventId: this.nextLocalEventId(turnRef, 'turn_started'),
+                type: 'turn_started',
                 conversationRef: this.options.conversationRef,
                 revisionId,
                 turnRef,
                 source: 'sdk',
+                payload: {},
+            }));
+            for (const diagnostic of memoryDiagnostics) {
+                await this.applyEvent((0, events_js_1.createConversationEvent)({
+                    eventId: this.nextLocalEventId(turnRef, 'memory_retrieval_diagnostic'),
+                    type: 'memory_retrieval_diagnostic',
+                    conversationRef: this.options.conversationRef,
+                    revisionId,
+                    turnRef,
+                    source: 'sdk',
+                    payload: {
+                        ...diagnostic,
+                    },
+                }));
+            }
+            await this.applyEvent((0, events_js_1.createConversationEvent)({
+                eventId: this.nextLocalEventId(turnRef, 'user_message'),
+                type: 'user_message',
+                conversationRef: this.options.conversationRef,
+                revisionId,
+                turnRef,
+                source: 'ui',
                 payload: {
-                    ...diagnostic,
+                    ...enrichedPayload,
+                    text: input.text,
                 },
             }));
-        }
-        await this.applyEvent((0, events_js_1.createConversationEvent)({
-            eventId: this.nextLocalEventId(turnRef, 'user_message'),
-            type: 'user_message',
-            conversationRef: this.options.conversationRef,
-            revisionId,
-            turnRef,
-            source: 'ui',
-            payload: {
+            queryMessageId = await this.options.transport?.sendQuery({
                 ...enrichedPayload,
                 text: input.text,
-            },
-        }));
-        const queryMessageId = await this.options.transport?.sendQuery({
-            ...enrichedPayload,
-            text: input.text,
-            conversation_ref: this.options.conversationRef,
-        }, {
-            messageId: turnRef,
-        }) ?? turnRef;
+                conversation_ref: this.options.conversationRef,
+            }, {
+                messageId: turnRef,
+            }) ?? turnRef;
+        }
+        catch (error) {
+            this.pendingTurns.delete(turnRef);
+            throw error;
+        }
         return { turnRef, queryMessageId };
     }
     async *stream(input) {
@@ -423,23 +439,23 @@ class SdkConversationRuntime {
     async applyEvent(event) {
         this.events = [...this.events, event];
         this.state = (0, conversationReducer_js_1.reduceConversationRuntimeState)(this.state, event);
-        if (event.source === 'backend' && event.type === 'turn_completed') {
-            await this.options.store.appendEvent(event);
-            await this.maybeStoreCompletedTurnMemory(event);
-            const snapshot = this.snapshot(this.events);
-            this.notify(snapshot, event);
-            return;
+        if ((event.type === 'turn_stopped' || event.type === 'turn_error') && event.turnRef) {
+            this.pendingTurns.delete(event.turnRef);
         }
         const snapshot = this.snapshot(this.events);
         this.notify(snapshot, event);
         await this.options.store.appendEvent(event);
-        await this.maybeStoreCompletedTurnMemory(event);
         await this.maybeExecuteTool(event);
     }
-    async maybeStoreCompletedTurnMemory(event) {
-        if (event.source !== 'backend' || event.type !== 'turn_completed') {
-            return;
-        }
+    async applyBackendTurnCompleted(event) {
+        this.events = [...this.events, event];
+        this.state = (0, conversationReducer_js_1.reduceConversationRuntimeState)(this.state, event);
+        await this.options.store.appendEvent(event);
+        await this.persistCompletedTurnMemory(event);
+        const snapshot = this.snapshot(this.events);
+        this.notify(snapshot, event);
+    }
+    async persistCompletedTurnMemory(event) {
         const emitPersistenceDiagnostic = async (diagnostic) => {
             await this.applyEvent((0, events_js_1.createConversationEvent)({
                 eventId: this.nextLocalEventId(event.turnRef, 'memory_persistence_diagnostic'),
@@ -456,28 +472,37 @@ class SdkConversationRuntime {
         const assistantResponse = typeof event.payload.finalResponse === 'string'
             ? event.payload.finalResponse
             : '';
+        const pendingTurn = event.turnRef ? this.pendingTurns.get(event.turnRef) : undefined;
+        if (!pendingTurn) {
+            await emitPersistenceDiagnostic({
+                stage: 'turn_state_missing',
+                conversationRef: event.conversationRef,
+                userId: this.options.userId ?? 'local-sdk-user',
+                userQueryLength: 0,
+                assistantResponseLength: assistantResponse.trim().length,
+                message: 'Completed-turn memory storage skipped because the SDK turn ledger entry is missing.',
+            });
+            return;
+        }
+        this.pendingTurns.delete(pendingTurn.turnRef);
         if (!this.options.sdkClient) {
             await emitPersistenceDiagnostic({
                 stage: 'local_runtime_missing',
                 conversationRef: event.conversationRef,
                 userId: this.options.userId ?? 'local-sdk-user',
-                userQueryLength: 0,
+                userQueryLength: pendingTurn.userText.trim().length,
                 assistantResponseLength: assistantResponse.trim().length,
                 message: 'Completed-turn memory storage skipped because no SDK client is available.',
             });
             return;
         }
-        const userEvent = [...this.events].reverse().find(candidate => (candidate.type === 'user_message'
-            && candidate.conversationRef === event.conversationRef
-            && (!event.turnRef || candidate.turnRef === event.turnRef)));
-        const userQuery = userEvent ? eventText(userEvent) : '';
         try {
             await (0, ContextEnrichmentPipeline_js_1.storeCompletedTurnMemory)({
                 localRuntime: this.options.localRuntime,
                 sdkClient: this.options.sdkClient,
                 userId: this.options.userId ?? 'local-sdk-user',
                 conversationRef: event.conversationRef,
-                userQuery,
+                userQuery: pendingTurn.userText,
                 assistantResponse,
                 memoryEnabled: this.options.memoryEnabled,
                 emitDiagnostic: emitPersistenceDiagnostic,
@@ -495,6 +520,13 @@ class SdkConversationRuntime {
     }
     backendSequenceKey(event) {
         return event.turnRef ?? `conversation:${event.conversationRef}`;
+    }
+    enqueueBackendEvent(event) {
+        this.backendEventQueue = this.backendEventQueue
+            .then(() => this.processNormalizedBackendEvent(event))
+            .catch(error => {
+            console.warn('[Windie SDK] Backend event processing failed:', error instanceof Error ? error.message : String(error));
+        });
     }
     async processNormalizedBackendEvent(event) {
         if (event.source !== 'backend') {
@@ -544,6 +576,10 @@ class SdkConversationRuntime {
         state.eventIds.add(event.eventId);
         state.lastSequence = sequence;
         this.backendTurnSequences.set(key, state);
+        if (event.type === 'turn_completed') {
+            await this.applyBackendTurnCompleted(event);
+            return;
+        }
         await this.applyEvent(event);
     }
     async applyBackendSequenceError(event, payload) {

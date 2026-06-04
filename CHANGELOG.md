@@ -24,6 +24,10 @@ All notable changes to WindieOS will be documented in this file.
   memory, missing local runtime, empty content, embedding failures, sidecar
   store failures, and successful stores without adding diagnostic rows to the
   transcript display.
+- sdk/runtime: make completed-turn memory persistence deterministic by storing
+  the original user text in a pending-turn ledger, serializing backend event
+  processing, deleting generic `maybeStoreCompletedTurnMemory`, and removing
+  duplicate direct-agent memory persistence.
 - examples/sdk: pin the simple chat CLI to the stable local SDK user id `peter`
   while forcing hosted install auto-registration so protected SDK HTTP routes
   still receive bearer auth.

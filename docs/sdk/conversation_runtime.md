@@ -106,6 +106,20 @@ allowed to lag behind a streamed chunk, but it must not block the active
 assistant text, phase, tool events, or completion state used by dashboard,
 response overlay, and minimal chat pill surfaces.
 
+Backend stream events are processed by the conversation runtime through one
+serialized queue. Backend-origin events must not mutate runtime state, durable
+storage, local-tool execution, completed-turn memory, or terminal notifications
+from overlapping fire-and-forget handlers.
+
+Completed-turn memory persistence is terminal-turn behavior owned by
+`ConversationRuntime`. `send()` opens a pending-turn ledger entry keyed by
+`turnRef` with the original user text. A backend `turn_completed` event consumes
+that ledger entry and persists memory from `{ userText, assistantText }`.
+Completed-turn memory must not rediscover the user query by scanning historical
+conversation events or store rows. If a terminal backend event has no pending
+ledger entry, the SDK emits a `turn_state_missing` memory diagnostic and skips
+memory storage.
+
 Renderer surfaces must not fall back from `currentTurn` to renderer
 `streamTracking` or `response-overlay-phase` for active turn state.
 `streamTracking` remains telemetry/transcript bookkeeping, and

@@ -40,6 +40,7 @@ export type MemoryRetrievalDiagnostic = {
 export type MemoryPersistenceDiagnosticStage =
   | 'memory_disabled'
   | 'local_runtime_missing'
+  | 'turn_state_missing'
   | 'content_empty'
   | 'embedding_request_failed'
   | 'sidecar_store_failed'

@@ -2033,6 +2033,183 @@ describe('Windie SDK conversation runtime core', () => {
     });
   });
 
+  test('conversation runtime stores completed-turn memory from the pending turn ledger', async () => {
+    const transport = createControllableBackendTransport();
+    const store = new InMemoryConversationStore();
+    const embeddingsCreate = jest.fn(async () => ({
+      embedding: [0.1],
+      embedding_space_version: 'embed-v1',
+    }));
+    const rpc = jest.fn(async () => ({
+      success: true,
+      data: { memory_id: 'mem-ledger' },
+    }));
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport,
+      sdkClient: {
+        embeddings: {
+          create: embeddingsCreate,
+        },
+      } as any,
+      localRuntime: { rpc },
+      userId: 'user-sdk-runtime',
+    });
+    runtime.attachTransport();
+
+    await runtime.send({ text: 'hello from ledger', turnRef: 'turn-ledger-memory' });
+    (runtime as any).events = [];
+    transport.emit(backendEvent(
+      'streaming-complete',
+      { final_response: 'ledger response' },
+      {
+        eventId: 'turn-ledger-memory-evt-000001-streaming-complete',
+        turnRef: 'turn-ledger-memory',
+        sequence: 1,
+      },
+    ));
+
+    await waitForExpect(() => {
+      expect(rpc).toHaveBeenCalled();
+    });
+    expect(embeddingsCreate).toHaveBeenCalledWith({
+      text: 'User: hello from ledger\nAssistant: ledger response',
+    });
+    expect(rpc).toHaveBeenCalledWith(expect.objectContaining({
+      method: 'store_memory_by_embedding',
+      params: expect.objectContaining({
+        user_id: 'user-sdk-runtime',
+        content: 'User: hello from ledger\nAssistant: ledger response',
+      }),
+    }));
+  });
+
+  test('conversation runtime emits a deterministic diagnostic when completed turn state is missing', async () => {
+    const transport = createControllableBackendTransport();
+    const store = new InMemoryConversationStore();
+    const embeddingsCreate = jest.fn(async () => ({
+      embedding: [0.1],
+      embedding_space_version: 'embed-v1',
+    }));
+    const rpc = jest.fn(async () => ({
+      success: true,
+      data: { memory_id: 'mem-missing' },
+    }));
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport,
+      sdkClient: {
+        embeddings: {
+          create: embeddingsCreate,
+        },
+      } as any,
+      localRuntime: { rpc },
+      userId: 'user-sdk-runtime',
+    });
+    runtime.attachTransport();
+
+    transport.emit(backendEvent(
+      'streaming-complete',
+      { final_response: 'orphan response' },
+      {
+        eventId: 'turn-missing-ledger-evt-000001-streaming-complete',
+        turnRef: 'turn-missing-ledger',
+        sequence: 1,
+      },
+    ));
+
+    await waitForExpect(async () => {
+      const events = await store.loadEvents('conv-sdk-runtime');
+      expect(events.find(storedEvent => storedEvent.type === 'memory_persistence_diagnostic')).toMatchObject({
+        payload: expect.objectContaining({
+          stage: 'turn_state_missing',
+          userQueryLength: 0,
+          assistantResponseLength: 'orphan response'.length,
+        }),
+      });
+    });
+    expect(embeddingsCreate).not.toHaveBeenCalled();
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  test('conversation runtime processes backend events serially', async () => {
+    const notifiedTypes: string[] = [];
+    const transport = createControllableBackendTransport();
+    let releaseAssistantAppend!: () => void;
+    const assistantAppendBlocker = new Promise<void>(resolve => {
+      releaseAssistantAppend = resolve;
+    });
+    const assistantAppendStarted = jest.fn();
+    class DelayedAppendStore extends InMemoryConversationStore {
+      async appendEvent(eventToAppend: ConversationEvent): Promise<void> {
+        if (eventToAppend.type === 'assistant_delta') {
+          assistantAppendStarted();
+          await assistantAppendBlocker;
+        }
+        await super.appendEvent(eventToAppend);
+      }
+    }
+    const store = new DelayedAppendStore();
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store,
+      transport,
+      sdkClient: {
+        embeddings: {
+          create: jest.fn(async () => ({
+            embedding: [0.1],
+            embedding_space_version: 'embed-v1',
+          })),
+        },
+      } as any,
+      localRuntime: {
+        rpc: jest.fn(async () => ({
+          success: true,
+          data: { memory_id: 'mem-serial' },
+        })),
+      },
+      userId: 'user-sdk-runtime',
+    });
+    runtime.subscribeEvents(event => {
+      notifiedTypes.push(event.type);
+    });
+    runtime.attachTransport();
+
+    await runtime.send({ text: 'serialize me', turnRef: 'turn-serial' });
+    transport.emit(backendEvent(
+      'streaming-response',
+      { text: 'partial' },
+      {
+        eventId: 'turn-serial-evt-000001-streaming-response',
+        turnRef: 'turn-serial',
+        sequence: 1,
+      },
+    ));
+    await waitForExpect(() => {
+      expect(assistantAppendStarted).toHaveBeenCalled();
+    });
+    transport.emit(backendEvent(
+      'streaming-complete',
+      { final_response: 'done' },
+      {
+        eventId: 'turn-serial-evt-000002-streaming-complete',
+        turnRef: 'turn-serial',
+        sequence: 2,
+      },
+    ));
+    await tick();
+    await tick();
+
+    expect(notifiedTypes).not.toContain('turn_completed');
+    releaseAssistantAppend();
+    await waitForExpect(() => {
+      expect(notifiedTypes).toContain('turn_completed');
+    });
+    expect(notifiedTypes.indexOf('assistant_delta')).toBeLessThan(notifiedTypes.indexOf('turn_completed'));
+  });
+
   test('conversation runtime sends compact-history through backend transport', async () => {
     const compactHistory = jest.fn(async () => 'compact-1');
     const runtime = new SdkConversationRuntime({
