@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/api: require an explicit FastAPI app when binding the API container
+  and remove no-op global container binding from the initialization coordinator.
 - frontend/sidecar/shell: remove `sudo_auth_mode` aliases in the sidecar and
   fail fast on invalid injected sudo auth modes.
 - backend/llm: remove the Kimi Coding provider-local `litellm` monkeypatch

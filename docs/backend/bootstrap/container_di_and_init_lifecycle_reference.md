@@ -58,7 +58,6 @@ Concurrency guards:
 Rollback behavior on failure:
 
 - services rollback: unsubscribe session manager from config service
-- container rollback: force-clear global API dependency container via `set_container(..., force=True)`
 - resets coordinator state (`_initialized_phases`, references, `_is_initialized`)
 
 ## API Container and Routing Bindings
@@ -171,7 +170,7 @@ If handlers appear missing or wrong:
 If startup intermittently fails under concurrency:
 
 1. confirm single coordinator instance usage
-2. confirm no duplicate external `set_container(...)` calls
+2. confirm lifespan binds the returned container with `set_container(..., app=app, force=True)`
 3. inspect rollback logs for partial phase completion
 
 If config changes do not affect new sessions:

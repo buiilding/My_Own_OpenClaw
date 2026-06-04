@@ -4,9 +4,11 @@ FastAPI dependencies for dependency injection.
 Provides app-lifespan-scoped container access via FastAPI dependency injection.
 The container lives on ``app.state.container`` for the FastAPI app lifecycle.
 """
+
 import logging
 from typing import Annotated
-from fastapi import Depends, HTTPException, Request, WebSocket, FastAPI
+
+from fastapi import Depends, FastAPI, HTTPException, Request, WebSocket
 
 from backend.src.agent.session.manager import SessionManager
 from backend.src.api.infrastructure.registry import MessageHandlerRegistry
@@ -14,10 +16,11 @@ from backend.src.core.container import Container
 
 logger = logging.getLogger(__name__)
 
+
 def set_container(
     container: Container | None,
     *,
-    app: FastAPI | None = None,
+    app: FastAPI,
     force: bool = False,
 ) -> None:
     """
@@ -32,8 +35,7 @@ def set_container(
         RuntimeError: If container already exists and force=False.
     """
     if app is None:
-        logger.debug("set_container called without app; ignoring legacy global path")
-        return
+        raise ValueError("set_container requires a FastAPI app")
 
     existing_container = getattr(app.state, "container", None)
     if (
@@ -92,7 +94,9 @@ async def get_container(
 
     container = getattr(app.state, "container", None)
     if container is None:
-        logger.error("Container accessed before initialization - app.state.container missing")
+        logger.error(
+            "Container accessed before initialization - app.state.container missing"
+        )
         raise HTTPException(
             status_code=503,
             detail="Application not initialized. Container not available.",
@@ -100,32 +104,36 @@ async def get_container(
     return container
 
 
-async def get_session_manager(container: Container = Depends(get_container)) -> SessionManager:
+async def get_session_manager(
+    container: Container = Depends(get_container),
+) -> SessionManager:
     """
     Get the session manager from the container.
-    
+
     Args:
         container: Application container (injected)
-        
+
     Returns:
         SessionManager instance
-        
+
     Raises:
         HTTPException: If session manager is not available
     """
     return container.session_manager
 
 
-async def get_handler_registry(container: Container = Depends(get_container)) -> MessageHandlerRegistry:
+async def get_handler_registry(
+    container: Container = Depends(get_container),
+) -> MessageHandlerRegistry:
     """
     Get the message handler registry from the container.
-    
+
     Args:
         container: Application container (injected)
-    
+
     Returns:
         MessageHandlerRegistry instance
-    
+
     Raises:
         HTTPException: If handler registry is not available
     """

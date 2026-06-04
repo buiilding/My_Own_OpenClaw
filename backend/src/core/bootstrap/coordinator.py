@@ -6,12 +6,9 @@ Coordinates the initialization phases of the application startup process.
 
 import logging
 import threading
-from typing import List, Optional, Tuple, cast
-
-from fastapi import FastAPI
+from typing import List, Optional, Tuple
 
 from backend.src.agent.session.manager import SessionManager
-from backend.src.api.deps import set_container
 from backend.src.core.bootstrap.handler_initializer import HandlerInitializer
 from backend.src.core.config import ConfigManager, get_config_manager
 from backend.src.core.container import Container
@@ -62,14 +59,12 @@ class InitializationCoordinator:
 
     async def initialize(
         self,
-        app: Optional[FastAPI] = None,
         config_manager: Optional[ConfigManager] = None,
     ) -> Tuple[Container, SessionManager]:
         """
         Initialize all application components in phases.
 
         Args:
-            app: Optional FastAPI application instance (reserved for future extensibility)
             config_manager: Optional ConfigManager instance. If None, uses global singleton.
 
         Returns:
@@ -171,7 +166,6 @@ class InitializationCoordinator:
 
         Raises:
             InitializationError: If container initialization fails.
-            RuntimeError: If container is already set in global state (should not happen).
         """
         logger.info("Phase 2: Initializing container...")
 
@@ -184,17 +178,6 @@ class InitializationCoordinator:
         # Pass config_manager to Container to ensure proper DI
         self.container = Container(config_manager=self.config_manager)
         await self.container.initialize()
-
-        # Set container in DI system (will raise RuntimeError if already set)
-        try:
-            set_container(self.container)
-        except RuntimeError as e:
-            # If container is already set, this is a serious error
-            # It means initialize() was called twice or container was set externally
-            raise InitializationError(
-                f"Failed to set container in global state: {str(e)}. "
-                "This may indicate initialize() was called multiple times."
-            ) from e
 
         logger.info("Container initialized.")
 
@@ -267,7 +250,6 @@ class InitializationCoordinator:
 
         Attempts to clean up any partially initialized state, including:
         - Unsubscribing from config changes
-        - Clearing global container state
         - Resetting all coordinator state
         """
         logger.warning("Rolling back initialization...")
@@ -292,12 +274,6 @@ class InitializationCoordinator:
                     logger.debug("Rolled back services phase")
 
                 elif phase == "container":
-                    # Clear global container state for clean retry in-process.
-                    try:
-                        set_container(cast(Container, None), force=True)
-                        logger.debug("Cleared global container state during rollback")
-                    except Exception as e:
-                        logger.warning(f"Failed to clear global container state: {e}")
                     logger.debug("Rolled back container phase")
 
                 elif phase == "configuration":

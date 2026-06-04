@@ -28,6 +28,7 @@ def build_simulation_lifespan(
         logger.info(startup_message)
 
         from dependency_injector import providers
+
         from backend.src.core.bootstrap.coordinator import InitializationCoordinator
 
         class SimulationInitializationCoordinator(InitializationCoordinator):
@@ -42,10 +43,11 @@ def build_simulation_lifespan(
                 logger.info("Container initialized (simulation mode).")
 
         coordinator = SimulationInitializationCoordinator()
-        container, _session_manager = await coordinator.initialize(app)
+        container, _session_manager = await coordinator.initialize()
         set_container(container, app=app, force=True)
 
         try:
+
             def mock_llm_client_factory(session_config=None):
                 cfg = (
                     session_config
@@ -74,4 +76,3 @@ def build_simulation_lifespan(
             logger.info("Shutdown complete.")
 
     return lifespan
-

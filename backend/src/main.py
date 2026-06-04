@@ -4,13 +4,14 @@ Main Application Entry Point.
 This module initializes the FastAPI application, sets up dependency injection,
 configures CORS, and manages the application lifecycle including startup and shutdown.
 """
+
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from backend.src.api.app_assembly import create_api_app
 from backend.src.api.auth.http_middleware import install_auth_http_middleware
 from backend.src.api.auth.service import InstallAuthService
-from backend.src.api.app_assembly import create_api_app
 from backend.src.api.deps import set_container
 from backend.src.core.bootstrap.coordinator import InitializationCoordinator
 from backend.src.core.bootstrap.entrypoint import (
@@ -25,7 +26,7 @@ logger = initialize_entrypoint_logger(__name__)
 async def lifespan(app: FastAPI):
     # Startup
     coordinator = InitializationCoordinator()
-    container, _session_manager = await coordinator.initialize(app)
+    container, _session_manager = await coordinator.initialize()
     set_container(container, app=app, force=True)
     app.state.install_auth_service = InstallAuthService.from_config(container.config)
 

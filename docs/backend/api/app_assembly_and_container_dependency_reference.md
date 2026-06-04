@@ -67,7 +67,7 @@ Override path:
 Startup:
 
 1. build `InitializationCoordinator()`
-2. `await coordinator.initialize(app)` -> returns container/session manager
+2. `await coordinator.initialize()` -> returns container/session manager
 3. `set_container(container, app=app, force=True)`
 
 Shutdown:
@@ -85,7 +85,7 @@ Container storage location:
 
 `set_container(...)` guard behavior:
 
-- without app argument: logs debug + no-op (legacy global path intentionally ignored)
+- without app argument: raises `ValueError`
 - if existing different container and `force=False`: raises `RuntimeError`
 - clear path removes `app.state.container` attribute
 

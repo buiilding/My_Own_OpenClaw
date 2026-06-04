@@ -24,7 +24,9 @@ def test_api_container_uses_core_owned_routing_spec() -> None:
     assert "build_handler_bindings(" in source
 
 
-def test_api_container_source_check_is_independent_of_cwd(tmp_path, monkeypatch) -> None:
+def test_api_container_source_check_is_independent_of_cwd(
+    tmp_path, monkeypatch
+) -> None:
     monkeypatch.chdir(tmp_path)
 
     source = (REPO_ROOT / "backend/src/core/container/api_container.py").read_text(
@@ -34,8 +36,9 @@ def test_api_container_source_check_is_independent_of_cwd(tmp_path, monkeypatch)
     assert "build_handler_bindings(" in source
 
 
-def test_set_container_ignores_missing_app_context() -> None:
-    set_container(container=object(), app=None)
+def test_set_container_requires_app_context() -> None:
+    with pytest.raises(ValueError, match="requires a FastAPI app"):
+        set_container(container=object(), app=None)  # type: ignore[arg-type]
 
 
 def test_set_container_sets_and_clears_app_state() -> None:
