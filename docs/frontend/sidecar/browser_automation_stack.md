@@ -51,8 +51,7 @@ Main-process timeout behavior:
 
 `browser_use_engine.py`:
 
-- exposes `BrowserUseEngineRuntime.supported_actions()`
-- maps canonical actions to Browser Use CLI commands or adapter-owned helpers
+- maps validated canonical actions to Browser Use CLI commands or adapter-owned helpers
 - rejects unsupported actions with `ACTION_UNSUPPORTED`
 - ensures a WindieOS-owned Browser Use session is connected when required
 - routes deterministic extraction through `content_extraction.py`

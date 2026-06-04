@@ -31,13 +31,11 @@ from tools.browser.file_store import (
     resolve_browser_path,
     write_text,
 )
-from windie_shared.browser_contract import BROWSER_CANONICAL_ACTIONS
 
 DEFAULT_SESSION_NAME = "windieos"
 DEFAULT_SNAPSHOT_PAGE_LIMIT = 4_000
 MAX_SNAPSHOT_WINDOW_CHARS = 120_000
 RUNTIME_SOURCE = "browser_use.cli"
-BROWSER_USE_ENGINE_ACTIONS = frozenset(BROWSER_CANONICAL_ACTIONS)
 HEADLESS_RECOVERY_TIMEOUT_SECONDS = 5.0
 BROWSER_RUNTIME_SHUTDOWN_TIMEOUT_SECONDS = 8.0
 BROWSER_INTERNAL_URL_PREFIXES = (
@@ -346,10 +344,6 @@ class BrowserUseEngineRuntime:
         self._home = _browser_use_home()
         self._timeout = _browser_use_timeout()
         self._windie_cdp_url = f"http://127.0.0.1:{DEFAULT_WINDIE_CDP_PORT}"
-
-    @classmethod
-    def supported_actions(cls) -> frozenset[str]:
-        return BROWSER_USE_ENGINE_ACTIONS
 
     def _read_session_state(self) -> dict[str, Any]:
         state_path = Path(self._home) / f"{self._session}.state.json"

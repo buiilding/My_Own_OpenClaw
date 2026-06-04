@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sidecar/browser: remove the test-only Browser Use supported-action
+  mirror so action validity stays owned by the shared `BrowserControlArgs`
+  contract and runtime handlers.
 - frontend/sidecar/browser: remove unused browser action alias, visibility, and
   connection helper exports so the shared catalog only owns canonical
   action-to-schema routing.

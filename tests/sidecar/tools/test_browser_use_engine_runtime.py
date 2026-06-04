@@ -1,4 +1,4 @@
-"""Tests for the active Browser Use engine action registry and defaults."""
+"""Tests for Browser Use engine runtime defaults."""
 
 from __future__ import annotations
 
@@ -8,19 +8,13 @@ from unittest import mock
 import pytest
 
 from tools.browser.browser_use_engine import (
-    BROWSER_USE_ENGINE_ACTIONS,
     BrowserActionError,
     BrowserUseEngineRuntime,
     RUNTIME_SOURCE,
 )
-from windie_shared.browser_contract import BROWSER_CANONICAL_ACTIONS, BrowserControlArgs
+from windie_shared.browser_contract import BrowserControlArgs
 
 EXPLANATION = "Advance the active user task."
-
-
-def test_runtime_supported_actions_match_canonical_contract() -> None:
-    assert BrowserUseEngineRuntime.supported_actions() == frozenset(BROWSER_CANONICAL_ACTIONS)
-    assert BROWSER_USE_ENGINE_ACTIONS == frozenset(BROWSER_CANONICAL_ACTIONS)
 
 
 @pytest.mark.asyncio
