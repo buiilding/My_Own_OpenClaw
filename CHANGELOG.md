@@ -28,6 +28,9 @@ All notable changes to WindieOS will be documented in this file.
   the original user text in a pending-turn ledger, serializing backend event
   processing, deleting generic `maybeStoreCompletedTurnMemory`, and removing
   duplicate direct-agent memory persistence.
+- sdk/sidecar: unwrap sidecar daemon JSON-RPC envelopes in the SDK local runtime
+  client so memory retrieval, conversation loads, and other RPC callers receive
+  the actual sidecar result payload.
 - examples/sdk: pin the simple chat CLI to the stable local SDK user id `peter`
   while forcing hosted install auto-registration so protected SDK HTTP routes
   still receive bearer auth.

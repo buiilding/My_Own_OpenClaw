@@ -2159,6 +2159,75 @@ describe('WindieSdkClient', () => {
     expect(FakeWebSocket.instances[0].closed).toBe(true);
   });
 
+  test('SidecarDaemonHttpClient unwraps json-rpc rpc results', async () => {
+    mockFetch.mockResolvedValueOnce(jsonResponse({
+      jsonrpc: '2.0',
+      id: 'rpc-1',
+      result: {
+        success: true,
+        data: {
+          memories: {
+            episodic: ['remembered'],
+            semantic: [],
+          },
+        },
+      },
+    }) as any);
+    const client = new SidecarDaemonHttpClient({
+      baseUrl: 'http://127.0.0.1:43127',
+      token: 'rpc-token',
+      fetchImpl: mockFetch as any,
+    });
+
+    await expect(client.rpc({
+      id: 'rpc-1',
+      method: 'search_memory_by_embedding',
+      params: { user_id: 'peter' },
+    })).resolves.toEqual({
+      success: true,
+      data: {
+        memories: {
+          episodic: ['remembered'],
+          semantic: [],
+        },
+      },
+    });
+    expect(mockFetch).toHaveBeenCalledWith(
+      'http://127.0.0.1:43127/rpc',
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.any(Headers),
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 'rpc-1',
+          method: 'search_memory_by_embedding',
+          params: { user_id: 'peter' },
+        }),
+      }),
+    );
+  });
+
+  test('SidecarDaemonHttpClient throws json-rpc rpc errors', async () => {
+    mockFetch.mockResolvedValueOnce(jsonResponse({
+      jsonrpc: '2.0',
+      id: 'rpc-err',
+      error: {
+        code: -32000,
+        message: 'sidecar failed',
+      },
+    }) as any);
+    const client = new SidecarDaemonHttpClient({
+      baseUrl: 'http://127.0.0.1:43128',
+      token: 'rpc-token',
+      fetchImpl: mockFetch as any,
+    });
+
+    await expect(client.rpc({
+      id: 'rpc-err',
+      method: 'search_memory_by_embedding',
+    })).rejects.toThrow('sidecar failed');
+  });
+
   test('SidecarConversationStore routes conversation commands through sidecar rpc', async () => {
     const rpc = jest.fn(async ({ method, params }) => {
       if (method === 'list_chat_conversations') {

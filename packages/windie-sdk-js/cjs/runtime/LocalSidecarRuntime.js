@@ -109,12 +109,22 @@ class SidecarDaemonHttpClient {
         });
     }
     async rpc(payload) {
-        return this.post('/rpc', {
+        const response = await this.post('/rpc', {
             jsonrpc: '2.0',
             id: payload.id ?? `sdk-${Date.now()}`,
             method: payload.method,
             params: payload.params ?? {},
         });
+        if (response.error && typeof response.error === 'object' && !Array.isArray(response.error)) {
+            const error = response.error;
+            throw new Error(typeof error.message === 'string' && error.message.trim()
+                ? error.message
+                : JSON.stringify(error));
+        }
+        if (response.result && typeof response.result === 'object' && !Array.isArray(response.result)) {
+            return response.result;
+        }
+        return response;
     }
     async shutdown() {
         this.closeEventSocket();
