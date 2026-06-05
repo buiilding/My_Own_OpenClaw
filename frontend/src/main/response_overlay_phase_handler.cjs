@@ -6,82 +6,6 @@ const {
 } = require('./response_overlay_visibility_policy.cjs');
 const { logChatPillMainTrace } = require('./chat_pill_trace_runtime.cjs');
 
-function syncOverlayLoopInteractivity(active, deps = {}) {
-  const {
-    chatWindow,
-    responseWindow,
-    contextLabelWindow,
-    getChatboxHitTestActive = () => false,
-    warn = console.warn,
-  } = deps;
-
-  if (chatWindow && !chatWindow.isDestroyed()) {
-    try {
-      if (!getChatboxHitTestActive()) {
-        chatWindow.setIgnoreMouseEvents(true, { forward: true });
-      } else {
-        chatWindow.setIgnoreMouseEvents(false);
-      }
-    } catch (error) {
-      warn('[Main] Failed to sync overlay click-through state:', error?.message || error);
-    }
-
-    try {
-      if (typeof chatWindow.setFocusable === 'function') {
-        chatWindow.setFocusable(getChatboxHitTestActive());
-      }
-    } catch (error) {
-      warn('[Main] Failed to sync overlay focusable state:', error?.message || error);
-    }
-  }
-
-  const passiveWindows = [responseWindow, contextLabelWindow].filter(
-    (win) => win && !win.isDestroyed(),
-  );
-
-  for (const win of passiveWindows) {
-    try {
-      if (active) {
-        win.setIgnoreMouseEvents(true, { forward: true });
-      } else {
-        win.setIgnoreMouseEvents(false);
-      }
-    } catch (error) {
-      warn('[Main] Failed to sync overlay click-through state:', error?.message || error);
-    }
-
-    try {
-      if (typeof win.setFocusable === 'function') {
-        win.setFocusable(!active);
-      }
-    } catch (error) {
-      warn('[Main] Failed to sync overlay focusable state:', error?.message || error);
-    }
-  }
-}
-
-function syncOverlayContentProtection(enabled, deps = {}) {
-  const {
-    chatWindow,
-    responseWindow,
-    applyOverlayContentProtection = () => {},
-  } = deps;
-
-  for (const [targetWindow, windowLabel] of [
-    [chatWindow, 'chat box'],
-    [responseWindow, 'response overlay'],
-  ]) {
-    if (!targetWindow || targetWindow.isDestroyed()) {
-      continue;
-    }
-    applyOverlayContentProtection({
-      targetWindow,
-      windowLabel,
-      enabled,
-    });
-  }
-}
-
 function safeWindowVisible(win) {
   if (!win || typeof win !== 'object' || typeof win.isDestroyed !== 'function' || win.isDestroyed()) {
     return null;
@@ -194,7 +118,6 @@ function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
     setResponseOverlayVisibilityState = () => {},
     responseWindow,
     chatWindow,
-    contextLabelWindow,
     ensureResponseOverlayFallbackBounds = () => {},
     showResponseWindowWhenChatVisible = () => {},
     showResponseWindowInactive = () => {},
@@ -202,8 +125,6 @@ function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
     getResponseOverlayPhase = () => null,
     getActiveResponseOverlayCorrelationId = () => null,
     setActiveResponseOverlayCorrelationId = () => {},
-    getChatboxHitTestActive = () => false,
-    warn = console.warn,
   } = deps;
 
   if (ENABLE_OS_TOOL_GHOST_DEBUG) {
@@ -261,18 +182,6 @@ function handleResponseOverlayPhaseEvent(event = {}, deps = {}) {
   }, {
     ...deps,
     getResponseOverlayPhase,
-  });
-  syncOverlayLoopInteractivity(windowMode === RESPONSE_OVERLAY_WINDOW_MODE.ACTIVE_LOOP, {
-    chatWindow,
-    responseWindow,
-    contextLabelWindow,
-    getChatboxHitTestActive,
-    warn,
-  });
-  syncOverlayContentProtection(windowMode === RESPONSE_OVERLAY_WINDOW_MODE.ACTIVE_LOOP, {
-    chatWindow,
-    responseWindow,
-    applyOverlayContentProtection: deps.applyOverlayContentProtection,
   });
   applyResponseOverlayWindowMode(windowMode, {
     getResponseOverlayVisible,

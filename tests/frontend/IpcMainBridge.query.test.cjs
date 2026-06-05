@@ -114,7 +114,7 @@ describe('ipc.cjs bridge query handling', () => {
     await sendQuery(
       handlers,
       { text: 'overlay query' },
-      { getURL: () => 'http://localhost:5173/?view=chatbox' },
+      { getURL: () => 'http://localhost:5173/?view=minimal-chat-pill' },
     );
 
     expect(onBeforeOverlayQueryCapture).toHaveBeenCalledTimes(1);
@@ -340,7 +340,7 @@ describe('ipc.cjs bridge query handling', () => {
     await sendQuery(
       handlers,
       { text: 'chat surface query', conversation_ref: 'conv-chat-surface' },
-      { getURL: () => 'http://localhost:5173/?view=chatbox' },
+      { getURL: () => 'http://localhost:5173/?view=minimal-chat-pill' },
     );
 
     const activeDisplayAffinity = getActiveDisplayAffinity();

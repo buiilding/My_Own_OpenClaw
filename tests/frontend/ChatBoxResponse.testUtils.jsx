@@ -29,7 +29,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/markdown', () => {
   };
 });
 
-import ChatBoxResponse from '../../frontend/src/renderer/features/chat/components/ChatBoxResponse';
+import MinimalResponseOverlay from '../../frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 
 const originalSetChatStoreState = useChatStore.setState.bind(useChatStore);
@@ -195,7 +195,7 @@ export function resetChatBoxResponseTestState() {
 }
 
 export {
-  ChatBoxResponse,
+  ChatBoxResponse: MinimalResponseOverlay,
   mockInvoke,
   useChatStore,
 };

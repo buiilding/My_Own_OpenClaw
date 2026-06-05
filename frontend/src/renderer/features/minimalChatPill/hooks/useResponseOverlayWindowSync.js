@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
-import { getRoundedFrameSize } from '../utils/overlay/overlayFrameSize';
+import { getRoundedFrameSize } from '../../chat/utils/overlay/overlayFrameSize';
 import {
   isCompactHoverLayoutMode,
   RESPONSE_OVERLAY_LAYOUT_MODE,
-} from '../utils/overlay/responseOverlayLayoutMode';
-import { RESPONSE_OVERLAY_LAYOUT } from '../utils/overlay/responseOverlayLayoutContract';
+} from '../../chat/utils/overlay/responseOverlayLayoutMode';
+import { RESPONSE_OVERLAY_LAYOUT } from '../../chat/utils/overlay/responseOverlayLayoutContract';
 
 const TYPING_FRAME_HEIGHT = RESPONSE_OVERLAY_LAYOUT.AWAITING_FRAME_HEIGHT;
 
@@ -53,7 +53,7 @@ export function useResponseOverlayWindowSync({
           height: 0,
         });
       } catch (error) {
-        console.warn('[ChatBoxResponse] Failed to hide response overlay:', error);
+        console.warn('[MinimalResponseOverlay] Failed to hide response overlay:', error);
       }
       return;
     }
@@ -108,7 +108,7 @@ export function useResponseOverlayWindowSync({
         compact_hover: Boolean(compactHover),
       });
     } catch (error) {
-      console.warn('[ChatBoxResponse] Failed to resize response overlay:', error);
+      console.warn('[MinimalResponseOverlay] Failed to resize response overlay:', error);
     }
   }, [shellRef, showResponse, thinkingText]);
 

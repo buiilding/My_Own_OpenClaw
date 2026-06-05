@@ -154,7 +154,7 @@ describe('local backend bridge extension runtime', () => {
     }
   });
 
-  test('prepares the desktop surface before computer-use tool execution', async () => {
+  test('does not prepare the desktop surface before normal computer-use tool execution', async () => {
     const sendRequest = jest.fn(async () => ({
       success: true,
       data: {
@@ -180,10 +180,7 @@ describe('local backend bridge extension runtime', () => {
       args: { action: 'type', text: '123456' },
     });
 
-    expect(prepareComputerUseSurface).toHaveBeenCalledWith({
-      toolName: 'keyboard_control',
-      args: { action: 'type', text: '123456' },
-    });
+    expect(prepareComputerUseSurface).not.toHaveBeenCalled();
     expect(sendRequest).toHaveBeenCalledWith(
       'execute_tool',
       {

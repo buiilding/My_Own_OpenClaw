@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useCurrentTurnPresentationState } from './useCurrentTurnPresentationState';
+import { useCurrentTurnPresentationState } from '../../chat/hooks/useCurrentTurnPresentationState';
 import { resolveLlmOutputContract } from '../../../infrastructure/llmOutputContract';
 import { toSanitizedMarkdownHtml } from '../../../infrastructure/markdown';
-import { isDevUiEnabled } from '../utils/devUiFlag';
-import { RESPONSE_OVERLAY_PHASE } from '../utils/overlay/responseOverlayPhaseContract';
+import { isDevUiEnabled } from '../../chat/utils/devUiFlag';
+import { RESPONSE_OVERLAY_PHASE } from '../../chat/utils/overlay/responseOverlayPhaseContract';
 import {
   isCurrentTurnProjectionBusy,
   mapCurrentTurnProjectionPhase,
-} from '../utils/state/liveTurnSurfaceState';
+} from '../../chat/utils/state/liveTurnSurfaceState';
 import {
   buildCurrentTurnMessagesFromProjection,
   buildCurrentTurnResponseOverlayEntries,
@@ -15,8 +15,8 @@ import {
   normalizeThinkingText,
   resolveSourceTagForResponse,
   shouldRenderResponseMarkdown,
-} from '../utils/state/chatBoxResponseState';
-import { resolveChatPillViewIntent } from '../utils/chatPill/chatPillSessionFlow';
+} from '../../chat/utils/state/chatBoxResponseState';
+import { resolveChatPillViewIntent } from '../../chat/utils/chatPill/chatPillSessionFlow';
 
 export function useResponseOverlayViewModel({
   messages = [],

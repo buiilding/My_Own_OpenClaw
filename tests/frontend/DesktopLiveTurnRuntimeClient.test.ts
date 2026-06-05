@@ -19,7 +19,7 @@ describe('DesktopLiveTurnRuntimeClient', () => {
     mockGetActiveConversationRef.mockReturnValue(null);
   });
 
-  test('sendQuery routes query payloads through the SDK transport', async () => {
+  test('sendQuery routes query payloads through explicit main IPC', async () => {
     const send = jest.fn();
     const invoke = jest.fn();
     const originalIpc = window.ipc;
@@ -45,6 +45,7 @@ describe('DesktopLiveTurnRuntimeClient', () => {
         attachmentFilenames: [' notes.txt ', '   ', 'image.png'],
         screenshot: ' inline-shot ',
         workspacePath: ' /workspace/WindieOS ',
+        turnRef: ' turn-explicit ',
       });
 
       expect(send).not.toHaveBeenCalled();
@@ -59,7 +60,10 @@ describe('DesktopLiveTurnRuntimeClient', () => {
         attachment_filenames: ['notes.txt', 'image.png'],
         screenshot: 'inline-shot',
         workspace_path: '/workspace/WindieOS',
-        query_message_id: expect.stringMatching(/^turn_/),
+        id: 'turn-explicit',
+        messageId: 'turn-explicit',
+        message_id: 'turn-explicit',
+        query_message_id: 'turn-explicit',
         memory_retrieval_enabled: true,
       });
       expect(invoke.mock.calls[0][1]).not.toHaveProperty('turn_ref');
@@ -68,7 +72,7 @@ describe('DesktopLiveTurnRuntimeClient', () => {
     }
   });
 
-  test('stop routes through the SDK runtime transport', async () => {
+  test('stop routes through explicit main IPC', async () => {
     const send = jest.fn();
     const invoke = jest.fn();
     const originalIpc = window.ipc;
@@ -88,6 +92,7 @@ describe('DesktopLiveTurnRuntimeClient', () => {
       expect(send).not.toHaveBeenCalled();
       expect(invoke).toHaveBeenCalledWith('windie:stop', {
         conversation_ref: 'conv-stop',
+        turn_ref: null,
       });
     } finally {
       window.ipc = originalIpc;

@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 
-import ChatBoxImagePreviewRow from '../../frontend/src/renderer/features/chat/components/chatbox/ChatBoxImagePreviewRow';
+import AttachmentPreviewRow from '../../frontend/src/renderer/features/minimalChatPill/components/AttachmentPreviewRow';
 
 describe('chatbox preview removal', () => {
   test('preview remove buttons pass stable attachment ids', () => {
@@ -8,7 +8,7 @@ describe('chatbox preview removal', () => {
     const onRemoveFile = jest.fn();
 
     render(
-      <ChatBoxImagePreviewRow
+      <AttachmentPreviewRow
         clipboardImages={[{ id: 'image-1', previewUrl: 'data:image/png;base64,a' }]}
         readableFiles={[{ id: 'file-1', filename: 'notes.txt', filePath: '/tmp/notes.txt' }]}
         onRemoveImage={onRemoveImage}

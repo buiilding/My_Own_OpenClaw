@@ -1,7 +1,7 @@
 import React from 'react';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
-import ChatBox from '../../frontend/src/renderer/features/chat/components/ChatBox';
+import MinimalChatPill from '../../frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill';
 
 const FILE_READER_DATA_URL = 'data:image/png;base64,ZmFrZS1jaGF0Ym94LWltYWdl';
 const FILE_READER_BASE64 = 'ZmFrZS1jaGF0Ym94LWltYWdl';
@@ -155,6 +155,7 @@ jest.mock('../../frontend/src/renderer/features/chat/session/useRendererConversa
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient', () => ({
   DesktopLiveTurnRuntimeClient: {
+    stop: (...args) => mockStopQuery(...args),
   },
 }));
 
@@ -250,7 +251,7 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('does not manage overlay click-through from the renderer and avoids live window resize', () => {
-    const { container } = render(<ChatBox />);
+    const { container } = render(<MinimalChatPill />);
     const shellWrap = container.querySelector('.chatbox-input-shell-wrap');
 
     expect(shellWrap?.style.getPropertyValue('--chatbox-bump-height')).toBe('14px');
@@ -265,7 +266,7 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('reports multiline shell growth through visual anchor height updates', async () => {
-    const { container } = render(<ChatBox />);
+    const { container } = render(<MinimalChatPill />);
     const shell = container.querySelector('.chatbox-shell');
 
     expect(shell).toBeTruthy();
@@ -301,7 +302,7 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('does not enable click-through from response overlay phase activity', () => {
-    render(<ChatBox />);
+    render(<MinimalChatPill />);
     emitOverlayPhase('streaming');
 
     const enabledClickThrough = mockInvoke.mock.calls.some(
@@ -312,7 +313,7 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('reports pill hover state to main-owned hit-testing runtime', async () => {
-    const { container } = render(<ChatBox />);
+    const { container } = render(<MinimalChatPill />);
     const pill = container.querySelector('.chatbox-pill');
 
     await act(async () => {
@@ -330,7 +331,7 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('camera toggle starts enabled by default and does not create a preview row when clicked', async () => {
-    const { container } = render(<ChatBox />);
+    const { container } = render(<MinimalChatPill />);
     const shellWrap = container.querySelector('.chatbox-input-shell-wrap');
     const pill = container.querySelector('.chatbox-pill');
     const previewRow = container.querySelector('.chatbox-image-preview-row');
@@ -357,7 +358,7 @@ describe('ChatBox overlay mouse ignore', () => {
 
   test('keeps compact non-preview classes stable on startup without delayed flips', async () => {
     jest.useFakeTimers();
-    const { container } = render(<ChatBox />);
+    const { container } = render(<MinimalChatPill />);
     const shellWrap = container.querySelector('.chatbox-input-shell-wrap');
     const pill = container.querySelector('.chatbox-pill');
     const previewRow = container.querySelector('.chatbox-image-preview-row');
@@ -384,7 +385,7 @@ describe('ChatBox overlay mouse ignore', () => {
       ...mockConfig,
       include_query_screenshot: false,
     };
-    const { rerender } = render(<ChatBox />);
+    const { rerender } = render(<MinimalChatPill />);
 
     let cameraButton = screen.getByRole('button', { name: 'Toggle auto screenshot' });
     expect(cameraButton.classList.contains('is-enabled')).toBe(false);
@@ -397,7 +398,7 @@ describe('ChatBox overlay mouse ignore', () => {
       ...mockConfig,
       include_query_screenshot: true,
     };
-    rerender(<ChatBox />);
+    rerender(<MinimalChatPill />);
 
     cameraButton = screen.getByRole('button', { name: 'Toggle auto screenshot' });
     expect(cameraButton.classList.contains('is-enabled')).toBe(true);
@@ -405,7 +406,7 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('wires overlay sender surface for centralized UI send behavior', () => {
-    render(<ChatBox />);
+    render(<MinimalChatPill />);
 
     expect(mockUseChatMessageSender).toHaveBeenCalledWith(undefined, {
       senderSurface: 'overlay-chatbox',
@@ -413,7 +414,7 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('config button opens and maximizes the dashboard on the chat surface', () => {
-    render(<ChatBox />);
+    render(<MinimalChatPill />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Open config' }));
 
@@ -426,30 +427,33 @@ describe('ChatBox overlay mouse ignore', () => {
     );
   });
 
-  test('locks pill controls during active loop phases and leaves send disabled', () => {
+  test('keeps pill controls interactive during active loop phases and shows stop', async () => {
     mockChatState.currentTurnProjection = { phase: 'streaming', turnRef: 'turn-active' };
-    render(<ChatBox />);
+    render(<MinimalChatPill />);
 
-    expect(screen.getByRole('button', { name: 'Open config' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Hide chat pill' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Toggle text-to-speech' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Toggle auto screenshot' })).toBeDisabled();
-    expect(screen.getByPlaceholderText('Ask me to do anything...')).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Open config' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Hide chat pill' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Toggle text-to-speech' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Toggle auto screenshot' })).toBeEnabled();
+    expect(screen.getByPlaceholderText('Ask me to do anything...')).toBeEnabled();
 
     fireEvent.click(screen.getByRole('button', { name: 'Open config' }));
-    expect(mockInvoke.mock.calls.some(([channel]) => channel === 'show-main-window')).toBe(false);
-    expect(screen.getByRole('button', { name: 'Send message' })).toBeDisabled();
-    expect(screen.queryByRole('button', { name: 'Stop response' })).not.toBeInTheDocument();
+    expectInvokeCall(([channel]) => channel === 'show-main-window');
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Stop response' }));
+    });
+    expect(mockStopQuery).toHaveBeenCalledWith('conv-overlay');
+    expect(mockSetIsSending).toHaveBeenCalledWith(false);
   });
 
   test('does not render compaction control when dev UI flag is disabled', () => {
-    render(<ChatBox />);
+    render(<MinimalChatPill />);
     expect(screen.queryByRole('button', { name: 'Run auto compaction' })).not.toBeInTheDocument();
   });
 
   test('renders dev compaction control and dispatches compact-history after rehydrate', async () => {
     mockIsDevUiEnabled.mockReturnValue(true);
-    render(<ChatBox />);
+    render(<MinimalChatPill />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Run auto compaction' }));
     expect(mockSetThinkingStatus).toHaveBeenCalledWith('Compacting conversation history...');
@@ -467,7 +471,7 @@ describe('ChatBox overlay mouse ignore', () => {
   test('dragging pill sends absolute move-chatbox-to coordinates', () => {
     setWindowScreenPosition(90, 90);
 
-    const { container } = render(<ChatBox />);
+    const { container } = render(<MinimalChatPill />);
     const pill = container.querySelector('.chatbox-pill');
     expect(pill).toBeTruthy();
 
@@ -481,7 +485,7 @@ describe('ChatBox overlay mouse ignore', () => {
   test('input drag starts chat pill movement after the movement threshold', () => {
     setWindowScreenPosition(90, 90);
 
-    render(<ChatBox />);
+    render(<MinimalChatPill />);
     const input = screen.getByPlaceholderText('Ask me to do anything...');
 
     fireEvent.mouseDown(input, { button: 0, clientX: 10, clientY: 10, screenX: 100, screenY: 100 });
@@ -494,7 +498,7 @@ describe('ChatBox overlay mouse ignore', () => {
   test('button drag also starts chat pill movement after the movement threshold', () => {
     setWindowScreenPosition(90, 90);
 
-    render(<ChatBox />);
+    render(<MinimalChatPill />);
     const configButton = screen.getByRole('button', { name: 'Open config' });
 
     fireEvent.mouseDown(configButton, { button: 0, clientX: 10, clientY: 10, screenX: 100, screenY: 100 });
@@ -505,7 +509,7 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('simple button click still triggers dashboard chat-surface open when no drag occurs', () => {
-    render(<ChatBox />);
+    render(<MinimalChatPill />);
 
     fireEvent.mouseDown(screen.getByRole('button', { name: 'Open config' }), { button: 0, clientX: 10, clientY: 10, screenX: 100, screenY: 100 });
     fireEvent.mouseUp(screen.getByRole('button', { name: 'Open config' }));
@@ -520,14 +524,14 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('auto-focuses input on mount', () => {
-    render(<ChatBox />);
+    render(<MinimalChatPill />);
     const input = screen.getByPlaceholderText('Ask me to do anything...');
 
     expect(document.activeElement).toBe(input);
   });
 
   test('responds only to explicit chatbox-focus events and ignores generic window focus churn', () => {
-    render(<ChatBox />);
+    render(<MinimalChatPill />);
     const input = screen.getByPlaceholderText('Ask me to do anything...');
 
     input.blur();
@@ -540,15 +544,15 @@ describe('ChatBox overlay mouse ignore', () => {
     expect(document.activeElement).toBe(input);
   });
 
-  test('does not focus input from chatbox-focus while loop interaction is locked', async () => {
+  test('focuses input from chatbox-focus while active loop keeps pill interactive', async () => {
     mockChatState.currentTurnProjection = { phase: 'tool_call', turnRef: 'turn-active' };
-    const { container } = render(<ChatBox />);
+    const { container } = render(<MinimalChatPill />);
     const input = screen.getByPlaceholderText('Ask me to do anything...');
     await waitFor(() => {
       const shellWrap = container.querySelector('.chatbox-shell-wrap');
       expect(shellWrap?.classList.contains('loop-active')).toBe(true);
     });
-    expect(input).toBeDisabled();
+    expect(input).toBeEnabled();
     input.blur();
     await act(async () => {
       await Promise.resolve();
@@ -558,25 +562,25 @@ describe('ChatBox overlay mouse ignore', () => {
     act(() => {
       mockListeners.get('chatbox-focus')?.();
     });
-    expect(focusSpy).not.toHaveBeenCalled();
+    expect(focusSpy).toHaveBeenCalled();
     focusSpy.mockRestore();
   });
 
   test('adds ambient loop glow class while active overlay phases are running', () => {
     mockChatState.currentTurnProjection = { phase: 'tool_call', turnRef: 'turn-active' };
-    const { container, rerender } = render(<ChatBox />);
+    const { container, rerender } = render(<MinimalChatPill />);
     const shellWrap = container.querySelector('.chatbox-shell-wrap');
     expect(shellWrap).toBeTruthy();
 
     expect(shellWrap.classList.contains('loop-active')).toBe(true);
 
     mockChatState.currentTurnProjection = { phase: 'complete', turnRef: 'turn-active' };
-    rerender(<ChatBox />);
+    rerender(<MinimalChatPill />);
     expect(shellWrap.classList.contains('loop-active')).toBe(false);
   });
 
   test('send button dispatches message and clears input', async () => {
-    render(<ChatBox />);
+    render(<MinimalChatPill />);
     const input = screen.getByPlaceholderText('Ask me to do anything...');
     fireEvent.change(input, { target: { value: 'hello world' } });
     const sendButton = screen.getByRole('button', { name: 'Send message' });
@@ -590,7 +594,7 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('Enter sends while Shift+Enter keeps multiline content in the pill composer', async () => {
-    render(<ChatBox />);
+    render(<MinimalChatPill />);
     const input = screen.getByPlaceholderText('Ask me to do anything...');
 
     fireEvent.change(input, { target: { value: 'line one', selectionStart: 8 } });
@@ -607,7 +611,7 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('accepts pasted images and sends them through the shared outgoing payload contract', async () => {
-    render(<ChatBox />);
+    render(<MinimalChatPill />);
     const input = screen.getByPlaceholderText('Ask me to do anything...');
 
     await act(async () => {
@@ -632,7 +636,7 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('supports readable file attachments and attachment-only send from the pill composer', async () => {
-    render(<ChatBox />);
+    render(<MinimalChatPill />);
     const attachmentInput = screen.getByTestId('chatbox-attachment-input');
     const textFile = new File(['hello'], 'notes.txt', { type: 'text/plain' });
     Object.defineProperty(textFile, 'path', {
@@ -669,7 +673,7 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('hide button invokes the existing hide-chatbox bridge action', async () => {
-    render(<ChatBox />);
+    render(<MinimalChatPill />);
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Hide chat pill' }));
@@ -681,31 +685,39 @@ describe('ChatBox overlay mouse ignore', () => {
     ));
   });
 
-  test('keeps send button rendered but disabled during active stream', () => {
+  test('renders stop button during active stream', async () => {
     mockChatState.currentTurnProjection = { phase: 'streaming', turnRef: 'turn-active' };
-    render(<ChatBox />);
+    render(<MinimalChatPill />);
 
-    expect(screen.getByRole('button', { name: 'Send message' })).toBeDisabled();
-    expect(screen.queryByRole('button', { name: 'Stop response' })).not.toBeInTheDocument();
-    expect(mockStopQuery).not.toHaveBeenCalled();
-    expect(mockSetIsSending).not.toHaveBeenCalled();
-    expect(mockUpdateStreamTracking).not.toHaveBeenCalled();
+    expect(screen.queryByRole('button', { name: 'Send message' })).not.toBeInTheDocument();
+    const stopButton = screen.getByRole('button', { name: 'Stop response' });
+    expect(stopButton).toBeEnabled();
+    await act(async () => {
+      fireEvent.click(stopButton);
+    });
+    expect(mockStopQuery).toHaveBeenCalledWith('conv-overlay');
+    expect(mockSetIsSending).toHaveBeenCalledWith(false);
+    expect(mockUpdateStreamTracking).toHaveBeenCalled();
   });
 
-  test('keeps send button disabled when isSending is true before first stream event', () => {
+  test('renders stop button when isSending is true before first stream event', async () => {
     mockChatState.streamTracking.phase = 'idle';
     mockChatState.isSending = true;
-    render(<ChatBox />);
+    render(<MinimalChatPill />);
 
-    expect(screen.getByRole('button', { name: 'Send message' })).toBeDisabled();
-    expect(screen.queryByRole('button', { name: 'Stop response' })).not.toBeInTheDocument();
-    expect(mockStopQuery).not.toHaveBeenCalled();
-    expect(mockSetIsSending).not.toHaveBeenCalled();
-    expect(mockUpdateStreamTracking).not.toHaveBeenCalled();
+    expect(screen.queryByRole('button', { name: 'Send message' })).not.toBeInTheDocument();
+    const stopButton = screen.getByRole('button', { name: 'Stop response' });
+    expect(stopButton).toBeEnabled();
+    await act(async () => {
+      fireEvent.click(stopButton);
+    });
+    expect(mockStopQuery).toHaveBeenCalledWith('conv-overlay');
+    expect(mockSetIsSending).toHaveBeenCalledWith(false);
+    expect(mockUpdateStreamTracking).toHaveBeenCalled();
   });
 
   test('does not start wakeword STT voice mode when setting is disabled', () => {
-    render(<ChatBox />);
+    render(<MinimalChatPill />);
 
     const wakewordSttHandler = mockListeners.get('wakeword-stt-trigger');
     expect(wakewordSttHandler).toEqual(expect.any(Function));
@@ -719,14 +731,14 @@ describe('ChatBox overlay mouse ignore', () => {
   });
 
   test('text-to-speech button toggles speech mode config', () => {
-    render(<ChatBox />);
+    render(<MinimalChatPill />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Toggle text-to-speech' }));
     expect(mockUpdateConfig).toHaveBeenCalledWith({ speech_mode_enabled: true });
   });
 
   test('does not render active app label inside chatbox pill surface', () => {
-    const { container } = render(<ChatBox />);
+    const { container } = render(<MinimalChatPill />);
     expect(container.querySelector('.chatbox-context-indicator')).toBeNull();
     expect(screen.queryByLabelText(/Active app:/i)).not.toBeInTheDocument();
   });

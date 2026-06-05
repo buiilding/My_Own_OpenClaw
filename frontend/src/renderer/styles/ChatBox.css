@@ -278,6 +278,14 @@ body {
   height: 18px;
 }
 
+.chatbox-stop {
+  color: var(--danger);
+}
+
+.chatbox-stop:hover:not(:disabled) {
+  color: var(--danger);
+}
+
 .chatbox-icon:hover:not(:disabled) {
   transform: none;
   border-color: transparent;

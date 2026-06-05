@@ -79,28 +79,19 @@ describe('response_overlay_phase_handler', () => {
     expect(deps.setResponseOverlayPhase).toHaveBeenCalledWith(PHASE.IDLE);
     expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(false);
     expect(deps.responseWindow.hide).toHaveBeenCalledTimes(1);
-    expect(deps.applyOverlayContentProtection).toHaveBeenNthCalledWith(1, {
-      targetWindow: deps.chatWindow,
-      windowLabel: 'chat box',
-      enabled: false,
-    });
-    expect(deps.applyOverlayContentProtection).toHaveBeenNthCalledWith(2, {
-      targetWindow: deps.responseWindow,
-      windowLabel: 'response overlay',
-      enabled: false,
-    });
-    expect(deps.chatWindow.setIgnoreMouseEvents).toHaveBeenCalledWith(true, { forward: true });
-    expect(deps.responseWindow.setFocusable).toHaveBeenCalledWith(true);
+    expect(deps.applyOverlayContentProtection).not.toHaveBeenCalled();
+    expect(deps.chatWindow.setIgnoreMouseEvents).not.toHaveBeenCalled();
+    expect(deps.responseWindow.setFocusable).not.toHaveBeenCalled();
   });
 
-  test('handles idle phase by restoring direct hit-testing only when pointer is over the pill', () => {
+  test('idle phase does not own chat pill hit-testing', () => {
     const deps = createDeps({
       getChatboxHitTestActive: jest.fn(() => true),
     });
 
     handleResponseOverlayPhaseEvent({ phase: PHASE.IDLE }, deps);
 
-    expect(deps.chatWindow.setIgnoreMouseEvents.mock.calls).toEqual([[false]]);
+    expect(deps.chatWindow.setIgnoreMouseEvents).not.toHaveBeenCalled();
   });
 
   test('handles streaming phase by making overlay visible and restoring bounds', () => {
@@ -112,31 +103,22 @@ describe('response_overlay_phase_handler', () => {
     expect(deps.setResponseOverlayVisibilityState).toHaveBeenCalledWith(true);
     expect(deps.ensureResponseOverlayFallbackBounds).toHaveBeenCalledTimes(1);
     expect(deps.showResponseWindowWhenChatVisible).toHaveBeenCalledTimes(1);
-    expect(deps.applyOverlayContentProtection).toHaveBeenNthCalledWith(1, {
-      targetWindow: deps.chatWindow,
-      windowLabel: 'chat box',
-      enabled: true,
-    });
-    expect(deps.applyOverlayContentProtection).toHaveBeenNthCalledWith(2, {
-      targetWindow: deps.responseWindow,
-      windowLabel: 'response overlay',
-      enabled: true,
-    });
-    expect(deps.chatWindow.setIgnoreMouseEvents).toHaveBeenCalledWith(true, { forward: true });
-    expect(deps.responseWindow.setFocusable).toHaveBeenCalledWith(false);
+    expect(deps.applyOverlayContentProtection).not.toHaveBeenCalled();
+    expect(deps.chatWindow.setIgnoreMouseEvents).not.toHaveBeenCalled();
+    expect(deps.responseWindow.setFocusable).not.toHaveBeenCalled();
   });
 
-  test('streaming phase does not force the chat pill click-through when hit-test is active', () => {
+  test('streaming phase does not force overlay click-through when hit-test is active', () => {
     const deps = createDeps({
       getChatboxHitTestActive: jest.fn(() => true),
     });
 
     handleResponseOverlayPhaseEvent({ phase: PHASE.STREAMING }, deps);
 
-    expect(deps.chatWindow.setIgnoreMouseEvents).toHaveBeenCalledWith(false);
-    expect(deps.chatWindow.setFocusable).toHaveBeenCalledWith(true);
-    expect(deps.responseWindow.setIgnoreMouseEvents).toHaveBeenCalledWith(true, { forward: true });
-    expect(deps.responseWindow.setFocusable).toHaveBeenCalledWith(false);
+    expect(deps.chatWindow.setIgnoreMouseEvents).not.toHaveBeenCalled();
+    expect(deps.chatWindow.setFocusable).not.toHaveBeenCalled();
+    expect(deps.responseWindow.setIgnoreMouseEvents).not.toHaveBeenCalled();
+    expect(deps.responseWindow.setFocusable).not.toHaveBeenCalled();
   });
 
   test('skips fallback/show when response window is unavailable in streaming phase', () => {
@@ -172,16 +154,7 @@ describe('response_overlay_phase_handler', () => {
     handleResponseOverlayPhaseEvent({ phase: PHASE.ERROR }, deps);
 
     expect(deps.showResponseWindowInactive).not.toHaveBeenCalled();
-    expect(deps.applyOverlayContentProtection).toHaveBeenNthCalledWith(1, {
-      targetWindow: deps.chatWindow,
-      windowLabel: 'chat box',
-      enabled: false,
-    });
-    expect(deps.applyOverlayContentProtection).toHaveBeenNthCalledWith(2, {
-      targetWindow: deps.responseWindow,
-      windowLabel: 'response overlay',
-      enabled: false,
-    });
+    expect(deps.applyOverlayContentProtection).not.toHaveBeenCalled();
     expect(deps.syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
   });
 
@@ -204,33 +177,14 @@ describe('response_overlay_phase_handler', () => {
     expect(hiddenChatDeps.syncContextLabelWindowVisibility).toHaveBeenCalledTimes(1);
   });
 
-  test('phase changes toggle overlay content protection with active loop state', () => {
+  test('phase changes do not toggle overlay content protection', () => {
     const deps = createDeps();
 
     handleResponseOverlayPhaseEvent({ phase: PHASE.STREAMING }, deps);
     handleResponseOverlayPhaseEvent({ phase: PHASE.COMPLETE }, deps);
     handleResponseOverlayPhaseEvent({ phase: PHASE.IDLE }, deps);
 
-    expect(deps.applyOverlayContentProtection).toHaveBeenNthCalledWith(1, {
-      targetWindow: deps.chatWindow,
-      windowLabel: 'chat box',
-      enabled: true,
-    });
-    expect(deps.applyOverlayContentProtection).toHaveBeenNthCalledWith(2, {
-      targetWindow: deps.responseWindow,
-      windowLabel: 'response overlay',
-      enabled: true,
-    });
-    expect(deps.applyOverlayContentProtection).toHaveBeenNthCalledWith(3, {
-      targetWindow: deps.chatWindow,
-      windowLabel: 'chat box',
-      enabled: false,
-    });
-    expect(deps.applyOverlayContentProtection).toHaveBeenNthCalledWith(4, {
-      targetWindow: deps.responseWindow,
-      windowLabel: 'response overlay',
-      enabled: false,
-    });
+    expect(deps.applyOverlayContentProtection).not.toHaveBeenCalled();
   });
 
   test('ignores stale terminal phases from a previous response correlation', () => {
@@ -260,11 +214,7 @@ describe('response_overlay_phase_handler', () => {
       PHASE.STREAMING,
     ]);
     expect(deps.setResponseOverlayVisibilityState).toHaveBeenLastCalledWith(true);
-    expect(deps.applyOverlayContentProtection).toHaveBeenLastCalledWith({
-      targetWindow: deps.responseWindow,
-      windowLabel: 'response overlay',
-      enabled: true,
-    });
+    expect(deps.applyOverlayContentProtection).not.toHaveBeenCalled();
     expect(activeCorrelationId).toBe('response-b');
   });
 

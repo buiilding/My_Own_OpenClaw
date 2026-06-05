@@ -75,6 +75,7 @@ jest.mock('uuid', () => ({
 
 jest.mock('os', () => ({
   userInfo: jest.fn(() => ({ username: 'bad user!' })),
+  tmpdir: jest.fn(() => '/tmp'),
 }));
 
 jest.mock('fs', () => ({

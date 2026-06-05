@@ -220,7 +220,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
         on: jest.fn(),
         removeListener: jest.fn(),
         isLoadingMainFrame: jest.fn(() => false),
-        getURL: jest.fn(() => 'http://localhost:5173/?view=chatbox'),
+        getURL: jest.fn(() => 'http://localhost:5173/?view=minimal-chat-pill'),
       },
     };
     ipc.registerRendererWindow(chatPillWindow);

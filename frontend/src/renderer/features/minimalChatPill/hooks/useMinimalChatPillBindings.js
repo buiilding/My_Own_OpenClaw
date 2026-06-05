@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { IpcBridge, INVOKE_CHANNELS, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
-import { CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT, resolveChatboxVisualAnchorHeight } from '../utils/state/chatBoxState';
+import { CHATBOX_VISUAL_ANCHOR_HEIGHT_COMPACT, resolveChatboxVisualAnchorHeight } from '../../chat/utils/state/chatBoxState';
 
 const CHATBOX_VISUAL_ANCHOR_RESIZE_SETTLE_MS = 120;
 
@@ -87,7 +87,7 @@ export function useChatboxVisualAnchorBindings({
         height: nextAnchorHeight,
       }).catch((error) => {
         if (!cancelled) {
-          console.warn('[ChatBox] Failed to sync visual anchor height:', error);
+          console.warn('[MinimalChatPill] Failed to sync visual anchor height:', error);
         }
       });
     };

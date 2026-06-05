@@ -1,26 +1,27 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { useChatStore } from '../stores/chatStore';
-import { useChatMessageSender } from '../hooks/useChatMessageSender';
-import { useChatComposerDraft } from '../hooks/useChatComposerDraft';
-import { useRendererConversationSessionInfo } from '../session/useRendererConversationSessionInfo';
+import { useChatStore } from '../../chat/stores/chatStore';
+import { useChatMessageSender } from '../../chat/hooks/useChatMessageSender';
+import { useChatComposerDraft } from '../../chat/hooks/useChatComposerDraft';
+import { useRendererConversationSessionInfo } from '../../chat/session/useRendererConversationSessionInfo';
+import { DesktopLiveTurnRuntimeClient } from '../../../app/runtime/desktopLiveTurnRuntimeClient';
 import { IpcBridge, INVOKE_CHANNELS, SEND_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import {
   useChatboxDragWindowBindings,
   useChatboxFocusBindings,
   useChatboxVisualAnchorBindings,
   useChatboxWakewordSttTriggerBinding,
-} from '../hooks/useChatBoxBindings';
-import { useTextareaAutoResize } from '../hooks/useMessageInputUiBindings';
+} from '../hooks/useMinimalChatPillBindings';
+import { useTextareaAutoResize } from '../../chat/hooks/useMessageInputUiBindings';
 import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
-import { isDevUiEnabled } from '../utils/devUiFlag';
+import { isDevUiEnabled } from '../../chat/utils/devUiFlag';
 import {
   createChatboxDragState,
   getChatboxCloseBumpHeight,
   getChatboxDragTarget,
   startChatboxDrag,
   stopChatboxDrag,
-} from '../utils/chatbox/chatboxPillLayout';
-import { useChatSurfaceController } from '../hooks/useChatSurfaceController';
+} from '../utils/minimalChatPillLayout';
+import { useChatSurfaceController } from '../../chat/hooks/useChatSurfaceController';
 import {
   AttachmentIcon,
   CompactIcon,
@@ -29,17 +30,21 @@ import {
   SendIcon,
   SettingsIcon,
   SoundIcon,
-} from './chatbox/ChatBoxIcons';
-import ChatBoxImagePreviewRow from './chatbox/ChatBoxImagePreviewRow';
+  StopIcon,
+} from './PillIcons';
+import AttachmentPreviewRow from './AttachmentPreviewRow';
+import { applyStopQueryUiState } from '../../chat/utils/state/stopQueryState';
 
-function ChatBox() {
+function MinimalChatPill() {
   const closeBumpHeight = getChatboxCloseBumpHeight();
   const messages = useChatStore((state) => state.messages);
   const isSending = useChatStore((state) => state.isSending);
   const currentTurnProjection = useChatStore((state) => state.currentTurnProjection);
   const sessionInfo = useRendererConversationSessionInfo();
+  const setIsSending = useChatStore((state) => state.setIsSending);
   const setThinkingStatus = useChatStore((state) => state.setThinkingStatus);
   const setThinkingSourceEventType = useChatStore((state) => state.setThinkingSourceEventType);
+  const updateStreamTracking = useChatStore((state) => state.updateStreamTracking);
   const { sendMessage } = useChatMessageSender(undefined, {
     senderSurface: 'overlay-chatbox',
   });
@@ -50,7 +55,6 @@ function ChatBox() {
   const sendButtonRef = useRef(null);
   const closeButtonAnchorFrameRef = useRef(null);
   const closeButtonAnchorSnapshotRef = useRef({ centerX: null });
-  const loopInteractionLockedRef = useRef(false);
   const lastLoggedPillStateRef = useRef('');
   const dragStateRef = useRef(createChatboxDragState());
   const chatboxHitTestActiveRef = useRef(null);
@@ -61,7 +65,7 @@ function ChatBox() {
     sessionInfo,
     setThinkingStatus,
     setThinkingSourceEventType,
-    warningContext: 'ChatBox',
+    warningContext: 'MinimalChatPill',
   });
   const {
     includeQueryScreenshot,
@@ -96,10 +100,6 @@ function ChatBox() {
   });
 
   const focusInput = useCallback(() => {
-    if (loopInteractionLockedRef.current) {
-      inputRef.current?.blur();
-      return;
-    }
     inputRef.current?.focus();
     const textLength = inputRef.current?.value?.length || 0;
     inputRef.current?.setSelectionRange?.(textLength, textLength);
@@ -119,10 +119,6 @@ function ChatBox() {
       setWakewordSttSessionActive(false);
     }
   }, [wakewordSttEnabled, wakewordSttSessionActive]);
-
-  useEffect(() => {
-    loopInteractionLockedRef.current = loopInteractionLocked;
-  }, [loopInteractionLocked]);
 
   useEffect(() => {
     const nextPillStateSignature = JSON.stringify({
@@ -159,13 +155,6 @@ function ChatBox() {
     messages.length,
     sessionInfo?.conversationRef,
   ]);
-
-  useEffect(() => {
-    if (!loopInteractionLocked) {
-      return;
-    }
-    inputRef.current?.blur();
-  }, [loopInteractionLocked]);
 
   const resizeComposer = useCallback(() => {
     if (!inputRef.current) {
@@ -262,12 +251,6 @@ function ChatBox() {
     };
   }, [setChatboxHitTestActive]);
 
-  useEffect(() => {
-    if (loopInteractionLocked) {
-      setChatboxHitTestActive(false);
-    }
-  }, [loopInteractionLocked, setChatboxHitTestActive]);
-
   useVoiceMode(
     wakewordSttEnabled && wakewordSttSessionActive,
     (text, isFinal) => {
@@ -287,9 +270,6 @@ function ChatBox() {
   }, [inputValue, submitMessageValue]);
 
   const handleOpenConfig = useCallback(async () => {
-    if (loopInteractionLocked) {
-      return;
-    }
     try {
       setChatboxHitTestActive(false);
       await IpcBridge.invoke(INVOKE_CHANNELS.SHOW_MAIN_WINDOW, {
@@ -298,20 +278,17 @@ function ChatBox() {
         reason: 'chat-pill-settings',
       });
     } catch (error) {
-      console.warn('[ChatBox] Failed to show main window:', error);
+      console.warn('[MinimalChatPill] Failed to show main window:', error);
     }
-  }, [loopInteractionLocked, setChatboxHitTestActive]);
+  }, [setChatboxHitTestActive]);
 
   const handleHideChatbox = useCallback(async () => {
-    if (loopInteractionLocked) {
-      return;
-    }
     try {
       await IpcBridge.invoke(INVOKE_CHANNELS.HIDE_CHATBOX, { reason: 'user' });
     } catch (error) {
-      console.warn('[ChatBox] Failed to hide chat window:', error);
+      console.warn('[MinimalChatPill] Failed to hide chat window:', error);
     }
-  }, [loopInteractionLocked]);
+  }, []);
 
   const handleComposerKeyDown = useCallback((event) => {
     if (event.key === 'Enter' && !event.shiftKey) {
@@ -329,6 +306,28 @@ function ChatBox() {
   const handleToggleSpeechMode = useCallback(() => {
     chatSurface.toggleSpeechMode();
   }, [chatSurface]);
+
+  const handleStopQuery = useCallback(() => {
+    if (!loopInteractionLocked) {
+      return;
+    }
+    applyStopQueryUiState({
+      setIsSending,
+      setThinkingStatus,
+      setThinkingSourceEventType,
+      updateStreamTracking,
+    });
+    void Promise.resolve(DesktopLiveTurnRuntimeClient.stop(sessionInfo?.conversationRef || null)).catch((error) => {
+      console.warn('[MinimalChatPill] Failed to stop query:', error);
+    });
+  }, [
+    loopInteractionLocked,
+    sessionInfo?.conversationRef,
+    setIsSending,
+    setThinkingSourceEventType,
+    setThinkingStatus,
+    updateStreamTracking,
+  ]);
 
   const handleDevAutoCompaction = useCallback(() => {
     void chatSurface.runManualCompaction();
@@ -351,7 +350,7 @@ function ChatBox() {
   useChatboxDragWindowBindings(handleDragMove, stopDragging);
 
   const handlePillMouseDown = useCallback((event) => {
-    if (loopInteractionLocked || event.button !== 0) {
+    if (event.button !== 0) {
       return;
     }
     startChatboxDrag(
@@ -360,7 +359,7 @@ function ChatBox() {
       window.screenX,
       window.screenY,
     );
-  }, [loopInteractionLocked]);
+  }, []);
 
   const handlePillClickCapture = useCallback((event) => {
     if (!dragStateRef.current.didDrag) {
@@ -390,14 +389,10 @@ function ChatBox() {
           onMouseDown={handlePillMouseDown}
           onClickCapture={handlePillClickCapture}
           onMouseEnter={() => {
-            if (!loopInteractionLockedRef.current) {
-              setChatboxHitTestActive(true);
-            }
+            setChatboxHitTestActive(true);
           }}
           onMouseMove={() => {
-            if (!loopInteractionLockedRef.current) {
-              setChatboxHitTestActive(true);
-            }
+            setChatboxHitTestActive(true);
           }}
           onMouseLeave={() => {
             setChatboxHitTestActive(false);
@@ -409,7 +404,6 @@ function ChatBox() {
             onClick={handleHideChatbox}
             aria-label="Hide chat pill"
             title="Hide chat pill"
-            disabled={loopInteractionLocked}
           >
             <CloseIcon />
           </button>
@@ -421,11 +415,11 @@ function ChatBox() {
             style={{ display: 'none' }}
             onChange={(event) => {
               void handleAttachmentSelection(event).catch((error) => {
-                console.warn('[ChatBox] Failed to parse selected attachments:', error);
+                console.warn('[MinimalChatPill] Failed to parse selected attachments:', error);
               });
             }}
           />
-          <ChatBoxImagePreviewRow
+          <AttachmentPreviewRow
             clipboardImages={clipboardImages}
             readableFiles={selectedReadableFiles}
             onRemoveImage={(id) => {
@@ -446,7 +440,6 @@ function ChatBox() {
               onClick={handleOpenConfig}
               aria-label="Open config"
               title="Open config"
-              disabled={loopInteractionLocked}
             >
               <SettingsIcon />
             </button>
@@ -470,7 +463,6 @@ function ChatBox() {
               }}
               aria-label="Add attachment"
               title="Add attachment"
-              disabled={loopInteractionLocked}
             >
               <AttachmentIcon />
             </button>
@@ -481,13 +473,12 @@ function ChatBox() {
                 onChange={handleInputChange}
                 onPaste={(event) => {
                   void handleComposerPaste(event).catch((error) => {
-                    console.warn('[ChatBox] Failed to parse pasted image:', error);
+                    console.warn('[MinimalChatPill] Failed to parse pasted image:', error);
                   });
                 }}
                 onKeyDown={handleComposerKeyDown}
                 placeholder="Ask me to do anything..."
                 className="chatbox-input composer-textarea"
-                disabled={loopInteractionLocked}
                 rows={1}
               />
             </div>
@@ -497,7 +488,6 @@ function ChatBox() {
               aria-label="Toggle auto screenshot"
               title={includeQueryScreenshot ? 'Disable auto screenshot' : 'Enable auto screenshot'}
               onClick={handleToggleQueryScreenshot}
-              disabled={loopInteractionLocked}
             >
               <ScreenshotIcon />
             </button>
@@ -507,22 +497,19 @@ function ChatBox() {
               aria-label="Toggle text-to-speech"
               title={speechModeEnabled ? 'Disable text-to-speech' : 'Enable text-to-speech'}
               onClick={handleToggleSpeechMode}
-              disabled={loopInteractionLocked}
             >
               <SoundIcon />
             </button>
             <button
               ref={sendButtonRef}
-              type="submit"
-              className="chatbox-icon chatbox-send"
-              aria-label="Send message"
-              title="Send message"
-              disabled={(
-                loopInteractionLocked
-                || (!inputValue.trim() && !hasAttachments)
-              )}
+              type={loopInteractionLocked ? 'button' : 'submit'}
+              className={`chatbox-icon ${loopInteractionLocked ? 'chatbox-stop' : 'chatbox-send'}`}
+              aria-label={loopInteractionLocked ? 'Stop response' : 'Send message'}
+              title={loopInteractionLocked ? 'Stop response' : 'Send message'}
+              disabled={!loopInteractionLocked && !inputValue.trim() && !hasAttachments}
+              onClick={loopInteractionLocked ? handleStopQuery : undefined}
             >
-              <SendIcon />
+              {loopInteractionLocked ? <StopIcon /> : <SendIcon />}
             </button>
           </div>
         </form>
@@ -531,4 +518,4 @@ function ChatBox() {
   );
 }
 
-export default ChatBox;
+export default MinimalChatPill;

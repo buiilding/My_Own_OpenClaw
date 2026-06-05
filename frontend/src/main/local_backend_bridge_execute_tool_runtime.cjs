@@ -29,24 +29,8 @@ const {
   hasDiscoveredMcpTool,
 } = require('./mcp_runtime.cjs');
 
-const COMPUTER_USE_SURFACE_TOOL_NAMES = new Set([
-  'mouse_control',
-  'keyboard_control',
-  'scroll_control',
-  'switch_window',
-  'wait',
-  'screenshot',
-  'click',
-  'type',
-  'scroll',
-]);
-
 function normalizeToolName(toolName) {
   return typeof toolName === 'string' ? toolName.trim().toLowerCase() : '';
-}
-
-function isComputerUseSurfaceTool(toolName) {
-  return COMPUTER_USE_SURFACE_TOOL_NAMES.has(normalizeToolName(toolName));
 }
 
 function isScreenshotTool(toolName) {
@@ -80,7 +64,6 @@ function createLocalBackendExecuteToolRuntime({
   executeLocalMcpTool = executeMcpTool,
   hasLocalMcpTool = hasDiscoveredMcpTool,
   sidecarDaemonClient = null,
-  prepareComputerUseSurface = null,
 } = {}) {
   function resolveDisplayBounds(event) {
     return resolveScreenshotToolDisplayBounds({
@@ -130,28 +113,13 @@ function createLocalBackendExecuteToolRuntime({
       const normalizedArgs = resolveNormalizedToolArgs(toolName, args, event);
       const timeoutMs = resolveExecuteToolTimeoutMs(toolName);
       let result = null;
-      if (
-        isComputerUseSurfaceTool(toolName)
-        && typeof prepareComputerUseSurface === 'function'
-      ) {
-        await prepareComputerUseSurface({ toolName, args: normalizedArgs });
-      }
       if (hasLocalMcpTool(toolName)) {
         result = await executeLocalMcpTool(toolName, normalizedArgs, {
           senderWindowId: event?.sender?.id || null,
         });
       }
       if (!result) {
-        const runTool = () => runExecuteToolRequest(toolName, normalizedArgs, timeoutMs);
-        result = isScreenshotTool(toolName)
-          ? await withHiddenWindowForScreenshot({
-            platform,
-            task: runTool,
-            resolveWindows,
-            resolveChatWindow,
-            resolveResponseWindow,
-          })
-          : await runTool();
+        result = await runExecuteToolRequest(toolName, normalizedArgs, timeoutMs);
       }
 
       if (isScreenshotTool(toolName)) {

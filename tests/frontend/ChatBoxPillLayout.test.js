@@ -4,7 +4,7 @@ import {
   getChatboxCloseBumpHeight,
   startChatboxDrag,
   stopChatboxDrag,
-} from '../../frontend/src/renderer/features/chat/utils/chatbox/chatboxPillLayout';
+} from '../../frontend/src/renderer/features/minimalChatPill/utils/minimalChatPillLayout';
 
 describe('chatbox pill layout utils', () => {
   test('creates the expected initial drag state', () => {

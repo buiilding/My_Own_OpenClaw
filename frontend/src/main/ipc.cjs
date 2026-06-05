@@ -124,7 +124,6 @@ const {
 } = require('./agent_definition.cjs');
 const {
   WindieClient,
-  buildDisplayRows,
 } = require('../../../packages/windie-sdk-js/cjs/index.js');
 const {
   buildConversationEventFromBackendEvent,
@@ -565,7 +564,7 @@ function createDirectWakeUpAgentAdapter({
     detachRuntimeEvents();
     detachRuntimeEvents = nextRuntime.subscribeEvents((event, snapshot) => {
       broadcastToRenderers('windie:conversation-event', event);
-      broadcastToRenderers('windie:rows', buildDisplayRows([event]));
+      broadcastToRenderers('windie:rows', snapshot.displayRows);
       latestCurrentTurnProjection = snapshot.currentTurn || null;
       currentTurnTraceLogger.trace(snapshot.currentTurn);
       broadcastToRenderers('windie:current-turn', snapshot.currentTurn);
@@ -699,7 +698,8 @@ async function startWindieAgent({ reason = 'request', workspacePath = null } = {
     installAuth: buildDesktopInstallAuth(),
     name: 'WindieOS',
     workspacePath: resolvedWorkspacePath,
-    builtins: 'default',
+    builtins: process.env.NODE_ENV === 'test' ? [] : 'default',
+    ...(process.env.NODE_ENV === 'test' ? { memory: false, persistence: false } : {}),
     localToolLifecycle,
   });
   const adapter = createDirectWakeUpAgentAdapter({

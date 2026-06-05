@@ -14,7 +14,7 @@ describe('main_window_overlay_runtime', () => {
 
     loadRendererView({
       targetWindow,
-      view: 'chatbox',
+      view: 'minimal-chat-pill',
       app: { isPackaged: false },
       path: require('path'),
       vmMode: true,
@@ -24,7 +24,7 @@ describe('main_window_overlay_runtime', () => {
     });
 
     expect(targetWindow.loadURL).toHaveBeenCalledWith(
-      'http://localhost:5173?view=chatbox&vm_mode=1&dev_ui=1&debug_stream=1&debug_tool_screenshot=1',
+      'http://localhost:5173?view=minimal-chat-pill&vm_mode=1&dev_ui=1&debug_stream=1&debug_tool_screenshot=1',
     );
   });
 
@@ -34,7 +34,7 @@ describe('main_window_overlay_runtime', () => {
     };
     const ensureLoaded = createLazyRendererViewLoader({
       targetWindow,
-      view: 'chatbox',
+      view: 'minimal-chat-pill',
       app: { isPackaged: false },
       path: require('path'),
     });

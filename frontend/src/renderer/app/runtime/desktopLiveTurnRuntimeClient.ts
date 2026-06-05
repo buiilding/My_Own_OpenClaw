@@ -1,11 +1,10 @@
 import {
-  InMemoryConversationStore,
-  createConversationRuntime,
   type WindieModelSelection,
 } from '../../infrastructure/api/windieSdkClient';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
-import { createDesktopBackendTransport } from './desktopBackendTransport';
 import type { CaptureMeta } from '../../infrastructure/services/ScreenshotAttachmentPipeline';
+import { IpcBridge, INVOKE_CHANNELS } from '../../infrastructure/ipc/bridge';
+import { getMemoryRetrievalInjectionEnabled } from '../../utils/memoryRetrievalPreference';
 
 type SendConversationQueryInput = {
   text: string;
@@ -23,7 +22,31 @@ type SendConversationQueryInput = {
 };
 
 function optionalString(value: unknown): string | null {
-  return typeof value === 'string' && value.trim().length > 0 ? value : null;
+  if (typeof value !== 'string') {
+    return null;
+  }
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : null;
+}
+
+function optionalStringArray(value: unknown): string[] | null {
+  if (!Array.isArray(value)) {
+    return null;
+  }
+  const normalized = value
+    .filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0)
+    .map((entry) => entry.trim());
+  return normalized.length > 0 ? normalized : null;
+}
+
+function throwIfFailedIpcResult(result: unknown): void {
+  if (!result || typeof result !== 'object' || !('ok' in result) || result.ok !== false) {
+    return;
+  }
+  const message = 'error' in result && typeof result.error === 'string' && result.error.trim()
+    ? result.error.trim()
+    : 'Failed to send command to WindieOS runtime';
+  throw new Error(message);
 }
 
 /**
@@ -35,29 +58,25 @@ function optionalString(value: unknown): string | null {
 export const DesktopLiveTurnRuntimeClient = {
   async sendQuery(input: SendConversationQueryInput): Promise<void> {
     const turnRef = optionalString(input.turnRef) ?? undefined;
-    const runtime = createConversationRuntime({
-      conversationRef: input.conversationRef,
-      store: new InMemoryConversationStore(),
-      transport: createDesktopBackendTransport(input.workspacePath ?? null),
-    });
-    await runtime.send({
+    const result = await IpcBridge.invoke(INVOKE_CHANNELS.WINDIE_SEND, {
       text: input.text,
-      turnRef,
-      model: input.model ?? undefined,
-      payload: {
-        id: turnRef ?? null,
-        messageId: turnRef ?? null,
-        message_id: turnRef ?? null,
-        screenshot_ref: input.screenshotRef ?? null,
-        screenshot_url: input.screenshotUrl ?? null,
-        screenshot_refs: input.screenshotRefs ?? null,
-        capture_meta: input.captureMeta ?? null,
-        attachment_context: input.attachmentContext ?? null,
-        attachment_filenames: input.attachmentFilenames ?? null,
-        screenshot: input.screenshot ?? null,
-        workspace_path: input.workspacePath ?? null,
-      },
+      conversation_ref: optionalString(input.conversationRef) ?? '',
+      query_message_id: turnRef ?? null,
+      ...(input.model ? { model: input.model } : {}),
+      id: turnRef ?? null,
+      messageId: turnRef ?? null,
+      message_id: turnRef ?? null,
+      screenshot_ref: optionalString(input.screenshotRef) ?? null,
+      screenshot_url: optionalString(input.screenshotUrl) ?? null,
+      screenshot_refs: optionalStringArray(input.screenshotRefs) ?? null,
+      capture_meta: input.captureMeta ?? null,
+      attachment_context: optionalString(input.attachmentContext) ?? null,
+      attachment_filenames: optionalStringArray(input.attachmentFilenames) ?? null,
+      screenshot: optionalString(input.screenshot) ?? null,
+      workspace_path: optionalString(input.workspacePath) ?? null,
+      memory_retrieval_enabled: getMemoryRetrievalInjectionEnabled(),
     });
+    throwIfFailedIpcResult(result);
   },
 
   async stop(conversationRef: string | null = null): Promise<void> {
@@ -66,11 +85,9 @@ export const DesktopLiveTurnRuntimeClient = {
     if (!resolvedConversationRef) {
       return;
     }
-    const runtime = createConversationRuntime({
-      conversationRef: resolvedConversationRef,
-      store: new InMemoryConversationStore(),
-      transport: createDesktopBackendTransport(null),
+    await IpcBridge.invoke(INVOKE_CHANNELS.WINDIE_STOP, {
+      conversation_ref: resolvedConversationRef,
+      turn_ref: null,
     });
-    await runtime.stop(null);
   },
 };

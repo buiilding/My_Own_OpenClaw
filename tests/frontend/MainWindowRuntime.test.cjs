@@ -312,7 +312,7 @@ describe('main_window_runtime createChatWindow', () => {
 
     handlers.show();
     expect(chatWindow.loadURL).toHaveBeenCalledTimes(1);
-    expect(chatWindow.loadURL).toHaveBeenCalledWith(expect.stringContaining('view=chatbox'));
+    expect(chatWindow.loadURL).toHaveBeenCalledWith(expect.stringContaining('view=minimal-chat-pill'));
     expect(deps.syncWindowDisplayAffinity).toHaveBeenCalledWith(chatWindow);
 
     handlers.show();
@@ -417,7 +417,7 @@ describe('main_window_runtime createResponseWindow', () => {
 
     createResponseWindow(deps);
     expect(responseWindow.loadURL).toHaveBeenCalledTimes(1);
-    expect(responseWindow.loadURL).toHaveBeenCalledWith(expect.stringContaining('view=chatbox-response'));
+    expect(responseWindow.loadURL).toHaveBeenCalledWith(expect.stringContaining('view=minimal-response-overlay'));
     expect(responseWindow.loadFile).not.toHaveBeenCalled();
 
     handlers.show();
@@ -613,8 +613,8 @@ describe('main_window_runtime createMainWindow', () => {
       isPackaged: false,
       permissionStatePath: '/tmp/windieos-permission-state.json',
       authStatePath: expect.stringContaining(`${require('path').sep}windieos${require('path').sep}install-auth.json`),
-      prepareComputerUseSurface: expect.any(Function),
     }));
+    expect(bridgeOptions).not.toHaveProperty('prepareComputerUseSurface');
   });
 
   test('syncs main window display affinity on show and move events', () => {

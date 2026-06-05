@@ -1,16 +1,16 @@
 import { useEffect, useRef } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { useChatStore } from '../stores/chatStore';
+import { useChatStore } from '../../chat/stores/chatStore';
 import { useResponseOverlayViewModel } from '../hooks/useResponseOverlayViewModel';
 import { useResponseOverlayWindowSync } from '../hooks/useResponseOverlayWindowSync';
 import { useResponseOverlayScrollState } from '../hooks/useResponseOverlayScrollState';
 import { sanitizeMarkdownHtml } from '../../../infrastructure/markdown';
-import { selectChatBoxState } from '../utils/chatSelectors';
+import { selectChatBoxState } from '../../chat/utils/chatSelectors';
 import {
   logRendererChatPillTrace,
   logRendererResponseSurfaceTrace,
-} from '../utils/chatStream/chatStreamDebugTrace';
-import { RESPONSE_OVERLAY_LAYOUT } from '../utils/overlay/responseOverlayLayoutContract';
+} from '../../chat/utils/chatStream/chatStreamDebugTrace';
+import { RESPONSE_OVERLAY_LAYOUT } from '../../chat/utils/overlay/responseOverlayLayoutContract';
 
 const RESPONSE_FIXED_HEIGHT = RESPONSE_OVERLAY_LAYOUT.RESPONSE_FIXED_HEIGHT;
 const TYPING_FRAME_HEIGHT = RESPONSE_OVERLAY_LAYOUT.AWAITING_FRAME_HEIGHT;
@@ -36,7 +36,7 @@ function renderResponseEntry(entry, markdownHtml) {
   );
 }
 
-function ChatBoxResponse() {
+function MinimalResponseOverlay() {
   const {
     messages,
     isSending,
@@ -215,4 +215,4 @@ function ChatBoxResponse() {
   );
 }
 
-export default ChatBoxResponse;
+export default MinimalResponseOverlay;

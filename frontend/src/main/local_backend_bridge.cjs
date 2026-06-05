@@ -424,7 +424,6 @@ function initializeLocalBackendBridge(getWindows, options = {}) {
     resolveMainWindow,
     resolveResponseWindow,
     sidecarDaemonClient,
-    prepareComputerUseSurface: options.prepareComputerUseSurface,
   });
 
   const [mainWindow] = resolveWindows();

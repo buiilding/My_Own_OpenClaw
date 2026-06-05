@@ -1,8 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import ChatBoxApp from './ChatBoxApp';
-import ChatBoxResponseApp from './ChatBoxResponseApp';
+import MinimalChatPillApp from './MinimalChatPillApp';
+import MinimalResponseOverlayApp from './MinimalResponseOverlayApp';
 import ChatBoxContextLabelApp from './ChatBoxContextLabelApp';
 import ToolGhostDebugApp from './ToolGhostDebugApp';
 import { installFrontendInteractionLogger } from '../infrastructure/interaction/frontendInteractionLogger';
@@ -13,10 +13,10 @@ const isDev = import.meta.env.DEV;
 installFrontendInteractionLogger();
 const root = ReactDOM.createRoot(document.getElementById('root'));
 const view = new URLSearchParams(window.location.search).get('view');
-const RootComponent = view === 'chatbox'
-  ? ChatBoxApp
-  : view === 'chatbox-response'
-    ? ChatBoxResponseApp
+const RootComponent = view === 'minimal-chat-pill'
+  ? MinimalChatPillApp
+  : view === 'minimal-response-overlay'
+    ? MinimalResponseOverlayApp
     : view === 'chatbox-context-label'
       ? ChatBoxContextLabelApp
       : view === 'tool-ghost-debug'

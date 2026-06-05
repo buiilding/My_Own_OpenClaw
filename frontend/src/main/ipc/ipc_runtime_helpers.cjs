@@ -78,7 +78,7 @@ async function runBeforeOverlayQueryCapture({
   if (typeof onBeforeOverlayQueryCapture !== 'function') {
     return;
   }
-  if (resolveRendererViewFromWebContents(webContents) !== 'chatbox') {
+  if (resolveRendererViewFromWebContents(webContents) !== 'minimal-chat-pill') {
     return;
   }
   try {

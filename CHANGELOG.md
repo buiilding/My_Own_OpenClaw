@@ -11,6 +11,9 @@ All notable changes to WindieOS will be documented in this file.
   guide focused on rules and runtime ownership boundaries.
 - docs/agents: require approved `docs/plans/` plan files plus matching report
   files for moderate or major implementation changes.
+- frontend/chat: move the OS chat pill and response overlay renderer into the
+  `minimalChatPill` feature and route active desktop surfaces through
+  SDK-owned projections and tool-surface leases.
 - frontend/chat: remove the experimental minimal chat pill renderer route and
   restore the floating overlay windows to the existing `ChatBox` /
   `ChatBoxResponse` implementation.

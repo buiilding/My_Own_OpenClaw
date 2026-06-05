@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
 import { FileText, X } from 'lucide-react';
-import { resolveReadableFileTypeLabel } from '../../utils/composerAttachmentPresentation';
+import { resolveReadableFileTypeLabel } from '../../chat/utils/composerAttachmentPresentation';
 
-function ChatBoxImagePreviewRow({
+function AttachmentPreviewRow({
   clipboardImages = [],
   readableFiles = [],
   onRemoveImage,
@@ -58,7 +58,7 @@ function ChatBoxImagePreviewRow({
   );
 }
 
-ChatBoxImagePreviewRow.propTypes = {
+AttachmentPreviewRow.propTypes = {
   clipboardImages: PropTypes.arrayOf(PropTypes.shape({
     id: PropTypes.string.isRequired,
     previewUrl: PropTypes.string,
@@ -72,4 +72,4 @@ ChatBoxImagePreviewRow.propTypes = {
   onRemoveFile: PropTypes.func.isRequired,
 };
 
-export default ChatBoxImagePreviewRow;
+export default AttachmentPreviewRow;

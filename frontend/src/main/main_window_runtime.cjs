@@ -246,11 +246,6 @@ function createMainWindow({
     isPackaged: app.isPackaged,
     permissionStatePath,
     authStatePath: getInstallAuthStatePath(),
-    prepareComputerUseSurface: () => showChatWindow({
-      focus: false,
-      restoreResponseOverlay: true,
-      reason: 'tool-computer-use',
-    }),
   });
   initializeMainProcessIpc();
 
@@ -352,7 +347,7 @@ function createChatWindow({
 
   const ensureChatRendererLoaded = createLazyRendererViewLoader({
     targetWindow: chatWindow,
-    view: 'chatbox',
+    view: 'minimal-chat-pill',
     app,
     path,
     enableDevTransparencyUi,
@@ -445,7 +440,7 @@ function createResponseWindow({
 
   const ensureResponseRendererLoaded = createLazyRendererViewLoader({
     targetWindow: responseWindow,
-    view: enableOsToolGhostDebug ? responseWindowDebugView : 'chatbox-response',
+    view: enableOsToolGhostDebug ? responseWindowDebugView : 'minimal-response-overlay',
     app,
     path,
     enableDevTransparencyUi,
