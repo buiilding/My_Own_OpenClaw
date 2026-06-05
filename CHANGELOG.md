@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/agents: clarify that client-local tool schemas and executable argument
+  validation are client-side, while backend validation is limited to manifest
+  trust, policy, projection, and backend-owned remote tools.
 - docs/agents: require a confirmed `task.md` execution contract for moderate or
   major implementation changes before coding starts.
 - frontend/chat: remove the experimental minimal chat pill renderer route and
