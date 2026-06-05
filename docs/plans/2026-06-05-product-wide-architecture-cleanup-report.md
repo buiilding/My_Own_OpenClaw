@@ -223,9 +223,9 @@ Action:
 - `d22e280f6 refactor(frontend-main): split local backend launch lifecycle`
   - Plan/report creation plus local-backend launch, stderr, process event, and
     standalone transport naming cleanup.
-- Pending follow-up commit:
-  - Stop-controller shutdown extraction and report update. The final response
-    will record the resulting commit hash after it is created.
+- `70d029cc1 refactor(frontend-main): isolate local backend shutdown`
+  - Stop-controller shutdown extraction, direct tests, docs, changelog, and
+    report update.
 
 ## Decisions, Tradeoffs, Blockers, Deviations
 
