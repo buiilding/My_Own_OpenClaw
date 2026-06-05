@@ -38,7 +38,8 @@ Flow:
 
 Per-entry fields normalized:
 
-- message type (`tool-call`, `tool-output`, aliases)
+- message type, with underscore aliases normalized once to canonical hyphenated
+  forms before row routing
 - tool name / correlation / tool_call_id string normalization
 - screenshot resolution via inline `screenshot` or `screenshot_ref`
 - internal bundle trace rows are recognized only from explicit message type or

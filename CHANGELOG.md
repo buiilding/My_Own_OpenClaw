@@ -31,6 +31,9 @@ All notable changes to WindieOS will be documented in this file.
   modules.
 - backend/api: remove SDK route package-root implementation re-exports so SDK
   route handlers and models are imported from their owner modules.
+- backend/rehydrate: remove unreachable underscore alias entries from
+  rehydrate row routing so message types normalize once at the boundary and
+  downstream routing checks canonical hyphenated forms only.
 - frontend/sidecar: remove the duplicated `core` backend config, auth,
   unicode-sanitizer, and remote API base shims so sidecar callers use the
   `windie` owner modules directly.

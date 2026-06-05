@@ -373,6 +373,35 @@ def test_normalize_rehydrated_entry_sanitizes_internal_bundled_output_trace():
     assert known_tool_call_ids == set()
 
 
+def test_normalize_rehydrated_entry_canonicalizes_bundle_aliases_before_routing():
+    known_tool_call_ids = set()
+    entry = SimpleNamespace(
+        role="tool",
+        content="bundled_tools output:\nstatus: failed",
+        message_type="tool_output",
+        tool_name="bundled_tools",
+        correlation_id="bundle-1",
+        tool_call_id=None,
+        timestamp="2026-02-26T00:00:01Z",
+        tool_calls=None,
+    )
+
+    entries = _normalize_entry(
+        entry=entry,
+        index=13,
+        image_data=None,
+        known_tool_call_ids=known_tool_call_ids,
+        transparency=None,
+    )
+
+    assert len(entries) == 1
+    normalized_entry = entries[0]
+    assert normalized_entry["role"] == "assistant"
+    assert normalized_entry["message_type"] == "llm-text"
+    assert "tool_calls" not in normalized_entry
+    assert known_tool_call_ids == set()
+
+
 def test_normalize_rehydrated_entry_does_not_infer_bundle_trace_from_json_content():
     known_tool_call_ids = set()
     entry = SimpleNamespace(

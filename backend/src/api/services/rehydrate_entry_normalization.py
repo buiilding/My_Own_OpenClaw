@@ -24,16 +24,10 @@ from backend.src.api.services.rehydrate_transparency_resolution import (
     resolve_rehydrated_content as resolve_rehydrated_content_helper,
 )
 
-_TOOL_CALL_MESSAGE_TYPES = frozenset(
-    {"tool-call", "tool_call", "tool-bundle", "tool_bundle"}
-)
-_TOOL_OUTPUT_MESSAGE_TYPES = frozenset(
-    {"tool-output", "tool_output", "tool-result", "tool_result"}
-)
-_INTERNAL_BUNDLE_MESSAGE_TYPES = frozenset({"tool-bundle", "tool_bundle"})
-_INTERNAL_BUNDLE_TOOL_NAMES = frozenset(
-    {"tool-bundle", "tool_bundle", "bundled_tools", "bundled-tools"}
-)
+_TOOL_CALL_MESSAGE_TYPES = frozenset({"tool-call", "tool-bundle"})
+_TOOL_OUTPUT_MESSAGE_TYPES = frozenset({"tool-output", "tool-result"})
+_INTERNAL_BUNDLE_MESSAGE_TYPES = frozenset({"tool-bundle"})
+_INTERNAL_BUNDLE_TOOL_NAMES = frozenset({"tool-bundle", "bundled-tools"})
 
 
 def _extract_structured_tool_calls(

@@ -145,8 +145,10 @@ Execution sequence:
 
 Normalization behavior highlights:
 
-- tool-call message variants normalized (`tool-call`, `tool_call`, `tool-bundle`, `tool_bundle`)
-- tool-output variants normalized similarly
+- message types normalize underscores to hyphens once before routing (`tool_call`
+  -> `tool-call`, `tool_output` -> `tool-output`)
+- rehydrate routing checks the canonical hyphenated tool-call/tool-output and
+  tool-bundle forms only
 - missing tool-call IDs can trigger synthetic tool-call history entries for linkage continuity
 - malformed `tool_calls` blocks are sanitized/dropped rather than crashing
 

@@ -118,7 +118,10 @@ Normalization includes:
   - `transparency.fullUserMessage.content` overrides visible user text during rehydrate
   - `transparency.fullAssistantMessage.content` overrides visible assistant `llm-text` during rehydrate
   - first available `transparency.systemPrompt` is restored onto `ConversationHistory.system_prompt`
-- sanitization of internal bundle orchestration traces (`tool-bundle`, `bundled_tools`, or `{"bundle_id","tools"}` payload shapes) into plain assistant context rows so rehydrate does not synthesize non-executable tool names into assistant `tool_calls`
+- sanitization of internal bundle orchestration traces from explicit
+  `tool-bundle` message type or `bundled_tools` tool-name metadata into plain
+  assistant context rows so rehydrate does not synthesize non-executable tool
+  names into assistant `tool_calls`
 - Gemini continuity guard: tool-call `thought_signature` is preserved when rehydrated tool-call payloads include it (either `tool_calls` arrays or JSON tool-call content fields)
 - tool-call content parsing/normalization logic is delegated to `rehydrate_tool_call_normalization.py` so entry-level rehydrate routing stays isolated from JSON/tool-call shape handling
 - transparency/system-prompt/full-content restoration helpers are delegated to `rehydrate_transparency_resolution.py` so entry normalizer state/routing stays decoupled from content-source precedence logic
