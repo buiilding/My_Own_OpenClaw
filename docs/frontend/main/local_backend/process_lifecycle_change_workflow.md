@@ -32,8 +32,12 @@ Electron main owns the sidecar process lifetime. Renderer code consumes readines
 
 | Surface | Code | Role |
 | --- | --- | --- |
-| Bridge lifecycle | `frontend/src/main/local_backend_bridge.cjs` | Starts/stops the sidecar, wires stdout/stderr, readiness checks, status broadcasts, and IPC handlers. |
+| Bridge composition | `frontend/src/main/local_backend_bridge.cjs` | Wires focused lifecycle modules, readiness runtime, transports, status broadcasts, and IPC handlers. |
 | Supervisor state | `frontend/src/main/local_backend_supervisor.cjs` | Tracks active process, status, ready flag, generation, and last error. |
+| Launch planning | `frontend/src/main/local_backend_launch_plan.cjs` | Resolves sidecar command/args/cwd/env and fail-fast packaged/source startup errors before spawning. |
+| Process events | `frontend/src/main/local_backend_process_events.cjs` | Owns active-process exit/error reset policy and user-facing unavailable status messages. |
+| Stop controller | `frontend/src/main/local_backend_stop_controller.cjs` | Owns daemon shutdown, stopped tool execution, standalone `SIGTERM`, and stale-guarded `SIGKILL`. |
+| Stderr transport | `frontend/src/main/local_backend_stderr_transport.cjs` | Owns severity-filtered Python stderr forwarding and stale-process suppression. |
 | Request transport | `frontend/src/main/local_backend_bridge_request_transport.cjs` | Owns JSON-RPC request ids, pending promise map, timeout rejection, and response dispatch. |
 | Timeout policy | `frontend/src/main/local_backend_bridge_timeout_policy.cjs` | Defines default and browser-specific request timeout tiers. |
 | Launch target resolution | `frontend/src/main/runtime_paths.cjs` | Chooses packaged sidecar binary, packaged Python runtime, source `.py`, or configured Python executable. |
@@ -46,9 +50,9 @@ Electron main owns the sidecar process lifetime. Renderer code consumes readines
 
 | Symptom or request | Primary owner | Continue into |
 | --- | --- | --- |
-| Sidecar never starts, missing Python/runtime, wrong cwd/env, packaged-only launch failure | Electron main launch path | `local_backend_bridge.cjs`, `runtime_paths.cjs`, install/packaging docs |
+| Sidecar never starts, missing Python/runtime, wrong cwd/env, packaged-only launch failure | Electron main launch path | `local_backend_launch_plan.cjs`, `runtime_paths.cjs`, install/packaging docs |
 | `local-backend-status` shows stale ready/error state | Supervisor and status broadcast path | `local_backend_supervisor.cjs`, `buildLocalBackendStatusPayload`, renderer status store |
-| Readiness ping retries forever or old timers affect a new process | Readiness token/generation path | `checkReadiness`, `readinessCheckToken`, lifecycle tests |
+| Readiness ping retries forever or old timers affect a new process | Readiness runtime plus supervisor generation path | `local_backend_readiness_runtime.cjs`, `local_backend_supervisor.cjs`, lifecycle tests |
 | JSON-RPC call times out or rejects after process restart | Request transport and reset path | `local_backend_bridge_request_transport.cjs`, `resetBackendProcessState` |
 | Browser controls wait forever despite sidecar readiness | Renderer readiness consumer | `localBackendStatusStore.js`, `browserSessionStore.js`, browser control tests |
 | Python method exists but payload maps incorrectly | IPC/JSON-RPC contract, not lifecycle | [Local Backend JSON-RPC Change Workflow](../../sidecar/local_backend_jsonrpc_change_workflow.md) |
@@ -125,12 +129,12 @@ When adding a new renderer feature that depends on the sidecar, wire it through 
 
 | Failure | First proof | Next file |
 | --- | --- | --- |
-| No sidecar spawn | Check launch target, missing command/script errors, and `spawn` call args. | `runtime_paths.cjs`, `local_backend_bridge.cjs` |
-| Spawn succeeds but never ready | Check ping ids, stdout JSON lines, stderr Python import failures, and fail-closed readiness status. | `local_backend_bridge.cjs`, `local_backend.py`, `core/ipc_protocol.py` |
+| No sidecar spawn | Check launch target, missing command/script errors, and `spawn` call args. | `runtime_paths.cjs`, `local_backend_launch_plan.cjs`, `local_backend_bridge.cjs` |
+| Spawn succeeds but never ready | Check ping ids, stdout JSON lines, stderr Python import failures, and fail-closed readiness status. | `local_backend_readiness_runtime.cjs`, `local_backend_stdout_transport.cjs`, `local_backend_stderr_transport.cjs`, `local_backend.py`, `core/ipc_protocol.py` |
 | Ready event reaches main but renderer still disabled | Check `get-local-backend-status` bootstrap invoke and `local-backend-status` listener cleanup. | `localBackendStatusStore.js` |
 | Browser controls stuck | Check browser session readiness handler and the first browser status/sync request after readiness. | `browserSessionStore.js` |
 | In-flight calls hang after exit | Check pending request rejection on `resetBackendProcessState(...)`. | `local_backend_bridge_request_transport.cjs` |
-| Packaged app only | Check packaged runtime path resolution, Python env isolation, and release packaging docs. | `runtime_paths.cjs`, `docs/operations/release_packaging_change_workflow.md` |
+| Packaged app only | Check packaged runtime path resolution, Python env isolation, and release packaging docs. | `runtime_paths.cjs`, `local_backend_launch_plan.cjs`, `docs/operations/release_packaging_change_workflow.md` |
 
 ## Test Matrix
 

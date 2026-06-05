@@ -23,6 +23,10 @@ All notable changes to WindieOS will be documented in this file.
   lifecycle module with stale-process guards and direct tests.
 - frontend/main: move local-backend shutdown, daemon cleanup, and force-kill
   timing into a focused stop controller with direct tests.
+- docs/frontend: refresh renderer memory, SDK event, and local-backend bridge
+  source maps so active docs point to SDK-shaped memory commands and focused
+  Electron-main lifecycle owner modules instead of stale sidecar IPC/bridge
+  ownership.
 - sidecar/memory: scope background semantic summarization to the authenticated
   install user so legacy local rows for other user IDs are skipped before
   calling the backend semantic API.

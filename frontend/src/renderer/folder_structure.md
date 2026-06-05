@@ -490,7 +490,7 @@ frontend/src/renderer/
 
 15. **Window Management**: Linux-only chat-pill hide modules avoid screenshot self-capture; Windows/macOS rely on phase-driven Electron content protection for protected overlays rather than capture-time hide/show behavior; chat box overlay is click-through by default
 
-16. **Memory Storage**: IPC integration with Python sidecar for memory operations
+16. **Memory Storage**: SDK-shaped memory runtime commands and SDK-owned invalidation events; Python sidecar RPC names stay below the SDK/local-runtime boundary
 
 17. **Config Filtering**: Frontend only manages subset of config (model_mode, selected_model_id, speech_mode_enabled, wakeword flags, etc.)
 

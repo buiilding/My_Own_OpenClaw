@@ -26,12 +26,12 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 | Electron app runtime | `frontend/src/main/index.cjs`, `frontend/src/main/main_window_runtime.cjs`, `frontend/src/main/main_process_lifecycle_runtime.cjs` | Window/tray setup, lifecycle listeners, bridge initializers | Renderer windows + process shutdown |
 | Main overlay/window runtime | `frontend/src/main/{overlay_phase_ipc_runtime,window_controls_ipc_runtime,permission_ipc_runtime}.cjs`, `frontend/src/main/window_visibility_runtime.cjs`, `frontend/src/main/overlay_signal_runtime.cjs`, `frontend/src/main/overlay_window_helpers_runtime.cjs` | Split IPC registration, chat/main visibility transitions, overlay side-channel signals, positioning/top-most helpers | Overlay + main window state transitions |
 | Main process backend bridge | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_runtime_helpers.cjs`, `frontend/src/main/ipc/ipc_renderer_windows.cjs`, `frontend/src/main/ipc/ipc_query_broadcast.cjs`, `frontend/src/main/ipc/ipc_settings_sync.cjs`, `packages/windie-sdk-js/src/runtime/WindieClient.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts` | SDK-managed WebSocket session, settings ACK gate, relay fan-out | IPC events to renderer |
-| Main process sidecar bridge | `frontend/src/main/local_backend_bridge.cjs` | Python subprocess lifecycle, JSON-RPC correlation | Tool/system/memory responses |
+| Main process sidecar bridge | `frontend/src/main/local_backend_bridge.cjs`, `frontend/src/main/local_backend_launch_plan.cjs`, `frontend/src/main/local_backend_process_events.cjs`, `frontend/src/main/local_backend_stop_controller.cjs`, `frontend/src/main/local_backend_bridge_request_transport.cjs`, `frontend/src/main/local_backend_bridge_rpc_transport.cjs` | Sidecar bridge composition, launch planning, process events, shutdown, and JSON-RPC transport/correlation | Tool/system/memory responses |
 | Main process wakeword bridge | `frontend/src/main/wakeword_bridge.cjs`, `frontend/src/main/wakeword_bridge_runtime.cjs` | Wakeword subprocess lifecycle + binary framing with helper-owned status/error parsing + payload normalization | Wakeword events to renderer/main IPC |
 | Main VM worker bridge | `frontend/src/main/{runtime_mode,vm_worker_runtime}.cjs` | Hosted `/api/runs/*` heartbeat polling, run dispatch, stream relay, control-command application | Websocket `stop-query` + `/api/runs/*` event/control updates |
 | Preload trust boundary | `frontend/src/preload.js` | Allowlisted IPC exposure only | `window.ipc` bridge methods |
 | Renderer app shell | `frontend/src/renderer/app/App.jsx` | Provider stack, main layout routing | Chat/dashboard surfaces |
-| Renderer chat runtime | `frontend/src/renderer/features/chat/hooks/useChatStream.ts` | Stream event handling, state transitions | Message list + overlay updates |
+| Renderer chat runtime | `frontend/src/renderer/features/chat/hooks/useChatStream.ts`, `frontend/src/renderer/app/runtime/desktopChatStreamIngressRuntime.ts` | SDK-normalized conversation-event handling, state transitions, and current-turn projection consumption | Message list + overlay updates |
 | SDK tool runtime | `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts`, `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` | SDK local runtime + sidecar callback wiring | `tool-result` / `tool-bundle-result` send path |
 | Renderer voice runtime | `frontend/src/renderer/features/voice/hooks/*` | Wakeword capture + gateway audio stream | Transcription/voice status updates |
 | Sidecar local backend | `frontend/src/main/python/local_backend.py` | JSON-RPC method routing + tool registry | JSON-RPC result envelopes |
@@ -58,7 +58,7 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 | Tool-call event detected | SDK managed backend session |
 | Tool execution orchestration | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` |
 | SDK local runtime | `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts` |
-| Sidecar request dispatch | `main/local_backend_bridge.cjs` |
+| Sidecar request dispatch | `main/local_backend_bridge.cjs` + local-backend request/RPC transport modules |
 | Sidecar tool execution | `main/python/tools/registry.py` + domain tool modules |
 | Result normalization + send | SDK tool coordinator -> managed backend session -> backend `tool-result` |
 
@@ -76,15 +76,15 @@ This matrix maps runtime behavior to exact modules in `frontend/src`.
 
 | Phase | Module ownership |
 | --- | --- |
-| Transcript buffering/session state | `renderer/infrastructure/transcript/*` |
-| Store/search invoke | `renderer/infrastructure/transcript/sdkSidecarConversationStore.ts` + IPC invoke |
+| Transcript projection/session state | SDK conversation runtime plus renderer transcript/session facades |
+| Store/search invoke | SDK `SidecarConversationStore` and SDK-shaped renderer commands |
 | Sidecar memory handlers | `main/python/{local_backend.py,local_backend_memory_handlers.py}` + `memory/local_store.py` |
 | Optional semantic summarization | `memory/summarizer.py` + `core/{remote_api_client_base,remote_semantic_client}.py` |
 
 ## High-Risk Cross-Boundary Contracts
 
 - IPC channel constants: `renderer/infrastructure/ipc/channels.ts` <-> `main/ipc.cjs` handlers.
-- Backend event payload shape: `renderer/types/backendEvents.ts` <-> backend outgoing schemas.
+- SDK conversation event/current-turn payload shape: SDK event contracts <-> renderer projection consumers.
 - Tool schema parity: backend tool schemas <-> sidecar `tools/schemas.py`.
 - Browser action compatibility: backend browser schema <-> sidecar browser adapter/runtime.
 - Wakeword frame protocol: `main/wakeword_bridge.cjs` + `main/wakeword_bridge_runtime.cjs` <-> `main/python/wakeword_service.py`.

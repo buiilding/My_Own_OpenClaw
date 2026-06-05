@@ -15,6 +15,9 @@ Plan: [Product-Wide Architecture Cleanup Plan](2026-06-05-product-wide-architect
 Implementation started after user approval. Phase 1 local-backend bridge
 ownership cleanup has completed four focused slices: launch planning, stderr
 transport, process exit/error events, and shutdown/stop control.
+Phase 2 renderer/SDK boundary cleanup is now in progress through source-map and
+contract-doc alignment after live boundary tests showed the raw renderer paths
+are already guarded.
 
 ## Orientation Log
 
@@ -115,6 +118,35 @@ Action:
 - Updated local-backend docs and changelog to name the stop controller as the
   shutdown owner.
 
+### Pass 5: Renderer/SDK Boundary Documentation Drift
+
+Findings:
+
+- Current renderer boundary tests already prohibit raw backend event imports,
+  `ON_CHANNELS.FROM_BACKEND` subscriptions, direct sidecar memory IPC channels,
+  and renderer-owned local tool execution paths.
+- Recent memory invalidation commits moved the dashboard memory panel to
+  SDK-shaped memory commands and SDK-owned `windie:memory-store-changed`
+  invalidation.
+- Several active source-map docs still described memory as direct Python
+  sidecar IPC or described `local_backend_bridge.cjs` as the owner of lifecycle,
+  request correlation, stderr, and shutdown behavior that now lives in focused
+  modules.
+
+Action:
+
+- Updated `frontend/src/renderer/folder_structure.md` to describe SDK-shaped
+  memory commands and SDK-owned invalidation events instead of direct sidecar
+  IPC.
+- Updated frontend architecture and inventory matrices to route local-backend
+  launch, process events, stop control, stderr forwarding, and request/RPC
+  transports to their owning modules.
+- Updated runtime configuration docs so `WINDIE_VERBOSE_SIDECAR_STDERR` points
+  at the stderr transport and filtering helper rather than the bridge.
+- Updated runtime surface matrices so renderer chat is described as consuming
+  SDK-normalized events/current-turn projections, not raw backend stream
+  contracts.
+
 ## Inventory And Classification
 
 - Delete/isolate now:
@@ -125,6 +157,9 @@ Action:
     bridge.
   - Misleading `legacyTransport` terminology for the active standalone sidecar
     JSON-RPC path.
+  - Stale source-map docs that still routed SDK memory behavior to direct
+    sidecar IPC or focused local-backend policy back to
+    `local_backend_bridge.cjs`.
 - Keep with owner:
   - Standalone sidecar JSON-RPC transport remains supported through
     `local_backend_bridge_request_transport.cjs`.
@@ -153,6 +188,8 @@ Action:
 - Updated focused tests under `tests/frontend` for launch planning, stderr
   transport, process events, bridge lifecycle, and Windows path parity.
 - Updated the local-backend reference doc and changelog for the new owners.
+- Updated renderer/frontend inventory docs so future cleanup starts from the
+  SDK event/memory boundary and focused local-backend owner modules.
 
 ## Checklist
 
@@ -162,7 +199,8 @@ Action:
       local-backend bridge slice.
 - [x] Split local backend bridge ownership for launch, stderr, and process
       event/shutdown handling.
-- [ ] Remove or isolate in-scope renderer raw-event and sidecar-RPC leaks.
+- [x] Remove or isolate in-scope renderer raw-event and sidecar-RPC leaks in
+      active docs/source maps; live code is guarded by boundary tests.
 - [ ] Tighten diagnostics/logging ownership and redaction policy.
 - [ ] Add cross-runtime payload contract tests.
 - [x] Improve Windows/script parity for touched commands and packaging paths.
@@ -180,8 +218,9 @@ Action:
 
 - [x] Each runtime has one clear source of truth for touched behavior in the
       current local-backend bridge slice.
-- [ ] Renderer feature code does not interpret raw backend events, call sidecar
-      RPCs for SDK-owned concepts, or shape backend websocket payload internals.
+- [x] Renderer feature code does not interpret raw backend events, call sidecar
+      RPCs for SDK-owned concepts, or shape backend websocket payload internals
+      in the validated active renderer paths.
 - [x] Electron main IPC and local-backend bridge files shrink toward
       composition roots with focused owner modules and tests for the current
       slice.
@@ -218,6 +257,13 @@ Action:
 - `git diff --check`
   - Result: passed; only Windows line-ending conversion warnings were reported.
 
+- `cd frontend; npm.cmd run test -- RendererAppRuntimeBoundary RendererDashboardRuntimeBoundary RendererChatRuntimeBoundary PreloadIpcChannels --runInBand`
+  - Result: passed, 4 suites / 54 tests.
+- `./bin/docs-list`
+  - Result: passed; canonical navigation validated after Pass 5 doc updates.
+- `git diff --check`
+  - Result: passed; only Windows line-ending conversion warnings were reported.
+
 ## Commits
 
 - `d22e280f6 refactor(frontend-main): split local backend launch lifecycle`
@@ -226,6 +272,8 @@ Action:
 - `70d029cc1 refactor(frontend-main): isolate local backend shutdown`
   - Stop-controller shutdown extraction, direct tests, docs, changelog, and
     report update.
+- Pending follow-up commit:
+  - Renderer/SDK boundary documentation drift cleanup and Pass 5 validation.
 
 ## Decisions, Tradeoffs, Blockers, Deviations
 
