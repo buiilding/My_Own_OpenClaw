@@ -66,7 +66,7 @@ commands should resolve the authenticated install user in Electron main / SDK.
 - [x] Docs updated.
 - [x] `CHANGELOG.md` updated.
 - [x] Validation commands recorded in this report.
-- [ ] Commit created and recorded in this report.
+- [x] Commit created and recorded in this report.
 
 ## Decisions
 
@@ -96,4 +96,4 @@ commands should resolve the authenticated install user in Electron main / SDK.
 
 ## Commits
 
-Pending.
+- `aca83dec0` - `fix(frontend): resolve memory commands with authenticated user`
