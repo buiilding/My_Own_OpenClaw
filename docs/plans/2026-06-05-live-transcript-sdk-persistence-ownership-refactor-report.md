@@ -11,7 +11,7 @@ Plan: [Live Transcript SDK Persistence Ownership Refactor Plan](./2026-06-05-liv
 
 ## Status
 
-Implementation complete; commit pending.
+Complete.
 
 ## Checklist
 
@@ -35,7 +35,7 @@ Implementation complete; commit pending.
 - [x] Final reread/search confirms no live renderer durable transcript writer
       remains for SDK-owned current turns.
 - [x] Validation commands run and recorded in the report.
-- [ ] Commit created and recorded in the report.
+- [x] Commit created and recorded in the report.
 
 ## Success Criteria
 
@@ -302,4 +302,12 @@ Remaining broader inventory items:
 
 ## Commits
 
-Pending.
+- `2b425324a refactor(frontend): make sdk live transcript writer`
+  - Removed renderer-owned live transcript persistence for SDK current turns.
+  - Kept renderer pending/display state and SDK replay/admin store operations.
+  - Updated focused tests, frontend architecture docs, changelog, plan, and
+    report.
+
+Report finalization note: this report update is committed separately after the
+implementation commit so the report can name the implementation commit hash.
+That report-only commit hash is recorded in the final handoff for the turn.
