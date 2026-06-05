@@ -411,18 +411,14 @@ portion as the dashboard instead of maintaining a divergent response model.
 
 - Tools execute on the Python sidecar unless they are explicit backend remote
   tools such as `web_search`.
-- Client-local tool schemas and executable argument validation are client-side:
-  the SDK/Electron/sidecar manifest is assembled from selected built-ins plus
-  added tools, plugins, MCPs, and related extension contributions, and the
-  sidecar/local executor validates executable payloads before running them.
-- Backend validates client-provided tool manifests only as a trust/envelope and
-  model-facing contract: shape, size, reserved names, policy gates, provider
-  projection, and accepted/rejected transparency. Backend default built-in
-  schemas exist as a hosted fallback, but client-local executable arguments are
-  not backend-owned.
-- Backend-owned remote tools such as `web_search` keep backend-owned schemas,
-  backend argument validation, execution, result conversion, history commit, and
-  final prompt compilation.
+- Local tool schemas are client-side: the SDK/Electron/sidecar manifest is
+  assembled from selected built-ins plus added tools, plugins, MCPs, and related
+  extension contributions. Backend default built-in schemas exist as a fallback
+  and hosted default, but the client manifest may overwrite the active local
+  tool surface.
+- Backend validates client-provided tool manifests, enforces schema limits and
+  trust boundaries, applies policy/provider projection, owns backend remote
+  tools, and owns final prompt compilation.
 - Frontend/sidecar own local tool implementations and executable manifests for
   client-local tools; they must not import backend code for schema parity.
 - Tool changes must update the client tool manifest, docs, and focused tests in
