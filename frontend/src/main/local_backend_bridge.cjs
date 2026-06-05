@@ -12,7 +12,7 @@ const {
 } = require('./local_backend_bridge_rpc_mappers.cjs');
 const {
   createWindowResolvers,
-} = require('./local_backend_bridge_windows.cjs');
+} = require('./local_backend_bridge_window_visibility.cjs');
 const {
   getErrorMessage,
   shouldForwardStderrLine,

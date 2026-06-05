@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/main: delete the `local_backend_bridge_windows.cjs` re-export wrapper
+  so screenshot window visibility callers import the owning module directly.
 - backend/core: remove the unused legacy `PluginResultDict` type export so the
   core type package exposes only current runtime shapes.
 - docs/desktop: align active chat pill and response overlay docs with the

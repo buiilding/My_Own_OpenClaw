@@ -31,6 +31,7 @@ Date: 2026-06-05
 | C-005 | Sidecar system tool | `stats_tool.get_system_stats(args)` keeps unused args for interface consistency | Tool registry likely invokes entrypoints with args dict; implementation ignores it | `rg unused` finds `stats_tool.py` docstring note | recent sidecar tool commits pending inspection | Verify registry entrypoint contract before narrowing or reject as required plugin/tool ABI | Medium, sidecar tool ABI risk | sidecar system/tool registry tests | queued |
 | C-006 | Backend core types | Legacy plugin result dictionary types marked unused | Runtime may no longer import plugin dict result types | `backend/src/core/types/schemas.py` says "Legacy Plugin Types (unused)" | `43677c89d`, `dfc27b7ea`, `9ad4d1591`, `e4655863c` | Remove unused legacy type block and package export | Low after `rg` showed only self-export references | backend type import smoke and `rg` | implemented |
 | C-007 | Frontend docs inventory | Broader frontend docs still name old `ChatBox*` app/component paths | Active docs inventory and workflow pages consume renderer source-map paths | Broad `rg` after C-003 found stale paths outside `docs/desktop` | `47a180ffd`, `29de210dd` | Refresh frontend inventory/workflow docs in a separate docs slice, excluding historical plan files | Medium, docs-only but broad | targeted docs `rg`, docs-list, diff check | queued |
+| C-008 | Frontend main | `local_backend_bridge_windows.cjs` only re-exports `local_backend_bridge_window_visibility.cjs` | Window visibility owner module implements helpers; two callers import through alias wrapper | `local_backend_bridge_windows.cjs` contains only `module.exports = require(...)`; `rg` finds two runtime imports and one workflow doc mention | `034790787`, `47a180ffd`, `29de210dd` | Delete wrapper and import owner module directly | Low, direct require path change | frontend local backend bridge/window tests and `rg` | implemented |
 
 ## Slice Log
 
@@ -79,6 +80,34 @@ Date: 2026-06-05
   - `./scripts/python-in-env backend pytest tests/backend/test_formatter_specs_contract.py -q` passed.
   - `./bin/docs-list` failed on the pre-existing `docs/docs.json` missing-page references recorded in the baseline.
   - `git diff --check` passed with Windows line-ending warnings only.
+- Commit: `52a292f31` (`refactor(backend-core): remove legacy plugin result type`).
+
+### C-004 Frontend Artifact `image/jpg`
+
+- Status: rejected.
+- Reason: frontend normalization of `image/jpg` to canonical `image/jpeg` is a boundary normalizer for user/file/clipboard metadata before upload naming. Backend upload still rejects direct non-canonical API input with HTTP 415. Deleting the frontend normalizer would make user-originated metadata less robust without removing a backend compatibility path.
+- Evidence: `tests/frontend/ArtifactImageUtils.test.ts` covers `IMAGE/JPG` normalization; backend commit `14c865af7` removed the server-side alias and documents fail-fast API behavior.
+
+### C-005 Sidecar System Stats Args
+
+- Status: rejected.
+- Reason: built-in sidecar tools are invoked through `ToolRegistry.execute_tool(tool_name, args)`, which calls coroutine tools as `await tool(args)`. The unused `args` parameter on `get_system_stats` is part of that built-in entrypoint ABI, not dead behavior.
+- Evidence: `frontend/src/main/python/tools/registry.py` lazy built-in wrapper calls `resolved_tool(args)`; sidecar registry docs describe `tool(args)` dispatch.
+
+### C-008 Frontend Main Window Visibility Wrapper
+
+- Owner: Electron main local-backend bridge window visibility helpers.
+- Intended path: callers import `local_backend_bridge_window_visibility.cjs`, the owner module that implements resolver and screenshot-hide helpers.
+- Previous behavior: `local_backend_bridge_windows.cjs` existed only as a package-local rename-and-forward wrapper, and two callers imported through it.
+- Current behavior: the wrapper is deleted; callers and workflow docs point at the owner module directly.
+- Docs read: main-process change workflow.
+- Recent commits inspected: `034790787`, `47a180ffd`, `29de210dd`.
+- Validation:
+  - `rg -n "local_backend_bridge_windows" frontend/src/main tests/frontend docs CHANGELOG.md` found no runtime/test references; remaining matches are this report, historical planning/changelog entries, and the new changelog note.
+  - `cd frontend; $env:NODE_OPTIONS='--no-deprecation'; npx.cmd jest --config jest.config.cjs --runInBand LocalBackendBridgeWindowVisibility LocalBackendBridgeExtensionRuntime LocalBackendBridge.rpc` passed: 3 suites, 45 tests.
+  - `npm.cmd run test:ci -- LocalBackendBridgeWindowVisibility LocalBackendBridgeExtensionRuntime LocalBackendBridge.rpc` could not launch on Windows because the package script uses POSIX `NODE_OPTIONS=...` assignment syntax.
+  - `./bin/docs-list` failed on the pre-existing `docs/docs.json` missing-page references recorded in the baseline.
+  - `git diff --check` passed with Windows line-ending warnings only.
 - Commit: pending.
 
 ## Campaign Checklist
@@ -97,5 +126,9 @@ Date: 2026-06-05
 - [x] C-003 removes stale docs without adding a compatibility layer.
 - [x] C-006 names the owner, stale path, deletion, tests, docs, and validation before implementation.
 - [x] C-006 removes unused exported type surface.
+- [x] C-004 rejected with evidence.
+- [x] C-005 rejected with evidence.
+- [x] C-008 names the owner, stale path, deletion, tests, docs, and validation before implementation.
+- [x] C-008 deletes a wrapper instead of adding an adapter.
 - [ ] At least four subsystems are scanned before declaring the campaign exhausted.
 - [ ] The campaign does not stop after one narrow cleanup unless explicitly blocked or redirected.

@@ -5,7 +5,7 @@ const { BrowserWindow, screen } = require('electron');
 const { resolveToolArgs } = require('./local_backend_bridge_tool_args.cjs');
 const {
   withHiddenWindowForScreenshot,
-} = require('./local_backend_bridge_windows.cjs');
+} = require('./local_backend_bridge_window_visibility.cjs');
 const {
   resolveScreenshotToolDisplayBounds,
 } = require('./local_backend_bridge_display_bounds.cjs');
