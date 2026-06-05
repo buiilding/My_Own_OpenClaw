@@ -63,6 +63,11 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain("'conversations.clearAll'");
     expect(source).toContain("'conversation.send'");
     expect(source).toContain("'conversation.stop'");
+    expect(source).toContain("'conversation.rehydrate'");
+    expect(source).toContain("'conversation.compact'");
+    expect(source).toContain("'settings.update'");
+    expect(source).toContain("'models.list'");
+    expect(source).toContain("'wakeword.detected'");
     expect(source).toContain('agent.listMemories(');
     expect(source).toContain('agent.deleteMemory(');
     expect(source).toContain('agent.clearMemories(');

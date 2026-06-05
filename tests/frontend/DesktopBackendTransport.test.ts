@@ -1,24 +1,23 @@
 import { createDesktopBackendTransport } from '../../frontend/src/renderer/app/runtime/desktopBackendTransport';
+import { invokeWindieCommand } from '../../frontend/src/renderer/app/runtime/windieCommandInvokeClient';
+
+jest.mock('../../frontend/src/renderer/app/runtime/windieCommandInvokeClient', () => ({
+  invokeWindieCommand: jest.fn(),
+}));
+
+const mockInvokeWindieCommand = invokeWindieCommand as jest.MockedFunction<typeof invokeWindieCommand>;
 
 describe('desktopBackendTransport', () => {
-  const originalIpc = window.ipc;
-
   afterEach(() => {
-    window.ipc = originalIpc;
+    mockInvokeWindieCommand.mockReset();
     jest.restoreAllMocks();
   });
 
   test('rejects sendQuery when main reports a query dispatch failure', async () => {
-    const invoke = jest.fn(async () => ({
+    mockInvokeWindieCommand.mockResolvedValue({
       ok: false,
       error: 'Failed to send query to backend',
-    }));
-    window.ipc = {
-      send: jest.fn(),
-      invoke,
-      on: jest.fn(),
-      once: jest.fn(),
-    };
+    });
 
     const transport = createDesktopBackendTransport('/repo');
 
@@ -26,7 +25,7 @@ describe('desktopBackendTransport', () => {
       text: 'retry this',
       conversation_ref: 'conv-1',
     })).rejects.toThrow('Failed to send query to backend');
-    expect(invoke).toHaveBeenCalledWith('windie:send', expect.objectContaining({
+    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversation.send', expect.objectContaining({
       text: 'retry this',
       conversation_ref: 'conv-1',
       workspace_path: '/repo',
@@ -34,16 +33,10 @@ describe('desktopBackendTransport', () => {
   });
 
   test('resolves sendQuery when main accepts the query dispatch', async () => {
-    const invoke = jest.fn(async () => ({
+    mockInvokeWindieCommand.mockResolvedValue({
       ok: true,
       messageId: 'msg-1',
-    }));
-    window.ipc = {
-      send: jest.fn(),
-      invoke,
-      on: jest.fn(),
-      once: jest.fn(),
-    };
+    });
 
     const transport = createDesktopBackendTransport(null);
 
@@ -53,11 +46,50 @@ describe('desktopBackendTransport', () => {
     }, {
       messageId: 'turn-1',
     })).resolves.toBe('msg-1');
-    expect(invoke).toHaveBeenCalledWith('windie:send', expect.objectContaining({
+    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversation.send', expect.objectContaining({
       text: 'hello',
       conversation_ref: 'conv-1',
       query_message_id: 'turn-1',
     }));
-    expect(invoke.mock.calls[0][1]).not.toHaveProperty('turn_ref');
+    expect(mockInvokeWindieCommand.mock.calls[0][1]).not.toHaveProperty('turn_ref');
+  });
+
+  test('routes runtime commands through SDK-shaped command invoke', async () => {
+    mockInvokeWindieCommand.mockResolvedValue({});
+    const transport = createDesktopBackendTransport('/repo');
+
+    await transport.rehydrateConversation({
+      conversation_ref: 'conv-r',
+      messages: [{ role: 'user', content: 'hello' }],
+    });
+    await transport.compactHistory({
+      conversation_ref: 'conv-c',
+      force: false,
+    });
+    await transport.wakewordDetected({ turn_ref: 'turn-wake' });
+    await transport.updateSettings({ model: 'model-1' });
+    await transport.listModels();
+    await transport.stop({ conversation_ref: 'conv-stop' });
+
+    expect(mockInvokeWindieCommand).toHaveBeenNthCalledWith(1, 'conversation.rehydrate', {
+      conversation_ref: 'conv-r',
+      messages: [{ role: 'user', content: 'hello' }],
+      rehydrate_mode: 'replace',
+      workspace_path: '/repo',
+    });
+    expect(mockInvokeWindieCommand).toHaveBeenNthCalledWith(2, 'conversation.compact', {
+      force: false,
+      conversation_ref: 'conv-c',
+    });
+    expect(mockInvokeWindieCommand).toHaveBeenNthCalledWith(3, 'wakeword.detected', {
+      turn_ref: 'turn-wake',
+    });
+    expect(mockInvokeWindieCommand).toHaveBeenNthCalledWith(4, 'settings.update', {
+      model: 'model-1',
+    });
+    expect(mockInvokeWindieCommand).toHaveBeenNthCalledWith(5, 'models.list');
+    expect(mockInvokeWindieCommand).toHaveBeenNthCalledWith(6, 'conversation.stop', {
+      conversation_ref: 'conv-stop',
+    });
   });
 });

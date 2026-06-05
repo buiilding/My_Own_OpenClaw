@@ -40,6 +40,36 @@ describe('renderer app runtime boundary', () => {
     expect(source).not.toContain('INVOKE_CHANNELS.GET_CHAT_EVENTS');
   });
 
+  test('live-turn and backend transport facades use SDK-shaped command invoke for SDK runtime commands', async () => {
+    const liveTurnSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopLiveTurnRuntimeClient.ts'),
+      'utf8',
+    );
+    const backendTransportSource = await fs.readFile(
+      path.join(appRoot, 'runtime/desktopBackendTransport.ts'),
+      'utf8',
+    );
+
+    expect(liveTurnSource).toContain('invokeWindieCommand');
+    expect(liveTurnSource).toContain("'conversation.send'");
+    expect(liveTurnSource).toContain("'conversation.stop'");
+    expect(liveTurnSource).not.toContain('WINDIE_SEND');
+    expect(liveTurnSource).not.toContain('WINDIE_STOP');
+
+    expect(backendTransportSource).toContain('invokeWindieCommand');
+    expect(backendTransportSource).toContain("'conversation.send'");
+    expect(backendTransportSource).toContain("'conversation.stop'");
+    expect(backendTransportSource).toContain("'conversation.rehydrate'");
+    expect(backendTransportSource).toContain("'conversation.compact'");
+    expect(backendTransportSource).toContain("'settings.update'");
+    expect(backendTransportSource).toContain("'models.list'");
+    expect(backendTransportSource).toContain("'wakeword.detected'");
+    expect(backendTransportSource).not.toContain('WINDIE_SEND');
+    expect(backendTransportSource).not.toContain('WINDIE_STOP');
+    expect(backendTransportSource).not.toContain('WINDIE_REHYDRATE');
+    expect(backendTransportSource).not.toContain('WINDIE_COMPACT_HISTORY');
+  });
+
   test('app provider code uses runtime facades for transcript session helpers', async () => {
     const files = await listSourceFiles(appRoot);
     const offenders: string[] = [];

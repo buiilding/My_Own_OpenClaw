@@ -3,8 +3,8 @@ import {
 } from '../../infrastructure/api/windieSdkClient';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import type { CaptureMeta } from '../../infrastructure/services/ScreenshotAttachmentPipeline';
-import { IpcBridge, INVOKE_CHANNELS } from '../../infrastructure/ipc/bridge';
 import { getMemoryRetrievalInjectionEnabled } from '../../utils/memoryRetrievalPreference';
+import { invokeWindieCommand } from './windieCommandInvokeClient';
 
 type SendConversationQueryInput = {
   text: string;
@@ -58,7 +58,7 @@ function throwIfFailedIpcResult(result: unknown): void {
 export const DesktopLiveTurnRuntimeClient = {
   async sendQuery(input: SendConversationQueryInput): Promise<void> {
     const turnRef = optionalString(input.turnRef) ?? undefined;
-    const result = await IpcBridge.invoke(INVOKE_CHANNELS.WINDIE_SEND, {
+    const result = await invokeWindieCommand('conversation.send', {
       text: input.text,
       conversation_ref: optionalString(input.conversationRef) ?? '',
       query_message_id: turnRef ?? null,
@@ -85,7 +85,7 @@ export const DesktopLiveTurnRuntimeClient = {
     if (!resolvedConversationRef) {
       return;
     }
-    await IpcBridge.invoke(INVOKE_CHANNELS.WINDIE_STOP, {
+    await invokeWindieCommand('conversation.stop', {
       conversation_ref: resolvedConversationRef,
       turn_ref: null,
     });

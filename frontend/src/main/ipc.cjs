@@ -1352,6 +1352,34 @@ function buildWindieSdkCommandHandlers({
   return {
     'conversation.send': async (payload = {}) => handleRendererChatQuery(event, payload),
     'conversation.stop': async (payload = {}) => handleRendererStopQuery(payload),
+    'conversation.rehydrate': async (payload = {}) => {
+      const agent = await ensureWindieAgent({
+        reason: 'sdk-command:conversation.rehydrate',
+        conversationRef: optionalCommandConversationRef(payload),
+        workspacePath: resolveWorkspacePathForAgent(payload),
+      });
+      return agent.rehydrateMessages(payload);
+    },
+    'conversation.compact': async (payload = {}) => {
+      const agent = await ensureWindieAgent({
+        reason: 'sdk-command:conversation.compact',
+        conversationRef: optionalCommandConversationRef(payload),
+      });
+      return agent.compactHistory(payload);
+    },
+    'settings.update': async (payload = {}) => sendSettingsUpdate(payload, 'renderer-sdk-command'),
+    'models.list': async () => requestModelListFromBackend(),
+    'wakeword.detected': async (payload = {}) => {
+      if (!isBackendRuntimeConnected()) {
+        await ensureBackendConnection('wakeword-detected');
+      }
+      await ensureInitialSettingsSync();
+      const pendingSettingsSyncPromise = settingsSyncRuntime.getPendingSettingsSyncPromise();
+      if (pendingSettingsSyncPromise) {
+        await pendingSettingsSyncPromise;
+      }
+      return sendWakewordDetectedToBackend(payload);
+    },
     'memories.list': async (payload = {}) => {
       const agent = await ensureWindieAgent({ reason: 'sdk-command:memories.list' });
       return agent.listMemories({

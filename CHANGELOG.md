@@ -12,6 +12,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sdk: route renderer memory and conversation clear actions through a
   single SDK-shaped `windie.invoke(...)` command bridge, with Electron main
   allowlisting commands and calling public SDK agent APIs.
+- frontend/sdk: move renderer live-turn and SDK backend transport runtime
+  commands onto SDK-shaped `windie.invoke(...)` commands instead of direct
+  `windie:*` IPC channels.
 - docs/plans: record completion state for the deterministic cleanup campaign.
 - backend/api: refresh the API source folder map for the current `schemas/`,
   websocket route helper, and memory route package layout.

@@ -158,6 +158,16 @@ ipcMain.handle('windie:invoke', async (_event, { command, payload }) => {
       return agent.clearMemories(payload);
     case 'conversations.clearAll':
       return agent.clearConversations(payload);
+    case 'conversation.send':
+      return agent.conversation({ conversationRef: payload.conversationRef })
+        .send(payload);
+    case 'conversation.stop':
+      return agent.conversation({ conversationRef: payload.conversationRef })
+        .stop(payload.turnRef ?? null);
+    case 'conversation.rehydrate':
+      return agent.rehydrateMessages(payload);
+    case 'conversation.compact':
+      return agent.compactHistory(payload);
     default:
       throw new Error(`Unsupported SDK command: ${command}`);
   }

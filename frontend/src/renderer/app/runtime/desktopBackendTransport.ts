@@ -1,7 +1,7 @@
 import type { BackendTransport } from '../../infrastructure/api/windieSdkClient';
-import { IpcBridge, INVOKE_CHANNELS } from '../../infrastructure/ipc/bridge';
 import { getMemoryRetrievalInjectionEnabled } from '../../utils/memoryRetrievalPreference';
 import { normalizeNonEmptyString } from '../../utils/normalizeNonEmptyString';
+import { invokeWindieCommand } from './windieCommandInvokeClient';
 
 function optionalString(value: unknown): string | null {
   return normalizeNonEmptyString(value);
@@ -18,7 +18,7 @@ function optionalStringArray(value: unknown): string[] | null {
 }
 
 async function sendStopQuery(conversationRef: string | null): Promise<void> {
-  await IpcBridge.invoke(INVOKE_CHANNELS.WINDIE_STOP, {
+  await invokeWindieCommand('conversation.stop', {
     conversation_ref: conversationRef,
   });
 }
@@ -28,7 +28,7 @@ async function sendQuery(
   workspacePath: string | null,
   messageId: string | null,
 ): Promise<string | null> {
-  const result = await IpcBridge.invoke(INVOKE_CHANNELS.WINDIE_SEND, {
+  const result = await invokeWindieCommand('conversation.send', {
     text: optionalString(payload.text) ?? '',
     conversation_ref: optionalString(payload.conversation_ref)
       ?? optionalString(payload.conversationRef)
@@ -82,7 +82,7 @@ function optionalRecordArray(value: unknown): Record<string, unknown>[] {
 }
 
 async function sendRehydrateConversation(payload: Record<string, unknown>, workspacePath: string | null): Promise<void> {
-  await IpcBridge.invoke(INVOKE_CHANNELS.WINDIE_REHYDRATE, {
+  await invokeWindieCommand('conversation.rehydrate', {
     conversation_ref: optionalString(payload.conversation_ref)
       ?? optionalString(payload.conversationRef)
       ?? '',
@@ -96,7 +96,7 @@ async function sendRehydrateConversation(payload: Record<string, unknown>, works
 }
 
 async function sendCompactHistory(payload: Record<string, unknown>): Promise<void> {
-  await IpcBridge.invoke(INVOKE_CHANNELS.WINDIE_COMPACT_HISTORY, {
+  await invokeWindieCommand('conversation.compact', {
     force: payload.force !== false,
     conversation_ref: optionalString(payload.conversation_ref)
       ?? optionalString(payload.conversationRef)
@@ -105,15 +105,15 @@ async function sendCompactHistory(payload: Record<string, unknown>): Promise<voi
 }
 
 async function sendWakewordDetected(payload: Record<string, unknown>): Promise<void> {
-  await IpcBridge.invoke(INVOKE_CHANNELS.WINDIE_WAKEWORD_DETECTED, payload);
+  await invokeWindieCommand('wakeword.detected', payload);
 }
 
 async function sendUpdateSettings(payload: Record<string, unknown>): Promise<void> {
-  await IpcBridge.invoke(INVOKE_CHANNELS.WINDIE_UPDATE_SETTINGS, payload);
+  await invokeWindieCommand('settings.update', payload);
 }
 
 async function sendListModels(): Promise<void> {
-  await IpcBridge.invoke(INVOKE_CHANNELS.WINDIE_LIST_MODELS);
+  await invokeWindieCommand('models.list');
 }
 
 export function createDesktopBackendTransport(workspacePath: string | null = null): BackendTransport {

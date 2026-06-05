@@ -135,7 +135,9 @@ This section distinguishes current behavior from target behavior and known migra
 
 Renderer feature code expresses user intent through `window.windie.invoke(command, payload)`.
 The command names are SDK-shaped, for example `conversation.send`,
-`conversation.stop`, `memories.clearAll`, and `conversations.clearAll`.
+`conversation.stop`, `conversation.rehydrate`, `conversation.compact`,
+`settings.update`, `models.list`, `wakeword.detected`, `memories.clearAll`,
+and `conversations.clearAll`.
 Electron main owns only the IPC hop and strict command allowlist. The handler
 calls public `WindieAgent` / `ConversationRuntime` methods on the live SDK
 runtime. Renderer code must not call sidecar RPC names such as
@@ -143,6 +145,10 @@ runtime. Renderer code must not call sidecar RPC names such as
 `chat_events`, or `chat_conversation_revisions` for user-facing SDK concepts.
 Those names may still exist below the SDK boundary as local-runtime/store
 implementation details.
+
+Renderer app-runtime transport facades that implement SDK runtime interfaces
+should also use SDK-shaped commands. They should not call direct `windie:send`,
+`windie:stop`, `windie:rehydrate`, or `windie:compact-history` IPC channels.
 
 ### Stream Receive Flow
 
