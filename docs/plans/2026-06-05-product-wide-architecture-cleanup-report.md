@@ -189,6 +189,24 @@ Action:
 - Kept the parity check test-only so SDK/frontend runtime code still does not
   import backend code.
 
+### Pass 8: Local RPC Standalone Transport Terminology
+
+Findings:
+
+- `local_backend_bridge_rpc_transport.cjs` now accepts `standaloneTransport`
+  for the supported standalone sidecar process JSON-RPC mode.
+- `LocalBackendRpcTransport.test.cjs` still passed `legacyTransport` and
+  described the standalone mode as a legacy fallback.
+- The stale test option no longer matched the implementation contract, so the
+  standalone-mode test was not proving the active constructor shape.
+
+Action:
+
+- Renamed the test double from `legacyTransport` to `standaloneTransport`.
+- Updated the test name to describe daemon-unavailable routing to the supported
+  standalone process transport.
+- Preserved daemon-first behavior and daemon-error normalization coverage.
+
 ## Inventory And Classification
 
 - Delete/isolate now:
@@ -206,6 +224,8 @@ Action:
     renderer components/hooks.
   - Missing fixture-backed parity guard between the SDK direct websocket
     payload allowlist and backend incoming-message payload keys.
+  - Stale `legacyTransport` wording and constructor option in the local RPC
+    transport test.
 - Keep with owner:
   - Standalone sidecar JSON-RPC transport remains supported through
     `local_backend_bridge_request_transport.cjs`.
@@ -241,6 +261,8 @@ Action:
 - Added a cross-runtime payload contract test that pins the SDK outbound
   payload allowlist to the backend incoming-message fixture without runtime
   backend imports.
+- Updated local RPC transport tests so standalone sidecar JSON-RPC is covered
+  as an active supported transport, not a legacy fallback.
 
 ## Checklist
 
@@ -333,6 +355,9 @@ Action:
   - Result: passed, 1 suite / 9 tests.
   - Note: Jest reported the existing open-handle warning when forced to exit
     after assertions completed.
+- `cd frontend; npx.cmd jest LocalBackendRpcTransport --runInBand --forceExit`
+  - Result: passed, 1 suite / 3 tests.
+  - Note: Jest printed the standard force-exit open-handle reminder.
 
 ## Commits
 

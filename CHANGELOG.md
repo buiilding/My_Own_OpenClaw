@@ -33,6 +33,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/tests: extend the websocket payload contract test so the SDK
   outbound payload allowlist is checked against the backend-owned incoming
   message fixture alongside the Electron-main allowlist.
+- frontend/tests: update local-backend RPC transport coverage to use the active
+  `standaloneTransport` contract instead of stale `legacyTransport` fallback
+  terminology.
 - sidecar/memory: scope background semantic summarization to the authenticated
   install user so legacy local rows for other user IDs are skipped before
   calling the backend semantic API.

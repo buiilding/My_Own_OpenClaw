@@ -13,13 +13,13 @@ describe('local_backend_bridge_rpc_transport', () => {
         result: { method, params },
       })),
     };
-    const legacyTransport = {
+    const standaloneTransport = {
       sendRequest: jest.fn(),
     };
     const transport = createLocalBackendRpcTransport({
       getDaemonManager: () => daemonManager,
       getDaemonLaunchOptions: () => ({ isPackaged: true }),
-      legacyTransport,
+      standaloneTransport,
       createRequestId: () => 'rpc-1',
     });
 
@@ -35,23 +35,23 @@ describe('local_backend_bridge_rpc_transport', () => {
     }, {
       isPackaged: true,
     });
-    expect(legacyTransport.sendRequest).not.toHaveBeenCalled();
+    expect(standaloneTransport.sendRequest).not.toHaveBeenCalled();
   });
 
-  test('falls back to legacy process transport with the same request interface', async () => {
-    const legacyTransport = {
+  test('uses standalone process transport with the same request interface when daemon is unavailable', async () => {
+    const standaloneTransport = {
       sendRequest: jest.fn(async () => ({ status: 'ok' })),
     };
     const transport = createLocalBackendRpcTransport({
       getDaemonManager: () => null,
-      legacyTransport,
+      standaloneTransport,
     });
 
     await expect(transport.sendRequest('ping', {}, { timeoutMs: 10 })).resolves.toEqual({
       status: 'ok',
     });
 
-    expect(legacyTransport.sendRequest).toHaveBeenCalledWith('ping', {}, { timeoutMs: 10 });
+    expect(standaloneTransport.sendRequest).toHaveBeenCalledWith('ping', {}, { timeoutMs: 10 });
   });
 
   test('normalizes daemon json-rpc errors through sendRequestOrError', async () => {
@@ -63,7 +63,7 @@ describe('local_backend_bridge_rpc_transport', () => {
           error: { message: 'boom' },
         })),
       }),
-      legacyTransport: {
+      standaloneTransport: {
         sendRequest: jest.fn(),
       },
       createRequestId: () => 'rpc-1',
