@@ -310,7 +310,7 @@ Action:
     report update.
 - `5becc1e30 docs(frontend): align sdk and sidecar ownership maps`
   - Renderer/SDK boundary documentation drift cleanup and Pass 5 validation.
-- Pending follow-up commit:
+- `ddea65173 refactor(frontend): gate minimal surface traces`
   - Minimal chat surface diagnostics gating and Pass 6 validation.
 
 ## Decisions, Tradeoffs, Blockers, Deviations
