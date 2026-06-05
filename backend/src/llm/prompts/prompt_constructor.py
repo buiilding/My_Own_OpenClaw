@@ -164,7 +164,6 @@ class PromptConstructor:
         if callable(model_tool_names_getter):
             filtered_names = self.tool_policy.filter_tool_names(
                 model_tool_names_getter(),
-                normalize_wrappers=False,
             )
             return (
                 self.tool_registry.get_function_declarations_filtered(filtered_names)

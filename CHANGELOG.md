@@ -40,6 +40,9 @@ All notable changes to WindieOS will be documented in this file.
 - backend/rehydrate: remove unreachable underscore alias entries from
   rehydrate row routing so message types normalize once at the boundary and
   downstream routing checks canonical hyphenated forms only.
+- backend/tools: remove the ignored `normalize_wrappers` tool-policy parameter
+  so tool visibility filtering has one direct-name path instead of a dormant
+  wrapper-normalization switch.
 - frontend/sidecar: remove the duplicated `core` backend config, auth,
   unicode-sanitizer, and remote API base shims so sidecar callers use the
   `windie` owner modules directly.

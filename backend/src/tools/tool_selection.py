@@ -90,14 +90,8 @@ class ToolSelection:
     def _is_mouse_control_effectively_enabled(self) -> bool:
         return bool(self.get_allowed_mouse_coordinate_methods())
 
-    def filter_tool_names(
-        self,
-        tool_names: Sequence[str],
-        *,
-        normalize_wrappers: bool = True,
-    ) -> List[str]:
+    def filter_tool_names(self, tool_names: Sequence[str]) -> List[str]:
         """Filter tool names according to selection mode (stable order)."""
-        _ = normalize_wrappers
         if not self.enabled:
             return [name for name in tool_names if isinstance(name, str)]
         filtered: List[str] = []

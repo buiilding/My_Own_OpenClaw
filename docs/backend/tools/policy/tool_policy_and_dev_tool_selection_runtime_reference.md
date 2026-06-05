@@ -29,12 +29,10 @@ Tool exposure filtering is layered in this order:
 3. session/server agent capability policy from typed `AppConfig` fields
 4. legacy dev tool-selection policy (`ToolSelection`) when enabled
 
-`ToolPolicy.filter_tool_names(...)` and `ToolPolicy.filter_tool_schemas(...)` apply both layers in that order.
-
-Two filtering modes now exist in practice:
-
-- wrapper-normalized filtering (`normalize_wrappers=True`, default) for parser/tool-capability surfaces
-- direct-tool filtering (`normalize_wrappers=False`) for prompt schema generation against the canonical model-visible tool list
+`ToolPolicy.filter_tool_names(...)` and `ToolPolicy.filter_tool_schemas(...)`
+apply both layers in that order. Tool-name filtering is direct-name only:
+callers pass canonical model-visible tool names, and policy does not normalize
+old wrapper names into executable tool names.
 
 Practical effect:
 
@@ -157,10 +155,9 @@ Current grounded schema coverage:
 - `grounded_mouse_action`
 - `grounded_scroll_action`
 
-Schema path compatibility:
+Schema path:
 
-- supports legacy wrapped computer-use schema shape
-- supports native direct function-parameter schema shape
+- supports the canonical flat function-tool spec shape
 
 ## Parsing-Time Validation Coupling
 
@@ -186,7 +183,7 @@ Method normalization:
 Current flow:
 
 1. read model-visible tool names from `ToolRegistry.get_model_tool_names()`
-2. apply `ToolPolicy.filter_tool_names(..., normalize_wrappers=False)` to that direct-tool list
+2. apply `ToolPolicy.filter_tool_names(...)` to that direct-tool list
 3. hand the filtered list back to `ToolRegistry.get_function_declarations_filtered(...)`
 4. apply `ToolPolicy.filter_tool_schemas(...)` to the returned direct function schemas
 5. run provider projection

@@ -60,10 +60,7 @@ class ToolPolicy:
         self,
         tool_names: Sequence[str],
         selection: Optional[ToolSelection] | object = _UNSET,
-        *,
-        normalize_wrappers: bool = True,
     ) -> List[str]:
-        _ = normalize_wrappers
         filtered = [name for name in tool_names if isinstance(name, str)]
         filtered = self._filter_web_search_names(filtered)
         disabled_tools = self._get_config_disabled_tools()
@@ -74,16 +71,11 @@ class ToolPolicy:
             filtered = [name for name in filtered if name in allowlist]
 
         if self.agent_selection is not None:
-            filtered = self.agent_selection.filter_tool_names(
-                filtered,
-                normalize_wrappers=False,
-            )
+            filtered = self.agent_selection.filter_tool_names(filtered)
 
         effective_selection = self._resolve_selection(selection)
         if effective_selection is not None:
-            filtered = effective_selection.filter_tool_names(
-                filtered, normalize_wrappers=False
-            )
+            filtered = effective_selection.filter_tool_names(filtered)
         return filtered
 
     def filter_tool_schemas(

@@ -153,6 +153,25 @@ def test_filter_tool_names_keeps_direct_tool_names():
     assert filtered == ["read_file", "mouse_control", "keyboard_control", "browser"]
 
 
+def test_filter_tool_names_does_not_normalize_wrapper_names():
+    config = AppConfig(
+        interaction_mode="agent",
+        agent_tool_profile="full",
+        browser_automation_enabled=True,
+    )
+    policy = ToolPolicy(
+        config=config,
+        agent_selection=build_agent_tool_selection(config),
+        selection=None,
+    )
+
+    filtered = policy.filter_tool_names(
+        ["computer_use", "system_use", "mouse_control", "run_shell_command"]
+    )
+
+    assert filtered == ["mouse_control", "run_shell_command"]
+
+
 def test_filter_tool_names_keeps_browser_when_browser_automation_not_enabled():
     policy = ToolPolicy(
         config=AppConfig(interaction_mode="agent", browser_automation_enabled=False),
