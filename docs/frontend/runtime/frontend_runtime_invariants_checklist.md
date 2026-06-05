@@ -56,9 +56,9 @@ When behavior changes in these areas, add or update tests in the same PR:
   - `tests/frontend/ResponseOverlayPhaseHandler.test.cjs`
   - `tests/frontend/IpcMainBridge*.test.cjs`
 
-## PR Checklist Tokens (CI-Gated)
+## PR Checklist Tokens
 
-PR descriptions must check these tokens (or use `inv-na-no-frontend-runtime-change`):
+PR descriptions should check these tokens during review (or use `inv-na-no-frontend-runtime-change`):
 
 - `inv-read-doc`
 - `inv-chat-loop-flow`
