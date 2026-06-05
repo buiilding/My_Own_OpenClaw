@@ -1,5 +1,5 @@
 ---
-summary: "Chat pill guide covering chatbox renderer, overlay window behavior, send/capture policy, drag/anchor behavior, and Linux screenshot timing."
+summary: "Chat pill guide covering the minimal pill renderer, overlay window behavior, send/capture policy, drag/anchor behavior, and Linux screenshot timing."
 read_when:
   - When changing the floating chat pill, overlay input, screenshot send path, drag sizing, or chat state machine.
   - When debugging flicker, click-through, or capture timing.
@@ -12,11 +12,11 @@ The chat pill is the small always-available desktop command surface. It is rende
 
 ## Main Files
 
-- Renderer app: `frontend/src/renderer/app/ChatBoxApp.jsx`
-- Component: `frontend/src/renderer/features/chat/components/ChatBox.jsx`
-- Response renderer app: `frontend/src/renderer/app/ChatBoxResponseApp.jsx`
-- Response component: `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
-- Bindings: `frontend/src/renderer/features/chat/hooks/useChatBoxBindings.js`
+- Renderer app: `frontend/src/renderer/app/MinimalChatPillApp.jsx`
+- Component: `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx`
+- Response renderer app: `frontend/src/renderer/app/MinimalResponseOverlayApp.jsx`
+- Response component: `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`
+- Bindings: `frontend/src/renderer/features/minimalChatPill/hooks/useMinimalChatPillBindings.js`
 - Composer state: `frontend/src/renderer/features/chat/hooks/useChatComposerDraft.js`
 - Message sending: `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - Selectors: `frontend/src/renderer/features/chat/utils/chatSelectors.js`
@@ -25,9 +25,9 @@ The chat pill is the small always-available desktop command surface. It is rende
 ## Behavior Contracts
 
 - The pill is a command surface, not a separate chat backend session.
-- The active overlay route is the existing `ChatBox` / `ChatBoxResponse`
-  implementation. The experimental minimal renderer route has been removed, so
-  Electron should load `?view=chatbox` and `?view=chatbox-response`.
+- The active overlay route is the minimal pill / minimal response overlay
+  implementation. Electron still loads the stable `?view=chatbox` and
+  `?view=chatbox-response` route names for those renderer roots.
 - Closing the pill is durable user intent. Generic lifecycle paths such as
   startup-surface reapply or app activation must not reopen it while that intent
   is set.

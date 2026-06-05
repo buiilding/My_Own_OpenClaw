@@ -12,11 +12,11 @@ The response overlay displays live assistant output and transient tool/progress 
 
 ## Main Files
 
-- Renderer app: `frontend/src/renderer/app/ChatBoxResponseApp.jsx`
-- Component: `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
-- View model: `frontend/src/renderer/features/chat/hooks/useResponseOverlayViewModel.js`
-- Window sync: `frontend/src/renderer/features/chat/hooks/useResponseOverlayWindowSync.js`
-- Scroll state: `frontend/src/renderer/features/chat/hooks/useResponseOverlayScrollState.js`
+- Renderer app: `frontend/src/renderer/app/MinimalResponseOverlayApp.jsx`
+- Component: `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`
+- View model: `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayViewModel.js`
+- Window sync: `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayWindowSync.js`
+- Scroll state: `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayScrollState.js`
 - Phase contracts: `frontend/src/shared/response_overlay_phase_contract.json`, `frontend/src/renderer/features/chat/utils/overlay/*`
 - Main handler: `frontend/src/main/response_overlay_phase_handler.cjs`
 

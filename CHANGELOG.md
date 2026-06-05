@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/desktop: align active chat pill and response overlay docs with the
+  `MinimalChatPill` renderer paths after the SDK-owned surface move.
 - backend/api: narrow websocket task admission to a boolean result so the
   receive loop no longer receives or discards task objects owned by
   `TaskManager`.

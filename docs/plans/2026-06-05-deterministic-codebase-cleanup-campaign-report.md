@@ -26,10 +26,11 @@ Date: 2026-06-05
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | C-001 | Backend API websocket | `TaskManager.create_task_if_under_limit` returns a task object production discards | `TaskManager` produces tasks; `loop_runtime.schedule_validated_message_task` only needs admission | `loop_runtime.py` assigned `_ = task`; dedicated plan `2026-06-05-backend-websocket-task-admission-cleanup-plan.md` | `76c01c5ac`, `930644576`, `13b53f682`, `f655d3a46` | Return boolean admission result and assert task ownership through `active_tasks` | Low, internal helper only | websocket task manager and loop runtime tests | implemented |
 | C-002 | Docs / SDK runtime | Stale `WindieDesktopAgent` references after runtime deletion | SDK now exposes `WindieClient.wakeUp`; docs/tests still mention deleted desktop facade | `rg WindieDesktopAgent` finds docs references while source file is deleted | `47a180ffd`, `29de210dd`, `289fd8cb6` | Update active docs to current SDK runtime owner or mark historical plan references only | Medium, docs-only but broad | `rg WindieDesktopAgent`, docs-list, diff check | queued |
-| C-003 | Docs / minimal chat pill | Stale `ChatBoxApp` / `ChatBoxResponseApp` paths after rename to `Minimal*` apps | Renderer app files moved; docs still describe old file names as canonical | `rg ChatBoxApp ChatBoxResponseApp docs` finds active desktop docs | `47a180ffd`, `29de210dd` | Align active desktop docs with renamed minimal pill files; leave explicit historical plan references alone | Low, docs-only | targeted `rg`, docs-list, diff check | queued |
+| C-003 | Docs / minimal chat pill | Stale `ChatBoxApp` / `ChatBoxResponseApp` paths after rename to `Minimal*` apps | Renderer app files moved; docs still describe old file names as canonical | `rg ChatBoxApp ChatBoxResponseApp docs` finds active desktop docs | `47a180ffd`, `29de210dd` | Align active desktop docs with renamed minimal pill files; leave explicit historical plan references alone | Low, docs-only | targeted `rg`, docs-list, diff check | implemented |
 | C-004 | Frontend renderer artifact utilities | Frontend still normalizes `image/jpg` alias after backend artifact uploads removed it | Backend rejects non-canonical `image/jpg`; renderer utility keeps alias path | `ArtifactImageUtils.ts` maps `image/jpg`; changelog says backend removed alias | `a483bc291`, `47a180ffd` | Verify live callers/tests, then remove alias or document why renderer display still accepts old stored metadata | Medium, stored artifact display compatibility possible | frontend artifact/image utility tests | investigating |
 | C-005 | Sidecar system tool | `stats_tool.get_system_stats(args)` keeps unused args for interface consistency | Tool registry likely invokes entrypoints with args dict; implementation ignores it | `rg unused` finds `stats_tool.py` docstring note | recent sidecar tool commits pending inspection | Verify registry entrypoint contract before narrowing or reject as required plugin/tool ABI | Medium, sidecar tool ABI risk | sidecar system/tool registry tests | queued |
 | C-006 | Backend core types | Legacy plugin result dictionary types marked unused | Runtime may no longer import plugin dict result types | `backend/src/core/types/schemas.py` says "Legacy Plugin Types (unused)" | recent core type commits pending inspection | Verify imports and remove unused legacy type block if no public contract | Medium, type import compatibility possible | backend type/import tests and `rg` | queued |
+| C-007 | Frontend docs inventory | Broader frontend docs still name old `ChatBox*` app/component paths | Active docs inventory and workflow pages consume renderer source-map paths | Broad `rg` after C-003 found stale paths outside `docs/desktop` | `47a180ffd`, `29de210dd` | Refresh frontend inventory/workflow docs in a separate docs slice, excluding historical plan files | Medium, docs-only but broad | targeted docs `rg`, docs-list, diff check | queued |
 
 ## Slice Log
 
@@ -47,6 +48,21 @@ Date: 2026-06-05
   - `rg -n "create_task_if_under_limit\(|limit_exceeded|_ = task|\(None, True\)|\(task, False\)|task_or_none" backend/src tests/backend docs` found only current method/test names plus historical plan/report references; no production `_ = task`, tuple return, or old route-test return shape remains.
   - `./bin/docs-list` failed on the pre-existing `docs/docs.json` missing-page references recorded in the baseline.
   - `git diff --check` passed with Windows line-ending warnings only.
+- Commit: `79ecbcf24` (`refactor(backend-api): narrow websocket task admission`).
+
+### C-003 Desktop Minimal Pill Docs
+
+- Owner: docs for desktop renderer surfaces.
+- Intended path: active docs point to current minimal pill app/component names while stable URL route names remain `?view=chatbox` and `?view=chatbox-response`.
+- Previous behavior: active desktop docs named deleted or renamed `ChatBoxApp`, `ChatBoxResponseApp`, `ChatBox`, `ChatBoxResponse`, and `useChatBoxBindings` files as canonical.
+- Current behavior: active desktop docs name `MinimalChatPillApp`, `MinimalResponseOverlayApp`, `MinimalChatPill`, `MinimalResponseOverlay`, and minimal-pillar hook paths.
+- Docs read: desktop surfaces hub, chat pill guide, response overlay guide.
+- Recent commits inspected: `47a180ffd`, `29de210dd`, `289fd8cb6`, `366f70ec2`.
+- Validation:
+  - `rg -n "ChatBoxApp|ChatBoxResponseApp|features/chat/components/ChatBox\.jsx|features/chat/components/ChatBoxResponse\.jsx|useChatBoxBindings" docs/desktop` returned no matches.
+  - Broader docs scan still found stale frontend docs inventory/workflow references; recorded as C-007 instead of widening this slice.
+  - `./bin/docs-list` failed on the pre-existing `docs/docs.json` missing-page references recorded in the baseline.
+  - `git diff --check` passed with Windows line-ending warnings only.
 - Commit: pending.
 
 ## Campaign Checklist
@@ -60,6 +76,8 @@ Date: 2026-06-05
 - [x] No unrelated dirty files are staged or reverted.
 - [x] Changelog is updated for C-001.
 - [x] Docs are updated for C-001 ownership and contract changes.
-- [ ] C-001 commit recorded.
+- [x] C-001 commit recorded.
+- [x] C-003 names the owner, stale path, deletion, tests, docs, and validation before implementation.
+- [x] C-003 removes stale docs without adding a compatibility layer.
 - [ ] At least four subsystems are scanned before declaring the campaign exhausted.
 - [ ] The campaign does not stop after one narrow cleanup unless explicitly blocked or redirected.
