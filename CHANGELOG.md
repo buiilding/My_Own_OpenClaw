@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sidecar/memory: scope background semantic summarization to the authenticated
+  install user so legacy local rows for other user IDs are skipped before
+  calling the backend semantic API.
 - docs/agents: tighten the compaction-safe plan workflow so resumed agents must
   inspect live code, design the next slice, validate, and repeat final
   design-inspection passes until no in-scope work remains instead of treating

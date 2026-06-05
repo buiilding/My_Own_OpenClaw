@@ -10,7 +10,7 @@ import json
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Sequence, Set
+from typing import Any, Callable, Dict, List, Optional, Sequence, Set
 
 from core.remote_semantic_client import RemoteSemanticClient
 from memory.local_store import LocalMemoryStore
@@ -19,6 +19,7 @@ from memory.operations import (
     build_semanticization_metadata,
     classify_semantic_summarization_result,
 )
+from windie._auth import get_authenticated_user_id
 
 logger = logging.getLogger(__name__)
 
@@ -45,10 +46,14 @@ class MemorySummarizer:
         memory_store: LocalMemoryStore,
         semantic_client: Optional[RemoteSemanticClient] = None,
         settings: Optional[SummarizerSettings] = None,
+        authenticated_user_id_resolver: Optional[Callable[[], Optional[str]]] = None,
     ) -> None:
         self.memory_store = memory_store
         self.semantic_client = semantic_client or RemoteSemanticClient()
         self.settings = settings or SummarizerSettings()
+        self.authenticated_user_id_resolver = (
+            authenticated_user_id_resolver or get_authenticated_user_id
+        )
 
         self._shutdown_event = asyncio.Event()
         self._wake_event = asyncio.Event()
@@ -185,8 +190,11 @@ class MemorySummarizer:
             return False
 
         try:
+            authenticated_user_id = self._get_authenticated_user_id()
             pending = (
-                await self.memory_store.count_unsemanticized_interaction_memories()
+                await self.memory_store.count_unsemanticized_interaction_memories(
+                    user_id=authenticated_user_id
+                )
             )
         except Exception as e:
             logger.warning(
@@ -208,7 +216,21 @@ class MemorySummarizer:
         ).total_seconds()
         return idle_seconds >= self.settings.idle_seconds
 
+    def _get_authenticated_user_id(self) -> Optional[str]:
+        user_id = self.authenticated_user_id_resolver()
+        if (
+            isinstance(user_id, str)
+            and user_id.strip()
+            and user_id.strip() != "default_user"
+        ):
+            return user_id.strip()
+        return None
+
     async def _get_user_ids_with_work(self) -> List[str]:
+        authenticated_user_id = self._get_authenticated_user_id()
+        if authenticated_user_id:
+            return [authenticated_user_id]
+
         ordered_user_ids: List[str] = []
         seen: Set[str] = set()
 
@@ -237,6 +259,16 @@ class MemorySummarizer:
         user_id: str,
         conversation_id: Optional[str],
     ) -> int:
+        authenticated_user_id = self._get_authenticated_user_id()
+        if authenticated_user_id and user_id != authenticated_user_id:
+            logger.debug(
+                "Skipping semantic summarization for non-authenticated user_id "
+                "(requested=%s, authenticated=%s)",
+                user_id,
+                authenticated_user_id,
+            )
+            return 0
+
         if not user_id or user_id == "default_user":
             logger.debug("Skipping summarization for invalid user_id")
             return 0
