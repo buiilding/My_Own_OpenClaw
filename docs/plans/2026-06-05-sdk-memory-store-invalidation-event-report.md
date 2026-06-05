@@ -66,7 +66,7 @@ old completed-turn memory diagnostic event.
 - [x] Docs updated.
 - [x] `CHANGELOG.md` updated.
 - [x] Validation results recorded in this report.
-- [ ] Commit created and recorded in this report.
+- [x] Commit created and recorded in this report.
 
 ## Decisions
 
@@ -92,4 +92,4 @@ old completed-turn memory diagnostic event.
 
 ## Commits
 
-Pending final commit.
+- `3da3057a3` - `fix(frontend): refresh memory panel from sdk invalidation`
