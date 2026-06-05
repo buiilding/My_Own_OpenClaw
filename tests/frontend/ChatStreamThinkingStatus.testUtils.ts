@@ -4,7 +4,6 @@ import { useChatStream } from '../../frontend/src/renderer/features/chat/hooks/u
 import { useConversationRuntimeProjectionStream } from '../../frontend/src/renderer/features/chat/hooks/useConversationRuntimeProjectionStream';
 import { DesktopConversationContinuityService } from '../../frontend/src/renderer/app/runtime/desktopConversationContinuityService';
 import { DesktopTranscriptSessionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient';
-import { DesktopTranscriptProjectionRuntimeClient } from '../../frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient';
 import { useChatStore } from '../../frontend/src/renderer/features/chat/stores/chatStore';
 import { normalizeBackendEventToConversationEvent } from '../../packages/windie-sdk-js/src/transport/backendEventNormalizer';
 import {
@@ -41,16 +40,7 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRunti
   },
 }));
 
-jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient', () => ({
-  DesktopTranscriptProjectionRuntimeClient: {
-    recordAssistantMessage: jest.fn(),
-    recordToolMessage: jest.fn(),
-  },
-}));
-
 export const transcriptSpies = {
-  recordAssistantMessage: DesktopTranscriptProjectionRuntimeClient.recordAssistantMessage as jest.Mock,
-  recordToolMessage: DesktopTranscriptProjectionRuntimeClient.recordToolMessage as jest.Mock,
   replaceCompactedReplay: DesktopConversationContinuityService.replaceCompactedReplay as jest.Mock,
   updateTranscriptSession: DesktopTranscriptSessionRuntimeClient.updateTranscriptSession as jest.Mock,
 };

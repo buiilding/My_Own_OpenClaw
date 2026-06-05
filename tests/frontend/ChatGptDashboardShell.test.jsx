@@ -203,6 +203,7 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
     MAIN_WINDOW_OPEN_TARGET: 'main-window-open-target',
     IPC_STATUS: 'ipc-status',
     SIDECAR_EVENT: 'sidecar-event',
+    WINDIE_CONVERSATION_EVENT: 'windie:conversation-event',
   },
 }));
 
@@ -851,12 +852,9 @@ describe('ChatGptDashboardShell', () => {
     expect(screen.getByText('No chats yet.')).toBeInTheDocument();
 
     act(() => {
-      window.dispatchEvent(new CustomEvent('transcript-entry-stored', {
-        detail: {
-          role: 'assistant',
-          messageType: 'llm-text',
-        },
-      }));
+      mockListeners.get('windie:conversation-event')?.({
+        type: 'assistant_message',
+      });
     });
     await flushMicrotasks();
     expect(hasSdkCommandCall('conversations.list', { userId: LOCAL_SNAPSHOT_USER_ID })).toBe(true);
@@ -913,25 +911,19 @@ describe('ChatGptDashboardShell', () => {
     expect(screen.getByText('No chats yet.')).toBeInTheDocument();
 
     act(() => {
-      window.dispatchEvent(new CustomEvent('transcript-entry-stored', {
-        detail: {
-          role: 'user',
-          messageType: 'user',
-          conversationRef: 'conv-title-2',
-        },
-      }));
+      mockListeners.get('windie:conversation-event')?.({
+        type: 'user_message',
+        conversationRef: 'conv-title-2',
+      });
     });
     await flushMicrotasks();
     expect(screen.getByRole('button', { name: 'How to fix ubuntu mic settings' })).toBeInTheDocument();
 
     act(() => {
-      window.dispatchEvent(new CustomEvent('transcript-entry-stored', {
-        detail: {
-          role: 'assistant',
-          messageType: 'llm-text',
-          conversationRef: 'conv-title-2',
-        },
-      }));
+      mockListeners.get('windie:conversation-event')?.({
+        type: 'assistant_message',
+        conversationRef: 'conv-title-2',
+      });
     });
     await flushMicrotasks();
     expect(screen.getByRole('button', { name: 'Ubuntu mic timeout troubleshooting' })).toBeInTheDocument();

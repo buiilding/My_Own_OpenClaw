@@ -39,7 +39,6 @@ import {
   hasUserMessages,
 } from './chatMessageSenderUtils';
 import { resolveQueryScreenshotArtifacts } from './queryScreenshotPipeline';
-import { recordUserTranscriptMessage } from './userTranscriptPersistence';
 import { createConversationRef } from '../session/conversationRef';
 
 type AppConfigLike = Record<string, unknown> | null | undefined;
@@ -74,7 +73,6 @@ export type PreparedDesktopChatTurn = {
   conversationRef: string;
   deferredQueryModelSelection: ReturnType<typeof buildDeferredQueryModelSelection>;
   model: WindieModelSelection | null;
-  recordTranscriptUserMessage: boolean;
   screenshot: string | null;
   screenshotRef: string | null;
   screenshotRefs: string[] | null;
@@ -305,7 +303,6 @@ export async function prepareDesktopChatSend({
     conversationRef,
     deferredQueryModelSelection: buildDeferredQueryModelSelection(config),
     model: null,
-    recordTranscriptUserMessage: true,
     screenshot: null,
     screenshotRef,
     screenshotRefs: screenshotRefs.length > 0 ? screenshotRefs : null,
@@ -325,16 +322,6 @@ export async function dispatchPreparedDesktopChatTurn(
 ): Promise<void> {
   if (preparedTurn.deferredQueryModelSelection) {
     DesktopSettingsRuntimeClient.setModel(preparedTurn.deferredQueryModelSelection);
-  }
-  if (preparedTurn.recordTranscriptUserMessage) {
-    recordUserTranscriptMessage({
-      messageId: preparedTurn.turnId,
-      text: preparedTurn.text,
-      conversationRef: preparedTurn.conversationRef,
-      userId: preparedTurn.sessionInfo.userId,
-      timestamp: preparedTurn.timestamp,
-      screenshotRef: preparedTurn.screenshotRef,
-    });
   }
   await DesktopLiveTurnRuntimeClient.sendQuery({
     text: preparedTurn.text,

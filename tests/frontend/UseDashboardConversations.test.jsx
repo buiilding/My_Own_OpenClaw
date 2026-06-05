@@ -5,6 +5,7 @@ import {
   getLocalBackendStatusSnapshot,
   subscribeLocalBackendStatusStore,
 } from '../../frontend/src/renderer/infrastructure/runtime/localBackendStatusStore';
+import { IpcBridge, ON_CHANNELS } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopConversationLibraryClient', () => ({
   DesktopConversationLibraryClient: {
@@ -22,6 +23,15 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRunti
 jest.mock('../../frontend/src/renderer/infrastructure/runtime/localBackendStatusStore', () => ({
   getLocalBackendStatusSnapshot: jest.fn(),
   subscribeLocalBackendStatusStore: jest.fn(),
+}));
+
+jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
+  IpcBridge: {
+    on: jest.fn(),
+  },
+  ON_CHANNELS: {
+    WINDIE_CONVERSATION_EVENT: 'windie:conversation-event',
+  },
 }));
 
 jest.mock('../../frontend/src/renderer/infrastructure/workspace/workspaceAccess', () => ({
@@ -86,6 +96,7 @@ describe('useDashboardConversations', () => {
     getLocalBackendStatusSnapshot.mockReturnValue({ ready: false });
     subscribeLocalBackendStatusStore.mockImplementation(() => jest.fn());
     DesktopConversationLibraryClient.subscribeMetadataInvalidations.mockImplementation(() => jest.fn());
+    IpcBridge.on.mockImplementation(() => jest.fn());
   });
 
   test('reloads recent conversations when the local backend becomes ready', async () => {
@@ -177,6 +188,49 @@ describe('useDashboardConversations', () => {
         expect.objectContaining({
           conversation_id: 'conv-title',
           title: 'New title',
+        }),
+      ]);
+    });
+    expect(DesktopConversationLibraryClient.listMetadata).toHaveBeenCalledTimes(2);
+  });
+
+  test('reloads recent conversations through SDK conversation events', async () => {
+    let sdkConversationEventListener = null;
+    IpcBridge.on.mockImplementation((channel, listener) => {
+      if (channel === ON_CHANNELS.WINDIE_CONVERSATION_EVENT) {
+        sdkConversationEventListener = listener;
+      }
+      return jest.fn();
+    });
+    DesktopConversationLibraryClient.listMetadata
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        {
+          conversationRef: 'conv-sdk',
+          title: 'SDK event chat',
+          updatedAt: '2026-05-16T20:01:00.000Z',
+          eventCount: 2,
+        },
+      ]);
+
+    const { result } = renderDashboardConversations();
+
+    await waitFor(() => {
+      expect(result.current.recentConversations).toEqual([]);
+    });
+
+    await act(async () => {
+      sdkConversationEventListener?.({
+        type: 'user_message',
+        conversationRef: 'conv-sdk',
+      });
+    });
+
+    await waitFor(() => {
+      expect(result.current.recentConversations).toEqual([
+        expect.objectContaining({
+          conversation_id: 'conv-sdk',
+          title: 'SDK event chat',
         }),
       ]);
     });

@@ -6,6 +6,13 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sidecar/memory: scope background semantic summarization to the authenticated
+  install user so legacy local rows for other user IDs are skipped before
+  calling the backend semantic API.
+- docs/agents: tighten the compaction-safe plan workflow so resumed agents must
+  inspect live code, design the next slice, validate, and repeat final
+  design-inspection passes until no in-scope work remains instead of treating
+  grep/test cleanliness as completion.
 - scripts/docs: make `docs-list` normalize Windows-discovered markdown paths,
   add a regression test, and keep the `doc-lists` wrapper explicit after
   removing import side effects.
@@ -31,6 +38,14 @@ All notable changes to WindieOS will be documented in this file.
   through SDK-shaped conversation commands, add public SDK agent conversation
   store APIs, delete the renderer-side sidecar conversation store adapter, and
   remove chat storage channels from the renderer/preload registry.
+- frontend/sdk: remove renderer-owned durable live transcript writes from send
+  and stream handlers so SDK `ConversationRuntime` is the single writer for
+  live user, assistant, and tool events. Previously renderer projection writes
+  duplicated SDK events in local chat history; now renderer keeps display state
+  only and dashboard refreshes from SDK conversation events.
+- sidecar/chat: deduplicate `list_chat_conversations` by `conversation_id` so
+  one stored conversation with multiple events renders as one sidebar row
+  instead of one row per event.
 - frontend/sdk: move renderer live-turn and SDK backend transport runtime
   commands onto SDK-shaped `windie.invoke(...)` commands instead of direct
   `windie:*` IPC channels.

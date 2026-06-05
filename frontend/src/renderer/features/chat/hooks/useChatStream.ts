@@ -99,10 +99,7 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleToolCall,
     handleToolOutput,
     handleToolBundle,
-  } = useChatStreamToolHandlers({
-    enableTranscript,
-    modelContextRef,
-  });
+  } = useChatStreamToolHandlers();
 
   const {
     handleSystemPrompt,
@@ -126,7 +123,6 @@ export function useChatStream(enableTranscript: boolean = true) {
   });
 
   const processStreamingComplete = useChatStreamCompletionHandler({
-    enableTranscript,
     modelContextRef,
     recordTrackingEvent,
     setIsSending,
@@ -138,7 +134,6 @@ export function useChatStream(enableTranscript: boolean = true) {
     handleError,
     handleTokenCount,
   } = useChatStreamTerminalHandlers({
-    enableTranscript,
     modelContextRef,
     recordTrackingEvent,
   });

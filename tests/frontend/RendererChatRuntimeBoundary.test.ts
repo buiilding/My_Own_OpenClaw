@@ -40,7 +40,7 @@ describe('renderer chat runtime boundary', () => {
     expect(offenders).toEqual([]);
   });
 
-  test('message sender keeps user transcript persistence behind its helper', async () => {
+  test('message sender does not persist live user transcript rows in renderer', async () => {
     const hookSource = await fs.readFile(
       path.join(chatRoot, 'hooks/useChatMessageSender.ts'),
       'utf8',
@@ -54,7 +54,8 @@ describe('renderer chat runtime boundary', () => {
     expect(hookSource).not.toContain('recordUserMessage');
     expect(hookSource).not.toContain('DesktopTranscriptProjectionRuntimeClient');
     expect(helperSource).not.toContain('DesktopTranscriptProjectionRuntimeClient');
-    expect(helperSource).toContain('recordUserTranscriptMessage');
+    expect(helperSource).not.toContain('recordUserTranscriptMessage');
+    expect(helperSource).not.toContain('recordTranscriptUserMessage');
   });
 
   test('app live-turn runtime facade does not own transcript projection writes', async () => {
@@ -92,12 +93,11 @@ describe('renderer chat runtime boundary', () => {
     expect(offenders).toEqual([]);
   });
 
-  test('chat stream transcript writes stay behind the transcript persistence helper', async () => {
+  test('chat stream live handlers do not persist transcript rows in renderer', async () => {
     const persistenceCallerFiles = [
       'hooks/chatStream/useChatStreamCompletionHandler.ts',
       'hooks/chatStream/useChatStreamTerminalHandlers.ts',
       'hooks/chatStream/useChatStreamToolHandlers.ts',
-      'utils/toolOutputTranscriptPersistence.ts',
     ];
     const offenders: string[] = [];
 
@@ -327,7 +327,8 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('rawConversationRef');
     expect(source).not.toContain('rawUserId');
     expect(source).toContain('event.conversationRef');
-    expect(source).toContain('payload?.userId');
+    expect(source).not.toContain('payload?.userId');
+    expect(source).not.toContain('recordAssistantTranscriptMessage');
   });
 
   test('chat stream terminal telemetry does not own live response phase', async () => {
@@ -377,7 +378,7 @@ describe('renderer chat runtime boundary', () => {
     expect(projectionSource).toContain('web-search-progress');
   });
 
-  test('chat stream tool-call transcript persistence consumes SDK tool-call events directly', async () => {
+  test('chat stream tool-call handling consumes SDK tool-call events without persistence', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'hooks/chatStream/useChatStreamToolHandlers.ts'),
       'utf8',
@@ -386,10 +387,11 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('ToolCallEvent');
     expect(source).not.toContain("unwrapToolBackendEvent<ToolCallEvent>");
     expect(source).toContain("event.type !== 'tool_call'");
-    expect(source).toContain('payload?.structuredPayload');
+    expect(source).not.toContain('recordToolTranscriptMessage');
+    expect(source).not.toContain('DesktopTranscriptProjectionRuntimeClient');
   });
 
-  test('chat stream tool-output transcript persistence consumes SDK tool-output events directly', async () => {
+  test('chat stream tool-output handling consumes SDK tool-output events without persistence', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'hooks/chatStream/useChatStreamToolHandlers.ts'),
       'utf8',
@@ -398,10 +400,11 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('ToolOutputEvent');
     expect(source).not.toContain("unwrapToolBackendEvent<ToolOutputEvent>");
     expect(source).toContain("event.type !== 'tool_output'");
-    expect(source).toContain('payload?.screenshotRef');
+    expect(source).not.toContain('recordToolOutputTranscriptMessage');
+    expect(source).not.toContain('DesktopTranscriptProjectionRuntimeClient');
   });
 
-  test('chat stream tool-bundle transcript persistence consumes SDK tool-bundle events directly', async () => {
+  test('chat stream tool-bundle handling consumes SDK tool-bundle events without persistence', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'hooks/chatStream/useChatStreamToolHandlers.ts'),
       'utf8',
@@ -411,7 +414,8 @@ describe('renderer chat runtime boundary', () => {
     expect(source).not.toContain('unwrapToolBackendEvent');
     expect(source).toContain("event.type !== 'tool_bundle_call'");
     expect(source).toContain("event.type !== 'tool_bundle_output'");
-    expect(source).toContain('payload.bundleId');
+    expect(source).not.toContain('recordToolTranscriptMessage');
+    expect(source).not.toContain('DesktopTranscriptProjectionRuntimeClient');
   });
 
   test('conversation replay prepares with continuity and dispatches with live-turn send', async () => {
@@ -424,7 +428,7 @@ describe('renderer chat runtime boundary', () => {
     expect(source).toContain('DesktopConversationContinuityService.prepareEditAndResend');
     expect(source).toContain('DesktopConversationContinuityService.prepareRetryTurn');
     expect(source).toContain('dispatchPreparedDesktopChatTurn');
-    expect(source).toContain('recordTranscriptUserMessage: true');
+    expect(source).not.toContain('recordTranscriptUserMessage');
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.sendQuery');
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.editAndResend');
     expect(source).not.toContain('DesktopLiveTurnRuntimeClient.retryTurn');

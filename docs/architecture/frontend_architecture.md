@@ -158,13 +158,15 @@ revive the retired direct runtime IPC channel family.
 4. Renderer dashboard and response-overlay live assistant/tool rows render from the SDK `currentTurn` projection. Renderer `useConversationRuntimeProjectionStream` also derives live thinking text, first assistant chunk tracking, tool phase tracking, terminal complete/error phase tracking, and send-latch clears from that projection. Renderer `useChatStream` consumes SDK-normalized `windie:conversation-event` payloads for scoped transcript/session side effects and metadata; production live row shaping and active assistant/reasoning/tool/terminal phase state do not fall back to raw backend events.
 5. Renderer `useChatStream`:
    - Filters by active conversation/turn tracking.
-   - Keeps transcript/session side effects for SDK `turn_completed`, `tool_call`, `tool_output`, and `tool_bundle_call` events.
+   - Keeps transcript-session identity side effects for SDK events when
+     session sync is enabled.
    - Dispatches compaction display and compacted replay persistence from SDK compaction events.
    - Dispatches message metadata/transparency projection from SDK metadata events.
-   - Dispatches backend error transcript/materialization from SDK `turn_error` events.
+   - Dispatches backend error materialization from SDK `turn_error` events.
    - Dispatches token usage telemetry from SDK `usage_updated` events.
    - Updates Zustand store for metadata, completion materialization, error materialization, token usage, and non-text stream tracking.
-   - Persists transcript rows (`recordUserMessage`, `recordAssistantMessage`, `recordToolMessage`).
+   - Does not persist live user, assistant, or tool transcript rows. SDK
+     `ConversationRuntime` owns durable live event persistence.
 
 New-chat behavior:
 
@@ -180,7 +182,8 @@ New-chat behavior:
 1. Backend emits `tool-call` or `tool-bundle`.
 2. SDK runtime validates and routes executable calls through its local runtime client to the sidecar daemon/local executor.
 3. SDK runtime sends `tool-result`/`tool-bundle-result` back to backend.
-4. Renderer receives display-only tool events, renders assistant tool rows, and persists transcript queue state.
+4. Renderer receives display-only tool events and renders assistant tool rows
+   from SDK projections. Renderer does not persist duplicate live tool rows.
 
 Electron main does not own the local tool-routing algorithm.
 `ipc.cjs` starts `WindieClient.wakeUp(...)` directly with install auth, the
@@ -193,10 +196,12 @@ context, overlay, permission, and window behavior.
 
 ### Conversation/Transcript Flow
 
-1. Renderer chat hooks use focused projection helpers for visible transcript writes.
-2. The projection helpers delegate persistence to `DesktopTranscriptProjectionRuntimeClient`, which writes through the desktop conversation store factory rather than reaching into transcript IPC directly.
+1. SDK `ConversationRuntime` is the live durable writer for user, assistant,
+   tool, and terminal conversation events.
+2. Renderer chat hooks may keep pending visible messages and materialize SDK
+   current-turn projections, but they do not append live transcript rows.
 3. `DesktopTranscriptSessionRuntimeClient` owns active conversation/user identity for app and dashboard surfaces.
-4. Dashboard conversation-list/load/delete/search and local snapshot calls go through `DesktopConversationLibraryClient`, which delegates store access to `DesktopTranscriptProjectionRuntimeClient` so dashboard feature code does not construct Electron store adapters or import transcript storage/snapshot infrastructure.
+4. Dashboard conversation-list/load/delete/search and local snapshot calls go through `DesktopConversationLibraryClient`, which delegates store access to SDK-shaped commands so dashboard feature code does not construct Electron store adapters or import transcript storage/snapshot infrastructure.
 5. Renderer-local conversation helpers request SDK snapshots through
    SDK-shaped commands such as `conversations.list`, `conversations.search`,
    `conversation.load`, and `conversations.delete`. Renderer feature code does

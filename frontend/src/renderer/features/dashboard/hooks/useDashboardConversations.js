@@ -6,6 +6,7 @@ import {
   getLocalBackendStatusSnapshot,
   subscribeLocalBackendStatusStore,
 } from '../../../infrastructure/runtime/localBackendStatusStore';
+import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { setActiveWorkspaceSelection } from '../../../infrastructure/workspace/workspaceAccess';
 import {
   clearConversationWorkspaceBinding,
@@ -368,30 +369,27 @@ function useDashboardConversations({
   ]);
 
   useEffect(() => {
-    const handleTranscriptEntryStored = (event) => {
-      const detail = event?.detail;
-      const role = typeof detail?.role === 'string' ? detail.role : '';
-      const messageType = typeof detail?.messageType === 'string' ? detail.messageType : '';
-      const conversationRef = typeof detail?.conversationRef === 'string'
-        ? detail.conversationRef
+    const removeListener = IpcBridge.on(ON_CHANNELS.WINDIE_CONVERSATION_EVENT, (event) => {
+      const eventType = typeof event?.type === 'string' ? event.type : '';
+      const conversationRef = typeof event?.conversationRef === 'string'
+        ? event.conversationRef
         : '';
-      if (role === 'user' && messageType === 'user') {
-        void loadRecentConversations('transcript-user-entry-stored');
+      if (eventType === 'user_message') {
+        void loadRecentConversations('sdk-user-message');
         return;
       }
-      if (role !== 'assistant' || messageType !== 'llm-text') {
+      if (eventType !== 'assistant_message') {
         return;
       }
       if (!conversationRef) {
-        void loadRecentConversations('transcript-assistant-entry-stored-no-conversation');
+        void loadRecentConversations('sdk-assistant-message-no-conversation');
         return;
       }
       scheduleTitleVisibilityPoll(conversationRef);
-    };
+    });
 
-    window.addEventListener('transcript-entry-stored', handleTranscriptEntryStored);
     return () => {
-      window.removeEventListener('transcript-entry-stored', handleTranscriptEntryStored);
+      removeListener?.();
     };
   }, [loadRecentConversations, scheduleTitleVisibilityPoll]);
 

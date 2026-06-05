@@ -9,6 +9,11 @@ ensure_frontend_python_path()
 from memory.summarizer import MemorySummarizer, SummarizerSettings  # noqa: E402
 
 
+@pytest.fixture(autouse=True)
+def clear_summarizer_auth(monkeypatch):
+    monkeypatch.setattr("memory.summarizer.get_authenticated_user_id", lambda: None)
+
+
 class FakeMemoryStore:
     def __init__(self, memories):
         self.memories = memories
@@ -91,9 +96,11 @@ class FakeShouldRunMemoryStore:
     def __init__(self, unsemanticized_count):
         self.unsemanticized_count = unsemanticized_count
         self.count_calls = 0
+        self.count_user_ids = []
 
     async def count_unsemanticized_interaction_memories(self, user_id=None):
         self.count_calls += 1
+        self.count_user_ids.append(user_id)
         return self.unsemanticized_count
 
 
@@ -348,6 +355,66 @@ async def test_get_user_ids_with_work_cold_start_discovers_recent_users():
 
     assert user_ids == ["first-user", "second-user"]
     assert memory_store.discovery_calls == [summarizer.settings.max_conversations_per_cycle]
+
+
+@pytest.mark.asyncio
+async def test_get_user_ids_with_work_scopes_to_authenticated_user():
+    memory_store = FakeUserIdMemoryStore(["legacy-user", "other-user"])
+    summarizer = MemorySummarizer(
+        memory_store=memory_store,
+        semantic_client=FakeSemanticClient(),
+        authenticated_user_id_resolver=lambda: "current-user",
+    )
+    summarizer.notify_new_memory("legacy-user")
+
+    user_ids = await summarizer._get_user_ids_with_work()
+
+    assert user_ids == ["current-user"]
+    assert memory_store.discovery_calls == []
+
+
+@pytest.mark.asyncio
+async def test_should_run_counts_only_authenticated_user_work():
+    memory_store = FakeShouldRunMemoryStore(unsemanticized_count=6)
+    summarizer = MemorySummarizer(
+        memory_store=memory_store,
+        semantic_client=FakeSemanticClient(),
+        authenticated_user_id_resolver=lambda: "current-user",
+    )
+
+    should_run = await summarizer._should_run()
+
+    assert should_run is True
+    assert memory_store.count_user_ids == ["current-user"]
+
+
+@pytest.mark.asyncio
+async def test_summarize_conversation_batch_skips_non_authenticated_user():
+    memories = [
+        {
+            "id": "1",
+            "content": "User: legacy row\nAssistant: old response",
+            "timestamp": "2026-02-12T10:00:00Z",
+            "record_kind": "interaction",
+        }
+    ]
+    memory_store = FakeMemoryStore(memories)
+    semantic_client = FakeSemanticClient()
+    summarizer = MemorySummarizer(
+        memory_store=memory_store,
+        semantic_client=semantic_client,
+        authenticated_user_id_resolver=lambda: "current-user",
+    )
+
+    summarized = await summarizer._summarize_conversation_batch(
+        user_id="legacy-user",
+        conversation_id="conv-legacy",
+    )
+
+    assert summarized == 0
+    assert semantic_client.requests == []
+    assert memory_store.add_calls == []
+    assert memory_store.mark_calls == []
 
 
 @pytest.mark.asyncio
