@@ -169,6 +169,26 @@ Action:
 - Added a renderer boundary test that fails if those minimal surfaces restore
   the old direct trace labels.
 
+### Pass 7: SDK/Main/Backend Payload Contract Tests
+
+Findings:
+
+- The backend incoming-message fixture and Electron-main payload allowlist were
+  already compared in `FrontendBackendWebsocketContract`.
+- The SDK direct websocket payload filter has its own allowlist in
+  `packages/windie-sdk-js/src/transport/backendPayloadContract.ts`.
+- Recent commits intentionally moved direct SDK websocket sends through that
+  SDK filter, so SDK source drift needs the same fixture-backed guard as
+  Electron main.
+
+Action:
+
+- Added a test-time source extraction helper for the SDK payload allowlist.
+- Compared the SDK allowlist with the backend-owned
+  `incoming_message_contract.json` payload keys.
+- Kept the parity check test-only so SDK/frontend runtime code still does not
+  import backend code.
+
 ## Inventory And Classification
 
 - Delete/isolate now:
@@ -184,6 +204,8 @@ Action:
     `local_backend_bridge.cjs`.
   - Direct chat-pill/response-overlay state trace `console.log` calls in
     renderer components/hooks.
+  - Missing fixture-backed parity guard between the SDK direct websocket
+    payload allowlist and backend incoming-message payload keys.
 - Keep with owner:
   - Standalone sidecar JSON-RPC transport remains supported through
     `local_backend_bridge_request_transport.cjs`.
@@ -216,6 +238,9 @@ Action:
   SDK event/memory boundary and focused local-backend owner modules.
 - Routed minimal chat surface trace logs through existing debug-gated renderer
   diagnostics helpers.
+- Added a cross-runtime payload contract test that pins the SDK outbound
+  payload allowlist to the backend incoming-message fixture without runtime
+  backend imports.
 
 ## Checklist
 
@@ -231,7 +256,7 @@ Action:
       remaining runtime surfaces.
 - [x] Gate minimal chat-pill and response-overlay state traces through the
       existing renderer diagnostics boundary.
-- [ ] Add cross-runtime payload contract tests.
+- [x] Add cross-runtime payload contract tests.
 - [x] Improve Windows/script parity for touched commands and packaging paths.
 - [ ] Review backend/sidecar retained fallback behavior and delete stale paths.
 - [x] Update docs and `read_when` hints for changed boundaries.
@@ -299,6 +324,15 @@ Action:
   - Result: passed; canonical navigation validated after Pass 5 doc updates.
 - `git diff --check`
   - Result: passed; only Windows line-ending conversion warnings were reported.
+
+- `cd frontend; npm.cmd run test -- FrontendBackendWebsocketContract --runInBand`
+  - Result: timed out after 120 seconds without returning output.
+  - Follow-up: stopped three stale `node` child processes from that timed-out
+    Jest attempt before rerunning validation.
+- `cd frontend; npx.cmd jest FrontendBackendWebsocketContract --runInBand --forceExit`
+  - Result: passed, 1 suite / 9 tests.
+  - Note: Jest reported the existing open-handle warning when forced to exit
+    after assertions completed.
 
 ## Commits
 

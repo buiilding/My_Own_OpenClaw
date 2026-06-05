@@ -30,6 +30,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: route chat-pill and response-overlay state/size traces
   through the existing debug-gated renderer trace helpers instead of direct
   component `console.log` calls.
+- frontend/tests: extend the websocket payload contract test so the SDK
+  outbound payload allowlist is checked against the backend-owned incoming
+  message fixture alongside the Electron-main allowlist.
 - sidecar/memory: scope background semantic summarization to the authenticated
   install user so legacy local rows for other user IDs are skipped before
   calling the backend semantic API.

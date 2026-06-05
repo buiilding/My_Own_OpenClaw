@@ -1,6 +1,7 @@
 /** @jest-environment node */
 
 const { EventEmitter } = require('events');
+const fs = require('fs');
 const path = require('path');
 
 const incomingContract = require('../../backend/src/api/contracts/incoming_message_contract.json');
@@ -95,6 +96,36 @@ function sentPayload(socket, index) {
   return JSON.parse(socket.sent[index]).payload;
 }
 
+function expectedPayloadKeysByType() {
+  return Object.fromEntries(
+    Object.entries(incomingContract.payloads).map(([type, payloadContract]) => [
+      type,
+      payloadContract.keys,
+    ]),
+  );
+}
+
+function extractSdkBackendPayloadKeysByType() {
+  const source = fs.readFileSync(
+    path.join(__dirname, '../../packages/windie-sdk-js/src/transport/backendPayloadContract.ts'),
+    'utf8',
+  );
+  const startIndex = source.indexOf('const BACKEND_PAYLOAD_KEYS_BY_TYPE');
+  const endIndex = source.indexOf('const PROVIDER_API_KEY_KEYS');
+  expect(startIndex).toBeGreaterThanOrEqual(0);
+  expect(endIndex).toBeGreaterThan(startIndex);
+  const sourceBlock = source.slice(startIndex, endIndex);
+  const keyMap = {};
+  const entryRegex = /(?:^|\n)\s*(?:'([^']+)'|([A-Za-z][A-Za-z0-9_]*)):\s*Object\.freeze\(\[([\s\S]*?)\]\),?/g;
+  let match;
+  while ((match = entryRegex.exec(sourceBlock)) !== null) {
+    const type = match[1] || match[2];
+    const keyBody = match[3];
+    keyMap[type] = Array.from(keyBody.matchAll(/'([^']+)'/g), keyMatch => keyMatch[1]);
+  }
+  return keyMap;
+}
+
 describe('frontend/backend websocket incoming contract', () => {
   test('backend-owned fixture covers every frontend command family sent over websocket', () => {
     expect(Object.keys(incomingContract.payloads)).toEqual([
@@ -115,14 +146,11 @@ describe('frontend/backend websocket incoming contract', () => {
   });
 
   test('frontend outbound payload allowlist matches backend incoming contract keys', () => {
-    const expected = Object.fromEntries(
-      Object.entries(incomingContract.payloads).map(([type, payloadContract]) => [
-        type,
-        payloadContract.keys,
-      ]),
-    );
+    expect(BACKEND_PAYLOAD_KEYS_BY_TYPE).toEqual(expectedPayloadKeysByType());
+  });
 
-    expect(BACKEND_PAYLOAD_KEYS_BY_TYPE).toEqual(expected);
+  test('sdk outbound payload allowlist matches backend incoming contract keys', () => {
+    expect(extractSdkBackendPayloadKeysByType()).toEqual(expectedPayloadKeysByType());
   });
 
   test('query builder output is exact backend payload contract and excludes envelope context', () => {
