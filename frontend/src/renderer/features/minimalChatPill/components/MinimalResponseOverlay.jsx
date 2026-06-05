@@ -100,7 +100,8 @@ function MinimalResponseOverlay() {
     });
     if (lastLoggedSurfaceStateRef.current !== nextSurfaceStateSignature) {
       lastLoggedSurfaceStateRef.current = nextSurfaceStateSignature;
-      console.log('[ResponseOverlayState][renderer]', {
+      logRendererResponseSurfaceTrace({
+        source: 'renderer-response-overlay-state',
         action: 'state-changed',
         turn_id: currentTurnId || null,
         phase: currentTurnProjection?.phase || 'idle',

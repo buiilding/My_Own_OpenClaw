@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
   source maps so active docs point to SDK-shaped memory commands and focused
   Electron-main lifecycle owner modules instead of stale sidecar IPC/bridge
   ownership.
+- frontend/renderer: route chat-pill and response-overlay state/size traces
+  through the existing debug-gated renderer trace helpers instead of direct
+  component `console.log` calls.
 - sidecar/memory: scope background semantic summarization to the authenticated
   install user so legacy local rows for other user IDs are skipped before
   calling the backend semantic API.

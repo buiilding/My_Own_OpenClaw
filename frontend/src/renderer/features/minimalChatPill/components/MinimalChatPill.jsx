@@ -14,6 +14,7 @@ import {
 import { useTextareaAutoResize } from '../../chat/hooks/useMessageInputUiBindings';
 import { useVoiceMode } from '../../voice/hooks/useVoiceMode';
 import { isDevUiEnabled } from '../../chat/utils/devUiFlag';
+import { logRendererChatPillTrace } from '../../chat/utils/chatStream/chatStreamDebugTrace';
 import {
   createChatboxDragState,
   getChatboxCloseBumpHeight,
@@ -133,7 +134,8 @@ function MinimalChatPill() {
       return;
     }
     lastLoggedPillStateRef.current = nextPillStateSignature;
-    console.log('[ChatPillState][renderer]', {
+    logRendererChatPillTrace({
+      source: 'renderer-chat-pill-state',
       action: 'state-changed',
       conversation_ref: sessionInfo?.conversationRef || null,
       turn_id: currentTurnProjection?.turnRef || null,
@@ -144,7 +146,7 @@ function MinimalChatPill() {
       busy: loopInteractionLocked,
       stop_available: loopInteractionLocked,
       message_count: messages.length,
-    });
+    }, sessionInfo?.conversationRef || null);
   }, [
     currentTurnProjection?.phase,
     currentTurnProjection?.turnRef,

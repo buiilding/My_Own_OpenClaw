@@ -18,6 +18,8 @@ transport, process exit/error events, and shutdown/stop control.
 Phase 2 renderer/SDK boundary cleanup is now in progress through source-map and
 contract-doc alignment after live boundary tests showed the raw renderer paths
 are already guarded.
+Phase 3 diagnostics/logging cleanup is in progress; the first slice moved
+minimal chat surface state traces behind existing debug gates.
 
 ## Orientation Log
 
@@ -147,6 +149,26 @@ Action:
   SDK-normalized events/current-turn projections, not raw backend stream
   contracts.
 
+### Pass 6: Renderer Minimal-Surface Diagnostics
+
+Findings:
+
+- `MinimalChatPill.jsx`, `MinimalResponseOverlay.jsx`, and
+  `useResponseOverlayWindowSync.js` emitted direct state/size `console.log`
+  traces for chat-pill and response-overlay behavior.
+- The renderer already has gated stream/chat-pill trace helpers that only log
+  under `debug_stream=1` or `debug_chat_pill=1`.
+- Direct component logs were low-value in default runs and duplicated the
+  existing diagnostics boundary.
+
+Action:
+
+- Routed chat-pill state traces through `logRendererChatPillTrace(...)`.
+- Routed response-overlay state and window-size traces through
+  `logRendererResponseSurfaceTrace(...)`.
+- Added a renderer boundary test that fails if those minimal surfaces restore
+  the old direct trace labels.
+
 ## Inventory And Classification
 
 - Delete/isolate now:
@@ -160,6 +182,8 @@ Action:
   - Stale source-map docs that still routed SDK memory behavior to direct
     sidecar IPC or focused local-backend policy back to
     `local_backend_bridge.cjs`.
+  - Direct chat-pill/response-overlay state trace `console.log` calls in
+    renderer components/hooks.
 - Keep with owner:
   - Standalone sidecar JSON-RPC transport remains supported through
     `local_backend_bridge_request_transport.cjs`.
@@ -190,6 +214,8 @@ Action:
 - Updated the local-backend reference doc and changelog for the new owners.
 - Updated renderer/frontend inventory docs so future cleanup starts from the
   SDK event/memory boundary and focused local-backend owner modules.
+- Routed minimal chat surface trace logs through existing debug-gated renderer
+  diagnostics helpers.
 
 ## Checklist
 
@@ -201,7 +227,10 @@ Action:
       event/shutdown handling.
 - [x] Remove or isolate in-scope renderer raw-event and sidecar-RPC leaks in
       active docs/source maps; live code is guarded by boundary tests.
-- [ ] Tighten diagnostics/logging ownership and redaction policy.
+- [ ] Tighten diagnostics/logging ownership and redaction policy across the
+      remaining runtime surfaces.
+- [x] Gate minimal chat-pill and response-overlay state traces through the
+      existing renderer diagnostics boundary.
 - [ ] Add cross-runtime payload contract tests.
 - [x] Improve Windows/script parity for touched commands and packaging paths.
 - [ ] Review backend/sidecar retained fallback behavior and delete stale paths.
@@ -257,6 +286,13 @@ Action:
 - `git diff --check`
   - Result: passed; only Windows line-ending conversion warnings were reported.
 
+- `cd frontend; npm.cmd run test -- RendererChatRuntimeBoundary MinimalChatPill MinimalResponseOverlay ChatBoxResponse.state ChatGptDashboardShell --runInBand`
+  - Result: passed, 3 suites / 83 tests.
+  - Note: `ChatGptDashboardShell.test.jsx` emitted existing React `act(...)`
+    warnings while passing.
+- `git diff --check`
+  - Result: passed; only Windows line-ending conversion warnings were reported.
+
 - `cd frontend; npm.cmd run test -- RendererAppRuntimeBoundary RendererDashboardRuntimeBoundary RendererChatRuntimeBoundary PreloadIpcChannels --runInBand`
   - Result: passed, 4 suites / 54 tests.
 - `./bin/docs-list`
@@ -274,6 +310,8 @@ Action:
     report update.
 - `5becc1e30 docs(frontend): align sdk and sidecar ownership maps`
   - Renderer/SDK boundary documentation drift cleanup and Pass 5 validation.
+- Pending follow-up commit:
+  - Minimal chat surface diagnostics gating and Pass 6 validation.
 
 ## Decisions, Tradeoffs, Blockers, Deviations
 

@@ -6,6 +6,7 @@ import {
   RESPONSE_OVERLAY_LAYOUT_MODE,
 } from '../../chat/utils/overlay/responseOverlayLayoutMode';
 import { RESPONSE_OVERLAY_LAYOUT } from '../../chat/utils/overlay/responseOverlayLayoutContract';
+import { logRendererResponseSurfaceTrace } from '../../chat/utils/chatStream/chatStreamDebugTrace';
 
 const TYPING_FRAME_HEIGHT = RESPONSE_OVERLAY_LAYOUT.AWAITING_FRAME_HEIGHT;
 
@@ -40,7 +41,8 @@ export function useResponseOverlayWindowSync({
       }
       lastFrameRef.current = createHiddenFrameState();
       try {
-        console.log('[ResponseOverlayWindowSync][renderer]', {
+        logRendererResponseSurfaceTrace({
+          source: 'renderer-response-window-sync',
           action: 'hide-requested',
           visible: false,
           layout_mode: RESPONSE_OVERLAY_LAYOUT_MODE.HIDDEN,
@@ -91,7 +93,8 @@ export function useResponseOverlayWindowSync({
     };
 
     try {
-      console.log('[ResponseOverlayWindowSync][renderer]', {
+      logRendererResponseSurfaceTrace({
+        source: 'renderer-response-window-sync',
         action: 'show-or-resize-requested',
         visible: true,
         layout_mode: layoutMode,

@@ -485,6 +485,32 @@ describe('renderer chat runtime boundary', () => {
     expect(offenders).toEqual([]);
   });
 
+  test('minimal chat surfaces route state traces through gated debug helpers', async () => {
+    const relativePaths = [
+      'features/minimalChatPill/components/MinimalChatPill.jsx',
+      'features/minimalChatPill/components/MinimalResponseOverlay.jsx',
+      'features/minimalChatPill/hooks/useResponseOverlayWindowSync.js',
+    ];
+    const forbidden = [
+      "console.log('[ChatPillState][renderer]'",
+      "console.log('[ResponseOverlayState][renderer]'",
+      "console.log('[ResponseOverlayWindowSync][renderer]'",
+    ];
+    const offenders: string[] = [];
+
+    for (const relativePath of relativePaths) {
+      const source = await fs.readFile(
+        path.join(rendererRoot, relativePath),
+        'utf8',
+      );
+      if (forbidden.some((needle) => source.includes(needle))) {
+        offenders.push(relativePath);
+      }
+    }
+
+    expect(offenders).toEqual([]);
+  });
+
   test('conversation inference rehydrate snapshots use the continuity runtime facade', async () => {
     const source = await fs.readFile(
       path.join(chatRoot, 'session/conversationInferenceSessionRuntime.ts'),
