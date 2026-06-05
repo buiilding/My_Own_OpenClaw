@@ -346,6 +346,8 @@ Action:
   - Renderer/SDK boundary documentation drift cleanup and Pass 5 validation.
 - `ddea65173 refactor(frontend): gate minimal surface traces`
   - Minimal chat surface diagnostics gating and Pass 6 validation.
+- `383ddbad0 test(sdk): pin websocket payload allowlist`
+  - SDK/main/backend payload contract parity test and Pass 7 validation.
 
 ## Decisions, Tradeoffs, Blockers, Deviations
 
