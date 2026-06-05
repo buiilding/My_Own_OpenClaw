@@ -132,6 +132,20 @@ describe('surface_runtime', () => {
     expect(contextLabelWindow.setFocusable).toHaveBeenLastCalledWith(false);
   });
 
+  test('streaming phase does not make active pill hit-test click-through', () => {
+    const runtime = createSurfaceRuntime({
+      ...createSurfaceDeps(),
+    });
+    const chatWindow = createWindow({ visible: true });
+    runtime.setChatWindow(chatWindow);
+    runtime.setChatboxHitTestActive(true);
+
+    runtime.applyResponseOverlayPhase({ phase: 'streaming' });
+    runtime.syncChatboxHitTestState();
+
+    expect(chatWindow.setIgnoreMouseEvents).toHaveBeenLastCalledWith(false);
+  });
+
   test('linux screenshot lease hides visible overlays and restores them inactive', async () => {
     const runtime = createSurfaceRuntime({
       ...createSurfaceDeps(),

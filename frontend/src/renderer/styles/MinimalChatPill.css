@@ -1,3 +1,17 @@
+.minimal-pill-shell-wrap,
+.minimal-response-shell-wrap {
+  color-scheme: dark;
+}
+
+html:has(.minimal-pill-shell-wrap),
+html:has(.minimal-response-shell-wrap),
+body:has(.minimal-pill-shell-wrap),
+body:has(.minimal-response-shell-wrap),
+#root:has(.minimal-pill-shell-wrap),
+#root:has(.minimal-response-shell-wrap) {
+  background: transparent;
+}
+
 .minimal-pill-shell-wrap {
   width: 100vw;
   height: 100vh;

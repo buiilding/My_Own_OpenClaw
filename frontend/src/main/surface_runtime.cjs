@@ -219,10 +219,7 @@ function createSurfaceRuntime({
       return false;
     }
 
-    const shouldIgnoreMouse = (
-      isResponseOverlayStreamingPhaseForState()
-      || !state.chatboxHitTestActive
-    );
+    const shouldIgnoreMouse = !state.chatboxHitTestActive;
 
     try {
       if (shouldIgnoreMouse) {

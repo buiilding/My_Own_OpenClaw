@@ -30,6 +30,12 @@ function isTurnTerminal(currentTurn, turnRef) {
   );
 }
 
+function isInteractivePillTarget(target) {
+  return Boolean(
+    target?.closest?.('input, button, textarea, select, a, [data-no-pill-drag]'),
+  );
+}
+
 export default function MinimalChatPill() {
   const [inputValue, setInputValue] = useState('');
   const [pendingTurnRef, setPendingTurnRef] = useState(null);
@@ -124,6 +130,9 @@ export default function MinimalChatPill() {
 
   const handlePillMouseDown = useCallback((event) => {
     if (event.button !== 0) {
+      return;
+    }
+    if (isInteractivePillTarget(event.target)) {
       return;
     }
     startChatboxDrag(

@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: keep the minimal pill overlay background transparent and
+  preserve input focus by limiting drag starts to non-interactive pill areas.
 - sdk/runtime: remove the separate `WindieAgent.startDesktop(...)` desktop
   facade so Electron and custom hosts use `WindieClient.wakeUp(...)` plus SDK
   conversation runtime directly.
