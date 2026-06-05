@@ -16,6 +16,8 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/settings: delete the hidden `data-controls` settings branch and
   unused permission control-center components so permission UI flows through
   onboarding and focused settings controls only.
+- frontend/chat: delete the chatbox preview index-removal fallback so composer
+  attachment previews are removed only by the stable IDs assigned at parse time.
 - frontend/sidecar: remove the duplicated `core` backend config, auth,
   unicode-sanitizer, and remote API base shims so sidecar callers use the
   `windie` owner modules directly.

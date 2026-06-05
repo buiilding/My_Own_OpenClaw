@@ -31,7 +31,6 @@ import {
   SoundIcon,
 } from './chatbox/ChatBoxIcons';
 import ChatBoxImagePreviewRow from './chatbox/ChatBoxImagePreviewRow';
-import { removePreviewAttachmentByIdOrIndex } from './chatbox/chatBoxPreviewRemoval';
 
 function ChatBox() {
   const closeBumpHeight = getChatboxCloseBumpHeight();
@@ -429,14 +428,14 @@ function ChatBox() {
           <ChatBoxImagePreviewRow
             clipboardImages={clipboardImages}
             readableFiles={selectedReadableFiles}
-            onRemoveImage={(id, fallbackIndex) => {
+            onRemoveImage={(id) => {
               setClipboardImages((previous) => (
-                removePreviewAttachmentByIdOrIndex(previous, id, fallbackIndex)
+                previous.filter((image) => image.id !== id)
               ));
             }}
-            onRemoveFile={(id, fallbackIndex) => {
+            onRemoveFile={(id) => {
               setSelectedReadableFiles((previous) => (
-                removePreviewAttachmentByIdOrIndex(previous, id, fallbackIndex)
+                previous.filter((file) => file.id !== id)
               ));
             }}
           />

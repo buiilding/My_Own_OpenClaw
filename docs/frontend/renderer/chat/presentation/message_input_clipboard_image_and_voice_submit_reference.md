@@ -87,6 +87,7 @@ Paste handler logic:
 
 Parsed payload shape:
 
+- `id`
 - `base64`
 - `contentType`
 - `filename` (`clipboard-image.<ext>`)
@@ -117,9 +118,8 @@ Preview UI:
 
 - thumbnail image row above composer textarea
 - multiple cards render when multiple images are pasted
-- per-card remove button clears one image from `clipboardImages[]`; preview
-  items with stable ids remove by id, while id-less preview items remove by
-  their current preview index
+- per-card remove buttons clear one attachment by the stable `id` assigned by
+  the paste/file-picker parser boundary
 
 ## Voice Mode Handoff
 

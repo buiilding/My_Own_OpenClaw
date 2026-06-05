@@ -139,7 +139,7 @@ function MessageInput({
           {clipboardImages.length > 0 ? (
             <div className="message-image-preview-row">
               {clipboardImages.map((clipboardImage, index) => (
-                <div className="message-image-preview-card" key={clipboardImage.id || index}>
+                <div className="message-image-preview-card" key={clipboardImage.id}>
                   <img
                     src={clipboardImage.previewUrl}
                     alt={`Pasted image preview ${index + 1}`}
@@ -164,7 +164,7 @@ function MessageInput({
           {selectedReadableFiles.length > 0 ? (
             <div className="message-file-preview-row">
               {selectedReadableFiles.map((file, index) => (
-                <div className="message-file-preview-card" key={file.id || `${file.filename}-${index}`}>
+                <div className="message-file-preview-card" key={file.id}>
                   <div className="message-file-preview-icon" aria-hidden="true">
                     <FileText size={16} />
                   </div>

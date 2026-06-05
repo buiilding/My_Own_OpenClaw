@@ -15,7 +15,6 @@ title: "Chatbox Overlay Input, Drag, and Click-Through Reference"
 - `frontend/src/renderer/features/chat/hooks/useChatBoxBindings.js`
 - `frontend/src/renderer/features/chat/components/chatbox/ChatBoxIcons.jsx`
 - `frontend/src/renderer/features/chat/components/chatbox/ChatBoxImagePreviewRow.jsx`
-- `frontend/src/renderer/features/chat/components/chatbox/chatBoxPreviewRemoval.js`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/policies/messageSendUiPolicy.ts`
