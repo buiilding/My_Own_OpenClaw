@@ -14,7 +14,7 @@ Use this checklist before editing code when a runtime appears dead, stuck, or di
 
 Healthy signs:
 
-- `./scripts/run-backend` starts without lifespan/init errors.
+- `bin/windie start backend` starts without lifespan/init errors.
 - concrete health route responds, such as `/api/embeddings/health`.
 - websocket `/ws` accepts a valid authenticated handshake when hosted auth is enabled.
 
@@ -29,7 +29,7 @@ First checks:
 
 Healthy signs:
 
-- `cd frontend && npm run electron:dev` launches app windows.
+- `bin/windie start desktop` launches app windows.
 - IPC status reaches renderer.
 - backend endpoint snapshot shows expected HTTP/WS URLs.
 - local sidecar bridge reaches ready state.

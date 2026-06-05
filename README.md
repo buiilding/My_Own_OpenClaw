@@ -157,21 +157,19 @@ cd ..
 Start the renderer:
 
 ```bash
-cd frontend
-npm run dev
+bin/windie start frontend
 ```
 
 In another terminal, start the backend:
 
 ```bash
-python -m backend.src.main
+bin/windie start backend
 ```
 
 In another terminal, start Electron:
 
 ```bash
-cd frontend
-npm run electron:dev
+bin/windie start desktop
 ```
 
 By default, the Electron client talks to the configured WindieOS backend. Use

@@ -32,16 +32,15 @@ The sidecar receives the resolved HTTP URL as `WINDIE_BACKEND_HTTP_URL`. If rend
 Start the backend:
 
 ```bash
-./scripts/python-in-env backend python -m backend.src.main
+bin/windie start backend
 ```
 
 Launch Electron against it:
 
 ```bash
-cd frontend
 BACKEND_HTTP_URL=http://127.0.0.1:8765 \
 BACKEND_WS_URL=ws://127.0.0.1:8765/ws \
-npm run electron:dev
+bin/windie start desktop
 ```
 
 Health check:
@@ -55,10 +54,9 @@ curl -fsSL http://127.0.0.1:8765/api/embeddings/health
 Launch with no endpoint overrides to use the default hosted backend, or set explicit hosted URLs:
 
 ```bash
-cd frontend
 BACKEND_HTTP_URL=https://api.windieos.com \
 BACKEND_WS_URL=wss://api.windieos.com/ws \
-npm run electron:dev
+bin/windie start desktop
 ```
 
 If a hosted route returns auth errors, confirm that the install token or runs API key belongs to the same backend host the app is using.

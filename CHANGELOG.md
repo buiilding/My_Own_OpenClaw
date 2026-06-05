@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- cli: add a first-class `bin/windie` command surface for status, doctor,
+  lifecycle, logs, tests, docs, build/package, backend, endpoint, self-host,
+  extension, tools, and mock-backend workflows.
 - frontend/sdk: make Memory panel list/delete/clear commands resolve the
   authenticated install user in Electron main instead of sending renderer
   transcript-session user ids.

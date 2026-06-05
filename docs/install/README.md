@@ -28,11 +28,17 @@ WindieOS install docs cover source-mode development, packaged desktop validation
 
 ## Main Commands
 
-- Backend dev server: `./scripts/python-in-env backend python -m backend.src.main`
-- Frontend Vite dev server: `cd frontend && npm run dev`
-- Electron dev app: `cd frontend && npm run electron:dev`
-- Frontend package build: `cd frontend && npm run package`
-- Sidecar runtime build: `cd frontend && npm run build:sidecar-runtime`
+- Backend dev server: `bin/windie start backend`
+- Frontend Vite dev server: `bin/windie start frontend`
+- Electron dev app: `bin/windie start desktop`
+- Frontend package build: `bin/windie package mac`, `bin/windie package win`, or `bin/windie package linux`
+- Sidecar runtime build: `bin/windie build sidecar-runtime`
+- Command health summary: `bin/windie status --all`
+- Diagnostic pass: `bin/windie doctor --deep`
+
+The lower-level scripts and frontend npm tasks still exist as implementation
+adapters, but user-facing docs should prefer the `bin/windie ...` command
+surface.
 
 ## Related Docs
 
