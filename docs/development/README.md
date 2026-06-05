@@ -13,6 +13,7 @@ Use this hub when you are about to edit code. It routes a change to the right su
 ## Start Here
 
 - [Agent Development Workflow](agent_development_workflow.md)
+- [Agent Architecture Reference](agent_architecture_reference.md)
 - [Validation Matrix](validation_matrix.md)
 - [Docs Update Workflow](docs_update_workflow.md)
 - [Review and Risk Checklist](review_and_risk_checklist.md)
