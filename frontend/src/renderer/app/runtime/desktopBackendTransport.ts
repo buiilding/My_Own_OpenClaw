@@ -28,7 +28,7 @@ async function sendQuery(
   workspacePath: string | null,
   messageId: string | null,
 ): Promise<string | null> {
-  const result = await invokeWindieCommand('conversation.send', {
+  const result = await invokeWindieCommand<Record<string, unknown> | null>('conversation.send', {
     text: optionalString(payload.text) ?? '',
     conversation_ref: optionalString(payload.conversation_ref)
       ?? optionalString(payload.conversationRef)
@@ -57,7 +57,7 @@ async function sendQuery(
       ?? null,
     memory_retrieval_enabled: getMemoryRetrievalInjectionEnabled(),
   });
-  if (result && typeof result === 'object' && 'ok' in result && result.ok === false) {
+  if (result && typeof result === 'object' && result.ok === false) {
     const message = typeof result.error === 'string' && result.error.trim().length > 0
       ? result.error
       : 'Failed to send query to backend';

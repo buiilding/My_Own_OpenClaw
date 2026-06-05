@@ -21,9 +21,9 @@ title: "Memory IPC and RPC Mapping Reference"
 - `frontend/src/main/python/memory/chat_event_store.py`
 - `frontend/src/main/python/memory/local_store.py`
 
-## Active Invoke Channels
+## Active Local-Runtime Channels
 
-Chat-event storage and continuity:
+Chat-event storage and continuity local-runtime channels:
 
 - `store-chat-event`
 - `list-chat-conversations`
@@ -33,13 +33,13 @@ Chat-event storage and continuity:
 
 Memory storage and retrieval:
 
-- `search-memory`
-- `list-episodic-memories`
-- `list-semantic-memories`
-- `delete-episodic-memory`
-- `delete-semantic-memory`
-- `clear-local-memory`
-- `clear-chat-history`
+- Renderer-facing memory UI uses SDK-shaped `memories.list`,
+  `memories.delete`, and `memories.clearAll` commands over
+  `window.windie.invoke`.
+- Electron main maps those commands to public SDK agent APIs.
+- Sidecar memory RPC names remain implementation details behind the SDK local
+  runtime and Electron main local-backend bridge.
+- Chat clear uses SDK-shaped `conversations.clearAll`.
 
 Chat history is stored in `chat_events`, not as memory rows. Memory rows are for episodic interaction memory and semantic memory.
 
@@ -53,7 +53,7 @@ Chat-event channels:
 - `get-chat-events` -> `get_chat_events`
 - `delete-chat-conversation` -> `delete_chat_conversation`
 
-Memory channels:
+Memory local-runtime channels:
 
 - `search-memory` -> `search_memory`
 - `list-episodic-memories` -> `list_episodic_memories`
@@ -61,6 +61,9 @@ Memory channels:
 - `delete-episodic-memory` -> `delete_episodic_memory`
 - `delete-semantic-memory` -> `delete_semantic_memory`
 - `clear-local-memory` -> `clear_local_memory`
+
+Chat clear local-runtime channel:
+
 - `clear-chat-history` -> `clear_chat_history`
 - `replace-chat-conversation` -> `replace_chat_conversation`
 
@@ -150,9 +153,12 @@ The main-process bridge forwards mapped responses to the renderer unchanged.
 
 If chats do not reload:
 
-1. verify renderer calls `list-chat-conversations` and `get-chat-events`
-2. inspect mapper output in `local_backend_bridge_rpc_mappers.cjs`
-3. verify sidecar memory store is initialized and `chat_events` rows exist
+1. verify renderer calls SDK-shaped `conversations.list` and
+   `conversation.load`
+2. inspect Electron main `windie:invoke` command handling
+3. if the SDK command reaches local persistence but data is missing, inspect
+   mapper output in `local_backend_bridge_rpc_mappers.cjs`
+4. verify sidecar memory store is initialized and `chat_events` rows exist
 
 If memory injection is empty:
 

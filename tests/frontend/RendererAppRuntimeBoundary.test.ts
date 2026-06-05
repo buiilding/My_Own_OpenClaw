@@ -9,7 +9,6 @@ const allowedRelativePaths = new Set([
 ]);
 const allowedSdkOwnedInternalChannelPaths = new Set([
   'infrastructure/ipc/channels.ts',
-  'infrastructure/transcript/sdkSidecarConversationStore.ts',
 ]);
 
 async function listSourceFiles(dir: string): Promise<string[]> {

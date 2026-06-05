@@ -13,13 +13,8 @@ import {
 import {
   createDesktopConversationStore,
 } from '../../infrastructure/transcript/desktopConversationStore';
-import {
-  loadLocalConversationSnapshot,
-} from '../../infrastructure/transcript/conversationLocalSnapshotLoader';
 import { createDesktopBackendTransport } from './desktopBackendTransport';
 import { DesktopLocalRuntimeEventSource } from './desktopLocalRuntimeEventSource';
-import { createIpcSidecarConversationStore } from '../../infrastructure/transcript/sdkSidecarConversationStore';
-import type { LocalConversationSnapshot } from '../../infrastructure/transcript/conversationLocalSnapshotLoader';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
 import { invokeWindieCommand } from './windieCommandInvokeClient';
 
@@ -84,6 +79,25 @@ type SearchConversationsInput = {
   limit?: number;
 };
 
+type LocalConversationSnapshotInput = {
+  userId: string;
+  conversationRef: string;
+  conversation?: Record<string, unknown> | null;
+  includeParsedMessages?: boolean;
+  includeReplayState?: boolean;
+};
+
+type LocalConversationSnapshot = {
+  transcriptEntries: JsonRecord[];
+  replayEntries: JsonRecord[];
+  workspaceBinding: {
+    workspacePath: string;
+    workspaceName: string;
+  };
+  parsedMessages: Array<Record<string, unknown>>;
+  rehydrateMessages: Array<Record<string, unknown>>;
+};
+
 function optionalString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
@@ -91,11 +105,6 @@ function optionalString(value: unknown): string | null {
 export const desktopConversationContinuityService = new ConversationContinuityService({
   storeFactory: ({ userId }) => createDesktopConversationStore(userId),
   transportFactory: ({ workspacePath }) => createDesktopBackendTransport(workspacePath ?? null),
-  localRuntimeEventSource: DesktopLocalRuntimeEventSource,
-});
-
-export const desktopConversationMetadataService = new ConversationContinuityService({
-  storeFactory: ({ userId }) => createIpcSidecarConversationStore(userId),
   localRuntimeEventSource: DesktopLocalRuntimeEventSource,
 });
 
@@ -114,25 +123,112 @@ function metadataToDashboardConversation(metadata: ConversationMetadata) {
   };
 }
 
+function displayRowsToParsedMessages(rows: SdkDisplayRow[] = []) {
+  return rows.map((row) => ({
+    id: row.id,
+    text: typeof row.content === 'string' ? row.content : JSON.stringify(row.content),
+    sender: row.role,
+    role: row.role,
+    message_type: row.type,
+    timestamp: row.metadata?.timestamp ?? null,
+  }));
+}
+
+function resolveWorkspaceBindingFromEvents(events: JsonRecord[] = []) {
+  for (const event of events) {
+    const payload = event?.payload && typeof event.payload === 'object' && !Array.isArray(event.payload)
+      ? event.payload as JsonRecord
+      : {};
+    const workspacePath = optionalString(payload.workspacePath)
+      ?? optionalString(payload.workspace_path);
+    if (workspacePath) {
+      return {
+        workspacePath,
+        workspaceName: optionalString(payload.workspaceName)
+          ?? optionalString(payload.workspace_name)
+          ?? '',
+      };
+    }
+  }
+  return {
+    workspacePath: '',
+    workspaceName: '',
+  };
+}
+
 export const DesktopConversationContinuityService = {
   listMetadata(userId: string, options?: ListConversationOptions): Promise<ConversationMetadata[]> {
-    return desktopConversationMetadataService.listMetadata({ userId }, options);
+    return invokeWindieCommand('conversations.list', {
+      userId,
+      limit: options?.limit,
+    });
   },
 
-  loadForDisplay(userId: string, conversationRef: string): Promise<DisplayConversation> {
-    return desktopConversationContinuityService.loadForDisplay({ userId, conversationRef });
+  async loadForDisplay(userId: string, conversationRef: string): Promise<DisplayConversation> {
+    const snapshot = await invokeWindieCommand<{ display?: DisplayConversation }>('conversation.load', {
+      userId,
+      conversationRef,
+    });
+    return snapshot?.display ?? {
+      conversationRef,
+      revisionId: '',
+      messages: [],
+      compaction: { status: 'idle' },
+    };
   },
 
-  loadDisplayRows(userId: string, conversationRef: string): Promise<SdkDisplayRow[]> {
-    return desktopConversationContinuityService.loadDisplayRows({ userId, conversationRef });
+  async loadDisplayRows(userId: string, conversationRef: string): Promise<SdkDisplayRow[]> {
+    const snapshot = await invokeWindieCommand<{ displayRows?: SdkDisplayRow[] }>('conversation.load', {
+      userId,
+      conversationRef,
+    });
+    return Array.isArray(snapshot?.displayRows) ? snapshot.displayRows : [];
   },
 
-  loadRehydrateSnapshot(input: LoadRehydrateSnapshotInput): Promise<RehydrateSnapshot> {
-    return desktopConversationContinuityService.loadRehydrateSnapshot(input);
+  async loadRehydrateSnapshot(input: LoadRehydrateSnapshotInput): Promise<RehydrateSnapshot> {
+    const snapshot = await invokeWindieCommand<{ rehydrate?: RehydrateSnapshot }>('conversation.load', {
+      userId: input.userId,
+      conversationRef: input.conversationRef,
+    });
+    return snapshot?.rehydrate ?? {
+      conversationRef: input.conversationRef,
+      revisionId: '',
+      messages: [],
+    };
   },
 
-  rehydrateFromStore(input: RehydrateFromStoreInput) {
-    return desktopConversationContinuityService.rehydrateFromStore(input);
+  async rehydrateFromStore(input: RehydrateFromStoreInput) {
+    const snapshot = await this.loadRehydrateSnapshot(input);
+    const messages = Array.isArray(snapshot.messages)
+      ? snapshot.messages.filter((message): message is RehydrateConversationEntry => (
+        Boolean(message)
+        && typeof message === 'object'
+        && !Array.isArray(message)
+        && ['user', 'assistant', 'tool'].includes(String(message.role))
+        && typeof message.content === 'string'
+      ))
+      : [];
+    if (messages.length === 0) {
+      return {
+        conversationRef: input.conversationRef,
+        revisionId: snapshot.revisionId,
+        messageCount: 0,
+        hydrated: false,
+        replayGenerationId: snapshot.replayGenerationId ?? null,
+      };
+    }
+    await this.rehydrateMessages({
+      conversationRef: input.conversationRef,
+      messages,
+      workspacePath: input.workspacePath,
+    });
+    return {
+      conversationRef: input.conversationRef,
+      revisionId: snapshot.revisionId,
+      messageCount: messages.length,
+      hydrated: true,
+      replayGenerationId: snapshot.replayGenerationId ?? null,
+    };
   },
 
   async rehydrateMessages(input: RehydrateMessagesInput): Promise<void> {
@@ -205,29 +301,48 @@ export const DesktopConversationContinuityService = {
   },
 
   deleteConversation(userId: string, conversationRef: string) {
-    return desktopConversationMetadataService.deleteConversation({
+    return invokeWindieCommand('conversations.delete', {
       userId,
       conversationRef,
     });
   },
 
-  loadLocalConversationSnapshot(
-    input: Parameters<typeof loadLocalConversationSnapshot>[0],
+  async loadLocalConversationSnapshot(
+    input: LocalConversationSnapshotInput,
   ): Promise<LocalConversationSnapshot> {
-    return loadLocalConversationSnapshot(input);
+    const snapshot = await invokeWindieCommand<{
+      state?: { events?: JsonRecord[] };
+      displayRows?: SdkDisplayRow[];
+      rehydrate?: RehydrateSnapshot;
+    }>('conversation.load', {
+      userId: input.userId,
+      conversationRef: input.conversationRef,
+    });
+    const events = Array.isArray(snapshot?.state?.events) ? snapshot.state.events : [];
+    const displayRows = input.includeParsedMessages && Array.isArray(snapshot?.displayRows)
+      ? snapshot.displayRows
+      : [];
+    return {
+      transcriptEntries: events as LocalConversationSnapshot['transcriptEntries'],
+      replayEntries: [],
+      workspaceBinding: resolveWorkspaceBindingFromEvents(events),
+      parsedMessages: displayRowsToParsedMessages(displayRows),
+      rehydrateMessages: Array.isArray(snapshot?.rehydrate?.messages)
+        ? snapshot.rehydrate.messages
+        : [],
+    };
   },
 
   async searchConversations(input: SearchConversationsInput) {
-    const metadata = await desktopConversationMetadataService.searchMetadata({
+    const metadata = await invokeWindieCommand<ConversationMetadata[]>('conversations.search', {
       userId: input.userId,
-    }, {
       query: input.query,
       limit: input.limit,
     });
-    return metadata.map(metadataToDashboardConversation);
+    return Array.isArray(metadata) ? metadata.map(metadataToDashboardConversation) : [];
   },
 
   subscribeMetadataInvalidations(listener: ConversationMetadataInvalidationListener) {
-    return desktopConversationMetadataService.subscribeMetadataInvalidations(listener);
+    return desktopConversationContinuityService.subscribeMetadataInvalidations(listener);
   },
 };

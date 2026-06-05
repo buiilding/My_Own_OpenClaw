@@ -113,6 +113,42 @@ function textFromEvent(event: ConversationEvent): string {
   return `[sdk event: ${event.type}]`;
 }
 
+function valueByKeys(record: Record<string, unknown>, keys: string[]): unknown {
+  for (const key of keys) {
+    if (record[key] !== undefined && record[key] !== null) {
+      return record[key];
+    }
+  }
+  return undefined;
+}
+
+function normalizeJsonArray(value: unknown): JsonRecord[] {
+  return Array.isArray(value)
+    ? value.filter((entry): entry is JsonRecord => Boolean(normalizeRecord(entry)))
+    : [];
+}
+
+function eventPayloadWriteParams(event: ConversationEvent): JsonRecord {
+  const payload = normalizeRecord(event.payload) ?? {};
+  const metadata = normalizeRecord(payload.metadata) ?? {};
+  const screenshot = valueByKeys(payload, ['screenshotRef', 'screenshot_ref', 'screenshotUrl', 'screenshot_url', 'screenshot'])
+    ?? valueByKeys(metadata, ['screenshot']);
+  return {
+    tool_name: valueByKeys(payload, ['toolName', 'tool_name']) ?? null,
+    correlation_id: valueByKeys(payload, ['correlationId', 'correlation_id', 'toolCallId', 'tool_call_id', 'requestId', 'request_id']) ?? null,
+    workspace_path: valueByKeys(payload, ['workspacePath', 'workspace_path']) ?? null,
+    workspace_name: valueByKeys(payload, ['workspaceName', 'workspace_name']) ?? null,
+    metadata: {
+      ...metadata,
+      model_id: valueByKeys(payload, ['modelId', 'model_id']) ?? metadata.model_id ?? null,
+      model_provider: valueByKeys(payload, ['modelProvider', 'model_provider']) ?? metadata.model_provider ?? null,
+      screenshot: screenshot ?? null,
+    },
+    attachments: normalizeJsonArray(payload.attachments),
+    compaction_checkpoint: event.type === 'compaction_applied' ? event.payload : null,
+  };
+}
+
 function roleFromEvent(event: ConversationEvent): string {
   if (event.type === 'user_message') {
     return 'user';
@@ -397,6 +433,7 @@ export class SidecarConversationStore implements ConversationStore {
     };
     return {
       ...defaultParams,
+      ...eventPayloadWriteParams(event),
       ...(this.options.eventWriteParams?.({
         event,
         defaultParams: { ...defaultParams },

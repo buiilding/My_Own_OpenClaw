@@ -536,9 +536,9 @@ App
 - `WAKEWORD_DISABLE` - Disable wakeword detection
 
 ### Invoke Channels (Renderer → Main, async)
-- SDK conversation commands - send, stop, retry, edit/resend, and projection loading through app runtime clients
+- SDK runtime commands - conversation send/stop/retry/edit/resend/projection
+  loading plus memory list/delete/clear through SDK-shaped app runtime clients
 - `GET_SYSTEM_STATE` - Get system state (active window, mouse, clipboard, etc.)
-- `SEARCH_MEMORY` - Search memory via Python sidecar
 
 ### On Channels (Main → Renderer, events)
 - `WINDIE_CURRENT_TURN` - SDK current-turn projection updates for live dashboard/overlay rendering

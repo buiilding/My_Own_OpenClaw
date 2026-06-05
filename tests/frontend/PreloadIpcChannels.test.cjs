@@ -39,8 +39,6 @@ describe('preload IPC channel registry', () => {
       },
       INVOKE_CHANNELS: {
         WINDIE_INVOKE: 'windie:invoke',
-        CLEAR_CHAT_HISTORY: 'clear-chat-history',
-        CLEAR_LOCAL_MEMORY: 'clear-local-memory',
         COPY_IMAGE_TO_CLIPBOARD: 'copy-image-to-clipboard',
         FETCH_ARTIFACT_IMAGE: 'fetch-artifact-image',
         SHOW_IMAGE_CONTEXT_MENU: 'show-image-context-menu',
@@ -63,12 +61,6 @@ describe('preload IPC channel registry', () => {
   });
 
   test('allows shared invoke channels from the central registry', async () => {
-    await expect(exposedIpc.invoke('clear-chat-history', { userId: 'user-1' })).resolves.toBe('ok');
-    expect(ipcRendererMock.invoke).toHaveBeenCalledWith('clear-chat-history', { userId: 'user-1' });
-
-    await expect(exposedIpc.invoke('clear-local-memory', { userId: 'user-1' })).resolves.toBe('ok');
-    expect(ipcRendererMock.invoke).toHaveBeenCalledWith('clear-local-memory', { userId: 'user-1' });
-
     await expect(exposedIpc.invoke('copy-image-to-clipboard', { src: 'data:image/png;base64,abc' })).resolves.toBe('ok');
     expect(ipcRendererMock.invoke).toHaveBeenCalledWith('copy-image-to-clipboard', {
       src: 'data:image/png;base64,abc',
@@ -117,6 +109,31 @@ describe('preload IPC channel registry', () => {
     await expect(exposedIpc.invoke('missing-channel', {})).rejects.toThrow(
       'Invalid invoke channel: missing-channel',
     );
+  });
+
+  test('does not expose memory SDK commands as direct IPC invokes', async () => {
+    await expect(exposedIpc.invoke('clear-local-memory', { userId: 'user-1' })).rejects.toThrow(
+      'Invalid invoke channel: clear-local-memory',
+    );
+    await expect(exposedIpc.invoke('list-episodic-memories', { userId: 'user-1' })).rejects.toThrow(
+      'Invalid invoke channel: list-episodic-memories',
+    );
+    await expect(exposedWindie.invoke('memories.clearAll', { userId: 'user-1' })).resolves.toBe('ok');
+    expect(ipcRendererMock.invoke).toHaveBeenCalledWith('windie:invoke', {
+      command: 'memories.clearAll',
+      payload: { userId: 'user-1' },
+    });
+  });
+
+  test('does not expose chat clearing as a direct IPC invoke', async () => {
+    await expect(exposedIpc.invoke('clear-chat-history', { userId: 'user-1' })).rejects.toThrow(
+      'Invalid invoke channel: clear-chat-history',
+    );
+    await expect(exposedWindie.invoke('conversations.clearAll', { userId: 'user-1' })).resolves.toBe('ok');
+    expect(ipcRendererMock.invoke).toHaveBeenCalledWith('windie:invoke', {
+      command: 'conversations.clearAll',
+      payload: { userId: 'user-1' },
+    });
   });
 
   test('throws for channels outside the shared send registry', () => {

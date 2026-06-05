@@ -15,7 +15,6 @@ export type ConversationInferenceSessionState = 'unknown' | 'hydrated' | 'local-
 type EnsureConversationInferenceSessionOptions = {
   conversationRef: string | null | undefined;
   userId?: string | null;
-  recordKind?: string;
 };
 
 type RehydrateConversationInferenceSessionOptions = {
@@ -129,7 +128,6 @@ export function invalidateConversationInferenceSessionState(): void {
 export async function ensureConversationInferenceSessionHydrated({
   conversationRef,
   userId,
-  recordKind = 'chat_event',
 }: EnsureConversationInferenceSessionOptions): Promise<void> {
   const normalizedConversationRef = normalizeConversationRef(conversationRef);
   if (!normalizedConversationRef) {
@@ -157,7 +155,6 @@ export async function ensureConversationInferenceSessionHydrated({
     const snapshot = await DesktopConversationContinuityService.loadLocalConversationSnapshot({
       userId: normalizedUserId,
       conversationRef: normalizedConversationRef,
-      recordKind,
     });
     if (!isCurrentConnectionEpoch(startingEpoch)) {
       return;

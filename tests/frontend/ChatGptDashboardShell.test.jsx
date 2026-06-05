@@ -12,7 +12,103 @@ import {
 var mockListeners = new Map();
 const LOCAL_SNAPSHOT_USER_ID = 'local-user';
 let mockClientSnapshot = { isConnected: true, userId: LOCAL_SNAPSHOT_USER_ID };
-const mockInvoke = jest.fn(async (channel) => {
+
+function metadataFromConversationRow(row) {
+  return {
+    conversationRef: row.conversationRef || row.conversation_id,
+    revisionId: row.revisionId || row.revision_id || `rev-stored-${row.conversationRef || row.conversation_id}`,
+    title: row.title || row.conversationRef || row.conversation_id,
+    lastMessage: row.lastMessage || row.last_message || '',
+    updatedAt: row.updatedAt || row.updated_at || row.last_timestamp || row.created_at || '',
+    eventCount: row.eventCount || row.entry_count || 0,
+    workspacePath: row.workspacePath || row.workspace_path || '',
+    workspaceName: row.workspaceName || row.workspace_name || '',
+    snippet: row.snippet || null,
+    matchedRole: row.matchedRole || row.matched_role || null,
+  };
+}
+
+function sdkDataFromLegacyResult(command, legacyResult, commandPayload = {}) {
+  const data = legacyResult?.data ?? {};
+  if (command === 'conversations.list' || command === 'conversations.search') {
+    return (Array.isArray(data.conversations) ? data.conversations : []).map(metadataFromConversationRow);
+  }
+  if (command === 'conversation.load') {
+    return {
+      state: { events: Array.isArray(data.events) ? data.events : [] },
+      displayRows: [],
+      display: {
+        conversationRef: commandPayload.conversationRef,
+        revisionId: '',
+        messages: [],
+        compaction: { status: 'idle' },
+      },
+      rehydrate: {
+        conversationRef: commandPayload.conversationRef,
+        revisionId: '',
+        messages: [],
+      },
+    };
+  }
+  return data;
+}
+
+function legacyInvokeForSdkCommand(command, payload = {}) {
+  if (command === 'conversations.list') {
+    return ['list-chat-conversations', {
+      userId: payload.userId,
+      limit: payload.limit,
+    }];
+  }
+  if (command === 'conversations.search') {
+    return ['search-chat-conversations', {
+      userId: payload.userId,
+      query: payload.query,
+      limit: payload.limit,
+    }];
+  }
+  if (command === 'conversation.load') {
+    return ['get-chat-events', {
+      userId: payload.userId,
+      conversationId: payload.conversationRef,
+    }];
+  }
+  if (command === 'conversations.delete') {
+    return ['delete-chat-conversation', {
+      userId: payload.userId,
+      conversationId: payload.conversationRef,
+    }];
+  }
+  return null;
+}
+
+function hasSdkCommandCall(command, payload = {}) {
+  return mockInvoke.mock.calls.some(([, envelope]) => (
+    envelope?.command === command
+    && Object.entries(payload).every(([key, value]) => envelope.payload?.[key] === value)
+  ));
+}
+
+async function handleSdkCommandFromMockInvoke(args, implementation) {
+  const [, sdkEnvelope] = args;
+  const command = sdkEnvelope?.command;
+  if (typeof command !== 'string') {
+    return null;
+  }
+  const payload = sdkEnvelope.payload || {};
+  const legacy = legacyInvokeForSdkCommand(command, payload);
+  const legacyResult = legacy
+    ? await implementation(...legacy)
+    : { success: true, data: {} };
+  return {
+    ok: legacyResult?.success !== false,
+    data: sdkDataFromLegacyResult(command, legacyResult, payload),
+    error: legacyResult?.error,
+  };
+}
+
+const mockInvoke = jest.fn(async (...args) => {
+  const [channel] = args;
   if (channel === 'get-client-user-id') {
     return mockClientSnapshot;
   }
@@ -33,6 +129,10 @@ const mockInvoke = jest.fn(async (channel) => {
       success: true,
       data: { conversations: [] },
     };
+  }
+  const sdkResult = await handleSdkCommandFromMockInvoke(args, async () => ({ success: true, data: {} }));
+  if (sdkResult) {
+    return sdkResult;
   }
   return { success: true, data: {} };
 });
@@ -138,6 +238,10 @@ describe('ChatGptDashboardShell', () => {
     const [channel] = args;
     if (channel === 'get-client-user-id') {
       return mockClientSnapshot;
+    }
+    const sdkResult = await handleSdkCommandFromMockInvoke(args, implementation);
+    if (sdkResult) {
+      return sdkResult;
     }
     return implementation(...args);
   };
@@ -375,10 +479,7 @@ describe('ChatGptDashboardShell', () => {
       await Promise.resolve();
     });
 
-    expect(mockInvoke).toHaveBeenCalledWith(
-      'list-chat-conversations',
-      expect.objectContaining({ userId: LOCAL_SNAPSHOT_USER_ID }),
-    );
+    expect(hasSdkCommandCall('conversations.list', { userId: LOCAL_SNAPSHOT_USER_ID })).toBe(true);
     expect(screen.getByRole('button', { name: 'Loaded on dashboard open' })).toBeInTheDocument();
   });
 
@@ -432,15 +533,9 @@ describe('ChatGptDashboardShell', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: 'Fix Ubuntu mic settings' }));
     await flushMicrotasks();
-    const getConversationCall = mockInvoke.mock.calls.find(
-      ([channel]) => channel === 'get-chat-events',
-    );
-    expect(getConversationCall).toBeDefined();
-    expect(getConversationCall?.[1]).toEqual(
-      expect.objectContaining({
-        conversationId: 'conv-history-1',
-      }),
-    );
+    expect(hasSdkCommandCall('conversation.load', {
+      conversationRef: 'conv-history-1',
+    })).toBe(true);
 
     if (!mockUpdateTranscriptSession.mock.calls.some(([conversationRef, userId]) => (
       conversationRef === 'conv-history-1' && userId === LOCAL_SNAPSHOT_USER_ID
@@ -478,10 +573,7 @@ describe('ChatGptDashboardShell', () => {
     await renderDashboardShell();
 
     expect(screen.getByRole('button', { name: 'Offline local chat' })).toBeInTheDocument();
-    expect(mockInvoke).toHaveBeenCalledWith(
-      'list-chat-conversations',
-      expect.objectContaining({ userId: LOCAL_SNAPSHOT_USER_ID }),
-    );
+    expect(hasSdkCommandCall('conversations.list', { userId: LOCAL_SNAPSHOT_USER_ID })).toBe(true);
   });
 
   test('allows switching history while another loop is active', async () => {
@@ -522,15 +614,9 @@ describe('ChatGptDashboardShell', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Do not switch while looping' }));
     await flushMicrotasks();
 
-    const getConversationCall = mockInvoke.mock.calls.find(
-      ([channel]) => channel === 'get-chat-events',
-    );
-    expect(getConversationCall).toBeDefined();
-    expect(getConversationCall?.[1]).toEqual(
-      expect.objectContaining({
-        conversationId: 'conv-history-1',
-      }),
-    );
+    expect(hasSdkCommandCall('conversation.load', {
+      conversationRef: 'conv-history-1',
+    })).toBe(true);
     if (!mockUpdateTranscriptSession.mock.calls.some(([conversationRef, userId]) => (
       conversationRef === 'conv-history-1' && userId === LOCAL_SNAPSHOT_USER_ID
     ))) {
@@ -603,7 +689,7 @@ describe('ChatGptDashboardShell', () => {
     expect(screen.queryByRole('menuitem', { name: /Start a group chat/i })).not.toBeInTheDocument();
   });
 
-  test('delete action from conversation kebab menu calls delete-chat-conversation', async () => {
+  test('delete action from conversation kebab menu calls the SDK delete command', async () => {
     const nowIso = new Date().toISOString();
     mockInvoke.mockImplementation(withClientSnapshot(async (channel) => {
       if (channel === 'list-chat-conversations') {
@@ -634,11 +720,8 @@ describe('ChatGptDashboardShell', () => {
       fireEvent.click(await screen.findByRole('button', { name: /Conversation actions for Mission Today/i }));
       fireEvent.click(screen.getByRole('menuitem', { name: 'Delete' }));
       await flushMicrotasks();
-      if (!mockInvoke.mock.calls.some(([channel, payload]) => (
-        channel === 'delete-chat-conversation'
-        && payload?.conversationId === 'conv-delete-1'
-      ))) {
-        throw new Error('expected SDK event rows to be deleted for conv-delete-1');
+      if (!hasSdkCommandCall('conversations.delete', { conversationRef: 'conv-delete-1' })) {
+        throw new Error('expected SDK delete command for conv-delete-1');
       }
       if (!mockClearConversationWorkspaceBinding.mock.calls.some(([conversationRef]) => (
         conversationRef === 'conv-delete-1'
@@ -655,10 +738,7 @@ describe('ChatGptDashboardShell', () => {
 
     await renderDashboardShell();
     await flushMicrotasks();
-    expect(mockInvoke).toHaveBeenCalledWith(
-      'list-chat-conversations',
-      expect.objectContaining({ userId: LOCAL_SNAPSHOT_USER_ID }),
-    );
+    expect(hasSdkCommandCall('conversations.list', { userId: LOCAL_SNAPSHOT_USER_ID })).toBe(true);
 
     mockInvoke.mockClear();
     mockSessionInfo = { conversationRef: null, userId: 'peter-bui' };
@@ -667,10 +747,7 @@ describe('ChatGptDashboardShell', () => {
       window.dispatchEvent(new CustomEvent('transcript-session-update'));
     });
     await flushMicrotasks();
-    expect(mockInvoke).toHaveBeenCalledWith(
-      'list-chat-conversations',
-      expect.objectContaining({ userId: 'peter-bui' }),
-    );
+    expect(hasSdkCommandCall('conversations.list', { userId: 'peter-bui' })).toBe(true);
   });
 
   test('ignores stale recent-chat response after transcript user switch', async () => {
@@ -708,10 +785,7 @@ describe('ChatGptDashboardShell', () => {
     }));
 
     await renderDashboardShell();
-    expect(mockInvoke).toHaveBeenCalledWith(
-      'list-chat-conversations',
-      expect.objectContaining({ userId: LOCAL_SNAPSHOT_USER_ID }),
-    );
+    expect(hasSdkCommandCall('conversations.list', { userId: LOCAL_SNAPSHOT_USER_ID })).toBe(true);
 
     mockSessionInfo = { conversationRef: null, userId: 'peter-bui' };
     act(() => {
@@ -719,10 +793,7 @@ describe('ChatGptDashboardShell', () => {
     });
     await flushMicrotasks();
 
-    expect(mockInvoke).toHaveBeenCalledWith(
-      'list-chat-conversations',
-      expect.objectContaining({ userId: 'peter-bui' }),
-    );
+    expect(hasSdkCommandCall('conversations.list', { userId: 'peter-bui' })).toBe(true);
     expect(screen.getByRole('button', { name: 'Peter active chat' })).toBeInTheDocument();
 
     await act(async () => {
@@ -788,10 +859,7 @@ describe('ChatGptDashboardShell', () => {
       }));
     });
     await flushMicrotasks();
-    expect(mockInvoke).toHaveBeenCalledWith(
-      'list-chat-conversations',
-      expect.objectContaining({ userId: LOCAL_SNAPSHOT_USER_ID }),
-    );
+    expect(hasSdkCommandCall('conversations.list', { userId: LOCAL_SNAPSHOT_USER_ID })).toBe(true);
     expect(screen.getByRole('button', { name: 'How are you' })).toBeInTheDocument();
   });
 
@@ -943,10 +1011,7 @@ describe('ChatGptDashboardShell', () => {
     ))).toBe(true);
     expect(mockInvalidateConversationInferenceSessionState.mock.calls.length).toBe(1);
     expect(mockClearAllConversationWorkspaceBindings.mock.calls.length).toBe(1);
-    expect(mockInvoke).toHaveBeenCalledWith(
-      'list-chat-conversations',
-      expect.objectContaining({ userId: 'user-live' }),
-    );
+    expect(hasSdkCommandCall('conversations.list', { userId: 'user-live' })).toBe(true);
   });
 
   test('retries recent chats on startup when local backend is not ready', async () => {
@@ -1118,23 +1183,19 @@ describe('ChatGptDashboardShell', () => {
         jest.advanceTimersByTime(200);
       });
       await flushMicrotasks();
-      expect(mockInvoke).toHaveBeenCalledWith(
-        'search-chat-conversations',
-        expect.objectContaining({
-          query: 'lawyer',
-          userId: LOCAL_SNAPSHOT_USER_ID,
-        }),
-      );
+      expect(hasSdkCommandCall('conversations.search', {
+        query: 'lawyer',
+        userId: LOCAL_SNAPSHOT_USER_ID,
+      })).toBe(true);
       expect(within(dialog).queryByText('Moon Landing Technology Explained')).not.toBeInTheDocument();
       expect(within(dialog).getByText('Vietnamese-speaking lawyer leads')).toBeInTheDocument();
       expect(within(dialog).getByText(/You: Looking for Vietnamese-speaking lawyer lead/i)).toBeInTheDocument();
 
       fireEvent.click(within(dialog).getByText('Vietnamese-speaking lawyer leads').closest('button'));
       await flushMicrotasks();
-      expect(mockInvoke).toHaveBeenCalledWith(
-        'get-chat-events',
-        expect.objectContaining({ conversationId: 'conv-history-2' }),
-      );
+      expect(hasSdkCommandCall('conversation.load', {
+        conversationRef: 'conv-history-2',
+      })).toBe(true);
     } finally {
       jest.useRealTimers();
     }

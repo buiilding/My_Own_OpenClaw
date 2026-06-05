@@ -69,7 +69,8 @@ describe('conversationInferenceSessionRuntime', () => {
 
     expect(mockContinuityService.loadLocalConversationSnapshot).toHaveBeenCalledTimes(1);
     expect(mockContinuityService.loadLocalConversationSnapshot).toHaveBeenCalledWith(expect.objectContaining({
-      recordKind: 'chat_event',
+      conversationRef: 'conv-existing',
+      userId: 'user-1',
     }));
     expect(mockContinuityService.rehydrateFromStore).toHaveBeenCalledTimes(1);
     expect(mockContinuityService.rehydrateFromStore).toHaveBeenCalledWith(expect.objectContaining({

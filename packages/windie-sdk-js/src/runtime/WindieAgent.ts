@@ -1,7 +1,11 @@
 import { InMemoryConversationStore } from '../stores/InMemoryConversationStore.js';
 import type { BackendEvent } from '../events/backendEvents.js';
 import type {
+  CompactedReplaySnapshot,
+  ConversationEvent,
   ConversationMetadata,
+  ConversationRevision,
+  ConversationRewritePlan,
   ConversationStore,
   JsonRecord,
   ListConversationOptions,
@@ -508,6 +512,44 @@ export class WindieAgent {
       ? { conversationRef: options }
       : options;
     return this.conversation(loadOptions).load();
+  }
+
+  async getConversationRevision(options: string | {
+    conversationRef: string;
+    store?: ConversationStore;
+  }): Promise<ConversationRevision> {
+    const revisionOptions = typeof options === 'string'
+      ? { conversationRef: options }
+      : options;
+    const conversationStore = revisionOptions.store ?? this.defaultConversationStore;
+    return conversationStore.getRevision(revisionOptions.conversationRef);
+  }
+
+  async appendConversationEvent(options: ConversationEvent | {
+    event: ConversationEvent;
+    store?: ConversationStore;
+  }): Promise<void> {
+    const appendOptions = 'event' in options ? options : { event: options };
+    const conversationStore = appendOptions.store ?? this.defaultConversationStore;
+    await conversationStore.appendEvent(appendOptions.event);
+  }
+
+  async rewriteConversation(options: ConversationRewritePlan | {
+    plan: ConversationRewritePlan;
+    store?: ConversationStore;
+  }): Promise<void> {
+    const rewriteOptions = 'plan' in options ? options : { plan: options };
+    const conversationStore = rewriteOptions.store ?? this.defaultConversationStore;
+    await conversationStore.rewriteConversation(rewriteOptions.plan);
+  }
+
+  async replaceCompactedReplay(options: CompactedReplaySnapshot | {
+    snapshot: CompactedReplaySnapshot;
+    store?: ConversationStore;
+  }): Promise<void> {
+    const replaceOptions = 'snapshot' in options ? options : { snapshot: options };
+    const conversationStore = replaceOptions.store ?? this.defaultConversationStore;
+    await conversationStore.replaceCompactedReplay(replaceOptions.snapshot);
   }
 
   async prepareEditAndResend(

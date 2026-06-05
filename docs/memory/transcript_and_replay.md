@@ -103,7 +103,7 @@ Key files:
 ```bash
 cd frontend
 npm run test:ci -- DesktopTranscriptProjectionRuntimeClient.test.ts TranscriptPendingQueue.test.ts TranscriptPendingFlush.test.ts
-npm run test:ci -- ConversationLocalSnapshotLoader.test.ts ConversationReplayActions.test.jsx RehydratePayload.test.js
+npm run test:ci -- DesktopConversationContinuityService.test.ts DesktopConversationStore.test.ts ConversationReplayActions.test.jsx
 ```
 
 ## Change Workflow

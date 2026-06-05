@@ -128,16 +128,17 @@ the app root applies the effective theme to shared dashboard/settings tokens.
 `MemorySettingsTab` owns two destructive local-data actions:
 
 1. `Nuke memory`
-   - invokes renderer IPC `clear-local-memory`
+   - invokes SDK-shaped `memories.clearAll` through the memory runtime client
    - deletes user-local episodic interaction memory plus semantic memory
    - preserves transcript chat history
 
 2. `Nuke chats`
-   - invokes renderer IPC `clear-chat-history`
+   - invokes SDK-shaped `conversations.clearAll` through the memory runtime client
    - deletes transcript chat history only
    - on success, calls parent `onChatsCleared` so dashboard chat state and recent-chat lists are reset/reloaded
 
-These are UI state only in current implementation.
+These are user-facing SDK commands. The settings tab owns presentation and user
+intent only; Electron main owns the IPC hop and calls public SDK APIs.
 
 ## Payload and Persistence Boundary
 
@@ -148,7 +149,9 @@ All config persistence/sync side effects are delegated through parent `onConfigC
 Exception:
 
 - `GeneralSettingsTab` invokes `IpcBridge.invoke('set-agent-sudo-access', { enabled })` before persisting `agent_full_sudo_enabled`; current main-process policy rejects new persistent passwordless sudo grants and only supports legacy cleanup.
-- `useMemorySettingsActions()` invokes `clear-local-memory` / `clear-chat-history` over the local-backend IPC bridge for destructive data resets, while `MemorySettingsTab` stays presentation-focused.
+- `useMemorySettingsActions()` invokes memory and chat reset through
+  `DesktopMemoryRuntimeClient`, which sends SDK-shaped `memories.clearAll` and
+  `conversations.clearAll` commands over `window.windie.invoke`.
 - retired `data-controls` links fall through to the generic placeholder instead of mounting hidden permission UI.
 
 ## Test-Backed Invariants

@@ -653,6 +653,10 @@ function createDirectWakeUpAgentAdapter({
     deleteConversation: options => agent.deleteConversation(options),
     clearConversations: options => agent.clearConversations(options),
     loadConversation: options => agent.loadConversation(options),
+    getConversationRevision: options => agent.getConversationRevision(options),
+    appendConversationEvent: options => agent.appendConversationEvent(options),
+    rewriteConversation: options => agent.rewriteConversation(options),
+    replaceCompactedReplay: options => agent.replaceCompactedReplay(options),
     wakewordDetected: payload => agent.wakewordDetected(payload),
     ensureConnected: () => agent.ensureConnected(),
     isConnected: () => agent.isConnected(),
@@ -1393,6 +1397,55 @@ function buildWindieSdkCommandHandlers({
       return agent.loadConversation({
         conversationRef: requireCommandConversationRef(payload),
       });
+    },
+    'conversation.getRevision': async (payload = {}) => {
+      requireCommandUserId(payload);
+      const agent = await ensureWindieAgent({
+        reason: 'sdk-command:conversation.getRevision',
+        conversationRef: optionalCommandConversationRef(payload),
+      });
+      return agent.getConversationRevision({
+        conversationRef: requireCommandConversationRef(payload),
+      });
+    },
+    'conversation.appendEvent': async (payload = {}) => {
+      requireCommandUserId(payload);
+      const event = isPlainObject(payload.event) ? payload.event : null;
+      if (!event) {
+        throw new Error('conversation.appendEvent requires an event payload');
+      }
+      const agent = await ensureWindieAgent({
+        reason: 'sdk-command:conversation.appendEvent',
+        conversationRef: optionalCommandConversationRef(event) || optionalCommandConversationRef(payload),
+      });
+      await agent.appendConversationEvent(event);
+      return { stored: true };
+    },
+    'conversation.rewrite': async (payload = {}) => {
+      requireCommandUserId(payload);
+      const plan = isPlainObject(payload.plan) ? payload.plan : null;
+      if (!plan) {
+        throw new Error('conversation.rewrite requires a plan payload');
+      }
+      const agent = await ensureWindieAgent({
+        reason: 'sdk-command:conversation.rewrite',
+        conversationRef: optionalCommandConversationRef(plan) || optionalCommandConversationRef(payload),
+      });
+      await agent.rewriteConversation(plan);
+      return { rewritten: true };
+    },
+    'conversation.replaceCompactedReplay': async (payload = {}) => {
+      requireCommandUserId(payload);
+      const snapshot = isPlainObject(payload.snapshot) ? payload.snapshot : null;
+      if (!snapshot) {
+        throw new Error('conversation.replaceCompactedReplay requires a snapshot payload');
+      }
+      const agent = await ensureWindieAgent({
+        reason: 'sdk-command:conversation.replaceCompactedReplay',
+        conversationRef: optionalCommandConversationRef(snapshot) || optionalCommandConversationRef(payload),
+      });
+      await agent.replaceCompactedReplay(snapshot);
+      return { stored: true };
     },
     'conversation.prepareEditAndResend': async (payload = {}) => {
       requireCommandUserId(payload);

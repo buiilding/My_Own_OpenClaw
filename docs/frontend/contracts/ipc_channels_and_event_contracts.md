@@ -42,7 +42,10 @@ Key examples:
 - `windie:compact-history`
 - `windie:wakeword-detected`
 - `get-system-state`
-- `search-memory`, `search-chat-conversations`, list/get/delete memory records
+- SDK-shaped `windie:invoke` commands for conversation and memory runtime
+  actions
+- internal local-backend channels for chat-event store adapters and sidecar
+  memory implementation details
 - config load/save
 - window management and display queries
 - `get-displays` payload includes `{ id, label, isPrimary, bounds, scaleFactor }` from main-process display mapper

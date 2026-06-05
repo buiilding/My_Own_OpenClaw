@@ -110,7 +110,8 @@ Each path:
 
 1. resolve session identity from explicit options + current session state
 2. if missing identity fields, queue for retry and return
-3. otherwise invoke `store-chat-event` over main IPC bridge
+3. otherwise call the desktop conversation store, which invokes the
+   SDK-shaped `conversation.appendEvent` command
 
 Stored fields include:
 
@@ -221,7 +222,8 @@ chat feature code.
 
 `DesktopTranscriptProjectionRuntimeClient` routes new visible projection appends
 through this adapter. Direct `store-chat-event` calls and replay append mutation
-are not renderer feature-code surfaces.
+are not renderer feature-code surfaces; sidecar chat-event RPC names remain
+inside SDK store/local-runtime and Electron main bridge internals.
 
 `ensureConversationInferenceSessionHydrated(...)` now uses the continuity
 service for the backend rehydrate payload. The local snapshot loader still
@@ -289,9 +291,11 @@ This contract prevents provider tool-call sequencing errors without losing valid
 
 ## Main/Sidecar Contract for Transcript Storage
 
-Renderer `STORE_CHAT_EVENT` invoke path:
+SDK/local-runtime `store_chat_event` implementation path:
 
-- main mapped handler: `store-chat-event` -> JSON-RPC `store_chat_event`
+- SDK `SidecarConversationStore` calls local-runtime RPC `store_chat_event`
+- Electron main maps implementation-level `store-chat-event` to JSON-RPC
+  `store_chat_event`
 - camelCase to snake_case mapping includes:
   - `conversationRef` -> `conversation_ref`
   - `userId` -> `user_id`

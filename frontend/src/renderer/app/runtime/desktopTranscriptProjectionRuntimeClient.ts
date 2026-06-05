@@ -29,6 +29,7 @@ import {
   subscribeDesktopTranscriptSessionRuntimeUpdates,
   type TranscriptSessionResolveOptions,
 } from './desktopTranscriptSessionRuntime';
+import { invokeWindieCommand } from './windieCommandInvokeClient';
 
 type RewriteTranscriptProjectionInput = {
   conversationRef: string;
@@ -282,23 +283,47 @@ export const DesktopTranscriptProjectionRuntimeClient = {
     conversationRef,
     userId,
   }: LoadRehydrateSnapshotInput): Promise<RehydrateSnapshot> {
-    const store = createDesktopConversationStore(userId);
-    return store.loadForRehydrate(conversationRef);
+    const snapshot = await invokeWindieCommand<{
+      rehydrate?: RehydrateSnapshot;
+    }>('conversation.load', {
+      userId,
+      conversationRef,
+    });
+    return snapshot?.rehydrate ?? {
+      conversationRef,
+      revisionId: '',
+      messages: [],
+    };
   },
 
   async listMetadata(userId: string, options?: ListConversationOptions): Promise<ConversationMetadata[]> {
-    const store = createDesktopConversationStore(userId);
-    return store.listMetadata(options);
+    const metadata = await invokeWindieCommand<ConversationMetadata[]>('conversations.list', {
+      userId,
+      limit: options?.limit,
+    });
+    return Array.isArray(metadata) ? metadata : [];
   },
 
   async loadForDisplay(userId: string, conversationRef: string): Promise<DisplayConversation> {
-    const store = createDesktopConversationStore(userId);
-    return store.loadForDisplay(conversationRef);
+    const snapshot = await invokeWindieCommand<{
+      display?: DisplayConversation;
+    }>('conversation.load', {
+      userId,
+      conversationRef,
+    });
+    return snapshot?.display ?? {
+      conversationRef,
+      revisionId: '',
+      messages: [],
+      compaction: { status: 'idle' },
+    };
   },
 
   async deleteConversation(userId: string, conversationRef: string): Promise<void> {
-    const store = createDesktopConversationStore(userId);
-    await store.deleteConversation(conversationRef);
+    await invokeWindieCommand('conversations.delete', {
+      userId,
+      conversationRef,
+    });
   },
 
   async createSeededConversationStore({

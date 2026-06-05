@@ -48,16 +48,16 @@ Preload exports `window.ipc.{send, invoke, on, once}` and hard-allowlists channe
 | `read-attachment-file` | `main/local_backend_bridge.cjs` | Maps readable attachment context reads to local `read_file` execution |
 | `run-browser-action` | `main/local_backend_bridge.cjs` | Maps browser session controls to local `browser` execution |
 | `get-system-state` | `main/local_backend_bridge.cjs` | Proxies to `get_system_state` |
-| `search-memory` | `main/local_backend_bridge.cjs` | Proxies to `search_memory` |
-| `search-chat-conversations` | `main/local_backend_bridge.cjs` | Proxies to `search_chat_conversations` |
-| `list-chat-conversations` | `main/local_backend_bridge.cjs` | Proxies to `list_chat_conversations` |
-| `list-episodic-memories` | `main/local_backend_bridge.cjs` | Proxies to `list_episodic_memories` |
-| `get-chat-events` | `main/local_backend_bridge.cjs` | Proxies to `get_chat_events` |
-| `list-semantic-memories` | `main/local_backend_bridge.cjs` | Proxies to `list_semantic_memories` |
-| `delete-episodic-memory` | `main/local_backend_bridge.cjs` | Proxies to `delete_episodic_memory` |
-| `delete-chat-conversation` | `main/local_backend_bridge.cjs` | Proxies to `delete_chat_conversation` |
-| `delete-semantic-memory` | `main/local_backend_bridge.cjs` | Proxies to `delete_semantic_memory` |
-| `store-chat-event` | `main/local_backend_bridge.cjs` | Proxies to `store_chat_event` |
+| `search-memory` | `main/local_backend_bridge.cjs` | Internal local-runtime/SDK implementation channel for `search_memory` |
+| `search-chat-conversations` | `main/local_backend_bridge.cjs` | Internal SDK store channel for `search_chat_conversations` |
+| `list-chat-conversations` | `main/local_backend_bridge.cjs` | Internal SDK store channel for `list_chat_conversations` |
+| `list-episodic-memories` | `main/local_backend_bridge.cjs` | Internal local-runtime/SDK implementation channel for `list_episodic_memories` |
+| `get-chat-events` | `main/local_backend_bridge.cjs` | Internal SDK store channel for `get_chat_events` |
+| `list-semantic-memories` | `main/local_backend_bridge.cjs` | Internal local-runtime/SDK implementation channel for `list_semantic_memories` |
+| `delete-episodic-memory` | `main/local_backend_bridge.cjs` | Internal local-runtime/SDK implementation channel for `delete_episodic_memory` |
+| `delete-chat-conversation` | `main/local_backend_bridge.cjs` | Internal SDK store channel for `delete_chat_conversation` |
+| `delete-semantic-memory` | `main/local_backend_bridge.cjs` | Internal local-runtime/SDK implementation channel for `delete_semantic_memory` |
+| `store-chat-event` | `main/local_backend_bridge.cjs` | Internal SDK store channel for `store_chat_event` |
 | `upload-artifact` | `main/ipc.cjs` | Uploads base64 artifact to backend HTTP `/api/artifacts/` |
 | `load-frontend-config` | `main/ipc.cjs` | Reads frontend config from disk |
 | `save-frontend-config` | `main/ipc.cjs` | Persists frontend config to disk |

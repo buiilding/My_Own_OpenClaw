@@ -158,8 +158,8 @@ Responsibilities:
 From renderer usage perspective:
 
 - send channels: backend messaging, overlay window control, wakeword chunk/control
-- invoke channels: tool execution, artifact upload, memory CRUD/search, config load/save, window/display APIs
-- invoke channels include explicit episodic memory delete (`delete-episodic-memory`); legacy overlay focus-prep/toggle RPCs were removed from the renderer boundary.
+- invoke channels: tool execution, artifact upload, config load/save, window/display APIs, SDK-shaped `windie:invoke` runtime commands, and host permission/status requests
+- direct renderer-facing memory CRUD/search invoke channels were removed from the preload boundary; memory UI now uses SDK-shaped `memories.*` commands through `windie:invoke`.
 - invoke channels also include permission/status request channels and sudo access toggle:
   - `set-agent-sudo-access`
   - `list-permissions`, `check-permissions`, `check-permission`, `run-permission-probe`, `request-permission`

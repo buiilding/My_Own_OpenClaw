@@ -197,9 +197,16 @@ context, overlay, permission, and window behavior.
 2. The projection helpers delegate persistence to `DesktopTranscriptProjectionRuntimeClient`, which writes through the desktop conversation store factory rather than reaching into transcript IPC directly.
 3. `DesktopTranscriptSessionRuntimeClient` owns active conversation/user identity for app and dashboard surfaces.
 4. Dashboard conversation-list/load/delete/search and local snapshot calls go through `DesktopConversationLibraryClient`, which delegates store access to `DesktopTranscriptProjectionRuntimeClient` so dashboard feature code does not construct Electron store adapters or import transcript storage/snapshot infrastructure.
-5. Renderer-local conversation store helpers fetch SDK chat events via sidecar RPC (`list-chat-conversations`, `search-chat-conversations`, `get-chat-events`).
-   `get-chat-events` resume/hydrate paths use `message_index` cursor pagination (`after_message_index`) so large local chats are fully reloaded instead of capped at one page.
-6. `SidecarConversationStore` is the canonical sidecar-backed SDK conversation store. The desktop conversation store factory only supplies desktop write enrichment such as workspace binding, attachments, and compaction checkpoints.
+5. Renderer-local conversation helpers request SDK snapshots through
+   SDK-shaped commands such as `conversations.list`, `conversations.search`,
+   `conversation.load`, and `conversations.delete`. Renderer feature code does
+   not call sidecar chat-event RPC channels or select storage table/record
+   kinds.
+6. `SidecarConversationStore` is the canonical sidecar-backed SDK conversation
+   store. Sidecar chat-event RPC names remain below the SDK/local-runtime
+   boundary, while the desktop conversation store factory only supplies
+   desktop write enrichment such as workspace binding, attachments, and
+   compaction checkpoints before invoking SDK-shaped commands.
    Sidecar rewrites persist the SDK rewrite revision in sidecar conversation
    revision metadata, not by editing preserved event payloads, so list metadata
    and `getRevision()` stay consistent with file and in-memory stores.
@@ -292,10 +299,14 @@ Primary modules:
   - Applies the renderer-owned `global_agent_stop_shortcut` preference locally in main while filtering that key out of backend `update-settings` payloads.
   - Query preprocessing before the `conversation.send` SDK command.
   - Artifact upload HTTP helper.
-- `renderer/infrastructure/transcript/sdkSidecarConversationStore.ts`:
-  - Narrow SDK store adapter for local sidecar conversation storage RPC.
-  - Wraps `list-chat-conversations`, `search-chat-conversations`, and paginated `get-chat-events` only below the SDK store boundary.
-  - This is an internal SDK-store/transcript implementation detail, not a renderer-facing command API for user actions.
+- `renderer/infrastructure/transcript/desktopConversationStore.ts`:
+  - Renderer-side conversation store implementation for transcript projection
+    helpers.
+  - Calls SDK-shaped commands such as `conversation.appendEvent`,
+    `conversation.rewrite`, `conversation.replaceCompactedReplay`,
+    `conversation.load`, and `conversations.list/search/delete`.
+  - Sidecar storage RPC names stay inside SDK store/local-runtime
+    implementation code and Electron main sidecar bridge internals.
 - `renderer/features/chat/session/conversationInferenceSessionRuntime.ts`:
   - Tracks whether a given conversation needs backend inference-session hydration from canonical SDK conversation-store snapshots.
   - Makes backend state explicitly disposable and rebuildable instead of treating it as conversation truth.

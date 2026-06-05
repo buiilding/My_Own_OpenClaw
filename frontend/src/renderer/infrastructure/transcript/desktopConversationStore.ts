@@ -5,24 +5,26 @@ import {
   getConversationWorkspaceBinding,
 } from '../workspace/conversationWorkspaceBinding';
 import {
-  createIpcSidecarConversationStore,
-} from './sdkSidecarConversationStore';
-import { IpcBridge } from '../ipc/bridge';
-import {
   buildRehydrateSnapshot,
   createConversationEvent,
+  type CompactedReplaySnapshot,
+  type ConversationMetadata,
+  type ConversationRewritePlan,
   type ConversationEvent,
   type JsonRecord,
+  type ListConversationOptions,
   type RehydrateSnapshot,
-  type SidecarConversationStoreEventWriteContext,
-  type SidecarConversationStore,
+  type SearchConversationOptions,
+  type ConversationStore,
+  type DisplayConversation,
+  type SdkDisplayRow,
   resolveToolEventCorrelationId,
 } from '../api/windieSdkClient';
+import { invokeWindieCommand } from '../../app/runtime/windieCommandInvokeClient';
 
 export const CHAT_EVENT_RECORD_KIND = 'chat_event';
 
 type DesktopConversationStoreDeps = {
-  invoke?: typeof IpcBridge.invoke;
   getConversationWorkspaceBinding?: typeof getConversationWorkspaceBinding;
 };
 
@@ -236,11 +238,12 @@ function projectionEntryToConversationEvent(
   revisionId: string,
   entry: TranscriptProjectionRewriteEntry | TranscriptProjectionAppendEntry,
   index: number,
+  deps: Required<DesktopConversationStoreDeps> = resolveDesktopConversationStoreDeps(),
 ): ConversationEvent {
   const structuredPayload = 'rehydrateEntry' in entry && entry.rehydrateEntry
     ? entry.rehydrateEntry
     : {};
-  return createConversationEvent({
+  const event = createConversationEvent({
     eventId: `projection-${conversationRef}-${revisionId}-${index}`,
     type: eventTypeFromProjectionEntry(entry),
     conversationRef,
@@ -265,6 +268,20 @@ function projectionEntryToConversationEvent(
       structuredPayload,
     },
   });
+  const writeParams = buildDesktopEventWriteParams(event, deps);
+  return {
+    ...event,
+    payload: {
+      ...event.payload,
+      toolName: writeParams.tool_name ?? event.payload.toolName ?? null,
+      correlationId: writeParams.correlation_id ?? event.payload.correlationId ?? null,
+      workspacePath: writeParams.workspace_path ?? null,
+      workspaceName: writeParams.workspace_name ?? null,
+      metadata: writeParams.metadata ?? {},
+      attachments: Array.isArray(writeParams.attachments) ? writeParams.attachments : [],
+      compactionCheckpoint: writeParams.compaction_checkpoint ?? null,
+    },
+  };
 }
 
 function modelMetadataFromEvent(event: ConversationEvent): {
@@ -283,13 +300,12 @@ function resolveDesktopConversationStoreDeps(
   deps: DesktopConversationStoreDeps = {},
 ): Required<DesktopConversationStoreDeps> {
   return {
-    invoke: deps.invoke ?? IpcBridge.invoke,
     getConversationWorkspaceBinding: deps.getConversationWorkspaceBinding ?? getConversationWorkspaceBinding,
   };
 }
 
 function buildDesktopEventWriteParams(
-  { event }: SidecarConversationStoreEventWriteContext,
+  event: ConversationEvent,
   deps: Required<DesktopConversationStoreDeps>,
 ): JsonRecord {
   const workspaceBinding = deps.getConversationWorkspaceBinding(event.conversationRef);
@@ -318,11 +334,113 @@ function buildDesktopEventWriteParams(
 export function createDesktopConversationStore(
   userId: string,
   deps: DesktopConversationStoreDeps = {},
-): SidecarConversationStore {
+): ConversationStore {
   const resolvedDeps = resolveDesktopConversationStoreDeps(deps);
-  return createIpcSidecarConversationStore(userId, resolvedDeps.invoke, {
-    eventWriteParams: context => buildDesktopEventWriteParams(context, resolvedDeps),
-  });
+  return {
+    async appendEvent(event: ConversationEvent): Promise<void> {
+      await invokeWindieCommand('conversation.appendEvent', {
+        userId,
+        conversationRef: event.conversationRef,
+        event,
+      });
+    },
+    async appendEvents(events: ConversationEvent[]): Promise<void> {
+      for (const event of events) {
+        await this.appendEvent(event);
+      }
+    },
+    async rewriteConversation(plan: ConversationRewritePlan): Promise<void> {
+      await invokeWindieCommand('conversation.rewrite', {
+        userId,
+        conversationRef: plan.conversationRef,
+        plan,
+      });
+    },
+    async replaceCompactedReplay(snapshot: CompactedReplaySnapshot): Promise<void> {
+      await invokeWindieCommand('conversation.replaceCompactedReplay', {
+        userId,
+        conversationRef: snapshot.conversationRef,
+        snapshot,
+      });
+    },
+    async loadEvents(conversationRef: string): Promise<ConversationEvent[]> {
+      const snapshot = await invokeWindieCommand<{
+        state?: { events?: ConversationEvent[] };
+      }>('conversation.load', {
+        userId,
+        conversationRef,
+      });
+      return Array.isArray(snapshot?.state?.events) ? snapshot.state.events : [];
+    },
+    async loadForDisplay(conversationRef: string): Promise<DisplayConversation> {
+      const snapshot = await invokeWindieCommand<{
+        display?: DisplayConversation;
+      }>('conversation.load', {
+        userId,
+        conversationRef,
+      });
+      return snapshot?.display ?? {
+        conversationRef,
+        revisionId: '',
+        messages: [],
+        compaction: { status: 'idle' },
+      };
+    },
+    async loadDisplayRows(conversationRef: string): Promise<SdkDisplayRow[]> {
+      const snapshot = await invokeWindieCommand<{
+        displayRows?: SdkDisplayRow[];
+      }>('conversation.load', {
+        userId,
+        conversationRef,
+      });
+      return Array.isArray(snapshot?.displayRows) ? snapshot.displayRows : [];
+    },
+    async loadForRehydrate(conversationRef: string): Promise<RehydrateSnapshot> {
+      const snapshot = await invokeWindieCommand<{
+        rehydrate?: RehydrateSnapshot;
+      }>('conversation.load', {
+        userId,
+        conversationRef,
+      });
+      return snapshot?.rehydrate ?? {
+        conversationRef,
+        revisionId: '',
+        messages: [],
+      };
+    },
+    async listMetadata(options?: ListConversationOptions): Promise<ConversationMetadata[]> {
+      const metadata = await invokeWindieCommand<ConversationMetadata[]>('conversations.list', {
+        userId,
+        limit: options?.limit,
+      });
+      return Array.isArray(metadata) ? metadata : [];
+    },
+    async searchMetadata(options: SearchConversationOptions): Promise<ConversationMetadata[]> {
+      const metadata = await invokeWindieCommand<ConversationMetadata[]>('conversations.search', {
+        userId,
+        query: options.query,
+        limit: options.limit,
+      });
+      return Array.isArray(metadata) ? metadata : [];
+    },
+    async deleteConversation(conversationRef: string): Promise<void> {
+      await invokeWindieCommand('conversations.delete', {
+        userId,
+        conversationRef,
+      });
+    },
+    async clearConversations(): Promise<void> {
+      await invokeWindieCommand('conversations.clearAll', {
+        userId,
+      });
+    },
+    async getRevision(conversationRef: string) {
+      return invokeWindieCommand('conversation.getRevision', {
+        userId,
+        conversationRef,
+      });
+    },
+  };
 }
 
 export async function appendTranscriptProjectionEntry(
@@ -337,6 +455,7 @@ export async function appendTranscriptProjectionEntry(
     revision.revisionId,
     entry,
     Date.now(),
+    resolveDesktopConversationStoreDeps(deps),
   ));
 }
 
@@ -355,12 +474,13 @@ export async function rewriteTranscriptProjection({
 }): Promise<RehydrateSnapshot> {
   const store = createDesktopConversationStore(userId, deps);
   const revisionId = `rev-rewrite-${conversationRef}-${Date.now()}`;
+  const resolvedDeps = resolveDesktopConversationStoreDeps(deps);
   await store.rewriteConversation({
     conversationRef,
     baseRevisionId: '',
     newRevisionId: revisionId,
     preservedEvents: entries.map((entry, index) => (
-      projectionEntryToConversationEvent(conversationRef, revisionId, entry, index)
+      projectionEntryToConversationEvent(conversationRef, revisionId, entry, index, resolvedDeps)
     )),
     removedEventIds: [],
     reason: 'transcript_projection_rewrite',

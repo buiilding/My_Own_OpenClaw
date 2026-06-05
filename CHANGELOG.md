@@ -12,6 +12,14 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sdk: route renderer memory and conversation clear actions through a
   single SDK-shaped `windie.invoke(...)` command bridge, with Electron main
   allowlisting commands and calling public SDK agent APIs.
+- frontend/sdk: remove direct renderer/preload memory and chat-clear IPC invoke
+  channels so memory list/delete/clear and chat clearing use SDK-shaped
+  `memories.*` / `conversations.clearAll` commands instead of sidecar RPC
+  names.
+- frontend/sdk: route renderer chat history load/search/delete/replay writes
+  through SDK-shaped conversation commands, add public SDK agent conversation
+  store APIs, delete the renderer-side sidecar conversation store adapter, and
+  remove chat storage channels from the renderer/preload registry.
 - frontend/sdk: move renderer live-turn and SDK backend transport runtime
   commands onto SDK-shaped `windie.invoke(...)` commands instead of direct
   `windie:*` IPC channels.

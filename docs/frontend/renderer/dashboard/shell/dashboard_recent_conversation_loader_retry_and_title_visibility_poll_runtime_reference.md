@@ -2,7 +2,7 @@
 summary: "Deep reference for dashboard recent-conversation runtime in `useDashboardConversations`: in-flight request dedupe, stale-response suppression, startup retry backoff, transcript-triggered title visibility polling, and open/delete/search side effects."
 read_when:
   - When changing recent conversation loading, startup retry behavior, or transcript-triggered sidebar refresh logic in `useDashboardConversations`.
-  - When debugging missing new titles in the sidebar, stale conversation list overwrite races, or repeated `list-chat-conversations` calls.
+  - When debugging missing new titles in the sidebar, stale conversation list overwrite races, or repeated `conversations.list` SDK command calls.
 title: "Dashboard Recent Conversation Loader, Retry, and Title-Visibility Poll Runtime Reference"
 ---
 
@@ -12,8 +12,8 @@ title: "Dashboard Recent Conversation Loader, Retry, and Title-Visibility Poll R
 
 - `frontend/src/renderer/features/dashboard/hooks/useDashboardConversations.js`
 - `frontend/src/renderer/features/dashboard/utils/conversationGroups.js`
-- `frontend/src/renderer/infrastructure/transcript/localConversationStore.ts`
 - `frontend/src/renderer/features/dashboard/utils/episodicMemoryUtils.js`
+- `frontend/src/renderer/app/runtime/desktopConversationLibraryClient.js`
 - `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`
 - `tests/frontend/ChatGptDashboardShell.test.jsx`
 
@@ -94,11 +94,12 @@ This path handles title generation lag between transcript persistence and indexe
 
 `handleOpenConversation(conversation)`:
 
-1. loads transcript memories (`loadConversationTranscriptMemories`)
-2. converts to renderer message rows (`parseMemoriesToMessages`)
-3. sends the desktop runtime `rehydrate` command with the SDK rehydrate payload (`toRehydrateMessagePayload`); the SDK transport adapter translates it to the backend wire message
+1. loads the SDK conversation snapshot through `conversation.load`
+2. loads SDK `displayRows` and converts them to visible chat messages
+3. resolves workspace binding from SDK snapshot metadata
 4. updates transcript session + active conversation refs
-5. writes parsed rows into chat workspace and resets `isSending` / `thinkingStatus`
+5. writes projected rows into chat workspace and resets `isSending` /
+   `thinkingStatus`
 
 Failure is reported via `recentConversationsError`.
 
@@ -107,9 +108,8 @@ Failure is reported via `recentConversationsError`.
 `handleDeleteConversation(conversation)`:
 
 - confirms with blocking prompt
-- delegates to the SDK `SidecarConversationStore` through the desktop
-  conversation library facade, which deletes canonical `chat_events` rows for
-  the chat
+- delegates to the SDK-shaped `conversations.delete` command through the
+  desktop conversation library facade
 - removes row from recent/searched lists and pin set
 - when deleting currently active session conversation:
   - clears active conversation refs
@@ -123,7 +123,7 @@ Search behavior when modal is open:
 - input is trimmed
 - minimum query length is `2`
 - debounce delay `180ms`
-- invokes `search-chat-conversations` with `limit: 60`
+- invokes SDK-shaped `conversations.search` with `limit: 60`
 - cancellation flag prevents stale async search results from mutating state after query changes or unmount
 
 ## Grouping and Pin State
@@ -148,7 +148,7 @@ Pin behavior:
 1. Removing request-id stale suppression can reintroduce overwritten recent-list races.
 2. Broadening transient-error matching can create noisy retry storms on non-retryable failures.
 3. Dropping transcript-entry poll logic can hide newly generated titles until manual refresh.
-4. Forgetting timer cleanup on unmount can leak poll loops and duplicate `list-chat-conversations` calls.
+4. Forgetting timer cleanup on unmount can leak poll loops and duplicate `conversations.list` calls.
 
 ## Related Docs
 

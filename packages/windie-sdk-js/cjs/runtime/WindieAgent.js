@@ -327,6 +327,28 @@ class WindieAgent {
             : options;
         return this.conversation(loadOptions).load();
     }
+    async getConversationRevision(options) {
+        const revisionOptions = typeof options === 'string'
+            ? { conversationRef: options }
+            : options;
+        const conversationStore = revisionOptions.store ?? this.defaultConversationStore;
+        return conversationStore.getRevision(revisionOptions.conversationRef);
+    }
+    async appendConversationEvent(options) {
+        const appendOptions = 'event' in options ? options : { event: options };
+        const conversationStore = appendOptions.store ?? this.defaultConversationStore;
+        await conversationStore.appendEvent(appendOptions.event);
+    }
+    async rewriteConversation(options) {
+        const rewriteOptions = 'plan' in options ? options : { plan: options };
+        const conversationStore = rewriteOptions.store ?? this.defaultConversationStore;
+        await conversationStore.rewriteConversation(rewriteOptions.plan);
+    }
+    async replaceCompactedReplay(options) {
+        const replaceOptions = 'snapshot' in options ? options : { snapshot: options };
+        const conversationStore = replaceOptions.store ?? this.defaultConversationStore;
+        await conversationStore.replaceCompactedReplay(replaceOptions.snapshot);
+    }
     async prepareEditAndResend(options) {
         const { conversationRef, revisionId, store, ...input } = options;
         return this.conversation({

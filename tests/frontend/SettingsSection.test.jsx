@@ -43,8 +43,6 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
   INVOKE_CHANNELS: {
     SET_AGENT_SUDO_ACCESS: 'set-agent-sudo-access',
-    CLEAR_LOCAL_MEMORY: 'clear-local-memory',
-    CLEAR_CHAT_HISTORY: 'clear-chat-history',
     CHECK_PERMISSION: 'check-permission',
     REQUEST_PERMISSION: 'request-permission',
   },

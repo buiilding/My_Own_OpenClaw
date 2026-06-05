@@ -1,90 +1,61 @@
 import {
   buildRehydrateSnapshotFromTranscriptProjectionEntries,
-  CHAT_EVENT_RECORD_KIND,
   appendTranscriptProjectionEntry,
   createDesktopConversationStore,
   rewriteTranscriptProjection,
 } from '../../frontend/src/renderer/infrastructure/transcript/desktopConversationStore';
-import { IpcBridge } from '../../frontend/src/renderer/infrastructure/ipc/bridge';
 import {
   createConversationEvent,
 } from '../../frontend/src/renderer/infrastructure/api/windieSdkClient';
+import { invokeWindieCommand } from '../../frontend/src/renderer/app/runtime/windieCommandInvokeClient';
 
-jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
-  IpcBridge: {
-    invoke: jest.fn(),
-  },
-  INVOKE_CHANNELS: {
-    DELETE_CHAT_CONVERSATION: 'delete-chat-conversation',
-    GET_CHAT_EVENTS: 'get-chat-events',
-    GET_CHAT_CONVERSATION_REVISION: 'get-chat-conversation-revision',
-    LIST_CHAT_CONVERSATIONS: 'list-chat-conversations',
-    REPLACE_CHAT_CONVERSATION: 'replace-chat-conversation',
-    REWRITE_CHAT_CONVERSATION_AFTER_EVENT: 'rewrite-chat-conversation-after-event',
-    SEARCH_CHAT_CONVERSATIONS: 'search-chat-conversations',
-    STORE_CHAT_EVENT: 'store-chat-event',
-  },
+jest.mock('../../frontend/src/renderer/app/runtime/windieCommandInvokeClient', () => ({
+  invokeWindieCommand: jest.fn(),
 }));
 
-const mockInvoke = IpcBridge.invoke as jest.MockedFunction<typeof IpcBridge.invoke>;
+const mockInvokeWindieCommand = invokeWindieCommand as jest.MockedFunction<typeof invokeWindieCommand>;
 
-function sdkEventRow(event: ReturnType<typeof createConversationEvent>) {
-  return {
-    event_payload: event,
-  } as any;
-}
-
-function mockGetChatEventsOnce(events: Array<Record<string, unknown>>) {
-  mockInvoke.mockImplementationOnce(async (channel) => {
-    if (channel === 'get-chat-events') {
-      return {
-        success: true,
-        data: { events },
-      };
-    }
-    return { success: true, data: { message_index: 1 } };
-  });
-}
-
-function mockListConversationsOnce(conversations: Array<Record<string, unknown>>) {
-  mockInvoke.mockImplementationOnce(async (channel) => {
-    if (channel === 'list-chat-conversations') {
-      return {
-        success: true,
-        data: { conversations },
-      };
-    }
-    return { success: true, data: { message_index: 1 } };
-  });
-}
+const defaultRevision = {
+  conversationRef: 'conv-1',
+  revisionId: 'rev-stored-test',
+  updatedAt: '1970-01-01T00:00:00.000Z',
+};
 
 describe('desktop conversation store factory', () => {
   beforeEach(() => {
-    mockInvoke.mockReset();
-    mockInvoke.mockImplementation(async (channel) => {
-      if (channel === 'get-chat-events') {
-        return { success: true, data: { events: [] } };
-      }
-      if (channel === 'get-chat-conversation-revision') {
+    mockInvokeWindieCommand.mockReset();
+    mockInvokeWindieCommand.mockImplementation(async (command, payload) => {
+      if (command === 'conversation.getRevision') {
         return {
-          success: true,
-          data: {
-            revision_id: 'rev-stored-test',
-            updated_at: '1970-01-01T00:00:00.000Z',
+          ...defaultRevision,
+          conversationRef: String(payload?.conversationRef || defaultRevision.conversationRef),
+        } as never;
+      }
+      if (command === 'conversation.load') {
+        return {
+          state: { events: [] },
+          display: {
+            conversationRef: String(payload?.conversationRef || 'conv-1'),
+            revisionId: 'rev-load',
+            messages: [],
+            compaction: { status: 'idle' },
           },
-        };
+          displayRows: [],
+          rehydrate: {
+            conversationRef: String(payload?.conversationRef || 'conv-1'),
+            revisionId: 'rev-load',
+            messages: [],
+          },
+        } as never;
       }
-      if (channel === 'list-chat-conversations') {
-        return { success: true, data: { conversations: [] } };
+      if (command === 'conversations.list' || command === 'conversations.search') {
+        return [] as never;
       }
-      if (channel === 'search-chat-conversations') {
-        return { success: true, data: { conversations: [] } };
-      }
-      return { success: true, data: { message_index: 1 } };
+      return null as never;
     });
   });
 
-  test('stores normalized SDK events in dedicated chat-event storage', async () => {
+  test('appends canonical SDK events through the SDK command bridge', async () => {
     const store = createDesktopConversationStore('user-1');
     const event = createConversationEvent({
       eventId: 'evt-user',
@@ -97,109 +68,14 @@ describe('desktop conversation store factory', () => {
 
     await store.appendEvent(event);
 
-    expect(mockInvoke).toHaveBeenCalledWith('store-chat-event', expect.objectContaining({
-      content: 'hello',
-      conversationId: 'conv-1',
-      eventType: 'user_message',
-      role: 'user',
-      eventPayload: event,
-    }));
-  });
-
-  test('stores user-message image attachments as first-class chat event attachments', async () => {
-    const store = createDesktopConversationStore('user-1');
-    const event = createConversationEvent({
-      eventId: 'evt-user-image',
-      type: 'user_message',
+    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversation.appendEvent', {
+      userId: 'user-1',
       conversationRef: 'conv-1',
-      revisionId: 'rev-1',
-      timestamp: '2026-05-15T12:00:00.000Z',
-      payload: {
-        text: 'look at this',
-        screenshots: [
-          {
-            screenshotRef: 'artifact-user-1',
-            screenshotUrl: '/api/artifacts/artifact-user-1',
-            screenshotContentType: 'image/png',
-          },
-        ],
-      },
+      event,
     });
-
-    await store.appendEvent(event);
-
-    expect(mockInvoke).toHaveBeenCalledWith('store-chat-event', expect.objectContaining({
-      attachments: [
-        expect.objectContaining({
-          kind: 'image',
-          ref: 'artifact-user-1',
-          url: '/api/artifacts/artifact-user-1',
-          contentType: 'image/png',
-        }),
-      ],
-      eventPayload: event,
-    }));
   });
 
-  test('uses SDK tool identity helpers when storing SDK tool events', async () => {
-    const store = createDesktopConversationStore('user-1');
-    const event = createConversationEvent({
-      eventId: 'evt-tool',
-      type: 'tool_output',
-      conversationRef: 'conv-1',
-      revisionId: 'rev-1',
-      timestamp: '2026-05-15T12:00:00.000Z',
-      payload: {
-        text: 'tool result',
-        toolCallId: 'call-read',
-        correlationId: 'corr-read',
-      },
-    });
-
-    await store.appendEvent(event);
-
-    expect(mockInvoke).toHaveBeenCalledWith('store-chat-event', expect.objectContaining({
-      correlationId: 'call-read',
-      eventType: 'tool_output',
-      eventPayload: event,
-    }));
-  });
-
-  test('stores tool-output image attachments from nested result payloads', async () => {
-    const store = createDesktopConversationStore('user-1');
-    const event = createConversationEvent({
-      eventId: 'evt-tool-image',
-      type: 'tool_output',
-      conversationRef: 'conv-1',
-      revisionId: 'rev-1',
-      timestamp: '2026-05-15T12:00:00.000Z',
-      payload: {
-        text: 'tool result',
-        toolCallId: 'call-shot',
-        result: {
-          screenshot_ref: 'artifact-tool-1',
-          screenshot_url: '/api/artifacts/artifact-tool-1',
-          screenshot_content_type: 'image/png',
-        },
-      },
-    });
-
-    await store.appendEvent(event);
-
-    expect(mockInvoke).toHaveBeenCalledWith('store-chat-event', expect.objectContaining({
-      attachments: [
-        expect.objectContaining({
-          kind: 'image',
-          ref: 'artifact-tool-1',
-          url: '/api/artifacts/artifact-tool-1',
-          contentType: 'image/png',
-        }),
-      ],
-      eventPayload: event,
-    }));
-  });
-
-  test('loads only canonical SDK event rows', async () => {
+  test('loads events through the SDK conversation load command', async () => {
     const store = createDesktopConversationStore('user-1');
     const event = createConversationEvent({
       eventId: 'evt-assistant',
@@ -209,51 +85,22 @@ describe('desktop conversation store factory', () => {
       timestamp: '2026-05-15T12:00:00.000Z',
       payload: { text: 'from sdk event' },
     });
-    mockGetChatEventsOnce([sdkEventRow(event)]);
+    mockInvokeWindieCommand.mockResolvedValueOnce({
+      state: { events: [event] },
+    } as never);
 
     const events = await store.loadEvents('conv-1');
 
     expect(events).toEqual([event]);
-    expect(mockInvoke).toHaveBeenCalledTimes(1);
-    expect(mockInvoke).toHaveBeenCalledWith('get-chat-events', expect.objectContaining({
-      recordKind: CHAT_EVENT_RECORD_KIND,
-    }));
+    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversation.load', {
+      userId: 'user-1',
+      conversationRef: 'conv-1',
+    });
   });
 
-  test('preserves sidecar append order for same-timestamp SDK event rows', async () => {
+  test('stores compacted replay snapshots through the SDK command bridge', async () => {
     const store = createDesktopConversationStore('user-1');
-    const timestamp = '2026-05-15T12:00:00.000Z';
-    const first = createConversationEvent({
-      eventId: 'z-first',
-      type: 'user_message',
-      conversationRef: 'conv-1',
-      revisionId: 'rev-1',
-      timestamp,
-      payload: { text: 'first in append order' },
-    });
-    const second = createConversationEvent({
-      eventId: 'a-second',
-      type: 'assistant_message',
-      conversationRef: 'conv-1',
-      revisionId: 'rev-1',
-      timestamp,
-      payload: { text: 'second in append order' },
-    });
-    mockGetChatEventsOnce([
-      { message_index: 1, ...sdkEventRow(first) },
-      { message_index: 2, ...sdkEventRow(second) },
-    ]);
-
-    expect((await store.loadEvents('conv-1')).map((event) => event.eventId)).toEqual([
-      'z-first',
-      'a-second',
-    ]);
-  });
-
-  test('stores compacted replay snapshots as compaction events', async () => {
-    const store = createDesktopConversationStore('user-1');
-
-    await store.replaceCompactedReplay({
+    const snapshot = {
       generationId: 'gen-1',
       conversationRef: 'conv-compact',
       sourceRevisionId: 'rev-source',
@@ -269,80 +116,18 @@ describe('desktop conversation store factory', () => {
       entryCount: 1,
       complete: true,
       active: true,
-    });
+    };
 
-    expect(mockInvoke).toHaveBeenCalledTimes(1);
-    expect(mockInvoke).toHaveBeenCalledWith('store-chat-event', expect.objectContaining({
+    await store.replaceCompactedReplay(snapshot);
+
+    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversation.replaceCompactedReplay', {
       userId: 'user-1',
-      conversationId: 'conv-compact',
-      eventType: 'compaction_applied',
-      compactionCheckpoint: expect.objectContaining({
-        generationId: 'gen-1',
-      }),
-      eventPayload: expect.objectContaining({
-        eventId: 'compaction-gen-1',
-        type: 'compaction_applied',
-        revisionId: 'rev-source',
-        turnRef: 'turn-compact',
-        payload: expect.objectContaining({
-          generationId: 'gen-1',
-          entries: [
-            expect.objectContaining({ content: 'compacted summary' }),
-          ],
-          entryCount: 1,
-          complete: true,
-        }),
-      }),
-    }));
-  });
-
-  test('uses the newest complete compaction event for backend rehydrate snapshots', async () => {
-    const store = createDesktopConversationStore('user-1');
-    const partial = createConversationEvent({
-      eventId: 'compaction-partial',
-      type: 'compaction_applied',
       conversationRef: 'conv-compact',
-      revisionId: 'rev-partial',
-      timestamp: '2026-05-15T12:00:00.000Z',
-      payload: {
-        generationId: 'gen-partial',
-        sourceRevisionId: 'rev-partial',
-        entries: [{ role: 'assistant', content: 'partial' }],
-        entryCount: 2,
-        complete: true,
-      },
-    });
-    const complete = createConversationEvent({
-      eventId: 'compaction-complete',
-      type: 'compaction_applied',
-      conversationRef: 'conv-compact',
-      revisionId: 'rev-new',
-      timestamp: '2026-05-15T12:01:00.000Z',
-      payload: {
-        generationId: 'gen-new',
-        sourceRevisionId: 'rev-new',
-        entries: [{ role: 'assistant', content: 'new complete' }],
-        entryCount: 1,
-        complete: true,
-      },
-    });
-    mockGetChatEventsOnce([
-      sdkEventRow(partial),
-      sdkEventRow(complete),
-    ]);
-
-    const snapshot = await store.loadForRehydrate('conv-compact');
-
-    expect(snapshot).toMatchObject({
-      replayGenerationId: 'gen-new',
-      revisionId: 'rev-new',
-      messages: [
-        expect.objectContaining({ content: 'new complete' }),
-      ],
+      snapshot,
     });
   });
 
-  test('appends transcript projections as canonical conversation events', async () => {
+  test('appends transcript projections as enriched canonical conversation events', async () => {
     await appendTranscriptProjectionEntry('user-1', {
       conversationRef: 'conv-append',
       content: 'assistant answer',
@@ -359,61 +144,42 @@ describe('desktop conversation store factory', () => {
       },
     });
 
-    expect(mockInvoke).toHaveBeenCalledTimes(2);
-    expect(mockInvoke).toHaveBeenLastCalledWith('store-chat-event', expect.objectContaining({
-      content: 'assistant answer',
+    expect(mockInvokeWindieCommand).toHaveBeenCalledTimes(2);
+    expect(mockInvokeWindieCommand).toHaveBeenNthCalledWith(1, 'conversation.getRevision', {
       userId: 'user-1',
-      conversationId: 'conv-append',
-      eventType: 'assistant_message',
-      role: 'assistant',
-      eventPayload: expect.objectContaining({
+      conversationRef: 'conv-append',
+    });
+    expect(mockInvokeWindieCommand).toHaveBeenNthCalledWith(2, 'conversation.appendEvent', {
+      userId: 'user-1',
+      conversationRef: 'conv-append',
+      event: expect.objectContaining({
         type: 'assistant_message',
+        conversationRef: 'conv-append',
+        revisionId: 'rev-stored-test',
         payload: expect.objectContaining({
           text: 'assistant answer',
           screenshotRef: 'artifact-1',
           screenshot: null,
+          metadata: expect.objectContaining({
+            model_id: 'model-1',
+            model_provider: 'provider-1',
+            screenshot: 'artifact-1',
+          }),
+          attachments: [
+            expect.objectContaining({
+              kind: 'image',
+              ref: 'artifact-1',
+            }),
+          ],
           structuredPayload: expect.objectContaining({
             content: 'assistant answer',
           }),
         }),
       }),
-    }));
-  });
-
-  test('classifies hyphenated transcript tool-call rows as SDK tool events', async () => {
-    await appendTranscriptProjectionEntry('user-1', {
-      conversationRef: 'conv-tool-call',
-      content: '{"id":"call-1","name":"mouse_control","arguments":{"action":"click"}}',
-      role: 'assistant',
-      messageType: 'tool-call',
-      toolName: 'mouse_control',
-      correlationId: 'call-1',
-      timestamp: '2026-05-15T12:00:00.000Z',
-      rehydrateEntry: {
-        role: 'assistant',
-        content: '{"id":"call-1","name":"mouse_control","arguments":{"action":"click"}}',
-        message_type: 'tool-call',
-      },
     });
-
-    expect(mockInvoke).toHaveBeenCalledWith('store-chat-event', expect.objectContaining({
-      content: '{"id":"call-1","name":"mouse_control","arguments":{"action":"click"}}',
-      role: 'assistant',
-      eventType: 'tool_call',
-      toolName: 'mouse_control',
-      correlationId: 'call-1',
-      eventPayload: expect.objectContaining({
-        type: 'tool_call',
-        payload: expect.objectContaining({
-          messageType: 'tool-call',
-          toolName: 'mouse_control',
-          toolCallId: 'call-1',
-        }),
-      }),
-    }));
   });
 
-  test('classifies hyphenated transcript tool-output rows as SDK tool events', async () => {
+  test('classifies hyphenated transcript tool rows as SDK tool events', async () => {
     await appendTranscriptProjectionEntry('user-1', {
       conversationRef: 'conv-tool-output',
       content: 'clicked',
@@ -430,31 +196,25 @@ describe('desktop conversation store factory', () => {
       },
     });
 
-    expect(mockInvoke).toHaveBeenCalledWith('store-chat-event', expect.objectContaining({
-      content: 'clicked',
-      role: 'tool',
-      eventType: 'tool_output',
-      toolName: 'mouse_control',
-      correlationId: 'call-1',
-      eventPayload: expect.objectContaining({
+    expect(mockInvokeWindieCommand).toHaveBeenLastCalledWith('conversation.appendEvent', {
+      userId: 'user-1',
+      conversationRef: 'conv-tool-output',
+      event: expect.objectContaining({
         type: 'tool_output',
         payload: expect.objectContaining({
+          text: 'clicked',
+          toolName: 'mouse_control',
+          correlationId: 'call-1',
+          toolCallId: 'call-1',
           screenshotRef: 'artifact-output-1',
           screenshot: null,
         }),
       }),
-    }));
+    });
   });
 
-  test('edit rewrite cuts stored rows without resending preserved history', async () => {
+  test('rewrites edit plans through the SDK command bridge', async () => {
     const store = createDesktopConversationStore('user-1');
-    const prior = createConversationEvent({
-      eventId: 'evt-prior',
-      type: 'user_message',
-      conversationRef: 'conv-edit',
-      revisionId: 'rev-old',
-      payload: { text: 'previous' },
-    });
     const preserved = createConversationEvent({
       eventId: 'evt-rewrite',
       type: 'conversation_rewritten',
@@ -462,47 +222,38 @@ describe('desktop conversation store factory', () => {
       revisionId: 'rev-next',
       payload: { reason: 'edit_resend' },
     });
-
-    await store.rewriteConversation({
+    const plan = {
       conversationRef: 'conv-edit',
       baseRevisionId: 'rev-old',
       newRevisionId: 'rev-next',
       cutAfterEventId: 'evt-prior',
-      preservedEvents: [prior, preserved],
+      preservedEvents: [preserved],
       removedEventIds: ['evt-old'],
-      reason: 'edit_resend',
+      reason: 'edit_resend' as const,
       replacementUserMessage: { text: 'edited' },
-    });
+    };
 
-    expect(mockInvoke).toHaveBeenCalledTimes(1);
-    expect(mockInvoke).toHaveBeenCalledWith('rewrite-chat-conversation-after-event', expect.objectContaining({
+    await store.rewriteConversation(plan);
+
+    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversation.rewrite', {
       userId: 'user-1',
-      conversationId: 'conv-edit',
-      recordKind: CHAT_EVENT_RECORD_KIND,
-      cutAfterEventId: 'evt-prior',
-      revisionId: 'rev-next',
-      revisionUpdatedAt: expect.any(String),
-      event: expect.objectContaining({
-        conversationId: 'conv-edit',
-        eventPayload: preserved,
-      }),
-    }));
+      conversationRef: 'conv-edit',
+      plan,
+    });
   });
 
-  test('deletes only canonical event rows for a conversation', async () => {
+  test('deletes conversations through the SDK command bridge', async () => {
     const store = createDesktopConversationStore('user-1');
 
     await store.deleteConversation('conv-delete');
 
-    expect(mockInvoke).toHaveBeenCalledTimes(1);
-    expect(mockInvoke).toHaveBeenCalledWith('delete-chat-conversation', expect.objectContaining({
+    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversations.delete', {
       userId: 'user-1',
-      conversationId: 'conv-delete',
-      recordKind: CHAT_EVENT_RECORD_KIND,
-    }));
+      conversationRef: 'conv-delete',
+    });
   });
 
-  test('rewrites transcript projection as canonical events', async () => {
+  test('rewrites transcript projection as canonical SDK events', async () => {
     const rehydrateSnapshot = await rewriteTranscriptProjection({
       userId: 'user-1',
       conversationRef: 'conv-edit',
@@ -531,30 +282,37 @@ describe('desktop conversation store factory', () => {
       ],
     });
 
-    expect(mockInvoke).toHaveBeenCalledTimes(1);
-    expect(mockInvoke).toHaveBeenCalledWith('replace-chat-conversation', expect.objectContaining({
+    expect(mockInvokeWindieCommand).toHaveBeenCalledTimes(1);
+    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversation.rewrite', {
       userId: 'user-1',
-      conversationId: 'conv-edit',
-      recordKind: CHAT_EVENT_RECORD_KIND,
-      events: [
-        expect.objectContaining({
-          content: 'edited prompt',
-          userId: 'user-1',
-          conversationId: 'conv-edit',
-          role: 'user',
-          eventType: 'user_message',
-          messageIndex: 1,
-        }),
-        expect.objectContaining({
-          content: 'tool output',
-          role: 'tool',
-          eventType: 'tool_output',
-          toolName: 'shell',
-          correlationId: 'tool-call-1',
-          messageIndex: 2,
-        }),
-      ],
-    }));
+      conversationRef: 'conv-edit',
+      plan: expect.objectContaining({
+        conversationRef: 'conv-edit',
+        reason: 'transcript_projection_rewrite',
+        preservedEvents: [
+          expect.objectContaining({
+            type: 'user_message',
+          payload: expect.objectContaining({
+            text: 'edited prompt',
+            attachments: [
+              expect.objectContaining({
+                kind: 'image',
+                data: 'artifact-1',
+              }),
+            ],
+          }),
+          }),
+          expect.objectContaining({
+            type: 'tool_output',
+            payload: expect.objectContaining({
+              text: 'tool output',
+              toolName: 'shell',
+              correlationId: 'tool-call-1',
+            }),
+          }),
+        ],
+      }),
+    });
     expect(rehydrateSnapshot.messages).toEqual([
       expect.objectContaining({
         role: 'user',
@@ -563,23 +321,9 @@ describe('desktop conversation store factory', () => {
     ]);
   });
 
-  test('lists metadata from canonical event rows only', async () => {
+  test('lists metadata through the SDK command bridge', async () => {
     const store = createDesktopConversationStore('user-1');
-    mockListConversationsOnce([
-      {
-        conversation_id: 'conv-sdk',
-        title: 'SDK title',
-        last_message: 'latest',
-        last_timestamp: '2026-05-15T12:00:00.000Z',
-        entry_count: 3,
-        workspace_path: '/work/WindieOS',
-        workspace_name: 'WindieOS',
-      } as any,
-    ]);
-
-    const metadata = await store.listMetadata();
-
-    expect(metadata).toEqual([
+    const metadata = [
       {
         conversationRef: 'conv-sdk',
         revisionId: 'rev-stored-conv-sdk',
@@ -592,12 +336,14 @@ describe('desktop conversation store factory', () => {
         snippet: null,
         matchedRole: null,
       },
-    ]);
-    expect(mockInvoke).toHaveBeenCalledTimes(1);
-    expect(mockInvoke).toHaveBeenCalledWith('list-chat-conversations', expect.objectContaining({
-      recordKind: CHAT_EVENT_RECORD_KIND,
-      limit: undefined,
-    }));
+    ];
+    mockInvokeWindieCommand.mockResolvedValueOnce(metadata as never);
+
+    await expect(store.listMetadata({ limit: 25 })).resolves.toEqual(metadata);
+    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversations.list', {
+      userId: 'user-1',
+      limit: 25,
+    });
   });
 
   test('builds replay rehydrate snapshots from transcript projection entries through SDK projections', () => {
@@ -631,57 +377,5 @@ describe('desktop conversation store factory', () => {
       ],
     });
     expect(snapshot.messages).toHaveLength(1);
-  });
-
-  test('applies explicit metadata limits to canonical event rows', async () => {
-    const store = createDesktopConversationStore('user-1');
-    mockListConversationsOnce([
-      {
-        conversation_id: 'conv-1',
-        title: 'First',
-        last_timestamp: '2026-05-15T11:00:00.000Z',
-        entry_count: 1,
-      } as any,
-    ]);
-
-    const metadata = await store.listMetadata({ limit: 1 });
-
-    expect(metadata.map((entry) => entry.conversationRef)).toEqual(['conv-1']);
-    expect(mockInvoke).toHaveBeenCalledWith('list-chat-conversations', expect.objectContaining({
-      recordKind: CHAT_EVENT_RECORD_KIND,
-      limit: 1,
-    }));
-  });
-
-  test('applies metadata cursor pagination to canonical event rows', async () => {
-    const store = createDesktopConversationStore('user-1');
-    mockListConversationsOnce([
-      {
-        conversation_id: 'conv-1',
-        title: 'First',
-        last_timestamp: '2026-05-15T10:00:00.000Z',
-        entry_count: 1,
-      } as any,
-      {
-        conversation_id: 'conv-2',
-        title: 'Second',
-        last_timestamp: '2026-05-15T11:00:00.000Z',
-        entry_count: 1,
-      } as any,
-      {
-        conversation_id: 'conv-3',
-        title: 'Third',
-        last_timestamp: '2026-05-15T12:00:00.000Z',
-        entry_count: 1,
-      } as any,
-    ]);
-
-    const metadata = await store.listMetadata({ cursor: 'conv-3', limit: 1 });
-
-    expect(metadata.map((entry) => entry.conversationRef)).toEqual(['conv-2']);
-    expect(mockInvoke).toHaveBeenCalledWith('list-chat-conversations', expect.objectContaining({
-      recordKind: CHAT_EVENT_RECORD_KIND,
-      limit: undefined,
-    }));
   });
 });
