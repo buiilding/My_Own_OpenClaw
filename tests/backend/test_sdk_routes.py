@@ -48,6 +48,7 @@ try:
     )
     from backend.src.api.routes.sdk.service import (
         build_image_metadata,
+        list_debug_models,
         resolve_image_source,
     )
 finally:
@@ -129,6 +130,11 @@ class _FakeModelService:
                 "display_name": "GPT-5.4",
             }
         ]
+
+
+class _InvalidModelService:
+    async def get_all_models(self):
+        return {"id": "not-a-catalog"}
 
 
 class _FakeSessionManager:
@@ -1131,6 +1137,17 @@ async def test_sdk_debug_models_applies_same_user_query_overrides(
             "display_name": "GPT-5.4",
         }
     ]
+
+
+@pytest.mark.asyncio
+async def test_list_debug_models_rejects_non_list_catalog() -> None:
+    container = SimpleNamespace(model_service=_InvalidModelService())
+
+    with pytest.raises(HTTPException) as exc_info:
+        await list_debug_models(container=container)
+
+    assert exc_info.value.status_code == 502
+    assert exc_info.value.detail == "Model service returned an invalid catalog"
 
 
 @pytest.mark.asyncio

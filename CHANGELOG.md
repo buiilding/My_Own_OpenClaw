@@ -48,6 +48,8 @@ All notable changes to WindieOS will be documented in this file.
 - backend/tools: remove unused provider-projection `tool_registry` and
   `prompt_messages` inputs so projection runs through the schema list plus
   active config only.
+- backend/sdk: remove the unused debug-models service config input so model
+  catalog loading has one owner: the backend model service.
 - frontend/sidecar: remove the duplicated `core` backend config, auth,
   unicode-sanitizer, and remote API base shims so sidecar callers use the
   `windie` owner modules directly.

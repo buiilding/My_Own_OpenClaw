@@ -435,7 +435,7 @@ async def sdk_debug_models(
         model_provider=model_provider,
         interaction_mode=interaction_mode,
     )
-    models = await list_debug_models(config=config, container=container)
+    models = await list_debug_models(container=container)
     return DebugModelsResponse(
         config=build_debug_config_snapshot(config),
         models=models,

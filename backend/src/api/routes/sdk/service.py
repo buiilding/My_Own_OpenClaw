@@ -273,8 +273,7 @@ def build_debug_user_message_full(
     )
 
 
-async def list_debug_models(*, config: Any, container) -> list[dict[str, Any]]:
-    _ = config
+async def list_debug_models(*, container) -> list[dict[str, Any]]:
     model_service = _get_model_service(container)
     models = await model_service.get_all_models()
     if not isinstance(models, list):

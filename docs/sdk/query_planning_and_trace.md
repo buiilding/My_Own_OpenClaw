@@ -29,6 +29,11 @@ WindieOS exposes SDK routes and clients that let developer tools inspect backend
 
 Use query planning when the issue is prompt/tool selection or model metadata. Use full trace collection when the issue is event ordering, completion behavior, or stream payload shape.
 
+The debug models route resolves the effective config for the returned snapshot,
+but the catalog itself comes from the backend model service. Keep model listing
+on that single service path instead of threading route config into catalog
+loading.
+
 Both `/api/sdk/prompt-preview` and `/api/sdk/query-plan` accept
 `agent_definition`. Use that when debugging a custom UI, TUI, CLI, or SDK
 client so the preview uses the same system prompt override, client tool
