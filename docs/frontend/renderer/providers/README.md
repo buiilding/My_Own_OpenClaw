@@ -25,8 +25,8 @@ title: "Frontend Renderer Provider Docs Hub"
 
 - `frontend/src/renderer/app/main.jsx`
 - `frontend/src/renderer/app/App.jsx`
-- `frontend/src/renderer/app/ChatBoxApp.jsx`
-- `frontend/src/renderer/app/ChatBoxResponseApp.jsx`
+- `frontend/src/renderer/app/MinimalChatPillApp.jsx`
+- `frontend/src/renderer/app/MinimalResponseOverlayApp.jsx`
 - `frontend/src/renderer/app/ChatBoxContextLabelApp.jsx`
 - `frontend/src/renderer/components/ErrorBoundary.jsx`
 - `frontend/src/renderer/app/providers/*`

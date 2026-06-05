@@ -12,7 +12,8 @@ The renderer process is the React-based UI layer of the Electron desktop applica
 frontend/src/renderer/
 ├── app/                                  # Application root and context providers
 │   ├── App.jsx                          # Root component - sets up providers and layout
-│   ├── ChatBoxApp.jsx                   # ChatBox root component
+│   ├── MinimalChatPillApp.jsx           # Minimal chat pill root component
+│   ├── MinimalResponseOverlayApp.jsx    # Minimal response overlay root component
 │   ├── WakewordController.jsx           # WakewordController - Always-on wakeword detection + chatbox trigger
 │   ├── main.jsx                         # React entry point - renders App with StrictMode in dev
 │   │
@@ -43,10 +44,16 @@ frontend/src/renderer/
 │
 ├── features/                             # Feature modules (organized by domain)
 │   │
+│   ├── minimalChatPill/                 # Minimal pill and response overlay feature module
+│   │   ├── components/                  # Minimal overlay UI components
+│   │   │   ├── MinimalChatPill.jsx      # MinimalChatPill - Floating quick chat overlay UI
+│   │   │   └── MinimalResponseOverlay.jsx # MinimalResponseOverlay - Awaiting/response overlay surface
+│   │   └── hooks/                       # Minimal overlay behavior hooks
+│   │       ├── useMinimalChatPillBindings.js # Minimal pill focus, drag, wakeword, and anchor bindings
+│   │       └── useResponseOverlayViewModel.js # Response overlay view model composition
+│   │
 │   ├── chat/                            # Chat feature module
 │   │   ├── components/                  # Chat UI components
-│   │   │   ├── ChatBox.jsx              # ChatBox - Floating quick chat overlay UI (new-chat + stop controls)
-│   │   │   ├── ChatBoxResponse.jsx      # ChatBoxResponse - Response overlay (awaiting/thinking/response/tool-ghost modes)
 │   │   │   ├── ChatInterface.jsx        # ChatInterface - Main chat orchestrator (composes MessageList + MessageInput; includes new-chat + stop controls)
 │   │   │   ├── MessageContent.jsx       # MessageContent - Renders message body by type
 │   │   │   ├── MessageInput.jsx         # MessageInput - Input field with voice transcription support

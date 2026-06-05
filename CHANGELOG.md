@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: align minimal pill and response overlay route-name docs and
+  tests with the current `minimal-*` renderer views.
 - frontend/main: delete the `local_backend_bridge_windows.cjs` re-export wrapper
   so screenshot window visibility callers import the owning module directly.
 - backend/core: remove the unused legacy `PluginResultDict` type export so the

@@ -45,7 +45,7 @@ describe('AppConfigProvider model + config wiring', () => {
   });
 
   test('delegates secondary view model-list decisions to the settings runtime', () => {
-    window.history.pushState({}, '', '/?view=chatbox-response');
+    window.history.pushState({}, '', '/?view=minimal-response-overlay');
 
     renderAppConfigContext();
 

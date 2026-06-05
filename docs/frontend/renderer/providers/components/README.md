@@ -22,6 +22,6 @@ title: "Renderer Provider Components Docs Hub"
 - `frontend/src/renderer/components/ErrorBoundary.jsx`
 - `frontend/src/renderer/styles/ErrorBoundary.css`
 - `frontend/src/renderer/app/App.jsx`
-- `frontend/src/renderer/app/ChatBoxApp.jsx`
-- `frontend/src/renderer/app/ChatBoxResponseApp.jsx`
+- `frontend/src/renderer/app/MinimalChatPillApp.jsx`
+- `frontend/src/renderer/app/MinimalResponseOverlayApp.jsx`
 - `frontend/src/renderer/app/ChatBoxContextLabelApp.jsx`

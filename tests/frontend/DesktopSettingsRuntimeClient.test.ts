@@ -37,7 +37,7 @@ describe('DesktopSettingsRuntimeClient', () => {
   });
 
   test('skips dashboard startup model list from secondary renderer views', () => {
-    window.history.replaceState({}, '', '/?view=chatbox-response');
+    window.history.replaceState({}, '', '/?view=minimal-response-overlay');
 
     expect(DesktopSettingsRuntimeClient.requestDashboardStartupModelList()).toBe(false);
 

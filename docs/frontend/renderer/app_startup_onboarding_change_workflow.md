@@ -85,8 +85,8 @@ Read:
 
 - `frontend/src/renderer/app/main.jsx`
 - `frontend/src/renderer/app/App.jsx`
-- `frontend/src/renderer/app/ChatBoxApp.jsx`
-- `frontend/src/renderer/app/ChatBoxResponseApp.jsx`
+- `frontend/src/renderer/app/MinimalChatPillApp.jsx`
+- `frontend/src/renderer/app/MinimalResponseOverlayApp.jsx`
 - `frontend/src/renderer/app/ChatBoxContextLabelApp.jsx`
 - `frontend/src/renderer/app/ToolGhostDebugApp.jsx`
 - Electron window loading code in `frontend/src/main/main_window_runtime.cjs`
@@ -94,8 +94,8 @@ Read:
 Root rules:
 
 - no `view` query loads `App`.
-- `view=chatbox` loads the minimal chat pill app.
-- `view=chatbox-response` loads the response overlay app.
+- `view=minimal-chat-pill` loads the minimal chat pill app.
+- `view=minimal-response-overlay` loads the response overlay app.
 - `view=chatbox-context-label` loads the context label overlay app.
 - `view=tool-ghost-debug` loads the dev tool-ghost debug app.
 - Only the default `App` should run the full dashboard/onboarding startup gate.

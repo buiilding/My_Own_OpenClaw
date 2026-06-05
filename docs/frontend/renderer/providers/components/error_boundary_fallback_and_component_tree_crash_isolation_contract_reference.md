@@ -2,7 +2,7 @@
 summary: "Deep reference for renderer ErrorBoundary behavior: derived-error state transition, fallback rendering payload, and componentDidCatch console logging semantics."
 read_when:
   - When changing `ErrorBoundary` lifecycle methods or fallback UI shape.
-  - When debugging uncaught render-tree exceptions in App/ChatBox/response/context overlay renderer roots.
+  - When debugging uncaught render-tree exceptions in App/minimal-pill/response/context overlay renderer roots.
 title: "Error Boundary Fallback and Component-Tree Crash Isolation Contract Reference"
 ---
 
@@ -13,8 +13,8 @@ title: "Error Boundary Fallback and Component-Tree Crash Isolation Contract Refe
 - `frontend/src/renderer/components/ErrorBoundary.jsx`
 - `frontend/src/renderer/styles/ErrorBoundary.css`
 - `frontend/src/renderer/app/App.jsx`
-- `frontend/src/renderer/app/ChatBoxApp.jsx`
-- `frontend/src/renderer/app/ChatBoxResponseApp.jsx`
+- `frontend/src/renderer/app/MinimalChatPillApp.jsx`
+- `frontend/src/renderer/app/MinimalResponseOverlayApp.jsx`
 - `frontend/src/renderer/app/ChatBoxContextLabelApp.jsx`
 
 ## Class Lifecycle Contract
@@ -58,7 +58,7 @@ Boundary expects to wrap complete app surfaces, not leaf nodes.
 Provider stack docs place this boundary around all renderer root surfaces:
 
 - default app
-- chatbox overlay app
+- minimal chat pill overlay app
 - response overlay app
 - context-label overlay app
 

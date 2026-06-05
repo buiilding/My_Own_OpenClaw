@@ -27,11 +27,12 @@ Date: 2026-06-05
 | C-001 | Backend API websocket | `TaskManager.create_task_if_under_limit` returns a task object production discards | `TaskManager` produces tasks; `loop_runtime.schedule_validated_message_task` only needs admission | `loop_runtime.py` assigned `_ = task`; dedicated plan `2026-06-05-backend-websocket-task-admission-cleanup-plan.md` | `76c01c5ac`, `930644576`, `13b53f682`, `f655d3a46` | Return boolean admission result and assert task ownership through `active_tasks` | Low, internal helper only | websocket task manager and loop runtime tests | implemented |
 | C-002 | Docs / SDK runtime | Stale `WindieDesktopAgent` references after runtime deletion | SDK now exposes `WindieClient.wakeUp`; docs/tests still mention deleted desktop facade | `rg WindieDesktopAgent` finds docs references while source file is deleted | `47a180ffd`, `29de210dd`, `289fd8cb6` | Update active docs to current SDK runtime owner or mark historical plan references only | Medium, docs-only but broad | `rg WindieDesktopAgent`, docs-list, diff check | queued |
 | C-003 | Docs / minimal chat pill | Stale `ChatBoxApp` / `ChatBoxResponseApp` paths after rename to `Minimal*` apps | Renderer app files moved; docs still describe old file names as canonical | `rg ChatBoxApp ChatBoxResponseApp docs` finds active desktop docs | `47a180ffd`, `29de210dd` | Align active desktop docs with renamed minimal pill files; leave explicit historical plan references alone | Low, docs-only | targeted `rg`, docs-list, diff check | implemented |
-| C-004 | Frontend renderer artifact utilities | Frontend still normalizes `image/jpg` alias after backend artifact uploads removed it | Backend rejects non-canonical `image/jpg`; renderer utility keeps alias path | `ArtifactImageUtils.ts` maps `image/jpg`; changelog says backend removed alias | `a483bc291`, `47a180ffd` | Verify live callers/tests, then remove alias or document why renderer display still accepts old stored metadata | Medium, stored artifact display compatibility possible | frontend artifact/image utility tests | investigating |
-| C-005 | Sidecar system tool | `stats_tool.get_system_stats(args)` keeps unused args for interface consistency | Tool registry likely invokes entrypoints with args dict; implementation ignores it | `rg unused` finds `stats_tool.py` docstring note | recent sidecar tool commits pending inspection | Verify registry entrypoint contract before narrowing or reject as required plugin/tool ABI | Medium, sidecar tool ABI risk | sidecar system/tool registry tests | queued |
+| C-004 | Frontend renderer artifact utilities | Frontend still normalizes `image/jpg` alias after backend artifact uploads removed it | Backend rejects non-canonical `image/jpg`; renderer utility keeps alias path | `ArtifactImageUtils.ts` maps `image/jpg`; changelog says backend removed alias | `a483bc291`, `47a180ffd`, `14c865af7` | Keep renderer boundary normalizer; backend API still fails fast on noncanonical uploads | Medium, stored artifact/user metadata compatibility possible | frontend artifact/image utility tests | rejected |
+| C-005 | Sidecar system tool | `stats_tool.get_system_stats(args)` keeps unused args for interface consistency | Tool registry invokes entrypoints with args dict | `frontend/src/main/python/tools/registry.py` calls `resolved_tool(args)` | sidecar registry docs and implementation inspected | Keep arg in built-in tool ABI | Medium, sidecar tool ABI risk | sidecar system/tool registry tests | rejected |
 | C-006 | Backend core types | Legacy plugin result dictionary types marked unused | Runtime may no longer import plugin dict result types | `backend/src/core/types/schemas.py` says "Legacy Plugin Types (unused)" | `43677c89d`, `dfc27b7ea`, `9ad4d1591`, `e4655863c` | Remove unused legacy type block and package export | Low after `rg` showed only self-export references | backend type import smoke and `rg` | implemented |
 | C-007 | Frontend docs inventory | Broader frontend docs still name old `ChatBox*` app/component paths | Active docs inventory and workflow pages consume renderer source-map paths | Broad `rg` after C-003 found stale paths outside `docs/desktop` | `47a180ffd`, `29de210dd` | Refresh frontend inventory/workflow docs in a separate docs slice, excluding historical plan files | Medium, docs-only but broad | targeted docs `rg`, docs-list, diff check | queued |
 | C-008 | Frontend main | `local_backend_bridge_windows.cjs` only re-exports `local_backend_bridge_window_visibility.cjs` | Window visibility owner module implements helpers; two callers import through alias wrapper | `local_backend_bridge_windows.cjs` contains only `module.exports = require(...)`; `rg` finds two runtime imports and one workflow doc mention | `034790787`, `47a180ffd`, `29de210dd` | Delete wrapper and import owner module directly | Low, direct require path change | frontend local backend bridge/window tests and `rg` | implemented |
+| C-009 | Frontend renderer routing | Provider/startup docs and tests still use old `view=chatbox*` route names | Electron main loads `minimal-chat-pill` / `minimal-response-overlay`; renderer `main.jsx` selects Minimal app wrappers | `rg` found old route names in provider/startup docs, AppConfig tests, settings runtime test, and renderer folder map | `47a180ffd`, `29de210dd`, `366f70ec2` | Align route-name docs/tests with current renderer entrypoint names | Low, docs/test setup values with current route strings | targeted `rg`, AppConfig/settings runtime tests, docs-list, diff check | implemented |
 
 ## Slice Log
 
@@ -54,7 +55,7 @@ Date: 2026-06-05
 ### C-003 Desktop Minimal Pill Docs
 
 - Owner: docs for desktop renderer surfaces.
-- Intended path: active docs point to current minimal pill app/component names while stable URL route names remain `?view=chatbox` and `?view=chatbox-response`.
+- Intended path: active docs point to current minimal pill app/component names; later C-009 aligns renderer route-name docs/tests with the current `minimal-*` view values.
 - Previous behavior: active desktop docs named deleted or renamed `ChatBoxApp`, `ChatBoxResponseApp`, `ChatBox`, `ChatBoxResponse`, and `useChatBoxBindings` files as canonical.
 - Current behavior: active desktop docs name `MinimalChatPillApp`, `MinimalResponseOverlayApp`, `MinimalChatPill`, `MinimalResponseOverlay`, and minimal-pillar hook paths.
 - Docs read: desktop surfaces hub, chat pill guide, response overlay guide.
@@ -108,6 +109,21 @@ Date: 2026-06-05
   - `npm.cmd run test:ci -- LocalBackendBridgeWindowVisibility LocalBackendBridgeExtensionRuntime LocalBackendBridge.rpc` could not launch on Windows because the package script uses POSIX `NODE_OPTIONS=...` assignment syntax.
   - `./bin/docs-list` failed on the pre-existing `docs/docs.json` missing-page references recorded in the baseline.
   - `git diff --check` passed with Windows line-ending warnings only.
+- Commit: `70c4c8be5` (`refactor(frontend-main): remove window visibility re-export`).
+
+### C-009 Frontend Renderer Minimal View Routes
+
+- Owner: renderer `main.jsx` root selection and Electron main window URL query values.
+- Intended path: minimal pill and response overlay windows use `view=minimal-chat-pill` and `view=minimal-response-overlay`, which select `MinimalChatPillApp` and `MinimalResponseOverlayApp`.
+- Previous behavior: provider/startup docs, three tests, and the renderer folder map still named deleted `ChatBoxApp`/`ChatBoxResponseApp` wrappers or old `view=chatbox*` query values.
+- Current behavior: docs and tests name the current app wrappers, current minimal feature folder, and current `minimal-*` view query values.
+- Docs read: renderer provider docs hub, entrypoint routing reference, app startup/onboarding workflow, provider context docs, ErrorBoundary provider component docs.
+- Recent commits inspected: `47a180ffd`, `29de210dd`, `366f70ec2`.
+- Validation:
+  - `rg -n "view=chatbox$|view=chatbox[^-]|view=chatbox-response|ChatBoxApp|ChatBoxResponseApp|features/chat/components/ChatBox\.jsx|features/chat/components/ChatBoxResponse\.jsx" docs/frontend/renderer/providers docs/frontend/renderer/app_startup_onboarding_change_workflow.md frontend/src/renderer/folder_structure.md tests/frontend/AppConfigProvider.models.test.tsx tests/frontend/AppConfigProvider.storageAndIpc.test.tsx tests/frontend/DesktopSettingsRuntimeClient.test.ts` returned no matches.
+  - `cd frontend; $env:NODE_OPTIONS='--no-deprecation'; npx.cmd jest --config jest.config.cjs --runInBand AppConfigProvider.models AppConfigProvider.storageAndIpc DesktopSettingsRuntimeClient MainWindowRuntime MainWindowOverlayRuntime` passed: 5 suites, 99 tests.
+  - `./bin/docs-list` failed on the pre-existing `docs/docs.json` missing-page references recorded in the baseline.
+  - `git diff --check` passed with Windows line-ending warnings only.
 - Commit: pending.
 
 ## Campaign Checklist
@@ -130,5 +146,7 @@ Date: 2026-06-05
 - [x] C-005 rejected with evidence.
 - [x] C-008 names the owner, stale path, deletion, tests, docs, and validation before implementation.
 - [x] C-008 deletes a wrapper instead of adding an adapter.
+- [x] C-009 names the owner, stale path, deletion, tests, docs, and validation before implementation.
+- [x] C-009 removes stale renderer route names from active provider/startup docs and test setup.
 - [ ] At least four subsystems are scanned before declaring the campaign exhausted.
 - [ ] The campaign does not stop after one narrow cleanup unless explicitly blocked or redirected.

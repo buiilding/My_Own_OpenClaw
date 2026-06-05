@@ -12,8 +12,8 @@ title: "Entrypoint View Routing and Provider Stack Reference"
 
 - `frontend/src/renderer/app/main.jsx`
 - `frontend/src/renderer/app/App.jsx`
-- `frontend/src/renderer/app/ChatBoxApp.jsx`
-- `frontend/src/renderer/app/ChatBoxResponseApp.jsx`
+- `frontend/src/renderer/app/MinimalChatPillApp.jsx`
+- `frontend/src/renderer/app/MinimalResponseOverlayApp.jsx`
 - `frontend/src/renderer/app/ChatBoxContextLabelApp.jsx`
 - `frontend/src/renderer/components/ErrorBoundary.jsx`
 - `frontend/src/renderer/app/WakewordController.jsx`
@@ -24,8 +24,8 @@ title: "Entrypoint View Routing and Provider Stack Reference"
 
 `main.jsx` resolves `window.location.search` `view`:
 
-- `view=chatbox` -> `ChatBoxApp`
-- `view=chatbox-response` -> `ChatBoxResponseApp`
+- `view=minimal-chat-pill` -> `MinimalChatPillApp`
+- `view=minimal-response-overlay` -> `MinimalResponseOverlayApp`
 - `view=chatbox-context-label` -> `ChatBoxContextLabelApp`
 - default/no `view` -> `App`
 
@@ -46,7 +46,7 @@ All surfaces mount `AppProvider`, which means:
 
 - main app (`App.jsx`):
   - `enableTranscript=true`
-- overlay apps (`ChatBoxApp`, `ChatBoxResponseApp`, `ChatBoxContextLabelApp`):
+- overlay apps (`MinimalChatPillApp`, `MinimalResponseOverlayApp`, `ChatBoxContextLabelApp`):
   - `enableTranscript=false`
 
 ## Main App Stack
@@ -73,8 +73,8 @@ Shared properties:
 
 Surface-specific body:
 
-- `ChatBoxApp` -> `ChatBox`
-- `ChatBoxResponseApp` -> `ChatBoxResponse`
+- `MinimalChatPillApp` -> `MinimalChatPill`
+- `MinimalResponseOverlayApp` -> `MinimalResponseOverlay`
 - `ChatBoxContextLabelApp` -> `ChatBoxContextLabel`
 
 Impact:

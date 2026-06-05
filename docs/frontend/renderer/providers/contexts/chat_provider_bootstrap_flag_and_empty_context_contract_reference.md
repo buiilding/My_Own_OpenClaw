@@ -13,8 +13,8 @@ title: "Chat Provider Bootstrap Flag and Empty-Context Contract Reference"
 - `frontend/src/renderer/app/providers/ChatContext.jsx`
 - `frontend/src/renderer/app/providers/ChatProvider.jsx`
 - `frontend/src/renderer/app/App.jsx`
-- `frontend/src/renderer/app/ChatBoxApp.jsx`
-- `frontend/src/renderer/app/ChatBoxResponseApp.jsx`
+- `frontend/src/renderer/app/MinimalChatPillApp.jsx`
+- `frontend/src/renderer/app/MinimalResponseOverlayApp.jsx`
 - `frontend/src/renderer/app/ChatBoxContextLabelApp.jsx`
 - `docs/frontend/renderer/providers/entrypoint_view_routing_and_provider_stack_reference.md`
 - `tests/frontend/AppProvider.test.tsx`

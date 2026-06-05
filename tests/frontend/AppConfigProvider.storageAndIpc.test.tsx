@@ -365,7 +365,7 @@ describe('AppConfigProvider storage + IPC status handling', () => {
   });
 
   test('starts wakeword suppressed on overlay renderer views', () => {
-    window.history.pushState({}, '', '/?view=chatbox');
+    window.history.pushState({}, '', '/?view=minimal-chat-pill');
 
     const { result } = renderAppConfigContext();
 
