@@ -6,9 +6,8 @@ type MemoryListData = {
   memories?: unknown[];
 };
 
-async function listMemories(type: MemoryKind, userId: string, limit: number): Promise<unknown[]> {
+async function listMemories(type: MemoryKind, limit: number): Promise<unknown[]> {
   const data = await invokeWindieCommand<MemoryListData>('memories.list', {
-    userId,
     type,
     limit,
   });
@@ -16,21 +15,19 @@ async function listMemories(type: MemoryKind, userId: string, limit: number): Pr
 }
 
 export const DesktopMemoryRuntimeClient = {
-  async listEpisodicMemories(userId: string, limit = 200): Promise<unknown[]> {
-    return listMemories('episodic', userId, limit);
+  async listEpisodicMemories(limit = 200): Promise<unknown[]> {
+    return listMemories('episodic', limit);
   },
 
-  async listSemanticMemories(userId: string, limit = 200): Promise<unknown[]> {
-    return listMemories('semantic', userId, limit);
+  async listSemanticMemories(limit = 200): Promise<unknown[]> {
+    return listMemories('semantic', limit);
   },
 
   async deleteMemoryItem(input: {
-    userId: string;
     memoryId: string;
     kind: MemoryKind;
   }): Promise<void> {
     const data = await invokeWindieCommand<{ deleted?: boolean }>('memories.delete', {
-      userId: input.userId,
       type: input.kind,
       memoryId: input.memoryId,
     });
@@ -39,8 +36,8 @@ export const DesktopMemoryRuntimeClient = {
     }
   },
 
-  async clearLocalMemory(userId: string): Promise<unknown> {
-    return invokeWindieCommand('memories.clearAll', { userId });
+  async clearLocalMemory(): Promise<unknown> {
+    return invokeWindieCommand('memories.clearAll', {});
   },
 
   async clearChatHistory(userId: string): Promise<unknown> {

@@ -15,6 +15,8 @@ export function useMemorySettingsActions() {
     actionId,
     confirmMessage,
     run,
+    runArgs = [],
+    requireActiveUser = false,
     successMessage,
     onSuccess,
   }) => {
@@ -22,7 +24,7 @@ export function useMemorySettingsActions() {
       return false;
     }
 
-    if (!userId || userId === 'default_user') {
+    if (requireActiveUser && (!userId || userId === 'default_user')) {
       setStatus({
         tone: 'error',
         message: 'Connect WindieOS before deleting saved data.',
@@ -39,7 +41,7 @@ export function useMemorySettingsActions() {
     setStatus({ tone: 'idle', message: '' });
 
     try {
-      const data = await run(userId);
+      const data = await run(...runArgs);
 
       setStatus({
         tone: 'success',
@@ -75,6 +77,8 @@ export function useMemorySettingsActions() {
     actionId: 'chats',
     confirmMessage: 'Delete saved chat transcripts, revisions, and titles? Memories will be kept.',
     run: DesktopMemoryRuntimeClient.clearChatHistory,
+    runArgs: [userId],
+    requireActiveUser: true,
     successMessage: 'Chat history deleted.',
     onSuccess,
   });

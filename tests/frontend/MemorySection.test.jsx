@@ -71,8 +71,8 @@ describe('MemorySection', () => {
 
     await screen.findByText('Interaction memories and short-lived context snapshots');
 
-    expect(mockListEpisodicMemories).toHaveBeenCalledWith('user-1', 200);
-    expect(mockListSemanticMemories).toHaveBeenCalledWith('user-1', 200);
+    expect(mockListEpisodicMemories).toHaveBeenCalledWith(200);
+    expect(mockListSemanticMemories).toHaveBeenCalledWith(200);
 
     await screen.findByText(/discuss quarterly roadmap/i);
     expect(screen.queryByText('Conversation 1')).not.toBeInTheDocument();
@@ -119,7 +119,6 @@ describe('MemorySection', () => {
 
     await waitFor(() => {
       expect(mockDeleteMemoryItem).toHaveBeenCalledWith({
-        userId: 'user-1',
         memoryId: 'sem-del-1',
         kind: 'semantic',
       });
@@ -147,7 +146,6 @@ describe('MemorySection', () => {
 
     await waitFor(() => {
       expect(mockDeleteMemoryItem).toHaveBeenCalledWith({
-        userId: 'user-1',
         memoryId: 'ep-del-1',
         kind: 'episodic',
       });
@@ -198,7 +196,6 @@ describe('MemorySection', () => {
 
       await waitFor(() => {
         expect(mockDeleteMemoryItem).toHaveBeenCalledWith({
-          userId: 'user-1',
           memoryId: 'sem-del-no-confirm-1',
           kind: 'semantic',
         });
@@ -251,7 +248,8 @@ describe('MemorySection', () => {
     expect(screen.queryByText('No memories found')).not.toBeInTheDocument();
   });
 
-  test('reloads memories when the SDK memory store changes for the active user', async () => {
+  test('loads and refreshes memories without transcript session user id', async () => {
+    mockSessionInfo = { conversationRef: null, userId: null };
     mockListEpisodicMemories
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([
@@ -281,7 +279,7 @@ describe('MemorySection', () => {
       ipcListeners['windie:memory-store-changed']?.({
         type: 'memory_store_changed',
         payload: {
-          userId: 'user-1',
+          userId: 'authenticated-user',
           memoryTypes: ['episodic'],
           reason: 'completed_turn',
           memoryId: 'ep-refreshed-1',
@@ -294,7 +292,18 @@ describe('MemorySection', () => {
     expect(mockListSemanticMemories).toHaveBeenCalledTimes(2);
   });
 
-  test('ignores SDK memory store changes for a different user', async () => {
+  test('refreshes memories when the SDK memory store changes for another user payload', async () => {
+    mockListSemanticMemories
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        {
+          id: 'sem-refreshed-1',
+          content: 'Summary: refreshed from authenticated memory user',
+          timestamp: '2026-06-05T08:10:00Z',
+          metadata: { source: 'semantic_summary' },
+        },
+      ]);
+
     const { default: MemorySection } = await import(
       '../../frontend/src/renderer/features/dashboard/components/sections/MemorySection'
     );
@@ -302,19 +311,21 @@ describe('MemorySection', () => {
     render(<MemorySection />);
     await screen.findByText('No memories found');
 
-    ipcListeners['windie:memory-store-changed']?.({
-      type: 'memory_store_changed',
-      payload: {
-        userId: 'user-2',
-        memoryTypes: ['episodic'],
-        reason: 'completed_turn',
-        memoryId: 'ep-other-user',
-      },
+    await act(async () => {
+      ipcListeners['windie:memory-store-changed']?.({
+        type: 'memory_store_changed',
+        payload: {
+          userId: 'other-user',
+          memoryTypes: ['semantic'],
+          reason: 'completed_turn',
+          memoryId: 'sem-refreshed-1',
+        },
+      });
     });
 
-    await waitFor(() => {
-      expect(mockListEpisodicMemories).toHaveBeenCalledTimes(1);
-      expect(mockListSemanticMemories).toHaveBeenCalledTimes(1);
-    });
+    fireEvent.click(await screen.findByRole('button', { name: /Semantic/i }));
+    await screen.findByText(/authenticated memory user/i);
+    expect(mockListEpisodicMemories).toHaveBeenCalledTimes(2);
+    expect(mockListSemanticMemories).toHaveBeenCalledTimes(2);
   });
 });

@@ -549,10 +549,10 @@ describe('SettingsSection', () => {
     expect(mockRestartOnboarding).toHaveBeenCalledTimes(1);
   });
 
-  test('delete memories invokes the memory runtime client for the resolved user id', async () => {
+  test('delete memories invokes the memory runtime client without renderer user id', async () => {
     mockTranscriptSessionInfo = {
-      conversationRef: 'conv-memory',
-      userId: 'user-memory',
+      conversationRef: null,
+      userId: null,
     };
     renderSettingsSection({ initialTab: 'memory' });
 
@@ -563,7 +563,7 @@ describe('SettingsSection', () => {
       expect(window.confirm).toHaveBeenCalledWith(
         'Delete saved episodic interaction memories and semantic memories? Chat transcripts will be kept.',
       );
-      expect(mockClearLocalMemory).toHaveBeenCalledWith('user-memory');
+      expect(mockClearLocalMemory).toHaveBeenCalledWith();
       expect(screen.getByText('Saved memories deleted.')).toBeInTheDocument();
     });
   });

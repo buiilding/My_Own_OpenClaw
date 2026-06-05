@@ -1274,6 +1274,14 @@ function requireCommandUserId(payload = {}) {
   return userId;
 }
 
+function requireAuthenticatedCommandUserId() {
+  const userId = normalizeOptionalString(currentUserId);
+  if (!userId || userId === 'default_user') {
+    throw new Error('Windie SDK command requires an authenticated user.');
+  }
+  return userId;
+}
+
 function optionalCommandConversationRef(payload = {}) {
   return normalizeOptionalString(payload.conversationRef || payload.conversation_ref);
 }
@@ -1343,7 +1351,7 @@ function buildWindieSdkCommandHandlers({
     'memories.list': async (payload = {}) => {
       const agent = await ensureWindieAgent({ reason: 'sdk-command:memories.list' });
       return agent.listMemories({
-        userId: requireCommandUserId(payload),
+        userId: requireAuthenticatedCommandUserId(),
         type: normalizeMemoryType(payload.type),
         limit: normalizePositiveInteger(payload.limit),
       });
@@ -1351,7 +1359,7 @@ function buildWindieSdkCommandHandlers({
     'memories.delete': async (payload = {}) => {
       const agent = await ensureWindieAgent({ reason: 'sdk-command:memories.delete' });
       return agent.deleteMemory({
-        userId: requireCommandUserId(payload),
+        userId: requireAuthenticatedCommandUserId(),
         type: normalizeMemoryType(payload.type),
         memoryId: requireCommandString(payload, 'memoryId', 'memory id'),
       });
@@ -1359,7 +1367,7 @@ function buildWindieSdkCommandHandlers({
     'memories.clearAll': async (payload = {}) => {
       const agent = await ensureWindieAgent({ reason: 'sdk-command:memories.clearAll' });
       return agent.clearMemories({
-        userId: requireCommandUserId(payload),
+        userId: requireAuthenticatedCommandUserId(),
       });
     },
     'conversations.list': async (payload = {}) => {

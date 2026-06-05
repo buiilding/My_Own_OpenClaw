@@ -7,7 +7,6 @@ import {
 } from 'lucide-react';
 import { DesktopMemoryRuntimeClient } from '../../../../app/runtime/desktopMemoryRuntimeClient';
 import { ON_CHANNELS } from '../../../../infrastructure/ipc/channels';
-import { useTranscriptSessionInfo } from '../../hooks/useTranscriptSessionInfo';
 import {
   getMemoryRetrievalInjectionEnabled,
   setMemoryRetrievalInjectionEnabled,
@@ -25,7 +24,6 @@ import {
 } from './memorySectionState';
 
 function MemorySection({ onClose = () => {} }) {
-  const sessionInfo = useTranscriptSessionInfo();
   const [activeType, setActiveType] = useState('episodic');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedItemId, setExpandedItemId] = useState(null);
@@ -40,27 +38,14 @@ function MemorySection({ onClose = () => {} }) {
     procedural: buildProceduralMemories(),
   });
 
-  const userId = sessionInfo.userId || '';
-
   const loadMemories = useCallback(async () => {
     setIsLoading(true);
     setLoadError('');
 
-    if (!userId || userId === 'default_user') {
-      setMemoriesByType({
-        episodic: [],
-        semantic: [],
-        procedural: buildProceduralMemories(),
-      });
-      setLoadError('Connect WindieOS to load saved memories.');
-      setIsLoading(false);
-      return;
-    }
-
     try {
       const [episodicMemories, semanticMemories] = await Promise.all([
-        DesktopMemoryRuntimeClient.listEpisodicMemories(userId, 200),
-        DesktopMemoryRuntimeClient.listSemanticMemories(userId, 200),
+        DesktopMemoryRuntimeClient.listEpisodicMemories(200),
+        DesktopMemoryRuntimeClient.listSemanticMemories(200),
       ]);
 
       setMemoriesByType({
@@ -73,24 +58,21 @@ function MemorySection({ onClose = () => {} }) {
     } finally {
       setIsLoading(false);
     }
-  }, [userId]);
+  }, []);
 
   useEffect(() => {
     loadMemories();
   }, [loadMemories]);
 
   useEffect(() => {
-    if (!userId || userId === 'default_user' || !window.ipc?.on) {
+    if (!window.ipc?.on) {
       return undefined;
     }
 
-    return window.ipc.on(ON_CHANNELS.WINDIE_MEMORY_STORE_CHANGED, (event) => {
-      const eventUserId = event?.payload?.userId ?? event?.userId;
-      if (eventUserId === userId) {
-        void loadMemories();
-      }
+    return window.ipc.on(ON_CHANNELS.WINDIE_MEMORY_STORE_CHANGED, () => {
+      void loadMemories();
     });
-  }, [loadMemories, userId]);
+  }, [loadMemories]);
 
   const activeTypeInfo = useMemo(() => {
     return resolveActiveMemoryTypeInfo(activeType, MEMORY_TYPES);
@@ -108,15 +90,9 @@ function MemorySection({ onClose = () => {} }) {
     const backendMemoryId = memory.backendMemoryId || memory.id || null;
     const backendType = memory.backendType || activeType;
 
-    if (!userId || userId === 'default_user') {
-      setLoadError('Connect WindieOS before deleting saved memories.');
-      return;
-    }
-
     if (backendMemoryId && (backendType === 'semantic' || backendType === 'episodic')) {
       try {
         await DesktopMemoryRuntimeClient.deleteMemoryItem({
-          userId,
           memoryId: backendMemoryId,
           kind: backendType,
         });
@@ -134,7 +110,7 @@ function MemorySection({ onClose = () => {} }) {
     if (expandedItemId === memory.id) {
       setExpandedItemId(null);
     }
-  }, [activeType, expandedItemId, userId]);
+  }, [activeType, expandedItemId]);
 
   const handleMemoryRetrievalToggle = useCallback((event) => {
     const nextEnabled = setMemoryRetrievalInjectionEnabled(event.target.checked === true);

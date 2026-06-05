@@ -79,11 +79,11 @@ describe('preload IPC channel registry', () => {
   });
 
   test('exposes SDK-shaped Windie command invoke over one IPC channel', async () => {
-    await expect(exposedWindie.invoke('memories.clearAll', { userId: 'user-1' })).resolves.toBe('ok');
+    await expect(exposedWindie.invoke('memories.clearAll', {})).resolves.toBe('ok');
 
     expect(ipcRendererMock.invoke).toHaveBeenCalledWith('windie:invoke', {
       command: 'memories.clearAll',
-      payload: { userId: 'user-1' },
+      payload: {},
     });
   });
 
@@ -119,10 +119,10 @@ describe('preload IPC channel registry', () => {
     await expect(exposedIpc.invoke('list-episodic-memories', { userId: 'user-1' })).rejects.toThrow(
       'Invalid invoke channel: list-episodic-memories',
     );
-    await expect(exposedWindie.invoke('memories.clearAll', { userId: 'user-1' })).resolves.toBe('ok');
+    await expect(exposedWindie.invoke('memories.clearAll', {})).resolves.toBe('ok');
     expect(ipcRendererMock.invoke).toHaveBeenCalledWith('windie:invoke', {
       command: 'memories.clearAll',
-      payload: { userId: 'user-1' },
+      payload: {},
     });
   });
 

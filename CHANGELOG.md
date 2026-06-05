@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sdk: make Memory panel list/delete/clear commands resolve the
+  authenticated install user in Electron main instead of sending renderer
+  transcript-session user ids.
 - frontend/sdk: add an SDK-owned `memory_store_changed` event after successful
   completed-turn memory persistence, forward it to renderer memory surfaces,
   and refresh the Memory panel through SDK-shaped memory list commands instead
