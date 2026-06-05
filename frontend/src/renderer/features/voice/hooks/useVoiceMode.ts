@@ -9,6 +9,7 @@ import { createAudioCaptureProcessorNode } from '../utils/audioProcessorNode';
 import { useAudioCaptureRefs } from './useAudioCaptureRefs';
 import { useLatestRef } from '../../../infrastructure/hooks/useLatestRef';
 import { DesktopVoiceRuntimeClient } from '../../../app/runtime/desktopVoiceRuntimeClient';
+import { logVoiceDebugTrace } from '../utils/voiceDebugTrace';
 
 const MAX_RECONNECT_ATTEMPTS = 5;
 const RECONNECT_DELAY_BASE_MS = 1000;
@@ -89,7 +90,7 @@ export function useVoiceMode(
       websocketRef.current = ws;
 
       ws.onopen = () => {
-        console.log('[VoiceMode] Connected to backend transcription gateway');
+        logVoiceDebugTrace('voice-gateway-connected', {});
         setIsConnected(true);
         setError(null);
         clearReconnectTimeout();
@@ -110,7 +111,9 @@ export function useVoiceMode(
             case 'status':
               if (data.clientId) {
                 setClientId(data.clientId);
-                console.log('[VoiceMode] Client ID:', data.clientId);
+                logVoiceDebugTrace('voice-gateway-client-id', {
+                  clientId: data.clientId,
+                });
               }
               break;
 
@@ -123,7 +126,7 @@ export function useVoiceMode(
 
             case 'utterance_end':
               // Silence detected, trigger auto-send
-              console.log('[VoiceMode] Utterance ended (silence detected)');
+              logVoiceDebugTrace('voice-utterance-ended', {});
               if (onUtteranceEndRef.current) {
                 onUtteranceEndRef.current();
               }
@@ -134,7 +137,9 @@ export function useVoiceMode(
               break;
 
             default:
-              console.log('[VoiceMode] Unknown message type:', data.messageType);
+              logVoiceDebugTrace('voice-gateway-unknown-message', {
+                messageType: data.messageType,
+              });
           }
         } catch (err) {
           console.error('[VoiceMode] Error parsing message:', err);
@@ -151,7 +156,7 @@ export function useVoiceMode(
           return;
         }
 
-        console.log('[VoiceMode] WebSocket closed');
+        logVoiceDebugTrace('voice-gateway-closed', {});
         websocketRef.current = null;
         setIsConnected(false);
 
@@ -168,7 +173,10 @@ export function useVoiceMode(
         const attempt = reconnectAttemptsRef.current + 1;
         const delay = getReconnectDelayMs(attempt);
         reconnectAttemptsRef.current = attempt;
-        console.log(`[VoiceMode] Reconnecting in ${delay}ms (attempt ${attempt})`);
+        logVoiceDebugTrace('voice-gateway-reconnect-scheduled', {
+          delay,
+          attempt,
+        });
 
         clearReconnectTimeout();
         reconnectTimeoutRef.current = setTimeout(() => {
@@ -271,7 +279,7 @@ export function useVoiceMode(
 
       isRecordingRef.current = true;
       setIsRecording(true);
-      console.log('[VoiceMode] Audio capture started');
+      logVoiceDebugTrace('voice-capture-started', {});
     } catch (err: any) {
       if (generation !== captureGenerationRef.current) {
         return;
@@ -317,7 +325,7 @@ export function useVoiceMode(
     }
 
     if (hadResources) {
-      console.log('[VoiceMode] Audio capture stopped');
+      logVoiceDebugTrace('voice-capture-stopped', {});
     }
   }, [
     audioContextRef,

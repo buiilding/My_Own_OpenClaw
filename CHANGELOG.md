@@ -36,6 +36,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/tests: update local-backend RPC transport coverage to use the active
   `standaloneTransport` contract instead of stale `legacyTransport` fallback
   terminology.
+- frontend/renderer: route voice-mode and wakeword lifecycle traces through a
+  `debug_voice=1` gated renderer trace helper instead of default hook
+  `console.log` calls.
 - sidecar/memory: scope background semantic summarization to the authenticated
   install user so legacy local rows for other user IDs are skipped before
   calling the backend semantic API.

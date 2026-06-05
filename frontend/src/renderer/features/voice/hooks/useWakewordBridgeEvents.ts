@@ -1,6 +1,7 @@
 import { useEffect, useRef, type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
 import { IpcBridge, ON_CHANNELS } from '../../../infrastructure/ipc/bridge';
 import { isWithinCooldown, resolveConfidence } from '../utils/wakewordEventUtils';
+import { logVoiceDebugTrace } from '../utils/voiceDebugTrace';
 
 type WakewordDetectionPayload = {
   model: string;
@@ -52,15 +53,25 @@ export function useWakewordBridgeEvents({
         return;
       }
 
-      console.log(`[Wakeword] Detection event: model=${data.model}, confidence=${confidenceText}, threshold=${threshold}`);
+      logVoiceDebugTrace('wakeword-detection-event', {
+        model: data.model,
+        confidence: confidenceText,
+        threshold,
+      });
 
       if (confidence < threshold) {
-        console.log(`[Wakeword] Below threshold (${confidenceText} < ${threshold})`);
+        logVoiceDebugTrace('wakeword-detection-below-threshold', {
+          confidence: confidenceText,
+          threshold,
+        });
         return;
       }
 
       lastDetectionRef.current = now;
-      console.log(`[Wakeword] *** DETECTED *** ${data.model} (confidence: ${confidenceText})`);
+      logVoiceDebugTrace('wakeword-detected', {
+        model: data.model,
+        confidence: confidenceText,
+      });
       requestWakewordDisable();
 
       if (!onWakewordDetectedRef.current) {
@@ -78,7 +89,10 @@ export function useWakewordBridgeEvents({
     const statusUnsubscribe = IpcBridge.on(ON_CHANNELS.WAKEWORD_STATUS, (status: any) => {
       setIsReady((prevReady) => {
         if (prevReady !== status.ready) {
-          console.log(`[Wakeword] Service status: ready=${status.ready}, error=${status.error || 'none'}`);
+          logVoiceDebugTrace('wakeword-service-status', {
+            ready: status.ready,
+            error: status.error || null,
+          });
         }
         return status.ready;
       });

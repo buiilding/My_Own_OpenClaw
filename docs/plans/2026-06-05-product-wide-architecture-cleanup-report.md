@@ -207,6 +207,25 @@ Action:
   standalone process transport.
 - Preserved daemon-first behavior and daemon-error normalization coverage.
 
+### Pass 9: Renderer Voice Diagnostics Gating
+
+Findings:
+
+- Voice-mode and wakeword hooks emitted normal lifecycle `console.log` entries
+  during default renderer runs.
+- Warning/error logs in those hooks describe real failure states and should stay
+  visible.
+- Renderer interaction logging already redacts message text by default and has
+  focused tests.
+
+Action:
+
+- Added `logVoiceDebugTrace(...)`, gated by `debug_voice=1`.
+- Routed voice gateway, voice capture, wakeword capture, wakeword detection,
+  and wakeword service-status lifecycle traces through that helper.
+- Added a renderer voice boundary test that fails if the touched hooks restore
+  direct `console.log(...)` lifecycle tracing.
+
 ## Inventory And Classification
 
 - Delete/isolate now:
@@ -226,6 +245,8 @@ Action:
     payload allowlist and backend incoming-message payload keys.
   - Stale `legacyTransport` wording and constructor option in the local RPC
     transport test.
+  - Default renderer voice/wakeword lifecycle `console.log` traces in hook
+    code.
 - Keep with owner:
   - Standalone sidecar JSON-RPC transport remains supported through
     `local_backend_bridge_request_transport.cjs`.
@@ -263,6 +284,8 @@ Action:
   backend imports.
 - Updated local RPC transport tests so standalone sidecar JSON-RPC is covered
   as an active supported transport, not a legacy fallback.
+- Routed voice/wakeword lifecycle traces through a `debug_voice=1` gated helper
+  and added boundary coverage against direct hook `console.log` regressions.
 
 ## Checklist
 
@@ -274,8 +297,8 @@ Action:
       event/shutdown handling.
 - [x] Remove or isolate in-scope renderer raw-event and sidecar-RPC leaks in
       active docs/source maps; live code is guarded by boundary tests.
-- [ ] Tighten diagnostics/logging ownership and redaction policy across the
-      remaining runtime surfaces.
+- [x] Tighten diagnostics/logging ownership and redaction policy across the
+      renderer surfaces touched by this cleanup plan.
 - [x] Gate minimal chat-pill and response-overlay state traces through the
       existing renderer diagnostics boundary.
 - [x] Add cross-runtime payload contract tests.
@@ -357,6 +380,9 @@ Action:
     after assertions completed.
 - `cd frontend; npx.cmd jest LocalBackendRpcTransport --runInBand --forceExit`
   - Result: passed, 1 suite / 3 tests.
+  - Note: Jest printed the standard force-exit open-handle reminder.
+- `cd frontend; npx.cmd jest RendererVoiceRuntimeBoundary VoiceModeHook WakewordBridgeEventsHook voice/WakewordDetectionHook --runInBand --forceExit`
+  - Result: passed, 4 suites / 26 tests.
   - Note: Jest printed the standard force-exit open-handle reminder.
 
 ## Commits

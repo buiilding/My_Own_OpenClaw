@@ -10,6 +10,7 @@ import { createAudioCaptureProcessorNode } from '../utils/audioProcessorNode';
 import {
   getChunkSizeWarning,
 } from '../utils/wakewordEventUtils';
+import { logVoiceDebugTrace } from '../utils/voiceDebugTrace';
 import {
   clearWakewordCaptureGuard,
   getWakewordCaptureGuard,
@@ -142,7 +143,7 @@ export function useWakewordDetection(
     }
     isStartingCaptureRef.current = true;
     const generation = ++captureGenerationRef.current;
-    console.log('[Wakeword] Starting audio capture...');
+    logVoiceDebugTrace('wakeword-capture-starting', { generation });
 
     try {
       // Request microphone access
@@ -269,7 +270,7 @@ export function useWakewordDetection(
     await closeAudioContextSafely(audioContext, logUnexpectedAudioContextCloseError);
 
     if (hadResources) {
-      console.log('[Wakeword] Audio capture stopped');
+      logVoiceDebugTrace('wakeword-capture-stopped', {});
     }
   }, [
     audioContextRef,
@@ -313,7 +314,7 @@ export function useWakewordDetection(
 
       if (isCapturingRef.current || isReady || hasCaptureResources) {
         if (isCapturingRef.current || hasCaptureResources) {
-          console.log('[Wakeword] Disabled, stopping audio capture');
+          logVoiceDebugTrace('wakeword-disabled-stopping-capture', {});
         }
         lastDetectionRef.current = Date.now();
         requestWakewordDisable();

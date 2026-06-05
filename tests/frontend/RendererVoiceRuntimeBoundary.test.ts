@@ -29,4 +29,19 @@ describe('renderer voice runtime boundary', () => {
     expect(source).not.toContain('new WebSocket');
     expect(source).not.toContain('JSON.parse');
   });
+
+  test('voice hooks route lifecycle traces through the gated voice debug helper', async () => {
+    const hookPaths = [
+      '../../frontend/src/renderer/features/voice/hooks/useVoiceMode.ts',
+      '../../frontend/src/renderer/features/voice/hooks/useWakewordDetection.ts',
+      '../../frontend/src/renderer/features/voice/hooks/useWakewordBridgeEvents.ts',
+    ];
+
+    for (const hookPath of hookPaths) {
+      const source = await fs.readFile(path.resolve(__dirname, hookPath), 'utf8');
+
+      expect(source).toContain('logVoiceDebugTrace');
+      expect(source).not.toContain('console.log(');
+    }
+  });
 });
