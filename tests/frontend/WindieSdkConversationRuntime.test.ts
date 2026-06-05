@@ -2937,6 +2937,23 @@ describe('Windie SDK conversation runtime core', () => {
     expect(sendQuery).not.toHaveBeenCalled();
   });
 
+  test('conversation runtime rejects when transport cannot send a query', async () => {
+    const sendQuery = jest.fn(async () => null);
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store: new InMemoryConversationStore(),
+      transport: createMockBackendTransport({
+        sendQuery: sendQuery as unknown as BackendTransport['sendQuery'],
+      }),
+    });
+
+    await expect(runtime.send({
+      text: 'send failure',
+      turnRef: 'turn-send-failure',
+    })).rejects.toThrow('Failed to send query to backend');
+    expect(sendQuery).toHaveBeenCalledTimes(1);
+  });
+
   test('conversation runtime close clears snapshot and event listeners', async () => {
     const snapshotListener = jest.fn();
     const eventListener = jest.fn();

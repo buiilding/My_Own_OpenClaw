@@ -304,13 +304,21 @@ export class SdkConversationRuntime {
           text: input.text,
         },
       }));
-      queryMessageId = await this.options.transport?.sendQuery({
-        ...enrichedPayload,
-        text: input.text,
-        conversation_ref: this.options.conversationRef,
-      }, {
-        messageId: turnRef,
-      }) ?? turnRef;
+      if (!this.options.transport) {
+        queryMessageId = turnRef;
+      } else {
+        const sentQueryMessageId = await this.options.transport.sendQuery({
+          ...enrichedPayload,
+          text: input.text,
+          conversation_ref: this.options.conversationRef,
+        }, {
+          messageId: turnRef,
+        });
+        if (!sentQueryMessageId) {
+          throw new Error('Failed to send query to backend');
+        }
+        queryMessageId = sentQueryMessageId;
+      }
     } catch (error) {
       this.pendingTurns.delete(turnRef);
       throw error;

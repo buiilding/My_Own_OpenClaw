@@ -28,6 +28,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/chat: move the OS chat pill and response overlay renderer into the
   `minimalChatPill` feature and route active desktop surfaces through
   SDK-owned projections and tool-surface leases.
+- frontend/chat: remove the remaining synthetic local user-message broadcast
+  from Electron query preparation and restore SDK-visible query-send failure
+  errors through the current renderer broadcast contract.
 - frontend/chat: remove the experimental minimal chat pill renderer route and
   restore the floating overlay windows to the existing `ChatBox` /
   `ChatBoxResponse` implementation.

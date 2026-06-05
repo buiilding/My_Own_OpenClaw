@@ -91,10 +91,8 @@ describe('ipc.cjs bridge query handling', () => {
     return errorEvents[errorEvents.length - 1]?.[1] || null;
   }
 
-  function expectSdkPreparedContentWithEmptyMemories(payload, queryText) {
+  function expectSdkPreparedContentWithUserQuery(payload, queryText) {
     expect(payload.text).toBe(queryText);
-    expect(payload.content).toContain('<episodic_memory>\nNone\n</episodic_memory>');
-    expect(payload.content).toContain('<semantic_memory>\nNone\n</semantic_memory>');
     expect(payload.content).toContain(`<user_query>\n${queryText}\n</user_query>`);
     expect(payload).not.toHaveProperty('query_context');
   }
@@ -275,6 +273,8 @@ describe('ipc.cjs bridge query handling', () => {
 
     ws.handlers.message(JSON.stringify({
       type: 'streaming-response',
+      event_id: 'evt-backfill',
+      sequence: 1,
       conversation_ref: 'conv-backfill',
     }));
 
@@ -381,6 +381,8 @@ describe('ipc.cjs bridge query handling', () => {
 
     ws.handlers.message(JSON.stringify({
       type: 'streaming-response',
+      event_id: 'evt-replay-1',
+      sequence: 1,
       turn_ref: 'uuid-1',
       conversation_ref: 'conv-replay',
       payload: {
@@ -498,7 +500,7 @@ describe('ipc.cjs bridge query handling', () => {
     await sendQuery(handlers, { text: 'hi', conversation_ref: 'conv-3' });
 
     const lastMessage = getLastSentMessage(ws);
-    expectSdkPreparedContentWithEmptyMemories(lastMessage.payload, 'hi');
+    expectSdkPreparedContentWithUserQuery(lastMessage.payload, 'hi');
   });
 
   test('builds query with empty memories when search fails', async () => {
@@ -509,7 +511,7 @@ describe('ipc.cjs bridge query handling', () => {
     await sendQuery(handlers, { text: 'memory fail', conversation_ref: 'conv-4' });
 
     const lastMessage = getLastSentMessage(ws);
-    expectSdkPreparedContentWithEmptyMemories(lastMessage.payload, 'memory fail');
+    expectSdkPreparedContentWithUserQuery(lastMessage.payload, 'memory fail');
     expect(lastMessage.payload).not.toHaveProperty('system_state_internal');
   });
 
@@ -524,7 +526,7 @@ describe('ipc.cjs bridge query handling', () => {
     await sendQuery(handlers, { text: 'memory malformed', conversation_ref: 'conv-4b' });
 
     const lastMessage = getLastSentMessage(ws);
-    expectSdkPreparedContentWithEmptyMemories(lastMessage.payload, 'memory malformed');
+    expectSdkPreparedContentWithUserQuery(lastMessage.payload, 'memory malformed');
   });
 
   test('skips memory retrieval when retrieval injection is disabled', async () => {
@@ -542,7 +544,7 @@ describe('ipc.cjs bridge query handling', () => {
     });
 
     const lastMessage = getLastSentMessage(ws);
-    expectSdkPreparedContentWithEmptyMemories(lastMessage.payload, 'no retrieval');
+    expectSdkPreparedContentWithUserQuery(lastMessage.payload, 'no retrieval');
     expect(lastMessage.payload).not.toHaveProperty('query_context');
     expect(lastMessage.payload).not.toHaveProperty('memory_retrieval_enabled');
   });
@@ -579,7 +581,7 @@ describe('ipc.cjs bridge query handling', () => {
 
     const queryMessage = getLastSentMessage(ws);
     expect(queryMessage.type).toBe('query');
-    expectSdkPreparedContentWithEmptyMemories(queryMessage.payload, 'mode check');
+    expectSdkPreparedContentWithUserQuery(queryMessage.payload, 'mode check');
   });
 
   test('waits for pending renderer update-settings ack before sending query', async () => {
@@ -602,7 +604,7 @@ describe('ipc.cjs bridge query handling', () => {
 
     const queryMessage = getLastSentMessage(ws);
     expect(queryMessage.type).toBe('query');
-    expectSdkPreparedContentWithEmptyMemories(queryMessage.payload, 'after settings update');
+    expectSdkPreparedContentWithUserQuery(queryMessage.payload, 'after settings update');
   });
 
   test('connects before sending renderer update-settings', async () => {
@@ -651,14 +653,14 @@ describe('ipc.cjs bridge query handling', () => {
       const messageTypes = ws.sent.map((msg) => JSON.parse(msg).type);
       expect(messageTypes).toEqual(['handshake', 'update-settings', 'query']);
       const queryMessage = getLastSentMessage(ws);
-      expectSdkPreparedContentWithEmptyMemories(queryMessage.payload, 'timeout fallback query');
+      expectSdkPreparedContentWithUserQuery(queryMessage.payload, 'timeout fallback query');
     } finally {
       jest.useRealTimers();
     }
   });
 
   test('keeps initial query context after transient query send failure', async () => {
-    const { handlers, ws, backendBridge, mainWindow } = await setupQueryBridge({}, {
+    const { handlers, getWs, backendBridge, mainWindow } = await setupQueryBridge({}, {
       systemState: {
         active_window: 'App',
         mouse_position: '0,0',
@@ -667,20 +669,26 @@ describe('ipc.cjs bridge query handling', () => {
       },
     });
 
-    const originalSend = ws.send.bind(ws);
+    const WebSocketMock = require('ws');
+    const originalSend = WebSocketMock.prototype.send;
     let failNextQuerySend = true;
-    ws.send = (data) => {
+    WebSocketMock.prototype.send = function sendWithOneQueryFailure(data) {
       const parsed = JSON.parse(data);
       if (parsed?.type === 'query' && failNextQuerySend) {
         failNextQuerySend = false;
         throw new Error('send failed');
       }
-      originalSend(data);
+      return originalSend.call(this, data);
     };
 
-    await sendQuery(handlers, { text: 'first query', conversation_ref: 'conv-a' });
-    await sendQuery(handlers, { text: 'second query', conversation_ref: 'conv-a' });
+    try {
+      await sendQuery(handlers, { text: 'first query', conversation_ref: 'conv-a' });
+      await sendQuery(handlers, { text: 'second query', conversation_ref: 'conv-a' });
+    } finally {
+      WebSocketMock.prototype.send = originalSend;
+    }
 
+    expect(failNextQuerySend).toBe(false);
     expect(getLatestErrorEvent(mainWindow)).toEqual(expect.objectContaining({
       payload: expect.objectContaining({
         message: "Your message wasn't sent because WindieOS isn't connected right now. Try again when the backend reconnects.",
@@ -688,7 +696,7 @@ describe('ipc.cjs bridge query handling', () => {
     }));
 
     expect(backendBridge.getSystemState).not.toHaveBeenCalled();
-    expect(getLastSentMessage(ws).payload.content).toContain('<user_query>\nsecond query\n</user_query>');
+    expect(getLastSentMessage(getWs()).payload.content).toContain('<user_query>\nsecond query\n</user_query>');
   });
 
   test('reconnect does not provide stale conversation ref fallback for next query', async () => {
@@ -698,6 +706,8 @@ describe('ipc.cjs bridge query handling', () => {
 
       ws.handlers.message(JSON.stringify({
         type: 'streaming-response',
+        event_id: 'evt-stale-1',
+        sequence: 1,
         conversation_ref: 'conv-stale',
       }));
 

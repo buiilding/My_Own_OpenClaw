@@ -195,7 +195,7 @@ export function resetChatBoxResponseTestState() {
 }
 
 export {
-  ChatBoxResponse: MinimalResponseOverlay,
+  MinimalResponseOverlay as ChatBoxResponse,
   mockInvoke,
   useChatStore,
 };

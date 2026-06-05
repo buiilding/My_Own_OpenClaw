@@ -25,10 +25,7 @@ function broadcastQuerySendFailure({
     fallbackConversationRef: conversationRef,
   });
   if (conversationEvent) {
-    broadcastToRenderers({
-      channel: 'windie:conversation-event',
-      payload: conversationEvent,
-    });
+    broadcastToRenderers('windie:conversation-event', conversationEvent);
   }
 }
 

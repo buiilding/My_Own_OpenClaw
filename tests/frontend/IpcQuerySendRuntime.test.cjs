@@ -3,12 +3,6 @@
 const {
   prepareRendererQuerySend,
 } = require('../../frontend/src/main/ipc/ipc_query_send_runtime.cjs');
-const {
-  buildLocalUserMessage,
-} = require('../../frontend/src/main/ipc/ipc_query_events.cjs');
-const {
-  buildConversationEventFromBackendEvent,
-} = require('../../frontend/src/main/ipc_conversation_event_broadcast.cjs');
 
 function buildDeps(overrides = {}) {
   return {
@@ -32,8 +26,6 @@ function buildDeps(overrides = {}) {
     uuidGenerator: jest.fn(() => 'turn-generated'),
     logChatPillMainTrace: jest.fn(),
     setResponseOverlayPhase: jest.fn(),
-    buildConversationEventFromBackendEvent,
-    buildLocalUserMessage,
     broadcastToRenderers: jest.fn(),
     resolvePreferredArtifactHttpUrl: jest.fn(() => 'http://backend.test'),
     getWindows: jest.fn(() => ({ mainWindow: {}, chatWindow: {} })),
@@ -57,7 +49,7 @@ function buildDeps(overrides = {}) {
 }
 
 describe('ipc_query_send_runtime', () => {
-  test('broadcasts accepted local user message before expensive query context build', async () => {
+  test('prepares query context without broadcasting a synthetic local user message', async () => {
     const deps = buildDeps();
     const order = [];
     deps.broadcastToRenderers.mockImplementation(() => {
@@ -82,20 +74,7 @@ describe('ipc_query_send_runtime', () => {
       deps,
     });
 
-    expect(order).toEqual(['broadcast', 'build-query-payload']);
-    expect(deps.broadcastToRenderers).toHaveBeenCalledWith(
-      'windie:conversation-event',
-      expect.objectContaining({
-        type: 'user_message',
-        conversationRef: 'conv-test',
-        turnRef: 'turn-test',
-        payload: expect.objectContaining({
-          text: 'hello',
-          screenshotRef: 'shot-1',
-          screenshotUrl: 'http://backend.test/api/artifacts/shot-1',
-          sourceEventType: 'local-user-message',
-        }),
-      }),
-    );
+    expect(order).toEqual(['build-query-payload']);
+    expect(deps.broadcastToRenderers).not.toHaveBeenCalled();
   });
 });

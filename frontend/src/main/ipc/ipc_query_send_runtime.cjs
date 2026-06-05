@@ -19,10 +19,6 @@ async function prepareRendererQuerySend({
     uuidGenerator,
     logChatPillMainTrace,
     setResponseOverlayPhase,
-    buildConversationEventFromBackendEvent,
-    buildLocalUserMessage,
-    broadcastToRenderers,
-    resolvePreferredArtifactHttpUrl,
     getWindows,
     setActiveDisplayAffinity,
     resolveActiveSurfaceDisplayAffinity,
@@ -64,30 +60,6 @@ async function prepareRendererQuerySend({
   }));
 
   ipcEventReplayState.startTurn(queryMessageId);
-
-  if (
-    typeof buildLocalUserMessage === 'function'
-    && typeof buildConversationEventFromBackendEvent === 'function'
-    && typeof broadcastToRenderers === 'function'
-  ) {
-    const localUserMessage = buildLocalUserMessage({
-      payload: preparedPayload,
-      queryMessageId,
-      conversationRef,
-      currentSessionId,
-      currentServerUserId,
-      currentUserId,
-      backendHttpUrl: typeof resolvePreferredArtifactHttpUrl === 'function'
-        ? resolvePreferredArtifactHttpUrl()
-        : null,
-    });
-    const conversationEvent = buildConversationEventFromBackendEvent(localUserMessage, {
-      fallbackConversationRef: conversationRef,
-    });
-    if (conversationEvent) {
-      broadcastToRenderers('windie:conversation-event', conversationEvent);
-    }
-  }
 
   const preparedContent = await buildQueryPayload({
     basePayload: preparedPayload,
@@ -134,9 +106,7 @@ function handleRendererQuerySendFailure({
     currentUserId,
     buildQuerySendFailure,
     setResponseOverlayPhase,
-    broadcastToRenderers: ({ channel, payload: messagePayload, sourceWebContents }) => {
-      broadcastToRenderers(channel, messagePayload, sourceWebContents);
-    },
+    broadcastToRenderers,
   });
 }
 

@@ -46,7 +46,6 @@ const {
 } = require('./ipc/ipc_artifact_handlers.cjs');
 const {
   resolveConversationRef: resolveConversationRefFromPayload,
-  buildLocalUserMessage,
   buildQueryInterrupted,
   buildQuerySendFailure,
 } = require('./ipc/ipc_query_events.cjs');
@@ -1108,12 +1107,6 @@ function initializeIpc(win, options = {}) {
       uuidGenerator: uuidv4,
       logChatPillMainTrace,
       setResponseOverlayPhase,
-      buildConversationEventFromBackendEvent,
-      buildLocalUserMessage,
-      resolvePreferredArtifactHttpUrl: () => resolvePreferredArtifactHttpUrl(
-        backendEndpointState.getHttpUrl(),
-        backendEndpointState.getCandidates(),
-      ),
       getWindows,
       setActiveDisplayAffinity,
       resolveActiveSurfaceDisplayAffinity,
