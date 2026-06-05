@@ -45,6 +45,9 @@ All notable changes to WindieOS will be documented in this file.
 - backend/tools: remove the ignored `normalize_wrappers` tool-policy parameter
   so tool visibility filtering has one direct-name path instead of a dormant
   wrapper-normalization switch.
+- backend/tools: remove unused provider-projection `tool_registry` and
+  `prompt_messages` inputs so projection runs through the schema list plus
+  active config only.
 - frontend/sidecar: remove the duplicated `core` backend config, auth,
   unicode-sanitizer, and remote API base shims so sidecar callers use the
   `windie` owner modules directly.

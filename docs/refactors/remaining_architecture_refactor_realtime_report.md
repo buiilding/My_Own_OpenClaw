@@ -259,7 +259,7 @@ Validation:
 
 - `./scripts/python-in-env sidecar pytest tests/sidecar/test_tool_manifest.py tests/sidecar/test_shared_tool_schema_parity.py tests/sidecar/test_tool_registry.py -q`
 - `./scripts/python-in-env backend pytest tests/backend/test_client_tool_manifest.py tests/backend/test_remote_tool_contract.py tests/backend/test_tool_registry_schema.py -q`
-- `./scripts/python-in-env backend pytest tests/backend/test_prompt_constructor_utils.py::test_build_prompt_openai_projection_filters_grounded_tools_after_projection tests/backend/test_computer_use_schema_contract.py::test_provider_projection_is_noop_for_openai_computer_tools tests/backend/test_computer_use_schema_contract.py::test_provider_projection_keeps_direct_computer_tools_even_with_prompt_images tests/backend/test_computer_use_schema_contract.py::test_provider_projection_applies_config_disabled_tools tests/backend/test_computer_use_schema_contract.py::test_provider_projection_applies_available_tools_allowlist -q`
+- `./scripts/python-in-env backend pytest tests/backend/test_prompt_constructor_utils.py::test_build_prompt_openai_projection_filters_grounded_tools_after_projection tests/backend/test_computer_use_schema_contract.py::test_provider_projection_is_noop_for_openai_computer_tools tests/backend/test_computer_use_schema_contract.py::test_provider_projection_applies_config_disabled_tools tests/backend/test_computer_use_schema_contract.py::test_provider_projection_applies_available_tools_allowlist -q`
 - `cd frontend && npm run test -- AgentCapabilityHandshake WindieSdkMainRuntime WindieSdkClient McpRuntime --runInBand`
 - `cd frontend && npm run lint`
 - `./bin/docs-list`

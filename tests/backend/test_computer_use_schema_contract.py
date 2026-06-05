@@ -140,42 +140,7 @@ def test_provider_projection_is_noop_for_openai_computer_tools():
 
     projected = project_tool_schemas_for_provider(
         tool_schemas=direct_schemas,
-        tool_registry=registry,
         config=config,
-    )
-
-    assert [schema.get("name") for schema in projected] == _COMPUTER_TOOL_NAMES + [
-        "get_open_windows"
-    ]
-
-
-def test_provider_projection_keeps_direct_computer_tools_even_with_prompt_images():
-    config = AppConfig(model_provider="openai")
-    registry = ToolRegistry(config=config, cache_manager=CacheManager())
-    direct_schemas = registry.get_function_declarations_filtered(
-        _COMPUTER_TOOL_NAMES + ["get_open_windows"]
-    )
-
-    projected = project_tool_schemas_for_provider(
-        tool_schemas=direct_schemas,
-        tool_registry=registry,
-        config=config,
-        prompt_messages=[
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": "compare these"},
-                    {
-                        "type": "image_url",
-                        "image_url": {"url": "data:image/png;base64,AAA"},
-                    },
-                    {
-                        "type": "image_url",
-                        "image_url": {"url": "data:image/png;base64,BBB"},
-                    },
-                ],
-            }
-        ],
     )
 
     assert [schema.get("name") for schema in projected] == _COMPUTER_TOOL_NAMES + [
@@ -195,7 +160,6 @@ def test_provider_projection_applies_config_disabled_tools():
 
     projected = project_tool_schemas_for_provider(
         tool_schemas=direct_schemas,
-        tool_registry=registry,
         config=config,
     )
 
@@ -214,7 +178,6 @@ def test_provider_projection_applies_available_tools_allowlist():
 
     projected = project_tool_schemas_for_provider(
         tool_schemas=direct_schemas,
-        tool_registry=registry,
         config=config,
     )
 

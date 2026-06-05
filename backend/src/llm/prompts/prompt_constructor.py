@@ -137,9 +137,7 @@ class PromptConstructor:
         tool_schemas.extend(filtered_client_schemas)
         projected_schemas = project_tool_schemas_for_provider(
             tool_schemas=tool_schemas,
-            tool_registry=self.tool_registry,
             config=self.config,
-            prompt_messages=prompt_messages,
         )
         provider_tool_schemas = self.tool_policy.filter_projected_tool_schemas(
             projected_schemas,
