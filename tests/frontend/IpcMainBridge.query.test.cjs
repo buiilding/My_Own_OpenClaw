@@ -41,7 +41,10 @@ describe('ipc.cjs bridge query handling', () => {
   }
 
   async function beginBackendConnection(bridge, message = { type: 'list-models' }) {
-    const pending = bridge.handlers['windie:list-models']({ sender: null }, message);
+    const pending = bridge.handlers['windie:invoke']({ sender: null }, {
+      command: 'models.list',
+      payload: message,
+    });
     const ws = await waitForSocket(() => bridge.getWs());
     expect(ws).not.toBeNull();
     return { pending, ws };
@@ -57,7 +60,17 @@ describe('ipc.cjs bridge query handling', () => {
   }
 
   function sendQuery(handlers, payload, sender = null) {
-    return handlers['windie:send']({ sender }, payload);
+    return handlers['windie:invoke']({ sender }, {
+      command: 'conversation.send',
+      payload,
+    });
+  }
+
+  function invokeWindieCommand(handlers, command, payload = {}, sender = null) {
+    return handlers['windie:invoke']({ sender }, {
+      command,
+      payload,
+    });
   }
 
   async function beginQuerySend(bridge, payload, sender = null) {
@@ -587,7 +600,7 @@ describe('ipc.cjs bridge query handling', () => {
   test('waits for pending renderer update-settings ack before sending query', async () => {
     const { handlers, ws } = await setupQueryBridge();
 
-    const settingsPromise = handlers['windie:update-settings']({ sender: null }, { interaction_mode: 'agent' });
+    const settingsPromise = invokeWindieCommand(handlers, 'settings.update', { interaction_mode: 'agent' });
 
     const updateSettingsMessage = await waitForSentMessageType(ws, 'update-settings');
     expect(updateSettingsMessage.type).toBe('update-settings');
@@ -610,7 +623,7 @@ describe('ipc.cjs bridge query handling', () => {
   test('connects before sending renderer update-settings', async () => {
     const bridge = initIpc();
 
-    const settingsPromise = bridge.handlers['windie:update-settings']({ sender: null }, { interaction_mode: 'agent' });
+    const settingsPromise = invokeWindieCommand(bridge.handlers, 'settings.update', { interaction_mode: 'agent' });
     const ws = await waitForSocket(() => bridge.getWs());
     expect(ws).not.toBeNull();
     expect(ws.sent).toHaveLength(0);

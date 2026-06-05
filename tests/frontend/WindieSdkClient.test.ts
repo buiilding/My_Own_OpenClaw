@@ -3404,6 +3404,30 @@ describe('WindieSdkClient', () => {
         lastMessage: 'hello runtime',
       }),
     ]);
+    socket.clearSent();
+    await expect(agent.prepareEditAndResend({
+      conversationRef: 'conv-runtime-public',
+      messageId: 'missing-user-message-id',
+      userMessageOrdinal: 0,
+      text: 'edited runtime',
+      payload: {
+        screenshot_ref: 'artifact-edit',
+      },
+    })).resolves.toMatchObject({
+      text: 'edited runtime',
+      payload: expect.objectContaining({
+        text: 'hello runtime',
+        screenshot_ref: 'artifact-edit',
+      }),
+    });
+    expect(JSON.parse(socket.sent[0])).toMatchObject({
+      type: 'rehydrate-conversation',
+      payload: {
+        conversation_ref: 'conv-runtime-public',
+        rehydrate_mode: 'replace',
+        messages: [],
+      },
+    });
     await agent.deleteConversation('conv-runtime-public');
     await expect(agent.listConversations()).resolves.toEqual([]);
   });

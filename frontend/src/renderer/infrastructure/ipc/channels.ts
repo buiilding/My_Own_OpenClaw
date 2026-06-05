@@ -15,13 +15,6 @@ export const EXPECTED_SHARED_CHANNEL_REGISTRY = {
     WAKEWORD_DISABLE: 'wakeword-disable',
   },
   INVOKE_CHANNELS: {
-    WINDIE_SEND: 'windie:send',
-    WINDIE_STOP: 'windie:stop',
-    WINDIE_UPDATE_SETTINGS: 'windie:update-settings',
-    WINDIE_LIST_MODELS: 'windie:list-models',
-    WINDIE_REHYDRATE: 'windie:rehydrate',
-    WINDIE_COMPACT_HISTORY: 'windie:compact-history',
-    WINDIE_WAKEWORD_DETECTED: 'windie:wakeword-detected',
     WINDIE_INVOKE: 'windie:invoke',
     CAPTURE_SCREENSHOT_ATTACHMENT: 'capture-screenshot-attachment',
     READ_ATTACHMENT_FILE: 'read-attachment-file',

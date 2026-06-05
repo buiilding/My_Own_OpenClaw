@@ -15,6 +15,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/sdk: move renderer live-turn and SDK backend transport runtime
   commands onto SDK-shaped `windie.invoke(...)` commands instead of direct
   `windie:*` IPC channels.
+- frontend/sdk: remove legacy renderer-facing `windie:*` runtime invoke
+  channels, route replay preparation through public SDK agent APIs, and keep
+  local chat history reads behind the SDK sidecar conversation store adapter.
 - docs/agents: add compaction-safe plan execution rules so approved refactor
   plans and reports remain the durable source of truth across context
   compaction, with repeated inspect/change/reread loops until the target

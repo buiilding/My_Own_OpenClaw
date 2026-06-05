@@ -5,9 +5,6 @@ import {
   getConversationWorkspaceBinding,
 } from '../workspace/conversationWorkspaceBinding';
 import {
-  CHAT_EVENT_RECORD_KIND,
-} from './localConversationStore';
-import {
   createIpcSidecarConversationStore,
 } from './sdkSidecarConversationStore';
 import { IpcBridge } from '../ipc/bridge';
@@ -22,7 +19,7 @@ import {
   resolveToolEventCorrelationId,
 } from '../api/windieSdkClient';
 
-export { CHAT_EVENT_RECORD_KIND };
+export const CHAT_EVENT_RECORD_KIND = 'chat_event';
 
 type DesktopConversationStoreDeps = {
   invoke?: typeof IpcBridge.invoke;

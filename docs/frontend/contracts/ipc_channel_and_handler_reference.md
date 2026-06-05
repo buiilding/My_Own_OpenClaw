@@ -72,13 +72,7 @@ Behavior:
 
 ## IPC bridge channels (`ipc.cjs`)
 
-- `windie:send` -> prepares the renderer query payload, runs the settings ACK gate, enriches system/memory context, and sends backend websocket `query` through the SDK desktop agent
-- `windie:stop` -> sends backend websocket `stop-query` through the SDK desktop agent for live chat cancellation
-- `windie:update-settings` -> sends backend settings through the SDK desktop agent while preserving main-owned ACK gating
-- `windie:list-models` -> requests backend model list through the SDK desktop agent
-- `windie:rehydrate` -> rebuilds backend inference history from SDK/local conversation store projections
-- `windie:compact-history` -> asks backend to compact the active conversation through the SDK desktop agent
-- `windie:wakeword-detected` -> sends wakeword activation through the SDK desktop agent after the settings gate
+- `windie:invoke` -> strict SDK-shaped command bridge. Supported user-runtime commands include `conversation.send`, `conversation.stop`, `settings.update`, `models.list`, `conversation.rehydrate`, `conversation.compact`, `conversation.prepareEditAndResend`, `conversation.prepareRetryTurn`, and `wakeword.detected`.
 - `load-frontend-config` -> loads persisted config JSON from userData
 - `save-frontend-config` -> redacted frontend-config atomic temp-write + rename persistence
 - `get-client-user-id` -> returns websocket user/session endpoint metadata
@@ -179,7 +173,7 @@ Permission onboarding and focused settings permission controls use invoke-only c
 
 These channels are registered in `permission_ipc_runtime.cjs` and delegated to `permission_service.cjs`.
 
-## `windie:send` Relay Lifecycle (main process)
+## `conversation.send` Relay Lifecycle (main process)
 
 Owner: `ipc.cjs` (with helper-module delegation to `ipc_runtime_helpers.cjs`, `ipc_query_broadcast.cjs`, and `ipc_query_events.cjs`).
 

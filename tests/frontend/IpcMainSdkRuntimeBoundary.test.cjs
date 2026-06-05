@@ -65,6 +65,8 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain("'conversation.stop'");
     expect(source).toContain("'conversation.rehydrate'");
     expect(source).toContain("'conversation.compact'");
+    expect(source).toContain("'conversation.prepareEditAndResend'");
+    expect(source).toContain("'conversation.prepareRetryTurn'");
     expect(source).toContain("'settings.update'");
     expect(source).toContain("'models.list'");
     expect(source).toContain("'wakeword.detected'");
@@ -72,6 +74,8 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source).toContain('agent.deleteMemory(');
     expect(source).toContain('agent.clearMemories(');
     expect(source).toContain('agent.clearConversations(');
+    expect(source).toContain('agent.prepareEditAndResend(');
+    expect(source).toContain('agent.prepareRetryTurn(');
     expect(source).toContain('requireCommandUserId');
     expect(source).toContain("userId === 'default_user'");
     expect(source).not.toContain('handleWindieSdkInvoke(event, payload, { method');

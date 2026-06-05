@@ -144,8 +144,15 @@ conversation.subscribeEvents((event, snapshot) => {
   broadcastToRenderers('windie:current-turn', snapshot.currentTurn);
 });
 
-ipcMain.handle('windie:send', (_event, payload) => conversation.send(payload));
-ipcMain.handle('windie:stop', (_event) => conversation.stop());
+ipcMain.handle('windie:invoke', (_event, { command, payload }) => {
+  if (command === 'conversation.send') {
+    return conversation.send(payload);
+  }
+  if (command === 'conversation.stop') {
+    return conversation.stop(payload?.turnRef ?? null);
+  }
+  throw new Error(`Unsupported Windie SDK command: ${command}`);
+});
 ```
 
 Renderer-facing user commands that are SDK concepts should use the same shape

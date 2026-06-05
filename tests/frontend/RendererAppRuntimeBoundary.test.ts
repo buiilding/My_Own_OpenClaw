@@ -2,9 +2,14 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 const appRoot = path.resolve(__dirname, '../../frontend/src/renderer/app');
+const rendererRoot = path.resolve(__dirname, '../../frontend/src/renderer');
 const allowedRelativePaths = new Set([
   'runtime/desktopChatStreamIngressRuntime.ts',
   'runtime/desktopTranscriptSessionRuntimeClient.ts',
+]);
+const allowedSdkOwnedInternalChannelPaths = new Set([
+  'infrastructure/ipc/channels.ts',
+  'infrastructure/transcript/sdkSidecarConversationStore.ts',
 ]);
 
 async function listSourceFiles(dir: string): Promise<string[]> {
@@ -99,6 +104,51 @@ describe('renderer app runtime boundary', () => {
       }
       const source = await fs.readFile(file, 'utf8');
       if (source.includes('features/chat')) {
+        offenders.push(relativePath);
+      }
+    }
+
+    expect(offenders).toEqual([]);
+  });
+
+  test('renderer app and feature code does not call SDK-owned sidecar/internal IPC channels', async () => {
+    const roots = [
+      path.join(rendererRoot, 'app'),
+      path.join(rendererRoot, 'features'),
+      path.join(rendererRoot, 'infrastructure/transcript'),
+    ];
+    const files = (await Promise.all(roots.map(root => listSourceFiles(root)))).flat();
+    const offenders: string[] = [];
+    const forbidden = [
+      'INVOKE_CHANNELS.WINDIE_SEND',
+      'INVOKE_CHANNELS.WINDIE_STOP',
+      'INVOKE_CHANNELS.WINDIE_REHYDRATE',
+      'INVOKE_CHANNELS.WINDIE_COMPACT_HISTORY',
+      'INVOKE_CHANNELS.WINDIE_UPDATE_SETTINGS',
+      'INVOKE_CHANNELS.WINDIE_LIST_MODELS',
+      'INVOKE_CHANNELS.LIST_CHAT_CONVERSATIONS',
+      'INVOKE_CHANNELS.SEARCH_CHAT_CONVERSATIONS',
+      'INVOKE_CHANNELS.GET_CHAT_EVENTS',
+      'INVOKE_CHANNELS.DELETE_CHAT_CONVERSATION',
+      'INVOKE_CHANNELS.CLEAR_CHAT_HISTORY',
+      'windie:send',
+      'windie:stop',
+      'windie:rehydrate',
+      'windie:compact-history',
+      'list-chat-conversations',
+      'search-chat-conversations',
+      'get-chat-events',
+      'delete-chat-conversation',
+      'clear-chat-history',
+    ];
+
+    for (const file of files) {
+      const relativePath = path.relative(rendererRoot, file);
+      if (allowedSdkOwnedInternalChannelPaths.has(relativePath)) {
+        continue;
+      }
+      const source = await fs.readFile(file, 'utf8');
+      if (forbidden.some((needle) => source.includes(needle))) {
         offenders.push(relativePath);
       }
     }

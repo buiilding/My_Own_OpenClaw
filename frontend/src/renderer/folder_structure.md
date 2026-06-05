@@ -296,8 +296,8 @@ frontend/src/renderer/
            ↓
 3. SDK RUNTIME TRANSPORT
    └─> app/runtime/desktopBackendTransport.ts
-       └─> IpcBridge.invoke(INVOKE_CHANNELS.WINDIE_SEND, payload)
-           └─> Main process (`src/main/ipc.cjs`) hands query context to the SDK runtime, which owns the hosted backend WebSocket
+       └─> invokeWindieCommand('conversation.send', payload)
+           └─> Main process (`src/main/ipc.cjs`) allowlists the SDK-shaped command and hands query context to the SDK runtime, which owns the hosted backend WebSocket
 ```
 
 ### Streaming Response Flow
@@ -530,7 +530,7 @@ App
 ## IPC Channel Usage
 
 ### Send Channels (Renderer → Main)
-- `WINDIE_UPDATE_SETTINGS` - Invoke SDK agent settings updates through Electron main
+- `WAKEWORD_DETECTED` - Notify Electron main of wakeword activation through the SDK-shaped runtime command path
 - `WAKEWORD_AUDIO_CHUNK` - Send audio chunks for wakeword detection
 - `WAKEWORD_ENABLE` - Enable wakeword detection
 - `WAKEWORD_DISABLE` - Disable wakeword detection

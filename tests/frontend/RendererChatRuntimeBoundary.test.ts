@@ -504,7 +504,7 @@ describe('renderer chat runtime boundary', () => {
     );
 
     expect(source).not.toContain('infrastructure/transcript/TranscriptWriter');
-    expect(source).toContain('createConversationRuntime');
+    expect(source).not.toContain('createConversationRuntime');
     expect(source).not.toContain('recordUserMessage');
     expect(source).not.toContain('recordAssistantMessage');
     expect(source).not.toContain('recordToolMessage');

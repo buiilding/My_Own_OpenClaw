@@ -46,7 +46,7 @@ describe('DesktopConversationContinuityService', () => {
 
   test('rehydrateMessages routes replace-mode history through the SDK transport', async () => {
     const send = jest.fn();
-    const invoke = jest.fn();
+    const invoke = jest.fn(async () => ({ ok: true, data: null }));
     const originalIpc = window.ipc;
     window.ipc = {
       send,
@@ -68,41 +68,35 @@ describe('DesktopConversationContinuityService', () => {
         workspacePath: ' /workspace/WindieOS ',
       });
 
-      expect(invoke).toHaveBeenCalledWith('windie:rehydrate', {
-        conversation_ref: 'conv-rehydrate',
-        messages: [
-          { role: 'user', content: 'hello' },
-          { role: 'assistant', content: 'hi', message_type: 'assistant' },
-        ],
-        rehydrate_mode: 'replace',
-        workspace_path: '/workspace/WindieOS',
+      expect(invoke).toHaveBeenCalledWith('windie:invoke', {
+        command: 'conversation.rehydrate',
+        payload: {
+          conversation_ref: 'conv-rehydrate',
+          messages: [
+            { role: 'user', content: 'hello' },
+            { role: 'assistant', content: 'hi', message_type: 'assistant' },
+          ],
+          rehydrate_mode: 'replace',
+          workspace_path: '/workspace/WindieOS',
+        },
       });
     } finally {
       window.ipc = originalIpc;
     }
   });
 
-  test('prepareEditAndResend cuts canonical sidecar rows and rehydrates without sending', async () => {
+  test('prepareEditAndResend routes replay preparation through the SDK command bridge', async () => {
     const send = jest.fn();
-    const invoke = jest.fn(async (channel) => {
-      if (channel === 'get-chat-events') {
+    const invoke = jest.fn(async (channel, payload) => {
+      if (channel === 'windie:invoke') {
         return {
-          success: true,
+          ok: true,
           data: {
-            events: [{
-              event_payload: {
-                type: 'user_message',
-                eventId: 'user-1',
-                conversationRef: 'conv-replay',
-                revisionId: 'rev-1',
-                timestamp: '2026-05-17T12:00:00.000Z',
-                source: 'ui',
-                payload: {
-                  id: 'user-1',
-                  text: 'old question',
-                },
-              },
-            }],
+            conversationRef: payload.payload.conversationRef,
+            text: payload.payload.text,
+            payload: payload.payload.payload,
+            workspacePath: payload.payload.workspace_path,
+            turnRef: 'turn-edit',
           },
         };
       }
@@ -131,15 +125,24 @@ describe('DesktopConversationContinuityService', () => {
         workspacePath: '/repo',
       });
 
-      expect(invoke).toHaveBeenCalledWith('rewrite-chat-conversation-after-event', expect.objectContaining({
-        conversationId: 'conv-replay',
-        cutAfterEventId: null,
-        event: expect.objectContaining({
-          eventType: 'conversation_rewritten',
-        }),
+      expect(invoke).toHaveBeenCalledWith('windie:invoke', {
+        command: 'conversation.prepareEditAndResend',
+        payload: {
+          userId: 'user-1',
+          conversationRef: 'conv-replay',
+          messageId: 'user-1',
+          userMessageOrdinal: undefined,
+          text: 'edited question',
+          payload: {
+            screenshot_ref: 'artifact-1',
+          },
+          model: undefined,
+          workspace_path: '/repo',
+        },
+      });
+      expect(invoke).not.toHaveBeenCalledWith('windie:invoke', expect.objectContaining({
+        command: 'conversation.send',
       }));
-      expect(invoke).toHaveBeenCalledWith('windie:rehydrate', expect.anything());
-      expect(invoke).not.toHaveBeenCalledWith('windie:send', expect.anything());
       expect(prepared).toEqual(expect.objectContaining({
         conversationRef: 'conv-replay',
         text: 'edited question',
@@ -147,49 +150,25 @@ describe('DesktopConversationContinuityService', () => {
           screenshot_ref: 'artifact-1',
         }),
         workspacePath: '/repo',
+        turnRef: 'turn-edit',
       }));
     } finally {
       window.ipc = originalIpc;
     }
   });
 
-  test('prepareRetryTurn cuts canonical sidecar rows and rehydrates without sending', async () => {
+  test('prepareRetryTurn routes replay preparation through the SDK command bridge', async () => {
     const send = jest.fn();
-    const invoke = jest.fn(async (channel) => {
-      if (channel === 'get-chat-events') {
+    const invoke = jest.fn(async (channel, payload) => {
+      if (channel === 'windie:invoke') {
         return {
-          success: true,
+          ok: true,
           data: {
-            events: [
-              {
-                event_payload: {
-                  type: 'user_message',
-                  eventId: 'user-1',
-                  conversationRef: 'conv-retry',
-                  revisionId: 'rev-1',
-                  timestamp: '2026-05-17T12:00:00.000Z',
-                  source: 'ui',
-                  payload: {
-                    id: 'user-1',
-                    text: 'retry question',
-                  },
-                },
-              },
-              {
-                event_payload: {
-                  type: 'assistant_message',
-                  eventId: 'assistant-1',
-                  conversationRef: 'conv-retry',
-                  revisionId: 'rev-1',
-                  timestamp: '2026-05-17T12:01:00.000Z',
-                  source: 'backend',
-                  payload: {
-                    id: 'assistant-1',
-                    text: 'old answer',
-                  },
-                },
-              },
-            ],
+            conversationRef: payload.payload.conversationRef,
+            text: 'retry question',
+            payload: payload.payload.payload,
+            workspacePath: payload.payload.workspace_path,
+            turnRef: 'turn-retry',
           },
         };
       }
@@ -217,15 +196,23 @@ describe('DesktopConversationContinuityService', () => {
         workspacePath: '/repo',
       });
 
-      expect(invoke).toHaveBeenCalledWith('rewrite-chat-conversation-after-event', expect.objectContaining({
-        conversationId: 'conv-retry',
-        cutAfterEventId: null,
-        event: expect.objectContaining({
-          eventType: 'conversation_rewritten',
-        }),
+      expect(invoke).toHaveBeenCalledWith('windie:invoke', {
+        command: 'conversation.prepareRetryTurn',
+        payload: {
+          userId: 'user-1',
+          conversationRef: 'conv-retry',
+          messageId: 'assistant-1',
+          userMessageOrdinal: undefined,
+          payload: {
+            screenshot_ref: null,
+          },
+          model: undefined,
+          workspace_path: '/repo',
+        },
+      });
+      expect(invoke).not.toHaveBeenCalledWith('windie:invoke', expect.objectContaining({
+        command: 'conversation.send',
       }));
-      expect(invoke).toHaveBeenCalledWith('windie:rehydrate', expect.anything());
-      expect(invoke).not.toHaveBeenCalledWith('windie:send', expect.anything());
       expect(prepared).toEqual(expect.objectContaining({
         conversationRef: 'conv-retry',
         text: 'retry question',
@@ -233,6 +220,7 @@ describe('DesktopConversationContinuityService', () => {
           screenshot_ref: null,
         }),
         workspacePath: '/repo',
+        turnRef: 'turn-retry',
       }));
     } finally {
       window.ipc = originalIpc;
@@ -244,7 +232,7 @@ describe('DesktopConversationContinuityService', () => {
     const originalIpc = window.ipc;
     window.ipc = {
       send,
-      invoke: jest.fn(),
+      invoke: jest.fn(async () => ({ ok: true, data: null })),
       on: jest.fn(),
       once: jest.fn(),
     };
@@ -255,9 +243,12 @@ describe('DesktopConversationContinuityService', () => {
     try {
       await DesktopConversationContinuityService.compactHistory(false, 'conv-compact');
 
-      expect(window.ipc.invoke).toHaveBeenCalledWith('windie:compact-history', {
-        force: false,
-        conversation_ref: 'conv-compact',
+      expect(window.ipc.invoke).toHaveBeenCalledWith('windie:invoke', {
+        command: 'conversation.compact',
+        payload: {
+          force: false,
+          conversation_ref: 'conv-compact',
+        },
       });
     } finally {
       window.ipc = originalIpc;
@@ -270,7 +261,7 @@ describe('DesktopConversationContinuityService', () => {
     mockGetActiveConversationRef.mockReturnValue('conv-active');
     window.ipc = {
       send,
-      invoke: jest.fn(),
+      invoke: jest.fn(async () => ({ ok: true, data: null })),
       on: jest.fn(),
       once: jest.fn(),
     };
@@ -281,9 +272,12 @@ describe('DesktopConversationContinuityService', () => {
     try {
       await DesktopConversationContinuityService.compactHistory();
 
-      expect(window.ipc.invoke).toHaveBeenCalledWith('windie:compact-history', {
-        force: true,
-        conversation_ref: 'conv-active',
+      expect(window.ipc.invoke).toHaveBeenCalledWith('windie:invoke', {
+        command: 'conversation.compact',
+        payload: {
+          force: true,
+          conversation_ref: 'conv-active',
+        },
       });
     } finally {
       window.ipc = originalIpc;

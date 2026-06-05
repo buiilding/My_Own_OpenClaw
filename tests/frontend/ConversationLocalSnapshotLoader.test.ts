@@ -1,4 +1,3 @@
-import { loadStoredConversationEntries } from '../../frontend/src/renderer/infrastructure/transcript/localConversationStore';
 import {
   CHAT_EVENT_RECORD_KIND,
 } from '../../frontend/src/renderer/infrastructure/transcript/desktopConversationStore';
@@ -8,10 +7,6 @@ import {
 } from '../../frontend/src/renderer/infrastructure/api/windieSdkClient';
 
 const mockInvoke = jest.fn();
-
-jest.mock('../../frontend/src/renderer/infrastructure/transcript/localConversationStore', () => ({
-  loadStoredConversationEntries: jest.fn(),
-}));
 
 jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   IpcBridge: {
@@ -26,8 +21,6 @@ jest.mock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
   },
 }));
 
-const mockLoadStoredConversationEntries = loadStoredConversationEntries as jest.MockedFunction<typeof loadStoredConversationEntries>;
-
 function sdkEventRow(event: ReturnType<typeof createConversationEvent>, metadata: Record<string, unknown> = {}) {
   return {
     ...metadata,
@@ -41,13 +34,24 @@ function sdkEventRow(event: ReturnType<typeof createConversationEvent>, metadata
   } as any;
 }
 
-function mockSdkConversationRows(rows: Record<string, unknown>[]) {
+function mockSdkConversationRows(
+  rows: Record<string, unknown>[],
+  conversations: Record<string, unknown>[] = [],
+) {
   mockInvoke.mockImplementation((channel: string) => {
     if (channel === 'get-chat-events') {
       return Promise.resolve({
         success: true,
         data: {
           events: rows,
+        },
+      });
+    }
+    if (channel === 'list-chat-conversations') {
+      return Promise.resolve({
+        success: true,
+        data: {
+          conversations,
         },
       });
     }
@@ -60,11 +64,10 @@ function mockSdkConversationRows(rows: Record<string, unknown>[]) {
 
 describe('conversationLocalSnapshotLoader', () => {
   beforeEach(() => {
-    mockLoadStoredConversationEntries.mockReset();
     mockInvoke.mockReset();
   });
 
-  test('loads canonical event rows and derives workspace binding from event metadata', async () => {
+  test('loads canonical SDK event rows and derives workspace binding from SDK metadata', async () => {
     const event = createConversationEvent({
       eventId: 'evt-user',
       type: 'user_message',
@@ -73,19 +76,12 @@ describe('conversationLocalSnapshotLoader', () => {
       timestamp: '2026-05-15T12:00:00.000Z',
       payload: { text: 'hello' },
     });
-    const rows = [
-      sdkEventRow(event, {
-        metadata: {
-          workspace_path: '/tmp/project-a',
-          workspace_name: 'project-a',
-        },
-      }),
-    ];
-    mockLoadStoredConversationEntries
-      .mockResolvedValueOnce(rows)
-      .mockResolvedValueOnce(rows)
-      .mockResolvedValueOnce(rows);
-    mockSdkConversationRows(rows);
+    const rows = [sdkEventRow(event)];
+    mockSdkConversationRows(rows, [{
+      conversation_id: 'conv-1',
+      workspace_path: '/tmp/project-a',
+      workspace_name: 'project-a',
+    }]);
 
     const snapshot = await loadLocalConversationSnapshot({
       userId: 'user-1',
@@ -93,10 +89,11 @@ describe('conversationLocalSnapshotLoader', () => {
       includeParsedMessages: true,
     });
 
-    expect(mockLoadStoredConversationEntries).toHaveBeenCalledWith(expect.objectContaining({
-      recordKind: CHAT_EVENT_RECORD_KIND,
-    }));
     expect(snapshot.transcriptEntries).toHaveLength(1);
+    expect(snapshot.transcriptEntries[0]).toEqual(expect.objectContaining({
+      eventId: 'evt-user',
+      type: 'user_message',
+    }));
     expect(snapshot.replayEntries).toHaveLength(0);
     expect(snapshot.workspaceBinding).toEqual({
       workspacePath: '/tmp/project-a',
@@ -114,23 +111,14 @@ describe('conversationLocalSnapshotLoader', () => {
         content: 'hello',
       }),
     ]);
-  });
-
-  test('forwards explicit record kind to stored entry loading', async () => {
-    mockLoadStoredConversationEntries.mockResolvedValueOnce([]);
-    mockSdkConversationRows([]);
-
-    await loadLocalConversationSnapshot({
-      userId: 'user-1',
-      conversationRef: 'conv-1',
-      recordKind: 'transcript',
-    });
-
-    expect(mockLoadStoredConversationEntries).toHaveBeenCalledWith(expect.objectContaining({
-      userId: 'user-1',
-      conversationRef: 'conv-1',
-      recordKind: 'transcript',
-    }));
+    expect(mockInvoke).toHaveBeenCalledWith(
+      'get-chat-events',
+      expect.objectContaining({
+        userId: 'user-1',
+        conversationId: 'conv-1',
+        recordKind: CHAT_EVENT_RECORD_KIND,
+      }),
+    );
   });
 
   test('uses compaction events for rehydrate payloads', async () => {
@@ -162,9 +150,6 @@ describe('conversationLocalSnapshotLoader', () => {
         },
       })),
     ];
-    mockLoadStoredConversationEntries
-      .mockResolvedValueOnce(eventRows)
-      .mockResolvedValueOnce(eventRows);
     mockSdkConversationRows(eventRows);
 
     const snapshot = await loadLocalConversationSnapshot({
@@ -173,7 +158,6 @@ describe('conversationLocalSnapshotLoader', () => {
       includeReplayState: true,
     });
 
-    expect(mockLoadStoredConversationEntries).toHaveBeenCalledTimes(1);
     expect(snapshot.replayEntries).toHaveLength(0);
     expect(snapshot.rehydrateMessages).toEqual([
       expect.objectContaining({
@@ -232,9 +216,6 @@ describe('conversationLocalSnapshotLoader', () => {
       }),
     ];
     const rows = events.map((event) => sdkEventRow(event));
-    mockLoadStoredConversationEntries
-      .mockResolvedValueOnce(rows)
-      .mockResolvedValueOnce(rows);
     mockSdkConversationRows(rows);
 
     const snapshot = await loadLocalConversationSnapshot({
@@ -258,9 +239,6 @@ describe('conversationLocalSnapshotLoader', () => {
       payload: { text: 'hello' },
     });
     const rows = [sdkEventRow(event)];
-    mockLoadStoredConversationEntries
-      .mockResolvedValueOnce(rows)
-      .mockResolvedValueOnce(rows);
     mockSdkConversationRows(rows);
 
     const snapshot = await loadLocalConversationSnapshot({

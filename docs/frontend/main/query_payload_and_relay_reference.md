@@ -26,9 +26,10 @@ title: "Query Payload and Relay Reference"
 - `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient.ts`
 
-## Relay Entry: `ipcMain.handle('windie:send', ...)`
+## Relay Entry: `ipcMain.handle('windie:invoke', ...)`
 
-Main receives live chat query invokes on the explicit `windie:send` channel.
+Main receives live chat query invokes on the SDK-shaped `windie:invoke` command
+channel with `command: 'conversation.send'`.
 Electron main is the desktop host and SDK customer: it prepares host-only query
 context, calls the SDK agent, and forwards SDK projections back to renderer
 windows. There is no generic renderer `to-backend` compatibility relay for SDK
@@ -52,16 +53,15 @@ Endpoint context for SDK agent calls:
   `backendHttpUrl` values for renderer display, while SDK connection events
   own actual socket lifecycle
 
-Special handling paths:
+Special `windie:invoke` command paths:
 
-- `windie:send`: prepares the renderer query, runs the initial settings gate,
-  and sends the backend websocket `query` through the SDK desktop agent
-- `windie:stop`: sends backend websocket `stop-query` through the SDK desktop agent
-- `windie:update-settings`: delegates to the settings ACK pipeline through the SDK agent
-- `windie:list-models`: requests model list through the SDK agent once connected
-- `windie:rehydrate`: rehydrates backend inference history through the SDK agent
-- `windie:compact-history`: asks backend to compact the active conversation through the SDK agent
-- `windie:wakeword-detected`: passes through the initial settings sync gate before backend send
+- `conversation.send`: prepares the renderer query, runs the initial settings gate, and sends the backend websocket `query` through the SDK desktop agent
+- `conversation.stop`: sends backend websocket `stop-query` through the SDK desktop agent
+- `settings.update`: delegates to the settings ACK pipeline through the SDK agent
+- `models.list`: requests model list through the SDK agent once connected
+- `conversation.rehydrate`: rehydrates backend inference history through the SDK agent
+- `conversation.compact`: asks backend to compact the active conversation through the SDK agent
+- `wakeword.detected`: passes through the initial settings sync gate before backend send
 
 ## Initial Settings ACK Gate Before Query
 
@@ -87,7 +87,7 @@ Goal:
 
 ## Query-Specific SDK Agent Pipeline
 
-When the typed `windie:send` channel is invoked, main performs extra steps before sending through the SDK desktop agent.
+When the `conversation.send` command is invoked, main performs extra steps before sending through the SDK desktop agent.
 
 ### 1) Overlay pre-capture hook
 

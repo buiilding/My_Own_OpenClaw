@@ -1126,52 +1126,12 @@ function initializeIpc(win, options = {}) {
     },
   });
 
-
-  ipcMain.handle('windie:send', async (event, payload = {}) => (
-    handleRendererChatQuery(event, payload)
-  ));
-
-  ipcMain.handle('windie:stop', async (_event, payload = {}) => (
-    handleRendererStopQuery(payload)
-  ));
-
   ipcMain.handle('windie:invoke', async (event, payload = {}) => (
     handleWindieSdkInvoke(event, payload, {
       handleRendererChatQuery,
       handleRendererStopQuery,
     })
   ));
-
-  ipcMain.handle('windie:update-settings', async (_event, payload = {}) => (
-    sendSettingsUpdate(payload, 'renderer-update')
-  ));
-
-  ipcMain.handle('windie:list-models', async () => {
-    if (!isBackendRuntimeConnected()) {
-      await ensureBackendConnection('list-models');
-    }
-    return requestModelListFromBackend();
-  });
-
-  ipcMain.handle('windie:rehydrate', async (_event, payload = {}) => (
-    rehydrateBackendConversation(payload)
-  ));
-
-  ipcMain.handle('windie:compact-history', async (_event, payload = {}) => (
-    compactBackendHistory(payload)
-  ));
-
-  ipcMain.handle('windie:wakeword-detected', async (_event, payload = {}) => {
-    if (!isBackendRuntimeConnected()) {
-      await ensureBackendConnection('wakeword-detected');
-    }
-    await ensureInitialSettingsSync();
-    const pendingSettingsSyncPromise = settingsSyncRuntime.getPendingSettingsSyncPromise();
-    if (pendingSettingsSyncPromise) {
-      await pendingSettingsSyncPromise;
-    }
-    return sendWakewordDetectedToBackend(payload);
-  });
 
 }
 
@@ -1215,23 +1175,6 @@ async function updateSettingsOnBackend(payload = {}) {
 async function requestModelListFromBackend() {
   const agent = await ensureWindieAgent({ reason: 'list-models' });
   return agent.requestModelList();
-}
-
-async function rehydrateBackendConversation(payload = {}) {
-  const agent = await ensureWindieAgent({
-    reason: 'rehydrate',
-    conversationRef: resolveConversationRefFromPayload(payload),
-    workspacePath: resolveWorkspacePathForAgent(payload),
-  });
-  return agent.rehydrateMessages(payload);
-}
-
-async function compactBackendHistory(payload = {}) {
-  const agent = await ensureWindieAgent({
-    reason: 'compact-history',
-    conversationRef: resolveConversationRefFromPayload(payload),
-  });
-  return agent.compactHistory(payload);
 }
 
 async function sendWakewordDetectedToBackend(payload = {}) {
@@ -1344,6 +1287,16 @@ function requireCommandString(payload = {}, key, label) {
   return value;
 }
 
+function optionalCommandNonNegativeInteger(payload = {}, keys = []) {
+  for (const key of keys) {
+    const value = payload[key];
+    if (typeof value === 'number' && Number.isInteger(value) && value >= 0) {
+      return value;
+    }
+  }
+  return undefined;
+}
+
 function buildWindieSdkCommandHandlers({
   event,
   handleRendererChatQuery,
@@ -1440,6 +1393,54 @@ function buildWindieSdkCommandHandlers({
       return agent.loadConversation({
         conversationRef: requireCommandConversationRef(payload),
       });
+    },
+    'conversation.prepareEditAndResend': async (payload = {}) => {
+      requireCommandUserId(payload);
+      const conversationRef = requireCommandConversationRef(payload);
+      const workspacePath = resolveWorkspacePathForAgent(payload) || null;
+      const agent = await ensureWindieAgent({
+        reason: 'sdk-command:conversation.prepareEditAndResend',
+        conversationRef,
+        workspacePath,
+      });
+      const prepared = await agent.prepareEditAndResend({
+        conversationRef,
+        messageId: requireCommandString(payload, 'messageId', 'message id'),
+        userMessageOrdinal: optionalCommandNonNegativeInteger(payload, ['userMessageOrdinal', 'user_message_ordinal']),
+        text: requireCommandString(payload, 'text', 'replacement text'),
+        turnRef: normalizeOptionalString(payload.turnRef || payload.turn_ref) || undefined,
+        payload: cloneJsonObject(payload.payload),
+        model: isPlainObject(payload.model) ? payload.model : undefined,
+      });
+      return {
+        ...prepared,
+        conversationRef,
+        workspacePath,
+      };
+    },
+    'conversation.prepareRetryTurn': async (payload = {}) => {
+      requireCommandUserId(payload);
+      const conversationRef = requireCommandConversationRef(payload);
+      const workspacePath = resolveWorkspacePathForAgent(payload) || null;
+      const agent = await ensureWindieAgent({
+        reason: 'sdk-command:conversation.prepareRetryTurn',
+        conversationRef,
+        workspacePath,
+      });
+      const messageId = normalizeOptionalString(payload.messageId || payload.message_id);
+      const prepared = await agent.prepareRetryTurn({
+        conversationRef,
+        ...(messageId ? { messageId } : {}),
+        userMessageOrdinal: optionalCommandNonNegativeInteger(payload, ['userMessageOrdinal', 'user_message_ordinal']),
+        turnRef: normalizeOptionalString(payload.turnRef || payload.turn_ref) || undefined,
+        payload: cloneJsonObject(payload.payload),
+        model: isPlainObject(payload.model) ? payload.model : undefined,
+      });
+      return {
+        ...prepared,
+        conversationRef,
+        workspacePath,
+      };
     },
   };
 }

@@ -36,6 +36,9 @@ import type {
 } from './LocalSidecarRuntime.js';
 import {
   SdkConversationRuntime,
+  type EditAndResendInput,
+  type PreparedReplayTurn,
+  type RetryTurnInput,
   type SendInput,
 } from './ConversationRuntime.js';
 import {
@@ -107,6 +110,18 @@ export type WindieClearMemoriesResult = JsonRecord & {
 };
 
 export type WindieClearConversationsOptions = {
+  store?: ConversationStore;
+};
+
+export type WindiePrepareEditAndResendOptions = EditAndResendInput & {
+  conversationRef: string;
+  revisionId?: string;
+  store?: ConversationStore;
+};
+
+export type WindiePrepareRetryTurnOptions = RetryTurnInput & {
+  conversationRef: string;
+  revisionId?: string;
   store?: ConversationStore;
 };
 
@@ -493,6 +508,28 @@ export class WindieAgent {
       ? { conversationRef: options }
       : options;
     return this.conversation(loadOptions).load();
+  }
+
+  async prepareEditAndResend(
+    options: WindiePrepareEditAndResendOptions,
+  ): Promise<PreparedReplayTurn> {
+    const { conversationRef, revisionId, store, ...input } = options;
+    return this.conversation({
+      conversationRef,
+      revisionId,
+      store: store ?? this.defaultConversationStore,
+    }).prepareEditAndResend(input);
+  }
+
+  async prepareRetryTurn(
+    options: WindiePrepareRetryTurnOptions,
+  ): Promise<PreparedReplayTurn> {
+    const { conversationRef, revisionId, store, ...input } = options;
+    return this.conversation({
+      conversationRef,
+      revisionId,
+      store: store ?? this.defaultConversationStore,
+    }).prepareRetryTurn(input);
   }
 
   listAgents(): Array<{ id: string; agentDefinition: JsonRecord }> {

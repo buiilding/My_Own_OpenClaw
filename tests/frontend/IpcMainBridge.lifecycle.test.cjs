@@ -28,13 +28,24 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     return ws;
   }
 
+  function invokeWindieCommand(handlers, command, payload = {}, sender = null) {
+    return handlers['windie:invoke']({ sender }, {
+      command,
+      payload,
+    });
+  }
+
+  function sendQuery(handlers, payload = {}, sender = null) {
+    return invokeWindieCommand(handlers, 'conversation.send', payload, sender);
+  }
+
   afterEach(() => {
     setActiveDisplayAffinity(null);
   });
 
   async function beginBackendConnection(bridge, message = { type: 'list-models' }) {
     const pending = Promise.resolve(
-      bridge.handlers['windie:list-models']({ sender: null }, message),
+      invokeWindieCommand(bridge.handlers, 'models.list', message),
     ).catch((error) => error);
     const ws = await waitForSocket(() => bridge.getWs());
     expect(ws).not.toBeNull();
@@ -139,10 +150,10 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     expect(handshake.agent_definition?.runtime?.coordinate_methods).toBeUndefined();
   });
 
-  test('connects before sending windie:list-models through the SDK runtime', async () => {
+  test('connects before sending models.list through the SDK runtime', async () => {
     const bridge = initIpc();
 
-    const pendingRequest = bridge.handlers['windie:list-models']({ sender: null }, { type: 'list-models' });
+    const pendingRequest = invokeWindieCommand(bridge.handlers, 'models.list', { type: 'list-models' });
     const pendingSocket = await waitForSocket(() => bridge.getWs());
     expect(pendingSocket.sent).toHaveLength(0);
 
@@ -246,10 +257,10 @@ describe('ipc.cjs bridge lifecycle/config', () => {
 
     // Dashboard closes; chat pill sends query with explicit conversation_ref from
     // its synchronized SDK conversation session.
-    await handlers['windie:send']({ sender: chatPillWindow.webContents }, {
+    await sendQuery(handlers, {
       text: 'follow-up with explicit conversation ref',
       conversation_ref: 'conv-dashboard-selected',
-    });
+    }, chatPillWindow.webContents);
 
     const sentQuery = JSON.parse(ws.sent[ws.sent.length - 1]);
     expect(sentQuery.type).toBe('query');
@@ -394,10 +405,10 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     });
   });
 
-  test('sends typed windie:stop through the SDK runtime', async () => {
+  test('sends conversation.stop through the SDK runtime', async () => {
     const { handlers, ws } = await setupOpenedIpc();
 
-    await handlers['windie:stop']({ sender: null }, {
+    await invokeWindieCommand(handlers, 'conversation.stop', {
       conversation_ref: 'conv-typed-stop',
     });
 
@@ -412,7 +423,7 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     const { handlers, ws, backendBridge } = await setupOpenedIpc();
     primeQueryContext(backendBridge);
 
-    await handlers['windie:send']({ sender: null });
+    await sendQuery(handlers);
 
     expect(ws.sent.map((entry) => JSON.parse(entry).type)).not.toContain('query');
   });
@@ -424,10 +435,10 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     });
     primeQueryContext(backendBridge);
 
-    await handlers['windie:send']({ sender: mainWindow.webContents }, {
+    await sendQuery(handlers, {
       text: 'stop shortcut lifecycle',
       conversation_ref: 'conv-stop-shortcut',
-    });
+    }, mainWindow.webContents);
 
     expect(setAgentLoopStopShortcutEnabled).toHaveBeenLastCalledWith(true);
 
@@ -448,10 +459,10 @@ describe('ipc.cjs bridge lifecycle/config', () => {
     });
     primeQueryContext(backendBridge);
 
-    await handlers['windie:send']({ sender: mainWindow.webContents }, {
+    await sendQuery(handlers, {
       text: 'query before global stop',
       conversation_ref: 'conv-global-stop',
-    });
+    }, mainWindow.webContents);
 
     const stopTriggered = await ipc.triggerStopQueryFromMain();
     expect(stopTriggered).toBe(true);

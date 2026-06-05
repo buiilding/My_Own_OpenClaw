@@ -1,7 +1,6 @@
 import {
   ConversationContinuityService,
   type JsonRecord,
-  InMemoryConversationStore,
   type WindieModelSelection,
   type ListConversationOptions,
   type RehydrateSnapshot,
@@ -10,7 +9,6 @@ import {
   type ConversationMetadata,
   type ConversationMetadataInvalidationListener,
   type CompactedReplaySnapshot,
-  createConversationRuntime,
 } from '../../infrastructure/api/windieSdkClient';
 import {
   createDesktopConversationStore,
@@ -23,6 +21,7 @@ import { DesktopLocalRuntimeEventSource } from './desktopLocalRuntimeEventSource
 import { createIpcSidecarConversationStore } from '../../infrastructure/transcript/sdkSidecarConversationStore';
 import type { LocalConversationSnapshot } from '../../infrastructure/transcript/conversationLocalSnapshotLoader';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
+import { invokeWindieCommand } from './windieCommandInvokeClient';
 
 export type { RehydrateConversationEntry };
 
@@ -86,39 +85,7 @@ type SearchConversationsInput = {
 };
 
 function optionalString(value: unknown): string | null {
-  return typeof value === 'string' && value.trim().length > 0 ? value : null;
-}
-
-class StaticRehydrateConversationStore extends InMemoryConversationStore {
-  constructor(
-    private readonly conversationRef: string,
-    private readonly messages: RehydrateConversationEntry[],
-  ) {
-    super();
-  }
-
-  async loadForRehydrate(): Promise<RehydrateSnapshot> {
-    return {
-      conversationRef: this.conversationRef,
-      revisionId: `rev-rehydrate-${this.conversationRef}`,
-      messages: this.messages,
-    };
-  }
-}
-
-async function createSeededConversationRuntime({
-  conversationRef,
-  userId,
-  workspacePath,
-}: Pick<RewriteAndResendInput, 'conversationRef' | 'userId' | 'workspacePath'>) {
-  const store = createDesktopConversationStore(userId);
-  const runtime = createConversationRuntime({
-    conversationRef,
-    store,
-    transport: createDesktopBackendTransport(workspacePath ?? null),
-  });
-  await runtime.load();
-  return runtime;
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
 
 export const desktopConversationContinuityService = new ConversationContinuityService({
@@ -169,47 +136,51 @@ export const DesktopConversationContinuityService = {
   },
 
   async rehydrateMessages(input: RehydrateMessagesInput): Promise<void> {
-    const runtime = createConversationRuntime({
-      conversationRef: input.conversationRef,
-      store: new StaticRehydrateConversationStore(input.conversationRef, input.messages),
-      transport: createDesktopBackendTransport(input.workspacePath ?? null),
+    await invokeWindieCommand('conversation.rehydrate', {
+      conversation_ref: input.conversationRef,
+      messages: input.messages,
+      rehydrate_mode: 'replace',
+      workspace_path: optionalString(input.workspacePath),
     });
-    await runtime.rehydrate();
   },
 
   async prepareEditAndResend(input: RewriteAndResendInput): Promise<PreparedReplayTurn> {
-    const runtime = await createSeededConversationRuntime(input);
-    const prepared = await runtime.prepareEditAndResend({
+    const prepared = await invokeWindieCommand<PreparedReplayTurn>('conversation.prepareEditAndResend', {
+      userId: input.userId,
+      conversationRef: input.conversationRef,
       messageId: input.messageId,
       userMessageOrdinal: input.userMessageOrdinal,
       text: input.text ?? '',
       payload: input.payload,
       model: input.model ?? undefined,
+      workspace_path: input.workspacePath ?? null,
     });
     return {
       conversationRef: input.conversationRef,
       text: prepared.text,
       payload: prepared.payload,
       model: prepared.model ?? null,
-      workspacePath: input.workspacePath ?? null,
+      workspacePath: prepared.workspacePath ?? input.workspacePath ?? null,
       turnRef: prepared.turnRef ?? null,
     };
   },
 
   async prepareRetryTurn(input: RewriteAndResendInput): Promise<PreparedReplayTurn> {
-    const runtime = await createSeededConversationRuntime(input);
-    const prepared = await runtime.prepareRetryTurn({
+    const prepared = await invokeWindieCommand<PreparedReplayTurn>('conversation.prepareRetryTurn', {
+      userId: input.userId,
+      conversationRef: input.conversationRef,
       messageId: input.messageId,
       userMessageOrdinal: input.userMessageOrdinal,
       payload: input.payload,
       model: input.model ?? undefined,
+      workspace_path: input.workspacePath ?? null,
     });
     return {
       conversationRef: input.conversationRef,
       text: prepared.text,
       payload: prepared.payload,
       model: prepared.model ?? null,
-      workspacePath: input.workspacePath ?? null,
+      workspacePath: prepared.workspacePath ?? input.workspacePath ?? null,
       turnRef: prepared.turnRef ?? null,
     };
   },
@@ -220,12 +191,10 @@ export const DesktopConversationContinuityService = {
     if (!resolvedConversationRef) {
       return;
     }
-    const runtime = createConversationRuntime({
-      conversationRef: resolvedConversationRef,
-      store: new InMemoryConversationStore(),
-      transport: createDesktopBackendTransport(null),
+    await invokeWindieCommand('conversation.compact', {
+      force,
+      conversation_ref: resolvedConversationRef,
     });
-    await runtime.compactHistory({ force });
   },
 
   replaceCompactedReplay(snapshot: CompactedReplaySnapshot, userId: string) {

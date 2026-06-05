@@ -20,9 +20,9 @@ describe('renderer IPC channel registry', () => {
       ...EXPECTED_SHARED_CHANNEL_REGISTRY,
       INVOKE_CHANNELS: {
         ...EXPECTED_SHARED_CHANNEL_REGISTRY.INVOKE_CHANNELS,
-        WINDIE_SEND: undefined,
+        WINDIE_INVOKE: undefined,
       },
-    })).toThrow(/INVOKE_CHANNELS\.WINDIE_SEND/);
+    })).toThrow(/INVOKE_CHANNELS\.WINDIE_INVOKE/);
 
     expect(() => validateSharedChannelRegistry({
       ...EXPECTED_SHARED_CHANNEL_REGISTRY,
