@@ -6,6 +6,7 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/plans: record completion state for the deterministic cleanup campaign.
 - backend/api: refresh the API source folder map for the current `schemas/`,
   websocket route helper, and memory route package layout.
 - frontend/renderer: align minimal pill and response overlay route-name docs and

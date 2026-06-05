@@ -139,7 +139,15 @@ Date: 2026-06-05
   - `rg -n "schema\.py|routes/memory/semantic\.py|Compatibility exports|Main WebSocket endpoint \(/ws\) and router definition" backend/src/api/folder_structure.md` returned no matches.
   - `./bin/docs-list` failed on the pre-existing `docs/docs.json` missing-page references recorded in the baseline.
   - `git diff --check` passed with Windows line-ending warnings only.
-- Commit: pending.
+- Commit: `c70d7f27b` (`docs(backend-api): refresh api source map`).
+
+## Final State
+
+- Stop condition met: six cleanup slices were implemented and committed, and at least four subsystems were scanned.
+- Implemented slices: C-001 backend websocket task admission, C-003 desktop minimal pill docs, C-006 backend core legacy type deletion, C-008 frontend main wrapper deletion, C-009 frontend renderer route docs/tests, C-010 backend API source map.
+- Rejected candidates: C-004 frontend `image/jpg` normalization and C-005 sidecar stats args, both retained as boundary contracts after inspection.
+- Remaining broad candidate: C-002/C-007-style stale SDK/renderer docs references remain worth a dedicated docs migration, especially the wide `WindieDesktopAgent` references.
+- Persistent validation debt: `./bin/docs-list` still fails on pre-existing `docs/docs.json` missing-page references from the baseline.
 
 ## Campaign Checklist
 
