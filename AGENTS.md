@@ -363,23 +363,23 @@ Release flow:
   patterns before adding code. New code should fit the current ownership model,
   naming, tests, and architecture direction unless there is a clear reason to
   change that direction explicitly.
-- For larger refactors or multi-turn changes, maintain a scratch log of
-  decisions, tradeoffs, validation commands, blockers, and assumptions.
-- For moderate or major implementation changes, create or update `task.md`
-  before editing code. `task.md` is the per-task execution contract, not a
-  permanent architecture doc. It must restate the user intent, describe the
+- For moderate or major implementation changes, create a dated, scope-named
+  plan file under `docs/plans/` before editing code. The plan is the pre-flight
+  execution contract. It must restate the user intent, describe the
   architectural change conceptually, name out-of-scope work, provide an ordered
-  plan, checklist, success criteria, validation commands, and notes for
-  decisions or blockers.
-- After writing `task.md`, stop and ask the user to confirm before proceeding.
-  Explain the proposed change in architectural, conceptual bullet points:
-  what source of truth changes, which runtime boundaries move, what old path is
-  deleted or preserved, and what behavior must not regress. If the user changes
-  direction, update `task.md` first.
-- While executing an approved `task.md`, keep the checklist and success
-  criteria current. Mark an item done only when the current code and validation
-  prove it is done. Do not stop until every checklist item and success criterion
-  is complete or explicitly blocked with the concrete reason.
+  plan, checklist, success criteria, validation commands, and assumptions.
+- After writing the plan, stop and ask the user to read and approve it before
+  proceeding. Explain the proposed change in architectural, conceptual bullet
+  points: what source of truth changes, which runtime boundaries move, what old
+  path is deleted or preserved, and what behavior must not regress. If the user
+  changes direction, update the plan file first.
+- While executing an approved plan, create or update a matching report file
+  under `docs/plans/`. The report must link the plan, track checklist and
+  success-criteria status, document every commit created for the plan, record
+  validation commands and results, and note decisions, tradeoffs, blockers, and
+  deviations from the approved plan.
+- Do not stop until every checklist item and success criterion in the approved
+  plan is complete or explicitly blocked in the report with the concrete reason.
 
 For architectural or product-flow questions, explain conceptually first:
 describe how the runtime works, where a change fits, what boundaries change, and

@@ -9,8 +9,8 @@ All notable changes to WindieOS will be documented in this file.
 - docs/agents: move detailed architecture/source-map material from `AGENTS.md`
   into `docs/development/agent_architecture_reference.md` while keeping the root
   guide focused on rules and runtime ownership boundaries.
-- docs/agents: require a confirmed `task.md` execution contract for moderate or
-  major implementation changes before coding starts.
+- docs/agents: require approved `docs/plans/` plan files plus matching report
+  files for moderate or major implementation changes.
 - frontend/chat: remove the experimental minimal chat pill renderer route and
   restore the floating overlay windows to the existing `ChatBox` /
   `ChatBoxResponse` implementation.
