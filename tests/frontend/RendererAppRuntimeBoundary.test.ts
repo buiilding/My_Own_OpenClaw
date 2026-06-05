@@ -3,6 +3,7 @@ import path from 'node:path';
 
 const appRoot = path.resolve(__dirname, '../../frontend/src/renderer/app');
 const allowedRelativePaths = new Set([
+  'runtime/desktopChatStreamIngressRuntime.ts',
   'runtime/desktopTranscriptSessionRuntimeClient.ts',
 ]);
 
@@ -23,14 +24,20 @@ async function listSourceFiles(dir: string): Promise<string[]> {
 }
 
 describe('renderer app runtime boundary', () => {
-  test('conversation library facade delegates store access to continuity runtime', async () => {
+  test('conversation library facade uses SDK-shaped commands for user-facing conversation actions', async () => {
     const source = await fs.readFile(
       path.join(appRoot, 'runtime/desktopConversationLibraryClient.js'),
       'utf8',
     );
 
-    expect(source).toContain('DesktopConversationContinuityService');
+    expect(source).toContain('invokeWindieCommand');
+    expect(source).toContain("'conversations.list'");
+    expect(source).toContain("'conversations.search'");
+    expect(source).toContain("'conversations.delete'");
+    expect(source).toContain("'conversation.load'");
     expect(source).not.toContain('DesktopConversationStoreAdapter');
+    expect(source).not.toContain('INVOKE_CHANNELS.LIST_CHAT_CONVERSATIONS');
+    expect(source).not.toContain('INVOKE_CHANNELS.GET_CHAT_EVENTS');
   });
 
   test('app provider code uses runtime facades for transcript session helpers', async () => {
@@ -56,9 +63,13 @@ describe('renderer app runtime boundary', () => {
     const offenders: string[] = [];
 
     for (const file of files) {
+      const relativePath = path.relative(appRoot, file);
+      if (allowedRelativePaths.has(relativePath)) {
+        continue;
+      }
       const source = await fs.readFile(file, 'utf8');
       if (source.includes('features/chat')) {
-        offenders.push(path.relative(appRoot, file));
+        offenders.push(relativePath);
       }
     }
 

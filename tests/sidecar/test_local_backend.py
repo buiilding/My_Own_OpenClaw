@@ -46,6 +46,7 @@ class DummyMemoryStore:
         }
         self.clear_chat_history_return = {
             "deleted_count": 0,
+            "deleted_revision_count": 0,
             "deleted_title_count": 0,
         }
 
@@ -1283,6 +1284,7 @@ async def test_handle_clear_chat_history_routes_to_store():
     backend.memory_store = DummyMemoryStore()
     backend.memory_store.clear_chat_history_return = {
         "deleted_count": 8,
+        "deleted_revision_count": 2,
         "deleted_title_count": 3,
     }
 
@@ -1292,6 +1294,7 @@ async def test_handle_clear_chat_history_routes_to_store():
         "success": True,
         "data": {
             "deleted_count": 8,
+            "deleted_revision_count": 2,
             "deleted_title_count": 3,
         },
     }

@@ -259,6 +259,11 @@ class WindieAgent {
             memory_id: options.memoryId,
         });
     }
+    async clearMemories(options = {}) {
+        return this.callLocalRuntimeRpc('clear_local_memory', {
+            user_id: options.userId,
+        });
+    }
     async listTools() {
         return this.localRuntime?.listTools ? this.localRuntime.listTools() : null;
     }
@@ -308,6 +313,13 @@ class WindieAgent {
             throw new Error('deleteConversation requires a deletable conversation store');
         }
         await conversationStore.deleteConversation(deleteOptions.conversationRef);
+    }
+    async clearConversations(options = {}) {
+        const conversationStore = options.store ?? this.defaultConversationStore;
+        if (typeof conversationStore.clearConversations !== 'function') {
+            throw new Error('clearConversations requires a clearable conversation store');
+        }
+        await conversationStore.clearConversations();
     }
     async loadConversation(options) {
         const loadOptions = typeof options === 'string'

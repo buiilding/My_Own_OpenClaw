@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { DesktopMemoryRuntimeClient } from '../../../../../app/runtime/desktopMemoryRuntimeClient';
 import { useTranscriptSessionInfo } from '../../../hooks/useTranscriptSessionInfo';
-import { DEFAULT_USER_ID } from '../../../utils/episodicMemoryUtils';
 
 export function useMemorySettingsActions() {
   const sessionInfo = useTranscriptSessionInfo();
-  const userId = sessionInfo.userId || DEFAULT_USER_ID;
+  const userId = sessionInfo.userId || '';
   const [pendingAction, setPendingAction] = useState(null);
   const [status, setStatus] = useState({
     tone: 'idle',
@@ -20,6 +19,14 @@ export function useMemorySettingsActions() {
     onSuccess,
   }) => {
     if (pendingAction) {
+      return false;
+    }
+
+    if (!userId || userId === 'default_user') {
+      setStatus({
+        tone: 'error',
+        message: 'Connect WindieOS before deleting saved data.',
+      });
       return false;
     }
 
@@ -59,16 +66,16 @@ export function useMemorySettingsActions() {
 
   const clearLocalMemory = async () => runDestructiveAction({
     actionId: 'memory',
-    confirmMessage: 'Delete all local episodic and semantic memory? Past chats will be kept.',
+    confirmMessage: 'Delete saved episodic interaction memories and semantic memories? Chat transcripts will be kept.',
     run: DesktopMemoryRuntimeClient.clearLocalMemory,
-    successMessage: 'Local episodic and semantic memory deleted.',
+    successMessage: 'Saved memories deleted.',
   });
 
   const clearChatHistory = async (onSuccess) => runDestructiveAction({
     actionId: 'chats',
-    confirmMessage: 'Delete all past chats? Local episodic and semantic memory will be kept.',
+    confirmMessage: 'Delete saved chat transcripts, revisions, and titles? Memories will be kept.',
     run: DesktopMemoryRuntimeClient.clearChatHistory,
-    successMessage: 'Past chats deleted.',
+    successMessage: 'Chat history deleted.',
     onSuccess,
   });
 

@@ -14,6 +14,7 @@ const RPC_METHOD_CHANNELS = {
   get_chat_events: INVOKE_CHANNELS.GET_CHAT_EVENTS,
   get_chat_conversation_revision: INVOKE_CHANNELS.GET_CHAT_CONVERSATION_REVISION,
   delete_chat_conversation: INVOKE_CHANNELS.DELETE_CHAT_CONVERSATION,
+  clear_chat_history: INVOKE_CHANNELS.CLEAR_CHAT_HISTORY,
 } as const;
 
 type SupportedRpcMethod = keyof typeof RPC_METHOD_CHANNELS;
@@ -114,6 +115,11 @@ function toIpcPayload(method: SupportedRpcMethod, params: JsonRecord = {}): Json
       return {
         userId: params.user_id,
         conversationId: params.conversation_id,
+        recordKind: params.record_kind,
+      };
+    case 'clear_chat_history':
+      return {
+        userId: params.user_id,
         recordKind: params.record_kind,
       };
     default:

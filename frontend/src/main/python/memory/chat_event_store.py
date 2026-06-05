@@ -405,10 +405,6 @@ async def list_chat_conversations(
                 SELECT conversation_id
                 FROM chat_events
                 WHERE user_id = ? AND conversation_id IS NOT NULL
-                UNION
-                SELECT conversation_id
-                FROM chat_conversation_revisions
-                WHERE user_id = ? AND conversation_id IS NOT NULL
             )
             SELECT c.conversation_id,
                    (
@@ -493,7 +489,6 @@ async def list_chat_conversations(
             LIMIT ?
             """,
             (
-                user_id,
                 user_id,
                 user_id,
                 user_id,

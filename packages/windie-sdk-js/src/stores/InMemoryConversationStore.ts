@@ -152,6 +152,13 @@ export class InMemoryConversationStore implements ConversationStore {
     this.replayByConversation.delete(conversationRef);
   }
 
+  async clearConversations(): Promise<void> {
+    this.eventsByConversation.clear();
+    this.eventIdsByConversation.clear();
+    this.revisionsByConversation.clear();
+    this.replayByConversation.clear();
+  }
+
   async getRevision(conversationRef: string): Promise<ConversationRevision> {
     const revision = this.revisionsByConversation.get(conversationRef);
     if (revision) {

@@ -552,6 +552,7 @@ async def test_clear_chat_history_preserves_memory_rows_and_titles_are_removed(
 
     assert result == {
         "deleted_count": 1,
+        "deleted_revision_count": 1,
         "deleted_title_count": 1,
     }
     assert cancel_calls == []
@@ -565,8 +566,12 @@ async def test_clear_chat_history_preserves_memory_rows_and_titles_are_removed(
         remaining_titles = conn.execute(
             "SELECT COUNT(*) FROM conversation_titles"
         ).fetchone()[0]
+        remaining_revisions = conn.execute(
+            "SELECT COUNT(*) FROM chat_conversation_revisions"
+        ).fetchone()[0]
     assert remaining_rows == [("interaction-1", "interaction", 0)]
     assert remaining_titles == 0
+    assert remaining_revisions == 0
 
 
 @pytest.mark.asyncio

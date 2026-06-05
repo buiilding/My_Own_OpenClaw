@@ -101,6 +101,15 @@ export type WindieStoreMemoryInput = {
   sessionId?: string;
 };
 
+export type WindieClearMemoriesResult = JsonRecord & {
+  episodic_deleted_count?: number;
+  semantic_deleted_count?: number;
+};
+
+export type WindieClearConversationsOptions = {
+  store?: ConversationStore;
+};
+
 export class WindieAgent {
   constructor(
     readonly id: string,
@@ -395,6 +404,12 @@ export class WindieAgent {
     );
   }
 
+  async clearMemories(options: { userId?: string } = {}): Promise<WindieClearMemoriesResult> {
+    return this.callLocalRuntimeRpc('clear_local_memory', {
+      user_id: options.userId,
+    }) as Promise<WindieClearMemoriesResult>;
+  }
+
   async listTools(): Promise<{ version?: number; tools?: JsonRecord[] } | null> {
     return this.localRuntime?.listTools ? this.localRuntime.listTools() : null;
   }
@@ -461,6 +476,14 @@ export class WindieAgent {
       throw new Error('deleteConversation requires a deletable conversation store');
     }
     await conversationStore.deleteConversation(deleteOptions.conversationRef);
+  }
+
+  async clearConversations(options: WindieClearConversationsOptions = {}): Promise<void> {
+    const conversationStore = options.store ?? this.defaultConversationStore;
+    if (typeof conversationStore.clearConversations !== 'function') {
+      throw new Error('clearConversations requires a clearable conversation store');
+    }
+    await conversationStore.clearConversations();
   }
 
   async loadConversation(

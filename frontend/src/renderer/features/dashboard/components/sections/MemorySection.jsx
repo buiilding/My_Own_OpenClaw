@@ -7,7 +7,6 @@ import {
 } from 'lucide-react';
 import { DesktopMemoryRuntimeClient } from '../../../../app/runtime/desktopMemoryRuntimeClient';
 import { useTranscriptSessionInfo } from '../../hooks/useTranscriptSessionInfo';
-import { DEFAULT_USER_ID } from '../../utils/episodicMemoryUtils';
 import {
   getMemoryRetrievalInjectionEnabled,
   setMemoryRetrievalInjectionEnabled,
@@ -40,11 +39,22 @@ function MemorySection({ onClose = () => {} }) {
     procedural: buildProceduralMemories(),
   });
 
-  const userId = sessionInfo.userId || DEFAULT_USER_ID;
+  const userId = sessionInfo.userId || '';
 
   const loadMemories = useCallback(async () => {
     setIsLoading(true);
     setLoadError('');
+
+    if (!userId || userId === 'default_user') {
+      setMemoriesByType({
+        episodic: [],
+        semantic: [],
+        procedural: buildProceduralMemories(),
+      });
+      setLoadError('Connect WindieOS to load saved memories.');
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const [episodicMemories, semanticMemories] = await Promise.all([
@@ -83,6 +93,11 @@ function MemorySection({ onClose = () => {} }) {
 
     const backendMemoryId = memory.backendMemoryId || memory.id || null;
     const backendType = memory.backendType || activeType;
+
+    if (!userId || userId === 'default_user') {
+      setLoadError('Connect WindieOS before deleting saved memories.');
+      return;
+    }
 
     if (backendMemoryId && (backendType === 'semantic' || backendType === 'episodic')) {
       try {

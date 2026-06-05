@@ -247,6 +247,15 @@ class FileConversationStore {
             }
         });
     }
+    async clearConversations() {
+        const { fs, path } = await this.modules();
+        await this.ensureDirectory();
+        const files = await fs.readdir(this.options.directory);
+        await Promise.all(files
+            .filter(file => file.endsWith('.json'))
+            .map(file => fs.unlink(path.join(this.options.directory, file))));
+        this.conversationMutationChains.clear();
+    }
     async getRevision(conversationRef) {
         const stored = await this.readConversation(conversationRef);
         return stored.revision ?? buildRevision(conversationRef, stored.events);

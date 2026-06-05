@@ -131,6 +131,19 @@ This section distinguishes current behavior from target behavior and known migra
    - Resolves applicable local `AGENTS.md` files from the active workspace and forwards them as contextual prompt messages, which is required when the backend is hosted remotely and cannot read local repo paths.
    - Sends normalized `query` through the SDK runtime, which owns the hosted backend WebSocket.
 
+### SDK-Shaped Renderer Commands
+
+Renderer feature code expresses user intent through `window.windie.invoke(command, payload)`.
+The command names are SDK-shaped, for example `conversation.send`,
+`conversation.stop`, `memories.clearAll`, and `conversations.clearAll`.
+Electron main owns only the IPC hop and strict command allowlist. The handler
+calls public `WindieAgent` / `ConversationRuntime` methods on the live SDK
+runtime. Renderer code must not call sidecar RPC names such as
+`clear-chat-history`, `clear-local-memory`, `list-chat-conversations`,
+`chat_events`, or `chat_conversation_revisions` for user-facing SDK concepts.
+Those names may still exist below the SDK boundary as local-runtime/store
+implementation details.
+
 ### Stream Receive Flow
 
 1. Backend WebSocket events arrive in the SDK desktop agent.
@@ -276,6 +289,8 @@ Primary modules:
 - `renderer/infrastructure/transcript/localConversationStore.ts`:
   - Renderer-owned read boundary for locally stored SDK conversation events.
   - Wraps `list-chat-conversations`, `search-chat-conversations`, and paginated `get-chat-events` IPC so chat history stays explicitly local-first in renderer code.
+  - This is an internal SDK-store/transcript implementation detail, not a new
+    renderer-facing command API for user actions.
 - `renderer/features/chat/session/conversationInferenceSessionRuntime.ts`:
   - Tracks whether a given conversation needs backend inference-session hydration from canonical SDK conversation-store snapshots.
   - Makes backend state explicitly disposable and rebuildable instead of treating it as conversation truth.

@@ -551,7 +551,7 @@ describe('SettingsSection', () => {
     expect(mockRestartOnboarding).toHaveBeenCalledTimes(1);
   });
 
-  test('nuke memory invokes the memory runtime client for the resolved user id', async () => {
+  test('delete memories invokes the memory runtime client for the resolved user id', async () => {
     mockTranscriptSessionInfo = {
       conversationRef: 'conv-memory',
       userId: 'user-memory',
@@ -559,59 +559,82 @@ describe('SettingsSection', () => {
     renderSettingsSection({ initialTab: 'memory' });
 
     fireEvent.click(screen.getByTestId('settings-tab-memory'));
-    fireEvent.click(screen.getByRole('button', { name: 'Nuke memory' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete memories' }));
 
     await waitFor(() => {
       expect(window.confirm).toHaveBeenCalledWith(
-        'Delete all local episodic and semantic memory? Past chats will be kept.',
+        'Delete saved episodic interaction memories and semantic memories? Chat transcripts will be kept.',
       );
       expect(mockClearLocalMemory).toHaveBeenCalledWith('user-memory');
-      expect(screen.getByText('Local episodic and semantic memory deleted.')).toBeInTheDocument();
+      expect(screen.getByText('Saved memories deleted.')).toBeInTheDocument();
     });
   });
 
-  test('nuke chats invokes the memory runtime client and notifies the parent on success', async () => {
+  test('delete chats invokes the memory runtime client and notifies the parent on success', async () => {
     const onChatsCleared = jest.fn();
+    mockTranscriptSessionInfo = {
+      conversationRef: 'conv-memory',
+      userId: 'user-memory',
+    };
     renderSettingsSection({
       initialTab: 'memory',
       onChatsCleared,
     });
 
     fireEvent.click(screen.getByTestId('settings-tab-memory'));
-    fireEvent.click(screen.getByRole('button', { name: 'Nuke chats' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete chats' }));
 
     await waitFor(() => {
       expect(window.confirm).toHaveBeenCalledWith(
-        'Delete all past chats? Local episodic and semantic memory will be kept.',
+        'Delete saved chat transcripts, revisions, and titles? Memories will be kept.',
       );
-      expect(mockClearChatHistory).toHaveBeenCalledWith('default_user');
+      expect(mockClearChatHistory).toHaveBeenCalledWith('user-memory');
       expect(onChatsCleared).toHaveBeenCalled();
-      expect(screen.getByText('Past chats deleted.')).toBeInTheDocument();
+      expect(screen.getByText('Chat history deleted.')).toBeInTheDocument();
     });
   });
 
-  test('nuke chats still reports delete success when parent refresh fails', async () => {
+  test('delete chats still reports delete success when parent refresh fails', async () => {
     const onChatsCleared = jest.fn(async () => {
       throw new Error('refresh failed');
     });
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    mockTranscriptSessionInfo = {
+      conversationRef: 'conv-memory',
+      userId: 'user-memory',
+    };
     renderSettingsSection({
       initialTab: 'memory',
       onChatsCleared,
     });
 
     fireEvent.click(screen.getByTestId('settings-tab-memory'));
-    fireEvent.click(screen.getByRole('button', { name: 'Nuke chats' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete chats' }));
 
     await waitFor(() => {
-      expect(mockClearChatHistory).toHaveBeenCalledWith('default_user');
+      expect(mockClearChatHistory).toHaveBeenCalledWith('user-memory');
       expect(onChatsCleared).toHaveBeenCalled();
-      expect(screen.getByText('Past chats deleted.')).toBeInTheDocument();
+      expect(screen.getByText('Chat history deleted.')).toBeInTheDocument();
     });
     expect(screen.queryByText('refresh failed')).not.toBeInTheDocument();
     expect(warnSpy).toHaveBeenCalledWith(
       'Destructive action succeeded, but refresh callback failed.',
       expect.any(Error),
     );
+  });
+
+  test('delete actions require an active user id before confirming', async () => {
+    mockTranscriptSessionInfo = {
+      conversationRef: null,
+      userId: null,
+    };
+    renderSettingsSection({ initialTab: 'memory' });
+
+    fireEvent.click(screen.getByTestId('settings-tab-memory'));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete chats' }));
+
+    expect(window.confirm).not.toHaveBeenCalled();
+    expect(mockClearChatHistory).not.toHaveBeenCalled();
+    expect(screen.getByText('Connect WindieOS before deleting saved data.')).toBeInTheDocument();
   });
 });

@@ -254,6 +254,12 @@ class SidecarConversationStore {
             record_kind: CHAT_EVENT_RECORD_KIND,
         });
     }
+    async clearConversations() {
+        await this.call('clear_chat_history', {
+            user_id: this.options.userId,
+            record_kind: CHAT_EVENT_RECORD_KIND,
+        });
+    }
     async getRevision(conversationRef) {
         const result = await this.call('get_chat_conversation_revision', {
             user_id: this.options.userId,

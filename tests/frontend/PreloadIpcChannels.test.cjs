@@ -2,12 +2,14 @@
 
 describe('preload IPC channel registry', () => {
   let exposedIpc;
+  let exposedWindie;
   let ipcRendererMock;
   let originalArgv;
 
   beforeEach(() => {
     jest.resetModules();
     exposedIpc = null;
+    exposedWindie = null;
     originalArgv = process.argv;
     ipcRendererMock = {
       send: jest.fn(),
@@ -23,6 +25,9 @@ describe('preload IPC channel registry', () => {
           if (key === 'ipc') {
             exposedIpc = value;
           }
+          if (key === 'windie') {
+            exposedWindie = value;
+          }
         }),
       },
       ipcRenderer: ipcRendererMock,
@@ -33,6 +38,7 @@ describe('preload IPC channel registry', () => {
         RENDERER_LOG: 'renderer-log',
       },
       INVOKE_CHANNELS: {
+        WINDIE_INVOKE: 'windie:invoke',
         CLEAR_CHAT_HISTORY: 'clear-chat-history',
         CLEAR_LOCAL_MEMORY: 'clear-local-memory',
         COPY_IMAGE_TO_CLIPBOARD: 'copy-image-to-clipboard',
@@ -77,6 +83,22 @@ describe('preload IPC channel registry', () => {
     expect(ipcRendererMock.invoke).toHaveBeenCalledWith('show-image-context-menu', {
       src: 'https://cdn.example/screenshot.png',
     });
+  });
+
+  test('exposes SDK-shaped Windie command invoke over one IPC channel', async () => {
+    await expect(exposedWindie.invoke('memories.clearAll', { userId: 'user-1' })).resolves.toBe('ok');
+
+    expect(ipcRendererMock.invoke).toHaveBeenCalledWith('windie:invoke', {
+      command: 'memories.clearAll',
+      payload: { userId: 'user-1' },
+    });
+  });
+
+  test('rejects invalid Windie command names before IPC', async () => {
+    await expect(exposedWindie.invoke('', { userId: 'user-1' })).rejects.toThrow(
+      'Invalid Windie SDK command',
+    );
+    expect(ipcRendererMock.invoke).not.toHaveBeenCalledWith('windie:invoke', expect.anything());
   });
 
   test('allows shared send channels from the central registry', () => {

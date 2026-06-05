@@ -645,6 +645,14 @@ function createDirectWakeUpAgentAdapter({
         payload,
       });
     },
+    listMemories: options => agent.listMemories(options),
+    deleteMemory: options => agent.deleteMemory(options),
+    clearMemories: options => agent.clearMemories(options),
+    listConversations: options => agent.listConversations(options),
+    searchConversations: options => agent.searchConversations(options),
+    deleteConversation: options => agent.deleteConversation(options),
+    clearConversations: options => agent.clearConversations(options),
+    loadConversation: options => agent.loadConversation(options),
     wakewordDetected: payload => agent.wakewordDetected(payload),
     ensureConnected: () => agent.ensureConnected(),
     isConnected: () => agent.isConnected(),
@@ -1127,6 +1135,13 @@ function initializeIpc(win, options = {}) {
     handleRendererStopQuery(payload)
   ));
 
+  ipcMain.handle('windie:invoke', async (event, payload = {}) => (
+    handleWindieSdkInvoke(event, payload, {
+      handleRendererChatQuery,
+      handleRendererStopQuery,
+    })
+  ));
+
   ipcMain.handle('windie:update-settings', async (_event, payload = {}) => (
     sendSettingsUpdate(payload, 'renderer-update')
   ));
@@ -1280,6 +1295,147 @@ function cloneJsonObject(value) {
     return {};
   }
   return JSON.parse(JSON.stringify(value));
+}
+
+function normalizePositiveInteger(value) {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return undefined;
+  }
+  const normalized = Math.floor(value);
+  return normalized > 0 ? normalized : undefined;
+}
+
+function normalizeMemoryType(value) {
+  const type = normalizeOptionalString(value);
+  if (type !== 'episodic' && type !== 'semantic') {
+    throw new Error('Windie SDK command requires memory type episodic or semantic.');
+  }
+  return type;
+}
+
+function requireCommandUserId(payload = {}) {
+  const userId = normalizeOptionalString(payload.userId || payload.user_id);
+  if (!userId || userId === 'default_user') {
+    throw new Error('Windie SDK command requires an active user id.');
+  }
+  if (currentUserId && userId !== currentUserId) {
+    throw new Error('Windie SDK command user id does not match the active user.');
+  }
+  return userId;
+}
+
+function optionalCommandConversationRef(payload = {}) {
+  return normalizeOptionalString(payload.conversationRef || payload.conversation_ref);
+}
+
+function requireCommandConversationRef(payload = {}) {
+  const conversationRef = optionalCommandConversationRef(payload);
+  if (!conversationRef) {
+    throw new Error('Windie SDK command requires a conversation reference.');
+  }
+  return conversationRef;
+}
+
+function requireCommandString(payload = {}, key, label) {
+  const value = normalizeOptionalString(payload[key]);
+  if (!value) {
+    throw new Error(`Windie SDK command requires ${label}.`);
+  }
+  return value;
+}
+
+function buildWindieSdkCommandHandlers({
+  event,
+  handleRendererChatQuery,
+  handleRendererStopQuery,
+}) {
+  return {
+    'conversation.send': async (payload = {}) => handleRendererChatQuery(event, payload),
+    'conversation.stop': async (payload = {}) => handleRendererStopQuery(payload),
+    'memories.list': async (payload = {}) => {
+      const agent = await ensureWindieAgent({ reason: 'sdk-command:memories.list' });
+      return agent.listMemories({
+        userId: requireCommandUserId(payload),
+        type: normalizeMemoryType(payload.type),
+        limit: normalizePositiveInteger(payload.limit),
+      });
+    },
+    'memories.delete': async (payload = {}) => {
+      const agent = await ensureWindieAgent({ reason: 'sdk-command:memories.delete' });
+      return agent.deleteMemory({
+        userId: requireCommandUserId(payload),
+        type: normalizeMemoryType(payload.type),
+        memoryId: requireCommandString(payload, 'memoryId', 'memory id'),
+      });
+    },
+    'memories.clearAll': async (payload = {}) => {
+      const agent = await ensureWindieAgent({ reason: 'sdk-command:memories.clearAll' });
+      return agent.clearMemories({
+        userId: requireCommandUserId(payload),
+      });
+    },
+    'conversations.list': async (payload = {}) => {
+      requireCommandUserId(payload);
+      const agent = await ensureWindieAgent({ reason: 'sdk-command:conversations.list' });
+      return agent.listConversations({
+        limit: normalizePositiveInteger(payload.limit),
+      });
+    },
+    'conversations.search': async (payload = {}) => {
+      requireCommandUserId(payload);
+      const agent = await ensureWindieAgent({ reason: 'sdk-command:conversations.search' });
+      return agent.searchConversations({
+        query: typeof payload.query === 'string' ? payload.query : '',
+        limit: normalizePositiveInteger(payload.limit),
+      });
+    },
+    'conversations.delete': async (payload = {}) => {
+      requireCommandUserId(payload);
+      const agent = await ensureWindieAgent({ reason: 'sdk-command:conversations.delete' });
+      await agent.deleteConversation({
+        conversationRef: requireCommandConversationRef(payload),
+      });
+      return { deleted: true };
+    },
+    'conversations.clearAll': async (payload = {}) => {
+      requireCommandUserId(payload);
+      const agent = await ensureWindieAgent({ reason: 'sdk-command:conversations.clearAll' });
+      await agent.clearConversations();
+      return { deleted: true };
+    },
+    'conversation.load': async (payload = {}) => {
+      requireCommandUserId(payload);
+      const agent = await ensureWindieAgent({
+        reason: 'sdk-command:conversation.load',
+        conversationRef: optionalCommandConversationRef(payload),
+      });
+      return agent.loadConversation({
+        conversationRef: requireCommandConversationRef(payload),
+      });
+    },
+  };
+}
+
+async function handleWindieSdkInvoke(event, input = {}, dependencies = {}) {
+  const command = normalizeOptionalString(input?.command);
+  const payload = isPlainObject(input?.payload) ? input.payload : {};
+  const handlers = buildWindieSdkCommandHandlers({
+    event,
+    ...dependencies,
+  });
+  try {
+    const handler = command ? handlers[command] : null;
+    if (!handler) {
+      throw new Error(`Unsupported Windie SDK command: ${command || 'unknown'}`);
+    }
+    const data = await handler(payload);
+    return { ok: true, data };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error?.message || `Windie SDK command failed: ${command || 'unknown'}`,
+    };
+  }
 }
 
 function mergeAgentDefinitionContext(generatedDefinition, suppliedDefinition) {

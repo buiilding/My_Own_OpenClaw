@@ -406,6 +406,7 @@ export interface ConversationStore {
   listMetadata(options?: ListConversationOptions): Promise<ConversationMetadata[]>;
   searchMetadata?(options: SearchConversationOptions): Promise<ConversationMetadata[]>;
   deleteConversation?(conversationRef: string): Promise<void>;
+  clearConversations?(): Promise<void>;
   getRevision(conversationRef: string): Promise<ConversationRevision>;
   loadCompactedReplay?(conversationRef: string): Promise<CompactedReplaySnapshot | null>;
 }

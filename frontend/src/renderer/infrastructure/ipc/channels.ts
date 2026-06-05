@@ -22,6 +22,7 @@ export const EXPECTED_SHARED_CHANNEL_REGISTRY = {
     WINDIE_REHYDRATE: 'windie:rehydrate',
     WINDIE_COMPACT_HISTORY: 'windie:compact-history',
     WINDIE_WAKEWORD_DETECTED: 'windie:wakeword-detected',
+    WINDIE_INVOKE: 'windie:invoke',
     CAPTURE_SCREENSHOT_ATTACHMENT: 'capture-screenshot-attachment',
     READ_ATTACHMENT_FILE: 'read-attachment-file',
     RUN_BROWSER_ACTION: 'run-browser-action',

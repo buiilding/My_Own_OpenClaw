@@ -5,10 +5,13 @@ import * as path from 'path';
 import {
   createWindieAgentBackendTransport,
   createWindieAgentSession,
+  createConversationEvent,
   createWindieLocalRuntimeProvider,
+  InMemoryConversationStore,
   moduleTool,
   SidecarDaemonHttpClient,
   SidecarConversationStore,
+  WindieAgent,
   WindieClient as WindieClientClass,
   WindieSdkClient,
   windieBuiltins,
@@ -2185,6 +2188,7 @@ describe('WindieSdkClient', () => {
       reason: 'edit_resend',
     });
     await store.deleteConversation('conv-sidecar');
+    await store.clearConversations();
 
     expect(rpc).toHaveBeenCalledWith(expect.objectContaining({
       method: 'replace_chat_conversation',
@@ -2206,6 +2210,69 @@ describe('WindieSdkClient', () => {
     expect(rpc).toHaveBeenCalledWith(expect.objectContaining({
       method: 'delete_chat_conversation',
     }));
+    expect(rpc).toHaveBeenCalledWith(expect.objectContaining({
+      method: 'clear_chat_history',
+      params: {
+        user_id: 'user-1',
+        record_kind: 'chat_event',
+      },
+    }));
+  });
+
+  test('WindieAgent exposes SDK-owned clear memory and conversation commands', async () => {
+    const localRuntimeRpc = jest.fn(async ({ method }) => {
+      if (method === 'clear_local_memory') {
+        return {
+          episodic_deleted_count: 2,
+          semantic_deleted_count: 3,
+        };
+      }
+      return {};
+    });
+    const store = new InMemoryConversationStore();
+    const session = {
+      on: jest.fn(() => () => undefined),
+    };
+    const owner = {
+      listAgents: jest.fn(() => []),
+    };
+    const sdkClient = {
+      embeddings: {
+        create: jest.fn(),
+      },
+    };
+    const agent = new WindieAgent(
+      'agent-public-commands',
+      session as any,
+      {},
+      sdkClient as any,
+      owner,
+      { rpc: localRuntimeRpc } as any,
+      'user-1',
+      store,
+    );
+
+    await store.appendEvent(createConversationEvent({
+      type: 'user_message',
+      conversationRef: 'conv-clear',
+      revisionId: 'rev-1',
+      turnRef: 'turn-1',
+      source: 'sdk',
+      payload: { text: 'hello' },
+    }));
+
+    await expect(agent.clearMemories({ userId: 'user-1' })).resolves.toEqual({
+      episodic_deleted_count: 2,
+      semantic_deleted_count: 3,
+    });
+    expect(localRuntimeRpc).toHaveBeenCalledWith({
+      method: 'clear_local_memory',
+      params: { user_id: 'user-1' },
+    });
+
+    await expect(agent.listConversations()).resolves.toHaveLength(1);
+    await agent.clearConversations();
+    await expect(agent.listConversations()).resolves.toEqual([]);
   });
 
   test('SidecarConversationStore keeps rewrite revision metadata for old or empty events', async () => {

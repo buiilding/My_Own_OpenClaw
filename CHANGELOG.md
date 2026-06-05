@@ -9,6 +9,9 @@ All notable changes to WindieOS will be documented in this file.
 - ops/ci: remove the outdated GitHub Actions `CI` workflow and its orphaned
   PR invariant check script, leaving the frontend runtime checklist as a
   review-time contract instead of a CI gate.
+- frontend/sdk: route renderer memory and conversation clear actions through a
+  single SDK-shaped `windie.invoke(...)` command bridge, with Electron main
+  allowlisting commands and calling public SDK agent APIs.
 - docs/plans: record completion state for the deterministic cleanup campaign.
 - backend/api: refresh the API source folder map for the current `schemas/`,
   websocket route helper, and memory route package layout.

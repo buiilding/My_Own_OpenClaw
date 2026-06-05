@@ -117,6 +117,12 @@ class InMemoryConversationStore {
         this.revisionsByConversation.delete(conversationRef);
         this.replayByConversation.delete(conversationRef);
     }
+    async clearConversations() {
+        this.eventsByConversation.clear();
+        this.eventIdsByConversation.clear();
+        this.revisionsByConversation.clear();
+        this.replayByConversation.clear();
+    }
     async getRevision(conversationRef) {
         const revision = this.revisionsByConversation.get(conversationRef);
         if (revision) {

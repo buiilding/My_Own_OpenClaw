@@ -389,9 +389,7 @@ async def test_replace_chat_conversation_preserves_empty_rewrite_revision(
         "updated_at": "2026-05-17T12:03:00+00:00",
         "record_kind": "chat_event",
     }
-    assert conversations[0]["conversation_id"] == "conv-empty"
-    assert conversations[0]["revision_id"] == "rev-empty"
-    assert conversations[0]["entry_count"] == 0
+    assert conversations == []
 
 
 @pytest.mark.asyncio

@@ -5,7 +5,7 @@ const MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY = 'desktop-assistant-memory-retriev
 const mockListEpisodicMemories = jest.fn();
 const mockListSemanticMemories = jest.fn();
 const mockDeleteMemoryItem = jest.fn();
-let mockSessionInfo = { conversationRef: null, userId: 'default_user' };
+let mockSessionInfo = { conversationRef: null, userId: 'user-1' };
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopMemoryRuntimeClient', () => ({
   DesktopMemoryRuntimeClient: {
@@ -29,7 +29,7 @@ describe('MemorySection', () => {
     mockListEpisodicMemories.mockResolvedValue([]);
     mockListSemanticMemories.mockResolvedValue([]);
     mockDeleteMemoryItem.mockResolvedValue(undefined);
-    mockSessionInfo = { conversationRef: null, userId: 'default_user' };
+    mockSessionInfo = { conversationRef: null, userId: 'user-1' };
     window.localStorage.removeItem(MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY);
   });
 
@@ -59,8 +59,8 @@ describe('MemorySection', () => {
 
     await screen.findByText('Interaction memories and short-lived context snapshots');
 
-    expect(mockListEpisodicMemories).toHaveBeenCalledWith('default_user', 200);
-    expect(mockListSemanticMemories).toHaveBeenCalledWith('default_user', 200);
+    expect(mockListEpisodicMemories).toHaveBeenCalledWith('user-1', 200);
+    expect(mockListSemanticMemories).toHaveBeenCalledWith('user-1', 200);
 
     await screen.findByText(/discuss quarterly roadmap/i);
     expect(screen.queryByText('Conversation 1')).not.toBeInTheDocument();
@@ -107,7 +107,7 @@ describe('MemorySection', () => {
 
     await waitFor(() => {
       expect(mockDeleteMemoryItem).toHaveBeenCalledWith({
-        userId: 'default_user',
+        userId: 'user-1',
         memoryId: 'sem-del-1',
         kind: 'semantic',
       });
@@ -135,7 +135,7 @@ describe('MemorySection', () => {
 
     await waitFor(() => {
       expect(mockDeleteMemoryItem).toHaveBeenCalledWith({
-        userId: 'default_user',
+        userId: 'user-1',
         memoryId: 'ep-del-1',
         kind: 'episodic',
       });
@@ -186,7 +186,7 @@ describe('MemorySection', () => {
 
       await waitFor(() => {
         expect(mockDeleteMemoryItem).toHaveBeenCalledWith({
-          userId: 'default_user',
+          userId: 'user-1',
           memoryId: 'sem-del-no-confirm-1',
           kind: 'semantic',
         });

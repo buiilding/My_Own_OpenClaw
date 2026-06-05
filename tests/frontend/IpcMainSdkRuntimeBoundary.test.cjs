@@ -45,4 +45,30 @@ describe('main ipc sdk runtime boundary', () => {
     expect(wakeCall).toContain('localToolLifecycle');
     expect(wakeCall).not.toContain('conversationRef:');
   });
+
+  test('electron main exposes SDK-shaped user commands through a strict invoke allowlist', async () => {
+    const source = await fs.readFile(
+      path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
+      'utf8',
+    );
+
+    expect(source).toContain("ipcMain.handle('windie:invoke'");
+    expect(source).toContain('buildWindieSdkCommandHandlers');
+    expect(source).toContain("'memories.list'");
+    expect(source).toContain("'memories.delete'");
+    expect(source).toContain("'memories.clearAll'");
+    expect(source).toContain("'conversations.list'");
+    expect(source).toContain("'conversations.search'");
+    expect(source).toContain("'conversations.delete'");
+    expect(source).toContain("'conversations.clearAll'");
+    expect(source).toContain("'conversation.send'");
+    expect(source).toContain("'conversation.stop'");
+    expect(source).toContain('agent.listMemories(');
+    expect(source).toContain('agent.deleteMemory(');
+    expect(source).toContain('agent.clearMemories(');
+    expect(source).toContain('agent.clearConversations(');
+    expect(source).toContain('requireCommandUserId');
+    expect(source).toContain("userId === 'default_user'");
+    expect(source).not.toContain('handleWindieSdkInvoke(event, payload, { method');
+  });
 });

@@ -148,6 +148,26 @@ ipcMain.handle('windie:send', (_event, payload) => conversation.send(payload));
 ipcMain.handle('windie:stop', (_event) => conversation.stop());
 ```
 
+Renderer-facing user commands that are SDK concepts should use the same shape
+instead of sidecar RPC names:
+
+```js
+ipcMain.handle('windie:invoke', async (_event, { command, payload }) => {
+  switch (command) {
+    case 'memories.clearAll':
+      return agent.clearMemories(payload);
+    case 'conversations.clearAll':
+      return agent.clearConversations(payload);
+    default:
+      throw new Error(`Unsupported SDK command: ${command}`);
+  }
+});
+```
+
+The command allowlist belongs in Electron main. The behavior and semantics
+belong in public SDK methods on `WindieAgent`, `ConversationRuntime`, or SDK
+stores.
+
 The `localToolLifecycle` callback is SDK-owned in timing and host-owned in
 policy. The SDK calls `beforeExecute(call)` immediately before local sidecar
 execution and awaits the returned release callback in `finally`. Electron uses

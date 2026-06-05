@@ -89,8 +89,9 @@ async def clear_local_memory(store: "LocalMemoryStore", user_id: str) -> Dict[st
 
 
 async def clear_chat_history(store: "LocalMemoryStore", user_id: str) -> Dict[str, int]:
-    """Clear chat event history and conversation titles while preserving memory rows."""
+    """Clear chat event history, revision metadata, and titles while preserving memory rows."""
     chat_events_deleted = 0
+    conversation_revisions_deleted = 0
     conversation_titles_deleted = 0
 
     await init_chat_event_schema(store.episodic_db_path)
@@ -104,6 +105,13 @@ async def clear_chat_history(store: "LocalMemoryStore", user_id: str) -> Dict[st
             cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
         )
         await cursor.execute(
+            "DELETE FROM chat_conversation_revisions WHERE user_id = ?",
+            (user_id,),
+        )
+        conversation_revisions_deleted = (
+            cursor.rowcount if cursor.rowcount and cursor.rowcount > 0 else 0
+        )
+        await cursor.execute(
             "DELETE FROM conversation_titles WHERE user_id = ?",
             (user_id,),
         )
@@ -113,12 +121,14 @@ async def clear_chat_history(store: "LocalMemoryStore", user_id: str) -> Dict[st
         await conn.commit()
 
     logger.info(
-        "Cleared chat history for user_id=%s (chat_events=%s titles=%s)",
+        "Cleared chat history for user_id=%s (chat_events=%s revisions=%s titles=%s)",
         user_id,
         chat_events_deleted,
+        conversation_revisions_deleted,
         conversation_titles_deleted,
     )
     return {
         "deleted_count": int(chat_events_deleted),
+        "deleted_revision_count": int(conversation_revisions_deleted),
         "deleted_title_count": int(conversation_titles_deleted),
     }
