@@ -12,8 +12,13 @@ The minimal chat pill is the small always-available desktop command surface. It 
 
 ## Main Files
 
-- Renderer app: `frontend/src/renderer/app/ChatBoxApp.jsx`
-- Component: `frontend/src/renderer/features/chat/components/ChatBox.jsx`
+- Minimal renderer app: `frontend/src/renderer/app/MinimalChatPillApp.jsx`
+- Minimal component: `frontend/src/renderer/features/minimalChatPill/MinimalChatPill.jsx`
+- Minimal response app: `frontend/src/renderer/app/MinimalResponseOverlayApp.jsx`
+- Minimal response component: `frontend/src/renderer/features/minimalChatPill/MinimalResponseOverlay.jsx`
+- Minimal shared state: `frontend/src/renderer/features/minimalChatPill/useMinimalCurrentTurn.js`
+- Legacy renderer app: `frontend/src/renderer/app/ChatBoxApp.jsx`
+- Legacy component reference: `frontend/src/renderer/features/chat/components/ChatBox.jsx`
 - Bindings: `frontend/src/renderer/features/chat/hooks/useChatBoxBindings.js`
 - Composer state: `frontend/src/renderer/features/chat/hooks/useChatComposerDraft.js`
 - Message sending: `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
@@ -23,6 +28,14 @@ The minimal chat pill is the small always-available desktop command surface. It 
 ## Behavior Contracts
 
 - The pill is a command surface, not a separate chat backend session.
+- The minimal pill route is the new first-pass UI surface. It sends text-only
+  messages through the SDK-backed desktop live-turn runtime and displays
+  `windie:current-turn` projection state. The legacy `ChatBox` route remains as
+  reference code while the minimal surface replaces the visible chat window.
+- The minimal response overlay must not render the old turn while a new send is
+  awaiting first content. It hides during `awaiting-first-chunk` until the SDK
+  current-turn projection contains assistant text, reasoning text, tool events,
+  or an error for the active turn.
 - Closing the pill is durable user intent. Generic lifecycle paths such as
   startup-surface reapply or app activation must not reopen it while that intent
   is set.

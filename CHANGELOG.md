@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/chat: route the floating chat and response overlay windows to a new
+  text-only minimal pill surface driven by SDK current-turn projection while
+  leaving the legacy chatbox implementation as reference code.
 - examples/simple-chat-cli: keep the system prompt option visible while using
   the default WindieOS system prompt.
 - tools/shell: remove the stale `max_output_tokens` argument from the backend

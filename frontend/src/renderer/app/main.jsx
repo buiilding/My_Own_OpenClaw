@@ -4,6 +4,8 @@ import App from './App';
 import ChatBoxApp from './ChatBoxApp';
 import ChatBoxResponseApp from './ChatBoxResponseApp';
 import ChatBoxContextLabelApp from './ChatBoxContextLabelApp';
+import MinimalChatPillApp from './MinimalChatPillApp';
+import MinimalResponseOverlayApp from './MinimalResponseOverlayApp';
 import ToolGhostDebugApp from './ToolGhostDebugApp';
 import { installFrontendInteractionLogger } from '../infrastructure/interaction/frontendInteractionLogger';
 
@@ -17,11 +19,15 @@ const RootComponent = view === 'chatbox'
   ? ChatBoxApp
   : view === 'chatbox-response'
     ? ChatBoxResponseApp
-    : view === 'chatbox-context-label'
-      ? ChatBoxContextLabelApp
-      : view === 'tool-ghost-debug'
-        ? ToolGhostDebugApp
-    : App;
+    : view === 'minimal-chat-pill'
+      ? MinimalChatPillApp
+      : view === 'minimal-response-overlay'
+        ? MinimalResponseOverlayApp
+        : view === 'chatbox-context-label'
+          ? ChatBoxContextLabelApp
+          : view === 'tool-ghost-debug'
+            ? ToolGhostDebugApp
+            : App;
 
 if (isDev) {
   root.render(
