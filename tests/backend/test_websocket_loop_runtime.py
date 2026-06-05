@@ -43,9 +43,9 @@ class DummyTaskManager:
             close = getattr(coro, "close", None)
             if callable(close):
                 close()
-            return None, True
-        task = asyncio.create_task(coro)
-        return task, False
+            return False
+        asyncio.create_task(coro)
+        return True
 
 
 @pytest.mark.asyncio

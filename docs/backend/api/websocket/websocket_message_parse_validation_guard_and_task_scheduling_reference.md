@@ -105,8 +105,11 @@ Websocket route schedules each validated message through:
 Limit behavior:
 
 - done tasks pruned before enforcing limit
+- accepted coroutines return `True` after `TaskManager` creates, tracks, and
+  owns the dispatch task internally
 - if at limit:
   - coroutine input is explicitly closed
+  - scheduler returns `False`
   - route sends `"Too many concurrent requests. Please wait."`
 
 Task lifecycle:

@@ -16,6 +16,11 @@ from backend.src.api.routes.websocket.task_manager import TaskManager
 restore_route_deps_shim(_original_deps)
 
 
+def _only_active_task(manager: TaskManager) -> asyncio.Task:
+    assert len(manager.active_tasks) == 1
+    return next(iter(manager.active_tasks))
+
+
 @pytest.mark.asyncio
 async def test_create_task_if_under_limit_enforces_max_concurrency() -> None:
     manager = TaskManager(max_concurrent_tasks=1, task_cancellation_timeout=0.1)
@@ -27,20 +32,19 @@ async def test_create_task_if_under_limit_enforces_max_concurrency() -> None:
     async def overflow_task() -> None:
         await asyncio.sleep(0)
 
-    first_task, first_limit_exceeded = await manager.create_task_if_under_limit(
+    first_accepted = await manager.create_task_if_under_limit(
         long_running(), "user_1"
     )
 
-    assert first_task is not None
-    assert first_limit_exceeded is False
+    assert first_accepted is True
+    first_task = _only_active_task(manager)
 
     second_coro = overflow_task()
-    second_task, second_limit_exceeded = await manager.create_task_if_under_limit(
+    second_accepted = await manager.create_task_if_under_limit(
         second_coro, "user_1"
     )
 
-    assert second_task is None
-    assert second_limit_exceeded is True
+    assert second_accepted is False
     assert inspect.getcoroutinestate(second_coro) == inspect.CORO_CLOSED
 
     blocker.set()
@@ -57,12 +61,11 @@ async def test_create_task_if_under_limit_ignores_close_errors_on_rejected_input
         def close(self):
             raise RuntimeError("close failed")
 
-    task, limit_exceeded = await manager.create_task_if_under_limit(
+    accepted = await manager.create_task_if_under_limit(
         BadCloseCoro(), "user_bad_close"
     )
 
-    assert task is None
-    assert limit_exceeded is True
+    assert accepted is False
 
 
 @pytest.mark.asyncio
@@ -72,25 +75,25 @@ async def test_create_task_if_under_limit_prunes_done_tasks_before_limit_check(
     manager = TaskManager(max_concurrent_tasks=1, task_cancellation_timeout=0.1)
     monkeypatch.setattr(manager, "task_done_callback", lambda _task: None)
 
-    first_task, first_limit_exceeded = await manager.create_task_if_under_limit(
+    first_accepted = await manager.create_task_if_under_limit(
         asyncio.sleep(0),
         "user_prune",
     )
-    assert first_task is not None
-    assert first_limit_exceeded is False
+    assert first_accepted is True
+    first_task = _only_active_task(manager)
     await first_task
 
     # Completed task remains in active set when callback removal is delayed.
     assert len(manager.active_tasks) == 1
 
-    second_task, second_limit_exceeded = await manager.create_task_if_under_limit(
+    second_accepted = await manager.create_task_if_under_limit(
         asyncio.sleep(0),
         "user_prune",
     )
 
     # Scheduler should prune stale done tasks before enforcing max concurrency.
-    assert second_task is not None
-    assert second_limit_exceeded is False
+    assert second_accepted is True
+    second_task = _only_active_task(manager)
     await second_task
 
 
@@ -131,11 +134,11 @@ async def test_cleanup_cancels_pending_tasks() -> None:
     async def never_finishes() -> None:
         await asyncio.sleep(10)
 
-    task, limit_exceeded = await manager.create_task_if_under_limit(
+    accepted = await manager.create_task_if_under_limit(
         never_finishes(), "user_2"
     )
-    assert task is not None
-    assert limit_exceeded is False
+    assert accepted is True
+    task = _only_active_task(manager)
     assert len(manager.active_tasks) == 1
 
     await manager.cleanup("user_2")
@@ -152,11 +155,11 @@ async def test_cleanup_prunes_completed_tasks_when_callback_cleanup_is_delayed(
     monkeypatch.setattr(manager, "task_done_callback", lambda _task: None)
     original_set_id = id(manager.active_tasks)
 
-    task, limit_exceeded = await manager.create_task_if_under_limit(
+    accepted = await manager.create_task_if_under_limit(
         asyncio.sleep(0), "user_done"
     )
-    assert task is not None
-    assert limit_exceeded is False
+    assert accepted is True
+    task = _only_active_task(manager)
     await task
 
     # Without callback removal, completed tasks remain in active set.
@@ -204,9 +207,8 @@ async def test_cleanup_logs_timeout(caplog, monkeypatch) -> None:
 
     monkeypatch.setattr(task_manager_module.asyncio, "wait_for", forced_timeout)
 
-    task, limit_exceeded = await manager.create_task_if_under_limit(never_finishes(), "user_3")
-    assert task is not None
-    assert limit_exceeded is False
+    accepted = await manager.create_task_if_under_limit(never_finishes(), "user_3")
+    assert accepted is True
 
     await manager.cleanup("user_3")
 
@@ -230,11 +232,10 @@ async def test_cleanup_logs_orphaned_tasks_when_cancellation_not_observed(
 
     monkeypatch.setattr(task_manager_module.asyncio, "wait_for", skip_wait_for)
 
-    task, limit_exceeded = await manager.create_task_if_under_limit(
+    accepted = await manager.create_task_if_under_limit(
         never_finishes(), "user_orphan"
     )
-    assert task is not None
-    assert limit_exceeded is False
+    assert accepted is True
 
     await manager.cleanup("user_orphan")
 

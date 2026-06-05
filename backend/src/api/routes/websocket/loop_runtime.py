@@ -48,11 +48,11 @@ async def schedule_validated_message_task(
 ) -> None:
     """Schedule validated websocket message with task-limit handling."""
     msg_id = validated_msg.id
-    task, limit_exceeded = await task_manager.create_task_if_under_limit(
+    accepted = await task_manager.create_task_if_under_limit(
         handle_message(safe_ws, validated_msg, handler_registry, user_id),
         user_id,
     )
-    if limit_exceeded:
+    if not accepted:
         logger.warning(
             "User %s exceeded max concurrent tasks (%s)",
             user_id,
@@ -64,5 +64,4 @@ async def schedule_validated_message_task(
             "Too many concurrent requests. Please wait.",
         )
         return
-    _ = task
 

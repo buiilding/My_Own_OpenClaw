@@ -98,7 +98,7 @@ class FakeTaskManager:
         close = getattr(coro, "close", None)
         if callable(close):
             close()
-        return None, False
+        return True
 
     async def cleanup(self, user_id: str) -> None:  # noqa: ARG002
         return None
@@ -397,8 +397,8 @@ async def test_websocket_endpoint_recovers_after_parse_error_and_dispatches_next
 
     class FakeTaskManagerDispatch(FakeTaskManager):
         async def create_task_if_under_limit(self, coro, user_id: str):
-            task = asyncio.create_task(coro)
-            return task, False
+            asyncio.create_task(coro)
+            return True
 
     class DummyValidatedMessage:
         id = "msg_valid_after_error"
@@ -483,7 +483,7 @@ async def test_websocket_endpoint_dispatches_sequential_control_messages(
     class FakeTaskManagerSyncDispatch(FakeTaskManager):
         async def create_task_if_under_limit(self, coro, user_id: str):  # noqa: ARG002
             await coro
-            return None, False
+            return True
 
     class DummyValidatedMessage:
         def __init__(self, msg_id: str, msg_type: str):
@@ -568,7 +568,7 @@ async def test_websocket_endpoint_sends_limit_exceeded_error_with_message_id(
             close = getattr(coro, "close", None)
             if callable(close):
                 close()
-            return None, True
+            return False
 
     async def fake_perform_handshake(websocket, safe_ws, **_kwargs):  # noqa: ARG001
         return "user_limited"

@@ -31,14 +31,16 @@ It tracks route-dispatch tasks only (`active_tasks` set), not arbitrary sub-task
 1. prune completed tasks (`_prune_done_tasks_locked`)
 2. if active count already at limit:
    - close coroutine input via `_close_if_coroutine`
-   - return `(None, True)`
+   - return `False`
 3. else create task (`asyncio.create_task(coro)`)
 4. add task to set and register `task_done_callback`
-5. return `(task, False)`
+5. return `True`
 
 Atomicity:
 
 - limit check + task creation/set insert happen within same lock scope.
+- callers receive only the admission result; task objects remain owned by
+  `TaskManager.active_tasks`.
 
 ## Rejected-Coroutine Close Guarantee
 
@@ -81,10 +83,10 @@ Result:
 
 ## Route Integration Contract
 
-`websocket_endpoint` uses manager return tuple:
+`websocket_endpoint` uses the manager admission result:
 
-- `(task, False)` -> continue loop
-- `(None, True)` -> send client error `"Too many concurrent requests. Please wait."`
+- `True` -> continue loop
+- `False` -> send client error `"Too many concurrent requests. Please wait."`
 
 `finally` block always calls `cleanup_connection(...)`, which invokes:
 

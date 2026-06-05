@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/api: narrow websocket task admission to a boolean result so the
+  receive loop no longer receives or discards task objects owned by
+  `TaskManager`.
 - docs/agents: move detailed architecture/source-map material from `AGENTS.md`
   into `docs/development/agent_architecture_reference.md` while keeping the root
   guide focused on rules and runtime ownership boundaries.

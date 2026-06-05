@@ -65,10 +65,10 @@ class TaskManager:
                 logger.debug(f"Ignoring coroutine close failure: {e}")
     
     async def create_task_if_under_limit(
-        self, 
-        coro, 
-        user_id: str
-    ) -> tuple[asyncio.Task | None, bool]:
+        self,
+        coro,
+        user_id: str,
+    ) -> bool:
         """
         Create task if under concurrency limit.
         
@@ -77,7 +77,8 @@ class TaskManager:
             user_id: User ID for logging
             
         Returns:
-            Tuple of (task or None, limit_exceeded: bool)
+            True when the coroutine was accepted and scheduled, False when the
+            concurrency limit rejected it.
         """
         async with self.tasks_lock:
             pruned_count = self._prune_done_tasks_locked()
@@ -96,7 +97,7 @@ class TaskManager:
                     self.max_concurrent_tasks,
                 )
                 self._close_if_coroutine(coro)
-                return None, True
+                return False
             
             # Create task and add to set atomically within lock
             try:
@@ -111,7 +112,7 @@ class TaskManager:
                 raise
             self.active_tasks.add(task)
             task.add_done_callback(self.task_done_callback)
-            return task, False
+            return True
     
     async def cleanup(self, user_id: str) -> None:
         """
