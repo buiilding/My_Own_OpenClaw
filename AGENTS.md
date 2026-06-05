@@ -256,6 +256,10 @@ Before finishing, verify:
 - Storage, API, event-payload, tool-schema, settings, or persisted-data changes
   include an explicit migration or compatibility note, even when the note is
   that no migration is required.
+- For work running under an approved `docs/plans/` plan, this completion check
+  is not a substitute for the required design-inspection loop. Complete the loop
+  in [Compaction-Safe Plan Execution](#compaction-safe-plan-execution) before
+  returning.
 
 In the final summary, briefly note any meaningful refactor performed and any
 important debt intentionally left behind.
@@ -372,6 +376,11 @@ Moderate and major implementation changes must be resilient to context-window
 compaction. Treat the approved `docs/plans/` plan and its matching report as the
 durable source of truth for the task, not the conversational history.
 
+- The required loop is: recover state from the plan/report, inspect the current
+  codebase against the plan's target architecture, design and implement the next
+  coherent slice, run focused validation for that slice, perform a fresh
+  design-inspection pass, and repeat until inspection finds no remaining
+  in-scope work.
 - Before editing code, create a dated, scope-named plan file under
   `docs/plans/`. The plan is a pre-flight execution contract. It must restate
   the user intent, describe the architectural change conceptually, name
@@ -390,9 +399,10 @@ durable source of truth for the task, not the conversational history.
   and repeat until inspection finds no remaining violations or unclassified
   paths in scope.
 - When a resumed turn contains a compacted summary or otherwise indicates lost
-  history, read the approved plan and matching report before editing code. Use
-  the report's latest checklist, findings, decisions, validation log, blockers,
-  and commits to reconstruct the active task.
+  history, do not jump directly to validation, commit, or handoff. Read the
+  approved plan and matching report, use the report's latest checklist,
+  findings, decisions, validation log, blockers, and commits to reconstruct the
+  active task, then inspect the live code before choosing the next slice.
 - While executing an approved plan, create or update a matching report file
   under `docs/plans/`. Keep the report current as a realtime ledger. It must
   link the plan, track checklist and success-criteria status, document every
@@ -400,9 +410,16 @@ durable source of truth for the task, not the conversational history.
   decisions, tradeoffs, blockers, deviations from the approved plan, inspection
   passes, findings, changes made, newly satisfied criteria, and remaining
   findings.
-- Do not end the turn just because one planned edit is complete. If inspection
-  finds another in-scope violation, continue with the next fix. After every fix,
-  inspect again against the plan's target architecture.
+- Do not end the turn just because one planned edit is complete. At the end of
+  each coherent implementation slice, perform a fresh design-inspection pass:
+  reread the affected code paths, search adjacent in-scope surfaces, and
+  classify each finding as fixed, intentionally out of scope, or still requiring
+  work. If any in-scope finding remains, design the next slice and continue.
+- Treat validation as supporting evidence, not the final inspection. Grep
+  inventories, tests, typechecks, builds, docs-list, and `git diff --check` can
+  support the report, but they do not prove the target architecture is complete
+  unless the live code has also been inspected and the remaining paths have been
+  classified.
 - End the implementation turn only when a fresh inspection finds no remaining
   in-scope changes to make, all success criteria are satisfied, validation has
   been recorded, and the report says the plan is complete. If that cannot be

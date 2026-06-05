@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/agents: tighten the compaction-safe plan workflow so resumed agents must
+  inspect live code, design the next slice, validate, and repeat final
+  design-inspection passes until no in-scope work remains instead of treating
+  grep/test cleanliness as completion.
 - examples/simple-chat-cli: require `WINDIE_INSTALL_TOKEN` instead of embedding
   an install token and switch the example built-in tool surface to `computer`.
 - ops/ci: remove the outdated GitHub Actions `CI` workflow and its orphaned
