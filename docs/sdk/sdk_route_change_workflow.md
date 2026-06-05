@@ -15,6 +15,7 @@ SDK routes are hosted backend APIs. They are not Electron IPC, and they do not d
 
 | Surface | Code roots | Owns |
 | --- | --- | --- |
+| Backend route package surface | `backend/src/api/routes/sdk/__init__.py` | Route-registration export only: `router`. |
 | Backend route registration | `backend/src/api/routes/sdk/router.py` | `/api/sdk/*` endpoint paths, HTTP method, response model wiring. |
 | Backend request/response models | `backend/src/api/routes/sdk/models.py` | Pydantic payload validation and typed response shapes. |
 | Backend service helpers | `backend/src/api/routes/sdk/service.py` | OCR/vision execution, artifact source resolution, overlay rendering, prompt preview, query plan. |
@@ -28,11 +29,12 @@ SDK routes are hosted backend APIs. They are not Electron IPC, and they do not d
 1. Add or update Pydantic request/response models in `backend/src/api/routes/sdk/models.py`.
 2. Add or update service behavior in `backend/src/api/routes/sdk/service.py`.
 3. Register the route in `backend/src/api/routes/sdk/router.py`.
-4. Update [HTTP and WebSocket API Surface](../reference/http_api_surface.md) if the public route surface changes.
-5. Add or update TypeScript client types and methods in `windieSdkClient.ts`.
-6. Update `frontend/src/renderer/infrastructure/api/index.ts` exports if new types are public.
-7. Update Python hosted client behavior when parity is expected.
-8. Add backend route tests and client tests.
+4. Keep `backend/src/api/routes/sdk/__init__.py` limited to the package `router` export.
+5. Update [HTTP and WebSocket API Surface](../reference/http_api_surface.md) if the public route surface changes.
+6. Add or update TypeScript client types and methods in `windieSdkClient.ts`.
+7. Update `frontend/src/renderer/infrastructure/api/index.ts` exports if new types are public.
+8. Update Python hosted client behavior when parity is expected.
+9. Add backend route tests and client tests.
 
 Do not add a hosted SDK route just to reach local machine state. Local screenshots, mouse/keyboard, shell/filesystem, and browser actions belong to the Electron/sidecar tool path.
 

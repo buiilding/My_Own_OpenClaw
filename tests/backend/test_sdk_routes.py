@@ -1,4 +1,5 @@
 import base64
+import importlib
 import io
 from types import SimpleNamespace
 
@@ -25,11 +26,7 @@ from backend.src.tools.registry import ToolRegistry
 _original_deps = install_route_deps_shim()
 
 try:
-    from backend.src.api.routes import sdk as sdk_routes
-    from backend.src.api.routes.sdk.service import (
-        build_image_metadata,
-        resolve_image_source,
-    )
+    sdk_routes = importlib.import_module("backend.src.api.routes.sdk.router")
     from backend.src.api.routes.sdk.models import (
         BoundingBoxModel,
         ImageMetadataModel,
@@ -48,6 +45,10 @@ try:
         VisionLocateRequest,
         VisionOverlayPayload,
         VisionOverlayRequest,
+    )
+    from backend.src.api.routes.sdk.service import (
+        build_image_metadata,
+        resolve_image_source,
     )
 finally:
     restore_route_deps_shim(_original_deps)
@@ -483,7 +484,9 @@ async def test_sdk_ocr_resolve_text_rejects_unmapped_resolved_point(
         ],
     )
     resolver = sdk_routes.sdk_ocr_resolve_text.__globals__["OcrCoordinateResolver"]
-    monkeypatch.setattr(resolver, "resolve", staticmethod(lambda *_args, **_kwargs: (1, 2)))
+    monkeypatch.setattr(
+        resolver, "resolve", staticmethod(lambda *_args, **_kwargs: (1, 2))
+    )
 
     with pytest.raises(HTTPException) as exc_info:
         await sdk_routes.sdk_ocr_resolve_text(

@@ -29,6 +29,8 @@ All notable changes to WindieOS will be documented in this file.
 - backend/api: remove VM runs route package-root implementation re-exports so
   run handlers, models, and support helpers are imported from their owner
   modules.
+- backend/api: remove SDK route package-root implementation re-exports so SDK
+  route handlers and models are imported from their owner modules.
 - frontend/sidecar: remove the duplicated `core` backend config, auth,
   unicode-sanitizer, and remote API base shims so sidecar callers use the
   `windie` owner modules directly.

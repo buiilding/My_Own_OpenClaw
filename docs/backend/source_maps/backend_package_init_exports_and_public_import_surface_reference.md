@@ -93,6 +93,9 @@ Some entrypoints intentionally expose little or nothing:
   mostly package-level docs/markers
 - `backend/src/simulation/__init__.py` and `backend/src/core/utils/__init__.py` are effectively empty markers
 - `backend/src/api/contracts/__init__.py` is a migration seam marker (API-owned contract adapter note)
+- `backend/src/api/routes/sdk/__init__.py` is a route-registration seam and
+  exports only the package router; SDK route handlers, models, and service
+  helpers live in `router.py`, `models.py`, and `service.py`
 
 These files still matter for package discovery and should be retained unless package layout is intentionally reworked.
 
