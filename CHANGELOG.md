@@ -6,17 +6,15 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
-- frontend/chat: keep the minimal pill overlay background transparent and
-  preserve input focus by limiting drag starts to non-interactive pill areas.
+- frontend/chat: remove the experimental minimal chat pill renderer route and
+  restore the floating overlay windows to the existing `ChatBox` /
+  `ChatBoxResponse` implementation.
 - sdk/runtime: remove the separate `WindieAgent.startDesktop(...)` desktop
   facade so Electron and custom hosts use `WindieClient.wakeUp(...)` plus SDK
   conversation runtime directly.
-- frontend/main: add SDK-local tool surface leases so the minimal pill becomes
+- frontend/main: add SDK-local tool surface leases so the chat pill becomes
   click-through only during pointer-control tools and screenshot-protected only
   during screenshot capture.
-- frontend/chat: route the floating chat and response overlay windows to a new
-  text-only minimal pill surface driven by SDK current-turn projection while
-  leaving the legacy chatbox implementation as reference code.
 - examples/simple-chat-cli: keep the system prompt option visible while using
   the default WindieOS system prompt.
 - tools/shell: remove the stale `max_output_tokens` argument from the backend

@@ -352,7 +352,7 @@ function createChatWindow({
 
   const ensureChatRendererLoaded = createLazyRendererViewLoader({
     targetWindow: chatWindow,
-    view: 'minimal-chat-pill',
+    view: 'chatbox',
     app,
     path,
     enableDevTransparencyUi,
@@ -445,7 +445,7 @@ function createResponseWindow({
 
   const ensureResponseRendererLoaded = createLazyRendererViewLoader({
     targetWindow: responseWindow,
-    view: enableOsToolGhostDebug ? responseWindowDebugView : 'minimal-response-overlay',
+    view: enableOsToolGhostDebug ? responseWindowDebugView : 'chatbox-response',
     app,
     path,
     enableDevTransparencyUi,

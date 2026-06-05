@@ -1,24 +1,21 @@
 ---
-summary: "Minimal chat pill guide covering chatbox renderer, overlay window behavior, send/capture policy, drag/anchor behavior, and Linux screenshot timing."
+summary: "Chat pill guide covering chatbox renderer, overlay window behavior, send/capture policy, drag/anchor behavior, and Linux screenshot timing."
 read_when:
-  - When changing the floating chat pill, overlay input, screenshot send path, drag sizing, or minimal chat state machine.
+  - When changing the floating chat pill, overlay input, screenshot send path, drag sizing, or chat state machine.
   - When debugging flicker, click-through, or capture timing.
-title: "Minimal Chat Pill"
+title: "Chat Pill"
 ---
 
-# Minimal Chat Pill
+# Chat Pill
 
-The minimal chat pill is the small always-available desktop command surface. It is rendered by React, positioned and focused by Electron main, and participates in the same backend query/tool loop as the dashboard.
+The chat pill is the small always-available desktop command surface. It is rendered by React, positioned and focused by Electron main, and participates in the same backend query/tool loop as the dashboard.
 
 ## Main Files
 
-- Minimal renderer app: `frontend/src/renderer/app/MinimalChatPillApp.jsx`
-- Minimal component: `frontend/src/renderer/features/minimalChatPill/MinimalChatPill.jsx`
-- Minimal response app: `frontend/src/renderer/app/MinimalResponseOverlayApp.jsx`
-- Minimal response component: `frontend/src/renderer/features/minimalChatPill/MinimalResponseOverlay.jsx`
-- Minimal shared state: `frontend/src/renderer/features/minimalChatPill/useMinimalCurrentTurn.js`
-- Legacy renderer app: `frontend/src/renderer/app/ChatBoxApp.jsx`
-- Legacy component reference: `frontend/src/renderer/features/chat/components/ChatBox.jsx`
+- Renderer app: `frontend/src/renderer/app/ChatBoxApp.jsx`
+- Component: `frontend/src/renderer/features/chat/components/ChatBox.jsx`
+- Response renderer app: `frontend/src/renderer/app/ChatBoxResponseApp.jsx`
+- Response component: `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
 - Bindings: `frontend/src/renderer/features/chat/hooks/useChatBoxBindings.js`
 - Composer state: `frontend/src/renderer/features/chat/hooks/useChatComposerDraft.js`
 - Message sending: `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
@@ -28,14 +25,9 @@ The minimal chat pill is the small always-available desktop command surface. It 
 ## Behavior Contracts
 
 - The pill is a command surface, not a separate chat backend session.
-- The minimal pill route is the new first-pass UI surface. It sends text-only
-  messages through the SDK-backed desktop live-turn runtime and displays
-  `windie:current-turn` projection state. The legacy `ChatBox` route remains as
-  reference code while the minimal surface replaces the visible chat window.
-- The minimal response overlay must not render the old turn while a new send is
-  awaiting first content. It hides during `awaiting-first-chunk` until the SDK
-  current-turn projection contains assistant text, reasoning text, tool events,
-  or an error for the active turn.
+- The active overlay route is the existing `ChatBox` / `ChatBoxResponse`
+  implementation. The experimental minimal renderer route has been removed, so
+  Electron should load `?view=chatbox` and `?view=chatbox-response`.
 - Closing the pill is durable user intent. Generic lifecycle paths such as
   startup-surface reapply or app activation must not reopen it while that intent
   is set.
@@ -65,11 +57,11 @@ For Linux screenshot capture:
 - clear the latch on `streaming`, `complete`, `error`, or visible response
   content
 - mount the typing indicator in a stable awaiting shell
-- do not animate awaiting-to-response transitions in the minimal pill loop
+- do not animate awaiting-to-response transitions in the chat pill loop
 - Linux is the only OS that should hide WindieOS overlay surfaces for screenshot
   capture and restore them after capture
-- Windows and macOS must not add capture-time hide/show for the minimal chat
-  pill or response overlay
+- Windows and macOS must not add capture-time hide/show for the chat pill or
+  response overlay
 - Windows and macOS should enable overlay `setContentProtection(true)` only
   during active screenshot capture and disable it immediately after capture
 
