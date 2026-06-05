@@ -1,106 +1,411 @@
 # Repository Guidelines
 
-## Purpose
+## Product Contract
 
 WindieOS is a desktop AI operator. The user gives a goal in natural language;
 WindieOS selects and runs tools to achieve it safely and reliably.
 
-This file is the operating guide for coding agents. It should explain how to
-work in this repo, how to choose the owning runtime, and which rules must not be
-violated. Detailed architecture belongs in `docs/`, not here.
+The product spans Electron UX, the Windie SDK runtime, a Python sidecar for
+local authority, and a Python FastAPI backend for hosted or self-hosted agent
+orchestration. Frontend and sidecar code must not import backend code at
+runtime. Use public transport contracts, manifests, docs, and tests for parity.
 
-## Prime Rules
+## Project Structure
 
-- Be unbiased and logical first.
-- Before editing, identify the owning runtime: backend, SDK, Electron main,
-  renderer frontend, preload, or Python sidecar.
-- Use live files, docs, tests, logs, and recent commits over assumptions.
-- Prefer deletion-first simplification over compatibility layers that keep
-  duplicate authorities alive.
-- Preserve the intended feature set while simplifying ownership.
-- Do not make frontend or sidecar import backend code at runtime. Use public
-  transport contracts, manifests, docs, and tests for parity.
-- Do not add another bridge, store, facade, or runtime loop for behavior the SDK
-  or backend already owns.
-- Keep edits small, reviewable, and scoped to the requested behavior.
-- Preserve unrelated dirty worktree changes.
+File counts and generated artifacts change often. Treat the filesystem as
+canonical; the map below names the source roots and load-bearing files agents
+usually need to edit.
+
+```text
+WindieOS/
+├── backend/                       # Python FastAPI backend and agent runtime
+│   └── src/
+│       ├── main.py                # backend app entrypoint
+│       ├── api/                   # FastAPI app assembly, routes, websocket handlers
+│       ├── agent/                 # AgentSession, AgentExecutor, InteractionLoop, history
+│       ├── llm/                   # prompt construction, provider adapters, model routing
+│       ├── tools/                 # model-visible schema registry, policy, projection
+│       ├── services/              # OCR, vision, artifacts, token, TTS, VM run services
+│       ├── sdk/                   # backend SDK route/tool context helpers
+│       └── core/                  # config, validation, logging, events, interfaces
+├── frontend/                      # Electron desktop app, React renderer, Python sidecar
+│   └── src/
+│       ├── main/                  # Electron main, IPC, direct SDK customer wiring, sidecar bridge
+│       ├── main/python/           # local Python sidecar: tools, memory, browser, system
+│       ├── preload.js             # context-isolated IPC allowlist bridge
+│       ├── renderer/              # React app, chat, dashboard, settings, voice surfaces
+│       └── shared/                # shared IPC constants/contracts
+├── packages/
+│   ├── windie-sdk-js/             # TypeScript SDK runtime used by Electron and clients
+│   └── windie-sdk-python/         # Python SDK client package
+├── tests/
+│   ├── backend/                   # backend route, agent, provider, tool, service tests
+│   ├── sidecar/                   # Python sidecar and local tool tests
+│   ├── frontend/                  # Electron/main/renderer contract tests
+│   └── sdk/                       # SDK runtime, transport, projection, store tests
+├── docs/                          # agent-facing docs, runtime maps, workflows, references
+├── scripts/                       # test wrappers, environment launchers, commit helper
+├── bin/                           # generated or wrapper commands such as docs-list
+├── plugins/                       # WindieOS extension/plugin examples and contracts
+├── skills/                        # WindieOS skill prompt layers
+├── mcps/                          # MCP server docs/config examples
+└── examples/                      # SDK/client/tool integration examples
+```
+
+## File Dependency Chain
+
+Keep these chains in mind before moving code. They are ownership chains, not
+permission to import across runtime boundaries.
+
+```text
+Renderer feature code
+  -> renderer app runtime facades
+  -> preload allowlisted IPC
+  -> Electron main IPC/runtime modules
+  -> WindieAgent.startDesktop(...) SDK runtime
+  -> hosted/self-hosted backend HTTP/WebSocket
+  -> backend agent loop and provider/tool policy
+```
+
+```text
+Backend tool catalog/policy
+  -> model-visible provider projection
+  -> backend tool-call events
+  -> SDK tool coordination
+  -> SDK local runtime client
+  -> Python sidecar executable manifest/registry
+  -> local tool result
+  -> SDK tool-result return
+  -> backend history
+```
+
+```text
+Python sidecar tool files
+  -> frontend/src/main/python/tools/registry.py
+  -> frontend/src/main/python/tools/manifest.py
+  -> SDK/local runtime executable tool manifest
+  -> backend manifest validation and policy projection
+```
+
+Frontend and sidecar must not import backend code for parity. Backend should use
+schemas, manifests, transport contracts, and tests to understand client-local
+capability.
 
 ## Runtime Ownership
 
-Start every change by choosing the producer of truth, then update consumers.
+Start every change by identifying the owning runtime before editing code.
 
 | Runtime | Owns | Must not own |
 | --- | --- | --- |
-| Backend | Agent loop, prompt construction, provider routing, hosted APIs, backend remote tools, model-facing policy, history, compaction, OCR/vision/artifacts, hosted auth | Local mouse/keyboard/browser/filesystem/shell execution, desktop windows, Electron settings UI |
-| SDK runtime | `WindieClient.wakeUp(...)`, backend websocket lifecycle, local sidecar startup/reuse, conversation runtime, local-tool coordination, tool-result return, normalized conversation events, stores, replay/rehydrate projections | Electron-only window policy, sidecar implementation details, backend prompt/provider policy |
-| Electron main | BrowserWindow lifecycle, app/menu/tray lifecycle, IPC handlers, preload-facing transport, endpoint diagnostics, native permissions, platform window policy, sidecar/wakeword supervision, Electron-specific tool surface leases | Agent loop, prompt compiler, durable conversation semantics, websocket/tool orchestration duplicated outside SDK |
-| Renderer frontend | User-facing display state: dashboard, chat surfaces, settings, models, memory, usage, search, voice, transcript rendering, display-only tool state | Tool execution, backend websocket loops, durable runtime authority, raw local machine authority, secret-bearing auth decisions |
-| Preload | Narrow context-isolated IPC allowlist | Business logic, policy decisions, storage semantics |
-| Python sidecar | Local machine authority: filesystem, shell/process, computer-use actions, browser mechanics, local memory/storage, system probes, sidecar executable tool validation | Backend orchestration, prompt policy, provider routing, hosted auth, renderer UI state |
-| Docs and tests | Durable contracts, routing maps, parity checks, regression evidence | Runtime behavior |
+| Backend | Prompt construction, provider routing, hosted APIs, OCR/vision services, artifacts, compaction decisions, backend remote tools, final model-facing tool-schema projection | Local mouse, keyboard, browser, filesystem, shell, OS permissions, or desktop window behavior |
+| SDK runtime | Hosted backend websocket lifecycle, install-token identity resolution, local sidecar startup/reuse, local-tool result return, normalized conversation events, conversation stores, replay/rehydrate helpers, projections reusable by Electron, CLI, plugins, and tests | Electron-only shell policy or sidecar tool implementation details |
+| Electron main | BrowserWindow lifecycle, IPC transport, menus, app lifecycle, native permissions, platform window policy, sidecar and wakeword supervision, endpoint diagnostics, direct `WindieAgent.startDesktop(...)` customer wiring | Agent loop, prompt compiler, durable conversation store, websocket lifecycle, local-tool routing authority, or duplicate SDK runtime behavior |
+| Renderer | User-facing state and display, dashboard/chat/settings/voice surfaces, transcript projection display, display-only tool state | Backend websocket loops, durable transcript storage, tool execution, model sync, or local authority |
+| Preload | Narrow allowlisted bridge between renderer and main | Business logic or policy decisions |
+| Python sidecar | Local machine authority, local tools, local memory/storage, browser mechanics, filesystem/shell/process/system execution | Backend orchestration, prompt policy, provider routing, or backend package imports |
+| Docs and tests | Durable contracts, routing maps, parity checks, and regression evidence | Runtime behavior |
 
-If ownership is ambiguous, use:
+## Backend Agent Runtime
 
-- `docs/getting-started/docs_directory.md`
-- `docs/reference/code_change_surface_index.md`
-- `docs/architecture/runtime_boundary_matrix.md`
-- `docs/architecture/change_ownership_decision_tree.md`
+WindieOS does not have a single Hermes-style `AIAgent` class. The equivalent
+backend agent surface is deliberately split:
+
+- `backend/src/agent/session/session.py::AgentSession` owns per-user/session
+  identity, conversation history, runtime state, compaction engine, current
+  screenshot/system state, LLM client config, and the executor instance.
+- `backend/src/agent/execution/executor.py::AgentExecutor` owns the per-query
+  pipeline setup: prompt formatting, user-history append, screenshot/OCR setup,
+  tool preparation/sending/result processing components, completion side
+  effects, and delegation into the interaction loop.
+- `backend/src/agent/execution/interaction_loop.py::InteractionLoop` owns the
+  model/tool iteration loop: build prompt/tool schemas, call the provider,
+  parse stream/tool calls, branch between final answer and tool execution, emit
+  streaming events, and stop on completion or hard limits.
+
+Usual backend call path:
+
+```text
+websocket query
+  -> QueryMessageHandler
+  -> QueryExecutionService.execute(...)
+  -> SessionManager get/create AgentSession
+  -> AgentSession.process_query(...)
+  -> AgentExecutor.process_query(...)
+  -> InteractionLoop.run_loop(...)
+  -> LLM provider stream
+  -> final response or tool calls
+```
+
+Agent classes are backend-owned. Do not mirror their state machines in Electron,
+renderer, SDK clients, or the sidecar. Those runtimes may transport events,
+render projections, execute local tools, or return tool results, but backend
+keeps prompt policy, provider routing, history compaction, and model-facing loop
+control.
+
+### Agent Loop Shape
+
+The real loop is async and event-streaming, not a synchronous `chat()` helper.
+Conceptually:
+
+```text
+for each user query:
+  build final user content and append it to backend history
+  maybe compact before sampling
+  while iteration budget remains:
+    build current prompt and model-visible tool schemas
+    stream provider response
+    if provider yields final assistant text:
+      emit completion and stop
+    if provider yields tool calls:
+      prepare executable arguments and emit tool-call events
+      wait for local SDK/main/sidecar results or run backend-owned tools
+      commit tool outputs to backend history
+      continue the loop
+  emit deterministic limit/error completion on hard stop
+```
+
+Tool results must flow back through the backend history path. Renderer transcript
+rows are display/storage projections, not replacements for backend inference
+history during a live turn.
 
 ## Required Orientation
 
 Before coding or answering implementation questions:
 
+- Check canonical docs navigation in `docs/docs.json` and the compact route map
+  in `docs/getting-started/docs_directory.md` when choosing docs.
 - Run docs listing when available: prefer `./bin/docs-list`, fall back to
-  `node scripts/docs-list.js`.
-- Check `docs/docs.json` and `docs/getting-started/docs_directory.md` when
-  choosing docs.
+  `node scripts/docs-list.js`, ignore only if neither exists.
 - Read the nearest `read_when` docs until the domain and behavior are clear.
-- Inspect recent related commits for files, symbols, or subsystems you will
-  touch. Use `git log`, `git show`, and `git blame` to understand why the
-  current behavior exists.
-- Do not treat recent commits as automatically correct. Compare intent, current
-  code, tests, docs, and live behavior before deciding whether to restore,
-  revise, or continue the current direction.
+- Before fixing a bug or adding behavior, inspect recent related commits for
+  the files, symbols, or subsystem you are touching. Use `git log`, `git show`,
+  and `git blame` to understand what changed recently, why the current behavior
+  exists, and whether the bug is a regression from a refactor, deletion, or
+  ownership move.
+- Do not treat recent commits as automatically correct. Use them as context:
+  compare the commit intent, current code, tests, docs, and live behavior before
+  deciding whether to restore, revise, or continue the current direction.
 - Use `rg` and live files over memory or assumptions.
+- Use the repo-local docs and code as canonical; this file is a routing guide,
+  not an exhaustive source map.
+- `bin/docs-list` is optional. It lists `docs/` and enforces front matter. If
+  needed, rebuild it with
+  `bun build scripts/docs-list.ts --compile --outfile bin/docs-list`.
+
+Key entry points:
+
+- Backend: `backend/src/main.py`, `backend/src/api/app_assembly.py`,
+  `backend/src/api/routes/__init__.py`, `backend/src/api/handlers/query.py`,
+  `backend/src/agent/execution/interaction_loop.py`,
+  `backend/src/llm/providers/`, `backend/src/tools/registry.py`.
+- SDK: `packages/windie-sdk-js/src/index.ts`,
+  `packages/windie-sdk-js/src/runtime/WindieClient.ts`,
+  `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`,
+  `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`,
+  `packages/windie-sdk-js/src/transport/ManagedBackendSession.ts`,
+  `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`.
+- Electron main: `frontend/src/main/index.cjs`, `frontend/src/main/ipc.cjs`,
+  `frontend/src/main/ipc/ipc_query_runtime.cjs`,
+  `frontend/src/main/query_payload_builder.cjs`,
+  `frontend/src/main/local_backend_bridge.cjs`,
+  `frontend/src/main/surface_runtime.cjs`.
+- Renderer: `frontend/src/renderer/app/`,
+  `frontend/src/renderer/features/chat/`,
+  `frontend/src/renderer/features/dashboard/`,
+  `frontend/src/renderer/infrastructure/api/`,
+  `frontend/src/renderer/app/runtime/`.
+- Sidecar: `frontend/src/main/python/local_backend.py`,
+  `frontend/src/main/python/sidecar_daemon.py`,
+  `frontend/src/main/python/tools/manifest.py`,
+  `frontend/src/main/python/tools/registry.py`.
+
+For deeper source maps, start with `docs/getting-started/docs_hub.md`,
+`docs/reference/code_change_surface_index.md`,
+`docs/architecture/runtime_boundary_matrix.md`, and the subsystem docs listed by
+`docs-list`.
+
+## SDK Architecture
+
+The Windie SDK runtime is the reusable agent/client boundary. Electron is the
+first first-party SDK host, not a separate agent implementation.
+
+Key TypeScript SDK surfaces:
+
+- `packages/windie-sdk-js/src/runtime/WindieClient.ts`: public wake-up
+  orchestration, backend websocket/session creation, local runtime setup, and
+  tool/plugin/MCP manifest assembly.
+- `packages/windie-sdk-js/src/runtime/WindieAgent.ts`: high-level agent helpers
+  such as `ask`, `run`, `stream`, model updates, conversation management,
+  memory/title commands, system prompt/tool schema commands, and artifact
+  helpers.
+- `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`: desktop-style
+  agent bootstrap used by Electron main and future desktop hosts. It starts or
+  reuses the local sidecar runtime, discovers tools, owns the managed backend
+  session, resolves install identity from the install token, emits display rows
+  / current-turn / status / connection events, coordinates local tool
+  execution, and returns tool results to the backend.
+- `packages/windie-sdk-js/src/runtime/WindieChatSession.ts`: chat-style session
+  helper for an existing conversation.
+- `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`: reusable
+  conversation command/runtime surface over a store and backend transport.
+- `packages/windie-sdk-js/src/transport/ManagedBackendSession.ts`: hosted
+  backend websocket lifecycle, typed query/stop/rehydrate/settings/model sends,
+  backend event fan-out, and tool-result return.
+- `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`: client-local
+  tool claim, execution callback, result correlation, and backend result return.
+- `packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts`: local sidecar
+  daemon discovery/start/reuse, sidecar-backed storage, builtin tool selection,
+  local memory/title RPCs, and module-tool registration helpers.
+
+SDK ownership rules:
+
+- Put reusable chat/session/tool/result/projection behavior in the SDK when it
+  should work for Electron, CLI, custom UI, plugins, or tests.
+- Treat the Electron UI as the reference SDK host: it should demonstrate how to
+  build a WindieOS UI on top of the SDK, not as a privileged separate agent
+  runtime. The same SDK primitives must be usable for custom GUI, TUI, CLI,
+  plugin, and hosted-client experiences; interaction style is a client choice.
+- Keep Electron-specific window, IPC, screenshot, permissions, and app lifecycle
+  code in Electron main or renderer facades behind SDK interfaces.
+- Keep sidecar execution and local storage mechanics in the Python sidecar; the
+  SDK coordinates and normalizes them.
+- Keep backend model/provider/prompt/tool-policy decisions in the backend; the
+  SDK reports local capability but does not grant backend capability.
+- For SDK-authored agents, the client defines the active tool surface from
+  requested built-ins, custom tools, plugins, MCPs, and skills. The backend may
+  provide a default built-in schema set, but client-provided schemas can replace
+  it entirely; backend responsibility is validation, policy filtering, provider
+  projection, backend-native tool exposure, and prompt compilation.
+
+## Frontend Architecture
+
+WindieOS frontend has four live runtimes:
+
+- React renderer owns UX state and display: chat, dashboard, settings, voice,
+  active transcript projection, and display-only tool rows.
+- Preload owns the narrow allowlisted IPC bridge exposed to the renderer.
+- Electron main owns desktop shell policy: windows, overlays, menus, lifecycle,
+  IPC handlers, endpoint diagnostics, permission prompts, direct SDK agent
+  startup, sidecar supervision, wakeword supervision, screenshots, and platform
+  policy.
+- Python sidecar owns local authority: filesystem, shell/process, computer use,
+  browser mechanics, local memory, system state, and wakeword subprocess code.
+
+Frontend query flow:
+
+```text
+MessageInput / chat hook
+  -> renderer desktop runtime facade
+  -> SDK ConversationRuntime command
+  -> typed windie:send IPC
+  -> Electron main query payload builder
+  -> WindieAgent.startDesktop(...) managed backend session
+  -> backend agent loop
+```
+
+Frontend stream flow:
+
+```text
+backend websocket event
+  -> SDK desktop agent normalization/projection
+  -> Electron main forwards windie:rows + windie:conversation-event + windie:current-turn
+  -> renderer projection listener updates live rows
+  -> renderer stream side effects persist transcript metadata/events
+```
+
+Frontend tool flow:
+
+```text
+backend model-visible tool call
+  -> SDK tool coordinator
+  -> Python sidecar executable tool
+  -> SDK tool result return
+  -> backend history
+```
+
+Do not rebuild the chat transcript, websocket loop, tool runner, model sync,
+rehydrate, compaction, or replay semantics directly in renderer feature code.
+Add or adjust renderer facades when UI needs a boundary, and move reusable
+runtime behavior into the SDK instead of adding another Electron-only bridge.
+The minimal chat pill must project the same current-turn progress as the main
+dashboard, and the response overlay must project the same assistant response
+portion as the dashboard instead of maintaining a divergent response model.
+
+## Runtime Flow Cheatsheet
+
+- Query send: renderer chat sender -> desktop live-turn runtime facade -> typed
+  `windie:send` IPC -> Electron main query payload builder -> SDK desktop
+  agent -> backend websocket.
+- Backend loop: websocket `query` -> query handler/service -> agent session ->
+  executor -> interaction loop -> provider call -> final answer or tool calls.
+- Stream receive: backend websocket event -> SDK desktop-agent projection ->
+  `windie:rows`, `windie:conversation-event`, `windie:current-turn`, and
+  `windie:status` -> renderer projection and transcript side effects.
+- Tool turn: backend model-visible tool call -> SDK desktop-agent tool router ->
+  sidecar executable tool -> SDK result return -> backend history.
+- Conversation history: renderer-visible transcript and sidecar-backed SDK store
+  are durable local authority; backend sessions are inference state that can be
+  rebuilt from local transcript.
 
 ## Change Routing
 
-Use the docs as the detailed source map. Common routes:
+| Change type | Start with | Required follow-through |
+| --- | --- | --- |
+| Backend API route | `docs/backend/api/api_route_change_workflow.md` | Route schema, service code, tests, docs, changelog |
+| SDK route or client method | `docs/sdk/sdk_route_change_workflow.md` | Backend route models, TS/Python clients, examples or tests, docs, changelog |
+| Model-visible tool | `docs/tools/tool_schema_policy_change_workflow.md` | Backend catalog/policy, sidecar executable contract if local, SDK/main dispatch, tests, docs, changelog |
+| Filesystem or shell behavior | `docs/tools/filesystem_shell_change_workflow.md` | Backend schema/policy, SDK/main dispatch, Electron argument shaping, sidecar execution, result formatting, tests |
+| Browser automation | `docs/browser/browser_change_workflow.md` | Backend schema, shared browser contract, sidecar runtime, Electron bridge, renderer controls, tests |
+| Renderer/main/sidecar ownership bug | `docs/architecture/frontend_architecture.md` and `docs/architecture/runtime_boundary_matrix.md` | Identify the producer before editing the consumer |
+| Storage or transcript behavior | `docs/architecture/storage_persistence_change_workflow.md` | State migration or no-migration reason explicitly |
+| Permission or local authority | `docs/security/permissions_and_local_authority_workflow.md` | Verify trust boundary and platform behavior |
+| Overlay/chat pill/runtime surface bug | `docs/frontend/runtime/overlay_phase_and_surface_change_workflow.md` and `docs/desktop/minimal_chat_pill.md` | Define the state machine and event timeline before editing |
+| Release or packaging | `docs/operations/release_packaging_change_workflow.md`, `RELEASING.md`, or `release.md` if present | Run relevant tests first; do not change versions or publish without approval |
 
-| Change type | Start with |
-| --- | --- |
-| Backend API route | `docs/backend/api/api_route_change_workflow.md` |
-| SDK route or client method | `docs/sdk/sdk_route_change_workflow.md` |
-| Model-visible tool | `docs/tools/tool_schema_policy_change_workflow.md` |
-| Filesystem or shell behavior | `docs/tools/filesystem_shell_change_workflow.md` |
-| Browser automation | `docs/browser/browser_change_workflow.md` |
-| Renderer/main/sidecar ownership bug | `docs/architecture/frontend_architecture.md` and `docs/architecture/runtime_boundary_matrix.md` |
-| Storage or transcript behavior | `docs/architecture/storage_persistence_change_workflow.md` |
-| Permission or local authority | `docs/security/permissions_and_local_authority_workflow.md` |
-| Overlay/chat pill/runtime surface bug | `docs/frontend/runtime/overlay_phase_and_surface_change_workflow.md` and `docs/desktop/minimal_chat_pill.md` |
-| Release or packaging | `docs/operations/release_packaging_change_workflow.md` |
+## Architecture Rules
 
-## Architecture Behavior Rules
-
-- Fix the producing runtime first, then update consumer projections.
-- Keep backend-owned model/provider/prompt/tool-policy decisions in backend.
-- Keep reusable chat/session/tool/result/projection behavior in the SDK when it
-  should work for Electron, CLI, custom UI, plugins, or tests.
-- Treat Electron as a first-party SDK host, not a separate agent runtime.
-- Electron-specific window, IPC, screenshot, permission, and app lifecycle code
-  stays in Electron main or renderer facades.
-- Renderer code displays state and sends user intent. It must not execute local
-  tools, route backend tool results, rebuild transcript semantics, or own model
-  sync.
-- Sidecar owns local execution and local storage mechanics. It must not
-  construct backend prompt context or import backend code.
-- Normalize inputs at runtime boundaries. Fail fast on invalid state.
-- Prefer named handlers, typed dispatchers, or explicit state tables over
-  nested conditionals and branch-heavy fallback paths.
+- Prefer deletion-first cleanup over compatibility layers that keep duplicate
+  authorities alive.
+- Prefer the smallest coherent refactor that fixes the ownership problem, but
+  do not pretend a narrow patch is sufficient when the actual architecture
+  requires a wider rewrite. If converging duplicated runtimes, stores, bridges,
+  or transport paths realistically needs cross-module or cross-runtime work,
+  state that scope plainly, name the boundaries that must move, and explain why
+  a smaller patch would preserve the wrong source of truth.
+- Fix root causes, not symptoms, and do not layer workarounds on top of messy
+  local design when a small refactor can remove the problem.
+- Prefer clear, deterministic execution paths over branch-heavy defensive code.
+  Normalize inputs at the runtime boundary, fail fast on invalid state, and
+  split distinct states into named handlers instead of stacking nested `if`,
+  fallback, and compatibility paths through one flow.
+- New chat/runtime behavior should move into the SDK runtime first when useful
+  outside one Electron surface.
+- Avoid new Electron-only bridges for behavior that belongs to `WindieClient`,
+  `WindieAgent`, `ConversationRuntime`, `LocalSidecarRuntime`, SDK stores, SDK
+  projections, or SDK tool routing.
+- When replacing Electron bridge behavior with SDK behavior, include a deletion
+  milestone for the old bridge/store/helper path in the same change or the next
+  explicit phase.
+- Do not add adapter layers whose only job is to rename and forward payloads.
+  Adapters must enforce a real runtime, security, lifecycle, or test boundary.
 - Do not keep backward-compatibility shims unless the user explicitly requests
   compatibility or there is a verified dependency.
-- If a narrow patch would preserve the wrong source of truth, pause and state
-  the larger boundary movement required.
+- Add code only when it enables a simpler ownership boundary, removes
+  duplication, unlocks deletion of legacy paths, or makes a real invariant
+  testable.
+- Leave touched areas better than you found them by removing dead code,
+  collapsing duplication, tightening interfaces, or renaming misleading symbols
+  where it directly supports the task.
+- Pause and propose a refactor if the planned change would otherwise duplicate
+  existing behavior, add special-case logic to an already confusing flow, extend
+  a large mixed-responsibility function or component, make testing awkward
+  because responsibilities are poorly separated, add another bridge/facade/store
+  for chat, tool execution, sidecar events, conversation history, replay, memory,
+  model settings, or overlay phase without retiring the older path, or keep
+  Electron and SDK paths as parallel sources of truth for the same runtime
+  behavior.
+- Escalate before widening scope if cleanup would cross subsystem boundaries,
+  change public contracts, or require a large multi-file rewrite.
 
 ## Tool and Extension Contracts
 
@@ -115,44 +420,35 @@ Use the docs as the detailed source map. Common routes:
   projection, and accepted/rejected transparency. Backend default built-in
   schemas exist as a hosted fallback, but client-local executable arguments are
   not backend-owned.
-- Backend-owned remote tools keep backend-owned schemas, backend argument
-  validation, execution, result conversion, history commit, and final prompt
-  compilation.
+- Backend-owned remote tools such as `web_search` keep backend-owned schemas,
+  backend argument validation, execution, result conversion, history commit, and
+  final prompt compilation.
 - Frontend/sidecar own local tool implementations and executable manifests for
   client-local tools; they must not import backend code for schema parity.
 - Tool changes must update the client tool manifest, docs, and focused tests in
   the same change.
 - Computer-use tools must return automatic post-action screenshot context in
   their tool outputs. Tool bundles that include any computer-use action must
-  also return screenshot context for the bundle output.
+  also return screenshot context for the bundle output; capture once after the
+  bundle unless an explicit successful screenshot step already provides the
+  needed image.
 - Built-in grounded tools must preserve the model-schema vs prepared-argument
   distinction. Use `backend_grounding` only when OCR/vision/prediction prepares
   executable sidecar arguments; otherwise use `passthrough`.
+- Example: backend may resolve higher-level screen intent into coordinates while
+  frontend receives and executes a simpler action such as `click(100, 200)`.
 - Prefer parity tests that verify schemas and registries do not drift.
-- Extensions keep contribution types separated: metadata in
-  `extensions/<id>/extension.json`, plugin code in `plugin/index.cjs`, MCP
-  server config in `mcp/servers.json`, skills in `skills/<skill-id>/SKILL.md`,
-  sidecar schemas in `tools/`, and sidecar code in `python/`.
-- Keep `docs/development/extensions.md` as the extension authoring guide and
-  `docs/plugins/README.md` as the routing hub.
-
-## Frontend Runtime Wiring
-
-For complex UI or runtime bugs:
-
-- Define the state machine and event timeline before changing code.
-- Keep one behavior scope per patch.
-- Avoid mixing focus, visibility, click-through, and transport changes in one
-  implementation.
-- Declare phase invariants explicitly.
-- Centralize cross-process surface control in one orchestrator or module.
-- Add deterministic transition logging for each phase change.
-- Keep dev and prod gating explicit.
-- Test both paths when behavior differs by mode.
-- Add scenario tests for race-prone flows.
-
-If requirements conflict or timing semantics are ambiguous, resolve the spec
-conflict before implementation.
+- Extensions must keep contribution types separated inside one package:
+  metadata in `extensions/<id>/extension.json`, plugin code in
+  `plugin/index.cjs`, MCP server config in `mcp/servers.json`, skills in
+  `skills/<skill-id>/SKILL.md`, sidecar schemas in `tools/`, and sidecar code in
+  `python/`.
+- Python sidecar tools use `name`, `schema`, and `entrypoint`; main-process
+  plugin tools use `api.registerTool({ name, schema, execute })`; plugin code may
+  call `api.registerMcpServer(...)`; skills become prompt layers, not executable
+  tools.
+- Keep `docs/development/extensions.md` as the canonical extension authoring
+  guide and `docs/plugins/README.md` as the routing hub.
 
 ## Environment and Commands
 
@@ -194,7 +490,8 @@ Validation:
   testability.
 - Prefer simple, intuitive implementations.
 - Minimize conditionals by making ownership, state, and input shape explicit
-  before core logic runs.
+  before core logic runs. A small typed dispatcher, state table, or boundary
+  normalizer is better than repeated local checks spread through consumers.
 - Remove unused code in touched areas.
 - Backend code uses Python with type hints, async I/O where appropriate, and
   existing `backend/src` patterns. Use `black` and `isort` when touching related
@@ -202,15 +499,14 @@ Validation:
 - Frontend code uses TypeScript or JavaScript with ESM and React. Keep renderer
   logic in `src/renderer`, main-process and IPC logic in `src/main`, and use
   `eslint` when touching related frontend code.
-- Add comments only where they clarify non-obvious behavior.
 
 ## Docs and Testing Policy
 
 When behavior or APIs change:
 
 - Update docs in the same change.
-- Update existing tests and add focused coverage for changed behavior, likely
-  regressions, and realistic edge/failure cases.
+- Update existing tests and add focused coverage for the changed behavior,
+  likely regressions, and realistic edge/failure cases.
 - Add `read_when` hints for cross-cutting docs when useful.
 - Use `pytest` for backend and sidecar tests.
 - Use `jest` for frontend tests.
@@ -219,15 +515,33 @@ When behavior or APIs change:
 - Prefer unit-level tests with minimal I/O.
 - Mock network and system calls.
 - If you change tool parsing, execution flow, or IPC, add tests across backend,
-  sidecar, frontend, and SDK as needed.
+  sidecar, and frontend as needed.
+- Add tests while implementation context is fresh.
 - Purely visual UI tweaks may skip new tests when they would be low-signal.
+
+## Frontend Runtime Wiring Protocol
+
+For complex UI or runtime bugs:
+
+- Define the state machine and event timeline before changing code.
+- Keep one behavior scope per patch.
+- Avoid mixing focus, visibility, click-through, and transport changes in one
+  implementation.
+- Declare phase invariants explicitly.
+- Centralize cross-process surface control in one orchestrator or module.
+- Add deterministic transition logging for each phase change.
+- Keep dev and prod gating explicit.
+- Test both paths when behavior differs by mode.
+- Add scenario tests for race-prone flows.
+
+If requirements conflict or timing semantics are ambiguous, resolve the spec
+conflict before implementation.
 
 ## Completion Check
 
 Before finishing, verify:
 
-- The touched path is not more duplicated or more coupled without a clear
-  reason.
+- The touched path is not more duplicated or more coupled without a clear reason.
 - Tests cover the cleaned-up behavior and boundaries.
 - You removed at least as much complexity as you added.
 - Any new abstraction has a deletion or consolidation payoff.
@@ -239,12 +553,16 @@ Before finishing, verify:
   include an explicit migration or compatibility note, even when the note is
   that no migration is required.
 
+In the final summary, briefly note any meaningful refactor performed and any
+important debt intentionally left behind.
+
 For every completed fix or behavior change, explain:
 
 - How you implemented it.
 - What the previous behavior was.
 - What the current behavior is after the fix.
-- Which validation commands were run.
+- Which validation commands were run, including focused tests,
+  lint/typecheck/build checks, docs-list, and diff checks when relevant.
 - Any validation command that was intentionally skipped or could not run, with
   the reason.
 
@@ -253,10 +571,9 @@ For every completed fix or behavior change, explain:
 Safe defaults:
 
 - Allowed by default: `git status`, `git diff`, `git log`.
-- Commits are pre-authorized for completed work.
 - Push only when the user asks.
-- Branch changes require user consent.
 - `git checkout` is allowed for PR review or explicit user request.
+- Branch changes require user consent.
 
 Forbidden without explicit approval:
 
@@ -265,14 +582,20 @@ Forbidden without explicit approval:
 
 Commit policy:
 
+- Commits are pre-authorized for completed work.
 - If you change files, commit that work before handing the turn back unless the
   user explicitly says not to commit.
+- Prefer small, frequent commits.
+- No amend unless asked.
 - Update `CHANGELOG.md` before committing repo-visible changes.
 - Preferred helper: `./scripts/committer` or `committer`.
 - `--body` is required for every commit.
 - The commit body must describe the issue, the fix and improvements, previous
   behavior, and behavior after the fix.
-- Use Conventional Commits with a body section.
+- On Windows PowerShell, do not invoke `./scripts/committer` directly; use Git
+  Bash or fall back to plain `git add` and `git commit`.
+
+Use Conventional Commits with a body section.
 
 Additional git notes:
 
@@ -281,6 +604,9 @@ Additional git notes:
 - No repo-wide search-and-replace scripts.
 - Keep edits small and reviewable.
 - Avoid manual `git stash`.
+- If Git auto-stashes during pull or rebase, that is fine.
+- If the user types a command like "pull and push", that counts as consent for
+  that command.
 - For large reviews, use `git --no-pager diff --color=never`.
 - In multi-agent situations, check `git status` and `git diff` before editing.
 
@@ -314,27 +640,42 @@ Release flow:
 
 ## Working Style
 
-- When the user asks a question, inspect the relevant code and report first; do
-  not modify files unless the user asks for implementation or approves changes
-  after the report.
+- Be unbiased and logical first.
+- Verify in code and docs before answering implementation questions.
+- When the user asks a question, inspect the relevant code and report first;
+  do not modify files unless the user explicitly asks for implementation or
+  approves changes after the report.
 - Avoid guessing; if unsure, read more code first.
 - If still blocked, ask with short options.
 - Call out conflicts and choose the safer path.
+- Preserve unrelated dirty worktree changes.
 - Report only files and behavior you changed.
 - Stop and ask only if unexpected changes affect files you are actively editing.
 - For fixes, first reconstruct the recent change history around the failing
   path: identify the producer, consumer, deleted path, and intended replacement.
-- Prefer fixes that preserve the latest architecture direction instead of
+  Prefer fixes that preserve the latest architecture direction instead of
   reverting to an older duplicated path.
 - For new development, read recent related commits and adjacent implementation
-  patterns before adding code.
+  patterns before adding code. New code should fit the current ownership model,
+  naming, tests, and architecture direction unless there is a clear reason to
+  change that direction explicitly.
 - For larger refactors or multi-turn changes, maintain a scratch log of
   decisions, tradeoffs, validation commands, blockers, and assumptions.
 - For moderate or major implementation changes, create or update `task.md`
-  before editing code. After writing `task.md`, stop and ask the user to
-  confirm before proceeding.
+  before editing code. `task.md` is the per-task execution contract, not a
+  permanent architecture doc. It must restate the user intent, describe the
+  architectural change conceptually, name out-of-scope work, provide an ordered
+  plan, checklist, success criteria, validation commands, and notes for
+  decisions or blockers.
+- After writing `task.md`, stop and ask the user to confirm before proceeding.
+  Explain the proposed change in architectural, conceptual bullet points:
+  what source of truth changes, which runtime boundaries move, what old path is
+  deleted or preserved, and what behavior must not regress. If the user changes
+  direction, update `task.md` first.
 - While executing an approved `task.md`, keep the checklist and success
-  criteria current.
+  criteria current. Mark an item done only when the current code and validation
+  prove it is done. Do not stop until every checklist item and success criterion
+  is complete or explicitly blocked with the concrete reason.
 
 For architectural or product-flow questions, explain conceptually first:
 describe how the runtime works, where a change fits, what boundaries change, and
@@ -347,14 +688,36 @@ unless the user explicitly asks.
   and PR comments.
 - Do not use `\\n` in posted text.
 - Use tmux only when persistence or interactive debugging is needed.
+- Quick refs: `tmux new -d -s codex-shell`, `tmux attach -t codex-shell`,
+  `tmux list-sessions`, `tmux kill-session -t codex-shell`.
+
+## Frontend Aesthetics
+
+Avoid generic AI-looking UI. Be distinctive and intentional.
+
+Do:
+
+- Pick a real font.
+- Avoid Inter, Roboto, Arial, and generic system-default feel when a stronger
+  choice exists.
+- Commit to a palette.
+- Use CSS variables.
+- Prefer bold accents over timid gradients.
+- Use one or two high-impact motion moments.
+- Add depth to backgrounds with gradients or patterns.
+
+Avoid:
+
+- Purple-on-white cliches.
+- Generic component grids.
+- Predictable layouts.
+- Random micro-animations.
 
 ## Product-Specific Regression Contracts
 
 Keep narrow product contracts in docs with `read_when` hints instead of growing
 this file into an implementation ledger.
 
-- Chat pill and response overlay behavior:
-  `docs/desktop/minimal_chat_pill.md` and
-  `docs/frontend/runtime/overlay_phase_and_surface_change_workflow.md`
-- Platform screenshot and overlay policy:
-  `docs/platforms/screenshot_overlay_policy.md`
+- Minimal chat pill and response overlay behavior: `docs/desktop/minimal_chat_pill.md`
+  and `docs/frontend/runtime/overlay_phase_and_surface_change_workflow.md`.
+- Platform screenshot and overlay policy: `docs/platforms/screenshot_overlay_policy.md`.
