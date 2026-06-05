@@ -18,7 +18,8 @@ All notable changes to WindieOS will be documented in this file.
 - docs/agents: add compaction-safe plan execution rules so approved refactor
   plans and reports remain the durable source of truth across context
   compaction, with repeated inspect/change/reread loops until the target
-  architecture is complete or explicitly blocked.
+  architecture is complete or explicitly blocked, and consolidate duplicated
+  planning/reporting requirements into that canonical section.
 - docs/plans: record completion state for the deterministic cleanup campaign.
 - backend/api: refresh the API source folder map for the current `schemas/`,
   websocket route helper, and memory route package layout.

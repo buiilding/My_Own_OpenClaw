@@ -363,34 +363,27 @@ Release flow:
   patterns before adding code. New code should fit the current ownership model,
   naming, tests, and architecture direction unless there is a clear reason to
   change that direction explicitly.
-- For moderate or major implementation changes, create a dated, scope-named
-  plan file under `docs/plans/` before editing code. The plan is the pre-flight
-  execution contract. It must restate the user intent, describe the
-  architectural change conceptually, name out-of-scope work, provide an ordered
-  plan, checklist, success criteria, validation commands, and assumptions.
-- After writing the plan, stop and ask the user to read and approve it before
-  proceeding. Explain the proposed change in architectural, conceptual bullet
-  points: what source of truth changes, which runtime boundaries move, what old
-  path is deleted or preserved, and what behavior must not regress. If the user
-  changes direction, update the plan file first.
-- While executing an approved plan, create or update a matching report file
-  under `docs/plans/`. The report must link the plan, track checklist and
-  success-criteria status, document every commit created for the plan, record
-  validation commands and results, and note decisions, tradeoffs, blockers, and
-  deviations from the approved plan.
-- Do not stop until every checklist item and success criterion in the approved
-  plan is complete or explicitly blocked in the report with the concrete reason.
+- For moderate or major implementation changes, follow the
+  [Compaction-Safe Plan Execution](#compaction-safe-plan-execution) contract.
 
 ## Compaction-Safe Plan Execution
 
-Large refactors must be resilient to context-window compaction. Treat the
-approved `docs/plans/` plan and its matching report as the durable source of
-truth for the task, not the conversational history.
+Moderate and major implementation changes must be resilient to context-window
+compaction. Treat the approved `docs/plans/` plan and its matching report as the
+durable source of truth for the task, not the conversational history.
 
-- A refactor plan is a pre-flight execution contract. It must capture the user
-  intent, the target architecture, out-of-scope work, ordered workflow,
-  checklist, success criteria, validation commands, assumptions, and the
-  reread anchors needed after context compaction.
+- Before editing code, create a dated, scope-named plan file under
+  `docs/plans/`. The plan is a pre-flight execution contract. It must restate
+  the user intent, describe the architectural change conceptually, name
+  out-of-scope work, provide an ordered workflow, checklist, success criteria,
+  validation commands, assumptions, and the reread anchors needed after context
+  compaction.
+- After writing the plan, stop and ask the user to read and approve it before
+  proceeding. Explain the proposed change in architectural, conceptual bullet
+  points: what source of truth changes, which runtime boundaries move, what old
+  path is deleted or preserved, and what behavior must not regress.
+- If the user changes direction, update the plan file first, then ask for
+  approval of the updated plan before editing code.
 - The plan should not be only a fixed list of edits. For architecture cleanup,
   it must define an inspection workflow: read the relevant code, identify code
   that violates the target architecture, change it, reread the affected paths,
@@ -400,9 +393,13 @@ truth for the task, not the conversational history.
   history, read the approved plan and matching report before editing code. Use
   the report's latest checklist, findings, decisions, validation log, blockers,
   and commits to reconstruct the active task.
-- While executing a plan, keep the report current as a realtime ledger. Record
-  each inspection pass, what was found, what changed, which success criteria are
-  now satisfied, which validation commands ran, and which findings remain.
+- While executing an approved plan, create or update a matching report file
+  under `docs/plans/`. Keep the report current as a realtime ledger. It must
+  link the plan, track checklist and success-criteria status, document every
+  commit created for the plan, record validation commands and results, and note
+  decisions, tradeoffs, blockers, deviations from the approved plan, inspection
+  passes, findings, changes made, newly satisfied criteria, and remaining
+  findings.
 - Do not end the turn just because one planned edit is complete. If inspection
   finds another in-scope violation, continue with the next fix. After every fix,
   inspect again against the plan's target architecture.
