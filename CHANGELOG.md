@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- examples/simple-chat-cli: require `WINDIE_INSTALL_TOKEN` instead of embedding
+  an install token and switch the example built-in tool surface to `computer`.
 - ops/ci: remove the outdated GitHub Actions `CI` workflow and its orphaned
   PR invariant check script, leaving the frontend runtime checklist as a
   review-time contract instead of a CI gate.
