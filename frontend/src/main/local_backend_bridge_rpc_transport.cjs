@@ -7,7 +7,7 @@ const {
 function createLocalBackendRpcTransport({
   getDaemonManager,
   getDaemonLaunchOptions,
-  legacyTransport,
+  standaloneTransport,
   createRequestId = uuidv4,
 } = {}) {
   function sendRequest(method, params = {}, options = {}) {
@@ -32,7 +32,7 @@ function createLocalBackendRpcTransport({
           return response?.result;
         });
     }
-    return legacyTransport.sendRequest(method, params, options);
+    return standaloneTransport.sendRequest(method, params, options);
   }
 
   async function sendRequestOrError(method, params = {}, options = {}) {

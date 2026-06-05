@@ -14,6 +14,9 @@ title: "Local-Backend Process Lifecycle, Readiness, and Request-Correlation Refe
 - `frontend/src/main/local_backend_bridge_request_transport.cjs`
 - `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`
 - `frontend/src/main/local_backend_bridge_timeout_policy.cjs`
+- `frontend/src/main/local_backend_launch_plan.cjs`
+- `frontend/src/main/local_backend_process_events.cjs`
+- `frontend/src/main/local_backend_stderr_transport.cjs`
 - `frontend/src/main/local_backend_bridge_display_bounds.cjs`
 - `frontend/src/main/local_backend_bridge_screenshot_attachment.cjs`
 - `frontend/src/main/runtime_paths.cjs`
@@ -90,7 +93,16 @@ Test-backed guarantees:
 
 ## Stdout/Stderr Protocol Handling
 
-Stdout handling in `local_backend_bridge.cjs`:
+Launch planning in `local_backend_launch_plan.cjs`:
+
+- resolves the sidecar launch target
+- validates missing Python/runtime/script preconditions before spawning
+- builds packaged/source sidecar environment variables
+- keeps Windows packaged Python behavior separate from Unix `PYTHONHOME` /
+  `PYTHONNOUSERSITE` runtime isolation
+- returns command, args, cwd, stdio, and env for the bridge spawn call
+
+Stdout handling in `local_backend_stdout_transport.cjs`:
 
 - accumulates chunks in `stdoutBuffer`
 - splits by newline and preserves trailing partial line
@@ -103,7 +115,7 @@ Stdout handling in `local_backend_bridge.cjs`:
   - guarded by `isDrainingStdoutLines` and `isActiveProcessReference(...)` so stale process generations cannot drain new-process lines
 - malformed JSON lines are logged and skipped (process stays alive)
 
-Stderr handling:
+Stderr handling in `local_backend_stderr_transport.cjs`:
 
 - splits by newline and evaluates each non-empty line with `shouldForwardStderrLine(...)`
 - suppressed path:
@@ -152,18 +164,20 @@ Response behavior in `handlePythonResponse(response)`:
 - clears stdout buffer
 - sets `isPythonReady = false`
 
-Exit handler:
+Exit handling in `local_backend_process_events.cjs`:
 
 - always resets process state
 - emits `local-backend-status { ready:false, error }` only for non-zero exit code
+- ignores stale events from previous process references
 
-Error handler:
+Error handling in `local_backend_process_events.cjs`:
 
 - resets process state
 - maps `ENOENT` to explicit user-facing Python installation guidance
   - binary launch path: bundled sidecar executable reinstall guidance
   - python launch path: Python executable guidance
 - emits `local-backend-status { ready:false, error }`
+- ignores stale events from previous process references
 
 `stopLocalBackend()`:
 
@@ -173,6 +187,7 @@ Error handler:
 Test-backed guarantee:
 
 - delayed force-kill timer from an old process generation does not kill a restarted process
+- stale exit/error events from an old process generation do not reset the active process
 
 ## Tool Timeout Tier and Screenshot Wrapper Hook
 

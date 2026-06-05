@@ -19,6 +19,8 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/main: extract local-backend launch-target validation and packaged
   sidecar environment construction into a launch-plan module with focused
   Windows/Unix coverage.
+- frontend/main: move local-backend process exit/error handling into a focused
+  lifecycle module with stale-process guards and direct tests.
 - sidecar/memory: scope background semantic summarization to the authenticated
   install user so legacy local rows for other user IDs are skipped before
   calling the backend semantic API.

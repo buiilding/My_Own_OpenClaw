@@ -9,6 +9,14 @@ const {
   registerBridgeSuiteLifecycleHooks,
 } = require('./__mocks__/localBackendBridgeHarness.cjs');
 
+function toPosixPath(value) {
+  return String(value || '').replace(/\\/g, '/');
+}
+
+function samePath(actual, expected) {
+  return toPosixPath(actual) === expected;
+}
+
 describe('local_backend_bridge process lifecycle', () => {
   registerBridgeSuiteLifecycleHooks();
 
@@ -20,7 +28,7 @@ describe('local_backend_bridge process lifecycle', () => {
       const { mainWindow, spawn } = initBridge({
         isPackaged: true,
         mockExistsSync: (candidate) => (
-          candidate === '/opt/WindieOS/resources/python-runtime/sidecar/local_backend.pyc'
+          samePath(candidate, '/opt/WindieOS/resources/python-runtime/sidecar/local_backend.pyc')
         ),
       });
 
@@ -41,22 +49,29 @@ describe('local_backend_bridge process lifecycle', () => {
     process.resourcesPath = '/opt/WindieOS/resources';
 
     try {
+      const runtimePython = process.platform === 'win32'
+        ? '/opt/WindieOS/resources/python-runtime/python.exe'
+        : '/opt/WindieOS/resources/python-runtime/bin/python3';
+      const expectedEnv = {
+        WINDIE_PACKAGED_APP: '1',
+        WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL: '0',
+        PYTHONDONTWRITEBYTECODE: '1',
+      };
+      if (process.platform !== 'win32') {
+        expectedEnv.PYTHONHOME = '/opt/WindieOS/resources/python-runtime';
+        expectedEnv.PYTHONNOUSERSITE = '1';
+      }
+
       const { spawn } = initBridge({
         isPackaged: true,
         mockExistsSync: (candidate) => (
-          candidate === '/opt/WindieOS/resources/python-runtime/sidecar/local_backend.pyc'
-          || candidate === '/opt/WindieOS/resources/python-runtime/bin/python3'
+          samePath(candidate, '/opt/WindieOS/resources/python-runtime/sidecar/local_backend.pyc')
+          || samePath(candidate, runtimePython)
         ),
       });
 
       const spawnOptions = spawn.mock.calls[0][2];
-      expect(spawnOptions.env).toEqual(expect.objectContaining({
-        WINDIE_PACKAGED_APP: '1',
-        WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL: '0',
-        PYTHONDONTWRITEBYTECODE: '1',
-        PYTHONHOME: '/opt/WindieOS/resources/python-runtime',
-        PYTHONNOUSERSITE: '1',
-      }));
+      expect(spawnOptions.env).toEqual(expect.objectContaining(expectedEnv));
       expect(spawnOptions.env.PLAYWRIGHT_BROWSERS_PATH).toBeUndefined();
       expect(spawnOptions.env.PYTHONPATH).toBeUndefined();
     } finally {

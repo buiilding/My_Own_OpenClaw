@@ -1,5 +1,4 @@
 const { spawn } = require('child_process');
-const fs = require('fs');
 const { ipcMain } = require('electron');
 const {
   resolveBackendEndpointCandidates,
@@ -16,7 +15,6 @@ const {
 const {
   getErrorMessage,
   shouldForwardStderrLine,
-  withLocalBackendNodeOptions,
 } = require('./local_backend_bridge_utils.cjs');
 const {
   createLocalBackendRequestTransport,
@@ -34,6 +32,15 @@ const {
   createLocalBackendStdoutTransport,
 } = require('./local_backend_stdout_transport.cjs');
 const {
+  createLocalBackendStderrTransport,
+} = require('./local_backend_stderr_transport.cjs');
+const {
+  createLocalBackendLaunchPlan,
+} = require('./local_backend_launch_plan.cjs');
+const {
+  createLocalBackendProcessEvents,
+} = require('./local_backend_process_events.cjs');
+const {
   broadcastSidecarEvent,
   buildLocalBackendStatusPayload,
   sendLocalBackendStatus,
@@ -41,9 +48,6 @@ const {
 const {
   loadInstallAuthStateFromDisk,
 } = require('./ipc/ipc_install_auth_state.cjs');
-const {
-  resolveSidecarLaunchTarget,
-} = require('./runtime_paths.cjs');
 const { createLocalBackendSupervisor } = require('./local_backend_supervisor.cjs');
 const { createSidecarDaemonManager } = require('./sidecar_daemon_manager.cjs');
 
@@ -89,10 +93,21 @@ const localBackendStdoutTransport = createLocalBackendStdoutTransport({
   isActiveProcessReference,
 });
 
+const localBackendStderrTransport = createLocalBackendStderrTransport({
+  isActiveProcessReference,
+  shouldForwardStderrLine,
+});
+
+const localBackendProcessEvents = createLocalBackendProcessEvents({
+  isActiveProcessReference,
+  resetBackendProcessState,
+  notifyBackendUnavailable,
+});
+
 const localBackendRpcTransport = createLocalBackendRpcTransport({
   getDaemonManager: () => sidecarDaemonManager,
   getDaemonLaunchOptions: () => sidecarDaemonRpcLaunchOptions,
-  legacyTransport: localBackendRequestTransport,
+  standaloneTransport: localBackendRequestTransport,
 });
 
 function isActiveProcessReference(processRef) {
@@ -118,7 +133,7 @@ function notifyBackendUnavailable(mainWindow, error) {
   if (!error) {
     return;
   }
-  mainWindow?.webContents.send('local-backend-status', {
+  sendLocalBackendStatus(mainWindow, {
     ready: false,
     error,
   });
@@ -130,40 +145,15 @@ function startLocalBackend(mainWindow, options = {}) {
     return;
   }
 
-  const launchTarget = resolveSidecarLaunchTarget('local_backend.py');
-  const scriptPath = launchTarget.resolvedPath;
-  const packagedApp = options.isPackaged === true;
-  const permissionStatePath = typeof options.permissionStatePath === 'string'
-    ? options.permissionStatePath.trim()
-    : '';
-
-  if (launchTarget.kind === 'python' && !launchTarget.command) {
-    const errorMessage = options.isPackaged === true
-      ? (
-        'Bundled Python runtime not found in app resources. ' +
-        'Please reinstall WindieOS.'
-      )
-      : (
-        'Python executable not found. ' +
-        'Please install Python 3 or set WINDIE_PYTHON_PATH.'
-      );
+  const launchPlan = createLocalBackendLaunchPlan({ options });
+  const { launchTarget } = launchPlan;
+  if (launchPlan.ok !== true) {
     if (process.env.NODE_ENV !== 'production') {
-      console.error(`[LocalBackend] ${errorMessage}`);
+      console.error(`[LocalBackend] ${launchPlan.error}`);
     }
-    mainWindow?.webContents.send('local-backend-status', {
+    sendLocalBackendStatus(mainWindow, {
       ready: false,
-      error: errorMessage,
-    });
-    return;
-  }
-
-  if (launchTarget.kind === 'python' && !fs.existsSync(scriptPath)) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.error(`[LocalBackend] Script not found at: ${scriptPath}`);
-    }
-    mainWindow?.webContents.send('local-backend-status', { 
-      ready: false, 
-      error: `Local backend script not found: ${scriptPath}` 
+      error: launchPlan.error,
     });
     return;
   }
@@ -175,47 +165,7 @@ function startLocalBackend(mainWindow, options = {}) {
     );
   }
 
-  const backendEndpoints = options.backendEndpoints || resolveBackendEndpoints(process.env, {
-    isPackaged: options.isPackaged === true,
-  });
-
-  const backendEnv = withLocalBackendNodeOptions({
-    ...process.env,
-    PYTHONUNBUFFERED: '1',
-    WINDIE_BACKEND_HTTP_URL: backendEndpoints.httpUrl,
-    ...(typeof options.authStatePath === 'string' && options.authStatePath.trim()
-      ? { WINDIE_BACKEND_AUTH_STATE_PATH: options.authStatePath.trim() }
-      : {}),
-    WINDIE_PACKAGED_APP: packagedApp ? '1' : '0',
-    WINDIE_ENABLE_BROWSER_FEATURE_PACK_AUTOINSTALL: packagedApp ? '0' : '1',
-    ...(permissionStatePath ? { WINDIE_PERMISSION_STATE_PATH: permissionStatePath } : {}),
-    ...(
-      packagedApp
-      && launchTarget.kind === 'python'
-        ? {
-            PYTHONDONTWRITEBYTECODE: '1',
-            ...(
-              process.platform !== 'win32'
-              && launchTarget.runtimeRoot
-                ? {
-                    PYTHONHOME: launchTarget.runtimeRoot,
-                    PYTHONNOUSERSITE: '1',
-                  }
-                : {}
-            ),
-          }
-        : {}
-    ),
-  });
-  if (packagedApp && launchTarget.kind === 'python') {
-    delete backendEnv.PYTHONPATH;
-  }
-
-  pythonProcess = spawn(launchTarget.command, launchTarget.args, {
-    stdio: ['pipe', 'pipe', 'pipe'],
-    cwd: launchTarget.cwd,
-    env: backendEnv,
-  });
+  pythonProcess = spawn(launchPlan.command, launchPlan.args, launchPlan.spawnOptions);
   const processRef = pythonProcess;
   const generation = localBackendSupervisor.attachProcess(processRef);
   localBackendReadinessRuntime.resetToGeneration(generation);
@@ -223,56 +173,11 @@ function startLocalBackend(mainWindow, options = {}) {
   localBackendReadinessRuntime.check(mainWindow);
   localBackendStdoutTransport.reset();
   localBackendStdoutTransport.attach(processRef);
-
-  pythonProcess.stderr.on('data', (data) => {
-    if (!isActiveProcessReference(processRef)) {
-      return;
-    }
-    const text = data.toString();
-    const lines = text.split('\n');
-    for (const line of lines) {
-      if (line.trim()) {
-        if (!shouldForwardStderrLine(line)) {
-          continue;
-        }
-        console.log(`[LocalBackend Python] ${line}`);
-      }
-    }
-  });
-
-  pythonProcess.on('exit', (code, signal) => {
-    if (!isActiveProcessReference(processRef)) {
-      return;
-    }
-    console.log(`[LocalBackend] Python process exited with code ${code}, signal ${signal}`);
-    resetBackendProcessState({
-      reason: 'Local backend process exited',
-      status: code !== 0 && code !== null ? 'error' : 'stopped',
-    });
-    const exitError = code !== 0 && code !== null
-      ? `Python process exited with code ${code}`
-      : null;
-    notifyBackendUnavailable(mainWindow, exitError);
-  });
-
-  pythonProcess.on('error', (error) => {
-    if (!isActiveProcessReference(processRef)) {
-      return;
-    }
-    console.error('[LocalBackend] Failed to start Python process:', error);
-    resetBackendProcessState({
-      reason: 'Local backend process error',
-      status: 'error',
-    });
-
-    let errorMessage = error.message;
-    if (error.code === 'ENOENT') {
-      errorMessage = launchTarget.kind === 'binary'
-        ? `Bundled sidecar executable '${launchTarget.command}' not found. Reinstall WindieOS.`
-        : `Python executable '${launchTarget.command}' not found. Please install Python 3 or ensure it is in your PATH.`;
-    }
-
-    notifyBackendUnavailable(mainWindow, errorMessage);
+  localBackendStderrTransport.attach(processRef);
+  localBackendProcessEvents.attach({
+    processRef,
+    mainWindow,
+    launchTarget,
   });
 }
 

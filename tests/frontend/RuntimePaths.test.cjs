@@ -17,6 +17,22 @@ function withIsolatedRuntimePaths(testFn) {
   });
 }
 
+function toPosixPath(value) {
+  return String(value || '').replace(/\\/g, '/');
+}
+
+function samePath(actual, expected) {
+  return toPosixPath(actual) === expected;
+}
+
+function expectPath(actual, expected) {
+  expect(toPosixPath(actual)).toBe(expected);
+}
+
+function expectPathArray(actual, expected) {
+  expect((actual || []).map(toPosixPath)).toEqual(expected);
+}
+
 describe('runtime_paths sidecar launch target resolution', () => {
   const originalResourcesPath = process.resourcesPath;
   const originalCondaPrefix = process.env.CONDA_PREFIX;
@@ -48,14 +64,14 @@ describe('runtime_paths sidecar launch target resolution', () => {
       const binaryPath = process.platform === 'win32'
         ? '/opt/WindieOS/resources/sidecar-bin/local_backend.exe'
         : '/opt/WindieOS/resources/sidecar-bin/local_backend';
-      fs.existsSync.mockImplementation((candidate) => candidate === binaryPath);
+      fs.existsSync.mockImplementation((candidate) => samePath(candidate, binaryPath));
 
       const target = runtimePaths.resolveSidecarLaunchTarget('local_backend.py');
 
       expect(target.kind).toBe('binary');
-      expect(target.command).toBe(binaryPath);
+      expectPath(target.command, binaryPath);
       expect(target.args).toEqual([]);
-      expect(target.resolvedPath).toBe(binaryPath);
+      expectPath(target.resolvedPath, binaryPath);
     });
   });
 
@@ -67,16 +83,16 @@ describe('runtime_paths sidecar launch target resolution', () => {
         ? '/opt/WindieOS/resources/python-runtime/python.exe'
         : '/opt/WindieOS/resources/python-runtime/bin/python3';
       fs.existsSync.mockImplementation((candidate) => (
-        candidate === sidecarPyc
-        || candidate === runtimePython
+        samePath(candidate, sidecarPyc)
+        || samePath(candidate, runtimePython)
       ));
 
       const target = runtimePaths.resolveSidecarLaunchTarget('local_backend.py');
 
       expect(target.kind).toBe('python');
-      expect(target.command).toBe(runtimePython);
-      expect(target.args).toEqual([sidecarPyc]);
-      expect(target.resolvedPath).toBe(sidecarPyc);
+      expectPath(target.command, runtimePython);
+      expectPathArray(target.args, [sidecarPyc]);
+      expectPath(target.resolvedPath, sidecarPyc);
     });
   });
 
@@ -86,13 +102,13 @@ describe('runtime_paths sidecar launch target resolution', () => {
       const runtimePython = process.platform === 'win32'
         ? '/opt/WindieOS/resources/python-runtime/python.exe'
         : '/opt/WindieOS/resources/python-runtime/bin/python3';
-      fs.existsSync.mockImplementation((candidate) => candidate === runtimePython);
+      fs.existsSync.mockImplementation((candidate) => samePath(candidate, runtimePython));
 
       const target = runtimePaths.resolveSidecarLaunchTarget('local_backend.py');
 
       expect(target.kind).toBe('python');
-      expect(target.resolvedPath).toBe('/opt/WindieOS/resources/python-runtime/sidecar/local_backend.pyc');
-      expect(target.args).toEqual(['/opt/WindieOS/resources/python-runtime/sidecar/local_backend.pyc']);
+      expectPath(target.resolvedPath, '/opt/WindieOS/resources/python-runtime/sidecar/local_backend.pyc');
+      expectPathArray(target.args, ['/opt/WindieOS/resources/python-runtime/sidecar/local_backend.pyc']);
     });
   });
 
@@ -104,17 +120,17 @@ describe('runtime_paths sidecar launch target resolution', () => {
         ? '/opt/WindieOS/resources/python-runtime/python.exe'
         : '/opt/WindieOS/resources/python-runtime/bin/python3';
       fs.existsSync.mockImplementation((candidate) => (
-        candidate === sidecarPyc
-        || candidate === runtimePython
+        samePath(candidate, sidecarPyc)
+        || samePath(candidate, runtimePython)
       ));
 
       const target = runtimePaths.resolveSidecarLaunchTarget('local_backend');
 
       expect(target.kind).toBe('python');
-      expect(target.command).toBe(runtimePython);
-      expect(target.args).toEqual([sidecarPyc]);
-      expect(target.cwd).toBe('/opt/WindieOS/resources/python-runtime/sidecar');
-      expect(target.resolvedPath).toBe(sidecarPyc);
+      expectPath(target.command, runtimePython);
+      expectPathArray(target.args, [sidecarPyc]);
+      expectPath(target.cwd, '/opt/WindieOS/resources/python-runtime/sidecar');
+      expectPath(target.resolvedPath, sidecarPyc);
     });
   });
 
@@ -130,16 +146,16 @@ describe('runtime_paths sidecar launch target resolution', () => {
         const sidecarPyc = '/opt/WindieOS/resources/python-runtime/sidecar/local_backend.pyc';
         const runtimePython = '/opt/WindieOS/resources/python-runtime/Scripts/python.exe';
         fs.existsSync.mockImplementation((candidate) => (
-          candidate === sidecarPyc
-          || candidate === runtimePython
+          samePath(candidate, sidecarPyc)
+          || samePath(candidate, runtimePython)
         ));
 
         const target = runtimePaths.resolveSidecarLaunchTarget('local_backend.py');
 
         expect(target.kind).toBe('python');
-        expect(target.command).toBe(runtimePython);
-        expect(target.args).toEqual([sidecarPyc]);
-        expect(target.resolvedPath).toBe(sidecarPyc);
+        expectPath(target.command, runtimePython);
+        expectPathArray(target.args, [sidecarPyc]);
+        expectPath(target.resolvedPath, sidecarPyc);
       });
     } finally {
       Object.defineProperty(process, 'platform', {
@@ -158,16 +174,16 @@ describe('runtime_paths sidecar launch target resolution', () => {
         ? '/opt/conda/envs/windie/python.exe'
         : '/opt/conda/envs/windie/bin/python3';
       fs.existsSync.mockImplementation((candidate) => (
-        candidate === sidecarPyc
-        || candidate === condaPython
+        samePath(candidate, sidecarPyc)
+        || samePath(candidate, condaPython)
       ));
 
       const target = runtimePaths.resolveSidecarLaunchTarget('local_backend.py');
 
       expect(target.kind).toBe('python');
       expect(target.command).toBe(null);
-      expect(target.args).toEqual([sidecarPyc]);
-      expect(target.resolvedPath).toBe(sidecarPyc);
+      expectPathArray(target.args, [sidecarPyc]);
+      expectPath(target.resolvedPath, sidecarPyc);
     });
   });
 
@@ -176,14 +192,14 @@ describe('runtime_paths sidecar launch target resolution', () => {
       app.isPackaged = false;
       const devScriptPath = '/repo/frontend/src/main/python/local_backend.py';
       fs.existsSync.mockImplementation((candidate) => (
-        candidate.endsWith('/src/main/python/local_backend.py')
-        || candidate === devScriptPath
+        toPosixPath(candidate).endsWith('/src/main/python/local_backend.py')
+        || samePath(candidate, devScriptPath)
       ));
 
       const target = runtimePaths.resolveSidecarLaunchTarget('local_backend.py');
 
       expect(target.kind).toBe('python');
-      expect(target.resolvedPath.endsWith('/src/main/python/local_backend.py')).toBe(true);
+      expect(toPosixPath(target.resolvedPath).endsWith('/src/main/python/local_backend.py')).toBe(true);
     });
   });
 });
