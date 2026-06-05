@@ -29,7 +29,7 @@ Date: 2026-06-05
 | C-003 | Docs / minimal chat pill | Stale `ChatBoxApp` / `ChatBoxResponseApp` paths after rename to `Minimal*` apps | Renderer app files moved; docs still describe old file names as canonical | `rg ChatBoxApp ChatBoxResponseApp docs` finds active desktop docs | `47a180ffd`, `29de210dd` | Align active desktop docs with renamed minimal pill files; leave explicit historical plan references alone | Low, docs-only | targeted `rg`, docs-list, diff check | implemented |
 | C-004 | Frontend renderer artifact utilities | Frontend still normalizes `image/jpg` alias after backend artifact uploads removed it | Backend rejects non-canonical `image/jpg`; renderer utility keeps alias path | `ArtifactImageUtils.ts` maps `image/jpg`; changelog says backend removed alias | `a483bc291`, `47a180ffd` | Verify live callers/tests, then remove alias or document why renderer display still accepts old stored metadata | Medium, stored artifact display compatibility possible | frontend artifact/image utility tests | investigating |
 | C-005 | Sidecar system tool | `stats_tool.get_system_stats(args)` keeps unused args for interface consistency | Tool registry likely invokes entrypoints with args dict; implementation ignores it | `rg unused` finds `stats_tool.py` docstring note | recent sidecar tool commits pending inspection | Verify registry entrypoint contract before narrowing or reject as required plugin/tool ABI | Medium, sidecar tool ABI risk | sidecar system/tool registry tests | queued |
-| C-006 | Backend core types | Legacy plugin result dictionary types marked unused | Runtime may no longer import plugin dict result types | `backend/src/core/types/schemas.py` says "Legacy Plugin Types (unused)" | recent core type commits pending inspection | Verify imports and remove unused legacy type block if no public contract | Medium, type import compatibility possible | backend type/import tests and `rg` | queued |
+| C-006 | Backend core types | Legacy plugin result dictionary types marked unused | Runtime may no longer import plugin dict result types | `backend/src/core/types/schemas.py` says "Legacy Plugin Types (unused)" | `43677c89d`, `dfc27b7ea`, `9ad4d1591`, `e4655863c` | Remove unused legacy type block and package export | Low after `rg` showed only self-export references | backend type import smoke and `rg` | implemented |
 | C-007 | Frontend docs inventory | Broader frontend docs still name old `ChatBox*` app/component paths | Active docs inventory and workflow pages consume renderer source-map paths | Broad `rg` after C-003 found stale paths outside `docs/desktop` | `47a180ffd`, `29de210dd` | Refresh frontend inventory/workflow docs in a separate docs slice, excluding historical plan files | Medium, docs-only but broad | targeted docs `rg`, docs-list, diff check | queued |
 
 ## Slice Log
@@ -63,6 +63,22 @@ Date: 2026-06-05
   - Broader docs scan still found stale frontend docs inventory/workflow references; recorded as C-007 instead of widening this slice.
   - `./bin/docs-list` failed on the pre-existing `docs/docs.json` missing-page references recorded in the baseline.
   - `git diff --check` passed with Windows line-ending warnings only.
+- Commit: `15cf9b279` (`docs(desktop): align minimal pill surface paths`).
+
+### C-006 Backend Core Legacy Plugin Type
+
+- Owner: backend core type package.
+- Intended path: core types expose current runtime message, tool, memory, and schema shapes only.
+- Previous behavior: `PluginResultDict` was marked as a legacy unused plugin result shape and re-exported from `backend.src.core.types`.
+- Current behavior: the unused type and re-export are deleted.
+- Docs read: root repository guide and docs directory for routing; no behavior docs required because this is an unused type-surface deletion.
+- Recent commits inspected: `43677c89d`, `dfc27b7ea`, `9ad4d1591`, `e4655863c`.
+- Validation:
+  - `rg -n "PluginResultDict|Legacy Plugin Types" backend/src tests docs --glob '!docs/plans/2026-06-05-deterministic-codebase-cleanup-campaign-report.md'` returned no matches.
+  - `./scripts/python-in-env backend python -c "import backend.src.core.types as t; assert 'PluginResultDict' not in t.__all__; import backend.src.core.types.schemas"` passed.
+  - `./scripts/python-in-env backend pytest tests/backend/test_formatter_specs_contract.py -q` passed.
+  - `./bin/docs-list` failed on the pre-existing `docs/docs.json` missing-page references recorded in the baseline.
+  - `git diff --check` passed with Windows line-ending warnings only.
 - Commit: pending.
 
 ## Campaign Checklist
@@ -79,5 +95,7 @@ Date: 2026-06-05
 - [x] C-001 commit recorded.
 - [x] C-003 names the owner, stale path, deletion, tests, docs, and validation before implementation.
 - [x] C-003 removes stale docs without adding a compatibility layer.
+- [x] C-006 names the owner, stale path, deletion, tests, docs, and validation before implementation.
+- [x] C-006 removes unused exported type surface.
 - [ ] At least four subsystems are scanned before declaring the campaign exhausted.
 - [ ] The campaign does not stop after one narrow cleanup unless explicitly blocked or redirected.

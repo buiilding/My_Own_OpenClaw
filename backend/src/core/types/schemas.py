@@ -264,18 +264,6 @@ class WebSocketMessage(TypedDict, total=False):
 
 
 # ============================================================================
-# Legacy Plugin Types (unused)
-# ============================================================================
-
-
-class PluginResultDict(TypedDict, total=False):
-    """Legacy dictionary representation of a plugin result (unused)."""
-
-    artifacts: NotRequired[Optional[Dict[str, Any]]]
-    modified_result: NotRequired[Optional[Any]]
-
-
-# ============================================================================
 # Tool Schema Types
 # ============================================================================
 

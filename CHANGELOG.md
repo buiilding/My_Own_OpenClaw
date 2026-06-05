@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/core: remove the unused legacy `PluginResultDict` type export so the
+  core type package exposes only current runtime shapes.
 - docs/desktop: align active chat pill and response overlay docs with the
   `MinimalChatPill` renderer paths after the SDK-owned surface move.
 - backend/api: narrow websocket task admission to a boolean result so the
