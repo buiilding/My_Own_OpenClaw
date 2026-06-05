@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/api: refresh the API source folder map for the current `schemas/`,
+  websocket route helper, and memory route package layout.
 - frontend/renderer: align minimal pill and response overlay route-name docs and
   tests with the current `minimal-*` renderer views.
 - frontend/main: delete the `local_backend_bridge_windows.cjs` re-export wrapper

@@ -11,7 +11,12 @@ The API layer handles all client communication, message routing, processing, and
 ```
 backend/src/api/
 ├── __init__.py                        # Package initialization and exports
-├── schema.py                          # Pydantic models for all WebSocket message types (incoming/outgoing)
+├── schemas/                           # Pydantic models for incoming/outgoing API contracts
+│   ├── __init__.py                    # Schema package exports
+│   ├── agent_definition.py            # Wake-up agent definition schema
+│   ├── common.py                      # Shared message/context schema pieces
+│   ├── incoming.py                    # Incoming WebSocket message discriminated union
+│   └── outgoing.py                    # Outgoing WebSocket event payload schemas
 ├── deps.py                            # FastAPI dependency injection (app-lifespan-scoped container access)
 ├── contracts/                         # CONTRACT ADAPTER - API-local seam for message/formatter registries
 │   ├── __init__.py                    # Package marker and migration note (future core-owned source)
@@ -35,18 +40,29 @@ backend/src/api/
 │   ├── __init__.py                    # Package initialization
 │   │
 │   ├── websocket/                     # WebSocket routes - Real-time bidirectional communication
-│   │   ├── __init__.py                # Main WebSocket endpoint (/ws) and router definition
+│   │   ├── __init__.py                # Package router export
 │   │   ├── connection.py              # Connection lifecycle - Handshake, cleanup, session management
+│   │   ├── json_parse.py              # JSON parse helpers
+│   │   ├── loop_runtime.py            # Receive-loop task admission and message scheduling
 │   │   ├── message_handler.py         # Message parsing/validation - JSON parsing, Pydantic validation, routing
+│   │   ├── message_parse_runtime.py   # Size-aware parse/validation runtime
+│   │   ├── router.py                  # Main WebSocket endpoint (/ws)
 │   │   └── task_manager.py            # Task tracking - Concurrency limits, task cancellation, cleanup
 │   │
 │   └── memory/                        # Memory-related REST endpoints
 │       ├── __init__.py                # Package exports: embeddings, semantic routers
 │       ├── embeddings/                # Embeddings route package (/api/embeddings)
-│       │   ├── __init__.py            # Compatibility exports (router + models)
+│       │   ├── __init__.py            # Package exports (router + models)
 │       │   ├── models.py              # Pydantic request/response models
-│       │   └── router.py              # REST endpoint handlers
-│       └── semantic.py                # REST endpoint - Semantic memory summarization (/api/semantic)
+│       │   ├── router.py              # REST endpoint handlers
+│       │   └── service.py             # Embedding provider helpers
+│       ├── health.py                  # Memory health helper route
+│       └── semantic/                  # Semantic memory route package (/api/semantic)
+│           ├── __init__.py            # Package exports
+│           ├── models.py              # Semantic summarize/title request and response models
+│           ├── parser.py              # LLM response parsing helpers
+│           ├── router.py              # REST endpoint handlers
+│           └── service.py             # Semantic summarization service
 │
 ├── handlers/                           # HANDLER LAYER - Message type-specific processing
 │   ├── __init__.py                    # Exports: All handler classes and base types
@@ -157,8 +173,8 @@ backend/src/api/
        └─> get_container() (app-lifespan-scoped container)
 
 3. PROCESSING
-   ├─> routes/memory/semantic.py
-   │   └─> LLM client (summarization)
+   ├─> routes/memory/semantic/router.py
+   │   └─> semantic/service.py + LLM client (summarization/title)
    │
    └─> routes/memory/embeddings/router.py
        └─> Embedding provider (vector generation)

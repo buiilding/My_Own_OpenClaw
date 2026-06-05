@@ -33,6 +33,7 @@ Date: 2026-06-05
 | C-007 | Frontend docs inventory | Broader frontend docs still name old `ChatBox*` app/component paths | Active docs inventory and workflow pages consume renderer source-map paths | Broad `rg` after C-003 found stale paths outside `docs/desktop` | `47a180ffd`, `29de210dd` | Refresh frontend inventory/workflow docs in a separate docs slice, excluding historical plan files | Medium, docs-only but broad | targeted docs `rg`, docs-list, diff check | queued |
 | C-008 | Frontend main | `local_backend_bridge_windows.cjs` only re-exports `local_backend_bridge_window_visibility.cjs` | Window visibility owner module implements helpers; two callers import through alias wrapper | `local_backend_bridge_windows.cjs` contains only `module.exports = require(...)`; `rg` finds two runtime imports and one workflow doc mention | `034790787`, `47a180ffd`, `29de210dd` | Delete wrapper and import owner module directly | Low, direct require path change | frontend local backend bridge/window tests and `rg` | implemented |
 | C-009 | Frontend renderer routing | Provider/startup docs and tests still use old `view=chatbox*` route names | Electron main loads `minimal-chat-pill` / `minimal-response-overlay`; renderer `main.jsx` selects Minimal app wrappers | `rg` found old route names in provider/startup docs, AppConfig tests, settings runtime test, and renderer folder map | `47a180ffd`, `29de210dd`, `366f70ec2` | Align route-name docs/tests with current renderer entrypoint names | Low, docs/test setup values with current route strings | targeted `rg`, AppConfig/settings runtime tests, docs-list, diff check | implemented |
+| C-010 | Backend API source map | `backend/src/api/folder_structure.md` still lists deleted flat schema and semantic route files | Live backend API uses `schemas/`, websocket helper modules, and memory route packages | `Test-Path backend/src/api/schema.py` false; `rg --files backend/src/api` shows `schemas/` and `routes/memory/semantic/*` | `79ecbcf24`, `20bb9b311`, `b5b33ebac` | Refresh source map to the current package layout | Low, docs/source-map only | targeted `rg`, docs-list, diff check | implemented |
 
 ## Slice Log
 
@@ -124,6 +125,20 @@ Date: 2026-06-05
   - `cd frontend; $env:NODE_OPTIONS='--no-deprecation'; npx.cmd jest --config jest.config.cjs --runInBand AppConfigProvider.models AppConfigProvider.storageAndIpc DesktopSettingsRuntimeClient MainWindowRuntime MainWindowOverlayRuntime` passed: 5 suites, 99 tests.
   - `./bin/docs-list` failed on the pre-existing `docs/docs.json` missing-page references recorded in the baseline.
   - `git diff --check` passed with Windows line-ending warnings only.
+- Commit: `006de99dc` (`docs(frontend-renderer): align minimal view routes`).
+
+### C-010 Backend API Source Map
+
+- Owner: backend API source-map documentation under `backend/src/api/folder_structure.md`.
+- Intended path: the source map describes the live `schemas/` package, websocket helper modules, and `routes/memory/{embeddings,semantic}` packages.
+- Previous behavior: the map still listed deleted flat files such as `backend/src/api/schema.py` and `routes/memory/semantic.py`, and described websocket package exports before the route/helper split.
+- Current behavior: the map points to the current package layout, including incoming/outgoing schemas, websocket parse/loop helpers, memory health, embeddings service, and semantic parser/router/service modules.
+- Docs read: backend API route change workflow and API/transport reference.
+- Recent commits inspected: `79ecbcf24`, `20bb9b311`, `b5b33ebac`.
+- Validation:
+  - `rg -n "schema\.py|routes/memory/semantic\.py|Compatibility exports|Main WebSocket endpoint \(/ws\) and router definition" backend/src/api/folder_structure.md` returned no matches.
+  - `./bin/docs-list` failed on the pre-existing `docs/docs.json` missing-page references recorded in the baseline.
+  - `git diff --check` passed with Windows line-ending warnings only.
 - Commit: pending.
 
 ## Campaign Checklist
@@ -148,5 +163,7 @@ Date: 2026-06-05
 - [x] C-008 deletes a wrapper instead of adding an adapter.
 - [x] C-009 names the owner, stale path, deletion, tests, docs, and validation before implementation.
 - [x] C-009 removes stale renderer route names from active provider/startup docs and test setup.
-- [ ] At least four subsystems are scanned before declaring the campaign exhausted.
-- [ ] The campaign does not stop after one narrow cleanup unless explicitly blocked or redirected.
+- [x] C-010 names the owner, stale path, deletion, docs, and validation before implementation.
+- [x] C-010 removes stale backend API source-map paths.
+- [x] At least four subsystems are scanned before declaring the campaign exhausted.
+- [x] The campaign does not stop after one narrow cleanup unless explicitly blocked or redirected.
