@@ -65,7 +65,7 @@ Renderer feature code
   -> renderer app runtime facades
   -> preload allowlisted IPC
   -> Electron main IPC/runtime modules
-  -> WindieAgent.startDesktop(...) SDK runtime
+  -> WindieClient.wakeUp(...) + agent.conversation(...) SDK runtime
   -> hosted/self-hosted backend HTTP/WebSocket
   -> backend agent loop and provider/tool policy
 ```
@@ -167,7 +167,7 @@ Key entry points:
   `backend/src/llm/providers/`, `backend/src/tools/registry.py`.
 - SDK: `packages/windie-sdk-js/src/index.ts`,
   `packages/windie-sdk-js/src/runtime/WindieClient.ts`,
-  `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`,
+  `packages/windie-sdk-js/src/runtime/WindieAgent.ts`,
   `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`,
   `packages/windie-sdk-js/src/transport/ManagedBackendSession.ts`,
   `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`.
@@ -205,12 +205,11 @@ Key TypeScript SDK surfaces:
   such as `ask`, `run`, `stream`, model updates, conversation management,
   memory/title commands, system prompt/tool schema commands, and artifact
   helpers.
-- `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`: desktop-style
-  agent bootstrap used by Electron main and future desktop hosts. It starts or
-  reuses the local sidecar runtime, discovers tools, owns the managed backend
-  session, resolves install identity from the install token, emits display rows
-  / current-turn / status / connection events, coordinates local tool
-  execution, and returns tool results to the backend.
+- `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`: reusable
+  conversation command/runtime surface over SDK stores and backend transport.
+  Electron main uses `WindieClient.wakeUp(...)`, then
+  `agent.conversation(...)`, and forwards SDK `displayRows` / `currentTurn`
+  snapshots to renderer surfaces.
 - `packages/windie-sdk-js/src/runtime/WindieChatSession.ts`: chat-style session
   helper for an existing conversation.
 - `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`: reusable
@@ -266,7 +265,7 @@ MessageInput / chat hook
   -> SDK ConversationRuntime command
   -> typed windie:send IPC
   -> Electron main query payload builder
-  -> WindieAgent.startDesktop(...) managed backend session
+  -> WindieClient.wakeUp(...) + agent.conversation(...) managed backend session
   -> backend agent loop
 ```
 

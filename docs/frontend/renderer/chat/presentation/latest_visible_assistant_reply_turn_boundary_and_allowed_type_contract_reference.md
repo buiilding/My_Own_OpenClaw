@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for shared current-turn presentation behavior: latest-user turn boundary scan, allowed-type filtering, and shared dashboard/overlay reply projection contracts."
 read_when:
-  - When changing assistant-reply visibility logic in `ChatInterface.jsx` or `ChatBoxResponse.jsx`.
+  - When changing assistant-reply visibility logic in `ChatInterface.jsx` or `MinimalResponseOverlay.jsx`.
   - When debugging awaiting-dot or response-pill state that incorrectly includes stale assistant rows from earlier turns.
 title: "Current-Turn Presentation and Visible Assistant Reply Contract Reference"
 ---
@@ -13,8 +13,8 @@ title: "Current-Turn Presentation and Visible Assistant Reply Contract Reference
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
-- `frontend/src/renderer/features/chat/components/ChatBox.jsx`
-- `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
+- `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx`
+- `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`
 - `tests/frontend/ChatInterfaceWiring.test.jsx`
 - `tests/frontend/CurrentTurnPresentationStateHook.test.jsx`
 - `tests/frontend/ChatBoxResponse.state.test.jsx`

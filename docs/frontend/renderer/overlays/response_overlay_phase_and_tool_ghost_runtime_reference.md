@@ -1,7 +1,7 @@
 ---
 summary: "Deep reference for response overlay renderer behavior: SDK current-turn visibility, awaiting vs response states, closeability rules, and deterministic fixed-frame sizing IPC updates."
 read_when:
-  - When changing `ChatBoxResponse.jsx` rendering logic, overlay utility contracts, or response overlay UX states.
+  - When changing `MinimalResponseOverlay.jsx` rendering logic, overlay utility contracts, or response overlay UX states.
   - When debugging missing response panes, stale awaiting indicators, or incorrect response overlay resize behavior.
 title: "Response Overlay Phase Runtime Reference"
 ---
@@ -10,12 +10,12 @@ title: "Response Overlay Phase Runtime Reference"
 
 ## Canonical Modules
 
-- `frontend/src/renderer/app/ChatBoxResponseApp.jsx`
-- `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
-- `frontend/src/renderer/features/chat/hooks/useResponseOverlayViewModel.js`
+- `frontend/src/renderer/app/MinimalResponseOverlayApp.jsx`
+- `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`
+- `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayViewModel.js`
 - `frontend/src/renderer/features/chat/hooks/useConversationRuntimeProjectionStream.ts`
-- `frontend/src/renderer/features/chat/hooks/useResponseOverlayWindowSync.js`
-- `frontend/src/renderer/features/chat/hooks/useResponseOverlayScrollState.js`
+- `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayWindowSync.js`
+- `frontend/src/renderer/features/minimalChatPill/hooks/useResponseOverlayScrollState.js`
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/utils/chatPill/chatPillSessionFlow.ts`
 - `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
@@ -42,7 +42,7 @@ Primary inputs:
 
 Current-turn entry construction:
 
-- when SDK `currentTurn` is present, `ChatBoxResponse` converts that projection
+- when SDK `currentTurn` is present, `MinimalResponseOverlay` converts that projection
   into overlay-ready current-turn messages and entries
 - `buildCurrentTurnResponseOverlayEntries(...)` scans assistant messages after the latest user boundary.
 - entry types currently included:

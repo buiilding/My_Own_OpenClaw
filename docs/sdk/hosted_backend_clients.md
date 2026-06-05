@@ -32,7 +32,7 @@ tool calls through the sidecar daemon. Desktop-style clients use the same API an
 subscribe to the returned conversation runtime:
 
 ```ts
-import { WindieClient, buildDisplayRows } from '@windie/sdk';
+import { WindieClient } from '@windie/sdk';
 
 const client = new WindieClient({
   backendUrl: 'https://api.windieos.com',
@@ -48,7 +48,7 @@ const agent = await client.wakeUp({
 
 const conversation = agent.conversation();
 conversation.subscribeEvents((event, snapshot) => {
-  renderRows(buildDisplayRows([event]));
+  renderRows(snapshot.displayRows);
   renderTurn(snapshot.currentTurn);
 });
 

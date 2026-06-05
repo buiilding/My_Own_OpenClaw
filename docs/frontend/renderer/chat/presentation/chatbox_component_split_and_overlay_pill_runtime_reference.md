@@ -1,17 +1,17 @@
 ---
-summary: "Deep reference for chatbox overlay component split and runtime contracts across `ChatBox`, `ChatBoxResponse`, and `components/chatbox/*` helpers."
+summary: "Deep reference for minimal chat pill component split and runtime contracts across `MinimalChatPill`, `MinimalResponseOverlay`, and shared chatbox helper modules."
 read_when:
-  - When changing `ChatBox.jsx`, `ChatBoxResponse.jsx`, or the extracted `components/chatbox/*` helper modules.
+  - When changing `MinimalChatPill.jsx`, `MinimalResponseOverlay.jsx`, or shared chatbox helper modules.
   - When debugging overlay pill drag/focus behavior, screenshot preview lane state, or response-overlay resize/report timing.
 title: "Chatbox Component Split and Overlay Pill Runtime Reference"
 ---
 
-# Chatbox Component Split and Overlay Pill Runtime Reference
+# Minimal Chat Pill Component Split and Overlay Runtime Reference
 
 ## Canonical Modules
 
-- `frontend/src/renderer/features/chat/components/ChatBox.jsx`
-- `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
+- `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx`
+- `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/components/chatbox/ChatBoxIcons.jsx`
 - `frontend/src/renderer/features/chat/components/chatbox/ChatBoxImagePreviewRow.jsx`
@@ -27,13 +27,14 @@ title: "Chatbox Component Split and Overlay Pill Runtime Reference"
 
 ## Component-Split Boundary
 
-Chatbox support modules moved under `components/chatbox/`:
+Minimal pill support modules live under `features/minimalChatPill/components/`
+and reuse shared chat hooks/state:
 
 - icon render-only exports (`ChatBoxIcons.jsx`)
 - preview-row render-only component (`ChatBoxImagePreviewRow.jsx`)
 
-`ChatBox.jsx` and `ChatBoxResponse.jsx` stay as orchestration components; presentational helpers are
-kept side-by-side in the `chatbox/` subfolder.
+`MinimalChatPill.jsx` and `MinimalResponseOverlay.jsx` stay as orchestration
+components; presentational helpers are kept inside the minimal pill feature.
 
 Current-turn presentation ownership moved to shared chat hooks/state:
 
@@ -48,12 +49,12 @@ dispatch. It resolves live-turn state from SDK `currentTurnProjection` first,
 with only the local send latch covering the pre-SDK-open gap.
 `response-overlay-phase` is a window/layout hint and must not be used as chat
 runtime truth.
-`ChatBox.jsx` and `ChatInterface.jsx` should keep layout, focus, window,
+`MinimalChatPill.jsx` and `ChatInterface.jsx` should keep layout, focus, window,
 workspace, and model-menu behavior local to their surfaces. The dashboard may
 opt into active-turn manual compaction; the minimal pill keeps manual
 compaction behind its loop lock.
 
-## `ChatBox` Runtime Contract
+## `MinimalChatPill` Runtime Contract
 
 ### Send and Loop Locking
 

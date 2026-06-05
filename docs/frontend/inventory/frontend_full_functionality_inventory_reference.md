@@ -174,7 +174,7 @@ Primary files:
 
 - `frontend/src/renderer/app/App.jsx`
 - `frontend/src/renderer/app/main.jsx`
-- `frontend/src/renderer/app/{ChatBoxApp,ChatBoxResponseApp,ChatBoxContextLabelApp,ToolGhostDebugApp}.jsx`
+- `frontend/src/renderer/app/{MinimalChatPillApp,MinimalResponseOverlayApp,ChatBoxContextLabelApp,ToolGhostDebugApp}.jsx`
 - `frontend/src/renderer/app/WakewordController.jsx`
 - `frontend/src/renderer/app/providers/*`
 - `frontend/src/renderer/app/providers/{appConfigPersistence,configComparison}.js`
@@ -184,7 +184,7 @@ Primary files:
 Functionality:
 
 - Entry view routing:
-  - `main.jsx` selects root by `?view=` (`App`, `chatbox`, `chatbox-response`, `chatbox-context-label`, `tool-ghost-debug`).
+  - `main.jsx` selects root by `?view=` (`App`, `minimal-chat-pill`, `minimal-response-overlay`, `chatbox-context-label`, `tool-ghost-debug`).
 - Mounts provider stack (`AppConfigProvider` + `AppStatusProvider` + `ChatProvider`).
 - Loads/syncs frontend config with disk/localStorage/backend update-settings.
 - Uses provider-layer diff/merge guards to avoid redundant writes and stale config merges.

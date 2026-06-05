@@ -20,13 +20,13 @@ Lifecycle contract sources:
 - Main websocket bridge/state machine: `frontend/src/main/ipc.cjs`
 - Settings-sync ACK gate helpers: `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - Query payload enrichment: `frontend/src/main/query_payload_builder.cjs`
-- Synthetic local query events: `frontend/src/main/ipc/ipc_query_events.cjs`
+- Query send-failure event context: `frontend/src/main/ipc/ipc_query_events.cjs`
 - Main-process IPC registrar split: `frontend/src/main/index.cjs`, `frontend/src/main/overlay_phase_ipc_runtime.cjs`, `frontend/src/main/window_controls_ipc_runtime.cjs`, `frontend/src/main/permission_ipc_runtime.cjs`
 - Overlay phase -> window visibility behavior: `frontend/src/main/response_overlay_phase_handler.cjs`, `frontend/src/main/index.cjs`
 - Wakeword + overlay signal emitters: `frontend/src/main/main_window_runtime.cjs`, `frontend/src/main/overlay_signal_runtime.cjs`, `frontend/src/main/wakeword_bridge.cjs`, `frontend/src/main/wakeword_bridge_runtime.cjs`
 - Main-window target routing and display inventory invoke handlers: `frontend/src/main/window_controls_ipc_runtime.cjs`, `frontend/src/main/display_query_handler.cjs`, `frontend/src/main/main_window_runtime.cjs`, `frontend/src/renderer/features/dashboard/components/ChatGptDashboardShell.jsx`
 - Permission/sudo invoke lifecycle owners: `frontend/src/main/permission_ipc_runtime.cjs`, `frontend/src/main/permission_service.cjs`, `frontend/src/main/agent_sudo_access_handler.cjs`
-- Chatbox wakeword trigger handling: `frontend/src/renderer/features/chat/components/ChatBox.jsx`
+- Minimal chat pill wakeword trigger handling: `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx`
 - Renderer boundary allowlists: `frontend/src/preload.js`, `frontend/src/renderer/infrastructure/ipc/channels.ts`
 - Primary lifecycle tests: `tests/frontend/IpcMainBridge.lifecycle.test.cjs`, `tests/frontend/IpcMainBridge.query.test.cjs`, `tests/frontend/ChatBoxOverlayMouseIgnore.test.jsx`, `tests/frontend/ChatGptDashboardShell.test.jsx`, `tests/frontend/OverlayPhaseIpcRuntime.test.cjs`, `tests/frontend/WindowControlsIpcRuntime.test.cjs`, `tests/frontend/PermissionIpcRuntime.test.cjs`, `tests/frontend/DisplayQueryHandler.test.cjs`
 
@@ -275,15 +275,15 @@ When changing this lifecycle, keep synchronized:
 - ACK/control message type assumptions (`settings-updated`, error id correlation).
 - Overlay phase literals used by `ipc.cjs` and `response_overlay_phase_handler.cjs`.
 - split invoke handler ownership across `overlay_phase_ipc_runtime.cjs`, `window_controls_ipc_runtime.cjs`, and `permission_ipc_runtime.cjs`.
-- Synthetic `local-user-message` / send-failure error envelopes consumed by renderer stream hooks.
+- SDK `user_message` projections and Electron send-failure error envelopes consumed by renderer stream hooks.
 
 ## Lifecycle Control-Path Index
 
 | Lifecycle control path | Runtime owner | Lifecycle contract |
 |---|---|---|
-| websocket open/close transition | `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`, `frontend/src/main/ipc.cjs` | SDK desktop agent owns socket construction, handshake send, connect waiters, reconnect scheduling, and idle close policy; IPC owns UI/session state callbacks |
+| websocket open/close transition | `packages/windie-sdk-js/src/runtime/WindieClient.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `frontend/src/main/ipc.cjs` | SDK runtime owns socket construction, handshake send, connect waiters, reconnect scheduling, and idle close policy; IPC owns UI/session state callbacks |
 | first-query settings ACK gate | `frontend/src/main/ipc.cjs` | first query/wakeword send waits for settings sync outcome, with bounded timeout fallback |
-| query send bootstrap + optimistic local echo | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_query_events.cjs` | outbound query uses resolved conversation context and emits synthetic local-user-message before backend response |
+| query send bootstrap + SDK local user projection | `frontend/src/main/ipc.cjs`, `frontend/src/main/ipc/ipc_query_events.cjs`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts` | outbound query uses resolved conversation context; SDK emits `turn_started` and `user_message`, and Electron only synthesizes send-failure errors |
 | split IPC registrar bootstrap | `frontend/src/main/index.cjs`, `frontend/src/main/overlay_phase_ipc_runtime.cjs`, `frontend/src/main/window_controls_ipc_runtime.cjs`, `frontend/src/main/permission_ipc_runtime.cjs` | invoke/event registration is one-shot and split by runtime ownership instead of monolithic main handler registration |
 | overlay phase transition fan-out | `frontend/src/main/ipc.cjs`, `frontend/src/main/response_overlay_phase_handler.cjs` | canonical phase set drives renderer/state sync and response-window visibility behavior |
 | wakeword callback -> STT trigger | `frontend/src/main/main_window_runtime.cjs`, `frontend/src/main/overlay_signal_runtime.cjs`, `frontend/src/main/wakeword_bridge.cjs`, `frontend/src/main/wakeword_bridge_runtime.cjs` | STT trigger emits only after chat window show succeeds and is routed only to chat window; helper runtime normalizes ready/error state inputs used by wakeword bridge |

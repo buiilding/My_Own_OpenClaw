@@ -396,7 +396,7 @@ describe('main_window_runtime createResponseWindow', () => {
       platform: 'linux',
       enableDevTransparencyUi: false,
       enableOsToolGhostDebug: false,
-      responseWindowDebugView: 'chatbox-response-debug',
+      responseWindowDebugView: 'tool-ghost-debug',
       positionResponseWindow: jest.fn(),
       showResponseWindowInactive: jest.fn(),
       setResponseOverlayVisible: jest.fn(),
@@ -443,7 +443,7 @@ describe('main_window_runtime createResponseWindow', () => {
     createResponseWindow(deps);
 
     expect(responseWindow.loadURL).toHaveBeenCalledTimes(1);
-    expect(responseWindow.loadURL).toHaveBeenCalledWith(expect.stringContaining('view=chatbox-response-debug'));
+    expect(responseWindow.loadURL).toHaveBeenCalledWith(expect.stringContaining('view=tool-ghost-debug'));
     expect(deps.positionResponseWindow).toHaveBeenCalledTimes(1);
     expect(deps.showResponseWindowInactive).toHaveBeenCalledTimes(1);
     expect(deps.setResponseOverlayVisible).toHaveBeenCalledWith(true);

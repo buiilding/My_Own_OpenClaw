@@ -19,7 +19,7 @@ title: "Tool Call/Output and Transparency Section Rendering Reference"
 - `frontend/src/renderer/features/chat/components/message/content/UserMessage.jsx`
 - `frontend/src/renderer/features/chat/components/message/content/ErrorMessage.jsx`
 - `frontend/src/renderer/features/chat/components/message/content/AssistantThinkingSection.jsx`
-- `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
+- `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`
 - `frontend/src/renderer/features/chat/components/message/MessageTransparencySections.jsx`
 - `frontend/src/renderer/features/chat/components/message/TransparencySection.jsx`
 - `frontend/src/renderer/features/chat/utils/message/messageTransparency.js`

@@ -32,7 +32,9 @@ The renderer displays tool events. It does not execute backend tool events.
 Current execution modules:
 
 - `packages/windie-sdk-js/src/index.ts`
-- `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`
+- `packages/windie-sdk-js/src/runtime/WindieClient.ts`
+- `packages/windie-sdk-js/src/runtime/WindieAgent.ts`
+- `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`
 - `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`
 - `frontend/src/main/local_backend_bridge_execute_tool_runtime.cjs`
 - `frontend/src/main/python/tools/**`
@@ -40,13 +42,13 @@ Current execution modules:
 Runtime path:
 
 1. Backend emits `tool-call` or `tool-bundle`.
-2. SDK main runtime normalizes the event, preserves backend IDs, and claims local execution only when a local runtime can execute it.
-3. Electron main prepares the desktop surface for computer-use tools before local
-   execution, handing a visible dashboard to the minimal pill with the response
-   overlay restored.
-4. Electron main routes the request to the sidecar daemon/local bridge.
+2. SDK conversation/tool runtime normalizes the event, preserves backend IDs, and claims local execution only when a local runtime can execute it.
+3. SDK `ToolExecutionCoordinator` invokes the Electron local-tool lifecycle hook
+   before sidecar execution.
+4. Electron main applies only the scoped desktop surface lease required by that
+   tool call, then routes the request to the sidecar daemon/local bridge.
 5. Python sidecar executes the filesystem, shell, browser, computer-use, MCP, plugin, or extension tool.
-6. SDK main runtime sends exactly one `tool-result` or `tool-bundle-result` to backend.
+6. SDK conversation/tool runtime sends exactly one `tool-result` or `tool-bundle-result` to backend.
 7. Renderer receives display-only events and renders the visible transcript projection.
 
 Correlation rules:

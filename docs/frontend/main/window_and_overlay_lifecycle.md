@@ -27,8 +27,8 @@ Primary modules:
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/local_backend_bridge_window_visibility.cjs`
 - `frontend/src/main/platform/screenshot_window_visibility/*`
-- `frontend/src/renderer/features/chat/components/ChatBox.jsx`
-- `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
+- `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx`
+- `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`
 
 Window set:
 
@@ -65,8 +65,8 @@ App-ready path (`app.whenReady()`):
 
 1. `initializeMainProcessLifecycleRuntime(...)` runs startup lifecycle listeners.
 2. `createWindow()` delegates to `createMainWindowRuntime(...)` to create `mainWindow` and wire IPC/wakeword/local-backend/overlay phase coordination.
-3. when VM mode is disabled, `createChatWindow()` delegates to `createChatWindowRuntime(...)` for overlay input surface (`view=chatbox`).
-4. when VM mode is disabled, `createResponseWindow()` delegates to `createResponseWindowRuntime(...)` for response surface (`view=chatbox-response` or debug view).
+3. when VM mode is disabled, `createChatWindow()` delegates to `createChatWindowRuntime(...)` for overlay input surface (`view=minimal-chat-pill`).
+4. when VM mode is disabled, `createResponseWindow()` delegates to `createResponseWindowRuntime(...)` for response surface (`view=minimal-response-overlay` or debug view).
 5. when VM mode is disabled, tray and global hotkey (`Super+Alt+W`) are initialized.
 6. chat/response windows are registered in IPC broadcaster set only when those overlay windows are created.
 7. chat/response overlay BrowserWindows now start hidden unless explicitly shown, so startup does not briefly materialize overlay surfaces before the dashboard handoff.
@@ -88,7 +88,7 @@ OS debug mode for ghost animation:
 
 - env flag: `WINDIE_DEBUG_GHOST_OVERLAY=1`
 - startup behavior:
-  - `responseWindow` loads `view=tool-ghost-debug` instead of `chatbox-response`
+  - `responseWindow` loads `view=tool-ghost-debug` instead of `minimal-response-overlay`
   - response overlay starts visible (`520x620`) and remains phase-independent
   - phase callback from backend (`applyResponseOverlayPhase`) is ignored to prevent auto-hide during debug
 - launcher: `cd frontend && npm run test:ghost-cursor`

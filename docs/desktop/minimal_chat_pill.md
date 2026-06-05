@@ -25,9 +25,11 @@ The chat pill is the small always-available desktop command surface. It is rende
 ## Behavior Contracts
 
 - The pill is a command surface, not a separate chat backend session.
-- The active overlay route is the minimal pill / minimal response overlay
-  implementation. Electron still loads the stable `?view=chatbox` and
-  `?view=chatbox-response` route names for those renderer roots.
+- The active overlay routes are `?view=minimal-chat-pill` for the pill and
+  `?view=minimal-response-overlay` for the response overlay.
+- The current UI implementation was preserved and moved under
+  `features/minimalChatPill/`; old `ChatBox` names in CSS or IPC contracts are
+  legacy transport/style names, not feature ownership.
 - Closing the pill is durable user intent. Generic lifecycle paths such as
   startup-surface reapply or app activation must not reopen it while that intent
   is set.

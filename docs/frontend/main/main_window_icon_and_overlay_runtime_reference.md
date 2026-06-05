@@ -103,8 +103,8 @@ Shared overlay defaults:
 
 Used by:
 
-- chat window `show` event (lazy `view=chatbox`)
-- response window bootstrap (`view=chatbox-response`) and later `show` events as a no-op once loaded
+- chat window `show` event (lazy `view=minimal-chat-pill`)
+- response window bootstrap (`view=minimal-response-overlay`) and later `show` events as a no-op once loaded
 
 ## Test-Backed Invariants
 

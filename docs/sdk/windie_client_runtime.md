@@ -92,7 +92,7 @@ Normal desktop hosts start one SDK-owned runtime and render the SDK
 conversation projection:
 
 ```ts
-import { WindieClient, buildDisplayRows } from "@windie/sdk";
+import { WindieClient } from "@windie/sdk";
 
 const client = new WindieClient({
   backendUrl: "https://api.windieos.com",
@@ -108,7 +108,7 @@ const agent = await client.wakeUp({
 
 const conversation = agent.conversation();
 conversation.subscribeEvents((event, snapshot) => {
-  renderRows(buildDisplayRows([event]));
+  renderRows(snapshot.displayRows);
   recordEvent(event);
   renderTurn(snapshot.currentTurn);
 });
@@ -140,7 +140,7 @@ const agent = await client.wakeUp({
 const conversation = agent.conversation();
 conversation.subscribeEvents((event, snapshot) => {
   broadcastToRenderers('windie:conversation-event', event);
-  broadcastToRenderers('windie:rows', buildDisplayRows([event]));
+  broadcastToRenderers('windie:rows', snapshot.displayRows);
   broadcastToRenderers('windie:current-turn', snapshot.currentTurn);
 });
 

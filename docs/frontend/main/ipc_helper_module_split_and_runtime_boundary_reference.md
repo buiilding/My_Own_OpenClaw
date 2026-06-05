@@ -2,7 +2,7 @@
 summary: "Electron main IPC helper-module split reference for websocket event processing, renderer-window fan-out, and query-local event broadcast boundaries."
 read_when:
   - When changing `ipc.cjs` delegation into `ipc_runtime_helpers.cjs`, `ipc_query_runtime.cjs`, `ipc_transcript_session_sync.cjs`, `ipc_event_replay_state.cjs`, `ipc_overlay_phase_events.cjs`, `ipc_renderer_windows.cjs`, `ipc_query_broadcast.cjs`, or `ipc_settings_sync.cjs`.
-  - When debugging renderer fan-out drift, overlay pre-capture hook timing, or synthetic query/local-user message behavior.
+  - When debugging renderer fan-out drift, overlay pre-capture hook timing, SDK local-user projection, or query send-failure synthesis.
 title: "IPC Helper Module Split and Runtime Boundary Reference"
 ---
 
@@ -156,18 +156,19 @@ Owns renderer-window lifecycle and generic fan-out:
 
 ### `ipc_query_broadcast.cjs`
 
-Owns query-scope synthetic event fan-out:
+Owns query-scope send-failure event fan-out:
 
-- `broadcastLocalUserMessage`: emits `local-user-message` only when builder returns payload
-- `broadcastQuerySendFailure`: emits synthetic `error` event when backend send fails and resets phase to idle
+- `broadcastQuerySendFailure`: emits an identifiable `error` event when SDK/backend send fails and resets phase to idle
 
 ### `ipc_query_events.cjs` (shape builder dependency)
 
-Owns query-context and synthetic envelope constructors consumed by `ipc_query_broadcast.cjs`:
+Owns query-context and send-failure envelope constructors consumed by `ipc_query_broadcast.cjs`:
 
 - `resolveConversationRef`
-- `buildLocalUserMessage`
 - `buildQuerySendFailure`
+
+SDK `ConversationRuntime.send(...)` owns `turn_started` and `user_message`
+projection. Electron main must not synthesize a duplicate local user message.
 
 ### `ipc_settings_sync.cjs`
 

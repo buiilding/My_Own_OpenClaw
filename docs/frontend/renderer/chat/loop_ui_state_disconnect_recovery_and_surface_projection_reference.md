@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for shared chat loop UI state resolution: overlay-turn lifecycle projection, transport-disconnect recovery watchdog behavior, and dashboard/chatbox surface consumers."
+summary: "Deep reference for shared chat loop UI state resolution: overlay-turn lifecycle projection, transport-disconnect recovery watchdog behavior, and dashboard/minimal-pill surface consumers."
 read_when:
   - When changing `useChatLoopUiState`, `useOverlayTurnLifecycle`, `chatLoopUiState`, or stream-phase-to-UI mapping behavior.
-  - When debugging stuck stop buttons, chatbox loop locks, or reconnect races after missing terminal events.
+  - When debugging stuck stop buttons, minimal-pill loop locks, or reconnect races after missing terminal events.
 title: "Chat Loop UI State Disconnect Recovery and Surface Projection Reference"
 ---
 
@@ -20,8 +20,8 @@ title: "Chat Loop UI State Disconnect Recovery and Surface Projection Reference"
 - `frontend/src/renderer/features/chat/utils/state/streamPhaseState.js`
 - `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/components/ChatInterface.jsx`
-- `frontend/src/renderer/features/chat/components/ChatBox.jsx`
-- `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
+- `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx`
+- `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`
 - `tests/frontend/ChatLoopUiState.test.js`
 - `tests/frontend/ChatLoopUiStateHook.test.jsx`
 - `tests/frontend/OverlayTurnLifecycle.test.js`

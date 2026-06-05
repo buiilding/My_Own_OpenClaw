@@ -126,12 +126,13 @@ Locked by:
 
 Used by:
 
-- `buildLocalUserMessage(...)` (optimistic local echo)
+- SDK `ConversationRuntime.send(...)` when emitting `turn_started` and
+  `user_message` projections for the active turn
 - `buildQuerySendFailure(...)` (synthetic backend-unavailable error)
 
 Locked by `tests/frontend/IpcMainBridge.query.test.cjs`:
 
-- conversation-ref fallback reused for both local echo and outbound query
+- conversation-ref fallback reused by SDK send projection and outbound query
 - reconnect clears stale fallback before next query
 - query-send failure emits context-preserving error envelope
 

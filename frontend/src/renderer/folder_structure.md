@@ -12,10 +12,12 @@ The renderer process is the React-based UI layer of the Electron desktop applica
 frontend/src/renderer/
 ├── app/                                  # Application root and context providers
 │   ├── App.jsx                          # Root component - sets up providers and layout
-│   ├── MinimalChatPillApp.jsx           # Minimal chat pill root component
+│   ├── MinimalChatPillApp.jsx           # Minimal chat pill overlay root component
 │   ├── MinimalResponseOverlayApp.jsx    # Minimal response overlay root component
+│   ├── ChatBoxContextLabelApp.jsx       # Context label overlay root component
+│   ├── ToolGhostDebugApp.jsx            # Debug-only tool ghost overlay root component
 │   ├── WakewordController.jsx           # WakewordController - Always-on wakeword detection + chatbox trigger
-│   ├── main.jsx                         # React entry point - renders App with StrictMode in dev
+│   ├── main.jsx                         # React entry point - routes App/minimal overlays by ?view=
 │   │
 │   ├── runtime/                         # App-level SDK/runtime command facades
 │   │   ├── desktopChatStreamEventRuntime.ts # Renderer stream event routing, projection, stale-turn guard, and tracking facade
@@ -45,14 +47,20 @@ frontend/src/renderer/
 ├── features/                             # Feature modules (organized by domain)
 │   │
 │   ├── minimalChatPill/                 # Minimal pill and response overlay feature module
-│   │   ├── components/                  # Minimal overlay UI components
-│   │   │   ├── MinimalChatPill.jsx      # MinimalChatPill - Floating quick chat overlay UI
-│   │   │   └── MinimalResponseOverlay.jsx # MinimalResponseOverlay - Awaiting/response overlay surface
-│   │   └── hooks/                       # Minimal overlay behavior hooks
-│   │       ├── useMinimalChatPillBindings.js # Minimal pill focus, drag, wakeword, and anchor bindings
-│   │       └── useResponseOverlayViewModel.js # Response overlay view model composition
+│   │   ├── components/
+│   │   │   ├── MinimalChatPill.jsx      # Always-on-top minimal chat pill overlay UI
+│   │   │   ├── MinimalResponseOverlay.jsx # Response overlay for current SDK turn projection
+│   │   │   ├── AttachmentPreviewRow.jsx # Minimal pill attachment preview lane
+│   │   │   └── PillIcons.jsx            # Minimal pill icon render helpers
+│   │   ├── hooks/
+│   │   │   ├── useMinimalChatPillBindings.js # Minimal pill drag/input/window bindings
+│   │   │   ├── useResponseOverlayScrollState.js # Response overlay scroll stickiness
+│   │   │   ├── useResponseOverlayViewModel.js # SDK current-turn response view model
+│   │   │   └── useResponseOverlayWindowSync.js # Response overlay size/visibility IPC sync
+│   │   └── utils/
+│   │       └── minimalChatPillLayout.js  # Minimal pill layout and drag-block helpers
 │   │
-│   ├── chat/                            # Chat feature module
+│   ├── chat/                            # Chat/dashboard transcript feature module
 │   │   ├── components/                  # Chat UI components
 │   │   │   ├── ChatInterface.jsx        # ChatInterface - Main chat orchestrator (composes MessageList + MessageInput; includes new-chat + stop controls)
 │   │   │   ├── MessageContent.jsx       # MessageContent - Renders message body by type
@@ -76,7 +84,7 @@ frontend/src/renderer/
 │   │   │
 │   │   ├── hooks/                       # Chat business logic hooks
 │   │   │   ├── useChatMessageSender.ts  # useChatMessageSender - Handles message sending (dashboard sends skip screenshot capture/window handoff)
-│   │   │   ├── useCurrentTurnPresentationState.js # useCurrentTurnPresentationState - Shared dashboard/chatbox current-turn reply + awaiting/response projection hook
+│   │   │   ├── useCurrentTurnPresentationState.js # useCurrentTurnPresentationState - Shared dashboard/minimal-pill current-turn reply + awaiting/response projection hook
 │   │   │   ├── useChatStream.ts         # useChatStream - Handles streaming events (llm-thought, streaming-response, tool-call, etc.)
 │   │   │   ├── useCopyMessageAction.js  # useCopyMessageAction - Shared clipboard copy-success state/timer logic for user/assistant message action rows
 │   │   │   ├── useStreamMessageUpdaters.ts # useStreamMessageUpdaters - Shared message update callbacks extracted from useChatStream
@@ -103,12 +111,12 @@ frontend/src/renderer/
 │   │       │   └── transcriptMessagePayload.js # transcriptMessagePayload - Transcript payload/role mapping for rehydrate writes
 │   │       ├── state/                   # state - Chat loop/surface/query-stop projection helpers
 │   │       │   ├── chatBoxResponseState.js # chatBoxResponseState - Response closeability, thinking text normalization, source-tag projection
-│   │       │   ├── chatBoxState.js      # chatBoxState - Chatbox drag-block targets + visual anchor height helpers
+│   │       │   ├── chatBoxState.js      # chatBoxState - Minimal pill drag-block targets + visual anchor height helpers
 │   │       │   ├── chatLoopUiState.js   # chatLoopUiState - Stream-phase/transport/isSending -> loop UI state reducer
-│   │       │   ├── chatTurnPresentationState.js # chatTurnPresentationState - Shared current-turn reply detection + dashboard/chatbox surface projection helpers
+│   │       │   ├── chatTurnPresentationState.js # chatTurnPresentationState - Shared current-turn reply detection + dashboard/minimal-pill surface projection helpers
 │   │       │   ├── stopQueryState.js    # stopQueryState - Stop-query UI patch helper for stream tracking + thinking reset
 │   │       │   └── streamPhaseState.js  # streamPhaseState - Phase predicates (active/terminal/awaiting/stop-control)
-│   │       ├── chatSelectors.js         # chatSelectors - Shared Zustand selectors for ChatInterface/ChatBox
+│   │       ├── chatSelectors.js         # chatSelectors - Shared Zustand selectors for ChatInterface/minimal pill
 │   │       ├── chatStream/              # chatStream - Stream event/update/thinking/transparency utility helpers
 │   │       │   ├── chatStreamDebugTrace.ts # chatStreamDebugTrace - Gated stream + chat-pill renderer trace helpers
 │   │       │   ├── chatStreamEventUtils.ts # chatStreamEventUtils - Screenshot attachment, error filtering/text, and correlation-id event helpers

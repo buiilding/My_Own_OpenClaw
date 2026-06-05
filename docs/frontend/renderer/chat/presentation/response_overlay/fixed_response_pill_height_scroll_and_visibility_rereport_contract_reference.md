@@ -1,7 +1,7 @@
 ---
-summary: "Deep reference for `ChatBoxResponse` fixed-height runtime behavior: reply/awaiting mode projection, scroll-anchor policy, and visibility-triggered overlay size re-report semantics."
+summary: "Deep reference for `MinimalResponseOverlay` fixed-height runtime behavior: reply/awaiting mode projection, scroll-anchor policy, and visibility-triggered overlay size re-report semantics."
 read_when:
-  - When changing `ChatBoxResponse.jsx` response-pill sizing, awaiting indicator sizing, or scroll behavior.
+  - When changing `MinimalResponseOverlay.jsx` response-pill sizing, awaiting indicator sizing, or scroll behavior.
   - When debugging stale response overlay dimensions after hide/show, missing auto-stick scroll, or incorrect response closeability gating.
 title: "Fixed Response-Pill Height, Scroll Anchor, and Overlay Visibility Re-Report Contract Reference"
 ---
@@ -10,7 +10,7 @@ title: "Fixed Response-Pill Height, Scroll Anchor, and Overlay Visibility Re-Rep
 
 ## Canonical Modules
 
-- `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
+- `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/utils/state/chatBoxResponseState.js`
@@ -20,7 +20,7 @@ title: "Fixed Response-Pill Height, Scroll Anchor, and Overlay Visibility Re-Rep
 
 ## Fixed Size Constants
 
-`ChatBoxResponse.jsx` defines:
+`MinimalResponseOverlay.jsx` defines:
 
 - `RESPONSE_FIXED_HEIGHT = 236`
 - `TYPING_FRAME_HEIGHT = 24`

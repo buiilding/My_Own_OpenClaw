@@ -92,7 +92,7 @@ Creation behavior:
 
 - builds chat overlay window with a preallocated transparent frame (`520x220`) so multiline pill growth does not need native window resizes during typing
 - positions via injected `positionChatWindow`
-- lazily loads renderer route `view=chatbox` on first `show` event
+- lazily loads renderer route `view=minimal-chat-pill` on first `show` event
 - syncs wakeword toggle on show/hide
 - applies content protection and topmost/workspace visibility policy through shared runtime helpers, with macOS overlay panels avoiding explicit `setVisibleOnAllWorkspaces(...)` calls
 
@@ -106,7 +106,7 @@ Creation behavior:
 
 - builds overlay window (default hidden, height `1` unless debug mode)
 - loads:
-  - `view=chatbox-response` (normal mode; eager-loaded while hidden so awaiting UI is ready before first show)
+  - `view=minimal-response-overlay` (normal mode; eager-loaded while hidden so awaiting UI is ready before first show)
   - debug view (ghost overlay mode) when `enableOsToolGhostDebug=true`
 - syncs response overlay visibility state via injected setters
 - applies content protection and topmost/workspace visibility policy through shared runtime helpers, with macOS overlay panels avoiding explicit `setVisibleOnAllWorkspaces(...)` calls

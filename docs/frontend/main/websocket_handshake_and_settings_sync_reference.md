@@ -202,16 +202,15 @@ If backend send fails for query path:
 
 This keeps renderer state consistent even when backend transport is unavailable.
 
-## Synthetic Local User Message Path
+## SDK Local User Message Path
 
-Before successful backend query send, main emits synthetic:
+Before successful backend query send, SDK `ConversationRuntime.send(...)` emits
+the local `turn_started` and `user_message` conversation events. Electron main
+forwards those SDK events and snapshots to renderer windows; it does not build
+or broadcast a duplicate optimistic local user event.
 
-- `type: local-user-message`
-- includes `turn_ref`, session/user/conversation context, screenshot refs
-
-Built via `buildLocalUserMessage(...)` and broadcast to other renderer windows (excluding sender when provided).
-
-Broadcast plumbing is delegated to `ipc_query_broadcast.cjs`.
+Query-send failure broadcast plumbing remains delegated to
+`ipc_query_broadcast.cjs`.
 
 ## Transcript Session Sync Coupling
 
@@ -231,7 +230,7 @@ If first query uses stale settings:
 2. verify outbound `update-settings` id appears in backend ACK/error
 3. inspect settings timeout logs for unresolved ACK
 
-If renderer shows local user message but backend never responds:
+If renderer shows the SDK local user message but backend never responds:
 
 1. confirm the SDK runtime query send returned null (transport down)
 2. verify synthetic query-failure error was emitted

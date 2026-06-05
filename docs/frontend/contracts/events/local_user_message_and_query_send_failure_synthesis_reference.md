@@ -1,53 +1,38 @@
 ---
-summary: "Deep reference for main-process synthetic `from-backend` events around query send lifecycle: local optimistic user-message generation and backend-send failure error synthesis."
+summary: "Deep reference for query send lifecycle events: SDK-owned user-message projection and Electron query-send failure synthesis."
 read_when:
   - When changing query send flow in `ipc.cjs` or helper contracts in `ipc_query_events.cjs`.
   - When debugging missing local user echo messages or query-send failure errors.
-title: "Local User Message and Query Send-Failure Synthesis Reference"
+title: "Query Send-Failure Synthesis Reference"
 ---
 
-# Local User Message and Query Send-Failure Synthesis Reference
+# Query Send-Failure Synthesis Reference
 
 ## Canonical Modules
 
 - `frontend/src/main/ipc.cjs`
 - `frontend/src/main/ipc/ipc_query_events.cjs`
+- `frontend/src/main/ipc/ipc_query_broadcast.cjs`
+- `frontend/src/main/ipc/ipc_query_send_runtime.cjs`
+- `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`
 - `frontend/src/renderer/types/backendEvents.ts`
 - `frontend/src/renderer/features/chat/hooks/useChatStream.ts`
 
-## Why Synthetic Events Exist
+## Ownership Boundary
 
-Main process injects renderer-facing events before/around backend query send to keep UI responsive and explicit when transport fails:
+SDK `ConversationRuntime.send(...)` owns the local turn-start and user-message
+projection:
 
-- optimistic local echo: `local-user-message`
-- send failure feedback: `error` with query context
+- emits `turn_started`
+- emits `user_message`
+- forwards query payload through the active backend transport
+- rejects if the transport cannot send
 
-Both are emitted on `from-backend` channel so renderer handles them through normal stream/event listeners.
+Electron main must not synthesize a duplicate optimistic local user message
+before SDK send. It only prepares the query payload and emits explicit
+send-failure feedback if SDK send returns no message id.
 
-## Local User Message Build Contract
-
-`buildLocalUserMessage(...)` requires `payload.text`; otherwise returns `null`.
-
-Event shape:
-
-- `type: "local-user-message"`
-- context fields copied into root:
-  - `turn_ref`
-  - `session_id`
-  - `user_id`
-  - `conversation_ref`
-- payload fields:
-  - `text`
-  - `screenshot_ref` (nullable)
-  - `screenshot_refs` (nullable array; multi-image compatibility path)
-  - `attachment_filenames` (nullable array; filename chips for user-row display)
-  - `screenshot_url` (nullable)
-  - `timestamp` (ISO)
-  - `session_id`
-  - `user_id`
-  - `conversation_ref`
-
-Conversation reference resolution:
+Conversation reference resolution still lives in Electron query prep:
 
 - `resolveConversationRef(payload, currentConversationRef)`
 - prefers payload value, falls back to current tracked conversation
@@ -68,6 +53,8 @@ This keeps synthetic event context shape deterministic for renderer filters.
 
 - `type: "error"`
 - `id`: original `queryMessageId`
+- `event_id`: stable local failure id derived from the query id
+- `sequence`: local positive sequence so SDK normalization accepts the event
 - same query context fields (`turn_ref`, `session_id`, `user_id`, `conversation_ref`)
 - payload:
   - `message: "Your message wasn't sent because WindieOS isn't connected right now. Try again when the backend reconnects."`
@@ -100,9 +87,9 @@ Synthetic send-failure `error` events are handled through normal error path unle
 
 ## Drift Hotspots
 
-1. helper emits `local-user-message` payload keys not reflected in renderer type definitions
-2. multi-image payload omitted (`screenshot_refs`) while query payload includes it
-3. query send-failure text changed and downstream status/error heuristics rely on exact string fragments
+1. Electron query prep reintroduces a synthetic local user-message path and duplicates SDK `user_message`.
+2. query send-failure text changed and downstream status/error heuristics rely on exact string fragments
+3. failure event identity fields are omitted, causing SDK normalization to emit a runtime identity error instead of a turn error
 4. fallback user-id policy modified, causing unexpected null/non-null context behavior
 5. conversation-ref resolution changed, breaking active-conversation filtering
 
@@ -110,15 +97,16 @@ Synthetic send-failure `error` events are handled through normal error path unle
 
 If user query appears to "vanish" before backend response:
 
-1. verify `buildLocalUserMessage(...)` saw non-empty `payload.text`
-2. verify optimistic event reached `from-backend` listeners
+1. verify `ConversationRuntime.send(...)` emitted SDK `turn_started` and `user_message`
+2. verify Electron main broadcast `windie:conversation-event`, `windie:rows`, and `windie:current-turn`
 3. verify conversation filter did not drop event (conversation_ref mismatch)
 
 If query send failure is silent:
 
-1. verify the SDK runtime query send returned `null`
+1. verify the SDK runtime query send rejected or returned no message id
 2. verify `broadcastQuerySendFailure(...)` executed
-3. verify error event passes `isBackendEvent(...)` and `shouldIgnoreStreamError(...)` guards
+3. verify error event includes `event_id` and `sequence`
+4. verify renderer receives the normalized `windie:conversation-event` `turn_error`
 
 ## Related Pages
 

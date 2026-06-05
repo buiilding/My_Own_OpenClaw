@@ -27,6 +27,7 @@ title: "Entrypoint View Routing and Provider Stack Reference"
 - `view=minimal-chat-pill` -> `MinimalChatPillApp`
 - `view=minimal-response-overlay` -> `MinimalResponseOverlayApp`
 - `view=chatbox-context-label` -> `ChatBoxContextLabelApp`
+- `view=tool-ghost-debug` -> `ToolGhostDebugApp`
 - default/no `view` -> `App`
 
 Dev-only behavior:

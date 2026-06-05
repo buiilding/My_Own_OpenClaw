@@ -15,7 +15,7 @@ title: "Data-URL Image Parsing and Attachment Payload Contract Reference"
 - `frontend/src/renderer/features/chat/utils/fileAttachmentUtils.js`
 - `frontend/src/renderer/features/chat/utils/message/messageInput.js`
 - `frontend/src/renderer/features/chat/components/MessageInput.jsx`
-- `frontend/src/renderer/features/chat/components/ChatBox.jsx`
+- `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx`
 - `tests/frontend/ClipboardImageUtils.test.js`
 - `tests/frontend/FileAttachmentUtils.test.js`
 - `tests/frontend/MessageInput.test.jsx`

@@ -31,9 +31,8 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/chat: remove the remaining synthetic local user-message broadcast
   from Electron query preparation and restore SDK-visible query-send failure
   errors through the current renderer broadcast contract.
-- frontend/chat: remove the experimental minimal chat pill renderer route and
-  restore the floating overlay windows to the existing `ChatBox` /
-  `ChatBoxResponse` implementation.
+- docs/frontend: align minimal chat pill, response overlay, route, test, and
+  SDK runtime ownership references with the `minimalChatPill` implementation.
 - sdk/runtime: remove the separate `WindieAgent.startDesktop(...)` desktop
   facade so Electron and custom hosts use `WindieClient.wakeUp(...)` plus SDK
   conversation runtime directly.

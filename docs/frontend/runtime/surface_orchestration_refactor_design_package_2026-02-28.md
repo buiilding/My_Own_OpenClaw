@@ -105,7 +105,7 @@ Renderer touchpoints:
 Main touchpoints:
 
 - `ipc.cjs` + `ipc_runtime_helpers.cjs` (backend message -> overlay phase mapping)
-- `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts` and `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` (current SDK-owned local tool routing)
+- `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts`, and `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts` (current SDK-owned local tool routing)
 - split IPC registrars (`overlay_phase_ipc_runtime.cjs`, `window_controls_ipc_runtime.cjs`, `permission_ipc_runtime.cjs`) now own show/hide and related main-process control channels; legacy focus-prep/click-through RPCs are gone
 - `main_window_runtime.cjs` (focus demotion + external focus verify)
 - `window_visibility_runtime.cjs` (chat/main visibility policy)

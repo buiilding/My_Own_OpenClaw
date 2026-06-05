@@ -75,7 +75,7 @@ App + providers:
 
 - `frontend/src/renderer/app/*.jsx`
 - `frontend/src/renderer/app/providers/*`
-- Includes view-routed app roots: `App`, `ChatBoxApp`, `ChatBoxResponseApp`, `ChatBoxContextLabelApp`, `ToolGhostDebugApp`
+- Includes view-routed app roots: `App`, `MinimalChatPillApp`, `MinimalResponseOverlayApp`, `ChatBoxContextLabelApp`, `ToolGhostDebugApp`
 
 Shared components:
 

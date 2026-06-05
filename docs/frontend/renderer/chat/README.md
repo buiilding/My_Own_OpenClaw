@@ -71,8 +71,8 @@ title: "Frontend Renderer Chat Docs Hub"
 - `frontend/src/renderer/features/chat/components/MessageInput.jsx`
 - `frontend/src/renderer/features/chat/components/MessageList.jsx`
 - `frontend/src/renderer/features/chat/components/message/ThinkingDisplay.jsx`
-- `frontend/src/renderer/features/chat/components/ChatBox.jsx`
-- `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
+- `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx`
+- `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`
 - `frontend/src/renderer/features/chat/components/ToolGhostCursor.jsx`
 - `frontend/src/renderer/features/chat/components/MessageContent.jsx`
 - `frontend/src/renderer/features/chat/components/message/MessageTransparencySections.jsx`

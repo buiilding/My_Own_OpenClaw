@@ -28,9 +28,12 @@ The renderer displays SDK `currentTurnProjection`:
 - `assistantText` and `toolEvents` decide response content
 - `reasoningText` decides thinking copy
 
-Main process phase updates still control native window visibility,
-click-through/focusability, and content protection. They do not decide renderer
-typing state, response content, closeability, or stop/busy state.
+Main process phase updates control native response-window visibility. They do
+not decide renderer typing state, response content, closeability, stop/busy
+state, click-through/focusability, or screenshot content protection.
+
+Click-through/focusability and screenshot content protection are scoped to SDK
+local tool lifecycle leases in Electron main.
 
 ## Tool Ghost
 

@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for chatbox overlay renderer behavior: input/send lifecycle, click-through toggling, drag movement IPC, and visual-anchor shell-height reporting."
+summary: "Deep reference for minimal chat pill overlay renderer behavior: input/send lifecycle, drag movement IPC, normal hit-test intent, and visual-anchor shell-height reporting."
 read_when:
-  - When changing `ChatBox.jsx` interaction rules or overlay input behavior.
-  - When debugging chatbox focus/click-through drift, drag positioning, or startup/attachment flicker.
+  - When changing `MinimalChatPill.jsx` interaction rules or overlay input behavior.
+  - When debugging chat pill focus/click-through drift, drag positioning, or startup/attachment flicker.
 title: "Chatbox Overlay Input, Drag, and Click-Through Reference"
 ---
 
@@ -10,11 +10,11 @@ title: "Chatbox Overlay Input, Drag, and Click-Through Reference"
 
 ## Canonical Modules
 
-- `frontend/src/renderer/app/ChatBoxApp.jsx`
-- `frontend/src/renderer/features/chat/components/ChatBox.jsx`
-- `frontend/src/renderer/features/chat/hooks/useChatBoxBindings.js`
-- `frontend/src/renderer/features/chat/components/chatbox/ChatBoxIcons.jsx`
-- `frontend/src/renderer/features/chat/components/chatbox/ChatBoxImagePreviewRow.jsx`
+- `frontend/src/renderer/app/MinimalChatPillApp.jsx`
+- `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx`
+- `frontend/src/renderer/features/minimalChatPill/hooks/useMinimalChatPillBindings.js`
+- `frontend/src/renderer/features/minimalChatPill/components/PillIcons.jsx`
+- `frontend/src/renderer/features/minimalChatPill/components/AttachmentPreviewRow.jsx`
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/policies/messageSendUiPolicy.ts`
@@ -27,27 +27,28 @@ title: "Chatbox Overlay Input, Drag, and Click-Through Reference"
 
 ## App Composition Boundary
 
-`ChatBoxApp` renders:
+`MinimalChatPillApp` renders:
 
 - `AppProvider`
 - `ChatProvider(enableTranscript=false)`
-- `ChatBox`
+- `MinimalChatPill`
 
 This keeps overlay window lightweight:
 
 - no transcript writes
-- no SDK/main tool-dispatch listeners
-- chatbox still sends queries through `useChatMessageSender(...)`
+- no renderer-side tool-dispatch listeners
+- the pill still sends queries through `useChatMessageSender(...)`, which calls
+  SDK-backed Electron IPC
 
 ## Send Path and Overlay Surface Policy
 
-`ChatBox` calls:
+`MinimalChatPill` calls:
 
 - `useChatMessageSender(undefined, { senderSurface: "overlay-chatbox" })`
 - `useChatSurfaceController(...)`, which derives loop lock from SDK
   `currentTurnProjection` plus the local pre-SDK send latch.
 
-`useChatBoxBindings` encapsulates chatbox runtime effect bindings:
+`useMinimalChatPillBindings` encapsulates chat pill runtime effect bindings:
 
 - explicit focus lifecycle (`chatbox-focus` + mount focus)
 - wakeword STT trigger channel handling (`wakeword-stt-trigger`)
@@ -60,7 +61,7 @@ Resulting behavior in `useChatMessageSender`:
 - screenshot capture path remains enabled by default unless config disables it
 - send flow can invoke `show-chatbox` (focus false) for non-main surfaces when policy allows
 
-Minimal pill control inventory in current production `ChatBox`:
+Minimal pill control inventory in current production `MinimalChatPill`:
 
 - the chat pill shell now owns a bumped top contour that houses the close control as part of one silhouette
 - settings button opens the dashboard/chat surface via `show-main-window`

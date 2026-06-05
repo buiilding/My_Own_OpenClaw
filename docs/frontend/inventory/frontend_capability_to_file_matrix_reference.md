@@ -36,7 +36,7 @@ This matrix maps frontend capabilities to implementation files.
 
 | Capability | Primary files | Notes |
 | --- | --- | --- |
-| Backend websocket handshake + relay | `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`, `frontend/src/main/ipc.cjs`, `frontend/src/main/backend_endpoints.cjs` | SDK-managed `/ws` session and renderer-safe stream fan-out. |
+| Backend websocket handshake + relay | `packages/windie-sdk-js/src/runtime/WindieClient.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `frontend/src/main/ipc.cjs`, `frontend/src/main/backend_endpoints.cjs` | SDK-managed `/ws` session and renderer-safe stream fan-out. |
 | First-query settings ACK gate | `frontend/src/main/ipc/ipc_settings_sync.cjs`, `frontend/src/main/ipc.cjs` | Runs timeout-bound settings ACK before first query send. |
 | IPC helper module split | `frontend/src/main/ipc/ipc_runtime_helpers.cjs`, `frontend/src/main/ipc/ipc_renderer_windows.cjs`, `frontend/src/main/ipc/ipc_query_broadcast.cjs`, `frontend/src/main/ipc/ipc_query_events.cjs` | Shared helper boundaries for relay/send/failure semantics. |
 | Query payload construction | `frontend/src/main/query_payload_builder.cjs` | Adds system/memory context and query metadata before send. |
@@ -58,9 +58,9 @@ This matrix maps frontend capabilities to implementation files.
 
 | Capability | Primary files | Notes |
 | --- | --- | --- |
-| Entry view router | `frontend/src/renderer/app/main.jsx` | Chooses root component by `?view=` (`App`, chatbox variants, debug). |
+| Entry view router | `frontend/src/renderer/app/main.jsx` | Chooses root component by `?view=` (`App`, `minimal-chat-pill`, `minimal-response-overlay`, context-label, debug). |
 | Main app provider composition | `frontend/src/renderer/app/App.jsx`, `frontend/src/renderer/app/providers/*` | Mounts app/chat providers and permission bootstrap gate. |
-| Overlay-focused app roots | `frontend/src/renderer/app/{ChatBoxApp,ChatBoxResponseApp,ChatBoxContextLabelApp}.jsx` | Overlay-specific renderer shells. |
+| Overlay-focused app roots | `frontend/src/renderer/app/{MinimalChatPillApp,MinimalResponseOverlayApp,ChatBoxContextLabelApp}.jsx` | Overlay-specific renderer shells. |
 | Tool ghost debug entry | `frontend/src/renderer/app/ToolGhostDebugApp.jsx` | Debug-only animation harness for tool ghost timing. |
 
 ## 5) Renderer Chat, Stream, and Tool Runtime
@@ -69,7 +69,7 @@ This matrix maps frontend capabilities to implementation files.
 | --- | --- | --- |
 | Message send and capture path | `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`, `frontend/src/renderer/infrastructure/services/{ScreenshotAttachmentPipeline,SystemStateCapture,ArtifactUploader}.ts` | Sends message, captures screenshots and system state through separate services, uploads artifacts, dispatches query. |
 | Backend stream event handling | `frontend/src/renderer/features/chat/hooks/useChatStream.ts`, `frontend/src/renderer/features/chat/utils/chatStream/chatStream*.ts` | Handles thought/chunk/complete/error/tool/context-compaction event classes. |
-| Tool call execution and stale-turn cancel | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`, `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts` | Executes tool/tool-bundle through the sidecar SDK local-runtime client and sends explicit failure results for stale or failed waits. |
+| Tool call execution and stale-turn cancel | `packages/windie-sdk-js/src/tools/ToolExecutionCoordinator.ts`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/LocalSidecarRuntime.ts` | Executes tool/tool-bundle through the sidecar SDK local-runtime client and sends explicit failure results for stale or failed waits. |
 | Tool display projection | `frontend/src/renderer/features/chat/hooks/chatStream/useChatStreamToolHandlers.ts`, `frontend/src/renderer/features/chat/utils/chatStream/chatStreamFormatting.ts` | Renders tool-call/tool-output cards from SDK/main fan-out without executing local tools in the renderer. |
 | Chat state store and selectors | `frontend/src/renderer/features/chat/stores/chatStore.ts`, `frontend/src/renderer/features/chat/utils/chatSelectors.js` | Message list, stream phase, token and turn tracking state. |
 | Transcript persistence and retry queues | `frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient.ts`, `pending*Queue.ts`, `sessionInfo*.ts` | SDK-facing projection runtime owns session tracking plus queued retry when transcript write fails. |

@@ -1,7 +1,7 @@
 ---
-summary: "Frontend renderer overlay docs sub-hub for chatbox input-pill behavior, response overlay sizing, and residual tool-ghost debug harness references."
+summary: "Frontend renderer overlay docs sub-hub for minimal chat pill behavior, response overlay sizing, and residual tool-ghost debug harness references."
 read_when:
-  - When changing chatbox/response overlay renderer components.
+  - When changing minimal chat pill/response overlay renderer components.
   - When debugging click-through behavior, drag/resize IPC, or response overlay sizing/visibility.
 title: "Frontend Renderer Overlay Docs Hub"
 ---
@@ -21,10 +21,10 @@ title: "Frontend Renderer Overlay Docs Hub"
 
 ## Code Scope
 
-- `frontend/src/renderer/app/ChatBoxApp.jsx`
-- `frontend/src/renderer/app/ChatBoxResponseApp.jsx`
-- `frontend/src/renderer/features/chat/components/ChatBox.jsx`
-- `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
+- `frontend/src/renderer/app/MinimalChatPillApp.jsx`
+- `frontend/src/renderer/app/MinimalResponseOverlayApp.jsx`
+- `frontend/src/renderer/features/minimalChatPill/components/MinimalChatPill.jsx`
+- `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`
 - `frontend/src/renderer/features/chat/hooks/useCurrentTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`
 - `frontend/src/renderer/features/chat/utils/overlay/responseOverlayPhaseContract.js`

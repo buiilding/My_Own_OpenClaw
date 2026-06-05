@@ -1,7 +1,7 @@
 ---
 summary: "Renderer chat response-overlay presentation docs sub-hub for fixed response-pill sizing, scroll/visibility contracts, and debug-only tool-ghost cursor markup semantics."
 read_when:
-  - When changing `ChatBoxResponse.jsx` response-pill sizing, scroll anchoring, or visibility re-report behavior.
+  - When changing `MinimalResponseOverlay.jsx` response-pill sizing, scroll anchoring, or visibility re-report behavior.
   - When changing `ToolGhostCursor`/`ToolGhostDebugApp` debug animation markup and classes in `ChatBoxResponseOverlay.css`.
   - When debugging clipped response content, stale overlay dimensions after hide/show cycles, or debug ghost-cursor label rendering.
 title: "Renderer Chat Response-Overlay Presentation Docs Hub"
@@ -23,7 +23,7 @@ title: "Renderer Chat Response-Overlay Presentation Docs Hub"
 
 ## Code Scope
 
-- `frontend/src/renderer/features/chat/components/ChatBoxResponse.jsx`
+- `frontend/src/renderer/features/minimalChatPill/components/MinimalResponseOverlay.jsx`
 - `frontend/src/renderer/features/chat/components/ToolGhostCursor.jsx`
 - `frontend/src/renderer/app/ToolGhostDebugApp.jsx`
 - `frontend/src/renderer/styles/ChatBoxResponseOverlay.css`
