@@ -381,6 +381,37 @@ Release flow:
 - Do not stop until every checklist item and success criterion in the approved
   plan is complete or explicitly blocked in the report with the concrete reason.
 
+## Compaction-Safe Plan Execution
+
+Large refactors must be resilient to context-window compaction. Treat the
+approved `docs/plans/` plan and its matching report as the durable source of
+truth for the task, not the conversational history.
+
+- A refactor plan is a pre-flight execution contract. It must capture the user
+  intent, the target architecture, out-of-scope work, ordered workflow,
+  checklist, success criteria, validation commands, assumptions, and the
+  reread anchors needed after context compaction.
+- The plan should not be only a fixed list of edits. For architecture cleanup,
+  it must define an inspection workflow: read the relevant code, identify code
+  that violates the target architecture, change it, reread the affected paths,
+  and repeat until inspection finds no remaining violations or unclassified
+  paths in scope.
+- When a resumed turn contains a compacted summary or otherwise indicates lost
+  history, read the approved plan and matching report before editing code. Use
+  the report's latest checklist, findings, decisions, validation log, blockers,
+  and commits to reconstruct the active task.
+- While executing a plan, keep the report current as a realtime ledger. Record
+  each inspection pass, what was found, what changed, which success criteria are
+  now satisfied, which validation commands ran, and which findings remain.
+- Do not end the turn just because one planned edit is complete. If inspection
+  finds another in-scope violation, continue with the next fix. After every fix,
+  inspect again against the plan's target architecture.
+- End the implementation turn only when a fresh inspection finds no remaining
+  in-scope changes to make, all success criteria are satisfied, validation has
+  been recorded, and the report says the plan is complete. If that cannot be
+  achieved, mark the plan/report blocked with the exact blocker and the evidence
+  proving that further progress needs user input or an external change.
+
 For architectural or product-flow questions, explain conceptually first:
 describe how the runtime works, where a change fits, what boundaries change, and
 why. Do not mention file paths, symbol names, or implementation breadcrumbs
