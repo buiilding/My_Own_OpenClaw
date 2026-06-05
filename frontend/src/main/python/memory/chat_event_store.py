@@ -402,7 +402,7 @@ async def list_chat_conversations(
         await cursor.execute(
             """
             WITH conversation_ids AS (
-                SELECT conversation_id
+                SELECT DISTINCT conversation_id
                 FROM chat_events
                 WHERE user_id = ? AND conversation_id IS NOT NULL
             )

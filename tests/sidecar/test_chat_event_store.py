@@ -226,6 +226,63 @@ async def test_list_chat_conversations_prefers_stored_conversation_title(
 
 
 @pytest.mark.asyncio
+async def test_list_chat_conversations_returns_one_row_per_conversation(
+    tmp_path: Path,
+):
+    db_path = str(tmp_path / "memory.db")
+    await init_episodic_schema(db_path)
+    await init_chat_event_schema(db_path)
+
+    for index, (event_type, role, content) in enumerate(
+        [
+            ("turn_started", "system", ""),
+            ("user_message", "user", "hello"),
+            ("assistant_delta", "assistant", "Hey"),
+            ("assistant_message", "assistant", "Hey! What can I help you with?"),
+            ("turn_completed", "system", ""),
+        ],
+        start=1,
+    ):
+        await append_chat_event(
+            db_path=db_path,
+            user_id="user-1",
+            conversation_id="conv-1",
+            event_type=event_type,
+            role=role,
+            content=content,
+            timestamp=f"2026-05-17T12:00:0{index}+00:00",
+            message_index=None,
+            revision_id="rev-1",
+            turn_ref="turn-1",
+            tool_name=None,
+            correlation_id=None,
+            workspace_path=None,
+            workspace_name=None,
+            metadata={},
+            attachments=[],
+            event_payload={
+                "eventId": f"evt-{index}",
+                "type": event_type,
+                "conversationRef": "conv-1",
+                "revisionId": "rev-1",
+                "timestamp": f"2026-05-17T12:00:0{index}+00:00",
+                "source": "sdk",
+                "payload": {"text": content},
+            },
+        )
+
+    conversations = await list_chat_conversations(
+        db_path=db_path,
+        user_id="user-1",
+        limit=10,
+    )
+
+    assert [conversation["conversation_id"] for conversation in conversations] == ["conv-1"]
+    assert conversations[0]["entry_count"] == 5
+    assert conversations[0]["title"] == "hello"
+
+
+@pytest.mark.asyncio
 async def test_replace_chat_conversation_rolls_back_when_replacement_insert_fails(
     tmp_path: Path,
 ):

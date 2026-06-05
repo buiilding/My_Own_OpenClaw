@@ -27,6 +27,9 @@ All notable changes to WindieOS will be documented in this file.
   live user, assistant, and tool events. Previously renderer projection writes
   duplicated SDK events in local chat history; now renderer keeps display state
   only and dashboard refreshes from SDK conversation events.
+- sidecar/chat: deduplicate `list_chat_conversations` by `conversation_id` so
+  one stored conversation with multiple events renders as one sidebar row
+  instead of one row per event.
 - frontend/sdk: move renderer live-turn and SDK backend transport runtime
   commands onto SDK-shaped `windie.invoke(...)` commands instead of direct
   `windie:*` IPC channels.
