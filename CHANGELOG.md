@@ -22,6 +22,11 @@ All notable changes to WindieOS will be documented in this file.
   through SDK-shaped conversation commands, add public SDK agent conversation
   store APIs, delete the renderer-side sidecar conversation store adapter, and
   remove chat storage channels from the renderer/preload registry.
+- frontend/sdk: remove renderer-owned durable live transcript writes from send
+  and stream handlers so SDK `ConversationRuntime` is the single writer for
+  live user, assistant, and tool events. Previously renderer projection writes
+  duplicated SDK events in local chat history; now renderer keeps display state
+  only and dashboard refreshes from SDK conversation events.
 - frontend/sdk: move renderer live-turn and SDK backend transport runtime
   commands onto SDK-shaped `windie.invoke(...)` commands instead of direct
   `windie:*` IPC channels.

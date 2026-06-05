@@ -10,7 +10,6 @@ import {
 import type { TrackEventFn } from './chatStreamHandlerTypes';
 import { findLastAssistantLlmTextMessageId } from '../../utils/chatStream/chatStreamMessageUpdates';
 import type { ConversationEvent } from '../../../../infrastructure/api/windieSdkClient';
-import { recordAssistantTranscriptMessage } from '../../utils/chatStream/chatStreamTranscriptPersistence';
 import type { TranscriptModelContext } from '../../utils/chatStream/chatStreamTypes';
 import {
   buildMaterializedCurrentTurnMessage,
@@ -18,7 +17,6 @@ import {
 } from '../../utils/chatStream/currentTurnMessageMaterialization';
 
 type UseChatStreamTerminalHandlersDeps = {
-  enableTranscript: boolean;
   modelContextRef: { current: TranscriptModelContext };
   recordTrackingEvent: TrackEventFn<'token-count' | 'error'>;
 };
@@ -39,7 +37,6 @@ function usagePayloadFromEvent(event: ConversationEvent): Record<string, unknown
 }
 
 export function useChatStreamTerminalHandlers({
-  enableTranscript,
   modelContextRef,
   recordTrackingEvent,
 }: UseChatStreamTerminalHandlersDeps) {
@@ -95,17 +92,7 @@ export function useChatStreamTerminalHandlers({
       }
     }
 
-    if (enableTranscript) {
-      recordAssistantTranscriptMessage({
-        text: errorText,
-        messageType: 'error',
-        conversationRef: event.conversationRef,
-        userId: typeof errorPayload.userId === 'string' ? errorPayload.userId : undefined,
-        modelContext,
-      });
-    }
   }, [
-    enableTranscript,
     modelContextRef,
   ]);
 

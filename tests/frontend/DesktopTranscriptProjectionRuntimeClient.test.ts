@@ -1,191 +1,141 @@
-const mockAppendTranscriptProjectionEntry = jest.fn();
-const mockSend = jest.fn();
-const mockOn = jest.fn();
+const mockInvokeWindieCommand = jest.fn();
+const mockReplaceCompactedReplay = jest.fn();
+const mockRewriteDesktopTranscriptProjection = jest.fn();
 
-function loadDesktopTranscriptRuntimes() {
+function loadDesktopTranscriptProjectionRuntime() {
   jest.resetModules();
-  mockAppendTranscriptProjectionEntry.mockReset();
-  mockSend.mockReset();
-  mockOn.mockReset();
+  mockInvokeWindieCommand.mockReset();
+  mockReplaceCompactedReplay.mockReset();
+  mockRewriteDesktopTranscriptProjection.mockReset();
 
-  jest.doMock('../../frontend/src/renderer/infrastructure/ipc/bridge', () => ({
-    IpcBridge: {
-      send: mockSend,
-      on: mockOn,
-    },
-    SEND_CHANNELS: { TRANSCRIPT_SESSION_SYNC: 'transcript-session-sync' },
-    ON_CHANNELS: { TRANSCRIPT_SESSION_SYNC: 'transcript-session-sync' },
+  jest.doMock('../../frontend/src/renderer/app/runtime/windieCommandInvokeClient', () => ({
+    invokeWindieCommand: mockInvokeWindieCommand,
   }));
 
   jest.doMock('../../frontend/src/renderer/infrastructure/transcript/desktopConversationStore', () => ({
-    appendTranscriptProjectionEntry: (userId: string, entry: unknown) => mockAppendTranscriptProjectionEntry({
-      userId,
-      entry,
-    }),
+    createDesktopConversationStore: jest.fn(() => ({
+      replaceCompactedReplay: mockReplaceCompactedReplay,
+    })),
+    rewriteTranscriptProjection: mockRewriteDesktopTranscriptProjection,
   }));
 
   const { DesktopTranscriptProjectionRuntimeClient } = require(
     '../../frontend/src/renderer/app/runtime/desktopTranscriptProjectionRuntimeClient',
   );
-  const { DesktopTranscriptSessionRuntimeClient } = require(
-    '../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRuntimeClient',
-  );
-  return {
-    projectionClient: DesktopTranscriptProjectionRuntimeClient,
-    sessionClient: DesktopTranscriptSessionRuntimeClient,
-  };
-}
-
-async function flushMicrotasks() {
-  await Promise.resolve();
-  await Promise.resolve();
-  await Promise.resolve();
-  await Promise.resolve();
+  return DesktopTranscriptProjectionRuntimeClient;
 }
 
 describe('DesktopTranscriptProjectionRuntimeClient', () => {
-  beforeEach(() => {
-    window.sessionStorage.clear();
-  });
+  test('loads conversation metadata through SDK-shaped commands', async () => {
+    const projectionClient = loadDesktopTranscriptProjectionRuntime();
+    mockInvokeWindieCommand.mockResolvedValue([
+      {
+        conversationRef: 'conv-1',
+        title: 'Hello',
+      },
+    ]);
 
-  test('queues projection entries until the desktop session runtime has identity', async () => {
-    const { projectionClient, sessionClient } = loadDesktopTranscriptRuntimes();
-    mockAppendTranscriptProjectionEntry.mockResolvedValue(undefined);
-
-    projectionClient.recordUserMessage('queued user row');
-    await flushMicrotasks();
-
-    expect(mockAppendTranscriptProjectionEntry).not.toHaveBeenCalled();
-
-    sessionClient.updateTranscriptSession('conv-runtime', 'user-runtime');
-    await flushMicrotasks();
-
-    expect(mockAppendTranscriptProjectionEntry).toHaveBeenCalledWith({
-      userId: 'user-runtime',
-      entry: expect.objectContaining({
-        conversationRef: 'conv-runtime',
-        content: 'queued user row',
-        role: 'user',
-        messageType: 'user',
-      }),
+    await expect(projectionClient.listMetadata('user-1', { limit: 10 })).resolves.toEqual([
+      {
+        conversationRef: 'conv-1',
+        title: 'Hello',
+      },
+    ]);
+    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversations.list', {
+      userId: 'user-1',
+      limit: 10,
     });
   });
 
-  test('stores assistant projection entries through the desktop SDK store projection helper', async () => {
-    const { projectionClient, sessionClient } = loadDesktopTranscriptRuntimes();
-    mockAppendTranscriptProjectionEntry.mockResolvedValue(undefined);
-    sessionClient.updateTranscriptSession('conv-assistant', 'user-assistant');
-
-    projectionClient.recordAssistantMessage('assistant row', {
-      transparency: {
-        systemPrompt: 'bad \uD800 prompt',
+  test('loads display and rehydrate snapshots through conversation.load', async () => {
+    const projectionClient = loadDesktopTranscriptProjectionRuntime();
+    mockInvokeWindieCommand.mockResolvedValueOnce({
+      display: {
+        conversationRef: 'conv-display',
+        revisionId: 'rev-display',
+        messages: [],
+        compaction: { status: 'idle' },
       },
     });
-    await flushMicrotasks();
+    mockInvokeWindieCommand.mockResolvedValueOnce({
+      rehydrate: {
+        conversationRef: 'conv-rehydrate',
+        revisionId: 'rev-rehydrate',
+        messages: [{ role: 'user', content: 'hello' }],
+      },
+    });
 
-    expect(mockAppendTranscriptProjectionEntry).toHaveBeenCalledWith({
-      userId: 'user-assistant',
-      entry: expect.objectContaining({
-        conversationRef: 'conv-assistant',
-        content: 'assistant row',
-        role: 'assistant',
-        messageType: 'llm-text',
-        transparency: expect.objectContaining({
-          systemPrompt: 'bad \uFFFD prompt',
-        }),
+    await expect(projectionClient.loadForDisplay('user-1', 'conv-display')).resolves.toEqual(
+      expect.objectContaining({
+        conversationRef: 'conv-display',
+        revisionId: 'rev-display',
       }),
+    );
+    await expect(projectionClient.loadRehydrateSnapshot({
+      userId: 'user-1',
+      conversationRef: 'conv-rehydrate',
+    })).resolves.toEqual(
+      expect.objectContaining({
+        conversationRef: 'conv-rehydrate',
+        revisionId: 'rev-rehydrate',
+      }),
+    );
+
+    expect(mockInvokeWindieCommand).toHaveBeenNthCalledWith(1, 'conversation.load', {
+      userId: 'user-1',
+      conversationRef: 'conv-display',
+    });
+    expect(mockInvokeWindieCommand).toHaveBeenNthCalledWith(2, 'conversation.load', {
+      userId: 'user-1',
+      conversationRef: 'conv-rehydrate',
     });
   });
 
-  test('stores screenshot refs as refs instead of inline screenshot data', async () => {
-    const { projectionClient, sessionClient } = loadDesktopTranscriptRuntimes();
-    mockAppendTranscriptProjectionEntry.mockResolvedValue(undefined);
-    sessionClient.updateTranscriptSession('conv-shot', 'user-shot');
-
-    projectionClient.recordToolMessage('screenshot result', {
-      messageType: 'tool-output',
-      toolName: 'screenshot',
-      correlationId: 'call-shot',
-      screenshotRef: 'artifact-shot-1',
+  test('keeps replay/admin writes behind explicit SDK store operations', async () => {
+    const projectionClient = loadDesktopTranscriptProjectionRuntime();
+    mockRewriteDesktopTranscriptProjection.mockResolvedValue({
+      conversationRef: 'conv-rewrite',
+      revisionId: 'rev-new',
+      messages: [],
     });
-    await flushMicrotasks();
 
-    expect(mockAppendTranscriptProjectionEntry).toHaveBeenCalledTimes(1);
-    const stored = mockAppendTranscriptProjectionEntry.mock.calls[0][0];
-    expect(stored.userId).toBe('user-shot');
-    expect(stored.entry).toEqual(expect.objectContaining({
-      conversationRef: 'conv-shot',
-      screenshotRef: 'artifact-shot-1',
-      rehydrateEntry: expect.objectContaining({
-        screenshot_ref: 'artifact-shot-1',
-        screenshot: null,
-      }),
+    await projectionClient.replaceCompactedReplay({
+      conversationRef: 'conv-compact',
+      revisionId: 'rev-compact',
+      messages: [],
+    }, 'user-1');
+    await expect(projectionClient.rewriteTranscriptProjection({
+      conversationRef: 'conv-rewrite',
+      userId: 'user-1',
+      transcriptEntries: [{ content: 'visible' }],
+      rehydrateEntries: [{ content: 'rehydrate' }],
+    })).resolves.toEqual(expect.objectContaining({
+      conversationRef: 'conv-rewrite',
+      revisionId: 'rev-new',
     }));
-    expect(stored.entry).not.toHaveProperty('screenshot');
+
+    expect(mockReplaceCompactedReplay).toHaveBeenCalledWith({
+      conversationRef: 'conv-compact',
+      revisionId: 'rev-compact',
+      messages: [],
+    });
+    expect(mockRewriteDesktopTranscriptProjection).toHaveBeenCalledWith({
+      conversationRef: 'conv-rewrite',
+      userId: 'user-1',
+      entries: [{ content: 'visible' }],
+      rehydrateEntries: [{ content: 'rehydrate' }],
+    });
   });
 
-  test('retry preserves assistant and tool transcript metadata after immediate write failure', async () => {
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-    const { projectionClient, sessionClient } = loadDesktopTranscriptRuntimes();
-    mockAppendTranscriptProjectionEntry
-      .mockRejectedValueOnce(new Error('assistant write failed'))
-      .mockRejectedValueOnce(new Error('tool write failed'))
-      .mockResolvedValue(undefined);
-    sessionClient.updateTranscriptSession('conv-initial', 'user-retry');
+  test('deletes conversations through SDK-shaped command routing', async () => {
+    const projectionClient = loadDesktopTranscriptProjectionRuntime();
+    mockInvokeWindieCommand.mockResolvedValue(undefined);
 
-    projectionClient.recordAssistantMessage('assistant row', {
-      timestamp: '2026-05-25T12:00:00.000Z',
-      structuredPayload: {
-        kind: 'tool-output',
-        toolCallDetails: { provider: 'openai' },
-      },
-    });
-    projectionClient.recordToolMessage('tool row', {
-      messageType: 'tool-output',
-      toolName: 'browser',
-      correlationId: 'call-1',
-      timestamp: '2026-05-25T12:00:01.000Z',
-      structuredPayload: {
-        kind: 'tool-output',
-        toolCallDetails: { status: 'ok' },
-      },
-    });
-    await flushMicrotasks();
+    await projectionClient.deleteConversation('user-1', 'conv-delete');
 
-    sessionClient.updateTranscriptSession('conv-retry', 'user-retry');
-    await flushMicrotasks();
-
-    expect(mockAppendTranscriptProjectionEntry).toHaveBeenCalledTimes(4);
-    expect(mockAppendTranscriptProjectionEntry.mock.calls[2][0]).toEqual({
-      userId: 'user-retry',
-      entry: expect.objectContaining({
-        conversationRef: 'conv-retry',
-        content: 'assistant row',
-        role: 'assistant',
-        messageType: 'llm-text',
-        timestamp: '2026-05-25T12:00:00.000Z',
-        structuredPayload: {
-          kind: 'tool-output',
-          toolCallDetails: { provider: 'openai' },
-        },
-      }),
+    expect(mockInvokeWindieCommand).toHaveBeenCalledWith('conversations.delete', {
+      userId: 'user-1',
+      conversationRef: 'conv-delete',
     });
-    expect(mockAppendTranscriptProjectionEntry.mock.calls[3][0]).toEqual({
-      userId: 'user-retry',
-      entry: expect.objectContaining({
-        conversationRef: 'conv-retry',
-        content: 'tool row',
-        role: 'tool',
-        messageType: 'tool-output',
-        toolName: 'browser',
-        correlationId: 'call-1',
-        timestamp: '2026-05-25T12:00:01.000Z',
-        structuredPayload: {
-          kind: 'tool-output',
-          toolCallDetails: { status: 'ok' },
-        },
-      }),
-    });
-    warnSpy.mockRestore();
   });
 });

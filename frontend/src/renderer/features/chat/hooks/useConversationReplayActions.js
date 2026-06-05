@@ -67,7 +67,6 @@ function buildPreparedReplayDesktopChatTurn({
     conversationRef: preparedReplayTurn.conversationRef || conversationRef,
     deferredQueryModelSelection: null,
     model: preparedReplayTurn.model ?? deferredQueryModelSelection ?? null,
-    recordTranscriptUserMessage: true,
     screenshot: preparedReplayTurn.payload?.screenshot ?? screenshot ?? null,
     screenshotRef: preparedReplayTurn.payload?.screenshot_ref ?? screenshotRef ?? null,
     screenshotRefs: preparedReplayTurn.payload?.screenshot_refs ?? null,

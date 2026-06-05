@@ -14,7 +14,6 @@ import {
   markConversationInferenceSessionLocalOnly,
   markConversationInferenceSessionUnknown,
 } from '../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime';
-import { recordUserTranscriptMessage } from '../../frontend/src/renderer/features/chat/utils/messageSender/userTranscriptPersistence';
 
 let mockFrontendConfig: Record<string, unknown> = {
   include_query_screenshot: true,
@@ -68,10 +67,6 @@ jest.mock('../../frontend/src/renderer/app/runtime/desktopTranscriptSessionRunti
   },
 }));
 
-jest.mock('../../frontend/src/renderer/features/chat/utils/messageSender/userTranscriptPersistence', () => ({
-  recordUserTranscriptMessage: jest.fn(),
-}));
-
 jest.mock('../../frontend/src/renderer/features/chat/session/conversationInferenceSessionRuntime', () => ({
   ensureConversationInferenceSessionHydrated: jest.fn(),
   markConversationInferenceSessionLocalOnly: jest.fn(),
@@ -86,7 +81,6 @@ const mockGetActiveConversationRef = DesktopTranscriptSessionRuntimeClient.getAc
 const mockSetActiveConversationRef = DesktopTranscriptSessionRuntimeClient.setActiveConversationRef as jest.Mock;
 const mockUpdateTranscriptSession = DesktopTranscriptSessionRuntimeClient.updateTranscriptSession as jest.Mock;
 const mockGetTranscriptSessionInfo = DesktopTranscriptSessionRuntimeClient.getTranscriptSessionInfo as jest.Mock;
-const mockRecordUserTranscriptMessage = recordUserTranscriptMessage as jest.MockedFunction<typeof recordUserTranscriptMessage>;
 const mockEnsureConversationInferenceSessionHydrated = ensureConversationInferenceSessionHydrated as jest.MockedFunction<typeof ensureConversationInferenceSessionHydrated>;
 const mockMarkConversationInferenceSessionLocalOnly = markConversationInferenceSessionLocalOnly as jest.MockedFunction<typeof markConversationInferenceSessionLocalOnly>;
 const mockMarkConversationInferenceSessionUnknown = markConversationInferenceSessionUnknown as jest.MockedFunction<typeof markConversationInferenceSessionUnknown>;
@@ -192,7 +186,6 @@ describe('useChatMessageSender', () => {
     mockSetActiveConversationRef.mockClear();
     mockUpdateTranscriptSession.mockClear();
     mockGetTranscriptSessionInfo.mockClear();
-    mockRecordUserTranscriptMessage.mockReset();
     mockEnsureConversationInferenceSessionHydrated.mockReset();
     mockMarkConversationInferenceSessionLocalOnly.mockReset();
     mockMarkConversationInferenceSessionUnknown.mockReset();
@@ -512,12 +505,7 @@ describe('useChatMessageSender', () => {
       }),
     );
     expect(mockSendQuery.mock.calls[0][0].transcript).toBeUndefined();
-    expect(mockRecordUserTranscriptMessage).toHaveBeenCalledWith(expect.objectContaining({
-      messageId: 'msg-1',
-      text: 'hello',
-      conversationRef: 'conv_msg-1',
-      screenshotRef: 'artifact-1',
-    }));
+    expect(mockSendQuery).toHaveBeenCalledTimes(1);
   });
 
   test('reuses auto-capture screenshot_ref and screenshot_url when screenshot bytes are absent', async () => {
@@ -749,7 +737,6 @@ describe('useChatMessageSender', () => {
 
     expect(thrownError?.message).toContain("couldn't read private.txt");
     expect(mockSendQuery).not.toHaveBeenCalled();
-    expect(mockRecordUserTranscriptMessage).not.toHaveBeenCalled();
     expect(useChatStore.getState().messages).toEqual([
       expect.objectContaining({
         sender: 'assistant',

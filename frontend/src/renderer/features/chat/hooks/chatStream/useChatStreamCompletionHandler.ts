@@ -1,19 +1,15 @@
 import { useCallback } from 'react';
 import { useChatStore } from '../../stores/chatStore';
 import type { ConversationEvent } from '../../../../infrastructure/api/windieSdkClient';
-import type { TranscriptTransparencyData } from '../../../../infrastructure/transcript/types';
 import { findStreamingCompleteAssistantMessage } from '../../utils/chatStream/chatStreamMessageUpdates';
-import { buildAssistantTranscriptTransparency } from '../../utils/chatStream/chatStreamTransparency';
 import type { TranscriptModelContext } from '../../utils/chatStream/chatStreamTypes';
 import { normalizeIncomingText } from '../../../../infrastructure/text/incomingTextNormalization';
-import { recordAssistantTranscriptMessage } from '../../utils/chatStream/chatStreamTranscriptPersistence';
 import {
   buildMaterializedCurrentTurnMessage,
   upsertMaterializedCurrentTurnMessage,
 } from '../../utils/chatStream/currentTurnMessageMaterialization';
 
 type UseChatStreamCompletionHandlerOptions = {
-  enableTranscript: boolean;
   modelContextRef: { current: TranscriptModelContext };
   recordTrackingEvent: (
     eventType: string,
@@ -30,7 +26,6 @@ type UseChatStreamCompletionHandlerOptions = {
 };
 
 export const useChatStreamCompletionHandler = ({
-  enableTranscript,
   modelContextRef,
   recordTrackingEvent,
   setIsSending,
@@ -58,9 +53,6 @@ export const useChatStreamCompletionHandler = ({
       }, resolvedConversationRef);
     }
 
-    const userId = typeof event.payload?.userId === 'string'
-      ? event.payload.userId
-      : undefined;
     const currentMessages = workspace.messages;
     const lastMessage = findStreamingCompleteAssistantMessage(
       currentMessages,
@@ -77,9 +69,6 @@ export const useChatStreamCompletionHandler = ({
         : ''
     );
     const transcriptText = normalizeIncomingText(lastMessage?.text) || completionText || projectedCompletionText;
-    const transparency: TranscriptTransparencyData | undefined = lastMessage
-      ? buildAssistantTranscriptTransparency(currentMessages, lastMessage, event.turnRef || undefined)
-      : undefined;
     const materializedMessage = buildMaterializedCurrentTurnMessage({
       conversationRef: conversationRef ?? event.conversationRef,
       turnRef: event.turnRef,
@@ -100,19 +89,7 @@ export const useChatStreamCompletionHandler = ({
       }
     }
 
-    if (transcriptText && enableTranscript && !alreadyCompleted) {
-      recordAssistantTranscriptMessage({
-        text: transcriptText,
-        messageType: 'llm-text',
-        conversationRef: event.conversationRef,
-        userId,
-        modelContext,
-        transparency,
-      });
-    }
-
   }, [
-    enableTranscript,
     modelContextRef,
     recordTrackingEvent,
     setIsSending,
