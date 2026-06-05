@@ -402,6 +402,8 @@ Action:
 - `277a9f546 test(frontend): rename standalone rpc transport contract`
   - Local RPC standalone transport terminology/test-contract cleanup and Pass 8
     validation.
+- `43484ad58 refactor(frontend): gate voice lifecycle traces`
+  - Renderer voice/wakeword diagnostics gating and Pass 9 validation.
 
 ## Decisions, Tradeoffs, Blockers, Deviations
 
