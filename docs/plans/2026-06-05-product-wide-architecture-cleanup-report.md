@@ -272,7 +272,7 @@ Action:
 - `70d029cc1 refactor(frontend-main): isolate local backend shutdown`
   - Stop-controller shutdown extraction, direct tests, docs, changelog, and
     report update.
-- Pending follow-up commit:
+- `5becc1e30 docs(frontend): align sdk and sidecar ownership maps`
   - Renderer/SDK boundary documentation drift cleanup and Pass 5 validation.
 
 ## Decisions, Tradeoffs, Blockers, Deviations
