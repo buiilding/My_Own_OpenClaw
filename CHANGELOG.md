@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- docs/agents: require a confirmed `task.md` execution contract for moderate or
+  major implementation changes before coding starts.
 - frontend/chat: remove the experimental minimal chat pill renderer route and
   restore the floating overlay windows to the existing `ChatBox` /
   `ChatBoxResponse` implementation.

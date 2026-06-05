@@ -657,6 +657,21 @@ Release flow:
   change that direction explicitly.
 - For larger refactors or multi-turn changes, maintain a scratch log of
   decisions, tradeoffs, validation commands, blockers, and assumptions.
+- For moderate or major implementation changes, create or update `task.md`
+  before editing code. `task.md` is the per-task execution contract, not a
+  permanent architecture doc. It must restate the user intent, describe the
+  architectural change conceptually, name out-of-scope work, provide an ordered
+  plan, checklist, success criteria, validation commands, and notes for
+  decisions or blockers.
+- After writing `task.md`, stop and ask the user to confirm before proceeding.
+  Explain the proposed change in architectural, conceptual bullet points:
+  what source of truth changes, which runtime boundaries move, what old path is
+  deleted or preserved, and what behavior must not regress. If the user changes
+  direction, update `task.md` first.
+- While executing an approved `task.md`, keep the checklist and success
+  criteria current. Mark an item done only when the current code and validation
+  prove it is done. Do not stop until every checklist item and success criterion
+  is complete or explicitly blocked with the concrete reason.
 
 For architectural or product-flow questions, explain conceptually first:
 describe how the runtime works, where a change fits, what boundaries change, and
