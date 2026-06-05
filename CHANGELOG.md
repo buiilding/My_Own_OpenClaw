@@ -21,6 +21,8 @@ All notable changes to WindieOS will be documented in this file.
   Windows/Unix coverage.
 - frontend/main: move local-backend process exit/error handling into a focused
   lifecycle module with stale-process guards and direct tests.
+- frontend/main: move local-backend shutdown, daemon cleanup, and force-kill
+  timing into a focused stop controller with direct tests.
 - sidecar/memory: scope background semantic summarization to the authenticated
   install user so legacy local rows for other user IDs are skipped before
   calling the backend semantic API.

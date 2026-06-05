@@ -17,6 +17,7 @@ title: "Local-Backend Process Lifecycle, Readiness, and Request-Correlation Refe
 - `frontend/src/main/local_backend_launch_plan.cjs`
 - `frontend/src/main/local_backend_process_events.cjs`
 - `frontend/src/main/local_backend_stderr_transport.cjs`
+- `frontend/src/main/local_backend_stop_controller.cjs`
 - `frontend/src/main/local_backend_bridge_display_bounds.cjs`
 - `frontend/src/main/local_backend_bridge_screenshot_attachment.cjs`
 - `frontend/src/main/runtime_paths.cjs`
@@ -179,14 +180,19 @@ Error handling in `local_backend_process_events.cjs`:
 - emits `local-backend-status { ready:false, error }`
 - ignores stale events from previous process references
 
-`stopLocalBackend()`:
+Shutdown handling in `local_backend_stop_controller.cjs`:
 
+- switches backend tool execution to a stopped executor that reports
+  `Local backend bridge is stopped.`
+- shuts down and clears daemon-backed runtime state when daemon mode is active
+- resets backend process state after daemon shutdown
 - sends `SIGTERM`
 - schedules `SIGKILL` at 5s only if same process handle is still active
 
 Test-backed guarantee:
 
 - delayed force-kill timer from an old process generation does not kill a restarted process
+- stopped bridge tool execution returns an explicit stopped error
 - stale exit/error events from an old process generation do not reset the active process
 
 ## Tool Timeout Tier and Screenshot Wrapper Hook

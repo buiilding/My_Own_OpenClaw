@@ -41,6 +41,9 @@ const {
   createLocalBackendProcessEvents,
 } = require('./local_backend_process_events.cjs');
 const {
+  createLocalBackendStopController,
+} = require('./local_backend_stop_controller.cjs');
+const {
   broadcastSidecarEvent,
   buildLocalBackendStatusPayload,
   sendLocalBackendStatus,
@@ -104,6 +107,17 @@ const localBackendProcessEvents = createLocalBackendProcessEvents({
   notifyBackendUnavailable,
 });
 
+const localBackendStopController = createLocalBackendStopController({
+  clearDaemonRuntime,
+  getDaemonManager: () => sidecarDaemonManager,
+  getProcess: () => pythonProcess,
+  resetBackendProcessState,
+  setRuntimeExecuteTool: (executeTool) => {
+    runtimeExecuteTool = executeTool;
+  },
+  supervisor: localBackendSupervisor,
+});
+
 const localBackendRpcTransport = createLocalBackendRpcTransport({
   getDaemonManager: () => sidecarDaemonManager,
   getDaemonLaunchOptions: () => sidecarDaemonRpcLaunchOptions,
@@ -137,6 +151,12 @@ function notifyBackendUnavailable(mainWindow, error) {
     ready: false,
     error,
   });
+}
+
+function clearDaemonRuntime() {
+  sidecarDaemonManager = null;
+  sidecarDaemonRpcLaunchOptions = null;
+  daemonBackendProcessRef = null;
 }
 
 function startLocalBackend(mainWindow, options = {}) {
@@ -211,33 +231,7 @@ async function sendMemorySearchRequest(payload = {}) {
 }
 
 function stopLocalBackend() {
-  runtimeExecuteTool = async () => ({
-    success: false,
-    error: 'Local backend bridge is stopped.',
-  });
-  if (sidecarDaemonManager) {
-    void sidecarDaemonManager.shutdown();
-    sidecarDaemonManager = null;
-    sidecarDaemonRpcLaunchOptions = null;
-    daemonBackendProcessRef = null;
-    resetBackendProcessState({
-      reason: 'Sidecar daemon stopped',
-      status: 'stopped',
-    });
-  }
-  if (pythonProcess) {
-    const processToStop = pythonProcess;
-    localBackendSupervisor.beginStop();
-    console.log('[LocalBackend] Stopping Python process...');
-    processToStop.kill('SIGTERM');
-
-    setTimeout(() => {
-      if (pythonProcess && pythonProcess === processToStop) {
-        console.log('[LocalBackend] Force killing Python process');
-        processToStop.kill('SIGKILL');
-      }
-    }, 5000);
-  }
+  localBackendStopController.stop();
 }
 
 function startDaemonBackedLocalBackend(mainWindow, launchOptions = {}) {

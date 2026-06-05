@@ -13,8 +13,8 @@ Plan: [Product-Wide Architecture Cleanup Plan](2026-06-05-product-wide-architect
 ## Status
 
 Implementation started after user approval. Phase 1 local-backend bridge
-ownership cleanup has completed three focused slices: launch planning, stderr
-transport, and process exit/error events.
+ownership cleanup has completed four focused slices: launch planning, stderr
+transport, process exit/error events, and shutdown/stop control.
 
 ## Orientation Log
 
@@ -97,12 +97,32 @@ Findings:
   SDK `cjs` output not made by this cleanup slice. They are intentionally not
   staged for this commit.
 
+### Pass 4: Stop/Shutdown Ownership
+
+Findings:
+
+- `stopLocalBackend()` still owned stopped-tool behavior, daemon shutdown,
+  daemon runtime clearing, standalone `SIGTERM`, and stale-guarded force-kill
+  timing inline.
+- The behavior is lifecycle policy, not IPC registration or bridge composition.
+
+Action:
+
+- Extracted shutdown policy into `local_backend_stop_controller.cjs`.
+- Added direct stop-controller tests for stopped tool execution, daemon
+  shutdown/reset, standalone `SIGTERM`, stale force-kill suppression, and
+  still-active `SIGKILL`.
+- Updated local-backend docs and changelog to name the stop controller as the
+  shutdown owner.
+
 ## Inventory And Classification
 
 - Delete/isolate now:
   - Inline local-backend launch validation/env construction in the bridge.
   - Inline local-backend stderr filtering in the bridge.
   - Inline local-backend process exit/error policy in the bridge.
+  - Inline local-backend daemon shutdown and standalone force-kill policy in the
+    bridge.
   - Misleading `legacyTransport` terminology for the active standalone sidecar
     JSON-RPC path.
 - Keep with owner:
@@ -112,9 +132,6 @@ Findings:
     `sidecar_daemon_manager.cjs` and
     `local_backend_bridge_rpc_transport.cjs`.
 - Defer with deletion/consolidation condition:
-  - `stopLocalBackend()` still owns daemon shutdown and standalone process
-    termination in the bridge; extract when the next lifecycle slice can cover
-    daemon and standalone shutdown together.
   - Renderer/SDK memory invalidation changes are present in the worktree from a
     separate concurrent task; do not classify or stage them under this cleanup
     report until that task is intentionally folded into this plan.
@@ -128,8 +145,11 @@ Findings:
   filtering/forwarding source of truth.
 - Created `frontend/src/main/local_backend_process_events.cjs` as the process
   exit/error source of truth.
+- Created `frontend/src/main/local_backend_stop_controller.cjs` as the daemon
+  shutdown and standalone process stop/force-kill source of truth.
 - Updated `frontend/src/main/local_backend_bridge.cjs` so it wires focused
-  modules instead of owning startup/env, stderr, and process-event policy.
+  modules instead of owning startup/env, stderr, process-event, and shutdown
+  policy.
 - Updated focused tests under `tests/frontend` for launch planning, stderr
   transport, process events, bridge lifecycle, and Windows path parity.
 - Updated the local-backend reference doc and changelog for the new owners.
@@ -141,7 +161,7 @@ Findings:
 - [x] Complete source-only inventory and classify findings for the active
       local-backend bridge slice.
 - [x] Split local backend bridge ownership for launch, stderr, and process
-      event handling.
+      event/shutdown handling.
 - [ ] Remove or isolate in-scope renderer raw-event and sidecar-RPC leaks.
 - [ ] Tighten diagnostics/logging ownership and redaction policy.
 - [ ] Add cross-runtime payload contract tests.
@@ -190,6 +210,9 @@ Findings:
 - `cd frontend; npm.cmd run test -- LocalBackendProcessEvents LocalBackendLaunchPlan LocalBackendStderrTransport LocalBackendBridge.lifecycle LocalBackendBridge.rpc LocalBackendStdoutTransport LocalBackendStatusBroadcaster RuntimePaths --runInBand`
   - Result: passed, 8 suites / 78 tests.
   - Note: Jest emitted the existing open-handle warning after completion.
+- `cd frontend; npm.cmd run test -- LocalBackendStopController LocalBackendProcessEvents LocalBackendLaunchPlan LocalBackendStderrTransport LocalBackendBridge.lifecycle LocalBackendBridge.rpc LocalBackendStdoutTransport LocalBackendStatusBroadcaster RuntimePaths --runInBand`
+  - Result: passed, 9 suites / 82 tests.
+  - Note: Jest emitted the existing open-handle warning after completion.
 - `./bin/docs-list`
   - Result: passed; canonical navigation validated.
 - `git diff --check`
@@ -197,7 +220,12 @@ Findings:
 
 ## Commits
 
-Pending.
+- `d22e280f6 refactor(frontend-main): split local backend launch lifecycle`
+  - Plan/report creation plus local-backend launch, stderr, process event, and
+    standalone transport naming cleanup.
+- Pending follow-up commit:
+  - Stop-controller shutdown extraction and report update. The final response
+    will record the resulting commit hash after it is created.
 
 ## Decisions, Tradeoffs, Blockers, Deviations
 
@@ -215,8 +243,6 @@ Pending.
 
 ## Remaining Findings
 
-- `stopLocalBackend()` still combines daemon shutdown, process state reset,
-  standalone process termination, and force-kill timer behavior in the bridge.
 - The local-backend bridge still registers several host IPC handlers directly;
   the next slices should separate host-channel registration only when doing so
   deletes duplicate authority rather than adding a pass-through adapter.
