@@ -171,7 +171,7 @@ async def test_artifact_store_cleans_up_partial_file_on_read_failure(
 @pytest.mark.asyncio
 async def test_upload_artifact_builds_url(tmp_path) -> None:
     try:
-        from backend.src.api.routes.artifacts import upload_artifact
+        from backend.src.api.routes.artifacts.router import upload_artifact
     except RuntimeError as exc:
         if "python-multipart" in str(exc):
             pytest.skip("python-multipart not installed in test environment")

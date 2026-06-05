@@ -1,12 +1,12 @@
 ---
-summary: "Backend API deep reference for artifacts route package split: router/models ownership, package export compatibility surface, and route-level upload/lookup error contracts."
+summary: "Backend API deep reference for artifacts route package split: router/models ownership, package route-registration surface, and route-level upload/lookup error contracts."
 read_when:
   - When changing files under `backend/src/api/routes/artifacts/*`.
-  - When debugging import drift between package-level `api.routes.artifacts` imports and module-level router/model symbols used by tests.
-title: "Artifacts Route Package Split and Compatibility Export Contract Reference"
+  - When debugging import drift between package-level route registration and module-level router/model symbols used by tests.
+title: "Artifacts Route Package Split Reference"
 ---
 
-# Artifacts Route Package Split and Compatibility Export Contract Reference
+# Artifacts Route Package Split Reference
 
 ## Canonical Modules
 
@@ -24,7 +24,7 @@ Artifacts route internals are split by responsibility:
 
 - `router.py`: FastAPI handlers for upload and fetch endpoints plus HTTP error-mapping boundary.
 - `models.py`: API response model (`ArtifactUploadResponse`).
-- `__init__.py`: package export seam for compatibility imports.
+- `__init__.py`: package route-registration seam; it exports only `router`.
 
 `backend/src/services/artifacts/store.py` remains storage/runtime owner (validation, content-type handling, path resolution).
 
@@ -40,21 +40,17 @@ Public endpoints stay unchanged:
 - `POST /api/artifacts/`
 - `GET /api/artifacts/{artifact_id}`
 
-## Package Export Compatibility Surface
+## Package Export Surface
 
-`artifacts/__init__.py` re-exports:
+`artifacts/__init__.py` exports:
 
 - `router`
-- `upload_artifact`
-- `get_artifact`
-- `ArtifactUploadResponse`
-- `ArtifactStore`
 
-This keeps test and caller imports stable:
+Implementation symbols stay in their owner modules:
 
-- `from backend.src.api.routes import artifacts as artifacts_routes`
-
-even after splitting flat route code into package modules.
+- route handlers: `backend.src.api.routes.artifacts.router`
+- response models: `backend.src.api.routes.artifacts.models`
+- storage owner: `backend.src.services.artifacts`
 
 ## Route Behavior Contracts
 
@@ -90,7 +86,7 @@ Error boundary:
 
 `tests/backend/test_artifact_routes.py` locks:
 
-- package-level compatibility import (`artifacts_routes.*`)
+- direct route-module handler behavior
 - upload response includes stable metadata + canonical URL construction
 - invalid artifact id returns `400`
 - missing artifact returns `404`
@@ -101,10 +97,10 @@ Error boundary:
 
 ## Drift Hotspots
 
-1. Removing symbols from `artifacts/__init__.py` can break package-level imports used in route tests.
+1. Adding implementation re-exports to `artifacts/__init__.py` recreates a second import surface for route internals.
 2. Moving URL construction away from `request.base_url` can desynchronize frontend artifact URL assumptions.
 3. Returning raw exception details from fetch path can leak storage internals over HTTP.
-4. Registering routes from non-canonical symbols can bypass package-compatibility assumptions.
+4. Registering routes from non-canonical symbols can bypass package ownership assumptions.
 
 ## Related Pages
 

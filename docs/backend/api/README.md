@@ -22,7 +22,7 @@ title: "Backend API Docs Hub"
 - [WebSocket Connection Change Workflow](../../gateway/websocket_connection_change_workflow.md)
 - [API WebSocket Connection Docs Hub](websocket/connection/README.md)
 - [API Memory Docs Hub](memory/README.md)
-- [Artifacts Route Package Split and Compatibility Export Contract Reference](artifacts_route_package_split_and_compatibility_export_contract_reference.md)
+- [Artifacts Route Package Split Reference](artifacts_route_package_split_and_compatibility_export_contract_reference.md)
 - [HTTP and WebSocket Endpoint Reference](http_and_ws_endpoint_reference.md)
 - [Runs Route and VM Control Service Reference](runs_route_and_vm_control_service_reference.md)
 - [Runs Route Helper Validation and Incremental Events Projection Contract Reference](runs_route_helper_validation_and_incremental_events_projection_contract_reference.md)

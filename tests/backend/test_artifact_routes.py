@@ -1,4 +1,5 @@
 import io
+from importlib import import_module
 from types import SimpleNamespace
 
 import pytest
@@ -22,7 +23,7 @@ from tests.backend.websocket_route_test_utils import (
 _original_deps = install_route_deps_shim()
 
 try:
-    from backend.src.api.routes import artifacts as artifacts_routes
+    artifacts_routes = import_module("backend.src.api.routes.artifacts.router")
 except RuntimeError as exc:
     if "python-multipart" in str(exc):
         pytest.skip(
