@@ -373,6 +373,9 @@ Action:
   - Minimal chat surface diagnostics gating and Pass 6 validation.
 - `383ddbad0 test(sdk): pin websocket payload allowlist`
   - SDK/main/backend payload contract parity test and Pass 7 validation.
+- `277a9f546 test(frontend): rename standalone rpc transport contract`
+  - Local RPC standalone transport terminology/test-contract cleanup and Pass 8
+    validation.
 
 ## Decisions, Tradeoffs, Blockers, Deviations
 
