@@ -226,6 +226,39 @@ Action:
 - Added a renderer voice boundary test that fails if the touched hooks restore
   direct `console.log(...)` lifecycle tracing.
 
+### Pass 10: Backend/Sidecar Retained Fallback Review
+
+Findings:
+
+- Source-only review of backend and sidecar fallback/legacy hits found mostly
+  provider, platform, persisted-data, or runtime-resource recovery behavior.
+- The stale local JSON-RPC `legacyTransport` wording discovered in this run was
+  already removed from active code and tests in Passes 4 and 8.
+- Backend stream-event alias normalization is covered by the canonical stream
+  event refactor and remains a backend event-extraction boundary, not renderer
+  compatibility behavior.
+- Sidecar filesystem `replace` legacy fields fail fast instead of accepting the
+  removed payload shape, so no compatibility shim remains there.
+
+Retained fallback matrix:
+
+| Area | Owner | Reason retained | Deletion condition | Validation target |
+| --- | --- | --- | --- | --- |
+| Provider/native web search plus Brave fallback | Backend | Provider capability varies by selected model/provider and Brave is the configured backend remote fallback. | Remove only if product policy drops Brave fallback or every supported provider has native search. | Backend web-search/tool-policy tests. |
+| OCR, vision, embeddings, and TTS CUDA-to-CPU recovery | Backend | Hardware and dependency availability vary across hosted/self-hosted machines. | Remove only with a hard hardware baseline and release/runtime migration note. | Backend OCR, vision, embedding, and TTS service tests. |
+| Token-count and compaction deterministic fallbacks | Backend | Provider token counters and LLM summaries can fail while query/session state must remain bounded and deterministic. | Remove only when provider failures become hard errors by product policy. | Backend token-service and compaction tests. |
+| Rehydrate tool-linkage repair and canonical stream aliases | Backend | Existing stored transcript/history rows can contain older linkage or event spelling. | Remove only after persisted-data migration proves no remaining stored rows need repair. | Backend rehydrate, formatter, query-event extraction, and history tests. |
+| Platform window, screenshot, browser, and wakeword fallbacks | Python sidecar | OS APIs, browsers, display servers, cursor capture, and wakeword frameworks differ by platform. | Remove only when platform support narrows or a stronger platform-specific implementation replaces the fallback. | Sidecar platform, browser, screenshot, and wakeword tests. |
+| Filesystem replace lenient matching and legacy-field rejection | Python sidecar | Lenient matching is the active edit contract; removed top-level edit fields are rejected, not accepted. | Remove lenient matching only with a tool-contract change; remove rejection guard only after backend/client schemas cannot send old fields. | Sidecar filesystem replace tests. |
+
+Action:
+
+- Documented retained backend and sidecar fallback classes with owner, reason,
+  deletion condition, and validation target.
+- Marked the backend/sidecar fallback review complete for this approved plan;
+  no additional backend/sidecar deletion was safe without a separate persisted
+  data, provider, or platform-support plan.
+
 ## Inventory And Classification
 
 - Delete/isolate now:
@@ -253,6 +286,10 @@ Action:
   - Daemon-backed sidecar JSON-RPC transport remains supported through
     `sidecar_daemon_manager.cjs` and
     `local_backend_bridge_rpc_transport.cjs`.
+  - Backend provider/platform/resource fallbacks listed in Pass 10 remain
+    backend-owned.
+  - Sidecar platform/browser/screenshot/filesystem fallbacks listed in Pass 10
+    remain sidecar-owned.
 - Defer with deletion/consolidation condition:
   - Renderer/SDK memory invalidation changes are present in the worktree from a
     separate concurrent task; do not classify or stage them under this cleanup
@@ -303,14 +340,14 @@ Action:
       existing renderer diagnostics boundary.
 - [x] Add cross-runtime payload contract tests.
 - [x] Improve Windows/script parity for touched commands and packaging paths.
-- [ ] Review backend/sidecar retained fallback behavior and delete stale paths.
+- [x] Review backend/sidecar retained fallback behavior and delete stale paths.
 - [x] Update docs and `read_when` hints for changed boundaries.
 - [x] Update `CHANGELOG.md`.
 - [x] Run focused validation for every touched runtime in the current slice.
 - [x] Run `./bin/docs-list`.
 - [x] Run `git diff --check`.
-- [ ] Commit completed work in small slices.
-- [ ] Keep the report current with commits, validation, deviations, blockers,
+- [x] Commit completed work in small slices.
+- [x] Keep the report current with commits, validation, deviations, blockers,
       and intentionally remaining debt.
 
 ## Success Criteria
@@ -323,14 +360,14 @@ Action:
 - [x] Electron main IPC and local-backend bridge files shrink toward
       composition roots with focused owner modules and tests for the current
       slice.
-- [ ] SDK remains the owner of conversation events, display/current-turn
+- [x] SDK remains the owner of conversation events, display/current-turn
       projections, local-tool correlation, result return, replay, rehydrate,
       edit, and retry semantics.
 - [x] Sidecar remains the owner of local execution/storage, with bridge method
       mapping isolated at the transport boundary for the current slice.
-- [ ] Backend remains the owner of prompt/provider/model-facing
+- [x] Backend remains the owner of prompt/provider/model-facing
       tool/API/history semantics.
-- [ ] Remaining compatibility/fallback paths are documented with owner, reason,
+- [x] Remaining compatibility/fallback paths are documented with owner, reason,
       deletion condition, and test target.
 - [x] Windows development commands and platform-specific runtime behavior are
       documented and covered for every touched surface in the current slice.
@@ -384,6 +421,10 @@ Action:
 - `cd frontend; npx.cmd jest RendererVoiceRuntimeBoundary VoiceModeHook WakewordBridgeEventsHook voice/WakewordDetectionHook --runInBand --forceExit`
   - Result: passed, 4 suites / 26 tests.
   - Note: Jest printed the standard force-exit open-handle reminder.
+- `./bin/docs-list`
+  - Result: passed; canonical navigation validated after Pass 10 report update.
+- `git diff --check`
+  - Result: passed; only Windows line-ending conversion warnings were reported.
 
 ## Commits
 

@@ -39,6 +39,9 @@ All notable changes to WindieOS will be documented in this file.
 - frontend/renderer: route voice-mode and wakeword lifecycle traces through a
   `debug_voice=1` gated renderer trace helper instead of default hook
   `console.log` calls.
+- docs/plans: document the retained backend/sidecar fallback classes with
+  owner, reason, deletion condition, and validation target in the product-wide
+  cleanup report.
 - sidecar/memory: scope background semantic summarization to the authenticated
   install user so legacy local rows for other user IDs are skipped before
   calling the backend semantic API.
