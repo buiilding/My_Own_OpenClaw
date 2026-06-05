@@ -11,6 +11,10 @@ const allowedSdkOwnedInternalChannelPaths = new Set([
   'infrastructure/ipc/channels.ts',
 ]);
 
+function normalizeRelativePath(relativePath: string): string {
+  return relativePath.replace(/\\/g, '/');
+}
+
 async function listSourceFiles(dir: string): Promise<string[]> {
   const entries = await fs.readdir(dir, { withFileTypes: true });
   const files: string[] = [];
@@ -79,7 +83,7 @@ describe('renderer app runtime boundary', () => {
     const offenders: string[] = [];
 
     for (const file of files) {
-      const relativePath = path.relative(appRoot, file);
+      const relativePath = normalizeRelativePath(path.relative(appRoot, file));
       if (allowedRelativePaths.has(relativePath)) {
         continue;
       }
@@ -97,7 +101,7 @@ describe('renderer app runtime boundary', () => {
     const offenders: string[] = [];
 
     for (const file of files) {
-      const relativePath = path.relative(appRoot, file);
+      const relativePath = normalizeRelativePath(path.relative(appRoot, file));
       if (allowedRelativePaths.has(relativePath)) {
         continue;
       }
@@ -142,7 +146,7 @@ describe('renderer app runtime boundary', () => {
     ];
 
     for (const file of files) {
-      const relativePath = path.relative(rendererRoot, file);
+      const relativePath = normalizeRelativePath(path.relative(rendererRoot, file));
       if (allowedSdkOwnedInternalChannelPaths.has(relativePath)) {
         continue;
       }

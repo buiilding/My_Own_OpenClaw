@@ -20,7 +20,7 @@ chat component until the producer and relay contracts are identified.
 
 - Renderer owns compose state, local optimistic rows, screenshot/file collection,
   transcript writes, and active conversation selection.
-- Electron main owns the typed `windie:send`/`windie:stop` IPC handlers,
+- Electron main owns the SDK-shaped `windie:invoke` command handler,
   settings ACK gate, query payload enrichment, synthetic
   `local-user-message` events, synthetic send-failure errors, replay buffer, and
   overlay phase fan-out.
@@ -70,7 +70,7 @@ sequenceDiagram
     R->>A: sendQuery(...)
     A->>SDK: runtime.send(...)
     SDK->>T: sendQuery(payload)
-    T->>M: windie:send(payload)
+    T->>M: windie:invoke conversation.send(payload)
     M->>M: ensure initial settings ACK if needed
     M->>M: prepareRendererQuerySend(...)
     M->>S: local-user-message optimistic event
@@ -88,10 +88,10 @@ Send and stop/cancel follow the same app-runtime boundary. Chat UI calls
 `DesktopLiveTurnRuntimeClient.sendQuery(...)`; that creates an SDK
 conversation runtime and calls `runtime.send(...)`. The desktop backend transport
 adapter is the only renderer-side layer that maps the semantic SDK query command
-into the `windie:send` IPC invoke. Chat UI calls
+into the `windie:invoke` command `conversation.send`. Chat UI calls
 `DesktopLiveTurnRuntimeClient.stop(...)`; that creates an SDK conversation
 runtime and calls `runtime.stop(...)`, which the same adapter maps into the
-`windie:stop` IPC invoke.
+`windie:invoke` command `conversation.stop`.
 
 ## Change Sequence
 
@@ -176,7 +176,8 @@ Main relay invariants:
   helpers, but it degrades to escaped `<user_query>` content on failure.
 - On websocket send failure, main clears replay state and emits a synthetic
   renderer error through `buildQuerySendFailure(...)`.
-- Renderer SDK transports that call typed `windie:send` must inspect the
+- Renderer SDK transports that call `conversation.send` through `windie:invoke`
+  must inspect the
   invoke result and reject on `{ ok: false }`. Normal send and replay/edit
   flows depend on that rejection to clear optimistic UI state instead of
   treating a failed main-process dispatch as accepted.
@@ -250,7 +251,7 @@ Renderer stream invariants:
 
 | Symptom | First checks | Likely fix area |
 | --- | --- | --- |
-| User row appears but no backend response | Confirm `DesktopLiveTurnRuntimeClient.sendQuery` fired, typed `windie:send` reached main, websocket was connected, and send failure event was not synthesized. | `useChatMessageSender.ts`, `desktopLiveTurnRuntimeClient.ts`, `ipc.cjs`, `ipc_query_send_runtime.cjs`, websocket connection docs |
+| User row appears but no backend response | Confirm `DesktopLiveTurnRuntimeClient.sendQuery` fired, `windie:invoke` command `conversation.send` reached main, websocket was connected, and send failure event was not synthesized. | `useChatMessageSender.ts`, `desktopLiveTurnRuntimeClient.ts`, `ipc.cjs`, `ipc_query_send_runtime.cjs`, websocket connection docs |
 | First query uses old model/settings | Check `ensureInitialSettingsSync()`, pending ACK map, `settings-updated` event id, and timeout logs. | `ipc_settings_sync.cjs`, app config backend sync, backend settings handler |
 | Screenshot displays locally but model cannot inspect it | Check artifact upload result, `screenshot_ref`/`screenshot_refs`, inline screenshot fallback, and backend artifact lookup. | query screenshot pipeline, `DesktopLiveTurnRuntimeClient.sendQuery`, backend `QueryExecutionService` |
 | File attachment is visible but ignored by model | Check readable file context generation, SDK enrichment, and `<attached_file_context>` insertion. | renderer file helper, `ipc_query_runtime.cjs`, `ContextEnrichmentPipeline.ts` |

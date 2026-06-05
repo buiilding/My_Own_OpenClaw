@@ -54,10 +54,11 @@ The default product topology is remote-first: the app and SDK talk to the hosted
 
 #### Renderer → Main
 
-**`to-backend`**
-- Purpose: Send messages to backend
-- Format: `{ type, payload }`
-- Usage: All backend communication from renderer
+**`windie:invoke`**
+- Purpose: Send SDK-shaped runtime commands to Electron main
+- Format: `{ command, payload }`
+- Usage: Conversation, settings, model, wakeword, memory, and conversation
+  library commands that main routes to the live SDK runtime
 
 **`wakeword-audio-chunk`**
 - Purpose: Send audio chunks for wakeword detection
@@ -107,7 +108,8 @@ The default product topology is remote-first: the app and SDK talk to the hosted
 ### IPC Implementation
 
 **Preload Script** (`src/preload.js`):
-- Exposes `window.ipc` API
+- Exposes `window.ipc` for host/native commands and `window.windie` for
+  SDK-shaped runtime commands
 - Whitelists allowed channels
 - Provides secure IPC bridge
 
@@ -445,7 +447,7 @@ The Python sidecar uses REST endpoints on the same FastAPI server for memory ope
    ↓
 4. If captured/pasted, screenshot artifact(s) uploaded via HTTP `/api/artifacts` → returns `screenshot_ref`/`screenshot_refs`
    ↓
-5. IpcBridge.invoke('windie:send', { screenshot_ref, screenshot_refs?, ... })
+5. window.windie.invoke('conversation.send', { screenshot_ref, screenshot_refs?, ... })
    ↓
 6. Main process receives IPC message
    ↓
@@ -505,7 +507,7 @@ The Python sidecar uses REST endpoints on the same FastAPI server for memory ope
 Settings are persisted locally and synced to the backend session:
 
 - `AppConfigContext.updateConfig()` saves to localStorage and disk.
-- Frontend sends `update-settings` to backend.
+- Frontend sends SDK command `settings.update` through `windie:invoke`.
 - Main process tracks `settings-updated` ACK by message id.
 - First `query`/`wakeword-detected` after connect waits for initial settings sync ACK (timeout fallback keeps app responsive).
 - Backend applies session config updates for the active session before subsequent query processing.

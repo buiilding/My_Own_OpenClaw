@@ -147,8 +147,8 @@ Those names may still exist below the SDK boundary as local-runtime/store
 implementation details.
 
 Renderer app-runtime transport facades that implement SDK runtime interfaces
-should also use SDK-shaped commands. They should not call direct `windie:send`,
-`windie:stop`, `windie:rehydrate`, or `windie:compact-history` IPC channels.
+should also use SDK-shaped commands through `windie:invoke`. They should not
+revive the retired direct runtime IPC channel family.
 
 ### Stream Receive Flow
 

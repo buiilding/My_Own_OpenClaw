@@ -205,14 +205,17 @@ Owns frontend-config IPC handler registration:
 - shortcut fallback application while keeping the latest config cache in
   `ipc.cjs` through injected getters/setters
 
-### `ipc_chat_query_handlers.cjs`
+### SDK-Shaped Conversation Commands
 
-Owns typed chat query IPC handler orchestration:
+`ipc.cjs` owns the strict `windie:invoke` command allowlist and routes
+conversation commands such as `conversation.send` and `conversation.stop` into
+the live SDK runtime:
 
-- `windie:send`
-- `windie:stop`
-- backend connection gating, initial settings sync waiting, SDK query command
-  send, send-failure recovery, and stop-query phase completion
+- backend connection gating
+- initial settings sync waiting
+- SDK query command send
+- send-failure recovery
+- stop-query phase completion
 
 ### `ipc_response_overlay_handlers.cjs`
 
@@ -250,17 +253,11 @@ Owns OpenAI Codex OAuth IPC handler registration:
 - browser-launch dependency injection into `loginOpenAICodexOAuth`
 - normalized success/failure payloads for renderer settings surfaces
 
-### `ipc_sdk_command_forwarding.cjs`
+### SDK Command Forwarding
 
-Owns remaining generic `to-backend` command forwarding:
-
-- rejects chat `query` and `stop-query` payloads so live turns use typed IPC
-- routes `update-settings` through the settings sync sender
-- queues `list-models` until the managed backend session is connected
-- forwards `rehydrate` payloads unchanged after connection/settings gates; query
-  and automated-query paths own agent-definition enrichment
-- waits for initial settings sync before commands that require backend settings
-- forwards accepted SDK runtime commands through explicit SDK desktop agent methods
+`ipc.cjs` forwards accepted SDK-shaped runtime commands through explicit
+`WindieAgent` and `ConversationRuntime` methods. It does not expose the retired
+generic `to-backend` router or direct chat query IPC handlers.
 
 ## Delegation Flow in `ipc.cjs`
 
@@ -279,8 +276,8 @@ Owns remaining generic `to-backend` command forwarding:
    `ipc_settings_sync_runtime.cjs`.
 11. transcript-session-sync normalization and state updates delegate to `ipc_transcript_session_sync.cjs`.
 12. frontend config load/save handlers delegate to `ipc_frontend_config.cjs`.
-13. remaining non-chat `to-backend` command forwarding delegates to
-   `ipc_sdk_command_forwarding.cjs`.
+13. SDK-shaped renderer commands are handled by the `windie:invoke` allowlist in
+   `ipc.cjs` and dispatched to explicit SDK agent/conversation methods.
 14. artifact upload/fetch handler registration delegates to
    `ipc_artifact_handlers.cjs`.
 15. OpenAI Codex OAuth login/logout handler registration delegates to

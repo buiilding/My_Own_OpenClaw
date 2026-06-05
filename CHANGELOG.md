@@ -6,6 +6,15 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- scripts/docs: make `docs-list` normalize Windows-discovered markdown paths,
+  add a regression test, and keep the `doc-lists` wrapper explicit after
+  removing import side effects.
+- frontend/tests: route Jest through a Node launcher so `npm.cmd run test` works
+  from Windows PowerShell instead of relying on Unix-style `NODE_OPTIONS=...`
+  script syntax.
+- docs/frontend: align active IPC/query references with SDK-shaped
+  `windie:invoke` commands and document Windows `npm.cmd`/Bash packaging notes
+  for local development and packaging.
 - examples/simple-chat-cli: require `WINDIE_INSTALL_TOKEN` instead of embedding
   an install token and switch the example built-in tool surface to `computer`.
 - ops/ci: remove the outdated GitHub Actions `CI` workflow and its orphaned

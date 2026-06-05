@@ -37,8 +37,8 @@
     "mock-memory-data": "bash -lc 'if command -v python >/dev/null 2>&1; then python src/main/python/dev_seed_mock_memory.py; else python3 src/main/python/dev_seed_mock_memory.py; fi'",
     "electron:mock-memory-data": "npm run mock-memory-data && npm run electron",
     "test:ghost-cursor": "node ./scripts/electron-launcher.cjs --debug-ghost-overlay",
-    "test": "NODE_OPTIONS=--no-deprecation jest --config jest.config.cjs",
-    "test:ci": "NODE_OPTIONS=--no-deprecation jest --config jest.config.cjs --runInBand",
+    "test": "node ./scripts/jest-runner.cjs",
+    "test:ci": "node ./scripts/jest-runner.cjs --runInBand",
     "test:shell": "node src/main/test_shell.cjs",
     "release:check": "npm run typecheck && npm run lint && npm run test:ci"
   },

@@ -34,16 +34,9 @@ Key examples:
 - `read-attachment-file`
 - `run-browser-action`
 - `upload-artifact`
-- `windie:send`
-- `windie:stop`
-- `windie:update-settings`
-- `windie:list-models`
-- `windie:rehydrate`
-- `windie:compact-history`
-- `windie:wakeword-detected`
+- SDK-shaped `windie:invoke` commands for conversation, settings, model,
+  wakeword, memory, and conversation-library runtime actions
 - `get-system-state`
-- SDK-shaped `windie:invoke` commands for conversation and memory runtime
-  actions
 - internal local-backend channels for chat-event store adapters and sidecar
   memory implementation details
 - config load/save
@@ -138,7 +131,8 @@ Main process (`ipc.cjs`) enforces initial settings synchronization ACK before fi
 
 Behavioral contract:
 
-- renderer pushes frontend-owned config via `windie:update-settings`
+- renderer pushes frontend-owned config through `windie:invoke` command
+  `settings.update`
 - main tracks pending ACK timeout
 - first query waits for initial update-settings attempt path
 

@@ -25,6 +25,17 @@ npm run package:win
 npm run package:linux
 ```
 
+Windows PowerShell can use `npm.cmd` when `npm.ps1` is blocked by execution
+policy:
+
+```powershell
+npm.cmd run package:win
+```
+
+Windows package builds still need Bash because `npm run build:sidecar-runtime`
+calls `../scripts/build-sidecar-runtime`. Use Git Bash or ensure Bash is on
+`PATH` before running the package command.
+
 Package targets:
 
 - macOS: DMG and ZIP

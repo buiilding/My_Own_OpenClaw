@@ -62,11 +62,15 @@ function walkMarkdownFiles(dir, base = dir) {
       continue;
     }
     if (entry.isFile() && entry.name.endsWith(".md")) {
-      files.push(path.relative(base, fullPath));
+      files.push(normalizeRelativeMarkdownPath(path.relative(base, fullPath)));
     }
   }
 
   return files.sort((a, b) => a.localeCompare(b));
+}
+
+function normalizeRelativeMarkdownPath(relativePath) {
+  return String(relativePath).replace(/\\/g, "/");
 }
 
 function extractMetadata(fullPath) {
@@ -211,24 +215,36 @@ function validateCanonicalNavigation(markdownFiles) {
   );
 }
 
-console.log("Listing all markdown files in docs folder:");
+function main() {
+  console.log("Listing all markdown files in docs folder:");
 
-const markdownFiles = walkMarkdownFiles(docsDir);
-validateCanonicalNavigation(markdownFiles);
-for (const relativePath of markdownFiles) {
-  const fullPath = path.join(docsDir, relativePath);
-  const { summary, readWhen, error } = extractMetadata(fullPath);
-  if (summary) {
-    console.log(`${relativePath} - ${summary}`);
-    if (readWhen.length > 0) {
-      console.log(`  Read when: ${readWhen.join("; ")}`);
+  const markdownFiles = walkMarkdownFiles(docsDir);
+  validateCanonicalNavigation(markdownFiles);
+  for (const relativePath of markdownFiles) {
+    const fullPath = path.join(docsDir, relativePath);
+    const { summary, readWhen, error } = extractMetadata(fullPath);
+    if (summary) {
+      console.log(`${relativePath} - ${summary}`);
+      if (readWhen.length > 0) {
+        console.log(`  Read when: ${readWhen.join("; ")}`);
+      }
+    } else {
+      const reason = error ? ` - [${error}]` : "";
+      console.log(`${relativePath}${reason}`);
     }
-  } else {
-    const reason = error ? ` - [${error}]` : "";
-    console.log(`${relativePath}${reason}`);
   }
+
+  console.log(
+    '\nReminder: keep docs up to date as behavior changes. When your task matches any "Read when" hint above (React hooks, cache directives, database work, tests, etc.), read that doc before coding, and suggest new coverage when it is missing.',
+  );
 }
 
-console.log(
-  '\nReminder: keep docs up to date as behavior changes. When your task matches any "Read when" hint above (React hooks, cache directives, database work, tests, etc.), read that doc before coding, and suggest new coverage when it is missing.',
-);
+if (require.main === module) {
+  main();
+}
+
+module.exports = {
+  main,
+  normalizeNavPagePath,
+  normalizeRelativeMarkdownPath,
+};

@@ -183,12 +183,14 @@ For Windows PowerShell:
 ```powershell
 cd frontend
 $env:WINDIE_PYTHON_PATH = "C:\path\to\WindieOS\.venv-sidecar311\Scripts\python.exe"
-npm run electron:dev
+npm.cmd run electron:dev
 ```
 
 Windows notes:
 
 - Run the docs index helper as `.\bin\docs-list.cmd` or `node .\scripts\docs-list.js`; `.\bin\docs-list` is a Bash wrapper and Windows will treat it like an unknown file type.
+- Use `npm.cmd` instead of `npm` when PowerShell resolves `npm` to `npm.ps1`
+  and script execution policy blocks it.
 - If `npm run electron` or `npm run electron:dev` fails with `spawn ...\node_modules\electron\dist\electron ENOENT`, reinstall `frontend/node_modules` from Windows so Electron downloads `electron.exe` for this OS instead of reusing a Linux payload.
 
 Optional backend endpoint overrides (Electron main -> backend):
@@ -202,7 +204,7 @@ PowerShell example:
 ```powershell
 $env:BACKEND_HTTP_URL = "http://127.0.0.1:8765"
 $env:BACKEND_WS_URL = "ws://127.0.0.1:8765/ws"
-npm run electron:dev
+npm.cmd run electron:dev
 ```
 
 Notes:

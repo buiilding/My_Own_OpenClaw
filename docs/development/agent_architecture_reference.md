@@ -263,7 +263,7 @@ Frontend query flow:
 MessageInput / chat hook
   -> renderer desktop runtime facade
   -> SDK ConversationRuntime command
-  -> typed windie:send IPC
+  -> SDK-shaped windie:invoke command
   -> Electron main query payload builder
   -> WindieClient.wakeUp(...) + agent.conversation(...) managed backend session
   -> backend agent loop
@@ -299,9 +299,9 @@ portion as the dashboard instead of maintaining a divergent response model.
 
 ## Runtime Flow Cheatsheet
 
-- Query send: renderer chat sender -> desktop live-turn runtime facade -> typed
-  `windie:send` IPC -> Electron main query payload builder -> SDK desktop
-  agent -> backend websocket.
+- Query send: renderer chat sender -> desktop live-turn runtime facade ->
+  `windie:invoke` command `conversation.send` -> Electron main query payload
+  builder -> SDK desktop agent -> backend websocket.
 - Backend loop: websocket `query` -> query handler/service -> agent session ->
   executor -> interaction loop -> provider call -> final answer or tool calls.
 - Stream receive: backend websocket event -> SDK desktop-agent projection ->

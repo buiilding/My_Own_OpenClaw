@@ -65,16 +65,18 @@ This keeps synthetic event context shape deterministic for renderer filters.
 
 ## Main Query Lifecycle Integration
 
-In the `ipc.cjs` `ipcMain.handle("windie:send")` query path:
+In the `ipc.cjs` `windie:invoke` command `conversation.send` query path:
 
 1. generate `queryMessageId`
 2. resolve/fill `conversation_ref`
-3. emit local optimistic user event via `broadcastLocalUserMessage(...)`
-4. enrich query payload (`content`, optional `system_state_internal`)
-5. attempt websocket send through the SDK runtime query command router
-6. if send fails, emit synthetic error via `broadcastQuerySendFailure(...)`
+3. enrich query payload (`content`, optional `system_state_internal`)
+4. attempt websocket send through the SDK runtime query command router
+5. if send fails or returns no message id, emit synthetic error via
+   `broadcastQuerySendFailure(...)`
 
-The optimistic user message is emitted before send attempt, so send failures can produce a visible user-message + error pair.
+The SDK conversation runtime emits the user-message projection for accepted
+turn starts, so Electron main does not synthesize a second optimistic
+local-user-message event.
 
 ## Renderer Consumption Path
 

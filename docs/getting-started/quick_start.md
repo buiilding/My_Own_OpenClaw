@@ -42,6 +42,14 @@ cd frontend
 npm install
 ```
 
+On Windows PowerShell, use `npm.cmd` if `npm` resolves to `npm.ps1` and the
+default execution policy blocks it:
+
+```powershell
+cd frontend
+npm.cmd install
+```
+
 Install Python sidecar dependencies (used for tool execution) into the same
 Python environment you will use to launch Electron:
 
@@ -75,10 +83,22 @@ export OPENAI_API_KEY="your-api-key"
 ./scripts/run-frontend-dev
 ```
 
+Windows PowerShell:
+
+```powershell
+.\scripts\run-frontend-dev
+```
+
 **Terminal 3: Start the Frontend App (Electron)**
 
 ```bash
 ./scripts/run-frontend-electron
+```
+
+Windows PowerShell:
+
+```powershell
+.\scripts\run-frontend-electron
 ```
 
 ## Hosted Mode (Planned)
@@ -119,6 +139,13 @@ There is no YAML config file. Configuration is split between:
    export ANTHROPIC_API_KEY="your-api-key-here"
    
    # For other providers, see Configuration Guide
+   ```
+
+   Windows PowerShell:
+
+   ```powershell
+   $env:OPENAI_API_KEY = "your-api-key-here"
+   $env:ANTHROPIC_API_KEY = "your-api-key-here"
    ```
 
 3. **Configure in Settings**:

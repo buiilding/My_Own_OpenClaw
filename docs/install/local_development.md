@@ -27,12 +27,28 @@ cd frontend
 npm install
 ```
 
+Windows PowerShell may resolve `npm` to `npm.ps1`, which can fail under the
+default execution policy. In that case, use the command shim explicitly:
+
+```powershell
+cd frontend
+npm.cmd install
+```
+
 ## Run
 
 ```bash
 ./scripts/python-in-env backend python -m backend.src.main
 cd frontend && npm run dev
 cd frontend && npm run electron:dev
+```
+
+Windows PowerShell equivalents:
+
+```powershell
+.\scripts\python-in-env backend python -m backend.src.main
+cd frontend; npm.cmd run dev
+cd frontend; npm.cmd run electron:dev
 ```
 
 To force Electron dev to use the local backend:
@@ -42,6 +58,15 @@ cd frontend
 BACKEND_HTTP_URL=http://127.0.0.1:8765 \
 BACKEND_WS_URL=ws://127.0.0.1:8765/ws \
 npm run electron:dev
+```
+
+Windows PowerShell:
+
+```powershell
+cd frontend
+$env:BACKEND_HTTP_URL = "http://127.0.0.1:8765"
+$env:BACKEND_WS_URL = "ws://127.0.0.1:8765/ws"
+npm.cmd run electron:dev
 ```
 
 Convenience scripts also exist:
@@ -60,9 +85,22 @@ cd frontend && npm run test:ci
 cd frontend && npm run lint
 ```
 
+Windows PowerShell:
+
+```powershell
+.\scripts\test-backend
+.\scripts\test-sidecar
+cd frontend; npm.cmd run test
+cd frontend; npm.cmd run test:ci
+cd frontend; npm.cmd run lint
+```
+
 ## Docs
 
 Run `./bin/docs-list` from the repo root before implementation work. If `bin/docs-list` is missing, use `node scripts/docs-list.js`.
+
+Windows PowerShell can use either `.\bin\docs-list.cmd` or
+`node .\scripts\docs-list.js`.
 
 ## Related Docs
 

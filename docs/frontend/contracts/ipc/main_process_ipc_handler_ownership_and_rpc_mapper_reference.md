@@ -61,13 +61,7 @@ Main-process handler registration is split by responsibility:
 
 `ipcMain.handle`:
 
-- `windie:send`
-- `windie:stop`
-- `windie:update-settings`
-- `windie:list-models`
-- `windie:rehydrate`
-- `windie:compact-history`
-- `windie:wakeword-detected`
+- `windie:invoke`
 - `copy-image-to-clipboard`
 - `show-image-context-menu`
 - `load-frontend-config`
@@ -77,14 +71,23 @@ Main-process handler registration is split by responsibility:
 
 Notable behavior:
 
-- `windie:send` and `windie:stop` are registered by `ipc.cjs`, while focused
-  query helpers own payload preparation, settings gates, and stop orchestration
+- SDK-owned renderer commands are routed through `windie:invoke` with a strict
+  command allowlist. Current command names include `conversation.send`,
+  `conversation.stop`, `conversation.rehydrate`, `conversation.compact`,
+  `conversation.prepareEditAndResend`, `conversation.prepareRetryTurn`,
+  `settings.update`, `models.list`, `wakeword.detected`,
+  `memories.clearAll`, and `conversations.clearAll`.
+- focused query helpers own payload preparation, settings gates, and stop
+  orchestration behind the `conversation.send` and `conversation.stop`
+  commands
 - exported VM `sendAutomatedQuery(...)` delegates to
   `ipc_automated_query_dispatcher.cjs`, which owns automated-query backend
   connection/settings gates, shared query payload building, SDK send, and
   successful state mutation
-- SDK runtime commands use explicit `windie:*` invokes. Electron main does not
-  expose a generic renderer `to-backend` compatibility command router.
+- SDK runtime commands use explicit SDK-shaped command names over
+  `windie:invoke`. Electron main does not expose a generic renderer
+  `to-backend` compatibility command router or the retired direct chat runtime
+  handler family.
 - `save/load-frontend-config` are registered by
   `ipc_frontend_config_handlers.cjs` and call atomic file helpers in
   `ipc_frontend_config.cjs`
