@@ -140,6 +140,9 @@ const agent = await client.wakeUp({
 const conversation = agent.conversation();
 conversation.subscribeEvents((event, snapshot) => {
   broadcastToRenderers('windie:conversation-event', event);
+  if (event.type === 'memory_store_changed') {
+    broadcastToRenderers('windie:memory-store-changed', event);
+  }
   broadcastToRenderers('windie:rows', snapshot.displayRows);
   broadcastToRenderers('windie:current-turn', snapshot.currentTurn);
 });

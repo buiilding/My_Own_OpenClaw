@@ -24,13 +24,21 @@ export type ConversationEventType =
   | 'tool_bundle_call'
   | 'tool_bundle_output'
   | 'memory_retrieval_diagnostic'
-  | 'memory_persistence_diagnostic'
+  | 'memory_store_changed'
   | 'compaction_started'
   | 'compaction_skipped'
   | 'compaction_applied'
   | 'compaction_failed'
   | 'settings_updated'
   | 'runtime_error';
+
+export type MemoryStoreChangedPayload = JsonRecord & {
+  userId: string;
+  conversationRef?: string | null;
+  memoryTypes: Array<'episodic' | 'semantic'>;
+  reason: 'completed_turn' | 'delete' | 'clear' | 'semanticization';
+  memoryId?: string | null;
+};
 
 export type ConversationEvent<TPayload extends JsonRecord = JsonRecord> = {
   eventId: string;

@@ -6,6 +6,19 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/sdk: add an SDK-owned `memory_store_changed` event after successful
+  completed-turn memory persistence, forward it to renderer memory surfaces,
+  and refresh the Memory panel through SDK-shaped memory list commands instead
+  of completed-turn diagnostic events.
+- frontend/main: move local-backend stderr forwarding into a focused transport
+  module so `local_backend_bridge.cjs` no longer owns Python stderr filtering
+  inline.
+- frontend/tests: make the packaged local-backend lifecycle test assert Windows
+  bundled-runtime env behavior instead of assuming Unix `bin/python3` and
+  `PYTHONHOME`.
+- frontend/main: extract local-backend launch-target validation and packaged
+  sidecar environment construction into a launch-plan module with focused
+  Windows/Unix coverage.
 - sidecar/memory: scope background semantic summarization to the authenticated
   install user so legacy local rows for other user IDs are skipped before
   calling the backend semantic API.

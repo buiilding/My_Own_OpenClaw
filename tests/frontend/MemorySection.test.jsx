@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 const MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY = 'desktop-assistant-memory-retrieval-injection-enabled';
 
@@ -6,6 +6,7 @@ const mockListEpisodicMemories = jest.fn();
 const mockListSemanticMemories = jest.fn();
 const mockDeleteMemoryItem = jest.fn();
 let mockSessionInfo = { conversationRef: null, userId: 'user-1' };
+let ipcListeners = {};
 
 jest.mock('../../frontend/src/renderer/app/runtime/desktopMemoryRuntimeClient', () => ({
   DesktopMemoryRuntimeClient: {
@@ -30,7 +31,18 @@ describe('MemorySection', () => {
     mockListSemanticMemories.mockResolvedValue([]);
     mockDeleteMemoryItem.mockResolvedValue(undefined);
     mockSessionInfo = { conversationRef: null, userId: 'user-1' };
+    ipcListeners = {};
+    window.ipc = {
+      on: jest.fn((channel, listener) => {
+        ipcListeners[channel] = listener;
+        return jest.fn();
+      }),
+    };
     window.localStorage.removeItem(MEMORY_RETRIEVAL_INJECTION_STORAGE_KEY);
+  });
+
+  afterEach(() => {
+    delete window.ipc;
   });
 
   test('loads episodic and semantic memories without using conversation list', async () => {
@@ -237,5 +249,72 @@ describe('MemorySection', () => {
 
     await screen.findByText(/what should I pack\?/i);
     expect(screen.queryByText('No memories found')).not.toBeInTheDocument();
+  });
+
+  test('reloads memories when the SDK memory store changes for the active user', async () => {
+    mockListEpisodicMemories
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        {
+          id: 'ep-refreshed-1',
+          content: 'User: keep this\nAssistant: stored from completed turn',
+          timestamp: '2026-06-05T08:00:00Z',
+          metadata: { source: 'interaction_completed' },
+        },
+      ]);
+
+    const { default: MemorySection } = await import(
+      '../../frontend/src/renderer/features/dashboard/components/sections/MemorySection'
+    );
+
+    render(<MemorySection />);
+    await screen.findByText('No memories found');
+
+    await waitFor(() => {
+      expect(window.ipc.on).toHaveBeenCalledWith(
+        'windie:memory-store-changed',
+        expect.any(Function),
+      );
+    });
+
+    await act(async () => {
+      ipcListeners['windie:memory-store-changed']?.({
+        type: 'memory_store_changed',
+        payload: {
+          userId: 'user-1',
+          memoryTypes: ['episodic'],
+          reason: 'completed_turn',
+          memoryId: 'ep-refreshed-1',
+        },
+      });
+    });
+
+    await screen.findByText(/keep this/i);
+    expect(mockListEpisodicMemories).toHaveBeenCalledTimes(2);
+    expect(mockListSemanticMemories).toHaveBeenCalledTimes(2);
+  });
+
+  test('ignores SDK memory store changes for a different user', async () => {
+    const { default: MemorySection } = await import(
+      '../../frontend/src/renderer/features/dashboard/components/sections/MemorySection'
+    );
+
+    render(<MemorySection />);
+    await screen.findByText('No memories found');
+
+    ipcListeners['windie:memory-store-changed']?.({
+      type: 'memory_store_changed',
+      payload: {
+        userId: 'user-2',
+        memoryTypes: ['episodic'],
+        reason: 'completed_turn',
+        memoryId: 'ep-other-user',
+      },
+    });
+
+    await waitFor(() => {
+      expect(mockListEpisodicMemories).toHaveBeenCalledTimes(1);
+      expect(mockListSemanticMemories).toHaveBeenCalledTimes(1);
+    });
   });
 });

@@ -45,6 +45,7 @@ describe('preload IPC channel registry', () => {
       },
       ON_CHANNELS: {
         SETTINGS_UPDATED: 'settings-updated',
+        WINDIE_MEMORY_STORE_CHANGED: 'windie:memory-store-changed',
       },
     };
     process.argv = [
@@ -157,6 +158,25 @@ describe('preload IPC channel registry', () => {
 
     expect(ipcRendererMock.removeListener).toHaveBeenCalledWith(
       'settings-updated',
+      subscription,
+    );
+  });
+
+  test('allows memory store invalidation as a shared on-channel', () => {
+    const handler = jest.fn();
+
+    const cleanup = exposedIpc.on('windie:memory-store-changed', handler);
+
+    expect(ipcRendererMock.on).toHaveBeenCalledWith(
+      'windie:memory-store-changed',
+      expect.any(Function),
+    );
+
+    cleanup();
+
+    const [, subscription] = ipcRendererMock.on.mock.calls.at(-1);
+    expect(ipcRendererMock.removeListener).toHaveBeenCalledWith(
+      'windie:memory-store-changed',
       subscription,
     );
   });

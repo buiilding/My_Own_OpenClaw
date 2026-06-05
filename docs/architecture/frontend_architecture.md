@@ -413,7 +413,9 @@ Primary modules:
   - Extracted conversation runtime state: list/search fetch, open/rehydrate, rename/pin/delete handlers, transcript-entry polling.
 - `features/dashboard/components/sections/MemorySection.jsx`:
   - Unified episodic/semantic/procedural view.
-  - Fetch/delete semantic memory via sidecar RPC.
+  - Fetch/delete memory through SDK-shaped `memories.*` commands.
+  - Subscribes to SDK-owned `windie:memory-store-changed` invalidations and
+    reloads memory lists for the active authenticated user.
   - Add/edit controls stay hidden until backed by durable memory create/update IPC.
 - `features/dashboard/components/sections/ModelsSection.jsx`:
   - Provider-first model selection, fallback reconciliation, API-key section.

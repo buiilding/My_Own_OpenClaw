@@ -6,6 +6,7 @@ import {
   X,
 } from 'lucide-react';
 import { DesktopMemoryRuntimeClient } from '../../../../app/runtime/desktopMemoryRuntimeClient';
+import { ON_CHANNELS } from '../../../../infrastructure/ipc/channels';
 import { useTranscriptSessionInfo } from '../../hooks/useTranscriptSessionInfo';
 import {
   getMemoryRetrievalInjectionEnabled,
@@ -77,6 +78,19 @@ function MemorySection({ onClose = () => {} }) {
   useEffect(() => {
     loadMemories();
   }, [loadMemories]);
+
+  useEffect(() => {
+    if (!userId || userId === 'default_user' || !window.ipc?.on) {
+      return undefined;
+    }
+
+    return window.ipc.on(ON_CHANNELS.WINDIE_MEMORY_STORE_CHANGED, (event) => {
+      const eventUserId = event?.payload?.userId ?? event?.userId;
+      if (eventUserId === userId) {
+        void loadMemories();
+      }
+    });
+  }, [loadMemories, userId]);
 
   const activeTypeInfo = useMemo(() => {
     return resolveActiveMemoryTypeInfo(activeType, MEMORY_TYPES);

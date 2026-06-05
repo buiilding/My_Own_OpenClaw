@@ -220,21 +220,21 @@ async function storeCompletedTurnMemory(input) {
             stage: 'memory_disabled',
             message: 'Completed-turn memory storage skipped because SDK memory is disabled.',
         });
-        return;
+        return null;
     }
     if (!input.localRuntime?.rpc) {
         await emitMemoryPersistenceDiagnostic(input, {
             stage: 'local_runtime_missing',
             message: 'Completed-turn memory storage skipped because no local runtime RPC is available.',
         });
-        return;
+        return null;
     }
     if (!input.userQuery.trim() || !input.assistantResponse.trim()) {
         await emitMemoryPersistenceDiagnostic(input, {
             stage: 'content_empty',
             message: 'Completed-turn memory storage skipped because the user query or assistant response is empty.',
         });
-        return;
+        return null;
     }
     const content = formatCompletedTurnMemory({
         userQuery: input.userQuery,
@@ -282,11 +282,13 @@ async function storeCompletedTurnMemory(input) {
     const data = resultRecord.data && typeof resultRecord.data === 'object' && !Array.isArray(resultRecord.data)
         ? resultRecord.data
         : {};
+    const memoryId = typeof data.memory_id === 'string' ? data.memory_id : null;
     await emitMemoryPersistenceDiagnostic(input, {
         stage: 'store_succeeded',
         message: 'Completed-turn memory storage succeeded.',
         contentLength: content.length,
         memoryType: 'episodic',
-        memoryId: typeof data.memory_id === 'string' ? data.memory_id : null,
+        memoryId,
     });
+    return { memoryId };
 }

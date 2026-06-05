@@ -11,6 +11,7 @@ import type {
   JsonRecord,
   LocalToolExecutionLifecycle,
   LocalRuntime,
+  MemoryStoreChangedPayload,
   RehydratePayload,
   RehydrateSnapshot,
   SdkDisplayRow,
@@ -33,7 +34,6 @@ import {
 import {
   storeCompletedTurnMemory,
   type MemoryRetrievalDiagnostic,
-  type MemoryPersistenceDiagnostic,
 } from './ContextEnrichmentPipeline.js';
 import { reduceConversationRuntimeState, createInitialConversationRuntimeState } from './conversationReducer.js';
 
@@ -642,48 +642,19 @@ export class SdkConversationRuntime {
   }
 
   private async persistCompletedTurnMemory(event: ConversationEvent): Promise<void> {
-    const emitPersistenceDiagnostic = async (diagnostic: MemoryPersistenceDiagnostic): Promise<void> => {
-      await this.applyEvent(createConversationEvent({
-        eventId: this.nextLocalEventId(event.turnRef, 'memory_persistence_diagnostic'),
-        type: 'memory_persistence_diagnostic',
-        conversationRef: event.conversationRef,
-        revisionId: event.revisionId,
-        turnRef: event.turnRef,
-        source: 'sdk',
-        payload: {
-          ...diagnostic,
-        },
-      }));
-    };
     const assistantResponse = typeof event.payload.finalResponse === 'string'
       ? event.payload.finalResponse
       : '';
     const pendingTurn = event.turnRef ? this.pendingTurns.get(event.turnRef) : undefined;
     if (!pendingTurn) {
-      await emitPersistenceDiagnostic({
-        stage: 'turn_state_missing',
-        conversationRef: event.conversationRef,
-        userId: this.options.userId ?? 'local-sdk-user',
-        userQueryLength: 0,
-        assistantResponseLength: assistantResponse.trim().length,
-        message: 'Completed-turn memory storage skipped because the SDK turn ledger entry is missing.',
-      });
       return;
     }
     this.pendingTurns.delete(pendingTurn.turnRef);
     if (!this.options.sdkClient) {
-      await emitPersistenceDiagnostic({
-        stage: 'local_runtime_missing',
-        conversationRef: event.conversationRef,
-        userId: this.options.userId ?? 'local-sdk-user',
-        userQueryLength: pendingTurn.userText.trim().length,
-        assistantResponseLength: assistantResponse.trim().length,
-        message: 'Completed-turn memory storage skipped because no SDK client is available.',
-      });
       return;
     }
     try {
-      await storeCompletedTurnMemory({
+      const result = await storeCompletedTurnMemory({
         localRuntime: this.options.localRuntime,
         sdkClient: this.options.sdkClient,
         userId: this.options.userId ?? 'local-sdk-user',
@@ -691,8 +662,25 @@ export class SdkConversationRuntime {
         userQuery: pendingTurn.userText,
         assistantResponse,
         memoryEnabled: this.options.memoryEnabled,
-        emitDiagnostic: emitPersistenceDiagnostic,
       });
+      if (!result) {
+        return;
+      }
+      await this.applyEvent(createConversationEvent<MemoryStoreChangedPayload>({
+        eventId: this.nextLocalEventId(event.turnRef, 'memory_store_changed'),
+        type: 'memory_store_changed',
+        conversationRef: event.conversationRef,
+        revisionId: event.revisionId,
+        turnRef: event.turnRef,
+        source: 'sdk',
+        payload: {
+          userId: this.options.userId ?? 'local-sdk-user',
+          conversationRef: event.conversationRef,
+          memoryTypes: ['episodic'],
+          reason: 'completed_turn',
+          memoryId: result.memoryId ?? null,
+        },
+      }));
     } catch (error) {
       console.warn(
         '[Windie SDK] Memory persistence failed:',

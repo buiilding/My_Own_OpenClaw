@@ -53,6 +53,7 @@ The runtime records normalized events:
 - `tool_bundle_call`
 - `tool_bundle_output`
 - `usage_updated`
+- `memory_store_changed`
 - `compaction_started`
 - `compaction_skipped`
 - `compaction_applied`
@@ -117,8 +118,16 @@ Completed-turn memory persistence is terminal-turn behavior owned by
 that ledger entry and persists memory from `{ userText, assistantText }`.
 Completed-turn memory must not rediscover the user query by scanning historical
 conversation events or store rows. If a terminal backend event has no pending
-ledger entry, the SDK emits a `turn_state_missing` memory diagnostic and skips
-memory storage.
+ledger entry, the SDK skips memory storage without emitting a memory-store
+invalidation.
+
+After completed-turn memory is successfully stored, the SDK emits
+`memory_store_changed` with the authenticated `userId`, `conversationRef`,
+changed memory types, `reason: "completed_turn"`, and the memory id when the
+sidecar returns one. Hosts should treat this as an invalidation signal and
+reload memory display data through SDK memory APIs. Skipped or failed
+completed-turn memory persistence does not emit `memory_store_changed`, so open
+memory surfaces do not refresh against unchanged storage.
 
 Renderer surfaces must not fall back from `currentTurn` to renderer
 `streamTracking` or `response-overlay-phase` for active turn state.

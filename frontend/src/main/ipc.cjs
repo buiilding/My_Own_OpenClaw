@@ -563,6 +563,9 @@ function createDirectWakeUpAgentAdapter({
     detachRuntimeEvents();
     detachRuntimeEvents = nextRuntime.subscribeEvents((event, snapshot) => {
       broadcastToRenderers('windie:conversation-event', event);
+      if (event && event.type === 'memory_store_changed') {
+        broadcastToRenderers('windie:memory-store-changed', event);
+      }
       broadcastToRenderers('windie:rows', snapshot.displayRows);
       latestCurrentTurnProjection = snapshot.currentTurn || null;
       currentTurnTraceLogger.trace(snapshot.currentTurn);

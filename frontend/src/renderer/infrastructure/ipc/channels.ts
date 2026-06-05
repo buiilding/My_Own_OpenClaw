@@ -58,6 +58,7 @@ export const EXPECTED_SHARED_CHANNEL_REGISTRY = {
     WINDIE_ROWS: 'windie:rows',
     WINDIE_STATUS: 'windie:status',
     WINDIE_CONVERSATION_EVENT: 'windie:conversation-event',
+    WINDIE_MEMORY_STORE_CHANGED: 'windie:memory-store-changed',
     WINDIE_CURRENT_TURN: 'windie:current-turn',
     TRANSCRIPT_SESSION_SYNC: 'transcript-session-sync',
     SIDECAR_EVENT: 'sidecar-event',

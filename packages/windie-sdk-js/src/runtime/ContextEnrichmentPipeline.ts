@@ -67,6 +67,10 @@ export type ContextEnrichmentResult = {
   };
 };
 
+export type StoreCompletedTurnMemoryResult = {
+  memoryId?: string | null;
+};
+
 function escapeXml(value: unknown): string {
   return String(value ?? '')
     .replace(/&/g, '&amp;')
@@ -314,27 +318,29 @@ export type StoreCompletedTurnMemoryInput = {
   emitDiagnostic?: (diagnostic: MemoryPersistenceDiagnostic) => void | Promise<void>;
 };
 
-export async function storeCompletedTurnMemory(input: StoreCompletedTurnMemoryInput): Promise<void> {
+export async function storeCompletedTurnMemory(
+  input: StoreCompletedTurnMemoryInput,
+): Promise<StoreCompletedTurnMemoryResult | null> {
   if (input.memoryEnabled === false) {
     await emitMemoryPersistenceDiagnostic(input, {
       stage: 'memory_disabled',
       message: 'Completed-turn memory storage skipped because SDK memory is disabled.',
     });
-    return;
+    return null;
   }
   if (!input.localRuntime?.rpc) {
     await emitMemoryPersistenceDiagnostic(input, {
       stage: 'local_runtime_missing',
       message: 'Completed-turn memory storage skipped because no local runtime RPC is available.',
     });
-    return;
+    return null;
   }
   if (!input.userQuery.trim() || !input.assistantResponse.trim()) {
     await emitMemoryPersistenceDiagnostic(input, {
       stage: 'content_empty',
       message: 'Completed-turn memory storage skipped because the user query or assistant response is empty.',
     });
-    return;
+    return null;
   }
   const content = formatCompletedTurnMemory({
     userQuery: input.userQuery,
@@ -381,11 +387,13 @@ export async function storeCompletedTurnMemory(input: StoreCompletedTurnMemoryIn
   const data = resultRecord.data && typeof resultRecord.data === 'object' && !Array.isArray(resultRecord.data)
     ? resultRecord.data as JsonRecord
     : {};
+  const memoryId = typeof data.memory_id === 'string' ? data.memory_id : null;
   await emitMemoryPersistenceDiagnostic(input, {
     stage: 'store_succeeded',
     message: 'Completed-turn memory storage succeeded.',
     contentLength: content.length,
     memoryType: 'episodic',
-    memoryId: typeof data.memory_id === 'string' ? data.memory_id : null,
+    memoryId,
   });
+  return { memoryId };
 }

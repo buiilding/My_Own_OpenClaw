@@ -695,7 +695,7 @@ function toDisplayMessage(event) {
     if (event.type === 'tool_progress') {
         return null;
     }
-    if (event.type === 'memory_retrieval_diagnostic' || event.type === 'memory_persistence_diagnostic') {
+    if (event.type === 'memory_retrieval_diagnostic' || event.type === 'memory_store_changed') {
         return null;
     }
     if (event.type === 'turn_completed') {
