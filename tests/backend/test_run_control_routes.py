@@ -14,7 +14,30 @@ from tests.backend.websocket_route_test_utils import (
 
 _original_deps = install_route_deps_shim()
 
-from backend.src.api.routes import runs as runs_routes
+from backend.src.api.routes.runs.models import (
+    CreateRunRequest,
+    RunControlRequest,
+    RunEventIngestRequest,
+    RunFileRef,
+    StopAllRunsRequest,
+    WorkerDispatchedRequest,
+    WorkerPollHeartbeatRequest,
+)
+from backend.src.api.routes.runs.router import (
+    control_run,
+    create_run,
+    get_run,
+    ingest_run_event,
+    list_run_events,
+    router,
+    stop_all_runs,
+    worker_dispatched,
+    worker_poll_heartbeat,
+)
+from backend.src.api.routes.runs.support import (
+    get_vm_run_control_service,
+    verify_runs_api_key,
+)
 from backend.src.services.vm_run_control import VmRunControlService
 
 restore_route_deps_shim(_original_deps)
@@ -22,7 +45,7 @@ restore_route_deps_shim(_original_deps)
 
 def create_runs_test_client() -> TestClient:
     app = FastAPI()
-    app.include_router(runs_routes.router)
+    app.include_router(router)
     return TestClient(app)
 
 
@@ -42,10 +65,7 @@ async def test_get_vm_run_control_service_is_singleton_for_concurrent_first_call
     request = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace()))
 
     services = await asyncio.gather(
-        *[
-            asyncio.to_thread(runs_routes.get_vm_run_control_service, request)
-            for _ in range(8)
-        ]
+        *[asyncio.to_thread(get_vm_run_control_service, request) for _ in range(8)]
     )
 
     assert len({id(service) for service in services}) == 1
@@ -61,12 +81,12 @@ async def test_get_vm_run_control_service_is_singleton_for_concurrent_first_call
 @pytest.mark.asyncio
 async def test_create_run_returns_initial_state_and_created_event() -> None:
     service = VmRunControlService()
-    payload = runs_routes.CreateRunRequest(
+    payload = CreateRunRequest(
         workspace_id="workspace-demo",
         query="apply this internship job for me",
         requested_by="user_123",
         files=[
-            runs_routes.RunFileRef(
+            RunFileRef(
                 artifact_id="resume-1.png",
                 filename="resume.pdf",
                 content_type="application/pdf",
@@ -74,7 +94,7 @@ async def test_create_run_returns_initial_state_and_created_event() -> None:
         ],
     )
 
-    response = await runs_routes.create_run(payload, service=service)
+    response = await create_run(payload, service=service)
 
     assert response.run.workspace_id == "workspace-demo"
     assert response.run.status == "awaiting_worker"
@@ -88,8 +108,8 @@ async def test_create_run_returns_initial_state_and_created_event() -> None:
 @pytest.mark.asyncio
 async def test_create_run_rejects_when_workspace_active_limit_reached() -> None:
     service = VmRunControlService(max_active_runs_per_workspace=1)
-    await runs_routes.create_run(
-        runs_routes.CreateRunRequest(
+    await create_run(
+        CreateRunRequest(
             workspace_id="workspace-demo",
             query="first run",
         ),
@@ -97,8 +117,8 @@ async def test_create_run_rejects_when_workspace_active_limit_reached() -> None:
     )
 
     with pytest.raises(HTTPException) as exc_info:
-        await runs_routes.create_run(
-            runs_routes.CreateRunRequest(
+        await create_run(
+            CreateRunRequest(
                 workspace_id="workspace-demo",
                 query="second run",
             ),
@@ -111,8 +131,8 @@ async def test_create_run_rejects_when_workspace_active_limit_reached() -> None:
 @pytest.mark.asyncio
 async def test_control_run_requires_control_mode_for_set_control_mode_action() -> None:
     service = VmRunControlService()
-    created = await runs_routes.create_run(
-        runs_routes.CreateRunRequest(
+    created = await create_run(
+        CreateRunRequest(
             workspace_id="workspace-demo",
             query="run browser task",
         ),
@@ -120,9 +140,9 @@ async def test_control_run_requires_control_mode_for_set_control_mode_action() -
     )
 
     with pytest.raises(HTTPException) as exc_info:
-        await runs_routes.control_run(
+        await control_run(
             created.run.run_id,
-            runs_routes.RunControlRequest(action="set-control-mode"),
+            RunControlRequest(action="set-control-mode"),
             service=service,
         )
 
@@ -132,8 +152,8 @@ async def test_control_run_requires_control_mode_for_set_control_mode_action() -
 @pytest.mark.asyncio
 async def test_worker_poll_heartbeat_assigns_pending_run() -> None:
     service = VmRunControlService()
-    created = await runs_routes.create_run(
-        runs_routes.CreateRunRequest(
+    created = await create_run(
+        CreateRunRequest(
             workspace_id="workspace-demo",
             query="submit internship application",
             agent_id="agent-alpha",
@@ -141,8 +161,8 @@ async def test_worker_poll_heartbeat_assigns_pending_run() -> None:
         service=service,
     )
 
-    heartbeat = await runs_routes.worker_poll_heartbeat(
-        runs_routes.WorkerPollHeartbeatRequest(
+    heartbeat = await worker_poll_heartbeat(
+        WorkerPollHeartbeatRequest(
             workspace_id="workspace-demo",
             worker_id="worker-alpha",
             vm_id="vm-alpha",
@@ -155,7 +175,7 @@ async def test_worker_poll_heartbeat_assigns_pending_run() -> None:
 
     assert heartbeat.assigned_run is not None
     assert heartbeat.assigned_run.run_id == created.run.run_id
-    run = await runs_routes.get_run(created.run.run_id, service=service)
+    run = await get_run(created.run.run_id, service=service)
     assert run.status == "queued"
     assert run.worker is not None
     assert run.worker["worker_id"] == "worker-alpha"
@@ -164,16 +184,16 @@ async def test_worker_poll_heartbeat_assigns_pending_run() -> None:
 @pytest.mark.asyncio
 async def test_worker_dispatched_updates_running_state_and_turn_ref() -> None:
     service = VmRunControlService()
-    created = await runs_routes.create_run(
-        runs_routes.CreateRunRequest(
+    created = await create_run(
+        CreateRunRequest(
             workspace_id="workspace-demo",
             query="submit internship application",
         ),
         service=service,
     )
 
-    await runs_routes.worker_poll_heartbeat(
-        runs_routes.WorkerPollHeartbeatRequest(
+    await worker_poll_heartbeat(
+        WorkerPollHeartbeatRequest(
             workspace_id="workspace-demo",
             worker_id="worker-1",
             vm_id="vm-1",
@@ -183,9 +203,9 @@ async def test_worker_dispatched_updates_running_state_and_turn_ref() -> None:
         ),
         service=service,
     )
-    response = await runs_routes.worker_dispatched(
+    response = await worker_dispatched(
         created.run.run_id,
-        runs_routes.WorkerDispatchedRequest(
+        WorkerDispatchedRequest(
             worker_id="worker-1",
             user_id="vm-user-1",
             turn_ref="turn-abc-123",
@@ -201,25 +221,25 @@ async def test_worker_dispatched_updates_running_state_and_turn_ref() -> None:
 @pytest.mark.asyncio
 async def test_ingest_run_event_marks_run_completed_on_streaming_complete() -> None:
     service = VmRunControlService()
-    created = await runs_routes.create_run(
-        runs_routes.CreateRunRequest(
+    created = await create_run(
+        CreateRunRequest(
             workspace_id="workspace-demo",
             query="process files",
         ),
         service=service,
     )
 
-    await runs_routes.ingest_run_event(
+    await ingest_run_event(
         created.run.run_id,
-        runs_routes.RunEventIngestRequest(
+        RunEventIngestRequest(
             event_type="streaming-response",
             payload={"payload": {"text": "hello"}},
         ),
         service=service,
     )
-    done = await runs_routes.ingest_run_event(
+    done = await ingest_run_event(
         created.run.run_id,
-        runs_routes.RunEventIngestRequest(
+        RunEventIngestRequest(
             event_type="streaming-complete",
             payload={"payload": {"final_response": "done"}},
         ),
@@ -233,8 +253,8 @@ async def test_ingest_run_event_marks_run_completed_on_streaming_complete() -> N
 @pytest.mark.asyncio
 async def test_list_run_events_filters_by_after_seq() -> None:
     service = VmRunControlService()
-    created = await runs_routes.create_run(
-        runs_routes.CreateRunRequest(
+    created = await create_run(
+        CreateRunRequest(
             workspace_id="workspace-demo",
             query="process files",
         ),
@@ -242,20 +262,18 @@ async def test_list_run_events_filters_by_after_seq() -> None:
     )
     run_id = created.run.run_id
 
-    await runs_routes.control_run(
+    await control_run(
         run_id,
-        runs_routes.RunControlRequest(action="pause", requested_by="tester"),
+        RunControlRequest(action="pause", requested_by="tester"),
         service=service,
     )
-    await runs_routes.control_run(
+    await control_run(
         run_id,
-        runs_routes.RunControlRequest(action="resume", requested_by="tester"),
+        RunControlRequest(action="resume", requested_by="tester"),
         service=service,
     )
 
-    events = await runs_routes.list_run_events(
-        run_id, service=service, after_seq=1, limit=50
-    )
+    events = await list_run_events(run_id, service=service, after_seq=1, limit=50)
 
     assert events.run_id == run_id
     assert len(events.events) == 2
@@ -267,15 +285,15 @@ async def test_list_run_events_filters_by_after_seq() -> None:
 @pytest.mark.asyncio
 async def test_worker_poll_heartbeat_returns_pending_control_commands_once() -> None:
     service = VmRunControlService()
-    created = await runs_routes.create_run(
-        runs_routes.CreateRunRequest(
+    created = await create_run(
+        CreateRunRequest(
             workspace_id="workspace-demo",
             query="process files",
         ),
         service=service,
     )
-    await runs_routes.worker_poll_heartbeat(
-        runs_routes.WorkerPollHeartbeatRequest(
+    await worker_poll_heartbeat(
+        WorkerPollHeartbeatRequest(
             workspace_id="workspace-demo",
             worker_id="worker-control",
             vm_id="vm-control",
@@ -285,14 +303,14 @@ async def test_worker_poll_heartbeat_returns_pending_control_commands_once() -> 
         service=service,
     )
 
-    await runs_routes.control_run(
+    await control_run(
         created.run.run_id,
-        runs_routes.RunControlRequest(action="pause", requested_by="tester"),
+        RunControlRequest(action="pause", requested_by="tester"),
         service=service,
     )
 
-    first = await runs_routes.worker_poll_heartbeat(
-        runs_routes.WorkerPollHeartbeatRequest(
+    first = await worker_poll_heartbeat(
+        WorkerPollHeartbeatRequest(
             workspace_id="workspace-demo",
             worker_id="worker-control",
             vm_id="vm-control",
@@ -301,8 +319,8 @@ async def test_worker_poll_heartbeat_returns_pending_control_commands_once() -> 
         ),
         service=service,
     )
-    second = await runs_routes.worker_poll_heartbeat(
-        runs_routes.WorkerPollHeartbeatRequest(
+    second = await worker_poll_heartbeat(
+        WorkerPollHeartbeatRequest(
             workspace_id="workspace-demo",
             worker_id="worker-control",
             vm_id="vm-control",
@@ -320,30 +338,30 @@ async def test_worker_poll_heartbeat_returns_pending_control_commands_once() -> 
 @pytest.mark.asyncio
 async def test_stop_all_runs_sets_matching_active_runs_to_stopped() -> None:
     service = VmRunControlService(max_active_runs_per_workspace=4)
-    run_a = await runs_routes.create_run(
-        runs_routes.CreateRunRequest(
+    run_a = await create_run(
+        CreateRunRequest(
             workspace_id="workspace-demo",
             query="run A",
         ),
         service=service,
     )
-    run_b = await runs_routes.create_run(
-        runs_routes.CreateRunRequest(
+    run_b = await create_run(
+        CreateRunRequest(
             workspace_id="workspace-demo",
             query="run B",
         ),
         service=service,
     )
-    run_other = await runs_routes.create_run(
-        runs_routes.CreateRunRequest(
+    run_other = await create_run(
+        CreateRunRequest(
             workspace_id="workspace-other",
             query="run C",
         ),
         service=service,
     )
 
-    response = await runs_routes.stop_all_runs(
-        runs_routes.StopAllRunsRequest(
+    response = await stop_all_runs(
+        StopAllRunsRequest(
             workspace_id="workspace-demo",
             requested_by="tester",
         ),
@@ -352,9 +370,9 @@ async def test_stop_all_runs_sets_matching_active_runs_to_stopped() -> None:
 
     assert response.count == 2
     assert set(response.stopped_run_ids) == {run_a.run.run_id, run_b.run.run_id}
-    run_a_state = await runs_routes.get_run(run_a.run.run_id, service=service)
-    run_b_state = await runs_routes.get_run(run_b.run.run_id, service=service)
-    run_other_state = await runs_routes.get_run(run_other.run.run_id, service=service)
+    run_a_state = await get_run(run_a.run.run_id, service=service)
+    run_b_state = await get_run(run_b.run.run_id, service=service)
+    run_other_state = await get_run(run_other.run.run_id, service=service)
     assert run_a_state.status == "stopped"
     assert run_b_state.status == "stopped"
     assert run_other_state.status == "awaiting_worker"
@@ -364,14 +382,14 @@ def test_verify_runs_api_key_respects_demo_key_env(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("WINDIE_DEMO_API_KEY", "demo-key")
-    runs_routes.verify_runs_api_key("demo-key")
+    verify_runs_api_key("demo-key")
     with pytest.raises(HTTPException) as exc_info:
-        runs_routes.verify_runs_api_key("wrong-key")
+        verify_runs_api_key("wrong-key")
     assert exc_info.value.status_code == 401
     monkeypatch.delenv("WINDIE_DEMO_API_KEY", raising=False)
     monkeypatch.delenv("WINDIE_RUNS_API_KEY", raising=False)
     with pytest.raises(HTTPException) as missing_config:
-        runs_routes.verify_runs_api_key(None)
+        verify_runs_api_key(None)
     assert missing_config.value.status_code == 503
 
 
@@ -601,6 +619,6 @@ async def test_get_run_returns_404_for_unknown_id() -> None:
     service = VmRunControlService()
 
     with pytest.raises(HTTPException) as exc_info:
-        await runs_routes.get_run("missing-run", service=service)
+        await get_run("missing-run", service=service)
 
     assert exc_info.value.status_code == 404

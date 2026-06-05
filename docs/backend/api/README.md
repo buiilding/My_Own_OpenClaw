@@ -28,7 +28,7 @@ title: "Backend API Docs Hub"
 - [Runs Route Helper Validation and Incremental Events Projection Contract Reference](runs_route_helper_validation_and_incremental_events_projection_contract_reference.md)
 - [Runs Response Builder Projection and Event Persistence Contract Reference](runs_response_builder_projection_and_event_persistence_contract_reference.md)
 - [Runs Route Support Helpers and API-Key Guard Reference](runs_route_support_helpers_and_api_key_guard_reference.md)
-- [Runs Route Models and Package Export Contract Reference](runs_route_models_and_package_export_contract_reference.md)
+- [Runs Route Models Reference](runs_route_models_and_package_export_contract_reference.md)
 - [App Assembly and Container Dependency Reference](app_assembly_and_container_dependency_reference.md)
 - [Memory Route Validation and Fallback Reference](memory_route_validation_and_fallback_reference.md)
 - [Semantic Summarization Service Config Resolution, Prompt Assembly, and Parser-Fallback Contract Reference](memory/semantic_summarization_service_config_resolution_prompt_assembly_and_parser_fallback_contract_reference.md)

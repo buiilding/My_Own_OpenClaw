@@ -30,7 +30,7 @@ This flow is HTTP-only and separate from the `/ws` chat transport. It is designe
 Route-level helper/auth/bootstrap details are documented separately in:
 
 - [Runs Route Support Helpers and API-Key Guard Reference](runs_route_support_helpers_and_api_key_guard_reference.md)
-- [Runs Route Models and Package Export Contract Reference](runs_route_models_and_package_export_contract_reference.md)
+- [Runs Route Models Reference](runs_route_models_and_package_export_contract_reference.md)
 - [Runs Route Helper Validation and Incremental Events Projection Contract Reference](runs_route_helper_validation_and_incremental_events_projection_contract_reference.md)
 - Route helper projections/validation in `route_helpers.py`:
   - `validate_control_request(...)` centralizes `set-control-mode` guardrails.
