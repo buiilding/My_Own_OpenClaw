@@ -32,7 +32,7 @@ title: "Backend API Docs Hub"
 - [App Assembly and Container Dependency Reference](app_assembly_and_container_dependency_reference.md)
 - [Memory Route Validation and Fallback Reference](memory_route_validation_and_fallback_reference.md)
 - [Semantic Summarization Service Config Resolution, Prompt Assembly, and Parser-Fallback Contract Reference](memory/semantic_summarization_service_config_resolution_prompt_assembly_and_parser_fallback_contract_reference.md)
-- [Semantic Route Package Split and Compatibility Export Contract Reference](memory/semantic_route_package_split_and_compatibility_export_contract_reference.md)
+- [Semantic Route Package Split Reference](memory/semantic_route_package_split_and_compatibility_export_contract_reference.md)
 - [Embeddings Route Package Split and Compatibility Export Contract Reference](memory/embeddings_route_package_split_and_compatibility_export_contract_reference.md)
 - [Embeddings Route Serialization, Sanitized Error Surface, and Health-Probe Contract Reference](memory/embeddings_route_serialization_sanitized_error_surface_and_health_probe_contract_reference.md)
 - [WebSocket Connection and Task Lifecycle Reference](websocket_connection_and_task_lifecycle_reference.md)

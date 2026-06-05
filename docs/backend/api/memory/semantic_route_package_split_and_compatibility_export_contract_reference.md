@@ -1,12 +1,12 @@
 ---
-summary: "Deep reference for backend memory semantic package split: router/models/parser/service ownership boundaries, package export contract, and compatibility aliases used by route tests."
+summary: "Deep reference for backend memory semantic package split: router/models/parser/service ownership boundaries and package route-registration surface."
 read_when:
   - When changing module boundaries under `backend/src/api/routes/memory/semantic/*`.
-  - When debugging import/monkeypatch drift after replacing flat `memory.semantic` modules with package-level exports.
-title: "Semantic Route Package Split and Compatibility Export Contract Reference"
+  - When debugging import/monkeypatch drift between package-level route registration and semantic owner modules.
+title: "Semantic Route Package Split Reference"
 ---
 
-# Semantic Route Package Split and Compatibility Export Contract Reference
+# Semantic Route Package Split Reference
 
 ## Canonical Modules
 
@@ -29,7 +29,7 @@ Semantic route internals are split by responsibility:
 - `parser.py`: model-output parsing helpers for summary/fact extraction.
 - `service.py`: config resolution, LLM call flow, prompt building, title parsing, and sanitized error handling.
 
-`semantic/__init__.py` is the package entrypoint, not a second runtime owner.
+`semantic/__init__.py` is the package route-registration seam, not a second runtime owner.
 
 ## Router Registration Contract
 
@@ -43,19 +43,14 @@ Result: switching to package internals does not change public API prefixes (`/ap
 
 ## Package Export Surface
 
-`semantic/__init__.py` re-exports:
+`semantic/__init__.py` exports only `router`.
 
-- route handlers:
-  - `summarize_conversations`
-  - `generate_conversation_title`
-  - `health_check`
-- route object:
-  - `router`
-- service exports:
-  - `SemanticSummarizationService`
-  - `FALLBACK_TITLE`
+Implementation symbols stay in their owner modules:
 
-Parser helpers are not route/package exports; import them directly from `backend/src/api/routes/memory/semantic/parser.py`.
+- route handlers: `backend.src.api.routes.memory.semantic.router`
+- request/response models: `backend.src.api.routes.memory.semantic.models`
+- parser helpers: `backend.src.api.routes.memory.semantic.parser`
+- service logic and constants: `backend.src.api.routes.memory.semantic.service`
 
 ## Handler Injection and Monkeypatch Contract
 
@@ -77,7 +72,7 @@ No global singleton service instance is retained across requests.
 
 `tests/backend/test_memory_routes.py` locks:
 
-- `semantic_routes` route import shape from the package export surface
+- direct route-module handler behavior
 - parser helper behavior (`parse_summarization_response`, `extract_fallback_facts`)
 - summarize/title route behavior with session config precedence and override handling
 - semantic health behavior with unhealthy fallback on unexpected container errors
@@ -90,9 +85,9 @@ No global singleton service instance is retained across requests.
 
 ## Drift Hotspots
 
-1. Removing helper alias exports from `semantic/__init__.py` can break route tests that import package-level parser helpers.
+1. Adding implementation re-exports to `semantic/__init__.py` recreates a second import surface for route internals.
 2. Moving handler/service imports without updating constructor callables can disable test monkeypatch seams silently.
-3. Registering routes from a non-canonical symbol (not `semantic.router`) can bypass package-level compatibility assumptions.
+3. Registering routes from a non-canonical symbol (not `semantic.router`) can bypass package ownership assumptions.
 4. Reintroducing flat legacy files alongside package modules can hide import errors and create split behavior at runtime.
 
 ## Related Pages

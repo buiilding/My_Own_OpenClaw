@@ -56,10 +56,12 @@ runtime route object remains `semantic.router` through package exports:
 
 Package contract from `semantic/__init__.py`:
 
-- re-exports route handlers only; parser helpers live in `backend/src/api/routes/memory/semantic/parser.py`
-- re-exports `SemanticSummarizationService` and `FALLBACK_TITLE`
+- re-exports `router` only
+- route handlers live in `backend/src/api/routes/memory/semantic/router.py`
+- parser helpers live in `backend/src/api/routes/memory/semantic/parser.py`
+- `SemanticSummarizationService` and `FALLBACK_TITLE` live in `backend/src/api/routes/memory/semantic/service.py`
 
-Route tests import the package route object through `from ...memory import semantic as semantic_routes`, while parser tests import parser helpers directly from `parser.py`.
+Route tests import the route module directly, while parser/service tests import owner modules directly.
 
 ## `/api/embeddings` Contract
 
@@ -237,6 +239,6 @@ If health route reports unhealthy unexpectedly:
 - [Semantic Summarization Service Config Resolution, Prompt Assembly, and Parser-Fallback Contract Reference](memory/semantic_summarization_service_config_resolution_prompt_assembly_and_parser_fallback_contract_reference.md)
 - [Semantic Parser Summary/Fact Extraction and Fallback-Bullet Contract Reference](memory/semantic_parser_summary_fact_extraction_and_fallback_bullet_contract_reference.md)
 - [Semantic Title Generation Route, Model-Override, and Parser-Fallback Contract Reference](memory/semantic_title_generation_route_model_override_and_parser_fallback_contract_reference.md)
-- [Semantic Route Package Split and Compatibility Export Contract Reference](memory/semantic_route_package_split_and_compatibility_export_contract_reference.md)
+- [Semantic Route Package Split Reference](memory/semantic_route_package_split_and_compatibility_export_contract_reference.md)
 - [Embeddings Route Package Split and Compatibility Export Contract Reference](memory/embeddings_route_package_split_and_compatibility_export_contract_reference.md)
 - [Embeddings Route Serialization, Sanitized Error Surface, and Health-Probe Contract Reference](memory/embeddings_route_serialization_sanitized_error_surface_and_health_probe_contract_reference.md)

@@ -23,6 +23,9 @@ All notable changes to WindieOS will be documented in this file.
   attachment previews are removed only by the stable IDs assigned at parse time.
 - backend/api: remove artifact route package-root implementation re-exports so
   artifact handlers, models, and storage are imported from their owner modules.
+- backend/api: remove semantic memory route package-root implementation
+  re-exports so route handlers and semantic services are imported from their
+  owner modules.
 - frontend/sidecar: remove the duplicated `core` backend config, auth,
   unicode-sanitizer, and remote API base shims so sidecar callers use the
   `windie` owner modules directly.
