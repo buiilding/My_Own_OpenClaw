@@ -5,6 +5,7 @@ import {
 import type {
   ConversationStore,
   JsonRecord,
+  LocalToolExecutionLifecycle,
 } from '../conversation/types.js';
 import { InMemoryConversationStore } from '../stores/InMemoryConversationStore.js';
 import { SidecarConversationStore } from '../stores/SidecarConversationStore.js';
@@ -61,6 +62,7 @@ export type WindieWakeUpOptions = {
   name?: string;
   model?: WindieModelSelection;
   operatingSystem?: string;
+  localToolLifecycle?: LocalToolExecutionLifecycle;
   memory?: WindieRuntimeFeatureOption;
   persistence?: WindieRuntimeFeatureOption;
 };
@@ -99,6 +101,7 @@ export type WindieClientOptions = {
   installAuth?: WindieInstallAuthOptions;
   localRuntime?: WindieLocalRuntimeClient;
   sidecar?: WindieLocalRuntimeClient;
+  localToolLifecycle?: LocalToolExecutionLifecycle;
   sidecarDaemon?: SidecarDaemonClientOptions;
   ensureLocalRuntime?: WindieLocalRuntimeProvider<WindieWakeUpOptions>;
   autoStartLocalRuntime?: boolean;
@@ -166,6 +169,7 @@ export class WindieClient {
 
     const localTools = await this.prepareLocalRuntime(wakeUpOptions, localRuntime);
     const agentDefinition = buildWakeUpAgentDefinition(wakeUpOptions, localTools);
+    const localToolLifecycle = wakeUpOptions.localToolLifecycle ?? this.defaultOptions.localToolLifecycle;
     const session = this.createAgentSession({
       backendUrl,
       installToken: installAuth?.installToken,
@@ -188,6 +192,7 @@ export class WindieClient {
       userId,
       conversationStore,
       runtimeFeatures.memory,
+      localToolLifecycle,
     );
     this.activeAgents.set(id, agent);
     session.on('close', () => {

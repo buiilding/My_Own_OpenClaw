@@ -14,7 +14,7 @@ describe('main ipc sdk runtime boundary', () => {
     expect(source.match(directRuntimeSendPattern) || []).toEqual([]);
   });
 
-  test('electron main starts the high-level desktop agent directly', async () => {
+  test('electron main starts the SDK through WindieClient wakeUp directly', async () => {
     const source = await fs.readFile(
       path.resolve(__dirname, '../../frontend/src/main/ipc.cjs'),
       'utf8',
@@ -24,28 +24,25 @@ describe('main ipc sdk runtime boundary', () => {
     ).then(() => true, () => false);
 
     expect(wrapperExists).toBe(false);
-    expect(source).toContain('WindieAgent.startDesktop');
+    expect(source).toContain('new WindieClient({');
+    expect(source).toContain('client.wakeUp({');
+    expect(source).toContain('agent.conversation({');
+    expect(source).toContain('localToolLifecycle');
     expect(source).toContain("require('../../../packages/windie-sdk-js/cjs/index.js')");
+    expect(source).not.toContain('WindieAgent.startDesktop');
     expect(source).not.toContain('createWindieAgentHost');
     expect(source).not.toContain("require('./windie_agent_host.cjs')");
     expect(source).not.toContain('createWindieSdkMainRuntime');
     expect(source).not.toContain('createManagedBackendSession');
     expect(source).not.toContain('sendSdkRuntimeCommand');
     expect(source).not.toContain('WebSocketImpl:');
-    expect(source).not.toContain('sidecar:');
     expect(source).not.toContain('executeLocalTool:');
-    const startupCall = source.match(/WindieAgent\.startDesktop\(\{[\s\S]*?\n  \}\);/)?.[0] || '';
-    expect(startupCall).toContain('apiKey: currentInstallToken');
-    expect(startupCall).toContain("appName: 'WindieOS'");
-    expect(startupCall).toContain('workspace: workspacePath || resolveWorkspacePathForAgent() || undefined');
-    expect(startupCall).not.toContain('userId:');
-    expect(startupCall).not.toContain('installId:');
-    expect(startupCall).not.toContain('conversationRef:');
-    expect(startupCall).not.toContain('endpointCandidates:');
-    expect(startupCall).not.toContain('reconnectIntervalMs:');
-    expect(startupCall).not.toContain('connectTimeoutMs:');
-    expect(startupCall).not.toContain('idleDisconnectTimeoutMs:');
-    expect(startupCall).not.toContain('onBackendOpen:');
-    expect(startupCall).not.toContain('onBackendClose:');
+    const wakeCall = source.match(/client\.wakeUp\(\{[\s\S]*?\n  \}\);/)?.[0] || '';
+    expect(wakeCall).toContain('installAuth: buildDesktopInstallAuth()');
+    expect(wakeCall).toContain("name: 'WindieOS'");
+    expect(wakeCall).toContain('workspacePath: resolvedWorkspacePath');
+    expect(wakeCall).toContain("builtins: 'default'");
+    expect(wakeCall).toContain('localToolLifecycle');
+    expect(wakeCall).not.toContain('conversationRef:');
   });
 });

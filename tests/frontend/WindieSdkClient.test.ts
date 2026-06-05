@@ -9,7 +9,6 @@ import {
   moduleTool,
   SidecarDaemonHttpClient,
   SidecarConversationStore,
-  WindieAgent,
   WindieClient as WindieClientClass,
   WindieSdkClient,
   windieBuiltins,
@@ -27,6 +26,20 @@ const WindieClient = function WindieClient(
     ...options,
   });
 } as unknown as typeof WindieClientClass;
+
+async function waitForExpect(assertion: () => void | Promise<void>, attempts = 25): Promise<void> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try {
+      await assertion();
+      return;
+    } catch (error) {
+      lastError = error;
+      await new Promise(resolve => setTimeout(resolve, 0));
+    }
+  }
+  throw lastError;
+}
 
 class FakeWebSocket {
   static instances: FakeWebSocket[] = [];
@@ -1241,160 +1254,6 @@ describe('WindieSdkClient', () => {
       payload: {},
       user_id: 'managed-user',
     });
-  });
-
-  test('WindieAgent.startDesktop uses the managed desktop backend session by default', async () => {
-    mockFetch.mockResolvedValueOnce(jsonResponse({
-      user_id: 'desktop-user',
-      install_id: 'desktop-install',
-    }));
-    const agentPromise = WindieAgent.startDesktop({
-      apiKey: 'desktop-token',
-      endpoint: 'https://api.windieos.com',
-      builtins: 'none',
-      memory: false,
-      persistence: false,
-      testing: {
-        fetchImpl: mockFetch,
-        WebSocketImpl: FakeWebSocket as any,
-        autoStartLocalRuntime: false,
-      },
-    });
-    await new Promise(resolve => setTimeout(resolve, 0));
-    const socket = FakeWebSocket.instances[0];
-    socket.emit('open', {});
-    const desktopAgent = await agentPromise;
-
-    expect(JSON.parse(socket.sent[0])).toMatchObject({
-      type: 'handshake',
-      user_id: 'desktop-user',
-    });
-
-    socket.clearSent();
-    await desktopAgent.requestModelList();
-    expect(JSON.parse(socket.sent[0])).toMatchObject({
-      type: 'list-models',
-      user_id: 'desktop-user',
-    });
-    desktopAgent.close();
-    expect(socket.closed).toBe(true);
-  });
-
-  test('WindieAgent.startDesktop accepts the public desktop bootstrap contract', async () => {
-    mockFetch.mockResolvedValueOnce(jsonResponse({
-      user_id: 'desktop-user',
-      install_id: 'desktop-install',
-    }));
-    const localRuntime: WindieLocalRuntimeClient = {
-      rpc: jest.fn(async () => ({ success: true, data: {} })),
-      status: jest.fn(async () => ({ status: 'ok' })),
-      listTools: jest.fn(async () => ({
-        version: 1,
-        tools: [
-          { name: 'read_file', schema: { type: 'object' } },
-        ],
-      })),
-    };
-    const agentPromise = WindieAgent.startDesktop({
-      apiKey: 'desktop-install-token',
-      appName: 'WindieOS',
-      endpoint: {
-        httpUrl: 'https://desktop.windie.test',
-        wsUrl: 'wss://desktop.windie.test/ws',
-      },
-      workspace: '/Users/example/project',
-      testing: {
-        fetchImpl: mockFetch,
-        WebSocketImpl: FakeWebSocket as any,
-        sidecar: localRuntime,
-      },
-    });
-
-    await new Promise(resolve => setTimeout(resolve, 0));
-    const socket = FakeWebSocket.instances[0];
-    expect(socket.url).toBe('wss://desktop.windie.test/ws');
-    expect((socket.options as { headers?: Record<string, string> })?.headers).toEqual(expect.objectContaining({
-      Authorization: 'Bearer desktop-install-token',
-    }));
-    const [identityUrl, identityInit] = mockFetch.mock.calls[0];
-    expect(identityUrl).toBe('https://desktop.windie.test/api/install/me');
-    expect(identityInit?.method).toBe('GET');
-    expect((identityInit?.headers as Headers).get('Authorization')).toBe('Bearer desktop-install-token');
-    socket.emit('open', {});
-    const desktopAgent = await agentPromise;
-
-    const handshake = JSON.parse(socket.sent[0]);
-    expect(handshake).toMatchObject({
-      type: 'handshake',
-      user_id: 'desktop-user',
-      operating_system: expect.any(String),
-      agent_definition: {
-        name: 'WindieOS',
-        runtime: expect.objectContaining({
-          workspace_path: '/Users/example/project',
-        }),
-        tools: {
-          client_manifest: {
-            tools: [
-              expect.objectContaining({ name: 'read_file' }),
-            ],
-          },
-        },
-      },
-    });
-    expect(localRuntime.listTools).toHaveBeenCalledTimes(1);
-    desktopAgent.close();
-  });
-
-  test('WindieAgent.startDesktop accepts advanced debug, connection, endpoint, and testing buckets', async () => {
-    mockFetch.mockResolvedValueOnce(jsonResponse({
-      user_id: 'advanced-user',
-      install_id: 'advanced-install',
-    }));
-    const log = jest.fn();
-    const agentPromise = WindieAgent.startDesktop({
-      apiKey: 'advanced-token',
-      appName: 'WindieOS',
-      builtins: 'none',
-      workspace: '/tmp/windie-workspace',
-      endpoint: {
-        primary: 'https://advanced.windie.test',
-        fallbacks: ['https://advanced-fallback.windie.test'],
-      },
-      debug: { log },
-      memory: false,
-      persistence: false,
-      connection: {
-        reconnectIntervalMs: 10,
-        connectTimeoutMs: 50,
-        idleDisconnectTimeoutMs: 100,
-      },
-      testing: {
-        fetchImpl: mockFetch,
-        WebSocketImpl: FakeWebSocket as any,
-        autoStartLocalRuntime: false,
-      },
-    });
-    await new Promise(resolve => setTimeout(resolve, 0));
-    const socket = FakeWebSocket.instances[0];
-    expect(socket.url).toBe('wss://advanced.windie.test/ws');
-    socket.emit('open', {});
-    const desktopAgent = await agentPromise;
-    const connectionEvents: unknown[] = [];
-    const trafficEvents: unknown[] = [];
-    desktopAgent.onConnection(event => connectionEvents.push(event));
-    desktopAgent.onTraffic(event => trafficEvents.push(event));
-
-    expect(connectionEvents).toEqual([
-      expect.objectContaining({ type: 'open' }),
-    ]);
-
-    socket.clearSent();
-    await desktopAgent.requestModelList();
-    expect(trafficEvents).toEqual([
-      expect.objectContaining({ type: 'list-models' }),
-    ]);
-    desktopAgent.close();
   });
 
   test('SDK backend event guard includes schema-backed control websocket events', async () => {
@@ -2692,6 +2551,7 @@ describe('WindieSdkClient', () => {
   });
 
   test('agent.stream yields normalized async events until completion', async () => {
+    const lifecycleCalls: string[] = [];
     const localRuntime: WindieLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),
       registerModuleTool: jest.fn(async () => ({ success: true })),
@@ -2721,6 +2581,14 @@ describe('WindieSdkClient', () => {
       WebSocketImpl: FakeWebSocket as any,
       defaultUserId: 'dev-user',
       sidecar: localRuntime,
+      localToolLifecycle: {
+        beforeExecute: jest.fn(async (call) => {
+          lifecycleCalls.push(`before:${call.toolName}`);
+          return () => {
+            lifecycleCalls.push(`release:${call.toolName}`);
+          };
+        }),
+      },
     });
 
     const wakePromise = client.wakeUp({
@@ -2757,6 +2625,13 @@ describe('WindieSdkClient', () => {
     await expect(iterator.next()).resolves.toMatchObject({
       done: false,
       value: {
+        type: 'user_message',
+        conversationRef: 'conv-stream',
+      },
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      done: false,
+      value: {
         type: 'state',
         state: 'thinking',
         conversationRef: 'conv-stream',
@@ -2772,6 +2647,8 @@ describe('WindieSdkClient', () => {
 
     socket.emit('message', {
       data: JSON.stringify({
+        event_id: 'thought-stream-1',
+        sequence: 1,
         type: 'llm-thought',
         conversation_ref: 'conv-stream',
         payload: { status: 'checking notes' },
@@ -2794,6 +2671,8 @@ describe('WindieSdkClient', () => {
 
     socket.emit('message', {
       data: JSON.stringify({
+        event_id: 'stream-response-1',
+        sequence: 2,
         type: 'streaming-response',
         conversation_ref: 'conv-stream',
         payload: { text: 'partial' },
@@ -2816,6 +2695,8 @@ describe('WindieSdkClient', () => {
 
     socket.emit('message', {
       data: JSON.stringify({
+        event_id: 'tool-call-stream-1',
+        sequence: 3,
         type: 'tool-call',
         conversation_ref: 'conv-stream',
         payload: {
@@ -2846,14 +2727,20 @@ describe('WindieSdkClient', () => {
         ],
       },
     });
-    expect(JSON.parse(socket.sent[2])).toMatchObject({
-      type: 'tool-result',
-      payload: {
-        request_id: 'req-stream-save',
-        success: true,
-        data: { output: 'saved:hello' },
-      },
+    await waitForExpect(() => {
+      expect(JSON.parse(socket.sent[2])).toMatchObject({
+        type: 'tool-result',
+        payload: {
+          request_id: 'req-stream-save',
+          success: true,
+          data: { output: 'saved:hello' },
+        },
+      });
     });
+    expect(lifecycleCalls).toEqual([
+      'before:save_note',
+      'release:save_note',
+    ]);
     await expect(iterator.next()).resolves.toMatchObject({
       done: false,
       value: {
@@ -2877,10 +2764,18 @@ describe('WindieSdkClient', () => {
 
     socket.emit('message', {
       data: JSON.stringify({
+        event_id: 'complete-stream-1',
+        sequence: 4,
         type: 'streaming-complete',
         conversation_ref: 'conv-stream',
         payload: { final_response: 'done' },
       }),
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      done: false,
+      value: {
+        type: 'memory_diagnostic',
+      },
     });
     await expect(iterator.next()).resolves.toMatchObject({
       done: false,
@@ -2934,11 +2829,16 @@ describe('WindieSdkClient', () => {
       value: { type: 'state', state: 'sending' },
     });
     await expect(iterator.next()).resolves.toMatchObject({
+      value: { type: 'user_message' },
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
       value: { type: 'state', state: 'thinking' },
     });
 
     socket.emit('message', {
       data: JSON.stringify({
+        event_id: 'tool-bundle-stream-1',
+        sequence: 1,
         type: 'tool-bundle',
         conversation_ref: 'conv-bundle-stream',
         payload: {
@@ -2999,16 +2899,18 @@ describe('WindieSdkClient', () => {
         ],
       },
     });
-    expect(JSON.parse(socket.sent[2])).toMatchObject({
-      type: 'tool-bundle-result',
-      payload: {
-        bundle_id: 'bundle-read',
-        status: 'success',
-        step_results: [
-          expect.objectContaining({ tool: 'read_file', status: 'ok' }),
-          expect.objectContaining({ tool: 'read_file', status: 'ok' }),
-        ],
-      },
+    await waitForExpect(() => {
+      expect(JSON.parse(socket.sent[2])).toMatchObject({
+        type: 'tool-bundle-result',
+        payload: {
+          bundle_id: 'bundle-read',
+          status: 'success',
+          step_results: [
+            expect.objectContaining({ tool: 'read_file', status: 'ok' }),
+            expect.objectContaining({ tool: 'read_file', status: 'ok' }),
+          ],
+        },
+      });
     });
     await expect(iterator.next()).resolves.toMatchObject({
       value: { type: 'state', state: 'tool_output' },
@@ -3037,10 +2939,15 @@ describe('WindieSdkClient', () => {
 
     socket.emit('message', {
       data: JSON.stringify({
+        event_id: 'complete-bundle-stream-1',
+        sequence: 2,
         type: 'streaming-complete',
         conversation_ref: 'conv-bundle-stream',
         payload: { final_response: 'bundle done' },
       }),
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: { type: 'memory_diagnostic' },
     });
     await expect(iterator.next()).resolves.toMatchObject({
       value: { type: 'assistant_message', text: 'bundle done' },
@@ -3055,7 +2962,7 @@ describe('WindieSdkClient', () => {
   });
 
   test('chat.stream extracts large binary tool-output fields into attachments without changing backend transport', async () => {
-    const screenshotPayload = 'a'.repeat(600);
+    const screenImagePayload = 'a'.repeat(600);
     const nestedImagePayload = 'b'.repeat(650);
     const localRuntime: WindieLocalRuntimeClient = {
       status: jest.fn(async () => ({ status: 'ok' })),
@@ -3064,8 +2971,8 @@ describe('WindieSdkClient', () => {
         success: true,
         data: {
           output: 'captured',
-          screenshot: screenshotPayload,
-          screenshot_content_type: 'image/jpeg',
+          screen_image: screenImagePayload,
+          screen_image_content_type: 'image/jpeg',
           nested: {
             image_base64: nestedImagePayload,
             content_type: 'image/png',
@@ -3096,11 +3003,16 @@ describe('WindieSdkClient', () => {
       value: { type: 'state', state: 'sending' },
     });
     await expect(iterator.next()).resolves.toMatchObject({
+      value: { type: 'user_message' },
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
       value: { type: 'state', state: 'thinking' },
     });
 
     socket.emit('message', {
       data: JSON.stringify({
+        event_id: 'tool-call-attachments-1',
+        sequence: 1,
         type: 'tool-call',
         conversation_ref: 'conv-tool-output-attachments',
         payload: {
@@ -3118,21 +3030,23 @@ describe('WindieSdkClient', () => {
       value: { type: 'tool_calls' },
     });
 
-    expect(JSON.parse(socket.sent[2])).toMatchObject({
-      type: 'tool-result',
-      payload: {
-        request_id: 'req-capture',
-        success: true,
-        data: {
-          output: 'captured',
-          screenshot: screenshotPayload,
-          screenshot_content_type: 'image/jpeg',
-          nested: {
-            image_base64: nestedImagePayload,
-            content_type: 'image/png',
+    await waitForExpect(() => {
+      expect(JSON.parse(socket.sent[2])).toMatchObject({
+        type: 'tool-result',
+        payload: {
+          request_id: 'req-capture',
+          success: true,
+          data: {
+            output: 'captured',
+            screen_image: screenImagePayload,
+            screen_image_content_type: 'image/jpeg',
+            nested: {
+              image_base64: nestedImagePayload,
+              content_type: 'image/png',
+            },
           },
         },
-      },
+      });
     });
 
     await expect(iterator.next()).resolves.toMatchObject({
@@ -3147,7 +3061,7 @@ describe('WindieSdkClient', () => {
             success: true,
             result: {
               output: 'captured',
-              screenshot_content_type: 'image/jpeg',
+              screen_image_content_type: 'image/jpeg',
               nested: {
                 content_type: 'image/png',
               },
@@ -3155,10 +3069,10 @@ describe('WindieSdkClient', () => {
             attachments: [
               {
                 kind: 'image',
-                fieldPath: 'screenshot',
-                key: 'screenshot',
+                fieldPath: 'screen_image',
+                key: 'screen_image',
                 contentType: 'image/jpeg',
-                value: screenshotPayload,
+                value: screenImagePayload,
                 charLength: 600,
               },
               {
@@ -3180,10 +3094,15 @@ describe('WindieSdkClient', () => {
 
     socket.emit('message', {
       data: JSON.stringify({
+        event_id: 'complete-attachments-1',
+        sequence: 2,
         type: 'streaming-complete',
         conversation_ref: 'conv-tool-output-attachments',
         payload: { final_response: 'done' },
       }),
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: { type: 'memory_diagnostic' },
     });
     await expect(iterator.next()).resolves.toMatchObject({
       value: { type: 'assistant_message', text: 'done' },
@@ -3222,12 +3141,20 @@ describe('WindieSdkClient', () => {
     await expect(iterator.next()).resolves.toMatchObject({
       done: false,
       value: {
+        type: 'user_message',
+      },
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      done: false,
+      value: {
         type: 'state',
         state: 'thinking',
       },
     });
     socket.emit('message', {
       data: JSON.stringify({
+        event_id: 'stream-error-1',
+        sequence: 1,
         type: 'error',
         id: null,
         conversation_ref: 'conv-stream-error',
@@ -3330,6 +3257,8 @@ describe('WindieSdkClient', () => {
     await conversation.send({ text: 'hello runtime', turnRef: 'turn-runtime-public' });
     socket.emit('message', {
       data: JSON.stringify({
+        event_id: 'backend-chunk-1',
+        sequence: 1,
         id: 'backend-chunk-1',
         type: 'streaming-response',
         conversation_ref: 'conv-runtime-public',
@@ -3442,6 +3371,12 @@ describe('WindieSdkClient', () => {
     });
     await expect(iterator.next()).resolves.toMatchObject({
       value: {
+        type: 'user_message',
+        conversationRef: 'conv-chat-session',
+      },
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: {
         type: 'state',
         state: 'thinking',
         conversationRef: 'conv-chat-session',
@@ -3449,6 +3384,8 @@ describe('WindieSdkClient', () => {
     });
     socket.emit('message', {
       data: JSON.stringify({
+        event_id: 'chat-complete-1',
+        sequence: 1,
         type: 'streaming-complete',
         conversation_ref: 'conv-chat-session',
         payload: { final_response: 'done' },
@@ -3456,14 +3393,13 @@ describe('WindieSdkClient', () => {
     });
     await expect(iterator.next()).resolves.toMatchObject({
       value: {
-        type: 'assistant_message',
-        text: 'done',
+        type: 'memory_diagnostic',
       },
     });
     await expect(iterator.next()).resolves.toMatchObject({
       value: {
-        type: 'state',
-        state: 'idle',
+        type: 'assistant_message',
+        text: 'done',
       },
     });
 
@@ -3511,6 +3447,12 @@ describe('WindieSdkClient', () => {
     });
     await expect(iterator.next()).resolves.toMatchObject({
       value: {
+        type: 'user_message',
+        conversationRef: 'conv-default-chat-agent',
+      },
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: {
         type: 'state',
         state: 'thinking',
         conversationRef: 'conv-default-chat-agent',
@@ -3526,10 +3468,17 @@ describe('WindieSdkClient', () => {
 
     socket.emit('message', {
       data: JSON.stringify({
+        event_id: 'default-chat-complete-1',
+        sequence: 1,
         type: 'streaming-complete',
         conversation_ref: 'conv-default-chat-agent',
         payload: { final_response: 'done' },
       }),
+    });
+    await expect(iterator.next()).resolves.toMatchObject({
+      value: {
+        type: 'memory_diagnostic',
+      },
     });
     await expect(iterator.next()).resolves.toMatchObject({
       value: {

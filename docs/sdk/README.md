@@ -74,18 +74,20 @@ standalone SDK package instead of depending on Electron's `frontend/node_modules
 
 ## Rule
 
-Use `WindieClient.wakeUp(...)` for agent sessions. Use
-`WindieAgent.startDesktop(...)` when building a desktop-style agent host that
-wants one SDK object to start/reuse local runtime tools, send user intent,
-execute model-requested local tools, return tool results, and emit display rows.
-The same object also exposes desktop control methods for connection checks,
-settings sync, model-list requests, conversation rehydrate, manual compaction,
+Use `WindieClient.wakeUp(...)` for agent sessions, including desktop-style
+hosts. The returned `WindieAgent` creates SDK conversation runtimes that send
+user intent, execute model-requested local tools, return tool results, emit
+display/current-turn projections, and expose control commands for connection
+checks, settings sync, model-list requests, rehydrate, manual compaction,
 wakeword notification, stop, and local runtime status. The SDK runtime owns the
 hosted backend websocket, managed reconnect/fallback/idle lifecycle,
 conversation runtime state, normalized projections, and local tool result
-return. It delegates local execution to the sidecar daemon. The backend remains
-the owner of model lists, provider policy, OCR/vision availability, prompt
-construction, compaction decisions, and paid capability gates.
+return. It delegates local execution to the sidecar daemon. Host-specific
+desktop policy, such as Electron window click-through or screenshot protection,
+belongs in a `localToolLifecycle` callback supplied to `wakeUp(...)`. The
+backend remains the owner of model lists, provider policy, OCR/vision
+availability, prompt construction, compaction decisions, and paid capability
+gates.
 
 Python callers should use `WindieSdkClient.wake_up(...)` followed by
 `agent.run(...)` or `agent.stream(...)` for the same high-level query shape. The

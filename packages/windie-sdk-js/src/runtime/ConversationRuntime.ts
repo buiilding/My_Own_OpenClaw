@@ -9,6 +9,7 @@ import type {
   CurrentTurnProjection,
   DisplayConversation,
   JsonRecord,
+  LocalToolExecutionLifecycle,
   LocalRuntime,
   RehydratePayload,
   RehydrateSnapshot,
@@ -111,6 +112,7 @@ export type ConversationRuntimeOptions = {
   store: ConversationStore;
   transport?: BackendTransport;
   localRuntime?: Partial<Pick<LocalRuntime, 'executeTool' | 'rpc'>> | null;
+  localToolLifecycle?: LocalToolExecutionLifecycle | null;
   sdkClient?: WindieSdkClient;
   userId?: string;
   memoryEnabled?: boolean;
@@ -823,6 +825,7 @@ export class SdkConversationRuntime {
     }
     const coordinator = new ToolExecutionCoordinator({
       localRuntime: this.options.localRuntime,
+      localToolLifecycle: this.options.localToolLifecycle,
       store: {
         appendEvent: async outputEvent => {
           await this.applyEvent(outputEvent);

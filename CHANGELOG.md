@@ -6,6 +6,12 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/runtime: remove the separate `WindieAgent.startDesktop(...)` desktop
+  facade so Electron and custom hosts use `WindieClient.wakeUp(...)` plus SDK
+  conversation runtime directly.
+- frontend/main: add SDK-local tool surface leases so the minimal pill becomes
+  click-through only during pointer-control tools and screenshot-protected only
+  during screenshot capture.
 - frontend/chat: route the floating chat and response overlay windows to a new
   text-only minimal pill surface driven by SDK current-turn projection while
   leaving the legacy chatbox implementation as reference code.

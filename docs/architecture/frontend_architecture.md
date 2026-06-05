@@ -164,13 +164,13 @@ New-chat behavior:
 4. Renderer receives display-only tool events, renders assistant tool rows, and persists transcript queue state.
 
 Electron main does not own the local tool-routing algorithm.
-`ipc.cjs` starts `WindieAgent.startDesktop(...)` directly with the normal
-desktop bootstrap inputs (`apiKey`, `workspace`, and `appName`). The SDK owns
-sidecar startup/reuse, executable tool manifest discovery, local tool
-execution, single and bundled tool-call coordination, display rows/current-turn
-projections, and backend tool-result return. Electron main only forwards SDK
-outputs to renderer windows and keeps desktop-only query context, overlay,
-permission, and window behavior.
+`ipc.cjs` starts `WindieClient.wakeUp(...)` directly with install auth, the
+active workspace, default builtins, and Electron's local tool lifecycle hook.
+The SDK owns sidecar startup/reuse, executable tool manifest discovery, local
+tool execution, single and bundled tool-call coordination, display
+rows/current-turn projections, and backend tool-result return. Electron main
+only forwards SDK outputs to renderer windows and keeps desktop-only query
+context, overlay, permission, and window behavior.
 
 ### Conversation/Transcript Flow
 
@@ -255,16 +255,15 @@ Primary modules:
   - Leaves cross-platform overlay policy to `window_platform_policy.cjs` instead of setting topmost/workspace/content-protection flags inline.
 - `main/window_platform_policy.cjs`:
   - Centralizes per-platform `BrowserWindow` policy for overlay topmost level, workspace/fullscreen visibility, content protection, and activation/focus handoff.
-  - Current contract keeps macOS/Windows overlay content protection tied to active loop phases rather than capture-time hide/show or always-on window lifetime protection.
+  - Current contract keeps macOS/Windows overlay content protection tied to screenshot-capture leases rather than always-on window lifetime protection.
   - Keeps macOS/Windows/Linux window rules in one place so composition/runtime modules do not duplicate Electron platform conditionals.
 - `main/ipc.cjs`:
   - Renderer-facing composition root for backend-bound work.
-  - Imports `WindieAgent` directly and starts `WindieAgent.startDesktop(...)`
-    with the normal desktop startup contract: install token as `apiKey`, active
-    `workspace`, and `appName`.
+  - Imports `WindieClient` directly, starts `client.wakeUp(...)`, and uses the
+    returned `agent.conversation(...)` runtime for sends and stream projection.
   - Delegates backend websocket lifecycle, reconnect, endpoint fallback, idle
     disconnect, typed sends, local tool coordination, sidecar startup/reuse,
-    display rows, and current-turn projection to the SDK desktop agent.
+    display rows, and current-turn projection to the SDK runtime.
   - Keeps Electron-only side effects in main: install-auth persistence,
     endpoint diagnostics, settings ACK gates, overlay phase changes, renderer
     IPC registration, and native window/screenshot policy.

@@ -3,6 +3,7 @@ import type {
   ConversationEvent,
   ConversationStore,
   JsonRecord,
+  LocalToolExecutionLifecycle,
   LocalRuntime,
   LocalToolCall,
   LocalToolResult,
@@ -15,6 +16,7 @@ import { normalizeLocalToolResultData } from './toolOutputContent.js';
 
 export type ToolExecutionCoordinatorOptions = {
   localRuntime?: Partial<Pick<LocalRuntime, 'executeTool'>> | null;
+  localToolLifecycle?: LocalToolExecutionLifecycle | null;
   store?: Pick<ConversationStore, 'appendEvent'> | null;
   artifactUploader?: ToolResultArtifactUploader | null;
   sendToolResult: (payload: ToolResultPayload) => Promise<void>;
@@ -266,6 +268,20 @@ function shouldSkipFrontendExecution(event: ConversationEvent): boolean {
 export class ToolExecutionCoordinator {
   constructor(private readonly options: ToolExecutionCoordinatorOptions) {}
 
+  private async executeLocalTool(call: LocalToolCall): Promise<LocalToolResult> {
+    if (!this.options.localRuntime?.executeTool) {
+      throw new Error('local runtime executeTool is unavailable');
+    }
+    const release = await this.options.localToolLifecycle?.beforeExecute?.(call);
+    try {
+      return await this.options.localRuntime.executeTool(call);
+    } finally {
+      if (typeof release === 'function') {
+        await release();
+      }
+    }
+  }
+
   private async materializeScreenshotArtifact(data: JsonRecord): Promise<JsonRecord> {
     const screenshot = typeof data.screenshot === 'string' && data.screenshot.trim()
       ? data.screenshot.trim()
@@ -400,7 +416,7 @@ export class ToolExecutionCoordinator {
     }
     await delaySeconds(waitSeconds);
     try {
-      const result = await this.options.localRuntime.executeTool({
+      const result = await this.executeLocalTool({
         toolName: 'screenshot',
         args: {
           explanation,
@@ -558,7 +574,7 @@ export class ToolExecutionCoordinator {
     const startedAt = Date.now();
     let result: LocalToolResult;
     try {
-      result = await this.options.localRuntime.executeTool(call);
+      result = await this.executeLocalTool(call);
     } catch (error) {
       result = failureResult(error);
     }
@@ -643,7 +659,7 @@ export class ToolExecutionCoordinator {
           ?? resolveModelFacingToolCallId(record);
         let result: LocalToolResult;
         try {
-          result = await this.options.localRuntime.executeTool({
+          result = await this.executeLocalTool({
             toolName,
             args: record.args && typeof record.args === 'object' && !Array.isArray(record.args)
               ? record.args as JsonRecord

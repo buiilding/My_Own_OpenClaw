@@ -5,6 +5,7 @@ import type {
   ConversationStore,
   JsonRecord,
   ListConversationOptions,
+  LocalToolExecutionLifecycle,
   SearchConversationOptions,
 } from '../conversation/types.js';
 import { searchConversationMetadata } from '../conversation/metadata.js';
@@ -42,10 +43,6 @@ import {
   formatCompletedTurnMemory,
   type MemoryRetrievalDiagnostic,
 } from './ContextEnrichmentPipeline.js';
-import type {
-  WindieDesktopAgent,
-  WindieDesktopAgentStartOptions,
-} from './WindieDesktopAgent.js';
 import { WindieChatSession } from './WindieChatSession.js';
 import {
   toAgentStreamEvents,
@@ -105,11 +102,6 @@ export type WindieStoreMemoryInput = {
 };
 
 export class WindieAgent {
-  static async startDesktop(options: WindieDesktopAgentStartOptions): Promise<WindieDesktopAgent> {
-    const { WindieDesktopAgent } = await import('./WindieDesktopAgent.js');
-    return WindieDesktopAgent.start(options);
-  }
-
   constructor(
     readonly id: string,
     readonly session: WindieAgentSessionRuntime,
@@ -120,6 +112,7 @@ export class WindieAgent {
     private readonly userId = 'local-sdk-user',
     private readonly defaultConversationStore: ConversationStore = new InMemoryConversationStore(),
     private readonly memoryEnabled = true,
+    private readonly localToolLifecycle?: LocalToolExecutionLifecycle,
   ) {}
 
   getDefaultConversationStore(): ConversationStore {
@@ -232,6 +225,7 @@ export class WindieAgent {
     revisionId?: string;
     store?: ConversationStore;
     localRuntime?: WindieLocalRuntimeClient | null;
+    localToolLifecycle?: LocalToolExecutionLifecycle | null;
   } = {}): SdkConversationRuntime {
     const conversationRef = options.conversationRef ?? `conv-${this.id}`;
     const runtime = new SdkConversationRuntime({
@@ -243,6 +237,9 @@ export class WindieAgent {
       sdkClient: this.sdkClient,
       userId: this.userId,
       memoryEnabled: this.memoryEnabled,
+      localToolLifecycle: options.localToolLifecycle === undefined
+        ? this.localToolLifecycle
+        : options.localToolLifecycle,
       enrichQuery: async input => {
         const enriched = await enrichQueryPayload({
           text: input.text,
@@ -269,6 +266,7 @@ export class WindieAgent {
     revisionId?: string;
     store?: ConversationStore;
     localRuntime?: WindieLocalRuntimeClient | null;
+    localToolLifecycle?: LocalToolExecutionLifecycle | null;
   } = {}): WindieChatSession {
     const runtime = this.conversation(options);
     return new WindieChatSession(options.conversationRef ?? `conv-${this.id}`, runtime);

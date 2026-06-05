@@ -63,6 +63,7 @@ function normalizeChatPillReason(value, fallback = null) {
 
 function createSurfaceRuntime({
   screen,
+  platform = process.platform,
   getActiveDisplayAffinity,
   setActiveDisplayAffinity,
   syncActiveDisplayAffinityForWindow,
@@ -82,6 +83,7 @@ function createSurfaceRuntime({
   windowPlatformPolicy,
   initialChatPillUserHidden = false,
   persistChatPillUserHidden = () => {},
+  toolSurfaceSettleMs = 80,
   log = console.log,
   warn = console.warn,
 } = {}) {
@@ -233,6 +235,127 @@ function createSurfaceRuntime({
       warn('[Main] Failed to sync chatbox hit-test state:', error?.message || error);
       return false;
     }
+  }
+
+  function safeSetWindowPointerPolicy(win, {
+    ignoreMouseEvents,
+    focusable,
+    forward = true,
+  } = {}) {
+    if (!win || win.isDestroyed()) {
+      return false;
+    }
+    try {
+      if (ignoreMouseEvents === true) {
+        win.setIgnoreMouseEvents(true, { forward });
+      } else if (ignoreMouseEvents === false) {
+        win.setIgnoreMouseEvents(false);
+      }
+      if (typeof win.setFocusable === 'function' && typeof focusable === 'boolean') {
+        win.setFocusable(focusable);
+      }
+      return true;
+    } catch (error) {
+      warn('[Main] Failed to apply tool surface pointer policy:', error?.message || error);
+      return false;
+    }
+  }
+
+  function delayToolSurfaceSettle() {
+    const delayMs = Math.max(0, Math.round(Number(toolSurfaceSettleMs) || 0));
+    if (delayMs <= 0) {
+      return Promise.resolve();
+    }
+    return new Promise(resolve => setTimeout(resolve, delayMs));
+  }
+
+  async function beginPointerControlLease() {
+    showChatWindow({
+      focus: false,
+      restoreResponseOverlay: true,
+      reason: 'tool-pointer-control',
+    });
+    overlayHelpers.ensureChatWindowOnTop();
+    for (const win of [state.chatWindow, state.responseWindow, state.contextLabelWindow]) {
+      safeSetWindowPointerPolicy(win, {
+        ignoreMouseEvents: true,
+        focusable: false,
+      });
+    }
+    return async () => {
+      syncChatboxHitTestState();
+      for (const win of [state.responseWindow, state.contextLabelWindow]) {
+        safeSetWindowPointerPolicy(win, {
+          ignoreMouseEvents: true,
+          focusable: false,
+        });
+      }
+    };
+  }
+
+  function visibleCaptureWindows() {
+    return [state.chatWindow, state.responseWindow]
+      .filter(win => win && !win.isDestroyed() && win.isVisible());
+  }
+
+  async function beginScreenshotCaptureLease() {
+    const captureWindows = visibleCaptureWindows();
+    if (platform === 'linux') {
+      for (const win of captureWindows) {
+        try {
+          win.hide();
+        } catch (error) {
+          warn('[Main] Failed to hide overlay for screenshot:', error?.message || error);
+        }
+      }
+      await delayToolSurfaceSettle();
+      return async () => {
+        for (const win of captureWindows) {
+          if (!win || win.isDestroyed()) {
+            continue;
+          }
+          try {
+            if (typeof win.showInactive === 'function') {
+              win.showInactive();
+            } else {
+              win.show();
+            }
+          } catch (error) {
+            warn('[Main] Failed to restore overlay after screenshot:', error?.message || error);
+          }
+        }
+      };
+    }
+
+    for (const [targetWindow, windowLabel] of [
+      [state.chatWindow, 'chat box'],
+      [state.responseWindow, 'response overlay'],
+    ]) {
+      if (!targetWindow || targetWindow.isDestroyed()) {
+        continue;
+      }
+      windowPlatformPolicy.applyContentProtection({
+        targetWindow,
+        windowLabel,
+        enabled: true,
+      });
+    }
+    await delayToolSurfaceSettle();
+    return async () => {
+      for (const [targetWindow, windowLabel] of [
+        [state.chatWindow, 'chat box'],
+        [state.responseWindow, 'response overlay'],
+      ]) {
+        if (!targetWindow || targetWindow.isDestroyed()) {
+          continue;
+        }
+        windowPlatformPolicy.applyContentProtection({
+          targetWindow,
+          windowLabel,
+          enabled: false,
+        });
+      }
+    };
   }
 
   function syncWakewordToggleForChatVisibility() {
@@ -503,6 +626,8 @@ function createSurfaceRuntime({
     applyOverlayWindowPolicy,
     applyResponseOverlayPhase,
     broadcastResponseOverlayVisibility,
+    beginPointerControlLease,
+    beginScreenshotCaptureLease,
     emitMainWindowOpenTarget,
     emitWakewordSttTrigger,
     enableContentProtectionSafely,
@@ -525,6 +650,9 @@ function createSurfaceRuntime({
     setChatVisualAnchorHeight,
     setChatWindow: (nextWindow) => {
       state.chatWindow = nextWindow;
+    },
+    setContextLabelWindow: (nextWindow) => {
+      state.contextLabelWindow = nextWindow;
     },
     setMainWindow: (nextWindow) => {
       state.mainWindow = nextWindow;

@@ -177,6 +177,7 @@ function createMainWindow({
   setAgentLoopStopShortcutEnabled,
   setGlobalAgentStopShortcutAccelerator,
   prepareOverlayQueryCaptureFocus,
+  localToolLifecycle = null,
   initializeWakewordBridge,
   showChatWindow,
   emitWakewordSttTrigger,
@@ -230,6 +231,7 @@ function createMainWindow({
     onBeforeOverlayQueryCapture: prepareOverlayQueryCaptureFocus,
     setAgentLoopStopShortcutEnabled,
     setGlobalAgentStopShortcutAccelerator,
+    localToolLifecycle,
     isPackaged: app.isPackaged,
     getWindows,
   });

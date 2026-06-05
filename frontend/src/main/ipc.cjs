@@ -123,7 +123,8 @@ const {
   buildAgentDefinition,
 } = require('./agent_definition.cjs');
 const {
-  WindieAgent,
+  WindieClient,
+  buildDisplayRows,
 } = require('../../../packages/windie-sdk-js/cjs/index.js');
 const {
   buildConversationEventFromBackendEvent,
@@ -155,11 +156,11 @@ let applyResponseOverlayPhase = null;
 let onBeforeOverlayQueryCapture = null;
 let setAgentLoopStopShortcutEnabled = null;
 let setGlobalAgentStopShortcutAccelerator = null;
+let localToolLifecycle = null;
 let currentGlobalAgentStopShortcutStatus = null;
 let pendingInstallAuthStatePromise = null;
 let windieAgent = null;
 let pendingWindieAgentStartPromise = null;
-let detachWindieAgentListeners = [];
 let latestCurrentTurnProjection = null;
 const currentTurnTraceLogger = createCurrentTurnTraceLogger({ log });
 const responseOverlayPhaseState = createResponseOverlayPhaseState();
@@ -428,49 +429,6 @@ function resolveWorkspacePathForAgent(payload = {}) {
   );
 }
 
-function resetWindieAgentListeners() {
-  for (const detach of detachWindieAgentListeners) {
-    try {
-      detach?.();
-    } catch (error) {
-      log(`WindieAgent listener detach failed: ${error?.message || error}`);
-    }
-  }
-  detachWindieAgentListeners = [];
-}
-
-function attachWindieAgentListeners(agent) {
-  resetWindieAgentListeners();
-  detachWindieAgentListeners = [
-    agent.onBackendEvent((event) => {
-      handleAgentBackendEvent(event);
-    }),
-    agent.onRows((rows) => {
-      broadcastToRenderers('windie:rows', rows);
-    }),
-    agent.onConversationEvent((conversationEvent) => {
-      broadcastToRenderers('windie:conversation-event', conversationEvent);
-    }),
-    agent.onCurrentTurn((currentTurn) => {
-      latestCurrentTurnProjection = currentTurn || null;
-      currentTurnTraceLogger.trace(currentTurn);
-      broadcastToRenderers('windie:current-turn', currentTurn);
-    }),
-    agent.onStatus((status) => {
-      broadcastToRenderers('windie:status', status);
-    }),
-    agent.onConnection((event) => {
-      handleWindieAgentConnection(event);
-    }),
-    agent.onTraffic((event) => {
-      noteBackendTraffic(`send:${event.type}`);
-    }),
-    agent.onBackendFallback((event) => {
-      handleWindieAgentBackendFallback(event);
-    }),
-  ];
-}
-
 function handleWindieAgentConnection(event = {}) {
   if (event.type === 'open') {
     const handshakeUserId = event.handshake && typeof event.handshake.user_id === 'string'
@@ -522,19 +480,234 @@ function handleWindieAgentBackendFallback(endpointPayload = {}) {
   log(`Primary backend unavailable. Falling back to ${backendEndpointState.getEndpoint().wsUrl}.`);
 }
 
+function resolveRuntimeConversationRef(input = {}) {
+  const payload = input && typeof input === 'object' && !Array.isArray(input)
+    ? input.payload
+    : null;
+  const fromPayload = payload && typeof payload === 'object' && !Array.isArray(payload)
+    ? payload.conversation_ref
+    : null;
+  const direct = input && typeof input === 'object' && !Array.isArray(input)
+    ? (input.conversation_ref || input.conversationRef)
+    : null;
+  return normalizeOptionalString(fromPayload)
+    || normalizeOptionalString(direct)
+    || currentConversationRef
+    || null;
+}
+
+function statusFromConversationEvent(event = {}, workspacePath = null) {
+  if (event.type === 'turn_completed') {
+    return {
+      phase: 'ready',
+      conversationRef: event.conversationRef,
+      turnRef: event.turnRef,
+      workspacePath,
+    };
+  }
+  if (event.type === 'turn_stopped') {
+    return {
+      phase: 'stopped',
+      conversationRef: event.conversationRef,
+      turnRef: event.turnRef,
+      workspacePath,
+    };
+  }
+  if (event.type === 'turn_error' || event.type === 'runtime_error') {
+    return {
+      phase: 'error',
+      conversationRef: event.conversationRef,
+      turnRef: event.turnRef,
+      workspacePath,
+      error: typeof event.payload?.error === 'string' ? event.payload.error : null,
+    };
+  }
+  return null;
+}
+
+function buildDesktopInstallAuth() {
+  if (!currentInstallToken) {
+    return undefined;
+  }
+  return {
+    ...(currentUserId ? { userId: currentUserId } : {}),
+    ...(currentInstallId ? { installId: currentInstallId } : {}),
+    installToken: currentInstallToken,
+    autoRegister: false,
+  };
+}
+
+function buildManagedBackendEndpoints() {
+  return backendEndpointState.getCandidates().map(endpoint => ({
+    backendUrl: endpoint.httpUrl || endpoint.httpBaseUrl || endpoint.backendUrl,
+    httpBaseUrl: endpoint.httpUrl || endpoint.httpBaseUrl || endpoint.backendUrl,
+    wsUrl: endpoint.wsUrl,
+    wsOrigin: endpoint.wsOrigin || endpoint.httpUrl || endpoint.httpBaseUrl || endpoint.backendUrl,
+  }));
+}
+
+function createDirectWakeUpAgentAdapter({
+  agent,
+  workspacePath = null,
+  store = null,
+} = {}) {
+  let runtime = null;
+  let conversationRef = `conv-${agent.id}`;
+  let detachRuntimeEvents = () => {};
+  let detachRawBackendEvents = () => {};
+  let closed = false;
+
+  function broadcastStatus(status) {
+    broadcastToRenderers('windie:status', status);
+  }
+
+  function attachRuntime(nextRuntime) {
+    detachRuntimeEvents();
+    detachRuntimeEvents = nextRuntime.subscribeEvents((event, snapshot) => {
+      broadcastToRenderers('windie:conversation-event', event);
+      broadcastToRenderers('windie:rows', buildDisplayRows([event]));
+      latestCurrentTurnProjection = snapshot.currentTurn || null;
+      currentTurnTraceLogger.trace(snapshot.currentTurn);
+      broadcastToRenderers('windie:current-turn', snapshot.currentTurn);
+      const terminalStatus = statusFromConversationEvent(event, workspacePath);
+      if (terminalStatus) {
+        broadcastStatus(terminalStatus);
+      }
+    });
+  }
+
+  function selectConversationRuntime(nextConversationRef = null) {
+    const resolvedConversationRef = normalizeOptionalString(nextConversationRef) || conversationRef;
+    if (runtime && resolvedConversationRef === conversationRef) {
+      return runtime;
+    }
+    if (runtime) {
+      detachRuntimeEvents();
+      runtime.close();
+    }
+    conversationRef = resolvedConversationRef;
+    runtime = agent.conversation({
+      conversationRef,
+      ...(store ? { store } : {}),
+    });
+    attachRuntime(runtime);
+    broadcastStatus({
+      phase: 'ready',
+      conversationRef,
+      workspacePath,
+    });
+    return runtime;
+  }
+
+  runtime = agent.conversation({
+    conversationRef,
+    ...(store ? { store } : {}),
+  });
+  attachRuntime(runtime);
+  detachRawBackendEvents = agent.subscribeRawBackendEvents((event) => {
+    handleAgentBackendEvent(event);
+  });
+
+  return {
+    run: async (input = {}) => {
+      const sendInput = typeof input === 'string' ? { text: input } : input;
+      const activeRuntime = selectConversationRuntime(resolveRuntimeConversationRef(sendInput));
+      broadcastStatus({
+        phase: 'running',
+        conversationRef,
+        turnRef: sendInput.turnRef ?? null,
+        workspacePath,
+      });
+      const result = await activeRuntime.send(sendInput);
+      broadcastStatus({
+        phase: 'running',
+        conversationRef,
+        turnRef: result.turnRef,
+        workspacePath,
+      });
+      return result;
+    },
+    stop: async (input = {}) => {
+      const stopConversationRef = typeof input === 'object' && input?.conversation_ref
+        ? input.conversation_ref
+        : conversationRef;
+      selectConversationRuntime(stopConversationRef);
+      return agent.stop(stopConversationRef || conversationRef);
+    },
+    updateSettings: payload => agent.updateSettings(payload),
+    requestModelList: () => agent.requestModelList(),
+    rehydrateMessages: async (payload = {}) => {
+      const activeRuntime = selectConversationRuntime(resolveRuntimeConversationRef(payload));
+      return activeRuntime.rehydrateMessages(payload);
+    },
+    compactHistory: async (payload = {}) => {
+      const activeRuntime = selectConversationRuntime(resolveRuntimeConversationRef(payload));
+      return activeRuntime.compactHistory({
+        force: payload.force,
+        payload,
+      });
+    },
+    wakewordDetected: payload => agent.wakewordDetected(payload),
+    ensureConnected: () => agent.ensureConnected(),
+    isConnected: () => agent.isConnected(),
+    noteBackendTraffic: reason => agent.noteBackendTraffic(reason),
+    syncBackendIdleTimer: reason => agent.syncBackendIdleTimer(reason),
+    localStatus: () => agent.status(),
+    close: () => {
+      if (closed) {
+        return;
+      }
+      closed = true;
+      detachRuntimeEvents();
+      detachRawBackendEvents();
+      runtime?.close();
+      agent.sleep();
+      broadcastStatus({
+        phase: 'closed',
+        conversationRef,
+        workspacePath,
+      });
+    },
+  };
+}
+
 async function startWindieAgent({ reason = 'request', workspacePath = null } = {}) {
   await ensureInstallAuthState();
-  const agent = await WindieAgent.startDesktop({
-    apiKey: currentInstallToken,
-    appName: 'WindieOS',
-    workspace: workspacePath || resolveWorkspacePathForAgent() || undefined,
-    ...(process.env.NODE_ENV === 'test' ? {
-      testing: { autoStartLocalRuntime: false },
-    } : {}),
+  const resolvedWorkspacePath = workspacePath || resolveWorkspacePathForAgent() || undefined;
+  const client = new WindieClient({
+    backendUrl: backendEndpointState.getHttpUrl(),
+    httpBaseUrl: backendEndpointState.getHttpUrl(),
+    wsUrl: backendEndpointState.getWsUrl(),
+    wsOrigin: backendEndpointState.getHttpUrl(),
+    backendEndpoints: buildManagedBackendEndpoints(),
+    backendSession: 'managed',
+    reconnectIntervalMs: BACKEND_RECONNECT_INTERVAL_MS,
+    connectTimeoutMs: BACKEND_CONNECT_TIMEOUT_MS,
+    idleDisconnectTimeoutMs: BACKEND_IDLE_DISCONNECT_TIMEOUT_MS,
+    ...(process.env.NODE_ENV === 'test' ? { autoStartLocalRuntime: false } : {}),
+    onBackendOpen: payload => handleWindieAgentConnection({ type: 'open', ...payload }),
+    onBackendClose: payload => handleWindieAgentConnection({ type: 'close', ...payload }),
+    onBackendError: payload => handleWindieAgentConnection({ type: 'error', ...payload }),
+    onBackendHandshakeError: error => handleWindieAgentConnection({ type: 'handshake-error', error }),
+    onBackendMessageError: error => handleWindieAgentConnection({ type: 'message-error', error }),
+    onBackendSend: type => {
+      windieAgent?.noteBackendTraffic?.(`send:${type}`);
+    },
+    onBackendFallback: endpoint => handleWindieAgentBackendFallback(endpoint),
   });
-  attachWindieAgentListeners(agent);
-  log(`WindieAgent started for ${reason}.`);
-  return agent;
+  const agent = await client.wakeUp({
+    installAuth: buildDesktopInstallAuth(),
+    name: 'WindieOS',
+    workspacePath: resolvedWorkspacePath,
+    builtins: 'default',
+    localToolLifecycle,
+  });
+  const adapter = createDirectWakeUpAgentAdapter({
+    agent,
+    workspacePath: resolvedWorkspacePath || null,
+  });
+  log(`WindieClient wakeUp runtime started for ${reason}.`);
+  return adapter;
 }
 
 async function ensureWindieAgent({ reason = 'request', workspacePath = null } = {}) {
@@ -748,10 +921,10 @@ function shutdownIpcForTests() {
   onBeforeOverlayQueryCapture = null;
   setAgentLoopStopShortcutEnabled = null;
   setGlobalAgentStopShortcutAccelerator = null;
+  localToolLifecycle = null;
   pendingInstallAuthStatePromise = null;
   isConnected = false;
   pendingWindieAgentStartPromise = null;
-  resetWindieAgentListeners();
   windieAgent?.close();
   windieAgent = null;
 }
@@ -774,6 +947,9 @@ function initializeIpc(win, options = {}) {
     typeof options.setGlobalAgentStopShortcutAccelerator === 'function'
       ? options.setGlobalAgentStopShortcutAccelerator
       : null;
+  localToolLifecycle = options.localToolLifecycle && typeof options.localToolLifecycle === 'object'
+    ? options.localToolLifecycle
+    : null;
   const getWindows = typeof options.getWindows === 'function'
     ? options.getWindows
     : () => ({ mainWindow: win, chatWindow: null });

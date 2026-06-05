@@ -69,91 +69,91 @@ Ownership rules:
 
 Local runtime facts must not unlock backend capabilities. In particular, coordinate methods are backend policy/provider outputs. The client can report or narrow local executable tools; it cannot grant OCR, vision, prediction, or paid backend capabilities.
 
-There are two SDK consumption levels. External clients use the high-level
-`WindieClient.wakeUp(...)` surface because it hides agent definition,
-websocket/session, local-runtime, and store details. Desktop-style clients use
-`WindieAgent.startDesktop(...)` when they want one SDK object to start local
-runtime tools, send user intent, emit display rows/status, execute local tool
-calls, return tool results, and expose desktop controls such as settings sync,
-model-list requests, rehydrate, compaction, wakeword, and stop. Desktop agents
-use the SDK managed backend session by default, including reconnect, endpoint
-fallback, idle-disconnect, connection hooks, and strict backend payload
-filtering. `WindieAgent.startDesktop(...)` accepts the normal public desktop
-bootstrap contract (`apiKey`, `workspace`, and `appName`) while SDK-owned
-defaults handle install-token identity lookup, endpoint defaults and
-environment overrides, WebSocket construction, sidecar reuse/startup, tool
-discovery, local tool execution, backend result return, connection/status
-events, and display/current-turn projections. Advanced callers may pass
-`endpoint`, `debug`, `connection`, or `testing` option buckets when they need
-self-hosted endpoints, logging, timeout tuning, or controlled test doubles.
-Conversation selection belongs on agent methods such as `run`, `rehydrate`, and
-`compactHistory`, not normal startup. The built-in Electron desktop is a
-first-party SDK customer, not a separate agent runtime. Electron-specific
-adapters such as the sidecar-backed conversation store may implement SDK
-interfaces like `ConversationStore` and `BackendTransport`, but Electron must
-not reimplement SDK behavior separately.
+All SDK consumers use the high-level `WindieClient.wakeUp(...)` surface because
+it hides agent definition, websocket/session, local-runtime, tool manifest, and
+store details. Desktop-style clients should create one client with managed
+backend connection settings, call `wakeUp(...)`, then create a conversation
+runtime from the returned agent. The SDK owns websocket normalization,
+reconnect/fallback/idle policy, local tool routing, backend result return,
+conversation projections, retry/edit/rehydrate helpers, model/settings commands,
+and memory/title helpers. The host renders projections and supplies only
+host-specific policies such as Electron window leases.
 
-## Desktop Agent Startup
+Conversation selection belongs on `agent.conversation(...)` and conversation
+commands such as `send`, `rehydrateMessages`, and `compactHistory`, not on a
+parallel desktop wrapper. The built-in Electron desktop is a first-party SDK
+customer, not a separate agent runtime. Electron-specific adapters may implement
+SDK interfaces like `ConversationStore` and `LocalToolExecutionLifecycle`, but
+Electron must not reimplement SDK behavior separately.
 
-Normal desktop hosts should start one SDK-owned runtime with the small public
-contract:
+## Desktop Host Startup
+
+Normal desktop hosts start one SDK-owned runtime and render the SDK
+conversation projection:
 
 ```ts
-import { WindieAgent } from "@windie/sdk";
+import { WindieClient, buildDisplayRows } from "@windie/sdk";
 
-const agent = await WindieAgent.startDesktop({
-  apiKey: process.env.WINDIE_API_KEY,
-  workspace: "/Users/me/project",
-  appName: "WindieOS"
+const client = new WindieClient({
+  backendUrl: "https://api.windieos.com",
+  backendSession: "managed",
+  installToken: process.env.WINDIE_INSTALL_TOKEN
 });
 
-agent.onRows((rows) => renderRows(rows));
-agent.onStatus((status) => renderStatus(status));
-agent.onConversationEvent((event) => recordEvent(event));
-agent.onCurrentTurn((turn) => renderTurn(turn));
+const agent = await client.wakeUp({
+  name: "WindieOS",
+  workspacePath: "/Users/me/project",
+  builtins: "default"
+});
 
-await agent.run({ text: "Find the longest line of code in this repo" });
-await agent.stop();
+const conversation = agent.conversation();
+conversation.subscribeEvents((event, snapshot) => {
+  renderRows(buildDisplayRows([event]));
+  recordEvent(event);
+  renderTurn(snapshot.currentTurn);
+});
+
+await conversation.send({ text: "Find the longest line of code in this repo" });
+await conversation.stop();
 ```
 
-Electron main uses the same product API and remains a shell customer:
+Electron main uses the same SDK shape and remains a shell customer. Its only
+desktop-specific tool hook is a narrow lifecycle callback around SDK-local tool
+execution:
 
 ```js
-const agent = await WindieAgent.startDesktop({
-  apiKey: currentInstallToken,
-  workspace: activeWorkspacePath,
-  appName: 'WindieOS',
+const client = new WindieClient({
+  backendUrl: backendEndpointState.getHttpUrl(),
+  backendEndpoints: backendEndpointState.getCandidates(),
+  backendSession: 'managed',
+  reconnectIntervalMs: 1000,
 });
 
-agent.onRows((rows) => broadcastToRenderers('windie:rows', rows));
-agent.onStatus((status) => broadcastToRenderers('windie:status', status));
-agent.onConversationEvent((event) => broadcastToRenderers('windie:conversation-event', event));
-agent.onCurrentTurn((turn) => broadcastToRenderers('windie:current-turn', turn));
-
-ipcMain.handle('windie:send', (_event, payload) => agent.run(payload));
-ipcMain.handle('windie:stop', (_event, payload) => agent.stop(payload));
-```
-
-Optional advanced buckets exist for explicit self-hosting, debugging, connection
-tuning, and tests:
-
-```ts
-await WindieAgent.startDesktop({
-  apiKey,
-  workspace,
-  appName: "WindieOS",
-  endpoint: { primary: "https://self-hosted.example.com", fallbacks: [] },
-  debug: { log },
-  connection: { connectTimeoutMs: 10_000 },
-  testing: { autoStartLocalRuntime: false }
+const agent = await client.wakeUp({
+  installAuth: buildDesktopInstallAuth(),
+  name: 'WindieOS',
+  workspacePath: activeWorkspacePath,
+  builtins: 'default',
+  localToolLifecycle: electronToolSurfaceLifecycle,
 });
+
+const conversation = agent.conversation();
+conversation.subscribeEvents((event, snapshot) => {
+  broadcastToRenderers('windie:conversation-event', event);
+  broadcastToRenderers('windie:rows', buildDisplayRows([event]));
+  broadcastToRenderers('windie:current-turn', snapshot.currentTurn);
+});
+
+ipcMain.handle('windie:send', (_event, payload) => conversation.send(payload));
+ipcMain.handle('windie:stop', (_event) => conversation.stop());
 ```
 
-Normal app startup should not pass `userId`, `installId`,
-`conversationRef`, endpoint candidate arrays, raw websocket constructors, or
-backend lifecycle callbacks. The SDK resolves identity from `apiKey`, owns
-endpoint/default websocket behavior, and exposes lifecycle through events after
-construction.
+The `localToolLifecycle` callback is SDK-owned in timing and host-owned in
+policy. The SDK calls `beforeExecute(call)` immediately before local sidecar
+execution and awaits the returned release callback in `finally`. Electron uses
+that hook for pointer-control and screenshot-capture leases. The SDK still owns
+tool order, result correlation, implicit post-action screenshots, and backend
+tool-result return.
 
 ## Public API
 

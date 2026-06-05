@@ -16,6 +16,7 @@ class WindieClient {
         this.defaultOptions = options;
     }
     async wakeUp(options = {}) {
+        assertNoLegacyBuiltinToolsOption(options);
         const runtimeFeatures = normalizeRuntimeFeatures(options, this.defaultOptions);
         const initialModelSettings = options.model
             ? (0, modelSelection_js_1.buildModelSettingsPatch)(options.model, 'WindieClient.wakeUp')
@@ -43,6 +44,7 @@ class WindieClient {
         });
         const localTools = await this.prepareLocalRuntime(wakeUpOptions, localRuntime);
         const agentDefinition = buildWakeUpAgentDefinition(wakeUpOptions, localTools);
+        const localToolLifecycle = wakeUpOptions.localToolLifecycle ?? this.defaultOptions.localToolLifecycle;
         const session = this.createAgentSession({
             backendUrl,
             installToken: installAuth?.installToken,
@@ -55,7 +57,7 @@ class WindieClient {
             await session.updateSettings(initialModelSettings);
         }
         const id = typeof agentDefinition.id === 'string' ? agentDefinition.id : (0, WindieAgentSession_js_1.createMessageId)();
-        const agent = new WindieAgent_js_1.WindieAgent(id, session, agentDefinition, sdkClient, this, localRuntime, userId, conversationStore, runtimeFeatures.memory);
+        const agent = new WindieAgent_js_1.WindieAgent(id, session, agentDefinition, sdkClient, this, localRuntime, userId, conversationStore, runtimeFeatures.memory, localToolLifecycle);
         this.activeAgents.set(id, agent);
         session.on('close', () => {
             this.activeAgents.delete(id);
@@ -296,17 +298,22 @@ class WindieClient {
             || (options.plugins ?? []).length > 0
             || (options.mcps ?? []).length > 0;
         const registeredRuntimeTools = hasRuntimeExtensions ? registeredTools : [];
-        const builtinTools = builtins.length > 0
+        const selectedBuiltinTools = builtins.length > 0
             ? registeredTools.filter(tool => (typeof tool.name === 'string'
                 && (0, builtins_js_1.shouldIncludeBuiltinTool)(tool.name, builtins)))
             : [];
         const explicitTools = (options.tools ?? [])
             .filter(tool => !tool.module)
             .map(tool => buildManifestTool(tool));
-        return dedupeManifestTools([...registeredRuntimeTools, ...builtinTools, ...explicitTools]);
+        return dedupeManifestTools([...registeredRuntimeTools, ...selectedBuiltinTools, ...explicitTools]);
     }
 }
 exports.WindieClient = WindieClient;
+function assertNoLegacyBuiltinToolsOption(options) {
+    if (Object.prototype.hasOwnProperty.call(options, 'builtinTools')) {
+        throw new Error('WindieClient.wakeUp no longer accepts builtinTools; use builtins instead.');
+    }
+}
 function featureEnabled(value, fallback) {
     if (typeof value === 'boolean') {
         return value;
@@ -385,7 +392,7 @@ function normalizeBuiltins(options) {
     if (Array.isArray(selected)) {
         return dedupeBuiltinToolSets(selected);
     }
-    return dedupeBuiltinToolSets(options.builtinTools ?? []);
+    return [];
 }
 function dedupeBuiltinToolSets(values) {
     const normalized = [];

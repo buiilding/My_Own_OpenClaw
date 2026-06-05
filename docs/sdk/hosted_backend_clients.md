@@ -11,8 +11,7 @@ title: "Hosted Backend Clients"
 WindieOS includes transport-only SDK clients for hosted backend APIs and
 agent-runtime SDK surfaces for local desktop operators. Direct hosted route
 clients are useful for artifacts and SDK HTTP routes. Agent sessions should use
-`WindieClient.wakeUp(...)` or `WindieAgent.startDesktop(...)`, not a raw
-websocket helper.
+`WindieClient.wakeUp(...)`, not a raw websocket helper.
 
 ## TypeScript Client
 
@@ -29,69 +28,71 @@ Use it for direct backend access to:
 
 The normal TypeScript agent surface is `WindieClient.wakeUp(...)`. It builds the
 low-level `agent_definition`, owns the hosted backend websocket, and routes local
-tool calls through the sidecar daemon.
-
-Desktop-style clients that want the SDK to act as the complete local agent
-runtime can use `WindieAgent.startDesktop(...)`:
+tool calls through the sidecar daemon. Desktop-style clients use the same API and
+subscribe to the returned conversation runtime:
 
 ```ts
-import { WindieAgent } from '@windie/sdk';
+import { WindieClient, buildDisplayRows } from '@windie/sdk';
 
-const agent = await WindieAgent.startDesktop({
-  apiKey: process.env.WINDIE_API_KEY,
-  workspace: '/path/to/workspace',
-  appName: 'My Windie App',
+const client = new WindieClient({
+  backendUrl: 'https://api.windieos.com',
+  backendSession: 'managed',
+  installToken: process.env.WINDIE_INSTALL_TOKEN,
 });
 
-agent.onRows(rows => {
-  renderRows(rows);
+const agent = await client.wakeUp({
+  name: 'My Windie App',
+  workspacePath: '/path/to/workspace',
+  builtins: 'default',
 });
 
-agent.onStatus(status => {
-  renderStatus(status);
+const conversation = agent.conversation();
+conversation.subscribeEvents((event, snapshot) => {
+  renderRows(buildDisplayRows([event]));
+  renderTurn(snapshot.currentTurn);
 });
 
-await agent.run('Inspect this workspace and summarize it');
+await conversation.send({ text: 'Inspect this workspace and summarize it' });
 ```
 
-That desktop facade still uses the same `WindieClient.wakeUp(...)` and
-`SdkConversationRuntime` internals, but it exposes the app-builder contract:
-send user intent, receive SDK display rows, and let the SDK own websocket
-normalization, reconnect/fallback/idle lifecycle, local tool execution,
-tool-result return, and current-turn projection.
+That app-builder contract is: send user intent, receive SDK display rows/current
+turns, and let the SDK own websocket normalization, reconnect/fallback/idle
+lifecycle, local tool execution, tool-result return, and projection state.
 
-Desktop hosts should use the same facade for the control commands that the
+Desktop hosts should use the same agent/conversation methods for the control commands that the
 WindieOS app needs during normal operation:
 
 ```ts
 await agent.ensureConnected();
 await agent.updateSettings({ model_provider: 'openai' });
 await agent.requestModelList();
-await agent.rehydrateMessages({ conversation_ref, messages, rehydrate_mode: 'replace' });
-await agent.compactHistory({ conversation_ref, force: false });
+await conversation.rehydrateMessages({ conversation_ref, messages, rehydrate_mode: 'replace' });
+await conversation.compactHistory({ force: false, payload: { conversation_ref } });
 await agent.wakewordDetected({ source: 'desktop' });
-await agent.stop();
+await conversation.stop();
 ```
 
 The important boundary is that a host renders rows and forwards user commands.
 It should not own a separate backend websocket command router, tool-result loop,
 or display-row projection.
 
-`WindieAgent.startDesktop(...)` defaults to the SDK managed backend session. A
-host may pass backend endpoints and lifecycle hooks when it needs fallback,
+`WindieClient.wakeUp(...)` can run on the SDK managed backend session. A host may
+pass backend endpoints and lifecycle hooks to the client when it needs fallback,
 connection status, or idle-close policy:
 
 ```ts
-const agent = await WindieAgent.startDesktop({
-  apiKey,
+const client = new WindieClient({
   backendEndpoints: [
     { backendUrl: 'https://api.windieos.com' },
     { backendUrl: 'http://127.0.0.1:8000' },
   ],
+  backendSession: 'managed',
   onBackendClose(close) {
     renderConnection(close.shouldReconnect ? 'reconnecting' : 'offline');
   },
 });
+
+const agent = await client.wakeUp({ builtins: 'default' });
 ```
 
 ## Python Client
@@ -137,5 +138,5 @@ Python websocket agent sessions normalize backend-bound payloads before send:
 
 The transport-only hosted clients do not execute local desktop tools. For
 screenshots, click/type, browser actions, files, and processes, use
-`WindieAgent.startDesktop(...)` or `WindieClient.wakeUp(...)` with a local
-runtime so the SDK coordinates sidecar execution and backend tool-result return.
+`WindieClient.wakeUp(...)` with a local runtime so the SDK coordinates sidecar
+execution and backend tool-result return.

@@ -17,7 +17,7 @@ function syncOverlayLoopInteractivity(active, deps = {}) {
 
   if (chatWindow && !chatWindow.isDestroyed()) {
     try {
-      if (active || !getChatboxHitTestActive()) {
+      if (!getChatboxHitTestActive()) {
         chatWindow.setIgnoreMouseEvents(true, { forward: true });
       } else {
         chatWindow.setIgnoreMouseEvents(false);
@@ -28,7 +28,7 @@ function syncOverlayLoopInteractivity(active, deps = {}) {
 
     try {
       if (typeof chatWindow.setFocusable === 'function') {
-        chatWindow.setFocusable(!active);
+        chatWindow.setFocusable(getChatboxHitTestActive());
       }
     } catch (error) {
       warn('[Main] Failed to sync overlay focusable state:', error?.message || error);

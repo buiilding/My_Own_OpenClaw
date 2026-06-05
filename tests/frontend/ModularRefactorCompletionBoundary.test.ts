@@ -8,14 +8,18 @@ async function read(relativePath: string): Promise<string> {
 }
 
 describe('modular sdk refactor completion boundary', () => {
-  test('electron main uses the high-level SDK agent host instead of the deleted main runtime', async () => {
+  test('electron main uses WindieClient wakeUp instead of a desktop wrapper', async () => {
     const ipcSource = await read('frontend/src/main/ipc.cjs');
     const hostExists = await fs.access(path.join(repoRoot, 'frontend/src/main/windie_agent_host.cjs'))
       .then(() => true, () => false);
 
     expect(hostExists).toBe(false);
-    expect(ipcSource).toContain('WindieAgent.startDesktop');
+    expect(ipcSource).toContain('new WindieClient({');
+    expect(ipcSource).toContain('client.wakeUp({');
+    expect(ipcSource).toContain('agent.conversation({');
+    expect(ipcSource).toContain('localToolLifecycle');
     expect(ipcSource).toContain("require('../../../packages/windie-sdk-js/cjs/index.js')");
+    expect(ipcSource).not.toContain('WindieAgent.startDesktop');
     expect(ipcSource).not.toContain("require('./windie_agent_host.cjs')");
     expect(ipcSource).not.toContain('createWindieAgentHost');
     expect(ipcSource).not.toContain('createWindieSdkMainRuntime');
@@ -24,21 +28,14 @@ describe('modular sdk refactor completion boundary', () => {
     expect(ipcSource).not.toContain('createManagedBackendSession');
     expect(ipcSource).not.toContain('routeSdkToolEventToLocalRuntime');
     expect(ipcSource).not.toContain('WebSocketImpl:');
-    expect(ipcSource).not.toContain('sidecar:');
     expect(ipcSource).not.toContain('executeLocalTool:');
-    const startupCall = ipcSource.match(/WindieAgent\.startDesktop\(\{[\s\S]*?\n  \}\);/)?.[0] ?? '';
-    expect(startupCall).toContain('apiKey: currentInstallToken');
-    expect(startupCall).toContain("appName: 'WindieOS'");
-    expect(startupCall).toContain('workspace: workspacePath || resolveWorkspacePathForAgent() || undefined');
-    expect(startupCall).not.toContain('userId:');
-    expect(startupCall).not.toContain('installId:');
-    expect(startupCall).not.toContain('conversationRef:');
-    expect(startupCall).not.toContain('endpointCandidates:');
-    expect(startupCall).not.toContain('reconnectIntervalMs:');
-    expect(startupCall).not.toContain('connectTimeoutMs:');
-    expect(startupCall).not.toContain('idleDisconnectTimeoutMs:');
-    expect(startupCall).not.toContain('onBackendOpen:');
-    expect(startupCall).not.toContain('onBackendClose:');
+    const wakeCall = ipcSource.match(/client\.wakeUp\(\{[\s\S]*?\n  \}\);/)?.[0] ?? '';
+    expect(wakeCall).toContain('installAuth: buildDesktopInstallAuth()');
+    expect(wakeCall).toContain("name: 'WindieOS'");
+    expect(wakeCall).toContain('workspacePath: resolvedWorkspacePath');
+    expect(wakeCall).toContain("builtins: 'default'");
+    expect(wakeCall).toContain('localToolLifecycle');
+    expect(wakeCall).not.toContain('conversationRef:');
   });
 
   test('renderer live-turn runtime stays on sdk command dispatch', async () => {

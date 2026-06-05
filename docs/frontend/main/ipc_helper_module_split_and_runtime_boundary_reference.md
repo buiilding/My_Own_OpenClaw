@@ -15,7 +15,8 @@ title: "IPC Helper Module Split and Runtime Boundary Reference"
 - `frontend/src/main/ipc/ipc_query_runtime.cjs`
 - `frontend/src/main/ipc/ipc_automated_query_dispatcher.cjs`
 - `frontend/src/main/ipc/ipc_startup_state.cjs`
-- `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`
+- `packages/windie-sdk-js/src/runtime/WindieClient.ts`
+- `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`
 - `frontend/src/main/ipc/ipc_backend_endpoint_state.cjs`
 - `frontend/src/main/ipc/ipc_transcript_session_sync.cjs`
 - `frontend/src/main/ipc/ipc_event_replay_state.cjs`
@@ -89,17 +90,18 @@ Owns IPC startup state hydration:
 - initializes global stop-shortcut enabled state from the current response-overlay phase
 - treats disk-hydration failures as fail-open startup conditions
 
-### `WindieAgent.startDesktop(...)`
+### `WindieClient.wakeUp(...)` and `agent.conversation(...)`
 
-Owns Windie SDK runtime lifecycle construction:
+Own Windie SDK runtime lifecycle construction:
 
 - resolves install identity from the install token and builds the authenticated
   SDK handshake
 - starts/reuses the local sidecar runtime and discovers executable local tools
-- constructs the managed backend runtime once and exposes connection, command,
-  projection, and close helpers
-- emits SDK rows, normalized conversation events, current-turn projections,
-  status, connection, traffic, and fallback events for Electron main to forward
+- constructs the managed backend runtime once and exposes connection and command
+  helpers through the agent plus projection helpers through the conversation
+  runtime
+- emits normalized conversation events and current-turn projections for Electron
+  main to convert into renderer rows/status and forward
 - emits interrupted active-query events when the backend closes during an active loop phase
 
 ### `ipc_backend_endpoint_state.cjs`
@@ -269,7 +271,7 @@ Owns remaining generic `to-backend` command forwarding:
 6. automated VM query dispatch delegates to `ipc_automated_query_dispatcher.cjs`.
 7. startup install-auth/config/shortcut hydration delegates to `ipc_startup_state.cjs`.
 8. SDK websocket runtime construction and backend event lifecycle delegate to
-   `WindieAgent.startDesktop(...)`.
+   `WindieClient.wakeUp(...)` and `agent.conversation(...)`.
 9. backend endpoint candidate and active endpoint state delegates to
    `ipc_backend_endpoint_state.cjs`.
 10. settings ACK, initial sync, and queued list-models state delegate to

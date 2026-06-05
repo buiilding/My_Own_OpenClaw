@@ -443,6 +443,12 @@ export type LocalToolResult = {
   error?: string;
 };
 
+export type LocalToolExecutionRelease = void | (() => void | Promise<void>);
+
+export type LocalToolExecutionLifecycle = {
+  beforeExecute?: (call: LocalToolCall) => LocalToolExecutionRelease | Promise<LocalToolExecutionRelease>;
+};
+
 export type LocalRuntime = {
   status(): Promise<LocalRuntimeStatus>;
   listTools(): Promise<LocalToolManifest>;

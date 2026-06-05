@@ -45,6 +45,13 @@ The minimal chat pill is the small always-available desktop command surface. It 
 - Drag and resize behavior should preserve the user-perceived anchor, especially when multiline input or image previews grow.
 - The pill should avoid focus stealing unless explicitly requested.
 - The response overlay phase must stay synchronized with the pill's awaiting/streaming state.
+- Active agent turns do not make the pill click-through by themselves. Electron
+  main applies click-through only through the SDK `localToolLifecycle` pointer
+  lease around `mouse_control` and `scroll_control`, then restores the pill
+  hit-test policy in `finally`.
+- Screenshot invisibility is also lease-scoped. Electron main applies the
+  capture policy immediately around SDK-local `screenshot` execution and
+  restores the window policy in `finally`.
 
 ## Linux Flicker Contract
 
@@ -64,8 +71,24 @@ For Linux screenshot capture:
 - Windows and macOS must not add capture-time hide/show for the minimal chat
   pill or response overlay
 - Windows and macOS should enable overlay `setContentProtection(true)` only
-  during active loop phases (`awaiting-first-chunk`, `streaming`, `tool-call`,
-  `tool-output`) and disable it again for idle and terminal phases
+  during active screenshot capture and disable it immediately after capture
+
+## Tool Surface Leases
+
+The SDK owns local tool execution order and calls Electron's
+`localToolLifecycle.beforeExecute(call)` immediately before sidecar execution.
+Electron main owns the BrowserWindow policy that hook applies:
+
+- `mouse_control` / `scroll_control`: show the pill on top, make the pill and
+  response overlay click-through and non-focusable, run the sidecar tool, then
+  restore the pill's normal hit-test policy without stealing focus.
+- `screenshot`: apply screenshot protection before capture, run the sidecar
+  screenshot, then restore the prior policy. Linux hides visible WindieOS
+  surfaces; macOS and Windows use content protection.
+
+The renderer does not decide click-through timing or screenshot invisibility. It
+renders the pill, sends user text, displays the current-turn projection, handles
+dragging, and reports normal hit-test intent.
 
 ## Deep Docs
 

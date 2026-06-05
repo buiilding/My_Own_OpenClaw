@@ -198,6 +198,20 @@ class ToolExecutionCoordinator {
     constructor(options) {
         this.options = options;
     }
+    async executeLocalTool(call) {
+        if (!this.options.localRuntime?.executeTool) {
+            throw new Error('local runtime executeTool is unavailable');
+        }
+        const release = await this.options.localToolLifecycle?.beforeExecute?.(call);
+        try {
+            return await this.options.localRuntime.executeTool(call);
+        }
+        finally {
+            if (typeof release === 'function') {
+                await release();
+            }
+        }
+    }
     async materializeScreenshotArtifact(data) {
         const screenshot = typeof data.screenshot === 'string' && data.screenshot.trim()
             ? data.screenshot.trim()
@@ -312,7 +326,7 @@ class ToolExecutionCoordinator {
         }
         await delaySeconds(waitSeconds);
         try {
-            const result = await this.options.localRuntime.executeTool({
+            const result = await this.executeLocalTool({
                 toolName: 'screenshot',
                 args: {
                     explanation,
@@ -451,7 +465,7 @@ class ToolExecutionCoordinator {
         const startedAt = Date.now();
         let result;
         try {
-            result = await this.options.localRuntime.executeTool(call);
+            result = await this.executeLocalTool(call);
         }
         catch (error) {
             result = failureResult(error);
@@ -538,7 +552,7 @@ class ToolExecutionCoordinator {
                     ?? (0, toolCorrelationIds_js_1.resolveModelFacingToolCallId)(record);
                 let result;
                 try {
-                    result = await this.options.localRuntime.executeTool({
+                    result = await this.executeLocalTool({
                         toolName,
                         args: record.args && typeof record.args === 'object' && !Array.isArray(record.args)
                             ? record.args

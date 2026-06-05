@@ -625,6 +625,7 @@ class SdkConversationRuntime {
         }
         const coordinator = new ToolExecutionCoordinator_js_1.ToolExecutionCoordinator({
             localRuntime: this.options.localRuntime,
+            localToolLifecycle: this.options.localToolLifecycle,
             store: {
                 appendEvent: async (outputEvent) => {
                     await this.applyEvent(outputEvent);

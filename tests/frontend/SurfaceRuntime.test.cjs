@@ -12,6 +12,8 @@ function createWindow({ visible = false, destroyed = false } = {}) {
     focus: jest.fn(),
     setIgnoreMouseEvents: jest.fn(),
     setFocusable: jest.fn(),
+    setContentProtection: jest.fn(),
+    setBounds: jest.fn(),
     webContents: {
       send: jest.fn(),
     },
@@ -101,6 +103,95 @@ describe('surface_runtime', () => {
     expect(runtime.stopVmWorker()).toBe(true);
     expect(vmWorkerRuntime.stop).toHaveBeenCalledTimes(1);
     expect(runtime.stopVmWorker()).toBe(false);
+  });
+
+  test('pointer-control lease makes overlay surfaces click-through and restores pill hit-test policy', async () => {
+    const runtime = createSurfaceRuntime({
+      ...createSurfaceDeps(),
+      toolSurfaceSettleMs: 0,
+    });
+    const chatWindow = createWindow({ visible: true });
+    const responseWindow = createWindow({ visible: true });
+    const contextLabelWindow = createWindow({ visible: true });
+    runtime.setChatWindow(chatWindow);
+    runtime.setResponseWindow(responseWindow);
+    runtime.setContextLabelWindow(contextLabelWindow);
+    runtime.setChatboxHitTestActive(true);
+
+    const release = await runtime.beginPointerControlLease({ toolName: 'mouse_control' });
+
+    expect(chatWindow.setIgnoreMouseEvents).toHaveBeenCalledWith(true, { forward: true });
+    expect(chatWindow.setFocusable).toHaveBeenCalledWith(false);
+    expect(responseWindow.setIgnoreMouseEvents).toHaveBeenCalledWith(true, { forward: true });
+    expect(contextLabelWindow.setIgnoreMouseEvents).toHaveBeenCalledWith(true, { forward: true });
+
+    await release();
+
+    expect(chatWindow.setIgnoreMouseEvents).toHaveBeenLastCalledWith(false);
+    expect(responseWindow.setIgnoreMouseEvents).toHaveBeenLastCalledWith(true, { forward: true });
+    expect(contextLabelWindow.setFocusable).toHaveBeenLastCalledWith(false);
+  });
+
+  test('linux screenshot lease hides visible overlays and restores them inactive', async () => {
+    const runtime = createSurfaceRuntime({
+      ...createSurfaceDeps(),
+      platform: 'linux',
+      toolSurfaceSettleMs: 0,
+    });
+    const chatWindow = createWindow({ visible: true });
+    const responseWindow = createWindow({ visible: true });
+    runtime.setChatWindow(chatWindow);
+    runtime.setResponseWindow(responseWindow);
+
+    const release = await runtime.beginScreenshotCaptureLease({ toolName: 'screenshot' });
+
+    expect(chatWindow.hide).toHaveBeenCalledTimes(1);
+    expect(responseWindow.hide).toHaveBeenCalledTimes(1);
+
+    await release();
+
+    expect(chatWindow.showInactive).toHaveBeenCalledTimes(1);
+    expect(responseWindow.showInactive).toHaveBeenCalledTimes(1);
+  });
+
+  test('macos and windows screenshot lease use content protection instead of hide-show', async () => {
+    const deps = createSurfaceDeps();
+    const runtime = createSurfaceRuntime({
+      ...deps,
+      platform: 'darwin',
+      toolSurfaceSettleMs: 0,
+    });
+    const chatWindow = createWindow({ visible: true });
+    const responseWindow = createWindow({ visible: true });
+    runtime.setChatWindow(chatWindow);
+    runtime.setResponseWindow(responseWindow);
+
+    const release = await runtime.beginScreenshotCaptureLease({ toolName: 'screenshot' });
+
+    expect(chatWindow.hide).not.toHaveBeenCalled();
+    expect(deps.windowPlatformPolicy.applyContentProtection).toHaveBeenNthCalledWith(1, {
+      targetWindow: chatWindow,
+      windowLabel: 'chat box',
+      enabled: true,
+    });
+    expect(deps.windowPlatformPolicy.applyContentProtection).toHaveBeenNthCalledWith(2, {
+      targetWindow: responseWindow,
+      windowLabel: 'response overlay',
+      enabled: true,
+    });
+
+    await release();
+
+    expect(deps.windowPlatformPolicy.applyContentProtection).toHaveBeenNthCalledWith(3, {
+      targetWindow: chatWindow,
+      windowLabel: 'chat box',
+      enabled: false,
+    });
+    expect(deps.windowPlatformPolicy.applyContentProtection).toHaveBeenNthCalledWith(4, {
+      targetWindow: responseWindow,
+      windowLabel: 'response overlay',
+      enabled: false,
+    });
   });
 
   test('persists user intent when the chat pill is hidden by the user', () => {

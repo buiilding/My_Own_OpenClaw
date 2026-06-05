@@ -120,8 +120,8 @@ The default product topology is remote-first: the app and SDK talk to the hosted
 **Main Process** (`src/main/ipc.cjs`):
 - Handles IPC message routing
 - Adapts renderer messages to the SDK runtime
-- Starts `WindieAgent.startDesktop(...)` directly and delegates hosted backend
-  WebSocket transport to `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`
+- Starts `WindieClient.wakeUp(...)` directly and delegates hosted backend
+  WebSocket transport to the SDK `WindieAgent`/`ConversationRuntime` path
 - Builds complete user messages with system state and memories
 
 ## WebSocket Communication

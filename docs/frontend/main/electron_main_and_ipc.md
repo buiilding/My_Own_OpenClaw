@@ -61,7 +61,8 @@ Main modules:
 Responsibilities:
 
 - Adapts renderer IPC to the SDK main runtime.
-- Starts `WindieAgent.startDesktop(...)` directly and delegates backend websocket
+- Starts `WindieClient.wakeUp(...)` directly, uses the returned
+  `agent.conversation(...)` runtime, and delegates backend websocket
   construction, local sidecar/tool runtime bootstrap, envelope sends, close,
   reconnect primitives, display rows, and current-turn projection to the SDK.
 - Tracks backend session context (`userId`, `sessionId`, `conversation_ref`).

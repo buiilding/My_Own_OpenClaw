@@ -1609,6 +1609,79 @@ describe('Windie SDK conversation runtime core', () => {
     expect(await store.loadEvents('conv-sdk-runtime')).toEqual([]);
   });
 
+  test('tool coordinator wraps single local execution with lifecycle release on success and failure', async () => {
+    const successfulOrder: string[] = [];
+    const sendToolResult = jest.fn(async () => undefined);
+    const executeTool = jest.fn(async () => {
+      successfulOrder.push('execute');
+      return { success: true, data: { output: 'done' } };
+    });
+    const beforeExecute = jest.fn(async (call) => {
+      successfulOrder.push(`before:${call.toolName}`);
+      return async () => {
+        successfulOrder.push(`release:${call.toolName}`);
+      };
+    });
+    const coordinator = new ToolExecutionCoordinator({
+      localToolLifecycle: { beforeExecute },
+      localRuntime: { executeTool },
+      sendToolResult,
+      sendToolBundleResult: jest.fn(async () => undefined),
+    });
+
+    await coordinator.execute(event('tool_call', {
+      toolName: 'read_file',
+      requestId: 'req-lifecycle',
+      args: { path: 'README.md' },
+    }));
+
+    expect(successfulOrder).toEqual([
+      'before:read_file',
+      'execute',
+      'release:read_file',
+    ]);
+    expect(beforeExecute).toHaveBeenCalledWith(expect.objectContaining({
+      toolName: 'read_file',
+      requestId: 'req-lifecycle',
+    }));
+    expect(sendToolResult).toHaveBeenCalledWith(expect.objectContaining({
+      request_id: 'req-lifecycle',
+      success: true,
+    }));
+
+    const failedOrder: string[] = [];
+    const failedCoordinator = new ToolExecutionCoordinator({
+      localToolLifecycle: {
+        beforeExecute: jest.fn(async (call) => {
+          failedOrder.push(`before:${call.toolName}`);
+          return () => {
+            failedOrder.push(`release:${call.toolName}`);
+          };
+        }),
+      },
+      localRuntime: {
+        executeTool: jest.fn(async () => {
+          failedOrder.push('execute');
+          throw new Error('sidecar failed');
+        }),
+      },
+      sendToolResult: jest.fn(async () => undefined),
+      sendToolBundleResult: jest.fn(async () => undefined),
+    });
+
+    await failedCoordinator.execute(event('tool_call', {
+      toolName: 'read_file',
+      requestId: 'req-lifecycle-failed',
+      args: { path: 'README.md' },
+    }));
+
+    expect(failedOrder).toEqual([
+      'before:read_file',
+      'execute',
+      'release:read_file',
+    ]);
+  });
+
   test('tool coordinator exposes screenshot data on local tool output events', async () => {
     const store = new InMemoryConversationStore();
     const sendToolResult = jest.fn(async () => undefined);
@@ -1687,6 +1760,7 @@ describe('Windie SDK conversation runtime core', () => {
   });
 
   test('tool coordinator uploads post-action screenshots before backend delivery', async () => {
+    const lifecycleCalls: string[] = [];
     const sendToolResult = jest.fn(async () => undefined);
     const artifactUploader = createMockArtifactUploader({
       upload: jest.fn(async () => ({
@@ -1716,6 +1790,14 @@ describe('Windie SDK conversation runtime core', () => {
       localRuntime: { executeTool },
       sendToolResult,
       sendToolBundleResult: jest.fn(async () => undefined),
+      localToolLifecycle: {
+        beforeExecute: jest.fn(async (call) => {
+          lifecycleCalls.push(`before:${call.toolName}`);
+          return () => {
+            lifecycleCalls.push(`release:${call.toolName}`);
+          };
+        }),
+      },
     });
 
     await coordinator.execute(event('tool_call', {
@@ -1725,6 +1807,12 @@ describe('Windie SDK conversation runtime core', () => {
     }));
 
     expect(executeTool).toHaveBeenCalledTimes(2);
+    expect(lifecycleCalls).toEqual([
+      'before:mouse_control',
+      'release:mouse_control',
+      'before:screenshot',
+      'release:screenshot',
+    ]);
     expect(artifactUploader.upload).toHaveBeenCalledTimes(1);
     expect(sendToolResult).toHaveBeenCalledWith(expect.objectContaining({
       request_id: 'req-click',
@@ -1963,6 +2051,7 @@ describe('Windie SDK conversation runtime core', () => {
   });
 
   test('tool coordinator captures bundle screenshot after skipped invalid step', async () => {
+    const lifecycleCalls: string[] = [];
     const executeTool = jest
       .fn()
       .mockResolvedValueOnce({ success: true, data: { output: 'typed' } })
@@ -1978,6 +2067,14 @@ describe('Windie SDK conversation runtime core', () => {
       localRuntime: { executeTool },
       sendToolResult: jest.fn(async () => undefined),
       sendToolBundleResult,
+      localToolLifecycle: {
+        beforeExecute: jest.fn(async (call) => {
+          lifecycleCalls.push(`before:${call.toolName}`);
+          return () => {
+            lifecycleCalls.push(`release:${call.toolName}`);
+          };
+        }),
+      },
     });
 
     const claim = await coordinator.execute(event('tool_bundle_call', {
@@ -1990,6 +2087,12 @@ describe('Windie SDK conversation runtime core', () => {
 
     expect(claim.claimed).toBe(true);
     expect(executeTool).toHaveBeenCalledTimes(2);
+    expect(lifecycleCalls).toEqual([
+      'before:keyboard_control',
+      'release:keyboard_control',
+      'before:screenshot',
+      'release:screenshot',
+    ]);
     expect(executeTool).toHaveBeenNthCalledWith(2, {
       toolName: 'screenshot',
       args: {

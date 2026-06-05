@@ -79,6 +79,9 @@ const {
 const { createWindowPlatformPolicy } = require('./window_platform_policy.cjs');
 const { createSurfaceRuntime } = require('./surface_runtime.cjs');
 const {
+  createElectronToolSurfaceLifecycle,
+} = require('./tool_surface_lifecycle.cjs');
+const {
   readChatPillVisibilityIntent,
   writeChatPillVisibilityIntent,
 } = require('./chat_pill_visibility_intent_store.cjs');
@@ -130,6 +133,7 @@ const chatPillVisibilityIntent = ENABLE_DEV_TRANSPARENCY_UI
   });
 const surfaceRuntime = createSurfaceRuntime({
   screen,
+  platform: process.platform,
   getActiveDisplayAffinity: getActiveDisplayAffinityRuntime,
   setActiveDisplayAffinity: setActiveDisplayAffinityRuntime,
   syncActiveDisplayAffinityForWindow: syncActiveDisplayAffinityForWindowRuntime,
@@ -160,6 +164,7 @@ const surfaceRuntime = createSurfaceRuntime({
   },
   warn: console.warn,
 });
+const electronToolSurfaceLifecycle = createElectronToolSurfaceLifecycle(surfaceRuntime);
 const {
   getResponseWindowBounds,
   positionChatWindow,
@@ -209,6 +214,7 @@ const {
   hideChatWindow: surfaceRuntime.hideChatWindow,
   showMainWindow: surfaceRuntime.showMainWindow,
   setGlobalAgentStopShortcutAccelerator: agentStopShortcutRuntime.setAccelerator,
+  localToolLifecycle: electronToolSurfaceLifecycle,
   emitWakewordSttTrigger: surfaceRuntime.emitWakewordSttTrigger,
   getLatestFrontendConfig,
   positionChatWindow,

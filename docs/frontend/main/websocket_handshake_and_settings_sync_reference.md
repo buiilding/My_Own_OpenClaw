@@ -22,7 +22,8 @@ title: "WebSocket Handshake and Settings Sync Reference"
 - `frontend/src/main/ipc/ipc_transcript_session_sync.cjs`
 - `frontend/src/main/ipc/ipc_settings_sync.cjs`
 - `frontend/src/main/ipc/ipc_frontend_config.cjs`
-- `packages/windie-sdk-js/src/runtime/WindieDesktopAgent.ts`
+- `packages/windie-sdk-js/src/runtime/WindieClient.ts`
+- `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`
 - `frontend/src/main/backend_endpoints.cjs`
 - `frontend/src/main/query_payload_builder.cjs`
 
@@ -56,7 +57,7 @@ This means packaged-vs-dev fallback selection is determined at IPC bridge initia
 
 The SDK runtime is the canonical owner of backend websocket sessions. Electron main should use the SDK runtime for connect/reconnect, handshake, query, stop, settings, event parsing, event fan-out, and local tool-call routing. Electron-specific code remains responsible for windows, overlays, renderer IPC, settings UI, permission prompts, and platform display/screenshot integration.
 
-## SDK Connection Lifecycle (`WindieAgent.startDesktop(...)`)
+## SDK Connection Lifecycle (`WindieClient.wakeUp(...)`)
 
 The SDK runtime owns connection demand, connect waiters, reconnect timers, idle
 disconnect timers, socket construction, handshake send, and backend message
@@ -126,10 +127,10 @@ Overlay transition contract:
 
 Backend local execution events are handled by the SDK runtime before renderer fan-out:
 
-1. `WindieAgent.startDesktop(...)` receives a backend `tool-call` or `tool-bundle`.
-2. `WindieAgent.startDesktop(...)` supplies the SDK local-runtime client that executes the local tool through `executeToolForBackend(...)`.
-3. `executeToolForBackend(...)` uses the local sidecar daemon-backed bridge.
-4. The SDK desktop agent sends `tool-result` or `tool-bundle-result` back over the SDK websocket.
+1. The SDK `ConversationRuntime` receives a backend `tool-call` or `tool-bundle`.
+2. `ToolExecutionCoordinator` executes the local call through the SDK local-runtime client.
+3. The local runtime uses the local sidecar daemon-backed bridge.
+4. The SDK runtime sends `tool-result` or `tool-bundle-result` back over the SDK websocket.
 5. `ipc.cjs` receives only the renderer-safe copy for replay, session tracking, overlay state, and renderer fan-out.
 6. the renderer receives a display-only copy of the original backend event.
 

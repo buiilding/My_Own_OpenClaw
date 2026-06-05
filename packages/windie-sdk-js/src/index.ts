@@ -13,7 +13,6 @@ export * from './runtime/ConversationContinuityService.js';
 export * from './runtime/AgentStreamEvents.js';
 export * from './runtime/WindieChatSession.js';
 export * from './runtime/WindieAgent.js';
-export * from './runtime/WindieDesktopAgent.js';
 export * from './runtime/WindieClient.js';
 export * from './runtime/LocalSidecarRuntime.js';
 export * from './transport/backendEventNormalizer.js';

@@ -126,6 +126,19 @@ describe('response_overlay_phase_handler', () => {
     expect(deps.responseWindow.setFocusable).toHaveBeenCalledWith(false);
   });
 
+  test('streaming phase does not force the chat pill click-through when hit-test is active', () => {
+    const deps = createDeps({
+      getChatboxHitTestActive: jest.fn(() => true),
+    });
+
+    handleResponseOverlayPhaseEvent({ phase: PHASE.STREAMING }, deps);
+
+    expect(deps.chatWindow.setIgnoreMouseEvents).toHaveBeenCalledWith(false);
+    expect(deps.chatWindow.setFocusable).toHaveBeenCalledWith(true);
+    expect(deps.responseWindow.setIgnoreMouseEvents).toHaveBeenCalledWith(true, { forward: true });
+    expect(deps.responseWindow.setFocusable).toHaveBeenCalledWith(false);
+  });
+
   test('skips fallback/show when response window is unavailable in streaming phase', () => {
     const deps = createDeps({
       responseWindow: {
