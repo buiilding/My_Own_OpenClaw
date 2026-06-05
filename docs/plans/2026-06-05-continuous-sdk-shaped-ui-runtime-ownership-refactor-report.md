@@ -12,7 +12,7 @@ Plan: [Continuous SDK-Shaped UI Runtime Ownership Refactor Plan](2026-06-05-cont
 
 ## Status
 
-Second implementation slice complete and ready to commit. The latest ownership
+Second implementation slice complete and committed. The latest ownership
 inventory found no live renderer feature/app path calling legacy direct
 `windie:*` runtime channels or direct chat-history sidecar IPC names for
 user-facing SDK concepts.
@@ -190,8 +190,9 @@ user-facing SDK concepts.
 ## Commits
 
 - `refactor(frontend): route live turn through sdk invoke`
-- `refactor(frontend): retire legacy sdk ipc channels` (pending commit for
-  this second slice)
+- `2237d8a3e refactor(frontend): retire legacy sdk ipc channels`
+- `docs(plans): record sdk ipc refactor report` (report-only follow-up for
+  this audit log)
 
 ## Decisions, Tradeoffs, Blockers, Deviations
 
