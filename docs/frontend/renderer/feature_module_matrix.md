@@ -92,14 +92,12 @@ Path:
 Primary responsibilities:
 
 - permission manifest/status state model and gate-state derivation (`needsOnboarding`, required permission sets, manifest-version completion)
-- settings-surface permission visibility and maintenance actions (`Re-run checks`, per-row `Re-check`)
-- shared permission status presentation (`PermissionRowMain`, `PermissionStatusBadge`)
+- onboarding and focused settings permission request/probe actions
+- shared permission status presentation (`PermissionStatusBadge`)
 
 Core store/components:
 
 - `stores/permissionStore.js`
-- `components/PermissionControlCenter.jsx`
-- `components/PermissionRowMain.jsx`
 - `components/PermissionStatusBadge.jsx`
 
 ## Voice Module

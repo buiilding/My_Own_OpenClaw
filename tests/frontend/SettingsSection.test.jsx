@@ -382,6 +382,14 @@ describe('SettingsSection', () => {
     expect(screen.getByTestId('settings-tab-browser')).toBeInTheDocument();
   });
 
+  test('does not mount the removed data-controls compatibility branch', () => {
+    renderSettingsSection({ initialTab: 'data-controls' });
+
+    expect(screen.getByText('Settings for settings will appear here.')).toBeInTheDocument();
+    expect(screen.queryByText('Permissions')).not.toBeInTheDocument();
+    expect(mockBootstrapPermissions).not.toHaveBeenCalled();
+  });
+
   test('browser tab reuses the browser permission flow and persists enabled state on success', async () => {
     renderSettingsSection({ initialTab: 'browser' });
 

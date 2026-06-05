@@ -12,7 +12,8 @@ title: "Permission Store Gate-State and IPC Action Contract Reference"
 
 - `frontend/src/renderer/features/permissions/stores/permissionStore.js`
 - `frontend/src/renderer/features/permissions/utils/permissionStorage.js`
-- `frontend/src/renderer/features/permissions/components/PermissionControlCenter.jsx`
+- `frontend/src/renderer/features/onboarding/components/FrontendOnboardingSlideshow.jsx`
+- `frontend/src/renderer/features/dashboard/components/sections/settings/BrowserSettingsTab.jsx`
 - `frontend/src/main/permission_service.cjs`
 - `frontend/src/main/index.cjs`
 - `tests/frontend/PermissionStorage.test.js`
@@ -36,9 +37,9 @@ title: "Permission Store Gate-State and IPC Action Contract Reference"
 
 Current runtime-consumer reality:
 
-- active UI callers in current renderer runtime are `bootstrapPermissions`, `runPermissionProbe`,
-  and `recheckAllPermissions` (via `PermissionControlCenter`)
-- onboarding also calls `requestPermission(permissionId)` via `FrontendOnboardingSlideshow`
+- active UI callers in current renderer runtime are `bootstrapPermissions`,
+  `runPermissionProbe`, `requestPermission`, and `completeOnboarding`
+- Browser settings uses focused permission probe/request paths for browser automation
 - `completeOnboarding` remains exported for any future gate-completion surface
 
 ## Status Normalization Contract
@@ -120,7 +121,6 @@ Main-process runtime now performs async startup probes before returning the init
 
 - invokes `REQUEST_PERMISSION` and then applies returned `data.status`
 - shares merge/recompute semantics with probe path
-- currently not called by `PermissionControlCenter` UI, but remains part of store/runtime contract
 - does not set or clear `isLoading`
 
 ### `recheckAllPermissions`
@@ -162,8 +162,8 @@ On guard failure:
 ## UI Coupling Boundary
 
 - Renderer `App.jsx` startup is onboarding-completion-gated in non-VM mode through `permissionStore.needsOnboarding`.
-- `PermissionControlCenter` mounts this store and uses probe/recheck actions.
 - `FrontendOnboardingSlideshow` uses the manifest presentation metadata plus `requestPermission()` / `completeOnboarding()` to drive startup gating.
+- `BrowserSettingsTab` uses focused probe/request paths for Browser automation status and setup.
 - Store gate-state fields remain authoritative for any surfaces that still depend on onboarding state.
 
 ## Test-Backed Notes
@@ -182,5 +182,4 @@ On guard failure:
 ## Related Docs
 
 - [Renderer Permissions Docs Hub](README.md)
-- [Permission Control Center Probe and Recheck Store-Sync Runtime Reference](permission_control_center_probe_and_recheck_store_sync_runtime_reference.md)
 - [Permission Manifest, Probe, and IPC Request Contract Reference](../../main/permission_manifest_probe_and_request_ipc_reference.md)

@@ -149,7 +149,7 @@ Platform mapping in shortcut helper:
 
 Renderer app startup blocks only until onboarding has been completed for the current manifest in non-VM mode.
 
-The same permission store also powers Settings > Permissions (`PermissionControlCenter`) so onboarding and post-onboarding rechecks stay on one state model.
+The same permission store also powers focused settings checks such as Browser automation status so onboarding and post-onboarding probes stay on one state model.
 
 ## Test-Backed Invariants
 

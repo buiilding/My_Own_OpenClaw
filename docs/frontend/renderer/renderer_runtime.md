@@ -89,15 +89,14 @@ Current dashboard behavior:
 
 Primary runtime:
 
-- `PermissionControlCenter`
 - `usePermissionStore`
 
 Current behavior:
 
 - app startup routes by VM mode + permission-onboarding completion for the current manifest
-- frontend onboarding step 1 now renders a permission checklist and triggers `requestPermission` per row plus global `recheckAllPermissions`
-- `PermissionControlCenter` renders live permission status plus probe/recheck maintenance actions
-- `permissionStore` derives onboarding/gate state (`needsOnboarding`, `completedForManifest`, required permission sets) and powers both onboarding + settings permission surfaces
+- frontend onboarding step 1 renders a permission checklist and triggers `requestPermission` per row plus focused rechecks
+- Browser settings uses focused permission probe/request actions for Browser automation status
+- `permissionStore` derives onboarding/gate state (`needsOnboarding`, `completedForManifest`, required permission sets) and powers onboarding plus focused settings permission surfaces
 
 ### Voice (`features/voice`)
 

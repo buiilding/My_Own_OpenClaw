@@ -13,6 +13,9 @@ All notable changes to WindieOS will be documented in this file.
   session model instead of a silent ignored field.
 - frontend/renderer: delete the `AppContextHooks` compatibility re-export so
   config hook consumers import the owning `AppConfigContext` module directly.
+- frontend/settings: delete the hidden `data-controls` settings branch and
+  unused permission control-center components so permission UI flows through
+  onboarding and focused settings controls only.
 - frontend/sidecar: remove the duplicated `core` backend config, auth,
   unicode-sanitizer, and remote API base shims so sidecar callers use the
   `windie` owner modules directly.

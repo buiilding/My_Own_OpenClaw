@@ -192,7 +192,7 @@ Functionality:
 - Coordinates save-state callback from config updates into status context.
 - Boots chat stream + tool runner hooks at app scope.
 - Routes startup by VM-mode + frontend onboarding slideshow state only (no permission gate in `App.jsx`).
-- Leaves permission runtime to settings/data-controls surfaces and permission store state.
+- Leaves permission runtime to onboarding, focused settings surfaces, and permission store state.
 
 ### 3.2 Chat Feature Runtime
 
@@ -255,8 +255,8 @@ Functionality:
   - Missing-model fallback reconciliation.
   - Provider API-key enable/input controls.
 - Settings panel:
-  - current visible tab list is `general` only.
-  - optional `initialTab='data-controls'` still mounts `PermissionControlCenter` via `SettingsSection` route branch.
+  - visible tab list is owned by `SettingsSection`.
+  - retired `initialTab='data-controls'` links fall through to the generic settings placeholder.
 
 ### 3.4 Voice Runtime
 

@@ -142,7 +142,7 @@ Main modules:
 Responsibilities:
 
 - Loads permission manifest metadata and cloned permission definitions.
-- Runs per-permission probes for onboarding/data-controls status surfaces.
+- Runs per-permission probes for onboarding and focused settings status surfaces.
 - Handles permission request flows (notably macOS privacy-pane deep links and microphone access request).
 - Exposes renderer invoke handlers:
   - `list-permissions`

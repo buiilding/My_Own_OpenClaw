@@ -1,7 +1,7 @@
 ---
 summary: "Renderer-main IPC reference: preload allowlists, typed channel constants, Electron main handler ownership, and SDK-runtime relay channel behavior."
 read_when:
-  - When adding or changing Electron IPC channels, including permission onboarding/data-controls channels.
+  - When adding or changing Electron IPC channels, including permission onboarding and focused settings channels.
   - When debugging renderer-main contract mismatches or unhandled invoke/send events.
 title: "IPC Channel and Handler Reference"
 ---
@@ -169,7 +169,7 @@ Local tool runtime nuances:
 
 ## Permission Runtime Channel Contract
 
-Permission onboarding and settings data-controls use invoke-only channels:
+Permission onboarding and focused settings permission controls use invoke-only channels:
 
 - `list-permissions`: returns manifest snapshot + status list
 - `check-permissions`: batch status re-check

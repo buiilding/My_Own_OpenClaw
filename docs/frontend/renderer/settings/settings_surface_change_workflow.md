@@ -55,7 +55,6 @@ flowchart LR
 | Browser | `BrowserSettingsTab.jsx` | dedicated browser permission/status and open-browser action | renderer permission store plus Electron/sidecar browser runtime |
 | Memory | `MemorySettingsTab.jsx`, `useMemorySettingsActions.js` | local memory reset and chat-history reset | renderer action hook, main IPC, sidecar memory admin |
 | Onboarding | `OnboardingSettingsTab.jsx` | permission/onboarding reset or status controls | renderer permission/onboarding store |
-| Data controls | `PermissionControlCenter` branch | hidden compatibility branch, no visible tab button | permission center path only |
 
 ## Change Sequence
 
@@ -69,7 +68,7 @@ flowchart LR
 2. Update the owning tab and shell.
    - Add tab metadata in `SETTINGS_TABS`.
    - Add explicit `renderTabContent()` routing.
-   - Keep the tab id stable if existing links or initial-tab opens use it.
+  - Keep the tab id stable if existing links or initial-tab opens use it.
    - Update `SettingsSection.propTypes` when props change.
 
 3. For config controls, update the config pipeline.

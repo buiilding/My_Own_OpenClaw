@@ -148,7 +148,6 @@ frontend/src/renderer/
 │   │
 │   ├── permissions/                      # Permission settings control center
 │   │   ├── components/                  # Permission UI
-│   │   │   └── PermissionControlCenter.jsx # PermissionControlCenter - Settings "Data controls" live permission panel
 │   │   ├── stores/                      # Permission state management
 │   │   │   └── permissionStore.js       # permissionStore (Zustand) - Manifest/statuses, probes, onboarding gate
 │   │   └── utils/                       # Permission persistence helpers

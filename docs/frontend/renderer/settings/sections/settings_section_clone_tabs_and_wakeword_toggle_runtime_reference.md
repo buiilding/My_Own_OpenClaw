@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for current clone-style SettingsSection runtime: general/memory tab routing, wakeword/STT/sudo control ownership, optional data-controls fallback routing, and local destructive reset actions."
+summary: "Deep reference for current clone-style SettingsSection runtime: general/memory tab routing, wakeword/STT/sudo control ownership, and local destructive reset actions."
 read_when:
   - When changing `SettingsSection.jsx` tab layout, initial-tab behavior, or close controls.
-  - When debugging wakeword/wakeword-STT/agent-sudo settings payloads or data-controls permission-center mounting.
+  - When debugging wakeword/wakeword-STT/agent-sudo settings payloads or settings tab routing.
 title: "Settings Section General + Memory Tabs Runtime Reference"
 ---
 
@@ -14,7 +14,6 @@ title: "Settings Section General + Memory Tabs Runtime Reference"
 - `frontend/src/renderer/features/dashboard/components/sections/settings/GeneralSettingsTab.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/settings/MemorySettingsTab.jsx`
 - `frontend/src/renderer/features/dashboard/components/sections/settings/useMemorySettingsActions.js`
-- `frontend/src/renderer/features/permissions/components/PermissionControlCenter.jsx`
 - `frontend/src/renderer/app/providers/AppConfigContext.jsx`
 - `tests/frontend/SettingsSection.test.jsx`
 
@@ -45,8 +44,7 @@ Routing model:
 - `browser` renders Windie browser permission/status controls
 - `memory` renders destructive local-data controls for memory/chat resets
 - `onboarding` renders an action to reopen onboarding
-- `data-controls` branch exists in `renderTabContent()` and renders `PermissionControlCenter`, but there is no current tab button for it in `SETTINGS_TABS`
-- unknown tabs fall back to `PlaceholderTab` title rendering
+- unknown tabs, including retired `data-controls` links, fall back to `PlaceholderTab` title rendering
 
 `initialTab` behavior:
 
@@ -151,7 +149,7 @@ Exception:
 
 - `GeneralSettingsTab` invokes `IpcBridge.invoke('set-agent-sudo-access', { enabled })` before persisting `agent_full_sudo_enabled`; current main-process policy rejects new persistent passwordless sudo grants and only supports legacy cleanup.
 - `useMemorySettingsActions()` invokes `clear-local-memory` / `clear-chat-history` over the local-backend IPC bridge for destructive data resets, while `MemorySettingsTab` stays presentation-focused.
-- `data-controls` branch mounts `PermissionControlCenter`, which uses permission-store probe/recheck actions.
+- retired `data-controls` links fall through to the generic placeholder instead of mounting hidden permission UI.
 
 ## Test-Backed Invariants
 

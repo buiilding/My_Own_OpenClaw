@@ -208,9 +208,9 @@ Current ownership boundary:
 1. Renderer `App.jsx` startup routes by VM mode + permission-onboarding completion state for the current manifest, but missing permissions no longer hard-block Start.
 2. Frontend onboarding step 1 now mounts a permission checklist powered by `permissionStore` (manifest/status bootstrap + per-permission request actions).
 3. `permissionStore` remains the canonical place for manifest fetch + permission gate derivation (`needsOnboarding`, required permission sets, manifest-version completion).
-4. Onboarding and settings surfaces both call store helpers for permission runtime updates:
-   - onboarding uses `REQUEST_PERMISSION` (per row) and `CHECK_PERMISSIONS` (global re-check)
-   - `PermissionControlCenter` uses `RUN_PERMISSION_PROBE` (per row) and `CHECK_PERMISSIONS` (global recheck)
+4. Onboarding and focused settings surfaces call store helpers for permission runtime updates:
+   - onboarding uses `REQUEST_PERMISSION` (per row) and focused re-probes
+   - Browser settings uses focused `RUN_PERMISSION_PROBE`/`REQUEST_PERMISSION` paths for Browser automation
 5. settings-backed macOS permissions now use a simple onboarding loop: `Grant` triggers the OS handoff, onboarding enters `Waiting...`, and short-lived re-probes flip rows to granted when the user returns from Screen Recording / Accessibility / Automation settings.
 6. onboarding is a dedicated primary surface, separate from both the dashboard and minimal chat pill, so main-window close/focus behavior no longer depends on dashboard tab-target state.
 
@@ -362,8 +362,8 @@ Primary modules:
 - `features/permissions/stores/permissionStore.js`:
   - Manifest/status fetch + gate-state derivation (`needsOnboarding`, required IDs, missing required permissions, `completedForManifest`).
   - Probe/recheck/request action helpers and onboarding-state persistence utilities.
-- `features/permissions/components/PermissionControlCenter.jsx`:
-  - Settings-surface live permission status with `Re-check` per-row probe and `Re-run checks` global refresh.
+- `features/permissions/components/PermissionStatusBadge.jsx`:
+  - Shared settings-surface permission status pill rendering.
 
 ### Dashboard Runtime
 

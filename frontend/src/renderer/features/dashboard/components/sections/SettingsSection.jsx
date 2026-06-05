@@ -10,7 +10,6 @@ import {
   Sparkles,
   Bot,
 } from 'lucide-react';
-import PermissionControlCenter from '../../../permissions/components/PermissionControlCenter';
 import AgentSettingsTab from './settings/AgentSettingsTab';
 import AppearanceSettingsTab from './settings/AppearanceSettingsTab';
 import BrowserSettingsTab from './settings/BrowserSettingsTab';
@@ -87,9 +86,6 @@ function SettingsSection({
     }
     if (activeTab === 'onboarding') {
       return <OnboardingSettingsTab />;
-    }
-    if (activeTab === 'data-controls') {
-      return <PermissionControlCenter />;
     }
 
     const tab = SETTINGS_TABS.find((item) => item.id === activeTab);

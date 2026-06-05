@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for Electron main permission runtime: manifest snapshot surface, OS-specific probe/request behavior, and renderer IPC handlers for onboarding/data-controls flows."
+summary: "Deep reference for Electron main permission runtime: manifest snapshot surface, OS-specific probe/request behavior, and renderer IPC handlers for onboarding and focused settings flows."
 read_when:
   - When changing `permission_service.cjs` probe/request logic or permission manifest shape.
-  - When adding/removing permission IPC handlers consumed by renderer onboarding or settings data-controls flows.
+  - When adding/removing permission IPC handlers consumed by renderer onboarding or focused settings flows.
 title: "Permission Manifest, Probe, and IPC Request Contract Reference"
 ---
 

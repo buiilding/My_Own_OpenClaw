@@ -1,12 +1,12 @@
 ---
-summary: "Deep reference for renderer permission state surfaces: manifest/status bootstrap, required-now evaluation, onboarding completion persistence, and Data-controls status checks."
+summary: "Deep reference for renderer permission state surfaces: manifest/status bootstrap, required-now evaluation, onboarding completion persistence, and focused settings permission checks."
 read_when:
   - When changing onboarding gate logic in `App.jsx` or `permissionStore`.
-  - When changing permission request/re-check flows in onboarding wizard or settings Data controls tab.
-title: "Permission Onboarding Gate, Manifest Version, and Data-Controls Runtime Reference"
+  - When changing permission request/re-check flows in the onboarding wizard or focused settings controls.
+title: "Permission Onboarding Gate and Manifest Version Runtime Reference"
 ---
 
-# Permission Onboarding Gate, Manifest Version, and Data-Controls Runtime Reference
+# Permission Onboarding Gate and Manifest Version Runtime Reference
 
 ## Canonical Modules
 
@@ -15,10 +15,8 @@ title: "Permission Onboarding Gate, Manifest Version, and Data-Controls Runtime 
 - `frontend/src/renderer/features/onboarding/components/FrontendOnboardingSlideshow.jsx`
 - `frontend/src/renderer/features/onboarding/components/PermissionOnboardingSlide.jsx`
 - `frontend/src/renderer/features/onboarding/hooks/useOnboardingPermissionActions.js`
-- `frontend/src/renderer/features/permissions/components/PermissionControlCenter.jsx`
-- `frontend/src/renderer/features/permissions/components/PermissionRowMain.jsx`
 - `frontend/src/renderer/features/permissions/components/PermissionStatusBadge.jsx`
-- `frontend/src/renderer/features/dashboard/components/sections/SettingsSection.jsx`
+- `frontend/src/renderer/features/dashboard/components/sections/settings/BrowserSettingsTab.jsx`
 - `frontend/src/renderer/features/permissions/utils/permissionGrantEffects.js`
 - `frontend/src/renderer/features/permissions/utils/permissionStatus.js`
 - `frontend/src/renderer/features/permissions/utils/permissionStorage.js`
@@ -105,9 +103,9 @@ When satisfied:
 - final `Start WindieOS` CTA enabled after permission status loads, with a warning if permissions remain missing
 
 The slideshow uses only permissions where `show_in_onboarding !== false`.
-Settings/Data controls still render the full permission list, including
-settings-only/runtime-check rows hidden from first-run onboarding on
-Windows/Linux.
+Settings no longer mount a full permission-list maintenance view; focused
+settings surfaces such as Browser settings request or probe their own
+permission id.
 
 macOS browser onboarding opens directly on the `browser_automation` slide.
 There is no separate `app_management` onboarding step because WindieOS does not
@@ -119,23 +117,17 @@ Permission request handling is split deliberately:
 - `useOnboardingPermissionActions()` owns onboarding-local request pending state
 - `applyPermissionGrantEffects(...)` centralizes permission-specific post-grant renderer effects such as enabling `browser_automation_enabled`
 
-### Settings Data Controls
+### Settings Permission Status
 
-`SettingsSection` routes `data-controls` tab to `PermissionControlCenter`.
-
-`PermissionControlCenter` provides runtime monitoring/maintenance:
-
-- per-permission status pills + reason text
-- per-permission `Re-check`
-- global `Re-run checks`
-
-This shares store state/actions with onboarding flow, so both surfaces stay consistent.
+Settings no longer mount the retired hidden `data-controls` branch. Browser
+settings use focused permission-store probe/request actions for Browser
+automation status, while onboarding remains the full permission request surface.
 
 ## Error Handling
 
 Store keeps last user-visible error in `error` field.
 
-Failure modes surface as inline text in onboarding/control-center rather than throwing UI-level crashes.
+Failure modes surface as inline text in onboarding or focused settings controls rather than throwing UI-level crashes.
 
 Examples:
 
@@ -154,7 +146,7 @@ Examples:
 ## Related Pages
 
 - [Renderer Permissions Docs Hub](README.md)
-- [Permission Status Badge, Row Rendering, and Reason Visibility Reference](permission_status_badge_row_rendering_and_reason_visibility_reference.md)
+- [Permission Status Badge Rendering Reference](permission_status_badge_row_rendering_and_reason_visibility_reference.md)
 - [Renderer Settings Sections Docs Hub](../settings/sections/README.md)
 - [Permission Manifest, Probe, and IPC Request Contract Reference](../../main/permission_manifest_probe_and_request_ipc_reference.md)
 - [Preload Allowlist and Channel-Constant Parity Reference](../../contracts/ipc/preload_allowlist_and_channel_constant_parity_reference.md)
