@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/tests: add a database-backed edit/resend replay integration test
+  that seeds canonical `chat_events`, drives the renderer replay hook, verifies
+  backend rehydrate, and confirms stale stored tail rows are cut before resend.
 - sidecar/chat: derive recent-conversation sidebar metadata from user-facing
   chat events only, so SDK lifecycle events no longer appear as chat titles,
   previews, or workspace grouping sources.
