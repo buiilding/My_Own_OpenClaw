@@ -6,6 +6,10 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- frontend/renderer: smooth minimal chat pill collapse from the max-height
+  multiline composer by routing clamped-to-empty deletes through a controlled
+  paint-ordered collapse instead of jumping straight from capped textarea
+  height to compact height.
 - cli/frontend: capture Electron main/frontend desktop stdout and filtered stderr
   to `.windie/logs/frontend.log`, add `bin/windie logs frontend` for live
   tailing that stream, and keep `bin/windie logs desktop` as an alias.

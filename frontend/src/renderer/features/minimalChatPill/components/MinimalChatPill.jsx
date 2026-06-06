@@ -44,6 +44,7 @@ import AttachmentPreviewRow from './AttachmentPreviewRow';
 import { applyStopQueryUiState } from '../../chat/utils/state/stopQueryState';
 
 const CHATBOX_COMPOSER_MAX_HEIGHT = 128;
+const CHATBOX_COMPOSER_MAX_HEIGHT_EPSILON = 1;
 const CHATBOX_NATIVE_FRAME_COLLAPSE_DELAY_MS = 180;
 
 function MinimalChatPill() {
@@ -277,6 +278,29 @@ function MinimalChatPill() {
     inputRef.current.style.height = `${height}px`;
   }, []);
 
+  const scheduleComposerHeightAfterPaint = useCallback(({
+    height,
+    sequence,
+    onApplied,
+  }) => {
+    const applyIfCurrent = () => {
+      if (composerResizeSequenceRef.current !== sequence) {
+        return;
+      }
+      applyComposerHeight(height);
+      onApplied?.();
+    };
+
+    if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') {
+      applyIfCurrent();
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(applyIfCurrent);
+    });
+  }, [applyComposerHeight]);
+
   const resizeComposer = useCallback(() => {
     const inputElement = inputRef.current;
     if (!inputElement) {
@@ -299,8 +323,25 @@ function MinimalChatPill() {
     composerResizeSequenceRef.current = sequence;
 
     if (nextHeight <= currentHeight) {
+      const isEmptyComposer = !inputValue.trim() && !hasAttachmentPreview;
+      const isCollapsingFromClampedHeight = (
+        isEmptyComposer
+        && currentHeight >= CHATBOX_COMPOSER_MAX_HEIGHT - CHATBOX_COMPOSER_MAX_HEIGHT_EPSILON
+        && nextHeight < currentHeight
+      );
+      if (isCollapsingFromClampedHeight) {
+        clearNativeFrameCollapse();
+        applyComposerHeight(CHATBOX_COMPOSER_MAX_HEIGHT);
+        scheduleComposerHeightAfterPaint({
+          height: nextHeight,
+          sequence,
+          onApplied: scheduleNativeFrameCollapse,
+        });
+        return;
+      }
+
       applyComposerHeight(nextHeight);
-      if (!inputValue.trim() && !hasAttachmentPreview) {
+      if (isEmptyComposer) {
         scheduleNativeFrameCollapse();
       }
       return;
@@ -357,6 +398,7 @@ function MinimalChatPill() {
     hasAttachmentPreview,
     inputValue,
     resolveNativeFrameHeightForShellHeight,
+    scheduleComposerHeightAfterPaint,
     scheduleNativeFrameCollapse,
     setReservedNativeFrameHeight,
   ]);
