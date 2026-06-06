@@ -237,6 +237,224 @@ class _ApiParseFailureLLMClient:
         return None
 
 
+class _Transient503ThenSuccessLLMClient:
+    def __init__(self):
+        self.calls = 0
+
+    async def get_completion_stream(
+        self,
+        model,
+        messages,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+    ):
+        _ = (model, messages, tools, tool_choice, parallel_tool_calls)
+        self.calls += 1
+        if self.calls == 1:
+            yield ErrorEvent(
+                content="OpenAIProvider API error (HTTP 503)",
+                metadata={
+                    "provider": "openai",
+                    "status_code": 503,
+                    "error_kind": "server_error",
+                    "retryable": True,
+                    "transient": True,
+                },
+            )
+            return
+        yield ChunkEvent(content="retry-success")
+
+    def get_last_stream_cache_diagnostics(self):
+        return None
+
+
+class _Transient503AlwaysLLMClient:
+    def __init__(self):
+        self.calls = 0
+
+    async def get_completion_stream(
+        self,
+        model,
+        messages,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+    ):
+        _ = (model, messages, tools, tool_choice, parallel_tool_calls)
+        self.calls += 1
+        yield ErrorEvent(
+            content="OpenAIProvider API error (HTTP 503)",
+            metadata={
+                "provider": "openai",
+                "status_code": 503,
+                "error_kind": "server_error",
+                "retryable": True,
+                "transient": True,
+            },
+        )
+
+    def get_last_stream_cache_diagnostics(self):
+        return None
+
+
+class _ChunkThenTransient503LLMClient:
+    def __init__(self):
+        self.calls = 0
+
+    async def get_completion_stream(
+        self,
+        model,
+        messages,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+    ):
+        _ = (model, messages, tools, tool_choice, parallel_tool_calls)
+        self.calls += 1
+        yield ChunkEvent(content="partial")
+        yield ErrorEvent(
+            content="OpenAIProvider API error (HTTP 503)",
+            metadata={
+                "provider": "openai",
+                "status_code": 503,
+                "error_kind": "server_error",
+                "retryable": True,
+                "transient": True,
+            },
+        )
+
+    def get_last_stream_cache_diagnostics(self):
+        return None
+
+
+class _ThinkingThenTransient503LLMClient(_ChunkThenTransient503LLMClient):
+    async def get_completion_stream(
+        self,
+        model,
+        messages,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+    ):
+        _ = (model, messages, tools, tool_choice, parallel_tool_calls)
+        self.calls += 1
+        yield ThinkingEvent(content="thinking before failure")
+        yield ErrorEvent(
+            content="OpenAIProvider API error (HTTP 503)",
+            metadata={
+                "provider": "openai",
+                "status_code": 503,
+                "error_kind": "server_error",
+                "retryable": True,
+                "transient": True,
+            },
+        )
+
+
+class _ProgressThenTransient503LLMClient(_ChunkThenTransient503LLMClient):
+    async def get_completion_stream(
+        self,
+        model,
+        messages,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+    ):
+        _ = (model, messages, tools, tool_choice, parallel_tool_calls)
+        self.calls += 1
+        yield WebSearchProgressEvent(text="searching before failure")
+        yield ErrorEvent(
+            content="OpenAIProvider API error (HTTP 503)",
+            metadata={
+                "provider": "openai",
+                "status_code": 503,
+                "error_kind": "server_error",
+                "retryable": True,
+                "transient": True,
+            },
+        )
+
+
+class _NonRetryableStatusLLMClient:
+    def __init__(self, status_code, error_kind="invalid_request"):
+        self.status_code = status_code
+        self.error_kind = error_kind
+        self.calls = 0
+
+    async def get_completion_stream(
+        self,
+        model,
+        messages,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+    ):
+        _ = (model, messages, tools, tool_choice, parallel_tool_calls)
+        self.calls += 1
+        yield ErrorEvent(
+            content=f"OpenAIProvider API error (HTTP {self.status_code})",
+            metadata={
+                "provider": "openai",
+                "status_code": self.status_code,
+                "error_kind": self.error_kind,
+                "retryable": False,
+                "transient": False,
+            },
+        )
+
+    def get_last_stream_cache_diagnostics(self):
+        return None
+
+
+class _NativeTransient503ThenSuccessLLMClient:
+    def __init__(self):
+        self.calls = 0
+
+    async def get_completion_response(
+        self,
+        model,
+        messages,
+        tools=None,
+        tool_choice=None,
+        parallel_tool_calls=None,
+        prompt_cache_key=None,
+        native_web_search_enabled=None,
+        previous_response_id=None,
+    ):
+        _ = (
+            messages,
+            tools,
+            tool_choice,
+            parallel_tool_calls,
+            prompt_cache_key,
+            native_web_search_enabled,
+            previous_response_id,
+        )
+        self.calls += 1
+        if self.calls == 1:
+            raise LLMAPIError(
+                "OpenAIProvider API error (HTTP 503)",
+                model=model,
+                status_code=503,
+                metadata={
+                    "provider": "openai",
+                    "status_code": 503,
+                    "error_kind": "server_error",
+                    "retryable": True,
+                    "transient": True,
+                },
+            )
+        return {"content": "native-retry-success"}
+
+    def supports_streaming_tool_turns(self, model):
+        _ = model
+        return False
+
+    def get_last_stream_cache_diagnostics(self):
+        return None
+
+
 class _ProviderUsageLLMClient:
     async def get_completion_stream(
         self,
@@ -625,6 +843,139 @@ async def test_get_response_serializes_overlapping_turns(monkeypatch):
     assert any(
         isinstance(event, ChunkEvent) and event.content == "resp-second"
         for event in second_events
+    )
+
+
+@pytest.mark.asyncio
+async def test_retries_pre_output_transient_stream_error_once(monkeypatch, caplog):
+    _patch_fake_token_service(monkeypatch)
+    monkeypatch.setattr(
+        "backend.src.agent.llm.retry_policy.PROVIDER_RETRY_BACKOFF_SECONDS",
+        0,
+    )
+    llm_client = _Transient503ThenSuccessLLMClient()
+    processor = LLMStreamProcessor(llm_client=llm_client, session=_FakeSession())
+    caplog.set_level(logging.WARNING)
+
+    events = await _collect_response_events(processor)
+
+    assert llm_client.calls == 2
+    assert not any(isinstance(event, ErrorEvent) for event in events)
+    assert any(
+        isinstance(event, ChunkEvent) and event.content == "retry-success"
+        for event in events
+    )
+    assert "[LLM Retry] retrying transient provider error" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_exhausted_pre_output_transient_stream_error_emits_one_error(
+    monkeypatch,
+):
+    _patch_fake_token_service(monkeypatch)
+    monkeypatch.setattr(
+        "backend.src.agent.llm.retry_policy.PROVIDER_RETRY_BACKOFF_SECONDS",
+        0,
+    )
+    llm_client = _Transient503AlwaysLLMClient()
+    processor = LLMStreamProcessor(llm_client=llm_client, session=_FakeSession())
+
+    events = await _collect_response_events(processor)
+
+    error_events = [event for event in events if isinstance(event, ErrorEvent)]
+    assert llm_client.calls == 2
+    assert len(error_events) == 1
+    assert error_events[0].metadata is not None
+    assert error_events[0].metadata["status_code"] == 503
+    assert error_events[0].metadata["partial_response_emitted"] is False
+    assert any(isinstance(event, FullResponseEvent) for event in events)
+    assert any(isinstance(event, TokenCountEvent) for event in events)
+
+
+@pytest.mark.asyncio
+async def test_does_not_retry_transient_error_after_chunk(monkeypatch):
+    _patch_fake_token_service(monkeypatch)
+    llm_client = _ChunkThenTransient503LLMClient()
+    processor = LLMStreamProcessor(llm_client=llm_client, session=_FakeSession())
+
+    events = await _collect_response_events(processor)
+
+    error_events = [event for event in events if isinstance(event, ErrorEvent)]
+    assert llm_client.calls == 1
+    assert any(
+        isinstance(event, ChunkEvent) and event.content == "partial" for event in events
+    )
+    assert len(error_events) == 1
+    assert error_events[0].metadata is not None
+    assert error_events[0].metadata["partial_response_emitted"] is True
+
+
+@pytest.mark.asyncio
+async def test_does_not_retry_transient_error_after_thinking(monkeypatch):
+    _patch_fake_token_service(monkeypatch)
+    llm_client = _ThinkingThenTransient503LLMClient()
+    processor = LLMStreamProcessor(llm_client=llm_client, session=_FakeSession())
+
+    events = await _collect_response_events(processor)
+
+    assert llm_client.calls == 1
+    assert any(isinstance(event, ThinkingEvent) for event in events)
+    assert any(isinstance(event, ErrorEvent) for event in events)
+
+
+@pytest.mark.asyncio
+async def test_does_not_retry_transient_error_after_progress_event(monkeypatch):
+    _patch_fake_token_service(monkeypatch)
+    llm_client = _ProgressThenTransient503LLMClient()
+    processor = LLMStreamProcessor(llm_client=llm_client, session=_FakeSession())
+
+    events = await _collect_response_events(processor)
+
+    assert llm_client.calls == 1
+    assert any(isinstance(event, WebSearchProgressEvent) for event in events)
+    assert any(isinstance(event, ErrorEvent) for event in events)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("status_code", "error_kind"),
+    [(400, "invalid_request"), (429, "rate_limit")],
+)
+async def test_does_not_retry_non_transient_stream_errors(
+    status_code,
+    error_kind,
+    monkeypatch,
+):
+    _patch_fake_token_service(monkeypatch)
+    llm_client = _NonRetryableStatusLLMClient(status_code, error_kind=error_kind)
+    processor = LLMStreamProcessor(llm_client=llm_client, session=_FakeSession())
+
+    events = await _collect_response_events(processor)
+
+    assert llm_client.calls == 1
+    assert sum(isinstance(event, ErrorEvent) for event in events) == 1
+
+
+@pytest.mark.asyncio
+async def test_retries_pre_output_transient_native_completion_error(monkeypatch):
+    _patch_fake_token_service(monkeypatch)
+    monkeypatch.setattr(
+        "backend.src.agent.llm.retry_policy.PROVIDER_RETRY_BACKOFF_SECONDS",
+        0,
+    )
+    llm_client = _NativeTransient503ThenSuccessLLMClient()
+    processor = LLMStreamProcessor(llm_client=llm_client, session=_FakeSession())
+
+    events = await _collect_response_events(
+        processor,
+        tools=_single_function_tool("noop"),
+    )
+
+    assert llm_client.calls == 2
+    assert not any(isinstance(event, ErrorEvent) for event in events)
+    assert any(
+        isinstance(event, ChunkEvent) and event.content == "native-retry-success"
+        for event in events
     )
 
 

@@ -2,7 +2,11 @@
 
 import pytest
 
-from backend.src.core.events.streaming_events import ChunkEvent, ErrorEvent, ThinkingEvent
+from backend.src.core.events.streaming_events import (
+    ChunkEvent,
+    ErrorEvent,
+    ThinkingEvent,
+)
 from backend.src.llm.providers.kimi_coding import KimiCodingProvider
 
 
@@ -155,7 +159,9 @@ async def test_kimi_completion_uses_anthropic_custom_provider(monkeypatch):
             ]
         }
 
-    monkeypatch.setattr("backend.src.llm.providers.base.litellm.acompletion", fake_acompletion)
+    monkeypatch.setattr(
+        "backend.src.llm.providers.base.litellm.acompletion", fake_acompletion
+    )
 
     result = await provider.get_completion(
         model="k2p5",
@@ -173,12 +179,12 @@ async def test_kimi_stream_emits_thinking_and_captures_stream_tool_calls(monkeyp
             reasoning_content="step-1",
             content="Hello ",
             tool_name="read_file",
-            tool_arguments="{\"path\":\"/tmp",
+            tool_arguments='{"path":"/tmp',
             tool_call_id="call_1",
         )
         yield _build_stream_chunk(
             content="world",
-            tool_arguments="/demo.txt\"}",
+            tool_arguments='/demo.txt"}',
             finish_reason="tool_calls",
         )
 
@@ -188,8 +194,13 @@ async def test_kimi_stream_emits_thinking_and_captures_stream_tool_calls(monkeyp
         tool_name="read_file",
     )
 
-    assert any(isinstance(event, ThinkingEvent) and event.content == "step-1" for event in events)
-    chunk_text = "".join(event.content for event in events if isinstance(event, ChunkEvent))
+    assert any(
+        isinstance(event, ThinkingEvent) and event.content == "step-1"
+        for event in events
+    )
+    chunk_text = "".join(
+        event.content for event in events if isinstance(event, ChunkEvent)
+    )
     assert chunk_text == "Hello world"
 
     payload = provider.get_last_stream_response_payload()
@@ -229,7 +240,9 @@ async def test_kimi_stream_sets_stream_options_and_custom_provider(monkeypatch):
         prompt_cache_key="cache-key",
     )
 
-    assert any(isinstance(event, ChunkEvent) and event.content == "ok" for event in events)
+    assert any(
+        isinstance(event, ChunkEvent) and event.content == "ok" for event in events
+    )
     assert captured_kwargs["stream"] is True
     assert captured_kwargs["stream_options"] == {"include_usage": True}
     assert captured_kwargs["custom_llm_provider"] == "anthropic"
@@ -237,11 +250,13 @@ async def test_kimi_stream_sets_stream_options_and_custom_provider(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_kimi_stream_emits_error_event_when_tool_arguments_json_is_invalid(monkeypatch):
+async def test_kimi_stream_emits_error_event_when_tool_arguments_json_is_invalid(
+    monkeypatch,
+):
     async def fake_stream():
         yield _build_stream_chunk(
             tool_name="replace",
-            tool_arguments="{\"file_path\":\"/tmp/a\",\"new_string\":\"unterminated",
+            tool_arguments='{"file_path":"/tmp/a","new_string":"unterminated',
             tool_call_id="call_bad",
             finish_reason="tool_calls",
         )
@@ -255,12 +270,15 @@ async def test_kimi_stream_emits_error_event_when_tool_arguments_json_is_invalid
     error_messages = [
         event.content for event in events if isinstance(event, ErrorEvent)
     ]
-    assert error_messages == ["An unexpected error occurred with KimiCodingProvider"]
+    assert len(error_messages) == 1
+    assert "failed to parse streamed tool-call arguments" in error_messages[0]
     assert provider.get_last_stream_response_payload() is None
 
 
 @pytest.mark.asyncio
-async def test_kimi_stream_parses_block_tool_use_and_synthesizes_missing_id(monkeypatch):
+async def test_kimi_stream_parses_block_tool_use_and_synthesizes_missing_id(
+    monkeypatch,
+):
     async def fake_stream():
         yield _build_block_tool_use_chunk(
             text_block="Hello ",
@@ -276,7 +294,9 @@ async def test_kimi_stream_parses_block_tool_use_and_synthesizes_missing_id(monk
         tool_name="read_file",
     )
 
-    chunk_text = "".join(event.content for event in events if isinstance(event, ChunkEvent))
+    chunk_text = "".join(
+        event.content for event in events if isinstance(event, ChunkEvent)
+    )
     assert chunk_text == "Hello world"
 
     payload = provider.get_last_stream_response_payload()
@@ -295,7 +315,7 @@ async def test_kimi_stream_prefers_object_arguments_over_fragmented_string(monke
     async def fake_stream():
         yield _build_stream_chunk(
             tool_name="replace",
-            tool_arguments="{\"file_path\":\"/tmp/a\",\"old_string\":\"x\"",
+            tool_arguments='{"file_path":"/tmp/a","old_string":"x"',
         )
         yield _build_block_tool_use_chunk(
             tool_name="replace",

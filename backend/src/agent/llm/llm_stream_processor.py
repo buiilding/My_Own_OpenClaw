@@ -9,6 +9,11 @@ import logging
 import time
 from typing import TYPE_CHECKING, Any, AsyncGenerator, Dict, List, Optional
 
+from backend.src.agent.llm.retry_policy import (
+    MAX_PROVIDER_SAMPLING_ATTEMPTS,
+    is_downstream_visible_event,
+    should_retry_provider_error,
+)
 from backend.src.agent.llm.stream_processor_helpers import (
     apply_stream_event,
     build_llm_api_error_message,
@@ -107,7 +112,6 @@ class LLMStreamProcessor:
         Yields:
             Streaming events: ChunkEvent, ThinkingEvent, ErrorEvent, FullResponseEvent, TokenCountEvent
         """
-        llm_start_time = time.perf_counter()
         model_id = self.session.cfg.selected_model_id
         turn = self._log_prompt_cache_hint(prompt, model_id)
         prompt_cache_key = self._resolve_prompt_cache_key()
@@ -130,112 +134,175 @@ class LLMStreamProcessor:
             native_web_search_enabled=native_web_search_enabled,
             previous_response_id=previous_response_id,
         )
-        self._last_response_payload = None
-        full_text = ""
         preflight_prompt_tokens = self._count_provider_prompt_tokens_before_request(
             prompt,
             tools=tools,
         )
-        logger.info(
-            "[Timing] LLM request started (session=%s, turn=%s, model=%s, preflight_prompt_tokens=%s)",
-            self.session.session_id,
-            turn,
+        use_native_completion = self._should_use_native_completion_path(
+            tools,
             model_id,
-            preflight_prompt_tokens,
         )
 
-        try:
-            if self._should_use_native_completion_path(tools, model_id):
-                response = await self.llm_client.get_completion_response(
-                    **request_kwargs
-                )
-                full_text = response.get("content", "")
-                self._last_response_payload = response
+        for attempt in range(1, MAX_PROVIDER_SAMPLING_ATTEMPTS + 1):
+            llm_start_time = time.perf_counter()
+            self._last_response_payload = None
+            full_text = ""
+            output_emitted = False
+            retrying_attempt = False
+            logger.info(
+                "[Timing] LLM request started (session=%s, turn=%s, model=%s, preflight_prompt_tokens=%s, attempt=%s/%s)",
+                self.session.session_id,
+                turn,
+                model_id,
+                preflight_prompt_tokens,
+                attempt,
+                MAX_PROVIDER_SAMPLING_ATTEMPTS,
+            )
 
-                if full_text:
-                    # Preserve frontend chunk contract for non-stream path.
-                    yield ChunkEvent(content=full_text)
+            try:
+                if use_native_completion:
+                    response = await self.llm_client.get_completion_response(
+                        **request_kwargs
+                    )
+                    full_text = response.get("content", "")
+                    self._last_response_payload = response
 
-                self._log_provider_cache_diagnostics(model_id, turn)
-            else:
-                first_token_time = None
-                async for event in self._iter_completion_stream(
-                    request_kwargs=request_kwargs,
-                ):
-                    if first_token_time is None:
-                        first_token_time = time.perf_counter()
-                        first_token_latency = first_token_time - llm_start_time
-                        logger.info(
-                            "[Timing] LLM first token received in %.3fs",
-                            first_token_latency,
-                        )
+                    if full_text:
+                        output_emitted = True
+                        # Preserve frontend chunk contract for non-stream path.
+                        yield ChunkEvent(content=full_text)
 
-                    full_text, event_to_emit = apply_stream_event(event, full_text)
-                    if event_to_emit is not None:
+                    self._log_provider_cache_diagnostics(model_id, turn)
+                else:
+                    first_token_time = None
+                    async for event in self._iter_completion_stream(
+                        request_kwargs=request_kwargs,
+                    ):
+                        full_text, event_to_emit = apply_stream_event(event, full_text)
+                        if event_to_emit is None:
+                            continue
+
+                        if isinstance(event_to_emit, ErrorEvent):
+                            error_event = self._with_stream_failure_metadata(
+                                event_to_emit,
+                                full_text,
+                            )
+                            retry_decision = should_retry_provider_error(
+                                error_event,
+                                attempt=attempt,
+                                output_emitted=output_emitted,
+                            )
+                            if retry_decision.should_retry:
+                                await self._sleep_before_provider_retry(
+                                    error_event=error_event,
+                                    retry_reason=retry_decision.reason,
+                                    delay_seconds=retry_decision.delay_seconds,
+                                    attempt=attempt,
+                                )
+                                retrying_attempt = True
+                                break
+                            yield error_event
+                            continue
+
+                        if first_token_time is None:
+                            first_token_time = time.perf_counter()
+                            first_token_latency = first_token_time - llm_start_time
+                            logger.info(
+                                "[Timing] LLM first token received in %.3fs",
+                                first_token_latency,
+                            )
+
+                        if is_downstream_visible_event(event_to_emit):
+                            output_emitted = True
                         yield event_to_emit
 
-                stream_payload_getter = getattr(
-                    self.llm_client,
-                    "get_last_stream_response_payload",
-                    None,
+                    if retrying_attempt:
+                        continue
+
+                    stream_payload_getter = getattr(
+                        self.llm_client,
+                        "get_last_stream_response_payload",
+                        None,
+                    )
+                    stream_payload = (
+                        stream_payload_getter()
+                        if callable(stream_payload_getter)
+                        else None
+                    )
+                    self._last_response_payload = normalize_stream_response_payload(
+                        stream_payload,
+                        full_text,
+                    )
+                    self._log_provider_cache_diagnostics(model_id, turn)
+
+                yield FullResponseEvent(content=full_text)
+
+                token_counts = await self._count_tokens(prompt, full_text, tools=tools)
+                self._record_provider_prompt_tokens_for_compaction(token_counts)
+                yield TokenCountEvent(
+                    prompt_tokens=token_counts.prompt_tokens,
+                    visible_output_tokens=token_counts.visible_output_tokens,
+                    thinking_tokens=token_counts.thinking_tokens,
+                    output_tokens_total=token_counts.output_tokens_total,
+                    total_tokens=token_counts.total_tokens,
+                    conversation_tokens=token_counts.conversation_tokens,
+                    usage_source=token_counts.usage_source,
+                    cached_tokens=token_counts.cached_tokens,
+                    cache_hit=token_counts.cache_hit,
+                    cache_status=token_counts.cache_status,
                 )
-                stream_payload = (
-                    stream_payload_getter() if callable(stream_payload_getter) else None
+
+                llm_total_time = time.perf_counter() - llm_start_time
+                logger.info(
+                    "[Timing] LLM response completed in %.3fs (model=%s, tokens=%s, attempt=%s/%s)",
+                    llm_total_time,
+                    model_id,
+                    token_counts.total_tokens,
+                    attempt,
+                    MAX_PROVIDER_SAMPLING_ATTEMPTS,
                 )
-                self._last_response_payload = normalize_stream_response_payload(
-                    stream_payload,
-                    full_text,
+                return
+
+            except LLMRateLimitError as e:
+                metadata = self._build_stream_failure_metadata(full_text)
+                if isinstance(e.metadata, dict):
+                    metadata.update(e.metadata)
+                yield ErrorEvent(
+                    content="Rate limit exceeded. Please wait.",
+                    metadata=metadata,
                 )
-                self._log_provider_cache_diagnostics(model_id, turn)
-
-            yield FullResponseEvent(content=full_text)
-
-            token_counts = await self._count_tokens(prompt, full_text, tools=tools)
-            self._record_provider_prompt_tokens_for_compaction(token_counts)
-            yield TokenCountEvent(
-                prompt_tokens=token_counts.prompt_tokens,
-                visible_output_tokens=token_counts.visible_output_tokens,
-                thinking_tokens=token_counts.thinking_tokens,
-                output_tokens_total=token_counts.output_tokens_total,
-                total_tokens=token_counts.total_tokens,
-                conversation_tokens=token_counts.conversation_tokens,
-                usage_source=token_counts.usage_source,
-                cached_tokens=token_counts.cached_tokens,
-                cache_hit=token_counts.cache_hit,
-                cache_status=token_counts.cache_status,
-            )
-
-            llm_total_time = time.perf_counter() - llm_start_time
-            logger.info(
-                "[Timing] LLM response completed in %.3fs (model=%s, tokens=%s)",
-                llm_total_time,
-                model_id,
-                token_counts.total_tokens,
-            )
-
-        except LLMRateLimitError:
-            yield ErrorEvent(
-                content="Rate limit exceeded. Please wait.",
-                metadata=self._build_stream_failure_metadata(full_text),
-            )
-            raise
-        except LLMAPIError as e:
-            logger.error(f"LLM API error: {e}", exc_info=True)
-            metadata = self._build_stream_failure_metadata(full_text)
-            if isinstance(e.metadata, dict):
-                metadata.update(e.metadata)
-            yield ErrorEvent(
-                content=self._build_llm_api_error_message(e),
-                metadata=metadata,
-            )
-            raise
-        except Exception as e:
-            logger.error(f"LLM error: {e}", exc_info=True)
-            yield ErrorEvent(
-                content=f"LLM error: {str(e)}",
-                metadata=self._build_stream_failure_metadata(full_text),
-            )
-            raise
+                raise
+            except LLMAPIError as e:
+                logger.error(f"LLM API error: {e}", exc_info=True)
+                metadata = self._build_stream_failure_metadata(full_text)
+                if isinstance(e.metadata, dict):
+                    metadata.update(e.metadata)
+                error_event = ErrorEvent(
+                    content=self._build_llm_api_error_message(e),
+                    metadata=metadata,
+                )
+                retry_decision = should_retry_provider_error(
+                    error_event,
+                    attempt=attempt,
+                    output_emitted=output_emitted,
+                )
+                if retry_decision.should_retry:
+                    await self._sleep_before_provider_retry(
+                        error_event=error_event,
+                        retry_reason=retry_decision.reason,
+                        delay_seconds=retry_decision.delay_seconds,
+                        attempt=attempt,
+                    )
+                    continue
+                yield error_event
+                raise
+            except Exception as e:
+                logger.error(f"LLM error: {e}", exc_info=True)
+                yield ErrorEvent(
+                    content=f"LLM error: {str(e)}",
+                    metadata=self._build_stream_failure_metadata(full_text),
+                )
+                raise
 
     @staticmethod
     def _build_stream_failure_metadata(full_text: str) -> dict:
@@ -246,6 +313,40 @@ class LLMStreamProcessor:
             "partial_response_emitted": partial_response_emitted,
             "discard_partial_response": partial_response_emitted,
         }
+
+    @classmethod
+    def _with_stream_failure_metadata(
+        cls,
+        event: ErrorEvent,
+        full_text: str,
+    ) -> ErrorEvent:
+        metadata = cls._build_stream_failure_metadata(full_text)
+        if isinstance(event.metadata, dict):
+            metadata.update(event.metadata)
+        return ErrorEvent(content=event.content, metadata=metadata)
+
+    async def _sleep_before_provider_retry(
+        self,
+        *,
+        error_event: ErrorEvent,
+        retry_reason: str,
+        delay_seconds: float,
+        attempt: int,
+    ) -> None:
+        metadata = (
+            error_event.metadata if isinstance(error_event.metadata, dict) else {}
+        )
+        logger.warning(
+            "[LLM Retry] retrying transient provider error provider=%s status=%s kind=%s reason=%s attempt=%s/%s delay=%.2fs",
+            metadata.get("provider"),
+            metadata.get("status_code"),
+            metadata.get("error_kind"),
+            retry_reason,
+            attempt,
+            MAX_PROVIDER_SAMPLING_ATTEMPTS,
+            delay_seconds,
+        )
+        await asyncio.sleep(delay_seconds)
 
     def get_last_response_payload(self) -> Optional[NormalizedLLMResponse]:
         """Return normalized payload captured for the most recent LLM turn."""

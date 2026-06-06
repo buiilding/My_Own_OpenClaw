@@ -18,6 +18,7 @@ from backend.src.llm.models.models_config import resolve_runtime_model_id
 from backend.src.llm.providers.base_payload_helpers import ProviderPayloadHelpersMixin
 from backend.src.llm.providers.error_mapping import (
     build_api_error_message,
+    build_provider_error_metadata,
     extract_status_code,
     iter_exception_chain,
 )
@@ -146,17 +147,27 @@ class LLMProvider(ProviderPayloadHelpersMixin, ABC):
                 ),
             )
         except litellm_exceptions.RateLimitError as e:
+            metadata = build_provider_error_metadata(
+                provider_label,
+                None,
+                e,
+                rate_limited=True,
+                retry_after_seconds=getattr(e, "retry_after", None),
+            )
             raise LLMRateLimitError(
                 f"{provider_label} rate limit exceeded",
                 model=model,
+                metadata=metadata,
                 cause=e,
             )
         except litellm_exceptions.APIError as e:
             status_code = self._extract_status_code(e)
+            metadata = build_provider_error_metadata(provider_label, status_code, e)
             raise LLMAPIError(
                 self._build_api_error_message(provider_label, status_code),
                 model=model,
                 status_code=status_code,
+                metadata=metadata,
                 cause=e,
             )
         except LLMAPIError:
@@ -164,10 +175,16 @@ class LLMProvider(ProviderPayloadHelpersMixin, ABC):
         except Exception as e:
             status_code = self._extract_status_code(e)
             if status_code is not None:
+                metadata = build_provider_error_metadata(
+                    provider_label,
+                    status_code,
+                    e,
+                )
                 raise LLMAPIError(
                     self._build_api_error_message(provider_label, status_code),
                     model=model,
                     status_code=status_code,
+                    metadata=metadata,
                     cause=e,
                 )
             raise LLMError(
@@ -250,7 +267,16 @@ class LLMProvider(ProviderPayloadHelpersMixin, ABC):
                 yield event
         except litellm_exceptions.RateLimitError as e:
             logger.error(f"Rate limit error in {self.__class__.__name__}: {e}")
-            yield ErrorEvent(content="Rate limit exceeded. Please try again later.")
+            yield ErrorEvent(
+                content="Rate limit exceeded. Please try again later.",
+                metadata=build_provider_error_metadata(
+                    self.__class__.__name__,
+                    None,
+                    e,
+                    rate_limited=True,
+                    retry_after_seconds=getattr(e, "retry_after", None),
+                ),
+            )
         except litellm_exceptions.APIError as e:
             logger.error(f"API error in {self.__class__.__name__}: {e}")
             status_code = self._extract_status_code(e)
@@ -258,8 +284,24 @@ class LLMProvider(ProviderPayloadHelpersMixin, ABC):
                 content=self._build_api_error_message(
                     self.__class__.__name__,
                     status_code,
-                )
+                ),
+                metadata=build_provider_error_metadata(
+                    self.__class__.__name__,
+                    status_code,
+                    e,
+                ),
             )
+        except LLMAPIError as e:
+            logger.error(f"LLM API error in {self.__class__.__name__}: {e}")
+            status_code = self._extract_status_code(e)
+            metadata = build_provider_error_metadata(
+                self.__class__.__name__,
+                status_code,
+                e,
+            )
+            if isinstance(e.metadata, dict):
+                metadata.update(e.metadata)
+            yield ErrorEvent(content=str(e), metadata=metadata)
         except Exception as e:
             logger.error(
                 f"Unexpected error in {self.__class__.__name__}: {e}", exc_info=True
@@ -270,11 +312,21 @@ class LLMProvider(ProviderPayloadHelpersMixin, ABC):
                     content=self._build_api_error_message(
                         self.__class__.__name__,
                         status_code,
-                    )
+                    ),
+                    metadata=build_provider_error_metadata(
+                        self.__class__.__name__,
+                        status_code,
+                        e,
+                    ),
                 )
                 return
             yield ErrorEvent(
-                content=f"An unexpected error occurred with {self.__class__.__name__}"
+                content=f"An unexpected error occurred with {self.__class__.__name__}",
+                metadata=build_provider_error_metadata(
+                    self.__class__.__name__,
+                    None,
+                    e,
+                ),
             )
 
     def clear_last_stream_usage(self) -> None:

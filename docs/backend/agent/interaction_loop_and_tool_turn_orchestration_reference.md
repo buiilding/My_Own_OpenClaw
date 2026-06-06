@@ -97,6 +97,12 @@ Error handling:
 - rate limit -> deterministic user-facing message + history marker
 - other LLM/tool failures -> error event + history marker
 
+Transient provider retries happen before `InteractionLoop` receives a terminal
+LLM error. `LLMStreamProcessor` may retry one provider sampling attempt when the
+provider reports a retryable 5xx/transport failure before any model output is
+visible. `InteractionLoop` does not replay the user query, user-message history
+admission, or tool execution for these retries.
+
 ## Loop Continuation Semantics
 
 `InteractionLoop` continues until one of these terminal conditions occurs:

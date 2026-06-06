@@ -11,8 +11,10 @@ title: "LLM Stream Processor Token Count and Cache Diagnostics Reference"
 ## Canonical Modules
 
 - `backend/src/agent/llm/llm_stream_processor.py`
+- `backend/src/agent/llm/retry_policy.py`
 - `backend/src/agent/llm/stream_processor_helpers.py`
 - `backend/src/agent/llm/token_counting.py`
+- `backend/src/llm/providers/error_mapping.py`
 - `backend/src/llm/request_kwargs.py`
 - `backend/src/services/token_service.py`
 - `tests/backend/test_llm_stream_processor.py`
@@ -43,6 +45,41 @@ When a provider emits one or more chunks and then fails validation, the already
 emitted chunks are not retroactively hidden. Consumers must treat the terminal
 error metadata as authoritative and avoid committing the partial assistant text
 as a successful response.
+
+## Transient Provider Retry
+
+`LLMStreamProcessor` owns bounded retries for one provider sampling operation.
+It does not replay the websocket query handler, user-message history admission,
+the interaction loop, or tool execution.
+
+Retry is allowed only when a provider failure is both:
+
+- normalized as transient/retryable by provider metadata, such as HTTP `502`,
+  `503`, `504`, or a pre-response transport timeout/reset
+- emitted before any downstream-visible output, including assistant text,
+  thinking, web-search progress, or tool execution
+
+Initial policy:
+
+- two total attempts
+- one retry
+- short bounded backoff
+- metadata-first classification through `retry_policy.py`
+
+Provider wrappers attach normalized fields to `ErrorEvent.metadata`:
+
+- `provider`
+- `status_code`
+- `error_kind`
+- `retryable`
+- `transient`
+- `retry_after_seconds`
+
+`429` stays on the rate-limit path, context overflow stays on the compaction
+recovery path, and recoverable tool-call format failures stay on the synthetic
+tool-output correction path. If a retry succeeds, downstream consumers see the
+normal successful stream. If retries are exhausted, `InteractionLoop` sees one
+terminal error event and preserves its existing failure semantics.
 
 ## Stream vs Native Completion Branching
 

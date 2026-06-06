@@ -1047,6 +1047,14 @@ class TestGetCompletionStream:
         assert len(events) == 1
         assert isinstance(events[0], ErrorEvent)
         assert events[0].content == "ErrorProvider API error (HTTP 502)"
+        assert events[0].metadata == {
+            "provider": "error",
+            "status_code": 502,
+            "error_kind": "server_error",
+            "retryable": True,
+            "transient": True,
+            "retry_after_seconds": None,
+        }
         assert "secret-token-123" not in events[0].content
 
     @pytest.mark.asyncio
@@ -1060,7 +1068,37 @@ class TestGetCompletionStream:
         assert len(events) == 1
         assert isinstance(events[0], ErrorEvent)
         assert events[0].content == "An unexpected error occurred with ErrorProvider"
+        assert events[0].metadata == {
+            "provider": "error",
+            "status_code": None,
+            "error_kind": "unknown",
+            "retryable": False,
+            "transient": False,
+            "retry_after_seconds": None,
+        }
         assert "secret-token-456" not in events[0].content
+
+    @pytest.mark.asyncio
+    async def test_stream_preserves_structured_llm_api_error_event(self):
+        provider = _provider_with_stream_error(
+            lambda: LLMAPIError(
+                "Invalid response from Gemini stream: failed to parse streamed tool-call arguments for id=call_bad name=replace.",
+                model="model",
+                metadata={
+                    "llm_tool_call_id": "call_bad",
+                    "llm_tool_name": "replace",
+                },
+            )
+        )
+
+        events = await _collect_stream_events(provider)
+
+        assert len(events) == 1
+        assert isinstance(events[0], ErrorEvent)
+        assert "failed to parse streamed tool-call arguments" in events[0].content
+        assert events[0].metadata is not None
+        assert events[0].metadata["llm_tool_call_id"] == "call_bad"
+        assert events[0].metadata["llm_tool_name"] == "replace"
 
 
 class TestStandardCompletionHelper:
@@ -1193,12 +1231,22 @@ class TestStandardCompletionHelper:
 
         monkeypatch.setattr(litellm, "acompletion", raise_api_error)
 
-        with pytest.raises(LLMAPIError, match="Mock API error"):
+        with pytest.raises(LLMAPIError, match="Mock API error") as exc_info:
             await provider._get_completion_with_standard_errors(
                 provider_label="Mock",
                 model="model",
                 params={"model": "mock/model", "messages": []},
             )
+
+        assert exc_info.value.metadata == {
+            "model": "model",
+            "status_code": 500,
+            "provider": "mock",
+            "error_kind": "server_error",
+            "retryable": False,
+            "transient": True,
+            "retry_after_seconds": None,
+        }
 
     @pytest.mark.asyncio
     async def test_maps_generic_http_520_exception_to_llm_api_error(
@@ -1211,12 +1259,22 @@ class TestStandardCompletionHelper:
 
         monkeypatch.setattr(litellm, "acompletion", raise_http_520)
 
-        with pytest.raises(LLMAPIError, match="HTTP 520"):
+        with pytest.raises(LLMAPIError, match="HTTP 520") as exc_info:
             await provider._get_completion_with_standard_errors(
                 provider_label="Mock",
                 model="model",
                 params={"model": "mock/model", "messages": []},
             )
+
+        assert exc_info.value.metadata == {
+            "model": "model",
+            "status_code": 520,
+            "provider": "mock",
+            "error_kind": "server_error",
+            "retryable": False,
+            "transient": True,
+            "retry_after_seconds": None,
+        }
 
     @pytest.mark.asyncio
     async def test_maps_generic_exception_to_llm_error(self, provider, monkeypatch):
