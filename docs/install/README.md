@@ -30,6 +30,7 @@ WindieOS install docs cover source-mode development, packaged desktop validation
 
 - Backend dev server: `bin/windie start backend`
 - Desktop dev loop: `bin/windie start dev`
+- Customer-mode desktop loop: `bin/windie start customer`
 - Focused Vite dev server: `bin/windie start frontend`
 - Focused Electron dev app: `bin/windie start desktop`
 - Frontend package build: `bin/windie package mac`, `bin/windie package win`, or `bin/windie package linux`

@@ -20,6 +20,7 @@ describe('windie CLI', () => {
     expect(result.stdout).toContain('windie status --all --json');
     expect(result.stdout).toContain('windie start frontend');
     expect(result.stdout).toContain('windie start dev');
+    expect(result.stdout).toContain('windie start customer');
     expect(result.stdout).toContain('windie start all');
     expect(result.stdout).toContain('windie docs list');
   });
@@ -54,6 +55,17 @@ describe('windie CLI', () => {
       concurrent: [
         { label: 'frontend', command: path.join(repoRoot, 'scripts/run-frontend-dev'), cwd: repoRoot },
         { label: 'desktop', command: path.join(repoRoot, 'scripts/run-frontend-electron'), cwd: repoRoot },
+      ],
+    });
+    expect(getSpawnPlan(['start', 'customer'])).toMatchObject({
+      concurrent: [
+        { label: 'frontend', command: path.join(repoRoot, 'scripts/run-frontend-dev'), cwd: repoRoot },
+        {
+          label: 'customer',
+          command: 'npm',
+          args: ['--prefix', path.join(repoRoot, 'frontend'), 'run', 'electron'],
+          cwd: repoRoot,
+        },
       ],
     });
   });

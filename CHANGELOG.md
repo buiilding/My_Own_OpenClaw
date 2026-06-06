@@ -6,6 +6,8 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- cli: add `bin/windie start customer` to run the Vite renderer dev server and
+  Electron customer app under one foreground command, so Ctrl-C stops both.
 - cli: add `bin/windie start dev` to run the Vite renderer dev server and
   Electron dev app under one foreground command, so Ctrl-C stops both.
 - frontend/sdk: make SDK memory public APIs unwrap sidecar RPC envelopes before

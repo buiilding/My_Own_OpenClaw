@@ -25,6 +25,7 @@ Lifecycle and logs:
   windie start frontend
   windie start desktop
   windie start dev
+  windie start customer
   windie start all
   windie stop
   windie restart desktop
@@ -202,6 +203,17 @@ function runStart(target) {
       { label: 'desktop', command: script('scripts/run-frontend-electron'), cwd: REPO_ROOT },
     ]).then((code) => process.exit(code));
   }
+  if (target === 'customer') {
+    return runConcurrent([
+      { label: 'frontend', command: script('scripts/run-frontend-dev'), cwd: REPO_ROOT },
+      {
+        label: 'customer',
+        command: 'npm',
+        args: ['--prefix', FRONTEND_DIR, 'run', 'electron'],
+        cwd: REPO_ROOT,
+      },
+    ]).then((code) => process.exit(code));
+  }
   if (target === 'all') {
     return runConcurrent([
       { label: 'backend', command: script('scripts/run-backend'), cwd: REPO_ROOT },
@@ -209,7 +221,7 @@ function runStart(target) {
       { label: 'desktop', command: script('scripts/run-frontend-electron'), cwd: REPO_ROOT },
     ]).then((code) => process.exit(code));
   }
-  throw new Error('Usage: windie start backend|frontend|desktop|dev|all');
+  throw new Error('Usage: windie start backend|frontend|desktop|dev|customer|all');
 }
 
 function runRestart(target) {
@@ -626,6 +638,19 @@ function getSpawnPlan(argv) {
       concurrent: [
         { label: 'frontend', command: script('scripts/run-frontend-dev'), cwd: REPO_ROOT },
         { label: 'desktop', command: script('scripts/run-frontend-electron'), cwd: REPO_ROOT },
+      ],
+    };
+  }
+  if (command === 'start' && args[0] === 'customer') {
+    return {
+      concurrent: [
+        { label: 'frontend', command: script('scripts/run-frontend-dev'), cwd: REPO_ROOT },
+        {
+          label: 'customer',
+          command: 'npm',
+          args: ['--prefix', FRONTEND_DIR, 'run', 'electron'],
+          cwd: REPO_ROOT,
+        },
       ],
     };
   }
