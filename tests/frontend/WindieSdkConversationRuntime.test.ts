@@ -2508,6 +2508,157 @@ describe('Windie SDK conversation runtime core', () => {
     });
   });
 
+  test('conversation runtime keeps live-turn presentation stable during slow resource resolution', async () => {
+    let releaseResolver: (() => void) | null = null;
+    const resolverGate = new Promise<void>(resolve => {
+      releaseResolver = resolve;
+    });
+    const transport = createMockBackendTransport({
+      sendQuery: jest.fn(async () => 'query-after-resources'),
+    });
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store: new InMemoryConversationStore(),
+      transport,
+      resourceResolvers: {
+        readable_file: async (resource) => {
+          await resolverGate;
+          return {
+            kind: resource.kind,
+            attachmentContext: '--- Attached File: notes.txt ---\nhello from file',
+            attachmentFilenames: ['notes.txt'],
+          };
+        },
+      },
+      enrichQuery: async ({ payload }) => payload ?? {},
+    });
+    const events: ConversationEvent[] = [];
+    const snapshots: any[] = [];
+    runtime.subscribeEvents((event, snapshot) => {
+      events.push(event);
+      snapshots.push(snapshot);
+    });
+
+    const sendPromise = runtime.send({
+      text: 'summarize this',
+      turnRef: 'turn-slow-resource',
+      resources: [{
+        kind: 'readable_file',
+        filePath: '/tmp/notes.txt',
+        filename: 'notes.txt',
+        required: true,
+      }],
+      metadata: {
+        attachmentFilenames: ['notes.txt'],
+      },
+    });
+
+    await waitForExpect(() => {
+      expect(events.map(storedEvent => storedEvent.type)).toEqual([
+        'turn_started',
+        'user_message',
+      ]);
+      expect(transport.sendQuery).not.toHaveBeenCalled();
+      const snapshot = snapshots.at(-1);
+      expect(snapshot.currentTurn.userMessageRowId).toBeTruthy();
+      expect(snapshot.currentTurn.presentation).toMatchObject({
+        typingVisible: true,
+        overlayVisible: true,
+        awaitingAnchor: expect.objectContaining({
+          rowId: snapshot.currentTurn.userMessageRowId,
+          turnRef: 'turn-slow-resource',
+        }),
+        overlayIntent: expect.objectContaining({
+          visible: true,
+          mode: 'awaiting',
+          staleGuardRef: 'turn-slow-resource',
+        }),
+      });
+      expect(snapshot.displayRows).toEqual([
+        expect.objectContaining({
+          id: snapshot.currentTurn.userMessageRowId,
+          type: 'user_message',
+          content: 'summarize this',
+          turnRef: 'turn-slow-resource',
+        }),
+      ]);
+    });
+
+    releaseResolver?.();
+    await sendPromise;
+
+    await waitForExpect(() => {
+      expect(events.map(storedEvent => storedEvent.type)).toEqual([
+        'turn_started',
+        'user_message',
+        'user_message_metadata',
+      ]);
+      expect(transport.sendQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          text: 'summarize this',
+          conversation_ref: 'conv-sdk-runtime',
+          attachment_context: '--- Attached File: notes.txt ---\nhello from file',
+          attachment_filenames: ['notes.txt'],
+        }),
+        { messageId: 'turn-slow-resource' },
+      );
+    });
+  });
+
+  test('conversation runtime records base user row before required resource failure', async () => {
+    const transport = createMockBackendTransport({
+      sendQuery: jest.fn(async () => 'query-unused'),
+    });
+    const runtime = new SdkConversationRuntime({
+      conversationRef: 'conv-sdk-runtime',
+      store: new InMemoryConversationStore(),
+      transport,
+      resourceResolvers: {
+        readable_file: async (resource) => ({
+          kind: resource.kind,
+          error: 'File is not readable',
+          fatal: true,
+        }),
+      },
+      enrichQuery: async ({ payload }) => payload ?? {},
+    });
+    const events: ConversationEvent[] = [];
+    const snapshots: any[] = [];
+    runtime.subscribeEvents((event, snapshot) => {
+      events.push(event);
+      snapshots.push(snapshot);
+    });
+
+    await expect(runtime.send({
+      text: 'summarize failed file',
+      turnRef: 'turn-resource-fail',
+      resources: [{
+        kind: 'readable_file',
+        filePath: '/tmp/missing.txt',
+        filename: 'missing.txt',
+        required: true,
+      }],
+    })).rejects.toThrow('File is not readable');
+
+    expect(events.map(storedEvent => storedEvent.type)).toEqual([
+      'turn_started',
+      'user_message',
+      'turn_error',
+    ]);
+    expect(transport.sendQuery).not.toHaveBeenCalled();
+    expect(snapshots.at(1).displayRows).toEqual([
+      expect.objectContaining({
+        type: 'user_message',
+        content: 'summarize failed file',
+        turnRef: 'turn-resource-fail',
+      }),
+    ]);
+    expect(snapshots.at(-1).currentTurn).toMatchObject({
+      phase: 'error',
+      lastError: 'File is not readable',
+    });
+  });
+
   test('conversation runtime stores events and sends rehydrate from projection', async () => {
     const sentQueries: Record<string, unknown>[] = [];
     const sentRehydrates: Record<string, unknown>[] = [];

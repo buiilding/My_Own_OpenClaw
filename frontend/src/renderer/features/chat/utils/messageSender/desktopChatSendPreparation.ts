@@ -3,7 +3,7 @@ import { buildDeferredQueryModelSelection } from '../../../../app/providers/appC
 import { DesktopLiveTurnRuntimeClient } from '../../../../app/runtime/desktopLiveTurnRuntimeClient';
 import { DesktopSettingsRuntimeClient } from '../../../../app/runtime/desktopSettingsRuntimeClient';
 import { DesktopTranscriptSessionRuntimeClient } from '../../../../app/runtime/desktopTranscriptSessionRuntimeClient';
-import type { WindieModelSelection } from '../../../../infrastructure/api/windieSdkClient';
+import type { TurnInputResource, WindieModelSelection } from '../../../../infrastructure/api/windieSdkClient';
 import { fetchActiveWorkspaceSelection } from '../../../../infrastructure/workspace/workspaceAccess';
 import {
   getConversationWorkspaceBinding,
@@ -21,22 +21,18 @@ import {
   markConversationInferenceSessionLocalOnly,
   markConversationInferenceSessionUnknown,
 } from '../../session/conversationInferenceSessionRuntime';
-import type { ChatMessage } from '../../stores/chatStore';
 import { useChatStore } from '../../stores/chatStore';
 import { logRendererChatPillTrace } from '../chatStream/chatStreamDebugTrace';
 import {
   normalizeAttachmentFilenames,
   normalizeOutgoingPayload,
+  type ClipboardImagePayload,
   type OutgoingUserMessagePayload,
+  type ReadableFilePayload,
 } from './chatMessageSenderPayloads';
-import {
-  buildReadableFileAttachmentContext,
-  type ReadableFileAttachmentFailure,
-} from './readableFileAttachmentContext';
 import {
   hasUserMessages,
 } from './chatMessageSenderUtils';
-import { resolveQueryScreenshotArtifacts } from './queryScreenshotPipeline';
 import { createConversationRef } from '../session/conversationRef';
 
 type AppConfigLike = Record<string, unknown> | null | undefined;
@@ -52,18 +48,17 @@ type WorkspaceBinding = {
 };
 
 type PrepareDesktopChatSendDependencies = {
-  addMessage: (message: ChatMessage, conversationRef?: string | null) => void;
   setChatActiveConversationRef: (conversationRef: string | null) => void;
   stopPlayback?: () => void;
 };
 
 export type PreparedDesktopChatTurn = {
-  attachmentContext: string | null;
   attachmentFilenames: string[] | null;
-  captureMeta: Record<string, unknown> | null;
   conversationRef: string;
   deferredQueryModelSelection: ReturnType<typeof buildDeferredQueryModelSelection>;
+  metadata: Record<string, unknown> | null;
   model: WindieModelSelection | null;
+  resources: TurnInputResource[];
   screenshot: string | null;
   screenshotRef: string | null;
   screenshotRefs: string[] | null;
@@ -76,16 +71,6 @@ export type PreparedDesktopChatTurn = {
   turnRef: string | null;
   workspacePath: string | null;
 };
-
-export function buildReadableAttachmentFailureMessage(
-  failures: ReadableFileAttachmentFailure[],
-): string {
-  const filenames = failures
-    .map((failure) => failure.filename)
-    .filter((filename) => typeof filename === 'string' && filename.trim().length > 0);
-  const listedFiles = filenames.length > 0 ? filenames.join(', ') : 'the selected file';
-  return `Your message wasn't sent because WindieOS couldn't read ${listedFiles}. Remove the failed attachment or try again.`;
-}
 
 async function hydrateSessionFromMainSnapshot(
   setChatActiveConversationRef: (conversationRef: string | null) => void,
@@ -101,6 +86,59 @@ async function hydrateSessionFromMainSnapshot(
     },
   });
   return snapshot.conversationRef;
+}
+
+function buildTurnInputResources({
+  readableFiles,
+  clipboardImages,
+  attachmentFilenames,
+  shouldCaptureQueryScreenshot,
+  isFirstUserMessage,
+  surfaceReason,
+  workspacePath,
+}: {
+  readableFiles: ReadableFilePayload[];
+  clipboardImages: ClipboardImagePayload[];
+  attachmentFilenames: string[];
+  shouldCaptureQueryScreenshot: boolean;
+  isFirstUserMessage: boolean;
+  surfaceReason: string;
+  workspacePath?: string | null;
+}): TurnInputResource[] {
+  const resources: TurnInputResource[] = [];
+  for (const readableFile of readableFiles) {
+    resources.push({
+      kind: 'readable_file',
+      filePath: readableFile.filePath,
+      filename: readableFile.filename,
+      required: true,
+    });
+  }
+  for (const clipboardImage of clipboardImages) {
+    resources.push({
+      kind: 'clipboard_image',
+      base64: clipboardImage.base64,
+      contentType: clipboardImage.contentType ?? null,
+      filename: clipboardImage.filename ?? null,
+      required: true,
+    });
+  }
+  if (shouldCaptureQueryScreenshot && clipboardImages.length === 0) {
+    resources.push({
+      kind: 'query_screenshot_request',
+      isFirstUserMessage,
+      reason: surfaceReason,
+      required: false,
+    });
+  }
+  if (workspacePath) {
+    resources.push({
+      kind: 'workspace',
+      workspacePath,
+      required: false,
+    });
+  }
+  return resources.length > 0 || attachmentFilenames.length > 0 ? resources : [];
 }
 
 async function ensureConversationRef(
@@ -198,22 +236,6 @@ export async function prepareDesktopChatSend({
     userId: sessionInfo.userId,
   });
 
-  const attachmentContextResult = await buildReadableFileAttachmentContext(readableFiles);
-  if (attachmentContextResult.failures.length > 0) {
-    const failureMessage = buildReadableAttachmentFailureMessage(attachmentContextResult.failures);
-    dependencies.addMessage({
-      id: crypto.randomUUID(),
-      text: failureMessage,
-      sender: 'assistant',
-      type: 'error',
-      sourceEventType: 'renderer-compose',
-      sourceChannel: 'renderer-local',
-      isComplete: true,
-    }, conversationRef);
-    throw new Error(failureMessage);
-  }
-
-  const attachmentContext = attachmentContextResult.context;
   const turnId = crypto.randomUUID();
   const timestamp = new Date().toISOString();
 
@@ -240,33 +262,38 @@ export async function prepareDesktopChatSend({
     shouldReturnToChatboxOnSend: sendLifecycle.shouldReturnToChatboxOnSend,
   });
 
-  const {
-    captureMeta,
-    screenshotRef,
-    screenshotUrl,
-    screenshotRefs,
-  } = await resolveQueryScreenshotArtifacts({
+  logRendererChatPillTrace({
+    source: 'renderer-send',
+    action: 'screenshot-decision',
+    turn_id: turnId,
+    include_query_screenshot: sendLifecycle.shouldCaptureQueryScreenshot,
+    reason: sendLifecycle.surfaceReason,
+  }, conversationRef);
+
+  const resources = buildTurnInputResources({
+    readableFiles,
     clipboardImages,
     shouldCaptureQueryScreenshot: sendLifecycle.shouldCaptureQueryScreenshot,
     isFirstUserMessage: !hadUserMessages,
-    traceContext: {
-      conversationRef,
-      turnId,
-      surfaceReason: sendLifecycle.surfaceReason,
-    },
+    surfaceReason: sendLifecycle.surfaceReason,
+    attachmentFilenames,
+    workspacePath: workspaceBinding.workspacePath || null,
   });
+  const metadata = attachmentFilenames.length > 0
+    ? { attachmentFilenames, attachment_filenames: attachmentFilenames }
+    : null;
 
   return {
-    attachmentContext,
     attachmentFilenames: attachmentFilenames.length > 0 ? attachmentFilenames : null,
-    captureMeta,
     conversationRef,
     deferredQueryModelSelection: buildDeferredQueryModelSelection(config),
+    metadata,
     model: null,
+    resources,
     screenshot: null,
-    screenshotRef,
-    screenshotRefs: screenshotRefs.length > 0 ? screenshotRefs : null,
-    screenshotUrl,
+    screenshotRef: null,
+    screenshotRefs: null,
+    screenshotUrl: null,
     sendLifecycle,
     sessionInfo,
     text,
@@ -289,11 +316,11 @@ export async function dispatchPreparedDesktopChatTurn(
     screenshotRef: preparedTurn.screenshotRef,
     screenshotUrl: preparedTurn.screenshotUrl,
     screenshotRefs: preparedTurn.screenshotRefs,
-    captureMeta: preparedTurn.captureMeta,
-    attachmentContext: preparedTurn.attachmentContext,
     attachmentFilenames: preparedTurn.attachmentFilenames,
     screenshot: preparedTurn.screenshot,
     workspacePath: preparedTurn.workspacePath,
+    resources: preparedTurn.resources,
+    metadata: preparedTurn.metadata,
     model: preparedTurn.model,
     turnRef: preparedTurn.turnRef,
   });

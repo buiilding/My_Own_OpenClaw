@@ -82,7 +82,8 @@ Use this when screenshots are missing, stale, include overlays, or do not attach
 
 | Layer | Code root | What to inspect |
 | --- | --- | --- |
-| Renderer query capture | `frontend/src/renderer/features/chat/utils/messageSender/queryScreenshotPipeline.ts` | Whether the outgoing query requested a screenshot and got an artifact ref. |
+| Renderer query resource handle | `frontend/src/renderer/features/chat/utils/messageSender/desktopChatSendPreparation.ts` | Whether the outgoing query requested a screenshot resource handle. |
+| SDK turn resource resolver | `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts` | Whether the SDK resolved the screenshot resource into artifact refs. |
 | SDK/main tool screenshot | `frontend/src/main/local_backend_bridge_screenshot_attachment.cjs` | Tool screenshot stage and payload. |
 | Main screenshot bridge | `frontend/src/main/local_backend_bridge_screenshot_attachment.cjs` | Upload/fetch path for screenshot artifacts. |
 | Sidecar screenshot tool | `frontend/src/main/python/tools/computer/screenshot_tool.py` | Platform capture path and cursor/overlay behavior. |

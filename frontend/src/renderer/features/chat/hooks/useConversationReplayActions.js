@@ -61,12 +61,12 @@ function buildPreparedReplayDesktopChatTurn({
 }) {
   const replayTurnRef = preparedReplayTurn.turnRef || crypto.randomUUID();
   return {
-    attachmentContext: null,
     attachmentFilenames: null,
-    captureMeta: null,
     conversationRef: preparedReplayTurn.conversationRef || conversationRef,
     deferredQueryModelSelection: null,
+    metadata: null,
     model: preparedReplayTurn.model ?? deferredQueryModelSelection ?? null,
+    resources: [],
     screenshot: preparedReplayTurn.payload?.screenshot ?? screenshot ?? null,
     screenshotRef: preparedReplayTurn.payload?.screenshot_ref ?? screenshotRef ?? null,
     screenshotRefs: preparedReplayTurn.payload?.screenshot_refs ?? null,

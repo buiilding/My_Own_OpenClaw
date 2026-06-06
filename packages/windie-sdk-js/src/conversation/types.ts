@@ -340,6 +340,63 @@ export type QueryPayload = JsonRecord & {
   conversation_ref: string;
 };
 
+export type TurnInputResource =
+  | {
+      kind: 'readable_file';
+      filePath: string;
+      filename: string;
+      required?: boolean;
+    }
+  | {
+      kind: 'clipboard_image';
+      base64: string;
+      contentType?: string | null;
+      filename?: string | null;
+      required?: boolean;
+    }
+  | {
+      kind: 'query_screenshot_request';
+      isFirstUserMessage?: boolean;
+      reason?: string | null;
+      required?: boolean;
+    }
+  | {
+      kind: 'workspace';
+      workspacePath: string;
+      required?: boolean;
+    };
+
+export type TurnInputResourceKind = TurnInputResource['kind'];
+
+export type TurnResourceResolution = {
+  kind: TurnInputResourceKind;
+  attachmentContext?: string | null;
+  attachmentFilenames?: string[] | null;
+  screenshot?: string | null;
+  screenshotRef?: string | null;
+  screenshotUrl?: string | null;
+  screenshotRefs?: string[] | null;
+  captureMeta?: JsonRecord | null;
+  workspacePath?: string | null;
+  metadata?: JsonRecord | null;
+  error?: string | null;
+  fatal?: boolean;
+};
+
+export type TurnResourceResolverContext = {
+  text: string;
+  conversationRef: string;
+  turnRef: string;
+  payload: JsonRecord;
+};
+
+export type TurnResourceResolver = (
+  resource: TurnInputResource,
+  context: TurnResourceResolverContext,
+) => Promise<TurnResourceResolution | null | undefined>;
+
+export type TurnResourceResolverRegistry = Partial<Record<TurnInputResourceKind, TurnResourceResolver>>;
+
 export type SendQueryOptions = {
   messageId?: string | null;
 };

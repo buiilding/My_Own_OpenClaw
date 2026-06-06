@@ -1,9 +1,9 @@
 ---
-summary: "Workflow for changing WindieOS chat attachments across MessageInput paste/file picker behavior, clipboard image payloads, readable-file context, screenshot artifact upload, optimistic rows, query payloads, backend query resolution, and replay."
+summary: "Workflow for changing WindieOS chat attachments across MessageInput paste/file picker behavior, typed SDK turn resources, host resource resolution, query payload assembly, backend query resolution, and replay."
 read_when:
   - When changing pasted-image, file-picker, readable-file, screenshot attachment, artifact upload, or attachment filename behavior in chat.
-  - When a user image/file appears in the composer but is missing from the backend query, optimistic row, transcript replay, or model context.
-  - When deciding whether an attachment bug belongs to MessageInput, chat sender payload normalization, artifact upload, Electron query IPC, backend query input resolution, transcript replay, or artifact routes.
+  - When a user image/file appears in the composer but is missing from the SDK row metadata, backend query, transcript replay, or model context.
+  - When deciding whether an attachment bug belongs to MessageInput, chat sender payload normalization, SDK turn resource resolution, Electron query IPC, backend query input resolution, transcript replay, or artifact routes.
 title: "Chat Attachment Change Workflow"
 ---
 
@@ -11,7 +11,7 @@ title: "Chat Attachment Change Workflow"
 
 Use this workflow for user-provided chat attachments: pasted images, selected image files, selected readable files, and optional query screenshots. It is narrower than [Artifact Change Workflow](../../../desktop/artifact_change_workflow.md), which also covers backend artifact storage, SDK access, and tool-result screenshots.
 
-The core rule is: the composer owns selection and preview; the sender owns normalization, upload, and hidden context; backend query execution owns resolving refs into model input. Transcript/replay should preserve durable refs and visible filenames, not raw file contents.
+The core rule is: the composer owns selection and preview; renderer send preparation owns typed resource handles only; SDK `conversation.send` owns resource resolution, user-row metadata, and backend payload assembly. Transcript/replay should preserve durable refs and visible filenames, not raw file contents.
 
 ## Runtime Path
 
@@ -20,16 +20,15 @@ flowchart LR
     A["MessageInput paste or file picker"] --> B["clipboardImages and readableFiles state"]
     B --> C["buildOutgoingMessage"]
     C --> D["useChatMessageSender"]
-    D --> E["ScreenshotAttachmentPipeline / ArtifactUploader"]
-    D --> F["readableFileAttachmentContext via read_file"]
-    E --> G["optimistic user row screenshot refs"]
-    F --> H["hidden attachment_context"]
-    G --> I["DesktopLiveTurnRuntimeClient.sendQuery"]
-    H --> I
-    I --> J["Electron query IPC payload normalization"]
+    D --> E["typed TurnInputResource handles"]
+    E --> F["DesktopLiveTurnRuntimeClient.sendQuery"]
+    F --> G["Electron query IPC preserves SDK-only resources"]
+    G --> H["SDK ConversationRuntime base user row"]
+    H --> I["SDK DefaultTurnResourceResolvers"]
+    I --> J["backend-compatible payload fields"]
     J --> K["Backend query_execution_inputs"]
     K --> L["model image/content context"]
-    G --> M["focused transcript projection and continuity replay helpers"]
+    H --> M["SDK display rows and continuity replay helpers"]
 ```
 
 ## Fast Owner Map
@@ -38,13 +37,13 @@ flowchart LR
 | --- | --- | --- | --- |
 | Pasted image is not previewed | Composer paste parsing | `MessageInput.jsx`, `clipboardImageUtils.js`, `dataUrlImageUtils.js` | `tests/frontend/MessageInput.test.jsx`, `ClipboardImageUtils.test.js` |
 | Selected image file is treated like readable text | File attachment bucketing | `fileAttachmentUtils.js`, `composerAttachmentPresentation.js`, `MessageInput.jsx` | `FileAttachmentUtils.test.js`, `MessageInput.test.jsx` |
-| Readable file appears as a chip but model never sees content | Sender hidden context path | `readableFileAttachmentContext.ts`, `useChatMessageSender.ts` | sidecar `read_file` behavior and query payload tests |
+| Readable file appears as a chip but model never sees content | SDK turn resource pipeline | `desktopChatSendPreparation.ts`, `DefaultTurnResourceResolvers.ts`, `ContextEnrichmentPipeline.ts` | sidecar `read_file` behavior and SDK runtime tests |
 | Attachment-only send is blocked | Composer outgoing payload builder | `message/messageInput.js`, `MessageInput.jsx` | `MessageInputUtils.test.js`, `MessageInput.test.jsx` |
 | Send failure clears text or attachment previews | Composer draft lifecycle | `useChatComposerDraft.js`, `MessageInput.jsx` | `ChatComposerDraft.test.jsx`, `MessageInput.test.jsx` |
-| Optimistic user row lacks filename chips | Sender payload normalization and chat store row | `chatMessageSenderPayloads.ts`, `chatMessageSenderUtils.ts`, `chatStore.ts` | `ChatMessageSenderPayloads.test.ts`, `ChatMessageSender.test.tsx` |
-| Uploaded image has wrong content type or URL | Artifact upload pipeline | `ScreenshotAttachmentPipeline.ts`, `ArtifactUploader.ts`, `ArtifactImageUtils.ts` | `ScreenshotAttachmentPipeline.test.ts`, `ArtifactUploader.test.ts`, `ArtifactImageUtils.test.ts` |
-| Query sends only one of multiple images | Sender screenshot ref selection | `queryScreenshotPipeline.ts`, `chatMessageSenderUtils.ts` | `ChatMessageSender.test.tsx`, backend query input tests |
-| Electron query payload drops attachment fields | Main query IPC runtime and SDK enrichment | `frontend/src/main/ipc/ipc_query_runtime.cjs`, `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts` | `IpcQueryRuntime.test.cjs`, `WindieSdkContextEnrichment.test.ts` |
+| SDK user row lacks filename chips | Sender payload normalization and SDK metadata | `chatMessageSenderPayloads.ts`, `desktopChatSendPreparation.ts`, `ConversationRuntime.ts` | `ChatMessageSenderPayloads.test.ts`, `ChatMessageSender.test.tsx`, `WindieSdkConversationRuntime.test.ts` |
+| Uploaded image has wrong content type or URL | SDK artifact resolver | `DefaultTurnResourceResolvers.ts`, `ArtifactImageUtils.ts` | `WindieSdkConversationRuntime.test.ts`, artifact tests |
+| Query sends only one of multiple images | SDK clipboard image resources | `desktopChatSendPreparation.ts`, `DefaultTurnResourceResolvers.ts` | `ChatMessageSender.test.tsx`, SDK runtime tests |
+| Electron query payload drops attachment resources | Main query IPC runtime and SDK enrichment | `frontend/src/main/ipc/ipc_query_runtime.cjs`, `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`, `packages/windie-sdk-js/src/runtime/ContextEnrichmentPipeline.ts` | `IpcQueryRuntime.test.cjs`, `WindieSdkContextEnrichment.test.ts` |
 | Backend receives refs but model gets no image | Backend query input resolution | `backend/src/api/services/query_execution_support/query_execution_inputs.py` | `tests/backend/test_query_execution_inputs.py`, artifact route/store tests |
 | Replayed message loses images | Message screenshot resolver and transcript replay | `messageScreenshots.js`, `useResolvedMessageScreenshots.js`, transcript replay state | `MessageScreenshots.test.js`, `MessageContent.test.jsx`, `RehydratePayload.test.js`, transcript tests |
 | Artifact image fails once and never recovers | IPC-backed artifact screenshot cache | `useResolvedMessageScreenshots.js` | `MessageContent.test.jsx` retry-after-failure coverage |
@@ -72,19 +71,20 @@ Clipboard image IPC trust boundary:
    - Attachment-only sends should use the existing fallback text rather than blocking submission.
    - Clear the composer draft only after the send callback succeeds; rejected async sends must leave text, pasted images, and selected readable files available for retry.
 
-3. Preserve image metadata.
+3. Preserve image handles.
    - Keep `base64`, `contentType`, `filename`, and `previewUrl` through composer preview.
-   - Upload should preserve content type and choose a deterministic filename when none is provided.
-   - Sender should store `screenshotRef`/`screenshotUrl` after upload and keep inline fallback when upload fails.
+   - Renderer send should submit `clipboard_image` resources without uploading artifacts.
+   - SDK resource resolvers upload images, preserve content type, and choose a deterministic filename when none is provided.
 
 4. Preserve readable-file behavior.
    - Non-image selected files become visible filename chips.
-   - Sender uses sidecar `read_file` to build hidden `attachment_context`.
+   - Renderer send submits `readable_file` resources with file path and filename.
+   - SDK resource resolvers use sidecar `read_file` to build hidden `attachment_context`.
    - Raw file content should not appear in the visible user row.
-   - Failed file reads must block dispatch and surface a visible compose error,
-     so the model never receives an incomplete attachment context silently.
+   - Required file read failures become SDK turn errors after the base user row
+     appears, so the renderer does not block row emission.
 
-5. Preserve backend-bound compatibility fields.
+5. Preserve backend-bound compatibility fields at SDK payload assembly.
    - `screenshot_ref`: primary image ref for compatibility.
    - `screenshot_refs`: deduped list of uploaded refs for multi-image queries.
    - `attachment_context`: hidden readable-file context.
@@ -119,16 +119,16 @@ Clipboard image IPC trust boundary:
 
 1. Confirm `MessageInput` sends an object payload with `clipboardImages[]`.
 2. Confirm `chatMessageSenderPayloads.ts` keeps the image after normalization.
-3. Confirm `ScreenshotAttachmentPipeline` materializes the image into a ref or inline fallback.
-4. Confirm `DesktopLiveTurnRuntimeClient.sendQuery` payload includes `screenshot_ref` and `screenshot_refs`.
+3. Confirm `DesktopLiveTurnRuntimeClient.sendQuery` payload includes `clipboard_image` resources.
+4. Confirm `DefaultTurnResourceResolvers` materializes the image into `screenshot_ref` and `screenshot_refs`.
 5. Confirm backend query input resolution can load the artifact ref.
 
 ### File Chip Appears but Model Does Not See File Text
 
 1. Confirm selected file is in `readableFiles[]`, not `clipboardImages[]`.
-2. Confirm `readableFileAttachmentContext.ts` called sidecar `read_file`.
-3. Confirm successful `output` was added to `attachment_context`.
-4. Confirm Electron main query payload builder appends hidden context to backend-bound query content.
+2. Confirm `desktopChatSendPreparation.ts` submitted a `readable_file` resource.
+3. Confirm `DefaultTurnResourceResolvers` called sidecar `read_file`.
+4. Confirm successful `output` was added to `attachment_context` before backend transport.
 5. Confirm the visible transcript row only stores filename metadata.
 
 ### Replay Loses Attachment Images

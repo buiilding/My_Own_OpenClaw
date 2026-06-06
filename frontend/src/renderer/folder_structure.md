@@ -98,11 +98,10 @@ frontend/src/renderer/
 │   │   │
 │   │   └── utils/                       # Chat presentation/formatting selectors and helpers
 │   │       ├── backendAudioEvents.js    # backendAudioEvents - Validates/extracts audio-chunk payloads for playback
-│   │       ├── messageSender/            # messageSender - Payload normalization and attachment context/upload helper utilities
+│   │       ├── messageSender/            # messageSender - Payload normalization and SDK turn resource handle utilities
 │   │       │   ├── chatMessageSenderUtils.ts # chatMessageSenderUtils - User-message creation, first-message detection, and screenshot artifact mapping helpers
 │   │       │   ├── chatMessageSenderPayloads.ts # chatMessageSenderPayloads - Outgoing payload and attachment filename normalization
-│   │       │   ├── queryScreenshotPipeline.ts # queryScreenshotPipeline - Clipboard-first query screenshot resolution + trace logging
-│   │       │   └── readableFileAttachmentContext.ts # readableFileAttachmentContext - Hidden read_file attachment context assembly for readable file uploads
+│   │       │   └── desktopChatSendPreparation.ts # desktopChatSendPreparation - Conversation identity, send preflight, and SDK turn resource handle assembly
 │   │       ├── chatPill/                # chatPill - Shared minimal-pill session flow contracts
 │   │       │   └── chatPillSessionFlow.ts # chatPillSessionFlow - Send lifecycle reason + overlay turn/view intent resolver
 │   │       ├── session/                 # session - Conversation/session ref and transcript-rehydrate payload helpers

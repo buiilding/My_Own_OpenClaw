@@ -164,7 +164,7 @@ Under `WINDIE_DEBUG_STREAM_EVENTS=1` (main injects `?debug_stream=1`) or explici
   - `show_response`
   - `show_awaiting_reply`
 - `useChatMessageSender` logs send start and backend dispatch intent
-- `queryScreenshotPipeline` logs auto-capture decision
+- `desktopChatSendPreparation` logs SDK screenshot-resource decision
 - `ChatBoxResponse` logs the resolved overlay view contract each render pass that matters
 
 ## Tool-Ghost Status (Current)

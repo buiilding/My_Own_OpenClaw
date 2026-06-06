@@ -9,6 +9,8 @@ export * from './stores/SidecarConversationStore.js';
 export * from './projections/conversationProjections.js';
 export * from './runtime/conversationReducer.js';
 export * from './runtime/ConversationRuntime.js';
+export * from './runtime/TurnInputPipeline.js';
+export * from './runtime/DefaultTurnResourceResolvers.js';
 export * from './runtime/ConversationContinuityService.js';
 export * from './runtime/AgentStreamEvents.js';
 export * from './runtime/WindieChatSession.js';

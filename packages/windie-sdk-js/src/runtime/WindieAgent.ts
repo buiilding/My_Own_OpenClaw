@@ -11,6 +11,7 @@ import type {
   ListConversationOptions,
   LocalToolExecutionLifecycle,
   SearchConversationOptions,
+  TurnResourceResolverRegistry,
 } from '../conversation/types.js';
 import { searchConversationMetadata } from '../conversation/metadata.js';
 import {
@@ -50,6 +51,7 @@ import {
   formatCompletedTurnMemory,
   type MemoryRetrievalDiagnostic,
 } from './ContextEnrichmentPipeline.js';
+import { createDefaultTurnResourceResolvers } from './DefaultTurnResourceResolvers.js';
 import { WindieChatSession } from './WindieChatSession.js';
 import {
   toAgentStreamEvents,
@@ -294,20 +296,32 @@ export class WindieAgent {
     store?: ConversationStore;
     localRuntime?: WindieLocalRuntimeClient | null;
     localToolLifecycle?: LocalToolExecutionLifecycle | null;
+    resourceResolvers?: TurnResourceResolverRegistry | null;
   } = {}): SdkConversationRuntime {
     const conversationRef = options.conversationRef ?? `conv-${this.id}`;
+    const resolvedLocalRuntime = options.localRuntime === undefined ? this.localRuntime : options.localRuntime;
+    const resolvedLocalToolLifecycle = options.localToolLifecycle === undefined
+      ? this.localToolLifecycle
+      : options.localToolLifecycle;
+    const defaultResourceResolvers = createDefaultTurnResourceResolvers({
+      localRuntime: resolvedLocalRuntime,
+      localToolLifecycle: resolvedLocalToolLifecycle,
+      sdkClient: this.sdkClient,
+    });
     const runtime = new SdkConversationRuntime({
       conversationRef,
       revisionId: options.revisionId,
       store: options.store ?? this.defaultConversationStore,
       transport: createWindieAgentBackendTransport(this.session, conversationRef, this.agentDefinition),
-      localRuntime: options.localRuntime === undefined ? this.localRuntime : options.localRuntime,
+      localRuntime: resolvedLocalRuntime,
       sdkClient: this.sdkClient,
       userId: this.userId,
       memoryEnabled: this.memoryEnabled,
-      localToolLifecycle: options.localToolLifecycle === undefined
-        ? this.localToolLifecycle
-        : options.localToolLifecycle,
+      localToolLifecycle: resolvedLocalToolLifecycle,
+      resourceResolvers: {
+        ...defaultResourceResolvers,
+        ...(options.resourceResolvers ?? {}),
+      },
       enrichQuery: async input => {
         const enriched = await enrichQueryPayload({
           text: input.text,
@@ -315,7 +329,7 @@ export class WindieAgent {
           userId: this.userId,
           payload: input.payload ?? {},
           sdkClient: this.sdkClient,
-          localRuntime: options.localRuntime === undefined ? this.localRuntime : options.localRuntime,
+          localRuntime: resolvedLocalRuntime,
           memoryEnabled: this.memoryEnabled,
           emitDiagnostic: async diagnostic => {
             logMemoryRetrievalDiagnostic(diagnostic);
@@ -335,6 +349,7 @@ export class WindieAgent {
     store?: ConversationStore;
     localRuntime?: WindieLocalRuntimeClient | null;
     localToolLifecycle?: LocalToolExecutionLifecycle | null;
+    resourceResolvers?: TurnResourceResolverRegistry | null;
   } = {}): WindieChatSession {
     const runtime = this.conversation(options);
     return new WindieChatSession(options.conversationRef ?? `conv-${this.id}`, runtime);

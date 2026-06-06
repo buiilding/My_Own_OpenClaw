@@ -1,4 +1,5 @@
 import {
+  type TurnInputResource,
   type WindieModelSelection,
 } from '../../infrastructure/api/windieSdkClient';
 import { DesktopTranscriptSessionRuntimeClient } from './desktopTranscriptSessionRuntimeClient';
@@ -17,6 +18,8 @@ type SendConversationQueryInput = {
   attachmentFilenames?: string[] | null;
   screenshot?: string | null;
   workspacePath?: string | null;
+  resources?: TurnInputResource[] | null;
+  metadata?: Record<string, unknown> | null;
   model?: WindieModelSelection | null;
   turnRef?: string | null;
 };
@@ -74,6 +77,10 @@ export const DesktopLiveTurnRuntimeClient = {
       attachment_filenames: optionalStringArray(input.attachmentFilenames) ?? null,
       screenshot: optionalString(input.screenshot) ?? null,
       workspace_path: optionalString(input.workspacePath) ?? null,
+      resources: Array.isArray(input.resources) ? input.resources : [],
+      metadata: input.metadata && typeof input.metadata === 'object' && !Array.isArray(input.metadata)
+        ? input.metadata
+        : null,
       memory_retrieval_enabled: getMemoryRetrievalInjectionEnabled(),
     });
     throwIfFailedIpcResult(result);

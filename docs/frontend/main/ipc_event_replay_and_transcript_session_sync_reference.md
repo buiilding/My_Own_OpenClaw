@@ -75,7 +75,7 @@ Clone safety:
 
 Result:
 
-- late-mounted renderer windows can recover in-flight turn context (optimistic user row + streamed packets) without waiting for new backend events.
+- late-mounted renderer windows can recover in-flight turn context (SDK user row + streamed packets) without waiting for new backend events.
 
 ## Transcript Session Sync Channel Contract
 

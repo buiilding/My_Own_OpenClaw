@@ -105,10 +105,16 @@ Worker behavior:
 
 Send pipeline details:
 
-- optimistic user row insert before backend send
-- query screenshot artifact resolution via `resolveQueryScreenshotArtifacts(...)`
+- SDK-owned `conversation.send` emits `turn_started` and base `user_message`
+  before resource resolution
+- renderer submits typed turn resources for readable files, clipboard images,
+  workspace binding, and optional query screenshots instead of resolving them
+  before send
+- SDK turn input pipeline resolves resources through host/local resolvers and
+  emits user-message metadata before backend transport
 - deferred model selection (`buildDeferredQueryModelSelection`) sent through `DesktopSettingsRuntimeClient.setModel(...)` immediately before `sendQuery(...)` when needed
-- transcript write uses resolved conversation/session info at send time
+- transcript display renders SDK rows/current-turn projection, not a renderer
+  optimistic row
 
 `useChatStream.ts` remains the canonical stream-event state machine and stale-turn guard boundary for renderer message updates.
 

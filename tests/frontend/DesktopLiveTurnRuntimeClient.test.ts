@@ -42,6 +42,15 @@ describe('DesktopLiveTurnRuntimeClient', () => {
       attachmentFilenames: [' notes.txt ', '   ', 'image.png'],
       screenshot: ' inline-shot ',
       workspacePath: ' /workspace/WindieOS ',
+      resources: [{
+        kind: 'readable_file',
+        filePath: '/tmp/notes.txt',
+        filename: 'notes.txt',
+        required: true,
+      }],
+      metadata: {
+        attachmentFilenames: ['notes.txt'],
+      },
       turnRef: ' turn-explicit ',
     });
 
@@ -56,6 +65,15 @@ describe('DesktopLiveTurnRuntimeClient', () => {
       attachment_filenames: ['notes.txt', 'image.png'],
       screenshot: 'inline-shot',
       workspace_path: '/workspace/WindieOS',
+      resources: [{
+        kind: 'readable_file',
+        filePath: '/tmp/notes.txt',
+        filename: 'notes.txt',
+        required: true,
+      }],
+      metadata: {
+        attachmentFilenames: ['notes.txt'],
+      },
       id: 'turn-explicit',
       messageId: 'turn-explicit',
       message_id: 'turn-explicit',

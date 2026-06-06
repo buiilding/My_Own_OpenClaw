@@ -1,8 +1,8 @@
 ---
-summary: "Deep reference for chat send-path runtime: sender-surface UI policy, clipboard/file attachment normalization, screenshot capture/upload fallback chain, hidden read_file context injection, optimistic message updates, and send-failure behavior."
+summary: "Deep reference for chat send-path runtime: sender-surface UI policy, clipboard/file attachment normalization, SDK turn resource handles, SDK screenshot/read_file resolution, SDK display rows, and send-failure behavior."
 read_when:
   - When changing `useChatMessageSender`, screenshot/clipboard/file attachment behavior, or sender-surface return-to-chatbox policy.
-  - When debugging missing screenshot refs, hidden attachment context, send failures, or mismatch between optimistic user rows and backend query payloads.
+  - When debugging missing screenshot refs, hidden attachment context, send failures, or mismatch between SDK user rows and backend query payloads.
 title: "Message Send Surface Policy and Screenshot Capture Reference"
 ---
 
@@ -14,8 +14,9 @@ title: "Message Send Surface Policy and Screenshot Capture Reference"
 - `frontend/src/renderer/features/chat/utils/messageSender/desktopChatSendPreparation.ts`
 - `frontend/src/renderer/features/chat/utils/messageSender/chatMessageSenderUtils.ts`
 - `frontend/src/renderer/features/chat/utils/messageSender/chatMessageSenderPayloads.ts`
-- `frontend/src/renderer/features/chat/utils/messageSender/queryScreenshotPipeline.ts`
-- `frontend/src/renderer/features/chat/utils/messageSender/readableFileAttachmentContext.ts`
+- `packages/windie-sdk-js/src/runtime/ConversationRuntime.ts`
+- `packages/windie-sdk-js/src/runtime/TurnInputPipeline.ts`
+- `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`
 - `frontend/src/renderer/features/chat/policies/messageSendUiPolicy.ts`
 - `frontend/src/renderer/features/chat/session/conversationSessionRuntime.ts`
 - `frontend/src/renderer/features/chat/components/MessageInput.jsx`
@@ -86,7 +87,9 @@ Invalid object payloads are ignored (no send side effect).
 
 When attachment(s) exist:
 
-- sends object payload so sender can upload image artifacts and inject non-image file context without showing file content in UI.
+- sends object payload so renderer can submit typed SDK turn resources without
+  reading files, capturing screenshots, or uploading artifacts before the SDK
+  turn exists.
 
 ## Send Pipeline Order
 
@@ -101,44 +104,42 @@ When attachment(s) exist:
      - main-process session snapshot (`get-client-user-id`) conversation ref
      - generated new ref (only when all three are missing)
    - snapshot projection into transcript/chat state is centralized in `conversationSessionRuntime.ts`
-4. append optimistic user message to store.
-5. set `isSending=true`, clear thinking status.
-6. optional overlay return-to-chatbox invoke.
-7. resolve screenshot source:
-  - clipboard image base64 list first
-  - else OS screenshot capture path (if enabled for surface/config)
-8. materialize screenshot attachment(s) through `ScreenshotAttachmentPipeline`.
-   - clipboard images become inline attachments first
-   - auto-capture can return inline `screenshot` or pre-materialized `screenshot_ref` / `screenshot_url`
-   - artifact upload and inline fallback normalization happen in one place
-9. select primary screenshot attachment:
-  - prefer first entry with `screenshotRef`
-  - fallback to artifact URL-derived ref when only `screenshotUrl` exists
-  - dedupe final `screenshot_refs[]` for backend send
-10. update optimistic message with `screenshotRef/screenshotUrl` plus `screenshots[]`.
-11. record the visible user transcript row through `userTranscriptPersistence.ts`,
-    which delegates to the SDK-backed transcript projection runtime.
-12. call `DesktopLiveTurnRuntimeClient.sendQuery`, which owns backend query dispatch only, with:
-  - `screenshot_ref` (first ref for backend protocol ingress)
-  - `screenshot_refs` (all uploaded refs for multi-image queries)
-  - optional `attachment_context` (hidden read_file output for selected non-image files)
-  - optional `attachment_filenames` (visible filename chips for optimistic/local echo user rows)
+4. run send-surface preflight only (`prime-response-overlay-awaiting` and
+   optional return-to-chatbox window policy).
+5. build typed SDK turn resources:
+   - `clipboard_image` for pasted/selected images
+   - `readable_file` for selected non-image files
+   - `query_screenshot_request` when overlay/config policy asks for a query screenshot
+   - `workspace` when the conversation has a workspace binding
+6. call `DesktopLiveTurnRuntimeClient.sendQuery` with text, conversation ref,
+   turn ref, display-safe metadata, and resources.
+7. Electron main preserves `resources`/`metadata` for SDK `send()` while keeping
+   them out of the backend query allowlist.
+8. SDK `ConversationRuntime.send()` emits `turn_started` and base
+   `user_message` before resource resolution.
+9. SDK resource resolvers read files, upload clipboard images, capture query
+   screenshots, merge user-row metadata, and assemble backend-compatible
+   `screenshot_ref`, `screenshot_refs`, `attachment_context`,
+   `attachment_filenames`, `capture_meta`, and `workspace_path` fields.
+10. SDK memory/context enrichment appends hidden context to model-facing content
+    before backend transport.
 
-Steps 1-11 produce a `PreparedDesktopChatTurn`. The final dispatch helper
-applies deferred model selection, records the user transcript row, and sends
-that prepared payload through `DesktopLiveTurnRuntimeClient.sendQuery`.
-Replay-prepared turns use the same dispatch helper but set
-`recordTranscriptUserMessage: false` so edit/resend and retry do not duplicate
-the transcript row that continuity preparation already wrote.
+Steps 1-6 produce a `PreparedDesktopChatTurn`. The final dispatch helper applies
+deferred model selection and sends the prepared SDK turn input through
+`DesktopLiveTurnRuntimeClient.sendQuery`. Replay-prepared turns may still pass
+stored screenshot refs as legacy resolved payload because replay reuses durable
+transcript metadata rather than composer resources.
 
 Readable file injection path:
 
-- for each `readableFiles[]` item, sender invokes `read-attachment-file`;
-  Electron main maps that scoped host-capability request to sidecar `read_file`.
-- successful `output` outputs are concatenated into hidden attachment context.
-- any failed or empty readable-file result blocks the send before backend
-  dispatch and appends a visible compose error naming the failed attachment.
-- context is appended into backend-bound composed query content by main process.
+- for each `readableFiles[]` item, renderer submits a required `readable_file`
+  resource.
+- SDK default resource resolvers invoke sidecar `read_file`.
+- successful `output` values are concatenated into hidden attachment context.
+- failed or empty required readable-file results emit a SDK turn error after
+  the base user row is visible.
+- context is appended into backend-bound composed query content by SDK context
+  enrichment.
 - raw `read_file` content is never rendered in user-visible chat row.
 
 Assistant and tool transcript projection writes from stream ingestion route
@@ -149,48 +150,52 @@ focused chat-feature helpers instead of the live-turn facade.
 
 Priority order:
 
-1. clipboard image payload(s) from `MessageInput`
-2. `captureScreenshotAttachment(...)` capture path
+1. clipboard image resource(s) from `MessageInput`
+2. `query_screenshot_request` resource resolved by SDK host capabilities
 3. no screenshot
 
 Clipboard path specifics:
 
-- `screenshot` + `screenshotContentType` still mirror the first image for compatibility.
-- `screenshots[]` stores all pasted image payloads (inline + uploaded refs).
+- renderer forwards `base64`, `contentType`, and `filename` as
+  `clipboard_image` resources.
+- SDK resolver uploads artifacts and emits `screenshot_ref` /
+  `screenshot_refs` for backend compatibility.
 - upload filename prefers per-image clipboard-provided filename.
 
 Capture path specifics:
 
-- capture call: `captureScreenshotAttachment({ waitSeconds: 0, isFirstUserMessage })`
-- `isFirstUserMessage` derived before insertion from existing chat store.
+- SDK host resolver executes the local `screenshot` tool under the existing
+  Electron screenshot lifecycle lease.
+- `isFirstUserMessage` is carried on the `query_screenshot_request` resource.
 - capture response may contain:
   - inline `screenshot` base64
   - `screenshotRef`/`screenshotUrl` artifact attachment only (no base64)
-- send path treats either shape as valid screenshot context and keeps user-row attachment rendering stable.
+- SDK upload/materialization treats either shape as valid screenshot context and
+  keeps user-row metadata stable.
 
-## Optimistic Message Contract
+## SDK User Row Contract
 
-Optimistic user row includes:
+SDK base user row includes:
 
 - `text`
-- `timestamp`
 - optional `attachmentFilenames[]` for picker/clipboard filenames
-- optional first-image `screenshot` and `screenshotContentType`
-- optional `screenshots[]` for multi-image attachments
-- later patched `screenshotRef` and `screenshotUrl` after upload
 
-Final backend query payload sends `screenshot_ref` + optional `screenshot_refs` (artifact ids only), not raw screenshot bytes.
+SDK `user_message_metadata` patches later add resolved screenshot refs,
+attachment filenames, capture metadata, or resource failures. Final backend
+query payload sends `screenshot_ref` + optional `screenshot_refs` (artifact ids
+only), not raw screenshot bytes.
 
 ## Failure and Recovery Semantics
 
 Non-fatal failures (send still continues):
 
 - `show-chatbox` invoke failure
-- screenshot capture failure
-- artifact upload failure
+- optional query screenshot resource failure
 
 Fatal failure:
 
+- required readable-file resource failure
+- required clipboard-image upload failure
 - `DesktopLiveTurnRuntimeClient.sendQuery` throw
 - sender sets `isSending=false`
 - appends assistant error message (`Failed to send message. Please try again.`)
@@ -201,12 +206,10 @@ Fatal failure:
 `ChatMessageSender.test.tsx` verifies:
 
 - sender-surface policy behavior (main-window vs overlay)
-- first-message capture flag behavior
-- screenshot skip for main-window sends
-- continued send on capture/upload failures
-- upload refs included in query payload and store row
-- auto-capture artifact-only (`screenshotRef`/`screenshotUrl`) path without upload roundtrip
-- clipboard payload flow (base64 + content type + filename) bypasses OS capture
+- first-message screenshot resource flag behavior
+- screenshot resource skip for main-window sends
+- no renderer capture/read/upload before SDK send
+- clipboard payload flow (base64 + content type + filename) becomes SDK resources
 
 `MessageInput.test.jsx` verifies:
 
@@ -219,8 +222,8 @@ Fatal failure:
 ## Drift Hotspots
 
 1. Changing payload union type without updating `MessageInput` + tests can silently drop clipboard images.
-2. Reordering optimistic write versus capture/upload steps can break first-message capture semantics.
-3. Removing `screenshotContentType` from chat store without updating renderer consumers breaks attachment rendering assumptions.
+2. Moving resource resolution back before SDK `send()` can delay base user-row emission and reintroduce send flicker.
+3. Dropping `resources`/`metadata` in Electron main query filtering means SDK never sees attachments.
 4. Changing upload filename/content-type normalization can desync artifact extension/type behavior.
 
 ## Related Pages

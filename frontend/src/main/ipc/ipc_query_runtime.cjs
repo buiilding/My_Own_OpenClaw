@@ -50,6 +50,26 @@ function buildBackendQueryPayload(input) {
   return payload;
 }
 
+function preserveSdkTurnInputFields(targetPayload, sourcePayload) {
+  const target = (
+    targetPayload && typeof targetPayload === 'object' && !Array.isArray(targetPayload)
+  ) ? { ...targetPayload } : {};
+  const source = (
+    sourcePayload && typeof sourcePayload === 'object' && !Array.isArray(sourcePayload)
+  ) ? sourcePayload : {};
+  if (Array.isArray(source.resources)) {
+    target.resources = source.resources;
+  }
+  if (
+    source.metadata
+    && typeof source.metadata === 'object'
+    && !Array.isArray(source.metadata)
+  ) {
+    target.metadata = { ...source.metadata };
+  }
+  return target;
+}
+
 function prepareRendererQueryPayload(payload, currentConversationRef, resolveConversationRef) {
   const nextPayload = (
     payload && typeof payload === 'object' && !Array.isArray(payload)
@@ -143,4 +163,5 @@ module.exports = {
   normalizeQueryMessageId,
   prepareAutomatedQueryPayload,
   prepareRendererQueryPayload,
+  preserveSdkTurnInputFields,
 };

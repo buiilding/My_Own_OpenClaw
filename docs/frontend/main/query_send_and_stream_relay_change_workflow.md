@@ -1,5 +1,5 @@
 ---
-summary: "Workflow for changing the desktop query-send and stream-relay path across renderer compose, Electron main SDK-runtime adapter, payload enrichment, optimistic events, overlay phase, transcript sync, and backend stream ingress."
+summary: "Workflow for changing the desktop query-send and stream-relay path across renderer compose, Electron main SDK-runtime adapter, SDK turn resources, payload enrichment, overlay phase, transcript sync, and backend stream ingress."
 read_when:
   - When changing how a user message leaves the renderer, is enriched in Electron main, or is sent through the SDK runtime to the backend websocket.
   - When debugging a message that appears locally but does not reach the backend, streams into the wrong conversation, loses screenshots or attachments, or leaves the chat pill stuck awaiting a response.
@@ -10,7 +10,7 @@ title: "Query Send and Stream Relay Change Workflow"
 # Query Send and Stream Relay Change Workflow
 
 Use this workflow when the requested change is phrased as "sending a message",
-"query payload", "stream relay", "optimistic user row", "wrong chat", "missing
+"query payload", "stream relay", "SDK user row", "wrong chat", "missing
 screenshot", "stuck awaiting", or "first query uses stale settings". The path is
 split across renderer UI, Electron main, SDK runtime, backend websocket transport, backend
 query execution, and renderer stream consumption; do not patch only the visible
@@ -18,14 +18,14 @@ chat component until the producer and relay contracts are identified.
 
 ## Boundary Rules
 
-- Renderer owns compose state, local optimistic rows, screenshot/file collection,
-  transcript writes, and active conversation selection.
+- Renderer owns compose state, typed resource handle collection, send preflight,
+  and active conversation selection.
 - Electron main owns the SDK-shaped `windie:invoke` command handler,
-  settings ACK gate, query payload enrichment, synthetic
-  `local-user-message` events, synthetic send-failure errors, replay buffer, and
-  overlay phase fan-out.
-- The SDK runtime owns backend websocket construction, envelope send/close
-  primitives, and SDK-owned local tool-result routing.
+  settings ACK gate, SDK-only resource/metadata preservation, synthetic
+  send-failure errors, replay buffer, and overlay phase fan-out.
+- The SDK runtime owns base user-row emission, turn resource resolution,
+  backend websocket construction, envelope send/close primitives, and SDK-owned
+  local tool-result routing.
 - The Python sidecar only supplies local enrichment data through JSON-RPC
   helpers such as system state and memory search. It must not inspect backend
   schemas or construct model-facing websocket messages.
@@ -120,8 +120,7 @@ Read these files when changing what is collected before a query leaves the UI:
 
 - `frontend/src/renderer/features/chat/hooks/useChatMessageSender.ts`
 - `frontend/src/renderer/features/chat/utils/messageSender/chatMessageSenderPayloads.ts`
-- `frontend/src/renderer/features/chat/utils/messageSender/queryScreenshotPipeline.ts`
-- `frontend/src/renderer/features/chat/utils/messageSender/readableFileAttachmentContext.ts`
+- `frontend/src/renderer/features/chat/utils/messageSender/desktopChatSendPreparation.ts`
 - `frontend/src/renderer/features/chat/session/conversationSessionRuntime.ts`
 - `frontend/src/renderer/app/runtime/desktopLiveTurnRuntimeClient.ts`
 - `frontend/src/renderer/app/runtime/desktopBackendTransport.ts`

@@ -133,32 +133,24 @@ describe('useChatMessageSender', () => {
   function expectSingleSendQueryCall(
     text: string,
     conversationRef: string,
-    screenshotRef: string | null = null,
-    screenshotUrl: string | null = null,
-    screenshotRefs: string[] | null = null,
-    captureMeta: Record<string, unknown> | null = null,
-    attachmentContext: string | null = null,
-    attachmentFilenames: string[] | null = null,
+    expectedResources: unknown[] | null = null,
+    expectedMetadata: Record<string, unknown> | null = null,
   ) {
     expect(mockSendQuery).toHaveBeenCalledTimes(1);
     const call = mockSendQuery.mock.calls[0][0];
     expect(call.text).toBe(text);
     expect(call.conversationRef).toBe(conversationRef);
     expect(call.turnRef).toBe('msg-1');
-    expect(call.screenshotRef).toBe(screenshotRef);
-    expect(call.screenshotUrl).toBe(screenshotUrl);
-    expect(call.screenshotRefs).toEqual(screenshotRefs);
-    expect((call.captureMeta ?? null) as Record<string, unknown> | null).toEqual(captureMeta);
-    expect((call.attachmentContext ?? null) as string | null).toBe(attachmentContext);
-    const actualAttachmentFilenames = (call.attachmentFilenames ?? null) as string[] | null;
-    if (attachmentFilenames === null) {
-      expect(actualAttachmentFilenames === null || typeof actualAttachmentFilenames === 'undefined').toBe(true);
-      return;
+    expect(call.screenshotRef ?? null).toBeNull();
+    expect(call.screenshotUrl ?? null).toBeNull();
+    expect(call.screenshotRefs ?? null).toBeNull();
+    expect(call.captureMeta ?? null).toBeNull();
+    expect(call.attachmentContext ?? null).toBeNull();
+    if (expectedResources) {
+      expect(call.resources).toEqual(expectedResources);
     }
-    expect(Array.isArray(actualAttachmentFilenames)).toBe(true);
-    expect(actualAttachmentFilenames?.length).toBe(attachmentFilenames.length);
-    for (let index = 0; index < attachmentFilenames.length; index += 1) {
-      expect(actualAttachmentFilenames?.[index]).toBe(attachmentFilenames[index]);
+    if (expectedMetadata) {
+      expect(call.metadata).toEqual(expectedMetadata);
     }
   }
 
@@ -377,10 +369,13 @@ describe('useChatMessageSender', () => {
     const { result } = renderSender({ returnToChatboxPolicy: 'never' });
     await sendText(result, 'hello');
 
-    expect(mockCaptureScreenshotAttachment).toHaveBeenCalledWith({
-      waitSeconds: 0,
+    expect(mockCaptureScreenshotAttachment).not.toHaveBeenCalled();
+    expectSingleSendQueryCall('hello', 'conv_msg-1', [{
+      kind: 'query_screenshot_request',
       isFirstUserMessage: true,
-    });
+      reason: 'query_send_with_capture',
+      required: false,
+    }]);
   });
 
   test('uses non-first capture path when user message already exists', async () => {
@@ -400,10 +395,13 @@ describe('useChatMessageSender', () => {
     const { result } = renderSender({ returnToChatboxPolicy: 'never' });
     await sendText(result, 'second');
 
-    expect(mockCaptureScreenshotAttachment).toHaveBeenCalledWith({
-      waitSeconds: 0,
+    expect(mockCaptureScreenshotAttachment).not.toHaveBeenCalled();
+    expectSingleSendQueryCall('second', 'conv_msg-1', [{
+      kind: 'query_screenshot_request',
       isFirstUserMessage: false,
-    });
+      reason: 'query_send_with_capture',
+      required: false,
+    }]);
   });
 
   test('skips screenshot capture when include_query_screenshot is disabled', async () => {
@@ -433,27 +431,23 @@ describe('useChatMessageSender', () => {
     expect(stopPlayback).toHaveBeenCalledTimes(1);
   });
 
-  test('continues sending query when screenshot capture fails', async () => {
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+  test('does not capture screenshots in renderer before SDK send', async () => {
     mockCaptureScreenshotAttachment.mockRejectedValue(new Error('capture-failed'));
 
-    try {
-      const { result } = renderSender({ returnToChatboxPolicy: 'never' });
-      await sendText(result, 'hello');
+    const { result } = renderSender({ returnToChatboxPolicy: 'never' });
+    await sendText(result, 'hello');
 
-      expect(mockUploadArtifactBase64).not.toHaveBeenCalled();
-      expectSingleSendQueryCall('hello', 'conv_msg-1');
-      expect(errorSpy.mock.calls.some(([message, error]) => (
-        message === '[queryScreenshotPipeline] Failed to capture screenshot attachment:'
-        && error instanceof Error
-        && error.message === 'capture-failed'
-      ))).toBe(true);
-    } finally {
-      errorSpy.mockRestore();
-    }
+    expect(mockCaptureScreenshotAttachment).not.toHaveBeenCalled();
+    expect(mockUploadArtifactBase64).not.toHaveBeenCalled();
+    expectSingleSendQueryCall('hello', 'conv_msg-1', [{
+      kind: 'query_screenshot_request',
+      isFirstUserMessage: true,
+      reason: 'query_send_with_capture',
+      required: false,
+    }]);
   });
 
-  test('continues sending query when artifact upload fails', async () => {
+  test('does not upload auto-captured screenshot artifacts in renderer before SDK send', async () => {
     mockCaptureScreenshotAttachment.mockResolvedValue({
       screenshot: 'base64-shot',
       screenshotContentType: 'image/png',
@@ -466,16 +460,17 @@ describe('useChatMessageSender', () => {
     const { result } = renderSender({ returnToChatboxPolicy: 'never' });
     await sendText(result, 'hello');
 
-    expect(mockUploadArtifactBase64).toHaveBeenCalled();
-    expect(mockUploadArtifactBase64).toHaveBeenCalledWith(
-      'base64-shot',
-      'image/png',
-      'user-message.png',
-    );
-    expectSingleSendQueryCall('hello', 'conv_msg-1');
+    expect(mockCaptureScreenshotAttachment).not.toHaveBeenCalled();
+    expect(mockUploadArtifactBase64).not.toHaveBeenCalled();
+    expectSingleSendQueryCall('hello', 'conv_msg-1', [{
+      kind: 'query_screenshot_request',
+      isFirstUserMessage: true,
+      reason: 'query_send_with_capture',
+      required: false,
+    }]);
   });
 
-  test('sends uploaded screenshot refs to the SDK without adding a renderer-local row', async () => {
+  test('sends screenshot capture request to the SDK without adding a renderer-local row', async () => {
     mockCaptureScreenshotAttachment.mockResolvedValue({
       screenshot: 'base64-shot',
       screenshotContentType: 'image/png',
@@ -491,19 +486,20 @@ describe('useChatMessageSender', () => {
     const { result } = renderSender({ returnToChatboxPolicy: 'never' });
     await sendText(result, 'hello');
 
-    expectSingleSendQueryCall(
-      'hello',
-      'conv_msg-1',
-      'artifact-1',
-      '/api/artifacts/artifact-1',
-      ['artifact-1'],
-    );
+    expect(mockCaptureScreenshotAttachment).not.toHaveBeenCalled();
+    expect(mockUploadArtifactBase64).not.toHaveBeenCalled();
+    expectSingleSendQueryCall('hello', 'conv_msg-1', [{
+      kind: 'query_screenshot_request',
+      isFirstUserMessage: true,
+      reason: 'query_send_with_capture',
+      required: false,
+    }]);
     expect(useChatStore.getState().messages).toEqual([]);
     expect(mockSendQuery.mock.calls[0][0].transcript).toBeUndefined();
     expect(mockSendQuery).toHaveBeenCalledTimes(1);
   });
 
-  test('reuses auto-capture screenshot_ref and screenshot_url when screenshot bytes are absent', async () => {
+  test('does not resolve auto-capture screenshot refs in renderer before SDK send', async () => {
     mockCaptureScreenshotAttachment.mockResolvedValue({
       screenshot: null,
       screenshotRef: 'artifact-auto-1',
@@ -515,18 +511,18 @@ describe('useChatMessageSender', () => {
     const { result } = renderSender({ returnToChatboxPolicy: 'never' });
     await sendText(result, 'hello auto screenshot');
 
+    expect(mockCaptureScreenshotAttachment).not.toHaveBeenCalled();
     expect(mockUploadArtifactBase64).not.toHaveBeenCalled();
-    expectSingleSendQueryCall(
-      'hello auto screenshot',
-      'conv_msg-1',
-      'artifact-auto-1',
-      'http://127.0.0.1:8765/api/artifacts/artifact-auto-1',
-      ['artifact-auto-1'],
-    );
+    expectSingleSendQueryCall('hello auto screenshot', 'conv_msg-1', [{
+      kind: 'query_screenshot_request',
+      isFirstUserMessage: true,
+      reason: 'query_send_with_capture',
+      required: false,
+    }]);
     expect(useChatStore.getState().messages).toEqual([]);
   });
 
-  test('uploads pasted clipboard image and sends its artifact ref', async () => {
+  test('sends pasted clipboard image as a SDK resource handle', async () => {
     mockUploadArtifactBase64.mockResolvedValue({
       artifactId: 'artifact-clipboard-1',
       url: '/api/artifacts/artifact-clipboard-1',
@@ -546,25 +542,21 @@ describe('useChatMessageSender', () => {
     });
 
     expect(mockCaptureScreenshotAttachment).not.toHaveBeenCalled();
-    expect(mockUploadArtifactBase64).toHaveBeenCalledWith(
-      'clipboard-image-base64',
-      'image/png',
-      'clipboard-image.png',
-    );
-    expectSingleSendQueryCall(
-      'Please inspect this image',
-      'conv_msg-1',
-      'artifact-clipboard-1',
-      '/api/artifacts/artifact-clipboard-1',
-      ['artifact-clipboard-1'],
-      null,
-      null,
-      ['clipboard-image.png'],
-    );
+    expect(mockUploadArtifactBase64).not.toHaveBeenCalled();
+    expectSingleSendQueryCall('Please inspect this image', 'conv_msg-1', [{
+      kind: 'clipboard_image',
+      base64: 'clipboard-image-base64',
+      contentType: 'image/png',
+      filename: 'clipboard-image.png',
+      required: true,
+    }], {
+      attachmentFilenames: ['clipboard-image.png'],
+      attachment_filenames: ['clipboard-image.png'],
+    });
     expect(useChatStore.getState().messages).toEqual([]);
   });
 
-  test('uploads multiple pasted clipboard images and sends all screenshot refs', async () => {
+  test('sends multiple pasted clipboard images as SDK resource handles', async () => {
     mockUploadArtifactBase64
       .mockResolvedValueOnce({
         artifactId: 'artifact-clipboard-1',
@@ -594,32 +586,30 @@ describe('useChatMessageSender', () => {
     });
 
     expect(mockCaptureScreenshotAttachment).not.toHaveBeenCalled();
-    expect(mockUploadArtifactBase64).toHaveBeenNthCalledWith(
-      1,
-      'clipboard-image-base64-1',
-      'image/png',
-      'clipboard-image-1.png',
-    );
-    expect(mockUploadArtifactBase64).toHaveBeenNthCalledWith(
-      2,
-      'clipboard-image-base64-2',
-      'image/jpeg',
-      'clipboard-image-2.jpg',
-    );
-    expectSingleSendQueryCall(
-      'Please inspect both images',
-      'conv_msg-1',
-      'artifact-clipboard-1',
-      '/api/artifacts/artifact-clipboard-1',
-      ['artifact-clipboard-1', 'artifact-clipboard-2'],
-      null,
-      null,
-      ['clipboard-image-1.png', 'clipboard-image-2.jpg'],
-    );
+    expect(mockUploadArtifactBase64).not.toHaveBeenCalled();
+    expectSingleSendQueryCall('Please inspect both images', 'conv_msg-1', [
+      {
+        kind: 'clipboard_image',
+        base64: 'clipboard-image-base64-1',
+        contentType: 'image/png',
+        filename: 'clipboard-image-1.png',
+        required: true,
+      },
+      {
+        kind: 'clipboard_image',
+        base64: 'clipboard-image-base64-2',
+        contentType: 'image/jpeg',
+        filename: 'clipboard-image-2.jpg',
+        required: true,
+      },
+    ], {
+      attachmentFilenames: ['clipboard-image-1.png', 'clipboard-image-2.jpg'],
+      attachment_filenames: ['clipboard-image-1.png', 'clipboard-image-2.jpg'],
+    });
     expect(useChatStore.getState().messages).toEqual([]);
   });
 
-  test('reads selected non-image files via read_file and injects hidden attachment context', async () => {
+  test('sends selected non-image files as required SDK resource handles', async () => {
     (window as any).ipc.invoke = jest.fn().mockImplementation((channel: string, payload: any) => {
       if (channel === INVOKE_CHANNELS.READ_ATTACHMENT_FILE) {
         expect(payload).toEqual({
@@ -647,21 +637,24 @@ describe('useChatMessageSender', () => {
       ],
     });
 
-    expectSingleSendQueryCall(
-      'Summarize the attached file',
-      'conv_msg-1',
-      null,
-      null,
-      null,
-      null,
-      '--- Attached File: notes.txt ---\nFile path: /tmp/notes.txt\n\nImportant notes',
-      ['notes.txt'],
+    expect((window as any).ipc.invoke).not.toHaveBeenCalledWith(
+      INVOKE_CHANNELS.READ_ATTACHMENT_FILE,
+      expect.anything(),
     );
+    expectSingleSendQueryCall('Summarize the attached file', 'conv_msg-1', [{
+      kind: 'readable_file',
+      filePath: '/tmp/notes.txt',
+      filename: 'notes.txt',
+      required: true,
+    }], {
+      attachmentFilenames: ['notes.txt'],
+      attachment_filenames: ['notes.txt'],
+    });
 
     expect(useChatStore.getState().messages).toEqual([]);
   });
 
-  test('blocks send and surfaces an error when a readable file cannot be read', async () => {
+  test('does not block renderer send when selected file resolution will happen in SDK', async () => {
     (window as any).ipc.invoke = jest.fn().mockImplementation((channel: string) => {
       if (channel === INVOKE_CHANNELS.READ_ATTACHMENT_FILE) {
         return Promise.resolve({
@@ -691,15 +684,21 @@ describe('useChatMessageSender', () => {
       }
     });
 
-    expect(thrownError?.message).toContain("couldn't read private.txt");
-    expect(mockSendQuery).not.toHaveBeenCalled();
-    expect(useChatStore.getState().messages).toEqual([
-      expect.objectContaining({
-        sender: 'assistant',
-        type: 'error',
-        text: expect.stringContaining("couldn't read private.txt"),
-      }),
-    ]);
+    expect(thrownError).toBeNull();
+    expect((window as any).ipc.invoke).not.toHaveBeenCalledWith(
+      INVOKE_CHANNELS.READ_ATTACHMENT_FILE,
+      expect.anything(),
+    );
+    expectSingleSendQueryCall('Summarize the attached file', 'conv_msg-1', [{
+      kind: 'readable_file',
+      filePath: '/tmp/private.txt',
+      filename: 'private.txt',
+      required: true,
+    }], {
+      attachmentFilenames: ['private.txt'],
+      attachment_filenames: ['private.txt'],
+    });
+    expect(useChatStore.getState().messages).toEqual([]);
   });
 
   test('resets sending state and appends error message when send fails', async () => {

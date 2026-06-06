@@ -62,6 +62,7 @@ const {
   buildQueryPayload,
   prepareAutomatedQueryPayload,
   prepareRendererQueryPayload,
+  preserveSdkTurnInputFields,
 } = require('./ipc/ipc_query_runtime.cjs');
 const {
   createAutomatedQueryDispatcher,
@@ -1098,8 +1099,9 @@ function initializeIpc(win, options = {}) {
     setFirstQuery: (nextValue) => {
       isFirstQuery = nextValue;
     },
-    attachAgentDefinitionContext: (payload) => buildBackendQueryPayload(
-      attachAgentDefinitionContext(payload),
+    attachAgentDefinitionContext: (payload) => preserveSdkTurnInputFields(
+      buildBackendQueryPayload(attachAgentDefinitionContext(payload)),
+      payload,
     ),
     ensureInstallAuthState,
     isBackendRuntimeConnected,
@@ -1146,16 +1148,24 @@ function initializeIpc(win, options = {}) {
 
 async function sendQueryToBackend({ payload = {}, messageId = null } = {}) {
   try {
+    const sourcePayload = isPlainObject(payload) ? payload : {};
+    const resources = Array.isArray(sourcePayload.resources) ? sourcePayload.resources : undefined;
+    const metadata = isPlainObject(sourcePayload.metadata) ? sourcePayload.metadata : undefined;
+    const backendPayload = { ...sourcePayload };
+    delete backendPayload.resources;
+    delete backendPayload.metadata;
     const agent = await ensureWindieAgent({
       reason: 'query',
-      conversationRef: resolveConversationRefFromPayload(payload),
-      workspacePath: resolveWorkspacePathForAgent(payload),
+      conversationRef: resolveConversationRefFromPayload(backendPayload),
+      workspacePath: resolveWorkspacePathForAgent(backendPayload),
     });
-    const text = typeof payload.text === 'string' ? payload.text : '';
+    const text = typeof backendPayload.text === 'string' ? backendPayload.text : '';
     const result = await agent.run({
       text,
       turnRef: messageId || undefined,
-      payload,
+      payload: backendPayload,
+      resources,
+      metadata,
     });
     return result?.queryMessageId || result?.turnRef || null;
   } catch (error) {

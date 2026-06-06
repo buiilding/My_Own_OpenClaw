@@ -61,7 +61,6 @@ export function useChatMessageSender(
       payload,
       config,
       dependencies: {
-        addMessage,
         setChatActiveConversationRef,
         stopPlayback,
       },
@@ -82,7 +81,6 @@ export function useChatMessageSender(
       throw error;
     }
   }, [
-    addMessage,
     appendSendFailureMessage,
     setIsSending,
     stopPlayback,

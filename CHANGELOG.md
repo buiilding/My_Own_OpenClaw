@@ -6,6 +6,11 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sdk/frontend/main: add SDK turn input resources and host resolvers so
+  `conversation.send()` emits the base user row before file, clipboard-image,
+  workspace, or query-screenshot resolution, while renderer send preparation now
+  submits typed resource handles instead of reading files or capturing/uploading
+  screenshots before SDK send.
 - sdk/frontend/main: add SDK live-turn awaiting anchors and overlay intent,
   route dashboard typing dots and response-overlay sizing through that contract,
   and demote Electron overlay phases to lifecycle/preflight handling with

@@ -54,7 +54,9 @@ title: "Frontend Renderer Chat Docs Hub"
 - `frontend/src/renderer/features/chat/stores/chatStore.ts`
 - `frontend/src/renderer/features/chat/utils/messageSender/chatMessageSenderUtils.ts`
 - `frontend/src/renderer/features/chat/utils/messageSender/chatMessageSenderPayloads.ts`
-- `frontend/src/renderer/features/chat/utils/messageSender/readableFileAttachmentContext.ts`
+- `frontend/src/renderer/features/chat/utils/messageSender/desktopChatSendPreparation.ts`
+- `packages/windie-sdk-js/src/runtime/TurnInputPipeline.ts`
+- `packages/windie-sdk-js/src/runtime/DefaultTurnResourceResolvers.ts`
 - `frontend/src/renderer/features/chat/utils/state/chatLoopUiState.js`
 - `frontend/src/renderer/features/chat/utils/state/streamPhaseState.js`
 - `frontend/src/renderer/features/chat/utils/state/chatTurnPresentationState.js`

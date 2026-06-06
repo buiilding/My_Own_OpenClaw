@@ -87,7 +87,7 @@ All chat-stream handlers except `local-user-message` run through
 Guard exception:
 
 - if workspace is sending a new turn (`isSending=true`) while stream phase is terminal (`idle|complete|error`), stale-turn guard is temporarily relaxed so first packets of the new turn are not dropped due to lagging turn-reset bookkeeping.
-- when terminal handoff has already re-anchored to the current `turn_ref`, same-turn packets are still allowed only if the workspace tail is the optimistic user row for that new turn; assistant-tailed completed/error workspaces still reject trailing old-turn packets.
+- when terminal handoff has already re-anchored to the current `turn_ref`, same-turn packets are still allowed only if the workspace tail is the SDK user row for that new turn; assistant-tailed completed/error workspaces still reject trailing old-turn packets.
 - terminal-handoff packet policy now lives in `desktopChatStreamTerminalHandoffRuntime.ts` as pure predicates so re-anchor behavior can be regression-tested without going through the whole ingress runtime.
 - SDK/main execution-side stale-turn handling should stay aligned with this stream ingress policy so display projections and local result delivery do not diverge during later-turn re-anchor windows.
 
@@ -132,7 +132,7 @@ Dashboard/pill presentation note:
 
 `local-user-message`:
 
-- add optimistic user row
+- seed the SDK user row in renderer compatibility state
 - set sending true
 - initialize thinking fallback for non-thinking-text models
 - reset stream tracking for new turn

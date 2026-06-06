@@ -17,6 +17,8 @@ import type {
   RehydrateSnapshot,
   SdkDisplayRow,
   SettingsPayload,
+  TurnInputResource,
+  TurnResourceResolverRegistry,
   WakewordPayload,
 } from '../conversation/types.js';
 import {
@@ -37,6 +39,7 @@ import {
   type MemoryRetrievalDiagnostic,
 } from './ContextEnrichmentPipeline.js';
 import { reduceConversationRuntimeState, createInitialConversationRuntimeState } from './conversationReducer.js';
+import { resolveTurnInputResources } from './TurnInputPipeline.js';
 
 export type ConversationListener = (snapshot: ConversationSnapshot) => void;
 export type ConversationEventListener = (event: ConversationEvent, snapshot: ConversationSnapshot) => void;
@@ -54,6 +57,8 @@ export type SendInput = {
   text: string;
   turnRef?: string;
   payload?: JsonRecord;
+  resources?: TurnInputResource[] | null;
+  metadata?: JsonRecord | null;
   model?: WindieModelSelection;
 };
 
@@ -118,6 +123,7 @@ export type ConversationRuntimeOptions = {
   sdkClient?: WindieSdkClient;
   userId?: string;
   memoryEnabled?: boolean;
+  resourceResolvers?: TurnResourceResolverRegistry | null;
   enrichQuery?: (input: {
     text: string;
     conversationRef: string;
@@ -176,6 +182,14 @@ function isTerminalConversationEvent(event: ConversationEvent): boolean {
     || event.type === 'turn_error'
     || event.type === 'runtime_error'
     || event.type === 'compaction_failed';
+}
+
+function isJsonRecord(value: unknown): value is JsonRecord {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
+function hasOwnEnumerableKeys(value: JsonRecord): boolean {
+  return Object.keys(value).length > 0;
 }
 
 export class SdkConversationRuntime {
@@ -273,6 +287,9 @@ export class SdkConversationRuntime {
         source: 'sdk',
         payload: {},
       }));
+      const baseUserPayload = isJsonRecord(input.metadata)
+        ? input.metadata
+        : (isJsonRecord(input.payload) ? input.payload : {});
       await this.applyEvent(createConversationEvent({
         eventId: this.nextLocalEventId(turnRef, 'user_message'),
         type: 'user_message',
@@ -281,18 +298,33 @@ export class SdkConversationRuntime {
         turnRef,
         source: 'ui',
         payload: {
-          ...(input.payload ?? {}),
+          ...baseUserPayload,
           text: input.text,
         },
       }));
+      const sourcePayload = isJsonRecord(input.payload) ? input.payload : {};
+      const resourceResolution = await resolveTurnInputResources({
+        resources: input.resources ?? null,
+        resolvers: this.options.resourceResolvers ?? null,
+        context: {
+          text: input.text,
+          conversationRef: this.options.conversationRef,
+          turnRef,
+          payload: sourcePayload,
+        },
+      });
+      const payloadForEnrichment = {
+        ...sourcePayload,
+        ...resourceResolution.payload,
+      };
       const enrichedPayload = this.options.enrichQuery
         ? await this.options.enrichQuery({
           text: input.text,
           conversationRef: this.options.conversationRef,
-          payload: input.payload ?? {},
+          payload: payloadForEnrichment,
           emitDiagnostic: emitMemoryDiagnostic,
         })
-        : (input.payload ?? {});
+        : payloadForEnrichment;
       for (const diagnostic of memoryDiagnostics) {
         await this.applyEvent(createConversationEvent({
           eventId: this.nextLocalEventId(turnRef, 'memory_retrieval_diagnostic'),
@@ -306,7 +338,11 @@ export class SdkConversationRuntime {
           },
         }));
       }
-      if (this.options.enrichQuery) {
+      const metadataPayload = {
+        ...resourceResolution.metadata,
+        ...enrichedPayload,
+      };
+      if (this.options.enrichQuery || hasOwnEnumerableKeys(resourceResolution.metadata)) {
         await this.applyEvent(createConversationEvent({
           eventId: this.nextLocalEventId(turnRef, 'user_message_metadata'),
           type: 'user_message_metadata',
@@ -315,7 +351,7 @@ export class SdkConversationRuntime {
           turnRef,
           source: 'sdk',
           payload: {
-            ...enrichedPayload,
+            ...metadataPayload,
             text: input.text,
           },
         }));
