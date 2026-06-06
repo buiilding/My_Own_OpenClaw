@@ -935,6 +935,34 @@ def test_openai_provider_build_request_params_preserves_plain_object_tool_schema
     assert params["tools"][0]["function"]["parameters"] == plain_parameters
 
 
+def test_openai_provider_build_request_params_sets_original_image_detail():
+    provider = OpenAIProvider(api_key="test-key")
+
+    params = provider._build_request_params(
+        "gpt-5.4@@gpt-5-4-none-thinking",
+        [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": "Click the icon."},
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": "data:image/jpeg;base64,jpeg-b64"},
+                    },
+                ],
+            }
+        ],
+    )
+
+    assert params["messages"][0]["content"][1] == {
+        "type": "image_url",
+        "image_url": {
+            "url": "data:image/jpeg;base64,jpeg-b64",
+            "detail": "original",
+        },
+    }
+
+
 def test_openai_transports_share_root_union_schema_compatibility():
     provider = OpenAIProvider(api_key="test-key")
     union_parameters = {
@@ -1246,7 +1274,11 @@ def test_build_openai_responses_input_preserves_tool_output_images():
         "call_id": "call-shot",
         "output": [
             {"type": "input_text", "text": "Screenshot captured successfully."},
-            {"type": "input_image", "image_url": "data:image/jpeg;base64,jpeg-b64"},
+            {
+                "type": "input_image",
+                "image_url": "data:image/jpeg;base64,jpeg-b64",
+                "detail": "original",
+            },
         ],
         "status": "completed",
     }
@@ -1375,6 +1407,7 @@ def test_build_openai_responses_input_preserves_legacy_computer_named_calls_as_f
                 {
                     "type": "input_image",
                     "image_url": "data:image/png;base64,abc123",
+                    "detail": "original",
                 },
             ],
             "status": "completed",
@@ -1425,6 +1458,7 @@ def test_build_openai_responses_input_uses_trailing_tool_outputs_for_previous_re
                 {
                     "type": "input_image",
                     "image_url": "data:image/png;base64,abc123",
+                    "detail": "original",
                 },
             ],
             "status": "completed",

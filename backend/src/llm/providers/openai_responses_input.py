@@ -22,6 +22,9 @@ from backend.src.llm.providers.response_parsing import get_value
 from backend.src.tools.tool_specs import to_litellm_tool_choice
 
 
+OPENAI_IMAGE_DETAIL = "original"
+
+
 def _normalize_text_block(
     item: Any,
     *,
@@ -47,7 +50,11 @@ def _normalize_image_block(item: Any) -> Optional[Dict[str, Any]]:
     else:
         url = image_url or get_value(item, "url")
     if isinstance(url, str) and url:
-        return {"type": "input_image", "image_url": url}
+        return {
+            "type": "input_image",
+            "image_url": url,
+            "detail": OPENAI_IMAGE_DETAIL,
+        }
     return None
 
 
@@ -172,6 +179,7 @@ def _normalize_assistant_tool_call_input(tool_call: Dict[str, Any]) -> Dict[str,
         "status": "completed",
     }
 
+
 def _normalize_tool_output_content(content: Any) -> Any:
     normalized = _normalize_message_content_for_input(content)
     if normalized == "":
@@ -245,9 +253,7 @@ def build_openai_responses_input(
                 )
             for tool_call in message.get("tool_calls") or []:
                 if isinstance(tool_call, dict):
-                    input_items.append(
-                        _normalize_assistant_tool_call_input(tool_call)
-                    )
+                    input_items.append(_normalize_assistant_tool_call_input(tool_call))
             continue
 
         if role == "tool":
@@ -258,9 +264,7 @@ def build_openai_responses_input(
                 {
                     "type": "function_call_output",
                     "call_id": tool_call_id.strip(),
-                    "output": _normalize_tool_output_content(
-                        message.get("content")
-                    ),
+                    "output": _normalize_tool_output_content(message.get("content")),
                     "status": "completed",
                 }
             )

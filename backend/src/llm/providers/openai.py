@@ -4,6 +4,7 @@ from typing import Any, AsyncGenerator, Dict, List, Optional
 from backend.src.core.types.schemas import LLMMessage, NormalizedLLMResponse
 from backend.src.llm.models.models_config import resolve_provider_thinking_preference
 from backend.src.llm.providers.online import OnlineLLMProvider
+from backend.src.llm.providers.openai_responses_input import OPENAI_IMAGE_DETAIL
 from backend.src.llm.providers.openai_responses_runtime import (
     get_openai_responses_completion,
     stream_openai_responses_events,
@@ -19,6 +20,64 @@ class OpenAIProvider(OnlineLLMProvider):
     provider_label = "OpenAI"
     model_prefix = None
     invalid_response_message = "Invalid response from OpenAI"
+
+    @staticmethod
+    def _with_original_image_detail(messages: List[LLMMessage]) -> List[LLMMessage]:
+        changed = False
+        normalized_messages: List[LLMMessage] = []
+
+        for message in messages:
+            content = message.get("content") if isinstance(message, dict) else None
+            if not isinstance(content, list):
+                normalized_messages.append(message)
+                continue
+
+            normalized_content = []
+            message_changed = False
+            for part in content:
+                if not isinstance(part, dict) or part.get("type") != "image_url":
+                    normalized_content.append(part)
+                    continue
+
+                image_url = part.get("image_url")
+                if isinstance(image_url, dict):
+                    updated_image_url = dict(image_url)
+                    updated_image_url["detail"] = OPENAI_IMAGE_DETAIL
+                elif isinstance(image_url, str) and image_url:
+                    updated_image_url = {
+                        "url": image_url,
+                        "detail": OPENAI_IMAGE_DETAIL,
+                    }
+                else:
+                    normalized_content.append(part)
+                    continue
+
+                updated_part = dict(part)
+                updated_part["image_url"] = updated_image_url
+                normalized_content.append(updated_part)
+                message_changed = True
+
+            if message_changed:
+                updated_message = dict(message)
+                updated_message["content"] = normalized_content
+                normalized_messages.append(updated_message)
+                changed = True
+            else:
+                normalized_messages.append(message)
+
+        return normalized_messages if changed else messages
+
+    @staticmethod
+    def _normalize_messages_for_provider(
+        messages: List[LLMMessage],
+        *,
+        model: str,
+    ) -> List[LLMMessage]:
+        normalized_messages = OnlineLLMProvider._normalize_messages_for_provider(
+            messages,
+            model=model,
+        )
+        return OpenAIProvider._with_original_image_detail(normalized_messages)
 
     @staticmethod
     def _uses_native_reasoning_runtime(model: str) -> bool:
@@ -39,10 +98,7 @@ class OpenAIProvider(OnlineLLMProvider):
         native_web_search_enabled: bool = False,
     ) -> bool:
         _ = tools
-        return (
-            cls._uses_native_reasoning_runtime(model)
-            or native_web_search_enabled
-        )
+        return cls._uses_native_reasoning_runtime(model) or native_web_search_enabled
 
     async def get_completion(
         self,
@@ -50,7 +106,9 @@ class OpenAIProvider(OnlineLLMProvider):
         messages: List[LLMMessage],
         **request_kwargs: Any,
     ) -> NormalizedLLMResponse:
-        native_web_search_enabled = bool(request_kwargs.get("native_web_search_enabled"))
+        native_web_search_enabled = bool(
+            request_kwargs.get("native_web_search_enabled")
+        )
         if self._uses_responses_runtime(
             model,
             tools=request_kwargs.get("tools"),
@@ -80,7 +138,9 @@ class OpenAIProvider(OnlineLLMProvider):
         messages: List[LLMMessage],
         **request_kwargs: Any,
     ) -> AsyncGenerator[Any, None]:
-        native_web_search_enabled = bool(request_kwargs.get("native_web_search_enabled"))
+        native_web_search_enabled = bool(
+            request_kwargs.get("native_web_search_enabled")
+        )
         if self._uses_responses_runtime(
             model,
             tools=request_kwargs.get("tools"),

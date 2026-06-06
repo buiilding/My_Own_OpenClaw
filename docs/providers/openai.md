@@ -34,6 +34,13 @@ The provider uses the OpenAI Responses runtime when:
 
 Otherwise it falls back to the shared LiteLLM chat-completion path from `OnlineLLMProvider`.
 
+## Image Detail
+
+OpenAI request shaping sets image blocks to `detail: "original"` for both
+Responses input images and chat-completions `image_url` blocks. This is an
+OpenAI-provider payload decision; stored WindieOS messages stay provider-neutral
+and do not carry OpenAI-specific image detail metadata.
+
 ## Credential Resolution
 
 Credential priority is:

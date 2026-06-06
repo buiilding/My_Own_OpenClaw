@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- backend/openai: request original-detail image processing for OpenAI
+  multimodal image blocks so screenshot coordinate grounding uses the captured
+  pixel grid instead of provider default image detail.
 - frontend/renderer: smooth minimal chat pill collapse from the max-height
   multiline composer by routing clamped-to-empty deletes through a controlled
   paint-ordered collapse instead of jumping straight from capped textarea
