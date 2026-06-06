@@ -1,5 +1,7 @@
 function getOverlayAlwaysOnTopLevels(platform = process.platform) {
-  void platform;
+  if (platform === 'darwin') {
+    return ['floating'];
+  }
   return ['screen-saver', 'floating'];
 }
 

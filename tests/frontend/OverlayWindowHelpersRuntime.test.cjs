@@ -402,8 +402,8 @@ describe('overlay_window_helpers_runtime', () => {
 
     runtime.ensureChatWindowOnTop();
 
-    expect(chatWindow.setAlwaysOnTop).toHaveBeenNthCalledWith(1, true, 'screen-saver');
-    expect(chatWindow.setAlwaysOnTop).toHaveBeenNthCalledWith(2, true, 'floating');
+    expect(chatWindow.setAlwaysOnTop).toHaveBeenNthCalledWith(1, true, 'floating');
+    expect(chatWindow.setAlwaysOnTop).toHaveBeenNthCalledWith(2, true);
     expect(chatWindow.moveTop).toHaveBeenCalledTimes(1);
   });
 });

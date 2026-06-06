@@ -36,7 +36,11 @@ Window set:
 - `chatWindow`: bottom-center overlay input pill (`transparent`, `alwaysOnTop`)
 - `responseWindow`: response overlay above chat pill (`transparent`, `alwaysOnTop`)
 - `contextLabelWindow`: dormant context-label shell window hooks remain in main process, but window is not currently instantiated in startup flow
-- chat/response overlays request strongest topmost level first (`screen-saver`, fallback `floating`)
+- macOS chat/response overlays use the capturable `floating` topmost level in
+  normal operation; screenshot exclusion is handled only by the SDK screenshot
+  lease
+- Windows/Linux chat/response overlays request strongest topmost level first
+  (`screen-saver`, fallback `floating`)
 - macOS overlays now use native `panel` windows, which span Spaces/fullscreen without calling `setVisibleOnAllWorkspaces(...)`
 - Windows/Linux overlays still use the shared workspace-pinning helper when available
 
@@ -204,7 +208,12 @@ Tool-execution chat-pill lifecycle (SDK/main computer-use path):
 - restore is symmetric with prep: capture lifecycles use a dedicated `restore-surface-after-screenshot` IPC so the same hidden surface is restored with the correct contract
 - chat-pill restores through that IPC explicitly re-apply the response-overlay shell when the active overlay phase is still in the loop (`awaiting-first-chunk|streaming|tool-call|tool-output`), instead of reusing generic non-focusing `show-chatbox` behavior
 - dashboard capture prep now moves the main window off the visible desktop before hide and does not return until the dashboard is offscreen, minimized, or hidden, so screenshot execution no longer races the dashboard hide animation
-- Linux prep waits a bounded compositor-settle interval (`120ms`) after hiding the owning surface before invoking the screenshot tool so neither the pill nor the dashboard leaks into captured frames; Windows/macOS do not run overlay capture-time hide/restore suppression for the pill/response overlay, and instead toggle Electron `setContentProtection(...)` with the shared active-loop phase contract (`awaiting-first-chunk|streaming|tool-call|tool-output` protected, `idle|complete|error` unprotected)
+- Linux prep waits a bounded compositor-settle interval (`120ms`) after hiding
+  the owning surface before invoking the screenshot tool so neither the pill nor
+  the dashboard leaks into captured frames; Windows/macOS do not run overlay
+  capture-time hide/restore suppression for the pill/response overlay, and
+  instead toggle Electron `setContentProtection(...)` only inside the SDK
+  screenshot-capture lease
 - the shared renderer post-tool capture helper now owns the intentional pre-screenshot delay for screenshot/system-state collection on every OS, so capture timing is no longer tied to whether the platform screenshot-visibility runtime hides a WindieOS surface
 - response overlay renderer now listens to `response-overlay-visibility`; hide marks the cached frame as hidden and show forces a fresh `set-responsebox-size` report (including `compact_hover`) so typing-indicator compact hover offset is re-applied after capture hide/show cycles
 - debug tracing for these show/hide/resize transitions is now available in main under `WINDIE_DEBUG_STREAM_EVENTS=1` or `WINDIE_DEBUG_CHAT_PILL=1`

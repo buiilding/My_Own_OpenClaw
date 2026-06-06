@@ -6,7 +6,7 @@ const {
 } = require('../../frontend/src/main/overlay_topmost_runtime.cjs');
 
 describe('overlay_topmost_runtime', () => {
-  test('tries strongest topmost level before fallback', () => {
+  test('uses capturable floating level for normal macOS overlays', () => {
     const targetWindow = {
       setAlwaysOnTop: jest.fn(() => {}),
     };
@@ -19,10 +19,10 @@ describe('overlay_topmost_runtime', () => {
     });
 
     expect(success).toBe(true);
-    expect(targetWindow.setAlwaysOnTop).toHaveBeenNthCalledWith(1, true, 'screen-saver');
+    expect(targetWindow.setAlwaysOnTop).toHaveBeenNthCalledWith(1, true, 'floating');
   });
 
-  test('falls back to floating when screen-saver level throws', () => {
+  test('falls back to floating when non-mac screen-saver level throws', () => {
     const targetWindow = {
       setAlwaysOnTop: jest.fn()
         .mockImplementationOnce(() => {
@@ -33,7 +33,7 @@ describe('overlay_topmost_runtime', () => {
 
     const success = setOverlayAlwaysOnTop({
       targetWindow,
-      platform: 'darwin',
+      platform: 'win32',
       warn: jest.fn(),
       windowLabel: 'chat box',
     });

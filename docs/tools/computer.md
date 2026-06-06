@@ -27,7 +27,8 @@ Computer tools are local-execution tools. The backend owns the model-facing inte
 - Backend OCR/vision services can prepare coordinates before local execution.
 - Linux is the only platform that should hide WindieOS overlay surfaces for screenshot capture and restore them after capture.
 - Windows and macOS should not add capture-time hide/show for the minimal chat pill or response overlay.
-- Windows and macOS content protection should only be enabled during active loop phases and disabled again for idle/terminal phases.
+- Windows and macOS content protection should only be enabled during SDK
+  screenshot-capture leases and disabled immediately after capture.
 
 ## Files to Inspect
 

@@ -36,7 +36,8 @@ Do not route platform fixes through the hosted backend. The backend can own mode
 Keep these rules explicit in the change, tests, and docs:
 
 - Linux is the only OS where WindieOS overlay surfaces should be hidden for screenshot capture.
-- macOS and Windows should use Electron content protection during active loop phases, then disable it during idle and terminal phases.
+- macOS and Windows should use Electron content protection only during SDK
+  screenshot-capture leases, then disable it immediately after capture.
 - Renderer code should consume normalized platform state; it should not shell out to OS commands or probe platform permissions directly.
 - Sidecar platform adapters should not import backend code.
 - Backend tool schemas may describe a capability, but sidecar code owns local execution.

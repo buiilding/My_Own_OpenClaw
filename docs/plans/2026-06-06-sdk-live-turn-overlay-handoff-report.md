@@ -34,6 +34,8 @@ visibility/content after SDK `turn_started`.
 - [x] Remove renderer hover-owned normal chat-pill click-through toggling.
 - [x] Stop renderer cleanup from sending same-turn hide requests during SDK
   awaiting-to-response transitions.
+- [x] Keep normal macOS overlay windows capturable by using the floating
+  topmost level and deleting creation-time overlay content protection.
 - [x] Add/update focused tests.
 - [x] Run focused validation.
 - [x] Perform final design inspection and classify any remaining paths.
@@ -82,6 +84,12 @@ visibility/content after SDK `turn_started`.
   cleanup effect that depended on the `reportOverlaySize` callback, so callback
   identity changes during awaiting-to-response transitions looked like an
   unmount.
+- Manual macOS screenshot testing showed the chat pill was visible to the user
+  but missing from `Shift-Cmd-Ctrl-4` capture. The remaining cause was normal
+  overlay topmost policy using the macOS `screen-saver` level, which can be
+  compositor-visible but system-screenshot-invisible. Creation-time overlay
+  content-protection parameters also kept the old protection path available,
+  even though bootstrap passed `false`.
 - `useConversationRuntimeProjectionStream` can store SDK current-turn
   projections before stale-turn side-effect guards without changing dashboard
   transcript row ownership.
@@ -117,6 +125,9 @@ visibility/content after SDK `turn_started`.
 - Response overlay renderer cleanup now sends a hide only on actual unmount or
   explicit invisible state. SDK awaiting-to-response transitions keep the same
   turn guard visible and only send guarded resize/show refinement.
+- Normal macOS chat/response overlays use the capturable `floating` topmost
+  level. Screenshot invisibility is owned only by the SDK screenshot-capture
+  lease; overlay creation no longer accepts or applies content protection.
 
 ## Validation Log
 
@@ -136,6 +147,10 @@ visibility/content after SDK `turn_started`.
 - `cd frontend && npm run typecheck` - passed.
 - `bin/windie docs list` - passed.
 - `git diff --check -- . ':(exclude)AGENTS.md'` - passed.
+- `cd frontend && npm run test:ci -- --runTestsByPath ../tests/frontend/OverlayTopmostRuntime.test.cjs ../tests/frontend/WindowPlatformPolicy.test.cjs ../tests/frontend/MainWindowRuntime.test.cjs ../tests/frontend/MainProcessBootstrapRuntime.test.cjs ../tests/frontend/OverlayWindowHelpersRuntime.test.cjs ../tests/frontend/SurfaceRuntime.test.cjs --runInBand` - passed, 6 suites / 83 tests.
+- `node -c frontend/src/main/overlay_topmost_runtime.cjs && node -c frontend/src/main/main_window_runtime.cjs && node -c frontend/src/main/main_process_bootstrap_runtime.cjs` - passed.
+- `cd frontend && npm run typecheck` - passed.
+- `bin/windie docs list` - passed.
 
 ## Commits
 
@@ -167,8 +182,9 @@ visibility/content after SDK `turn_started`.
 - Follow-up inspection confirmed `sdk_live_turn_surface_controller.cjs` is the
   main-process mirror from SDK `overlayIntent` to native response window
   visibility, bounds, turn guard, and stale-hide protection.
-- Follow-up inspection confirmed `createWindowBootstrapRuntime` always creates
-  chat/response overlay windows with content protection disabled; screenshot
+- Follow-up inspection confirmed `createWindowBootstrapRuntime` no longer passes
+  creation-time overlay content-protection state, and `createChatWindow` /
+  `createResponseWindow` no longer accept or apply that path. Screenshot
   invisibility now comes from `beginScreenshotCaptureLease` only.
 - Follow-up inspection confirmed `MinimalChatPill` reports normal hit-test
   active state on mount and no longer toggles click-through on hover or when
@@ -178,6 +194,9 @@ visibility/content after SDK `turn_started`.
 - Follow-up inspection confirmed `useResponseOverlayWindowSync` keeps the
   latest size reporter in a ref for unmount cleanup, so callback dependency
   changes no longer send hide requests during same-turn SDK transitions.
+- Follow-up inspection confirmed normal macOS overlay promotion uses the
+  capturable `floating` level; `screen-saver` remains only in non-mac fallback
+  tests and policy.
 - Final grep classified remaining old-path names as:
   `selectChatBoxState` for dashboard/legacy selectors only,
   `useLocalSendLatch` for no-SDK/pre-turn fallback only,

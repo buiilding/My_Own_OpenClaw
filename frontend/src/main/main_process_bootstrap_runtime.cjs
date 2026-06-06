@@ -71,8 +71,6 @@ function createWindowBootstrapRuntime(deps) {
       syncWakewordToggleForChatVisibility: deps.syncWakewordToggleForChatVisibility,
       setChatWindow: deps.setChatWindow,
       applyOverlayWindowPolicy: deps.applyOverlayWindowPolicy,
-      applyContentProtection: deps.enableContentProtectionSafely,
-      overlayContentProtectionEnabled: false,
       syncWindowDisplayAffinity: deps.syncWindowDisplayAffinity,
     });
     deps.setChatWindow(chatWindow);
@@ -100,8 +98,6 @@ function createWindowBootstrapRuntime(deps) {
       syncContextLabelWindowVisibility: deps.syncContextLabelWindowVisibility,
       setResponseWindow: deps.setResponseWindow,
       applyOverlayWindowPolicy: deps.applyOverlayWindowPolicy,
-      applyContentProtection: deps.enableContentProtectionSafely,
-      overlayContentProtectionEnabled: false,
       syncWindowDisplayAffinity: deps.syncWindowDisplayAffinity,
     });
     deps.setResponseWindow(responseWindow);

@@ -32,7 +32,7 @@ Docs-only changes can stop at docs validation. Behavior changes should run focus
 
 | Changed surface | Frontend tests | Sidecar tests | Notes |
 | --- | --- | --- | --- |
-| content protection | `tests/frontend/WindowPlatformPolicy.test.cjs`, `tests/frontend/DisplayAffinityRuntime.test.cjs` | not applicable | Covers Electron main policy; still smoke active loop phases on target OS when capture behavior changed. |
+| content protection | `tests/frontend/WindowPlatformPolicy.test.cjs`, `tests/frontend/DisplayAffinityRuntime.test.cjs`, `tests/frontend/SurfaceRuntime.test.cjs` | not applicable | Covers Electron main policy and screenshot-capture leases; smoke screenshot capture on target OS when capture behavior changed. |
 | screenshot visibility bridge | `tests/frontend/LocalBackendBridgeWindowVisibility.test.cjs`, `tests/frontend/SurfaceOrchestratorCaptureLifecycle.test.ts` | `tests/sidecar/test_screenshot_tool.py` | Use when screenshots include WindieOS surfaces or capture bounds are wrong. |
 | overlay phase state | `tests/frontend/ResponseOverlayPhaseHandler.test.cjs`, `tests/frontend/OverlayPhaseIpcRuntime.test.cjs`, `tests/frontend/SurfaceOrchestratorPhases.test.ts` | not applicable | Use when phase transitions change hide/protect/restore behavior. |
 | display affinity and multi-monitor targeting | `tests/frontend/DisplayAffinityRuntime.test.cjs`, `tests/frontend/DisplayQueryHandler.test.cjs` | `tests/sidecar/test_screenshot_tool.py` | Include manual multi-monitor capture check if the bug was monitor-specific. |
@@ -48,8 +48,8 @@ Docs-only changes can stop at docs validation. Behavior changes should run focus
 
 | Surface | macOS | Windows | Linux |
 | --- | --- | --- | --- |
-| screenshot excludes WindieOS UI | Send from minimal pill, verify capture does not show protected overlays. | Send from minimal pill, verify capture does not show protected overlays. | Send from minimal pill, verify overlays hide then restore without flicker. |
-| content protection | Confirm protection is active only during active loop phases and disabled after completion/error. | Confirm protection is active only during active loop phases and disabled after completion/error. | Confirm content protection path is a no-op and hide/restore owns capture. |
+| screenshot excludes WindieOS UI | Send from minimal pill, verify the SDK screenshot tool does not show protected overlays. | Send from minimal pill, verify the SDK screenshot tool does not show protected overlays. | Send from minimal pill, verify overlays hide then restore without flicker. |
+| content protection | Confirm protection is active only during SDK screenshot-capture leases and disabled after capture. | Confirm protection is active only during SDK screenshot-capture leases and disabled after capture. | Confirm content protection path is a no-op and hide/restore owns capture. |
 | screen capture permission | Reset or deny Screen Recording, run onboarding grant, verify native prompt or documented fallback. | Verify screenshot works without macOS-style permission flow. | Verify screenshot dependencies are present and failure text routes to Linux docs. |
 | input control permission | Reset or deny Accessibility, run input probe, verify grant flow and mouse/keyboard tool behavior. | Run PowerShell cursor probe and a local mouse/keyboard smoke. | Verify GNOME accessibility, X11 `xdotool`, or `ydotool` route before editing tool logic. |
 | window switching | Switch to a named app window and verify active-window label. | Switch to a named window and verify foreground wait. | Verify X11/Wayland expectation and ambiguous title handling. |

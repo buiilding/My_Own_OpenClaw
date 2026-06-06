@@ -41,7 +41,9 @@ Read [Models and LLM Providers](../providers/models.md) and [Provider Credential
 
 ## Why does a screenshot include the chat pill or response overlay?
 
-This is platform-specific. Linux uses hide/restore for clean screenshots. macOS and Windows use content protection during active loop phases and should not add capture-time hide/show.
+This is platform-specific. Linux uses hide/restore for clean screenshots. macOS
+and Windows use content protection only during SDK screenshot-capture leases and
+should not add capture-time hide/show.
 
 Read [Screenshot and Overlay Policy](../platforms/screenshot_overlay_policy.md).
 

@@ -15,20 +15,20 @@ Screenshot and overlay behavior is platform-specific because Electron content pr
 | Behavior | macOS | Windows | Linux |
 | --- | --- | --- | --- |
 | hide WindieOS overlays for screenshot capture | no | no | yes, through the shared Linux hide/restore contract |
-| use Electron `setContentProtection` | yes, during active loop phases only | yes, during active loop phases only | no; Linux uses hide/restore instead |
-| content protection idle behavior | disabled in idle and terminal phases | disabled in idle and terminal phases | no-op |
+| use Electron `setContentProtection` | yes, during SDK screenshot-capture leases only | yes, during SDK screenshot-capture leases only | no; Linux uses hide/restore instead |
+| content protection idle behavior | disabled outside screenshot-capture leases | disabled outside screenshot-capture leases | no-op |
 | minimal chat pill capture behavior | no capture-time hide/show | no capture-time hide/show | hide-only collapse path; restore after capture |
 | response overlay capture behavior | protected rather than hidden | protected rather than hidden | hidden/restored with overlay surfaces when required |
 | focus recovery after capture | do not add renderer refocus hacks | do not add renderer refocus hacks | restore visibility without focus steal |
 
-Active loop phases are:
+Normal macOS and Windows overlay windows must remain capturable by user-initiated
+system screenshots. Screenshot exclusion is not an active-loop state; it is a
+short lease around SDK-local screenshot execution:
 
-- `awaiting-first-chunk`
-- `streaming`
-- `tool-call`
-- `tool-output`
-
-Terminal or idle phases should not keep content protection enabled.
+1. SDK calls Electron's local tool lifecycle immediately before `screenshot`.
+2. Electron main enables content protection for WindieOS overlay windows.
+3. The sidecar screenshot runs.
+4. Electron main disables content protection in the release callback.
 
 ## Owner Files
 
@@ -58,14 +58,16 @@ Rules:
 
 ## macOS and Windows Contract
 
-macOS and Windows should not add capture-time hide/show for the minimal chat pill or response overlay. They rely on content protection during active loop phases and must disable it again once the loop is idle, complete, or errored.
+macOS and Windows should not add capture-time hide/show for the minimal chat pill
+or response overlay. They rely on content protection during the SDK screenshot
+lease and must disable it immediately after capture.
 
 Rules:
 
 - no renderer hide/show collapse path for capture
 - no focus-restoration hacks in renderer chat-pill runtime
 - content protection belongs in Electron main platform policy
-- overlay phase drives interactivity and protection state
+- overlay phase does not own screenshot invisibility
 
 ## Validation
 

@@ -63,7 +63,6 @@ describe('main_process_bootstrap_runtime', () => {
         syncWakewordToggleForChatVisibility: jest.fn(),
         syncContextLabelWindowVisibility: jest.fn(),
         setResponseOverlayVisibilityState: jest.fn(),
-        enableContentProtectionSafely: jest.fn(),
         syncWindowDisplayAffinity: jest.fn(),
         getState: () => state,
         setMainWindow: jest.fn((nextWindow) => {
@@ -132,17 +131,15 @@ describe('main_process_bootstrap_runtime', () => {
     expect(state.windows.responseWindow).toEqual({ id: 'response-window' });
     expect(deps.createChatWindowRuntime).toHaveBeenCalledWith(expect.objectContaining({
       syncWindowDisplayAffinity: deps.syncWindowDisplayAffinity,
-      overlayContentProtectionEnabled: false,
     }));
     expect(deps.createResponseWindowRuntime).toHaveBeenCalledWith(expect.objectContaining({
       syncWindowDisplayAffinity: deps.syncWindowDisplayAffinity,
-      overlayContentProtectionEnabled: false,
     }));
     expect(deps.createTrayRuntime).toHaveBeenCalled();
     expect(state.applyResponseOverlayPhase).toHaveBeenCalledWith({ phase: 'idle' });
   });
 
-  test('recreated overlays do not inherit active-loop content protection state', () => {
+  test('recreated overlays sync the current phase without inheriting protection state', () => {
     const { deps, state } = createDeps();
     state.responseOverlayPhase = 'tool-call';
     const runtime = createWindowBootstrapRuntime(deps);
@@ -150,12 +147,8 @@ describe('main_process_bootstrap_runtime', () => {
     runtime.createChatWindow();
     runtime.createResponseWindow();
 
-    expect(deps.createChatWindowRuntime).toHaveBeenCalledWith(expect.objectContaining({
-      overlayContentProtectionEnabled: false,
-    }));
-    expect(deps.createResponseWindowRuntime).toHaveBeenCalledWith(expect.objectContaining({
-      overlayContentProtectionEnabled: false,
-    }));
+    expect(deps.createChatWindowRuntime.mock.calls[0][0]).not.toHaveProperty('overlayContentProtectionEnabled');
+    expect(deps.createResponseWindowRuntime.mock.calls[0][0]).not.toHaveProperty('overlayContentProtectionEnabled');
     expect(state.applyResponseOverlayPhase).toHaveBeenCalledWith({ phase: 'tool-call' });
   });
 });

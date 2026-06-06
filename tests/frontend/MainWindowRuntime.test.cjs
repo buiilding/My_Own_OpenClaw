@@ -236,7 +236,6 @@ describe('main_window_runtime createChatWindow', () => {
       setChatWindow: jest.fn(),
       applyOverlayWindowPolicy: jest.fn(),
       applyContentProtection: jest.fn(),
-      overlayContentProtectionEnabled: false,
       syncWindowDisplayAffinity: jest.fn(),
       ...overrides,
     };
@@ -272,7 +271,7 @@ describe('main_window_runtime createChatWindow', () => {
     expect(options.resizable).toBe(false);
   });
 
-  test('leaves chat overlay unprotected while idle by default', () => {
+  test('creates chat overlay without creation-time content protection', () => {
     const { deps, chatWindow } = createDeps({ platform: 'win32' });
 
     createChatWindow(deps);
@@ -281,26 +280,7 @@ describe('main_window_runtime createChatWindow', () => {
       targetWindow: chatWindow,
       windowLabel: 'chat box',
     });
-    expect(deps.applyContentProtection).toHaveBeenCalledWith({
-      targetWindow: chatWindow,
-      windowLabel: 'chat box',
-      enabled: false,
-    });
-  });
-
-  test('enables chat overlay content protection when created during active loop', () => {
-    const { deps, chatWindow } = createDeps({
-      platform: 'win32',
-      overlayContentProtectionEnabled: true,
-    });
-
-    createChatWindow(deps);
-
-    expect(deps.applyContentProtection).toHaveBeenCalledWith({
-      targetWindow: chatWindow,
-      windowLabel: 'chat box',
-      enabled: true,
-    });
+    expect(deps.applyContentProtection).not.toHaveBeenCalled();
   });
 
   test('defers chat renderer load until first show event', () => {
@@ -350,7 +330,7 @@ describe('main_window_runtime createChatWindow', () => {
     expect(chatWindow.loadURL).toHaveBeenCalledWith(expect.stringContaining('debug_tool_screenshot=1'));
   });
 
-  test('uses aggressive always-on-top level on mac for chat overlay', () => {
+  test('applies capturable always-on-top policy on mac for chat overlay', () => {
     const { deps, chatWindow } = createDeps({ platform: 'darwin' });
 
     createChatWindow(deps);
@@ -405,7 +385,6 @@ describe('main_window_runtime createResponseWindow', () => {
       setResponseWindow: jest.fn(),
       applyOverlayWindowPolicy: jest.fn(),
       applyContentProtection: jest.fn(),
-      overlayContentProtectionEnabled: false,
       syncWindowDisplayAffinity: jest.fn(),
       ...overrides,
     };
@@ -471,7 +450,7 @@ describe('main_window_runtime createResponseWindow', () => {
     expect(responseWindow.loadURL).toHaveBeenCalledWith(expect.stringContaining('debug_tool_screenshot=1'));
   });
 
-  test('uses aggressive always-on-top level on mac for response overlay', () => {
+  test('applies capturable always-on-top policy on mac for response overlay', () => {
     const { deps, responseWindow } = createDeps({ platform: 'darwin' });
 
     createResponseWindow(deps);
@@ -480,11 +459,7 @@ describe('main_window_runtime createResponseWindow', () => {
       targetWindow: responseWindow,
       windowLabel: 'response overlay',
     });
-    expect(deps.applyContentProtection).toHaveBeenCalledWith({
-      targetWindow: responseWindow,
-      windowLabel: 'response overlay',
-      enabled: false,
-    });
+    expect(deps.applyContentProtection).not.toHaveBeenCalled();
   });
 
   test('pins response overlay across workspaces and fullscreen spaces on mac', () => {
@@ -498,20 +473,6 @@ describe('main_window_runtime createResponseWindow', () => {
     });
   });
 
-  test('enables response overlay content protection when created during active loop', () => {
-    const { deps, responseWindow } = createDeps({
-      platform: 'darwin',
-      overlayContentProtectionEnabled: true,
-    });
-
-    createResponseWindow(deps);
-
-    expect(deps.applyContentProtection).toHaveBeenCalledWith({
-      targetWindow: responseWindow,
-      windowLabel: 'response overlay',
-      enabled: true,
-    });
-  });
 });
 
 describe('main_window_runtime createMainWindow', () => {

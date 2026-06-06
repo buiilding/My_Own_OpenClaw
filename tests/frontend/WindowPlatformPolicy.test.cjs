@@ -23,7 +23,7 @@ describe('window_platform_policy', () => {
     });
 
     expect(targetWindow.setContentProtection).not.toHaveBeenCalled();
-    expect(targetWindow.setAlwaysOnTop).toHaveBeenCalledWith(true, 'screen-saver');
+    expect(targetWindow.setAlwaysOnTop).toHaveBeenCalledWith(true, 'floating');
     expect(targetWindow.setVisibleOnAllWorkspaces).not.toHaveBeenCalled();
   });
 
