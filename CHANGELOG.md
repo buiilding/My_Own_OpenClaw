@@ -10,7 +10,8 @@ All notable changes to WindieOS will be documented in this file.
   that seeds canonical `chat_events`, drives the renderer replay hook, verifies
   backend rehydrate, confirms stale stored tail rows are cut before resend, and
   identifies renderer-message mapping, session-user, sidecar-rewrite, and
-  backend-rehydrate preparation failures.
+  backend-rehydrate preparation failures, including first-turn edits that
+  rewrite the whole stored tail before sending.
 - sidecar/chat: derive recent-conversation sidebar metadata from user-facing
   chat events only, so SDK lifecycle events no longer appear as chat titles,
   previews, or workspace grouping sources.

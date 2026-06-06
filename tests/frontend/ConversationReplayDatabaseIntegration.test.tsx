@@ -543,6 +543,48 @@ describe('conversation replay database integration', () => {
     expect(storedRows.some(row => row.id === 'stored-assistant-2')).toBe(false);
   });
 
+  test('edit and resend of the first user turn rewrites the whole tail and still sends', async () => {
+    const { result } = renderReplayHook(BASE_MESSAGES);
+
+    await act(async () => {
+      await expect(result.current.handleEditFromUser(
+        'renderer-user-1',
+        'edited first question',
+      )).resolves.toBe(true);
+    });
+
+    expect(invokeWindieCommand).toHaveBeenCalledWith('conversation.prepareEditAndResend', expect.objectContaining({
+      conversationRef: 'conv-replay-db',
+      userId: 'user-replay-db',
+      messageId: 'renderer-user-1',
+      userMessageOrdinal: 0,
+      text: 'edited first question',
+    }));
+    expect(backendRehydrates).toEqual([
+      expect.objectContaining({
+        conversation_ref: 'conv-replay-db',
+        rehydrate_mode: 'replace',
+        messages: [],
+      }),
+    ]);
+    expect(sentQueries).toEqual([
+      expect.objectContaining({
+        conversation_ref: 'conv-replay-db',
+        text: 'edited first question',
+        memory_retrieval_enabled: expect.any(Boolean),
+      }),
+    ]);
+
+    const storedRows = history.rows('conv-replay-db');
+    expect(storedRows.map(row => row.id)).toEqual([
+      expect.stringMatching(/conversation_rewritten$/),
+    ]);
+    expect(storedRows.map(row => row.event_type)).toEqual([
+      'conversation_rewritten',
+    ]);
+    expect(storedRows.map(row => row.message_index)).toEqual([1]);
+  });
+
   test('reports preparation failure when renderer message identity cannot map to a stored user_message', async () => {
     const messages = [
       ...BASE_MESSAGES,
