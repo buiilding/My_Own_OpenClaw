@@ -226,6 +226,141 @@ async def test_list_chat_conversations_prefers_stored_conversation_title(
 
 
 @pytest.mark.asyncio
+async def test_list_chat_conversations_hides_internal_lifecycle_only_rows(
+    tmp_path: Path,
+):
+    db_path = str(tmp_path / "memory.db")
+    await init_episodic_schema(db_path)
+    await init_chat_event_schema(db_path)
+
+    await append_chat_event(
+        db_path=db_path,
+        user_id="user-1",
+        conversation_id="conv-internal-only",
+        event_type="turn_started",
+        role="assistant",
+        content="[sdk event: turn_started]",
+        timestamp="2026-05-17T12:00:00+00:00",
+        message_index=None,
+        revision_id="rev-1",
+        turn_ref="turn-1",
+        tool_name=None,
+        correlation_id=None,
+        workspace_path="/work/WindieOS",
+        workspace_name="WindieOS",
+        metadata={},
+        attachments=[],
+        event_payload={
+            "eventId": "evt-turn-started",
+            "type": "turn_started",
+            "conversationRef": "conv-internal-only",
+            "revisionId": "rev-1",
+            "timestamp": "2026-05-17T12:00:00+00:00",
+            "source": "sdk",
+            "payload": {},
+        },
+    )
+
+    conversations = await list_chat_conversations(
+        db_path=db_path,
+        user_id="user-1",
+        limit=10,
+    )
+
+    assert conversations == []
+
+
+@pytest.mark.asyncio
+async def test_list_chat_conversations_uses_user_facing_metadata(
+    tmp_path: Path,
+):
+    db_path = str(tmp_path / "memory.db")
+    await init_episodic_schema(db_path)
+    await init_chat_event_schema(db_path)
+
+    events = [
+        (
+            "turn_started",
+            "assistant",
+            "[sdk event: turn_started]",
+            None,
+            None,
+            {},
+        ),
+        (
+            "user_message",
+            "user",
+            "what workspace am I in?",
+            "/work/WindieOS",
+            "WindieOS",
+            {"text": "what workspace am I in?"},
+        ),
+        (
+            "assistant_message",
+            "assistant",
+            "You are in WindieOS.",
+            None,
+            None,
+            {"text": "You are in WindieOS."},
+        ),
+        (
+            "memory_store_changed",
+            "assistant",
+            "[sdk event: memory_store_changed]",
+            None,
+            None,
+            {},
+        ),
+    ]
+    for index, (event_type, role, content, workspace_path, workspace_name, payload) in enumerate(
+        events,
+        start=1,
+    ):
+        await append_chat_event(
+            db_path=db_path,
+            user_id="user-1",
+            conversation_id="conv-visible",
+            event_type=event_type,
+            role=role,
+            content=content,
+            timestamp=f"2026-05-17T12:00:0{index}+00:00",
+            message_index=None,
+            revision_id="rev-1",
+            turn_ref="turn-1",
+            tool_name=None,
+            correlation_id=None,
+            workspace_path=workspace_path,
+            workspace_name=workspace_name,
+            metadata={},
+            attachments=[],
+            event_payload={
+                "eventId": f"evt-{index}",
+                "type": event_type,
+                "conversationRef": "conv-visible",
+                "revisionId": "rev-1",
+                "timestamp": f"2026-05-17T12:00:0{index}+00:00",
+                "source": "sdk",
+                "payload": payload,
+            },
+        )
+
+    conversations = await list_chat_conversations(
+        db_path=db_path,
+        user_id="user-1",
+        limit=10,
+    )
+
+    assert [conversation["conversation_id"] for conversation in conversations] == [
+        "conv-visible"
+    ]
+    assert conversations[0]["entry_count"] == 4
+    assert conversations[0]["title"] == "what workspace am I in?"
+    assert conversations[0]["last_message"] == "You are in WindieOS."
+    assert conversations[0]["workspace_path"] == "/work/WindieOS"
+    assert conversations[0]["workspace_name"] == "WindieOS"
+
+
+@pytest.mark.asyncio
 async def test_list_chat_conversations_returns_one_row_per_conversation(
     tmp_path: Path,
 ):

@@ -6,6 +6,9 @@ All notable changes to WindieOS will be documented in this file.
 
 ### Changed
 
+- sidecar/chat: derive recent-conversation sidebar metadata from user-facing
+  chat events only, so SDK lifecycle events no longer appear as chat titles,
+  previews, or workspace grouping sources.
 - docs/plans: add the SDK-owned live-turn presentation refactor plan for moving
   immediate user-message display, typing state, and response overlay entries
   out of renderer-local semantics and into SDK-owned projections.

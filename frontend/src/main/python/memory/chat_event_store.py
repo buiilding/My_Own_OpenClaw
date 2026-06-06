@@ -17,6 +17,15 @@ except ImportError:  # pragma: no cover - dependency guard is exercised at runti
     aiosqlite = None
 
 
+SIDEBAR_METADATA_EVENT_TYPES = (
+    "user_message",
+    "assistant_message",
+    "tool_output",
+    "tool_bundle_output",
+    "turn_error",
+)
+
+
 def _normalize_timestamp(timestamp: Optional[str]) -> str:
     if not isinstance(timestamp, str) or not timestamp.strip():
         return datetime.now(timezone.utc).isoformat()
@@ -396,24 +405,33 @@ async def list_chat_conversations(
     user_id: str,
     limit: Optional[int],
 ) -> List[Dict[str, Any]]:
+    metadata_event_placeholders = ", ".join(
+        "?" for _ in SIDEBAR_METADATA_EVENT_TYPES
+    )
     async with aiosqlite.connect(db_path) as conn:
         conn.row_factory = aiosqlite.Row
         cursor = await conn.cursor()
         await cursor.execute(
-            """
-            WITH conversation_ids AS (
-                SELECT DISTINCT conversation_id
+            f"""
+            WITH visible_events AS (
+                SELECT *
                 FROM chat_events
-                WHERE user_id = ? AND conversation_id IS NOT NULL
+                WHERE user_id = ?
+                  AND conversation_id IS NOT NULL
+                  AND event_type IN ({metadata_event_placeholders})
+            ),
+            conversation_ids AS (
+                SELECT DISTINCT conversation_id
+                FROM visible_events
             )
             SELECT c.conversation_id,
                    (
-                     SELECT MIN(timestamp) FROM chat_events e
-                     WHERE e.user_id = ? AND e.conversation_id = c.conversation_id
+                     SELECT MIN(timestamp) FROM visible_events e
+                     WHERE e.conversation_id = c.conversation_id
                    ) as first_timestamp,
                    (
-                     SELECT MAX(timestamp) FROM chat_events e
-                     WHERE e.user_id = ? AND e.conversation_id = c.conversation_id
+                     SELECT MAX(timestamp) FROM visible_events e
+                     WHERE e.conversation_id = c.conversation_id
                    ) as last_timestamp,
                    (
                      SELECT COUNT(*) FROM chat_events e
@@ -429,9 +447,8 @@ async def list_chat_conversations(
                      LIMIT 1
                    ) as stored_title,
                    (
-                     SELECT content FROM chat_events e2
-                     WHERE e2.user_id = ?
-                       AND e2.conversation_id = c.conversation_id
+                     SELECT content FROM visible_events e2
+                     WHERE e2.conversation_id = c.conversation_id
                        AND e2.role = 'user'
                        AND e2.content IS NOT NULL
                        AND e2.content != ''
@@ -439,11 +456,11 @@ async def list_chat_conversations(
                      LIMIT 1
                    ) as first_user_content,
                    (
-                     SELECT content FROM chat_events e2
-                     WHERE e2.user_id = ?
-                       AND e2.conversation_id = c.conversation_id
+                     SELECT content FROM visible_events e2
+                     WHERE e2.conversation_id = c.conversation_id
                        AND e2.content IS NOT NULL
                        AND e2.content != ''
+                       AND e2.content NOT LIKE '[sdk event:%'
                      ORDER BY e2.message_index DESC, e2.timestamp DESC
                      LIMIT 1
                    ) as last_content,
@@ -467,18 +484,16 @@ async def list_chat_conversations(
                      LIMIT 1
                    ) as event_revision_id,
                    (
-                     SELECT workspace_path FROM chat_events e2
-                     WHERE e2.user_id = ?
-                       AND e2.conversation_id = c.conversation_id
+                     SELECT workspace_path FROM visible_events e2
+                     WHERE e2.conversation_id = c.conversation_id
                        AND e2.workspace_path IS NOT NULL
                        AND e2.workspace_path != ''
                      ORDER BY e2.message_index DESC, e2.timestamp DESC
                      LIMIT 1
                    ) as workspace_path,
                    (
-                     SELECT workspace_name FROM chat_events e2
-                     WHERE e2.user_id = ?
-                       AND e2.conversation_id = c.conversation_id
+                     SELECT workspace_name FROM visible_events e2
+                     WHERE e2.conversation_id = c.conversation_id
                        AND e2.workspace_name IS NOT NULL
                        AND e2.workspace_name != ''
                      ORDER BY e2.message_index DESC, e2.timestamp DESC
@@ -490,12 +505,7 @@ async def list_chat_conversations(
             """,
             (
                 user_id,
-                user_id,
-                user_id,
-                user_id,
-                user_id,
-                user_id,
-                user_id,
+                *SIDEBAR_METADATA_EVENT_TYPES,
                 user_id,
                 user_id,
                 user_id,
@@ -514,7 +524,6 @@ async def list_chat_conversations(
         title = str(
             row["stored_title"]
             or row["first_user_content"]
-            or row["last_content"]
             or conversation_id
         ).strip()
         results.append(
